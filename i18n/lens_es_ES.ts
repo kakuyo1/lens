@@ -10,23 +10,23 @@
     </message>
     <message>
         <location filename="../src/app/qml/Bubble.qml" line="316"/>
-        <location filename="../src/app/qml/Bubble.qml" line="545"/>
+        <location filename="../src/app/qml/Bubble.qml" line="549"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
         <location filename="../src/app/qml/Bubble.qml" line="316"/>
-        <location filename="../src/app/qml/Bubble.qml" line="572"/>
+        <location filename="../src/app/qml/Bubble.qml" line="576"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="474"/>
+        <location filename="../src/app/qml/Bubble.qml" line="478"/>
         <source>Etymology</source>
         <translation>Etimología</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="594"/>
+        <location filename="../src/app/qml/Bubble.qml" line="598"/>
         <source>Disappears in %1s</source>
         <translation>Desaparece en %1 s</translation>
     </message>
@@ -183,7 +183,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="51"/>
-        <location filename="../src/app/app_controller.cpp" line="260"/>
+        <location filename="../src/app/app_controller.cpp" line="286"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -267,7 +267,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="44"/>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="16"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="58"/>
         <source>Desktop companion</source>
         <translation>Compañero de escritorio</translation>
     </message>
@@ -297,97 +297,127 @@
         <translation>Esta dirección es la habitual del proveedor y puede quedar obsoleta; compruébala en su documentación.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="63"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="52"/>
+        <source>Checking...</source>
+        <translation>Comprobando…</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="54"/>
+        <source>Up to date (version %1)</source>
+        <translation>Al día (versión %1)</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="56"/>
+        <source>Version %1 is available</source>
+        <translation>La versión %1 está disponible</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="58"/>
+        <source>Cannot connect</source>
+        <translation>No se puede conectar</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="89"/>
         <source>Theme</source>
         <translation>Tema</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="74"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="100"/>
         <source>Light</source>
         <translation>Claro</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="75"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="101"/>
         <source>Dark</source>
         <translation>Oscuro</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="76"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="102"/>
         <source>Forest</source>
         <translation>Forest</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="77"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="103"/>
         <source>Custom</source>
         <translation>Personalizado</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="91"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="117"/>
         <source>Custom semantic colors</source>
         <translation>Colores semánticos personalizados</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="100"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="126"/>
         <source>Use six-digit hex colors. Body, muted, and faint text must each pass WCAG AA on the panel.</source>
         <translation>Usa colores hexadecimales de seis dígitos. El texto principal, el secundario y el tenue deben superar WCAG AA sobre el panel.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="107"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="133"/>
         <source>Background</source>
         <translation>Fondo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="108"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="134"/>
         <source>Panel</source>
         <translation>Panel</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="109"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="135"/>
         <source>Body text</source>
         <translation>Texto principal</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="110"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="136"/>
         <source>Muted text</source>
         <translation>Texto secundario</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="111"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="137"/>
         <source>Faint text</source>
         <translation>Texto tenue</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="112"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="138"/>
         <source>Accent</source>
         <translation>Acento</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="170"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="196"/>
         <source>AA contrast passes: body %1, muted %2, faint %3</source>
         <translation>Contraste AA correcto: principal %1, secundario %2, tenue %3</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="174"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="200"/>
         <source>AA contrast requires valid colors and a 4.5:1 ratio for body, muted, and faint text.</source>
         <translation>El contraste AA exige colores válidos y una proporción de 4.5:1 para el texto principal, el secundario y el tenue.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="188"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="214"/>
         <source>Apply custom colors</source>
         <translation>Aplicar colores personalizados</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="203"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="229"/>
         <source>Launch at startup</source>
         <translation>Iniciar con el sistema</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="210"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="236"/>
         <source>Animations</source>
         <translation>Animaciones</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="218"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="268"/>
+        <source>Check for updates</source>
+        <translation>Buscar actualizaciones</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="297"/>
+        <source>Check for updates at startup</source>
+        <translation>Buscar actualizaciones al iniciar</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="305"/>
         <source>Animations are disabled by Windows accessibility settings.</source>
         <translation>La configuración de accesibilidad de Windows ha desactivado las animaciones.</translation>
     </message>
@@ -468,37 +498,37 @@
         <translation>Guardar</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="528"/>
+        <location filename="../src/app/model_catalog_duty.cpp" line="131"/>
         <source>Domestic</source>
         <translation>Nacional</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="529"/>
+        <location filename="../src/app/model_catalog_duty.cpp" line="132"/>
         <source>International</source>
         <translation>Internacional</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="530"/>
+        <location filename="../src/app/model_catalog_duty.cpp" line="133"/>
         <source>Other</source>
         <translation>Otros</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="531"/>
+        <location filename="../src/app/model_catalog_duty.cpp" line="134"/>
         <source>Custom service</source>
         <translation>Servicio propio</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="256"/>
+        <location filename="../src/app/app_controller.cpp" line="278"/>
         <source>Checking OCR</source>
         <translation>Comprobando el OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="257"/>
+        <location filename="../src/app/app_controller.cpp" line="279"/>
         <source>English OCR data is missing</source>
         <translation>Faltan los datos de OCR en inglés</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="258"/>
+        <location filename="../src/app/app_controller.cpp" line="283"/>
         <source>OCR runtime is unavailable</source>
         <translation>El entorno de OCR no está disponible</translation>
     </message>
@@ -511,6 +541,146 @@
         <location filename="../src/app/model_catalog_duty.cpp" line="126"/>
         <source>Input %1 / Output %2 %3 per %4 tokens</source>
         <translation>Entrada %1 / Salida %2 %3 por %4 tokens</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="15"/>
+        <source>Idle</source>
+        <translation>Inactivo</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="16"/>
+        <source>Reading</source>
+        <translation>Leyendo</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="17"/>
+        <source>Thinking</source>
+        <translation>Pensando</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="18"/>
+        <source>Celebrate</source>
+        <translation>Celebrar</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="19"/>
+        <source>Encourage</source>
+        <translation>Animar</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="20"/>
+        <source>Sleep</source>
+        <translation>Dormir</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="21"/>
+        <source>Poked</source>
+        <translation>Tocado</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="22"/>
+        <source>Picked up</source>
+        <translation>Levantado</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="23"/>
+        <source>Look around</source>
+        <translation>Mirar alrededor</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="24"/>
+        <source>Yawn</source>
+        <translation>Bostezar</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="25"/>
+        <source>Stretch</source>
+        <translation>Estirarse</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="32"/>
+        <source>Top hat</source>
+        <translation>Sombrero de copa</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="33"/>
+        <source>Beanie</source>
+        <translation>Gorro de lana</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="34"/>
+        <source>Sprout</source>
+        <translation>Brote</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="35"/>
+        <source>Crown</source>
+        <translation>Corona</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="36"/>
+        <source>Round glasses</source>
+        <translation>Gafas redondas</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="37"/>
+        <source>Sunglasses</source>
+        <translation>Gafas de sol</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="38"/>
+        <source>Bow tie</source>
+        <translation>Pajarita</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="45"/>
+        <source>Head</source>
+        <translation>Cabeza</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="46"/>
+        <source>Face</source>
+        <translation>Cara</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="47"/>
+        <source>Body</source>
+        <translation>Cuerpo</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="67"/>
+        <source>Mouse pass-through</source>
+        <translation>Paso del ratón</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="83"/>
+        <source>Desktop pet size</source>
+        <translation>Tamaño del compañero</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="127"/>
+        <source>Pet type</source>
+        <translation>Tipo de compañero</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="134"/>
+        <source>White dog</source>
+        <translation>Perro blanco</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="144"/>
+        <source>Preview</source>
+        <translation>Vista previa</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="159"/>
+        <source>Actions</source>
+        <translation>Acciones</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="187"/>
+        <source>Accessories</source>
+        <translation>Accesorios</translation>
     </message>
 </context>
 <context>
@@ -582,6 +752,69 @@
         <location filename="../src/app/qml/TrayMenu.qml" line="196"/>
         <source>Quit</source>
         <translation>Salir</translation>
+    </message>
+</context>
+<context>
+    <name>UpdateCard</name>
+    <message>
+        <location filename="../src/app/qml/UpdateCard.qml" line="58"/>
+        <source>Downloading...</source>
+        <translation>Descargando…</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/UpdateCard.qml" line="60"/>
+        <source>Checking the download...</source>
+        <translation>Comprobando la descarga…</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/UpdateCard.qml" line="62"/>
+        <source>The installer is ready to run.</source>
+        <translation>El instalador está listo para ejecutarse.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/UpdateCard.qml" line="66"/>
+        <source>Downloads from GitHub usually need a proxy in mainland China. Turn on your proxy and try again.</source>
+        <translation>En China continental, las descargas desde GitHub suelen necesitar un proxy. Activa el proxy e inténtalo de nuevo.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/UpdateCard.qml" line="68"/>
+        <source>The download did not match the published checksum. It was deleted.</source>
+        <translation>La descarga no coincide con la suma de comprobación publicada. Se ha eliminado.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/UpdateCard.qml" line="69"/>
+        <source>Download failed. Check your connection.</source>
+        <translation>La descarga ha fallado. Comprueba tu conexión.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/UpdateCard.qml" line="75"/>
+        <source>Cancel</source>
+        <translation>Cancelar</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/UpdateCard.qml" line="77"/>
+        <source>Install</source>
+        <translation>Instalar</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/UpdateCard.qml" line="79"/>
+        <source>Download</source>
+        <translation>Descargar</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/UpdateCard.qml" line="121"/>
+        <source>Lens %1 is available</source>
+        <translation>Lens %1 está disponible</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/UpdateCard.qml" line="236"/>
+        <source>View</source>
+        <translation>Ver</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/UpdateCard.qml" line="271"/>
+        <source>Skip this version</source>
+        <translation>Omitir esta versión</translation>
     </message>
 </context>
 <context>
@@ -820,103 +1053,103 @@
 <context>
     <name>lens::app::AppController</name>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="249"/>
+        <location filename="../src/app/app_controller.cpp" line="271"/>
         <source>Screenshot capture is off.</source>
         <translation>La captura de pantalla está desactivada.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="250"/>
-        <location filename="../src/app/app_controller.cpp" line="411"/>
+        <location filename="../src/app/app_controller.cpp" line="272"/>
+        <location filename="../src/app/app_controller.cpp" line="439"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>El presupuesto de hoy se ha agotado.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="251"/>
+        <location filename="../src/app/app_controller.cpp" line="273"/>
         <source>A recognition is already running.</source>
         <translation>Ya hay un reconocimiento en curso.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="253"/>
+        <location filename="../src/app/app_controller.cpp" line="275"/>
         <source>That region cannot be captured.</source>
         <translation>Esa región no se puede capturar.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="254"/>
+        <location filename="../src/app/app_controller.cpp" line="276"/>
         <source>No text was found in that region.</source>
         <translation>No se encontró texto en esa región.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="255"/>
+        <location filename="../src/app/app_controller.cpp" line="277"/>
         <source>That region could not be read.</source>
         <translation>No se pudo leer esa región.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="490"/>
+        <location filename="../src/app/app_controller.cpp" line="519"/>
         <source>Today %1</source>
         <translation>Hoy %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="492"/>
+        <location filename="../src/app/app_controller.cpp" line="521"/>
         <source>Yesterday %1</source>
         <translation>Ayer %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="499"/>
+        <location filename="../src/app/app_controller.cpp" line="528"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="501"/>
+        <location filename="../src/app/app_controller.cpp" line="530"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="606"/>
+        <location filename="../src/app/app_controller.cpp" line="630"/>
         <source>Auto</source>
         <translation>Automático</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="606"/>
+        <location filename="../src/app/app_controller.cpp" line="630"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="225"/>
+        <location filename="../src/app/explanation_duty.cpp" line="201"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>No hay ninguna explicación guardada para esta palabra en el idioma actual.</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="227"/>
+        <location filename="../src/app/explanation_duty.cpp" line="203"/>
         <source>Explain now</source>
         <translation>Explicar ahora</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="289"/>
+        <location filename="../src/app/explanation_duty.cpp" line="272"/>
         <source>Explaining…</source>
         <translation>Explicando…</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="367"/>
+        <location filename="../src/app/explanation_duty.cpp" line="347"/>
         <source>Request failed</source>
         <translation>La solicitud ha fallado</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="99"/>
-        <location filename="../src/app/storage_duty.cpp" line="100"/>
+        <location filename="../src/app/storage_duty.cpp" line="73"/>
+        <location filename="../src/app/storage_duty.cpp" line="74"/>
         <source>CEFR</source>
         <translation>CEFR</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="101"/>
-        <location filename="../src/app/storage_duty.cpp" line="102"/>
-        <location filename="../src/app/storage_duty.cpp" line="103"/>
-        <location filename="../src/app/storage_duty.cpp" line="104"/>
+        <location filename="../src/app/storage_duty.cpp" line="75"/>
+        <location filename="../src/app/storage_duty.cpp" line="76"/>
+        <location filename="../src/app/storage_duty.cpp" line="77"/>
+        <location filename="../src/app/storage_duty.cpp" line="78"/>
         <source>National exams</source>
         <translation>Exámenes nacionales</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="105"/>
-        <location filename="../src/app/storage_duty.cpp" line="106"/>
+        <location filename="../src/app/storage_duty.cpp" line="79"/>
+        <location filename="../src/app/storage_duty.cpp" line="80"/>
         <source>Study-abroad exams</source>
         <translation>Exámenes de estudios en el extranjero</translation>
     </message>
@@ -924,7 +1157,7 @@
 <context>
     <name>lens::app::Tray</name>
     <message>
-        <location filename="../src/app/tray.cpp" line="151"/>
+        <location filename="../src/app/tray.cpp" line="136"/>
         <source>Today %1 words</source>
         <translation>Hoy %1 palabras</translation>
     </message>
@@ -1042,18 +1275,18 @@
 <context>
     <name>lens::llm::LlmClient</name>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="149"/>
+        <location filename="../src/llm/llm_client.cpp" line="121"/>
         <source>There is nothing to look up.</source>
         <translation>No hay nada que consultar.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="157"/>
+        <location filename="../src/llm/llm_client.cpp" line="129"/>
         <source>The API key is missing.</source>
         <translation>Falta la clave de API.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="189"/>
-        <location filename="../src/llm/llm_client.cpp" line="194"/>
+        <location filename="../src/llm/llm_client.cpp" line="161"/>
+        <location filename="../src/llm/llm_client.cpp" line="166"/>
         <source>The request could not reach the service: %1</source>
         <translation>La solicitud no pudo llegar al servicio: %1</translation>
     </message>
