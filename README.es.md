@@ -47,9 +47,10 @@ Las imágenes siguientes proceden de los archivos HTML de diseño de [`ui-protot
 
 Clips breves de las operaciones principales, con la interfaz en español.
 
-| Mascota de escritorio | Año en palabras |
+| Globo de explicación | Mascota de escritorio |
 | --- | --- |
-| ![Demostración de la mascota de escritorio](docs/readme-images/gifs/es/pet-celebrate.gif)<br>La acción de celebración de la mascota de escritorio. Solo recibe tipos de evento y nunca lee tus palabras. | ![Demostración del año en palabras](docs/readme-images/gifs/es/year-in-words.gif)<br>Un año de consultas en un gráfico de contribuciones. Selecciona un día para ver su total, o elige los colores de las celdas. |
+| ![Demostración del globo de explicación](docs/readme-images/gifs/es/word-bubble.gif)<br>Globo de explicación de una palabra, con pronunciación, traducción y cuenta atrás hasta que se cierra. La explicación es una traducción automática. | ![Demostración de la mascota de escritorio](docs/readme-images/gifs/es/pet-celebrate.gif)<br>La acción de celebración de la mascota de escritorio. Solo recibe tipos de evento y nunca lee tus palabras. |
+| ![Demostración de marcar una palabra](docs/readme-images/gifs/es/marking-known-new.gif)<br>Al pasar el cursor sobre una palabra aparecen Conocida y Nueva. Al pulsar Conocida, la insignia cambia. La explicación es una traducción automática. | ![Demostración del año en palabras](docs/readme-images/gifs/es/year-in-words.gif)<br>Un año de consultas en un gráfico de contribuciones. Selecciona un día para ver su total, o elige los colores de las celdas. |
 
 ## Idiomas y apariencia
 
