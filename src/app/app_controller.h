@@ -28,6 +28,7 @@
 #include "global_hotkey.h"
 #include "llm/llm_client.h"
 #include "llm/llm_pricing.h"
+#include "model_catalog_duty.h"
 #include "mouse_selection_hook.h"
 #include "storage_duty.h"
 #include "update_duty.h"
@@ -163,7 +164,7 @@ public:
     ///       this one is owned, which is what makes the difference; see docs/adr/0024.
     QVariantMap settings();
     /// @brief The models the provider in force carries. Its own property, not a key of settings():
-    ///        see ExplanationDuty::models() for why the list is kept out of that map.
+    ///        see ModelCatalogDuty::models() for why the list is kept out of that map.
     QVariantList models() const;
     QVariantMap stats() const;
     QVariantList words() const;
@@ -231,6 +232,7 @@ private:
     StorageDuty storage_;
     CostDuty cost_;
     CaptureDuty capture_;
+    ModelCatalogDuty catalog_;
     ExplanationDuty explanation_;
     update::UpdateClient updateClient_;
     update::DownloadClient updateDownloader_;

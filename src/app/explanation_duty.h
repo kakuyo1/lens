@@ -57,8 +57,6 @@ public:
     /// a signal that flaps is what made it appear and disappear while the pointer stood still. The
     /// word the pointer is on is the one thing that is not in doubt.
     void dismissReview();
-    /// @brief Ask the shared model source for the whole catalogue.
-    void refreshModels();
     /// @brief Ask the model about a lemma the reader asked for by name, anchored where it was read.
     void explainLemma(QString lemma);
     void dismissBubble();
@@ -75,38 +73,9 @@ public:
     QVariantMap bubble() const;
     QVariantMap notice() const;
     QString busyLabel() const;
-    QVariantMap settings() const;
-    /**
-     * @brief The models the provider in force carries, as {value,label,group,note}.
-     *
-     * Read off a cache rebuilt where the answer can change rather than built on the read: this is
-     * the settings page's most-read list and its longest by far -- a service that resells other
-     * people's models answers with several hundred ids -- and the map per id that `settings()`
-     * used to carry was rebuilt for every one of the settings page's bindings, on every change.
-     */
-    QVariantList models() const;
-    /// @return The provider in force, from the document, or the catalog's default when none is
-    ///         stored. Public because the facade reads the same key to restore the wire options,
-    ///         and one definition of "the default provider" is better than three.
-    QString currentProvider() const;
-    /// @brief Point the client at a catalog service.
-    ///
-    /// The model follows the service (docs/adr/0017): a model name from another one is a 400 whose
-    /// message names nothing, and the service is the only thing the reader meant to choose. The
-    /// list fetched last time wins over the catalog's, and asking for a fresh one happens here too
-    /// -- it costs nothing. @return False for an unknown provider.
-    bool setProvider(QString const& provider);
-    bool setModel(QString const& model);
 
 signals:
     void bubbleChanged();
-    /// @brief Something the settings page reads has changed: the service or the model.
-    void settingsChanged();
-    /// @brief The provider in force carries a different list of models than it did.
-    ///
-    /// Its own signal because it is a separate property: the list is the one thing here big enough
-    /// that rebuilding it for every reader of settings() is what made a provider change feel slow.
-    void modelsChanged();
     void noticeChanged();
     void busyChanged();
     void statsChanged();
@@ -136,18 +105,6 @@ private:
     ///        the pointer leaves it.
     void showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool countsDown = true);
     QString noticeTitle(PendingSelection const& pending) const;
-    /// @return The model list known for @p provider: what the source listed for it last time, else
-    ///         the catalog's own seed, else empty -- a custom endpoint names no models at all.
-    QStringList modelsFor(QString const& provider) const;
-    /// @brief Split one shared answer into the per-provider caches the catalog names.
-    ///
-    /// @p models is the whole catalogue; each provider takes the ids its `openRouterPrefix` names.
-    /// A fetched list never rewrites the model in force (docs/adr/0020): it is a list of the whole
-    /// industry, not of the one service standing, so it is not the authority on what that service
-    /// carries.
-    void noteModelsFetched(QStringList models);
-    /// @brief Rebuild the cached model list from the provider in force, and say so if it moved.
-    void rebuildModels();
     ///
     /// One reader of this, two uses: the request asks the model for it, and the card decides
     /// whether to draw it. Turned off, the definition alone is what is bought and shown; turned
@@ -174,8 +131,6 @@ private:
     /// Whether the bubble standing is the one reviewWord() raised. Only that one is the pointer's
     /// to take down: a scan or a selection bubble outlives the pointer leaving a word-list row.
     bool reviewRaised_ = false;
-    /// The provider in force's models, in the shape the settings page draws.
-    QVariantList models_;
 };
 
 }

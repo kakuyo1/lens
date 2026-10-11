@@ -20,6 +20,8 @@ add_library(lens_app STATIC
   explanation_duty.cpp
   global_hotkey.h
   global_hotkey.cpp
+  model_catalog_duty.h
+  model_catalog_duty.cpp
   mouse_selection_hook.h
   mouse_selection_hook.cpp
   paths.h
