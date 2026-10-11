@@ -27,9 +27,9 @@ namespace lens::app {
 namespace {
 
 /// @return The trigger key the reader chose, or the default one when nothing usable is stored.
-QKeySequence storedHotkey(StorageDuty const& storage)
+QKeySequence storedHotkey(StorageDuty& storage)
 {
-    const QString text = storage.documentString("ocrHotkey", QString{}).trimmed();
+    const QString text = QString::fromStdString(storage.section().value<std::string>("ocrHotkey", {})).trimmed();
     if (text.isEmpty()) return GlobalHotkey::defaultKeys();
     const QKeySequence parsed = QKeySequence::fromString(text, QKeySequence::PortableText);
     if (parsed.isEmpty() or not GlobalHotkey::isUsable(parsed)) {
@@ -117,10 +117,11 @@ AppController::~AppController() = default;
 
 void AppController::restoreModelService()
 {
-    const QString provider = storage_.documentString("PROVIDER", llm::serviceCatalog().value("defaultProvider").toString());
+    auto const keys        = storage_.section();
+    const QString provider = explanation_.currentProvider();
     if (!llm_.setProvider(provider))
         llm_.setProvider(QStringLiteral("custom"));
-    const QString url = storage_.documentString("URL", QString{}).trimmed();
+    const QString url = QString::fromStdString(keys.value<std::string>("URL", {})).trimmed();
     if (!url.isEmpty()) {
         const QUrl savedUrl(url);
         if (savedUrl.isValid() && savedUrl.scheme() == QLatin1String("https") && !savedUrl.host().isEmpty())
@@ -128,7 +129,7 @@ void AppController::restoreModelService()
         else
             LENS_WARN("ignored an invalid persisted model service URL");
     }
-    const QString model = storage_.documentString("MODEL", QString{}).trimmed();
+    const QString model = QString::fromStdString(keys.value<std::string>("MODEL", {})).trimmed();
     if (!model.isEmpty())
         llm_.setModel(model);
     // The shared model source, asked once per run: one unauthenticated GET that costs nothing, and
@@ -217,7 +218,7 @@ QString AppController::setOcrHotkey(int key, int modifiers)
     if (not GlobalHotkey::isUsable(sequence)) return QStringLiteral("unusable");
     if (not hotkey_.setKeys(sequence)) return QStringLiteral("taken");
     const QString text = sequence.toString(QKeySequence::PortableText);
-    storage_.writeDocument("ocrHotkey", text);
+    storage_.section().set<std::string>("ocrHotkey", text.toStdString());
     LENS_INFO("OCR trigger key set to '{}'", text.toStdString());
     emit settingsChanged();
     return {};
@@ -294,31 +295,31 @@ void AppController::setExplanationLang(QString lang)
 
 void AppController::setMultiSense(bool on)
 {
-    storage_.writeDocument("multiSense", on ? QStringLiteral("true") : QStringLiteral("false"));
+    storage_.section().set<bool>("multiSense", on);
     emit settingsChanged();
 }
 
 void AppController::setEtymology(bool on)
 {
-    storage_.writeDocument("etymology", on ? QStringLiteral("true") : QStringLiteral("false"));
+    storage_.section().set<bool>("etymology", on);
     emit settingsChanged();
 }
 
 void AppController::setTheme(QString theme)
 {
-    storage_.writeDocument("theme", theme);
+    storage_.section().set<std::string>("theme", theme.toStdString());
     emit settingsChanged();
 }
 
 void AppController::setAnimationsEnabled(bool on)
 {
-    storage_.writeDocument("animationsEnabled", on);
+    storage_.section().set<bool>("animationsEnabled", on);
     emit settingsChanged();
 }
 
 void AppController::setUiLanguage(QString lang)
 {
-    storage_.writeDocument("uiLanguage", lang);
+    storage_.section().set<std::string>("uiLanguage", lang.toStdString());
     emit uiLanguageChanged(lang);
     emit settingsChanged();
     emit statsChanged();
@@ -326,7 +327,7 @@ void AppController::setUiLanguage(QString lang)
 
 void AppController::setSelectionCapture(bool on)
 {
-    storage_.writeDocument("selectionCapture", on ? QStringLiteral("true") : QStringLiteral("false"));
+    storage_.section().set<bool>("selectionCapture", on);
     LENS_INFO("selection capture {}", on ? "on" : "off");
     emit settingsChanged();
 }
@@ -334,7 +335,7 @@ void AppController::setSelectionCapture(bool on)
 void AppController::setApiKey(QString key)
 {
     llm_.setApiKey(key);
-    storage_.writeDocument("API-KEY", key);
+    storage_.section().set<std::string>("API-KEY", key.toStdString());
     LENS_INFO("API key {}", key.isEmpty() ? "cleared" : "updated");
     // The source takes no key, so the field already has a list and a key change does not unlock one
     // (docs/adr/0020). The trigger stays because the request is free and this is the moment the
@@ -349,7 +350,7 @@ void AppController::setClipboardPolicy(QString policy)
         LENS_WARN("unknown clipboard policy '{}'; leaving the setting alone", policy.toStdString());
         return;
     }
-    storage_.writeDocument("clipboardPolicy", policy);
+    storage_.section().set<std::string>("clipboardPolicy", policy.toStdString());
     LENS_INFO("clipboard policy set to '{}'", policy.toStdString());
     emit settingsChanged();
 }
@@ -380,7 +381,7 @@ void AppController::setApiUrl(QString url)
         return;
     }
     llm_.setBaseUrl(parsed);
-    storage_.writeDocument("URL", parsed.toString());
+    storage_.section().set<std::string>("URL", parsed.toString().toStdString());
     // The source is one fixed endpoint, so a new address does not move where the list comes from
     // and the models in hand are not the old service's. The refresh is kept only because the
     // triggers were deliberately left alone (docs/adr/0020); the request is free.
@@ -440,20 +441,21 @@ QVariantMap AppController::notice() const
     return explanation_.notice();
 }
 
-QVariantMap AppController::settings() const
+QVariantMap AppController::settings()
 {
-    const QString provider = storage_.documentString("PROVIDER", llm::serviceCatalog().value("defaultProvider").toString());
+    auto const keys        = storage_.section();
+    const QString provider = explanation_.currentProvider();
     QVariantMap result{{"level", storage_.knownStore().level()},
                        {"levels", StorageDuty::levelOptions()},
                        {"explanationLang", QString::fromStdString(storage_.knownStore().explanationLang())},
-                       {"multiSense", storage_.documentString("multiSense", QStringLiteral("false")) == QLatin1String("true")},
-                       {"etymology", storage_.documentString("etymology", QStringLiteral("false")) == QLatin1String("true")},
-                       {"theme", storage_.documentString("theme", QStringLiteral("light"))},
-                       {"animationsEnabled", storage_.documentBool("animationsEnabled", true)},
-                       {"uiLanguage", storage_.documentString("uiLanguage", QStringLiteral("zh"))},
-                       {"hasApiKey", !storage_.documentString("API-KEY", QString()).isEmpty()},
-                       {"selectionCapture", storage_.documentString("selectionCapture", QStringLiteral("true")) == QLatin1String("true")},
-                       {"clipboardPolicy", storage_.documentString("clipboardPolicy", QStringLiteral("topmost"))},
+                       {"multiSense", keys.value<bool>("multiSense", false)},
+                       {"etymology", keys.value<bool>("etymology", false)},
+                       {"theme", QString::fromStdString(keys.value<std::string>("theme", "light"))},
+                       {"animationsEnabled", keys.value<bool>("animationsEnabled", true)},
+                       {"uiLanguage", QString::fromStdString(keys.value<std::string>("uiLanguage", "zh"))},
+                       {"hasApiKey", !keys.value<std::string>("API-KEY", {}).empty()},
+                       {"selectionCapture", keys.value<bool>("selectionCapture", true)},
+                       {"clipboardPolicy", QString::fromStdString(keys.value<std::string>("clipboardPolicy", "topmost"))},
                        {"ocrHotkey", hotkey_.keys().toString(QKeySequence::PortableText)},
                        {"ocrHotkeyConflicted", hotkey_.conflicted()},
                        {"provider", provider},

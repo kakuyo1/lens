@@ -91,7 +91,7 @@ ExplanationDuty::ExplanationDuty(StorageDuty& storage, llm::LlmClient& llm, Cost
         if (requestedGeneration_ == selectionGeneration_ &&
             requestedContext_.language == storage_.knownStore().explanationLang() &&
             requestedContext_.multipleSenses == (requestedBatch_.front().kind == QLatin1String("word") &&
-                                                 storage_.documentString("multiSense", QStringLiteral("false")) == QLatin1String("true"))) {
+                                                 storage_.section().value<bool>("multiSense", false))) {
             const auto& first = results.front();
             if (requestedFromScan_) {
                 const auto item = std::find_if(requestedBatch_.cbegin(), requestedBatch_.cend(), [&](PendingSelection const& candidate) {
@@ -157,8 +157,7 @@ void ExplanationDuty::enqueueScanCandidates(QVariantList candidates, QPoint anch
                                    .surface = map.value("surface").toString(),
                                    .lemma   = map.value("lemma").toString()};
         if (candidate.lemma.isEmpty()) continue;
-        const core::CacheContext context{storage_.knownStore().explanationLang(),
-                                         storage_.documentString("multiSense", QStringLiteral("false")) == QLatin1String("true")};
+        const core::CacheContext context{storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)};
         if (const auto cached = storage_.knownStore().cacheGet(candidate.lemma.toStdString(), context)) {
             storage_.statsStore().recordPop(candidate.lemma.toStdString(), nowMinute().toStdString());
             if (bubble_.isEmpty() && not inFlight_)
@@ -210,8 +209,7 @@ void ExplanationDuty::reviewWord(QString lemma, QPoint const anchor)
     const QString value = lemma.trimmed();
     if (value.isEmpty()) return;
     reviewAnchor_ = anchor;
-    const core::CacheContext context{storage_.knownStore().explanationLang(),
-                                     storage_.documentString("multiSense", QStringLiteral("false")) == QLatin1String("true")};
+    const core::CacheContext context{storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)};
     if (const auto cached = storage_.knownStore().cacheGet(value.toStdString(), context)) {
         PendingSelection pending{.anchor = anchor, .kind = QStringLiteral("word"), .surface = value, .lemma = value};
         showBubble(fromCache(*cached, value), pending, context, false);
@@ -250,7 +248,7 @@ void ExplanationDuty::explain(PendingSelection const& pending)
         return;
     }
     const core::CacheContext context{storage_.knownStore().explanationLang(),
-                                     pending.kind == QLatin1String("word") && storage_.documentString("multiSense", QStringLiteral("false")) == QLatin1String("true")};
+                                     pending.kind == QLatin1String("word") && storage_.section().value<bool>("multiSense", false)};
     if (pending.kind == QLatin1String("word")) {
         if (const auto cached = storage_.knownStore().cacheGet(pending.lemma.toStdString(), context)) {
             storage_.statsStore().recordPop(pending.lemma.toStdString(), nowMinute().toStdString());
@@ -311,8 +309,7 @@ void ExplanationDuty::startNext()
         scanQueue_.removeFirst();
     }
     requestExplanations(std::move(batch),
-                        {storage_.knownStore().explanationLang(),
-                         storage_.documentString("multiSense", QStringLiteral("false")) == QLatin1String("true")},
+                        {storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)},
                         true);
 }
 
@@ -435,10 +432,10 @@ bool ExplanationDuty::setProvider(QString const& provider)
     // a tap on the dropdown row, not a change, and with a shared model list that tap would replace a
     // valid model with whichever id the source happens to list first (docs/adr/0020). A document
     // that has never chosen one counts as a change -- the first pick is one.
-    const bool changed   = storage_.documentString("PROVIDER", QString{}) != provider;
-    auto& document       = storage_.knownStore().document();
-    document["PROVIDER"] = provider.toStdString();
-    document["URL"]      = llm_.baseUrl().toString().toStdString();
+    const bool changed = storage_.section().value<std::string>("PROVIDER", {}) != provider.toStdString();
+    auto keys          = storage_.section();
+    keys.set<std::string>("PROVIDER", provider.toStdString());
+    keys.set<std::string>("URL", llm_.baseUrl().toString().toStdString());
 
     // The model follows the service when the service changes (docs/adr/0017, kept by docs/adr/0020
     // only here). A name from another service is the 400 that says "malformed" and nothing else, and
@@ -449,10 +446,9 @@ bool ExplanationDuty::setProvider(QString const& provider)
     if (changed and not known.isEmpty() and not known.contains(llm_.model())) {
         LENS_INFO("model follows the provider: '{}' -> '{}'", llm_.model().toStdString(), known.front().toStdString());
         llm_.setModel(known.front());
-        document["MODEL"] = known.front().toStdString();
+        keys.set<std::string>("MODEL", known.front().toStdString());
     }
     rebuildModels();
-    storage_.save();
     emit settingsChanged();
     llm_.fetchModels();
     return true;
@@ -462,16 +458,12 @@ QStringList ExplanationDuty::modelsFor(QString const& provider) const
 {
     // What the source listed for this provider last time wins: the catalog's list is a seed for a
     // machine that has never reached it, and the ids a service carries change under the app.
-    const nlohmann::json& document = storage_.knownStore().document();
-    if (document.contains("MODELS") and document["MODELS"].is_object()) {
-        const auto& served = document["MODELS"];
-        const auto found   = served.find(provider.toStdString());
-        if (found != served.end() and found->is_array()) {
-            QStringList ids;
-            for (const auto& id : *found)
-                if (id.is_string()) ids.append(QString::fromStdString(id.get<std::string>()));
-            if (not ids.isEmpty()) return ids;
-        }
+    auto const served = storage_.section("MODELS").value<std::vector<std::string>>(provider.toStdString(), {});
+    if (not served.empty()) {
+        QStringList ids;
+        for (const std::string& id : served)
+            ids.append(QString::fromStdString(id));
+        return ids;
     }
     QStringList seeded;
     for (const auto& id : llm::serviceProvider(provider).value("models").toArray())
@@ -481,7 +473,7 @@ QStringList ExplanationDuty::modelsFor(QString const& provider) const
 
 QString ExplanationDuty::currentProvider() const
 {
-    return storage_.documentString("PROVIDER", llm::serviceCatalog().value("defaultProvider").toString());
+    return QString::fromStdString(storage_.section().value<std::string>("PROVIDER", llm::serviceCatalog().value("defaultProvider").toString().toStdString()));
 }
 
 void ExplanationDuty::rebuildModels()
@@ -505,9 +497,9 @@ void ExplanationDuty::noteModelsFetched(QStringList models)
     if (models.isEmpty()) return;
     // One answer, several caches: each provider takes the ids its own vendor prefix names, and a
     // provider with no prefix gets no entry at all.
-    auto& document = storage_.knownStore().document();
-    int filled     = 0;
-    int total      = 0;
+    auto written = storage_.section("MODELS");
+    int filled   = 0;
+    int total    = 0;
     for (const auto& value : llm::serviceCatalog().value("providers").toArray()) {
         const auto provider = value.toObject();
         if (not provider.contains("openRouterPrefix")) continue;
@@ -515,19 +507,20 @@ void ExplanationDuty::noteModelsFetched(QStringList models)
         if (ids.isEmpty()) continue;
         ++filled;
         total += ids.size();
-        nlohmann::json written = nlohmann::json::array();
+        std::vector<std::string> served;
+        served.reserve(static_cast<std::size_t>(ids.size()));
         for (const QString& id : ids)
-            written.push_back(id.toStdString());
-        document["MODELS"][provider.value("value").toString().toStdString()] = std::move(written);
+            served.push_back(id.toStdString());
+        written.set<std::vector<std::string>>(provider.value("value").toString().toStdString(), served);
     }
     if (filled == 0) return;
     LENS_INFO("the model source lists {} model(s) across {} provider(s)", total, filled);
 
     // The model in force is not touched here. This answer describes the whole industry, not the
     // one service standing, so "not in the list" says nothing about what that service carries --
-    // the correction belongs to the reader changing the service (docs/adr/0020).
+    // the correction belongs to the reader changing the service (docs/adr/0020). Nothing to save
+    // either: every write above persisted itself.
     rebuildModels();
-    storage_.save();
 }
 
 QVariantMap ExplanationDuty::settings() const
@@ -565,7 +558,7 @@ QVariantList ExplanationDuty::models() const
 
 bool ExplanationDuty::etymologyEnabled() const
 {
-    return storage_.documentString("etymology", QStringLiteral("false")) == QLatin1String("true");
+    return storage_.section().value<bool>("etymology", false);
 }
 
 bool ExplanationDuty::setModel(QString const& model)
@@ -573,7 +566,7 @@ bool ExplanationDuty::setModel(QString const& model)
     const auto value = model.trimmed();
     if (value.isEmpty()) return false;
     llm_.setModel(value);
-    storage_.writeDocument("MODEL", value);
+    storage_.section().set<std::string>("MODEL", value.toStdString());
     return true;
 }
 

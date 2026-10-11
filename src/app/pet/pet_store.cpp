@@ -6,31 +6,27 @@
 #include "app/pet/pet_store.h"
 
 #include <algorithm>
-#include <utility>
 
 namespace lens::app::pet {
 
 namespace {
 
-using nlohmann::json;
-
-/// @return Whether `key` in `object` is a boolean true. Absent, null, or any other type reads as false.
-bool flagOf(json const* object, char const* key)
+/// @return The id worn in a slot, or nothing when the slot is bare. An id is never empty, so an
+///         empty value is a slot that was cleared or never filled.
+std::optional<std::string> wornId(core::SettingsSection const& accessories, const char* key)
 {
-    return object and object->contains(key) and object->at(key).is_boolean() and object->at(key).get<bool>();
+    auto id = accessories.value<std::string>(key, {});
+    if (id.empty()) return std::nullopt;
+    return id;
 }
 
-/// @return The id stored under `key`, or nothing when the slot is bare.
-std::optional<std::string> slotOf(json const& worn, char const* key)
+/// @brief Write one slot: the id it carries, or null for a bare one.
+void writeSlot(core::SettingsSection& accessories, const char* key, std::optional<std::string> const& id)
 {
-    if (not worn.contains(key) or not worn.at(key).is_string()) return std::nullopt;
-    return worn.at(key).get<std::string>();
-}
-
-/// @return The id as JSON, or null for a bare slot.
-json slotJson(std::optional<std::string> const& id)
-{
-    return id ? json(*id) : json(nullptr);
+    if (id)
+        accessories.set<std::string>(key, *id);
+    else
+        accessories.clear(key);
 }
 
 } // namespace
@@ -42,75 +38,63 @@ PetStore::PetStore(core::KnownStore& store)
 
 bool PetStore::enabled() const
 {
-    return flagOf(section(), "enabled");
+    return store_.section("PET").value<bool>("enabled", false);
 }
 
 void PetStore::setEnabled(bool on)
 {
-    write("enabled", on);
+    store_.section("PET").set<bool>("enabled", on);
 }
 
 bool PetStore::passthrough() const
 {
-    return flagOf(section(), "passthrough");
+    return store_.section("PET").value<bool>("passthrough", false);
 }
 
 void PetStore::setPassthrough(bool on)
 {
-    write("passthrough", on);
+    store_.section("PET").set<bool>("passthrough", on);
 }
 
 int PetStore::scale(int fallback) const
 {
-    auto const* pet = section();
-    if (not pet or not pet->contains("scale") or not pet->at("scale").is_number_integer()) return fallback;
-    return std::clamp(pet->at("scale").get<int>(), kMinScale, kMaxScale);
+    return std::clamp(store_.section("PET").value<int>("scale", fallback), kMinScale, kMaxScale);
 }
 
 void PetStore::setScale(int times)
 {
-    write("scale", std::clamp(times, kMinScale, kMaxScale));
+    store_.section("PET").set<int>("scale", std::clamp(times, kMinScale, kMaxScale));
 }
 
 Outfit PetStore::outfit() const
 {
-    auto const* pet = section();
-    if (not pet or not pet->contains("accessories")) return {};
-    auto const& worn = pet->at("accessories");
-    return Outfit{slotOf(worn, "head"), slotOf(worn, "face"), slotOf(worn, "body")};
+    auto const accessories = store_.section("PET").object("accessories");
+    return Outfit{wornId(accessories, "head"), wornId(accessories, "face"), wornId(accessories, "body")};
 }
 
 void PetStore::setOutfit(Outfit const& outfit)
 {
-    write("accessories", json{{"head", slotJson(outfit.head)}, {"face", slotJson(outfit.face)}, {"body", slotJson(outfit.body)}});
+    auto accessories = store_.section("PET").object("accessories");
+    writeSlot(accessories, "head", outfit.head);
+    writeSlot(accessories, "face", outfit.face);
+    writeSlot(accessories, "body", outfit.body);
 }
 
 std::optional<SavedPosition> PetStore::position() const
 {
-    auto const* pet = section();
-    if (not pet or not pet->contains("position")) return std::nullopt;
-    auto const& at = pet->at("position");
-    if (not at.is_object() or not at.contains("screen") or not at.contains("x") or not at.contains("y")) return std::nullopt;
-    return SavedPosition{at.at("screen").get<std::string>(), at.at("x").get<int>(), at.at("y").get<int>()};
+    auto const at = store_.section("PET").object("position");
+    // All three or nothing: a half-written position is a document someone edited, not a place
+    // the window was left.
+    if (not at.has("screen") or not at.has("x") or not at.has("y")) return std::nullopt;
+    return SavedPosition{at.value<std::string>("screen", {}), at.value<int>("x", 0), at.value<int>("y", 0)};
 }
 
 void PetStore::setPosition(SavedPosition const& at)
 {
-    write("position", json{{"screen", at.screen}, {"x", at.x}, {"y", at.y}});
-}
-
-json const* PetStore::section() const
-{
-    auto const& doc = store_.document();
-    return doc.contains("PET") ? &doc.at("PET") : nullptr;
-}
-
-void PetStore::write(char const* key, json value)
-{
-    auto& doc = store_.document();
-    if (not doc["PET"].is_object()) doc["PET"] = json::object();
-    doc["PET"][key] = std::move(value);
-    store_.save();
+    auto position = store_.section("PET").object("position");
+    position.set<std::string>("screen", at.screen);
+    position.set<int>("x", at.x);
+    position.set<int>("y", at.y);
 }
 
 } // namespace lens::app::pet

@@ -3,11 +3,14 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
 #include <nlohmann/json.hpp>
+
+#include "core/settings_section.h"
 
 /**
  * @file known_store.h
@@ -119,6 +122,23 @@ public:
     const nlohmann::json& document() const
     {
         return doc_;
+    }
+
+    /**
+     * @brief The document as a section, which is how a key is read and written.
+     *
+     * @param name Object name to bind to; empty for the document itself, whose keys are the
+     *             top-level scalars.
+     * @return A section over this document; every write through it saves.
+     * @note Seven keys are re-stamped by save() or by StatsStore from their owner's own state, so
+     *       writing one of them through this handle is silently undone. docs/adr/0024 names them.
+     */
+    SettingsSection section(std::string_view name = {})
+    {
+        std::vector<std::string> path;
+        if (!name.empty())
+            path.emplace_back(name);
+        return SettingsSection{doc_, std::move(path), [this] { save(); }};
     }
 
     /// @brief Write the whole document back, preserving every unrecognised key.

@@ -149,8 +149,8 @@ private:
     update::StoredUpdate stored() const;
     /// @brief Write one field of the `UPDATE` section, leaving the other two alone.
     ///
-    /// The section is one object, so a write has to reach into it rather than go through
-    /// StorageDuty::writeDocument(), which writes a top-level scalar.
+    /// The section is one object, so a write goes through the section bound to it rather than the
+    /// document's own keys.
     void writeAutoCheck(bool on);
     void writeLastCheckDate(const QString& date);
     void writeSkipped(const QString& version);

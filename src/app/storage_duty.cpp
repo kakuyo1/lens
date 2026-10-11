@@ -7,18 +7,17 @@
 
 #include <QCoreApplication>
 
-#include <nlohmann/json.hpp>
-
 namespace lens::app {
 
 StorageDuty::StorageDuty(core::KnownStore& store)
     : store_(store), stats_(store.document())
 {
-    auto& document                    = store_.document();
-    const bool removedDragSensitivity = document.erase("dragSensitivity") > 0;
-    const bool removedPopupFrequency  = document.erase("popupFrequency") > 0;
-    if (removedDragSensitivity or removedPopupFrequency)
-        store_.save();
+    // Two settings phase 1 carried and nothing reads any more. Taken out through the section like
+    // every other write, so the boundary stays the only way into the document; remove() saves by
+    // itself, and only when there was something to take away.
+    auto keys = section();
+    keys.remove("dragSensitivity");
+    keys.remove("popupFrequency");
 }
 
 core::KnownStore& StorageDuty::knownStore()
@@ -41,34 +40,9 @@ const core::StatsStore& StorageDuty::statsStore() const
     return stats_;
 }
 
-QString StorageDuty::documentString(const char* key, const QString& fallback) const
+core::SettingsSection StorageDuty::section(std::string_view const name)
 {
-    const nlohmann::json& document = store_.document();
-    if (!document.is_object() || !document.contains(key) || !document[key].is_string())
-        return fallback;
-    return QString::fromStdString(document[key].get<std::string>());
-}
-
-bool StorageDuty::documentBool(const char* key, bool fallback) const
-{
-    const nlohmann::json& document = store_.document();
-    if (!document.is_object() || !document.contains(key) || !document[key].is_boolean())
-        return fallback;
-    return document[key].get<bool>();
-}
-
-void StorageDuty::writeDocument(const char* key, const QVariant& value)
-{
-    const int type = value.typeId();
-    if (type == QMetaType::Bool)
-        store_.document()[key] = value.toBool();
-    else if (type == QMetaType::Int || type == QMetaType::LongLong || type == QMetaType::UInt || type == QMetaType::ULongLong)
-        store_.document()[key] = value.toLongLong();
-    else if (type == QMetaType::Double || type == QMetaType::Float)
-        store_.document()[key] = value.toDouble();
-    else
-        store_.document()[key] = value.toString().toStdString();
-    store_.save();
+    return store_.section(name);
 }
 
 void StorageDuty::save() const

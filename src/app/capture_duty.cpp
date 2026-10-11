@@ -47,9 +47,11 @@ std::size_t rankForLevel(int level)
 }
 
 /// @return The Tesseract the reader pointed at, or the bundled runtime when both are empty.
-capture::TesseractConfig storedTesseractConfig(const StorageDuty& storage)
+capture::TesseractConfig storedTesseractConfig(StorageDuty& storage)
 {
-    return {storage.documentString("tesseractExecutable", QString{}), storage.documentString("tesseractDataDirectory", QString{})};
+    auto const keys = storage.section();
+    return {QString::fromStdString(keys.value<std::string>("tesseractExecutable", {})),
+            QString::fromStdString(keys.value<std::string>("tesseractDataDirectory", {}))};
 }
 
 }
@@ -93,20 +95,21 @@ CaptureDuty::~CaptureDuty()
 
 QVariantMap CaptureDuty::settings() const
 {
-    bool valid        = false;
-    auto const length = storage_.documentString("minimumWordLength", QStringLiteral("3")).toInt(&valid);
-    return {{"ocrCapture", storage_.documentString("ocrCapture", QStringLiteral("false")) == QLatin1String("true")},
-            {"autoScan", storage_.documentString("autoScan", QStringLiteral("false")) == QLatin1String("true")},
+    auto const keys = storage_.section();
+    return {{"ocrCapture", keys.value<bool>("ocrCapture", false)},
+            {"autoScan", keys.value<bool>("autoScan", false)},
             {"ocrAvailable", ocrState_ == capture::OcrStatus::Ready},
-            {"minimumWordLength", valid ? capture::minimumWordLength(length) : 3},
-            {"tesseractExecutable", storage_.documentString("tesseractExecutable", QString{})},
-            {"tesseractDataDirectory", storage_.documentString("tesseractDataDirectory", QString{})},
+            // A length the document did not mean reads as the default, the same way the old
+            // read did with its validity flag.
+            {"minimumWordLength", capture::minimumWordLength(keys.value<int>("minimumWordLength", 3))},
+            {"tesseractExecutable", QString::fromStdString(keys.value<std::string>("tesseractExecutable", {}))},
+            {"tesseractDataDirectory", QString::fromStdString(keys.value<std::string>("tesseractDataDirectory", {}))},
             // What an empty setting resolves to, for the surface that shows the reader where OCR
             // will look. Resolved through the engine's own function so the answer on screen cannot
             // drift from the path the process is actually started with.
             {"resolvedTesseractExecutable", capture::resolveTesseract(storedTesseractConfig(storage_)).executable},
             {"resolvedTesseractDataDirectory", capture::resolveTesseract(storedTesseractConfig(storage_)).dataDirectory},
-            {"scanWhitelist", storage_.documentString("scanWhitelist", QStringLiteral("chrome.exe;msedge.exe;firefox.exe;AcroRd32.exe"))}};
+            {"scanWhitelist", QString::fromStdString(keys.value<std::string>("scanWhitelist", "chrome.exe;msedge.exe;firefox.exe;AcroRd32.exe"))}};
 }
 
 QString CaptureDuty::ocrStatus() const
@@ -133,14 +136,14 @@ void CaptureDuty::invalidateScan()
 
 void CaptureDuty::setOcrCapture(bool const on)
 {
-    storage_.writeDocument("ocrCapture", on ? QStringLiteral("true") : QStringLiteral("false"));
+    storage_.section().set<bool>("ocrCapture", on);
     ++screenshotGeneration_;
     emit settingsChanged();
 }
 
 void CaptureDuty::setAutoScan(bool const on)
 {
-    storage_.writeDocument("autoScan", on ? QStringLiteral("true") : QStringLiteral("false"));
+    storage_.section().set<bool>("autoScan", on);
     invalidateScan();
     emit settingsChanged();
 }
@@ -148,7 +151,7 @@ void CaptureDuty::setAutoScan(bool const on)
 void CaptureDuty::setMinimumWordLength(int const length)
 {
     if (length < 2 or length > 5) return;
-    storage_.writeDocument("minimumWordLength", QString::number(length));
+    storage_.section().set<int>("minimumWordLength", length);
     invalidateScan();
     emit settingsChanged();
 }
@@ -167,7 +170,7 @@ bool CaptureDuty::setScanWhitelist(QString processes)
         normalized.append(name.toLower());
         whitelist.push_back(name.toLower().toStdString());
     }
-    storage_.writeDocument("scanWhitelist", normalized.join(';'));
+    storage_.section().set<std::string>("scanWhitelist", normalized.join(';').toStdString());
     invalidateScan();
     scan_->setWhitelist(std::move(whitelist));
     emit settingsChanged();
@@ -177,16 +180,18 @@ bool CaptureDuty::setScanWhitelist(QString processes)
 void CaptureDuty::setTesseractExecutable(QString executable)
 {
     const QString value = executable.trimmed();
-    if (value == storage_.documentString("tesseractExecutable", QString{})) return;
-    storage_.writeDocument("tesseractExecutable", value);
+    auto keys           = storage_.section();
+    if (value.toStdString() == keys.value<std::string>("tesseractExecutable", {})) return;
+    keys.set<std::string>("tesseractExecutable", value.toStdString());
     rebuildOcr();
 }
 
 void CaptureDuty::setTesseractDataDirectory(QString directory)
 {
     const QString value = directory.trimmed();
-    if (value == storage_.documentString("tesseractDataDirectory", QString{})) return;
-    storage_.writeDocument("tesseractDataDirectory", value);
+    auto keys           = storage_.section();
+    if (value.toStdString() == keys.value<std::string>("tesseractDataDirectory", {})) return;
+    keys.set<std::string>("tesseractDataDirectory", value.toStdString());
     rebuildOcr();
 }
 
@@ -431,7 +436,7 @@ void CaptureDuty::publishBatch(capture::ScanTime const now, QPoint const anchor)
 void CaptureDuty::onSelectionReleased(QPoint const anchor)
 {
     if (budgetPaused_) return;
-    if (storage_.documentString("selectionCapture", QStringLiteral("true")) != QLatin1String("true")) {
+    if (not storage_.section().value<bool>("selectionCapture", true)) {
         LENS_TRACE("selection at ({}, {}) ignored: selection capture is off", anchor.x(), anchor.y());
         return;
     }
@@ -446,7 +451,7 @@ void CaptureDuty::beginSelection(QPoint const anchor)
         return;
     }
     const GrabbedText& captured = std::get<GrabbedText>(grabbed);
-    if (captured.clipboardReplaced and storage_.documentString("clipboardPolicy", QStringLiteral("topmost")) == QLatin1String("silent")) {
+    if (captured.clipboardReplaced and storage_.section().value<std::string>("clipboardPolicy", "topmost") == "silent") {
         LENS_INFO("the clipboard was rewritten during the grab; the policy is silent, so the selection is dropped");
         return;
     }

@@ -79,7 +79,7 @@ TEST_F(CostDutyTest, PersistsNumericBudgetAndKeepsUnknownDocumentKeys)
     EXPECT_FALSE(store.document().contains("dragSensitivity"));
     EXPECT_FALSE(store.document().contains("popupFrequency"));
 
-    storage.writeDocument("numericSetting", QVariant(1.25));
+    storage.section().set<double>("numericSetting", 1.25);
     ASSERT_TRUE(storage.statsStore().setDailyBudget(1.25));
     store.save();
 
@@ -104,12 +104,12 @@ TEST_F(CostDutyTest, PersistsAnimationPreferenceAsABooleanAndDefaultsToEnabled)
     auto store = KnownStore::load(path);
     lens::app::StorageDuty storage{store};
 
-    EXPECT_TRUE(storage.documentBool("animationsEnabled", true));
-    storage.writeDocument("animationsEnabled", false);
+    EXPECT_TRUE(storage.section().value<bool>("animationsEnabled", true));
+    storage.section().set<bool>("animationsEnabled", false);
 
     auto reloaded = KnownStore::load(path);
     lens::app::StorageDuty reloadedStorage{reloaded};
-    EXPECT_FALSE(reloadedStorage.documentBool("animationsEnabled", true));
+    EXPECT_FALSE(reloadedStorage.section().value<bool>("animationsEnabled", true));
     EXPECT_TRUE(reloaded.document().at("animationsEnabled").is_boolean());
 }
 

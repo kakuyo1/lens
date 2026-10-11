@@ -88,9 +88,9 @@ PATH="$QT_ROOT/bin:$PATH" QT_QPA_PLATFORM=offscreen QT_FORCE_STDERR_LOGGING=1 \
 - 表面用例跑的是签入的 `surfaces/settings.json`，不是 `settings.local.json`，两个理由：断言要在每
   台机器上看到同一组值，而设置面板的 setter 会落盘——指向仓库里那份，一条切换主题的用例就会改掉一
   个被跟踪的文件。setup 把夹具拷进临时目录再加载，进程退出时删掉。
-- 夹具里 `selectionCapture` 写的是字符串 `"false"`，不是 JSON 布尔。`writeDocument` 写的是字符
-  串，`documentString` 也只认字符串，写成 `false` 会被当作缺省值 `"true"` 静默忽略——这是手改这份
-  文档时最先踩到的一格。
+- 夹具里 `selectionCapture` 写的是字符串 `"false"`，不是 JSON 布尔。两种写法现在都读得出来（设置
+  分区读时两种编码都认），所以手写成 `false` 不再被当作缺省值 `"true"` 静默忽略；但**写**下去时保留
+  该键已有的编码，手写的字符串键不会变成真布尔，只有从未存在过的新键才按真类型出生（`docs/adr/0024`）。
 - 冒烟：`LENS_SMOKE_WORD=ubiquitous ./build-ninja/test/googletest/lens_gtest_smoke.exe`。词取自
   `LENS_SMOKE_WORD`，缺省 `ubiquitous`。`settings.local.json` 缺 URL / MODEL / API-KEY 时报 skip
   而不是失败——要 key、要花钱、结论靠人看，所以它不进 CI。密钥读进内存后不打印、不进日志、不进

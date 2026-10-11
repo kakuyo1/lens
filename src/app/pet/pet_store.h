@@ -3,8 +3,6 @@
 #include <optional>
 #include <string>
 
-#include <nlohmann/json.hpp>
-
 #include "core/known_store.h"
 
 /**
@@ -64,11 +62,6 @@ public:
     void setPosition(SavedPosition const& at);
 
 private:
-    /// @return The PET object, or nothing before the first write.
-    nlohmann::json const* section() const;
-    /// @brief Writes one key of the PET object and saves the document.
-    void write(char const* key, nlohmann::json value);
-
     core::KnownStore& store_;
 };
 

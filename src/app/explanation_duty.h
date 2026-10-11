@@ -51,8 +51,8 @@ public:
     /// @brief Take down a bubble raised by reviewWord(); one raised anywhere else is left alone.
     ///
     /// The row decides this and only the row does. The bubble's own hover state is not read here on
-    /// purpose: it flaps (TODO.md, "定位气泡 hover 抖动"), and hanging this bubble's life off a
-    /// signal that flaps is what made it appear and disappear while the pointer stood still. The
+    /// purpose: it flaps (TODO.md, the bubble-hover jitter item), and hanging this bubble's life off
+    /// a signal that flaps is what made it appear and disappear while the pointer stood still. The
     /// word the pointer is on is the one thing that is not in doubt.
     void dismissReview();
     /// @brief Ask the shared model source for the whole catalogue.
@@ -83,6 +83,10 @@ public:
      * used to carry was rebuilt for every one of the settings page's bindings, on every change.
      */
     QVariantList models() const;
+    /// @return The provider in force, from the document, or the catalog's default when none is
+    ///         stored. Public because the facade reads the same key to restore the wire options,
+    ///         and one definition of "the default provider" is better than three.
+    QString currentProvider() const;
     /// @brief Point the client at a catalog service.
     ///
     /// The model follows the service (docs/adr/0017): a model name from another one is a 400 whose
@@ -128,9 +132,6 @@ private:
     void noteModelsFetched(QStringList models);
     /// @brief Rebuild the cached model list from the provider in force, and say so if it moved.
     void rebuildModels();
-    /// @return The provider in force, from the document.
-    QString currentProvider() const;
-    /// @return Whether the reader wants a word's origin with its explanation.
     ///
     /// One reader of this, two uses: the request asks the model for it, and the card decides
     /// whether to draw it. Turned off, the definition alone is what is bought and shown; turned

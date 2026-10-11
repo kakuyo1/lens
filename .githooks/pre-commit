@@ -76,6 +76,7 @@ docs/adr/0003-instructions-live-in-agents-md.md 0
 docs/adr/0004-qml-module-on-the-static-library.md 0
 docs/adr/0005-cjk-latin-shared-face.md 0
 docs/adr/0006-machine-paths-in-config.md 0
+docs/adr/0007-theme-lives-in-its-own-folder.md 0
 config/README.md 0
 scripts/README.md 0
 docs/adr/0009-explicit-selection-and-channel-presets.md 0
@@ -89,6 +90,11 @@ docs/adr/0016-ocr-trigger-key-and-mask.md 0
 docs/adr/0017-model-follows-the-provider.md 0
 docs/adr/0018-provider-model-list-contract.md 0
 docs/adr/0019-etymology-outside-the-cache-key.md 0
+docs/adr/0020-openrouter-as-the-model-source.md 0
+docs/adr/0021-desktop-pet-own-window.md 0
+docs/adr/0022-update-download-with-checksum.md 0
+docs/adr/0023-pet-single-frame-clock.md 0
+docs/adr/0024-settings-section-is-the-write-unit.md 0
 ui-prototypes/README.md 0
 .github/pull_request_template.md 0'
 
