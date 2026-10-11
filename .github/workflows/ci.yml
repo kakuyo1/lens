@@ -216,6 +216,13 @@ jobs:
       - name: Install clang-format
         run: pip install clang-format==19.1.5
 
+      # The hook checks only the files a change touches, so a change to .clang-format would leave
+      # every other file unchecked. This runs the whole tree on every push, so the config and the
+      # code cannot drift apart.
+      - name: Format check, whole tree
+        shell: bash
+        run: git ls-files 'src/*' 'test/*' | grep -E '\.(cpp|h)$' | xargs clang-format --dry-run --Werror
+
       # A push to main compares against the previous head. A zero "before" (a brand-new branch)
       # makes the diff fail, which leaves the file list empty and checks nothing.
       - name: Text, format and guard checks
