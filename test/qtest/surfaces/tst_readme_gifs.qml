@@ -98,23 +98,21 @@ Item {
         /// a reader would see around it.
         readonly property string pageColor: "#e9ebef"
 
-        /// Why a clip that shows an explanation cannot run in this language, or "" when it can. The fixture
-        /// has a real cached explanation for English and Chinese only, and a clip is never given a made-up one.
-        function explanationGap() {
-            const code = lensQaUiLanguage;
-            if (code === "ja" || code === "es")
-                return "no cached explanation for '" + code + "' in the fixture";
-            return "";
-        }
-
-        /// The payload the controller would send for "panel" in this explanation language. The text is the
-        /// fixture's own: English from the Chinese entry's en field, Chinese from its zh field.
+        /// The payload the controller would send for "panel" in this explanation language (showBubble in
+        /// explanation_duty.cpp). English and Chinese use the fixture's own texts. Japanese and Spanish use
+        /// the gloss in the run's settings copy, which the app shows as a sense row, not as an English or
+        /// Chinese row.
         function panelPayload() {
             const payload = { title: "panel", type: "word", ipa: "/ˈpænl/", status: "new", x: 200, y: 200 };
-            if (lensQaUiLanguage === "zh")
+            if (lensQaUiLanguage === "zh") {
                 payload.zh = "面板；专门小组";
-            else
+            } else if (lensQaUiLanguage === "ja" || lensQaUiLanguage === "es") {
+                payload.translation = lensQaUiLanguage === "ja" ? "表面の一部を成す平らな板"
+                                                                : "tablero plano que forma parte de una superficie";
+                payload.senses = [{ en: "", text: payload.translation }];
+            } else {
                 payload.en = "a flat board forming part of a surface";
+            }
             return payload;
         }
 
@@ -140,8 +138,6 @@ Item {
         function test_bubbleClip() {
             if (!lensQaSnapshotDir)
                 skip("Set LENS_QA_SNAPSHOT_DIR to save the frame sequence");
-            if (explanationGap())
-                skip(explanationGap());
 
             const was = recordLight();
             const bubble = createTemporaryObject(bubbleComponent, root);
@@ -187,8 +183,6 @@ Item {
         function test_markingClip() {
             if (!lensQaSnapshotDir)
                 skip("Set LENS_QA_SNAPSHOT_DIR to save the frame sequence");
-            if (explanationGap())
-                skip(explanationGap());
 
             const main = make();
             const was = recordLight();
