@@ -226,9 +226,12 @@ QString AppController::setOcrHotkey(int key, int modifiers)
 
 QString AppController::captureRegion(QRect region)
 {
-    const QString refusal = capture_.captureRegion(region);
-    if (not refusal.isEmpty()) reportCaptureRefusal(refusal);
-    return refusal;
+    const auto refusal = capture_.captureRegion(region);
+    if (not refusal) return {};
+    reportCaptureRefusal(*refusal);
+    // The token, not the sentence: what crosses to QML is the same byte string it crossed as
+    // before, and the notice the reader actually reads is the one raised just above.
+    return QString::fromLatin1(refusalKey(*refusal));
 }
 
 bool AppController::installHotkey()
@@ -242,12 +245,12 @@ bool AppController::installHotkey()
 
 void AppController::onTriggerHotkey()
 {
-    const QString refusal = capture_.captureRefusalReason();
+    const auto refusal = capture_.captureRefusalReason();
     // The one line that says the key arrived. Without it a hotkey that never reached the process
     // and a mask that never came up read the same in the log: nothing at all.
-    LENS_INFO("OCR trigger key pressed; capture can {}start", refusal.isEmpty() ? "" : "not ");
-    if (not refusal.isEmpty()) {
-        reportCaptureRefusal(refusal);
+    LENS_INFO("OCR trigger key pressed; capture can {}start", refusal ? "not " : "");
+    if (refusal) {
+        reportCaptureRefusal(*refusal);
         return;
     }
     // Pressing the key again while the mask is up is not a second capture: the mask is already
@@ -255,23 +258,33 @@ void AppController::onTriggerHotkey()
     emit captureMaskRequested();
 }
 
-void AppController::reportCaptureRefusal(QString const& reason)
+void AppController::reportCaptureRefusal(CaptureRefusal const refusal)
 {
     // The runtime's own states are worded where the settings page words them, so a reader who is
     // told why from here reads the same sentence they read beside the switch. Every context is
     // written out at its call: lupdate reads literal arguments only, and a context in a variable
     // extracts nothing.
-    const QString body = reason == QLatin1String("screenshot-off")  ? tr("Screenshot capture is off.")
-                         : reason == QLatin1String("budget-paused") ? tr("Today's budget is used up.")
-                         : reason == QLatin1String("busy")          ? tr("A recognition is already running.")
-                         : reason == QLatin1String("outside-screen") or reason == QLatin1String("too-large")
-                             ? tr("That region cannot be captured.")
-                         : reason == QLatin1String("empty-text")           ? tr("No text was found in that region.")
-                         : reason == QLatin1String("invalid-image")        ? tr("That region could not be read.")
-                         : reason == QLatin1String("checking")             ? QCoreApplication::translate("SettingsPopup", "Checking OCR")
-                         : reason == QLatin1String("english-data-missing") ? QCoreApplication::translate("SettingsPopup", "English OCR data is missing")
-                                                                           : QCoreApplication::translate("SettingsPopup", "OCR runtime is unavailable");
-    LENS_INFO("OCR capture was not started ({})", reason.toStdString());
+    //
+    // A switch with no default arm, so a reason added to CaptureRefusal has to be given a sentence
+    // here instead of falling into the last one. Four of them share a sentence today, and that is
+    // written out case by case rather than left to whatever the chain ended with.
+    QString body;
+    switch (refusal) {
+        case CaptureRefusal::ScreenshotOff: body = tr("Screenshot capture is off."); break;
+        case CaptureRefusal::BudgetPaused: body = tr("Today's budget is used up."); break;
+        case CaptureRefusal::Busy: body = tr("A recognition is already running."); break;
+        case CaptureRefusal::OutsideScreen:
+        case CaptureRefusal::RegionTooLarge: body = tr("That region cannot be captured."); break;
+        case CaptureRefusal::EmptyText: body = tr("No text was found in that region."); break;
+        case CaptureRefusal::InvalidImage: body = tr("That region could not be read."); break;
+        case CaptureRefusal::Checking: body = QCoreApplication::translate("SettingsPopup", "Checking OCR"); break;
+        case CaptureRefusal::LanguageMissing: body = QCoreApplication::translate("SettingsPopup", "English OCR data is missing"); break;
+        case CaptureRefusal::RuntimeMissing:
+        case CaptureRefusal::StartFailed:
+        case CaptureRefusal::TimedOut:
+        case CaptureRefusal::Failed: body = QCoreApplication::translate("SettingsPopup", "OCR runtime is unavailable"); break;
+    }
+    LENS_INFO("OCR capture was not started ({})", refusalKey(refusal));
     explanation_.showNotice(QCoreApplication::translate("SettingsPopup", "OCR"), body, QString::fromLatin1(kNoticeError));
 }
 

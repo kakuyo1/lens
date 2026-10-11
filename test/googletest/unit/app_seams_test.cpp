@@ -24,10 +24,12 @@
 #include <gtest/gtest.h>
 
 #include "app/autostart.h"
+#include "app/capture_refusal.h"
 #include "app/notice.h"
 #include "app/paths.h"
 #include "app/tray_state.h"
 #include "app/year_grid.h"
+#include "capture/ocr_engine.h"
 #include "core/stats_store.h"
 #include "support.h"
 
@@ -39,13 +41,22 @@ using lens::app::kAutostartValueName;
 using lens::app::kNoticeError;
 using lens::app::kNoticeInfo;
 using lens::app::noticePayload;
+using lens::app::refusalKey;
 using lens::app::settingsPath;
 using lens::app::toPath;
+using lens::app::CaptureRefusal;
 using lens::app::TrayState;
 using lens::app::trayIconName;
 using lens::app::trayState;
 using lens::app::yearGrid;
 using lens::core::DailyUsage;
+
+/// @return The token a runtime status is reported by, or "<none>" when it is not a reason at all.
+std::string reasonToken(lens::capture::OcrStatus status)
+{
+    const auto refusal = lens::app::refusalOf(status);
+    return refusal ? lens::app::refusalKey(*refusal) : "<none>";
+}
 
 } // namespace
 
@@ -128,6 +139,42 @@ TEST(TrayState, TheExhaustedBudgetOutranksTheRestAndEveryStateNamesItsArt)
     EXPECT_STREQ(trayIconName(TrayState::Busy), "busy");
     EXPECT_STREQ(trayIconName(TrayState::Auto), "auto");
     EXPECT_STREQ(trayIconName(TrayState::Off), "off");
+}
+
+/// Every reason names a token, and the token is the byte string that crossed this seam before the
+/// reason had a type: the QML side and the catalogue are written against these, so a rename here
+/// is a change there. The facade reads the token to pick a sentence and nothing else.
+TEST(CaptureRefusal, EveryReasonNamesTheTokenTheSurfacesAlreadyRead)
+{
+    EXPECT_STREQ(refusalKey(CaptureRefusal::BudgetPaused), "budget-paused");
+    EXPECT_STREQ(refusalKey(CaptureRefusal::Checking), "checking");
+    EXPECT_STREQ(refusalKey(CaptureRefusal::Busy), "busy");
+    EXPECT_STREQ(refusalKey(CaptureRefusal::ScreenshotOff), "screenshot-off");
+    EXPECT_STREQ(refusalKey(CaptureRefusal::OutsideScreen), "outside-screen");
+    EXPECT_STREQ(refusalKey(CaptureRefusal::RegionTooLarge), "too-large");
+    EXPECT_STREQ(refusalKey(CaptureRefusal::EmptyText), "empty-text");
+    EXPECT_STREQ(refusalKey(CaptureRefusal::InvalidImage), "invalid-image");
+    EXPECT_STREQ(refusalKey(CaptureRefusal::LanguageMissing), "english-data-missing");
+    EXPECT_STREQ(refusalKey(CaptureRefusal::RuntimeMissing), "runtime-missing");
+    EXPECT_STREQ(refusalKey(CaptureRefusal::StartFailed), "start-failed");
+    EXPECT_STREQ(refusalKey(CaptureRefusal::TimedOut), "timeout");
+    EXPECT_STREQ(refusalKey(CaptureRefusal::Failed), "failed");
+}
+
+/// One reason per runtime status, and Ready is the one that is not a reason at all: the gate that
+/// used to compare against Ready asks this instead. Both switches name every value and neither has
+/// a default arm, so the whole mapping reads in one place -- and what an unclassified status falls
+/// through to is a runtime that fell over, not a capture that goes ahead.
+TEST(CaptureRefusal, EveryRuntimeStatusNamesItsOwnReasonAndReadyNamesNone)
+{
+    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::Ready), "<none>");
+    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::RuntimeMissing), "runtime-missing");
+    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::LanguageMissing), "english-data-missing");
+    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::StartFailed), "start-failed");
+    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::TimedOut), "timeout");
+    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::Failed), "failed");
+    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::InvalidImage), "invalid-image");
+    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::EmptyText), "empty-text");
 }
 
 /// @return The grid's entry for @p date, or an empty map when the window does not carry it.

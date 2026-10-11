@@ -1,5 +1,10 @@
 #pragma once
 
+/**
+ * @file capture_duty.h
+ * @brief Selection capture and local OCR acquisition, independent of explanation presentation.
+ */
+
 #include <QObject>
 #include <QPoint>
 #include <QRect>
@@ -15,6 +20,7 @@
 
 #include "capture/ocr_engine.h"
 #include "capture/scan_pipeline.h"
+#include "capture_refusal.h"
 #include "selection_text_grabber.h"
 #include "storage_duty.h"
 
@@ -22,10 +28,6 @@ namespace lens::app {
 
 class MouseSelectionHook;
 
-/**
- * @file capture_duty.h
- * @brief Selection capture and local OCR acquisition, independent of explanation presentation.
- */
 struct PendingSelection {
     QPoint anchor;
     QString text;
@@ -67,18 +69,16 @@ public:
     /// @brief Capture a reader-selected logical region wholly inside one screen.
     /// @param region The dragged rectangle, in the device-independent desktop coordinates
     ///               QScreen geometry uses.
-    /// @return Empty once the capture is under way; otherwise the reason it is not, which is what
-    ///         the surface that asked reports to the reader. A trigger that does nothing at all is
-    ///         the one outcome that cannot be told from a broken one.
-    Q_INVOKABLE QString captureRegion(QRect region);
+    /// @return Nothing once the capture is under way; otherwise the reason it is not, which is
+    ///         what the surface that asked reports to the reader. A trigger that does nothing at
+    ///         all is the one outcome that cannot be told from a broken one.
+    std::optional<CaptureRefusal> captureRegion(QRect region);
 
     /// @brief Why a capture cannot start this moment, before any pixels are read.
-    /// @return Empty when it can, else one of: "screenshot-off" (the OCR capture switch is off),
-    ///         "budget-paused", "busy" (a recognition is in flight), "checking" (the runtime is
-    ///         still being probed), or the OCR status from ocrStatus() when the runtime is no good.
+    /// @return Nothing when it can, otherwise the reason; CaptureRefusal is the set.
     /// @note The one gate both the screenshot and the region path go through, so a reader who is
     ///       told why hears the same reason whichever of the two asked.
-    QString captureRefusalReason() const;
+    std::optional<CaptureRefusal> captureRefusalReason() const;
     /// @brief Handle a completed selection gesture.
     void onSelectionReleased(QPoint anchor);
 
@@ -94,14 +94,11 @@ signals:
     void scanCandidatesReady(QVariantList candidates, QPoint anchor);
     /// @brief Count-only report for entity-shaped text unsupported by the scan channel.
     void scanEntitiesUnsupported(int count);
-    /// @brief Fixed OCR status without paths, stderr, or captured text.
-    void ocrFailed(QString status);
     /// @brief A framed region produced no text, or an image OCR could not read.
     ///
-    /// Separate from ocrFailed(), which is the diagnostic hook both paths share: a scan that
-    /// hiccups is not worth a card, while a reader who framed a region by hand and got nothing
-    /// back has to be told, or the gesture reads as a broken program.
-    void screenshotFailed(QString status);
+    /// Only the framed region, and only the reason: a scan that hiccups is not worth a card, and
+    /// `ocrStatus()` is where the diagnostic spelling of the same state is read from.
+    void screenshotFailed(CaptureRefusal refusal);
 
 private:
     struct OcrJob {

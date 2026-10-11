@@ -21,6 +21,7 @@
 #include <filesystem>
 
 #include "capture_duty.h"
+#include "capture_refusal.h"
 #include "core/pet/pet_state.h"
 #include "cost_duty.h"
 #include "explanation_duty.h"
@@ -223,7 +224,7 @@ private:
     /// @brief The trigger key went down: raise the mask, or say why it cannot be raised.
     void onTriggerHotkey();
     /// @brief Report a capture that will not start, in the reader's words rather than a code.
-    void reportCaptureRefusal(QString const& reason);
+    void reportCaptureRefusal(CaptureRefusal refusal);
 
     static AppController* instance_;
 
