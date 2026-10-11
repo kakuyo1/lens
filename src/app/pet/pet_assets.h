@@ -41,7 +41,7 @@ struct ActionSheets {
 /// @brief One accessory's picture and stacking, from accessories.json.
 struct AccessoryArt {
     QString asset;
-    int zIndex;
+    int     zIndex;
 };
 
 /// @brief Everything the pet draws with, parsed and verified.
@@ -49,14 +49,14 @@ struct PetAssets {
     /// Side of one square frame, in sheet units.
     int canvas;
     /// Whole-number magnification on screen.
-    int scale;
-    Layers layers;
-    QString expressionSheet;
-    core::pet::Animations animations;
-    core::pet::AnchorTable anchors;
-    std::vector<core::pet::AccessorySpec> catalogue;
+    int                                       scale;
+    Layers                                    layers;
+    QString                                   expressionSheet;
+    core::pet::Animations                     animations;
+    core::pet::AnchorTable                    anchors;
+    std::vector<core::pet::AccessorySpec>     catalogue;
     std::map<core::pet::Action, ActionSheets> sheets;
-    std::map<std::string, AccessoryArt> accessories;
+    std::map<std::string, AccessoryArt>       accessories;
     /// Expression indices the blink plays through, one per blink frame.
     std::vector<int> blinkExpressions;
 

@@ -22,9 +22,9 @@ namespace lens::llm {
 
 /// @brief Connection settings, loaded from the reader's settings document.
 struct Config {
-    QUrl baseUrl;                 ///< OpenAI-format base, e.g. https://api.deepseek.com (no /anthropic).
-    QString apiKey;               ///< Bearer token. Never logged, never echoed in errors.
-    QString model;                ///< Model name, e.g. "deepseek-flash".
+    QUrl        baseUrl;          ///< OpenAI-format base, e.g. https://api.deepseek.com (no /anthropic).
+    QString     apiKey;           ///< Bearer token. Never logged, never echoed in errors.
+    QString     model;            ///< Model name, e.g. "deepseek-flash".
     QJsonObject requestOverrides; ///< Provider-specific wire options; null removes a default.
 };
 
@@ -43,9 +43,9 @@ inline constexpr int kMaxSenses = 3;
 ///       like `ipa`: it is asked for only when the reader's setting wants it, and a word whose
 ///       origin is unknown answers with none.
 struct Explanation {
-    QString title, ipa, en, zh;
-    QString translation;
-    QString etymology;
+    QString        title, ipa, en, zh;
+    QString        translation;
+    QString        etymology;
     QVector<Sense> senses;
 };
 
@@ -54,8 +54,8 @@ struct Explanation {
 /// Missing from the response is recorded as zero rather than failing the batch: losing one
 /// line of a tally is survivable, throwing away an explanation that succeeded is not.
 struct Usage {
-    int promptTokens     = 0;
-    int completionTokens = 0;
+    int     promptTokens     = 0;
+    int     completionTokens = 0;
     QString model; ///< Model captured for this request, even if settings changed in flight.
 };
 
@@ -157,11 +157,11 @@ public slots:
     void explainWords(QStringList words);
 
 private:
-    Config config_;
-    Channel channel_ = Channel::Word;
-    QString preset_  = QStringLiteral("default");
-    QString lang_    = QStringLiteral("en");
-    bool etymology_  = false;
+    Config                 config_;
+    Channel                channel_   = Channel::Word;
+    QString                preset_    = QStringLiteral("default");
+    QString                lang_      = QStringLiteral("en");
+    bool                   etymology_ = false;
     QNetworkAccessManager* manager_;
 };
 

@@ -172,36 +172,36 @@ private:
     QString installerPath() const;
     /// @brief The `.part` beside it, which is the only file a transfer ever writes to.
     QString partialPath() const;
-    void deletePartial();
-    void onSumsReady(QByteArray sums);
-    void onInstallerReady(QString path);
-    void failDownload(const QString& kind);
+    void    deletePartial();
+    void    onSumsReady(QByteArray sums);
+    void    onInstallerReady(QString path);
+    void    failDownload(const QString& kind);
     /// Removes a finished download for a version the card no longer shows.
     void discardDownload();
     void resetDownload(const QString& state);
 
-    StorageDuty& storage_;
-    update::UpdateClient& client_;
+    StorageDuty&            storage_;
+    update::UpdateClient&   client_;
     update::DownloadClient& downloader_;
-    Launcher launcher_;
-    DateProvider dateProvider_;
-    QString downloadDir_;
-    QString current_;
-    QString latest_;
-    QString notes_;
-    QString pageUrl_;
-    QString state_    = QStringLiteral("idle");
-    bool cardVisible_ = false;
-    bool inFlight_    = false;
+    Launcher                launcher_;
+    DateProvider            dateProvider_;
+    QString                 downloadDir_;
+    QString                 current_;
+    QString                 latest_;
+    QString                 notes_;
+    QString                 pageUrl_;
+    QString                 state_       = QStringLiteral("idle");
+    bool                    cardVisible_ = false;
+    bool                    inFlight_    = false;
     /// Whether the request in flight is the one the reader asked for, which decides what a
     /// failure says: an automatic check that fails says nothing, a manual one answers.
     bool manual_ = true;
 
-    QString downloadState_ = QStringLiteral("idle");
-    QString downloadFailure_;
+    QString     downloadState_ = QStringLiteral("idle");
+    QString     downloadFailure_;
     std::string expectedDigest_;
-    int downloadPercent_    = 0;
-    bool downloadAvailable_ = false;
+    int         downloadPercent_   = 0;
+    bool        downloadAvailable_ = false;
     /// Whether this release's digest list has been read, which is what `downloadAvailable_`
     /// means: before it is, the card offers nothing rather than offering something untested.
     bool sumsKnown_ = false;

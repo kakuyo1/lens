@@ -65,12 +65,12 @@ QString httpErrorFor(int status);
  * @return A compact JSON body, ready to POST.
  * @throws std::logic_error If that channel's protocol has not been loaded.
  */
-QByteArray buildRequestBody(const Config& config,
-                            Channel channel,
+QByteArray buildRequestBody(const Config&      config,
+                            Channel            channel,
                             const QStringList& inputs,
-                            const QString& explanationLang,
-                            const QString& preset = QStringLiteral("default"),
-                            bool etymology        = false);
+                            const QString&     explanationLang,
+                            const QString&     preset    = QStringLiteral("default"),
+                            bool               etymology = false);
 
 /**
  * @brief Validate a response that arrives from the network and must not be trusted.
@@ -92,11 +92,11 @@ QByteArray buildRequestBody(const Config& config,
  *         (never containing the API key, and marked for translation).
  * @throws std::logic_error If that channel's protocol has not been loaded.
  */
-std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
-                                                              const QByteArray& responseBody,
+std::variant<QVector<Explanation>, QString> parseExplanations(Channel            channel,
+                                                              const QByteArray&  responseBody,
                                                               const QStringList& expectedInputs,
-                                                              QString const& explanationLang = QStringLiteral("en"),
-                                                              bool multipleSenses            = false);
+                                                              QString const&     explanationLang = QStringLiteral("en"),
+                                                              bool               multipleSenses  = false);
 
 /**
  * @brief Read the ids out of OpenRouter's model answer.

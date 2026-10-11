@@ -72,8 +72,8 @@ enum class CandidateState {
 
 /// @brief A word worth explaining, in both the form seen and its dictionary form.
 struct Candidate {
-    std::string surface;                        ///< The form as written, lower-cased (e.g. "running").
-    std::string lemma;                          ///< The dictionary form (e.g. "run").
+    std::string    surface;                     ///< The form as written, lower-cased (e.g. "running").
+    std::string    lemma;                       ///< The dictionary form (e.g. "run").
     CandidateState state = CandidateState::New; ///< What the reader has already said about it.
 };
 
@@ -111,11 +111,11 @@ struct Candidate {
  * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet.
  */
 std::vector<Candidate> filterWords(
-    std::string_view text,
+    std::string_view                       text,
     const std::unordered_set<std::string>& knownLemmas,
-    std::size_t minFreqRank,
-    int minimumLength       = 3,
-    bool allowExplicitToken = true);
+    std::size_t                            minFreqRank,
+    int                                    minimumLength      = 3,
+    bool                                   allowExplicitToken = true);
 
 /// @brief What a finished selection turned out to be, which decides the channel it takes.
 ///
@@ -131,7 +131,7 @@ enum class SelectionKind {
 
 /// @brief A selection, classified: what it is, and the candidates it carries.
 struct Selection {
-    SelectionKind kind = SelectionKind::Sentence;
+    SelectionKind          kind = SelectionKind::Sentence;
     std::vector<Candidate> candidates; ///< Empty unless kind is Word.
 };
 
@@ -155,8 +155,8 @@ struct Selection {
  *       Word carries is the caller's decision, taken from each candidate's state.
  */
 Selection classifySelection(
-    std::string_view text,
+    std::string_view                       text,
     const std::unordered_set<std::string>& knownLemmas,
-    std::size_t minFreqRank);
+    std::size_t                            minFreqRank);
 
 }

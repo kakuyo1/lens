@@ -19,12 +19,12 @@ namespace lens::app {
 
 /// @brief The result of evaluating the current local day's budget.
 struct BudgetStatus {
-    QDate date;
-    double spent     = 0.0;
-    double limit     = 0.0;
-    double remaining = 0.0;
-    bool limited     = false;
-    bool exhausted   = false;
+    QDate   date;
+    double  spent     = 0.0;
+    double  limit     = 0.0;
+    double  remaining = 0.0;
+    bool    limited   = false;
+    bool    exhausted = false;
     QString currency;
 };
 
@@ -79,11 +79,11 @@ signals:
 private:
     double amountOf(const core::DailyUsage& usage) const;
 
-    core::StatsStore& stats_;
-    llm::LlmClient& llm_;
+    core::StatsStore&   stats_;
+    llm::LlmClient&     llm_;
     const llm::Pricing& pricing_;
-    DateProvider dateProvider_;
-    QString legacyModel_;
+    DateProvider        dateProvider_;
+    QString             legacyModel_;
 };
 
 }

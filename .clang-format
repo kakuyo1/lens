@@ -21,8 +21,7 @@ ReferenceAlignment: Left
 # mostly does -- 22 same-line namespaces and no Allman ones, measured -- with a couple of
 # same-line functions left in llm_client.cpp, so a first run of the formatter would normalise a
 # little of everything. The previous version of this file asked for the opposite (Allman for
-# every brace, `int *a`, declarations padded into columns), which is part of why it and the
-# code disagreed.
+# every brace, `int *a`), which is part of why it and the code disagreed.
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterClass: false
@@ -40,12 +39,13 @@ BraceWrapping:
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
 
-# Consecutive assignments are aligned; consecutive declarations stay flush.
+# Consecutive declarations and consecutive assignments are both aligned: in a member block the
+# names sit on one left baseline and the `=` signs line up in a second column.
 # (AlignTrailingComments stays at its default: the `///<` comments in the tree are aligned, and
 # turning it off strips that padding from every field in the repository -- 3795 changed lines
 # instead of 1024, measured.)
 AlignConsecutiveAssignments: Consecutive
-AlignConsecutiveDeclarations: None
+AlignConsecutiveDeclarations: Consecutive
 AllowShortBlocksOnASingleLine: Never
 # The next two are permissions rather than normalisers: a short arm that arrives on one line is
 # kept there, and one that arrives already broken stays broken. So the tree's own form has to be

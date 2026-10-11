@@ -56,8 +56,8 @@ T numberFromText(nlohmann::json const& held, T fallback)
     if (!held.is_string())
         return fallback;
     const std::string& text = held.get_ref<const std::string&>();
-    T out{};
-    const auto parsed = std::from_chars(text.data(), text.data() + text.size(), out);
+    T                  out{};
+    const auto         parsed = std::from_chars(text.data(), text.data() + text.size(), out);
     if (parsed.ec != std::errc{} || parsed.ptr != text.data() + text.size())
         return fallback;
     return out;
@@ -129,11 +129,11 @@ private:
     nlohmann::json* find();
     /// @return The object this section names, creating every missing object on the way.
     nlohmann::json& ensure();
-    void commit() const;
+    void            commit() const;
 
-    nlohmann::json& document_;
+    nlohmann::json&          document_;
     std::vector<std::string> path_;
-    SettingsCommit commit_;
+    SettingsCommit           commit_;
 };
 
 template <typename T>
@@ -173,10 +173,10 @@ T SettingsSection::value(std::string_view const key, T fallback) const
 template <typename T>
 void SettingsSection::set(std::string_view const key, const T& value)
 {
-    nlohmann::json& node = ensure();
+    nlohmann::json&   node = ensure();
     const std::string name{key};
-    const auto held   = node.find(name);
-    const bool asText = held != node.end() && held->is_string();
+    const auto        held   = node.find(name);
+    const bool        asText = held != node.end() && held->is_string();
 
     if constexpr (std::is_same_v<T, bool>) {
         node[name] = asText ? nlohmann::json(value ? "true" : "false") : nlohmann::json(value);

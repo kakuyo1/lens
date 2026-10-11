@@ -35,9 +35,9 @@ inline QVariantList yearGrid(const QDate& today, const std::map<std::string, cor
     out.reserve(365);
 
     for (int offset = 364; offset >= 0; --offset) {
-        const QDate date             = today.addDays(-offset);
-        const std::string key        = date.toString(QStringLiteral("yyyy-MM-dd")).toStdString();
-        const auto day               = daily.find(key);
+        const QDate            date  = today.addDays(-offset);
+        const std::string      key   = date.toString(QStringLiteral("yyyy-MM-dd")).toStdString();
+        const auto             day   = daily.find(key);
         const core::DailyUsage usage = day == daily.end() ? core::DailyUsage{} : day->second;
         out.append(QVariantMap{{"date", QString::fromStdString(key)},
                                {"pops", usage.pops},

@@ -23,13 +23,13 @@ enum class OcrStatus { Ready,
 
 struct OcrResult {
     OcrStatus status = OcrStatus::RuntimeMissing;
-    QString text; ///< Local OCR output; never log this or use it as a scan request body.
+    QString   text; ///< Local OCR output; never log this or use it as a scan request body.
 };
 
 struct TesseractConfig {
     QString executable;    ///< Empty: resolve only the bundled ocr/tesseract.exe.
     QString dataDirectory; ///< Empty: use tessdata next to the selected executable.
-    int timeoutMs = 10000;
+    int     timeoutMs = 10000;
 };
 
 struct OcrEngine {

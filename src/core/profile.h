@@ -64,7 +64,7 @@ struct Stat {
     std::uint64_t count   = 0;     ///< Scope entries, or the sum of a counter's increments.
     std::uint64_t totalNs = 0;     ///< Time inside the scope. Always 0 for a counter.
     std::uint64_t maxNs   = 0;     ///< Longest single entry. Always 0 for a counter.
-    bool timed            = false; ///< True once a ScopeTimer has written here, which is what
+    bool          timed   = false; ///< True once a ScopeTimer has written here, which is what
                                    ///< keeps the report's timing columns off a pure counter.
 };
 
@@ -86,7 +86,7 @@ struct ScopeTimer {
     ScopeTimer& operator=(const ScopeTimer&) = delete;
 
 private:
-    const char* name;
+    const char*                           name;
     std::chrono::steady_clock::time_point startedAt;
 };
 

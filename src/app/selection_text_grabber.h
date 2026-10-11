@@ -41,13 +41,13 @@ enum class GrabStatus : std::uint8_t {
 
 /// @brief A grab that produced text, and what the clipboard did while it was read.
 struct GrabbedText {
-    QString text;                   ///< The selection, trimmed of surrounding whitespace.
-    bool clipboardReplaced = false; ///< Another process wrote the clipboard after our copy
-                                    ///< landed -- a clipboard manager looking at the change, or
-                                    ///< the reader copying something themselves. The text is
-                                    ///< still the selection, but the snapshot was left in place
-                                    ///< rather than put back over the newer content, so what is
-                                    ///< on the clipboard now is theirs.
+    QString text;                      ///< The selection, trimmed of surrounding whitespace.
+    bool    clipboardReplaced = false; ///< Another process wrote the clipboard after our copy
+                                       ///< landed -- a clipboard manager looking at the change, or
+                                       ///< the reader copying something themselves. The text is
+                                       ///< still the selection, but the snapshot was left in place
+                                       ///< rather than put back over the newer content, so what is
+                                       ///< on the clipboard now is theirs.
 };
 
 /**
@@ -109,11 +109,11 @@ public:
 private:
     /// @brief One format and the bytes of its handle.
     struct Entry {
-        unsigned format = 0;          ///< A CF_* value or a registered format id.
-        std::vector<std::byte> bytes; ///< The handle's contents, copied out.
+        unsigned               format = 0; ///< A CF_* value or a registered format id.
+        std::vector<std::byte> bytes;      ///< The handle's contents, copied out.
     };
 
-    bool taken_ = false;
+    bool               taken_ = false;
     std::vector<Entry> entries_;
 };
 

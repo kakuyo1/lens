@@ -88,12 +88,12 @@ public:
     }
 
 private:
-    QString currency_        = QStringLiteral("USD"); ///< What the vendor quotes its rates in.
-    QString displayCurrency_ = QStringLiteral("USD"); ///< What the surfaces show; the file's
-                                                      ///< `display.currency`, or the vendor's.
-    double displayMultiplier_ = 1.0;                  ///< currency_ -> displayCurrency_.
-    QString rateAsOf_;                                ///< The day the multiplier was taken.
-    long long unit_ = 1000000;                        ///< Token count the prices are per.
+    QString currency_        = QStringLiteral("USD");    ///< What the vendor quotes its rates in.
+    QString displayCurrency_ = QStringLiteral("USD");    ///< What the surfaces show; the file's
+                                                         ///< `display.currency`, or the vendor's.
+    double                     displayMultiplier_ = 1.0; ///< currency_ -> displayCurrency_.
+    QString                    rateAsOf_;                ///< The day the multiplier was taken.
+    long long                  unit_ = 1000000;          ///< Token count the prices are per.
     QHash<QString, ModelPrice> byModel_;
     /// Models cost() has already reported as missing from the list. A memory of what has been
     /// said rather than part of what the list is, which is why it is mutable and written from a

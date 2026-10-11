@@ -272,7 +272,7 @@ private:
     /// The batch in flight. Holding it whole is also what says one is: nothing is handed out
     /// between the take() that set it and the complete() that clears it.
     std::optional<ExplanationBatch> sent_;
-    QSet<QString> invalidated_;
+    QSet<QString>                   invalidated_;
 };
 
 }
