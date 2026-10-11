@@ -51,9 +51,8 @@ $languages = [ordered]@{
     'es'    = @{ code = 'es'; ts = 'lens_es_ES.ts' }
 }
 
-# The language codes the fixture has a real cached explanation for. English is copied from the
-# fixture's own English text for "panel" (see New-TestSettings); nothing is written that the fixture
-# does not already contain.
+# The language codes the fixture has a real cached explanation for. English is filed from the fixture's
+# own "panel" entry (see New-TestSettings); nothing is written that the fixture does not already contain.
 $explainedCodes = @('en', 'zh')
 
 $frameHold = 0.6
@@ -79,9 +78,9 @@ function New-TestSettings([string]$root, [string]$code, [string]$target) {
     $fixture.uiLanguage = $code
     $fixture.explanationLang = $code
     if ($code -eq 'en') {
-        $panel = $fixture.cache.zh.panel
-        $english = [pscustomobject]@{ panel = [pscustomobject]@{ ipa = $panel.ipa; en = $panel.en } }
-        $fixture.cache | Add-Member -NotePropertyName en -NotePropertyValue $english
+        # The app reads an entry only when it has both an en and a zh text (known_store.cpp readCache), so
+        # the English copy is the fixture's own "panel" entry, filed under en.
+        $fixture.cache | Add-Member -NotePropertyName en -NotePropertyValue ([pscustomobject]@{ panel = $fixture.cache.zh.panel })
     }
     $json = $fixture | ConvertTo-Json -Depth 20
     [System.IO.File]::WriteAllText($target, $json, (New-Object System.Text.UTF8Encoding($false)))

@@ -98,6 +98,26 @@ Item {
         /// a reader would see around it.
         readonly property string pageColor: "#e9ebef"
 
+        /// Why a clip that shows an explanation cannot run in this language, or "" when it can. The fixture
+        /// has a real cached explanation for English and Chinese only, and a clip is never given a made-up one.
+        function explanationGap() {
+            const code = lensQaUiLanguage;
+            if (code === "ja" || code === "es")
+                return "no cached explanation for '" + code + "' in the fixture";
+            return "";
+        }
+
+        /// The payload the controller would send for "panel" in this explanation language. The text is the
+        /// fixture's own: English from the Chinese entry's en field, Chinese from its zh field.
+        function panelPayload() {
+            const payload = { title: "panel", type: "word", ipa: "/ˈpænl/", status: "new", x: 200, y: 200 };
+            if (lensQaUiLanguage === "zh")
+                payload.zh = "面板；专门小组";
+            else
+                payload.en = "a flat board forming part of a surface";
+            return payload;
+        }
+
         /// Record in the light theme, as the README's stills are, and return the theme to put back.
         /// The fixture is dark, so each clip sets light and the case restores what it found.
         function recordLight() {
@@ -120,20 +140,14 @@ Item {
         function test_bubbleClip() {
             if (!lensQaSnapshotDir)
                 skip("Set LENS_QA_SNAPSHOT_DIR to save the frame sequence");
+            if (explanationGap())
+                skip(explanationGap());
 
             const was = recordLight();
             const bubble = createTemporaryObject(bubbleComponent, root);
             verify(bubble);
             bubble.color = pageColor;
-            bubble.show({
-                title: "panel",
-                type: "word",
-                ipa: "/pænl/",
-                en: "a flat board forming part of a surface",
-                status: "new",
-                x: 200,
-                y: 200
-            });
+            bubble.show(panelPayload());
             tryCompare(bubble, "visible", true);
 
             sample(sinkFor("bubble"), bubble.contentItem, 3200);
@@ -174,6 +188,8 @@ Item {
         function test_markingClip() {
             if (!lensQaSnapshotDir)
                 skip("Set LENS_QA_SNAPSHOT_DIR to save the frame sequence");
+            if (explanationGap())
+                skip(explanationGap());
 
             const main = make();
             const was = recordLight();
@@ -187,7 +203,8 @@ Item {
 
             const texts = Util.textsUnder(bubble);
             const card = textNamed(texts, "panel");
-            const known = textNamed(texts, "Known");
+            // The label the bubble draws in the running language, looked up in the bubble's own context.
+            const known = textNamed(texts, qsTranslate("Bubble", "Known"));
 
             const sink = sinkFor("marking");
             sample(sink, bubble.contentItem, 800);
