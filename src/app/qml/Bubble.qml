@@ -71,17 +71,13 @@ Window {
     property point lastHoverCursor: Qt.point(0, 0)
     property rect lastHoverCard: Qt.rect(0, 0, 0, 0)
 
-    /// @brief Put the card above the anchor, or below it when there is no room up there.
+    /// @brief Asks the root to put the card beside @p payload, before the bubble is shown.
     ///
-    /// The same rule SelectionBar.openAt() follows, so the bar and the bubble answer the same
-    /// gesture from the same side. Placement is by the card, not by the window: the window
-    /// carries `shadowMargin` of transparent shadow on every side, so lining the window up
-    /// with the word left the card a margin right of it and another one, plus the gap, below.
-    function place(payload) {
-        const above = payload.y - gap - height + shadowMargin;
-        bubble.y = above >= 0 ? above : payload.y + gap - shadowMargin;
-        bubble.x = payload.x - shadowMargin;
-    }
+    /// The root does the placing because only it knows the screens: the card has to stay inside
+    /// the work area of the screen the anchor is on, and this window cannot tell which that is.
+    /// Main.qml's placeTransient() answers it, above the anchor or below it when there is no room
+    /// up there, and the same call is made again once the text has settled.
+    signal placementRequested(var payload)
 
     function show(payload) {
         const wasVisible = visible;
@@ -118,7 +114,7 @@ Window {
         onTriggered: {
             if (bubble.pendingGeneration !== bubble.showGeneration)
                 return;
-            bubble.place(bubble.pendingPayload);
+            bubble.placementRequested(bubble.pendingPayload);
             if (!bubble.pendingWasVisible) {
                 bubble.visible = true;
             }

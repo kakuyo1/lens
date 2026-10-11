@@ -9,8 +9,10 @@
 #include <QCursor>
 #include <QDate>
 #include <QDateTime>
+#include <QGuiApplication>
 #include <QHash>
 #include <QSaveFile>
+#include <QScreen>
 #include <QSet>
 #include <QQmlEngine>
 #include <QJSEngine>
@@ -156,6 +158,17 @@ void AppController::onSelectionReleased(QPoint anchor)
 QPoint AppController::cursorPos() const
 {
     return QCursor::pos();
+}
+
+QRect AppController::screenWorkArea(QString deviceName) const
+{
+    // An empty name names no screen. Without this guard the loop would match the first unnamed screen,
+    // the offscreen platform's, and hand its area to a caller that had no name.
+    if (deviceName.isEmpty()) return {};
+    for (auto const* screen : QGuiApplication::screens())
+        if (screen->name() == deviceName)
+            return screen->availableGeometry();
+    return {};
 }
 
 void AppController::setTesseractExecutable(QUrl executable)

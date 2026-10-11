@@ -56,8 +56,7 @@
   ——`placePanel` 把卡片的右下角对齐图标中心，卡片下缘本就在 48 DIP 任务栏里进了一半，而点托盘图标
   会把任务栏**激活**，它同样是置顶窗口且会把自己重新提到置顶带顶端，于是刚显示出来的面板落在它下面。
   三处显示路径（`Main.qml` 的 `placePanel`、`Bubble.show`、`SelectionBar.openAt`）都补上 `raise()`，
-  没有共用的辅助函数：三个文件各自只有这一行，为它造一个上下文属性不划算。既知边界：这改的是
-  **谁在上面**，不是**摆哪儿**——`placeBeside` 仍按整屏夹取，卡片照旧与任务栏重叠，只是现在盖在它上面。
+  没有共用的辅助函数：三个文件各自只有这一行，为它造一个上下文属性不划算。这改的是**谁在上面**。摆哪儿也改了：`placeBeside` 与 `placeTransient` 按所在屏的工作区夹取，工作区由 `AppController::screenWorkArea` 从 `QScreen::availableGeometry()` 按设备名取，不用 `Screen.desktopAvailable*`：竖屏上它给出的是主屏的尺寸（1536×864），不是这块屏自己的（1152×2048）。早先按整屏夹，任务栏会盖住面板的下缘。
 - **点击外部关闭靠钩子**：表面各是独立 `Window`，落在别的窗口上的按下根本不会送进本进程，只有低层
   钩子看得见（`MouseSelectionHook::pointerPressed` → `AppController` 转发 → `main.qml` 的
   `dismissOutside()`）。判 “外面” 用的是卡片矩形而非窗口矩形，四周 26 px 阴影边距算外面。
@@ -90,14 +89,19 @@
   `TrayMenu.openAt` 因此全部删掉，菜单与面板走同一条路。
 - **气泡与动作条同侧**：两张卡片都由 “选区完成” 这一个手势触发，故都往选区的**上方**排，上方空间不足
   时才下移。气泡原规格是挂在锚点**下方**，动作条在**上方**，同一个手势引出的两张卡片一上一下，读起来
-  是两件不相干的东西各自乱落。`Bubble.qml` 的 `show()` 与 `SelectionBar.qml` 的 `openAt()` 用同一条
-  公式。既知边界：那条翻转判据是 `above >= 0`，即拿屏幕绝对坐标 0 当上边界，副屏（负 y）上的选区永远
-  判为 “上方没地方” 而一律翻到下方——动作条与气泡现在同病。
+  是两件不相干的东西各自乱落。两张卡片的翻转都在 `Main.qml` 的 `placeTransient()` 里，以所在屏工作区的顶边为界。
+  早先拿屏幕绝对坐标 0 当上边界，副屏在负 y 时选区一律翻到下方。`SelectionBar.openAt()` 里还留着那份
+  `above >= 0` 的公式，产品路径上它随即被 `placeTransient()` 覆盖，只有 QTest 直接读它。
 - **锚点是物理像素，窗口坐标不是**：钩子拿到的 `pt` 从不虚拟化，而 QML 窗口落在设备无关像素上，两者差
   一个 `devicePixelRatio`（本机 125% 实测：物理 x=275 的松手位置，窗口坐标是 220）；按 1:1 直接用，
   动作条会偏出选区四分之一屏，渲染循环还会记 “矩形不与屏幕相交”。Qt 会把 `QGuiApplication` 设成
   per-monitor aware（实测进程感知级别 = 2），这一条只决定渲染清晰度，不改变上面的换算——交给动作条与
   气泡之前必须先除。
+- **Qt 按屏幕原点摆放窗口，换算也要按原点**：窗口落在某块屏上时，原生像素等于原点加上（DIP 减原点）乘以缩放。
+  实测竖屏在主屏上方（`G52plus`，原点 `197,-2560`，尺寸 `1152x2048`，125%）：卡片摆在 DIP y 为 -1120 处，画在原生 y 为 -760 处。
+- 原先 `toDip` 与 `screenForPhysical` 把原点也乘了缩放，只有原点为零的屏幕才对。这块屏上每个点因此偏 512 DIP，动作条与气泡落在选中文字下方约 640 物理像素处，点击判定又用的是错位的卡片矩形，动作条一按就关。现在 `dipOn()` 按原点换算，与摆放的映射互逆；`screenForPhysical` 的边界也不再乘缩放。
+- 只在这一种布局（主屏原点为零、竖屏在上方）上实测过，主屏右侧或缩放不同的副屏未测。回归用例是 `tst_main` 的 `test_aPortraitScreenAboveThePrimaryConvertsFromItsOrigin`。
+- **按设备名查屏幕，空名字不算名字**：QTest 的 offscreen 平台主屏没有名字，尺寸是 800×800。`AppController::screenWorkArea("")` 原先会匹配到它，把 800×800 交给只有 `width/height` 的假屏幕，`tst_phase2e` 的窄屏用例因此失败。现在空名返回空矩形，调用方回退到自己的几何。
 - **物理 → 设备无关那次换算要造新对象**：`Main.qml` 的 `toDip()` 原形如 `payload.x = payload.x / ratio`，
   而 `payload` 是 `controller.bubble` 这类 `QVariantMap` 属性交出来的 JS 对象——**赋值被接受、读回来
   还是旧值**。实测（临时 `console.log`，已删）：`toDip` 里 `ratio=1.25`、`in=936,248`，同一对象走到
@@ -123,6 +127,8 @@
   永远不会被应用。松手那一拍再补一次定位。
 - **主屏的任务栏是自动隐藏的**，`GetSystemMetrics(0/1)` 只给主屏尺寸；要整块虚拟桌面得用 76 / 77 / 78 / 79
   四个索引。
+
+- **表面长大后要重新夹一次**：气泡的动作行展开、面板的列表加载，都发生在摆好之后。窗口的左上角不动，下缘或右缘就越过了工作区。`Main.qml` 的 `keepOnScreen()` 挂在每个锚定表面的 `onWidthChanged` / `onHeightChanged` 上，只做夹取。不能拿锚点重摆：那会把读者拖走的面板摆回原处。
 
 ## 5 跨线程
 
@@ -225,6 +231,8 @@ PY
   `TrayMenu.qml` 里的 `root.showStats()` 会解析到 `Main.qml` 的根（两文件探针实测）。它能跑，但没有任何地方
   声明它，qmllint 对这种名字只给一句 `Unqualified access`、不说该怎么办。表面之间的通信因此走信号：
   `TrayMenu` 现在发 `statsRequested` / `settingsRequested`，由 `Main.qml` 接。
+
+- **新加的 `Q_INVOKABLE` 不一定立刻被 qmllint 认出**：`AppController::screenWorkArea` 加进头文件并构建后，`lens_app.qmltypes` 里已经有它，qmllint 仍报 `missing-property`。原因没有查清；`Main.qml` 的 `workArea()` 因此用 `disable` / `enable` 包住，与 `screenFor()` 同一做法。
 
 ## 9 动效
 
