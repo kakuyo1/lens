@@ -45,15 +45,12 @@ Lens 在本机把捕获到的文字分成三类请求：单词请求只发送单
 
 ## 操作演示
 
-以下短片展示主要操作，画面为英文界面。“已会” 与 “新词” 标记的那段短片中，解释是中文，因为示例单词是以中文保存的。
+以下短片展示主要操作，界面和解释都是中文。
 
-| 解释气泡 | 选区动作条 |
+| 解释气泡 | 桌面宠物庆祝 |
 | --- | --- |
-| ![单词气泡，展示单词的解释和倒计时](docs/readme-images/gifs/word-bubble.gif) | ![选区动作条，包含翻译、解释和复制](docs/readme-images/gifs/selection-bar.gif) |
-
-| 标记单词 | 单词年度记录 |
-| --- | --- |
-| ![把单词标为已会，标记随之变化](docs/readme-images/gifs/marking-known-new.gif) | ![在年度贡献图中选择日期和配色](docs/readme-images/gifs/year-in-words.gif) |
+| ![单词的解释气泡动图](docs/readme-images/gifs/zh-CN/word-bubble.gif)<br>单词的解释气泡：发音、释义，以及关闭前的倒计时。 | ![桌面宠物庆祝动图](docs/readme-images/gifs/zh-CN/pet-celebrate.gif)<br>桌面宠物的庆祝动作。宠物只接收事件类型，从不读取你的文字。 |
+| ![标记单词动图](docs/readme-images/gifs/zh-CN/marking-known-new.gif)<br>把指针移到气泡上，显示“已会”和“新词”，点击“已会”，标记随即变化。 | ![单词年度记录动图](docs/readme-images/gifs/zh-CN/year-in-words.gif)<br>一年的查词次数，画成贡献图。选中某一天查看当天次数，也可以选择格子的配色。 |
 
 ## 语言与外观
 

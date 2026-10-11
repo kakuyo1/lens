@@ -45,15 +45,12 @@ The images below come from the HTML design files in [`ui-prototypes/`](ui-protot
 
 ## Demonstrations
 
-Short clips of the main operations, shown in the English interface. The clip for marking a word shows a Chinese explanation, because its sample word was stored in Chinese.
+Short clips of the main operations, in the English interface with English explanations.
 
-| Explanation bubble | Selection actions |
+| Explanation bubble | Desktop pet celebrating |
 | --- | --- |
-| ![Word bubble showing a word's explanation and a countdown](docs/readme-images/gifs/word-bubble.gif) | ![Selection action bar with translate, explain, and copy](docs/readme-images/gifs/selection-bar.gif) |
-
-| Marking a word | Year in words |
-| --- | --- |
-| ![Marking a word as known, and the badge changing](docs/readme-images/gifs/marking-known-new.gif) | ![Choosing a day and a colour in the year grid](docs/readme-images/gifs/year-in-words.gif) |
+| ![Explanation bubble for the word panel](docs/readme-images/gifs/en/word-bubble.gif)<br>The explanation bubble for a word, with its pronunciation, definition, and a countdown until it closes. | ![Desktop pet celebrating](docs/readme-images/gifs/en/pet-celebrate.gif)<br>The desktop pet's Celebrate action. The pet reacts to event types and never reads your words. |
+| ![Marking the word panel as known](docs/readme-images/gifs/en/marking-known-new.gif)<br>Hover over the bubble to show Known and New, click Known, and the badge changes. | ![Year in words](docs/readme-images/gifs/en/year-in-words.gif)<br>A year of lookups as a contribution graph. Select a day to see its count, or choose the cell colours. |
 
 ## Languages and appearance
 

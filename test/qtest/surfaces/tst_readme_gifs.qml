@@ -4,8 +4,8 @@ import Lens
 import "../testutil.js" as Util
 
 /**
- * The four frame sequences the README's GIFs are cut from: the explanation bubble, the selection
- * bar, marking a word known or new, and the year table.
+ * The frame sequences the README's GIFs are cut from: the explanation bubble, marking a word known
+ * or new, the year table, and the desktop pet celebrating.
  *
  * Each case steps through one interaction and grabs the surface at every step, so the frames can be
  * encoded into an animation. Input is in-scene only: QTest's mouseMove and mouseClick deliver events
@@ -154,32 +154,31 @@ Item {
             Tokens.theme = was;
         }
 
-        /// Clip (b): the selection bar arriving, then the pointer moving across its three actions.
-        /// Hover only: a click would run translate, explain or copy, which is a model call or a
-        /// write to the real clipboard.
-        function test_selectionBarClip() {
+        /// Clip (b): the desktop pet celebrating. The pet is switched on in this run's settings copy, and
+        /// Celebrate is shown through Pet.preview(), the same call the settings page's action pill makes,
+        /// pressed twice so the clip has two bursts. The machine's own Celebrate comes from KnownMarked,
+        /// but the surfaces harness never connects AppController::petEvent to the pet (main.cpp does), so
+        /// marking a word cannot reach it here. The preview is the route this clip takes.
+        function test_petCelebrateClip() {
             if (!lensQaSnapshotDir)
                 skip("Set LENS_QA_SNAPSHOT_DIR to save the frame sequence");
 
             const main = make();
-            // After make(): Main binds Tokens.theme to the settings when it is built.
-            const was = recordLight();
-            const bar = panel(main, "SelectionBar");
-            bar.color = pageColor;
-            const sink = sinkFor("selection");
+            Pet.setEnabled(true);
+            const petWindow = panel(main, "PetWindow");
+            tryCompare(petWindow, "visible", true);
+            // The pet window is transparent on the desktop; a grab of it is opaque black unless the
+            // backdrop is set. The page colour is what the GIF sits on, so the frame gets it too.
+            petWindow.color = pageColor;
 
-            Controller.selectionBarRequested({ x: 300, y: 300, kind: "word", text: "serendipity", letterCount: 11 });
-            tryCompare(bar, "visible", true);
+            const sink = sinkFor("pet");
+            Pet.preview("celebrate");
+            sample(sink, petWindow.contentItem, 1600);
+            Pet.preview("celebrate");
+            sample(sink, petWindow.contentItem, 2000);
 
-            const texts = Util.textsUnder(bar);
-            const targets = ["Translate", "Explain", "Copy text"].map(function (label) { return textNamed(texts, label); });
-
-            sample(sink, bar.contentItem, 900);
-            for (let i = 0; i < targets.length; ++i) {
-                mouseMove(targets[i], targets[i].width / 2, targets[i].height / 2);
-                sample(sink, bar.contentItem, 700);
-            }
-            Tokens.theme = was;
+            Pet.setPreviewing(false);
+            Pet.setEnabled(false);
         }
 
         /// Clip (c): the pointer reveals the Known and New row, Known is pressed, and the verdict

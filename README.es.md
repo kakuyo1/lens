@@ -45,15 +45,11 @@ Las imágenes siguientes proceden de los archivos HTML de diseño de [`ui-protot
 
 ## Demostraciones
 
-Clips breves de las operaciones principales, con la interfaz en inglés. El clip de marcar una palabra muestra una explicación en chino, porque la palabra de ejemplo se guardó en chino.
+Clips breves de las operaciones principales, con la interfaz en español.
 
-| Globo de explicación | Barra de acciones de selección |
+| Mascota de escritorio | Año en palabras |
 | --- | --- |
-| ![Globo con la explicación de una palabra y una cuenta atrás](docs/readme-images/gifs/word-bubble.gif) | ![Barra de acciones de selección con traducir, explicar y copiar](docs/readme-images/gifs/selection-bar.gif) |
-
-| Marcar una palabra | Año en palabras |
-| --- | --- |
-| ![Marcar una palabra como conocida y cambiar la insignia](docs/readme-images/gifs/marking-known-new.gif) | ![Elegir un día y un color en la cuadrícula del año](docs/readme-images/gifs/year-in-words.gif) |
+| ![Demostración de la mascota de escritorio](docs/readme-images/gifs/es/pet-celebrate.gif)<br>La acción de celebración de la mascota de escritorio. Solo recibe tipos de evento y nunca lee tus palabras. | ![Demostración del año en palabras](docs/readme-images/gifs/es/year-in-words.gif)<br>Un año de consultas en un gráfico de contribuciones. Selecciona un día para ver su total, o elige los colores de las celdas. |
 
 ## Idiomas y apariencia
 
