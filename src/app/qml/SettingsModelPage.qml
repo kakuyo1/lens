@@ -18,7 +18,7 @@ Item {
 
     /// The models this provider carries: what the service answered last time, else the catalog's
     /// own seed, else nothing at all. Its own controller property rather than a key of `settings`
-    /// -- see ExplanationDuty::models(). Taken as a property, not read off the singleton, so a
+    /// -- see ModelCatalogDuty::models(). Taken as a property, not read off the singleton, so a
     /// case can hand the page a list of its own.
     property var modelOptions: Controller.models || []
 

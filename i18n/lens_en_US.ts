@@ -672,6 +672,16 @@
         <source>Accessories</source>
         <translation>Accessories</translation>
     </message>
+    <message>
+        <location filename="../src/app/model_catalog_duty.cpp" line="125"/>
+        <source>No listed price; recorded cost is zero.</source>
+        <translation>No listed price; recorded cost is zero.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/model_catalog_duty.cpp" line="126"/>
+        <source>Input %1 / Output %2 %3 per %4 tokens</source>
+        <translation>Input %1 / Output %2 %3 per %4 tokens</translation>
+    </message>
 </context>
 <context>
     <name>StatsPopup</name>
@@ -1142,19 +1152,6 @@
         <location filename="../src/app/app_controller.cpp" line="671"/>
         <source>Manual</source>
         <translation>Manual</translation>
-    </message>
-</context>
-<context>
-    <name>lens::app::ExplanationDuty</name>
-    <message>
-        <location filename="../src/app/explanation_duty.cpp" line="539"/>
-        <source>No listed price; recorded cost is zero.</source>
-        <translation>No listed price; recorded cost is zero.</translation>
-    </message>
-    <message>
-        <location filename="../src/app/explanation_duty.cpp" line="540"/>
-        <source>Input %1 / Output %2 %3 per %4 tokens</source>
-        <translation>Input %1 / Output %2 %3 per %4 tokens</translation>
     </message>
 </context>
 <context>

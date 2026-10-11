@@ -50,7 +50,7 @@ AppController::AppController(core::KnownStore& store,
                              QObject* parent)
     : QObject(parent),
       storage_(store),
-      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), llm_(llm), hotkey_(hotkey)
+      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), llm_(llm), hotkey_(hotkey)
 {
     budgetPaused_ = cost_.budgetStatus().exhausted;
     connect(&capture_, &CaptureDuty::selectionBarRequested, this, &AppController::selectionBarRequested);
@@ -69,8 +69,8 @@ AppController::AppController(core::KnownStore& store,
     connect(&capture_, &CaptureDuty::settingsChanged, this, &AppController::settingsChanged);
     connect(&explanation_, &ExplanationDuty::bubbleChanged, this, &AppController::bubbleChanged);
     connect(&explanation_, &ExplanationDuty::noticeChanged, this, &AppController::noticeChanged);
-    connect(&explanation_, &ExplanationDuty::settingsChanged, this, &AppController::settingsChanged);
-    connect(&explanation_, &ExplanationDuty::modelsChanged, this, &AppController::modelsChanged);
+    connect(&catalog_, &ModelCatalogDuty::settingsChanged, this, &AppController::settingsChanged);
+    connect(&catalog_, &ModelCatalogDuty::modelsChanged, this, &AppController::modelsChanged);
     connect(&explanation_, &ExplanationDuty::busyChanged, this, [this] {
         refreshCaptureGates();
         emit busyChanged();
@@ -118,7 +118,7 @@ AppController::~AppController() = default;
 void AppController::restoreModelService()
 {
     auto const keys        = storage_.section();
-    const QString provider = explanation_.currentProvider();
+    const QString provider = catalog_.currentProvider();
     if (!llm_.setProvider(provider))
         llm_.setProvider(QStringLiteral("custom"));
     const QString url = QString::fromStdString(keys.value<std::string>("URL", {})).trimmed();
@@ -134,7 +134,7 @@ void AppController::restoreModelService()
         llm_.setModel(model);
     // The shared model source, asked once per run: one unauthenticated GET that costs nothing, and
     // the slices it answers with are what the model field then offers (docs/adr/0020).
-    explanation_.refreshModels();
+    catalog_.refreshModels();
 }
 
 AppController* AppController::instance_ = nullptr;
@@ -353,7 +353,7 @@ void AppController::setApiKey(QString key)
     // The source takes no key, so the field already has a list and a key change does not unlock one
     // (docs/adr/0020). The trigger stays because the request is free and this is the moment the
     // reader is most likely looking at the field.
-    explanation_.refreshModels();
+    catalog_.refreshModels();
     emit settingsChanged();
 }
 
@@ -372,17 +372,17 @@ void AppController::setProvider(QString provider)
 {
     // No emit here: the duty announces the change itself, and it is the one that also hears the
     // model list arriving later.
-    explanation_.setProvider(std::move(provider));
+    catalog_.setProvider(std::move(provider));
 }
 
 void AppController::refreshModels()
 {
-    explanation_.refreshModels();
+    catalog_.refreshModels();
 }
 
 void AppController::setModel(QString model)
 {
-    if (explanation_.setModel(model))
+    if (catalog_.setModel(model))
         emit settingsChanged();
 }
 
@@ -398,7 +398,7 @@ void AppController::setApiUrl(QString url)
     // The source is one fixed endpoint, so a new address does not move where the list comes from
     // and the models in hand are not the old service's. The refresh is kept only because the
     // triggers were deliberately left alone (docs/adr/0020); the request is free.
-    explanation_.refreshModels();
+    catalog_.refreshModels();
     emit settingsChanged();
 }
 
@@ -457,7 +457,7 @@ QVariantMap AppController::notice() const
 QVariantMap AppController::settings()
 {
     auto const keys        = storage_.section();
-    const QString provider = explanation_.currentProvider();
+    const QString provider = catalog_.currentProvider();
     QVariantMap result{{"level", storage_.knownStore().level()},
                        {"levels", StorageDuty::levelOptions()},
                        {"explanationLang", QString::fromStdString(storage_.knownStore().explanationLang())},
@@ -480,7 +480,7 @@ QVariantMap AppController::settings()
     for (auto it = captureSettings.cbegin(); it != captureSettings.cend(); ++it)
         result.insert(it.key(), it.value());
     result.insert(QStringLiteral("ocrStatus"), capture_.ocrStatus());
-    const auto explanationSettings = explanation_.settings();
+    const auto explanationSettings = catalog_.settings();
     for (auto it = explanationSettings.cbegin(); it != explanationSettings.cend(); ++it)
         result.insert(it.key(), it.value());
     return result;
@@ -488,7 +488,7 @@ QVariantMap AppController::settings()
 
 QVariantList AppController::models() const
 {
-    return explanation_.models();
+    return catalog_.models();
 }
 
 QVariantMap AppController::stats() const

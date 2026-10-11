@@ -672,6 +672,16 @@
         <source>Accessories</source>
         <translation>配饰</translation>
     </message>
+    <message>
+        <location filename="../src/app/model_catalog_duty.cpp" line="125"/>
+        <source>No listed price; recorded cost is zero.</source>
+        <translation>未列出价格；记录的花费为 0。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/model_catalog_duty.cpp" line="126"/>
+        <source>Input %1 / Output %2 %3 per %4 tokens</source>
+        <translation>输入 %1 / 输出 %2 %3 / 每 %4 个 token</translation>
+    </message>
 </context>
 <context>
     <name>StatsPopup</name>
@@ -1142,19 +1152,6 @@
         <location filename="../src/app/app_controller.cpp" line="671"/>
         <source>Manual</source>
         <translation>手动模式</translation>
-    </message>
-</context>
-<context>
-    <name>lens::app::ExplanationDuty</name>
-    <message>
-        <location filename="../src/app/explanation_duty.cpp" line="539"/>
-        <source>No listed price; recorded cost is zero.</source>
-        <translation>未列出价格；记录的花费为 0。</translation>
-    </message>
-    <message>
-        <location filename="../src/app/explanation_duty.cpp" line="540"/>
-        <source>Input %1 / Output %2 %3 per %4 tokens</source>
-        <translation>输入 %1 / 输出 %2 %3 / 每 %4 个 token</translation>
     </message>
 </context>
 <context>

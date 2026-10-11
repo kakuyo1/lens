@@ -2,7 +2,8 @@
  * @file app_seams_test.cpp
  * @brief The pure halves of the app seams: the notice payload's shape, the Run entry's key and
  *        command, the tray state's priority, the explanation queue's scheduling and staleness,
- *        the annual grid's window, and the settings document's path.
+ *        the model a service carries and whether changing it moves the model, the annual grid's
+ *        window, and the settings document's path.
  *
  * Each is the side of a seam that holds no more than Qt Core or the standard library -- which
  * is the difference between an assertion that runs on every change and one a human has to
@@ -18,6 +19,7 @@
 #include <vector>
 
 #include <QDate>
+#include <QJsonArray>
 #include <QStandardPaths>
 #include <QString>
 #include <QVariantList>
@@ -28,6 +30,7 @@
 #include "app/autostart.h"
 #include "app/capture_refusal.h"
 #include "app/explanation_queue.h"
+#include "app/model_catalog.h"
 #include "app/notice.h"
 #include "app/paths.h"
 #include "app/tray_state.h"
@@ -49,6 +52,8 @@ using lens::app::settingsPath;
 using lens::app::toPath;
 using lens::app::CaptureRefusal;
 using lens::app::ExplanationQueue;
+using lens::app::modelFollowingProvider;
+using lens::app::modelsKnownFor;
 using lens::app::PendingSelection;
 using lens::app::TrayState;
 using lens::app::trayIconName;
@@ -542,4 +547,57 @@ TEST(ExplanationQueue, ARefusalIsReportedOnlyForARequestTheReaderStillWants)
 
     queue.selectionChanged();
     EXPECT_FALSE(queue.refusalSubject().has_value());
+}
+
+/// What a service is known to carry, and whether changing service moves the model with it. Both
+/// are ADR-0017's rule, kept by ADR-0020 only for the change of service -- and until this lived
+/// here they were reachable only by driving a real duty through a faked network round trip.
+TEST(ModelCatalog, AModelOfAnotherServiceDoesNotSurviveTheSwitchToThisOne)
+{
+    // The name that reaches the wire is the one the service being switched to answers 400 about,
+    // and the reader changed the service rather than the model (docs/adr/0017).
+    const auto moved = modelFollowingProvider(true, {QStringLiteral("deepseek-flash"), QStringLiteral("deepseek-v4-pro")}, QStringLiteral("gpt-4.1-mini"));
+    ASSERT_TRUE(moved.has_value());
+    EXPECT_EQ(*moved, QStringLiteral("deepseek-flash")) << "the most common one is the first";
+}
+
+/// Switching back and forth must not lose a choice that was still valid: a model this service does
+/// carry is left exactly as the reader set it.
+TEST(ModelCatalog, AModelTheServiceDoesCarryIsLeftWhereItIs)
+{
+    const QStringList carried{QStringLiteral("deepseek-flash"), QStringLiteral("deepseek-v4-pro")};
+    EXPECT_FALSE(modelFollowingProvider(true, carried, QStringLiteral("deepseek-v4-pro")).has_value());
+}
+
+/// Re-picking the service already in force is a tap on the dropdown row, not a change. With one
+/// list shared by every service (docs/adr/0020) that tap would otherwise replace a valid model with
+/// whichever id the source happens to list first.
+TEST(ModelCatalog, RePickingTheServiceAlreadyInForceIsNotAChange)
+{
+    EXPECT_FALSE(modelFollowingProvider(false, {QStringLiteral("first"), QStringLiteral("second")}, QStringLiteral("mine")).has_value());
+}
+
+/// A service that names no model at all -- a custom endpoint, or one the source has never listed --
+/// has nothing to offer, so the model the reader is on stays.
+TEST(ModelCatalog, AServiceThatNamesNoModelLeavesTheOneInForceAlone)
+{
+    EXPECT_FALSE(modelFollowingProvider(true, {}, QStringLiteral("deepseek-flash")).has_value());
+}
+
+/// The list belongs to the reader: what the shared source listed for a service last time wins over
+/// the catalog's own seed, which is only for a machine that has never reached the source.
+TEST(ModelCatalog, WhatTheSourceListedWinsOverTheCatalogsSeed)
+{
+    const QStringList served{QStringLiteral("from-the-source")};
+    const QJsonArray seeded{QStringLiteral("from-the-catalog")};
+    EXPECT_EQ(modelsKnownFor(served, seeded), served);
+}
+
+/// A machine that has never reached the source reads the seed, and only the ids in it that could
+/// be sent: the catalog is a hand-written file, and an entry that is not a name -- or is an empty
+/// one -- reaches the field as a blank row the reader cannot use and cannot explain.
+TEST(ModelCatalog, AMachineThatNeverReachedTheSourceReadsTheSeedAndDropsWhatIsNotAName)
+{
+    const QJsonArray seeded{QStringLiteral("deepseek-flash"), QJsonValue(QString{}), QJsonValue(3), QStringLiteral("deepseek-v4-pro")};
+    EXPECT_EQ(modelsKnownFor({}, seeded), QStringList({QStringLiteral("deepseek-flash"), QStringLiteral("deepseek-v4-pro")}));
 }

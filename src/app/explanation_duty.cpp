@@ -9,13 +9,10 @@
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QGuiApplication>
-#include <QJsonArray>
 
-#include <algorithm>
 #include <utility>
 
 #include "cost_duty.h"
-#include "llm/llm_pure.h"
 #include "notice.h"
 #include "util/log.h"
 
@@ -46,7 +43,6 @@ ExplanationDuty::ExplanationDuty(StorageDuty& storage, llm::LlmClient& llm, Cost
     : QObject(parent), storage_(storage), llm_(llm), cost_(cost)
 {
     connect(&llm_, &llm::LlmClient::batchFinished, this, &ExplanationDuty::onBatchFinished);
-    connect(&llm_, &llm::LlmClient::modelsFetched, this, &ExplanationDuty::noteModelsFetched);
     connect(&llm_, &llm::LlmClient::failed, this, &ExplanationDuty::onFailed);
 }
 
@@ -407,151 +403,9 @@ QString ExplanationDuty::busyLabel() const
     return busyLabel_;
 }
 
-bool ExplanationDuty::setProvider(QString const& provider)
-{
-    auto const entry = llm::serviceProvider(provider);
-    if (entry.isEmpty() || not llm_.setProvider(provider)) return false;
-    // Whether the reader is actually changing service, read before the document below is written:
-    // that is the whole condition the correction is for. Re-picking the provider already in force is
-    // a tap on the dropdown row, not a change, and with a shared model list that tap would replace a
-    // valid model with whichever id the source happens to list first (docs/adr/0020). A document
-    // that has never chosen one counts as a change -- the first pick is one.
-    const bool changed = storage_.section().value<std::string>("PROVIDER", {}) != provider.toStdString();
-    auto keys          = storage_.section();
-    keys.set<std::string>("PROVIDER", provider.toStdString());
-    keys.set<std::string>("URL", llm_.baseUrl().toString().toStdString());
-
-    // The model follows the service when the service changes (docs/adr/0017, kept by docs/adr/0020
-    // only here). A name from another service is the 400 that says "malformed" and nothing else, and
-    // the reader changed the service, not the model. A model that this service does list is left
-    // alone: switching back and forth between two services must not lose a choice that was still
-    // valid.
-    const QStringList known = modelsFor(provider);
-    if (changed and not known.isEmpty() and not known.contains(llm_.model())) {
-        LENS_INFO("model follows the provider: '{}' -> '{}'", llm_.model().toStdString(), known.front().toStdString());
-        llm_.setModel(known.front());
-        keys.set<std::string>("MODEL", known.front().toStdString());
-    }
-    rebuildModels();
-    emit settingsChanged();
-    llm_.fetchModels();
-    return true;
-}
-
-QStringList ExplanationDuty::modelsFor(QString const& provider) const
-{
-    // What the source listed for this provider last time wins: the catalog's list is a seed for a
-    // machine that has never reached it, and the ids a service carries change under the app.
-    auto const served = storage_.section("MODELS").value<std::vector<std::string>>(provider.toStdString(), {});
-    if (not served.empty()) {
-        QStringList ids;
-        for (const std::string& id : served)
-            ids.append(QString::fromStdString(id));
-        return ids;
-    }
-    QStringList seeded;
-    for (const auto& id : llm::serviceProvider(provider).value("models").toArray())
-        if (id.isString() and not id.toString().isEmpty()) seeded.append(id.toString());
-    return seeded;
-}
-
-QString ExplanationDuty::currentProvider() const
-{
-    return QString::fromStdString(storage_.section().value<std::string>("PROVIDER", llm::serviceCatalog().value("defaultProvider").toString().toStdString()));
-}
-
-void ExplanationDuty::rebuildModels()
-{
-    QVariantList rebuilt;
-    for (const QString& id : modelsFor(currentProvider()))
-        rebuilt.append(QVariantMap{{"value", id}, {"label", id}, {"group", ""}, {"note", ""}});
-    if (rebuilt == models_) return;
-    models_ = std::move(rebuilt);
-    emit modelsChanged();
-}
-
-void ExplanationDuty::refreshModels()
-{
-    rebuildModels();
-    llm_.fetchModels();
-}
-
-void ExplanationDuty::noteModelsFetched(QStringList models)
-{
-    if (models.isEmpty()) return;
-    // One answer, several caches: each provider takes the ids its own vendor prefix names, and a
-    // provider with no prefix gets no entry at all.
-    auto written = storage_.section("MODELS");
-    int filled   = 0;
-    int total    = 0;
-    for (const auto& value : llm::serviceCatalog().value("providers").toArray()) {
-        const auto provider = value.toObject();
-        if (not provider.contains("openRouterPrefix")) continue;
-        const QStringList ids = llm::idsForPrefix(models, provider.value("openRouterPrefix").toString());
-        if (ids.isEmpty()) continue;
-        ++filled;
-        total += ids.size();
-        std::vector<std::string> served;
-        served.reserve(static_cast<std::size_t>(ids.size()));
-        for (const QString& id : ids)
-            served.push_back(id.toStdString());
-        written.set<std::vector<std::string>>(provider.value("value").toString().toStdString(), served);
-    }
-    if (filled == 0) return;
-    LENS_INFO("the model source lists {} model(s) across {} provider(s)", total, filled);
-
-    // The model in force is not touched here. This answer describes the whole industry, not the
-    // one service standing, so "not in the list" says nothing about what that service carries --
-    // the correction belongs to the reader changing the service (docs/adr/0020). Nothing to save
-    // either: every write above persisted itself.
-    rebuildModels();
-}
-
-QVariantMap ExplanationDuty::settings() const
-{
-    auto const& catalog  = llm::serviceCatalog();
-    auto const model     = llm_.model();
-    auto const pricing   = catalog.value("pricing").toObject();
-    auto const price     = pricing.value("models").toObject().value(model).toObject();
-    auto const priceText = price.isEmpty() ? tr("No listed price; recorded cost is zero.")
-                                           : tr("Input %1 / Output %2 %3 per %4 tokens").arg(price.value("input").toDouble()).arg(price.value("output").toDouble()).arg(pricing.value("currency").toString()).arg(pricing.value("unit").toInteger());
-    QVariantList providers;
-    for (auto const& value : catalog.value("providers").toArray()) {
-        auto option      = value.toObject().toVariantMap();
-        auto const group = option.value("group").toString();
-        option["group"]  = group == QLatin1String("Domestic")        ? QCoreApplication::translate("SettingsPopup", "Domestic")
-                           : group == QLatin1String("International") ? QCoreApplication::translate("SettingsPopup", "International")
-                                                                     : QCoreApplication::translate("SettingsPopup", "Other");
-        if (option.value("value").toString() == QLatin1String("custom")) option["label"] = QCoreApplication::translate("SettingsPopup", "Custom service");
-        providers.append(option);
-    }
-    // The model list is deliberately not in here. It is the one long thing the settings page
-    // reads -- hundreds of ids from a service that resells models -- and this map is rebuilt for
-    // each of the page's ~40 bindings on every change, so carrying it meant rebuilding hundreds of
-    // maps dozens of times per change. It has its own property and its own cache (models()).
-    return {{"languages", catalog.value("languages").toArray().toVariantList()},
-            {"providers", providers},
-            {"model", model},
-            {"modelPrice", priceText}};
-}
-
-QVariantList ExplanationDuty::models() const
-{
-    return models_;
-}
-
 bool ExplanationDuty::etymologyEnabled() const
 {
     return storage_.section().value<bool>("etymology", false);
-}
-
-bool ExplanationDuty::setModel(QString const& model)
-{
-    const auto value = model.trimmed();
-    if (value.isEmpty()) return false;
-    llm_.setModel(value);
-    storage_.section().set<std::string>("MODEL", value.toStdString());
-    return true;
 }
 
 }

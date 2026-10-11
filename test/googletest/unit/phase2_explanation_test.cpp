@@ -20,6 +20,7 @@
 
 #include "app/app_controller.h"
 #include "app/explanation_duty.h"
+#include "app/model_catalog_duty.h"
 #include "app/storage_duty.h"
 #include "core/known_store.h"
 #include "llm/llm_pricing.h"
@@ -377,9 +378,10 @@ TEST_F(LlmTest, Phase2AProviderChoiceMovesTheEndpointItsWireOptionsAndTheModel)
     llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "gpt-4.1-nano"}, &manager};
     auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
     app::CostDuty cost{storage.statsStore(), client, pricing};
+    app::ModelCatalogDuty catalog{storage, client};
     app::ExplanationDuty duty{storage, client, cost};
     for (auto const* provider : {"DeepSeek", "openai"}) {
-        ASSERT_TRUE(duty.setProvider(provider));
+        ASSERT_TRUE(catalog.setProvider(provider));
         auto const entry = llm::serviceProvider(provider);
         // The endpoint, its wire quirks -- and the model, which follows the service: a name from
         // another one is the 400 whose message names nothing (docs/adr/0017).
@@ -407,14 +409,14 @@ TEST_F(LlmTest, Phase2AProviderChoiceMovesTheEndpointItsWireOptionsAndTheModel)
     EXPECT_EQ(store.document().at("MODELS").at("openai"), nlohmann::json::array({"gpt-4.1-mini"}));
 
     // The price shown is the typed model's, not the provider's.
-    ASSERT_TRUE(duty.setModel("gpt-4.1-mini"));
+    ASSERT_TRUE(catalog.setModel("gpt-4.1-mini"));
     EXPECT_GT(pricing.cost(client.model(), {1000, 1000}), 0.0);
-    EXPECT_FALSE(duty.settings().value("modelPrice").toString().isEmpty());
-    ASSERT_TRUE(duty.setModel("unlisted-model"));
+    EXPECT_FALSE(catalog.settings().value("modelPrice").toString().isEmpty());
+    ASSERT_TRUE(catalog.setModel("unlisted-model"));
     EXPECT_EQ(pricing.cost("unlisted-custom", {1000, 1000}), 0.0);
-    EXPECT_TRUE(duty.settings().value("modelPrice").toString().contains("No listed price"));
-    EXPECT_FALSE(duty.setProvider("unknown"));
-    EXPECT_TRUE(duty.setProvider("custom"));
+    EXPECT_TRUE(catalog.settings().value("modelPrice").toString().contains("No listed price"));
+    EXPECT_FALSE(catalog.setProvider("unknown"));
+    EXPECT_TRUE(catalog.setProvider("custom"));
     EXPECT_EQ(client.model(), "unlisted-model");
     auto const restored = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
     EXPECT_EQ(restored.document().at("PROVIDER"), "custom");
@@ -431,9 +433,7 @@ TEST_F(LlmTest, OneSharedSourceIsAskedWithNoKeyAndItsAnswerReachesEveryProvider)
     Manager manager;
     // A client holding no key at all, which used to be exactly the case that fetched nothing.
     llm::LlmClient client{{QUrl{"https://example.invalid"}, "", "deepseek-flash"}, &manager};
-    auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-    app::CostDuty cost{storage.statsStore(), client, pricing};
-    app::ExplanationDuty duty{storage, client, cost};
+    app::ModelCatalogDuty catalog{storage, client};
     QStringList fetched;
     QEventLoop loop;
     QObject::connect(&client, &llm::LlmClient::modelsFetched, &loop, [&](QStringList models) {
@@ -442,7 +442,7 @@ TEST_F(LlmTest, OneSharedSourceIsAskedWithNoKeyAndItsAnswerReachesEveryProvider)
     });
     QTimer::singleShot(2000, &loop, &QEventLoop::quit);
 
-    duty.refreshModels();
+    catalog.refreshModels();
     loop.exec();
 
     EXPECT_EQ(manager.gets, 1);
@@ -499,10 +499,9 @@ TEST_F(LlmTest, AFetchedListNeverRewritesTheModelInForceButAProviderChangeStillD
     // then has a standing value it would have to overwrite to prove it does not.
     llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "gpt-4.1-nano"}, &manager};
     auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-    app::CostDuty cost{storage.statsStore(), client, pricing};
-    app::ExplanationDuty duty{storage, client, cost};
+    app::ModelCatalogDuty catalog{storage, client};
 
-    ASSERT_TRUE(duty.setProvider("DeepSeek"));
+    ASSERT_TRUE(catalog.setProvider("DeepSeek"));
     ASSERT_EQ(client.model(), "deepseek-flash");
     QEventLoop loop;
     QObject::connect(&client, &llm::LlmClient::modelsFetched, &loop, &QEventLoop::quit);
@@ -520,13 +519,13 @@ TEST_F(LlmTest, AFetchedListNeverRewritesTheModelInForceButAProviderChangeStillD
     // dropdown passes the current value straight through. Before the shared model list this tap was
     // harmless, because the list it corrected against was this service's own; now it would replace
     // a valid model with whichever id the source happens to list first.
-    ASSERT_TRUE(duty.setProvider("DeepSeek"));
+    ASSERT_TRUE(catalog.setProvider("DeepSeek"));
     EXPECT_EQ(client.model(), "deepseek-flash") << "re-picking the standing provider rewrote the model";
     EXPECT_EQ(store.document().at("MODEL"), "deepseek-flash");
 
     // Changing the service is the one place the model still follows: the standing one is by
     // construction from somewhere else, and the 400 that names nothing is what that produces.
-    ASSERT_TRUE(duty.setProvider("openai"));
+    ASSERT_TRUE(catalog.setProvider("openai"));
     EXPECT_EQ(client.model(), "gpt-4.1-mini");
     EXPECT_EQ(store.document().at("MODEL"), "gpt-4.1-mini");
 }

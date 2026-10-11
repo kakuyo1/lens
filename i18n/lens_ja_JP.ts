@@ -502,6 +502,16 @@
         <source>OCR runtime is unavailable</source>
         <translation>OCR ランタイムが利用できません</translation>
     </message>
+    <message>
+        <location filename="../src/app/model_catalog_duty.cpp" line="125"/>
+        <source>No listed price; recorded cost is zero.</source>
+        <translation>価格表にないため、記録される費用は 0 です。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/model_catalog_duty.cpp" line="126"/>
+        <source>Input %1 / Output %2 %3 per %4 tokens</source>
+        <translation>入力 %1 / 出力 %2 %3（%4 トークンあたり）</translation>
+    </message>
 </context>
 <context>
     <name>StatsPopup</name>
@@ -909,19 +919,6 @@
         <location filename="../src/app/storage_duty.cpp" line="106"/>
         <source>Study-abroad exams</source>
         <translation>留学試験</translation>
-    </message>
-</context>
-<context>
-    <name>lens::app::ExplanationDuty</name>
-    <message>
-        <location filename="../src/app/explanation_duty.cpp" line="522"/>
-        <source>No listed price; recorded cost is zero.</source>
-        <translation>価格表にないため、記録される費用は 0 です。</translation>
-    </message>
-    <message>
-        <location filename="../src/app/explanation_duty.cpp" line="523"/>
-        <source>Input %1 / Output %2 %3 per %4 tokens</source>
-        <translation>入力 %1 / 出力 %2 %3（%4 トークンあたり）</translation>
     </message>
 </context>
 <context>

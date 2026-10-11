@@ -502,6 +502,16 @@
         <source>OCR runtime is unavailable</source>
         <translation>El entorno de OCR no está disponible</translation>
     </message>
+    <message>
+        <location filename="../src/app/model_catalog_duty.cpp" line="125"/>
+        <source>No listed price; recorded cost is zero.</source>
+        <translation>Sin precio en la lista; el gasto registrado es cero.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/model_catalog_duty.cpp" line="126"/>
+        <source>Input %1 / Output %2 %3 per %4 tokens</source>
+        <translation>Entrada %1 / Salida %2 %3 por %4 tokens</translation>
+    </message>
 </context>
 <context>
     <name>StatsPopup</name>
@@ -909,19 +919,6 @@
         <location filename="../src/app/storage_duty.cpp" line="106"/>
         <source>Study-abroad exams</source>
         <translation>Exámenes de estudios en el extranjero</translation>
-    </message>
-</context>
-<context>
-    <name>lens::app::ExplanationDuty</name>
-    <message>
-        <location filename="../src/app/explanation_duty.cpp" line="522"/>
-        <source>No listed price; recorded cost is zero.</source>
-        <translation>Sin precio en la lista; el gasto registrado es cero.</translation>
-    </message>
-    <message>
-        <location filename="../src/app/explanation_duty.cpp" line="523"/>
-        <source>Input %1 / Output %2 %3 per %4 tokens</source>
-        <translation>Entrada %1 / Salida %2 %3 por %4 tokens</translation>
     </message>
 </context>
 <context>
