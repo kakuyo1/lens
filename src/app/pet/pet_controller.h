@@ -1,5 +1,17 @@
 #pragma once
 
+/**
+ * @file pet_controller.h
+ * @brief The Qt shell of the desktop pet: the one frame clock, the properties the scene draws, and the event entry
+ *        (PHASE3 3.5, 3.7).
+ *
+ * The state machine in core chooses the action. This class advances the frame index and the blink, and turns the
+ * machine's state into properties for QML. It receives event types only, never text or a selection.
+ *
+ * The one exception is the settings preview: preview() shows a chosen action in place of the machine's, and the
+ * machine keeps running underneath. The same dog is on the desktop, so the preview shows there too while it lasts.
+ */
+
 #include <chrono>
 #include <memory>
 #include <optional>
@@ -23,18 +35,6 @@ class QJSEngine;
 class QQmlEngine;
 class QScreen;
 class QWindow;
-
-/**
- * @file pet_controller.h
- * @brief The Qt shell of the desktop pet: the one frame clock, the properties the scene draws, and the event entry
- *        (PHASE3 3.5, 3.7).
- *
- * The state machine in core chooses the action. This class advances the frame index and the blink, and turns the
- * machine's state into properties for QML. It receives event types only, never text or a selection.
- *
- * The one exception is the settings preview: preview() shows a chosen action in place of the machine's, and the
- * machine keeps running underneath. The same dog is on the desktop, so the preview shows there too while it lasts.
- */
 
 namespace lens::app::pet {
 
@@ -78,20 +78,20 @@ public:
     /// @brief Applies one event to the state machine. Called by the composition root, which maps app signals to types.
     void handle(core::pet::PetEvent event);
 
-    bool available() const;
-    bool enabled() const;
-    bool passthrough() const;
-    QString action() const;
-    int frameIndex() const;
-    int expression() const;
-    QVariantMap sheets() const;
-    QVariantMap anchors() const;
+    bool         available() const;
+    bool         enabled() const;
+    bool         passthrough() const;
+    QString      action() const;
+    int          frameIndex() const;
+    int          expression() const;
+    QVariantMap  sheets() const;
+    QVariantMap  anchors() const;
     QVariantList wornAccessories() const;
-    QVariantMap layers() const;
-    int canvas() const;
-    int scale() const;
-    int minScale() const;
-    int maxScale() const;
+    QVariantMap  layers() const;
+    int          canvas() const;
+    int          scale() const;
+    int          minScale() const;
+    int          maxScale() const;
     /// @return Every action the pet can play, in the order of the state machine's enum.
     QStringList actions() const;
     /// @return Every accessory in the catalogue as {id, slot}, for the settings page to lay out.
@@ -151,12 +151,12 @@ private:
 
     static PetController* instance_;
 
-    std::optional<PetAssets> assets_;
-    PetStore& store_;
+    std::optional<PetAssets>                    assets_;
+    PetStore&                                   store_;
     std::unique_ptr<core::pet::PetStateMachine> machine_;
-    std::unique_ptr<core::pet::Wardrobe> wardrobe_;
-    QTimer clock_;
-    QWindow* window_ = nullptr;
+    std::unique_ptr<core::pet::Wardrobe>        wardrobe_;
+    QTimer                                      clock_;
+    QWindow*                                    window_ = nullptr;
     /// The clock runs while either of these is set.
     bool desktopRunning_{false};
     bool previewing_{false};
@@ -164,17 +164,17 @@ private:
     std::optional<core::pet::Action> preview_;
 
     /// The action the frame properties were last computed for, and how long it has played.
-    core::pet::Action shownAction_{core::pet::Action::Idle};
+    core::pet::Action         shownAction_{core::pet::Action::Idle};
     std::chrono::milliseconds actionElapsed_{0};
     /// Blink timing: the wait to the next blink, and the time into the one running.
     std::chrono::milliseconds blinkWait_{0};
     std::chrono::milliseconds blinkElapsed_{0};
-    bool blinkRunning_{false};
+    bool                      blinkRunning_{false};
 
-    QString action_;
-    int frameIndex_{0};
-    int expression_{0};
-    QVariantMap sheets_;
+    QString            action_;
+    int                frameIndex_{0};
+    int                expression_{0};
+    QVariantMap        sheets_;
     core::pet::Anchors anchors_{};
 };
 

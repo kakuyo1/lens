@@ -78,9 +78,9 @@ private:
     /// @return The state the controller's own values imply; the rule lives in tray_state.h.
     TrayState state() const;
 
-    AppController& controller_;
+    AppController&   controller_;
     QSystemTrayIcon* icon_ = nullptr;
-    QTimer budgetRefreshTimer_;
+    QTimer           budgetRefreshTimer_;
     /// The last non-empty rectangle the shell reported; see the note on geometry().
     mutable QRect lastGeometry_;
 };

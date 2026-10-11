@@ -25,11 +25,11 @@ public:
     explicit StorageDuty(core::KnownStore& store);
 
     /// @return The document owner shared by the other duties.
-    core::KnownStore& knownStore();
+    core::KnownStore&       knownStore();
     const core::KnownStore& knownStore() const;
 
     /// @return The statistics section bound to the same document.
-    core::StatsStore& statsStore();
+    core::StatsStore&       statsStore();
     const core::StatsStore& statsStore() const;
 
     /**
@@ -52,7 +52,7 @@ public:
 
 private:
     core::KnownStore& store_;
-    core::StatsStore stats_;
+    core::StatsStore  stats_;
 };
 
 }

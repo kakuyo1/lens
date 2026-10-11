@@ -33,7 +33,7 @@ struct CachedSense {
 /// @brief Language and sense mode captured when an explanation request began.
 struct CacheContext {
     std::string language;
-    bool multipleSenses = false;
+    bool        multipleSenses = false;
 };
 
 /// @brief A word's first definition and its ordered senses, in one cache context.
@@ -43,9 +43,9 @@ struct CacheContext {
 ///       so a word explained with the setting off and one explained with it on are the same entry,
 ///       and turning the setting back on never buys the same definition twice.
 struct WordCache {
-    std::string ipa, en, zh;
-    std::string translation;
-    std::string etymology;
+    std::string              ipa, en, zh;
+    std::string              translation;
+    std::string              etymology;
     std::vector<CachedSense> senses;
 };
 
@@ -87,16 +87,16 @@ public:
 
     /// @return Explanation language code from the service catalog.
     std::string explanationLang() const;
-    void setExplanationLang(std::string);
+    void        setExplanationLang(std::string);
 
     /// @brief Look up a cached explanation for the current explanation language.
     /// @return The cached entry, or std::nullopt when nothing is cached.
     std::optional<WordCache> cacheGet(const std::string& lemma) const;
-    void cachePut(const std::string& lemma, WordCache);
+    void                     cachePut(const std::string& lemma, WordCache);
 
     /// @brief Look up or store an entry with the context captured when the request began.
     std::optional<WordCache> cacheGet(std::string const& lemma, CacheContext const& context) const;
-    void cachePut(std::string const& lemma, WordCache entry, CacheContext const& context);
+    void                     cachePut(std::string const& lemma, WordCache entry, CacheContext const& context);
 
     /// @brief Remove a lemma's mark and every cached explanation context.
     /// @return True when a mark or cache entry was removed.
@@ -147,15 +147,15 @@ public:
 
 private:
     std::filesystem::path path_;
-    nlohmann::json doc_; ///< The document as loaded; the base for save().
+    nlohmann::json        doc_; ///< The document as loaded; the base for save().
     /// lemma -> known(true) / new word(false). Absent means never marked.
     std::unordered_map<std::string, bool> marks_;
     /// Derived view of marks_ holding only the true entries; feeds filterWords.
     std::unordered_set<std::string> known_;
     /// Keyed by explanation language + sense mode + lemma.
     std::unordered_map<std::string, WordCache> cache_;
-    int level_        = 2;    ///< CET-4, the default difficulty level.
-    std::string lang_ = "en"; ///< English by default.
+    int                                        level_ = 2;    ///< CET-4, the default difficulty level.
+    std::string                                lang_  = "en"; ///< English by default.
 };
 
 }

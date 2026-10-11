@@ -12,8 +12,8 @@ namespace lens::capture {
 
 struct ForegroundWindow {
     quintptr window = 0;
-    QString context;
-    QString processName;
+    QString  context;
+    QString  processName;
     /// The monitor the window sits on, as Win32 hands it over.
     ///
     /// A handle rather than the monitor's name, because the two names in play are different
@@ -21,9 +21,9 @@ struct ForegroundWindow {
     /// space) and `MONITORINFOEXW` by its device name (`\.\DISPLAY1`). Comparing them is always
     /// false, so the scanner never found the screen to read -- silently, since a lookup that
     /// matches nothing looks exactly like a screen that is not there.
-    quintptr monitor = 0;
-    bool ownProcess  = false;
-    QPoint anchor;
+    quintptr monitor    = 0;
+    bool     ownProcess = false;
+    QPoint   anchor;
 };
 
 std::optional<ForegroundWindow> foregroundWindow();

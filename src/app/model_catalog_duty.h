@@ -92,7 +92,7 @@ private:
     /// @brief Rebuild the cached model list from the provider in force, and say so if it moved.
     void rebuildModels();
 
-    StorageDuty& storage_;
+    StorageDuty&    storage_;
     llm::LlmClient& llm_;
     /// The provider in force's models, in the shape the settings page draws.
     QVariantList models_;

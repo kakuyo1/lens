@@ -30,8 +30,8 @@ constexpr int kMaxScale = 4;
 /// @brief Where the window was left: the screen it sat on, by device name, and its offset from that screen's origin.
 struct SavedPosition {
     std::string screen;
-    int x;
-    int y;
+    int         x;
+    int         y;
 };
 
 class PetStore final {
@@ -55,11 +55,11 @@ public:
 
     /// @return The worn accessories, as last saved.
     Outfit outfit() const;
-    void setOutfit(Outfit const& outfit);
+    void   setOutfit(Outfit const& outfit);
 
     /// @return Where the window was left, or nothing before it was first moved.
     std::optional<SavedPosition> position() const;
-    void setPosition(SavedPosition const& at);
+    void                         setPosition(SavedPosition const& at);
 
 private:
     core::KnownStore& store_;

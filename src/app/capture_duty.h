@@ -30,7 +30,7 @@ namespace lens::app {
 class MouseSelectionHook;
 
 struct PendingSelection {
-    QPoint anchor;
+    QPoint  anchor;
     QString text;
     QString kind;
     QString surface;
@@ -44,14 +44,14 @@ class CaptureDuty final : public QObject {
     QML_UNCREATABLE("Owned by Controller; reached as Controller.captureDuty")
 public:
     CaptureDuty(StorageDuty& storage, MouseSelectionHook& hook, QObject* parent = nullptr);
-    CaptureDuty(StorageDuty& storage,
-                MouseSelectionHook& hook,
+    CaptureDuty(StorageDuty&                        storage,
+                MouseSelectionHook&                 hook,
                 std::unique_ptr<capture::OcrEngine> ocr,
-                QObject* parent = nullptr);
+                QObject*                            parent = nullptr);
     ~CaptureDuty() override;
 
-    QVariantMap settings() const;
-    QString ocrStatus() const;
+    QVariantMap      settings() const;
+    QString          ocrStatus() const;
     Q_INVOKABLE void setOcrCapture(bool on);
     Q_INVOKABLE void setAutoScan(bool on);
     Q_INVOKABLE void setMinimumWordLength(int length);
@@ -105,16 +105,16 @@ signals:
 
 private:
     struct OcrJob {
-        QPoint anchor;
-        QString context;
+        QPoint        anchor;
+        QString       context;
         std::uint64_t generation = 0;
-        bool probe               = false;
+        bool          probe      = false;
     };
     struct OcrJobState {
         std::shared_ptr<std::atomic_bool> cancelled = std::make_shared<std::atomic_bool>(false);
-        std::mutex mutex;
-        capture::OcrResult result;
-        bool done = false;
+        std::mutex                        mutex;
+        capture::OcrResult                result;
+        bool                              done = false;
     };
 
     /// @brief Rebuild the OCR engine around the stored paths and probe the new one.
@@ -125,30 +125,30 @@ private:
     ///        gesture of their own, so the action bar's second question would be one they have
     ///        already answered. A selection keeps the bar -- there the gesture is only "show me
     ///        what this says", and the bar is where they say what to do with it.
-    void classifyText(QString text, QPoint anchor, bool fromScreenshot = false);
-    void scanTick();
-    void pollOcr();
-    void launchOcr(QImage image, QPoint anchor, QString context);
-    void invalidateScan();
-    void publishBatch(capture::ScanTime now, QPoint anchor);
+    void        classifyText(QString text, QPoint anchor, bool fromScreenshot = false);
+    void        scanTick();
+    void        pollOcr();
+    void        launchOcr(QImage image, QPoint anchor, QString context);
+    void        invalidateScan();
+    void        publishBatch(capture::ScanTime now, QPoint anchor);
     std::size_t minFreqRank() const;
 
-    StorageDuty& storage_;
-    MouseSelectionHook& hook_;
-    std::unique_ptr<SelectionTextGrabber> grabber_;
-    std::shared_ptr<capture::OcrEngine> ocr_;
+    StorageDuty&                           storage_;
+    MouseSelectionHook&                    hook_;
+    std::unique_ptr<SelectionTextGrabber>  grabber_;
+    std::shared_ptr<capture::OcrEngine>    ocr_;
     std::unique_ptr<capture::ScanPipeline> scan_;
-    QTimer scanTimer_;
-    QTimer pollTimer_;
-    std::shared_ptr<OcrJobState> job_;
-    std::optional<OcrJob> jobContext_;
-    capture::OcrStatus ocrState_        = capture::OcrStatus::RuntimeMissing;
-    std::uint64_t generation_           = 0;
-    std::uint64_t screenshotGeneration_ = 0;
-    QString scanContext_;
-    QPoint scanAnchor_;
-    bool scanPaused_   = false;
-    bool budgetPaused_ = false;
+    QTimer                                 scanTimer_;
+    QTimer                                 pollTimer_;
+    std::shared_ptr<OcrJobState>           job_;
+    std::optional<OcrJob>                  jobContext_;
+    capture::OcrStatus                     ocrState_             = capture::OcrStatus::RuntimeMissing;
+    std::uint64_t                          generation_           = 0;
+    std::uint64_t                          screenshotGeneration_ = 0;
+    QString                                scanContext_;
+    QPoint                                 scanAnchor_;
+    bool                                   scanPaused_   = false;
+    bool                                   budgetPaused_ = false;
 };
 
 }

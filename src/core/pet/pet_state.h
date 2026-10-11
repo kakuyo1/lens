@@ -50,8 +50,8 @@ enum class PetEvent : std::uint8_t {
 
 /// @brief Playback of one action, from animations.json.
 struct ActionSpec {
-    int frames;
-    int fps;
+    int  frames;
+    int  fps;
     bool loop;
     /// Where a one-shot goes when it ends. Without it the dog returns to the held state, or to idle.
     std::optional<Action> returnTo;
@@ -125,14 +125,14 @@ private:
     /// @brief Ends a one-shot or a held state: to the pending return, else the held state, else idle.
     void settle();
     /// @return The next idle action, or nothing when every candidate is the one just played or missing.
-    std::optional<Action> pickRandomIdle();
+    std::optional<Action>     pickRandomIdle();
     std::chrono::milliseconds nextIdleWait();
     std::chrono::milliseconds durationOf(Action action) const;
 
-    ActionSpecs specs;
+    ActionSpecs  specs;
     RandomSource random;
-    Action current{Action::Idle};
-    Priority priority{Priority::Idle};
+    Action       current{Action::Idle};
+    Priority     priority{Priority::Idle};
     /// Time spent in the current action.
     std::chrono::milliseconds elapsed{0};
     /// Time since the last event, for the quiet yawn.
@@ -146,7 +146,7 @@ private:
     /// reaction cancels a yawn's return to sleep.
     std::optional<Action> pendingReturn;
     std::optional<Action> lastIdle;
-    bool dragging{false};
+    bool                  dragging{false};
 };
 
 } // namespace lens::core::pet
