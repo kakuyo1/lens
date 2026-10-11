@@ -22,8 +22,6 @@
 namespace lens::app {
 namespace {
 
-constexpr int kMaximumScanBatch = 5;
-
 QString nowMinute()
 {
     return QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd HH:mm"));
@@ -47,86 +45,80 @@ llm::Explanation fromCache(core::WordCache const& cached, QString const& lemma)
 ExplanationDuty::ExplanationDuty(StorageDuty& storage, llm::LlmClient& llm, CostDuty& cost, QObject* parent)
     : QObject(parent), storage_(storage), llm_(llm), cost_(cost)
 {
-    connect(&llm_, &llm::LlmClient::batchFinished, this, [this](QVector<llm::Explanation> results, llm::Usage usage) {
-        if (not inFlight_) return;
-        inFlight_         = false;
-        handlingResponse_ = true;
-        busyLabel_.clear();
-        emit busyChanged();
-        cost_.recordUsage(nowMinute().toStdString(), usage);
+    connect(&llm_, &llm::LlmClient::batchFinished, this, &ExplanationDuty::onBatchFinished);
+    connect(&llm_, &llm::LlmClient::modelsFetched, this, &ExplanationDuty::noteModelsFetched);
+    connect(&llm_, &llm::LlmClient::failed, this, &ExplanationDuty::onFailed);
+}
 
-        if (results.isEmpty()) {
-            LENS_WARN("the model returned no explanation");
-            storage_.save();
-            emit statsChanged();
-            handlingResponse_ = false;
-            startNext();
-            return;
-        }
+void ExplanationDuty::onBatchFinished(QVector<llm::Explanation> results, llm::Usage const usage)
+{
+    // The client answers the model-list fetch through the same signal, and that is not an
+    // explanation anybody asked for.
+    if (not queue_.inFlight())
+        return;
 
-        for (const auto& result : results) {
-            auto selection = std::find_if(requestedBatch_.cbegin(), requestedBatch_.cend(), [&](PendingSelection const& candidate) {
-                return requestedFromScan_ || candidate.kind != QLatin1String("word")
-                           ? (candidate.kind == QLatin1String("word")
-                                  ? QString::compare(result.title, candidate.lemma, Qt::CaseInsensitive) == 0
-                                  : candidate.text == requestedBatch_.front().text)
-                           : QString::compare(result.title, candidate.lemma, Qt::CaseInsensitive) == 0;
-            });
-            if (selection == requestedBatch_.cend()) continue;
-            if (invalidatedWords_.contains(selection->lemma)) continue;
-            if (selection->kind == QLatin1String("word")) {
-                // Named rather than positional: five of these six fields are strings, and the one
-                // that must not be dropped is the one that arrived last.
-                core::WordCache cached{.ipa         = result.ipa.toStdString(),
-                                       .en          = result.en.toStdString(),
-                                       .zh          = result.zh.toStdString(),
-                                       .translation = result.translation.toStdString(),
-                                       .etymology   = result.etymology.toStdString()};
-                for (auto const& sense : result.senses)
-                    cached.senses.push_back({sense.en.toStdString(), sense.zh.toStdString(), sense.translation.toStdString()});
-                storage_.knownStore().cachePut(selection->lemma.toStdString(), std::move(cached), requestedContext_);
-            }
-        }
+    QStringList titles;
+    for (const auto& result : results)
+        titles.append(result.title);
+    const auto settlement = queue_.settled(titles, {storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)});
 
-        if (requestedGeneration_ == selectionGeneration_ &&
-            requestedContext_.language == storage_.knownStore().explanationLang() &&
-            requestedContext_.multipleSenses == (requestedBatch_.front().kind == QLatin1String("word") &&
-                                                 storage_.section().value<bool>("multiSense", false))) {
-            const auto& first = results.front();
-            if (requestedFromScan_) {
-                const auto item = std::find_if(requestedBatch_.cbegin(), requestedBatch_.cend(), [&](PendingSelection const& candidate) {
-                    return QString::compare(first.title, candidate.lemma, Qt::CaseInsensitive) == 0;
-                });
-                if (item != requestedBatch_.cend()) showBubble(first, *item, requestedContext_);
-            } else {
-                showBubble(first, requestedBatch_.front(), requestedContext_);
-            }
-        }
+    busyLabel_.clear();
+    emit busyChanged();
+    cost_.recordUsage(nowMinute().toStdString(), usage);
+
+    if (results.isEmpty()) {
+        LENS_WARN("the model returned no explanation");
         storage_.save();
         emit statsChanged();
-        for (auto const& selection : requestedBatch_)
-            invalidatedWords_.remove(selection.lemma);
-        handlingResponse_ = false;
-        startNext();
-    });
+        queue_.complete();
+        sendNext();
+        return;
+    }
 
-    connect(&llm_, &llm::LlmClient::modelsFetched, this, &ExplanationDuty::noteModelsFetched);
+    for (int index = 0; index < settlement.resultFor.size(); ++index) {
+        const int answer                 = settlement.resultFor.at(index);
+        const PendingSelection& selected = settlement.batch.items.at(index);
+        if (answer < 0 or not isWordKind(selected.kind))
+            continue;
+        const llm::Explanation& result = results.at(answer);
+        // Named rather than positional: five of these six fields are strings, and the one that
+        // must not be dropped is the one that arrived last.
+        core::WordCache cached{.ipa         = result.ipa.toStdString(),
+                               .en          = result.en.toStdString(),
+                               .zh          = result.zh.toStdString(),
+                               .translation = result.translation.toStdString(),
+                               .etymology   = result.etymology.toStdString()};
+        for (auto const& sense : result.senses)
+            cached.senses.push_back({sense.en.toStdString(), sense.zh.toStdString(), sense.translation.toStdString()});
+        storage_.knownStore().cachePut(selected.lemma.toStdString(), std::move(cached), settlement.batch.context);
+    }
 
-    connect(&llm_, &llm::LlmClient::failed, this, [this](QString const& message) {
-        if (not inFlight_) return;
-        inFlight_ = false;
-        busyLabel_.clear();
-        emit busyChanged();
-        if (not requestedFromScan_ && requestedGeneration_ == selectionGeneration_)
-            showNotice(noticeTitle(requestedBatch_.front()), message, kNoticeError);
-        startNext();
-    });
+    if (settlement.subject)
+        showBubble(results.front(), *settlement.subject, settlement.batch.context);
+
+    storage_.save();
+    emit statsChanged();
+    queue_.complete();
+    sendNext();
+}
+
+void ExplanationDuty::onFailed(QString const& message)
+{
+    if (not queue_.inFlight())
+        return;
+    const auto subject = queue_.refusalSubject();
+    busyLabel_.clear();
+    emit busyChanged();
+    if (subject)
+        showNotice(noticeTitle(*subject), message, kNoticeError);
+    queue_.complete();
+    sendNext();
 }
 
 void ExplanationDuty::setSelection(PendingSelection selection)
 {
-    ++selectionGeneration_;
     pending_ = std::move(selection);
+    queue_.selectionChanged();
 }
 
 void ExplanationDuty::invalidateWord(QString const& lemma)
@@ -134,51 +126,44 @@ void ExplanationDuty::invalidateWord(QString const& lemma)
     const auto value = lemma.trimmed();
     if (value.isEmpty())
         return;
-    invalidatedWords_.insert(value);
-    scanQueue_.erase(std::remove_if(scanQueue_.begin(), scanQueue_.end(), [&](PendingSelection const& item) {
-                         return QString::compare(item.lemma, value, Qt::CaseInsensitive) == 0;
-                     }),
-                     scanQueue_.end());
-    if (queuedManual_ && QString::compare(queuedManual_->lemma, value, Qt::CaseInsensitive) == 0)
-        queuedManual_.reset();
+    queue_.invalidate(value);
     if (QString::compare(bubble_.value("title").toString(), value, Qt::CaseInsensitive) == 0)
         clearBubble();
-    ++selectionGeneration_;
 }
 
 void ExplanationDuty::enqueueScanCandidates(QVariantList candidates, QPoint anchor)
 {
-    scanAnchor_ = anchor;
+    QVector<PendingSelection> misses;
     for (const auto& value : candidates) {
         const auto map = value.toMap();
-        if (map.value("kind").toString() != QLatin1String("word")) continue;
+        if (not isWordKind(map.value("kind").toString()))
+            continue;
         PendingSelection candidate{.anchor  = anchor,
                                    .kind    = QStringLiteral("word"),
                                    .surface = map.value("surface").toString(),
                                    .lemma   = map.value("lemma").toString()};
-        if (candidate.lemma.isEmpty()) continue;
+        if (candidate.lemma.isEmpty())
+            continue;
         const core::CacheContext context{storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)};
         if (const auto cached = storage_.knownStore().cacheGet(candidate.lemma.toStdString(), context)) {
             storage_.statsStore().recordPop(candidate.lemma.toStdString(), nowMinute().toStdString());
-            if (bubble_.isEmpty() && not inFlight_)
+            if (bubble_.isEmpty() and not queue_.inFlight())
                 showBubble(fromCache(*cached, candidate.lemma), candidate, context);
             continue;
         }
-        if (std::none_of(scanQueue_.cbegin(), scanQueue_.cend(), [&](PendingSelection const& queued) {
-                return queued.lemma == candidate.lemma;
-            }))
-            scanQueue_.push_back(std::move(candidate));
+        misses.push_back(std::move(candidate));
     }
+    queue_.addScan(std::move(misses));
     storage_.save();
     emit statsChanged();
-    startNext();
+    sendNext();
 }
 
 void ExplanationDuty::resumeQueued()
 {
-    if (handlingResponse_)
-        return;
-    startNext();
+    // The queue answers nothing while an answer is still being disposed of, which is what keeps a
+    // budget rollover arriving mid-handler from starting a second request.
+    sendNext();
 }
 
 void ExplanationDuty::runSelectionAction(QString action, QString text)
@@ -190,17 +175,13 @@ void ExplanationDuty::runSelectionAction(QString action, QString text)
     if (action == QLatin1String("copy")) {
         QGuiApplication::clipboard()->setText(pending_.text);
         pending_ = PendingSelection{};
-        ++selectionGeneration_;
+        queue_.selectionChanged();
         return;
     }
     if (action != QLatin1String("translate") && action != QLatin1String("explain")) return;
     if (text != pending_.text)
         LENS_WARN("selection action text differed from the captured selection; using the captured text");
     if (pending_.kind == QLatin1String("sentence")) pending_.preset = action;
-    if (inFlight_) {
-        queuedManual_ = pending_;
-        return;
-    }
     explain(pending_);
 }
 
@@ -243,46 +224,53 @@ void ExplanationDuty::explainLemma(QString lemma)
 
 void ExplanationDuty::explain(PendingSelection const& pending)
 {
-    if (inFlight_) {
-        queuedManual_ = pending;
+    // A request that arrives while another is in flight is held, and judged when its turn comes:
+    // the answer the queue is waiting for may be the one that pays for this word.
+    if (queue_.inFlight()) {
+        queue_.request(pending);
         return;
     }
     const core::CacheContext context{storage_.knownStore().explanationLang(),
-                                     pending.kind == QLatin1String("word") && storage_.section().value<bool>("multiSense", false)};
-    if (pending.kind == QLatin1String("word")) {
-        if (const auto cached = storage_.knownStore().cacheGet(pending.lemma.toStdString(), context)) {
-            storage_.statsStore().recordPop(pending.lemma.toStdString(), nowMinute().toStdString());
-            storage_.save();
-            showBubble(fromCache(*cached, pending.lemma), pending, context);
-            emit statsChanged();
-            return;
-        }
-    }
-    if (not cost_.canRequest()) return;
-    requestExplanations({pending}, context, false);
+                                     isWordKind(pending.kind) && storage_.section().value<bool>("multiSense", false)};
+    if (showStored(pending, context))
+        return;
+    // Nothing is in flight and nothing is stored, so this one goes out now or not at all: a
+    // request out of budget is dropped rather than left waiting for a budget that may be a day
+    // away, and the facade has already said why.
+    if (not cost_.canRequest())
+        return;
+    queue_.request(pending);
+    sendNext();
 }
 
-void ExplanationDuty::requestExplanations(QVector<PendingSelection> batch, core::CacheContext context, bool const fromScan)
+bool ExplanationDuty::showStored(PendingSelection const& pending, core::CacheContext const& context)
 {
-    if (batch.isEmpty() || not cost_.canRequest()) return;
-    for (auto const& item : batch)
-        invalidatedWords_.remove(item.lemma);
-    requestedBatch_      = std::move(batch);
-    requestedContext_    = std::move(context);
-    requestedFromScan_   = fromScan;
-    requestedGeneration_ = selectionGeneration_;
-    inFlight_            = true;
-    const auto channel   = requestedBatch_.front().kind == QLatin1String("entity")     ? llm::Channel::Entity
-                           : requestedBatch_.front().kind == QLatin1String("sentence") ? llm::Channel::Sentence
-                                                                                       : llm::Channel::Word;
+    if (not isWordKind(pending.kind))
+        return false;
+    const auto cached = storage_.knownStore().cacheGet(pending.lemma.toStdString(), context);
+    if (not cached)
+        return false;
+    storage_.statsStore().recordPop(pending.lemma.toStdString(), nowMinute().toStdString());
+    storage_.save();
+    showBubble(fromCache(*cached, pending.lemma), pending, context);
+    emit statsChanged();
+    return true;
+}
+
+void ExplanationDuty::send(ExplanationBatch batch)
+{
+    const PendingSelection& first = batch.items.front();
+    const auto channel            = first.kind == QLatin1String("entity")     ? llm::Channel::Entity
+                                    : first.kind == QLatin1String("sentence") ? llm::Channel::Sentence
+                                                                              : llm::Channel::Word;
     llm_.setChannel(channel);
-    llm_.setExplanationLang(QString::fromStdString(requestedContext_.language));
-    llm_.setPreset(requestedContext_.multipleSenses ? QStringLiteral("multiple") : requestedBatch_.front().preset);
-    llm_.setEtymology(requestedBatch_.front().kind == QLatin1String("word") && etymologyEnabled());
+    llm_.setExplanationLang(QString::fromStdString(batch.context.language));
+    llm_.setPreset(batch.context.multipleSenses ? QStringLiteral("multiple") : first.preset);
+    llm_.setEtymology(isWordKind(first.kind) && etymologyEnabled());
     QStringList inputs;
-    for (const auto& item : requestedBatch_) {
-        inputs << (item.kind == QLatin1String("word") ? item.lemma : item.text);
-        if (item.kind == QLatin1String("word"))
+    for (const auto& item : batch.items) {
+        inputs << (isWordKind(item.kind) ? item.lemma : item.text);
+        if (isWordKind(item.kind))
             storage_.statsStore().recordPop(item.lemma.toStdString(), nowMinute().toStdString());
     }
     busyLabel_ = QCoreApplication::translate("lens::app::AppController", "Explaining…");
@@ -293,24 +281,20 @@ void ExplanationDuty::requestExplanations(QVector<PendingSelection> batch, core:
     llm_.explainWords(std::move(inputs));
 }
 
-void ExplanationDuty::startNext()
+void ExplanationDuty::sendNext()
 {
-    if (inFlight_ || not cost_.canRequest()) return;
-    if (queuedManual_) {
-        auto next = std::move(*queuedManual_);
-        queuedManual_.reset();
-        explain(next);
+    const core::CacheContext now{storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)};
+    auto batch = queue_.take(cost_.canRequest(), now);
+    if (not batch)
+        return;
+    // A held request comes back out through the cache before it is paid for: the batch that has
+    // just landed may be the one that stored this very word. Nothing else is ever taken here --
+    // the word list's own candidates were answered out of the cache before they were queued.
+    if (not batch->fromScan and showStored(batch->items.front(), batch->context)) {
+        queue_.complete();
         return;
     }
-    if (scanQueue_.isEmpty()) return;
-    QVector<PendingSelection> batch;
-    while (not scanQueue_.isEmpty() && batch.size() < kMaximumScanBatch) {
-        batch.push_back(std::move(scanQueue_.front()));
-        scanQueue_.removeFirst();
-    }
-    requestExplanations(std::move(batch),
-                        {storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)},
-                        true);
+    send(std::move(*batch));
 }
 
 void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool const countsDown)
@@ -327,7 +311,7 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
                         {"countsDown", countsDown},
                         {"x", selection.anchor.x()},
                         {"y", selection.anchor.y()}};
-    if (selection.kind == QLatin1String("word")) {
+    if (isWordKind(selection.kind)) {
         QVariantList senses;
         auto entries = explanation.senses;
         if (entries.isEmpty()) entries.push_back({explanation.en, explanation.zh, explanation.translation});

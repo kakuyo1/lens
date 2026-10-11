@@ -1,8 +1,8 @@
 /**
  * @file app_seams_test.cpp
  * @brief The pure halves of the app seams: the notice payload's shape, the Run entry's key and
- *        command, the tray state's priority, the annual grid's window, and the settings
- *        document's path.
+ *        command, the tray state's priority, the explanation queue's scheduling and staleness,
+ *        the annual grid's window, and the settings document's path.
  *
  * Each is the side of a seam that holds no more than Qt Core or the standard library -- which
  * is the difference between an assertion that runs on every change and one a human has to
@@ -15,16 +15,19 @@
 #include <iterator>
 #include <map>
 #include <string>
+#include <vector>
 
 #include <QDate>
 #include <QStandardPaths>
 #include <QString>
 #include <QVariantList>
 #include <QVariantMap>
+#include <QVector>
 #include <gtest/gtest.h>
 
 #include "app/autostart.h"
 #include "app/capture_refusal.h"
+#include "app/explanation_queue.h"
 #include "app/notice.h"
 #include "app/paths.h"
 #include "app/tray_state.h"
@@ -45,10 +48,13 @@ using lens::app::refusalKey;
 using lens::app::settingsPath;
 using lens::app::toPath;
 using lens::app::CaptureRefusal;
+using lens::app::ExplanationQueue;
+using lens::app::PendingSelection;
 using lens::app::TrayState;
 using lens::app::trayIconName;
 using lens::app::trayState;
 using lens::app::yearGrid;
+using lens::core::CacheContext;
 using lens::core::DailyUsage;
 
 /// @return The token a runtime status is reported by, or "<none>" when it is not a reason at all.
@@ -56,6 +62,33 @@ std::string reasonToken(lens::capture::OcrStatus status)
 {
     const auto refusal = lens::app::refusalOf(status);
     return refusal ? lens::app::refusalKey(*refusal) : "<none>";
+}
+
+/// @return A word candidate, the shape a scan batch and a word-list row both arrive in.
+PendingSelection aWord(QString const& lemma)
+{
+    PendingSelection selection;
+    selection.kind   = QStringLiteral("word");
+    selection.text   = lemma;
+    selection.lemma  = lemma;
+    selection.anchor = QPoint{200, 400};
+    return selection;
+}
+
+/// @return A selection that is not a word, so the cache and the sense mode do not apply to it.
+PendingSelection aSentence(QString const& text)
+{
+    PendingSelection selection;
+    selection.kind    = QStringLiteral("sentence");
+    selection.text    = text;
+    selection.surface = text;
+    return selection;
+}
+
+/// @return The context a request goes out under: the explanation language and the sense mode.
+CacheContext aContext(char const* language = "en", bool multipleSenses = false)
+{
+    return {language, multipleSenses};
 }
 
 } // namespace
@@ -315,4 +348,198 @@ TEST(SettingsPath, CarriesTheLegacyDocumentOverOnceAndOnlyOnce)
 
     std::filesystem::remove(legacy);
     std::filesystem::remove_all(profile.parent_path());
+}
+
+/// The queue is what the reader has asked for and not yet been answered. These cases are the
+/// scheduling and the staleness rule itself: which request leaves next, which answer still belongs
+/// to anything, and when an answer has stopped being the reader's. They used to be reachable only
+/// by driving the whole duty through a faked QNetworkReply and a faked event loop, which is what
+/// made them the part nobody changed.
+TEST(ExplanationQueue, AScanBatchTakesFiveAndLeavesTheRestQueued)
+{
+    ExplanationQueue queue;
+    std::vector<PendingSelection> candidates;
+    for (int i = 0; i < 7; ++i)
+        candidates.push_back(aWord(QStringLiteral("w%1").arg(i)));
+    queue.addScan(QVector<PendingSelection>{candidates.begin(), candidates.end()});
+
+    const auto first = queue.take(true, aContext());
+    ASSERT_TRUE(first.has_value());
+    EXPECT_TRUE(first->fromScan);
+    ASSERT_EQ(first->items.size(), 5) << "one request buys five words, not seven";
+    EXPECT_EQ(first->items.front().lemma, QStringLiteral("w0"));
+
+    // Nothing leaves while the answer to this batch is still being waited for: the caller has
+    // not disposed of it yet, and a second request in flight would have nowhere to land.
+    EXPECT_FALSE(queue.take(true, aContext()).has_value());
+    queue.complete();
+
+    const auto second = queue.take(true, aContext());
+    ASSERT_TRUE(second.has_value());
+    EXPECT_EQ(second->items.size(), 2) << "the two the cap left behind";
+    EXPECT_EQ(second->items.back().lemma, QStringLiteral("w6"));
+}
+
+/// The reader pointing at a word outranks the word list filling itself in beside it: the scan
+/// batch is not lost, it is simply next.
+TEST(ExplanationQueue, ARequestTheReaderMadeOvertakesQueuedScanWork)
+{
+    ExplanationQueue queue;
+    queue.addScan({aWord(QStringLiteral("scanned"))});
+    queue.request(aWord(QStringLiteral("asked")));
+
+    const auto asked = queue.take(true, aContext());
+    ASSERT_TRUE(asked.has_value());
+    EXPECT_FALSE(asked->fromScan);
+    ASSERT_EQ(asked->items.size(), 1);
+    EXPECT_EQ(asked->items.front().lemma, QStringLiteral("asked"));
+
+    queue.complete();
+    const auto scanned = queue.take(true, aContext());
+    ASSERT_TRUE(scanned.has_value());
+    EXPECT_TRUE(scanned->fromScan);
+    EXPECT_EQ(scanned->items.front().lemma, QStringLiteral("scanned"));
+}
+
+/// The budget is asked at the moment something is about to leave, not when it was queued: a budget
+/// that runs out while a request waits does not throw that request away, it holds it back with the
+/// word list's own work, and the next moment the budget allows drains both.
+TEST(ExplanationQueue, AnExhaustedBudgetDrainsNothingAndKeepsWhatIsAlreadyQueued)
+{
+    ExplanationQueue queue;
+    queue.addScan({aWord(QStringLiteral("scanned"))});
+    queue.request(aWord(QStringLiteral("asked")));
+
+    EXPECT_FALSE(queue.take(false, aContext()).has_value()) << "nothing leaves with no budget";
+
+    const auto asked = queue.take(true, aContext());
+    ASSERT_TRUE(asked.has_value());
+    EXPECT_FALSE(asked->fromScan);
+    queue.complete();
+
+    const auto scanned = queue.take(true, aContext());
+    ASSERT_TRUE(scanned.has_value()) << "and the held-back scan work is still there";
+    EXPECT_EQ(scanned->items.front().lemma, QStringLiteral("scanned"));
+}
+
+/// A word deleted locally is gone from both halves of the queue. A deletion reaches a word that is
+/// waiting, and it is compared without case: the reader deleted the word, not a spelling of it.
+TEST(ExplanationQueue, AWordDeletedBeforeItIsSentLeavesTheQueueAndTheHeldRequest)
+{
+    ExplanationQueue queue;
+    queue.addScan({aWord(QStringLiteral("kept")), aWord(QStringLiteral("Deleted"))});
+    queue.request(aWord(QStringLiteral("gone")));
+
+    queue.invalidate(QStringLiteral("gone"));
+    queue.invalidate(QStringLiteral("deleted"));
+
+    const auto batch = queue.take(true, aContext());
+    ASSERT_TRUE(batch.has_value());
+    EXPECT_TRUE(batch->fromScan) << "the held request was the one deleted";
+    ASSERT_EQ(batch->items.size(), 1);
+    EXPECT_EQ(batch->items.front().lemma, QStringLiteral("kept"));
+}
+
+/// A batch of five is answered as five results, and the answer says which word each one is for by
+/// naming it -- the order they come back in is the model's, not the request's.
+TEST(ExplanationQueue, AnAnswerIsPairedWithItsItemByLemmaAndShownAboutTheItemTheFirstOneNames)
+{
+    ExplanationQueue queue;
+    queue.addScan({aWord(QStringLiteral("bank")), aWord(QStringLiteral("river"))});
+    ASSERT_TRUE(queue.take(true, aContext()).has_value());
+
+    const auto settlement = queue.settled({QStringLiteral("river"), QStringLiteral("bank")}, aContext());
+
+    ASSERT_EQ(settlement.resultFor.size(), 2) << "one entry per item of the batch, in its order";
+    EXPECT_EQ(settlement.resultFor[0], 1) << "bank is the second answer";
+    EXPECT_EQ(settlement.resultFor[1], 0) << "river is the first";
+
+    // The answer is stored under the context its request went out with and not the one in force
+    // now: those can differ, and telling them apart is what the staleness rule below is about.
+    ASSERT_TRUE(settlement.batch.fromScan);
+    EXPECT_EQ(settlement.batch.context.language, "en");
+    EXPECT_EQ(settlement.batch.items.size(), settlement.resultFor.size());
+
+    // The scan bubble goes up over the item the first answer names rather than over the batch's
+    // first, so the word the reader is being shown is the one at the top of the card.
+    ASSERT_TRUE(settlement.subject.has_value());
+    EXPECT_EQ(settlement.subject->lemma, QStringLiteral("river"));
+    EXPECT_EQ(settlement.subject->anchor, QPoint(200, 400));
+}
+
+/// Deleting a word while its answer is on the way does two things and they are not the same thing:
+/// the answer is never stored against a word that no longer exists, and it is not put on screen.
+TEST(ExplanationQueue, AWordDeletedWhileItsAnswerWasComingIsNeitherStoredNorShown)
+{
+    ExplanationQueue queue;
+    queue.addScan({aWord(QStringLiteral("bank"))});
+    ASSERT_TRUE(queue.take(true, aContext()).has_value());
+
+    queue.invalidate(QStringLiteral("bank"));
+    const auto settlement = queue.settled({QStringLiteral("bank")}, aContext());
+
+    EXPECT_EQ(settlement.resultFor.front(), -1) << "nothing to store it against";
+    EXPECT_FALSE(settlement.subject.has_value()) << "and nothing to show it about";
+}
+
+/// The one that is easy to get wrong: the reader moving on takes the answer off the screen without
+/// making it worthless. It was paid for, and the word is still a word -- it is stored, and only
+/// the bubble is withheld.
+TEST(ExplanationQueue, ANewSelectionLeavesAnAnswerOnItsWayUnshownButStillStored)
+{
+    ExplanationQueue queue;
+    queue.addScan({aWord(QStringLiteral("bank"))});
+    ASSERT_TRUE(queue.take(true, aContext()).has_value());
+
+    queue.selectionChanged();
+    const auto settlement = queue.settled({QStringLiteral("bank")}, aContext());
+
+    EXPECT_EQ(settlement.resultFor.front(), 0) << "the answer is still this word's";
+    EXPECT_FALSE(settlement.subject.has_value()) << "the reader is looking at something else now";
+}
+
+/// The two ways the settings can move under a request in flight. Both leave the answer just as
+/// worth storing and just as wrong to show: it is in the language, and the sense mode, that the
+/// reader asked in -- not the ones they are in now.
+TEST(ExplanationQueue, AChangedLanguageOrSenseModeLeavesTheAnswerUnshown)
+{
+    ExplanationQueue queue;
+    queue.addScan({aWord(QStringLiteral("bank"))});
+    ASSERT_TRUE(queue.take(true, aContext("en", true)).has_value());
+
+    EXPECT_TRUE(queue.settled({QStringLiteral("bank")}, aContext("en", true)).subject.has_value());
+    EXPECT_FALSE(queue.settled({QStringLiteral("bank")}, aContext("en", false)).subject.has_value());
+    EXPECT_FALSE(queue.settled({QStringLiteral("bank")}, aContext("zh", true)).subject.has_value());
+}
+
+/// The sense mode is a word's, not a sentence's: a sentence has nothing to split into senses, so
+/// the setting that is on for the words around it is not what the sentence was asked under.
+TEST(ExplanationQueue, ASentenceIsAskedWithoutTheSenseMode)
+{
+    ExplanationQueue queue;
+    queue.request(aSentence(QStringLiteral("A whole sentence.")));
+
+    const auto batch = queue.take(true, aContext("en", true));
+    ASSERT_TRUE(batch.has_value());
+    EXPECT_FALSE(batch->context.multipleSenses);
+    EXPECT_EQ(batch->context.language, "en");
+}
+
+/// A scan that fails is not worth a card: the reader did not ask for it and cannot act on it. A
+/// request they made themselves is, unless they have since moved on.
+TEST(ExplanationQueue, ARefusalIsReportedOnlyForARequestTheReaderStillWants)
+{
+    ExplanationQueue queue;
+    queue.addScan({aWord(QStringLiteral("bank"))});
+    ASSERT_TRUE(queue.take(true, aContext()).has_value());
+    EXPECT_FALSE(queue.refusalSubject().has_value());
+    queue.complete();
+
+    queue.request(aWord(QStringLiteral("asked")));
+    ASSERT_TRUE(queue.take(true, aContext()).has_value());
+    ASSERT_TRUE(queue.refusalSubject().has_value());
+    EXPECT_EQ(queue.refusalSubject()->lemma, QStringLiteral("asked"));
+
+    queue.selectionChanged();
+    EXPECT_FALSE(queue.refusalSubject().has_value());
 }
