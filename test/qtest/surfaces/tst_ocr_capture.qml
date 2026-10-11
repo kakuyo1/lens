@@ -152,7 +152,7 @@ Item {
         /// is drawn.
         function test_theFramedRegionReachesTheControllerThroughTheRoot() {
             compare(Controller.settings.ocrCapture, false, "the fixture should have OCR capture off");
-            Controller.dismissNotice();
+            Controller.explanationDuty.dismissNotice();
 
             const main = createTemporaryObject(mainComponent, root);
             verify(main, "the root did not build");
@@ -168,12 +168,12 @@ Item {
             mouseMove(sheet, 130, 90);
             mouseRelease(sheet, 130, 90);
 
-            tryVerify(function () { return Controller.notice.title !== undefined; }, 2000,
+            tryVerify(function () { return Controller.explanationDuty.notice.title !== undefined; }, 2000,
                       "the framed region never reached the controller");
-            compare(Controller.notice.title, qsTranslate("SettingsPopup", "OCR"));
-            compare(Controller.notice.body, qsTranslate("lens::app::AppController", "Screenshot capture is off."));
+            compare(Controller.explanationDuty.notice.title, qsTranslate("SettingsPopup", "OCR"));
+            compare(Controller.explanationDuty.notice.body, qsTranslate("lens::app::AppController", "Screenshot capture is off."));
 
-            Controller.dismissNotice();
+            Controller.explanationDuty.dismissNotice();
         }
 
         /// The reason a capture cannot start, at the controller. The fixture has OCR capture off, so
@@ -184,11 +184,11 @@ Item {
 
             const refusal = Controller.captureRegion(Qt.rect(0, 0, 100, 50));
             compare(refusal, "screenshot-off");
-            compare(Controller.notice.title, qsTranslate("SettingsPopup", "OCR"));
-            compare(Controller.notice.body, qsTranslate("lens::app::AppController", "Screenshot capture is off."));
-            compare(Controller.notice.kind, "error");
+            compare(Controller.explanationDuty.notice.title, qsTranslate("SettingsPopup", "OCR"));
+            compare(Controller.explanationDuty.notice.body, qsTranslate("lens::app::AppController", "Screenshot capture is off."));
+            compare(Controller.explanationDuty.notice.kind, "error");
 
-            Controller.dismissNotice();
+            Controller.explanationDuty.dismissNotice();
         }
 
         // The key itself, on the settings page it is set on.

@@ -474,14 +474,14 @@ TEST_F(LlmTest, ModelListRefreshKeepsTheUserCacheWhenAResponseIsMalformed)
     auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
     app::AppController controller{store, client, hook, hotkey, pricing, test::sourceDir() / "data"};
 
-    ASSERT_EQ(controller.models().size(), 1);
-    EXPECT_EQ(controller.models().front().toMap().value("value").toString(), "cached-model");
+    ASSERT_EQ(controller.modelCatalogDuty()->models().size(), 1);
+    EXPECT_EQ(controller.modelCatalogDuty()->models().front().toMap().value("value").toString(), "cached-model");
     QEventLoop loop;
     QObject::connect(&client, &llm::LlmClient::modelsFetched, &loop, &QEventLoop::quit);
     QTimer::singleShot(50, &loop, &QEventLoop::quit);
     loop.exec();
 
-    EXPECT_EQ(controller.models().front().toMap().value("value").toString(), "cached-model");
+    EXPECT_EQ(controller.modelCatalogDuty()->models().front().toMap().value("value").toString(), "cached-model");
     EXPECT_EQ(store.document().at("MODELS").at("DeepSeek").at(0), "cached-model");
 }
 
@@ -633,7 +633,7 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
         return QJsonDocument::fromJson(manager.posted).object();
     };
     EXPECT_TRUE(request(client).contains("thinking"));
-    controller.setProvider("custom");
+    controller.modelCatalogDuty()->setProvider("custom");
     EXPECT_EQ(controller.settings().value("url").toString(), "https://api.deepseek.com");
     // The custom endpoint keeps the address it was on, and a model is always in force: which one
     // follows from the service, and the rule itself is pinned in the provider test above.
@@ -641,7 +641,7 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
     EXPECT_EQ(store.document().at("URL"), "https://api.deepseek.com");
     EXPECT_FALSE(request(client).contains("thinking"));
     settingsChanges = 0;
-    controller.setProvider("openai");
+    controller.modelCatalogDuty()->setProvider("openai");
     controller.setModel(" gpt-4.1-nano ");
     EXPECT_EQ(settingsChanges, 2);
     auto const chosen = controller.settings();
@@ -653,7 +653,7 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
     EXPECT_FALSE(body.contains("thinking"));
     EXPECT_EQ(manager.endpoint, QUrl{"https://api.openai.com/v1/chat/completions"});
 
-    controller.setProvider("unknown");
+    controller.modelCatalogDuty()->setProvider("unknown");
     controller.setModel(" ");
     // Two: the provider and the model. A fetched model list is not one of them any more -- it
     // changes nothing in the settings map (docs/adr/0020) -- and neither rejected call counts.
@@ -669,7 +669,7 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
     EXPECT_EQ(restoredController.settings().value("provider").toString(), "openai");
     EXPECT_EQ(restored.document().at("API-KEY"), "fake-test-token");
 
-    controller.setProvider("custom");
+    controller.modelCatalogDuty()->setProvider("custom");
     controller.setModel("custom-model");
     auto customStore = core::KnownStore::load(path);
     llm::LlmClient custom{{QUrl{"https://wrong.invalid"}, "fake-test-token", "wrong-model"}, &manager};
@@ -699,4 +699,28 @@ TEST_F(LlmTest, Phase2ControllerRejectsAnInsecurePersistedServiceUrl)
 
     EXPECT_EQ(client.baseUrl(), QUrl{"https://api.deepseek.com"});
     EXPECT_EQ(controller.settings().value("url").toString(), "https://api.deepseek.com");
+}
+
+TEST_F(LlmTest, Phase2RemovingAWordClearsItsOwnBubbleAndLeavesAnotherAlone)
+{
+    QtApplication qt;
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    auto store         = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+    app::MouseSelectionHook hook;
+    app::GlobalHotkey hotkey;
+    Manager manager;
+    llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
+    app::AppController controller{store, client, hook, hotkey, pricing, test::sourceDir() / "data"};
+    controller.explanationDuty()->setSelection(selection());
+    run(*controller.explanationDuty(), client);
+    ASSERT_EQ(controller.explanationDuty()->bubble().value("title").toString(), "bank");
+
+    controller.removeWord("resilience");
+    EXPECT_EQ(controller.explanationDuty()->bubble().value("title").toString(), "bank")
+        << "removing a word the bubble does not show took the bubble down";
+
+    controller.removeWord("bank");
+    EXPECT_TRUE(controller.explanationDuty()->bubble().isEmpty()) << "removing the bubble's own word left the bubble up";
 }

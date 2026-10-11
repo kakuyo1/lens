@@ -177,7 +177,7 @@ Window {
                         TapHandler {
                             id: press
                             onTapped: {
-                                Controller.runSelectionAction(item.modelData.action, bar.selectionText);
+                                Controller.explanationDuty.runSelectionAction(item.modelData.action, bar.selectionText);
                                 bar.visible = false;
                             }
                         }

@@ -72,7 +72,7 @@ Item {
                 compare(findChild(page, "languageField").current.label, "日本語");
                 verify(Object.keys(Controller.settings).indexOf("apiKey") === -1);
             } finally {
-                Controller.setProvider(previous.provider);
+                Controller.modelCatalogDuty.setProvider(previous.provider);
                 Controller.setModel(previous.model);
                 Controller.setApiUrl(previous.url);
                 Controller.setExplanationLang(previous.explanationLang);

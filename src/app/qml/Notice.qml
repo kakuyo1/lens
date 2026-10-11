@@ -51,7 +51,7 @@ Window {
 
     function closeNotice() {
         visible = false
-        Controller.dismissNotice()
+        Controller.explanationDuty.dismissNotice()
     }
 
     ShadowCard {

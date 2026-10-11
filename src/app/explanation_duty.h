@@ -6,6 +6,7 @@
 #include <QVariantList>
 #include <QVariantMap>
 #include <QVector>
+#include <QtQml/qqmlregistration.h>
 
 #include "capture_duty.h"
 #include "core/pet/pet_state.h"
@@ -27,6 +28,8 @@ class CostDuty;
 
 class ExplanationDuty final : public QObject {
     Q_OBJECT
+    QML_ANONYMOUS
+    QML_UNCREATABLE("Owned by Controller; reached as Controller.explanationDuty")
 public:
     ExplanationDuty(StorageDuty& storage, llm::LlmClient& llm, CostDuty& cost, QObject* parent = nullptr);
     void setSelection(PendingSelection selection);
@@ -36,8 +39,8 @@ public:
     void resumeQueued();
     /// @brief Invalidate queued or in-flight results for a word deleted locally.
     void invalidateWord(QString const& lemma);
-    void runSelectionAction(QString action, QString text);
-    void mark(QString lemma, bool learned);
+    Q_INVOKABLE void runSelectionAction(QString action, QString text);
+    Q_INVOKABLE void mark(QString lemma, bool learned);
     /**
      * @brief Show what is already stored for a word the reader pointed at, and nothing else.
      *
@@ -56,11 +59,11 @@ public:
     /// purpose: it flaps (TODO.md, the bubble-hover jitter item), and hanging this bubble's life off
     /// a signal that flaps is what made it appear and disappear while the pointer stood still. The
     /// word the pointer is on is the one thing that is not in doubt.
-    void dismissReview();
+    Q_INVOKABLE void dismissReview();
     /// @brief Ask the model about a lemma the reader asked for by name, anchored where it was read.
     void explainLemma(QString lemma);
-    void dismissBubble();
-    void dismissNotice();
+    Q_INVOKABLE void dismissBubble();
+    Q_INVOKABLE void dismissNotice();
     /**
      * @brief Put a reason card up where no explanation can be.
      * @param title  What the notice is about.
@@ -73,6 +76,9 @@ public:
     QVariantMap bubble() const;
     QVariantMap notice() const;
     QString busyLabel() const;
+
+    Q_PROPERTY(QVariantMap bubble READ bubble NOTIFY bubbleChanged)
+    Q_PROPERTY(QVariantMap notice READ notice NOTIFY noticeChanged)
 
 signals:
     void bubbleChanged();

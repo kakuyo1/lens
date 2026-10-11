@@ -20,7 +20,7 @@ Item {
     /// own seed, else nothing at all. Its own controller property rather than a key of `settings`
     /// -- see ModelCatalogDuty::models(). Taken as a property, not read off the singleton, so a
     /// case can hand the page a list of its own.
-    property var modelOptions: Controller.models || []
+    property var modelOptions: Controller.modelCatalogDuty.models || []
 
     Column {
         id: content
@@ -41,8 +41,8 @@ Item {
                 width: parent.width
                 options: root.settings.providers || []
                 currentValue: root.settings.provider
-                onPicked: (value) => Controller.setProvider(value)
-                onListOpened: Controller.refreshModels()
+                onPicked: (value) => Controller.modelCatalogDuty.setProvider(value)
+                onListOpened: Controller.modelCatalogDuty.refreshModels()
             }
         }
 

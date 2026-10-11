@@ -82,12 +82,12 @@ Item {
             let bars = 0;
             Controller.selectionBarRequested.connect(function () { bars += 1; });
 
-            Controller.runSelectionAction("translate", "ubiquitous");
-            Controller.runSelectionAction("copy", "ubiquitous");
-            Controller.runSelectionAction("explain", "ubiquitous");
+            Controller.explanationDuty.runSelectionAction("translate", "ubiquitous");
+            Controller.explanationDuty.runSelectionAction("copy", "ubiquitous");
+            Controller.explanationDuty.runSelectionAction("explain", "ubiquitous");
 
             compare(bars, 0, "an action with nothing pending put an action bar up");
-            compare(Object.keys(Controller.bubble).length, 0, "an action with nothing pending opened a bubble");
+            compare(Object.keys(Controller.explanationDuty.bubble).length, 0, "an action with nothing pending opened a bubble");
         }
 
         /// Dismissing a surface that is not up must not tell the surface anything -- the signal
@@ -95,13 +95,13 @@ Item {
         function test_dismissingWhatIsNotUpSaysNothing() {
             let bubbles = 0;
             let notices = 0;
-            Controller.bubbleChanged.connect(function () { bubbles += 1; });
-            Controller.noticeChanged.connect(function () { notices += 1; });
+            Controller.explanationDuty.bubbleChanged.connect(function () { bubbles += 1; });
+            Controller.explanationDuty.noticeChanged.connect(function () { notices += 1; });
 
-            verify(Object.keys(Controller.bubble).length === 0, "the fixture should start with no bubble");
-            verify(Object.keys(Controller.notice).length === 0, "the fixture should start with no notice");
-            Controller.dismissBubble();
-            Controller.dismissNotice();
+            verify(Object.keys(Controller.explanationDuty.bubble).length === 0, "the fixture should start with no bubble");
+            verify(Object.keys(Controller.explanationDuty.notice).length === 0, "the fixture should start with no notice");
+            Controller.explanationDuty.dismissBubble();
+            Controller.explanationDuty.dismissNotice();
 
             compare(bubbles, 0, "dismissing an empty bubble told the surface");
             compare(notices, 0, "dismissing an empty notice told the surface");
@@ -123,13 +123,13 @@ Item {
         /// Automatic scanning is a phase-1 placeholder, but the label the tray menu and tooltip
         /// both read still has to follow it rather than disagree with itself.
         function test_theModeLabelFollowsAutoScan() {
-            Controller.setAutoScan(false);
+            Controller.captureDuty.setAutoScan(false);
             compare(Controller.modeLabel, qsTr("Manual"));
 
-            Controller.setAutoScan(true);
+            Controller.captureDuty.setAutoScan(true);
             compare(Controller.modeLabel, qsTr("Auto"));
 
-            Controller.setAutoScan(false);
+            Controller.captureDuty.setAutoScan(false);
         }
 
         /// The key is write-only: the document carries it, nothing reads it back to a surface.

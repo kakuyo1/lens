@@ -8,8 +8,8 @@ import "../testutil.js" as Util
  * without spending anything.
  *
  * What is checked is the contract between the row and the controller, not the surfaces that draw
- * it: the row is reached through the words panel and the answer is read off `Controller.bubble` and
- * `Controller.notice`, the way the panels are read in tst_panels. Main.qml is what turns either of
+ * it: the row is reached through the words panel and the answer is read off `Controller.explanationDuty.bubble` and
+ * `Controller.explanationDuty.notice`, the way the panels are read in tst_panels. Main.qml is what turns either of
  * those into a window, and it is not built here.
  *
  * Two rows are enough for both halves, and the fixture has them: `panel` has one stored explanation
@@ -79,8 +79,8 @@ Item {
         }
 
         function cleanup() {
-            Controller.dismissBubble();
-            Controller.dismissNotice();
+            Controller.explanationDuty.dismissBubble();
+            Controller.explanationDuty.dismissNotice();
         }
 
         /// Hovering a row raises what that word is already stored as -- the whole point of the
@@ -89,13 +89,13 @@ Item {
             const popup = make();
             dwellOn(popup, stored);
 
-            const bubble = Controller.bubble;
+            const bubble = Controller.explanationDuty.bubble;
             compare(bubble.title, stored);
             compare(bubble.type, "word");
             compare(bubble.ipa, "/ˈpænl/");
             compare(bubble.senses.length, 1, "the stored entry has one sense");
             compare(bubble.senses[0].text, "面板；专门小组");
-            compare(Object.keys(Controller.notice).length, 0, "a stored word leaves no notice behind");
+            compare(Object.keys(Controller.explanationDuty.notice).length, 0, "a stored word leaves no notice behind");
         }
 
         /// A bubble raised by a pointer on a row belongs to that row: the pointer leaving is what
@@ -103,10 +103,10 @@ Item {
         function test_theReadingGoesWhenThePointerLeavesTheRow() {
             const popup = make();
             dwellOn(popup, stored);
-            compare(Controller.bubble.title, stored);
+            compare(Controller.explanationDuty.bubble.title, stored);
 
             mouseMove(popup, 2, 2);
-            tryVerify(function () { return Object.keys(Controller.bubble).length === 0; }, 1000,
+            tryVerify(function () { return Object.keys(Controller.explanationDuty.bubble).length === 0; }, 1000,
                       "the bubble outlived the pointer leaving its row");
         }
 
@@ -117,12 +117,12 @@ Item {
             const popup = make();
             dwellOn(popup, unstored);
 
-            const notice = Controller.notice;
+            const notice = Controller.explanationDuty.notice;
             compare(notice.title, unstored);
             compare(notice.kind, "info");
             compare(notice.lemma, unstored, "the button has to act on the word the row drew");
             compare(notice.action, qsTranslate("lens::app::AppController", "Explain now"));
-            compare(Object.keys(Controller.bubble).length, 0, "nothing stored means no bubble");
+            compare(Object.keys(Controller.explanationDuty.bubble).length, 0, "nothing stored means no bubble");
         }
 
         /// The notice is a card, not a bubble: it is not the pointer's to take down, because the
@@ -130,11 +130,11 @@ Item {
         function test_theOfferOutlivesThePointerLeavingTheRow() {
             const popup = make();
             dwellOn(popup, unstored);
-            compare(Controller.notice.title, unstored);
+            compare(Controller.explanationDuty.notice.title, unstored);
 
             mouseMove(popup, 2, 2);
             wait(300);
-            compare(Controller.notice.title, unstored, "the offer went with the pointer");
+            compare(Controller.explanationDuty.notice.title, unstored, "the offer went with the pointer");
         }
 
         /// The button's action, at the controller: a word whose explanation is already stored is
@@ -143,8 +143,8 @@ Item {
         function test_askingAboutAStoredWordAnswersFromTheStore() {
             Controller.explainLemma(stored);
 
-            compare(Controller.bubble.title, stored);
-            compare(Object.keys(Controller.notice).length, 0, "an answered word leaves no notice behind");
+            compare(Controller.explanationDuty.bubble.title, stored);
+            compare(Object.keys(Controller.explanationDuty.notice).length, 0, "an answered word leaves no notice behind");
         }
 
         /// Hovering a stored word after an offer is up takes the offer down: one surface, and the
@@ -152,11 +152,11 @@ Item {
         function test_storedReadingClearsTheOffer() {
             const popup = make();
             dwellOn(popup, unstored);
-            compare(Controller.notice.title, unstored);
+            compare(Controller.explanationDuty.notice.title, unstored);
 
             dwellOn(popup, stored);
-            compare(Controller.bubble.title, stored);
-            compare(Object.keys(Controller.notice).length, 0, "the offer stayed up behind the reading");
+            compare(Controller.explanationDuty.bubble.title, stored);
+            compare(Object.keys(Controller.explanationDuty.notice).length, 0, "the offer stayed up behind the reading");
         }
     }
 }

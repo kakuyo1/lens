@@ -100,7 +100,7 @@ Window {
         Controller.setAnimationsEnabled(true);
         Controller.setSelectionCapture(true);
         Controller.setClipboardPolicy("topmost");
-        Controller.setProvider("DeepSeek");
+        Controller.modelCatalogDuty.setProvider("DeepSeek");
         Controller.setModel("deepseek-flash");
         Controller.restoreCaptureDefaults();
         // The interface language is not here on purpose: it belongs to the tray menu, and a
