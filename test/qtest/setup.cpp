@@ -40,7 +40,7 @@ void installUiFonts()
     if (lightFamily.isEmpty() or regularFamily.isEmpty())
         qFatal("could not resolve the Windows Chinese font families for the offscreen snapshot");
 
-    QFont uiFont;
+    QFont         uiFont;
     const QString mode = qEnvironmentVariable("LENS_QA_FONT_MODE", "current");
     if (mode == QLatin1String("yahei-light"))
         uiFont.setFamilies({lightFamily, QStringLiteral("Segoe UI Variable")});
@@ -158,16 +158,16 @@ struct Singletons {
         QFile::remove(settingsPath);
     }
 
-    QString settingsPath;
-    std::unique_ptr<KnownStore> store;
+    QString                               settingsPath;
+    std::unique_ptr<KnownStore>           store;
     std::unique_ptr<lens::llm::LlmClient> llm;
-    std::unique_ptr<MouseSelectionHook> hook;
-    std::unique_ptr<GlobalHotkey> hotkey;
-    std::unique_ptr<lens::llm::Pricing> pricing;
-    std::unique_ptr<AppController> controller;
-    std::unique_ptr<Tray> tray;
-    std::unique_ptr<PetStore> petStore;
-    std::unique_ptr<PetController> pet;
+    std::unique_ptr<MouseSelectionHook>   hook;
+    std::unique_ptr<GlobalHotkey>         hotkey;
+    std::unique_ptr<lens::llm::Pricing>   pricing;
+    std::unique_ptr<AppController>        controller;
+    std::unique_ptr<Tray>                 tray;
+    std::unique_ptr<PetStore>             petStore;
+    std::unique_ptr<PetController>        pet;
 };
 
 /**
