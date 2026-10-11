@@ -512,27 +512,26 @@ QVariantList AppController::words() const
         seen.insert(shown);
 
         const QDateTime moment = QDateTime::fromString(QString::fromStdString(entry.minute), QStringLiteral("yyyy-MM-dd HH:mm"));
-        QString when;
+        QString day;
+        QString date;
+        QString time;
         if (moment.isValid()) {
             const qint64 daysAgo = moment.date().daysTo(today);
             if (daysAgo == 0)
-                when = tr("Today %1").arg(moment.toString(QStringLiteral("HH:mm")));
+                day = QStringLiteral("today");
             else if (daysAgo == 1)
-                when = tr("Yesterday %1").arg(moment.toString(QStringLiteral("HH:mm")));
+                day = QStringLiteral("yesterday");
             else
-                when = moment.toString(QStringLiteral("MM-dd HH:mm"));
+                day = QStringLiteral("earlier");
+            date = moment.toString(QStringLiteral("MM-dd"));
+            time = moment.toString(QStringLiteral("HH:mm"));
         }
 
-        QString status;
-        if (entry.verdict == "known")
-            status = tr("Known");
-        else if (entry.verdict == "new")
-            status = tr("New");
-
         out.append(QVariantMap{{"word", shown},
-                               {"when", when},
+                               {"day", day},
+                               {"date", date},
+                               {"time", time},
                                {"verdict", QString::fromStdString(entry.verdict)},
-                               {"status", status},
                                {"pops", pops.value(shown)}});
     }
     return out;

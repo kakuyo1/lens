@@ -132,6 +132,26 @@ Item {
             compare(wordsShown(popup).sort(), words.slice().sort());
         }
 
+        /// The time label is formatted here, from the day and the raw time the controller hands over.
+        /// Rows are built by hand because the controller's fixture is all January, so today and
+        /// yesterday are reachable only this way.
+        function test_theWordsPanelFormatsEachDaysTimeLabel() {
+            const popup = make(wordsComponent);
+            compare(popup.whenLabel({ day: "today", date: "10-11", time: "09:15" }), "Today 09:15");
+            compare(popup.whenLabel({ day: "yesterday", date: "10-10", time: "23:40" }), "Yesterday 23:40");
+            compare(popup.whenLabel({ day: "earlier", date: "03-07", time: "08:05" }), "03-07 08:05");
+            compare(popup.whenLabel({ day: "", date: "", time: "" }), "");
+        }
+
+        /// Known and New are the verdict pills' own labels, so each row draws one of each. The
+        /// filter segment repeats both words once more, which is the one extra in each count.
+        function test_theWordsPanelLabelsTheVerdictsKnownAndNew() {
+            const popup = make(wordsComponent);
+            const texts = Util.textsUnder(popup).map(function (o) { return o.text; });
+            compare(texts.filter(function (t) { return t === "Known"; }).length, Controller.words.length + 1);
+            compare(texts.filter(function (t) { return t === "New"; }).length, Controller.words.length + 1);
+        }
+
         function test_theWordsTitleRequestsTheYearPanel() {
             const popup = make(wordsComponent);
             titleRequests = 0;
