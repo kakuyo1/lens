@@ -1,6 +1,6 @@
 /**
  * @file pet_data_test.cpp
- * @brief The shipped pet data, offline: data/pet/*.json must pass the parsers the app runs at start (PHASE3 3.8).
+ * @brief The shipped pet data, offline: data/pet/dog/*.json must pass the parsers the app runs at start (PHASE3 3.8).
  */
 
 #include <algorithm>
@@ -26,7 +26,7 @@ using nlohmann::json;
 
 json load(char const* name)
 {
-    auto const path   = std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet" / name;
+    auto const path   = std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet" / "dog" / name;
     auto       stream = std::ifstream{path};
     EXPECT_TRUE(stream.is_open()) << path.string();
     return json::parse(stream);
@@ -36,16 +36,25 @@ TEST(PetData, AnimationsLoadAndCarryTheBlink)
 {
     auto const animations = parseAnimations(load("animations.json"));
 
-    EXPECT_EQ(animations.actions.size(), 11u);
+    EXPECT_EQ(animations.playbook.actions.size(), 11u);
     EXPECT_EQ(animations.blink.frames, 3);
     EXPECT_FALSE(animations.blink.loop);
+}
+
+TEST(PetData, EveryRoleAndTheIdlePoolArePlayable)
+{
+    auto const playbook = parseAnimations(load("animations.json")).playbook;
+
+    // The dog maps every role, stretch included, and its idle pool is the two actions the timer picked before.
+    EXPECT_EQ(playbook.roles.size(), 11u);
+    EXPECT_EQ(playbook.idlePool, (std::vector<std::string>{"look_around", "stretch"}));
 }
 
 TEST(PetData, AnchorsMatchTheFrameCountOfEveryAction)
 {
     auto const animations = parseAnimations(load("animations.json"));
 
-    EXPECT_NO_THROW(parseAnchors(load("anchors.json"), animations.actions));
+    EXPECT_NO_THROW(parseAnchors(load("anchors.json"), animations.playbook));
 }
 
 TEST(PetData, ExpressionListsCoverEveryFrame)
@@ -60,26 +69,39 @@ TEST(PetData, ExpressionListsCoverEveryFrame)
 
 TEST(PetData, AccessoriesLoadWithEveryPrototypeItem)
 {
-    auto const catalogue = parseAccessories(load("accessories.json"));
+    auto const animations = parseAnimations(load("animations.json"));
+    auto const catalogue  = parseAccessories(load("accessories.json"), animations.playbook);
 
     EXPECT_EQ(catalogue.size(), 7u);
 }
 
 TEST(PetData, EverySheetIsTheSizeItsFrameCountSays)
 {
-    auto const directory = std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet";
+    auto const directory = std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet" / "dog";
 
     EXPECT_NO_THROW(lens::app::pet::PetAssets::load(directory));
 }
 
-/// A scratch copy of data/pet for one test, removed when the test ends.
+TEST(PetData, EveryShippedPetIsAcceptedWhole)
+{
+    // Each folder under data/pet is a pet the picker offers, so the app must accept every one of them.
+    auto pets = 0;
+    for (auto const& entry : std::filesystem::directory_iterator{std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet"}) {
+        if (not entry.is_directory()) continue;
+        ++pets;
+        EXPECT_NO_THROW(lens::app::pet::PetAssets::load(entry.path())) << entry.path().string();
+    }
+    EXPECT_GT(pets, 0);
+}
+
+/// A scratch copy of data/pet/dog for one test, removed when the test ends.
 class ScratchPet {
 public:
     explicit ScratchPet(std::string const& name)
         : root_{std::filesystem::temp_directory_path() / ("lens-pet-data-" + name)}
     {
         std::filesystem::remove_all(root_);
-        std::filesystem::copy(std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet", root_, std::filesystem::copy_options::recursive);
+        std::filesystem::copy(std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet" / "dog", root_, std::filesystem::copy_options::recursive);
     }
     ~ScratchPet()
     {

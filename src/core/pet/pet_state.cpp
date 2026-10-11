@@ -6,28 +6,21 @@
 #include "core/pet/pet_state.h"
 
 #include <algorithm>
-#include <array>
 #include <cstddef>
+#include <utility>
 #include <vector>
 
 namespace lens::core::pet {
 
-namespace {
-
-/// Actions the idle timer picks from (PHASE3 3.3: random idle chooses among the situational actions).
-constexpr std::array<Action, 2> kSituationalIdle{Action::LookAround, Action::Stretch};
-
-} // namespace
-
-PetStateMachine::PetStateMachine(ActionSpecs const& specs_, RandomSource const& random_)
-    : specs{specs_}, random{random_}
+PetStateMachine::PetStateMachine(Playbook playbook_, RandomSource const& random_)
+    : playbook{std::move(playbook_)}, random{random_}
 {
-    enter(Action::Idle, Priority::Idle);
+    enterRole(Role::Idle, Priority::Idle);
 }
 
 bool PetStateMachine::blinking() const
 {
-    return specs.at(current).blinks;
+    return playbook.actions.at(current).blinks;
 }
 
 void PetStateMachine::handle(PetEvent event)
@@ -38,40 +31,40 @@ void PetStateMachine::handle(PetEvent event)
         case PetEvent::DragStart:
             if (dragging) return;
             dragging = true;
-            enter(Action::Pickup, Priority::Drag);
+            enterRole(Role::Pickup, Priority::Drag);
             return;
         case PetEvent::DragEnd:
             if (not dragging) return;
             dragging = false;
-            enter(Action::Idle, Priority::Idle);
+            enterRole(Role::Idle, Priority::Idle);
             return;
         case PetEvent::Click:
-            if (not dragging) request(Action::ClickReact, Priority::Click);
+            if (not dragging) request(Role::ClickReact, Priority::Click);
             return;
         case PetEvent::SelectionShown:
-            request(Action::LookAround, Priority::Event);
+            request(Role::LookAround, Priority::Event);
             return;
         case PetEvent::ExplanationRequested:
-            request(Action::Thinking, Priority::Event);
+            request(Role::Thinking, Priority::Event);
             return;
         case PetEvent::ExplanationShown:
-            hold(Action::Study);
+            hold(Role::Study);
             return;
         case PetEvent::ExplanationHidden:
-            release(Action::Study);
+            release(Role::Study);
             return;
         case PetEvent::KnownMarked:
         case PetEvent::UpdateAvailable:
-            request(Action::Celebrate, Priority::Event);
+            request(Role::Celebrate, Priority::Event);
             return;
         case PetEvent::NewWordMarked:
-            request(Action::Encourage, Priority::Event);
+            request(Role::Encourage, Priority::Event);
             return;
         case PetEvent::BudgetPaused:
-            hold(Action::Sleep);
+            hold(Role::Sleep);
             return;
         case PetEvent::BudgetResumed:
-            release(Action::Sleep);
+            release(Role::Sleep);
             return;
     }
 }
@@ -81,77 +74,92 @@ void PetStateMachine::advance(std::chrono::milliseconds step)
     quiet += step;
     if (quiet >= kQuietBeforeYawn) {
         quiet = std::chrono::milliseconds{0};
-        request(Action::Yawn, Priority::Situational);
+        request(Role::Yawn, Priority::Situational);
         return;
     }
-    if (current == Action::Idle) {
+    if (currentRole == Role::Idle) {
         idleMs += step;
         if (idleMs >= idleWait) {
-            if (auto const pick = pickRandomIdle()) request(*pick, Priority::Situational);
+            if (auto const pick = pickRandomIdle()) play(*pick, std::nullopt, Priority::Situational);
         }
         return;
     }
     elapsed += step;
-    if (current == Action::Thinking) {
+    if (currentRole == Role::Thinking) {
         if (elapsed >= kThinkingTimeout) settle();
         return;
     }
-    if (not specs.at(current).loop and elapsed >= durationOf(current)) settle();
+    if (not playbook.actions.at(current).loop and elapsed >= durationOf(current)) settle();
 }
 
-void PetStateMachine::request(Action next, Priority requested)
+void PetStateMachine::request(Role next, Priority requested)
+{
+    auto const named = playbook.roles.find(next);
+    if (named == playbook.roles.end()) return;
+    play(named->second, next, requested);
+}
+
+void PetStateMachine::play(ActionName name, std::optional<Role> role, Priority requested)
 {
     // Thinking waits for the explanation that the event completes, so any event replaces it.
-    auto const givesWayToThinking = current == Action::Thinking and requested == Priority::Event;
+    auto const givesWayToThinking = currentRole == Role::Thinking and requested == Priority::Event;
     if (requested <= priority and not givesWayToThinking) return;
-    enter(next, requested);
+    enter(std::move(name), role, requested);
 }
 
-void PetStateMachine::enter(Action next, Priority newPriority)
+void PetStateMachine::enter(ActionName name, std::optional<Role> role, Priority newPriority)
 {
-    current       = next;
-    priority      = newPriority;
-    elapsed       = std::chrono::milliseconds{0};
-    pendingReturn = specs.at(next).returnTo;
-    if (next == Action::Idle) {
+    // The lookup comes first: `name` is moved into `current` below.
+    auto const& spec = playbook.actions.at(name);
+    pendingReturn    = spec.returnTo;
+    current          = std::move(name);
+    currentRole      = role;
+    priority         = newPriority;
+    elapsed          = std::chrono::milliseconds{0};
+    if (role == Role::Idle) {
         idleMs   = std::chrono::milliseconds{0};
         idleWait = nextIdleWait();
     }
 }
 
-void PetStateMachine::hold(Action state)
+void PetStateMachine::enterRole(Role role, Priority newPriority)
+{
+    enter(playbook.roles.at(role), role, newPriority);
+}
+
+void PetStateMachine::hold(Role state)
 {
     held = state;
     request(state, Priority::Event);
 }
 
-void PetStateMachine::release(Action state)
+void PetStateMachine::release(Role state)
 {
     if (held == state) held.reset();
-    if (current == state) settle();
+    if (currentRole == state) settle();
 }
 
 void PetStateMachine::settle()
 {
-    // A yawn's return to sleep is situational, so a learning event can still wake the dog into reading.
+    // A yawn's return to sleep is situational, so a learning event can still wake the pet into reading.
     // A held state returns at event priority, as it started.
     if (pendingReturn) {
-        enter(*pendingReturn, Priority::Situational);
+        enterRole(*pendingReturn, Priority::Situational);
         return;
     }
     if (held) {
-        enter(*held, Priority::Event);
+        enterRole(*held, Priority::Event);
         return;
     }
-    enter(Action::Idle, Priority::Idle);
+    enterRole(Role::Idle, Priority::Idle);
 }
 
-std::optional<Action> PetStateMachine::pickRandomIdle()
+std::optional<ActionName> PetStateMachine::pickRandomIdle()
 {
-    // Never the action just played, and only actions that have a playback (PHASE3 3.1, 3.3).
-    std::vector<Action> choices;
-    for (auto const candidate : kSituationalIdle) {
-        if (specs.count(candidate) != 0 and candidate != lastIdle) choices.push_back(candidate);
+    // Never the action just played (PHASE3 3.3). The pool was checked when the playbook was parsed.
+    std::vector<ActionName> choices;
+    for (auto const& candidate : playbook.idlePool) {
+        if (not lastIdle or candidate != *lastIdle) choices.push_back(candidate);
     }
     if (choices.empty()) return std::nullopt;
 
@@ -167,9 +175,9 @@ std::chrono::milliseconds PetStateMachine::nextIdleWait()
     return kIdleCooldownBase + std::chrono::milliseconds{jitter};
 }
 
-std::chrono::milliseconds PetStateMachine::durationOf(Action action) const
+std::chrono::milliseconds PetStateMachine::durationOf(ActionName const& action) const
 {
-    auto const& spec = specs.at(action);
+    auto const& spec = playbook.actions.at(action);
     return std::chrono::milliseconds{spec.frames * 1000 / spec.fps};
 }
 

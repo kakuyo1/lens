@@ -1,0 +1,222 @@
+{
+  "_comment": "Owl: an upright white owl with an ink outline. Feet are paint on the ground row, so a lifted frame leaves them out (tucked). Ears and wings are body shapes, so keep the squash at 1 or above; below 1 the ears detach. The schema is in the docstring of scripts/pet/render_pet.py.",
+  "id": "owl",
+  "scale": 3,
+  "body": {"cx": 8.5, "cy": 8.5, "rx": 5.5, "ry": 7.5},
+  "eyes": [[5, 5], [11, 5]],
+  "mouth": [[7, 7], [8, 7], [9, 7], [8, 8]],
+  "yawnMouth": [7, 7, 3, 2],
+  "roles": {
+    "idle": "idle",
+    "study": "study",
+    "thinking": "thinking",
+    "celebrate": "celebrate",
+    "encourage": "encourage",
+    "sleep": "sleep",
+    "click_react": "click_react",
+    "pickup": "pickup",
+    "look_around": "look_around",
+    "yawn": "yawn",
+    "stretch": "stretch"
+  },
+  "idlePool": ["look_around", "stretch", "preen", "hop", "flap", "hoot", "nod"],
+  "actions": {
+    "idle": {"fps": 5, "loop": true, "blink": true,
+      "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}],
+      "frames": [
+        {"shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+        {"shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+        {"pose": {"sy": 1.04}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+        {"pose": {"sy": 1.04}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+        {"shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]}
+      ]
+    },
+    "study": {"fps": 4, "loop": true, "blink": true,
+      "paint": [
+        {"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]},
+        {"at": [4, 10], "colour": "sky", "art": ["####.####", "####.####", "####.####"]},
+        {"at": [8, 10], "colour": "ink", "art": ["#", "#", "#"]}
+      ],
+      "frames": [
+        {"expression": 3, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+        {"expression": 3, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+        {"shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+        {"expression": 4, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+        {"expression": 4, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+        {"shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]}
+      ]
+    },
+    "thinking": {"fps": 3, "loop": true, "blink": true,
+      "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}],
+      "frames": [
+        {"expression": 6, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [13, -1], "colour": "sky", "art": ["#"]}]},
+        {"expression": 6, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [13, -1], "colour": "sky", "art": ["#"]}, {"at": [15, -3], "colour": "sky", "art": ["#"]}]},
+        {"expression": 6, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [13, -1], "colour": "sky", "art": ["#"]}, {"at": [15, -3], "colour": "sky", "art": ["#"]}, {"at": [17, -5], "colour": "sky", "art": ["#"]}]},
+        {"expression": 6, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [15, -3], "colour": "sky", "art": ["#"]}, {"at": [17, -5], "colour": "sky", "art": ["#"]}]}
+      ]
+    },
+    "celebrate": {"fps": 10, "loop": false, "frames": [
+      {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}]},
+      {"expression": 5, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}, {"op": "add", "shape": "ellipse", "cx": 14.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}], "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}, {"at": [-2, 6], "colour": "rose", "art": ["#"]}, {"at": [16, 2], "colour": "sky", "art": ["#"]}]},
+      {"expression": 5, "pose": {"dy": -2}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}, {"op": "add", "shape": "ellipse", "cx": 14.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}], "paint": [{"at": [-3, 2], "colour": "sky", "art": ["#"]}, {"at": [17, 5], "colour": "rose", "art": ["#"]}, {"at": [4, -3], "colour": "green", "art": ["#"]}]},
+      {"expression": 5, "pose": {"dy": -4}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}, {"op": "add", "shape": "ellipse", "cx": 14.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}], "paint": [{"at": [-1, 0], "colour": "rose", "art": ["#"]}, {"at": [18, 8], "colour": "green", "art": ["#"]}, {"at": [7, -5], "colour": "sky", "art": ["#"]}, {"at": [13, -4], "colour": "lilac", "art": ["#"]}]},
+      {"expression": 5, "pose": {"dy": -4}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}, {"op": "add", "shape": "ellipse", "cx": 14.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}], "paint": [{"at": [-3, 8], "colour": "sky", "art": ["#"]}, {"at": [17, -1], "colour": "rose", "art": ["#"]}, {"at": [2, -5], "colour": "green", "art": ["#"]}]},
+      {"expression": 5, "pose": {"dy": -2}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [-1, 4], "colour": "green", "art": ["#"]}, {"at": [17, 9], "colour": "lilac", "art": ["#"]}]},
+      {"expression": 5, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}]},
+      {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}]}
+    ]},
+    "encourage": {"fps": 8, "loop": false,
+      "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}],
+      "frames": [
+        {"expression": 5, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [16, 1], "colour": "sky", "art": [".#.", "###", ".#."]}]},
+        {"expression": 5, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 15.0, "cy": 6.5, "rx": 1.8, "ry": 2.5}], "paint": [{"at": [16, 1], "colour": "sky", "art": [".#.", "###", ".#."]}, {"at": [-2, 5], "colour": "rose", "art": ["#"]}]},
+        {"expression": 5, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 15.0, "cy": 6.5, "rx": 1.8, "ry": 2.5}], "paint": [{"at": [-2, 5], "colour": "rose", "art": ["#"]}]},
+        {"expression": 5, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [16, 1], "colour": "sky", "art": [".#.", "###", ".#."]}]},
+        {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]}
+      ]
+    },
+    "sleep": {"fps": 3, "loop": true,
+      "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}],
+      "frames": [
+        {"expression": 2, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [13, -1], "colour": "sky", "glyph": "zz"}]},
+        {"expression": 2, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [13, -3], "colour": "sky", "glyph": "zz"}, {"at": [16, -7], "colour": "sky", "glyph": "zz"}]},
+        {"expression": 2, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [13, -5], "colour": "sky", "glyph": "zz"}, {"at": [16, -9], "colour": "sky", "glyph": "zz"}]},
+        {"expression": 2, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [13, -7], "colour": "sky", "glyph": "zz"}]}
+      ]
+    },
+    "click_react": {"fps": 12, "loop": false,
+      "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}],
+      "frames": [
+        {"expression": 2, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+        {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.0, "cy": 8.0, "rx": 2.5, "ry": 1.5}, {"op": "add", "shape": "ellipse", "cx": 15.0, "cy": 8.0, "rx": 2.5, "ry": 1.5}], "paint": [{"at": [-3, 9], "colour": "lilac", "art": [".##.", "####", ".##."]}, {"at": [16, 9], "colour": "lilac", "art": [".##.", "####", ".##."]}]},
+        {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.0, "cy": 8.0, "rx": 2.5, "ry": 1.5}, {"op": "add", "shape": "ellipse", "cx": 15.0, "cy": 8.0, "rx": 2.5, "ry": 1.5}], "paint": [{"at": [-3, 9], "colour": "lilac", "art": [".##.", "####", ".##."]}, {"at": [16, 9], "colour": "lilac", "art": [".##.", "####", ".##."]}]},
+        {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]}
+      ]
+    },
+    "pickup": {"fps": 6, "loop": true,
+      "frames": [
+        {"expression": 6, "pose": {"dy": -1}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.0, "cy": 8.0, "rx": 2.5, "ry": 1.5}, {"op": "add", "shape": "ellipse", "cx": 15.0, "cy": 8.0, "rx": 2.5, "ry": 1.5}]},
+        {"expression": 6, "pose": {"dy": -2}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.0, "cy": 8.0, "rx": 2.5, "ry": 1.5}, {"op": "add", "shape": "ellipse", "cx": 15.0, "cy": 8.0, "rx": 2.5, "ry": 1.5}]},
+        {"expression": 6, "pose": {"dy": -2}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.0, "cy": 8.0, "rx": 2.5, "ry": 1.5}, {"op": "add", "shape": "ellipse", "cx": 15.0, "cy": 8.0, "rx": 2.5, "ry": 1.5}]},
+        {"expression": 6, "pose": {"dy": -1}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.0, "cy": 8.0, "rx": 2.5, "ry": 1.5}, {"op": "add", "shape": "ellipse", "cx": 15.0, "cy": 8.0, "rx": 2.5, "ry": 1.5}]}
+      ]
+    },
+    "look_around": {"fps": 6, "loop": false,
+      "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}],
+      "frames": [
+        {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+        {"expression": 3, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [13, -2], "colour": "ink", "glyph": "question"}]},
+        {"expression": 3, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [13, -2], "colour": "ink", "glyph": "question"}]},
+        {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [13, -2], "colour": "ink", "glyph": "question"}]},
+        {"expression": 4, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [13, -2], "colour": "ink", "glyph": "question"}]},
+        {"expression": 4, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]}
+      ]
+    },
+    "yawn": {"fps": 6, "loop": false, "returnTo": "sleep",
+      "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}],
+      "frames": [
+        {"expression": 1, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+        {"expression": 7, "pose": {"sy": 1.03}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+        {"expression": 7, "pose": {"sy": 1.05}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+        {"expression": 7, "pose": {"sy": 1.05}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+        {"expression": 2, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]}
+      ]
+    },
+    "stretch": {"fps": 6, "loop": false,
+      "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}],
+      "frames": [
+        {"expression": 2, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+        {"expression": 2, "pose": {"sy": 1.03}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}, {"op": "add", "shape": "ellipse", "cx": 14.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}]},
+        {"expression": 5, "pose": {"sy": 1.05}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.0, "cy": 8.0, "rx": 2.5, "ry": 1.5}, {"op": "add", "shape": "ellipse", "cx": 15.0, "cy": 8.0, "rx": 2.5, "ry": 1.5}]},
+        {"expression": 5, "pose": {"sy": 1.05}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.0, "cy": 8.0, "rx": 2.5, "ry": 1.5}, {"op": "add", "shape": "ellipse", "cx": 15.0, "cy": 8.0, "rx": 2.5, "ry": 1.5}]},
+        {"expression": 5, "pose": {"sy": 1.03}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.0, "cy": 8.0, "rx": 2.5, "ry": 1.5}, {"op": "add", "shape": "ellipse", "cx": 15.0, "cy": 8.0, "rx": 2.5, "ry": 1.5}]},
+        {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]}
+      ]
+    },
+    "blink": {"fps": 10, "loop": false, "frames": [
+      {"expression": 1}, {"expression": 2}, {"expression": 1}
+    ]},
+    "preen": {"fps": 6, "loop": false,
+      "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}],
+      "frames": [
+        {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+        {"expression": 2, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}, {"op": "add", "shape": "ellipse", "cx": 14.0, "cy": 11.0, "rx": 1.2, "ry": 1.8}]},
+        {"expression": 2, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}, {"op": "add", "shape": "ellipse", "cx": 14.0, "cy": 11.0, "rx": 1.2, "ry": 1.8}]},
+        {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]}
+      ]
+    },
+    "hop": {"fps": 8, "loop": false, "frames": [
+      {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}]},
+      {"expression": 5, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}, {"op": "add", "shape": "ellipse", "cx": 14.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}], "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}]},
+      {"expression": 5, "pose": {"dy": -3}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}, {"op": "add", "shape": "ellipse", "cx": 14.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}], "paint": [{"at": [5, 18], "colour": "grey", "art": ["#######"]}]},
+      {"expression": 5, "pose": {"dy": -4}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}, {"op": "add", "shape": "ellipse", "cx": 14.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}], "paint": [{"at": [5, 18], "colour": "grey", "art": ["#######"]}]},
+      {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}]}
+    ]},
+    "flap": {"fps": 8, "loop": false,
+      "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}],
+      "frames": [
+        {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+        {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}, {"op": "add", "shape": "ellipse", "cx": 14.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}]},
+        {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.5, "cy": 7.5, "rx": 2.0, "ry": 2.5}, {"op": "add", "shape": "ellipse", "cx": 14.5, "cy": 7.5, "rx": 2.0, "ry": 2.5}]},
+        {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "ellipse", "cx": 2.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}, {"op": "add", "shape": "ellipse", "cx": 14.5, "cy": 6.5, "rx": 2.0, "ry": 2.5}]},
+        {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]}
+      ]
+    },
+    "hoot": {"fps": 6, "loop": false,
+      "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}],
+      "frames": [
+        {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+        {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [14, 5], "colour": "sky", "art": ["##", ".#", "##"]}]},
+        {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [14, 5], "colour": "sky", "art": ["##", ".#", "##"]}, {"at": [16, 4], "colour": "sky", "art": ["##", ".#", ".#", "##"]}]},
+        {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [14, 5], "colour": "sky", "art": ["##", ".#", "##"]}, {"at": [16, 4], "colour": "sky", "art": ["##", ".#", ".#", "##"]}, {"at": [18, 3], "colour": "sky", "art": ["##", ".#", ".#", ".#", "##"]}]}
+      ]
+    },
+    "nod": {"fps": 6, "loop": false, "frames": [
+      {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}]},
+      {"expression": 0, "pose": {"dy": 1}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+      {"expression": 0, "pose": {"dy": 1}, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}]},
+      {"expression": 0, "shapes": [{"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 2]}, {"op": "add", "shape": "rect", "cols": [2, 14], "rows": [8, 10]}], "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}]}
+    ]}
+  },
+  "accessories": [
+    {"id": "beanie", "slot": "head", "paint": [
+      {"at": [7, -2], "colour": "rose", "art": [".#.", "###"]},
+      {"at": [4, 0], "colour": "rose", "art": ["..#####..", ".#######.", "#########"]}
+    ]},
+    {"id": "party_hat", "slot": "head", "paint": [
+      {"at": [8, -5], "colour": "rose", "art": ["#"]},
+      {"at": [4, -4], "colour": "sky", "art": ["....#....", "...###...", "..#####..", ".#######.", ".#######."]},
+      {"at": [5, 1], "colour": "ink", "art": ["#######"]}
+    ]},
+    {"id": "hair_bow", "slot": "head", "paint": [
+      {"at": [6, -2], "colour": "rose", "art": ["##.##", ".###.", "##.##"]},
+      {"at": [8, -1], "colour": "ink", "art": ["#"]}
+    ]},
+    {"id": "reading_glasses", "slot": "face", "except": ["sleep"], "paint": [
+      {"at": [3, 3], "colour": "grey", "art": [".###.", "#...#", "#...#", "#...#", ".###."]},
+      {"at": [9, 3], "colour": "grey", "art": [".###.", "#...#", "#...#", "#...#", ".###."]},
+      {"at": [8, 5], "colour": "grey", "art": ["#"]}
+    ]},
+    {"id": "sunglasses", "slot": "face", "except": ["sleep"], "paint": [
+      {"at": [3, 4], "colour": "ink", "art": [".###.", "#####", ".###."]},
+      {"at": [9, 4], "colour": "ink", "art": [".###.", "#####", ".###."]},
+      {"at": [8, 5], "colour": "ink", "art": ["#"]}
+    ]},
+    {"id": "sleep_mask", "slot": "face", "except": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch", "preen", "hop", "flap", "hoot", "nod"], "paint": [
+      {"at": [3, 4], "colour": "sky", "art": [".#########.", "###########", ".#########."]}
+    ]},
+    {"id": "bowtie", "slot": "body", "paint": [
+      {"at": [6, 12], "colour": "grey", "art": ["##.##", ".###."]},
+      {"at": [8, 12], "colour": "ink", "art": ["#"]}
+    ]},
+    {"id": "scarf", "slot": "body", "paint": [
+      {"at": [3, 9], "colour": "sky", "art": ["###########", ".#########."]},
+      {"at": [12, 11], "colour": "sky", "art": ["##", "##", "##"]}
+    ]},
+    {"id": "vest", "slot": "body", "paint": [
+      {"at": [5, 9], "colour": "grey", "art": ["##...##", "##...##", "###.###", "#######", "#######", "#######"]},
+      {"at": [8, 12], "colour": "ink", "art": ["#"]},
+      {"at": [8, 14], "colour": "ink", "art": ["#"]}
+    ]}
+  ]
+}

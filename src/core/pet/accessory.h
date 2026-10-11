@@ -25,13 +25,13 @@ enum class Slot : std::uint8_t {
 
 /// @brief One accessory from accessories.json: its id, the slot it wears in, and the actions it stays visible in.
 struct AccessorySpec {
-    std::string         id;
-    Slot                slot;
-    std::vector<Action> supportedActions;
+    std::string             id;
+    Slot                    slot;
+    std::vector<ActionName> supportedActions;
 };
 
 /**
- * @brief The accessories the dog is wearing, one per slot, over a fixed catalogue.
+ * @brief The accessories the pet is wearing, one per slot, over a fixed catalogue.
  *
  * Toggling an accessory puts it on its slot, takes off whatever was there, or, if the same one is already
  * worn, takes it off. Visibility is decided per action: an accessory that does not support the action now
@@ -50,7 +50,7 @@ struct Wardrobe {
     std::optional<std::string> wornIn(Slot slot) const;
 
     /// @return Ids of the worn accessories that support `action`, in slot order.
-    std::vector<std::string> visibleFor(Action action) const;
+    std::vector<std::string> visibleFor(ActionName const& action) const;
 
 private:
     std::vector<AccessorySpec>  catalogue;

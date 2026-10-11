@@ -2,19 +2,19 @@ import QtQuick
 import QtQuick.Window
 
 /**
- * The settings preview: the same dog as the desktop, on a baseline, at the size the reader chose. The clock
+ * The settings preview: the same pet as the desktop, on a baseline, at the size the reader chose. The clock
  * runs only while this stage is on a visible settings window, so a closed settings panel costs nothing.
  *
  * It shares Pet with the desktop window, so an action picked here plays on the desktop too while the
- * settings stay open. That is the one dog; a second clock would only fight the first for frames.
+ * settings stay open. That is the one pet; a second clock would only fight the first for frames.
  */
 Rectangle {
     id: stage
 
     readonly property bool onScreen: visible && Window.window !== null && Window.window.visible
-    readonly property int dogSize: Pet.canvas * Pet.scale
+    readonly property int petSize: Pet.canvas * Pet.scale
 
-    implicitHeight: dogSize + 24
+    implicitHeight: petSize + 24
     radius: Tokens.radiusGroup
     color: Tokens.panel2
     border.width: 1
@@ -38,7 +38,7 @@ Rectangle {
     }
 
     PetScene {
-        x: (stage.width - stage.dogSize) / 2
-        y: stage.height - stage.dogSize - 12
+        x: (stage.width - stage.petSize) / 2
+        y: stage.height - stage.petSize - 12
     }
 }

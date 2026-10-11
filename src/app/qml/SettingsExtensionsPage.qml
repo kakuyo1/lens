@@ -23,6 +23,21 @@ Item {
         case "look_around": return qsTranslate("SettingsPopup", "Look around");
         case "yawn": return qsTranslate("SettingsPopup", "Yawn");
         case "stretch": return qsTranslate("SettingsPopup", "Stretch");
+        case "wobble": return qsTranslate("SettingsPopup", "Wobble");
+        case "bounce": return qsTranslate("SettingsPopup", "Bounce");
+        case "hiccup": return qsTranslate("SettingsPopup", "Hiccup");
+        case "shiver": return qsTranslate("SettingsPopup", "Shiver");
+        case "spin": return qsTranslate("SettingsPopup", "Spin");
+        case "preen": return qsTranslate("SettingsPopup", "Preen");
+        case "hop": return qsTranslate("SettingsPopup", "Hop");
+        case "flap": return qsTranslate("SettingsPopup", "Flap");
+        case "hoot": return qsTranslate("SettingsPopup", "Hoot");
+        case "nod": return qsTranslate("SettingsPopup", "Nod");
+        case "groom": return qsTranslate("SettingsPopup", "Groom");
+        case "tail_flick": return qsTranslate("SettingsPopup", "Tail flick");
+        case "knead": return qsTranslate("SettingsPopup", "Knead");
+        case "pounce": return qsTranslate("SettingsPopup", "Pounce");
+        case "scratch": return qsTranslate("SettingsPopup", "Scratch");
         default: return name;
         }
     }
@@ -36,6 +51,17 @@ Item {
         case "glasses": return qsTranslate("SettingsPopup", "Round glasses");
         case "sunglasses": return qsTranslate("SettingsPopup", "Sunglasses");
         case "bowtie": return qsTranslate("SettingsPopup", "Bow tie");
+        case "flower": return qsTranslate("SettingsPopup", "Flower");
+        case "party_hat": return qsTranslate("SettingsPopup", "Party hat");
+        case "blush": return qsTranslate("SettingsPopup", "Blush");
+        case "scarf": return qsTranslate("SettingsPopup", "Scarf");
+        case "apron": return qsTranslate("SettingsPopup", "Apron");
+        case "hair_bow": return qsTranslate("SettingsPopup", "Hair bow");
+        case "reading_glasses": return qsTranslate("SettingsPopup", "Reading glasses");
+        case "sleep_mask": return qsTranslate("SettingsPopup", "Sleep mask");
+        case "vest": return qsTranslate("SettingsPopup", "Vest");
+        case "bell_collar": return qsTranslate("SettingsPopup", "Bell collar");
+        case "bandana": return qsTranslate("SettingsPopup", "Bandana");
         default: return id;
         }
     }
@@ -45,6 +71,16 @@ Item {
         case "head": return qsTranslate("SettingsPopup", "Head");
         case "face": return qsTranslate("SettingsPopup", "Face");
         default: return qsTranslate("SettingsPopup", "Body");
+        }
+    }
+
+    function petLabel(id) {
+        switch (id) {
+        case "dog": return qsTranslate("SettingsPopup", "Dog");
+        case "mochi": return qsTranslate("SettingsPopup", "Mochi");
+        case "owl": return qsTranslate("SettingsPopup", "Owl");
+        case "cat": return qsTranslate("SettingsPopup", "Cat");
+        default: return id;
         }
     }
 
@@ -131,8 +167,9 @@ Item {
 
                 DropdownField {
                     width: parent.width
-                    options: [{value: "dog", label: qsTranslate("SettingsPopup", "White dog"), group: "", note: ""}]
-                    currentValue: "dog"
+                    options: Pet.pets.map(id => ({value: id, label: page.petLabel(id), group: "", note: ""}))
+                    currentValue: Pet.pet
+                    onPicked: (value) => Pet.setPet(value)
                 }
             }
 

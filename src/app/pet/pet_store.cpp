@@ -36,6 +36,16 @@ PetStore::PetStore(core::KnownStore& store)
 {
 }
 
+std::string PetStore::pet() const
+{
+    return store_.section("PET").value<std::string>("pet", "dog");
+}
+
+void PetStore::setPet(std::string const& id)
+{
+    store_.section("PET").set<std::string>("pet", id);
+}
+
 bool PetStore::enabled() const
 {
     return store_.section("PET").value<bool>("enabled", false);

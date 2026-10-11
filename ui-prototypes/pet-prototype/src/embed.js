@@ -1,29 +1,31 @@
 /**
- * Settings-page entry: the prototype's own engine, renderer, pointer and accessory manager, bundled as one
- * script for ui-prototypes/pet.html (tools/build-pet-html.mjs). The page supplies the manifest and the
- * images as data URLs, because a file:// page can neither fetch nor load modules.
+ * Settings-page entry: the prototype's own engine, renderer, pointer, accessory manager and picker rules, bundled as one
+ * script for ui-prototypes/pet.html (tools/build-pet-html.mjs). The page supplies the pets' data and their images as
+ * data URLs, because a file:// page can neither fetch nor load modules.
  */
 import { PetEngine } from './pet-engine.js';
 import { PetRenderer } from './pet-renderer.js';
 import { AccessoryManager } from './accessory-manager.js';
 import { attachPointer } from './pet-pointer.js';
 
+export { keepWorn, actionOrder } from './pet-picker.js';
+
 /**
  * @param {HTMLCanvasElement} canvas
- * @param {object} manifest Parsed assets/pet/manifest.json.
+ * @param {object} pet Assembled by pet-data.js.
  * @param {{scale: number, resolve: (path: string) => string, live?: boolean, bounds?: HTMLElement}} options
  *        `live: false` draws the idle frame once with no pointer and no clock, for thumbnails.
  * @returns {Promise<{engine: PetEngine, accessories: AccessoryManager, setRunning: (on: boolean) => void}>}
  *          `setRunning` stops the frame clock while the stage is hidden.
  */
-export async function mountStage(canvas, manifest, { scale, resolve, live = true, bounds }) {
-  const renderer = new PetRenderer(canvas, { ...manifest, scale });
+export async function mountStage(canvas, pet, { scale, resolve, live = true, bounds }) {
+  const renderer = new PetRenderer(canvas, { ...pet, scale });
   await renderer.load(resolve);
-  const engine = new PetEngine(manifest);
-  const accessories = new AccessoryManager(manifest.accessories);
+  const engine = new PetEngine(pet);
+  const accessories = new AccessoryManager(pet.accessories);
 
   if (!live) {
-    renderer.draw({ action: 'idle', frame: 0, expression: 0, anchor: [0, 0] }, []);
+    renderer.draw(engine.state, []);
     return { engine, accessories, setRunning() {} };
   }
 

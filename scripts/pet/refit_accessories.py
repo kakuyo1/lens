@@ -20,7 +20,7 @@ from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parents[2]
-ASSETS = ROOT / "ui-prototypes" / "pet-prototype" / "assets" / "pet"
+DOG = ROOT / "scripts" / "pet" / "dog"
 UNITS_PER_CELL = 3
 
 
@@ -71,8 +71,8 @@ def compact_accessories(accessories):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--sprite", type=Path, default=ASSETS / "sprite.json")
-    parser.add_argument("--manifest", type=Path, default=ASSETS / "manifest.json")
+    parser.add_argument("--sprite", type=Path, default=DOG / "sprite.json")
+    parser.add_argument("--manifest", type=Path, default=DOG / "manifest.json")
     parser.add_argument("--eyes", help='eye cells, for example "7,3 10,3"')
     parser.add_argument("--dx-head", type=int, default=0)
     parser.add_argument("--dx-face", type=int, default=0)

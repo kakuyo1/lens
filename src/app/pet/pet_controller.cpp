@@ -6,6 +6,7 @@
 #include "app/pet/pet_controller.h"
 
 #include <algorithm>
+#include <exception>
 #include <random>
 #include <utility>
 
@@ -31,7 +32,7 @@ using core::pet::Slot;
 
 /// One tick of the single frame clock. Frames are at most 12 fps, so a tick of this length keeps them within one step.
 constexpr std::chrono::milliseconds kTick{20};
-/// Time between blinks while the dog is awake. The prototype blinks on the same cadence.
+/// Time between blinks while the pet is awake. The prototype blinks on the same cadence.
 constexpr std::chrono::milliseconds kBlinkEvery{4000};
 
 QPoint toPoint(core::pet::Point const& point)
@@ -79,30 +80,67 @@ QString slotName(Slot slot)
     return {};
 }
 
+/// @return The folder names under `root` that hold a pet.json, sorted. A missing root has no pets.
+QStringList listPets(std::filesystem::path const& root)
+{
+    auto ids   = QStringList{};
+    auto error = std::error_code{};
+    for (auto const& entry : std::filesystem::directory_iterator{root, error}) {
+        if (std::filesystem::is_regular_file(entry.path() / "pet.json", error))
+            ids.append(QString::fromStdWString(entry.path().filename().wstring()));
+    }
+    ids.sort();
+    return ids;
+}
+
 } // namespace
 
-PetController::PetController(std::optional<PetAssets> assets, PetStore& store, QObject* parent)
-    : QObject(parent), assets_(std::move(assets)), store_(store)
+PetController::PetController(std::filesystem::path petsRoot, PetStore& store, QObject* parent)
+    : QObject(parent), root_(std::move(petsRoot)), pets_(listPets(root_)), store_(store)
 {
     clock_.setInterval(kTick);
     connect(&clock_, &QTimer::timeout, this, &PetController::tick);
-    if (not assets_) return;
-
-    auto generator = std::mt19937{std::random_device{}()};
-    machine_       = std::make_unique<core::pet::PetStateMachine>(
-        assets_->animations.actions,
-        [generator = std::move(generator)]() mutable { return std::uniform_real_distribution<double>{0.0, 1.0}(generator); });
-    wardrobe_ = std::make_unique<core::pet::Wardrobe>(assets_->catalogue);
-
-    auto const outfit = store_.outfit();
-    for (auto const& [slot, worn] : {std::pair{Slot::Head, outfit.head}, std::pair{Slot::Face, outfit.face}, std::pair{Slot::Body, outfit.body}}) {
-        if (worn and wearsInSlot(*worn, slot)) wardrobe_->toggle(*worn);
-    }
-    blinkWait_ = kBlinkEvery;
-    sync(std::chrono::milliseconds{0});
+    loadPet(store_.pet());
 }
 
 PetController::~PetController() = default;
+
+void PetController::loadPet(std::string const& id)
+{
+    // What is on screen belongs to the pet that is going away, so none of it carries over.
+    preview_.reset();
+    action_.clear();
+    shownAction_.clear();
+    sheets_.clear();
+    anchors_      = {};
+    frameIndex_   = 0;
+    expression_   = 0;
+    blinkRunning_ = false;
+    blinkWait_    = kBlinkEvery;
+
+    machine_.reset();
+    wardrobe_.reset();
+    try {
+        assets_ = PetAssets::load(root_ / id);
+    } catch (std::exception const& e) {
+        assets_.reset();
+        LENS_ERROR("the desktop pet is off: {}", e.what());
+    }
+    if (assets_) {
+        auto generator = std::mt19937{std::random_device{}()};
+        machine_       = std::make_unique<core::pet::PetStateMachine>(
+            assets_->animations.playbook,
+            [generator = std::move(generator)]() mutable { return std::uniform_real_distribution<double>{0.0, 1.0}(generator); });
+        wardrobe_ = std::make_unique<core::pet::Wardrobe>(assets_->catalogue);
+
+        auto const outfit = store_.outfit();
+        for (auto const& [slot, worn] : {std::pair{Slot::Head, outfit.head}, std::pair{Slot::Face, outfit.face}, std::pair{Slot::Body, outfit.body}}) {
+            if (worn and wearsInSlot(*worn, slot)) wardrobe_->toggle(*worn);
+        }
+        sync(std::chrono::milliseconds{0});
+    }
+    updateClock();
+}
 
 void PetController::provide(PetController* instance)
 {
@@ -138,6 +176,16 @@ bool PetController::enabled() const
 bool PetController::passthrough() const
 {
     return store_.passthrough();
+}
+
+QString PetController::pet() const
+{
+    return QString::fromStdString(store_.pet());
+}
+
+QStringList PetController::pets() const
+{
+    return pets_;
 }
 
 QString PetController::action() const
@@ -185,8 +233,16 @@ QStringList PetController::actions() const
 {
     auto names = QStringList{};
     if (not assets_) return names;
-    for (auto const& entry : assets_->animations.actions)
-        names.append(QString::fromStdString(actionName(entry.first)));
+    // The actions that play a role come first, in role order, so the settings pills keep the pet's order; then the rest.
+    auto const& playbook = assets_->animations.playbook;
+    for (auto const& entry : playbook.roles) {
+        auto const name = QString::fromStdString(entry.second);
+        if (not names.contains(name)) names.append(name);
+    }
+    for (auto const& entry : playbook.actions) {
+        auto const name = QString::fromStdString(entry.first);
+        if (not names.contains(name)) names.append(name);
+    }
     return names;
 }
 
@@ -288,6 +344,24 @@ void PetController::toggleAccessory(QString id)
     if (not wardrobe_ or not knownAccessory(id)) return;
     wardrobe_->toggle(id.toStdString());
     store_.setOutfit(outfitOf(*wardrobe_));
+    emit frameChanged();
+    emit outfitChanged();
+}
+
+void PetController::setPet(QString id)
+{
+    auto const previous = store_.pet();
+    store_.setPet(id.toStdString());
+    loadPet(id.toStdString());
+    // A refused pet is not saved: the reader keeps the one they had, and the picker stays usable.
+    if (not assets_) {
+        store_.setPet(previous);
+        loadPet(previous);
+    }
+    // Accessories the new pet does not have leave the saved outfit too, so they do not come back
+    // when the reader switches again.
+    if (wardrobe_) store_.setOutfit(outfitOf(*wardrobe_));
+    emit settingsChanged();
     emit frameChanged();
     emit outfitChanged();
 }
@@ -395,7 +469,7 @@ void PetController::sync(std::chrono::milliseconds step)
     auto const& blink       = assets.animations.blink;
     auto const  blinkLength = std::chrono::milliseconds{blink.frames * 1000 / blink.fps};
     // A preview shows an action the machine is not playing, so its blink flag is read from the spec instead.
-    auto const blinks = preview_ ? assets.animations.actions.at(action).blinks : machine_->blinking();
+    auto const blinks = preview_ ? assets.animations.playbook.actions.at(action).blinks : machine_->blinking();
     if (not blinks) {
         blinkRunning_ = false;
         blinkWait_    = kBlinkEvery;
@@ -413,11 +487,11 @@ void PetController::sync(std::chrono::milliseconds step)
         }
     }
 
-    auto const& spec     = assets.animations.actions.at(action);
+    auto const& spec     = assets.animations.playbook.actions.at(action);
     auto const& pictures = assets.sheets.at(action);
     auto        frame    = static_cast<int>(actionElapsed_.count() * spec.fps / 1000);
     if (preview_ and not spec.loop and frame >= spec.frames) {
-        // A one-shot preview has played through: the dog goes back to what the machine has it doing.
+        // A one-shot preview has played through: the pet goes back to what the machine has it doing.
         preview_.reset();
         sync(std::chrono::milliseconds{0});
         return;
@@ -433,7 +507,7 @@ void PetController::sync(std::chrono::milliseconds step)
         expression = pictures.expressions[static_cast<std::size_t>(frame)];
     }
 
-    auto const name    = QString::fromStdString(actionName(action));
+    auto const name    = QString::fromStdString(action);
     auto const changed = name != action_ or frame != frameIndex_ or expression != expression_;
     if (name != action_) {
         sheets_ = QVariantMap{{"body", urlOf(pictures.body)}, {"effect", urlOf(pictures.effect)}, {"expression", urlOf(assets.expressionSheet)}};
@@ -447,26 +521,25 @@ void PetController::sync(std::chrono::milliseconds step)
 
 void PetController::updateClock()
 {
-    if (not machine_) return;
-    if (desktopRunning_ or previewing_) {
+    if (machine_ and (desktopRunning_ or previewing_)) {
         clock_.start();
     } else {
         clock_.stop();
     }
 }
 
-core::pet::Action PetController::shownAction() const
+core::pet::ActionName PetController::shownAction() const
 {
     return preview_.value_or(machine_->action());
 }
 
-std::optional<core::pet::Action> PetController::actionNamed(QString const& name) const
+std::optional<core::pet::ActionName> PetController::actionNamed(QString const& name) const
 {
     if (not assets_) return std::nullopt;
-    for (auto const& entry : assets_->animations.actions) {
-        if (QString::fromStdString(actionName(entry.first)) == name) return entry.first;
-    }
-    return std::nullopt;
+    auto const action = name.toStdString();
+    // The blink is an expression entry, not an action, so it is never a name the settings page can preview.
+    if (assets_->animations.playbook.actions.count(action) == 0) return std::nullopt;
+    return action;
 }
 
 bool PetController::wearsInSlot(std::string const& id, Slot slot) const

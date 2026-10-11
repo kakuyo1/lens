@@ -1,0 +1,203 @@
+{
+  "accessories": [
+    {
+      "id": "beanie",
+      "slot": "head",
+      "asset": "sprites/accessories/headwear/beanie.png",
+      "zIndex": 5,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "sleep",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "preen",
+        "hop",
+        "flap",
+        "hoot",
+        "nod"
+      ]
+    },
+    {
+      "id": "party_hat",
+      "slot": "head",
+      "asset": "sprites/accessories/headwear/party_hat.png",
+      "zIndex": 5,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "sleep",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "preen",
+        "hop",
+        "flap",
+        "hoot",
+        "nod"
+      ]
+    },
+    {
+      "id": "hair_bow",
+      "slot": "head",
+      "asset": "sprites/accessories/headwear/hair_bow.png",
+      "zIndex": 5,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "sleep",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "preen",
+        "hop",
+        "flap",
+        "hoot",
+        "nod"
+      ]
+    },
+    {
+      "id": "reading_glasses",
+      "slot": "face",
+      "asset": "sprites/accessories/glasses/reading_glasses.png",
+      "zIndex": 4,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "preen",
+        "hop",
+        "flap",
+        "hoot",
+        "nod"
+      ]
+    },
+    {
+      "id": "sunglasses",
+      "slot": "face",
+      "asset": "sprites/accessories/glasses/sunglasses.png",
+      "zIndex": 4,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "preen",
+        "hop",
+        "flap",
+        "hoot",
+        "nod"
+      ]
+    },
+    {
+      "id": "sleep_mask",
+      "slot": "face",
+      "asset": "sprites/accessories/glasses/sleep_mask.png",
+      "zIndex": 4,
+      "supportedActions": [
+        "sleep"
+      ]
+    },
+    {
+      "id": "bowtie",
+      "slot": "body",
+      "asset": "sprites/accessories/clothing/bowtie.png",
+      "zIndex": 3,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "sleep",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "preen",
+        "hop",
+        "flap",
+        "hoot",
+        "nod"
+      ]
+    },
+    {
+      "id": "scarf",
+      "slot": "body",
+      "asset": "sprites/accessories/clothing/scarf.png",
+      "zIndex": 3,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "sleep",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "preen",
+        "hop",
+        "flap",
+        "hoot",
+        "nod"
+      ]
+    },
+    {
+      "id": "vest",
+      "slot": "body",
+      "asset": "sprites/accessories/clothing/vest.png",
+      "zIndex": 3,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "sleep",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "preen",
+        "hop",
+        "flap",
+        "hoot",
+        "nod"
+      ]
+    }
+  ]
+}

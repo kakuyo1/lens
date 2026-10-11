@@ -13,15 +13,15 @@
 
 namespace {
 
-using lens::core::pet::Action;
 using lens::core::pet::AccessorySpec;
+using lens::core::pet::ActionName;
 using lens::core::pet::Slot;
 using lens::core::pet::Wardrobe;
 
 /// Every action but sleep: sleep hides all accessories (PHASE3 3.4).
-std::vector<Action> awakeActions()
+std::vector<ActionName> awakeActions()
 {
-    return {Action::Idle, Action::Study, Action::Thinking, Action::Celebrate, Action::Encourage, Action::ClickReact, Action::Pickup, Action::LookAround, Action::Yawn, Action::Stretch};
+    return {"idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch"};
 }
 
 Wardrobe makeWardrobe()
@@ -71,14 +71,14 @@ TEST(Wardrobe, DifferentSlotsDoNotInterfere)
 
 TEST(Wardrobe, AccessoryIsHiddenInAnActionItDoesNotSupportAndReappears)
 {
-    auto wardrobe = Wardrobe{{AccessorySpec{"hat", Slot::Head, {Action::Idle, Action::Study}}}};
+    auto wardrobe = Wardrobe{{AccessorySpec{"hat", Slot::Head, {"idle", "study"}}}};
     wardrobe.toggle("hat");
-    EXPECT_EQ(wardrobe.visibleFor(Action::Study), std::vector<std::string>{"hat"});
-    EXPECT_TRUE(wardrobe.visibleFor(Action::Sleep).empty());
+    EXPECT_EQ(wardrobe.visibleFor("study"), std::vector<std::string>{"hat"});
+    EXPECT_TRUE(wardrobe.visibleFor("sleep").empty());
 
     // Hidden, not removed: it is still on its slot when the dog wakes.
     EXPECT_EQ(wardrobe.wornIn(Slot::Head), "hat");
-    EXPECT_EQ(wardrobe.visibleFor(Action::Idle), std::vector<std::string>{"hat"});
+    EXPECT_EQ(wardrobe.visibleFor("idle"), std::vector<std::string>{"hat"});
 }
 
 TEST(Wardrobe, SleepHidesEveryAccessory)
@@ -87,7 +87,15 @@ TEST(Wardrobe, SleepHidesEveryAccessory)
     wardrobe.toggle("hat");
     wardrobe.toggle("glasses");
     wardrobe.toggle("bowtie");
-    EXPECT_TRUE(wardrobe.visibleFor(Action::Sleep).empty());
+    EXPECT_TRUE(wardrobe.visibleFor("sleep").empty());
+}
+
+TEST(Wardrobe, AnActionNameTheCodeNeverHeardOfIsVisibleWhenTheAccessoryNamesIt)
+{
+    // Action names are data, so an accessory can support any action the pet defines.
+    auto wardrobe = Wardrobe{{AccessorySpec{"hat", Slot::Head, {"wobble"}}}};
+    wardrobe.toggle("hat");
+    EXPECT_EQ(wardrobe.visibleFor("wobble"), std::vector<std::string>{"hat"});
 }
 
 TEST(Wardrobe, TogglingAnUnknownAccessoryIsAnError)

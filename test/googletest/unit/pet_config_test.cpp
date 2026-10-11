@@ -5,6 +5,7 @@
 
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
@@ -13,29 +14,46 @@
 
 namespace {
 
-using lens::core::pet::Action;
 using lens::core::pet::parseAccessories;
 using lens::core::pet::parseAnchors;
 using lens::core::pet::parseAnimations;
+using lens::core::pet::Playbook;
+using lens::core::pet::Role;
 using nlohmann::json;
 
-/// A complete animations document: every required action, stretch, and the blink entry.
+/// A complete animations document: every required role, stretch, the idle pool, and the blink entry.
 json animationsDocument()
 {
-    return json{{"actions", {
-                                {"idle", {{"frames", 5}, {"fps", 5}, {"loop", true}, {"blink", true}}},
-                                {"study", {{"frames", 6}, {"fps", 4}, {"loop", true}, {"blink", true}}},
-                                {"thinking", {{"frames", 4}, {"fps", 3}, {"loop", true}, {"blink", true}}},
-                                {"celebrate", {{"frames", 8}, {"fps", 10}, {"loop", false}}},
-                                {"encourage", {{"frames", 5}, {"fps", 8}, {"loop", false}}},
-                                {"sleep", {{"frames", 4}, {"fps", 3}, {"loop", true}}},
-                                {"click_react", {{"frames", 4}, {"fps", 12}, {"loop", false}}},
-                                {"pickup", {{"frames", 4}, {"fps", 6}, {"loop", true}}},
-                                {"look_around", {{"frames", 6}, {"fps", 6}, {"loop", false}}},
-                                {"yawn", {{"frames", 5}, {"fps", 6}, {"loop", false}, {"returnTo", "sleep"}}},
-                                {"stretch", {{"frames", 6}, {"fps", 6}, {"loop", false}}},
-                                {"blink", {{"frames", 3}, {"fps", 10}, {"loop", false}}},
-                            }}};
+    return json{
+        {"roles", {
+                      {"idle", "idle"},
+                      {"study", "study"},
+                      {"thinking", "thinking"},
+                      {"celebrate", "celebrate"},
+                      {"encourage", "encourage"},
+                      {"sleep", "sleep"},
+                      {"click_react", "click_react"},
+                      {"pickup", "pickup"},
+                      {"look_around", "look_around"},
+                      {"yawn", "yawn"},
+                      {"stretch", "stretch"},
+                  }},
+        {"idlePool", json::array({"look_around", "stretch"})},
+        {"actions", {
+                        {"idle", {{"frames", 5}, {"fps", 5}, {"loop", true}, {"blink", true}}},
+                        {"study", {{"frames", 6}, {"fps", 4}, {"loop", true}, {"blink", true}}},
+                        {"thinking", {{"frames", 4}, {"fps", 3}, {"loop", true}, {"blink", true}}},
+                        {"celebrate", {{"frames", 8}, {"fps", 10}, {"loop", false}}},
+                        {"encourage", {{"frames", 5}, {"fps", 8}, {"loop", false}}},
+                        {"sleep", {{"frames", 4}, {"fps", 3}, {"loop", true}}},
+                        {"click_react", {{"frames", 4}, {"fps", 12}, {"loop", false}}},
+                        {"pickup", {{"frames", 4}, {"fps", 6}, {"loop", true}}},
+                        {"look_around", {{"frames", 6}, {"fps", 6}, {"loop", false}}},
+                        {"yawn", {{"frames", 5}, {"fps", 6}, {"loop", false}, {"returnTo", "sleep"}}},
+                        {"stretch", {{"frames", 6}, {"fps", 6}, {"loop", false}}},
+                        {"blink", {{"frames", 3}, {"fps", 10}, {"loop", false}}},
+                    }},
+    };
 }
 
 /// Anchors for every action in an animations document: one zero point per frame.
@@ -68,21 +86,41 @@ json accessoriesDocument()
                                 }}};
 }
 
+/// The playbook of the complete animations document above.
+Playbook dogPlaybook()
+{
+    return parseAnimations(animationsDocument()).playbook;
+}
+
 TEST(PetConfig, ParsesEveryActionWithItsPlayback)
 {
-    auto const animations = parseAnimations(animationsDocument());
-    ASSERT_EQ(animations.actions.size(), 11u);
-    EXPECT_EQ(animations.actions.at(Action::Study).frames, 6);
-    EXPECT_EQ(animations.actions.at(Action::Study).fps, 4);
-    EXPECT_TRUE(animations.actions.at(Action::Study).loop);
-    EXPECT_FALSE(animations.actions.at(Action::Celebrate).returnTo.has_value());
+    auto const playbook = dogPlaybook();
+    ASSERT_EQ(playbook.actions.size(), 11u);
+    EXPECT_EQ(playbook.actions.at("study").frames, 6);
+    EXPECT_EQ(playbook.actions.at("study").fps, 4);
+    EXPECT_TRUE(playbook.actions.at("study").loop);
+    EXPECT_FALSE(playbook.actions.at("celebrate").returnTo.has_value());
+}
+
+TEST(PetConfig, EveryRoleIsMappedToItsAction)
+{
+    auto const playbook = dogPlaybook();
+    EXPECT_EQ(playbook.roles.at(Role::Study), "study");
+    EXPECT_EQ(playbook.roles.at(Role::ClickReact), "click_react");
+    EXPECT_EQ(playbook.roles.at(Role::Stretch), "stretch");
+}
+
+TEST(PetConfig, IdlePoolIsReadInDocumentOrder)
+{
+    auto const playbook = dogPlaybook();
+    EXPECT_EQ(playbook.idlePool, (std::vector<std::string>{"look_around", "stretch"}));
 }
 
 TEST(PetConfig, YawnReturnsToSleep)
 {
-    auto const animations = parseAnimations(animationsDocument());
-    ASSERT_TRUE(animations.actions.at(Action::Yawn).returnTo.has_value());
-    EXPECT_EQ(*animations.actions.at(Action::Yawn).returnTo, Action::Sleep);
+    auto const playbook = dogPlaybook();
+    ASSERT_TRUE(playbook.actions.at("yawn").returnTo.has_value());
+    EXPECT_EQ(*playbook.actions.at("yawn").returnTo, Role::Sleep);
 }
 
 TEST(PetConfig, BlinkIsItsOwnEntryNotAnAction)
@@ -91,14 +129,15 @@ TEST(PetConfig, BlinkIsItsOwnEntryNotAnAction)
     EXPECT_EQ(animations.blink.frames, 3);
     EXPECT_EQ(animations.blink.fps, 10);
     EXPECT_FALSE(animations.blink.loop);
+    EXPECT_EQ(animations.playbook.actions.count("blink"), 0u);
 }
 
 TEST(PetConfig, BlinkFlagIsReadPerAction)
 {
-    auto const animations = parseAnimations(animationsDocument());
-    EXPECT_TRUE(animations.actions.at(Action::Idle).blinks);
-    EXPECT_TRUE(animations.actions.at(Action::Study).blinks);
-    EXPECT_FALSE(animations.actions.at(Action::Sleep).blinks);
+    auto const playbook = dogPlaybook();
+    EXPECT_TRUE(playbook.actions.at("idle").blinks);
+    EXPECT_TRUE(playbook.actions.at("study").blinks);
+    EXPECT_FALSE(playbook.actions.at("sleep").blinks);
 }
 
 TEST(PetConfig, StretchMayBeLeftOut)
@@ -106,14 +145,30 @@ TEST(PetConfig, StretchMayBeLeftOut)
     // PHASE3 3.1: stretch is not required in the first version, so a document without it still loads.
     auto doc = animationsDocument();
     doc["actions"].erase("stretch");
-    auto const animations = parseAnimations(doc);
-    EXPECT_EQ(animations.actions.count(Action::Stretch), 0u);
+    doc["roles"].erase("stretch");
+    doc["idlePool"]     = json::array({"look_around"});
+    auto const playbook = parseAnimations(doc).playbook;
+    EXPECT_EQ(playbook.roles.count(Role::Stretch), 0u);
 }
 
-TEST(PetConfig, RefusesADocumentMissingARequiredAction)
+TEST(PetConfig, RefusesADocumentMissingARequiredRole)
 {
     auto doc = animationsDocument();
-    doc["actions"].erase("sleep");
+    doc["roles"].erase("sleep");
+    EXPECT_THROW(parseAnimations(doc), std::runtime_error);
+}
+
+TEST(PetConfig, RefusesADocumentWithoutTheRolesObject)
+{
+    auto doc = animationsDocument();
+    doc.erase("roles");
+    EXPECT_THROW(parseAnimations(doc), std::runtime_error);
+}
+
+TEST(PetConfig, RefusesADocumentWithoutTheIdlePool)
+{
+    auto doc = animationsDocument();
+    doc.erase("idlePool");
     EXPECT_THROW(parseAnimations(doc), std::runtime_error);
 }
 
@@ -138,26 +193,57 @@ TEST(PetConfig, RefusesANonPositiveFrameRate)
     EXPECT_THROW(parseAnimations(doc), std::runtime_error);
 }
 
-TEST(PetConfig, RefusesAnActionNameTheMachineDoesNotKnow)
+TEST(PetConfig, AcceptsAnActionNameTheCodeHasNeverHeardOf)
 {
+    // The names are data: a pet may define any action, and the product does not need to know it.
     auto doc                = animationsDocument();
-    doc["actions"]["dance"] = {{"frames", 4}, {"fps", 4}, {"loop", true}};
+    doc["actions"]["dance"] = {{"frames", 4}, {"fps", 4}, {"loop", false}};
+    auto const playbook     = parseAnimations(doc).playbook;
+    EXPECT_EQ(playbook.actions.count("dance"), 1u);
+}
+
+TEST(PetConfig, RefusesARoleNameTheStateMachineDoesNotKnow)
+{
+    auto doc              = animationsDocument();
+    doc["roles"]["dance"] = "study";
     EXPECT_THROW(parseAnimations(doc), std::runtime_error);
 }
 
-TEST(PetConfig, RefusesAReturnToTheMachineDoesNotKnow)
+TEST(PetConfig, RefusesARoleMappedToAnActionWithNoPlayback)
+{
+    auto doc              = animationsDocument();
+    doc["roles"]["study"] = "reading";
+    EXPECT_THROW(parseAnimations(doc), std::runtime_error);
+}
+
+TEST(PetConfig, RefusesAReturnToARoleThatIsNotInTheDocument)
 {
     auto doc                           = animationsDocument();
     doc["actions"]["yawn"]["returnTo"] = "dance";
     EXPECT_THROW(parseAnimations(doc), std::runtime_error);
 }
 
-TEST(PetConfig, RefusesAReturnToAnActionWithNoPlayback)
+TEST(PetConfig, RefusesAReturnToARoleTheDocumentDoesNotMap)
 {
-    // Yawn returns to stretch, but the document has no stretch: the dog would have nothing to play.
+    // Yawn returns to stretch, but the document maps no role to stretch: the pet would have nothing to play.
     auto doc                           = animationsDocument();
     doc["actions"]["yawn"]["returnTo"] = "stretch";
-    doc["actions"].erase("stretch");
+    doc["roles"].erase("stretch");
+    EXPECT_THROW(parseAnimations(doc), std::runtime_error);
+}
+
+TEST(PetConfig, RefusesAnIdlePoolActionWithNoPlayback)
+{
+    auto doc        = animationsDocument();
+    doc["idlePool"] = json::array({"dance"});
+    EXPECT_THROW(parseAnimations(doc), std::runtime_error);
+}
+
+TEST(PetConfig, RefusesAnIdlePoolActionThatLoops)
+{
+    // The idle timer starts a pool action and waits for it to end; a looping one would never end.
+    auto doc        = animationsDocument();
+    doc["idlePool"] = json::array({"idle"});
     EXPECT_THROW(parseAnimations(doc), std::runtime_error);
 }
 
@@ -168,49 +254,49 @@ TEST(PetConfig, RefusesAMissingActionsObject)
 
 TEST(PetConfig, ParsesAnchorsForEveryFrame)
 {
-    auto const animations             = parseAnimations(animationsDocument());
+    auto const playbook               = dogPlaybook();
     auto       doc                    = anchorsDocument(animationsDocument());
     doc["actions"]["idle"][2]["head"] = {0, -3};
-    auto const anchors                = parseAnchors(doc, animations.actions);
-    ASSERT_EQ(anchors.at(Action::Idle).size(), 5u);
-    EXPECT_EQ(anchors.at(Action::Idle)[2].head.y, -3);
+    auto const anchors                = parseAnchors(doc, playbook);
+    ASSERT_EQ(anchors.at("idle").size(), 5u);
+    EXPECT_EQ(anchors.at("idle")[2].head.y, -3);
 }
 
 TEST(PetConfig, RefusesAnActionWithoutAnchors)
 {
-    auto const animations = parseAnimations(animationsDocument());
-    auto       doc        = anchorsDocument(animationsDocument());
+    auto const playbook = dogPlaybook();
+    auto       doc      = anchorsDocument(animationsDocument());
     doc["actions"].erase("idle");
-    EXPECT_THROW(parseAnchors(doc, animations.actions), std::runtime_error);
+    EXPECT_THROW(parseAnchors(doc, playbook), std::runtime_error);
 }
 
 TEST(PetConfig, RefusesAnchorsThatDoNotMatchTheFrameCount)
 {
-    auto const animations = parseAnimations(animationsDocument());
-    auto       doc        = anchorsDocument(animationsDocument());
+    auto const playbook = dogPlaybook();
+    auto       doc      = anchorsDocument(animationsDocument());
     doc["actions"]["idle"].push_back({{"head", {0, 0}}, {"face", {0, 0}}, {"body", {0, 0}}});
-    EXPECT_THROW(parseAnchors(doc, animations.actions), std::runtime_error);
+    EXPECT_THROW(parseAnchors(doc, playbook), std::runtime_error);
 }
 
 TEST(PetConfig, RefusesAnAnchorPointThatIsMissing)
 {
-    auto const animations = parseAnimations(animationsDocument());
-    auto       doc        = anchorsDocument(animationsDocument());
+    auto const playbook = dogPlaybook();
+    auto       doc      = anchorsDocument(animationsDocument());
     doc["actions"]["study"][3].erase("face");
-    EXPECT_THROW(parseAnchors(doc, animations.actions), std::runtime_error);
+    EXPECT_THROW(parseAnchors(doc, playbook), std::runtime_error);
 }
 
-TEST(PetConfig, RefusesAnchorsForAnActionTheDocumentDoesNotDefine)
+TEST(PetConfig, RefusesAnchorsForAnActionThePlaybookDoesNotDefine)
 {
-    auto const animations   = parseAnimations(animationsDocument());
+    auto const playbook     = dogPlaybook();
     auto       doc          = anchorsDocument(animationsDocument());
     doc["actions"]["dance"] = json::array({{{"head", {0, 0}}, {"face", {0, 0}}, {"body", {0, 0}}}});
-    EXPECT_THROW(parseAnchors(doc, animations.actions), std::runtime_error);
+    EXPECT_THROW(parseAnchors(doc, playbook), std::runtime_error);
 }
 
 TEST(PetConfig, ParsesTheAccessoryCatalogue)
 {
-    auto const catalogue = parseAccessories(accessoriesDocument());
+    auto const catalogue = parseAccessories(accessoriesDocument(), dogPlaybook());
     ASSERT_EQ(catalogue.size(), 7u);
     EXPECT_EQ(catalogue.front().id, "hat");
     EXPECT_EQ(catalogue.back().id, "bowtie");
@@ -220,21 +306,31 @@ TEST(PetConfig, RefusesAnAccessoryInAnUnknownSlot)
 {
     auto doc                      = accessoriesDocument();
     doc["accessories"][0]["slot"] = "hand";
-    EXPECT_THROW(parseAccessories(doc), std::runtime_error);
+    EXPECT_THROW(parseAccessories(doc, dogPlaybook()), std::runtime_error);
 }
 
 TEST(PetConfig, RefusesARepeatedAccessoryId)
 {
     auto doc                    = accessoriesDocument();
     doc["accessories"][1]["id"] = "hat";
-    EXPECT_THROW(parseAccessories(doc), std::runtime_error);
+    EXPECT_THROW(parseAccessories(doc, dogPlaybook()), std::runtime_error);
 }
 
-TEST(PetConfig, RefusesAccessoryVisibleInAnUnknownAction)
+TEST(PetConfig, RefusesAccessoryVisibleInAnActionThePetDoesNotHave)
 {
     auto doc                                     = accessoriesDocument();
     doc["accessories"][0]["supportedActions"][0] = "dance";
-    EXPECT_THROW(parseAccessories(doc), std::runtime_error);
+    EXPECT_THROW(parseAccessories(doc, dogPlaybook()), std::runtime_error);
+}
+
+TEST(PetConfig, AnAccessoryMayBeVisibleInAnyActionThePetHas)
+{
+    auto animations                = animationsDocument();
+    animations["actions"]["dance"] = {{"frames", 4}, {"fps", 4}, {"loop", false}};
+    auto doc                       = accessoriesDocument();
+    doc["accessories"][0]["supportedActions"].push_back("dance");
+    auto const catalogue = parseAccessories(doc, parseAnimations(animations).playbook);
+    EXPECT_EQ(catalogue.front().supportedActions.back(), "dance");
 }
 
 } // namespace

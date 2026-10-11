@@ -1,10 +1,10 @@
 /**
  * Debug panel: plays actions, simulates learning events, pauses and steps, sets the fps override and
- * toggles accessories. Labels come from the manifest; it only calls the engine and accessory manager
+ * toggles accessories. Buttons show the ids from the pet's data; it only calls the engine and accessory manager
  * through their public methods.
  */
 
-/** Each button sends one event type, the same names the page sends in the app (PHASE3 3.2). */
+/** Each button sends one event type, the same names the page sends in the app. */
 const EVENTS = [
   { label: '标记已会 → 庆祝', type: 'KnownMarked' },
   { label: '发现新版本 → 庆祝', type: 'UpdateAvailable' },
@@ -27,13 +27,13 @@ const section = (title, ...children) => el('section', {}, el('h2', { textContent
 
 /**
  * @param {HTMLElement} root
- * @param {{manifest: object, engine: import('./pet-engine.js').PetEngine, accessories: import('./accessory-manager.js').AccessoryManager}} deps
+ * @param {{pet: object, engine: import('./pet-engine.js').PetEngine, accessories: import('./accessory-manager.js').AccessoryManager}} deps
  * @returns {{refresh: () => void}} Call once per frame to update the status and pressed states.
  */
-export function mountDebugPanel(root, { manifest, engine, accessories }) {
+export function mountDebugPanel(root, { pet, engine, accessories }) {
   const status = el('pre', { id: 'status' });
-  const actionButtons = Object.entries(manifest.actions).map(([name, def]) => {
-    const b = el('button', { type: 'button', textContent: def.label, onclick: () => engine.play(name) });
+  const actionButtons = Object.keys(pet.actions).map(name => {
+    const b = el('button', { type: 'button', textContent: name, onclick: () => engine.play(name) });
     b.dataset.action = name;
     return b;
   });
@@ -45,8 +45,8 @@ export function mountDebugPanel(root, { manifest, engine, accessories }) {
     type: 'number', min: 0, max: 24, value: 0, title: '0 表示沿用每个动作自己的帧率',
     onchange: () => engine.setFps(Number(fpsInput.value) > 0 ? Number(fpsInput.value) : null)
   });
-  const accessoryButtons = manifest.accessories.map(({ id, label }) => {
-    const b = el('button', { type: 'button', textContent: label, onclick: () => accessories.toggle(id) });
+  const accessoryButtons = pet.accessories.map(({ id }) => {
+    const b = el('button', { type: 'button', textContent: id, onclick: () => accessories.toggle(id) });
     b.dataset.acc = id;
     return b;
   });
@@ -66,7 +66,7 @@ export function mountDebugPanel(root, { manifest, engine, accessories }) {
       status.textContent = [
         `动作  ${s.action}`,
         `帧    ${s.frame}`,
-        `表情  ${manifest.expressionNames[s.expression]}`,
+        `表情  ${s.expression}`,
         `帧率  ${s.fps}`,
         `状态  ${s.paused ? '已暂停' : '播放中'}`
       ].join('\n');

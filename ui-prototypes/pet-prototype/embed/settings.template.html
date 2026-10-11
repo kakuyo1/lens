@@ -64,12 +64,15 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 .group-title{font-size:12px;font-weight:700;color:var(--text);margin:16px 0 9px;padding-top:14px;border-top:1px solid var(--line2)}
 #pet-section > .group-title:first-child{margin-top:4px;padding-top:0;border-top:0}
 
-/* 宠物类型：卡片，选中项墨色描边；缩略图是原型的待机第一帧，不播放动作 */
-.pets{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.pcard{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:8px 10px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);text-align:left;min-width:0}
-.pcard[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
-.pcard .pn{font-size:12.5px;font-weight:600;white-space:nowrap}
-.pcard canvas{width:88px;height:88px;flex:none}
+/* 宠物类型：下拉，与设置页的下拉同规格（UI.md 控件规格）。 */
+.dd{position:relative}
+.dd-btn{display:flex;align-items:center;gap:8px;width:100%;height:35px;padding:0 11px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--text);font-family:var(--f);font-size:13px;text-align:left}
+.dd-btn svg{margin-left:auto;width:14px;height:14px;color:var(--faint);flex:none}
+.dd-list{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:9;display:none;background:var(--panel);border:1px solid var(--line);border-radius:11px;box-shadow:var(--sh2);padding:5px;max-height:252px;overflow-y:auto}
+.dd.open .dd-list{display:block}
+.dd-item{display:flex;align-items:center;width:100%;height:29px;padding:0 11px;border:0;border-radius:8px;background:transparent;font-size:13px;color:var(--text);text-align:left}
+.dd-item:hover{background:var(--panel2)}
+.dd-item[aria-selected=true]{background:var(--ink);color:var(--on);font-weight:600}
 
 /* 预览舞台：一条桌面边线，宠物站在线上；占位美术，不是最终形态。
    The canvas is the prototype's own, drawn at 2 device pixels a unit: 88 units at 176 px, so the edges stay whole pixels. */
@@ -106,13 +109,13 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
     <div class="swrow" id="pass-row"><span class="swlabel" id="pass-label"></span><button type="button" class="switch" role="switch" id="pass" aria-checked="false"></button></div>
     <div class="swhelp" id="pass-help"></div>
 
-    <!-- Everything below exists only while the pet is on (PHASE3 3.5): type picker, stage, actions, accessories. -->
+    <!-- Everything below exists only while the pet is on: type picker, stage, actions, accessories. -->
     <div id="pet-section" hidden>
       <div class="group-title" id="pick-title"></div>
-      <div class="pets"><button type="button" class="pcard" aria-pressed="true"><canvas id="thumb" width="88" height="88"></canvas><span class="pn" id="pet-name"></span></button></div>
+      <div class="dd" id="pet-dd"></div>
 
       <div class="group-title" id="stage-title"></div>
-      <div class="stage" id="stage"><canvas id="pet" width="176" height="176"></canvas></div>
+      <div class="stage" id="stage"></div>
 
       <div class="group-title" id="act-title"></div>
       <div class="chips" id="acts"></div>
@@ -131,44 +134,65 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 <script>/*@PET_DATA@*/</script>
 <script>/*@PET_BUNDLE@*/</script>
 <script>
-/// Reader-facing strings, one column per language, same shape as the other prototypes. Character
-/// names, action names and accessory names are strings the application owns (`chars`, `acts`, `accs`).
+/// Reader-facing strings, one column per language, same shape as the other prototypes. Pet names and accessory names
+/// are the application's (labels.md, SettingsExtensionsPage.qml); action names are the application's for the core
+/// eleven. An id with no entry shows as its raw id, as the application does.
 const L = {
   zh: { title: "桌面宠物", crumb: "扩展", tog: "显示桌面宠物", help: "开启后宠物常驻桌面，可拖动。它不读取选区与释义，只接收事件类型。",
         pass: "鼠标穿透", passHelp: "开启后宠物不接收鼠标，点击落到下层窗口，也不能被拖动。在这里关掉即可恢复互动。",
         pick: "宠物类型", stage: "预览", act: "动作", acc: "配饰",
         defaults: "恢复默认", save: "保存", saved: "已保存", reset: "已恢复默认",
         slots: { head: "头", face: "脸", body: "身" },
-        acts: { idle: "待机", study: "阅读", thinking: "思考", celebrate: "庆祝", encourage: "鼓励", sleep: "睡觉", click_react: "被戳", pickup: "被拎起", look_around: "张望", yawn: "打哈欠", stretch: "伸懒腰" },
-        accs: { hat: "礼帽", beanie: "毛线帽", sprout: "嫩芽", crown: "王冠", glasses: "圆框眼镜", sunglasses: "墨镜", bowtie: "西服领结" },
-        chars: { dog: "白色小狗" },
+        acts: { idle: "待机", study: "阅读", thinking: "思考", celebrate: "庆祝", encourage: "鼓励", sleep: "睡觉", click_react: "被戳", pickup: "被拎起", look_around: "张望", yawn: "打哈欠", stretch: "伸懒腰",
+                wobble: "摇晃", bounce: "弹跳", hiccup: "打嗝", shiver: "发抖", spin: "转圈",
+                preen: "梳理羽毛", hop: "跳一下", flap: "扑翅", hoot: "咕咕叫", nod: "点头",
+                groom: "舔毛", tail_flick: "甩尾巴", knead: "踩奶", pounce: "扑击", scratch: "抓挠" },
+        accs: { hat: "礼帽", beanie: "毛线帽", sprout: "嫩芽", crown: "王冠", glasses: "圆框眼镜", sunglasses: "墨镜", bowtie: "西服领结",
+                flower: "花", party_hat: "派对帽", blush: "腮红", scarf: "围巾", apron: "围裙", hair_bow: "发结", reading_glasses: "老花镜",
+                sleep_mask: "眼罩", vest: "马甲", bell_collar: "铃铛项圈", bandana: "三角巾" },
+        pets: { dog: "小狗", mochi: "麻糬", owl: "猫头鹰", cat: "猫" },
         themeDark: "黑夜", themeLight: "白天" },
   en: { title: "Desktop pet", crumb: "Extensions", tog: "Show desktop pet", help: "When on, the pet stays on the desktop and can be dragged. It never reads your selections or explanations, only event types.",
         pass: "Mouse passthrough", passHelp: "When on, the pet ignores the mouse: clicks reach the window below and it cannot be dragged. Turn this off here to get interaction back.",
         pick: "Pet type", stage: "Preview", act: "Actions", acc: "Accessories",
         defaults: "Restore defaults", save: "Save", saved: "Saved", reset: "Defaults restored",
         slots: { head: "Head", face: "Face", body: "Body" },
-        acts: { idle: "Idle", study: "Reading", thinking: "Thinking", celebrate: "Celebrate", encourage: "Encourage", sleep: "Sleep", click_react: "Poked", pickup: "Picked up", look_around: "Look around", yawn: "Yawn", stretch: "Stretch" },
-        accs: { hat: "Top hat", beanie: "Beanie", sprout: "Sprout", crown: "Crown", glasses: "Round glasses", sunglasses: "Sunglasses", bowtie: "Bow tie" },
-        chars: { dog: "White dog" },
+        acts: { idle: "Idle", study: "Reading", thinking: "Thinking", celebrate: "Celebrate", encourage: "Encourage", sleep: "Sleep", click_react: "Poked", pickup: "Picked up", look_around: "Look around", yawn: "Yawn", stretch: "Stretch",
+                wobble: "Wobble", bounce: "Bounce", hiccup: "Hiccup", shiver: "Shiver", spin: "Spin",
+                preen: "Preen", hop: "Hop", flap: "Flap", hoot: "Hoot", nod: "Nod",
+                groom: "Groom", tail_flick: "Tail flick", knead: "Knead", pounce: "Pounce", scratch: "Scratch" },
+        accs: { hat: "Top hat", beanie: "Beanie", sprout: "Sprout", crown: "Crown", glasses: "Round glasses", sunglasses: "Sunglasses", bowtie: "Bow tie",
+                flower: "Flower", party_hat: "Party hat", blush: "Blush", scarf: "Scarf", apron: "Apron", hair_bow: "Hair bow", reading_glasses: "Reading glasses",
+                sleep_mask: "Sleep mask", vest: "Vest", bell_collar: "Bell collar", bandana: "Bandana" },
+        pets: { dog: "Dog", mochi: "Mochi", owl: "Owl", cat: "Cat" },
         themeDark: "Dark", themeLight: "Light" },
   ja: { title: "デスクトップペット", crumb: "拡張", tog: "デスクトップペットを表示", help: "オンにするとペットがデスクトップに常駐し、ドラッグで動かせます。選択文や解説は読まず、イベントの種類だけを受け取ります。",
         pass: "マウス透過", passHelp: "オンにするとペットはマウスを受け取らず、クリックは下のウィンドウに届きます。ドラッグもできません。ここでオフにすると操作を戻せます。",
         pick: "ペットの種類", stage: "プレビュー", act: "動き", acc: "アクセサリー",
         defaults: "初期値に戻す", save: "保存", saved: "保存しました", reset: "初期値に戻しました",
         slots: { head: "頭", face: "顔", body: "体" },
-        acts: { idle: "待機", study: "読書", thinking: "考える", celebrate: "喜ぶ", encourage: "応援", sleep: "おやすみ", click_react: "つつかれた", pickup: "持ち上げられた", look_around: "見回す", yawn: "あくび", stretch: "伸び" },
-        accs: { hat: "シルクハット", beanie: "ニット帽", sprout: "芽", crown: "王冠", glasses: "丸眼鏡", sunglasses: "サングラス", bowtie: "蝶ネクタイ" },
-        chars: { dog: "白い子犬" },
+        acts: { idle: "待機", study: "読書", thinking: "考える", celebrate: "喜ぶ", encourage: "応援", sleep: "おやすみ", click_react: "つつかれた", pickup: "持ち上げられた", look_around: "見回す", yawn: "あくび", stretch: "伸び",
+                wobble: "ゆらゆら", bounce: "ぴょんぴょん", hiccup: "しゃっくり", shiver: "ぶるぶる", spin: "くるくる",
+                preen: "羽づくろい", hop: "ぴょん", flap: "羽ばたき", hoot: "ホーホー", nod: "うなずく",
+                groom: "毛づくろい", tail_flick: "しっぽふり", knead: "ふみふみ", pounce: "とびかかり", scratch: "ひっかき" },
+        accs: { hat: "シルクハット", beanie: "ニット帽", sprout: "新芽", crown: "王冠", glasses: "丸メガネ", sunglasses: "サングラス", bowtie: "蝶ネクタイ",
+                flower: "花", party_hat: "パーティーハット", blush: "チーク", scarf: "マフラー", apron: "エプロン", hair_bow: "ヘアリボン", reading_glasses: "老眼鏡",
+                sleep_mask: "アイマスク", vest: "ベスト", bell_collar: "鈴付きの首輪", bandana: "バンダナ" },
+        pets: { dog: "犬", mochi: "モチ", owl: "フクロウ", cat: "猫" },
         themeDark: "ダーク", themeLight: "ライト" },
   es: { title: "Mascota de escritorio", crumb: "Extensiones", tog: "Mostrar mascota de escritorio", help: "Cuando está activa, la mascota se queda en el escritorio y puedes arrastrarla. Nunca lee tus selecciones ni explicaciones, solo recibe tipos de evento.",
         pass: "Paso del ratón", passHelp: "Cuando está activo, la mascota no recibe el ratón: los clics llegan a la ventana de debajo y no se puede arrastrar. Desactívalo aquí para recuperar la interacción.",
         pick: "Tipo de mascota", stage: "Vista previa", act: "Acciones", acc: "Accesorios",
         defaults: "Restablecer", save: "Guardar", saved: "Guardado", reset: "Valores restablecidos",
         slots: { head: "Cabeza", face: "Cara", body: "Cuerpo" },
-        acts: { idle: "Reposo", study: "Leer", thinking: "Pensar", celebrate: "Celebrar", encourage: "Animar", sleep: "Dormir", click_react: "Tocada", pickup: "Levantada", look_around: "Mirar alrededor", yawn: "Bostezar", stretch: "Estirarse" },
-        accs: { hat: "Sombrero de copa", beanie: "Gorro de lana", sprout: "Brote", crown: "Corona", glasses: "Gafas redondas", sunglasses: "Gafas de sol", bowtie: "Pajarita" },
-        chars: { dog: "Perrito blanco" },
+        acts: { idle: "Reposo", study: "Leer", thinking: "Pensar", celebrate: "Celebrar", encourage: "Animar", sleep: "Dormir", click_react: "Tocada", pickup: "Levantada", look_around: "Mirar alrededor", yawn: "Bostezar", stretch: "Estirarse",
+                wobble: "Balanceo", bounce: "Rebote", hiccup: "Hipo", shiver: "Temblor", spin: "Giro",
+                preen: "Atusarse", hop: "Salto", flap: "Aleteo", hoot: "Ulular", nod: "Asentir",
+                groom: "Asearse", tail_flick: "Coletazo", knead: "Amasar", pounce: "Abalanzarse", scratch: "Rascar" },
+        accs: { hat: "Sombrero de copa", beanie: "Gorro de lana", sprout: "Brote", crown: "Corona", glasses: "Gafas redondas", sunglasses: "Gafas de sol", bowtie: "Pajarita",
+                flower: "Flor", party_hat: "Gorro de fiesta", blush: "Rubor", scarf: "Bufanda", apron: "Delantal", hair_bow: "Lazo para el pelo", reading_glasses: "Gafas de lectura",
+                sleep_mask: "Antifaz para dormir", vest: "Chaleco", bell_collar: "Collar con cascabel", bandana: "Pañuelo" },
+        pets: { dog: "Perro", mochi: "Mochi", owl: "Búho", cat: "Gato" },
         themeDark: "Oscuro", themeLight: "Claro" }
 };
 const asked = (new URLSearchParams(location.search).get('lang') || 'zh').toLowerCase();
@@ -176,16 +200,20 @@ const lang = asked.startsWith('zh') ? 'zh' : (L[asked] ? asked : 'zh');
 const t = L[lang];
 document.documentElement.lang = { en: 'en', zh: 'zh-CN', ja: 'ja', es: 'es' }[lang];
 
-/// The page keeps only what the reader sets: on or off, passthrough, and the worn accessories by slot.
-/// The pet itself (engine, pointer, frames) is the prototype's, mounted from PetPreview below.
-const DEFAULT = { on: false, passthrough: false, worn: {} };
-let state = structuredClone(DEFAULT);
-let saved = structuredClone(DEFAULT);
-let pet = null;
+/// The page keeps only what the reader sets: on or off, passthrough, the pet, and the worn accessories by slot.
+/// Every pet is mounted once from PetPreview; only the chosen one is shown and run. `?on` opens the pet switched on.
+const DEFAULT = { on: false, passthrough: false, pet: 'dog', worn: {} };
+let state = { ...structuredClone(DEFAULT), on: new URLSearchParams(location.search).has('on') };
+let saved = structuredClone(state);
+/** Pet id to { canvas, engine, accessories, setRunning }, filled once the stages have loaded. */
+const stages = {};
+let shownAction = null;
 
 const $ = id => document.getElementById(id);
 const SLOTS = ['head', 'face', 'body'];
-const ACTIONS = Object.keys(PET_MANIFEST.actions);
+const PETS = Object.keys(PET_MANIFEST);
+const current = () => stages[state.pet];
+const assetsOf = id => path => PET_ASSETS[`${id}/${path}`];
 
 function renderToggle() {
   $('tog').setAttribute('aria-checked', String(state.on));
@@ -195,22 +223,51 @@ function renderToggle() {
   $('pass-row').classList.toggle('off', !state.on);
 }
 
+/** The pet dropdown: the field shows the chosen pet, and the list marks it. */
+function renderPicker() {
+  const dd = $('pet-dd');
+  dd.querySelector('.dd-btn span').textContent = t.pets[state.pet] ?? state.pet;
+  for (const item of dd.querySelectorAll('.dd-item')) item.setAttribute('aria-selected', String(item.dataset.pet === state.pet));
+}
+
+/** Opens or closes the pet dropdown, as the settings page's dropdowns do. */
+function togglePicker(open) {
+  const dd = $('pet-dd');
+  dd.classList.toggle('open', open);
+  dd.querySelector('.dd-btn').setAttribute('aria-expanded', String(open));
+  // The list hangs below the field; near the foot of the scrolling body it would be cut off, so scroll it into view.
+  if (open) dd.querySelector('.dd-list').scrollIntoView({ block: 'nearest' });
+}
+
 function renderPanel() {
-  const current = pet ? pet.engine.action : 'idle';
-  $('acts').innerHTML = ACTIONS.map(a =>
-    `<button type="button" class="chip" data-act="${a}" aria-pressed="${current === a}">${t.acts[a]}</button>`).join('');
+  const s = current();
+  shownAction = s ? s.engine.action : null;
+  const pet = PET_MANIFEST[state.pet];
+  $('acts').innerHTML = PetPreview.actionOrder(pet).map(a =>
+    `<button type="button" class="chip" data-act="${a}" aria-pressed="${shownAction === a}">${t.acts[a] ?? a}</button>`).join('');
   $('slots').innerHTML = SLOTS.map(slot => `
     <div class="slot"><span class="slot-h">${t.slots[slot]}</span><div class="chips">${
-      PET_MANIFEST.accessories.filter(a => a.slot === slot).map(a =>
-        `<button type="button" class="chip" data-acc="${a.id}" aria-pressed="${state.worn[slot] === a.id}">${t.accs[a.id]}</button>`).join('')
+      pet.accessories.filter(a => a.slot === slot).map(a =>
+        `<button type="button" class="chip" data-acc="${a.id}" aria-pressed="${state.worn[slot] === a.id}">${t.accs[a.id] ?? a.id}</button>`).join('')
     }</div></div>`).join('');
+}
+
+/** Shows the chosen pet's stage and runs it only while the pet is on; the others stay hidden and stopped. */
+function renderStage() {
+  for (const id of PETS) {
+    const s = stages[id];
+    if (!s) continue;
+    s.canvas.hidden = id !== state.pet;
+    s.setRunning(id === state.pet && state.on);
+  }
+  $('stage').classList.toggle('dim', !state.on);
 }
 
 function renderAll() {
   renderToggle();
   $('pet-section').hidden = !state.on;
-  $('stage').classList.toggle('dim', !state.on);
-  if (pet) pet.setRunning(state.on);
+  renderStage();
+  renderPicker();
   renderPanel();
   $('save').disabled = JSON.stringify(state) === JSON.stringify(saved);
 }
@@ -223,7 +280,10 @@ function renderStatic() {
   $('pass-label').textContent = t.pass;
   $('pass-help').textContent = t.passHelp;
   $('pick-title').textContent = t.pick;
-  $('pet-name').textContent = t.chars.dog;
+  $('pet-dd').innerHTML = '<button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false"><span></span>'
+    + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>'
+    + `<div class="dd-list" role="listbox">${PETS.map(id =>
+      `<button type="button" class="dd-item" role="option" data-pet="${id}"><span>${t.pets[id] ?? id}</span></button>`).join('')}</div>`;
   $('stage-title').textContent = t.stage;
   $('act-title').textContent = t.act;
   $('acc-title').textContent = t.acc;
@@ -231,22 +291,38 @@ function renderStatic() {
   $('save').textContent = t.save;
 }
 
+/** Switching pet returns the new pet's preview to idle and drops the worn accessories its catalogue does not have. */
+function selectPet(id) {
+  const next = stages[id];
+  if (id === state.pet || !next) return;
+  const kept = PetPreview.keepWorn(new Map(Object.entries(state.worn)), PET_MANIFEST[id].accessories);
+  state.pet = id;
+  state.worn = Object.fromEntries(kept);
+  next.accessories.worn = kept;
+  next.engine.stop();
+}
+
 document.addEventListener('click', e => {
+  if (!e.target.closest('.dd')) togglePicker(false);
   const b = e.target.closest('button');
   if (!b) return;
+  if (b.classList.contains('dd-btn')) { togglePicker(!$('pet-dd').classList.contains('open')); return; }
   if (b.id === 'tog') {
     state.on = !state.on;
-    if (!state.on && pet) pet.engine.stop();
+    if (!state.on) current()?.engine.stop();
   }
   else if (b.id === 'pass') { state.passthrough = !state.passthrough; }
-  else if (b.dataset.act) { pet.engine.play(b.dataset.act); renderPanel(); return; }
+  else if (b.dataset.pet) { selectPet(b.dataset.pet); togglePicker(false); $('pet-dd').querySelector('.dd-btn').focus(); }
+  else if (b.dataset.act) { current()?.engine.play(b.dataset.act); renderPanel(); return; }
   else if (b.dataset.acc) {
-    pet.accessories.toggle(b.dataset.acc);
-    state.worn = Object.fromEntries(pet.accessories.worn);
+    const s = current();
+    if (!s) return;
+    s.accessories.toggle(b.dataset.acc);
+    state.worn = Object.fromEntries(s.accessories.worn);
   }
   else if (b.id === 'defaults') {
     state = structuredClone(DEFAULT); saved = structuredClone(DEFAULT);
-    if (pet) { pet.engine.stop(); pet.accessories.worn.clear(); }
+    for (const s of Object.values(stages)) { s.engine.stop(); s.accessories.worn.clear(); }
     $('status').textContent = t.reset; renderAll(); return;
   }
   else if (b.id === 'save') {
@@ -257,21 +333,32 @@ document.addEventListener('click', e => {
   renderAll();
 });
 
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape' || !$('pet-dd').classList.contains('open')) return;
+  togglePicker(false);
+  $('pet-dd').querySelector('.dd-btn').focus();
+});
+
 // The chip that matches the action now playing follows it, including the return to idle after a one-shot.
 // Rebuilds only when the action changes, so a click in flight is not swapped out under the pointer.
-let shownAction = null;
 setInterval(() => {
-  if (!pet || !state.on || pet.engine.action === shownAction) return;
-  shownAction = pet.engine.action;
+  const s = current();
+  if (!s || !state.on || s.engine.action === shownAction) return;
   renderPanel();
 }, 250);
 
 renderStatic();
 renderAll();
 (async () => {
-  const resolve = path => PET_ASSETS[path];
-  await PetPreview.mountStage($('thumb'), PET_MANIFEST, { scale: 1, resolve, live: false });
-  pet = await PetPreview.mountStage($('pet'), PET_MANIFEST, { scale: 2, resolve, bounds: $('stage') });
+  const stage = $('stage');
+  await Promise.all(PETS.map(async id => {
+    const pet = PET_MANIFEST[id];
+    const resolve = assetsOf(id);
+    const canvas = document.createElement('canvas');
+    canvas.hidden = true;
+    stage.append(canvas);
+    stages[id] = { canvas, ...(await PetPreview.mountStage(canvas, pet, { scale: 2, resolve, bounds: stage })) };
+  }));
   renderAll();
 })();
 

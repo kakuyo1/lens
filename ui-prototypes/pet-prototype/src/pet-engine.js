@@ -1,35 +1,37 @@
 /**
- * Action state machine and frame clock (PHASE3 3.2 and 3.3). Pure logic: no DOM, no CSS, no window, no graphics API.
+ * Action state machine and frame clock. Pure logic: no DOM, no CSS, no window, no graphics API.
  * The renderer reads `state` each frame and draws every layer at the same frame index.
  *
  * The rules mirror src/core/pet/pet_state.cpp, which is the specification's implementation. The two must change together.
+ * Roles are the product's fixed vocabulary and live here (ADR 0030). Each pet's animations.json maps a role to its own
+ * action name, so this file never names an action; it asks for `roles.celebrate` and plays whatever that pet calls it.
  */
 
 /** Duration of one blink step in ms. */
 const BLINK_STEP_MS = 80;
-/** Expression sheet indices for one blink: half, closed, half. */
-const BLINK_SEQUENCE = [1, 2, 1];
 /** Quiet time with no event before the dog yawns and falls asleep. */
 const QUIET_MS = 180000;
 /** Idle wait before a random action: this base, plus up to the same again at random. */
 const IDLE_BASE_MS = 20000;
 /** How long thinking waits for its explanation before it gives up. The specification has no event for that. */
 const THINKING_TIMEOUT_MS = 30000;
-/** Actions the idle timer picks from. */
-const SITUATIONAL_IDLE = ['look_around', 'stretch'];
 /** Priority tiers, lowest first. A request at or below the tier of the action now playing is dropped. */
 const TIER = { idle: 0, situational: 1, event: 2, click: 3, drag: 4 };
 
 export class PetEngine {
   /**
-   * @param {object} manifest Parsed assets/pet/manifest.json (only `actions` is read here).
+   * @param {object} pet Assembled by pet-data.js: `actions` (each with per-frame anchors), `blink` (the expression
+   *        sequence of one blink), `roles` (role to action name) and `idlePool` (one-shot action names).
    * @param {{blinkEvery?: number, random?: () => number}} [options] Ms between blinks; random source in [0, 1).
    */
-  constructor(manifest, { blinkEvery = 4000, random = Math.random } = {}) {
-    this.actions = manifest.actions;
+  constructor(pet, { blinkEvery = 4000, random = Math.random } = {}) {
+    this.actions = pet.actions;
+    this.roles = pet.roles;
+    this.idlePool = pet.idlePool;
+    this.blinkSequence = pet.blink;
     this.blinkEvery = blinkEvery;
     this.random = random;
-    this.action = 'idle';
+    this.action = this.roles.idle;
     this.priority = TIER.idle;
     this.frame = 0;
     this.frameAcc = 0;
@@ -58,7 +60,7 @@ export class PetEngine {
   }
 
   get expression() {
-    if (this.blinkT !== null) return BLINK_SEQUENCE[Math.floor(this.blinkT / BLINK_STEP_MS)];
+    if (this.blinkT !== null) return this.blinkSequence[Math.floor(this.blinkT / BLINK_STEP_MS)];
     return this.def.expressions?.[this.frame] ?? 0;
   }
 
@@ -69,56 +71,57 @@ export class PetEngine {
       expression: this.expression,
       fps: this.fps,
       paused: this.paused,
-      anchor: this.def.anchors[this.frame]
+      anchors: this.def.anchors[this.frame]
     };
   }
 
   /**
-   * Applies one event by its type. Events carry no text (PHASE3 3.2).
+   * Applies one event by its type. Events carry no text.
    * @param {'DragStart'|'DragEnd'|'Click'|'SelectionShown'|'ExplanationRequested'|'ExplanationShown'|'ExplanationHidden'|
    *         'KnownMarked'|'NewWordMarked'|'BudgetPaused'|'BudgetResumed'|'UpdateAvailable'} event
    */
   handle(event) {
+    const { roles } = this;
     this.pendingReturn = null;
     this.quietMs = 0;
     switch (event) {
       case 'DragStart':
         if (this.dragging) return;
         this.dragging = true;
-        this.enter('pickup', TIER.drag);
+        this.enter(roles.pickup, TIER.drag);
         return;
       case 'DragEnd':
         if (!this.dragging) return;
         this.dragging = false;
-        this.enter('idle', TIER.idle); // releasing lands on idle, not on what the dog did before the grab
+        this.enter(roles.idle, TIER.idle); // releasing lands on idle, not on what the dog did before the grab
         return;
       case 'Click':
-        if (!this.dragging) this.request('click_react', TIER.click);
+        if (!this.dragging) this.request(roles.click_react, TIER.click);
         return;
       case 'SelectionShown':
-        this.request('look_around', TIER.event);
+        this.request(roles.look_around, TIER.event);
         return;
       case 'ExplanationRequested':
-        this.request('thinking', TIER.event);
+        this.request(roles.thinking, TIER.event);
         return;
       case 'ExplanationShown':
-        this.hold('study');
+        this.hold(roles.study);
         return;
       case 'ExplanationHidden':
-        this.release('study');
+        this.release(roles.study);
         return;
       case 'KnownMarked':
       case 'UpdateAvailable':
-        this.request('celebrate', TIER.event);
+        this.request(roles.celebrate, TIER.event);
         return;
       case 'NewWordMarked':
-        this.request('encourage', TIER.event);
+        this.request(roles.encourage, TIER.event);
         return;
       case 'BudgetPaused':
-        this.hold('sleep');
+        this.hold(roles.sleep);
         return;
       case 'BudgetResumed':
-        this.release('sleep');
+        this.release(roles.sleep);
         return;
       default:
         throw new Error(`unknown pet event: ${event}`);
@@ -135,7 +138,7 @@ export class PetEngine {
   stop() {
     this.held = null;
     this.dragging = false;
-    this.enter('idle', TIER.idle);
+    this.enter(this.roles.idle, TIER.idle);
   }
 
   pause() {
@@ -171,35 +174,37 @@ export class PetEngine {
   /**
    * Starts an action if the priority allows it. The same tier as the action now playing is dropped, so an
    * event waits for the one-shot before it. Thinking waits for the explanation, so any event replaces it.
+   * @param {string} name Action name, as the roles map gives it.
    */
   request(name, tier) {
-    const givesWayToThinking = this.action === 'thinking' && tier === TIER.event;
+    const givesWayToThinking = this.action === this.roles.thinking && tier === TIER.event;
     if (tier <= this.priority && !givesWayToThinking) return;
     this.enter(name, tier);
   }
 
-  /** Holds `state` (reading or sleeping) and starts it at event priority. */
-  hold(state) {
-    this.held = state;
-    this.request(state, TIER.event);
+  /** Holds `name` (reading or sleeping) and starts it at event priority. */
+  hold(name) {
+    this.held = name;
+    this.request(name, TIER.event);
   }
 
-  /** Releases `state`, and ends it if it is playing. */
-  release(state) {
-    if (this.held === state) this.held = null;
-    if (this.action === state) this.settle();
+  /** Releases `name`, and ends it if it is playing. */
+  release(name) {
+    if (this.held === name) this.held = null;
+    if (this.action === name) this.settle();
   }
 
   enter(name, tier) {
     this.action = name;
     this.priority = tier;
-    this.pendingReturn = this.actions[name].returnTo ?? null;
+    const returnTo = this.actions[name].returnTo;
+    this.pendingReturn = returnTo ? this.roles[returnTo] : null;
     this.frame = 0;
     this.frameAcc = 0;
     this.elapsedMs = 0;
     this.blinkClock = 0;
     this.blinkT = null;
-    if (name === 'idle') {
+    if (name === this.roles.idle) {
       this.idleMs = 0;
       this.idleWait = this.nextIdleWait();
     }
@@ -218,7 +223,7 @@ export class PetEngine {
       this.enter(this.held, TIER.event);
       return;
     }
-    this.enter('idle', TIER.idle);
+    this.enter(this.roles.idle, TIER.idle);
   }
 
   advance() {
@@ -246,7 +251,7 @@ export class PetEngine {
       return;
     }
     this.blinkT += deltaMs;
-    if (this.blinkT >= BLINK_SEQUENCE.length * BLINK_STEP_MS) this.blinkT = null;
+    if (this.blinkT >= this.blinkSequence.length * BLINK_STEP_MS) this.blinkT = null;
   }
 
   /** Quiet time yawns the dog into sleep; idle time picks a random situational action; thinking times out. */
@@ -254,15 +259,15 @@ export class PetEngine {
     this.quietMs += deltaMs;
     if (this.quietMs >= QUIET_MS) {
       this.quietMs = 0;
-      this.request('yawn', TIER.situational); // the yawn's returnTo is sleep
+      this.request(this.roles.yawn, TIER.situational); // the yawn's returnTo is sleep
       return;
     }
     this.elapsedMs += deltaMs;
-    if (this.action === 'thinking') {
+    if (this.action === this.roles.thinking) {
       if (this.elapsedMs >= THINKING_TIMEOUT_MS) this.settle();
       return;
     }
-    if (this.action !== 'idle') return;
+    if (this.action !== this.roles.idle) return;
     this.idleMs += deltaMs;
     if (this.idleMs < this.idleWait) return;
     const pick = this.pickRandomIdle();
@@ -271,10 +276,10 @@ export class PetEngine {
 
   /**
    * Never the action just played, and only actions that have a playback. Returns nothing when no candidate is left:
-   * the dog stays idle rather than repeat itself (PHASE3 3.3).
+   * the dog stays idle rather than repeat itself.
    */
   pickRandomIdle() {
-    const choices = SITUATIONAL_IDLE.filter(name => this.actions[name] && name !== this.lastIdle);
+    const choices = this.idlePool.filter(name => this.actions[name] && name !== this.lastIdle);
     if (choices.length === 0) return null;
     this.lastIdle = choices[Math.min(Math.floor(this.random() * choices.length), choices.length - 1)];
     return this.lastIdle;

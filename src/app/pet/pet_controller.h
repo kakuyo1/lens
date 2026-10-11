@@ -9,10 +9,11 @@
  * machine's state into properties for QML. It receives event types only, never text or a selection.
  *
  * The one exception is the settings preview: preview() shows a chosen action in place of the machine's, and the
- * machine keeps running underneath. The same dog is on the desktop, so the preview shows there too while it lasts.
+ * machine keeps running underneath. The same pet is on the desktop, so the preview shows there too while it lasts.
  */
 
 #include <chrono>
+#include <filesystem>
 #include <memory>
 #include <optional>
 
@@ -42,31 +43,34 @@ class PetController : public QObject {
     Q_OBJECT
     QML_NAMED_ELEMENT(Pet)
     QML_SINGLETON
-    Q_PROPERTY(bool available READ available CONSTANT)
+    Q_PROPERTY(bool available READ available NOTIFY settingsChanged)
     Q_PROPERTY(bool enabled READ enabled NOTIFY settingsChanged)
     Q_PROPERTY(bool passthrough READ passthrough NOTIFY settingsChanged)
+    Q_PROPERTY(QString pet READ pet NOTIFY settingsChanged)
+    Q_PROPERTY(QStringList pets READ pets CONSTANT)
     Q_PROPERTY(QString action READ action NOTIFY frameChanged)
     Q_PROPERTY(int frameIndex READ frameIndex NOTIFY frameChanged)
     Q_PROPERTY(int expression READ expression NOTIFY frameChanged)
     Q_PROPERTY(QVariantMap sheets READ sheets NOTIFY frameChanged)
     Q_PROPERTY(QVariantMap anchors READ anchors NOTIFY frameChanged)
     Q_PROPERTY(QVariantList wornAccessories READ wornAccessories NOTIFY frameChanged)
-    Q_PROPERTY(QVariantMap layers READ layers CONSTANT)
-    Q_PROPERTY(int canvas READ canvas CONSTANT)
+    Q_PROPERTY(QVariantMap layers READ layers NOTIFY settingsChanged)
+    Q_PROPERTY(int canvas READ canvas NOTIFY settingsChanged)
     Q_PROPERTY(int scale READ scale NOTIFY settingsChanged)
     Q_PROPERTY(int minScale READ minScale CONSTANT)
     Q_PROPERTY(int maxScale READ maxScale CONSTANT)
-    Q_PROPERTY(QStringList actions READ actions CONSTANT)
-    Q_PROPERTY(QVariantList accessories READ accessories CONSTANT)
+    Q_PROPERTY(QStringList actions READ actions NOTIFY settingsChanged)
+    Q_PROPERTY(QVariantList accessories READ accessories NOTIFY settingsChanged)
     Q_PROPERTY(QVariantMap wornIn READ wornIn NOTIFY outfitChanged)
 
 public:
     /**
-     * @param assets The verified pet data, or nothing when it was refused. Without it the pet stays off and says why.
+     * @param petsRoot The data/pet folder, one subfolder per pet. The one the settings name is loaded; a refused
+     *                 one leaves the pet off and says why.
      * @param store The PET section of the settings document, owned by main().
      * @param parent QObject parent.
      */
-    PetController(std::optional<PetAssets> assets, PetStore& store, QObject* parent = nullptr);
+    PetController(std::filesystem::path petsRoot, PetStore& store, QObject* parent = nullptr);
     ~PetController() override;
 
     /// @brief Hand the QML engine the one instance built by the composition root.
@@ -78,9 +82,13 @@ public:
     /// @brief Applies one event to the state machine. Called by the composition root, which maps app signals to types.
     void handle(core::pet::PetEvent event);
 
-    bool         available() const;
-    bool         enabled() const;
-    bool         passthrough() const;
+    bool available() const;
+    bool enabled() const;
+    bool passthrough() const;
+    /// @return The folder name of the pet the settings choose.
+    QString pet() const;
+    /// @return Every pet the settings page offers: the folders under data/pet that hold a pet.json, by name.
+    QStringList  pets() const;
     QString      action() const;
     int          frameIndex() const;
     int          expression() const;
@@ -113,6 +121,9 @@ public:
     Q_INVOKABLE void click();
     /// @param id Id of an accessory in the catalogue; puts it on, takes it off, or swaps it in its slot.
     Q_INVOKABLE void toggleAccessory(QString id);
+    /// @brief Stores the pet and loads it at once. Accessories the new pet does not have come off, and stay off.
+    /// @param id A folder name from pets(). A refused pet leaves the pet off, as at start-up.
+    Q_INVOKABLE void setPet(QString id);
     Q_INVOKABLE void setEnabled(bool on);
     Q_INVOKABLE void setPassthrough(bool on);
     /// @param window The QML Window, whose native handle takes capture exclusion and pass-through.
@@ -130,6 +141,8 @@ signals:
     void outfitChanged();
 
 private:
+    /// @brief Loads the pet in folder `id` and starts it from its first frame. A refused pet leaves the pet off.
+    void loadPet(std::string const& id);
     /// @brief Moves the state machine on by `step` and refreshes what the scene reads.
     void tick();
     /// @brief Reads the shown action and blink into the properties, and emits when the frame they show changed.
@@ -137,9 +150,9 @@ private:
     /// @brief Starts the clock while the window or the preview needs it, and stops it otherwise.
     void updateClock();
     /// @return The action on screen: the preview's while one is set, else the machine's.
-    core::pet::Action shownAction() const;
+    core::pet::ActionName shownAction() const;
     /// @return The action called `name` in the data, if there is one.
-    std::optional<core::pet::Action> actionNamed(QString const& name) const;
+    std::optional<core::pet::ActionName> actionNamed(QString const& name) const;
     /// @return Whether `id` is an accessory the catalogue knows.
     bool knownAccessory(QString const& id) const;
     /// @return Whether the catalogue puts the accessory `id` in `slot`.
@@ -151,6 +164,10 @@ private:
 
     static PetController* instance_;
 
+    /// The data/pet folder, and the pets found in it.
+    std::filesystem::path root_;
+    QStringList           pets_;
+
     std::optional<PetAssets>                    assets_;
     PetStore&                                   store_;
     std::unique_ptr<core::pet::PetStateMachine> machine_;
@@ -161,10 +178,10 @@ private:
     bool desktopRunning_{false};
     bool previewing_{false};
     /// The action the settings preview shows in place of the machine's, when one is set.
-    std::optional<core::pet::Action> preview_;
+    std::optional<core::pet::ActionName> preview_;
 
     /// The action the frame properties were last computed for, and how long it has played.
-    core::pet::Action         shownAction_{core::pet::Action::Idle};
+    core::pet::ActionName     shownAction_;
     std::chrono::milliseconds actionElapsed_{0};
     /// Blink timing: the wait to the next blink, and the time into the one running.
     std::chrono::milliseconds blinkWait_{0};

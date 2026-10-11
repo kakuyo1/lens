@@ -7,8 +7,8 @@
 
 /**
  * @file pet_store.h
- * @brief The PET section of the settings document: the two switches, the worn accessories and the window position
- *        (PHASE3 3.6).
+ * @brief The PET section of the settings document: the chosen pet, the two switches, the worn accessories and the
+ *        window position (PHASE3 3.6).
  *
  * Like StatsStore, this binds to the document KnownStore owns and writes only its own key. It persists through
  * KnownStore::save(), so there is still one file and one writer.
@@ -38,6 +38,10 @@ class PetStore final {
 public:
     /// @param store The one owner of the settings document, which must outlive this object.
     explicit PetStore(core::KnownStore& store);
+
+    /// @return The folder name of the pet the reader chose under data/pet, or the default pet until they choose another.
+    std::string pet() const;
+    void        setPet(std::string const& id);
 
     /// @return Whether the reader turned the desktop pet on. Off by default.
     bool enabled() const;
