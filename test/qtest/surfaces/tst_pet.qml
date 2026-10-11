@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import Lens
+import "../testutil.js" as Util
 
 /**
  * The desktop pet's settings and sprite layer: pass-through is only reachable while the pet is on (PHASE3 3.5),
@@ -22,12 +23,28 @@ Item {
     }
 
     Component {
+        id: panelComponent
+
+        Rectangle {
+            width: 480
+            height: page.implicitHeight
+            color: Tokens.panel
+
+            SettingsExtensionsPage {
+                id: page
+                width: 480
+            }
+        }
+    }
+
+    Component {
         id: layerComponent
 
         SpriteLayer {}
     }
 
     TestCase {
+        id: testCase
         name: "Pet"
         when: windowShown
 
@@ -60,6 +77,30 @@ Item {
         function test_anEmptySheetDrawsNothing() {
             const layer = createTemporaryObject(layerComponent, root, {sheet: "", frame: 0, at: Qt.point(0, 0)});
             compare(layer.visible, false);
+        }
+
+        function test_snapshotSettingsPage() {
+            if (!lensQaSnapshotDir) skip("Set LENS_QA_SNAPSHOT_DIR to save snapshots");
+            // The pet rows sit under the enable switch, so the pet has to be on for the picker to show.
+            Pet.setEnabled(true);
+            const theme = Tokens.theme;
+            const chosen = Pet.pet;
+            try {
+                for (const id of Pet.pets) {
+                    Pet.setPet(id);
+                    for (const mode of ["light", "dark"]) {
+                        Tokens.theme = mode;
+                        const panel = createTemporaryObject(panelComponent, root);
+                        verify(panel);
+                        waitForRendering(panel);
+                        verify(Util.saveSnapshot(testCase, panel, lensQaSnapshotDir, "pet-settings-" + id + "-" + mode));
+                        panel.destroy();
+                    }
+                }
+            } finally {
+                Tokens.theme = theme;
+                Pet.setPet(chosen);
+            }
         }
     }
 }

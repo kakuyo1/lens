@@ -70,6 +70,28 @@ void makeTwoPets(std::filesystem::path const& root)
     out << doc.dump(2);
 }
 
+nlohmann::json readJson(std::filesystem::path const& file)
+{
+    auto in = std::ifstream{file};
+    return nlohmann::json::parse(in);
+}
+
+/// @return The action names of one pet's animations.json. The blink is an expression entry, so it is not one.
+QStringList actionsIn(nlohmann::json const& animations)
+{
+    auto names = QStringList{};
+    for (auto const& entry : animations.at("actions").items()) {
+        if (entry.key() != "blink") names.append(QString::fromStdString(entry.key()));
+    }
+    return names;
+}
+
+QStringList sortedCopy(QStringList list)
+{
+    list.sort();
+    return list;
+}
+
 } // namespace
 
 class TstPetController : public QObject {
@@ -88,6 +110,9 @@ private slots:
     void restoresOnlyAccessoriesInTheirOwnSlot();
     void passthroughDefaultsOffAndIsStored();
     void choosingAPetLoadsItAndDropsWhatItLacks();
+    void everyShippedPetLoadsWhole();
+    void wornAccessoriesFollowAPetSwitch();
+    void aRefusedRealPetKeepsThePetOn();
 };
 
 void TstPetController::eventsDriveTheAction()
@@ -306,6 +331,115 @@ void TstPetController::choosingAPetLoadsItAndDropsWhatItLacks()
     QVERIFY(rig.controller.available());
     QCOMPARE(rig.controller.pet(), QStringLiteral("dog"));
     QCOMPARE(QString::fromStdString(rig.petStore.pet()), QStringLiteral("dog"));
+}
+
+void TstPetController::everyShippedPetLoadsWhole()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    Rig rig{settingsIn(dir), shippedRoot()};
+
+    for (auto const& id : {QStringLiteral("mochi"), QStringLiteral("owl"), QStringLiteral("cat")}) {
+        auto const folder     = shippedRoot() / id.toStdString();
+        auto const animations = readJson(folder / "animations.json");
+
+        rig.controller.setPet(id);
+        QVERIFY(rig.controller.available());
+        QCOMPARE(rig.controller.pet(), id);
+        QCOMPARE(QString::fromStdString(rig.petStore.pet()), id);
+
+        // Every action the file names is listed once; the role actions come first, then the extras of the idle pool.
+        auto const names = rig.controller.actions();
+        QCOMPARE(sortedCopy(names), sortedCopy(actionsIn(animations)));
+
+        auto roles = QStringList{};
+        for (auto const& entry : animations.at("roles").items()) {
+            roles.append(QString::fromStdString(entry.value().get<std::string>()));
+        }
+        roles.removeDuplicates();
+        QCOMPARE(sortedCopy(names.mid(0, roles.size())), sortedCopy(roles));
+        for (auto const& extra : names.mid(roles.size())) {
+            QVERIFY(!roles.contains(extra));
+        }
+
+        // Every action shows its own sheets, from this pet's folder, and its anchors sit on whole cells.
+        for (auto const& action : names) {
+            rig.controller.preview(action);
+            QCOMPARE(rig.controller.action(), action);
+
+            auto const sheets = rig.controller.sheets();
+            QVERIFY(sheets.value("body").toString().endsWith(QStringLiteral("/%1/sprites/body/%2.png").arg(id, action)));
+            QVERIFY(sheets.value("expression").toString().endsWith(QStringLiteral("/sprites/expressions/eyes.png")));
+            QCOMPARE(!sheets.value("effect").toString().isEmpty(), animations.at("actions").at(action.toStdString()).contains("effect"));
+
+            auto const anchor = rig.controller.anchors();
+            for (auto const& point : {anchor.value("body").toPoint(), anchor.value("face").toPoint()}) {
+                QCOMPARE(point.x() % 3, 0);
+                QCOMPARE(point.y() % 3, 0);
+            }
+            // The expression sheet is a row of nine cells.
+            QVERIFY(rig.controller.expression() >= 0 and rig.controller.expression() < 9);
+        }
+        rig.controller.setPreviewing(false);
+
+        // The catalogue the settings page shows is the file's, and every pet carries nine accessories.
+        auto catalogue = QStringList{};
+        for (auto const& entry : rig.controller.accessories()) {
+            catalogue.append(entry.toMap().value("id").toString());
+        }
+        auto const accessoryFile = readJson(folder / "accessories.json");
+        auto       fileIds       = QStringList{};
+        for (auto const& entry : accessoryFile.at("accessories"))
+            fileIds.append(QString::fromStdString(entry.at("id").get<std::string>()));
+        QCOMPARE(catalogue.size(), 9);
+        QCOMPARE(sortedCopy(catalogue), sortedCopy(fileIds));
+    }
+}
+
+void TstPetController::wornAccessoriesFollowAPetSwitch()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    Rig rig{settingsIn(dir), shippedRoot()};
+
+    // The dog's hat is not in mochi's catalogue, so it comes off; the glasses are, so they stay.
+    rig.controller.toggleAccessory(QStringLiteral("hat"));
+    rig.controller.toggleAccessory(QStringLiteral("glasses"));
+    rig.controller.setPet(QStringLiteral("mochi"));
+    QVERIFY(rig.controller.wornIn().value("head").toString().isEmpty());
+    QCOMPARE(rig.controller.wornIn().value("face").toString(), QStringLiteral("glasses"));
+    QVERIFY(!rig.petStore.outfit().head);
+    QVERIFY(rig.petStore.outfit().face == std::optional<std::string>{"glasses"});
+
+    // Owl's glasses are reading_glasses, so the glasses come off in the face slot too.
+    rig.controller.setPet(QStringLiteral("owl"));
+    QVERIFY(rig.controller.wornIn().value("face").toString().isEmpty());
+    QVERIFY(!rig.petStore.outfit().face);
+}
+
+void TstPetController::aRefusedRealPetKeepsThePetOn()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    auto const root = std::filesystem::path{dir.path().toStdWString()} / "pets";
+    std::filesystem::create_directories(root);
+    std::filesystem::copy(shippedRoot() / "cat", root / "cat", std::filesystem::copy_options::recursive);
+    std::filesystem::copy(shippedRoot() / "cat", root / "broken", std::filesystem::copy_options::recursive);
+    {
+        // The folder has a pet.json, so the picker lists it, but its animations are not a pet's.
+        auto out = std::ofstream{root / "broken" / "animations.json"};
+        out << "{}";
+    }
+    Rig rig{settingsIn(dir), root};
+
+    rig.controller.setPet(QStringLiteral("cat"));
+    QVERIFY(rig.controller.available());
+    QCOMPARE(rig.controller.pets(), (QStringList{QStringLiteral("broken"), QStringLiteral("cat")}));
+
+    rig.controller.setPet(QStringLiteral("broken"));
+    QVERIFY(rig.controller.available());
+    QCOMPARE(rig.controller.pet(), QStringLiteral("cat"));
+    QCOMPARE(QString::fromStdString(rig.petStore.pet()), QStringLiteral("cat"));
 }
 
 QTEST_GUILESS_MAIN(TstPetController)
