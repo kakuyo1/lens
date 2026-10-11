@@ -353,7 +353,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="51"/>
-        <location filename="../src/app/app_controller.cpp" line="273"/>
+        <location filename="../src/app/app_controller.cpp" line="286"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -498,37 +498,37 @@
         <translation>未配置</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="545"/>
+        <location filename="../src/app/model_catalog_duty.cpp" line="131"/>
         <source>Domestic</source>
         <translation>国内</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="546"/>
+        <location filename="../src/app/model_catalog_duty.cpp" line="132"/>
         <source>International</source>
         <translation>国际</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="547"/>
+        <location filename="../src/app/model_catalog_duty.cpp" line="133"/>
         <source>Other</source>
         <translation>其他</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="548"/>
+        <location filename="../src/app/model_catalog_duty.cpp" line="134"/>
         <source>Custom service</source>
         <translation>自定义服务</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="269"/>
+        <location filename="../src/app/app_controller.cpp" line="278"/>
         <source>Checking OCR</source>
         <translation>正在检查 OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="270"/>
+        <location filename="../src/app/app_controller.cpp" line="279"/>
         <source>English OCR data is missing</source>
         <translation>缺少英文 OCR 数据</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="271"/>
+        <location filename="../src/app/app_controller.cpp" line="283"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR 运行时不可用</translation>
     </message>
@@ -820,34 +820,44 @@
 <context>
     <name>WordsPopup</name>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="155"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="105"/>
+        <source>Today %1</source>
+        <translation>今天 %1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/WordsPopup.qml" line="107"/>
+        <source>Yesterday %1</source>
+        <translation>昨天 %1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/WordsPopup.qml" line="166"/>
         <source>Words</source>
         <translation>词汇</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="254"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="265"/>
         <source>%1 words</source>
         <translation>共 %1 词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="264"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="275"/>
         <source>All</source>
         <translation>全部</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="264"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="452"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="275"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="463"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="264"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="486"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="275"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="497"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="418"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="429"/>
         <source>%1×</source>
         <translation>%1×</translation>
     </message>
@@ -867,17 +877,17 @@
         <translation>移除</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="564"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="575"/>
         <source>Export words</source>
         <translation>导出词汇</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="567"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="578"/>
         <source>Text files (*.txt)</source>
         <translation>文本文件 (*.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="567"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="578"/>
         <source>All files (*)</source>
         <translation>所有文件 (*)</translation>
     </message>
@@ -1053,103 +1063,83 @@
 <context>
     <name>lens::app::AppController</name>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="99"/>
-        <location filename="../src/app/storage_duty.cpp" line="100"/>
+        <location filename="../src/app/storage_duty.cpp" line="73"/>
+        <location filename="../src/app/storage_duty.cpp" line="74"/>
         <source>CEFR</source>
         <translation>CEFR</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="101"/>
-        <location filename="../src/app/storage_duty.cpp" line="102"/>
-        <location filename="../src/app/storage_duty.cpp" line="103"/>
-        <location filename="../src/app/storage_duty.cpp" line="104"/>
+        <location filename="../src/app/storage_duty.cpp" line="75"/>
+        <location filename="../src/app/storage_duty.cpp" line="76"/>
+        <location filename="../src/app/storage_duty.cpp" line="77"/>
+        <location filename="../src/app/storage_duty.cpp" line="78"/>
         <source>National exams</source>
         <translation>国内考试</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="105"/>
-        <location filename="../src/app/storage_duty.cpp" line="106"/>
+        <location filename="../src/app/storage_duty.cpp" line="79"/>
+        <location filename="../src/app/storage_duty.cpp" line="80"/>
         <source>Study-abroad exams</source>
         <translation>出国考试</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="226"/>
+        <location filename="../src/app/explanation_duty.cpp" line="201"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>当前解释语言下没有已存的释义。</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="228"/>
+        <location filename="../src/app/explanation_duty.cpp" line="203"/>
         <source>Explain now</source>
         <translation>现在解释</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="290"/>
+        <location filename="../src/app/explanation_duty.cpp" line="272"/>
         <source>Explaining…</source>
         <translation>正在解释…</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="370"/>
+        <location filename="../src/app/explanation_duty.cpp" line="347"/>
         <source>Request failed</source>
         <translation>请求失败</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="262"/>
+        <location filename="../src/app/app_controller.cpp" line="271"/>
         <source>Screenshot capture is off.</source>
         <translation>截图取词未开启。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="263"/>
-        <location filename="../src/app/app_controller.cpp" line="426"/>
+        <location filename="../src/app/app_controller.cpp" line="272"/>
+        <location filename="../src/app/app_controller.cpp" line="439"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>今日预算已用尽。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="264"/>
+        <location filename="../src/app/app_controller.cpp" line="273"/>
         <source>A recognition is already running.</source>
         <translation>正在识别，请稍候。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="266"/>
+        <location filename="../src/app/app_controller.cpp" line="275"/>
         <source>That region cannot be captured.</source>
         <translation>所选区域无法取词（须在同一块屏幕内且不过大）。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="267"/>
+        <location filename="../src/app/app_controller.cpp" line="276"/>
         <source>No text was found in that region.</source>
         <translation>所选区域里没有找到文字。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="268"/>
+        <location filename="../src/app/app_controller.cpp" line="277"/>
         <source>That region could not be read.</source>
         <translation>所选区域无法识别。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="505"/>
-        <source>Today %1</source>
-        <translation>今天 %1</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="507"/>
-        <source>Yesterday %1</source>
-        <translation>昨天 %1</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="514"/>
-        <source>Known</source>
-        <translation>已会</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="516"/>
-        <source>New</source>
-        <translation>新词</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="671"/>
+        <location filename="../src/app/app_controller.cpp" line="629"/>
         <source>Auto</source>
         <translation>自动模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="671"/>
+        <location filename="../src/app/app_controller.cpp" line="629"/>
         <source>Manual</source>
         <translation>手动模式</translation>
     </message>

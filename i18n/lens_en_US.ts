@@ -353,7 +353,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="51"/>
-        <location filename="../src/app/app_controller.cpp" line="273"/>
+        <location filename="../src/app/app_controller.cpp" line="286"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -498,37 +498,37 @@
         <translation>Not configured</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="545"/>
+        <location filename="../src/app/model_catalog_duty.cpp" line="131"/>
         <source>Domestic</source>
         <translation>Domestic</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="546"/>
+        <location filename="../src/app/model_catalog_duty.cpp" line="132"/>
         <source>International</source>
         <translation>International</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="547"/>
+        <location filename="../src/app/model_catalog_duty.cpp" line="133"/>
         <source>Other</source>
         <translation>Other</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="548"/>
+        <location filename="../src/app/model_catalog_duty.cpp" line="134"/>
         <source>Custom service</source>
         <translation>Custom service</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="269"/>
+        <location filename="../src/app/app_controller.cpp" line="278"/>
         <source>Checking OCR</source>
         <translation>Checking OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="270"/>
+        <location filename="../src/app/app_controller.cpp" line="279"/>
         <source>English OCR data is missing</source>
         <translation>English OCR data is missing</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="271"/>
+        <location filename="../src/app/app_controller.cpp" line="283"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR runtime is unavailable</translation>
     </message>
@@ -820,34 +820,44 @@
 <context>
     <name>WordsPopup</name>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="155"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="105"/>
+        <source>Today %1</source>
+        <translation>Today %1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/WordsPopup.qml" line="107"/>
+        <source>Yesterday %1</source>
+        <translation>Yesterday %1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/WordsPopup.qml" line="166"/>
         <source>Words</source>
         <translation>Words</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="254"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="265"/>
         <source>%1 words</source>
         <translation>%1 words</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="264"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="275"/>
         <source>All</source>
         <translation>All</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="264"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="452"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="275"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="463"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="264"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="486"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="275"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="497"/>
         <source>New</source>
         <translation>New</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="418"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="429"/>
         <source>%1×</source>
         <translation>%1×</translation>
     </message>
@@ -867,17 +877,17 @@
         <translation>Remove</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="564"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="575"/>
         <source>Export words</source>
         <translation>Export words</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="567"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="578"/>
         <source>Text files (*.txt)</source>
         <translation>Text files (*.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="567"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="578"/>
         <source>All files (*)</source>
         <translation>All files (*)</translation>
     </message>
@@ -1053,103 +1063,83 @@
 <context>
     <name>lens::app::AppController</name>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="99"/>
-        <location filename="../src/app/storage_duty.cpp" line="100"/>
+        <location filename="../src/app/storage_duty.cpp" line="73"/>
+        <location filename="../src/app/storage_duty.cpp" line="74"/>
         <source>CEFR</source>
         <translation>CEFR</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="101"/>
-        <location filename="../src/app/storage_duty.cpp" line="102"/>
-        <location filename="../src/app/storage_duty.cpp" line="103"/>
-        <location filename="../src/app/storage_duty.cpp" line="104"/>
+        <location filename="../src/app/storage_duty.cpp" line="75"/>
+        <location filename="../src/app/storage_duty.cpp" line="76"/>
+        <location filename="../src/app/storage_duty.cpp" line="77"/>
+        <location filename="../src/app/storage_duty.cpp" line="78"/>
         <source>National exams</source>
         <translation>National exams</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="105"/>
-        <location filename="../src/app/storage_duty.cpp" line="106"/>
+        <location filename="../src/app/storage_duty.cpp" line="79"/>
+        <location filename="../src/app/storage_duty.cpp" line="80"/>
         <source>Study-abroad exams</source>
         <translation>Study-abroad exams</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="226"/>
+        <location filename="../src/app/explanation_duty.cpp" line="201"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>No explanation is stored for this word in the current language.</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="228"/>
+        <location filename="../src/app/explanation_duty.cpp" line="203"/>
         <source>Explain now</source>
         <translation>Explain now</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="290"/>
+        <location filename="../src/app/explanation_duty.cpp" line="272"/>
         <source>Explaining…</source>
         <translation>Explaining…</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="370"/>
+        <location filename="../src/app/explanation_duty.cpp" line="347"/>
         <source>Request failed</source>
         <translation>Request failed</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="262"/>
+        <location filename="../src/app/app_controller.cpp" line="271"/>
         <source>Screenshot capture is off.</source>
         <translation>Screenshot capture is off.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="263"/>
-        <location filename="../src/app/app_controller.cpp" line="426"/>
+        <location filename="../src/app/app_controller.cpp" line="272"/>
+        <location filename="../src/app/app_controller.cpp" line="439"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>Today&amp;apos;s budget is used up.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="264"/>
+        <location filename="../src/app/app_controller.cpp" line="273"/>
         <source>A recognition is already running.</source>
         <translation>A recognition is already running.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="266"/>
+        <location filename="../src/app/app_controller.cpp" line="275"/>
         <source>That region cannot be captured.</source>
         <translation>That region cannot be captured.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="267"/>
+        <location filename="../src/app/app_controller.cpp" line="276"/>
         <source>No text was found in that region.</source>
         <translation>No text was found in that region.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="268"/>
+        <location filename="../src/app/app_controller.cpp" line="277"/>
         <source>That region could not be read.</source>
         <translation>That region could not be read.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="505"/>
-        <source>Today %1</source>
-        <translation>Today %1</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="507"/>
-        <source>Yesterday %1</source>
-        <translation>Yesterday %1</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="514"/>
-        <source>Known</source>
-        <translation>Known</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="516"/>
-        <source>New</source>
-        <translation>New</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="671"/>
+        <location filename="../src/app/app_controller.cpp" line="629"/>
         <source>Auto</source>
         <translation>Auto</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="671"/>
+        <location filename="../src/app/app_controller.cpp" line="629"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>

@@ -6,8 +6,8 @@ import QtQuick.Window
 
 /**
  * Every word the bubble has shown (UI.md section 4.8), newest first, with a filter across the
- * top. The controller hands over finished strings: the relative time labels depend on the
- * current date, which is not something a view should be working out.
+ * top. The controller works out which day a word was last shown on, relative to today, and hands
+ * over the raw date and time; the labels are drawn here, in the reader's language.
  *
  * It is also where a word is settled: each row carries the bubble's own two verdict pills, so a
  * word the reader did not mark while the bubble was up (or the countdown took away) can be
@@ -97,6 +97,17 @@ Window {
         }
         pendingRemoval = word;
         question.ask();
+    }
+
+    /// @brief The time label of a row, in the reader's language. Empty when the row has no day.
+    function whenLabel(row) {
+        if (row.day === "today")
+            return qsTr("Today %1").arg(row.time);
+        if (row.day === "yesterday")
+            return qsTr("Yesterday %1").arg(row.time);
+        if (row.day === "earlier")
+            return row.date + " " + row.time;
+        return "";
     }
 
     /// @brief Put the question down without answering it.
@@ -406,7 +417,7 @@ Window {
 
                                 MixedText {
                                     anchors.verticalCenter: parent.verticalCenter
-                                    value: entry.modelData.when
+                                    value: words.whenLabel(entry.modelData)
                                     color: Tokens.faint
                                     pixelSize: 11
                                 }

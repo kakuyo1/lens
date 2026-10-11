@@ -61,6 +61,21 @@ Item {
             verify(days.some(function (day) { return day.pops === 0; }));
         }
 
+        /// The controller hands the words over as raw values: the day's relation and the date and
+        /// time apart, with the label drawn by WordsPopup. The fixture is all January, so every
+        /// dated row is "earlier" here.
+        function test_theWordRowsCarryRawDayAndTimeNotALabel() {
+            const rows = Controller.words;
+            verify(rows.length > 0, "the fixture needs at least one word");
+            verify(rows.every(function (row) {
+                return ["today", "yesterday", "earlier", ""].indexOf(row.day) >= 0
+                    && !("when" in row) && !("status" in row);
+            }), "a row carries a day outside today / yesterday / earlier, or a formatted label");
+            verify(rows.some(function (row) {
+                return row.day === "earlier" && /^[0-9]{2}-[0-9]{2}$/.test(row.date) && /^[0-9]{2}:[0-9]{2}$/.test(row.time);
+            }), "no dated row carries its date and time apart");
+        }
+
         /// An action arrives from the bar the reader is looking at; with no selection behind it
         /// there is nothing to act on, and answering would paint a card about nothing.
         function test_anActionWithNoSelectionPendingIsIgnored() {

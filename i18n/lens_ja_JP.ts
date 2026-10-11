@@ -820,34 +820,44 @@
 <context>
     <name>WordsPopup</name>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="264"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="452"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="275"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="463"/>
         <source>Known</source>
         <translation>覚えた</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="264"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="486"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="275"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="497"/>
         <source>New</source>
         <translation>初見</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="418"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="429"/>
         <source>%1×</source>
         <translation>%1×</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="155"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="166"/>
         <source>Words</source>
         <translation>単語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="254"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="105"/>
+        <source>Today %1</source>
+        <translation>今日 %1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/WordsPopup.qml" line="107"/>
+        <source>Yesterday %1</source>
+        <translation>昨日 %1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/WordsPopup.qml" line="265"/>
         <source>%1 words</source>
         <translation>%1 語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="264"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="275"/>
         <source>All</source>
         <translation>すべて</translation>
     </message>
@@ -867,17 +877,17 @@
         <translation>削除</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="564"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="575"/>
         <source>Export words</source>
         <translation>単語を書き出す</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="567"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="578"/>
         <source>Text files (*.txt)</source>
         <translation>テキストファイル (*.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="567"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="578"/>
         <source>All files (*)</source>
         <translation>すべてのファイル (*)</translation>
     </message>
@@ -1084,32 +1094,12 @@
         <translation>その範囲を読み取れませんでした。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="519"/>
-        <source>Today %1</source>
-        <translation>今日 %1</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="521"/>
-        <source>Yesterday %1</source>
-        <translation>昨日 %1</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="528"/>
-        <source>Known</source>
-        <translation>覚えた</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="530"/>
-        <source>New</source>
-        <translation>初見</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="630"/>
+        <location filename="../src/app/app_controller.cpp" line="629"/>
         <source>Auto</source>
         <translation>自動</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="630"/>
+        <location filename="../src/app/app_controller.cpp" line="629"/>
         <source>Manual</source>
         <translation>手動</translation>
     </message>

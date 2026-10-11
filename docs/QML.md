@@ -65,8 +65,8 @@
   托盘菜单当场变是因为 C++ 那侧自己接了 `uiLanguageChanged`，QML 表面没有对应动作。因此 `engine`
   必须声明在接这个信号的 lambda 之前。
 - **换语言时信号的顺序不是随意的**：`setUiLanguage` 先发 `uiLanguageChanged`（它才装翻译器），再发
-  `settingsChanged` / `statsChanged`。反过来发，重算 `words()` 时用的还是旧翻译器，词汇弹窗会出现
-  表头已变、行没变的样子——实测就是这样，先发 `statsChanged` 那一版没修好。
+  `settingsChanged` / `statsChanged`。`words()` 现在只给原始的日期与时间，文字由 `WordsPopup.qml` 的 `qsTr` 绘制，
+  所以它不再依赖这个顺序。
 - **`font.pixelSize` 是整数**：`UI.md` 字号表里的 12.5 / 11.5 / 10.5 px 落不了地，按四舍五入取
   13 / 12 / 11，保住 “最小 11 px” 那条约束。
 
@@ -158,7 +158,7 @@
   任何单族都会缺字。
 - **标题行的图标贴右锚定，不用固定占位**：原先的 `Item { width: parent.width - 40 }` 是按英文标题估的，
   中文标题一变宽就把关闭按钮整个挤出卡片外（放大实测）。改成左锚标题、右锚图标行。
-- **不要在 JS 里遍历 `Controller.words`**：那是 `QVariantList`，逐行读 `row.word` / `row.when` 这类
+- **不要在 JS 里遍历 `Controller.words`**：那是 `QVariantList`，逐行读 `row.word` / `row.time` 这类
   QVariantMap 属性在本机实测**每行约 170 ms**——31 行量出 **5.3 秒**，字体测量本身只占几十毫秒
   （`FontMetrics.advanceWidth` 单次 0–8 ms）。这段同步遍历跑在主线程上时，整个 UI 冻结：词汇弹窗
   打不开、系统判无响应、用户结束进程后**既没有 WER 事件也没有 dump**，日志里也什么都不写，看着像崩溃。
