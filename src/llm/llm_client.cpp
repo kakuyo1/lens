@@ -1,3 +1,8 @@
+/**
+ * @file llm_client.cpp
+ * @brief Request setup and the model-list and explanation round trips for llm_client.h.
+ */
+
 #include "llm_client.h"
 
 #include <QNetworkAccessManager>

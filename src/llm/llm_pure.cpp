@@ -1,3 +1,8 @@
+/**
+ * @file llm_pure.cpp
+ * @brief Prompt rendering, response checks, and usage parsing behind llm_pure.h, with no network.
+ */
+
 #include "llm_pure.h"
 
 #include <QCoreApplication>

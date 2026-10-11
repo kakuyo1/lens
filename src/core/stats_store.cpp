@@ -1,3 +1,8 @@
+/**
+ * @file stats_store.cpp
+ * @brief Daily tallies of pops, verdicts, and token use, and the lemma export, for stats_store.h.
+ */
+
 #include "core/stats_store.h"
 #include "util/log.h"
 #include "util/text.h"

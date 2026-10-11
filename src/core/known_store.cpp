@@ -1,3 +1,8 @@
+/**
+ * @file known_store.cpp
+ * @brief Load, save, and explanation cache for the known-word store declared in known_store.h.
+ */
+
 #include "core/known_store.h"
 #include "util/log.h"
 

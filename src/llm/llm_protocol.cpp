@@ -1,3 +1,8 @@
+/**
+ * @file llm_protocol.cpp
+ * @brief Loads each channel's request template, prompt, and response schema from data/llm/.
+ */
+
 #include "llm/llm_protocol.h"
 
 #include "util/log.h"

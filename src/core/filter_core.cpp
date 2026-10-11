@@ -1,3 +1,8 @@
+/**
+ * @file filter_core.cpp
+ * @brief Word-list loading, lemmatisation, and the entity and rank checks behind filter_core.h.
+ */
+
 #include "core/filter_core.h"
 #include "core/profile.h"
 #include "util/log.h"

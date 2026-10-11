@@ -1,3 +1,8 @@
+/**
+ * @file log.cpp
+ * @brief Sink setup and the LENS_LOG_LEVEL reader behind util/log.h.
+ */
+
 #include "util/log.h"
 
 #include <spdlog/sinks/rotating_file_sink.h>
