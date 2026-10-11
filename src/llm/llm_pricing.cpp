@@ -29,7 +29,7 @@ Pricing Pricing::load(const std::filesystem::path& path)
         throw std::runtime_error("The price list is not a JSON object: " + path.string());
 
     const QJsonObject root = doc.object();
-    Pricing pricing;
+    Pricing           pricing;
     pricing.currency_        = root.value("currency").toString();
     pricing.displayCurrency_ = pricing.currency_;
     pricing.unit_            = root.value("unit").toInteger();
@@ -40,8 +40,8 @@ Pricing Pricing::load(const std::filesystem::path& path)
     // what a price list on its own means. With one, the rates below stay the vendor's and the
     // conversion is a separate, dated fact.
     if (const QJsonObject display = root.value("display").toObject(); !display.isEmpty()) {
-        const QString code      = display.value("currency").toString();
-        const double multiplier = display.value("multiplier").toDouble();
+        const QString code       = display.value("currency").toString();
+        const double  multiplier = display.value("multiplier").toDouble();
         if (code.isEmpty() || multiplier <= 0.0)
             throw std::runtime_error("The price list's display block names no currency or no positive multiplier: " + path.string());
         pricing.displayCurrency_   = code;
@@ -52,7 +52,7 @@ Pricing Pricing::load(const std::filesystem::path& path)
     const QJsonObject models = root.value("models").toObject();
     for (auto it = models.begin(); it != models.end(); ++it) {
         const QJsonObject entry = it.value().toObject();
-        const ModelPrice price{entry.value("input").toDouble(), entry.value("output").toDouble()};
+        const ModelPrice  price{entry.value("input").toDouble(), entry.value("output").toDouble()};
         if (price.input <= 0.0 || price.output <= 0.0) {
             LENS_WARN("price list: '{}' has a missing or non-positive rate; ignoring it", it.key().toStdString());
             continue;

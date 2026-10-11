@@ -300,7 +300,7 @@ std::string readFile(const std::filesystem::path& path)
 /// which may be read-only under Program Files.
 TEST(SettingsPath, LivesInTheProfileAndNeverInTheInstallTree)
 {
-    const ProfileScope scope;
+    const ProfileScope          scope;
     const std::filesystem::path target = settingsPath({});
 
     EXPECT_EQ(target.filename(), "settings.json");
@@ -327,7 +327,7 @@ TEST(SettingsPath, LivesInTheProfileAndNeverInTheInstallTree)
 /// later launch would put the repository's copy back over the reader's own.
 TEST(SettingsPath, CarriesTheLegacyDocumentOverOnceAndOnlyOnce)
 {
-    const ProfileScope scope;
+    const ProfileScope          scope;
     const std::filesystem::path profile = settingsPath({});
     std::filesystem::remove(profile);
 
@@ -362,7 +362,7 @@ TEST(SettingsPath, CarriesTheLegacyDocumentOverOnceAndOnlyOnce)
 /// made them the part nobody changed.
 TEST(ExplanationQueue, AScanBatchTakesFiveAndLeavesTheRestQueued)
 {
-    ExplanationQueue queue;
+    ExplanationQueue              queue;
     std::vector<PendingSelection> candidates;
     for (int i = 0; i < 7; ++i)
         candidates.push_back(aWord(QStringLiteral("w%1").arg(i)));
@@ -589,7 +589,7 @@ TEST(ModelCatalog, AServiceThatNamesNoModelLeavesTheOneInForceAlone)
 TEST(ModelCatalog, WhatTheSourceListedWinsOverTheCatalogsSeed)
 {
     const QStringList served{QStringLiteral("from-the-source")};
-    const QJsonArray seeded{QStringLiteral("from-the-catalog")};
+    const QJsonArray  seeded{QStringLiteral("from-the-catalog")};
     EXPECT_EQ(modelsKnownFor(served, seeded), served);
 }
 

@@ -51,7 +51,7 @@ Settings Settings::load(const std::filesystem::path& path)
     }
 
     const QJsonObject root = document.object();
-    Settings settings;
+    Settings          settings;
     settings.source = QUrl{root.value("source").toString()};
     // A limit that is not a positive number is the default rather than zero: zero would mean
     // no timeout or no ceiling, which is the opposite of what the number was for.
@@ -98,8 +98,8 @@ void UpdateClient::fetch()
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::ManualRedirectPolicy);
     LENS_TRACE("GET {}", settings_.source.toString().toStdString());
 
-    QNetworkReply* reply  = manager_->get(request);
-    const qint64 maxBytes = settings_.maxBytes;
+    QNetworkReply* reply    = manager_->get(request);
+    const qint64   maxBytes = settings_.maxBytes;
     connect(reply, &QNetworkReply::downloadProgress, this, [reply, maxBytes](qint64 received, qint64) {
         if (maxBytes > 0 and received > maxBytes) reply->abort();
     });
@@ -243,7 +243,7 @@ bool DownloadClient::start(const QUrl& url, Mode mode, int hops)
     reply_      = manager_->get(request);
     activeMode_ = mode;
     // A checksum list is a few lines: it gets the small ceiling, not the installer's.
-    const qint64 cap     = mode == Mode::Sums ? settings_.maxBytes : settings_.maxDownloadBytes;
+    const qint64   cap   = mode == Mode::Sums ? settings_.maxBytes : settings_.maxDownloadBytes;
     QNetworkReply* reply = reply_;
 
     connect(reply, &QNetworkReply::downloadProgress, this, [this, reply, cap](qint64 got, qint64 total) {
@@ -290,12 +290,12 @@ bool DownloadClient::start(const QUrl& url, Mode mode, int hops)
 
 void DownloadClient::onFinished(QNetworkReply* reply, const QUrl& url, Mode mode, int hops)
 {
-    const int status    = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    const int  status   = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     const bool redirect = status >= 300 and status < 400;
 
     if (reply->error() == QNetworkReply::NoError and redirect) {
-        const QVariant raw = reply->header(QNetworkRequest::LocationHeader);
-        const QUrl next    = url.resolved(QUrl{raw.toUrl()});
+        const QVariant raw  = reply->header(QNetworkRequest::LocationHeader);
+        const QUrl     next = url.resolved(QUrl{raw.toUrl()});
         if (raw.isValid() and hops < kMaxHops and isAllowedDownloadUrl(next)) {
             LENS_INFO("following the redirect to {}", forLog(next));
             reply->deleteLater();

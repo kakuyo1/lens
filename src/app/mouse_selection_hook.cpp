@@ -31,8 +31,8 @@ constexpr int kDragSlopPx = 4;
  * Windows hands it no user data, so it has nothing to reach an instance through.
  */
 struct GestureTracker {
-    int downX          = 0;
-    int downY          = 0;
+    int  downX         = 0;
+    int  downY         = 0;
     bool overOwnWindow = false; ///< The press landed on a surface of this process.
 
     void onPress(int x, int y, bool own)
@@ -74,7 +74,7 @@ bool overOurWindow(POINT pt)
     return pid == GetCurrentProcessId();
 }
 
-GestureTracker g_tracker;
+GestureTracker      g_tracker;
 MouseSelectionHook* g_owner = nullptr;
 
 // The hook's own thread, and the only thing it does is wait for messages.
@@ -85,13 +85,13 @@ MouseSelectionHook* g_owner = nullptr;
 // something that blocks for longer than a mouse may wait: measured on the real machine, at
 // startup alone, three inputs at 312 ms apiece while it compiled the QML and built the first
 // frame. Installing the hook later only moves which work is caught, so it lives here instead.
-HHOOK g_handle       = nullptr;
-DWORD g_hookThreadId = 0;
-DWORD g_hookError    = 0;
-std::thread g_hookThread;
-std::mutex g_startMutex;
+HHOOK                   g_handle       = nullptr;
+DWORD                   g_hookThreadId = 0;
+DWORD                   g_hookError    = 0;
+std::thread             g_hookThread;
+std::mutex              g_startMutex;
 std::condition_variable g_started;
-bool g_startDone = false;
+bool                    g_startDone = false;
 
 /// @brief Report an event to the loop that owns the surfaces, keeping the callback O(1).
 ///
@@ -106,7 +106,7 @@ void postToOwner(MouseSelectionHook* owner, std::function<void()> report)
 void emitPressedLater(const POINT& pt)
 {
     MouseSelectionHook* const owner = g_owner;
-    const QPoint at(pt.x, pt.y);
+    const QPoint              at(pt.x, pt.y);
     postToOwner(owner, [owner, at] { emit owner->pointerPressed(at); });
 }
 

@@ -94,7 +94,7 @@ private:
 /// silence logging -- the fallback is what stops that.
 TEST(LogInit, AnUnknownLevelNameFallsBackToThePassedLevel)
 {
-    ScratchDir scratch("level");
+    ScratchDir                       scratch("level");
     [[maybe_unused]] LogStateRestore release; // the last init() leaves a file sink open over the scratch dir
 
     // No override at all: the caller's level stands.
@@ -119,7 +119,7 @@ TEST(LogInit, AnUnknownLevelNameFallsBackToThePassedLevel)
 /// second, file sink.
 TEST(LogInit, AUsableDirectoryAddsTheFileSink)
 {
-    ScratchDir scratch("good");
+    ScratchDir                       scratch("good");
     [[maybe_unused]] LogStateRestore release;
     lens::log::init(spdlog::level::info, scratch.path());
 
@@ -130,7 +130,7 @@ TEST(LogInit, AUsableDirectoryAddsTheFileSink)
 /// and the program still starts.
 TEST(LogInit, ADirectoryUnderAFileLeavesTheFileSinkOut)
 {
-    ScratchDir scratch("nested");
+    ScratchDir     scratch("nested");
     const fs::path file = scratch.path() / "not-a-dir";
     {
         std::ofstream touch(file);
@@ -147,7 +147,7 @@ TEST(LogInit, ADirectoryUnderAFileLeavesTheFileSinkOut)
 /// that proves the catch around it does its job.
 TEST(LogInit, ALogFileThatCannotBeOpenedLeavesTheFileSinkOut)
 {
-    ScratchDir scratch("blocked");
+    ScratchDir      scratch("blocked");
     std::error_code ec;
     fs::create_directories(scratch.path() / lens::log::kLogFileName, ec);
     ASSERT_FALSE(ec) << "could not block the log file path";

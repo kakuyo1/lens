@@ -65,7 +65,7 @@ QString results(const QString& items)
 }
 
 const QStringList kAskedFor{"ubiquitous"};
-const QString kGoodResult =
+const QString     kGoodResult =
     QStringLiteral(R"({"word":"ubiquitous","ipa":"/juːˈbɪkwɪtəs/","en":"existing everywhere","zh":"无处不在的"})");
 
 /// @brief One OpenRouter-shaped entry: an id plus the modality the source states for it.
@@ -132,7 +132,7 @@ TEST(ParseModelIds, AnswersEmptyForAnythingThatIsNotThatList)
 
     const struct {
         const char* what;
-        QByteArray body;
+        QByteArray  body;
     } cases[] = {
         {"not JSON at all", QByteArrayLiteral("not json at all")},
         {"not an object", QByteArrayLiteral("[1,2,3]")},
@@ -199,7 +199,7 @@ TEST(LlmPureHttpError, NamesEachStatusTheModelServiceCanAnswerWith)
     // round trip. 402 in particular is DeepSeek's out-of-credit code, which is the one failure a
     // reader has to act on rather than retry.
     const struct {
-        int status;
+        int         status;
         const char* phrase;
     } cases[] = {
         {400, "malformed"},
@@ -226,7 +226,7 @@ TEST(LlmPureHttpError, NamesEachStatusTheModelServiceCanAnswerWith)
 
 TEST_F(LlmTest, RequestBodyKeepsTheDeepSeekContract)
 {
-    const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
+    const Config      config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
     const QStringList words{"ubiquitous", "resilience"};
 
     for (const auto lang : {"en", "zh"}) {
@@ -267,7 +267,7 @@ TEST_F(LlmTest, RequestBodyKeepsTheDeepSeekContract)
 TEST_F(LlmTest, AsksForTheEtymologyOnlyWhenAskedAndOnlyOnTheWordChannel)
 {
     const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
-    const auto prompt = [&](Channel channel, const QString& preset, bool etymology) {
+    const auto   prompt = [&](Channel channel, const QString& preset, bool etymology) {
         const auto body =
             QJsonDocument::fromJson(buildRequestBody(config, channel, {"ubiquitous"}, "zh", preset, etymology));
         return body.object().value("messages").toArray().at(0).toObject().value("content").toString();
@@ -418,7 +418,7 @@ TEST_F(LlmTest, RejectsTheWholeBatchOnAnyMalformedResponse)
 {
     const struct {
         const char* what;
-        QByteArray body;
+        QByteArray  body;
     } cases[] = {
         {"finish_reason=length, the JSON was cut off", envelope(kGoodResult, QStringLiteral("length"))},
         {"content is not JSON", envelope(QStringLiteral("not json at all"))},
@@ -457,7 +457,7 @@ TEST_F(LlmTest, AcceptsAWordResponseWithoutIPAForAnAcronym)
 TEST_F(LlmTest, ReadsTokenUsageOffTheEnvelope)
 {
     const QJsonObject usage{{"prompt_tokens", 1200}, {"completion_tokens", 340}, {"total_tokens", 1540}};
-    const QByteArray body = QJsonDocument(QJsonObject{{"usage", usage}}).toJson(QJsonDocument::Compact);
+    const QByteArray  body = QJsonDocument(QJsonObject{{"usage", usage}}).toJson(QJsonDocument::Compact);
 
     const Usage counts = parseUsage(body);
     EXPECT_EQ(counts.promptTokens, 1200);
@@ -478,7 +478,7 @@ TEST_F(LlmTest, TreatsMissingUsageAsZeroRatherThanAFailure)
 TEST_F(LlmTest, TreatsNonNumericUsageAsZero)
 {
     const QJsonObject usage{{"prompt_tokens", QStringLiteral("many")}, {"completion_tokens", QJsonValue::Null}};
-    const QByteArray body = QJsonDocument(QJsonObject{{"usage", usage}}).toJson(QJsonDocument::Compact);
+    const QByteArray  body = QJsonDocument(QJsonObject{{"usage", usage}}).toJson(QJsonDocument::Compact);
 
     const Usage counts = parseUsage(body);
     EXPECT_EQ(counts.promptTokens, 0);

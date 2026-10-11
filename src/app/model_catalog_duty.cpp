@@ -35,7 +35,7 @@ bool ModelCatalogDuty::setProvider(QString const& provider)
     // that has never chosen one counts as a change -- the first pick is one. modelsKnownFor() and
     // modelFollowingProvider() hold the rest of the rule, in model_catalog.h.
     const bool changed = storage_.section().value<std::string>("PROVIDER", {}) != provider.toStdString();
-    auto keys          = storage_.section();
+    auto       keys    = storage_.section();
     keys.set<std::string>("PROVIDER", provider.toStdString());
     keys.set<std::string>("URL", llm_.baseUrl().toString().toStdString());
 
@@ -54,7 +54,7 @@ QStringList ModelCatalogDuty::modelsFor(QString const& provider) const
 {
     // What the source listed for this provider last time wins; the catalog's list is a seed for a
     // machine that has never reached it.
-    auto const served = storage_.section("MODELS").value<std::vector<std::string>>(provider.toStdString(), {});
+    auto const  served = storage_.section("MODELS").value<std::vector<std::string>>(provider.toStdString(), {});
     QStringList listed;
     listed.reserve(static_cast<qsizetype>(served.size()));
     for (const std::string& id : served)
@@ -89,8 +89,8 @@ void ModelCatalogDuty::noteModelsFetched(QStringList models)
     // One answer, several caches: each provider takes the ids its own vendor prefix names, and a
     // provider with no prefix gets no entry at all.
     auto written = storage_.section("MODELS");
-    int filled   = 0;
-    int total    = 0;
+    int  filled  = 0;
+    int  total   = 0;
     for (const auto& value : llm::serviceCatalog().value("providers").toArray()) {
         const auto provider = value.toObject();
         if (not provider.contains("openRouterPrefix")) continue;
@@ -117,20 +117,20 @@ void ModelCatalogDuty::noteModelsFetched(QStringList models)
 QVariantMap ModelCatalogDuty::settings() const
 {
     auto const& catalog = llm::serviceCatalog();
-    auto const model    = llm_.model();
-    auto const pricing  = catalog.value("pricing").toObject();
-    auto const price    = pricing.value("models").toObject().value(model).toObject();
+    auto const  model   = llm_.model();
+    auto const  pricing = catalog.value("pricing").toObject();
+    auto const  price   = pricing.value("models").toObject().value(model).toObject();
     // Spelled in the surface's context, where the four strings below already are: this map is what
     // the settings popup draws, and lupdate reads literal arguments only.
-    auto const priceText = price.isEmpty() ? QCoreApplication::translate("SettingsPopup", "No listed price; recorded cost is zero.")
-                                           : QCoreApplication::translate("SettingsPopup", "Input %1 / Output %2 %3 per %4 tokens").arg(price.value("input").toDouble()).arg(price.value("output").toDouble()).arg(pricing.value("currency").toString()).arg(pricing.value("unit").toInteger());
+    auto const   priceText = price.isEmpty() ? QCoreApplication::translate("SettingsPopup", "No listed price; recorded cost is zero.")
+                                             : QCoreApplication::translate("SettingsPopup", "Input %1 / Output %2 %3 per %4 tokens").arg(price.value("input").toDouble()).arg(price.value("output").toDouble()).arg(pricing.value("currency").toString()).arg(pricing.value("unit").toInteger());
     QVariantList providers;
     for (auto const& value : catalog.value("providers").toArray()) {
-        auto option      = value.toObject().toVariantMap();
-        auto const group = option.value("group").toString();
-        option["group"]  = group == QLatin1String("Domestic")        ? QCoreApplication::translate("SettingsPopup", "Domestic")
-                           : group == QLatin1String("International") ? QCoreApplication::translate("SettingsPopup", "International")
-                                                                     : QCoreApplication::translate("SettingsPopup", "Other");
+        auto       option = value.toObject().toVariantMap();
+        auto const group  = option.value("group").toString();
+        option["group"]   = group == QLatin1String("Domestic")        ? QCoreApplication::translate("SettingsPopup", "Domestic")
+                            : group == QLatin1String("International") ? QCoreApplication::translate("SettingsPopup", "International")
+                                                                      : QCoreApplication::translate("SettingsPopup", "Other");
         if (option.value("value").toString() == QLatin1String("custom")) option["label"] = QCoreApplication::translate("SettingsPopup", "Custom service");
         providers.append(option);
     }

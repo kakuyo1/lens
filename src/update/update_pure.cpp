@@ -17,7 +17,7 @@ namespace {
 /// Both are checked rather than assumed: an address from anywhere else is not this project's
 /// release page, and the reader's card would be opening someone else's page.
 constexpr auto kReleaseHost = "github.com";
-const QString kTagPath      = QStringLiteral("/kakuyo1/lens/releases/tag/");
+const QString  kTagPath     = QStringLiteral("/kakuyo1/lens/releases/tag/");
 
 /// Where this project's release assets are published. A download from `github.com` is only
 /// ever this path: the check asks for a file it names, not for whatever the host serves.
@@ -42,8 +42,8 @@ std::optional<Release> parseReleaseLocation(const QUrl& location)
         return std::nullopt;
     }
 
-    const QString tag  = location.path().mid(kTagPath.size());
-    const auto version = util::parseTag(tag.toStdString());
+    const QString tag     = location.path().mid(kTagPath.size());
+    const auto    version = util::parseTag(tag.toStdString());
     if (not version) {
         LENS_WARN("the release tag is not a plain three-number version; the answer was refused");
         return std::nullopt;
@@ -80,7 +80,7 @@ std::optional<std::string> expectedDigest(const QByteArray& sums, const QString&
     }
 
     std::optional<std::string> found;
-    const QList<QByteArray> lines = sums.split('\n');
+    const QList<QByteArray>    lines = sums.split('\n');
     for (const QByteArray& raw : lines) {
         const QByteArray line = raw.trimmed();
         if (line.isEmpty())

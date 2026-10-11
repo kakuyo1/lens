@@ -267,7 +267,7 @@ TEST(PetStateMachine, EventsCarryNoText)
 
 TEST(PetStateMachine, ThreeMinutesOfQuietYawnsThenSleeps)
 {
-    auto machine       = makeMachine(0.999);
+    auto       machine = makeMachine(0.999);
     auto const elapsed = runUntil(machine, Action::Yawn);
     EXPECT_GE(elapsed, 180s);
     EXPECT_LE(elapsed, 181s);

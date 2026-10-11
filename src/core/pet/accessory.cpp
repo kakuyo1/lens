@@ -40,8 +40,8 @@ std::vector<std::string> Wardrobe::visibleFor(Action action) const
 {
     std::vector<std::string> visible;
     for (auto const& wearing : worn) {
-        auto const& id  = wearing.second;
-        auto const spec = std::find_if(catalogue.begin(), catalogue.end(), [&id](AccessorySpec const& candidate) { return candidate.id == id; });
+        auto const& id   = wearing.second;
+        auto const  spec = std::find_if(catalogue.begin(), catalogue.end(), [&id](AccessorySpec const& candidate) { return candidate.id == id; });
         if (spec == catalogue.end()) continue;
         if (std::find(spec->supportedActions.begin(), spec->supportedActions.end(), action) != spec->supportedActions.end()) {
             visible.push_back(id);

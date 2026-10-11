@@ -56,7 +56,7 @@ int callsMade = 0;
 ///         kDefaultCallCap otherwise.
 int callCap()
 {
-    bool ok         = false;
+    bool      ok    = false;
     const int asked = qEnvironmentVariableIntValue("LENS_SMOKE_MAX_CALLS", &ok);
     return ok && asked > 0 ? asked : kDefaultCallCap;
 }
@@ -102,9 +102,9 @@ TEST(LlmSmoke, OneWordRoundTrip)
 
     LlmClient client(*config);
 
-    QEventLoop loop;
+    QEventLoop                          loop;
     std::optional<QVector<Explanation>> results;
-    QString failure;
+    QString                             failure;
 
     QObject::connect(&client, &LlmClient::batchFinished, [&](const QVector<Explanation>& explained, Usage usage) {
         results = explained;

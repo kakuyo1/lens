@@ -21,8 +21,8 @@ using nlohmann::json;
 
 struct NamedAction {
     std::string_view name;
-    Action action;
-    bool required;
+    Action           action;
+    bool             required;
 };
 
 /// Names as they appear in the data files. Stretch is the only action the first version may leave out (PHASE3 3.1).
@@ -129,7 +129,7 @@ Animations parseAnimations(json const& document)
         throw std::runtime_error("animations: missing actions object");
 
     Animations animations{};
-    bool hasBlink = false;
+    bool       hasBlink = false;
     for (auto const& [name, entry] : document.at("actions").items()) {
         if (name == "blink") {
             animations.blink = parseSpec(entry, name);
@@ -193,7 +193,7 @@ std::vector<AccessorySpec> parseAccessories(json const& document)
         throw std::runtime_error("accessories: missing accessories array");
 
     std::vector<AccessorySpec> catalogue;
-    std::set<std::string> ids;
+    std::set<std::string>      ids;
     for (auto const& entry : document.at("accessories")) {
         if (not entry.is_object() or not entry.contains("id") or not entry.at("id").is_string())
             throw std::runtime_error("accessories: each accessory needs a string id");

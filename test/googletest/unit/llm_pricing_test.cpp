@@ -84,7 +84,7 @@ public:
 private:
     struct Counting final : spdlog::sinks::base_sink<std::mutex> {
         std::vector<std::string> lines;
-        void sink_it_(const spdlog::details::log_msg& msg) override
+        void                     sink_it_(const spdlog::details::log_msg& msg) override
         {
             lines.emplace_back(msg.payload.data(), msg.payload.size());
         }
@@ -122,7 +122,7 @@ TEST(PricingTest, ScalesLinearlyWithTokens)
 TEST(PricingTest, ShowsTheVendorsCurrencyWhenNoDisplayBlockIsGiven)
 {
     const TempPricing plain(R"({"currency":"EUR","unit":1000000,"models":{"m":{"input":1,"output":2}}})");
-    const Pricing pricing = Pricing::load(plain.path);
+    const Pricing     pricing = Pricing::load(plain.path);
 
     EXPECT_EQ(pricing.currency(), QStringLiteral("EUR"));
     EXPECT_DOUBLE_EQ(pricing.cost(QStringLiteral("m"), Usage{1000000, 1000000}), 3.0);
@@ -142,7 +142,7 @@ TEST(PricingTest, CostsAnUnlistedModelAtZeroRatherThanGuessing)
 TEST(PricingTest, AModelTheListDoesNotCarryIsReportedOnceAndNotOnEveryCall)
 {
     const Pricing pricing = Pricing::load(pricingPath());
-    const LogSpy spy;
+    const LogSpy  spy;
 
     for (int call = 0; call < 50; ++call)
         EXPECT_DOUBLE_EQ(pricing.cost(QStringLiteral("no-such-model"), Usage{1000000, 1000000}), 0.0);

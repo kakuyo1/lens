@@ -72,7 +72,7 @@ void ExplanationDuty::onBatchFinished(QVector<llm::Explanation> results, llm::Us
     }
 
     for (int index = 0; index < settlement.resultFor.size(); ++index) {
-        const int answer                 = settlement.resultFor.at(index);
+        const int               answer   = settlement.resultFor.at(index);
         const PendingSelection& selected = settlement.batch.items.at(index);
         if (answer < 0 or not isWordKind(selected.kind))
             continue;
@@ -255,10 +255,10 @@ bool ExplanationDuty::showStored(PendingSelection const& pending, core::CacheCon
 
 void ExplanationDuty::send(ExplanationBatch batch)
 {
-    const PendingSelection& first = batch.items.front();
-    const auto channel            = first.kind == QLatin1String("entity")     ? llm::Channel::Entity
-                                    : first.kind == QLatin1String("sentence") ? llm::Channel::Sentence
-                                                                              : llm::Channel::Word;
+    const PendingSelection& first   = batch.items.front();
+    const auto              channel = first.kind == QLatin1String("entity")     ? llm::Channel::Entity
+                                      : first.kind == QLatin1String("sentence") ? llm::Channel::Sentence
+                                                                                : llm::Channel::Word;
     llm_.setChannel(channel);
     llm_.setExplanationLang(QString::fromStdString(batch.context.language));
     llm_.setPreset(batch.context.multipleSenses ? QStringLiteral("multiple") : first.preset);
@@ -280,7 +280,7 @@ void ExplanationDuty::send(ExplanationBatch batch)
 void ExplanationDuty::sendNext()
 {
     const core::CacheContext now{storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)};
-    auto batch = queue_.take(cost_.canRequest(), now);
+    auto                     batch = queue_.take(cost_.canRequest(), now);
     if (not batch)
         return;
     // A held request comes back out through the cache before it is paid for: the batch that has
@@ -309,7 +309,7 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
                         {"y", selection.anchor.y()}};
     if (isWordKind(selection.kind)) {
         QVariantList senses;
-        auto entries = explanation.senses;
+        auto         entries = explanation.senses;
         if (entries.isEmpty()) entries.push_back({explanation.en, explanation.zh, explanation.translation});
         for (const auto& sense : entries) {
             if (senses.size() >= (context.multipleSenses ? llm::kMaxSenses : 1)) break;

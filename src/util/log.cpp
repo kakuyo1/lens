@@ -1,3 +1,8 @@
+/**
+ * @file log.cpp
+ * @brief Sink setup and the LENS_LOG_LEVEL reader behind util/log.h.
+ */
+
 #include "util/log.h"
 
 #include <spdlog/sinks/rotating_file_sink.h>
@@ -39,7 +44,7 @@ void init(spdlog::level::level_enum level, const std::filesystem::path& logDir)
     std::string fileError;
     if (!logDir.empty()) {
         const std::filesystem::path file = logDir / kLogFileName;
-        std::error_code ec;
+        std::error_code             ec;
         std::filesystem::create_directories(logDir, ec);
 
         if (ec) {

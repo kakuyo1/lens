@@ -26,8 +26,8 @@ using nlohmann::json;
 
 json load(char const* name)
 {
-    auto const path = std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet" / name;
-    auto stream     = std::ifstream{path};
+    auto const path   = std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet" / name;
+    auto       stream = std::ifstream{path};
     EXPECT_TRUE(stream.is_open()) << path.string();
     return json::parse(stream);
 }
@@ -95,7 +95,7 @@ public:
     void replaceIn(std::string const& file, std::string const& from, std::string const& to) const
     {
         auto const where = root_ / file;
-        auto text        = std::string{};
+        auto       text  = std::string{};
         {
             auto in = std::ifstream{where, std::ios::binary};
             text.assign(std::istreambuf_iterator<char>{in}, std::istreambuf_iterator<char>{});

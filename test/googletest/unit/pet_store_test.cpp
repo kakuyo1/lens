@@ -19,18 +19,18 @@ using lens::core::KnownStore;
 
 TEST(PetStore, ScaleFallsBackUntilTheReaderChoosesOne)
 {
-    auto const path = std::filesystem::temp_directory_path() / "lens-pet-store-fallback.json";
-    auto store      = KnownStore::load(path);
-    auto pet        = PetStore{store};
+    auto const path  = std::filesystem::temp_directory_path() / "lens-pet-store-fallback.json";
+    auto       store = KnownStore::load(path);
+    auto       pet   = PetStore{store};
 
     EXPECT_EQ(pet.scale(3), 3);
 }
 
 TEST(PetStore, OutfitReadsBackAsItWasWritten)
 {
-    auto const path = std::filesystem::temp_directory_path() / "lens-pet-store-outfit.json";
-    auto store      = KnownStore::load(path);
-    auto pet        = PetStore{store};
+    auto const path  = std::filesystem::temp_directory_path() / "lens-pet-store-outfit.json";
+    auto       store = KnownStore::load(path);
+    auto       pet   = PetStore{store};
 
     pet.setOutfit(lens::app::pet::Outfit{.head = std::string{"hat"}, .face = std::nullopt, .body = std::nullopt});
 
@@ -42,9 +42,9 @@ TEST(PetStore, OutfitReadsBackAsItWasWritten)
 
 TEST(PetStore, ScaleClampsToTheSliderRange)
 {
-    auto const path = std::filesystem::temp_directory_path() / "lens-pet-store-clamp.json";
-    auto store      = KnownStore::load(path);
-    auto pet        = PetStore{store};
+    auto const path  = std::filesystem::temp_directory_path() / "lens-pet-store-clamp.json";
+    auto       store = KnownStore::load(path);
+    auto       pet   = PetStore{store};
 
     pet.setScale(9);
     EXPECT_EQ(pet.scale(3), kMaxScale);

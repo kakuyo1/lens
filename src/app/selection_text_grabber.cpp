@@ -98,11 +98,11 @@ bool isHandleFormat(UINT format)
 ///         number otherwise.
 std::string formatName(UINT format)
 {
-    wchar_t name[128];
+    wchar_t   name[128];
     const int length = GetClipboardFormatNameW(format, name, static_cast<int>(std::size(name)));
     if (length <= 0) return std::to_string(format);
 
-    char narrow[256];
+    char      narrow[256];
     const int written = WideCharToMultiByte(CP_UTF8, 0, name, length, narrow, sizeof(narrow) - 1, nullptr, nullptr);
     if (written <= 0) return std::to_string(format);
     narrow[written] = '\0';
@@ -137,8 +137,8 @@ std::string foregroundProcessName(HWND window)
     if (process == nullptr) return {};
 
     // A generous buffer because long install paths are real; only the tail is used.
-    wchar_t imagePath[4096];
-    DWORD length = static_cast<DWORD>(std::size(imagePath));
+    wchar_t     imagePath[4096];
+    DWORD       length = static_cast<DWORD>(std::size(imagePath));
     std::string name;
     if (QueryFullProcessImageNameW(process, 0, imagePath, &length) != 0) name = narrow(imagePath);
     CloseHandle(process);
@@ -154,8 +154,8 @@ bool sendCopyKeystroke()
 {
     const bool ctrlHeld = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
 
-    INPUT inputs[4]   = {};
-    std::size_t count = 0;
+    INPUT       inputs[4] = {};
+    std::size_t count     = 0;
     if (!ctrlHeld) {
         inputs[count].type   = INPUT_KEYBOARD;
         inputs[count].ki.wVk = VK_CONTROL;
@@ -186,7 +186,7 @@ bool sendCopyKeystroke()
 bool waitForClipboardChange(DWORD sequenceBefore)
 {
     QEventLoop loop;
-    QTimer poll;
+    QTimer     poll;
     poll.setInterval(kPollIntervalMs);
     QObject::connect(&poll, &QTimer::timeout, &loop, [&loop, sequenceBefore] {
         if (GetClipboardSequenceNumber() != sequenceBefore) loop.quit();
@@ -222,11 +222,11 @@ bool isExcludedProcess(std::string_view executableName)
 {
     // Callers pass whatever the process query returned, and a full image path is the normal
     // case, so match on the last component rather than insisting on a bare name.
-    const std::size_t separator = executableName.find_last_of("\\/");
-    const std::string_view base = separator == std::string_view::npos ? executableName : executableName.substr(separator + 1);
+    const std::size_t      separator = executableName.find_last_of("\\/");
+    const std::string_view base      = separator == std::string_view::npos ? executableName : executableName.substr(separator + 1);
 
     std::string lowered(base);
-    const auto toLower = [](unsigned char c) { return static_cast<char>(std::tolower(c)); };
+    const auto  toLower = [](unsigned char c) { return static_cast<char>(std::tolower(c)); };
     std::transform(lowered.begin(), lowered.end(), lowered.begin(), toLower);
 
     // Exact match, never a substring: a process that merely has "conhost" inside its name is

@@ -1,3 +1,8 @@
+/**
+ * @file stats_store.cpp
+ * @brief Daily tallies of pops, verdicts, and token use, and the lemma export, for stats_store.h.
+ */
+
 #include "core/stats_store.h"
 #include "util/log.h"
 #include "util/text.h"
@@ -129,9 +134,9 @@ void StatsStore::recordUsage(const std::string& minute, long long promptTokens, 
 }
 
 void StatsStore::recordUsage(const std::string& minute,
-                             long long promptTokens,
-                             long long completionTokens,
-                             std::string model)
+                             long long          promptTokens,
+                             long long          completionTokens,
+                             std::string        model)
 {
     if (model.empty())
         model = kLegacyUsageModel;
@@ -188,7 +193,7 @@ std::string exportLemmas(const std::vector<HistoryEntry>& history, ExportScope s
     // One line per lemma, taken at its newest entry -- the same dedup the words popup does,
     // so a word shown twice is one line here as it is one row there.
     std::unordered_set<std::string> seen;
-    std::string text;
+    std::string                     text;
     for (const HistoryEntry& entry : history) {
         if (!seen.insert(entry.lemma).second || !wanted(entry))
             continue;

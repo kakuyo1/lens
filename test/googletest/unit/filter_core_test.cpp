@@ -112,7 +112,7 @@ TEST_F(CoreTest, ReplaysTheSampleCorpus)
         SCOPED_TRACE("corpus #" + std::to_string(index) + " " + item.value("note", std::string()));
 
         const std::string text        = item.at("text").get<std::string>();
-        const auto expect             = item.at("expect").get<std::vector<std::string>>();
+        const auto        expect      = item.at("expect").get<std::vector<std::string>>();
         const std::size_t minFreqRank = item.value("minFreqRank", std::size_t{0});
         const std::string expectKind  = item.value("expectKind", std::string());
 

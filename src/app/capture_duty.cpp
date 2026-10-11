@@ -42,7 +42,7 @@ constexpr int kMaxSelectionChars = 1000;
 std::size_t rankForLevel(int level)
 {
     static constexpr std::size_t kRanks[] = {4000, 9000, 5000, 8000, 8000, 12000, 9000, 12000};
-    constexpr int kLast                   = static_cast<int>(std::size(kRanks)) - 1;
+    constexpr int                kLast    = static_cast<int>(std::size(kRanks)) - 1;
     return kRanks[std::clamp(level, 0, kLast)];
 }
 
@@ -66,10 +66,10 @@ CaptureDuty::CaptureDuty(StorageDuty& storage, MouseSelectionHook& hook, QObject
     : CaptureDuty(storage, hook, capture::makeTesseractOcr(storedTesseractConfig(storage)), parent)
 {}
 
-CaptureDuty::CaptureDuty(StorageDuty& storage,
-                         MouseSelectionHook& hook,
+CaptureDuty::CaptureDuty(StorageDuty&                        storage,
+                         MouseSelectionHook&                 hook,
                          std::unique_ptr<capture::OcrEngine> ocr,
-                         QObject* parent)
+                         QObject*                            parent)
     : QObject(parent), storage_(storage), hook_(hook), grabber_(std::make_unique<SelectionTextGrabber>()),
       ocr_(std::move(ocr)), scan_(capture::makeScanPipeline())
 {
@@ -77,7 +77,7 @@ CaptureDuty::CaptureDuty(StorageDuty& storage,
     connect(&hook_, &MouseSelectionHook::selectionReleased, this, &CaptureDuty::onSelectionReleased);
     connect(&hook_, &MouseSelectionHook::pointerPressed, this, &CaptureDuty::pointerPressed);
 
-    auto const names = settings().value("scanWhitelist").toString().split(';', Qt::SkipEmptyParts);
+    auto const               names = settings().value("scanWhitelist").toString().split(';', Qt::SkipEmptyParts);
     std::vector<std::string> whitelist;
     for (auto const& name : names)
         whitelist.push_back(name.toStdString());
@@ -162,8 +162,8 @@ bool CaptureDuty::setScanWhitelist(QString processes)
     auto const names = processes.split(QRegularExpression{QStringLiteral("[;,\\s]+")}, Qt::SkipEmptyParts);
     if (names.size() > 32) return false;
     static QRegularExpression const executable{QStringLiteral("^[A-Za-z0-9_.-]+\\.exe$"), QRegularExpression::CaseInsensitiveOption};
-    QStringList normalized;
-    std::vector<std::string> whitelist;
+    QStringList                     normalized;
+    std::vector<std::string>        whitelist;
     for (auto const& name : names) {
         if (name.size() > 128 or not executable.match(name).hasMatch()) return false;
         if (normalized.contains(name.toLower())) continue;
@@ -180,7 +180,7 @@ bool CaptureDuty::setScanWhitelist(QString processes)
 void CaptureDuty::setTesseractExecutable(QString executable)
 {
     const QString value = executable.trimmed();
-    auto keys           = storage_.section();
+    auto          keys  = storage_.section();
     if (value.toStdString() == keys.value<std::string>("tesseractExecutable", {})) return;
     keys.set<std::string>("tesseractExecutable", value.toStdString());
     rebuildOcr();
@@ -189,7 +189,7 @@ void CaptureDuty::setTesseractExecutable(QString executable)
 void CaptureDuty::setTesseractDataDirectory(QString directory)
 {
     const QString value = directory.trimmed();
-    auto keys           = storage_.section();
+    auto          keys  = storage_.section();
     if (value.toStdString() == keys.value<std::string>("tesseractDataDirectory", {})) return;
     keys.set<std::string>("tesseractDataDirectory", value.toStdString());
     rebuildOcr();
@@ -354,7 +354,7 @@ void CaptureDuty::scanTick()
 void CaptureDuty::pollOcr()
 {
     if (not job_) return;
-    auto state = job_;
+    auto               state = job_;
     capture::OcrResult result;
     {
         std::lock_guard lock{state->mutex};
@@ -422,7 +422,7 @@ void CaptureDuty::pollOcr()
 
 void CaptureDuty::publishBatch(capture::ScanTime const now, QPoint const anchor)
 {
-    const auto batch = scan_->takeBatch(now);
+    const auto   batch = scan_->takeBatch(now);
     QVariantList words;
     for (auto const& word : batch)
         words.append(QVariantMap{{"kind", QStringLiteral("word")},
@@ -460,7 +460,7 @@ void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const fro
 {
     if (text.size() > kMaxSelectionChars) text = text.left(kMaxSelectionChars) + QStringLiteral("…");
     const core::Selection selection = core::classifySelection(text.toStdString(), storage_.knownStore().known(), minFreqRank());
-    PendingSelection pending{.anchor = anchor, .text = text};
+    PendingSelection      pending{.anchor = anchor, .text = text};
     switch (selection.kind) {
         case core::SelectionKind::Entity:
             pending.kind = QStringLiteral("entity");
@@ -470,7 +470,7 @@ void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const fro
             break;
         case core::SelectionKind::Word: {
             const auto& candidates = selection.candidates;
-            const auto fresh       = std::find_if(candidates.begin(), candidates.end(), [](const core::Candidate& candidate) {
+            const auto  fresh      = std::find_if(candidates.begin(), candidates.end(), [](const core::Candidate& candidate) {
                 return candidate.state == core::CandidateState::New;
             });
             if (candidates.empty()) return;

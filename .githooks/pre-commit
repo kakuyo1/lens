@@ -26,6 +26,8 @@
 # 10. QML size. QML.md section 1 caps a .qml file at 32768 characters.
 # 11. API keys. A key-shaped string in a staged file is refused, and only its line number is
 #     printed, so the hook does not echo the key into the log.
+# 12. Translations. A staged .ts file that still carries an unfinished string has one nobody
+#     translated: lupdate leaves it there, and the goal is zero.
 #
 # Only what this commit touches is checked, which keeps a commit hook under a few seconds. The
 # QML check is the exception, and it is the one that only runs when a .qml file is staged.
@@ -433,6 +435,28 @@ check_api_keys() {
     return $status
 }
 
+# AGENTS.md, Translations: lupdate appends a new string as unfinished, and the goal is zero. A staged
+# .ts file that still carries one has a string nobody has translated.
+check_unfinished() {
+    status=0
+    for file in $staged; do
+        case "$file" in
+            i18n/*.ts) ;;
+            *) continue ;;
+        esac
+        [ -f "$file" ] || continue
+
+        hits=$(grep -nF 'type="unfinished"' "$file" || true)
+        [ -n "$hits" ] || continue
+
+        echo "pre-commit: $file has unfinished translations"
+        printf '%s\n' "$hits" | head -10
+        echo "  translate each one and rerun lrelease (AGENTS.md, Translations)"
+        status=1
+    done
+    return $status
+}
+
 # "fail", not "status": every check below keeps its own running answer in a shell-wide
 # "status", so a dispatcher that used the same name would have an earlier failure wiped out by
 # the next check finishing cleanly. That is not hypothetical -- with "status" here, a document
@@ -450,4 +474,5 @@ check_cjk || fail=1
 check_file_headers || fail=1
 check_qml_size || fail=1
 check_api_keys || fail=1
+check_unfinished || fail=1
 exit $fail

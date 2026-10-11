@@ -49,7 +49,7 @@ protected:
 
 TEST_F(StatsStoreTest, RecordsPopsNewestFirst)
 {
-    auto store = KnownStore::load(path);
+    auto       store = KnownStore::load(path);
     StatsStore stats(store.document());
 
     stats.recordPop("first", "2026-10-03 09:00");
@@ -65,7 +65,7 @@ TEST_F(StatsStoreTest, RecordsPopsNewestFirst)
 
 TEST_F(StatsStoreTest, VerdictAttachesToTheNewestEntryOfThatWord)
 {
-    auto store = KnownStore::load(path);
+    auto       store = KnownStore::load(path);
     StatsStore stats(store.document());
 
     stats.recordPop("apple", "2026-10-03 09:00");
@@ -89,7 +89,7 @@ TEST_F(StatsStoreTest, VerdictAttachesToTheNewestEntryOfThatWord)
 /// counting the word in both columns.
 TEST_F(StatsStoreTest, ReMarkingAWordMovesTheRowAndTheDayCount)
 {
-    auto store = KnownStore::load(path);
+    auto       store = KnownStore::load(path);
     StatsStore stats(store.document());
 
     stats.recordPop("apple", "2026-10-03 09:00");
@@ -113,7 +113,7 @@ TEST_F(StatsStoreTest, ReMarkingAWordMovesTheRowAndTheDayCount)
 
 TEST_F(StatsStoreTest, VerdictWithNoMatchingEntryStillMovesTheDay)
 {
-    auto store = KnownStore::load(path);
+    auto       store = KnownStore::load(path);
     StatsStore stats(store.document());
 
     // The pop may have aged out of the history window; the tally still happened.
@@ -125,7 +125,7 @@ TEST_F(StatsStoreTest, VerdictWithNoMatchingEntryStillMovesTheDay)
 
 TEST_F(StatsStoreTest, UsageLandsOnTheDayItWasSpent)
 {
-    auto store = KnownStore::load(path);
+    auto       store = KnownStore::load(path);
     StatsStore stats(store.document());
 
     stats.recordUsage("2026-10-03 09:00", 1200, 340);
@@ -141,7 +141,7 @@ TEST_F(StatsStoreTest, UsageLandsOnTheDayItWasSpent)
 TEST_F(StatsStoreTest, SurvivesASaveAndReloadThroughKnownStore)
 {
     {
-        auto store = KnownStore::load(path);
+        auto       store = KnownStore::load(path);
         StatsStore stats(store.document());
         stats.recordPop("ubiquitous", "2026-10-03 14:20");
         stats.recordVerdict("ubiquitous", "2026-10-03 14:21", "new");
@@ -149,7 +149,7 @@ TEST_F(StatsStoreTest, SurvivesASaveAndReloadThroughKnownStore)
         store.save(); // the document owner writes everything, stats keys included
     }
 
-    auto reloaded = KnownStore::load(path);
+    auto       reloaded = KnownStore::load(path);
     StatsStore stats(reloaded.document());
 
     ASSERT_EQ(stats.history().size(), 1u);
@@ -197,7 +197,7 @@ TEST_F(StatsStoreTest, RemovingWordClearsMarksCachesAndHistoryButKeepsUsage)
     ASSERT_TRUE(stats.removeLemma("apple"));
     store.save();
 
-    auto reloaded = KnownStore::load(path);
+    auto       reloaded = KnownStore::load(path);
     StatsStore reloadedStats(reloaded.document());
     EXPECT_FALSE(reloaded.isKnown("apple"));
     EXPECT_FALSE(reloaded.cacheGet("apple", {"en", false}));
@@ -219,7 +219,7 @@ TEST_F(StatsStoreTest, DropsTheOldestEntriesPastTheCap)
         history.push_back({{"word", "w" + std::to_string(i - 1)}, {"time", "2026-10-01 00:00"}, {"verdict", ""}});
     std::ofstream(path) << nlohmann::json{{"history", history}}.dump();
 
-    auto store = KnownStore::load(path);
+    auto       store = KnownStore::load(path);
     StatsStore stats(store.document());
     ASSERT_EQ(stats.history().size(), StatsStore::kMaxHistory);
     ASSERT_EQ(stats.history().front().lemma, "w1999") << "newest first";
@@ -289,7 +289,7 @@ TEST_F(StatsStoreTest, IgnoresMalformedEntriesInTheDocument)
         {"daily", nlohmann::json{{"2026-10-03", nlohmann::json{{"pops", 4}}}, {"bad", 7}, {"2026-10-0", nlohmann::json{{"pops", 9}}}}}};
     std::ofstream(path) << doc.dump();
 
-    auto store = KnownStore::load(path);
+    auto       store = KnownStore::load(path);
     StatsStore stats(store.document());
 
     ASSERT_EQ(stats.history().size(), 1u);

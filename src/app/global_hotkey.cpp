@@ -127,7 +127,7 @@ bool GlobalHotkey::apply()
         return false;
     }
     const QKeyCombination combination = keys_[0];
-    const UINT modifiers              = modifiersFor(combination.keyboardModifiers());
+    const UINT            modifiers   = modifiersFor(combination.keyboardModifiers());
     // MOD_NOREPEAT: a held key is one capture, not a stream of them.
     if (RegisterHotKey(nullptr, kHotkeyId, modifiers | MOD_NOREPEAT, virtualKeyFor(combination.key())) == FALSE) {
         LENS_WARN("the trigger '{}' is held by another program (error {})", keys_.toString(QKeySequence::PortableText).toStdString(), GetLastError());

@@ -27,7 +27,7 @@ using core::pet::Action;
 
 struct NamedAction {
     std::string_view name;
-    Action action;
+    Action           action;
 };
 
 /// Names as the data files spell them. Must match core/pet/pet_config.cpp, which parses the same documents.
@@ -96,7 +96,7 @@ std::vector<int> expressionsOf(json const& entry)
 
 PetAssets PetAssets::load(std::filesystem::path const& directory)
 {
-    auto const pet     = readDocument(directory, "pet.json");
+    auto const  pet    = readDocument(directory, "pet.json");
     auto const& layers = pet.at("layers");
 
     PetAssets assets{};

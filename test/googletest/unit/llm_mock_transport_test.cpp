@@ -55,9 +55,9 @@ struct QtApplication {
         : application(argc, argv)
     {}
 
-    int argc      = 1;
-    char name[20] = "lens_gtest_unit";
-    char* argv[2] = {name, nullptr};
+    int              argc     = 1;
+    char             name[20] = "lens_gtest_unit";
+    char*            argv[2]  = {name, nullptr};
     QCoreApplication application;
 };
 
@@ -90,11 +90,11 @@ TEST_F(LlmTest, CompletesEntityAgainstAnOfflineHttpServer)
     client.setChannel(Channel::Entity);
     client.setPreset(QStringLiteral("default"));
 
-    QEventLoop loop;
+    QEventLoop           loop;
     QVector<Explanation> results;
-    Usage usage;
-    QString failure;
-    QTimer timeout;
+    Usage                usage;
+    QString              failure;
+    QTimer               timeout;
     timeout.setSingleShot(true);
     timeout.setInterval(2000);
     QObject::connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
@@ -186,8 +186,8 @@ protected:
     }
 
 private:
-    int status_;
-    QByteArray body_;
+    int                         status_;
+    QByteArray                  body_;
     QNetworkReply::NetworkError error_;
 };
 
@@ -199,7 +199,7 @@ Config stubConfig(const QString& key = QStringLiteral("test-key"))
 /// @brief Run one explainWords() to completion and return the failure it reported, if any.
 QString runToFailure(LlmClient& client, const QStringList& words)
 {
-    QString failure;
+    QString    failure;
     QEventLoop loop;
     QObject::connect(&client, &LlmClient::failed, &loop, [&](QString message) {
         failure = std::move(message);
@@ -218,8 +218,8 @@ QString runToFailure(LlmClient& client, const QStringList& words)
 TEST_F(LlmTest, ReportsANonSuccessStatusWithItsOwnMessage)
 {
     QtApplication qt;
-    StubManager manager(402, QByteArray());
-    LlmClient client(stubConfig(), &manager);
+    StubManager   manager(402, QByteArray());
+    LlmClient     client(stubConfig(), &manager);
 
     const QString failure = runToFailure(client, {QStringLiteral("ubiquitous")});
 
@@ -231,8 +231,8 @@ TEST_F(LlmTest, ReportsANonSuccessStatusWithItsOwnMessage)
 TEST_F(LlmTest, ReportsATransferThatNeverReachedTheService)
 {
     QtApplication qt;
-    StubManager manager(0, QByteArray(), QNetworkReply::ConnectionRefusedError);
-    LlmClient client(stubConfig(), &manager);
+    StubManager   manager(0, QByteArray(), QNetworkReply::ConnectionRefusedError);
+    LlmClient     client(stubConfig(), &manager);
 
     const QString failure = runToFailure(client, {QStringLiteral("ubiquitous")});
 
@@ -243,8 +243,8 @@ TEST_F(LlmTest, ReportsATransferThatNeverReachedTheService)
 TEST_F(LlmTest, RejectsAnEmptyBodyFromASuccessStatus)
 {
     QtApplication qt;
-    StubManager manager(200, QByteArray());
-    LlmClient client(stubConfig(), &manager);
+    StubManager   manager(200, QByteArray());
+    LlmClient     client(stubConfig(), &manager);
 
     const QString failure = runToFailure(client, {QStringLiteral("ubiquitous")});
 
@@ -256,8 +256,8 @@ TEST_F(LlmTest, RejectsAnEmptyBodyFromASuccessStatus)
 TEST_F(LlmTest, ReportsATransportFailureEvenWhenTheReplyHasA200Status)
 {
     QtApplication qt;
-    StubManager manager(200, QByteArray(), QNetworkReply::UnknownNetworkError);
-    LlmClient client(stubConfig(), &manager);
+    StubManager   manager(200, QByteArray(), QNetworkReply::UnknownNetworkError);
+    LlmClient     client(stubConfig(), &manager);
 
     const QString failure = runToFailure(client, {QStringLiteral("ubiquitous")});
 
@@ -270,8 +270,8 @@ TEST_F(LlmTest, ReportsATransportFailureEvenWhenTheReplyHasA200Status)
 TEST_F(LlmTest, TruncatesAnOverlongBatchToTheContractCap)
 {
     QtApplication qt;
-    StubManager manager(402, QByteArray());
-    LlmClient client(stubConfig(), &manager);
+    StubManager   manager(402, QByteArray());
+    LlmClient     client(stubConfig(), &manager);
 
     QStringList words;
     for (int i = 0; i < 21; ++i)
@@ -287,8 +287,8 @@ TEST_F(LlmTest, TruncatesAnOverlongBatchToTheContractCap)
 TEST_F(LlmTest, RefusesAnEmptyBatchWithoutPosting)
 {
     QtApplication qt;
-    StubManager manager(200, QByteArray());
-    LlmClient client(stubConfig(), &manager);
+    StubManager   manager(200, QByteArray());
+    LlmClient     client(stubConfig(), &manager);
 
     QString failure;
     QObject::connect(&client, &LlmClient::failed, [&](QString message) { failure = message; });
@@ -303,8 +303,8 @@ TEST_F(LlmTest, RefusesAnEmptyBatchWithoutPosting)
 TEST_F(LlmTest, RefusesToPostWithoutAnApiKey)
 {
     QtApplication qt;
-    StubManager manager(200, QByteArray());
-    LlmClient client(stubConfig(QString()), &manager);
+    StubManager   manager(200, QByteArray());
+    LlmClient     client(stubConfig(QString()), &manager);
 
     QString failure;
     QObject::connect(&client, &LlmClient::failed, [&](QString message) { failure = message; });

@@ -1,3 +1,8 @@
+/**
+ * @file llm_pure.cpp
+ * @brief Prompt rendering, response checks, and usage parsing behind llm_pure.h, with no network.
+ */
+
 #include "llm_pure.h"
 
 #include <QCoreApplication>
@@ -143,12 +148,12 @@ QString maskSensitive(const QString& text)
     return masked;
 }
 
-QByteArray buildRequestBody(const Config& config,
-                            Channel channel,
+QByteArray buildRequestBody(const Config&      config,
+                            Channel            channel,
                             const QStringList& inputs,
-                            const QString& explanationLang,
-                            const QString& preset,
-                            bool const etymology)
+                            const QString&     explanationLang,
+                            const QString&     preset,
+                            bool const         etymology)
 {
     const RequestTemplate& tmpl = requestTemplate(channel);
 
@@ -189,11 +194,11 @@ QByteArray buildRequestBody(const Config& config,
     return QJsonDocument(body).toJson(QJsonDocument::Compact);
 }
 
-std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
-                                                              const QByteArray& responseBody,
+std::variant<QVector<Explanation>, QString> parseExplanations(Channel            channel,
+                                                              const QByteArray&  responseBody,
                                                               const QStringList& expectedInputs,
-                                                              QString const& explanationLang,
-                                                              bool const multipleSenses)
+                                                              QString const&     explanationLang,
+                                                              bool const         multipleSenses)
 {
     using Result = std::variant<QVector<Explanation>, QString>;
 
@@ -214,7 +219,7 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
         return reject(QCoreApplication::translate("lens::llm",
                                                   "The model's answer carries no choices."));
 
-    const auto choice    = choices.at(0).toObject();
+    const auto    choice = choices.at(0).toObject();
     const QString finish = choice.value("finish_reason").toString();
     // Only "stop" means the model finished on its own. "length" means the JSON was cut off
     // mid-way, which no amount of parsing can repair.
@@ -227,7 +232,7 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
                                    : finish));
 
     const QString content = choice.value("message").toObject().value("content").toString();
-    const auto payload    = QJsonDocument::fromJson(extractJsonObject(content));
+    const auto    payload = QJsonDocument::fromJson(extractJsonObject(content));
     if (!payload.isObject())
         return reject(QCoreApplication::translate("lens::llm",
                                                   "The model's answer is not valid JSON."));
@@ -238,7 +243,7 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
             "lens::llm", "The model's answer has no results array."));
 
     // Presence is gated on the response schema, so adding a required field is a data edit.
-    const bool isWord        = channel == Channel::Word;
+    const bool    isWord     = channel == Channel::Word;
     const QString titleField = isWord ? QStringLiteral("word") : QStringLiteral("title");
 
     QVector<Explanation> parsed;
@@ -401,7 +406,7 @@ QStringList parseModelIds(QByteArray const& body)
 QStringList idsForPrefix(QStringList const& ids, QString const& prefix)
 {
     if (prefix.isEmpty()) return ids;
-    const auto marker = prefix + QLatin1Char('/');
+    const auto  marker = prefix + QLatin1Char('/');
     QStringList matched;
     for (const auto& id : ids) {
         if (not id.startsWith(marker)) continue;

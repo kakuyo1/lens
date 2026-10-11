@@ -38,9 +38,9 @@ struct CostDutyTest : ::testing::Test {
 };
 
 struct QtApplication {
-    int argc      = 1;
-    char name[24] = "cost_duty_test";
-    char* argv[2] = {name, nullptr};
+    int              argc     = 1;
+    char             name[24] = "cost_duty_test";
+    char*            argv[2]  = {name, nullptr};
     QCoreApplication application{argc, argv};
 };
 
@@ -69,7 +69,7 @@ TEST(CostBudget, ReachesOnlyPositiveLimitsAtTheBoundary)
 TEST_F(CostDutyTest, PersistsNumericBudgetAndKeepsUnknownDocumentKeys)
 {
     QtApplication qt;
-    auto store                          = KnownStore::load(path);
+    auto          store                 = KnownStore::load(path);
     store.document()["API-KEY"]         = "secret-is-not-a-log";
     store.document()["futureKey"]       = nlohmann::json{{"keep", true}};
     store.document()["dragSensitivity"] = "reluctant";
@@ -100,14 +100,14 @@ TEST_F(CostDutyTest, PersistsNumericBudgetAndKeepsUnknownDocumentKeys)
 
 TEST_F(CostDutyTest, PersistsAnimationPreferenceAsABooleanAndDefaultsToEnabled)
 {
-    QtApplication qt;
-    auto store = KnownStore::load(path);
+    QtApplication          qt;
+    auto                   store = KnownStore::load(path);
     lens::app::StorageDuty storage{store};
 
     EXPECT_TRUE(storage.section().value<bool>("animationsEnabled", true));
     storage.section().set<bool>("animationsEnabled", false);
 
-    auto reloaded = KnownStore::load(path);
+    auto                   reloaded = KnownStore::load(path);
     lens::app::StorageDuty reloadedStorage{reloaded};
     EXPECT_FALSE(reloadedStorage.section().value<bool>("animationsEnabled", true));
     EXPECT_TRUE(reloaded.document().at("animationsEnabled").is_boolean());
@@ -116,7 +116,7 @@ TEST_F(CostDutyTest, PersistsAnimationPreferenceAsABooleanAndDefaultsToEnabled)
 TEST_F(CostDutyTest, MigratesLegacyDailyTokensToOneDeterministicBucket)
 {
     QtApplication qt;
-    auto store                = KnownStore::load(path);
+    auto          store       = KnownStore::load(path);
     store.document()["daily"] = nlohmann::json{{"2026-10-06", {{"promptTokens", 1200}, {"completionTokens", 340}}}};
     StatsStore stats(store.document());
 
@@ -129,15 +129,15 @@ TEST_F(CostDutyTest, MigratesLegacyDailyTokensToOneDeterministicBucket)
 TEST_F(CostDutyTest, AttributesEachResponseToItsCapturedModel)
 {
     QtApplication qt;
-    auto store = KnownStore::load(path);
-    StatsStore stats(store.document());
+    auto          store = KnownStore::load(path);
+    StatsStore    stats(store.document());
     stats.setDailyBudget(0.000001);
     stats.recordUsage("2026-10-06 09:00", 1000000, 0, "deepseek-flash");
     stats.recordUsage("2026-10-06 09:01", 1000000, 0, "gpt-4.1-nano");
 
     lens::llm::LlmClient llm({QUrl{}, {}, QStringLiteral("gpt-4.1-nano")});
-    CostDuty duty(stats, llm, pricing(), [] { return testDate(); });
-    const double expected = pricing().cost("deepseek-flash", {1000000, 0, "deepseek-flash"}) + pricing().cost("gpt-4.1-nano", {1000000, 0, "gpt-4.1-nano"});
+    CostDuty             duty(stats, llm, pricing(), [] { return testDate(); });
+    const double         expected = pricing().cost("deepseek-flash", {1000000, 0, "deepseek-flash"}) + pricing().cost("gpt-4.1-nano", {1000000, 0, "gpt-4.1-nano"});
 
     EXPECT_DOUBLE_EQ(duty.budgetStatus().spent, expected);
     llm.setModel(QStringLiteral("deepseek-v4-pro"));
@@ -147,14 +147,14 @@ TEST_F(CostDutyTest, AttributesEachResponseToItsCapturedModel)
 TEST_F(CostDutyTest, ExactSpendPausesUntilTheNextDayAndBudgetRaiseRecovers)
 {
     QtApplication qt;
-    auto store = KnownStore::load(path);
-    StatsStore stats(store.document());
+    auto          store = KnownStore::load(path);
+    StatsStore    stats(store.document());
     stats.setDailyBudget(0.01);
     stats.recordUsage("2026-10-06 09:00", 20000, 0, "deepseek-flash");
 
-    QDate date = testDate();
+    QDate                date = testDate();
     lens::llm::LlmClient llm({QUrl{}, {}, QStringLiteral("deepseek-flash")});
-    CostDuty duty(stats, llm, pricing(), [&date] { return date; });
+    CostDuty             duty(stats, llm, pricing(), [&date] { return date; });
     ASSERT_TRUE(duty.budgetStatus().exhausted);
     EXPECT_FALSE(duty.canRequest());
     EXPECT_FALSE(duty.canScan());
