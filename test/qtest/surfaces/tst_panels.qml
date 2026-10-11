@@ -346,7 +346,7 @@ Item {
 
             // The Controller is shared by every case in the run, so put the word back where the
             // case found it rather than leaving the fixture settled the other way.
-            Controller.mark(word, true);
+            Controller.explanationDuty.mark(word, true);
         }
 
         /// @return The window the question is drawn in. It is a window of its own rather than a

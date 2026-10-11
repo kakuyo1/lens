@@ -133,7 +133,7 @@ Item {
             const main = make();
             const bar = panel(main, "SelectionBar");
             const originalMinimum = Controller.settings.minimumWordLength;
-            Controller.setMinimumWordLength(4);
+            Controller.captureDuty.setMinimumWordLength(4);
 
             Controller.selectionBarRequested({ x: 300, y: 300, kind: "word", text: "abc", letterCount: 3 });
             wait(20);
@@ -152,7 +152,7 @@ Item {
             tryCompare(bar, "visible", true);
             compare(bar.selectionText, "words");
             bar.visible = false;
-            Controller.setMinimumWordLength(originalMinimum);
+            Controller.captureDuty.setMinimumWordLength(originalMinimum);
         }
 
         /// The menu and the two panels the statistics panel drills into all go through the same

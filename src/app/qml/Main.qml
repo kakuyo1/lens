@@ -427,8 +427,21 @@ Window {
             });
         }
 
+        function onCaptureMaskRequested() {
+            mask.open();
+        }
+
+        function onPointerPressed(at) {
+            ++root.selectionBarGeneration;
+            root.dismissOutside(root.toDip(at));
+        }
+    }
+
+    Connections {
+        target: Controller.explanationDuty
+
         function onBubbleChanged() {
-            const payload = Controller.bubble;
+            const payload = Controller.explanationDuty.bubble;
             if (payload && Object.keys(payload).length > 0) {
                 const at = root.toDip(payload);
                 bubble.show(at);
@@ -438,21 +451,12 @@ Window {
             }
         }
 
-        function onCaptureMaskRequested() {
-            mask.open();
-        }
-
         function onNoticeChanged() {
-            const payload = Controller.notice;
+            const payload = Controller.explanationDuty.notice;
             if (payload && Object.keys(payload).length > 0)
                 notice.show(payload);
             else
                 notice.visible = false;
-        }
-
-        function onPointerPressed(at) {
-            ++root.selectionBarGeneration;
-            root.dismissOutside(root.toDip(at));
         }
     }
 

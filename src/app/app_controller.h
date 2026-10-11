@@ -82,12 +82,6 @@ public:
     void onSelectionReleased(QPoint anchor);
 
     Q_INVOKABLE QPoint cursorPos() const;
-    Q_INVOKABLE void runSelectionAction(QString action, QString text);
-    Q_INVOKABLE void mark(QString lemma, bool learned);
-    Q_INVOKABLE void setAutoScan(bool on);
-    Q_INVOKABLE void setOcrCapture(bool on);
-    Q_INVOKABLE void setMinimumWordLength(int length);
-    Q_INVOKABLE bool setScanWhitelist(QString processes);
     /// @param executable File the reader picked in the system's dialog; C++ takes the local path.
     Q_INVOKABLE void setTesseractExecutable(QUrl executable);
     /// @param directory Folder the reader picked in the system's dialog; C++ takes the local path.
@@ -104,14 +98,10 @@ public:
     Q_INVOKABLE void setSelectionCapture(bool on);
     Q_INVOKABLE void setApiKey(QString key);
     Q_INVOKABLE void setClipboardPolicy(QString policy);
-    Q_INVOKABLE void setProvider(QString provider);
-    Q_INVOKABLE void refreshModels();
     Q_INVOKABLE void setModel(QString model);
     Q_INVOKABLE void setApiUrl(QString url);
     Q_INVOKABLE void setAutostart(bool on);
     Q_INVOKABLE void bubbleHoverChanged(bool hovering);
-    Q_INVOKABLE void dismissBubble();
-    Q_INVOKABLE void dismissNotice();
     /**
      * @brief Record the trigger combination the reader pressed in the settings field.
      * @param key       Qt key code of the key that was not a modifier.
@@ -125,8 +115,6 @@ public:
     /// @brief Show the explanation already stored for a word the reader pointed at, if there is one.
     /// @param x,y Where the row is, in the physical pixels the mouse hook reports.
     Q_INVOKABLE void reviewWord(QString lemma, int x, int y);
-    /// @brief Take down a bubble the word list raised; a bubble from anywhere else is left alone.
-    Q_INVOKABLE void dismissReview();
     /// @brief Ask the model about a lemma the reader asked for by name, anchored where it was read.
     Q_INVOKABLE void explainLemma(QString lemma);
     /// @brief Capture a region the reader dragged on the mask.
@@ -138,15 +126,10 @@ public:
     Q_INVOKABLE bool setDailyBudget(double amount);
     void checkForUpdatesAtStartup();
 
-    QVariantMap bubble() const;
-    QVariantMap notice() const;
     /// @note Not const, and the only projection that is not: reading a document key goes through a
     ///       section, which is a writable view. Every other dependency is borrowed by reference and
     ///       this one is owned, which is what makes the difference; see docs/adr/0024.
     QVariantMap settings();
-    /// @brief The models the provider in force carries. Its own property, not a key of settings():
-    ///        see ModelCatalogDuty::models() for why the list is kept out of that map.
-    QVariantList models() const;
     QVariantMap stats() const;
     QVariantList words() const;
     /// @brief The last 365 local dates, including zero-use days, for the annual words surface.
@@ -154,19 +137,25 @@ public:
     QVariantMap cost() const;
     /// @brief The update duty, which QML reads as `Controller.updateDuty`; the facade owns it.
     UpdateDuty* updateDuty();
+    /// @brief The explanation duty, which QML reads as `Controller.explanationDuty`; the facade owns it.
+    ExplanationDuty* explanationDuty();
+    /// @brief The capture duty, which QML reads as `Controller.captureDuty`; the facade owns it.
+    CaptureDuty* captureDuty();
+    /// @brief The model catalogue, which QML reads as `Controller.modelCatalogDuty`; the facade owns it.
+    ModelCatalogDuty* modelCatalogDuty();
     QString modeLabel() const;
     QString busyLabel() const;
     double dailyBudget() const;
 
-    Q_PROPERTY(QVariantMap bubble READ bubble NOTIFY bubbleChanged)
-    Q_PROPERTY(QVariantMap notice READ notice NOTIFY noticeChanged)
     Q_PROPERTY(QVariantMap settings READ settings NOTIFY settingsChanged)
-    Q_PROPERTY(QVariantList models READ models NOTIFY modelsChanged)
     Q_PROPERTY(QVariantMap stats READ stats NOTIFY statsChanged)
     Q_PROPERTY(QVariantList words READ words NOTIFY statsChanged)
     Q_PROPERTY(QVariantList yearDays READ yearDays NOTIFY yearDaysChanged)
     Q_PROPERTY(QVariantMap cost READ cost NOTIFY statsChanged)
     Q_PROPERTY(lens::app::UpdateDuty* updateDuty READ updateDuty CONSTANT)
+    Q_PROPERTY(lens::app::ExplanationDuty* explanationDuty READ explanationDuty CONSTANT)
+    Q_PROPERTY(lens::app::CaptureDuty* captureDuty READ captureDuty CONSTANT)
+    Q_PROPERTY(lens::app::ModelCatalogDuty* modelCatalogDuty READ modelCatalogDuty CONSTANT)
     Q_PROPERTY(QString modeLabel READ modeLabel NOTIFY settingsChanged)
     Q_PROPERTY(QString busyLabel READ busyLabel NOTIFY busyChanged)
     Q_PROPERTY(double dailyBudget READ dailyBudget NOTIFY dailyBudgetChanged)
@@ -178,11 +167,7 @@ signals:
     void pointerPressed(QPoint at);
     /// @brief The trigger key was pressed and OCR can run: put the capture mask up.
     void captureMaskRequested();
-    void bubbleChanged();
-    void noticeChanged();
     void settingsChanged();
-    /// @brief The provider in force carries a different list of models than it did.
-    void modelsChanged();
     void statsChanged();
     void yearDaysChanged();
     void busyChanged();

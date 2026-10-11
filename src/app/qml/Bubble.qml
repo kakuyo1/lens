@@ -12,7 +12,7 @@ import QtQuick.Effects
  * so one hanging under the text and the other over it read as two unrelated things landing
  * wherever they liked. The countdown lives here
  * rather than in the controller: it is the view's behaviour, and hovering is what pauses it.
- * It never takes focus, so clicking 已会 or 新词 does not change which application the next
+ * It never takes focus, so clicking Known or New does not change which application the next
  * injected Ctrl+C would go to.
  */
 Window {
@@ -67,7 +67,7 @@ Window {
     /// coordinates. Nothing in the application reads them: they are what TODO.md's hover jitter
     /// needs before it can be told a real exit from something else moving `visible`, and there is
     /// no QML-to-log path in this tree that is not a probe -- so the sighting is read off these
-    /// two under a debugger instead. See TODO.md "定位气泡 hover 抖动".
+    /// two under a debugger instead. See TODO.md, the bubble-hover jitter item.
     property point lastHoverCursor: Qt.point(0, 0)
     property rect lastHoverCard: Qt.rect(0, 0, 0, 0)
 
@@ -150,7 +150,7 @@ Window {
         // It ticks finer than the second it displays and subtracts, rather than being the whole
         // dismissal in one shot: stopping and starting a timer begins a fresh interval, so a tick
         // as long as the display would swallow up to a second of the clock on every hover, and
-        // the hover this bubble sees arrives in bursts (TODO.md, "定位气泡 hover 抖动").
+        // the hover this bubble sees arrives in bursts (TODO.md, the bubble-hover jitter item).
         interval: 100
         repeat: true
         onTriggered: {
@@ -158,7 +158,7 @@ Window {
             if (bubble.remainingMs <= 0) {
                 stop();
                 bubble.visible = false;
-                Controller.dismissBubble();
+                Controller.explanationDuty.dismissBubble();
             }
         }
     }
@@ -252,7 +252,7 @@ Window {
                 onHoveredChanged: {
                     // Both readings, every flip: a real exit and something else moving `visible`
                     // look the same in the log the controller keeps, and these two are what tells
-                    // them apart (TODO.md, "定位气泡 hover 抖动").
+                    // them apart (TODO.md, the bubble-hover jitter item).
                     bubble.lastHoverCursor = Controller.cursorPos();
                     const at = card.mapToGlobal(0, 0);
                     bubble.lastHoverCard = Qt.rect(at.x, at.y, card.width, card.height);
@@ -286,7 +286,7 @@ Window {
                     onTapped: {
                         countdown.stop();
                         bubble.visible = false;
-                        Controller.dismissBubble();
+                        Controller.explanationDuty.dismissBubble();
                     }
                 }
             }
@@ -554,7 +554,7 @@ Window {
                             HoverHandler { cursorShape: Qt.PointingHandCursor }
                             TapHandler {
                                 id: knownTap
-                                onTapped: Controller.mark(bubble.title, true)
+                                onTapped: Controller.explanationDuty.mark(bubble.title, true)
                             }
                         }
 
@@ -581,7 +581,7 @@ Window {
                             HoverHandler { cursorShape: Qt.PointingHandCursor }
                             TapHandler {
                                 id: newTap
-                                onTapped: Controller.mark(bubble.title, false)
+                                onTapped: Controller.explanationDuty.mark(bubble.title, false)
                             }
                         }
                     }

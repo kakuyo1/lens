@@ -34,9 +34,9 @@ Item {
             Controller.setUiLanguage("zh");
             Controller.setSelectionCapture(true);
             Controller.setClipboardPolicy("topmost");
-            Controller.setProvider("DeepSeek");
+            Controller.modelCatalogDuty.setProvider("DeepSeek");
             Controller.setModel("deepseek-flash");
-            Controller.setAutoScan(false);
+            Controller.captureDuty.setAutoScan(false);
         }
 
         function settingsPanel(main) {
@@ -85,7 +85,7 @@ Item {
             Controller.setAnimationsEnabled(false);
             Controller.setSelectionCapture(false);
             Controller.setClipboardPolicy("silent");
-            Controller.setAutoScan(true);
+            Controller.captureDuty.setAutoScan(true);
             wait(20);
 
             const defaults = Util.textWith(Util.textsUnder(panel), ["Defaults"]);

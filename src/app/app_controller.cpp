@@ -67,10 +67,7 @@ AppController::AppController(core::KnownStore& store,
     });
     connect(&capture_, &CaptureDuty::screenshotFailed, this, &AppController::reportCaptureRefusal);
     connect(&capture_, &CaptureDuty::settingsChanged, this, &AppController::settingsChanged);
-    connect(&explanation_, &ExplanationDuty::bubbleChanged, this, &AppController::bubbleChanged);
-    connect(&explanation_, &ExplanationDuty::noticeChanged, this, &AppController::noticeChanged);
     connect(&catalog_, &ModelCatalogDuty::settingsChanged, this, &AppController::settingsChanged);
-    connect(&catalog_, &ModelCatalogDuty::modelsChanged, this, &AppController::modelsChanged);
     connect(&explanation_, &ExplanationDuty::busyChanged, this, [this] {
         refreshCaptureGates();
         emit busyChanged();
@@ -159,36 +156,6 @@ void AppController::onSelectionReleased(QPoint anchor)
 QPoint AppController::cursorPos() const
 {
     return QCursor::pos();
-}
-
-void AppController::runSelectionAction(QString action, QString text)
-{
-    explanation_.runSelectionAction(std::move(action), std::move(text));
-}
-
-void AppController::mark(QString lemma, bool learned)
-{
-    explanation_.mark(std::move(lemma), learned);
-}
-
-void AppController::setAutoScan(bool on)
-{
-    capture_.setAutoScan(on);
-}
-
-void AppController::setOcrCapture(bool on)
-{
-    capture_.setOcrCapture(on);
-}
-
-void AppController::setMinimumWordLength(int length)
-{
-    capture_.setMinimumWordLength(length);
-}
-
-bool AppController::setScanWhitelist(QString processes)
-{
-    return capture_.setScanWhitelist(std::move(processes));
 }
 
 void AppController::setTesseractExecutable(QUrl executable)
@@ -366,18 +333,6 @@ void AppController::setClipboardPolicy(QString policy)
     emit settingsChanged();
 }
 
-void AppController::setProvider(QString provider)
-{
-    // No emit here: the duty announces the change itself, and it is the one that also hears the
-    // model list arriving later.
-    catalog_.setProvider(std::move(provider));
-}
-
-void AppController::refreshModels()
-{
-    catalog_.refreshModels();
-}
-
 void AppController::setModel(QString model)
 {
     if (catalog_.setModel(model))
@@ -411,24 +366,9 @@ void AppController::bubbleHoverChanged(bool hovering)
     LENS_TRACE("bubble hover {}", hovering);
 }
 
-void AppController::dismissBubble()
-{
-    explanation_.dismissBubble();
-}
-
-void AppController::dismissNotice()
-{
-    explanation_.dismissNotice();
-}
-
 void AppController::reviewWord(QString lemma, int x, int y)
 {
     explanation_.reviewWord(std::move(lemma), QPoint(x, y));
-}
-
-void AppController::dismissReview()
-{
-    explanation_.dismissReview();
 }
 
 void AppController::explainLemma(QString lemma)
@@ -440,16 +380,6 @@ void AppController::explainLemma(QString lemma)
         return;
     }
     explanation_.explainLemma(std::move(lemma));
-}
-
-QVariantMap AppController::bubble() const
-{
-    return explanation_.bubble();
-}
-
-QVariantMap AppController::notice() const
-{
-    return explanation_.notice();
 }
 
 QVariantMap AppController::settings()
@@ -482,11 +412,6 @@ QVariantMap AppController::settings()
     for (auto it = explanationSettings.cbegin(); it != explanationSettings.cend(); ++it)
         result.insert(it.key(), it.value());
     return result;
-}
-
-QVariantList AppController::models() const
-{
-    return catalog_.models();
 }
 
 QVariantMap AppController::stats() const
@@ -605,7 +530,6 @@ bool AppController::removeWord(QString lemma)
     if (removed) {
         emit statsChanged();
         emit yearDaysChanged();
-        emit bubbleChanged();
     }
     return removed;
 }
@@ -623,6 +547,21 @@ void AppController::checkForUpdatesAtStartup()
 UpdateDuty* AppController::updateDuty()
 {
     return &updateDuty_;
+}
+
+ExplanationDuty* AppController::explanationDuty()
+{
+    return &explanation_;
+}
+
+CaptureDuty* AppController::captureDuty()
+{
+    return &capture_;
+}
+
+ModelCatalogDuty* AppController::modelCatalogDuty()
+{
+    return &catalog_;
 }
 
 QString AppController::modeLabel() const

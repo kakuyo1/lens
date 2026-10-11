@@ -5,6 +5,7 @@
 #include <QStringList>
 #include <QVariantList>
 #include <QVariantMap>
+#include <QtQml/qqmlregistration.h>
 
 #include "llm/llm_client.h"
 #include "storage_duty.h"
@@ -22,13 +23,15 @@ namespace lens::app {
 
 class ModelCatalogDuty final : public QObject {
     Q_OBJECT
+    QML_ANONYMOUS
+    QML_UNCREATABLE("Owned by Controller; reached as Controller.modelCatalogDuty")
 public:
     /// @brief Bind the catalogue to the document that stores the reader's choice and to the client
     ///        that choice is applied to.
     ModelCatalogDuty(StorageDuty& storage, llm::LlmClient& llm, QObject* parent = nullptr);
 
     /// @brief Ask the shared model source for the whole catalogue.
-    void refreshModels();
+    Q_INVOKABLE void refreshModels();
 
     /// @return The provider in force, from the document, or the catalog's default when none is
     ///         stored. Public because the facade reads the same key to restore the wire options,
@@ -55,7 +58,7 @@ public:
     /// message names nothing, and the service is the only thing the reader meant to choose. The
     /// list fetched last time wins over the catalog's, and asking for a fresh one happens here too
     /// -- it costs nothing. @return False for an unknown provider.
-    bool setProvider(QString const& provider);
+    Q_INVOKABLE bool setProvider(QString const& provider);
 
     /// @brief Put a model in force, whatever the service in hand lists.
     /// @return False for a name that is nothing but whitespace, which is not a model.
@@ -63,6 +66,8 @@ public:
     ///       deployment or a name the source has never listed can be asked for by hand
     ///       (docs/adr/0017).
     bool setModel(QString const& model);
+
+    Q_PROPERTY(QVariantList models READ models NOTIFY modelsChanged)
 
 signals:
     /// @brief Something the settings page reads has changed: the service or the model.

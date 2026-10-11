@@ -12,6 +12,7 @@
 #include <QTimer>
 #include <QVariantList>
 #include <QVariantMap>
+#include <QtQml/qqmlregistration.h>
 
 #include <atomic>
 #include <memory>
@@ -39,6 +40,8 @@ struct PendingSelection {
 
 class CaptureDuty final : public QObject {
     Q_OBJECT
+    QML_ANONYMOUS
+    QML_UNCREATABLE("Owned by Controller; reached as Controller.captureDuty")
 public:
     CaptureDuty(StorageDuty& storage, MouseSelectionHook& hook, QObject* parent = nullptr);
     CaptureDuty(StorageDuty& storage,

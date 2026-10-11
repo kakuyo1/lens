@@ -81,7 +81,7 @@ Window {
     /// neither is a review bubble: the pointer left the panel, whatever it is doing now.
     onVisibleChanged: if (!visible) {
         closeChild();
-        Controller.dismissReview();
+        Controller.explanationDuty.dismissReview();
     }
 
     /**
@@ -355,7 +355,7 @@ Window {
                         /// a bubble it raised must not outlive it. It is the pointer leaving the
                         /// row in every sense but the event: a destroyed delegate reports no
                         /// un-hover.
-                        Component.onDestruction: Controller.dismissReview()
+                        Component.onDestruction: Controller.explanationDuty.dismissReview()
 
                         Text {
                             id: wordText
@@ -385,7 +385,7 @@ Window {
                                         return;
                                     }
                                     reviewDwell.stop();
-                                    Controller.dismissReview();
+                                    Controller.explanationDuty.dismissReview();
                                 }
                             }
                         }
@@ -458,7 +458,7 @@ Window {
                                     HoverHandler { cursorShape: Qt.PointingHandCursor }
                                     TapHandler {
                                         id: knownTap
-                                        onTapped: Controller.mark(entry.modelData.word, true)
+                                        onTapped: Controller.explanationDuty.mark(entry.modelData.word, true)
                                     }
                                 }
 
@@ -492,7 +492,7 @@ Window {
                                     HoverHandler { cursorShape: Qt.PointingHandCursor }
                                     TapHandler {
                                         id: newTap
-                                        onTapped: Controller.mark(entry.modelData.word, false)
+                                        onTapped: Controller.explanationDuty.mark(entry.modelData.word, false)
                                     }
                                 }
                             }

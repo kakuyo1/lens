@@ -51,7 +51,7 @@ Item {
                         label: qsTranslate("SettingsPopup", "OCR")
                         checked: Controller.settings.ocrCapture
                         interactive: Controller.settings.ocrAvailable
-                        onToggled: (on) => Controller.setOcrCapture(on)
+                        onToggled: (on) => Controller.captureDuty.setOcrCapture(on)
                     }
                     SwitchRow {
                         objectName: "autoScan"
@@ -59,7 +59,7 @@ Item {
                         label: qsTranslate("SettingsPopup", "Auto scan")
                         checked: Controller.settings.autoScan
                         interactive: Controller.settings.ocrAvailable
-                        onToggled: (on) => Controller.setAutoScan(on)
+                        onToggled: (on) => Controller.captureDuty.setAutoScan(on)
                     }
                 }
             }
@@ -156,7 +156,7 @@ Item {
                     {value: 5, label: "5", group: "", note: ""}
                 ]
                 currentValue: Controller.settings.minimumWordLength
-                onPicked: (value) => Controller.setMinimumWordLength(value)
+                onPicked: (value) => Controller.captureDuty.setMinimumWordLength(value)
             }
         }
 
@@ -181,7 +181,7 @@ Item {
                     border.color: whitelistField.activeFocus ? Tokens.ink : Tokens.line
                 }
                 onEditingFinished: {
-                    Controller.setScanWhitelist(text);
+                    Controller.captureDuty.setScanWhitelist(text);
                     text = Qt.binding(() => Controller.settings.scanWhitelist);
                 }
             }
