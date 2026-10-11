@@ -16,6 +16,7 @@
   "innoSetup": "C:/Program Files (x86)/Inno Setup 6/ISCC.exe",
   "tesseractRoot": "B:/tesseract",
   "chromeExe": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+  "ffmpeg": "C:/Users/wdmzs/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-9.0-full_build/bin/ffmpeg.exe",
   "zhlintConfig": "${HOME}/.claude/skills/zhlint/assets/zhlintrc.json",
   "clangFormatFallbacks": [
     "D:/VS 2022/VC/Tools/Llvm/x64/bin/clang-format.exe",

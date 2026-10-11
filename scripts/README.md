@@ -26,6 +26,10 @@ sh scripts/quality/qml-lint.sh
 sh scripts/qa/readme-shots.sh          # 重画 README 的四语言截图，源是 ui-prototypes/
 ```
 
+```powershell
+powershell -File scripts/qa/readme-gifs.ps1   # 离屏渲染 README 的 GIF 并检查尺寸、体积与时长，见 TEST.md 第 5 节
+```
+
 具体测试目标、覆盖率口径和桌面验证方法见 [`TEST.md`](../TEST.md)。
 
 ## 发布

@@ -251,6 +251,47 @@ offscreen 不会栅格化 `MultiEffect`，因此图标与阴影在这类快照�
 - **取词只认发生变化的剪贴板**。重选同一段文本之前要先用 `Set-Clipboard` 换掉剪贴板内容，否则钩子读回来
   的还是上一次的字符串，日志只会说 `did not change within 250 ms`，看着像钩子没触发。
 
+### GIF（逐帧序列）
+
+`scripts/qa/readme-gifs.ps1` 把 README 的动图渲成 GIF。它与快照用同一条离屏路径：只在 `QT_QPA_PLATFORM=offscreen`
+下运行 `test/qtest/surfaces/tst_readme_gifs.qml` 的用例。每个用例在场景里逐步执行动作（`mouseMove`、`mouseClick`
+等 QTest 的场景内事件），每一步用 `grabImage` 截一帧。不显示窗口，不碰真实指针、键盘和剪贴板，不发模型请求；
+设置写进测试副本，不改仓库里的 `settings.json` fixture。
+
+运行前先构建目标，然后在仓库根目录执行：
+
+```powershell
+scripts\build\build.bat --target lens_qtest_surfaces
+powershell -File scripts/qa/readme-gifs.ps1                          # 全部片段、四种语言
+powershell -File scripts/qa/readme-gifs.ps1 -Clip year -Language ja  # 只跑一个片段、一种语言
+```
+
+参数：`-Clip`（`bubble`、`marking`、`year`、`pet`、`all`），`-Language`（`en`、`zh-CN`、`ja`、`es`、`all`），
+`-OutDir`（默认 `docs/readme-images/gifs`），`-Scratch`（默认 `$env:TEMP\readme-gifs`，帧和中间文件都在这里，
+不进仓库）。ffmpeg 的路径来自 `config/paths.json` 的 `ffmpeg` 键。
+
+语言规则：
+
+- 输出到 `docs/readme-images/gifs/<语言目录>/`，每种语言一套，界面语言与解释语言都与目录一致。
+- 含解释的片段（`bubble`、`marking`）只在有真实缓存解释的语言下渲染。fixture 的缓存只有中文（英文取同一条目的
+  `en` 字段）。没有的语言会被跳过并打印，不编造解释。
+- 不含文字的片段（`pet`）只渲一次，复制到每个语言目录。
+
+输出检查：宽 640 px，小于 2 MB，时长 3 到 6 秒。未通过的文件不写入输出目录，脚本以非零退出码结束。
+
+添加片段：
+
+1. 在 `tst_readme_gifs.qml` 里加一个 `test_<名字>Clip`。用例在第一帧之前把要操作的元素都找好，帧之间不做查找或等待，
+   否则 GIF 里会停住。
+2. 在 `readme-gifs.ps1` 的 `$clips` 里登记：用例名、文件名、是否需要解释。
+3. 把文件名写进各语言 README 对应的位置。
+
+离屏的限制：
+
+- `MultiEffect` 不会被栅格化，所以阴影以及依赖它的图标不出现在帧里。
+- 帧的底色取 README 的页面色 `#e9ebef`（把 Window 的清屏色设成它），否则四周是黑的。
+- 托盘、系统通知和真实桌面上的宠物窗口不在帧里。
+
 ## 6 记录
 
 `test/records/` 存运行快照，**gitignored**——那是本机的，不进仓库。一次值得留档的运行写一个 HTML，
