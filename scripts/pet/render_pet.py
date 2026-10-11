@@ -12,6 +12,9 @@ point is a cell centre, (x + 0.5, y + 0.5) for cell (x, y).
 
   id, scale          folder name and the whole-number scale the app shows the pet at (3).
   body               {cx, cy, rx, ry}: the base ellipse. Its bottom centre is the pivot of every pose.
+  bodyPaint          [{at, colour, art}]: cells coloured on the body sheet, only where the body covers them. An action
+                     sets it for every frame; a frame's own list replaces it. Display space, like frame.shapes, so the
+                     cells move with anchors.body.
   eyes, mouth        expression cells. The mouth is drawn for every expression except 7 (yawn) and 8 (blank).
   yawnMouth          [x, y, w, h] for expression 7.
   roles, idlePool    copied to animations.json.
@@ -133,13 +136,32 @@ def paint(draw, items):
                     fill_cell(draw, ax + i, ay + j, colour)
 
 
-def body_frame(body, pivot, pose, shapes):
+# ponytail: bodyPaint is in display space, so a squashed pose works its cells out in the recipe. Map them through the
+# squash here, as body_cells does, once the recipe starts computing them by hand for many frames.
+def cell_colours(items):
+    """The colour of each cell a paint list names, so body_frame can tint the body cells it covers."""
+    colours = {}
+    for item in items:
+        ax, ay = item["at"]
+        for j, row in enumerate(item["art"]):
+            for i, ch in enumerate(row):
+                if ch == "#":
+                    colours[(ax + i, ay + j)] = PALETTE[item["colour"]]
+    return colours
+
+
+def body_tints(spec, frame):
+    """The body-layer colours of one frame: its own bodyPaint if it has one, else the action's."""
+    return cell_colours(frame.get("bodyPaint", spec.get("bodyPaint", [])))
+
+
+def body_frame(body, pivot, pose, shapes, tints):
     cells = body_cells(body, pivot, pose, shapes)
     img, draw = new_frame()
     for x, y in {(x + dx, y + dy) for x, y in cells for dx, dy in NEIGHBOURS} - cells:
         fill_cell(draw, x, y, INK)
     for x, y in cells:
-        fill_cell(draw, x, y, FUR)
+        fill_cell(draw, x, y, tints.get((x, y), FUR))
     return img
 
 
@@ -227,7 +249,7 @@ def main():
             continue
 
         poses = [{**DEFAULT_POSE, **f.get("pose", {})} for f in frames]
-        bodies = [body_frame(body, pivot, p, f.get("shapes", [])) for p, f in zip(poses, frames)]
+        bodies = [body_frame(body, pivot, p, f.get("shapes", []), body_tints(spec, f)) for p, f in zip(poses, frames)]
         body_path = f"sprites/body/{name}.png"
         save(out / body_path, sheet(bodies), len(frames))
         entry["sheet"] = body_path
@@ -245,8 +267,10 @@ def main():
     save(out / "sprites/expressions/eyes.png", sheet(expression_frames), len(EYE_PATTERNS))
 
     # The bare cell is idle's first frame, so it carries the same ears and tail as the sheet.
-    idle = recipe["actions"]["idle"]["frames"][0]
-    bare = Image.alpha_composite(body_frame(body, pivot, {**DEFAULT_POSE, **idle.get("pose", {})}, idle.get("shapes", [])), expression_frames[0])
+    idle_spec = recipe["actions"]["idle"]
+    idle = idle_spec["frames"][0]
+    bare_body = body_frame(body, pivot, {**DEFAULT_POSE, **idle.get("pose", {})}, idle.get("shapes", []), body_tints(idle_spec, idle))
+    bare = Image.alpha_composite(bare_body, expression_frames[0])
     save(out / "sprites/reference/bare.png", bare, 1)
 
     catalogue = []

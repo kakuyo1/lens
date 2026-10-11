@@ -34,8 +34,7 @@
         0,
         0
       ],
-      "sheet": "sprites/body/idle.png",
-      "effect": "sprites/effects/idle.png"
+      "sheet": "sprites/body/idle.png"
     },
     "study": {
       "frames": 6,
@@ -164,8 +163,7 @@
         7,
         2
       ],
-      "sheet": "sprites/body/yawn.png",
-      "effect": "sprites/effects/yawn.png"
+      "sheet": "sprites/body/yawn.png"
     },
     "stretch": {
       "frames": 6,
@@ -179,8 +177,7 @@
         5,
         0
       ],
-      "sheet": "sprites/body/stretch.png",
-      "effect": "sprites/effects/stretch.png"
+      "sheet": "sprites/body/stretch.png"
     },
     "groom": {
       "frames": 4,
@@ -192,8 +189,7 @@
         2,
         0
       ],
-      "sheet": "sprites/body/groom.png",
-      "effect": "sprites/effects/groom.png"
+      "sheet": "sprites/body/groom.png"
     },
     "tail_flick": {
       "frames": 4,
@@ -218,8 +214,7 @@
         5,
         5
       ],
-      "sheet": "sprites/body/knead.png",
-      "effect": "sprites/effects/knead.png"
+      "sheet": "sprites/body/knead.png"
     },
     "pounce": {
       "frames": 4,
@@ -231,8 +226,7 @@
         3,
         0
       ],
-      "sheet": "sprites/body/pounce.png",
-      "effect": "sprites/effects/pounce.png"
+      "sheet": "sprites/body/pounce.png"
     },
     "scratch": {
       "frames": 4,
