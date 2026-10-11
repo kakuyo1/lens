@@ -4,24 +4,31 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { PetEngine } from '../src/pet-engine.js';
 
-// Fixture mirrors assets/pet/manifest.json in shape; the rules are what is under test.
-// Only yawn declares a returnTo, as in the manifest: everything else returns to the held state, or idle.
-const manifest = {
+// Fixture has the shape assemblePet gives; the rules are what is under test.
+// Only yawn declares a returnTo, as in the dog's file: everything else returns to the held state, or idle.
+const still = n => Array.from({ length: n }, () => ({ head: [0, 0], face: [0, 0], body: [0, 0] }));
+const pet = {
+  roles: {
+    idle: 'idle', study: 'study', thinking: 'thinking', celebrate: 'celebrate', encourage: 'encourage', sleep: 'sleep',
+    click_react: 'click_react', pickup: 'pickup', look_around: 'look_around', yawn: 'yawn', stretch: 'stretch'
+  },
+  idlePool: ['look_around', 'stretch'],
+  blink: [1, 2, 1],
   actions: {
-    idle: { frames: 5, fps: 5, loop: true, blink: true, anchors: Array(5).fill([0, 0]) },
-    study: { frames: 6, fps: 6, loop: true, blink: true, expressions: [3, 3, 0, 4, 4, 0], anchors: Array(6).fill([0, 0]) },
-    thinking: { frames: 4, fps: 3, loop: true, blink: true, anchors: Array(4).fill([0, 0]) },
-    celebrate: { frames: 6, fps: 10, loop: false, anchors: Array(6).fill([0, 0]) },
-    click_react: { frames: 4, fps: 12, loop: false, anchors: Array(4).fill([0, 0]) },
-    pickup: { frames: 4, fps: 6, loop: true, anchors: Array(4).fill([0, 0]) },
-    look_around: { frames: 6, fps: 6, loop: false, anchors: Array(6).fill([0, 0]) },
-    stretch: { frames: 6, fps: 6, loop: false, anchors: Array(6).fill([0, 0]) },
-    yawn: { frames: 5, fps: 6, loop: false, returnTo: 'sleep', anchors: Array(5).fill([0, 0]) },
-    sleep: { frames: 4, fps: 3, loop: true, expressions: [8, 8, 8, 8], anchors: Array(4).fill([0, 0]) }
+    idle: { frames: 5, fps: 5, loop: true, blink: true, anchors: still(5) },
+    study: { frames: 6, fps: 6, loop: true, blink: true, expressions: [3, 3, 0, 4, 4, 0], anchors: still(6) },
+    thinking: { frames: 4, fps: 3, loop: true, blink: true, anchors: still(4) },
+    celebrate: { frames: 6, fps: 10, loop: false, anchors: still(6) },
+    click_react: { frames: 4, fps: 12, loop: false, anchors: still(4) },
+    pickup: { frames: 4, fps: 6, loop: true, anchors: still(4) },
+    look_around: { frames: 6, fps: 6, loop: false, anchors: still(6) },
+    stretch: { frames: 6, fps: 6, loop: false, anchors: still(6) },
+    yawn: { frames: 5, fps: 6, loop: false, returnTo: 'sleep', anchors: still(5) },
+    sleep: { frames: 4, fps: 3, loop: true, expressions: [8, 8, 8, 8], anchors: still(4) }
   }
 };
 
-const make = (opts) => new PetEngine(manifest, opts);
+const make = (opts) => new PetEngine(pet, opts);
 
 test('loops a looping action and wraps the frame index', () => {
   const e = make();
@@ -116,7 +123,7 @@ test('frame index and expression come from the same clock', () => {
   e.handle('ExplanationShown');
   e.update(340); // two frames at 6 fps (333 ms)
   assert.equal(e.state.frame, 2);
-  assert.equal(e.state.anchor[0], 0);
+  assert.equal(e.state.anchors.body[0], 0);
   assert.equal(e.state.expression, 0);
   e.update(200); // frame 3 uses the look-left eyes
   assert.equal(e.state.expression, 4);
@@ -229,7 +236,7 @@ test('thinking gives up after its timeout when no explanation comes', () => {
 });
 
 test('with only one random choice left it is never repeated back to back', () => {
-  const m = structuredClone(manifest);
+  const m = structuredClone(pet);
   delete m.actions.stretch;
   const e = new PetEngine(m, { random: () => 0 });
   e.update(19999);
@@ -249,6 +256,16 @@ test('blink runs only where the action declares it, and sleep never blinks', () 
   assert.equal(e.def.blink, undefined);
   e.update(5000);
   assert.equal(e.state.expression, 8);
+});
+
+test('the roles decide which action plays, so a pet can name its own actions', () => {
+  const m = structuredClone(pet);
+  m.actions.bounce = m.actions.celebrate;
+  delete m.actions.celebrate;
+  m.roles.celebrate = 'bounce';
+  const e = new PetEngine(m);
+  e.handle('KnownMarked');
+  assert.equal(e.state.action, 'bounce');
 });
 
 test('engine source imports no DOM, CSS or window and no graphics API', () => {

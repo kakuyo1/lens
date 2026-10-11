@@ -36,7 +36,7 @@ std::optional<std::string> Wardrobe::wornIn(Slot slot) const
     return current->second;
 }
 
-std::vector<std::string> Wardrobe::visibleFor(Action action) const
+std::vector<std::string> Wardrobe::visibleFor(ActionName const& action) const
 {
     std::vector<std::string> visible;
     for (auto const& wearing : worn) {

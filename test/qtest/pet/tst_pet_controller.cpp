@@ -8,13 +8,14 @@
  */
 
 #include <filesystem>
+#include <fstream>
 #include <optional>
 
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
+#include <nlohmann/json.hpp>
 
-#include "app/pet/pet_assets.h"
 #include "app/pet/pet_controller.h"
 #include "app/pet/pet_store.h"
 #include "core/known_store.h"
@@ -22,7 +23,6 @@
 namespace {
 
 using lens::app::pet::Outfit;
-using lens::app::pet::PetAssets;
 using lens::app::pet::PetController;
 using lens::app::pet::PetStore;
 using lens::core::KnownStore;
@@ -34,20 +34,40 @@ struct Rig {
     PetStore      petStore;
     PetController controller;
 
-    Rig(std::filesystem::path const& settings, std::optional<PetAssets> assets)
-        : store(KnownStore::load(settings)), petStore(store), controller(std::move(assets), petStore)
+    Rig(std::filesystem::path const& settings, std::filesystem::path const& root)
+        : store(KnownStore::load(settings)), petStore(store), controller(root, petStore)
     {
     }
 };
 
-std::optional<PetAssets> shippedAssets()
+std::filesystem::path shippedRoot()
 {
-    return PetAssets::load(std::filesystem::path{LENS_DATA_DIR} / "pet");
+    return std::filesystem::path{LENS_DATA_DIR} / "pet";
 }
 
 std::filesystem::path settingsIn(QTemporaryDir const& dir)
 {
     return std::filesystem::path{dir.path().toStdWString()} / "settings.json";
+}
+
+/// Two pets under `root`: the shipped dog, and a copy of it whose catalogue has no hat, so a switch has one to drop.
+void makeTwoPets(std::filesystem::path const& root)
+{
+    auto const shipped = shippedRoot() / "dog";
+    std::filesystem::create_directories(root);
+    std::filesystem::copy(shipped, root / "dog", std::filesystem::copy_options::recursive);
+    std::filesystem::copy(shipped, root / "hatless", std::filesystem::copy_options::recursive);
+
+    auto const file = root / "hatless" / "accessories.json";
+    auto       in   = std::ifstream{file};
+    auto       doc  = nlohmann::json::parse(in);
+    auto       kept = nlohmann::json::array();
+    for (auto const& entry : doc.at("accessories")) {
+        if (entry.at("id") != "hat") kept.push_back(entry);
+    }
+    doc["accessories"] = kept;
+    auto out           = std::ofstream{file};
+    out << doc.dump(2);
 }
 
 } // namespace
@@ -67,13 +87,14 @@ private slots:
     void accessoryCatalogueAndWornSlotsAreExposed();
     void restoresOnlyAccessoriesInTheirOwnSlot();
     void passthroughDefaultsOffAndIsStored();
+    void choosingAPetLoadsItAndDropsWhatItLacks();
 };
 
 void TstPetController::eventsDriveTheAction()
 {
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
-    Rig rig{settingsIn(dir), shippedAssets()};
+    Rig rig{settingsIn(dir), shippedRoot()};
 
     QCOMPARE(rig.controller.action(), QStringLiteral("idle"));
 
@@ -97,7 +118,7 @@ void TstPetController::theClockAdvancesFramesOnlyWhileRunning()
 {
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
-    Rig rig{settingsIn(dir), shippedAssets()};
+    Rig rig{settingsIn(dir), shippedRoot()};
 
     // Study loops at 4 fps, so a frame changes within a quarter of a second.
     rig.controller.handle(PetEvent::ExplanationShown);
@@ -118,7 +139,7 @@ void TstPetController::wornAccessoriesFollowToggles()
 {
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
-    Rig rig{settingsIn(dir), shippedAssets()};
+    Rig rig{settingsIn(dir), shippedRoot()};
 
     rig.controller.toggleAccessory(QStringLiteral("hat"));
     QCOMPARE(rig.controller.wornAccessories().size(), 1);
@@ -137,7 +158,7 @@ void TstPetController::sizeIsStoredAndAnnounced()
 {
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
-    Rig rig{settingsIn(dir), shippedAssets()};
+    Rig rig{settingsIn(dir), shippedRoot()};
 
     QCOMPARE(rig.controller.scale(), 3);
 
@@ -154,7 +175,7 @@ void TstPetController::refusedDataLeavesThePetOff()
 {
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
-    Rig rig{settingsIn(dir), std::nullopt};
+    Rig rig{settingsIn(dir), std::filesystem::path{dir.path().toStdWString()} / "no-pets"};
 
     QVERIFY(!rig.controller.available());
     QVERIFY(!rig.controller.enabled());
@@ -169,7 +190,7 @@ void TstPetController::previewShowsAnActionAndTheMachineKeepsItsOwn()
 {
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
-    Rig rig{settingsIn(dir), shippedAssets()};
+    Rig rig{settingsIn(dir), shippedRoot()};
 
     rig.controller.handle(PetEvent::ExplanationShown);
     QCOMPARE(rig.controller.action(), QStringLiteral("study"));
@@ -189,7 +210,7 @@ void TstPetController::previewRunsTheClockOnlyWhileOpen()
 {
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
-    Rig rig{settingsIn(dir), shippedAssets()};
+    Rig rig{settingsIn(dir), shippedRoot()};
 
     rig.controller.preview(QStringLiteral("celebrate"));
     QSignalSpy frames(&rig.controller, &PetController::frameChanged);
@@ -205,7 +226,7 @@ void TstPetController::aOneShotPreviewGoesBackToTheMachine()
 {
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
-    Rig rig{settingsIn(dir), shippedAssets()};
+    Rig rig{settingsIn(dir), shippedRoot()};
 
     // Celebrate plays eight frames at 10 fps, so it has run through within about a second.
     rig.controller.preview(QStringLiteral("celebrate"));
@@ -218,7 +239,7 @@ void TstPetController::accessoryCatalogueAndWornSlotsAreExposed()
 {
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
-    Rig rig{settingsIn(dir), shippedAssets()};
+    Rig rig{settingsIn(dir), shippedRoot()};
 
     QCOMPARE(rig.controller.accessories().size(), 7);
     QCOMPARE(rig.controller.actions().size(), 11);
@@ -235,11 +256,11 @@ void TstPetController::restoresOnlyAccessoriesInTheirOwnSlot()
 {
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
-    Rig rig{settingsIn(dir), shippedAssets()};
+    Rig rig{settingsIn(dir), shippedRoot()};
 
     // Glasses saved in the head slot is bad data: it must not be worn there, and the face slot's glasses still is.
     rig.petStore.setOutfit(Outfit{std::string{"glasses"}, std::string{"glasses"}, std::nullopt});
-    PetController restored{shippedAssets(), rig.petStore};
+    PetController restored{shippedRoot(), rig.petStore};
 
     QVERIFY(restored.wornIn().value("head").toString().isEmpty());
     QCOMPARE(restored.wornIn().value("face").toString(), QStringLiteral("glasses"));
@@ -249,12 +270,42 @@ void TstPetController::passthroughDefaultsOffAndIsStored()
 {
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
-    Rig rig{settingsIn(dir), shippedAssets()};
+    Rig rig{settingsIn(dir), shippedRoot()};
 
     QVERIFY(!rig.controller.passthrough());
     rig.controller.setPassthrough(true);
     QVERIFY(rig.controller.passthrough());
     QVERIFY(rig.petStore.passthrough());
+}
+
+void TstPetController::choosingAPetLoadsItAndDropsWhatItLacks()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    auto const root = std::filesystem::path{dir.path().toStdWString()} / "pets";
+    makeTwoPets(root);
+    Rig rig{settingsIn(dir), root};
+
+    QCOMPARE(rig.controller.pets(), (QStringList{QStringLiteral("dog"), QStringLiteral("hatless")}));
+    QCOMPARE(rig.controller.pet(), QStringLiteral("dog"));
+
+    rig.controller.toggleAccessory(QStringLiteral("hat"));
+    rig.controller.setPet(QStringLiteral("hatless"));
+    QCOMPARE(rig.controller.pet(), QStringLiteral("hatless"));
+    QVERIFY(rig.controller.available());
+    QCOMPARE(rig.controller.action(), QStringLiteral("idle"));
+    QVERIFY(rig.controller.wornIn().value("head").toString().isEmpty());
+    QVERIFY(!rig.petStore.outfit().head);
+
+    // The hat was dropped, not hidden: choosing the dog again does not bring it back.
+    rig.controller.setPet(QStringLiteral("dog"));
+    QVERIFY(rig.controller.wornIn().value("head").toString().isEmpty());
+
+    // A pet that cannot be loaded is refused: the reader keeps the pet they had, and the bad id is not saved.
+    rig.controller.setPet(QStringLiteral("missing"));
+    QVERIFY(rig.controller.available());
+    QCOMPARE(rig.controller.pet(), QStringLiteral("dog"));
+    QCOMPARE(QString::fromStdString(rig.petStore.pet()), QStringLiteral("dog"));
 }
 
 QTEST_GUILESS_MAIN(TstPetController)

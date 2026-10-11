@@ -1,0 +1,208 @@
+{
+  "accessories": [
+    {
+      "id": "sprout",
+      "slot": "head",
+      "asset": "sprites/accessories/headwear/sprout.png",
+      "zIndex": 5,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "wobble",
+        "bounce",
+        "hiccup",
+        "shiver",
+        "spin"
+      ]
+    },
+    {
+      "id": "flower",
+      "slot": "head",
+      "asset": "sprites/accessories/headwear/flower.png",
+      "zIndex": 5,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "wobble",
+        "bounce",
+        "hiccup",
+        "shiver",
+        "spin"
+      ]
+    },
+    {
+      "id": "party_hat",
+      "slot": "head",
+      "asset": "sprites/accessories/headwear/party_hat.png",
+      "zIndex": 5,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "wobble",
+        "bounce",
+        "hiccup",
+        "shiver",
+        "spin"
+      ]
+    },
+    {
+      "id": "glasses",
+      "slot": "face",
+      "asset": "sprites/accessories/glasses/glasses.png",
+      "zIndex": 4,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "wobble",
+        "bounce",
+        "hiccup",
+        "shiver",
+        "spin"
+      ]
+    },
+    {
+      "id": "sunglasses",
+      "slot": "face",
+      "asset": "sprites/accessories/glasses/sunglasses.png",
+      "zIndex": 4,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "wobble",
+        "bounce",
+        "hiccup",
+        "shiver",
+        "spin"
+      ]
+    },
+    {
+      "id": "blush",
+      "slot": "face",
+      "asset": "sprites/accessories/glasses/blush.png",
+      "zIndex": 4,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "wobble",
+        "bounce",
+        "hiccup",
+        "shiver",
+        "spin"
+      ]
+    },
+    {
+      "id": "bowtie",
+      "slot": "body",
+      "asset": "sprites/accessories/clothing/bowtie.png",
+      "zIndex": 3,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "wobble",
+        "bounce",
+        "hiccup",
+        "shiver"
+      ]
+    },
+    {
+      "id": "scarf",
+      "slot": "body",
+      "asset": "sprites/accessories/clothing/scarf.png",
+      "zIndex": 3,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "wobble",
+        "bounce",
+        "hiccup",
+        "shiver"
+      ]
+    },
+    {
+      "id": "apron",
+      "slot": "body",
+      "asset": "sprites/accessories/clothing/apron.png",
+      "zIndex": 3,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "wobble",
+        "bounce",
+        "hiccup",
+        "shiver"
+      ]
+    }
+  ]
+}

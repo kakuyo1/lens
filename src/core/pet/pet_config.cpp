@@ -19,43 +19,34 @@ namespace {
 
 using nlohmann::json;
 
-struct NamedAction {
+struct NamedRole {
     std::string_view name;
-    Action           action;
+    Role             role;
     bool             required;
 };
 
-/// Names as they appear in the data files. Stretch is the only action the first version may leave out (PHASE3 3.1).
-constexpr std::array<NamedAction, 11> kNamedActions{{
-    {"idle", Action::Idle, true},
-    {"study", Action::Study, true},
-    {"thinking", Action::Thinking, true},
-    {"celebrate", Action::Celebrate, true},
-    {"encourage", Action::Encourage, true},
-    {"sleep", Action::Sleep, true},
-    {"click_react", Action::ClickReact, true},
-    {"pickup", Action::Pickup, true},
-    {"look_around", Action::LookAround, true},
-    {"yawn", Action::Yawn, true},
-    {"stretch", Action::Stretch, false},
+/// Role names as they appear in the data files. Stretch is the only role the first version may leave out (PHASE3 3.1).
+constexpr std::array<NamedRole, 11> kNamedRoles{{
+    {"idle", Role::Idle, true},
+    {"study", Role::Study, true},
+    {"thinking", Role::Thinking, true},
+    {"celebrate", Role::Celebrate, true},
+    {"encourage", Role::Encourage, true},
+    {"sleep", Role::Sleep, true},
+    {"click_react", Role::ClickReact, true},
+    {"pickup", Role::Pickup, true},
+    {"look_around", Role::LookAround, true},
+    {"yawn", Role::Yawn, true},
+    {"stretch", Role::Stretch, false},
 }};
 
-/// @return The action with this name in the data files, or nothing.
-std::optional<Action> actionNamed(std::string const& name)
+/// @return The role with this name in the data files, or nothing.
+std::optional<Role> roleNamed(std::string const& name)
 {
-    for (auto const& entry : kNamedActions) {
-        if (entry.name == name) return entry.action;
+    for (auto const& entry : kNamedRoles) {
+        if (entry.name == name) return entry.role;
     }
     return std::nullopt;
-}
-
-/// @return The data-file name of `action`. Every action the machine knows has one.
-std::string nameOf(Action action)
-{
-    for (auto const& entry : kNamedActions) {
-        if (entry.action == action) return std::string{entry.name};
-    }
-    return {};
 }
 
 /// @return The slot with this name in accessories.json, or nothing.
@@ -77,7 +68,7 @@ int positiveInt(json const& entry, char const* key, std::string const& owner)
     return value;
 }
 
-/// One playback entry. `returnTo` is resolved to an action here, and checked against the document later.
+/// One playback entry. `returnTo` is resolved to a role here, and checked against the document's roles later.
 ActionSpec parseSpec(json const& entry, std::string const& name)
 {
     if (not entry.is_object()) throw std::runtime_error("animations: " + name + " must be an object");
@@ -94,8 +85,8 @@ ActionSpec parseSpec(json const& entry, std::string const& name)
     if (entry.contains("returnTo")) {
         if (not entry.at("returnTo").is_string())
             throw std::runtime_error("animations: " + name + ".returnTo must be a string");
-        auto const target = actionNamed(entry.at("returnTo").get<std::string>());
-        if (not target) throw std::runtime_error("animations: " + name + ".returnTo names an unknown action");
+        auto const target = roleNamed(entry.at("returnTo").get<std::string>());
+        if (not target) throw std::runtime_error("animations: " + name + ".returnTo names an unknown role");
         spec.returnTo = target;
     }
     if (entry.contains("blink")) {
@@ -127,8 +118,13 @@ Animations parseAnimations(json const& document)
 {
     if (not document.is_object() or not document.contains("actions") or not document.at("actions").is_object())
         throw std::runtime_error("animations: missing actions object");
+    if (not document.contains("roles") or not document.at("roles").is_object())
+        throw std::runtime_error("animations: missing roles object");
+    if (not document.contains("idlePool") or not document.at("idlePool").is_array())
+        throw std::runtime_error("animations: missing idlePool array");
 
     Animations animations{};
+    auto&      playbook = animations.playbook;
     bool       hasBlink = false;
     for (auto const& [name, entry] : document.at("actions").items()) {
         if (name == "blink") {
@@ -136,35 +132,53 @@ Animations parseAnimations(json const& document)
             hasBlink         = true;
             continue;
         }
-        auto const action = actionNamed(name);
-        if (not action) throw std::runtime_error("animations: unknown action " + name);
-        animations.actions.emplace(*action, parseSpec(entry, name));
+        playbook.actions.emplace(name, parseSpec(entry, name));
+    }
+    if (not hasBlink) throw std::runtime_error("animations: blink entry missing");
+
+    for (auto const& [roleName, action] : document.at("roles").items()) {
+        auto const role = roleNamed(roleName);
+        if (not role) throw std::runtime_error("animations: unknown role " + roleName);
+        if (not action.is_string()) throw std::runtime_error("animations: role " + roleName + " must name an action");
+        auto const name = action.get<std::string>();
+        if (playbook.actions.count(name) == 0)
+            throw std::runtime_error("animations: role " + roleName + " names an action with no playback: " + name);
+        playbook.roles.emplace(*role, name);
+    }
+    for (auto const& named : kNamedRoles) {
+        if (named.required and playbook.roles.count(named.role) == 0)
+            throw std::runtime_error("animations: required role missing: " + std::string{named.name});
     }
 
-    if (not hasBlink) throw std::runtime_error("animations: blink entry missing");
-    for (auto const& named : kNamedActions) {
-        if (named.required and animations.actions.count(named.action) == 0)
-            throw std::runtime_error("animations: required action missing: " + std::string{named.name});
+    for (auto const& [name, spec] : playbook.actions) {
+        if (spec.returnTo and playbook.roles.count(*spec.returnTo) == 0)
+            throw std::runtime_error("animations: " + name + ".returnTo names a role the document does not map");
     }
-    for (auto const& [action, spec] : animations.actions) {
-        if (spec.returnTo and animations.actions.count(*spec.returnTo) == 0)
-            throw std::runtime_error("animations: " + nameOf(action) + ".returnTo has no playback in the document");
+
+    for (auto const& entry : document.at("idlePool")) {
+        if (not entry.is_string()) throw std::runtime_error("animations: idlePool entries must be action names");
+        auto const name  = entry.get<std::string>();
+        auto const found = playbook.actions.find(name);
+        if (found == playbook.actions.end())
+            throw std::runtime_error("animations: idlePool names an action with no playback: " + name);
+        if (found->second.loop) throw std::runtime_error("animations: idlePool action must be a one-shot: " + name);
+        playbook.idlePool.push_back(name);
     }
     return animations;
 }
 
-AnchorTable parseAnchors(json const& document, ActionSpecs const& actions)
+AnchorTable parseAnchors(json const& document, Playbook const& playbook)
 {
     if (not document.is_object() or not document.contains("actions") or not document.at("actions").is_object())
         throw std::runtime_error("anchors: missing actions object");
 
     AnchorTable table;
     for (auto const& [name, entries] : document.at("actions").items()) {
-        auto const action = actionNamed(name);
-        if (not action or actions.count(*action) == 0) throw std::runtime_error("anchors: unknown action " + name);
+        auto const playback = playbook.actions.find(name);
+        if (playback == playbook.actions.end()) throw std::runtime_error("anchors: unknown action " + name);
         if (not entries.is_array()) throw std::runtime_error("anchors: " + name + " must be an array");
 
-        auto const frames = actions.at(*action).frames;
+        auto const frames = playback->second.frames;
         if (static_cast<int>(entries.size()) != frames)
             throw std::runtime_error("anchors: " + name + " has " + std::to_string(entries.size()) + " entries for " +
                                      std::to_string(frames) + " frames");
@@ -178,16 +192,16 @@ AnchorTable parseAnchors(json const& document, ActionSpecs const& actions)
                 .body = pointOf(entry, "body", name),
             });
         }
-        table.emplace(*action, std::move(perFrame));
+        table.emplace(name, std::move(perFrame));
     }
 
-    for (auto const& playable : actions) {
-        if (table.count(playable.first) == 0) throw std::runtime_error("anchors: missing for " + nameOf(playable.first));
+    for (auto const& playable : playbook.actions) {
+        if (table.count(playable.first) == 0) throw std::runtime_error("anchors: missing for " + playable.first);
     }
     return table;
 }
 
-std::vector<AccessorySpec> parseAccessories(json const& document)
+std::vector<AccessorySpec> parseAccessories(json const& document, Playbook const& playbook)
 {
     if (not document.is_object() or not document.contains("accessories") or not document.at("accessories").is_array())
         throw std::runtime_error("accessories: missing accessories array");
@@ -207,12 +221,13 @@ std::vector<AccessorySpec> parseAccessories(json const& document)
 
         if (not entry.contains("supportedActions") or not entry.at("supportedActions").is_array())
             throw std::runtime_error("accessories: " + id + " needs a supportedActions array");
-        std::vector<Action> supported;
+        std::vector<ActionName> supported;
         for (auto const& name : entry.at("supportedActions")) {
             if (not name.is_string()) throw std::runtime_error("accessories: " + id + ".supportedActions must be strings");
-            auto const action = actionNamed(name.get<std::string>());
-            if (not action) throw std::runtime_error("accessories: " + id + " supports an unknown action");
-            supported.push_back(*action);
+            auto action = name.get<std::string>();
+            if (playbook.actions.count(action) == 0)
+                throw std::runtime_error("accessories: " + id + " supports an action the pet does not have: " + action);
+            supported.push_back(std::move(action));
         }
         catalogue.push_back(AccessorySpec{std::move(id), *slot, std::move(supported)});
     }

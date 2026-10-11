@@ -5,12 +5,9 @@
 
 #include "app/pet/pet_assets.h"
 
-#include <array>
 #include <fstream>
-#include <optional>
 #include <stdexcept>
 #include <string>
-#include <string_view>
 #include <utility>
 
 #include <QImageReader>
@@ -23,36 +20,6 @@ namespace lens::app::pet {
 namespace {
 
 using nlohmann::json;
-using core::pet::Action;
-
-struct NamedAction {
-    std::string_view name;
-    Action           action;
-};
-
-/// Names as the data files spell them. Must match core/pet/pet_config.cpp, which parses the same documents.
-constexpr std::array<NamedAction, 11> kActionNames{{
-    {"idle", Action::Idle},
-    {"study", Action::Study},
-    {"thinking", Action::Thinking},
-    {"celebrate", Action::Celebrate},
-    {"encourage", Action::Encourage},
-    {"sleep", Action::Sleep},
-    {"click_react", Action::ClickReact},
-    {"pickup", Action::Pickup},
-    {"look_around", Action::LookAround},
-    {"yawn", Action::Yawn},
-    {"stretch", Action::Stretch},
-}};
-
-/// @return The action with this name in the data files, or nothing.
-std::optional<Action> actionNamed(std::string const& name)
-{
-    for (auto const& entry : kActionNames) {
-        if (entry.name == name) return entry.action;
-    }
-    return std::nullopt;
-}
 
 /// @return The document under `directory`, parsed. Refuses a file that cannot be opened.
 json readDocument(std::filesystem::path const& directory, char const* name)
@@ -120,8 +87,7 @@ PetAssets PetAssets::load(std::filesystem::path const& directory)
             assets.blinkExpressions = expressionsOf(entry);
             continue;
         }
-        auto const action = actionNamed(name);
-        auto const frames = assets.animations.actions.at(*action).frames;
+        auto const frames = assets.animations.playbook.actions.at(name).frames;
         auto const row    = QSize{frames * assets.canvas, assets.canvas};
 
         ActionSheets pictures;
@@ -132,27 +98,19 @@ PetAssets PetAssets::load(std::filesystem::path const& directory)
             requireSheet(pictures.effect, row);
         }
         pictures.expressions = expressionsOf(entry);
-        assets.sheets.emplace(*action, std::move(pictures));
+        assets.sheets.emplace(name, std::move(pictures));
     }
 
-    assets.anchors = core::pet::parseAnchors(readDocument(directory, "anchors.json"), assets.animations.actions);
+    assets.anchors = core::pet::parseAnchors(readDocument(directory, "anchors.json"), assets.animations.playbook);
 
     auto const accessories = readDocument(directory, "accessories.json");
-    assets.catalogue       = core::pet::parseAccessories(accessories);
+    assets.catalogue       = core::pet::parseAccessories(accessories, assets.animations.playbook);
     for (auto const& entry : accessories.at("accessories")) {
         auto const asset = absolutePath(directory, entry.at("asset").get<std::string>());
         requireSheet(asset, QSize{assets.canvas, assets.canvas});
         assets.accessories.emplace(entry.at("id").get<std::string>(), AccessoryArt{asset, entry.at("zIndex").get<int>()});
     }
     return assets;
-}
-
-std::string actionName(Action action)
-{
-    for (auto const& entry : kActionNames) {
-        if (entry.action == action) return std::string{entry.name};
-    }
-    return {};
 }
 
 } // namespace lens::app::pet

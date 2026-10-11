@@ -20,11 +20,9 @@
 
 #include <filesystem>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <system_error>
 
-#include "app/pet/pet_assets.h"
 #include "app/pet/pet_controller.h"
 #include "app/pet/pet_store.h"
 #include "app_controller.h"
@@ -218,14 +216,8 @@ int main(int argc, char* argv[])
     AppController controller(store, llm, hook, hotkey, pricing, dataDir);
 
     // A refused pet data directory leaves the pet off and says why; the rest of the program is unaffected.
-    std::optional<lens::app::pet::PetAssets> petAssets;
-    try {
-        petAssets = lens::app::pet::PetAssets::load(dataDir / "pet");
-    } catch (const std::exception& e) {
-        LENS_ERROR("the desktop pet is off: {}", e.what());
-    }
     lens::app::pet::PetStore      petStore(store);
-    lens::app::pet::PetController petController(std::move(petAssets), petStore);
+    lens::app::pet::PetController petController(dataDir / "pet", petStore);
     lens::app::pet::PetController::provide(&petController);
     QObject::connect(&controller, &AppController::petEvent, &petController, &lens::app::pet::PetController::handle);
 

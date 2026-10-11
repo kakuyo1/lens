@@ -1,18 +1,16 @@
-"""Render the prototype's PNG layers, check their sizes, and copy them into data/pet/sprites.
+"""Check the dog's sprite sheets against their frame counts, and compare a fresh render with data/pet/dog/sprites.
 
-    python -I scripts/pet/sync_sprites.py              # render, compare, check sizes; change nothing else
-    python -I scripts/pet/sync_sprites.py --apply      # also copy every render into data/pet/sprites
-    python -I scripts/pet/sync_sprites.py --no-render  # compare what is already rendered
+    python -I scripts/pet/sync_sprites.py
 
-The renders in ui-prototypes/pet-prototype/assets/pet are the source; data/pet/sprites is what the app loads.
-Every PNG the app reads has a fixed size: a body or effect sheet is frames x 88 wide and 88 tall, and the
-expression sheet is a row of 88 x 88 cells. A size error is reported here, before the app refuses the pet.
+The generator (scripts/pet/dog/build-assets.py) writes straight into data/pet/dog/sprites, so this script renders
+into a scratch folder and only compares. It changes nothing in the repository. Every PNG the app reads has a fixed
+size: a body or effect sheet is frames x 88 wide and 88 tall, the expression sheet is a row of 88 x 88 cells, and
+each accessory is 88 x 88. A size error is reported here, before the app refuses the pet.
 """
-import argparse
 import json
-import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 from PIL import Image
@@ -20,66 +18,65 @@ from PIL import Image
 sys.stdout.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parents[2]
-ASSETS = ROOT / "ui-prototypes" / "pet-prototype" / "assets" / "pet"
-BUILD = ROOT / "ui-prototypes" / "pet-prototype" / "tools" / "build-assets.py"
-TARGET = ROOT / "data" / "pet" / "sprites"
+DOG = ROOT / "data" / "pet" / "dog"
+SPRITES = DOG / "sprites"
+BUILD = ROOT / "scripts" / "pet" / "dog" / "build-assets.py"
 CANVAS = 88
 
 
-def check_sizes(manifest):
+def check_sizes(animations, pet, accessories):
     problems = []
-    for name, action in manifest["actions"].items():
+    for name, action in animations["actions"].items():
         for key in ("sheet", "effect"):
             if key not in action:
                 continue
-            width, height = Image.open(ASSETS / action[key]).size
+            width, height = Image.open(DOG / action[key]).size
             want = action["frames"] * CANVAS
             if (width, height) != (want, CANVAS):
                 problems.append(f"{action[key]}: {width}x{height}, want {want}x{CANVAS} for {name}")
-    width, height = Image.open(ASSETS / manifest["expression"]).size
+    width, height = Image.open(DOG / pet["expression"]).size
     if height != CANVAS or width % CANVAS:
-        problems.append(f"{manifest['expression']}: {width}x{height} is not a row of {CANVAS}x{CANVAS} cells")
+        problems.append(f"{pet['expression']}: {width}x{height} is not a row of {CANVAS}x{CANVAS} cells")
+    for acc in accessories:
+        size = Image.open(DOG / acc["asset"]).size
+        if size != (CANVAS, CANVAS):
+            problems.append(f"{acc['asset']}: {size[0]}x{size[1]}, want {CANVAS}x{CANVAS}")
     return problems
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--no-render", action="store_true", help="skip build-assets.py and compare what exists")
-    parser.add_argument("--apply", action="store_true", help="copy the renders into data/pet/sprites")
-    args = parser.parse_args()
-
-    if not args.no_render:
-        subprocess.run([sys.executable, "-I", str(BUILD)], check=True, stdout=subprocess.DEVNULL)
-
-    manifest = json.loads((ASSETS / "manifest.json").read_text(encoding="utf-8"))
-    problems = check_sizes(manifest)
+    animations = json.loads((DOG / "animations.json").read_text(encoding="utf-8"))
+    pet = json.loads((DOG / "pet.json").read_text(encoding="utf-8"))
+    accessories = json.loads((DOG / "accessories.json").read_text(encoding="utf-8"))["accessories"]
+    problems = check_sizes(animations, pet, accessories)
     for problem in problems:
         print("SIZE", problem)
     if problems:
-        raise SystemExit("sizes do not match the frame counts; fix the source before copying")
+        raise SystemExit("sizes do not match the frame counts; fix the sprites or animations.json")
 
-    renders = sorted(p.relative_to(ASSETS) for p in ASSETS.rglob("*.png"))
-    changed = []
-    for rel in renders:
-        target = TARGET / rel
-        if not target.exists():
-            status = "NEW"
-        elif target.read_bytes() == (ASSETS / rel).read_bytes():
-            status = "same"
-        else:
-            status = "CHANGED"
-        if status != "same":
-            changed.append(rel)
-        print(f"{status:8} {rel.as_posix()}")
+    with tempfile.TemporaryDirectory() as scratch:
+        scratch = Path(scratch)
+        subprocess.run([sys.executable, "-I", str(BUILD), "--out", str(scratch)], check=True)
+        renders = sorted(p.relative_to(scratch) for p in scratch.rglob("*.png"))
+        differ = []
+        for rel in renders:
+            target = SPRITES / rel
+            if not target.exists():
+                status = "MISSING"
+            elif target.read_bytes() == (scratch / rel).read_bytes():
+                status = "same"
+            else:
+                status = "DIFFERS"
+            if status != "same":
+                differ.append(rel)
+            print(f"{status:8} {rel.as_posix()}")
+        extra = sorted(p.relative_to(SPRITES) for p in SPRITES.rglob("*.png") if p.relative_to(SPRITES) not in renders)
+        for rel in extra:
+            print(f"EXTRA    {rel.as_posix()} (not produced by the generator)")
 
-    if not args.apply:
-        print(f"\n{len(changed)} of {len(renders)} differ from data/pet/sprites; pass --apply to copy them")
-        return
-    for rel in renders:
-        target = TARGET / rel
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(ASSETS / rel, target)
-    print(f"\ncopied {len(renders)} renders into {TARGET.relative_to(ROOT).as_posix()}")
+    print(f"\n{len(differ)} of {len(renders)} differ from data/pet/dog/sprites, {len(extra)} extra")
+    if differ or extra:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

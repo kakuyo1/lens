@@ -16,7 +16,8 @@ from PIL import Image
 sys.stdout.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parents[2]
-ASSETS = ROOT / "ui-prototypes" / "pet-prototype" / "assets" / "pet"
+DOG = ROOT / "scripts" / "pet" / "dog"
+SPRITES = ROOT / "data" / "pet" / "dog" / "sprites"
 CANVAS = 88
 SCALE = 2
 
@@ -32,15 +33,15 @@ def main():
     parser.add_argument("--frame", type=int, default=0)
     args = parser.parse_args()
 
-    manifest = json.loads((ASSETS / "manifest.json").read_text(encoding="utf-8"))
+    manifest = json.loads((DOG / "manifest.json").read_text(encoding="utf-8"))
     action = manifest["actions"][args.action]
     if not 0 <= args.frame < action["frames"]:
         raise SystemExit(f"{args.action} has {action['frames']} frames; --frame {args.frame} is out of range")
 
-    body = cell(Image.open(ASSETS / action["sheet"]).convert("RGBA"), args.frame)
+    body = cell(Image.open(SPRITES / action["sheet"]).convert("RGBA"), args.frame)
     expressions = action.get("expressions", [])
     expression_index = expressions[args.frame] if args.frame < len(expressions) else 0
-    faces = Image.open(ASSETS / manifest["expression"]).convert("RGBA")
+    faces = Image.open(SPRITES / manifest["expression"]).convert("RGBA")
     base = body.copy()
     base.alpha_composite(cell(faces, expression_index))
 
@@ -50,7 +51,7 @@ def main():
     for i, (_, entry) in enumerate(panels):
         panel = base.copy()
         if entry is not None:
-            panel.alpha_composite(Image.open(ASSETS / entry["asset"]).convert("RGBA"))
+            panel.alpha_composite(Image.open(SPRITES / entry["asset"]).convert("RGBA"))
         sheet.paste(panel, (i * CANVAS, 0), panel)
     sheet = sheet.resize((sheet.width * SCALE, sheet.height * SCALE), Image.NEAREST)
     sheet.save(args.out)

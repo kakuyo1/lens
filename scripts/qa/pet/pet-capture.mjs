@@ -20,10 +20,10 @@ const offsets = [0, 150, 350];
 
 mkdirSync(outDir, { recursive: true });
 
-// True only for a server that serves this prototype: the manifest must come back as JSON, not as the SPA fallback page.
+// True only for a server that serves this prototype: the dog's pet.json must come back as JSON, not as the SPA fallback page.
 async function servesPrototype() {
   try {
-    const res = await fetch(`${protoUrl}pet/manifest.json`);
+    const res = await fetch(`${protoUrl}dog/pet.json`);
     return res.ok && (await res.json()).id === 'dog';
   } catch {
     return false;

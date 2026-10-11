@@ -87,12 +87,10 @@ void installQaTranslation()
 
 #include <filesystem>
 #include <memory>
-#include <optional>
 
 #include "app/app_controller.h"
 #include "app/global_hotkey.h"
 #include "app/mouse_selection_hook.h"
-#include "app/pet/pet_assets.h"
 #include "app/pet/pet_controller.h"
 #include "app/pet/pet_store.h"
 #include "app/tray.h"
@@ -106,7 +104,6 @@ using lens::app::AppController;
 using lens::app::GlobalHotkey;
 using lens::app::MouseSelectionHook;
 using lens::app::Tray;
-using lens::app::pet::PetAssets;
 using lens::app::pet::PetController;
 using lens::app::pet::PetStore;
 using lens::core::KnownStore;
@@ -220,13 +217,8 @@ Singletons& singletons()
         built.controller = std::make_unique<AppController>(*built.store, *built.llm, *built.hook, *built.hotkey, *built.pricing, std::filesystem::path(LENS_DATA_DIR));
         built.tray       = std::make_unique<Tray>(*built.controller);
         // The pet as main() builds it: a refused data directory leaves it off, and the QML still gets a singleton.
-        std::optional<PetAssets> pet;
-        try {
-            pet = PetAssets::load(std::filesystem::path(LENS_DATA_DIR) / "pet");
-        } catch (std::exception const&) {
-        }
         built.petStore = std::make_unique<PetStore>(*built.store);
-        built.pet      = std::make_unique<PetController>(std::move(pet), *built.petStore);
+        built.pet      = std::make_unique<PetController>(std::filesystem::path(LENS_DATA_DIR) / "pet", *built.petStore);
         return built;
     }();
     return one;
