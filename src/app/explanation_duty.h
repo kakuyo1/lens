@@ -2,21 +2,23 @@
 
 #include <QObject>
 #include <QPoint>
-#include <QSet>
 #include <QString>
 #include <QVariantList>
 #include <QVariantMap>
 #include <QVector>
 
-#include <optional>
-
 #include "capture_duty.h"
 #include "core/pet/pet_state.h"
+#include "explanation_queue.h"
 #include "llm/llm_client.h"
 
 /**
  * @file explanation_duty.h
  * @brief Explanation requests, cache lookup, verdicts and explanation surfaces.
+ *
+ * The scheduling and the staleness rule live in ExplanationQueue: which request leaves next and
+ * which answer is still the reader's. What is left here is the doing -- what goes on the wire,
+ * what is stored, and what is drawn.
  */
 
 namespace lens::app {
@@ -113,8 +115,22 @@ signals:
 
 private:
     void explain(PendingSelection const& pending);
-    void requestExplanations(QVector<PendingSelection> batch, core::CacheContext context, bool fromScan);
-    void startNext();
+    /// @brief Raise the bubble from the copy already stored for @p pending, and count the pop.
+    /// @return True when there was one; a word that has never been explained is not it, and neither
+    ///         is a sentence, which is not something the cache holds.
+    bool showStored(PendingSelection const& pending, core::CacheContext const& context);
+    /// @brief Put one batch on the wire, under the context the queue captured for it.
+    void send(ExplanationBatch batch);
+    /**
+     * @brief Send whatever the queue gives out next, until it gives out nothing.
+     *
+     * A request the reader made that waited for a batch to land is answered out of the cache first
+     * when it can be: the batch that has just finished may be what stored that very word, and a
+     * word already paid for is not bought twice.
+     */
+    void sendNext();
+    void onBatchFinished(QVector<llm::Explanation> results, llm::Usage usage);
+    void onFailed(QString const& message);
     /// @param countsDown Whether the bubble takes itself down after its countdown. A bubble the
     ///        word list raises belongs to the row under the pointer instead, and is taken down when
     ///        the pointer leaves it.
@@ -144,15 +160,14 @@ private:
     StorageDuty& storage_;
     llm::LlmClient& llm_;
     CostDuty& cost_;
+    /// What the reader has asked for and not yet been answered. It holds nothing the duty's own
+    /// decisions do not read: the selection standing is the selection bar's, and it is told here
+    /// only that the reader has moved on.
+    ExplanationQueue queue_;
     PendingSelection pending_;
     QVariantMap bubble_;
     QVariantMap notice_;
     QString busyLabel_;
-    QVector<PendingSelection> requestedBatch_;
-    core::CacheContext requestedContext_;
-    QVector<PendingSelection> scanQueue_;
-    std::optional<PendingSelection> queuedManual_;
-    QPoint scanAnchor_;
     /// Where the row the reader is pointing at sits, so the explanation a notice's button asks for
     /// lands in the same place the review bubble did.
     QPoint reviewAnchor_;
@@ -161,12 +176,6 @@ private:
     bool reviewRaised_ = false;
     /// The provider in force's models, in the shape the settings page draws.
     QVariantList models_;
-    bool requestedFromScan_       = false;
-    bool inFlight_                = false;
-    bool handlingResponse_        = false;
-    unsigned selectionGeneration_ = 0;
-    unsigned requestedGeneration_ = 0;
-    QSet<QString> invalidatedWords_;
 };
 
 }
