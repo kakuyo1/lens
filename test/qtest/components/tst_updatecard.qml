@@ -120,7 +120,7 @@ Item {
         /// idle in this case, so the line is empty and there is no primary button at all.
         function test_anIdleCardShowsNoDownloadLine() {
             const card = opened().card;
-            compare(Controller.download.state, "idle");
+            compare(Controller.updateDuty.download.state, "idle");
             const line = Util.findAll(card, function (object) {
                 return object.objectName === "downloadLine";
             })[0];

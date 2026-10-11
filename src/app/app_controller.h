@@ -136,25 +136,6 @@ public:
     Q_INVOKABLE bool saveWords(QUrl path, QString scope);
     Q_INVOKABLE bool removeWord(QString lemma);
     Q_INVOKABLE bool setDailyBudget(double amount);
-    /// @brief Ask the release source now, and report whatever it really says.
-    Q_INVOKABLE void checkForUpdates();
-    /// @brief Stop the automatic prompt for the version now on offer.
-    Q_INVOKABLE void skipUpdate();
-    /// @brief Open the release page in the browser, and take the card down.
-    Q_INVOKABLE void openReleasePage();
-    /// @brief Take the update card down without changing anything stored.
-    Q_INVOKABLE void closeUpdateCard();
-    /// @brief Whether the update card is up; the card reads this beside the state.
-    Q_INVOKABLE bool updateCardVisible() const;
-    /// @brief Switch the automatic startup check on or off; read back by the settings page.
-    Q_INVOKABLE void setAutoUpdateCheck(bool on);
-    Q_INVOKABLE bool autoUpdateCheck() const;
-    /// @brief Fetch the installer for the release on offer, and check it.
-    Q_INVOKABLE void downloadUpdate();
-    /// @brief Stop the transfer and delete the half-written file.
-    Q_INVOKABLE void cancelDownload();
-    /// @brief Run the installer that has been checked, and close Lens.
-    Q_INVOKABLE void installUpdate();
     void checkForUpdatesAtStartup();
 
     QVariantMap bubble() const;
@@ -171,10 +152,8 @@ public:
     /// @brief The last 365 local dates, including zero-use days, for the annual words surface.
     QVariantList yearDays() const;
     QVariantMap cost() const;
-    /// @brief The update check's state, versions and release page, as one map.
-    QVariantMap update() const;
-    /// @brief The download's state, percentage, availability and failure key, as one map.
-    QVariantMap download() const;
+    /// @brief The update duty, which QML reads as `Controller.updateDuty`; the facade owns it.
+    UpdateDuty* updateDuty();
     QString modeLabel() const;
     QString busyLabel() const;
     double dailyBudget() const;
@@ -187,10 +166,7 @@ public:
     Q_PROPERTY(QVariantList words READ words NOTIFY statsChanged)
     Q_PROPERTY(QVariantList yearDays READ yearDays NOTIFY yearDaysChanged)
     Q_PROPERTY(QVariantMap cost READ cost NOTIFY statsChanged)
-    Q_PROPERTY(QVariantMap update READ update NOTIFY updateChanged)
-    Q_PROPERTY(bool updateCardVisible READ updateCardVisible NOTIFY updateChanged)
-    Q_PROPERTY(bool autoUpdateCheck READ autoUpdateCheck NOTIFY updateChanged)
-    Q_PROPERTY(QVariantMap download READ download NOTIFY downloadChanged)
+    Q_PROPERTY(lens::app::UpdateDuty* updateDuty READ updateDuty CONSTANT)
     Q_PROPERTY(QString modeLabel READ modeLabel NOTIFY settingsChanged)
     Q_PROPERTY(QString busyLabel READ busyLabel NOTIFY busyChanged)
     Q_PROPERTY(double dailyBudget READ dailyBudget NOTIFY dailyBudgetChanged)
@@ -212,10 +188,6 @@ signals:
     void busyChanged();
     void uiLanguageChanged(QString lang);
     void dailyBudgetChanged();
-    /// @brief The update check's state, or its card's visibility, changed.
-    void updateChanged();
-    /// @brief The download's state, its percentage, or its availability changed.
-    void downloadChanged();
 
 private:
     /// @brief Restore provider wire options and persisted connection choices without touching credentials.

@@ -30,9 +30,9 @@ Window {
     property string pageUrl: ""
     property string notes: ""
 
-    /// The download's own state, read straight off the controller: the card is the surface
-    /// that shows it, and the duty is the one that owns it.
-    readonly property var download: Controller.download
+    /// The download's own state, read straight off the duty: the card is the surface that
+    /// shows it, and the duty is the one that owns it.
+    readonly property var download: Controller.updateDuty.download
 
     /// View was pressed: open the release page in the browser.
     signal viewRequested()
@@ -95,7 +95,7 @@ Window {
     /// version", which are different answers to the same question.
     function closeCard() {
         visible = false
-        Controller.closeUpdateCard()
+        Controller.updateDuty.closeCard()
     }
 
     ShadowCard {

@@ -5,6 +5,7 @@
 #include <QString>
 #include <QStringList>
 #include <QVariantMap>
+#include <QtQml/qqmlregistration.h>
 
 #include <functional>
 
@@ -32,6 +33,8 @@ using Launcher = std::function<bool(const QString& path, const QStringList& argu
 
 class UpdateDuty final : public QObject {
     Q_OBJECT
+    QML_ANONYMOUS
+    QML_UNCREATABLE("Owned by Controller; reached as Controller.updateDuty")
 public:
     using DateProvider = std::function<QDate()>;
 
@@ -81,28 +84,28 @@ public:
     ///
     /// A manual check is not the automatic one: `skipped` does not suppress it, and `offline`
     /// is reported rather than swallowed, because the reader pressed the button.
-    void checkForUpdates();
+    Q_INVOKABLE void checkForUpdates();
 
     /// @brief Remember the version now on offer as skipped, and take the card down.
     ///
     /// Skipping a version stops the automatic prompt for that version and not for any other:
     /// a newer one prompts again, which is why a version and not a flag is stored.
-    void skipUpdate();
+    Q_INVOKABLE void skipUpdate();
 
     /// @brief Open the release page in the browser, and take the card down.
     ///
     /// Refuses a page that is not https, so a malformed answer cannot turn the card into an
     /// arbitrary launch. Launches nothing itself: the browser opens the page and nothing else.
-    void openReleasePage();
+    Q_INVOKABLE void openReleasePage();
 
     /// @brief Take the card down without touching anything stored.
-    void closeCard();
+    Q_INVOKABLE void closeCard();
 
     /// @brief Whether the card is up, which is the flag and the state together.
     bool cardVisible() const;
 
     /// @brief Set whether startup may check; read back by the settings page's switch.
-    void setAutoCheck(bool on);
+    Q_INVOKABLE void setAutoCheck(bool on);
 
     /// @return Whether startup may check.
     bool autoCheck() const;
@@ -121,20 +124,25 @@ public:
     /// download is a thing a reader asked for, so the automatic check never starts one. A
     /// release that publishes no digest for the installer is simply not downloadable, and the
     /// card keeps View.
-    void downloadUpdate();
+    Q_INVOKABLE void downloadUpdate();
 
     /// @brief Stop the transfer and delete the half-written file.
-    void cancelDownload();
+    Q_INVOKABLE void cancelDownload();
 
     /// @brief Run the installer that has been checked, and close Lens.
     ///
     /// The digest is recomputed here, at the moment of the launch, and the file is only run
     /// when it still matches. A file that no longer matches is deleted rather than reported
     /// on, so there is nothing on disk to run by hand afterwards.
-    void installUpdate();
+    Q_INVOKABLE void installUpdate();
+
+    Q_PROPERTY(QVariantMap update READ update NOTIFY updateChanged)
+    Q_PROPERTY(QVariantMap download READ download NOTIFY downloadChanged)
+    Q_PROPERTY(bool cardVisible READ cardVisible NOTIFY updateChanged)
+    Q_PROPERTY(bool autoCheck READ autoCheck NOTIFY updateChanged)
 
 signals:
-    /// @brief The state, the versions, or the card's visibility changed.
+    /// @brief The state, the versions, the card's visibility, or the startup switch changed.
     void updateChanged();
 
     /// @brief A check found a version the card was not showing before, so the card came up. A recheck of a card
