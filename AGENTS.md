@@ -5,6 +5,9 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
 ## Critical Rules
 
 - No commits unless explicitly requested, no AI attribution in commits or PRs.
+- A branch that has been pushed gets a pull request, and its body follows
+  `.github/pull_request_template.md`: all three sections filled. Do not stop at handing over the
+  compare URL.
 - UI work must comply with `UI.md` and `PRODUCT.md`.
 - Designing or auditing a UI surface starts by loading the `taste-skill` skill; a surface that has been rendered is checked with `visual-qa`.
 - Keep `GLOSSARY.md`, `PRODUCT.md`, and `UI.md` in sync on any design change; record major trade-offs in `docs/adr/`.

@@ -89,7 +89,8 @@ docs/adr/0016-ocr-trigger-key-and-mask.md 0
 docs/adr/0017-model-follows-the-provider.md 0
 docs/adr/0018-provider-model-list-contract.md 0
 docs/adr/0019-etymology-outside-the-cache-key.md 0
-ui-prototypes/README.md 0'
+ui-prototypes/README.md 0
+.github/pull_request_template.md 0'
 
 # The files the checks read: what a commit stages, or the list CI hands in through LENS_CHECK_FILES.
 staged=${LENS_CHECK_FILES:-$(git diff --cached --name-only --diff-filter=ACM)}
