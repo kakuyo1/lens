@@ -1,7 +1,7 @@
 import QtQuick
 
 /**
- * The dog as layers, at the frame the controller chose. Body, expression and effect take their z from pet.json;
+ * The pet as layers, at the frame the controller chose. Body, expression and effect take their z from pet.json;
  * accessories take theirs from accessories.json. The scene scales by a whole number, so pixels stay square.
  */
 Item {

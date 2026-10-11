@@ -31,7 +31,7 @@ struct AccessorySpec {
 };
 
 /**
- * @brief The accessories the dog is wearing, one per slot, over a fixed catalogue.
+ * @brief The accessories the pet is wearing, one per slot, over a fixed catalogue.
  *
  * Toggling an accessory puts it on its slot, takes off whatever was there, or, if the same one is already
  * worn, takes it off. Visibility is decided per action: an accessory that does not support the action now

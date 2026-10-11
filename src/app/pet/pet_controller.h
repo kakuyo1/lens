@@ -9,7 +9,7 @@
  * machine's state into properties for QML. It receives event types only, never text or a selection.
  *
  * The one exception is the settings preview: preview() shows a chosen action in place of the machine's, and the
- * machine keeps running underneath. The same dog is on the desktop, so the preview shows there too while it lasts.
+ * machine keeps running underneath. The same pet is on the desktop, so the preview shows there too while it lasts.
  */
 
 #include <chrono>

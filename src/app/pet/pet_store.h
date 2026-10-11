@@ -39,7 +39,7 @@ public:
     /// @param store The one owner of the settings document, which must outlive this object.
     explicit PetStore(core::KnownStore& store);
 
-    /// @return The folder name of the pet the reader chose under data/pet. "dog" until they choose another.
+    /// @return The folder name of the pet the reader chose under data/pet, or the default pet until they choose another.
     std::string pet() const;
     void        setPet(std::string const& id);
 

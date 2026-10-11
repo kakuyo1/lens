@@ -32,7 +32,7 @@ using core::pet::Slot;
 
 /// One tick of the single frame clock. Frames are at most 12 fps, so a tick of this length keeps them within one step.
 constexpr std::chrono::milliseconds kTick{20};
-/// Time between blinks while the dog is awake. The prototype blinks on the same cadence.
+/// Time between blinks while the pet is awake. The prototype blinks on the same cadence.
 constexpr std::chrono::milliseconds kBlinkEvery{4000};
 
 QPoint toPoint(core::pet::Point const& point)
@@ -233,7 +233,7 @@ QStringList PetController::actions() const
 {
     auto names = QStringList{};
     if (not assets_) return names;
-    // The actions that play a role come first, in role order, so the settings pills keep the dog's order; then the rest.
+    // The actions that play a role come first, in role order, so the settings pills keep the pet's order; then the rest.
     auto const& playbook = assets_->animations.playbook;
     for (auto const& entry : playbook.roles) {
         auto const name = QString::fromStdString(entry.second);
@@ -491,7 +491,7 @@ void PetController::sync(std::chrono::milliseconds step)
     auto const& pictures = assets.sheets.at(action);
     auto        frame    = static_cast<int>(actionElapsed_.count() * spec.fps / 1000);
     if (preview_ and not spec.loop and frame >= spec.frames) {
-        // A one-shot preview has played through: the dog goes back to what the machine has it doing.
+        // A one-shot preview has played through: the pet goes back to what the machine has it doing.
         preview_.reset();
         sync(std::chrono::milliseconds{0});
         return;
