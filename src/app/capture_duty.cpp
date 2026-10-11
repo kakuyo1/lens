@@ -54,6 +54,12 @@ capture::TesseractConfig storedTesseractConfig(StorageDuty& storage)
             QString::fromStdString(keys.value<std::string>("tesseractDataDirectory", {}))};
 }
 
+/// @return The token for a reason, as the QString the QML boundary reads.
+QString tokenOf(CaptureRefusal refusal)
+{
+    return QString::fromLatin1(refusalKey(refusal));
+}
+
 }
 
 CaptureDuty::CaptureDuty(StorageDuty& storage, MouseSelectionHook& hook, QObject* parent)
@@ -114,17 +120,11 @@ QVariantMap CaptureDuty::settings() const
 
 QString CaptureDuty::ocrStatus() const
 {
-    if (jobContext_ and jobContext_->probe) return QStringLiteral("checking");
-    switch (ocrState_) {
-        case capture::OcrStatus::Ready: return QStringLiteral("ready");
-        case capture::OcrStatus::RuntimeMissing: return QStringLiteral("runtime-missing");
-        case capture::OcrStatus::LanguageMissing: return QStringLiteral("english-data-missing");
-        case capture::OcrStatus::StartFailed: return QStringLiteral("start-failed");
-        case capture::OcrStatus::TimedOut: return QStringLiteral("timeout");
-        case capture::OcrStatus::InvalidImage: return QStringLiteral("invalid-image");
-        case capture::OcrStatus::EmptyText: return QStringLiteral("empty-text");
-        default: return QStringLiteral("failed");
-    }
+    if (jobContext_ and jobContext_->probe) return tokenOf(CaptureRefusal::Checking);
+    // Ready is the status that is not a reason a capture cannot start, so it is the one string
+    // here that has no CaptureRefusal behind it: the settings page reads it as "fine".
+    const auto refusal = refusalOf(ocrState_);
+    return refusal ? tokenOf(*refusal) : QStringLiteral("ready");
 }
 
 void CaptureDuty::invalidateScan()
@@ -278,37 +278,36 @@ void CaptureDuty::launchOcr(QImage image, QPoint const anchor, QString context)
     pollTimer_.start();
 }
 
-QString CaptureDuty::captureRefusalReason() const
+std::optional<CaptureRefusal> CaptureDuty::captureRefusalReason() const
 {
-    if (budgetPaused_) return QStringLiteral("budget-paused");
-    if (jobContext_ and jobContext_->probe) return QStringLiteral("checking");
-    if (job_) return QStringLiteral("busy");
-    if (not settings().value("ocrCapture").toBool()) return QStringLiteral("screenshot-off");
-    if (ocrState_ != capture::OcrStatus::Ready) return ocrStatus();
-    return {};
+    if (budgetPaused_) return CaptureRefusal::BudgetPaused;
+    if (jobContext_ and jobContext_->probe) return CaptureRefusal::Checking;
+    if (job_) return CaptureRefusal::Busy;
+    if (not settings().value("ocrCapture").toBool()) return CaptureRefusal::ScreenshotOff;
+    return refusalOf(ocrState_);
 }
 
 bool CaptureDuty::captureScreenshot(QImage image, QPoint const anchor)
 {
-    if (not captureRefusalReason().isEmpty()) return false;
+    if (captureRefusalReason()) return false;
     launchOcr(std::move(image), anchor, {});
     return true;
 }
 
-QString CaptureDuty::captureRegion(QRect const region)
+std::optional<CaptureRefusal> CaptureDuty::captureRegion(QRect const region)
 {
-    if (const QString reason = captureRefusalReason(); not reason.isEmpty()) return reason;
+    if (const auto refusal = captureRefusalReason()) return refusal;
     auto* const screen = QGuiApplication::screenAt(region.center());
-    if (screen == nullptr or region.isEmpty() or not screen->geometry().contains(region)) return QStringLiteral("outside-screen");
-    if (region.width() * screen->devicePixelRatio() > 8192 or region.height() * screen->devicePixelRatio() > 8192) return QStringLiteral("too-large");
+    if (screen == nullptr or region.isEmpty() or not screen->geometry().contains(region)) return CaptureRefusal::OutsideScreen;
+    if (region.width() * screen->devicePixelRatio() > 8192 or region.height() * screen->devicePixelRatio() > 8192) return CaptureRefusal::RegionTooLarge;
     auto const nativeOrigin = capture::physicalScreenOrigin(monitorOf(screen));
-    if (not nativeOrigin) return QStringLiteral("outside-screen");
+    if (not nativeOrigin) return CaptureRefusal::OutsideScreen;
     auto const local  = region.translated(-screen->geometry().topLeft());
     auto const image  = screen->grabWindow(0, local.x(), local.y(), local.width(), local.height()).toImage();
     auto const anchor = *nativeOrigin + local.topLeft() * screen->devicePixelRatio();
     // The gate was read a moment ago; a job that started since is the only way this refuses now,
     // and it is the same answer the next press will get.
-    return captureScreenshot(image, anchor) ? QString{} : QStringLiteral("busy");
+    return captureScreenshot(image, anchor) ? std::nullopt : std::optional<CaptureRefusal>{CaptureRefusal::Busy};
 }
 
 void CaptureDuty::scanTick()
@@ -369,10 +368,8 @@ void CaptureDuty::pollOcr()
     if (context.probe) {
         ocrState_ = result.status;
         emit settingsChanged();
-        if (result.status != capture::OcrStatus::Ready) {
+        if (result.status != capture::OcrStatus::Ready)
             LENS_WARN("OCR probe failed (status {})", ocrStatus().toStdString());
-            emit ocrFailed(ocrStatus());
-        }
         return;
     }
     if (context.generation != (context.context.isEmpty() ? screenshotGeneration_ : generation_)) return;
@@ -385,10 +382,14 @@ void CaptureDuty::pollOcr()
         }
     }
     if (result.status != capture::OcrStatus::Ready) {
+        // The status this result carried, never ocrStatus(): that reads ocrState_, which the gate
+        // requires to be Ready before a framed capture starts at all -- so this branch used to log
+        // "ready" and tell the reader the runtime was unavailable about a region that simply had
+        // no text in it.
+        const auto refusal = refusalOf(result.status).value_or(CaptureRefusal::Failed);
         if (context.context.isEmpty()) {
-            LENS_INFO("OCR of the framed region produced no text (status {})", ocrStatus().toStdString());
-            emit ocrFailed(ocrStatus());
-            emit screenshotFailed(ocrStatus());
+            LENS_INFO("OCR of the framed region produced no text (status {})", refusalKey(refusal));
+            emit screenshotFailed(refusal);
             return;
         }
         scan_->reset();
@@ -397,9 +398,6 @@ void CaptureDuty::pollOcr()
             emit settingsChanged();
             LENS_WARN("OCR worker failed (status {})", ocrStatus().toStdString());
         }
-        emit ocrFailed(result.status == capture::OcrStatus::EmptyText      ? QStringLiteral("empty-text")
-                       : result.status == capture::OcrStatus::InvalidImage ? QStringLiteral("invalid-image")
-                                                                           : ocrStatus());
         return;
     }
     if (context.context.isEmpty()) {
