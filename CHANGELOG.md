@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.2.5 - 2026-10-11
+
+Patch release: the Spanish and Japanese interfaces are translated in more places, and the internal
+structure of the app's background duties is reorganised with no change to what the reader sees.
+
+### Changed
+
+- The Spanish and Japanese interfaces translate the update card, the update settings and the desktop
+  pet's labels, which earlier releases showed in English. These translations are machine-generated
+  and have not been reviewed by a native speaker.
+- The app's background duties (capture, explanation, model catalogue and update) now expose their
+  commands to the interface directly, and the word list draws its own time labels. Deleting a word no
+  longer redraws the explanation bubble when that word is not the one on it.
+
+### Fixed
+
+- A model missing from the price list is reported once in the log, not on every call.
+
 ## 1.2.0 - 2026-10-11
 
 Third release of Lens. A desktop companion arrives, off by default, and the app checks for new
