@@ -49,9 +49,9 @@ Item {
             compare(page.updateStatusText("offline"), "Cannot connect");
             // The two that name a version take it off the controller's own answer.
             compare(page.updateStatusText("upToDate"),
-                    "Up to date (version " + Controller.update.current + ")");
+                    "Up to date (version " + Controller.updateDuty.update.current + ")");
             compare(page.updateStatusText("available"),
-                    "Version " + Controller.update.latest + " is available");
+                    "Version " + Controller.updateDuty.update.latest + " is available");
             // Idle has nothing to say, and so has a state nobody has written yet.
             compare(page.updateStatusText("idle"), "");
             compare(page.updateStatusText("something-new"), "");
@@ -61,7 +61,7 @@ Item {
         /// Nothing is checked while idle, so the line is empty and the button is live.
         function test_idleSaysNothingAndLeavesTheButtonPressable() {
             const page = make();
-            compare(Controller.update.state, "idle", "this case assumes no check has run");
+            compare(Controller.updateDuty.update.state, "idle", "this case assumes no check has run");
             compare(textByName(page, "updateStatusLine").text, "");
             compare(textByName(page, "updateStatusLine").visible, false);
             compare(textByName(page, "checkForUpdatesButton").opacity, 1);
@@ -105,7 +105,7 @@ Item {
                 return candidate.label === "Check for updates at startup";
             })[0];
             verify(row, "no startup switch was found");
-            compare(row.checked, Controller.autoUpdateCheck);
+            compare(row.checked, Controller.updateDuty.autoCheck);
             compare(row.interactive, true);
             page.destroy();
         }

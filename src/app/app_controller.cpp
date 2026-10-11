@@ -95,8 +95,6 @@ AppController::AppController(core::KnownStore& store,
         }
     });
 
-    connect(&updateDuty_, &UpdateDuty::updateChanged, this, &AppController::updateChanged);
-    connect(&updateDuty_, &UpdateDuty::downloadChanged, this, &AppController::downloadChanged);
     connect(&updateDuty_, &UpdateDuty::newVersionOffered, this, [this] { emit petEvent(core::pet::PetEvent::UpdateAvailable); });
     connect(&hotkey_, &GlobalHotkey::pressed, this, &AppController::onTriggerHotkey);
     hotkey_.setKeys(storedHotkey(storage_));
@@ -617,69 +615,14 @@ QVariantMap AppController::cost() const
     return cost_.cost();
 }
 
-QVariantMap AppController::update() const
-{
-    return updateDuty_.update();
-}
-
-QVariantMap AppController::download() const
-{
-    return updateDuty_.download();
-}
-
-void AppController::downloadUpdate()
-{
-    updateDuty_.downloadUpdate();
-}
-
-void AppController::cancelDownload()
-{
-    updateDuty_.cancelDownload();
-}
-
-void AppController::installUpdate()
-{
-    updateDuty_.installUpdate();
-}
-
-bool AppController::updateCardVisible() const
-{
-    return updateDuty_.cardVisible();
-}
-
-void AppController::checkForUpdates()
-{
-    updateDuty_.checkForUpdates();
-}
-
 void AppController::checkForUpdatesAtStartup()
 {
     updateDuty_.checkAtStartup();
 }
 
-void AppController::skipUpdate()
+UpdateDuty* AppController::updateDuty()
 {
-    updateDuty_.skipUpdate();
-}
-
-void AppController::openReleasePage()
-{
-    updateDuty_.openReleasePage();
-}
-
-void AppController::closeUpdateCard()
-{
-    updateDuty_.closeCard();
-}
-
-void AppController::setAutoUpdateCheck(bool on)
-{
-    updateDuty_.setAutoCheck(on);
-}
-
-bool AppController::autoUpdateCheck() const
-{
-    return updateDuty_.autoCheck();
+    return &updateDuty_;
 }
 
 QString AppController::modeLabel() const

@@ -51,9 +51,9 @@ Item {
         if (state === "checking")
             return qsTranslate("SettingsPopup", "Checking...");
         if (state === "upToDate")
-            return qsTranslate("SettingsPopup", "Up to date (version %1)").arg(Controller.update.current);
+            return qsTranslate("SettingsPopup", "Up to date (version %1)").arg(Controller.updateDuty.update.current);
         if (state === "available")
-            return qsTranslate("SettingsPopup", "Version %1 is available").arg(Controller.update.latest);
+            return qsTranslate("SettingsPopup", "Version %1 is available").arg(Controller.updateDuty.update.latest);
         if (state === "offline")
             return qsTranslate("SettingsPopup", "Cannot connect");
         return "";
@@ -64,7 +64,7 @@ Item {
         return state === "checking";
     }
 
-    readonly property bool updatesBusy: page.updateBusy(Controller.update.state)
+    readonly property bool updatesBusy: page.updateBusy(Controller.updateDuty.update.state)
 
     Component.onCompleted: page.loadDraft()
 
@@ -275,7 +275,7 @@ Item {
                 TapHandler {
                     id: checkTap
                     enabled: !page.updatesBusy
-                    onTapped: Controller.checkForUpdates()
+                    onTapped: Controller.updateDuty.checkForUpdates()
                 }
             }
 
@@ -284,7 +284,7 @@ Item {
                 objectName: "updateStatusLine"
                 anchors.verticalCenter: parent.verticalCenter
                 width: parent.width - checkButton.width - parent.spacing
-                text: page.updateStatusText(Controller.update.state)
+                text: page.updateStatusText(Controller.updateDuty.update.state)
                 visible: text !== ""
                 color: Tokens.muted
                 font.pixelSize: 12
@@ -295,8 +295,8 @@ Item {
         SwitchRow {
             width: parent.width
             label: qsTranslate("SettingsPopup", "Check for updates at startup")
-            checked: Controller.autoUpdateCheck
-            onToggled: (on) => Controller.setAutoUpdateCheck(on)
+            checked: Controller.updateDuty.autoCheck
+            onToggled: (on) => Controller.updateDuty.setAutoCheck(on)
         }
 
         Text {
