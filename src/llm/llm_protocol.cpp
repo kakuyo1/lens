@@ -23,13 +23,13 @@ constexpr std::size_t kChannelCount = static_cast<std::size_t>(Channel::Count);
 ///        turned out empty", which would otherwise both look like an absent template.
 struct LoadedProtocol {
     RequestTemplate request;
-    QStringList requiredFields;
-    QJsonObject schema;
-    bool loaded = false;
+    QStringList     requiredFields;
+    QJsonObject     schema;
+    bool            loaded = false;
 };
 
 std::array<LoadedProtocol, kChannelCount> g_protocols;
-QJsonObject g_catalog;
+QJsonObject                               g_catalog;
 
 /// @brief Read a file as raw bytes.
 /// @note std::ifstream rather than QFile: it takes the path natively, so a non-ASCII
@@ -126,12 +126,12 @@ const char* channelKey(Channel channel)
 
 void loadLlmProtocol(Channel channel, const std::filesystem::path& dir)
 {
-    const std::string key                   = channelKey(channel);
+    const std::string           key         = channelKey(channel);
     const std::filesystem::path requestFile = dir / ("request." + key + ".json");
     const std::filesystem::path schemaFile  = dir / ("response." + key + ".schema.json");
 
     const QJsonObject root = readJsonObject(requestFile);
-    RequestTemplate request;
+    RequestTemplate   request;
     request.responseFormat = root.value("responseFormat").toObject();
     request.thinking       = root.value("thinking").toObject();
     request.maxTokens      = root.value("maxTokens").toInt();
@@ -175,7 +175,7 @@ void loadLlmProtocol(Channel channel, const std::filesystem::path& dir)
     if (required.isEmpty())
         throw std::runtime_error("no 'properties.results.items.required' in " + schemaFile.string());
 
-    auto catalog         = readJsonObject(dir / "catalog.json");
+    auto       catalog   = readJsonObject(dir / "catalog.json");
     auto const providers = catalog.value("providers").toArray();
     auto const languages = catalog.value("languages").toArray();
     if (providers.isEmpty() or languages.isEmpty())
@@ -244,7 +244,7 @@ const RequestTemplate& requestTemplate(Channel channel)
 const PromptTemplate& promptTemplate(Channel channel, const QString& preset)
 {
     const RequestTemplate& request = requestTemplate(channel);
-    const auto it                  = request.prompts.constFind(preset);
+    const auto             it      = request.prompts.constFind(preset);
     if (it == request.prompts.cend())
         throw std::logic_error("lens::llm::promptTemplate: preset '" + preset.toStdString() +
                                "' is not loaded for channel '" + channelKey(channel) + "'");

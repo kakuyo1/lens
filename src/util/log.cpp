@@ -39,7 +39,7 @@ void init(spdlog::level::level_enum level, const std::filesystem::path& logDir)
     std::string fileError;
     if (!logDir.empty()) {
         const std::filesystem::path file = logDir / kLogFileName;
-        std::error_code ec;
+        std::error_code             ec;
         std::filesystem::create_directories(logDir, ec);
 
         if (ec) {

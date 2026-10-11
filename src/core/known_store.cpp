@@ -254,7 +254,7 @@ void KnownStore::save() const
     for (const auto& [key, entry] : cache_) {
         auto const languageEnd = key.find(kSep);
         auto const modeEnd     = key.find(kSep, languageEnd + 1);
-        auto& word             = cache[key.substr(0, languageEnd)][key.substr(modeEnd + 1)];
+        auto&      word        = cache[key.substr(0, languageEnd)][key.substr(modeEnd + 1)];
         if (not word.is_object()) word = nlohmann::json::object();
         if (key.substr(languageEnd + 1, modeEnd - languageEnd - 1) == "multiple")
             word["multiple"] = writeCache(entry);

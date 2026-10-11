@@ -30,8 +30,8 @@ using lens::core::pet::PetEvent;
 
 /// The controller and the store it reads, built the way main() builds them.
 struct Rig {
-    KnownStore store;
-    PetStore petStore;
+    KnownStore    store;
+    PetStore      petStore;
     PetController controller;
 
     Rig(std::filesystem::path const& settings, std::optional<PetAssets> assets)

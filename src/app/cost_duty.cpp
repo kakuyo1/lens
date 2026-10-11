@@ -24,11 +24,11 @@ QString currencySymbol(const QString& code)
 
 }
 
-CostDuty::CostDuty(core::StatsStore& stats,
-                   llm::LlmClient& llm,
+CostDuty::CostDuty(core::StatsStore&   stats,
+                   llm::LlmClient&     llm,
                    const llm::Pricing& pricing,
-                   DateProvider dateProvider,
-                   QObject* parent)
+                   DateProvider        dateProvider,
+                   QObject*            parent)
     : QObject(parent),
       stats_(stats),
       llm_(llm),
@@ -40,13 +40,13 @@ CostDuty::CostDuty(core::StatsStore& stats,
 
 QVariantMap CostDuty::stats() const
 {
-    const BudgetStatus budget = budgetStatus();
-    const std::string today   = budget.date.toString(Qt::ISODate).toStdString();
-    const auto& daily         = stats_.daily();
-    int todayPops             = 0;
-    int todayLearned          = 0;
-    int todayFresh            = 0;
-    double todayCost          = 0.0;
+    const BudgetStatus budget       = budgetStatus();
+    const std::string  today        = budget.date.toString(Qt::ISODate).toStdString();
+    const auto&        daily        = stats_.daily();
+    int                todayPops    = 0;
+    int                todayLearned = 0;
+    int                todayFresh   = 0;
+    double             todayCost    = 0.0;
 
     for (const auto& [date, usage] : daily) {
         if (date != today)
@@ -72,23 +72,23 @@ QVariantMap CostDuty::stats() const
 
 QVariantMap CostDuty::cost() const
 {
-    const BudgetStatus budget = budgetStatus();
-    const QDate today         = budget.date;
-    double month              = 0.0;
-    double todayAmount        = 0.0;
-    double yesterday          = 0.0;
-    double week               = 0.0;
-    long long monthTokens     = 0;
-    long long todayTokens     = 0;
-    long long yesterdayTokens = 0;
-    long long weekTokens      = 0;
+    const BudgetStatus budget          = budgetStatus();
+    const QDate        today           = budget.date;
+    double             month           = 0.0;
+    double             todayAmount     = 0.0;
+    double             yesterday       = 0.0;
+    double             week            = 0.0;
+    long long          monthTokens     = 0;
+    long long          todayTokens     = 0;
+    long long          yesterdayTokens = 0;
+    long long          weekTokens      = 0;
 
     for (const auto& [date, usage] : stats_.daily()) {
         const QDate when = QDate::fromString(QString::fromStdString(date), Qt::ISODate);
         if (!when.isValid())
             continue;
 
-        const double amount    = amountOf(usage);
+        const double    amount = amountOf(usage);
         const long long tokens = usage.promptTokens + usage.completionTokens;
         if (when.year() == today.year() && when.month() == today.month()) {
             month += amount;
@@ -150,12 +150,12 @@ BudgetStatus CostDuty::budgetStatus() const
 
 BudgetStatus CostDuty::budgetStatusFor(const QDate& date) const
 {
-    const QDate localDate = date.isValid() ? date : QDate::currentDate();
-    const auto it         = stats_.daily().find(localDate.toString(Qt::ISODate).toStdString());
-    const double spent    = it == stats_.daily().end() ? 0.0 : std::max(0.0, amountOf(it->second));
-    const double limit    = stats_.dailyBudget();
-    const bool limited    = limit > 0.0;
-    const bool exhausted  = budgetReached(spent, limit);
+    const QDate  localDate = date.isValid() ? date : QDate::currentDate();
+    const auto   it        = stats_.daily().find(localDate.toString(Qt::ISODate).toStdString());
+    const double spent     = it == stats_.daily().end() ? 0.0 : std::max(0.0, amountOf(it->second));
+    const double limit     = stats_.dailyBudget();
+    const bool   limited   = limit > 0.0;
+    const bool   exhausted = budgetReached(spent, limit);
 
     return BudgetStatus{.date      = localDate,
                         .spent     = spent,

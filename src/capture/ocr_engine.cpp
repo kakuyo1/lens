@@ -53,10 +53,10 @@ struct TesseractOcr final : OcrEngine {
     OcrResult recognizeImage(QImage const& image, std::shared_ptr<std::atomic_bool> const& cancel) const
     {
         QByteArray png;
-        QBuffer buffer{&png};
+        QBuffer    buffer{&png};
         if (not buffer.open(QIODevice::WriteOnly) or not image.save(&buffer, "PNG")) return {.status = OcrStatus::InvalidImage};
 
-        QProcess process;
+        QProcess      process;
         QElapsedTimer timer;
         timer.start();
         process.start(config.executable,
@@ -64,8 +64,8 @@ struct TesseractOcr final : OcrEngine {
         if (not process.waitForStarted(config.timeoutMs)) return {.status = OcrStatus::StartFailed};
 
         QByteArray output;
-        qsizetype errorBytes = 0;
-        auto drain           = [&] {
+        qsizetype  errorBytes = 0;
+        auto       drain      = [&] {
             const auto outputLimit = std::max<qsizetype>(1, kMaxOutput - output.size() + 1);
             process.setReadChannel(QProcess::StandardOutput);
             output += process.read(static_cast<qint64>(outputLimit));
@@ -157,7 +157,7 @@ std::unique_ptr<OcrEngine> makeTesseractOcr(TesseractConfig const& config)
 std::uint64_t pixelFingerprint(QImage const& image)
 {
     auto const pixels = image.convertToFormat(QImage::Format_Grayscale8);
-    auto hash         = std::uint64_t{14695981039346656037ULL};
+    auto       hash   = std::uint64_t{14695981039346656037ULL};
     for (int y = 0; y < pixels.height(); ++y) {
         auto const* row = pixels.constScanLine(y);
         for (int x = 0; x < pixels.width(); ++x) {

@@ -56,9 +56,9 @@ QJsonObject plainWord(QString const& lemma, QString const& etymology = {})
 }
 
 struct QtApplication {
-    int argc      = 1;
-    char name[32] = "phase2_explanation_test";
-    char* argv[2] = {name, nullptr};
+    int              argc     = 1;
+    char             name[32] = "phase2_explanation_test";
+    char*            argv[2]  = {name, nullptr};
     QCoreApplication application{argc, argv};
 };
 
@@ -84,16 +84,16 @@ struct Reply final : QNetworkReply {
 };
 
 struct Manager final : QNetworkAccessManager {
-    QByteArray response = envelope({word()});
-    QByteArray posted;
-    QUrl endpoint;
-    QUrl listed;
-    QByteArray listedAuthorization;
-    QByteArray listedGoogleKey;
-    QByteArray modelResponseOverride;
-    bool usesTestToken = false;
-    int posts          = 0;
-    int gets           = 0;
+    QByteArray     response = envelope({word()});
+    QByteArray     posted;
+    QUrl           endpoint;
+    QUrl           listed;
+    QByteArray     listedAuthorization;
+    QByteArray     listedGoogleKey;
+    QByteArray     modelResponseOverride;
+    bool           usesTestToken = false;
+    int            posts         = 0;
+    int            gets          = 0;
     QNetworkReply* createRequest(Operation operation, QNetworkRequest const& request, QIODevice* device) override
     {
         // The model list is a GET and carries no body at all, so it is answered without a device:
@@ -191,8 +191,8 @@ TEST_F(LlmTest, Phase2AdditionalLanguagesRequireTextOnEveryChannel)
 {
     for (auto const* language : {"es", "ja"}) {
         for (auto const channel : {llm::Channel::Word, llm::Channel::Entity, llm::Channel::Sentence}) {
-            QJsonObject const value = channel == llm::Channel::Word ? word() : QJsonObject{{"en", "English"}, {"zh", "Chinese"}, {"translation", "selected language"}};
-            auto const parsed       = llm::parseExplanations(channel, envelope({value}), {"bank"}, language, true);
+            QJsonObject const value  = channel == llm::Channel::Word ? word() : QJsonObject{{"en", "English"}, {"zh", "Chinese"}, {"translation", "selected language"}};
+            auto const        parsed = llm::parseExplanations(channel, envelope({value}), {"bank"}, language, true);
             ASSERT_TRUE(std::holds_alternative<QVector<llm::Explanation>>(parsed));
             EXPECT_FALSE(std::get<QVector<llm::Explanation>>(parsed).front().translation.isEmpty());
             auto missing = value;
@@ -250,14 +250,14 @@ TEST_F(LlmTest, Phase2LanguagesRoundTripThroughDutyTransportAndCache)
     QtApplication qt;
     for (auto const* language : {"es", "ja"}) {
         QTemporaryDir temporary;
-        auto store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+        auto          store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
         store.setExplanationLang(language);
         store.document()["multiSense"] = "true";
-        app::StorageDuty storage{store};
-        Manager manager;
-        llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
-        auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-        app::CostDuty cost{storage.statsStore(), client, pricing};
+        app::StorageDuty     storage{store};
+        Manager              manager;
+        llm::LlmClient       client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
+        auto const           pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+        app::CostDuty        cost{storage.statsStore(), client, pricing};
         app::ExplanationDuty duty{storage, client, cost};
         duty.setSelection(selection());
         run(duty, client);
@@ -275,14 +275,14 @@ TEST_F(LlmTest, Phase2LanguagesRoundTripThroughDutyTransportAndCache)
 
 TEST_F(LlmTest, Phase2TheEtymologySettingBringsTheOriginAlongAndKeepsItOutOfTheKey)
 {
-    QtApplication qt;
-    QTemporaryDir temporary;
-    auto store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
-    app::StorageDuty storage{store};
-    Manager manager;
-    llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
-    auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-    app::CostDuty cost{storage.statsStore(), client, pricing};
+    QtApplication        qt;
+    QTemporaryDir        temporary;
+    auto                 store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    app::StorageDuty     storage{store};
+    Manager              manager;
+    llm::LlmClient       client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
+    auto const           pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+    app::CostDuty        cost{storage.statsStore(), client, pricing};
     app::ExplanationDuty duty{storage, client, cost};
 
     auto const explain = [&](QString const& lemma) {
@@ -345,13 +345,13 @@ TEST_F(LlmTest, Phase2ChangingSettingsDuringResponseKeepsTheOriginalCacheContext
 {
     QtApplication qt;
     QTemporaryDir temporary;
-    auto store                     = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    auto          store            = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
     store.document()["multiSense"] = "true";
-    app::StorageDuty storage{store};
-    Manager manager;
-    llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
-    auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-    app::CostDuty cost{storage.statsStore(), client, pricing};
+    app::StorageDuty     storage{store};
+    Manager              manager;
+    llm::LlmClient       client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
+    auto const           pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+    app::CostDuty        cost{storage.statsStore(), client, pricing};
     app::ExplanationDuty duty{storage, client, cost};
     duty.setSelection(selection());
     QEventLoop loop;
@@ -368,18 +368,18 @@ TEST_F(LlmTest, Phase2ChangingSettingsDuringResponseKeepsTheOriginalCacheContext
 
 TEST_F(LlmTest, Phase2AProviderChoiceMovesTheEndpointItsWireOptionsAndTheModel)
 {
-    QtApplication qt;
-    QTemporaryDir temporary;
-    auto store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    QtApplication    qt;
+    QTemporaryDir    temporary;
+    auto             store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
     app::StorageDuty storage{store};
-    Manager manager;
+    Manager          manager;
     // A model that belongs to neither service, so both trips through the loop prove the same
     // thing: the one standing is from somewhere else, and following the service replaces it.
-    llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "gpt-4.1-nano"}, &manager};
-    auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-    app::CostDuty cost{storage.statsStore(), client, pricing};
+    llm::LlmClient        client{{QUrl{"https://example.invalid"}, "fake-test-token", "gpt-4.1-nano"}, &manager};
+    auto const            pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+    app::CostDuty         cost{storage.statsStore(), client, pricing};
     app::ModelCatalogDuty catalog{storage, client};
-    app::ExplanationDuty duty{storage, client, cost};
+    app::ExplanationDuty  duty{storage, client, cost};
     for (auto const* provider : {"DeepSeek", "openai"}) {
         ASSERT_TRUE(catalog.setProvider(provider));
         auto const entry = llm::serviceProvider(provider);
@@ -426,16 +426,16 @@ TEST_F(LlmTest, Phase2AProviderChoiceMovesTheEndpointItsWireOptionsAndTheModel)
 /// more than one provider's cache because it is classified per vendor rather than per endpoint.
 TEST_F(LlmTest, OneSharedSourceIsAskedWithNoKeyAndItsAnswerReachesEveryProvider)
 {
-    QtApplication qt;
-    QTemporaryDir temporary;
-    auto store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    QtApplication    qt;
+    QTemporaryDir    temporary;
+    auto             store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
     app::StorageDuty storage{store};
-    Manager manager;
+    Manager          manager;
     // A client holding no key at all, which used to be exactly the case that fetched nothing.
-    llm::LlmClient client{{QUrl{"https://example.invalid"}, "", "deepseek-flash"}, &manager};
+    llm::LlmClient        client{{QUrl{"https://example.invalid"}, "", "deepseek-flash"}, &manager};
     app::ModelCatalogDuty catalog{storage, client};
-    QStringList fetched;
-    QEventLoop loop;
+    QStringList           fetched;
+    QEventLoop            loop;
     QObject::connect(&client, &llm::LlmClient::modelsFetched, &loop, [&](QStringList models) {
         fetched = std::move(models);
         loop.quit();
@@ -464,14 +464,14 @@ TEST_F(LlmTest, ModelListRefreshKeepsTheUserCacheWhenAResponseIsMalformed)
 {
     QtApplication qt;
     QTemporaryDir temporary;
-    auto store                             = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    auto          store                    = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
     store.document()["MODELS"]["DeepSeek"] = nlohmann::json::array({"cached-model"});
     app::MouseSelectionHook hook;
-    app::GlobalHotkey hotkey;
-    Manager manager;
+    app::GlobalHotkey       hotkey;
+    Manager                 manager;
     manager.modelResponseOverride = QByteArrayLiteral(R"({"data":"malformed"})");
-    llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "deepseek-flash"}, &manager};
-    auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+    llm::LlmClient     client{{QUrl{"https://example.invalid"}, "fake-test-token", "deepseek-flash"}, &manager};
+    auto const         pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
     app::AppController controller{store, client, hook, hotkey, pricing, test::sourceDir() / "data"};
 
     ASSERT_EQ(controller.modelCatalogDuty()->models().size(), 1);
@@ -490,15 +490,15 @@ TEST_F(LlmTest, ModelListRefreshKeepsTheUserCacheWhenAResponseIsMalformed)
 /// it fired -- the reader changing the service -- and still happens there.
 TEST_F(LlmTest, AFetchedListNeverRewritesTheModelInForceButAProviderChangeStillDoes)
 {
-    QtApplication qt;
-    QTemporaryDir temporary;
-    auto store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    QtApplication    qt;
+    QTemporaryDir    temporary;
+    auto             store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
     app::StorageDuty storage{store};
-    Manager manager;
+    Manager          manager;
     // A model from another service, so setProvider writes MODEL to deepseek-flash and the fetch
     // then has a standing value it would have to overwrite to prove it does not.
-    llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "gpt-4.1-nano"}, &manager};
-    auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+    llm::LlmClient        client{{QUrl{"https://example.invalid"}, "fake-test-token", "gpt-4.1-nano"}, &manager};
+    auto const            pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
     app::ModelCatalogDuty catalog{storage, client};
 
     ASSERT_TRUE(catalog.setProvider("DeepSeek"));
@@ -532,14 +532,14 @@ TEST_F(LlmTest, AFetchedListNeverRewritesTheModelInForceButAProviderChangeStillD
 
 TEST_F(LlmTest, Phase2DefaultsToOneSenseAndQueuesTheLatestRequestedMode)
 {
-    QtApplication qt;
-    QTemporaryDir temporary;
-    auto store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
-    app::StorageDuty storage{store};
-    Manager manager;
-    llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
-    auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-    app::CostDuty cost{storage.statsStore(), client, pricing};
+    QtApplication        qt;
+    QTemporaryDir        temporary;
+    auto                 store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    app::StorageDuty     storage{store};
+    Manager              manager;
+    llm::LlmClient       client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
+    auto const           pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+    app::CostDuty        cost{storage.statsStore(), client, pricing};
     app::ExplanationDuty duty{storage, client, cost};
     duty.setSelection(selection());
     run(duty, client);
@@ -549,7 +549,7 @@ TEST_F(LlmTest, Phase2DefaultsToOneSenseAndQueuesTheLatestRequestedMode)
 
     store.setExplanationLang("es");
     QEventLoop loop;
-    int responses = 0;
+    int        responses = 0;
     QObject::connect(&client, &llm::LlmClient::batchFinished, &loop, [&](auto, llm::Usage const usage) {
         EXPECT_EQ(usage.model, "test-model");
         if (++responses == 2) loop.quit();
@@ -570,15 +570,15 @@ TEST_F(LlmTest, Phase2DefaultsToOneSenseAndQueuesTheLatestRequestedMode)
 
 TEST_F(LlmTest, Phase2BudgetStopsQueuedDispatchWithoutAnErrorNotice)
 {
-    QtApplication qt;
-    QTemporaryDir temporary;
-    auto store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    QtApplication    qt;
+    QTemporaryDir    temporary;
+    auto             store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
     app::StorageDuty storage{store};
-    Manager manager;
-    llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "deepseek-flash"}, &manager};
-    auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-    const QDate date   = QDate::currentDate();
-    app::CostDuty cost{storage.statsStore(), client, pricing, [date] { return date; }};
+    Manager          manager;
+    llm::LlmClient   client{{QUrl{"https://example.invalid"}, "fake-test-token", "deepseek-flash"}, &manager};
+    auto const       pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+    const QDate      date    = QDate::currentDate();
+    app::CostDuty    cost{storage.statsStore(), client, pricing, [date] { return date; }};
     ASSERT_TRUE(cost.setDailyBudget(0.000045));
     app::ExplanationDuty duty{storage, client, cost};
 
@@ -602,16 +602,16 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
     QtApplication qt;
     QTemporaryDir temporary;
     ASSERT_TRUE(temporary.isValid());
-    auto const path             = std::filesystem::path{temporary.path().toStdWString()} / "fixture.json";
-    auto store                  = core::KnownStore::load(path);
-    store.document()["API-KEY"] = "fake-test-token";
-    auto const pricing          = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+    auto const path                 = std::filesystem::path{temporary.path().toStdWString()} / "fixture.json";
+    auto       store                = core::KnownStore::load(path);
+    store.document()["API-KEY"]     = "fake-test-token";
+    auto const              pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
     app::MouseSelectionHook hook;
-    app::GlobalHotkey hotkey;
-    Manager manager;
-    llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
-    app::AppController controller{store, client, hook, hotkey, pricing, test::sourceDir() / "data"};
-    int settingsChanges = 0;
+    app::GlobalHotkey       hotkey;
+    Manager                 manager;
+    llm::LlmClient          client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
+    app::AppController      controller{store, client, hook, hotkey, pricing, test::sourceDir() / "data"};
+    int                     settingsChanges = 0;
     QObject::connect(&controller, &app::AppController::settingsChanged, [&] { ++settingsChanges; });
     auto const initial = controller.settings();
     EXPECT_EQ(initial.value("languages").toList().size(), 4);
@@ -659,10 +659,10 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
     // changes nothing in the settings map (docs/adr/0020) -- and neither rejected call counts.
     EXPECT_EQ(settingsChanges, 2);
     controller.setApiUrl("https://example.invalid/v2");
-    auto restored = core::KnownStore::load(path);
-    llm::LlmClient restarted{{QUrl{"https://wrong.invalid"}, "fake-test-token", "wrong-model"}, &manager};
+    auto               restored = core::KnownStore::load(path);
+    llm::LlmClient     restarted{{QUrl{"https://wrong.invalid"}, "fake-test-token", "wrong-model"}, &manager};
     app::AppController restoredController{restored, restarted, hook, hotkey, pricing, test::sourceDir() / "data"};
-    auto const restoredBody = request(restarted);
+    auto const         restoredBody = request(restarted);
     EXPECT_EQ(restoredBody.value("model").toString(), "gpt-4.1-nano");
     EXPECT_FALSE(restoredBody.contains("thinking"));
     EXPECT_EQ(manager.endpoint, QUrl{"https://example.invalid/v2/chat/completions"});
@@ -671,10 +671,10 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
 
     controller.modelCatalogDuty()->setProvider("custom");
     controller.setModel("custom-model");
-    auto customStore = core::KnownStore::load(path);
-    llm::LlmClient custom{{QUrl{"https://wrong.invalid"}, "fake-test-token", "wrong-model"}, &manager};
+    auto               customStore = core::KnownStore::load(path);
+    llm::LlmClient     custom{{QUrl{"https://wrong.invalid"}, "fake-test-token", "wrong-model"}, &manager};
     app::AppController customController{customStore, custom, hook, hotkey, pricing, test::sourceDir() / "data"};
-    auto const customBody = request(custom);
+    auto const         customBody = request(custom);
     EXPECT_EQ(customBody.value("model").toString(), "custom-model");
     EXPECT_FALSE(customBody.contains("thinking"));
     EXPECT_EQ(manager.endpoint, QUrl{"https://example.invalid/v2/chat/completions"});
@@ -686,14 +686,14 @@ TEST_F(LlmTest, Phase2ControllerRejectsAnInsecurePersistedServiceUrl)
     QtApplication qt;
     QTemporaryDir temporary;
     ASSERT_TRUE(temporary.isValid());
-    auto store                   = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
-    store.document()["PROVIDER"] = "DeepSeek";
-    store.document()["URL"]      = "http://untrusted.invalid/v1";
-    store.document()["MODEL"]    = "deepseek-flash";
-    auto const pricing           = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+    auto store                      = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    store.document()["PROVIDER"]    = "DeepSeek";
+    store.document()["URL"]         = "http://untrusted.invalid/v1";
+    store.document()["MODEL"]       = "deepseek-flash";
+    auto const              pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
     app::MouseSelectionHook hook;
-    app::GlobalHotkey hotkey;
-    llm::LlmClient client{{QUrl{"https://safe.invalid"}, "fake-test-token", "test-model"}};
+    app::GlobalHotkey       hotkey;
+    llm::LlmClient          client{{QUrl{"https://safe.invalid"}, "fake-test-token", "test-model"}};
 
     app::AppController controller{store, client, hook, hotkey, pricing, test::sourceDir() / "data"};
 
@@ -706,13 +706,13 @@ TEST_F(LlmTest, Phase2RemovingAWordClearsItsOwnBubbleAndLeavesAnotherAlone)
     QtApplication qt;
     QTemporaryDir temporary;
     ASSERT_TRUE(temporary.isValid());
-    auto store         = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
-    auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+    auto                    store   = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    auto const              pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
     app::MouseSelectionHook hook;
-    app::GlobalHotkey hotkey;
-    Manager manager;
-    llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
-    app::AppController controller{store, client, hook, hotkey, pricing, test::sourceDir() / "data"};
+    app::GlobalHotkey       hotkey;
+    Manager                 manager;
+    llm::LlmClient          client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
+    app::AppController      controller{store, client, hook, hotkey, pricing, test::sourceDir() / "data"};
     controller.explanationDuty()->setSelection(selection());
     run(*controller.explanationDuty(), client);
     ASSERT_EQ(controller.explanationDuty()->bubble().value("title").toString(), "bank");

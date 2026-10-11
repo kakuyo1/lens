@@ -54,9 +54,9 @@ using lens::update::StoredUpdate;
 namespace {
 
 struct QtApplication {
-    int argc      = 1;
-    char name[24] = "update_pure_test";
-    char* argv[2] = {name, nullptr};
+    int              argc     = 1;
+    char             name[24] = "update_pure_test";
+    char*            argv[2]  = {name, nullptr};
     QCoreApplication application{argc, argv};
 };
 
@@ -123,9 +123,9 @@ public:
     }
 
 private:
-    int status_;
+    int        status_;
     QByteArray body_;
-    bool delivered_ = false;
+    bool       delivered_ = false;
 };
 
 /// The seam LlmClient takes, counting what it was asked for.
@@ -152,11 +152,11 @@ protected:
     }
 
 private:
-    int status_;
+    int     status_;
     QString location_;
     /// Whether a reply ever finishes. False leaves it pending, which is how a case drives a
     /// client whose answer it delivers itself rather than one the stub hands over.
-    bool answers_;
+    bool       answers_;
     QByteArray body_;
 };
 
@@ -247,17 +247,17 @@ struct DutyFixture {
     }
 
     std::filesystem::path path;
-    QString cache = QDir::temp().filePath("lens-update-duty-cache");
-    ScriptedManager manager;
+    QString               cache = QDir::temp().filePath("lens-update-duty-cache");
+    ScriptedManager       manager;
     /// Never answers: the download cases hand the duty their own sums and installer.
-    ScriptedManager downloadManager{200, QString{}, false};
-    std::unique_ptr<lens::core::KnownStore> store;
-    std::unique_ptr<lens::app::StorageDuty> storage;
-    std::unique_ptr<lens::update::UpdateClient> client;
+    ScriptedManager                               downloadManager{200, QString{}, false};
+    std::unique_ptr<lens::core::KnownStore>       store;
+    std::unique_ptr<lens::app::StorageDuty>       storage;
+    std::unique_ptr<lens::update::UpdateClient>   client;
     std::unique_ptr<lens::update::DownloadClient> downloader;
-    std::unique_ptr<lens::app::UpdateDuty> duty;
-    QString launched;
-    QStringList arguments;
+    std::unique_ptr<lens::app::UpdateDuty>        duty;
+    QString                                       launched;
+    QStringList                                   arguments;
     /// What the launcher reports: whether the installer started. A case turns it off to see the
     /// failure the card must show instead of closing Lens.
     bool launchWorks = true;
@@ -330,7 +330,7 @@ TEST(UpdateLocation, RefusesARepositoryWithNoReleaseYet)
 TEST(UpdateLocation, ResolvesARelativeRedirectTheWayTheClientDoes)
 {
     QtApplication qt;
-    const QUrl source{QString::fromLatin1(kReleasePage)};
+    const QUrl    source{QString::fromLatin1(kReleasePage)};
     EXPECT_EQ(source.resolved(QUrl{"/kakuyo1/lens/releases/tag/v1.2.0"}),
               QUrl{"https://github.com/kakuyo1/lens/releases/tag/v1.2.0"});
     EXPECT_TRUE(parseReleaseLocation(source.resolved(QUrl{"/kakuyo1/lens/releases/tag/v1.2.0"})).has_value());
@@ -384,7 +384,7 @@ TEST(UpdateSkipRule, NothingToShowWhenThereIsNothingNew)
 TEST(UpdateSettings, ReadsTheReleasePageAndTheLimitsOutOfTheData)
 {
     QtApplication qt;
-    const auto settings = lens::update::Settings::load(std::filesystem::path(LENS_SOURCE_DIR) / "data" / "update.json");
+    const auto    settings = lens::update::Settings::load(std::filesystem::path(LENS_SOURCE_DIR) / "data" / "update.json");
     EXPECT_EQ(settings.source.toString(), QString::fromLatin1(kReleasePage));
     EXPECT_EQ(settings.source.scheme(), QStringLiteral("https"));
     EXPECT_FALSE(settings.source.host().isEmpty());
@@ -395,19 +395,19 @@ TEST(UpdateSettings, ReadsTheReleasePageAndTheLimitsOutOfTheData)
 TEST(UpdateSettings, AFileThatIsNotThereCostsTheCheckAndNothingElse)
 {
     QtApplication qt;
-    const auto settings = lens::update::Settings::load(std::filesystem::path(LENS_SOURCE_DIR) / "data" / "no-such-file.json");
+    const auto    settings = lens::update::Settings::load(std::filesystem::path(LENS_SOURCE_DIR) / "data" / "no-such-file.json");
     EXPECT_FALSE(settings.source.isValid());
 }
 
 TEST(UpdateClient, RefusesANonHttpsSourceWithoutSendingAnything)
 {
-    QtApplication qt;
-    ScriptedManager manager;
+    QtApplication          qt;
+    ScriptedManager        manager;
     lens::update::Settings settings;
     settings.source = QUrl{"http://github.com/kakuyo1/lens/releases/latest"};
 
     lens::update::UpdateClient client(settings, &manager);
-    int offline = 0;
+    int                        offline = 0;
     QObject::connect(&client, &lens::update::UpdateClient::offline, [&offline] { ++offline; });
 
     client.fetch();
@@ -419,8 +419,8 @@ TEST(UpdateClient, RefusesANonHttpsSourceWithoutSendingAnything)
 
 TEST(UpdateClient, AsksTheSourceNotToFollowTheRedirect)
 {
-    QtApplication qt;
-    ScriptedManager manager{302, releaseUrl("v1.2.0").toString()};
+    QtApplication          qt;
+    ScriptedManager        manager{302, releaseUrl("v1.2.0").toString()};
     lens::update::Settings settings;
     settings.source = QUrl{QString::fromLatin1(kReleasePage)};
 
@@ -442,13 +442,13 @@ TEST(UpdateClient, ARedirectCarryingAReleaseIsTheOnlyAnswerItAccepts)
 {
     QtApplication qt;
     {
-        ScriptedManager manager{302, releaseUrl("v1.2.0").toString()};
+        ScriptedManager        manager{302, releaseUrl("v1.2.0").toString()};
         lens::update::Settings settings;
         settings.source = QUrl{QString::fromLatin1(kReleasePage)};
 
-        lens::update::UpdateClient client(settings, &manager);
+        lens::update::UpdateClient     client(settings, &manager);
         QVector<lens::update::Release> releases;
-        int offline = 0;
+        int                            offline = 0;
         QObject::connect(&client, &lens::update::UpdateClient::finished, [&releases](lens::update::Release r) { releases.append(r); });
         QObject::connect(&client, &lens::update::UpdateClient::offline, [&offline] { ++offline; });
 
@@ -461,12 +461,12 @@ TEST(UpdateClient, ARedirectCarryingAReleaseIsTheOnlyAnswerItAccepts)
         EXPECT_EQ(offline, 0);
     }
     {
-        ScriptedManager manager{302, QStringLiteral("https://example.com/kakuyo1/lens/releases/tag/v1.2.0")};
+        ScriptedManager        manager{302, QStringLiteral("https://example.com/kakuyo1/lens/releases/tag/v1.2.0")};
         lens::update::Settings settings;
         settings.source = QUrl{QString::fromLatin1(kReleasePage)};
 
         lens::update::UpdateClient client(settings, &manager);
-        int offline = 0;
+        int                        offline = 0;
         QObject::connect(&client, &lens::update::UpdateClient::offline, [&offline] { ++offline; });
 
         client.fetch();
@@ -476,12 +476,12 @@ TEST(UpdateClient, ARedirectCarryingAReleaseIsTheOnlyAnswerItAccepts)
     }
     {
         // The page itself answered, which is not an answer this check can use.
-        ScriptedManager manager{200};
+        ScriptedManager        manager{200};
         lens::update::Settings settings;
         settings.source = QUrl{QString::fromLatin1(kReleasePage)};
 
         lens::update::UpdateClient client(settings, &manager);
-        int offline = 0;
+        int                        offline = 0;
         QObject::connect(&client, &lens::update::UpdateClient::offline, [&offline] { ++offline; });
 
         client.fetch();
@@ -490,12 +490,12 @@ TEST(UpdateClient, ARedirectCarryingAReleaseIsTheOnlyAnswerItAccepts)
         EXPECT_EQ(offline, 1) << "a 200 is not the redirect this check reads";
     }
     {
-        ScriptedManager manager{302};
+        ScriptedManager        manager{302};
         lens::update::Settings settings;
         settings.source = QUrl{QString::fromLatin1(kReleasePage)};
 
         lens::update::UpdateClient client(settings, &manager);
-        int offline = 0;
+        int                        offline = 0;
         QObject::connect(&client, &lens::update::UpdateClient::offline, [&offline] { ++offline; });
 
         client.fetch();
@@ -507,15 +507,15 @@ TEST(UpdateClient, ARedirectCarryingAReleaseIsTheOnlyAnswerItAccepts)
 
 TEST(UpdateClient, AnAnswerLargerThanTheCeilingIsAbortedAndReadsAsOffline)
 {
-    QtApplication qt;
-    ScriptedManager manager{302, releaseUrl("v1.2.0").toString()};
+    QtApplication          qt;
+    ScriptedManager        manager{302, releaseUrl("v1.2.0").toString()};
     lens::update::Settings settings;
     settings.source   = QUrl{QString::fromLatin1(kReleasePage)};
     settings.maxBytes = 16;
 
     lens::update::UpdateClient client(settings, &manager);
-    int offline  = 0;
-    int releases = 0;
+    int                        offline  = 0;
+    int                        releases = 0;
     QObject::connect(&client, &lens::update::UpdateClient::offline, [&offline] { ++offline; });
     QObject::connect(&client, &lens::update::UpdateClient::finished, [&releases](lens::update::Release) { ++releases; });
 
@@ -537,7 +537,7 @@ TEST(UpdateClient, AnAnswerLargerThanTheCeilingIsAbortedAndReadsAsOffline)
 TEST(UpdateDuty, ANewerVersionAnswersAvailableAndRaisesTheCard)
 {
     QtApplication qt;
-    DutyFixture one;
+    DutyFixture   one;
     one.duty->checkAtStartup();
     one.answerWithNewer();
 
@@ -553,7 +553,7 @@ TEST(UpdateDuty, ANewerVersionAnswersAvailableAndRaisesTheCard)
 TEST(UpdateDuty, TheSameVersionAnswersUpToDateAndRaisesNothing)
 {
     QtApplication qt;
-    DutyFixture one;
+    DutyFixture   one;
     one.duty->checkAtStartup();
     one.answerWithTag("v1.1.0");
     EXPECT_EQ(one.duty->update().value("state").toString(), QStringLiteral("upToDate"));
@@ -563,7 +563,7 @@ TEST(UpdateDuty, TheSameVersionAnswersUpToDateAndRaisesNothing)
 TEST(UpdateDuty, TheCheckIsWrittenWhenItStartsSoAFailedOneStillCountsForTheDay)
 {
     QtApplication qt;
-    DutyFixture one;
+    DutyFixture   one;
     one.duty->checkAtStartup();
     settle();
 
@@ -579,7 +579,7 @@ TEST(UpdateDuty, TheCheckIsWrittenWhenItStartsSoAFailedOneStillCountsForTheDay)
 TEST(UpdateDuty, AFailedAutomaticCheckLeavesTheStateIdleAndShowsNoCard)
 {
     QtApplication qt;
-    DutyFixture one;
+    DutyFixture   one;
     one.duty->checkAtStartup();
     settle();
 
@@ -594,7 +594,7 @@ TEST(UpdateDuty, AFailedAutomaticCheckLeavesTheStateIdleAndShowsNoCard)
 TEST(UpdateDuty, AFailedManualCheckSaysOffline)
 {
     QtApplication qt;
-    DutyFixture one;
+    DutyFixture   one;
     one.duty->checkForUpdates();
     settle();
 
@@ -605,7 +605,7 @@ TEST(UpdateDuty, AFailedManualCheckSaysOffline)
 TEST(UpdateDuty, ASwitchedOffCheckSendsNothingAtAll)
 {
     QtApplication qt;
-    DutyFixture one;
+    DutyFixture   one;
     one.duty->setAutoCheck(false);
     one.duty->checkAtStartup();
     settle();
@@ -617,7 +617,7 @@ TEST(UpdateDuty, ASwitchedOffCheckSendsNothingAtAll)
 TEST(UpdateDuty, SkippingWritesThatExactVersionAndClosesTheCard)
 {
     QtApplication qt;
-    DutyFixture one;
+    DutyFixture   one;
     one.duty->checkAtStartup();
     one.answerWithNewer();
     ASSERT_TRUE(one.duty->cardVisible());
@@ -635,7 +635,7 @@ TEST(UpdateDuty, SkippingWritesThatExactVersionAndClosesTheCard)
 TEST(UpdateDuty, ASkippedVersionIsQuietOnTheAutomaticPathAndLoudOnTheManualOne)
 {
     QtApplication qt;
-    DutyFixture one;
+    DutyFixture   one;
     // A document that already carries the skip, as a second launch would load it.
     one.store->document()["UPDATE"]["skipped"]   = std::string("1.2.0");
     one.store->document()["UPDATE"]["autoCheck"] = true;
@@ -658,7 +658,7 @@ TEST(UpdateDuty, ASkippedVersionIsQuietOnTheAutomaticPathAndLoudOnTheManualOne)
 TEST(UpdateDuty, AManualCheckDuringTheStartupCheckIsAnsweredAsManual)
 {
     QtApplication qt;
-    DutyFixture one;
+    DutyFixture   one;
     one.store->document()["UPDATE"]["skipped"] = std::string("1.2.0");
 
     one.duty->checkAtStartup();
@@ -675,7 +675,7 @@ TEST(UpdateDuty, AManualCheckDuringTheStartupCheckIsAnsweredAsManual)
 TEST(UpdateDuty, AFailedCheckPressedDuringStartupIsReportedOfflineRatherThanIdle)
 {
     QtApplication qt;
-    DutyFixture one;
+    DutyFixture   one;
 
     one.duty->checkAtStartup();
     one.duty->checkForUpdates();
@@ -692,7 +692,7 @@ TEST(UpdateDuty, AFailedCheckPressedDuringStartupIsReportedOfflineRatherThanIdle
 TEST(UpdateDuty, ACheckStartedWhileTheCardIsUpLeavesTheCardUp)
 {
     QtApplication qt;
-    DutyFixture one;
+    DutyFixture   one;
     one.duty->checkForUpdates();
     one.answerWithNewer();
     ASSERT_TRUE(one.duty->cardVisible());
@@ -709,8 +709,8 @@ TEST(UpdateDuty, ACheckStartedWhileTheCardIsUpLeavesTheCardUp)
 TEST(UpdateDuty, ACardThatAppearsIsOfferedOnceAndARecheckOfItIsNot)
 {
     QtApplication qt;
-    DutyFixture one;
-    int offered = 0;
+    DutyFixture   one;
+    int           offered = 0;
     QObject::connect(one.duty.get(), &lens::app::UpdateDuty::newVersionOffered, [&offered] { ++offered; });
 
     one.duty->checkForUpdates();
@@ -725,7 +725,7 @@ TEST(UpdateDuty, ACardThatAppearsIsOfferedOnceAndARecheckOfItIsNot)
 TEST(UpdateDuty, ACheckThatAnswersThereIsNothingNewTakesTheCardDown)
 {
     QtApplication qt;
-    DutyFixture one;
+    DutyFixture   one;
     one.duty->checkForUpdates();
     one.answerWithNewer();
     ASSERT_TRUE(one.duty->cardVisible());
@@ -740,7 +740,7 @@ TEST(UpdateDuty, ACheckThatAnswersThereIsNothingNewTakesTheCardDown)
 TEST(UpdateDuty, ANewerVersionPromptsAgainAfterTheSkippedOne)
 {
     QtApplication qt;
-    DutyFixture one;
+    DutyFixture   one;
     one.duty->checkAtStartup();
     one.answerWithNewer();
     one.duty->skipUpdate();
@@ -757,7 +757,7 @@ TEST(UpdateDuty, ANewerVersionPromptsAgainAfterTheSkippedOne)
 TEST(UpdateDuty, AMissingKeyStillReadsAsEveryDefault)
 {
     QtApplication qt;
-    DutyFixture one;
+    DutyFixture   one;
     EXPECT_TRUE(one.duty->autoCheck());
     EXPECT_EQ(one.duty->update().value("state").toString(), QStringLiteral("idle"));
 
@@ -767,7 +767,7 @@ TEST(UpdateDuty, AMissingKeyStillReadsAsEveryDefault)
 }
 TEST(UpdateSums, ReadsTheDigestOfTheExactNameItIsAskedFor)
 {
-    QtApplication qt;
+    QtApplication    qt;
     const QByteArray sums =
         "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  Lens-1.1.0-setup.exe\n"
         "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef  something-else.zip\n";
@@ -779,7 +779,7 @@ TEST(UpdateSums, ReadsTheDigestOfTheExactNameItIsAskedFor)
 
 TEST(UpdateSums, RefusesWhenTheFileIsNotListedOrIsOnlyNearlyListed)
 {
-    QtApplication qt;
+    QtApplication    qt;
     const QByteArray sums = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  Lens-1.1.0-setup.exe\n";
     EXPECT_FALSE(expectedDigest(sums, QStringLiteral("Lens-1.2.0-setup.exe")).has_value());
     EXPECT_FALSE(expectedDigest(sums, QStringLiteral("setup.exe")).has_value());
@@ -790,9 +790,9 @@ TEST(UpdateSums, RefusesWhenTheFileIsNotListedOrIsOnlyNearlyListed)
 
 TEST(UpdateSums, RefusesALineItCannotReadAsADigest)
 {
-    QtApplication qt;
+    QtApplication    qt;
     const QByteArray good = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  Lens-1.1.0-setup.exe\n";
-    const QString name    = QStringLiteral("Lens-1.1.0-setup.exe");
+    const QString    name = QStringLiteral("Lens-1.1.0-setup.exe");
     // Upper case, one space, a short digest, and a stray note: a list this check cannot read as
     // a list of digests is refused rather than partly believed.
     EXPECT_FALSE(expectedDigest("E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855  Lens-1.1.0-setup.exe\n", name).has_value());
@@ -803,8 +803,8 @@ TEST(UpdateSums, RefusesALineItCannotReadAsADigest)
 
 TEST(UpdateSums, RefusesTheSameFileListedTwiceWithTwoDigests)
 {
-    QtApplication qt;
-    const QString name = QStringLiteral("Lens-1.1.0-setup.exe");
+    QtApplication    qt;
+    const QString    name = QStringLiteral("Lens-1.1.0-setup.exe");
     const QByteArray same =
         "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  Lens-1.1.0-setup.exe\n"
         "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  Lens-1.1.0-setup.exe\n";
@@ -850,10 +850,10 @@ TEST(UpdateDownloadUrls, AcceptsTheThreeHostsAndRefusesEverythingElse)
 
 TEST(UpdateDigest, MatchesTheFileItPublishedAndNothingElse)
 {
-    QtApplication qt;
+    QtApplication    qt;
     const QByteArray contents("a small installer, standing in for the real one");
-    const QString path = QDir::temp().filePath("lens-update-digest-fixture.bin");
-    QFile file(path);
+    const QString    path = QDir::temp().filePath("lens-update-digest-fixture.bin");
+    QFile            file(path);
     ASSERT_TRUE(file.open(QIODevice::WriteOnly));
     file.write(contents);
     file.close();
@@ -875,13 +875,13 @@ TEST(UpdateDigest, MatchesTheFileItPublishedAndNothingElse)
 
 TEST(UpdateDownload, RefusesARedirectItWillNotFollowWithoutAskingTwice)
 {
-    QtApplication qt;
-    ScriptedManager manager{302, QStringLiteral("https://evil.example.com/Lens-1.2.0-setup.exe")};
+    QtApplication          qt;
+    ScriptedManager        manager{302, QStringLiteral("https://evil.example.com/Lens-1.2.0-setup.exe")};
     lens::update::Settings settings;
     settings.source = QUrl{QString::fromLatin1(kReleasePage)};
 
     lens::update::DownloadClient client(settings, &manager);
-    int failures = 0;
+    int                          failures = 0;
     QObject::connect(&client, &lens::update::DownloadClient::failed, [&failures] { ++failures; });
 
     client.fetchInstaller(QStringLiteral("1.2.0"), QDir::temp().filePath("lens-update-refused.part"));
@@ -893,8 +893,8 @@ TEST(UpdateDownload, RefusesARedirectItWillNotFollowWithoutAskingTwice)
 
 TEST(UpdateDownload, FollowsARedirectToAnAssetHostItAccepts)
 {
-    QtApplication qt;
-    ScriptedManager manager{302, QStringLiteral("https://release-assets.githubusercontent.com/github-production-release-asset/abc?token=x")};
+    QtApplication          qt;
+    ScriptedManager        manager{302, QStringLiteral("https://release-assets.githubusercontent.com/github-production-release-asset/abc?token=x")};
     lens::update::Settings settings;
     settings.source = QUrl{QString::fromLatin1(kReleasePage)};
 
@@ -908,7 +908,7 @@ TEST(UpdateDownload, FollowsARedirectToAnAssetHostItAccepts)
 
 TEST(UpdateDownload, StopsAnAnswerThatAnnouncesMoreThanTheCeiling)
 {
-    QtApplication qt;
+    QtApplication   qt;
     ScriptedManager manager{200};
     manager.announceLength = 1024 * 1024 * 1024; // a gigabyte, against a ceiling far below it
     lens::update::Settings settings;
@@ -916,7 +916,7 @@ TEST(UpdateDownload, StopsAnAnswerThatAnnouncesMoreThanTheCeiling)
     settings.maxDownloadBytes = 1024;
 
     lens::update::DownloadClient client(settings, &manager);
-    int failures = 0;
+    int                          failures = 0;
     QObject::connect(&client, &lens::update::DownloadClient::failed, [&failures] { ++failures; });
 
     client.fetchInstaller(QStringLiteral("1.2.0"), QDir::temp().filePath("lens-update-capped.part"));
@@ -931,14 +931,14 @@ TEST(UpdateDownload, StopsAnAnswerThatAnnouncesMoreThanTheCeiling)
 
 TEST(UpdateDownload, StopsATransferThatArrivesPastTheCeiling)
 {
-    QtApplication qt;
-    ScriptedManager manager{200, QString{}, false};
+    QtApplication          qt;
+    ScriptedManager        manager{200, QString{}, false};
     lens::update::Settings settings;
     settings.source           = QUrl{QString::fromLatin1(kReleasePage)};
     settings.maxDownloadBytes = 1024;
 
     lens::update::DownloadClient client(settings, &manager);
-    int failures = 0;
+    int                          failures = 0;
     QObject::connect(&client, &lens::update::DownloadClient::failed, [&failures] { ++failures; });
 
     client.fetchInstaller(QStringLiteral("1.2.0"), QDir::temp().filePath("lens-update-over.part"));
@@ -953,13 +953,13 @@ TEST(UpdateDownload, StopsATransferThatArrivesPastTheCeiling)
 
 TEST(UpdateDownload, CallsADownloadThatMovedNothingTheProxyText)
 {
-    QtApplication qt;
-    ScriptedManager manager{200, QString{}, false}; // a transfer that never arrives and never says why
+    QtApplication          qt;
+    ScriptedManager        manager{200, QString{}, false}; // a transfer that never arrives and never says why
     lens::update::Settings settings;
     settings.source           = QUrl{QString::fromLatin1(kReleasePage)};
     settings.connectTimeoutMs = 60;
 
-    lens::update::DownloadClient client(settings, &manager);
+    lens::update::DownloadClient                   client(settings, &manager);
     QVector<lens::update::DownloadClient::Failure> failures;
     QObject::connect(&client, &lens::update::DownloadClient::failed, [&failures](lens::update::DownloadClient::Failure why) {
         failures.append(why);
@@ -980,12 +980,12 @@ TEST(UpdateDownload, CallsADownloadThatMovedNothingTheProxyText)
 
 TEST(UpdateDownload, AMissingInstallerIsNotAProxyProblem)
 {
-    QtApplication qt;
-    ScriptedManager manager{404};
+    QtApplication          qt;
+    ScriptedManager        manager{404};
     lens::update::Settings settings;
     settings.source = QUrl{QString::fromLatin1(kReleasePage)};
 
-    lens::update::DownloadClient client(settings, &manager);
+    lens::update::DownloadClient                   client(settings, &manager);
     QVector<lens::update::DownloadClient::Failure> failures;
     QObject::connect(&client, &lens::update::DownloadClient::failed, [&failures](lens::update::DownloadClient::Failure why) {
         failures.append(why);
@@ -1002,16 +1002,16 @@ TEST(UpdateDownload, AMissingInstallerIsNotAProxyProblem)
 
 TEST(UpdateDownload, AMissingChecksumFileIsAnAnswerNotAFailure)
 {
-    QtApplication qt;
-    ScriptedManager manager{404};
+    QtApplication          qt;
+    ScriptedManager        manager{404};
     lens::update::Settings settings;
     settings.source   = QUrl{QString::fromLatin1(kReleasePage)};
     settings.sumsName = QStringLiteral("SHA256SUMS");
 
     lens::update::DownloadClient client(settings, &manager);
-    int failures = 0;
-    QByteArray received;
-    bool answered = false;
+    int                          failures = 0;
+    QByteArray                   received;
+    bool                         answered = false;
     QObject::connect(&client, &lens::update::DownloadClient::failed, [&failures](lens::update::DownloadClient::Failure) { ++failures; });
     QObject::connect(&client, &lens::update::DownloadClient::sumsReady, [&](QByteArray sums) {
         answered = true;
@@ -1030,15 +1030,15 @@ TEST(UpdateDownload, ASumsListArrivingInTheBodyIsHandedOverWhole)
 {
     QtApplication qt;
     // The bytes the release actually serves: one `sha256sum` line, then a newline.
-    const QByteArray listing = "e1341962e994b1d278a2e2f66d87b01b0ff3f16f84e4d61edbd09248042c9a2b  Lens-1.1.0-setup.exe\n";
-    ScriptedManager manager{200, {}, true, listing};
+    const QByteArray       listing = "e1341962e994b1d278a2e2f66d87b01b0ff3f16f84e4d61edbd09248042c9a2b  Lens-1.1.0-setup.exe\n";
+    ScriptedManager        manager{200, {}, true, listing};
     lens::update::Settings settings;
     settings.source   = QUrl{QString::fromLatin1(kReleasePage)};
     settings.sumsName = QStringLiteral("SHA256SUMS");
 
     lens::update::DownloadClient client(settings, &manager);
-    QByteArray received;
-    bool answered = false;
+    QByteArray                   received;
+    bool                         answered = false;
     QObject::connect(&client, &lens::update::DownloadClient::sumsReady, [&](QByteArray sums) {
         answered = true;
         received = sums;
@@ -1054,7 +1054,7 @@ TEST(UpdateDownload, ASumsListArrivingInTheBodyIsHandedOverWhole)
 TEST(UpdateDuty, AFailedChecksumReadWhileNothingIsDownloadingIsNotShownAsADownloadFailure)
 {
     QtApplication qt;
-    DutyFixture one(false);
+    DutyFixture   one(false);
     one.duty->checkForUpdates();
     one.answerWithNewer();
     emit one.downloader->failed(lens::update::DownloadClient::Failure::Generic);
@@ -1068,7 +1068,7 @@ TEST(UpdateDuty, AFailedChecksumReadWhileNothingIsDownloadingIsNotShownAsADownlo
 TEST(UpdateDuty, AReleaseWithNoChecksumForTheInstallerIsNotDownloadable)
 {
     QtApplication qt;
-    DutyFixture one(false);
+    DutyFixture   one(false);
     one.duty->checkForUpdates();
     one.answerWithNewer();
 
@@ -1084,7 +1084,7 @@ TEST(UpdateDuty, AReleaseWithNoChecksumForTheInstallerIsNotDownloadable)
 TEST(UpdateDuty, ADownloadThatDoesNotMatchIsDeletedAndSaidSo)
 {
     QtApplication qt;
-    DutyFixture one(false);
+    DutyFixture   one(false);
     one.duty->checkForUpdates();
     one.answerWithNewer();
     emit one.downloader->sumsReady(DutyFixture::sumsFor(installerName("1.2.0"), "something else entirely"));
@@ -1107,8 +1107,8 @@ TEST(UpdateDuty, ADownloadThatDoesNotMatchIsDeletedAndSaidSo)
 
 TEST(UpdateDuty, ACheokedDownloadBecomesTheInstallerItClaimsToBe)
 {
-    QtApplication qt;
-    DutyFixture one(false);
+    QtApplication    qt;
+    DutyFixture      one(false);
     const QByteArray contents("the installer as it arrived");
     one.duty->checkForUpdates();
     one.answerWithNewer();
@@ -1131,7 +1131,7 @@ TEST(UpdateDuty, ACheokedDownloadBecomesTheInstallerItClaimsToBe)
 TEST(UpdateDuty, CancellingDeletesTheHalfWrittenFileAndGoesBackToIdle)
 {
     QtApplication qt;
-    DutyFixture one(false);
+    DutyFixture   one(false);
     one.duty->checkForUpdates();
     one.answerWithNewer();
 
@@ -1149,8 +1149,8 @@ TEST(UpdateDuty, CancellingDeletesTheHalfWrittenFileAndGoesBackToIdle)
 
 TEST(UpdateDuty, InstallsOnlyWhatStillMatchesAtTheMomentItIsRun)
 {
-    QtApplication qt;
-    DutyFixture one(false);
+    QtApplication    qt;
+    DutyFixture      one(false);
     const QByteArray contents("the installer as it arrived");
     one.duty->checkForUpdates();
     one.answerWithNewer();
@@ -1181,8 +1181,8 @@ TEST(UpdateDuty, InstallsOnlyWhatStillMatchesAtTheMomentItIsRun)
 
 TEST(UpdateDuty, RunsTheCheckedInstallerWithNoArgumentsAtAll)
 {
-    QtApplication qt;
-    DutyFixture one(false);
+    QtApplication    qt;
+    DutyFixture      one(false);
     const QByteArray contents("the installer as it arrived");
     one.duty->checkForUpdates();
     one.answerWithNewer();
@@ -1205,8 +1205,8 @@ TEST(UpdateDuty, RunsTheCheckedInstallerWithNoArgumentsAtAll)
 
 TEST(UpdateDuty, AnInstallerThatWillNotStartLeavesTheCardSayingSo)
 {
-    QtApplication qt;
-    DutyFixture one(false);
+    QtApplication    qt;
+    DutyFixture      one(false);
     const QByteArray contents("the installer as it arrived");
     one.duty->checkForUpdates();
     one.answerWithNewer();
@@ -1235,8 +1235,8 @@ TEST(UpdateDuty, AnInstallerThatWillNotStartLeavesTheCardSayingSo)
 /// name: a file checked against one release's digest must never be run as another's.
 TEST(UpdateDuty, ACheckLandingMidDownloadDoesNotStrandTheOldVersionUnderTheNewName)
 {
-    QtApplication qt;
-    DutyFixture one(false);
+    QtApplication    qt;
+    DutyFixture      one(false);
     const QByteArray oldContents("the 1.2.0 installer as it arrived");
     one.duty->checkForUpdates();
     one.answerWithNewer();
@@ -1272,7 +1272,7 @@ TEST(UpdateDuty, ACheckLandingMidDownloadDoesNotStrandTheOldVersionUnderTheNewNa
 TEST(UpdateDuty, ACheckNeverStartsADownloadOnItsOwn)
 {
     QtApplication qt;
-    DutyFixture one(false);
+    DutyFixture   one(false);
     one.duty->checkAtStartup();
     one.answerWithNewer();
     settle();
@@ -1286,7 +1286,7 @@ TEST(UpdateDuty, ACheckNeverStartsADownloadOnItsOwn)
 TEST(UpdateDuty, KnowsWhetherAReleaseIsDownloadableBeforeTheReaderAsks)
 {
     QtApplication qt;
-    DutyFixture one(false);
+    DutyFixture   one(false);
     one.duty->checkForUpdates();
     one.answerWithNewer();
 

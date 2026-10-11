@@ -33,8 +33,8 @@ using nlohmann::json;
 
 /// A document of its own and a count of its commits, so a case can see what a read writes.
 struct Document {
-    json body   = json::object();
-    int commits = 0;
+    json body    = json::object();
+    int  commits = 0;
 
     /// @param name Object to bind to; empty for the document itself.
     SettingsSection section(std::string_view name = {})
@@ -141,7 +141,7 @@ TEST(SettingsSectionWrite, KeepsTheEncodingAKeyAlreadyHas)
 TEST(SettingsSectionWrite, GivesAKeyThatIsNotThereYetItsOwnType)
 {
     Document doc;
-    auto keys = doc.section();
+    auto     keys = doc.section();
     keys.set<bool>("flag", true);
     keys.set<int>("count", 4);
     keys.set<double>("money", 1.5);
@@ -158,7 +158,7 @@ TEST(SettingsSectionWrite, GivesAKeyThatIsNotThereYetItsOwnType)
 TEST(SettingsSectionWrite, KeepsAbsentNullAndEmptyApart)
 {
     Document doc;
-    auto worn = doc.section().object("PET").object("accessories");
+    auto     worn = doc.section().object("PET").object("accessories");
     worn.set<std::string>("head", "");
     worn.clear("face");
 
@@ -173,7 +173,7 @@ TEST(SettingsSectionWrite, KeepsAbsentNullAndEmptyApart)
 TEST(SettingsSectionWrite, CreatesNothingUntilSomethingIsWritten)
 {
     Document doc;
-    auto pet = doc.section("PET");
+    auto     pet = doc.section("PET");
     EXPECT_FALSE(pet.value<bool>("enabled", false));
     EXPECT_EQ(doc.commits, 0);
     EXPECT_FALSE(doc.body.contains("PET")) << "reading a section must not bring one into being";
@@ -377,7 +377,7 @@ TEST(SettingsDocumentKeys, TheStatsStoreRestampsItsThreeOnItsNextWrite)
 ///       half that stays uncovered.
 TEST(SettingsDocumentKeys, TheShippedFixtureCarriesNoKeyTheTablesDoNotName)
 {
-    const auto fixture = std::filesystem::path{LENS_SOURCE_DIR} / "test" / "qtest" / "surfaces" / "settings.json";
+    const auto    fixture = std::filesystem::path{LENS_SOURCE_DIR} / "test" / "qtest" / "surfaces" / "settings.json";
     std::ifstream in(fixture);
     ASSERT_TRUE(in) << "the qtest fixture is the other half of this check: " << fixture.string();
 

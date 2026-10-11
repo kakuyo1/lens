@@ -17,14 +17,14 @@
 
 namespace lens::app {
 
-UpdateDuty::UpdateDuty(StorageDuty& storage,
-                       update::UpdateClient& client,
+UpdateDuty::UpdateDuty(StorageDuty&            storage,
+                       update::UpdateClient&   client,
                        update::DownloadClient& downloader,
-                       const QString& currentVersion,
-                       Launcher launcher,
-                       QString downloadDir,
-                       DateProvider dateProvider,
-                       QObject* parent)
+                       const QString&          currentVersion,
+                       Launcher                launcher,
+                       QString                 downloadDir,
+                       DateProvider            dateProvider,
+                       QObject*                parent)
     : QObject(parent),
       storage_(storage),
       client_(client),
@@ -82,10 +82,10 @@ QVariantMap UpdateDuty::update() const
 update::StoredUpdate UpdateDuty::stored() const
 {
     update::StoredUpdate settings;
-    auto const section     = storage_.section("UPDATE");
-    settings.autoCheck     = section.value<bool>("autoCheck", settings.autoCheck);
-    settings.lastCheckDate = QString::fromStdString(section.value<std::string>("lastCheckDate", {}));
-    settings.skipped       = QString::fromStdString(section.value<std::string>("skipped", {}));
+    auto const           section = storage_.section("UPDATE");
+    settings.autoCheck           = section.value<bool>("autoCheck", settings.autoCheck);
+    settings.lastCheckDate       = QString::fromStdString(section.value<std::string>("lastCheckDate", {}));
+    settings.skipped             = QString::fromStdString(section.value<std::string>("skipped", {}));
     return settings;
 }
 

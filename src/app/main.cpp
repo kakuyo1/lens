@@ -72,7 +72,7 @@ constexpr const char* kDevSettingsPath = LENS_SETTINGS_PATH;
 std::filesystem::path dataDirectory()
 {
     const std::filesystem::path installed = toPath(QCoreApplication::applicationDirPath()) / "data";
-    std::error_code ec;
+    std::error_code             ec;
     if (std::filesystem::is_directory(installed, ec))
         return installed;
     return toPath(QString::fromUtf8(kBuildDataDir));
@@ -136,7 +136,7 @@ public:
 
 private:
     std::unique_ptr<QTranslator> translator_;
-    QString current_;
+    QString                      current_;
 };
 
 QString settingsValue(KnownStore& store, const char* key)
@@ -213,7 +213,7 @@ int main(int argc, char* argv[])
                                                model.isEmpty() ? QStringLiteral("deepseek-flash") : model});
 
     MouseSelectionHook hook;
-    GlobalHotkey hotkey;
+    GlobalHotkey       hotkey;
 
     AppController controller(store, llm, hook, hotkey, pricing, dataDir);
 
@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
     } catch (const std::exception& e) {
         LENS_ERROR("the desktop pet is off: {}", e.what());
     }
-    lens::app::pet::PetStore petStore(store);
+    lens::app::pet::PetStore      petStore(store);
     lens::app::pet::PetController petController(std::move(petAssets), petStore);
     lens::app::pet::PetController::provide(&petController);
     QObject::connect(&controller, &AppController::petEvent, &petController, &lens::app::pet::PetController::handle);
@@ -245,7 +245,7 @@ int main(int argc, char* argv[])
     QQmlApplicationEngine engine;
 
     TranslationKeeper translations;
-    const QString uiLanguage = settingsValue(store, "uiLanguage");
+    const QString     uiLanguage = settingsValue(store, "uiLanguage");
     translations.select(uiLanguage.isEmpty() ? QStringLiteral("zh") : uiLanguage);
     // Installing a translator does not make QML's qsTr bindings re-evaluate -- the tray menu
     // follows along only because Tray::retranslate() listens for this signal, and the surfaces
@@ -289,7 +289,7 @@ int main(int argc, char* argv[])
     const QByteArray profileScenario = qgetenv("LENS_QML_PROFILE_SCENARIO");
     if (not profileScenario.isEmpty()) {
         QObject* const root = engine.rootObjects().constFirst();
-        QVector<int> steps;
+        QVector<int>   steps;
         if (profileScenario == "startup")
             steps = {7};
         else if (profileScenario == "tray")

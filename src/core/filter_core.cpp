@@ -72,7 +72,7 @@ bool isAcronymToken(const std::string& token)
 bool isEntitySelection(std::string_view text)
 {
     std::vector<std::string> tokens;
-    std::size_t start = 0;
+    std::size_t              start = 0;
     while (start < text.size()) {
         while (start < text.size() && isSpace(text[start]))
             ++start;
@@ -120,9 +120,9 @@ std::string_view loneToken(std::string_view text)
         ++head;
     while (tail > head && isSpace(text[tail - 1]))
         --tail;
-    const std::string_view body = text.substr(head, tail - head);
-    std::size_t first           = 0;
-    std::size_t last            = body.size();
+    const std::string_view body  = text.substr(head, tail - head);
+    std::size_t            first = 0;
+    std::size_t            last  = body.size();
     while (first < last && !isAlnum(body[first]))
         ++first;
     while (last > first && !isAlnum(body[last - 1]))
@@ -180,7 +180,7 @@ const std::unordered_set<std::string>& keepAsIs()
 /// than one base (better -> good / well) carries them all; the empty map means
 /// loadIrregulars() has not run.
 std::unordered_map<std::string, std::vector<std::string>> g_irregulars;
-bool g_irregularsLoaded = false;
+bool                                                      g_irregularsLoaded = false;
 
 /// Every candidate must already be a real word list entry. A stem that is not in the list
 /// is meaningless and would only split "water" into "wat".
@@ -218,7 +218,7 @@ void loadWordlist(const std::filesystem::path& path)
         throw std::runtime_error("Cannot open the word list: " + path.string());
     }
 
-    Table table;
+    Table       table;
     std::string line;
     std::size_t rank = 0;
     while (std::getline(in, line)) {
@@ -252,8 +252,8 @@ void loadIrregulars(const std::filesystem::path& path)
     }
 
     std::unordered_map<std::string, std::vector<std::string>> table;
-    std::string line;
-    std::size_t lineNumber = 0;
+    std::string                                               line;
+    std::size_t                                               lineNumber = 0;
     while (std::getline(in, line)) {
         ++lineNumber;
         while (!line.empty() && (line.back() == '\r' || line.back() == '\n'))
@@ -310,9 +310,9 @@ std::string lemmatize(std::string_view token)
     // right back. A form with several bases (better -> good / well) has none that can be
     // told apart locally, so those are settled by the same frequency tie-break.
     if (const auto it = g_irregulars.find(t); it != g_irregulars.end()) {
-        const std::vector<std::string>& bases = it->second;
-        const std::string* best               = &bases.front();
-        std::size_t bestRank                  = std::numeric_limits<std::size_t>::max();
+        const std::vector<std::string>& bases    = it->second;
+        const std::string*              best     = &bases.front();
+        std::size_t                     bestRank = std::numeric_limits<std::size_t>::max();
         for (const auto& base : bases) {
             const std::size_t rank = rankOf(base);
             if (rank != 0 && rank < bestRank) {
@@ -387,8 +387,8 @@ std::string lemmatize(std::string_view token)
 
     if (cands.empty()) return t; // not in the list; the caller's whitelist stage drops it
 
-    const std::string* best = &cands.front();
-    std::size_t bestRank    = rankOf(*best);
+    const std::string* best     = &cands.front();
+    std::size_t        bestRank = rankOf(*best);
     for (const auto& c : cands) {
         const std::size_t r = rankOf(c);
         if (r < bestRank) {
@@ -402,11 +402,11 @@ std::string lemmatize(std::string_view token)
 }
 
 std::vector<Candidate> filterWords(
-    std::string_view text,
+    std::string_view                       text,
     const std::unordered_set<std::string>& knownLemmas,
-    std::size_t minFreqRank,
-    int minimumLength,
-    bool allowExplicitToken)
+    std::size_t                            minFreqRank,
+    int                                    minimumLength,
+    bool                                   allowExplicitToken)
 {
     if (!g_irregularsLoaded)
         throw std::logic_error("lens::core::filterWords: loadIrregulars() must run first");
@@ -415,7 +415,7 @@ std::vector<Candidate> filterWords(
 
     LENS_PROFILE_SCOPE("filterWords");
 
-    std::vector<Candidate> out;
+    std::vector<Candidate>          out;
     std::unordered_set<std::string> seen; // de-duplication keyed by lemma
 
     // A selection that is one letters-only token is a word the reader picked by hand, so it is a
@@ -425,11 +425,11 @@ std::vector<Candidate> filterWords(
     // check-eval-corpus.py's lone-token rule and test/eval_corpus.json).
     if (allowExplicitToken) {
         if (const std::string_view token = loneToken(text); !token.empty()) {
-            const std::string surface  = lower(token);
-            const std::string lemma    = lemmatize(surface); // RUNNING -> run; an acronym stands as-is
-            const CandidateState state = knownLemmas.count(lemma) != 0                    ? CandidateState::Known
-                                         : inTable(lemma) && rankOf(lemma) <= minFreqRank ? CandidateState::Mastered
-                                                                                          : CandidateState::New;
+            const std::string    surface = lower(token);
+            const std::string    lemma   = lemmatize(surface); // RUNNING -> run; an acronym stands as-is
+            const CandidateState state   = knownLemmas.count(lemma) != 0                    ? CandidateState::Known
+                                           : inTable(lemma) && rankOf(lemma) <= minFreqRank ? CandidateState::Mastered
+                                                                                            : CandidateState::New;
             LENS_TRACE("filterWords: lone token '{}' -> surface='{}' lemma='{}' state={}",
                        token,
                        surface,
@@ -441,7 +441,7 @@ std::vector<Candidate> filterWords(
     }
 
     const std::size_t size = text.size();
-    std::size_t i          = 0;
+    std::size_t       i    = 0;
     while (i < size) {
         while (i < size && isSpace(text[i]))
             ++i;
@@ -466,8 +466,8 @@ std::vector<Candidate> filterWords(
 
         LENS_PROFILE_COUNT("filterWords/tokens", 1); // every run that survived trimming
 
-        const std::string_view tok = text.substr(head, tail - head);
-        bool glued                 = false;
+        const std::string_view tok   = text.substr(head, tail - head);
+        bool                   glued = false;
         for (char c : tok)
             if (!isLetter(c)) {
                 glued = true;
@@ -512,9 +512,9 @@ std::vector<Candidate> filterWords(
 }
 
 Selection classifySelection(
-    std::string_view text,
+    std::string_view                       text,
     const std::unordered_set<std::string>& knownLemmas,
-    std::size_t minFreqRank)
+    std::size_t                            minFreqRank)
 {
     // Entity recognition runs before the word fallback. It is intentionally narrow so a single
     // capitalized token remains a word or sentence instead of being promoted by typography alone.

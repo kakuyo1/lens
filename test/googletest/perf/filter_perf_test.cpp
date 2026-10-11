@@ -62,7 +62,7 @@ TEST_F(CoreTest, FilterWordsThroughput)
     for (const auto& text : texts)
         lens::core::filterWords(text, known, 0);
 
-    constexpr int kRounds = 200;
+    constexpr int       kRounds = 200;
     std::vector<double> roundMs;
     roundMs.reserve(kRounds);
     std::size_t candidates = 0;

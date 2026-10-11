@@ -81,7 +81,7 @@ QVariantList StorageDuty::levelOptions()
     };
 
     QVariantList options;
-    int value = 0;
+    int          value = 0;
     for (const auto& level : levels) {
         options.append(QVariantMap{{"value", value++},
                                    {"label", QString::fromUtf8(level.label)},

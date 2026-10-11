@@ -13,10 +13,10 @@
 namespace lens::llm {
 namespace {
 
-constexpr int kMaxWords             = 20; ///< Contract limit.
-constexpr int kTimeoutMs            = 30000;
-constexpr int kModelListTimeoutMs   = 10000;
-constexpr qint64 kMaxModelListBytes = 2 * 1024 * 1024;
+constexpr int    kMaxWords           = 20; ///< Contract limit.
+constexpr int    kTimeoutMs          = 30000;
+constexpr int    kModelListTimeoutMs = 10000;
+constexpr qint64 kMaxModelListBytes  = 2 * 1024 * 1024;
 
 } // namespace
 
@@ -130,7 +130,7 @@ void LlmClient::explainWords(QStringList words)
         return;
     }
 
-    QUrl url     = config_.baseUrl;
+    QUrl    url  = config_.baseUrl;
     QString path = url.path();
     while (path.endsWith(QLatin1Char('/')))
         path.chop(1);
@@ -141,10 +141,10 @@ void LlmClient::explainWords(QStringList words)
     request.setRawHeader("Authorization", "Bearer " + config_.apiKey.toUtf8());
     request.setTransferTimeout(kTimeoutMs);
 
-    const Channel channel = channel_;
-    const QString preset  = preset_;
-    auto const language   = lang_;
-    auto const model      = config_.model;
+    const Channel channel  = channel_;
+    const QString preset   = preset_;
+    auto const    language = lang_;
+    auto const    model    = config_.model;
     LENS_INFO("explaining {} item(s) on channel '{}' preset '{}' with '{}'", words.size(), channelKey(channel), preset.toStdString(), config_.model.toStdString());
     LENS_TRACE("POST {} (timeout {} ms, key hidden)", url.toString().toStdString(), kTimeoutMs);
 
@@ -172,8 +172,8 @@ void LlmClient::explainWords(QStringList words)
             return;
         }
 
-        const QByteArray body = reply->readAll();
-        const auto parsed     = parseExplanations(channel, body, words, language, preset == QLatin1String("multiple"));
+        const QByteArray body   = reply->readAll();
+        const auto       parsed = parseExplanations(channel, body, words, language, preset == QLatin1String("multiple"));
         if (const auto* message = std::get_if<QString>(&parsed)) {
             emit failed(*message);
             return;

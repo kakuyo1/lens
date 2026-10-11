@@ -36,8 +36,8 @@ bool isAcronym(std::string_view token)
 
 std::string basename(std::string_view const path)
 {
-    auto const at = path.find_last_of("/\\");
-    auto name     = std::string{at == std::string_view::npos ? path : path.substr(at + 1)};
+    auto const at   = path.find_last_of("/\\");
+    auto       name = std::string{at == std::string_view::npos ? path : path.substr(at + 1)};
     for (auto& c : name)
         if (c >= 'A' and c <= 'Z') c = static_cast<char>(c - 'A' + 'a');
     return name;
@@ -137,21 +137,21 @@ struct ScanPipelineImpl final : ScanPipeline {
         pending.clear();
     }
 
-    ScanPolicy policy;
-    std::vector<std::string> whitelist;
-    std::string context;
+    ScanPolicy                   policy;
+    std::vector<std::string>     whitelist;
+    std::string                  context;
     std::optional<std::uint64_t> pixels;
-    std::optional<ScanTime> lastSample;
-    std::optional<ScanTime> lastRequest;
-    std::string previous;
+    std::optional<ScanTime>      lastSample;
+    std::optional<ScanTime>      lastRequest;
+    std::string                  previous;
     struct CooldownEntry {
         std::string text;
-        ScanTime at;
+        ScanTime    at;
     };
-    std::vector<CooldownEntry> recent;
-    int matches                       = 0;
-    std::uint64_t previousFingerprint = 0;
-    bool awaitingText                 = false;
+    std::vector<CooldownEntry>   recent;
+    int                          matches             = 0;
+    std::uint64_t                previousFingerprint = 0;
+    bool                         awaitingText        = false;
     std::vector<core::Candidate> pending;
 };
 
@@ -160,7 +160,7 @@ struct ScanPipelineImpl final : ScanPipeline {
 std::string normalizedText(std::string_view const text)
 {
     std::string out;
-    bool space = false;
+    bool        space = false;
     for (char const c : text) {
         if (std::isspace(static_cast<unsigned char>(c))) {
             space = not out.empty();

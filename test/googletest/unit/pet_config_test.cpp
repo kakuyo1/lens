@@ -169,7 +169,7 @@ TEST(PetConfig, RefusesAMissingActionsObject)
 TEST(PetConfig, ParsesAnchorsForEveryFrame)
 {
     auto const animations             = parseAnimations(animationsDocument());
-    auto doc                          = anchorsDocument(animationsDocument());
+    auto       doc                    = anchorsDocument(animationsDocument());
     doc["actions"]["idle"][2]["head"] = {0, -3};
     auto const anchors                = parseAnchors(doc, animations.actions);
     ASSERT_EQ(anchors.at(Action::Idle).size(), 5u);
@@ -179,7 +179,7 @@ TEST(PetConfig, ParsesAnchorsForEveryFrame)
 TEST(PetConfig, RefusesAnActionWithoutAnchors)
 {
     auto const animations = parseAnimations(animationsDocument());
-    auto doc              = anchorsDocument(animationsDocument());
+    auto       doc        = anchorsDocument(animationsDocument());
     doc["actions"].erase("idle");
     EXPECT_THROW(parseAnchors(doc, animations.actions), std::runtime_error);
 }
@@ -187,7 +187,7 @@ TEST(PetConfig, RefusesAnActionWithoutAnchors)
 TEST(PetConfig, RefusesAnchorsThatDoNotMatchTheFrameCount)
 {
     auto const animations = parseAnimations(animationsDocument());
-    auto doc              = anchorsDocument(animationsDocument());
+    auto       doc        = anchorsDocument(animationsDocument());
     doc["actions"]["idle"].push_back({{"head", {0, 0}}, {"face", {0, 0}}, {"body", {0, 0}}});
     EXPECT_THROW(parseAnchors(doc, animations.actions), std::runtime_error);
 }
@@ -195,7 +195,7 @@ TEST(PetConfig, RefusesAnchorsThatDoNotMatchTheFrameCount)
 TEST(PetConfig, RefusesAnAnchorPointThatIsMissing)
 {
     auto const animations = parseAnimations(animationsDocument());
-    auto doc              = anchorsDocument(animationsDocument());
+    auto       doc        = anchorsDocument(animationsDocument());
     doc["actions"]["study"][3].erase("face");
     EXPECT_THROW(parseAnchors(doc, animations.actions), std::runtime_error);
 }
@@ -203,7 +203,7 @@ TEST(PetConfig, RefusesAnAnchorPointThatIsMissing)
 TEST(PetConfig, RefusesAnchorsForAnActionTheDocumentDoesNotDefine)
 {
     auto const animations   = parseAnimations(animationsDocument());
-    auto doc                = anchorsDocument(animationsDocument());
+    auto       doc          = anchorsDocument(animationsDocument());
     doc["actions"]["dance"] = json::array({{{"head", {0, 0}}, {"face", {0, 0}}, {"body", {0, 0}}}});
     EXPECT_THROW(parseAnchors(doc, animations.actions), std::runtime_error);
 }

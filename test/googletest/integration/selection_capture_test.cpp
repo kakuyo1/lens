@@ -117,8 +117,8 @@ bool putClipboardText(const QString& text)
     if (!openClipboardRetrying()) return false;
 
     EmptyClipboard();
-    const std::wstring wide = text.toStdWString();
-    const std::size_t bytes = (wide.size() + 1) * sizeof(wchar_t);
+    const std::wstring wide  = text.toStdWString();
+    const std::size_t  bytes = (wide.size() + 1) * sizeof(wchar_t);
 
     HGLOBAL memory = GlobalAlloc(GMEM_MOVEABLE, bytes);
     if (memory == nullptr) {
@@ -178,8 +178,8 @@ unsigned putClipboardTextAndFormat(const QString& text, const char* name, const 
 
     // Ownership passes to the clipboard on success and stays here on failure, so each handle
     // is freed only when its own SetClipboardData failed.
-    const std::wstring wide = text.toStdWString();
-    HGLOBAL textMemory      = GlobalAlloc(GMEM_MOVEABLE, (wide.size() + 1) * sizeof(wchar_t));
+    const std::wstring wide       = text.toStdWString();
+    HGLOBAL            textMemory = GlobalAlloc(GMEM_MOVEABLE, (wide.size() + 1) * sizeof(wchar_t));
     if (textMemory != nullptr) {
         if (void* target = GlobalLock(textMemory)) {
             std::memcpy(target, wide.c_str(), (wide.size() + 1) * sizeof(wchar_t));
@@ -363,8 +363,8 @@ public:
         }
 
         const std::wstring argument(kProbeWindowArg, kProbeWindowArg + std::strlen(kProbeWindowArg));
-        std::wstring command = L"\"" + std::wstring(executable) + L"\" " + argument;
-        STARTUPINFOW startup{};
+        std::wstring       command = L"\"" + std::wstring(executable) + L"\" " + argument;
+        STARTUPINFOW       startup{};
         startup.cb = sizeof(startup);
         PROCESS_INFORMATION child{};
         if (CreateProcessW(nullptr, command.data(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &startup, &child) == 0) {
@@ -409,7 +409,7 @@ private:
     }
 
     HANDLE job_ = nullptr;
-    DWORD pid_  = 0;
+    DWORD  pid_ = 0;
 };
 
 /**
@@ -603,16 +603,16 @@ TEST(SelectionHook, ReportsASynthesisedDragAtItsReleasePoint)
     const HWND window = waitForProbeWindow(probe.pid());
     ASSERT_TRUE(window != nullptr) << "the probe window child never put its window up";
 
-    RECT bounds{};
+    RECT       bounds{};
     const bool measured = GetWindowRect(window, &bounds) != 0;
 
     POINT original{};
     GetCursorPos(&original);
 
     lens::app::MouseSelectionHook hook;
-    const bool installed = hook.install();
+    const bool                    installed = hook.install();
 
-    QEventLoop loop;
+    QEventLoop            loop;
     std::optional<QPoint> anchor;
     if (installed) {
         QObject::connect(&hook, &lens::app::MouseSelectionHook::selectionReleased, [&](QPoint point) {
@@ -694,7 +694,7 @@ TEST(SelectionGrab, CapturesTheSelectionAndPutsTheClipboardBack)
               << "  and release the button. Waiting up to " << kHookWaitMs / 1000 << " seconds...\n"
               << std::flush;
 
-    QEventLoop loop;
+    QEventLoop            loop;
     std::optional<QPoint> anchor;
     QObject::connect(&hook, &lens::app::MouseSelectionHook::selectionReleased, [&](QPoint point) {
         anchor = point;
@@ -710,7 +710,7 @@ TEST(SelectionGrab, CapturesTheSelectionAndPutsTheClipboardBack)
     std::cout << "  the hook saw a release at " << anchor->x() << "," << anchor->y() << "\n";
 
     lens::app::SelectionTextGrabber grabber;
-    const auto result = grabber.grab();
+    const auto                      result = grabber.grab();
 
     const GrabbedText* captured = std::get_if<GrabbedText>(&result);
     ASSERT_TRUE(captured != nullptr) << "the grab failed with status "
@@ -738,8 +738,8 @@ int runProbeWindowHost()
 {
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
-    const std::wstring title = kProbeTitlePrefix + std::to_wstring(GetCurrentProcessId());
-    const HWND window        = CreateWindowExW(WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, L"STATIC", title.c_str(), WS_POPUP | WS_VISIBLE, 80, 80, 220, 48, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+    const std::wstring title  = kProbeTitlePrefix + std::to_wstring(GetCurrentProcessId());
+    const HWND         window = CreateWindowExW(WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, L"STATIC", title.c_str(), WS_POPUP | WS_VISIBLE, 80, 80, 220, 48, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
     // Nothing to find and no way to be told to quit: exit rather than block forever, so a broken
     // child does not outlive the parent that is waiting on its window.
     if (window == nullptr) return 1;

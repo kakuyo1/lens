@@ -175,7 +175,7 @@ QVariantList PetController::wornAccessories() const
         auto const spec = std::find_if(catalogue.begin(), catalogue.end(), [&id](auto const& candidate) { return candidate.id == id; });
         if (spec == catalogue.end()) continue;
         auto const& art = assets_->accessories.at(id);
-        auto const at   = pointFor(anchors_, spec->slot);
+        auto const  at  = pointFor(anchors_, spec->slot);
         worn.append(QVariantMap{{"asset", urlOf(art.asset)}, {"zIndex", art.zIndex}, {"x", at.x()}, {"y", at.y()}});
     }
     return worn;
@@ -360,7 +360,7 @@ QPoint PetController::initialPosition(QSize size) const
 void PetController::savePosition(QPoint at)
 {
     auto const screens = QGuiApplication::screens();
-    auto areas         = QList<QRect>{};
+    auto       areas   = QList<QRect>{};
     for (auto const* screen : screens)
         areas.append(screen->availableGeometry());
     auto const index = indexOfNearestArea(at, areas);
@@ -368,7 +368,7 @@ void PetController::savePosition(QPoint at)
 
     // A window dropped half off the edge still belongs to the screen nearest it; its offset may then be negative.
     auto const* screen = screens.at(index);
-    auto const device  = deviceNameOf(*screen);
+    auto const  device = deviceNameOf(*screen);
     if (device.isEmpty()) return;
     auto const offset = at - screen->availableGeometry().topLeft();
     store_.setPosition(SavedPosition{device.toStdString(), offset.x(), offset.y()});
@@ -383,7 +383,7 @@ void PetController::tick()
 void PetController::sync(std::chrono::milliseconds step)
 {
     auto const& assets = *assets_;
-    auto const action  = shownAction();
+    auto const  action = shownAction();
     if (action != shownAction_) {
         shownAction_   = action;
         actionElapsed_ = std::chrono::milliseconds{0};
@@ -392,8 +392,8 @@ void PetController::sync(std::chrono::milliseconds step)
     }
 
     // The blink runs on the expression layer while the action allows it: a wait, then a short run of expressions.
-    auto const& blink      = assets.animations.blink;
-    auto const blinkLength = std::chrono::milliseconds{blink.frames * 1000 / blink.fps};
+    auto const& blink       = assets.animations.blink;
+    auto const  blinkLength = std::chrono::milliseconds{blink.frames * 1000 / blink.fps};
     // A preview shows an action the machine is not playing, so its blink flag is read from the spec instead.
     auto const blinks = preview_ ? assets.animations.actions.at(action).blinks : machine_->blinking();
     if (not blinks) {
@@ -415,7 +415,7 @@ void PetController::sync(std::chrono::milliseconds step)
 
     auto const& spec     = assets.animations.actions.at(action);
     auto const& pictures = assets.sheets.at(action);
-    auto frame           = static_cast<int>(actionElapsed_.count() * spec.fps / 1000);
+    auto        frame    = static_cast<int>(actionElapsed_.count() * spec.fps / 1000);
     if (preview_ and not spec.loop and frame >= spec.frames) {
         // A one-shot preview has played through: the dog goes back to what the machine has it doing.
         preview_.reset();
@@ -427,7 +427,7 @@ void PetController::sync(std::chrono::milliseconds step)
     auto expression = 0;
     if (blinkRunning_) {
         auto const& cells = assets.blinkExpressions;
-        auto const cell   = static_cast<std::size_t>(blinkElapsed_.count() * blink.fps / 1000);
+        auto const  cell  = static_cast<std::size_t>(blinkElapsed_.count() * blink.fps / 1000);
         if (not cells.empty()) expression = cells[std::min(cell, cells.size() - 1)];
     } else if (static_cast<std::size_t>(frame) < pictures.expressions.size()) {
         expression = pictures.expressions[static_cast<std::size_t>(frame)];
@@ -479,7 +479,7 @@ bool PetController::wearsInSlot(std::string const& id, Slot slot) const
 bool PetController::knownAccessory(QString const& id) const
 {
     if (not assets_) return false;
-    auto const name       = id.toStdString();
+    auto const  name      = id.toStdString();
     auto const& catalogue = assets_->catalogue;
     return std::any_of(catalogue.begin(), catalogue.end(), [&name](auto const& spec) { return spec.id == name; });
 }

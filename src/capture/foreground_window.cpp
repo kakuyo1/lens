@@ -51,7 +51,7 @@ std::optional<ForegroundWindow> foregroundWindow()
         OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid), &CloseHandle};
     if (not process) return std::nullopt;
     wchar_t path[32768]{};
-    DWORD size = static_cast<DWORD>(std::size(path));
+    DWORD   size = static_cast<DWORD>(std::size(path));
     if (not QueryFullProcessImageNameW(process.get(), 0, path, &size)) return std::nullopt;
     result.processName = QFileInfo{QString::fromWCharArray(path, static_cast<int>(size))}.fileName();
     return result;
