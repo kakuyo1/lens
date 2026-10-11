@@ -1,3 +1,8 @@
+/**
+ * @file llm_pricing.cpp
+ * @brief The price list as data: reading it, and what one call costs against it.
+ */
+
 #include "llm_pricing.h"
 
 #include <QFile>
@@ -76,7 +81,12 @@ double Pricing::cost(const QString& model, const Usage& usage) const
 {
     const auto it = byModel_.constFind(model);
     if (it == byModel_.cend()) {
-        LENS_WARN("pricing: no rate for model '{}'; this call costs 0 in the tally", model.toStdString());
+        // Once per model and not once per call: the miss is a fact about the price list, and it
+        // is the same fact on the next call as on this one.
+        if (not unlistedReported_.contains(model)) {
+            unlistedReported_.insert(model);
+            LENS_WARN("pricing: no rate for model '{}'; every call to it costs 0 in the tally", model.toStdString());
+        }
         return 0.0;
     }
 

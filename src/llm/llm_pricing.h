@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QHash>
+#include <QSet>
 #include <QString>
 
 #include <filesystem>
@@ -56,9 +57,15 @@ public:
      *
      * @param model Model name as sent on the wire (`Config::model`).
      * @param usage Token counts from that call's response.
-     * @return The amount in currency(), or 0 when the model is not in the list, which is
-     *         logged. An unlisted model is a price list that needs updating, not a reason to
-     *         refuse to show the rest of the tally.
+     * @return The amount in currency(), or 0 when the model is not in the list. An unlisted
+     *         model is a price list that needs updating, not a reason to refuse to show the
+     *         rest of the tally.
+     *
+     * @note A model the list does not carry is reported once, the first time it is asked about,
+     *       and then left alone. What is news is that the list is missing it, which stays true
+     *       on every call; saying it per call is what turned this line into 2 MB of log a day,
+     *       because the budget is re-evaluated twice a second and each evaluation prices the
+     *       whole day's usage.
      *
      * @note The conversion lives here, and only here, so that everything downstream -- the
      *       statistics popup, the cost popup, the tray tooltip -- shows one currency without
@@ -88,6 +95,11 @@ private:
     QString rateAsOf_;                                ///< The day the multiplier was taken.
     long long unit_ = 1000000;                        ///< Token count the prices are per.
     QHash<QString, ModelPrice> byModel_;
+    /// Models cost() has already reported as missing from the list. A memory of what has been
+    /// said rather than part of what the list is, which is why it is mutable and written from a
+    /// const method. Nothing synchronises it: the cost surfaces read the list from the thread
+    /// that owns them.
+    mutable QSet<QString> unlistedReported_;
 };
 
 }
