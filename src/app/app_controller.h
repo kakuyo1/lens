@@ -82,6 +82,9 @@ public:
     void onSelectionReleased(QPoint anchor);
 
     Q_INVOKABLE QPoint cursorPos() const;
+    /// @param deviceName The screen's name as QML's Screen.name gives it.
+    /// @return That screen's available geometry in DIPs, or an empty rect when no screen has the name.
+    Q_INVOKABLE QRect screenWorkArea(QString deviceName) const;
     /// @param executable File the reader picked in the system's dialog; C++ takes the local path.
     Q_INVOKABLE void setTesseractExecutable(QUrl executable);
     /// @param directory Folder the reader picked in the system's dialog; C++ takes the local path.

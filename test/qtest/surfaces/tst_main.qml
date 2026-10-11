@@ -93,7 +93,40 @@ Item {
             verify(at.x >= screen.virtualX + 8, "the panel hangs off the left edge");
             verify(at.x + width <= screen.virtualX + screen.width - 8, "the panel hangs off the right edge");
             verify(at.y >= screen.virtualY + 8, "the panel hangs off the top edge");
-            verify(at.y + height <= screen.virtualY + screen.height - 8, "the panel hangs off the bottom edge");
+            verify(at.y + height <= main.workArea(screen).bottom - 8, "the panel hangs under the taskbar");
+        }
+
+        /// A panel that grows after it was placed -- a row that opens, a list that loads -- keeps its
+        /// top-left corner and runs off the bottom edge by what it grew. The clamp has to bring it back.
+        function test_aPanelThatGrowsPastTheBottomComesBackInside() {
+            const main = make();
+            const stats = panel(main, "StatsPopup");
+            main.showStats();
+
+            const area = main.workArea(main.screenFor(Qt.point(stats.x, stats.y)));
+            stats.y = area.bottom - stats.height - 20;
+            stats.height = stats.height + 40;
+            // A window's size change reaches its onHeightChanged on the next event-loop turn.
+            wait(50);
+
+            verify(stats.y + stats.height <= area.bottom - main.screenMargin,
+                   "the panel runs off the bottom edge after it grew");
+        }
+
+        /// The monitor above the primary, at 125%: Qt draws a window on it about its own origin, so a
+        /// point on it converts from that origin, not from zero. Values from the reader's machine.
+        function test_aPortraitScreenAboveThePrimaryConvertsFromItsOrigin() {
+            const main = make();
+            const portrait = {virtualX: 197, virtualY: -2560, width: 1152, height: 2048, devicePixelRatio: 1.25};
+
+            // The release point of a selection on that monitor, in native pixels.
+            const at = main.dipOn(portrait, Qt.point(876, -1336));
+            verify(Math.abs(at.x - (197 + (876 - 197) / 1.25)) < 0.01, "x did not convert from the origin");
+            verify(Math.abs(at.y - (-2560 + (-1336 + 2560) / 1.25)) < 0.01, "y did not convert from the origin");
+
+            // Placed at that DIP point, a window is drawn back over the release point.
+            const drawnY = portrait.virtualY + (at.y - portrait.virtualY) * portrait.devicePixelRatio;
+            compare(Math.round(drawnY), -1336);
         }
 
         /// UI.md's "click outside closes", which no photograph can check: the four panels and

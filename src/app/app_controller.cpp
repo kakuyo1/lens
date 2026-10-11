@@ -9,8 +9,10 @@
 #include <QCursor>
 #include <QDate>
 #include <QDateTime>
+#include <QGuiApplication>
 #include <QHash>
 #include <QSaveFile>
+#include <QScreen>
 #include <QSet>
 #include <QQmlEngine>
 #include <QJSEngine>
@@ -41,13 +43,13 @@ QKeySequence storedHotkey(StorageDuty& storage)
 
 }
 
-AppController::AppController(core::KnownStore& store,
-                             llm::LlmClient& llm,
-                             MouseSelectionHook& hook,
-                             GlobalHotkey& hotkey,
-                             const llm::Pricing& pricing,
+AppController::AppController(core::KnownStore&            store,
+                             llm::LlmClient&              llm,
+                             MouseSelectionHook&          hook,
+                             GlobalHotkey&                hotkey,
+                             const llm::Pricing&          pricing,
                              const std::filesystem::path& dataDir,
-                             QObject* parent)
+                             QObject*                     parent)
     : QObject(parent),
       storage_(store),
       cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), llm_(llm), hotkey_(hotkey)
@@ -112,7 +114,7 @@ AppController::~AppController() = default;
 
 void AppController::restoreModelService()
 {
-    auto const keys        = storage_.section();
+    auto const    keys     = storage_.section();
     const QString provider = catalog_.currentProvider();
     if (!llm_.setProvider(provider))
         llm_.setProvider(QStringLiteral("custom"));
@@ -156,6 +158,17 @@ void AppController::onSelectionReleased(QPoint anchor)
 QPoint AppController::cursorPos() const
 {
     return QCursor::pos();
+}
+
+QRect AppController::screenWorkArea(QString deviceName) const
+{
+    // An empty name names no screen. Without this guard the loop would match the first unnamed screen,
+    // the offscreen platform's, and hand its area to a caller that had no name.
+    if (deviceName.isEmpty()) return {};
+    for (auto const* screen : QGuiApplication::screens())
+        if (screen->name() == deviceName)
+            return screen->availableGeometry();
+    return {};
 }
 
 void AppController::setTesseractExecutable(QUrl executable)
@@ -384,27 +397,27 @@ void AppController::explainLemma(QString lemma)
 
 QVariantMap AppController::settings()
 {
-    auto const keys        = storage_.section();
+    auto const    keys     = storage_.section();
     const QString provider = catalog_.currentProvider();
-    QVariantMap result{{"level", storage_.knownStore().level()},
-                       {"levels", StorageDuty::levelOptions()},
-                       {"explanationLang", QString::fromStdString(storage_.knownStore().explanationLang())},
-                       {"multiSense", keys.value<bool>("multiSense", false)},
-                       {"etymology", keys.value<bool>("etymology", false)},
-                       {"theme", QString::fromStdString(keys.value<std::string>("theme", "light"))},
-                       {"animationsEnabled", keys.value<bool>("animationsEnabled", true)},
-                       {"uiLanguage", QString::fromStdString(keys.value<std::string>("uiLanguage", "zh"))},
-                       {"hasApiKey", !keys.value<std::string>("API-KEY", {}).empty()},
-                       {"selectionCapture", keys.value<bool>("selectionCapture", true)},
-                       {"clipboardPolicy", QString::fromStdString(keys.value<std::string>("clipboardPolicy", "topmost"))},
-                       {"ocrHotkey", hotkey_.keys().toString(QKeySequence::PortableText)},
-                       {"ocrHotkeyConflicted", hotkey_.conflicted()},
-                       {"provider", provider},
-                       {"model", llm_.model()},
-                       {"url", llm_.baseUrl().toString()},
-                       {"dailyBudget", dailyBudget()},
-                       {"autostart", autostartEnabled()}};
-    const auto captureSettings = capture_.settings();
+    QVariantMap   result{{"level", storage_.knownStore().level()},
+                         {"levels", StorageDuty::levelOptions()},
+                         {"explanationLang", QString::fromStdString(storage_.knownStore().explanationLang())},
+                         {"multiSense", keys.value<bool>("multiSense", false)},
+                         {"etymology", keys.value<bool>("etymology", false)},
+                         {"theme", QString::fromStdString(keys.value<std::string>("theme", "light"))},
+                         {"animationsEnabled", keys.value<bool>("animationsEnabled", true)},
+                         {"uiLanguage", QString::fromStdString(keys.value<std::string>("uiLanguage", "zh"))},
+                         {"hasApiKey", !keys.value<std::string>("API-KEY", {}).empty()},
+                         {"selectionCapture", keys.value<bool>("selectionCapture", true)},
+                         {"clipboardPolicy", QString::fromStdString(keys.value<std::string>("clipboardPolicy", "topmost"))},
+                         {"ocrHotkey", hotkey_.keys().toString(QKeySequence::PortableText)},
+                         {"ocrHotkeyConflicted", hotkey_.conflicted()},
+                         {"provider", provider},
+                         {"model", llm_.model()},
+                         {"url", llm_.baseUrl().toString()},
+                         {"dailyBudget", dailyBudget()},
+                         {"autostart", autostartEnabled()}};
+    const auto    captureSettings = capture_.settings();
     for (auto it = captureSettings.cbegin(); it != captureSettings.cend(); ++it)
         result.insert(it.key(), it.value());
     result.insert(QStringLiteral("ocrStatus"), capture_.ocrStatus());
@@ -421,10 +434,10 @@ QVariantMap AppController::stats() const
 
 QVariantList AppController::words() const
 {
-    const QDate today = QDate::currentDate();
-    QSet<QString> seen;
+    const QDate         today = QDate::currentDate();
+    QSet<QString>       seen;
     QHash<QString, int> pops;
-    const auto& history = storage_.statsStore().history();
+    const auto&         history = storage_.statsStore().history();
     for (const core::HistoryEntry& entry : history)
         ++pops[QString::fromStdString(entry.lemma)];
 
@@ -437,9 +450,9 @@ QVariantList AppController::words() const
         seen.insert(shown);
 
         const QDateTime moment = QDateTime::fromString(QString::fromStdString(entry.minute), QStringLiteral("yyyy-MM-dd HH:mm"));
-        QString day;
-        QString date;
-        QString time;
+        QString         day;
+        QString         date;
+        QString         time;
         if (moment.isValid()) {
             const qint64 daysAgo = moment.date().daysTo(today);
             if (daysAgo == 0)
@@ -497,7 +510,7 @@ bool AppController::saveWords(QUrl path, QString scope)
         return false;
     }
     const QString text = exportWords(scope);
-    QSaveFile file(local);
+    QSaveFile     file(local);
     if (!file.open(QIODevice::WriteOnly)) {
         LENS_WARN("words export could not open '{}' for writing", local.toStdString());
         return false;

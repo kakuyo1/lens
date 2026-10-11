@@ -77,8 +77,9 @@ Window {
         // qmllint disable missing-property
         for (const s of Qt.application.screens) {
             const ratio = s.devicePixelRatio || 1;
-            const left = s.virtualX * ratio;
-            const top = s.virtualY * ratio;
+            // The origin is not scaled, as dipOn assumes: only the size is in DIPs.
+            const left = s.virtualX;
+            const top = s.virtualY;
             const right = left + s.width * ratio;
             const bottom = top + s.height * ratio;
             if (point.x >= left && point.x < right && point.y >= top && point.y < bottom)
@@ -114,10 +115,23 @@ Window {
         return placement;
     }
 
-    /// @return A native-size surface bounded to the monitor without changing its content scale.
+    /// @return The edges of a screen's work area in virtual DIPs: the screen less any taskbar. Asked of
+    ///         Qt by device name: Screen.desktopAvailable* gave the primary's size (1536x864) on the
+    ///         portrait screen, whose own size is 1152x2048. A screen without a name uses its geometry.
+    // qmllint disable missing-property
+    function workArea(target) {
+        const area = Controller.screenWorkArea(target.name || "");
+        if (area.width > 0)
+            return {left: area.x, top: area.y, right: area.x + area.width, bottom: area.y + area.height};
+        return {left: target.virtualX, top: target.virtualY, right: target.virtualX + target.width, bottom: target.virtualY + target.height};
+    }
+    // qmllint enable missing-property
+
+    /// @return A native-size surface bounded to the work area without changing its content scale.
     function layoutFor(target, width, height) {
-        const availableWidth = Math.max(1, target.width - 2 * screenMargin);
-        const availableHeight = Math.max(1, target.height - 2 * screenMargin);
+        const area = root.workArea(target);
+        const availableWidth = Math.max(1, area.right - area.left - 2 * screenMargin);
+        const availableHeight = Math.max(1, area.bottom - area.top - 2 * screenMargin);
         return {
             width: Math.min(Math.max(1, width), availableWidth),
             height: Math.min(Math.max(1, height), availableHeight)
@@ -134,10 +148,11 @@ Window {
         target = target || root.screenFor(root.anchorPoint(anchor));
         shadowMargin = shadowMargin === undefined ? 26 : shadowMargin;
         const margin = root.screenMargin;
-        const left = target.virtualX + margin;
-        const top = target.virtualY + margin;
-        const right = target.virtualX + target.width - margin;
-        const bottom = target.virtualY + target.height - margin;
+        const area = root.workArea(target);
+        const left = area.left + margin;
+        const top = area.top + margin;
+        const right = area.right - margin;
+        const bottom = area.bottom - margin;
 
         const x = root.clamp(anchor.x + anchor.width / 2 - width + shadowMargin,
                              left, right - width);
@@ -169,10 +184,11 @@ Window {
         // Read the dimensions at placement time. Bubble's implicit height changes when its
         // senses, translation, or hover actions settle; caching its first size breaks that path.
         const layout = root.layoutFor(target, surface.width, surface.height);
-        const left = target.virtualX + screenMargin;
-        const top = target.virtualY + screenMargin;
-        const right = target.virtualX + target.width - screenMargin;
-        const bottom = target.virtualY + target.height - screenMargin;
+        const area = root.workArea(target);
+        const left = area.left + screenMargin;
+        const top = area.top + screenMargin;
+        const right = area.right - screenMargin;
+        const bottom = area.bottom - screenMargin;
         const shadow = surface.shadowMargin;
         const x = root.clamp(anchor.x - shadow, left, right - layout.width);
         const above = anchor.y - gap - layout.height + shadow;
@@ -183,6 +199,17 @@ Window {
         surface.raise();
     }
     // qmllint enable missing-property
+
+    /// A surface that grows after it was placed -- a row that opens, a list that loads -- keeps its
+    /// top-left corner, so it runs off the bottom or right edge by however much it grew. Pull it back
+    /// by that much. Placement is only ever computed from the anchor, so nothing else would.
+    function keepOnScreen(surface) {
+        if (!surface.visible)
+            return;
+        const area = root.workArea(root.screenFor(Qt.point(surface.x + surface.width / 2, surface.y + surface.height / 2)));
+        surface.x = root.clamp(surface.x, area.left + screenMargin, area.right - screenMargin - surface.width);
+        surface.y = root.clamp(surface.y, area.top + screenMargin, area.bottom - screenMargin - surface.height);
+    }
 
     function repositionVisible() {
         for (const placement of placements) {
@@ -288,19 +315,33 @@ Window {
     }
 
     /**
+     * @brief The DIP point of a native-pixel point, measured from @p screen's own origin.
+     *
+     * Qt draws a window on a screen at native = origin + (dip - origin) * scale. Measured on the
+     * portrait monitor above the primary at 125% (origin 197,-2560): a card placed at DIP y -1120
+     * was drawn at native y -760. Scaling from zero is right only for a screen whose origin is zero;
+     * on this one it misplaces every point by origin * (1 - 1 / scale), which is 512 DIPs.
+     */
+    // qmllint disable missing-property
+    function dipOn(screen, point) {
+        const ratio = screen.devicePixelRatio || 1;
+        return Qt.point(screen.virtualX + (point.x - screen.virtualX) / ratio,
+                        screen.virtualY + (point.y - screen.virtualY) / ratio);
+    }
+    // qmllint enable missing-property
+
+    /**
      * Turn a position the mouse hook reported into one a window can be placed at.
      * The hook reads native screen pixels; windows and QScreen geometry use DIPs.
      */
     function toDip(payload) {
         const target = root.screenForPhysical(Qt.point(payload.x, payload.y));
-        const ratio = target.devicePixelRatio || 1;
+        const at = root.dipOn(target, Qt.point(payload.x, payload.y));
         const out = {};
         for (const key in payload)
             out[key] = payload[key];
-        // Convert relative to the selected screen so negative virtual coordinates remain on the
-        // same screen and mixed-DPI monitors do not use the root screen's scale factor.
-        out.x = target.virtualX + (payload.x - target.virtualX * ratio) / ratio;
-        out.y = target.virtualY + (payload.y - target.virtualY * ratio) / ratio;
+        out.x = at.x;
+        out.y = at.y;
         return out;
     }
 
@@ -340,7 +381,11 @@ Window {
     }
 
     SelectionBar { id: bar }
-    Bubble { id: bubble }
+    Bubble {
+        id: bubble
+        onPlacementRequested: (payload) => root.placeTransient(bubble, payload, bubble.gap)
+        onHeightChanged: root.keepOnScreen(bubble)
+    }
     PetWindow { }
 
     Notice {
@@ -374,35 +419,49 @@ Window {
         onRegionChosen: (region) => Controller.captureRegion(region)
     }
 
-    SettingsPopup { id: settingsPopup }
+    SettingsPopup {
+        id: settingsPopup
+        onWidthChanged: root.keepOnScreen(settingsPopup)
+        onHeightChanged: root.keepOnScreen(settingsPopup)
+    }
 
     StatsPopup {
         id: statsPopup
         onCostRequested: root.showCost()
         onWordsRequested: root.showWords()
+        onWidthChanged: root.keepOnScreen(statsPopup)
+        onHeightChanged: root.keepOnScreen(statsPopup)
     }
 
     CostPopup {
         id: costPopup
         onBackRequested: root.showStats()
+        onWidthChanged: root.keepOnScreen(costPopup)
+        onHeightChanged: root.keepOnScreen(costPopup)
     }
 
     WordsPopup {
         id: wordsPopup
         onYearRequested: root.showYearWords()
         onBackRequested: root.showStats()
+        onWidthChanged: root.keepOnScreen(wordsPopup)
+        onHeightChanged: root.keepOnScreen(wordsPopup)
     }
 
     YearWordsPopup {
         id: yearWordsPopup
         onBackRequested: root.showWords()
         onPaletteOpenChanged: if (visible) root.placePanel(yearWordsPopup, root.trayAnchor())
+        onWidthChanged: root.keepOnScreen(yearWordsPopup)
+        onHeightChanged: root.keepOnScreen(yearWordsPopup)
     }
 
     TrayMenu {
         id: trayMenu
         onStatsRequested: root.showStats()
         onSettingsRequested: root.showSettings()
+        onWidthChanged: root.keepOnScreen(trayMenu)
+        onHeightChanged: root.keepOnScreen(trayMenu)
     }
 
     Connections {
