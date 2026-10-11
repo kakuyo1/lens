@@ -106,7 +106,7 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
     <div class="swrow" id="pass-row"><span class="swlabel" id="pass-label"></span><button type="button" class="switch" role="switch" id="pass" aria-checked="false"></button></div>
     <div class="swhelp" id="pass-help"></div>
 
-    <!-- Everything below exists only while the pet is on (PHASE3 3.5): type picker, stage, actions, accessories. -->
+    <!-- Everything below exists only while the pet is on: type picker, stage, actions, accessories. -->
     <div id="pet-section" hidden>
       <div class="group-title" id="pick-title"></div>
       <div class="pets"><button type="button" class="pcard" aria-pressed="true"><canvas id="thumb" width="88" height="88"></canvas><span class="pn" id="pet-name"></span></button></div>
@@ -134,7 +134,7 @@ const PET_ASSETS = {"body/idle.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEU
 	Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 	//#region src/pet-engine.js
 	/**
-	* Action state machine and frame clock (PHASE3 3.2 and 3.3). Pure logic: no DOM, no CSS, no window, no graphics API.
+	* Action state machine and frame clock. Pure logic: no DOM, no CSS, no window, no graphics API.
 	* The renderer reads `state` each frame and draws every layer at the same frame index.
 	*
 	* The rules mirror src/core/pet/pet_state.cpp, which is the specification's implementation. The two must change together.
@@ -212,7 +212,7 @@ const PET_ASSETS = {"body/idle.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEU
 			};
 		}
 		/**
-		* Applies one event by its type. Events carry no text (PHASE3 3.2).
+		* Applies one event by its type. Events carry no text.
 		* @param {'DragStart'|'DragEnd'|'Click'|'SelectionShown'|'ExplanationRequested'|'ExplanationShown'|'ExplanationHidden'|
 		*         'KnownMarked'|'NewWordMarked'|'BudgetPaused'|'BudgetResumed'|'UpdateAvailable'} event
 		*/
@@ -388,7 +388,7 @@ const PET_ASSETS = {"body/idle.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEU
 		}
 		/**
 		* Never the action just played, and only actions that have a playback. Returns nothing when no candidate is left:
-		* the dog stays idle rather than repeat itself (PHASE3 3.3).
+		* the dog stays idle rather than repeat itself.
 		*/
 		pickRandomIdle() {
 			const choices = SITUATIONAL_IDLE.filter((name) => this.actions[name] && name !== this.lastIdle);
@@ -726,6 +726,9 @@ document.documentElement.lang = { en: 'en', zh: 'zh-CN', ja: 'ja', es: 'es' }[la
 const DEFAULT = { on: false, passthrough: false, worn: {} };
 let state = structuredClone(DEFAULT);
 let saved = structuredClone(DEFAULT);
+// ?on opens the page with the pet switched on, the state the README's screenshot shows. The reader's
+// own switch does the same thing; the parameter only saves a click for the screenshot.
+if (new URLSearchParams(location.search).has('on')) state.on = saved.on = true;
 let pet = null;
 
 const $ = id => document.getElementById(id);

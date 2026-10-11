@@ -52,7 +52,9 @@ fi
 SIZES='bubble.html:340:290
 selection-bar.html:600:150
 settings.html:440:540
-words.html:380:500'
+words.html:380:500
+year-in-words.html:440:262
+pet.html:440:540'
 
 # The language directories, and the ?lang each one passes. Chinese is the prototypes' own text,
 # so it passes nothing.
@@ -87,12 +89,18 @@ const f = document.getElementById('f');
 const lang = q.get('lang');
 f.width = q.get('w'); f.height = q.get('h');
 f.src = 'file:///${win_root}/ui-prototypes/' + q.get('p')
-      + '?theme=light&shot=1' + (lang ? '&lang=' + lang : '');
+      + '?theme=light&shot=1' + (lang ? '&lang=' + lang : '') + (q.get('x') ? '&' + q.get('x') : '');
 </script></body></html>
 FRAME
 
 shot() {
     surface=$1; lang_dir=$2; lang=$3; w=$4; h=$5
+    # A surface that is only worth looking at in one state takes it here: the pet's preview stage
+    # exists only while the pet is switched on, so its image is taken with ?on.
+    case $surface in
+        pet.html) extra='&x=on' ;;
+        *) extra= ;;
+    esac
     out="docs/readme-images/$lang_dir/$(basename "$surface" .html)-ui.png"
     mkdir -p "$(dirname "$out")"
     # A profile of its own per run: Chrome keeps window geometry in one, and a shared directory
@@ -102,7 +110,7 @@ shot() {
     "$chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
         --user-data-dir="$tmp/profile-$lang_dir-$surface" \
         --window-size="$w,$h" --screenshot="$win_root/$out" \
-        "file:///$win_tmp/frame.html?p=$surface&w=$w&h=$h&lang=$lang" \
+        "file:///$win_tmp/frame.html?p=$surface&w=$w&h=$h&lang=$lang$extra" \
         >>"$tmp/chrome.log" 2>&1
     # Chrome exits 0 whether or not it wrote anything -- a page it could not load is still a
     # screenshot of a blank one -- so the file is what says the run happened. A silent empty
