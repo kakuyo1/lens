@@ -11,11 +11,13 @@
 
 #include "setup.h"
 
+#include <QCoreApplication>
 #include <QFont>
 #include <QFontDatabase>
 #include <QGuiApplication>
 #include <QQmlContext>
 #include <QQmlEngine>
+#include <QTranslator>
 
 namespace {
 
@@ -38,7 +40,7 @@ void installUiFonts()
     if (lightFamily.isEmpty() or regularFamily.isEmpty())
         qFatal("could not resolve the Windows Chinese font families for the offscreen snapshot");
 
-    QFont uiFont;
+    QFont         uiFont;
     const QString mode = qEnvironmentVariable("LENS_QA_FONT_MODE", "current");
     if (mode == QLatin1String("yahei-light"))
         uiFont.setFamilies({lightFamily, QStringLiteral("Segoe UI Variable")});
@@ -54,6 +56,21 @@ void installUiFonts()
     else
         uiFont.setFamilies({QStringLiteral("Segoe UI Variable"), QStringLiteral("Microsoft YaHei UI Light")});
     QGuiApplication::setFont(uiFont);
+}
+
+/// Install the translation named by LENS_QA_TRANSLATION, once, so a GIF case draws its surface in that
+/// language. Unset or empty leaves the source strings, which is what every other case expects. The
+/// file is a .qm built from i18n/ by scripts/qa/readme-gifs.ps1, never one from the repository.
+void installQaTranslation()
+{
+    static bool done = false;
+    if (done) return;
+    done               = true;
+    const QString path = qEnvironmentVariable("LENS_QA_TRANSLATION");
+    if (path.isEmpty()) return;
+    static QTranslator translator;
+    if (not translator.load(path)) qFatal("could not load the translation %s", qPrintable(path));
+    QCoreApplication::installTranslator(&translator);
 }
 
 } // namespace
@@ -141,16 +158,16 @@ struct Singletons {
         QFile::remove(settingsPath);
     }
 
-    QString settingsPath;
-    std::unique_ptr<KnownStore> store;
+    QString                               settingsPath;
+    std::unique_ptr<KnownStore>           store;
     std::unique_ptr<lens::llm::LlmClient> llm;
-    std::unique_ptr<MouseSelectionHook> hook;
-    std::unique_ptr<GlobalHotkey> hotkey;
-    std::unique_ptr<lens::llm::Pricing> pricing;
-    std::unique_ptr<AppController> controller;
-    std::unique_ptr<Tray> tray;
-    std::unique_ptr<PetStore> petStore;
-    std::unique_ptr<PetController> pet;
+    std::unique_ptr<MouseSelectionHook>   hook;
+    std::unique_ptr<GlobalHotkey>         hotkey;
+    std::unique_ptr<lens::llm::Pricing>   pricing;
+    std::unique_ptr<AppController>        controller;
+    std::unique_ptr<Tray>                 tray;
+    std::unique_ptr<PetStore>             petStore;
+    std::unique_ptr<PetController>        pet;
 };
 
 /**
@@ -166,9 +183,12 @@ QString writableSettingsCopy()
     const QString target = QDir::temp().filePath(
         QStringLiteral("lens-qtest-settings-%1.json").arg(QCoreApplication::applicationPid()));
 
+    // LENS_QA_SETTINGS replaces the fixture for one run, so a GIF can run in another explanation
+    // language. It is copied like the fixture, so the run still writes only to this scratch copy.
+    const QString source = qEnvironmentVariable("LENS_QA_SETTINGS", QStringLiteral(LENS_SETTINGS_FIXTURE));
     QFile::remove(target);
-    if (!QFile::copy(QStringLiteral(LENS_SETTINGS_FIXTURE), target))
-        qFatal("could not copy %s to %s", LENS_SETTINGS_FIXTURE, qPrintable(target));
+    if (!QFile::copy(source, target))
+        qFatal("could not copy %s to %s", qPrintable(source), qPrintable(target));
 
     return target;
 }
@@ -217,8 +237,10 @@ Singletons& singletons()
 void LensTestSetup::qmlEngineAvailable(QQmlEngine* engine)
 {
     installUiFonts();
+    installQaTranslation();
 
     engine->rootContext()->setContextProperty("lensQaSnapshotDir", qEnvironmentVariable("LENS_QA_SNAPSHOT_DIR"));
+    engine->rootContext()->setContextProperty("lensQaUiLanguage", qEnvironmentVariable("LENS_QA_UI_LANGUAGE"));
 
     Singletons& one = singletons();
     AppController::provide(one.controller.get());
@@ -231,7 +253,9 @@ void LensTestSetup::qmlEngineAvailable(QQmlEngine* engine)
 void LensTestSetup::qmlEngineAvailable(QQmlEngine* engine)
 {
     installUiFonts();
+    installQaTranslation();
     engine->rootContext()->setContextProperty("lensQaSnapshotDir", qEnvironmentVariable("LENS_QA_SNAPSHOT_DIR"));
+    engine->rootContext()->setContextProperty("lensQaUiLanguage", qEnvironmentVariable("LENS_QA_UI_LANGUAGE"));
 }
 
 #endif

@@ -102,46 +102,79 @@ html[data-theme=dark] .shade:nth-child(4) i{background:hsl(var(--palette-hue) 68
 <section class="panel" id="panel" aria-label="单词年度记录">
   <header class="header">
     <button class="icon" type="button" aria-label="返回词汇" title="返回词汇"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
-    <span class="title">年度记录</span>
+    <span class="title" data-l="title"></span>
     <div class="actions"><button class="year" type="button" aria-label="查看 2025 年">2025</button><button class="icon" type="button" aria-label="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
   </header>
-  <div class="summary"><strong>2025</strong><span id="dayDetail">年度弹词</span><em id="total">0 词</em></div>
+  <div class="summary"><strong>2025</strong><span id="dayDetail"></span><em id="total"></em></div>
   <div class="graph-wrap">
     <div class="month-labels" aria-hidden="true" id="monthLabels"></div>
-    <div class="graph-row"><div class="week-labels" aria-hidden="true"><span></span><span>一</span><span></span><span>三</span><span></span><span>五</span><span></span></div><div class="grid" id="grid"></div></div>
-    <div class="legend" aria-label="颜色图例"><span>少</span><button class="swatch" type="button" data-level="0" aria-label="无记录，打开配色选择"></button><button class="swatch" type="button" data-level="1" aria-label="第 1 档，打开配色选择"></button><button class="swatch" type="button" data-level="2" aria-label="第 2 档，打开配色选择"></button><button class="swatch" type="button" data-level="3" aria-label="第 3 档，打开配色选择"></button><button class="swatch" type="button" data-level="4" aria-label="第 4 档，打开配色选择"></button><span>多</span></div>
+    <div class="graph-row"><div class="week-labels" aria-hidden="true"><span></span><span data-l="mon"></span><span></span><span data-l="wed"></span><span></span><span data-l="fri"></span><span></span></div><div class="grid" id="grid"></div></div>
+    <div class="legend" aria-label="颜色图例"><span data-l="less"></span><button class="swatch" type="button" data-level="0" aria-label="无记录，打开配色选择"></button><button class="swatch" type="button" data-level="1" aria-label="第 1 档，打开配色选择"></button><button class="swatch" type="button" data-level="2" aria-label="第 2 档，打开配色选择"></button><button class="swatch" type="button" data-level="3" aria-label="第 3 档，打开配色选择"></button><button class="swatch" type="button" data-level="4" aria-label="第 4 档，打开配色选择"></button><span data-l="more"></span></div>
   </div>
   <section class="palette" id="palette" hidden aria-label="选择年度记录配色">
-    <header class="palette-head"><span>格子配色</span><small id="paletteHint">选择一个色相</small><button class="palette-close" id="paletteClose" type="button" aria-label="关闭配色选择"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header>
+    <header class="palette-head"><span data-l="cellColors"></span><small id="paletteHint"></small><button class="palette-close" id="paletteClose" type="button" aria-label="关闭配色选择"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header>
     <div class="palette-body">
       <div class="hue-wheel" id="hueWheel" aria-label="12 色相环"><span class="hue-core" id="hueCore">绿</span></div>
-      <div class="shade-panel"><div class="shade-title" id="shadeTitle">绿 · 4 档深浅</div><div class="shades"><span class="shade"><i></i><span>浅</span></span><span class="shade"><i></i><span>1</span></span><span class="shade"><i></i><span>2</span></span><span class="shade"><i></i><span>深</span></span></div><p class="palette-note">点击色相后，4 档活跃色会一起替换。</p></div>
+      <div class="shade-panel"><div class="shade-title" id="shadeTitle"></div><div class="shades"><span class="shade"><i></i><span data-l="shadeLight"></span></span><span class="shade"><i></i><span>1</span></span><span class="shade"><i></i><span>2</span></span><span class="shade"><i></i><span data-l="shadeDark"></span></span></div><p class="palette-note" data-l="paletteNote"></p></div>
     </div>
   </section>
 </section>
 <script>
+/// Reader-facing strings, one column per language, same shape as pet.html and words.html. The values
+/// are the ones the application's language table holds for the same source strings (i18n/lens_*.ts,
+/// context YearWordsPopup). Month names are not in that table, so they are the locale's short forms.
+const L = {
+  zh: { title: "单词年度记录", mon: "一", wed: "三", fri: "五", less: "少", more: "多", cellColors: "格子配色",
+        wordsFmt: "%1 词", lookupsFmt: "%1：查阅 %2 次", cellAria: "%1，%2 词", hueTitle: "%1 色相 · 4 档深浅",
+        shadeLight: "浅", shadeDark: "深", paletteNote: "选择色相，替换 4 档活跃色。", themeDark: "黑夜", themeLight: "白天",
+        months: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+        hueNames: ['红','橙','黄','黄绿','绿','青绿','青','蓝','靛','紫','洋红','玫红'] },
+  en: { title: "Year in words", mon: "Mon", wed: "Wed", fri: "Fri", less: "Less", more: "More", cellColors: "Cell colors",
+        wordsFmt: "%1 words", lookupsFmt: "%1: %2 lookups", cellAria: "%1, %2 words", hueTitle: "%1 hue · 4 shades",
+        shadeLight: "Light", shadeDark: "Dark", paletteNote: "Select a hue to replace the four active levels.", themeDark: "Dark", themeLight: "Light",
+        months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+        hueNames: ['Red','Orange','Yellow','Yellow green','Green','Teal','Cyan','Blue','Indigo','Violet','Magenta','Rose'] },
+  ja: { title: "単語の年間記録", mon: "月", wed: "水", fri: "金", less: "少", more: "多", cellColors: "セルの色",
+        wordsFmt: "%1 語", lookupsFmt: "%1：%2 回の検索", cellAria: "%1、%2 語", hueTitle: "%1 色相 · 4 段階",
+        shadeLight: "淡", shadeDark: "濃", paletteNote: "色相を選択して、4 段階の色を置き換えます。", themeDark: "ダーク", themeLight: "ライト",
+        months: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+        hueNames: ['赤','オレンジ','黄','黄緑','緑','青緑','シアン','青','藍','紫','マゼンタ','ローズ'] },
+  es: { title: "Año en palabras", mon: "Lun", wed: "Mié", fri: "Vie", less: "Menos", more: "Más", cellColors: "Colores de las celdas",
+        wordsFmt: "%1 palabras", lookupsFmt: "%1: %2 consultas", cellAria: "%1, %2 palabras", hueTitle: "Tono %1 · 4 intensidades",
+        shadeLight: "Claro", shadeDark: "Oscuro", paletteNote: "Elige un tono para reemplazar los cuatro niveles activos.", themeDark: "Oscuro", themeLight: "Claro",
+        months: ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'],
+        hueNames: ['Rojo','Naranja','Amarillo','Amarillo verdoso','Verde','Verde azulado','Cian','Azul','Índigo','Violeta','Magenta','Rosa'] }
+};
+const asked = (new URLSearchParams(location.search).get('lang') || 'zh').toLowerCase();
+const lang = asked.startsWith('zh') ? 'zh' : (L[asked] ? asked : 'zh');
+const t = L[lang];
+document.documentElement.lang = { en: 'en', zh: 'zh-CN', ja: 'ja', es: 'es' }[lang];
+for (const el of document.querySelectorAll('[data-l]')) el.textContent = t[el.dataset.l];
+
 const year=2025;
-const months=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
-const hues=[['红',0],['橙',30],['黄',60],['黄绿',90],['绿',120],['青绿',150],['青',180],['蓝',210],['靛',240],['紫',270],['洋红',300],['玫红',330]];
+const months=t.months;
+const hues=t.hueNames.map((name,index)=>[name,index*30]);
 const days=[];const counts=new Map();const key=date=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
 for(let month=0;month<12;month++)for(let day=1;day<=new Date(year,month+1,0).getDate();day++){const date=new Date(year,month,day);const seed=(month*17+day*9+Math.floor(day/5))%17;const count=seed<8?0:seed<11?1:seed<14?2:seed<16?4:7;days.push(date);counts.set(key(date),count)}
-document.getElementById('total').textContent=`${[...counts.values()].reduce((sum,value)=>sum+value,0)} 词`;
+document.getElementById('total').textContent=t.wordsFmt.replace('%1',[...counts.values()].reduce((sum,value)=>sum+value,0));
 const level=count=>count===0?0:count===1?1:count<=3?2:count<=5?3:4;const mondayOffset=date=>(date.getDay()+6)%7;const offset=mondayOffset(new Date(year,0,1));const weekCount=Math.ceil((offset+days.length)/7);
 const monthLabels=document.getElementById('monthLabels');monthLabels.style.gridTemplateColumns=`18px repeat(${weekCount},minmax(0,1fr))`;
 months.forEach((month,index)=>{const label=document.createElement('span');label.textContent=month;const monthStart=days.findIndex(date=>date.getMonth()===index);label.style.gridColumn=`${Math.floor((offset+monthStart)/7)+2} / span 4`;monthLabels.append(label)});
 const grid=document.getElementById('grid');grid.style.gridTemplateColumns=`repeat(${weekCount},minmax(0,1fr))`;
-function choose(date,count){document.querySelectorAll('.day').forEach(day=>day.setAttribute('aria-pressed',String(day.dataset.date===key(date))));document.getElementById('dayDetail').textContent=`${key(date)}：查阅 ${count} 次`}
-for(let week=0;week<weekCount;week++)for(let weekday=0;weekday<7;weekday++){const index=week*7+weekday-offset;const date=index>=0&&index<days.length?days[index]:null;if(!date){const blank=document.createElement('i');blank.className='day';blank.style.visibility='hidden';grid.append(blank);continue}const count=counts.get(key(date));const button=document.createElement('button');button.type='button';button.className='day';button.dataset.date=key(date);button.dataset.level=level(count);button.setAttribute('aria-pressed','false');button.setAttribute('aria-label',`${key(date)}，${count} 个词`);button.title=`${key(date)} · ${count} 个词`;button.addEventListener('click',()=>choose(date,count));grid.append(button)}
+function choose(date,count){document.querySelectorAll('.day').forEach(day=>day.setAttribute('aria-pressed',String(day.dataset.date===key(date))));document.getElementById('dayDetail').textContent=t.lookupsFmt.replace('%1',key(date)).replace('%2',count)}
+for(let week=0;week<weekCount;week++)for(let weekday=0;weekday<7;weekday++){const index=week*7+weekday-offset;const date=index>=0&&index<days.length?days[index]:null;if(!date){const blank=document.createElement('i');blank.className='day';blank.style.visibility='hidden';grid.append(blank);continue}const count=counts.get(key(date));const button=document.createElement('button');button.type='button';button.className='day';button.dataset.date=key(date);button.dataset.level=level(count);button.setAttribute('aria-pressed','false');button.setAttribute('aria-label',t.cellAria.replace('%1',key(date)).replace('%2',count));button.title=t.cellAria.replace('%1',key(date)).replace('%2',count);button.addEventListener('click',()=>choose(date,count));grid.append(button)}
 choose(new Date(year,9,7),counts.get(key(new Date(year,9,7))));
 const root=document.documentElement;const palette=document.getElementById('palette');const panel=document.getElementById('panel');const hueWheel=document.getElementById('hueWheel');const hueCore=document.getElementById('hueCore');const paletteHint=document.getElementById('paletteHint');const shadeTitle=document.getElementById('shadeTitle');let selectedHue=4;
-hues.forEach(([name,hue],index)=>{const button=document.createElement('button');button.type='button';button.className='hue';button.style.setProperty('--hue-value',hue);button.style.setProperty('--angle',`${index*30}deg`);button.dataset.index=index;button.setAttribute('aria-label',`${name}色相`);button.setAttribute('aria-pressed',String(index===selectedHue));button.addEventListener('click',()=>applyHue(index));hueWheel.append(button)});
-function applyHue(index){selectedHue=index;const [name,hue]=hues[index];root.style.setProperty('--hue',hue);root.style.setProperty('--palette-hue',hue);hueCore.textContent=name;paletteHint.textContent=`${name}色相 · 4 档深浅`;shadeTitle.textContent=`${name} · 4 档深浅`;document.querySelectorAll('.hue').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.index)===index)))}
+hues.forEach(([name,hue],index)=>{const button=document.createElement('button');button.type='button';button.className='hue';button.style.setProperty('--hue-value',hue);button.style.setProperty('--angle',`${index*30}deg`);button.dataset.index=index;button.setAttribute('aria-label',name);button.setAttribute('aria-pressed',String(index===selectedHue));button.addEventListener('click',()=>applyHue(index));hueWheel.append(button)});
+function applyHue(index){selectedHue=index;const [name,hue]=hues[index];root.style.setProperty('--hue',hue);root.style.setProperty('--palette-hue',hue);hueCore.textContent=name;paletteHint.textContent=name;shadeTitle.textContent=t.hueTitle.replace('%1',name);document.querySelectorAll('.hue').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.index)===index)))}
 function openPalette(){palette.hidden=false;panel.classList.add('palette-open');requestAnimationFrame(()=>palette.classList.add('open'));document.querySelector('.swatch[aria-pressed=true]')?.focus()}
 function closePalette(){palette.classList.remove('open');panel.classList.remove('palette-open');setTimeout(()=>{if(!palette.classList.contains('open'))palette.hidden=true},180)}
 document.querySelectorAll('.swatch').forEach(swatch=>swatch.addEventListener('click',()=>{document.querySelectorAll('.swatch').forEach(item=>item.setAttribute('aria-pressed',String(item===swatch)));openPalette()}));
 document.getElementById('paletteClose').addEventListener('click',closePalette);document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!palette.hidden)closePalette()});
 applyHue(selectedHue);
-const theme=document.getElementById('theme');function setTheme(value){root.dataset.theme=value;theme.textContent=value==='dark'?'白天':'黑夜'}setTheme(new URLSearchParams(location.search).get('theme')==='dark'?'dark':'light');theme.addEventListener('click',()=>setTheme(root.dataset.theme==='dark'?'light':'dark'));
+const theme=document.getElementById('theme');function setTheme(value){root.dataset.theme=value;theme.textContent=value==='dark'?t.themeLight:t.themeDark}setTheme(new URLSearchParams(location.search).get('theme')==='dark'?'dark':'light');theme.addEventListener('click',()=>setTheme(root.dataset.theme==='dark'?'light':'dark'));
+// ?shot is for the README's screenshots: the toggle is a way to look at the prototype, not part of the surface.
+if (new URLSearchParams(location.search).has('shot')) theme.remove();
 </script>
 </body>
 </html>
