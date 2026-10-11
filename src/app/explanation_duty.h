@@ -38,7 +38,7 @@ public:
     /// @brief Retry queued scan work after a budget rollover or a raised cap.
     void resumeQueued();
     /// @brief Invalidate queued or in-flight results for a word deleted locally.
-    void invalidateWord(QString const& lemma);
+    void             invalidateWord(QString const& lemma);
     Q_INVOKABLE void runSelectionAction(QString action, QString text);
     Q_INVOKABLE void mark(QString lemma, bool learned);
     /**
@@ -61,7 +61,7 @@ public:
     /// word the pointer is on is the one thing that is not in doubt.
     Q_INVOKABLE void dismissReview();
     /// @brief Ask the model about a lemma the reader asked for by name, anchored where it was read.
-    void explainLemma(QString lemma);
+    void             explainLemma(QString lemma);
     Q_INVOKABLE void dismissBubble();
     Q_INVOKABLE void dismissNotice();
     /**
@@ -72,10 +72,10 @@ public:
      * @param action Label for the one thing the reader can do about it, empty for none.
      * @param lemma  The word that action would explain, when there is one.
      */
-    void showNotice(QString const& title, QString const& body, QString const& kind, QString const& action = {}, QString const& lemma = {});
+    void        showNotice(QString const& title, QString const& body, QString const& kind, QString const& action = {}, QString const& lemma = {});
     QVariantMap bubble() const;
     QVariantMap notice() const;
-    QString busyLabel() const;
+    QString     busyLabel() const;
 
     Q_PROPERTY(QVariantMap bubble READ bubble NOTIFY bubbleChanged)
     Q_PROPERTY(QVariantMap notice READ notice NOTIFY noticeChanged)
@@ -109,7 +109,7 @@ private:
     /// @param countsDown Whether the bubble takes itself down after its countdown. A bubble the
     ///        word list raises belongs to the row under the pointer instead, and is taken down when
     ///        the pointer leaves it.
-    void showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool countsDown = true);
+    void    showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool countsDown = true);
     QString noticeTitle(PendingSelection const& pending) const;
     ///
     /// One reader of this, two uses: the request asks the model for it, and the card decides
@@ -120,17 +120,17 @@ private:
     void clearBubble();
     void clearNotice();
 
-    StorageDuty& storage_;
+    StorageDuty&    storage_;
     llm::LlmClient& llm_;
-    CostDuty& cost_;
+    CostDuty&       cost_;
     /// What the reader has asked for and not yet been answered. It holds nothing the duty's own
     /// decisions do not read: the selection standing is the selection bar's, and it is told here
     /// only that the reader has moved on.
     ExplanationQueue queue_;
     PendingSelection pending_;
-    QVariantMap bubble_;
-    QVariantMap notice_;
-    QString busyLabel_;
+    QVariantMap      bubble_;
+    QVariantMap      notice_;
+    QString          busyLabel_;
     /// Where the row the reader is pointing at sits, so the explanation a notice's button asks for
     /// lands in the same place the review bubble did.
     QPoint reviewAnchor_;

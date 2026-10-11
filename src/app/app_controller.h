@@ -53,13 +53,13 @@ public:
      * @param dataDir Directory `data/update.json` is read from, the same one `data/llm/` is.
      * @param parent QObject parent.
      */
-    AppController(core::KnownStore& store,
-                  llm::LlmClient& llm,
-                  MouseSelectionHook& hook,
-                  GlobalHotkey& hotkey,
-                  const llm::Pricing& pricing,
+    AppController(core::KnownStore&            store,
+                  llm::LlmClient&              llm,
+                  MouseSelectionHook&          hook,
+                  GlobalHotkey&                hotkey,
+                  const llm::Pricing&          pricing,
                   const std::filesystem::path& dataDir,
-                  QObject* parent = nullptr);
+                  QObject*                     parent = nullptr);
     ~AppController() override;
 
     /// @brief Hand the QML engine the one instance built by the composition root.
@@ -121,20 +121,20 @@ public:
     /// @return Empty once the capture is under way; otherwise the reason, which is also reported.
     Q_INVOKABLE QString captureRegion(QRect region);
     Q_INVOKABLE QString exportWords(QString scope);
-    Q_INVOKABLE bool saveWords(QUrl path, QString scope);
-    Q_INVOKABLE bool removeWord(QString lemma);
-    Q_INVOKABLE bool setDailyBudget(double amount);
-    void checkForUpdatesAtStartup();
+    Q_INVOKABLE bool    saveWords(QUrl path, QString scope);
+    Q_INVOKABLE bool    removeWord(QString lemma);
+    Q_INVOKABLE bool    setDailyBudget(double amount);
+    void                checkForUpdatesAtStartup();
 
     /// @note Not const, and the only projection that is not: reading a document key goes through a
     ///       section, which is a writable view. Every other dependency is borrowed by reference and
     ///       this one is owned, which is what makes the difference; see docs/adr/0024.
-    QVariantMap settings();
-    QVariantMap stats() const;
+    QVariantMap  settings();
+    QVariantMap  stats() const;
     QVariantList words() const;
     /// @brief The last 365 local dates, including zero-use days, for the annual words surface.
     QVariantList yearDays() const;
-    QVariantMap cost() const;
+    QVariantMap  cost() const;
     /// @brief The update duty, which QML reads as `Controller.updateDuty`; the facade owns it.
     UpdateDuty* updateDuty();
     /// @brief The explanation duty, which QML reads as `Controller.explanationDuty`; the facade owns it.
@@ -143,9 +143,9 @@ public:
     CaptureDuty* captureDuty();
     /// @brief The model catalogue, which QML reads as `Controller.modelCatalogDuty`; the facade owns it.
     ModelCatalogDuty* modelCatalogDuty();
-    QString modeLabel() const;
-    QString busyLabel() const;
-    double dailyBudget() const;
+    QString           modeLabel() const;
+    QString           busyLabel() const;
+    double            dailyBudget() const;
 
     Q_PROPERTY(QVariantMap settings READ settings NOTIFY settingsChanged)
     Q_PROPERTY(QVariantMap stats READ stats NOTIFY statsChanged)
@@ -186,17 +186,17 @@ private:
 
     static AppController* instance_;
 
-    StorageDuty storage_;
-    CostDuty cost_;
-    CaptureDuty capture_;
-    ModelCatalogDuty catalog_;
-    ExplanationDuty explanation_;
-    update::UpdateClient updateClient_;
+    StorageDuty            storage_;
+    CostDuty               cost_;
+    CaptureDuty            capture_;
+    ModelCatalogDuty       catalog_;
+    ExplanationDuty        explanation_;
+    update::UpdateClient   updateClient_;
     update::DownloadClient updateDownloader_;
-    UpdateDuty updateDuty_;
-    llm::LlmClient& llm_;
-    GlobalHotkey& hotkey_;
-    QTimer gateTimer_;
+    UpdateDuty             updateDuty_;
+    llm::LlmClient&        llm_;
+    GlobalHotkey&          hotkey_;
+    QTimer                 gateTimer_;
     /// Whether the daily budget was spent the last time the cost duty reported, so a pause and a resume each fire once.
     bool budgetPaused_;
 };

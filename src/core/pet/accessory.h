@@ -25,8 +25,8 @@ enum class Slot : std::uint8_t {
 
 /// @brief One accessory from accessories.json: its id, the slot it wears in, and the actions it stays visible in.
 struct AccessorySpec {
-    std::string id;
-    Slot slot;
+    std::string         id;
+    Slot                slot;
     std::vector<Action> supportedActions;
 };
 
@@ -53,7 +53,7 @@ struct Wardrobe {
     std::vector<std::string> visibleFor(Action action) const;
 
 private:
-    std::vector<AccessorySpec> catalogue;
+    std::vector<AccessorySpec>  catalogue;
     std::map<Slot, std::string> worn;
 };
 

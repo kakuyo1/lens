@@ -23,10 +23,10 @@ namespace lens::update {
 
 /// @brief One release, as far as this program acts on it.
 struct Release {
-    util::SemVer version; ///< The three numbers the tag carries, whatever the tag spelled.
-    QString versionText;  ///< The same version written out, e.g. "1.2.0".
-    QString pageUrl;      ///< The release page, which is the address the answer redirected to.
-    QString notes;        ///< Always empty: the redirect carries no notes, and none are fetched.
+    util::SemVer version;     ///< The three numbers the tag carries, whatever the tag spelled.
+    QString      versionText; ///< The same version written out, e.g. "1.2.0".
+    QString      pageUrl;     ///< The release page, which is the address the answer redirected to.
+    QString      notes;       ///< Always empty: the redirect carries no notes, and none are fetched.
 };
 
 /**
@@ -60,9 +60,9 @@ bool isUpdateAvailable(const util::SemVer& latest, const util::SemVer& current);
  * document written before the check existed reads as all-defaults rather than as an error.
  */
 struct StoredUpdate {
-    bool autoCheck = true; ///< Absent means on: a check nobody switched off is wanted.
-    QString lastCheckDate; ///< Local `YYYY-MM-DD` of the last automatic check that started.
-    QString skipped;       ///< The exact version the reader chose to skip, or empty.
+    bool    autoCheck = true; ///< Absent means on: a check nobody switched off is wanted.
+    QString lastCheckDate;    ///< Local `YYYY-MM-DD` of the last automatic check that started.
+    QString skipped;          ///< The exact version the reader chose to skip, or empty.
 };
 
 /**

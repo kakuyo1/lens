@@ -28,13 +28,13 @@ namespace lens::update {
 
 /// @brief Where the check asks, and the ceilings it asks under, read from `data/update.json`.
 struct Settings {
-    QUrl source; ///< The release page; a non-https one is refused and nothing is sent.
-    int timeoutMs           = 10000;
-    qint64 maxBytes         = 2 * 1024 * 1024;
-    QString sumsName        = QStringLiteral("SHA256SUMS"); ///< The asset that publishes the installer's digest.
-    qint64 maxDownloadBytes = 200 * 1024 * 1024;            ///< Ceiling on one installer.
-    int stallTimeoutMs      = 30000;                        ///< A transfer that stops moving is given up on.
-    int connectTimeoutMs    = 15000;                        ///< A transfer that never starts is given up on.
+    QUrl    source; ///< The release page; a non-https one is refused and nothing is sent.
+    int     timeoutMs        = 10000;
+    qint64  maxBytes         = 2 * 1024 * 1024;
+    QString sumsName         = QStringLiteral("SHA256SUMS"); ///< The asset that publishes the installer's digest.
+    qint64  maxDownloadBytes = 200 * 1024 * 1024;            ///< Ceiling on one installer.
+    int     stallTimeoutMs   = 30000;                        ///< A transfer that stops moving is given up on.
+    int     connectTimeoutMs = 15000;                        ///< A transfer that never starts is given up on.
 
     /**
      * @brief Read the source and its limits from `data/update.json`.
@@ -87,9 +87,9 @@ signals:
     void offline();
 
 private:
-    Settings settings_;
+    Settings               settings_;
     QNetworkAccessManager* manager_;
-    QString userAgent_;
+    QString                userAgent_;
 };
 
 /**
@@ -164,18 +164,18 @@ private:
     /// @return The address one release asset is published at, never a URL this may not ask for.
     static QUrl assetUrl(const QString& subdirectory, const QString& name);
 
-    Settings settings_;
+    Settings               settings_;
     QNetworkAccessManager* manager_;
-    QString userAgent_;
-    QNetworkReply* reply_ = nullptr;
-    QFile* file_          = nullptr;
+    QString                userAgent_;
+    QNetworkReply*         reply_ = nullptr;
+    QFile*                 file_  = nullptr;
     /// The checksum list as it arrives. readyRead drains the reply, so the bytes are kept here
     /// rather than left for finished() to read, where nothing would remain.
     QByteArray sums_;
-    QTimer* stall_   = nullptr;
-    QTimer* connect_ = nullptr;
-    qint64 received_ = 0;
-    qint64 total_    = 0;
+    QTimer*    stall_    = nullptr;
+    QTimer*    connect_  = nullptr;
+    qint64     received_ = 0;
+    qint64     total_    = 0;
     /// Whether this transfer has already been given up on, so one download reports once.
     bool stopped_ = false;
     /// The mode of the transfer in flight, so a replacement request knows what it is replacing.

@@ -74,7 +74,7 @@ private:
     /// What the shell actually took, so that a failed replacement does not leave the field and
     /// the registration disagreeing about what is in force.
     QKeySequence registered_;
-    bool installed_ = false;
+    bool         installed_ = false;
 };
 
 }

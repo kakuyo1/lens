@@ -34,7 +34,7 @@ struct Anchors {
 /// @brief What animations.json holds: playback for every state-machine action, and the blink on the expression layer.
 struct Animations {
     ActionSpecs actions;
-    ActionSpec blink;
+    ActionSpec  blink;
 };
 
 /// @brief Anchors for every action, one entry per frame.

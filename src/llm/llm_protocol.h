@@ -45,8 +45,8 @@ enum class Channel : std::uint8_t { Word = 0,
 
 /// @brief One channel preset's system prompt, from `request.<channel>.json`.
 struct PromptTemplate {
-    QString systemPromptTemplate;               ///< Carries kOutputLanguagePlaceholder.
-    QHash<QString, QString> outputLanguageLine; ///< "en" / "zh" -> closing prompt line.
+    QString                 systemPromptTemplate; ///< Carries kOutputLanguagePlaceholder.
+    QHash<QString, QString> outputLanguageLine;   ///< "en" / "zh" -> closing prompt line.
     /// The sentence asking for the word's origin, substituted into kEtymologyNotePlaceholder --
     /// the reader's setting keeps it or clears it, and one channel prompt therefore serves both.
     QString etymologyNote;
@@ -58,11 +58,11 @@ struct PromptTemplate {
 
 /// @brief Request half of one channel's protocol, from `request.<channel>.json`.
 struct RequestTemplate {
-    QHash<QString, PromptTemplate> prompts; ///< Preset name -> system prompt.
-    QJsonObject responseFormat;             ///< Passed through as `response_format`.
-    QJsonObject thinking;                   ///< Passed through as `thinking`.
-    int maxTokens = 0;                      ///< Output token cap.
-    bool stream   = false;                  ///< A batch is answered whole.
+    QHash<QString, PromptTemplate> prompts;           ///< Preset name -> system prompt.
+    QJsonObject                    responseFormat;    ///< Passed through as `response_format`.
+    QJsonObject                    thinking;          ///< Passed through as `thinking`.
+    int                            maxTokens = 0;     ///< Output token cap.
+    bool                           stream    = false; ///< A batch is answered whole.
 };
 
 /// @return The lowercase channel name used in file names and log lines, e.g. "word".

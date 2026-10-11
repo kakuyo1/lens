@@ -39,11 +39,11 @@ struct ModelUsage {
 
 /// @brief One day's tallies, for the statistics and cost popups.
 struct DailyUsage {
-    int pops                   = 0;
-    int learned                = 0;
-    int fresh                  = 0;
-    long long promptTokens     = 0;
-    long long completionTokens = 0;
+    int                               pops             = 0;
+    int                               learned          = 0;
+    int                               fresh            = 0;
+    long long                         promptTokens     = 0;
+    long long                         completionTokens = 0;
     std::map<std::string, ModelUsage> models;
 };
 
@@ -120,9 +120,9 @@ public:
 
     /// @brief Add one response's token usage to its day and model bucket.
     void recordUsage(const std::string& minute,
-                     long long promptTokens,
-                     long long completionTokens,
-                     std::string model);
+                     long long          promptTokens,
+                     long long          completionTokens,
+                     std::string        model);
 
     /// @brief Remove all history rows for a lemma while preserving token usage and budget.
     /// @return True when at least one history row was removed.
@@ -154,10 +154,10 @@ private:
     /// @brief Write the typed state back into the document, for KnownStore::save() to persist.
     void writeBack();
 
-    nlohmann::json& doc_;
-    std::vector<HistoryEntry> history_; ///< Newest first, same order as the document.
+    nlohmann::json&                   doc_;
+    std::vector<HistoryEntry>         history_; ///< Newest first, same order as the document.
     std::map<std::string, DailyUsage> daily_;
-    double dailyBudget_ = 0.0;
+    double                            dailyBudget_ = 0.0;
 };
 
 }
