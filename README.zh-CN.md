@@ -43,6 +43,18 @@ Lens 在本机把捕获到的文字分成三类请求：单词请求只发送单
 | --- | --- |
 | ![Lens 单词年度记录设计稿，以贡献图展示一年的查词次数](docs/readme-images/zh-CN/year-in-words-ui.png) | ![Lens 桌面宠物设置设计稿，展示开关、鼠标穿透和白色小狗](docs/readme-images/zh-CN/pet-ui.png) |
 
+## 操作演示
+
+以下短片展示主要操作，画面为英文界面。“已会” 与 “新词” 标记的那段短片中，解释是中文，因为示例单词是以中文保存的。
+
+| 解释气泡 | 选区动作条 |
+| --- | --- |
+| ![单词气泡，展示单词的解释和倒计时](docs/readme-images/gifs/word-bubble.gif) | ![选区动作条，包含翻译、解释和复制](docs/readme-images/gifs/selection-bar.gif) |
+
+| 标记单词 | 单词年度记录 |
+| --- | --- |
+| ![把单词标为已会，标记随之变化](docs/readme-images/gifs/marking-known-new.gif) | ![在年度贡献图中选择日期和配色](docs/readme-images/gifs/year-in-words.gif) |
+
 ## 语言与外观
 
 界面语言和解释语言分别设置，两者都可以选择英语、中文、西班牙语和日语。西班牙语与日语的翻译由机器生成，未经母语人士审校。如果发现错误的用语，欢迎反馈。

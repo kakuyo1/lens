@@ -43,6 +43,18 @@ The images below come from the HTML design files in [`ui-prototypes/`](ui-protot
 | --- | --- |
 | ![Lens year in words concept, a contribution graph of a year of lookups](docs/readme-images/en/year-in-words-ui.png) | ![Lens desktop pet settings concept with the pet switch, mouse passthrough, and the white dog](docs/readme-images/en/pet-ui.png) |
 
+## Demonstrations
+
+Short clips of the main operations, shown in the English interface. The clip for marking a word shows a Chinese explanation, because its sample word was stored in Chinese.
+
+| Explanation bubble | Selection actions |
+| --- | --- |
+| ![Word bubble showing a word's explanation and a countdown](docs/readme-images/gifs/word-bubble.gif) | ![Selection action bar with translate, explain, and copy](docs/readme-images/gifs/selection-bar.gif) |
+
+| Marking a word | Year in words |
+| --- | --- |
+| ![Marking a word as known, and the badge changing](docs/readme-images/gifs/marking-known-new.gif) | ![Choosing a day and a colour in the year grid](docs/readme-images/gifs/year-in-words.gif) |
+
 ## Languages and appearance
 
 The interface and the explanations each have their own language setting, and both offer English, Chinese, Spanish, and Japanese. The Spanish and Japanese translations are machine-generated and have not been reviewed by a native speaker. If you find a wrong term, please report it.

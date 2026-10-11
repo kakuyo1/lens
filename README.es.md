@@ -43,6 +43,18 @@ Las imágenes siguientes proceden de los archivos HTML de diseño de [`ui-protot
 | --- | --- |
 | ![Concepto de año en palabras de Lens, un gráfico de contribuciones con las consultas de un año](docs/readme-images/es/year-in-words-ui.png) | ![Concepto de los ajustes de la mascota de escritorio de Lens, con el interruptor, el paso del ratón y el perro blanco](docs/readme-images/es/pet-ui.png) |
 
+## Demostraciones
+
+Clips breves de las operaciones principales, con la interfaz en inglés. El clip de marcar una palabra muestra una explicación en chino, porque la palabra de ejemplo se guardó en chino.
+
+| Globo de explicación | Barra de acciones de selección |
+| --- | --- |
+| ![Globo con la explicación de una palabra y una cuenta atrás](docs/readme-images/gifs/word-bubble.gif) | ![Barra de acciones de selección con traducir, explicar y copiar](docs/readme-images/gifs/selection-bar.gif) |
+
+| Marcar una palabra | Año en palabras |
+| --- | --- |
+| ![Marcar una palabra como conocida y cambiar la insignia](docs/readme-images/gifs/marking-known-new.gif) | ![Elegir un día y un color en la cuadrícula del año](docs/readme-images/gifs/year-in-words.gif) |
+
 ## Idiomas y apariencia
 
 La interfaz y las explicaciones tienen cada una su propio ajuste de idioma, y ambas ofrecen inglés, chino, español y japonés. Las traducciones al español y al japonés son automáticas y no han sido revisadas por una persona nativa. Si encuentras un término incorrecto, por favor, notifícalo.
