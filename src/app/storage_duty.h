@@ -1,11 +1,12 @@
 #pragma once
 
 #include <QString>
-#include <QVariant>
 #include <QVariantList>
-#include <QVariantMap>
+
+#include <string_view>
 
 #include "core/known_store.h"
+#include "core/settings_section.h"
 #include "core/stats_store.h"
 
 /**
@@ -31,14 +32,13 @@ public:
     core::StatsStore& statsStore();
     const core::StatsStore& statsStore() const;
 
-    /// @return A string document value, or @p fallback when it is absent or not a string.
-    QString documentString(const char* key, const QString& fallback) const;
-
-    /// @return A boolean document value, or @p fallback when it is absent or not a boolean.
-    bool documentBool(const char* key, bool fallback) const;
-
-    /// @brief Write one document value, preserving its scalar type, and persist the document.
-    void writeDocument(const char* key, const QVariant& value);
+    /**
+     * @brief The document, or one of its nested objects, as the unit a key is read and written through.
+     * @param name Object name to bind to; empty for the document itself.
+     * @note Every write through the section saves. Seven keys are re-stamped from their owner's own
+     *       state and are not the section's to write; docs/adr/0024 names them.
+     */
+    core::SettingsSection section(std::string_view name = {});
 
     /// @brief Persist the current document, including statistics changes.
     void save() const;

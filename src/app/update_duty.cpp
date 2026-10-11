@@ -13,8 +13,6 @@
 #include <QStandardPaths>
 #include <QUrl>
 
-#include <nlohmann/json.hpp>
-
 #include "util/log.h"
 
 namespace lens::app {
@@ -84,45 +82,26 @@ QVariantMap UpdateDuty::update() const
 update::StoredUpdate UpdateDuty::stored() const
 {
     update::StoredUpdate settings;
-    const nlohmann::json& document = storage_.knownStore().document();
-    if (not document.is_object() or not document.contains("UPDATE") or not document.at("UPDATE").is_object())
-        return settings;
-
-    const nlohmann::json& section = document.at("UPDATE");
-    if (section.contains("autoCheck") and section.at("autoCheck").is_boolean())
-        settings.autoCheck = section.at("autoCheck").get<bool>();
-    if (section.contains("lastCheckDate") and section.at("lastCheckDate").is_string())
-        settings.lastCheckDate = QString::fromStdString(section.at("lastCheckDate").get<std::string>());
-    if (section.contains("skipped") and section.at("skipped").is_string())
-        settings.skipped = QString::fromStdString(section.at("skipped").get<std::string>());
+    auto const section     = storage_.section("UPDATE");
+    settings.autoCheck     = section.value<bool>("autoCheck", settings.autoCheck);
+    settings.lastCheckDate = QString::fromStdString(section.value<std::string>("lastCheckDate", {}));
+    settings.skipped       = QString::fromStdString(section.value<std::string>("skipped", {}));
     return settings;
 }
 
 void UpdateDuty::writeAutoCheck(bool on)
 {
-    nlohmann::json& document = storage_.knownStore().document();
-    if (not document.is_object())
-        return;
-    document["UPDATE"]["autoCheck"] = on;
-    storage_.save();
+    storage_.section("UPDATE").set<bool>("autoCheck", on);
 }
 
 void UpdateDuty::writeLastCheckDate(const QString& date)
 {
-    nlohmann::json& document = storage_.knownStore().document();
-    if (not document.is_object())
-        return;
-    document["UPDATE"]["lastCheckDate"] = date.toStdString();
-    storage_.save();
+    storage_.section("UPDATE").set<std::string>("lastCheckDate", date.toStdString());
 }
 
 void UpdateDuty::writeSkipped(const QString& version)
 {
-    nlohmann::json& document = storage_.knownStore().document();
-    if (not document.is_object())
-        return;
-    document["UPDATE"]["skipped"] = version.toStdString();
-    storage_.save();
+    storage_.section("UPDATE").set<std::string>("skipped", version.toStdString());
 }
 
 void UpdateDuty::setAutoCheck(bool on)

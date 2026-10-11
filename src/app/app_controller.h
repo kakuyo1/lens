@@ -1,5 +1,13 @@
 #pragma once
 
+/**
+ * @file app_controller.h
+ * @brief QML facade that wires the application duties to the surfaces.
+ *
+ * Capture, explanation, cost and storage behavior live behind their own boundaries. This class
+ * keeps the QML singleton contract and forwards commands and projections between those duties.
+ */
+
 #include <QObject>
 #include <QPoint>
 #include <QRect>
@@ -28,13 +36,6 @@ class QJSEngine;
 
 namespace lens::app {
 
-/**
- * @file app_controller.h
- * @brief QML facade that wires the application duties to the surfaces.
- *
- * Capture, explanation, cost and storage behavior live behind their own boundaries. This class
- * keeps the QML singleton contract and forwards commands and projections between those duties.
- */
 class AppController : public QObject {
     Q_OBJECT
     QML_NAMED_ELEMENT(Controller)
@@ -156,7 +157,10 @@ public:
 
     QVariantMap bubble() const;
     QVariantMap notice() const;
-    QVariantMap settings() const;
+    /// @note Not const, and the only projection that is not: reading a document key goes through a
+    ///       section, which is a writable view. Every other dependency is borrowed by reference and
+    ///       this one is owned, which is what makes the difference; see docs/adr/0024.
+    QVariantMap settings();
     /// @brief The models the provider in force carries. Its own property, not a key of settings():
     ///        see ExplanationDuty::models() for why the list is kept out of that map.
     QVariantList models() const;

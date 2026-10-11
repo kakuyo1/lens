@@ -139,12 +139,9 @@ private:
     QString current_;
 };
 
-std::string settingsValue(const KnownStore& store, const char* key)
+QString settingsValue(KnownStore& store, const char* key)
 {
-    const nlohmann::json& doc = store.document();
-    if (!doc.is_object() || !doc.contains(key) || !doc[key].is_string())
-        return {};
-    return doc[key].get<std::string>();
+    return QString::fromStdString(store.section().value<std::string>(key, {}));
 }
 
 }
@@ -205,9 +202,9 @@ int main(int argc, char* argv[])
         }
     }();
 
-    const QString apiKey  = QString::fromStdString(settingsValue(store, "API-KEY"));
-    const QString baseUrl = QString::fromStdString(settingsValue(store, "URL"));
-    const QString model   = QString::fromStdString(settingsValue(store, "MODEL"));
+    const QString apiKey  = settingsValue(store, "API-KEY");
+    const QString baseUrl = settingsValue(store, "URL");
+    const QString model   = settingsValue(store, "MODEL");
     if (apiKey.isEmpty())
         LENS_WARN("no API key in the settings; explanations will be refused until one is set");
 
@@ -248,9 +245,8 @@ int main(int argc, char* argv[])
     QQmlApplicationEngine engine;
 
     TranslationKeeper translations;
-    translations.select(QString::fromStdString(settingsValue(store, "uiLanguage").empty()
-                                                   ? std::string("zh")
-                                                   : settingsValue(store, "uiLanguage")));
+    const QString uiLanguage = settingsValue(store, "uiLanguage");
+    translations.select(uiLanguage.isEmpty() ? QStringLiteral("zh") : uiLanguage);
     // Installing a translator does not make QML's qsTr bindings re-evaluate -- the tray menu
     // follows along only because Tray::retranslate() listens for this signal, and the surfaces
     // had no equivalent. engine.retranslate() is the hook Qt 6.2 added for exactly this, and it
