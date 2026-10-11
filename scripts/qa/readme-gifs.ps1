@@ -6,10 +6,11 @@
 # copy that exists only for the run. This script runs one case per clip and language, then encodes the
 # frames with ffmpeg. Frames and intermediate files live under -Scratch, never in the repository.
 #
-# A clip that shows an explanation is rendered only for a language with a real cached one. The fixture
-# holds explanations for English and Chinese, so bubble and marking are skipped for Japanese and Spanish
-# and the skip is printed, not filled in. The year clip needs no explanation. The pet clip has no text,
-# so it is rendered once and copied into each language folder.
+# A clip that shows an explanation is rendered only for a language with a cached one. English and Chinese
+# come from the fixture's own "panel" entry. Japanese and Spanish get a gloss from
+# test/qtest/surfaces/readme-glosses.json, which is a translation and has not been reviewed by a native
+# speaker. Any other language is skipped and the skip is printed, not filled in. The year clip needs no
+# explanation. The pet clip has no text, so it is rendered once and copied into each language folder.
 #
 # Each GIF is checked before it is kept: 640 px wide, under 2 MB, 3 to 6 seconds long. A file that fails
 # a check is not written to -OutDir, and the script exits non-zero.
@@ -51,10 +52,6 @@ $languages = [ordered]@{
     'es'    = @{ code = 'es'; ts = 'lens_es_ES.ts' }
 }
 
-# The language codes the fixture has a real cached explanation for. English is filed from the fixture's
-# own "panel" entry (see New-TestSettings); nothing is written that the fixture does not already contain.
-$explainedCodes = @('en', 'zh')
-
 $frameHold = 0.6
 $maxBytes  = 2MB
 
@@ -77,10 +74,16 @@ function New-TestSettings([string]$root, [string]$code, [string]$target) {
         ConvertFrom-Json
     $fixture.uiLanguage = $code
     $fixture.explanationLang = $code
+    $panel = $fixture.cache.zh.panel
     if ($code -eq 'en') {
         # The app reads an entry only when it has both an en and a zh text (known_store.cpp readCache), so
         # the English copy is the fixture's own "panel" entry, filed under en.
-        $fixture.cache | Add-Member -NotePropertyName en -NotePropertyValue ([pscustomobject]@{ panel = $fixture.cache.zh.panel })
+        $fixture.cache | Add-Member -NotePropertyName en -NotePropertyValue ([pscustomobject]@{ panel = $panel })
+    } elseif ($explainedCodes -contains $code -and $code -ne 'zh') {
+        # Any other language needs a translation field (known_store.cpp readCache), so its entry is the same
+        # panel with the gloss added.
+        $gloss = [pscustomobject]@{ ipa = $panel.ipa; en = $panel.en; zh = $panel.zh; translation = $glosses.$code }
+        $fixture.cache | Add-Member -NotePropertyName $code -NotePropertyValue ([pscustomobject]@{ panel = $gloss })
     }
     $json = $fixture | ConvertTo-Json -Depth 20
     [System.IO.File]::WriteAllText($target, $json, (New-Object System.Text.UTF8Encoding($false)))
@@ -157,6 +160,13 @@ function ConvertTo-Gif([string]$framesDir, [string]$outFile, [string]$work, [str
 }
 
 $root = Get-RepositoryRoot
+
+# The glosses are data, not code: a UTF-8 JSON file, because Windows PowerShell 5.1 reads a script without a
+# BOM as ANSI and would garble them. A language with a gloss gets a cache entry built from the fixture's panel.
+$glosses = Get-Content -LiteralPath (Join-Path $root 'test\qtest\surfaces\readme-glosses.json') -Raw -Encoding UTF8 |
+    ConvertFrom-Json
+$explainedCodes = @('en', 'zh') + @($glosses.PSObject.Properties.Name)
+
 . "$PSScriptRoot\..\build\paths.ps1"
 $paths = Get-LensPaths -Root $root
 
@@ -227,7 +237,7 @@ foreach ($clipName in $chosenClips) {
             if ($null -ne $petRendered) { continue }
         }
         if ($info.explained -and -not ($explainedCodes -contains $code)) {
-            $skipped += "$clipName/${folder}: no cached explanation in '$code'"
+            $skipped += "$clipName/${folder}: no cached explanation in '$code' (add a gloss to test/qtest/surfaces/readme-glosses.json)"
             continue
         }
 

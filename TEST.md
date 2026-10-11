@@ -273,9 +273,10 @@ powershell -File scripts/qa/readme-gifs.ps1 -Clip year -Language ja  # 只跑一
 语言规则：
 
 - 输出到 `docs/readme-images/gifs/<语言目录>/`，每种语言一套，界面语言与解释语言都与目录一致。
-- 含解释的片段（`bubble`、`marking`）只在有真实缓存解释的语言下渲染。fixture 的缓存只有中文（英文取同一条目的
-  缓存条目同时要有 `en` 与 `zh` 两段文字才会被读取，所以英文缓存复用同一条 `panel` 条目，两段都来自 fixture）。
-  没有的语言会被跳过并打印，不编造解释。
+- 含解释的片段（`bubble`、`marking`）只在有缓存解释的语言下渲染。中文与英文来自 fixture 的 `panel` 条目：
+  缓存条目必须同时有 `en` 与 `zh` 两段文字才会被读取，英文缓存因此复用同一条 `panel`，两段都来自 fixture。
+  日语与西班牙语的释义写在 `test/qtest/surfaces/readme-glosses.json`，是 fixture 英文释义的译文，未经母语人士审校。
+  没有释义的语言会被跳过并打印，不编造解释。
 - 不含文字的片段（`pet`）只渲一次，复制到每个语言目录。
 
 输出检查：宽 640 px，小于 2 MB，时长 3 到 6 秒。未通过的文件不写入输出目录，脚本以非零退出码结束。
@@ -284,7 +285,8 @@ powershell -File scripts/qa/readme-gifs.ps1 -Clip year -Language ja  # 只跑一
 
 1. 在 `tst_readme_gifs.qml` 里加一个 `test_<名字>Clip`。用例在第一帧之前把要操作的元素都找好，帧之间不做查找或等待，
    否则 GIF 里会停住。
-2. 在 `readme-gifs.ps1` 的 `$clips` 里登记：用例名、文件名、是否需要解释。
+2. 在 `readme-gifs.ps1` 的 `$clips` 里登记：用例名、文件名、是否需要解释。新增一种含解释的语言时，在
+   `readme-glosses.json` 里加一条该语言的释义，脚本会自动生成缓存条目。
 3. 把文件名写进各语言 README 对应的位置。
 
 离屏的限制：
