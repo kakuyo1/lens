@@ -19,7 +19,7 @@
 
 ## 怎么看
 
-双击打开，或访问 `file:///.../settings.html`。URL 追加 `?theme=dark` 直接看黑夜主题，设置面板里的主题分段也能切。
+双击打开，或访问 `file:///.../settings.html`。URL 追加 `?theme=dark` 直接看黑夜主题，`?theme=frosted` / `?theme=liquid` 看两套玻璃主题，设置面板里的主题下拉也能切。液体主题左上角有测试背景单选，底图在 `liquid-backdrops/`，URL 追加 `?bg=web-light`（文件名）可直接指定一张。
 
 追加 `?lang=en`、`?lang=ja`、`?lang=es` 按该语言渲染界面，缺省中文。进 README 的六个表面（bubble、selection-bar、settings、words、year-in-words、pet）接了它，其余表面和设置里的子页面仍是中文。pet 页要看到预览舞台，追加 `?on` 直接打开桌面宠物。
 
