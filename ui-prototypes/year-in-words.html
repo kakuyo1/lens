@@ -24,6 +24,37 @@ html[data-theme=dark]{
   --cell3:hsl(var(--hue) 64% 51%); --cell4:hsl(var(--hue) 68% 63%);
   --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
 }
+/* Glass themes (glass recipe). One CARD (.panel). The hue picker (.palette) expands inside the card rather than
+   floating over it, so it takes the card's glass and no fill of its own. The heat-grid cells are data encoding,
+   not glass, so --cell0..4 stay as they are in every theme. */
+html[data-theme=frosted],html[data-theme=liquid]{
+  --bg:transparent;
+  background-image:var(--wall); background-attachment:fixed; background-size:cover;
+}
+html[data-theme=frosted]{
+  --wall:url("frosted-backdrops/night-lines.png");
+  --panel:rgba(255,255,255,.40); --panel2:rgba(18,24,36,.065);
+  --line:rgba(18,24,36,.15); --line2:rgba(18,24,36,.10);
+  --text:#14161c; --muted:#3c4250; --faint:#535865;
+  --ink:#191b21; --on:#fff;
+  --sh2:0 4px 14px rgb(255 255 255/5.5%);
+}
+html[data-theme=liquid]{
+  --wall:url("liquid-backdrops/cool-wall.png");
+  --panel:rgba(248,250,254,.78); --panel2:rgba(18,24,36,.075);
+  --line:rgba(18,24,36,.16); --line2:rgba(18,24,36,.11);
+  --text:#101319; --muted:#333846; --faint:#4a4f5e;
+  --ink:#12151b; --on:#fff; --r-lg:22px;
+  --sh2:0 1px 2px rgba(10,14,24,.14),0 22px 54px -20px rgba(10,14,24,.48);
+}
+html[data-theme=frosted] .panel{backdrop-filter:blur(var(--glass-blur,6px)) saturate(var(--glass-sat,120%));border-color:rgba(255,255,255,var(--glass-rim,.2))}
+html[data-theme=liquid] .panel{background:transparent;border-color:rgba(255,255,255,var(--glass-rim,.1));backdrop-filter:blur(var(--glass-blur,6px)) contrast(1.05);box-shadow:var(--sh2)}
+html[data-theme=liquid][data-refract] .panel{backdrop-filter:blur(var(--glass-blur,6px)) url(#lg-liquid)}
+@media (prefers-reduced-transparency:reduce){
+  html[data-theme=frosted],html[data-theme=liquid]{--panel:#fafbfd;--panel2:#f0f3f8;--line:#dde2ea;--line2:#e9edf3}
+  html[data-theme=frosted] .panel,html[data-theme=liquid] .panel,html[data-theme=liquid][data-refract] .panel{backdrop-filter:none;background-image:none;border-color:var(--line)}
+  html[data-theme=liquid] .panel{background:var(--panel)}
+}
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
 html{-webkit-font-smoothing:antialiased}
@@ -98,6 +129,12 @@ html[data-theme=dark] .shade:nth-child(4) i{background:hsl(var(--palette-hue) 68
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="lg-liquid" filterUnits="userSpaceOnUse" x="0" y="0" width="380" height="186" color-interpolation-filters="sRGB">
+    <feImage id="lg-map" x="0" y="0" width="380" height="186" preserveAspectRatio="none" result="map"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="20" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</defs></svg>
 <button class="theme" id="theme" type="button">静谧暗夜</button>
 <section class="panel" id="panel" aria-label="单词年度记录">
   <header class="header">
@@ -126,22 +163,22 @@ html[data-theme=dark] .shade:nth-child(4) i{background:hsl(var(--palette-hue) 68
 const L = {
   zh: { title: "单词年度记录", mon: "一", wed: "三", fri: "五", less: "少", more: "多", cellColors: "格子配色",
         wordsFmt: "%1 词", lookupsFmt: "%1：查阅 %2 次", cellAria: "%1，%2 词", hueTitle: "%1 色相 · 4 档深浅",
-        shadeLight: "浅", shadeDark: "深", paletteNote: "选择色相，替换 4 档活跃色。", themeDark: "静谧暗夜", themeLight: "晴朗白昼",
+        shadeLight: "浅", shadeDark: "深", paletteNote: "选择色相，替换 4 档活跃色。", themeDark: "静谧暗夜", themeLight: "晴朗白昼", themeFrosted: "雾面玻璃", themeLiquid: "流光玻璃",
         months: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
         hueNames: ['红','橙','黄','黄绿','绿','青绿','青','蓝','靛','紫','洋红','玫红'] },
   en: { title: "Year in words", mon: "Mon", wed: "Wed", fri: "Fri", less: "Less", more: "More", cellColors: "Cell colors",
         wordsFmt: "%1 words", lookupsFmt: "%1: %2 lookups", cellAria: "%1, %2 words", hueTitle: "%1 hue · 4 shades",
-        shadeLight: "Light", shadeDark: "Dark", paletteNote: "Select a hue to replace the four active levels.", themeDark: "Dark", themeLight: "Light",
+        shadeLight: "Light", shadeDark: "Dark", paletteNote: "Select a hue to replace the four active levels.", themeDark: "Dark", themeLight: "Light", themeFrosted: "Frosted glass", themeLiquid: "Liquid glass",
         months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
         hueNames: ['Red','Orange','Yellow','Yellow green','Green','Teal','Cyan','Blue','Indigo','Violet','Magenta','Rose'] },
   ja: { title: "単語の年間記録", mon: "月", wed: "水", fri: "金", less: "少", more: "多", cellColors: "セルの色",
         wordsFmt: "%1 語", lookupsFmt: "%1：%2 回の検索", cellAria: "%1、%2 語", hueTitle: "%1 色相 · 4 段階",
-        shadeLight: "淡", shadeDark: "濃", paletteNote: "色相を選択して、4 段階の色を置き換えます。", themeDark: "ダーク", themeLight: "ライト",
+        shadeLight: "淡", shadeDark: "濃", paletteNote: "色相を選択して、4 段階の色を置き換えます。", themeDark: "ダーク", themeLight: "ライト", themeFrosted: "すりガラス", themeLiquid: "リキッドガラス",
         months: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
         hueNames: ['赤','オレンジ','黄','黄緑','緑','青緑','シアン','青','藍','紫','マゼンタ','ローズ'] },
   es: { title: "Año en palabras", mon: "Lun", wed: "Mié", fri: "Vie", less: "Menos", more: "Más", cellColors: "Colores de las celdas",
         wordsFmt: "%1 palabras", lookupsFmt: "%1: %2 consultas", cellAria: "%1, %2 palabras", hueTitle: "Tono %1 · 4 intensidades",
-        shadeLight: "Claro", shadeDark: "Oscuro", paletteNote: "Elige un tono para reemplazar los cuatro niveles activos.", themeDark: "Oscuro", themeLight: "Claro",
+        shadeLight: "Claro", shadeDark: "Oscuro", paletteNote: "Elige un tono para reemplazar los cuatro niveles activos.", themeDark: "Oscuro", themeLight: "Claro", themeFrosted: "Vidrio mate", themeLiquid: "Vidrio líquido",
         months: ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'],
         hueNames: ['Rojo','Naranja','Amarillo','Amarillo verdoso','Verde','Verde azulado','Cian','Azul','Índigo','Violeta','Magenta','Rosa'] }
 };
@@ -167,12 +204,60 @@ choose(new Date(year,9,7),counts.get(key(new Date(year,9,7))));
 const root=document.documentElement;const palette=document.getElementById('palette');const panel=document.getElementById('panel');const hueWheel=document.getElementById('hueWheel');const hueCore=document.getElementById('hueCore');const paletteHint=document.getElementById('paletteHint');const shadeTitle=document.getElementById('shadeTitle');let selectedHue=4;
 hues.forEach(([name,hue],index)=>{const button=document.createElement('button');button.type='button';button.className='hue';button.style.setProperty('--hue-value',hue);button.style.setProperty('--angle',`${index*30}deg`);button.dataset.index=index;button.setAttribute('aria-label',name);button.setAttribute('aria-pressed',String(index===selectedHue));button.addEventListener('click',()=>applyHue(index));hueWheel.append(button)});
 function applyHue(index){selectedHue=index;const [name,hue]=hues[index];root.style.setProperty('--hue',hue);root.style.setProperty('--palette-hue',hue);hueCore.textContent=name;paletteHint.textContent=name;shadeTitle.textContent=t.hueTitle.replace('%1',name);document.querySelectorAll('.hue').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.index)===index)))}
-function openPalette(){palette.hidden=false;panel.classList.add('palette-open');requestAnimationFrame(()=>palette.classList.add('open'));document.querySelector('.swatch[aria-pressed=true]')?.focus()}
-function closePalette(){palette.classList.remove('open');panel.classList.remove('palette-open');setTimeout(()=>{if(!palette.classList.contains('open'))palette.hidden=true},180)}
+function openPalette(){palette.hidden=false;panel.classList.add('palette-open');sizeRefract(panel,'lg-liquid','lg-map');requestAnimationFrame(()=>palette.classList.add('open'));document.querySelector('.swatch[aria-pressed=true]')?.focus()}
+function closePalette(){palette.classList.remove('open');panel.classList.remove('palette-open');setTimeout(()=>{if(!palette.classList.contains('open')){palette.hidden=true;sizeRefract(panel,'lg-liquid','lg-map')}},180)}
 document.querySelectorAll('.swatch').forEach(swatch=>swatch.addEventListener('click',()=>{document.querySelectorAll('.swatch').forEach(item=>item.setAttribute('aria-pressed',String(item===swatch)));openPalette()}));
 document.getElementById('paletteClose').addEventListener('click',closePalette);document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!palette.hidden)closePalette()});
 applyHue(selectedHue);
-const theme=document.getElementById('theme');function setTheme(value){root.dataset.theme=value;theme.textContent=value==='dark'?t.themeLight:t.themeDark}setTheme(new URLSearchParams(location.search).get('theme')==='dark'?'dark':'light');theme.addEventListener('click',()=>setTheme(root.dataset.theme==='dark'?'light':'dark'));
+/// 折射能力探测：不支持 url() 形式 backdrop-filter 的浏览器会丢掉这条声明，读回空串。此时液体玻璃退回 CSS 的模糊与高光。
+const refractOK = (() => { const p = document.createElement("div"); p.style.backdropFilter = "url(#lg-liquid)"; return p.style.backdropFilter !== ""; })();
+const svgAttr = (id, name, v) => document.getElementById(id).setAttribute(name, v);
+/// 按卡片尺寸画一次位移图（R/G 编码到 [0,255]，128 为零位移）。位移取模糊后的圆角矩形遮罩的梯度：
+/// 遮罩在边缘最陡、向中心趋于平坦，梯度处处连续，所以没有距离场那样沿对角线（两条边的等距线）翻转的接缝，不会画出 X 形。
+/// 位移朝内取样：边缘的像素从玻璃里面借内容，边缘因此被压弯；位移的强度由 feDisplacementMap 的 scale 决定，不在这里烤死。
+function liquidMap(W = 380, H = 480, R = 22, S = 18) {
+  const mask = document.createElement("canvas");
+  mask.width = W; mask.height = H;
+  const mctx = mask.getContext("2d");
+  mctx.filter = `blur(${S}px)`;
+  mctx.fillStyle = "#fff";
+  mctx.beginPath(); mctx.roundRect(0, 0, W, H, R); mctx.fill();
+  const m = mctx.getImageData(0, 0, W, H).data;
+  // 读 alpha：白色填充的 RGB 恒为 255，模糊后的梯度只在 alpha 里
+  const at = (x, y) => m[(Math.min(Math.max(y, 0), H - 1) * W + Math.min(Math.max(x, 0), W - 1)) * 4 + 3] / 255;
+  // 遮罩向内升高，中心差分即朝内的梯度；按全图最大值归一，最强处正好编码到 127
+  const gx = new Float32Array(W * H), gy = new Float32Array(W * H);
+  let max = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x;
+    gx[i] = (at(x + 1, y) - at(x - 1, y)) / 2;
+    gy[i] = (at(x, y + 1) - at(x, y - 1)) / 2;
+    max = Math.max(max, Math.hypot(gx[i], gy[i]));
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext("2d"), img = ctx.createImageData(W, H);
+  for (let i = 0; i < W * H; i++) img.data.set([128 + 127 * gx[i] / max, 128 + 127 * gy[i] / max, 128, 255], i * 4);
+  ctx.putImageData(img, 0, 0);
+  return canvas.toDataURL();
+}
+// Map size follows the card's current box: the panel grows when the hue picker opens. R is read back from the
+// card's computed corner radius (22 px on the liquid panel) so the map cannot drift from the border; S scales
+// with width from the settings card (380 px -> 18).
+function sizeRefract(card, filter, map) {
+  const W = card.offsetWidth, H = card.offsetHeight;
+  if (document.documentElement.dataset.refract !== 'on' || !W) return;
+  const R = parseFloat(getComputedStyle(card).borderTopLeftRadius);
+  for (const id of [filter, map]) { const n = document.getElementById(id); n.setAttribute('width', W); n.setAttribute('height', H); }
+  svgAttr(map, 'href', liquidMap(W, H, R, Math.round(18 * W / 380)));
+}
+const theme=document.getElementById('theme');function setTheme(value){root.dataset.theme=value;theme.textContent={light:t.themeLight,dark:t.themeDark,frosted:t.themeFrosted,liquid:t.themeLiquid}[value];if(refractOK&&value==='liquid')root.dataset.refract='on';else delete root.dataset.refract;sizeRefract(panel,'lg-liquid','lg-map')}
+const THEMES=['light','dark','frosted','liquid'];
+const themeArg=new URLSearchParams(location.search).get('theme');setTheme(['dark','frosted','liquid'].includes(themeArg)?themeArg:'light');theme.addEventListener('click',()=>setTheme(THEMES[(THEMES.indexOf(root.dataset.theme)+1)%THEMES.length]));
+// ?bg=<name> swaps in one of the current glass theme's test backdrops; a name outside that theme's list is ignored.
+const WALLS={frosted:['night-lines','text-dense','color-blocks','sky-light','checker'],liquid:['cool-wall','web-light','web-dark','colorful','stripes','black','white']};
+const bgName=new URLSearchParams(location.search).get('bg');const wallTheme=root.dataset.theme;
+if((WALLS[wallTheme]||[]).includes(bgName))root.style.setProperty('--wall',`url("${wallTheme}-backdrops/${bgName}.png")`);
 // ?shot is for the README's screenshots: the toggle is a way to look at the prototype, not part of the surface.
 if (new URLSearchParams(location.search).has('shot')) theme.remove();
 </script>

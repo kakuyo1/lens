@@ -17,10 +17,44 @@ html[data-theme=dark]{
   --text:#e9e9ee; --muted:#a3a3ae; --faint:#75757f;
   --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
 }
+/* Glass themes (glass recipe). Two cards here: the panel and the delete confirmation card, both CARD;
+   no popover. Token names map one-to-one onto the recipe's. */
+html[data-theme=frosted],html[data-theme=liquid]{
+  --bg:transparent;
+  background-image:var(--wall); background-attachment:fixed; background-size:cover;
+}
+html[data-theme=frosted]{
+  --wall:url("frosted-backdrops/night-lines.png");
+  --panel:rgba(255,255,255,.40); --panel2:rgba(18,24,36,.065);
+  --line:rgba(18,24,36,.15); --line2:rgba(18,24,36,.10);
+  --text:#14161c; --muted:#3c4250; --faint:#535865;
+  --ink:#191b21; --on:#fff; --sw-off:rgba(18,24,36,.22);
+  --sh2:0 4px 14px rgb(255 255 255/5.5%);
+}
+html[data-theme=liquid]{
+  --wall:url("liquid-backdrops/cool-wall.png");
+  --panel:rgba(248,250,254,.78); --panel2:rgba(18,24,36,.075);
+  --line:rgba(18,24,36,.16); --line2:rgba(18,24,36,.11);
+  --text:#101319; --muted:#333846; --faint:#4a4f5e;
+  --ink:#12151b; --on:#fff; --sw-off:rgba(18,24,36,.24); --r-lg:22px;
+  --sh2:0 1px 2px rgba(10,14,24,.14),0 22px 54px -20px rgba(10,14,24,.48);
+}
+html[data-theme=frosted] .words,html[data-theme=frosted] .wd-confirm{backdrop-filter:blur(var(--glass-blur,6px)) saturate(var(--glass-sat,120%));border-color:rgba(255,255,255,var(--glass-rim,.2))}
+html[data-theme=liquid] .words,html[data-theme=liquid] .wd-confirm{background:transparent;border-color:rgba(255,255,255,var(--glass-rim,.1));backdrop-filter:blur(var(--glass-blur,6px)) contrast(1.05);box-shadow:var(--sh2)}
+html[data-theme=liquid][data-refract] .words{backdrop-filter:blur(var(--glass-blur,6px)) url(#lg-liquid)}
+html[data-theme=liquid][data-refract] .wd-confirm{backdrop-filter:blur(var(--glass-blur,6px)) url(#lg-liquid-2)}
+@media (prefers-reduced-transparency:reduce){
+  html[data-theme=frosted],html[data-theme=liquid]{--panel:#fafbfd;--panel2:#f0f3f8;--line:#dde2ea;--line2:#e9edf3;--sw-off:#d6dae1}
+  html[data-theme=frosted] .words,html[data-theme=frosted] .wd-confirm,html[data-theme=liquid] .words,html[data-theme=liquid] .wd-confirm,html[data-theme=liquid][data-refract] .words,html[data-theme=liquid][data-refract] .wd-confirm{backdrop-filter:none;background-image:none;border-color:var(--line)}
+  html[data-theme=liquid] .words,html[data-theme=liquid] .wd-confirm{background:var(--panel)}
+}
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-font-smoothing:antialiased}
 body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100vh;display:flex;padding:36px 20px}
 
+/* The stack centres the panel and holds the confirm card beside it, not inside it: a backdrop-filter child of
+   .words would have .words as its backdrop root and blur nothing of the list. */
+.stack{position:relative;margin:auto}
 .words{position:relative;width:320px;margin:auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);padding:18px 20px 16px}
 .wd-h{display:flex;align-items:center;font-size:14px;font-weight:650}
 .wd-h .hdr-ico{margin-left:auto;display:flex;align-items:center;gap:6px}
@@ -52,12 +86,12 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
   mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6'%3E%3Cpath d='M5 5l14 14M19 5L5 19'/%3E%3C/svg%3E") center/contain no-repeat}
 
 .wd-confirm{display:none;position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);width:max-content;max-width:460px;
-  padding:18px 20px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2)}
-.words.asking > .wd-confirm{display:block}
+  padding:18px 20px;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh2)}
+.stack.asking > .wd-confirm{display:block}
 .wd-ct{font-size:14px;font-weight:700}
 .wd-cq{font-size:13px;line-height:1.35;margin-top:12px}
 .wd-crow{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:12px;font-size:13px}
-.wd-sw{width:34px;height:20px;flex:none;border-radius:99px;background:var(--line);position:relative;cursor:pointer}
+.wd-sw{width:34px;height:20px;flex:none;border-radius:99px;background:var(--sw-off,var(--line));position:relative;cursor:pointer}
 .wd-sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--panel);transition:left .15s}
 .wd-sw.on{background:var(--ink)}
 .wd-sw.on::after{left:16px}
@@ -69,6 +103,17 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="lg-liquid" filterUnits="userSpaceOnUse" x="0" y="0" width="320" height="449" color-interpolation-filters="sRGB">
+    <feImage id="lg-map" x="0" y="0" width="320" height="449" preserveAspectRatio="none" result="map"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="20" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <filter id="lg-liquid-2" filterUnits="userSpaceOnUse" x="0" y="0" width="274" height="158" color-interpolation-filters="sRGB">
+    <feImage id="lg-map-2" x="0" y="0" width="274" height="158" preserveAspectRatio="none" result="map"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="20" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</defs></svg>
+<div class="stack">
 <div class="words">
   <div class="wd-h"><span data-l="words"></span><span class="hdr-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5V13M8 9l4 4 4-4M4.5 15.5V18A2.5 2.5 0 0 0 7 20.5H17A2.5 2.5 0 0 0 19.5 18V15.5"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg></span></div>
   <div class="seg" id="fseg"><span class="on" data-v="all" data-l="all"></span><span data-v="known" data-l="known"></span><span data-v="new" data-l="new"></span></div>
@@ -94,8 +139,8 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
     </div>
     <span class="wd-scroll" aria-hidden="true"></span>
   </div>
-
-  <div class="wd-confirm" id="wdconf">
+</div>
+<div class="wd-confirm" id="wdconf">
     <div class="wd-ct">删除词汇</div>
     <div class="wd-cq">把 <span id="wdword"></span> 从词汇与历史中删除？</div>
     <div class="wd-crow"><span>不再询问</span><span class="wd-sw" id="wdsw"></span></div>
@@ -109,13 +154,13 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 /// stay as they are: the words are the material being learned, not interface text.
 const L = {
   en: { words: "Words", all: "All", known: "Known", new: "New", total: "612 words",
-        today: "Today", yesterday: "Yesterday", themeDark: "Dark", themeLight: "Light" },
+        today: "Today", yesterday: "Yesterday", themeDark: "Dark", themeLight: "Light", themeFrosted: "Frosted glass", themeLiquid: "Liquid glass" },
   zh: { words: "词汇", all: "全部", known: "已会", new: "新词", total: "共 612 词",
-        today: "今天", yesterday: "昨天", themeDark: "静谧暗夜", themeLight: "晴朗白昼" },
+        today: "今天", yesterday: "昨天", themeDark: "静谧暗夜", themeLight: "晴朗白昼", themeFrosted: "雾面玻璃", themeLiquid: "流光玻璃" },
   ja: { words: "単語", all: "すべて", known: "覚えた", new: "初見", total: "612 語",
-        today: "今日", yesterday: "昨日", themeDark: "ダーク", themeLight: "ライト" },
+        today: "今日", yesterday: "昨日", themeDark: "ダーク", themeLight: "ライト", themeFrosted: "すりガラス", themeLiquid: "リキッドガラス" },
   es: { words: "Palabras", all: "Todas", known: "Conocida", new: "Nueva", total: "612 palabras",
-        today: "Hoy", yesterday: "Ayer", themeDark: "Oscuro", themeLight: "Claro" }
+        today: "Hoy", yesterday: "Ayer", themeDark: "Oscuro", themeLight: "Claro", themeFrosted: "Vidrio mate", themeLiquid: "Vidrio líquido" }
 };
 const asked = (new URLSearchParams(location.search).get('lang') || 'zh').toLowerCase();
 const lang = asked.startsWith('zh') ? 'zh' : (L[asked] ? asked : 'zh');
@@ -123,13 +168,66 @@ const t = L[lang];
 document.documentElement.lang = { en: 'en', zh: 'zh-CN', ja: 'ja', es: 'es' }[lang];
 for (const el of document.querySelectorAll('[data-l]')) el.textContent = t[el.dataset.l];
 
+/// 折射能力探测：不支持 url() 形式 backdrop-filter 的浏览器会丢掉这条声明，读回空串。此时液体玻璃退回 CSS 的模糊与高光。
+const refractOK = (() => { const p = document.createElement("div"); p.style.backdropFilter = "url(#lg-liquid)"; return p.style.backdropFilter !== ""; })();
+const svgAttr = (id, name, v) => document.getElementById(id).setAttribute(name, v);
+/// 按卡片尺寸画一次位移图（R/G 编码到 [0,255]，128 为零位移）。位移取模糊后的圆角矩形遮罩的梯度：
+/// 遮罩在边缘最陡、向中心趋于平坦，梯度处处连续，所以没有距离场那样沿对角线（两条边的等距线）翻转的接缝，不会画出 X 形。
+/// 位移朝内取样：边缘的像素从玻璃里面借内容，边缘因此被压弯；位移的强度由 feDisplacementMap 的 scale 决定，不在这里烤死。
+function liquidMap(W = 380, H = 480, R = 22, S = 18) {
+  const mask = document.createElement("canvas");
+  mask.width = W; mask.height = H;
+  const mctx = mask.getContext("2d");
+  mctx.filter = `blur(${S}px)`;
+  mctx.fillStyle = "#fff";
+  mctx.beginPath(); mctx.roundRect(0, 0, W, H, R); mctx.fill();
+  const m = mctx.getImageData(0, 0, W, H).data;
+  // 读 alpha：白色填充的 RGB 恒为 255，模糊后的梯度只在 alpha 里
+  const at = (x, y) => m[(Math.min(Math.max(y, 0), H - 1) * W + Math.min(Math.max(x, 0), W - 1)) * 4 + 3] / 255;
+  // 遮罩向内升高，中心差分即朝内的梯度；按全图最大值归一，最强处正好编码到 127
+  const gx = new Float32Array(W * H), gy = new Float32Array(W * H);
+  let max = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x;
+    gx[i] = (at(x + 1, y) - at(x - 1, y)) / 2;
+    gy[i] = (at(x, y + 1) - at(x, y - 1)) / 2;
+    max = Math.max(max, Math.hypot(gx[i], gy[i]));
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext("2d"), img = ctx.createImageData(W, H);
+  for (let i = 0; i < W * H; i++) img.data.set([128 + 127 * gx[i] / max, 128 + 127 * gy[i] / max, 128, 255], i * 4);
+  ctx.putImageData(img, 0, 0);
+  return canvas.toDataURL();
+}
+// Map size follows the card's current box, not the static W/H above: the confirm card changes width with the
+// word. R is read back from the card's computed corner radius so the map cannot drift from the border (22 px on
+// the liquid panel, 18 px on the confirm card); S scales with width from the settings card (380 px -> 18).
+function sizeRefract(card, filter, map) {
+  const W = card.offsetWidth, H = card.offsetHeight;
+  if (document.documentElement.dataset.refract !== 'on' || !W) return;
+  const R = parseFloat(getComputedStyle(card).borderTopLeftRadius);
+  for (const id of [filter, map]) { const n = document.getElementById(id); n.setAttribute('width', W); n.setAttribute('height', H); }
+  svgAttr(map, 'href', liquidMap(W, H, R, Math.round(18 * W / 380)));
+}
+
 const tb = document.getElementById('tb');
 function applyTheme(v) {
   document.documentElement.dataset.theme = v;
-  tb.textContent = v === 'dark' ? t.themeLight : t.themeDark;
+  tb.textContent = { light: t.themeLight, dark: t.themeDark, frosted: t.themeFrosted, liquid: t.themeLiquid }[v];
+  if (refractOK && v === 'liquid') document.documentElement.dataset.refract = 'on';
+  else delete document.documentElement.dataset.refract;
+  sizeRefract(document.querySelector('.words'), 'lg-liquid', 'lg-map');
 }
-applyTheme(location.search.includes('theme=dark') ? 'dark' : 'light');
-tb.onclick = () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+const themeArg = new URLSearchParams(location.search).get('theme');
+applyTheme(['dark', 'frosted', 'liquid'].includes(themeArg) ? themeArg : 'light');
+const THEMES = ['light', 'dark', 'frosted', 'liquid'];
+tb.onclick = () => applyTheme(THEMES[(THEMES.indexOf(document.documentElement.dataset.theme) + 1) % THEMES.length]);
+// ?bg=<name> swaps in one of the current glass theme's test backdrops; a name outside that theme's list is ignored.
+const WALLS = { frosted: ['night-lines', 'text-dense', 'color-blocks', 'sky-light', 'checker'], liquid: ['cool-wall', 'web-light', 'web-dark', 'colorful', 'stripes', 'black', 'white'] };
+const bgName = new URLSearchParams(location.search).get('bg');
+const wallTheme = document.documentElement.dataset.theme;
+if ((WALLS[wallTheme] || []).includes(bgName)) document.documentElement.style.setProperty('--wall', `url("${wallTheme}-backdrops/${bgName}.png")`);
 // ?shot is for the README's screenshots: the toggle is a way to look at the prototype, not part
 // of the surface, and no image of it ships.
 if (new URLSearchParams(location.search).has('shot')) tb.remove();
@@ -158,6 +256,7 @@ sw.classList.add('on');
 // `display` beats the attribute's `display:none`.
 function face(confirming) {
   card.classList.toggle('asking', confirming);
+  if (confirming) sizeRefract(conf, 'lg-liquid-2', 'lg-map-2');
 }
 document.querySelectorAll('.wd-item').forEach(it => {
   const x = document.createElement('span');
