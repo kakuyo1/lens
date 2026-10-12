@@ -32,6 +32,7 @@ llm::Explanation fromCache(core::WordCache const& cached, QString const& lemma)
                             QString::fromStdString(cached.zh),
                             QString::fromStdString(cached.translation)};
     result.etymology = QString::fromStdString(cached.etymology);
+    if (cached.example) result.example = QString::fromStdString(*cached.example);
     for (auto const& sense : cached.senses)
         result.senses.push_back({QString::fromStdString(sense.en), QString::fromStdString(sense.zh), QString::fromStdString(sense.translation)});
     return result;
@@ -78,12 +79,15 @@ void ExplanationDuty::onBatchFinished(QVector<llm::Explanation> results, llm::Us
             continue;
         const llm::Explanation& result = results.at(answer);
         // Named rather than positional: five of these six fields are strings, and the one that
-        // must not be dropped is the one that arrived last.
+        // must not be dropped is the one that arrived last. The example is judged from the batch,
+        // not the setting: a sentence paid for with the setting on is kept even if it was turned off
+        // while the request was away.
         core::WordCache cached{.ipa         = result.ipa.toStdString(),
                                .en          = result.en.toStdString(),
                                .zh          = result.zh.toStdString(),
                                .translation = result.translation.toStdString(),
-                               .etymology   = result.etymology.toStdString()};
+                               .etymology   = result.etymology.toStdString(),
+                               .example     = settlement.batch.example ? std::optional{result.example.toStdString()} : std::nullopt};
         for (auto const& sense : result.senses)
             cached.senses.push_back({sense.en.toStdString(), sense.zh.toStdString(), sense.translation.toStdString()});
         storage_.knownStore().cachePut(selected.lemma.toStdString(), std::move(cached), settlement.batch.context);
@@ -141,7 +145,7 @@ void ExplanationDuty::enqueueScanCandidates(QVariantList candidates, QPoint anch
         if (candidate.lemma.isEmpty())
             continue;
         const core::CacheContext context{storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)};
-        if (const auto cached = storage_.knownStore().cacheGet(candidate.lemma.toStdString(), context)) {
+        if (const auto cached = storage_.knownStore().cacheGet(candidate.lemma.toStdString(), context); cached and servable(*cached)) {
             storage_.statsStore().recordPop(candidate.lemma.toStdString(), nowMinute().toStdString());
             if (bubble_.isEmpty() and not queue_.inFlight())
                 showBubble(fromCache(*cached, candidate.lemma), candidate, context);
@@ -244,7 +248,7 @@ bool ExplanationDuty::showStored(PendingSelection const& pending, core::CacheCon
     if (not isWordKind(pending.kind))
         return false;
     const auto cached = storage_.knownStore().cacheGet(pending.lemma.toStdString(), context);
-    if (not cached)
+    if (not cached or not servable(*cached))
         return false;
     storage_.statsStore().recordPop(pending.lemma.toStdString(), nowMinute().toStdString());
     storage_.save();
@@ -263,6 +267,7 @@ void ExplanationDuty::send(ExplanationBatch batch)
     llm_.setExplanationLang(QString::fromStdString(batch.context.language));
     llm_.setPreset(batch.context.multipleSenses ? QStringLiteral("multiple") : first.preset);
     llm_.setEtymology(isWordKind(first.kind) && etymologyEnabled());
+    llm_.setExample(isWordKind(first.kind) && batch.example);
     QStringList inputs;
     for (const auto& item : batch.items) {
         inputs << (isWordKind(item.kind) ? item.lemma : item.text);
@@ -280,7 +285,7 @@ void ExplanationDuty::send(ExplanationBatch batch)
 void ExplanationDuty::sendNext()
 {
     const core::CacheContext now{storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)};
-    auto                     batch = queue_.take(cost_.canRequest(), now);
+    auto                     batch = queue_.take(cost_.canRequest(), now, exampleEnabled());
     if (not batch)
         return;
     // A held request comes back out through the cache before it is paid for: the batch that has
@@ -323,6 +328,8 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
         // left whole for whoever asks for it later.
         if (etymologyEnabled())
             payload.insert(QStringLiteral("etymology"), explanation.etymology);
+        if (exampleEnabled())
+            payload.insert(QStringLiteral("example"), explanation.example);
         payload.insert(QStringLiteral("status"), storage_.knownStore().isKnown(explanation.title.toStdString()) ? QStringLiteral("known") : QStringLiteral("new"));
     }
     bubble_ = payload;
@@ -406,6 +413,16 @@ QString ExplanationDuty::busyLabel() const
 bool ExplanationDuty::etymologyEnabled() const
 {
     return storage_.section().value<bool>("etymology", false);
+}
+
+bool ExplanationDuty::exampleEnabled() const
+{
+    return storage_.section().value<bool>("example", false);
+}
+
+bool ExplanationDuty::servable(core::WordCache const& cached) const
+{
+    return not exampleEnabled() or cached.example.has_value();
 }
 
 }

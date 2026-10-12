@@ -235,6 +235,7 @@ const DocumentKey kScalarKeys[] = {
     {"PROVIDER", "ExplanationDuty"},
     {"multiSense", "AppController"},
     {"etymology", "AppController"},
+    {"example", "AppController"},
     {"theme", "AppController"},
     {"animationsEnabled", "AppController"},
     {"uiLanguage", "AppController"},

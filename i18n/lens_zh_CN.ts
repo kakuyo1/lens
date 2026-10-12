@@ -4,29 +4,34 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="312"/>
-        <location filename="../src/app/qml/Bubble.qml" line="545"/>
+        <location filename="../src/app/qml/Bubble.qml" line="316"/>
+        <location filename="../src/app/qml/Bubble.qml" line="586"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="312"/>
-        <location filename="../src/app/qml/Bubble.qml" line="572"/>
+        <location filename="../src/app/qml/Bubble.qml" line="316"/>
+        <location filename="../src/app/qml/Bubble.qml" line="613"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="312"/>
+        <location filename="../src/app/qml/Bubble.qml" line="316"/>
         <source>Sentence</source>
         <translation>句子</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="474"/>
+        <location filename="../src/app/qml/Bubble.qml" line="478"/>
         <source>Etymology</source>
         <translation>词源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="594"/>
+        <location filename="../src/app/qml/Bubble.qml" line="515"/>
+        <source>Example</source>
+        <translation>例句</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/Bubble.qml" line="635"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒后自动消失</translation>
     </message>
@@ -197,6 +202,11 @@
         <location filename="../src/app/qml/SettingsLearningPage.qml" line="67"/>
         <source>Etymology</source>
         <translation>词源</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="75"/>
+        <source>Example sentence</source>
+        <translation>例句</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsGeneralPage.qml" line="52"/>
@@ -1228,22 +1238,22 @@
         <translation>出国考试</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="201"/>
+        <location filename="../src/app/explanation_duty.cpp" line="205"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>当前解释语言下没有已存的释义。</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="203"/>
+        <location filename="../src/app/explanation_duty.cpp" line="207"/>
         <source>Explain now</source>
         <translation>现在解释</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="272"/>
+        <location filename="../src/app/explanation_duty.cpp" line="277"/>
         <source>Explaining…</source>
         <translation>正在解释…</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="347"/>
+        <location filename="../src/app/explanation_duty.cpp" line="354"/>
         <source>Request failed</source>
         <translation>请求失败</translation>
     </message>
@@ -1254,7 +1264,7 @@
     </message>
     <message>
         <location filename="../src/app/app_controller.cpp" line="252"/>
-        <location filename="../src/app/app_controller.cpp" line="392"/>
+        <location filename="../src/app/app_controller.cpp" line="398"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>今日预算已用尽。</translation>
     </message>
@@ -1279,12 +1289,12 @@
         <translation>所选区域无法识别。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="581"/>
+        <location filename="../src/app/app_controller.cpp" line="588"/>
         <source>Auto</source>
         <translation>自动模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="581"/>
+        <location filename="../src/app/app_controller.cpp" line="588"/>
         <source>Manual</source>
         <translation>手动模式</translation>
     </message>
@@ -1300,109 +1310,109 @@
 <context>
     <name>lens::llm</name>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="213"/>
+        <location filename="../src/llm/llm_pure.cpp" line="216"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>模型返回的内容不是一个 JSON 对象。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="219"/>
+        <location filename="../src/llm/llm_pure.cpp" line="222"/>
         <source>The model&apos;s answer carries no choices.</source>
         <translation>模型返回的内容里没有 choices。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="227"/>
+        <location filename="../src/llm/llm_pure.cpp" line="230"/>
         <source>The model stopped before finishing (reason: %1).</source>
         <translation>模型未正常结束（原因：%1）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="231"/>
+        <location filename="../src/llm/llm_pure.cpp" line="234"/>
         <source>absent</source>
         <translation>缺失</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="237"/>
+        <location filename="../src/llm/llm_pure.cpp" line="240"/>
         <source>The model&apos;s answer is not valid JSON.</source>
         <translation>模型返回的内容不是合法 JSON。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="242"/>
+        <location filename="../src/llm/llm_pure.cpp" line="245"/>
         <source>The model&apos;s answer has no results array.</source>
         <translation>模型返回的内容里没有 results 数组。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="252"/>
+        <location filename="../src/llm/llm_pure.cpp" line="255"/>
         <source>One of the results entries is not an object.</source>
         <translation>results 里有一项不是对象。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="289"/>
+        <location filename="../src/llm/llm_pure.cpp" line="295"/>
         <source>A results entry has an empty field (title=%1).</source>
         <translation>results 里有一项字段为空（title=%1）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="340"/>
+        <location filename="../src/llm/llm_pure.cpp" line="346"/>
         <source>The model echoed the same title twice: %1.</source>
         <translation>模型重复回显了同一个标题：%1。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="322"/>
-        <location filename="../src/llm/llm_pure.cpp" line="347"/>
+        <location filename="../src/llm/llm_pure.cpp" line="328"/>
+        <location filename="../src/llm/llm_pure.cpp" line="353"/>
         <source>The model echoed %1 result(s) for the %2 that were asked for.</source>
         <translation>请求了 %2 项，模型回显了 %1 项。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="257"/>
+        <location filename="../src/llm/llm_pure.cpp" line="260"/>
         <source>A results entry does not match the response schema.</source>
         <translation>results 中有一项不符合响应 schema。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="273"/>
-        <location filename="../src/llm/llm_pure.cpp" line="284"/>
+        <location filename="../src/llm/llm_pure.cpp" line="279"/>
+        <location filename="../src/llm/llm_pure.cpp" line="290"/>
         <source>The requested explanation language is missing.</source>
         <translation>缺少请求的解释语言。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="358"/>
+        <location filename="../src/llm/llm_pure.cpp" line="364"/>
         <source>The model never echoed &quot;%1&quot;.</source>
         <translation>模型没有回显 “%1”。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="108"/>
+        <location filename="../src/llm/llm_pure.cpp" line="110"/>
         <source>The request was rejected as malformed (400).</source>
         <translation>请求格式有误，被服务拒绝（400）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="111"/>
+        <location filename="../src/llm/llm_pure.cpp" line="113"/>
         <source>The API key is missing or not accepted (401).</source>
         <translation>API key 缺失或未被接受（401）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="114"/>
+        <location filename="../src/llm/llm_pure.cpp" line="116"/>
         <source>The account is out of credit (402).</source>
         <translation>账户余额不足（402）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="117"/>
+        <location filename="../src/llm/llm_pure.cpp" line="119"/>
         <source>The request parameters were rejected (422).</source>
         <translation>请求参数被拒绝（422）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="120"/>
+        <location filename="../src/llm/llm_pure.cpp" line="122"/>
         <source>Too many requests; the service is rate-limiting (429).</source>
         <translation>请求过于频繁，已被限流（429）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="123"/>
+        <location filename="../src/llm/llm_pure.cpp" line="125"/>
         <source>The explanation service failed (500).</source>
         <translation>释义服务出错（500）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="126"/>
+        <location filename="../src/llm/llm_pure.cpp" line="128"/>
         <source>The explanation service is overloaded (503).</source>
         <translation>释义服务过载（503）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="129"/>
+        <location filename="../src/llm/llm_pure.cpp" line="131"/>
         <source>Unexpected HTTP status %1.</source>
         <translation>意外的 HTTP 状态码 %1。</translation>
     </message>
@@ -1410,18 +1420,18 @@
 <context>
     <name>lens::llm::LlmClient</name>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="126"/>
+        <location filename="../src/llm/llm_client.cpp" line="132"/>
         <source>There is nothing to look up.</source>
         <translation>没有待查内容。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="134"/>
+        <location filename="../src/llm/llm_client.cpp" line="140"/>
         <source>The API key is missing.</source>
         <translation>未配置 API 密钥。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="166"/>
-        <location filename="../src/llm/llm_client.cpp" line="171"/>
+        <location filename="../src/llm/llm_client.cpp" line="172"/>
+        <location filename="../src/llm/llm_client.cpp" line="177"/>
         <source>The request could not reach the service: %1</source>
         <translation>请求未能送达服务：%1</translation>
     </message>

@@ -41,6 +41,12 @@ std::optional<WordCache> readCache(nlohmann::json const& entry, std::string cons
         if (not entry["etymology"].is_string()) return std::nullopt;
         result.etymology = entry["etymology"].get<std::string>();
     }
+    // Same shape as the origin, but kept apart: an absent field is "not asked", an empty one is "asked,
+    // none given", and the two are not the same answer when the setting is on (docs/adr/0033).
+    if (entry.contains("example")) {
+        if (not entry["example"].is_string()) return std::nullopt;
+        result.example = entry["example"].get<std::string>();
+    }
     if (language != "en" and language != "zh" and result.translation.empty()) return std::nullopt;
     if (entry.contains("senses")) {
         if (not entry["senses"].is_array() or entry["senses"].empty()) return std::nullopt;
@@ -68,6 +74,7 @@ nlohmann::json writeCache(WordCache const& entry)
     nlohmann::json value{{"ipa", entry.ipa}, {"en", entry.en}, {"zh", entry.zh}};
     if (not entry.translation.empty()) value["translation"] = entry.translation;
     if (not entry.etymology.empty()) value["etymology"] = entry.etymology;
+    if (entry.example) value["example"] = *entry.example;
     if (not entry.senses.empty()) {
         value["senses"] = nlohmann::json::array();
         for (auto const& sense : entry.senses)

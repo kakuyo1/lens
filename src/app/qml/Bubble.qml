@@ -39,6 +39,9 @@ Window {
     /// Where the word came from, in one sentence, in the same language as the definition. Empty
     /// whenever the etymology setting is off, or when the model had no origin to give the word.
     property string etymology: ""
+    /// One English sentence using the word. Empty whenever the example setting is off, or when the
+    /// model had none to give.
+    property string example: ""
     property var senses: []
     property string status: "" ///< "new", "known", or empty when there is no word verdict (entity / sentence).
 
@@ -93,6 +96,7 @@ Window {
         chinese = payload.zh || "";
         translation = payload.translation || "";
         etymology = payload.etymology || "";
+        example = payload.example || "";
         senses = payload.senses ? payload.senses.slice(0, 3) : [];
         status = payload.status || "";
         countsDown = payload.countsDown !== false;
@@ -481,6 +485,43 @@ Window {
                         objectName: "etymologyText"
                         width: parent.width
                         text: bubble.etymology
+                        textFormat: Text.PlainText
+                        color: Tokens.muted
+                        font.pixelSize: 12
+                        lineHeight: 1.5
+                        wrapMode: Text.Wrap
+                    }
+                }
+
+                // The example sentence sits under the origin in the same set-off form (UI.md 4.3). Drawn
+                // only when there is one: an empty block would read as a model that failed to give one.
+                Column {
+                    id: exampleBlock
+                    objectName: "exampleBlock"
+                    visible: bubble.example !== ""
+                    width: parent.width
+                    topPadding: 6
+                    spacing: 5
+
+                    Rectangle {
+                        objectName: "exampleSeparator"
+                        width: parent.width
+                        height: 1
+                        color: Tokens.line2
+                    }
+
+                    Text {
+                        objectName: "exampleLabel"
+                        text: qsTr("Example")
+                        color: Tokens.muted
+                        font.pixelSize: 11
+                        font.weight: Font.Bold
+                    }
+
+                    Text {
+                        objectName: "exampleText"
+                        width: parent.width
+                        text: bubble.example
                         textFormat: Text.PlainText
                         color: Tokens.muted
                         font.pixelSize: 12

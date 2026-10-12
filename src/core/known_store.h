@@ -42,11 +42,16 @@ struct CacheContext {
 ///       part of the key: the setting that asks for it is not a context the entry is stored under,
 ///       so a word explained with the setting off and one explained with it on are the same entry,
 ///       and turning the setting back on never buys the same definition twice.
+/// @note Example follows the same rule, with one difference: it is optional, not absent-or-empty.
+///       `std::nullopt` means the entry was bought without asking for an example, so a request with
+///       the example setting on has to buy it again (docs/adr/0033). An empty string means the model
+///       was asked and had none to give, which is a settled answer and is not asked for again.
 struct WordCache {
-    std::string              ipa, en, zh;
-    std::string              translation;
-    std::string              etymology;
-    std::vector<CachedSense> senses;
+    std::string                ipa, en, zh;
+    std::string                translation;
+    std::string                etymology;
+    std::optional<std::string> example;
+    std::vector<CachedSense>   senses;
 };
 
 /**

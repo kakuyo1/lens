@@ -296,6 +296,12 @@ void AppController::setEtymology(bool on)
     emit settingsChanged();
 }
 
+void AppController::setExample(bool on)
+{
+    storage_.section().set<bool>("example", on);
+    emit settingsChanged();
+}
+
 void AppController::setTheme(QString theme)
 {
     storage_.section().set<std::string>("theme", theme.toStdString());
@@ -404,6 +410,7 @@ QVariantMap AppController::settings()
                          {"explanationLang", QString::fromStdString(storage_.knownStore().explanationLang())},
                          {"multiSense", keys.value<bool>("multiSense", false)},
                          {"etymology", keys.value<bool>("etymology", false)},
+                         {"example", keys.value<bool>("example", false)},
                          {"theme", QString::fromStdString(keys.value<std::string>("theme", "light"))},
                          {"animationsEnabled", keys.value<bool>("animationsEnabled", true)},
                          {"uiLanguage", QString::fromStdString(keys.value<std::string>("uiLanguage", "zh"))},
