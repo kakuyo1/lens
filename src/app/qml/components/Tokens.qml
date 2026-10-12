@@ -12,14 +12,13 @@ import QtQuick
 QtObject {
     id: tokens
 
-    /// "light", "dark", "forest", or a custom: JSON value. Main.qml keeps this in step with settings.
+    /// "light", "dark", or a custom: JSON value. Main.qml keeps this in step with settings.
     property string theme: "light"
     readonly property bool custom: theme.indexOf(customPrefix) === 0
     readonly property bool dark: theme === "dark" || (custom && customValues.mode === "dark")
 
     readonly property Light lightTheme: Light {}
     readonly property Dark darkTheme: Dark {}
-    readonly property Forest forestTheme: Forest {}
     readonly property var customValues: parseCustomTheme(theme)
     readonly property var builtin: builtinTheme(theme)
     readonly property Motion motion: Motion {}
@@ -52,26 +51,20 @@ QtObject {
     function builtinTheme(value) {
         if (value === "dark")
             return darkTheme;
-        if (value === "forest")
-            return forestTheme;
         return lightTheme;
     }
 
     function themeIndex(value) {
         if (value === "dark")
             return 1;
-        if (value === "forest")
-            return 2;
         if (value.indexOf(customPrefix) === 0)
-            return 3;
+            return 2;
         return 0;
     }
 
     function themeName(index) {
         if (index === 1)
             return "dark";
-        if (index === 2)
-            return "forest";
         return "light";
     }
 
@@ -121,7 +114,7 @@ QtObject {
                        "ok", "okBg", "okText", "ink", "on", "danger", "bubbleBg", "bubbleBorder"];
         for (const role of roles)
             result[role] = hex(customValuesForTheme[role], hex(base[role], "#000000"));
-        result.mode = customValuesForTheme.mode === "dark" || value === "dark" || value === "forest"
+        result.mode = customValuesForTheme.mode === "dark" || value === "dark"
                 ? "dark" : "light";
         return result;
     }

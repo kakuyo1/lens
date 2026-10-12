@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+- The Forest theme. Light, Dark and Custom remain; a reader who had Forest selected is shown Light.
+
 ## 1.2.5 - 2026-10-11
 
 Patch release: the Spanish and Japanese interfaces are translated in more places, and the internal

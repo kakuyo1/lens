@@ -61,12 +61,12 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
   <div class="tm-sep"></div>
   <div class="tm-item danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v8"/><path d="M6.3 5.8a8 8 0 1 0 11.4 0"/></svg>退出</div>
 </div>
-<button class="themebtn" id="tb">黑夜</button>
+<button class="themebtn" id="tb">静谧暗夜</button>
 <script>
 const tb = document.getElementById('tb');
 function applyTheme(t) {
   document.documentElement.dataset.theme = t;
-  tb.textContent = t === 'dark' ? '白天' : '黑夜';
+  tb.textContent = t === 'dark' ? '晴朗白昼' : '静谧暗夜';
 }
 applyTheme(location.search.includes('theme=dark') ? 'dark' : 'light');
 tb.onclick = () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');

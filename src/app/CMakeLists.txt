@@ -175,7 +175,6 @@ qt_add_qml_module(lens_app
     qml/components/Tokens.qml
     qml/theme/Light.qml
     qml/theme/Dark.qml
-    qml/theme/Forest.qml
     qml/theme/Motion.qml
     qml/components/Icon.qml
     qml/components/ShadowCard.qml

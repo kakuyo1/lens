@@ -64,7 +64,7 @@ html[data-theme=frosted] .settings{backdrop-filter:blur(var(--glass-blur,32px)) 
 html[data-theme=frosted] .dd-list{background:rgba(255,255,255,.78)}
 /* 液体玻璃整张卡透明，不铺底色：背后像素由 SVG 位移滤镜弯折（边缘弯，中心也有折射），高光与描边是材质信号。
    正文用深字，适合浅色底图；深色底图上对比度不足，见 UI.md 3.1d。 */
-html[data-theme=liquid] .settings{background:transparent;border-color:rgba(255,255,255,.62);
+html[data-theme=liquid] .settings{background:transparent;border-color:rgba(255,255,255,var(--glass-rim,.62));
   backdrop-filter:blur(var(--glass-blur,12px)) contrast(1.05);
   box-shadow:var(--sh2)}
 /* 折射：浏览器支持 url() 形式的 backdrop-filter 时（applyTheme 里探测，Chromium 系支持），位移滤镜只做折射这一步，
@@ -250,7 +250,7 @@ const defaults = { theme: "light", uiLang: "zh", level: "CET-4", language: "en",
   tesseractExe: "", tesseractData: "", triggerKey: "Ctrl+Alt+S",
   dailyBudget: "0", customBg: "#e9ebef", customPanel: "#ffffff", customText: "#1a1a1f", customMuted: "#66666f", customFaint: "#9d9da8", customOk: "#2f9e6e",
   glassBlur: 53, glassSat: 140, glassRim: 25,
-  liquidBlur: 2, liquidRefract: 36, liquidText: "#101319",
+  liquidBlur: 2, liquidRefract: 36, liquidRim: 62, liquidText: "#101319",
   ocr: false, scan: false, multi: false, etym: false, pet: false };
 const app = document.getElementById("app"), view = document.getElementById("view");
 const titleEl = document.getElementById("title"), crumbEl = document.getElementById("crumb");
@@ -297,6 +297,8 @@ const modelField = (label, key, opts) => {
 };
 /// A money field: the symbol is the display currency the rest of the surfaces spend in.
 const money = (label, key, ph) => `<div class="field"><label class="flabel" for="${key}">${label}</label><div class="money"><span aria-hidden="true">¥</span><input id="${key}" class="input" type="number" data-input="${key}" value="${esc(values[key])}" placeholder="${ph}" autocomplete="off" spellcheck="false"></div></div>`;
+/// A colour the reader picks: a row with a swatch on the right and no hex text, the same form as the liquid theme's 字体颜色.
+const swatch = (label, key) => `<div class="swrow"><span class="swlabel">${label}</span><input type="color" class="colorin" data-input="${key}" value="${values[key]}" aria-label="${label}"></div>`;
 const link = (id, label, val = "") => `<button type="button" class="link-row" data-route="${id}"><span>${label}</span><span class="chevm">${esc(val)}<span aria-hidden="true">›</span></span></button>`;
 /// A path the reader picks rather than types: the folder glyph is what says so, and a path nobody
 /// has picked yet draws where the program would look instead, in the placeholder colour.
@@ -314,7 +316,7 @@ const pathField = (label, key, fallback) => {
 };
 const customColors = () => values.theme === "custom" ? `<div class="field"><span class="flabel">自定义语义颜色</span>${[
   ["customBg", "背景"], ["customPanel", "面板"], ["customText", "正文文字"], ["customMuted", "次要文字"], ["customFaint", "弱文字"], ["customOk", "强调色"]
-].map(([key, label]) => inp(label, key, "#000000")).join("")}<p class="fhelp">正文、次要和弱文字必须通过 WCAG AA。</p></div>` : "";
+].map(([key, label]) => swatch(label, key)).join("")}<p class="fhelp">正文、次要和弱文字必须通过 WCAG AA。</p></div>` : "";
 /// 玻璃主题各带一组旋钮：磨砂是模糊 / 饱和度 / 描边高光（对应 Zen-Nebula 的 blur、saturate 与白色描边），液体是
 /// 折射 / 模糊 / 字体颜色。只在选中自己的主题时出现，同 customColors()。
 const slider = (label, key, min, max, step, unit, off = false) => `<div class="slrow${off ? " off" : ""}"><span class="flabel">${label}</span>`
@@ -324,7 +326,8 @@ const frostOptions = () => `<div class="field"><span class="flabel">雾面玻璃
   + slider("模糊程度", "glassBlur", 0, 100, 1, "%") + slider("饱和度", "glassSat", 0, 200, 1, "%") + slider("描边高光", "glassRim", 0, 100, 1, "%") + `</div>`;
 const liquidOptions = () => `<div class="field"><span class="flabel">流光玻璃参数</span>`
   + slider("折射强度", "liquidRefract", 0, 40, 2, " px", !refractOK) + slider("模糊程度", "liquidBlur", 0, 100, 1, "%")
-  + `<div class="swrow"><span class="swlabel">字体颜色</span><input type="color" class="colorin" data-input="liquidText" value="${values.liquidText}" aria-label="字体颜色"></div>`
+  + slider("描边高光", "liquidRim", 0, 100, 1, "%")
+  + swatch("字体颜色", "liquidText")
   + (refractOK ? "" : `<p class="fhelp">当前浏览器不支持 SVG 滤镜折射，此项灰化不生效。</p>`) + `</div>`;
 const glassOptions = () => values.theme === "frosted" ? frostOptions() : values.theme === "liquid" ? liquidOptions() : "";
 
@@ -335,7 +338,7 @@ function page(id) {
         { value: "dark", label: "静谧暗夜", group: "" },
         { value: "frosted", label: "雾面玻璃", group: "glass" },
         { value: "liquid", label: "流光玻璃", group: "glass" },
-        { value: "custom", label: "Custom", group: "custom" }
+        { value: "custom", label: "自定义主题", group: "custom" }
       ]) + customColors() + glassOptions() + sw("开机自启", "startup") + sw("动画效果", "animations");
     case "learning": return dropdown("词汇档位", "level", [
         { value: "B1–B2", label: "B1–B2", group: "CEFR" },
@@ -415,6 +418,7 @@ function applyTheme() {
     root.style.setProperty("--glass-rim", values.glassRim / 100);
   } else if (values.theme === "liquid") {
     root.style.setProperty("--glass-blur", values.liquidBlur * BLUR_PX + "px");
+    root.style.setProperty("--glass-rim", values.liquidRim / 100);
     // 字体颜色只改正文色；次要与弱字是同一色的半透明版本，层级仍由它们的色阶给出
     root.style.setProperty("--text", values.liquidText);
     root.style.setProperty("--muted", `color-mix(in srgb, ${values.liquidText} 82%, transparent)`);

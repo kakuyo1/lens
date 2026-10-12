@@ -29,7 +29,7 @@ Item {
 
     function chooseTheme(index) {
         page.themeChoice = index;
-        if (index < 3)
+        if (index < 2)
             Controller.setTheme(Tokens.themeName(index));
         else
             page.loadDraft();
@@ -72,7 +72,7 @@ Item {
         target: Controller
         function onSettingsChanged() {
             page.themeChoice = Tokens.themeIndex(Controller.settings.theme);
-            if (page.themeChoice === 3)
+            if (page.themeChoice === 2)
                 page.loadDraft();
         }
     }
@@ -99,8 +99,7 @@ Item {
                 options: [
                     {value: 0, label: qsTranslate("SettingsPopup", "Light"), group: "", note: ""},
                     {value: 1, label: qsTranslate("SettingsPopup", "Dark"), group: "", note: ""},
-                    {value: 2, label: qsTranslate("SettingsPopup", "Forest"), group: "", note: ""},
-                    {value: 3, label: qsTranslate("SettingsPopup", "Custom"), group: "", note: ""}
+                    {value: 2, label: qsTranslate("SettingsPopup", "Custom"), group: "", note: ""}
                 ]
                 currentValue: page.themeChoice
                 onPicked: (value) => page.chooseTheme(value)
@@ -110,7 +109,7 @@ Item {
         Column {
             width: parent.width
             spacing: 10
-            visible: page.themeChoice === 3
+            visible: page.themeChoice === 2
             height: visible ? implicitHeight : 0
 
             Text {

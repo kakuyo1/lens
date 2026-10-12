@@ -24,22 +24,17 @@ Item {
             return main;
         }
 
-        function test_threeBuiltInThemesHaveIndependentTables() {
+        function test_twoBuiltInThemesHaveIndependentTables() {
             compare(Tokens.themeName(0), "light");
             compare(Tokens.themeName(1), "dark");
-            compare(Tokens.themeName(2), "forest");
             verify(Tokens.lightTheme.bg !== Tokens.darkTheme.bg);
-            verify(Tokens.darkTheme.bg !== Tokens.forestTheme.bg);
             verify(Tokens.validateCustomTheme(Tokens.colorsForTheme("light")).valid);
             verify(Tokens.validateCustomTheme(Tokens.colorsForTheme("dark")).valid);
-            verify(Tokens.validateCustomTheme(Tokens.colorsForTheme("forest")).valid);
         }
 
         function test_colorConversionKeepsAlphaForThemeValues() {
             const light = Tokens.colorsForTheme("light");
-            const forest = Tokens.colorsForTheme("forest");
             verify(light.bubbleBg.length === 9, "light bubble alpha was dropped");
-            verify(forest.bubbleBg.length === 9, "forest bubble alpha was dropped");
 
             const encoded = Tokens.customThemeValue(light);
             const decoded = Tokens.colorsForTheme(encoded);
@@ -77,7 +72,7 @@ Item {
         }
 
         function test_customThemeRoundTripsThroughTheThemeSettingValue() {
-            const colors = Tokens.colorsForTheme("forest");
+            const colors = Tokens.colorsForTheme("dark");
             colors.panel = "#202020";
             colors.text = "#ffffff";
             colors.muted = "#d0d0d0";
@@ -85,7 +80,7 @@ Item {
             const encoded = Tokens.customThemeValue(colors);
             const decoded = Tokens.colorsForTheme(encoded);
 
-            compare(Tokens.themeIndex(encoded), 3);
+            compare(Tokens.themeIndex(encoded), 2);
             compare(decoded.panel, "#202020");
             compare(decoded.text, "#ffffff");
             compare(decoded.muted, "#d0d0d0");
@@ -113,7 +108,7 @@ Item {
             Controller.setTheme(previous);
         }
 
-        function test_generalSettingsExposeForestAndCustomChoices() {
+        function test_generalSettingsExposeBuiltInAndCustomChoices() {
             const main = makeMain();
             const panel = Util.ofType(main, "SettingsPopup");
             verify(panel);
@@ -127,9 +122,8 @@ Item {
                 return o.objectName === "themeField";
             });
             verify(themes.length === 1, "the General page has no theme control");
-            compare(themes[0].options.length, 4);
-            compare(themes[0].options[2].label, "Forest");
-            compare(themes[0].options[3].label, "Custom");
+            compare(themes[0].options.length, 3);
+            compare(themes[0].options[2].label, "Custom");
         }
 
         function test_transientPlacementReadsBubbleSizeAfterContentChanges() {
