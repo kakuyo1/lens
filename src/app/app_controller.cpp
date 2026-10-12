@@ -12,6 +12,7 @@
 #include <QGuiApplication>
 #include <QHash>
 #include <QLocale>
+#include <QRegularExpression>
 #include <QSaveFile>
 #include <QScreen>
 #include <QSet>
@@ -22,6 +23,7 @@
 
 #include "autostart.h"
 #include "bubble_settings.h"
+#include "glass_settings.h"
 #include "notice.h"
 #include "update/update_client.h"
 #include "util/log.h"
@@ -145,9 +147,11 @@ void AppController::provide(AppController* instance)
 
 AppController* AppController::create(QQmlEngine* engine, QJSEngine* scriptEngine)
 {
-    Q_UNUSED(engine)
     Q_UNUSED(scriptEngine)
     Q_ASSERT(instance_ != nullptr);
+    // The glass picture is served as an image, so the engine that loads the surfaces is where it is registered.
+    if (engine != nullptr and engine->imageProvider(QStringLiteral("glass")) == nullptr)
+        engine->addImageProvider(QStringLiteral("glass"), new GlassImageProvider(instance_->glass_));
     QQmlEngine::setObjectOwnership(instance_, QQmlEngine::CppOwnership);
     return instance_;
 }
@@ -310,6 +314,53 @@ void AppController::setTheme(QString theme)
     emit settingsChanged();
 }
 
+void AppController::setFrostedBlur(int percent)
+{
+    storage_.section().set<int>("frostedBlur", clampGlass(kFrostedBlur, percent));
+    emit settingsChanged();
+}
+
+void AppController::setFrostedSaturation(int percent)
+{
+    storage_.section().set<int>("frostedSaturation", clampGlass(kFrostedSaturation, percent));
+    emit settingsChanged();
+}
+
+void AppController::setFrostedRim(int percent)
+{
+    storage_.section().set<int>("frostedRim", clampGlass(kFrostedRim, percent));
+    emit settingsChanged();
+}
+
+void AppController::setLiquidRefraction(int pixels)
+{
+    storage_.section().set<int>("liquidRefraction", clampGlass(kLiquidRefraction, pixels));
+    emit settingsChanged();
+}
+
+void AppController::setLiquidBlur(int percent)
+{
+    storage_.section().set<int>("liquidBlur", clampGlass(kLiquidBlur, percent));
+    emit settingsChanged();
+}
+
+void AppController::setLiquidRim(int percent)
+{
+    storage_.section().set<int>("liquidRim", clampGlass(kLiquidRim, percent));
+    emit settingsChanged();
+}
+
+void AppController::setLiquidTextColor(QString color)
+{
+    static const QRegularExpression hexColor{QStringLiteral("^#[0-9a-fA-F]{6}$")};
+    if (not hexColor.match(color).hasMatch()) {
+        LENS_WARN("unknown liquid text colour '{}'; leaving the setting alone", color.toStdString());
+        return;
+    }
+    storage_.section().set<std::string>("liquidTextColor", color.toLower().toStdString());
+    emit settingsChanged();
+}
+
 void AppController::setAnimationsEnabled(bool on)
 {
     storage_.section().set<bool>("animationsEnabled", on);
@@ -430,6 +481,13 @@ QVariantMap AppController::settings()
                          {"etymology", keys.value<bool>("etymology", false)},
                          {"example", keys.value<bool>("example", false)},
                          {"theme", QString::fromStdString(keys.value<std::string>("theme", "light"))},
+                         {"frostedBlur", clampGlass(kFrostedBlur, keys.value<int>("frostedBlur", kFrostedBlur.fallback))},
+                         {"frostedSaturation", clampGlass(kFrostedSaturation, keys.value<int>("frostedSaturation", kFrostedSaturation.fallback))},
+                         {"frostedRim", clampGlass(kFrostedRim, keys.value<int>("frostedRim", kFrostedRim.fallback))},
+                         {"liquidRefraction", clampGlass(kLiquidRefraction, keys.value<int>("liquidRefraction", kLiquidRefraction.fallback))},
+                         {"liquidBlur", clampGlass(kLiquidBlur, keys.value<int>("liquidBlur", kLiquidBlur.fallback))},
+                         {"liquidRim", clampGlass(kLiquidRim, keys.value<int>("liquidRim", kLiquidRim.fallback))},
+                         {"liquidTextColor", QString::fromStdString(keys.value<std::string>("liquidTextColor", std::string{kLiquidTextColorFallback}))},
                          {"animationsEnabled", keys.value<bool>("animationsEnabled", true)},
                          {"uiLanguage", QString::fromStdString(keys.value<std::string>("uiLanguage", "zh"))},
                          {"hasApiKey", !keys.value<std::string>("API-KEY", {}).empty()},
@@ -596,6 +654,11 @@ ExplanationDuty* AppController::explanationDuty()
 CaptureDuty* AppController::captureDuty()
 {
     return &capture_;
+}
+
+GlassBackdrop* AppController::glassBackdrop()
+{
+    return &glass_;
 }
 
 ModelCatalogDuty* AppController::modelCatalogDuty()

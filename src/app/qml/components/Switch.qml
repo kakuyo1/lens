@@ -11,6 +11,8 @@ Item {
 
     property bool checked: false
     property bool interactive: true
+    /// The table the switch takes its colours from. The settings window passes its own.
+    property TokenTable tokens: Tokens
 
     signal toggled(bool checked)
 
@@ -22,11 +24,11 @@ Item {
         id: track
         anchors.fill: parent
         radius: height / 2
-        color: root.checked ? Tokens.ink : Tokens.line
+        color: root.checked ? root.tokens.ink : root.tokens.line
         Behavior on color {
             ColorAnimation {
-                duration: Tokens.motion.press
-                easing.type: Tokens.motion.easing
+                duration: root.tokens.motion.press
+                easing.type: root.tokens.motion.easing
             }
         }
 
@@ -37,11 +39,11 @@ Item {
             radius: 8
             y: 2
             x: root.checked ? track.width - width - 2 : 2
-            color: root.checked ? Tokens.on : (Tokens.dark ? Tokens.faint : Tokens.panel)
+            color: root.checked ? root.tokens.on : (root.tokens.dark ? root.tokens.faint : root.tokens.panel)
             Behavior on x {
                 NumberAnimation {
-                    duration: Tokens.motion.press
-                    easing.type: Tokens.motion.easing
+                    duration: root.tokens.motion.press
+                    easing.type: root.tokens.motion.easing
                 }
             }
         }

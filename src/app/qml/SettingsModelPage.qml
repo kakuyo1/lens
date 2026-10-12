@@ -32,7 +32,7 @@ Item {
             spacing: 7
             Text {
                 text: qsTranslate("SettingsPopup", "Provider")
-                color: Tokens.muted
+                color: SettingsTokens.muted
                 font.pixelSize: 12
             }
             DropdownField {
@@ -51,7 +51,7 @@ Item {
             spacing: 7
             Text {
                 text: qsTranslate("SettingsPopup", "Model")
-                color: Tokens.muted
+                color: SettingsTokens.muted
                 font.pixelSize: 12
             }
 
@@ -75,7 +75,7 @@ Item {
             Text {
                 width: parent.width
                 text: root.settings.modelPrice || ""
-                color: Tokens.muted
+                color: SettingsTokens.muted
                 font.pixelSize: 11
                 wrapMode: Text.Wrap
             }

@@ -169,17 +169,17 @@
         <translation>Saved</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="111"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="118"/>
         <source>Defaults restored</source>
         <translation>Defaults restored</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="169"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="261"/>
         <source>Settings</source>
         <translation>Settings</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="293"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="385"/>
         <source>Unsaved changes</source>
         <translation>Unsaved changes</translation>
     </message>
@@ -265,71 +265,118 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsGeneralPage.qml" line="76"/>
+        <source>Frosted glass</source>
+        <translation>Frosted glass</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="77"/>
+        <source>Liquid glass</source>
+        <translation>Liquid glass</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="78"/>
         <source>Custom</source>
         <translation>Custom</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="90"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="92"/>
+        <source>Frosted glass parameters</source>
+        <translation>Frosted glass parameters</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="99"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="145"/>
+        <source>Blur</source>
+        <translation>Blur</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="107"/>
+        <source>Saturation</source>
+        <translation>Saturation</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="115"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="153"/>
+        <source>Rim highlight</source>
+        <translation>Rim highlight</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="130"/>
+        <source>Liquid glass parameters</source>
+        <translation>Liquid glass parameters</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="137"/>
+        <source>Refraction</source>
+        <translation>Refraction</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="161"/>
+        <source>Text color</source>
+        <translation>Text color</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="202"/>
         <source>Custom semantic colors</source>
         <translation>Custom semantic colors</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="99"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="211"/>
         <source>Use six-digit hex colors. Body, muted, and faint text must each pass WCAG AA on the panel.</source>
         <translation>Use six-digit hex colors. Body, muted, and faint text must each pass WCAG AA on the panel.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="106"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="218"/>
         <source>Background</source>
         <translation>Background</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="107"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="219"/>
         <source>Panel</source>
         <translation>Panel</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="108"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="220"/>
         <source>Body text</source>
         <translation>Body text</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="109"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="221"/>
         <source>Muted text</source>
         <translation>Muted text</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="110"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="222"/>
         <source>Faint text</source>
         <translation>Faint text</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="111"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="223"/>
         <source>Accent</source>
         <translation>Accent</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="169"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="281"/>
         <source>AA contrast passes: body %1, muted %2, faint %3</source>
         <translation>AA contrast passes: body %1, muted %2, faint %3</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="173"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="285"/>
         <source>AA contrast requires valid colors and a 4.5:1 ratio for body, muted, and faint text.</source>
         <translation>AA contrast requires valid colors and a 4.5:1 ratio for body, muted, and faint text.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="187"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="299"/>
         <source>Apply custom colors</source>
         <translation>Apply custom colors</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="202"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="314"/>
         <source>Launch at startup</source>
         <translation>Launch at startup</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="209"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="321"/>
         <source>Animations</source>
         <translation>Animations</translation>
     </message>
@@ -339,12 +386,12 @@
         <translation>Check for updates</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="216"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="328"/>
         <source>Check for updates at startup</source>
         <translation>Check for updates at startup</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="224"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="336"/>
         <source>Animations are disabled by Windows accessibility settings.</source>
         <translation>Animations are disabled by Windows accessibility settings.</translation>
     </message>
@@ -361,7 +408,7 @@
         <translation>Give up silently</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="277"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="369"/>
         <source>Defaults</source>
         <translation>Defaults</translation>
     </message>
@@ -378,7 +425,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="51"/>
-        <location filename="../src/app/app_controller.cpp" line="268"/>
+        <location filename="../src/app/app_controller.cpp" line="270"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -399,7 +446,7 @@
         <translation>Popup &amp; clipboard</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="315"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="407"/>
         <source>Save</source>
         <translation>Save</translation>
     </message>
@@ -579,17 +626,17 @@
         <translation>Custom service</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="260"/>
+        <location filename="../src/app/app_controller.cpp" line="262"/>
         <source>Checking OCR</source>
         <translation>Checking OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="261"/>
+        <location filename="../src/app/app_controller.cpp" line="263"/>
         <source>English OCR data is missing</source>
         <translation>English OCR data is missing</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="265"/>
+        <location filename="../src/app/app_controller.cpp" line="267"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR runtime is unavailable</translation>
     </message>
@@ -1309,43 +1356,43 @@
         <translation>Request failed</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="253"/>
+        <location filename="../src/app/app_controller.cpp" line="255"/>
         <source>Screenshot capture is off.</source>
         <translation>Screenshot capture is off.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="254"/>
-        <location filename="../src/app/app_controller.cpp" line="416"/>
+        <location filename="../src/app/app_controller.cpp" line="256"/>
+        <location filename="../src/app/app_controller.cpp" line="465"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>Today&amp;apos;s budget is used up.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="255"/>
+        <location filename="../src/app/app_controller.cpp" line="257"/>
         <source>A recognition is already running.</source>
         <translation>A recognition is already running.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="257"/>
+        <location filename="../src/app/app_controller.cpp" line="259"/>
         <source>That region cannot be captured.</source>
         <translation>That region cannot be captured.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="258"/>
+        <location filename="../src/app/app_controller.cpp" line="260"/>
         <source>No text was found in that region.</source>
         <translation>No text was found in that region.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="259"/>
+        <location filename="../src/app/app_controller.cpp" line="261"/>
         <source>That region could not be read.</source>
         <translation>That region could not be read.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="608"/>
+        <location filename="../src/app/app_controller.cpp" line="664"/>
         <source>Auto</source>
         <translation>Auto</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="608"/>
+        <location filename="../src/app/app_controller.cpp" line="664"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>

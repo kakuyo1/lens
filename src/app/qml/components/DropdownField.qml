@@ -176,10 +176,10 @@ Item {
     Rectangle {
         id: button
         anchors.fill: parent
-        radius: Tokens.radiusField
-        color: Tokens.panel2
+        radius: SettingsTokens.radiusField
+        color: SettingsTokens.panel2
         border.width: 1
-        border.color: root.editable && input.activeFocus ? Tokens.ink : Tokens.line
+        border.color: root.editable && input.activeFocus ? SettingsTokens.ink : SettingsTokens.line
 
         Text {
             id: label
@@ -190,7 +190,7 @@ Item {
             anchors.rightMargin: 8
             anchors.verticalCenter: parent.verticalCenter
             text: root.current ? root.current.label : ""
-            color: Tokens.text
+            color: SettingsTokens.text
             font.pixelSize: 13
             elide: Text.ElideRight
         }
@@ -209,7 +209,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             verticalAlignment: TextInput.AlignVCenter
             text: root.currentValue
-            color: Tokens.text
+            color: SettingsTokens.text
             font.pixelSize: 13
             selectByMouse: true
             onTextEdited: root.filterTyped(input.text)
@@ -229,7 +229,7 @@ Item {
             width: 14
             height: 14
             source: "qrc:/icons/ui-chevron-down.svg"
-            color: Tokens.faint
+            color: SettingsTokens.faint
             // Dimmed on the same rule Switch dims by, and for the same reason: there is nothing
             // behind it to open.
             opacity: root.hasOptions ? 1.0 : 0.45
@@ -282,7 +282,9 @@ Item {
 
         ShadowCard {
             anchors.fill: parent
-            radius: Tokens.radiusGroup
+            tokens: SettingsTokens
+            radius: SettingsTokens.radiusGroup
+            color: SettingsTokens.popup
 
             // A view rather than a column: the delegates are built as they come into sight, so a
             // list of several hundred costs the ten that are drawn and no more.
@@ -318,7 +320,7 @@ Item {
                                  && group.modelData.group !== root.shown[group.index - 1].group
                         width: parent.width
                         height: 1
-                        color: Tokens.line2
+                        color: SettingsTokens.line2
                         anchors.margins: 5
                     }
 
@@ -326,15 +328,15 @@ Item {
                         width: parent.width
                         height: root.rowHeight
                         radius: 8
-                        color: group.modelData.value === root.currentValue ? Tokens.ink
-                                                                           : (rowHover.hovered ? Tokens.panel2 : "transparent")
+                        color: group.modelData.value === root.currentValue ? SettingsTokens.ink
+                                                                           : (rowHover.hovered ? SettingsTokens.panel2 : "transparent")
 
                         Text {
                             anchors.left: parent.left
                             anchors.leftMargin: 11
                             anchors.verticalCenter: parent.verticalCenter
                             text: group.modelData.label
-                            color: group.modelData.value === root.currentValue ? Tokens.on : Tokens.text
+                            color: group.modelData.value === root.currentValue ? SettingsTokens.on : SettingsTokens.text
                             font.pixelSize: 13
                         }
 
@@ -344,7 +346,7 @@ Item {
                             anchors.rightMargin: 11
                             anchors.verticalCenter: parent.verticalCenter
                             text: group.modelData.note
-                            color: group.modelData.value === root.currentValue ? Qt.rgba(1, 1, 1, 0.62) : Tokens.faint
+                            color: group.modelData.value === root.currentValue ? Qt.rgba(1, 1, 1, 0.62) : SettingsTokens.faint
                             font.pixelSize: 11
                         }
 
@@ -369,7 +371,7 @@ Item {
                 visible: listColumn.contentHeight > listColumn.height
                 width: 6
                 radius: 3
-                color: Tokens.line
+                color: SettingsTokens.line
                 x: listColumn.x + listColumn.width + 2
                 height: Math.max(24, listColumn.height * listColumn.height / listColumn.contentHeight)
                 y: listColumn.y + (listColumn.contentHeight > listColumn.height

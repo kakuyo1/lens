@@ -398,6 +398,60 @@
         <translation>Personalizado</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="76"/>
+        <source>Frosted glass</source>
+        <translatorcomment>待译者核对</translatorcomment>
+        <translation>Vidrio mate</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="77"/>
+        <source>Liquid glass</source>
+        <translatorcomment>待译者核对</translatorcomment>
+        <translation>Vidrio líquido</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="92"/>
+        <source>Frosted glass parameters</source>
+        <translatorcomment>待译者核对</translatorcomment>
+        <translation>Parámetros del vidrio mate</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="107"/>
+        <source>Saturation</source>
+        <translatorcomment>待译者核对</translatorcomment>
+        <translation>Saturación</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="145"/>
+        <source>Blur</source>
+        <translatorcomment>待译者核对</translatorcomment>
+        <translation>Desenfoque</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="130"/>
+        <source>Liquid glass parameters</source>
+        <translatorcomment>待译者核对</translatorcomment>
+        <translation>Parámetros del vidrio líquido</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="137"/>
+        <source>Refraction</source>
+        <translatorcomment>待译者核对</translatorcomment>
+        <translation>Refracción</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="153"/>
+        <source>Rim highlight</source>
+        <translatorcomment>待译者核对</translatorcomment>
+        <translation>Brillo del borde</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="161"/>
+        <source>Text color</source>
+        <translatorcomment>待译者核对</translatorcomment>
+        <translation>Color del texto</translation>
+    </message>
+    <message>
         <location filename="../src/app/qml/SettingsGeneralPage.qml" line="90"/>
         <source>Custom semantic colors</source>
         <translation>Colores semánticos personalizados</translation>

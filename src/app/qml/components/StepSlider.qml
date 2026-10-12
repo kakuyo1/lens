@@ -34,7 +34,7 @@ Item {
         height: 4
         anchors.verticalCenter: parent.verticalCenter
         radius: 2
-        color: Tokens.line
+        color: SettingsTokens.line
     }
 
     Rectangle {
@@ -43,7 +43,7 @@ Item {
         height: 4
         anchors.verticalCenter: parent.verticalCenter
         radius: 2
-        color: Tokens.ink
+        color: SettingsTokens.ink
     }
 
     Rectangle {
@@ -52,15 +52,18 @@ Item {
         radius: root.knobSize / 2
         y: (root.height - height) / 2
         x: root.travel * root.ratio
-        color: Tokens.ink
+        color: SettingsTokens.ink
         border.width: 2
-        border.color: Tokens.panel
+        border.color: SettingsTokens.panel
     }
 
     MouseArea {
         anchors.fill: parent
         enabled: root.interactive
         cursorShape: root.interactive ? Qt.PointingHandCursor : Qt.ArrowCursor
+        // Keeps the press here: the settings card drags its window from an ancestor handler, and that
+        // handler would otherwise take the grab from the slider mid-drag.
+        preventStealing: true
 
         onPressed: (mouse) => root.moveTo(mouse.x)
         onPositionChanged: (mouse) => {

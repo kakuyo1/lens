@@ -42,10 +42,10 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         height: 35
-        radius: Tokens.radiusField
-        color: Tokens.panel2
+        radius: SettingsTokens.radiusField
+        color: SettingsTokens.panel2
         border.width: 1
-        border.color: root.recording ? Tokens.ink : Tokens.line
+        border.color: root.recording ? SettingsTokens.ink : SettingsTokens.line
 
         Text {
             anchors.left: parent.left
@@ -54,7 +54,7 @@ Item {
             anchors.rightMargin: 8
             anchors.verticalCenter: parent.verticalCenter
             text: root.recording ? qsTr("Press the combination") : qsTr("Trigger key")
-            color: root.recording ? Tokens.muted : root.interactive ? Tokens.text : Tokens.faint
+            color: root.recording ? SettingsTokens.muted : root.interactive ? SettingsTokens.text : SettingsTokens.faint
             font.pixelSize: 13
             elide: Text.ElideRight
         }
@@ -76,17 +76,17 @@ Item {
 
                     width: Math.max(18, keyText.implicitWidth + 12)
                     height: 19
-                    radius: Tokens.radiusPill
-                    color: Tokens.panel
+                    radius: SettingsTokens.radiusPill
+                    color: SettingsTokens.panel
                     border.width: 1
-                    border.color: Tokens.line
+                    border.color: SettingsTokens.line
 
                     Text {
                         id: keyText
                         anchors.centerIn: parent
                         text: capsule.modelData
-                        color: Tokens.text
-                        font.family: Tokens.monoFamily
+                        color: SettingsTokens.text
+                        font.family: SettingsTokens.monoFamily
                         font.pixelSize: 11
                     }
                 }
@@ -110,7 +110,7 @@ Item {
         width: parent.width
         visible: root.conflicted
         text: qsTr("Unavailable: it needs Ctrl or Alt, and no other program may hold it")
-        color: Tokens.muted
+        color: SettingsTokens.muted
         font.pixelSize: 12
         wrapMode: Text.WordWrap
     }

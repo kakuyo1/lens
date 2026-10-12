@@ -14,15 +14,17 @@ Item {
 
     property var labels: []
     property int currentIndex: 0
+    /// The table the segments take their colours from. The settings window passes its own.
+    property TokenTable tokens: Tokens
 
     signal picked(int index)
 
     Rectangle {
         anchors.fill: parent
-        radius: Tokens.radiusField
-        color: Tokens.panel2
+        radius: root.tokens.radiusField
+        color: root.tokens.panel2
         border.width: 1
-        border.color: Tokens.line
+        border.color: root.tokens.line
     }
 
     Row {
@@ -40,13 +42,13 @@ Item {
 
                 width: (root.width - 2) / root.labels.length
                 height: root.height - 2
-                radius: Tokens.radiusField - 1
-                color: index === root.currentIndex ? Tokens.ink : "transparent"
+                radius: root.tokens.radiusField - 1
+                color: index === root.currentIndex ? root.tokens.ink : "transparent"
 
                 Text {
                     anchors.centerIn: parent
                     text: cell.modelData
-                    color: cell.index === root.currentIndex ? Tokens.on : Tokens.muted
+                    color: cell.index === root.currentIndex ? root.tokens.on : root.tokens.muted
                     font.pixelSize: 12
                     font.weight: cell.index === root.currentIndex ? Font.Bold : Font.Normal
                 }

@@ -14,16 +14,16 @@ Rectangle {
 
     implicitWidth: caption.implicitWidth + 20
     implicitHeight: 27
-    radius: Tokens.radiusPill
-    color: selected ? Tokens.ink : Tokens.panel2
+    radius: SettingsTokens.radiusPill
+    color: selected ? SettingsTokens.ink : SettingsTokens.panel2
     border.width: selected ? 0 : 1
-    border.color: Tokens.line
+    border.color: SettingsTokens.line
 
     Text {
         id: caption
         anchors.centerIn: parent
         text: chip.label
-        color: chip.selected ? Tokens.on : Tokens.text
+        color: chip.selected ? SettingsTokens.on : SettingsTokens.text
         font.pixelSize: 12
         font.weight: chip.selected ? Font.DemiBold : Font.Normal
     }

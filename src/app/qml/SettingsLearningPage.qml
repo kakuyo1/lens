@@ -22,7 +22,7 @@ Item {
             spacing: 7
             Text {
                 text: qsTranslate("SettingsPopup", "Vocabulary level")
-                color: Tokens.muted
+                color: SettingsTokens.muted
                 font.pixelSize: 12
             }
             DropdownField {
@@ -39,7 +39,7 @@ Item {
             spacing: 7
             Text {
                 text: qsTranslate("SettingsPopup", "Explanation language")
-                color: Tokens.muted
+                color: SettingsTokens.muted
                 font.pixelSize: 12
             }
             DropdownField {
@@ -54,6 +54,7 @@ Item {
 
         SwitchRow {
             width: parent.width
+            tokens: SettingsTokens
             label: qsTranslate("SettingsPopup", "Multiple senses")
             checked: root.settings.multiSense
             onToggled: (on) => Controller.setMultiSense(on)
@@ -64,6 +65,7 @@ Item {
         SwitchRow {
             width: parent.width
             objectName: "etymologySwitch"
+            tokens: SettingsTokens
             label: qsTranslate("SettingsPopup", "Etymology")
             checked: root.settings.etymology
             onToggled: (on) => Controller.setEtymology(on)
@@ -72,6 +74,7 @@ Item {
         SwitchRow {
             width: parent.width
             objectName: "exampleSwitch"
+            tokens: SettingsTokens
             label: qsTranslate("SettingsPopup", "Example sentence")
             checked: root.settings.example
             onToggled: (on) => Controller.setExample(on)

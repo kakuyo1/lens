@@ -10,6 +10,8 @@ Row {
     property string label: ""
     property bool checked: false
     property bool interactive: true
+    /// The table the row takes its colours from. The settings window passes its own.
+    property TokenTable tokens: Tokens
 
     signal toggled(bool checked)
 
@@ -21,7 +23,7 @@ Row {
         id: labelText
         anchors.verticalCenter: parent.verticalCenter
         text: root.label
-        color: root.interactive ? Tokens.text : Tokens.faint
+        color: root.interactive ? root.tokens.text : root.tokens.faint
         font.pixelSize: 13
     }
 
@@ -36,6 +38,7 @@ Row {
         anchors.verticalCenter: parent.verticalCenter
         checked: root.checked
         interactive: root.interactive
+        tokens: root.tokens
         onToggled: (on) => root.toggled(on)
     }
 }

@@ -31,17 +31,17 @@ Item {
 
             Text {
                 text: qsTranslate("SettingsPopup", "Daily budget")
-                color: Tokens.muted
+                color: SettingsTokens.muted
                 font.pixelSize: 12
             }
 
             Rectangle {
                 width: parent.width
                 height: 35
-                radius: Tokens.radiusField
-                color: Tokens.panel2
+                radius: SettingsTokens.radiusField
+                color: SettingsTokens.panel2
                 border.width: 1
-                border.color: amountInput.activeFocus ? Tokens.ink : Tokens.line
+                border.color: amountInput.activeFocus ? SettingsTokens.ink : SettingsTokens.line
 
                 Text {
                     id: currencyMark
@@ -49,7 +49,7 @@ Item {
                     anchors.leftMargin: 11
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.currency
-                    color: Tokens.muted
+                    color: SettingsTokens.muted
                     font.pixelSize: 13
                 }
 
@@ -60,7 +60,7 @@ Item {
                     anchors.rightMargin: 11
                     verticalAlignment: TextInput.AlignVCenter
                     text: root.dailyBudget > 0 ? root.dailyBudget.toFixed(2) : "0"
-                    color: Tokens.text
+                    color: SettingsTokens.text
                     font.pixelSize: 13
                     selectByMouse: true
                     inputMethodHints: Qt.ImhFormattedNumbersOnly
@@ -80,7 +80,7 @@ Item {
             Text {
                 width: parent.width
                 text: qsTranslate("SettingsPopup", "Set 0 to pause the cap.")
-                color: Tokens.faint
+                color: SettingsTokens.faint
                 font.pixelSize: 11
                 wrapMode: Text.WordWrap
             }

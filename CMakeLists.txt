@@ -52,7 +52,7 @@ if((NOT DEFINED CMAKE_PREFIX_PATH OR CMAKE_PREFIX_PATH STREQUAL "") AND NOT DEFI
     " for you; see config/README.md.")
 endif()
 
-find_package(Qt6 6.2 REQUIRED COMPONENTS Core Network Gui Quick Widgets Svg LinguistTools Test QuickTest)
+find_package(Qt6 6.2 REQUIRED COMPONENTS Core Network Gui Quick Widgets Svg LinguistTools ShaderTools Test QuickTest)
 
 # Qt's own defaults for QML modules: resources under :/qt/qml/, and a qmldir for every extra
 # directory holding .qml files. Setting both here keeps the configure step quiet.

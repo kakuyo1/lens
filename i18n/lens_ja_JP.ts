@@ -398,6 +398,60 @@
         <translation>カスタム</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="76"/>
+        <source>Frosted glass</source>
+        <translatorcomment>待译者核对</translatorcomment>
+        <translation>すりガラス</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="77"/>
+        <source>Liquid glass</source>
+        <translatorcomment>待译者核对</translatorcomment>
+        <translation>リキッドガラス</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="92"/>
+        <source>Frosted glass parameters</source>
+        <translatorcomment>待译者核对</translatorcomment>
+        <translation>すりガラスの設定</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="107"/>
+        <source>Saturation</source>
+        <translatorcomment>待译者核对</translatorcomment>
+        <translation>彩度</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="145"/>
+        <source>Blur</source>
+        <translatorcomment>待译者核对</translatorcomment>
+        <translation>ぼかし</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="130"/>
+        <source>Liquid glass parameters</source>
+        <translatorcomment>待译者核对</translatorcomment>
+        <translation>リキッドガラスの設定</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="137"/>
+        <source>Refraction</source>
+        <translatorcomment>待译者核对</translatorcomment>
+        <translation>屈折の強さ</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="153"/>
+        <source>Rim highlight</source>
+        <translatorcomment>待译者核对</translatorcomment>
+        <translation>縁のハイライト</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="161"/>
+        <source>Text color</source>
+        <translatorcomment>待译者核对</translatorcomment>
+        <translation>文字色</translation>
+    </message>
+    <message>
         <location filename="../src/app/qml/SettingsGeneralPage.qml" line="90"/>
         <source>Custom semantic colors</source>
         <translation>カスタム配色</translation>

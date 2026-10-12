@@ -35,6 +35,13 @@ Window {
         value: Controller.settings.theme
     }
 
+    /// The liquid theme's text colour, read from the same document as the theme.
+    Binding {
+        target: SettingsTokens
+        property: "liquidTextColor"
+        value: Controller.settings.liquidTextColor
+    }
+
     /// @return The tray icon's rectangle, for anchoring the menu and the panels. Empty only
     ///         until the icon has been seen once: the shell reports nothing while the taskbar
     ///         is down, and an auto-hidden taskbar is down whenever a panel is opened from the

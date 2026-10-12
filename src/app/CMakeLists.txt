@@ -18,6 +18,8 @@ add_library(lens_app STATIC
   cost_duty.cpp
   explanation_duty.h
   explanation_duty.cpp
+  glass_backdrop.cpp
+  glass_math.cpp
   global_hotkey.h
   global_hotkey.cpp
   model_catalog_duty.h
@@ -112,10 +114,12 @@ target_compile_definitions(lens PRIVATE
   LENS_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/settings.local.json"
 )
 
-# The token table is a single instance every surface reads, not one per surface. The
-# property has to be set before qt_add_qml_module looks at the file, not after: it decides
-# there whether to write a singleton entry into the module's qmldir.
+# Two token singletons, both built from TokenTable: Tokens for every surface, and SettingsTokens for
+# the settings window, which alone has the glass themes on. The property has to be set before
+# qt_add_qml_module looks at the file, not after: it decides there whether to write a singleton
+# entry into the module's qmldir.
 set_source_files_properties(qml/components/Tokens.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(qml/components/SettingsTokens.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 # The URI is Lens, so generated QML tooling files belong below a Lens directory. Keeping the
 # target path aligned makes CMake generate the qmllint response file in every build tree,
@@ -174,9 +178,14 @@ qt_add_qml_module(lens_app
      qml/RemovalQuestion.qml
     qml/CostPopup.qml
     qml/components/Tokens.qml
+    qml/components/SettingsTokens.qml
+    qml/components/TokenTable.qml
     qml/theme/Light.qml
     qml/theme/Dark.qml
     qml/theme/Motion.qml
+    qml/theme/Frosted.qml
+    qml/theme/Liquid.qml
+    qml/theme/GlassOnDark.qml
     qml/components/Icon.qml
     qml/components/ShadowCard.qml
     qml/components/Segment.qml
@@ -190,6 +199,8 @@ qt_add_qml_module(lens_app
     qml/components/PathField.qml
     qml/components/MixedText.qml
     qml/components/HotkeyField.qml
+    qml/components/GlassSurface.qml
+    qml/components/SliderRow.qml
 )
 
 # The icon art, addressed as :/icons/<name>.svg. BASE strips the source directory so the names
@@ -236,6 +247,15 @@ qt_add_resources(lens_app "icons"
   PREFIX "/icons"
   BASE ${CMAKE_SOURCE_DIR}/icons
   FILES ${LENS_ICONS}
+)
+
+# The liquid glass's refraction shader, compiled by qsb into :/shaders/liquid.frag.qsb. qsb comes from the
+# same Qt install as the runtime, so the two cannot drift apart. It is a resource of lens_app for the reason
+# the icons are: a binary that links the surfaces is the one that draws them.
+qt_add_shaders(lens_app "lens_shaders"
+  PREFIX "/shaders"
+  BASE ${CMAKE_CURRENT_SOURCE_DIR}/shaders
+  FILES ${CMAKE_CURRENT_SOURCE_DIR}/shaders/liquid.frag
 )
 
 # The .ts files, run through lrelease and embedded at :/i18n/. Rebuilding after a string
