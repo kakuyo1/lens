@@ -4,29 +4,34 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="312"/>
-        <location filename="../src/app/qml/Bubble.qml" line="545"/>
+        <location filename="../src/app/qml/Bubble.qml" line="316"/>
+        <location filename="../src/app/qml/Bubble.qml" line="586"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="312"/>
-        <location filename="../src/app/qml/Bubble.qml" line="572"/>
+        <location filename="../src/app/qml/Bubble.qml" line="316"/>
+        <location filename="../src/app/qml/Bubble.qml" line="613"/>
         <source>New</source>
         <translation>New</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="312"/>
+        <location filename="../src/app/qml/Bubble.qml" line="316"/>
         <source>Sentence</source>
         <translation>Sentence</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="474"/>
+        <location filename="../src/app/qml/Bubble.qml" line="478"/>
         <source>Etymology</source>
         <translation>Etymology</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="594"/>
+        <location filename="../src/app/qml/Bubble.qml" line="515"/>
+        <source>Example</source>
+        <translation>Example</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/Bubble.qml" line="635"/>
         <source>Disappears in %1s</source>
         <translation>Disappears in %1s</translation>
     </message>
@@ -197,6 +202,11 @@
         <location filename="../src/app/qml/SettingsLearningPage.qml" line="67"/>
         <source>Etymology</source>
         <translation>Etymology</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="75"/>
+        <source>Example sentence</source>
+        <translation>Example sentence</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsGeneralPage.qml" line="52"/>
@@ -1228,22 +1238,22 @@
         <translation>Study-abroad exams</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="201"/>
+        <location filename="../src/app/explanation_duty.cpp" line="205"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>No explanation is stored for this word in the current language.</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="203"/>
+        <location filename="../src/app/explanation_duty.cpp" line="207"/>
         <source>Explain now</source>
         <translation>Explain now</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="272"/>
+        <location filename="../src/app/explanation_duty.cpp" line="277"/>
         <source>Explaining…</source>
         <translation>Explaining…</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="347"/>
+        <location filename="../src/app/explanation_duty.cpp" line="354"/>
         <source>Request failed</source>
         <translation>Request failed</translation>
     </message>
@@ -1254,7 +1264,7 @@
     </message>
     <message>
         <location filename="../src/app/app_controller.cpp" line="252"/>
-        <location filename="../src/app/app_controller.cpp" line="392"/>
+        <location filename="../src/app/app_controller.cpp" line="398"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>Today&amp;apos;s budget is used up.</translation>
     </message>
@@ -1279,12 +1289,12 @@
         <translation>That region could not be read.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="581"/>
+        <location filename="../src/app/app_controller.cpp" line="588"/>
         <source>Auto</source>
         <translation>Auto</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="581"/>
+        <location filename="../src/app/app_controller.cpp" line="588"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>
@@ -1300,109 +1310,109 @@
 <context>
     <name>lens::llm</name>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="213"/>
+        <location filename="../src/llm/llm_pure.cpp" line="216"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>The model answered with something that is not a JSON object.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="219"/>
+        <location filename="../src/llm/llm_pure.cpp" line="222"/>
         <source>The model&apos;s answer carries no choices.</source>
         <translation>The model&apos;s answer carries no choices.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="227"/>
+        <location filename="../src/llm/llm_pure.cpp" line="230"/>
         <source>The model stopped before finishing (reason: %1).</source>
         <translation>The model stopped before finishing (reason: %1).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="231"/>
+        <location filename="../src/llm/llm_pure.cpp" line="234"/>
         <source>absent</source>
         <translation>absent</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="237"/>
+        <location filename="../src/llm/llm_pure.cpp" line="240"/>
         <source>The model&apos;s answer is not valid JSON.</source>
         <translation>The model&apos;s answer is not valid JSON.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="242"/>
+        <location filename="../src/llm/llm_pure.cpp" line="245"/>
         <source>The model&apos;s answer has no results array.</source>
         <translation>The model&apos;s answer has no results array.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="252"/>
+        <location filename="../src/llm/llm_pure.cpp" line="255"/>
         <source>One of the results entries is not an object.</source>
         <translation>One of the results entries is not an object.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="289"/>
+        <location filename="../src/llm/llm_pure.cpp" line="295"/>
         <source>A results entry has an empty field (title=%1).</source>
         <translation>A results entry has an empty field (title=%1).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="340"/>
+        <location filename="../src/llm/llm_pure.cpp" line="346"/>
         <source>The model echoed the same title twice: %1.</source>
         <translation>The model echoed the same title twice: %1.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="322"/>
-        <location filename="../src/llm/llm_pure.cpp" line="347"/>
+        <location filename="../src/llm/llm_pure.cpp" line="328"/>
+        <location filename="../src/llm/llm_pure.cpp" line="353"/>
         <source>The model echoed %1 result(s) for the %2 that were asked for.</source>
         <translation>The model echoed %1 result(s) for the %2 that were asked for.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="257"/>
+        <location filename="../src/llm/llm_pure.cpp" line="260"/>
         <source>A results entry does not match the response schema.</source>
         <translation>A results entry does not match the response schema.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="273"/>
-        <location filename="../src/llm/llm_pure.cpp" line="284"/>
+        <location filename="../src/llm/llm_pure.cpp" line="279"/>
+        <location filename="../src/llm/llm_pure.cpp" line="290"/>
         <source>The requested explanation language is missing.</source>
         <translation>The requested explanation language is missing.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="358"/>
+        <location filename="../src/llm/llm_pure.cpp" line="364"/>
         <source>The model never echoed &quot;%1&quot;.</source>
         <translation>The model never echoed &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="108"/>
+        <location filename="../src/llm/llm_pure.cpp" line="110"/>
         <source>The request was rejected as malformed (400).</source>
         <translation>The request was rejected as malformed (400).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="111"/>
+        <location filename="../src/llm/llm_pure.cpp" line="113"/>
         <source>The API key is missing or not accepted (401).</source>
         <translation>The API key is missing or not accepted (401).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="114"/>
+        <location filename="../src/llm/llm_pure.cpp" line="116"/>
         <source>The account is out of credit (402).</source>
         <translation>The account is out of credit (402).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="117"/>
+        <location filename="../src/llm/llm_pure.cpp" line="119"/>
         <source>The request parameters were rejected (422).</source>
         <translation>The request parameters were rejected (422).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="120"/>
+        <location filename="../src/llm/llm_pure.cpp" line="122"/>
         <source>Too many requests; the service is rate-limiting (429).</source>
         <translation>Too many requests; the service is rate-limiting (429).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="123"/>
+        <location filename="../src/llm/llm_pure.cpp" line="125"/>
         <source>The explanation service failed (500).</source>
         <translation>The explanation service failed (500).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="126"/>
+        <location filename="../src/llm/llm_pure.cpp" line="128"/>
         <source>The explanation service is overloaded (503).</source>
         <translation>The explanation service is overloaded (503).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="129"/>
+        <location filename="../src/llm/llm_pure.cpp" line="131"/>
         <source>Unexpected HTTP status %1.</source>
         <translation>Unexpected HTTP status %1.</translation>
     </message>
@@ -1410,18 +1420,18 @@
 <context>
     <name>lens::llm::LlmClient</name>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="126"/>
+        <location filename="../src/llm/llm_client.cpp" line="132"/>
         <source>There is nothing to look up.</source>
         <translation>There is nothing to look up.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="134"/>
+        <location filename="../src/llm/llm_client.cpp" line="140"/>
         <source>The API key is missing.</source>
         <translation>The API key is missing.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="166"/>
-        <location filename="../src/llm/llm_client.cpp" line="171"/>
+        <location filename="../src/llm/llm_client.cpp" line="172"/>
+        <location filename="../src/llm/llm_client.cpp" line="177"/>
         <source>The request could not reach the service: %1</source>
         <translation>The request could not reach the service: %1</translation>
     </message>

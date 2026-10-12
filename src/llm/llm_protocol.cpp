@@ -82,7 +82,8 @@ LoadedProtocol& slotFor(Channel channel)
 /// @param etymology The channel's `etymologyPrompt` block, passed in rather than read from
 ///        @p preset: the sentence is a property of the channel, and a preset written as its own
 ///        object -- `multiplePrompt`, or an entry of `presets` -- carries only its own prompt.
-PromptTemplate loadPrompt(const QJsonObject& preset, const std::filesystem::path& file, const QJsonObject& etymology)
+/// @param example   The channel's `examplePrompt` block, read the same way.
+PromptTemplate loadPrompt(const QJsonObject& preset, const std::filesystem::path& file, const QJsonObject& etymology, const QJsonObject& example)
 {
     const QJsonObject prompt = preset.value("systemPrompt").toObject();
 
@@ -112,6 +113,14 @@ PromptTemplate loadPrompt(const QJsonObject& preset, const std::filesystem::path
                                loaded.systemPromptTemplate.contains(QLatin1String(kEtymologyFieldPlaceholder));
     if (asksEtymology and (loaded.etymologyNote.isEmpty() or loaded.etymologyField.isEmpty()))
         throw std::runtime_error("prompt template asks for an etymology but 'etymologyPrompt' is missing or empty in " +
+                                 file.string());
+
+    loaded.exampleNote     = example.value("note").toString();
+    loaded.exampleField    = example.value("field").toString();
+    const bool asksExample = loaded.systemPromptTemplate.contains(QLatin1String(kExampleNotePlaceholder)) or
+                             loaded.systemPromptTemplate.contains(QLatin1String(kExampleFieldPlaceholder));
+    if (asksExample and (loaded.exampleNote.isEmpty() or loaded.exampleField.isEmpty()))
+        throw std::runtime_error("prompt template asks for an example but 'examplePrompt' is missing or empty in " +
                                  file.string());
     return loaded;
 }
@@ -146,21 +155,22 @@ void loadLlmProtocol(Channel channel, const std::filesystem::path& dir)
     // can be asked for the same extra field, and one copy of the sentence is what keeps them saying
     // the same thing.
     const QJsonObject etymology = root.value("etymologyPrompt").toObject();
+    const QJsonObject example   = root.value("examplePrompt").toObject();
 
     const QJsonObject presets = root.value("presets").toObject();
     if (presets.isEmpty()) {
-        request.prompts.insert(QStringLiteral("default"), loadPrompt(root, requestFile, etymology));
+        request.prompts.insert(QStringLiteral("default"), loadPrompt(root, requestFile, etymology, example));
     } else {
         for (auto it = presets.begin(); it != presets.end(); ++it) {
             if (!it.value().isObject())
                 throw std::runtime_error("preset '" + it.key().toStdString() + "' is not an object in " + requestFile.string());
-            request.prompts.insert(it.key(), loadPrompt(it.value().toObject(), requestFile, etymology));
+            request.prompts.insert(it.key(), loadPrompt(it.value().toObject(), requestFile, etymology, example));
         }
     }
     if (request.prompts.isEmpty())
         throw std::runtime_error("no prompt presets in " + requestFile.string());
     if (root.contains("multiplePrompt"))
-        request.prompts.insert(QStringLiteral("multiple"), loadPrompt(root.value("multiplePrompt").toObject(), requestFile, etymology));
+        request.prompts.insert(QStringLiteral("multiple"), loadPrompt(root.value("multiplePrompt").toObject(), requestFile, etymology, example));
     if (request.maxTokens <= 0)
         throw std::runtime_error("'maxTokens' must be positive in " + requestFile.string());
     requireNonEmpty(request.responseFormat, "responseFormat", requestFile);

@@ -86,6 +86,12 @@ void LlmClient::setEtymology(bool etymology)
     etymology_ = etymology;
 }
 
+void LlmClient::setExample(bool example)
+{
+    LENS_TRACE("LlmClient::setExample: '{}'", example ? "on" : "off");
+    example_ = example;
+}
+
 void LlmClient::fetchModels()
 {
     // One source, declared in the data, asked for with nothing the reader owns: no key, no auth
@@ -154,7 +160,7 @@ void LlmClient::explainWords(QStringList words)
     LENS_TRACE("POST {} (timeout {} ms, key hidden)", url.toString().toStdString(), kTimeoutMs);
 
     QNetworkReply* reply =
-        manager_->post(request, buildRequestBody(config_, channel, words, lang_, preset, etymology_));
+        manager_->post(request, buildRequestBody(config_, channel, words, lang_, preset, etymology_, example_));
     connect(reply, &QNetworkReply::finished, this, [this, reply, words, channel, language, preset, model] {
         reply->deleteLater();
 

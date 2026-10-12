@@ -68,5 +68,13 @@ Item {
             checked: root.settings.etymology
             onToggled: (on) => Controller.setEtymology(on)
         }
+
+        SwitchRow {
+            width: parent.width
+            objectName: "exampleSwitch"
+            label: qsTranslate("SettingsPopup", "Example sentence")
+            checked: root.settings.example
+            onToggled: (on) => Controller.setExample(on)
+        }
     }
 }

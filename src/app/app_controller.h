@@ -95,6 +95,8 @@ public:
     Q_INVOKABLE void setMultiSense(bool on);
     /// @brief Ask for a word's origin with its explanation, and draw it on the bubble.
     Q_INVOKABLE void setEtymology(bool on);
+    /// @brief Ask for one example sentence with a word's explanation, and draw it on the bubble.
+    Q_INVOKABLE void setExample(bool on);
     Q_INVOKABLE void setTheme(QString theme);
     Q_INVOKABLE void setAnimationsEnabled(bool on);
     Q_INVOKABLE void setUiLanguage(QString lang);
