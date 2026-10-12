@@ -7,9 +7,9 @@ import QtQuick.Effects
 /**
  * The bar that comes up when the reader finishes selecting text (UI.md section 4.9).
  *
- * It sits above the selection with its tail pointing down at the anchor. It never takes
- * focus, so clicking one of its items leaves the reader's application in front and the next
- * injected Ctrl+C still lands in the right place.
+ * It sits beside the selection, on the side the bubble settings choose (above by default). It
+ * never takes focus, so clicking one of its items leaves the reader's application in front and
+ * the next injected Ctrl+C still lands in the right place.
  */
 Window {
     id: bar
@@ -28,21 +28,10 @@ Window {
     property string selectionText: ""
     property string selectionKind: "word"
 
-    /// @param payload The controller's {x, y, kind, text}; only x and y are used here.
+    /// @param payload The controller's {x, y, kind, text}. The position is not set here: Main.qml's
+    ///        placeTransient() places the bar on the side the bubble settings choose, right after this.
     function openAt(payload) {
-        // The bar hangs above the anchor. Near the top of the screen there is no room, so it
-        // flips below — UI.md's open question about the flip rule, resolved as: flip, do not
-        // clip.
-        //
-        // Every placement here is by the card, not by the window: the window is `shadowMargin`
-        // bigger than the card on every side, so lining the window up with the anchor left the
-        // card a shadow-margin right of the selection and another one, plus the gap, above it --
-        // which read as the bar not belonging to the text at all.
-        const anchorY = payload.y;
         selectionKind = payload.kind;
-        const above = anchorY - gap - height + shadowMargin;
-        bar.y = above >= 0 ? above : anchorY + gap - shadowMargin;
-        bar.x = payload.x - shadowMargin;
         visible = true;
         // Showing a surface is two steps: see Main.qml placePanel() for why `visible` on its
         // own can leave a topmost window under the taskbar.

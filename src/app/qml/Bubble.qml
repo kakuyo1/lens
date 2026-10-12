@@ -7,11 +7,11 @@ import QtQuick.Effects
 /**
  * The explanation bubble (UI.md section 4.3), the surface the whole channel exists for.
  *
- * It stacks above the selection, the way the action bar does, and drops below it only when
- * there is no room above. The two surfaces answer the same gesture -- a finished selection --
- * so one hanging under the text and the other over it read as two unrelated things landing
- * wherever they liked. The countdown lives here
- * rather than in the controller: it is the view's behaviour, and hovering is what pauses it.
+ * It lands on the side the reader chose in the bubble settings, above the selection by default, and
+ * takes the other side only when the chosen one has no room. The action bar follows the same setting,
+ * so the two surfaces answer the same gesture -- a finished selection -- from the same side. The
+ * countdown lives here rather than in the controller: it is the view's behaviour, and hovering is
+ * what pauses it.
  * It never takes focus, so clicking Known or New does not change which application the next
  * injected Ctrl+C would go to.
  */
@@ -24,7 +24,8 @@ Window {
 
     readonly property int shadowMargin: 26
     readonly property int gap: 10
-    readonly property int dismissAfterMs: 5000
+    /// How long an uninterrupted bubble stays up, from the bubble settings. show() reads it each time.
+    readonly property int dismissAfterMs: Controller.settings.bubbleDismissSeconds * 1000
 
     width: content.implicitWidth + 2 * shadowMargin
     height: content.implicitHeight + 2 * shadowMargin
@@ -78,8 +79,8 @@ Window {
     ///
     /// The root does the placing because only it knows the screens: the card has to stay inside
     /// the work area of the screen the anchor is on, and this window cannot tell which that is.
-    /// Main.qml's placeTransient() answers it, above the anchor or below it when there is no room
-    /// up there, and the same call is made again once the text has settled.
+    /// Main.qml's placeTransient() answers it, on the side the reader chose or the other one when
+    /// the chosen side has no room, and the same call is made again once the text has settled.
     signal placementRequested(var payload)
 
     function show(payload) {
