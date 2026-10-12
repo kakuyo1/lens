@@ -27,7 +27,7 @@ html[data-theme=frosted],html[data-theme=liquid]{
   background-image:var(--wall); background-attachment:fixed; background-size:cover;
 }
 /* 磨砂玻璃 = Zen-Nebula（JustAdumbPrsn/Zen-Nebula）的玻璃：白色 40% 底 + blur(32px) saturate(140%) + 25% 白描边 + 柔和阴影，
-   参数逐项取自其 config.css 与 general-ui.css。没有噪点。底色 40% 固定、不设旋钮；通用设置里的模糊、饱和度、描边高光三个旋钮覆盖这里的默认值。
+   参数取自其 config.css 与 general-ui.css，原值为 blur 32px、saturate 140%、描边 25%。设置里的默认值已调为 10% / 120% / 20%，这里的回退值与之同步。没有噪点。底色 40% 固定、不设旋钮。
    底图在 frosted-backdrops/ 下，默认夜色细纹：冷调、低饱和，细网给足高频细节，模糊一开细网就化掉，靠它看得出模糊吃掉了什么。 */
 html[data-theme=frosted]{
   --panel:rgba(255,255,255,.40); --panel2:rgba(18,24,36,.065);
@@ -59,17 +59,17 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .settings{width:380px;height:480px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);display:flex;flex-direction:column;overflow:hidden;transform:translate(var(--drag-x,0),var(--drag-y,0))}
 body.dragging{user-select:none;cursor:default}
 /* 玻璃面板。面板自身有 backdrop-filter，内部控件不再各加一层——它们只是叠在这层已模糊的底上的半透明填充。 */
-html[data-theme=frosted] .settings{backdrop-filter:blur(var(--glass-blur,32px)) saturate(var(--glass-sat,140%));border-color:rgba(255,255,255,var(--glass-rim,.25))}
+html[data-theme=frosted] .settings{backdrop-filter:blur(var(--glass-blur,6px)) saturate(var(--glass-sat,120%));border-color:rgba(255,255,255,var(--glass-rim,.2))}
 /* 下拉列表是弹出层：底下透明的 40% 面板会让参数透出来，所以单独铺 78% 白，与液体玻璃的弹出层同一口径（UI.md 3.1c） */
 html[data-theme=frosted] .dd-list{background:rgba(255,255,255,.78)}
 /* 液体玻璃整张卡透明，不铺底色：背后像素由 SVG 位移滤镜弯折（边缘弯，中心也有折射），高光与描边是材质信号。
    正文用深字，适合浅色底图；深色底图上对比度不足，见 UI.md 3.1d。 */
-html[data-theme=liquid] .settings{background:transparent;border-color:rgba(255,255,255,var(--glass-rim,.62));
-  backdrop-filter:blur(var(--glass-blur,12px)) contrast(1.05);
+html[data-theme=liquid] .settings{background:transparent;border-color:rgba(255,255,255,var(--glass-rim,.1));
+  backdrop-filter:blur(var(--glass-blur,6px)) contrast(1.05);
   box-shadow:var(--sh2)}
 /* 折射：浏览器支持 url() 形式的 backdrop-filter 时（applyTheme 里探测，Chromium 系支持），位移滤镜只做折射这一步，
    之后接普通的模糊与饱和（同 shuding/liquid-glass 的写法）。 */
-html[data-theme=liquid][data-refract] .settings{backdrop-filter:blur(var(--glass-blur,12px)) url(#lg-liquid)}
+html[data-theme=liquid][data-refract] .settings{backdrop-filter:blur(var(--glass-blur,6px)) url(#lg-liquid)}
 /* 关掉透明时退成实底卡片，与系统一致的降级方式；底图留着，卡片仍落在壁纸上而不是白页上。
    描边一并交还给 --line：实底上白边不再是玻璃边缘，只是画错的一笔。 */
 @media (prefers-reduced-transparency:reduce){
@@ -183,7 +183,7 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <filter id="lg-liquid" filterUnits="userSpaceOnUse" x="0" y="0" width="380" height="480" color-interpolation-filters="sRGB">
     <feImage id="lg-map" x="0" y="0" width="380" height="480" preserveAspectRatio="none" result="map"/>
-    <feDisplacementMap id="lg-disp" in="SourceGraphic" in2="map" scale="36" xChannelSelector="R" yChannelSelector="G"/>
+    <feDisplacementMap id="lg-disp" in="SourceGraphic" in2="map" scale="20" xChannelSelector="R" yChannelSelector="G"/>
   </filter>
 </defs></svg>
 <div class="settings" id="app" data-level="home">
@@ -249,8 +249,8 @@ const defaults = { theme: "light", uiLang: "zh", level: "CET-4", language: "en",
   policy: "topmost", minLen: "3", provider: "DeepSeek", model: "deepseek-flash", api: "", url: "",
   tesseractExe: "", tesseractData: "", triggerKey: "Ctrl+Alt+S",
   dailyBudget: "0", customBg: "#e9ebef", customPanel: "#ffffff", customText: "#1a1a1f", customMuted: "#66666f", customFaint: "#9d9da8", customOk: "#2f9e6e",
-  glassBlur: 53, glassSat: 140, glassRim: 25,
-  liquidBlur: 2, liquidRefract: 36, liquidRim: 62, liquidText: "#101319",
+  glassBlur: 10, glassSat: 120, glassRim: 20,
+  liquidBlur: 10, liquidRefract: 20, liquidRim: 10, liquidText: "#101319",
   ocr: false, scan: false, multi: false, etym: false, pet: false };
 const app = document.getElementById("app"), view = document.getElementById("view");
 const titleEl = document.getElementById("title"), crumbEl = document.getElementById("crumb");
