@@ -69,6 +69,9 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 /// The reader-facing strings, one column per language, taken from i18n/lens_*.ts so the
 /// prototype and the application say the same thing. `def` is the explanation itself -- sample
 /// content, not a string the application owns, and it follows the explanation-language setting.
+/// The "5 s" in `meta` is the default display time; the bubble settings can change it (UI.md 4.3).
+/// The placement is not drawn here: the card is the same above or below, and selection-bar.html
+/// with ?placement=below shows which side it lands on.
 /// `etymLabel` is a string the application owns; `etym` is more of the same sample content, and it
 /// is drawn only when the etymology setting is on.
 const L = {

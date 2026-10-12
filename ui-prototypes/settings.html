@@ -66,6 +66,9 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .money{position:relative}
 .money span{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}
 .money .input{padding-left:26px}
+.unit{position:relative}
+.unit span{position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}
+.unit .input{padding-right:26px}
 .seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
 .seg button{flex:1;text-align:center;padding:6.5px 0;border:0;background:transparent;font-size:12px;color:var(--muted)}
 .seg button[aria-pressed=true]{background:var(--ink);color:var(--on);font-weight:600}
@@ -178,7 +181,7 @@ for (const el of document.querySelectorAll('[data-l]')) el.textContent = t[el.da
 const categories = Object.entries(t.cat).map(([id, [name, summary]]) => ({ id, name, summary }));
 const titles = { clipboard: "弹窗与剪贴板", connection: "API 配置" };
 const defaults = { theme: "light", uiLang: "zh", level: "CET-4", language: "en", startup: false, animations: true, selection: true,
-  policy: "topmost", minLen: "3", provider: "DeepSeek", model: "deepseek-flash", api: "", url: "",
+  policy: "topmost", bubbleSeconds: "5", placement: "above", minLen: "3", provider: "DeepSeek", model: "deepseek-flash", api: "", url: "",
   tesseractExe: "", tesseractData: "", triggerKey: "Ctrl+Alt+S",
   dailyBudget: "0", customBg: "#e9ebef", customPanel: "#ffffff", customText: "#1a1a1f", customMuted: "#66666f", customFaint: "#9d9da8", customOk: "#2f9e6e",
   ocr: false, scan: false, multi: false, etym: false, pet: false };
@@ -216,7 +219,10 @@ const modelField = (label, key, opts) => {
        + `<div class="dd-list" role="listbox">${items}</div></div></div>`;
 };
 /// A money field: the symbol is the display currency the rest of the surfaces spend in.
-const money = (label, key, ph) => `<div class="field"><label class="flabel" for="${key}">${label}</label><div class="money"><span aria-hidden="true">¥</span><input id="${key}" class="input" type="number" data-input="${key}" value="${esc(values[key])}" placeholder="${ph}" autocomplete="off" spellcheck="false"></div></div>`;
+/// The bubble's duration: whole seconds, the unit drawn at the right end of the box the way the money
+/// field draws its symbol at the left. The range is the one the controller clamps to.
+const seconds = (label, key) => `<div class="field"><label class="flabel" for="${key}">${label}</label><div class="unit"><input id="${key}" class="input" type="number" min="1" max="30" step="1" data-input="${key}" value="${esc(values[key])}" autocomplete="off" spellcheck="false"><span aria-hidden="true">s</span></div><p class="fhelp">1 到 30 秒。</p></div>`;
+const money = (label, key, ph) =>`<div class="field"><label class="flabel" for="${key}">${label}</label><div class="money"><span aria-hidden="true">¥</span><input id="${key}" class="input" type="number" data-input="${key}" value="${esc(values[key])}" placeholder="${ph}" autocomplete="off" spellcheck="false"></div></div>`;
 const link = (id, label, val = "") => `<button type="button" class="link-row" data-route="${id}"><span>${label}</span><span class="chevm">${esc(val)}<span aria-hidden="true">›</span></span></button>`;
 /// A path the reader picks rather than types: the folder glyph is what says so, and a path nobody
 /// has picked yet draws where the program would look instead, in the placeholder colour.
@@ -287,7 +293,9 @@ function page(id) {
 }
 function detail() {
   switch (route) {
-    case "clipboard": return seg("剪贴板被占用时", "policy", [["topmost", "强制置顶"], ["silent", "静默放弃"]]);
+    case "clipboard": return seconds("气泡显示时长", "bubbleSeconds") +
+      seg("气泡位置", "placement", [["above", "上方"], ["below", "下方"]]) +
+      seg("剪贴板被占用时", "policy", [["topmost", "强制置顶"], ["silent", "静默放弃"]]);
     case "connection": return inp("API key", "api", "输入 API key", "password") +
       '<p class="fhelp">密钥只保存在本机。</p>' +
       inp("服务地址", "url", "服务商提供的地址") +

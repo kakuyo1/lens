@@ -101,6 +101,10 @@ public:
     Q_INVOKABLE void setSelectionCapture(bool on);
     Q_INVOKABLE void setApiKey(QString key);
     Q_INVOKABLE void setClipboardPolicy(QString policy);
+    /// @brief Store how long a bubble stays up, clamped to the range bubble_settings.h names.
+    Q_INVOKABLE void setBubbleDismissSeconds(int seconds);
+    /// @brief Store which side of the selection a bubble and the action bar try first: "above" or "below".
+    Q_INVOKABLE void setBubblePlacement(QString placement);
     Q_INVOKABLE void setModel(QString model);
     Q_INVOKABLE void setApiUrl(QString url);
     Q_INVOKABLE void setAutostart(bool on);

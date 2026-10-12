@@ -20,6 +20,7 @@
 #include <utility>
 
 #include "autostart.h"
+#include "bubble_settings.h"
 #include "notice.h"
 #include "update/update_client.h"
 #include "util/log.h"
@@ -346,6 +347,22 @@ void AppController::setClipboardPolicy(QString policy)
     emit settingsChanged();
 }
 
+void AppController::setBubbleDismissSeconds(int seconds)
+{
+    storage_.section().set<int>("bubbleDismissSeconds", clampBubbleDismissSeconds(seconds));
+    emit settingsChanged();
+}
+
+void AppController::setBubblePlacement(QString placement)
+{
+    if (placement != QLatin1String("above") && placement != QLatin1String("below")) {
+        LENS_WARN("unknown bubble placement '{}'; leaving the setting alone", placement.toStdString());
+        return;
+    }
+    storage_.section().set<std::string>("bubblePlacement", placement.toStdString());
+    emit settingsChanged();
+}
+
 void AppController::setModel(QString model)
 {
     if (catalog_.setModel(model))
@@ -410,6 +427,8 @@ QVariantMap AppController::settings()
                          {"hasApiKey", !keys.value<std::string>("API-KEY", {}).empty()},
                          {"selectionCapture", keys.value<bool>("selectionCapture", true)},
                          {"clipboardPolicy", QString::fromStdString(keys.value<std::string>("clipboardPolicy", "topmost"))},
+                         {"bubbleDismissSeconds", clampBubbleDismissSeconds(keys.value<int>("bubbleDismissSeconds", kBubbleDismissDefaultSeconds))},
+                         {"bubblePlacement", QString::fromStdString(keys.value<std::string>("bubblePlacement", "above"))},
                          {"ocrHotkey", hotkey_.keys().toString(QKeySequence::PortableText)},
                          {"ocrHotkeyConflicted", hotkey_.conflicted()},
                          {"provider", provider},

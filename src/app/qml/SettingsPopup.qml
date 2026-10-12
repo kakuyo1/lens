@@ -100,6 +100,8 @@ Window {
         Controller.setAnimationsEnabled(true);
         Controller.setSelectionCapture(true);
         Controller.setClipboardPolicy("topmost");
+        Controller.setBubbleDismissSeconds(5);
+        Controller.setBubblePlacement("above");
         Controller.modelCatalogDuty.setProvider("DeepSeek");
         Controller.setModel("deepseek-flash");
         Controller.restoreCaptureDefaults();
