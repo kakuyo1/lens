@@ -47,6 +47,10 @@ struct ExplanationBatch {
     /// @brief The language and sense mode the request goes out under, captured now so that an
     ///        answer can be told apart from the settings having moved while it was away.
     core::CacheContext context;
+    /// @brief Whether the request asked for an example sentence, captured when it went out. Read back
+    ///        at the answer so that an example already paid for is stored even if the setting was
+    ///        turned off while the request was away (docs/adr/0033).
+    bool example = false;
     /// @brief True when the word list filled this in on its own rather than the reader asking.
     bool fromScan = false;
 };
@@ -139,20 +143,21 @@ public:
      * @brief The next request to send, if there is one and one may be sent.
      * @param maySend Whether the budget lets a request go out at all this moment.
      * @param now     The language and sense mode in force, which become the batch's context.
+     * @param example Whether the example setting is on, which the batch is asked under.
      * @return Nothing while an answer is still outstanding, or when there is nothing to send, or
      *         when @p maySend is false -- a request the reader made and the budget then ran out
      *         under is not thrown away, it waits the way the word list's own work does.
      * @note Taking a batch makes it the batch in flight: call complete() once its answer has been
      *       disposed of, or nothing will ever leave again.
      */
-    std::optional<ExplanationBatch> take(bool maySend, core::CacheContext const& now)
+    std::optional<ExplanationBatch> take(bool maySend, core::CacheContext const& now, bool example = false)
     {
         if (sent_ or not maySend)
             return {};
         if (heldRequest_) {
             PendingSelection asked = std::move(*heldRequest_);
             heldRequest_.reset();
-            return open({std::move(asked)}, now, false);
+            return open({std::move(asked)}, now, example, false);
         }
         if (scanQueue_.isEmpty())
             return {};
@@ -162,7 +167,7 @@ public:
             batch.push_back(std::move(scanQueue_.front()));
             scanQueue_.removeFirst();
         }
-        return open(std::move(batch), now, true);
+        return open(std::move(batch), now, example, true);
     }
 
     /**
@@ -238,14 +243,15 @@ private:
     /// @brief Make @p items the batch in flight and hand back what the caller is to send.
     /// @param items    What to ask about; must not be empty.
     /// @param now      The settings in force, from which the batch's own context is taken.
+    /// @param example  Whether the example setting is on for this batch.
     /// @param fromScan Whether the word list filled this in on its own.
     /// @return The batch, as the caller is to send it.
-    ExplanationBatch open(QVector<PendingSelection> items, core::CacheContext const& now, bool fromScan)
+    ExplanationBatch open(QVector<PendingSelection> items, core::CacheContext const& now, bool example, bool fromScan)
     {
         forgetInvalidations(items);
         const core::CacheContext context{now.language, isWordKind(items.front().kind) and now.multipleSenses};
         requestedGeneration_ = selectionGeneration_;
-        sent_                = ExplanationBatch{std::move(items), context, fromScan};
+        sent_                = ExplanationBatch{std::move(items), context, example, fromScan};
         return *sent_;
     }
 

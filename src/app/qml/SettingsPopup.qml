@@ -44,6 +44,7 @@ Window {
         if (value === "model") return qsTranslate("SettingsPopup", "Model service");
         if (value === "budget") return qsTranslate("SettingsPopup", "Daily budget");
         if (value === "extensions") return qsTranslate("SettingsPopup", "Extensions");
+        if (value === "about") return qsTranslate("SettingsPopup", "About");
         return "";
     }
 
@@ -100,6 +101,8 @@ Window {
         Controller.setAnimationsEnabled(true);
         Controller.setSelectionCapture(true);
         Controller.setClipboardPolicy("topmost");
+        Controller.setBubbleDismissSeconds(5);
+        Controller.setBubblePlacement("above");
         Controller.modelCatalogDuty.setProvider("DeepSeek");
         Controller.setModel("deepseek-flash");
         Controller.restoreCaptureDefaults();
@@ -239,6 +242,7 @@ Window {
                                   : settings.category === "capture" ? captureComponent
                                   : settings.category === "model" ? modelComponent
                                   : settings.category === "budget" ? budgetComponent
+                                  : settings.category === "about" ? aboutComponent
                                   : extensionsComponent
             }
         }
@@ -331,6 +335,7 @@ Window {
         }
     }
     Component { id: generalComponent; SettingsGeneralPage {} }
+    Component { id: aboutComponent; SettingsAboutPage {} }
     Component { id: learningComponent; SettingsLearningPage {} }
     Component {
         id: captureComponent

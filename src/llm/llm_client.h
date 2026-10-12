@@ -42,10 +42,12 @@ inline constexpr int kMaxSenses = 3;
 ///       `etymology` is the word's origin in one sentence, in the explanation language. Optional
 ///       like `ipa`: it is asked for only when the reader's setting wants it, and a word whose
 ///       origin is unknown answers with none.
+///       `example` is one English sentence using the word. Optional for the same reasons.
 struct Explanation {
     QString        title, ipa, en, zh;
     QString        translation;
     QString        etymology;
+    QString        example;
     QVector<Sense> senses;
 };
 
@@ -122,6 +124,9 @@ public:
     /// word channel only in effect -- the other channels' templates have no place for it.
     void setEtymology(bool etymology);
 
+    /// @brief Ask the next request for one example sentence as well. Same reasoning as setEtymology().
+    void setExample(bool example);
+
     /// @brief Select the loaded prompt preset for the next request.
     void setPreset(const QString& preset);
 
@@ -162,6 +167,7 @@ private:
     QString                preset_    = QStringLiteral("default");
     QString                lang_      = QStringLiteral("en");
     bool                   etymology_ = false;
+    bool                   example_   = false;
     QNetworkAccessManager* manager_;
 };
 

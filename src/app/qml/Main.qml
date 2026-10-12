@@ -177,6 +177,20 @@ Window {
         panel.raise();
     }
 
+    /// @brief Where a surface that hangs from an anchor sits, before it is clamped into the work area.
+    ///
+    /// The side the reader chose (bubblePlacement) is tried first. The other side is taken when the
+    /// chosen one has no room, and that is also the answer when neither side has any: the clamp in
+    /// placeTransient() then keeps the surface on screen.
+    /// @return The window's top edge, in DIPs.
+    function transientTop(anchorY, gap, height, shadow, top, bottom, preferBelow) {
+        const above = anchorY - gap - height + shadow;
+        const below = anchorY + gap - shadow;
+        if (preferBelow)
+            return below + height <= bottom ? below : above;
+        return above >= top ? above : below;
+    }
+
     // qmllint disable missing-property
     function placeTransient(surface, anchor, gap) {
         root.rememberPlacement(surface, anchor, "transient");
@@ -191,9 +205,8 @@ Window {
         const bottom = area.bottom - screenMargin;
         const shadow = surface.shadowMargin;
         const x = root.clamp(anchor.x - shadow, left, right - layout.width);
-        const above = anchor.y - gap - layout.height + shadow;
-        const below = anchor.y + gap - shadow;
-        const y = root.clamp(above >= top ? above : below, top, bottom - layout.height);
+        const preferBelow = Controller.settings.bubblePlacement === "below";
+        const y = root.clamp(root.transientTop(anchor.y, gap, layout.height, shadow, top, bottom, preferBelow), top, bottom - layout.height);
         surface.x = Math.round(x);
         surface.y = Math.round(y);
         surface.raise();

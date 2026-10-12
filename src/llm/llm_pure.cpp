@@ -23,7 +23,7 @@ namespace {
 // the strings would silently never reach the .ts files.
 
 /// @brief Render a channel's system prompt with the output-language line filled in.
-QString renderSystemPrompt(Channel channel, const QString& explanationLang, const QString& preset, bool const etymology)
+QString renderSystemPrompt(Channel channel, const QString& explanationLang, const QString& preset, bool const etymology, bool const example)
 {
     const PromptTemplate& tmpl = promptTemplate(channel, preset);
 
@@ -41,6 +41,8 @@ QString renderSystemPrompt(Channel channel, const QString& explanationLang, cons
     // is untouched, which is how entity and sentence keep out of this.
     prompt.replace(QLatin1String(kEtymologyNotePlaceholder), etymology ? tmpl.etymologyNote : QString{});
     prompt.replace(QLatin1String(kEtymologyFieldPlaceholder), etymology ? tmpl.etymologyField : QString{});
+    prompt.replace(QLatin1String(kExampleNotePlaceholder), example ? tmpl.exampleNote : QString{});
+    prompt.replace(QLatin1String(kExampleFieldPlaceholder), example ? tmpl.exampleField : QString{});
     return prompt;
 }
 
@@ -153,7 +155,8 @@ QByteArray buildRequestBody(const Config&      config,
                             const QStringList& inputs,
                             const QString&     explanationLang,
                             const QString&     preset,
-                            bool const         etymology)
+                            bool const         etymology,
+                            bool const         example)
 {
     const RequestTemplate& tmpl = requestTemplate(channel);
 
@@ -167,7 +170,7 @@ QByteArray buildRequestBody(const Config&      config,
         {"messages",
          QJsonArray{
              QJsonObject{{"role", "system"},
-                         {"content", renderSystemPrompt(channel, explanationLang, preset, etymology)}},
+                         {"content", renderSystemPrompt(channel, explanationLang, preset, etymology, example)}},
              QJsonObject{{"role", "user"}, {"content", masked.join(QLatin1Char('\n'))}},
          }},
         {"response_format", tmpl.responseFormat},
@@ -265,6 +268,9 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel           
         // has none, and the model is free to answer "unknown". Failing a whole batch over it would
         // throw away the definitions that did arrive, the same trade `ipa` already makes.
         e.etymology = obj.value(QStringLiteral("etymology")).toString();
+        // ponytail: English whatever the explanation language, so es and ja readers get an English sentence.
+        // Upgrade: ask for it in the explanation language, as the origin does, once readers ask for that.
+        e.example = obj.value(QStringLiteral("example")).toString();
         if (isWord and obj.contains("senses")) {
             auto const senses = obj.value("senses").toArray();
             for (auto const& value : senses) {

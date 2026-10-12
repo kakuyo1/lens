@@ -48,10 +48,11 @@ QJsonObject word(int const count = 3, QString const& translation = QStringLitera
     return {{"word", "bank"}, {"ipa", "/bank/"}, {"senses", senses}};
 }
 
-QJsonObject plainWord(QString const& lemma, QString const& etymology = {})
+QJsonObject plainWord(QString const& lemma, QString const& etymology = {}, QString const& example = {})
 {
     QJsonObject value{{"word", lemma}, {"ipa", "/x/"}, {"en", "English"}, {"zh", "中文"}};
     if (not etymology.isEmpty()) value["etymology"] = etymology;
+    if (not example.isEmpty()) value["example"] = example;
     return value;
 }
 
@@ -339,6 +340,105 @@ TEST_F(LlmTest, Phase2TheEtymologySettingBringsTheOriginAlongAndKeepsItOutOfTheK
     explain("resilience");
     EXPECT_EQ(manager.posts, 2) << "the same word was paid for twice";
     EXPECT_EQ(duty.bubble().value("etymology").toString(), QStringLiteral("Latin resilire, to leap back."));
+}
+
+TEST_F(LlmTest, Phase2TheExampleSettingBuysASentenceOnceAndAStoredWordWithoutOneIsBoughtAgain)
+{
+    QtApplication        qt;
+    QTemporaryDir        temporary;
+    auto                 store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    app::StorageDuty     storage{store};
+    Manager              manager;
+    llm::LlmClient       client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
+    auto const           pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+    app::CostDuty        cost{storage.statsStore(), client, pricing};
+    app::ExplanationDuty duty{storage, client, cost};
+
+    auto const explain = [&](QString const& lemma) {
+        const int before = manager.posts;
+        duty.setSelection(selectionFor(lemma));
+        QEventLoop loop;
+        QObject::connect(&client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
+        QObject::connect(&client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
+        QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+        duty.runSelectionAction("explain", lemma);
+        // A word already stored is answered without a round trip, so waiting would be waiting for
+        // something that is not coming -- and the bubble is up before this returns.
+        if (manager.posts > before) loop.exec();
+    };
+    auto const askedForExample = [&] {
+        const auto messages = QJsonDocument::fromJson(manager.posted).object().value("messages").toArray();
+        if (messages.isEmpty()) return false;
+        return messages.at(0).toObject().value("content").toString().contains(QStringLiteral("\"example\":\"...\""));
+    };
+
+    // Explained with the example off, the word is bought without a sentence, and the entry says so.
+    manager.response = envelope({plainWord("bank")});
+    explain("bank");
+    EXPECT_FALSE(askedForExample());
+    EXPECT_FALSE(store.cacheGet("bank", {"en", false})->example.has_value()) << "an unasked-for example was stored";
+
+    // Turning the example on does not reuse that entry: it was bought without a sentence, and the
+    // reader is owed one now. The second request is paid for, and the answer is what the bubble shows.
+    duty.dismissBubble();
+    store.document()["example"] = "true";
+    manager.response            = envelope({plainWord("bank", {}, "The bank raised its interest rate.")});
+    explain("bank");
+    EXPECT_EQ(manager.posts, 2) << "a stored word without an example was served as if it had one";
+    ASSERT_TRUE(askedForExample());
+    EXPECT_EQ(duty.bubble().value("example").toString(), QStringLiteral("The bank raised its interest rate."));
+    EXPECT_EQ(store.cacheGet("bank", {"en", false})->example.value_or("<absent>"), "The bank raised its interest rate.");
+
+    // With the sentence stored, the next look is served from the cache, and no request is made.
+    duty.dismissBubble();
+    explain("bank");
+    EXPECT_EQ(manager.posts, 2) << "a stored example was bought a second time";
+    EXPECT_EQ(duty.bubble().value("example").toString(), QStringLiteral("The bank raised its interest rate."));
+
+    // Turned off, the card leaves the sentence out but keeps it stored, so turning it back on costs nothing.
+    duty.dismissBubble();
+    store.document()["example"] = "false";
+    explain("bank");
+    EXPECT_EQ(manager.posts, 2);
+    EXPECT_TRUE(duty.bubble().value("example").toString().isEmpty()) << "a stored example was drawn with the setting off";
+    EXPECT_TRUE(store.cacheGet("bank", {"en", false})->example.has_value()) << "turning the setting off dropped the stored sentence";
+}
+
+TEST_F(LlmTest, Phase2AnExampleThatIsEmptyIsAnAnswerAndIsNotAskedForAgain)
+{
+    QtApplication        qt;
+    QTemporaryDir        temporary;
+    auto                 store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    app::StorageDuty     storage{store};
+    Manager              manager;
+    llm::LlmClient       client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
+    auto const           pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+    app::CostDuty        cost{storage.statsStore(), client, pricing};
+    app::ExplanationDuty duty{storage, client, cost};
+
+    auto const explain = [&](QString const& lemma) {
+        const int before = manager.posts;
+        duty.setSelection(selectionFor(lemma));
+        QEventLoop loop;
+        QObject::connect(&client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
+        QObject::connect(&client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
+        QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+        duty.runSelectionAction("explain", lemma);
+        if (manager.posts > before) loop.exec();
+    };
+
+    // The model was asked and had no sentence to give: that is a settled answer, so the entry records
+    // it as empty and the next look does not spend another request on the same question.
+    store.document()["example"] = "true";
+    manager.response            = envelope({plainWord("acronym")});
+    explain("acronym");
+    EXPECT_EQ(manager.posts, 1);
+    ASSERT_TRUE(store.cacheGet("acronym", {"en", false})->example.has_value()) << "an asked-for but empty example was dropped as a miss";
+    EXPECT_TRUE(store.cacheGet("acronym", {"en", false})->example->empty());
+
+    duty.dismissBubble();
+    explain("acronym");
+    EXPECT_EQ(manager.posts, 1) << "a settled empty example was asked for again";
 }
 
 TEST_F(LlmTest, Phase2ChangingSettingsDuringResponseKeepsTheOriginalCacheContext)

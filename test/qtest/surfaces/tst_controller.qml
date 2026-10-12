@@ -120,6 +120,30 @@ Item {
             compare(Controller.settings.clipboardPolicy, "topmost");
         }
 
+        /// The display time is stored as whole seconds and kept between one and thirty; an out-of-range
+        /// value lands on the nearer edge. A placement that is neither side is refused, as the policy is.
+        function test_theBubbleSettingsClampAndRefuseWhatTheyCannotUse() {
+            Controller.setBubbleDismissSeconds(12);
+            compare(Controller.settings.bubbleDismissSeconds, 12);
+
+            Controller.setBubbleDismissSeconds(0);
+            compare(Controller.settings.bubbleDismissSeconds, 1, "a zero display time was stored");
+
+            Controller.setBubbleDismissSeconds(99);
+            compare(Controller.settings.bubbleDismissSeconds, 30, "an oversized display time was stored");
+
+            Controller.setBubblePlacement("below");
+            compare(Controller.settings.bubblePlacement, "below");
+
+            Controller.setBubblePlacement("nonsense");
+            compare(Controller.settings.bubblePlacement, "below", "an unknown placement was written anyway");
+
+            Controller.setBubblePlacement("above");
+            Controller.setBubbleDismissSeconds(5);
+            compare(Controller.settings.bubblePlacement, "above");
+            compare(Controller.settings.bubbleDismissSeconds, 5);
+        }
+
         /// Automatic scanning is a phase-1 placeholder, but the label the tray menu and tooltip
         /// both read still has to follow it rather than disagree with itself.
         function test_theModeLabelFollowsAutoScan() {

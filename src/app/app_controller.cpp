@@ -11,6 +11,7 @@
 #include <QDateTime>
 #include <QGuiApplication>
 #include <QHash>
+#include <QLocale>
 #include <QSaveFile>
 #include <QScreen>
 #include <QSet>
@@ -20,6 +21,7 @@
 #include <utility>
 
 #include "autostart.h"
+#include "bubble_settings.h"
 #include "notice.h"
 #include "update/update_client.h"
 #include "util/log.h"
@@ -296,6 +298,12 @@ void AppController::setEtymology(bool on)
     emit settingsChanged();
 }
 
+void AppController::setExample(bool on)
+{
+    storage_.section().set<bool>("example", on);
+    emit settingsChanged();
+}
+
 void AppController::setTheme(QString theme)
 {
     storage_.section().set<std::string>("theme", theme.toStdString());
@@ -343,6 +351,22 @@ void AppController::setClipboardPolicy(QString policy)
     }
     storage_.section().set<std::string>("clipboardPolicy", policy.toStdString());
     LENS_INFO("clipboard policy set to '{}'", policy.toStdString());
+    emit settingsChanged();
+}
+
+void AppController::setBubbleDismissSeconds(int seconds)
+{
+    storage_.section().set<int>("bubbleDismissSeconds", clampBubbleDismissSeconds(seconds));
+    emit settingsChanged();
+}
+
+void AppController::setBubblePlacement(QString placement)
+{
+    if (placement != QLatin1String("above") && placement != QLatin1String("below")) {
+        LENS_WARN("unknown bubble placement '{}'; leaving the setting alone", placement.toStdString());
+        return;
+    }
+    storage_.section().set<std::string>("bubblePlacement", placement.toStdString());
     emit settingsChanged();
 }
 
@@ -404,12 +428,15 @@ QVariantMap AppController::settings()
                          {"explanationLang", QString::fromStdString(storage_.knownStore().explanationLang())},
                          {"multiSense", keys.value<bool>("multiSense", false)},
                          {"etymology", keys.value<bool>("etymology", false)},
+                         {"example", keys.value<bool>("example", false)},
                          {"theme", QString::fromStdString(keys.value<std::string>("theme", "light"))},
                          {"animationsEnabled", keys.value<bool>("animationsEnabled", true)},
                          {"uiLanguage", QString::fromStdString(keys.value<std::string>("uiLanguage", "zh"))},
                          {"hasApiKey", !keys.value<std::string>("API-KEY", {}).empty()},
                          {"selectionCapture", keys.value<bool>("selectionCapture", true)},
                          {"clipboardPolicy", QString::fromStdString(keys.value<std::string>("clipboardPolicy", "topmost"))},
+                         {"bubbleDismissSeconds", clampBubbleDismissSeconds(keys.value<int>("bubbleDismissSeconds", kBubbleDismissDefaultSeconds))},
+                         {"bubblePlacement", QString::fromStdString(keys.value<std::string>("bubblePlacement", "above"))},
                          {"ocrHotkey", hotkey_.keys().toString(QKeySequence::PortableText)},
                          {"ocrHotkeyConflicted", hotkey_.conflicted()},
                          {"provider", provider},
@@ -589,6 +616,14 @@ QString AppController::busyLabel() const
 double AppController::dailyBudget() const
 {
     return storage_.statsStore().dailyBudget();
+}
+
+QString AppController::buildDate() const
+{
+    // __DATE__ is English ("Oct 12 2026", the day space-padded), so the C locale parses it whatever
+    // language the reader has chosen.
+    const QDate built = QLocale::c().toDate(QString::fromLatin1(__DATE__).simplified(), QStringLiteral("MMM d yyyy"));
+    return built.toString(Qt::ISODate);
 }
 
 void AppController::refreshCaptureGates()

@@ -94,6 +94,9 @@ private:
     /// @return True when there was one; a word that has never been explained is not it, and neither
     ///         is a sentence, which is not something the cache holds.
     bool showStored(PendingSelection const& pending, core::CacheContext const& context);
+    /// @brief Whether a stored entry answers a request made now. With the example setting on, an entry
+    ///        bought without one does not: it is asked for again, and paid for once more.
+    bool servable(core::WordCache const& cached) const;
     /// @brief Put one batch on the wire, under the context the queue captured for it.
     void send(ExplanationBatch batch);
     /**
@@ -117,6 +120,9 @@ private:
     /// back on, the entries already stored are the ones served -- see WordCache for why the origin
     /// sits outside the cache key.
     bool etymologyEnabled() const;
+    /// @brief Whether the reader wants an example sentence. Read when a request goes out, and again
+    ///        when the card is drawn: a stored entry without one is a miss while it is on (docs/adr/0033).
+    bool exampleEnabled() const;
     void clearBubble();
     void clearNotice();
 

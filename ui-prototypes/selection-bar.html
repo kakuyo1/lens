@@ -83,12 +83,21 @@ const demo = document.getElementById('demo'),
       bar  = document.getElementById('bar'),
       sel  = document.getElementById('sel');
 
+// The side the bar tries first is the bubble settings' Bubble position (above by default). It takes the other
+// side only when the chosen one has no room in the demo canvas, which is what the work area does on
+// the real screen. ?placement=below previews the below side.
+const preferBelow = new URLSearchParams(location.search).get('placement') === 'below';
 function placeTo(r) {
   bar.classList.add('show');
   const d = demo.getBoundingClientRect();
   const left = Math.max(0, Math.min(r.left - d.left, demo.clientWidth - bar.offsetWidth));
+  const above = r.top - d.top - bar.offsetHeight - 8;
+  const below = r.bottom - d.top + 8;
+  const fitsBelow = r.bottom + 8 + bar.offsetHeight <= window.innerHeight;
+  const fitsAbove = above >= 0;
+  const takeBelow = preferBelow ? fitsBelow || !fitsAbove : !fitsAbove;
   bar.style.left = left + 'px';
-  bar.style.top = (r.top - d.top - bar.offsetHeight - 8) + 'px';
+  bar.style.top = (takeBelow ? below : above) + 'px';
 }
 placeTo(sel.getBoundingClientRect());
 

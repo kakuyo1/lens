@@ -37,6 +37,12 @@ inline constexpr const char* kOutputLanguagePlaceholder = "{outputLanguage}";
 inline constexpr const char* kEtymologyNotePlaceholder  = "{etymologyNote}";
 inline constexpr const char* kEtymologyFieldPlaceholder = "{etymologyField}";
 
+/// Placeholders the example request is substituted into: the pair the origin has, one sentence asking
+/// for an example and the field it adds to the JSON example. Same rule as the origin's: a template
+/// without them is left alone.
+inline constexpr const char* kExampleNotePlaceholder  = "{exampleNote}";
+inline constexpr const char* kExampleFieldPlaceholder = "{exampleField}";
+
 /// @brief Which channel a request belongs to. Decided locally, before anything is sent.
 enum class Channel : std::uint8_t { Word = 0,
                                     Entity,
@@ -54,6 +60,10 @@ struct PromptTemplate {
     /// travels with the sentence above: a shape that does not name the field is a field the model
     /// leaves out, and a missing etymology is not something the validator can report.
     QString etymologyField;
+    /// The sentence asking for one example sentence, substituted into kExampleNotePlaceholder.
+    QString exampleNote;
+    /// The `"example":"..."` fragment for kExampleFieldPlaceholder, travelling with the sentence above.
+    QString exampleField;
 };
 
 /// @brief Request half of one channel's protocol, from `request.<channel>.json`.

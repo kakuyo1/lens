@@ -95,12 +95,18 @@ public:
     Q_INVOKABLE void setMultiSense(bool on);
     /// @brief Ask for a word's origin with its explanation, and draw it on the bubble.
     Q_INVOKABLE void setEtymology(bool on);
+    /// @brief Ask for one example sentence with a word's explanation, and draw it on the bubble.
+    Q_INVOKABLE void setExample(bool on);
     Q_INVOKABLE void setTheme(QString theme);
     Q_INVOKABLE void setAnimationsEnabled(bool on);
     Q_INVOKABLE void setUiLanguage(QString lang);
     Q_INVOKABLE void setSelectionCapture(bool on);
     Q_INVOKABLE void setApiKey(QString key);
     Q_INVOKABLE void setClipboardPolicy(QString policy);
+    /// @brief Store how long a bubble stays up, clamped to the range bubble_settings.h names.
+    Q_INVOKABLE void setBubbleDismissSeconds(int seconds);
+    /// @brief Store which side of the selection a bubble and the action bar try first: "above" or "below".
+    Q_INVOKABLE void setBubblePlacement(QString placement);
     Q_INVOKABLE void setModel(QString model);
     Q_INVOKABLE void setApiUrl(QString url);
     Q_INVOKABLE void setAutostart(bool on);
@@ -149,6 +155,8 @@ public:
     QString           modeLabel() const;
     QString           busyLabel() const;
     double            dailyBudget() const;
+    /// @brief The day this build was compiled, as `yyyy-MM-dd`, for the about page. Not the day it runs.
+    QString buildDate() const;
 
     Q_PROPERTY(QVariantMap settings READ settings NOTIFY settingsChanged)
     Q_PROPERTY(QVariantMap stats READ stats NOTIFY statsChanged)
@@ -162,6 +170,7 @@ public:
     Q_PROPERTY(QString modeLabel READ modeLabel NOTIFY settingsChanged)
     Q_PROPERTY(QString busyLabel READ busyLabel NOTIFY busyChanged)
     Q_PROPERTY(double dailyBudget READ dailyBudget NOTIFY dailyBudgetChanged)
+    Q_PROPERTY(QString buildDate READ buildDate CONSTANT)
 
 signals:
     void selectionBarRequested(QVariantMap payload);

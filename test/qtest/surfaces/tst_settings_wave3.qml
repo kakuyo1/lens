@@ -85,6 +85,8 @@ Item {
             Controller.setAnimationsEnabled(false);
             Controller.setSelectionCapture(false);
             Controller.setClipboardPolicy("silent");
+            Controller.setBubbleDismissSeconds(20);
+            Controller.setBubblePlacement("below");
             Controller.captureDuty.setAutoScan(true);
             wait(20);
 
@@ -97,6 +99,8 @@ Item {
             compare(Controller.settings.animationsEnabled, true);
             compare(Controller.settings.selectionCapture, true);
             compare(Controller.settings.clipboardPolicy, "topmost");
+            compare(Controller.settings.bubbleDismissSeconds, 5);
+            compare(Controller.settings.bubblePlacement, "above");
             compare(Controller.settings.autoScan, false);
             compare(Controller.settings.hasApiKey, hasApiKey);
             compare(Controller.settings.autostart, autostart);
