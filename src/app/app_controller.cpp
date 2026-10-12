@@ -11,6 +11,7 @@
 #include <QDateTime>
 #include <QGuiApplication>
 #include <QHash>
+#include <QLocale>
 #include <QSaveFile>
 #include <QScreen>
 #include <QSet>
@@ -596,6 +597,14 @@ QString AppController::busyLabel() const
 double AppController::dailyBudget() const
 {
     return storage_.statsStore().dailyBudget();
+}
+
+QString AppController::buildDate() const
+{
+    // __DATE__ is English ("Oct 12 2026", the day space-padded), so the C locale parses it whatever
+    // language the reader has chosen.
+    const QDate built = QLocale::c().toDate(QString::fromLatin1(__DATE__).simplified(), QStringLiteral("MMM d yyyy"));
+    return built.toString(Qt::ISODate);
 }
 
 void AppController::refreshCaptureGates()

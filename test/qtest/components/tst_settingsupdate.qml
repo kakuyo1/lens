@@ -4,8 +4,9 @@ import Lens
 import "../testutil.js" as Util
 
 /**
- * The update block in the General settings page: the button, the line that answers it, and the
- * switch that says whether the check happens without being asked for.
+ * The update block on the About page: the button, the line that answers it, and the version it
+ * names. The switch that says whether the check happens without being asked for stays on the
+ * General page, and is checked here only by the case that reads it.
  *
  * The line is under test as the mapping it is: five states, five texts, nothing else. That is
  * reachable offline because the page reads the text out of a function of the state, so the case
@@ -21,6 +22,11 @@ Item {
 
     Component {
         id: pageComponent
+        SettingsAboutPage { width: 340 }
+    }
+
+    Component {
+        id: generalComponent
         SettingsGeneralPage { width: 340 }
     }
 
@@ -29,8 +35,8 @@ Item {
         name: "SettingsUpdate"
         when: windowShown
 
-        function make() {
-            const page = createTemporaryObject(pageComponent, root);
+        function make(component) {
+            const page = createTemporaryObject(component ? component : pageComponent, root);
             verify(!!page, "Component exists");
             wait(50);
             return page;
@@ -90,14 +96,27 @@ Item {
             const page = make();
             const labels = Util.textsUnder(page).map(function (t) { return t.text; });
             verify(labels.indexOf("Check for updates") >= 0, "the button carries no label");
-            verify(labels.indexOf("Check for updates at startup") >= 0, "the switch has no label");
+            verify(labels.indexOf("GitHub repository") >= 0, "the repository row carries no label");
+            page.destroy();
+        }
+
+        /// The version the check compares against is on the page, and the footer carries the build
+        /// day in the form the controller stamps: yyyy-MM-dd, on every machine.
+        function test_theVersionAndBuildDateAreShown() {
+            const page = make();
+            const labels = Util.textsUnder(page).map(function (t) { return t.text; });
+            verify(labels.indexOf("Current version " + Controller.updateDuty.update.current) >= 0,
+                   "the version line is missing");
+            verify(/^\d{4}-\d{2}-\d{2}$/.test(Controller.buildDate),
+                   "the build date is not yyyy-MM-dd: " + Controller.buildDate);
+            verify(labels.indexOf("Built " + Controller.buildDate) >= 0, "the footer carries no build date");
             page.destroy();
         }
 
         /// The switch reads and writes the controller's own value, so what the reader toggles
         /// is the setting the startup check reads.
         function test_theSwitchIsBoundToTheStartupCheck() {
-            const page = make();
+            const page = make(generalComponent);
             const rows = Util.findAll(page, function (object) {
                 return typeof object.toggled === "function" && object.label !== undefined;
             });

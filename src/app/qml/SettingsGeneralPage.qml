@@ -40,32 +40,6 @@ Item {
             Controller.setTheme(Tokens.customThemeValue(page.draftColors));
     }
 
-    /**
-     * What the update line says, for one state.
-     *
-     * A function of the state alone, so the line can never carry a transport's own words: the
-     * five states below are the whole of what it knows. An unknown state -- and `idle`, which
-     * has nothing to say -- reads as nothing rather than as a guess.
-     */
-    function updateStatusText(state) {
-        if (state === "checking")
-            return qsTranslate("SettingsPopup", "Checking...");
-        if (state === "upToDate")
-            return qsTranslate("SettingsPopup", "Up to date (version %1)").arg(Controller.updateDuty.update.current);
-        if (state === "available")
-            return qsTranslate("SettingsPopup", "Version %1 is available").arg(Controller.updateDuty.update.latest);
-        if (state === "offline")
-            return qsTranslate("SettingsPopup", "Cannot connect");
-        return "";
-    }
-
-    /// Whether a check is running, which is the one thing that locks the button.
-    function updateBusy(state) {
-        return state === "checking";
-    }
-
-    readonly property bool updatesBusy: page.updateBusy(Controller.updateDuty.update.state)
-
     Component.onCompleted: page.loadDraft()
 
     Connections {
@@ -236,60 +210,6 @@ Item {
             label: qsTranslate("SettingsPopup", "Animations")
             checked: Controller.settings.animationsEnabled
             onToggled: (on) => Controller.setAnimationsEnabled(on)
-        }
-
-        /// The button and the line that answers it. The line is here and not on the card, because
-        /// this is where a reader comes to be told; the card is what the automatic check raised,
-        /// and it goes away on its own.
-        Row {
-            width: parent.width
-            height: 26
-            spacing: 12
-
-            Rectangle {
-                id: checkButton
-                objectName: "checkForUpdatesButton"
-                width: checkLabel.width + 26
-                height: 26
-                radius: Tokens.radiusPill
-                color: Tokens.ink
-                opacity: page.updatesBusy ? 0.58 : 1
-                scale: checkTap.pressed ? 0.97 : 1.0
-                Behavior on scale {
-                    NumberAnimation {
-                        duration: Tokens.motion.press
-                        easing.type: Tokens.motion.easing
-                    }
-                }
-
-                Text {
-                    id: checkLabel
-                    anchors.centerIn: parent
-                    text: qsTranslate("SettingsPopup", "Check for updates")
-                    color: page.updatesBusy ? Tokens.faint : Tokens.on
-                    font.pixelSize: 12
-                    font.weight: Font.Bold
-                }
-
-                HoverHandler { cursorShape: Qt.PointingHandCursor }
-                TapHandler {
-                    id: checkTap
-                    enabled: !page.updatesBusy
-                    onTapped: Controller.updateDuty.checkForUpdates()
-                }
-            }
-
-            Text {
-                id: updateLine
-                objectName: "updateStatusLine"
-                anchors.verticalCenter: parent.verticalCenter
-                width: parent.width - checkButton.width - parent.spacing
-                text: page.updateStatusText(Controller.updateDuty.update.state)
-                visible: text !== ""
-                color: Tokens.muted
-                font.pixelSize: 12
-                elide: Text.ElideRight
-            }
         }
 
         SwitchRow {
