@@ -183,7 +183,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="51"/>
-        <location filename="../src/app/app_controller.cpp" line="266"/>
+        <location filename="../src/app/app_controller.cpp" line="267"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -199,7 +199,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="89"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="51"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="52"/>
         <source>Popup &amp; clipboard</source>
         <translation>ポップアップとクリップボード</translation>
     </message>
@@ -272,6 +272,17 @@
         <translation>デスクトップの相棒</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/SettingsCatalog.qml" line="48"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="47"/>
+        <source>About</source>
+        <translation>情報</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCatalog.qml" line="49"/>
+        <source>Version, updates, repository</source>
+        <translation>バージョン、更新、リポジトリ</translation>
+    </message>
+    <message>
         <location filename="../src/app/qml/SettingsClipboardPage.qml" line="18"/>
         <source>When the clipboard is occupied</source>
         <translation>クリップボードが使用中のとき</translation>
@@ -297,127 +308,147 @@
         <translation>このアドレスはプロバイダーの一般的なもので、古くなっていることがあります。公式ドキュメントで確認してください。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="52"/>
+        <location filename="../src/app/qml/SettingsAboutPage.qml" line="23"/>
         <source>Checking...</source>
         <translation>確認中…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="54"/>
+        <location filename="../src/app/qml/SettingsAboutPage.qml" line="25"/>
         <source>Up to date (version %1)</source>
         <translation>最新です（バージョン %1）</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="56"/>
+        <location filename="../src/app/qml/SettingsAboutPage.qml" line="27"/>
         <source>Version %1 is available</source>
         <translation>バージョン %1 が利用できます</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="58"/>
+        <location filename="../src/app/qml/SettingsAboutPage.qml" line="29"/>
         <source>Cannot connect</source>
         <translation>接続できません</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="89"/>
+        <location filename="../src/app/qml/SettingsAboutPage.qml" line="69"/>
+        <source>GitHub repository</source>
+        <translation>GitHub リポジトリ</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsAboutPage.qml" line="111"/>
+        <source>Current version %1</source>
+        <translation>現在のバージョン %1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsAboutPage.qml" line="183"/>
+        <source>Copyright (c) 2026 kakuyo1 · MIT License</source>
+        <translation>Copyright (c) 2026 kakuyo1 · MIT ライセンス</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsAboutPage.qml" line="190"/>
+        <source>Built %1</source>
+        <translation>ビルド日 %1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="63"/>
         <source>Theme</source>
         <translation>テーマ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="100"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="74"/>
         <source>Light</source>
         <translation>ライト</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="101"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="75"/>
         <source>Dark</source>
         <translation>ダーク</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="102"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="76"/>
         <source>Forest</source>
         <translation>Forest</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="103"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="77"/>
         <source>Custom</source>
         <translation>カスタム</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="117"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="91"/>
         <source>Custom semantic colors</source>
         <translation>カスタム配色</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="126"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="100"/>
         <source>Use six-digit hex colors. Body, muted, and faint text must each pass WCAG AA on the panel.</source>
         <translation>6 桁の 16 進数カラーを使います。本文・補助・淡色の各テキストはパネル上で WCAG AA を満たす必要があります。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="133"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="107"/>
         <source>Background</source>
         <translation>背景</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="134"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="108"/>
         <source>Panel</source>
         <translation>パネル</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="135"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="109"/>
         <source>Body text</source>
         <translation>本文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="136"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="110"/>
         <source>Muted text</source>
         <translation>補助テキスト</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="137"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="111"/>
         <source>Faint text</source>
         <translation>淡色テキスト</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="138"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="112"/>
         <source>Accent</source>
         <translation>アクセント</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="196"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="170"/>
         <source>AA contrast passes: body %1, muted %2, faint %3</source>
         <translation>AA コントラスト合格：本文 %1、補助 %2、淡色 %3</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="200"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="174"/>
         <source>AA contrast requires valid colors and a 4.5:1 ratio for body, muted, and faint text.</source>
         <translation>AA コントラストには有効な色と、本文・補助・淡色テキストそれぞれ 4.5:1 の比率が必要です。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="214"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="188"/>
         <source>Apply custom colors</source>
         <translation>カスタム配色を適用</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="229"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="203"/>
         <source>Launch at startup</source>
         <translation>スタートアップ時に起動</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="236"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="210"/>
         <source>Animations</source>
         <translation>アニメーション</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="268"/>
+        <location filename="../src/app/qml/SettingsAboutPage.qml" line="151"/>
         <source>Check for updates</source>
         <translation>更新を確認</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="297"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="217"/>
         <source>Check for updates at startup</source>
         <translation>起動時に更新を確認</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="305"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="225"/>
         <source>Animations are disabled by Windows accessibility settings.</source>
         <translation>Windows のアクセシビリティ設定により、アニメーションは無効です。</translation>
     </message>
@@ -453,7 +484,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsModelPage.qml" line="85"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="52"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="53"/>
         <source>API configuration</source>
         <translation>API 設定</translation>
     </message>
@@ -468,32 +499,32 @@
         <translation>未設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="92"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="93"/>
         <source>Saved</source>
         <translation>保存しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="108"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="109"/>
         <source>Defaults restored</source>
         <translation>初期設定に戻しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="166"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="167"/>
         <source>Settings</source>
         <translation>設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="273"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="275"/>
         <source>Defaults</source>
         <translation>初期設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="289"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="291"/>
         <source>Unsaved changes</source>
         <translation>未保存の変更</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="311"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="313"/>
         <source>Save</source>
         <translation>保存</translation>
     </message>
@@ -518,17 +549,17 @@
         <translation>カスタムサービス</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="258"/>
+        <location filename="../src/app/app_controller.cpp" line="259"/>
         <source>Checking OCR</source>
         <translation>OCR を確認中</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="259"/>
+        <location filename="../src/app/app_controller.cpp" line="260"/>
         <source>English OCR data is missing</source>
         <translation>英語の OCR データがありません</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="263"/>
+        <location filename="../src/app/app_controller.cpp" line="264"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR ランタイムが利用できません</translation>
     </message>
@@ -1208,43 +1239,43 @@
 <context>
     <name>lens::app::AppController</name>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="251"/>
+        <location filename="../src/app/app_controller.cpp" line="252"/>
         <source>Screenshot capture is off.</source>
         <translation>スクリーンショットからの取得はオフです。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="252"/>
-        <location filename="../src/app/app_controller.cpp" line="392"/>
+        <location filename="../src/app/app_controller.cpp" line="253"/>
+        <location filename="../src/app/app_controller.cpp" line="393"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>本日の予算を使い切りました。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="253"/>
+        <location filename="../src/app/app_controller.cpp" line="254"/>
         <source>A recognition is already running.</source>
         <translation>すでに認識中です。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="255"/>
+        <location filename="../src/app/app_controller.cpp" line="256"/>
         <source>That region cannot be captured.</source>
         <translation>この範囲は取得できません。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="256"/>
+        <location filename="../src/app/app_controller.cpp" line="257"/>
         <source>No text was found in that region.</source>
         <translation>その範囲に文字が見つかりませんでした。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="257"/>
+        <location filename="../src/app/app_controller.cpp" line="258"/>
         <source>That region could not be read.</source>
         <translation>その範囲を読み取れませんでした。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="581"/>
+        <location filename="../src/app/app_controller.cpp" line="582"/>
         <source>Auto</source>
         <translation>自動</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="581"/>
+        <location filename="../src/app/app_controller.cpp" line="582"/>
         <source>Manual</source>
         <translation>手動</translation>
     </message>

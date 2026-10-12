@@ -149,6 +149,8 @@ public:
     QString           modeLabel() const;
     QString           busyLabel() const;
     double            dailyBudget() const;
+    /// @brief The day this build was compiled, as `yyyy-MM-dd`, for the about page. Not the day it runs.
+    QString buildDate() const;
 
     Q_PROPERTY(QVariantMap settings READ settings NOTIFY settingsChanged)
     Q_PROPERTY(QVariantMap stats READ stats NOTIFY statsChanged)
@@ -162,6 +164,7 @@ public:
     Q_PROPERTY(QString modeLabel READ modeLabel NOTIFY settingsChanged)
     Q_PROPERTY(QString busyLabel READ busyLabel NOTIFY busyChanged)
     Q_PROPERTY(double dailyBudget READ dailyBudget NOTIFY dailyBudgetChanged)
+    Q_PROPERTY(QString buildDate READ buildDate CONSTANT)
 
 signals:
     void selectionBarRequested(QVariantMap payload);

@@ -159,22 +159,22 @@
 <context>
     <name>SettingsPopup</name>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="92"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="93"/>
         <source>Saved</source>
         <translation>已保存</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="108"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="109"/>
         <source>Defaults restored</source>
         <translation>已恢复默认</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="166"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="167"/>
         <source>Settings</source>
         <translation>设置</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="289"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="291"/>
         <source>Unsaved changes</source>
         <translation>有未保存的更改</translation>
     </message>
@@ -199,127 +199,147 @@
         <translation>词源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="52"/>
+        <location filename="../src/app/qml/SettingsAboutPage.qml" line="23"/>
         <source>Checking...</source>
         <translation>检查中…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="54"/>
+        <location filename="../src/app/qml/SettingsAboutPage.qml" line="25"/>
         <source>Up to date (version %1)</source>
         <translation>已是最新（当前版本 %1）</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="56"/>
+        <location filename="../src/app/qml/SettingsAboutPage.qml" line="27"/>
         <source>Version %1 is available</source>
         <translation>有新版本 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="58"/>
+        <location filename="../src/app/qml/SettingsAboutPage.qml" line="29"/>
         <source>Cannot connect</source>
         <translation>无法连接</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="89"/>
+        <location filename="../src/app/qml/SettingsAboutPage.qml" line="69"/>
+        <source>GitHub repository</source>
+        <translation>GitHub 仓库</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsAboutPage.qml" line="111"/>
+        <source>Current version %1</source>
+        <translation>当前版本 %1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsAboutPage.qml" line="183"/>
+        <source>Copyright (c) 2026 kakuyo1 · MIT License</source>
+        <translation>Copyright (c) 2026 kakuyo1 · MIT 许可证</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsAboutPage.qml" line="190"/>
+        <source>Built %1</source>
+        <translation>构建于 %1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="63"/>
         <source>Theme</source>
         <translation>主题</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="100"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="74"/>
         <source>Light</source>
         <translation>白天</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="101"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="75"/>
         <source>Dark</source>
         <translation>黑夜</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="102"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="76"/>
         <source>Forest</source>
         <translation>Forest</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="103"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="77"/>
         <source>Custom</source>
         <translation>Custom</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="117"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="91"/>
         <source>Custom semantic colors</source>
         <translation>自定义语义颜色</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="126"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="100"/>
         <source>Use six-digit hex colors. Body, muted, and faint text must each pass WCAG AA on the panel.</source>
         <translation>使用六位十六进制颜色。正文、次要和弱文字在面板上都必须通过 WCAG AA。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="133"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="107"/>
         <source>Background</source>
         <translation>背景</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="134"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="108"/>
         <source>Panel</source>
         <translation>面板</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="135"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="109"/>
         <source>Body text</source>
         <translation>正文文字</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="136"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="110"/>
         <source>Muted text</source>
         <translation>次要文字</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="137"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="111"/>
         <source>Faint text</source>
         <translation>弱文字</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="138"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="112"/>
         <source>Accent</source>
         <translation>强调色</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="196"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="170"/>
         <source>AA contrast passes: body %1, muted %2, faint %3</source>
         <translation>AA 对比度通过：正文 %1，次要文字 %2，弱文字 %3</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="200"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="174"/>
         <source>AA contrast requires valid colors and a 4.5:1 ratio for body, muted, and faint text.</source>
         <translation>AA 对比度要求颜色有效，且正文、次要和弱文字的比例均为 4.5:1。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="214"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="188"/>
         <source>Apply custom colors</source>
         <translation>应用自定义配色</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="229"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="203"/>
         <source>Launch at startup</source>
         <translation>开机自启</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="236"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="210"/>
         <source>Animations</source>
         <translation>动画效果</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="268"/>
+        <location filename="../src/app/qml/SettingsAboutPage.qml" line="151"/>
         <source>Check for updates</source>
         <translation>检查更新</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="297"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="217"/>
         <source>Check for updates at startup</source>
         <translation>启动时检查更新</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="305"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="225"/>
         <source>Animations are disabled by Windows accessibility settings.</source>
         <translation>Windows 辅助功能设置已关闭动画效果。</translation>
     </message>
@@ -336,7 +356,7 @@
         <translation>静默放弃</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="273"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="275"/>
         <source>Defaults</source>
         <translation>恢复默认</translation>
     </message>
@@ -353,7 +373,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="51"/>
-        <location filename="../src/app/app_controller.cpp" line="266"/>
+        <location filename="../src/app/app_controller.cpp" line="267"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -369,12 +389,12 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="89"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="51"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="52"/>
         <source>Popup &amp; clipboard</source>
         <translation>弹窗与剪贴板</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="311"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="313"/>
         <source>Save</source>
         <translation>保存</translation>
     </message>
@@ -447,6 +467,17 @@
         <translation>桌面宠物</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/SettingsCatalog.qml" line="48"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="47"/>
+        <source>About</source>
+        <translation>关于</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCatalog.qml" line="49"/>
+        <source>Version, updates, repository</source>
+        <translation>版本、检查更新、仓库</translation>
+    </message>
+    <message>
         <location filename="../src/app/qml/SettingsClipboardPage.qml" line="18"/>
         <source>When the clipboard is occupied</source>
         <translation>剪贴板被占用时</translation>
@@ -483,7 +514,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsModelPage.qml" line="85"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="52"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="53"/>
         <source>API configuration</source>
         <translation>API 配置</translation>
     </message>
@@ -518,17 +549,17 @@
         <translation>自定义服务</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="258"/>
+        <location filename="../src/app/app_controller.cpp" line="259"/>
         <source>Checking OCR</source>
         <translation>正在检查 OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="259"/>
+        <location filename="../src/app/app_controller.cpp" line="260"/>
         <source>English OCR data is missing</source>
         <translation>缺少英文 OCR 数据</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="263"/>
+        <location filename="../src/app/app_controller.cpp" line="264"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR 运行时不可用</translation>
     </message>
@@ -1248,43 +1279,43 @@
         <translation>请求失败</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="251"/>
+        <location filename="../src/app/app_controller.cpp" line="252"/>
         <source>Screenshot capture is off.</source>
         <translation>截图取词未开启。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="252"/>
-        <location filename="../src/app/app_controller.cpp" line="392"/>
+        <location filename="../src/app/app_controller.cpp" line="253"/>
+        <location filename="../src/app/app_controller.cpp" line="393"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>今日预算已用尽。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="253"/>
+        <location filename="../src/app/app_controller.cpp" line="254"/>
         <source>A recognition is already running.</source>
         <translation>正在识别，请稍候。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="255"/>
+        <location filename="../src/app/app_controller.cpp" line="256"/>
         <source>That region cannot be captured.</source>
         <translation>所选区域无法取词（须在同一块屏幕内且不过大）。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="256"/>
+        <location filename="../src/app/app_controller.cpp" line="257"/>
         <source>No text was found in that region.</source>
         <translation>所选区域里没有找到文字。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="257"/>
+        <location filename="../src/app/app_controller.cpp" line="258"/>
         <source>That region could not be read.</source>
         <translation>所选区域无法识别。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="581"/>
+        <location filename="../src/app/app_controller.cpp" line="582"/>
         <source>Auto</source>
         <translation>自动模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="581"/>
+        <location filename="../src/app/app_controller.cpp" line="582"/>
         <source>Manual</source>
         <translation>手动模式</translation>
     </message>

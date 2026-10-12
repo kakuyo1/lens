@@ -25,20 +25,12 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 
-/* 通用 分类内的检查更新行：规格同设置面板 */
+/* 关于 分类内的检查更新行：规格同设置面板 */
 .settings{width:380px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);overflow:hidden}
 .set-h{display:flex;align-items:center;gap:9px;padding:0 20px;min-height:58px;border-bottom:1px solid var(--line2)}
 .set-title{font-size:14px;font-weight:700}
 .set-crumb{font-size:12px;color:var(--muted)}
 .set-body{padding:14px 20px 18px}
-.swrow{display:flex;align-items:center;gap:12px;min-height:44px}
-.swrow .swlabel{flex:1}
-.switch{flex:none;width:34px;height:20px;border:0;border-radius:99px;background:var(--line);position:relative;padding:0}
-.switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--panel)}
-.switch[aria-checked=true]{background:var(--ink)}
-.switch[aria-checked=true]::after{left:auto;right:2px;background:var(--on)}
-html[data-theme=dark] .switch::after{background:var(--faint)}
-html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 .swgroup{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:2px 12px}
 .upd{display:flex;align-items:center;gap:12px;min-height:56px;border-top:1px solid var(--line2);margin-top:4px}
 .upd-main{flex:1;min-width:0}
@@ -81,10 +73,6 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
           </div>
           <button type="button" class="btn" id="check"></button>
         </div>
-        <div class="swrow" style="border-top:1px solid var(--line2)">
-          <span class="swlabel" id="auto-label"></span>
-          <button type="button" class="switch" role="switch" id="auto" aria-checked="true"></button>
-        </div>
       </div>
       <div class="caption" id="cap-state"></div>
       <div class="seg" id="seg"></div>
@@ -107,22 +95,22 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 /// Strings, one column per language, mirroring the other prototypes. The release note body is
 /// sample content (the first paragraph of the release's own notes), not a string the app owns.
 const L = {
-  zh: { title: "检查更新", crumb: "通用", now: "当前版本 1.1.0", check: "检查更新", auto: "启动时检查更新",
+  zh: { title: "检查更新", crumb: "关于", now: "当前版本 1.1.0", check: "检查更新",
         states: { idle: "", checking: "正在检查…", latest: "已是最新版本", available: "发现新版本 1.2.0", error: "无法连接更新服务" },
         capState: "状态预览（点选查看各态）", capNotice: "通知卡片（发现新版本时居中弹出）",
         nt: "Lens 1.2.0 可用", nb: "新增桌面宠物，检查更新与若干修正。点击查看发布页，由你自己下载安装。",
         open: "查看发布页", skip: "跳过此版本", themeDark: "黑夜", themeLight: "白天" },
-  en: { title: "Updates", crumb: "General", now: "Current version 1.1.0", check: "Check for updates", auto: "Check for updates at launch",
+  en: { title: "Updates", crumb: "About", now: "Current version 1.1.0", check: "Check for updates",
         states: { idle: "", checking: "Checking...", latest: "You have the latest version", available: "Version 1.2.0 is available", error: "Could not reach the update service" },
         capState: "State preview (pick one to see it)", capNotice: "Notice card (shown centred when a new version is found)",
         nt: "Lens 1.2.0 is available", nb: "Adds a desktop pet, update checks and several fixes. Opens the release page; you download and install it yourself.",
         open: "View release", skip: "Skip this version", themeDark: "Dark", themeLight: "Light" },
-  ja: { title: "アップデート", crumb: "一般", now: "現在のバージョン 1.1.0", check: "アップデートを確認", auto: "起動時にアップデートを確認",
+  ja: { title: "アップデート", crumb: "情報", now: "現在のバージョン 1.1.0", check: "アップデートを確認",
         states: { idle: "", checking: "確認しています…", latest: "最新バージョンです", available: "バージョン 1.2.0 があります", error: "更新サービスに接続できません" },
         capState: "状態のプレビュー（選ぶと各状態を表示）", capNotice: "通知カード（新しいバージョンがあると中央に表示）",
         nt: "Lens 1.2.0 が利用できます", nb: "デスクトップペット、更新確認、いくつかの修正を追加しました。リリースページを開くので、ダウンロードと導入はご自身で行ってください。",
         open: "リリースを見る", skip: "このバージョンをスキップ", themeDark: "ダーク", themeLight: "ライト" },
-  es: { title: "Actualizaciones", crumb: "General", now: "Versión actual 1.1.0", check: "Buscar actualizaciones", auto: "Buscar actualizaciones al iniciar",
+  es: { title: "Actualizaciones", crumb: "Acerca de", now: "Versión actual 1.1.0", check: "Buscar actualizaciones",
         states: { idle: "", checking: "Buscando…", latest: "Tienes la versión más reciente", available: "Versión 1.2.0 disponible", error: "No se pudo conectar con el servicio de actualizaciones" },
         capState: "Vista de estados (elige uno para verlo)", capNotice: "Tarjeta de aviso (aparece centrada al haber una nueva versión)",
         nt: "Lens 1.2.0 está disponible", nb: "Añade una mascota de escritorio, búsqueda de actualizaciones y varias correcciones. Abre la página de la versión; la descargas e instalas tú.",
@@ -140,7 +128,6 @@ $('title').textContent = t.title;
 $('crumb').textContent = t.crumb;
 $('now').textContent = t.now;
 $('check').textContent = t.check;
-$('auto-label').textContent = t.auto;
 $('cap-state').textContent = t.capState;
 $('cap-notice').textContent = t.capNotice;
 $('nt').textContent = t.nt;
@@ -162,7 +149,6 @@ document.addEventListener('click', e => {
   if (!b) return;
   if (b.dataset.s) { current = b.dataset.s; renderState(); }
   else if (b.id === 'check') { current = 'checking'; renderState(); setTimeout(() => { current = 'latest'; renderState(); }, 900); }
-  else if (b.id === 'auto') { b.setAttribute('aria-checked', String(b.getAttribute('aria-checked') !== 'true')); }
   else if (b.id === 'nx' || b.id === 'skip') { current = 'idle'; renderState(); }
 });
 renderState();
