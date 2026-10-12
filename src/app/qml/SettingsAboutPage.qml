@@ -75,7 +75,7 @@ Item {
                 anchors.right: parent.right
                 anchors.rightMargin: 9
                 anchors.verticalCenter: parent.verticalCenter
-                text: "kakuyo1/lens"
+                text: "github.com/kakuyo1/lens"
                 color: Tokens.faint
                 font.pixelSize: 11
             }
@@ -99,12 +99,14 @@ Item {
             border.width: 1
             border.color: Tokens.line
 
-            Column {
+            // A fixed box rather than a Column: a Column drops a hidden line from its height, so the
+            // version would move up when a check starts. The line keeps its place while it is empty.
+            Item {
                 anchors.left: parent.left
                 anchors.leftMargin: 12
                 anchors.verticalCenter: parent.verticalCenter
                 width: parent.width - checkButton.width - 36
-                spacing: 3
+                height: 39
 
                 Text {
                     width: parent.width
@@ -117,6 +119,7 @@ Item {
                 Text {
                     id: updateLine
                     objectName: "updateStatusLine"
+                    y: 21
                     width: parent.width
                     text: page.updateStatusText(Controller.updateDuty.update.state)
                     visible: text !== ""
@@ -165,31 +168,39 @@ Item {
 
         // The footer is centred text under the block. Column positions its children, so each line
         // takes the full width and centres its own text rather than anchoring to the column.
-        Column {
+        // The 8 px inside the wrapper, on top of the column's 16, gives the 24 px the prototype sets.
+        Item {
             width: parent.width
-            spacing: 4
+            height: footer.height + 8
 
-            Text {
+            Column {
+                id: footer
+                y: 8
                 width: parent.width
-                horizontalAlignment: Text.AlignHCenter
-                text: "Lens"
-                color: Tokens.text
-                font.pixelSize: 14
-                font.weight: Font.Bold
-            }
-            Text {
-                width: parent.width
-                horizontalAlignment: Text.AlignHCenter
-                text: qsTranslate("SettingsPopup", "Copyright (c) 2026 kakuyo1 · MIT License")
-                color: Tokens.faint
-                font.pixelSize: 11
-            }
-            Text {
-                width: parent.width
-                horizontalAlignment: Text.AlignHCenter
-                text: qsTranslate("SettingsPopup", "Built %1").arg(Controller.buildDate)
-                color: Tokens.faint
-                font.pixelSize: 11
+                spacing: 4
+
+                Text {
+                    width: parent.width
+                    horizontalAlignment: Text.AlignHCenter
+                    text: "Lens"
+                    color: Tokens.text
+                    font.pixelSize: 14
+                    font.weight: Font.Bold
+                }
+                Text {
+                    width: parent.width
+                    horizontalAlignment: Text.AlignHCenter
+                    text: qsTranslate("SettingsPopup", "Copyright (c) 2026 kakuyo1 · MIT License")
+                    color: Tokens.faint
+                    font.pixelSize: 11
+                }
+                Text {
+                    width: parent.width
+                    horizontalAlignment: Text.AlignHCenter
+                    text: qsTranslate("SettingsPopup", "Built %1").arg(Controller.buildDate)
+                    color: Tokens.faint
+                    font.pixelSize: 11
+                }
             }
         }
     }
