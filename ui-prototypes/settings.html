@@ -19,32 +19,22 @@ html[data-theme=dark]{
   --ink:#e9e9ee; --on:#16161a;
   --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
 }
-html[data-theme=forest]{
-  --bg:#0c1715; --panel:#152522; --panel2:#1f3430; --line:#35554b; --line2:#27413b;
-  --text:#e8f2ee; --muted:#b8cec5; --faint:#9bb9ad;
-  --ink:#e6f2ec; --on:#10201b;
-  --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
-}
 /* 两套玻璃主题。面板半透明，正文可读性取决于读者的桌面（磨砂的底色 40% 不再保证对比度，见 UI.md 3.1c）。
    --wall 是桌面壁纸的替身，只用来让玻璃有东西可透；真实环境里这一层是读者自己的壁纸。两套主题各带一份，
    因为两块玻璃要证明的东西不同：磨砂要的是模糊吃掉细节，液体要的是折射与透，一张底图服务不了两边。 */
 html[data-theme=frosted],html[data-theme=liquid]{
   --bg:transparent;
-  background-image:var(--wall); background-attachment:fixed;
+  background-image:var(--wall); background-attachment:fixed; background-size:cover;
 }
 /* 磨砂玻璃 = Zen-Nebula（JustAdumbPrsn/Zen-Nebula）的玻璃：白色 40% 底 + blur(32px) saturate(140%) + 25% 白描边 + 柔和阴影，
-   参数逐项取自其 config.css 与 general-ui.css。没有噪点。通用设置里的模糊与面板浓度两个旋钮会覆盖这里的默认值。
-   底图是一张夜里的细纹幕墙：冷调、低饱和，两道交叉细网给足高频细节，模糊一开细网就化掉，靠它看得出模糊吃掉了什么。 */
+   参数逐项取自其 config.css 与 general-ui.css。没有噪点。底色 40% 固定、不设旋钮；通用设置里的模糊、饱和度、描边高光三个旋钮覆盖这里的默认值。
+   底图在 frosted-backdrops/ 下，默认夜色细纹：冷调、低饱和，细网给足高频细节，模糊一开细网就化掉，靠它看得出模糊吃掉了什么。 */
 html[data-theme=frosted]{
   --panel:rgba(255,255,255,.40); --panel2:rgba(18,24,36,.065);
   --line:rgba(18,24,36,.15); --line2:rgba(18,24,36,.10);
   --text:#14161c; --muted:#3c4250; --faint:#535865;
   --ink:#191b21; --on:#fff; --sw-off:rgba(18,24,36,.22);
   --sh2:0 4px 14px rgb(255 255 255/5.5%);
-  --wall:repeating-linear-gradient(58deg,rgba(150,190,255,.09) 0 2px,rgba(150,190,255,0) 2px 7px),
-         repeating-linear-gradient(-32deg,rgba(150,190,255,.09) 0 2px,rgba(150,190,255,0) 2px 7px),
-         radial-gradient(44% 36% at 70% 56%,rgba(198,224,255,.55) 0%,rgba(198,224,255,0) 72%),
-         linear-gradient(168deg,#0a1226 0%,#152549 34%,#22406a 62%,#3f5f88 100%);
 }
 /* 液体玻璃 = 苹果 2025 液态玻璃的 CSS 近似：卡片本体不铺底色、对比更高（材质更稠）、圆角更大。
    折射由下方 SVG 位移滤镜完成（Chromium 系，做法同 shuding/liquid-glass）；随背后内容自适应靠系统采样，网页做不到，此处不装。
@@ -55,7 +45,7 @@ html[data-theme=liquid]{
   --line:rgba(18,24,36,.16); --line2:rgba(18,24,36,.11);
   --text:#101319; --muted:#333846; --faint:#4a4f5e;
   --ink:#12151b; --on:#fff; --sw-off:rgba(18,24,36,.24);
-  --r-lg:22px; background-size:cover;
+  --r-lg:22px;
   --sh2:0 1px 2px rgba(10,14,24,.14),0 22px 54px -20px rgba(10,14,24,.48);
   --wall:url("liquid-backdrops/cool-wall.png");
 }
@@ -69,7 +59,9 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .settings{width:380px;height:480px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);display:flex;flex-direction:column;overflow:hidden;transform:translate(var(--drag-x,0),var(--drag-y,0))}
 body.dragging{user-select:none;cursor:default}
 /* 玻璃面板。面板自身有 backdrop-filter，内部控件不再各加一层——它们只是叠在这层已模糊的底上的半透明填充。 */
-html[data-theme=frosted] .settings{backdrop-filter:blur(var(--glass-blur,32px)) saturate(140%);border-color:rgba(255,255,255,.25)}
+html[data-theme=frosted] .settings{backdrop-filter:blur(var(--glass-blur,32px)) saturate(var(--glass-sat,140%));border-color:rgba(255,255,255,var(--glass-rim,.25))}
+/* 下拉列表是弹出层：底下透明的 40% 面板会让参数透出来，所以单独铺 78% 白，与液体玻璃的弹出层同一口径（UI.md 3.1c） */
+html[data-theme=frosted] .dd-list{background:rgba(255,255,255,.78)}
 /* 液体玻璃整张卡透明，不铺底色：背后像素由 SVG 位移滤镜弯折（边缘弯，中心也有折射），高光与描边是材质信号。
    正文用深字，适合浅色底图；深色底图上对比度不足，见 UI.md 3.1d。 */
 html[data-theme=liquid] .settings{background:transparent;border-color:rgba(255,255,255,.62);
@@ -83,6 +75,7 @@ html[data-theme=liquid][data-refract] .settings{backdrop-filter:blur(var(--glass
 @media (prefers-reduced-transparency:reduce){
   html[data-theme=frosted],html[data-theme=liquid]{--panel:#fafbfd;--panel2:#f0f3f8;--line:#dde2ea;--line2:#e9edf3;--sw-off:#d6dae1}
   html[data-theme=frosted] .settings,html[data-theme=liquid] .settings,html[data-theme=liquid][data-refract] .settings{backdrop-filter:none;background-image:none;border-color:var(--line)}
+  html[data-theme=frosted] .dd-list{background:var(--panel)}
   html[data-theme=liquid] .settings{background:var(--panel)}
 }
 .set-h{display:flex;align-items:center;gap:9px;padding:0 20px;min-height:58px;border-bottom:1px solid var(--line2);flex:none}
@@ -256,7 +249,7 @@ const defaults = { theme: "light", uiLang: "zh", level: "CET-4", language: "en",
   policy: "topmost", minLen: "3", provider: "DeepSeek", model: "deepseek-flash", api: "", url: "",
   tesseractExe: "", tesseractData: "", triggerKey: "Ctrl+Alt+S",
   dailyBudget: "0", customBg: "#e9ebef", customPanel: "#ffffff", customText: "#1a1a1f", customMuted: "#66666f", customFaint: "#9d9da8", customOk: "#2f9e6e",
-  glassBlur: 53, glassTint: 40,
+  glassBlur: 53, glassSat: 140, glassRim: 25,
   liquidBlur: 2, liquidRefract: 36, liquidText: "#101319",
   ocr: false, scan: false, multi: false, etym: false, pet: false };
 const app = document.getElementById("app"), view = document.getElementById("view");
@@ -264,14 +257,17 @@ const titleEl = document.getElementById("title"), crumbEl = document.getElementB
 const backBtn = document.getElementById("back"), statusEl = document.getElementById("status");
 const saveBtn = document.getElementById("save"), defaultsBtn = document.getElementById("defaults");
 const requestedTheme = new URLSearchParams(location.search).get("theme");
-/// 液体主题的测试背景，文件在 liquid-backdrops/ 下；`?bg=` 直接指定一张。
-const BACKDROPS = [["cool-wall", "冷灰细线"], ["web-light", "网页（浅色）"], ["web-dark", "网页（深色）"], ["colorful", "彩色"], ["stripes", "高频条纹"], ["black", "纯黑"], ["white", "纯白"]];
-const bgpick = document.getElementById("bgpick");
+/// 两套玻璃各带一组测试背景，文件分别在 liquid-backdrops/ 与 frosted-backdrops/ 下；`?bg=` 直接指定一张，哪套里有就用哪套。
+const BACKDROPS = {
+  liquid: [["cool-wall", "冷灰细线"], ["web-light", "网页（浅色）"], ["web-dark", "网页（深色）"], ["colorful", "彩色"], ["stripes", "高频条纹"], ["black", "纯黑"], ["white", "纯白"]],
+  frosted: [["night-lines", "夜色细纹"], ["text-dense", "细字密排"], ["color-blocks", "饱和色块"], ["sky-light", "浅色天光"], ["checker", "黑白方格"]]
+};
+const backdropOf = { liquid: "cool-wall", frosted: "night-lines" };
 const requestedBg = new URLSearchParams(location.search).get("bg");
-let backdrop = BACKDROPS.some(([id]) => id === requestedBg) ? requestedBg : "cool-wall";
-bgpick.innerHTML = `<legend>测试背景</legend>` + BACKDROPS.map(([id, label]) => `<label><input type="radio" name="bg" value="${id}"${id === backdrop ? " checked" : ""}>${label}</label>`).join("");
-bgpick.addEventListener("change", e => { backdrop = e.target.value; applyTheme(); });
-let values = { ...defaults, theme: ["light", "dark", "forest", "custom", "frosted", "liquid"].includes(requestedTheme) ? requestedTheme : "light" };
+for (const theme in BACKDROPS) if (BACKDROPS[theme].some(([id]) => id === requestedBg)) backdropOf[theme] = requestedBg;
+const bgpick = document.getElementById("bgpick");
+bgpick.addEventListener("change", e => { backdropOf[values.theme] = e.target.value; applyTheme(); });
+let values = { ...defaults, theme: ["light", "dark", "custom", "frosted", "liquid"].includes(requestedTheme) ? requestedTheme : "light" };
 let saved = { ...values };
 let category = null, route = null, status = "", recording = null;
 const esc = v => String(v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -319,14 +315,14 @@ const pathField = (label, key, fallback) => {
 const customColors = () => values.theme === "custom" ? `<div class="field"><span class="flabel">自定义语义颜色</span>${[
   ["customBg", "背景"], ["customPanel", "面板"], ["customText", "正文文字"], ["customMuted", "次要文字"], ["customFaint", "弱文字"], ["customOk", "强调色"]
 ].map(([key, label]) => inp(label, key, "#000000")).join("")}<p class="fhelp">正文、次要和弱文字必须通过 WCAG AA。</p></div>` : "";
-/// 玻璃主题各带一组旋钮：磨砂是模糊 / 面板浓度（对应 Zen-Nebula 的 glass blur 与 glass color），液体是
+/// 玻璃主题各带一组旋钮：磨砂是模糊 / 饱和度 / 描边高光（对应 Zen-Nebula 的 blur、saturate 与白色描边），液体是
 /// 折射 / 模糊 / 字体颜色。只在选中自己的主题时出现，同 customColors()。
 const slider = (label, key, min, max, step, unit, off = false) => `<div class="slrow${off ? " off" : ""}"><span class="flabel">${label}</span>`
   + `<span class="sl-val" data-out="${key}" data-unit="${unit}"></span></div>`
   + `<input type="range" class="slider" min="${min}" max="${max}" step="${step}" data-input="${key}" value="${esc(values[key])}" aria-label="${label}"${off ? " disabled" : ""}>`;
-const frostOptions = () => `<div class="field"><span class="flabel">磨砂玻璃参数</span>`
-  + slider("模糊程度", "glassBlur", 0, 100, 1, "%") + slider("面板浓度", "glassTint", 0, 100, 1, "%") + `</div>`;
-const liquidOptions = () => `<div class="field"><span class="flabel">液体玻璃参数</span>`
+const frostOptions = () => `<div class="field"><span class="flabel">雾面玻璃参数</span>`
+  + slider("模糊程度", "glassBlur", 0, 100, 1, "%") + slider("饱和度", "glassSat", 0, 200, 1, "%") + slider("描边高光", "glassRim", 0, 100, 1, "%") + `</div>`;
+const liquidOptions = () => `<div class="field"><span class="flabel">流光玻璃参数</span>`
   + slider("折射强度", "liquidRefract", 0, 40, 2, " px", !refractOK) + slider("模糊程度", "liquidBlur", 0, 100, 1, "%")
   + `<div class="swrow"><span class="swlabel">字体颜色</span><input type="color" class="colorin" data-input="liquidText" value="${values.liquidText}" aria-label="字体颜色"></div>`
   + (refractOK ? "" : `<p class="fhelp">当前浏览器不支持 SVG 滤镜折射，此项灰化不生效。</p>`) + `</div>`;
@@ -335,12 +331,11 @@ const glassOptions = () => values.theme === "frosted" ? frostOptions() : values.
 function page(id) {
   switch (id) {
     case "general": return dropdown("主题", "theme", [
-        { value: "light", label: "白天", group: "" },
-        { value: "dark", label: "黑夜", group: "" },
-        { value: "forest", label: "Forest", group: "" },
-        { value: "custom", label: "Custom", group: "" },
-        { value: "frosted", label: "磨砂玻璃", group: "glass" },
-        { value: "liquid", label: "液体玻璃", group: "glass" }
+        { value: "light", label: "晴朗白昼", group: "" },
+        { value: "dark", label: "静谧暗夜", group: "" },
+        { value: "frosted", label: "雾面玻璃", group: "glass" },
+        { value: "liquid", label: "流光玻璃", group: "glass" },
+        { value: "custom", label: "Custom", group: "custom" }
       ]) + customColors() + glassOptions() + sw("开机自启", "startup") + sw("动画效果", "animations");
     case "learning": return dropdown("词汇档位", "level", [
         { value: "B1–B2", label: "B1–B2", group: "CEFR" },
@@ -399,14 +394,12 @@ function body() {
     `<button type="button" class="cat" data-category="${c.id}"><span><span class="cat-t">${c.name}</span><span class="cat-s">${c.summary}</span></span><span class="chev" aria-hidden="true">›</span></button>`).join("")}</nav>`;
   return page(category);
 }
-/// 读者关掉系统透明时，面板归 --panel 里的实底值，浓度滑块因此不再写内联值；否则内联的那一份会盖住降级规则。
-const noTransparency = matchMedia("(prefers-reduced-transparency: reduce)");
 /// 模糊改用百分制：100% 折成 60 px，与原来的像素上限一致。
 const BLUR_PX = 0.6;
 function applyTheme() {
   const root = document.documentElement;
-  root.dataset.theme = values.theme === "forest" ? "forest" : values.theme;
-  for (const prop of ["--bg", "--wall", "--panel", "--text", "--muted", "--faint", "--ink", "--on", "--glass-blur"]) root.style.removeProperty(prop);
+  root.dataset.theme = values.theme;
+  for (const prop of ["--bg", "--wall", "--panel", "--text", "--muted", "--faint", "--ink", "--on", "--glass-blur", "--glass-sat", "--glass-rim"]) root.style.removeProperty(prop);
   delete root.dataset.refract;
   if (values.theme === "custom") {
     root.style.setProperty("--bg", values.customBg);
@@ -418,21 +411,29 @@ function applyTheme() {
     root.style.setProperty("--on", values.customPanel);
   } else if (values.theme === "frosted") {
     root.style.setProperty("--glass-blur", values.glassBlur * BLUR_PX + "px");
-    if (!noTransparency.matches) root.style.setProperty("--panel", `rgba(255,255,255,${values.glassTint / 100})`);
+    root.style.setProperty("--glass-sat", values.glassSat + "%");
+    root.style.setProperty("--glass-rim", values.glassRim / 100);
   } else if (values.theme === "liquid") {
     root.style.setProperty("--glass-blur", values.liquidBlur * BLUR_PX + "px");
     // 字体颜色只改正文色；次要与弱字是同一色的半透明版本，层级仍由它们的色阶给出
     root.style.setProperty("--text", values.liquidText);
     root.style.setProperty("--muted", `color-mix(in srgb, ${values.liquidText} 82%, transparent)`);
     root.style.setProperty("--faint", `color-mix(in srgb, ${values.liquidText} 64%, transparent)`);
-    root.style.setProperty("--wall", `url("liquid-backdrops/${backdrop}.png")`);
     if (refractOK) {
       root.dataset.refract = "on";
       svgAttr("lg-disp", "scale", values.liquidRefract);
     }
   }
+  // 两套玻璃各用自己那组底图的当前一张
+  const glass = values.theme === "frosted" || values.theme === "liquid";
+  if (glass) root.style.setProperty("--wall", `url("${values.theme}-backdrops/${backdropOf[values.theme]}.png")`);
+  // 测试背景单选按主题整组重画：同一套内拖滑块不动它，免得键盘焦点被重建掉
+  bgpick.hidden = !glass;
+  if (glass && bgpick.dataset.theme !== values.theme) {
+    bgpick.dataset.theme = values.theme;
+    bgpick.innerHTML = `<legend>测试背景</legend>` + BACKDROPS[values.theme].map(([id, label]) => `<label><input type="radio" name="bg" value="${id}"${id === backdropOf[values.theme] ? " checked" : ""}>${label}</label>`).join("");
+  }
   // 派生读数跟着状态走，滑块拖到哪儿数字就是几
-  bgpick.hidden = values.theme !== "liquid";
   for (const out of view.querySelectorAll("[data-out]")) out.textContent = values[out.dataset.out] + out.dataset.unit;
 }
 function updateFoot() {
