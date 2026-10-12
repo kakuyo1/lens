@@ -89,7 +89,7 @@
 
 ### 3.1c 雾面玻璃（原型）
 
-Zen-Nebula（JustAdumbPrsn/Zen-Nebula，Zen 浏览器主题）玻璃的 CSS 近似，参数逐项取自其 `config.css` 与 `general-ui.css`，不是系统材质。原型阶段，QML 侧用 `MultiEffect` 还是别的方式尚未决定。2026-10-12 起，此前按 Win11 Acrylic 定的 84% 浓度下限与噪点作废，以 Nebula 为准。
+Zen-Nebula（JustAdumbPrsn/Zen-Nebula，Zen 浏览器主题）玻璃的 CSS 近似，参数逐项取自其 `config.css` 与 `general-ui.css`，不是系统材质。原型阶段，QML 侧用 `MultiEffect` 还是别的方式尚未决定。2026-10-12 起，此前按 Win11 Acrylic 定的 84% 浓度下限与噪点作废，以 Nebula 为准。QML 侧的取舍（背景取自抓屏、不用系统亚克力）见 `docs/adr/0032-glass-backdrop-from-screen-capture.md`。
 
 | 令牌 | 值 | 说明 |
 |---|---|---|
@@ -109,7 +109,7 @@ Zen-Nebula（JustAdumbPrsn/Zen-Nebula，Zen 浏览器主题）玻璃的 CSS 近�
 
 ### 3.1d 流光玻璃（原型）
 
-苹果 2025 Liquid Glass 的网页近似，做法同 shuding/liquid-glass：卡片整张透明，不铺底色；`backdrop-filter` 的顺序是：先模糊，再经 `url(#lg-liquid)` 的位移图弯折。顺序不能颠倒，见下。位移图取模糊后的圆角矩形遮罩的梯度，在卡片尺寸上画一次：边缘最陡，向中心趋于平坦，梯度处处连续，所以中心也有折射，且不会出现沿对角线的接缝。旧版用距离场的梯度，对角线两侧方向翻转，在折射强度调高时画出 X 形的错位楔块，已去掉。旧版的色散（三通道各自弯折，边缘留下彩色镶边）与滤镜里的镜面合成已去掉。浏览器不支持 `url()` 形式的 `backdrop-filter` 时，探测不通过，退回纯模糊，折射滑块灰化。目前只在 Chromium（无头 Chrome）上实测过，其他内核未验证。苹果的随背景自适应靠系统采样，网页做不到，此处不装。原型阶段，QML 侧的实现方式同样未定。
+苹果 2025 Liquid Glass 的网页近似，做法同 shuding/liquid-glass：卡片整张透明，不铺底色；`backdrop-filter` 的顺序是：先模糊，再经 `url(#lg-liquid)` 的位移图弯折。顺序不能颠倒，见下。位移图取模糊后的圆角矩形遮罩的梯度，在卡片尺寸上画一次：边缘最陡，向中心趋于平坦，梯度处处连续，所以中心也有折射，且不会出现沿对角线的接缝。旧版用距离场的梯度，对角线两侧方向翻转，在折射强度调高时画出 X 形的错位楔块，已去掉。旧版的色散（三通道各自弯折，边缘留下彩色镶边）与滤镜里的镜面合成已去掉。浏览器不支持 `url()` 形式的 `backdrop-filter` 时，探测不通过，退回纯模糊，折射滑块灰化。目前只在 Chromium（无头 Chrome）上实测过，其他内核未验证。苹果的随背景自适应靠系统采样，网页做不到，此处不装。QML 侧的实现：背景取自抓屏（见 `docs/adr/0032-glass-backdrop-from-screen-capture.md`），折射需要自写着色器，工具链版本尚未验证。
 
 | 令牌 | 值 | 说明 |
 |---|---|---|
