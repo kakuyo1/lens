@@ -22,16 +22,16 @@ Item {
             spacing: 7
             Text {
                 text: qsTranslate("SettingsPopup", "API key")
-                color: Tokens.muted
+                color: SettingsTokens.muted
                 font.pixelSize: 12
             }
             Rectangle {
                 width: parent.width
                 height: 35
-                radius: Tokens.radiusField
-                color: Tokens.panel2
+                radius: SettingsTokens.radiusField
+                color: SettingsTokens.panel2
                 border.width: 1
-                border.color: Tokens.line
+                border.color: SettingsTokens.line
 
                 TextInput {
                     id: apiInput
@@ -41,7 +41,7 @@ Item {
                     verticalAlignment: TextInput.AlignVCenter
                     text: page.apiDraft
                     echoMode: TextInput.Password
-                    color: Tokens.text
+                    color: SettingsTokens.text
                     font.pixelSize: 13
                     selectByMouse: true
                     onTextEdited: page.apiEdited(text)
@@ -57,14 +57,14 @@ Item {
                     text: page.settings.hasApiKey
                           ? "sk-" + "•".repeat(28)
                           : "sk-********************************"
-                    color: Tokens.faint
+                    color: SettingsTokens.faint
                     font: apiInput.font
                     elide: Text.ElideRight
                 }
             }
             Text {
                 text: qsTranslate("SettingsPopup", "The key is stored on this device only.")
-                color: Tokens.muted
+                color: SettingsTokens.muted
                 font.pixelSize: 11
             }
         }
@@ -74,16 +74,16 @@ Item {
             spacing: 7
             Text {
                 text: qsTranslate("SettingsPopup", "Service address")
-                color: Tokens.muted
+                color: SettingsTokens.muted
                 font.pixelSize: 12
             }
             Rectangle {
                 width: parent.width
                 height: 35
-                radius: Tokens.radiusField
-                color: Tokens.panel2
+                radius: SettingsTokens.radiusField
+                color: SettingsTokens.panel2
                 border.width: 1
-                border.color: Tokens.line
+                border.color: SettingsTokens.line
 
                 TextInput {
                     anchors.fill: parent
@@ -91,7 +91,7 @@ Item {
                     anchors.rightMargin: 11
                     verticalAlignment: TextInput.AlignVCenter
                     text: page.settings.url
-                    color: Tokens.text
+                    color: SettingsTokens.text
                     font.pixelSize: 12
                     selectByMouse: true
                     onEditingFinished: Controller.setApiUrl(text)
@@ -100,7 +100,7 @@ Item {
             Text {
                 width: parent.width
                 text: qsTranslate("SettingsPopup", "This address is a common one for the provider and can go stale; check it against their documentation.")
-                color: Tokens.muted
+                color: SettingsTokens.muted
                 font.pixelSize: 11
                 wrapMode: Text.WordWrap
             }

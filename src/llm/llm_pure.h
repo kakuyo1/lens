@@ -62,6 +62,7 @@ QString httpErrorFor(int status);
  * @param etymology       Ask for the word's origin as well. The word channel's templates carry the
  *                        placeholders for it; a channel without them ignores the flag. Costs output
  *                        tokens, so it is the reader's setting and never this function's default.
+ * @param example         Ask for one English example sentence as well. Same rules as @p etymology.
  * @return A compact JSON body, ready to POST.
  * @throws std::logic_error If that channel's protocol has not been loaded.
  */
@@ -70,7 +71,8 @@ QByteArray buildRequestBody(const Config&      config,
                             const QStringList& inputs,
                             const QString&     explanationLang,
                             const QString&     preset    = QStringLiteral("default"),
-                            bool               etymology = false);
+                            bool               etymology = false,
+                            bool               example   = false);
 
 /**
  * @brief Validate a response that arrives from the network and must not be trusted.

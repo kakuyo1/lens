@@ -28,6 +28,7 @@
 #include <gtest/gtest.h>
 
 #include "app/autostart.h"
+#include "app/bubble_settings.h"
 #include "app/capture_refusal.h"
 #include "app/explanation_queue.h"
 #include "app/model_catalog.h"
@@ -42,8 +43,12 @@
 namespace {
 
 using lens::app::autostartCommand;
+using lens::app::clampBubbleDismissSeconds;
 using lens::app::kAutostartRunKey;
 using lens::app::kAutostartValueName;
+using lens::app::kBubbleDismissDefaultSeconds;
+using lens::app::kBubbleDismissMaxSeconds;
+using lens::app::kBubbleDismissMinSeconds;
 using lens::app::kNoticeError;
 using lens::app::kNoticeInfo;
 using lens::app::noticePayload;
@@ -600,4 +605,18 @@ TEST(ModelCatalog, AMachineThatNeverReachedTheSourceReadsTheSeedAndDropsWhatIsNo
 {
     const QJsonArray seeded{QStringLiteral("deepseek-flash"), QJsonValue(QString{}), QJsonValue(3), QStringLiteral("deepseek-v4-pro")};
     EXPECT_EQ(modelsKnownFor({}, seeded), QStringList({QStringLiteral("deepseek-flash"), QStringLiteral("deepseek-v4-pro")}));
+}
+
+/// The display time starts at five seconds, the timing the bubble has always had, and the setting
+/// takes whole seconds from one to thirty: a value typed past either edge, or hand-written into the
+/// document, lands on the nearer edge rather than being refused.
+TEST(BubbleSettings, DisplayTimeStartsAtFiveSecondsAndClampsToOneToThirty)
+{
+    EXPECT_EQ(clampBubbleDismissSeconds(kBubbleDismissDefaultSeconds), 5);
+    EXPECT_EQ(clampBubbleDismissSeconds(12), 12);
+    EXPECT_EQ(clampBubbleDismissSeconds(kBubbleDismissMinSeconds), 1);
+    EXPECT_EQ(clampBubbleDismissSeconds(0), 1);
+    EXPECT_EQ(clampBubbleDismissSeconds(-7), 1);
+    EXPECT_EQ(clampBubbleDismissSeconds(kBubbleDismissMaxSeconds), 30);
+    EXPECT_EQ(clampBubbleDismissSeconds(31), 30);
 }

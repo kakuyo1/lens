@@ -15,10 +15,10 @@ Rectangle {
     readonly property int petSize: Pet.canvas * Pet.scale
 
     implicitHeight: petSize + 24
-    radius: Tokens.radiusGroup
-    color: Tokens.panel2
+    radius: SettingsTokens.radiusGroup
+    color: SettingsTokens.panel2
     border.width: 1
-    border.color: Tokens.line2
+    border.color: SettingsTokens.line2
     clip: true
 
     onOnScreenChanged: Pet.setPreviewing(onScreen)
@@ -34,7 +34,7 @@ Rectangle {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 12
         height: 1
-        color: Tokens.line
+        color: SettingsTokens.line
     }
 
     PetScene {

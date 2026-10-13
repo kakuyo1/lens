@@ -25,6 +25,7 @@
 #include "core/pet/pet_state.h"
 #include "cost_duty.h"
 #include "explanation_duty.h"
+#include "glass_backdrop.h"
 #include "global_hotkey.h"
 #include "llm/llm_client.h"
 #include "llm/llm_pricing.h"
@@ -95,12 +96,28 @@ public:
     Q_INVOKABLE void setMultiSense(bool on);
     /// @brief Ask for a word's origin with its explanation, and draw it on the bubble.
     Q_INVOKABLE void setEtymology(bool on);
+    /// @brief Ask for one example sentence with a word's explanation, and draw it on the bubble.
+    Q_INVOKABLE void setExample(bool on);
     Q_INVOKABLE void setTheme(QString theme);
+    /// @brief Store the frosted glass's blur, saturation or rim, clamped to the range the page offers.
+    Q_INVOKABLE void setFrostedBlur(int percent);
+    Q_INVOKABLE void setFrostedSaturation(int percent);
+    Q_INVOKABLE void setFrostedRim(int percent);
+    /// @brief Store the liquid glass's refraction, blur or rim, clamped to the range the page offers.
+    Q_INVOKABLE void setLiquidRefraction(int pixels);
+    Q_INVOKABLE void setLiquidBlur(int percent);
+    Q_INVOKABLE void setLiquidRim(int percent);
+    /// @brief Store the liquid glass's text colour as #rrggbb; anything else leaves the stored colour alone.
+    Q_INVOKABLE void setLiquidTextColor(QString color);
     Q_INVOKABLE void setAnimationsEnabled(bool on);
     Q_INVOKABLE void setUiLanguage(QString lang);
     Q_INVOKABLE void setSelectionCapture(bool on);
     Q_INVOKABLE void setApiKey(QString key);
     Q_INVOKABLE void setClipboardPolicy(QString policy);
+    /// @brief Store how long a bubble stays up, clamped to the range bubble_settings.h names.
+    Q_INVOKABLE void setBubbleDismissSeconds(int seconds);
+    /// @brief Store which side of the selection a bubble and the action bar try first: "above" or "below".
+    Q_INVOKABLE void setBubblePlacement(QString placement);
     Q_INVOKABLE void setModel(QString model);
     Q_INVOKABLE void setApiUrl(QString url);
     Q_INVOKABLE void setAutostart(bool on);
@@ -144,11 +161,15 @@ public:
     ExplanationDuty* explanationDuty();
     /// @brief The capture duty, which QML reads as `Controller.captureDuty`; the facade owns it.
     CaptureDuty* captureDuty();
+    /// @brief The glass backdrop, which QML reads as `Controller.glassBackdrop`; the facade owns it.
+    GlassBackdrop* glassBackdrop();
     /// @brief The model catalogue, which QML reads as `Controller.modelCatalogDuty`; the facade owns it.
     ModelCatalogDuty* modelCatalogDuty();
     QString           modeLabel() const;
     QString           busyLabel() const;
     double            dailyBudget() const;
+    /// @brief The day this build was compiled, as `yyyy-MM-dd`, for the about page. Not the day it runs.
+    QString buildDate() const;
 
     Q_PROPERTY(QVariantMap settings READ settings NOTIFY settingsChanged)
     Q_PROPERTY(QVariantMap stats READ stats NOTIFY statsChanged)
@@ -158,10 +179,12 @@ public:
     Q_PROPERTY(lens::app::UpdateDuty* updateDuty READ updateDuty CONSTANT)
     Q_PROPERTY(lens::app::ExplanationDuty* explanationDuty READ explanationDuty CONSTANT)
     Q_PROPERTY(lens::app::CaptureDuty* captureDuty READ captureDuty CONSTANT)
+    Q_PROPERTY(lens::app::GlassBackdrop* glassBackdrop READ glassBackdrop CONSTANT)
     Q_PROPERTY(lens::app::ModelCatalogDuty* modelCatalogDuty READ modelCatalogDuty CONSTANT)
     Q_PROPERTY(QString modeLabel READ modeLabel NOTIFY settingsChanged)
     Q_PROPERTY(QString busyLabel READ busyLabel NOTIFY busyChanged)
     Q_PROPERTY(double dailyBudget READ dailyBudget NOTIFY dailyBudgetChanged)
+    Q_PROPERTY(QString buildDate READ buildDate CONSTANT)
 
 signals:
     void selectionBarRequested(QVariantMap payload);
@@ -192,6 +215,7 @@ private:
     StorageDuty            storage_;
     CostDuty               cost_;
     CaptureDuty            capture_;
+    GlassBackdrop          glass_;
     ModelCatalogDuty       catalog_;
     ExplanationDuty        explanation_;
     update::UpdateClient   updateClient_;

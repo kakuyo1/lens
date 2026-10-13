@@ -18,8 +18,10 @@ Item {
     readonly property int shadowMargin: 26
 
     default property alias content: holder.data
-    property real radius: Tokens.radiusCard
-    property color color: Tokens.panel
+    /// The table the card takes its colours from. The settings window passes its own.
+    property TokenTable tokens: Tokens
+    property real radius: root.tokens.radiusCard
+    property color color: root.tokens.panel
 
     /// Whether the reader may drag the card to move the window it is in.
     property bool movable: false
@@ -41,8 +43,8 @@ Item {
     opacity: shown ? 1 : 0
     Behavior on opacity {
         NumberAnimation {
-            duration: Tokens.motion.pop
-            easing.type: Tokens.motion.easing
+            duration: root.tokens.motion.pop
+            easing.type: root.tokens.motion.easing
         }
     }
 
@@ -134,7 +136,7 @@ Item {
         y: card.y
         source: shadowShape
         shadowEnabled: true
-        shadowColor: Qt.rgba(20 / 255, 20 / 255, 26 / 255, Tokens.dark ? 0.75 : 0.24)
+        shadowColor: Qt.rgba(20 / 255, 20 / 255, 26 / 255, root.tokens.dark ? 0.75 : 0.24)
         shadowBlur: 0.9
         shadowVerticalOffset: 10
         blurMax: 40
@@ -149,7 +151,7 @@ Item {
         radius: root.radius
         color: root.color
         border.width: 1
-        border.color: Tokens.line
+        border.color: root.tokens.line
 
         Item {
             id: holder

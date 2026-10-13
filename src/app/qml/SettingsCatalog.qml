@@ -44,5 +44,10 @@ Item {
             summary: qsTranslate("SettingsPopup", "Desktop companion")
             onPicked: root.categoryRequested("extensions")
         }
+        SettingsCategoryRow {
+            title: qsTranslate("SettingsPopup", "About")
+            summary: qsTranslate("SettingsPopup", "Version, updates, repository")
+            onPicked: root.categoryRequested("about")
+        }
     }
 }

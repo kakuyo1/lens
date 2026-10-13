@@ -42,6 +42,7 @@ QtObject {
     readonly property color ink: "#eef3fa"
     readonly property color on: "#0c1016"
     readonly property color danger: "#ec9282"
+    readonly property color popup: "#171c25"
 
     /**
      * The bubble's frosted fill and its border.

@@ -28,6 +28,12 @@ Item {
 
         /// A bubble as the controller hands it over, with its word, its pronunciation and both
         /// explanations filled in.
+        /// Every case starts from the default display time, so a case that changes it cannot leave the
+        /// countdown checks below reading a bubble of some other length.
+        function init() {
+            Controller.setBubbleDismissSeconds(5);
+        }
+
         function opened() {
             const bubble = createTemporaryObject(bubbleComponent, root);
             verify(bubble);
@@ -75,6 +81,14 @@ Item {
         function test_aFreshBubbleShowsTheWholeCount() {
             const bubble = opened();
             compare(metaOf(bubble).text, "Disappears in 5s");
+        }
+
+        /// The display time the reader chose is the one a fresh bubble counts down from. init() puts
+        /// the default back before the next case.
+        function test_aFreshBubbleCountsFromTheChosenDisplayTime() {
+            Controller.setBubbleDismissSeconds(12);
+            const bubble = opened();
+            compare(metaOf(bubble).text, "Disappears in 12s");
         }
 
         /// The number is the clock rather than the setting that seeded it: waiting a second of

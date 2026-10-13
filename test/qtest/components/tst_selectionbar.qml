@@ -40,16 +40,16 @@ Item {
             compare(Util.textsUnder(bar).map((t) => t.text).sort(), ["Copy text", "Explain", "Translate"]);
         }
 
-        /// Every placement is by the card rather than by the window, which is shadowMargin
-        /// bigger on each side -- lining the window up with the anchor put the card a
-        /// shadow-margin clear of the selection, measured on the real surface.
-        function test_theCardClearsTheAnchorByTheGap() {
+        /// Placement belongs to Main.qml's placeTransient(), which also runs the bubble settings'
+        /// side choice and the flip (tst_main covers that arithmetic). openAt() only records the
+        /// kind and shows the bar, so it must not move the window on its own.
+        function test_openAtLeavesThePlacementToTheRoot() {
             const bar = opened({ x: 300, y: 300 });
-            compare(bar.y + bar.height - bar.shadowMargin, 300 - bar.gap, "the card should hang above the anchor");
-            compare(bar.x + bar.shadowMargin, 300, "the card should be centred on the anchor");
+            const before = { x: bar.x, y: bar.y };
 
-            const top = opened({ x: 300, y: 0 });
-            compare(top.y + top.shadowMargin, top.gap, "with no room above, the card should flip below the anchor");
+            bar.openAt({ x: 300, y: 300, kind: "word", text: "ubiquitous" });
+            compare(bar.x, before.x, "openAt moved the bar sideways");
+            compare(bar.y, before.y, "openAt moved the bar vertically");
         }
     }
 }

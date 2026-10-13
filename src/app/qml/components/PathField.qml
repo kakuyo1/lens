@@ -38,10 +38,10 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: Tokens.radiusField
-        color: Tokens.panel2
+        radius: SettingsTokens.radiusField
+        color: SettingsTokens.panel2
         border.width: 1
-        border.color: Tokens.line
+        border.color: SettingsTokens.line
 
         Text {
             anchors.left: parent.left
@@ -50,7 +50,7 @@ Item {
             anchors.rightMargin: 8
             anchors.verticalCenter: parent.verticalCenter
             text: root.path.length > 0 ? root.path : root.fallback
-            color: root.path.length > 0 ? Tokens.text : Tokens.faint
+            color: root.path.length > 0 ? SettingsTokens.text : SettingsTokens.faint
             font.pixelSize: 12
             elide: Text.ElideMiddle
         }
@@ -61,7 +61,7 @@ Item {
             anchors.rightMargin: 11
             anchors.verticalCenter: parent.verticalCenter
             source: "qrc:/icons/ui-folder.svg"
-            color: Tokens.faint
+            color: SettingsTokens.faint
         }
 
         HoverHandler { cursorShape: Qt.PointingHandCursor }

@@ -19,6 +19,27 @@ html[data-theme=dark]{
   --ink:#e9e9ee; --on:#16161a; --sel:rgba(233,233,238,.16);
   --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
 }
+/* Glass themes. The wall is the reader's desktop stand-in; frosted and liquid each carry their own. */
+html[data-theme=frosted],html[data-theme=liquid]{
+  --bg:transparent;
+  background-image:var(--wall); background-attachment:fixed; background-size:cover;
+}
+html[data-theme=frosted]{
+  --wall:url("frosted-backdrops/night-lines.png");
+  --panel:rgba(255,255,255,.40); --panel2:rgba(18,24,36,.065);
+  --line:rgba(18,24,36,.15); --line2:rgba(18,24,36,.10);
+  --text:#14161c; --muted:#3c4250; --faint:#535865;
+  --ink:#191b21; --on:#fff; --sw-off:rgba(18,24,36,.22);
+  --sh2:0 4px 14px rgb(255 255 255/5.5%);
+}
+html[data-theme=liquid]{
+  --wall:url("liquid-backdrops/cool-wall.png");
+  --panel:rgba(248,250,254,.78); --panel2:rgba(18,24,36,.075);
+  --line:rgba(18,24,36,.16); --line2:rgba(18,24,36,.11);
+  --text:#101319; --muted:#333846; --faint:#4a4f5e;
+  --ink:#12151b; --on:#fff; --sw-off:rgba(18,24,36,.24);
+  --sh2:0 1px 2px rgba(10,14,24,.14),0 22px 54px -20px rgba(10,14,24,.48);
+}
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-font-smoothing:antialiased}
 body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:24px;padding:56px 24px}
@@ -38,11 +59,28 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 
 .themebtn{position:fixed;top:14px;right:16px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-family:var(--f);font-size:11.5px;cursor:pointer}
 .themebtn:hover{color:var(--text)}
+/* Glass card: the bar is the glass. The base .bar already fills with var(--panel) and shadows with var(--sh2). */
+html[data-theme=frosted] .bar{border-color:rgba(255,255,255,var(--glass-rim,.2));backdrop-filter:blur(var(--glass-blur,6px)) saturate(var(--glass-sat,120%))}
+html[data-theme=liquid] .bar{background:transparent;border-color:rgba(255,255,255,var(--glass-rim,.1));backdrop-filter:blur(var(--glass-blur,6px)) contrast(1.05)}
+/* Blur first, then the displacement filter: the order is the point (UI.md 3.1d). */
+html[data-theme=liquid][data-refract] .bar{backdrop-filter:blur(var(--glass-blur,6px)) url(#lg-liquid)}
+/* Reduced transparency: solid card, rim back to the light line. */
+@media (prefers-reduced-transparency:reduce){
+  html[data-theme=frosted],html[data-theme=liquid]{--panel:#fafbfd;--panel2:#f0f3f8;--line:#dde2ea;--line2:#e9edf3;--sw-off:#d6dae1}
+  html[data-theme=frosted] .bar,html[data-theme=liquid] .bar,html[data-theme=liquid][data-refract] .bar{backdrop-filter:none;background-image:none;border-color:var(--line)}
+  html[data-theme=liquid] .bar{background:var(--panel)}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<button class="themebtn" id="tb">黑夜</button>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="lg-liquid" filterUnits="userSpaceOnUse" x="0" y="0" width="254" height="44" color-interpolation-filters="sRGB">
+    <feImage id="lg-map" x="0" y="0" width="254" height="44" preserveAspectRatio="none" result="map"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="20" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</defs></svg>
+<button class="themebtn" id="tb">静谧暗夜</button>
 
 <div class="demo" id="demo">
   <p>She gave a <span class="sel" id="sel">candid</span> answer to a question she had been dreading for weeks, and nobody in the room expected it.</p>
@@ -68,10 +106,10 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 /// prototype and the application say the same thing. The reading sample stays English: it is
 /// the page the reader is on, not interface text.
 const L = {
-  en: { translate: "Translate", explain: "Explain", copy: "Copy text", themeDark: "Dark", themeLight: "Light" },
-  zh: { translate: "翻译", explain: "解释", copy: "复制文本", themeDark: "黑夜", themeLight: "白天" },
-  ja: { translate: "翻訳", explain: "解説", copy: "テキストをコピー", themeDark: "ダーク", themeLight: "ライト" },
-  es: { translate: "Traducir", explain: "Explicar", copy: "Copiar texto", themeDark: "Oscuro", themeLight: "Claro" }
+  en: { translate: "Translate", explain: "Explain", copy: "Copy text", themeDark: "Dark", themeLight: "Light", themeFrosted: "Frosted glass", themeLiquid: "Liquid glass" },
+  zh: { translate: "翻译", explain: "解释", copy: "复制文本", themeDark: "静谧暗夜", themeLight: "晴朗白昼", themeFrosted: "雾面玻璃", themeLiquid: "流光玻璃" },
+  ja: { translate: "翻訳", explain: "解説", copy: "テキストをコピー", themeDark: "ダーク", themeLight: "ライト", themeFrosted: "すりガラス", themeLiquid: "リキッドガラス" },
+  es: { translate: "Traducir", explain: "Explicar", copy: "Copiar texto", themeDark: "Oscuro", themeLight: "Claro", themeFrosted: "Vidrio mate", themeLiquid: "Vidrio líquido" }
 };
 const asked = (new URLSearchParams(location.search).get('lang') || 'zh').toLowerCase();
 const lang = asked.startsWith('zh') ? 'zh' : (L[asked] ? asked : 'zh');
@@ -83,12 +121,21 @@ const demo = document.getElementById('demo'),
       bar  = document.getElementById('bar'),
       sel  = document.getElementById('sel');
 
+// The side the bar tries first is the bubble settings' Bubble position (above by default). It takes the other
+// side only when the chosen one has no room in the demo canvas, which is what the work area does on
+// the real screen. ?placement=below previews the below side.
+const preferBelow = new URLSearchParams(location.search).get('placement') === 'below';
 function placeTo(r) {
   bar.classList.add('show');
   const d = demo.getBoundingClientRect();
   const left = Math.max(0, Math.min(r.left - d.left, demo.clientWidth - bar.offsetWidth));
+  const above = r.top - d.top - bar.offsetHeight - 8;
+  const below = r.bottom - d.top + 8;
+  const fitsBelow = r.bottom + 8 + bar.offsetHeight <= window.innerHeight;
+  const fitsAbove = above >= 0;
+  const takeBelow = preferBelow ? fitsBelow || !fitsAbove : !fitsAbove;
   bar.style.left = left + 'px';
-  bar.style.top = (r.top - d.top - bar.offsetHeight - 8) + 'px';
+  bar.style.top = (takeBelow ? below : above) + 'px';
 }
 placeTo(sel.getBoundingClientRect());
 
@@ -99,13 +146,66 @@ document.addEventListener('mouseup', (e) => {
   placeTo(rects && rects.length ? rects[0] : sel.getBoundingClientRect());
 });
 
-const tb = document.getElementById('tb');
-function applyTheme(v) {
-  document.documentElement.dataset.theme = v;
-  tb.textContent = v === 'dark' ? t.themeLight : t.themeDark;
+/// 折射能力探测：不支持 url() 形式 backdrop-filter 的浏览器会丢掉这条声明，读回空串。此时液体玻璃退回 CSS 的模糊与高光。
+const refractOK = (() => { const p = document.createElement("div"); p.style.backdropFilter = "url(#lg-liquid)"; return p.style.backdropFilter !== ""; })();
+const svgAttr = (id, name, v) => document.getElementById(id).setAttribute(name, v);
+/// 按卡片尺寸画一次位移图（R/G 编码到 [0,255]，128 为零位移）。位移取模糊后的圆角矩形遮罩的梯度：
+/// 遮罩在边缘最陡、向中心趋于平坦，梯度处处连续，所以没有距离场那样沿对角线（两条边的等距线）翻转的接缝，不会画出 X 形。
+/// 位移朝内取样：边缘的像素从玻璃里面借内容，边缘因此被压弯；位移的强度由 feDisplacementMap 的 scale 决定，不在这里烤死。
+function liquidMap(W = 380, H = 480, R = 22, S = 18) {
+  const mask = document.createElement("canvas");
+  mask.width = W; mask.height = H;
+  const mctx = mask.getContext("2d");
+  mctx.filter = `blur(${S}px)`;
+  mctx.fillStyle = "#fff";
+  mctx.beginPath(); mctx.roundRect(0, 0, W, H, R); mctx.fill();
+  const m = mctx.getImageData(0, 0, W, H).data;
+  // 遮罩为纯白：R 在有覆盖处恒为 255，模糊的衰减只在 alpha 里，所以读第 4 分量。读 R 时 S 一大位移图就全平。
+  const at = (x, y) => m[(Math.min(Math.max(y, 0), H - 1) * W + Math.min(Math.max(x, 0), W - 1)) * 4 + 3] / 255;
+  // 遮罩向内升高，中心差分即朝内的梯度；按全图最大值归一，最强处正好编码到 127
+  const gx = new Float32Array(W * H), gy = new Float32Array(W * H);
+  let max = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x;
+    gx[i] = (at(x + 1, y) - at(x - 1, y)) / 2;
+    gy[i] = (at(x, y + 1) - at(x, y - 1)) / 2;
+    max = Math.max(max, Math.hypot(gx[i], gy[i]));
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext("2d"), img = ctx.createImageData(W, H);
+  for (let i = 0; i < W * H; i++) img.data.set([128 + 127 * gx[i] / max, 128 + 127 * gy[i] / max, 128, 255], i * 4);
+  ctx.putImageData(img, 0, 0);
+  return canvas.toDataURL();
 }
-applyTheme(location.search.includes('theme=dark') ? 'dark' : 'light');
-tb.onclick = () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+const root = document.documentElement;
+/// The filter follows the bar's size (its height is 44 px, not the spec's 41); R = 13 (bar radius).
+/// S = 18 scaled by the short side: 18 x 44 / 380 = 2.
+new ResizeObserver(() => {
+  if (!refractOK || root.dataset.theme !== 'liquid') return;
+  const W = bar.offsetWidth, H = bar.offsetHeight;
+  for (const id of ['lg-liquid', 'lg-map']) { svgAttr(id, 'width', W); svgAttr(id, 'height', H); }
+  svgAttr('lg-map', 'href', liquidMap(W, H, 13, 2));
+}).observe(bar);
+
+const tb = document.getElementById('tb');
+const params = new URLSearchParams(location.search);
+/// Test backdrops per glass theme (?bg=). The first name in each list is the default.
+const BG = {
+  frosted: ['night-lines', 'text-dense', 'color-blocks', 'sky-light', 'checker'],
+  liquid: ['cool-wall', 'web-light', 'web-dark', 'colorful', 'stripes', 'black', 'white'],
+};
+function applyTheme(v) {
+  root.dataset.theme = v;
+  tb.textContent = { light: t.themeLight, dark: t.themeDark, frosted: t.themeFrosted, liquid: t.themeLiquid }[v];
+  if (v === 'liquid' && refractOK) root.dataset.refract = 'on';
+  else delete root.dataset.refract;
+}
+const theme = ['dark', 'frosted', 'liquid'].includes(params.get('theme')) ? params.get('theme') : 'light';
+applyTheme(theme);
+if (BG[theme] && BG[theme].includes(params.get('bg'))) root.style.setProperty('--wall', 'url("' + theme + '-backdrops/' + params.get('bg') + '.png")');
+const THEMES = ['light', 'dark', 'frosted', 'liquid'];
+tb.onclick = () => applyTheme(THEMES[(THEMES.indexOf(root.dataset.theme) + 1) % THEMES.length]);
 // ?shot is for the README's screenshots: the toggle is a way to look at the prototype, not part
 // of the surface, and no image of it ships. The top margin goes with it -- it is the page's, not
 // the surface's, and keeping it would push the sample sentence out of the frame.

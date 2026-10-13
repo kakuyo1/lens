@@ -6,7 +6,7 @@ import QtQuick
  * The durations are milliseconds and the surfaces never spell one: a Behaviour reads
  * `Tokens.motion.<token>`, so retiming the whole application is an edit here and nothing else.
  * Together with the two colour tables this is the third value table in qml/theme/, built and
- * forwarded by Tokens the same way they are.
+ * forwarded by TokenTable the same way they are.
  *
  * Reduced motion is not a CSS media query in this application. Windows exposes no
  * prefers-reduced-motion, and its preference comes from SystemParametersInfoW(

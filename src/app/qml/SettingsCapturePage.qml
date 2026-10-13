@@ -20,16 +20,16 @@ Item {
             spacing: 7
             Text {
                 text: qsTranslate("SettingsPopup", "Trigger channels")
-                color: Tokens.muted
+                color: SettingsTokens.muted
                 font.pixelSize: 11
             }
             Rectangle {
                 width: parent.width
                 implicitHeight: switches.implicitHeight + 8
-                radius: Tokens.radiusGroup
-                color: Tokens.panel2
+                radius: SettingsTokens.radiusGroup
+                color: SettingsTokens.panel2
                 border.width: 1
-                border.color: Tokens.line
+                border.color: SettingsTokens.line
 
                 Column {
                     id: switches
@@ -40,6 +40,7 @@ Item {
 
                     SwitchRow {
                         objectName: "selectionCapture"
+                        tokens: SettingsTokens
                         width: parent.width
                         label: qsTranslate("SettingsPopup", "Selection")
                         checked: Controller.settings.selectionCapture
@@ -47,6 +48,7 @@ Item {
                     }
                     SwitchRow {
                         objectName: "ocrCapture"
+                        tokens: SettingsTokens
                         width: parent.width
                         label: qsTranslate("SettingsPopup", "OCR")
                         checked: Controller.settings.ocrCapture
@@ -55,6 +57,7 @@ Item {
                     }
                     SwitchRow {
                         objectName: "autoScan"
+                        tokens: SettingsTokens
                         width: parent.width
                         label: qsTranslate("SettingsPopup", "Auto scan")
                         checked: Controller.settings.autoScan
@@ -70,7 +73,7 @@ Item {
         Column {
             width: parent.width
             spacing: 7
-            Text { text: qsTranslate("SettingsPopup", "OCR trigger key"); color: Tokens.muted; font.pixelSize: 11 }
+            Text { text: qsTranslate("SettingsPopup", "OCR trigger key"); color: SettingsTokens.muted; font.pixelSize: 11 }
             HotkeyField {
                 id: hotkeyField
                 width: parent.width
@@ -99,7 +102,7 @@ Item {
             text: Controller.settings.ocrStatus === "checking" ? qsTr("Checking OCR")
                   : Controller.settings.ocrStatus === "english-data-missing" ? qsTr("English OCR data is missing")
                   : qsTr("OCR runtime is unavailable")
-            color: Tokens.muted
+            color: SettingsTokens.muted
             font.pixelSize: 12
             wrapMode: Text.WordWrap
         }
@@ -113,7 +116,7 @@ Item {
         Column {
             width: parent.width
             spacing: 7
-            Text { text: qsTr("Tesseract executable"); color: Tokens.muted; font.pixelSize: 12 }
+            Text { text: qsTr("Tesseract executable"); color: SettingsTokens.muted; font.pixelSize: 12 }
             PathField {
                 id: tesseractField
                 width: parent.width
@@ -128,7 +131,7 @@ Item {
         Column {
             width: parent.width
             spacing: 7
-            Text { text: qsTr("Tesseract data folder"); color: Tokens.muted; font.pixelSize: 12 }
+            Text { text: qsTr("Tesseract data folder"); color: SettingsTokens.muted; font.pixelSize: 12 }
             PathField {
                 id: tesseractDataField
                 width: parent.width
@@ -144,7 +147,7 @@ Item {
         Column {
             width: parent.width
             spacing: 7
-            Text { text: qsTr("Minimum word length"); color: Tokens.muted; font.pixelSize: 12 }
+            Text { text: qsTr("Minimum word length"); color: SettingsTokens.muted; font.pixelSize: 12 }
             DropdownField {
                 id: lengthField
                 objectName: "minimumWordLength"
@@ -163,22 +166,22 @@ Item {
         Column {
             width: parent.width
             spacing: 7
-            Text { text: qsTr("Scan whitelist"); color: Tokens.muted; font.pixelSize: 12 }
+            Text { text: qsTr("Scan whitelist"); color: SettingsTokens.muted; font.pixelSize: 12 }
             TextField {
                 id: whitelistField
                 objectName: "scanWhitelist"
                 width: parent.width
                 text: Controller.settings.scanWhitelist
                 font.pixelSize: 13
-                color: Tokens.text
+                color: SettingsTokens.text
                 selectByMouse: true
                 maximumLength: 4096
                 Accessible.name: qsTr("Scan whitelist")
                 background: Rectangle {
-                    radius: Tokens.radiusField
-                    color: Tokens.panel2
+                    radius: SettingsTokens.radiusField
+                    color: SettingsTokens.panel2
                     border.width: 1
-                    border.color: whitelistField.activeFocus ? Tokens.ink : Tokens.line
+                    border.color: whitelistField.activeFocus ? SettingsTokens.ink : SettingsTokens.line
                 }
                 onEditingFinished: {
                     Controller.captureDuty.setScanWhitelist(text);

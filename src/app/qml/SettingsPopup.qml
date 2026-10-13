@@ -44,6 +44,7 @@ Window {
         if (value === "model") return qsTranslate("SettingsPopup", "Model service");
         if (value === "budget") return qsTranslate("SettingsPopup", "Daily budget");
         if (value === "extensions") return qsTranslate("SettingsPopup", "Extensions");
+        if (value === "about") return qsTranslate("SettingsPopup", "About");
         return "";
     }
 
@@ -100,6 +101,15 @@ Window {
         Controller.setAnimationsEnabled(true);
         Controller.setSelectionCapture(true);
         Controller.setClipboardPolicy("topmost");
+        Controller.setBubbleDismissSeconds(5);
+        Controller.setBubblePlacement("above");
+        Controller.setFrostedBlur(10);
+        Controller.setFrostedSaturation(120);
+        Controller.setFrostedRim(20);
+        Controller.setLiquidRefraction(20);
+        Controller.setLiquidBlur(10);
+        Controller.setLiquidRim(10);
+        Controller.setLiquidTextColor("#101319");
         Controller.modelCatalogDuty.setProvider("DeepSeek");
         Controller.setModel("deepseek-flash");
         Controller.restoreCaptureDefaults();
@@ -115,8 +125,94 @@ Window {
             apiDraft = "";
             saveStatus = "";
             body.contentY = 0;
+            Controller.glassBackdrop.clear();
+            settings.captureBackdrop();
         } else {
             closeChild();
+        }
+    }
+
+    function windowRect() {
+        return Qt.rect(settings.x, settings.y, settings.width, settings.height);
+    }
+
+    /// The desktop under the window, taken as a sheet a little larger than the window (GlassBackdrop.follow). Where the
+    /// OS keeps the window out of captures, the sheet is taken as it is, nothing flickers, and it is kept fresh while the
+    /// glass shows (GlassBackdrop.setLive). Otherwise the window goes transparent for the settle time while the sheet is
+    /// taken, and only when the sheet no longer covers the window. Nothing is taken unless a glass theme is on, and the
+    /// sheet is dropped the moment one is not.
+    function captureBackdrop() {
+        settings.pictureTheme = Controller.settings.theme;
+        // Excluded only while the glass shows: a window kept out of captures is missing from screenshots too.
+        settings.excludedFromCapture = Controller.glassBackdrop.keepOutOfCapture(
+            settings, settings.visible && SettingsTokens.glassMode !== "");
+        if (SettingsTokens.glassMode === "" || !settings.visible) {
+            Controller.glassBackdrop.clear();
+            return;
+        }
+        if (settings.excludedFromCapture) {
+            Controller.glassBackdrop.follow(settings.windowRect(), SettingsTokens.panel.a);
+            Controller.glassBackdrop.setLive(true);
+            return;
+        }
+        if (Controller.glassBackdrop.covers(settings.windowRect()))
+            return;
+        settings.opacity = 0;
+        captureTimer.restart();
+    }
+
+    /// The window moved. Once it is kept out of captures, the sheet follows it at once: GlassBackdrop takes a new one only
+    /// when the window nears the sheet's edge, so a drag takes few captures.
+    function followWindow() {
+        moveSettle.restart();
+        if (settings.excludedFromCapture && settings.visible)
+            Controller.glassBackdrop.follow(settings.windowRect(), SettingsTokens.panel.a);
+    }
+
+    /// The theme the picture was taken under. Only a change of theme takes a new one: any other settings
+    /// write, such as a slider's, would otherwise dim the window to retake a picture it already has.
+    property string pictureTheme: ""
+
+    /// Whether the window is kept out of captures right now, so the sheet is taken without hiding the card.
+    property bool excludedFromCapture: false
+
+    Connections {
+        target: Controller
+        function onSettingsChanged() {
+            if (Controller.settings.theme !== settings.pictureTheme)
+                settings.captureBackdrop();
+        }
+    }
+
+    /// Whether the text over the glass should be light. Decided from the picture, so it follows the
+    /// desktop and not the theme's name.
+    Binding {
+        target: SettingsTokens
+        property: "glassLightText"
+        value: Controller.glassBackdrop.lightText
+    }
+
+    /// Any move of the window restarts this. Once it settles, the sheet is taken if the window has outgrown it. During a
+    /// drag the sheet follows the window itself (followWindow) when the window is kept out of captures.
+    Timer {
+        id: moveSettle
+        interval: 300
+        onTriggered: {
+            if (!shell.dragging)
+                settings.captureBackdrop();
+        }
+    }
+    onXChanged: settings.followWindow()
+    onYChanged: settings.followWindow()
+
+    Timer {
+        id: captureTimer
+        interval: 120
+        onTriggered: {
+            // Taken again rather than kept: this is the path where the window was hidden, so the sheet is retaken whole.
+            Controller.glassBackdrop.clear();
+            Controller.glassBackdrop.follow(settings.windowRect(), SettingsTokens.panel.a);
+            settings.opacity = 1;
         }
     }
 
@@ -126,10 +222,32 @@ Window {
     }
 
     ShadowCard {
+        id: shell
         anchors.fill: parent
-        radius: Tokens.radiusCard
+        radius: SettingsTokens.radiusCard
+        // The glass draws the card itself; under the solid themes the fill stays as it was.
+        color: SettingsTokens.glassMode === "" ? SettingsTokens.panel : "transparent"
         movable: true
-        onDraggingChanged: if (dragging) settings.closeChild()
+        tokens: SettingsTokens
+        onDraggingChanged: {
+            if (dragging) {
+                settings.closeChild();
+            } else {
+                settings.captureBackdrop();
+            }
+        }
+
+        // The glass is the card's own background. Its picture is held in memory only (docs/adr/0034).
+        GlassSurface {
+            anchors.fill: parent
+            serial: Controller.glassBackdrop.serial
+            mode: SettingsTokens.glassMode
+            radius: SettingsTokens.radiusCard
+            blur: SettingsTokens.glassMode === "liquid" ? Controller.settings.liquidBlur : Controller.settings.frostedBlur
+            saturation: Controller.settings.frostedSaturation
+            rim: SettingsTokens.glassMode === "liquid" ? Controller.settings.liquidRim : Controller.settings.frostedRim
+            refraction: Controller.settings.liquidRefraction
+        }
 
         Item {
             id: header
@@ -150,7 +268,7 @@ Window {
                     width: 16
                     height: 16
                     source: "qrc:/icons/ui-back.svg"
-                    color: Tokens.muted
+                    color: SettingsTokens.muted
                 }
                 HoverHandler { cursorShape: Qt.PointingHandCursor }
                 TapHandler { onTapped: settings.navigateBack() }
@@ -164,7 +282,7 @@ Window {
                 x: settings.category !== "" ? 54 : 20
                 anchors.verticalCenter: parent.verticalCenter
                 text: qsTranslate("SettingsPopup", "Settings")
-                color: Tokens.text
+                color: SettingsTokens.text
                 font.pixelSize: 14
                 font.weight: Font.Bold
             }
@@ -176,7 +294,7 @@ Window {
                 anchors.leftMargin: 9
                 anchors.verticalCenter: parent.verticalCenter
                 text: "/"
-                color: Tokens.faint
+                color: SettingsTokens.faint
                 font.pixelSize: 12
             }
 
@@ -188,7 +306,7 @@ Window {
                 anchors.rightMargin: 12
                 anchors.verticalCenter: parent.verticalCenter
                 text: settings.route !== "" ? settings.routeTitle(settings.route) : settings.categoryTitle(settings.category)
-                color: Tokens.muted
+                color: SettingsTokens.muted
                 font.pixelSize: 12
                 elide: Text.ElideRight
             }
@@ -206,7 +324,7 @@ Window {
                     width: 16
                     height: 16
                     source: "qrc:/icons/ui-close.svg"
-                    color: Tokens.faint
+                    color: SettingsTokens.faint
                 }
                 HoverHandler { cursorShape: Qt.PointingHandCursor }
                 TapHandler { onTapped: settings.visible = false }
@@ -239,6 +357,7 @@ Window {
                                   : settings.category === "capture" ? captureComponent
                                   : settings.category === "model" ? modelComponent
                                   : settings.category === "budget" ? budgetComponent
+                                  : settings.category === "about" ? aboutComponent
                                   : extensionsComponent
             }
         }
@@ -254,7 +373,7 @@ Window {
                 anchors.top: parent.top
                 width: parent.width
                 height: 1
-                color: Tokens.line2
+                color: SettingsTokens.line2
             }
 
             Rectangle {
@@ -262,16 +381,16 @@ Window {
                 y: 15
                 width: defaultsLabel.width + 28
                 height: 27
-                radius: Tokens.radiusPill
-                color: Tokens.panel2
+                radius: SettingsTokens.radiusPill
+                color: SettingsTokens.panel2
                 border.width: 1
-                border.color: Tokens.line
+                border.color: SettingsTokens.line
 
                 Text {
                     id: defaultsLabel
                     anchors.centerIn: parent
                     text: qsTranslate("SettingsPopup", "Defaults")
-                    color: Tokens.muted
+                    color: SettingsTokens.muted
                     font.pixelSize: 12
                     font.weight: Font.Bold
                 }
@@ -288,7 +407,7 @@ Window {
                 text: settings.hasUnsavedChanges
                       ? qsTranslate("SettingsPopup", "Unsaved changes")
                       : settings.saveStatus
-                color: Tokens.faint
+                color: SettingsTokens.faint
                 font.pixelSize: 11
                 horizontalAlignment: Text.AlignHCenter
                 elide: Text.ElideRight
@@ -301,15 +420,15 @@ Window {
                 y: 15
                 width: saveLabel.width + 28
                 height: 27
-                radius: Tokens.radiusPill
-                color: Tokens.ink
+                radius: SettingsTokens.radiusPill
+                color: SettingsTokens.ink
                 opacity: settings.hasUnsavedChanges ? 1 : 0.45
 
                 Text {
                     id: saveLabel
                     anchors.centerIn: parent
                     text: qsTranslate("SettingsPopup", "Save")
-                    color: Tokens.on
+                    color: SettingsTokens.on
                     font.pixelSize: 12
                     font.weight: Font.Bold
                 }
@@ -331,6 +450,7 @@ Window {
         }
     }
     Component { id: generalComponent; SettingsGeneralPage {} }
+    Component { id: aboutComponent; SettingsAboutPage {} }
     Component { id: learningComponent; SettingsLearningPage {} }
     Component {
         id: captureComponent

@@ -10,7 +10,7 @@
   --text:#1a1a1f; --muted:#66666f; --faint:#9d9da8;
   --ok:#2f9e6e;
   --ink:#1a1a1f; --on:#fff;
-  --r-lg:18px;
+  --r-lg:18px; --sw-off:var(--line);
   --sh2:0 2px 6px rgba(20,20,26,.06),0 24px 60px -24px rgba(20,20,26,.24);
   --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
 }
@@ -21,6 +21,28 @@ html[data-theme=dark]{
   --ink:#e9e9ee; --on:#16161a;
   --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
 }
+/* Glass themes. The card is .settings; the stage and the other content are not cards and take no glass. */
+html[data-theme=frosted],html[data-theme=liquid]{
+  --bg:transparent;
+  background-image:var(--wall); background-attachment:fixed; background-size:cover;
+}
+html[data-theme=frosted]{
+  --wall:url("frosted-backdrops/night-lines.png");
+  --panel:rgba(255,255,255,.40); --panel2:rgba(18,24,36,.065);
+  --line:rgba(18,24,36,.15); --line2:rgba(18,24,36,.10);
+  --text:#14161c; --muted:#3c4250; --faint:#535865;
+  --ink:#191b21; --on:#fff; --sw-off:rgba(18,24,36,.22);
+  --sh2:0 4px 14px rgb(255 255 255/5.5%);
+}
+html[data-theme=liquid]{
+  --wall:url("liquid-backdrops/cool-wall.png");
+  --panel:rgba(248,250,254,.78); --panel2:rgba(18,24,36,.075);
+  --line:rgba(18,24,36,.16); --line2:rgba(18,24,36,.11);
+  --text:#101319; --muted:#333846; --faint:#4a4f5e;
+  --ink:#12151b; --on:#fff; --sw-off:rgba(18,24,36,.24);
+  --sh2:0 1px 2px rgba(10,14,24,.14),0 22px 54px -20px rgba(10,14,24,.48);
+  --r-lg:22px;
+}
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
 html{-webkit-font-smoothing:antialiased}
@@ -30,6 +52,9 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 
 /* 扩展 → 桌面宠物：与设置面板同尺寸、同页头页脚 */
 .settings{width:380px;height:480px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);display:flex;flex-direction:column;overflow:hidden}
+html[data-theme=frosted] .settings{backdrop-filter:blur(var(--glass-blur,6px)) saturate(var(--glass-sat,120%));border-color:rgba(255,255,255,var(--glass-rim,.2))}
+html[data-theme=liquid] .settings{background:transparent;border-color:rgba(255,255,255,var(--glass-rim,.1));backdrop-filter:blur(var(--glass-blur,6px)) contrast(1.05);box-shadow:var(--sh2)}
+html[data-theme=liquid][data-refract] .settings{backdrop-filter:blur(var(--glass-blur,6px)) url(#lg-liquid)}
 .set-h{display:flex;align-items:center;gap:9px;padding:0 20px;min-height:58px;border-bottom:1px solid var(--line2);flex:none}
 .set-back{display:grid;place-items:center;width:26px;height:26px;margin-left:-6px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:20px;line-height:1}
 .set-back:hover{background:var(--panel2);color:var(--text)}
@@ -53,7 +78,7 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .swrow.off{color:var(--faint)}
 .swrow.off .switch{opacity:.45}
 .swhelp{font-size:11px;color:var(--muted);margin-top:-2px;margin-bottom:12px}
-.switch{flex:none;width:34px;height:20px;border:0;border-radius:99px;background:var(--line);position:relative;padding:0}
+.switch{flex:none;width:34px;height:20px;border:0;border-radius:99px;background:var(--sw-off);position:relative;padding:0}
 .switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--panel)}
 .switch[aria-checked=true]{background:var(--ink)}
 .switch[aria-checked=true]::after{left:auto;right:2px;background:var(--on)}
@@ -70,6 +95,8 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 .dd-btn svg{margin-left:auto;width:14px;height:14px;color:var(--faint);flex:none}
 .dd-list{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:9;display:none;background:var(--panel);border:1px solid var(--line);border-radius:11px;box-shadow:var(--sh2);padding:5px;max-height:252px;overflow-y:auto}
 .dd.open .dd-list{display:block}
+/* Popover on frosted: 78% white (UI.md 3.1c), not the card's 40%. Liquid already uses --panel, which is 78%. */
+html[data-theme=frosted] .dd-list{background:rgba(255,255,255,.78)}
 .dd-item{display:flex;align-items:center;width:100%;height:29px;padding:0 11px;border:0;border-radius:8px;background:transparent;font-size:13px;color:var(--text);text-align:left}
 .dd-item:hover{background:var(--panel2)}
 .dd-item[aria-selected=true]{background:var(--ink);color:var(--on);font-weight:600}
@@ -92,9 +119,21 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 .slot .chips{flex:1;min-width:0}
 .themebtn{position:fixed;top:14px;right:16px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-family:var(--f);font-size:11.5px;cursor:pointer}
 .themebtn:hover{color:var(--text)}
+@media (prefers-reduced-transparency:reduce){
+  html[data-theme=frosted],html[data-theme=liquid]{--panel:#fafbfd;--panel2:#f0f3f8;--line:#dde2ea;--line2:#e9edf3;--sw-off:#d6dae1}
+  html[data-theme=frosted] .settings,html[data-theme=liquid] .settings,html[data-theme=liquid][data-refract] .settings{backdrop-filter:none;background-image:none;border-color:var(--line)}
+  html[data-theme=liquid] .settings{background:var(--panel)}
+  html[data-theme=frosted] .dd-list{background:var(--panel)}
+}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="lg-liquid" filterUnits="userSpaceOnUse" x="0" y="0" width="380" height="480" color-interpolation-filters="sRGB">
+    <feImage id="lg-map" x="0" y="0" width="380" height="480" preserveAspectRatio="none" result="map"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="20" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</defs></svg>
 <div class="settings" id="app">
   <div class="set-h">
     <button class="set-back" type="button" aria-label="返回">‹</button>
@@ -151,7 +190,7 @@ const L = {
                 flower: "花", party_hat: "派对帽", blush: "腮红", scarf: "围巾", apron: "围裙", hair_bow: "发结", reading_glasses: "老花镜",
                 sleep_mask: "眼罩", vest: "马甲", bell_collar: "铃铛项圈", bandana: "三角巾" },
         pets: { dog: "小狗", mochi: "麻糬", owl: "猫头鹰", cat: "猫" },
-        themeDark: "黑夜", themeLight: "白天" },
+        themeDark: "静谧暗夜", themeLight: "晴朗白昼", themeFrosted: "雾面玻璃", themeLiquid: "流光玻璃" },
   en: { title: "Desktop pet", crumb: "Extensions", tog: "Show desktop pet", help: "When on, the pet stays on the desktop and can be dragged. It never reads your selections or explanations, only event types.",
         pass: "Mouse passthrough", passHelp: "When on, the pet ignores the mouse: clicks reach the window below and it cannot be dragged. Turn this off here to get interaction back.",
         pick: "Pet type", stage: "Preview", act: "Actions", acc: "Accessories",
@@ -165,7 +204,7 @@ const L = {
                 flower: "Flower", party_hat: "Party hat", blush: "Blush", scarf: "Scarf", apron: "Apron", hair_bow: "Hair bow", reading_glasses: "Reading glasses",
                 sleep_mask: "Sleep mask", vest: "Vest", bell_collar: "Bell collar", bandana: "Bandana" },
         pets: { dog: "Dog", mochi: "Mochi", owl: "Owl", cat: "Cat" },
-        themeDark: "Dark", themeLight: "Light" },
+        themeDark: "Dark", themeLight: "Light", themeFrosted: "Frosted glass", themeLiquid: "Liquid glass" },
   ja: { title: "デスクトップペット", crumb: "拡張", tog: "デスクトップペットを表示", help: "オンにするとペットがデスクトップに常駐し、ドラッグで動かせます。選択文や解説は読まず、イベントの種類だけを受け取ります。",
         pass: "マウス透過", passHelp: "オンにするとペットはマウスを受け取らず、クリックは下のウィンドウに届きます。ドラッグもできません。ここでオフにすると操作を戻せます。",
         pick: "ペットの種類", stage: "プレビュー", act: "動き", acc: "アクセサリー",
@@ -179,7 +218,7 @@ const L = {
                 flower: "花", party_hat: "パーティーハット", blush: "チーク", scarf: "マフラー", apron: "エプロン", hair_bow: "ヘアリボン", reading_glasses: "老眼鏡",
                 sleep_mask: "アイマスク", vest: "ベスト", bell_collar: "鈴付きの首輪", bandana: "バンダナ" },
         pets: { dog: "犬", mochi: "モチ", owl: "フクロウ", cat: "猫" },
-        themeDark: "ダーク", themeLight: "ライト" },
+        themeDark: "ダーク", themeLight: "ライト", themeFrosted: "すりガラス", themeLiquid: "リキッドガラス" },
   es: { title: "Mascota de escritorio", crumb: "Extensiones", tog: "Mostrar mascota de escritorio", help: "Cuando está activa, la mascota se queda en el escritorio y puedes arrastrarla. Nunca lee tus selecciones ni explicaciones, solo recibe tipos de evento.",
         pass: "Paso del ratón", passHelp: "Cuando está activo, la mascota no recibe el ratón: los clics llegan a la ventana de debajo y no se puede arrastrar. Desactívalo aquí para recuperar la interacción.",
         pick: "Tipo de mascota", stage: "Vista previa", act: "Acciones", acc: "Accesorios",
@@ -193,7 +232,7 @@ const L = {
                 flower: "Flor", party_hat: "Gorro de fiesta", blush: "Rubor", scarf: "Bufanda", apron: "Delantal", hair_bow: "Lazo para el pelo", reading_glasses: "Gafas de lectura",
                 sleep_mask: "Antifaz para dormir", vest: "Chaleco", bell_collar: "Collar con cascabel", bandana: "Pañuelo" },
         pets: { dog: "Perro", mochi: "Mochi", owl: "Búho", cat: "Gato" },
-        themeDark: "Oscuro", themeLight: "Claro" }
+        themeDark: "Oscuro", themeLight: "Claro", themeFrosted: "Vidrio mate", themeLiquid: "Vidrio líquido" }
 };
 const asked = (new URLSearchParams(location.search).get('lang') || 'zh').toLowerCase();
 const lang = asked.startsWith('zh') ? 'zh' : (L[asked] ? asked : 'zh');
@@ -362,15 +401,60 @@ renderAll();
   renderAll();
 })();
 
+/// 折射能力探测：不支持 url() 形式 backdrop-filter 的浏览器会丢掉这条声明，读回空串。此时液体玻璃退回 CSS 的模糊与高光。
+const refractOK = (() => { const p = document.createElement("div"); p.style.backdropFilter = "url(#lg-liquid)"; return p.style.backdropFilter !== ""; })();
+const svgAttr = (id, name, v) => document.getElementById(id).setAttribute(name, v);
+/// 按卡片尺寸画一次位移图（R/G 编码到 [0,255]，128 为零位移）。位移取模糊后的圆角矩形遮罩的梯度：
+/// 遮罩在边缘最陡、向中心趋于平坦，梯度处处连续，所以没有距离场那样沿对角线（两条边的等距线）翻转的接缝，不会画出 X 形。
+/// 位移朝内取样：边缘的像素从玻璃里面借内容，边缘因此被压弯；位移的强度由 feDisplacementMap 的 scale 决定，不在这里烤死。
+function liquidMap(W = 380, H = 480, R = 22, S = 18) {
+  const mask = document.createElement("canvas");
+  mask.width = W; mask.height = H;
+  const mctx = mask.getContext("2d");
+  mctx.filter = `blur(${S}px)`;
+  mctx.fillStyle = "#fff";
+  mctx.beginPath(); mctx.roundRect(0, 0, W, H, R); mctx.fill();
+  const m = mctx.getImageData(0, 0, W, H).data;
+  // 读 alpha：白色填充的 RGB 恒为 255，模糊后的梯度只在 alpha 里
+  const at = (x, y) => m[(Math.min(Math.max(y, 0), H - 1) * W + Math.min(Math.max(x, 0), W - 1)) * 4 + 3] / 255;
+  // 遮罩向内升高，中心差分即朝内的梯度；按全图最大值归一，最强处正好编码到 127
+  const gx = new Float32Array(W * H), gy = new Float32Array(W * H);
+  let max = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x;
+    gx[i] = (at(x + 1, y) - at(x - 1, y)) / 2;
+    gy[i] = (at(x, y + 1) - at(x, y - 1)) / 2;
+    max = Math.max(max, Math.hypot(gx[i], gy[i]));
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext("2d"), img = ctx.createImageData(W, H);
+  for (let i = 0; i < W * H; i++) img.data.set([128 + 127 * gx[i] / max, 128 + 127 * gy[i] / max, 128, 255], i * 4);
+  ctx.putImageData(img, 0, 0);
+  return canvas.toDataURL();
+}
+if (refractOK) svgAttr("lg-map", "href", liquidMap(380, 480, 22, 18));
+
 // Theme toggle: the same dev affordance as the other surfaces, hidden with ?shot.
 const tb = $('tb');
 function applyTheme(v) {
   document.documentElement.dataset.theme = v;
-  tb.textContent = v === 'dark' ? t.themeLight : t.themeDark;
+  if (v === 'liquid' && refractOK) document.documentElement.dataset.refract = 'on';
+  else delete document.documentElement.dataset.refract;
+  tb.textContent = { light: t.themeLight, dark: t.themeDark, frosted: t.themeFrosted, liquid: t.themeLiquid }[v];
 }
-applyTheme(location.search.includes('theme=dark') ? 'dark' : 'light');
-tb.onclick = () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
-if (new URLSearchParams(location.search).has('shot')) tb.remove();
+// ?theme= takes the glass themes too; ?bg= picks one test backdrop from the current glass theme's set. No picker on this surface.
+const BACKDROPS = {
+  frosted: ['night-lines', 'text-dense', 'color-blocks', 'sky-light', 'checker'],
+  liquid: ['cool-wall', 'web-light', 'web-dark', 'colorful', 'stripes', 'black', 'white'],
+};
+const query = new URLSearchParams(location.search);
+const theme = ['dark', 'frosted', 'liquid'].includes(query.get('theme')) ? query.get('theme') : 'light';
+applyTheme(theme);
+if (BACKDROPS[theme]?.includes(query.get('bg'))) document.documentElement.style.setProperty('--wall', `url("${theme}-backdrops/${query.get('bg')}.png")`);
+const THEMES = ['light', 'dark', 'frosted', 'liquid'];
+tb.onclick = () => applyTheme(THEMES[(THEMES.indexOf(document.documentElement.dataset.theme) + 1) % THEMES.length]);
+if (query.has('shot')) tb.remove();
 </script>
 </body>
 </html>

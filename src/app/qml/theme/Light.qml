@@ -3,9 +3,9 @@ import QtQuick
 /**
  * The light values of every colour token, from UI.md section 3.1.
  *
- * Nothing reads this file by name: Tokens builds both themes and forwards the active one's
+ * Nothing reads this file by name: TokenTable builds both themes and forwards the active one's
  * properties under the token names the surfaces use, so a surface still asks for `Tokens.panel`
- * and never for a colour. A third theme is one more file here and one more arm in Tokens.
+ * and never for a colour. A third theme is one more file here and one more arm in TokenTable.
  */
 QtObject {
     readonly property color bg: "#e9ebef"
@@ -22,6 +22,7 @@ QtObject {
     readonly property color ink: "#1a1a1f"
     readonly property color on: "#ffffff"
     readonly property color danger: "#b3564a"
+    readonly property color popup: "#ffffff"
 
     /**
      * The bubble's frosted fill and its border.

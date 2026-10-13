@@ -12,8 +12,8 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: hover.hovered ? Tokens.panel2 : "transparent"
-        radius: Tokens.radiusField
+        color: hover.hovered ? SettingsTokens.panel2 : "transparent"
+        radius: SettingsTokens.radiusField
     }
 
     Text {
@@ -21,7 +21,7 @@ Item {
         anchors.leftMargin: 9
         anchors.verticalCenter: parent.verticalCenter
         text: root.label
-        color: Tokens.text
+        color: SettingsTokens.text
         font.pixelSize: 13
     }
 
@@ -30,7 +30,7 @@ Item {
         anchors.rightMargin: 8
         anchors.verticalCenter: parent.verticalCenter
         text: root.note
-        color: Tokens.faint
+        color: SettingsTokens.faint
         font.pixelSize: 11
         visible: root.note !== ""
     }
@@ -41,7 +41,7 @@ Item {
         anchors.rightMargin: 9
         anchors.verticalCenter: parent.verticalCenter
         text: "›"
-        color: Tokens.faint
+        color: SettingsTokens.faint
         font.pixelSize: 20
     }
 

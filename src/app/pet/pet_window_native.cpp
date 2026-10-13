@@ -34,9 +34,14 @@ QString deviceNameOf(QScreen const& screen)
     return QString::fromWCharArray(info.szDevice);
 }
 
+bool setExcludedFromCapture(QWindow const& window, bool const excluded)
+{
+    return SetWindowDisplayAffinity(handleOf(window), excluded ? WDA_EXCLUDEFROMCAPTURE : WDA_NONE) != FALSE;
+}
+
 bool excludeFromCapture(QWindow const& window)
 {
-    return SetWindowDisplayAffinity(handleOf(window), WDA_EXCLUDEFROMCAPTURE) != FALSE;
+    return setExcludedFromCapture(window, true);
 }
 
 std::intptr_t passthroughStyle(std::intptr_t style, bool on)

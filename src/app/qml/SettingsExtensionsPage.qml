@@ -91,6 +91,7 @@ Item {
 
         SwitchRow {
             width: parent.width
+            tokens: SettingsTokens
             label: qsTranslate("SettingsPopup", "Desktop companion")
             checked: Pet.enabled
             interactive: Pet.available
@@ -99,6 +100,7 @@ Item {
 
         SwitchRow {
             objectName: "passthroughSwitch"
+            tokens: SettingsTokens
             width: parent.width
             label: qsTranslate("SettingsPopup", "Mouse pass-through")
             checked: Pet.passthrough
@@ -117,7 +119,7 @@ Item {
                 id: sizeLabel
                 anchors.verticalCenter: parent.verticalCenter
                 text: qsTranslate("SettingsPopup", "Desktop pet size")
-                color: Pet.enabled ? Tokens.text : Tokens.faint
+                color: Pet.enabled ? SettingsTokens.text : SettingsTokens.faint
                 font.pixelSize: 13
             }
 
@@ -141,7 +143,7 @@ Item {
                 id: sizeValue
                 anchors.verticalCenter: parent.verticalCenter
                 text: Pet.scale + "×"
-                color: Pet.enabled ? Tokens.muted : Tokens.faint
+                color: Pet.enabled ? SettingsTokens.muted : SettingsTokens.faint
                 font.pixelSize: 13
             }
         }
@@ -161,7 +163,7 @@ Item {
 
                 Text {
                     text: qsTranslate("SettingsPopup", "Pet type")
-                    color: Tokens.muted
+                    color: SettingsTokens.muted
                     font.pixelSize: 11
                 }
 
@@ -179,7 +181,7 @@ Item {
 
                 Text {
                     text: qsTranslate("SettingsPopup", "Preview")
-                    color: Tokens.muted
+                    color: SettingsTokens.muted
                     font.pixelSize: 11
                 }
 
@@ -194,7 +196,7 @@ Item {
 
                 Text {
                     text: qsTranslate("SettingsPopup", "Actions")
-                    color: Tokens.muted
+                    color: SettingsTokens.muted
                     font.pixelSize: 11
                 }
 
@@ -222,7 +224,7 @@ Item {
 
                 Text {
                     text: qsTranslate("SettingsPopup", "Accessories")
-                    color: Tokens.muted
+                    color: SettingsTokens.muted
                     font.pixelSize: 11
                 }
 
@@ -241,7 +243,7 @@ Item {
                             width: 52
                             anchors.verticalCenter: parent.verticalCenter
                             text: page.slotLabel(slotRow.modelData)
-                            color: Tokens.faint
+                            color: SettingsTokens.faint
                             font.pixelSize: 11
                         }
 

@@ -25,7 +25,7 @@ The AI provider you configure writes the explanation. Lens does not ship a defin
 - **Screen capture and automatic scanning.** Capture dims every screen, reads the region you frame, and translates it. Lens bundles the OCR runtime, and you can point Settings at your own installed Tesseract instead.
 - **Desktop pet.** A small pixel pet that lives on the desktop and plays actions as you study. You can pick from the pets the app ships. It is off by default; turn it on in Settings under Extensions. You can drag it, click it, dress it in up to three accessories, set its size from one to four times, or let mouse clicks pass through it. It reacts to event types only and never reads your selections, explanations, or screen text.
 - **Updates.** Lens checks the project's latest release once a day at startup, which you can switch off in General, or when you choose Check for updates. A newer version shows a card with View, Download, and Skip this version. Downloads are checked against the release's `SHA256SUMS`, and the installer runs only when you press Install, with no extra arguments. The installer is not code-signed, so the checksum shows the file arrived intact but does not prove who published it. Downloads need a proxy from mainland China; Lens says so when nothing arrives.
-- **Themes.** Light, Dark, Forest, and Custom. In Custom you choose the colours, and Lens checks their contrast against WCAG AA. An animation switch follows the Windows reduced-motion setting.
+- **Themes.** Light, Dark, and Custom. In Custom you choose the colours, and Lens checks their contrast against WCAG AA. An animation switch follows the Windows reduced-motion setting.
 
 ## Screens
 

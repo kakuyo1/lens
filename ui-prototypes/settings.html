@@ -9,7 +9,7 @@
   --bg:#e9ebef; --panel:#fff; --panel2:#f1f3f7; --line:#d6dae1; --line2:#e6e9ee;
   --text:#1a1a1f; --muted:#66666f; --faint:#9d9da8;
   --ink:#1a1a1f; --on:#fff;
-  --r-lg:18px;
+  --r-lg:18px; --sw-off:var(--line);
   --sh2:0 2px 6px rgba(20,20,26,.06),0 24px 60px -24px rgba(20,20,26,.24);
   --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
 }
@@ -19,11 +19,35 @@ html[data-theme=dark]{
   --ink:#e9e9ee; --on:#16161a;
   --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
 }
-html[data-theme=forest]{
-  --bg:#0c1715; --panel:#152522; --panel2:#1f3430; --line:#35554b; --line2:#27413b;
-  --text:#e8f2ee; --muted:#b8cec5; --faint:#9bb9ad;
-  --ink:#e6f2ec; --on:#10201b;
-  --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
+/* 两套玻璃主题。面板半透明，正文可读性取决于读者的桌面（磨砂的底色 40% 不再保证对比度，见 UI.md 3.1c）。
+   --wall 是桌面壁纸的替身，只用来让玻璃有东西可透；真实环境里这一层是读者自己的壁纸。两套主题各带一份，
+   因为两块玻璃要证明的东西不同：磨砂要的是模糊吃掉细节，液体要的是折射与透，一张底图服务不了两边。 */
+html[data-theme=frosted],html[data-theme=liquid]{
+  --bg:transparent;
+  background-image:var(--wall); background-attachment:fixed; background-size:cover;
+}
+/* 磨砂玻璃 = Zen-Nebula（JustAdumbPrsn/Zen-Nebula）的玻璃：白色 40% 底 + blur(32px) saturate(140%) + 25% 白描边 + 柔和阴影，
+   参数取自其 config.css 与 general-ui.css，原值为 blur 32px、saturate 140%、描边 25%。设置里的默认值已调为 10% / 120% / 20%，这里的回退值与之同步。没有噪点。底色 40% 固定、不设旋钮。
+   底图在 frosted-backdrops/ 下，默认夜色细纹：冷调、低饱和，细网给足高频细节，模糊一开细网就化掉，靠它看得出模糊吃掉了什么。 */
+html[data-theme=frosted]{
+  --panel:rgba(255,255,255,.40); --panel2:rgba(18,24,36,.065);
+  --line:rgba(18,24,36,.15); --line2:rgba(18,24,36,.10);
+  --text:#14161c; --muted:#3c4250; --faint:#535865;
+  --ink:#191b21; --on:#fff; --sw-off:rgba(18,24,36,.22);
+  --sh2:0 4px 14px rgb(255 255 255/5.5%);
+}
+/* 液体玻璃 = 苹果 2025 液态玻璃的 CSS 近似：卡片本体不铺底色、对比更高（材质更稠）、圆角更大。
+   折射由下方 SVG 位移滤镜完成（Chromium 系，做法同 shuding/liquid-glass）；随背后内容自适应靠系统采样，网页做不到，此处不装。
+   底图是低饱和的冷灰：一块暖白光斑、一块暗色团，外加一层细斜线。光斑与暗团的边太软，位移读不出来；细线给折射提供能弯的边，颜色不抢注意力。
+   它不用来证明饱和度，饱和度的效果要换一张有色的底图才看得出来。 */
+html[data-theme=liquid]{
+  --panel:rgba(248,250,254,.78); --panel2:rgba(18,24,36,.075);
+  --line:rgba(18,24,36,.16); --line2:rgba(18,24,36,.11);
+  --text:#101319; --muted:#333846; --faint:#4a4f5e;
+  --ink:#12151b; --on:#fff; --sw-off:rgba(18,24,36,.24);
+  --r-lg:22px;
+  --sh2:0 1px 2px rgba(10,14,24,.14),0 22px 54px -20px rgba(10,14,24,.48);
+  --wall:url("liquid-backdrops/cool-wall.png");
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-font-smoothing:antialiased}
@@ -32,7 +56,28 @@ button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 
 /* 面板固定高度：首屏只列分类，设置再多也在内部滚动，不再把浮层撑高 */
-.settings{width:380px;height:480px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);display:flex;flex-direction:column;overflow:hidden}
+.settings{width:380px;height:480px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);display:flex;flex-direction:column;overflow:hidden;transform:translate(var(--drag-x,0),var(--drag-y,0))}
+body.dragging{user-select:none;cursor:default}
+/* 玻璃面板。面板自身有 backdrop-filter，内部控件不再各加一层——它们只是叠在这层已模糊的底上的半透明填充。 */
+html[data-theme=frosted] .settings{backdrop-filter:blur(var(--glass-blur,6px)) saturate(var(--glass-sat,120%));border-color:rgba(255,255,255,var(--glass-rim,.2))}
+/* 下拉列表是弹出层：底下透明的 40% 面板会让参数透出来，所以单独铺 78% 白，与液体玻璃的弹出层同一口径（UI.md 3.1c） */
+html[data-theme=frosted] .dd-list{background:rgba(255,255,255,.78)}
+/* 液体玻璃整张卡透明，不铺底色：背后像素由 SVG 位移滤镜弯折（边缘弯，中心也有折射），高光与描边是材质信号。
+   正文用深字，适合浅色底图；深色底图上对比度不足，见 UI.md 3.1d。 */
+html[data-theme=liquid] .settings{background:transparent;border-color:rgba(255,255,255,var(--glass-rim,.1));
+  backdrop-filter:blur(var(--glass-blur,6px)) contrast(1.05);
+  box-shadow:var(--sh2)}
+/* 折射：浏览器支持 url() 形式的 backdrop-filter 时（applyTheme 里探测，Chromium 系支持），位移滤镜只做折射这一步，
+   之后接普通的模糊与饱和（同 shuding/liquid-glass 的写法）。 */
+html[data-theme=liquid][data-refract] .settings{backdrop-filter:blur(var(--glass-blur,6px)) url(#lg-liquid)}
+/* 关掉透明时退成实底卡片，与系统一致的降级方式；底图留着，卡片仍落在壁纸上而不是白页上。
+   描边一并交还给 --line：实底上白边不再是玻璃边缘，只是画错的一笔。 */
+@media (prefers-reduced-transparency:reduce){
+  html[data-theme=frosted],html[data-theme=liquid]{--panel:#fafbfd;--panel2:#f0f3f8;--line:#dde2ea;--line2:#e9edf3;--sw-off:#d6dae1}
+  html[data-theme=frosted] .settings,html[data-theme=liquid] .settings,html[data-theme=liquid][data-refract] .settings{backdrop-filter:none;background-image:none;border-color:var(--line)}
+  html[data-theme=frosted] .dd-list{background:var(--panel)}
+  html[data-theme=liquid] .settings{background:var(--panel)}
+}
 .set-h{display:flex;align-items:center;gap:9px;padding:0 20px;min-height:58px;border-bottom:1px solid var(--line2);flex:none}
 .set-back{display:none;place-items:center;width:26px;height:26px;margin-left:-6px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:20px;line-height:1}
 .set-back:hover{background:var(--panel2);color:var(--text)}
@@ -43,6 +88,13 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .set-h .close{margin-left:auto;width:26px;height:26px;border:0;border-radius:8px;background:transparent;color:var(--faint);font-size:18px;line-height:1}
 .set-h .close:hover{background:var(--panel2);color:var(--text)}
 .set-body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:12px 20px 18px}
+/* 滚动条：6 px 一条，滑块取 --faint，与 pet.html 同一份写法。标准属性只能关进 Gecko，Chromium 一读到
+   scrollbar-color 就切回原生滚动条、上下箭头跟着长出来，所以这里只留 ::-webkit- 组加一行 @supports。 */
+.set-body::-webkit-scrollbar,.dd-list::-webkit-scrollbar{width:6px;height:6px}
+.set-body::-webkit-scrollbar-track,.dd-list::-webkit-scrollbar-track{background:transparent}
+.set-body::-webkit-scrollbar-thumb,.dd-list::-webkit-scrollbar-thumb{background:var(--faint);border-radius:999px}
+.set-body::-webkit-scrollbar-thumb:hover,.dd-list::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+@supports (-moz-appearance:none){.set-body,.dd-list{scrollbar-width:thin;scrollbar-color:var(--faint) transparent}}
 
 /* 分类目录：一行一类，新增设置落在分类内部 */
 .catalog{display:flex;flex-direction:column;gap:2px}
@@ -66,6 +118,9 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .money{position:relative}
 .money span{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}
 .money .input{padding-left:26px}
+.unit{position:relative}
+.unit span{position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}
+.unit .input{padding-right:26px}
 .seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
 .seg button{flex:1;text-align:center;padding:6.5px 0;border:0;background:transparent;font-size:12px;color:var(--muted)}
 .seg button[aria-pressed=true]{background:var(--ink);color:var(--on);font-weight:600}
@@ -87,9 +142,19 @@ html[data-theme=dark] .dd-item[aria-selected=true] .dd-note{color:rgba(0,0,0,.5)
 .mf-go{position:absolute;right:3px;top:3px;width:30px;height:29px;display:flex;align-items:center;justify-content:center;border:0;border-radius:7px;background:transparent;color:var(--faint)}
 .mf-go:hover{color:var(--text)}
 .mf-go svg{width:14px;height:14px}
+/* 滑动条用原生 range + accent-color，形状归 Chromium；对照稿要读的是档位与数值，不是它的像素。
+   轨道、滑块的画法留给 QML 侧，此处不抠。 */
+.slrow{display:flex;align-items:baseline;margin-bottom:7px}
+.slrow .flabel{margin-bottom:0}
+.slrow.off{opacity:.45}
+.slrow.off + .slider{opacity:.45;pointer-events:none}
+.slrow .sl-val{margin-left:auto;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.slider{width:100%;height:20px;margin:0 0 12px;accent-color:var(--ink)}
+.slider:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:999px}
 .swrow{display:flex;align-items:center;gap:12px;min-height:44px}
 .swrow .swlabel{flex:1}
-.switch{flex:none;width:34px;height:20px;border:0;border-radius:99px;background:var(--line);position:relative;padding:0}
+.colorin{flex:none;width:34px;height:22px;padding:0;border:1px solid var(--line);border-radius:6px;background:none;cursor:pointer}
+.switch{flex:none;width:34px;height:20px;border:0;border-radius:99px;background:var(--sw-off);position:relative;padding:0}
 .switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--panel)}
 .switch[aria-checked=true]{background:var(--ink)}
 .switch[aria-checked=true]::after{left:auto;right:2px;background:var(--on)}
@@ -107,6 +172,13 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 .link-row{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:8px 0;border:0;border-top:1px solid var(--line2);background:transparent;text-align:left;font-size:12.5px}
 .link-row:hover{color:var(--ink)}
 .link-row .chevm{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--faint);font-size:11px}
+.link-row svg{width:15px;height:15px;flex:none;color:var(--muted)}
+.upd{display:flex;align-items:center;gap:12px;min-height:56px}
+.upd-main{flex:1;min-width:0}
+.upd-now{font-size:13px}
+.upd-state{font-size:11.5px;color:var(--muted);margin-top:2px;min-height:17px}
+.about-foot{padding-top:24px;text-align:center;font-size:11px;color:var(--faint);line-height:1.7}
+.about-foot .about-name{font-size:14px;font-weight:700;color:var(--text)}
 .set-f{display:flex;align-items:center;gap:8px;padding:0 20px;min-height:56px;border-top:1px solid var(--line2);flex:none}
 .btn{padding:6px 14px;border-radius:999px;border:1px solid transparent;font-size:12px;font-weight:600}
 .btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
@@ -116,9 +188,21 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 .btn.ink:disabled{opacity:.45;cursor:default}
 .status{flex:1;text-align:center;font-size:11px;color:var(--faint)}
 [hidden]{display:none!important}
+/* 测试用的背景选择，只在液体主题出现，贴在视口左上角；它不属于设置，不进文档，也不影响保存状态。 */
+.bgpick{position:fixed;top:12px;left:12px;z-index:10;display:flex;flex-direction:column;gap:6px;margin:0;padding:8px 12px 10px;border:1px solid #d6dae1;border-radius:10px;background:#fff;color:#1a1a1f;font:12px/1.2 var(--f)}
+.bgpick legend{padding:0 4px;font-weight:700}
+.bgpick label{display:flex;align-items:center;gap:6px;cursor:pointer}
 </style>
 </head>
 <body>
+<!-- 液体玻璃的位移滤镜，只做折射一步：位移图由 liquidMap() 按卡片尺寸画一次，强度（scale）由 applyTheme 写回。
+     模糊与饱和在 CSS 的 backdrop-filter 里接在它之后。 -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="lg-liquid" filterUnits="userSpaceOnUse" x="0" y="0" width="380" height="480" color-interpolation-filters="sRGB">
+    <feImage id="lg-map" x="0" y="0" width="380" height="480" preserveAspectRatio="none" result="map"/>
+    <feDisplacementMap id="lg-disp" in="SourceGraphic" in2="map" scale="20" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</defs></svg>
 <div class="settings" id="app" data-level="home">
   <div class="set-h">
     <button class="set-back" id="back" type="button" aria-label="返回">‹</button>
@@ -134,6 +218,7 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
     <button class="btn ink" id="save" type="button" disabled data-l="save"></button>
   </div>
 </div>
+<fieldset class="bgpick" id="bgpick" hidden></fieldset>
 <script>
 /// The reader-facing strings, one column per language, taken from i18n/lens_*.ts so the
 /// prototype and the application say the same thing. `cat` is the catalogue: one entry per
@@ -142,32 +227,48 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 const L = {
   en: { title: "Settings", defaults: "Defaults", save: "Save",
         cat: { general: ["General", "Theme, animations, launch at startup"],
-               learning: ["Reading & learning", "Vocabulary level, explanation language, multiple senses, etymology"],
+               learning: ["Reading & learning", "Vocabulary level, explanation language, multiple senses, etymology, example sentences"],
                capture: ["Capture & popups", "Trigger channels"],
                model: ["Model service", "Provider, model, API configuration"],
                budget: ["Daily budget", "Limit model spending for one local day"],
-               extensions: ["Extensions", "Desktop companion"] } },
+               extensions: ["Extensions", "Desktop companion"],
+               about: ["About", "Version, updates, repository"] },
+        about: { repo: "GitHub repository", now: "Current version %1", check: "Check for updates",
+                 states: { checking: "Checking...", latest: "Up to date (version %1)" },
+                 copyright: "Copyright (c) 2026 kakuyo1 · MIT License", built: "Built %1" } },
   zh: { title: "设置", defaults: "恢复默认", save: "保存",
         cat: { general: ["通用", "主题、动画效果、开机自启"],
-               learning: ["阅读学习", "词汇档位、解释语言、多义解释、词源"],
+               learning: ["阅读学习", "词汇档位、解释语言、多义解释、词源、例句"],
                capture: ["取词与弹窗", "触发通道"],
                model: ["模型服务", "服务商、模型、API 配置"],
                budget: ["每日预算", "限制单个本地日的模型花费"],
-               extensions: ["扩展", "桌面宠物"] } },
+               extensions: ["扩展", "桌面宠物"],
+               about: ["关于", "版本、检查更新、仓库"] },
+        about: { repo: "GitHub 仓库", now: "当前版本 %1", check: "检查更新",
+                 states: { checking: "检查中…", latest: "已是最新（当前版本 %1）" },
+                 copyright: "Copyright (c) 2026 kakuyo1 · MIT 许可证", built: "构建于 %1" } },
   ja: { title: "設定", defaults: "初期設定", save: "保存",
         cat: { general: ["一般", "テーマ、アニメーション、スタートアップ"],
-               learning: ["読解と学習", "語彙レベル、解説の言語、複数の語義、語源"],
+               learning: ["読解と学習", "語彙レベル、解説の言語、複数の語義、語源、例文"],
                capture: ["取得とポップアップ", "取得のきっかけ"],
                model: ["モデルサービス", "プロバイダー、モデル、API 設定"],
                budget: ["1 日の予算", "1 日あたりのモデル費用を制限"],
-               extensions: ["拡張", "デスクトップの相棒"] } },
+               extensions: ["拡張", "デスクトップの相棒"],
+               about: ["情報", "バージョン、更新、リポジトリ"] },
+        about: { repo: "GitHub リポジトリ", now: "現在のバージョン %1", check: "更新を確認",
+                 states: { checking: "確認中…", latest: "最新です（バージョン %1）" },
+                 copyright: "Copyright (c) 2026 kakuyo1 · MIT ライセンス", built: "ビルド日 %1" } },
   es: { title: "Ajustes", defaults: "Por defecto", save: "Guardar",
         cat: { general: ["General", "Tema, animaciones e inicio con el sistema"],
-               learning: ["Lectura y aprendizaje", "Nivel de vocabulario, idioma de las explicaciones, varias acepciones, etimología"],
+               learning: ["Lectura y aprendizaje", "Nivel de vocabulario, idioma de las explicaciones, varias acepciones, etimología, frases de ejemplo"],
                capture: ["Captura y ventanas", "Canales de activación"],
                model: ["Servicio del modelo", "Proveedor, modelo, configuración de la API"],
                budget: ["Presupuesto diario", "Limita el gasto del modelo en un día local"],
-               extensions: ["Extensiones", "Compañero de escritorio"] } }
+               extensions: ["Extensiones", "Compañero de escritorio"],
+               about: ["Acerca de", "Versión, actualizaciones, repositorio"] },
+        about: { repo: "Repositorio de GitHub", now: "Versión actual %1", check: "Buscar actualizaciones",
+                 states: { checking: "Comprobando…", latest: "Al día (versión %1)" },
+                 copyright: "Copyright (c) 2026 kakuyo1 · Licencia MIT", built: "Compilado el %1" } }
 };
 const asked = (new URLSearchParams(location.search).get('lang') || 'zh').toLowerCase();
 const lang = asked.startsWith('zh') ? 'zh' : (L[asked] ? asked : 'zh');
@@ -178,16 +279,28 @@ for (const el of document.querySelectorAll('[data-l]')) el.textContent = t[el.da
 const categories = Object.entries(t.cat).map(([id, [name, summary]]) => ({ id, name, summary }));
 const titles = { clipboard: "弹窗与剪贴板", connection: "API 配置" };
 const defaults = { theme: "light", uiLang: "zh", level: "CET-4", language: "en", startup: false, animations: true, selection: true,
-  policy: "topmost", minLen: "3", provider: "DeepSeek", model: "deepseek-flash", api: "", url: "",
+  policy: "topmost", bubbleSeconds: "5", placement: "above", minLen: "3", provider: "DeepSeek", model: "deepseek-flash", api: "", url: "",
   tesseractExe: "", tesseractData: "", triggerKey: "Ctrl+Alt+S",
   dailyBudget: "0", customBg: "#e9ebef", customPanel: "#ffffff", customText: "#1a1a1f", customMuted: "#66666f", customFaint: "#9d9da8", customOk: "#2f9e6e",
-  ocr: false, scan: false, multi: false, etym: false, pet: false };
+  glassBlur: 10, glassSat: 120, glassRim: 20,
+  liquidBlur: 10, liquidRefract: 20, liquidRim: 10, liquidText: "#101319",
+  ocr: false, scan: false, multi: false, etym: false, example: false, pet: false, autoUpdate: true };
 const app = document.getElementById("app"), view = document.getElementById("view");
 const titleEl = document.getElementById("title"), crumbEl = document.getElementById("crumb");
 const backBtn = document.getElementById("back"), statusEl = document.getElementById("status");
 const saveBtn = document.getElementById("save"), defaultsBtn = document.getElementById("defaults");
 const requestedTheme = new URLSearchParams(location.search).get("theme");
-let values = { ...defaults, theme: ["light", "dark", "forest", "custom"].includes(requestedTheme) ? requestedTheme : "light" };
+/// 两套玻璃各带一组测试背景，文件分别在 liquid-backdrops/ 与 frosted-backdrops/ 下；`?bg=` 直接指定一张，哪套里有就用哪套。
+const BACKDROPS = {
+  liquid: [["cool-wall", "冷灰细线"], ["web-light", "网页（浅色）"], ["web-dark", "网页（深色）"], ["colorful", "彩色"], ["stripes", "高频条纹"], ["black", "纯黑"], ["white", "纯白"]],
+  frosted: [["night-lines", "夜色细纹"], ["text-dense", "细字密排"], ["color-blocks", "饱和色块"], ["sky-light", "浅色天光"], ["checker", "黑白方格"]]
+};
+const backdropOf = { liquid: "cool-wall", frosted: "night-lines" };
+const requestedBg = new URLSearchParams(location.search).get("bg");
+for (const theme in BACKDROPS) if (BACKDROPS[theme].some(([id]) => id === requestedBg)) backdropOf[theme] = requestedBg;
+const bgpick = document.getElementById("bgpick");
+bgpick.addEventListener("change", e => { backdropOf[values.theme] = e.target.value; applyTheme(); });
+let values = { ...defaults, theme: ["light", "dark", "custom", "frosted", "liquid"].includes(requestedTheme) ? requestedTheme : "light" };
 let saved = { ...values };
 let category = null, route = null, status = "", recording = null;
 const esc = v => String(v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -216,7 +329,12 @@ const modelField = (label, key, opts) => {
        + `<div class="dd-list" role="listbox">${items}</div></div></div>`;
 };
 /// A money field: the symbol is the display currency the rest of the surfaces spend in.
-const money = (label, key, ph) => `<div class="field"><label class="flabel" for="${key}">${label}</label><div class="money"><span aria-hidden="true">¥</span><input id="${key}" class="input" type="number" data-input="${key}" value="${esc(values[key])}" placeholder="${ph}" autocomplete="off" spellcheck="false"></div></div>`;
+/// The bubble's duration: whole seconds, the unit drawn at the right end of the box the way the money
+/// field draws its symbol at the left. The range is the one the controller clamps to.
+const seconds = (label, key) => `<div class="field"><label class="flabel" for="${key}">${label}</label><div class="unit"><input id="${key}" class="input" type="number" min="1" max="30" step="1" data-input="${key}" value="${esc(values[key])}" autocomplete="off" spellcheck="false"><span aria-hidden="true">s</span></div><p class="fhelp">1 到 30 秒。</p></div>`;
+const money = (label, key, ph) =>`<div class="field"><label class="flabel" for="${key}">${label}</label><div class="money"><span aria-hidden="true">¥</span><input id="${key}" class="input" type="number" data-input="${key}" value="${esc(values[key])}" placeholder="${ph}" autocomplete="off" spellcheck="false"></div></div>`;
+/// A colour the reader picks: a row with a swatch on the right and no hex text, the same form as the liquid theme's 字体颜色.
+const swatch = (label, key) => `<div class="swrow"><span class="swlabel">${label}</span><input type="color" class="colorin" data-input="${key}" value="${values[key]}" aria-label="${label}"></div>`;
 const link = (id, label, val = "") => `<button type="button" class="link-row" data-route="${id}"><span>${label}</span><span class="chevm">${esc(val)}<span aria-hidden="true">›</span></span></button>`;
 /// A path the reader picks rather than types: the folder glyph is what says so, and a path nobody
 /// has picked yet draws where the program would look instead, in the placeholder colour.
@@ -234,16 +352,43 @@ const pathField = (label, key, fallback) => {
 };
 const customColors = () => values.theme === "custom" ? `<div class="field"><span class="flabel">自定义语义颜色</span>${[
   ["customBg", "背景"], ["customPanel", "面板"], ["customText", "正文文字"], ["customMuted", "次要文字"], ["customFaint", "弱文字"], ["customOk", "强调色"]
-].map(([key, label]) => inp(label, key, "#000000")).join("")}<p class="fhelp">正文、次要和弱文字必须通过 WCAG AA。</p></div>` : "";
+].map(([key, label]) => swatch(label, key)).join("")}<p class="fhelp">正文、次要和弱文字必须通过 WCAG AA。</p></div>` : "";
+/// 玻璃主题各带一组旋钮：磨砂是模糊 / 饱和度 / 描边高光（对应 Zen-Nebula 的 blur、saturate 与白色描边），液体是
+/// 折射 / 模糊 / 字体颜色。只在选中自己的主题时出现，同 customColors()。
+const slider = (label, key, min, max, step, unit, off = false) => `<div class="slrow${off ? " off" : ""}"><span class="flabel">${label}</span>`
+  + `<span class="sl-val" data-out="${key}" data-unit="${unit}"></span></div>`
+  + `<input type="range" class="slider" min="${min}" max="${max}" step="${step}" data-input="${key}" value="${esc(values[key])}" aria-label="${label}"${off ? " disabled" : ""}>`;
+const frostOptions = () => `<div class="field"><span class="flabel">雾面玻璃参数</span>`
+  + slider("模糊程度", "glassBlur", 0, 100, 1, "%") + slider("饱和度", "glassSat", 0, 200, 1, "%") + slider("描边高光", "glassRim", 0, 100, 1, "%") + `</div>`;
+const liquidOptions = () => `<div class="field"><span class="flabel">流光玻璃参数</span>`
+  + slider("折射强度", "liquidRefract", 0, 40, 2, " px", !refractOK) + slider("模糊程度", "liquidBlur", 0, 100, 1, "%")
+  + slider("描边高光", "liquidRim", 0, 100, 1, "%")
+  + swatch("字体颜色", "liquidText")
+  + (refractOK ? "" : `<p class="fhelp">当前浏览器不支持 SVG 滤镜折射，此项灰化不生效。</p>`) + `</div>`;
+const glassOptions = () => values.theme === "frosted" ? frostOptions() : values.theme === "liquid" ? liquidOptions() : "";
+
+/// The about page holds the update check, the repository and the build stamp. The check only steps
+/// through its states here so they can be seen; the version is the one the app builds with.
+let updState = "idle";
+const APP_VERSION = "1.2.5";
+function aboutPage() {
+  const a = t.about;
+  const shown = { idle: "", checking: a.states.checking, latest: a.states.latest.replace("%1", APP_VERSION) }[updState];
+  return `<button type="button" class="link-row" data-act="github" style="border-top:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg><span>${a.repo}</span><span class="chevm">github.com/kakuyo1/lens</span></button>`
+       + `<div class="swgroup" style="margin-top:14px"><div class="upd"><div class="upd-main"><div class="upd-now">${a.now.replace("%1", APP_VERSION)}</div><div class="upd-state" role="status">${shown}</div></div>`
+       + `<button type="button" class="btn ink" data-act="check"${updState === "checking" ? " disabled" : ""}>${a.check}</button></div></div>`
+       + `<div class="about-foot"><div class="about-name">Lens</div><div>${a.copyright}</div><div>${a.built.replace("%1", "2026-10-12")}</div></div>`;
+}
 
 function page(id) {
   switch (id) {
     case "general": return dropdown("主题", "theme", [
-        { value: "light", label: "白天", group: "" },
-        { value: "dark", label: "黑夜", group: "" },
-        { value: "forest", label: "Forest", group: "" },
-        { value: "custom", label: "Custom", group: "" }
-      ]) + customColors() + sw("开机自启", "startup") + sw("动画效果", "animations");
+        { value: "light", label: "晴朗白昼", group: "" },
+        { value: "dark", label: "静谧暗夜", group: "" },
+        { value: "frosted", label: "雾面玻璃", group: "glass" },
+        { value: "liquid", label: "流光玻璃", group: "glass" },
+        { value: "custom", label: "自定义主题", group: "custom" }
+      ]) + customColors() + glassOptions() + sw("开机自启", "startup") + sw("动画效果", "animations") + sw("启动时检查更新", "autoUpdate");
     case "learning": return dropdown("词汇档位", "level", [
         { value: "B1–B2", label: "B1–B2", group: "CEFR" },
         { value: "C1–C2", label: "C1–C2", group: "CEFR" },
@@ -254,7 +399,7 @@ function page(id) {
         { value: "IELTS", label: "IELTS", group: "Study-abroad exams" },
         { value: "TOEFL", label: "TOEFL", group: "Study-abroad exams" }
       ]) + seg("解释语言", "language", [["en", "English"], ["zh", "中文"], ["es", "Español"], ["ja", "日本語"]]) +
-      sw("多义解释", "multi") + sw("词源", "etym");
+      sw("多义解释", "multi") + sw("词源", "etym") + sw("例句", "example");
     case "capture": return `<div class="field"><div class="group-title">触发通道</div><div class="swgroup">${sw("选区取词", "selection")}${sw("OCR", "ocr")}${sw("自动扫描", "scan")}</div></div>` +
       keyRow("OCR 触发热键", "triggerKey") +
       pathField("Tesseract 可执行文件", "tesseractExe", "程序目录\\ocr\\tesseract.exe") +
@@ -282,12 +427,15 @@ function page(id) {
       ]) + link("connection", "API 配置", values.api ? "已填写" : "未填写");
     case "budget": return money("每日预算", "dailyBudget", "0") + '<p class="fhelp">设为 0 可暂停上限。</p>';
     case "extensions": return sw("桌面宠物", "pet", true);
+    case "about": return aboutPage();
     default: return "";
   }
 }
 function detail() {
   switch (route) {
-    case "clipboard": return seg("剪贴板被占用时", "policy", [["topmost", "强制置顶"], ["silent", "静默放弃"]]);
+    case "clipboard": return seconds("气泡显示时长", "bubbleSeconds") +
+      seg("气泡位置", "placement", [["above", "上方"], ["below", "下方"]]) +
+      seg("剪贴板被占用时", "policy", [["topmost", "强制置顶"], ["silent", "静默放弃"]]);
     case "connection": return inp("API key", "api", "输入 API key", "password") +
       '<p class="fhelp">密钥只保存在本机。</p>' +
       inp("服务地址", "url", "服务商提供的地址") +
@@ -301,18 +449,48 @@ function body() {
     `<button type="button" class="cat" data-category="${c.id}"><span><span class="cat-t">${c.name}</span><span class="cat-s">${c.summary}</span></span><span class="chev" aria-hidden="true">›</span></button>`).join("")}</nav>`;
   return page(category);
 }
+/// 模糊改用百分制：100% 折成 60 px，与原来的像素上限一致。
+const BLUR_PX = 0.6;
 function applyTheme() {
-  document.documentElement.dataset.theme = values.theme === "forest" ? "forest" : values.theme;
-  for (const prop of ["--bg", "--panel", "--text", "--muted", "--faint", "--ink", "--on"]) document.documentElement.style.removeProperty(prop);
+  const root = document.documentElement;
+  root.dataset.theme = values.theme;
+  for (const prop of ["--bg", "--wall", "--panel", "--text", "--muted", "--faint", "--ink", "--on", "--glass-blur", "--glass-sat", "--glass-rim"]) root.style.removeProperty(prop);
+  delete root.dataset.refract;
   if (values.theme === "custom") {
-    document.documentElement.style.setProperty("--bg", values.customBg);
-    document.documentElement.style.setProperty("--panel", values.customPanel);
-    document.documentElement.style.setProperty("--text", values.customText);
-    document.documentElement.style.setProperty("--muted", values.customMuted);
-    document.documentElement.style.setProperty("--faint", values.customFaint);
-    document.documentElement.style.setProperty("--ink", values.customOk);
-    document.documentElement.style.setProperty("--on", values.customPanel);
+    root.style.setProperty("--bg", values.customBg);
+    root.style.setProperty("--panel", values.customPanel);
+    root.style.setProperty("--text", values.customText);
+    root.style.setProperty("--muted", values.customMuted);
+    root.style.setProperty("--faint", values.customFaint);
+    root.style.setProperty("--ink", values.customOk);
+    root.style.setProperty("--on", values.customPanel);
+  } else if (values.theme === "frosted") {
+    root.style.setProperty("--glass-blur", values.glassBlur * BLUR_PX + "px");
+    root.style.setProperty("--glass-sat", values.glassSat + "%");
+    root.style.setProperty("--glass-rim", values.glassRim / 100);
+  } else if (values.theme === "liquid") {
+    root.style.setProperty("--glass-blur", values.liquidBlur * BLUR_PX + "px");
+    root.style.setProperty("--glass-rim", values.liquidRim / 100);
+    // 字体颜色只改正文色；次要与弱字是同一色的半透明版本，层级仍由它们的色阶给出
+    root.style.setProperty("--text", values.liquidText);
+    root.style.setProperty("--muted", `color-mix(in srgb, ${values.liquidText} 82%, transparent)`);
+    root.style.setProperty("--faint", `color-mix(in srgb, ${values.liquidText} 64%, transparent)`);
+    if (refractOK) {
+      root.dataset.refract = "on";
+      svgAttr("lg-disp", "scale", values.liquidRefract);
+    }
   }
+  // 两套玻璃各用自己那组底图的当前一张
+  const glass = values.theme === "frosted" || values.theme === "liquid";
+  if (glass) root.style.setProperty("--wall", `url("${values.theme}-backdrops/${backdropOf[values.theme]}.png")`);
+  // 测试背景单选按主题整组重画：同一套内拖滑块不动它，免得键盘焦点被重建掉
+  bgpick.hidden = !glass;
+  if (glass && bgpick.dataset.theme !== values.theme) {
+    bgpick.dataset.theme = values.theme;
+    bgpick.innerHTML = `<legend>测试背景</legend>` + BACKDROPS[values.theme].map(([id, label]) => `<label><input type="radio" name="bg" value="${id}"${id === backdropOf[values.theme] ? " checked" : ""}>${label}</label>`).join("");
+  }
+  // 派生读数跟着状态走，滑块拖到哪儿数字就是几
+  for (const out of view.querySelectorAll("[data-out]")) out.textContent = values[out.dataset.out] + out.dataset.unit;
 }
 function updateFoot() {
   statusEl.textContent = dirty() ? "尚未保存" : status;
@@ -331,6 +509,37 @@ function render(focus = false) {
 }
 backBtn.onclick = () => { if (route) route = null; else category = null; render(true); };
 document.querySelector(".close").onclick = () => render();
+
+/// 面板可拖动：按住卡片的空白处或标题行即可移动，控件自己吃掉按下，拖动不会误触它们。
+/// 偏移写进 transform 而不是 left/top，于是重渲染不会把面板弹回原位——读者把它放哪儿它就在哪儿。
+/// 拖动时按视口夹取，面板不会被甩出屏幕再也找不回来。
+let dragOffset = { x: 0, y: 0 }, drag = null;
+const CONTROLS = "button,input,textarea,select,a,[role=button],[role=switch]";
+app.addEventListener("pointerdown", e => {
+  if (e.button !== 0 || e.target.closest(CONTROLS)) return;
+  e.preventDefault();
+  const r = app.getBoundingClientRect();
+  drag = { id: e.pointerId, fromX: e.clientX, fromY: e.clientY, dx: dragOffset.x, dy: dragOffset.y,
+           rest: { left: r.left - dragOffset.x, top: r.top - dragOffset.y, right: r.right - dragOffset.x, bottom: r.bottom - dragOffset.y } };
+  app.setPointerCapture(e.pointerId);
+  document.body.classList.add("dragging");
+});
+app.addEventListener("pointermove", e => {
+  if (!drag || e.pointerId !== drag.id) return;
+  const { rest } = drag, clamp = (v, lo, hi) => Math.min(Math.max(v, Math.min(lo, hi)), Math.max(lo, hi));
+  dragOffset.x = clamp(drag.dx + e.clientX - drag.fromX, -rest.left, innerWidth - rest.right);
+  dragOffset.y = clamp(drag.dy + e.clientY - drag.fromY, -rest.top, innerHeight - rest.bottom);
+  app.style.setProperty("--drag-x", dragOffset.x + "px");
+  app.style.setProperty("--drag-y", dragOffset.y + "px");
+});
+const endDrag = e => {
+  if (!drag || e.pointerId !== drag.id) return;
+  drag = null;
+  document.body.classList.remove("dragging");
+};
+app.addEventListener("pointerup", endDrag);
+app.addEventListener("pointercancel", endDrag);
+
 document.getElementById("save").onclick = () => { saved = { ...values }; status = "已保存"; updateFoot(); };
 defaultsBtn.onclick = () => { values = { ...defaults, api: values.api, url: values.url, provider: values.provider, model: values.model, startup: values.startup }; status = ""; render(); };
 view.addEventListener("click", e => {
@@ -338,6 +547,8 @@ view.addEventListener("click", e => {
   if (row) { recording = row.dataset.record; render(); return; }
   const b = e.target.closest("button"); if (!b) return;
   if (b.classList.contains("dd-btn") || b.classList.contains("mf-go")) { const dd = b.closest(".dd"); const open = dd.classList.toggle("open"); b.setAttribute("aria-expanded", String(open)); return; }
+  if (b.dataset.act === "check") { updState = "checking"; render(); setTimeout(() => { updState = "latest"; render(); }, 900); return; }
+  if (b.dataset.act === "github") { window.open("https://github.com/kakuyo1/lens", "_blank"); return; }
   if (b.dataset.category) { category = b.dataset.category; route = null; render(true); return; }
   if (b.dataset.route) { route = b.dataset.route; render(true); return; }
   if (b.dataset.key) {
@@ -384,6 +595,39 @@ document.addEventListener("keydown", e => {
   if (open) { open.classList.remove("open"); const btn = open.querySelector(".dd-btn"); btn.setAttribute("aria-expanded", "false"); btn.focus(); return; }
   if (route || category) { e.preventDefault(); if (route) route = null; else category = null; render(true); }
 });
+/// 折射能力探测：不支持 url() 形式 backdrop-filter 的浏览器会丢掉这条声明，读回空串。此时液体玻璃退回 CSS 的模糊与高光。
+const refractOK = (() => { const p = document.createElement("div"); p.style.backdropFilter = "url(#lg-liquid)"; return p.style.backdropFilter !== ""; })();
+const svgAttr = (id, name, v) => document.getElementById(id).setAttribute(name, v);
+/// 按卡片尺寸画一次位移图（R/G 编码到 [0,255]，128 为零位移）。位移取模糊后的圆角矩形遮罩的梯度：
+/// 遮罩在边缘最陡、向中心趋于平坦，梯度处处连续，所以没有距离场那样沿对角线（两条边的等距线）翻转的接缝，不会画出 X 形。
+/// 位移朝内取样：边缘的像素从玻璃里面借内容，边缘因此被压弯；位移的强度由 feDisplacementMap 的 scale 决定，不在这里烤死。
+function liquidMap(W = 380, H = 480, R = 22, S = 18) {
+  const mask = document.createElement("canvas");
+  mask.width = W; mask.height = H;
+  const mctx = mask.getContext("2d");
+  mctx.filter = `blur(${S}px)`;
+  mctx.fillStyle = "#fff";
+  mctx.beginPath(); mctx.roundRect(0, 0, W, H, R); mctx.fill();
+  const m = mctx.getImageData(0, 0, W, H).data;
+  // 读 alpha：白色填充的 RGB 恒为 255，模糊后的梯度只在 alpha 里
+  const at = (x, y) => m[(Math.min(Math.max(y, 0), H - 1) * W + Math.min(Math.max(x, 0), W - 1)) * 4 + 3] / 255;
+  // 遮罩向内升高，中心差分即朝内的梯度；按全图最大值归一，最强处正好编码到 127
+  const gx = new Float32Array(W * H), gy = new Float32Array(W * H);
+  let max = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x;
+    gx[i] = (at(x + 1, y) - at(x - 1, y)) / 2;
+    gy[i] = (at(x, y + 1) - at(x, y - 1)) / 2;
+    max = Math.max(max, Math.hypot(gx[i], gy[i]));
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext("2d"), img = ctx.createImageData(W, H);
+  for (let i = 0; i < W * H; i++) img.data.set([128 + 127 * gx[i] / max, 128 + 127 * gy[i] / max, 128, 255], i * 4);
+  ctx.putImageData(img, 0, 0);
+  return canvas.toDataURL();
+}
+if (refractOK) svgAttr("lg-map", "href", liquidMap());
 render();
 </script>
 </body>

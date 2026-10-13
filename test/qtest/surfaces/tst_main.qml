@@ -269,5 +269,27 @@ Item {
 
             compare(menu.visible, true, "the tray icon's gesture did not open the menu");
         }
+
+        /// The bubble and the action bar hang on the side the reader chose. With room on both sides
+        /// the chosen side is the one taken; with no room on it, the other side is. Numbers are DIPs
+        /// in a 1000-high work area, a 100-high surface, a 10 px gap, and a 26 px shadow margin.
+        function test_aTransientSurfaceHangsOnTheChosenSideAndFlipsOnlyWhenItHasNoRoom() {
+            const main = make();
+            const top = 0, bottom = 1000, height = 100, gap = 10, shadow = 26;
+
+            // The selection sits mid-screen: both sides fit, so the reader's choice decides.
+            compare(main.transientTop(500, gap, height, shadow, top, bottom, false), 500 - gap - height + shadow,
+                    "above was not taken when there is room above");
+            compare(main.transientTop(500, gap, height, shadow, top, bottom, true), 500 + gap - shadow,
+                    "below was not taken when the reader chose it and there is room below");
+
+            // The selection sits near the top: nothing fits above, so the chosen-above surface drops below.
+            compare(main.transientTop(40, gap, height, shadow, top, bottom, false), 40 + gap - shadow,
+                    "above did not flip below when there is no room above");
+
+            // The selection sits near the bottom: nothing fits below, so the chosen-below surface rises.
+            compare(main.transientTop(960, gap, height, shadow, top, bottom, true), 960 - gap - height + shadow,
+                    "below did not flip above when there is no room below");
+        }
     }
 }

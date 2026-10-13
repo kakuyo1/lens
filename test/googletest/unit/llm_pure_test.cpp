@@ -295,6 +295,55 @@ TEST_F(LlmTest, AsksForTheEtymologyOnlyWhenAskedAndOnlyOnTheWordChannel)
     EXPECT_EQ(prompt(Channel::Entity, "default", false), prompt(Channel::Entity, "default", true));
 }
 
+TEST_F(LlmTest, AsksForAnExampleOnlyWhenAskedAndOnlyOnTheWordChannel)
+{
+    const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
+    const auto   prompt = [&](Channel channel, const QString& preset, bool example) {
+        const auto body =
+            QJsonDocument::fromJson(buildRequestBody(config, channel, {"ubiquitous"}, "zh", preset, false, example));
+        return body.object().value("messages").toArray().at(0).toObject().value("content").toString();
+    };
+
+    for (const auto* preset : {"default", "multiple"}) {
+        SCOPED_TRACE(preset);
+        const auto off = prompt(Channel::Word, preset, false);
+        const auto on  = prompt(Channel::Word, preset, true);
+        // Off, the prompt is the one a reader without the setting gets: nothing is paid for that the
+        // setting did not ask for.
+        EXPECT_FALSE(off.contains("example")) << "the example is named even though it was not asked for";
+        EXPECT_TRUE(on.contains(QStringLiteral("\"example\":\"...\""))) << "the format example omits the field";
+        EXPECT_TRUE(on.contains("English")) << "nothing in the prompt says the sentence is English";
+        EXPECT_GT(on.size(), off.size());
+    }
+
+    // Asked alongside the origin, both sentences and both fields arrive together, and neither
+    // placeholder is left in the text the model reads.
+    const auto both = prompt(Channel::Word, "default", true);
+    EXPECT_FALSE(both.contains("{exampleNote}"));
+    EXPECT_FALSE(both.contains("{exampleField}"));
+
+    // The entity and sentence templates have no place for an example, so the flag changes nothing.
+    EXPECT_EQ(prompt(Channel::Entity, "default", false), prompt(Channel::Entity, "default", true));
+}
+
+TEST_F(LlmTest, KeepsAnExampleWhenTheResponseCarriesOneAndShrugsWithoutIt)
+{
+    const QString withExample =
+        QStringLiteral(R"({"word":"ubiquitous","ipa":"/juːˈbɪkwɪtəs/","en":"existing everywhere","zh":"无处不在的",)"
+                       R"("example":"Smartphones are ubiquitous in modern cities."})");
+
+    const auto parsed = parseExplanations(Channel::Word, envelope(results(withExample)), kAskedFor);
+    ASSERT_TRUE(accepted(parsed)) << errorOf(parsed).toStdString();
+    EXPECT_EQ(std::get<QVector<Explanation>>(parsed).front().example,
+              QStringLiteral("Smartphones are ubiquitous in modern cities."));
+
+    // Absent is the ordinary case: a model with no sentence to give leaves the field out, and rejecting
+    // the batch over it would throw away the definition that did arrive.
+    const auto bare = parseExplanations(Channel::Word, envelope(results(kGoodResult)), kAskedFor);
+    ASSERT_TRUE(accepted(bare));
+    EXPECT_TRUE(std::get<QVector<Explanation>>(bare).front().example.isEmpty());
+}
+
 TEST_F(LlmTest, KeepsAWordOriginWhenTheResponseCarriesOneAndShrugsWithoutIt)
 {
     const QString withOrigin =

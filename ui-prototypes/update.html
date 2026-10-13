@@ -19,26 +19,49 @@ html[data-theme=dark]{
   --ink:#e9e9ee; --on:#16161a;
   --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
 }
+/* 玻璃主题（UI.md 3.1c 雾面、3.1d 流光）：令牌与规则照抄 settings.html，数值不改。设置卡与通知卡各是一张玻璃。 */
+html[data-theme=frosted],html[data-theme=liquid]{
+  --bg:transparent;
+  background-image:var(--wall); background-attachment:fixed; background-size:cover;
+}
+html[data-theme=frosted]{
+  --wall:url("frosted-backdrops/night-lines.png");
+  --panel:rgba(255,255,255,.40); --panel2:rgba(18,24,36,.065);
+  --line:rgba(18,24,36,.15); --line2:rgba(18,24,36,.10);
+  --text:#14161c; --muted:#3c4250; --faint:#535865;
+  --ink:#191b21; --on:#fff; --sw-off:rgba(18,24,36,.22);
+  --sh2:0 4px 14px rgb(255 255 255/5.5%);
+}
+html[data-theme=liquid]{
+  --wall:url("liquid-backdrops/cool-wall.png");
+  --panel:rgba(248,250,254,.78); --panel2:rgba(18,24,36,.075);
+  --line:rgba(18,24,36,.16); --line2:rgba(18,24,36,.11);
+  --text:#101319; --muted:#333846; --faint:#4a4f5e;
+  --ink:#12151b; --on:#fff; --sw-off:rgba(18,24,36,.24);
+  --sh2:0 1px 2px rgba(10,14,24,.14),0 22px 54px -20px rgba(10,14,24,.48);
+  --r-lg:22px;
+}
+html[data-theme=frosted] .settings,html[data-theme=frosted] .notice{backdrop-filter:blur(var(--glass-blur,6px)) saturate(var(--glass-sat,120%));border-color:rgba(255,255,255,var(--glass-rim,.2))}
+html[data-theme=liquid] .settings,html[data-theme=liquid] .notice{background:transparent;border-color:rgba(255,255,255,var(--glass-rim,.1));backdrop-filter:blur(var(--glass-blur,6px)) contrast(1.05);box-shadow:var(--sh2)}
+html[data-theme=liquid][data-refract] .settings{backdrop-filter:blur(var(--glass-blur,6px)) url(#lg-liquid)}
+html[data-theme=liquid][data-refract] .notice{backdrop-filter:blur(var(--glass-blur,6px)) url(#lg-liquid-2)}
+@media (prefers-reduced-transparency:reduce){
+  html[data-theme=frosted],html[data-theme=liquid]{--panel:#fafbfd;--panel2:#f0f3f8;--line:#dde2ea;--line2:#e9edf3;--sw-off:#d6dae1}
+  html[data-theme=frosted] .settings,html[data-theme=frosted] .notice,html[data-theme=liquid] .settings,html[data-theme=liquid] .notice,html[data-theme=liquid][data-refract] .settings,html[data-theme=liquid][data-refract] .notice{backdrop-filter:none;background-image:none;border-color:var(--line)}
+  html[data-theme=liquid] .settings,html[data-theme=liquid] .notice{background:var(--panel)}
+}
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-font-smoothing:antialiased}
 body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100vh;display:grid;place-items:center;padding:36px 20px;font-size:13px;line-height:1.5}
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 
-/* 通用 分类内的检查更新行：规格同设置面板 */
+/* 关于 分类内的检查更新行：规格同设置面板 */
 .settings{width:380px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);overflow:hidden}
 .set-h{display:flex;align-items:center;gap:9px;padding:0 20px;min-height:58px;border-bottom:1px solid var(--line2)}
 .set-title{font-size:14px;font-weight:700}
 .set-crumb{font-size:12px;color:var(--muted)}
 .set-body{padding:14px 20px 18px}
-.swrow{display:flex;align-items:center;gap:12px;min-height:44px}
-.swrow .swlabel{flex:1}
-.switch{flex:none;width:34px;height:20px;border:0;border-radius:99px;background:var(--line);position:relative;padding:0}
-.switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--panel)}
-.switch[aria-checked=true]{background:var(--ink)}
-.switch[aria-checked=true]::after{left:auto;right:2px;background:var(--on)}
-html[data-theme=dark] .switch::after{background:var(--faint)}
-html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 .swgroup{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:2px 12px}
 .upd{display:flex;align-items:center;gap:12px;min-height:56px;border-top:1px solid var(--line2);margin-top:4px}
 .upd-main{flex:1;min-width:0}
@@ -69,6 +92,16 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="lg-liquid" filterUnits="userSpaceOnUse" x="0" y="0" width="380" height="250" color-interpolation-filters="sRGB">
+    <feImage id="lg-map" x="0" y="0" width="380" height="250" preserveAspectRatio="none" result="map"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="20" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <filter id="lg-liquid-2" filterUnits="userSpaceOnUse" x="0" y="0" width="320" height="143" color-interpolation-filters="sRGB">
+    <feImage id="lg-map-2" x="0" y="0" width="320" height="143" preserveAspectRatio="none" result="map"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="20" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</defs></svg>
 <div class="stage">
   <div class="settings">
     <div class="set-h"><span class="set-title" id="title"></span><span class="set-crumb" id="crumb"></span></div>
@@ -80,10 +113,6 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
             <div class="upd-state" id="state" role="status" aria-live="polite"></div>
           </div>
           <button type="button" class="btn" id="check"></button>
-        </div>
-        <div class="swrow" style="border-top:1px solid var(--line2)">
-          <span class="swlabel" id="auto-label"></span>
-          <button type="button" class="switch" role="switch" id="auto" aria-checked="true"></button>
         </div>
       </div>
       <div class="caption" id="cap-state"></div>
@@ -107,26 +136,26 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 /// Strings, one column per language, mirroring the other prototypes. The release note body is
 /// sample content (the first paragraph of the release's own notes), not a string the app owns.
 const L = {
-  zh: { title: "检查更新", crumb: "通用", now: "当前版本 1.1.0", check: "检查更新", auto: "启动时检查更新",
+  zh: { title: "检查更新", crumb: "关于", now: "当前版本 1.1.0", check: "检查更新",
         states: { idle: "", checking: "正在检查…", latest: "已是最新版本", available: "发现新版本 1.2.0", error: "无法连接更新服务" },
         capState: "状态预览（点选查看各态）", capNotice: "通知卡片（发现新版本时居中弹出）",
         nt: "Lens 1.2.0 可用", nb: "新增桌面宠物，检查更新与若干修正。点击查看发布页，由你自己下载安装。",
-        open: "查看发布页", skip: "跳过此版本", themeDark: "黑夜", themeLight: "白天" },
-  en: { title: "Updates", crumb: "General", now: "Current version 1.1.0", check: "Check for updates", auto: "Check for updates at launch",
+        open: "查看发布页", skip: "跳过此版本", themeDark: "静谧暗夜", themeLight: "晴朗白昼", themeFrosted: "雾面玻璃", themeLiquid: "流光玻璃" },
+  en: { title: "Updates", crumb: "About", now: "Current version 1.1.0", check: "Check for updates",
         states: { idle: "", checking: "Checking...", latest: "You have the latest version", available: "Version 1.2.0 is available", error: "Could not reach the update service" },
         capState: "State preview (pick one to see it)", capNotice: "Notice card (shown centred when a new version is found)",
         nt: "Lens 1.2.0 is available", nb: "Adds a desktop pet, update checks and several fixes. Opens the release page; you download and install it yourself.",
-        open: "View release", skip: "Skip this version", themeDark: "Dark", themeLight: "Light" },
-  ja: { title: "アップデート", crumb: "一般", now: "現在のバージョン 1.1.0", check: "アップデートを確認", auto: "起動時にアップデートを確認",
+        open: "View release", skip: "Skip this version", themeDark: "Dark", themeLight: "Light", themeFrosted: "Frosted glass", themeLiquid: "Liquid glass" },
+  ja: { title: "アップデート", crumb: "情報", now: "現在のバージョン 1.1.0", check: "アップデートを確認",
         states: { idle: "", checking: "確認しています…", latest: "最新バージョンです", available: "バージョン 1.2.0 があります", error: "更新サービスに接続できません" },
         capState: "状態のプレビュー（選ぶと各状態を表示）", capNotice: "通知カード（新しいバージョンがあると中央に表示）",
         nt: "Lens 1.2.0 が利用できます", nb: "デスクトップペット、更新確認、いくつかの修正を追加しました。リリースページを開くので、ダウンロードと導入はご自身で行ってください。",
-        open: "リリースを見る", skip: "このバージョンをスキップ", themeDark: "ダーク", themeLight: "ライト" },
-  es: { title: "Actualizaciones", crumb: "General", now: "Versión actual 1.1.0", check: "Buscar actualizaciones", auto: "Buscar actualizaciones al iniciar",
+        open: "リリースを見る", skip: "このバージョンをスキップ", themeDark: "ダーク", themeLight: "ライト", themeFrosted: "すりガラス", themeLiquid: "リキッドガラス" },
+  es: { title: "Actualizaciones", crumb: "Acerca de", now: "Versión actual 1.1.0", check: "Buscar actualizaciones",
         states: { idle: "", checking: "Buscando…", latest: "Tienes la versión más reciente", available: "Versión 1.2.0 disponible", error: "No se pudo conectar con el servicio de actualizaciones" },
         capState: "Vista de estados (elige uno para verlo)", capNotice: "Tarjeta de aviso (aparece centrada al haber una nueva versión)",
         nt: "Lens 1.2.0 está disponible", nb: "Añade una mascota de escritorio, búsqueda de actualizaciones y varias correcciones. Abre la página de la versión; la descargas e instalas tú.",
-        open: "Ver versión", skip: "Omitir esta versión", themeDark: "Oscuro", themeLight: "Claro" }
+        open: "Ver versión", skip: "Omitir esta versión", themeDark: "Oscuro", themeLight: "Claro", themeFrosted: "Vidrio mate", themeLiquid: "Vidrio líquido" }
 };
 const asked = (new URLSearchParams(location.search).get('lang') || 'zh').toLowerCase();
 const lang = asked.startsWith('zh') ? 'zh' : (L[asked] ? asked : 'zh');
@@ -140,7 +169,6 @@ $('title').textContent = t.title;
 $('crumb').textContent = t.crumb;
 $('now').textContent = t.now;
 $('check').textContent = t.check;
-$('auto-label').textContent = t.auto;
 $('cap-state').textContent = t.capState;
 $('cap-notice').textContent = t.capNotice;
 $('nt').textContent = t.nt;
@@ -162,20 +190,62 @@ document.addEventListener('click', e => {
   if (!b) return;
   if (b.dataset.s) { current = b.dataset.s; renderState(); }
   else if (b.id === 'check') { current = 'checking'; renderState(); setTimeout(() => { current = 'latest'; renderState(); }, 900); }
-  else if (b.id === 'auto') { b.setAttribute('aria-checked', String(b.getAttribute('aria-checked') !== 'true')); }
   else if (b.id === 'nx' || b.id === 'skip') { current = 'idle'; renderState(); }
 });
 renderState();
 
 // Theme toggle: the same dev affordance as the other surfaces, hidden with ?shot.
 const tb = $('tb');
+/// 折射能力探测：不支持 url() 形式 backdrop-filter 的浏览器会丢掉这条声明，读回空串。此时液体玻璃退回 CSS 的模糊与高光。
+const refractOK = (() => { const p = document.createElement("div"); p.style.backdropFilter = "url(#lg-liquid)"; return p.style.backdropFilter !== ""; })();
+const svgAttr = (id, name, v) => document.getElementById(id).setAttribute(name, v);
+/// 按卡片尺寸画一次位移图（R/G 编码到 [0,255]，128 为零位移）。位移取模糊后的圆角矩形遮罩的梯度：
+/// 遮罩在边缘最陡、向中心趋于平坦，梯度处处连续，所以没有距离场那样沿对角线（两条边的等距线）翻转的接缝，不会画出 X 形。
+/// 位移朝内取样：边缘的像素从玻璃里面借内容，边缘因此被压弯；位移的强度由 feDisplacementMap 的 scale 决定，不在这里烤死。
+function liquidMap(W = 380, H = 480, R = 22, S = 18) {
+  const mask = document.createElement("canvas");
+  mask.width = W; mask.height = H;
+  const mctx = mask.getContext("2d");
+  mctx.filter = `blur(${S}px)`;
+  mctx.fillStyle = "#fff";
+  mctx.beginPath(); mctx.roundRect(0, 0, W, H, R); mctx.fill();
+  const m = mctx.getImageData(0, 0, W, H).data;
+  // 读 alpha：白色填充的 RGB 恒为 255，模糊后的梯度只在 alpha 里
+  const at = (x, y) => m[(Math.min(Math.max(y, 0), H - 1) * W + Math.min(Math.max(x, 0), W - 1)) * 4 + 3] / 255;
+  // 遮罩向内升高，中心差分即朝内的梯度；按全图最大值归一，最强处正好编码到 127
+  const gx = new Float32Array(W * H), gy = new Float32Array(W * H);
+  let max = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x;
+    gx[i] = (at(x + 1, y) - at(x - 1, y)) / 2;
+    gy[i] = (at(x, y + 1) - at(x, y - 1)) / 2;
+    max = Math.max(max, Math.hypot(gx[i], gy[i]));
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext("2d"), img = ctx.createImageData(W, H);
+  for (let i = 0; i < W * H; i++) img.data.set([128 + 127 * gx[i] / max, 128 + 127 * gy[i] / max, 128, 255], i * 4);
+  ctx.putImageData(img, 0, 0);
+  return canvas.toDataURL();
+}
+if (refractOK) {
+  svgAttr("lg-map", "href", liquidMap(380, 250, 22, 12));
+  svgAttr("lg-map-2", "href", liquidMap(320, 143, 22, 7));
+}
+const BACKDROPS = { frosted: ['night-lines', 'text-dense', 'color-blocks', 'sky-light', 'checker'], liquid: ['cool-wall', 'web-light', 'web-dark', 'colorful', 'stripes', 'black', 'white'] };
 function applyTheme(v) {
   document.documentElement.dataset.theme = v;
-  tb.textContent = v === 'dark' ? t.themeLight : t.themeDark;
+  tb.textContent = { light: t.themeLight, dark: t.themeDark, frosted: t.themeFrosted, liquid: t.themeLiquid }[v];
+  if (refractOK && v === 'liquid') document.documentElement.dataset.refract = 'on';
+  else delete document.documentElement.dataset.refract;
 }
-applyTheme(location.search.includes('theme=dark') ? 'dark' : 'light');
-tb.onclick = () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
-if (new URLSearchParams(location.search).has('shot')) tb.remove();
+const q = new URLSearchParams(location.search);
+const theme = ['dark', 'frosted', 'liquid'].includes(q.get('theme')) ? q.get('theme') : 'light';
+applyTheme(theme);
+if ((BACKDROPS[theme] || []).includes(q.get('bg'))) document.documentElement.style.setProperty('--wall', `url("${theme}-backdrops/${q.get('bg')}.png")`);
+const THEMES = ['light', 'dark', 'frosted', 'liquid'];
+tb.onclick = () => applyTheme(THEMES[(THEMES.indexOf(document.documentElement.dataset.theme) + 1) % THEMES.length]);
+if (q.has('shot')) tb.remove();
 </script>
 </body>
 </html>

@@ -13,7 +13,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: 9
-        color: hover.hovered ? Tokens.panel2 : "transparent"
+        color: hover.hovered ? SettingsTokens.panel2 : "transparent"
     }
 
     Column {
@@ -24,12 +24,12 @@ Item {
 
         Text {
             text: root.title
-            color: Tokens.text
+            color: SettingsTokens.text
             font.pixelSize: 13
         }
         Text {
             text: root.summary
-            color: Tokens.muted
+            color: SettingsTokens.muted
             font.pixelSize: 11
         }
     }
@@ -39,7 +39,7 @@ Item {
         anchors.rightMargin: 9
         anchors.verticalCenter: parent.verticalCenter
         text: "›"
-        color: Tokens.faint
+        color: SettingsTokens.faint
         font.pixelSize: 20
     }
 
