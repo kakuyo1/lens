@@ -1,10 +1,42 @@
 # Changelog
 
-## Unreleased
+## 1.3.0 - 2026-10-13
+
+Minor release: the desktop pet gains three companions, the bubble gets timing and placement settings, and
+the glass themes reach every window. The update check moves to a new About page.
+
+### Added
+
+- Desktop pets Mochi, Owl and Cat join the dog. Pick one in Settings, under Extensions.
+- Bubble display time (1 to 30 seconds, 5 by default) and side (above or below the selection, above by
+  default), in Settings under Capture & popups.
+- An example sentence switch under Etymology, off by default. When on, each word explanation asks for one
+  English example sentence, which costs output tokens.
+- An About page, last in Settings: the current version, the repository link and the update check.
+- Frosted glass and Liquid glass themes. With a glass theme on, every window that shows a card (settings,
+  tray menu, stats, words, year words, cost, bubble, selection bar, notice, update and removal question)
+  draws it over a blurred copy of the desktop behind it. Those windows are kept out of screen captures and
+  screen sharing while the theme is on, so a screenshot shows the desktop without the cards.
+
+### Changed
+
+- The update check moved from General to the About page. General keeps the switch that checks at startup.
+- Custom sits last in the theme list, and its colours are set with swatch rows.
+- Selected chips use bold type.
+- In Chinese, the built-in themes are named 晴朗白昼 (Light) and 静谧暗夜 (Dark).
 
 ### Removed
 
 - The Forest theme. Light, Dark and Custom remain; a reader who had Forest selected is shown Light.
+
+### Fixed
+
+- On a portrait monitor above the primary, the bubble and action bar opened about a third of a screen below
+  the selection, and a click on the action bar could close it. They now open beside the selection and stay
+  inside the monitor's work area, clear of the taskbar.
+- A dropdown list stays under its field while the page scrolls, and the pet page's dropdown closes on a
+  press outside it.
+- The version on the About page no longer jumps when an update check starts.
 
 ## 1.2.5 - 2026-10-11
 
