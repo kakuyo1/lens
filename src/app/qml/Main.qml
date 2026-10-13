@@ -37,7 +37,7 @@ Window {
 
     /// The liquid theme's text colour, read from the same document as the theme.
     Binding {
-        target: SettingsTokens
+        target: Tokens
         property: "liquidTextColor"
         value: Controller.settings.liquidTextColor
     }

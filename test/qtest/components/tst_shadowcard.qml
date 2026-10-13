@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import Lens
+import "../"
 import "../testutil.js" as Util
 
 /**
@@ -29,6 +30,7 @@ Item {
     Component {
         id: windowComponent
         Window {
+            readonly property SurfaceTokens tokens: SurfaceTokens {}
             width: 260
             height: 200
             visible: false
@@ -36,12 +38,15 @@ Item {
         }
     }
 
+    TokenHost { id: host }
+
     TestCase {
         name: "ShadowCard"
         when: windowShown
 
         function test_theCardIsInsetByTheShadowMargin() {
-            const card = createTemporaryObject(cardComponent, root);
+            const card = createTemporaryObject(cardComponent, host.contentItem);
+            waitForRendering(host.contentItem);
             verify(card);
             wait(50);
 

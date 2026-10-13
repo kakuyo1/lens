@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import Lens
+import "../"
 import "../testutil.js" as Util
 
 Item {
@@ -28,6 +29,8 @@ Item {
     Component { id: connection; SettingsConnectionPage { width: 320; settings: root.settings } }
     Component { id: backdrop; Rectangle { width: 380; height: 480; color: Tokens.panel; z: -1 } }
 
+    TokenHost { id: host; width: root.width; height: root.height }
+
     TestCase {
         id: testCase
         name: "ExplanationSettings"
@@ -41,7 +44,8 @@ Item {
                 explanationLang: Controller.settings.explanationLang
             };
             try {
-                const service = createTemporaryObject(model, root, {settings: Qt.binding(function() { return Controller.settings; })});
+                const service = createTemporaryObject(model, host.contentItem, {settings: Qt.binding(function() { return Controller.settings; })});
+                waitForRendering(host.contentItem);
                 verify(service);
                 findChild(service, "providerField").picked("openai");
                 compare(Controller.settings.provider, "openai");
@@ -65,7 +69,8 @@ Item {
                 tryCompare(Controller.settings, "model", "house-model");
                 findChild(service, "providerField").picked("custom");
                 compare(findChild(service, "modelField").visible, true);
-                const page = createTemporaryObject(learning, root, {settings: Qt.binding(function() { return Controller.settings; })});
+                const page = createTemporaryObject(learning, host.contentItem, {settings: Qt.binding(function() { return Controller.settings; })});
+                waitForRendering(host.contentItem);
                 verify(page);
                 findChild(page, "languageField").picked("ja");
                 compare(Controller.settings.explanationLang, "ja");
@@ -80,7 +85,8 @@ Item {
         }
 
         function test_catalogControlsUseSuppliedChoices() {
-            const page = createTemporaryObject(learning, root);
+            const page = createTemporaryObject(learning, host.contentItem);
+            waitForRendering(host.contentItem);
             verify(page);
             const field = findChild(page, "languageField");
             verify(field);
@@ -88,7 +94,8 @@ Item {
             compare(field.current.label, "Español");
             field.currentValue = "ja";
             compare(field.current.label, "日本語");
-            const service = createTemporaryObject(model, root);
+            const service = createTemporaryObject(model, host.contentItem);
+            waitForRendering(host.contentItem);
             verify(service);
             const providerField = findChild(service, "providerField");
             verify(providerField);
@@ -102,7 +109,8 @@ Item {
         /// The etymology switch is a setting, not a view: it reads what the document holds and
         /// writes it back through the controller, which is what makes it survive a restart.
         function test_theEtymologySwitchReadsAndWritesTheSetting() {
-            const page = createTemporaryObject(learning, root);
+            const page = createTemporaryObject(learning, host.contentItem);
+            waitForRendering(host.contentItem);
             verify(page);
             const row = findChild(page, "etymologySwitch");
             verify(row, "the learning page draws no etymology switch");
@@ -125,15 +133,16 @@ Item {
             try {
                 for (const mode of ["light", "dark"]) {
                     Tokens.theme = mode;
-                    const background = createTemporaryObject(backdrop, root);
+                    const background = createTemporaryObject(backdrop, host.contentItem);
                     verify(background);
                     for (const entry of [{component: learning, name: "learning"}, {component: model, name: "model"}, {component: connection, name: "connection"}]) {
-                        const page = createTemporaryObject(entry.component, root);
+                        const page = createTemporaryObject(entry.component, host.contentItem);
+                        waitForRendering(host.contentItem);
                         verify(page);
                         page.x = 30;
                         page.y = 30;
                         waitForRendering(page);
-                        verify(Util.saveSnapshot(testCase, root, lensQaSnapshotDir, "explanation-" + entry.name + "-" + mode));
+                        verify(Util.saveSnapshot(testCase, host.contentItem, lensQaSnapshotDir, "explanation-" + entry.name + "-" + mode));
                         verify(page.implicitHeight < root.height - 60);
                         page.destroy();
                     }

@@ -3,6 +3,10 @@ import QtQuick
 Item {
     id: root
 
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
+
     property var settings: Controller.settings
     property real dailyBudget: Number(settings.dailyBudget || 0)
     signal budgetChanged(real amount)
@@ -31,17 +35,17 @@ Item {
 
             Text {
                 text: qsTranslate("SettingsPopup", "Daily budget")
-                color: SettingsTokens.muted
+                color: root.tokens.muted
                 font.pixelSize: 12
             }
 
             Rectangle {
                 width: parent.width
                 height: 35
-                radius: SettingsTokens.radiusField
-                color: SettingsTokens.panel2
+                radius: root.tokens.radiusField
+                color: root.tokens.panel2
                 border.width: 1
-                border.color: amountInput.activeFocus ? SettingsTokens.ink : SettingsTokens.line
+                border.color: amountInput.activeFocus ? root.tokens.ink : root.tokens.line
 
                 Text {
                     id: currencyMark
@@ -49,7 +53,7 @@ Item {
                     anchors.leftMargin: 11
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.currency
-                    color: SettingsTokens.muted
+                    color: root.tokens.muted
                     font.pixelSize: 13
                 }
 
@@ -60,7 +64,7 @@ Item {
                     anchors.rightMargin: 11
                     verticalAlignment: TextInput.AlignVCenter
                     text: root.dailyBudget > 0 ? root.dailyBudget.toFixed(2) : "0"
-                    color: SettingsTokens.text
+                    color: root.tokens.text
                     font.pixelSize: 13
                     selectByMouse: true
                     inputMethodHints: Qt.ImhFormattedNumbersOnly
@@ -80,7 +84,7 @@ Item {
             Text {
                 width: parent.width
                 text: qsTranslate("SettingsPopup", "Set 0 to pause the cap.")
-                color: SettingsTokens.faint
+                color: root.tokens.faint
                 font.pixelSize: 11
                 wrapMode: Text.WordWrap
             }

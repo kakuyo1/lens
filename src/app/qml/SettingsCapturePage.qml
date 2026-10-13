@@ -4,6 +4,10 @@ import QtQuick.Controls.Basic
 Item {
     id: root
 
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
+
     signal childRequested(string route)
     readonly property var openChildRect: lengthField.openChildRect
     implicitHeight: content.implicitHeight
@@ -20,16 +24,16 @@ Item {
             spacing: 7
             Text {
                 text: qsTranslate("SettingsPopup", "Trigger channels")
-                color: SettingsTokens.muted
+                color: root.tokens.muted
                 font.pixelSize: 11
             }
             Rectangle {
                 width: parent.width
                 implicitHeight: switches.implicitHeight + 8
-                radius: SettingsTokens.radiusGroup
-                color: SettingsTokens.panel2
+                radius: root.tokens.radiusGroup
+                color: root.tokens.panel2
                 border.width: 1
-                border.color: SettingsTokens.line
+                border.color: root.tokens.line
 
                 Column {
                     id: switches
@@ -40,7 +44,6 @@ Item {
 
                     SwitchRow {
                         objectName: "selectionCapture"
-                        tokens: SettingsTokens
                         width: parent.width
                         label: qsTranslate("SettingsPopup", "Selection")
                         checked: Controller.settings.selectionCapture
@@ -48,7 +51,6 @@ Item {
                     }
                     SwitchRow {
                         objectName: "ocrCapture"
-                        tokens: SettingsTokens
                         width: parent.width
                         label: qsTranslate("SettingsPopup", "OCR")
                         checked: Controller.settings.ocrCapture
@@ -57,7 +59,6 @@ Item {
                     }
                     SwitchRow {
                         objectName: "autoScan"
-                        tokens: SettingsTokens
                         width: parent.width
                         label: qsTranslate("SettingsPopup", "Auto scan")
                         checked: Controller.settings.autoScan
@@ -73,7 +74,7 @@ Item {
         Column {
             width: parent.width
             spacing: 7
-            Text { text: qsTranslate("SettingsPopup", "OCR trigger key"); color: SettingsTokens.muted; font.pixelSize: 11 }
+            Text { text: qsTranslate("SettingsPopup", "OCR trigger key"); color: root.tokens.muted; font.pixelSize: 11 }
             HotkeyField {
                 id: hotkeyField
                 width: parent.width
@@ -102,7 +103,7 @@ Item {
             text: Controller.settings.ocrStatus === "checking" ? qsTr("Checking OCR")
                   : Controller.settings.ocrStatus === "english-data-missing" ? qsTr("English OCR data is missing")
                   : qsTr("OCR runtime is unavailable")
-            color: SettingsTokens.muted
+            color: root.tokens.muted
             font.pixelSize: 12
             wrapMode: Text.WordWrap
         }
@@ -116,7 +117,7 @@ Item {
         Column {
             width: parent.width
             spacing: 7
-            Text { text: qsTr("Tesseract executable"); color: SettingsTokens.muted; font.pixelSize: 12 }
+            Text { text: qsTr("Tesseract executable"); color: root.tokens.muted; font.pixelSize: 12 }
             PathField {
                 id: tesseractField
                 width: parent.width
@@ -131,7 +132,7 @@ Item {
         Column {
             width: parent.width
             spacing: 7
-            Text { text: qsTr("Tesseract data folder"); color: SettingsTokens.muted; font.pixelSize: 12 }
+            Text { text: qsTr("Tesseract data folder"); color: root.tokens.muted; font.pixelSize: 12 }
             PathField {
                 id: tesseractDataField
                 width: parent.width
@@ -147,7 +148,7 @@ Item {
         Column {
             width: parent.width
             spacing: 7
-            Text { text: qsTr("Minimum word length"); color: SettingsTokens.muted; font.pixelSize: 12 }
+            Text { text: qsTr("Minimum word length"); color: root.tokens.muted; font.pixelSize: 12 }
             DropdownField {
                 id: lengthField
                 objectName: "minimumWordLength"
@@ -166,22 +167,22 @@ Item {
         Column {
             width: parent.width
             spacing: 7
-            Text { text: qsTr("Scan whitelist"); color: SettingsTokens.muted; font.pixelSize: 12 }
+            Text { text: qsTr("Scan whitelist"); color: root.tokens.muted; font.pixelSize: 12 }
             TextField {
                 id: whitelistField
                 objectName: "scanWhitelist"
                 width: parent.width
                 text: Controller.settings.scanWhitelist
                 font.pixelSize: 13
-                color: SettingsTokens.text
+                color: root.tokens.text
                 selectByMouse: true
                 maximumLength: 4096
                 Accessible.name: qsTr("Scan whitelist")
                 background: Rectangle {
-                    radius: SettingsTokens.radiusField
-                    color: SettingsTokens.panel2
+                    radius: root.tokens.radiusField
+                    color: root.tokens.panel2
                     border.width: 1
-                    border.color: whitelistField.activeFocus ? SettingsTokens.ink : SettingsTokens.line
+                    border.color: whitelistField.activeFocus ? root.tokens.ink : root.tokens.line
                 }
                 onEditingFinished: {
                     Controller.captureDuty.setScanWhitelist(text);

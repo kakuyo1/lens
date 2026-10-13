@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import Lens
+import "../"
 import "../testutil.js" as Util
 
 /**
@@ -23,12 +24,15 @@ Item {
         Segment { width: 240; height: 32 }
     }
 
+    TokenHost { id: host }
+
     TestCase {
         name: "Segment"
         when: windowShown
 
         function make(properties) {
-            const segment = createTemporaryObject(segmentComponent, root, properties);
+            const segment = createTemporaryObject(segmentComponent, host.contentItem, properties);
+            waitForRendering(host.contentItem);
             verify(segment);
             return segment;
         }

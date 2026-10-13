@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import Lens
+import "../"
 import "../testutil.js" as Util
 
 /**
@@ -43,6 +44,8 @@ Item {
         SpriteLayer {}
     }
 
+    TokenHost { id: host }
+
     TestCase {
         id: testCase
         name: "Pet"
@@ -57,7 +60,8 @@ Item {
         }
 
         function test_passthroughIsOnlyInteractiveWhilePetIsOn() {
-            const page = createTemporaryObject(pageComponent, root);
+            const page = createTemporaryObject(pageComponent, host.contentItem);
+            waitForRendering(host.contentItem);
             const passthrough = findChild(page, "passthroughSwitch");
             verify(passthrough !== null);
             compare(passthrough.interactive, false);
@@ -90,7 +94,8 @@ Item {
                     Pet.setPet(id);
                     for (const mode of ["light", "dark"]) {
                         Tokens.theme = mode;
-                        const panel = createTemporaryObject(panelComponent, root);
+                        const panel = createTemporaryObject(panelComponent, host.contentItem);
+                        waitForRendering(host.contentItem);
                         verify(panel);
                         waitForRendering(panel);
                         verify(Util.saveSnapshot(testCase, panel, lensQaSnapshotDir, "pet-settings-" + id + "-" + mode));

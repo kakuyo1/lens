@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import Lens
+import "../"
 
 /**
  * The motion table: the durations UI.md's motion table names, and what reduced motion does to
@@ -27,12 +28,15 @@ Item {
         Motion { reduced: false }
     }
 
+    TokenHost { id: host }
+
     TestCase {
         name: "Motion"
         when: windowShown
 
         function make(component) {
-            const table = createTemporaryObject(component, root);
+            const table = createTemporaryObject(component, host.contentItem);
+            waitForRendering(host.contentItem);
             verify(table);
             return table;
         }

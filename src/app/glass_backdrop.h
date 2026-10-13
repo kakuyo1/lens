@@ -2,13 +2,16 @@
 
 /**
  * @file glass_backdrop.h
- * @brief The desktop the glass cards are drawn over, and the image provider that hands it to QML.
+ * @brief The desktop the glass cards are drawn over: one sheet per glass surface, and the image provider that hands
+ *        them to QML.
  *
- * The desktop is taken as a sheet a little larger than the window, so that a drag moves the card over the same
- * picture instead of taking a new one (docs/adr/0039). The picture is kept in memory only: it is never written to
- * disk, never logged, and dropped when the glass themes are off (docs/adr/0034, docs/adr/0035). QML reads the
- * blurred sheet through `image://glass/sheet` and the liquid theme's displacement map through `image://glass/map`.
- * Both are images, not QML types, so the surfaces need no item class of their own.
+ * Each glass surface (the settings window, the tray menu, a panel, a bubble) has its own GlassSheet: the desktop taken
+ * as a sheet a little larger than its window, so a drag moves the card over the same picture instead of taking a new
+ * one (docs/adr/0039). The sheets share one reader: one worker thread and one refresh timer, so however many surfaces
+ * are live, the desktop is read about fifteen times a second in all (docs/adr/0041). The pictures are kept in memory
+ * only: never written to disk, never logged, and dropped when the glass themes are off (docs/adr/0034, docs/adr/0035).
+ * QML reads each sheet through `image://glass/<surface>/sheet` and the liquid theme's displacement map through
+ * `image://glass/<surface>/map`. Both are images, not QML types, so the surfaces need no item class of their own.
  */
 
 #include <QImage>
@@ -20,14 +23,23 @@
 #include <QTimer>
 #include <QtQml/qqmlregistration.h>
 
-#include <atomic>
+#include <vector>
 
 namespace lens::app {
 
-class GlassBackdrop : public QObject {
+/**
+ * @brief The desktop under one glass surface's window, and the text tone the card's text takes over it.
+ *
+ * A sheet is taken by follow() and refreshed while setLive() is on. It holds the rectangle it was taken at, which the
+ * shader reads its window's place from, and a serial that changes with each picture, which keeps QML's image cache
+ * honest.
+ */
+class GlassSheet : public QObject {
     Q_OBJECT
     QML_ANONYMOUS
-    QML_UNCREATABLE("Owned by Controller; reached as Controller.glassBackdrop")
+    QML_UNCREATABLE("Owned by GlassBackdrop; reached as Controller.glassBackdrop.surface(name)")
+    /// The surface's name, as the image URLs and the surfaces spell it.
+    Q_PROPERTY(QString name READ name CONSTANT)
     /// Whether the text over this picture should be light. Decided on every capture.
     Q_PROPERTY(bool lightText READ lightText NOTIFY pictureChanged)
     /// Changes with every capture, so QML's image cache never serves an earlier picture.
@@ -36,12 +48,12 @@ class GlassBackdrop : public QObject {
     Q_PROPERTY(QRect sheet READ sheet NOTIFY pictureChanged)
 
 public:
-    explicit GlassBackdrop(QObject* parent = nullptr);
-    ~GlassBackdrop() override;
+    GlassSheet(QString name, QObject* parent);
 
-    bool  lightText() const;
-    int   serial() const;
-    QRect sheet() const;
+    QString name() const;
+    bool    lightText() const;
+    int     serial() const;
+    QRect   sheet() const;
 
     /// @brief Make sure the picture covers @p window, taking a new sheet only when the window has come near its edge.
     /// @param window The window the glass is drawn in, in device-independent coordinates.
@@ -50,17 +62,18 @@ public:
     Q_INVOKABLE void follow(QRect window, double fillAlpha);
     /// @brief Whether the picture still covers @p window with room to spare, so that no new sheet is needed.
     Q_INVOKABLE bool covers(QRect window) const;
-    /// @brief Drop the picture.
+    /// @brief Drop the picture, and stop refreshing it.
     Q_INVOKABLE void clear();
     /// @brief Keep @p window out of screen captures while the glass shows, so the picture needs no hiding of the card.
-    /// @param window The settings window. Not a QWindow in QML, so it is checked here.
+    /// @param window The surface's window. Not a QWindow in QML, so it is checked here.
     /// @param excluded True to keep it out of captures; false to take the exclusion back.
     /// @return True when the window is now excluded. False off Windows, before the window has a native handle, or when
     ///         the OS refuses; the caller then hides the card for each capture as before.
     Q_INVOKABLE bool keepOutOfCapture(QObject* window, bool excluded);
-    /// @brief Refresh the sheet about fifteen times a second, so video behind the window shows through the glass.
+    /// @brief Refresh the sheet about fifteen times a second between all live sheets, so video behind the window shows
+    ///        through the glass.
     /// @param on True to start refreshing; false to stop.
-    /// @note Meant for the window kept out of captures: a refresh of a window that is not would photograph the card.
+    /// @note Meant for a window kept out of captures: a refresh of a window that is not would photograph the card.
     Q_INVOKABLE void setLive(bool on);
 
     /// @return A copy of the picture, empty when none is held. Safe to call from the image provider's thread.
@@ -68,16 +81,19 @@ public:
 
 signals:
     void pictureChanged();
+    /// @brief The sheet started or stopped refreshing, so the backdrop starts or stops its timer.
+    void liveChanged();
 
 private:
+    friend class GlassBackdrop;
+
     /// @brief Take a picture of the desktop under @p region, the sheet, and judge the text tone over @p window.
     /// @note A region that is empty or crosses two screens clears the picture rather than stitching one.
     void capture(QRect region, QRect window, double fillAlpha);
-    /// @brief Start one refresh of the sheet on the pool. A tick that finds the last one still running is skipped.
-    void refreshLive();
     /// @brief Hold a new sheet and its text tone, and announce it to QML.
     void publish(QRect region, QRect screen, QImage picture, bool lightText);
 
+    QString        name_;
     mutable QMutex mutex_;
     QImage         image_;
     bool           lightText_ = false;
@@ -92,23 +108,58 @@ private:
     double fillAlpha_ = 0.0;
     /// Bumped whenever the sheet is retaken or dropped, so a refresh that began before the change is discarded.
     int generation_ = 0;
-    /// Drives the refresh while setLive() is on.
+    /// Set while setLive() is on. Only the GUI thread reads or writes it.
+    bool live_ = false;
+};
+
+/**
+ * @brief Owns the glass sheets of every glass surface, and reads the desktop for whichever of them is live.
+ *
+ * The surfaces are a fixed set, so the sheets are created once and the image provider can look them up from its own
+ * threads without a lock. One refresh runs at a time: each tick reads the next live sheet in turn (nextLive), so the
+ * cost is fixed however many surfaces show glass.
+ */
+class GlassBackdrop : public QObject {
+    Q_OBJECT
+    QML_ANONYMOUS
+    QML_UNCREATABLE("Owned by Controller; reached as Controller.glassBackdrop")
+
+public:
+    explicit GlassBackdrop(QObject* parent = nullptr);
+    ~GlassBackdrop() override;
+
+    /// @brief The sheet of the named glass surface, or nothing when no surface has that name.
+    /// @param name One of the surface names: "settings", "tray", "stats", and so on.
+    Q_INVOKABLE GlassSheet* surface(QString const& name) const;
+
+private:
+    /// @brief Start the next refresh on the pool, for the next live sheet in turn. A tick that finds one still running
+    ///        is skipped.
+    void refreshNext();
+    /// @brief Run the timer while any sheet is live, and stop it when none is.
+    void updateLive();
+
+    /// Every sheet, in the order the surfaces are listed. The sheets are children of this object.
+    std::vector<GlassSheet*> sheets_;
+    /// The index of the sheet the last refresh served, so the next one starts after it.
+    std::size_t cursor_ = 0;
+    /// Set while the refresh is on the pool; cleared on the GUI thread when its result comes back.
+    bool busy_ = false;
+    /// Drives the refresh while any sheet is live.
     QTimer live_;
-    /// Set while a refresh is on the pool; cleared on the GUI thread when its result comes back.
-    std::atomic<bool> liveBusy_{false};
     /// Runs the desktop reads off the GUI thread. One thread: a read is a few milliseconds and two would only contend.
     QThreadPool pool_;
 };
 
 /**
- * @brief Serves `image://glass/sheet?` and `image://glass/map?` for the glass cards.
+ * @brief Serves `image://glass/<surface>/sheet?` and `image://glass/<surface>/map?` for the glass cards.
  *
  * The sheet query carries the blur and the saturation and a serial that changes with each capture; the map query
  * carries the card's size and corner radius. Each request runs on the worker thread, so a slider drag does not wait
  * on the GUI thread.
  *
  * Requests arrive on the image loader's worker threads, which is why the picture is copied out of
- * GlassBackdrop under its lock rather than shared.
+ * GlassSheet under its lock rather than shared.
  */
 class GlassImageProvider final : public QQuickImageProvider {
 public:

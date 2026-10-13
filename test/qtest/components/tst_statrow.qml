@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import Lens
+import "../"
 import "../testutil.js" as Util
 
 /**
@@ -18,12 +19,15 @@ Item {
         StatRow { width: 200; label: "Known"; value: "128" }
     }
 
+    TokenHost { id: host }
+
     TestCase {
         name: "StatRow"
         when: windowShown
 
         function make(properties) {
-            const row = createTemporaryObject(rowComponent, root, properties);
+            const row = createTemporaryObject(rowComponent, host.contentItem, properties);
+            waitForRendering(host.contentItem);
             verify(row);
             return row;
         }

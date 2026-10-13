@@ -18,6 +18,10 @@ import QtQuick
 Item {
     id: root
 
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
+
     /// The combination in force, as the controller writes it: "Ctrl+Alt+S".
     property string combination: ""
     /// Whether the trigger can fire. False draws the line that says it cannot.
@@ -42,10 +46,10 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         height: 35
-        radius: SettingsTokens.radiusField
-        color: SettingsTokens.panel2
+        radius: root.tokens.radiusField
+        color: root.tokens.panel2
         border.width: 1
-        border.color: root.recording ? SettingsTokens.ink : SettingsTokens.line
+        border.color: root.recording ? root.tokens.ink : root.tokens.line
 
         Text {
             anchors.left: parent.left
@@ -54,7 +58,7 @@ Item {
             anchors.rightMargin: 8
             anchors.verticalCenter: parent.verticalCenter
             text: root.recording ? qsTr("Press the combination") : qsTr("Trigger key")
-            color: root.recording ? SettingsTokens.muted : root.interactive ? SettingsTokens.text : SettingsTokens.faint
+            color: root.recording ? root.tokens.muted : root.interactive ? root.tokens.text : root.tokens.faint
             font.pixelSize: 13
             elide: Text.ElideRight
         }
@@ -76,17 +80,17 @@ Item {
 
                     width: Math.max(18, keyText.implicitWidth + 12)
                     height: 19
-                    radius: SettingsTokens.radiusPill
-                    color: SettingsTokens.panel
+                    radius: root.tokens.radiusPill
+                    color: root.tokens.panel
                     border.width: 1
-                    border.color: SettingsTokens.line
+                    border.color: root.tokens.line
 
                     Text {
                         id: keyText
                         anchors.centerIn: parent
                         text: capsule.modelData
-                        color: SettingsTokens.text
-                        font.family: SettingsTokens.monoFamily
+                        color: root.tokens.text
+                        font.family: root.tokens.monoFamily
                         font.pixelSize: 11
                     }
                 }
@@ -110,7 +114,7 @@ Item {
         width: parent.width
         visible: root.conflicted
         text: qsTr("Unavailable: it needs Ctrl or Alt, and no other program may hold it")
-        color: SettingsTokens.muted
+        color: root.tokens.muted
         font.pixelSize: 12
         wrapMode: Text.WordWrap
     }

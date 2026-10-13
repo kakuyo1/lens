@@ -11,6 +11,12 @@ import QtQuick.Window
  */
 Window {
     id: year
+    /// The desktop under this window, which its glass draws (docs/adr/0041).
+    readonly property var glass: Controller.glassBackdrop.surface("yearWords")
+    readonly property SurfaceTokens tokens: SurfaceTokens {
+        glassEnabled: true
+        glassLightText: year.glass.lightText
+    }
 
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     color: "transparent"
@@ -65,8 +71,8 @@ Window {
 
     function cellColor(level) {
         if (level === 0)
-            return Tokens.panel2;
-        const lightness = Tokens.dark ? [0.29, 0.40, 0.51, 0.63][level - 1]
+            return year.tokens.panel2;
+        const lightness = year.tokens.dark ? [0.29, 0.40, 0.51, 0.63][level - 1]
                                      : [0.84, 0.64, 0.46, 0.30][level - 1];
         return Qt.hsla(hues[hueIndex].hue / 360, 0.62, lightness, 1);
     }
@@ -103,8 +109,17 @@ Window {
     }
 
     ShadowCard {
+        id: card
         anchors.fill: parent
         movable: true
+        color: year.tokens.glassMode === "" ? year.tokens.panel : "transparent"
+
+        GlassSurface {
+            anchors.fill: parent
+            sheet: year.glass
+            mode: year.tokens.glassMode
+            radius: card.radius
+        }
 
         Column {
             id: column
@@ -121,7 +136,7 @@ Window {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
                     source: "qrc:/icons/ui-back.svg"
-                    color: Tokens.faint
+                    color: year.tokens.faint
                     HoverHandler { cursorShape: Qt.PointingHandCursor }
                     TapHandler { onTapped: year.backRequested() }
                 }
@@ -131,7 +146,7 @@ Window {
                     anchors.leftMargin: 28
                     anchors.verticalCenter: parent.verticalCenter
                     text: qsTr("Year in words")
-                    color: Tokens.text
+                    color: year.tokens.text
                     font.pixelSize: 14
                     font.weight: Font.Bold
                 }
@@ -143,13 +158,13 @@ Window {
 
                     Text {
                         text: qsTr("365 days")
-                        color: Tokens.faint
-                        font.family: Tokens.monoFamily
+                        color: year.tokens.faint
+                        font.family: year.tokens.monoFamily
                         font.pixelSize: 10
                     }
                     Icon {
                         source: "qrc:/icons/ui-close.svg"
-                        color: Tokens.faint
+                        color: year.tokens.faint
                         HoverHandler { cursorShape: Qt.PointingHandCursor }
                         TapHandler { onTapped: year.visible = false }
                     }
@@ -168,15 +183,15 @@ Window {
                     text: year.selectedDay
                           ? qsTr("%1: %2 lookups").arg(year.selectedDay.date).arg(year.selectedDay.pops)
                           : qsTr("Words explained")
-                    color: Tokens.muted
+                    color: year.tokens.muted
                     font.pixelSize: 11
                 }
                 Text {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     text: qsTr("%1 words").arg(year.days.reduce(function (sum, day) { return sum + day.pops; }, 0))
-                    color: Tokens.faint
-                    font.family: Tokens.monoFamily
+                    color: year.tokens.faint
+                    font.family: year.tokens.monoFamily
                     font.pixelSize: 11
                 }
             }
@@ -203,8 +218,8 @@ Window {
                             width: 18
                             visible: label.length > 0
                             text: label
-                            color: Tokens.faint
-                            font.family: Tokens.monoFamily
+                            color: year.tokens.faint
+                            font.family: year.tokens.monoFamily
                             font.pixelSize: 8
                         }
                     }
@@ -228,7 +243,7 @@ Window {
                                 height: year.cellSize + 2
                                 visible: index === 1 || index === 3 || index === 5
                                 text: index === 1 ? qsTr("Mon") : index === 3 ? qsTr("Wed") : qsTr("Fri")
-                                color: Tokens.faint
+                                color: year.tokens.faint
                                 font.pixelSize: 8
                                 verticalAlignment: Text.AlignVCenter
                             }
@@ -257,7 +272,7 @@ Window {
                                 visible: day !== null
                                 color: visible ? year.cellColor(year.dayLevel(day.pops)) : "transparent"
                                 border.width: visible && year.selectedDate === day.date ? 1 : 0
-                                border.color: Tokens.text
+                                border.color: year.tokens.text
                                 Accessible.ignored: !visible
                                 Accessible.name: visible ? qsTr("%1, %2 words").arg(day.date).arg(day.pops) : ""
 
@@ -276,7 +291,7 @@ Window {
                     y: gridRow.y + gridRow.height + 7
                     spacing: 3
 
-                    Text { text: qsTr("Less"); color: Tokens.faint; font.pixelSize: 8 }
+                    Text { text: qsTr("Less"); color: year.tokens.faint; font.pixelSize: 8 }
                     Repeater {
                         model: 5
                         delegate: Rectangle {
@@ -287,13 +302,13 @@ Window {
                             radius: 1
                             color: year.cellColor(index)
                             border.width: year.selectedLevel === index ? 1 : 0
-                            border.color: Tokens.text
+                            border.color: year.tokens.text
                             Accessible.role: Accessible.Button
                             Accessible.name: legendCell.index === 0 ? qsTr("No words, choose color") : qsTr("Level %1, choose color").arg(legendCell.index)
                             TapHandler { onTapped: year.openPalette(legendCell.index) }
                         }
                     }
-                    Text { text: qsTr("More"); color: Tokens.faint; font.pixelSize: 8 }
+                    Text { text: qsTr("More"); color: year.tokens.faint; font.pixelSize: 8 }
                 }
             }
 
@@ -307,6 +322,12 @@ Window {
         }
     }
 
+    GlassHost {
+        window: year
+        sheet: year.glass
+        dragging: card.dragging
+    }
+
     Component {
         id: paletteComponent
 
@@ -318,7 +339,7 @@ Window {
                 anchors.top: parent.top
                 width: parent.width
                 height: 1
-                color: Tokens.line2
+                color: year.tokens.line2
             }
 
             Item {
@@ -337,14 +358,14 @@ Window {
                     Text {
                         objectName: "yearPaletteTitle"
                         text: qsTr("Cell colors")
-                        color: Tokens.text
+                        color: year.tokens.text
                         font.pixelSize: 11
                         font.weight: Font.Bold
                     }
                     Text {
                         objectName: "yearPaletteHueName"
                         text: qsTr("%1 hue · 4 shades").arg(year.hues[year.hueIndex].name)
-                        color: Tokens.faint
+                        color: year.tokens.faint
                         font.pixelSize: 9
                         elide: Text.ElideRight
                     }
@@ -356,7 +377,7 @@ Window {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     source: "qrc:/icons/ui-close.svg"
-                    color: Tokens.faint
+                    color: year.tokens.faint
                     HoverHandler { cursorShape: Qt.PointingHandCursor }
                     TapHandler { onTapped: year.closePalette() }
                 }
@@ -380,7 +401,7 @@ Window {
                         radius: width / 2
                         color: "transparent"
                         border.width: 1
-                        border.color: Tokens.line
+                        border.color: year.tokens.line
                     }
 
                     Item {
@@ -392,9 +413,9 @@ Window {
                             property: "rotation"
                             from: -20
                             to: 0
-                            duration: Tokens.motion.pop
-                            easing.type: Tokens.motion.easing
-                            running: Tokens.motion.pop > 0
+                            duration: year.tokens.motion.pop
+                            easing.type: year.tokens.motion.easing
+                            running: year.tokens.motion.pop > 0
                         }
 
                         Repeater {
@@ -411,7 +432,7 @@ Window {
                                 radius: 10
                                 color: Qt.hsla(hue / 360, 0.72, 0.52, 1)
                                 border.width: year.hueIndex === index ? 2 : 1
-                                border.color: year.hueIndex === index ? Tokens.text : Tokens.panel
+                                border.color: year.hueIndex === index ? year.tokens.text : year.tokens.panel
                                 Accessible.role: Accessible.Button
                                 Accessible.name: year.hues[index].name
                                 TapHandler { onTapped: year.selectHue(hueCell.index) }
@@ -424,14 +445,14 @@ Window {
                         width: 48
                         height: 48
                         radius: 24
-                        color: Tokens.panel2
+                        color: year.tokens.panel2
                         border.width: 1
-                        border.color: Tokens.line
+                        border.color: year.tokens.line
                         Text {
                             anchors.centerIn: parent
                             width: parent.width - 8
                             text: year.hues[year.hueIndex].name
-                            color: Tokens.muted
+                            color: year.tokens.muted
                             font.pixelSize: 8
                             horizontalAlignment: Text.AlignHCenter
                             elide: Text.ElideRight
@@ -446,7 +467,7 @@ Window {
 
                     Text {
                         text: qsTr("Four activity levels")
-                        color: Tokens.muted
+                        color: year.tokens.muted
                         font.pixelSize: 10
                     }
 
@@ -468,12 +489,12 @@ Window {
                                     radius: 3
                                     color: year.cellColor(shadeCell.index + 1)
                                     border.width: year.selectedLevel === shadeCell.index + 1 ? 1 : 0
-                                    border.color: Tokens.text
+                                    border.color: year.tokens.text
                                 }
                                 Text {
                                     width: parent.width
                                     text: shadeCell.index === 0 ? qsTr("Light") : shadeCell.index === 3 ? qsTr("Dark") : String(shadeCell.index + 1)
-                                    color: Tokens.faint
+                                    color: year.tokens.faint
                                     font.pixelSize: 8
                                     horizontalAlignment: Text.AlignHCenter
                                 }
@@ -484,7 +505,7 @@ Window {
                     Text {
                         width: parent.width
                         text: qsTr("Select a hue to replace the four active levels.")
-                        color: Tokens.faint
+                        color: year.tokens.faint
                         font.pixelSize: 9
                         wrapMode: Text.WordWrap
                     }

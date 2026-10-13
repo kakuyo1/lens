@@ -8,6 +8,10 @@ import QtQuick
 Item {
     id: root
 
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
+
     property string source: ""
     property string label: ""
     property string note: ""
@@ -22,8 +26,8 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: Tokens.radiusField
-        color: hover.hovered ? Tokens.panel2 : "transparent"
+        radius: root.tokens.radiusField
+        color: hover.hovered ? root.tokens.panel2 : "transparent"
     }
 
     HoverHandler {
@@ -41,13 +45,13 @@ Item {
         Icon {
             anchors.verticalCenter: parent.verticalCenter
             source: root.source
-            color: root.danger ? Tokens.danger : Tokens.muted
+            color: root.danger ? root.tokens.danger : root.tokens.muted
         }
 
         Text {
             anchors.verticalCenter: parent.verticalCenter
             text: root.label
-            color: root.danger ? Tokens.danger : Tokens.text
+            color: root.danger ? root.tokens.danger : root.tokens.text
             font.pixelSize: 13
         }
     }
@@ -59,7 +63,7 @@ Item {
         anchors.rightMargin: 11
         anchors.verticalCenter: parent.verticalCenter
         value: root.note
-        color: Tokens.faint
+        color: root.tokens.faint
         pixelSize: 11
     }
 }

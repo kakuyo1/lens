@@ -114,12 +114,10 @@ target_compile_definitions(lens PRIVATE
   LENS_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/settings.local.json"
 )
 
-# Two token singletons, both built from TokenTable: Tokens for every surface, and SettingsTokens for
-# the settings window, which alone has the glass themes on. The property has to be set before
-# qt_add_qml_module looks at the file, not after: it decides there whether to write a singleton
-# entry into the module's qmldir.
+# Tokens holds the stored theme and the motion table, and is the one singleton of the colour tables. Each surface
+# window owns a SurfaceTokens built from it (docs/adr/0041). The property has to be set before qt_add_qml_module looks at
+# the file, not after: it decides there whether to write a singleton entry into the module's qmldir.
 set_source_files_properties(qml/components/Tokens.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
-set_source_files_properties(qml/components/SettingsTokens.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 # The URI is Lens, so generated QML tooling files belong below a Lens directory. Keeping the
 # target path aligned makes CMake generate the qmllint response file in every build tree,
@@ -178,8 +176,9 @@ qt_add_qml_module(lens_app
      qml/RemovalQuestion.qml
     qml/CostPopup.qml
     qml/components/Tokens.qml
-    qml/components/SettingsTokens.qml
     qml/components/TokenTable.qml
+    qml/components/SurfaceTokens.qml
+    qml/components/GlassHost.qml
     qml/theme/Light.qml
     qml/theme/Dark.qml
     qml/theme/Motion.qml

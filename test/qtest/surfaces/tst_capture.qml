@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import Lens
+import "../"
 import "../testutil.js" as Util
 
 Item {
@@ -18,12 +19,17 @@ Item {
         PathField { width: 328 }
     }
 
+    TokenHost { id: host; width: root.width; height: root.height }
+
     TestCase {
         name: "CaptureSettings"
         when: windowShown
 
         function make() {
-            const page = createTemporaryObject(pageComponent, root);
+            const page = createTemporaryObject(pageComponent, host.contentItem);
+            waitForRendering(host.contentItem);
+            host.requestActivate();
+            tryVerify(() => host.active);
             verify(!!page, "Capture page was created");
             return page;
         }
@@ -62,11 +68,11 @@ Item {
             const field = child(page, "scanWhitelist");
             field.forceActiveFocus();
             field.text = "CHROME.EXE, firefox.exe";
-            root.forceActiveFocus();
+            host.focusSink.forceActiveFocus();
             tryVerify(() => Controller.settings.scanWhitelist === "chrome.exe;firefox.exe");
             field.forceActiveFocus();
             field.text = "../invalid.exe";
-            root.forceActiveFocus();
+            host.focusSink.forceActiveFocus();
             tryCompare(field, "text", "chrome.exe;firefox.exe");
         }
 
@@ -112,7 +118,8 @@ Item {
         /// fallback this case owns rather than the machine's -- on a machine with no bundled
         /// Tesseract both sides of that comparison are empty and it would prove nothing.
         function test_thePathFieldShowsWhereItWouldLook() {
-            const field = createTemporaryObject(pathFieldComponent, root);
+            const field = createTemporaryObject(pathFieldComponent, host.contentItem);
+            waitForRendering(host.contentItem);
             verify(!!field, "Path field was created");
             field.fallback = "app/ocr/tesseract.exe";
 

@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import Lens
+import "../"
 import "../testutil.js" as Util
 
 /**
@@ -30,13 +31,16 @@ Item {
         SettingsGeneralPage { width: 340 }
     }
 
+    TokenHost { id: host }
+
     TestCase {
         id: testCase
         name: "SettingsUpdate"
         when: windowShown
 
         function make(component) {
-            const page = createTemporaryObject(component ? component : pageComponent, root);
+            const page = createTemporaryObject(component ? component : pageComponent, host.contentItem);
+            waitForRendering(host.contentItem);
             verify(!!page, "Component exists");
             wait(50);
             return page;

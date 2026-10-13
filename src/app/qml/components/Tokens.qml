@@ -1,9 +1,9 @@
 pragma Singleton
 
 /**
- * The colour table every surface reads except the settings window.
+ * The stored theme and the motion table. Every surface window forwards them into its own SurfaceTokens
+ * (docs/adr/0041); nothing reads colours from here directly.
  *
- * The glass themes are off here, so each one reads as the light table: a surface outside settings is
- * never glass (UI.md 3.1c and 3.1d). The settings window reads SettingsTokens instead.
+ * The glass themes are off here, so read directly this is always the light table (UI.md 3.1c and 3.1d).
  */
 TokenTable {}

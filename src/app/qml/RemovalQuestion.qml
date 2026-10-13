@@ -24,6 +24,12 @@ import QtQuick.Window
  */
 Window {
     id: root
+    /// The desktop under this window, which its glass draws (docs/adr/0041).
+    readonly property var glass: Controller.glassBackdrop.surface("removal")
+    readonly property SurfaceTokens tokens: SurfaceTokens {
+        glassEnabled: true
+        glassLightText: root.glass.lightText
+    }
 
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     color: "transparent"
@@ -94,7 +100,16 @@ Window {
     }
 
     ShadowCard {
+        id: panel
         anchors.fill: parent
+        color: root.tokens.glassMode === "" ? root.tokens.panel : "transparent"
+
+        GlassSurface {
+            anchors.fill: parent
+            sheet: root.glass
+            mode: root.tokens.glassMode
+            radius: panel.radius
+        }
 
         Column {
             id: questionColumn
@@ -106,7 +121,7 @@ Window {
             Text {
                 width: parent.width
                 text: qsTranslate("WordsPopup", "Remove word")
-                color: Tokens.text
+                color: root.tokens.text
                 font.pixelSize: 14
                 font.weight: Font.Bold
             }
@@ -117,7 +132,7 @@ Window {
                 id: questionText
                 width: parent.width
                 text: qsTranslate("WordsPopup", "Remove %1 from your word list and history?").arg(root.word)
-                color: Tokens.text
+                color: root.tokens.text
                 font.pixelSize: 13
                 lineHeight: 1.35
                 lineHeightMode: Text.ProportionalHeight
@@ -144,15 +159,15 @@ Window {
                     Rectangle {
                         width: cancelLabel.width + 28
                         height: 27
-                        radius: Tokens.radiusPill
-                        color: Tokens.panel2
+                        radius: root.tokens.radiusPill
+                        color: root.tokens.panel2
                         border.width: 1
-                        border.color: Tokens.line
+                        border.color: root.tokens.line
                         scale: cancelTap.pressed ? 0.97 : 1.0
                         Behavior on scale {
                             NumberAnimation {
-                                duration: Tokens.motion.press
-                                easing.type: Tokens.motion.easing
+                                duration: root.tokens.motion.press
+                                easing.type: root.tokens.motion.easing
                             }
                         }
 
@@ -160,7 +175,7 @@ Window {
                             id: cancelLabel
                             anchors.centerIn: parent
                             text: qsTranslate("WordsPopup", "Cancel")
-                            color: Tokens.muted
+                            color: root.tokens.muted
                             font.pixelSize: 12
                             font.weight: Font.Bold
                         }
@@ -175,15 +190,15 @@ Window {
                     Rectangle {
                         width: removeLabel.width + 28
                         height: 27
-                        radius: Tokens.radiusPill
-                        color: Tokens.panel2
+                        radius: root.tokens.radiusPill
+                        color: root.tokens.panel2
                         border.width: 1
-                        border.color: Tokens.line
+                        border.color: root.tokens.line
                         scale: removeTap.pressed ? 0.97 : 1.0
                         Behavior on scale {
                             NumberAnimation {
-                                duration: Tokens.motion.press
-                                easing.type: Tokens.motion.easing
+                                duration: root.tokens.motion.press
+                                easing.type: root.tokens.motion.easing
                             }
                         }
 
@@ -191,7 +206,7 @@ Window {
                             id: removeLabel
                             anchors.centerIn: parent
                             text: qsTranslate("WordsPopup", "Remove")
-                            color: Tokens.text
+                            color: root.tokens.text
                             font.pixelSize: 12
                             font.weight: Font.Bold
                         }
@@ -208,5 +223,11 @@ Window {
                 }
             }
         }
+    }
+
+    GlassHost {
+        window: root
+        sheet: root.glass
+        dragging: panel.dragging
     }
 }

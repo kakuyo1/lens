@@ -17,6 +17,12 @@ import QtQuick.Window
  */
 Window {
     id: card
+    /// The desktop under this window, which its glass draws (docs/adr/0041).
+    readonly property var glass: Controller.glassBackdrop.surface("update")
+    readonly property SurfaceTokens tokens: SurfaceTokens {
+        glassEnabled: true
+        glassLightText: card.glass.lightText
+    }
 
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowDoesNotAcceptFocus
     color: "transparent"
@@ -99,7 +105,16 @@ Window {
     }
 
     ShadowCard {
+        id: panel
         anchors.fill: parent
+        color: card.tokens.glassMode === "" ? card.tokens.panel : "transparent"
+
+        GlassSurface {
+            anchors.fill: parent
+            sheet: card.glass
+            mode: card.tokens.glassMode
+            radius: panel.radius
+        }
 
         Column {
             id: column
@@ -119,7 +134,7 @@ Window {
                     anchors.rightMargin: 12
                     anchors.verticalCenter: parent.verticalCenter
                     text: qsTranslate("UpdateCard", "Lens %1 is available").arg(card.version)
-                    color: Tokens.text
+                    color: card.tokens.text
                     font.pixelSize: 14
                     font.weight: Font.Bold
                     elide: Text.ElideRight
@@ -130,7 +145,7 @@ Window {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     source: "qrc:/icons/ui-close.svg"
-                    color: Tokens.faint
+                    color: card.tokens.faint
                     HoverHandler { cursorShape: Qt.PointingHandCursor }
                     TapHandler { onTapped: card.closeCard() }
                 }
@@ -142,7 +157,7 @@ Window {
                 width: parent.width
                 text: card.notes
                 visible: text !== ""
-                color: Tokens.faint
+                color: card.tokens.faint
                 font.pixelSize: 13
                 lineHeight: 1.35
                 lineHeightMode: Text.ProportionalHeight
@@ -156,7 +171,7 @@ Window {
                 width: parent.width
                 text: card.downloadText(card.download.state, card.download.failure)
                 visible: text !== ""
-                color: card.download.state === "failed" ? Tokens.danger : Tokens.muted
+                color: card.download.state === "failed" ? card.tokens.danger : card.tokens.muted
                 font.pixelSize: 12
                 lineHeight: 1.35
                 lineHeightMode: Text.ProportionalHeight
@@ -182,14 +197,14 @@ Window {
                         visible: primaryLabel.text !== ""
                         width: primaryLabel.implicitWidth + 26
                         height: 26
-                        radius: Tokens.radiusPill
-                        color: Tokens.ink
+                        radius: card.tokens.radiusPill
+                        color: card.tokens.ink
                         opacity: card.download.state === "downloading" ? 0.58 : 1
                         scale: primaryTap.pressed ? 0.97 : 1.0
                         Behavior on scale {
                             NumberAnimation {
-                                duration: Tokens.motion.press
-                                easing.type: Tokens.motion.easing
+                                duration: card.tokens.motion.press
+                                easing.type: card.tokens.motion.easing
                             }
                         }
 
@@ -197,7 +212,7 @@ Window {
                             id: primaryLabel
                             anchors.centerIn: parent
                             text: card.primaryAction(card.download.state, card.download.available)
-                            color: Tokens.on
+                            color: card.tokens.on
                             font.pixelSize: 12
                             font.weight: Font.Bold
                         }
@@ -220,13 +235,13 @@ Window {
                         id: viewButton
                         width: viewLabel.width + 26
                         height: 26
-                        radius: Tokens.radiusPill
-                        color: Tokens.ink
+                        radius: card.tokens.radiusPill
+                        color: card.tokens.ink
                         scale: viewTap.pressed ? 0.97 : 1.0
                         Behavior on scale {
                             NumberAnimation {
-                                duration: Tokens.motion.press
-                                easing.type: Tokens.motion.easing
+                                duration: card.tokens.motion.press
+                                easing.type: card.tokens.motion.easing
                             }
                         }
 
@@ -234,7 +249,7 @@ Window {
                             id: viewLabel
                             anchors.centerIn: parent
                             text: qsTranslate("UpdateCard", "View")
-                            color: Tokens.on
+                            color: card.tokens.on
                             font.pixelSize: 12
                             font.weight: Font.Bold
                         }
@@ -253,15 +268,15 @@ Window {
                         id: skipButton
                         width: skipLabel.width + 26
                         height: 26
-                        radius: Tokens.radiusPill
+                        radius: card.tokens.radiusPill
                         color: "transparent"
                         border.width: 1
-                        border.color: Tokens.line
+                        border.color: card.tokens.line
                         scale: skipTap.pressed ? 0.97 : 1.0
                         Behavior on scale {
                             NumberAnimation {
-                                duration: Tokens.motion.press
-                                easing.type: Tokens.motion.easing
+                                duration: card.tokens.motion.press
+                                easing.type: card.tokens.motion.easing
                             }
                         }
 
@@ -269,7 +284,7 @@ Window {
                             id: skipLabel
                             anchors.centerIn: parent
                             text: qsTranslate("UpdateCard", "Skip this version")
-                            color: Tokens.text
+                            color: card.tokens.text
                             font.pixelSize: 12
                             font.weight: Font.Bold
                         }
@@ -286,5 +301,11 @@ Window {
                 }
             }
         }
+    }
+
+    GlassHost {
+        window: card
+        sheet: card.glass
+        dragging: panel.dragging
     }
 }

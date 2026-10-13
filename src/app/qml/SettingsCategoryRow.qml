@@ -3,6 +3,10 @@ import QtQuick
 Item {
     id: root
 
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
+
     property string title: ""
     property string summary: ""
     signal picked()
@@ -13,7 +17,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: 9
-        color: hover.hovered ? SettingsTokens.panel2 : "transparent"
+        color: hover.hovered ? root.tokens.panel2 : "transparent"
     }
 
     Column {
@@ -24,12 +28,12 @@ Item {
 
         Text {
             text: root.title
-            color: SettingsTokens.text
+            color: root.tokens.text
             font.pixelSize: 13
         }
         Text {
             text: root.summary
-            color: SettingsTokens.muted
+            color: root.tokens.muted
             font.pixelSize: 11
         }
     }
@@ -39,7 +43,7 @@ Item {
         anchors.rightMargin: 9
         anchors.verticalCenter: parent.verticalCenter
         text: "›"
-        color: SettingsTokens.faint
+        color: root.tokens.faint
         font.pixelSize: 20
     }
 

@@ -14,8 +14,10 @@ Item {
 
     property var labels: []
     property int currentIndex: 0
-    /// The table the segments take their colours from. The settings window passes its own.
-    property TokenTable tokens: Tokens
+    /// The table the segments take their colours from: the one of the window they sit in.
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
 
     signal picked(int index)
 

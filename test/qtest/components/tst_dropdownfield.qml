@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import Lens
+import "../"
 import "../testutil.js" as Util
 
 /**
@@ -48,12 +49,15 @@ Item {
         }
     }
 
+    TokenHost { id: host }
+
     TestCase {
         name: "DropdownField"
         when: windowShown
 
         function make(properties) {
-            const field = createTemporaryObject(fieldComponent, root, properties);
+            const field = createTemporaryObject(fieldComponent, host.contentItem, properties);
+            waitForRendering(host.contentItem);
             verify(field);
             return field;
         }
@@ -73,7 +77,7 @@ Item {
             // Drawn, not merely declared: the editable half of the field is an input that stands
             // in the same place with the same text, and only one of the two is ever on show.
             const button = Util.textsUnder(field)
-                                 .filter((t) => t.Window.window === root.Window.window && t.visible);
+                                 .filter((t) => t.Window.window === host && t.visible);
             compare(button.length, 1);
             compare(button[0].text, "rare");
         }
@@ -171,13 +175,15 @@ Item {
             let typed = "";
             field.edited.connect(function (text) { typed = text; });
 
-            const input = Util.textsUnder(field).filter((t) => t.visible && t.Window.window === root.Window.window)[0];
+            const input = Util.textsUnder(field).filter((t) => t.visible && t.Window.window === host)[0];
             verify(input, "the editable field draws nothing to type in");
             compare(input.text, "whole");
 
+            host.requestActivate();
+            tryVerify(() => host.active);
             input.forceActiveFocus();
             input.text = "a private deployment";
-            root.forceActiveFocus();
+            host.focusSink.forceActiveFocus();
             compare(typed, "a private deployment", "the edit was not reported");
             compare(input.text, "whole", "the field did not go back to the value in force");
         }
@@ -230,7 +236,7 @@ Item {
         ///         has to land.
         function inputOf(field) {
             const input = Util.textsUnder(field).filter(
-                (t) => t.visible && t.Window.window === root.Window.window)[0];
+                (t) => t.visible && t.Window.window === host)[0];
             verify(input, "the editable field draws nothing to type in");
             return input;
         }

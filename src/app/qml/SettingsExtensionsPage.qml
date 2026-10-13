@@ -5,10 +5,16 @@ import QtQuick
 Item {
     id: page
 
-    readonly property var openChildRect: null
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
+
+    readonly property var openChildRect: petTypeField.openChildRect
     implicitHeight: content.implicitHeight
 
-    function closeChild() {}
+    function closeChild() {
+        petTypeField.closeList();
+    }
 
     function actionLabel(name) {
         switch (name) {
@@ -91,7 +97,6 @@ Item {
 
         SwitchRow {
             width: parent.width
-            tokens: SettingsTokens
             label: qsTranslate("SettingsPopup", "Desktop companion")
             checked: Pet.enabled
             interactive: Pet.available
@@ -100,7 +105,6 @@ Item {
 
         SwitchRow {
             objectName: "passthroughSwitch"
-            tokens: SettingsTokens
             width: parent.width
             label: qsTranslate("SettingsPopup", "Mouse pass-through")
             checked: Pet.passthrough
@@ -119,7 +123,7 @@ Item {
                 id: sizeLabel
                 anchors.verticalCenter: parent.verticalCenter
                 text: qsTranslate("SettingsPopup", "Desktop pet size")
-                color: Pet.enabled ? SettingsTokens.text : SettingsTokens.faint
+                color: Pet.enabled ? page.tokens.text : page.tokens.faint
                 font.pixelSize: 13
             }
 
@@ -143,7 +147,7 @@ Item {
                 id: sizeValue
                 anchors.verticalCenter: parent.verticalCenter
                 text: Pet.scale + "×"
-                color: Pet.enabled ? SettingsTokens.muted : SettingsTokens.faint
+                color: Pet.enabled ? page.tokens.muted : page.tokens.faint
                 font.pixelSize: 13
             }
         }
@@ -163,11 +167,12 @@ Item {
 
                 Text {
                     text: qsTranslate("SettingsPopup", "Pet type")
-                    color: SettingsTokens.muted
+                    color: page.tokens.muted
                     font.pixelSize: 11
                 }
 
                 DropdownField {
+                    id: petTypeField
                     width: parent.width
                     options: Pet.pets.map(id => ({value: id, label: page.petLabel(id), group: "", note: ""}))
                     currentValue: Pet.pet
@@ -181,7 +186,7 @@ Item {
 
                 Text {
                     text: qsTranslate("SettingsPopup", "Preview")
-                    color: SettingsTokens.muted
+                    color: page.tokens.muted
                     font.pixelSize: 11
                 }
 
@@ -196,7 +201,7 @@ Item {
 
                 Text {
                     text: qsTranslate("SettingsPopup", "Actions")
-                    color: SettingsTokens.muted
+                    color: page.tokens.muted
                     font.pixelSize: 11
                 }
 
@@ -224,7 +229,7 @@ Item {
 
                 Text {
                     text: qsTranslate("SettingsPopup", "Accessories")
-                    color: SettingsTokens.muted
+                    color: page.tokens.muted
                     font.pixelSize: 11
                 }
 
@@ -243,7 +248,7 @@ Item {
                             width: 52
                             anchors.verticalCenter: parent.verticalCenter
                             text: page.slotLabel(slotRow.modelData)
-                            color: SettingsTokens.faint
+                            color: page.tokens.faint
                             font.pixelSize: 11
                         }
 

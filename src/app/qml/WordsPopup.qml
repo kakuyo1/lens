@@ -18,6 +18,12 @@ import QtQuick.Window
  */
 Window {
     id: words
+    /// The desktop under this window, which its glass draws (docs/adr/0041).
+    readonly property var glass: Controller.glassBackdrop.surface("words")
+    readonly property SurfaceTokens tokens: SurfaceTokens {
+        glassEnabled: true
+        glassLightText: words.glass.lightText
+    }
 
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     color: "transparent"
@@ -138,12 +144,21 @@ Window {
     signal yearRequested()
 
     ShadowCard {
+        id: card
         anchors.fill: parent
+        color: words.tokens.glassMode === "" ? words.tokens.panel : "transparent"
 
         /// The list is not an answer to the question, so it takes no press while one is up. This
         /// is what a press that reached past the modal window would otherwise act on: a row's
         /// verdict pill, or its cross, deleting a second word out from under the first.
         enabled: !question.visible
+
+        GlassSurface {
+            anchors.fill: parent
+            sheet: words.glass
+            mode: words.tokens.glassMode
+            radius: card.radius
+        }
 
         Column {
             id: column
@@ -164,7 +179,7 @@ Window {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
                     text: qsTr("Words")
-                    color: Tokens.text
+                    color: words.tokens.text
                     font.pixelSize: 14
                     font.weight: Font.Bold
                     font.underline: titleHover.hovered
@@ -224,7 +239,7 @@ Window {
                     Icon {
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/icons/ui-export.svg"
-                        color: Tokens.faint
+                        color: words.tokens.faint
                         HoverHandler { cursorShape: Qt.PointingHandCursor }
                         TapHandler { onTapped: saver.open() }
                     }
@@ -235,14 +250,14 @@ Window {
                     Icon {
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/icons/ui-back.svg"
-                        color: Tokens.faint
+                        color: words.tokens.faint
                         HoverHandler { cursorShape: Qt.PointingHandCursor }
                         TapHandler { onTapped: words.backRequested() }
                     }
                     Icon {
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/icons/ui-close.svg"
-                        color: Tokens.faint
+                        color: words.tokens.faint
                         HoverHandler { cursorShape: Qt.PointingHandCursor }
                         TapHandler { onTapped: words.visible = false }
                     }
@@ -263,7 +278,7 @@ Window {
                     // and twice there. A number that disagrees with the list under it reads as a
                     // bug, whichever of the two meanings it was meant to carry.
                     text: qsTr("%1 words").arg(Controller.words.length)
-                    color: Tokens.faint
+                    color: words.tokens.faint
                     font.pixelSize: 12
                 }
             }
@@ -278,7 +293,7 @@ Window {
             }
 
             Item { width: 1; height: 13 }
-            Rectangle { width: parent.width; height: 1; color: Tokens.line2 }
+            Rectangle { width: parent.width; height: 1; color: words.tokens.line2 }
             Item { width: 1; height: 6 }
 
             Item {
@@ -331,14 +346,14 @@ Window {
                         clip: true
                         Behavior on height {
                             NumberAnimation {
-                                duration: Tokens.motion.pop
-                                easing.type: Tokens.motion.easing
+                                duration: words.tokens.motion.pop
+                                easing.type: words.tokens.motion.easing
                             }
                         }
                         Behavior on opacity {
                             NumberAnimation {
-                                duration: Tokens.motion.pop
-                                easing.type: Tokens.motion.easing
+                                duration: words.tokens.motion.pop
+                                easing.type: words.tokens.motion.easing
                             }
                         }
 
@@ -378,7 +393,7 @@ Window {
                             anchors.rightMargin: 9
                             anchors.verticalCenter: parent.verticalCenter
                             text: entry.modelData.word
-                            color: Tokens.text
+                            color: words.tokens.text
                             font.pixelSize: 13
                             elide: Text.ElideRight
 
@@ -418,7 +433,7 @@ Window {
                                 MixedText {
                                     anchors.verticalCenter: parent.verticalCenter
                                     value: words.whenLabel(entry.modelData)
-                                    color: Tokens.faint
+                                    color: words.tokens.faint
                                     pixelSize: 11
                                 }
 
@@ -427,7 +442,7 @@ Window {
                                     // The history is what the count is read from, and it is
                                     // capped, so this is a floor once a word outlives it.
                                     value: qsTr("%1×").arg(entry.modelData.pops)
-                                    color: Tokens.faint
+                                    color: words.tokens.faint
                                     pixelSize: 11
                                 }
                             }
@@ -445,15 +460,15 @@ Window {
                                     anchors.verticalCenter: parent.verticalCenter
                                     width: knownLabel.width + 13
                                     height: 20
-                                    radius: Tokens.radiusPill
-                                    color: current ? Tokens.ink : Tokens.panel2
+                                    radius: words.tokens.radiusPill
+                                    color: current ? words.tokens.ink : words.tokens.panel2
                                     border.width: 1
-                                    border.color: current ? Tokens.ink : Tokens.line
+                                    border.color: current ? words.tokens.ink : words.tokens.line
                                     scale: knownTap.pressed ? 0.97 : 1.0
                                     Behavior on scale {
                                         NumberAnimation {
-                                            duration: Tokens.motion.press
-                                            easing.type: Tokens.motion.easing
+                                            duration: words.tokens.motion.press
+                                            easing.type: words.tokens.motion.easing
                                         }
                                     }
 
@@ -461,7 +476,7 @@ Window {
                                         id: knownLabel
                                         anchors.centerIn: parent
                                         text: qsTr("Known")
-                                        color: knownPill.current ? Tokens.on : Tokens.muted
+                                        color: knownPill.current ? words.tokens.on : words.tokens.muted
                                         font.pixelSize: 11
                                         font.weight: Font.Bold
                                     }
@@ -479,15 +494,15 @@ Window {
                                     anchors.verticalCenter: parent.verticalCenter
                                     width: newLabel.width + 13
                                     height: 20
-                                    radius: Tokens.radiusPill
-                                    color: current ? Tokens.ink : Tokens.panel2
+                                    radius: words.tokens.radiusPill
+                                    color: current ? words.tokens.ink : words.tokens.panel2
                                     border.width: 1
-                                    border.color: current ? Tokens.ink : Tokens.line
+                                    border.color: current ? words.tokens.ink : words.tokens.line
                                     scale: newTap.pressed ? 0.97 : 1.0
                                     Behavior on scale {
                                         NumberAnimation {
-                                            duration: Tokens.motion.press
-                                            easing.type: Tokens.motion.easing
+                                            duration: words.tokens.motion.press
+                                            easing.type: words.tokens.motion.easing
                                         }
                                     }
 
@@ -495,7 +510,7 @@ Window {
                                         id: newLabel
                                         anchors.centerIn: parent
                                         text: qsTr("New")
-                                        color: newPill.current ? Tokens.on : Tokens.muted
+                                        color: newPill.current ? words.tokens.on : words.tokens.muted
                                         font.pixelSize: 11
                                         font.weight: Font.Bold
                                     }
@@ -515,7 +530,7 @@ Window {
                                 width: 14
                                 height: 14
                                 source: "qrc:/icons/ui-close.svg"
-                                color: Tokens.faint
+                                color: words.tokens.faint
                                 HoverHandler { cursorShape: Qt.PointingHandCursor }
                                 TapHandler {
                                     onTapped: words.requestRemoval(entry.modelData.word)
@@ -533,7 +548,7 @@ Window {
                     visible: list.contentHeight > list.height
                     width: 6
                     radius: 3
-                    color: Tokens.line
+                    color: words.tokens.line
                     x: parent.width + 6
                     height: Math.max(24, list.height * list.height / list.contentHeight)
                     y: list.contentHeight > list.height
@@ -543,6 +558,12 @@ Window {
             }
         }
 
+    }
+
+    GlassHost {
+        window: words
+        sheet: words.glass
+        dragging: mover.active
     }
 
     // The question this panel raises. It is a Window, so it is a surface of its own under

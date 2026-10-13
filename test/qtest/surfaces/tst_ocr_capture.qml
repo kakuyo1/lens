@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import Lens
+import "../"
 import "../testutil.js" as Util
 
 /**
@@ -35,6 +36,8 @@ Item {
         id: mainComponent
         Main {}
     }
+
+    TokenHost { id: host }
 
     TestCase {
         id: testCase
@@ -195,7 +198,8 @@ Item {
 
         /// @return The field the page draws the trigger key in.
         function hotkeyField() {
-            const page = createTemporaryObject(pageComponent, root);
+            const page = createTemporaryObject(pageComponent, host.contentItem);
+            waitForRendering(host.contentItem);
             verify(page);
             const field = findChild(page, "ocrHotkey");
             verify(field, "the capture page draws no trigger key");

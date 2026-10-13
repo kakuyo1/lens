@@ -13,6 +13,12 @@ import QtQuick.Effects
  */
 Window {
     id: bar
+    /// The desktop under this window, which its glass draws (docs/adr/0041).
+    readonly property var glass: Controller.glassBackdrop.surface("selectionBar")
+    readonly property SurfaceTokens tokens: SurfaceTokens {
+        glassEnabled: true
+        glassLightText: bar.glass.lightText
+    }
 
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowDoesNotAcceptFocus
     color: "transparent"
@@ -55,7 +61,7 @@ Window {
             id: shadowShape
             anchors.fill: card
             radius: card.radius
-            color: card.color
+            color: bar.tokens.glassMode === "" ? bar.tokens.panel : "transparent"
             visible: false
         }
 
@@ -66,7 +72,7 @@ Window {
             y: card.y
             source: shadowShape
             shadowEnabled: true
-            shadowColor: Qt.rgba(20 / 255, 20 / 255, 26 / 255, Tokens.dark ? 0.75 : 0.24)
+            shadowColor: Qt.rgba(20 / 255, 20 / 255, 26 / 255, bar.tokens.dark ? 0.75 : 0.24)
             shadowBlur: 0.9
             shadowVerticalOffset: 10
             blurMax: 40
@@ -76,10 +82,17 @@ Window {
             id: card
             width: parent.implicitWidth
             height: row.height + 10
-            radius: Tokens.radiusMenu
-            color: Tokens.panel
+            radius: bar.tokens.radiusMenu
+            color: bar.tokens.glassMode === "" ? bar.tokens.panel : "transparent"
             border.width: 1
-            border.color: Tokens.line
+            border.color: bar.tokens.line
+
+            GlassSurface {
+                anchors.fill: parent
+                sheet: bar.glass
+                mode: bar.tokens.glassMode
+                radius: card.radius
+            }
 
             // The card is the handle. The three items keep the pointer over themselves, so
             // pressing one is a press on the item. The timer below does the moving, and the two
@@ -132,15 +145,15 @@ Window {
 
                         width: itemRow.width + 22
                         height: itemRow.height + 14
-                        radius: Tokens.radiusField
-                        color: hover.hovered ? Tokens.panel2 : "transparent"
+                        radius: bar.tokens.radiusField
+                        color: hover.hovered ? bar.tokens.panel2 : "transparent"
                         // The press, not the hover: a HoverHandler has no `pressed`, so this
                         // read gave undefined and the press never shrank the item.
                         scale: press.pressed ? 0.97 : 1.0
                         Behavior on scale {
                             NumberAnimation {
-                                duration: Tokens.motion.press
-                                easing.type: Tokens.motion.easing
+                                duration: bar.tokens.motion.press
+                                easing.type: bar.tokens.motion.easing
                             }
                         }
 
@@ -151,12 +164,12 @@ Window {
                             Icon {
                                 anchors.verticalCenter: parent.verticalCenter
                                 source: item.modelData.source
-                                color: Tokens.muted
+                                color: bar.tokens.muted
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: item.modelData.label
-                                color: Tokens.text
+                                color: bar.tokens.text
                                 font.pixelSize: 13
                                 font.weight: Font.Bold
                             }
@@ -174,5 +187,11 @@ Window {
                 }
             }
         }
+    }
+
+    GlassHost {
+        window: bar
+        sheet: bar.glass
+        dragging: mover.active
     }
 }

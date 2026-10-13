@@ -13,6 +13,12 @@ import QtQuick.Window
  */
 Window {
     id: menu
+    /// The desktop under this window, which its glass draws (docs/adr/0041).
+    readonly property var glass: Controller.glassBackdrop.surface("tray")
+    readonly property SurfaceTokens tokens: SurfaceTokens {
+        glassEnabled: true
+        glassLightText: menu.glass.lightText
+    }
 
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     color: "transparent"
@@ -88,7 +94,15 @@ Window {
         y: 0
         width: menu.cardWidth + 2 * menu.shadowMargin
         height: menu.cardHeight + 2 * menu.shadowMargin
-        radius: Tokens.radiusMenu
+        radius: menu.tokens.radiusMenu
+        color: menu.tokens.glassMode === "" ? menu.tokens.panel : "transparent"
+
+        GlassSurface {
+            anchors.fill: parent
+            sheet: menu.glass
+            mode: menu.tokens.glassMode
+            radius: card.radius
+        }
 
         Loader {
             id: bodyLoader
@@ -118,7 +132,7 @@ Window {
                         anchors.right: parent.right
                         anchors.bottom: parent.bottom
                         height: 1
-                        color: Tokens.line2
+                        color: menu.tokens.line2
                     }
 
                     Icon {
@@ -127,14 +141,14 @@ Window {
                         anchors.leftMargin: 11
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/icons/lens.svg"
-                        color: menu.capturing ? Tokens.ok : Tokens.faint
+                        color: menu.capturing ? menu.tokens.ok : menu.tokens.faint
                     }
                     Text {
                         anchors.left: mark.right
                         anchors.leftMargin: 9
                         anchors.verticalCenter: parent.verticalCenter
                         text: menu.capturing ? Controller.modeLabel : qsTr("Selection capture is off")
-                        color: Tokens.text
+                        color: menu.tokens.text
                         font.pixelSize: 12
                         font.weight: Font.Bold
                     }
@@ -186,7 +200,7 @@ Window {
                     x: 2
                     width: parent.width - 4
                     height: 1
-                    color: Tokens.line2
+                    color: menu.tokens.line2
                     anchors.margins: 5
                 }
 
@@ -201,6 +215,12 @@ Window {
         }
     }
 
+    GlassHost {
+        window: menu
+        sheet: menu.glass
+        dragging: card.dragging
+    }
+
     Loader {
         id: languageList
         x: menu.listLeft - menu.shadowMargin
@@ -210,14 +230,23 @@ Window {
         active: menu.listVisible
         visible: active
         sourceComponent: ShadowCard {
+            id: languageCard
             width: menu.listWidth + 2 * menu.shadowMargin
             height: listColumn.implicitHeight + 10 + 2 * menu.shadowMargin
-            radius: Tokens.radiusGroup
+            radius: menu.tokens.radiusGroup
+            color: menu.tokens.glassMode === "" ? menu.tokens.panel : "transparent"
             // The list is built by this loader only once it is meant to be out, so the window
             // it sits in is already visible and ShadowCard's own rule has nothing to animate.
             // The loader's own status is the flip instead: Loading while the card is being
             // built, Ready once it is done.
             shown: languageList.status === Loader.Ready
+
+            GlassSurface {
+                anchors.fill: parent
+                sheet: menu.glass
+                mode: menu.tokens.glassMode
+                radius: languageCard.radius
+            }
 
             Column {
                 id: listColumn
@@ -235,15 +264,15 @@ Window {
                         width: listColumn.width
                         height: 28
                         radius: 8
-                        color: modelData.value === menu.language ? Tokens.ink
-                                                                 : (rowHover.hovered ? Tokens.panel2 : "transparent")
+                        color: modelData.value === menu.language ? menu.tokens.ink
+                                                                 : (rowHover.hovered ? menu.tokens.panel2 : "transparent")
 
                         Text {
                             anchors.left: parent.left
                             anchors.leftMargin: 11
                             anchors.verticalCenter: parent.verticalCenter
                             text: option.modelData.label
-                            color: option.modelData.value === menu.language ? Tokens.on : Tokens.text
+                            color: option.modelData.value === menu.language ? menu.tokens.on : menu.tokens.text
                             font.pixelSize: 13
                         }
 

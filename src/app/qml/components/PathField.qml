@@ -21,6 +21,10 @@ import QtQuick.Dialogs
 Item {
     id: root
 
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
+
     /// The path the reader picked, "" when they have not picked one.
     property string path: ""
     /// What "" resolves to. Drawn in the placeholder colour while there is no picked path.
@@ -38,10 +42,10 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: SettingsTokens.radiusField
-        color: SettingsTokens.panel2
+        radius: root.tokens.radiusField
+        color: root.tokens.panel2
         border.width: 1
-        border.color: SettingsTokens.line
+        border.color: root.tokens.line
 
         Text {
             anchors.left: parent.left
@@ -50,7 +54,7 @@ Item {
             anchors.rightMargin: 8
             anchors.verticalCenter: parent.verticalCenter
             text: root.path.length > 0 ? root.path : root.fallback
-            color: root.path.length > 0 ? SettingsTokens.text : SettingsTokens.faint
+            color: root.path.length > 0 ? root.tokens.text : root.tokens.faint
             font.pixelSize: 12
             elide: Text.ElideMiddle
         }
@@ -61,7 +65,7 @@ Item {
             anchors.rightMargin: 11
             anchors.verticalCenter: parent.verticalCenter
             source: "qrc:/icons/ui-folder.svg"
-            color: SettingsTokens.faint
+            color: root.tokens.faint
         }
 
         HoverHandler { cursorShape: Qt.PointingHandCursor }

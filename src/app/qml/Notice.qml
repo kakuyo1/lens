@@ -10,6 +10,12 @@ import QtQuick.Window
  */
 Window {
     id: notice
+    /// The desktop under this window, which its glass draws (docs/adr/0041).
+    readonly property var glass: Controller.glassBackdrop.surface("notice")
+    readonly property SurfaceTokens tokens: SurfaceTokens {
+        glassEnabled: true
+        glassLightText: notice.glass.lightText
+    }
 
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowDoesNotAcceptFocus
     color: "transparent"
@@ -55,7 +61,16 @@ Window {
     }
 
     ShadowCard {
+        id: panel
         anchors.fill: parent
+        color: notice.tokens.glassMode === "" ? notice.tokens.panel : "transparent"
+
+        GlassSurface {
+            anchors.fill: parent
+            sheet: notice.glass
+            mode: notice.tokens.glassMode
+            radius: panel.radius
+        }
 
         Column {
             id: column
@@ -75,7 +90,7 @@ Window {
                     anchors.rightMargin: 12
                     anchors.verticalCenter: parent.verticalCenter
                     text: notice.noticeTitle
-                    color: Tokens.text
+                    color: notice.tokens.text
                     font.pixelSize: 14
                     font.weight: Font.Bold
                     elide: Text.ElideRight
@@ -86,7 +101,7 @@ Window {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     source: "qrc:/icons/ui-close.svg"
-                    color: Tokens.faint
+                    color: notice.tokens.faint
                     HoverHandler { cursorShape: Qt.PointingHandCursor }
                     TapHandler { onTapped: notice.closeNotice() }
                 }
@@ -95,7 +110,7 @@ Window {
             Text {
                 width: parent.width
                 text: notice.noticeBody
-                color: notice.noticeKind === "error" ? Tokens.danger : Tokens.text
+                color: notice.noticeKind === "error" ? notice.tokens.danger : notice.tokens.text
                 font.pixelSize: 13
                 lineHeight: 1.35
                 lineHeightMode: Text.ProportionalHeight
@@ -114,13 +129,13 @@ Window {
                     id: action
                     width: actionLabel.width + 26
                     height: actionLabel.height + 12
-                    radius: Tokens.radiusPill
-                    color: Tokens.ink
+                    radius: notice.tokens.radiusPill
+                    color: notice.tokens.ink
                     scale: actionTap.pressed ? 0.97 : 1.0
                     Behavior on scale {
                         NumberAnimation {
-                            duration: Tokens.motion.press
-                            easing.type: Tokens.motion.easing
+                            duration: notice.tokens.motion.press
+                            easing.type: notice.tokens.motion.easing
                         }
                     }
 
@@ -128,7 +143,7 @@ Window {
                         id: actionLabel
                         anchors.centerIn: parent
                         text: notice.noticeAction
-                        color: Tokens.on
+                        color: notice.tokens.on
                         font.pixelSize: 12
                         font.weight: Font.Bold
                     }
@@ -141,5 +156,11 @@ Window {
                 }
             }
         }
+    }
+
+    GlassHost {
+        window: notice
+        sheet: notice.glass
+        dragging: panel.dragging
     }
 }

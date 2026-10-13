@@ -10,6 +10,9 @@
 
 #include "app/glass_math.h"
 
+#include <cstddef>
+#include <vector>
+
 namespace {
 
 using lens::app::blurredPicture;
@@ -104,4 +107,39 @@ TEST(GlassMath, NativeRectStartsFromTheSecondScreensOwnOrigin)
     // (20, 20) logical, which is (30, 30) device pixels from that origin.
     EXPECT_EQ(lens::app::toNativeRect(QRect(1300, -100, 100, 50), QRect(1280, -120, 1280, 720), QPoint(1920, -180), 1.5),
               QRect(1950, -150, 150, 75));
+}
+
+TEST(GlassMath, NextLiveWalksRoundFromTheLastServed)
+{
+    // Sheets 0, 2 and 3 are live, and 2 was served last: the walk goes on to 3, then wraps to 0, and only then 2.
+    auto const live = std::vector<bool>{true, false, true, true};
+    EXPECT_EQ(lens::app::nextLive(live, 2), 3u);
+    EXPECT_EQ(lens::app::nextLive(live, 3), 0u);
+    EXPECT_EQ(lens::app::nextLive(live, 0), 2u);
+}
+
+TEST(GlassMath, NextLiveGivesEveryLiveSurfaceItsTurn)
+{
+    // Each refresh serves the one it returned, so three live sheets come round in the same order, each once.
+    auto const live   = std::vector<bool>{false, true, true, false, true};
+    auto       served = std::vector<std::size_t>{};
+    auto       last   = std::size_t{4};
+    for (int tick = 0; tick < 6; ++tick) {
+        last = *lens::app::nextLive(live, last);
+        served.push_back(last);
+    }
+    EXPECT_EQ(served, (std::vector<std::size_t>{1, 2, 4, 1, 2, 4}));
+}
+
+TEST(GlassMath, NextLiveIsNothingWhenNoSurfaceIsLive)
+{
+    EXPECT_FALSE(lens::app::nextLive(std::vector<bool>{false, false}, 0).has_value());
+    EXPECT_FALSE(lens::app::nextLive(std::vector<bool>{}, 0).has_value());
+}
+
+TEST(GlassMath, NextLiveReturnsTheOnlyLiveSurfaceEveryTime)
+{
+    auto const live = std::vector<bool>{false, false, true};
+    EXPECT_EQ(lens::app::nextLive(live, 2), 2u);
+    EXPECT_EQ(lens::app::nextLive(live, 0), 2u);
 }
