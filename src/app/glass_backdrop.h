@@ -16,7 +16,11 @@
 #include <QObject>
 #include <QQuickImageProvider>
 #include <QRect>
+#include <QThreadPool>
+#include <QTimer>
 #include <QtQml/qqmlregistration.h>
+
+#include <atomic>
 
 namespace lens::app {
 
@@ -33,6 +37,7 @@ class GlassBackdrop : public QObject {
 
 public:
     explicit GlassBackdrop(QObject* parent = nullptr);
+    ~GlassBackdrop() override;
 
     bool  lightText() const;
     int   serial() const;
@@ -53,6 +58,10 @@ public:
     /// @return True when the window is now excluded. False off Windows, before the window has a native handle, or when
     ///         the OS refuses; the caller then hides the card for each capture as before.
     Q_INVOKABLE bool keepOutOfCapture(QObject* window, bool excluded);
+    /// @brief Refresh the sheet about fifteen times a second, so video behind the window shows through the glass.
+    /// @param on True to start refreshing; false to stop.
+    /// @note Meant for the window kept out of captures: a refresh of a window that is not would photograph the card.
+    Q_INVOKABLE void setLive(bool on);
 
     /// @return A copy of the picture, empty when none is held. Safe to call from the image provider's thread.
     QImage picture() const;
@@ -64,6 +73,10 @@ private:
     /// @brief Take a picture of the desktop under @p region, the sheet, and judge the text tone over @p window.
     /// @note A region that is empty or crosses two screens clears the picture rather than stitching one.
     void capture(QRect region, QRect window, double fillAlpha);
+    /// @brief Start one refresh of the sheet on the pool. A tick that finds the last one still running is skipped.
+    void refreshLive();
+    /// @brief Hold a new sheet and its text tone, and announce it to QML.
+    void publish(QRect region, QRect screen, QImage picture, bool lightText);
 
     mutable QMutex mutex_;
     QImage         image_;
@@ -74,6 +87,17 @@ private:
     QRect sheetScreen_;
     /// Whether keepOutOfCapture() last kept its window out, so that each change is logged once.
     bool keptOut_ = false;
+    /// The card the glass is drawn in, and its fill, for a refresh to judge the text tone over.
+    QRect  window_;
+    double fillAlpha_ = 0.0;
+    /// Bumped whenever the sheet is retaken or dropped, so a refresh that began before the change is discarded.
+    int generation_ = 0;
+    /// Drives the refresh while setLive() is on.
+    QTimer live_;
+    /// Set while a refresh is on the pool; cleared on the GUI thread when its result comes back.
+    std::atomic<bool> liveBusy_{false};
+    /// Runs the desktop reads off the GUI thread. One thread: a read is a few milliseconds and two would only contend.
+    QThreadPool pool_;
 };
 
 /**

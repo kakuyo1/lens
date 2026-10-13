@@ -62,10 +62,10 @@ target_link_libraries(lens_app
   PRIVATE lens_core lens_util lens_capture
 )
 
-# user32 for the hook, SendInput and the clipboard. Not guarded by if(WIN32): this module
-# *is* the Win32 one, and the product has no other platform. OLE is deliberately absent --
+# user32 for the hook, SendInput and the clipboard; gdi32 for the glass sheet's desktop read. Not guarded by if(WIN32):
+# this module *is* the Win32 one, and the product has no other platform. OLE is deliberately absent --
 # ClipboardSnapshot records why its round trip is not usable here.
-target_link_libraries(lens_app PRIVATE user32)
+target_link_libraries(lens_app PRIVATE user32 gdi32)
 
 # RC, so the resource script below compiles. The root project() lists CXX alone and the root
 # CMakeLists is another branch's file, but enable_language is directory scoped: turning it on

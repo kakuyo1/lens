@@ -7,6 +7,8 @@
  */
 
 #include <QImage>
+#include <QPoint>
+#include <QRect>
 #include <QSize>
 
 namespace lens::app {
@@ -65,5 +67,19 @@ QImage blurredPicture(QImage const& picture, double blurPercent, double saturati
  * @return An ARGB32 image of @p size, as displacementMap() returns it.
  */
 QImage refractionMap(QSize size, double radius, double scale);
+
+/**
+ * @brief A rectangle on the desktop in device pixels, from one in device-independent pixels on a screen.
+ *
+ * The rectangle is measured from the screen's own corner and scaled by that screen's ratio, so Qt's rounding of
+ * the screen's place in the logical desktop does not come into it: only the device pixel the screen starts at does.
+ *
+ * @param logical The rectangle, in device-independent pixels, lying on the screen.
+ * @param screenLogical The screen's geometry, in device-independent pixels.
+ * @param nativeOrigin The first device pixel of the screen on the desktop.
+ * @param scale Device pixels per device-independent pixel on that screen.
+ * @return The rectangle in device pixels on the desktop.
+ */
+QRect toNativeRect(QRect logical, QRect screenLogical, QPoint nativeOrigin, double scale);
 
 } // namespace lens::app

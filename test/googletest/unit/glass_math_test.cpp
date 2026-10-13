@@ -90,3 +90,18 @@ TEST(GlassMath, RefractionMapIsTheCardsSizeInDevicePixels)
 {
     EXPECT_EQ(refractionMap(QSize(80, 60), 10, 1.25).size(), QSize(80, 60));
 }
+
+TEST(GlassMath, NativeRectScalesFromTheScreensCornerOnThePrimary)
+{
+    // Primary at 125%: the screen starts at device pixel (0, 0).
+    EXPECT_EQ(lens::app::toNativeRect(QRect(100, 40, 200, 100), QRect(0, 0, 1536, 864), QPoint(0, 0), 1.25),
+              QRect(125, 50, 250, 125));
+}
+
+TEST(GlassMath, NativeRectStartsFromTheSecondScreensOwnOrigin)
+{
+    // A screen to the right at 150%, with its device origin at (1920, -180): the offset from its own corner is
+    // (20, 20) logical, which is (30, 30) device pixels from that origin.
+    EXPECT_EQ(lens::app::toNativeRect(QRect(1300, -100, 100, 50), QRect(1280, -120, 1280, 720), QPoint(1920, -180), 1.5),
+              QRect(1950, -150, 150, 75));
+}

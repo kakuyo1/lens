@@ -262,4 +262,11 @@ QImage blurredPicture(QImage const& picture, double const blurPercent, double co
     return out;
 }
 
+QRect toNativeRect(QRect const logical, QRect const screenLogical, QPoint const nativeOrigin, double const scale)
+{
+    auto const offset = logical.topLeft() - screenLogical.topLeft();
+    auto const corner = nativeOrigin + QPoint(qRound(offset.x() * scale), qRound(offset.y() * scale));
+    return QRect(corner, QSize(qRound(logical.width() * scale), qRound(logical.height() * scale)));
+}
+
 } // namespace lens::app

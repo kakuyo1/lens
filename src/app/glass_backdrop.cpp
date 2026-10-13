@@ -10,10 +10,19 @@
 #include "util/log.h"
 
 #include <QGuiApplication>
+#include <QMetaObject>
 #include <QMutexLocker>
 #include <QScreen>
 #include <QUrlQuery>
 #include <QWindow>
+
+#include <optional>
+
+#ifdef _WIN32
+#include <windows.h>
+
+#include <QtGui/qscreen_platform.h>
+#endif
 
 namespace lens::app {
 
@@ -25,12 +34,134 @@ constexpr int kSheetMargin = 160;
 /// How near the window may come to a side of the sheet that is not on the screen's edge before a new sheet is taken, in
 /// DIP. The old sheet serves while the new one processes, so this covers the distance a drag moves in that time.
 constexpr int kSheetReserve = 72;
+/// The refresh period while the glass is live: about fifteen times a second.
+// ponytail: fixed rate, no back-off when the machine is busy; add one when the reads show up in someone's frame times.
+constexpr int kLiveIntervalMs = 67;
+/// The sheet is read at a quarter of the device resolution. The blur runs on it for every request, and at full size one
+/// blur takes about 40 ms of the image loader.
+// ponytail: one fixed quarter, not sized to the screen; the blur softens the edge anyway.
+constexpr int kSheetDownscale = 4;
+
+/// What a sheet read needs, copied out of Qt's objects on the GUI thread so a refresh on the pool never touches them.
+struct Request {
+    QRect  region;            ///< The sheet, in device-independent pixels.
+    QRect  screen;            ///< The geometry of the screen the sheet lies on.
+    QRect  native;            ///< The sheet in device pixels, on the desktop.
+    QRect  window;            ///< The card the text tone is judged over.
+    double scale     = 1.0;   ///< Device pixels per device-independent pixel.
+    double fillAlpha = 0.0;   ///< The white the card sits under, 0 to 1.
+    bool   onDesktop = false; ///< Whether this platform is the real Windows desktop, the only one there is to read.
+};
+
+/// A picture of the desktop and the text tone judged over the card.
+struct Taken {
+    QImage picture;
+    bool   lightText = false;
+};
+
+/// The first device pixel of @p screen on the desktop. Windows places the monitors in device pixels; where there is no
+/// Windows screen to ask (a test platform), the screen's own corner stands in, and nothing reads the desktop there.
+QPoint nativeOriginOf(QScreen const& screen)
+{
+#ifdef _WIN32
+    if (auto const* native = screen.nativeInterface<QNativeInterface::QWindowsScreen>()) {
+        auto info   = MONITORINFO{};
+        info.cbSize = sizeof(info);
+        if (GetMonitorInfoW(native->handle(), &info) != FALSE)
+            return {info.rcMonitor.left, info.rcMonitor.top};
+    }
+#endif
+    return screen.geometry().topLeft();
+}
+
+/// The desktop under @p native, drawn into a picture a quarter of its device size. A null picture means the read failed.
+QImage readDesktop(QRect const native, bool const onDesktop)
+{
+    auto const size = QSize(qMax(1, native.width() / kSheetDownscale), qMax(1, native.height() / kSheetDownscale));
+    if (not onDesktop) {
+        // A test platform has no desktop to read, and must not read the real one: a black sheet stands in for it.
+        auto black = QImage(size, QImage::Format_RGB32);
+        black.fill(Qt::black);
+        return black;
+    }
+#ifdef _WIN32
+    // GDI reads what is on the screen. While the glass shows, the settings window is kept out of captures, so the read
+    // gets what lies behind the card and not the card itself (docs/adr/0038).
+    auto const screen            = GetDC(nullptr);
+    auto const memory            = CreateCompatibleDC(screen);
+    auto       info              = BITMAPINFO{};
+    info.bmiHeader.biSize        = sizeof(BITMAPINFOHEADER);
+    info.bmiHeader.biWidth       = size.width();
+    info.bmiHeader.biHeight      = -size.height(); // top-down, as QImage stores its rows
+    info.bmiHeader.biPlanes      = 1;
+    info.bmiHeader.biBitCount    = 32;
+    info.bmiHeader.biCompression = BI_RGB;
+    void*      bits              = nullptr;
+    auto const dib               = CreateDIBSection(screen, &info, DIB_RGB_COLORS, &bits, nullptr, 0);
+    auto       read              = QImage();
+    if (dib != nullptr) {
+        auto const previous = SelectObject(memory, dib);
+        SetStretchBltMode(memory, HALFTONE);
+        SetBrushOrgEx(memory, 0, 0, nullptr);
+        StretchBlt(memory, 0, 0, size.width(), size.height(), screen, native.x(), native.y(), native.width(), native.height(), SRCCOPY);
+        read = QImage(static_cast<uchar*>(bits), size.width(), size.height(), QImage::Format_RGB32).copy();
+        SelectObject(memory, previous);
+        DeleteObject(dib);
+    }
+    DeleteDC(memory);
+    ReleaseDC(nullptr, screen);
+    return read;
+#else
+    return {};
+#endif
+}
+
+/// The request for a sheet over @p region, or nothing when the region does not lie on one screen. GUI thread only.
+std::optional<Request> requestFor(QRect const region, QRect const window, double const fillAlpha)
+{
+    auto* const screen = QGuiApplication::screenAt(region.center());
+    if (screen == nullptr or region.isEmpty() or not screen->geometry().contains(region)) return std::nullopt;
+    auto const scale = screen->devicePixelRatio();
+    return Request{
+        .region    = region,
+        .screen    = screen->geometry(),
+        .native    = toNativeRect(region, screen->geometry(), nativeOriginOf(*screen), scale),
+        .window    = window,
+        .scale     = scale,
+        .fillAlpha = fillAlpha,
+        .onDesktop = QGuiApplication::platformName() == QLatin1String("windows"),
+    };
+}
+
+/// The sheet's picture and the text tone over the card. Touches no Qt object, so it runs on the pool.
+Taken takeSheet(Request const& request)
+{
+    auto picture = readDesktop(request.native, request.onDesktop);
+    picture.setDevicePixelRatio(request.scale / kSheetDownscale);
+    // The text is judged over the window, not over the margin the sheet adds around it.
+    auto const scale = picture.devicePixelRatioF();
+    auto const card  = QRect(qRound((request.window.x() - request.region.x()) * scale),
+                            qRound((request.window.y() - request.region.y()) * scale),
+                            qRound(request.window.width() * scale),
+                            qRound(request.window.height() * scale));
+    auto const light = prefersLightText(picture.copy(card.intersected(picture.rect())), request.fillAlpha);
+    return {std::move(picture), light};
+}
 
 } // namespace
 
 GlassBackdrop::GlassBackdrop(QObject* parent)
     : QObject(parent)
 {
+    live_.setInterval(kLiveIntervalMs);
+    connect(&live_, &QTimer::timeout, this, &GlassBackdrop::refreshLive);
+    pool_.setMaxThreadCount(1);
+}
+
+GlassBackdrop::~GlassBackdrop()
+{
+    // A read still on the pool posts its result back to this object, so let it finish before the object goes.
+    pool_.waitForDone();
 }
 
 bool GlassBackdrop::lightText() const
@@ -59,6 +190,9 @@ QImage GlassBackdrop::picture() const
 
 void GlassBackdrop::follow(QRect const window, double const fillAlpha)
 {
+    // Kept current even when the sheet still covers the card: a live refresh judges the text tone over where the card is.
+    window_    = window;
+    fillAlpha_ = fillAlpha;
     if (covers(window)) return;
     auto* const screen = QGuiApplication::screenAt(window.center());
     if (screen == nullptr or window.isEmpty() or not screen->geometry().contains(window)) {
@@ -83,25 +217,60 @@ bool GlassBackdrop::covers(QRect const window) const
 
 void GlassBackdrop::capture(QRect const region, QRect const window, double const fillAlpha)
 {
-    auto* const screen = QGuiApplication::screenAt(region.center());
-    if (screen == nullptr or region.isEmpty() or not screen->geometry().contains(region)) {
+    auto const request = requestFor(region, window, fillAlpha);
+    if (not request) {
         clear();
         return;
     }
-    auto const local = region.translated(-screen->geometry().topLeft());
-    auto       image = screen->grabWindow(0, local.x(), local.y(), local.width(), local.height()).toImage();
-    // The grab is in device pixels; the glass scales its blur by this to match.
-    auto const scale = screen->devicePixelRatio();
-    image.setDevicePixelRatio(scale);
-    // The text is judged over the window, not over the margin the sheet adds around it.
-    auto const card  = QRect(qRound((window.x() - region.x()) * scale), qRound((window.y() - region.y()) * scale), qRound(window.width() * scale), qRound(window.height() * scale));
-    auto const light = not image.isNull() and prefersLightText(image.copy(card.intersected(image.rect())), fillAlpha);
+    // A refresh still reading the sheet before this one is now stale, and is dropped when it lands.
+    ++generation_;
+    auto taken = takeSheet(*request);
+    publish(request->region, request->screen, std::move(taken.picture), taken.lightText);
+}
+
+void GlassBackdrop::setLive(bool const on)
+{
+    if (on and not live_.isActive()) live_.start();
+    if (not on) live_.stop();
+}
+
+void GlassBackdrop::refreshLive()
+{
+    // One read at a time: a tick that finds the last still running is skipped, not queued behind it.
+    if (liveBusy_.exchange(true)) return;
+    auto const next = requestFor(sheet(), window_, fillAlpha_);
+    if (not next) {
+        liveBusy_ = false;
+        clear();
+        return;
+    }
+    pool_.start([this, request = *next, generation = generation_] {
+        auto taken = takeSheet(request);
+        QMetaObject::invokeMethod(
+            this,
+            [this, request, generation, taken = std::move(taken)]() mutable {
+                liveBusy_ = false;
+                // Retaken or dropped while this read ran: the picture is of a region that is no longer held.
+                if (generation == generation_)
+                    publish(request.region, request.screen, std::move(taken.picture), taken.lightText);
+            },
+            Qt::QueuedConnection);
+    });
+}
+
+void GlassBackdrop::publish(QRect const region, QRect const screen, QImage picture, bool const lightText)
+{
+    // A read that failed leaves nothing to show: drop the sheet rather than hold one that no longer matches the window.
+    if (picture.isNull()) {
+        clear();
+        return;
+    }
     {
         QMutexLocker const lock(&mutex_);
-        image_       = std::move(image);
-        lightText_   = light;
+        image_       = std::move(picture);
+        lightText_   = lightText;
         sheet_       = region;
-        sheetScreen_ = screen->geometry();
+        sheetScreen_ = screen;
         ++serial_;
     }
     emit pictureChanged();
@@ -130,6 +299,8 @@ bool GlassBackdrop::keepOutOfCapture(QObject* window, bool const excluded)
 
 void GlassBackdrop::clear()
 {
+    live_.stop();
+    ++generation_;
     {
         QMutexLocker const lock(&mutex_);
         if (image_.isNull() and sheet_.isEmpty()) return;
@@ -143,8 +314,7 @@ void GlassBackdrop::clear()
 }
 
 GlassImageProvider::GlassImageProvider(GlassBackdrop const& backdrop)
-    : QQuickImageProvider(QQuickImageProvider::Image)
-    , backdrop_(backdrop)
+    : QQuickImageProvider(QQuickImageProvider::Image), backdrop_(backdrop)
 {
 }
 

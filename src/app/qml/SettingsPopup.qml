@@ -137,9 +137,10 @@ Window {
     }
 
     /// The desktop under the window, taken as a sheet a little larger than the window (GlassBackdrop.follow). Where the
-    /// OS keeps the window out of captures, the sheet is taken as it is and nothing flickers. Otherwise the window goes
-    /// transparent for the settle time while the sheet is taken, and only when the sheet no longer covers the window.
-    /// Nothing is taken unless a glass theme is on, and the sheet is dropped the moment one is not.
+    /// OS keeps the window out of captures, the sheet is taken as it is, nothing flickers, and it is kept fresh while the
+    /// glass shows (GlassBackdrop.setLive). Otherwise the window goes transparent for the settle time while the sheet is
+    /// taken, and only when the sheet no longer covers the window. Nothing is taken unless a glass theme is on, and the
+    /// sheet is dropped the moment one is not.
     function captureBackdrop() {
         settings.pictureTheme = Controller.settings.theme;
         // Excluded only while the glass shows: a window kept out of captures is missing from screenshots too.
@@ -151,6 +152,7 @@ Window {
         }
         if (settings.excludedFromCapture) {
             Controller.glassBackdrop.follow(settings.windowRect(), SettingsTokens.panel.a);
+            Controller.glassBackdrop.setLive(true);
             return;
         }
         if (Controller.glassBackdrop.covers(settings.windowRect()))

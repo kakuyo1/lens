@@ -6,9 +6,11 @@ import QtQuick
  * The glass a card is drawn on in the two glass themes (UI.md 3.1c and 3.1d, docs/adr/0039).
  *
  * GlassBackdrop takes the desktop under the window as a sheet a little larger than the window, and C++ blurs and
- * saturates it once per capture. The shader in shaders/glass.frag places the window within the sheet on every frame,
+ * saturates it per request. The shader in shaders/glass.frag places the window within the sheet on every frame,
  * bends it through the displacement map for the liquid theme, and cuts the card's rounded corners. So the glass moves
- * with the window at once, and a drag takes no capture. The fill and the rim are laid over it here.
+ * with the window at once, and a drag takes no capture. While the window is kept out of captures the sheet is also
+ * refreshed about fifteen times a second, so video behind the card shows through (docs/adr/0040). The fill and the rim
+ * are laid over it here.
  */
 Item {
     id: root

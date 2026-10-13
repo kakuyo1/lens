@@ -34,6 +34,12 @@
 
 `scripts/profiling/qml-profile.ps1` 的 `Scenario` 是字符串参数；`-Scenario` 单独使用会失败，默认 `full` 又未设置 `LENS_QML_PROFILE_SCENARIO`，因此不会启动自动退出的完整场景。统一脚本与复现文档的完整场景约定。
 
+## 玻璃主题的实时性能优化
+
+现状：窗口排除抓屏且玻璃开启时，幕布约每秒 15 次由 GDI 重抓（`GlassBackdrop::setLive`，`docs/adr/0040`）。每次读桌面约 14 ms，估算占约 0.25 个核，这是离线探针的数字，应用内未测。没有空闲暂停，也没有按负载退帧。
+
+待办：用应用内计时量读取与 QML 图片加载的实际占用。超出预算时，按顺序考虑：空闲或窗口静止时暂停，按负载退帧，缩小读取区域。
+
 # Pending Ideas
 
 ## 桌面宠物
