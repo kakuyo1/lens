@@ -153,18 +153,24 @@ Item {
             shown.main.hidePanels(null);
         }
 
-        function test_movingTheSettingsWindowDimsItOnce() {
+        function test_movingTheSettingsWindowRedrawsItsGlassOnlyWhenTheSheetNoLongerCoversIt() {
             const shown = openFrostedGeneral();
-            // Opening takes its own picture after the window settles: let that finish before counting.
+            // Opening takes its own sheet after the window settles: let that finish before counting.
             wait(700);
 
             opacityChanges.target = shown.panel;
             opacityChanges.clear();
-            shown.panel.x = shown.panel.x + 20;
-            // The drop of a window drag takes the picture at once; the move settle must not take a second.
-            shown.panel.captureBackdrop();
+            // Well inside the sheet's margin and on the screen: no sheet is taken, so the window is not dimmed. (The
+            // screen's right edge leaves no room to the right in this environment, so the move goes left.)
+            shown.panel.x = shown.panel.x - 20;
             wait(600);
-            compare(opacityChanges.count, 2, "moving the window dimmed it more than once");
+            compare(opacityChanges.count, 0, "a move the sheet covers dimmed the window");
+
+            // Past the margin a new sheet is needed. Excluded from captures that takes no dim; otherwise one dim is two
+            // opacity changes, to 0 and back to 1.
+            shown.panel.x = shown.panel.x + 300;
+            wait(600);
+            compare(opacityChanges.count, shown.panel.excludedFromCapture ? 0 : 2, "a move past the sheet did not take the expected dim");
             opacityChanges.target = null;
 
             Controller.setFrostedBlur(10);
@@ -191,6 +197,27 @@ Item {
             Controller.setTheme("light");
             wait(25);
             compare(frosted.visible, false);
+        }
+
+        function test_glassStaysOnScreenWhileItsBlurLoads() {
+            const shown = openFrostedGeneral();
+            const glass = Util.ofType(shown.panel, "GlassSurface");
+            verify(glass, "the frosted theme drew no glass on the settings card");
+            tryCompare(glass.shownSlot, "status", Image.Ready);
+
+            // A new sheet loads into the hidden slot, so the one on screen is never reloaded while the provider works.
+            for (let step = 1; step <= 10; ++step) {
+                Controller.setFrostedBlur(10 + step * 5);
+                for (let poll = 0; poll < 8; ++poll) {
+                    wait(5);
+                    compare(glass.shownSlot.status, Image.Ready, "the glass on screen went blank while its blur loaded");
+                }
+            }
+            tryCompare(glass.shownSlot, "status", Image.Ready);
+
+            Controller.setFrostedBlur(10);
+            Controller.setTheme("light");
+            shown.main.hidePanels(null);
         }
 
         function test_colorConversionKeepsAlphaForThemeValues() {

@@ -32,6 +32,14 @@ QString deviceNameOf(QScreen const& screen);
 bool excludeFromCapture(QWindow const& window);
 
 /**
+ * @brief Keeps the window out of screen capture, or lets it back in.
+ * @param window A window that has been shown.
+ * @param excluded True to keep the window out of captures, false to take the exclusion back.
+ * @return False when the OS refuses (before Windows 10 2004). Clearing an exclusion that was never set succeeds.
+ */
+bool setExcludedFromCapture(QWindow const& window, bool excluded);
+
+/**
  * @brief The extended window style after pass-through is switched: WS_EX_TRANSPARENT added or removed, with
  *        WS_EX_LAYERED kept on and every other bit untouched.
  * @param style The window's current extended style.

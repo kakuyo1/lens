@@ -249,13 +249,12 @@ qt_add_resources(lens_app "icons"
   FILES ${LENS_ICONS}
 )
 
-# The liquid glass's refraction shader, compiled by qsb into :/shaders/liquid.frag.qsb. qsb comes from the
-# same Qt install as the runtime, so the two cannot drift apart. It is a resource of lens_app for the reason
-# the icons are: a binary that links the surfaces is the one that draws them.
+# The glass shader, compiled by qsb into :/shaders/glass.frag.qsb. qsb comes from the same Qt install as the runtime, so the two
+# cannot drift apart. It is a resource of lens_app for the reason the icons are: a binary that links the surfaces draws them.
 qt_add_shaders(lens_app "lens_shaders"
   PREFIX "/shaders"
   BASE ${CMAKE_CURRENT_SOURCE_DIR}/shaders
-  FILES ${CMAKE_CURRENT_SOURCE_DIR}/shaders/liquid.frag
+  FILES ${CMAKE_CURRENT_SOURCE_DIR}/shaders/glass.frag
 )
 
 # The .ts files, run through lrelease and embedded at :/i18n/. Rebuilding after a string

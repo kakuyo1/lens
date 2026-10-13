@@ -2,12 +2,13 @@
 
 /**
  * @file glass_backdrop.h
- * @brief The desktop picture the glass cards are drawn over, and the image provider that hands it to QML.
+ * @brief The desktop the glass cards are drawn over, and the image provider that hands it to QML.
  *
- * The picture is kept in memory only: it is never written to disk, never logged, and dropped when the
- * glass themes are off (docs/adr/0034, docs/adr/0035). QML reads it through `image://glass/backdrop`, and
- * the liquid theme's displacement map through `image://glass/map`. Both are images, not QML types, so the
- * surfaces need no item class of their own.
+ * The desktop is taken as a sheet a little larger than the window, so that a drag moves the card over the same
+ * picture instead of taking a new one (docs/adr/0039). The picture is kept in memory only: it is never written to
+ * disk, never logged, and dropped when the glass themes are off (docs/adr/0034, docs/adr/0035). QML reads the
+ * blurred sheet through `image://glass/sheet` and the liquid theme's displacement map through `image://glass/map`.
+ * Both are images, not QML types, so the surfaces need no item class of their own.
  */
 
 #include <QImage>
@@ -27,19 +28,31 @@ class GlassBackdrop : public QObject {
     Q_PROPERTY(bool lightText READ lightText NOTIFY pictureChanged)
     /// Changes with every capture, so QML's image cache never serves an earlier picture.
     Q_PROPERTY(int serial READ serial NOTIFY pictureChanged)
+    /// The rectangle of the desktop the picture covers, in device-independent pixels. Empty when none is held.
+    Q_PROPERTY(QRect sheet READ sheet NOTIFY pictureChanged)
 
 public:
     explicit GlassBackdrop(QObject* parent = nullptr);
 
-    bool lightText() const;
-    int  serial() const;
+    bool  lightText() const;
+    int   serial() const;
+    QRect sheet() const;
 
-    /// @brief Take a picture of the desktop under @p region, in the device-independent coordinates QScreen uses.
-    /// @param fillAlpha The white the card sits under, 0 to 1; the text tone is judged over it.
-    /// @note A region that is empty or crosses two screens clears the picture rather than stitching one.
-    Q_INVOKABLE void capture(QRect region, double fillAlpha);
+    /// @brief Make sure the picture covers @p window, taking a new sheet only when the window has come near its edge.
+    /// @param window The window the glass is drawn in, in device-independent coordinates.
+    /// @param fillAlpha The white the card sits under, 0 to 1; the text tone is judged over the window.
+    /// @note A window that is not on one screen clears the picture rather than stitching one.
+    Q_INVOKABLE void follow(QRect window, double fillAlpha);
+    /// @brief Whether the picture still covers @p window with room to spare, so that no new sheet is needed.
+    Q_INVOKABLE bool covers(QRect window) const;
     /// @brief Drop the picture.
     Q_INVOKABLE void clear();
+    /// @brief Keep @p window out of screen captures while the glass shows, so the picture needs no hiding of the card.
+    /// @param window The settings window. Not a QWindow in QML, so it is checked here.
+    /// @param excluded True to keep it out of captures; false to take the exclusion back.
+    /// @return True when the window is now excluded. False off Windows, before the window has a native handle, or when
+    ///         the OS refuses; the caller then hides the card for each capture as before.
+    Q_INVOKABLE bool keepOutOfCapture(QObject* window, bool excluded);
 
     /// @return A copy of the picture, empty when none is held. Safe to call from the image provider's thread.
     QImage picture() const;
@@ -48,14 +61,27 @@ signals:
     void pictureChanged();
 
 private:
+    /// @brief Take a picture of the desktop under @p region, the sheet, and judge the text tone over @p window.
+    /// @note A region that is empty or crosses two screens clears the picture rather than stitching one.
+    void capture(QRect region, QRect window, double fillAlpha);
+
     mutable QMutex mutex_;
     QImage         image_;
     bool           lightText_ = false;
     int            serial_    = 0;
+    QRect          sheet_;
+    /// The geometry of the screen the sheet was taken on: a side on that edge has nothing beyond it to read.
+    QRect sheetScreen_;
+    /// Whether keepOutOfCapture() last kept its window out, so that each change is logged once.
+    bool keptOut_ = false;
 };
 
 /**
- * @brief Serves `image://glass/backdrop` and `image://glass/map?w=&h=&r=&b=`.
+ * @brief Serves `image://glass/sheet?` and `image://glass/map?` for the glass cards.
+ *
+ * The sheet query carries the blur and the saturation and a serial that changes with each capture; the map query
+ * carries the card's size and corner radius. Each request runs on the worker thread, so a slider drag does not wait
+ * on the GUI thread.
  *
  * Requests arrive on the image loader's worker threads, which is why the picture is copied out of
  * GlassBackdrop under its lock rather than shared.
@@ -67,7 +93,13 @@ public:
     QImage requestImage(QString const& id, QSize* size, QSize const& requestedSize) override;
 
 private:
+    /// The liquid theme's map for this card, rebuilt only when the card's size, corners or scale change.
+    QImage cachedMap(QSize size, double radius, double scale);
+
     GlassBackdrop const& backdrop_;
+    QMutex               mapMutex_;
+    QString              mapKey_;
+    QImage               map_;
 };
 
 } // namespace lens::app

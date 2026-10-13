@@ -125,36 +125,54 @@ Window {
             apiDraft = "";
             saveStatus = "";
             body.contentY = 0;
+            Controller.glassBackdrop.clear();
             settings.captureBackdrop();
         } else {
             closeChild();
         }
     }
 
-    /// The desktop under the window, taken with the window out of the picture: the window goes
-    /// transparent for the settle time, the picture is taken, then the window comes back. Nothing is
-    /// taken unless a glass theme is on, and the picture is dropped the moment one is not.
+    function windowRect() {
+        return Qt.rect(settings.x, settings.y, settings.width, settings.height);
+    }
+
+    /// The desktop under the window, taken as a sheet a little larger than the window (GlassBackdrop.follow). Where the
+    /// OS keeps the window out of captures, the sheet is taken as it is and nothing flickers. Otherwise the window goes
+    /// transparent for the settle time while the sheet is taken, and only when the sheet no longer covers the window.
+    /// Nothing is taken unless a glass theme is on, and the sheet is dropped the moment one is not.
     function captureBackdrop() {
         settings.pictureTheme = Controller.settings.theme;
+        // Excluded only while the glass shows: a window kept out of captures is missing from screenshots too.
+        settings.excludedFromCapture = Controller.glassBackdrop.keepOutOfCapture(
+            settings, settings.visible && SettingsTokens.glassMode !== "");
         if (SettingsTokens.glassMode === "" || !settings.visible) {
             Controller.glassBackdrop.clear();
             return;
         }
+        if (settings.excludedFromCapture) {
+            Controller.glassBackdrop.follow(settings.windowRect(), SettingsTokens.panel.a);
+            return;
+        }
+        if (Controller.glassBackdrop.covers(settings.windowRect()))
+            return;
         settings.opacity = 0;
         captureTimer.restart();
+    }
+
+    /// The window moved. Once it is kept out of captures, the sheet follows it at once: GlassBackdrop takes a new one only
+    /// when the window nears the sheet's edge, so a drag takes few captures.
+    function followWindow() {
+        moveSettle.restart();
+        if (settings.excludedFromCapture && settings.visible)
+            Controller.glassBackdrop.follow(settings.windowRect(), SettingsTokens.panel.a);
     }
 
     /// The theme the picture was taken under. Only a change of theme takes a new one: any other settings
     /// write, such as a slider's, would otherwise dim the window to retake a picture it already has.
     property string pictureTheme: ""
 
-    /// The rectangle the picture was taken at. A move that the picture already covers takes no new one.
-    property rect pictureRect: Qt.rect(0, 0, 0, 0)
-
-    function pictureCurrent() {
-        return settings.pictureRect.x === settings.x && settings.pictureRect.y === settings.y
-            && settings.pictureRect.width === settings.width && settings.pictureRect.height === settings.height;
-    }
+    /// Whether the window is kept out of captures right now, so the sheet is taken without hiding the card.
+    property bool excludedFromCapture: false
 
     Connections {
         target: Controller
@@ -172,26 +190,26 @@ Window {
         value: Controller.glassBackdrop.lightText
     }
 
-    /// The window moved on its own, for example when the tray keeps it on screen. A drag is handled
-    /// when it ends, so moves during a drag wait here until the pointer lets go.
+    /// Any move of the window restarts this. Once it settles, the sheet is taken if the window has outgrown it. During a
+    /// drag the sheet follows the window itself (followWindow) when the window is kept out of captures.
     Timer {
         id: moveSettle
         interval: 300
         onTriggered: {
-            if (!shell.dragging && !settings.pictureCurrent())
+            if (!shell.dragging)
                 settings.captureBackdrop();
         }
     }
-    onXChanged: moveSettle.restart()
-    onYChanged: moveSettle.restart()
+    onXChanged: settings.followWindow()
+    onYChanged: settings.followWindow()
 
     Timer {
         id: captureTimer
         interval: 120
         onTriggered: {
-            // The white the card sits under is the frosted theme's fill; the liquid theme has none.
-            settings.pictureRect = Qt.rect(settings.x, settings.y, settings.width, settings.height);
-            Controller.glassBackdrop.capture(settings.pictureRect, SettingsTokens.panel.a);
+            // Taken again rather than kept: this is the path where the window was hidden, so the sheet is retaken whole.
+            Controller.glassBackdrop.clear();
+            Controller.glassBackdrop.follow(settings.windowRect(), SettingsTokens.panel.a);
             settings.opacity = 1;
         }
     }
@@ -212,7 +230,7 @@ Window {
         onDraggingChanged: {
             if (dragging) {
                 settings.closeChild();
-            } else if (!settings.pictureCurrent()) {
+            } else {
                 settings.captureBackdrop();
             }
         }
@@ -220,7 +238,7 @@ Window {
         // The glass is the card's own background. Its picture is held in memory only (docs/adr/0034).
         GlassSurface {
             anchors.fill: parent
-            picture: "image://glass/backdrop?" + Controller.glassBackdrop.serial
+            serial: Controller.glassBackdrop.serial
             mode: SettingsTokens.glassMode
             radius: SettingsTokens.radiusCard
             blur: SettingsTokens.glassMode === "liquid" ? Controller.settings.liquidBlur : Controller.settings.frostedBlur
