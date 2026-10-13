@@ -1,6 +1,6 @@
 /**
  * @file glass_backdrop.cpp
- * @brief The desktop sheet and the image provider that serves it (see glass_backdrop.h).
+ * @brief The glass sheets, their shared reader, and the image provider that serves them (see glass_backdrop.h).
  */
 
 #include "glass_backdrop.h"
@@ -16,6 +16,8 @@
 #include <QUrlQuery>
 #include <QWindow>
 
+#include <algorithm>
+#include <array>
 #include <optional>
 
 #ifdef _WIN32
@@ -28,13 +30,28 @@ namespace lens::app {
 
 namespace {
 
+/// The glass surfaces, by the name QML gives them in `image://glass/<name>/…`. A fixed set: each one gets its sheet at
+/// construction, so the image provider never has a sheet to create on one of its own threads.
+constexpr std::array<char const*, 11> kSurfaces{
+    "settings",
+    "tray",
+    "stats",
+    "words",
+    "yearWords",
+    "cost",
+    "bubble",
+    "selectionBar",
+    "notice",
+    "update",
+    "removal",
+};
 /// How far the sheet reaches past the window on each side, in DIP. The window can be dragged this far before the sheet
 /// has to be taken again, and the blur and the refraction read this far around the card.
 constexpr int kSheetMargin = 160;
 /// How near the window may come to a side of the sheet that is not on the screen's edge before a new sheet is taken, in
 /// DIP. The old sheet serves while the new one processes, so this covers the distance a drag moves in that time.
 constexpr int kSheetReserve = 72;
-/// The refresh period while the glass is live: about fifteen times a second.
+/// The refresh period while any sheet is live: about fifteen reads a second in all, however many sheets are live.
 // ponytail: fixed rate, no back-off when the machine is busy; add one when the reads show up in someone's frame times.
 constexpr int kLiveIntervalMs = 67;
 /// The sheet is read at a quarter of the device resolution. The blur runs on it for every request, and at full size one
@@ -85,7 +102,7 @@ QImage readDesktop(QRect const native, bool const onDesktop)
         return black;
     }
 #ifdef _WIN32
-    // GDI reads what is on the screen. While the glass shows, the settings window is kept out of captures, so the read
+    // GDI reads what is on the screen. While the glass shows, the surface's window is kept out of captures, so the read
     // gets what lies behind the card and not the card itself (docs/adr/0038).
     auto const screen            = GetDC(nullptr);
     auto const memory            = CreateCompatibleDC(screen);
@@ -150,45 +167,41 @@ Taken takeSheet(Request const& request)
 
 } // namespace
 
-GlassBackdrop::GlassBackdrop(QObject* parent)
-    : QObject(parent)
+GlassSheet::GlassSheet(QString name, QObject* parent)
+    : QObject(parent), name_(std::move(name))
 {
-    live_.setInterval(kLiveIntervalMs);
-    connect(&live_, &QTimer::timeout, this, &GlassBackdrop::refreshLive);
-    pool_.setMaxThreadCount(1);
 }
 
-GlassBackdrop::~GlassBackdrop()
+QString GlassSheet::name() const
 {
-    // A read still on the pool posts its result back to this object, so let it finish before the object goes.
-    pool_.waitForDone();
+    return name_;
 }
 
-bool GlassBackdrop::lightText() const
+bool GlassSheet::lightText() const
 {
     QMutexLocker const lock(&mutex_);
     return lightText_;
 }
 
-int GlassBackdrop::serial() const
+int GlassSheet::serial() const
 {
     QMutexLocker const lock(&mutex_);
     return serial_;
 }
 
-QRect GlassBackdrop::sheet() const
+QRect GlassSheet::sheet() const
 {
     QMutexLocker const lock(&mutex_);
     return sheet_;
 }
 
-QImage GlassBackdrop::picture() const
+QImage GlassSheet::picture() const
 {
     QMutexLocker const lock(&mutex_);
     return image_;
 }
 
-void GlassBackdrop::follow(QRect const window, double const fillAlpha)
+void GlassSheet::follow(QRect const window, double const fillAlpha)
 {
     // Kept current even when the sheet still covers the card: a live refresh judges the text tone over where the card is.
     window_    = window;
@@ -203,7 +216,7 @@ void GlassBackdrop::follow(QRect const window, double const fillAlpha)
     capture(sheet, window, fillAlpha);
 }
 
-bool GlassBackdrop::covers(QRect const window) const
+bool GlassSheet::covers(QRect const window) const
 {
     QMutexLocker const lock(&mutex_);
     if (sheet_.isEmpty() or not sheet_.contains(window)) return false;
@@ -215,7 +228,7 @@ bool GlassBackdrop::covers(QRect const window) const
     return true;
 }
 
-void GlassBackdrop::capture(QRect const region, QRect const window, double const fillAlpha)
+void GlassSheet::capture(QRect const region, QRect const window, double const fillAlpha)
 {
     auto const request = requestFor(region, window, fillAlpha);
     if (not request) {
@@ -228,37 +241,14 @@ void GlassBackdrop::capture(QRect const region, QRect const window, double const
     publish(request->region, request->screen, std::move(taken.picture), taken.lightText);
 }
 
-void GlassBackdrop::setLive(bool const on)
+void GlassSheet::setLive(bool const on)
 {
-    if (on and not live_.isActive()) live_.start();
-    if (not on) live_.stop();
+    if (live_ == on) return;
+    live_ = on;
+    emit liveChanged();
 }
 
-void GlassBackdrop::refreshLive()
-{
-    // One read at a time: a tick that finds the last still running is skipped, not queued behind it.
-    if (liveBusy_.exchange(true)) return;
-    auto const next = requestFor(sheet(), window_, fillAlpha_);
-    if (not next) {
-        liveBusy_ = false;
-        clear();
-        return;
-    }
-    pool_.start([this, request = *next, generation = generation_] {
-        auto taken = takeSheet(request);
-        QMetaObject::invokeMethod(
-            this,
-            [this, request, generation, taken = std::move(taken)]() mutable {
-                liveBusy_ = false;
-                // Retaken or dropped while this read ran: the picture is of a region that is no longer held.
-                if (generation == generation_)
-                    publish(request.region, request.screen, std::move(taken.picture), taken.lightText);
-            },
-            Qt::QueuedConnection);
-    });
-}
-
-void GlassBackdrop::publish(QRect const region, QRect const screen, QImage picture, bool const lightText)
+void GlassSheet::publish(QRect const region, QRect const screen, QImage picture, bool const lightText)
 {
     // A read that failed leaves nothing to show: drop the sheet rather than hold one that no longer matches the window.
     if (picture.isNull()) {
@@ -276,7 +266,7 @@ void GlassBackdrop::publish(QRect const region, QRect const screen, QImage pictu
     emit pictureChanged();
 }
 
-bool GlassBackdrop::keepOutOfCapture(QObject* window, bool const excluded)
+bool GlassSheet::keepOutOfCapture(QObject* window, bool const excluded)
 {
     // Only Windows has the exclusion, and a window without a native handle has nothing to set it on: asking for one
     // would create the handle, so a hidden window is left alone.
@@ -285,21 +275,22 @@ bool GlassBackdrop::keepOutOfCapture(QObject* window, bool const excluded)
         return false;
     auto const set = pet::setExcludedFromCapture(*w, excluded);
     if (excluded and not set)
-        LENS_WARN("the settings window can appear in screen captures: Windows refused the exclusion, so the glass hides the card instead");
+        LENS_WARN("the {} window can appear in screen captures: Windows refused the exclusion, so the glass hides the card instead",
+                  name_.toStdString());
     auto const kept = set and excluded;
     if (kept != keptOut_) {
         keptOut_ = kept;
         if (kept)
-            LENS_INFO("the settings window is kept out of screen captures while a glass theme shows");
+            LENS_INFO("the {} window is kept out of screen captures while a glass theme shows", name_.toStdString());
         else
-            LENS_INFO("the settings window is back in screen captures");
+            LENS_INFO("the {} window is back in screen captures", name_.toStdString());
     }
     return kept;
 }
 
-void GlassBackdrop::clear()
+void GlassSheet::clear()
 {
-    live_.stop();
+    setLive(false);
     ++generation_;
     {
         QMutexLocker const lock(&mutex_);
@@ -313,6 +304,74 @@ void GlassBackdrop::clear()
     emit pictureChanged();
 }
 
+GlassBackdrop::GlassBackdrop(QObject* parent)
+    : QObject(parent)
+{
+    sheets_.reserve(kSurfaces.size());
+    for (auto const* const name : kSurfaces) {
+        auto* const sheet = new GlassSheet(QString::fromLatin1(name), this);
+        connect(sheet, &GlassSheet::liveChanged, this, &GlassBackdrop::updateLive);
+        sheets_.push_back(sheet);
+    }
+    live_.setInterval(kLiveIntervalMs);
+    connect(&live_, &QTimer::timeout, this, &GlassBackdrop::refreshNext);
+    pool_.setMaxThreadCount(1);
+}
+
+GlassBackdrop::~GlassBackdrop()
+{
+    // A read still on the pool posts its result back to this object, so let it finish before the object goes.
+    pool_.waitForDone();
+}
+
+GlassSheet* GlassBackdrop::surface(QString const& name) const
+{
+    auto const found = std::ranges::find_if(sheets_, [&name](GlassSheet const* sheet) { return sheet->name() == name; });
+    return found == sheets_.end() ? nullptr : *found;
+}
+
+void GlassBackdrop::refreshNext()
+{
+    // One read at a time across every surface: a tick that finds the last still running is skipped, not queued behind it.
+    if (busy_) return;
+    auto live = std::vector<bool>{};
+    for (auto const* const sheet : sheets_)
+        live.push_back(sheet->live_);
+    auto const next = nextLive(live, cursor_);
+    if (not next) {
+        updateLive();
+        return;
+    }
+    cursor_           = *next;
+    auto* const sheet = sheets_[*next];
+    auto const  read  = requestFor(sheet->sheet_, sheet->window_, sheet->fillAlpha_);
+    if (not read) {
+        sheet->clear();
+        return;
+    }
+    busy_ = true;
+    pool_.start([this, request = *read, index = *next, generation = sheet->generation_] {
+        auto taken = takeSheet(request);
+        QMetaObject::invokeMethod(
+            this,
+            [this, request, index, generation, taken = std::move(taken)]() mutable {
+                busy_ = false;
+                // Retaken or dropped while this read ran: the picture is of a region that is no longer held.
+                auto* const target = sheets_[index];
+                if (generation == target->generation_)
+                    target->publish(request.region, request.screen, std::move(taken.picture), taken.lightText);
+            },
+            Qt::QueuedConnection);
+    });
+}
+
+void GlassBackdrop::updateLive()
+{
+    auto const anyLive = std::ranges::any_of(sheets_, [](GlassSheet const* sheet) { return sheet->live_; });
+    if (anyLive and not live_.isActive()) live_.start();
+    if (not anyLive) live_.stop();
+}
+
 GlassImageProvider::GlassImageProvider(GlassBackdrop const& backdrop)
     : QQuickImageProvider(QQuickImageProvider::Image), backdrop_(backdrop)
 {
@@ -320,14 +379,16 @@ GlassImageProvider::GlassImageProvider(GlassBackdrop const& backdrop)
 
 QImage GlassImageProvider::requestImage(QString const& id, QSize* size, QSize const& /*requestedSize*/)
 {
-    // The id is the path and then the query, as QML hands it over: "sheet?serial=7&blur=10&saturation=120".
+    // The id is the surface, the path and then the query, as QML hands it over: "tray/sheet?serial=7&blur=10&saturation=120".
     auto const parts = id.split(QLatin1Char('?'));
-    auto const path  = parts.isEmpty() ? QString{} : parts.first();
-    auto const query = QUrlQuery(parts.size() > 1 ? parts.at(1) : QString{});
+    auto const route = parts.value(0).split(QLatin1Char('/'));
+    auto const query = QUrlQuery(parts.value(1));
     auto const value = [&query](QString const& key) { return query.queryItemValue(key).toDouble(); };
 
-    auto const picture = backdrop_.picture();
-    auto       image   = QImage{};
+    auto const* const sheet   = backdrop_.surface(route.value(0));
+    auto const        picture = sheet != nullptr ? sheet->picture() : QImage{};
+    auto const        path    = route.value(1);
+    auto              image   = QImage{};
     if (path == QLatin1String("sheet")) {
         image = blurredPicture(picture, value(QStringLiteral("blur")), value(QStringLiteral("saturation")));
     } else if (path == QLatin1String("map") and not picture.isNull()) {

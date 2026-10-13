@@ -15,6 +15,10 @@ import QtQuick
 Item {
     id: root
 
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
+
     property string label: ""
     property string value: ""
     property string note: ""
@@ -33,14 +37,14 @@ Item {
         anchors.rightMargin: root.clickable ? -8 : 0
         height: parent.height - 2
         radius: 8
-        color: root.clickable && rowHover.hovered ? Tokens.panel2 : "transparent"
+        color: root.clickable && rowHover.hovered ? root.tokens.panel2 : "transparent"
     }
 
     Text {
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
         text: root.label
-        color: Tokens.muted
+        color: root.tokens.muted
         font.pixelSize: 13
     }
 
@@ -51,7 +55,7 @@ Item {
         anchors.rightMargin: 6
         anchors.verticalCenter: parent.verticalCenter
         value: root.note
-        color: Tokens.faint
+        color: root.tokens.faint
         pixelSize: 11
     }
 
@@ -61,7 +65,7 @@ Item {
         anchors.rightMargin: root.clickable ? 6 : 0
         anchors.verticalCenter: parent.verticalCenter
         value: root.value
-        color: Tokens.text
+        color: root.tokens.text
         pixelSize: 13
         weight: Font.Bold
     }
@@ -75,7 +79,7 @@ Item {
         width: 13
         height: 13
         source: "qrc:/icons/ui-chevron-right.svg"
-        color: Tokens.faint
+        color: root.tokens.faint
     }
 
     HoverHandler { id: rowHover; cursorShape: root.clickable ? Qt.PointingHandCursor : Qt.ArrowCursor }

@@ -10,8 +10,10 @@ Row {
     property string label: ""
     property bool checked: false
     property bool interactive: true
-    /// The table the row takes its colours from. The settings window passes its own.
-    property TokenTable tokens: Tokens
+    /// The table the row takes its colours from: the one of the window it sits in.
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
 
     signal toggled(bool checked)
 
@@ -38,7 +40,6 @@ Row {
         anchors.verticalCenter: parent.verticalCenter
         checked: root.checked
         interactive: root.interactive
-        tokens: root.tokens
         onToggled: (on) => root.toggled(on)
     }
 }

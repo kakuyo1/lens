@@ -9,6 +9,12 @@ import QtQuick.Window
  */
 Window {
     id: stats
+    /// The desktop under this window, which its glass draws (docs/adr/0041).
+    readonly property var glass: Controller.glassBackdrop.surface("stats")
+    readonly property SurfaceTokens tokens: SurfaceTokens {
+        glassEnabled: true
+        glassLightText: stats.glass.lightText
+    }
 
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     color: "transparent"
@@ -24,8 +30,17 @@ Window {
     signal wordsRequested()
 
     ShadowCard {
+        id: card
         anchors.fill: parent
         movable: true
+        color: stats.tokens.glassMode === "" ? stats.tokens.panel : "transparent"
+
+        GlassSurface {
+            anchors.fill: parent
+            sheet: stats.glass
+            mode: stats.tokens.glassMode
+            radius: card.radius
+        }
 
         Column {
             id: column
@@ -46,7 +61,7 @@ Window {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
                     text: qsTr("Today")
-                    color: Tokens.text
+                    color: stats.tokens.text
                     font.pixelSize: 14
                     font.weight: Font.Bold
                 }
@@ -55,7 +70,7 @@ Window {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     source: "qrc:/icons/ui-close.svg"
-                    color: Tokens.faint
+                    color: stats.tokens.faint
                     HoverHandler { cursorShape: Qt.PointingHandCursor }
                     TapHandler { onTapped: stats.visible = false }
                 }
@@ -64,8 +79,8 @@ Window {
             Text {
                 topPadding: 16
                 text: String(Controller.stats.todayPops)
-                color: Tokens.text
-                font.family: Tokens.monoFamily
+                color: stats.tokens.text
+                font.family: stats.tokens.monoFamily
                 font.pixelSize: 32
                 font.weight: Font.Bold
             }
@@ -73,12 +88,12 @@ Window {
             Text {
                 topPadding: 4
                 text: qsTr("Words explained today")
-                color: Tokens.faint
+                color: stats.tokens.faint
                 font.pixelSize: 12
             }
 
             Item { width: 1; height: 14 }
-            Rectangle { width: parent.width; height: 1; color: Tokens.line2 }
+            Rectangle { width: parent.width; height: 1; color: stats.tokens.line2 }
             Item { width: 1; height: 6 }
 
             StatRow {
@@ -109,5 +124,11 @@ Window {
                 onTapped: stats.wordsRequested()
             }
         }
+    }
+
+    GlassHost {
+        window: stats
+        sheet: stats.glass
+        dragging: card.dragging
     }
 }

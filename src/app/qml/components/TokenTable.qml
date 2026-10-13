@@ -3,9 +3,9 @@ import QtQuick
 /**
  * The colour, type and motion table a window reads, from UI.md section 3 and its motion table.
  *
- * There are two instances, one per kind of window: Tokens, which every surface reads with the glass
- * themes off, and SettingsTokens, which the settings window reads with them on. Both are this file,
- * so a role means the same thing in each and the only difference between them is the glass.
+ * Each surface window owns one instance, a SurfaceTokens that forwards the stored theme from Tokens; the glass is on
+ * only in the windows that set glassEnabled. Every instance is this file, so a role means the same thing in each and
+ * the only difference between them is the glass (docs/adr/0041).
  *
  * Built-in and custom themes use the same semantic roles. Custom values are encoded in the
  * existing theme setting so the settings document remains the single persistence boundary.
@@ -36,7 +36,7 @@ QtObject {
     readonly property GlassOnDark glassOnDark: GlassOnDark {}
     readonly property var customValues: parseCustomTheme(theme)
     readonly property var builtin: builtinTheme(theme)
-    /// Not readonly: SettingsTokens shares Tokens' instance, so a reduced-motion switch reaches both.
+    /// Not readonly: each SurfaceTokens takes Tokens' instance, so a reduced-motion switch reaches every window.
     property Motion motion: Motion {}
 
     readonly property color bg: tokenColor("bg", lightTheme.bg)

@@ -12,6 +12,12 @@ import QtQuick.Window
  */
 Window {
     id: cost
+    /// The desktop under this window, which its glass draws (docs/adr/0041).
+    readonly property var glass: Controller.glassBackdrop.surface("cost")
+    readonly property SurfaceTokens tokens: SurfaceTokens {
+        glassEnabled: true
+        glassLightText: cost.glass.lightText
+    }
 
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     color: "transparent"
@@ -27,8 +33,17 @@ Window {
     signal backRequested()
 
     ShadowCard {
+        id: card
         anchors.fill: parent
         movable: true
+        color: cost.tokens.glassMode === "" ? cost.tokens.panel : "transparent"
+
+        GlassSurface {
+            anchors.fill: parent
+            sheet: cost.glass
+            mode: cost.tokens.glassMode
+            radius: card.radius
+        }
 
         Column {
             id: column
@@ -49,7 +64,7 @@ Window {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
                     text: qsTr("Cost")
-                    color: Tokens.text
+                    color: cost.tokens.text
                     font.pixelSize: 14
                     font.weight: Font.Bold
                 }
@@ -65,14 +80,14 @@ Window {
                     Icon {
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/icons/ui-back.svg"
-                        color: Tokens.faint
+                        color: cost.tokens.faint
                         HoverHandler { cursorShape: Qt.PointingHandCursor }
                         TapHandler { onTapped: cost.backRequested() }
                     }
                     Icon {
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/icons/ui-close.svg"
-                        color: Tokens.faint
+                        color: cost.tokens.faint
                         HoverHandler { cursorShape: Qt.PointingHandCursor }
                         TapHandler { onTapped: cost.visible = false }
                     }
@@ -82,8 +97,8 @@ Window {
             Text {
                 topPadding: 16
                 text: Controller.cost.currency + Controller.cost.month.toFixed(2)
-                color: Tokens.text
-                font.family: Tokens.monoFamily
+                color: cost.tokens.text
+                font.family: cost.tokens.monoFamily
                 font.pixelSize: 32
                 font.weight: Font.Bold
             }
@@ -91,12 +106,12 @@ Window {
             Text {
                 topPadding: 4
                 text: qsTr("Spent this month")
-                color: Tokens.faint
+                color: cost.tokens.faint
                 font.pixelSize: 12
             }
 
             Item { width: 1; height: 14 }
-            Rectangle { width: parent.width; height: 1; color: Tokens.line2 }
+            Rectangle { width: parent.width; height: 1; color: cost.tokens.line2 }
             Item { width: 1; height: 6 }
 
             // The token count goes in the note slot rather than in front of the amount in
@@ -129,5 +144,11 @@ Window {
                 value: Controller.cost.currency + Controller.cost.dailyAverage.toFixed(2)
             }
         }
+    }
+
+    GlassHost {
+        window: cost
+        sheet: cost.glass
+        dragging: card.dragging
     }
 }

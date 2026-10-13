@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import Lens
+import "../"
 
 /**
  * The 34x20 pill switch.
@@ -19,12 +20,15 @@ Item {
         Switch {}
     }
 
+    TokenHost { id: host }
+
     TestCase {
         name: "Switch"
         when: windowShown
 
         function make(properties) {
-            const switcher = createTemporaryObject(switchComponent, root, properties);
+            const switcher = createTemporaryObject(switchComponent, host.contentItem, properties);
+            waitForRendering(host.contentItem);
             verify(switcher);
             return switcher;
         }

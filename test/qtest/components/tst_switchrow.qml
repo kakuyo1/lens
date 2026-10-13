@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import Lens
+import "../"
 import "../testutil.js" as Util
 
 /**
@@ -17,12 +18,15 @@ Item {
         SwitchRow { width: 260; label: "Selection capture"; checked: true }
     }
 
+    TokenHost { id: host }
+
     TestCase {
         name: "SwitchRow"
         when: windowShown
 
         function make(properties) {
-            const row = createTemporaryObject(rowComponent, root, properties);
+            const row = createTemporaryObject(rowComponent, host.contentItem, properties);
+            waitForRendering(host.contentItem);
             verify(row);
             return row;
         }

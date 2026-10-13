@@ -1,6 +1,10 @@
 import QtQuick
 
 Item {
+    id: root
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
     readonly property var openChildRect: null
     implicitHeight: content.implicitHeight
 
@@ -16,16 +20,16 @@ Item {
             spacing: 7
             Text {
                 text: qsTranslate("SettingsPopup", "Bubble duration")
-                color: SettingsTokens.muted
+                color: root.tokens.muted
                 font.pixelSize: 12
             }
             Rectangle {
                 width: parent.width
                 height: 35
-                radius: SettingsTokens.radiusField
-                color: SettingsTokens.panel2
+                radius: root.tokens.radiusField
+                color: root.tokens.panel2
                 border.width: 1
-                border.color: secondsInput.activeFocus ? SettingsTokens.ink : SettingsTokens.line
+                border.color: secondsInput.activeFocus ? root.tokens.ink : root.tokens.line
 
                 TextInput {
                     id: secondsInput
@@ -34,7 +38,7 @@ Item {
                     anchors.rightMargin: 11 + unitMark.width + 4
                     verticalAlignment: TextInput.AlignVCenter
                     text: String(Controller.settings.bubbleDismissSeconds)
-                    color: SettingsTokens.text
+                    color: root.tokens.text
                     font.pixelSize: 13
                     selectByMouse: true
                     inputMethodHints: Qt.ImhDigitsOnly
@@ -53,13 +57,13 @@ Item {
                     anchors.rightMargin: 11
                     anchors.verticalCenter: parent.verticalCenter
                     text: "s"
-                    color: SettingsTokens.muted
+                    color: root.tokens.muted
                     font.pixelSize: 13
                 }
             }
             Text {
                 text: qsTranslate("SettingsPopup", "1 to 30 seconds.")
-                color: SettingsTokens.faint
+                color: root.tokens.faint
                 font.pixelSize: 11
             }
         }
@@ -68,13 +72,12 @@ Item {
             spacing: 7
             Text {
                 text: qsTranslate("SettingsPopup", "Bubble position")
-                color: SettingsTokens.muted
+                color: root.tokens.muted
                 font.pixelSize: 12
             }
             Segment {
                 width: parent.width
                 height: 31
-                tokens: SettingsTokens
                 labels: [qsTranslate("SettingsPopup", "Above"), qsTranslate("SettingsPopup", "Below")]
                 currentIndex: Controller.settings.bubblePlacement === "below" ? 1 : 0
                 onPicked: (index) => Controller.setBubblePlacement(index === 1 ? "below" : "above")
@@ -85,13 +88,12 @@ Item {
             spacing: 7
             Text {
                 text: qsTranslate("SettingsPopup", "When the clipboard is occupied")
-                color: SettingsTokens.muted
+                color: root.tokens.muted
                 font.pixelSize: 12
             }
             Segment {
                 width: parent.width
                 height: 31
-                tokens: SettingsTokens
                 labels: [qsTranslate("SettingsPopup", "Raise to top"), qsTranslate("SettingsPopup", "Give up silently")]
                 currentIndex: Controller.settings.clipboardPolicy === "silent" ? 1 : 0
                 onPicked: (index) => Controller.setClipboardPolicy(index === 1 ? "silent" : "topmost")

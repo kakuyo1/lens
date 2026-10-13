@@ -8,6 +8,10 @@ import QtQuick
 Item {
     id: root
 
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
+
     property int from: 1
     property int to: 4
     property int value: from
@@ -34,7 +38,7 @@ Item {
         height: 4
         anchors.verticalCenter: parent.verticalCenter
         radius: 2
-        color: SettingsTokens.line
+        color: root.tokens.line
     }
 
     Rectangle {
@@ -43,7 +47,7 @@ Item {
         height: 4
         anchors.verticalCenter: parent.verticalCenter
         radius: 2
-        color: SettingsTokens.ink
+        color: root.tokens.ink
     }
 
     Rectangle {
@@ -52,9 +56,9 @@ Item {
         radius: root.knobSize / 2
         y: (root.height - height) / 2
         x: root.travel * root.ratio
-        color: SettingsTokens.ink
+        color: root.tokens.ink
         border.width: 2
-        border.color: SettingsTokens.panel
+        border.color: root.tokens.panel
     }
 
     MouseArea {

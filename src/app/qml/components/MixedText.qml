@@ -9,6 +9,10 @@ import QtQuick
 Item {
     id: root
 
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
+
     property string value: ""
     property int pixelSize: 13
     property int weight: Font.Normal
@@ -55,7 +59,7 @@ Item {
                 color: root.color
                 font.pixelSize: root.pixelSize
                 font.weight: root.weight
-                font.family: modelData.cjk ? "" : Tokens.monoFamily
+                font.family: modelData.cjk ? "" : root.tokens.monoFamily
             }
         }
     }

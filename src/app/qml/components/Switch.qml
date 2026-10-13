@@ -11,8 +11,10 @@ Item {
 
     property bool checked: false
     property bool interactive: true
-    /// The table the switch takes its colours from. The settings window passes its own.
-    property TokenTable tokens: Tokens
+    /// The table the switch takes its colours from: the one of the window it sits in.
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
 
     signal toggled(bool checked)
 

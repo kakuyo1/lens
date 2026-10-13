@@ -18,8 +18,10 @@ Item {
     readonly property int shadowMargin: 26
 
     default property alias content: holder.data
-    /// The table the card takes its colours from. The settings window passes its own.
-    property TokenTable tokens: Tokens
+    /// The table the card takes its colours from: the one of the window it sits in.
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
     property real radius: root.tokens.radiusCard
     property color color: root.tokens.panel
 

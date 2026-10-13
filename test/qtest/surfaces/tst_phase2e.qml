@@ -29,6 +29,13 @@ Item {
             return main;
         }
 
+        /// The colour table the settings window owns (docs/adr/0041), with its glass on.
+        function settingsTokens() {
+            const panel = Util.ofType(makeMain(), "SettingsPopup");
+            verify(panel);
+            return panel.tokens;
+        }
+
         function test_twoBuiltInThemesHaveIndependentTables() {
             compare(Tokens.themeName(0), "light");
             compare(Tokens.themeName(1), "dark");
@@ -42,15 +49,17 @@ Item {
             compare(Tokens.themeIndex("liquid"), 4);
             compare(Tokens.themeName(3), "frosted");
             compare(Tokens.themeName(4), "liquid");
+            const settings = settingsTokens();
             Tokens.theme = "frosted";
-            compare(SettingsTokens.radiusCard, 18);
+            compare(settings.radiusCard, 18);
             Tokens.theme = "liquid";
-            compare(SettingsTokens.radiusCard, 22);
+            compare(settings.radiusCard, 22);
             Tokens.theme = "light";
-            compare(SettingsTokens.radiusCard, 18);
+            compare(settings.radiusCard, 18);
         }
 
         function test_glassStaysOnTheSettingsTable() {
+            const settings = settingsTokens();
             Tokens.theme = "frosted";
             compare(Tokens.glassMode, "");
             compare(Tokens.panel.a, 1);
@@ -58,13 +67,13 @@ Item {
             verify(Tokens.contrastRatio(Tokens.text, Tokens.panel) >= 4.5);
             verify(Tokens.contrastRatio(Tokens.muted, Tokens.panel) >= 4.5);
             verify(Tokens.contrastRatio(Tokens.faint, Tokens.panel) >= 4.5);
-            compare(SettingsTokens.glassMode, "frosted");
-            verify(Math.abs(SettingsTokens.panel.a - 0.4) < 0.01);
+            compare(settings.glassMode, "frosted");
+            verify(Math.abs(settings.panel.a - 0.4) < 0.01);
 
             Tokens.theme = "liquid";
             compare(Tokens.radiusCard, 18);
             verify(Qt.colorEqual(Tokens.text, Tokens.lightTheme.text));
-            compare(SettingsTokens.radiusCard, 22);
+            compare(settings.radiusCard, 22);
             Tokens.theme = "light";
         }
 
@@ -197,6 +206,30 @@ Item {
             Controller.setTheme("light");
             wait(25);
             compare(frosted.visible, false);
+        }
+
+        function test_everyGlassSurfaceReadsItsOwnTableAndSheet() {
+            const main = makeMain();
+            const sheets = {
+                SettingsPopup: "settings", TrayMenu: "tray", StatsPopup: "stats", WordsPopup: "words",
+                YearWordsPopup: "yearWords", CostPopup: "cost", Bubble: "bubble", SelectionBar: "selectionBar",
+                Notice: "notice", UpdateCard: "update", RemovalQuestion: "removal"
+            };
+            for (const type of Object.keys(sheets)) {
+                const surface = Util.ofType(main, type);
+                verify(surface, type + " is not in Main");
+                verify(surface.tokens.glassEnabled, type + " does not read the glass table");
+                compare(surface.glass.name, sheets[type], type + " draws from the wrong sheet");
+            }
+        }
+
+        function test_glassSamplesTheDesktopBehindTheCardNotBehindTheWindow() {
+            const shown = openFrostedGeneral();
+            const glass = Util.ofType(shown.panel, "GlassSurface");
+            verify(glass, "the frosted theme drew no glass on the settings card");
+            // The card is inset by the shadow margin, so its corner is that far into the window on the desktop.
+            compare(glass.origin.x, shown.panel.x + shown.panel.shadowMargin - glass.shownSheet.x);
+            compare(glass.origin.y, shown.panel.y + shown.panel.shadowMargin - glass.shownSheet.y);
         }
 
         function test_glassStaysOnScreenWhileItsBlurLoads() {

@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import Lens
+import "../"
 import "../testutil.js" as Util
 
 /**
@@ -18,12 +19,15 @@ Item {
         MenuRow { width: 220; label: "Settings" }
     }
 
+    TokenHost { id: host }
+
     TestCase {
         name: "MenuRow"
         when: windowShown
 
         function make(properties) {
-            const row = createTemporaryObject(rowComponent, root, properties);
+            const row = createTemporaryObject(rowComponent, host.contentItem, properties);
+            waitForRendering(host.contentItem);
             verify(row);
             return row;
         }

@@ -5,9 +5,13 @@ import QtQuick
 Item {
     id: page
 
-    property int themeChoice: SettingsTokens.themeIndex(Controller.settings.theme)
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
+
+    property int themeChoice: page.tokens.themeIndex(Controller.settings.theme)
     property var draftColors: ({})
-    readonly property var contrast: SettingsTokens.validateCustomTheme(draftColors)
+    readonly property var contrast: page.tokens.validateCustomTheme(draftColors)
     readonly property var openChildRect: themeField.openChildRect
     implicitHeight: content.implicitHeight
 
@@ -16,7 +20,7 @@ Item {
     }
 
     function loadDraft() {
-        page.draftColors = SettingsTokens.colorsForTheme(Controller.settings.theme);
+        page.draftColors = page.tokens.colorsForTheme(Controller.settings.theme);
     }
 
     function updateDraft(role, value) {
@@ -32,12 +36,12 @@ Item {
         if (index === 2)
             page.loadDraft();
         else
-            Controller.setTheme(SettingsTokens.themeName(index));
+            Controller.setTheme(page.tokens.themeName(index));
     }
 
     function applyCustomTheme() {
         if (page.contrast.valid)
-            Controller.setTheme(SettingsTokens.customThemeValue(page.draftColors));
+            Controller.setTheme(page.tokens.customThemeValue(page.draftColors));
     }
 
     Component.onCompleted: page.loadDraft()
@@ -45,7 +49,7 @@ Item {
     Connections {
         target: Controller
         function onSettingsChanged() {
-            page.themeChoice = SettingsTokens.themeIndex(Controller.settings.theme);
+            page.themeChoice = page.tokens.themeIndex(Controller.settings.theme);
             if (page.themeChoice === 2)
                 page.loadDraft();
         }
@@ -61,7 +65,7 @@ Item {
             spacing: 7
             Text {
                 text: qsTranslate("SettingsPopup", "Theme")
-                color: SettingsTokens.muted
+                color: page.tokens.muted
                 font.pixelSize: 12
             }
             // A dropdown rather than a segment: the Custom path is a mode with an editor of its
@@ -90,7 +94,7 @@ Item {
 
             Text {
                 text: qsTranslate("SettingsPopup", "Frosted glass parameters")
-                color: SettingsTokens.text
+                color: page.tokens.text
                 font.pixelSize: 13
                 font.weight: Font.Bold
             }
@@ -128,7 +132,7 @@ Item {
 
             Text {
                 text: qsTranslate("SettingsPopup", "Liquid glass parameters")
-                color: SettingsTokens.text
+                color: page.tokens.text
                 font.pixelSize: 13
                 font.weight: Font.Bold
             }
@@ -159,17 +163,17 @@ Item {
 
             Text {
                 text: qsTranslate("SettingsPopup", "Text color")
-                color: SettingsTokens.muted
+                color: page.tokens.muted
                 font.pixelSize: 12
             }
 
             Rectangle {
                 width: parent.width
                 height: 35
-                radius: SettingsTokens.radiusField
-                color: SettingsTokens.panel2
+                radius: page.tokens.radiusField
+                color: page.tokens.panel2
                 border.width: textColorInput.activeFocus ? 2 : 1
-                border.color: textColorInput.activeFocus ? SettingsTokens.ok : SettingsTokens.line
+                border.color: textColorInput.activeFocus ? page.tokens.ok : page.tokens.line
 
                 TextInput {
                     id: textColorInput
@@ -179,7 +183,7 @@ Item {
                     anchors.rightMargin: 10
                     anchors.verticalCenter: parent.verticalCenter
                     text: Controller.settings.liquidTextColor
-                    color: SettingsTokens.text
+                    color: page.tokens.text
                     font.pixelSize: 13
                     selectByMouse: true
                     activeFocusOnTab: true
@@ -200,7 +204,7 @@ Item {
 
             Text {
                 text: qsTranslate("SettingsPopup", "Custom semantic colors")
-                color: SettingsTokens.text
+                color: page.tokens.text
                 font.pixelSize: 13
                 font.weight: Font.Bold
             }
@@ -209,7 +213,7 @@ Item {
                 width: parent.width
                 wrapMode: Text.WordWrap
                 text: qsTranslate("SettingsPopup", "Use six-digit hex colors. Body, muted, and faint text must each pass WCAG AA on the panel.")
-                color: SettingsTokens.muted
+                color: page.tokens.muted
                 font.pixelSize: 11
             }
 
@@ -231,17 +235,17 @@ Item {
 
                     Text {
                         text: colorField.modelData.label
-                        color: SettingsTokens.muted
+                        color: page.tokens.muted
                         font.pixelSize: 12
                     }
 
                     Rectangle {
                         width: parent.width
                         height: 35
-                        radius: SettingsTokens.radiusField
-                        color: SettingsTokens.panel2
+                        radius: page.tokens.radiusField
+                        color: page.tokens.panel2
                         border.width: colorInput.activeFocus ? 2 : 1
-                        border.color: colorInput.activeFocus ? SettingsTokens.ok : SettingsTokens.line
+                        border.color: colorInput.activeFocus ? page.tokens.ok : page.tokens.line
 
                         Rectangle {
                             anchors.left: parent.left
@@ -250,10 +254,10 @@ Item {
                             width: 19
                             height: 19
                             radius: 5
-                            color: SettingsTokens.validHex(page.draftColors[colorField.modelData.role])
-                                   ? page.draftColors[colorField.modelData.role] : SettingsTokens.panel
+                            color: page.tokens.validHex(page.draftColors[colorField.modelData.role])
+                                   ? page.draftColors[colorField.modelData.role] : page.tokens.panel
                             border.width: 1
-                            border.color: SettingsTokens.line
+                            border.color: page.tokens.line
                         }
 
                         TextInput {
@@ -264,7 +268,7 @@ Item {
                             anchors.rightMargin: 10
                             anchors.verticalCenter: parent.verticalCenter
                             text: page.draftColors[colorField.modelData.role] || ""
-                            color: SettingsTokens.text
+                            color: page.tokens.text
                             font.pixelSize: 13
                             selectByMouse: true
                             activeFocusOnTab: true
@@ -283,21 +287,21 @@ Item {
                         .arg(page.contrast.mutedRatio.toFixed(2))
                         .arg(page.contrast.faintRatio.toFixed(2))
                       : qsTranslate("SettingsPopup", "AA contrast requires valid colors and a 4.5:1 ratio for body, muted, and faint text.")
-                color: page.contrast.valid ? SettingsTokens.ok : SettingsTokens.danger
+                color: page.contrast.valid ? page.tokens.ok : page.tokens.danger
                 font.pixelSize: 11
             }
 
             Rectangle {
                 width: parent.width
                 height: 35
-                radius: SettingsTokens.radiusPill
-                color: page.contrast.valid ? SettingsTokens.ink : SettingsTokens.panel2
+                radius: page.tokens.radiusPill
+                color: page.contrast.valid ? page.tokens.ink : page.tokens.panel2
                 opacity: page.contrast.valid ? 1 : 0.58
 
                 Text {
                     anchors.centerIn: parent
                     text: qsTranslate("SettingsPopup", "Apply custom colors")
-                    color: page.contrast.valid ? SettingsTokens.on : SettingsTokens.faint
+                    color: page.contrast.valid ? page.tokens.on : page.tokens.faint
                     font.pixelSize: 12
                     font.weight: Font.Bold
                 }
@@ -311,7 +315,6 @@ Item {
 
         SwitchRow {
             width: parent.width
-            tokens: SettingsTokens
             label: qsTranslate("SettingsPopup", "Launch at startup")
             checked: Controller.settings.autostart
             onToggled: (on) => Controller.setAutostart(on)
@@ -319,7 +322,6 @@ Item {
 
         SwitchRow {
             width: parent.width
-            tokens: SettingsTokens
             label: qsTranslate("SettingsPopup", "Animations")
             checked: Controller.settings.animationsEnabled
             onToggled: (on) => Controller.setAnimationsEnabled(on)
@@ -327,7 +329,6 @@ Item {
 
         SwitchRow {
             width: parent.width
-            tokens: SettingsTokens
             label: qsTranslate("SettingsPopup", "Check for updates at startup")
             checked: Controller.updateDuty.autoCheck
             onToggled: (on) => Controller.updateDuty.setAutoCheck(on)
@@ -337,7 +338,7 @@ Item {
             width: parent.width
             visible: SystemMotion.reduced
             text: qsTranslate("SettingsPopup", "Animations are disabled by Windows accessibility settings.")
-            color: SettingsTokens.muted
+            color: page.tokens.muted
             font.pixelSize: 11
             wrapMode: Text.WordWrap
         }

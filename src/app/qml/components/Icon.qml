@@ -12,8 +12,12 @@ import QtQuick.Effects
 Item {
     id: root
 
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
+
     property string source: ""
-    property color color: Tokens.muted
+    property color color: root.tokens.muted
 
     implicitWidth: 15
     implicitHeight: 15

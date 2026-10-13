@@ -17,6 +17,12 @@ import QtQuick.Effects
  */
 Window {
     id: bubble
+    /// The desktop under this window, which its glass draws (docs/adr/0041).
+    readonly property var glass: Controller.glassBackdrop.surface("bubble")
+    readonly property SurfaceTokens tokens: SurfaceTokens {
+        glassEnabled: true
+        glassLightText: bubble.glass.lightText
+    }
 
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowDoesNotAcceptFocus
     color: "transparent"
@@ -178,7 +184,7 @@ Window {
             id: shadowShape
             anchors.fill: card
             radius: card.radius
-            color: card.color
+            color: bubble.tokens.glassMode === "" ? bubble.tokens.bubbleBg : "transparent"
             visible: false
         }
 
@@ -189,7 +195,7 @@ Window {
             y: card.y
             source: shadowShape
             shadowEnabled: true
-            shadowColor: Qt.rgba(20 / 255, 20 / 255, 26 / 255, Tokens.dark ? 0.75 : 0.26)
+            shadowColor: Qt.rgba(20 / 255, 20 / 255, 26 / 255, bubble.tokens.dark ? 0.75 : 0.26)
             shadowBlur: 0.9
             shadowVerticalOffset: 8
             blurMax: 44
@@ -199,10 +205,17 @@ Window {
             id: card
             width: parent.implicitWidth
             height: column.height + 26
-            radius: Tokens.radiusCard
-            color: Tokens.bubbleBg
+            radius: bubble.tokens.radiusCard
+            color: bubble.tokens.glassMode === "" ? bubble.tokens.bubbleBg : "transparent"
             border.width: 1
-            border.color: Tokens.bubbleBorder
+            border.color: bubble.tokens.bubbleBorder
+
+            GlassSurface {
+                anchors.fill: parent
+                sheet: bubble.glass
+                mode: bubble.tokens.glassMode
+                radius: card.radius
+            }
 
             // The card is the handle, through the system's own move loop. The verdict buttons
             // keep the pointer where they are, so a drag that begins on one of them is a press
@@ -281,7 +294,7 @@ Window {
                 anchors.top: parent.top
                 anchors.topMargin: 15
                 source: "qrc:/icons/ui-close.svg"
-                color: Tokens.faint
+                color: bubble.tokens.faint
                 HoverHandler { cursorShape: Qt.PointingHandCursor }
                 TapHandler {
                     onTapped: {
@@ -306,16 +319,16 @@ Window {
                     visible: bubble.type === "word" || bubble.type === "sentence"
                     width: tag.width + 16
                     height: 17
-                    radius: Tokens.radiusPill
-                    color: bubble.type === "word" ? (bubble.status === "known" ? Tokens.panel2 : Tokens.okBg) : "transparent"
+                    radius: bubble.tokens.radiusPill
+                    color: bubble.type === "word" ? (bubble.status === "known" ? bubble.tokens.panel2 : bubble.tokens.okBg) : "transparent"
                     border.width: bubble.type === "word" ? 0 : 1
-                    border.color: Tokens.line
+                    border.color: bubble.tokens.line
 
                     Text {
                         id: tag
                         anchors.centerIn: parent
                         text: bubble.type === "sentence" ? qsTr("Sentence") : bubble.type === "word" ? (bubble.status === "known" ? qsTr("Known") : qsTr("New")) : ""
-                        color: bubble.type === "sentence" ? Tokens.muted : bubble.status === "known" ? Tokens.muted : Tokens.okText
+                        color: bubble.type === "sentence" ? bubble.tokens.muted : bubble.status === "known" ? bubble.tokens.muted : bubble.tokens.okText
                         font.pixelSize: 11
                         font.weight: Font.Bold
                     }
@@ -344,7 +357,7 @@ Window {
                         width: Math.min(implicitWidth, wordRow.width - (ipaText.visible ? ipaText.implicitWidth + 7 : 0))
                         topPadding: 8
                         text: bubble.title
-                        color: Tokens.text
+                        color: bubble.tokens.text
                         font.pixelSize: 20
                         font.weight: Font.Bold
                         elide: Text.ElideRight
@@ -358,7 +371,7 @@ Window {
                         y: wordText.baselineOffset - baselineOffset
                         visible: bubble.type === "word" && bubble.ipa !== ""
                         text: bubble.ipa
-                        color: Tokens.faint
+                        color: bubble.tokens.faint
                         font.pixelSize: 13 // the prototype's 12.5 px, as the definition line rounds it
                     }
                 }
@@ -378,7 +391,7 @@ Window {
                             visible: senseRow.index > 0
                             width: parent.width
                             height: 1
-                            color: Tokens.line2
+                            color: bubble.tokens.line2
                         }
 
                         Text {
@@ -389,7 +402,7 @@ Window {
                             bottomPadding: senseRow.modelData.text === "" ? 6 : 0
                             text: senseRow.modelData.en || ""
                             textFormat: Text.PlainText
-                            color: Tokens.muted
+                            color: bubble.tokens.muted
                             font.pixelSize: 13
                             lineHeight: 1.55
                             wrapMode: Text.Wrap
@@ -403,7 +416,7 @@ Window {
                             bottomPadding: 6
                             text: senseRow.modelData.text || ""
                             textFormat: Text.PlainText
-                            color: Tokens.text
+                            color: bubble.tokens.text
                             font.pixelSize: 12
                             lineHeight: 1.5
                             wrapMode: Text.Wrap
@@ -417,7 +430,7 @@ Window {
                     topPadding: 6
                     text: bubble.english
                     textFormat: Text.PlainText
-                    color: Tokens.muted
+                    color: bubble.tokens.muted
                     font.pixelSize: 13
                     lineHeight: 1.55
                     wrapMode: Text.Wrap
@@ -429,7 +442,7 @@ Window {
                     topPadding: 5
                     text: bubble.chinese
                     textFormat: Text.PlainText
-                    color: Tokens.text
+                    color: bubble.tokens.text
                     font.pixelSize: 12
                     lineHeight: 1.5
                     wrapMode: Text.Wrap
@@ -441,7 +454,7 @@ Window {
                     topPadding: 5
                     text: bubble.translation
                     textFormat: Text.PlainText
-                    color: Tokens.text
+                    color: bubble.tokens.text
                     font.pixelSize: 12
                     lineHeight: 1.5
                     wrapMode: Text.Wrap
@@ -471,13 +484,13 @@ Window {
                         objectName: "etymologySeparator"
                         width: parent.width
                         height: 1
-                        color: Tokens.line2
+                        color: bubble.tokens.line2
                     }
 
                     Text {
                         objectName: "etymologyLabel"
                         text: qsTr("Etymology")
-                        color: Tokens.muted
+                        color: bubble.tokens.muted
                         font.pixelSize: 11
                         font.weight: Font.Bold
                     }
@@ -487,7 +500,7 @@ Window {
                         width: parent.width
                         text: bubble.etymology
                         textFormat: Text.PlainText
-                        color: Tokens.muted
+                        color: bubble.tokens.muted
                         font.pixelSize: 12
                         lineHeight: 1.5
                         wrapMode: Text.Wrap
@@ -508,13 +521,13 @@ Window {
                         objectName: "exampleSeparator"
                         width: parent.width
                         height: 1
-                        color: Tokens.line2
+                        color: bubble.tokens.line2
                     }
 
                     Text {
                         objectName: "exampleLabel"
                         text: qsTr("Example")
-                        color: Tokens.muted
+                        color: bubble.tokens.muted
                         font.pixelSize: 11
                         font.weight: Font.Bold
                     }
@@ -524,7 +537,7 @@ Window {
                         width: parent.width
                         text: bubble.example
                         textFormat: Text.PlainText
-                        color: Tokens.muted
+                        color: bubble.tokens.muted
                         font.pixelSize: 12
                         lineHeight: 1.5
                         wrapMode: Text.Wrap
@@ -542,14 +555,14 @@ Window {
                     opacity: show ? 1 : 0
                     Behavior on height {
                         NumberAnimation {
-                            duration: Tokens.motion.bubble
-                            easing.type: Tokens.motion.easing
+                            duration: bubble.tokens.motion.bubble
+                            easing.type: bubble.tokens.motion.easing
                         }
                     }
                     Behavior on opacity {
                         NumberAnimation {
-                            duration: Tokens.motion.bubble
-                            easing.type: Tokens.motion.easing
+                            duration: bubble.tokens.motion.bubble
+                            easing.type: bubble.tokens.motion.easing
                         }
                     }
 
@@ -558,7 +571,7 @@ Window {
                         anchors.topMargin: 12
                         width: parent.width
                         height: 1
-                        color: Tokens.line2
+                        color: bubble.tokens.line2
                     }
 
                     Row {
@@ -570,22 +583,22 @@ Window {
                         Rectangle {
                             width: knownLabel.width + 26
                             height: knownLabel.height + 12
-                            radius: Tokens.radiusPill
-                            color: Tokens.panel2
+                            radius: bubble.tokens.radiusPill
+                            color: bubble.tokens.panel2
                             border.width: 1
-                            border.color: Tokens.line
+                            border.color: bubble.tokens.line
                             scale: knownTap.pressed ? 0.97 : 1.0
                             Behavior on scale {
                                 NumberAnimation {
-                                    duration: Tokens.motion.press
-                                    easing.type: Tokens.motion.easing
+                                    duration: bubble.tokens.motion.press
+                                    easing.type: bubble.tokens.motion.easing
                                 }
                             }
                             Text {
                                 id: knownLabel
                                 anchors.centerIn: parent
                                 text: qsTr("Known")
-                                color: Tokens.text
+                                color: bubble.tokens.text
                                 font.pixelSize: 12
                                 font.weight: Font.Bold
                             }
@@ -599,20 +612,20 @@ Window {
                         Rectangle {
                             width: newLabel.width + 26
                             height: newLabel.height + 12
-                            radius: Tokens.radiusPill
-                            color: Tokens.ink
+                            radius: bubble.tokens.radiusPill
+                            color: bubble.tokens.ink
                             scale: newTap.pressed ? 0.97 : 1.0
                             Behavior on scale {
                                 NumberAnimation {
-                                    duration: Tokens.motion.press
-                                    easing.type: Tokens.motion.easing
+                                    duration: bubble.tokens.motion.press
+                                    easing.type: bubble.tokens.motion.easing
                                 }
                             }
                             Text {
                                 id: newLabel
                                 anchors.centerIn: parent
                                 text: qsTr("New")
-                                color: Tokens.on
+                                color: bubble.tokens.on
                                 font.pixelSize: 12
                                 font.weight: Font.Bold
                             }
@@ -634,11 +647,17 @@ Window {
                     // The remaining seconds, not the setting that seeded them: the count stands
                     // still while the pointer holds the bubble and steps down again when it goes.
                     text: qsTr("Disappears in %1s").arg(Math.ceil(bubble.remainingMs / 1000))
-                    color: Tokens.faint
+                    color: bubble.tokens.faint
                     font.pixelSize: 11
                 }
 
             }
         }
+    }
+
+    GlassHost {
+        window: bubble
+        sheet: bubble.glass
+        dragging: bubble.dragging
     }
 }

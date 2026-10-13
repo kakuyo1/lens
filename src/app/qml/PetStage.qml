@@ -10,15 +10,18 @@ import QtQuick.Window
  */
 Rectangle {
     id: stage
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
 
     readonly property bool onScreen: visible && Window.window !== null && Window.window.visible
     readonly property int petSize: Pet.canvas * Pet.scale
 
     implicitHeight: petSize + 24
-    radius: SettingsTokens.radiusGroup
-    color: SettingsTokens.panel2
+    radius: stage.tokens.radiusGroup
+    color: stage.tokens.panel2
     border.width: 1
-    border.color: SettingsTokens.line2
+    border.color: stage.tokens.line2
     clip: true
 
     onOnScreenChanged: Pet.setPreviewing(onScreen)
@@ -34,7 +37,7 @@ Rectangle {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 12
         height: 1
-        color: SettingsTokens.line
+        color: stage.tokens.line
     }
 
     PetScene {

@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import Lens
+import "../"
 import "../testutil.js" as Util
 
 /**
@@ -28,8 +29,11 @@ Item {
         MenuRow { width: 240; label: "Statistics"; note: "128 词 · ¥0.42" }
     }
 
+    TokenHost { id: host }
+
     Column {
         id: capture
+        parent: host.contentItem
         spacing: 8
         Text { text: "Settings"; font.pixelSize: 14; font.weight: Font.Bold }
         Text { text: "设置"; font.pixelSize: 14; font.weight: Font.Bold }
@@ -46,7 +50,8 @@ Item {
         when: windowShown
 
         function make(component, properties) {
-            const item = createTemporaryObject(component, root, properties || {});
+            const item = createTemporaryObject(component, host.contentItem, properties || {});
+            waitForRendering(host.contentItem);
             verify(item);
             wait(20);
             return item;

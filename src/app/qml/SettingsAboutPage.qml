@@ -11,6 +11,10 @@ import QtQuick
 Item {
     id: page
 
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
+
     /**
      * What the update line says, for one state.
      *
@@ -48,8 +52,8 @@ Item {
             id: repoRow
             width: parent.width
             height: 44
-            radius: SettingsTokens.radiusField
-            color: repoHover.hovered ? SettingsTokens.panel2 : "transparent"
+            radius: page.tokens.radiusField
+            color: repoHover.hovered ? page.tokens.panel2 : "transparent"
 
             Icon {
                 id: githubIcon
@@ -59,7 +63,7 @@ Item {
                 width: 15
                 height: 15
                 source: "qrc:/icons/ui-github.svg"
-                color: SettingsTokens.muted
+                color: page.tokens.muted
             }
 
             Text {
@@ -67,7 +71,7 @@ Item {
                 anchors.leftMargin: 10
                 anchors.verticalCenter: parent.verticalCenter
                 text: qsTranslate("SettingsPopup", "GitHub repository")
-                color: SettingsTokens.text
+                color: page.tokens.text
                 font.pixelSize: 13
             }
 
@@ -76,7 +80,7 @@ Item {
                 anchors.rightMargin: 9
                 anchors.verticalCenter: parent.verticalCenter
                 text: "github.com/kakuyo1/lens"
-                color: SettingsTokens.faint
+                color: page.tokens.faint
                 font.pixelSize: 11
             }
 
@@ -94,10 +98,10 @@ Item {
         Rectangle {
             width: parent.width
             height: 56
-            radius: SettingsTokens.radiusGroup
-            color: SettingsTokens.panel2
+            radius: page.tokens.radiusGroup
+            color: page.tokens.panel2
             border.width: 1
-            border.color: SettingsTokens.line
+            border.color: page.tokens.line
 
             // A fixed box rather than a Column: a Column drops a hidden line from its height, so the
             // version would move up when a check starts. The line keeps its place while it is empty.
@@ -111,7 +115,7 @@ Item {
                 Text {
                     width: parent.width
                     text: qsTranslate("SettingsPopup", "Current version %1").arg(Controller.updateDuty.update.current)
-                    color: SettingsTokens.text
+                    color: page.tokens.text
                     font.pixelSize: 13
                     elide: Text.ElideRight
                 }
@@ -123,7 +127,7 @@ Item {
                     width: parent.width
                     text: page.updateStatusText(Controller.updateDuty.update.state)
                     visible: text !== ""
-                    color: SettingsTokens.muted
+                    color: page.tokens.muted
                     font.pixelSize: 11
                     elide: Text.ElideRight
                 }
@@ -137,14 +141,14 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 width: checkLabel.width + 26
                 height: 26
-                radius: SettingsTokens.radiusPill
-                color: SettingsTokens.ink
+                radius: page.tokens.radiusPill
+                color: page.tokens.ink
                 opacity: page.updatesBusy ? 0.58 : 1
                 scale: checkTap.pressed ? 0.97 : 1.0
                 Behavior on scale {
                     NumberAnimation {
-                        duration: SettingsTokens.motion.press
-                        easing.type: SettingsTokens.motion.easing
+                        duration: page.tokens.motion.press
+                        easing.type: page.tokens.motion.easing
                     }
                 }
 
@@ -152,7 +156,7 @@ Item {
                     id: checkLabel
                     anchors.centerIn: parent
                     text: qsTranslate("SettingsPopup", "Check for updates")
-                    color: page.updatesBusy ? SettingsTokens.faint : SettingsTokens.on
+                    color: page.updatesBusy ? page.tokens.faint : page.tokens.on
                     font.pixelSize: 12
                     font.weight: Font.Bold
                 }
@@ -183,7 +187,7 @@ Item {
                     width: parent.width
                     horizontalAlignment: Text.AlignHCenter
                     text: "Lens"
-                    color: SettingsTokens.text
+                    color: page.tokens.text
                     font.pixelSize: 14
                     font.weight: Font.Bold
                 }
@@ -191,14 +195,14 @@ Item {
                     width: parent.width
                     horizontalAlignment: Text.AlignHCenter
                     text: qsTranslate("SettingsPopup", "Copyright (c) 2026 kakuyo1 · MIT License")
-                    color: SettingsTokens.faint
+                    color: page.tokens.faint
                     font.pixelSize: 11
                 }
                 Text {
                     width: parent.width
                     horizontalAlignment: Text.AlignHCenter
                     text: qsTranslate("SettingsPopup", "Built %1").arg(Controller.buildDate)
-                    color: SettingsTokens.faint
+                    color: page.tokens.faint
                     font.pixelSize: 11
                 }
             }

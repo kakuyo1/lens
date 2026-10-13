@@ -40,6 +40,55 @@ Item {
         function cleanup() {
             Controller.setClipboardPolicy("topmost");
             Controller.setDailyBudget(0);
+            Pet.setEnabled(false);
+        }
+
+        /// Every object under `root` that `predicate` accepts, through `data` and `children` both: a Loader's page is
+        /// a child item and is not in its `data`, so Util.findAll does not reach it.
+        function findDeep(root, predicate) {
+            const found = [];
+            const visited = [];
+            (function collect(node) {
+                const kids = [].concat(node.data || [], node.children || []);
+                for (let i = 0; i < kids.length; ++i) {
+                    if (visited.indexOf(kids[i]) >= 0)
+                        continue;
+                    visited.push(kids[i]);
+                    if (predicate(kids[i]))
+                        found.push(kids[i]);
+                    collect(kids[i]);
+                }
+            })(root);
+            return found;
+        }
+
+        /// The settings page the field scrolls in: the nearest ancestor that has a content position.
+        function scrollerOf(field) {
+            for (let it = field.parent; it; it = it.parent) {
+                if (it.contentY !== undefined && it.contentHeight !== undefined)
+                    return it;
+            }
+            return null;
+        }
+
+        /// The panel on the extensions page with the pet type dropdown in it, the way the reader reaches it.
+        function openPetPanel() {
+            Pet.setEnabled(true);
+            const main = make();
+            const panel = settingsPanel(main);
+            main.showSettings();
+            wait(25);
+            panel.openCategory("extensions");
+            wait(25);
+            return {main: main, panel: panel};
+        }
+
+        function petTypeField(panel) {
+            const fields = findDeep(panel, function (o) {
+                return o.toString().indexOf("DropdownField_QMLTYPE") === 0 && o.options.length > 0;
+            });
+            verify(fields.length > 0, "the extensions page has no dropdown to test");
+            return fields[0];
         }
 
         function settingsPanel(main) {
@@ -172,6 +221,44 @@ Item {
             wait(20);
             compare(Controller.settings.dailyBudget, 1.25);
             compare(page.dailyBudget, 1.25);
+        }
+
+        /// The list is a window of its own. When the page scrolls under it the field moves, and the list has to follow to
+        /// keep the same distance below the field. It follows within one timer tick, so the case waits for it to settle.
+        function test_theListStaysUnderItsFieldWhenThePageScrolls() {
+            const shown = openPetPanel();
+            const field = petTypeField(shown.panel);
+            const scroller = scrollerOf(field);
+            verify(scroller, "the field is not inside a scrolling page");
+            verify(scroller.contentHeight > scroller.height, "the page does not scroll, so there is nothing to test");
+
+            mouseClick(field, field.width / 2, field.height / 2);
+            tryVerify(() => field.openChildRect !== null, 2000, "the field did not open its list");
+
+            scroller.contentY = Math.min(40, scroller.contentHeight - scroller.height);
+
+            // The card's top sits the field's height and six pixels below the field's own top, in window coordinates
+            // plus the window's place on screen.
+            const below = () => {
+                const at = field.mapToItem(null, 0, 0);
+                return Math.round(field.Window.window.y + at.y + field.height + 6);
+            };
+            tryVerify(() => Math.round(field.openChildRect.y) === below(), 2000,
+                      "the list did not follow the field when the page scrolled");
+        }
+
+        /// A press outside the panel puts down the list the panel opened, the same as it puts the panel down. The pet page
+        /// owns a dropdown but does not hand its list up to the panel, so the press went past the list and it stayed up.
+        function test_aPressOutsideThePanelPutsThePetListDown() {
+            const shown = openPetPanel();
+            const field = petTypeField(shown.panel);
+            mouseClick(field, field.width / 2, field.height / 2);
+            tryVerify(() => field.openChildRect !== null, 2000, "the field did not open its list");
+
+            shown.main.dismissOutside(Qt.point(shown.panel.x - 40, shown.panel.y - 40));
+
+            compare(shown.panel.visible, false, "the press did not put the panel down, so the case proves nothing");
+            tryVerify(() => field.openChildRect === null, 2000, "a press outside the panel left its dropdown list up");
         }
     }
 }

@@ -36,6 +36,10 @@ import QtQuick.Window
 Item {
     id: root
 
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
+
     /// The controller's level list: {value, label, group, note}.
     property var options: []
     property var currentValue: 0
@@ -103,9 +107,8 @@ Item {
 
     /// Put the list's window under the field, in screen coordinates.
     ///
-    /// Placement only. The two ways the list comes up differ in whether the reader asked for it --
-    /// the chevron emits `listOpened`, a keystroke does not -- not in where the card lands, so
-    /// both go through here rather than each carrying its own copy of the arithmetic.
+    /// A page that scrolls, or a panel that is dragged, moves the field without moving the list's window, so this is run
+    /// again while the list is up (see the timer below). Where the list opens and where it is kept are the same place.
     function placeList() {
         // Where the field's bottom edge is, in screen coordinates.
         const point = button.mapToItem(null, 0, button.height + 6);
@@ -118,13 +121,23 @@ Item {
         list.y = originY + point.y - list.shadowMargin;
     }
 
+    // ponytail: polls every 16 ms while the list is up, instead of wiring each page's scroll position through to here. A
+    // scroll signal is exact and costs nothing, but every page with a dropdown would have to forward it, which is how the
+    // pet page missed its list. Upgrade to a scroll signal if this shows up in frame times.
+    Timer {
+        interval: 16
+        repeat: true
+        running: list.visible
+        onTriggered: root.placeList()
+    }
+
     function openList() {
         // The search goes, because this is the reader asking for the list outright rather than
         // narrowing it. Leaving the filter on would answer a deliberate press with whatever the
         // search had left -- and with nothing at all, if it had matched nothing, which is the one
         // thing the search path never shows.
         root.filterText = "";
-        placeList();
+        root.placeList();
         list.visible = true;
         listOpened();
     }
@@ -169,17 +182,17 @@ Item {
                 return;
             }
         }
-        placeList();
+        root.placeList();
         list.visible = true;
     }
 
     Rectangle {
         id: button
         anchors.fill: parent
-        radius: SettingsTokens.radiusField
-        color: SettingsTokens.panel2
+        radius: root.tokens.radiusField
+        color: root.tokens.panel2
         border.width: 1
-        border.color: root.editable && input.activeFocus ? SettingsTokens.ink : SettingsTokens.line
+        border.color: root.editable && input.activeFocus ? root.tokens.ink : root.tokens.line
 
         Text {
             id: label
@@ -190,7 +203,7 @@ Item {
             anchors.rightMargin: 8
             anchors.verticalCenter: parent.verticalCenter
             text: root.current ? root.current.label : ""
-            color: SettingsTokens.text
+            color: root.tokens.text
             font.pixelSize: 13
             elide: Text.ElideRight
         }
@@ -209,7 +222,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             verticalAlignment: TextInput.AlignVCenter
             text: root.currentValue
-            color: SettingsTokens.text
+            color: root.tokens.text
             font.pixelSize: 13
             selectByMouse: true
             onTextEdited: root.filterTyped(input.text)
@@ -229,7 +242,7 @@ Item {
             width: 14
             height: 14
             source: "qrc:/icons/ui-chevron-down.svg"
-            color: SettingsTokens.faint
+            color: root.tokens.faint
             // Dimmed on the same rule Switch dims by, and for the same reason: there is nothing
             // behind it to open.
             opacity: root.hasOptions ? 1.0 : 0.45
@@ -268,6 +281,8 @@ Item {
         flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowDoesNotAcceptFocus
         color: "transparent"
         visible: false
+        /// The list is its own window, so it takes the colour table of the window the field sits in.
+        readonly property var tokens: root.tokens
 
         readonly property int shadowMargin: 26
         /// Room the rows leave inside the card, on every side.
@@ -282,9 +297,8 @@ Item {
 
         ShadowCard {
             anchors.fill: parent
-            tokens: SettingsTokens
-            radius: SettingsTokens.radiusGroup
-            color: SettingsTokens.popup
+            radius: list.tokens.radiusGroup
+            color: list.tokens.popup
 
             // A view rather than a column: the delegates are built as they come into sight, so a
             // list of several hundred costs the ten that are drawn and no more.
@@ -320,7 +334,7 @@ Item {
                                  && group.modelData.group !== root.shown[group.index - 1].group
                         width: parent.width
                         height: 1
-                        color: SettingsTokens.line2
+                        color: root.tokens.line2
                         anchors.margins: 5
                     }
 
@@ -328,15 +342,15 @@ Item {
                         width: parent.width
                         height: root.rowHeight
                         radius: 8
-                        color: group.modelData.value === root.currentValue ? SettingsTokens.ink
-                                                                           : (rowHover.hovered ? SettingsTokens.panel2 : "transparent")
+                        color: group.modelData.value === root.currentValue ? root.tokens.ink
+                                                                           : (rowHover.hovered ? root.tokens.panel2 : "transparent")
 
                         Text {
                             anchors.left: parent.left
                             anchors.leftMargin: 11
                             anchors.verticalCenter: parent.verticalCenter
                             text: group.modelData.label
-                            color: group.modelData.value === root.currentValue ? SettingsTokens.on : SettingsTokens.text
+                            color: group.modelData.value === root.currentValue ? root.tokens.on : root.tokens.text
                             font.pixelSize: 13
                         }
 
@@ -346,7 +360,7 @@ Item {
                             anchors.rightMargin: 11
                             anchors.verticalCenter: parent.verticalCenter
                             text: group.modelData.note
-                            color: group.modelData.value === root.currentValue ? Qt.rgba(1, 1, 1, 0.62) : SettingsTokens.faint
+                            color: group.modelData.value === root.currentValue ? Qt.rgba(1, 1, 1, 0.62) : root.tokens.faint
                             font.pixelSize: 11
                         }
 
@@ -371,7 +385,7 @@ Item {
                 visible: listColumn.contentHeight > listColumn.height
                 width: 6
                 radius: 3
-                color: SettingsTokens.line
+                color: list.tokens.line
                 x: listColumn.x + listColumn.width + 2
                 height: Math.max(24, listColumn.height * listColumn.height / listColumn.contentHeight)
                 y: listColumn.y + (listColumn.contentHeight > listColumn.height

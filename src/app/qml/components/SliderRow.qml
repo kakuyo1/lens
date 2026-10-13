@@ -9,6 +9,10 @@ import QtQuick
 Column {
     id: root
 
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
+
     property string label: ""
     property string suffix: ""
     property int from: 0
@@ -27,14 +31,14 @@ Column {
         Text {
             anchors.left: parent.left
             text: root.label
-            color: SettingsTokens.muted
+            color: root.tokens.muted
             font.pixelSize: 12
         }
 
         Text {
             anchors.right: parent.right
             text: root.value + root.suffix
-            color: SettingsTokens.text
+            color: root.tokens.text
             font.pixelSize: 12
         }
     }

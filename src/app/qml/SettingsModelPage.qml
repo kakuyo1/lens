@@ -2,6 +2,9 @@ import QtQuick
 
 Item {
     id: root
+    // qmllint disable missing-property
+    readonly property var tokens: Window.window.tokens
+    // qmllint enable missing-property
     property var settings: Controller.settings
 
     signal childRequested(string route)
@@ -32,7 +35,7 @@ Item {
             spacing: 7
             Text {
                 text: qsTranslate("SettingsPopup", "Provider")
-                color: SettingsTokens.muted
+                color: root.tokens.muted
                 font.pixelSize: 12
             }
             DropdownField {
@@ -51,7 +54,7 @@ Item {
             spacing: 7
             Text {
                 text: qsTranslate("SettingsPopup", "Model")
-                color: SettingsTokens.muted
+                color: root.tokens.muted
                 font.pixelSize: 12
             }
 
@@ -75,7 +78,7 @@ Item {
             Text {
                 width: parent.width
                 text: root.settings.modelPrice || ""
-                color: SettingsTokens.muted
+                color: root.tokens.muted
                 font.pixelSize: 11
                 wrapMode: Text.Wrap
             }
