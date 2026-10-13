@@ -87,7 +87,14 @@ html[data-theme=liquid][data-refract] .settings{backdrop-filter:blur(var(--glass
 .set-crumb{font-size:12px;color:var(--muted);font-weight:400}
 .set-h .close{margin-left:auto;width:26px;height:26px;border:0;border-radius:8px;background:transparent;color:var(--faint);font-size:18px;line-height:1}
 .set-h .close:hover{background:var(--panel2);color:var(--text)}
-.set-body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:12px 20px 18px;scrollbar-width:thin;scrollbar-color:var(--faint) transparent}
+.set-body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:12px 20px 18px}
+/* 滚动条：6 px 一条，滑块取 --faint，与 pet.html 同一份写法。标准属性只能关进 Gecko，Chromium 一读到
+   scrollbar-color 就切回原生滚动条、上下箭头跟着长出来，所以这里只留 ::-webkit- 组加一行 @supports。 */
+.set-body::-webkit-scrollbar,.dd-list::-webkit-scrollbar{width:6px;height:6px}
+.set-body::-webkit-scrollbar-track,.dd-list::-webkit-scrollbar-track{background:transparent}
+.set-body::-webkit-scrollbar-thumb,.dd-list::-webkit-scrollbar-thumb{background:var(--faint);border-radius:999px}
+.set-body::-webkit-scrollbar-thumb:hover,.dd-list::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+@supports (-moz-appearance:none){.set-body,.dd-list{scrollbar-width:thin;scrollbar-color:var(--faint) transparent}}
 
 /* 分类目录：一行一类，新增设置落在分类内部 */
 .catalog{display:flex;flex-direction:column;gap:2px}
@@ -120,7 +127,7 @@ html[data-theme=liquid][data-refract] .settings{backdrop-filter:blur(var(--glass
 .dd{position:relative}
 .dd-btn{display:flex;align-items:center;gap:8px;width:100%;height:35px;padding:0 11px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--text);font-family:var(--f);font-size:13px;text-align:left}
 .dd-btn svg{margin-left:auto;width:14px;height:14px;color:var(--faint);flex:none}
-.dd-list{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:9;display:none;background:var(--panel);border:1px solid var(--line);border-radius:11px;box-shadow:var(--sh2);padding:5px;max-height:252px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--faint) transparent}
+.dd-list{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:9;display:none;background:var(--panel);border:1px solid var(--line);border-radius:11px;box-shadow:var(--sh2);padding:5px;max-height:252px;overflow-y:auto}
 .dd.open .dd-list{display:block}
 .dd-item{display:flex;align-items:center;width:100%;height:29px;padding:0 11px;border:0;border-radius:8px;background:transparent;font-size:13px;color:var(--text);text-align:left}
 .dd-item:hover{background:var(--panel2)}

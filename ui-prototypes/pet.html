@@ -64,6 +64,14 @@ html[data-theme=liquid][data-refract] .settings{backdrop-filter:blur(var(--glass
 .set-h .close{margin-left:auto;width:26px;height:26px;border:0;border-radius:8px;background:transparent;color:var(--faint);font-size:18px;line-height:1}
 .set-h .close:hover{background:var(--panel2);color:var(--text)}
 .set-body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:14px 20px 18px}
+/* 滚动条：6 px 一条，滑块取 --faint，跟 chevron 同一个令牌，所以随主题走。Chromium 认 ::-webkit- 那组，
+   Gecko 不认，用最后那行标准属性——但标准属性不能裸写，Chromium 一读到就切回原生滚动条，上下箭头跟着长出来，
+   所以用 @supports (-moz-appearance:none) 把它关进 Gecko。 */
+.set-body::-webkit-scrollbar,.dd-list::-webkit-scrollbar{width:6px;height:6px}
+.set-body::-webkit-scrollbar-track,.dd-list::-webkit-scrollbar-track{background:transparent}
+.set-body::-webkit-scrollbar-thumb,.dd-list::-webkit-scrollbar-thumb{background:var(--faint);border-radius:999px}
+.set-body::-webkit-scrollbar-thumb:hover,.dd-list::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+@supports (-moz-appearance:none){.set-body,.dd-list{scrollbar-width:thin;scrollbar-color:var(--faint) transparent}}
 .set-f{display:flex;align-items:center;gap:8px;padding:0 20px;min-height:56px;border-top:1px solid var(--line2);flex:none}
 .status{flex:1;text-align:center;font-size:11px;color:var(--muted)}
 .btn{padding:6px 14px;border-radius:999px;border:1px solid transparent;font-size:12px;font-weight:600}
