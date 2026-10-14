@@ -169,14 +169,16 @@ Window {
         return Qt.point(Math.round(x), Math.round(root.clamp(y, top, bottom - height)));
     }
 
-    /// @brief Put a surface up beside the tray icon, on whichever screen that is.
+    /// @brief Put a surface up beside its anchor, on whichever screen that is.
     function placePanel(panel, anchor) {
-        root.rememberPlacement(panel, anchor, "panel");
+        const placement = root.rememberPlacement(panel, anchor, "panel");
         const target = root.screenFor(root.anchorPoint(anchor));
         const layout = root.layoutFor(target, panel.width, panel.height);
         const at = root.placeBeside(anchor, layout.width, layout.height, target, panel.shadowMargin);
         panel.x = at.x;
         panel.y = at.y;
+        placement.width = panel.width;
+        placement.height = panel.height;
         panel.visible = true;
         // `visible` alone is not enough. Every surface carries WindowStaysOnTopHint, but a
         // click on the tray icon activates the taskbar -- which is topmost too and re-raises
@@ -220,9 +222,34 @@ Window {
     }
     // qmllint enable missing-property
 
+    /// @return The anchor a panel that replaces `from` is put up at: the corner `from` hangs from, so
+    ///         the next card lands where the one it replaces was. Without a `from`, the tray icon.
+    function anchorFrom(from) {
+        if (!from)
+            return root.trayAnchor();
+        const corner = Qt.point(from.x + from.width - from.shadowMargin, from.y + from.height - from.shadowMargin);
+        return Qt.rect(corner.x, corner.y, 0, 0);
+    }
+
+    /// A stack panel grows from the corner it hangs from, its bottom-right, so it grows up and to the
+    /// left rather than down past the tray icon. The placement remembers the size it was last placed
+    /// at. A drag moves the window without changing that size, so the corner is read from where the
+    /// window is now, and a dragged panel keeps the corner the reader left it at.
+    function holdCorner(panel) {
+        const placement = root.placements.find(function (candidate) { return candidate.surface === panel; });
+        if (placement && panel.visible) {
+            panel.x = panel.x + placement.width - panel.width;
+            panel.y = panel.y + placement.height - panel.height;
+            placement.width = panel.width;
+            placement.height = panel.height;
+        }
+        root.keepOnScreen(panel);
+    }
+
     /// A surface that grows after it was placed -- a row that opens, a list that loads -- keeps its
     /// top-left corner, so it runs off the bottom or right edge by however much it grew. Pull it back
-    /// by that much. Placement is only ever computed from the anchor, so nothing else would.
+    /// by that much. Placement is only ever computed from the anchor, so nothing else would. The stack
+    /// uses holdCorner() instead, which keeps the corner rather than pulling it back.
     function keepOnScreen(surface) {
         if (!surface.visible)
             return;
@@ -269,9 +296,11 @@ Window {
                 panel.visible = false;
     }
 
-    function showStats() {
+    /// The stack's panels take the place of one another, so each one opens from the panel it replaces.
+    function showStats(from) {
+        const anchor = root.anchorFrom(from);
         root.hidePanels(statsPopup);
-        root.placePanel(statsPopup, root.trayAnchor());
+        root.placePanel(statsPopup, anchor);
     }
 
     function showSettings() {
@@ -279,19 +308,22 @@ Window {
         root.placePanel(settingsPopup, root.trayAnchor());
     }
 
-    function showCost() {
+    function showCost(from) {
+        const anchor = root.anchorFrom(from);
         root.hidePanels(costPopup);
-        root.placePanel(costPopup, root.trayAnchor());
+        root.placePanel(costPopup, anchor);
     }
 
-    function showWords() {
+    function showWords(from) {
+        const anchor = root.anchorFrom(from);
         root.hidePanels(wordsPopup);
-        root.placePanel(wordsPopup, root.trayAnchor());
+        root.placePanel(wordsPopup, anchor);
     }
 
-    function showYearWords() {
+    function showYearWords(from) {
+        const anchor = root.anchorFrom(from);
         root.hidePanels(yearWordsPopup);
-        root.placePanel(yearWordsPopup, root.trayAnchor());
+        root.placePanel(yearWordsPopup, anchor);
     }
 
     function showTrayMenu() {
@@ -447,38 +479,37 @@ Window {
 
     StatsPopup {
         id: statsPopup
-        onCostRequested: root.showCost()
-        onWordsRequested: root.showWords()
-        onWidthChanged: root.keepOnScreen(statsPopup)
-        onHeightChanged: root.keepOnScreen(statsPopup)
+        onCostRequested: root.showCost(statsPopup)
+        onWordsRequested: root.showWords(statsPopup)
+        onWidthChanged: root.holdCorner(statsPopup)
+        onHeightChanged: root.holdCorner(statsPopup)
     }
 
     CostPopup {
         id: costPopup
-        onBackRequested: root.showStats()
-        onWidthChanged: root.keepOnScreen(costPopup)
-        onHeightChanged: root.keepOnScreen(costPopup)
+        onBackRequested: root.showStats(costPopup)
+        onWidthChanged: root.holdCorner(costPopup)
+        onHeightChanged: root.holdCorner(costPopup)
     }
 
     WordsPopup {
         id: wordsPopup
-        onYearRequested: root.showYearWords()
-        onBackRequested: root.showStats()
-        onWidthChanged: root.keepOnScreen(wordsPopup)
-        onHeightChanged: root.keepOnScreen(wordsPopup)
+        onYearRequested: root.showYearWords(wordsPopup)
+        onBackRequested: root.showStats(wordsPopup)
+        onWidthChanged: root.holdCorner(wordsPopup)
+        onHeightChanged: root.holdCorner(wordsPopup)
     }
 
     YearWordsPopup {
         id: yearWordsPopup
-        onBackRequested: root.showWords()
-        onPaletteOpenChanged: if (visible) root.placePanel(yearWordsPopup, root.trayAnchor())
-        onWidthChanged: root.keepOnScreen(yearWordsPopup)
-        onHeightChanged: root.keepOnScreen(yearWordsPopup)
+        onBackRequested: root.showWords(yearWordsPopup)
+        onWidthChanged: root.holdCorner(yearWordsPopup)
+        onHeightChanged: root.holdCorner(yearWordsPopup)
     }
 
     TrayMenu {
         id: trayMenu
-        onStatsRequested: root.showStats()
+        onStatsRequested: root.showStats(trayMenu)
         onSettingsRequested: root.showSettings()
         onWidthChanged: root.keepOnScreen(trayMenu)
         onHeightChanged: root.keepOnScreen(trayMenu)

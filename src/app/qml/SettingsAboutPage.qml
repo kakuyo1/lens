@@ -103,16 +103,18 @@ Item {
             border.width: 1
             border.color: page.tokens.line
 
-            // A fixed box rather than a Column: a Column drops a hidden line from its height, so the
-            // version would move up when a check starts. The line keeps its place while it is empty.
+            // The block is as tall as what it shows and centred in the row, so the version sits in the
+            // middle while the line is empty. A line that shows adds its height beneath the version, and
+            // the block re-centres: the version rises to make room for it.
             Item {
                 anchors.left: parent.left
                 anchors.leftMargin: 12
                 anchors.verticalCenter: parent.verticalCenter
                 width: parent.width - checkButton.width - 36
-                height: 39
+                height: versionText.height + (updateLine.visible ? updateLine.height + 4 : 0)
 
                 Text {
+                    id: versionText
                     width: parent.width
                     text: qsTranslate("SettingsPopup", "Current version %1").arg(Controller.updateDuty.update.current)
                     color: page.tokens.text
@@ -123,7 +125,7 @@ Item {
                 Text {
                     id: updateLine
                     objectName: "updateStatusLine"
-                    y: 21
+                    y: versionText.height + 4
                     width: parent.width
                     text: page.updateStatusText(Controller.updateDuty.update.state)
                     visible: text !== ""

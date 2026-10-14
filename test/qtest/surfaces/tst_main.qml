@@ -96,21 +96,40 @@ Item {
             verify(at.y + height <= main.workArea(screen).bottom - 8, "the panel hangs under the taskbar");
         }
 
-        /// A panel that grows after it was placed -- a row that opens, a list that loads -- keeps its
-        /// top-left corner and runs off the bottom edge by what it grew. The clamp has to bring it back.
-        function test_aPanelThatGrowsPastTheBottomComesBackInside() {
+        /// A panel that grows after it was placed -- a row that opens, a list that loads -- keeps the corner it
+        /// hangs from, so it grows up and away from the bottom edge. The corner is read from the window, so a
+        /// panel the reader has moved keeps the corner it was left at.
+        function test_aPanelThatGrowsKeepsItsBottomRightCorner() {
             const main = make();
             const stats = panel(main, "StatsPopup");
             main.showStats();
 
             const area = main.workArea(main.screenFor(Qt.point(stats.x, stats.y)));
             stats.y = area.bottom - stats.height - 20;
+            const right = stats.x + stats.width;
+            const bottom = stats.y + stats.height;
             stats.height = stats.height + 40;
             // A window's size change reaches its onHeightChanged on the next event-loop turn.
             wait(50);
 
-            verify(stats.y + stats.height <= area.bottom - main.screenMargin,
-                   "the panel runs off the bottom edge after it grew");
+            compare(stats.x + stats.width, right, "growing moved the right edge");
+            compare(stats.y + stats.height, bottom, "growing moved the bottom edge");
+        }
+
+        /// The stack opens each panel at the corner of the one it replaces, so the card stays where it was when
+        /// the reader switches and comes back, even after the first one has been moved off the tray icon.
+        function test_aPanelOpenedFromAnotherLandsOnItsCorner() {
+            const main = make();
+            const stats = panel(main, "StatsPopup");
+            const cost = panel(main, "CostPopup");
+
+            main.showStats();
+            stats.x = stats.x - 40;
+            const corner = Qt.point(stats.x + stats.width - stats.shadowMargin, stats.y + stats.height - stats.shadowMargin);
+
+            stats.costRequested();
+            compare(cost.x + cost.width - cost.shadowMargin, corner.x, "the cost panel's right edge is not the statistics panel's");
+            compare(cost.y + cost.height - cost.shadowMargin, corner.y, "the cost panel's bottom edge is not the statistics panel's");
         }
 
         /// The monitor above the primary, at 125%: Qt draws a window on it about its own origin, so a
