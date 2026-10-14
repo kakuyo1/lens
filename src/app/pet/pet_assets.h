@@ -50,7 +50,10 @@ struct PetAssets {
     /// Side of one square frame, in sheet units.
     int canvas;
     /// Whole-number magnification on screen.
-    int                                           scale;
+    int scale;
+    /// Horizontal centre of the figure the idle action draws in its first frame, in sheet units. The art is not
+    /// centred on its canvas, so the settings preview centres on this instead; a frame with nothing drawn gives the canvas centre.
+    double                                        inkCentre;
     Layers                                        layers;
     QString                                       expressionSheet;
     core::pet::Animations                         animations;

@@ -282,6 +282,11 @@ int PetController::scale() const
     return store_.scale(assets_ ? assets_->scale : kMinScale);
 }
 
+double PetController::inkCentre() const
+{
+    return assets_ ? assets_->inkCentre : 0.0;
+}
+
 int PetController::minScale() const
 {
     return kMinScale;

@@ -5,11 +5,13 @@
 
 #include "app/pet/pet_assets.h"
 
+#include <algorithm>
 #include <fstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
 
+#include <QImage>
 #include <QImageReader>
 #include <QSize>
 
@@ -20,6 +22,9 @@ namespace lens::app::pet {
 namespace {
 
 using nlohmann::json;
+
+/// Alpha at or above this counts as drawn, so faint anti-aliased edges do not pull the centre sideways.
+constexpr int kInkAlpha = 40;
 
 /// @return The document under `directory`, parsed. Refuses a file that cannot be opened.
 json readDocument(std::filesystem::path const& directory, char const* name)
@@ -50,6 +55,23 @@ void requireSheet(QString const& path, QSize expected)
         throw std::runtime_error("pet: sheet is not " + std::to_string(expected.width()) + "x" +
                                  std::to_string(expected.height()) + ": " + path.toStdString());
     }
+}
+
+/// @return The horizontal centre of what the first frame of the sheet at `path` draws, in sheet units. The canvas
+///         centre when it draws nothing.
+double inkCentreOf(QString const& path, int canvas)
+{
+    auto const sheet = QImageReader{path}.read().convertToFormat(QImage::Format_ARGB32);
+    auto       left  = canvas;
+    auto       right = 0;
+    for (auto y = 0; y < canvas; ++y) {
+        for (auto x = 0; x < canvas; ++x) {
+            if (qAlpha(sheet.pixel(x, y)) < kInkAlpha) continue;
+            left  = std::min(left, x);
+            right = std::max(right, x + 1);
+        }
+    }
+    return right == 0 ? canvas / 2.0 : (left + right) / 2.0;
 }
 
 /// @return The expression index of each frame, or nothing when the action keeps expression 0.
@@ -100,6 +122,7 @@ PetAssets PetAssets::load(std::filesystem::path const& directory)
         pictures.expressions = expressionsOf(entry);
         assets.sheets.emplace(name, std::move(pictures));
     }
+    assets.inkCentre = inkCentreOf(assets.sheets.at("idle").body, assets.canvas);
 
     assets.anchors = core::pet::parseAnchors(readDocument(directory, "anchors.json"), assets.animations.playbook);
 

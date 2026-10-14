@@ -41,7 +41,8 @@ Rectangle {
     }
 
     PetScene {
-        x: (stage.width - stage.petSize) / 2
+        // Centred on the figure rather than the canvas: the art sits right of its canvas's middle.
+        x: stage.width / 2 - Pet.inkCentre * Pet.scale
         y: stage.height - stage.petSize - 12
     }
 }

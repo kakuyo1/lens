@@ -497,6 +497,29 @@ const PET_ASSETS = {"dog/sprites/body/idle.png":"data:image/png;base64,iVBORw0KG
 			})));
 		}
 		/**
+		* The horizontal centre of what the idle action draws in its first frame, in sheet units. The art is not centred
+		* on its canvas, so the settings preview centres on this instead. Alpha at or above 40 counts as drawn; a frame with
+		* nothing drawn gives the canvas centre. The app's PetAssets::load measures the same thing.
+		* @returns {number}
+		*/
+		inkCentre() {
+			const { width, height } = this;
+			const probe = document.createElement("canvas");
+			probe.width = width;
+			probe.height = height;
+			const ctx = probe.getContext("2d", { willReadFrequently: true });
+			ctx.drawImage(this.images.get(this.pet.actions.idle.sheet), 0, 0, width, height, 0, 0, width, height);
+			const alpha = ctx.getImageData(0, 0, width, height).data;
+			let left = width;
+			let right = 0;
+			for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+				if (alpha[(y * width + x) * 4 + 3] < 40) continue;
+				left = Math.min(left, x);
+				right = Math.max(right, x + 1);
+			}
+			return right === 0 ? width / 2 : (left + right) / 2;
+		}
+		/**
 		* @param {{action: string, frame: number, expression: number, anchors: {head: number[], face: number[], body: number[]}}} state
 		*        From PetEngine.state.
 		* @param {Array<{asset: string, slot: string, zIndex: number}>} accessories Worn accessories visible for this action.
@@ -713,6 +736,8 @@ const PET_ASSETS = {"dog/sprites/body/idle.png":"data:image/png;base64,iVBORw0KG
 			scale
 		});
 		await renderer.load(resolve);
+			// The stage's canvas is centred by its box, which is the canvas middle; shift it so the figure is centred.
+			canvas.style.marginLeft = `${-renderer.inkCentre() * scale}px`;
 		const engine = new PetEngine(pet);
 		const accessories = new AccessoryManager(pet.accessories);
 		if (!live) {

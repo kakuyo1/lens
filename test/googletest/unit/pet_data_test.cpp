@@ -14,6 +14,8 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
+#include <QImage>
+
 #include "app/pet/pet_assets.h"
 #include "core/pet/pet_config.h"
 
@@ -148,6 +150,37 @@ TEST(PetData, ASheetOfTheWrongWidthRefusesThePet)
     std::filesystem::copy_file(scratch.path() / "sprites/body/study.png", scratch.path() / "sprites/body/idle.png", std::filesystem::copy_options::overwrite_existing);
 
     EXPECT_THROW(lens::app::pet::PetAssets::load(scratch.path()), std::runtime_error);
+}
+
+/// Writes `sheet` over the idle body sheet of a scratch pet, at the size the sheet already has.
+void writeIdleSheet(ScratchPet const& scratch, QImage const& sheet)
+{
+    ASSERT_TRUE(sheet.save(QString::fromStdWString((scratch.path() / "sprites/body/idle.png").wstring()), "PNG"));
+}
+
+TEST(PetData, TheIdleFigureCentreIsMeasuredFromItsPixels)
+{
+    // One block in columns 60 to 69 of the idle frame: its centre is 65, where the canvas centre is 44.
+    auto scratch = ScratchPet{"ink"};
+    auto sheet   = QImage{440, 88, QImage::Format_ARGB32};
+    sheet.fill(Qt::transparent);
+    for (auto y = 20; y < 60; ++y) {
+        for (auto x = 60; x < 70; ++x)
+            sheet.setPixel(x, y, qRgba(0, 0, 0, 255));
+    }
+    writeIdleSheet(scratch, sheet);
+
+    EXPECT_DOUBLE_EQ(lens::app::pet::PetAssets::load(scratch.path()).inkCentre, 65.0);
+}
+
+TEST(PetData, AnIdleFrameWithNothingDrawnCentresOnTheCanvas)
+{
+    auto scratch = ScratchPet{"blank"};
+    auto sheet   = QImage{440, 88, QImage::Format_ARGB32};
+    sheet.fill(Qt::transparent);
+    writeIdleSheet(scratch, sheet);
+
+    EXPECT_DOUBLE_EQ(lens::app::pet::PetAssets::load(scratch.path()).inkCentre, 44.0);
 }
 
 TEST(PetData, LayersStackInTheSpecOrder)

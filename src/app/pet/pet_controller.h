@@ -57,6 +57,7 @@ class PetController : public QObject {
     Q_PROPERTY(QVariantMap layers READ layers NOTIFY settingsChanged)
     Q_PROPERTY(int canvas READ canvas NOTIFY settingsChanged)
     Q_PROPERTY(int scale READ scale NOTIFY settingsChanged)
+    Q_PROPERTY(double inkCentre READ inkCentre NOTIFY settingsChanged)
     Q_PROPERTY(int minScale READ minScale CONSTANT)
     Q_PROPERTY(int maxScale READ maxScale CONSTANT)
     Q_PROPERTY(QStringList actions READ actions NOTIFY settingsChanged)
@@ -98,6 +99,7 @@ public:
     QVariantMap  layers() const;
     int          canvas() const;
     int          scale() const;
+    double       inkCentre() const;
     int          minScale() const;
     int          maxScale() const;
     /// @return Every action the pet can play, in the order of the state machine's enum.
