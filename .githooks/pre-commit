@@ -167,6 +167,9 @@ check_typography() {
         limit=$(printf '%s\n' "$BASELINES" | awk -v d="$doc" '$1 == d { print $2 }')
         # AGENTS.md is read by agents, and zhlint is for documents people read.
         [ "$doc" = AGENTS.md ] && continue
+        # zhlint's rules are Chinese typography: they flag every Japanese-Latin boundary in
+        # README.ja.md, which is correct Japanese, so that file is left out.
+        [ "$doc" = README.ja.md ] && continue
         if [ -z "$limit" ]; then
             echo "pre-commit: $doc has no typography budget, so it is not checked; add one to BASELINES"
             continue
@@ -307,7 +310,9 @@ check_absolute_paths() {
         # cmd's own substitution syntax reports itself: build.bat's QTBACK line puts a letter, a
         # colon and a slash in that order inside %QT_ROOT:/=\%, with the letter mid-word. The
         # sequence is spelled out rather than quoted here because the quoting is what matched.
-        hits=$(grep -nE '(^|[^A-Za-z0-9_])[A-Za-z]:[\\/]' "$file" 2>/dev/null | grep -vE 'https?://|qrc:/' || true)
+        # -I skips binary files: compressed image bytes can hold a drive-letter sequence by
+        # chance, and grep reports such a file as a bare "Binary file ... matches" line.
+        hits=$(grep -nIE '(^|[^A-Za-z0-9_])[A-Za-z]:[\\/]' "$file" 2>/dev/null | grep -vE 'https?://|qrc:/' || true)
         [ -n "$hits" ] || continue
 
         echo "pre-commit: $file carries an absolute path"
