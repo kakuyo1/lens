@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.3.2 - 2026-10-15
+
+Adds optional account sync. Sign in with GitHub and set a passphrase, and your learning data and selected
+settings are kept in an encrypted secret gist in your own GitHub account. The project hosts nothing.
+
+### Added
+
+- Account sync, under General, then Account and sync. Sign-in uses GitHub's device flow and asks only for the
+  gist scope. The passphrase encrypts the cloud copy. It is never stored; only a derived key stays on this
+  device.
+- What syncs: known and new marks, word history, daily statistics, and a list of settings such as appearance,
+  bubble timing and explanation language. Explanations, the API key and the hotkey stay on the device.
+- Sync runs five seconds after launch, after a change that alters what syncs, and every ten minutes while
+  signed in. Automatic syncs that fail for a temporary reason retry with a backoff.
+- Log out keeps this device's data. Delete cloud data removes the gist from your GitHub account.
+
+### Notes
+
+- GitHub needs a proxy from mainland China, as update checks do.
+- A forgotten passphrase leaves the cloud copy unrecoverable. This device keeps its key, so it keeps syncing.
+
 ## 1.3.1 - 2026-10-14
 
 Patch release: the year-record colour palette and the panel hand-overs move more smoothly, and a few
