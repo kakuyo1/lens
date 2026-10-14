@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.3.1 - 2026-10-14
+
+Patch release: the year-record colour palette and the panel hand-overs move more smoothly, and a few
+alignment and log fixes land.
+
+### Changed
+
+- The year-record colour palette unrolls below the graph, and the card grows with it. Closing runs the
+  same motion in reverse. The second close button is gone: the open level shuts the palette again, and
+  Esc still works.
+- Panels hand over with a cross-fade instead of a cut. Going from the tray menu to statistics or settings
+  no longer hides the menu first.
+- A panel opened from the statistics stack (statistics, cost, words, year record) replaces the one it came
+  from at the same bottom-right corner, and going back returns to that corner. A panel that grows holds
+  that corner, and a panel you have dragged keeps the corner it was dragged to.
+
+### Fixed
+
+- The About page's version line is centred, and it rises when an update status line shows.
+- The desktop pet's settings preview is centred on the figure rather than on its canvas, which sat about
+  39 px to the right at 3x.
+- The bubble, notice and other card windows no longer log "Unable to assign [undefined] to bool" when a
+  card's timer starts.
+
 ## 1.3.0 - 2026-10-13
 
 Minor release: the desktop pet gains three companions, the bubble gets timing and placement settings, and
