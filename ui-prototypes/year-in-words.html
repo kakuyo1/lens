@@ -201,6 +201,11 @@ function closePalette(){palette.classList.remove('open');panel.classList.remove(
 document.querySelectorAll('.swatch').forEach(swatch=>swatch.addEventListener('click',()=>{const shut=!palette.hidden&&swatch.getAttribute('aria-pressed')==='true';document.querySelectorAll('.swatch').forEach(item=>item.setAttribute('aria-pressed',String(item===swatch)));shut?closePalette():openPalette()}));
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!palette.hidden)closePalette()});
 applyHue(selectedHue);
+// ?palette=open is for the README's screenshot: the palette is drawn already unrolled, with level 3 pressed.
+if (new URLSearchParams(location.search).get('palette') === 'open') {
+  palette.hidden = false; palette.classList.add('open'); panel.classList.add('palette-open');
+  document.querySelector('.swatch[data-level="3"]').setAttribute('aria-pressed', 'true');
+}
 /// 折射能力探测：不支持 url() 形式 backdrop-filter 的浏览器会丢掉这条声明，读回空串。此时液体玻璃退回 CSS 的模糊与高光。
 const refractOK = (() => { const p = document.createElement("div"); p.style.backdropFilter = "url(#lg-liquid)"; return p.style.backdropFilter !== ""; })();
 const svgAttr = (id, name, v) => document.getElementById(id).setAttribute(name, v);

@@ -1,4 +1,9 @@
 {
-  "ja": "表面の一部を成す平らな板",
-  "es": "tablero plano que forma parte de una superficie"
+  "example": "The solar panels on the roof supply most of the building's power.",
+  "languages": {
+    "en": { "etymology": "From Old French panel, a piece of cloth, from Latin pannellus, the diminutive of pannus, cloth." },
+    "zh": { "etymology": "源自古法语 panel（一小块布），进一步来自拉丁语 pannellus，即 pannus（布）的指小形式。" },
+    "ja": { "translation": "表面の一部を成す平らな板", "etymology": "古フランス語 panel（布の一片）に由来し、ラテン語 pannellus（pannus「布」の指小形）にさかのぼる。" },
+    "es": { "translation": "tablero plano que forma parte de una superficie", "etymology": "Del francés antiguo panel, «trozo de tela», y este del latín pannellus, diminutivo de pannus, «tela»." }
+  }
 }

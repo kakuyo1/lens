@@ -253,31 +253,40 @@ offscreen 不会栅格化 `MultiEffect`，因此图标与阴影在这类快照�
 
 ### GIF（逐帧序列）
 
-`scripts/qa/readme-gifs.ps1` 把 README 的动图渲成 GIF。它与快照用同一条离屏路径：只在 `QT_QPA_PLATFORM=offscreen`
+`scripts/qa/readme-gifs.ps1` 把 README 的动图与设置页截图渲出来。它与快照用同一条离屏路径：只在 `QT_QPA_PLATFORM=offscreen`
 下运行 `test/qtest/surfaces/tst_readme_gifs.qml` 的用例。每个用例在场景里逐步执行动作（`mouseMove`、`mouseClick`
-等 QTest 的场景内事件），每一步用 `grabImage` 截一帧。不显示窗口，不碰真实指针、键盘和剪贴板，不发模型请求；
-设置写进测试副本，不改仓库里的 `settings.json` fixture。
+等 QTest 的场景内事件），每一步用 `grabImage` 截一帧。不显示窗口，不碰真实指针、键盘和剪贴板；设置写进测试副本，
+不改仓库里的 `settings.json` fixture。
 
 运行前先构建目标，然后在仓库根目录执行：
 
 ```powershell
 scripts\build\build.bat --target lens_qtest_surfaces
-powershell -File scripts/qa/readme-gifs.ps1                          # 全部片段、四种语言
-powershell -File scripts/qa/readme-gifs.ps1 -Clip year -Language ja  # 只跑一个片段、一种语言
+powershell -File scripts/qa/readme-gifs.ps1                                # 全部片段与截图、四种语言
+powershell -File scripts/qa/readme-gifs.ps1 -Clip year -Language ja        # 只跑一个片段、一种语言
+powershell -File scripts/qa/readme-gifs.ps1 -Clip pets                     # 四只宠物，只渲一次（英文）
 ```
 
-参数：`-Clip`（`bubble`、`marking`、`year`、`pet`、`all`），`-Language`（`en`、`zh-CN`、`ja`、`es`、`all`），
-`-OutDir`（默认 `docs/readme-images/gifs`），`-Scratch`（默认 `$env:TEMP\readme-gifs`，帧和中间文件都在这里，
-不进仓库）。ffmpeg 的路径来自 `config/paths.json` 的 `ffmpeg` 键。
+参数：`-Clip`（`word-bubble`、`year`、`pets`、`pet-still`、`all`），`-Language`（`en`、`zh-CN`、`ja`、`es`、`all`），
+`-OutDir`（默认 `docs/readme-images/gifs`），`-StillDir`（默认 `docs/readme-images`，截图写进 `<语言>/pet-ui.png`），
+`-Scratch`（默认 `$env:TEMP\readme-gifs`，帧和中间文件都在这里，不进仓库）。ffmpeg 的路径来自 `config/paths.json` 的 `ffmpeg` 键。
+
+片段一览：
+
+- `word-bubble`：词条的解释气泡，带词源与例句；悬停露出 Known 与 New，点 Known，徽标变化。每种语言一份。
+- `year`：一年记录，选中一天，打开色相盘，选一个色相，收起。每种语言一份。
+- `pets`：四只宠物各做一个动作，映射为 mochi=celebrate、cat=knead、dog=click_react（界面叫 “Poked”）、owl=study（界面叫 “Reading”）。
+  不含文字，只渲一次，写进 `gifs/pets/`，不复制进语言目录。
+- `pet-still`：扩展页的桌面宠物设置，宠物已开启，预览与动作、配饰都在画面里。每种语言一张，写进 `<语言>/pet-ui.png`。
 
 语言规则：
 
 - 输出到 `docs/readme-images/gifs/<语言目录>/`，每种语言一套，界面语言与解释语言都与目录一致。
-- 含解释的片段（`bubble`、`marking`）只在有缓存解释的语言下渲染。中文与英文来自 fixture 的 `panel` 条目：
-  缓存条目必须同时有 `en` 与 `zh` 两段文字才会被读取，英文缓存因此复用同一条 `panel`，两段都来自 fixture。
-  日语与西班牙语的释义写在 `test/qtest/surfaces/readme-glosses.json`，是 fixture 英文释义的译文，未经母语人士审校。
+- 解释类片段（`word-bubble`）只在有缓存解释的语言下渲染。缓存条目来自 `readme-glosses.json`：每种语言一段词源，
+  例句是一句共用的英文，两者都与 fixture 的 `panel` 条目合并；日语与西班牙语的译文未经母语人士审校。
   没有释义的语言会被跳过并打印，不编造解释。
-- 不含文字的片段（`pet`）只渲一次，复制到每个语言目录。
+- 设置副本同时开启词源与例句。缓存条目缺例句时会被当作未命中并重新请求（`explanation_duty.h`），所以两个字段都要写全。
+  运行时的日志里没有 `POST`，启动时的模型列表请求在离线下失败，属于预期。
 
 输出检查：宽 640 px，小于 2 MB，时长 3 到 6 秒。未通过的文件不写入输出目录，脚本以非零退出码结束。
 
@@ -285,8 +294,8 @@ powershell -File scripts/qa/readme-gifs.ps1 -Clip year -Language ja  # 只跑一
 
 1. 在 `tst_readme_gifs.qml` 里加一个 `test_<名字>Clip`。用例在第一帧之前把要操作的元素都找好，帧之间不做查找或等待，
    否则 GIF 里会停住。
-2. 在 `readme-gifs.ps1` 的 `$clips` 里登记：用例名、文件名、是否需要解释。新增一种含解释的语言时，在
-   `readme-glosses.json` 里加一条该语言的释义，脚本会自动生成缓存条目。
+2. 在 `readme-gifs.ps1` 的 `$clips`（或 `$pets`）里登记：用例名、文件名、是否需要解释。新增一种含解释的语言时，在
+   `readme-glosses.json` 的 `languages` 里加一条该语言的词源，脚本会自动生成缓存条目。
 3. 把文件名写进各语言 README 对应的位置。
 
 离屏的限制：
@@ -294,6 +303,8 @@ powershell -File scripts/qa/readme-gifs.ps1 -Clip year -Language ja  # 只跑一
 - `MultiEffect` 不会被栅格化，所以阴影以及依赖它的图标不出现在帧里。
 - 帧的底色取 README 的页面色 `#e9ebef`（把 Window 的清屏色设成它），否则四周是黑的。
 - 托盘、系统通知和真实桌面上的宠物窗口不在帧里。
+- 下拉列表是独立的窗口，截页时拍不进去，所以设置页截图里宠物类型列表保持收起，只显示当前选中的那一只。
+- 开关与滑块要读 `Window.window` 的色表，所以截图的卡片放在 `TokenHost` 这个有色表的窗口里，窗口大小按整页取。
 
 ## 6 记录
 

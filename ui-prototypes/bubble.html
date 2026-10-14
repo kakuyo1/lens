@@ -122,22 +122,22 @@ html[data-theme=liquid][data-refract] .bubble{backdrop-filter:blur(var(--glass-b
 const L = {
   en: { new: "New", known: "Known", meta: "Disappears in 5s",
         def: "the occurrence of events by chance in a happy or beneficial way",
-        etymLabel: "Etymology", exLabel: "Example",
+        etymLabel: "Etymology", exLabel: "Example", sentence: "Sentence",
         etym: "Coined in 1754 from Horace Walpole's tale of the three princes of Serendip.",
         themeDark: "Dark", themeLight: "Light", themeFrosted: "Frosted glass", themeLiquid: "Liquid glass" },
   zh: { new: "新词", known: "已会", meta: "5 秒后自动消失",
         def: "偶然遇到美好事物的运气；意外的幸运发现。",
-        etymLabel: "词源", exLabel: "例句",
+        etymLabel: "词源", exLabel: "例句", sentence: "句子",
         etym: "1754 年由霍勒斯·沃波尔在《塞伦迪普三王子》中首创。",
         themeDark: "静谧暗夜", themeLight: "晴朗白昼", themeFrosted: "雾面玻璃", themeLiquid: "流光玻璃" },
   ja: { new: "初見", known: "覚えた", meta: "5 秒後に消えます",
         def: "思いがけず素敵なものに出会う幸運。",
-        etymLabel: "語源", exLabel: "例文",
+        etymLabel: "語源", exLabel: "例文", sentence: "文",
         etym: "1754 年、ホレス・ウォルポールの『セレンディップの三人の王子』で作られた語。",
         themeDark: "ダーク", themeLight: "ライト", themeFrosted: "すりガラス", themeLiquid: "リキッドガラス" },
   es: { new: "Nueva", known: "Conocida", meta: "Desaparece en 5 s",
         def: "el hallazgo afortunado de algo bueno por casualidad.",
-        etymLabel: "Etimología", exLabel: "Ejemplo",
+        etymLabel: "Etimología", exLabel: "Ejemplo", sentence: "Oración",
         etym: "Acuñada en 1754 a partir del cuento de los tres príncipes de Serendip, de Horace Walpole.",
         themeDark: "Oscuro", themeLight: "Claro", themeFrosted: "Vidrio mate", themeLiquid: "Vidrio líquido" }
 };
@@ -208,6 +208,33 @@ function applyTheme(v) {
 const theme = ['dark', 'frosted', 'liquid'].includes(params.get('theme')) ? params.get('theme') : 'light';
 applyTheme(theme);
 if (BG[theme] && BG[theme].includes(params.get('bg'))) root.style.setProperty('--wall', 'url("' + theme + '-backdrops/' + params.get('bg') + '.png")');
+/// The kinds Bubble.qml draws besides a word (?kind=entity|sentence). An entity is a named thing: a title and
+/// a definition, no verdict, no origin or example. A sentence has its label where the title would be, and no
+/// verdict. Both samples are English whatever the interface language: the README's screenshots show the
+/// explanation in English, which is a setting of its own (explanationLang).
+const SAMPLE = {
+  entity: { title: 'Ada Lovelace', def: 'English mathematician who wrote the first algorithm intended for a machine.' },
+  // The proverb "Don't count your chickens before they hatch.", explained in English.
+  sentence: { def: 'Do not plan on a result that has not happened yet, since it may never come.' },
+};
+const kind = ['entity', 'sentence'].includes(params.get('kind')) ? params.get('kind') : 'word';
+if (kind !== 'word') {
+  document.querySelector('.bub-etym').remove();
+  document.querySelector('.bub-example').remove();
+  document.querySelector('.bub-actions').remove();
+  document.querySelector('.bub-def').textContent = SAMPLE[kind].def;
+}
+if (kind === 'entity') {
+  document.querySelector('.tag').remove();
+  document.querySelector('.ipa').remove();
+  document.querySelector('.bub-word').firstChild.textContent = SAMPLE.entity.title;
+}
+if (kind === 'sentence') {
+  const tag = document.querySelector('.tag');
+  tag.className = 'tag outline';
+  tag.textContent = t.sentence;
+  document.querySelector('.bub-word').remove();
+}
 const THEMES = ['light', 'dark', 'frosted', 'liquid'];
 tb.onclick = () => applyTheme(THEMES[(THEMES.indexOf(root.dataset.theme) + 1) % THEMES.length]);
 // ?shot is for the README's screenshots: the toggle is a way to look at the prototype, not part

@@ -1,10 +1,10 @@
 #!/bin/sh
 # The README's screenshots: one set per language, out of the prototypes the README points at.
 #
-# Four READMEs ship -- English, Chinese, Japanese and Spanish -- and each one shows the same four
-# surfaces. The images are screenshots of ui-prototypes/*.html, which take ?lang= the way they
-# take ?theme=, so the four sets differ only in what the surface says. Re-rendering them by hand
-# is what left the English README showing Chinese chrome; this is that rendering, written down.
+# Four READMEs ship -- English, Chinese, Japanese and Spanish -- and each one shows the same images.
+# The images are screenshots of ui-prototypes/*.html, which take ?lang= the way they take ?theme=, so
+# the four sets differ only in what the surface says. Re-rendering them by hand is what left the
+# English README showing Chinese chrome; this is that rendering, written down.
 #
 # The prototype is loaded through a one-page frame rather than directly. Headless Chrome clamps a
 # window to a floor near 500x100, so --window-size=340,200 lays the page out wider than the shot
@@ -20,9 +20,12 @@
 # variables Windows sets instead of in config/paths.json -- see config/README.md for why the one
 # file that may hold a machine path is not this one.
 #
+# pet-ui.png is not rendered here. The pet is shown as the running application draws it, so this
+# script leaves that image alone.
+#
 # Usage: scripts/qa/readme-shots.sh
-#   Rewrites docs/readme-images/<lang>/. One surface at a time:
-#   scripts/qa/readme-shots.sh words.html
+#   Rewrites docs/readme-images/<lang>/. A prototype's rows are all rendered when it is named:
+#   scripts/qa/readme-shots.sh bubble.html
 
 set -eu
 
@@ -47,14 +50,22 @@ if [ -z "$chrome" ]; then
     exit 1
 fi
 
-# surface:width:height -- the size each surface was drawn at, which is the size its image ships
-# at. Height is the panel's plus the padding around it that the prototype's own body carries.
-SIZES='bubble.html:340:290
-selection-bar.html:600:150
-settings.html:440:540
-words.html:380:500
-year-in-words.html:440:262
-pet.html:440:540'
+# name:surface:width:height:state:theme -- one image per row, written to docs/readme-images/<lang>/<name>.png.
+# The state is the one query key a surface is drawn in besides its default, empty for none. It goes
+# through the frame's x= passthrough, so it holds a single key and no ampersand. The theme is the
+# prototype's ?theme=. Every bubble image is the same size, so the cards line up in the README's
+# tables with each card centred in its frame.
+SHOTS='bubble-ui:bubble.html:340:330::light
+entity-ui:bubble.html:340:330:kind=entity:light
+sentence-ui:bubble.html:340:330:kind=sentence:light
+theme-light:bubble.html:340:330::light
+theme-dark:bubble.html:340:330::dark
+theme-frosted:bubble.html:340:330::frosted
+theme-liquid:bubble.html:340:330::liquid
+selection-bar-ui:selection-bar.html:600:150::light
+settings-ui:settings.html:440:540::light
+words-ui:words.html:380:500::light
+year-in-words-ui:year-in-words.html:440:430:palette=open:light'
 
 # The language directories, and the ?lang each one passes. Chinese is the prototypes' own text,
 # so it passes nothing.
@@ -89,28 +100,23 @@ const f = document.getElementById('f');
 const lang = q.get('lang');
 f.width = q.get('w'); f.height = q.get('h');
 f.src = 'file:///${win_root}/ui-prototypes/' + q.get('p')
-      + '?theme=light&shot=1' + (lang ? '&lang=' + lang : '') + (q.get('x') ? '&' + q.get('x') : '');
+      + '?theme=' + (q.get('theme') || 'light') + '&shot=1'
+      + (lang ? '&lang=' + lang : '') + (q.get('x') ? '&' + q.get('x') : '');
 </script></body></html>
 FRAME
 
 shot() {
-    surface=$1; lang_dir=$2; lang=$3; w=$4; h=$5
-    # A surface that is only worth looking at in one state takes it here: the pet's preview stage
-    # exists only while the pet is switched on, so its image is taken with ?on.
-    case $surface in
-        pet.html) extra='&x=on' ;;
-        *) extra= ;;
-    esac
-    out="docs/readme-images/$lang_dir/$(basename "$surface" .html)-ui.png"
+    name=$1; surface=$2; lang_dir=$3; lang=$4; w=$5; h=$6; state=$7; theme=$8
+    out="docs/readme-images/$lang_dir/$name.png"
     mkdir -p "$(dirname "$out")"
     # A profile of its own per run: Chrome keeps window geometry in one, and a shared directory
     # that another run still holds is a run that renders nothing. The output is named by its
     # absolute path because Chrome resolves a relative one against its own working directory,
     # which is not this one.
     "$chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
-        --user-data-dir="$tmp/profile-$lang_dir-$surface" \
+        --user-data-dir="$tmp/profile-$lang_dir-$name" \
         --window-size="$w,$h" --screenshot="$win_root/$out" \
-        "file:///$win_tmp/frame.html?p=$surface&w=$w&h=$h&lang=$lang$extra" \
+        "file:///$win_tmp/frame.html?p=$surface&w=$w&h=$h&lang=$lang&theme=$theme&x=$state" \
         >>"$tmp/chrome.log" 2>&1
     # Chrome exits 0 whether or not it wrote anything -- a page it could not load is still a
     # screenshot of a blank one -- so the file is what says the run happened. A silent empty
@@ -123,15 +129,17 @@ shot() {
     echo "  $out"
 }
 
+default_ifs=$IFS
 failed=0
-for row in $SIZES; do
-    surface=${row%%:*}
-    rest=${row#*:}
-    w=${rest%%:*}
-    h=${rest#*:}
+for row in $SHOTS; do
+    # The row's fields are split on the colons, which the default separators would not do.
+    IFS=:
+    set -- $row
+    IFS=$default_ifs
+    name=$1 surface=$2 w=$3 h=$4 state=$5 theme=$6
     [ -z "$wanted" ] || case " $wanted " in *" $surface "*) ;; *) continue ;; esac
     for pair in $LANGS; do
-        shot "$surface" "${pair%%:*}" "${pair#*:}" "$w" "$h"
+        shot "$name" "$surface" "${pair%%:*}" "${pair#*:}" "$w" "$h" "$state" "$theme"
     done
 done
 
