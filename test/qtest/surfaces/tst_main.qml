@@ -178,7 +178,7 @@ Item {
 
             main.showSettings();
             compare(settings.visible, true);
-            compare(stats.visible, false, "the statistics panel stayed up behind the settings panel");
+            tryVerify(function () { return !stats.visible; }, 1000, "the statistics panel stayed up behind the settings panel");
         }
 
         function test_selectionBarRequiresTheConfiguredLetterCount() {
@@ -221,19 +221,19 @@ Item {
 
             main.showCost();
             compare(cost.visible, true, "showCost() did not put the cost panel up");
-            compare(stats.visible, false);
+            tryCompare(stats, "visible", false);
 
             main.showWords();
             compare(words.visible, true, "showWords() did not put the words panel up");
-            compare(cost.visible, false);
+            tryCompare(cost, "visible", false);
 
             main.showYearWords();
             compare(yearWords.visible, true, "showYearWords() did not put the annual panel up");
-            compare(words.visible, false);
+            tryCompare(words, "visible", false);
 
             main.showTrayMenu();
             compare(menu.visible, true, "showTrayMenu() did not put the menu up");
-            compare(words.visible, false);
+            tryCompare(words, "visible", false);
             compare(menu.contentActive, true, "the menu's rows are built only once it is opened");
             compare(menu.listVisible, false, "the language list should start folded");
         }
@@ -261,6 +261,56 @@ Item {
             compare(stats.visible, true, "the words panel's back arrow did not return to statistics");
         }
 
+        /// A panel handed over to another fades out where it stands while the one opening fades in on the same corner,
+        /// so the card on screen never goes faint between them. Each card is found under its window, as elsewhere here.
+        function test_aHandedOverPanelFadesWhileTheNextOneFadesIn() {
+            const main = make();
+            const stats = panel(main, "StatsPopup");
+            const cost = panel(main, "CostPopup");
+            const cardOf = function (window) {
+                return Util.findAll(window.contentItem, function (item) {
+                    return typeof item.shown === "boolean" && typeof item.dragging === "boolean";
+                })[0];
+            };
+            const statsCard = cardOf(stats);
+            const costCard = cardOf(cost);
+
+            main.showStats();
+            tryCompare(statsCard, "opacity", 1);
+
+            stats.costRequested();
+            compare(stats.leaving, true);
+            compare(stats.visible, true, "the panel handed over went at once");
+            compare(cost.visible, true);
+
+            let faintest = 1;
+            let leavingFaded = 1;
+            for (let i = 0; i < 15; ++i) {
+                wait(16);
+                faintest = Math.min(faintest, Math.max(stats.visible ? statsCard.opacity : 0, cost.visible ? costCard.opacity : 0));
+                if (stats.visible)
+                    leavingFaded = Math.min(leavingFaded, statsCard.opacity);
+            }
+            verify(faintest >= 0.4, "the stack went faint during the hand-over: " + faintest);
+            verify(leavingFaded < 0.5, "the panel handed over did not fade: " + leavingFaded);
+            tryCompare(stats, "visible", false);
+        }
+
+        /// A panel taken back while it is still fading stays up: its fade reverses, and the window does not go.
+        function test_aPanelTakenBackMidFadeStaysUp() {
+            const main = make();
+            const stats = panel(main, "StatsPopup");
+            const cost = panel(main, "CostPopup");
+
+            main.showStats();
+            stats.costRequested();
+            cost.backRequested();
+            compare(stats.leaving, false);
+            wait(400);
+            compare(stats.visible, true, "the panel taken back mid-fade went away");
+            compare(cost.visible, false, "the panel that handed over stayed up");
+        }
+
         /// The tray menu's two entries are the same pair driven from the menu instead: the menu
         /// only asks, and this file decides where the panel goes.
         function test_theTrayMenuEntriesOpenThePanelsTheyName() {
@@ -276,7 +326,7 @@ Item {
             main.showTrayMenu();
             menu.settingsRequested();
             compare(settings.visible, true, "the Settings entry did not open the panel");
-            compare(stats.visible, false);
+            tryCompare(stats, "visible", false);
         }
 
         /// The tray icon's own gesture, which is the only way the menu opens in the product.

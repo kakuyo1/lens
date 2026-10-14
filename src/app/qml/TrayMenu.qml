@@ -23,6 +23,8 @@ Window {
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     color: "transparent"
     visible: false
+    /// Set by the panel that replaces this one: the card fades out in place, and the window goes when it has.
+    property bool leaving: false
 
     readonly property int shadowMargin: 26
     readonly property int padding: 6
@@ -162,10 +164,8 @@ Window {
                     source: "qrc:/icons/ui-stats.svg"
                     label: qsTr("Statistics")
                     note: menu.todayFigures
-                    onPicked: {
-                        menu.visible = false;
-                        menu.statsRequested();
-                    }
+                    // Not hidden here: the statistics panel that opens hands the menu over, and the menu fades out.
+                    onPicked: menu.statsRequested()
                 }
 
                 MenuRow {
@@ -190,10 +190,8 @@ Window {
                     width: parent.width
                     source: "qrc:/icons/ui-settings.svg"
                     label: qsTr("Settings")
-                    onPicked: {
-                        menu.visible = false;
-                        menu.settingsRequested();
-                    }
+                    // Not hidden here: the settings panel that opens hands the menu over, and the menu fades out.
+                    onPicked: menu.settingsRequested()
                 }
 
                 Rectangle {
@@ -239,7 +237,7 @@ Window {
             // it sits in is already visible and ShadowCard's own rule has nothing to animate.
             // The loader's own status is the flip instead: Loading while the card is being
             // built, Ready once it is done.
-            shown: languageList.status === Loader.Ready
+            shown: languageList.status === Loader.Ready && !menu.leaving
 
             GlassSurface {
                 anchors.fill: parent

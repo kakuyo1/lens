@@ -287,13 +287,22 @@ Window {
     }
 
     /**
-     * Take down every panel but the one being opened.
+     * Take down every panel but the one being opened. A panel that is up fades out where it stands while the one
+     * opening fades in beside it (ShadowCard), so the hand-over is a cross-fade. With the animations off there is
+     * nothing to fade, so the panel goes at once. The one being opened is taken back from a fade if it was leaving.
      */
     function hidePanels(except) {
         const panels = [trayMenu, settingsPopup, statsPopup, wordsPopup, yearWordsPopup, costPopup];
-        for (const panel of panels)
-            if (panel !== except)
+        for (const panel of panels) {
+            if (panel === except)
+                panel.leaving = false;
+            else if (!panel.visible)
+                continue;
+            else if (Tokens.motion.pop > 0)
+                panel.leaving = true;
+            else
                 panel.visible = false;
+        }
     }
 
     /// The stack's panels take the place of one another, so each one opens from the panel it replaces.

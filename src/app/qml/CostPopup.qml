@@ -22,6 +22,8 @@ Window {
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     color: "transparent"
     visible: false
+    /// Set by the panel that replaces this one: the card fades out in place, and the window goes when it has.
+    property bool leaving: false
 
     readonly property int shadowMargin: 26
     readonly property int cardWidth: 280
