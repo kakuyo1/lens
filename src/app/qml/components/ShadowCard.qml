@@ -57,12 +57,13 @@ Item {
     // A window that is leaving goes once the fade has run its course. Timed rather than taken from the animation's
     // finish, because a fade that starts already at its end (a card leaving before it has faded in) never finishes:
     // its window would then stay up, transparent and taking input. A card taken back before the time is up stops it.
+    // Only a window that declares `leaving` can be leaving; the others read undefined, and the double negation keeps it a bool.
     Timer {
         interval: root.tokens.motion.pop
         // qmllint disable missing-property
-        running: root.Window.window ? root.Window.window.leaving : false
+        running: !!(root.Window.window && root.Window.window.leaving)
         onTriggered: {
-            if (root.Window.window.leaving)
+            if (root.Window.window && root.Window.window.leaving)
                 root.Window.window.visible = false;
         }
         // qmllint enable missing-property
