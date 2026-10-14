@@ -95,13 +95,10 @@ button{font:inherit;color:inherit}
 .swatch:hover,.swatch[aria-pressed=true]{outline:1px solid var(--text);outline-offset:1px}
 .theme{position:fixed;top:12px;right:14px;padding:5px 10px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--muted);font-size:11px;cursor:pointer}
 .theme:hover{color:var(--text)}
-.palette{margin-top:11px;padding-top:10px;border-top:1px solid var(--line2);opacity:0;transform:translateY(-5px);transition:opacity .18s ease,transform .18s ease}
-.palette.open{opacity:1;transform:none}
-.palette-head{display:flex;align-items:center;font-size:11px;font-weight:700}
-.palette-head small{margin-left:6px;color:var(--faint);font-size:9px;font-weight:400}
-.palette-close{margin-left:auto;width:21px;height:21px;border:0;border-radius:6px;background:transparent;color:var(--faint);cursor:pointer}
-.palette-close:hover{background:var(--panel2);color:var(--text)}
-.palette-close svg{width:13px;height:13px;vertical-align:-2px}
+.palette{margin-top:11px;padding-top:10px;border-top:1px solid var(--line2);max-height:0;overflow:hidden;opacity:0;transition:max-height .18s ease,opacity .18s ease,padding-top .18s ease,border-color .18s ease}
+.palette.open{max-height:200px;opacity:1}
+.palette:not(.open){padding-top:0;border-top-color:transparent}
+.palette-head{font-size:11px;font-weight:700}
 .palette-body{display:flex;align-items:center;gap:13px;margin-top:9px}
 .hue-wheel{position:relative;width:124px;height:124px;flex:none;animation:hue-wheel-in .28s cubic-bezier(.2,.8,.2,1)}
 .hue-wheel::before{content:"";position:absolute;inset:12px;border-radius:50%;background:conic-gradient(#ef4444 0deg 30deg,#f97316 30deg 60deg,#eab308 60deg 90deg,#84cc16 90deg 120deg,#22c55e 120deg 150deg,#14b8a6 150deg 180deg,#06b6d4 180deg 210deg,#3b82f6 210deg 240deg,#6366f1 240deg 270deg,#8b5cf6 270deg 300deg,#d946ef 300deg 330deg,#ec4899 330deg 360deg);box-shadow:inset 0 0 0 1px rgba(255,255,255,.24)}
@@ -109,11 +106,11 @@ button{font:inherit;color:inherit}
 .hue-core{position:absolute;z-index:1;inset:43px;display:grid;place-items:center;border-radius:50%;background:var(--panel2);color:var(--muted);font-size:9px;pointer-events:none}
 .hue{position:absolute;z-index:2;left:50%;top:50%;width:21px;height:21px;border:2px solid var(--panel);border-radius:50%;background:hsl(var(--hue-value) 70% 52%);box-shadow:0 1px 3px rgba(20,20,26,.24);cursor:pointer;transform:translate(-50%,-50%) rotate(var(--angle)) translateY(-51px) rotate(calc(var(--angle) * -1));transition:transform .15s ease,box-shadow .15s ease}
 .hue:hover,.hue[aria-pressed=true]{box-shadow:0 0 0 2px var(--text),0 2px 4px rgba(20,20,26,.26);transform:translate(-50%,-50%) rotate(var(--angle)) translateY(-51px) rotate(calc(var(--angle) * -1)) scale(1.12)}
-.shade-panel{min-width:0;flex:1}
-.shade-title{font-size:10px;color:var(--muted);margin-bottom:7px}
-.shades{display:flex;gap:5px}
-.shade{display:flex;flex:1;flex-direction:column;gap:4px;align-items:center;color:var(--faint);font-size:8px}
-.shade i{display:block;width:100%;height:18px;border-radius:3px;background:hsl(var(--palette-hue) 58% 84%)}
+.shade-panel{min-width:0;flex:1;align-self:stretch;position:relative}
+.shades{position:absolute;inset:0;display:flex;gap:5px}
+.shade{position:relative;flex:1;height:100%;color:var(--faint);font-size:8px}
+.shade i{position:absolute;left:0;right:0;top:50%;margin-top:-9px;height:18px;border-radius:3px;background:hsl(var(--palette-hue) 58% 84%)}
+.shade>span{position:absolute;left:0;right:0;top:calc(50% + 13px);text-align:center}
 .shade:nth-child(2) i{background:hsl(var(--palette-hue) 60% 64%)}
 .shade:nth-child(3) i{background:hsl(var(--palette-hue) 64% 46%)}
 .shade:nth-child(4) i{background:hsl(var(--palette-hue) 68% 30%)}
@@ -121,8 +118,7 @@ html[data-theme=dark] .shade:nth-child(1) i{background:hsl(var(--palette-hue) 58
 html[data-theme=dark] .shade:nth-child(2) i{background:hsl(var(--palette-hue) 60% 40%)}
 html[data-theme=dark] .shade:nth-child(3) i{background:hsl(var(--palette-hue) 64% 51%)}
 html[data-theme=dark] .shade:nth-child(4) i{background:hsl(var(--palette-hue) 68% 63%)}
-.palette-note{margin-top:9px;color:var(--faint);font-size:9px;line-height:1.35}
-.icon:focus-visible,.day:focus-visible,.year:focus-visible,.swatch:focus-visible,.hue:focus-visible,.palette-close:focus-visible,.theme:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
+.icon:focus-visible,.day:focus-visible,.year:focus-visible,.swatch:focus-visible,.hue:focus-visible,.theme:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
 @keyframes hue-wheel-in{from{opacity:0;transform:scale(.72) rotate(-22deg)}to{opacity:1;transform:none}}
 @media(max-width:410px){body{padding-inline:10px}.panel{padding-inline:13px}.palette-body{gap:9px}.hue-wheel{width:116px;height:116px}.hue{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(-47px) rotate(calc(var(--angle) * -1))}.hue:hover,.hue[aria-pressed=true]{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(-47px) rotate(calc(var(--angle) * -1)) scale(1.12)}}
 @media(prefers-reduced-motion:reduce){.palette{transition:none}.hue-wheel{animation:none}.hue{transition:none}}
@@ -149,10 +145,10 @@ html[data-theme=dark] .shade:nth-child(4) i{background:hsl(var(--palette-hue) 68
     <div class="legend" aria-label="颜色图例"><span data-l="less"></span><button class="swatch" type="button" data-level="0" aria-label="无记录，打开配色选择"></button><button class="swatch" type="button" data-level="1" aria-label="第 1 档，打开配色选择"></button><button class="swatch" type="button" data-level="2" aria-label="第 2 档，打开配色选择"></button><button class="swatch" type="button" data-level="3" aria-label="第 3 档，打开配色选择"></button><button class="swatch" type="button" data-level="4" aria-label="第 4 档，打开配色选择"></button><span data-l="more"></span></div>
   </div>
   <section class="palette" id="palette" hidden aria-label="选择年度记录配色">
-    <header class="palette-head"><span data-l="cellColors"></span><small id="paletteHint"></small><button class="palette-close" id="paletteClose" type="button" aria-label="关闭配色选择"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header>
+    <header class="palette-head"><span data-l="cellColors"></span></header>
     <div class="palette-body">
       <div class="hue-wheel" id="hueWheel" aria-label="12 色相环"><span class="hue-core" id="hueCore">绿</span></div>
-      <div class="shade-panel"><div class="shade-title" id="shadeTitle"></div><div class="shades"><span class="shade"><i></i><span data-l="shadeLight"></span></span><span class="shade"><i></i><span>1</span></span><span class="shade"><i></i><span>2</span></span><span class="shade"><i></i><span data-l="shadeDark"></span></span></div><p class="palette-note" data-l="paletteNote"></p></div>
+      <div class="shade-panel"><div class="shades"><span class="shade"><i></i><span data-l="shadeLight"></span></span><span class="shade"><i></i><span>1</span></span><span class="shade"><i></i><span>2</span></span><span class="shade"><i></i><span data-l="shadeDark"></span></span></div></div>
     </div>
   </section>
 </section>
@@ -162,23 +158,19 @@ html[data-theme=dark] .shade:nth-child(4) i{background:hsl(var(--palette-hue) 68
 /// context YearWordsPopup). Month names are not in that table, so they are the locale's short forms.
 const L = {
   zh: { title: "单词年度记录", mon: "一", wed: "三", fri: "五", less: "少", more: "多", cellColors: "格子配色",
-        wordsFmt: "%1 词", lookupsFmt: "%1：查阅 %2 次", cellAria: "%1，%2 词", hueTitle: "%1 色相 · 4 档深浅",
-        shadeLight: "浅", shadeDark: "深", paletteNote: "选择色相，替换 4 档活跃色。", themeDark: "静谧暗夜", themeLight: "晴朗白昼", themeFrosted: "雾面玻璃", themeLiquid: "流光玻璃",
+        wordsFmt: "%1 词", lookupsFmt: "%1：查阅 %2 次", cellAria: "%1，%2 词",        shadeLight: "浅", shadeDark: "深", themeDark: "静谧暗夜", themeLight: "晴朗白昼", themeFrosted: "雾面玻璃", themeLiquid: "流光玻璃",
         months: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
         hueNames: ['红','橙','黄','黄绿','绿','青绿','青','蓝','靛','紫','洋红','玫红'] },
   en: { title: "Year in words", mon: "Mon", wed: "Wed", fri: "Fri", less: "Less", more: "More", cellColors: "Cell colors",
-        wordsFmt: "%1 words", lookupsFmt: "%1: %2 lookups", cellAria: "%1, %2 words", hueTitle: "%1 hue · 4 shades",
-        shadeLight: "Light", shadeDark: "Dark", paletteNote: "Select a hue to replace the four active levels.", themeDark: "Dark", themeLight: "Light", themeFrosted: "Frosted glass", themeLiquid: "Liquid glass",
+        wordsFmt: "%1 words", lookupsFmt: "%1: %2 lookups", cellAria: "%1, %2 words",        shadeLight: "Light", shadeDark: "Dark", themeDark: "Dark", themeLight: "Light", themeFrosted: "Frosted glass", themeLiquid: "Liquid glass",
         months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
         hueNames: ['Red','Orange','Yellow','Yellow green','Green','Teal','Cyan','Blue','Indigo','Violet','Magenta','Rose'] },
   ja: { title: "単語の年間記録", mon: "月", wed: "水", fri: "金", less: "少", more: "多", cellColors: "セルの色",
-        wordsFmt: "%1 語", lookupsFmt: "%1：%2 回の検索", cellAria: "%1、%2 語", hueTitle: "%1 色相 · 4 段階",
-        shadeLight: "淡", shadeDark: "濃", paletteNote: "色相を選択して、4 段階の色を置き換えます。", themeDark: "ダーク", themeLight: "ライト", themeFrosted: "すりガラス", themeLiquid: "リキッドガラス",
+        wordsFmt: "%1 語", lookupsFmt: "%1：%2 回の検索", cellAria: "%1、%2 語",        shadeLight: "淡", shadeDark: "濃", themeDark: "ダーク", themeLight: "ライト", themeFrosted: "すりガラス", themeLiquid: "リキッドガラス",
         months: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
         hueNames: ['赤','オレンジ','黄','黄緑','緑','青緑','シアン','青','藍','紫','マゼンタ','ローズ'] },
   es: { title: "Año en palabras", mon: "Lun", wed: "Mié", fri: "Vie", less: "Menos", more: "Más", cellColors: "Colores de las celdas",
-        wordsFmt: "%1 palabras", lookupsFmt: "%1: %2 consultas", cellAria: "%1, %2 palabras", hueTitle: "Tono %1 · 4 intensidades",
-        shadeLight: "Claro", shadeDark: "Oscuro", paletteNote: "Elige un tono para reemplazar los cuatro niveles activos.", themeDark: "Oscuro", themeLight: "Claro", themeFrosted: "Vidrio mate", themeLiquid: "Vidrio líquido",
+        wordsFmt: "%1 palabras", lookupsFmt: "%1: %2 consultas", cellAria: "%1, %2 palabras",        shadeLight: "Claro", shadeDark: "Oscuro", themeDark: "Oscuro", themeLight: "Claro", themeFrosted: "Vidrio mate", themeLiquid: "Vidrio líquido",
         months: ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'],
         hueNames: ['Rojo','Naranja','Amarillo','Amarillo verdoso','Verde','Verde azulado','Cian','Azul','Índigo','Violeta','Magenta','Rosa'] }
 };
@@ -201,13 +193,13 @@ const grid=document.getElementById('grid');grid.style.gridTemplateColumns=`repea
 function choose(date,count){document.querySelectorAll('.day').forEach(day=>day.setAttribute('aria-pressed',String(day.dataset.date===key(date))));document.getElementById('dayDetail').textContent=t.lookupsFmt.replace('%1',key(date)).replace('%2',count)}
 for(let week=0;week<weekCount;week++)for(let weekday=0;weekday<7;weekday++){const index=week*7+weekday-offset;const date=index>=0&&index<days.length?days[index]:null;if(!date){const blank=document.createElement('i');blank.className='day';blank.style.visibility='hidden';grid.append(blank);continue}const count=counts.get(key(date));const button=document.createElement('button');button.type='button';button.className='day';button.dataset.date=key(date);button.dataset.level=level(count);button.setAttribute('aria-pressed','false');button.setAttribute('aria-label',t.cellAria.replace('%1',key(date)).replace('%2',count));button.title=t.cellAria.replace('%1',key(date)).replace('%2',count);button.addEventListener('click',()=>choose(date,count));grid.append(button)}
 choose(new Date(year,9,7),counts.get(key(new Date(year,9,7))));
-const root=document.documentElement;const palette=document.getElementById('palette');const panel=document.getElementById('panel');const hueWheel=document.getElementById('hueWheel');const hueCore=document.getElementById('hueCore');const paletteHint=document.getElementById('paletteHint');const shadeTitle=document.getElementById('shadeTitle');let selectedHue=4;
+const root=document.documentElement;const palette=document.getElementById('palette');const panel=document.getElementById('panel');const hueWheel=document.getElementById('hueWheel');const hueCore=document.getElementById('hueCore');let selectedHue=4;
 hues.forEach(([name,hue],index)=>{const button=document.createElement('button');button.type='button';button.className='hue';button.style.setProperty('--hue-value',hue);button.style.setProperty('--angle',`${index*30}deg`);button.dataset.index=index;button.setAttribute('aria-label',name);button.setAttribute('aria-pressed',String(index===selectedHue));button.addEventListener('click',()=>applyHue(index));hueWheel.append(button)});
-function applyHue(index){selectedHue=index;const [name,hue]=hues[index];root.style.setProperty('--hue',hue);root.style.setProperty('--palette-hue',hue);hueCore.textContent=name;paletteHint.textContent=name;shadeTitle.textContent=t.hueTitle.replace('%1',name);document.querySelectorAll('.hue').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.index)===index)))}
+function applyHue(index){selectedHue=index;const [name,hue]=hues[index];root.style.setProperty('--hue',hue);root.style.setProperty('--palette-hue',hue);hueCore.textContent=name;document.querySelectorAll('.hue').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.index)===index)))}
 function openPalette(){palette.hidden=false;panel.classList.add('palette-open');sizeRefract(panel,'lg-liquid','lg-map');requestAnimationFrame(()=>palette.classList.add('open'));document.querySelector('.swatch[aria-pressed=true]')?.focus()}
 function closePalette(){palette.classList.remove('open');panel.classList.remove('palette-open');setTimeout(()=>{if(!palette.classList.contains('open')){palette.hidden=true;sizeRefract(panel,'lg-liquid','lg-map')}},180)}
-document.querySelectorAll('.swatch').forEach(swatch=>swatch.addEventListener('click',()=>{document.querySelectorAll('.swatch').forEach(item=>item.setAttribute('aria-pressed',String(item===swatch)));openPalette()}));
-document.getElementById('paletteClose').addEventListener('click',closePalette);document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!palette.hidden)closePalette()});
+document.querySelectorAll('.swatch').forEach(swatch=>swatch.addEventListener('click',()=>{const shut=!palette.hidden&&swatch.getAttribute('aria-pressed')==='true';document.querySelectorAll('.swatch').forEach(item=>item.setAttribute('aria-pressed',String(item===swatch)));shut?closePalette():openPalette()}));
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!palette.hidden)closePalette()});
 applyHue(selectedHue);
 /// 折射能力探测：不支持 url() 形式 backdrop-filter 的浏览器会丢掉这条声明，读回空串。此时液体玻璃退回 CSS 的模糊与高光。
 const refractOK = (() => { const p = document.createElement("div"); p.style.backdropFilter = "url(#lg-liquid)"; return p.style.backdropFilter !== ""; })();

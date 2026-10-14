@@ -49,6 +49,16 @@ Window {
     readonly property var selectedDay: year.days.find(function (day) { return day.date === year.selectedDate; }) || null
     readonly property bool paletteReady: paletteLoader.status === Loader.Ready
 
+    /// How far the palette has unrolled, 0 shut and 1 open. The card grows and shrinks with it, and the
+    /// graph above rides along with the top edge, so opening the palette glides rather than jumping.
+    property real paletteProgress: paletteOpen ? 1 : 0
+    Behavior on paletteProgress {
+        NumberAnimation {
+            duration: year.tokens.motion.pop
+            easing.type: year.tokens.motion.easing
+        }
+    }
+
     width: cardWidth + 2 * shadowMargin
     height: column.implicitHeight + 34 + 2 * shadowMargin
 
@@ -90,6 +100,15 @@ Window {
     function openPalette(level) {
         selectedLevel = level;
         paletteOpen = true;
+    }
+
+    /// A legend cell opens the palette at its level, and the level that is already open shuts it again:
+    /// the palette has no close button of its own, the card's title row has the one close.
+    function toggleLevel(level) {
+        if (paletteOpen && selectedLevel === level)
+            closePalette();
+        else
+            openPalette(level);
     }
 
     function closePalette() {
@@ -305,7 +324,7 @@ Window {
                             border.color: year.tokens.text
                             Accessible.role: Accessible.Button
                             Accessible.name: legendCell.index === 0 ? qsTr("No words, choose color") : qsTr("Level %1, choose color").arg(legendCell.index)
-                            TapHandler { onTapped: year.openPalette(legendCell.index) }
+                            TapHandler { onTapped: year.toggleLevel(legendCell.index) }
                         }
                     }
                     Text { text: qsTr("More"); color: year.tokens.faint; font.pixelSize: 8 }
@@ -315,8 +334,10 @@ Window {
             Loader {
                 id: paletteLoader
                 width: parent.width
-                active: year.paletteOpen
-                height: active ? implicitHeight : 0
+                // Live while it unrolls and while it rolls back up, so the close animates as well as the open.
+                active: year.paletteOpen || year.paletteProgress > 0
+                height: year.paletteProgress * implicitHeight
+                clip: true
                 sourceComponent: paletteComponent
             }
         }
@@ -332,62 +353,31 @@ Window {
         id: paletteComponent
 
         Item {
-            implicitHeight: 166
+            implicitHeight: paletteBody.y + paletteBody.height
             width: year.cardWidth - 40
 
+            // The rule and the title sit inside the palette, not in the column, so they unroll with it.
             Rectangle {
-                anchors.top: parent.top
+                y: 10
                 width: parent.width
                 height: 1
                 color: year.tokens.line2
             }
 
-            Item {
-                id: paletteHeader
-                objectName: "yearPaletteHeader"
-                width: parent.width
-                height: 24
-
-                Row {
-                    anchors.left: parent.left
-                    anchors.right: closePalette.left
-                    anchors.rightMargin: 8
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: 8
-
-                    Text {
-                        objectName: "yearPaletteTitle"
-                        text: qsTr("Cell colors")
-                        color: year.tokens.text
-                        font.pixelSize: 11
-                        font.weight: Font.Bold
-                    }
-                    Text {
-                        objectName: "yearPaletteHueName"
-                        text: qsTr("%1 hue · 4 shades").arg(year.hues[year.hueIndex].name)
-                        color: year.tokens.faint
-                        font.pixelSize: 9
-                        elide: Text.ElideRight
-                    }
-                }
-
-                Icon {
-                    id: closePalette
-                    objectName: "yearPaletteClose"
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    source: "qrc:/icons/ui-close.svg"
-                    color: year.tokens.faint
-                    HoverHandler { cursorShape: Qt.PointingHandCursor }
-                    TapHandler { onTapped: year.closePalette() }
-                }
+            Text {
+                objectName: "yearPaletteTitle"
+                y: 20
+                text: qsTr("Cell colors")
+                color: year.tokens.text
+                font.pixelSize: 11
+                font.weight: Font.Bold
             }
 
-            Row {
+            Item {
                 id: paletteBody
-                y: paletteHeader.height + 8
+                y: 40
                 width: parent.width
-                spacing: 12
+                height: wheel.height
 
                 Item {
                     id: wheel
@@ -460,54 +450,43 @@ Window {
                     }
                 }
 
-                Column {
+                Row {
+                    id: shades
                     objectName: "yearShadeColumn"
-                    width: paletteBody.width - wheel.width - paletteBody.spacing
-                    spacing: 8
+                    x: wheel.width + 12
+                    width: paletteBody.width - x
+                    height: paletteBody.height
+                    spacing: 4
 
-                    Text {
-                        text: qsTr("Four activity levels")
-                        color: year.tokens.muted
-                        font.pixelSize: 10
-                    }
+                    Repeater {
+                        model: 4
+                        delegate: Item {
+                            id: shadeCell
+                            required property int index
+                            width: (shades.width - 3 * shades.spacing) / 4
+                            height: paletteBody.height
 
-                    Row {
-                        width: parent.width
-                        spacing: 4
-
-                        Repeater {
-                            model: 4
-                            delegate: Column {
-                                id: shadeCell
-                                required property int index
-                                width: (parent.width - 12) / 4
-                                spacing: 4
-
-                                Rectangle {
-                                    width: parent.width
-                                    height: 18
-                                    radius: 3
-                                    color: year.cellColor(shadeCell.index + 1)
-                                    border.width: year.selectedLevel === shadeCell.index + 1 ? 1 : 0
-                                    border.color: year.tokens.text
-                                }
-                                Text {
-                                    width: parent.width
-                                    text: shadeCell.index === 0 ? qsTr("Light") : shadeCell.index === 3 ? qsTr("Dark") : String(shadeCell.index + 1)
-                                    color: year.tokens.faint
-                                    font.pixelSize: 8
-                                    horizontalAlignment: Text.AlignHCenter
-                                }
+                            // The swatch is centred on the wheel's horizontal midline; its caption hangs below it.
+                            Rectangle {
+                                id: swatch
+                                objectName: "yearShadeSwatch"
+                                y: (shadeCell.height - height) / 2
+                                width: parent.width
+                                height: 18
+                                radius: 3
+                                color: year.cellColor(shadeCell.index + 1)
+                                border.width: year.selectedLevel === shadeCell.index + 1 ? 1 : 0
+                                border.color: year.tokens.text
+                            }
+                            Text {
+                                y: swatch.y + swatch.height + 4
+                                width: parent.width
+                                text: shadeCell.index === 0 ? qsTr("Light") : shadeCell.index === 3 ? qsTr("Dark") : String(shadeCell.index + 1)
+                                color: year.tokens.faint
+                                font.pixelSize: 8
+                                horizontalAlignment: Text.AlignHCenter
                             }
                         }
-                    }
-
-                    Text {
-                        width: parent.width
-                        text: qsTr("Select a hue to replace the four active levels.")
-                        color: year.tokens.faint
-                        font.pixelSize: 9
-                        wrapMode: Text.WordWrap
                     }
                 }
             }

@@ -254,15 +254,14 @@ Item {
             const hue = visualFind(wheel, function (item) {
                 return typeof item.angle === "number" && typeof item.hue === "number" && item.index === 7;
             });
-            const close = visualFind(popup.contentItem, function (item) { return item.objectName === "yearPaletteClose"; });
             verify(wheel, "the palette did not open");
             verify(hue, "no blue hue cell");
-            verify(close, "no palette close button");
 
             mouseClick(hue, hue.width / 2, hue.height / 2);
             sample(sink, popup.contentItem, 900);
 
-            mouseClick(close, close.width / 2, close.height / 2);
+            // The open level's own legend cell shuts the palette; the palette has no close button.
+            mouseClick(swatch, swatch.width / 2, swatch.height / 2);
             sample(sink, popup.contentItem, 900);
 
             compare(popup.selectedDate, day.date);

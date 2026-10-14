@@ -199,16 +199,18 @@ Item {
             tryCompare(popup, "paletteReady", true);
             compare(popup.selectedLevel, 3);
 
-            const wheel = Util.findAll(popup, function (item) { return item.objectName === "yearHueWheel"; })[0];
-            const shades = Util.findAll(popup, function (item) { return item.objectName === "yearShadeColumn"; })[0];
-            const title = Util.findAll(popup, function (item) { return item.objectName === "yearPaletteTitle"; })[0];
-            const hueName = Util.findAll(popup, function (item) { return item.objectName === "yearPaletteHueName"; })[0];
-            const close = Util.findAll(popup, function (item) { return item.objectName === "yearPaletteClose"; })[0];
-            const header = Util.findAll(popup, function (item) { return item.objectName === "yearPaletteHeader"; })[0];
-            verify(wheel && shades && title && hueName && close && header);
+            const named = function (name) { return Util.findAll(popup, function (item) { return item.objectName === name; })[0]; };
+            const wheel = named("yearHueWheel");
+            const shades = named("yearShadeColumn");
+            const title = named("yearPaletteTitle");
+            const swatch = named("yearShadeSwatch");
+            verify(wheel && shades && title && swatch);
             verify(wheel.x + wheel.width <= shades.x);
-            verify(title.x + title.width < hueName.x);
-            verify(hueName.mapToItem(header, hueName.width, 0).x <= close.x);
+            // The four levels sit on the wheel's horizontal midline.
+            compare(Math.round(swatch.mapToItem(null, 0, swatch.height / 2).y),
+                    Math.round(wheel.mapToItem(null, 0, wheel.height / 2).y));
+            // One close in the card, the title row's.
+            compare(Util.findAll(popup, function (item) { return item.toString().indexOf("QQuickImage") === 0 && String(item.source).indexOf("ui-close") >= 0; }).length, 1);
 
             const green = popup.cellColor(1);
             popup.selectHue(7);
@@ -224,6 +226,12 @@ Item {
             popup.closePalette();
             tryCompare(popup, "paletteOpen", false);
             tryCompare(popup, "height", compactHeight);
+
+            // The open level shuts the palette again; it has no close button.
+            popup.toggleLevel(4);
+            tryCompare(popup, "paletteOpen", true);
+            popup.toggleLevel(4);
+            tryCompare(popup, "paletteOpen", false);
 
             if (lensQaSnapshotDir) {
                 const wasTheme = Tokens.theme;
