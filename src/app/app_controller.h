@@ -32,6 +32,7 @@
 #include "model_catalog_duty.h"
 #include "mouse_selection_hook.h"
 #include "storage_duty.h"
+#include "sync_duty.h"
 #include "update_duty.h"
 
 class QQmlEngine;
@@ -157,6 +158,8 @@ public:
     QVariantMap  cost() const;
     /// @brief The update duty, which QML reads as `Controller.updateDuty`; the facade owns it.
     UpdateDuty* updateDuty();
+    /// @brief The sync duty, which QML reads as `Controller.syncDuty`; the facade owns it.
+    SyncDuty* syncDuty();
     /// @brief The explanation duty, which QML reads as `Controller.explanationDuty`; the facade owns it.
     ExplanationDuty* explanationDuty();
     /// @brief The capture duty, which QML reads as `Controller.captureDuty`; the facade owns it.
@@ -177,6 +180,7 @@ public:
     Q_PROPERTY(QVariantList yearDays READ yearDays NOTIFY yearDaysChanged)
     Q_PROPERTY(QVariantMap cost READ cost NOTIFY statsChanged)
     Q_PROPERTY(lens::app::UpdateDuty* updateDuty READ updateDuty CONSTANT)
+    Q_PROPERTY(lens::app::SyncDuty* syncDuty READ syncDuty CONSTANT)
     Q_PROPERTY(lens::app::ExplanationDuty* explanationDuty READ explanationDuty CONSTANT)
     Q_PROPERTY(lens::app::CaptureDuty* captureDuty READ captureDuty CONSTANT)
     Q_PROPERTY(lens::app::GlassBackdrop* glassBackdrop READ glassBackdrop CONSTANT)
@@ -221,6 +225,7 @@ private:
     update::UpdateClient   updateClient_;
     update::DownloadClient updateDownloader_;
     UpdateDuty             updateDuty_;
+    SyncDuty               sync_;
     llm::LlmClient&        llm_;
     GlobalHotkey&          hotkey_;
     QTimer                 gateTimer_;

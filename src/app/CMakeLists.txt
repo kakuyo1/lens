@@ -34,6 +34,10 @@ add_library(lens_app STATIC
   system_motion.cpp
   update_duty.h
   update_duty.cpp
+  sync_duty.h
+  sync_duty.cpp
+  sync_state.h
+  sync_state.cpp
   app_controller.cpp
   autostart.cpp
   tray.cpp
@@ -58,7 +62,7 @@ target_include_directories(lens_app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pet)
 # Quick is public because the QML module below backs this library, and anything linking it is
 # linking the module: that now includes lens_gtest_integration, which used to need no QML.
 target_link_libraries(lens_app
-  PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Quick lens_llm lens_update
+  PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Quick lens_llm lens_update lens_sync
   PRIVATE lens_core lens_util lens_capture
 )
 
@@ -170,6 +174,7 @@ qt_add_qml_module(lens_app
     qml/SettingsExtensionsPage.qml
     qml/SettingsClipboardPage.qml
     qml/SettingsConnectionPage.qml
+    qml/SettingsSyncPage.qml
      qml/StatsPopup.qml
      qml/WordsPopup.qml
      qml/YearWordsPopup.qml

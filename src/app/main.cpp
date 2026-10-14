@@ -276,6 +276,7 @@ int main(int argc, char* argv[])
     // local date at most: the duty writes the date when the check starts, so a machine that
     // cannot reach the source does not retry on every launch.
     controller.checkForUpdatesAtStartup();
+    controller.syncDuty()->startAtLaunch();
 
 #if defined(QT_QML_DEBUG)
     const QByteArray profileScenario = qgetenv("LENS_QML_PROFILE_SCENARIO");

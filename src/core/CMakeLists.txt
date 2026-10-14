@@ -4,6 +4,8 @@ add_library(lens_core STATIC
   known_store.cpp
   settings_section.cpp
   stats_store.cpp
+  sync_merge.cpp
+  vault.cpp
   pet/pet_state.cpp
   pet/pet_config.cpp
   pet/accessory.cpp
@@ -17,6 +19,9 @@ target_include_directories(lens_core PUBLIC
 
 # lens_util is PUBLIC: it carries util/log.h and spdlog, which every consumer of lens_core uses.
 target_link_libraries(lens_core PUBLIC lens_util)
+
+# vault.cpp calls the Windows CNG provider. PRIVATE: vault.h names no BCrypt type, so consumers do not need it.
+target_link_libraries(lens_core PRIVATE bcrypt)
 
 # Profiling (core/profile.h) is off unless the build asks for it. PUBLIC, not PRIVATE: the
 # macro decides whether a call site emits a sample, so lens_core and its callers must agree

@@ -6,6 +6,7 @@
 #include "core/known_store.h"
 #include "util/log.h"
 
+#include <chrono>
 #include <fstream>
 #include <stdexcept>
 
@@ -13,6 +14,29 @@ namespace lens::core {
 namespace {
 
 constexpr int kDefaultLevel = 2; ///< CET-4.
+
+/// @return The current time in ms since the epoch, the unit every mark time is kept in.
+long long nowMs()
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
+        .count();
+}
+
+/// @return A stored time, or 0 when the node is absent or not an integer.
+long long timeOf(nlohmann::json const& node)
+{
+    return node.is_number_integer() ? node.get<long long>() : 0LL;
+}
+
+/// @return Every time in one "markTimes" object, keyed by lemma.
+std::unordered_map<std::string, long long> readTimes(nlohmann::json const& times)
+{
+    std::unordered_map<std::string, long long> out;
+    if (not times.is_object()) return out;
+    for (auto it = times.begin(); it != times.end(); ++it)
+        out[it.key()] = timeOf(it.value());
+    return out;
+}
 /// Order is defined in UI.md 4.4: B1-B2 / C1-C2 / CET-4 / CET-6 / TEM-4 / TEM-8 / IELTS / TOEFL.
 constexpr int kMaxLevel = 7;
 /// Separator between language and lemma in a cache key. Cannot occur inside either.
@@ -133,6 +157,10 @@ KnownStore KnownStore::load(std::filesystem::path path)
             if (learned) store.known_.insert(it.key());
         }
     }
+    if (doc.contains("markTimes") && doc["markTimes"].is_object()) {
+        store.markedAt_  = readTimes(doc["markTimes"].value("marked", nlohmann::json::object()));
+        store.deletedAt_ = readTimes(doc["markTimes"].value("deleted", nlohmann::json::object()));
+    }
 
     if (doc.contains("cache") && doc["cache"].is_object()) {
         for (auto lang = doc["cache"].begin(); lang != doc["cache"].end(); ++lang) {
@@ -162,7 +190,9 @@ bool KnownStore::isKnown(const std::string& lemma) const
 
 void KnownStore::mark(const std::string& lemma, bool learned)
 {
-    marks_[lemma] = learned;
+    marks_[lemma]    = learned;
+    markedAt_[lemma] = nowMs();
+    deletedAt_.erase(lemma); // a fresh mark outranks the tombstone it replaces
     if (learned)
         known_.insert(lemma);
     else
@@ -173,6 +203,42 @@ void KnownStore::mark(const std::string& lemma, bool learned)
 const std::unordered_set<std::string>& KnownStore::known() const
 {
     return known_;
+}
+
+nlohmann::json KnownStore::syncMarks() const
+{
+    nlohmann::json known = nlohmann::json::object();
+    for (const auto& [lemma, learned] : marks_) {
+        const auto at = markedAt_.find(lemma);
+        known[lemma]  = {{"learned", learned}, {"at", at == markedAt_.end() ? 0LL : at->second}};
+    }
+    nlohmann::json deleted = nlohmann::json::object();
+    for (const auto& [lemma, at] : deletedAt_)
+        deleted[lemma] = at;
+    return {{"known", std::move(known)}, {"deleted", std::move(deleted)}};
+}
+
+void KnownStore::applySyncMarks(const nlohmann::json& known, const nlohmann::json& deleted)
+{
+    marks_.clear();
+    markedAt_.clear();
+    deletedAt_.clear();
+    known_.clear();
+    if (known.is_object()) {
+        for (auto it = known.begin(); it != known.end(); ++it) {
+            const nlohmann::json& entry = it.value();
+            if (!entry.is_object() || !entry.contains("learned") || !entry["learned"].is_boolean())
+                continue;
+            const bool learned  = entry["learned"].get<bool>();
+            marks_[it.key()]    = learned;
+            markedAt_[it.key()] = timeOf(entry.value("at", nlohmann::json()));
+            if (learned) known_.insert(it.key());
+        }
+    }
+    if (deleted.is_object()) {
+        for (auto it = deleted.begin(); it != deleted.end(); ++it)
+            deletedAt_[it.key()] = timeOf(it.value());
+    }
 }
 
 int KnownStore::level() const
@@ -232,7 +298,13 @@ void KnownStore::cachePut(std::string const& lemma, WordCache entry, CacheContex
 
 bool KnownStore::removeLemma(std::string const& lemma)
 {
-    bool removed = marks_.erase(lemma) != 0;
+    const bool hadMark = marks_.erase(lemma) != 0;
+    // A tombstone only when there was a mark to take back: it is what stops another device's
+    // copy of the mark from bringing the word back.
+    if (hadMark)
+        deletedAt_[lemma] = nowMs();
+    markedAt_.erase(lemma);
+    bool removed = hadMark;
     removed      = known_.erase(lemma) != 0 || removed;
 
     for (auto it = cache_.begin(); it != cache_.end();) {
@@ -261,6 +333,13 @@ void KnownStore::save() const
     for (const auto& [lemma, learned] : marks_)
         known[lemma] = learned; // true: known
     doc["known"] = std::move(known);
+
+    nlohmann::json times = {{"marked", nlohmann::json::object()}, {"deleted", nlohmann::json::object()}};
+    for (const auto& [lemma, at] : markedAt_)
+        times["marked"][lemma] = at;
+    for (const auto& [lemma, at] : deletedAt_)
+        times["deleted"][lemma] = at;
+    doc["markTimes"] = std::move(times);
 
     nlohmann::json cache = nlohmann::json::object();
     for (const auto& [key, entry] : cache_) {

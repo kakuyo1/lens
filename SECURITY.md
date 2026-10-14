@@ -17,7 +17,8 @@ The repository has no published release support window or response-time commitme
 - **Screen and selection data:** Selection capture, screenshot OCR, and optional automatic scanning can read text visible in other Windows applications. Automatic scanning can be limited to an application allowlist. Manual selection and screenshot capture are initiated by the reader.
 - **OCR:** Screenshot regions are passed to the bundled or reader-configured Tesseract process on the same PC. OCR text is then filtered locally.
 - **AI providers:** Lens sends the content needed for the selected request over HTTPS to the configured provider. Word requests contain the word, entity requests contain the entity name, and sentence requests contain the selected sentence. The provider's retention, training, and access practices are governed by that provider, not by Lens.
-- **Local profile:** Settings, the API key, cached explanations, word marks, and learning history are stored in `%APPDATA%\Lens\settings.json`. This file is ordinary local JSON; Lens does not encrypt it with an application-managed key. Uninstalling Lens does not remove it.
+- **Local profile:** Settings, the API key, cached explanations, word marks, and learning history are stored in `%APPDATA%\Lens\settings.json`. This file is ordinary local JSON; Lens does not encrypt it with an application-managed key. Uninstalling Lens does not remove it. The GitHub token and the derived sync key are stored in the same file, so anyone who can read it can decrypt the cloud copy.
+- **Cloud copy:** When sync is on, word marks, lookup history, statistics, and the selected settings are encrypted on this PC and stored as a secret gist in the reader's own GitHub account. GitHub can see that the gist exists, its size, its update times, and the IP addresses that access it, but not its contents. Explanation caches and the API key are never uploaded.
 - **Logs:** The API key is not intentionally written to logs, but debug and trace logs can contain queried words and other operational details. Logs rotate and are written relative to the application's working directory, which may be inside the installation directory for packaged launches.
 - **Clipboard:** Selection capture temporarily reads and changes the Windows clipboard, then attempts to restore its previous contents. Concurrent clipboard changes by another application can prevent a perfect restoration.
 
@@ -26,7 +27,9 @@ The repository has no published release support window or response-time commitme
 - Lens classifies and filters captured text locally, and sends only the content required for that request. It does not send a full-screen image to the explanation API.
 - Before sending, Lens masks URLs, email addresses, and digit strings of six or more digits. This is limited pattern masking, not complete personal-data detection. Names, addresses, source code, short identifiers, and other sensitive content may remain.
 - The API key is stored in the per-user settings file rather than the installation directory. Request and settings logs avoid printing the key itself.
+- The sync passphrase is never stored. The key is derived with PBKDF2-HMAC-SHA256 at 600000 iterations and used with AES-256-GCM. Explanation caches are never uploaded.
 - Model-list requests use HTTPS, a timeout, and response-size and item-count limits. Model responses are parsed and checked against the expected response shape before use.
+- Sign-in and sync contact `github.com` and `api.github.com` over HTTPS through the system proxy setting, the same path the update check uses. Lens does not configure a proxy for them.
 - Update checks make one HTTPS `GET` to this project's latest release page on GitHub and read the version from its redirect. The request carries only a `User-Agent: Lens/<version>` header: no API key, no selected or captured text, and no installation identifier. Redirects are not followed except to GitHub's release download path and its two asset hosts, at most five hops.
 - The download path runs only when the reader presses Download on the update card. It fetches the release's `SHA256SUMS` and the installer for the newer version, writes the installer to `%LOCALAPPDATA%\Lens\updates` as a partial file, and renames it only after its SHA256 matches the published value. The digest is checked again immediately before the installer is started, which runs with no command-line arguments and is never silent.
 - The checksum shows that the file arrived intact. It does not prove who published it: the installer is not code-signed, and a checksum taken from the same release cannot detect a compromised release. Run only releases you trust.
@@ -41,7 +44,9 @@ The repository has no published release support window or response-time commitme
 - Downloads come from GitHub and may need a proxy from mainland China. Lens does not configure a proxy for them; it uses the system proxy setting, and reports a download that never receives data with a proxy hint.
 - Lens does not run a downloaded installer you have not pressed Install for. Delete `%LOCALAPPDATA%\Lens\updates` at any time; Lens recreates it when needed.
 - Protect access to your Windows account and user profile. Anyone or any software running as your user may be able to read the settings file and logs.
-- To remove local Lens data, exit the application and delete `%APPDATA%\Lens`. This also removes the saved API key, settings, cache, and learning history.
+- To remove local Lens data, exit the application and delete `%APPDATA%\Lens`. This also removes the saved API key, settings, cache, and learning history. It does not delete the cloud copy: use Delete cloud data in Settings first.
+- A forgotten sync passphrase makes the cloud copy unrecoverable, and Lens cannot reset it.
+- Log out removes the local token and derived key, and leaves the cloud copy in place. Delete cloud data deletes the gist and the local key, and keeps the token. Neither removes local learning data.
 
 ## Scope
 

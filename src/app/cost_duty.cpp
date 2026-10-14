@@ -150,9 +150,11 @@ BudgetStatus CostDuty::budgetStatus() const
 
 BudgetStatus CostDuty::budgetStatusFor(const QDate& date) const
 {
-    const QDate  localDate = date.isValid() ? date : QDate::currentDate();
-    const auto   it        = stats_.daily().find(localDate.toString(Qt::ISODate).toStdString());
-    const double spent     = it == stats_.daily().end() ? 0.0 : std::max(0.0, amountOf(it->second));
+    const QDate localDate = date.isValid() ? date : QDate::currentDate();
+    // This device's own spend: the budget is a local guard, and other devices' usage is not
+    // this device's to pause.
+    const auto   it        = stats_.ownDaily().find(localDate.toString(Qt::ISODate).toStdString());
+    const double spent     = it == stats_.ownDaily().end() ? 0.0 : std::max(0.0, amountOf(it->second));
     const double limit     = stats_.dailyBudget();
     const bool   limited   = limit > 0.0;
     const bool   exhausted = budgetReached(spent, limit);

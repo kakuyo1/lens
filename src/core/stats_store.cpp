@@ -52,6 +52,35 @@ DailyUsage dailyFromJson(const nlohmann::json& j)
     return day;
 }
 
+/// @brief One day's tally as the document spells it; the inverse of dailyFromJson.
+nlohmann::json dailyToJson(const DailyUsage& day)
+{
+    nlohmann::json json = {{"pops", day.pops},
+                           {"learned", day.learned},
+                           {"fresh", day.fresh},
+                           {"promptTokens", day.promptTokens},
+                           {"completionTokens", day.completionTokens}};
+    json["models"]      = nlohmann::json::object();
+    for (const auto& [model, usage] : day.models)
+        json["models"][model] = {{"promptTokens", usage.promptTokens},
+                                 {"completionTokens", usage.completionTokens}};
+    return json;
+}
+
+/// @brief Add one day's tally into another, model by model.
+void addInto(DailyUsage& total, const DailyUsage& part)
+{
+    total.pops += part.pops;
+    total.learned += part.learned;
+    total.fresh += part.fresh;
+    total.promptTokens += part.promptTokens;
+    total.completionTokens += part.completionTokens;
+    for (const auto& [model, usage] : part.models) {
+        total.models[model].promptTokens += usage.promptTokens;
+        total.models[model].completionTokens += usage.completionTokens;
+    }
+}
+
 }
 
 StatsStore::StatsStore(nlohmann::json& document)
@@ -82,6 +111,18 @@ StatsStore::StatsStore(nlohmann::json& document)
             daily_[it.key()] = dailyFromJson(it.value());
         }
     }
+
+    // Other devices' tallies, as the sync layer wrote them: device id -> date -> bucket.
+    if (doc_.contains("remoteDaily") && doc_["remoteDaily"].is_object()) {
+        for (auto device = doc_["remoteDaily"].begin(); device != doc_["remoteDaily"].end(); ++device) {
+            if (!device.value().is_object())
+                continue;
+            for (auto it = device.value().begin(); it != device.value().end(); ++it)
+                if (it.key().size() == 10)
+                    remote_[device.key()][it.key()] = dailyFromJson(it.value());
+        }
+    }
+    mergeDaily();
 
     LENS_INFO("stats loaded: history={} days={}", history_.size(), daily_.size());
 }
@@ -149,6 +190,15 @@ void StatsStore::recordUsage(const std::string& minute,
     writeBack();
 }
 
+void StatsStore::replaceHistory(std::vector<HistoryEntry> rows)
+{
+    std::stable_sort(rows.begin(), rows.end(), [](const HistoryEntry& a, const HistoryEntry& b) { return a.minute > b.minute; });
+    if (rows.size() > kMaxHistory)
+        rows.resize(kMaxHistory);
+    history_ = std::move(rows);
+    writeBack();
+}
+
 bool StatsStore::setDailyBudget(double amount)
 {
     if (!std::isfinite(amount) || amount < 0.0)
@@ -210,20 +260,50 @@ void StatsStore::writeBack()
         history.push_back({{"word", entry.lemma}, {"time", entry.minute}, {"verdict", entry.verdict}});
     doc_["history"] = std::move(history);
 
-    nlohmann::json daily = nlohmann::json::object();
-    for (const auto& [date, day] : daily_) {
-        daily[date]           = {{"pops", day.pops},
-                                 {"learned", day.learned},
-                                 {"fresh", day.fresh},
-                                 {"promptTokens", day.promptTokens},
-                                 {"completionTokens", day.completionTokens}};
-        daily[date]["models"] = nlohmann::json::object();
-        for (const auto& [model, usage] : day.models)
-            daily[date]["models"][model] = {{"promptTokens", usage.promptTokens},
-                                            {"completionTokens", usage.completionTokens}};
-    }
-    doc_["daily"]       = std::move(daily);
+    doc_["daily"]       = ownDailyJson();
     doc_["dailyBudget"] = dailyBudget_;
+
+    nlohmann::json remote = nlohmann::json::object();
+    for (const auto& [device, days] : remote_) {
+        remote[device] = nlohmann::json::object();
+        for (const auto& [date, day] : days)
+            remote[device][date] = dailyToJson(day);
+    }
+    doc_["remoteDaily"] = std::move(remote);
+    mergeDaily();
+}
+
+nlohmann::json StatsStore::ownDailyJson() const
+{
+    nlohmann::json daily = nlohmann::json::object();
+    for (const auto& [date, day] : daily_)
+        daily[date] = dailyToJson(day);
+    return daily;
+}
+
+void StatsStore::applyRemoteDaily(const nlohmann::json& byDevice, const std::string& localDevice)
+{
+    remote_.clear();
+    if (byDevice.is_object()) {
+        for (auto device = byDevice.begin(); device != byDevice.end(); ++device) {
+            // This device's own bucket is held in daily_; a copy that came back from the cloud
+            // would count the same lookups twice.
+            if (!device.value().is_object() || device.key() == localDevice)
+                continue;
+            for (auto it = device.value().begin(); it != device.value().end(); ++it)
+                if (it.key().size() == 10)
+                    remote_[device.key()][it.key()] = dailyFromJson(it.value());
+        }
+    }
+    writeBack();
+}
+
+void StatsStore::mergeDaily()
+{
+    merged_ = daily_;
+    for (const auto& [device, days] : remote_)
+        for (const auto& [date, day] : days)
+            addInto(merged_[date], day);
 }
 
 }

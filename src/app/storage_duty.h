@@ -35,7 +35,7 @@ public:
     /**
      * @brief The document, or one of its nested objects, as the unit a key is read and written through.
      * @param name Object name to bind to; empty for the document itself.
-     * @note Every write through the section saves. Seven keys are re-stamped from their owner's own
+     * @note Every write through the section saves. Nine keys are re-stamped from their owner's own
      *       state and are not the section's to write; docs/adr/0024 names them.
      */
     core::SettingsSection section(std::string_view name = {});

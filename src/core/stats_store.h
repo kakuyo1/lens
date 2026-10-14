@@ -128,6 +128,9 @@ public:
     /// @return True when at least one history row was removed.
     bool removeLemma(const std::string& lemma);
 
+    /// @brief Replace the history with rows from a sync merge, newest first and capped at kMaxHistory.
+    void replaceHistory(std::vector<HistoryEntry> rows);
+
     /// @return The daily budget in display currency; zero means no cap.
     double dailyBudget() const
     {
@@ -144,20 +147,50 @@ public:
         return history_;
     }
 
-    /// @return Every day's tally, keyed by local date as "YYYY-MM-DD".
+    /**
+     * @brief Every day's tally across this device and the others the sync layer has merged in.
+     *
+     * The statistics, cost and year popups read this. The daily budget does not: it is a guard
+     * on this device's own spend, and reads ownDaily().
+     *
+     * @return Every day's tally, keyed by local date as "YYYY-MM-DD".
+     */
     const std::map<std::string, DailyUsage>& daily() const
+    {
+        return merged_;
+    }
+
+    /// @return This device's own tallies only, keyed by local date.
+    const std::map<std::string, DailyUsage>& ownDaily() const
     {
         return daily_;
     }
 
+    /// @return This device's own tallies as the sync document writes them: one object per date.
+    nlohmann::json ownDailyJson() const;
+
+    /**
+     * @brief Replace the tallies other devices uploaded, and refresh the merged view.
+     *
+     * @param byDevice Device id -> date -> bucket, as the merged sync document holds them.
+     * @param localDevice This device's id. Its bucket in @p byDevice is ignored: the local copy
+     *                    is the authority for it, and a stale one from the cloud would double it.
+     */
+    void applyRemoteDaily(const nlohmann::json& byDevice, const std::string& localDevice);
+
 private:
     /// @brief Write the typed state back into the document, for KnownStore::save() to persist.
     void writeBack();
+    /// @brief Rebuild merged_ as this device's tallies plus every other device's, date by date.
+    void mergeDaily();
 
     nlohmann::json&                   doc_;
     std::vector<HistoryEntry>         history_; ///< Newest first, same order as the document.
-    std::map<std::string, DailyUsage> daily_;
-    double                            dailyBudget_ = 0.0;
+    std::map<std::string, DailyUsage> daily_;   ///< This device's own tallies; written to "daily".
+    /// Other devices' tallies, device id -> date -> bucket; written to "remoteDaily".
+    std::map<std::string, std::map<std::string, DailyUsage>> remote_;
+    std::map<std::string, DailyUsage>                        merged_; ///< What daily() returns.
+    double                                                   dailyBudget_ = 0.0;
 };
 
 }

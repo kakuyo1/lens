@@ -56,9 +56,17 @@ AppController::AppController(core::KnownStore&            store,
                              QObject*                     parent)
     : QObject(parent),
       storage_(store),
-      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), llm_(llm), hotkey_(hotkey)
+      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), sync_(storage_, dataDir, this), llm_(llm), hotkey_(hotkey)
 {
     budgetPaused_ = cost_.budgetStatus().exhausted;
+    // A change to the statistics or the settings is what a sync carries, so either one schedules
+    // a sync. Marks reach here as statsChanged too, since ExplanationDuty forwards it.
+    connect(this, &AppController::statsChanged, &sync_, &SyncDuty::scheduleSync);
+    connect(this, &AppController::settingsChanged, &sync_, &SyncDuty::scheduleSync);
+    connect(&sync_, &SyncDuty::remoteApplied, this, [this] {
+        emit settingsChanged();
+        emit statsChanged();
+    });
     connect(&capture_, &CaptureDuty::selectionBarRequested, this, &AppController::selectionBarRequested);
     connect(&capture_, &CaptureDuty::selectionBarRequested, this, [this] { emit petEvent(core::pet::PetEvent::SelectionShown); });
     connect(&capture_, &CaptureDuty::selectionActionRequested, this, [this](QString action, QString text) {
@@ -644,6 +652,11 @@ void AppController::checkForUpdatesAtStartup()
 UpdateDuty* AppController::updateDuty()
 {
     return &updateDuty_;
+}
+
+SyncDuty* AppController::syncDuty()
+{
+    return &sync_;
 }
 
 ExplanationDuty* AppController::explanationDuty()

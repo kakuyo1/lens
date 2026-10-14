@@ -15,6 +15,8 @@ Item {
     readonly property var openChildRect: themeField.openChildRect
     implicitHeight: content.implicitHeight
 
+    signal childRequested(string value)
+
     function closeChild() {
         themeField.closeList();
     }
@@ -332,6 +334,11 @@ Item {
             label: qsTranslate("SettingsPopup", "Check for updates at startup")
             checked: Controller.updateDuty.autoCheck
             onToggled: (on) => Controller.updateDuty.setAutoCheck(on)
+        }
+
+        SettingsLinkRow {
+            label: qsTranslate("SettingsPopup", "Account & sync")
+            onPicked: page.childRequested("sync")
         }
 
         Text {

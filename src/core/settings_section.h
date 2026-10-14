@@ -23,7 +23,7 @@
  * three different things and stay three: value() falls back, clear() writes null, remove() takes
  * the key away.
  *
- * Ownership is deliberately not enforced: seven keys are re-stamped from a strong-typed owner's
+ * Ownership is deliberately not enforced: nine keys are re-stamped from a strong-typed owner's
  * own state, so a write to one of them through this handle is silently reverted. docs/adr/0024
  * names them and they are asserted in the unit suite.
  */
@@ -105,6 +105,11 @@ public:
      */
     template <typename T>
     void set(std::string_view key, const T& value);
+
+    /// @brief Write a value the caller already holds as JSON, as it is, and save.
+    /// @note Unlike set<T>, this does not keep the key's existing encoding; it is for values such as
+    ///       a whole object that have no typed form.
+    void setRaw(std::string_view key, const nlohmann::json& value);
 
     /// @return Whether @p key is in the object at all; a null or an empty one is there.
     bool has(std::string_view key) const;

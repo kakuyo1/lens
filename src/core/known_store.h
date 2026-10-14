@@ -85,6 +85,22 @@ public:
     /// @return The known set to hand to FilterCore::filterWords, derived from the marks.
     const std::unordered_set<std::string>& known() const;
 
+    /**
+     * @brief The marks in the shape the sync merge reads (docs/adr/0042).
+     *
+     * @return `{"known": {lemma: {"learned": bool, "at": ms}}, "deleted": {lemma: ms}}`. A mark
+     *         that was never stamped reads as at 0.
+     */
+    nlohmann::json syncMarks() const;
+
+    /**
+     * @brief Replace every mark with the merged ones, in the shape syncMarks() returns.
+     *
+     * The caller saves afterwards. A lemma in @p deleted is removed from the marks; the merge
+     * never puts one lemma in both.
+     */
+    void applySyncMarks(const nlohmann::json& known, const nlohmann::json& deleted);
+
     /// @return Difficulty level, 0..7. The order is defined in GLOSSARY.md and UI.md 4.4.
     int level() const;
     /// @throws std::out_of_range If the level is outside 0..7.
@@ -135,8 +151,9 @@ public:
      * @param name Object name to bind to; empty for the document itself, whose keys are the
      *             top-level scalars.
      * @return A section over this document; every write through it saves.
-     * @note Seven keys are re-stamped by save() or by StatsStore from their owner's own state, so
-     *       writing one of them through this handle is silently undone. docs/adr/0024 names them.
+     * @note Nine keys are re-stamped by save() or by StatsStore from their owner's own state, so
+     *       writing one of them through this handle is silently undone. docs/adr/0024 names them;
+     *       `markTimes` and `remoteDaily` were added by docs/adr/0042.
      */
     SettingsSection section(std::string_view name = {})
     {
@@ -155,6 +172,12 @@ private:
     nlohmann::json        doc_; ///< The document as loaded; the base for save().
     /// lemma -> known(true) / new word(false). Absent means never marked.
     std::unordered_map<std::string, bool> marks_;
+    /// lemma -> when its mark was last set, in ms since the epoch; written to "markTimes" as
+    /// "marked". Absent for a mark that predates the field, which reads as 0.
+    std::unordered_map<std::string, long long> markedAt_;
+    /// lemma -> when its mark was removed, in ms; a tombstone for the sync merge, written to
+    /// "markTimes" as "deleted". Cleared again when the word is marked afresh.
+    std::unordered_map<std::string, long long> deletedAt_;
     /// Derived view of marks_ holding only the true entries; feeds filterWords.
     std::unordered_set<std::string> known_;
     /// Keyed by explanation language + sense mode + lemma.

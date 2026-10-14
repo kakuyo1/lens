@@ -77,6 +77,12 @@ bool SettingsSection::has(std::string_view const key) const
     return node != nullptr && node->contains(std::string{key});
 }
 
+void SettingsSection::setRaw(std::string_view const key, const nlohmann::json& value)
+{
+    ensure()[std::string{key}] = value;
+    commit();
+}
+
 void SettingsSection::clear(std::string_view const key)
 {
     ensure()[std::string{key}] = nullptr;

@@ -1,0 +1,4 @@
+{
+  "_comment": "The GitHub OAuth App that signs readers in (ADR 0042). Register an app under the project's account with device flow enabled, and paste its client id here. The id is public; an empty one turns sign-in off.",
+  "clientId": "Ov23li0i58xw4shNcF7I"
+}

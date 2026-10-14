@@ -60,6 +60,7 @@ Window {
     function routeTitle(value) {
         if (value === "clipboard") return qsTranslate("SettingsPopup", "Popup & clipboard");
         if (value === "connection") return qsTranslate("SettingsPopup", "API configuration");
+        if (value === "sync") return qsTranslate("SettingsPopup", "Account & sync");
         return categoryTitle(category);
     }
 
@@ -271,6 +272,7 @@ Window {
                 // qmllint enable missing-property
                 sourceComponent: settings.route === "clipboard" ? clipboardComponent
                                  : settings.route === "connection" ? connectionComponent
+                                 : settings.route === "sync" ? syncComponent
                                  : settings.category === "" ? catalogComponent
                                   : settings.category === "general" ? generalComponent
                                   : settings.category === "learning" ? learningComponent
@@ -369,7 +371,12 @@ Window {
             onCategoryRequested: (value) => settings.openCategory(value)
         }
     }
-    Component { id: generalComponent; SettingsGeneralPage {} }
+    Component {
+        id: generalComponent
+        SettingsGeneralPage {
+            onChildRequested: (value) => settings.openRoute(value)
+        }
+    }
     Component { id: aboutComponent; SettingsAboutPage {} }
     Component { id: learningComponent; SettingsLearningPage {} }
     Component {
@@ -392,6 +399,7 @@ Window {
     }
     Component { id: extensionsComponent; SettingsExtensionsPage {} }
     Component { id: clipboardComponent; SettingsClipboardPage {} }
+    Component { id: syncComponent; SettingsSyncPage {} }
     Component {
         id: connectionComponent
         SettingsConnectionPage {

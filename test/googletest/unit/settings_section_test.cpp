@@ -3,7 +3,7 @@
  * @brief The settings document's read/write unit, and who may write which key.
  *
  * The last cases are the point of the module: they are the document's key set written out as a
- * declaration, and they are what makes "these seven keys are re-stamped, do not write them through
+ * declaration, and they are what makes "these nine keys are re-stamped, do not write them through
  * a section" a rule something can fail on rather than a fact that only lives in KnownStore::save().
  *
  * The tables name the document's top-level keys and its nested objects. What lives inside those
@@ -270,9 +270,11 @@ const StampedKey kStampedKeys[] = {
     {"explanationLang", "KnownStore"},
     {"known", "KnownStore"},
     {"cache", "KnownStore"},
+    {"markTimes", "KnownStore"},
     {"history", "StatsStore"},
     {"daily", "StatsStore"},
     {"dailyBudget", "StatsStore"},
+    {"remoteDaily", "StatsStore"},
 };
 
 /// @return Whether the tables name @p key at the top level.
@@ -293,7 +295,7 @@ bool named(const std::string& key)
 } // namespace
 
 /// A scalar written through the section comes back after a save and a load. This is the half the
-/// section is responsible for; the seven below are the half it is not.
+/// section is responsible for; the nine below are the half it is not.
 TEST(SettingsDocumentKeys, EveryScalarKeySurvivesBeingWrittenThroughTheSection)
 {
     const auto path  = scratchPath("lens-settings-section-scalars.json");
@@ -374,6 +376,31 @@ TEST(SettingsDocumentKeys, TheStatsStoreRestampsItsThreeOnItsNextWrite)
     EXPECT_DOUBLE_EQ(store.document().at("dailyBudget"), 1.0) << "the owner's setter is the only way in";
     EXPECT_TRUE(store.document().at("history").empty()) << "writeBack() rebuilds history from its own list";
     EXPECT_TRUE(store.document().at("daily").empty()) << "and the day tallies with it";
+
+    std::filesystem::remove(path);
+}
+
+/// The sync layer's two keys follow the same rule: each has one owner that rebuilds it, so a direct
+/// write does not survive the owner's next save.
+TEST(SettingsDocumentKeys, TheSyncKeysAreRestampedByTheirOwners)
+{
+    const auto path  = scratchPath("lens-settings-section-stamped-sync.json");
+    KnownStore store = KnownStore::load(path);
+    StatsStore stats{store.document()};
+
+    store.document()["markTimes"]   = json{{"marked", {{"ghost", 1}}}, {"deleted", json::object()}};
+    store.document()["remoteDaily"] = json{{"other-device", {{"2026-01-01", {{"pops", 99}}}}}};
+    store.save();
+
+    KnownStore reloaded = KnownStore::load(path);
+    EXPECT_FALSE(reloaded.document().at("markTimes").at("marked").contains("ghost"))
+        << "markTimes is written by KnownStore::save() from its own stamps";
+
+    // StatsStore rebuilds remoteDaily from the copy applyRemoteDaily was handed, on its next write.
+    store.document()["remoteDaily"] = json{{"other-device", {{"2026-01-01", {{"pops", 99}}}}}};
+    stats.applyRemoteDaily(json::object(), "this-device");
+    EXPECT_FALSE(store.document().at("remoteDaily").contains("other-device"))
+        << "remoteDaily is written by StatsStore from the copy it was given, not by hand";
 
     std::filesystem::remove(path);
 }
