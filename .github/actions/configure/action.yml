@@ -12,14 +12,16 @@ description: Install Qt 6.9.0, enter the MSVC environment, and configure build-n
 runs:
   using: composite
   steps:
-    # The base install carries every component the configure step asks for: qtbase (Core, Gui,
-    # Widgets, Network, and Test, which is where Qt6Test comes from), qtdeclarative (Quick, and
-    # QuickTest, which is built out of its src/qmltest), qtsvg, qttools (LinguistTools). It also
-    # puts Qt's bin on PATH, which is what the test executables need for the Qt DLLs.
+    # The base install carries qtbase (Core, Gui, Widgets, Network, and Test, which is where
+    # Qt6Test comes from), qtdeclarative (Quick, and QuickTest, which is built out of its
+    # src/qmltest), qtsvg, and qttools (LinguistTools). qtshadertools is not in the base: the glass
+    # shader needs its qsb (qt_add_shaders in src/app/CMakeLists.txt). It also puts Qt's bin on
+    # PATH, which is what the test executables need for the Qt DLLs.
     - uses: jurplel/install-qt-action@v4
       with:
         version: '6.9.0'
         arch: win64_msvc2022_64
+        modules: 'qtshadertools'
         cache: true
 
     # Ninja cannot find MSVC by itself -- the same reason scripts/build/build.bat enters the Visual
