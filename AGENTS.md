@@ -9,9 +9,9 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
   `.github/pull_request_template.md`: all three sections filled. Do not stop at handing over the
   compare URL.
 - UI work must comply with `UI.md` and `PRODUCT.md`.
-- Designing or auditing a UI surface starts by loading the `taste-skill` skill; a surface that has been rendered is checked with `visual-qa`.
+- Designing or auditing a `ui-prototypes/*.html` page starts by loading the `taste-skill` skill; a surface that has been rendered, the QML ones included, is checked with `visual-qa`.
 - Keep `GLOSSARY.md`, `PRODUCT.md`, and `UI.md` in sync on any design change; record major trade-offs in `docs/adr/`.
-- Default to Chinese in replies.
+- Reply in the language the user writes in; Chinese by default.
 - The API key lives in `%APPDATA%\Lens\settings.json`, the reader's own profile and never the install directory; it is never logged, never echoed in errors, never committed, and never copied out of the profile: read it in place. The repository's gitignored `settings.local.json` is that document's development source, copied over once on a first run (`src/app/main.cpp`).
 
 ## Project Structure
@@ -23,15 +23,15 @@ lens/
 ├── .githooks         # pre-commit and commit-msg; each file's header lists its checks
 ├── cmake             # headers only: the precompiled ones CMakeLists.txt applies
 ├── config            # paths.json — the machine paths; README.md owns the rule and its exemptions
-├── data              # wordlist + llm/ (wire protocol as data)
-├── docs              # QML.md (how QML works here) + adr/ (major trade-offs)
+├── data              # wordlist, llm/ (wire protocol as data), pet/, sync.json, update.json
+├── docs              # QML.md (how QML works here), adr/ (major trade-offs), metrics/, pet-*.md
 ├── i18n              # .ts translations; English is the source language
 ├── installer         # lens.iss — the Inno Setup script; version.iss.in, filled from project()
-├── scripts           # build/, quality/, profiling/, qa/, data/, release/; see scripts/README.md
+├── scripts           # build/, quality/, profiling/, qa/, data/, pet/, release/; see scripts/README.md
 ├── third_party       # vendored: nlohmann/json, spdlog, googletest
 ├── icons
 ├── logs              # runtime logs, rotating, gitignored but for .gitkeep
-├── src               # util/, core/ (no Qt), llm/, capture/, app/ (Qt + app/qml/)
+├── src               # util/, core/ (no Qt), llm/, sync/, update/, capture/, app/ (Qt + app/qml/)
 ├── test              # gtest (unit / integration / perf / smoke) and qtest targets, separate from src/
 └── ui-prototypes/    # one HTML prototype per surface; see its README.md
 ```
@@ -58,10 +58,9 @@ from, and it exists as a second tree rather than a build-type switch because swi
 every compile flag and rebuilds the lot. Both are driven by the same wrapper; the two environment
 variables `scripts/build/build-release.bat` sets are the whole difference.
 
-The last line runs the release tree rather than building it: it rebuilds that tree when its `lens.exe`
-is older than `src/`, launches it with the repository as its working directory, and reports the PID
-and `logs/lens.log`. The `run-lens` skill carries the driving and photographing around it, and
-`TEST.md` section 5 the measurement.
+The last line runs the application rather than building it: it rebuilds `build-ninja-release` when its
+`lens.exe` is older than `src/`, launches it with the repository as its working directory, and reports
+the PID and `logs/lens.log`. The `run-lens` skill carries the driving and photographing around it.
 
 The Qt prefix lives in `config/paths.json`, which `scripts/build/build.bat` exports as `QT_ROOT` before it drives
 the presets. `config/README.md` owns the rule: machine paths come from that file, project paths stay
@@ -69,7 +68,7 @@ relative to the repository root, and nothing else writes either kind by hand.
 
 ## Test
 
-Tests live under `test/googletest/` (gtest): `unit/` offline, `integration/` real Windows APIs (human-run), `perf/` measurement, `smoke/` real model, with `e2e/` the name for what comes next. The Qt and QML side is `test/qtest/` (QTest), which needs a window; it is not here.
+Tests live under `test/googletest/` (gtest): `unit/` offline, `integration/` real Windows APIs (human-run), `perf/` measurement, `smoke/` real model. The Qt and QML side is `test/qtest/` (QTest), which needs a window; it is not here.
 
 Set `QT_ROOT` from the `qtRoot` key of `config/paths.json` first; `build.bat` does that for itself.
 
@@ -78,11 +77,11 @@ PATH="$QT_ROOT/bin:$PATH" QT_FORCE_STDERR_LOGGING=1 \
   ./build-ninja/test/googletest/lens_gtest_unit.exe
 ```
 
-`TEST.md` owns the rest: the targets, the corpus format, the profiling facility and its build tree, the coverage scan, and the run-record convention.
+`TEST.md` owns the rest: the targets, the corpus format, the profiling facility and its build tree, the coverage scan, the run-record convention, and the drive-and-capture round in section 5.
 
 Targets: `lens_util` → `lens_core` → `lens_capture` / `lens_llm` → `lens_app`. The `lens_gtest_*` targets are standalone and never shipped.
 
-Match the run to the change instead of running the whole matrix every time: a one-file edit needs only the target that covers it, `lens_gtest_unit` for `src/core` or `src/llm` and the matching `lens_qtest_*` for QML, while the full run is for a merge, a release, or a change that crosses targets.
+The full run is for a merge, a release, or a change that crosses targets.
 
 ## Translations
 
@@ -131,11 +130,13 @@ QML is the exception. `scripts/quality/qml-lint.sh`, called by the hook and by C
 - `UI.md`: UI spec
 - `TEST.md`: framework, targets, corpus, profiling, run records
 - `API.md`: wire format, request body, response envelope, validation rules, error codes
+- `SECURITY.md`: data and trust boundaries, the safeguards and their limits, vulnerability reporting
 - `CODING_STANDARDS.md`: the judgement calls a review can make (C++ and QML)
 - `docs/QML.md`: QML facts, module layout, surfaces vs components, shadows, positioning, threading, fonts
 - `docs/adr/`: major trade-offs, one numbered file each; `README.md` has the numbering and template
 - `scripts/README.md`: script layout, verification entry points, and release commands
 - `ui-prototypes/*.html`: prototype, one file per surface; `README.md` owns the layout and the edit rules
+- `CHANGELOG.md`: what each released version added, changed and fixed
 - `TODO.md`: waiting for implement
 - `CLAUDE.local.md`: this machine's environment
 
