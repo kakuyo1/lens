@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.4.0 - 2026-10-16
+
+Chinese text comes back in English, and the desktop pet takes packages you install yourself.
+
+### Added
+
+- A selection or a screenshot region in Chinese is translated rather than explained. A word, a name and a
+  whole passage all go to the same prompt, and the card draws the English and nothing else: no type label,
+  no title, no pronunciation, origin or example. The translation is always English, whichever explanation
+  language you have set. A short Chinese word raises the action bar too -- its minimum word length counts
+  letters, and two Chinese characters are a whole word (docs/adr/0044).
+- Chinese OCR, where you have it: put `chi_sim.traineddata` in the Tesseract data folder and screenshots
+  read Chinese as well as English. The installer still carries the English data only.
+- Pet packages, under Extensions. Put a data-only package (JSON and PNG, no code) in
+  `%APPDATA%\Lens\pets\` and pick it from the list. An external pet is confirmed once before it is used,
+  and a package whose files fail their checks is listed with the reason instead of quietly missing
+  (docs/adr/0043, docs/pet-package-format.md).
+
+### Fixed
+
+- Dragging over a terminal selects again. Each terminal family has a copy combination its shell does not
+  read as an interrupt -- Ctrl+Shift+C in Windows Terminal, Ctrl+Insert in the classic console host -- and
+  those are sent instead of refusing the window by name.
+- The action bar lands before it appears, instead of lighting up for a frame wherever it was last left.
+- A selection retries its clipboard read. A single attempt could turn a copy that had just landed into
+  "the clipboard changed but carried no text", which is where the empty selections came from.
+- The account row in settings lines up with the rows under it, and the About page's footer sits at the
+  bottom of the panel.
+
 ## 1.3.2 - 2026-10-15
 
 Adds optional account sync. Sign in with GitHub and set a passphrase, and your learning data and selected
