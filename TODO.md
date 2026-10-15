@@ -56,6 +56,12 @@
 
 ## 桌面宠物
 
+- 校验缺口是恶意包的直接入口：路径约束（含重解析点）、尺寸与帧数上限、整数溢出、表情索引范围、`idle` 硬编码。清单与理由见 `docs/pet-mod-feasibility.md` 第 3 节，须在放行导入之前修掉。
+- 宠物包：按 `docs/pet-package-format.md` 实现校验与扫描（`%APPDATA%\Lens\pets\`）、被拒列表、来源标记、首次确认弹窗。
+- 拆分 `PetController`：数据加载与列表、窗口协作各自独立，帧计算挪进 `core/pet/runtime`。
+- 文案：新增的读者可见串要跑 `lupdate` 与 `lrelease` 补 4 份译文；`README` 的四个语言版本同步这一段。
+- 文档漂移：`docs/history/PHASE3.md` §3.1、§3.4、§3.6、§3.8 与实现不符，见 `docs/pet-mod-feasibility.md` 第 4.2 节。
+
 ## 选中文本对终端没反应
 
 ## 重复函数收敛为 util
