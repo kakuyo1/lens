@@ -13,13 +13,13 @@
 #
 # The glass surfaces hide themselves from screen capture (docs/adr/0038, 0041), so
 # scripts/qa/ui-capture.ps1 photographs an empty desktop unless the app itself was started with
-# LENS_QA_VISIBLE_IN_CAPTURE set. Set it on this call, not on the capture:
-#   LENS_QA_VISIBLE_IN_CAPTURE=1 ./scripts/qa/ui-run.ps1
+# LENS_QA_VISIBLE_IN_CAPTURE set. Set it on this call, not on the capture.
 #
-# Examples:
-#   ./scripts/qa/ui-run.ps1
-#   ./scripts/qa/ui-run.ps1 -Restart
-#   ./scripts/qa/ui-run.ps1 -TimeoutSeconds 60
+# Examples. The explicit powershell form is the one that works from Git Bash, which is where these
+# are typed; a bare ./scripts/qa/x.ps1 goes to bash and dies on the first line of PowerShell.
+#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/qa/ui-run.ps1
+#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/qa/ui-run.ps1 -Restart
+#   LENS_QA_VISIBLE_IN_CAPTURE=1 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/qa/ui-run.ps1
 
 [CmdletBinding()]
 param(

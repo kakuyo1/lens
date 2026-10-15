@@ -44,6 +44,7 @@ Toolchain (verified): cmake 4.0.1 · Ninja 1.12.1 · MSVC 19.44
 ./scripts/build/build.bat                      # configure once, then incremental, into build-ninja
 ./scripts/build/build.bat --target lens_gtest_unit     # a test target, when you want one
 ./scripts/build/build-release.bat              # the same, into build-ninja-release (RelWithDebInfo)
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/qa/ui-run.ps1   # run it; rebuilds the release tree first when stale
 ```
 
 The default build is the application alone. Every test target carries `EXCLUDE_FROM_ALL` in `test/`,
@@ -57,10 +58,10 @@ from, and it exists as a second tree rather than a build-type switch because swi
 every compile flag and rebuilds the lot. Both are driven by the same wrapper; the two environment
 variables `scripts/build/build-release.bat` sets are the whole difference.
 
-To run it rather than build it, `scripts/qa/ui-run.ps1` rebuilds that tree when its `lens.exe` is
-older than `src/`, launches it with the repository as its working directory, and reports the PID and
-`logs/lens.log`. The `run-lens` skill carries the driving and photographing around it, and `TEST.md`
-section 5 the measurement.
+The last line runs the release tree rather than building it: it rebuilds that tree when its `lens.exe`
+is older than `src/`, launches it with the repository as its working directory, and reports the PID
+and `logs/lens.log`. The `run-lens` skill carries the driving and photographing around it, and
+`TEST.md` section 5 the measurement.
 
 The Qt prefix lives in `config/paths.json`, which `scripts/build/build.bat` exports as `QT_ROOT` before it drives
 the presets. `config/README.md` owns the rule: machine paths come from that file, project paths stay
