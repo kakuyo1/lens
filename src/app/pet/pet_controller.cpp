@@ -8,17 +8,22 @@
 #include <algorithm>
 #include <exception>
 #include <random>
+#include <stdexcept>
 #include <utility>
 
+#include <QCoreApplication>
 #include <QCursor>
+#include <QDesktopServices>
 #include <QGuiApplication>
 #include <QQmlEngine>
 #include <QScreen>
+#include <QTimer>
 #include <QUrl>
 #include <QWindow>
 
 #include "app/pet/pet_placement.h"
 #include "app/pet/pet_window_native.h"
+#include "core/pet/pet_package.h"
 #include "util/log.h"
 
 namespace lens::app::pet {
@@ -30,7 +35,7 @@ namespace {
 using core::pet::PetEvent;
 using core::pet::Slot;
 
-/// One tick of the single frame clock. Frames are at most 12 fps, so a tick of this length keeps them within one step.
+/// One tick of the single frame clock. Frames are at most 24 fps, so a tick is never longer than a frame.
 constexpr std::chrono::milliseconds kTick{20};
 /// Time between blinks while the pet is awake. The prototype blinks on the same cadence.
 constexpr std::chrono::milliseconds kBlinkEvery{4000};
@@ -80,27 +85,54 @@ QString slotName(Slot slot)
     return {};
 }
 
-/// @return The folder names under `root` that hold a pet.json, sorted. A missing root has no pets.
-QStringList listPets(std::filesystem::path const& root)
+/// @return The refusal's name as the settings page spells it. The page turns the name into the reader's sentence.
+QString reasonName(core::pet::Refusal reason)
 {
-    auto ids   = QStringList{};
-    auto error = std::error_code{};
-    for (auto const& entry : std::filesystem::directory_iterator{root, error}) {
-        if (std::filesystem::is_regular_file(entry.path() / "pet.json", error))
-            ids.append(QString::fromStdWString(entry.path().filename().wstring()));
+    switch (reason) {
+        case core::pet::Refusal::Unreadable:
+            return QStringLiteral("Unreadable");
+        case core::pet::Refusal::Format:
+            return QStringLiteral("Format");
+        case core::pet::Refusal::TooLarge:
+            return QStringLiteral("TooLarge");
+        case core::pet::Refusal::BadName:
+            return QStringLiteral("BadName");
+        case core::pet::Refusal::MissingRole:
+            return QStringLiteral("MissingRole");
+        case core::pet::Refusal::BadAnimation:
+            return QStringLiteral("BadAnimation");
+        case core::pet::Refusal::BadAnchors:
+            return QStringLiteral("BadAnchors");
+        case core::pet::Refusal::BadAccessory:
+            return QStringLiteral("BadAccessory");
+        case core::pet::Refusal::BadAssetType:
+            return QStringLiteral("BadAssetType");
+        case core::pet::Refusal::SheetSize:
+            return QStringLiteral("SheetSize");
+        case core::pet::Refusal::ExpressionIndex:
+            return QStringLiteral("ExpressionIndex");
+        case core::pet::Refusal::PathEscapes:
+            return QStringLiteral("PathEscapes");
+        case core::pet::Refusal::IdTaken:
+            return QStringLiteral("IdTaken");
     }
-    ids.sort();
-    return ids;
+    return {};
 }
 
 } // namespace
 
-PetController::PetController(std::filesystem::path petsRoot, PetStore& store, QObject* parent)
-    : QObject(parent), root_(std::move(petsRoot)), pets_(listPets(root_)), store_(store)
+PetController::PetController(std::filesystem::path shippedRoot, std::filesystem::path installedRoot, PetStore& store, QObject* parent)
+    : QObject(parent), shippedRoot_(std::move(shippedRoot)), installedRoot_(std::move(installedRoot)), store_(store)
 {
     clock_.setInterval(kTick);
     connect(&clock_, &QTimer::timeout, this, &PetController::tick);
-    loadPet(store_.pet());
+    catalog_          = scanPets(shippedRoot_, installedRoot_);
+    auto const chosen = store_.pet();
+    if (usable(chosen)) {
+        loadPet(chosen);
+    } else {
+        switchToDefault(chosen);
+    }
 }
 
 PetController::~PetController() = default;
@@ -121,7 +153,9 @@ void PetController::loadPet(std::string const& id)
     machine_.reset();
     wardrobe_.reset();
     try {
-        assets_ = PetAssets::load(root_ / id);
+        auto const* entry = catalog_.find(id);
+        if (not entry) throw std::runtime_error{"the pet is not in the catalogue: " + id};
+        assets_ = PetAssets::load(entry->directory);
     } catch (std::exception const& e) {
         assets_.reset();
         LENS_ERROR("the desktop pet is off: {}", e.what());
@@ -183,9 +217,22 @@ QString PetController::pet() const
     return QString::fromStdString(store_.pet());
 }
 
-QStringList PetController::pets() const
+QVariantList PetController::pets() const
 {
-    return pets_;
+    auto list = QVariantList{};
+    for (auto const& entry : catalog_.pets) {
+        list.append(QVariantMap{{"id", QString::fromStdString(entry.id)}, {"name", entry.name}, {"external", entry.source == PetSource::Installed}});
+    }
+    return list;
+}
+
+QVariantList PetController::refusals() const
+{
+    auto list = QVariantList{};
+    for (auto const& refused : catalog_.refused) {
+        list.append(QVariantMap{{"id", refused.id}, {"reason", reasonName(refused.reason)}});
+    }
+    return list;
 }
 
 QString PetController::action() const
@@ -355,10 +402,49 @@ void PetController::toggleAccessory(QString id)
 
 void PetController::setPet(QString id)
 {
+    auto const name  = id.toStdString();
+    auto const entry = catalog_.find(name);
+    if (not entry) return;
+    if (entry->source == PetSource::Installed and not isConfirmed(name)) {
+        emit confirmationRequested(id, entry->name);
+        return;
+    }
+    applyPet(name);
+}
+
+void PetController::confirmPet(QString id)
+{
+    auto const name = id.toStdString();
+    if (not catalog_.find(name)) return;
+    store_.confirm(name);
+    applyPet(name);
+}
+
+void PetController::refresh()
+{
+    catalog_          = scanPets(shippedRoot_, installedRoot_);
+    auto const chosen = store_.pet();
+    if (not usable(chosen)) switchToDefault(chosen);
+    emit catalogChanged();
+    emit settingsChanged();
+    emit frameChanged();
+    emit outfitChanged();
+}
+
+void PetController::openPacksFolder()
+{
+    auto error = std::error_code{};
+    std::filesystem::create_directories(installedRoot_, error);
+    if (error) LENS_WARN("the pets folder could not be created: {}", error.message());
+    QDesktopServices::openUrl(QUrl::fromLocalFile(QString::fromStdWString(installedRoot_.wstring())));
+}
+
+void PetController::applyPet(std::string const& id)
+{
     auto const previous = store_.pet();
-    store_.setPet(id.toStdString());
-    loadPet(id.toStdString());
-    // A refused pet is not saved: the reader keeps the one they had, and the picker stays usable.
+    store_.setPet(id);
+    loadPet(id);
+    // A pet that will not load keeps the one the reader had, so the picker stays usable.
     if (not assets_) {
         store_.setPet(previous);
         loadPet(previous);
@@ -369,6 +455,37 @@ void PetController::setPet(QString id)
     emit settingsChanged();
     emit frameChanged();
     emit outfitChanged();
+}
+
+void PetController::switchToDefault(std::string const& gone)
+{
+    store_.setPet(kDefaultPet);
+    loadPet(kDefaultPet);
+    if (isShipped(gone)) return;
+
+    // Queued, so the notice is raised once the caller has connected to the signal; at start-up that is after the constructor.
+    auto const title = QCoreApplication::translate("SettingsPopup", "Desktop companion");
+    auto const body  = QCoreApplication::translate("SettingsPopup", "This pet package is no longer installed. Switched to %1.")
+                          .arg(QCoreApplication::translate("SettingsPopup", "Dog"));
+    QTimer::singleShot(0, this, [this, title, body] { emit fellBack(title, body); });
+}
+
+bool PetController::usable(std::string const& id) const
+{
+    auto const* entry = catalog_.find(id);
+    return entry != nullptr and (entry->source == PetSource::Shipped or isConfirmed(id));
+}
+
+bool PetController::isConfirmed(std::string const& id) const
+{
+    auto const ids = store_.confirmed();
+    return std::find(ids.begin(), ids.end(), id) != ids.end();
+}
+
+bool PetController::isShipped(std::string const& id) const
+{
+    auto error = std::error_code{};
+    return core::pet::isPetId(id) and std::filesystem::is_directory(shippedRoot_ / id, error);
 }
 
 void PetController::setEnabled(bool on)

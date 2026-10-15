@@ -288,6 +288,7 @@ def main():
         })
 
     write_json(out / "pet.json", {
+        "format": 1,
         "id": args.id,
         "canvas": CANVAS,
         "height": CANVAS,

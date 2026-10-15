@@ -64,14 +64,6 @@ html[data-theme=liquid][data-refract] .settings{backdrop-filter:blur(var(--glass
 .set-h .close{margin-left:auto;width:26px;height:26px;border:0;border-radius:8px;background:transparent;color:var(--faint);font-size:18px;line-height:1}
 .set-h .close:hover{background:var(--panel2);color:var(--text)}
 .set-body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:14px 20px 18px}
-/* 滚动条：6 px 一条，滑块取 --faint，跟 chevron 同一个令牌，所以随主题走。Chromium 认 ::-webkit- 那组，
-   Gecko 不认，用最后那行标准属性——但标准属性不能裸写，Chromium 一读到就切回原生滚动条，上下箭头跟着长出来，
-   所以用 @supports (-moz-appearance:none) 把它关进 Gecko。 */
-.set-body::-webkit-scrollbar,.dd-list::-webkit-scrollbar{width:6px;height:6px}
-.set-body::-webkit-scrollbar-track,.dd-list::-webkit-scrollbar-track{background:transparent}
-.set-body::-webkit-scrollbar-thumb,.dd-list::-webkit-scrollbar-thumb{background:var(--faint);border-radius:999px}
-.set-body::-webkit-scrollbar-thumb:hover,.dd-list::-webkit-scrollbar-thumb:hover{background:var(--muted)}
-@supports (-moz-appearance:none){.set-body,.dd-list{scrollbar-width:thin;scrollbar-color:var(--faint) transparent}}
 .set-f{display:flex;align-items:center;gap:8px;padding:0 20px;min-height:56px;border-top:1px solid var(--line2);flex:none}
 .status{flex:1;text-align:center;font-size:11px;color:var(--muted)}
 .btn{padding:6px 14px;border-radius:999px;border:1px solid transparent;font-size:12px;font-weight:600}
@@ -125,6 +117,24 @@ html[data-theme=frosted] .dd-list{background:rgba(255,255,255,.78)}
 /* Min width sized for the longest label ("Cuerpo"), so every row's chips start at the same x. */
 .slot-h{flex:none;width:52px;font-size:11px;color:var(--faint)}
 .slot .chips{flex:1;min-width:0}
+/* 说明占一行，按钮自己占一行左对齐：按钮标签较长，与说明并排会把说明挤成窄栏。
+   左移一个内边距让按钮文字与正文左缘对齐；加一圈描边，否则它与分组标题长得一样，看不出能点。 */
+.pkg-open{margin-left:-14px;border-color:var(--line)}
+.refused{margin-top:8px;display:flex;flex-direction:column;gap:5px}
+.refused-row{display:flex;gap:7px;font-size:11px;color:var(--muted)}
+/* 包 id 是包提供的字符串，用等宽字与弱色标出，与原因分开 */
+.refused-row .id{color:var(--faint);font-family:ui-monospace,Consolas,monospace}
+/* 下拉里的来源标记：由应用自己画，包无法影响它的有无与外观。 */
+.dd-item .badge{margin-left:auto;flex:none;padding:1px 6px;border-radius:999px;border:1px solid var(--line);font-size:10px;color:var(--muted)}
+.dd-item[aria-selected=true] .badge{border-color:transparent;color:var(--on);opacity:.75}
+/* 确认弹窗：形态同通知卡片（UI.md 4.12），带按钮并吃焦点。点背景不关：它是一次知情同意，不是随手可过的提示。 */
+.scrim{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:rgba(12,12,16,.42)}
+.dlg{width:320px;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh2);padding:18px 18px 14px}
+html[data-theme=frosted] .dlg{background:rgba(255,255,255,.78)}
+.dlg h2{font-size:14px;font-weight:700;margin-bottom:8px}
+.dlg p{font-size:13px;color:var(--muted);line-height:1.55}
+.dlg .pkg-name{color:var(--text);font-weight:600}
+.dlg-btns{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
 .themebtn{position:fixed;top:14px;right:16px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-family:var(--f);font-size:11.5px;cursor:pointer}
 .themebtn:hover{color:var(--text)}
 @media (prefers-reduced-transparency:reduce){
@@ -161,6 +171,12 @@ html[data-theme=frosted] .dd-list{background:rgba(255,255,255,.78)}
       <div class="group-title" id="pick-title"></div>
       <div class="dd" id="pet-dd"></div>
 
+      <!-- 宠物包紧挨下发：下拉里列的就是它们，被拒的包是错误信息，藏到页尾会被漏看。 -->
+      <div class="group-title" id="pkg-title"></div>
+      <div class="swhelp" id="pkg-help"></div>
+      <button class="btn ghost pkg-open" id="pkg-open" type="button"></button>
+      <div class="refused" id="pkg-refused"></div>
+
       <div class="group-title" id="stage-title"></div>
       <div class="stage" id="stage"></div>
 
@@ -174,6 +190,16 @@ html[data-theme=frosted] .dd-list{background:rgba(255,255,255,.78)}
     <button class="btn ghost" id="defaults" type="button"></button>
     <span class="status" id="status" role="status" aria-live="polite"></span>
     <button class="btn ink" id="save" type="button" disabled></button>
+  </div>
+</div>
+<div class="scrim" id="dlg-scrim" hidden>
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlg-title" aria-describedby="dlg-body">
+    <h2 id="dlg-title"></h2>
+    <p id="dlg-body"></p>
+    <div class="dlg-btns">
+      <button class="btn ghost" id="dlg-cancel" type="button"></button>
+      <button class="btn ink" id="dlg-ok" type="button"></button>
+    </div>
   </div>
 </div>
 <button class="themebtn" id="tb"></button>
@@ -497,29 +523,6 @@ const PET_ASSETS = {"dog/sprites/body/idle.png":"data:image/png;base64,iVBORw0KG
 			})));
 		}
 		/**
-		* The horizontal centre of what the idle action draws in its first frame, in sheet units. The art is not centred
-		* on its canvas, so the settings preview centres on this instead. Alpha at or above 40 counts as drawn; a frame with
-		* nothing drawn gives the canvas centre. The app's PetAssets::load measures the same thing.
-		* @returns {number}
-		*/
-		inkCentre() {
-			const { width, height } = this;
-			const probe = document.createElement("canvas");
-			probe.width = width;
-			probe.height = height;
-			const ctx = probe.getContext("2d", { willReadFrequently: true });
-			ctx.drawImage(this.images.get(this.pet.actions.idle.sheet), 0, 0, width, height, 0, 0, width, height);
-			const alpha = ctx.getImageData(0, 0, width, height).data;
-			let left = width;
-			let right = 0;
-			for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
-				if (alpha[(y * width + x) * 4 + 3] < 40) continue;
-				left = Math.min(left, x);
-				right = Math.max(right, x + 1);
-			}
-			return right === 0 ? width / 2 : (left + right) / 2;
-		}
-		/**
 		* @param {{action: string, frame: number, expression: number, anchors: {head: number[], face: number[], body: number[]}}} state
 		*        From PetEngine.state.
 		* @param {Array<{asset: string, slot: string, zIndex: number}>} accessories Worn accessories visible for this action.
@@ -736,8 +739,6 @@ const PET_ASSETS = {"dog/sprites/body/idle.png":"data:image/png;base64,iVBORw0KG
 			scale
 		});
 		await renderer.load(resolve);
-			// The stage's canvas is centred by its box, which is the canvas middle; shift it so the figure is centred.
-			canvas.style.marginLeft = `${-renderer.inkCentre() * scale}px`;
 		const engine = new PetEngine(pet);
 		const accessories = new AccessoryManager(pet.accessories);
 		if (!live) {
@@ -801,6 +802,14 @@ const L = {
                 flower: "花", party_hat: "派对帽", blush: "腮红", scarf: "围巾", apron: "围裙", hair_bow: "发结", reading_glasses: "老花镜",
                 sleep_mask: "眼罩", vest: "马甲", bell_collar: "铃铛项圈", bandana: "三角巾" },
         pets: { dog: "小狗", mochi: "麻糬", owl: "猫头鹰", cat: "猫" },
+        pkg: "宠物包", pkgHelp: "包放在 %APPDATA%\\Lens\\pets\\ 下，放进去后在列表里出现，名字原样显示。包只含数据，不会执行代码。",
+        pkgOpen: "打开宠物包目录", pkgMore: n => `另有 ${n} 个未列出。`, ext: "外部",
+        dlgTitle: "第三方宠物包", dlgBody: "“{}” 是第三方宠物包，Lens 未审核。请只在你信任其来源时启用。",
+        dlgCancel: "取消", dlgEnable: "启用",
+        reasons: { Unreadable: "宠物包读不到。", Format: "宠物包格式不受支持。", TooLarge: "宠物包超出大小上限。", BadName: "宠物包的名字不合法。",
+                   MissingRole: "缺少必需的动作。", BadAnimation: "有动作不合规。", BadAnchors: "锚点数据不合规。", BadAccessory: "有配饰不合规。",
+                   BadAssetType: "有图片不是有效的 PNG。", SheetSize: "有图片尺寸与帧数不符。", ExpressionIndex: "有表情索引越界。",
+                   PathEscapes: "有图片路径越出包目录。", IdTaken: "宠物包 id 已被占用。" },
         themeDark: "静谧暗夜", themeLight: "晴朗白昼", themeFrosted: "雾面玻璃", themeLiquid: "流光玻璃" },
   en: { title: "Desktop pet", crumb: "Extensions", tog: "Show desktop pet", help: "When on, the pet stays on the desktop and can be dragged. It never reads your selections or explanations, only event types.",
         pass: "Mouse passthrough", passHelp: "When on, the pet ignores the mouse: clicks reach the window below and it cannot be dragged. Turn this off here to get interaction back.",
@@ -815,6 +824,15 @@ const L = {
                 flower: "Flower", party_hat: "Party hat", blush: "Blush", scarf: "Scarf", apron: "Apron", hair_bow: "Hair bow", reading_glasses: "Reading glasses",
                 sleep_mask: "Sleep mask", vest: "Vest", bell_collar: "Bell collar", bandana: "Bandana" },
         pets: { dog: "Dog", mochi: "Mochi", owl: "Owl", cat: "Cat" },
+        pkg: "Pet packages", pkgHelp: "Put a package under %APPDATA%\\Lens\\pets\\ and it appears in the list, with its own name. A package holds data only and never runs code.",
+        pkgOpen: "Open packages folder", pkgMore: n => `${n} more not shown.`, ext: "External",
+        dlgTitle: "Third-party pet package", dlgBody: "“{}” is a third-party package. Lens has not reviewed it. Enable it only if you trust where it came from.",
+        dlgCancel: "Cancel", dlgEnable: "Enable",
+        reasons: { Unreadable: "The package could not be read.", Format: "The package format is not supported.", TooLarge: "The package exceeds the size limits.",
+                   BadName: "The package name is not valid.", MissingRole: "A required action is missing.", BadAnimation: "An action is not valid.",
+                   BadAnchors: "The anchor data is not valid.", BadAccessory: "An accessory is not valid.", BadAssetType: "An image is not a valid PNG.",
+                   SheetSize: "An image size does not match its frames.", ExpressionIndex: "An expression index is out of range.",
+                   PathEscapes: "An image path points outside the package.", IdTaken: "The package id is already in use." },
         themeDark: "Dark", themeLight: "Light", themeFrosted: "Frosted glass", themeLiquid: "Liquid glass" },
   ja: { title: "デスクトップペット", crumb: "拡張", tog: "デスクトップペットを表示", help: "オンにするとペットがデスクトップに常駐し、ドラッグで動かせます。選択文や解説は読まず、イベントの種類だけを受け取ります。",
         pass: "マウス透過", passHelp: "オンにするとペットはマウスを受け取らず、クリックは下のウィンドウに届きます。ドラッグもできません。ここでオフにすると操作を戻せます。",
@@ -829,6 +847,15 @@ const L = {
                 flower: "花", party_hat: "パーティーハット", blush: "チーク", scarf: "マフラー", apron: "エプロン", hair_bow: "ヘアリボン", reading_glasses: "老眼鏡",
                 sleep_mask: "アイマスク", vest: "ベスト", bell_collar: "鈴付きの首輪", bandana: "バンダナ" },
         pets: { dog: "犬", mochi: "モチ", owl: "フクロウ", cat: "猫" },
+        pkg: "ペットパッケージ", pkgHelp: "パッケージは %APPDATA%\\Lens\\pets\\ に置きます。一覧に表示され、名前はそのまま出ます。データのみで、コードは実行しません。",
+        pkgOpen: "パッケージフォルダーを開く", pkgMore: n => `他に ${n} 件は非表示です。`, ext: "外部",
+        dlgTitle: "サードパーティのパッケージ", dlgBody: "「{}」はサードパーティのパッケージです。Lens は審査していません。入手元を信頼できる場合のみ有効にしてください。",
+        dlgCancel: "キャンセル", dlgEnable: "有効にする",
+        reasons: { Unreadable: "パッケージを読み込めません。", Format: "パッケージの形式に対応していません。", TooLarge: "パッケージがサイズ上限を超えています。",
+                   BadName: "パッケージ名が不正です。", MissingRole: "必須の動きがありません。", BadAnimation: "不正な動きがあります。",
+                   BadAnchors: "アンカーデータが不正です。", BadAccessory: "不正なアクセサリーがあります。", BadAssetType: "有効な PNG でない画像があります。",
+                   SheetSize: "画像のサイズがフレーム数と一致しません。", ExpressionIndex: "表情のインデックスが範囲外です。",
+                   PathEscapes: "画像パスがパッケージの外を指しています。", IdTaken: "パッケージ id は既に使われています。" },
         themeDark: "ダーク", themeLight: "ライト", themeFrosted: "すりガラス", themeLiquid: "リキッドガラス" },
   es: { title: "Mascota de escritorio", crumb: "Extensiones", tog: "Mostrar mascota de escritorio", help: "Cuando está activa, la mascota se queda en el escritorio y puedes arrastrarla. Nunca lee tus selecciones ni explicaciones, solo recibe tipos de evento.",
         pass: "Paso del ratón", passHelp: "Cuando está activo, la mascota no recibe el ratón: los clics llegan a la ventana de debajo y no se puede arrastrar. Desactívalo aquí para recuperar la interacción.",
@@ -843,6 +870,15 @@ const L = {
                 flower: "Flor", party_hat: "Gorro de fiesta", blush: "Rubor", scarf: "Bufanda", apron: "Delantal", hair_bow: "Lazo para el pelo", reading_glasses: "Gafas de lectura",
                 sleep_mask: "Antifaz para dormir", vest: "Chaleco", bell_collar: "Collar con cascabel", bandana: "Pañuelo" },
         pets: { dog: "Perro", mochi: "Mochi", owl: "Búho", cat: "Gato" },
+        pkg: "Paquetes de mascota", pkgHelp: "Coloca un paquete en %APPDATA%\\Lens\\pets\\ y aparecerá en la lista con su propio nombre. Solo contiene datos y nunca ejecuta código.",
+        pkgOpen: "Abrir carpeta de paquetes", pkgMore: n => `${n} más sin mostrar.`, ext: "Externo",
+        dlgTitle: "Paquete de mascota de terceros", dlgBody: "“{}” es un paquete de terceros. Lens no lo ha revisado. Actívalo solo si confías en su procedencia.",
+        dlgCancel: "Cancelar", dlgEnable: "Activar",
+        reasons: { Unreadable: "No se pudo leer el paquete.", Format: "El formato del paquete no es compatible.", TooLarge: "El paquete supera los límites de tamaño.",
+                   BadName: "El nombre del paquete no es válido.", MissingRole: "Falta una acción obligatoria.", BadAnimation: "Hay una acción no válida.",
+                   BadAnchors: "Los datos de anclaje no son válidos.", BadAccessory: "Hay un accesorio no válido.", BadAssetType: "Hay una imagen que no es un PNG válido.",
+                   SheetSize: "El tamaño de una imagen no coincide con sus fotogramas.", ExpressionIndex: "Hay un índice de expresión fuera de rango.",
+                   PathEscapes: "Hay una ruta de imagen fuera del paquete.", IdTaken: "El id del paquete ya está en uso." },
         themeDark: "Oscuro", themeLight: "Claro", themeFrosted: "Vidrio mate", themeLiquid: "Vidrio líquido" }
 };
 const asked = (new URLSearchParams(location.search).get('lang') || 'zh').toLowerCase();
@@ -861,9 +897,24 @@ let shownAction = null;
 
 const $ = id => document.getElementById(id);
 const SLOTS = ['head', 'face', 'body'];
+/// 随包的宠物：data/pet 下的目录，名字按界面语言显示。
 const PETS = Object.keys(PET_MANIFEST);
+/// 模拟的宠物包，以及被拒的包。原型里没有文件系统也没有校验，这几条写死在这里，只用来对视来源标记、
+/// 被拒列表与确认弹窗；真机上它们来自扫描 %APPDATA%\Lens\pets\（见 docs/pet-package-format.md）。
+/// `alias` 让预览复用一只已随包宠物的美术，原型因此不必新增美术；真实的包自带 sprites/。
+const PACKAGES = [{ id: 'snowfox', name: '雪狐', alias: 'cat' }];
+const REFUSED = [{ id: 'glitchfox', reason: 'SheetSize' }, { id: 'neon_hat', reason: 'IdTaken' }];
+/// 被拒的包最多列几行，其余折成一行计数。
+const REFUSED_SHOWN = 3;
+const pkgOf = id => PACKAGES.find(p => p.id === id);
+/// 下拉里的全部条目：随包宠物在前，宠物包在后。
+const ALL_PETS = [...PETS, ...PACKAGES.map(p => p.id)];
 const current = () => stages[state.pet];
-const assetsOf = id => path => PET_ASSETS[`${id}/${path}`];
+/// 外部包的名字原样显示、不进翻译；随包的名字按界面语言取，没有对照时显示 id，与应用一致。
+const petLabel = id => pkgOf(id)?.name ?? t.pets[id] ?? id;
+/// 预览用的资源与数据：外部包按 alias 取已随包宠物的那一份。
+const assetsOf = id => { const src = pkgOf(id)?.alias ?? id; return path => PET_ASSETS[`${src}/${path}`]; };
+const manifestOf = id => PET_MANIFEST[pkgOf(id)?.alias ?? id];
 
 function renderToggle() {
   $('tog').setAttribute('aria-checked', String(state.on));
@@ -876,7 +927,7 @@ function renderToggle() {
 /** The pet dropdown: the field shows the chosen pet, and the list marks it. */
 function renderPicker() {
   const dd = $('pet-dd');
-  dd.querySelector('.dd-btn span').textContent = t.pets[state.pet] ?? state.pet;
+  dd.querySelector('.dd-btn span').textContent = petLabel(state.pet);
   for (const item of dd.querySelectorAll('.dd-item')) item.setAttribute('aria-selected', String(item.dataset.pet === state.pet));
 }
 
@@ -892,7 +943,7 @@ function togglePicker(open) {
 function renderPanel() {
   const s = current();
   shownAction = s ? s.engine.action : null;
-  const pet = PET_MANIFEST[state.pet];
+  const pet = manifestOf(state.pet);
   $('acts').innerHTML = PetPreview.actionOrder(pet).map(a =>
     `<button type="button" class="chip" data-act="${a}" aria-pressed="${shownAction === a}">${t.acts[a] ?? a}</button>`).join('');
   $('slots').innerHTML = SLOTS.map(slot => `
@@ -904,7 +955,7 @@ function renderPanel() {
 
 /** Shows the chosen pet's stage and runs it only while the pet is on; the others stay hidden and stopped. */
 function renderStage() {
-  for (const id of PETS) {
+  for (const id of ALL_PETS) {
     const s = stages[id];
     if (!s) continue;
     s.canvas.hidden = id !== state.pet;
@@ -930,26 +981,125 @@ function renderStatic() {
   $('pass-label').textContent = t.pass;
   $('pass-help').textContent = t.passHelp;
   $('pick-title').textContent = t.pick;
-  $('pet-dd').innerHTML = '<button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false"><span></span>'
-    + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>'
-    + `<div class="dd-list" role="listbox">${PETS.map(id =>
-      `<button type="button" class="dd-item" role="option" data-pet="${id}"><span>${t.pets[id] ?? id}</span></button>`).join('')}</div>`;
+  renderPickerList();
+  $('pkg-title').textContent = t.pkg;
+  $('pkg-help').textContent = t.pkgHelp;
+  $('pkg-open').textContent = t.pkgOpen;
+  renderRefused();
   $('stage-title').textContent = t.stage;
   $('act-title').textContent = t.act;
   $('acc-title').textContent = t.acc;
   $('defaults').textContent = t.defaults;
   $('save').textContent = t.save;
+  $('dlg-title').textContent = t.dlgTitle;
+  $('dlg-cancel').textContent = t.dlgCancel;
+  $('dlg-ok').textContent = t.dlgEnable;
+}
+
+/**
+ * The dropdown: every bundled pet, then every installed package. The field's own markup is the app's, so it is
+ * written as a string; a row's name comes from the list and is set as text, never as markup, because a package
+ * supplies its own name (docs/pet-package-format.md §7).
+ */
+function renderPickerList() {
+  $('pet-dd').innerHTML = '<button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false"><span></span>'
+    + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>';
+  const list = document.createElement('div');
+  list.className = 'dd-list';
+  list.setAttribute('role', 'listbox');
+  for (const id of ALL_PETS) {
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'dd-item';
+    item.setAttribute('role', 'option');
+    item.dataset.pet = id;
+    const name = document.createElement('span');
+    name.textContent = petLabel(id);
+    item.append(name);
+    if (pkgOf(id)) {
+      // 来源标记由应用画，包无法影响它的有无与外观。
+      const badge = document.createElement('span');
+      badge.className = 'badge';
+      badge.textContent = t.ext;
+      item.append(badge);
+    }
+    list.append(item);
+  }
+  $('pet-dd').append(list);
+}
+
+/// 被拒的包：id 与原因都按文本插入，不用 innerHTML，包提供的字符串因此不进标记。
+function renderRefused() {
+  const box = $('pkg-refused');
+  box.textContent = '';
+  const addRow = (id, text) => {
+    const row = document.createElement('div');
+    row.className = 'refused-row';
+    if (id !== null) {
+      const tag = document.createElement('span');
+      tag.className = 'id';
+      tag.textContent = id;
+      row.append(tag);
+    }
+    const why = document.createElement('span');
+    why.textContent = text;
+    row.append(why);
+    box.append(row);
+  };
+  for (const r of REFUSED.slice(0, REFUSED_SHOWN)) addRow(r.id, t.reasons[r.reason] ?? r.reason);
+  if (REFUSED.length > REFUSED_SHOWN) addRow(null, t.pkgMore(REFUSED.length - REFUSED_SHOWN));
 }
 
 /** Switching pet returns the new pet's preview to idle and drops the worn accessories its catalogue does not have. */
 function selectPet(id) {
   const next = stages[id];
-  if (id === state.pet || !next) return;
-  const kept = PetPreview.keepWorn(new Map(Object.entries(state.worn)), PET_MANIFEST[id].accessories);
+  const manifest = manifestOf(id);
+  if (id === state.pet || !next || !manifest) return;
+  const kept = PetPreview.keepWorn(new Map(Object.entries(state.worn)), manifest.accessories);
   state.pet = id;
   state.worn = Object.fromEntries(kept);
   next.accessories.worn = kept;
   next.engine.stop();
+}
+
+/// 已经确认过的包，按 id 记。真机上这条落在设置文档的 PET.confirmed（docs/adr/0043）；原型不持久化。
+const confirmed = new Set();
+/// 正在等确认的那只包，没有等待时为 null。
+let pendingPkg = null;
+
+/// 正文按占位符切成文本节点，包名单独放进一个 span：包提供的字符串永远只当文本，不进标记。
+function fillMessage(el, template, name) {
+  const [before, after] = template.split('{}');
+  const strong = document.createElement('span');
+  strong.className = 'pkg-name';
+  strong.textContent = name;
+  el.textContent = '';
+  el.append(before, strong, after ?? '');
+}
+
+/** First pick of an external package asks once before it takes effect; a bundled pet switches at once. */
+function pickPet(id) {
+  togglePicker(false);
+  if (pkgOf(id) && !confirmed.has(id)) {
+    openConfirm(id);
+    return;
+  }
+  selectPet(id);
+  $('pet-dd').querySelector('.dd-btn').focus();
+}
+
+function openConfirm(id) {
+  pendingPkg = id;
+  fillMessage($('dlg-body'), t.dlgBody, petLabel(id));
+  $('dlg-scrim').hidden = false;
+  // 默认动作是取消：按 Esc 与点背景都不启用，只有明确按下 “启用” 才生效。
+  $('dlg-cancel').focus();
+}
+
+function closeConfirm() {
+  pendingPkg = null;
+  $('dlg-scrim').hidden = true;
+  $('pet-dd').querySelector('.dd-btn').focus();
 }
 
 document.addEventListener('click', e => {
@@ -962,7 +1112,7 @@ document.addEventListener('click', e => {
     if (!state.on) current()?.engine.stop();
   }
   else if (b.id === 'pass') { state.passthrough = !state.passthrough; }
-  else if (b.dataset.pet) { selectPet(b.dataset.pet); togglePicker(false); $('pet-dd').querySelector('.dd-btn').focus(); }
+  else if (b.dataset.pet) { pickPet(b.dataset.pet); }
   else if (b.dataset.act) { current()?.engine.play(b.dataset.act); renderPanel(); return; }
   else if (b.dataset.acc) {
     const s = current();
@@ -978,13 +1128,26 @@ document.addEventListener('click', e => {
   else if (b.id === 'save') {
     saved = structuredClone(state); $('status').textContent = t.saved; renderAll(); return;
   }
+  // 原型里打不开文件管理器。真机上这一颗用系统文件管理器打开 %APPDATA%\Lens\pets\，目录不存在时先创建。
+  else if (b.id === 'pkg-open') { return; }
+  else if (b.id === 'dlg-cancel') { closeConfirm(); return; }
+  else if (b.id === 'dlg-ok') {
+    const id = pendingPkg;
+    if (!id) return;
+    confirmed.add(id);
+    closeConfirm();
+    selectPet(id);
+  }
   else return;
   $('status').textContent = '';
   renderAll();
 });
 
 document.addEventListener('keydown', e => {
-  if (e.key !== 'Escape' || !$('pet-dd').classList.contains('open')) return;
+  if (e.key !== 'Escape') return;
+  // 弹窗先收：它在等待一次明确的回答，Esc 等同于取消。
+  if (!$('dlg-scrim').hidden) { closeConfirm(); return; }
+  if (!$('pet-dd').classList.contains('open')) return;
   togglePicker(false);
   $('pet-dd').querySelector('.dd-btn').focus();
 });
@@ -999,10 +1162,12 @@ setInterval(() => {
 
 renderStatic();
 renderAll();
+// ?dlg=1 直接打开确认弹窗，供对视与截图；与 ?on 一样只是原型的开发开关。
+if (new URLSearchParams(location.search).has('dlg')) openConfirm(PACKAGES[0].id);
 (async () => {
   const stage = $('stage');
-  await Promise.all(PETS.map(async id => {
-    const pet = PET_MANIFEST[id];
+  await Promise.all(ALL_PETS.map(async id => {
+    const pet = manifestOf(id);
     const resolve = assetsOf(id);
     const canvas = document.createElement('canvas');
     canvas.hidden = true;

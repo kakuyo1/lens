@@ -2,8 +2,10 @@
 
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "core/known_store.h"
+#include "core/pet/pet_package.h"
 
 /**
  * @file pet_store.h
@@ -24,8 +26,11 @@ struct Outfit {
 };
 
 /// @brief The smallest and largest magnification the size slider offers. Whole numbers only: pixels stay square (PHASE3 3.1).
-constexpr int kMinScale = 1;
-constexpr int kMaxScale = 4;
+constexpr int kMinScale = core::pet::kMinScale;
+constexpr int kMaxScale = core::pet::kMaxScale;
+
+/// @brief The shipped pet a reader is given when the one they chose is gone or refused (docs/adr/0043).
+inline constexpr char const* kDefaultPet = "dog";
 
 /// @brief Where the window was left: the screen it sat on, by device name, and its offset from that screen's origin.
 struct SavedPosition {
@@ -39,9 +44,15 @@ public:
     /// @param store The one owner of the settings document, which must outlive this object.
     explicit PetStore(core::KnownStore& store);
 
-    /// @return The folder name of the pet the reader chose under data/pet, or the default pet until they choose another.
+    /// @return The folder name of the pet the reader chose, or the default pet until they choose another.
     std::string pet() const;
     void        setPet(std::string const& id);
+
+    /// @return The ids of the reader's packages they have confirmed. A confirmed package is not asked about again, even
+    ///         after it was removed and put back.
+    std::vector<std::string> confirmed() const;
+    /// @brief Records that the reader confirmed the package `id`.
+    void confirm(std::string const& id);
 
     /// @return Whether the reader turned the desktop pet on. Off by default.
     bool enabled() const;

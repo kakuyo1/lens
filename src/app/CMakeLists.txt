@@ -42,7 +42,9 @@ add_library(lens_app STATIC
   autostart.cpp
   tray.cpp
   pet/pet_assets.cpp
+  pet/pet_catalog.cpp
   pet/pet_controller.cpp
+  pet/pet_package_fs.cpp
   pet/pet_placement.cpp
   pet/pet_store.cpp
   pet/pet_window_native.cpp
@@ -154,6 +156,7 @@ qt_add_qml_module(lens_app
     qml/PetWindow.qml
     qml/PetScene.qml
     qml/PetStage.qml
+    qml/PetPackageDialog.qml
     qml/SpriteLayer.qml
     qml/TrayMenu.qml
     qml/SelectionBar.qml

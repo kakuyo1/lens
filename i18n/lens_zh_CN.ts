@@ -520,7 +520,8 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="44"/>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="100"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="138"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="466"/>
         <source>Desktop companion</source>
         <translation>桌面宠物</translation>
     </message>
@@ -883,6 +884,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="85"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="468"/>
         <source>Dog</source>
         <translation>小狗</translation>
     </message>
@@ -902,32 +904,122 @@
         <translation>猫</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="109"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="96"/>
+        <source>The package format is not supported.</source>
+        <translation>宠物包格式不受支持。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="97"/>
+        <source>The package exceeds the size limits.</source>
+        <translation>宠物包超出大小上限。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="98"/>
+        <source>The package name is not valid.</source>
+        <translation>宠物包的名字不合法。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="99"/>
+        <source>A required action is missing.</source>
+        <translation>缺少必需的动作。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="100"/>
+        <source>An action is not valid.</source>
+        <translation>有动作不合规。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="101"/>
+        <source>The anchor data is not valid.</source>
+        <translation>锚点数据不合规。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="102"/>
+        <source>An accessory is not valid.</source>
+        <translation>有配饰不合规。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="103"/>
+        <source>An image is not a valid PNG.</source>
+        <translation>有图片不是有效的 PNG。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="104"/>
+        <source>An image size does not match its frames.</source>
+        <translation>有图片尺寸与帧数不符。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="105"/>
+        <source>An expression index is out of range.</source>
+        <translation>有表情索引越界。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="106"/>
+        <source>An image path points outside the package.</source>
+        <translation>有图片路径越出包目录。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="107"/>
+        <source>The package id is already in use.</source>
+        <translation>宠物包 id 已被占用。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="108"/>
+        <source>The package could not be read.</source>
+        <translation>宠物包读不到。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="147"/>
         <source>Mouse pass-through</source>
         <translation>鼠标穿透</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="125"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="163"/>
         <source>Desktop pet size</source>
         <translation>桌宠大小</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="169"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="207"/>
         <source>Pet type</source>
         <translation>宠物类型</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="188"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="219"/>
+        <source>External</source>
+        <translation>外部</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="233"/>
+        <source>Pet packages</source>
+        <translation>宠物包</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="240"/>
+        <source>Copy a pet package folder into the packages folder. Lens reads it when you open this section.</source>
+        <translation>把宠物包文件夹复制到宠物包目录里，打开本分类时 Lens 会重新读取。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="248"/>
+        <source>Open packages folder</source>
+        <translation>打开宠物包目录</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="259"/>
+        <source>%1: %2</source>
+        <translation>%1：%2</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="273"/>
         <source>Preview</source>
         <translation>预览</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="203"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="288"/>
         <source>Actions</source>
         <translation>动作</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="231"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="316"/>
         <source>Accessories</source>
         <translation>配饰</translation>
     </message>
@@ -1012,10 +1104,26 @@
         <translation>等待 GitHub 确认</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/PetPackageDialog.qml" line="59"/>
+        <source>Third-party pet package</source>
+        <translation>第三方宠物包</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/PetPackageDialog.qml" line="67"/>
+        <source>&quot;%1&quot; is a third-party package. Lens has not reviewed it. Enable it only if you trust where it came from.</source>
+        <translation>“%1” 是第三方宠物包，Lens 未审核。请只在你信任其来源时启用。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/PetPackageDialog.qml" line="86"/>
         <location filename="../src/app/qml/SettingsSyncPage.qml" line="149"/>
         <location filename="../src/app/qml/SettingsSyncPage.qml" line="290"/>
         <source>Cancel</source>
         <translation>取消</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/PetPackageDialog.qml" line="92"/>
+        <source>Enable</source>
+        <translation>启用</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsSyncPage.qml" line="164"/>
@@ -1071,6 +1179,11 @@
         <location filename="../src/app/qml/SettingsSyncPage.qml" line="280"/>
         <source>Confirm delete</source>
         <translation>确认删除</translation>
+    </message>
+    <message>
+        <location filename="../src/app/pet/pet_controller.cpp" line="467"/>
+        <source>This pet package is no longer installed. Switched to %1.</source>
+        <translation>该宠物包已不存在，已切换到 %1。</translation>
     </message>
 </context>
 <context>

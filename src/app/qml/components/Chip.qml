@@ -1,7 +1,7 @@
 import QtQuick
 
 /**
- * One pill choice in the pet settings, for an action or an accessory. The ink fill marks the one in use,
+ * One pill choice in the pet settings: an action, an accessory, or a button in the pet-package dialog. The ink fill marks the one in use,
  * the way the segment control marks its selected item.
  */
 Rectangle {
@@ -27,6 +27,8 @@ Rectangle {
         id: caption
         anchors.centerIn: parent
         text: chip.label
+        // An action name comes from the pet's data, so it reads as plain text (docs/pet-package-format.md, section 7).
+        textFormat: Text.PlainText
         color: chip.selected ? chip.tokens.on : chip.tokens.text
         font.pixelSize: 12
         font.weight: chip.selected ? Font.Bold : Font.Normal

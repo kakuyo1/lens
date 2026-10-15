@@ -216,9 +216,12 @@ Singletons& singletons()
             lens::llm::loadLlmProtocol(channel, std::filesystem::path(LENS_DATA_DIR) / "llm");
         built.controller = std::make_unique<AppController>(*built.store, *built.llm, *built.hook, *built.hotkey, *built.pricing, std::filesystem::path(LENS_DATA_DIR));
         built.tray       = std::make_unique<Tray>(*built.controller);
-        // The pet as main() builds it: a refused data directory leaves it off, and the QML still gets a singleton.
+        // The pet as main() builds it: a refused data directory leaves it off, and the QML still gets a singleton. The
+        // reader's folder is a path that does not exist, so a surfaces run never reads the packages on this machine.
         built.petStore = std::make_unique<PetStore>(*built.store);
-        built.pet      = std::make_unique<PetController>(std::filesystem::path(LENS_DATA_DIR) / "pet", *built.petStore);
+        built.pet      = std::make_unique<PetController>(std::filesystem::path(LENS_DATA_DIR) / "pet",
+                                                    std::filesystem::temp_directory_path() / "lens-qtest-no-installed-pets",
+                                                    *built.petStore);
         return built;
     }();
     return one;

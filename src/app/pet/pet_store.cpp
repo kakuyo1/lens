@@ -38,12 +38,25 @@ PetStore::PetStore(core::KnownStore& store)
 
 std::string PetStore::pet() const
 {
-    return store_.section("PET").value<std::string>("pet", "dog");
+    return store_.section("PET").value<std::string>("pet", kDefaultPet);
 }
 
 void PetStore::setPet(std::string const& id)
 {
     store_.section("PET").set<std::string>("pet", id);
+}
+
+std::vector<std::string> PetStore::confirmed() const
+{
+    return store_.section("PET").value<std::vector<std::string>>("confirmed", {});
+}
+
+void PetStore::confirm(std::string const& id)
+{
+    auto ids = confirmed();
+    if (std::find(ids.begin(), ids.end(), id) != ids.end()) return;
+    ids.push_back(id);
+    store_.section("PET").set<std::vector<std::string>>("confirmed", ids);
 }
 
 bool PetStore::enabled() const

@@ -33,6 +33,7 @@
 #include "llm/llm_pricing.h"
 #include "llm/llm_protocol.h"
 #include "mouse_selection_hook.h"
+#include "notice.h"
 #include "paths.h"
 #include "tray.h"
 #include "util/log.h"
@@ -215,11 +216,15 @@ int main(int argc, char* argv[])
 
     AppController controller(store, llm, hook, hotkey, pricing, dataDir);
 
-    // A refused pet data directory leaves the pet off and says why; the rest of the program is unaffected.
+    // A refused pet data directory leaves the pet off and says why; the rest of the program is unaffected. The reader's
+    // packages sit beside the settings document, in %APPDATA%\Lens\pets (docs/adr/0043).
     lens::app::pet::PetStore      petStore(store);
-    lens::app::pet::PetController petController(dataDir / "pet", petStore);
+    lens::app::pet::PetController petController(dataDir / "pet", settings.parent_path() / "pets", petStore);
     lens::app::pet::PetController::provide(&petController);
     QObject::connect(&controller, &AppController::petEvent, &petController, &lens::app::pet::PetController::handle);
+    QObject::connect(&petController, &lens::app::pet::PetController::fellBack, &controller, [&controller](QString title, QString body) {
+        controller.explanationDuty()->showNotice(title, body, QString::fromLatin1(lens::app::kNoticeInfo));
+    });
 
     Tray tray(controller);
     if (!tray.show())

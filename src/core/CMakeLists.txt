@@ -8,6 +8,7 @@ add_library(lens_core STATIC
   vault.cpp
   pet/pet_state.cpp
   pet/pet_config.cpp
+  pet/pet_package.cpp
   pet/accessory.cpp
 )
 
