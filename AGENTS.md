@@ -18,7 +18,7 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
 
 ```
 lens/
-├── .claude           # project settings: the Qt skill family enabled (settings.json)
+├── .claude           # project settings: the Qt skill family enabled (settings.json), and the run-lens skill
 ├── .clang-format     # code format spec
 ├── .githooks         # pre-commit and commit-msg; each file's header lists its checks
 ├── cmake             # headers only: the precompiled ones CMakeLists.txt applies
@@ -56,6 +56,11 @@ unaffected. `TEST.md` section 2 says when each suite is worth running.
 from, and it exists as a second tree rather than a build-type switch because switching rewrites
 every compile flag and rebuilds the lot. Both are driven by the same wrapper; the two environment
 variables `scripts/build/build-release.bat` sets are the whole difference.
+
+To run it rather than build it, `scripts/qa/ui-run.ps1` rebuilds that tree when its `lens.exe` is
+older than `src/`, launches it with the repository as its working directory, and reports the PID and
+`logs/lens.log`. The `run-lens` skill carries the driving and photographing around it, and `TEST.md`
+section 5 the measurement.
 
 The Qt prefix lives in `config/paths.json`, which `scripts/build/build.bat` exports as `QT_ROOT` before it drives
 the presets. `config/README.md` owns the rule: machine paths come from that file, project paths stay

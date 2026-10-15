@@ -5,6 +5,8 @@
 
 #include "app/pet/pet_window_native.h"
 
+#include "util/log.h"
+
 #include <windows.h>
 
 #include <QScreen>
@@ -19,6 +21,24 @@ namespace {
 HWND handleOf(QWindow const& window)
 {
     return reinterpret_cast<HWND>(window.winId());
+}
+
+/// @return True when this run leaves every window in screen captures.
+///
+/// The exclusion is a privacy feature (docs/adr/0038, docs/adr/0041): an excluded surface is
+/// absent from screenshots and screen shares alike, which is also why scripts/qa/ui-capture.ps1
+/// photographs an empty desktop. QA asks for the other side of that trade with
+/// `LENS_QA_VISIBLE_IN_CAPTURE`, and the callers take their no-exclusion path.
+bool windowStaysVisibleInCapture()
+{
+    static bool const visible = [] {
+        auto const asked = qgetenv("LENS_QA_VISIBLE_IN_CAPTURE");
+        if (asked.isEmpty()) return false;
+        LENS_WARN("LENS_QA_VISIBLE_IN_CAPTURE is set: no window is kept out of screen captures, so every "
+                  "surface shows up in screenshots and screen shares. QA only; never leave it set.");
+        return true;
+    }();
+    return visible;
 }
 
 } // namespace
@@ -36,6 +56,7 @@ QString deviceNameOf(QScreen const& screen)
 
 bool setExcludedFromCapture(QWindow const& window, bool const excluded)
 {
+    if (windowStaysVisibleInCapture()) return false;
     return SetWindowDisplayAffinity(handleOf(window), excluded ? WDA_EXCLUDEFROMCAPTURE : WDA_NONE) != FALSE;
 }
 

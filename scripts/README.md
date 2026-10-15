@@ -10,7 +10,7 @@
 | `data/` | 词形数据生成与样例集独立校验 |
 | `pet/` | 桌宠美术流水线：形状配方、网格写入、配饰对位、素材同步与审查图（见其 README 与 `docs/pet-art-pipeline.md`） |
 | `profiling/` | QML profiler、QML 结构指标和 trace 解析 |
-| `qa/` | QML 快照、桌面驱动、截图和鼠标停顿探针；`qa/pet/` 是桌面宠物原型的逐动作对比与交互检查（见其 README） |
+| `qa/` | 起应用、桌面驱动、截图、QML 快照和鼠标停顿探针；`qa/pet/` 是桌面宠物原型的逐动作对比与交互检查（见其 README） |
 | `quality/` | QML lint、C++ / QML 覆盖率和 AST 指标 |
 | `release/` | 安装包构建和 GitHub Release 发布 |
 
@@ -27,6 +27,7 @@ sh scripts/qa/readme-shots.sh          # 重画 README 的四语言截图，源�
 ```
 
 ```powershell
+powershell -File scripts/qa/ui-run.ps1        # 起 release 树的应用：旧了就重建，见 TEST.md 第 5 节
 powershell -File scripts/qa/readme-gifs.ps1   # 离屏渲染 README 的 GIF 并检查尺寸、体积与时长，见 TEST.md 第 5 节
 ```
 

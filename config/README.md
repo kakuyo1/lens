@@ -26,11 +26,12 @@ C++ 不读这个文件：路径在 configure 期由 CMake 变成编译定义，�
 
 ## 豁免
 
-下列命中**不算**硬编码，`check_absolute_paths`（`.githooks/pre-commit` 第六项）会跳过：
+下列命中**不算**硬编码，`check_absolute_paths`（`.githooks/pre-commit` 第五项）会跳过：
 
 - `third_party/` 与 `package-lock.json`——vendored 的与生成的，不是我们的代码。
 - `*.svg`——每个文件都带 `xmlns="http://www.w3.org/2000/svg"`。
 - `*.md`——文档里写路径是叙述，不是解析。
+- `test/`——测试不是要发布的东西；有几个夹具的断言恰恰是 “拒绝一个机器路径”，写错了地方测试自己会挂。
 - 含 `http://`、`https://`、`qrc:/` 的行——URL 与 Qt 资源 URI 都不是文件系统路径。
 - 驱动器号要落在词的边界上（前面不是字母、数字或下划线）：cmd 的 `%VAR:/=\%` 这类替换语法里那个
   `T:/`，因此不算路径。

@@ -211,14 +211,18 @@ sh scripts/quality/qml-coverage.sh
 
 表面没有主窗口，全部靠触发才出现，所以真机验证只能靠驱动与拍照。能脱离屏幕断言的那部分已经搬进
 `lens_qtest_surfaces`（§2）：摆放、关闭规则、面板上的数字、托盘菜单那几个派生值，都不再需要快门。
-剩下的仍是这里的事——卡片对没对齐、阴影糊不糊、图标画出来没有。`scripts/qa/ui-*.ps1` 是三个这样的工具，
+剩下的仍是这里的事——卡片对没对齐、阴影糊不糊、图标画出来没有。`scripts/qa/ui-*.ps1` 是四个这样的工具，
 都是 PowerShell，都先把自己设成 per-monitor-v2 感知——不设的话截到的是 Windows 已经拉伸过的位图，
 糊与偏移都会被量成假的。
 
+- `ui-run.ps1`：起应用。`lens.exe` 比 `src/` 旧就先重建 release 树，然后脱离当前 shell 启动，报出 PID、
+  `logs/lens.log` 与有没有出现 `Lens is up`。已在运行就拒绝再起（`-Restart` 先停）。要拍照必须这样起，
+  并带上 `LENS_QA_VISIBLE_IN_CAPTURE=1`：玻璃主题下全部表面对抓屏隐藏（ADR 0038 / 0041），不设它，
+  `ui-capture.ps1` 拍到的是一张空桌面。
 - `ui-capture.ps1`：截屏。`-Virtual` 截整个虚拟桌面，`-Crop x,y,w,h` 裁一块，`-Zoom` 最近邻放大，
   `-Profile` 打出穿过中间那一行的灰度值。清晰还是糊、卡片对没对齐，靠这行数字定案，光看图看不出来。
   虚拟桌面那一档不是可选项：表面不只落在主屏上，而 `GetSystemMetrics(0/1)` 只知道主屏。
-- `ui-input.ps1`：驱动指针，三个脚本里只有它会动指针。`click` 点一下，`drag` 等步进拖，`dragfast`
+- `ui-input.ps1`：驱动指针，这四个里只有它会动指针。`click` 点一下，`drag` 等步进拖，`dragfast`
   相对位移连发，`reveal` 把指针停到主屏最后一行、把自动隐藏的任务栏勾出来。低层鼠标钩子看得见注入
   事件，所以拖选、点外部、拖面板都能这样触发。等步进那一档看着没问题，密度超过手速的 `dragfast`
   才拖出过发散——两者都要跑。
@@ -237,9 +241,9 @@ offscreen 不会栅格化 `MultiEffect`，因此图标与阴影在这类快照�
 `lensQaSnapshotDir` 交给每个引擎——offscreen 平台本身不带字体，不载就是满屏方框；用例调用 `testutil.js` 的
 `saveSnapshot(testCase, item, name)`，内部走 `TestCase.grabImage(item)` 再 `save()`。脚本设好
 `QT_QPA_PLATFORM=offscreen` 与 `LENS_QA_SNAPSHOT_DIR` 后驱动目标，默认写到 `test/records/snapshots/`。它验的
-是渲染结果本身——字形、字重、对齐、配色；摆放与交互仍归 §2 的 `lens_qtest_surfaces` 和上面那三件套。
+是渲染结果本身——字形、字重、对齐、配色；摆放与交互仍归 §2 的 `lens_qtest_surfaces` 和上面那四件套。
 
-一轮的顺序：先 `ui-tray-rects.ps1` 量基准，再起应用，用 `ui-input.ps1` 驱动，用 `ui-capture.ps1`
+一轮的顺序：先 `ui-tray-rects.ps1` 量基准，再 `ui-run.ps1` 起应用，用 `ui-input.ps1` 驱动，用 `ui-capture.ps1`
 截图，必要时 `-Profile` 或放大看像素。为看清而临时加进 QML 的东西（计时器、`console.log`）**提交前
 必须删干净**——`.githooks/pre-commit` 的第三项会拦下 `src/` 下带这两个串的暂存文件，手工确认是
 `grep -rn PROBE src/`。观察点本身由应用自己的日志承担：`logs/lens.log` 每行都刷，可以 `tail -f`。release 树的默认级别是 info，QML 的 `console.log` 属于 debug，要设 `LENS_LOG_LEVEL=debug` 才进日志；C++ 侧用 `LENS_INFO` 即可。离屏的 QTest 没有真实的任务栏、多屏与缩放，只能验证换算公式，屏幕上的位置要在真机截图上核对。
