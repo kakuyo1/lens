@@ -59,6 +59,17 @@ Item {
         function openCategory(panel, title) {
             const row = categoryRow(panel, title);
             verify(row, "the settings catalog has no " + title + " category");
+
+            // The catalog is longer than the body, so the last categories start below the fold:
+            // a press on a row that is not on screen goes past the panel. Bring it up first.
+            const body = scrollerOf(row);
+            if (body && body.contentHeight > body.height) {
+                const bottom = row.mapToItem(body, 0, row.height).y;
+                if (bottom > body.height)
+                    body.contentY = Math.min(bottom - body.height, body.contentHeight - body.height);
+                wait(20);
+            }
+
             mouseClick(row, row.width / 2, row.height / 2);
             wait(20);
         }
@@ -70,6 +81,15 @@ Item {
             verify(icons.length > 0, "the settings page has no back control");
             mouseClick(icons[0], icons[0].width / 2, icons[0].height / 2);
             wait(20);
+        }
+
+        /// The scrolling body a page is loaded into, found by walking up from the page.
+        function scrollerOf(item) {
+            for (let it = item.parent; it; it = it.parent) {
+                if (it.contentY !== undefined && it.contentHeight !== undefined)
+                    return it;
+            }
+            return null;
         }
 
         function test_defaultsRestoreAllLocalSettingsWithoutTouchingProtectedState() {
@@ -148,6 +168,51 @@ Item {
             verify(back, "the settings header disappeared on a child page");
         }
 
+        /// The Account & sync row is the general page's only link row, and it sits among labelled
+        /// switches: its label starts on the same left edge as theirs. It used to carry the 9 px
+        /// the catalog's rows do, which read as a line belonging to nothing beside it.
+        function test_theAccountRowLabelSharesThePagesLeftEdge() {
+            const main = make();
+            main.showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "General");
+
+            const link = Util.ofType(panel, "SettingsLinkRow");
+            verify(link, "the general page has no account row");
+            const label = Util.textWith(Util.textsUnder(link), ["Account & sync"]);
+            verify(label, "the account row carries no label");
+            const sibling = Util.textWith(Util.textsUnder(panel), ["Launch at startup"]);
+            verify(sibling, "the general page has no labelled switch to compare the row with");
+
+            compare(label.mapToItem(null, 0, 0).x, sibling.mapToItem(null, 0, 0).x,
+                    "the account row's label is not on the page's left edge");
+        }
+
+        /// The about page ends with its own footer -- the name, the licence and the build stamp --
+        /// and it is the panel's last line rather than one more block under the version. The panel
+        /// stretches a page that ends early to the body it is loaded into, so the footer's bottom
+        /// edge lands on the body's, less the 18 px the body keeps under a page.
+        function test_theAboutFooterSitsOnTheBodyBottom() {
+            const main = make();
+            main.showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "About");
+
+            const page = Util.ofType(panel, "SettingsAboutPage");
+            verify(page, "the settings panel has no about page");
+            const footer = Util.findAll(page, function (o) {
+                return o.objectName === "aboutFooter";
+            })[0];
+            verify(footer, "the about page has no footer");
+            const body = scrollerOf(page);
+            verify(body, "the about page is not inside the panel's body");
+
+            compare(Math.round(footer.mapToItem(page, 0, footer.height).y), Math.round(page.height),
+                    "the footer is not on the page's bottom edge");
+            compare(Math.round(footer.mapToItem(body, 0, footer.height).y), Math.round(body.height - 18),
+                    "the footer is not on the body's bottom edge");
+        }
+
         function test_captureTheCatalogAndDetailStates() {
             if (!lensQaSnapshotDir) {
                 skip("Set LENS_QA_SNAPSHOT_DIR to save the settings snapshots");
@@ -193,6 +258,10 @@ Item {
             openCategory(panel, "Daily budget");
             wait(settled);
             verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-budget"));
+            back(panel);
+            openCategory(panel, "About");
+            wait(settled);
+            verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-about"));
             back(panel);
             openCategory(panel, "Model service");
             wait(settled);

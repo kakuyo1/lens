@@ -20,9 +20,10 @@ Item {
         radius: root.tokens.radiusField
     }
 
+    /// The label starts on the page's own left edge. The row sits among labelled switches and
+    /// fields, and the 9 px the catalog's rows carry left it out of line with them (UI.md 4.4).
     Text {
         anchors.left: parent.left
-        anchors.leftMargin: 9
         anchors.verticalCenter: parent.verticalCenter
         text: root.label
         color: root.tokens.text
