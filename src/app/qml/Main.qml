@@ -536,13 +536,19 @@ Window {
 
             const at = root.toDip(payload);
             bar.selectionText = payload.text;
-            bar.openAt(at);
+            bar.selectionKind = payload.kind;
+            // Down before it is placed, rather than after: the bar is a window, so showing it
+            // where it was last left and moving it a line later is a frame of the bar in the
+            // wrong place -- the corner of the screen, the first time. Showing is two steps for
+            // the reason placePanel() gives -- `visible` alone can leave a topmost window under
+            // the taskbar -- so the raise follows the show, where it can do something.
             bar.visible = false;
             Qt.callLater(() => {
                 if (generation !== root.selectionBarGeneration)
                     return;
                 root.placeTransient(bar, at, bar.gap);
                 bar.visible = true;
+                bar.raise();
             });
         }
 

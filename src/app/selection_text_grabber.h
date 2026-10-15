@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <string_view>
 #include <variant>
 #include <vector>
@@ -14,10 +15,11 @@
  * @brief Copies the reader's selection out of whatever application owns it.
  *
  * There is no API that reads another application's selection, so this works the way a person
- * would: put the clipboard aside, press Ctrl+C into the foreground window, take what landed,
- * and put the clipboard back. Two consequences are handled here rather than left to be
- * discovered — the clipboard is borrowed, and an injected Ctrl+C is SIGINT inside a
- * terminal, so terminal processes are excluded before anything is sent.
+ * would: put the clipboard aside, press the copy combination into the foreground window, take
+ * what landed, and put the clipboard back. Two consequences are handled here rather than left
+ * to be discovered — the clipboard is borrowed, and the copy combination is not the same
+ * everywhere: Ctrl+C is SIGINT inside a terminal, so a terminal is sent its own copy key
+ * instead of the Ctrl+C that every other application takes.
  *
  * @note Windows only, like the rest of src/app. The clipboard work uses the raw Win32
  *       clipboard API rather than OLE's, for the reason recorded in ClipboardSnapshot.
@@ -30,7 +32,6 @@ enum class GrabStatus : std::uint8_t {
     Captured = 0,     ///< The text came back.
     ForegroundIsSelf, ///< The foreground window belongs to this process; injecting would
                       ///< target our own surfaces, so nothing was sent.
-    ProcessExcluded,  ///< The foreground process is one where Ctrl+C means "interrupt".
     ClipboardBusy,    ///< The clipboard could not be taken; without a snapshot to restore,
                       ///< clobbering it is not allowed. Also returned on re-entry.
     CopyTimedOut,     ///< Nothing came back: there was no window to copy from, the clipboard
@@ -50,20 +51,29 @@ struct GrabbedText {
                                        ///< on the clipboard now is theirs.
 };
 
+/// @brief The copy combination a terminal takes, and the terminal that takes it.
+struct TerminalCopyKey {
+    std::string_view process; ///< Executable file name, without its directory.
+    unsigned         key;     ///< Virtual-key code of the combination's non-modifier half.
+    bool             shift;   ///< Whether Shift is part of it.
+};
+
 /**
- * @brief Whether an injected Ctrl+C would do something destructive in this process.
+ * @brief The copy combination to send to @p executableName.
  *
- * A terminal turns Ctrl+C into SIGINT, so a reader who drag-selects a word inside one would
- * lose whatever is running there. The check happens before anything is sent, in the grab
- * step, which is the only place the foreground process matters.
+ * A terminal turns Ctrl+C into SIGINT, so sending one into a shell would kill whatever is
+ * running there. Its own copy key does the job instead. The check happens in the grab step,
+ * which is the only place the foreground process matters.
  *
  * @param executableName Executable name, with or without a directory, case-insensitive.
- * @return True for the terminal family listed in the implementation.
+ * @return The combination for the terminal family listed in the implementation, or nothing
+ *         when the process is not one of them and Ctrl+C is the copy, as it is everywhere else.
  * @note The list is a safety net, not a taxonomy. An editor with an embedded terminal, a
  *       debugger, or a REPL is not covered — their process is the host application, which
- *       cannot be recognised from its name. Extending the list is the fix if one bites.
+ *       cannot be recognised from its name, and its Ctrl+C is the copy the embedded terminal
+ *       itself takes. Extending the list is the fix if one bites.
  */
-bool isExcludedProcess(std::string_view executableName);
+std::optional<TerminalCopyKey> terminalCopyKey(std::string_view executableName);
 
 /**
  * @brief A copy of everything the clipboard held, kept as bytes this process owns.
@@ -128,9 +138,10 @@ public:
     /**
      * @brief Copy the foreground application's selection and read it back.
      *
-     * Waits for the injected Ctrl+C to land by polling the clipboard sequence number until
-     * it changes or kGrabDeadlineMs passes, driving a nested event loop so Windows messages
-     * — and the mouse hook — keep flowing while it waits. Takes tens of milliseconds.
+     * Waits for the injected copy to land by polling the clipboard sequence number until it
+     * changes or kGrabDeadlineMs passes, driving a nested event loop so Windows messages —
+     * and the mouse hook — keep flowing while it waits. Takes tens of milliseconds. The
+     * combination pressed is the foreground process's own (see terminalCopyKey).
      *
      * @return The selection, or the GrabStatus saying why there is none. The reason is logged
      *         too. A successful grab also says whether the clipboard was written by another

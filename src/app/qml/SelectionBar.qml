@@ -9,7 +9,7 @@ import QtQuick.Effects
  *
  * It sits beside the selection, on the side the bubble settings choose (above by default). It
  * never takes focus, so clicking one of its items leaves the reader's application in front and
- * the next injected Ctrl+C still lands in the right place.
+ * the next injected copy keystroke still lands in the right place.
  */
 Window {
     id: bar
@@ -30,19 +30,9 @@ Window {
     width: content.implicitWidth + 2 * shadowMargin
     height: content.implicitHeight + 2 * shadowMargin
 
-    /// The selection the actions apply to, set by main.qml alongside openAt().
+    /// The selection the actions apply to, set by Main.qml before it places and shows the bar.
     property string selectionText: ""
     property string selectionKind: "word"
-
-    /// @param payload The controller's {x, y, kind, text}. The position is not set here: Main.qml's
-    ///        placeTransient() places the bar on the side the bubble settings choose, right after this.
-    function openAt(payload) {
-        selectionKind = payload.kind;
-        visible = true;
-        // Showing a surface is two steps: see Main.qml placePanel() for why `visible` on its
-        // own can leave a topmost window under the taskbar.
-        raise();
-    }
 
     Item {
         id: content

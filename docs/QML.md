@@ -55,8 +55,9 @@
 - **显示一张表面是两步**：`visible = true` 不够，还要 `raise()`。实机反馈是托盘菜单被任务栏压住一角
   ——`placePanel` 把卡片的右下角对齐图标中心，卡片下缘本就在 48 DIP 任务栏里进了一半，而点托盘图标
   会把任务栏**激活**，它同样是置顶窗口且会把自己重新提到置顶带顶端，于是刚显示出来的面板落在它下面。
-  三处显示路径（`Main.qml` 的 `placePanel`、`Bubble.show`、`SelectionBar.openAt`）都补上 `raise()`，
-  没有共用的辅助函数：三个文件各自只有这一行，为它造一个上下文属性不划算。这改的是**谁在上面**。摆哪儿也改了：`placeBeside` 与 `placeTransient` 按所在屏的工作区夹取，工作区由 `AppController::screenWorkArea` 从 `QScreen::availableGeometry()` 按设备名取，不用 `Screen.desktopAvailable*`：竖屏上它给出的是主屏的尺寸（1536×864），不是这块屏自己的（1152×2048）。早先按整屏夹，任务栏会盖住面板的下缘。
+  显示路径（`Main.qml` 的 `placePanel`、`Main.qml` 里选区动作条那条、`Bubble.show`）都补上 `raise()`，
+  没有共用的辅助函数：每处各自只有这一行，为它造一个上下文属性不划算。动作条那条**显示在放置之后**：
+  先 `placeTransient()` 定好位置，再 `visible = true`，否则窗口会先在它上次待的地方亮一帧。这改的是**谁在上面**。摆哪儿也改了：`placeBeside` 与 `placeTransient` 按所在屏的工作区夹取，工作区由 `AppController::screenWorkArea` 从 `QScreen::availableGeometry()` 按设备名取，不用 `Screen.desktopAvailable*`：竖屏上它给出的是主屏的尺寸（1536×864），不是这块屏自己的（1152×2048）。早先按整屏夹，任务栏会盖住面板的下缘。
 - **点击外部关闭靠钩子**：表面各是独立 `Window`，落在别的窗口上的按下根本不会送进本进程，只有低层
   钩子看得见（`MouseSelectionHook::pointerPressed` → `AppController` 转发 → `main.qml` 的
   `dismissOutside()`）。判 “外面” 用的是卡片矩形而非窗口矩形，四周 26 px 阴影边距算外面。
@@ -83,15 +84,14 @@
 ## 4 定位
 
 - **贴合按卡片算，不按窗口**：每个表面都是卡片加四边各 26 px 透明阴影边距的窗口，早先拿窗口去贴锚点，
-  卡片实际偏出一个边距（气泡纵向还多偏一个 gap），看着就是没贴住选区。气泡与动作条的 `openAt` 现在把
-  `shadowMargin` 减掉再算。定位与边缘检测合成一处（`Main.qml` 的 `placeBeside()`：把卡片的右下角放在
+  卡片实际偏出一个边距（气泡纵向还多偏一个 gap），看着就是没贴住选区。气泡与动作条的 `placeTransient()`
+  现在把 `shadowMargin` 减掉再算。定位与边缘检测合成一处（`Main.qml` 的 `placeBeside()`：把卡片的右下角放在
   图标**中心**，按锚点所在那屏把窗口整块夹进屏内，上方放不下就翻到下方）；四张面板的 `openNear` 与
   `TrayMenu.openAt` 因此全部删掉，菜单与面板走同一条路。
 - **气泡与动作条同侧**：两张卡片都由 “选区完成” 这一个手势触发，故都往选区的**上方**排，上方空间不足
   时才下移。气泡原规格是挂在锚点**下方**，动作条在**上方**，同一个手势引出的两张卡片一上一下，读起来
   是两件不相干的东西各自乱落。两张卡片的翻转都在 `Main.qml` 的 `placeTransient()` 里，以所在屏工作区的顶边为界。
-  早先拿屏幕绝对坐标 0 当上边界，副屏在负 y 时选区一律翻到下方。`SelectionBar.openAt()` 里还留着那份
-  `above >= 0` 的公式，产品路径上它随即被 `placeTransient()` 覆盖，只有 QTest 直接读它。
+  早先拿屏幕绝对坐标 0 当上边界，副屏在负 y 时选区一律翻到下方。
 - **锚点是物理像素，窗口坐标不是**：钩子拿到的 `pt` 从不虚拟化，而 QML 窗口落在设备无关像素上，两者差
   一个 `devicePixelRatio`（本机 125% 实测：物理 x=275 的松手位置，窗口坐标是 220）；按 1:1 直接用，
   动作条会偏出选区四分之一屏，渲染循环还会记 “矩形不与屏幕相交”。Qt 会把 `QGuiApplication` 设成

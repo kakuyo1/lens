@@ -13,7 +13,7 @@ import QtQuick.Effects
  * countdown lives here rather than in the controller: it is the view's behaviour, and hovering is
  * what pauses it.
  * It never takes focus, so clicking Known or New does not change which application the next
- * injected Ctrl+C would go to.
+ * injected copy keystroke would go to.
  */
 Window {
     id: bubble
