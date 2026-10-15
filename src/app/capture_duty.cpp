@@ -468,6 +468,11 @@ void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const fro
         case core::SelectionKind::Sentence:
             pending.kind = QStringLiteral("sentence");
             break;
+        case core::SelectionKind::Translation:
+            // No candidate to pick from and no surface to go back to: the channel was settled by
+            // the text being Chinese, and the whole selection is what gets translated.
+            pending.kind = QStringLiteral("translation");
+            break;
         case core::SelectionKind::Word: {
             const auto& candidates = selection.candidates;
             const auto  fresh      = std::find_if(candidates.begin(), candidates.end(), [](const core::Candidate& candidate) {

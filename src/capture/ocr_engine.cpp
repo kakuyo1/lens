@@ -10,6 +10,7 @@
 #include <QFileInfo>
 #include <QProcess>
 #include <QStandardPaths>
+#include <QStringList>
 
 #include <algorithm>
 
@@ -19,6 +20,14 @@ namespace {
 constexpr qsizetype kMaxOutput = 1024 * 1024;
 constexpr qsizetype kMaxError  = 64 * 1024;
 
+/// @return Whether @p path is a traineddata file Tesseract could actually load: an empty file is
+///         what a half-finished download leaves behind, and passing it as a language fails the run.
+bool isUsableTrainedData(QString const& path)
+{
+    const QFileInfo data{path};
+    return data.isReadable() and data.size() > 0;
+}
+
 struct TesseractOcr final : OcrEngine {
     explicit TesseractOcr(TesseractConfig const& config_)
         : config{resolveTesseract(config_)}
@@ -27,8 +36,7 @@ struct TesseractOcr final : OcrEngine {
     OcrStatus resourceStatus() const
     {
         if (config.executable.isEmpty() or not QFileInfo{config.executable}.isFile()) return OcrStatus::RuntimeMissing;
-        auto const data = QFileInfo{QDir{config.dataDirectory}.filePath(QStringLiteral("eng.traineddata"))};
-        return data.isReadable() and data.size() > 0 ? OcrStatus::Ready : OcrStatus::LanguageMissing;
+        return tesseractLanguages(config.dataDirectory).isEmpty() ? OcrStatus::LanguageMissing : OcrStatus::Ready;
     }
 
     OcrStatus probe(std::shared_ptr<std::atomic_bool> cancel = {}) const override
@@ -60,7 +68,7 @@ struct TesseractOcr final : OcrEngine {
         QElapsedTimer timer;
         timer.start();
         process.start(config.executable,
-                      {QStringLiteral("stdin"), QStringLiteral("stdout"), QStringLiteral("--tessdata-dir"), config.dataDirectory, QStringLiteral("-l"), QStringLiteral("eng"), QStringLiteral("--psm"), QStringLiteral("3")});
+                      {QStringLiteral("stdin"), QStringLiteral("stdout"), QStringLiteral("--tessdata-dir"), config.dataDirectory, QStringLiteral("-l"), tesseractLanguages(config.dataDirectory), QStringLiteral("--psm"), QStringLiteral("3")});
         if (not process.waitForStarted(config.timeoutMs)) return {.status = OcrStatus::StartFailed};
 
         QByteArray output;
@@ -131,6 +139,18 @@ struct TesseractOcr final : OcrEngine {
     TesseractConfig config;
 };
 
+}
+
+QString tesseractLanguages(QString const& dataDirectory)
+{
+    // Chinese first: a reader who put chi_sim.traineddata in the directory did it to read Chinese,
+    // and Tesseract weighs the languages in the order it is given them.
+    QStringList available;
+    for (auto const& code : {QStringLiteral("chi_sim"), QStringLiteral("eng")}) {
+        if (isUsableTrainedData(QDir{dataDirectory}.filePath(code + QStringLiteral(".traineddata"))))
+            available << code;
+    }
+    return available.join(QLatin1Char('+'));
 }
 
 TesseractConfig resolveTesseract(TesseractConfig config)

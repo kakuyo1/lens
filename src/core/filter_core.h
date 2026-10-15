@@ -124,9 +124,10 @@ std::vector<Candidate> filterWords(
 /// 4.9). Entity detection is deliberately conservative: only a complete phrase with at least
 /// two adjacent Title Case tokens qualifies, never a single capitalized token.
 enum class SelectionKind {
-    Word,     ///< The whole selection is one letters-only token: a lookup, not a translation.
-    Entity,   ///< A complete multi-token Title Case phrase was selected.
-    Sentence, ///< More than one token; the sentence channel translates or explains it whole.
+    Word,        ///< The whole selection is one letters-only token: a lookup, not a translation.
+    Entity,      ///< A complete multi-token Title Case phrase was selected.
+    Sentence,    ///< More than one token; the sentence channel translates or explains it whole.
+    Translation, ///< The selection holds Han characters; its channel follows the language, not the shape.
 };
 
 /// @brief A selection, classified: what it is, and the candidates it carries.
@@ -148,6 +149,10 @@ struct Selection {
  * @return The kind, and the candidates when there are any.
  * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet.
  *
+ * @note A selection holding Han characters is Translation and nothing else: the shape gates above
+ *       are about how English is written, and what a reader wants from Chinese is the English of
+ *       it, word or phrase or sentence alike (API.md section 1). Everything below is the English
+ *       path.
  * @note The channel is the shape of the selection, not whether it holds a word worth showing: a
  *       lone letters-only token (a word, an acronym, a word the reader marked known) is Word,
  *       and anything with more than one token -- a phrase or a sentence -- is Sentence, whatever

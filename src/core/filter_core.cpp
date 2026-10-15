@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstdint>
 #include <fstream>
 #include <limits>
 #include <stdexcept>
@@ -37,6 +38,56 @@ bool isAlnum(char c)
 bool isSpace(char c)
 {
     return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v' || c == '\f';
+}
+
+/// @return Whether @p utf8 holds a Han character anywhere, which is the whole of "this selection
+/// is Chinese".
+///
+/// Decoded by hand because this file has no Qt and the answer is one question about one block:
+/// CJK Unified Ideographs and Extension A, the range MixedText.qml already splits runs on. A byte
+/// test would be cheaper and wrong -- the same three lead bytes spell Chinese punctuation, kana
+/// and full-width Latin, and a reader who selects a Japanese line has not selected Chinese.
+bool containsHan(std::string_view utf8)
+{
+    std::size_t i = 0;
+    while (i < utf8.size()) {
+        const auto  lead  = static_cast<unsigned char>(utf8[i]);
+        uint32_t    point = 0;
+        std::size_t width = 0;
+        if (lead < 0x80) {
+            point = lead;
+            width = 1;
+        } else if ((lead & 0xE0) == 0xC0) {
+            point = lead & 0x1F;
+            width = 2;
+        } else if ((lead & 0xF0) == 0xE0) {
+            point = lead & 0x0F;
+            width = 3;
+        } else if ((lead & 0xF8) == 0xF0) {
+            point = lead & 0x07;
+            width = 4;
+        } else { // a continuation byte with no lead, or 0xFE/0xFF: nothing to read, step over it
+            ++i;
+            continue;
+        }
+        if (i + width > utf8.size()) break;
+        bool wellFormed = true;
+        for (std::size_t k = 1; k < width; ++k) {
+            const auto next = static_cast<unsigned char>(utf8[i + k]);
+            if ((next & 0xC0) != 0x80) {
+                wellFormed = false;
+                break;
+            }
+            point = (point << 6) | (next & 0x3F);
+        }
+        if (not wellFormed) { // malformed: resynchronise on the next byte rather than swallow the rest
+            ++i;
+            continue;
+        }
+        if (point >= 0x3400 and point <= 0x9FFF) return true;
+        i += width;
+    }
+    return false;
 }
 
 std::string lower(std::string_view s);
@@ -521,9 +572,21 @@ Selection classifySelection(
     const std::unordered_set<std::string>& knownLemmas,
     std::size_t                            minFreqRank)
 {
+    Selection selection;
+
+    // Chinese settles the channel on the way in, before any shape test runs: a Han character
+    // anywhere means the reader is looking at Chinese, and the one thing they want from Chinese is
+    // its English. Which of word, entity or sentence it would have been decides nothing -- all
+    // three ask the same translation prompt (API.md section 1) -- so the gates below, which are all
+    // about how English is spelled, never get a say.
+    if (containsHan(text)) {
+        selection.kind = SelectionKind::Translation;
+        LENS_TRACE("classifySelection: {} char(s) -> translation", text.size());
+        return selection;
+    }
+
     // Entity recognition runs before the word fallback. It is intentionally narrow so a single
     // capitalized token remains a word or sentence instead of being promoted by typography alone.
-    Selection selection;
     selection.candidates = filterWords(text, knownLemmas, minFreqRank);
     if (isEntitySelection(text)) {
         selection.kind = SelectionKind::Entity;

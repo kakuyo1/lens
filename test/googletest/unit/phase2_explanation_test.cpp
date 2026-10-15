@@ -824,3 +824,44 @@ TEST_F(LlmTest, Phase2RemovingAWordClearsItsOwnBubbleAndLeavesAnotherAlone)
     controller.removeWord("bank");
     EXPECT_TRUE(controller.explanationDuty()->bubble().isEmpty()) << "removing the bubble's own word left the bubble up";
 }
+
+TEST_F(LlmTest, Phase2AChineseSelectionIsTranslatedAndOnlyTheTranslationIsDrawn)
+{
+    QtApplication qt;
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    auto store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    // A Chinese reader, which is the one the whole channel exists for: the answer is still English,
+    // because Chinese is what they selected and the one thing they cannot be asking for.
+    store.setExplanationLang("zh");
+    app::StorageDuty storage{store};
+    Manager          manager;
+    manager.response = envelope({QJsonObject{{"en", "The weather is nice today."}}});
+    llm::LlmClient       client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
+    auto const           pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+    app::CostDuty        cost{storage.statsStore(), client, pricing};
+    app::ExplanationDuty duty{storage, client, cost};
+
+    app::PendingSelection chinese;
+    chinese.kind   = QStringLiteral("translation");
+    chinese.text   = QStringLiteral("今天天气不错。");
+    chinese.anchor = QPoint{200, 400};
+    duty.setSelection(chinese);
+
+    QEventLoop loop;
+    QObject::connect(&client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
+    QObject::connect(&client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
+    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+    // Either button of the action bar lands here: with Chinese there is one decision, and the two
+    // items are two ways into it (UI.md section 4.10).
+    duty.runSelectionAction(QStringLiteral("explain"), chinese.text);
+    loop.exec();
+
+    EXPECT_TRUE(manager.posted.contains("Translate it into English")) << "the request did not go out on the translation channel";
+    const auto bubble = duty.bubble();
+    EXPECT_EQ(bubble.value("type").toString(), "translation");
+    EXPECT_EQ(bubble.value("en").toString(), "The weather is nice today.");
+    EXPECT_TRUE(bubble.value("zh").toString().isEmpty()) << "a Chinese line was drawn beside the translation";
+    EXPECT_TRUE(bubble.value("senses").toList().isEmpty());
+    EXPECT_TRUE(bubble.value("status").toString().isEmpty()) << "a translation carries no learning verdict";
+}

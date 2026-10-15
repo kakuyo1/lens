@@ -1134,10 +1134,10 @@
     "expectKind": "Word"
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "Chinese with a Latin word: translated whole, whatever the Latin says",
     "text": "\u6df7\u5408mixed\u6587\u672c",
-    "expect": ["mixed"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Translation"
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -1620,16 +1620,16 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "Chinese text: dropped whole",
+    "note": "Chinese text: translated whole",
     "text": "中文文本",
     "expect": [],
-    "expectKind": "Sentence"
+    "expectKind": "Translation"
   },
   {
-    "note": "Japanese text: dropped whole",
+    "note": "Japanese text: kanji are Han, so it is translated too",
     "text": "日本語",
     "expect": [],
-    "expectKind": "Sentence"
+    "expectKind": "Translation"
   },
   {
     "note": "Korean text: dropped whole",

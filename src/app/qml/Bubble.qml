@@ -343,12 +343,14 @@ Window {
                 // The prototype's 7 px is what the pair is set with.
                 // A sentence bubble draws no title: the selected sentence is usually long and
                 // overflows the card, and the reader still has it highlighted on screen. Word and
-                // entity titles are short and stay.
+                // entity titles are short and stay. A translation bubble draws none either, and for
+                // the same reason twice over: the Chinese it came from is long, and the reader asked
+                // for the English of it rather than for the original back (UI.md section 4.3).
                 Item {
                     id: wordRow
-                    visible: bubble.type !== "sentence"
+                    visible: bubble.type !== "sentence" && bubble.type !== "translation"
                     width: parent.width
-                    height: bubble.type === "sentence" ? 0 : wordText.implicitHeight
+                    height: bubble.type === "sentence" || bubble.type === "translation" ? 0 : wordText.implicitHeight
 
                     Text {
                         id: wordText
@@ -424,13 +426,16 @@ Window {
                     }
                 }
 
+                // The definition line, and for a translation bubble the whole card: a translation
+                // has no title and no badge above it, so drawing it in the definition's secondary
+                // colour would leave the answer looking like a footnote to nothing (UI.md 4.3).
                 Text {
                     visible: bubble.senses.length === 0 && bubble.english !== ""
                     width: parent.width
                     topPadding: 6
                     text: bubble.english
                     textFormat: Text.PlainText
-                    color: bubble.tokens.muted
+                    color: bubble.type === "translation" ? bubble.tokens.text : bubble.tokens.muted
                     font.pixelSize: 13
                     lineHeight: 1.55
                     wrapMode: Text.Wrap

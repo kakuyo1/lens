@@ -529,7 +529,12 @@ Window {
 
         function onSelectionBarRequested(payload) {
             const generation = ++root.selectionBarGeneration;
-            if (payload.letterCount < Controller.settings.minimumWordLength) {
+            // The minimum is a word length, which is a count of letters: it keeps an accidental
+            // drag over two letters of English from raising the bar. Chinese is counted in
+            // characters rather than letters, and one Han character is a word on its own, so the
+            // rule has no floor to set here -- a phrase of two, which is the common size of a
+            // Chinese word, would otherwise never reach the bar at all.
+            if (payload.kind !== "translation" && payload.letterCount < Controller.settings.minimumWordLength) {
                 bar.visible = false;
                 return;
             }
