@@ -281,8 +281,14 @@ Window {
                 x: 20
                 y: 12
                 width: settings.cardWidth - 40
+                // A page is as tall as its own blocks, and at least as tall as the body it is
+                // loaded into, less the 18 px the body keeps under a page that scrolls. A page
+                // that ends early therefore still fills, and its last block has a bottom of its
+                // own to sit on: the About page's footer does.
                 // qmllint disable missing-property
-                height: status === Loader.Ready && item ? item.implicitHeight : 0
+                height: status === Loader.Ready && item
+                        ? Math.max(item.implicitHeight, body.height - viewLoader.y - 18)
+                        : 0
                 // qmllint enable missing-property
                 sourceComponent: settings.route === "clipboard" ? clipboardComponent
                                  : settings.route === "connection" ? connectionComponent

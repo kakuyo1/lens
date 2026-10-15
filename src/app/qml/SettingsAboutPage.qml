@@ -41,7 +41,10 @@ Item {
 
     readonly property bool updatesBusy: page.updateBusy(Controller.updateDuty.update.state)
 
-    implicitHeight: content.implicitHeight
+    /// The blocks, the 24 px the prototype leaves under them, and the footer. This is the whole
+    /// page when it stands alone, as a case builds it; the panel stretches it to the body it loads
+    /// it into, and the footer -- anchored to the page's bottom -- drops to the body's own bottom.
+    implicitHeight: content.implicitHeight + 24 + footer.height
 
     Column {
         id: content
@@ -171,43 +174,41 @@ Item {
                 }
             }
         }
+    }
 
-        // The footer is centred text under the block. Column positions its children, so each line
-        // takes the full width and centres its own text rather than anchoring to the column.
-        // The 8 px inside the wrapper, on top of the column's 16, gives the 24 px the prototype sets.
-        Item {
+    // The footer is the page's last line, centred, and it hangs off the page's own bottom edge:
+    // the panel loads the page into the body and stretches it to fill, so the stamp reads as the
+    // foot of the panel rather than as one more block under the version. Column positions its
+    // children, so each line takes the full width and centres its own text.
+    Column {
+        id: footer
+        objectName: "aboutFooter"
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        spacing: 4
+
+        Text {
             width: parent.width
-            height: footer.height + 8
-
-            Column {
-                id: footer
-                y: 8
-                width: parent.width
-                spacing: 4
-
-                Text {
-                    width: parent.width
-                    horizontalAlignment: Text.AlignHCenter
-                    text: "Lens"
-                    color: page.tokens.text
-                    font.pixelSize: 14
-                    font.weight: Font.Bold
-                }
-                Text {
-                    width: parent.width
-                    horizontalAlignment: Text.AlignHCenter
-                    text: qsTranslate("SettingsPopup", "Copyright (c) 2026 kakuyo1 · MIT License")
-                    color: page.tokens.faint
-                    font.pixelSize: 11
-                }
-                Text {
-                    width: parent.width
-                    horizontalAlignment: Text.AlignHCenter
-                    text: qsTranslate("SettingsPopup", "Built %1").arg(Controller.buildDate)
-                    color: page.tokens.faint
-                    font.pixelSize: 11
-                }
-            }
+            horizontalAlignment: Text.AlignHCenter
+            text: "Lens"
+            color: page.tokens.text
+            font.pixelSize: 14
+            font.weight: Font.Bold
+        }
+        Text {
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+            text: qsTranslate("SettingsPopup", "Copyright (c) 2026 kakuyo1 · MIT License")
+            color: page.tokens.faint
+            font.pixelSize: 11
+        }
+        Text {
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+            text: qsTranslate("SettingsPopup", "Built %1").arg(Controller.buildDate)
+            color: page.tokens.faint
+            font.pixelSize: 11
         }
     }
 }
