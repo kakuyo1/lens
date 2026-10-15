@@ -45,6 +45,8 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/pet_config_test.cpp
   unit/pet_accessory_test.cpp
   unit/pet_data_test.cpp
+  unit/pet_package_test.cpp
+  unit/pet_catalog_test.cpp
   unit/pet_placement_test.cpp
   unit/pet_store_test.cpp
   unit/pet_window_style_test.cpp

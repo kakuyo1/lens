@@ -28,6 +28,7 @@
 #include <QtQml/qqmlregistration.h>
 
 #include "app/pet/pet_assets.h"
+#include "app/pet/pet_catalog.h"
 #include "app/pet/pet_store.h"
 #include "core/pet/accessory.h"
 #include "core/pet/pet_state.h"
@@ -47,7 +48,8 @@ class PetController : public QObject {
     Q_PROPERTY(bool enabled READ enabled NOTIFY settingsChanged)
     Q_PROPERTY(bool passthrough READ passthrough NOTIFY settingsChanged)
     Q_PROPERTY(QString pet READ pet NOTIFY settingsChanged)
-    Q_PROPERTY(QStringList pets READ pets CONSTANT)
+    Q_PROPERTY(QVariantList pets READ pets NOTIFY catalogChanged)
+    Q_PROPERTY(QVariantList refusals READ refusals NOTIFY catalogChanged)
     Q_PROPERTY(QString action READ action NOTIFY frameChanged)
     Q_PROPERTY(int frameIndex READ frameIndex NOTIFY frameChanged)
     Q_PROPERTY(int expression READ expression NOTIFY frameChanged)
@@ -66,12 +68,12 @@ class PetController : public QObject {
 
 public:
     /**
-     * @param petsRoot The data/pet folder, one subfolder per pet. The one the settings name is loaded; a refused
-     *                 one leaves the pet off and says why.
+     * @param shippedRoot The data/pet folder that came with the install.
+     * @param installedRoot The reader's pets folder, %APPDATA%\Lens\pets.
      * @param store The PET section of the settings document, owned by main().
      * @param parent QObject parent.
      */
-    PetController(std::filesystem::path petsRoot, PetStore& store, QObject* parent = nullptr);
+    PetController(std::filesystem::path shippedRoot, std::filesystem::path installedRoot, PetStore& store, QObject* parent = nullptr);
     ~PetController() override;
 
     /// @brief Hand the QML engine the one instance built by the composition root.
@@ -88,8 +90,10 @@ public:
     bool passthrough() const;
     /// @return The folder name of the pet the settings choose.
     QString pet() const;
-    /// @return Every pet the settings page offers: the folders under data/pet that hold a pet.json, by name.
-    QStringList  pets() const;
+    /// @return Every pet the settings page offers, as {id, name, external}. The name is the package's own for an installed pet.
+    QVariantList pets() const;
+    /// @return Every installed package that was refused, as {id, reason}. The reason is the Refusal name, such as "BadName".
+    QVariantList refusals() const;
     QString      action() const;
     int          frameIndex() const;
     int          expression() const;
@@ -123,9 +127,17 @@ public:
     Q_INVOKABLE void click();
     /// @param id Id of an accessory in the catalogue; puts it on, takes it off, or swaps it in its slot.
     Q_INVOKABLE void toggleAccessory(QString id);
-    /// @brief Stores the pet and loads it at once. Accessories the new pet does not have come off, and stay off.
-    /// @param id A folder name from pets(). A refused pet leaves the pet off, as at start-up.
+    /// @brief Chooses a pet from pets(). An installed one the reader has not confirmed is not switched to: confirmationRequested
+    ///        is emitted instead, and confirmPet() completes the choice.
+    /// @param id A folder name from pets(). Anything else is ignored.
     Q_INVOKABLE void setPet(QString id);
+    /// @brief Records the reader's confirmation of an installed pet, and switches to it.
+    Q_INVOKABLE void confirmPet(QString id);
+    /// @brief Rescans both folders. The settings call it each time the extensions section opens; a chosen pet that has gone
+    ///        or been refused gives way to the shipped default, with a notice.
+    Q_INVOKABLE void refresh();
+    /// @brief Opens the reader's pets folder in the file manager, creating it first when it is not there yet.
+    Q_INVOKABLE void openPacksFolder();
     Q_INVOKABLE void setEnabled(bool on);
     Q_INVOKABLE void setPassthrough(bool on);
     /// @param window The QML Window, whose native handle takes capture exclusion and pass-through.
@@ -141,10 +153,27 @@ signals:
     void frameChanged();
     void settingsChanged();
     void outfitChanged();
+    /// @brief The scan found different pets or refusals. Only the picker's lists depend on it, so it is not sent per setting.
+    void catalogChanged();
+    /// @brief An installed pet was chosen but not yet confirmed. The settings ask the reader, then call confirmPet().
+    void confirmationRequested(QString id, QString name);
+    /// @brief The chosen pet was gone or refused, so the shipped default is in use. Shown as a notice (docs/adr/0043).
+    void fellBack(QString title, QString body);
 
 private:
-    /// @brief Loads the pet in folder `id` and starts it from its first frame. A refused pet leaves the pet off.
+    /// @brief Loads the pet in folder `id` from the catalogue, and starts it from its first frame. A pet the catalogue does
+    ///        not hold, or that fails to load, leaves the pet off.
     void loadPet(std::string const& id);
+    /// @brief Stores `id` as the chosen pet and loads it. A pet that will not load keeps the one the reader had.
+    void applyPet(std::string const& id);
+    /// @brief Switches to the shipped default after `gone` disappeared or was refused, and says so unless `gone` was shipped.
+    void switchToDefault(std::string const& gone);
+    /// @return Whether the reader has confirmed the installed pet `id`.
+    bool isConfirmed(std::string const& id) const;
+    /// @return Whether the pet `id` may be loaded: a shipped pet always, an installed one only once the reader confirmed it.
+    bool usable(std::string const& id) const;
+    /// @return Whether the shipped folder holds a pet called `id`, whether or not it is valid.
+    bool isShipped(std::string const& id) const;
     /// @brief Moves the state machine on by `step` and refreshes what the scene reads.
     void tick();
     /// @brief Reads the shown action and blink into the properties, and emits when the frame they show changed.
@@ -166,9 +195,10 @@ private:
 
     static PetController* instance_;
 
-    /// The data/pet folder, and the pets found in it.
-    std::filesystem::path root_;
-    QStringList           pets_;
+    /// The shipped pets, and the reader's folder. The catalogue is what both scans last found.
+    std::filesystem::path shippedRoot_;
+    std::filesystem::path installedRoot_;
+    PetCatalog            catalog_;
 
     std::optional<PetAssets>                    assets_;
     PetStore&                                   store_;

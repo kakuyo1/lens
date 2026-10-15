@@ -84,7 +84,21 @@ Window {
         body.contentY = 0;
     }
 
+    /// @return Whether the page had a question up, which this closed. Backing out waits for it, so one Escape answers it
+    ///         and the next one backs out.
+    function closeQuestion() {
+        // qmllint disable missing-property
+        if (viewLoader.status === Loader.Ready && viewLoader.item && viewLoader.item.questionOpen) {
+            viewLoader.item.closeQuestion();
+            return true;
+        }
+        // qmllint enable missing-property
+        return false;
+    }
+
     function navigateBack() {
+        if (closeQuestion())
+            return;
         if (route !== "") {
             closeChild();
             route = "";

@@ -39,39 +39,39 @@
 <context>
     <name>CostPopup</name>
     <message>
-        <location filename="../src/app/qml/CostPopup.qml" line="66"/>
+        <location filename="../src/app/qml/CostPopup.qml" line="68"/>
         <source>Cost</source>
         <translation>費用</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/CostPopup.qml" line="108"/>
+        <location filename="../src/app/qml/CostPopup.qml" line="110"/>
         <source>Spent this month</source>
         <translation>今月の出費</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/CostPopup.qml" line="123"/>
+        <location filename="../src/app/qml/CostPopup.qml" line="125"/>
         <source>Today</source>
         <translation>今日</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/CostPopup.qml" line="124"/>
-        <location filename="../src/app/qml/CostPopup.qml" line="130"/>
-        <location filename="../src/app/qml/CostPopup.qml" line="136"/>
+        <location filename="../src/app/qml/CostPopup.qml" line="126"/>
+        <location filename="../src/app/qml/CostPopup.qml" line="132"/>
+        <location filename="../src/app/qml/CostPopup.qml" line="138"/>
         <source>%1 tokens</source>
         <translation>%1 トークン</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/CostPopup.qml" line="129"/>
+        <location filename="../src/app/qml/CostPopup.qml" line="131"/>
         <source>Yesterday</source>
         <translation>昨日</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/CostPopup.qml" line="135"/>
+        <location filename="../src/app/qml/CostPopup.qml" line="137"/>
         <source>This week</source>
         <translation>今週</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/CostPopup.qml" line="141"/>
+        <location filename="../src/app/qml/CostPopup.qml" line="143"/>
         <source>Daily average</source>
         <translation>1 日平均</translation>
     </message>
@@ -166,7 +166,7 @@
     <message>
         <location filename="../src/app/qml/SettingsBudgetPage.qml" line="37"/>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="38"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="52"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="54"/>
         <source>Daily budget</source>
         <translation>1 日の予算</translation>
     </message>
@@ -188,7 +188,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="55"/>
-        <location filename="../src/app/app_controller.cpp" line="272"/>
+        <location filename="../src/app/app_controller.cpp" line="280"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -204,7 +204,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="93"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="59"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="61"/>
         <source>Popup &amp; clipboard</source>
         <translation>ポップアップとクリップボード</translation>
     </message>
@@ -222,7 +222,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="18"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="48"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="50"/>
         <source>General</source>
         <translation>一般</translation>
     </message>
@@ -233,7 +233,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="23"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="49"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="51"/>
         <source>Reading &amp; learning</source>
         <translation>読解と学習</translation>
     </message>
@@ -244,13 +244,13 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="28"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="50"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="52"/>
         <source>Capture &amp; popups</source>
         <translation>取得とポップアップ</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="33"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="51"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="53"/>
         <source>Model service</source>
         <translation>モデルサービス</translation>
     </message>
@@ -266,19 +266,20 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="43"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="53"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="55"/>
         <source>Extensions</source>
         <translation>拡張</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="44"/>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="100"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="138"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="466"/>
         <source>Desktop companion</source>
         <translation>デスクトップの相棒</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="48"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="54"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="56"/>
         <source>About</source>
         <translation>情報</translation>
     </message>
@@ -378,143 +379,143 @@
         <translation>ビルド日 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="67"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="69"/>
         <source>Theme</source>
         <translation>テーマ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="78"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="80"/>
         <source>Light</source>
         <translation>ライト</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="79"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="81"/>
         <source>Dark</source>
         <translation>ダーク</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="82"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="84"/>
         <source>Custom</source>
         <translation>カスタム</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="80"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="82"/>
         <source>Frosted glass</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>すりガラス</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="81"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="83"/>
         <source>Liquid glass</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>リキッドガラス</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="96"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="98"/>
         <source>Frosted glass parameters</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>すりガラスの設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="111"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="113"/>
         <source>Saturation</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>彩度</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="103"/>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="149"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="105"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="151"/>
         <source>Blur</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>ぼかし</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="134"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="136"/>
         <source>Liquid glass parameters</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>リキッドガラスの設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="141"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="143"/>
         <source>Refraction</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>屈折の強さ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="119"/>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="157"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="121"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="159"/>
         <source>Rim highlight</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>縁のハイライト</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="165"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="167"/>
         <source>Text color</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>文字色</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="206"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="208"/>
         <source>Custom semantic colors</source>
         <translation>カスタム配色</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="215"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="217"/>
         <source>Use six-digit hex colors. Body, muted, and faint text must each pass WCAG AA on the panel.</source>
         <translation>6 桁の 16 進数カラーを使います。本文・補助・淡色の各テキストはパネル上で WCAG AA を満たす必要があります。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="222"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="224"/>
         <source>Background</source>
         <translation>背景</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="223"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="225"/>
         <source>Panel</source>
         <translation>パネル</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="224"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="226"/>
         <source>Body text</source>
         <translation>本文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="225"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="227"/>
         <source>Muted text</source>
         <translation>補助テキスト</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="226"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="228"/>
         <source>Faint text</source>
         <translation>淡色テキスト</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="227"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="229"/>
         <source>Accent</source>
         <translation>アクセント</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="285"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="287"/>
         <source>AA contrast passes: body %1, muted %2, faint %3</source>
         <translation>AA コントラスト合格：本文 %1、補助 %2、淡色 %3</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="289"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="291"/>
         <source>AA contrast requires valid colors and a 4.5:1 ratio for body, muted, and faint text.</source>
         <translation>AA コントラストには有効な色と、本文・補助・淡色テキストそれぞれ 4.5:1 の比率が必要です。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="303"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="305"/>
         <source>Apply custom colors</source>
         <translation>カスタム配色を適用</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="318"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="320"/>
         <source>Launch at startup</source>
         <translation>スタートアップ時に起動</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="325"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="327"/>
         <source>Animations</source>
         <translation>アニメーション</translation>
     </message>
@@ -524,12 +525,18 @@
         <translation>更新を確認</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="332"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="334"/>
         <source>Check for updates at startup</source>
         <translation>起動時に更新を確認</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsGeneralPage.qml" line="340"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="63"/>
+        <source>Account &amp; sync</source>
+        <translation>アカウントと同期</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="347"/>
         <source>Animations are disabled by Windows accessibility settings.</source>
         <translation>Windows のアクセシビリティ設定により、アニメーションは無効です。</translation>
     </message>
@@ -570,7 +577,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsModelPage.qml" line="88"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="60"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="62"/>
         <source>API configuration</source>
         <translation>API 設定</translation>
     </message>
@@ -585,32 +592,32 @@
         <translation>未設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="100"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="103"/>
         <source>Saved</source>
         <translation>保存しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="125"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="128"/>
         <source>Defaults restored</source>
         <translation>初期設定に戻しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="202"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="205"/>
         <source>Settings</source>
         <translation>設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="310"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="314"/>
         <source>Defaults</source>
         <translation>初期設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="326"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="330"/>
         <source>Unsaved changes</source>
         <translation>未保存の変更</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="348"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="352"/>
         <source>Save</source>
         <translation>保存</translation>
     </message>
@@ -635,17 +642,17 @@
         <translation>カスタムサービス</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="264"/>
+        <location filename="../src/app/app_controller.cpp" line="272"/>
         <source>Checking OCR</source>
         <translation>OCR を確認中</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="265"/>
+        <location filename="../src/app/app_controller.cpp" line="273"/>
         <source>English OCR data is missing</source>
         <translation>英語の OCR データがありません</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="269"/>
+        <location filename="../src/app/app_controller.cpp" line="277"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR ランタイムが利用できません</translation>
     </message>
@@ -896,6 +903,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="85"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="468"/>
         <source>Dog</source>
         <translation>犬</translation>
     </message>
@@ -915,70 +923,312 @@
         <translation>猫</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="109"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="96"/>
+        <source>The package format is not supported.</source>
+        <translation>宠物包の形式はサポートされていません。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="97"/>
+        <source>The package exceeds the size limits.</source>
+        <translation>宠物包がサイズの上限を超えています。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="98"/>
+        <source>The package name is not valid.</source>
+        <translation>宠物包の名前が無効です。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="99"/>
+        <source>A required action is missing.</source>
+        <translation>必要な動作がありません。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="100"/>
+        <source>An action is not valid.</source>
+        <translation>無効な動作があります。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="101"/>
+        <source>The anchor data is not valid.</source>
+        <translation>アンカーのデータが無効です。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="102"/>
+        <source>An accessory is not valid.</source>
+        <translation>無効なアクセサリーがあります。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="103"/>
+        <source>An image is not a valid PNG.</source>
+        <translation>無効な PNG の画像があります。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="104"/>
+        <source>An image size does not match its frames.</source>
+        <translation>画像のサイズがフレーム数と一致しません。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="105"/>
+        <source>An expression index is out of range.</source>
+        <translation>表情のインデックスが範囲外です。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="106"/>
+        <source>An image path points outside the package.</source>
+        <translation>画像のパスが宠物包の外を指しています。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="107"/>
+        <source>The package id is already in use.</source>
+        <translation>宠物包の ID は既に使用されています。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="108"/>
+        <source>The package could not be read.</source>
+        <translation>宠物包を読み込めませんでした。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="147"/>
         <source>Mouse pass-through</source>
         <translation>マウスの透過</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="125"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="163"/>
         <source>Desktop pet size</source>
         <translation>相棒のサイズ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="169"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="207"/>
         <source>Pet type</source>
         <translation>相棒の種類</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="188"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="219"/>
+        <source>External</source>
+        <translation>外部</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="233"/>
+        <source>Pet packages</source>
+        <translation>宠物包</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="240"/>
+        <source>Copy a pet package folder into the packages folder. Lens reads it when you open this section.</source>
+        <translation>宠物包のフォルダーを宠物包用のフォルダーにコピーしてください。この項目を開くと Lens が読み込みます。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="248"/>
+        <source>Open packages folder</source>
+        <translation>宠物包のフォルダーを開く</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="259"/>
+        <source>%1: %2</source>
+        <translation>%1: %2</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="273"/>
         <source>Preview</source>
         <translation>プレビュー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="203"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="288"/>
         <source>Actions</source>
         <translation>アクション</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="231"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="316"/>
         <source>Accessories</source>
         <translation>アクセサリー</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/PetPackageDialog.qml" line="59"/>
+        <source>Third-party pet package</source>
+        <translation>サードパーティ製の宠物包</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/PetPackageDialog.qml" line="67"/>
+        <source>&quot;%1&quot; is a third-party package. Lens has not reviewed it. Enable it only if you trust where it came from.</source>
+        <translation>「%1」はサードパーティ製の宠物包です。Lens では審査していません。提供元を信頼できる場合にのみ有効にしてください。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/PetPackageDialog.qml" line="86"/>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="149"/>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="290"/>
+        <source>Cancel</source>
+        <translation>キャンセル</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/PetPackageDialog.qml" line="92"/>
+        <source>Enable</source>
+        <translation>有効にする</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="23"/>
+        <source>Needs a proxy from mainland China</source>
+        <translation>中国本土からはプロキシが必要です</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="24"/>
+        <source>The passphrase does not open the cloud copy</source>
+        <translation>パスフレーズではクラウドのコピーを開けません</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="25"/>
+        <source>Sync failed; try again</source>
+        <translation>同期に失敗しました。もう一度お試しください</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="26"/>
+        <source>The sign-in code expired</source>
+        <translation>サインインコードの有効期限が切れました</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="27"/>
+        <source>Sign-in was refused</source>
+        <translation>サインインが拒否されました</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="28"/>
+        <source>No cloud copy to delete</source>
+        <translation>削除するクラウドのコピーがありません</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="41"/>
+        <source>Sync is not available in this build yet. The project has not registered its GitHub sign-in.</source>
+        <translation>このビルドではまだ同期を利用できません。プロジェクトで GitHub サインインが登録されていません。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="57"/>
+        <source>Sync your settings and learning data with your GitHub account. The cloud copy is encrypted with your passphrase.</source>
+        <translation>設定と学習データを GitHub アカウントと同期します。クラウドのコピーはパスフレーズで暗号化されます。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="65"/>
+        <source>Sign in with GitHub</source>
+        <translation>GitHub でサインイン</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="81"/>
+        <source>Open this address in a browser, then enter the code:</source>
+        <translation>次のアドレスをブラウザで開き、コードを入力してください:</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="106"/>
+        <source>Copy address</source>
+        <translation>アドレスをコピー</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="115"/>
+        <source>Open in browser</source>
+        <translation>ブラウザで開く</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="134"/>
+        <source>Copy code</source>
+        <translation>コードをコピー</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="142"/>
+        <source>Waiting for GitHub to confirm</source>
+        <translation>GitHub の確認を待っています</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="164"/>
+        <source>Signed in as %1</source>
+        <translation>%1 としてサインイン中</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="173"/>
+        <source>Last synced %1</source>
+        <translation>最終同期: %1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="174"/>
+        <source>Not synced yet</source>
+        <translation>まだ同期していません</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="188"/>
+        <source>Passphrase</source>
+        <translation>パスフレーズ</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="217"/>
+        <source>Encrypts the cloud copy. The passphrase is never stored; only a derived key stays on this device.</source>
+        <translation>クラウドのコピーを暗号化します。パスフレーズは保存されず、この端末には派生キーのみが残ります。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="225"/>
+        <source>Set passphrase</source>
+        <translation>パスフレーズを設定</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="239"/>
+        <source>Sync now</source>
+        <translation>今すぐ同期</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="250"/>
+        <source>Log out</source>
+        <translation>サインアウト</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="257"/>
+        <source>Log out keeps this device&apos;s data. Delete cloud data removes the copy in your GitHub account.</source>
+        <translation>サインアウトしても端末のデータは残ります。クラウドのデータを削除すると、GitHub アカウント内のコピーだけが削除されます。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="269"/>
+        <source>Delete cloud data</source>
+        <translation>クラウドのデータを削除</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsSyncPage.qml" line="280"/>
+        <source>Confirm delete</source>
+        <translation>削除を確認</translation>
+    </message>
+    <message>
+        <location filename="../src/app/pet/pet_controller.cpp" line="467"/>
+        <source>This pet package is no longer installed. Switched to %1.</source>
+        <translation>この宠物包はインストールされていません。%1 に切り替えました。</translation>
     </message>
 </context>
 <context>
     <name>StatsPopup</name>
     <message>
-        <location filename="../src/app/qml/StatsPopup.qml" line="63"/>
+        <location filename="../src/app/qml/StatsPopup.qml" line="65"/>
         <source>Today</source>
         <translation>今日</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/StatsPopup.qml" line="90"/>
+        <location filename="../src/app/qml/StatsPopup.qml" line="92"/>
         <source>Words explained today</source>
         <translation>今日の解説語数</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/StatsPopup.qml" line="101"/>
+        <location filename="../src/app/qml/StatsPopup.qml" line="103"/>
         <source>Known</source>
         <translation>覚えた</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/StatsPopup.qml" line="106"/>
+        <location filename="../src/app/qml/StatsPopup.qml" line="108"/>
         <source>New</source>
         <translation>初見</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/StatsPopup.qml" line="111"/>
+        <location filename="../src/app/qml/StatsPopup.qml" line="113"/>
         <source>Cost</source>
         <translation>費用</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/StatsPopup.qml" line="118"/>
+        <location filename="../src/app/qml/StatsPopup.qml" line="120"/>
         <source>All time</source>
         <translation>累計</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/StatsPopup.qml" line="122"/>
+        <location filename="../src/app/qml/StatsPopup.qml" line="124"/>
         <source>%1 words</source>
         <translation>%1 語</translation>
     </message>
@@ -986,17 +1236,17 @@
 <context>
     <name>TrayMenu</name>
     <message>
-        <location filename="../src/app/qml/TrayMenu.qml" line="74"/>
+        <location filename="../src/app/qml/TrayMenu.qml" line="76"/>
         <source>words</source>
         <translation>語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/TrayMenu.qml" line="150"/>
+        <location filename="../src/app/qml/TrayMenu.qml" line="152"/>
         <source>Selection capture is off</source>
         <translation>選択による取得はオフです</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/TrayMenu.qml" line="163"/>
+        <location filename="../src/app/qml/TrayMenu.qml" line="165"/>
         <source>Statistics</source>
         <translation>統計</translation>
     </message>
@@ -1011,7 +1261,7 @@
         <translation>設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/TrayMenu.qml" line="210"/>
+        <location filename="../src/app/qml/TrayMenu.qml" line="208"/>
         <source>Quit</source>
         <translation>終了</translation>
     </message>
@@ -1082,44 +1332,44 @@
 <context>
     <name>WordsPopup</name>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="290"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="478"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="292"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="480"/>
         <source>Known</source>
         <translation>覚えた</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="290"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="512"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="292"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="514"/>
         <source>New</source>
         <translation>初見</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="444"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="446"/>
         <source>%1×</source>
         <translation>%1×</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="181"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="183"/>
         <source>Words</source>
         <translation>単語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="111"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="113"/>
         <source>Today %1</source>
         <translation>今日 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="113"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="115"/>
         <source>Yesterday %1</source>
         <translation>昨日 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="280"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="282"/>
         <source>%1 words</source>
         <translation>%1 語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="290"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="292"/>
         <source>All</source>
         <translation>すべて</translation>
     </message>
@@ -1139,17 +1389,17 @@
         <translation>削除</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="596"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="598"/>
         <source>Export words</source>
         <translation>単語を書き出す</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="599"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="601"/>
         <source>Text files (*.txt)</source>
         <translation>テキストファイル (*.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="599"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="601"/>
         <source>All files (*)</source>
         <translation>すべてのファイル (*)</translation>
     </message>
@@ -1167,142 +1417,142 @@
 <context>
     <name>YearWordsPopup</name>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="37"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="39"/>
         <source>Red</source>
         <translation>赤</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="37"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="39"/>
         <source>Orange</source>
         <translation>オレンジ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="38"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="40"/>
         <source>Yellow</source>
         <translation>黄</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="38"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="40"/>
         <source>Yellow green</source>
         <translation>黄緑</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="39"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="41"/>
         <source>Green</source>
         <translation>緑</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="39"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="41"/>
         <source>Teal</source>
         <translation>青緑</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="40"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="42"/>
         <source>Cyan</source>
         <translation>シアン</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="40"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="42"/>
         <source>Blue</source>
         <translation>青</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="41"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="43"/>
         <source>Indigo</source>
         <translation>藍</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="41"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="43"/>
         <source>Violet</source>
         <translation>紫</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="42"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="44"/>
         <source>Magenta</source>
         <translation>マゼンタ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="42"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="44"/>
         <source>Rose</source>
         <translation>ローズ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="167"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="169"/>
         <source>Year in words</source>
         <translation>単語の年間記録</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="179"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="181"/>
         <source>365 days</source>
         <translation>365日</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="203"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="205"/>
         <source>%1: %2 lookups</source>
         <translation>%1：%2 回の検索</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="204"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="206"/>
         <source>Words explained</source>
         <translation>解説した単語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="211"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="213"/>
         <source>%1 words</source>
         <translation>%1 語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="264"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="266"/>
         <source>Mon</source>
         <translation>月</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="264"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="266"/>
         <source>Wed</source>
         <translation>水</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="264"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="266"/>
         <source>Fri</source>
         <translation>金</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="296"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="298"/>
         <source>%1, %2 words</source>
         <translation>%1、%2 語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="313"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="315"/>
         <source>Less</source>
         <translation>少</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="326"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="328"/>
         <source>No words, choose color</source>
         <translation>単語なし、色を選択</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="326"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="328"/>
         <source>Level %1, choose color</source>
         <translation>レベル %1、色を選択</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="330"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="332"/>
         <source>More</source>
         <translation>多</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="370"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="372"/>
         <source>Cell colors</source>
         <translation>セルの色</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="483"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="486"/>
         <source>Light</source>
         <translation>淡</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/YearWordsPopup.qml" line="483"/>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="486"/>
         <source>Dark</source>
         <translation>濃</translation>
     </message>
@@ -1310,43 +1560,43 @@
 <context>
     <name>lens::app::AppController</name>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="257"/>
+        <location filename="../src/app/app_controller.cpp" line="265"/>
         <source>Screenshot capture is off.</source>
         <translation>スクリーンショットからの取得はオフです。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="258"/>
-        <location filename="../src/app/app_controller.cpp" line="467"/>
+        <location filename="../src/app/app_controller.cpp" line="266"/>
+        <location filename="../src/app/app_controller.cpp" line="475"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>本日の予算を使い切りました。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="259"/>
+        <location filename="../src/app/app_controller.cpp" line="267"/>
         <source>A recognition is already running.</source>
         <translation>すでに認識中です。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="261"/>
+        <location filename="../src/app/app_controller.cpp" line="269"/>
         <source>That region cannot be captured.</source>
         <translation>この範囲は取得できません。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="262"/>
+        <location filename="../src/app/app_controller.cpp" line="270"/>
         <source>No text was found in that region.</source>
         <translation>その範囲に文字が見つかりませんでした。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="263"/>
+        <location filename="../src/app/app_controller.cpp" line="271"/>
         <source>That region could not be read.</source>
         <translation>その範囲を読み取れませんでした。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="671"/>
+        <location filename="../src/app/app_controller.cpp" line="684"/>
         <source>Auto</source>
         <translation>自動</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="671"/>
+        <location filename="../src/app/app_controller.cpp" line="684"/>
         <source>Manual</source>
         <translation>手動</translation>
     </message>

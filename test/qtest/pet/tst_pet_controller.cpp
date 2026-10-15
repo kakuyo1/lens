@@ -28,17 +28,27 @@ using lens::app::pet::PetStore;
 using lens::core::KnownStore;
 using lens::core::pet::PetEvent;
 
-/// The controller and the store it reads, built the way main() builds them.
+/// The controller and the store it reads, built the way main() builds them. The reader's pets folder sits beside the
+/// settings document, as in main(); a test that wants installed packages creates it there.
 struct Rig {
     KnownStore    store;
     PetStore      petStore;
     PetController controller;
 
-    Rig(std::filesystem::path const& settings, std::filesystem::path const& root)
-        : store(KnownStore::load(settings)), petStore(store), controller(root, petStore)
+    Rig(std::filesystem::path const& settings, std::filesystem::path const& shipped)
+        : store(KnownStore::load(settings)), petStore(store), controller(shipped, settings.parent_path() / "installed", petStore)
     {
     }
 };
+
+/// @return The ids the picker offers, in the order it lists them.
+QStringList idsOf(PetController const& controller)
+{
+    auto ids = QStringList{};
+    for (auto const& pet : controller.pets())
+        ids.append(pet.toMap().value(QStringLiteral("id")).toString());
+    return ids;
+}
 
 std::filesystem::path shippedRoot()
 {
@@ -50,6 +60,9 @@ std::filesystem::path settingsIn(QTemporaryDir const& dir)
     return std::filesystem::path{dir.path().toStdWString()} / "settings.json";
 }
 
+nlohmann::json readJson(std::filesystem::path const& file);
+void           writeJson(std::filesystem::path const& file, nlohmann::json const& document);
+
 /// Two pets under `root`: the shipped dog, and a copy of it whose catalogue has no hat, so a switch has one to drop.
 void makeTwoPets(std::filesystem::path const& root)
 {
@@ -57,6 +70,12 @@ void makeTwoPets(std::filesystem::path const& root)
     std::filesystem::create_directories(root);
     std::filesystem::copy(shipped, root / "dog", std::filesystem::copy_options::recursive);
     std::filesystem::copy(shipped, root / "hatless", std::filesystem::copy_options::recursive);
+
+    // The copy takes the folder's name as its id, since a pet's id must be its folder's name.
+    auto const petFile = root / "hatless" / "pet.json";
+    auto       pet     = readJson(petFile);
+    pet["id"]          = "hatless";
+    writeJson(petFile, pet);
 
     auto const file = root / "hatless" / "accessories.json";
     auto       in   = std::ifstream{file};
@@ -68,6 +87,12 @@ void makeTwoPets(std::filesystem::path const& root)
     doc["accessories"] = kept;
     auto out           = std::ofstream{file};
     out << doc.dump(2);
+}
+
+void writeJson(std::filesystem::path const& file, nlohmann::json const& document)
+{
+    auto out = std::ofstream{file};
+    out << document.dump(2);
 }
 
 nlohmann::json readJson(std::filesystem::path const& file)
@@ -113,6 +138,9 @@ private slots:
     void everyShippedPetLoadsWhole();
     void wornAccessoriesFollowAPetSwitch();
     void aRefusedRealPetKeepsThePetOn();
+    void anInstalledPackageWaitsForItsConfirmation();
+    void aGonePackageFallsBackToTheShippedDefault();
+    void anUnconfirmedChoiceStartsOnTheDefault();
 };
 
 void TstPetController::eventsDriveTheAction()
@@ -285,7 +313,7 @@ void TstPetController::restoresOnlyAccessoriesInTheirOwnSlot()
 
     // Glasses saved in the head slot is bad data: it must not be worn there, and the face slot's glasses still is.
     rig.petStore.setOutfit(Outfit{std::string{"glasses"}, std::string{"glasses"}, std::nullopt});
-    PetController restored{shippedRoot(), rig.petStore};
+    PetController restored{shippedRoot(), settingsIn(dir).parent_path() / "installed", rig.petStore};
 
     QVERIFY(restored.wornIn().value("head").toString().isEmpty());
     QCOMPARE(restored.wornIn().value("face").toString(), QStringLiteral("glasses"));
@@ -311,7 +339,7 @@ void TstPetController::choosingAPetLoadsItAndDropsWhatItLacks()
     makeTwoPets(root);
     Rig rig{settingsIn(dir), root};
 
-    QCOMPARE(rig.controller.pets(), (QStringList{QStringLiteral("dog"), QStringLiteral("hatless")}));
+    QCOMPARE(idsOf(rig.controller), (QStringList{QStringLiteral("dog"), QStringLiteral("hatless")}));
     QCOMPARE(rig.controller.pet(), QStringLiteral("dog"));
 
     rig.controller.toggleAccessory(QStringLiteral("hat"));
@@ -432,14 +460,97 @@ void TstPetController::aRefusedRealPetKeepsThePetOn()
     }
     Rig rig{settingsIn(dir), root};
 
+    // The refused folder is not offered at all, so choosing it is ignored and the pet on stays on.
+    QCOMPARE(idsOf(rig.controller), (QStringList{QStringLiteral("cat")}));
     rig.controller.setPet(QStringLiteral("cat"));
     QVERIFY(rig.controller.available());
-    QCOMPARE(rig.controller.pets(), (QStringList{QStringLiteral("broken"), QStringLiteral("cat")}));
 
     rig.controller.setPet(QStringLiteral("broken"));
     QVERIFY(rig.controller.available());
     QCOMPARE(rig.controller.pet(), QStringLiteral("cat"));
     QCOMPARE(QString::fromStdString(rig.petStore.pet()), QStringLiteral("cat"));
+}
+
+void TstPetController::anInstalledPackageWaitsForItsConfirmation()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    Rig        rig{settingsIn(dir), shippedRoot()};
+    auto const installed = settingsIn(dir).parent_path() / "installed";
+    std::filesystem::create_directories(installed);
+    std::filesystem::copy(shippedRoot() / "dog", installed / "lounge", std::filesystem::copy_options::recursive);
+    auto doc  = readJson(installed / "lounge" / "pet.json");
+    doc["id"] = "lounge";
+    writeJson(installed / "lounge" / "pet.json", doc);
+    rig.controller.refresh();
+    QVERIFY(idsOf(rig.controller).contains(QStringLiteral("lounge")));
+
+    QSignalSpy asked(&rig.controller, &PetController::confirmationRequested);
+
+    // The first pick is asked about, and the pet does not switch until the reader confirms.
+    rig.controller.setPet(QStringLiteral("lounge"));
+    QCOMPARE(asked.count(), 1);
+    QCOMPARE(rig.controller.pet(), QStringLiteral("dog"));
+
+    rig.controller.confirmPet(QStringLiteral("lounge"));
+    QCOMPARE(rig.controller.pet(), QStringLiteral("lounge"));
+    QVERIFY(rig.controller.available());
+
+    // Once confirmed, it is not asked about again, even after the reader picks another pet and comes back.
+    rig.controller.setPet(QStringLiteral("dog"));
+    rig.controller.setPet(QStringLiteral("lounge"));
+    QCOMPARE(asked.count(), 1);
+    QCOMPARE(rig.controller.pet(), QStringLiteral("lounge"));
+}
+
+void TstPetController::aGonePackageFallsBackToTheShippedDefault()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    auto const installed = settingsIn(dir).parent_path() / "installed";
+    std::filesystem::create_directories(installed);
+    std::filesystem::copy(shippedRoot() / "dog", installed / "lounge", std::filesystem::copy_options::recursive);
+    auto doc  = readJson(installed / "lounge" / "pet.json");
+    doc["id"] = "lounge";
+    writeJson(installed / "lounge" / "pet.json", doc);
+    {
+        auto settings = Rig{settingsIn(dir), shippedRoot()};
+        settings.petStore.confirm("lounge");
+        settings.petStore.setPet("lounge");
+    }
+    Rig rig{settingsIn(dir), shippedRoot()};
+    QCOMPARE(rig.controller.pet(), QStringLiteral("lounge"));
+
+    QSignalSpy notice(&rig.controller, &PetController::fellBack);
+    std::filesystem::remove_all(installed / "lounge");
+    rig.controller.refresh();
+
+    // The reader's choice gives way to the shipped default, and the reader is told why.
+    QCOMPARE(rig.controller.pet(), QStringLiteral("dog"));
+    QVERIFY(rig.controller.available());
+    QCOMPARE(QString::fromStdString(rig.petStore.pet()), QStringLiteral("dog"));
+    QTRY_COMPARE(notice.count(), 1);
+}
+
+void TstPetController::anUnconfirmedChoiceStartsOnTheDefault()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    auto const installed = settingsIn(dir).parent_path() / "installed";
+    std::filesystem::create_directories(installed);
+    std::filesystem::copy(shippedRoot() / "dog", installed / "lounge", std::filesystem::copy_options::recursive);
+    auto doc  = readJson(installed / "lounge" / "pet.json");
+    doc["id"] = "lounge";
+    writeJson(installed / "lounge" / "pet.json", doc);
+    {
+        // A choice saved without the reader's confirmation, which only a hand-edited settings file could hold.
+        auto settings = Rig{settingsIn(dir), shippedRoot()};
+        settings.petStore.setPet("lounge");
+    }
+    Rig rig{settingsIn(dir), shippedRoot()};
+
+    QCOMPARE(rig.controller.pet(), QStringLiteral("dog"));
+    QVERIFY(rig.controller.available());
 }
 
 QTEST_GUILESS_MAIN(TstPetController)

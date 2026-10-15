@@ -13,14 +13,23 @@
 /**
  * @file pet_assets.h
  * @brief One pet's data folder, read at start-up and whenever the reader picks another pet, and checked against its
- *        sprite sheets (PHASE3 3.8).
+ *        sprite sheets (PHASE3 3.8, docs/pet-package-format.md).
  *
- * The core parsers own animations, anchors and the accessory catalogue. This file adds what only the window needs:
- * sheet paths, expression indices, layer order, and each accessory's picture. Everything is checked before the
- * pet starts, so a missing or wrong-sized sheet refuses the whole pet and never a half-drawn one.
+ * The core parsers own pet.json, animations, anchors and the accessory catalogue. This file adds what only the window
+ * needs: sheet paths, expression indices, layer order, each accessory's picture, and the checks on the files
+ * themselves. Everything is checked before the pet starts, so a missing or wrong-sized sheet refuses the whole pet
+ * and never a half-drawn one.
  */
 
 namespace lens::app::pet {
+
+/**
+ * @brief Text a package supplied, made safe to show: control and format characters removed, in NFC (docs/pet-package-format.md
+ *        section 5, rule 13). Used for the display name and for the folder names the refusal list shows.
+ * @param text The text as the package wrote it.
+ * @return The text without those characters.
+ */
+QString plainText(QString const& text);
 
 /// @brief Layer order from pet.json. A larger z is drawn on top.
 struct Layers {
@@ -47,6 +56,8 @@ struct AccessoryArt {
 
 /// @brief Everything the pet draws with, parsed and verified.
 struct PetAssets {
+    /// The name the settings show: the package's own, with control and format characters removed, or the id when it has none.
+    QString name;
     /// Side of one square frame, in sheet units.
     int canvas;
     /// Whole-number magnification on screen.
@@ -65,11 +76,11 @@ struct PetAssets {
     std::vector<int> blinkExpressions;
 
     /**
-     * @brief Reads every file under `directory` and checks each sheet's size against its frame count.
-     * @param directory One pet's folder, data/pet/<id>. Sheet paths in the documents are relative to it.
+     * @brief Checks the whole folder, then reads every file under it and checks each sheet against its frame count.
+     * @param directory One pet's folder, data/pet/<id> or a package under %APPDATA%\Lens\pets. Sheet paths in the
+     *                  documents are relative to it.
      * @return The whole pet.
-     * @throws std::runtime_error If a sheet is missing or the wrong size, or a document is refused.
-     * @throws std::exception (nlohmann::json) If a file is not valid JSON or lacks a field.
+     * @throws core::pet::Refused with the reason the package is refused, which the settings page shows.
      */
     static PetAssets load(std::filesystem::path const& directory);
 };

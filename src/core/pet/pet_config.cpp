@@ -1,17 +1,19 @@
 /**
  * @file pet_config.cpp
- * @brief Implementation of the pet data parsers: animations, anchors and accessories.
+ * @brief Implementation of the pet data parsers: pet.json, animations, anchors and accessories.
  */
 
 #include "core/pet/pet_config.h"
 
 #include <array>
+#include <limits>
 #include <optional>
 #include <set>
-#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
+
+#include "core/pet/pet_package.h"
 
 namespace lens::core::pet {
 
@@ -58,39 +60,46 @@ std::optional<Slot> slotNamed(std::string const& name)
     return std::nullopt;
 }
 
-/// @return `entry[key]` as an integer of at least 1. Refuses anything else, naming the owner in the message.
-int positiveInt(json const& entry, char const* key, std::string const& owner)
+/// @return `entry[key]` as an integer. A missing or non-integer value is refused as `invalid`, naming `owner`.
+std::int64_t integerOf(json const& entry, char const* key, Refusal invalid, std::string const& owner)
 {
     if (not entry.contains(key) or not entry.at(key).is_number_integer())
-        throw std::runtime_error("animations: " + owner + "." + key + " must be an integer");
-    auto const value = entry.at(key).get<int>();
-    if (value < 1) throw std::runtime_error("animations: " + owner + "." + key + " must be at least 1");
-    return value;
+        throw Refused(invalid, owner + "." + key + " must be an integer");
+    return entry.at(key).get<std::int64_t>();
+}
+
+/// @return `entry[key]` as an integer in [low, high]. Below `low` is refused as `invalid`; above `high` is TooLarge.
+int integerIn(json const& entry, char const* key, std::int64_t low, std::int64_t high, Refusal invalid, std::string const& owner)
+{
+    auto const value = integerOf(entry, key, invalid, owner);
+    if (value < low) throw Refused(invalid, owner + "." + key + " is below " + std::to_string(low));
+    if (value > high) throw Refused(Refusal::TooLarge, owner + "." + key + " is above " + std::to_string(high));
+    return static_cast<int>(value);
 }
 
 /// One playback entry. `returnTo` is resolved to a role here, and checked against the document's roles later.
 ActionSpec parseSpec(json const& entry, std::string const& name)
 {
-    if (not entry.is_object()) throw std::runtime_error("animations: " + name + " must be an object");
+    auto const owner = "animations: " + name;
+    if (not entry.is_object()) throw Refused(Refusal::BadAnimation, owner + " must be an object");
     if (not entry.contains("loop") or not entry.at("loop").is_boolean())
-        throw std::runtime_error("animations: " + name + ".loop must be a boolean");
+        throw Refused(Refusal::BadAnimation, owner + ".loop must be a boolean");
 
     ActionSpec spec{
-        .frames   = positiveInt(entry, "frames", name),
-        .fps      = positiveInt(entry, "fps", name),
+        .frames   = integerIn(entry, "frames", 1, kMaxFrames, Refusal::BadAnimation, owner),
+        .fps      = integerIn(entry, "fps", 1, kMaxFps, Refusal::BadAnimation, owner),
         .loop     = entry.at("loop").get<bool>(),
         .returnTo = std::nullopt,
         .blinks   = false,
     };
     if (entry.contains("returnTo")) {
-        if (not entry.at("returnTo").is_string())
-            throw std::runtime_error("animations: " + name + ".returnTo must be a string");
+        if (not entry.at("returnTo").is_string()) throw Refused(Refusal::BadAnimation, owner + ".returnTo must be a string");
         auto const target = roleNamed(entry.at("returnTo").get<std::string>());
-        if (not target) throw std::runtime_error("animations: " + name + ".returnTo names an unknown role");
+        if (not target) throw Refused(Refusal::BadAnimation, owner + ".returnTo names an unknown role");
         spec.returnTo = target;
     }
     if (entry.contains("blink")) {
-        if (not entry.at("blink").is_boolean()) throw std::runtime_error("animations: " + name + ".blink must be a boolean");
+        if (not entry.at("blink").is_boolean()) throw Refused(Refusal::BadAnimation, owner + ".blink must be a boolean");
         spec.blinks = entry.at("blink").get<bool>();
     }
     return spec;
@@ -101,27 +110,64 @@ Point parsePoint(json const& value, std::string const& owner)
 {
     if (not value.is_array() or value.size() != 2 or not value.at(0).is_number_integer() or
         not value.at(1).is_number_integer())
-        throw std::runtime_error("anchors: " + owner + " must be a pair of integers");
+        throw Refused(Refusal::BadAnchors, "anchors: " + owner + " must be a pair of integers");
     return Point{value.at(0).get<int>(), value.at(1).get<int>()};
 }
 
 /// @return The anchor point stored under `key` in one frame's entry. Refuses it if the key is absent.
 Point pointOf(json const& entry, char const* key, std::string const& owner)
 {
-    if (not entry.contains(key)) throw std::runtime_error("anchors: " + owner + " is missing " + key);
+    if (not entry.contains(key)) throw Refused(Refusal::BadAnchors, "anchors: " + owner + " is missing " + key);
     return parsePoint(entry.at(key), owner + "." + key);
 }
 
 } // namespace
 
+PetDocument parsePetDocument(json const& document)
+{
+    if (not document.is_object()) throw Refused(Refusal::Format, "pet: the document must be an object");
+    if (integerOf(document, "format", Refusal::Format, "pet") != 1) throw Refused(Refusal::Format, "pet: format must be 1");
+
+    if (not document.contains("id") or not document.at("id").is_string()) throw Refused(Refusal::BadName, "pet: id must be a string");
+    auto id = document.at("id").get<std::string>();
+    if (not isPetId(id)) throw Refused(Refusal::BadName, "pet: id is not a pet id");
+
+    if (not document.contains("layers") or not document.at("layers").is_object())
+        throw Refused(Refusal::Format, "pet: layers must be an object");
+    auto const& layers = document.at("layers");
+
+    if (not document.contains("expression") or not document.at("expression").is_string())
+        throw Refused(Refusal::Format, "pet: expression must be a path");
+
+    std::optional<std::string> name;
+    if (document.contains("name")) {
+        if (not document.at("name").is_string()) throw Refused(Refusal::Format, "pet: name must be a string");
+        name = document.at("name").get<std::string>();
+    }
+
+    // A layer is a z value, so any int will do; only a missing or non-integer one is refused.
+    constexpr auto kLow  = static_cast<std::int64_t>(std::numeric_limits<int>::min());
+    constexpr auto kHigh = static_cast<std::int64_t>(std::numeric_limits<int>::max());
+    return PetDocument{
+        .id              = std::move(id),
+        .name            = std::move(name),
+        .canvas          = integerIn(document, "canvas", kMinCanvas, kMaxCanvas, Refusal::Format, "pet"),
+        .scale           = integerIn(document, "scale", kMinScale, kMaxScale, Refusal::Format, "pet"),
+        .bodyLayer       = integerIn(layers, "body", kLow, kHigh, Refusal::Format, "pet.layers"),
+        .expressionLayer = integerIn(layers, "expression", kLow, kHigh, Refusal::Format, "pet.layers"),
+        .effectLayer     = integerIn(layers, "effect", kLow, kHigh, Refusal::Format, "pet.layers"),
+        .expression      = document.at("expression").get<std::string>(),
+    };
+}
+
 Animations parseAnimations(json const& document)
 {
     if (not document.is_object() or not document.contains("actions") or not document.at("actions").is_object())
-        throw std::runtime_error("animations: missing actions object");
+        throw Refused(Refusal::BadAnimation, "animations: missing actions object");
     if (not document.contains("roles") or not document.at("roles").is_object())
-        throw std::runtime_error("animations: missing roles object");
+        throw Refused(Refusal::BadAnimation, "animations: missing roles object");
     if (not document.contains("idlePool") or not document.at("idlePool").is_array())
-        throw std::runtime_error("animations: missing idlePool array");
+        throw Refused(Refusal::BadAnimation, "animations: missing idlePool array");
 
     Animations animations{};
     auto&      playbook = animations.playbook;
@@ -132,36 +178,41 @@ Animations parseAnimations(json const& document)
             hasBlink         = true;
             continue;
         }
+        if (not isPlainLabel(name)) throw Refused(Refusal::BadAnimation, "animations: an action name is not a plain label");
         playbook.actions.emplace(name, parseSpec(entry, name));
     }
-    if (not hasBlink) throw std::runtime_error("animations: blink entry missing");
+    if (playbook.actions.size() > static_cast<std::size_t>(kMaxActions))
+        throw Refused(Refusal::TooLarge, "animations: more than " + std::to_string(kMaxActions) + " actions");
+    if (not hasBlink) throw Refused(Refusal::BadAnimation, "animations: blink entry missing");
 
     for (auto const& [roleName, action] : document.at("roles").items()) {
         auto const role = roleNamed(roleName);
-        if (not role) throw std::runtime_error("animations: unknown role " + roleName);
-        if (not action.is_string()) throw std::runtime_error("animations: role " + roleName + " must name an action");
+        if (not role) throw Refused(Refusal::BadAnimation, "animations: unknown role " + roleName);
+        if (not action.is_string()) throw Refused(Refusal::BadAnimation, "animations: role " + roleName + " must name an action");
         auto const name = action.get<std::string>();
         if (playbook.actions.count(name) == 0)
-            throw std::runtime_error("animations: role " + roleName + " names an action with no playback: " + name);
+            throw Refused(Refusal::BadAnimation, "animations: role " + roleName + " names an action with no playback: " + name);
         playbook.roles.emplace(*role, name);
     }
     for (auto const& named : kNamedRoles) {
         if (named.required and playbook.roles.count(named.role) == 0)
-            throw std::runtime_error("animations: required role missing: " + std::string{named.name});
+            throw Refused(Refusal::MissingRole, "animations: required role missing: " + std::string{named.name});
     }
 
     for (auto const& [name, spec] : playbook.actions) {
         if (spec.returnTo and playbook.roles.count(*spec.returnTo) == 0)
-            throw std::runtime_error("animations: " + name + ".returnTo names a role the document does not map");
+            throw Refused(Refusal::BadAnimation, "animations: " + name + ".returnTo names a role the document does not map");
     }
 
+    if (document.at("idlePool").size() > static_cast<std::size_t>(kMaxIdlePool))
+        throw Refused(Refusal::TooLarge, "animations: idlePool has more than " + std::to_string(kMaxIdlePool) + " entries");
     for (auto const& entry : document.at("idlePool")) {
-        if (not entry.is_string()) throw std::runtime_error("animations: idlePool entries must be action names");
+        if (not entry.is_string()) throw Refused(Refusal::BadAnimation, "animations: idlePool entries must be action names");
         auto const name  = entry.get<std::string>();
         auto const found = playbook.actions.find(name);
         if (found == playbook.actions.end())
-            throw std::runtime_error("animations: idlePool names an action with no playback: " + name);
-        if (found->second.loop) throw std::runtime_error("animations: idlePool action must be a one-shot: " + name);
+            throw Refused(Refusal::BadAnimation, "animations: idlePool names an action with no playback: " + name);
+        if (found->second.loop) throw Refused(Refusal::BadAnimation, "animations: idlePool action must be a one-shot: " + name);
         playbook.idlePool.push_back(name);
     }
     return animations;
@@ -170,22 +221,21 @@ Animations parseAnimations(json const& document)
 AnchorTable parseAnchors(json const& document, Playbook const& playbook)
 {
     if (not document.is_object() or not document.contains("actions") or not document.at("actions").is_object())
-        throw std::runtime_error("anchors: missing actions object");
+        throw Refused(Refusal::BadAnchors, "anchors: missing actions object");
 
     AnchorTable table;
     for (auto const& [name, entries] : document.at("actions").items()) {
         auto const playback = playbook.actions.find(name);
-        if (playback == playbook.actions.end()) throw std::runtime_error("anchors: unknown action " + name);
-        if (not entries.is_array()) throw std::runtime_error("anchors: " + name + " must be an array");
+        if (playback == playbook.actions.end()) throw Refused(Refusal::BadAnchors, "anchors: unknown action " + name);
+        if (not entries.is_array()) throw Refused(Refusal::BadAnchors, "anchors: " + name + " must be an array");
 
         auto const frames = playback->second.frames;
         if (static_cast<int>(entries.size()) != frames)
-            throw std::runtime_error("anchors: " + name + " has " + std::to_string(entries.size()) + " entries for " +
-                                     std::to_string(frames) + " frames");
+            throw Refused(Refusal::BadAnchors, "anchors: " + name + " has " + std::to_string(entries.size()) + " entries for " + std::to_string(frames) + " frames");
 
         std::vector<Anchors> perFrame;
         for (auto const& entry : entries) {
-            if (not entry.is_object()) throw std::runtime_error("anchors: " + name + " entries must be objects");
+            if (not entry.is_object()) throw Refused(Refusal::BadAnchors, "anchors: " + name + " entries must be objects");
             perFrame.push_back(Anchors{
                 .head = pointOf(entry, "head", name),
                 .face = pointOf(entry, "face", name),
@@ -196,7 +246,7 @@ AnchorTable parseAnchors(json const& document, Playbook const& playbook)
     }
 
     for (auto const& playable : playbook.actions) {
-        if (table.count(playable.first) == 0) throw std::runtime_error("anchors: missing for " + playable.first);
+        if (table.count(playable.first) == 0) throw Refused(Refusal::BadAnchors, "anchors: missing for " + playable.first);
     }
     return table;
 }
@@ -204,29 +254,32 @@ AnchorTable parseAnchors(json const& document, Playbook const& playbook)
 std::vector<AccessorySpec> parseAccessories(json const& document, Playbook const& playbook)
 {
     if (not document.is_object() or not document.contains("accessories") or not document.at("accessories").is_array())
-        throw std::runtime_error("accessories: missing accessories array");
+        throw Refused(Refusal::BadAccessory, "accessories: missing accessories array");
+    if (document.at("accessories").size() > static_cast<std::size_t>(kMaxAccessories))
+        throw Refused(Refusal::TooLarge, "accessories: more than " + std::to_string(kMaxAccessories) + " accessories");
 
     std::vector<AccessorySpec> catalogue;
     std::set<std::string>      ids;
     for (auto const& entry : document.at("accessories")) {
         if (not entry.is_object() or not entry.contains("id") or not entry.at("id").is_string())
-            throw std::runtime_error("accessories: each accessory needs a string id");
+            throw Refused(Refusal::BadAccessory, "accessories: each accessory needs a string id");
         auto id = entry.at("id").get<std::string>();
-        if (not ids.insert(id).second) throw std::runtime_error("accessories: duplicate id " + id);
+        if (not isPlainLabel(id)) throw Refused(Refusal::BadAccessory, "accessories: an id is not a plain label");
+        if (not ids.insert(id).second) throw Refused(Refusal::BadAccessory, "accessories: duplicate id " + id);
 
         if (not entry.contains("slot") or not entry.at("slot").is_string())
-            throw std::runtime_error("accessories: " + id + " needs a slot");
+            throw Refused(Refusal::BadAccessory, "accessories: " + id + " needs a slot");
         auto const slot = slotNamed(entry.at("slot").get<std::string>());
-        if (not slot) throw std::runtime_error("accessories: " + id + " names an unknown slot");
+        if (not slot) throw Refused(Refusal::BadAccessory, "accessories: " + id + " names an unknown slot");
 
         if (not entry.contains("supportedActions") or not entry.at("supportedActions").is_array())
-            throw std::runtime_error("accessories: " + id + " needs a supportedActions array");
+            throw Refused(Refusal::BadAccessory, "accessories: " + id + " needs a supportedActions array");
         std::vector<ActionName> supported;
         for (auto const& name : entry.at("supportedActions")) {
-            if (not name.is_string()) throw std::runtime_error("accessories: " + id + ".supportedActions must be strings");
+            if (not name.is_string()) throw Refused(Refusal::BadAccessory, "accessories: " + id + ".supportedActions must be strings");
             auto action = name.get<std::string>();
             if (playbook.actions.count(action) == 0)
-                throw std::runtime_error("accessories: " + id + " supports an action the pet does not have: " + action);
+                throw Refused(Refusal::BadAccessory, "accessories: " + id + " supports an action the pet does not have: " + action);
             supported.push_back(std::move(action));
         }
         catalogue.push_back(AccessorySpec{std::move(id), *slot, std::move(supported)});

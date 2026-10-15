@@ -90,7 +90,8 @@ Item {
             const theme = Tokens.theme;
             const chosen = Pet.pet;
             try {
-                for (const id of Pet.pets) {
+                for (const entry of Pet.pets) {
+                    const id = entry.id;
                     Pet.setPet(id);
                     for (const mode of ["light", "dark"]) {
                         Tokens.theme = mode;

@@ -260,5 +260,22 @@ Item {
             compare(shown.panel.visible, false, "the press did not put the panel down, so the case proves nothing");
             tryVerify(() => field.openChildRect === null, 2000, "a press outside the panel left its dropdown list up");
         }
+
+        function test_aQuestionOnThePanelTakesEscapeBeforeTheCategoryDoes() {
+            const shown = openPetPanel();
+            const question = findDeep(shown.panel, function (o) {
+                return o.toString().indexOf("PetPackageDialog_QMLTYPE") === 0;
+            });
+            verify(question.length > 0, "the extensions page has no pet package question");
+            question[0].open();
+            wait(20);
+
+            shown.panel.navigateBack();
+
+            compare(question[0].opened, false, "Escape did not answer the question");
+            compare(shown.panel.category, "extensions", "Escape answered the question and also backed out of the category");
+            shown.panel.navigateBack();
+            compare(shown.panel.category, "", "the next Escape did not back out of the category");
+        }
     }
 }

@@ -4,9 +4,12 @@
  */
 
 #include <algorithm>
+#include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -15,9 +18,11 @@
 #include <nlohmann/json.hpp>
 
 #include <QImage>
+#include <QString>
 
 #include "app/pet/pet_assets.h"
 #include "core/pet/pet_config.h"
+#include "core/pet/pet_package.h"
 
 namespace {
 
@@ -96,23 +101,32 @@ TEST(PetData, EveryShippedPetIsAcceptedWhole)
     EXPECT_GT(pets, 0);
 }
 
-/// A scratch copy of data/pet/dog for one test, removed when the test ends.
+/// A scratch copy of data/pet/dog for one test, removed when the test ends. The copy sits in a folder named for the pet,
+/// since the id must equal the folder name (docs/pet-package-format.md, rule 11).
 class ScratchPet {
 public:
     explicit ScratchPet(std::string const& name)
-        : root_{std::filesystem::temp_directory_path() / ("lens-pet-data-" + name)}
+        : holder_{std::filesystem::temp_directory_path() / ("lens-pet-data-" + name)}, root_{holder_ / "dog"}
     {
-        std::filesystem::remove_all(root_);
+        std::filesystem::remove_all(holder_);
+        std::filesystem::create_directories(holder_);
         std::filesystem::copy(std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet" / "dog", root_, std::filesystem::copy_options::recursive);
     }
     ~ScratchPet()
     {
-        std::filesystem::remove_all(root_);
+        std::filesystem::remove_all(holder_);
     }
 
     std::filesystem::path const& path() const
     {
         return root_;
+    }
+
+    /// Writes `document` over `file`, pretty-printed, so a test can change one field of a shipped document.
+    void writeJson(std::string const& file, json const& document) const
+    {
+        auto out = std::ofstream{root_ / file, std::ios::binary};
+        out << document.dump(2);
     }
 
     /// Replaces the first `from` in `file` with `to`; the test fails if `from` is not in the file.
@@ -132,6 +146,7 @@ public:
     }
 
 private:
+    std::filesystem::path holder_;
     std::filesystem::path root_;
 };
 
@@ -211,6 +226,210 @@ TEST(PetData, LayersStackInTheSpecOrder)
     EXPECT_LT(*std::max_element(bodyWorn.begin(), bodyWorn.end()), *std::min_element(faceWorn.begin(), faceWorn.end()));
     EXPECT_LT(*std::max_element(faceWorn.begin(), faceWorn.end()), *std::min_element(headWorn.begin(), headWorn.end()));
     EXPECT_LT(*std::max_element(headWorn.begin(), headWorn.end()), effect);
+}
+
+/// @return The reason `load` refuses the pet with, or nothing when it is accepted.
+std::optional<lens::core::pet::Refusal> refusalOfLoad(std::filesystem::path const& directory)
+{
+    try {
+        lens::app::pet::PetAssets::load(directory);
+    } catch (lens::core::pet::Refused const& refused) {
+        return refused.reason();
+    }
+    return std::nullopt;
+}
+
+/// A PNG whose header declares `width` by `height` and whose body is nothing: the file is 24 bytes, and a decoder would
+/// allocate for the declared size. This is the decompression-bomb shape.
+void writeDeclaredPng(std::filesystem::path const& file, std::uint32_t width, std::uint32_t height)
+{
+    auto bytes = std::string{"\x89PNG\r\n\x1a\n\x00\x00\x00\x0DIHDR", 16};
+    for (auto const value : {width, height}) {
+        bytes += static_cast<char>(value >> 24);
+        bytes += static_cast<char>(value >> 16);
+        bytes += static_cast<char>(value >> 8);
+        bytes += static_cast<char>(value);
+    }
+    auto out = std::ofstream{file, std::ios::binary};
+    out << bytes;
+}
+
+/// Creates a directory junction at `link` pointing at `target`. It needs no privilege, unlike a symbolic link, and it is
+/// the link an archive can carry. Removing it is the caller's job: a recursive delete would walk into `target`.
+void makeJunction(std::filesystem::path const& link, std::filesystem::path const& target)
+{
+    auto const command = "cmd /c mklink /J \"" + link.string() + "\" \"" + target.string() + "\"";
+    ASSERT_EQ(std::system(command.c_str()), 0);
+}
+
+TEST(PetData, AnAssetPathThatClimbsOutOfThePetIsPathEscapes)
+{
+    // The path lands back inside the pet, but it is spelled with `..`, and the spelling is refused on its own.
+    auto scratch = ScratchPet{"dotdot"};
+    scratch.replaceIn("animations.json", "\"sheet\": \"sprites/body/idle.png\"", "\"sheet\": \"../dog/sprites/body/idle.png\"");
+
+    EXPECT_EQ(refusalOfLoad(scratch.path()), lens::core::pet::Refusal::PathEscapes);
+}
+
+TEST(PetData, AnAbsoluteAssetPathIsPathEscapes)
+{
+    auto scratch = ScratchPet{"absolute"};
+    // A sheet outside the pet, named at run time: a machine path has no place in the source.
+    auto const outside              = (std::filesystem::temp_directory_path() / "idle.png").generic_string();
+    auto       doc                  = json::parse(std::ifstream{scratch.path() / "animations.json"});
+    doc["actions"]["idle"]["sheet"] = outside;
+    scratch.writeJson("animations.json", doc);
+
+    EXPECT_EQ(refusalOfLoad(scratch.path()), lens::core::pet::Refusal::PathEscapes);
+}
+
+TEST(PetData, AnAssetReachedThroughAJunctionIsPathEscapes)
+{
+    // The junction points at a folder outside the pet that really holds a PNG, so a path that only looks inside would
+    // load it. The junction is removed before the scratch is, since a recursive delete would follow it.
+    auto scratch = ScratchPet{"junction"};
+    auto outside = std::filesystem::temp_directory_path() / "lens-pet-data-junction-target";
+    std::filesystem::remove_all(outside);
+    std::filesystem::create_directories(outside);
+    std::filesystem::copy_file(scratch.path() / "sprites/body/idle.png", outside / "idle.png");
+    makeJunction(scratch.path() / "sprites/linked", outside);
+    auto const link = scratch.path() / "sprites/linked";
+
+    scratch.replaceIn("animations.json", "\"sheet\": \"sprites/body/idle.png\"", "\"sheet\": \"sprites/linked/idle.png\"");
+    auto const reason = refusalOfLoad(scratch.path());
+
+    std::filesystem::remove(link);
+    EXPECT_EQ(reason, lens::core::pet::Refusal::PathEscapes);
+    EXPECT_TRUE(std::filesystem::exists(outside / "idle.png")) << "the junction's target must survive the refusal";
+    std::filesystem::remove_all(outside);
+}
+
+TEST(PetData, AJunctionAnywhereInThePetIsRefusedEvenIfUnused)
+{
+    // The tree walk refuses a link before any document is read, so an unreferenced junction still refuses the pet.
+    auto scratch = ScratchPet{"junction-unused"};
+    auto outside = std::filesystem::temp_directory_path() / "lens-pet-data-unused-target";
+    std::filesystem::remove_all(outside);
+    std::filesystem::create_directories(outside);
+    makeJunction(scratch.path() / "stray", outside);
+
+    auto const reason = refusalOfLoad(scratch.path());
+
+    std::filesystem::remove(scratch.path() / "stray");
+    EXPECT_EQ(reason, lens::core::pet::Refusal::PathEscapes);
+    std::filesystem::remove_all(outside);
+}
+
+TEST(PetData, ADeclaredSizeFarBeyondTheSheetLimitIsTooLargeBeforeAnyDecode)
+{
+    auto scratch = ScratchPet{"bomb"};
+    writeDeclaredPng(scratch.path() / "sprites/body/idle.png", 65535, 65535);
+
+    EXPECT_EQ(refusalOfLoad(scratch.path()), lens::core::pet::Refusal::TooLarge);
+}
+
+TEST(PetData, AnExpressionIndexPastTheSheetIsExpressionIndex)
+{
+    auto scratch                           = ScratchPet{"expression"};
+    auto doc                               = json::parse(std::ifstream{scratch.path() / "animations.json"});
+    doc["actions"]["blink"]["expressions"] = json::array({1, 2, 99});
+    scratch.writeJson("animations.json", doc);
+
+    EXPECT_EQ(refusalOfLoad(scratch.path()), lens::core::pet::Refusal::ExpressionIndex);
+}
+
+TEST(PetData, ANonPngAssetWithAPngNameIsBadAssetType)
+{
+    auto scratch = ScratchPet{"svg"};
+    auto out     = std::ofstream{scratch.path() / "sprites/accessories/headwear/hat.png", std::ios::binary};
+    out << "<svg xmlns=\"http://www.w3.org/2000/svg\"/>";
+    out.close();
+
+    EXPECT_EQ(refusalOfLoad(scratch.path()), lens::core::pet::Refusal::BadAssetType);
+}
+
+TEST(PetData, AMissingSheetIsUnreadable)
+{
+    auto scratch = ScratchPet{"missing"};
+    std::filesystem::remove(scratch.path() / "sprites/body/idle.png");
+
+    EXPECT_EQ(refusalOfLoad(scratch.path()), lens::core::pet::Refusal::Unreadable);
+}
+
+TEST(PetData, AWrongSizedSheetIsSheetSize)
+{
+    auto scratch = ScratchPet{"wrong-size"};
+    std::filesystem::copy_file(scratch.path() / "sprites/body/study.png", scratch.path() / "sprites/body/idle.png", std::filesystem::copy_options::overwrite_existing);
+
+    EXPECT_EQ(refusalOfLoad(scratch.path()), lens::core::pet::Refusal::SheetSize);
+}
+
+TEST(PetData, AFolderNameThatIsNotThePetIdIsBadName)
+{
+    // The id in pet.json must be the folder's name. A copy under another name is refused, not renamed for the reader.
+    auto scratch = ScratchPet{"renamed"};
+    auto renamed = scratch.path().parent_path() / "lounge";
+    std::filesystem::remove_all(renamed);
+    std::filesystem::rename(scratch.path(), renamed);
+
+    auto const reason = refusalOfLoad(renamed);
+
+    std::filesystem::rename(renamed, scratch.path());
+    EXPECT_EQ(reason, lens::core::pet::Refusal::BadName);
+}
+
+TEST(PetData, ANameMadeOfInvisibleCharactersIsBadName)
+{
+    auto scratch = ScratchPet{"invisible-name"};
+    auto doc     = json::parse(std::ifstream{scratch.path() / "pet.json"});
+    doc["name"]  = "\u200B\u202E\u200D";
+    scratch.writeJson("pet.json", doc);
+
+    EXPECT_EQ(refusalOfLoad(scratch.path()), lens::core::pet::Refusal::BadName);
+}
+
+TEST(PetData, AName32CharactersLongIsAcceptedAndOneLongerIsTooLarge)
+{
+    auto scratch = ScratchPet{"long-name"};
+    auto doc     = json::parse(std::ifstream{scratch.path() / "pet.json"});
+
+    doc["name"] = std::string(32, 'n');
+    scratch.writeJson("pet.json", doc);
+    EXPECT_FALSE(refusalOfLoad(scratch.path()).has_value());
+
+    doc["name"] = std::string(33, 'n');
+    scratch.writeJson("pet.json", doc);
+    EXPECT_EQ(refusalOfLoad(scratch.path()), lens::core::pet::Refusal::TooLarge);
+}
+
+TEST(PetData, ANameIsCleanedOfControlAndFormatCharactersAndNormalised)
+{
+    // "e" followed by a combining acute is one character once composed, and the bidi override and the zero-width space
+    // are removed without refusing the pet.
+    auto scratch = ScratchPet{"clean-name"};
+    auto doc     = json::parse(std::ifstream{scratch.path() / "pet.json"});
+    doc["name"]  = "\u202Ee\u0301\u200B";
+    scratch.writeJson("pet.json", doc);
+
+    auto const assets = lens::app::pet::PetAssets::load(scratch.path());
+    EXPECT_EQ(assets.name, QString::fromUtf8("\u00e9"));
+}
+
+TEST(PetData, APngNamedWithAnotherExtensionIsBadAssetType)
+{
+    // The type comes from the magic, and the name must agree with it: a PNG called .gif is refused.
+    auto scratch = ScratchPet{"gif-name"};
+    std::filesystem::copy_file(scratch.path() / "sprites/body/idle.png", scratch.path() / "sprites/body/idle.gif");
+    scratch.replaceIn("animations.json", "\"sheet\": \"sprites/body/idle.png\"", "\"sheet\": \"sprites/body/idle.gif\"");
+
+    EXPECT_EQ(refusalOfLoad(scratch.path()), lens::core::pet::Refusal::BadAssetType);
+}
+
+TEST(PetData, ThePetNameIsTheIdWhenThePackageGivesNone)
+{
+    auto scratch = ScratchPet{"no-name"};
+
+    EXPECT_EQ(lens::app::pet::PetAssets::load(scratch.path()).name, QStringLiteral("dog"));
 }
 
 } // namespace

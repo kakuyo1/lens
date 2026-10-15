@@ -16,6 +16,13 @@ Item {
         petTypeField.closeList();
     }
 
+    /// Whether the page is asking the reader a question of its own. Escape answers it before the panel backs out.
+    readonly property bool questionOpen: packageDialog.opened
+
+    function closeQuestion() {
+        packageDialog.close();
+    }
+
     function actionLabel(name) {
         switch (name) {
         case "idle": return qsTranslate("SettingsPopup", "Idle");
@@ -87,6 +94,44 @@ Item {
         case "owl": return qsTranslate("SettingsPopup", "Owl");
         case "cat": return qsTranslate("SettingsPopup", "Cat");
         default: return id;
+        }
+    }
+
+    /// Why a package was refused, in the words UI.md 4.12 gives. The package never supplies these strings.
+    function refusalLabel(reason) {
+        switch (reason) {
+        case "Format": return qsTranslate("SettingsPopup", "The package format is not supported.");
+        case "TooLarge": return qsTranslate("SettingsPopup", "The package exceeds the size limits.");
+        case "BadName": return qsTranslate("SettingsPopup", "The package name is not valid.");
+        case "MissingRole": return qsTranslate("SettingsPopup", "A required action is missing.");
+        case "BadAnimation": return qsTranslate("SettingsPopup", "An action is not valid.");
+        case "BadAnchors": return qsTranslate("SettingsPopup", "The anchor data is not valid.");
+        case "BadAccessory": return qsTranslate("SettingsPopup", "An accessory is not valid.");
+        case "BadAssetType": return qsTranslate("SettingsPopup", "An image is not a valid PNG.");
+        case "SheetSize": return qsTranslate("SettingsPopup", "An image size does not match its frames.");
+        case "ExpressionIndex": return qsTranslate("SettingsPopup", "An expression index is out of range.");
+        case "PathEscapes": return qsTranslate("SettingsPopup", "An image path points outside the package.");
+        case "IdTaken": return qsTranslate("SettingsPopup", "The package id is already in use.");
+        default: return qsTranslate("SettingsPopup", "The package could not be read.");
+        }
+    }
+
+    // Each time the section is opened the page is built again, so this is the rescan UI.md 4.4 asks for.
+    Component.onCompleted: Pet.refresh()
+
+    PetPackageDialog {
+        id: packageDialog
+
+        onEnableRequested: Pet.confirmPet(packageDialog.petId)
+    }
+
+    Connections {
+        target: Pet
+
+        function onConfirmationRequested(id, name) {
+            packageDialog.petId = id;
+            packageDialog.petName = name;
+            packageDialog.open();
         }
     }
 
@@ -174,9 +219,58 @@ Item {
                 DropdownField {
                     id: petTypeField
                     width: parent.width
-                    options: Pet.pets.map(id => ({value: id, label: page.petLabel(id), group: "", note: ""}))
+                    options: Pet.pets.map(entry => ({
+                        value: entry.id,
+                        label: entry.external ? entry.name : page.petLabel(entry.id),
+                        group: "",
+                        note: entry.external ? qsTranslate("SettingsPopup", "External") : ""
+                    }))
                     currentValue: Pet.pet
                     onPicked: (value) => Pet.setPet(value)
+                }
+            }
+
+            // The packages sit right under the picker that lists them: a refused package is an error the reader must not
+            // have to scroll to find (UI.md 4.4).
+            Column {
+                width: parent.width
+                spacing: 7
+
+                Text {
+                    text: qsTranslate("SettingsPopup", "Pet packages")
+                    color: page.tokens.muted
+                    font.pixelSize: 11
+                }
+
+                Text {
+                    width: parent.width
+                    text: qsTranslate("SettingsPopup", "Copy a pet package folder into the packages folder. Lens reads it when you open this section.")
+                    color: page.tokens.faint
+                    font.pixelSize: 11
+                    wrapMode: Text.WordWrap
+                }
+
+                Chip {
+                    objectName: "openPacksButton"
+                    label: qsTranslate("SettingsPopup", "Open packages folder")
+                    onPicked: Pet.openPacksFolder()
+                }
+
+                Repeater {
+                    model: Pet.refusals
+
+                    Text {
+                        id: refusalRow
+
+                        required property var modelData
+
+                        width: parent.width
+                        text: qsTranslate("SettingsPopup", "%1: %2").arg(modelData.id).arg(page.refusalLabel(modelData.reason))
+                        textFormat: Text.PlainText
+                        color: page.tokens.muted
+                        font.pixelSize: 12
+                        wrapMode: Text.WordWrap
+                    }
                 }
             }
 

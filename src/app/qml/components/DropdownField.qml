@@ -203,6 +203,8 @@ Item {
             anchors.rightMargin: 8
             anchors.verticalCenter: parent.verticalCenter
             text: root.current ? root.current.label : ""
+            // Labels can come from a package, which must read as plain text (docs/pet-package-format.md, section 7).
+            textFormat: Text.PlainText
             color: root.tokens.text
             font.pixelSize: 13
             elide: Text.ElideRight
@@ -350,6 +352,7 @@ Item {
                             anchors.leftMargin: 11
                             anchors.verticalCenter: parent.verticalCenter
                             text: group.modelData.label
+                            textFormat: Text.PlainText
                             color: group.modelData.value === root.currentValue ? root.tokens.on : root.tokens.text
                             font.pixelSize: 13
                         }
@@ -360,6 +363,7 @@ Item {
                             anchors.rightMargin: 11
                             anchors.verticalCenter: parent.verticalCenter
                             text: group.modelData.note
+                            textFormat: Text.PlainText
                             color: group.modelData.value === root.currentValue ? Qt.rgba(1, 1, 1, 0.62) : root.tokens.faint
                             font.pixelSize: 11
                         }
