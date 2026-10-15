@@ -276,6 +276,20 @@ Item {
             const costCard = cardOf(cost);
 
             main.showStats();
+
+            // Reduced motion is not a rare machine: CI runs with it, because the runner reports Windows'
+            // client-area animations off. hidePanels then makes the panel go at once instead of leaving,
+            // and there is no cross-fade left to measure -- so that branch is asserted here rather than
+            // skipped, since nothing else covers it.
+            if (Tokens.motion.reduced) {
+                tryCompare(stats, "visible", true);
+                stats.costRequested();
+                compare(stats.leaving, false, "a panel should not be leaving when nothing fades");
+                compare(stats.visible, false, "with motion reduced the panel handed over goes at once");
+                compare(cost.visible, true);
+                return;
+            }
+
             tryCompare(statsCard, "opacity", 1);
 
             stats.costRequested();
