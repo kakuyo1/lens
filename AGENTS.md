@@ -81,7 +81,7 @@ PATH="$QT_ROOT/bin:$PATH" QT_FORCE_STDERR_LOGGING=1 \
 
 Targets: `lens_util` → `lens_core` → `lens_capture` / `lens_llm` → `lens_app`. The `lens_gtest_*` targets are standalone and never shipped.
 
-The full run is for a merge, a release, or a change that crosses targets.
+The full run is for a merge, a release, or a change that crosses targets. CI runs the matrix on a push to `main` and on a pull request. A feature branch with no PR is covered by nothing else, so there the full run is yours to make.
 
 ## Translations
 

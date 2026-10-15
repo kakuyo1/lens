@@ -58,6 +58,9 @@ PATH="$QT_ROOT/bin:$PATH" QT_QPA_PLATFORM=offscreen QT_FORCE_STDERR_LOGGING=1 \
   ./build-ninja/test/qtest/lens_qtest_surfaces.exe
 ```
 
+- 改动后先跑**覆盖它的那条用例**，不跑整套：用例名直接跟在目标后面，如
+  `./build-ninja/test/qtest/lens_qtest_surfaces.exe Main::test_x`，约 5 秒；整套 surfaces 188 条约
+  2.2 分钟，全量留给收尾那一次。`scripts/qa/qtest.ps1 -Target <目标> -Case <用例>` 把环境变量与增量构建包在一起。
 - 链接 `lens_llm` 或 `lens_app` 的目标需要 Qt DLL 在 `PATH` 上（即 `unit` / `integration` /
   `smoke`）。`lens_gtest_perf` 只链 `lens_core`，保持无 Qt，什么都不需要。
 - 上表六个目标全部带 `EXCLUDE_FROM_ALL`：默认构建只有主程序 `lens`，测试按名构建，如
