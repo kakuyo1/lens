@@ -30,7 +30,8 @@ Item {
         function opened() {
             const bar = createTemporaryObject(barComponent, root);
             verify(bar);
-            bar.openAt({ x: 400, y: 400, kind: "word", text: "ubiquitous" });
+            bar.selectionKind = "word";
+            bar.visible = true;
             wait(50);
             return bar;
         }

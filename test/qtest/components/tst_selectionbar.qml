@@ -25,31 +25,20 @@ Item {
         name: "SelectionBar"
         when: windowShown
 
-        /// @return The bar, opened at @p anchor.
-        function opened(anchor) {
+        /// @return The bar, up on the word selection the component was built with.
+        function opened() {
             const bar = createTemporaryObject(barComponent, root);
             verify(bar);
-            bar.openAt({ x: anchor.x, y: anchor.y, kind: "word", text: "ubiquitous" });
+            bar.selectionKind = "word";
+            bar.visible = true;
             wait(50);
             return bar;
         }
 
         function test_theBarOffersTheThreeSelectionActions() {
-            const bar = opened({ x: 300, y: 300 });
+            const bar = opened();
 
             compare(Util.textsUnder(bar).map((t) => t.text).sort(), ["Copy text", "Explain", "Translate"]);
-        }
-
-        /// Placement belongs to Main.qml's placeTransient(), which also runs the bubble settings'
-        /// side choice and the flip (tst_main covers that arithmetic). openAt() only records the
-        /// kind and shows the bar, so it must not move the window on its own.
-        function test_openAtLeavesThePlacementToTheRoot() {
-            const bar = opened({ x: 300, y: 300 });
-            const before = { x: bar.x, y: bar.y };
-
-            bar.openAt({ x: 300, y: 300, kind: "word", text: "ubiquitous" });
-            compare(bar.x, before.x, "openAt moved the bar sideways");
-            compare(bar.y, before.y, "openAt moved the bar vertically");
         }
     }
 }

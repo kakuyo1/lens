@@ -31,7 +31,9 @@ Item {
             verify(bar);
             const kinds = ["word", "entity", "sentence"];
             for (let i = 0; i < kinds.length; ++i) {
-                bar.openAt({x: 300, y: 300, kind: kinds[i], text: "selection"});
+                bar.selectionText = "selection";
+                bar.selectionKind = kinds[i];
+                bar.visible = true;
                 tryCompare(bar, "selectionKind", kinds[i]);
                 const labels = actionLabels(bar);
                 verify(labels.indexOf("Translate") >= 0);

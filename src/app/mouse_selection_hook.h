@@ -11,7 +11,7 @@
  * trigger cannot be "the selection changed" — it has to be the gesture. A drag that ended is
  * the point at which a selection exists. The hook reports only that moment; getting the text out
  * is a separate step, see
- * selection_text_grabber.h. Injecting Ctrl+C from inside a low-level hook callback would
+ * selection_text_grabber.h. Injecting the copy keystroke from inside a low-level hook callback would
  * overrun the budget Windows allows it and get the hook removed without a word, so the
  * callback stays O(1) and defers.
  *

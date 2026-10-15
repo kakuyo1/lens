@@ -60,20 +60,28 @@ bool openClipboardWithRetry()
 }
 
 /**
- * Processes where Ctrl+C interrupts instead of copying. Compared against the executable's
- * file name, lower-cased, so these have to be the real names: wt.exe is only the launcher,
- * WindowsTerminal.exe is the process holding the console, and some installs put
- * OpenConsole.exe in front of conhost.
+ * The combinations that copy a terminal's selection without interrupting anything, by terminal.
+ *
+ * A terminal's Ctrl+C is the interrupt, not a copy: sending one into a shell to lift a word out
+ * of its output would kill whatever is running there, and the drag that preceded it is not
+ * proof that nothing is — a console program that has taken the mouse never yields a selection
+ * at all. Every terminal on Windows does have a copy combination that no running program reads
+ * as an interrupt, but they are not the same one. Both below are no-ops with nothing selected,
+ * so either is safe to send blind.
+ *
+ * Matched against the executable's file name, lower-cased, so these have to be the real names:
+ * wt.exe is only the launcher, WindowsTerminal.exe is the process holding the console, and some
+ * installs put OpenConsole.exe in front of conhost.
  */
-constexpr std::array<std::string_view, 7> kExcludedProcesses{
-    "windowsterminal.exe",
-    "openconsole.exe",
-    "conhost.exe",
-    "cmd.exe",
-    "powershell.exe",
-    "pwsh.exe",
-    "wt.exe",
-};
+constexpr std::array<TerminalCopyKey, 7> kTerminalCopyKeys{{
+    {"windowsterminal.exe", 'C', true},
+    {"openconsole.exe", 'C', true},
+    {"wt.exe", 'C', true},
+    {"conhost.exe", VK_INSERT, false},
+    {"cmd.exe", VK_INSERT, false},
+    {"powershell.exe", VK_INSERT, false},
+    {"pwsh.exe", VK_INSERT, false},
+}};
 
 /**
  * Formats whose clipboard handle is a GDI or display handle rather than memory, so their
@@ -145,35 +153,33 @@ std::string foregroundProcessName(HWND window)
     return name;
 }
 
-/// @brief Press Ctrl+C into whatever window has focus.
+/// @brief Press Ctrl+@p key into whatever window has focus, with Shift when the copy key needs it.
+/// @param key The virtual key of the combination's non-modifier half.
+/// @param shift Whether Shift is part of it.
 /// @return False when the system refused the injection outright.
-/// @note The Ctrl pair is skipped when the reader is already holding Ctrl. Injecting a
-///       key-up for a modifier someone is holding physically is how a stuck key happens, and
-///       a physically held Ctrl already makes the C press mean Ctrl+C.
-bool sendCopyKeystroke()
+/// @note A modifier the reader is already holding is skipped rather than pressed and released.
+///       Injecting a key-up for a modifier someone is holding physically is how a stuck key
+///       happens, and a physically held Ctrl already makes the press mean Ctrl+key.
+bool sendCopyKeystroke(WORD const key, bool const shift)
 {
-    const bool ctrlHeld = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
+    const bool ctrlHeld  = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
+    const bool shiftHeld = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
 
-    INPUT       inputs[4] = {};
+    INPUT       inputs[6] = {};
     std::size_t count     = 0;
-    if (!ctrlHeld) {
-        inputs[count].type   = INPUT_KEYBOARD;
-        inputs[count].ki.wVk = VK_CONTROL;
-        ++count;
-    }
-    inputs[count].type   = INPUT_KEYBOARD;
-    inputs[count].ki.wVk = 'C';
-    ++count;
-    inputs[count].type       = INPUT_KEYBOARD;
-    inputs[count].ki.wVk     = 'C';
-    inputs[count].ki.dwFlags = KEYEVENTF_KEYUP;
-    ++count;
-    if (!ctrlHeld) {
+    const auto  add       = [&inputs, &count](WORD const vk, bool const up) {
         inputs[count].type       = INPUT_KEYBOARD;
-        inputs[count].ki.wVk     = VK_CONTROL;
-        inputs[count].ki.dwFlags = KEYEVENTF_KEYUP;
+        inputs[count].ki.wVk     = vk;
+        inputs[count].ki.dwFlags = up ? KEYEVENTF_KEYUP : 0;
         ++count;
-    }
+    };
+
+    if (!ctrlHeld) add(VK_CONTROL, false);
+    if (shift && !shiftHeld) add(VK_SHIFT, false);
+    add(key, false);
+    add(key, true);
+    if (shift && !shiftHeld) add(VK_SHIFT, true);
+    if (!ctrlHeld) add(VK_CONTROL, true);
 
     return SendInput(static_cast<UINT>(count), inputs, sizeof(INPUT)) == count;
 }
@@ -199,9 +205,15 @@ bool waitForClipboardChange(DWORD sequenceBefore)
 }
 
 /// @return The text the clipboard holds now, or nothing when it holds none.
+/// @note The same retry the snapshot uses, for the same reason and at the moment it matters
+///       most: the copy that just landed is what every clipboard watcher on the machine opens
+///       the clipboard to look at -- the reader's manager, and the source application itself
+///       if it is one of the frameworks that monitor the clipboard. A single attempt turns
+///       that into "the clipboard changed but carried no text", which is the commonest way a
+///       selection came back empty.
 std::optional<QString> readClipboardText()
 {
-    if (OpenClipboard(nullptr) == FALSE) return std::nullopt;
+    if (!openClipboardWithRetry()) return std::nullopt;
 
     std::optional<QString> text;
     if (const HANDLE handle = GetClipboardData(CF_UNICODETEXT)) {
@@ -218,7 +230,7 @@ std::optional<QString> readClipboardText()
 
 } // namespace
 
-bool isExcludedProcess(std::string_view executableName)
+std::optional<TerminalCopyKey> terminalCopyKey(std::string_view executableName)
 {
     // Callers pass whatever the process query returned, and a full image path is the normal
     // case, so match on the last component rather than insisting on a bare name.
@@ -230,11 +242,11 @@ bool isExcludedProcess(std::string_view executableName)
     std::transform(lowered.begin(), lowered.end(), lowered.begin(), toLower);
 
     // Exact match, never a substring: a process that merely has "conhost" inside its name is
-    // not a terminal, and excluding it would silently kill the feature there.
-    for (const std::string_view candidate : kExcludedProcesses) {
-        if (candidate == lowered) return true;
+    // not a terminal, and treating it as one would send it a copy key it does not answer.
+    for (const TerminalCopyKey& candidate : kTerminalCopyKeys) {
+        if (candidate.process == lowered) return candidate;
     }
-    return false;
+    return std::nullopt;
 }
 
 ClipboardSnapshot ClipboardSnapshot::take()
@@ -353,10 +365,11 @@ std::variant<GrabbedText, GrabStatus> SelectionTextGrabber::grab()
     }
 
     const std::string processName = foregroundProcessName(foreground);
-    if (isExcludedProcess(processName)) {
-        LENS_INFO("SelectionTextGrabber::grab: '{}' is excluded; Ctrl+C there is an interrupt", processName);
-        return GrabStatus::ProcessExcluded;
-    }
+    // A terminal does not copy on Ctrl+C -- that is its interrupt. It has a copy combination of
+    // its own, and that is what is sent there instead of the Ctrl+C everything else takes.
+    const std::optional<TerminalCopyKey> terminal  = terminalCopyKey(processName);
+    const WORD                           copyKey   = terminal ? static_cast<WORD>(terminal->key) : static_cast<WORD>('C');
+    const bool                           copyShift = terminal and terminal->shift;
 
     grabbing_ = true;
 
@@ -371,7 +384,7 @@ std::variant<GrabbedText, GrabStatus> SelectionTextGrabber::grab()
 
     const DWORD sequenceBefore = GetClipboardSequenceNumber();
 
-    if (!sendCopyKeystroke()) {
+    if (!sendCopyKeystroke(copyKey, copyShift)) {
         LENS_WARN("SelectionTextGrabber::grab: SendInput was refused, which is what an elevated foreground window does");
         snapshot.restore();
         grabbing_ = false;
@@ -403,7 +416,12 @@ std::variant<GrabbedText, GrabStatus> SelectionTextGrabber::grab()
     grabbing_ = false;
 
     if (!landed) {
-        LENS_TRACE("SelectionTextGrabber::grab: the clipboard did not change within {} ms", kGrabDeadlineMs);
+        // A terminal's copy combination is the reader's to rebind, so a miss there is worth
+        // saying at a level a release build keeps, rather than in a trace line it drops.
+        if (terminal)
+            LENS_INFO("SelectionTextGrabber::grab: '{}' did not copy on {} within {} ms", processName, copyShift ? "Ctrl+Shift+C" : "Ctrl+Insert", kGrabDeadlineMs);
+        else
+            LENS_TRACE("SelectionTextGrabber::grab: the clipboard did not change within {} ms", kGrabDeadlineMs);
         return GrabStatus::CopyTimedOut;
     }
     if (!copied) {

@@ -1,9 +1,9 @@
 /**
  * @file selection_capture_test.cpp
- * @brief Checks the selection entry point: the gesture rule, the exclusion list, the hook
+ * @brief Checks the selection entry point: the gesture rule, the terminal copy keys, the hook
  *        against synthetic input, and one human-driven round trip through the real clipboard.
  *
- * Three of the four groups run unattended. The gesture rule and the exclusion list are pure
+ * Three of the four groups run unattended. The gesture rule and the terminal copy keys are pure
  * assertions. The hook case drives the pointer with SendInput, which a low-level hook sees
  * exactly like real input, so it proves the hook and its deferred signal for real rather than
  * through a mock. Its drag lands on a window a child process owns, because the hook ignores any
@@ -53,8 +53,8 @@ namespace {
 using lens::app::Gesture;
 using lens::app::GrabStatus;
 using lens::app::GrabbedText;
-using lens::app::isExcludedProcess;
 using lens::app::isSelectionGesture;
+using lens::app::terminalCopyKey;
 
 /// Passed explicitly rather than read from the system, so the cases do not depend on the
 /// mouse settings of whichever machine runs them.
@@ -84,7 +84,6 @@ const char* statusName(GrabStatus status)
     switch (status) {
         case GrabStatus::Captured: return "Captured";
         case GrabStatus::ForegroundIsSelf: return "ForegroundIsSelf";
-        case GrabStatus::ProcessExcluded: return "ProcessExcluded";
         case GrabStatus::ClipboardBusy: return "ClipboardBusy";
         case GrabStatus::CopyTimedOut: return "CopyTimedOut";
         case GrabStatus::EmptyText: return "EmptyText";
@@ -450,48 +449,72 @@ TEST(SelectionGesture, AStationaryClickNeverSelects)
     EXPECT_FALSE(isSelectionGesture(Gesture{100, 200, 100, 200}, kSlop));
 }
 
-TEST(ExcludedProcess, TerminalsAreExcluded)
+/// The key a terminal copies with, or 0 when the process is not a terminal at all. The
+/// combination's Shift half is checked separately, where it differs.
+TEST(TerminalCopyKey, EveryTerminalGetsACombinationThatIsNotItsInterrupt)
 {
-    EXPECT_TRUE(isExcludedProcess("WindowsTerminal.exe"));
-    EXPECT_TRUE(isExcludedProcess("OpenConsole.exe"));
-    EXPECT_TRUE(isExcludedProcess("conhost.exe"));
-    EXPECT_TRUE(isExcludedProcess("cmd.exe"));
-    EXPECT_TRUE(isExcludedProcess("powershell.exe"));
-    EXPECT_TRUE(isExcludedProcess("pwsh.exe"));
-    EXPECT_TRUE(isExcludedProcess("wt.exe"));
+    // Ctrl+C is the interrupt in a terminal, so what is sent there instead is the terminal's
+    // own copy key -- and the two families of terminal do not share one. Windows Terminal
+    // copies on Ctrl+Shift+C; the classic console host copies on Ctrl+Insert.
+    const auto windowsTerminal = terminalCopyKey("WindowsTerminal.exe");
+    ASSERT_TRUE(windowsTerminal.has_value());
+    EXPECT_EQ(windowsTerminal->key, static_cast<unsigned>('C'));
+    EXPECT_TRUE(windowsTerminal->shift);
+
+    const auto consoleHost = terminalCopyKey("conhost.exe");
+    ASSERT_TRUE(consoleHost.has_value());
+    EXPECT_EQ(consoleHost->key, static_cast<unsigned>(VK_INSERT));
+    EXPECT_FALSE(consoleHost->shift);
+
+    // The rest of each family, so a name dropped from the table fails here.
+    for (const std::string_view name : {"OpenConsole.exe", "wt.exe"}) {
+        const auto key = terminalCopyKey(name);
+        ASSERT_TRUE(key.has_value()) << name;
+        EXPECT_EQ(key->key, static_cast<unsigned>('C')) << name;
+        EXPECT_TRUE(key->shift) << name;
+    }
+    for (const std::string_view name : {"cmd.exe", "powershell.exe", "pwsh.exe"}) {
+        const auto key = terminalCopyKey(name);
+        ASSERT_TRUE(key.has_value()) << name;
+        EXPECT_EQ(key->key, static_cast<unsigned>(VK_INSERT)) << name;
+        EXPECT_FALSE(key->shift) << name;
+    }
 }
 
-TEST(ExcludedProcess, TheComparisonIgnoresCase)
+TEST(TerminalCopyKey, TheComparisonIgnoresCase)
 {
-    EXPECT_TRUE(isExcludedProcess("CONHOST.EXE"));
-    EXPECT_TRUE(isExcludedProcess("PowerShell.EXE"));
+    EXPECT_TRUE(terminalCopyKey("CONHOST.EXE").has_value());
+    EXPECT_TRUE(terminalCopyKey("PowerShell.EXE").has_value());
 }
 
-TEST(ExcludedProcess, AFullImagePathIsMatchedOnItsFileName)
+TEST(TerminalCopyKey, AFullImagePathIsMatchedOnItsFileName)
 {
     // The fixtures carry no drive letter on purpose: what the matching rule is about is the
     // directory prefix, and a drive path written into a source file is what the pre-commit
     // hook's check exists to reject (config/README.md).
-    EXPECT_TRUE(isExcludedProcess(R"(Program Files\PowerShell\7\pwsh.exe)"));
-    EXPECT_FALSE(isExcludedProcess(R"(Program Files\Google\Chrome\Application\chrome.exe)"));
+    EXPECT_TRUE(terminalCopyKey(R"(Program Files\PowerShell\7\pwsh.exe)").has_value());
+    EXPECT_FALSE(terminalCopyKey(R"(Program Files\Google\Chrome\Application\chrome.exe)").has_value());
 }
 
-TEST(ExcludedProcess, OrdinaryApplicationsAreNotExcluded)
+TEST(TerminalCopyKey, OrdinaryApplicationsTakeCtrlC)
 {
-    EXPECT_FALSE(isExcludedProcess("chrome.exe"));
-    EXPECT_FALSE(isExcludedProcess("notepad.exe"));
-    EXPECT_FALSE(isExcludedProcess("WINWORD.EXE"));
-    EXPECT_FALSE(isExcludedProcess(""));
+    // No value is the answer that matters: it is what says the grab sends plain Ctrl+C, so a
+    // browser or an editor is not handed a copy key it does not have.
+    EXPECT_FALSE(terminalCopyKey("chrome.exe").has_value());
+    EXPECT_FALSE(terminalCopyKey("notepad.exe").has_value());
+    EXPECT_FALSE(terminalCopyKey("WINWORD.EXE").has_value());
+    EXPECT_FALSE(terminalCopyKey("Code.exe").has_value());
+    EXPECT_FALSE(terminalCopyKey("").has_value());
 }
 
-TEST(ExcludedProcess, TheMatchIsExactRatherThanASubstring)
+TEST(TerminalCopyKey, TheMatchIsExactRatherThanASubstring)
 {
-    // A substring rule would quietly disable the feature in any process that happens to
-    // carry one of these names, so the guard is worth a case of its own.
-    EXPECT_FALSE(isExcludedProcess("myconhost.exe"));
-    EXPECT_FALSE(isExcludedProcess("not-pwsh.exe"));
+    // A substring rule would hand the wrong copy key to any process that happens to carry one
+    // of these names, and the two keys are not interchangeable, so the guard is worth a case.
+    EXPECT_FALSE(terminalCopyKey("myconhost.exe").has_value());
+    EXPECT_FALSE(terminalCopyKey("not-pwsh.exe").has_value());
     // The names are file names: without the extension it is a different process.
-    EXPECT_FALSE(isExcludedProcess("powershell"));
+    EXPECT_FALSE(terminalCopyKey("powershell").has_value());
 }
 
 /// The guarantee the snapshot exists for. Borrowing a reader's clipboard is only acceptable
