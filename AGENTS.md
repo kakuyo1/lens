@@ -44,7 +44,7 @@ Toolchain (verified): cmake 4.0.1 · Ninja 1.12.1 · MSVC 19.44
 ./scripts/build/build.bat                      # configure once, then incremental, into build-ninja
 ./scripts/build/build.bat --target lens_gtest_unit     # a test target, when you want one
 ./scripts/build/build-release.bat              # the same, into build-ninja-release (RelWithDebInfo)
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/qa/ui-run.ps1   # run it; rebuilds the release tree first when stale
+powershell -File scripts/qa/ui-run.ps1         # run it; rebuilds the release tree first when stale
 ```
 
 The default build is the application alone. Every test target carries `EXCLUDE_FROM_ALL` in `test/`,
@@ -86,14 +86,14 @@ Match the run to the change instead of running the whole matrix every time: a on
 
 ## Translations
 
-English is the source language: `i18n/lens_en_US.ts` mirrors the source strings, `i18n/lens_zh_CN.ts` carries the Chinese. After adding or changing a reader-facing string:
+English is the source language: `i18n/lens_en_US.ts` mirrors the source strings, and `lens_zh_CN.ts` / `lens_es_ES.ts` / `lens_ja_JP.ts` carry the Chinese, Spanish and Japanese. After adding or changing a reader-facing string:
 
 ```
-PATH="$QT_ROOT/bin:$PATH" lupdate src -ts i18n/lens_en_US.ts i18n/lens_zh_CN.ts
-PATH="$QT_ROOT/bin:$PATH" lrelease i18n/lens_en_US.ts i18n/lens_zh_CN.ts
+PATH="$QT_ROOT/bin:$PATH" lupdate src -ts i18n/lens_en_US.ts i18n/lens_zh_CN.ts i18n/lens_es_ES.ts i18n/lens_ja_JP.ts
+PATH="$QT_ROOT/bin:$PATH" lrelease i18n/lens_en_US.ts i18n/lens_zh_CN.ts i18n/lens_es_ES.ts i18n/lens_ja_JP.ts
 ```
 
-`lupdate` appends new strings as `unfinished` and leaves existing translations alone, so rerunning is safe. Write the Chinese into `lens_zh_CN.ts` and copy the source text into `lens_en_US.ts`; `lrelease` is the check, and the goal is zero unfinished. The `.qm` files are build output and stay gitignored.
+`lupdate` appends new strings as `unfinished` and leaves existing translations alone, so rerunning is safe. Write the Chinese into `lens_zh_CN.ts`, the Spanish into `lens_es_ES.ts` and the Japanese into `lens_ja_JP.ts`, copying the source text into `lens_en_US.ts`; `lrelease` is the check, and the goal is zero unfinished. All four reach zero before the commit, not after: `.githooks/pre-commit` refuses a staged `.ts` that still carries one, so the languages left untranslated are what blocks it. The `.qm` files are build output and stay gitignored.
 
 Removing a string needs `lupdate -no-obsolete`: plain `lupdate` keeps the vanished entries in the file as `<translation type="vanished">`, so a deleted surface's strings go on sitting there with nothing to read them.
 

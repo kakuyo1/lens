@@ -21,9 +21,9 @@
 # 2) and the real-surface tools above. TEST.md section 5 owns the write-up.
 #
 # Examples:
-#   ./scripts/qa/qml-snapshot.ps1
-#   ./scripts/qa/qml-snapshot.ps1 -Test test_captureChineseAndLatinTypography
-#   ./scripts/qa/qml-snapshot.ps1 -Target lens_qtest_surfaces -Out test/records/snapshots/surfaces
+#   powershell -File scripts/qa/qml-snapshot.ps1
+#   powershell -File scripts/qa/qml-snapshot.ps1 -Test test_captureChineseAndLatinTypography
+#   powershell -File scripts/qa/qml-snapshot.ps1 -Target lens_qtest_surfaces -Out test/records/snapshots/surfaces
 
 [CmdletBinding()]
 param(

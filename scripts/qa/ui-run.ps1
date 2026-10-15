@@ -15,11 +15,11 @@
 # scripts/qa/ui-capture.ps1 photographs an empty desktop unless the app itself was started with
 # LENS_QA_VISIBLE_IN_CAPTURE set. Set it on this call, not on the capture.
 #
-# Examples. The explicit powershell form is the one that works from Git Bash, which is where these
-# are typed; a bare ./scripts/qa/x.ps1 goes to bash and dies on the first line of PowerShell.
-#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/qa/ui-run.ps1
-#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/qa/ui-run.ps1 -Restart
-#   LENS_QA_VISIBLE_IN_CAPTURE=1 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/qa/ui-run.ps1
+# Examples. These go through powershell rather than at the script directly: a bare
+# ./scripts/qa/x.ps1 reaches bash, which dies on the first line of PowerShell.
+#   powershell -File scripts/qa/ui-run.ps1
+#   powershell -File scripts/qa/ui-run.ps1 -Restart
+#   LENS_QA_VISIBLE_IN_CAPTURE=1 powershell -File scripts/qa/ui-run.ps1
 
 [CmdletBinding()]
 param(

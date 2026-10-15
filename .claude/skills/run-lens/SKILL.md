@@ -10,8 +10,8 @@ running the real app and driving it.
 
 ## Steps
 
-From the repository root, in Git Bash, where a `.ps1` runs only through
-`powershell -NoProfile -ExecutionPolicy Bypass -File <script>` — the flags and arguments go on the end.
+From the repository root, in Git Bash, where a `.ps1` runs only through `powershell -File <script>` —
+the flags and arguments go on the end.
 
 1. Start the app: `scripts/qa/ui-run.ps1` builds the release tree when its `lens.exe` is older than
    `src/`, launches it detached, and reports the PID, the log, and whether it came up. `-Restart`
