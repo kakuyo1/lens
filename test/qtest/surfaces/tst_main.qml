@@ -203,6 +203,14 @@ Item {
             Controller.selectionBarRequested({ x: 300, y: 300, kind: "word", text: "words", letterCount: 5 });
             tryCompare(bar, "visible", true);
             compare(bar.selectionText, "words");
+
+            // The minimum is a count of letters, and Chinese is counted in characters: a
+            // two-character word is a whole word, so it reaches the bar the floor above would have
+            // hidden it behind -- which is the common size of a Chinese word
+            // (UI.md section 4.10).
+            Controller.selectionBarRequested({ x: 300, y: 300, kind: "translation", text: "苹果", letterCount: 2 });
+            tryCompare(bar, "visible", true);
+            compare(bar.selectionText, "苹果");
             bar.visible = false;
             Controller.captureDuty.setMinimumWordLength(originalMinimum);
         }

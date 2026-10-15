@@ -14,7 +14,7 @@ namespace lens::capture {
 
 enum class OcrStatus { Ready,
                        RuntimeMissing,
-                       LanguageMissing,
+                       LanguageMissing, ///< Neither an English nor a Chinese traineddata is there.
                        StartFailed,
                        TimedOut,
                        Failed,
@@ -34,11 +34,24 @@ struct TesseractConfig {
 
 struct OcrEngine {
     virtual ~OcrEngine() = default;
-    /// @return Runtime and English resource availability, including loader failures.
+    /// @return Runtime and language resource availability, including loader failures.
     virtual OcrStatus probe(std::shared_ptr<std::atomic_bool> cancel = {}) const = 0;
     /// @brief Blocking worker operation with a deadline and cooperative cancellation.
     virtual OcrResult recognize(QImage const& image, std::shared_ptr<std::atomic_bool> cancel = {}) const = 0;
 };
+
+/**
+ * @brief The recognition languages @p dataDirectory can serve, in the order Tesseract takes them.
+ *
+ * The reader supplies the data directory, so whether Chinese can be read is a property of that
+ * directory rather than a setting: Chinese is added to the list when its traineddata is there, and
+ * left out when it is not, which is what keeps one install reading English and the next reading
+ * both. Chinese comes first of the pair -- the reader who installed it did so to read Chinese.
+ *
+ * @param dataDirectory A tessdata directory; may not exist.
+ * @return A `-l` value such as `chi_sim+eng` or `eng`, or empty when neither file is readable.
+ */
+QString tesseractLanguages(QString const& dataDirectory);
 
 /**
  * @brief Fill in what an empty TesseractConfig resolves to.

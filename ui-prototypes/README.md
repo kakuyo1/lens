@@ -12,7 +12,7 @@
 | `year-in-words.html` | 单词年度记录弹窗 |
 | `cost.html` | 花费弹窗 |
 | `settings.html` | 设置浮层 |
-| `bubble.html` | 解释气泡，含单词、实体、句子三种 |
+| `bubble.html` | 解释气泡，含单词、实体、句子、译文四种 |
 | `selection-bar.html` | 选区动作条 |
 | `pet.html` | 桌面宠物子页面（扩展 → 桌面宠物，四只宠物的类型下拉、动作与配饰，以及宠物包的导入入口、被拒列表与确认弹窗） |
 | `update.html` | 检查更新（关于 分类的检查行）与通知卡片的新版本样式 |
@@ -23,7 +23,7 @@
 
 追加 `?lang=en`、`?lang=ja`、`?lang=es` 按该语言渲染界面，缺省中文。进 README 的五个表面（bubble、selection-bar、settings、words、year-in-words）接了它，其余表面和设置里的子页面仍是中文。pet 页要看到预览舞台，追加 `?on` 直接打开桌面宠物；要直接看宠物包的确认弹窗，追加 `?dlg=1`；README 里的桌面宠物图取自应用本身，不由这里渲染。
 
-`bubble.html` 追加 `?kind=entity` 或 `?kind=sentence` 看实体与句子的解释，缺省是单词。这两种的样例文字是英文，与界面语言无关：README 的截图按英文解释渲染，解释语言是设置里另一项。`year-in-words.html` 追加 `?palette=open` 直接展开配色盘，第 3 档记为按下。
+`bubble.html` 追加 `?kind=entity`、`?kind=sentence` 或 `?kind=translation` 看实体、句子与中文译文，缺省是单词。前两种的样例文字是英文，与界面语言无关：README 的截图按英文解释渲染，解释语言是设置里另一项；译文那张的样例是中文，因为译文通道只收中文，卡片上画的仍是英文。`year-in-words.html` 追加 `?palette=open` 直接展开配色盘，第 3 档记为按下。
 
 ## 修改提示
 

@@ -36,7 +36,7 @@ enum class CaptureRefusal {
     RegionTooLarge,  ///< The framed region is larger than the grabber takes.
     EmptyText,       ///< OCR ran and found nothing in the region.
     InvalidImage,    ///< OCR could not read the image at all.
-    LanguageMissing, ///< The English traineddata is not there.
+    LanguageMissing, ///< Neither the English nor the Chinese traineddata is there.
     RuntimeMissing,  ///< There is no Tesseract runtime to run.
     StartFailed,     ///< The runtime is there and refused to start.
     TimedOut,        ///< The runtime started and did not finish in time.

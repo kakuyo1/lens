@@ -29,7 +29,7 @@ Item {
         function test_theActionBarKeepsAllActionsForEachChannel() {
             const bar = createTemporaryObject(barComponent, root);
             verify(bar);
-            const kinds = ["word", "entity", "sentence"];
+            const kinds = ["word", "entity", "sentence", "translation"];
             for (let i = 0; i < kinds.length; ++i) {
                 bar.selectionText = "selection";
                 bar.selectionKind = kinds[i];
@@ -85,6 +85,36 @@ Item {
             const title = Util.textWith(Util.textsUnder(bubble), ["The quiet room felt different."]);
             verify(title);
             verify(!title.visible);
+        }
+
+        function test_translationBubbleDrawsTheEnglishAndNothingElse() {
+            const bubble = createTemporaryObject(bubbleComponent, root);
+            verify(bubble);
+            bubble.show({
+                title: "今天天气不错。",
+                type: "translation",
+                en: "The weather is nice today.",
+                zh: "",
+                x: 200,
+                y: 240
+            });
+            tryCompare(bubble, "title", "今天天气不错。");
+            compare(bubble.type, "translation");
+            wait(50);
+
+            // What the reader asked for is the English of it, so the Chinese they selected is
+            // carried (the app stamps the selection on) rather than drawn. No badge heads the card:
+            // a translation is not a sentence, and the empty status is what keeps the word verdict
+            // row shut on it, the way it does on an entity.
+            const title = Util.textWith(Util.textsUnder(bubble), ["今天天气不错。"]);
+            verify(title);
+            verify(!title.visible);
+            compare(bubble.status, "");
+            compare(Util.textWith(Util.textsUnder(bubble), ["Sentence"]), null);
+
+            const line = Util.textWith(Util.textsUnder(bubble), ["The weather is nice today."]);
+            verify(line, "the translation was not drawn");
+            compare(line.visible, true);
         }
     }
 }

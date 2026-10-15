@@ -55,6 +55,9 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 .bub-word{font-size:20px;font-weight:650;letter-spacing:-.01em}
 .ipa{margin-left:7px;font-size:12.5px;font-weight:400;color:var(--faint)}
 .bub-def{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:6px}
+/* A translation bubble is this one line and nothing above it: at the definition's secondary colour it
+   would read as a footnote to nothing, so it takes the ink the title would have had (UI.md 4.3). */
+.bubble.translation .bub-def{color:var(--text)}
 /* The word's origin and its example sentence, each set off from the meaning above it: the rule and
    the label are what keep the reader from reading one long definition (UI.md 4.3). Nothing is drawn
    when there is none. */
@@ -208,16 +211,20 @@ function applyTheme(v) {
 const theme = ['dark', 'frosted', 'liquid'].includes(params.get('theme')) ? params.get('theme') : 'light';
 applyTheme(theme);
 if (BG[theme] && BG[theme].includes(params.get('bg'))) root.style.setProperty('--wall', 'url("' + theme + '-backdrops/' + params.get('bg') + '.png")');
-/// The kinds Bubble.qml draws besides a word (?kind=entity|sentence). An entity is a named thing: a title and
-/// a definition, no verdict, no origin or example. A sentence has its label where the title would be, and no
-/// verdict. Both samples are English whatever the interface language: the README's screenshots show the
-/// explanation in English, which is a setting of its own (explanationLang).
+/// The kinds Bubble.qml draws besides a word (?kind=entity|sentence|translation). An entity is a named thing:
+/// a title and a definition, no verdict, no origin or example. A sentence has its label where the title would
+/// be, and no verdict. A translation is what a Chinese selection gets: one line of English and nothing else.
+/// The first two samples are English whatever the interface language: the README's screenshots show the
+/// explanation in English, which is a setting of its own (explanationLang). The translation sample is
+/// Chinese because that is the only thing that channel is ever sent.
 const SAMPLE = {
   entity: { title: 'Ada Lovelace', def: 'English mathematician who wrote the first algorithm intended for a machine.' },
   // The proverb "Don't count your chickens before they hatch.", explained in English.
   sentence: { def: 'Do not plan on a result that has not happened yet, since it may never come.' },
+  // 「今天天气不错，适合出门走走。」translated — the English is what the bubble shows, the Chinese is not drawn.
+  translation: { def: 'The weather is nice today, so it is a good day for a walk outside.' },
 };
-const kind = ['entity', 'sentence'].includes(params.get('kind')) ? params.get('kind') : 'word';
+const kind = ['entity', 'sentence', 'translation'].includes(params.get('kind')) ? params.get('kind') : 'word';
 if (kind !== 'word') {
   document.querySelector('.bub-etym').remove();
   document.querySelector('.bub-example').remove();
@@ -234,6 +241,14 @@ if (kind === 'sentence') {
   tag.className = 'tag outline';
   tag.textContent = t.sentence;
   document.querySelector('.bub-word').remove();
+}
+if (kind === 'translation') {
+  // No badge (a translation carries no learning verdict and no type) and no title (the Chinese it came
+  // from is usually long, and the reader still has it highlighted on screen). The one line takes the
+  // primary ink, see the .bubble.translation rule.
+  document.querySelector('.tag').remove();
+  document.querySelector('.bub-word').remove();
+  document.querySelector('.bubble').classList.add('translation');
 }
 const THEMES = ['light', 'dark', 'frosted', 'liquid'];
 tb.onclick = () => applyTheme(THEMES[(THEMES.indexOf(root.dataset.theme) + 1) % THEMES.length]);

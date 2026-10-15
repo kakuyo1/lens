@@ -259,12 +259,20 @@ bool ExplanationDuty::showStored(PendingSelection const& pending, core::CacheCon
 
 void ExplanationDuty::send(ExplanationBatch batch)
 {
-    const PendingSelection& first   = batch.items.front();
-    const auto              channel = first.kind == QLatin1String("entity")     ? llm::Channel::Entity
-                                      : first.kind == QLatin1String("sentence") ? llm::Channel::Sentence
-                                                                                : llm::Channel::Word;
+    const PendingSelection& first = batch.items.front();
+    // A word is what is left when the kind names no other channel, which is what the word list's
+    // own candidates carry.
+    auto channel = llm::Channel::Word;
+    if (first.kind == QLatin1String("entity"))
+        channel = llm::Channel::Entity;
+    else if (first.kind == QLatin1String("sentence"))
+        channel = llm::Channel::Sentence;
+    else if (first.kind == QLatin1String("translation"))
+        channel = llm::Channel::Translation;
     llm_.setChannel(channel);
     llm_.setExplanationLang(QString::fromStdString(batch.context.language));
+    // A translation keeps the one preset it came with: its channel has no second prompt, because
+    // what the reader wants from Chinese does not depend on which button they pressed.
     llm_.setPreset(batch.context.multipleSenses ? QStringLiteral("multiple") : first.preset);
     llm_.setEtymology(isWordKind(first.kind) && etymologyEnabled());
     llm_.setExample(isWordKind(first.kind) && batch.example);
@@ -304,14 +312,24 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
         return context.language == "en" ? en : context.language == "zh" ? zh
                                                                         : translation;
     };
-    QVariantMap payload{{"title", explanation.title},
-                        {"type", selection.kind},
-                        {"en", context.language == "en" ? explanation.en : QString{}},
-                        {"zh", context.language == "zh" ? explanation.zh : QString{}},
-                        {"translation", context.language != "en" && context.language != "zh" ? explanation.translation : QString{}},
-                        {"countsDown", countsDown},
-                        {"x", selection.anchor.x()},
-                        {"y", selection.anchor.y()}};
+    // A translation is one line of English whatever the explanation language says: the reader
+    // selected Chinese, so Chinese is the one answer that cannot be the one they want, and the
+    // model was asked for English alone. `en` carries it while the other two languages are the
+    // ones the reader did not ask for -- the bubble then draws that line and nothing else: no
+    // title, no badge, none of the word-only blocks.
+    const bool    translated  = selection.kind == QLatin1String("translation");
+    const QString english     = translated or context.language == "en" ? explanation.en : QString{};
+    const QString chinese     = context.language == "zh" and not translated ? explanation.zh : QString{};
+    const QString translation = context.language != "en" and context.language != "zh" and not translated ? explanation.translation
+                                                                                                         : QString{};
+    QVariantMap   payload{{"title", explanation.title},
+                          {"type", selection.kind},
+                          {"en", english},
+                          {"zh", chinese},
+                          {"translation", translation},
+                          {"countsDown", countsDown},
+                          {"x", selection.anchor.x()},
+                          {"y", selection.anchor.y()}};
     if (isWordKind(selection.kind)) {
         QVariantList senses;
         auto         entries = explanation.senses;
@@ -351,8 +369,12 @@ void ExplanationDuty::showNotice(QString const& title, QString const& body, QStr
 
 QString ExplanationDuty::noticeTitle(PendingSelection const& pending) const
 {
-    return pending.kind == QLatin1String("sentence") ? QCoreApplication::translate("lens::app::AppController", "Request failed")
-                                                     : (pending.surface.isEmpty() ? pending.text : pending.surface);
+    // A sentence and a translation have no short name to head the card with -- the pending text is
+    // the whole of what the reader selected, and a paragraph of it would be the card. A word and an
+    // entity are named by the one or two words they are.
+    return pending.kind == QLatin1String("sentence") or pending.kind == QLatin1String("translation")
+               ? QCoreApplication::translate("lens::app::AppController", "Request failed")
+               : (pending.surface.isEmpty() ? pending.text : pending.surface);
 }
 
 void ExplanationDuty::clearNotice()

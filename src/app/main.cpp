@@ -180,6 +180,7 @@ int main(int argc, char* argv[])
         lens::llm::loadLlmProtocol(lens::llm::Channel::Word, protocolDir);
         lens::llm::loadLlmProtocol(lens::llm::Channel::Entity, protocolDir);
         lens::llm::loadLlmProtocol(lens::llm::Channel::Sentence, protocolDir);
+        lens::llm::loadLlmProtocol(lens::llm::Channel::Translation, protocolDir);
     } catch (const std::exception& e) {
         // Without the word list there is no pipeline at all, and without the protocol there is
         // nothing to send. Neither failure is recoverable at runtime.

@@ -246,8 +246,9 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel           
             "lens::llm", "The model's answer has no results array."));
 
     // Presence is gated on the response schema, so adding a required field is a data edit.
-    const bool    isWord     = channel == Channel::Word;
-    const QString titleField = isWord ? QStringLiteral("word") : QStringLiteral("title");
+    const bool    isWord        = channel == Channel::Word;
+    const bool    isTranslation = channel == Channel::Translation;
+    const QString titleField    = isWord ? QStringLiteral("word") : QStringLiteral("title");
 
     QVector<Explanation> parsed;
     for (const auto& item : resultsValue.toArray()) {
@@ -286,12 +287,13 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel           
         } else if (isWord) {
             e.senses.push_back({e.en, e.zh, e.translation});
         }
-        if (explanationLang != QLatin1String("en") and explanationLang != QLatin1String("zh") and e.translation.trimmed().isEmpty())
+        if (not isTranslation and explanationLang != QLatin1String("en") and explanationLang != QLatin1String("zh") and e.translation.trimmed().isEmpty())
             return reject(QCoreApplication::translate("lens::llm", "The requested explanation language is missing."));
         // Presence is the schema's business; emptiness is not. Both language definitions are
-        // required by every channel. A word must also name itself (its IPA stays optional: an
-        // acronym has none); the entity and sentence channels carry no echoed title.
-        if (e.en.trimmed().isEmpty() || e.zh.trimmed().isEmpty() || (isWord && e.title.trimmed().isEmpty()))
+        // required by every channel but the translation one, which has no explanation language to
+        // follow and so no second line to be empty. A word must also name itself (its IPA stays
+        // optional: an acronym has none); the other channels carry no echoed title.
+        if (e.en.trimmed().isEmpty() || (not isTranslation and e.zh.trimmed().isEmpty()) || (isWord && e.title.trimmed().isEmpty()))
             return reject(QCoreApplication::translate("lens::llm",
                                                       "A results entry has an empty field "
                                                       "(title=%1).")
@@ -300,7 +302,7 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel           
     }
 
     if (!isWord) {
-        // Entity and sentence carry no echoed title on the wire: the app already knows the
+        // Entity, sentence and translation carry no echoed title on the wire: the app already knows the
         // selected text, and making a model reproduce a long, punctuation-heavy string exactly
         // only invites drift. A model may also split a selected block (a numbered list, several
         // sentences) into more entries than were asked for, so fold those into the one result

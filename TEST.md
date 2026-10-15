@@ -106,7 +106,7 @@ PATH="$QT_ROOT/bin:$PATH" QT_QPA_PLATFORM=offscreen QT_FORCE_STDERR_LOGGING=1 \
 ## 3 样例集
 
 `test/eval_corpus.json` 是**行为规格**。每段一项：`text`（必填）、`expect`（必填，surface 序列）、
-`expectKind`（必填，`"Word"` / `"Entity"` / `"Sentence"`；Entity 的 `expect` 必须为空）、`expectLemmas`（选填）、
+`expectKind`（必填，`"Word"` / `"Entity"` / `"Sentence"` / `"Translation"`；Entity 与 Translation 的 `expect` 必须为空）、`expectLemmas`（选填）、
 `minFreqRank`（选填，缺省 0）、`known`（选填）、`note`（选填）。`minFreqRank` 与 `known` 现在只给
 候选**标状态**，不删候选，所以带这两项的段落，`expect` 与不带时相同——这正是
 它们要钉住的那条。
@@ -115,9 +115,9 @@ PATH="$QT_ROOT/bin:$PATH" QT_QPA_PLATFORM=offscreen QT_FORCE_STDERR_LOGGING=1 \
 不要先把断言放宽。
 
 `scripts/data/check-eval-corpus.py` 独立校验样例集（不走实现）：Word / Sentence
-段落中每个 token 要么进 `expect`，要么有一条具名规则把它排除；`expectKind` 另按选区形状核对——单 token
-在词表内为 Word、不在为 Entity（命名实体），多 token 名称短语（Title Case 或全大写缩写）为 Entity、其余为
-Sentence。改完样例集跑一次，它是期望值之外的那道独立核对。
+段落中每个 token 要么进 `expect`，要么有一条具名规则把它排除；`expectKind` 另按选区核对——含汉字的一律为
+Translation（语言先于形状判定），其余按形状：单 token 在词表内为 Word、不在为 Entity（命名实体），多 token
+名称短语（Title Case 或全大写缩写）为 Entity、其余为 Sentence。改完样例集跑一次，它是期望值之外的那道独立核对。
 
 ## 4 Profiling 与覆盖率
 

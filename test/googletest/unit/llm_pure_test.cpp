@@ -424,6 +424,39 @@ TEST_F(LlmTest, StampsTheRequestedTextOntoEntityAndSentenceResults)
     EXPECT_FALSE(accepted(missing));
 }
 
+TEST_F(LlmTest, AcceptsATranslationThatCarriesEnglishAlone)
+{
+    // The one channel whose result holds a single language: the input is Chinese, so the reader's
+    // own explanation language is the one answer that cannot be right, and a missing `zh` is the
+    // contract here rather than the fault it is on every other channel.
+    const auto translated = parseExplanations(
+        Channel::Translation,
+        envelope(QStringLiteral(R"({"results":[{"en":"The weather is nice today."}]})")),
+        {"今天天气不错。"});
+    ASSERT_TRUE(accepted(translated)) << errorOf(translated).toStdString();
+    const auto& result = std::get<QVector<Explanation>>(translated).at(0);
+    EXPECT_EQ(result.en, QStringLiteral("The weather is nice today."));
+    EXPECT_EQ(result.title, QStringLiteral("今天天气不错。")) << "the app stamps the selected text on";
+    EXPECT_TRUE(result.zh.isEmpty());
+
+    // An empty translation is the one emptiness this channel still refuses: it is the whole card.
+    const auto empty = parseExplanations(
+        Channel::Translation, envelope(QStringLiteral(R"({"results":[{"en":" "}]})")), {"今天"});
+    EXPECT_FALSE(accepted(empty));
+
+    // The prompt does not move with the reader's language: whatever the explanation language is,
+    // the model is asked for English, which is also what the loader demands of this channel.
+    const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
+    for (const char* lang : {"en", "zh", "es", "ja"}) {
+        SCOPED_TRACE(lang);
+        const auto body = QJsonDocument::fromJson(
+            buildRequestBody(config, Channel::Translation, {"今天天气不错。"}, lang, "default"));
+        const auto prompt = body.object().value("messages").toArray().at(0).toObject().value("content").toString();
+        EXPECT_TRUE(prompt.contains(QLatin1String("Translate it into English")));
+        EXPECT_TRUE(prompt.contains(QLatin1String("English translation")));
+    }
+}
+
 TEST_F(LlmTest, FoldsSeveralEntityOrSentenceResultsIntoTheOneRequested)
 {
     // A model may split a selected block (a numbered list, several sentences) into more entries

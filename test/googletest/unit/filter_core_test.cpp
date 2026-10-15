@@ -126,15 +126,21 @@ TEST_F(CoreTest, ReplaysTheSampleCorpus)
         lens::core::Selection got;
         ASSERT_NO_THROW(got = lens::core::classifySelection(text, known, minFreqRank))
             << "text: " << text;
-        const std::string kind = got.kind == lens::core::SelectionKind::Word
-                                     ? "Word"
-                                 : got.kind == lens::core::SelectionKind::Entity ? "Entity"
-                                                                                 : "Sentence";
+        const std::string kind = [&] {
+            switch (got.kind) {
+                case lens::core::SelectionKind::Word: return "Word";
+                case lens::core::SelectionKind::Entity: return "Entity";
+                case lens::core::SelectionKind::Translation: return "Translation";
+                case lens::core::SelectionKind::Sentence: break;
+            }
+            return "Sentence";
+        }();
         EXPECT_EQ(kind, expectKind) << "text: " << text;
         bool ok = kind == expectKind;
 
-        if (expectKind == "Entity") {
-            // An entity phrase is not a word candidate list; filterWords is not its contract.
+        if (expectKind == "Entity" or expectKind == "Translation") {
+            // An entity phrase is not a word candidate list, and a translation never has one: both
+            // channels take the selection whole, so filterWords is not their contract.
             if (!ok) ++mismatched;
             continue;
         }
@@ -179,6 +185,32 @@ TEST_F(CoreTest, RoutesASentenceToTheSentenceChannelButStillFiltersItsWords)
     });
     ASSERT_NE(fresh, words.end());
     EXPECT_EQ(fresh->surface, "ubiquitous");
+}
+
+TEST_F(CoreTest, RoutesASelectionHoldingHanToTheTranslationChannelWhateverItsShape)
+{
+    // One character is a word in Chinese, two is the common size of one, and a whole passage is a
+    // sentence: all of them are the same request, because the channel follows the language rather
+    // than the shape (API.md section 1). The candidates never run -- the Latin word inside the
+    // mixed excerpt is not a lookup, it is part of the text being translated.
+    for (const char* text : {"猫", "苹果", "中文文本", "日本語", "混合mixed文本", "这一段话里有好几个词。"}) {
+        SCOPED_TRACE(text);
+        const auto selection = lens::core::classifySelection(text, {}, 3000);
+        EXPECT_EQ(selection.kind, lens::core::SelectionKind::Translation);
+        EXPECT_TRUE(selection.candidates.empty());
+    }
+
+    // Nothing that is not Han turns into one: a label the reader picked is a label, Hangul is not
+    // Han at all, and a run of full-width punctuation has no letter in it to read.
+    for (const char* text : {"한국어", "。", "！？"}) {
+        SCOPED_TRACE(text);
+        EXPECT_EQ(lens::core::classifySelection(text, {}, 3000).kind, lens::core::SelectionKind::Sentence);
+    }
+
+    // The English shapes are untouched, Han or no Han.
+    EXPECT_EQ(lens::core::classifySelection("resilience", {}, 3000).kind, lens::core::SelectionKind::Word);
+    EXPECT_EQ(lens::core::classifySelection("Kubernetes", {}, 3000).kind, lens::core::SelectionKind::Entity);
+    EXPECT_EQ(lens::core::classifySelection("New York", {}, 0).kind, lens::core::SelectionKind::Entity);
 }
 
 TEST_F(CoreTest, RoutesALoneTokenByItsPresenceInTheWordList)

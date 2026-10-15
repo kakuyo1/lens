@@ -13,7 +13,9 @@ to read, not a check that failed. Every token of an excerpt must be accounted fo
 survives the hard filters and the static word list belongs in `expect`, and one that does not
 is fine as long as a named rule excludes it. `expectKind` is checked apart from `expect`: a
 single-token selection in the word list is Word, a lone token outside it is Entity, and any
-multi-token selection that is not a name-like phrase is Sentence.
+multi-token selection that is not a name-like phrase is Sentence. A selection holding a Han
+character is Translation instead, whatever its shape: the channel follows the language there,
+and all three shapes ask the same translation prompt.
 
     python scripts/data/check-eval-corpus.py [test/eval_corpus.json]
 
@@ -193,6 +195,11 @@ def is_entity_selection(text: str) -> bool:
     return name_like >= 2
 
 
+def has_han(text: str) -> bool:
+    """@return Whether the text holds a Han character: CJK Unified Ideographs and Extension A."""
+    return any(0x3400 <= ord(ch) <= 0x9FFF for ch in text)
+
+
 def check_entry(index: int, entry: dict, ranks: dict[str, int]) -> list[str]:
     """@return One message per thing this entry leaves unaccounted for."""
     where = f"entry {index}"
@@ -207,13 +214,16 @@ def check_entry(index: int, entry: dict, ranks: dict[str, int]) -> list[str]:
     kind = entry["expectKind"]
     known = set(entry.get("known", []))
 
-    if kind not in ("Word", "Entity", "Sentence"):
-        problems.append(f"{where}: expectKind '{kind}' is neither Word, Entity, nor Sentence")
+    if kind not in ("Word", "Entity", "Sentence", "Translation"):
+        problems.append(f"{where}: expectKind '{kind}' is neither Word, Entity, Sentence, nor Translation")
 
-    # The entity channel owns a name phrase and a lone token the word list does not know; a lone
-    # token it does know is a word; everything else is a sentence.
+    # Han settles the channel before any shape test, and no candidate comes out of it; otherwise
+    # the entity channel owns a name phrase and a lone token the word list does not know, a lone
+    # token it does know is a word, and everything else is a sentence.
     lone = is_lone_token(text)
-    if is_entity_selection(text):
+    if has_han(text):
+        wanted = "Translation"
+    elif is_entity_selection(text):
         wanted = "Entity"
     elif lone:
         surface = tokens(text)[0].lower()
@@ -222,10 +232,10 @@ def check_entry(index: int, entry: dict, ranks: dict[str, int]) -> list[str]:
     else:
         wanted = "Sentence"
     if kind != wanted:
-        problems.append(f"{where}: expectKind is '{kind}' but the selection shape wants '{wanted}'")
-    if kind == "Entity":
+        problems.append(f"{where}: expectKind is '{kind}' but the selection wants '{wanted}'")
+    if kind in ("Entity", "Translation"):
         if expect:
-            problems.append(f"{where}: Entity entries must leave expect empty")
+            problems.append(f"{where}: {kind} entries must leave expect empty")
         return problems
 
     for word in expect:
