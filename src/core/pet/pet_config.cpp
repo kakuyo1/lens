@@ -5,6 +5,7 @@
 
 #include "core/pet/pet_config.h"
 
+#include <algorithm>
 #include <array>
 #include <limits>
 #include <optional>
@@ -214,6 +215,17 @@ Animations parseAnimations(json const& document)
             throw Refused(Refusal::BadAnimation, "animations: idlePool names an action with no playback: " + name);
         if (found->second.loop) throw Refused(Refusal::BadAnimation, "animations: idlePool action must be a one-shot: " + name);
         playbook.idlePool.push_back(name);
+    }
+
+    // An action no role names is one the pet can only reach through the idle timer, so the pool is the
+    // document's list plus those. A package that gains an action gains an idle one without having to
+    // name it twice. Looping actions stay out for the same reason the list refuses them: an idle
+    // action that never ends is one the pet never leaves.
+    for (auto const& [name, spec] : playbook.actions) {
+        if (spec.loop or std::find(playbook.idlePool.begin(), playbook.idlePool.end(), name) != playbook.idlePool.end())
+            continue;
+        auto const isRoleAction = std::any_of(playbook.roles.begin(), playbook.roles.end(), [&name](auto const& named) { return named.second == name; });
+        if (not isRoleAction) playbook.idlePool.push_back(name);
     }
     return animations;
 }

@@ -43,7 +43,8 @@ TEST(PetData, AnimationsLoadAndCarryTheBlink)
 {
     auto const animations = parseAnimations(load("animations.json"));
 
-    EXPECT_EQ(animations.playbook.actions.size(), 11u);
+    // The eleven role actions, plus the three idle extras no role names.
+    EXPECT_EQ(animations.playbook.actions.size(), 14u);
     EXPECT_EQ(animations.blink.frames, 3);
     EXPECT_FALSE(animations.blink.loop);
 }
@@ -52,9 +53,10 @@ TEST(PetData, EveryRoleAndTheIdlePoolArePlayable)
 {
     auto const playbook = parseAnimations(load("animations.json")).playbook;
 
-    // The dog maps every role, stretch included, and its idle pool is the two actions the timer picked before.
+    // The dog maps every role, stretch included. Its pool is the document's list followed by every action
+    // no role names, which the loader adds by name.
     EXPECT_EQ(playbook.roles.size(), 11u);
-    EXPECT_EQ(playbook.idlePool, (std::vector<std::string>{"look_around", "stretch"}));
+    EXPECT_EQ(playbook.idlePool, (std::vector<std::string>{"look_around", "stretch", "scratch", "sniff", "wag"}));
 }
 
 TEST(PetData, AnchorsMatchTheFrameCountOfEveryAction)

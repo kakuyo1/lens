@@ -79,6 +79,10 @@ PetDocument parsePetDocument(nlohmann::json const& document);
  * and `fps` of at least 1. `returnTo` is optional, but when present it must name a role the document maps.
  * `blink: true` on an action marks it as blinking.
  *
+ * The pool the playbook carries is the document's list plus every one-shot action no role names, in
+ * document order then by name. Those are the actions nothing else can reach, so a pet that gains one
+ * gains an idle one without the data naming it twice.
+ *
  * @param document The whole parsed animations.json.
  * @return The state machine's playbook and the blink.
  * @throws Refused BadAnimation or MissingRole, or TooLarge above a limit of pet_package.h; the message names the field.

@@ -246,10 +246,48 @@ def zzz(n):
     return frames
 
 
+# The idle extras. Like look around and stretch, these are the standing dog carried by its anchors,
+# its face from the expression sheet, and one small mark in the margin; nothing is redrawn.
+
+def wag(n):
+    """Arcs flicking off the tail, which is the few body cells right of the body's edge."""
+    frames = []
+    for i in range(n):
+        f = Frame()
+        f.rect(58, 28 - 2 * (i % 2), 5, 2, INK)
+        if i % 2:
+            f.rect(62, 22, 4, 2, INK)
+        frames.append(f)
+    return frames
+
+
+def sniff(n):
+    """Specks drifting in at the nose, on the side the dog faces: the tail is on the right."""
+    frames = []
+    for i in range(n):
+        f = Frame()
+        f.rect(6 + 3 * i, 30 + 3 * i, 2, 2, INK)
+        frames.append(f)
+    return frames
+
+
+def scratch(n):
+    """Short arcs by the hind leg, under the tail."""
+    frames = []
+    for i in range(n):
+        f = Frame()
+        if i % 2:
+            f.rect(56, 44, 6, 2, INK)
+            f.rect(60, 50, 4, 2, INK)
+        frames.append(f)
+    return frames
+
+
 BODY = {
     "idle": standing, "study": standing, "thinking": standing, "celebrate": standing,
     "encourage": standing, "click_react": standing, "pickup": standing, "look_around": standing,
     "yawn": standing, "stretch": standing, "sleep": sleep,
+    "wag": standing, "sniff": standing, "scratch": standing,
 }
 
 
@@ -266,6 +304,7 @@ EFFECTS = {
     "study": reading_book, "thinking": thought, "celebrate": fireworks,
     "encourage": hearts, "click_react": pokes, "pickup": sweat, "look_around": question,
     "stretch": motion_lines, "sleep": zzz,
+    "wag": wag, "sniff": sniff, "scratch": scratch,
 }
 
 

@@ -52,7 +52,7 @@ pets\<id>\
 - `roles` 必须覆盖 11 个动作角色，只有 `stretch` 可以缺省。角色名是产品定义的闭集，包不能新增。
 - `actions` 里每个动作需要 `frames` 与 `fps`，`loop` 必填，`returnTo` 可选但必须指向 `roles` 里已映射的角色。
 - 必须有一个 `blink` 条目（只有表情，没有 sheet）。
-- `idlePool` 只能列单次动作（`loop` 为假）。
+- `idlePool` 只能列单次动作（`loop` 为假）。应用装载时还会把**没被 `roles` 点到的单次动作**补进池子，所以给包加一个新动作就同时给了它一个待机动作；`idlePool` 里写不写同一个名字都行，写了不会重复。
 - 锚点条目数必须等于该动作的 `frames`。
 - 配饰的 `slot` 只能是 `head` / `face` / `body`，`supportedActions` 只能列本包已有的动作。
 - `anchors.json` 只列有 sheet 的动作。`blink` 只有表情、没有 sheet，所以不列锚点；列了即整只拒绝（`BadAnchors`）。
