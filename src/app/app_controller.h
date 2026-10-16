@@ -177,6 +177,15 @@ public:
     double            dailyBudget() const;
     /// @brief The day this build was compiled, as `yyyy-MM-dd`, for the about page. Not the day it runs.
     QString buildDate() const;
+    /**
+     * @brief The demo card the settings preview draws, out of `data/preview.json` (UI.md 4.4).
+     *
+     * The keys are `word`, `ipa`, `example`, and `definition`, `etymology`, `senses` -- those
+     * three carrying one entry per explanation language. QML builds a bubble payload out of it
+     * (components/PreviewSample.qml); nothing here has to know what a setting is. The map is empty
+     * when the file could not be read, and the preview then simply does not come up.
+     */
+    QVariantMap settingPreview() const;
 
     Q_PROPERTY(QVariantMap settings READ settings NOTIFY settingsChanged)
     Q_PROPERTY(QVariantMap stats READ stats NOTIFY statsChanged)
@@ -193,6 +202,7 @@ public:
     Q_PROPERTY(QString busyLabel READ busyLabel NOTIFY busyChanged)
     Q_PROPERTY(double dailyBudget READ dailyBudget NOTIFY dailyBudgetChanged)
     Q_PROPERTY(QString buildDate READ buildDate CONSTANT)
+    Q_PROPERTY(QVariantMap settingPreview READ settingPreview CONSTANT)
 
 signals:
     void selectionBarRequested(QVariantMap payload);
@@ -235,6 +245,8 @@ private:
     QTimer                 gateTimer_;
     /// Whether the daily budget was spent the last time the cost duty reported, so a pause and a resume each fire once.
     bool budgetPaused_;
+    /// The settings preview's demo card, read once (settingPreview()).
+    QVariantMap previewSample_;
 };
 
 }

@@ -17,8 +17,14 @@ import QtQuick.Effects
  */
 Window {
     id: bubble
+    /// Whether this window is the settings preview rather than an explanation the reader called up
+    /// (UI.md 4.4). The same card, with the close button, the verdict row, the drag and the hover
+    /// report taken away -- each of them either dismisses an explanation or writes a word mark -- and
+    /// two marks of its own in their place: the tag reads "Preview", and PreviewFrame.qml draws a
+    /// dashed frame around the card. Its own glass sheet, since one sheet holds one backdrop.
+    property bool preview: false
     /// The desktop under this window, which its glass draws (docs/adr/0041).
-    readonly property var glass: Controller.glassBackdrop.surface("bubble")
+    readonly property var glass: Controller.glassBackdrop.surface(bubble.preview ? "preview" : "bubble")
     readonly property SurfaceTokens tokens: SurfaceTokens {
         glassEnabled: true
         glassLightText: bubble.glass.lightText
@@ -113,6 +119,19 @@ Window {
         // A fresh bubble is never mid-drag; a refresh may arrive while the reader is holding it.
         if (!wasVisible)
             dragging = false;
+        // The preview writes itself out again every time it comes up, even when it shows the same
+        // card: RevealText reads a text that continues the last one as the same answer arriving in
+        // another chunk, so clearing first is what makes the fields start over. A real bubble
+        // refreshing under the pointer must not lose the writing it has already done.
+        if (preview && !wasVisible) {
+            ipa = "";
+            english = "";
+            chinese = "";
+            translation = "";
+            etymology = "";
+            example = "";
+            senses = [];
+        }
         title = payload.title || "";
         type = payload.type || "";
         ipa = payload.ipa || "";
@@ -226,6 +245,14 @@ Window {
             blurMax: 44
         }
 
+        // The mark that says this card is a demo (UI.md 4.4).
+        PreviewFrame {
+            visible: bubble.preview
+            card: card
+            cardRadius: bubble.tokens.radiusCard
+            strokeColor: bubble.tokens.muted
+        }
+
         Rectangle {
             id: card
             width: parent.implicitWidth
@@ -252,6 +279,8 @@ Window {
             DragHandler {
                 id: mover
                 target: null
+                // A preview belongs to the row under the pointer; a real card is the reader's to move.
+                enabled: !bubble.preview
 
                 property point grabCursor: Qt.point(0, 0)
                 property point grabWindow: Qt.point(0, 0)
@@ -288,6 +317,8 @@ Window {
             // the card showed no flapping, so the cause of the reported one is still open. If
             // it outlasts this, raise the interval.
             HoverHandler {
+                // A preview does not report hover: the pointer is on a settings row, not holding an answer.
+                enabled: !bubble.preview
                 onHoveredChanged: {
                     // Both readings, every flip: a real exit and something else moving `visible`
                     // look the same in the log the controller keeps, and these two are what tells
@@ -312,8 +343,9 @@ Window {
 
             // The way out for a reader who does not want to wait the countdown out. It takes
             // the same two steps the countdown takes on its own, so the controller hears about
-            // the dismissal the same way either way.
+            // the dismissal the same way either way. A preview has no countdown to cut short.
             Icon {
+                visible: !bubble.preview
                 anchors.right: parent.right
                 anchors.rightMargin: 12
                 anchors.top: parent.top
@@ -341,19 +373,28 @@ Window {
                 // label. An entity bubble carries neither: a named thing is not a learning item,
                 // so it is drawn as title plus encyclopaedic definition with no badge.
                 Rectangle {
-                    visible: bubble.type === "word" || bubble.type === "sentence"
+                    // A preview wears this row in place of a learning verdict (UI.md 4.4).
+                    visible: bubble.preview || bubble.type === "word" || bubble.type === "sentence"
                     width: tag.width + 16
                     height: 17
                     radius: bubble.tokens.radiusPill
-                    color: bubble.type === "word" ? (bubble.status === "known" ? bubble.tokens.panel2 : bubble.tokens.okBg) : "transparent"
-                    border.width: bubble.type === "word" ? 0 : 1
+                    color: bubble.preview ? bubble.tokens.panel2
+                         : bubble.type === "word" ? (bubble.status === "known" ? bubble.tokens.panel2 : bubble.tokens.okBg)
+                         : "transparent"
+                    border.width: bubble.preview || bubble.type === "word" ? 0 : 1
                     border.color: bubble.tokens.line
 
                     Text {
                         id: tag
                         anchors.centerIn: parent
-                        text: bubble.type === "sentence" ? qsTr("Sentence") : bubble.type === "word" ? (bubble.status === "known" ? qsTr("Known") : qsTr("New")) : ""
-                        color: bubble.type === "sentence" ? bubble.tokens.muted : bubble.status === "known" ? bubble.tokens.muted : bubble.tokens.okText
+                        text: bubble.preview ? qsTr("Preview")
+                             : bubble.type === "sentence" ? qsTr("Sentence")
+                             : bubble.type === "word" ? (bubble.status === "known" ? qsTr("Known") : qsTr("New"))
+                             : ""
+                        color: bubble.preview ? bubble.tokens.muted
+                             : bubble.type === "sentence" ? bubble.tokens.muted
+                             : bubble.status === "known" ? bubble.tokens.muted
+                             : bubble.tokens.okText
                         font.pixelSize: 11
                         font.weight: Font.Bold
                     }
@@ -546,98 +587,12 @@ Window {
                     }
                 }
 
-                // Hover expands the verdict buttons; the row contributes no height when shut.
-                // Only a real explanation has a verdict to give: a notice's title is not a
-                // word, so a press there would write a sentence into the word store.
-                Item {
-                    readonly property bool show: bubble.hovering && bubble.status !== ""
-                    width: parent.width
-                    height: show ? actions.height + 25 : 0
-                    clip: true
-                    opacity: show ? 1 : 0
-                    Behavior on height {
-                        NumberAnimation {
-                            duration: bubble.tokens.motion.bubble
-                            easing.type: bubble.tokens.motion.easing
-                        }
-                    }
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: bubble.tokens.motion.bubble
-                            easing.type: bubble.tokens.motion.easing
-                        }
-                    }
-
-                    Rectangle {
-                        anchors.top: parent.top
-                        anchors.topMargin: 12
-                        width: parent.width
-                        height: 1
-                        color: bubble.tokens.line2
-                    }
-
-                    Row {
-                        id: actions
-                        anchors.top: parent.top
-                        anchors.topMargin: 25
-                        spacing: 8
-
-                        Rectangle {
-                            width: knownLabel.width + 26
-                            height: knownLabel.height + 12
-                            radius: bubble.tokens.radiusPill
-                            color: bubble.tokens.panel2
-                            border.width: 1
-                            border.color: bubble.tokens.line
-                            scale: knownTap.pressed ? 0.97 : 1.0
-                            Behavior on scale {
-                                NumberAnimation {
-                                    duration: bubble.tokens.motion.press
-                                    easing.type: bubble.tokens.motion.easing
-                                }
-                            }
-                            Text {
-                                id: knownLabel
-                                anchors.centerIn: parent
-                                text: qsTr("Known")
-                                color: bubble.tokens.text
-                                font.pixelSize: 12
-                                font.weight: Font.Bold
-                            }
-                            HoverHandler { cursorShape: Qt.PointingHandCursor }
-                            TapHandler {
-                                id: knownTap
-                                onTapped: Controller.explanationDuty.mark(bubble.title, true)
-                            }
-                        }
-
-                        Rectangle {
-                            width: newLabel.width + 26
-                            height: newLabel.height + 12
-                            radius: bubble.tokens.radiusPill
-                            color: bubble.tokens.ink
-                            scale: newTap.pressed ? 0.97 : 1.0
-                            Behavior on scale {
-                                NumberAnimation {
-                                    duration: bubble.tokens.motion.press
-                                    easing.type: bubble.tokens.motion.easing
-                                }
-                            }
-                            Text {
-                                id: newLabel
-                                anchors.centerIn: parent
-                                text: qsTr("New")
-                                color: bubble.tokens.on
-                                font.pixelSize: 12
-                                font.weight: Font.Bold
-                            }
-                            HoverHandler { cursorShape: Qt.PointingHandCursor }
-                            TapHandler {
-                                id: newTap
-                                onTapped: Controller.explanationDuty.mark(bubble.title, false)
-                            }
-                        }
-                    }
+                // The verdict buttons, drawn shut until the pointer is on the card (UI.md 4.3).
+                BubbleVerdictRow {
+                    tokens: bubble.tokens
+                    lemma: bubble.title
+                    hovering: bubble.hovering
+                    status: bubble.status
                 }
 
                 Text {

@@ -124,6 +124,9 @@ target_compile_definitions(lens PRIVATE
 # window owns a SurfaceTokens built from it (docs/adr/0041). The property has to be set before qt_add_qml_module looks at
 # the file, not after: it decides there whether to write a singleton entry into the module's qmldir.
 set_source_files_properties(qml/components/Tokens.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+# PreviewSample is the settings preview's payload builder: one table of sample content, asked by
+# every window that could raise a preview, so it is a singleton for the same reason Tokens is.
+set_source_files_properties(qml/components/PreviewSample.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 # The URI is Lens, so generated QML tooling files belong below a Lens directory. Keeping the
 # target path aligned makes CMake generate the qmllint response file in every build tree,
@@ -185,6 +188,7 @@ qt_add_qml_module(lens_app
     qml/CostPopup.qml
     qml/components/Tokens.qml
     qml/components/TokenTable.qml
+    qml/components/PreviewSample.qml
     qml/components/SurfaceTokens.qml
     qml/components/GlassHost.qml
     qml/theme/Light.qml
@@ -210,6 +214,8 @@ qt_add_qml_module(lens_app
     qml/components/HotkeyField.qml
     qml/components/GlassSurface.qml
     qml/components/SliderRow.qml
+    qml/components/PreviewFrame.qml
+    qml/components/BubbleVerdictRow.qml
 )
 
 # The icon art, addressed as :/icons/<name>.svg. BASE strips the source directory so the names

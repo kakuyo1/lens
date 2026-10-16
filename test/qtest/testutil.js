@@ -51,6 +51,27 @@ function ofType(root, typeName) {
     })[0];
 }
 
+/// @return The first object under `root` of type `typeName` and in `root`'s own window, or null.
+///         The scoped form of ofType() (see ownWindow()).
+function ofTypeInWindow(root, typeName) {
+    return ownWindow(root).filter(function (o) {
+        return o.toString().indexOf(typeName + "_QMLTYPE") === 0;
+    })[0];
+}
+
+/// Every object under `root` that lives in `root`'s own window.
+///
+/// A surface may declare another window inside itself -- the settings panel carries the preview
+/// card's Bubble -- and the walk above reads `data`, so that window's items are in the same tree.
+/// They belong to the other window, and a case about the panel must not read the card's labels or
+/// the card's glass as the panel's.
+function ownWindow(root) {
+    // `Window.window` on a Window object itself is the window, and on an item is the one it is drawn
+    // in; a window that reports neither falls back to the object it was asked about.
+    const self = root.Window.window || root;
+    return findAll(root, function (o) { return o.Window.window === self; });
+}
+
 /// @return The first of `texts` whose content is one of `candidates`, or null.
 ///
 /// The row a case wants is the one showing a label it already knows; reading the delegate by

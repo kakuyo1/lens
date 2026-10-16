@@ -23,6 +23,9 @@ Window {
     readonly property int cardHeight: 480
     property string category: ""
     property string route: ""
+    /// Which setting's preview the pointer is asking for, by key, or "" for none (UI.md 4.4). Main
+    /// reads the key, puts the demo card up beside this window's card, and takes it down again.
+    property string previewKey: ""
     property string apiDraft: ""
     property string saveStatus: ""
     readonly property bool hasUnsavedChanges: apiDraft.length > 0
@@ -76,16 +79,103 @@ Window {
         category = value;
         route = "";
         body.contentY = 0;
+        // The page that raised a preview is being swapped for another one, and an item that goes
+        // away with its page never reports the pointer leaving it: the key would outlive the row.
+        previewKey = "";
     }
 
     function openRoute(value) {
         closeChild();
         route = value;
         body.contentY = 0;
+        previewKey = "";
     }
 
     /// @return Whether the page had a question up, which this closed. Backing out waits for it, so one Escape answers it
     ///         and the next one backs out.
+    /// How far the preview card keeps clear of this panel and of the screen's edges: the 8 px every
+    /// surface keeps (Main.qml's screenMargin).
+    readonly property int previewMargin: 8
+
+    /// @return This panel's own card, without the transparent margin its shadow is drawn in.
+    function previewPanelRect() {
+        return Qt.rect(settings.x + settings.shadowMargin, settings.y + settings.shadowMargin,
+                       settings.cardWidth, settings.cardHeight);
+    }
+
+    /// @return The work area of the screen this panel is on, in virtual DIPs: asked of Qt by device
+    ///         name, and its own geometry where the screen has none (Main.qml's workArea() for the
+    ///         surfaces it places).
+    function panelWorkArea() {
+        // qmllint disable missing-property
+        const area = Controller.screenWorkArea(settings.screen.name || "");
+        if (area.width > 0)
+            return {left: area.x, top: area.y, right: area.x + area.width, bottom: area.y + area.height};
+        const screen = settings.screen;
+        return {left: screen.virtualX, top: screen.virtualY,
+                right: screen.virtualX + screen.width, bottom: screen.virtualY + screen.height};
+        // qmllint enable missing-property
+    }
+
+    /// @return The x the preview's window takes for its card to sit previewMargin clear of @p panel,
+    ///         in @p area: the panel's right first, its left when the right has no room, and the
+    ///         clamp's answer -- over the panel -- when neither has.
+    ///
+    /// The panel is put up beside the tray icon, whose centre is where its right edge lands, so what
+    /// is to the right of it is the tray's own end of the screen and usually has room for nothing: on
+    /// a stock layout the left is the answer.
+    function previewX(panel, area, shadow, width) {
+        const right = panel.x + panel.width + settings.previewMargin - shadow;
+        const left = panel.x - settings.previewMargin - width + shadow;
+        // qmllint disable missing-property
+        const x = right + width - shadow <= area.right - settings.previewMargin ? right : left;
+        return Math.round(settings.clamp(x, area.left + settings.previewMargin - shadow,
+                                         area.right - settings.previewMargin - width + shadow));
+        // qmllint enable missing-property
+    }
+
+    /// @brief Put the preview beside the panel's card, centred on it vertically so the two read as
+    ///        one gesture.
+    function placePreviewCard() {
+        const panel = settings.previewPanelRect();
+        const area = settings.panelWorkArea();
+        const shadow = previewCard.shadowMargin;
+        const height = previewCard.height;
+        previewCard.x = settings.previewX(panel, area, shadow, previewCard.width);
+        // qmllint disable missing-property
+        previewCard.y = Math.round(settings.clamp(panel.y + panel.height / 2 - height / 2,
+                                                  area.top + settings.previewMargin - shadow,
+                                                  area.bottom - settings.previewMargin - height + shadow));
+        // qmllint enable missing-property
+        previewCard.raise();
+    }
+
+    /// @return @p value held inside [@p low, @p high]; a range that is empty collapses to its low end.
+    function clamp(value, low, high) {
+        return Math.max(low, Math.min(value, Math.max(low, high)));
+    }
+
+    /// @brief Raise the preview card for a key, or put it down for "".
+    ///
+    /// The card is the explanation bubble itself (Bubble.qml's `preview`), so the demo follows the
+    /// reader's settings: the definition in their explanation language, at their typing pace. A
+    /// machine whose `data/preview.json` could not be read has no payload, and no preview.
+    function updatePreview() {
+        if (previewKey === "") {
+            previewSettle.restart();
+            return;
+        }
+        previewSettle.stop();
+        const payload = PreviewSample.payload(previewKey);
+        if (!payload) {
+            previewCard.visible = false;
+            return;
+        }
+        previewCard.show(payload);
+    }
+
+    onPreviewKeyChanged: settings.updatePreview()
+
     function closeQuestion() {
         // qmllint disable missing-property
         if (viewLoader.status === Loader.Ready && viewLoader.item && viewLoader.item.questionOpen) {
@@ -108,6 +198,7 @@ Window {
             visible = false;
         }
         body.contentY = 0;
+        previewKey = "";
     }
 
     function saveSettings() {
@@ -153,6 +244,11 @@ Window {
         } else {
             closeChild();
         }
+        // The preview goes with the panel, at once rather than a beat later: a card left standing
+        // over the desktop is a card belonging to a panel that is no longer under it.
+        previewKey = "";
+        previewSettle.stop();
+        previewCard.visible = false;
     }
 
     GlassHost {
@@ -174,8 +270,12 @@ Window {
         color: settings.tokens.glassMode === "" ? settings.tokens.panel : "transparent"
         movable: true
         onDraggingChanged: {
-            if (dragging)
+            if (dragging) {
                 settings.closeChild();
+                // A press that turns into a drag of the card is not a reader reading a title, and
+                // the preview would be left standing at the place the card has moved away from.
+                settings.previewKey = "";
+            }
         }
 
         // The glass is the card's own background. Its picture is held in memory only (docs/adr/0034).
@@ -386,6 +486,24 @@ Window {
         }
     }
 
+    /// The settings preview (UI.md 4.4): the card a hovered setting's title raises beside the panel.
+    /// An explanation bubble with `preview` on, and it lives here rather than in Main because the
+    /// panel is the one thing it is placed against -- its own screen is the screen the card goes on.
+    Bubble {
+        id: previewCard
+        preview: true
+        onPlacementRequested: settings.placePreviewCard()
+    }
+
+    /// Leaving a title is held a beat before the card goes: a pointer crossing from one label to the
+    /// next can have the new one arrive before the old one has reported its exit, and dropping the
+    /// card in between reads as a flicker (Bubble.qml keeps the same guard over its own hover).
+    Timer {
+        id: previewSettle
+        interval: 120
+        onTriggered: previewCard.visible = false
+    }
+
     Component {
         id: catalogComponent
         SettingsCatalog {
@@ -396,10 +514,16 @@ Window {
         id: generalComponent
         SettingsGeneralPage {
             onChildRequested: (value) => settings.openRoute(value)
+            onPreviewRequested: (key) => settings.previewKey = key
         }
     }
     Component { id: aboutComponent; SettingsAboutPage {} }
-    Component { id: learningComponent; SettingsLearningPage {} }
+    Component {
+        id: learningComponent
+        SettingsLearningPage {
+            onPreviewRequested: (key) => settings.previewKey = key
+        }
+    }
     Component {
         id: captureComponent
         SettingsCapturePage {
