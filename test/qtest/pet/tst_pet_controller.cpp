@@ -213,15 +213,20 @@ void TstPetController::sizeIsStoredAndAnnounced()
     QVERIFY(dir.isValid());
     Rig rig{settingsIn(dir), shippedRoot()};
 
-    QCOMPARE(rig.controller.scale(), 3);
+    // The dog declares scale 3, which is 67% to a reader who has never moved the slider, and draws ×3.01.
+    QCOMPARE(rig.controller.size(), 67);
+    QCOMPARE(rig.controller.minSize(), 0);
+    QCOMPARE(rig.controller.maxSize(), 100);
+    QCOMPARE(rig.controller.scale(), 3.01);
 
     QSignalSpy changed(&rig.controller, &PetController::settingsChanged);
-    rig.controller.setScale(9);
-    QCOMPARE(rig.controller.scale(), rig.controller.maxScale());
+    rig.controller.setSize(200);
+    QCOMPARE(rig.controller.size(), rig.controller.maxSize());
     QCOMPARE(changed.count(), 1);
 
-    rig.controller.setScale(2);
-    QCOMPARE(rig.controller.scale(), 2);
+    rig.controller.setSize(50);
+    QCOMPARE(rig.controller.size(), 50);
+    QCOMPARE(rig.controller.scale(), 2.5);
 }
 
 void TstPetController::refusedDataLeavesThePetOff()

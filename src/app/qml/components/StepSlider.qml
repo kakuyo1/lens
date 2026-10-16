@@ -1,8 +1,8 @@
 import QtQuick
 
 /**
- * A slider over whole-number stops, drawn in the switch's colours. Dragging or tapping snaps to the nearest stop,
- * because a fractional magnification would break the square pixels of the pet's sprites. A non-interactive slider
+ * A slider over whole-number stops, drawn in the switch's colours. Dragging or tapping snaps to the nearest stop:
+ * every setting it drives is a whole number, a percentage or a count of pixels. A non-interactive slider
  * is dimmed and does not respond. The owner binds `value` and takes the new stop from `moved`.
  */
 Item {

@@ -1,7 +1,8 @@
 /**
  * @file glass_math_test.cpp
- * @brief The glass sheet's arithmetic: the blur and saturation of the desktop picture, and the displacement map the
- *        liquid theme bends with (docs/adr/0039). The corners and the bend themselves are in shaders/glass.frag.
+ * @brief The glass sheet's arithmetic: the text tone over the desktop picture, its blur and saturation, and the
+ *        displacement map the liquid theme bends with (docs/adr/0035, 0039). The corners and the bend themselves
+ *        are in shaders/glass.frag.
  */
 
 #include <gtest/gtest.h>
@@ -17,7 +18,9 @@ namespace {
 
 using lens::app::blurredPicture;
 using lens::app::displacementMap;
+using lens::app::readTone;
 using lens::app::refractionMap;
+using lens::app::settleTone;
 
 QImage solid(int w, int h, QRgb colour)
 {
@@ -37,6 +40,56 @@ QImage split(int w, int h)
 }
 
 } // namespace
+
+TEST(GlassMath, AMarginalBackdropDoesNotFlipASettledTone)
+{
+    // 115 and 116 are the greys astride the crossover for the liquid theme, whose card is drawn straight on the
+    // picture: over the one dark text reads 3.92 to 1 and light text 4.04, over the other 3.98 and 3.98. The rule
+    // with no history picks light for the one and dark for the other, one 8-bit level apart — which a live sheet
+    // re-read fifteen times a second would show as the text flickering.
+    auto const justBelow = readTone(solid(40, 40, qRgb(115, 115, 115)), 0.0);
+    auto const justAbove = readTone(solid(40, 40, qRgb(116, 116, 116)), 0.0);
+    EXPECT_TRUE(justBelow.light());
+    EXPECT_FALSE(justAbove.light());
+
+    // A tone in force does not move across that level, however many times the desktop is read again.
+    auto streak = 0;
+    for (int read = 0; read < 8; ++read)
+        EXPECT_FALSE(settleTone(justBelow, false, streak, lens::app::kToneHold));
+    for (int read = 0; read < 8; ++read)
+        EXPECT_TRUE(settleTone(justAbove, true, streak, lens::app::kToneHold));
+}
+
+TEST(GlassMath, ABackdropSwingingBetweenTwoTonesDoesNotFlipTheTone)
+{
+    // A video behind the card: one read says the desktop is nearly black, the next that it is nearly white.
+    // Each read on its own is decisive, and the pair still cannot move the tone, however long it carries on.
+    auto const black  = readTone(solid(40, 40, qRgb(20, 20, 20)), 0.0);
+    auto const white  = readTone(solid(40, 40, qRgb(240, 240, 240)), 0.0);
+    auto       streak = 0;
+    auto       light  = true;
+    for (int read = 0; read < 20; ++read) {
+        light = settleTone(black, light, streak, lens::app::kToneHold);
+        light = settleTone(white, light, streak, lens::app::kToneHold);
+    }
+    EXPECT_TRUE(light);
+}
+
+TEST(GlassMath, ABackdropThatChangesForGoodDoesMoveTheTone)
+{
+    // The card is dragged onto a pale window and stays there: the second read that asks for dark text takes it.
+    auto const pale   = readTone(solid(40, 40, qRgb(220, 220, 220)), 0.0);
+    auto       streak = 0;
+    auto       light  = true;
+    light             = settleTone(pale, light, streak, lens::app::kToneHold);
+    EXPECT_TRUE(light);
+    light = settleTone(pale, light, streak, lens::app::kToneHold);
+    EXPECT_FALSE(light);
+
+    // A sheet just taken is judged by its one read, the tone in force giving way across the margin alone.
+    auto freshStreak = 0;
+    EXPECT_FALSE(settleTone(pale, true, freshStreak, 1));
+}
 
 TEST(GlassMath, ZeroBlurAndFullSaturationLeaveThePictureAsItWas)
 {

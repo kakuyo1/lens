@@ -58,10 +58,11 @@ class PetController : public QObject {
     Q_PROPERTY(QVariantList wornAccessories READ wornAccessories NOTIFY frameChanged)
     Q_PROPERTY(QVariantMap layers READ layers NOTIFY settingsChanged)
     Q_PROPERTY(int canvas READ canvas NOTIFY settingsChanged)
-    Q_PROPERTY(int scale READ scale NOTIFY settingsChanged)
+    Q_PROPERTY(int size READ size NOTIFY settingsChanged)
+    Q_PROPERTY(double scale READ scale NOTIFY settingsChanged)
     Q_PROPERTY(double inkCentre READ inkCentre NOTIFY settingsChanged)
-    Q_PROPERTY(int minScale READ minScale CONSTANT)
-    Q_PROPERTY(int maxScale READ maxScale CONSTANT)
+    Q_PROPERTY(int minSize READ minSize CONSTANT)
+    Q_PROPERTY(int maxSize READ maxSize CONSTANT)
     Q_PROPERTY(QStringList actions READ actions NOTIFY settingsChanged)
     Q_PROPERTY(QVariantList accessories READ accessories NOTIFY settingsChanged)
     Q_PROPERTY(QVariantMap wornIn READ wornIn NOTIFY outfitChanged)
@@ -102,10 +103,11 @@ public:
     QVariantList wornAccessories() const;
     QVariantMap  layers() const;
     int          canvas() const;
-    int          scale() const;
+    int          size() const;
+    double       scale() const;
     double       inkCentre() const;
-    int          minScale() const;
-    int          maxScale() const;
+    int          minSize() const;
+    int          maxSize() const;
     /// @return Every action the pet can play, in the order of the state machine's enum.
     QStringList actions() const;
     /// @return Every accessory in the catalogue as {id, slot}, for the settings page to lay out.
@@ -113,8 +115,9 @@ public:
     /// @return The accessory worn in each slot, keyed by slot name; an empty string where the slot is empty.
     QVariantMap wornIn() const;
 
-    /// @brief Stores the magnification the reader picked on the size slider.
-    Q_INVOKABLE void setScale(int times);
+    /// @brief Stores the size the reader picked on the size slider.
+    /// @param percent 0 for today's ×1, 100 for ×4; clamped to minSize..maxSize.
+    Q_INVOKABLE void setSize(int percent);
     /// @brief Runs the desktop window's share of the frame clock. The window calls it with its visibility.
     Q_INVOKABLE void setRunning(bool on);
     /// @brief Runs the frame clock for the settings preview. Turning it off also ends any preview.

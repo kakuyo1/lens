@@ -2,7 +2,8 @@ import QtQuick
 
 /**
  * The pet as layers, at the frame the controller chose. Body, expression and effect take their z from pet.json;
- * accessories take theirs from accessories.json. The scene scales by a whole number, so pixels stay square.
+ * accessories take theirs from accessories.json. The scene scales by Pet.scale, a real magnification the size slider
+ * sets: the sprite is drawn nearest-neighbour, so a fractional scale leaves its pixel widths uneven.
  */
 Item {
     width: Pet.canvas

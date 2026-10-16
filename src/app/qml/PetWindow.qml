@@ -13,21 +13,21 @@ Window {
     property point grabAt
     property bool moved: false
 
-    width: Pet.canvas * Pet.scale
-    height: Pet.canvas * Pet.scale
+    width: Math.round(Pet.canvas * Pet.scale)
+    height: Math.round(Pet.canvas * Pet.scale)
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowDoesNotAcceptFocus
     color: "transparent"
     visible: Pet.enabled
 
     onVisibleChanged: Pet.setRunning(visible)
-    onWidthChanged: place()
 
     Component.onCompleted: {
         Pet.attachWindow(petWindow);
         place();
     }
 
-    /// Opens at the saved spot, or the corner when that no longer fits, so a bigger size cannot hang off the screen.
+    /// Opens at the saved spot, or the corner when that no longer fits. Changing the size does not move the window: it
+    /// keeps the saved top-left and grows right and down, which may take it partly off-screen.
     function place() {
         const at = Pet.initialPosition(Qt.size(width, height));
         x = at.x;

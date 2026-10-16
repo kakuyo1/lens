@@ -7,9 +7,24 @@
 
 #include <algorithm>
 
+#include "core/pet/pet_package.h"
+
 namespace lens::app::pet {
 
 namespace {
+
+/// @brief Carries a size stored before the unit changed over, once. The old `scale` key held a whole-number
+///        magnification in the manifest's 1..4 range; converted to the percentage the new `size` key holds, and the old
+///        key taken away, so the conversion never runs a second time and the document is never left ambiguous.
+void migrateLegacySize(core::SettingsSection pet)
+{
+    if (pet.has("size") or not pet.has("scale")) return;
+    auto const times = pet.value<int>("scale", 0);
+    // Anything outside the manifest's range is a hand-edited document, not the old size.
+    if (times < core::pet::kMinScale or times > core::pet::kMaxScale) return;
+    pet.set<int>("size", sizeFromScale(times));
+    pet.remove("scale");
+}
 
 /// @return The id worn in a slot, or nothing when the slot is bare. An id is never empty, so an
 ///         empty value is a slot that was cleared or never filled.
@@ -34,6 +49,7 @@ void writeSlot(core::SettingsSection& accessories, const char* key, std::optiona
 PetStore::PetStore(core::KnownStore& store)
     : store_(store)
 {
+    migrateLegacySize(store_.section("PET"));
 }
 
 std::string PetStore::pet() const
@@ -79,14 +95,14 @@ void PetStore::setPassthrough(bool on)
     store_.section("PET").set<bool>("passthrough", on);
 }
 
-int PetStore::scale(int fallback) const
+int PetStore::size(int fallback) const
 {
-    return std::clamp(store_.section("PET").value<int>("scale", fallback), kMinScale, kMaxScale);
+    return std::clamp(store_.section("PET").value<int>("size", fallback), kMinSize, kMaxSize);
 }
 
-void PetStore::setScale(int times)
+void PetStore::setSize(int percent)
 {
-    store_.section("PET").set<int>("scale", std::clamp(times, kMinScale, kMaxScale));
+    store_.section("PET").set<int>("size", std::clamp(percent, kMinSize, kMaxSize));
 }
 
 Outfit PetStore::outfit() const

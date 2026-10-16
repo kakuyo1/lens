@@ -1,6 +1,7 @@
 /**
  * @file pet_store_test.cpp
- * @brief The PET section's size setting, offline: the slider's stops are whole numbers and out-of-range values clamp (PHASE3 3.6).
+ * @brief The PET section's size setting, offline: a percentage clamps to 0..100, a stored 1..4 scale is converted once,
+ *        and the outfit round-trips (PHASE3 3.6).
  */
 
 #include <filesystem>
@@ -12,18 +13,20 @@
 
 namespace {
 
-using lens::app::pet::kMaxScale;
-using lens::app::pet::kMinScale;
+using lens::app::pet::kMaxSize;
+using lens::app::pet::kMinSize;
+using lens::app::pet::magnificationOf;
 using lens::app::pet::PetStore;
+using lens::app::pet::sizeFromScale;
 using lens::core::KnownStore;
 
-TEST(PetStore, ScaleFallsBackUntilTheReaderChoosesOne)
+TEST(PetStore, SizeFallsBackUntilTheReaderChoosesOne)
 {
     auto const path  = std::filesystem::temp_directory_path() / "lens-pet-store-fallback.json";
     auto       store = KnownStore::load(path);
     auto       pet   = PetStore{store};
 
-    EXPECT_EQ(pet.scale(3), 3);
+    EXPECT_EQ(pet.size(67), 67);
 }
 
 TEST(PetStore, OutfitReadsBackAsItWasWritten)
@@ -40,20 +43,53 @@ TEST(PetStore, OutfitReadsBackAsItWasWritten)
     EXPECT_FALSE(worn.body);
 }
 
-TEST(PetStore, ScaleClampsToTheSliderRange)
+TEST(PetStore, SizeClampsToTheSliderRange)
 {
     auto const path  = std::filesystem::temp_directory_path() / "lens-pet-store-clamp.json";
     auto       store = KnownStore::load(path);
     auto       pet   = PetStore{store};
 
-    pet.setScale(9);
-    EXPECT_EQ(pet.scale(3), kMaxScale);
+    pet.setSize(200);
+    EXPECT_EQ(pet.size(67), kMaxSize);
 
-    pet.setScale(0);
-    EXPECT_EQ(pet.scale(3), kMinScale);
+    pet.setSize(-5);
+    EXPECT_EQ(pet.size(67), kMinSize);
 
-    pet.setScale(2);
-    EXPECT_EQ(pet.scale(3), 2);
+    pet.setSize(40);
+    EXPECT_EQ(pet.size(67), 40);
+}
+
+TEST(PetStore, SizeAndMagnificationConvert)
+{
+    // The package's whole-number scale, and the magnification the percentage it becomes draws.
+    EXPECT_EQ(sizeFromScale(1), kMinSize);
+    EXPECT_EQ(sizeFromScale(2), 33);
+    EXPECT_EQ(sizeFromScale(3), 67);
+    EXPECT_EQ(sizeFromScale(4), kMaxSize);
+
+    EXPECT_DOUBLE_EQ(magnificationOf(0), 1.0);
+    EXPECT_DOUBLE_EQ(magnificationOf(50), 2.5);
+    EXPECT_DOUBLE_EQ(magnificationOf(100), 4.0);
+}
+
+TEST(PetStore, AnOldScaleIsConvertedOnLoadAndTheOldKeyIsTakenAway)
+{
+    auto const path = std::filesystem::temp_directory_path() / "lens-pet-store-migrate.json";
+    std::filesystem::remove(path);
+    auto store = KnownStore::load(path);
+    store.section("PET").set<int>("scale", 3);
+
+    auto pet = PetStore{store};
+    EXPECT_EQ(pet.size(0), 67);
+
+    // The conversion ran once: the document now holds the percentage and no longer the ambiguous old key.
+    auto const& held = store.document().at("PET");
+    EXPECT_TRUE(held.contains("size"));
+    EXPECT_FALSE(held.contains("scale"));
+
+    // Writing a size never writes the old key back.
+    pet.setSize(10);
+    EXPECT_FALSE(store.document().at("PET").contains("scale"));
 }
 
 } // namespace

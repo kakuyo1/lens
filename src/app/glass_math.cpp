@@ -163,9 +163,9 @@ int channelByte(float const value)
 
 } // namespace
 
-bool prefersLightText(QImage const& backdrop, double const fillAlpha)
+ToneRead readTone(QImage const& backdrop, double const fillAlpha)
 {
-    if (backdrop.isNull()) return false;
+    if (backdrop.isNull()) return {};
 
     auto const darkLuminance  = luminance(qRed(kDarkText), qGreen(kDarkText), qBlue(kDarkText));
     auto const lightLuminance = luminance(qRed(kLightText), qGreen(kLightText), qBlue(kLightText));
@@ -182,8 +182,23 @@ bool prefersLightText(QImage const& backdrop, double const fillAlpha)
             againstDark.push_back(contrast(composite, darkLuminance));
             againstLight.push_back(contrast(composite, lightLuminance));
         }
-    if (againstDark.empty()) return false;
-    return tenthPercentile(againstLight) > tenthPercentile(againstDark);
+    if (againstDark.empty()) return {};
+    return {tenthPercentile(againstDark), tenthPercentile(againstLight)};
+}
+
+bool settleTone(ToneRead const& read, bool const settledLight, int& streak, int const hold)
+{
+    auto const challenger = settledLight ? read.againstDark : read.againstLight;
+    auto const settled    = settledLight ? read.againstLight : read.againstDark;
+    // The other tone has to read decisively better before it even counts as asking for a change…
+    if (challenger <= settled * kToneMargin) {
+        streak = 0;
+        return settledLight;
+    }
+    // …and then to ask on `hold` reads running, so a sample that swings cannot flip the tone on alternate reads.
+    if (++streak < hold) return settledLight;
+    streak = 0;
+    return !settledLight;
 }
 
 QImage displacementMap(QSize const size, double const radius, double const blurPx)

@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- The desktop pet's size is a percentage, not four stops. The slider runs 0 to 100, where 0 is the
+  old 1x and 100 the old 4x, so the same range is there in finer steps; a size chosen before the
+  change carries over. Changing the size no longer moves the pet: it keeps its top-left corner and
+  grows right and down, so one parked against a screen edge grows past it. Square sprite pixels are
+  what the whole-number stops bought, and finer steps give that up (docs/adr/0045).
+
+### Fixed
+
+- The text on a liquid-glass card holds its colour instead of flickering between the light and the
+  dark tone. Over a mid-grey desktop the two tones read within 3% of each other -- the liquid theme
+  reaches that at channel value 116 -- so one 8-bit level of the desktop sample flipped the text,
+  and that sample is re-read about fifteen times a second. A tone now gives way only to a reading
+  that wins by 15% and repeats (docs/adr/0035).
+
 ## 1.4.0 - 2026-10-16
 
 Chinese text comes back in English, and the desktop pet takes packages you install yourself.

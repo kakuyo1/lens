@@ -15,7 +15,7 @@ Rectangle {
     // qmllint enable missing-property
 
     readonly property bool onScreen: visible && Window.window !== null && Window.window.visible
-    readonly property int petSize: Pet.canvas * Pet.scale
+    readonly property int petSize: Math.round(Pet.canvas * Pet.scale)
 
     implicitHeight: petSize + 24
     radius: stage.tokens.radiusGroup

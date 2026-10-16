@@ -14,6 +14,8 @@
  * `image://glass/<surface>/map`. Both are images, not QML types, so the surfaces need no item class of their own.
  */
 
+#include "glass_math.h"
+
 #include <QImage>
 #include <QMutex>
 #include <QObject>
@@ -40,7 +42,8 @@ class GlassSheet : public QObject {
     QML_UNCREATABLE("Owned by GlassBackdrop; reached as Controller.glassBackdrop.surface(name)")
     /// The surface's name, as the image URLs and the surfaces spell it.
     Q_PROPERTY(QString name READ name CONSTANT)
-    /// Whether the text over this picture should be light. Decided on every capture.
+    /// Whether the text over this picture should be light. Read from the backdrop; a live refresh keeps it
+    /// until the other tone reads decisively better (settleTone).
     Q_PROPERTY(bool lightText READ lightText NOTIFY pictureChanged)
     /// Changes with every capture, so QML's image cache never serves an earlier picture.
     Q_PROPERTY(int serial READ serial NOTIFY pictureChanged)
@@ -90,8 +93,11 @@ private:
     /// @brief Take a picture of the desktop under @p region, the sheet, and judge the text tone over @p window.
     /// @note A region that is empty or crosses two screens clears the picture rather than stitching one.
     void capture(QRect region, QRect window, double fillAlpha);
-    /// @brief Hold a new sheet and its text tone, and announce it to QML.
-    void publish(QRect region, QRect screen, QImage picture, bool lightText);
+    /// @brief Hold a new sheet and the tone its read settles on, and announce it to QML.
+    /// @param read The backdrop's two 10th-percentile contrasts.
+    /// @param fresh True for a sheet just taken, which its read decides outright; false for the ~15/s refresh
+    ///        of a settled sheet, whose tone gives way only to a decisive read that repeats (settleTone).
+    void publish(QRect region, QRect screen, QImage picture, ToneRead const& read, bool fresh);
 
     QString        name_;
     mutable QMutex mutex_;
@@ -106,6 +112,8 @@ private:
     /// The card the glass is drawn in, and its fill, for a refresh to judge the text tone over.
     QRect  window_;
     double fillAlpha_ = 0.0;
+    /// Reads in a row that have asked for the other text tone, for settleTone()'s hold. Reset by a fresh sheet.
+    int toneStreak_ = 0;
     /// Bumped whenever the sheet is retaken or dropped, so a refresh that began before the change is discarded.
     int generation_ = 0;
     /// Set while setLive() is on. Only the GUI thread reads or writes it.

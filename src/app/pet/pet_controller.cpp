@@ -324,9 +324,15 @@ int PetController::canvas() const
     return assets_ ? assets_->canvas : 0;
 }
 
-int PetController::scale() const
+int PetController::size() const
 {
-    return store_.scale(assets_ ? assets_->scale : kMinScale);
+    // A reader who has never moved the slider gets the package's declared 1..4 scale, as a percentage.
+    return store_.size(assets_ ? sizeFromScale(assets_->scale) : kMinSize);
+}
+
+double PetController::scale() const
+{
+    return magnificationOf(size());
 }
 
 double PetController::inkCentre() const
@@ -334,19 +340,19 @@ double PetController::inkCentre() const
     return assets_ ? assets_->inkCentre : 0.0;
 }
 
-int PetController::minScale() const
+int PetController::minSize() const
 {
-    return kMinScale;
+    return kMinSize;
 }
 
-int PetController::maxScale() const
+int PetController::maxSize() const
 {
-    return kMaxScale;
+    return kMaxSize;
 }
 
-void PetController::setScale(int times)
+void PetController::setSize(int percent)
 {
-    store_.setScale(times);
+    store_.setSize(percent);
     emit settingsChanged();
 }
 

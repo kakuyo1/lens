@@ -70,10 +70,10 @@ struct Request {
     bool   onDesktop = false; ///< Whether this platform is the real Windows desktop, the only one there is to read.
 };
 
-/// A picture of the desktop and the text tone judged over the card.
+/// A picture of the desktop and the text tone read over the card.
 struct Taken {
-    QImage picture;
-    bool   lightText = false;
+    QImage   picture;
+    ToneRead tone;
 };
 
 /// The first device pixel of @p screen on the desktop. Windows places the monitors in device pixels; where there is no
@@ -161,8 +161,8 @@ Taken takeSheet(Request const& request)
                             qRound((request.window.y() - request.region.y()) * scale),
                             qRound(request.window.width() * scale),
                             qRound(request.window.height() * scale));
-    auto const light = prefersLightText(picture.copy(card.intersected(picture.rect())), request.fillAlpha);
-    return {std::move(picture), light};
+    auto const tone  = readTone(picture.copy(card.intersected(picture.rect())), request.fillAlpha);
+    return {std::move(picture), tone};
 }
 
 } // namespace
@@ -238,7 +238,7 @@ void GlassSheet::capture(QRect const region, QRect const window, double const fi
     // A refresh still reading the sheet before this one is now stale, and is dropped when it lands.
     ++generation_;
     auto taken = takeSheet(*request);
-    publish(request->region, request->screen, std::move(taken.picture), taken.lightText);
+    publish(request->region, request->screen, std::move(taken.picture), taken.tone, true);
 }
 
 void GlassSheet::setLive(bool const on)
@@ -248,21 +248,29 @@ void GlassSheet::setLive(bool const on)
     emit liveChanged();
 }
 
-void GlassSheet::publish(QRect const region, QRect const screen, QImage picture, bool const lightText)
+void GlassSheet::publish(QRect const region, QRect const screen, QImage picture, ToneRead const& read, bool const fresh)
 {
     // A read that failed leaves nothing to show: drop the sheet rather than hold one that no longer matches the window.
     if (picture.isNull()) {
         clear();
         return;
     }
+    auto const settled = lightText();
+    // A sheet just taken has no tone in force for its backdrop, so one read decides it; the ~15/s refresh keeps
+    // the tone the reader has been reading unless the other one reads decisively better, on kToneHold reads running.
+    auto const tone = settleTone(read, settled, toneStreak_, fresh ? 1 : kToneHold);
     {
         QMutexLocker const lock(&mutex_);
         image_       = std::move(picture);
-        lightText_   = lightText;
+        lightText_   = tone;
         sheet_       = region;
         sheetScreen_ = screen;
         ++serial_;
     }
+    // The two contrasts on their own say why the tone moved: a pair within a few percent of each other is the
+    // sample sitting on the crossover, a pair far apart that swaps over is the sample swinging (docs/adr/0041).
+    if (fresh or tone != settled)
+        LENS_INFO("the {} card reads {} text: dark {:.2f}, light {:.2f}", name_.toStdString(), tone ? "light" : "dark", read.againstDark, read.againstLight);
     emit pictureChanged();
 }
 
@@ -292,6 +300,8 @@ void GlassSheet::clear()
 {
     setLive(false);
     ++generation_;
+    // Nothing is held, so nothing is in force: the next sheet's tone is judged from scratch.
+    toneStreak_ = 0;
     {
         QMutexLocker const lock(&mutex_);
         if (image_.isNull() and sheet_.isEmpty()) return;
@@ -359,7 +369,7 @@ void GlassBackdrop::refreshNext()
                 // Retaken or dropped while this read ran: the picture is of a region that is no longer held.
                 auto* const target = sheets_[index];
                 if (generation == target->generation_)
-                    target->publish(request.region, request.screen, std::move(taken.picture), taken.lightText);
+                    target->publish(request.region, request.screen, std::move(taken.picture), taken.tone, false);
             },
             Qt::QueuedConnection);
     });

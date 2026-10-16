@@ -181,17 +181,17 @@ Item {
             StepSlider {
                 id: sizeSlider
                 anchors.verticalCenter: parent.verticalCenter
-                from: Pet.minScale
-                to: Pet.maxScale
-                value: Pet.scale
+                from: Pet.minSize
+                to: Pet.maxSize
+                value: Pet.size
                 interactive: Pet.enabled
-                onMoved: (stop) => Pet.setScale(stop)
+                onMoved: (stop) => Pet.setSize(stop)
             }
 
             Text {
                 id: sizeValue
                 anchors.verticalCenter: parent.verticalCenter
-                text: Pet.scale + "×"
+                text: Pet.size + "%"
                 color: Pet.enabled ? page.tokens.muted : page.tokens.faint
                 font.pixelSize: 13
             }

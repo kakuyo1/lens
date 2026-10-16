@@ -1,11 +1,11 @@
 #pragma once
 
+#include <cmath>
 #include <optional>
 #include <string>
 #include <vector>
 
 #include "core/known_store.h"
-#include "core/pet/pet_package.h"
 
 /**
  * @file pet_store.h
@@ -25,9 +25,23 @@ struct Outfit {
     std::optional<std::string> body;
 };
 
-/// @brief The smallest and largest magnification the size slider offers. Whole numbers only: pixels stay square (PHASE3 3.1).
-constexpr int kMinScale = core::pet::kMinScale;
-constexpr int kMaxScale = core::pet::kMaxScale;
+/// @brief The smallest and largest size the slider offers, as a percentage of the way from ×1 to ×4 (PHASE3 3.1): 0 is
+///        today's ×1, 100 today's ×4. The slider runs these whole-percent stops; the magnification between them is real.
+constexpr int kMinSize = 0;
+constexpr int kMaxSize = 100;
+
+/// @return The percentage a package's whole-number 1..4 scale means to a reader who has never moved the slider. A
+///         package's declared scale is that reader's fallback, so `scale` 3 reads as 67%.
+inline int sizeFromScale(int scale)
+{
+    return static_cast<int>(std::lround((scale - 1) * 100.0 / 3.0));
+}
+
+/// @return The magnification a size draws, in [1,4]: 67 is ×3.01.
+inline double magnificationOf(int size)
+{
+    return 1.0 + 3.0 * size / 100.0;
+}
 
 /// @brief The shipped pet a reader is given when the one they chose is gone or refused (docs/adr/0043).
 inline constexpr char const* kDefaultPet = "dog";
@@ -62,11 +76,12 @@ public:
     bool passthrough() const;
     void setPassthrough(bool on);
 
-    /// @param fallback Returned while the reader has not chosen a size, normally the default in pet.json.
-    /// @return The magnification in kMinScale..kMaxScale.
-    int scale(int fallback) const;
-    /// @brief Stores the magnification, clamped to kMinScale..kMaxScale.
-    void setScale(int times);
+    /// @param fallback Returned while the reader has not chosen a size, normally the package's declared scale as a
+    ///                 percentage through sizeFromScale().
+    /// @return The chosen size in kMinSize..kMaxSize.
+    int size(int fallback) const;
+    /// @brief Stores the size, clamped to kMinSize..kMaxSize.
+    void setSize(int percent);
 
     /// @return The worn accessories, as last saved.
     Outfit outfit() const;
