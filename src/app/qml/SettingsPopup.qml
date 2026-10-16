@@ -123,6 +123,7 @@ Window {
         Controller.setMultiSense(false);
         Controller.setTheme("light");
         Controller.setAnimationsEnabled(true);
+        Controller.setRevealSpeed(3);
         Controller.setSelectionCapture(true);
         Controller.setClipboardPolicy("topmost");
         Controller.setBubbleDismissSeconds(5);

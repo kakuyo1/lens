@@ -245,6 +245,7 @@ const DocumentKey kScalarKeys[] = {
     {"liquidRim", "AppController"},
     {"liquidTextColor", "AppController"},
     {"animationsEnabled", "AppController"},
+    {"revealSpeed", "AppController"},
     {"uiLanguage", "AppController"},
     {"selectionCapture", "AppController"},
     {"clipboardPolicy", "AppController"},

@@ -144,6 +144,26 @@ Item {
             compare(Controller.settings.bubbleDismissSeconds, 5);
         }
 
+        /// The typing pace is a level between one and five; an out-of-range value lands on the nearer
+        /// edge, and the pace the reveal reads follows the level. The exact milliseconds are the
+        /// header's own contract (lens_gtest_unit); this reads the wiring to the facade.
+        function test_theRevealSpeedClampsAndDrivesThePace() {
+            Controller.setRevealSpeed(2);
+            compare(Controller.settings.revealSpeed, 2);
+            const paced = Controller.settings.revealCharacterMs;
+
+            Controller.setRevealSpeed(4);
+            verify(Controller.settings.revealCharacterMs < paced, "a faster speed did not shorten the pace");
+
+            Controller.setRevealSpeed(0);
+            compare(Controller.settings.revealSpeed, 1, "a speed below the range was stored");
+            Controller.setRevealSpeed(99);
+            compare(Controller.settings.revealSpeed, 5, "a speed above the range was stored");
+
+            Controller.setRevealSpeed(3);
+            compare(Controller.settings.revealSpeed, 3);
+        }
+
         /// Automatic scanning is a phase-1 placeholder, but the label the tray menu and tooltip
         /// both read still has to follow it rather than disagree with itself.
         function test_theModeLabelFollowsAutoScan() {

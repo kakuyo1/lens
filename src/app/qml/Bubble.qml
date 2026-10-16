@@ -73,6 +73,9 @@ Window {
     property bool reveal: true
     /// Whether the fields reveal at all, which is the payload's flag and the reader's motion setting.
     readonly property bool revealAnimation: reveal && !bubble.tokens.motion.reduced
+    /// The pace the fields are written at, from the reader's speed setting (UI.md 4.3). Hoisted like
+    /// `revealAnimation`, so the nine fields read one value rather than the setting each.
+    readonly property int revealCharacterMs: Controller.settings.revealCharacterMs
 
     /// True while any field is still being written out: what holds the countdown.
     readonly property bool revealing: definitionText.revealing || chineseText.revealing
@@ -395,6 +398,7 @@ Window {
                         y: wordText.baselineOffset - baselineOffset
                         visible: bubble.type === "word" && bubble.ipa !== ""
                         animated: bubble.revealAnimation
+                        characterMs: bubble.revealCharacterMs
                         // Measured, not wrapped, and whole from the first frame: the title gives up
                         // its room to the full pronunciation, not to what has been written so far.
                         wrapMode: Text.NoWrap
@@ -408,6 +412,7 @@ Window {
                     id: senseRows
                     senses: bubble.type === "word" ? bubble.senses : []
                     animated: bubble.revealAnimation
+                    characterMs: bubble.revealCharacterMs
                     englishColor: bubble.tokens.muted
                     translationColor: bubble.tokens.text
                     separatorColor: bubble.tokens.line2
@@ -420,6 +425,7 @@ Window {
                     id: definitionText
                     visible: bubble.senses.length === 0 && bubble.english !== ""
                     animated: bubble.revealAnimation
+                    characterMs: bubble.revealCharacterMs
                     width: parent.width
                     topPadding: 6
                     text: bubble.english
@@ -432,6 +438,7 @@ Window {
                     id: chineseText
                     visible: bubble.senses.length === 0 && bubble.chinese !== ""
                     animated: bubble.revealAnimation
+                    characterMs: bubble.revealCharacterMs
                     width: parent.width
                     topPadding: 5
                     text: bubble.chinese
@@ -444,6 +451,7 @@ Window {
                     id: translationText
                     visible: bubble.senses.length === 0 && bubble.translation !== ""
                     animated: bubble.revealAnimation
+                    characterMs: bubble.revealCharacterMs
                     width: parent.width
                     topPadding: 5
                     text: bubble.translation
@@ -491,6 +499,7 @@ Window {
                         id: etymologyText
                         objectName: "etymologyText"
                         animated: bubble.revealAnimation
+                        characterMs: bubble.revealCharacterMs
                         width: parent.width
                         text: bubble.etymology
                         color: bubble.tokens.muted
@@ -528,6 +537,7 @@ Window {
                         id: exampleText
                         objectName: "exampleText"
                         animated: bubble.revealAnimation
+                        characterMs: bubble.revealCharacterMs
                         width: parent.width
                         text: bubble.example
                         color: bubble.tokens.muted

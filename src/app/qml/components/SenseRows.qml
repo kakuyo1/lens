@@ -21,6 +21,8 @@ Repeater {
     required property var senses
     /// Whether the lines are written out a character at a time (RevealText), or arrive whole.
     required property bool animated
+    /// The pace the lines are written at, in real milliseconds (RevealText).
+    property int characterMs: 35
     required property color englishColor
     required property color translationColor
     required property color separatorColor
@@ -65,6 +67,7 @@ Repeater {
             objectName: "senseEnglish"
             visible: text !== ""
             animated: root.animated
+            characterMs: root.characterMs
             width: parent.width
             topPadding: 6
             bottomPadding: senseRow.modelData.text === "" ? 6 : 0
@@ -79,6 +82,7 @@ Repeater {
             objectName: "senseTranslation"
             visible: text !== ""
             animated: root.animated
+            characterMs: root.characterMs
             width: parent.width
             topPadding: 5
             bottomPadding: 6

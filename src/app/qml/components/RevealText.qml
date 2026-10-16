@@ -14,10 +14,11 @@ import QtQuick.Effects
  * The target only grows. A chunk arriving mid-reveal extends `text`, and the cursor carries on from
  * where it stood: starting the field over is the stutter this exists to prevent.
  *
- * Each character appears soft and sharpens over `blurMs`, so the tail of the text is blurred and
- * the newest character visibly clears. Only the characters still sharpening are drawn with a blur;
- * everything settled is plain text. That is what keeps the shader count at the tail of the text
- * rather than at the length of the field.
+ * Each character appears soft and sharpens over `blurMs`, which is a fixed multiple of the pace
+ * rather than a fixed number of milliseconds: the reader's speed setting moves `characterMs`, and
+ * the blur follows it so the tail stays a handful of characters whatever they pick. Only the
+ * characters still sharpening are drawn with a blur; everything settled is plain text. That is what
+ * keeps the shader count at the tail of the text rather than at the length of the field.
  *
  * A character cannot be blurred inside a Text, so every one of them is an item, laid out here. A
  * word is measured whole and the breaks fall between words, so a line never breaks inside one; the
@@ -47,12 +48,18 @@ Item {
     /// motion, arrives complete (UI.md's motion table).
     property bool animated: true
 
-    /// How long a character waits for the next one.
-    readonly property int characterMs: 35
-    /// How long a character stays soft after it appears.
-    readonly property int blurMs: 180
-    /// How many characters' worth of time that is. These and only these carry a blur.
-    readonly property int softSpan: Math.max(1, Math.ceil(blurMs / characterMs))
+    /// How long a character waits for the next one, in real milliseconds. The card sets it from the
+    /// reader's speed setting (UI.md 4.3); 35 is the pace the reveal shipped with.
+    property int characterMs: 35
+    /// How much longer a character stays soft than it takes to appear. A ratio rather than a fixed
+    /// count so the shader count below does not grow as the reader slows the pace down. This is the
+    /// 180 ms blur the reveal shipped with, taken at the 35 ms pace.
+    readonly property real blurRatio: 180 / 35
+    /// How long a character stays soft after it appears, at the pace in force.
+    readonly property real blurMs: characterMs * blurRatio
+    /// How many characters' worth of time that is -- the number of shaders the tail costs. Read off
+    /// the ratio rather than the milliseconds so it is one answer for every pace.
+    readonly property int softSpan: Math.max(1, Math.ceil(blurRatio))
 
     /// Characters written out so far, which is what watches the pace.
     readonly property int revealed: animated ? Math.min(Math.floor(cursor), text.length) : text.length

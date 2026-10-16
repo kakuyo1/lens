@@ -329,6 +329,22 @@ Item {
             onToggled: (on) => Controller.setAnimationsEnabled(on)
         }
 
+        // The typing pace the answer is written out at. It only means anything while animations are
+        // on -- a reduced-motion card arrives whole and has no pace to set -- so it is shown only
+        // while the switch above it is on, and hidden with it rather than left as a control that
+        // does nothing. The blur follows this level by a ratio, so a slow speed never widens the
+        // tail of shaders (RevealText.qml).
+        SliderRow {
+            visible: Controller.settings.animationsEnabled
+            height: visible ? implicitHeight : 0
+            label: qsTranslate("SettingsPopup", "Typing speed")
+            suffix: " / 5"
+            from: 1
+            to: 5
+            value: Controller.settings.revealSpeed
+            onMoved: (stop) => Controller.setRevealSpeed(stop)
+        }
+
         SwitchRow {
             width: parent.width
             label: qsTranslate("SettingsPopup", "Check for updates at startup")

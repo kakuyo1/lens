@@ -34,6 +34,7 @@
 #include "app/model_catalog.h"
 #include "app/notice.h"
 #include "app/paths.h"
+#include "app/reveal_settings.h"
 #include "app/tray_state.h"
 #include "app/year_grid.h"
 #include "capture/ocr_engine.h"
@@ -44,6 +45,7 @@ namespace {
 
 using lens::app::autostartCommand;
 using lens::app::clampBubbleDismissSeconds;
+using lens::app::clampRevealSpeed;
 using lens::app::kAutostartRunKey;
 using lens::app::kAutostartValueName;
 using lens::app::kBubbleDismissDefaultSeconds;
@@ -51,8 +53,12 @@ using lens::app::kBubbleDismissMaxSeconds;
 using lens::app::kBubbleDismissMinSeconds;
 using lens::app::kNoticeError;
 using lens::app::kNoticeInfo;
+using lens::app::kRevealSpeedDefault;
+using lens::app::kRevealSpeedMax;
+using lens::app::kRevealSpeedMin;
 using lens::app::noticePayload;
 using lens::app::refusalKey;
+using lens::app::revealMillisPerCharacter;
 using lens::app::settingsPath;
 using lens::app::toPath;
 using lens::app::CaptureRefusal;
@@ -619,4 +625,26 @@ TEST(BubbleSettings, DisplayTimeStartsAtFiveSecondsAndClampsToOneToThirty)
     EXPECT_EQ(clampBubbleDismissSeconds(-7), 1);
     EXPECT_EQ(clampBubbleDismissSeconds(kBubbleDismissMaxSeconds), 30);
     EXPECT_EQ(clampBubbleDismissSeconds(31), 30);
+}
+
+/// The typing pace is a level from one to five, slowest first, and the level maps to the
+/// milliseconds the reveal is written at. The default has to stay the pace the reveal shipped with,
+/// because a reader who never opens the setting should see no change.
+TEST(RevealSettings, TheSpeedClampsAndMapsToThePaceTheRevealTakes)
+{
+    EXPECT_EQ(revealMillisPerCharacter(kRevealSpeedDefault), 35) << "the default pace moved";
+
+    EXPECT_EQ(revealMillisPerCharacter(kRevealSpeedMin), 80);
+    EXPECT_EQ(revealMillisPerCharacter(kRevealSpeedMax), 15);
+
+    // Out of range, either way, lands on the nearer edge rather than indexing past the table.
+    EXPECT_EQ(clampRevealSpeed(0), kRevealSpeedMin);
+    EXPECT_EQ(clampRevealSpeed(-3), kRevealSpeedMin);
+    EXPECT_EQ(clampRevealSpeed(kRevealSpeedMax + 1), kRevealSpeedMax);
+    EXPECT_EQ(revealMillisPerCharacter(0), 80);
+    EXPECT_EQ(revealMillisPerCharacter(99), 15);
+
+    // Slower is a longer wait all the way up, so the slider reads as one direction and not two.
+    for (int speed = kRevealSpeedMin; speed < kRevealSpeedMax; ++speed)
+        EXPECT_GT(revealMillisPerCharacter(speed), revealMillisPerCharacter(speed + 1)) << "at speed " << speed;
 }

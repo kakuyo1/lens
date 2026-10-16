@@ -25,6 +25,7 @@
 #include "bubble_settings.h"
 #include "glass_settings.h"
 #include "notice.h"
+#include "reveal_settings.h"
 #include "update/update_client.h"
 #include "util/log.h"
 #include "year_grid.h"
@@ -375,6 +376,12 @@ void AppController::setAnimationsEnabled(bool on)
     emit settingsChanged();
 }
 
+void AppController::setRevealSpeed(int speed)
+{
+    storage_.section().set<int>("revealSpeed", clampRevealSpeed(speed));
+    emit settingsChanged();
+}
+
 void AppController::setUiLanguage(QString lang)
 {
     storage_.section().set<std::string>("uiLanguage", lang.toStdString());
@@ -482,35 +489,40 @@ QVariantMap AppController::settings()
 {
     auto const    keys     = storage_.section();
     const QString provider = catalog_.currentProvider();
-    QVariantMap   result{{"level", storage_.knownStore().level()},
-                         {"levels", StorageDuty::levelOptions()},
-                         {"explanationLang", QString::fromStdString(storage_.knownStore().explanationLang())},
-                         {"multiSense", keys.value<bool>("multiSense", false)},
-                         {"etymology", keys.value<bool>("etymology", false)},
-                         {"example", keys.value<bool>("example", false)},
-                         {"theme", QString::fromStdString(keys.value<std::string>("theme", "light"))},
-                         {"frostedBlur", clampGlass(kFrostedBlur, keys.value<int>("frostedBlur", kFrostedBlur.fallback))},
-                         {"frostedSaturation", clampGlass(kFrostedSaturation, keys.value<int>("frostedSaturation", kFrostedSaturation.fallback))},
-                         {"frostedRim", clampGlass(kFrostedRim, keys.value<int>("frostedRim", kFrostedRim.fallback))},
-                         {"liquidRefraction", clampGlass(kLiquidRefraction, keys.value<int>("liquidRefraction", kLiquidRefraction.fallback))},
-                         {"liquidBlur", clampGlass(kLiquidBlur, keys.value<int>("liquidBlur", kLiquidBlur.fallback))},
-                         {"liquidRim", clampGlass(kLiquidRim, keys.value<int>("liquidRim", kLiquidRim.fallback))},
-                         {"liquidTextColor", QString::fromStdString(keys.value<std::string>("liquidTextColor", std::string{kLiquidTextColorFallback}))},
-                         {"animationsEnabled", keys.value<bool>("animationsEnabled", true)},
-                         {"uiLanguage", QString::fromStdString(keys.value<std::string>("uiLanguage", "zh"))},
-                         {"hasApiKey", !keys.value<std::string>("API-KEY", {}).empty()},
-                         {"selectionCapture", keys.value<bool>("selectionCapture", true)},
-                         {"clipboardPolicy", QString::fromStdString(keys.value<std::string>("clipboardPolicy", "topmost"))},
-                         {"bubbleDismissSeconds", clampBubbleDismissSeconds(keys.value<int>("bubbleDismissSeconds", kBubbleDismissDefaultSeconds))},
-                         {"bubblePlacement", QString::fromStdString(keys.value<std::string>("bubblePlacement", "above"))},
-                         {"ocrHotkey", hotkey_.keys().toString(QKeySequence::PortableText)},
-                         {"ocrHotkeyConflicted", hotkey_.conflicted()},
-                         {"provider", provider},
-                         {"model", llm_.model()},
-                         {"url", llm_.baseUrl().toString()},
-                         {"dailyBudget", dailyBudget()},
-                         {"autostart", autostartEnabled()}};
-    const auto    captureSettings = capture_.settings();
+    // The slider shows the level; the pace the reveal takes is that level through the mapping in
+    // reveal_settings.h. Read once so the two the map hands out cannot drift apart.
+    const int   revealSpeed = clampRevealSpeed(keys.value<int>("revealSpeed", kRevealSpeedDefault));
+    QVariantMap result{{"level", storage_.knownStore().level()},
+                       {"levels", StorageDuty::levelOptions()},
+                       {"explanationLang", QString::fromStdString(storage_.knownStore().explanationLang())},
+                       {"multiSense", keys.value<bool>("multiSense", false)},
+                       {"etymology", keys.value<bool>("etymology", false)},
+                       {"example", keys.value<bool>("example", false)},
+                       {"theme", QString::fromStdString(keys.value<std::string>("theme", "light"))},
+                       {"frostedBlur", clampGlass(kFrostedBlur, keys.value<int>("frostedBlur", kFrostedBlur.fallback))},
+                       {"frostedSaturation", clampGlass(kFrostedSaturation, keys.value<int>("frostedSaturation", kFrostedSaturation.fallback))},
+                       {"frostedRim", clampGlass(kFrostedRim, keys.value<int>("frostedRim", kFrostedRim.fallback))},
+                       {"liquidRefraction", clampGlass(kLiquidRefraction, keys.value<int>("liquidRefraction", kLiquidRefraction.fallback))},
+                       {"liquidBlur", clampGlass(kLiquidBlur, keys.value<int>("liquidBlur", kLiquidBlur.fallback))},
+                       {"liquidRim", clampGlass(kLiquidRim, keys.value<int>("liquidRim", kLiquidRim.fallback))},
+                       {"liquidTextColor", QString::fromStdString(keys.value<std::string>("liquidTextColor", std::string{kLiquidTextColorFallback}))},
+                       {"animationsEnabled", keys.value<bool>("animationsEnabled", true)},
+                       {"revealSpeed", revealSpeed},
+                       {"revealCharacterMs", revealMillisPerCharacter(revealSpeed)},
+                       {"uiLanguage", QString::fromStdString(keys.value<std::string>("uiLanguage", "zh"))},
+                       {"hasApiKey", !keys.value<std::string>("API-KEY", {}).empty()},
+                       {"selectionCapture", keys.value<bool>("selectionCapture", true)},
+                       {"clipboardPolicy", QString::fromStdString(keys.value<std::string>("clipboardPolicy", "topmost"))},
+                       {"bubbleDismissSeconds", clampBubbleDismissSeconds(keys.value<int>("bubbleDismissSeconds", kBubbleDismissDefaultSeconds))},
+                       {"bubblePlacement", QString::fromStdString(keys.value<std::string>("bubblePlacement", "above"))},
+                       {"ocrHotkey", hotkey_.keys().toString(QKeySequence::PortableText)},
+                       {"ocrHotkeyConflicted", hotkey_.conflicted()},
+                       {"provider", provider},
+                       {"model", llm_.model()},
+                       {"url", llm_.baseUrl().toString()},
+                       {"dailyBudget", dailyBudget()},
+                       {"autostart", autostartEnabled()}};
+    const auto  captureSettings = capture_.settings();
     for (auto it = captureSettings.cbegin(); it != captureSettings.cend(); ++it)
         result.insert(it.key(), it.value());
     result.insert(QStringLiteral("ocrStatus"), capture_.ocrStatus());

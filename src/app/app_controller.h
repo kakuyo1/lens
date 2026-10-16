@@ -111,6 +111,8 @@ public:
     /// @brief Store the liquid glass's text colour as #rrggbb; anything else leaves the stored colour alone.
     Q_INVOKABLE void setLiquidTextColor(QString color);
     Q_INVOKABLE void setAnimationsEnabled(bool on);
+    /// @brief Store the typing pace, as the speed level reveal_settings.h clamps.
+    Q_INVOKABLE void setRevealSpeed(int speed);
     Q_INVOKABLE void setUiLanguage(QString lang);
     Q_INVOKABLE void setSelectionCapture(bool on);
     Q_INVOKABLE void setApiKey(QString key);

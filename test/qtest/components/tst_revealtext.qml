@@ -98,6 +98,30 @@ Item {
             compare(reveal.revealing, true);
         }
 
+        /// The pace is the field's own, not a constant: two fields of the same text, one set slow
+        /// and one fast, are at different lengths after the same real time. Nothing here reads an
+        /// exact count on an exact frame -- the clock is real, so the gap is what is asserted.
+        function test_thePaceFollowsTheFieldRatherThanAConstant() {
+            const slow = opened({text: answer, characterMs: 200});
+            const fast = opened({text: answer, characterMs: 20});
+
+            wait(300);
+
+            verify(slow.revealed < fast.revealed,
+                   "the slow field and the fast one wrote at the same pace");
+        }
+
+        /// A slower pace does not widen the blur: the span is the ratio, not the milliseconds, so
+        /// the tail stays a handful of characters whatever the reader picks. This is the whole
+        /// reason the blur follows the pace as a ratio rather than sitting at a fixed 180 ms.
+        function test_aSlowerPaceKeepsTheBlurSpanTheSame() {
+            const slow = opened({text: answer, characterMs: 200});
+            const fast = opened({text: answer, characterMs: 20});
+
+            compare(slow.softSpan, fast.softSpan, "the blur span followed the pace");
+            verify(slow.softSpan <= 6, "the tail carries more shaders than the shipped six");
+        }
+
         /// Only the characters still sharpening carry a blur: the settled ones are plain text, so
         /// what the reveal costs the renderer is the tail rather than the length of the field.
         function test_onlyTheSharpeningTailCarriesABlur() {

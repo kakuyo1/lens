@@ -43,6 +43,7 @@ const std::vector<std::string>& syncedKeys()
         "bubbleDismissSeconds",
         "bubblePlacement",
         "animationsEnabled",
+        "revealSpeed",
         "minimumWordLength",
         "frostedBlur",
         "frostedSaturation",

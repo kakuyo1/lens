@@ -25,6 +25,7 @@ Item {
     }
 
     TestCase {
+        id: testCase
         name: "Settings"
         when: windowShown
 
@@ -126,6 +127,17 @@ Item {
             return null;
         }
 
+        function sliderRowLabelled(panel, label) {
+            const rows = Util.findAll(panel, function (o) {
+                return o.toString().indexOf("SliderRow_QMLTYPE") === 0;
+            });
+            for (let i = 0; i < rows.length; ++i) {
+                if (rows[i].label === label)
+                    return rows[i];
+            }
+            return null;
+        }
+
         /// @return The Segment whose first label is `first`, or null.
         function segmentLabelled(panel, first) {
             const segments = Util.findAll(panel, function (o) {
@@ -205,6 +217,29 @@ Item {
             compare(Tokens.motion.press, SystemMotion.reduced ? 0 : 150);
             compare(Tokens.motion.pop, SystemMotion.reduced ? 0 : 180);
             compare(Tokens.motion.bubble, SystemMotion.reduced ? 0 : 220);
+        }
+
+        /// The typing speed has no pace to set once motion is off, so its row is shown with the
+        /// switch that governs motion and hidden with it, rather than left as a control that moves
+        /// without doing anything.
+        function test_theTypingSpeedRowFollowsTheAnimationSwitch() {
+            Controller.setAnimationsEnabled(true);
+            const main = make();
+            main.showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "General");
+
+            const row = sliderRowLabelled(panel, "Typing speed");
+            verify(row, "the General page has no typing speed row");
+            compare(row.visible, true, "the row was hidden while animations were on");
+            verify(row.height > 0, "the row took no room while animations were on");
+
+            Controller.setAnimationsEnabled(false);
+            tryCompare(row, "visible", false);
+            tryCompare(row, "height", 0);
+
+            Controller.setAnimationsEnabled(true);
+            tryCompare(row, "visible", true);
         }
 
         function test_theDailyBudgetIsReachableAndPersistsThroughTheController() {
