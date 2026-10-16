@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QDuo 分析报告：Lens 可以借鉴什么</title>
+<style>
+  :root { --ink:#1d1d1f; --muted:#6e6e73; --line:#d2d2d7; --bg:#fbfbfd; --code:#f2f2f4; --accent:#0a6cff; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#f5f5f7; --muted:#a1a1a6; --line:#3a3a3c; --bg:#1c1c1e; --code:#2c2c2e; --accent:#4da3ff; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font:15px/1.75 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; }
+  main { max-width:960px; margin:0 auto; padding:40px 20px 80px; }
+  h1 { font-size:26px; margin:0 0 6px; }
+  h2 { font-size:19px; margin:44px 0 12px; padding-top:14px; border-top:1px solid var(--line); }
+  h3 { font-size:15px; margin:22px 0 6px; }
+  .meta { color:var(--muted); font-size:13px; margin:0 0 24px; }
+  p, li { margin:6px 0; }
+  ol, ul { padding-left:22px; }
+  code { font:13px/1.4 ui-monospace,Menlo,monospace; background:var(--code); padding:1px 5px; border-radius:4px; }
+  a { color:var(--accent); }
+  .tablewrap { overflow-x:auto; margin:10px 0 18px; border:1px solid var(--line); border-radius:8px; }
+  table { border-collapse:collapse; width:100%; font-size:13.5px; line-height:1.55; }
+  th, td { padding:8px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+  th { background:var(--code); font-weight:600; }
+  tr:last-child td { border-bottom:none; }
+  .note { color:var(--muted); font-size:13px; margin-top:-6px; }
+  .tag { display:inline-block; font-size:12px; padding:1px 7px; border-radius:999px; background:var(--code); color:var(--muted); white-space:nowrap; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>QDuo 分析报告：Lens 可以借鉴什么</h1>
+<p class="meta">数据截至 2026-10-16。分析对象为 <a href="https://github.com/XueshiQiao/qduo">XueshiQiao/qduo</a>（本地克隆 main 分支），对照项目为本仓库 <code>main</code>（v1.4.0）。</p>
+
+<h2>结论</h2>
+<ol>
+  <li>QDuo 是 macOS 上的划词工具：选中文字后，光标旁弹出用户自定义的动作（翻译、润色、搜索、朗读、运行脚本等）。它创建于 2026-09-22，截至今天有 184 个 star、8 个 fork、21 个 Release。</li>
+  <li>184 star 的最强解释在作者身上，不在产品本身。作者的个人账号下，AnyDrag 有 251 个 star，CCSwitcher 有 192 个，PastePaw 有 163 个，QDuo 落在同一量级。QDuo 是从作者的 XTools 拆出来的，首个提交就带着签名、公证、自动更新和 Homebrew 发布链路。</li>
+  <li>Lens 最值得借鉴的是分发与信任，而不是交互：首屏放真机动图，走 winget 分发，每个 Release 做病毒扫描，更新包签名。产品层面不宜照搬 QDuo 的“任意动作 + 自定义提示词”，它与 Lens 的固定四通道和最小发送原则冲突。</li>
+  <li>许可证有约束：QDuo 是 GPL-3.0，Lens 是 MIT。只借思路，不复制代码。</li>
+</ol>
+
+<h2>项目概况</h2>
+<div class="tablewrap"><table>
+  <thead><tr><th></th><th>QDuo</th><th>Lens</th></tr></thead>
+  <tbody>
+    <tr><td>平台与技术</td><td>macOS 13+，Swift</td><td>Windows，C++ / QML（Qt 6）</td></tr>
+    <tr><td>仓库创建</td><td>2026-09-22</td><td>2026-08-26</td></tr>
+    <tr><td>Star / Fork</td><td>184 / 8</td><td>0 / 0</td></tr>
+    <tr><td>许可证</td><td>GPL-3.0</td><td>MIT</td></tr>
+    <tr><td>Release 数</td><td>21（9 月下旬起）</td><td>8（10 月 5 日起）</td></tr>
+    <tr><td>Release 资产下载合计<span class="note"><br>含校验文件，两边口径一致</span></td><td>2,623</td><td>26</td></tr>
+    <tr><td>提交数</td><td>136</td><td>未统计</td></tr>
+    <tr><td>源码规模</td><td>Swift 约 2.6 万行，17 个测试文件</td><td>C++ / QML 约 2.8 万行</td></tr>
+    <tr><td>安装与更新</td><td>Homebrew cask；公证 DMG；Sparkle 自动更新，EdDSA 签名</td><td>Inno Setup 安装包，未签名；更新只校验 SHA256SUMS</td></tr>
+    <tr><td>遥测</td><td>Aptabase 匿名统计，默认开启、可关闭，只发动作类型</td><td>无任何统计</td></tr>
+    <tr><td>历史与同步</td><td>本机历史，可搜索、可重放，有保留期；不同步</td><td>词表与设置经 GitHub gist 加密同步</td></tr>
+  </tbody>
+</table></div>
+
+<h2>为什么 184 star</h2>
+<p>下列原因按证据强弱排序。第 1、2 条有仓库数据直接支持；第 3 至 6 条是基于仓库内容的判断，未经外部渠道核实。</p>
+
+<h3>1. 作者已有成功的项目与受众（证据强）</h3>
+<p>作者的个人账号有 271 个公开仓库，简介列出了 PastePaw、QDuo、AnyDrag、HyperCapslock、CCSwitcher。其中 AnyDrag 有 251 个 star，CCSwitcher 有 192 个，PastePaw（Windows 剪贴板工具）有 163 个。三者的 star 都在一百多到两百多之间，QDuo 的 184 落在同一区间。README 中还有指向作者其他 app 的入口。</p>
+<p class="note">未核实的是：这些 star 具体来自哪些渠道，例如 X 发帖、社群转发或站内互链。</p>
+
+<h3>2. 起点不是从零（证据强）</h3>
+<p>首个提交的标题是 <code>init: the selection popup, as its own app</code>，正文写明它从作者的 XTools 拆出：弹窗本体 41 个文件原样搬来，另有日志、本地化覆盖、LLM 栈、关于页与更新器。同一天的提交就为 app 配了独立的更新签名密钥。作者还有一个 <code>macos-app-starter</code> 模板仓库，声明包含 Sparkle、i18n、签名 CI 与 Homebrew Cask。父项目 XTools 本身只有 1 个 star，所以 star 并非从父项目带过来。</p>
+
+<h3>3. 发版密度与即时回应（证据强）</h3>
+<p>仓库有 136 个提交，其中 16 天有提交，共 21 个 Release。社区提的 #13 至 #17 都是 10 月 7 日提出并已关闭，发布说明里逐条致谢 X 上的用户。用户提的需求在几天内变成可见的版本更新，这对二次传播有帮助。</p>
+<p class="note">二次传播的效果是推断，未经测量。</p>
+
+<h3>4. 安装摩擦低（证据中）</h3>
+<p>README 写明：一行 <code>brew install --cask</code> 即可安装；App 经过 Developer ID 签名与苹果公证，“安装时不会有安全警告”；之后通过 Sparkle 自动更新。Lens 对应的是未签名安装包，且 README 注明国内更新需要代理。</p>
+
+<h3>5. 一句话卖点加可截图的视觉（证据中）</h3>
+<p>README 首行即是 “在 Mac 的任何 app 里选中文字，光标旁就出现你自己设置的动作”。首屏是真实弹窗截图，玻璃与立体环形的样式适合截图传播。</p>
+<p class="note">传播效果是推断，未经测量。</p>
+
+<h3>6. 免费、开源、本地优先（证据中）</h3>
+<p>BYOK，API key 存入钥匙串，历史只在本机，遥测可关闭。这些写在 README 的隐私一节，目标用户能直接判断。</p>
+
+<p>没有查到的是：X 发帖量、Hacker News 与 V2EX 等渠道的讨论。Stargazers 时间线接口返回 404，因此无法画出增长曲线，只能给出截至今天的快照。</p>
+
+<h2>可借鉴项</h2>
+<p>按优先级排列。“依据”一列标明的是本仓库或 QDuo 仓库中的位置。</p>
+
+<h3>P0：先做，成本低，直接影响首屏与可发现性</h3>
+<div class="tablewrap"><table>
+  <thead><tr><th>借鉴点</th><th>QDuo 的做法</th><th>Lens 现状</th><th>建议</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>首屏真机动图</td>
+      <td>README 首屏即真实弹窗截图。</td>
+      <td>README 的 “Screens” 全部是概念图，README 自己写明 “不是运行中应用的截图”；首屏只有文字。</td>
+      <td>用 run-lens 流程录一段 10 到 15 秒的真机操作，放在 README 第一屏。</td>
+    </tr>
+    <tr>
+      <td>winget 分发</td>
+      <td>同一作者的 PastePaw 提供 <code>winget install</code>。</td>
+      <td>没有 winget 清单，安装只能从 Release 页下载。</td>
+      <td>为 Inno 安装包写 winget 清单，指向 Release 资产并填入 SHA256。清单需要提交到 microsoft/winget-pkgs 审核。</td>
+    </tr>
+    <tr>
+      <td>每个版本做病毒扫描</td>
+      <td>PastePaw 每个 Release 自动经 VirusTotal 扫描，结果链接写在发布说明末尾。</td>
+      <td>安装包未签名，只有 SHA256SUMS，TODO 中已列为待办。</td>
+      <td>在发布脚本 <code>scripts/release/publish-release.ps1</code> 里加一步扫描并附链接。需要账号与 API key，免费额度要先核实。</td>
+    </tr>
+    <tr>
+      <td>面向用户的双语发布说明</td>
+      <td>RELEASE_NOTES.html 每个版本都是中英对照，用用户能看懂的话描述变化，并致谢提建议的人。</td>
+      <td><code>CHANGELOG.md</code> 只有英文，条目中有 ADR 编号等内部术语。</td>
+      <td>在 GitHub Release 页写用户向的中英对照说明。CHANGELOG 保留给开发者。</td>
+    </tr>
+    <tr>
+      <td>仓库元数据与中文入口</td>
+      <td>默认中文 README，英文版为 README.en.md。</td>
+      <td>README.md 为英文，中文版排在第二；topics 为空，homepage 为空。</td>
+      <td>先补 topics 与 homepage，成本最低。中文 README 是否设为默认，取决于目标用户，需要你来定。QDuo 自己的 topics 也是空的，这一项不要期待太高。</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h3>P1：产品与信任</h3>
+<div class="tablewrap"><table>
+  <thead><tr><th>借鉴点</th><th>QDuo / PastePaw 的做法</th><th>Lens 现状</th><th>建议</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>签名的更新清单</td>
+      <td>QDuo 用 Sparkle 的 EdDSA 验签；PastePaw 每个安装包配一个 <code>.sig</code>。</td>
+      <td>更新只校验 SHA256，README 与 TODO 都承认它只防传输损坏，不能证明发布者身份。</td>
+      <td>用 Ed25519 签 SHA256SUMS，公钥内置在程序里。签名库的选型写成 ADR。</td>
+    </tr>
+    <tr>
+      <td>敏感应用默认排除</td>
+      <td>QDuo 的历史页默认排除密码管理器；PastePaw 提供 “应用例外” 名单。</td>
+      <td>选区读取路径的文件头注释只提到终端排除名单（据 grep 结果）；OCR 自动扫描有前台进程白名单。手动的选区与截图对任何应用都生效。</td>
+      <td>给选区与截图加默认排除的密码管理器进程名单，并在 SECURITY.md 写明。这是 Lens 隐私承诺的缺口，不只关乎增长。</td>
+    </tr>
+    <tr>
+      <td>设置中的实时预览</td>
+      <td>QDuo 的设置页直接画出真实弹窗，拖动滑块即时变化（26.10.21 发布说明）。</td>
+      <td>未见主题或气泡的实时预览（grep 只在宠物页与扩展页命中）。</td>
+      <td>自定义配色页放一个真实的气泡样例，颜色与玻璃参数改动后即时反映。</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h3>P2：待定</h3>
+<div class="tablewrap"><table>
+  <thead><tr><th>借鉴点</th><th>QDuo 的做法</th><th>建议</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>只在按住快捷键时弹出</td>
+      <td>设置中可开启 “用快捷键弹出”，只有选中后按快捷键才显示弹窗。</td>
+      <td>Lens 的拖选会直接弹出，没有这个开关。若有用户反映打扰，再加。</td>
+    </tr>
+    <tr>
+      <td>URL scheme</td>
+      <td>提供 <code>qduo://run/...</code>，供 Alfred、Raycast 调用。</td>
+      <td>价值取决于目标用户是否使用启动器，先看 issue 反馈再定。</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h2>不建议借鉴</h2>
+<ul>
+  <li><strong>任意动作加自定义提示词。</strong>与 PRODUCT.md 的固定四通道、以及 “LLM 只做翻译与解释” 的决定冲突，也会扩大发送内容的范围。</li>
+  <li><strong>先对比再替换原文。</strong>Lens 是阅读辅助，不写回原文，定位不符。</li>
+  <li><strong>环形与 3D 视觉。</strong>Lens 已有玻璃主题。大改视觉成本高，也不直接服务 “不打断阅读” 的核心价值。</li>
+  <li><strong>默认开启的遥测。</strong>“无统计” 是 Lens 目前的隐私卖点。需要用量数据时，优先用 GitHub 的 Release 下载计数，它可以直接通过 API 读取。如果以后要加统计，应默认关闭并写明。</li>
+  <li><strong>复制优先的应用名单。</strong>QDuo 为修复 Chromium 段落丢失，才做了 Chrome 名单。Lens 本来就走 Ctrl+C 往返，不存在这个问题。</li>
+  <li><strong>直接复制代码。</strong>QDuo 为 GPL-3.0，Lens 为 MIT。只借思路，代码需要自己重写。</li>
+</ul>
+
+<h2>方法与局限</h2>
+<ul>
+  <li>数据来源：通过 GitHub API（<code>gh</code> CLI）读取仓库、Release、Issue 与用户信息；QDuo 的 README、源码、发布说明与提交历史来自本地克隆。直接抓取 github.com 页面被安全检查拦截，因此没有使用网页抓取的结果。</li>
+  <li>未取得的数据：Stargazers 时间线（接口返回 404）、QDuo 最新 Release 的单项下载数（请求超时，只有全部 Release 的合计）、X 与其他社区的传播数据。</li>
+  <li>star 与下载数是 2026-10-16 的快照。下载合计包含校验文件等非安装包资产，两边口径一致，但绝对值不能直接当作用户数。</li>
+  <li>Lens 一侧的对照基于 grep 关键词搜索，没有通读全部代码。标注 “据 grep” 的条目需要在动手前再读一遍相关文件。</li>
+</ul>
+
+</main>
+</body>
+</html>
