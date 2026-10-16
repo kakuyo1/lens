@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>nextai-translator 分析：Lens 可以借鉴什么</title>
+<style>
+  :root { --ink:#1d1d1f; --muted:#6e6e73; --line:#d2d2d7; --bg:#fbfbfd; --code:#f2f2f4; --accent:#0a6cff; --bad:#b42318; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#f5f5f7; --muted:#a1a1a6; --line:#3a3a3c; --bg:#1c1c1e; --code:#2c2c2e; --accent:#4da3ff; --bad:#ff8a80; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font:15px/1.75 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; }
+  main { max-width:960px; margin:0 auto; padding:40px 20px 80px; }
+  h1 { font-size:26px; margin:0 0 6px; }
+  h2 { font-size:19px; margin:44px 0 12px; padding-top:14px; border-top:1px solid var(--line); }
+  h3 { font-size:15px; margin:22px 0 6px; }
+  .meta { color:var(--muted); font-size:13px; margin:0 0 24px; }
+  p, li { margin:6px 0; }
+  ol, ul { padding-left:22px; }
+  code { font:13px/1.4 ui-monospace,Menlo,monospace; background:var(--code); padding:1px 5px; border-radius:4px; }
+  a { color:var(--accent); }
+  .tablewrap { overflow-x:auto; margin:10px 0 18px; border:1px solid var(--line); border-radius:8px; }
+  table { border-collapse:collapse; width:100%; font-size:13.5px; line-height:1.55; }
+  th, td { padding:8px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+  th { background:var(--code); font-weight:600; }
+  tr:last-child td { border-bottom:none; }
+  .note { color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>nextai-translator 分析：Lens 可以借鉴什么</h1>
+<p class="meta">数据截至 2026-10-16。仓库 <a href="https://github.com/nextai-translator/nextai-translator">nextai-translator/nextai-translator</a>，本地克隆 HEAD <code>a9681a4</code>（2026-09-03）。对照项目为本仓库 main（v1.4.0）。</p>
+
+<h2>概览</h2>
+<div class="tablewrap"><table>
+  <thead><tr><th></th><th>内容</th></tr></thead>
+  <tbody>
+    <tr><td>定位</td><td>“不只是翻译”的 AI 文本工具：翻译、润色、总结，并带生词本。README 说项目因 OpenAI 商标提醒而改名。</td></tr>
+    <tr><td>形态</td><td>Chrome 与 Firefox 扩展、油猴脚本、Tauri 桌面端（Windows、macOS、Linux），另有 Safari 目录。</td></tr>
+    <tr><td>Star / 许可证</td><td>24,999 / <code>LICENSE</code> 文件为 AGPL-3.0。README 徽章写的是 MIT，两者不一致。</td></tr>
+    <tr><td>创建 / 最近推送</td><td>2023-03-04 / 2026-09-03。</td></tr>
+    <tr><td>测试与 CI</td><td>15 个 spec 与 test 文件（Vitest 与 Playwright）。CI 工作流六个：lint、playwright、unit-test、test-build、release、winget。</td></tr>
+    <tr><td>语言</td><td>README 称支持 55 种语言互译。</td></tr>
+  </tbody>
+</table></div>
+
+<h2>可借鉴</h2>
+<div class="tablewrap"><table>
+  <thead><tr><th>借鉴点</th><th>依据</th><th>对 Lens 的建议</th><th>优先级</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>未签名安装包的运行步骤写进 README</td>
+      <td>README 的 Windows 安装段写明：提示“无法验证”时点 “更多信息” → “仍要运行”。macOS 段给出 <code>xattr</code> 命令。</td>
+      <td>Lens 安装包未签名（SECURITY.md 与 TODO.md 已写明）。把同样的步骤写进 README 的安装段，能减少读者在 SmartScreen 前放弃安装。成本低。</td>
+      <td>高</td>
+    </tr>
+    <tr>
+      <td>winget 发布工作流</td>
+      <td><code>.github/workflows/winget.yml</code>。pot 没有这一项。</td>
+      <td>Lens 的安装包是 Inno Setup，可以让 winget 清单指向 Release 资产。与上一份 QDuo 报告的建议一致。</td>
+      <td>高</td>
+    </tr>
+    <tr>
+      <td>按动作指定服务商与模型</td>
+      <td><code>src/common/translate.ts</code> 中 <code>query.action?.provider</code> 与 <code>query.action?.apiModel</code>，没有配置时回退到全局设置。</td>
+      <td>Lens 目前全局只有一个模型。如果以后让单词、句子、译文走不同模型，可以参照这个回退设计。目前没有明确需求，暂不做。</td>
+      <td>低，待定</td>
+    </tr>
+    <tr>
+      <td>流式输出</td>
+      <td>README 把 streaming 列为功能；<code>abstract-openai.ts</code> 解析 SSE 数据。</td>
+      <td>Lens 目前是一次性 JSON 返回。流式输出能让气泡更快出字，但 JSON 要等流结束才能校验，只能流式显示纯文本部分。值得评估，不建议直接改协议。</td>
+      <td>中</td>
+    </tr>
+    <tr>
+      <td>提示词按角色拆分</td>
+      <td><code>translate.ts</code> 把 rolePrompt、commandPrompt、contentPrompt 分开拼接。</td>
+      <td>Lens 的提示词已经作为数据放在 <code>data/llm/</code>，比字符串拼接更容易审计，不需要改动。</td>
+      <td>已具备</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h2>可改进（nextai 的问题，Lens 应避免）</h2>
+
+<h3>1. 把屏幕文字和查词历史发给模型</h3>
+<p><code>src/common/components/QuickTranslator.tsx</code> 的 <code>summarizeContext</code>（第 300–311 行）把以下内容写进提示词：鼠标下的文字、焦点元素的文字（最多 600 字符）、窗口段落（每段最多 280 字符）、应用名与 bundle id。<code>buildPickerPrompts</code>（第 344 行起）还附上用户最近 25 条查词与多词查词样例，作为“查词历史指纹”。这一功能由快捷键调出，不是自动运行。</p>
+<p class="note">这违背 Lens 的原则：“绝不发送整屏或快照全文”（PRODUCT.md 第 23 行）。它的功能设计有价值（让模型从屏幕上挑出读者可能想查的词），但隐私代价过高。若要做，只能作为显式开启、默认关闭、发送前可预览的选项，并写进 SECURITY.md。</p>
+
+<h3>2. 默认推荐的服务商带推广链接</h3>
+<p>README 把 TeamoRouter 列为“推荐”，链接带 <code>utm_source=nextai_translator</code> 等参数，并写有“up to 90% off”。它也是内置服务商（<code>src/common/engines/teamorouter.ts</code>）。一个让读者填自己 API key 的工具，把某个中转商作为默认推荐，会带来利益冲突，应当披露。</p>
+<p class="note">Lens 的服务商来自 <code>data/llm/catalog.json</code>，该文件中没有推广或联盟字段（已搜索 utm、affiliate、referral、promo，无结果）。</p>
+
+<h3>3. 许可证标注不一致</h3>
+<p>README 徽章写 MIT，<code>LICENSE</code> 文件是 AGPL-3.0 全文。读者无法判断能否合规复用。Lens 应确保 README 徽章与 LICENSE 文件一致。</p>
+
+<h3>4. 单词输出是自由文本，格式靠提示词约束</h3>
+<p><code>translate.ts</code> 要求模型按固定版式输出单词卡（词性、释义、例句、词源）。客户端没有对应的解析代码（在 <code>src/common</code> 中搜索不到对该格式的解析），结果直接渲染。模型偏离格式时，界面不会报错。</p>
+<p class="note">Lens 的 JSON schema 与响应校验更可靠，保持现状。</p>
+
+<h3>5. 本地 IPC 没有鉴权，非 Windows 路径不安全</h3>
+<p><code>src-tauri/src/main.rs:513</code> 在 Windows 上监听 <code>127.0.0.1:62007</code>，没有 token。非 Windows 分支使用固定路径 <code>/tmp/openai-translator.sock</code>，启动前直接 <code>remove_file</code>（错误被 <code>unwrap_or_default</code> 吞掉），没有检查该路径是否是 socket，也没有检查是否为符号链接。在多用户机器上，这个固定路径存在被抢占或替换的风险。</p>
+<p class="note">Lens 没有本地服务，保持。端口与 socket 名仍是 <code>openai-translator</code>，说明改名没有彻底，这一点影响较小。</p>
+
+<h2>风险与局限</h2>
+<ul>
+  <li>未运行扩展或桌面端，判断来自源码阅读。</li>
+  <li><code>ax_context.rs</code> 的 macOS 实现已读，Windows 对应实现未读，因此不确定 Windows 版是否也读取焦点元素。</li>
+  <li>TeamoRouter 的定价与返利说法来自 README，未核实。</li>
+  <li>star、提交与测试数来自 GitHub API 与本地克隆的快照（2026-10-16）。</li>
+</ul>
+
+<h2>方法</h2>
+<p>通过 repo-cache 克隆仓库，阅读 README、AGENTS.md、<code>src/common/translate.ts</code>、<code>src/common/components/QuickTranslator.tsx</code>、<code>src/common/engines/</code>、<code>src-tauri/src/ax_context.rs</code> 与 <code>main.rs</code> 的 IPC 段，并核对 <code>LICENSE</code>、<code>.github/workflows/</code> 与测试文件数量。</p>
+
+</main>
+</body>
+</html>

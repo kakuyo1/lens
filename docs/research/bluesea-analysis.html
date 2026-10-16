@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BlueSea 分析：Lens 可以借鉴什么</title>
+<style>
+  :root { --ink:#1d1d1f; --muted:#6e6e73; --line:#d2d2d7; --bg:#fbfbfd; --code:#f2f2f4; --accent:#0a6cff; --bad:#b42318; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#f5f5f7; --muted:#a1a1a6; --line:#3a3a3c; --bg:#1c1c1e; --code:#2c2c2e; --accent:#4da3ff; --bad:#ff8a80; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font:15px/1.75 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; }
+  main { max-width:960px; margin:0 auto; padding:40px 20px 80px; }
+  h1 { font-size:26px; margin:0 0 6px; }
+  h2 { font-size:19px; margin:44px 0 12px; padding-top:14px; border-top:1px solid var(--line); }
+  h3 { font-size:15px; margin:22px 0 6px; }
+  .meta { color:var(--muted); font-size:13px; margin:0 0 24px; }
+  p, li { margin:6px 0; }
+  ol, ul { padding-left:22px; }
+  code, pre { font:13px/1.5 ui-monospace,Menlo,monospace; background:var(--code); border-radius:4px; }
+  code { padding:1px 5px; }
+  pre { padding:12px 14px; overflow-x:auto; }
+  a { color:var(--accent); }
+  .tablewrap { overflow-x:auto; margin:10px 0 18px; border:1px solid var(--line); border-radius:8px; }
+  table { border-collapse:collapse; width:100%; font-size:13.5px; line-height:1.55; }
+  th, td { padding:8px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+  th { background:var(--code); font-weight:600; }
+  tr:last-child td { border-bottom:none; }
+  .bad { color:var(--bad); font-weight:600; }
+  .note { color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>BlueSea 分析：Lens 可以借鉴什么</h1>
+<p class="meta">数据截至 2026-10-16。仓库 <a href="https://github.com/jiangqizheng/BlueSea">jiangqizheng/BlueSea</a>，本地克隆默认分支 <code>main</code>，HEAD <code>e7f2af8</code>（2020-12-24）。对照项目为本仓库 main（v1.4.0）。</p>
+
+<h2>概览</h2>
+<div class="tablewrap"><table>
+  <thead><tr><th></th><th>内容</th></tr></thead>
+  <tbody>
+    <tr><td>定位</td><td>Chrome 扩展：页面划词翻译、全局单词高亮、单词弹幕、遗忘曲线复习、词频统计。</td></tr>
+    <tr><td>技术栈</td><td>JavaScript，Manifest V2，内容脚本 + 后台脚本。</td></tr>
+    <tr><td>Star / Fork</td><td>1,232 / 111。</td></tr>
+    <tr><td class="bad">许可证</td><td class="bad">仓库没有 LICENSE 文件，GitHub 显示为无许可证。按默认规则，著作权保留，不能直接复用代码，只能参考设计。</td></tr>
+    <tr><td>创建 / 最近代码提交</td><td>2020-12-10 / 默认分支 2020-12-24，<code>v2</code> 分支 2021-06-30。GitHub 的 pushedAt 为 2022-10-07。</td></tr>
+    <tr><td>Issues</td><td>最新编号 #74。开放 33 个，其中 21 个没有任何评论。仍开放的包括 #74（2025-12-17，“chrome 加载时报错”）与 #72（2024-01-11，询问是否有 Windows 桌面版）。</td></tr>
+    <tr><td>测试</td><td>0 个测试文件。仓库根目录有一份 6.5 MB 的 <code>2600单词性能测试数据.json</code>，直接入库。</td></tr>
+  </tbody>
+</table></div>
+
+<h2>可借鉴</h2>
+<div class="tablewrap"><table>
+  <thead><tr><th>借鉴点</th><th>依据</th><th>对 Lens 的建议</th><th>优先级</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>遗忘曲线分级复习，失败则回退一级</td>
+      <td><code>logic.js</code> 的 <code>forgettingCurve</code> 为 5 分钟、30 分钟、12 小时、1 天、2 天、4 天、7 天、15 天、30 天；完成最后一级后标记 <code>done</code>。注释写明“如果多次点没记住，那么就回滚到上个级别”。</td>
+      <td>Lens 目前只有“已会 / 新词”两态，“已会”永远不过期。这是词汇学习上的主要缺口。可以在 KnownStore 里加一个复习级别与下次时间，复习入口放在词汇弹窗或托盘菜单里，不在阅读时弹出。</td>
+      <td>高</td>
+    </tr>
+    <tr>
+      <td>生词本导入导出（.json 与 .txt）</td>
+      <td>README 第 139–140 行：支持 .json 与 .txt 的导入导出。</td>
+      <td>Lens 的生词数据目前只能经 gist 同步（PRODUCT.md 第 76 行）。文件导出让读者自己备份，也便于迁移。</td>
+      <td>中</td>
+    </tr>
+    <tr>
+      <td>被动复习：单词弹幕</td>
+      <td>配置项“单词弹幕开关、数量上限、速度”，默认可调。</td>
+      <td>这种被动复习与 Lens 的“不打断阅读”相冲突。若要做，只能放在屏幕边缘，默认关闭，并允许读者调整数量与速度。</td>
+      <td>低</td>
+    </tr>
+    <tr>
+      <td>默认关闭中文注解</td>
+      <td><code>defaultConfig</code> 中 <code>中文注解: false</code>。</td>
+      <td>与 Lens 的英文优先一致，可以保持。</td>
+      <td>已具备</td>
+    </tr>
+    <tr>
+      <td>按站点设置黑名单</td>
+      <td><code>testBlack()</code> 按 hostname 判断。</td>
+      <td>Lens 的扫描白名单按前台进程名，粒度不同，思路一致。</td>
+      <td>已具备</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h2>可改进（BlueSea 的问题，Lens 应避免）</h2>
+
+<h3>1. 已完成的词会被永久删除（已复现）</h3>
+<p><code>logic.js</code> 的 <code>getMaterials()</code> 在“隐藏完成复习的单词”为真（默认）时，过滤掉 <code>learn.done</code> 为真的词。随后 <code>addMaterialObj()</code>、<code>updateMaterialObj()</code>、<code>toLearnNext()</code> 都先调用 <code>getMaterials()</code>，再用 <code>setMaterials()</code> 把过滤后的列表整表写回。被过滤掉的词因此从存储中消失。</p>
+<p>复现方法：用 Node 加载真实的 <code>logic.js</code> 数据层（截断到 <code>class FunCtrl</code> 之前），以内存版 <code>chrome.storage</code> 替代浏览器存储。脚本未纳入仓库，保存在本机的缓存目录中（文件名 <code>repro.cjs</code>）。结果如下：</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>场景</th><th>写入前</th><th>写入后</th></tr></thead>
+  <tbody>
+    <tr><td>1. 添加新词 charlie（隐藏开启，默认）</td><td>alpha（已完成）、bravo</td><td class="bad">bravo、charlie，alpha 消失</td></tr>
+    <tr><td>2. 完成一次复习 bravo（隐藏开启，默认）</td><td>alpha（已完成）、bravo</td><td class="bad">bravo，alpha 消失</td></tr>
+    <tr><td>3. 对照：同样添加 charlie，隐藏关闭</td><td>alpha、bravo</td><td>alpha、bravo、charlie（数据完整）</td></tr>
+    <tr><td>4. 撤回已隐藏的 alpha（<code>findIndex</code> 返回 -1）</td><td>bravo、alpha（已完成）</td><td class="bad">alpha，bravo 被覆盖</td></tr>
+  </tbody>
+</table></div>
+<p>对照组说明原因在于“过滤后的视图被当作完整数据写回”。场景 4 的原因是 <code>updateMaterialObj()</code> 对 -1 执行 <code>splice(-1, 1, material)</code>，覆盖了列表的最后一项。场景 4 需要满足“要撤回的词已被隐藏”这一条件，我只在隔离环境中复现了这条路径，没有在浏览器里点击验证。</p>
+<p class="note">Lens 的建议：写回的必须是完整数据，不能是视图。Lens 的 KnownStore 也是整文档写回，应当增加一条测试：先标记若干已会词，再保存，检查未显示的词是否仍在文件里。这条检查项尚未在 Lens 中执行。</p>
+
+<h3>2. 查询串没有编码（已复现）</h3>
+<p><code>background/background.js</code> 第 15–16 行把选中的文字和 appkey、key 直接拼进 URL，没有使用 <code>encodeURIComponent</code>。复现结果：选中 <code>R&amp;D</code> 时，<code>text</code> 参数只剩 <code>R</code>；选中 <code>C# &amp; #1</code> 时，<code>text</code> 只剩 <code>C</code>，<code>appkey</code> 参数丢失。</p>
+<p class="note">Lens 的建议：凡是拼接 URL 的地方都用 QUrlQuery 编码。Lens 的 LLM 请求是否经过编码，尚需检查。</p>
+
+<h3>3. 用户的 API key 放在 URL 查询串里，并发往作者的中转</h3>
+<p>默认路径下，翻译请求发往作者的腾讯云函数网关（<code>service-pnrys8g3-1254074572.bj.apigw.tencentcs.com</code>），appkey 与 key 作为查询参数出现在 URL 中。URL 会进入代理、网关与服务器日志。README 第 104 行称“配置 key 后，后台不会做任何记录”，这一点无法从仓库验证。README 第 90 行还承认作者的免费额度“即将耗尽”，并限制句子翻译。</p>
+<p class="note">Lens 是 BYOK：请求直接发往读者选定的服务商，key 应当只放在请求头里，不放进 URL。</p>
+
+<h3>4. 调试脚本进入生产清单</h3>
+<p><code>manifest.json</code> 的后台脚本列表包含 <code>lib/hot-reload.js</code>，这是开发期的热重载脚本，读者安装的扩展里也会带着它。</p>
+
+<h3>5. web_accessible_resources 暴露所有脚本</h3>
+<p><code>manifest.json</code> 中 <code>"web_accessible_resources": ["*.html", "*.js", "*.css"]</code>，任意网页都可以加载这些资源，用于扩展指纹识别，也扩大了攻击面。应当只列出确实需要暴露的文件。</p>
+
+<h3>6. 存储结构：整表 JSON 写回</h3>
+<p>所有生词存在 <code>chrome.storage.local</code> 的单个数组里（键为 <code>materials</code>），每次写入都重写整个数组。词量增加后，每次操作的成本线性增长。Lens 的 settings.json 也是单文档，但有明确的所有者规则（PRODUCT.md 第 101–104 行），这一点比 BlueSea 严谨。</p>
+
+<h3>7. 维护停滞且无许可证</h3>
+<p>代码最后一次提交在 2021 年。33 个开放 issue 中有 21 个没有任何评论。没有许可证，也没有测试。它的 star 来自 2020–2021 年的积累，今天的维护状况与 star 数不匹配。</p>
+
+<h2>风险与局限</h2>
+<ul>
+  <li>未在 Chrome 中加载扩展，issue #74 的“加载报错”未能复现。</li>
+  <li>复现使用内存版 <code>chrome.storage</code>。真实存储是异步的，时序可能不同，但本次复现的是写回语义，不依赖时序。</li>
+  <li>README 中关于作者网关“不做记录”的说法无法验证。</li>
+  <li>有道翻译返回的内容未测试。</li>
+</ul>
+
+<h2>方法</h2>
+<p>通过 repo-cache 克隆仓库，阅读 <code>manifest.json</code>、<code>logic.js</code>、<code>background/background.js</code> 与 README。用 Node 24 复现存储写回路径，并单独验证 URL 编码行为。对照项目的 GitHub 元数据与 issue 列表来自 gh CLI。</p>
+
+</main>
+</body>
+</html>

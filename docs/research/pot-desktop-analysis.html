@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pot-desktop 分析：Lens 可以借鉴什么</title>
+<style>
+  :root { --ink:#1d1d1f; --muted:#6e6e73; --line:#d2d2d7; --bg:#fbfbfd; --code:#f2f2f4; --accent:#0a6cff; --bad:#b42318; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#f5f5f7; --muted:#a1a1a6; --line:#3a3a3c; --bg:#1c1c1e; --code:#2c2c2e; --accent:#4da3ff; --bad:#ff8a80; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font:15px/1.75 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; }
+  main { max-width:960px; margin:0 auto; padding:40px 20px 80px; }
+  h1 { font-size:26px; margin:0 0 6px; }
+  h2 { font-size:19px; margin:44px 0 12px; padding-top:14px; border-top:1px solid var(--line); }
+  h3 { font-size:15px; margin:22px 0 6px; }
+  .meta { color:var(--muted); font-size:13px; margin:0 0 24px; }
+  p, li { margin:6px 0; }
+  ol, ul { padding-left:22px; }
+  code { font:13px/1.4 ui-monospace,Menlo,monospace; background:var(--code); padding:1px 5px; border-radius:4px; }
+  a { color:var(--accent); }
+  .tablewrap { overflow-x:auto; margin:10px 0 18px; border:1px solid var(--line); border-radius:8px; }
+  table { border-collapse:collapse; width:100%; font-size:13.5px; line-height:1.55; }
+  th, td { padding:8px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+  th { background:var(--code); font-weight:600; }
+  tr:last-child td { border-bottom:none; }
+  .risk { color:var(--bad); font-weight:600; }
+  .note { color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>pot-desktop 分析：Lens 可以借鉴什么</h1>
+<p class="meta">数据截至 2026-10-16。仓库 <a href="https://github.com/pot-app/pot-desktop">pot-app/pot-desktop</a>，本地克隆 HEAD <code>594d32e</code>（2026-07-03）。对照项目为本仓库 main（v1.4.0）。</p>
+
+<h2>概览</h2>
+<div class="tablewrap"><table>
+  <thead><tr><th></th><th>内容</th></tr></thead>
+  <tbody>
+    <tr><td>定位</td><td>跨平台划词翻译与 OCR，README 首句：“一个跨平台的划词翻译和 OCR 软件”。</td></tr>
+    <tr><td>技术栈</td><td>Tauri 1.x（Rust 后端）+ JavaScript 前端（React 风格组件）。</td></tr>
+    <tr><td>平台</td><td>Windows、macOS、Linux。</td></tr>
+    <tr><td>Star / 许可证</td><td>19,373 / GPL-3.0。</td></tr>
+    <tr><td>创建 / 最近推送</td><td>2023-02-26 / 2026-07-04。</td></tr>
+    <tr><td>最近 Release</td><td>3.0.7，2025-05-10。共 30 个 Release，之后 16 个月没有新版本。</td></tr>
+    <tr><td>近期提交</td><td>2026 年 5 月以后的 12 条提交中，10 条是 Weblate 翻译同步，其余为一条 bug 修复和一条模型列表更新。</td></tr>
+    <tr><td>测试</td><td>Rust 与 JS 测试均为 0。CI 只有一个打包工作流（<code>package.yml</code>）。</td></tr>
+    <tr><td>默认语言</td><td>目标语言为中文（<code>translate_target_language</code> 默认 <code>zh_cn</code>），第二语言为英文。</td></tr>
+  </tbody>
+</table></div>
+
+<p>pot 的主要功能：多接口并行翻译（<code>src/services/translate/</code> 下 22 个服务目录）；Windows 系统 OCR；剪贴板监听；本机 HTTP 接口，供其他软件调用；插件系统（<code>.potext</code> 压缩包）；导出生词本（Anki、欧路，见 <code>src/services/collection/</code>）。</p>
+
+<h2>可借鉴</h2>
+<div class="tablewrap"><table>
+  <thead><tr><th>借鉴点</th><th>依据</th><th>对 Lens 的建议</th><th>优先级</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>英文释义的离线来源：词典数据做兜底</td>
+      <td>pot 的 Cambridge 与 ECDICT 服务都是词典类，不依赖 LLM。</td>
+      <td>Lens 仓库已经解析 WordNet 的异常表生成 <code>data/irregulars.tsv</code>（见 <code>docs/history/PHASE1.md</code> §4.1），只用了屈折变化，没有用释义。WordNet 的 <code>data.*</code> 文件带有英文释义，可作为离线、免费的兜底。这一点是 WordNet 的格式事实，本仓库尚未验证。</td>
+      <td>高</td>
+    </tr>
+    <tr>
+      <td>Windows 系统 OCR 作为可选后端</td>
+      <td><code>src-tauri/src/system_ocr.rs</code> 调用 <code>Windows.Media.Ocr</code>。语言包缺失时，错误信息会指向 PowerToys 的支持语言说明。</td>
+      <td>Lens 目前随包分发 Tesseract。增加一个系统 OCR 选项，可以省下安装包里的 OCR 运行时，也能复用读者已装的语言包。错误提示的写法值得照搬。</td>
+      <td>中</td>
+    </tr>
+    <tr>
+      <td>剪贴板监听作为一种取词模式</td>
+      <td><code>src-tauri/src/clipboard.rs</code> 每 500 ms 读取一次剪贴板，与上次内容比较，有变化就翻译。</td>
+      <td>可作为可选模式。但它会读取读者复制的所有内容，所以只能默认关闭，并且在设置里说明。Lens 的 PRODUCT.md 已要求“发送前可预览”，这一条同样适用。</td>
+      <td>低，需先设计隐私边界</td>
+    </tr>
+    <tr>
+      <td>生词本导出到 Anki</td>
+      <td><code>src/services/collection/anki</code>；README 的功能列表“导出到生词本”。</td>
+      <td>Lens 的生词数据目前只能经 gist 同步（PRODUCT.md 第 76 行）。加一个文件导出，读者可以自己备份，也能迁移到 Anki。</td>
+      <td>低</td>
+    </tr>
+    <tr>
+      <td>每个服务一个目录（info、实现、配置分开）</td>
+      <td>22 个翻译服务各有目录，<code>info.ts</code> 注册名称与图标。</td>
+      <td>Lens 已经用 <code>data/llm/catalog.json</code> 把服务商数据化，不需要照搬目录结构。</td>
+      <td>不借鉴</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h2>可改进（pot 的问题，Lens 应避免）</h2>
+
+<h3>1. 本机 HTTP 接口没有任何鉴权</h3>
+<p><code>src-tauri/src/server.rs</code> 在 <code>127.0.0.1:60828</code> 监听，全文没有 token 检查，也没有 Origin 检查（搜索 origin、token、auth 均无结果）。<code>/config</code> 会打开配置窗口，截图 OCR 相关路径会触发截图流程。网页向本机端口发送 <code>text/plain</code> 的 POST 不需要预检，因此网页可以触发这些接口（响应读不到，但动作会执行）。</p>
+<p class="note">Lens 没有任何本地服务：<code>src/</code> 中没有 QTcpServer、QLocalServer、QHttpServer。Lens 的建议：不为“外部调用”开放端口；确需 IPC 时使用带 ACL 的命名管道，并在首次连接时让读者确认。</p>
+
+<h3>2. 插件可以运行任意程序</h3>
+<p><code>src/utils/invoke_plugin.js</code> 用 <code>eval</code> 执行插件的 <code>main.js</code>，并把 <code>run</code> 暴露给插件。<code>src-tauri/src/cmd.rs</code> 的 <code>run_binary</code> 直接执行 <code>Command::new(cmd_name)</code>，没有白名单。安装一个 <code>.potext</code> 文件就等于授予任意代码执行权限，并且没有签名校验。</p>
+<p class="note">Lens 的 ADR 0043 选择了数据包：只含 JSON 与 PNG，应用不执行包内任何代码。这是正确的边界，应当继续坚持。</p>
+
+<h3>3. 内置 ECDICT 服务把查询词外发，README 没有说明</h3>
+<p><code>src/services/translate/ecdict/index.jsx</code> 把查询词 POST 到 <code>https://pot-app.com/api/dict</code>。README 把 ECDICT 列为插件（“[插件](…pot-app-translate-plugin-ecdict)”），却没有说明内置的 ecdict 服务会访问 pot-app.com。</p>
+<p class="note">Lens 的原则是“只发送选中内容，发送前可预览”。外发端点必须在文档中列明。</p>
+
+<h3>4. 词典服务只做英汉，没有英英路径</h3>
+<p><code>src/services/translate/cambridge_dict/index.jsx</code> 只在源语言为英文、目标语言与源语言不同时查询，数据集固定为 <code>english-chinese-simplified</code>。它抓取的是中文译文节点（<code>.trans.dtrans</code>）。因此这个服务的设计目标就是把英文翻译成中文。这与 Lens 的理念相反。它还依赖 HTML 结构，页面改版即失效。</p>
+
+<h3>5. 没有测试，维护停滞</h3>
+<p>Rust 与 JS 测试均为 0。最近一次 Release 是 2025-05-10，2026 年的提交以翻译同步为主。Star 数很高，并不代表代码在持续维护。</p>
+
+<h3>6. 错误路径用 unwrap，失败即 panic</h3>
+<p><code>src-tauri/src/system_ocr.rs</code> 中，文件打开、位图解码与识别都用 <code>unwrap()</code>，只有 OCR 引擎创建失败会返回可读错误。图片路径异常时会直接 panic。Lens 的 OCR 与 LLM 错误路径应返回可读的错误，不应崩溃。</p>
+
+<h2>风险与局限</h2>
+<ul>
+  <li>未读 <code>selection = "1.2.0"</code> 这个 crate 的源码，因此不知道 pot 取词的具体方式（UI Automation 还是模拟复制）。</li>
+  <li>未运行应用，所有判断来自源码阅读。</li>
+  <li>star、Release 与提交数来自 GitHub API 的快照（2026-10-16）。</li>
+</ul>
+
+<h2>方法</h2>
+<p>通过 repo-cache 克隆仓库，阅读 <code>src-tauri/src/</code>（clipboard、hotkey、server、system_ocr、cmd、window）与 <code>src/services/translate/</code>、<code>src/utils/invoke_plugin.js</code>，并对照 README 与 GitHub 的 Release 和提交记录。</p>
+
+</main>
+</body>
+</html>
