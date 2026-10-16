@@ -10,6 +10,10 @@ Item {
     readonly property var openChildRect: levelField.openChildRect || languageField.openChildRect
     implicitHeight: content.implicitHeight
 
+    /// The preview the pointer has called up, or "" for none: a row's title raises one on hover
+    /// (UI.md 4.4). The popup turns it into the window Main puts beside the card.
+    signal previewRequested(string key)
+
     function closeChild() {
         levelField.closeList();
         languageField.closeList();
@@ -40,10 +44,15 @@ Item {
         Column {
             width: parent.width
             spacing: 7
+            // The explanation language is the one row here whose label is its own item rather than
+            // part of a control component, so its preview is raised from here (UI.md 4.4).
             Text {
                 text: qsTranslate("SettingsPopup", "Explanation language")
                 color: root.tokens.muted
                 font.pixelSize: 12
+                HoverHandler {
+                    onHoveredChanged: root.previewRequested(hovered ? "language" : "")
+                }
             }
             DropdownField {
                 id: languageField
@@ -59,7 +68,9 @@ Item {
             width: parent.width
             label: qsTranslate("SettingsPopup", "Multiple senses")
             checked: root.settings.multiSense
+            previewKey: "multisense"
             onToggled: (on) => Controller.setMultiSense(on)
+            onPreviewChanged: (key) => root.previewRequested(key)
         }
 
         // Beside "multiple senses" rather than in a category of its own: both decide what a word's
@@ -69,7 +80,9 @@ Item {
             objectName: "etymologySwitch"
             label: qsTranslate("SettingsPopup", "Etymology")
             checked: root.settings.etymology
+            previewKey: "etymology"
             onToggled: (on) => Controller.setEtymology(on)
+            onPreviewChanged: (key) => root.previewRequested(key)
         }
 
         SwitchRow {
@@ -77,7 +90,9 @@ Item {
             objectName: "exampleSwitch"
             label: qsTranslate("SettingsPopup", "Example sentence")
             checked: root.settings.example
+            previewKey: "example"
             onToggled: (on) => Controller.setExample(on)
+            onPreviewChanged: (key) => root.previewRequested(key)
         }
     }
 }

@@ -32,7 +32,7 @@ namespace {
 
 /// The glass surfaces, by the name QML gives them in `image://glass/<name>/…`. A fixed set: each one gets its sheet at
 /// construction, so the image provider never has a sheet to create on one of its own threads.
-constexpr std::array<char const*, 11> kSurfaces{
+constexpr std::array<char const*, 12> kSurfaces{
     "settings",
     "tray",
     "stats",
@@ -44,6 +44,10 @@ constexpr std::array<char const*, 11> kSurfaces{
     "notice",
     "update",
     "removal",
+    // The settings preview's card is a second Bubble window rather than the bubble itself, so it
+    // takes a sheet of its own: two windows sharing one sheet would take the backdrop of whichever
+    // followed last, and the live refresh would flip the two between them.
+    "preview",
 };
 /// How far the sheet reaches past the window on each side, in DIP. The window can be dragged this far before the sheet
 /// has to be taken again, and the blur and the refraction read this far around the card.

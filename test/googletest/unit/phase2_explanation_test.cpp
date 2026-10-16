@@ -249,7 +249,9 @@ TEST_F(LlmTest, Phase2CachePreservesLegacyEntriesAndSeparatesAllContexts)
 TEST_F(LlmTest, Phase2LanguagesRoundTripThroughDutyTransportAndCache)
 {
     QtApplication qt;
-    for (auto const* language : {"es", "ja"}) {
+    // One language a sense: the reader picked the language they want to read, and the response's
+    // other half is not it (UI.md 4.3).
+    for (auto const* language : {"en", "es", "ja"}) {
         QTemporaryDir temporary;
         auto          store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
         store.setExplanationLang(language);
@@ -263,8 +265,12 @@ TEST_F(LlmTest, Phase2LanguagesRoundTripThroughDutyTransportAndCache)
         duty.setSelection(selection());
         run(duty, client);
         ASSERT_EQ(duty.bubble().value("senses").toList().size(), 3);
-        EXPECT_EQ(duty.bubble().value("senses").toList().front().toMap().value("text").toString(), "translation");
-        EXPECT_TRUE(manager.posted.contains(language == std::string{"es"} ? "Spanish" : "Japanese"));
+        auto const first  = duty.bubble().value("senses").toList().front().toMap();
+        const bool asking = language == std::string{"en"};
+        EXPECT_EQ(first.value("text").toString(), asking ? QString{} : QString{"translation"});
+        EXPECT_EQ(first.value("en").toString(), asking ? QString{"sense 0"} : QString{});
+        if (language != std::string{"en"})
+            EXPECT_TRUE(manager.posted.contains(language == std::string{"es"} ? "Spanish" : "Japanese"));
         ASSERT_TRUE(store.cacheGet("bank", {language, true}));
         duty.dismissBubble();
         duty.runSelectionAction("explain", "bank");
