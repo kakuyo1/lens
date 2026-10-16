@@ -9,6 +9,12 @@
   a gap, so the card never covers the pet. The tray's Settings entry is unchanged and still opens
   at the tray icon. With pass-through on no click reaches the pet window at all, so the gesture is
   off while it is set.
+- The pace the explanation is written out at is a setting (General, beside Animations): a five-step
+  slow-to-fast slider, one character every 80 ms at the slow end and 15 ms at the fast one, the
+  shipped 35 ms in the middle. The blur follows the pace as a fixed ratio rather than sitting at a
+  fixed 180 ms, so a slow speed leaves each character soft for longer without widening the blurred
+  tail into a band of shaders (docs/adr/0046). The row is shown only while Animations is on: with
+  motion off the answer arrives whole, so there is no pace to set.
 
 ### Changed
 
