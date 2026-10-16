@@ -245,6 +245,13 @@ Window {
                         HoverHandler { cursorShape: Qt.PointingHandCursor }
                         TapHandler { onTapped: saver.open() }
                     }
+                    Icon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        source: "qrc:/icons/ui-folder.svg"
+                        color: words.tokens.faint
+                        HoverHandler { cursorShape: Qt.PointingHandCursor }
+                        TapHandler { onTapped: importer.open() }
+                    }
 
                     // Back to the statistics panel, which is where this one opens from. This
                     // panel replaces it rather than stacking on it, so the way up has to be
@@ -598,10 +605,18 @@ Window {
         title: qsTr("Export words")
         fileMode: FileDialog.SaveFile
         defaultSuffix: "txt"
-        nameFilters: [qsTr("Text files (*.txt)"), qsTr("All files (*)")]
+        nameFilters: [qsTr("Text files (*.txt)"), qsTr("JSON files (*.json)"), qsTr("All files (*)")]
         // The scope is in the name because the scope is what the export is: the reader who
         // exports twice from two filters gets two files rather than one overwriting the other.
         currentFile: "words-" + words.scope + ".txt"
         onAccepted: Controller.saveWords(saver.selectedFile, words.scope)
+    }
+
+    FileDialog {
+        id: importer
+        title: qsTr("Import words")
+        fileMode: FileDialog.OpenFile
+        nameFilters: [qsTr("Text files (*.txt)"), qsTr("JSON files (*.json)"), qsTr("All files (*)")]
+        onAccepted: Controller.importWords(importer.selectedFile)
     }
 }

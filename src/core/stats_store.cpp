@@ -253,6 +253,23 @@ std::string exportLemmas(const std::vector<HistoryEntry>& history, ExportScope s
     return text;
 }
 
+std::string exportLemmasJson(const std::vector<HistoryEntry>& history, ExportScope scope)
+{
+    const auto wanted = [scope](const HistoryEntry& entry) {
+        if (scope == ExportScope::Known) return entry.verdict == "known";
+        if (scope == ExportScope::New) return entry.verdict == "new";
+        return true;
+    };
+    std::unordered_set<std::string> seen;
+    nlohmann::json                  out = nlohmann::json::array();
+    for (const HistoryEntry& entry : history) {
+        if (!seen.insert(entry.lemma).second || !wanted(entry))
+            continue;
+        out.push_back(entry.lemma);
+    }
+    return out.dump();
+}
+
 void StatsStore::writeBack()
 {
     nlohmann::json history = nlohmann::json::array();

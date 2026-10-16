@@ -144,7 +144,9 @@ public:
     /// @return Empty once the capture is under way; otherwise the reason, which is also reported.
     Q_INVOKABLE QString captureRegion(QRect region);
     Q_INVOKABLE QString exportWords(QString scope);
+    Q_INVOKABLE QString exportWordsJson(QString scope);
     Q_INVOKABLE bool    saveWords(QUrl path, QString scope);
+    Q_INVOKABLE bool    importWords(QUrl path);
     Q_INVOKABLE bool    removeWord(QString lemma);
     Q_INVOKABLE bool    setDailyBudget(double amount);
     void                checkForUpdatesAtStartup();

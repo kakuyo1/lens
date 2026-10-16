@@ -9,6 +9,10 @@
 #include <QCursor>
 #include <QDate>
 #include <QDateTime>
+#include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonValue>
 #include <QGuiApplication>
 #include <QHash>
 #include <QLocale>
@@ -603,6 +607,24 @@ QString AppController::exportWords(QString scope)
     return text;
 }
 
+QString AppController::exportWordsJson(QString scope)
+{
+    core::ExportScope which;
+    if (scope == QLatin1String("all"))
+        which = core::ExportScope::All;
+    else if (scope == QLatin1String("known"))
+        which = core::ExportScope::Known;
+    else if (scope == QLatin1String("new"))
+        which = core::ExportScope::New;
+    else {
+        LENS_WARN("json export asked for an unknown scope '{}'; nothing was written", scope.toStdString());
+        return {};
+    }
+    const QString text = QString::fromStdString(core::exportLemmasJson(storage_.statsStore().history(), which));
+    LENS_INFO("words json export for '{}': {} character(s) ready", scope.toStdString(), text.size());
+    return text;
+}
+
 bool AppController::saveWords(QUrl path, QString scope)
 {
     if (scope != QLatin1String("all") && scope != QLatin1String("known") && scope != QLatin1String("new")) {
@@ -614,7 +636,8 @@ bool AppController::saveWords(QUrl path, QString scope)
         LENS_WARN("words export was given '{}', which names no local file", path.toString().toStdString());
         return false;
     }
-    const QString text = exportWords(scope);
+    const bool    json = local.endsWith(QLatin1String(".json"), Qt::CaseInsensitive);
+    const QString text = json ? exportWordsJson(scope) : exportWords(scope);
     QSaveFile     file(local);
     if (!file.open(QIODevice::WriteOnly)) {
         LENS_WARN("words export could not open '{}' for writing", local.toStdString());
@@ -626,6 +649,70 @@ bool AppController::saveWords(QUrl path, QString scope)
         return false;
     }
     LENS_INFO("words export for '{}': {} character(s) written to '{}'", scope.toStdString(), text.size(), local.toStdString());
+    return true;
+}
+
+bool AppController::importWords(QUrl path)
+{
+    const QString local = path.toLocalFile();
+    if (local.isEmpty()) {
+        LENS_WARN("words import was given '{}', which names no local file", path.toString().toStdString());
+        return false;
+    }
+    QFile file(local);
+    if (!file.open(QIODevice::ReadOnly)) {
+        LENS_WARN("words import could not open '{}' for reading", local.toStdString());
+        return false;
+    }
+    const QByteArray data = file.readAll();
+    const bool       json = local.endsWith(QLatin1String(".json"), Qt::CaseInsensitive);
+
+    std::vector<std::string> incoming;
+    if (json) {
+        const QJsonDocument doc = QJsonDocument::fromJson(data);
+        if (!doc.isArray()) {
+            LENS_WARN("words import: '{}' is not a JSON array", local.toStdString());
+            return false;
+        }
+        for (const QJsonValue& value : doc.array()) {
+            if (value.isString()) {
+                incoming.push_back(value.toString().trimmed().toStdString());
+            } else if (value.isObject()) {
+                const QString word = value.toObject().value(QStringLiteral("word")).toString();
+                if (!word.trimmed().isEmpty())
+                    incoming.push_back(word.trimmed().toStdString());
+            }
+        }
+    } else {
+        const QString text = QString::fromUtf8(data);
+        for (const QString& line : text.split(QLatin1Char('\n'))) {
+            const QString word = line.trimmed();
+            if (!word.isEmpty())
+                incoming.push_back(word.toStdString());
+        }
+    }
+
+    std::unordered_set<std::string> seen;
+    std::unordered_set<std::string> existing;
+    for (const auto& entry : storage_.statsStore().history())
+        existing.insert(entry.lemma);
+    const QString now   = QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd HH:mm"));
+    int           added = 0;
+    for (const std::string& lemma : incoming) {
+        if (lemma.empty() || seen.count(lemma) || existing.count(lemma))
+            continue;
+        seen.insert(lemma);
+        storage_.statsStore().recordPop(lemma, now.toStdString());
+        storage_.statsStore().recordVerdict(lemma, now.toStdString(), "new");
+        existing.insert(lemma);
+        ++added;
+    }
+    storage_.save();
+    if (added > 0) {
+        emit statsChanged();
+        emit yearDaysChanged();
+    }
+    LENS_INFO("words import from '{}': {} word(s) added", local.toStdString(), added);
     return true;
 }
 

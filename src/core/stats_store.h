@@ -71,6 +71,11 @@ enum class ExportScope : std::uint8_t { All,
 std::string exportLemmas(const std::vector<HistoryEntry>& history, ExportScope scope);
 
 /**
+ * @brief Render the history as a JSON array of lemmas, one entry per row.
+ */
+std::string exportLemmasJson(const std::vector<HistoryEntry>& history, ExportScope scope);
+
+/**
  * @brief The history and daily tallies behind the statistics surfaces.
  *
  * @note Deliberately Qt-free, like KnownStore: the aggregates the popups show (this month,
