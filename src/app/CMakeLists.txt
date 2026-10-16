@@ -84,7 +84,7 @@ enable_language(RC)
 # no machine path is written into either file.
 qt_add_executable(lens
   main.cpp
-  ${CMAKE_SOURCE_DIR}/icons/lens.rc
+  ${CMAKE_SOURCE_DIR}/data/icons/lens.rc
 )
 
 # The module's QML files reach the executable through lens_app's resources, but the C++ types
@@ -228,33 +228,33 @@ qt_add_qml_module(lens_app
 # -- every QTest target links lens_app, so on `lens` each of them drew a missing image and printed
 # a warning per case. The executable still gets them, since it links lens_app.
 set(LENS_ICONS
-  ${CMAKE_SOURCE_DIR}/icons/lens.svg
-  ${CMAKE_SOURCE_DIR}/icons/tray-auto-ondark.svg
-  ${CMAKE_SOURCE_DIR}/icons/tray-auto-onlight.svg
-  ${CMAKE_SOURCE_DIR}/icons/tray-busy-ondark.svg
-  ${CMAKE_SOURCE_DIR}/icons/tray-busy-onlight.svg
-  ${CMAKE_SOURCE_DIR}/icons/tray-off-ondark.svg
-  ${CMAKE_SOURCE_DIR}/icons/tray-off-onlight.svg
-  ${CMAKE_SOURCE_DIR}/icons/tray-budget-ondark.svg
-  ${CMAKE_SOURCE_DIR}/icons/tray-budget-onlight.svg
-  ${CMAKE_SOURCE_DIR}/icons/ui-back.svg
-  ${CMAKE_SOURCE_DIR}/icons/ui-chevron-down.svg
-  ${CMAKE_SOURCE_DIR}/icons/ui-chevron-right.svg
-  ${CMAKE_SOURCE_DIR}/icons/ui-close.svg
-  ${CMAKE_SOURCE_DIR}/icons/ui-copy.svg
-  ${CMAKE_SOURCE_DIR}/icons/ui-explain.svg
-  ${CMAKE_SOURCE_DIR}/icons/ui-export.svg
-  ${CMAKE_SOURCE_DIR}/icons/ui-folder.svg
-  ${CMAKE_SOURCE_DIR}/icons/ui-github.svg
-  ${CMAKE_SOURCE_DIR}/icons/ui-language.svg
-  ${CMAKE_SOURCE_DIR}/icons/ui-quit.svg
-  ${CMAKE_SOURCE_DIR}/icons/ui-settings.svg
-  ${CMAKE_SOURCE_DIR}/icons/ui-stats.svg
-  ${CMAKE_SOURCE_DIR}/icons/ui-translate.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/lens.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/tray-auto-ondark.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/tray-auto-onlight.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/tray-busy-ondark.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/tray-busy-onlight.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/tray-off-ondark.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/tray-off-onlight.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/tray-budget-ondark.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/tray-budget-onlight.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-back.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-chevron-down.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-chevron-right.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-close.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-copy.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-explain.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-export.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-folder.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-github.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-language.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-quit.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-settings.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-stats.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-translate.svg
 )
 qt_add_resources(lens_app "icons"
   PREFIX "/icons"
-  BASE ${CMAKE_SOURCE_DIR}/icons
+  BASE ${CMAKE_SOURCE_DIR}/data/icons
   FILES ${LENS_ICONS}
 )
 
