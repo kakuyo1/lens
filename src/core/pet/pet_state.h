@@ -1,7 +1,9 @@
 #pragma once
 
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
+#include <deque>
 #include <functional>
 #include <map>
 #include <optional>
@@ -70,6 +72,8 @@ struct Playbook {
     /// The action that plays each role. Only stretch may be absent (PHASE3 3.1).
     std::map<Role, ActionName> roles;
     /// The actions the idle timer picks from at random. Only the timer picks them; no event does.
+    /// The loader adds every action no role names, so a pet that gains an action gains an idle one
+    /// without the data having to list it twice (parseAnimations).
     std::vector<ActionName> idlePool;
 };
 
@@ -80,18 +84,30 @@ using RandomSource = std::function<double()>;
  * @brief Chooses the action the pet plays, from events and elapsed time.
  *
  * Priority, highest first: drag, click, event, situational, idle (PHASE3 3.3). A request at the same
- * priority as the action now playing, or below it, is dropped. Thinking is the exception: it only waits
- * for the explanation that an event completes, so any event replaces it. Thinking also ends by itself
- * after kThinkingTimeout, because the specification has no event for a request that is never answered.
+ * priority as the action now playing, or below it, is dropped. Thinking is the exception: it only
+ * waits for the explanation that an event completes, so any event replaces it. Thinking also ends by
+ * itself after kThinkingTimeout, because the specification has no event for a request that is never
+ * answered.
  *
  * Reading and sleeping are held states: an event keeps them, and the pet returns to them after a
  * one-shot reaction ends. Dragging is not held, so releasing the pet always lands on idle.
+ *
+ * Idle is not a road to sleep. Every idle turn rolls a die first and naps only on kNapChance, so a quiet
+ * desktop is mostly the pet's own actions; and a nap ends by itself after nextNap(), so the pet is never
+ * asleep for good. Only the budget's hold on sleep outlasts it (PetEvent::BudgetPaused).
  */
 struct PetStateMachine {
-    /// @brief Quiet time with no event before the pet yawns and falls asleep.
-    static constexpr std::chrono::milliseconds kQuietBeforeYawn{180'000};
-    /// @brief Idle wait before a random action: this base, plus up to the same again at random.
+    /// @brief Idle wait before a random action: this base, plus up to kIdleCooldownSpread at random.
     static constexpr std::chrono::milliseconds kIdleCooldownBase{20'000};
+    /// @brief The top of the idle wait's jitter. Wide on purpose: an even cadence reads as a metronome.
+    static constexpr std::chrono::milliseconds kIdleCooldownSpread{70'000};
+    /// @brief The chance an idle turn becomes a yawn and a nap rather than a random action.
+    static constexpr double kNapChance{1.0 / 12.0};
+    /// @brief How long a nap lasts: drawn per nap between these two.
+    static constexpr std::chrono::milliseconds kNapMin{90'000};
+    static constexpr std::chrono::milliseconds kNapMax{300'000};
+    /// @brief How many of the actions just played the idle pick refuses to repeat.
+    static constexpr std::size_t kRecentIdle{2};
     /// @brief How long thinking waits for its explanation before it gives up.
     static constexpr std::chrono::milliseconds kThinkingTimeout{30'000};
 
@@ -112,7 +128,7 @@ struct PetStateMachine {
     /// @param event What happened. Carries no text.
     void handle(PetEvent event);
 
-    /// @brief Moves the clock on by `step`: starts quiet or idle actions when due, and ends actions that have run out.
+    /// @brief Moves the clock on by `step`: takes an idle turn when one is due, and ends actions that have run out.
     /// @param step Time since the last call.
     void advance(std::chrono::milliseconds step);
 
@@ -141,9 +157,14 @@ private:
     void release(Role state);
     /// @brief Ends a one-shot or a held state: to the pending return, else the held state, else idle.
     void settle();
-    /// @return The next idle action from the pool, or nothing when every candidate is the one just played or the pool is empty.
+    /// @brief What an idle wait that has run out becomes: a nap, or one action from the pool.
+    void takeIdleTurn();
+    /// @return The next idle action from the pool, or nothing only when the pool is empty: the memory of what
+    ///         was just played never holds back the last action the pool has.
     std::optional<ActionName> pickRandomIdle();
     std::chrono::milliseconds nextIdleWait();
+    /// @return How long the nap about to start lasts, in [kNapMin, kNapMax).
+    std::chrono::milliseconds nextNap();
     std::chrono::milliseconds durationOf(ActionName const& action) const;
 
     Playbook     playbook;
@@ -154,18 +175,20 @@ private:
     Priority            priority{Priority::Idle};
     /// Time spent in the current action.
     std::chrono::milliseconds elapsed{0};
-    /// Time since the last event, for the quiet yawn.
-    std::chrono::milliseconds quiet{0};
     /// Time spent idle, for the random pick.
     std::chrono::milliseconds idleMs{0};
     std::chrono::milliseconds idleWait{0};
+    /// How long the nap now running lasts, drawn when it started.
+    std::chrono::milliseconds napFor{0};
     /// The held state an event keeps: reading while an explanation is up, sleep while the budget is paused.
     std::optional<Role> held;
     /// Where the current action goes when it ends, from its `returnTo`. Any event clears it first, so a
     /// reaction cancels a yawn's return to sleep.
-    std::optional<Role>       pendingReturn;
-    std::optional<ActionName> lastIdle;
-    bool                      dragging{false};
+    std::optional<Role> pendingReturn;
+    /// The last kRecentIdle actions the idle timer played, oldest first. Only the newest entries the
+    /// pool can spare are held back, so the pick is never left with nothing.
+    std::deque<ActionName> recentIdle;
+    bool                   dragging{false};
 };
 
 } // namespace lens::core::pet

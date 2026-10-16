@@ -165,6 +165,48 @@
       "sheet": "sprites/body/stretch.png",
       "effect": "sprites/effects/stretch.png"
     },
+    "wag": {
+      "frames": 6,
+      "fps": 8,
+      "loop": false,
+      "expressions": [
+        5,
+        0,
+        5,
+        0,
+        5,
+        0
+      ],
+      "sheet": "sprites/body/wag.png",
+      "effect": "sprites/effects/wag.png"
+    },
+    "sniff": {
+      "frames": 5,
+      "fps": 5,
+      "loop": false,
+      "expressions": [
+        2,
+        2,
+        2,
+        2,
+        0
+      ],
+      "sheet": "sprites/body/sniff.png",
+      "effect": "sprites/effects/sniff.png"
+    },
+    "scratch": {
+      "frames": 4,
+      "fps": 10,
+      "loop": false,
+      "expressions": [
+        1,
+        0,
+        1,
+        0
+      ],
+      "sheet": "sprites/body/scratch.png",
+      "effect": "sprites/effects/scratch.png"
+    },
     "sleep": {
       "frames": 4,
       "fps": 3,

@@ -116,6 +116,39 @@ TEST(PetConfig, IdlePoolIsReadInDocumentOrder)
     EXPECT_EQ(playbook.idlePool, (std::vector<std::string>{"look_around", "stretch"}));
 }
 
+TEST(PetConfig, ThePoolAlsoCarriesEveryOneShotNoRoleNames)
+{
+    // An action no role names is one only the idle timer can reach, so the pool takes it in without the
+    // document having to name it twice.
+    auto document              = animationsDocument();
+    document["actions"]["wag"] = {{"frames", 4}, {"fps", 6}, {"loop", false}};
+    auto const playbook        = parseAnimations(document).playbook;
+
+    EXPECT_EQ(playbook.idlePool, (std::vector<std::string>{"look_around", "stretch", "wag"}));
+}
+
+TEST(PetConfig, ThePoolLeavesOutAnActionARoleNames)
+{
+    // Until a role names it, the same action is an extra; once one does, it is that role's and the pool
+    // must not offer it at random as well.
+    auto document                = animationsDocument();
+    document["actions"]["wag"]   = {{"frames", 4}, {"fps", 6}, {"loop", false}};
+    document["roles"]["stretch"] = "wag";
+
+    EXPECT_EQ(parseAnimations(document).playbook.idlePool, (std::vector<std::string>{"look_around", "stretch"}));
+}
+
+TEST(PetConfig, ThePoolLeavesOutALoopingActionNoRoleNames)
+{
+    // The pool's contract is one-shots, for the same reason the list refuses them: an idle action that
+    // never ends is one the pet never leaves.
+    auto document               = animationsDocument();
+    document["actions"]["doze"] = {{"frames", 4}, {"fps", 3}, {"loop", true}};
+    auto const playbook         = parseAnimations(document).playbook;
+
+    EXPECT_EQ(playbook.idlePool, (std::vector<std::string>{"look_around", "stretch"}));
+}
+
 TEST(PetConfig, YawnReturnsToSleep)
 {
     auto const playbook = dogPlaybook();

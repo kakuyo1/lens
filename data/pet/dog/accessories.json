@@ -15,7 +15,10 @@
         "pickup",
         "look_around",
         "yawn",
-        "stretch"
+        "stretch",
+        "wag",
+        "sniff",
+        "scratch"
       ]
     },
     {
@@ -33,7 +36,10 @@
         "pickup",
         "look_around",
         "yawn",
-        "stretch"
+        "stretch",
+        "wag",
+        "sniff",
+        "scratch"
       ]
     },
     {
@@ -51,7 +57,10 @@
         "pickup",
         "look_around",
         "yawn",
-        "stretch"
+        "stretch",
+        "wag",
+        "sniff",
+        "scratch"
       ]
     },
     {
@@ -69,7 +78,10 @@
         "pickup",
         "look_around",
         "yawn",
-        "stretch"
+        "stretch",
+        "wag",
+        "sniff",
+        "scratch"
       ]
     },
     {
@@ -87,7 +99,10 @@
         "pickup",
         "look_around",
         "yawn",
-        "stretch"
+        "stretch",
+        "wag",
+        "sniff",
+        "scratch"
       ]
     },
     {
@@ -105,7 +120,10 @@
         "pickup",
         "look_around",
         "yawn",
-        "stretch"
+        "stretch",
+        "wag",
+        "sniff",
+        "scratch"
       ]
     },
     {
@@ -123,7 +141,10 @@
         "pickup",
         "look_around",
         "yawn",
-        "stretch"
+        "stretch",
+        "wag",
+        "sniff",
+        "scratch"
       ]
     }
   ]

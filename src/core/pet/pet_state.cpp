@@ -26,7 +26,6 @@ bool PetStateMachine::blinking() const
 void PetStateMachine::handle(PetEvent event)
 {
     pendingReturn.reset();
-    quiet = std::chrono::milliseconds{0};
     switch (event) {
         case PetEvent::DragStart:
             if (dragging) return;
@@ -71,17 +70,9 @@ void PetStateMachine::handle(PetEvent event)
 
 void PetStateMachine::advance(std::chrono::milliseconds step)
 {
-    quiet += step;
-    if (quiet >= kQuietBeforeYawn) {
-        quiet = std::chrono::milliseconds{0};
-        request(Role::Yawn, Priority::Situational);
-        return;
-    }
     if (currentRole == Role::Idle) {
         idleMs += step;
-        if (idleMs >= idleWait) {
-            if (auto const pick = pickRandomIdle()) play(*pick, std::nullopt, Priority::Situational);
-        }
+        if (idleMs >= idleWait) takeIdleTurn();
         return;
     }
     elapsed += step;
@@ -89,7 +80,31 @@ void PetStateMachine::advance(std::chrono::milliseconds step)
         if (elapsed >= kThinkingTimeout) settle();
         return;
     }
+    // A nap is a looping action, so nothing below ends it but the clock drawn when it started. The
+    // budget's hold on sleep is longer than any nap: that sleep is the reader's, and it lasts until
+    // the reader resumes.
+    if (currentRole == Role::Sleep) {
+        if (not held and elapsed >= napFor) settle();
+        return;
+    }
     if (not playbook.actions.at(current).loop and elapsed >= durationOf(current)) settle();
+}
+
+void PetStateMachine::takeIdleTurn()
+{
+    // The idle timer owns the Idle state, so its pick is scheduled rather than requested and does not
+    // go through play()'s ladder: nothing can be playing but the idle loop itself.
+    if (random() < kNapChance) {
+        request(Role::Yawn, Priority::Situational);
+    } else if (auto const pick = pickRandomIdle()) {
+        enter(*pick, std::nullopt, Priority::Idle);
+    }
+    // Nothing was left to pick, or the playbook maps no yawn to fall back on. Re-arm rather than
+    // rolling again on every tick, which would turn the odds above into a certainty.
+    if (currentRole == Role::Idle and idleMs >= idleWait) {
+        idleMs   = std::chrono::milliseconds{0};
+        idleWait = nextIdleWait();
+    }
 }
 
 void PetStateMachine::request(Role next, Priority requested)
@@ -120,6 +135,7 @@ void PetStateMachine::enter(ActionName name, std::optional<Role> role, Priority 
         idleMs   = std::chrono::milliseconds{0};
         idleWait = nextIdleWait();
     }
+    if (role == Role::Sleep) napFor = nextNap();
 }
 
 void PetStateMachine::enterRole(Role role, Priority newPriority)
@@ -156,23 +172,35 @@ void PetStateMachine::settle()
 
 std::optional<ActionName> PetStateMachine::pickRandomIdle()
 {
-    // Never the action just played (PHASE3 3.3). The pool was checked when the playbook was parsed.
+    if (playbook.idlePool.empty()) return std::nullopt;
+
+    // Never the actions just played (PHASE3 3.3), but never down to nothing to play: the memory holds
+    // back one fewer than the pool has, so a pool of two alternates and a pool of one repeats itself,
+    // which is the only thing it can do. A larger pool gives up the whole kRecentIdle.
+    auto const              remembered = std::min(recentIdle.size(), playbook.idlePool.size() - 1);
     std::vector<ActionName> choices;
     for (auto const& candidate : playbook.idlePool) {
-        if (not lastIdle or candidate != *lastIdle) choices.push_back(candidate);
+        if (std::find(recentIdle.end() - static_cast<std::ptrdiff_t>(remembered), recentIdle.end(), candidate) == recentIdle.end())
+            choices.push_back(candidate);
     }
-    if (choices.empty()) return std::nullopt;
 
     auto const index = std::min(static_cast<std::size_t>(random() * static_cast<double>(choices.size())),
                                 choices.size() - 1);
-    lastIdle         = choices[index];
+    recentIdle.push_back(choices[index]);
+    if (recentIdle.size() > kRecentIdle) recentIdle.pop_front();
     return choices[index];
 }
 
 std::chrono::milliseconds PetStateMachine::nextIdleWait()
 {
-    auto const jitter = static_cast<std::chrono::milliseconds::rep>(random() * static_cast<double>(kIdleCooldownBase.count()));
+    auto const jitter = static_cast<std::chrono::milliseconds::rep>(random() * static_cast<double>(kIdleCooldownSpread.count()));
     return kIdleCooldownBase + std::chrono::milliseconds{jitter};
+}
+
+std::chrono::milliseconds PetStateMachine::nextNap()
+{
+    auto const span = static_cast<double>((kNapMax - kNapMin).count());
+    return kNapMin + std::chrono::milliseconds{static_cast<std::chrono::milliseconds::rep>(random() * span)};
 }
 
 std::chrono::milliseconds PetStateMachine::durationOf(ActionName const& action) const

@@ -6,11 +6,15 @@
  * data/pet/dog/animations.json; this test does not read that file, so a change there must be copied here.
  */
 
+#include <algorithm>
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <string>
 #include <type_traits>
+#include <utility>
+#include <vector>
 
 #include <gtest/gtest.h>
 
@@ -65,9 +69,33 @@ Playbook dogPlaybook()
     };
 }
 
-PetStateMachine makeMachine(double random = 0.0)
+/// A draw that turns an idle turn into a fidget: above the nap's chance, and -- the wait and the pick
+/// read the same value -- a 41 s wait that lands on the dog's first pool choice, look around.
+constexpr double kFidgets{0.3};
+
+/// A draw below the nap's chance: every idle turn it is drawn on becomes a yawn and a nap.
+constexpr double kNaps{0.0};
+
+PetStateMachine makeMachine(double random = kFidgets)
 {
     return PetStateMachine{dogPlaybook(), RandomSource{[random] { return random; }}};
+}
+
+/// A source that hands out `values` in order and repeats the last one afterwards. The machine reads it
+/// once on entering idle, once more for the die, and a third time for the pick or the nap, so a case
+/// that has to tell those draws apart spells them out here.
+RandomSource scripted(std::vector<double> values)
+{
+    return [values = std::move(values), at = std::size_t{0}]() mutable {
+        auto const value = values[std::min(at, values.size() - 1)];
+        ++at;
+        return value;
+    };
+}
+
+PetStateMachine makeMachine(RandomSource source)
+{
+    return PetStateMachine{dogPlaybook(), source};
 }
 
 /// Steps the clock in 100 ms ticks until `wanted` plays. Returns the time spent, capped at 300 s.
@@ -215,52 +243,54 @@ TEST(PetStateMachine, ClickWakesSleepAndTheSleepReturns)
     EXPECT_EQ(machine.action(), "sleep");
 }
 
-TEST(PetStateMachine, IdleCooldownIsTwentyToFortySeconds)
+TEST(PetStateMachine, IdleCooldownIsTwentyToNinetySeconds)
 {
-    auto shortest = makeMachine(0.0);
+    // 0 draws the base wait itself, and the die then turns that turn into a nap.
+    auto shortest = makeMachine(kNaps);
     shortest.advance(19'900ms);
     EXPECT_EQ(shortest.action(), "idle");
     shortest.advance(100ms);
-    EXPECT_EQ(shortest.action(), "look_around");
+    EXPECT_EQ(shortest.action(), "yawn");
 
-    // The same source picks the action, so 0.999 also lands on the last choice: stretch.
+    // The same source is read again by the die and once more by the pick, so 0.999 draws all but a hair
+    // of the wait and then the dog's last choice: stretch.
     auto longest = makeMachine(0.999);
-    longest.advance(39'900ms);
+    longest.advance(89'000ms);
     EXPECT_EQ(longest.action(), "idle");
-    longest.advance(100ms);
+    longest.advance(1'000ms);
     EXPECT_EQ(longest.action(), "stretch");
 }
 
-TEST(PetStateMachine, RandomIdleDoesNotRepeatTheLastPick)
+TEST(PetStateMachine, RandomIdleDoesNotRepeatTheLastPicks)
 {
-    // The random source always returns 0, so the first pick is the first choice: look around.
-    auto machine = makeMachine(0.0);
-    machine.advance(20s);
+    // The dog's pool is two, so the memory can hold only one action back and the picks alternate.
+    auto machine = makeMachine(kFidgets);
+    machine.advance(41s);
     ASSERT_EQ(machine.action(), "look_around");
 
     machine.advance(1s); // 6 frames at 6 fps
     ASSERT_EQ(machine.action(), "idle");
 
-    // The next pick must differ from the last one, so it is the other choice: stretch.
-    machine.advance(20s);
+    // Look around is held back, so the only choice left is stretch.
+    machine.advance(41s);
     EXPECT_EQ(machine.action(), "stretch");
 }
 
-TEST(PetStateMachine, RandomIdleNeverRepeatsWhenOnlyOneChoiceIsLeft)
+TEST(PetStateMachine, RandomIdleRepeatsWhenThePoolHasNothingElseToPlay)
 {
-    // Stretch is optional in the first version (PHASE3 3.1). Without it, look around is the only candidate,
-    // and playing it twice in a row is what 3.3 forbids, so the dog stays idle instead.
+    // Stretch is optional in the first version (PHASE3 3.1). Without it the pool holds one action, and
+    // holding that one back would leave the pet with nothing to play ever again -- so it plays it.
     auto playbook = dogPlaybook();
     playbook.actions.erase("stretch");
     playbook.roles.erase(Role::Stretch);
     playbook.idlePool = {"look_around"};
-    PetStateMachine machine{playbook, RandomSource{[] { return 0.0; }}};
-    machine.advance(20s);
+    PetStateMachine machine{playbook, RandomSource{[] { return kFidgets; }}};
+    machine.advance(41s);
     ASSERT_EQ(machine.action(), "look_around");
 
     machine.advance(1s);
-    machine.advance(20s);
-    EXPECT_EQ(machine.action(), "idle");
+    machine.advance(41s);
+    EXPECT_EQ(machine.action(), "look_around");
 }
 
 TEST(PetStateMachine, AnIdlePoolActionTheDataNamesIsPlayedByTheTimerAndEndsIntoIdle)
@@ -269,9 +299,9 @@ TEST(PetStateMachine, AnIdlePoolActionTheDataNamesIsPlayedByTheTimerAndEndsIntoI
     auto playbook = dogPlaybook();
     playbook.actions.emplace("wobble", playback(4, 4, false));
     playbook.idlePool = {"wobble"};
-    PetStateMachine machine{playbook, RandomSource{[] { return 0.0; }}};
+    PetStateMachine machine{playbook, RandomSource{[] { return kFidgets; }}};
 
-    machine.advance(20s);
+    machine.advance(41s);
     ASSERT_EQ(machine.action(), "wobble");
 
     machine.advance(1s); // 4 frames at 4 fps
@@ -313,15 +343,62 @@ TEST(PetStateMachine, EventsCarryNoText)
     SUCCEED();
 }
 
-TEST(PetStateMachine, ThreeMinutesOfQuietYawnsThenSleeps)
+TEST(PetStateMachine, AnIdleTurnNapsOnlyWhenTheDieSaysSo)
 {
-    auto       machine = makeMachine(0.999);
-    auto const elapsed = runUntil(machine, "yawn");
-    EXPECT_GE(elapsed, 180s);
-    EXPECT_LE(elapsed, 181s);
+    // The same turn, twice: one source draws below the nap's chance and the other above it. Nothing else
+    // about the two machines differs, so the die is the whole difference between them.
+    auto napping = makeMachine(kNaps);
+    napping.advance(41s);
+    EXPECT_EQ(napping.action(), "yawn");
+
+    auto fidgeting = makeMachine(kFidgets);
+    fidgeting.advance(41s);
+    EXPECT_EQ(fidgeting.action(), "look_around");
+}
+
+TEST(PetStateMachine, ANapEndsByItselfAndTheDogWakesIntoIdle)
+{
+    // Nothing has to happen on the desktop for the nap to end: the clock drawn when it started is enough.
+    auto machine = makeMachine(kNaps);
+    machine.advance(20s);
+    ASSERT_EQ(machine.action(), "yawn");
 
     machine.advance(833ms); // 5 frames at 6 fps
+    ASSERT_EQ(machine.action(), "sleep");
+
+    machine.advance(PetStateMachine::kNapMin); // the shortest nap, since 0 draws its lower bound
+    EXPECT_EQ(machine.action(), "idle");
+}
+
+TEST(PetStateMachine, TheNapsLengthIsDrawnRatherThanFixed)
+{
+    // Draws, in the order the machine reads them: the wait, the die, then the nap. A constant source
+    // cannot be both below the nap's chance and high in the nap's range, so this one is spelled out.
+    auto machine = makeMachine(scripted({0.0, 0.0, 0.999}));
+    machine.advance(20s);
+    ASSERT_EQ(machine.action(), "yawn");
+    machine.advance(833ms); // 5 frames at 6 fps
+    ASSERT_EQ(machine.action(), "sleep");
+
+    machine.advance(299'000ms); // 0.999 of [kNapMin, kNapMax)
     EXPECT_EQ(machine.action(), "sleep");
+    machine.advance(1'000ms);
+    EXPECT_EQ(machine.action(), "idle");
+}
+
+TEST(PetStateMachine, TheBudgetsSleepOutlastsANapAndOnlyTheReaderEndsIt)
+{
+    // The same action, entered by the budget rather than by a yawn. That sleep is the reader's, so the
+    // nap's clock must not take it away.
+    auto machine = makeMachine(kNaps);
+    machine.handle(PetEvent::BudgetPaused);
+    ASSERT_EQ(machine.action(), "sleep");
+
+    machine.advance(PetStateMachine::kNapMax * 2);
+    EXPECT_EQ(machine.action(), "sleep");
+
+    machine.handle(PetEvent::BudgetResumed);
+    EXPECT_EQ(machine.action(), "idle");
 }
 
 TEST(PetStateMachine, TheYawnReturnsToTheActionTheDataMapsToSleep)
@@ -331,20 +408,20 @@ TEST(PetStateMachine, TheYawnReturnsToTheActionTheDataMapsToSleep)
     playbook.actions.emplace("nap", playback(4, 3, true));
     playbook.actions.erase("sleep");
     playbook.roles[Role::Sleep] = "nap";
-    PetStateMachine machine{playbook, RandomSource{[] { return 0.999; }}};
+    PetStateMachine machine{playbook, RandomSource{[] { return kNaps; }}};
 
-    runUntil(machine, "yawn");
+    machine.advance(20s);
+    ASSERT_EQ(machine.action(), "yawn");
     machine.advance(833ms);
     EXPECT_EQ(machine.action(), "nap");
 }
 
-TEST(PetStateMachine, ExplanationWakesTheDogAfterTheYawnIntoSleep)
+TEST(PetStateMachine, ExplanationWakesTheDogFromANap)
 {
     // The yawn's return to sleep is situational: a learning event can still start reading.
-    auto machine = makeMachine(0.999);
-    runUntil(machine, "yawn");
-    machine.advance(833ms);
-    ASSERT_EQ(machine.action(), "sleep");
+    auto machine = makeMachine(kNaps);
+    machine.advance(20s);
+    runUntil(machine, "sleep");
 
     machine.handle(PetEvent::ExplanationShown);
     EXPECT_EQ(machine.action(), "study");
@@ -352,8 +429,9 @@ TEST(PetStateMachine, ExplanationWakesTheDogAfterTheYawnIntoSleep)
 
 TEST(PetStateMachine, ClickDuringYawnCancelsTheReturnToSleep)
 {
-    auto machine = makeMachine(0.999);
-    runUntil(machine, "yawn");
+    auto machine = makeMachine(kNaps);
+    machine.advance(20s);
+    ASSERT_EQ(machine.action(), "yawn");
 
     machine.handle(PetEvent::Click);
     ASSERT_EQ(machine.action(), "click_react");

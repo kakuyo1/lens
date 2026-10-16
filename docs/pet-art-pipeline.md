@@ -38,6 +38,8 @@
 - `BOOK` 的位置 `(-13, 14, 4, 36)` 是书本的狗盒单位框，不随狗的形状移动。
 - 各动作的姿势函数（`standing`、`sleep`、`pokes`、`thought` 等）都直接用 `sprite.json` 的网格，所以换网格后姿势会跟着变，但它们没有为新形状做单独调整。
 
+**小狗的动作不是逐帧画出来的**，是同一个 `standing` 姿势配三样东西：表情层的每帧索引、逐帧锚点（整只位移）、一层可选特效。加一个动作因此不需要新轮廓——`manifest.json` 的 `actions` 加一条、`build-assets.py` 的 `BODY` 表指向 `standing`（要特效就在 `EFFECTS` 表里加一个画标记的函数）、`data/pet/dog/animations.json` 加同名一条、`anchors.json` 由 `manifest.json` 的 `anchors` 镜像而来。别忘了 `data/pet/dog/accessories.json` 的 `supportedActions`：不加，戴着的配饰在新动作里会消失。2026-10-16 按这条路加了 `wag` / `sniff` / `scratch` 三条待机动作。
+
 ## 3。小狗的流程（1.2.0，脚本在 `scripts/pet/` 与 `scripts/pet/dog/`）
 
 脚本命令都在仓库根目录运行。需要 Pillow（`python -I` 下要能 import PIL）。

@@ -9,6 +9,10 @@
   plain array of the lemmas, nothing else. A folder icon beside the export brings a list in: one
   word per line from a `.txt`, or that array from a `.json`. Imported words land on the list marked
   new, a word already on the list is not added twice, and repeats inside one file collapse.
+- The dog has three more actions of its own to idle through -- wagging its tail, sniffing and
+  scratching -- beside looking around and stretching. That brings it to five, the same as the cat,
+  mochi and the owl, which already had five apiece; the dog had two and no further action to draw
+  on at all.
 - Right-clicking the desktop pet opens the settings panel on the page that carries its block
   (Extensions), placed beside the pet: the side is chosen from where the pet is at that click, with
   a gap, so the card never covers the pet. The tray's Settings entry is unchanged and still opens
@@ -27,6 +31,16 @@
   reader who would rather not install anything can run `lens.exe` straight out of the folder. The
   installer is still unsigned, and the READMEs now say so and say which two buttons get past the
   SmartScreen warning (docs/adr/0047).
+- The desktop pet no longer lies down three minutes after the reader stops, and no longer stays
+  down when it does. Idle is now a stream of the pet's own actions, and every turn draws whether to
+  nap: one in twelve yawns and sleeps, for a minute and a half to five, and the nap ends by itself.
+  The quiet counter that ran into the old fixed 180 seconds is gone, which also takes with it a
+  yawn a random action at the same priority could swallow whole -- and the pet napping is now
+  something the reader cannot predict rather than something they can time (docs/adr/0048).
+- The idle pool is the pet's own list plus every one-shot action none of its roles names, so adding
+  an action to a pet adds an idle action with it instead of needing a second list kept in step.
+  `animations.json` and the package rules are unchanged, so no pet package needs rewriting
+  (docs/pet-package-format.md).
 - The explanation card is drawn while the answer is still arriving, instead of appearing once it is
   finished: it comes up on the first text and grows a field at a time, and it keeps following its
   word unless the reader is dragging it. Nothing is cached, counted or marked learned until the

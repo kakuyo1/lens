@@ -1,5 +1,15 @@
 # TODO by agents
 
+## 待机改动的真机复核
+
+2026-10-16 的改动（`docs/adr/0048`）：待机删掉安静计时器、改为抽签打盹，小狗加了三个待机动作（`wag` / `sniff` / `scratch`）。
+
+离线用例全绿（`lens_gtest_unit` 434 例、`lens_qtest_components` 93 例、`lens_qtest_surfaces` 199 例），但待机的节奏只有盯几分钟才看得出。待办：
+
+- 看一遍新增动作的观感：三条新动作只有锚点位移、表情与一层标记，值得人眼确认它们读得出三个不同的动作，而不是三次小抖动。
+- 实机确认节奏：停手之后它是否真的不再固定三分钟睡死，以及打盹是否每次都自己醒。
+- **重跑 `ui-prototypes` 的 embed**：`pet.html` 内嵌 `data/pet/` 的全部数据与 PNG，小狗多了三个动作与六张图，这份对照稿现在是旧的。`cd ui-prototypes/pet-prototype && npm run embed`——需要先 `npm install`（本机没装 `node_modules`，工具依赖 `vite`）。
+
 ## 添加档位词书数据
 
 档位（`GLOSSARY.md`“档位”）定义为 “默认使用者已完全掌握该档位主流词书的全部单词”，落地需要 8 份词表：B1–B2 / C1–C2 / CET-4 / CET-6 / TEM-4 / TEM-8 / 雅思 / TOEFL。
