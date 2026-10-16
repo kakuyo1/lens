@@ -14,9 +14,7 @@ settings.local.json
 # repository was set up with; another machine overrides the ones that differ here.
 config/paths.local.json
 
-# Runtime logs: keep the directory, ignore its contents
-logs/*
-!logs/.gitkeep
+# Runtime logs: not tracked
 
 # Translations: the .ts files are the source, the .qm files are built from them
 i18n/*.qm
@@ -36,3 +34,5 @@ CLAUDE.local.md
 # Art this project no longer ships: the Undertale-derived dog, kept on this machine only. The shipped dog is
 # original (PHASE3 3.1). It stays out of the repository and out of the installer, which reads data/ only.
 assets-private/
+
+logs/
