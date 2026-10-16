@@ -18,12 +18,20 @@ Column {
     property int from: 0
     property int to: 100
     property int value: from
+    /// The preview this row raises when the pointer rests on its label (UI.md 4.4), empty for the
+    /// rows that raise none. The owner sets it and answers previewChanged().
+    property string previewKey: ""
+    /// The key the preview should show, or "" for none: raised while the pointer is on the label.
+    signal previewChanged(string key)
 
     signal moved(int value)
 
     width: parent.width
     spacing: 6
 
+    // The label line, which is also what raises the preview: the whole line, the value readout on
+    // its right included, since the slider below is the one thing the pointer has to leave to reach
+    // a control (UI.md 4.4).
     Item {
         width: parent.width
         height: 16
@@ -40,6 +48,11 @@ Column {
             text: root.value + root.suffix
             color: root.tokens.text
             font.pixelSize: 12
+        }
+
+        HoverHandler {
+            enabled: root.previewKey !== ""
+            onHoveredChanged: root.previewChanged(hovered ? root.previewKey : "")
         }
     }
 

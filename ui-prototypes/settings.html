@@ -189,6 +189,29 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 .btn.ink{background:var(--ink);color:var(--on)}
 .btn.ink:disabled{opacity:.45;cursor:default}
 .status{flex:1;text-align:center;font-size:11px;color:var(--faint)}
+/* 功能预览（UI.md 4.4）：指针停在设置项的标题文字上，就在面板旁浮出同一张解释气泡。
+   卡片本体与真气泡一致，只差三处：真气泡才有的关闭 × 与底部倒计时行不画，标签位改画灰色“预览”胶囊，
+   卡外 6 px 画一圈 2 px 虚线取景框。虚线画在卡外而不是画在卡片自己的描边上——卡片本体与真气泡保持同一批像素。 */
+/* 面板的定位上下文，预览卡按它贴边；vertical-align 去掉 inline-block 的基线下沉，
+   README 的截图按 440×540 居中取景，面板差几个像素就与既有图对不上。 */
+.stage{position:relative;display:inline-block;vertical-align:top}
+.preview{position:absolute;top:50%;transform:translateY(-50%);width:270px;padding:14px 16px 12px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);z-index:4}
+.preview.right{left:100%;margin-left:8px}
+.preview.left{right:100%;margin-right:8px}
+.preview::after{content:"";position:absolute;inset:-6px;border:2px dashed var(--muted);border-radius:calc(var(--r-lg) + 5px);pointer-events:none}
+.pv-tag{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--panel2);color:var(--muted)}
+.pv-word{margin-top:8px;font-size:20px;font-weight:700;letter-spacing:-.01em}
+.pv-ipa{margin-left:7px;font-size:12.5px;font-weight:400;color:var(--faint)}
+.pv-def{margin-top:6px;font-size:12.5px;color:var(--muted);line-height:1.55}
+.pv-sense{color:var(--muted);line-height:1.55}
+.pv-sense + .pv-sense{margin-top:6px;padding-top:6px;border-top:1px solid var(--line2)}
+.pv-block{margin-top:6px;padding-top:5px;border-top:1px solid var(--line2)}
+.pv-block .pv-label{font-size:11px;font-weight:700;color:var(--muted)}
+.pv-block .pv-text{margin-top:5px;font-size:12px;color:var(--muted);line-height:1.5}
+/* 两套玻璃主题下卡片取面板那一档玻璃。液体主题的折射不在这里：位移图按面板尺寸画一次，
+   套到 270 px 的卡上会拿面板的梯度去弯它（QML 侧预览卡有自己的幕布与位移图，见 UI.md 4.4）。 */
+html[data-theme=frosted] .preview,html[data-theme=liquid] .preview{backdrop-filter:blur(var(--glass-blur,6px)) saturate(var(--glass-sat,120%))}
 [hidden]{display:none!important}
 /* 测试用的背景选择，只在液体主题出现，贴在视口左上角；它不属于设置，不进文档，也不影响保存状态。 */
 .bgpick{position:fixed;top:12px;left:12px;z-index:10;display:flex;flex-direction:column;gap:6px;margin:0;padding:8px 12px 10px;border:1px solid #d6dae1;border-radius:10px;background:#fff;color:#1a1a1f;font:12px/1.2 var(--f)}
@@ -205,6 +228,7 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
     <feDisplacementMap id="lg-disp" in="SourceGraphic" in2="map" scale="20" xChannelSelector="R" yChannelSelector="G"/>
   </filter>
 </defs></svg>
+<div class="stage">
 <div class="settings" id="app" data-level="home">
   <div class="set-h">
     <button class="set-back" id="back" type="button" aria-label="返回">‹</button>
@@ -219,6 +243,9 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
     <span class="status" id="status" role="status" aria-live="polite"></span>
     <button class="btn ink" id="save" type="button" disabled data-l="save"></button>
   </div>
+</div>
+<!-- 功能预览的卡片，由 previewRow() 那一段按悬浮的设置项填内容；原型里它没有读屏内容，故 aria-hidden。 -->
+<div class="preview left" id="preview" hidden aria-hidden="true"></div>
 </div>
 <fieldset class="bgpick" id="bgpick" hidden></fieldset>
 <script>
@@ -284,7 +311,7 @@ const defaults = { theme: "light", uiLang: "zh", level: "CET-4", language: "en",
   policy: "topmost", bubbleSeconds: "5", placement: "above", minLen: "3", provider: "DeepSeek", model: "deepseek-flash", api: "", url: "",
   tesseractExe: "", tesseractData: "", triggerKey: "Ctrl+Alt+S",
   dailyBudget: "0", customBg: "#e9ebef", customPanel: "#ffffff", customText: "#1a1a1f", customMuted: "#66666f", customFaint: "#9d9da8", customOk: "#2f9e6e",
-  glassBlur: 10, glassSat: 120, glassRim: 20,
+  glassBlur: 10, glassSat: 120, glassRim: 20, revealSpeed: 3,
   liquidBlur: 10, liquidRefract: 20, liquidRim: 10, liquidText: "#101319",
   ocr: false, scan: false, multi: false, etym: false, example: false, pet: false, autoUpdate: true };
 const app = document.getElementById("app"), view = document.getElementById("view");
@@ -391,7 +418,10 @@ function page(id) {
         { value: "frosted", label: "雾面玻璃", group: "glass" },
         { value: "liquid", label: "流光玻璃", group: "glass" },
         { value: "custom", label: "自定义主题", group: "custom" }
-      ]) + customColors() + glassOptions() + sw("开机自启", "startup") + sw("动画效果", "animations") + sw("启动时检查更新", "autoUpdate");
+      ]) + customColors() + glassOptions() + sw("开机自启", "startup") + sw("动画效果", "animations")
+      // 打字速度只在一张会逐字写出的卡片上才有意义，故与开关同进同出（UI.md 4.4）。
+      + (values.animations ? slider("打字速度", "revealSpeed", 1, 5, 1, " / 5") : "")
+      + sw("启动时检查更新", "autoUpdate");
     case "learning": return dropdown("词汇档位", "level", [
         { value: "B1–B2", label: "B1–B2", group: "CEFR" },
         { value: "C1–C2", label: "C1–C2", group: "CEFR" },
@@ -501,6 +531,7 @@ function updateFoot() {
   defaultsBtn.disabled = false;
 }
 function render(focus = false) {
+  hidePreview();
   app.dataset.level = (route || category) ? "sub" : "home";
   titleEl.textContent = t.title;
   const crumb = route ? titles[route] : category ? categories.find(c => c.id === category).name : "";
@@ -513,6 +544,45 @@ function render(focus = false) {
 backBtn.onclick = () => { if (route) route = null; else category = null; render(true); };
 document.querySelector(".close").onclick = () => render();
 
+/* 功能预览（UI.md 4.4）。命中区是设置项的标题文字本身：开关、滑块、下拉按钮不触发，读者正往那里伸手。
+   卡片就是解释气泡，内容是 data/preview.json 那份样例；样例文字在这里一律英文（与 bubble.html 的样例同理），
+   跟着解释语言换行的那一版在应用里看。每个被悬浮项强制画出自己那一块：多义画三条义项、词源与例句各画一块，
+   即使开关是关的——“打开它会得到什么”正是这次悬浮要问的问题。 */
+const PREVIEW_ROWS = [["打字速度", "speed"], ["解释语言", "language"], ["多义解释", "senses"],
+                      ["词源", "etymology"], ["例句", "example"]];
+const PREVIEW_SENSES = ["The season between winter and summer.",
+                        "A coiled piece of metal that springs back into shape.",
+                        "A place where water wells up out of the ground."];
+function previewCard(key) {
+  const senses = key === "senses" ? PREVIEW_SENSES.map(s => `<div class="pv-sense">${s}</div>`).join("") : "";
+  // 义项在时释义行不画：一张卡上只留一种“这个词是什么意思”（同 UI.md 4.3）。
+  const definition = key === "senses" ? "" : '<div class="pv-def">The season between winter and summer, when plants begin to grow.</div>';
+  const etymology = key === "etymology" ? '<div class="pv-block"><div class="pv-label">词源</div><div class="pv-text">From Old English springan, to leap up or burst forth.</div></div>' : "";
+  const example = key === "example" ? '<div class="pv-block"><div class="pv-label">例句</div><div class="pv-text">The cat sprang onto the table.</div></div>' : "";
+  return `<span class="pv-tag">预览</span><div class="pv-word">spring<span class="pv-ipa">/sprɪŋ/</span></div>`
+       + senses + definition + etymology + example;
+}
+const preview = document.getElementById("preview");
+/// @return The preview key the element under the pointer raises, or null.
+function previewRow(target) {
+  const label = target.closest(".flabel, .swlabel");
+  if (!label || !view.contains(label)) return null;
+  const found = PREVIEW_ROWS.find(([text]) => label.textContent.trim() === text);
+  return found ? found[1] : null;
+}
+function showPreview(key) {
+  preview.innerHTML = previewCard(key);
+  preview.hidden = false;
+  // 贴卡片右侧优先，右侧放不下改左侧（应用里面板挂在托盘图标上，实际多为左侧）。
+  const card = app.getBoundingClientRect();
+  const fitsRight = card.right + 8 + preview.offsetWidth <= innerWidth - 8;
+  preview.classList.toggle("right", fitsRight);
+  preview.classList.toggle("left", !fitsRight);
+}
+function hidePreview() { preview.hidden = true; }
+view.addEventListener("pointerover", e => { const key = previewRow(e.target); if (key) showPreview(key); });
+view.addEventListener("pointerout", e => { if (previewRow(e.target)) hidePreview(); });
+
 /// 面板可拖动：按住卡片的空白处或标题行即可移动，控件自己吃掉按下，拖动不会误触它们。
 /// 偏移写进 transform 而不是 left/top，于是重渲染不会把面板弹回原位——读者把它放哪儿它就在哪儿。
 /// 拖动时按视口夹取，面板不会被甩出屏幕再也找不回来。
@@ -520,6 +590,8 @@ let dragOffset = { x: 0, y: 0 }, drag = null;
 const CONTROLS = "button,input,textarea,select,a,[role=button],[role=switch]";
 app.addEventListener("pointerdown", e => {
   if (e.button !== 0 || e.target.closest(CONTROLS)) return;
+  // 把面板拖走时预览卡收起：它属于被悬浮的那一行，面板一走就没有可贴的边了（应用里同样收起）。
+  hidePreview();
   e.preventDefault();
   const r = app.getBoundingClientRect();
   drag = { id: e.pointerId, fromX: e.clientX, fromY: e.clientY, dx: dragOffset.x, dy: dragOffset.y,

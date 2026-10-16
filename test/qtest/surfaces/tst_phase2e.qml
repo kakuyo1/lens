@@ -195,7 +195,7 @@ Item {
             main.showSettings();
             wait(25);
 
-            const frosted = Util.ofType(panel, "GlassSurface");
+            const frosted = Util.ofTypeInWindow(panel, "GlassSurface");
             verify(frosted, "the frosted theme drew no glass on the settings card");
             compare(frosted.mode, "frosted");
 
@@ -225,7 +225,7 @@ Item {
 
         function test_glassSamplesTheDesktopBehindTheCardNotBehindTheWindow() {
             const shown = openFrostedGeneral();
-            const glass = Util.ofType(shown.panel, "GlassSurface");
+            const glass = Util.ofTypeInWindow(shown.panel, "GlassSurface");
             verify(glass, "the frosted theme drew no glass on the settings card");
             // The card is inset by the shadow margin, so its corner is that far into the window on the desktop.
             compare(glass.origin.x, shown.panel.x + shown.panel.shadowMargin - glass.shownSheet.x);
@@ -234,7 +234,7 @@ Item {
 
         function test_glassStaysOnScreenWhileItsBlurLoads() {
             const shown = openFrostedGeneral();
-            const glass = Util.ofType(shown.panel, "GlassSurface");
+            const glass = Util.ofTypeInWindow(shown.panel, "GlassSurface");
             verify(glass, "the frosted theme drew no glass on the settings card");
             tryCompare(glass.shownSlot, "status", Image.Ready);
 

@@ -29,6 +29,7 @@
 #include "bubble_settings.h"
 #include "glass_settings.h"
 #include "notice.h"
+#include "paths.h"
 #include "reveal_settings.h"
 #include "update/update_client.h"
 #include "util/log.h"
@@ -50,6 +51,26 @@ QKeySequence storedHotkey(StorageDuty& storage)
     return parsed;
 }
 
+/// @return `data/preview.json` as a map, empty when it is missing or unreadable.
+///
+/// The settings preview's demo card is a nicety, and one it cannot read is not worth a refused
+/// start: an empty map makes PreviewSample.payload() answer null, and the preview then does not
+/// come up at all. Only the path is logged -- the reading that failed is the file's, not a field's.
+QVariantMap loadPreviewSample(const std::filesystem::path& file)
+{
+    QFile document(QString::fromStdWString(file.wstring()));
+    if (not document.open(QIODevice::ReadOnly)) {
+        LENS_WARN("no settings preview sample at '{}'; the preview stays down", narrow(file));
+        return {};
+    }
+    const auto parsed = QJsonDocument::fromJson(document.readAll());
+    if (not parsed.isObject()) {
+        LENS_WARN("'{}' is not a JSON object; the preview stays down", narrow(file));
+        return {};
+    }
+    return parsed.object().toVariantMap();
+}
+
 }
 
 AppController::AppController(core::KnownStore&            store,
@@ -61,7 +82,7 @@ AppController::AppController(core::KnownStore&            store,
                              QObject*                     parent)
     : QObject(parent),
       storage_(store),
-      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), sync_(storage_, dataDir, this), llm_(llm), hotkey_(hotkey)
+      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), sync_(storage_, dataDir, this), llm_(llm), hotkey_(hotkey), previewSample_(loadPreviewSample(dataDir / "preview.json"))
 {
     budgetPaused_ = cost_.budgetStatus().exhausted;
     // A change to the statistics or the settings is what a sync carries, so either one schedules
@@ -799,6 +820,11 @@ QString AppController::buildDate() const
     // language the reader has chosen.
     const QDate built = QLocale::c().toDate(QString::fromLatin1(__DATE__).simplified(), QStringLiteral("MMM d yyyy"));
     return built.toString(Qt::ISODate);
+}
+
+QVariantMap AppController::settingPreview() const
+{
+    return previewSample_;
 }
 
 void AppController::refreshCaptureGates()

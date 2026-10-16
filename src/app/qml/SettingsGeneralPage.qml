@@ -17,6 +17,10 @@ Item {
 
     signal childRequested(string value)
 
+    /// The preview the pointer has called up, or "" for none: a row's title raises one on hover
+    /// (UI.md 4.4). The popup turns it into the window Main puts beside the card.
+    signal previewRequested(string key)
+
     function closeChild() {
         themeField.closeList();
     }
@@ -342,7 +346,9 @@ Item {
             from: 1
             to: 5
             value: Controller.settings.revealSpeed
+            previewKey: "speed"
             onMoved: (stop) => Controller.setRevealSpeed(stop)
+            onPreviewChanged: (key) => page.previewRequested(key)
         }
 
         SwitchRow {
