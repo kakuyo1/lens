@@ -133,6 +133,8 @@ Item {
                 for (const mode of ["light", "dark"]) {
                     Tokens.theme = mode;
                     const bubble = opened("Coined in 1754, from Horace Walpole's tale of the three princes of Serendip.");
+                    // The card writes its answer out a character at a time: photograph it settled.
+                    tryVerify(function () { return !bubble.revealing; }, 8000);
                     waitForRendering(bubble.contentItem);
                     verify(Util.saveSnapshot(testCase, bubble.contentItem, lensQaSnapshotDir, "bubble-etymology-" + mode));
                     compare(blockOf(bubble).visible, true);

@@ -74,6 +74,8 @@ Item {
                 for (const mode of ["light", "dark"]) {
                     Tokens.theme = mode;
                     const bubble = opened(3);
+                    // The card writes its answer out a character at a time: photograph it settled.
+                    tryVerify(function () { return !bubble.revealing; }, 8000);
                     waitForRendering(bubble.contentItem);
                     compare(Tokens.dark, mode === "dark");
                     verify(Util.saveSnapshot(testCase, bubble.contentItem, lensQaSnapshotDir, "bubble-senses-" + mode));

@@ -68,6 +68,18 @@ Window {
     /// no count for the reader to read.
     property bool countsDown: true
 
+    /// Whether the answer is written out a character at a time (RevealText). A card raised whole out
+    /// of the cache is not: the word list puts one up for every row the pointer crosses.
+    property bool reveal: true
+    /// Whether the fields reveal at all, which is the payload's flag and the reader's motion setting.
+    readonly property bool revealAnimation: reveal && !bubble.tokens.motion.reduced
+
+    /// True while any field is still being written out: what holds the countdown.
+    readonly property bool revealing: definitionText.revealing || chineseText.revealing
+                                      || translationText.revealing || ipaText.revealing
+                                      || etymologyText.revealing || exampleText.revealing
+                                      || senseRows.revealing
+
     property var pendingPayload: null
     property bool pendingWasVisible: false
     property int showGeneration: 0
@@ -95,7 +107,9 @@ Window {
         pendingPayload = payload;
         pendingWasVisible = wasVisible;
         pendingGeneration = generation;
-        dragging = false; // a fresh bubble is never mid-drag
+        // A fresh bubble is never mid-drag; a refresh may arrive while the reader is holding it.
+        if (!wasVisible)
+            dragging = false;
         title = payload.title || "";
         type = payload.type || "";
         ipa = payload.ipa || "";
@@ -107,6 +121,7 @@ Window {
         senses = payload.senses ? payload.senses.slice(0, 3) : [];
         status = payload.status || "";
         countsDown = payload.countsDown !== false;
+        reveal = payload.reveal !== false;
         remainingMs = dismissAfterMs;
 
         // A new window must not paint its first frame before Text has settled the card height:
@@ -116,7 +131,9 @@ Window {
         if (!wasVisible)
             visible = false;
 
-        placement.restart();
+        // Growing content re-asks for placement; a card the reader is dragging is theirs.
+        if (!dragging)
+            placement.restart();
     }
 
     Timer {
@@ -143,10 +160,15 @@ Window {
 
     onDraggingChanged: updateCountdown()
 
-    /// The countdown stands still while the reader is holding the bubble, under the pointer or
-    /// in the middle of a drag, and picks up the time that is left when they let go of it.
+    /// The clock starts when the reveal ends, not while the answer is still being written.
+    onRevealingChanged: updateCountdown()
+
+    /// The countdown stands still while the reader is holding the bubble, under the pointer or in
+    /// the middle of a drag, and picks up the time that is left when they let go of it. The reveal
+    /// holds it too: the display time is the reader's time with the answer, which is only readable
+    /// once it is all on the card.
     function updateCountdown() {
-        if (hovering || dragging || !countsDown)
+        if (hovering || dragging || !countsDown || revealing)
             countdown.stop();
         else if (visible)
             countdown.start();
@@ -365,104 +387,69 @@ Window {
                         elide: Text.ElideRight
                     }
 
-                    Text {
+                    RevealText {
                         id: ipaText
                         // On the word's baseline: each item's own baseline offset is the distance
                         // from its top to that baseline, padding included.
                         x: wordText.width + 7
                         y: wordText.baselineOffset - baselineOffset
                         visible: bubble.type === "word" && bubble.ipa !== ""
+                        animated: bubble.revealAnimation
+                        // Measured, not wrapped, and whole from the first frame: the title gives up
+                        // its room to the full pronunciation, not to what has been written so far.
+                        wrapMode: Text.NoWrap
                         text: bubble.ipa
                         color: bubble.tokens.faint
-                        font.pixelSize: 13 // the prototype's 12.5 px, as the definition line rounds it
+                        pixelSize: 13 // the prototype's 12.5 px, as the definition line rounds it
                     }
                 }
 
-                Repeater {
-                    model: bubble.type === "word" ? bubble.senses : []
-
-                    delegate: Column {
-                        id: senseRow
-                        required property int index
-                        required property var modelData
-                        width: column.width
-                        spacing: 0
-
-                        Rectangle {
-                            objectName: "senseSeparator"
-                            visible: senseRow.index > 0
-                            width: parent.width
-                            height: 1
-                            color: bubble.tokens.line2
-                        }
-
-                        Text {
-                            objectName: "senseEnglish"
-                            visible: text !== ""
-                            width: parent.width
-                            topPadding: 6
-                            bottomPadding: senseRow.modelData.text === "" ? 6 : 0
-                            text: senseRow.modelData.en || ""
-                            textFormat: Text.PlainText
-                            color: bubble.tokens.muted
-                            font.pixelSize: 13
-                            lineHeight: 1.55
-                            wrapMode: Text.Wrap
-                        }
-
-                        Text {
-                            objectName: "senseTranslation"
-                            visible: text !== ""
-                            width: parent.width
-                            topPadding: 5
-                            bottomPadding: 6
-                            text: senseRow.modelData.text || ""
-                            textFormat: Text.PlainText
-                            color: bubble.tokens.text
-                            font.pixelSize: 12
-                            lineHeight: 1.5
-                            wrapMode: Text.Wrap
-                        }
-                    }
+                SenseRows {
+                    id: senseRows
+                    senses: bubble.type === "word" ? bubble.senses : []
+                    animated: bubble.revealAnimation
+                    englishColor: bubble.tokens.muted
+                    translationColor: bubble.tokens.text
+                    separatorColor: bubble.tokens.line2
                 }
 
                 // The definition line, and for a translation bubble the whole card: a translation
                 // has no title and no badge above it, so drawing it in the definition's secondary
                 // colour would leave the answer looking like a footnote to nothing (UI.md 4.3).
-                Text {
+                RevealText {
+                    id: definitionText
                     visible: bubble.senses.length === 0 && bubble.english !== ""
+                    animated: bubble.revealAnimation
                     width: parent.width
                     topPadding: 6
                     text: bubble.english
-                    textFormat: Text.PlainText
                     color: bubble.type === "translation" ? bubble.tokens.text : bubble.tokens.muted
-                    font.pixelSize: 13
+                    pixelSize: 13
                     lineHeight: 1.55
-                    wrapMode: Text.Wrap
                 }
 
-                Text {
+                RevealText {
+                    id: chineseText
                     visible: bubble.senses.length === 0 && bubble.chinese !== ""
+                    animated: bubble.revealAnimation
                     width: parent.width
                     topPadding: 5
                     text: bubble.chinese
-                    textFormat: Text.PlainText
                     color: bubble.tokens.text
-                    font.pixelSize: 12
+                    pixelSize: 12
                     lineHeight: 1.5
-                    wrapMode: Text.Wrap
                 }
 
-                Text {
+                RevealText {
+                    id: translationText
                     visible: bubble.senses.length === 0 && bubble.translation !== ""
+                    animated: bubble.revealAnimation
                     width: parent.width
                     topPadding: 5
                     text: bubble.translation
-                    textFormat: Text.PlainText
                     color: bubble.tokens.text
-                    font.pixelSize: 12
+                    pixelSize: 12
                     lineHeight: 1.5
-                    wrapMode: Text.Wrap
                 }
 
                 // The word's origin, under the explanation it belongs to. A hairline and a small
@@ -500,15 +487,15 @@ Window {
                         font.weight: Font.Bold
                     }
 
-                    Text {
+                    RevealText {
+                        id: etymologyText
                         objectName: "etymologyText"
+                        animated: bubble.revealAnimation
                         width: parent.width
                         text: bubble.etymology
-                        textFormat: Text.PlainText
                         color: bubble.tokens.muted
-                        font.pixelSize: 12
+                        pixelSize: 12
                         lineHeight: 1.5
-                        wrapMode: Text.Wrap
                     }
                 }
 
@@ -537,15 +524,15 @@ Window {
                         font.weight: Font.Bold
                     }
 
-                    Text {
+                    RevealText {
+                        id: exampleText
                         objectName: "exampleText"
+                        animated: bubble.revealAnimation
                         width: parent.width
                         text: bubble.example
-                        textFormat: Text.PlainText
                         color: bubble.tokens.muted
-                        font.pixelSize: 12
+                        pixelSize: 12
                         lineHeight: 1.5
-                        wrapMode: Text.Wrap
                     }
                 }
 

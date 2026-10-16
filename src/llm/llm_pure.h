@@ -1,10 +1,12 @@
 #pragma once
 
 #include <QByteArray>
+#include <QJsonObject>
 #include <QString>
 #include <QStringList>
 #include <QVector>
 
+#include <optional>
 #include <variant>
 
 #include "llm_client.h"   // Config / Explanation
@@ -129,6 +131,60 @@ QStringList parseModelIds(QByteArray const& body);
  * @return The matching ids, in the order @p ids gave them.
  */
 QStringList idsForPrefix(QStringList const& ids, QString const& prefix);
+
+/// @brief What one chunk of a streaming answer contributes to the whole.
+///
+/// A chunk is the `data:` payload of one SSE event. Folding them -- the text appended, the
+/// reason the model stopped, the token counts -- is what turns a stream back into the one
+/// envelope parseExplanations() already checks, so the finished-answer contract does not fork.
+struct StreamDelta {
+    QString     content;      ///< Text appended to the answer; empty on every chunk but a content one.
+    QString     finishReason; ///< "stop" or "length", on the chunk where the model says it stopped.
+    QJsonObject usage;        ///< Token counts, on the last chunk when the request asked for them.
+};
+
+/**
+ * @brief Take the whole SSE events' data payloads off an unframed byte buffer.
+ *
+ * A chunk from the network can end anywhere: mid-line, mid-escape, or mid-UTF-8 code point.
+ * Bytes are buffered until an event's blank-line terminator has arrived, and only then is the
+ * event decoded -- so a multi-byte character split across two reads is never seen half-formed.
+ * Both the LF and the CRLF terminator are accepted.
+ *
+ * @param buffer Bytes read so far. The bytes of the events returned are removed from it; a
+ *               partial event and the bytes after it are left in place for the next read.
+ * @return One entry per complete event that carried a `data:` field, in arrival order, with the
+ *         prefix stripped and an event's several data lines joined.
+ */
+QVector<QByteArray> takeSsePayloads(QByteArray& buffer);
+
+/**
+ * @brief Read one SSE `data:` payload of an OpenAI-compatible stream.
+ *
+ * @param payload Event data, with the `data:` prefix already stripped.
+ * @return The chunk's contributions, or nothing for `[DONE]`, a keep-alive, or anything else
+ *         that is not one of the stream's own JSON chunks.
+ */
+std::optional<StreamDelta> parseStreamDelta(const QByteArray& payload);
+
+/**
+ * @brief Pull the fields that have finished arriving out of an answer still being written.
+ *
+ * The model answers one JSON object, and a stream delivers it a few characters at a time: most
+ * of the time the buffer ends in the middle of something. A field is taken only once its string
+ * value has closed -- a name, a definition, a pronunciation -- because half a word drawn is
+ * worse than the card growing one line later. A field whose value has not arrived, or whose
+ * closing quote has not, is simply absent, exactly as it is when a finished answer leaves it out.
+ *
+ * Only `results[0]` is read: a batch of words draws the card for the answer named first, and the
+ * rest are stored when the whole answer has arrived (see API.md section 3.4).
+ *
+ * @param channel Which protocol is being spoken; picks the field the title is read from.
+ * @param content The model's answer as it has arrived; a fence or a line of prose is tolerated.
+ * @return Whatever has completed so far. An answer with nothing complete yet yields an
+ *         explanation with every field empty rather than a failure.
+ */
+Explanation parsePartialExplanation(Channel channel, const QString& content);
 
 /**
  * @brief Read the token counts out of a response envelope.

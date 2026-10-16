@@ -96,6 +96,9 @@ Item {
             compare(bubble.senses.length, 1, "the stored entry has one sense");
             compare(bubble.senses[0].text, "面板；专门小组");
             compare(Object.keys(Controller.explanationDuty.notice).length, 0, "a stored word leaves no notice behind");
+            // Nothing is arriving for a card out of the cache, and the pointer crosses rows: the
+            // card is whole on arrival rather than written out under the pointer.
+            compare(bubble.reveal, false, "the reading under the pointer was asked for as a reveal");
         }
 
         /// A bubble raised by a pointer on a row belongs to that row: the pointer leaving is what

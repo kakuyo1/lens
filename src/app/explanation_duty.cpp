@@ -45,6 +45,34 @@ ExplanationDuty::ExplanationDuty(StorageDuty& storage, llm::LlmClient& llm, Cost
 {
     connect(&llm_, &llm::LlmClient::batchFinished, this, &ExplanationDuty::onBatchFinished);
     connect(&llm_, &llm::LlmClient::failed, this, &ExplanationDuty::onFailed);
+    connect(&llm_, &llm::LlmClient::partial, this, &ExplanationDuty::onPartial);
+}
+
+void ExplanationDuty::onPartial(llm::Explanation partial)
+{
+    // A preview is only ever the answer to the batch in flight: the model-list fetch, and a reply
+    // for a request already disposed of, reach nothing here.
+    if (not queue_.inFlight())
+        return;
+    const core::CacheContext now{storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)};
+    const auto               subject = queue_.liveSubject(partial.title, now);
+    if (not subject)
+        return;
+    // The title is the reader's own text rather than the model's echo, the same rule the finished
+    // answer follows, so the card does not rename itself part-way through the stream.
+    partial.title = isWordKind(subject->kind)
+                        ? subject->lemma
+                        : (subject->surface.isEmpty() ? subject->text : subject->surface);
+    // The sense mode reaches the card masked by the kind, exactly as it does for a finished answer.
+    const core::CacheContext display{now.language, now.multipleSenses and isWordKind(subject->kind)};
+    showBubble(partial, *subject, display, /*countsDown=*/true, /*notifyPet=*/false);
+    // Once per request, and after the staleness rule above has spoken: what this answers is whether
+    // the reader's provider streams at all -- the reader's own report was a card that filled in one
+    // jump, and a provider that answers in one body looks exactly like that at this level.
+    if (not previewSeen_) {
+        previewSeen_ = true;
+        LENS_TRACE("the first preview of the request in flight arrived: '{}'", partial.title.toStdString());
+    }
 }
 
 void ExplanationDuty::onBatchFinished(QVector<llm::Explanation> results, llm::Usage const usage)
@@ -148,7 +176,7 @@ void ExplanationDuty::enqueueScanCandidates(QVariantList candidates, QPoint anch
         if (const auto cached = storage_.knownStore().cacheGet(candidate.lemma.toStdString(), context); cached and servable(*cached)) {
             storage_.statsStore().recordPop(candidate.lemma.toStdString(), nowMinute().toStdString());
             if (bubble_.isEmpty() and not queue_.inFlight())
-                showBubble(fromCache(*cached, candidate.lemma), candidate, context);
+                showBubble(fromCache(*cached, candidate.lemma), candidate, context, /*countsDown=*/true, /*notifyPet=*/true, /*reveal=*/false);
             continue;
         }
         misses.push_back(std::move(candidate));
@@ -193,7 +221,7 @@ void ExplanationDuty::reviewWord(QString lemma, QPoint const anchor)
     const core::CacheContext context{storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)};
     if (const auto cached = storage_.knownStore().cacheGet(value.toStdString(), context)) {
         PendingSelection pending{.anchor = anchor, .kind = QStringLiteral("word"), .surface = value, .lemma = value};
-        showBubble(fromCache(*cached, value), pending, context, false);
+        showBubble(fromCache(*cached, value), pending, context, /*countsDown=*/false, /*notifyPet=*/true, /*reveal=*/false);
         reviewRaised_ = true;
         return;
     }
@@ -252,7 +280,7 @@ bool ExplanationDuty::showStored(PendingSelection const& pending, core::CacheCon
         return false;
     storage_.statsStore().recordPop(pending.lemma.toStdString(), nowMinute().toStdString());
     storage_.save();
-    showBubble(fromCache(*cached, pending.lemma), pending, context);
+    showBubble(fromCache(*cached, pending.lemma), pending, context, /*countsDown=*/true, /*notifyPet=*/true, /*reveal=*/false);
     emit statsChanged();
     return true;
 }
@@ -282,7 +310,10 @@ void ExplanationDuty::send(ExplanationBatch batch)
         if (isWordKind(item.kind))
             storage_.statsStore().recordPop(item.lemma.toStdString(), nowMinute().toStdString());
     }
-    busyLabel_ = QCoreApplication::translate("lens::app::AppController", "Explaining…");
+    // The request goes out with nothing previewed yet: the first preview of this one is the line
+    // onPartial() writes.
+    previewSeen_ = false;
+    busyLabel_   = QCoreApplication::translate("lens::app::AppController", "Explaining…");
     emit busyChanged();
     emit petEvent(core::pet::PetEvent::ExplanationRequested);
     storage_.save();
@@ -306,7 +337,7 @@ void ExplanationDuty::sendNext()
     send(std::move(*batch));
 }
 
-void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool const countsDown)
+void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool const countsDown, bool const notifyPet, bool const reveal)
 {
     auto const selected = [&](QString const& en, QString const& zh, QString const& translation) {
         return context.language == "en" ? en : context.language == "zh" ? zh
@@ -328,6 +359,7 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
                           {"zh", chinese},
                           {"translation", translation},
                           {"countsDown", countsDown},
+                          {"reveal", reveal},
                           {"x", selection.anchor.x()},
                           {"y", selection.anchor.y()}};
     if (isWordKind(selection.kind)) {
@@ -357,7 +389,8 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
     reviewRaised_ = false;
     clearNotice();
     emit bubbleChanged();
-    emit petEvent(core::pet::PetEvent::ExplanationShown);
+    if (notifyPet)
+        emit petEvent(core::pet::PetEvent::ExplanationShown);
 }
 
 void ExplanationDuty::showNotice(QString const& title, QString const& body, QString const& kind, QString const& action, QString const& lemma)

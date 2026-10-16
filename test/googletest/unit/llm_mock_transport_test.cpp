@@ -313,3 +313,158 @@ TEST_F(LlmTest, RefusesToPostWithoutAnApiKey)
     EXPECT_TRUE(failure.contains("API key is missing")) << failure.toStdString();
     EXPECT_TRUE(manager.postedBody.isEmpty());
 }
+
+namespace {
+
+/// @brief A reply that hands its answer over the way a streaming endpoint does: one `readyRead`
+///        per chunk, then finished.
+///
+/// The chunks are split wherever the case says, so a boundary inside an event, or inside a
+/// multi-byte character, is the case's choice rather than luck.
+class StreamingReply : public QNetworkReply {
+public:
+    StreamingReply(QVector<QByteArray> chunks, QObject* parent)
+        : QNetworkReply(parent), chunks_(std::move(chunks))
+    {
+        setAttribute(QNetworkRequest::HttpStatusCodeAttribute, 200);
+        open(QIODevice::ReadOnly);
+        QTimer::singleShot(0, this, &StreamingReply::pump);
+    }
+
+    void abort() override
+    {}
+
+protected:
+    qint64 readData(char* data, qint64 maxSize) override
+    {
+        const qint64 count = std::min(maxSize, static_cast<qint64>(available_.size()));
+        std::memcpy(data, available_.constData(), static_cast<std::size_t>(count));
+        available_.remove(0, count);
+        return count;
+    }
+
+private:
+    void pump()
+    {
+        if (index_ >= chunks_.size()) {
+            setFinished(true);
+            emit finished();
+            return;
+        }
+        available_ = chunks_.at(index_++);
+        emit readyRead();
+        QTimer::singleShot(0, this, &StreamingReply::pump);
+    }
+
+    QVector<QByteArray> chunks_;
+    QByteArray          available_;
+    int                 index_ = 0;
+};
+
+/// @brief The streaming half of the transport seam: every POST is answered by @p chunks.
+class StreamingManager : public QNetworkAccessManager {
+public:
+    explicit StreamingManager(QVector<QByteArray> chunks)
+        : chunks_(std::move(chunks))
+    {}
+
+    QByteArray postedBody;
+
+protected:
+    QNetworkReply* createRequest(Operation operation, const QNetworkRequest&, QIODevice* device) override
+    {
+        Q_UNUSED(operation)
+        if (device != nullptr) postedBody = device->readAll();
+        auto* reply = new StreamingReply(chunks_, this);
+        reply->setParent(this);
+        return reply;
+    }
+
+private:
+    QVector<QByteArray> chunks_;
+};
+
+/// @return One SSE event carrying @p content, a finish reason and optionally a usage object, as
+///         an OpenAI-compatible endpoint writes it.
+QByteArray sseEvent(QString const& content, QString const& finishReason = {}, QJsonObject const& usage = {})
+{
+    QJsonObject choice{{"delta", QJsonObject{{"content", content}}}};
+    choice.insert(QStringLiteral("finish_reason"), finishReason.isEmpty() ? QJsonValue() : QJsonValue(finishReason));
+    QJsonObject root{{"choices", QJsonArray{choice}}};
+    if (not usage.isEmpty())
+        root.insert(QStringLiteral("usage"), usage);
+    return QByteArrayLiteral("data: ") + QJsonDocument(root).toJson(QJsonDocument::Compact) + QByteArrayLiteral("\n\n");
+}
+
+} // namespace
+
+/// The answer is drawn as it arrives: one `partial()` per field that completes, then a single
+/// `batchFinished()` with the whole validated result. The first event is split across two reads,
+/// so the buffer has to hold half an event without losing it.
+TEST_F(LlmTest, StreamsTheAnswerAsItArrivesAndFinishesWithTheValidatedOne)
+{
+    QtApplication qt;
+
+    const QString head = QStringLiteral(R"({"results":[{"word":"ubiquitous")");
+    const QString mid  = QStringLiteral(R"(,"ipa":"/juːˈbɪkwɪtəs/","en":"existing everywhere")");
+    const QString tail = QStringLiteral(R"(,"zh":"无处不在的"}]})");
+
+    QVector<QByteArray> first;
+    first << sseEvent(head);
+    QVector<QByteArray> chunks{first.front().left(10), first.front().mid(10), sseEvent(mid), sseEvent(tail, QStringLiteral("stop"), QJsonObject{{"prompt_tokens", 12}, {"completion_tokens", 9}}), QByteArrayLiteral("data: [DONE]\n\n")};
+    StreamingManager    manager(std::move(chunks));
+    LlmClient           client(stubConfig(), &manager);
+
+    QVector<Explanation> previews;
+    QVector<Explanation> finished;
+    Usage                usage;
+    qsizetype            previewsAtFinish = -1;
+    QObject::connect(&client, &LlmClient::partial, [&](Explanation preview) { previews.push_back(std::move(preview)); });
+    QObject::connect(&client, &LlmClient::batchFinished, &manager, [&](QVector<Explanation> results, Usage received) {
+        previewsAtFinish = previews.size();
+        finished         = std::move(results);
+        usage            = received;
+    });
+
+    QEventLoop loop;
+    QObject::connect(&client, &LlmClient::batchFinished, &loop, &QEventLoop::quit);
+    QObject::connect(&client, &LlmClient::failed, &loop, &QEventLoop::quit);
+    QTimer::singleShot(kStubTimeoutMs, &loop, &QEventLoop::quit);
+    client.explainWords({QStringLiteral("ubiquitous")});
+    loop.exec();
+
+    ASSERT_GE(previewsAtFinish, 3) << "the answer arrived in more chunks than were reported";
+    EXPECT_EQ(previewsAtFinish, previews.size()) << "a preview arrived after the answer was complete";
+    EXPECT_EQ(previews.front().title, QStringLiteral("ubiquitous"));
+    EXPECT_TRUE(previews.front().en.isEmpty()) << "the first preview carries only what had closed";
+    EXPECT_EQ(previews.back().ipa, QString::fromUtf8("/juːˈbɪkwɪtəs/"));
+    EXPECT_EQ(previews.back().zh, QString::fromUtf8("无处不在的"));
+
+    ASSERT_EQ(finished.size(), 1);
+    EXPECT_EQ(finished.front().en, QStringLiteral("existing everywhere"));
+    EXPECT_EQ(usage.promptTokens, 12) << "the streamed usage was dropped";
+    EXPECT_EQ(usage.completionTokens, 9);
+    EXPECT_TRUE(manager.postedBody.contains("\"stream\":true"));
+    EXPECT_TRUE(manager.postedBody.contains("\"include_usage\":true"));
+}
+
+/// A stream that ends without the model saying it is done is today's failure, not a short answer:
+/// the whole-response check rejects it and nothing reaches the store.
+TEST_F(LlmTest, EndsAStreamThatStoppedShortInTheFailureNotice)
+{
+    QtApplication qt;
+
+    const QString body = QStringLiteral(
+        R"({"results":[{"word":"ubiquitous","ipa":"/juːˈbɪkwɪtəs/","en":"existing everywhere","zh":"无处不在的"}]})");
+    // "length" is the model running out of output tokens: the JSON was cut off mid-way.
+    StreamingManager manager({sseEvent(body, QStringLiteral("length"))});
+    LlmClient        client(stubConfig(), &manager);
+
+    int batchFinished = 0;
+    QObject::connect(&client, &LlmClient::batchFinished, [&](QVector<Explanation>, Usage) { ++batchFinished; });
+
+    const QString failure = runToFailure(client, {QStringLiteral("ubiquitous")});
+
+    EXPECT_TRUE(failure.contains("stopped before finishing")) << failure.toStdString();
+    EXPECT_EQ(batchFinished, 0) << "a cut-off answer must not reach the store";
+}

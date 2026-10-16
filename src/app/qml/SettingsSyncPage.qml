@@ -24,6 +24,9 @@ Item {
         if (kind === "passphrase") return qsTranslate("SettingsPopup", "The passphrase does not open the cloud copy");
         if (kind === "generic") return qsTranslate("SettingsPopup", "Sync failed; try again");
         if (kind === "expired") return qsTranslate("SettingsPopup", "The sign-in code expired");
+        // Not the same thing as the line above: that one is the device code running out before the
+        // reader approved it, this one is a stored token GitHub no longer accepts.
+        if (kind === "signInExpired") return qsTranslate("SettingsPopup", "The GitHub sign-in expired; sign in again");
         if (kind === "denied") return qsTranslate("SettingsPopup", "Sign-in was refused");
         if (kind === "noGist") return qsTranslate("SettingsPopup", "No cloud copy to delete");
         return "";

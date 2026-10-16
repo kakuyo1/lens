@@ -1,6 +1,7 @@
 /**
  * @file github_auth.cpp
- * @brief The device flow: the code request, the polling loop, and the parsers that read its answers.
+ * @brief The device flow: the code request, the polling loop, the refresh request, and the parsers
+ *        that read their answers.
  */
 
 #include "github_auth.h"
@@ -94,9 +95,18 @@ PollResult parseTokenPoll(const QByteArray& body)
 
     const QJsonObject root = document.object();
     // A token wins over any error text: GitHub never sends both, and a token is the thing wanted.
-    const QString token = root.value("access_token").toString();
-    if (not token.isEmpty())
-        return {PollState::Granted, token};
+    const QString access = root.value("access_token").toString();
+    if (not access.isEmpty()) {
+        PollResult granted;
+        granted.state        = PollState::Granted;
+        granted.token.access = access;
+        // Both are absent from an OAuth app whose user tokens do not expire, which is the ordinary
+        // case for an app configured the old way (docs/adr/0042).
+        granted.token.refresh          = root.value("refresh_token").toString();
+        granted.token.expiresIn        = root.value("expires_in").toInt();
+        granted.token.refreshExpiresIn = root.value("refresh_token_expires_in").toInt();
+        return granted;
+    }
 
     const QString error = root.value("error").toString();
     if (error == QLatin1String("authorization_pending"))
@@ -107,6 +117,8 @@ PollResult parseTokenPoll(const QByteArray& body)
         return {PollState::Expired, {}};
     if (error == QLatin1String("access_denied"))
         return {PollState::Denied, {}};
+    if (error == QLatin1String("bad_refresh_token"))
+        return {PollState::BadRefresh, {}};
     return {};
 }
 
@@ -214,12 +226,22 @@ void GithubAuth::onPollFinished(QNetworkReply* reply)
             return;
         case PollState::Granted: {
             // The token leaves this object only through the signal; nothing about it is logged.
-            const QString token = result.accessToken;
+            const Token token = result.token;
             stop();
-            LENS_INFO("device flow granted");
+            // The lifetime is logged and the token is not: an OAuth app whose user tokens expire is
+            // the difference between a sign-in that holds and one that dies overnight.
+            if (token.expiresIn > 0)
+                LENS_INFO("device flow granted; the token lives {} s", token.expiresIn);
+            else
+                LENS_INFO("device flow granted; the token does not expire");
             emit granted(token);
             return;
         }
+        case PollState::BadRefresh:
+            // Not reachable from a poll: only the refresh endpoint answers this.
+            LENS_WARN("the token poll answered with a refresh-token error");
+            fail(AuthFailure::Generic);
+            return;
         case PollState::Expired:
             LENS_INFO("the device code expired before the reader approved");
             fail(AuthFailure::Expired);
@@ -230,6 +252,60 @@ void GithubAuth::onPollFinished(QNetworkReply* reply)
             return;
         case PollState::Failed:
             LENS_WARN("the token poll answer was not recognised");
+            fail(AuthFailure::Generic);
+            return;
+    }
+}
+
+void GithubAuth::refresh(const QString& clientId, const QString& refreshToken)
+{
+    stop();
+    if (clientId.isEmpty() or refreshToken.isEmpty()) {
+        LENS_WARN("a token refresh was asked for without a client id or a refresh token");
+        emit failed(AuthFailure::Generic);
+        return;
+    }
+
+    clientId_            = clientId;
+    QNetworkReply* reply = manager_->post(formRequest(QUrl{QString::fromLatin1(kTokenUrl)}, userAgent_),
+                                          formBody({{QStringLiteral("client_id"), clientId},
+                                                    {QStringLiteral("refresh_token"), refreshToken},
+                                                    {QStringLiteral("grant_type"), QStringLiteral("refresh_token")}}));
+    reply_               = reply;
+    connect(reply, &QNetworkReply::finished, this, [this, reply] { onRefreshFinished(reply); });
+    // The refresh token itself is never logged, here or anywhere else.
+    LENS_INFO("renewing the GitHub sign-in token");
+}
+
+void GithubAuth::onRefreshFinished(QNetworkReply* reply)
+{
+    const QByteArray body   = reply->readAll();
+    const int        status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    reply->deleteLater();
+    reply_ = nullptr;
+
+    // Same rule as a poll: only an answer that never arrived is a transport failure.
+    if (status == 0 and body.isEmpty()) {
+        LENS_WARN("the token refresh got no answer");
+        fail(AuthFailure::Proxy);
+        return;
+    }
+
+    const PollResult result = parseTokenPoll(body);
+    switch (result.state) {
+        case PollState::Granted:
+            // GitHub rotates both: the access token that was replaced and the refresh token spent
+            // here stop working, so the caller has to store what comes back.
+            LENS_INFO("the sign-in token was renewed; the new one lives {} s", result.token.expiresIn);
+            emit refreshed(result.token);
+            return;
+        case PollState::BadRefresh:
+            LENS_WARN("the refresh token was refused; the reader has to sign in again");
+            fail(AuthFailure::BadRefresh);
+            return;
+        default:
+            // Pending, slow_down and the device-code states do not belong to this endpoint.
+            LENS_WARN("the token refresh answer was not recognised");
             fail(AuthFailure::Generic);
             return;
     }

@@ -33,7 +33,10 @@ using lens::llm::buildRequestBody;
 using lens::llm::httpErrorFor;
 using lens::llm::maskSensitive;
 using lens::llm::parseExplanations;
+using lens::llm::parsePartialExplanation;
+using lens::llm::parseStreamDelta;
 using lens::llm::parseUsage;
+using lens::llm::takeSsePayloads;
 using LlmResult = std::variant<QVector<Explanation>, QString>;
 
 // TEST_F pastes the fixture name into a class definition, so it has to be unqualified.
@@ -236,7 +239,10 @@ TEST_F(LlmTest, RequestBodyKeepsTheDeepSeekContract)
         const auto root = doc.object();
 
         EXPECT_EQ(root.value("model").toString(), config.model);
-        EXPECT_FALSE(root.value("stream").toBool());
+        // The answer is streamed: the card is drawn as the model writes it (docs/API.md section 3).
+        EXPECT_TRUE(root.value("stream").toBool());
+        EXPECT_TRUE(root.value("stream_options").toObject().value("include_usage").toBool())
+            << "a streaming endpoint omits usage unless it is asked for";
         EXPECT_EQ(root.value("response_format").toObject().value("type").toString(), "json_object");
         // DeepSeek turns thinking on by default; it costs reasoning tokens on every call.
         EXPECT_EQ(root.value("thinking").toObject().value("type").toString(), "disabled");
@@ -565,4 +571,185 @@ TEST_F(LlmTest, TreatsNonNumericUsageAsZero)
     const Usage counts = parseUsage(body);
     EXPECT_EQ(counts.promptTokens, 0);
     EXPECT_EQ(counts.completionTokens, 0);
+}
+
+/// A `data:` line is held back until its event's blank-line terminator has arrived: half an event
+/// parsed is half an answer drawn, and a chunk boundary can fall anywhere.
+TEST(SseFraming, HoldsAnEventUntilItsTerminatorArrives)
+{
+    QByteArray buffer = QByteArrayLiteral("data: {\"a\"");
+    EXPECT_TRUE(takeSsePayloads(buffer).isEmpty());
+    EXPECT_EQ(buffer, QByteArrayLiteral("data: {\"a\"")) << "a partial event must be kept whole";
+
+    buffer += QByteArrayLiteral(":1}\n\n");
+    const auto payloads = takeSsePayloads(buffer);
+    ASSERT_EQ(payloads.size(), 1);
+    EXPECT_EQ(payloads.front(), QByteArrayLiteral("{\"a\":1}"));
+    EXPECT_TRUE(buffer.isEmpty()) << "a consumed event must leave nothing behind";
+}
+
+/// One read can carry several events, and the payloads come out in arrival order.
+TEST(SseFraming, SplitsSeveralEventsOutOfOneRead)
+{
+    QByteArray buffer = QByteArrayLiteral("data: one\n\ndata: two\n\n");
+
+    const auto payloads = takeSsePayloads(buffer);
+
+    ASSERT_EQ(payloads.size(), 2);
+    EXPECT_EQ(payloads.at(0), QByteArrayLiteral("one"));
+    EXPECT_EQ(payloads.at(1), QByteArrayLiteral("two"));
+}
+
+/// An event that carries no data -- a keep-alive comment, an `event:` header -- contributes
+/// nothing; only `[DONE]`, which does arrive as data, is handed back.
+TEST(SseFraming, KeepsOnlyEventsThatCarryData)
+{
+    QByteArray buffer = QByteArrayLiteral(": keep-alive\n\nevent: ping\n\ndata: [DONE]\n\n");
+
+    const auto payloads = takeSsePayloads(buffer);
+
+    ASSERT_EQ(payloads.size(), 1);
+    EXPECT_EQ(payloads.front(), QByteArrayLiteral("[DONE]"));
+}
+
+/// The terminator a provider writes is not this side's choice.
+TEST(SseFraming, AcceptsTheCrlfTerminator)
+{
+    QByteArray buffer = QByteArrayLiteral("data: one\r\n\r\ndata: two\r\n\r\n");
+
+    const auto payloads = takeSsePayloads(buffer);
+
+    ASSERT_EQ(payloads.size(), 2);
+    EXPECT_EQ(payloads.at(0), QByteArrayLiteral("one"));
+    EXPECT_EQ(payloads.at(1), QByteArrayLiteral("two"));
+}
+
+/// A multi-byte character split across two reads is never decoded half-formed: the event is only
+/// read once its terminator has arrived, so the character is whole by the time anything looks.
+TEST(SseFraming, ReassemblesAUtf8CharacterSplitAcrossReads)
+{
+    const QByteArray frame = QByteArrayLiteral("data: ") + QStringLiteral("{\"word\":\"无限\"}").toUtf8() +
+                             QByteArrayLiteral("\n\n");
+    const int at = frame.indexOf(QStringLiteral("无").toUtf8());
+    ASSERT_GE(at, 0);
+
+    QByteArray buffer = frame.left(at + 2); // two bytes of a three-byte character
+    EXPECT_TRUE(takeSsePayloads(buffer).isEmpty());
+
+    buffer += frame.mid(at + 2);
+    const auto payloads = takeSsePayloads(buffer);
+    ASSERT_EQ(payloads.size(), 1);
+    EXPECT_EQ(QJsonDocument::fromJson(payloads.front()).object().value("word").toString(),
+              QStringLiteral("无限"))
+        << "a character split across two reads arrived mangled";
+}
+
+/// The text, the reason the model stopped and the token counts all ride the stream's chunks.
+TEST(StreamDelta, ReadsTheTextTheReasonAndTheUsage)
+{
+    const auto text = parseStreamDelta(
+        QByteArrayLiteral(R"({"choices":[{"delta":{"content":"hello"},"finish_reason":null}]})"));
+    ASSERT_TRUE(text);
+    EXPECT_EQ(text->content, QStringLiteral("hello"));
+    EXPECT_TRUE(text->finishReason.isEmpty()) << "the model has not said it stopped yet";
+    EXPECT_TRUE(text->usage.isEmpty()) << "usage arrives only on the last chunk, when asked for";
+
+    const auto last = parseStreamDelta(QByteArrayLiteral(
+        R"({"choices":[{"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":12,"completion_tokens":9}})"));
+    ASSERT_TRUE(last);
+    EXPECT_TRUE(last->content.isEmpty());
+    EXPECT_EQ(last->finishReason, QStringLiteral("stop"));
+    EXPECT_EQ(last->usage.value("prompt_tokens").toInt(), 12);
+    EXPECT_EQ(last->usage.value("completion_tokens").toInt(), 9);
+}
+
+/// `[DONE]`, an empty payload and a keep-alive comment are not chunks; none of them is a failure.
+TEST(StreamDelta, AnswersNothingForDoneOrAKeepAlive)
+{
+    EXPECT_FALSE(parseStreamDelta(QByteArrayLiteral("[DONE]")));
+    EXPECT_FALSE(parseStreamDelta(QByteArray()));
+    EXPECT_FALSE(parseStreamDelta(QByteArrayLiteral(": keep-alive")));
+}
+
+/// The card grows a field at a time: a value is drawn only once its closing quote has arrived,
+/// and one whose boundary has not is simply absent -- the same as a finished answer that omitted it.
+TEST(PartialExplanation, DrawsOnlyTheValuesThatHaveClosed)
+{
+    const QString answer = QStringLiteral(
+        R"({"results":[{"word":"ubiquitous","ipa":"/juːˈbɪkwɪtəs/","en":"existing everywhere","zh":"无处不在的"}]})");
+
+    const auto midValue = parsePartialExplanation(Channel::Word, answer.left(answer.indexOf(QStringLiteral("ju")) + 2));
+    EXPECT_EQ(midValue.title, QStringLiteral("ubiquitous"));
+    EXPECT_TRUE(midValue.ipa.isEmpty()) << "a value that has not closed must be absent";
+    EXPECT_TRUE(midValue.en.isEmpty()) << "nothing after the open value has been read yet";
+
+    const auto whole = parsePartialExplanation(Channel::Word, answer);
+    EXPECT_EQ(whole.ipa, QString::fromUtf8("/juːˈbɪkwɪtəs/"));
+    EXPECT_EQ(whole.en, QStringLiteral("existing everywhere"));
+    EXPECT_EQ(whole.zh, QString::fromUtf8("无处不在的"));
+}
+
+/// A chunk boundary can fall inside a JSON escape. Nothing is named until the escape and the
+/// closing quote are both there -- and when they are, the quote the escape stands for is the value.
+TEST(PartialExplanation, WaitsOutAnEscapeSplitByAChunkBoundary)
+{
+    const QString head = QStringLiteral("{\"results\":[{\"word\":\"a\\"); // ends inside the escape
+    const QString tail = QStringLiteral("\"b\",\"en\":\"present\"}]}");
+
+    EXPECT_TRUE(parsePartialExplanation(Channel::Word, head).title.isEmpty())
+        << "an unfinished escape must not name anything";
+
+    const auto joined = parsePartialExplanation(Channel::Word, head + tail);
+    EXPECT_EQ(joined.title, QStringLiteral("a\"b"));
+    EXPECT_EQ(joined.en, QStringLiteral("present"));
+}
+
+/// With multiple senses asked for, the array grows the way the top-level fields do: a sense shows
+/// up once its first value has closed, and its remaining values follow.
+TEST(PartialExplanation, GrowsTheSenseArrayOneValueAtATime)
+{
+    const auto partial = parsePartialExplanation(
+        Channel::Word,
+        QStringLiteral(R"({"results":[{"word":"bank","ipa":"/bank/","senses":[{"en":"a financial house","zh":"银行"},{"en":"a river)"));
+
+    EXPECT_EQ(partial.title, QStringLiteral("bank"));
+    ASSERT_EQ(partial.senses.size(), 1);
+    EXPECT_EQ(partial.senses.front().en, QStringLiteral("a financial house"));
+    EXPECT_EQ(partial.senses.front().zh, QString::fromUtf8("银行"));
+}
+
+/// The entity and sentence channels echo no title: it is the reader's own selection, stamped on
+/// further up, so this reads the definition lines alone.
+TEST(PartialExplanation, LeavesTheTitleToTheCallerOnTheNonWordChannels)
+{
+    const auto partial = parsePartialExplanation(
+        Channel::Entity, QStringLiteral(R"({"results":[{"en":"A major city.","zh":"一座大城市")"));
+
+    EXPECT_TRUE(partial.title.isEmpty());
+    EXPECT_EQ(partial.en, QStringLiteral("A major city."));
+    EXPECT_EQ(partial.zh, QString::fromUtf8("一座大城市"));
+}
+
+/// A fenced answer is common enough that the finished one is accepted through the fence; the
+/// preview reads through it the same way rather than showing the fence as content.
+TEST(PartialExplanation, ReadsThroughAMarkdownFence)
+{
+    const auto partial = parsePartialExplanation(
+        Channel::Word, QStringLiteral("```json\n{\"results\":[{\"word\":\"qml\",\"en\":\"a UI markup language\""));
+
+    EXPECT_EQ(partial.title, QStringLiteral("qml"));
+    EXPECT_EQ(partial.en, QStringLiteral("a UI markup language"));
+}
+
+/// The card may draw a half-written answer; the store never does. The very text that yields a
+/// preview here is rejected by the whole-response check the cache sits behind.
+TEST(PartialExplanation, NeverStandsInForTheWholeResponseCheck)
+{
+    const QString half = QStringLiteral(
+        R"({"results":[{"word":"ubiquitous","ipa":"/juːˈbɪkwɪtəs/","en":"existing everywhere")");
+
+    EXPECT_EQ(parsePartialExplanation(Channel::Word, half).en, QStringLiteral("existing everywhere"))
+        << "this is what the card would draw";
+    EXPECT_FALSE(accepted(parseExplanations(Channel::Word, envelope(half), kAskedFor)))
+        << "an answer that is still being written must not pass the check";
 }

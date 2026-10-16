@@ -129,6 +129,8 @@ Item {
                 for (const mode of ["light", "dark"]) {
                     Tokens.theme = mode;
                     const bubble = opened("The bank raised its interest rate.", "Old Norse banki, a bench or ridge.");
+                    // The card writes its answer out a character at a time: photograph it settled.
+                    tryVerify(function () { return !bubble.revealing; }, 8000);
                     waitForRendering(bubble.contentItem);
                     verify(Util.saveSnapshot(testCase, bubble.contentItem, lensQaSnapshotDir, "bubble-example-" + mode));
                     compare(blockOf(bubble).visible, true);

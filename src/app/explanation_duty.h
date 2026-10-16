@@ -109,10 +109,18 @@ private:
     void sendNext();
     void onBatchFinished(QVector<llm::Explanation> results, llm::Usage usage);
     void onFailed(QString const& message);
+    /// @brief Draw an answer that is still arriving, on the card of the request in flight.
+    /// @param partial Whatever fields have completed so far; the rest are absent.
+    void onPartial(llm::Explanation partial);
     /// @param countsDown Whether the bubble takes itself down after its countdown. A bubble the
     ///        word list raises belongs to the row under the pointer instead, and is taken down when
     ///        the pointer leaves it.
-    void    showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool countsDown = true);
+    /// @param notifyPet Whether the pet hears about this card. A stream repaints the same card as
+    ///        it grows and stays quiet; only the finished answer is an arrival to react to.
+    /// @param reveal Whether the card writes its answer out a character at a time. False for the
+    ///        cards raised whole out of the cache: nothing is arriving there, and the word list puts
+    ///        one up for every row the pointer crosses.
+    void    showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool countsDown = true, bool notifyPet = true, bool reveal = true);
     QString noticeTitle(PendingSelection const& pending) const;
     ///
     /// One reader of this, two uses: the request asks the model for it, and the card decides
@@ -143,6 +151,9 @@ private:
     /// Whether the bubble standing is the one reviewWord() raised. Only that one is the pointer's
     /// to take down: a scan or a selection bubble outlives the pointer leaving a word-list row.
     bool reviewRaised_ = false;
+    /// Whether the request in flight has previewed anything yet. One line is what says whether the
+    /// reader's provider streams at all; the rest of the chunks would be a repaint per line.
+    bool previewSeen_ = false;
 };
 
 }

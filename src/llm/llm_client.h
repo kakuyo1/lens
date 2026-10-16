@@ -33,6 +33,11 @@ struct Sense {
     QString en, zh, translation;
 };
 
+inline bool operator==(Sense const& a, Sense const& b)
+{
+    return a.en == b.en and a.zh == b.zh and a.translation == b.translation;
+}
+
 inline constexpr int kMaxSenses = 3;
 
 /// @brief One explanation as returned by the model.
@@ -51,6 +56,14 @@ struct Explanation {
     QVector<Sense> senses;
 };
 
+/// @brief Field-wise equality, so a stream's next preview can be told from the one on screen.
+inline bool operator==(Explanation const& a, Explanation const& b)
+{
+    return a.title == b.title and a.ipa == b.ipa and a.en == b.en and a.zh == b.zh and
+           a.translation == b.translation and a.etymology == b.etymology and a.example == b.example and
+           a.senses == b.senses;
+}
+
 /// @brief Token counts the service reports for one call, for the cost surfaces.
 ///
 /// Missing from the response is recorded as zero rather than failing the batch: losing one
@@ -64,8 +77,10 @@ struct Usage {
 /**
  * @brief Sends a batch of words and reports the validated explanations back.
  *
- * One HTTP request per call. The response is treated as untrusted data and goes through
- * the checks in parseExplanations() before anything is emitted.
+ * One HTTP request per call, streamed: the answer is read as the model writes it, and whatever
+ * has completed so far is reported through partial() while it arrives. A preview is drawn and
+ * nothing else -- the cache, the known store and the statistics only ever take what
+ * batchFinished() carries, and that one has been through parseExplanations() whole.
  *
  * The model list is the one thing this client asks for on its own: a single unauthenticated GET
  * to the shared source, which answers for every configured provider.
@@ -146,6 +161,14 @@ signals:
     /// @brief Emitted with the validated explanations, in the order the words were asked for.
     /// @param usage Token counts from the same response, all zero when it carried none.
     void batchFinished(QVector<Explanation> results, Usage usage);
+
+    /// @brief Emitted while the answer is still arriving, with whatever has been written so far.
+    ///
+    /// Only fields whose value has closed are set; the rest are empty and the card grows into
+    /// them. This is a preview for the reader and nothing more: only batchFinished() carries a
+    /// result the cache, the known store and the statistics may take. Emitted again only when a
+    /// drawn field actually changes, so a chunk that completes nothing stays silent.
+    void partial(Explanation explanation);
 
     /// @brief Emitted on transport, HTTP status, or response-validation failure.
     /// @param message Reader-facing reason, already routed through translation.

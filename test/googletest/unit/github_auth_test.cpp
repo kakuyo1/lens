@@ -11,9 +11,21 @@
 #include <gtest/gtest.h>
 
 #include <QByteArray>
+#include <QCoreApplication>
+#include <QElapsedTimer>
+#include <QEventLoop>
 #include <QFile>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QString>
 #include <QTemporaryDir>
+#include <QTimer>
+
+#include <algorithm>
+#include <cstring>
+#include <functional>
+#include <utility>
 
 #include "sync/github_auth.h"
 #include "sync/gist_client.h"
@@ -72,7 +84,32 @@ TEST(TokenPoll, GrantsWithTheTokenItCarries)
 {
     const auto result = parseTokenPoll(R"({"access_token":"gho_test","token_type":"bearer","scope":"gist"})");
     EXPECT_EQ(result.state, PollState::Granted);
-    EXPECT_EQ(result.accessToken, "gho_test");
+    EXPECT_EQ(result.token.access, "gho_test");
+    // An app whose user tokens do not expire sends neither of these, and nothing may then look
+    // renewable: an empty refresh token is what says "sign in again" rather than "renew".
+    EXPECT_TRUE(result.token.refresh.isEmpty());
+    EXPECT_EQ(result.token.expiresIn, 0);
+}
+
+TEST(TokenPoll, ReadsTheRefreshTokenAnExpiringAppSends)
+{
+    // What GitHub answers for an app with expiring user tokens: the access token lives eight hours,
+    // and a refresh token, valid six months unused, comes with it. Both numbers are the body's own.
+    const auto result = parseTokenPoll(R"({"access_token":"gho_new","token_type":"bearer","scope":"gist",)"
+                                       R"("expires_in":28800,"refresh_token":"ghr_next","refresh_token_expires_in":15552000})");
+    EXPECT_EQ(result.state, PollState::Granted);
+    EXPECT_EQ(result.token.access, "gho_new");
+    EXPECT_EQ(result.token.refresh, "ghr_next");
+    EXPECT_EQ(result.token.expiresIn, 28800);
+    EXPECT_EQ(result.token.refreshExpiresIn, 15552000);
+}
+
+TEST(TokenPoll, KnowsARefusedRefreshTokenFromAnyOtherFailure)
+{
+    // The one answer that ends a sign-in for good: nothing is left to renew with, so this is the
+    // reader being sent back through the flow rather than a failure worth retrying.
+    EXPECT_EQ(parseTokenPoll(R"({"error":"bad_refresh_token","error_description":"The refresh token is invalid or expired."})").state,
+              PollState::BadRefresh);
 }
 
 TEST(TokenPoll, TreatsAnyOtherAnswerAsFailed)
@@ -149,4 +186,176 @@ TEST(SyncConfig, ReadsAsNotConfiguredWhenTheIdIsEmptyOrMissing)
 
     EXPECT_TRUE(loadSyncConfig(path.toStdString()).clientId.isEmpty());
     EXPECT_TRUE(loadSyncConfig((dir.path() + "/absent.json").toStdString()).clientId.isEmpty());
+}
+
+namespace {
+
+using lens::sync::AuthFailure;
+using lens::sync::GithubAuth;
+using lens::sync::Token;
+
+/// One QCoreApplication for a case's duration: the client's network objects need one, and Qt allows
+/// one at a time, so each case that touches them makes its own.
+struct QtApplication {
+    QtApplication()
+        : application(argc, argv)
+    {
+    }
+
+    int              argc     = 1;
+    char             name[20] = "github_auth_test";
+    char*            argv[2]  = {name, nullptr};
+    QCoreApplication application;
+};
+
+/// What the auth object reported. Plain connections rather than a QSignalSpy: this target links Qt
+/// Core and Network, not Qt Test.
+struct Reports {
+    int         granted   = 0;
+    int         refreshed = 0;
+    int         failed    = 0;
+    Token       token;
+    AuthFailure why = AuthFailure::Generic;
+};
+
+void record(GithubAuth& auth, Reports& seen)
+{
+    QObject::connect(&auth, &GithubAuth::granted, [&seen](Token token) {
+        ++seen.granted;
+        seen.token = token;
+    });
+    QObject::connect(&auth, &GithubAuth::refreshed, [&seen](Token token) {
+        ++seen.refreshed;
+        seen.token = token;
+    });
+    QObject::connect(&auth, &GithubAuth::failed, [&seen](AuthFailure why) {
+        ++seen.failed;
+        seen.why = why;
+    });
+}
+
+/// @return Whether @p done came true within @p ms, turning the loop so a reply can arrive.
+bool spinUntil(const std::function<bool()>& done, int ms = 2000)
+{
+    QElapsedTimer clock;
+    clock.start();
+    while (not done() and clock.elapsed() < ms)
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+    return done();
+}
+
+/// One canned answer, finishing on the next turn of the loop so the client's own connections exist
+/// before `finished` arrives. `delivered_` keeps it from finishing twice.
+class CannedReply final : public QNetworkReply {
+public:
+    CannedReply(QObject* parent, int status, QByteArray body)
+        : QNetworkReply(parent),
+          body_(std::move(body))
+    {
+        setAttribute(QNetworkRequest::HttpStatusCodeAttribute, status);
+        open(QIODevice::ReadOnly);
+        QTimer::singleShot(0, this, [this] { deliver(); });
+    }
+
+    void abort() override
+    {
+        deliver();
+    }
+
+    qint64 readData(char* data, qint64 max) override
+    {
+        if (body_.isEmpty())
+            return -1;
+        const qint64 n = std::min<qint64>(max, body_.size());
+        std::memcpy(data, body_.constData(), static_cast<std::size_t>(n));
+        body_.remove(0, static_cast<int>(n));
+        return n;
+    }
+
+    /// Finish once, whichever of the two paths arrives first.
+    void deliver()
+    {
+        if (delivered_)
+            return;
+        delivered_ = true;
+        setFinished(true);
+        emit finished();
+    }
+
+private:
+    QByteArray body_;
+    bool       delivered_ = false;
+};
+
+/// The seam GithubAuth takes, keeping what the last request was so a case can read it back.
+class CannedManager final : public QNetworkAccessManager {
+public:
+    CannedManager(int status, QByteArray body)
+        : status_(status),
+          body_(std::move(body))
+    {
+    }
+
+    QString    url;    ///< The address the last request went to.
+    QByteArray posted; ///< The form body of the last POST.
+
+protected:
+    QNetworkReply* createRequest(Operation, const QNetworkRequest& request, QIODevice* outgoing) override
+    {
+        url = request.url().toString();
+        if (outgoing != nullptr) {
+            if (not outgoing->isOpen())
+                outgoing->open(QIODevice::ReadOnly);
+            posted = outgoing->readAll();
+        }
+        return new CannedReply(this, status_, body_);
+    }
+
+private:
+    int        status_;
+    QByteArray body_;
+};
+
+} // namespace
+
+TEST(GithubRefresh, SpendsTheStoredRefreshTokenAndReportsTheRotatedPair)
+{
+    QtApplication qt;
+    CannedManager manager{200, R"({"access_token":"gho_next","token_type":"bearer","scope":"gist","expires_in":28800,)"
+                               R"("refresh_token":"ghr_after","refresh_token_expires_in":15552000})"};
+    GithubAuth    auth{&manager};
+    Reports       seen;
+    record(auth, seen);
+
+    auth.refresh("Ov23li0i58xw4shNcF7I", "ghr_before");
+    ASSERT_TRUE(spinUntil([&seen] { return seen.refreshed + seen.failed > 0; }));
+
+    ASSERT_EQ(seen.refreshed, 1);
+    EXPECT_EQ(seen.token.access, "gho_next");
+    // Both tokens come back new: GitHub rotates the pair, and the spent one stops working.
+    EXPECT_EQ(seen.token.refresh, "ghr_after");
+    // The request is the one the endpoint documents: the same address the device flow polls, with
+    // the refresh grant rather than the device grant.
+    EXPECT_EQ(manager.url, QStringLiteral("https://github.com/login/oauth/access_token"));
+    EXPECT_TRUE(manager.posted.contains("grant_type=refresh_token"));
+    EXPECT_TRUE(manager.posted.contains("refresh_token=ghr_before"));
+    EXPECT_TRUE(manager.posted.contains("client_id=Ov23li0i58xw4shNcF7I"));
+}
+
+TEST(GithubRefresh, ARefusedRefreshTokenEndsTheSignInRatherThanRetrying)
+{
+    // GitHub answers this one with HTTP 200 and an error body, the way it answers a poll.
+    QtApplication qt;
+    CannedManager manager{200, R"({"error":"bad_refresh_token","error_description":"The refresh token is invalid or expired."})"};
+    GithubAuth    auth{&manager};
+    Reports       seen;
+    record(auth, seen);
+
+    auth.refresh("Ov23li0i58xw4shNcF7I", "ghr_dead");
+    ASSERT_TRUE(spinUntil([&seen] { return seen.refreshed + seen.failed > 0; }));
+
+    EXPECT_EQ(seen.refreshed, 0);
+    ASSERT_EQ(seen.failed, 1);
+    // Its own kind, because it is the only answer that says "sign in again" rather than "try again".
+    EXPECT_EQ(seen.why, AuthFailure::BadRefresh);
 }

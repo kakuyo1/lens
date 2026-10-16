@@ -101,6 +101,111 @@ bool matchesSchema(QJsonValue const& value, QJsonObject const& schema)
     return true;
 }
 
+/// @return The index of the quote that closes the JSON string whose opening quote sits at
+///         @p quote, or -1 while the string has not closed. A backslash escapes exactly the one
+///         character after it -- `\uXXXX` carries no quote among its hex digits -- so a buffer
+///         that ends inside an escape reads as unclosed rather than as a false close.
+int endOfJsonString(QString const& text, int quote)
+{
+    for (int i = quote + 1; i < text.size(); ++i) {
+        if (text.at(i) == QLatin1Char('\\')) {
+            ++i;
+            continue;
+        }
+        if (text.at(i) == QLatin1Char('"'))
+            return i;
+    }
+    return -1;
+}
+
+/// @return A JSON string literal's value, quotes included, with its escapes resolved, or empty
+///         for a literal no JSON reader accepts -- which is how a value the model has not
+///         finished writing reads.
+QString jsonStringValue(QString const& literal)
+{
+    const auto array = QJsonDocument::fromJson(QStringLiteral("[%1]").arg(literal).toUtf8()).array();
+    return array.isEmpty() ? QString{} : array.at(0).toString();
+}
+
+int scanSenseArray(QString const& text, int arrayStart, QVector<Sense>& senses);
+int scanJsonObject(QString const& text, int objectStart, QHash<QString, QString>& fields, QVector<Sense>& senses);
+
+/// @brief Read the sense objects of a `senses` array as far as they have arrived.
+/// @return The index just past the array's `]`, or the end of the text while it has not closed.
+int scanSenseArray(QString const& text, int arrayStart, QVector<Sense>& senses)
+{
+    int i = arrayStart + 1;
+    while (true) {
+        while (i < text.size() and (text.at(i).isSpace() or text.at(i) == QLatin1Char(',')))
+            ++i;
+        if (i >= text.size())
+            return text.size();
+        if (text.at(i) == QLatin1Char(']'))
+            return i + 1;
+        if (text.at(i) != QLatin1Char('{'))
+            return i;
+
+        QHash<QString, QString> entry;
+        QVector<Sense>          ignored;
+        i = scanJsonObject(text, i, entry, ignored);
+        // A sense that has named nothing yet contributes no line to the card; one whose first
+        // field has closed does, and grows as the rest arrive.
+        if (not entry.isEmpty())
+            senses.push_back({entry.value(QStringLiteral("en")),
+                              entry.value(QStringLiteral("zh")),
+                              entry.value(QStringLiteral("translation"))});
+    }
+}
+
+/// @brief Read the string fields of the object starting at @p objectStart, as far as they have
+///        arrived, folding a `senses` array into @p senses.
+/// @return The index just past the object's `}`, or the end of the text while it has not closed.
+/// @note A value that is not a string, and is not the `senses` array, stops the read: the
+///       shipped results hold nothing else, and guessing at a shape would be guessing.
+int scanJsonObject(QString const& text, int objectStart, QHash<QString, QString>& fields, QVector<Sense>& senses)
+{
+    int i = objectStart + 1;
+    while (true) {
+        while (i < text.size() and (text.at(i).isSpace() or text.at(i) == QLatin1Char(',')))
+            ++i;
+        if (i >= text.size())
+            return text.size();
+        if (text.at(i) == QLatin1Char('}'))
+            return i + 1;
+        if (text.at(i) != QLatin1Char('"'))
+            return i;
+
+        const int keyEnd = endOfJsonString(text, i);
+        if (keyEnd < 0)
+            return text.size();
+        const QString key = text.mid(i + 1, keyEnd - i - 1);
+        i                 = keyEnd + 1;
+        while (i < text.size() and text.at(i).isSpace())
+            ++i;
+        if (i >= text.size() or text.at(i) != QLatin1Char(':'))
+            return i;
+        ++i;
+        while (i < text.size() and text.at(i).isSpace())
+            ++i;
+        if (i >= text.size())
+            return text.size();
+
+        if (text.at(i) == QLatin1Char('"')) {
+            const int valueEnd = endOfJsonString(text, i);
+            if (valueEnd < 0)
+                return text.size(); // the value has not closed; everything after it waits with it
+            fields.insert(key, jsonStringValue(text.mid(i, valueEnd - i + 1)));
+            i = valueEnd + 1;
+            continue;
+        }
+        if (text.at(i) == QLatin1Char('[') and key == QLatin1String("senses")) {
+            i = scanSenseArray(text, i, senses);
+            continue;
+        }
+        return i;
+    }
+}
+
 } // namespace
 
 QString httpErrorFor(int status)
@@ -178,6 +283,10 @@ QByteArray buildRequestBody(const Config&      config,
         {"max_tokens", tmpl.maxTokens},
         {"stream", tmpl.stream},
     };
+    // An empty block adds nothing: a channel that streams without asking for extra wire options
+    // sends the body it always did.
+    if (not tmpl.streamOptions.isEmpty())
+        body.insert(QStringLiteral("stream_options"), tmpl.streamOptions);
     auto overrides = config.requestOverrides;
     if (overrides.isEmpty()) {
         for (auto const& value : serviceCatalog().value("providers").toArray()) {
@@ -423,6 +532,106 @@ QStringList idsForPrefix(QStringList const& ids, QString const& prefix)
     return matched;
 }
 
+QVector<QByteArray> takeSsePayloads(QByteArray& buffer)
+{
+    QVector<QByteArray> payloads;
+    while (true) {
+        const int lf         = buffer.indexOf("\n\n");
+        const int crlf       = buffer.indexOf("\r\n\r\n");
+        int       end        = -1;
+        int       terminator = 0;
+        if (crlf >= 0 and (lf < 0 or crlf < lf)) {
+            end        = crlf;
+            terminator = 4;
+        } else if (lf >= 0) {
+            end        = lf;
+            terminator = 2;
+        } else {
+            break; // the terminator has not arrived; the event waits whole in the buffer
+        }
+
+        QByteArray data;
+        bool       found = false;
+        for (auto line : buffer.mid(0, end).split('\n')) {
+            if (line.endsWith('\r'))
+                line.chop(1);
+            if (not line.startsWith("data:"))
+                continue; // "event:", "id:", a ":comment" keep-alive
+            auto value = line.mid(5);
+            if (value.startsWith(' '))
+                value.remove(0, 1);
+            if (found)
+                data += '\n'; // SSE joins an event's several data lines with a newline
+            data += value;
+            found = true;
+        }
+        buffer.remove(0, end + terminator);
+        if (found)
+            payloads.append(data);
+    }
+    return payloads;
+}
+
+std::optional<StreamDelta> parseStreamDelta(const QByteArray& payload)
+{
+    const auto trimmed = payload.trimmed();
+    if (trimmed.isEmpty() or trimmed == "[DONE]")
+        return std::nullopt;
+    const auto document = QJsonDocument::fromJson(trimmed);
+    if (not document.isObject())
+        return std::nullopt;
+
+    const auto  root = document.object();
+    StreamDelta delta;
+    const auto  choices = root.value("choices").toArray();
+    if (not choices.isEmpty()) {
+        const auto choice = choices.at(0).toObject();
+        delta.content     = choice.value("delta").toObject().value("content").toString();
+        const auto reason = choice.value("finish_reason");
+        if (reason.isString())
+            delta.finishReason = reason.toString();
+    }
+    // Null on every chunk but the last, and only present at all when include_usage was asked for.
+    const auto usage = root.value("usage");
+    if (usage.isObject())
+        delta.usage = usage.toObject();
+    return delta;
+}
+
+Explanation parsePartialExplanation(Channel const channel, QString const& content)
+{
+    Explanation partial;
+    const int   payloadStart = content.indexOf(QLatin1Char('{'));
+    if (payloadStart < 0)
+        return partial;
+    const int resultsKey = content.indexOf(QStringLiteral("\"results\""), payloadStart);
+    if (resultsKey < 0)
+        return partial;
+    const int arrayStart = content.indexOf(QLatin1Char('['), resultsKey);
+    if (arrayStart < 0)
+        return partial;
+
+    int cursor = arrayStart + 1;
+    while (cursor < content.size() and (content.at(cursor).isSpace() or content.at(cursor) == QLatin1Char(',')))
+        ++cursor;
+    if (cursor >= content.size() or content.at(cursor) != QLatin1Char('{'))
+        return partial;
+
+    QHash<QString, QString> fields;
+    scanJsonObject(content, cursor, fields, partial.senses);
+
+    // The title field follows the same rule the finished answer's does: the word channel echoes
+    // the word it explained, the others carry no title and have it stamped on further up.
+    partial.title       = fields.value(channel == Channel::Word ? QStringLiteral("word") : QStringLiteral("title"));
+    partial.ipa         = fields.value(QStringLiteral("ipa"));
+    partial.en          = fields.value(QStringLiteral("en"));
+    partial.zh          = fields.value(QStringLiteral("zh"));
+    partial.translation = fields.value(QStringLiteral("translation"));
+    partial.etymology   = fields.value(QStringLiteral("etymology"));
+    partial.example     = fields.value(QStringLiteral("example"));
+    return partial;
+}
+
 Usage parseUsage(const QByteArray& responseBody)
 {
     const auto envelope = QJsonDocument::fromJson(responseBody).object();
@@ -432,9 +641,7 @@ Usage parseUsage(const QByteArray& responseBody)
         return {};
     }
 
-    Usage counts;
-    counts.promptTokens     = usage.value("prompt_tokens").toInt();
-    counts.completionTokens = usage.value("completion_tokens").toInt();
+    const Usage counts{usage.value("prompt_tokens").toInt(), usage.value("completion_tokens").toInt()};
     LENS_TRACE("usage: {} prompt / {} completion token(s)", counts.promptTokens, counts.completionTokens);
     return counts;
 }

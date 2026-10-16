@@ -1,8 +1,9 @@
 import QtQuick
 
 /**
- * The desktop pet's own window: frameless, on top, never focused, kept out of screen capture. A press that does not
- * move is a click; a press that moves is a pickup, followed by a drop that remembers where it landed.
+ * The desktop pet's own window: frameless, on top, never focused, kept out of screen capture. A left press that does
+ * not move is a click, one that moves is a pickup followed by a drop that remembers where it landed, and a right
+ * press asks for the settings panel.
  */
 Window {
     id: petWindow
@@ -12,6 +13,10 @@ Window {
     property point grabCursor
     property point grabAt
     property bool moved: false
+
+    /// The reader's right-click on the pet. Where the panel goes is Main.qml's business -- beside the pet, rather
+    /// than at the tray icon the tray menu's own entry uses -- so this asks for it rather than placing anything itself.
+    signal settingsRequested()
 
     width: Math.round(Pet.canvas * Pet.scale)
     height: Math.round(Pet.canvas * Pet.scale)
@@ -36,6 +41,15 @@ Window {
 
     PetScene {
         anchors.fill: parent
+    }
+
+    // The right button's own area, so the left button's press/drag/pickup/click is untouched: a right press is never a
+    // click and never starts a pickup. It accepts the right button and nothing else.
+    MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.RightButton
+
+        onPressed: petWindow.settingsRequested()
     }
 
     MouseArea {

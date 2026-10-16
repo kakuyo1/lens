@@ -8,7 +8,11 @@
     "openRouterPrefix names the vendor part of an OpenRouter id 'vendor/slug', and it is removed",
     "before the id reaches the field. An empty prefix means the whole catalogue with ids left whole,",
     "which is what OpenRouter itself needs: its API takes vendor/slug. A provider with no prefix",
-    "gets no list of its own."
+    "gets no list of its own.",
+    "requestOverrides replaces a key of the request body, and a null removes it: the channels ask for",
+    "`thinking` and `stream_options`, and a service that does not take one gets the key dropped here.",
+    "`stream_options` is kept for DeepSeek alone, the one provider whose documentation was checked;",
+    "delete a provider's null once its own documentation confirms the field, and it gets usage back."
   ],
   "defaultProvider": "DeepSeek",
   "languages": [
@@ -33,48 +37,48 @@
       "value": "Moonshot", "label": "Moonshot (Kimi)", "group": "Domestic", "note": "",
       "baseUrl": "https://api.moonshot.cn/v1",
       "openRouterPrefix": "moonshotai",
-      "requestOverrides": {"thinking": null}
+      "requestOverrides": {"thinking": null, "stream_options": null}
     },
     {
       "value": "Zhipu", "label": "Zhipu (GLM)", "group": "Domestic", "note": "",
       "baseUrl": "https://open.bigmodel.cn/api/paas/v4",
       "openRouterPrefix": "z-ai",
-      "requestOverrides": {"thinking": null}
+      "requestOverrides": {"thinking": null, "stream_options": null}
     },
     {
       "value": "Qwen", "label": "Alibaba Cloud (Qwen)", "group": "Domestic", "note": "",
       "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
       "openRouterPrefix": "qwen",
-      "requestOverrides": {"thinking": null}
+      "requestOverrides": {"thinking": null, "stream_options": null}
     },
     {
       "value": "openai", "label": "OpenAI", "group": "International", "note": "",
       "baseUrl": "https://api.openai.com/v1",
       "models": ["gpt-4.1-mini", "gpt-4.1-nano"],
       "openRouterPrefix": "openai",
-      "requestOverrides": {"thinking": null}
+      "requestOverrides": {"thinking": null, "stream_options": null}
     },
     {
       "value": "Google", "label": "Google (Gemini)", "group": "International", "note": "",
       "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
       "openRouterPrefix": "google",
-      "requestOverrides": {"thinking": null}
+      "requestOverrides": {"thinking": null, "stream_options": null}
     },
     {
       "value": "OpenRouter", "label": "OpenRouter", "group": "International", "note": "",
       "baseUrl": "https://openrouter.ai/api/v1",
       "openRouterPrefix": "",
-      "requestOverrides": {"thinking": null}
+      "requestOverrides": {"thinking": null, "stream_options": null}
     },
     {
       "value": "xAI", "label": "xAI (Grok)", "group": "International", "note": "",
       "baseUrl": "https://api.x.ai/v1",
       "openRouterPrefix": "x-ai",
-      "requestOverrides": {"thinking": null}
+      "requestOverrides": {"thinking": null, "stream_options": null}
     },
     {
       "value": "custom", "label": "Custom service", "group": "Other", "note": "",
-      "requestOverrides": {"thinking": null}
+      "requestOverrides": {"thinking": null, "stream_options": null}
     }
   ]
 }

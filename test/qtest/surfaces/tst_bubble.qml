@@ -93,18 +93,28 @@ Item {
 
         /// The number is the clock rather than the setting that seeded it: waiting a second of
         /// real time steps it down.
+        ///
+        /// The clock starts when the answer has stopped being written out rather than when the card
+        /// appears (UI.md 4.3), so the step down is waited for from there. What the seconds read
+        /// while the reveal is still running is the subject of tst_bubble_reveal.
         function test_theSecondsStepDownWhileTheBubbleIsUp() {
-            const meta = metaOf(opened());
+            const bubble = opened();
+            const meta = metaOf(bubble);
             compare(secondsOf(meta), 5);
 
+            tryVerify(function () { return !bubble.revealing; }, 5000);
             tryVerify(function () { return secondsOf(meta) < 5; }, 2000);
             verify(secondsOf(meta) >= 1);
         }
 
         /// Holding the bubble stops the clock where it is, and letting go carries on from there
         /// rather than refilling it to five.
+        ///
+        /// The clock only runs once the answer has been written out (UI.md 4.3), so the hold begins
+        /// from the first second it takes off rather than from the card's arrival.
         function test_holdingTheBubbleStopsTheCount() {
             const bubble = opened();
+            tryVerify(function () { return !bubble.revealing; }, 5000);
             tryVerify(function () { return bubble.remainingMs < 4000; }, 2000);
 
             bubble.hovering = true;
@@ -145,6 +155,10 @@ Item {
                 skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the offscreen snapshot");
 
             const bubble = opened();
+            // The answer is written out a character at a time: the snapshot is of the card the
+            // reader ends up looking at, so the reveal is waited out rather than photographed
+            // part-way through.
+            tryVerify(function () { return !bubble.revealing; }, 8000);
             wait(100);
             verify(Util.saveSnapshot(testCase, surfaceOf(bubble), lensQaSnapshotDir, "bubble"));
         }
@@ -169,6 +183,7 @@ Item {
                 x: 200,
                 y: 240
             });
+            tryVerify(function () { return !bubble.revealing; }, 8000);
             wait(100);
 
             compare(metaOf(bubble).visible, false, "a bubble with no countdown still drew its clock");

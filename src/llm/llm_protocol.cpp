@@ -151,6 +151,7 @@ void loadLlmProtocol(Channel channel, const std::filesystem::path& dir)
     request.thinking       = root.value("thinking").toObject();
     request.maxTokens      = root.value("maxTokens").toInt();
     request.stream         = root.value("stream").toBool();
+    request.streamOptions  = root.value("streamOptions").toObject();
 
     // Read once, at the channel's own level: both the ordinary prompt and the multiple-senses one
     // can be asked for the same extra field, and one copy of the sentence is what keeps them saying

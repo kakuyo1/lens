@@ -205,6 +205,8 @@ qt_add_qml_module(lens_app
     qml/components/MenuRow.qml
     qml/components/PathField.qml
     qml/components/MixedText.qml
+    qml/components/RevealText.qml
+    qml/components/SenseRows.qml
     qml/components/HotkeyField.qml
     qml/components/GlassSurface.qml
     qml/components/SliderRow.qml

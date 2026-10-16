@@ -58,7 +58,10 @@ private:
 QString errorForGist(lens::sync::GistFailure why)
 {
     switch (why) {
-        case lens::sync::GistFailure::Unauthorised: return QStringLiteral("expired");
+        // 401 from api.github.com: the access token is no longer accepted. The device code that
+        // bought it is long gone, so what expired is the sign-in, not the code -- and that is a
+        // different thing to tell the reader, and a different thing to ask them to do about it.
+        case lens::sync::GistFailure::Unauthorised: return QStringLiteral("signInExpired");
         case lens::sync::GistFailure::NotFound: return QStringLiteral("noGist");
         case lens::sync::GistFailure::Proxy: return QStringLiteral("proxy");
         case lens::sync::GistFailure::Generic: break;
@@ -72,6 +75,8 @@ QString errorForAuth(lens::sync::AuthFailure why)
         case lens::sync::AuthFailure::Expired: return QStringLiteral("expired");
         case lens::sync::AuthFailure::Denied: return QStringLiteral("denied");
         case lens::sync::AuthFailure::Proxy: return QStringLiteral("proxy");
+        // The refresh token GitHub was handed is itself refused: nothing is left to renew with.
+        case lens::sync::AuthFailure::BadRefresh: return QStringLiteral("signInExpired");
         case lens::sync::AuthFailure::Generic: break;
     }
     return QStringLiteral("generic");
@@ -128,19 +133,27 @@ SyncDuty::SyncDuty(StorageDuty& storage, const std::filesystem::path& dataDir, Q
         verificationUri_ = code.verificationUri;
         emit stateChanged();
     });
-    connect(&auth_, &lens::sync::GithubAuth::granted, this, [this](QString accessToken) {
-        syncSection().set<std::string>("token", accessToken.toStdString());
+    connect(&auth_, &lens::sync::GithubAuth::granted, this, [this](lens::sync::Token token) {
+        storeTokens(token);
         userCode_.clear();
         verificationUri_.clear();
         phase_ = Phase::Working;
         step_  = Step::Naming;
         emit stateChanged();
-        gist_.getUser(accessToken);
+        gist_.getUser(token.access);
     });
+    connect(&auth_, &lens::sync::GithubAuth::refreshed, this, &SyncDuty::onRefreshed);
     connect(&auth_, &lens::sync::GithubAuth::failed, this, [this](lens::sync::AuthFailure why) {
         userCode_.clear();
         verificationUri_.clear();
         phase_ = Phase::Idle;
+        step_  = Step::None;
+        // A refused refresh token is proof the stored sign-in is dead: forget it, so the page offers
+        // the sign-in button instead of a Sync now that cannot work.
+        if (why == lens::sync::AuthFailure::BadRefresh) {
+            forgetTokens();
+            resumeAfterRefresh_ = Step::None;
+        }
         setError(errorForAuth(why));
         emit stateChanged();
     });
@@ -226,6 +239,30 @@ QString SyncDuty::token() const
     return QString::fromStdString(syncSection().value<std::string>("token", ""));
 }
 
+QString SyncDuty::refreshToken() const
+{
+    return QString::fromStdString(syncSection().value<std::string>("refreshToken", ""));
+}
+
+void SyncDuty::storeTokens(lens::sync::Token const& token)
+{
+    auto section = syncSection();
+    section.set<std::string>("token", token.access.toStdString());
+    // An app whose user tokens do not expire sends no refresh token, and an empty one would make the
+    // next 401 look renewable when it is not.
+    if (token.refresh.isEmpty())
+        section.remove("refreshToken");
+    else
+        section.set<std::string>("refreshToken", token.refresh.toStdString());
+}
+
+void SyncDuty::forgetTokens()
+{
+    auto section = syncSection();
+    section.remove("token");
+    section.remove("refreshToken");
+}
+
 bool SyncDuty::signedIn() const
 {
     return !token().isEmpty();
@@ -292,9 +329,11 @@ void SyncDuty::logOut()
     step_  = Step::None;
     userCode_.clear();
     verificationUri_.clear();
+    resumeAfterRefresh_ = Step::None;
+    refreshedThisRun_   = false;
 
     auto section = syncSection();
-    for (const char* key : {"token", "login", "gistId", "key", "salt", "iterations", "settingsSnapshot", "lastSyncedAt"})
+    for (const char* key : {"token", "refreshToken", "login", "gistId", "key", "salt", "iterations", "settingsSnapshot", "lastSyncedAt"})
         section.remove(key);
     setError(QString());
     emit stateChanged();
@@ -312,8 +351,9 @@ void SyncDuty::deleteCloudData()
     if (!signedIn())
         return;
     setError(QString());
-    phase_ = Phase::Working;
-    step_  = Step::Deleting;
+    refreshedThisRun_ = false;
+    phase_            = Phase::Working;
+    step_             = Step::Deleting;
     emit stateChanged();
     gist_.deleteGist(token(), id);
 }
@@ -363,8 +403,10 @@ void SyncDuty::run(const QString& passphrase, bool asked)
     }
     manual_ = asked;
     setError(QString());
-    phase_ = Phase::Working;
-    step_  = Step::Listing;
+    // One refresh per run, so a new run gets its own.
+    refreshedThisRun_ = false;
+    phase_            = Phase::Working;
+    step_             = Step::Listing;
     emit stateChanged();
     gist_.listGists(token());
 }
@@ -542,11 +584,54 @@ void SyncDuty::onDeleted()
     finish();
 }
 
+void SyncDuty::onRefreshed(lens::sync::Token token)
+{
+    storeTokens(token);
+    // Back to what the 401 interrupted, once: the sync re-lists (the gist id it had is still good, and
+    // listing is where every run starts), the delete asks for the id it was given again.
+    const Step resume   = resumeAfterRefresh_;
+    resumeAfterRefresh_ = Step::None;
+    phase_              = Phase::Working;
+    if (resume == Step::Deleting) {
+        const QString id = QString::fromStdString(syncSection().value<std::string>("gistId", ""));
+        if (id.isEmpty()) {
+            fail("noGist");
+            return;
+        }
+        step_ = Step::Deleting;
+        gist_.deleteGist(token.access, id);
+        return;
+    }
+    step_ = Step::Listing;
+    gist_.listGists(token.access);
+}
+
 void SyncDuty::onGistFailed(lens::sync::GistFailure why)
 {
+    // An access token GitHub stopped accepting. An OAuth app whose user tokens expire answers this
+    // eight hours after every sign-in (docs/adr/0042); the refresh token buys the next one, and the
+    // run carries on from where the 401 stopped it. ponytail: no expiry is stored and nothing is
+    // renewed early -- a 401 is the trigger. Store `expires_in` and renew ahead of time if the
+    // wasted round trip ever shows up.
+    if (why == lens::sync::GistFailure::Unauthorised and not refreshToken().isEmpty() and not refreshedThisRun_) {
+        refreshedThisRun_   = true;
+        resumeAfterRefresh_ = step_ == Step::Deleting ? Step::Deleting : Step::Listing;
+        // No gist call is in flight now, and the answers to the ones that were are not wanted.
+        step_ = Step::None;
+        LENS_INFO("the gist call was refused; renewing the sign-in token and carrying on");
+        auth_.refresh(config_.clientId, refreshToken());
+        return;
+    }
     // The gist is gone: forget its id, so the next sync makes a new one.
     if (why == lens::sync::GistFailure::NotFound)
         syncSection().remove("gistId");
+    // A 401 that no refresh answered -- none is stored, or the one there was has been spent -- means
+    // the sign-in is dead for good: forget it, so the page offers the sign-in button rather than a
+    // Sync now that cannot work.
+    if (why == lens::sync::GistFailure::Unauthorised) {
+        LENS_WARN("the GitHub sign-in is no longer accepted and cannot be renewed; the reader has to sign in again");
+        forgetTokens();
+    }
     const QString code = errorForGist(why);
     setError(code);
     endFailedRun(code);

@@ -77,7 +77,11 @@ struct RequestTemplate {
     QJsonObject                    responseFormat;    ///< Passed through as `response_format`.
     QJsonObject                    thinking;          ///< Passed through as `thinking`.
     int                            maxTokens = 0;     ///< Output token cap.
-    bool                           stream    = false; ///< A batch is answered whole.
+    bool                           stream    = false; ///< A batch is answered as it is written.
+    /// Passed through as `stream_options`. An empty object adds nothing to the body. Streaming
+    /// endpoints omit `usage` unless asked, so this is where `include_usage` lives -- in the
+    /// data, with a provider that refuses it dropping the key through `requestOverrides`.
+    QJsonObject streamOptions;
 };
 
 /// @return The lowercase channel name used in file names and log lines, e.g. "word".

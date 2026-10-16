@@ -2,8 +2,20 @@
 
 ## Unreleased
 
+### Added
+
+- Right-clicking the desktop pet opens the settings panel on the page that carries its block
+  (Extensions), placed beside the pet: the side is chosen from where the pet is at that click, with
+  a gap, so the card never covers the pet. The tray's Settings entry is unchanged and still opens
+  at the tray icon. With pass-through on no click reaches the pet window at all, so the gesture is
+  off while it is set.
+
 ### Changed
 
+- The explanation card is drawn while the answer is still arriving, instead of appearing once it is
+  finished: it comes up on the first text and grows a field at a time, and it keeps following its
+  word unless the reader is dragging it. Nothing is cached, counted or marked learned until the
+  whole answer has passed the response check -- drawn in half, stored whole (docs/adr/0046).
 - The desktop pet's size is a percentage, not four stops. The slider runs 0 to 100, where 0 is the
   old 1x and 100 the old 4x, so the same range is there in finer steps; a size chosen before the
   change carries over. Changing the size no longer moves the pet: it keeps its top-left corner and
@@ -12,6 +24,12 @@
 
 ### Fixed
 
+- The GitHub sign-in renews itself instead of dying eight hours after it is made. An OAuth app with
+  expiring user tokens -- GitHub's default for a new one -- answers every gist call with 401 once the
+  access token ages out; the refresh token is now kept and spent automatically, and the sync carries
+  on from where the 401 stopped it. A refresh token that is itself refused leaves the sign-in
+  labelled for what it is, "The GitHub sign-in expired; sign in again", rather than calling a dead
+  sign-in an expired device code (docs/adr/0042).
 - The text on a liquid-glass card holds its colour instead of flickering between the light and the
   dark tone. Over a mid-grey desktop the two tones read within 3% of each other -- the liquid theme
   reaches that at channel value 116 -- so one 8-bit level of the desktop sample flipped the text,

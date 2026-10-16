@@ -42,6 +42,12 @@ Item {
             return found;
         }
 
+        /// @return Whether the two window rectangles share no pixel: one lies wholly on one side of the other.
+        function separate(a, b) {
+            return a.x + a.width <= b.x || b.x + b.width <= a.x
+                || a.y + a.height <= b.y || b.y + b.height <= a.y;
+        }
+
         function test_theColourTableFollowsTheStoredTheme() {
             make();
             compare(Controller.settings.theme, "dark", "the fixture should be a non-default theme");
@@ -359,6 +365,73 @@ Item {
             Tray.menuRequested();
 
             compare(menu.visible, true, "the tray icon's gesture did not open the menu");
+        }
+
+        /// The pet's own gesture, wired the way the tray menu's entry is. A right press on the pet opens the settings
+        /// panel on the page the pet's block lives on (UI.md section 4.4's Extensions category), beside the pet rather
+        /// than at the tray anchor the tray's own entry keeps.
+        function test_aRightClickOnThePetOpensSettingsOnExtensions() {
+            const main = make();
+            const settings = panel(main, "SettingsPopup");
+            const petWindow = panel(main, "PetWindow");
+
+            // The window follows the pet switch, and a press reaches a window that is not on screen from nowhere.
+            Pet.setEnabled(true);
+            tryCompare(petWindow, "visible", true);
+            wait(50);
+
+            // The left button keeps its own job -- a press that does not move is the pet's reaction -- so it is the
+            // right button and only the right button that opens the panel.
+            mouseClick(petWindow.contentItem, petWindow.width / 2, petWindow.height / 2, Qt.LeftButton);
+            wait(50);
+            compare(settings.visible, false, "a left-click on the pet opened the settings panel");
+
+            mouseClick(petWindow.contentItem, petWindow.width / 2, petWindow.height / 2, Qt.RightButton);
+
+            compare(settings.visible, true, "the pet's right-click did not open the settings panel");
+            compare(settings.category, "extensions", "the panel opened on a page other than the pet's own");
+            verify(separate(settings, petWindow), "the panel the pet opened covers part of the pet: "
+                   + settings.x + "," + settings.y + " " + settings.width + "x" + settings.height
+                   + " over the pet at " + petWindow.x + "," + petWindow.y
+                   + " " + petWindow.width + "x" + petWindow.height);
+            Pet.setEnabled(false);
+        }
+
+        /// The side is read off where the pet is at that click, not remembered from the last one: against the left
+        /// edge the card takes the room on the pet's right, and against the right edge it flips to its left. The pet
+        /// is placed by hand rather than dragged, since what is under test is the arithmetic the click runs.
+        function test_thePetPanelTakesTheSideThePetLeavesRoomOn() {
+            const main = make();
+            const settings = panel(main, "SettingsPopup");
+            const petWindow = panel(main, "PetWindow");
+
+            Pet.setEnabled(true);
+            tryCompare(petWindow, "visible", true);
+            wait(50);
+            verify(petWindow.width > 0 && petWindow.height > 0, "the pet has no rectangle to put a card beside");
+
+            const area = main.workArea(main.screenFor(Qt.point(petWindow.x, petWindow.y)));
+            const middle = Math.round(area.top + (area.bottom - area.top - petWindow.height) / 2);
+            const click = function () {
+                mouseClick(petWindow.contentItem, petWindow.width / 2, petWindow.height / 2, Qt.RightButton);
+                compare(settings.visible, true, "the pet's right-click did not open the settings panel");
+            };
+
+            petWindow.x = area.left + 8;
+            petWindow.y = middle;
+            click();
+            verify(settings.x >= petWindow.x + petWindow.width, "the card did not take the room to the pet's right");
+            verify(separate(settings, petWindow), "the card covers a pet parked at the left edge");
+
+            // The same click again, with the pet at the other edge: the card is placed afresh rather than settling
+            // where the first one left it.
+            petWindow.x = area.right - 8 - petWindow.width;
+            petWindow.y = middle;
+            click();
+            verify(settings.x + settings.width <= petWindow.x, "the card did not flip to the pet's left");
+            verify(separate(settings, petWindow), "the card covers a pet parked at the right edge");
+
+            Pet.setEnabled(false);
         }
 
         /// The bubble and the action bar hang on the side the reader chose. With room on both sides

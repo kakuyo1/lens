@@ -200,8 +200,7 @@ public:
                                         : static_cast<int>(std::distance(titles.cbegin(), named)));
         }
 
-        if (requestedGeneration_ != selectionGeneration_ or sent_->context.language != now.language or
-            sent_->context.multipleSenses != (isWordKind(items.front().kind) and now.multipleSenses))
+        if (not stillTheReaders(now))
             return out;
 
         if (not sent_->fromScan) {
@@ -215,6 +214,33 @@ public:
         if (named != items.cend())
             out.subject = *named;
         return out;
+    }
+
+    /**
+     * @brief The item the answer in flight is still the reader's to hear about, given the title
+     *        it has named so far, or nothing when it is not.
+     *
+     * The staleness rule does not bend for a stream: an answer for a word the reader has moved on
+     * from must not paint a bubble, mid-answer included. What differs from settled() is only that
+     * there is no finished answer to pair yet, so the titles are whatever has arrived so far --
+     * and a batch the word list filled in on its own is still waiting for the title that says
+     * which of its words the card is for.
+     *
+     * @param title The title the answer has named so far; empty while none has.
+     * @param now   The language and sense mode in force now, the same reading settled() compares.
+     */
+    std::optional<PendingSelection> liveSubject(QString const& title, core::CacheContext const& now) const
+    {
+        if (not stillTheReaders(now))
+            return {};
+        if (not sent_->fromScan)
+            return sent_->items.front();
+        if (title.isEmpty())
+            return {};
+        const auto named = std::find_if(sent_->items.cbegin(), sent_->items.cend(), [&](PendingSelection const& candidate) {
+            return QString::compare(title, candidate.lemma, Qt::CaseInsensitive) == 0;
+        });
+        return named == sent_->items.cend() ? std::nullopt : std::optional<PendingSelection>{*named};
     }
 
     /// @return The request to report a failure about, or nothing when it is not the reader's to
@@ -240,6 +266,16 @@ public:
     }
 
 private:
+    /// @return Whether the answer in flight is still the one the reader is waiting for: the same
+    ///         selection, and the same language and sense mode, as when it went out.
+    bool stillTheReaders(core::CacheContext const& now) const
+    {
+        if (not sent_ or requestedGeneration_ != selectionGeneration_)
+            return false;
+        return sent_->context.language == now.language and
+               sent_->context.multipleSenses == (isWordKind(sent_->items.front().kind) and now.multipleSenses);
+    }
+
     /// @brief Make @p items the batch in flight and hand back what the caller is to send.
     /// @param items    What to ask about; must not be empty.
     /// @param now      The settings in force, from which the batch's own context is taken.

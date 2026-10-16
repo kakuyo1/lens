@@ -6,9 +6,10 @@
 ## 1 模块与目录
 
 `src/app/qml/` 根下是十一个 `Window`（表面）加一个 `Mask.qml`——它不是窗口而是窗口的宿主，每块屏幕一个
-（见 §2 与 `UI.md` 4.11）；`src/app/qml/components/` 下是十二个可复用件
+（见 §2 与 `UI.md` 4.11）；`src/app/qml/components/` 下是十四个可复用件
 （`Icon` / `ShadowCard` / `Tokens` / `MixedText` / `Segment` / `StatRow` / `MenuRow` /
-`DropdownField` / `Switch` / `SwitchRow` / `PathField` / `HotkeyField`），`src/app/qml/theme/` 下是三套主题
+`DropdownField` / `Switch` / `SwitchRow` / `PathField` / `HotkeyField` / `RevealText` /
+`SenseRows`），`src/app/qml/theme/` 下是三套主题
 各一份色值表（`Light` / `Dark`）加一份动效表（`Motion`）。三组同属一个 QML 模块（`qt_add_qml_module` 的
 `QML_FILES` 里写子目录路径即可），Qt 给模块内每个文件隐式导入本模块的类型，**跨目录照样按类型名解析，
 谁也不需要写 import**。

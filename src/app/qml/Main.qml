@@ -169,6 +169,74 @@ Window {
         return Qt.point(Math.round(x), Math.round(root.clamp(y, top, bottom - height)));
     }
 
+    /// @brief Where a panel goes to sit beside the pet's rectangle rather than beside the tray icon.
+    ///
+    /// The candidates are the pet's four sides in the order right, left, below, above, each one a card
+    /// @p gap clear of that side and centred across its length. The sides are scored by how much of the
+    /// pet the card covers once it is clamped into the work area, which is 0 for a side the card clears;
+    /// the lowest score wins and the order above breaks a tie. The score rather than a fit test is what
+    /// keeps the card off the pet: a work area too short to hold the card beside the pet clamps the card
+    /// back over it, and the side clamped least far onto the pet is the one that survives. The horizontal
+    /// sides come first because the card is 532 px tall and needs that much of the work area's height to
+    /// clear the pet vertically, which the corner the pet is usually left in does not have.
+    /// @param rectangle The pet window's rectangle as it stands. The pet can be dragged or grown over an
+    ///        edge, so the rectangle is read against the work area first: the part of the pet that is on
+    ///        screen is the part the card is put beside.
+    /// @return The panel's top-left corner, in DIPs.
+    function placeBesidePet(rectangle, width, height, gap) {
+        const area = root.workArea(root.screenFor(Qt.point(rectangle.x + rectangle.width / 2,
+                                                           rectangle.y + rectangle.height / 2)));
+        const left = area.left + screenMargin;
+        const top = area.top + screenMargin;
+        const right = area.right - screenMargin;
+        const bottom = area.bottom - screenMargin;
+        // Each clamp is monotone, so a pet dragged wholly past an edge collapses onto that edge
+        // rather than turning its rectangle inside out.
+        const petLeft = root.clamp(rectangle.x, left, right);
+        const petRight = root.clamp(rectangle.x + rectangle.width, petLeft, right);
+        const petTop = root.clamp(rectangle.y, top, bottom);
+        const petBottom = root.clamp(rectangle.y + rectangle.height, petTop, bottom);
+        const centreX = (petLeft + petRight) / 2;
+        const centreY = (petTop + petBottom) / 2;
+
+        const candidates = [
+            Qt.point(petRight + gap, centreY - height / 2),
+            Qt.point(petLeft - gap - width, centreY - height / 2),
+            Qt.point(centreX - width / 2, petBottom + gap),
+            Qt.point(centreX - width / 2, petTop - gap - height)
+        ];
+        /// The candidate's rectangle, pulled back inside the work area by however much of it hangs out.
+        const onScreen = function (at) {
+            return Qt.rect(root.clamp(at.x, left, right - width), root.clamp(at.y, top, bottom - height),
+                           width, height);
+        };
+        /// How much of the pet that rectangle covers.
+        const covered = function (at) {
+            return Math.max(0, Math.min(at.x + at.width, petRight) - Math.max(at.x, petLeft))
+                 * Math.max(0, Math.min(at.y + at.height, petBottom) - Math.max(at.y, petTop));
+        };
+
+        let chosen = onScreen(candidates[0]);
+        for (const candidate of candidates) {
+            const at = onScreen(candidate);
+            if (covered(at) < covered(chosen))
+                chosen = at;
+        }
+        return Qt.point(Math.round(chosen.x), Math.round(chosen.y));
+    }
+
+    /// @brief Put a panel up beside the pet, and remember that it went there: a placement is recomputed
+    ///        from where the pet is now on every click, and from the pet again when the screens change.
+    function placePetPanel(panel) {
+        root.rememberPlacement(panel, null, "pet");
+        const pet = Qt.rect(petWindow.x, petWindow.y, petWindow.width, petWindow.height);
+        const at = root.placeBesidePet(pet, panel.width, panel.height, screenMargin);
+        panel.x = at.x;
+        panel.y = at.y;
+        panel.visible = true;
+        panel.raise();
+    }
+
     /// @brief Put a surface up beside its anchor, on whichever screen that is.
     function placePanel(panel, anchor) {
         const placement = root.rememberPlacement(panel, anchor, "panel");
@@ -264,6 +332,8 @@ Window {
                 continue;
             if (placement.kind === "panel")
                 root.placePanel(placement.surface, placement.anchor);
+            else if (placement.kind === "pet")
+                root.placePetPanel(placement.surface);
             else if (!placement.surface.dragging)
                 root.placeTransient(placement.surface, placement.anchor, placement.surface.gap);
         }
@@ -312,9 +382,14 @@ Window {
         root.placePanel(statsPopup, anchor);
     }
 
-    function showSettings() {
+    /// @param fromPet The pet's own gesture asked for the panel, and it is the only caller that wants it
+    ///        beside the pet: the tray menu's entry names a panel rather than a place, and keeps the icon.
+    function showSettings(fromPet) {
         root.hidePanels(settingsPopup);
-        root.placePanel(settingsPopup, root.trayAnchor());
+        if (fromPet)
+            root.placePetPanel(settingsPopup);
+        else
+            root.placePanel(settingsPopup, root.trayAnchor());
     }
 
     function showCost(from) {
@@ -447,7 +522,17 @@ Window {
         onPlacementRequested: (payload) => root.placeTransient(bubble, payload, bubble.gap)
         onHeightChanged: root.keepOnScreen(bubble)
     }
-    PetWindow { }
+    /// The pet's right-click opens the panel on the page that carries the pet's block, beside the pet: the side is
+    /// chosen from where the pet is at that click, so a pet the reader has moved gets the card on its other side. The
+    /// tray's entry opens the same panel without choosing a page, and at the tray icon.
+    PetWindow {
+        id: petWindow
+        onSettingsRequested: {
+            root.showSettings(true);
+            // After, not before: the panel clears its own category every time it comes up, so it opens on the list.
+            settingsPopup.openCategory("extensions");
+        }
+    }
 
     Notice {
         id: notice
@@ -575,7 +660,13 @@ Window {
             if (payload && Object.keys(payload).length > 0) {
                 const at = root.toDip(payload);
                 bubble.show(at);
-                Qt.callLater(() => root.placeTransient(bubble, at, bubble.gap));
+                // An answer now arrives a field at a time, so this runs several times for one card: a card the
+                // reader is holding is theirs, and the stream must not pull it back to the anchor (repositionVisible
+                // keeps the same rule for a screen change).
+                Qt.callLater(() => {
+                    if (!bubble.dragging)
+                        root.placeTransient(bubble, at, bubble.gap);
+                });
             } else {
                 bubble.visible = false;
             }

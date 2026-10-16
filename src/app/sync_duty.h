@@ -112,6 +112,9 @@ private:
     std::string deviceId();
     /// @return The GitHub token, or empty when the reader is not signed in.
     QString token() const;
+    /// @return The stored refresh token, empty when the OAuth app's tokens do not expire or the
+    ///         reader has not signed in since the app started expiring them.
+    QString refreshToken() const;
     bool    signedIn() const;
     /// @brief Run one sync. An empty @p passphrase uses the stored key.
     /// @param asked True when the reader pressed a button; a timer passes false.
@@ -128,7 +131,13 @@ private:
     void setSyncedAt();
     void onNamed(const QString& login);
     void onDeleted();
+    /// @brief A refresh token bought new tokens: store both and carry on with what the 401 interrupted.
+    void onRefreshed(lens::sync::Token token);
     void onGistFailed(lens::sync::GistFailure why);
+    /// @brief Keep the tokens a sign-in or a refresh just produced. Both secrets, neither logged.
+    void storeTokens(lens::sync::Token const& token);
+    /// @brief Forget the tokens a refused refresh proved dead, so the page offers sign-in again.
+    void forgetTokens();
     /// @brief Set the error and end the run.
     void fail(const char* code);
     /// @brief Set an error code (empty for none) and notify.
@@ -161,9 +170,15 @@ private:
     /// succeeds, so a failed upload leaves the last good one in place and the next change still syncs.
     std::string pendingFingerprint_;
     std::string passphrase_; ///< Held only for the run that was given it; cleared when the run ends.
-    QString     userCode_;
-    QString     verificationUri_;
-    QString     error_;
+    /// The step a 401's refresh carries on from: Listing to redo the sync, Deleting to redo the
+    /// delete. None when no refresh is under way.
+    Step resumeAfterRefresh_ = Step::None;
+    /// One refresh per run, whether it worked or not, so a token that is gone for good costs one
+    /// request rather than one per call.
+    bool    refreshedThisRun_ = false;
+    QString userCode_;
+    QString verificationUri_;
+    QString error_;
 };
 
 }

@@ -30,5 +30,6 @@
   "responseFormat": { "type": "json_object" },
   "thinking": { "type": "disabled" },
   "maxTokens": 4096,
-  "stream": false
+  "stream": true,
+  "streamOptions": { "include_usage": true }
 }
