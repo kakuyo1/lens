@@ -4,6 +4,16 @@
 
 [English](README.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [Español](README.es.md)
 
+## 安装
+
+从[发布页](https://github.com/kakuyo1/lens/releases)下载 `Lens-<版本>-setup.exe` 并运行。它是按用户安装的，Windows 不会要求管理员权限，装完 Lens 就在开始菜单里。
+
+Windows 会先拦一下。Lens 没有代码签名，Windows Defender SmartScreen 会拦截它不认识的程序。在蓝色的 “Windows 已保护你的电脑” 窗口里，点 “更多信息”，再点 “仍要运行”——绕过方法就这一步，文件本身没有问题。原因是缺签名，不是程序不安全：SmartScreen 认的是签名，而 Lens 目前还没有。
+
+不想装东西的话，每个发布也带一份 `Lens-<版本>-portable.zip`。解压到任意目录，运行其中的 `lens.exe` 即可。里面是同一个程序，只是没有开始菜单快捷方式，也没有卸载项——把目录删掉就没了。Lens 的设置写在 `%APPDATA%\Lens\settings.json`，所以你的生词和 API 键都不在安装包或 zip 里，删掉它也不会丢。
+
+想在运行前核对下载，把文件的 SHA-256 和该版本发布里的 `SHA256SUMS` 对应行比一下即可。这能证明文件没有在传输中损坏，但不能证明发布者是谁：未签名的文件理论上可以连同校验和一起被替换。
+
 ## Lens 能做什么
 
 Lens 常驻系统托盘，没有主窗口。选中一段文字后，会弹出一个小动作条，提供翻译、解释和复制三项。结果以气泡的形式显示在触发它的文字旁边。把单词标记为 “已会” 或 “新词” 之后，继续阅读即可。名称和整句也会得到解释。

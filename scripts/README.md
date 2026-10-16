@@ -50,7 +50,9 @@ powershell -File scripts/release/publish-release.ps1 -Version 1.1.0
 
 发布脚本要求干净工作树、CMake 版本与 CHANGELOG 对应，然后重新构建安装包并核对 release QML lint。
 它推送当前分支，创建并推送指向当前提交的注释 tag `v<version>`，用该版本的 CHANGELOG 段落发布
-`Lens-<version>-setup.exe`。`-WhatIf` 只做前置核对，`-Draft` 创建草稿。
+两个产物：`Lens-<version>-setup.exe` 和免安装的 `Lens-<version>-portable.zip`；两个包的摘要都写进
+同一个 `SHA256SUMS`，更新通道按文件名取自己那一条（ADR 0047）。
+`-WhatIf` 只做前置核对，`-Draft` 创建草稿。
 
 先完成 `gh auth login`，按 `TEST.md` 完成测试，并人工验证安装后的应用。若 tag 推送后发布失败，脚本保留 tag；
 核对 tag 指向与本地产物后，可直接用 `gh release create --verify-tag` 恢复发布。具体安装和版本取舍见 ADR 0011。

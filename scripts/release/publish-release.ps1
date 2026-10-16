@@ -46,6 +46,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'publish-release: cannot check remote tags' }
     if ($remoteTag) { throw "publish-release: remote tag $tag already exists" }
     $installer = Join-Path $root "build-ninja-release\installer\Lens-$Version-setup.exe"
+    $portable = Join-Path $root "build-ninja-release\installer\Lens-$Version-portable.zip"
     if (-not $PSCmdlet.ShouldProcess("$repo at $head", "Build installer, push $branch and $tag, create GitHub Release")) {
         return
     }
@@ -54,6 +55,9 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'publish-release: installer build failed' }
     if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) {
         throw "publish-release: installer was not created: $installer"
+    }
+    if (-not (Test-Path -LiteralPath $portable -PathType Leaf)) {
+        throw "publish-release: portable zip was not created: $portable"
     }
     . "$PSScriptRoot\..\build\paths.ps1"
     $qtBin = (Get-LensPaths -Root $root).qtBin
@@ -70,11 +74,17 @@ try {
 
     # The update card downloads only an installer that this list names, so every release carries one (PHASE3 4.1).
     # One line, lowercase digest, two spaces: the format the client reads with the checksum parser.
+    # The portable zip is a second line. The client reads the whole list and picks the one file it
+    # asked for, so a line naming something else is skipped rather than refused (update_pure.cpp),
+    # which is what lets one list answer for both packages.
     $sumsDir = Join-Path ([IO.Path]::GetTempPath()) ('lens-sums-' + [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $sumsDir | Out-Null
     $sumsPath = Join-Path $sumsDir 'SHA256SUMS'
-    $digest = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
-    [IO.File]::WriteAllText($sumsPath, "$digest  $(Split-Path -Leaf $installer)`n", [Text.UTF8Encoding]::new($false))
+    $lines = foreach ($package in @($installer, $portable)) {
+        $digest = (Get-FileHash -LiteralPath $package -Algorithm SHA256).Hash.ToLowerInvariant()
+        "$digest  $(Split-Path -Leaf $package)"
+    }
+    [IO.File]::WriteAllText($sumsPath, (($lines -join "`n") + "`n"), [Text.UTF8Encoding]::new($false))
 
     $notesPath = [IO.Path]::GetTempFileName()
     [IO.File]::WriteAllText($notesPath, $section.Groups[1].Value.Trim(), [Text.UTF8Encoding]::new($false))
@@ -84,7 +94,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'publish-release: tag creation failed' }
     & git push origin "refs/tags/$tag"
     if ($LASTEXITCODE -ne 0) { throw 'publish-release: tag push failed; local tag is retained' }
-    $arguments = @('release', 'create', $tag, $installer, $sumsPath, '--repo', $repo,
+    $arguments = @('release', 'create', $tag, $installer, $portable, $sumsPath, '--repo', $repo,
         '--verify-tag', '--title', "Lens $Version", '--notes-file', $notesPath)
     if ($Draft) { $arguments += '--draft' }
     & gh @arguments

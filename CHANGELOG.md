@@ -4,6 +4,11 @@
 
 ### Added
 
+- Word lists can be brought in and taken out as files. The words panel's export dialog now offers
+  JSON as well as text, and picks the format from the file name the reader typed; the JSON is a
+  plain array of the lemmas, nothing else. A folder icon beside the export brings a list in: one
+  word per line from a `.txt`, or that array from a `.json`. Imported words land on the list marked
+  new, a word already on the list is not added twice, and repeats inside one file collapse.
 - Right-clicking the desktop pet opens the settings panel on the page that carries its block
   (Extensions), placed beside the pet: the side is chosen from where the pet is at that click, with
   a gap, so the card never covers the pet. The tray's Settings entry is unchanged and still opens
@@ -18,6 +23,10 @@
 
 ### Changed
 
+- Every release now carries a portable zip beside the installer: the same program, unzipped. A
+  reader who would rather not install anything can run `lens.exe` straight out of the folder. The
+  installer is still unsigned, and the READMEs now say so and say which two buttons get past the
+  SmartScreen warning (docs/adr/0047).
 - The explanation card is drawn while the answer is still arriving, instead of appearing once it is
   finished: it comes up on the first text and grows a field at a time, and it keeps following its
   word unless the reader is dragging it. Nothing is cached, counted or marked learned until the

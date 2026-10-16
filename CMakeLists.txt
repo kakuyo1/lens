@@ -136,12 +136,18 @@ configure_file(
 # in every tree, but installer/lens.iss names build-ninja-release as what it packs, so from
 # another tree it would deploy the payload here and then pack whatever is over there.
 #
+# The same payload also becomes a portable zip, one directory holding exactly what the installer
+# would have put under {app}. It is a second way to run Lens for a reader Windows SmartScreen will
+# not let them run the installer over; see docs/adr/0047. It is built here rather than in the
+# release script so that both packages come out of one target and cannot drift.
+#
 # Three machine paths, all from config/paths.json; config/README.md owns the rule.
 lens_path(LENS_QT_BIN qtBin)
 lens_path(LENS_INNO_SETUP innoSetup)
 lens_path(LENS_TESSERACT_ROOT tesseractRoot)
 
 set(LENS_PAYLOAD_DIR "${CMAKE_BINARY_DIR}/installer/payload")
+set(LENS_PORTABLE_STAGE_DIR "${CMAKE_BINARY_DIR}/installer/portable/Lens-${PROJECT_VERSION}")
 
 add_custom_target(installer
   COMMAND ${CMAKE_COMMAND} -E rm -rf "${LENS_PAYLOAD_DIR}"
@@ -160,10 +166,20 @@ add_custom_target(installer
           "-DLENS_OCR_NOTICE_FILE=${CMAKE_SOURCE_DIR}/installer/THIRD_PARTY_NOTICES.txt"
           -P "${CMAKE_SOURCE_DIR}/installer/stage_ocr.cmake"
   COMMAND "${LENS_INNO_SETUP}" "/I${CMAKE_BINARY_DIR}/installer" "${CMAKE_SOURCE_DIR}/installer/lens.iss"
+  COMMAND ${CMAKE_COMMAND} -E rm -rf "${CMAKE_BINARY_DIR}/installer/portable"
+  COMMAND ${CMAKE_COMMAND} -E make_directory "${LENS_PORTABLE_STAGE_DIR}"
+  COMMAND ${CMAKE_COMMAND} -E copy_directory "${LENS_PAYLOAD_DIR}" "${LENS_PORTABLE_STAGE_DIR}"
+  COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/data" "${LENS_PORTABLE_STAGE_DIR}/data"
+  COMMAND ${CMAKE_COMMAND} -E rm -f "${CMAKE_BINARY_DIR}/installer/Lens-${PROJECT_VERSION}-portable.zip"
+  # Packed from inside portable/ so the archive's root is Lens-<version>/ and unzipping it puts
+  # one directory in front of the files. cmake -E tar keeps the path it is given rather than
+  # stripping to the basename, so naming portable/ here would leave that in the archive too.
+  COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_BINARY_DIR}/installer/portable"
+          tar cf "../Lens-${PROJECT_VERSION}-portable.zip" --format=zip "Lens-${PROJECT_VERSION}"
   DEPENDS lens
           "${CMAKE_SOURCE_DIR}/installer/stage_ocr.cmake"
           "${CMAKE_SOURCE_DIR}/installer/THIRD_PARTY_NOTICES.txt"
   WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-  COMMENT "Packaging Lens: windeployqt, then Inno Setup"
+  COMMENT "Packaging Lens: windeployqt, then Inno Setup, then the portable zip"
   VERBATIM
 )

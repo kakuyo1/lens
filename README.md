@@ -4,6 +4,16 @@
 
 [English](README.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [Español](README.es.md)
 
+## Installing
+
+Download `Lens-<version>-setup.exe` from the [releases page](https://github.com/kakuyo1/lens/releases) and run it. It installs per user, so Windows never asks for administrator rights, and it puts Lens in your Start menu.
+
+**Windows will warn you before it lets you.** Lens is not code-signed, and Windows Defender SmartScreen blocks programs it does not recognise. On the blue "Windows protected your PC" window, choose **More info**, then **Run anyway**. That is the whole workaround; nothing about the file is unsafe. The reason is the missing signature, not the program: signing is what SmartScreen trusts, and Lens does not carry one yet.
+
+If you would rather not install anything, every release also ships `Lens-<version>-portable.zip`. Unzip it anywhere and run `lens.exe` in the folder you unzipped to. It is the same program with no shortcut and no uninstaller: delete the folder and it is gone. Lens writes its settings to `%APPDATA%\Lens\settings.json`, so your words and API key are not inside either package and survive deleting it.
+
+To check a download before you run it, compare its SHA-256 against the matching line in the release's `SHA256SUMS` file. That proves the file arrived intact; it does not prove who published it, because an unsigned file could in principle be altered along with its checksum.
+
 ## What Lens does
 
 Lens lives in the system tray and has no main window. Select a passage, and a small action bar offers Translate, Explain, and Copy. The result appears as a bubble beside the text that prompted it. Mark a word as known or new, and keep reading. Names and whole sentences get explanations too.

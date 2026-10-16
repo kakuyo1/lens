@@ -4,6 +4,16 @@
 
 [English](README.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [Español](README.es.md)
 
+## Instalación
+
+Descarga `Lens-<versión>-setup.exe` desde la [página de lanzamientos](https://github.com/kakuyo1/lens/releases) y ejecútalo. La instalación es por usuario, así que Windows nunca pide permisos de administrador, y Lens queda en el menú Inicio.
+
+**Windows te avisará antes de dejarte hacerlo.** Lens no está firmado con código y Microsoft Defender SmartScreen bloquea los programas que no reconoce. En la ventana azul «Windows ha protegido tu PC», elige **Más información** y luego **Ejecutar de todas formas**. Ese es todo el rodeo; el archivo no es inseguro. Lo que falta es la firma, no la seguridad del programa: SmartScreen confía en la firma, y Lens todavía no tiene una.
+
+Si prefieres no instalar nada, cada lanzamiento incluye además `Lens-<versión>-portable.zip`. Descomprímelo donde quieras y ejecuta `lens.exe` de la carpeta. Es el mismo programa, sin acceso directo en el menú Inicio y sin desinstalador: borra la carpeta y desaparece. Lens guarda sus ajustes en `%APPDATA%\Lens\settings.json`, así que tus palabras y tu clave de API no están dentro de ninguno de los dos paquetes y no se pierden al borrarlos.
+
+Para comprobar una descarga antes de ejecutarla, compara su SHA-256 con la línea correspondiente del archivo `SHA256SUMS` del lanzamiento. Eso demuestra que el archivo llegó intacto, pero no quién lo publicó: un archivo sin firma podría alterarse en principio junto con su suma de verificación.
+
 ## Qué hace Lens
 
 Lens vive en la bandeja del sistema y no tiene ventana principal. Selecciona un fragmento y aparecerá una pequeña barra de acciones con Traducir, Explicar y Copiar. El resultado se muestra en un globo junto al texto que lo provocó. Marca una palabra como conocida o nueva y sigue leyendo. Los nombres y las frases completas también reciben explicación.
