@@ -4,10 +4,13 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
 
 ## Critical Rules
 
+- Minimize test time. Remerber, the user loathe deeply when you spend too much time testing, he will shutdown the session immediately when a testing is running for unnecessary or stupid scenarios.Run the narrowest thing that can falsify the change; run nothing  
+  when the change is docs, comments, or .ts text. A full run is only for a big merge, a  
+  release, or a cross-target change(small or certain ones can be skipped and leave it to CI). A review-comment fix never triggers a full run.Do not "just to be safe" escalate. Report what you ran in one line and respond quickly.
 - No commits unless explicitly requested, no AI attribution in commits or PRs.
 - A branch that has been pushed gets a pull request, and its body follows
-  `.github/pull_request_template.md`: all three sections filled. Do not stop at handing over the
-  compare URL.
+`.github/pull_request_template.md`: all three sections filled. Do not stop at handing over the
+compare URL.
 - UI work must comply with `UI.md` and `PRODUCT.md`.
 - Designing or auditing a `ui-prototypes/*.html` page starts by loading the `taste-skill` skill; a surface that has been rendered, the QML ones included, is checked with `visual-qa`.
 - Keep `GLOSSARY.md`, `PRODUCT.md`, and `UI.md` in sync on any design change; record major trade-offs in `docs/adr/`.
@@ -80,9 +83,7 @@ PATH="$QT_ROOT/bin:$PATH" QT_FORCE_STDERR_LOGGING=1 \
 
 Targets: `lens_util` → `lens_core` → `lens_capture` / `lens_llm` → `lens_app`. The `lens_gtest_*` targets are standalone and never shipped.
 
-The full run is for a merge, a release, or a change that crosses targets. CI runs the matrix on a push to `main` and on a pull request. A feature branch with no PR is covered by nothing else, so there the full run is yours to make.
-
-## Translations
+ ## Translations
 
 English is the source language: `i18n/lens_en_US.ts` mirrors the source strings, and `lens_zh_CN.ts` / `lens_es_ES.ts` / `lens_ja_JP.ts` carry the Chinese, Spanish and Japanese. After adding or changing a reader-facing string:
 
