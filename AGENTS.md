@@ -4,9 +4,17 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
 
 ## Critical Rules
 
-- Minimize test time. Remember, the user loathe deeply when you spend too much time testing, he will shutdown the session immediately when a testing is running for unnecessary or stupid scenarios.Run the narrowest thing that can falsify the change; run nothing  
-  when the change is docs, comments, or .ts text. A full run is only for a big merge, a  
-  release, or a cross-target change(small or certain ones can be skipped and leave it to CI). A review-comment fix never triggers a full run.Do not "just to be safe" escalate. Report what you ran in one line and respond quickly.
+- Minimize test time. Pick the row that matches the change, and run only what the row names:
+
+  | Change | Run locally |
+  |---|---|
+  | Docs, comments, `.ts` text | Nothing |
+  | C++ logic | One gtest case or `--gtest_filter` that covers the touched code |
+  | QML that renders a visible surface | One `scripts/qa/ui-run.ps1` capture for visual-qa; no qtest run |
+  | Big merge, release, or cross-target change | The full run |
+  | Anything else | Nothing; push and let CI run the suites |
+
+  A review-comment fix never triggers a full run. Do not escalate "just to be safe". Report what you ran in one line.
 - No commits unless explicitly requested, no AI attribution in commits or PRs.
 - A branch that has been pushed gets a pull request, and its body follows
 `.github/pull_request_template.md`: all three sections filled. Do not stop at handing over the
