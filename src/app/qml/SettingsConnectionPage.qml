@@ -11,6 +11,8 @@ Item {
     readonly property string apiDraft: draftOwner ? draftOwner.apiDraft : ""
     readonly property var openChildRect: null
     signal apiEdited(string value)
+    /// The reader left the key field: the owner writes the draft and clears it.
+    signal apiCommitted()
     implicitHeight: content.implicitHeight
 
     function closeChild() {}
@@ -48,6 +50,12 @@ Item {
                     font.pixelSize: 13
                     selectByMouse: true
                     onTextEdited: page.apiEdited(text)
+                    onEditingFinished: {
+                        page.apiCommitted();
+                        // The first keystroke destroys the text binding; put it back so the field
+                        // goes to the masked placeholder once the owner has cleared the draft.
+                        text = Qt.binding(() => page.apiDraft);
+                    }
                     HoverHandler { cursorShape: Qt.PointingHandCursor }
                 }
 

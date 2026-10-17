@@ -243,18 +243,23 @@ Window {
                 width: parent.width
                 height: 24
 
+                // The real footer's only button: the footer no longer carries a Save action, and
+                // this miniature follows it.
                 Rectangle {
-                    anchors.right: parent.right
+                    anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
-                    width: 60
+                    width: defaultsText.width + 20
                     height: 22
                     radius: root.tokens.radiusPill
-                    color: root.tokens.ink
+                    color: root.tokens.panel2
+                    border.width: 1
+                    border.color: root.tokens.line
 
                     Text {
+                        id: defaultsText
                         anchors.centerIn: parent
-                        text: qsTranslate("SettingsPopup", "Save")
-                        color: root.tokens.on
+                        text: qsTranslate("SettingsPopup", "Defaults")
+                        color: root.tokens.muted
                         font.pixelSize: 11
                         font.weight: Font.Bold
                     }

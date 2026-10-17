@@ -34,7 +34,6 @@ Window {
     property var previewLanguage: null
     property string apiDraft: ""
     property string saveStatus: ""
-    readonly property bool hasUnsavedChanges: apiDraft.length > 0
     // qmllint disable missing-property
     readonly property var openChildRect: viewLoader.status === Loader.Ready && viewLoader.item
         ? viewLoader.item.openChildRect
@@ -75,6 +74,9 @@ Window {
     }
 
     function closeChild() {
+        // The key is the one setting typed into a draft; leaving the connection page or the panel
+        // has to write it, since the footer no longer carries a Save button for it.
+        settings.commitApiDraft();
         // qmllint disable missing-property
         if (viewLoader.status === Loader.Ready && viewLoader.item && viewLoader.item.closeChild)
             viewLoader.item.closeChild();
@@ -227,9 +229,16 @@ Window {
         previewKey = "";
     }
 
-    function saveSettings() {
-        if (apiDraft.length > 0)
-            Controller.setApiKey(apiDraft);
+    /// @brief Write the API key the reader has typed, if any, and clear the draft.
+    ///
+    /// Every other setting takes effect as it is touched; the key is the one that is typed, so it
+    /// is written when the field is left (and again when the page or panel goes, for a field that
+    /// never lost focus). The footer says so rather than offering a button that is dead until a
+    /// key has been typed into a page the reader may not have opened.
+    function commitApiDraft() {
+        if (apiDraft.length === 0)
+            return;
+        Controller.setApiKey(apiDraft);
         apiDraft = "";
         saveStatus = qsTranslate("SettingsPopup", "Saved");
     }
@@ -470,44 +479,14 @@ Window {
             Text {
                 anchors.left: defaultsLabel.parent.right
                 anchors.leftMargin: 8
-                anchors.right: saveButton.left
-                anchors.rightMargin: 8
+                anchors.right: parent.right
+                anchors.rightMargin: 20
                 anchors.verticalCenter: parent.verticalCenter
-                text: settings.hasUnsavedChanges
-                      ? qsTranslate("SettingsPopup", "Unsaved changes")
-                      : settings.saveStatus
+                text: settings.saveStatus
                 color: settings.tokens.faint
                 font.pixelSize: 11
                 horizontalAlignment: Text.AlignHCenter
                 elide: Text.ElideRight
-            }
-
-            Rectangle {
-                id: saveButton
-                anchors.right: parent.right
-                anchors.rightMargin: 20
-                y: 15
-                width: saveLabel.width + 28
-                height: 27
-                radius: settings.tokens.radiusPill
-                color: settings.tokens.ink
-                opacity: settings.hasUnsavedChanges ? 1 : 0.45
-
-                Text {
-                    id: saveLabel
-                    anchors.centerIn: parent
-                    text: qsTranslate("SettingsPopup", "Save")
-                    color: settings.tokens.on
-                    font.pixelSize: 12
-                    font.weight: Font.Bold
-                }
-                HoverHandler {
-                    cursorShape: settings.hasUnsavedChanges ? Qt.PointingHandCursor : Qt.ArrowCursor
-                }
-                TapHandler {
-                    enabled: settings.hasUnsavedChanges
-                    onTapped: settings.saveSettings()
-                }
             }
         }
     }
@@ -591,6 +570,7 @@ Window {
         SettingsConnectionPage {
             draftOwner: settings
             onApiEdited: (value) => settings.apiDraft = value
+            onApiCommitted: settings.commitApiDraft()
         }
     }
 }

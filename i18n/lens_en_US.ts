@@ -4,37 +4,37 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="436"/>
+        <location filename="../src/app/qml/Bubble.qml" line="440"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="436"/>
+        <location filename="../src/app/qml/Bubble.qml" line="440"/>
         <source>New</source>
         <translation>New</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="435"/>
+        <location filename="../src/app/qml/Bubble.qml" line="439"/>
         <source>Sentence</source>
         <translation>Sentence</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="434"/>
+        <location filename="../src/app/qml/Bubble.qml" line="438"/>
         <source>Preview</source>
         <translation>Preview</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="581"/>
+        <location filename="../src/app/qml/Bubble.qml" line="585"/>
         <source>Etymology</source>
         <translation>Etymology</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="620"/>
+        <location filename="../src/app/qml/Bubble.qml" line="624"/>
         <source>Example</source>
         <translation>Example</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="658"/>
+        <location filename="../src/app/qml/Bubble.qml" line="662"/>
         <source>Disappears in %1s</source>
         <translation>Disappears in %1s</translation>
     </message>
@@ -193,25 +193,20 @@
 <context>
     <name>SettingsPopup</name>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="234"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="243"/>
         <source>Saved</source>
         <translation>Saved</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="261"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="270"/>
         <source>Defaults restored</source>
         <translation>Defaults restored</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="346"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="355"/>
         <location filename="../src/app/qml/ThemePreview.qml" line="102"/>
         <source>Settings</source>
         <translation>Settings</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="477"/>
-        <source>Unsaved changes</source>
-        <translation>Unsaved changes</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsLearningPage.qml" line="42"/>
@@ -435,7 +430,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsGeneralPage.qml" line="392"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="73"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="72"/>
         <source>Account &amp; sync</source>
         <translation>Account &amp; sync</translation>
     </message>
@@ -457,7 +452,8 @@
         <translation>Give up silently</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="461"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="470"/>
+        <location filename="../src/app/qml/ThemePreview.qml" line="261"/>
         <source>Defaults</source>
         <translation>Defaults</translation>
     </message>
@@ -490,20 +486,14 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="93"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="71"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="70"/>
         <source>Popup &amp; clipboard</source>
         <translation>Popup &amp; clipboard</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="499"/>
-        <location filename="../src/app/qml/ThemePreview.qml" line="256"/>
-        <source>Save</source>
-        <translation>Save</translation>
-    </message>
-    <message>
         <location filename="../src/app/qml/SettingsBudgetPage.qml" line="37"/>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="38"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="63"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="62"/>
         <source>Daily budget</source>
         <translation>Daily budget</translation>
     </message>
@@ -514,7 +504,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="18"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="59"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="58"/>
         <source>General</source>
         <translation>General</translation>
     </message>
@@ -525,7 +515,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="23"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="60"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="59"/>
         <source>Reading &amp; learning</source>
         <translation>Reading &amp; learning</translation>
     </message>
@@ -536,13 +526,13 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="28"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="61"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="60"/>
         <source>Capture &amp; popups</source>
         <translation>Capture &amp; popups</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="33"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="62"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="61"/>
         <source>Model service</source>
         <translation>Model service</translation>
     </message>
@@ -558,7 +548,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="43"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="64"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="63"/>
         <source>Extensions</source>
         <translation>Extensions</translation>
     </message>
@@ -571,7 +561,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="48"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="65"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="64"/>
         <source>About</source>
         <translation>About</translation>
     </message>
@@ -611,22 +601,22 @@
         <translation>When the clipboard is occupied</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsConnectionPage.qml" line="27"/>
+        <location filename="../src/app/qml/SettingsConnectionPage.qml" line="29"/>
         <source>API key</source>
         <translation>API key</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsConnectionPage.qml" line="69"/>
+        <location filename="../src/app/qml/SettingsConnectionPage.qml" line="77"/>
         <source>The key is stored on this device only.</source>
         <translation>The key is stored on this device only.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsConnectionPage.qml" line="79"/>
+        <location filename="../src/app/qml/SettingsConnectionPage.qml" line="87"/>
         <source>Service address</source>
         <translation>Service address</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsConnectionPage.qml" line="105"/>
+        <location filename="../src/app/qml/SettingsConnectionPage.qml" line="113"/>
         <source>This address is a common one for the provider and can go stale; check it against their documentation.</source>
         <translation>This address is a common one for the provider and can go stale; check it against their documentation.</translation>
     </message>
@@ -642,7 +632,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsModelPage.qml" line="88"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="72"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="71"/>
         <source>API configuration</source>
         <translation>API configuration</translation>
     </message>
@@ -1278,7 +1268,7 @@
     <message>
         <location filename="../src/app/qml/SettingsFontPage.qml" line="45"/>
         <location filename="../src/app/qml/SettingsGeneralPage.qml" line="387"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="70"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="69"/>
         <source>Font</source>
         <translation>Font</translation>
     </message>
@@ -1288,7 +1278,7 @@
         <translation>Hover a font in the list to preview.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/VocabPreview.qml" line="218"/>
+        <location filename="../src/app/qml/VocabPreview.qml" line="229"/>
         <source>Size = commonness</source>
         <translation>Size = commonness</translation>
     </message>
