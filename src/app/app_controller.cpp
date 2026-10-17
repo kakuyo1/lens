@@ -74,11 +74,14 @@ QVariantMap loadPreviewSample(const std::filesystem::path& file)
     return parsed.object().toVariantMap();
 }
 
-/// @return The face the application font draws Latin with today: the first family of the list
-///         main() installed. The reader's font setting starts here and goes back here, so its
-///         absence is this face rather than an empty family, which QML would leave unresolved.
-QString defaultFontFamily()
+/// @return The face a reader's font setting draws with: the stored family when this machine has it, else the face the
+///         application font draws Latin with, which is the first family of the list main() installed. The default is that
+///         face rather than an empty family, which QML would leave unresolved. Without a GUI application there is no font
+///         database and no application font, so the answer is the empty family; only the unit tests run that way.
+QString fontFamilyFor(QString const& stored)
 {
+    if (not qobject_cast<QGuiApplication*>(QCoreApplication::instance())) return {};
+    if (QFontDatabase::hasFamily(stored)) return stored;
     const QStringList families = QGuiApplication::font().families();
     return families.isEmpty() ? QString{} : families.first();
 }
@@ -601,7 +604,7 @@ QVariantMap AppController::settings()
                          {"etymology", keys.value<bool>("etymology", false)},
                          {"example", keys.value<bool>("example", false)},
                          {"theme", QString::fromStdString(keys.value<std::string>("theme", "light"))},
-                         {"font", QFontDatabase::hasFamily(storedFont) ? storedFont : defaultFontFamily()},
+                         {"font", fontFamilyFor(storedFont)},
                          {"frostedBlur", clampGlass(kFrostedBlur, keys.value<int>("frostedBlur", kFrostedBlur.fallback))},
                          {"frostedSaturation", clampGlass(kFrostedSaturation, keys.value<int>("frostedSaturation", kFrostedSaturation.fallback))},
                          {"frostedRim", clampGlass(kFrostedRim, keys.value<int>("frostedRim", kFrostedRim.fallback))},
