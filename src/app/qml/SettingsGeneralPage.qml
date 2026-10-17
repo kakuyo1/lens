@@ -61,6 +61,13 @@ Item {
         }
     }
 
+    /// The card a hovered theme row raises beside the list. Every option carries the theme it
+    /// stands for, so the preview needs nothing from this page but the option itself.
+    Component {
+        id: themePreviewComponent
+        ThemePreview {}
+    }
+
     Column {
         id: content
         width: parent.width
@@ -81,13 +88,21 @@ Item {
                 objectName: "themeField"
                 width: parent.width
                 options: [
-                    {value: 0, label: qsTranslate("SettingsPopup", "Light"), group: "", note: ""},
-                    {value: 1, label: qsTranslate("SettingsPopup", "Dark"), group: "", note: ""},
-                    {value: 3, label: qsTranslate("SettingsPopup", "Frosted glass"), group: "", note: ""},
-                    {value: 4, label: qsTranslate("SettingsPopup", "Liquid glass"), group: "", note: ""},
-                    {value: 2, label: qsTranslate("SettingsPopup", "Custom"), group: "", note: ""}
+                    {value: 0, label: qsTranslate("SettingsPopup", "Light"), group: "", note: "",
+                     previewTheme: "light"},
+                    {value: 1, label: qsTranslate("SettingsPopup", "Dark"), group: "", note: "",
+                     previewTheme: "dark"},
+                    {value: 3, label: qsTranslate("SettingsPopup", "Frosted glass"), group: "", note: "",
+                     previewTheme: "frosted"},
+                    {value: 4, label: qsTranslate("SettingsPopup", "Liquid glass"), group: "", note: "",
+                     previewTheme: "liquid"},
+                    // Custom previews the palette the editor below would apply, which is the
+                    // theme this row stands for even when it is not the one in force.
+                    {value: 2, label: qsTranslate("SettingsPopup", "Custom"), group: "", note: "",
+                     previewTheme: page.tokens.customThemeValue(page.draftColors)}
                 ]
                 currentValue: page.themeChoice
+                optionPreview: themePreviewComponent
                 onPicked: (value) => page.chooseTheme(value)
             }
         }

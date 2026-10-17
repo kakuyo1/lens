@@ -50,6 +50,17 @@ Item {
     /// What the reader has typed, trimmed, and is searching the list by. Blank is no filter.
     property string filterText: ""
 
+    /// A window component that previews an option under the pointer, or null for none. The
+    /// window must expose `showOption(option)`, and a `shadowMargin` it keeps its card inset by;
+    /// DropdownField creates it on the first hover, puts it beside the list on the side with
+    /// room, and keeps it level with the hovered row.
+    property Component optionPreview: null
+
+    /// The row under the pointer, by its index in `shown`, or -1 for none.
+    property int hoveredIndex: -1
+    /// The window an option hovers into, created on the first hover and owned by this field.
+    property var optionPreviewWindow: null
+
     signal picked(var value)
     signal listOpened()
     /// A value was typed and the reader left the field. Only ever emitted when `editable`.
@@ -103,6 +114,7 @@ Item {
     function closeList() {
         list.visible = false;
         root.filterText = "";
+        root.hideOptionPreview();
     }
 
     /// Put the list's window under the field, in screen coordinates.
@@ -128,7 +140,13 @@ Item {
         interval: 16
         repeat: true
         running: list.visible
-        onTriggered: root.placeList()
+        onTriggered: {
+            root.placeList();
+            // The row can move under the list's own scrolling while the pointer stays on it, so
+            // the preview follows the row on the same beat the list follows its field.
+            if (root.optionPreviewWindow !== null && root.optionPreviewWindow.visible)
+                root.placeOptionPreview();
+        }
     }
 
     function openList() {
@@ -140,6 +158,111 @@ Item {
         root.placeList();
         list.visible = true;
         listOpened();
+    }
+
+    /// @brief Report a row the pointer has entered or left, which is the whole preview gesture.
+    /// @param index The row's index in `shown`.
+    /// @param inside Whether the pointer is now on it.
+    function optionHovered(index, inside) {
+        if (root.optionPreview === null)
+            return;
+        if (inside) {
+            root.hoveredIndex = index;
+            previewSettle.stop();
+            root.showOptionPreview();
+        } else if (root.hoveredIndex === index) {
+            // Crossing from one row to the next enters the next before the last reports its
+            // exit; the beat lets the new row take the window over instead of dropping it.
+            previewSettle.restart();
+        }
+    }
+
+    /// @brief Raise the option preview on the hovered row, creating its window on first use.
+    function showOptionPreview() {
+        const option = root.shown[root.hoveredIndex];
+        if (!option)
+            return;
+        if (root.optionPreviewWindow === null) {
+            root.optionPreviewWindow = root.optionPreview.createObject(null);
+            if (root.optionPreviewWindow === null)
+                return;
+        }
+        root.optionPreviewWindow.showOption(option);
+        root.placeOptionPreview();
+        // The row can be gone by the time placement looks for it, which put the window down.
+        if (root.hoveredIndex === -1)
+            return;
+        // One raise for the window's whole life, not one per row: it is topmost already, and a
+        // raise per hover is a native call the list does not need.
+        if (!root.optionPreviewWindow.visible) {
+            root.optionPreviewWindow.visible = true;
+            root.optionPreviewWindow.raise();
+        }
+    }
+
+    /// @brief Put the preview beside the list's card, on the side with room, level with the row.
+    ///
+    /// The card clears the list by 8 px and the screen by the same margin every surface keeps; the
+    /// window's own transparent shadow margin is subtracted from both so that it is the card, not
+    /// the window, the reader sees beside the list. Right is tried first, then left, then the clamp
+    /// -- the same order the settings preview takes (SettingsPopup.qml's previewX).
+    function placeOptionPreview() {
+        const preview = root.optionPreviewWindow;
+        if (preview === null)
+            return;
+        const row = listColumn.itemAtIndex(root.hoveredIndex);
+        if (row === null) {
+            // The row scrolled out from under the pointer, so the window has nothing to point at.
+            root.hideOptionPreview();
+            return;
+        }
+
+        const shadow = preview.shadowMargin === undefined ? 0 : preview.shadowMargin;
+        const width = preview.width;
+        const height = preview.height;
+        const gap = 8;
+        const margin = 8;
+        const area = root.listWorkArea();
+
+        const cardX = list.x + list.shadowMargin;
+        const cardWidth = list.width - 2 * list.shadowMargin;
+        const right = cardX + cardWidth + gap - shadow;
+        const left = cardX - gap - width + shadow;
+        const x = right + width - shadow <= area.right - margin ? right : left;
+
+        const at = row.mapToItem(null, 0, 0);
+        const center = list.y + at.y + row.height / 2;
+        preview.x = Math.round(root.clamp(x, area.left + margin - shadow,
+                                          area.right - margin - width + shadow));
+        preview.y = Math.round(root.clamp(center - height / 2,
+                                          area.top + margin - shadow,
+                                          area.bottom - margin - height + shadow));
+    }
+
+    /// @brief Put the option preview down, and forget the row it pointed at.
+    function hideOptionPreview() {
+        previewSettle.stop();
+        root.hoveredIndex = -1;
+        if (root.optionPreviewWindow !== null)
+            root.optionPreviewWindow.visible = false;
+    }
+
+    /// @return The work area of the screen the list is on, in virtual DIPs: asked of Qt by device
+    ///         name, and the screen's own geometry where it has none.
+    function listWorkArea() {
+        // qmllint disable missing-property
+        const screen = list.screen;
+        const area = Controller.screenWorkArea(screen.name || "");
+        if (area.width > 0)
+            return {left: area.x, top: area.y, right: area.x + area.width, bottom: area.y + area.height};
+        return {left: screen.virtualX, top: screen.virtualY,
+                right: screen.virtualX + screen.width, bottom: screen.virtualY + screen.height};
+        // qmllint enable missing-property
+    }
+
+    /// @return @p value held inside [@p low, @p high]; an empty range collapses to its low end.
+    function clamp(value, low, high) {
+        return Math.max(low, Math.min(value, Math.max(low, high)));
     }
 
     /// @brief Narrow the list to the text the reader has just typed, and show or hide it to match.
@@ -286,12 +409,33 @@ Item {
         }
     }
 
+    /// Leaving a row is held a beat before the preview goes: crossing from one option to the next
+    /// can have the next one arrive before the last has reported its exit, and dropping the
+    /// window in between reads as a flicker (Bubble.qml keeps the same guard over its own hover).
+    Timer {
+        id: previewSettle
+        interval: 120
+        onTriggered: root.hideOptionPreview()
+    }
+
+    Component.onDestruction: {
+        previewSettle.stop();
+        if (root.optionPreviewWindow !== null)
+            root.optionPreviewWindow.destroy();
+    }
+
     Window {
         id: list
 
         flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowDoesNotAcceptFocus
         color: "transparent"
         visible: false
+        onVisibleChanged: {
+            // The preview belongs to the open list: a window left standing over the desktop
+            // would be a preview of a choice the reader can no longer see.
+            if (!visible)
+                root.hideOptionPreview();
+        }
         /// The list is its own window, so it takes the colour table of the window the field sits in.
         readonly property var tokens: root.tokens
 
@@ -379,7 +523,11 @@ Item {
                             font.pixelSize: 11
                         }
 
-                        HoverHandler { id: rowHover; cursorShape: Qt.PointingHandCursor }
+                        HoverHandler {
+                            id: rowHover
+                            cursorShape: Qt.PointingHandCursor
+                            onHoveredChanged: root.optionHovered(group.index, rowHover.hovered)
+                        }
                         TapHandler {
                             id: rowPress
                             onTapped: {

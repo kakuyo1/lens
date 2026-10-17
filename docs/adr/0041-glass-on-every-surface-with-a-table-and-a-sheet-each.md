@@ -1,12 +1,12 @@
 # 0041 玻璃主题覆盖全部表面：每个窗口一份色表，每个表面一张幕布，共用一个读取预算
 
 - **状态**：accepted。取代 ADR 0036 的两个单例与 “`tokens` 属性逐层传递” 的做法。排除抓屏扩展到其余表面的部分待用户确认（见后果）。
-- **实施进度**：十一个玻璃窗口（设置、托盘、统计、词汇、年度记录、花费、气泡、选区动作条、通知、更新卡片、删除确认卡）已全部接入 `GlassHost` 与 `GlassSurface`，自动化测试通过；真机观感未核对，见后果。桌面宠物与取词蒙版不接入。
+- **实施进度**：十三个玻璃窗口（设置、托盘、统计、词汇、年度记录、花费、气泡、选区动作条、通知、更新卡片、删除确认卡、设置预览卡、主题选项预览）已全部接入 `GlassHost` 与 `GlassSurface`，自动化测试通过；真机观感未核对，见后果。桌面宠物与取词蒙版不接入。
 - **背景**：ADR 0036 为设置窗口一个玻璃表面而设计：`Tokens` 不玻璃，`SettingsTokens` 玻璃，两者各是一个单例。`UI.md` 3.1 开头的目标是玻璃作用于全部表面。这带来两件单例表示不了的事：
   每个表面背后的桌面不同，文字色（ADR 0035）要按表面各自判定，所以同屏两张玻璃卡可能一张用深字、一张用浅字；ADR 0038 与 0040 的抓屏与刷新是按一个窗口算的，表面变多时开销会相加（`handoff` §5.3）。
 - **决定**：
   - **色表按窗口**。每个玻璃表面的窗口根声明 `tokens: SurfaceTokens { glassEnabled: …; glassLightText: … }`。`SurfaceTokens` 是 `TokenTable`，主题输入（`theme`、`liquidTextColor`、`motion`）取自 `Tokens`；其余组件经 `Window.window.tokens` 取自己所在窗口的色表，不再接收 `tokens` 属性。`SettingsTokens` 删除。`Tokens` 留作主题输入的来源，以及窗口之外的默认色表。
-  - **幕布按表面**。`GlassBackdrop` 持有一张固定的 `GlassSheet` 集合，按表面名（`settings`、`tray`、`stats`、`words`、`yearWords`、`cost`、`bubble`、`selectionBar`、`notice`、`update`、`removal`）索引。每张幕布管自己的区域、图片、文字色、跟随、排除与实时状态。图片服务按 `image://glass/<表面名>/sheet?…` 取图。
+  - **幕布按表面**。`GlassBackdrop` 持有一张固定的 `GlassSheet` 集合，按表面名（`settings`、`tray`、`stats`、`words`、`yearWords`、`cost`、`bubble`、`selectionBar`、`notice`、`update`、`removal`、`preview`、`themePreview`）索引。每张幕布管自己的区域、图片、文字色、跟随、排除与实时状态。图片服务按 `image://glass/<表面名>/sheet?…` 取图。
   - **一个读取预算**。全部表面共用一个工作线程与一个 67 ms 定时器。每个 tick 最多读一张幕布，在仍需刷新的幕布之间轮转，读取期间不排队。总量约 15 次/秒，即 ADR 0040 测算的 CPU 占用上限；N 张同时活动时每张约 15/N fps。
   - **生命周期只写一次**。抓屏逻辑（排除、跟随、沉降、透明回退、实时刷新、拖动期间不抓）从 `SettingsPopup` 抽到非可视组件 `GlassHost`，挂在每个玻璃窗口根下，各表面复用。
   - **不玻璃**：取词蒙版（`UI.md` 4.11 明确不读主题令牌）与桌面宠物舞台（`UI.md` 4.4 的宠物条目）。宠物窗口的抓屏排除仍由 `pet` 模块负责（ADR 0038），不变。

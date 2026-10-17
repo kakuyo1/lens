@@ -177,6 +177,7 @@ qt_add_qml_module(lens_app
     qml/UpdateCard.qml
     qml/Mask.qml
     qml/SettingsPopup.qml
+    qml/ThemePreview.qml
     qml/SettingsCategoryRow.qml
     qml/SettingsLinkRow.qml
     qml/SettingsCatalog.qml
