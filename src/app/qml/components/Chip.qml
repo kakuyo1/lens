@@ -22,6 +22,13 @@ Rectangle {
     color: selected ? chip.tokens.ink : chip.tokens.panel2
     border.width: selected ? 0 : 1
     border.color: chip.tokens.line
+    scale: press.pressed ? 0.97 : 1.0
+    Behavior on scale {
+        NumberAnimation {
+            duration: chip.tokens.motion.press
+            easing.type: chip.tokens.motion.easing
+        }
+    }
 
     Text {
         id: caption
@@ -35,5 +42,8 @@ Rectangle {
     }
 
     HoverHandler { cursorShape: Qt.PointingHandCursor }
-    TapHandler { onTapped: chip.picked() }
+    TapHandler {
+        id: press
+        onTapped: chip.picked()
+    }
 }

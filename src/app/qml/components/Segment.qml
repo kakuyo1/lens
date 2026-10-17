@@ -46,6 +46,13 @@ Item {
                 height: root.height - 2
                 radius: root.tokens.radiusField - 1
                 color: index === root.currentIndex ? root.tokens.ink : "transparent"
+                scale: cellPress.pressed ? 0.97 : 1.0
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: root.tokens.motion.press
+                        easing.type: root.tokens.motion.easing
+                    }
+                }
 
                 Text {
                     anchors.centerIn: parent
@@ -56,7 +63,10 @@ Item {
                 }
 
                 HoverHandler { cursorShape: Qt.PointingHandCursor }
-                TapHandler { onTapped: root.picked(cell.index) }
+                TapHandler {
+                    id: cellPress
+                    onTapped: root.picked(cell.index)
+                }
             }
         }
     }

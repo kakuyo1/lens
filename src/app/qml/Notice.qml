@@ -28,6 +28,10 @@ Window {
     property string noticeBody: ""
     property string noticeKind: "info"
 
+    /// Whether the card is on its way out. ShadowCard fades it and hides the window when the
+    /// fade is done; the dismissal itself is reported at once, not after it.
+    property bool leaving: false
+
     /// The one thing the reader can do about this notice, empty when there is nothing to do. A
     /// notice is normally the end of the road -- a request failed, and there is nothing left to
     /// press -- but a word with no stored explanation has an obvious next step, and the reader who
@@ -44,6 +48,7 @@ Window {
     height: column.implicitHeight + 36 + 2 * shadowMargin
 
     function show(payload) {
+        leaving = false
         noticeTitle = payload.title || ""
         noticeBody = payload.body || ""
         noticeKind = payload.kind || "info"
@@ -55,8 +60,17 @@ Window {
         raise()
     }
 
+    /// @brief Take the notice down, fading it out before the window goes.
+    ///
+    /// The controller only hears about the dismissal from closeNotice(); a notice the duty has
+    /// already cleared arrives here through dismiss(), and must not be sent back to it.
+    function dismiss() {
+        if (visible)
+            leaving = true
+    }
+
     function closeNotice() {
-        visible = false
+        dismiss()
         Controller.explanationDuty.dismissNotice()
     }
 
@@ -64,6 +78,7 @@ Window {
         id: panel
         anchors.fill: parent
         color: notice.tokens.glassMode === "" ? notice.tokens.panel : "transparent"
+        enabled: !notice.leaving
 
         GlassSurface {
             anchors.fill: parent
@@ -96,14 +111,13 @@ Window {
                     elide: Text.ElideRight
                 }
 
-                Icon {
+                IconButton {
                     id: close
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     source: "qrc:/icons/ui-close.svg"
                     color: notice.tokens.faint
-                    HoverHandler { cursorShape: Qt.PointingHandCursor }
-                    TapHandler { onTapped: notice.closeNotice() }
+                    onTapped: notice.closeNotice()
                 }
             }
 

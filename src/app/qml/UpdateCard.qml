@@ -36,6 +36,10 @@ Window {
     property string pageUrl: ""
     property string notes: ""
 
+    /// Whether the card is on its way out. ShadowCard fades it and hides the window when the
+    /// fade is done; the action itself is reported at once, not after it.
+    property bool leaving: false
+
     /// The download's own state, read straight off the duty: the card is the surface that
     /// shows it, and the duty is the one that owns it.
     readonly property var download: Controller.updateDuty.download
@@ -88,6 +92,7 @@ Window {
 
     /// Put the card in the middle of the current screen and raise it, the way Notice.qml does.
     function show(payload) {
+        leaving = false
         version = payload.version || ""
         pageUrl = payload.pageUrl || ""
         notes = payload.notes || ""
@@ -97,10 +102,19 @@ Window {
         raise()
     }
 
+    /// @brief Take the card down, fading it out before the window goes.
+    ///
+    /// The controller only hears about the cross from closeCard(); a card the duty has already
+    /// cleared arrives here through dismiss(), and must not be sent back to it.
+    function dismiss() {
+        if (visible)
+            leaving = true
+    }
+
     /// Take the card down. It writes nothing: the cross says "not now", and Skip says "not this
     /// version", which are different answers to the same question.
     function closeCard() {
-        visible = false
+        dismiss()
         Controller.updateDuty.closeCard()
     }
 
@@ -108,6 +122,7 @@ Window {
         id: panel
         anchors.fill: parent
         color: card.tokens.glassMode === "" ? card.tokens.panel : "transparent"
+        enabled: !card.leaving
 
         GlassSurface {
             anchors.fill: parent
@@ -140,14 +155,13 @@ Window {
                     elide: Text.ElideRight
                 }
 
-                Icon {
+                IconButton {
                     id: close
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     source: "qrc:/icons/ui-close.svg"
                     color: card.tokens.faint
-                    HoverHandler { cursorShape: Qt.PointingHandCursor }
-                    TapHandler { onTapped: card.closeCard() }
+                    onTapped: card.closeCard()
                 }
             }
 
@@ -258,7 +272,7 @@ Window {
                         TapHandler {
                             id: viewTap
                             onTapped: {
-                                card.visible = false
+                                card.dismiss()
                                 card.viewRequested()
                             }
                         }
@@ -293,7 +307,7 @@ Window {
                         TapHandler {
                             id: skipTap
                             onTapped: {
-                                card.visible = false
+                                card.dismiss()
                                 card.skipRequested()
                             }
                         }

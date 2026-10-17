@@ -124,7 +124,7 @@ Window {
 
     /// @brief Put the question down without answering it.
     function closeChild() {
-        question.visible = false;
+        question.dismiss();
     }
 
     /// The question's card in screen coordinates, or null when it is not up. Main.qml's
@@ -154,9 +154,11 @@ Window {
         anchors.fill: parent
         color: words.tokens.glassMode === "" ? words.tokens.panel : "transparent"
 
-        /// The list is not an answer to the question, so it takes no press while one is up. This
-        /// is what a press that reached past the modal window would otherwise act on: a row's
-        /// verdict pill, or its cross, deleting a second word out from under the first.
+        /// The list is not an answer to the question, so it takes no press while one is up -- the
+        /// fade included, because the window is modal until it hides. This guard is what holds on
+        /// the offscreen platform, which does not enforce modality: a press that reached the card
+        /// would otherwise act on a row's verdict pill, or on its cross, deleting a second word
+        /// out from under the first.
         enabled: !question.visible
 
         GlassSurface {
@@ -242,37 +244,33 @@ Window {
                     // The export sits with the glyphs the reader already reads as "things this
                     // window does", rather than on a line of its own under the total: it acts on
                     // the list, and the list is what the card is.
-                    Icon {
+                    IconButton {
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/icons/ui-export.svg"
                         color: words.tokens.faint
-                        HoverHandler { cursorShape: Qt.PointingHandCursor }
-                        TapHandler { onTapped: saver.open() }
+                        onTapped: saver.open()
                     }
-                    Icon {
+                    IconButton {
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/icons/ui-folder.svg"
                         color: words.tokens.faint
-                        HoverHandler { cursorShape: Qt.PointingHandCursor }
-                        TapHandler { onTapped: importer.open() }
+                        onTapped: importer.open()
                     }
 
                     // Back to the statistics panel, which is where this one opens from. This
                     // panel replaces it rather than stacking on it, so the way up has to be
                     // visible.
-                    Icon {
+                    IconButton {
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/icons/ui-back.svg"
                         color: words.tokens.faint
-                        HoverHandler { cursorShape: Qt.PointingHandCursor }
-                        TapHandler { onTapped: words.backRequested() }
+                        onTapped: words.backRequested()
                     }
-                    Icon {
+                    IconButton {
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/icons/ui-close.svg"
                         color: words.tokens.faint
-                        HoverHandler { cursorShape: Qt.PointingHandCursor }
-                        TapHandler { onTapped: words.visible = false }
+                        onTapped: words.visible = false
                     }
                 }
             }
@@ -539,16 +537,13 @@ Window {
 
                             // Centred on the row's own line like the two clusters beside it: left
                             // to the Row it would sit on the row's first pixel and read high.
-                            Icon {
+                            IconButton {
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: 14
                                 height: 14
                                 source: "qrc:/icons/ui-close.svg"
                                 color: words.tokens.faint
-                                HoverHandler { cursorShape: Qt.PointingHandCursor }
-                                TapHandler {
-                                    onTapped: words.requestRemoval(entry.modelData.word)
-                                }
+                                onTapped: words.requestRemoval(entry.modelData.word)
                             }
                         }
                     }
@@ -592,7 +587,10 @@ Window {
                 words.askBeforeRemoving = false;
             Controller.removeWord(words.pendingRemoval);
         }
-        onVisibleChanged: if (!visible) words.pendingRemoval = ""
+        // The question is the pending subject's owner, so the list lets go of it the moment the
+        // question is put down -- not when its fade ends. The sentence being drawn is displayWord,
+        // which the question copied when it was asked.
+        onDismissed: words.pendingRemoval = ""
     }
 
     // Declared in this file rather than in Main.qml: the file holds the words list, so the

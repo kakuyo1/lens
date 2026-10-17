@@ -249,12 +249,19 @@ PY
   动画状态在 `pvParam` 指的 BOOL 里，返回值只说读成功没有，读失败按 “没有减少动效” 处理。`Motion.reduced`
   默认取它的值且可写，为真时每个时长解析为 0。**Windows 上没有 `prefers-reduced-motion`**，去找它的
   下一个人应当停在那份文件头。
-- **出现动画只有一处，在 `ShadowCard.qml`**：卡片的不透明度跟着它所在窗口的 `visible` 走，配一条
-  `Behavior on opacity` 和一条由 `1 - opacity` 推出的 `Translate`（上移 8 px）——一个值驱动两者，减少动效
-  时两者一起归零。四张面板、托盘菜单、通知与下拉列表都画在 `ShadowCard` 上，于是 “浮层出现” 写一次就够，
-  不必抄六遍。`Bubble` 与 `SelectionBar` 自带卡片、不走这一处，它们的动效只有按压与反馈展开。
+- **出现与退出只有两处**：`ShadowCard.qml` 管面板类表面——卡片的不透明度跟着它所在窗口的 `visible`
+  走，配一条 `Behavior on opacity` 和一条由 `1 - opacity` 推出的 `Translate`（上移 8 px）——一个值驱动两者，
+  减少动效时两者一起归零；声明了
+  `leaving` 的表面由卡内一个与淡出等长的 `Timer` 收起窗口。四张面板、托盘菜单、通知与下拉列表都画在
+  `ShadowCard` 上，于是这套外观写一次就够。`Bubble` 与 `SelectionBar` 自带卡片、不走这一处，它们的
+  出现与退出走 `SurfaceFade.qml`：同一个透明度驱动淡入淡出和 8 px 升降，`shown` 为假时先禁用内容再淡出，
+  计时结束才隐藏窗口；气泡用 `pop`，动作条退出用更短的 `press`。退出的语义不等动画——关闭通知、提交
+  删除决定等控制器回调在点击当下发生，`SurfaceFade` 只决定窗口何时消失。
   - 例外是托盘菜单的语言列表：它由 `Loader` 在 “该出来” 之后才创建，那时窗口已可见，没有 0→1 的翻转
     可跟。该卡片的 `shown` 因此绑到 `Loader.status === Loader.Ready`，让创建完成本身成为那次翻转。
+- **按压反馈有复用件**：`IconButton.qml` 把图标、指针光标、`TapHandler` 与 `.97` 缩放收成一处，表面标题
+  行的关闭、返回、导出等图标都用它；整行的点击目标不缩放，按压由底色 `line` 表示，写在
+  `MenuRow` / `SettingsCategoryRow` / `SettingsLinkRow` / `StatRow` 与两个下拉列表的行上。
 - **动效拍不到快照，也不该拿快照验收**：能断言的是两条——规格表里每个时长都取自令牌、`reduced` 为真时
   时长解析为 0（`test/qtest/components/tst_motion.qml`），以及卡片确实随窗口在 0 与 1 之间走
   （`tst_shadowcard.qml`）。观感靠一次 QML profiler 运行加人工看。写快照用例时要等 `Tokens.motion.pop`

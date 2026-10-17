@@ -33,13 +33,13 @@ Item {
             for (let i = 0; i < kinds.length; ++i) {
                 bar.selectionText = "selection";
                 bar.selectionKind = kinds[i];
-                bar.visible = true;
+                bar.open();
                 tryCompare(bar, "selectionKind", kinds[i]);
                 const labels = actionLabels(bar);
                 verify(labels.indexOf("Translate") >= 0);
                 verify(labels.indexOf("Explain") >= 0);
                 verify(labels.indexOf("Copy text") >= 0);
-                bar.visible = false;
+                bar.dismiss();
             }
         }
 

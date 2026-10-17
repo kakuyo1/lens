@@ -208,7 +208,9 @@ qt_add_qml_module(lens_app
     qml/theme/Liquid.qml
     qml/theme/GlassOnDark.qml
     qml/components/Icon.qml
+    qml/components/IconButton.qml
     qml/components/ShadowCard.qml
+    qml/components/SurfaceFade.qml
     qml/components/Segment.qml
     qml/components/Switch.qml
     qml/components/Chip.qml

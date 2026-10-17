@@ -301,15 +301,14 @@ Window {
                 width: 26
                 height: 26
 
-                Icon {
+                IconButton {
                     anchors.centerIn: parent
                     width: 16
                     height: 16
                     source: "qrc:/icons/ui-back.svg"
                     color: settings.tokens.muted
+                    onTapped: settings.navigateBack()
                 }
-                HoverHandler { cursorShape: Qt.PointingHandCursor }
-                TapHandler { onTapped: settings.navigateBack() }
             }
 
             // The breadcrumb is chained off the title rather than pinned to fixed offsets: the
@@ -357,15 +356,14 @@ Window {
                 width: 26
                 height: 26
 
-                Icon {
+                IconButton {
                     anchors.centerIn: parent
                     width: 16
                     height: 16
                     source: "qrc:/icons/ui-close.svg"
                     color: settings.tokens.faint
+                    onTapped: settings.visible = false
                 }
-                HoverHandler { cursorShape: Qt.PointingHandCursor }
-                TapHandler { onTapped: settings.visible = false }
             }
         }
 

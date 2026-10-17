@@ -66,7 +66,8 @@ Item {
 
             const notice = opened("Network", "The request failed.", "error");
             notice.closeNotice();
-            compare(notice.visible, false);
+            // The close starts the fade; the window goes when it has run (ShadowCard.qml).
+            tryCompare(notice, "visible", false);
             compare(bubble.visible, true);
 
             bubble.visible = false;

@@ -39,6 +39,13 @@ Item {
     signal chosen(url path)
 
     implicitHeight: 35
+    scale: pick.pressed ? 0.97 : 1.0
+    Behavior on scale {
+        NumberAnimation {
+            duration: root.tokens.motion.press
+            easing.type: root.tokens.motion.easing
+        }
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -69,7 +76,10 @@ Item {
         }
 
         HoverHandler { cursorShape: Qt.PointingHandCursor }
-        TapHandler { onTapped: root.folder ? folderPicker.open() : filePicker.open() }
+        TapHandler {
+            id: pick
+            onTapped: root.folder ? folderPicker.open() : filePicker.open()
+        }
     }
 
     // Two dialogs rather than one with a mode: Qt 6 gave a folder its own type, and FileDialog's

@@ -74,7 +74,8 @@ Item {
             pressLabel(shown.card, "View");
             compare(shown.viewed(), 1);
             compare(shown.skipped(), 0);
-            compare(shown.card.visible, false);
+            // The action is reported at once; the window waits for the fade (ShadowCard.qml).
+            tryCompare(shown.card, "visible", false);
         }
 
         function test_skipSignalsWithoutOpeningThePage() {
@@ -82,7 +83,8 @@ Item {
             pressLabel(shown.card, "Skip this version");
             compare(shown.skipped(), 1);
             compare(shown.viewed(), 0, "Skip opened the release page");
-            compare(shown.card.visible, false);
+            // The action is reported at once; the window waits for the fade (ShadowCard.qml).
+            tryCompare(shown.card, "visible", false);
         }
 
         /// What the line under the title says for a download state. The states are the duty's,

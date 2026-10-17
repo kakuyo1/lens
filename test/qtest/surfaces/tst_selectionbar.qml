@@ -31,7 +31,9 @@ Item {
             const bar = createTemporaryObject(barComponent, root);
             verify(bar);
             bar.selectionKind = "word";
-            bar.visible = true;
+            // Through open(), not `visible = true`: the content is disabled while the bar is not
+            // meant to be up, so a direct show would draw it without taking the press.
+            bar.open();
             wait(50);
             return bar;
         }
@@ -64,7 +66,8 @@ Item {
             const item = itemsOf(bar)[2];
             mouseClick(item, item.width / 2, item.height / 2);
 
-            compare(bar.visible, false, "the bar stayed up after one of its items was tapped");
+            // The tap starts the fade; the window goes when the fade has run (SurfaceFade.qml).
+            tryCompare(bar, "visible", false, 1000, "the bar stayed up after one of its items was tapped");
         }
     }
 }

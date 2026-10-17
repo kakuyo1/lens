@@ -193,6 +193,13 @@ Item {
         color: root.tokens.panel2
         border.width: 1
         border.color: root.editable && input.activeFocus ? root.tokens.ink : root.tokens.line
+        scale: fieldPress.pressed || chevronPress.pressed ? 0.97 : 1.0
+        Behavior on scale {
+            NumberAnimation {
+                duration: root.tokens.motion.press
+                easing.type: root.tokens.motion.easing
+            }
+        }
 
         Text {
             id: label
@@ -262,6 +269,7 @@ Item {
 
             HoverHandler { cursorShape: root.hasOptions ? Qt.PointingHandCursor : Qt.ArrowCursor }
             TapHandler {
+                id: chevronPress
                 enabled: root.hasOptions
                 onTapped: root.openList()
             }
@@ -272,6 +280,7 @@ Item {
             cursorShape: Qt.PointingHandCursor
         }
         TapHandler {
+            id: fieldPress
             enabled: !root.editable
             onTapped: root.openList()
         }
@@ -345,7 +354,9 @@ Item {
                         height: root.rowHeight
                         radius: 8
                         color: group.modelData.value === root.currentValue ? root.tokens.ink
-                                                                           : (rowHover.hovered ? root.tokens.panel2 : "transparent")
+                             : rowPress.pressed ? root.tokens.line
+                             : rowHover.hovered ? root.tokens.panel2
+                             : "transparent"
 
                         Text {
                             anchors.left: parent.left
@@ -370,6 +381,7 @@ Item {
 
                         HoverHandler { id: rowHover; cursorShape: Qt.PointingHandCursor }
                         TapHandler {
+                            id: rowPress
                             onTapped: {
                                 root.picked(group.modelData.value);
                                 // Through closeList(), so a search that was narrowing the list

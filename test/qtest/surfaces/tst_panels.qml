@@ -96,9 +96,8 @@ Item {
             compare(figures["All time"], qsTr("%1 words").arg(Controller.words.length));
         }
 
-        /// The other dimension the cost panel was asked for: every row still draws the amount,
-        /// and the three buckets the controller prices draw the tokens behind that amount in
-        /// their secondary slot. The daily average is derived, not a bucket, so it has none.
+        /// The cost panel's other dimension: every row draws the amount, and the three priced
+        /// buckets draw their tokens in the secondary slot. The daily average has no bucket.
         function test_theCostPanelShowsTheSameFiguresInTheOtherDimension() {
             const cost = make(costComponent);
             const figures = figuresOf(cost);
@@ -132,9 +131,8 @@ Item {
             compare(wordsShown(popup).sort(), words.slice().sort());
         }
 
-        /// The time label is formatted here, from the day and the raw time the controller hands over.
-        /// Rows are built by hand because the controller's fixture is all January, so today and
-        /// yesterday are reachable only this way.
+        /// The labels are formatted here from the day and raw time the controller hands over;
+        /// the fixture is all January, so today and yesterday rows are built by hand.
         function test_theWordsPanelFormatsEachDaysTimeLabel() {
             const popup = make(wordsComponent);
             compare(popup.whenLabel({ day: "today", date: "10-11", time: "09:15" }), "Today 09:15");
@@ -254,9 +252,8 @@ Item {
             }
         }
 
-        /// The card is sized to its widest row, so the columns beside the word have to fit under
-        /// the word rather than over it: a word rendered narrower than it measures is one the
-        /// reader sees cut short, which is the whole thing the width exists to prevent.
+        /// The card is sized to its widest row, so the columns beside the word must fit under it:
+        /// a word drawn narrower than it measures is one the reader sees cut short.
         function test_theWidestWordIsRenderedWhole() {
             const popup = make(wordsComponent);
             popup.visible = true;
@@ -281,10 +278,9 @@ Item {
 
         /// @return Whether the list is showing exactly @p expected, once it has settled.
         ///
-        /// A filter change is a row folding shut over a motion token rather than a switch, so
-        /// a row on its way out is still drawn for the length of the animation. Polling gives
-        /// the fold the time it takes and no more; a fixed wait would have to be as long as
-        /// the slowest token and would still be a guess.
+        /// A filter change folds rows shut over a motion token, so a row on its way out is still
+        /// drawn for the animation. Polling gives the fold exactly its time; a fixed wait would
+        /// be a guess as long as the slowest token.
         function settleOn(popup, expected) {
             const wanted = expected.slice().sort().join();
             return tryVerify(function () { return wordsShown(popup).sort().join() === wanted; },
@@ -318,9 +314,8 @@ Item {
             return labels[0].parent;
         }
 
-        /// Marking from the list is what settles a word the reader never marked while the
-        /// bubble was up. The row reports it by filling the pill of the verdict it now holds,
-        /// so the case watches the fill rather than the controller behind it.
+        /// Marking from the list settles a word the reader never marked while the bubble was up.
+        /// The row fills the pill of the verdict it now holds, so the case watches the fill.
         function test_tappingAVerdictMarksTheWordAndTheRowFollows() {
             const popup = make(wordsComponent);
             popup.visible = true;
@@ -346,9 +341,8 @@ Item {
             compare(marked.verdict, "known", "the tap did not reach the controller");
         }
 
-        /// The other half of the same control: a word the reader already settled has to take a
-        /// new verdict. The list reads each word's newest entry, so a pill that could only fill
-        /// an entry with no verdict yet left the second press looking dead.
+        /// The other half of the same control: a word already settled has to take a new verdict.
+        /// A pill that could only fill an unmarked entry left the second press looking dead.
         function test_reMarkingAWordMovesTheRowToTheOtherVerdict() {
             const popup = make(wordsComponent);
             popup.visible = true;
@@ -385,8 +379,7 @@ Item {
             return heading.Window.window;
         }
 
-        /// The question, for the eye rather than for an assertion: a card is meant to be looked at
-        /// before it is believed, and a word long enough to outgrow the card's floor is what shows
+        /// The question, for the eye: a word long enough to outgrow the card's floor shows
         /// whether the sentence still fits the card it is asked on.
         function test_captureTheRemovalQuestion() {
             if (!lensQaSnapshotDir)
@@ -421,8 +414,7 @@ Item {
         }
 
         /// The cross sits on the row's own line, beside the two clusters that share it. Left to
-        /// the Row it is laid in it takes the row's first pixel instead and reads high -- which is
-        /// exactly what it did, since a row's line is taller than the 14 px glyph.
+        /// the Row it is laid in, it takes the row's first pixel and reads high.
         function test_theRowCentresItsCrossOnItsLine() {
             const popup = make(wordsComponent);
             popup.visible = true;
@@ -473,11 +465,9 @@ Item {
 
         /// The confirmation the cross opens, and the answer that carries it out.
         ///
-        /// The controller call was never in doubt, and nothing exercised it: that is how a native
-        /// message box went on being the one surface in this product drawn by Windows. What is
-        /// checked here is the path through the card instead -- the cross names the word, the
-        /// question is drawn for that word, the answer reaches Controller.removeWord, and the
-        /// list follows.
+        /// Not the controller call, which was never in doubt, but the path through the card: the
+        /// cross names the word, the question draws it, the answer reaches Controller.removeWord,
+        /// and the list follows.
         function test_theDeleteCrossAsksBeforeTheWordGoes() {
             const popup = make(wordsComponent);
             popup.visible = true;
@@ -503,10 +493,9 @@ Item {
             compare(rowFor(popup, word), null, "the list still draws a word that is gone");
         }
 
-        /// One removal a run is asked about, and the question opens with "do not ask again"
-        /// already on -- so the run's second deletion is a deletion, not a question. This is the
-        /// behaviour that was wrong on the real machine: the switch started off, and the reader
-        /// who did not touch it was asked on every removal.
+        /// One removal a run is asked about, and the question opens with "do not ask again" on,
+        /// so the second deletion is a deletion. Wrong on the real machine: the switch started
+        /// off, and a reader who did not touch it was asked on every removal.
         function test_theAskedQuestionSilencesItselfByDefault() {
             const popup = make(wordsComponent);
             popup.visible = true;
@@ -529,7 +518,8 @@ Item {
             compare(popup.askBeforeRemoving, false, "the answer did not settle the asking");
             compare(Controller.words.some(function (e) { return e.word === answered; }), false,
                     "the answer did not reach Controller.removeWord");
-            compare(question.visible, false, "the question stayed up");
+            // Answered at once; the window waits for the fade (ShadowCard.qml).
+            tryCompare(question, "visible", false, 1000, "the question stayed up");
 
             pressCross(popup, straightThrough);
 
@@ -559,6 +549,10 @@ Item {
             compare(Controller.words.some(function (e) { return e.word === answered; }), false,
                     "the answer did not reach Controller.removeWord");
 
+            // The window stays modal for the fade, so the list takes presses again only once it
+            // has gone -- asking while the old question is still fading would press a dead card.
+            tryCompare(questionWindow(popup), "visible", false, 1000,
+                       "the answered question stayed up");
             askAbout(popup, spared);
             const question = questionWindow(popup);
             compare(question.visible, true, "the question did not come back");
@@ -570,14 +564,14 @@ Item {
                     "the switch should still be off, where the reader left it");
 
             mouseClick(pillWith(popup, "Cancel"), 5, 5);
-            compare(question.visible, false, "Cancel did not put the question down");
+            tryCompare(question, "visible", false, 1000, "Cancel did not put the question down");
             verify(Controller.words.some(function (e) { return e.word === spared; }),
                    "putting the question down removed the word");
         }
 
-        /// The question is modal: the list behind it is not an answer to it, so a press that
-        /// reaches it must not mark or delete anything. Measured rather than assumed, because the
-        /// platform the suite runs on does not enforce modality -- this is the guard that does.
+        /// The list behind the question is not an answer to it, so a press that reaches it must
+        /// not mark or delete anything. Measured because the suite's platform does not enforce
+        /// modality -- this guard does.
         function test_theListBehindTheQuestionTakesNoPress() {
             const popup = make(wordsComponent);
             popup.visible = true;
@@ -615,10 +609,16 @@ Item {
             verify(Controller.words.some(function (e) { return e.word === word; }),
                    "putting the question down removed the word");
 
+            // Keep the modality fixed while visible: Qt updates its modal list only on show and
+            // hide, so a change in between strands an entry QApplication treats as app-modal.
+            const question = questionWindow(popup);
+            compare(question.modality, Qt.WindowModal,
+                    "the question dropped its modality while it was still on screen");
+            tryCompare(question, "visible", false, 1000, "Cancel did not put the question down");
+
             askAbout(popup, word);
-            // keyClick takes no item. It lands on whatever window has the focus, which under the
-            // offscreen platform is never the panel -- the reason the shortcut is
-            // application-wide rather than window-scoped, and the reason this still reaches it.
+            // keyClick takes no item; it lands on whatever window has focus, which offscreen is
+            // never the panel -- the reason the shortcut is application-wide.
             keyClick(Qt.Key_Escape);
 
             compare(popup.pendingRemoval, "", "Escape did not put the question down");

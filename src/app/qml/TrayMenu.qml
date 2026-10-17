@@ -263,7 +263,9 @@ Window {
                         height: 28
                         radius: 8
                         color: modelData.value === menu.language ? menu.tokens.ink
-                                                                 : (rowHover.hovered ? menu.tokens.panel2 : "transparent")
+                             : rowPress.pressed ? menu.tokens.line
+                             : rowHover.hovered ? menu.tokens.panel2
+                             : "transparent"
 
                         Text {
                             anchors.left: parent.left
@@ -280,6 +282,7 @@ Window {
                             onHoveredChanged: if (hovered) listHide.stop()
                         }
                         TapHandler {
+                            id: rowPress
                             onTapped: {
                                 Controller.setUiLanguage(option.modelData.value);
                                 menu.visible = false;

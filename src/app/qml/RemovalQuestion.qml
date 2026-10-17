@@ -35,13 +35,32 @@ Window {
     color: "transparent"
     visible: false
 
+    /// Modal while it is a question, and for the fade as well.
+    ///
+    /// Qt adds a modal window to its modal list when it is shown and removes it when it is hidden;
+    /// changing the modality in between does neither. Dropping it to NonModal at the start of the
+    /// fade therefore left the window in the list after it hid, and QApplication reads such a stale
+    /// entry as application-modal -- every surface stopped taking presses after Cancel. The window
+    /// stays WindowModal until ShadowCard hides it, which is also when Qt releases it.
     modality: Qt.WindowModal
 
     /// The lemma being asked about. The caller owns it -- this window only draws it.
     property string word: ""
 
+    /// The lemma the sentence is drawn with. Copied when the question is asked, because the
+    /// caller clears `word` as soon as it is answered, and a sentence that lost its subject
+    /// while the card fades out would be a flash of broken text.
+    property string displayWord: ""
+
+    /// Whether the card is on its way out. ShadowCard fades it and hides the window when the
+    /// fade is done; the answer itself is emitted at once, not after it.
+    property bool leaving: false
+
     /// The answer. @p dontAsk is what the switch under the sentence says.
     signal answered(bool dontAsk)
+    /// The question is on its way out, answered or not. The caller's idea of what is being asked
+    /// ends here rather than when the fade does; this window keeps drawing `displayWord`.
+    signal dismissed()
 
     readonly property int shadowMargin: 26
     readonly property int minCardWidth: 320
@@ -71,9 +90,24 @@ Window {
      * that is not settled on the same turn the window is shown.
      */
     function ask() {
+        root.displayWord = root.word;
+        root.leaving = false;
         root.visible = true;
         root.raise();
         Qt.callLater(() => root.placeOverCard());
+    }
+
+    /// @brief Put the question down, fading it out before the window goes.
+    ///
+    /// Escape and Cancel report nothing: leaving a question unanswered is not an answer. Remove
+    /// emits `answered` first, so the word is settled while the card is still on screen. Both
+    /// ways out emit `dismissed` at once, because the caller's pending subject is the question's,
+    /// not the fade's.
+    function dismiss() {
+        if (!root.visible || root.leaving)
+            return;
+        root.leaving = true;
+        root.dismissed();
     }
 
     /// @brief Centre the question on the window it is modal to.
@@ -95,14 +129,15 @@ Window {
     Shortcut {
         sequence: "Escape"
         context: Qt.ApplicationShortcut
-        enabled: root.visible
-        onActivated: root.visible = false
+        enabled: root.visible && !root.leaving
+        onActivated: root.dismiss()
     }
 
     ShadowCard {
         id: panel
         anchors.fill: parent
         color: root.tokens.glassMode === "" ? root.tokens.panel : "transparent"
+        enabled: !root.leaving
 
         GlassSurface {
             anchors.fill: parent
@@ -131,7 +166,7 @@ Window {
             Text {
                 id: questionText
                 width: parent.width
-                text: qsTranslate("WordsPopup", "Remove %1 from your word list and history?").arg(root.word)
+                text: qsTranslate("WordsPopup", "Remove %1 from your word list and history?").arg(root.displayWord)
                 color: root.tokens.text
                 font.pixelSize: 13
                 lineHeight: 1.35
@@ -183,7 +218,7 @@ Window {
                         HoverHandler { cursorShape: Qt.PointingHandCursor }
                         TapHandler {
                             id: cancelTap
-                            onTapped: root.visible = false
+                            onTapped: root.dismiss()
                         }
                     }
 
@@ -216,7 +251,7 @@ Window {
                             id: removeTap
                             onTapped: {
                                 root.answered(root.dontAsk);
-                                root.visible = false;
+                                root.dismiss();
                             }
                         }
                     }

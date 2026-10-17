@@ -21,6 +21,13 @@ Item {
     implicitWidth: 34
     implicitHeight: 20
     opacity: interactive ? 1.0 : 0.45
+    scale: press.pressed ? 0.97 : 1.0
+    Behavior on scale {
+        NumberAnimation {
+            duration: root.tokens.motion.press
+            easing.type: root.tokens.motion.easing
+        }
+    }
 
     Rectangle {
         id: track
@@ -54,6 +61,7 @@ Item {
     HoverHandler { cursorShape: root.interactive ? Qt.PointingHandCursor : Qt.ArrowCursor }
 
     TapHandler {
+        id: press
         enabled: root.interactive
         onTapped: {
             root.checked = !root.checked;

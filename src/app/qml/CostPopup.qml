@@ -79,19 +79,17 @@ Window {
                     // Back to the statistics panel, which is where this one opens from. This
                     // panel replaces it rather than stacking on it, so the way up has to be
                     // visible.
-                    Icon {
+                    IconButton {
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/icons/ui-back.svg"
                         color: cost.tokens.faint
-                        HoverHandler { cursorShape: Qt.PointingHandCursor }
-                        TapHandler { onTapped: cost.backRequested() }
+                        onTapped: cost.backRequested()
                     }
-                    Icon {
+                    IconButton {
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/icons/ui-close.svg"
                         color: cost.tokens.faint
-                        HoverHandler { cursorShape: Qt.PointingHandCursor }
-                        TapHandler { onTapped: cost.visible = false }
+                        onTapped: cost.visible = false
                     }
                 }
             }

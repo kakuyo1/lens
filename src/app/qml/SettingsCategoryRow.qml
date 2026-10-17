@@ -17,7 +17,11 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: 9
-        color: hover.hovered ? root.tokens.panel2 : "transparent"
+        // A whole row reads as pressed through its fill: shrinking a band this wide would move
+        // the text under the pointer. `line` is one step past the hover fill in both themes.
+        color: press.pressed ? root.tokens.line
+                             : hover.hovered ? root.tokens.panel2
+                             : "transparent"
     }
 
     Column {
@@ -51,5 +55,8 @@ Item {
         id: hover
         cursorShape: Qt.PointingHandCursor
     }
-    TapHandler { onTapped: root.picked() }
+    TapHandler {
+        id: press
+        onTapped: root.picked()
+    }
 }

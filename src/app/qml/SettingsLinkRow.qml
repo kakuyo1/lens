@@ -16,7 +16,11 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: hover.hovered ? root.tokens.panel2 : "transparent"
+        // The press reads through the fill rather than a scale: the row is a band the width of
+        // the panel, and shrinking it would move its label under the pointer.
+        color: press.pressed ? root.tokens.line
+                             : hover.hovered ? root.tokens.panel2
+                             : "transparent"
         radius: root.tokens.radiusField
     }
 
@@ -54,5 +58,8 @@ Item {
         id: hover
         cursorShape: Qt.PointingHandCursor
     }
-    TapHandler { onTapped: root.picked() }
+    TapHandler {
+        id: press
+        onTapped: root.picked()
+    }
 }

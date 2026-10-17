@@ -37,7 +37,9 @@ Item {
         anchors.rightMargin: root.clickable ? -8 : 0
         height: parent.height - 2
         radius: 8
-        color: root.clickable && rowHover.hovered ? root.tokens.panel2 : "transparent"
+        color: root.clickable && rowPress.pressed ? root.tokens.line
+             : root.clickable && rowHover.hovered ? root.tokens.panel2
+             : "transparent"
     }
 
     Text {
@@ -83,5 +85,9 @@ Item {
     }
 
     HoverHandler { id: rowHover; cursorShape: root.clickable ? Qt.PointingHandCursor : Qt.ArrowCursor }
-    TapHandler { enabled: root.clickable; onTapped: root.tapped() }
+    TapHandler {
+        id: rowPress
+        enabled: root.clickable
+        onTapped: root.tapped()
+    }
 }

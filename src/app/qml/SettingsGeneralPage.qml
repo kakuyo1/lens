@@ -303,6 +303,13 @@ Item {
                 radius: page.tokens.radiusPill
                 color: page.contrast.valid ? page.tokens.ink : page.tokens.panel2
                 opacity: page.contrast.valid ? 1 : 0.58
+                scale: applyPress.pressed ? 0.97 : 1.0
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: page.tokens.motion.press
+                        easing.type: page.tokens.motion.easing
+                    }
+                }
 
                 Text {
                     anchors.centerIn: parent
@@ -313,6 +320,7 @@ Item {
                 }
 
                 TapHandler {
+                    id: applyPress
                     enabled: page.contrast.valid
                     onTapped: page.applyCustomTheme()
                 }

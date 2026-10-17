@@ -31,8 +31,8 @@ QtObject {
             bubble.show({title: "profile", type: "word", ipa: "/ˈproʊfaɪl/", en: "profile run", zh: "profile run", status: "new", x: 500, y: 500});
         } else if (step === 7) {
             host.hidePanels(null);
-            bubble.visible = false;
-            bar.visible = false;
+            bubble.dismiss();
+            bar.dismiss();
             Qt.quit();
         }
     }

@@ -24,6 +24,10 @@ Window {
     color: "transparent"
     visible: false
 
+    /// Whether the bar is meant to be on screen. Every show and hide goes through open() and
+    /// dismiss(), which move this and leave the window to SurfaceFade.qml.
+    property bool surfaceShown: false
+
     readonly property int shadowMargin: 26
     readonly property int gap: 8 ///< Clearance between the bar and the selection.
 
@@ -34,12 +38,39 @@ Window {
     property string selectionText: ""
     property string selectionKind: "word"
 
+    SurfaceFade {
+        id: fade
+        tokens: bar.tokens
+        window: bar
+        shown: bar.surfaceShown
+        // The bar stands beside the pointer, so its exit is the shorter press token: it is out
+        // of the way before the next selection arrives.
+        leaveDuration: bar.tokens.motion.press
+    }
+
+    /// @brief Put the bar up. The caller places the window first; this starts the arrival.
+    function open() {
+        surfaceShown = true;
+        visible = true;
+        raise();
+    }
+
+    /// @brief Take the bar down. The action, if any, has already happened; only the window waits.
+    function dismiss() {
+        surfaceShown = false;
+    }
+
     Item {
         id: content
         x: bar.shadowMargin
         y: bar.shadowMargin
         implicitWidth: row.width + 10
         implicitHeight: row.height + 10
+        opacity: fade.progress
+        // A bar that is still on screen while it fades out must not take the press that was
+        // meant for the text underneath it.
+        enabled: bar.surfaceShown
+        transform: Translate { y: fade.lift }
 
         // The shadow is cast from a shape-only copy of the card, never from the card itself.
         // MultiEffect draws its source through an offscreen texture, and at this monitor's
@@ -170,7 +201,7 @@ Window {
                             id: press
                             onTapped: {
                                 Controller.explanationDuty.runSelectionAction(item.modelData.action, bar.selectionText);
-                                bar.visible = false;
+                                bar.dismiss();
                             }
                         }
                     }

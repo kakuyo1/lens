@@ -50,6 +50,13 @@ Item {
         color: root.tokens.panel2
         border.width: 1
         border.color: root.recording ? root.tokens.ink : root.tokens.line
+        scale: press.pressed ? 0.97 : 1.0
+        Behavior on scale {
+            NumberAnimation {
+                duration: root.tokens.motion.press
+                easing.type: root.tokens.motion.easing
+            }
+        }
 
         Text {
             anchors.left: parent.left
@@ -99,6 +106,7 @@ Item {
 
         HoverHandler { cursorShape: root.interactive ? Qt.PointingHandCursor : Qt.ArrowCursor }
         TapHandler {
+            id: press
             enabled: root.interactive
             onTapped: recorder.forceActiveFocus()
         }

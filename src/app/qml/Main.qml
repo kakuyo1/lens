@@ -471,8 +471,13 @@ Window {
                        ? surface.hitRect
                        : Qt.rect(surface.x + margin, surface.y + margin,
                                  surface.width - 2 * margin, surface.height - 2 * margin);
-            if (!contains(card, point))
-                surface.visible = false;
+            if (!contains(card, point)) {
+                // The bar draws the fade itself; a `visible = false` here would cut it off.
+                if (surface === bar)
+                    bar.dismiss();
+                else
+                    surface.visible = false;
+            }
         }
     }
 
@@ -604,25 +609,26 @@ Window {
             // rule has no floor to set here -- a phrase of two, which is the common size of a
             // Chinese word, would otherwise never reach the bar at all.
             if (payload.kind !== "translation" && payload.letterCount < Controller.settings.minimumWordLength) {
-                bar.visible = false;
+                bar.dismiss();
                 return;
             }
 
             const at = points.toDip(payload);
             bar.selectionText = payload.text;
             bar.selectionKind = payload.kind;
-            // Down before it is placed, rather than after: the bar is a window, so showing it
-            // where it was last left and moving it a line later is a frame of the bar in the
-            // wrong place -- the corner of the screen, the first time. Showing is two steps for
-            // the reason placePanel() gives -- `visible` alone can leave a topmost window under
-            // the taskbar -- so the raise follows the show, where it can do something.
-            bar.visible = false;
+            // A bar that is away is kept down until it has been placed, rather than shown where
+            // it was last left and moved a line later -- a frame of the bar in the wrong place,
+            // the corner of the screen, the first time. One that is already up is moved in the
+            // same turn, so a second selection does not flash it out and in. open() is two
+            // steps for the reason placePanel() gives: `visible` alone can leave a topmost
+            // window under the taskbar.
+            if (!bar.surfaceShown)
+                bar.visible = false;
             Qt.callLater(() => {
                 if (generation !== root.selectionBarGeneration)
                     return;
                 root.placeTransient(bar, at, bar.gap);
-                bar.visible = true;
-                bar.raise();
+                bar.open();
             });
         }
 
@@ -652,7 +658,7 @@ Window {
                         root.placeBubble(bubble, at);
                 });
             } else {
-                bubble.visible = false;
+                bubble.dismiss();
             }
         }
 
@@ -661,7 +667,7 @@ Window {
             if (payload && Object.keys(payload).length > 0)
                 notice.show(payload);
             else
-                notice.visible = false;
+                notice.dismiss();
         }
     }
 
@@ -675,7 +681,7 @@ Window {
         /// on those would move the card out from under a reader who is looking at it.
         function onUpdateChanged() {
             if (!Controller.updateDuty.cardVisible) {
-                updateCard.visible = false;
+                updateCard.dismiss();
                 return;
             }
             const payload = Controller.updateDuty.update;

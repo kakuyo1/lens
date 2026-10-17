@@ -159,13 +159,12 @@ Window {
                 width: parent.width
                 height: 22
 
-                Icon {
+                IconButton {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
                     source: "qrc:/icons/ui-back.svg"
                     color: year.tokens.faint
-                    HoverHandler { cursorShape: Qt.PointingHandCursor }
-                    TapHandler { onTapped: year.backRequested() }
+                    onTapped: year.backRequested()
                 }
 
                 Text {
@@ -189,11 +188,10 @@ Window {
                         font.family: year.tokens.monoFamily
                         font.pixelSize: 10
                     }
-                    Icon {
+                    IconButton {
                         source: "qrc:/icons/ui-close.svg"
                         color: year.tokens.faint
-                        HoverHandler { cursorShape: Qt.PointingHandCursor }
-                        TapHandler { onTapped: year.visible = false }
+                        onTapped: year.visible = false
                     }
                 }
             }

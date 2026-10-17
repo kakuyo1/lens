@@ -68,13 +68,12 @@ Window {
                     font.weight: Font.Bold
                 }
 
-                Icon {
+                IconButton {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     source: "qrc:/icons/ui-close.svg"
                     color: stats.tokens.faint
-                    HoverHandler { cursorShape: Qt.PointingHandCursor }
-                    TapHandler { onTapped: stats.visible = false }
+                    onTapped: stats.visible = false
                 }
             }
 

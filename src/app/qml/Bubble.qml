@@ -34,6 +34,10 @@ Window {
     color: "transparent"
     visible: false
 
+    /// Whether the card is meant to be on screen. The fade and the delayed window hide follow
+    /// it (SurfaceFade.qml), so every path that takes the bubble down goes through dismiss().
+    property bool surfaceShown: false
+
     readonly property int shadowMargin: 26
     readonly property int gap: 10
     /// How long an uninterrupted bubble stays up, from the bubble settings. show() reads it each time.
@@ -41,6 +45,13 @@ Window {
 
     width: content.implicitWidth + 2 * shadowMargin
     height: content.implicitHeight + 2 * shadowMargin
+
+    SurfaceFade {
+        id: fade
+        tokens: bubble.tokens
+        window: bubble
+        shown: bubble.surfaceShown
+    }
 
     /// The word, entity, or sentence title and its explanation, as the controller hands them over.
     property string title: ""
@@ -161,13 +172,26 @@ Window {
         // A new window must not paint its first frame before Text has settled the card height:
         // the old path showed it at the old height, then moved it on the next event-loop turn.
         // Keep an already visible bubble up while its contents are refreshed, so that replacing
-        // one explanation does not turn the fix into a hide-then-show flash.
-        if (!wasVisible)
+        // one explanation does not turn the fix into a hide-then-show flash. A card that was
+        // fading out has to start again from the bottom, since its window may already be gone.
+        if (!wasVisible) {
             visible = false;
+            surfaceShown = false;
+        }
 
         // Growing content re-asks for placement; a card the reader is dragging is theirs.
         if (!dragging)
             placement.restart();
+    }
+
+    /// @brief Take the card down, fading it out before the window goes.
+    ///
+    /// The semantic half is the caller's: a bubble the reader closed or the countdown ended is
+    /// a dismissal the controller hears about whether or not the card is still fading. Only the
+    /// appearance waits, so a caller that clears the duty does not have to coordinate with it.
+    function dismiss() {
+        countdown.stop();
+        surfaceShown = false;
     }
 
     Timer {
@@ -177,9 +201,12 @@ Window {
             if (bubble.pendingGeneration !== bubble.showGeneration)
                 return;
             bubble.placementRequested(bubble.pendingPayload);
-            if (!bubble.pendingWasVisible) {
+            if (!bubble.pendingWasVisible)
                 bubble.visible = true;
-            }
+            // The fade starts only once the window is up (SurfaceFade.qml): a card faded in
+            // while hidden would be half-way through its arrival on the first painted frame.
+            // A visible bubble refreshing its contents is already at 1, so it does not move.
+            bubble.surfaceShown = true;
             // Showing a surface is two steps: see Main.qml placePanel() for why `visible` on its
             // own can leave a topmost window under the taskbar.
             bubble.raise();
@@ -202,9 +229,9 @@ Window {
     /// holds it too: the display time is the reader's time with the answer, which is only readable
     /// once it is all on the card.
     function updateCountdown() {
-        if (hovering || dragging || !countsDown || revealing)
+        if (hovering || dragging || !countsDown || revealing || !surfaceShown)
             countdown.stop();
-        else if (visible)
+        else
             countdown.start();
     }
 
@@ -219,8 +246,7 @@ Window {
         onTriggered: {
             bubble.remainingMs -= interval;
             if (bubble.remainingMs <= 0) {
-                stop();
-                bubble.visible = false;
+                bubble.dismiss();
                 Controller.explanationDuty.dismissBubble();
             }
         }
@@ -232,6 +258,11 @@ Window {
         y: bubble.shadowMargin
         implicitWidth: 270
         implicitHeight: card.height
+        opacity: fade.progress
+        // A window that is still on screen while it fades out is not there to be pressed, and
+        // the card that used to be under the pointer must not act for it.
+        enabled: bubble.surfaceShown
+        transform: Translate { y: fade.lift }
 
         // The shadow is cast from a shape-only copy of the card, never from the card itself:
         // MultiEffect draws its source through an offscreen texture, and at this monitor's
@@ -356,7 +387,7 @@ Window {
             // The way out for a reader who does not want to wait the countdown out. It takes
             // the same two steps the countdown takes on its own, so the controller hears about
             // the dismissal the same way either way. A preview has no countdown to cut short.
-            Icon {
+            IconButton {
                 visible: !bubble.preview
                 anchors.right: parent.right
                 anchors.rightMargin: 12
@@ -364,13 +395,9 @@ Window {
                 anchors.topMargin: 15
                 source: "qrc:/icons/ui-close.svg"
                 color: bubble.tokens.faint
-                HoverHandler { cursorShape: Qt.PointingHandCursor }
-                TapHandler {
-                    onTapped: {
-                        countdown.stop();
-                        bubble.visible = false;
-                        Controller.explanationDuty.dismissBubble();
-                    }
+                onTapped: {
+                    bubble.dismiss();
+                    Controller.explanationDuty.dismissBubble();
                 }
             }
 

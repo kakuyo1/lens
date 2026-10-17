@@ -58,6 +58,13 @@ Window {
             color: card.tokens.panel2
             border.width: 1
             border.color: card.tokens.line
+            scale: forgotTap.pressed ? 0.97 : 1.0
+            Behavior on scale {
+                NumberAnimation {
+                    duration: card.tokens.motion.press
+                    easing.type: card.tokens.motion.easing
+                }
+            }
 
             Text {
                 id: forgotLabel
@@ -75,6 +82,7 @@ Window {
             }
 
             TapHandler {
+                id: forgotTap
                 onTapped: card.answered(false)
             }
 
@@ -89,6 +97,13 @@ Window {
             height: 34
             radius: card.tokens.radiusPill
             color: card.tokens.ink
+            scale: rememberedTap.pressed ? 0.97 : 1.0
+            Behavior on scale {
+                NumberAnimation {
+                    duration: card.tokens.motion.press
+                    easing.type: card.tokens.motion.easing
+                }
+            }
 
             Text {
                 id: rememberedLabel
@@ -106,6 +121,7 @@ Window {
             }
 
             TapHandler {
+                id: rememberedTap
                 onTapped: card.answered(true)
             }
 
