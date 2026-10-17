@@ -107,6 +107,15 @@ html[data-theme=frosted] .dd-list{background:rgba(255,255,255,.78)}
 .stage::after{content:"";position:absolute;left:14px;right:14px;bottom:24px;height:1px;background:var(--line)}
 .stage.dim{opacity:.5}
 .stage canvas{position:absolute;left:50%;bottom:16px;width:176px;height:176px;margin-left:-88px;overflow:visible}
+/* Hold sign (UI.md 4.13): a hand on the body's side at the chest row, and the sign held out from it. The sign is drawn at its
+   design size and scaled by the pet's size, so it stays in proportion to the figure. Same rule as ui-prototypes/pet-review.html. */
+@font-face{font-family:"Pixelify Sans";src:url("../data/fonts/PixelifySans-Regular.ttf") format("truetype");font-display:block}
+.hold-fig{position:absolute;display:none;pointer-events:none;z-index:2}
+.hold-fig.on{display:block}
+.sign-p{position:absolute;transform-origin:0 0;width:max-content;z-index:2}
+.sign-b{background:#f6efd9;color:#26221b;border:3px solid #26221b;border-radius:2px;box-shadow:5px 5px 0 rgba(20,20,26,.13);padding:14px 18px 12px;white-space:nowrap;font-family:"Pixelify Sans",monospace;font-size:20px;line-height:1}
+.pole-b{position:absolute;top:100%;left:14px;width:4px;height:26px;background:#26221b}
+.hold-fig.left .pole-b{left:auto;right:14px}
 
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);font-size:12px;color:var(--text)}
@@ -178,7 +187,14 @@ html[data-theme=frosted] .dlg{background:rgba(255,255,255,.78)}
       <div class="refused" id="pkg-refused"></div>
 
       <div class="group-title" id="stage-title"></div>
-      <div class="stage" id="stage"></div>
+      <div class="stage" id="stage">
+    <div class="hold-fig" id="holdFig">
+      <div class="sign-p" id="signP">
+        <div class="sign-b" id="signB">spring</div>
+        <div class="pole-b" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
 
       <div class="group-title" id="act-title"></div>
       <div class="chips" id="acts"></div>
@@ -586,6 +602,58 @@ renderStatic();
 renderAll();
 // ?dlg=1 直接打开确认弹窗，供对视与截图；与 ?on 一样只是原型的开发开关。
 if (new URLSearchParams(location.search).has('dlg')) openConfirm(PACKAGES[0].id);
+/// The hand and the sign on the stage while Hold sign plays (UI.md 4.13). The hand sits on the body's side at the chest row,
+/// overlapping the silhouette: the right hand by default, the left when the right has no room for the sign. The body's
+/// edges are measured once from the pet's own idle sheet (frame 0, before the anchor), so each pet gets its own hand.
+const handEdges = new Map();
+function measureHandEdges(src) {
+  return new Promise(done => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = c.height = 88;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0, 88, 88, 0, 0, 88, 88);
+      const px = ctx.getImageData(0, 0, 88, 88).data;
+      const inked = (x, y) => px[(y * 88 + x) * 4 + 3] > 0;
+      // The chest rows 48 to 55, the rows render_pet.py and build-assets.py measure the paws from.
+      const xs = [];
+      for (let y = 48; y < 56; y++) for (let x = 0; x < 88; x++) if (inked(x, y)) xs.push(x);
+      done({ left: Math.min(...xs), right: Math.max(...xs) });
+    };
+    img.src = src;
+  });
+}
+const holdFig = $('holdFig'), signP = $('signP'), signB = $('signB');
+function drawHold() {
+  const s = stages[state.pet];
+  const on = Boolean(s && state.on && s.engine.action === 'ask' && handEdges.has(state.pet));
+  holdFig.classList.toggle('on', on);
+  if (!on) return;
+  const e = handEdges.get(state.pet);
+  const cv = s.canvas;
+  const U = cv.offsetWidth / 88;
+  const [ax, ay] = s.engine.state.anchors.body;
+  const K = U / 3.01;
+  const vw = signB.offsetWidth * K;
+  // The fist's column on each side, as the sheets draw it: the right fist ends inside the canvas, the left fist sits three
+  // px over the body's left edge. The sheets already carry the body's dx, so ax is added once.
+  const fist = {right: Math.min(e.right - 2, 88 - 9 - 3) + ax, left: e.left - 6 + ax};
+  const gripOf = side => (fist[side] + 4.5) * U;
+  // The left hand by default; the right when the sign would run off the stage on the left.
+  const side = cv.offsetLeft + gripOf('left') - vw + 16 * K >= 4 ? 'left' : 'right';
+  s.renderer.handSide = side;
+  const gripX = gripOf(side);
+  const gripY = (48 + 3 + ay + 0.5) * U;
+  holdFig.style.left = cv.offsetLeft + 'px';
+  holdFig.style.top = cv.offsetTop + 'px';
+  holdFig.style.width = holdFig.style.height = 88 * U + 'px';
+  holdFig.classList.toggle('left', side === 'left');
+  signP.style.left = (side === 'right' ? gripX - 16 * K : gripX - vw + 16 * K) + 'px';
+  signP.style.top = (gripY - (signB.offsetHeight + 26) * K) + 'px';
+  signP.style.transform = `scale(${K})`;
+}
+(function loopHold() { drawHold(); requestAnimationFrame(loopHold); })();
 (async () => {
   const stage = $('stage');
   await Promise.all(ALL_PETS.map(async id => {
@@ -595,8 +663,14 @@ if (new URLSearchParams(location.search).has('dlg')) openConfirm(PACKAGES[0].id)
     canvas.hidden = true;
     stage.append(canvas);
     stages[id] = { canvas, ...(await PetPreview.mountStage(canvas, pet, { scale: 2, resolve, bounds: stage })) };
+    handEdges.set(id, await measureHandEdges(resolve(pet.actions.idle.sheet)));
   }));
+  // ?act=ask (and the other chip names) starts the chosen pet on that action, for screenshots of the page.
+  const want = new URLSearchParams(location.search).get('act');
+  if (want && stages[state.pet]) stages[state.pet].engine.play(want);
   renderAll();
+  // ?preview scrolls the panel to the stage, for screenshots of the preview; like ?dlg, a prototype switch only.
+  if (new URLSearchParams(location.search).has('preview')) $('stage').scrollIntoView({ block: 'center' });
 })();
 
 /// 折射能力探测：不支持 url() 形式 backdrop-filter 的浏览器会丢掉这条声明，读回空串。此时液体玻璃退回 CSS 的模糊与高光。

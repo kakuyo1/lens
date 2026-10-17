@@ -26,7 +26,7 @@ export async function mountStage(canvas, pet, { scale, resolve, live = true, bou
 
   if (!live) {
     renderer.draw(engine.state, []);
-    return { engine, accessories, setRunning() {} };
+    return { engine, accessories, renderer, setRunning() {} };
   }
 
   attachPointer(canvas, { engine, renderer, bounds });
@@ -49,5 +49,5 @@ export async function mountStage(canvas, pet, { scale, resolve, live = true, bou
       cancelAnimationFrame(frame);
     }
   };
-  return { engine, accessories, setRunning };
+  return { engine, accessories, renderer, setRunning };
 }

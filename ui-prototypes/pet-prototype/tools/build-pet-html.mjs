@@ -43,7 +43,7 @@ export function readPet(root, id) {
     accessories: read('accessories.json'),
   });
   const paths = [
-    ...Object.values(pet.actions).flatMap(action => [action.sheet, action.effect].filter(Boolean)),
+    ...Object.values(pet.actions).flatMap(action => [action.sheet, action.effect, action.effectLeft].filter(Boolean)),
     pet.expression,
     ...pet.accessories.map(accessory => accessory.asset),
   ];

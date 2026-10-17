@@ -59,6 +59,15 @@ class PetController : public QObject {
     Q_PROPERTY(int frameIndex READ frameIndex NOTIFY frameChanged)
     Q_PROPERTY(int expression READ expression NOTIFY frameChanged)
     Q_PROPERTY(QVariantMap sheets READ sheets NOTIFY frameChanged)
+    /// Which hand holds the sign, "left" or "right". The review sign chooses it and the pet draws that hand.
+    Q_PROPERTY(QString handSide READ handSide NOTIFY handSideChanged)
+    /// Where each hand grips the pole in the shown frame, in the sprite's own canvas units, keyed "left" and "right". Kept from
+    /// the last frame that showed a hand, so the sign stays put while the pet does something else; empty until the pet has
+    /// shown its ask action.
+    Q_PROPERTY(QVariantMap handGrips READ handGrips NOTIFY frameChanged)
+    /// Where each hand grips the pole at the start of the ask action, in the same units, keyed "left" and "right". The review
+    /// sign chooses its hand from these, so the choice does not depend on which frame happens to be showing.
+    Q_PROPERTY(QVariantMap handRest READ handRest NOTIFY settingsChanged)
     Q_PROPERTY(QVariantMap anchors READ anchors NOTIFY frameChanged)
     Q_PROPERTY(QVariantList wornAccessories READ wornAccessories NOTIFY frameChanged)
     Q_PROPERTY(QVariantMap layers READ layers NOTIFY settingsChanged)
@@ -106,6 +115,8 @@ public:
     bool available() const;
     bool enabled() const;
     bool passthrough() const;
+    /// @return Whether the idle role is playing, so a review question may go up without cutting a reaction short.
+    bool idle() const;
     /// @return The folder name of the pet the settings choose.
     QString pet() const;
     /// @return Every pet the settings page offers, as {id, name, external}. The name is the package's own for an installed pet.
@@ -116,6 +127,9 @@ public:
     int          frameIndex() const;
     int          expression() const;
     QVariantMap  sheets() const;
+    QString      handSide() const;
+    QVariantMap  handGrips() const;
+    QVariantMap  handRest() const;
     QVariantMap  anchors() const;
     QVariantList wornAccessories() const;
     QVariantMap  layers() const;
@@ -149,6 +163,9 @@ public:
     Q_INVOKABLE void setRunning(bool on);
     /// @brief Runs the frame clock for the settings preview. Turning it off also ends any preview.
     Q_INVOKABLE void setPreviewing(bool on);
+    /// @brief Chooses the hand that holds the sign. Anything but "left" or "right" is ignored.
+    /// @param side "left" or "right".
+    Q_INVOKABLE void setHandSide(QString side);
     /// @brief Shows an action in place of the machine's, from its first frame. Ignored for an unknown name.
     /// @param action Name in animations.json, such as "celebrate".
     Q_INVOKABLE void preview(QString action);
@@ -175,6 +192,9 @@ public:
     Q_INVOKABLE void setPassthrough(bool on);
     /// @param window The QML Window, whose native handle takes capture exclusion and pass-through.
     Q_INVOKABLE void attachWindow(QObject* window);
+    /// @brief Keeps a QML window out of screen captures, as the pet's own is. The review sign needs it: the scan must not read its word.
+    /// @param window The QML Window to exclude.
+    Q_INVOKABLE void keepOutOfCapture(QObject* window);
     /// @return The mouse position in the same coordinates a window's x and y use.
     Q_INVOKABLE QPoint cursorPos() const;
     /// @return Where the window should open at this size: the saved spot if it still fits, else the primary screen's corner.
@@ -187,6 +207,7 @@ public:
 
 signals:
     void frameChanged();
+    void handSideChanged();
     void settingsChanged();
     void outfitChanged();
     /// @brief The scan found different pets or refusals. Only the picker's lists depend on it, so it is not sent per setting.
@@ -264,6 +285,9 @@ private:
     int                frameIndex_{0};
     int                expression_{0};
     QVariantMap        sheets_;
+    QString            handSide_{QStringLiteral("left")};
+    QVariantMap        handGrips_;
+    QVariantMap        handRest_;
     core::pet::Anchors anchors_{};
 
     /// The scene the shown action names, and the frame's transform. All empty or neutral outside a scene.

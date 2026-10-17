@@ -559,4 +559,118 @@ TEST(PetStateMachine, AnOnDemandSceneRefusesAnActionThatIsNotOne)
     EXPECT_EQ(machine.action(), "idle");
 }
 
+/// The dog's playbook with the review sign: the ask action, and the angry one that an ignored question plays.
+Playbook dogWithSign(bool withAngry)
+{
+    auto playbook = dogPlaybook();
+    playbook.actions.emplace("ask", playback(4, 4, true));
+    playbook.roles.emplace(Role::Ask, "ask");
+    if (withAngry) {
+        playbook.actions.emplace("angry", playback(5, 10, false));
+        playbook.roles.emplace(Role::Angry, "angry");
+    }
+    return playbook;
+}
+
+TEST(PetStateMachine, ReviewQuestionHoldsTheSignUntilRememberedThenCelebrates)
+{
+    auto machine = PetStateMachine{dogWithSign(true), RandomSource{[] { return kFidgets; }}};
+
+    machine.handle(PetEvent::ReviewAsked);
+    EXPECT_EQ(machine.action(), "ask");
+    machine.advance(60s);
+    EXPECT_EQ(machine.action(), "ask") << "a loop with no duration keeps the sign up until an answer";
+
+    machine.handle(PetEvent::ReviewRemembered);
+    EXPECT_EQ(machine.action(), "celebrate");
+    machine.advance(1s);
+    EXPECT_EQ(machine.action(), "idle");
+}
+
+TEST(PetStateMachine, ForgottenAnswerPlaysEncourage)
+{
+    auto machine = PetStateMachine{dogWithSign(true), RandomSource{[] { return kFidgets; }}};
+
+    machine.handle(PetEvent::ReviewAsked);
+    machine.handle(PetEvent::ReviewForgotten);
+    EXPECT_EQ(machine.action(), "encourage");
+}
+
+TEST(PetStateMachine, IgnoredQuestionPlaysAngryAndEndsIntoIdle)
+{
+    auto machine = PetStateMachine{dogWithSign(true), RandomSource{[] { return kFidgets; }}};
+
+    machine.handle(PetEvent::ReviewAsked);
+    machine.handle(PetEvent::ReviewIgnored);
+    EXPECT_EQ(machine.action(), "angry");
+    machine.advance(1s);
+    EXPECT_EQ(machine.action(), "idle");
+}
+
+TEST(PetStateMachine, IgnoredQuestionWithoutAngryJustGoesIdle)
+{
+    auto machine = PetStateMachine{dogWithSign(false), RandomSource{[] { return kFidgets; }}};
+
+    machine.handle(PetEvent::ReviewAsked);
+    machine.handle(PetEvent::ReviewIgnored);
+    EXPECT_EQ(machine.action(), "idle");
+}
+
+TEST(PetStateMachine, AClickDuringTheSignReturnsToTheSign)
+{
+    auto machine = PetStateMachine{dogWithSign(true), RandomSource{[] { return kFidgets; }}};
+
+    machine.handle(PetEvent::ReviewAsked);
+    machine.handle(PetEvent::Click);
+    EXPECT_EQ(machine.action(), "click_react");
+    machine.advance(1s);
+    EXPECT_EQ(machine.action(), "ask");
+}
+
+TEST(PetStateMachine, APetWithoutAskNeverHoldsASignAndSurvivesAReaction)
+{
+    // The question still goes up in the app, so the event must be harmless here: nothing may be held that
+    // the playbook cannot play, or the click's return would look up a role the pet does not have.
+    auto machine = makeMachine();
+
+    machine.handle(PetEvent::ReviewAsked);
+    EXPECT_EQ(machine.action(), "idle");
+    machine.handle(PetEvent::Click);
+    EXPECT_EQ(machine.action(), "click_react");
+    machine.advance(1s);
+    EXPECT_EQ(machine.action(), "idle");
+}
+
+TEST(PetStateMachine, IdleIsOnlyTheIdleRoleAndNotAnyOtherAction)
+{
+    auto machine = PetStateMachine{dogWithSign(true), RandomSource{[] { return kFidgets; }}};
+
+    EXPECT_TRUE(machine.idle());
+    machine.handle(PetEvent::ReviewAsked);
+    EXPECT_FALSE(machine.idle());
+}
+
+TEST(PetStateMachine, ADragDuringAQuestionReleasesBackToItsSign)
+{
+    // The sign is still up in its own window, so letting go of the pet must not leave the pet idle under it.
+    auto machine = PetStateMachine{dogWithSign(true), RandomSource{[] { return kFidgets; }}};
+
+    machine.handle(PetEvent::ReviewAsked);
+    machine.handle(PetEvent::DragStart);
+    EXPECT_EQ(machine.action(), "pickup");
+    machine.handle(PetEvent::DragEnd);
+    EXPECT_EQ(machine.action(), "ask");
+}
+
+TEST(PetStateMachine, AnAnswerGivenDuringADragReleasesToIdle)
+{
+    auto machine = PetStateMachine{dogWithSign(true), RandomSource{[] { return kFidgets; }}};
+
+    machine.handle(PetEvent::ReviewAsked);
+    machine.handle(PetEvent::DragStart);
+    machine.handle(PetEvent::ReviewRemembered);
+    machine.handle(PetEvent::DragEnd);
+    EXPECT_EQ(machine.action(), "idle");
+}
+
 } // namespace

@@ -18,6 +18,7 @@
 #include <nlohmann/json.hpp>
 
 #include <QImage>
+#include <QPointF>
 #include <QString>
 
 #include "app/pet/pet_assets.h"
@@ -43,8 +44,8 @@ TEST(PetData, AnimationsLoadAndCarryTheBlink)
 {
     auto const animations = parseAnimations(load("animations.json"));
 
-    // The twelve role actions (angry included), the three idle extras no role names, and the five scenes.
-    EXPECT_EQ(animations.playbook.actions.size(), 20u);
+    // The thirteen role actions (angry and ask included), the three idle extras no role names, and the five scenes.
+    EXPECT_EQ(animations.playbook.actions.size(), 21u);
     EXPECT_EQ(animations.blink.frames, 3);
     EXPECT_FALSE(animations.blink.loop);
 }
@@ -53,9 +54,9 @@ TEST(PetData, EveryRoleAndTheIdlePoolArePlayable)
 {
     auto const playbook = parseAnimations(load("animations.json")).playbook;
 
-    // The dog maps every role, stretch and angry included. Its pool is the document's list followed by
+    // The dog maps every role, stretch, angry and ask included. Its pool is the document's list followed by
     // every action no role names, which the loader adds by name.
-    EXPECT_EQ(playbook.roles.size(), 12u);
+    EXPECT_EQ(playbook.roles.size(), 13u);
     EXPECT_EQ(playbook.idlePool, (std::vector<std::string>{"look_around", "stretch", "scratch", "sniff", "wag"}));
 }
 
@@ -89,6 +90,18 @@ TEST(PetData, EverySheetIsTheSizeItsFrameCountSays)
     auto const directory = std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet" / "dog";
 
     EXPECT_NO_THROW(lens::app::pet::PetAssets::load(directory));
+}
+
+TEST(PetData, TheSignHandsGripThePoleAtTheMeasuredPixelOfEveryFrame)
+{
+    // The fist's top-left ink in frame 0 is (79, 48) for the right hand and (30, 48) for the left; the grip is 4.5 right and 3 down.
+    auto const directory = std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet" / "dog";
+    auto const ask       = lens::app::pet::PetAssets::load(directory).sheets.at("ask");
+
+    ASSERT_EQ(ask.gripRight.size(), 4u);
+    ASSERT_EQ(ask.gripLeft.size(), 4u);
+    EXPECT_EQ(ask.gripRight.front(), QPointF(83.5, 51));
+    EXPECT_EQ(ask.gripLeft.front(), QPointF(34.5, 51));
 }
 
 TEST(PetData, EveryShippedPetIsAcceptedWhole)

@@ -7,7 +7,7 @@ Item {
     // qmllint enable missing-property
     property var settings: Controller.settings
 
-    readonly property var openChildRect: levelField.openChildRect || languageField.openChildRect
+    readonly property var openChildRect: levelField.openChildRect || languageField.openChildRect || reviewField.openChildRect
     implicitHeight: content.implicitHeight
 
     /// The preview the pointer has called up, or "" for none: a row's title raises one on hover
@@ -17,6 +17,7 @@ Item {
     function closeChild() {
         levelField.closeList();
         languageField.closeList();
+        reviewField.closeList();
     }
 
     Column {
@@ -93,6 +94,27 @@ Item {
             previewKey: "example"
             onToggled: (on) => Controller.setExample(on)
             onPreviewChanged: (key) => root.previewRequested(key)
+        }
+
+        Column {
+            width: parent.width
+            spacing: 7
+            Text {
+                text: qsTranslate("SettingsPopup", "Word review")
+                color: Pet.enabled ? root.tokens.muted : root.tokens.faint
+                font.pixelSize: 12
+            }
+            DropdownField {
+                id: reviewField
+
+                objectName: "reviewField"
+                width: parent.width
+                enabled: Pet.enabled
+                opacity: Pet.enabled ? 1.0 : 0.45
+                options: root.settings.reviewFrequencyOptions
+                currentValue: root.settings.reviewFrequency
+                onPicked: (value) => Controller.setReviewFrequency(value)
+            }
         }
     }
 }

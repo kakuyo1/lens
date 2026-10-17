@@ -182,6 +182,40 @@ InkBounds inkBoundsOf(QString const& path, int canvas)
     };
 }
 
+/// The grip the pole hangs from, measured from the fist's top-left ink as ui-prototypes/pet-review.html's geometry() does:
+/// 4.5 across (the centre of the fist's 9-pixel width) and 3 down from its top row.
+constexpr double kGripDx = 4.5;
+constexpr double kGripDy = 3;
+
+/**
+ * @brief Where a hand grips the pole in each frame of its effect sheet, in sheet units.
+ * @param path The hand sheet, one frame per cell, left to right.
+ * @param canvas Side of one frame.
+ * @param frames How many frames the sheet holds.
+ * @return The grip of each frame: the top-left of the ink in that cell, moved by (kGripDx, kGripDy). A frame with nothing drawn
+ *         grips at its centre.
+ */
+std::vector<QPointF> gripsOf(QString const& path, int canvas, int frames)
+{
+    auto const sheet = QImageReader{path}.read().convertToFormat(QImage::Format_ARGB32);
+    auto       grips = std::vector<QPointF>{};
+    for (auto frame = 0; frame < frames; ++frame) {
+        auto left  = canvas;
+        auto top   = canvas;
+        auto found = false;
+        for (auto y = 0; y < canvas; ++y) {
+            for (auto x = 0; x < canvas; ++x) {
+                if (qAlpha(sheet.pixel(frame * canvas + x, y)) < kInkAlpha) continue;
+                left  = std::min(left, x);
+                top   = std::min(top, y);
+                found = true;
+            }
+        }
+        grips.push_back(found ? QPointF{left + kGripDx, top + kGripDy} : QPointF{canvas / 2.0, canvas / 2.0});
+    }
+    return grips;
+}
+
 } // namespace
 
 QString plainText(QString const& text)
@@ -226,6 +260,8 @@ PetAssets PetAssets::load(std::filesystem::path const& directory)
         auto const animations = readDocument(directory / "animations.json");
         assets.animations     = core::pet::parseAnimations(animations);
         auto const& playbook  = assets.animations.playbook;
+        // The sign is held by the ask role's action, and only that action's effect sheets are hands.
+        auto const hold = playbook.roles.find(core::pet::Role::Ask);
         for (auto const& [name, entry] : animations.at("actions").items()) {
             if (name == "blink") {
                 assets.blinkExpressions = expressionsOf(entry, cells, "animations: blink");
@@ -235,13 +271,21 @@ PetAssets PetAssets::load(std::filesystem::path const& directory)
             auto const row = playbook.actions.at(name).frames * assets.canvas;
 
             ActionSheets pictures;
-            auto const   body = resolvePackageFile(directory, stringOf(entry, "sheet", Refusal::BadAnimation, "animations: " + name));
+            auto const   body      = resolvePackageFile(directory, stringOf(entry, "sheet", Refusal::BadAnimation, "animations: " + name));
+            auto const   holdsSign = hold != playbook.roles.end() and hold->second == name;
             requireSize(chargedSizeOf(body, pixels), row, assets.canvas, "the body sheet of " + name);
             pictures.body = absolutePath(body);
             if (entry.contains("effect")) {
                 auto const effect = resolvePackageFile(directory, stringOf(entry, "effect", Refusal::BadAnimation, "animations: " + name));
                 requireSize(chargedSizeOf(effect, pixels), row, assets.canvas, "the effect sheet of " + name);
                 pictures.effect = absolutePath(effect);
+                if (holdsSign) pictures.gripRight = gripsOf(pictures.effect, assets.canvas, playbook.actions.at(name).frames);
+            }
+            if (entry.contains("effectLeft")) {
+                auto const effectLeft = resolvePackageFile(directory, stringOf(entry, "effectLeft", Refusal::BadAnimation, "animations: " + name));
+                requireSize(chargedSizeOf(effectLeft, pixels), row, assets.canvas, "the left-hand effect sheet of " + name);
+                pictures.effectLeft = absolutePath(effectLeft);
+                if (holdsSign) pictures.gripLeft = gripsOf(pictures.effectLeft, assets.canvas, playbook.actions.at(name).frames);
             }
             pictures.expressions = expressionsOf(entry, cells, "animations: " + name);
             assets.sheets.emplace(name, std::move(pictures));

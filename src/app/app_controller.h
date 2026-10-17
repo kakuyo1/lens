@@ -31,12 +31,17 @@
 #include "llm/llm_pricing.h"
 #include "model_catalog_duty.h"
 #include "mouse_selection_hook.h"
+#include "review_duty.h"
 #include "storage_duty.h"
 #include "sync_duty.h"
 #include "update_duty.h"
 
 class QQmlEngine;
 class QJSEngine;
+
+namespace lens::app::pet {
+class PetController;
+}
 
 namespace lens::app {
 
@@ -197,6 +202,17 @@ public:
      */
     QVariantMap settingPreview() const;
 
+    /// @return The word the pet is asking about now, or empty when no question is up (docs/adr/0050).
+    QString reviewQuestion() const;
+    /// @brief Bind the desktop pet, which the review duty asks whether it is enabled and idle. The composition root calls it once.
+    void bindPet(pet::PetController* pet);
+    /// @brief Answer the question up now. The stored explanation then shows as a bubble beside the sign at (x, y).
+    Q_INVOKABLE void answerReview(bool remembered, int x, int y);
+    /// @brief Let the question up now go unanswered; the pet reacts and the word waits out its cooldown.
+    Q_INVOKABLE void ignoreReview();
+    /// @brief Set how often the pet checks for a due word. Only the check changes; no word's curve moves.
+    Q_INVOKABLE void setReviewFrequency(int value);
+
     Q_PROPERTY(QVariantMap settings READ settings NOTIFY settingsChanged)
     Q_PROPERTY(QVariantMap stats READ stats NOTIFY statsChanged)
     Q_PROPERTY(QVariantList words READ words NOTIFY statsChanged)
@@ -213,6 +229,7 @@ public:
     Q_PROPERTY(double dailyBudget READ dailyBudget NOTIFY dailyBudgetChanged)
     Q_PROPERTY(QString buildDate READ buildDate CONSTANT)
     Q_PROPERTY(QVariantMap settingPreview READ settingPreview CONSTANT)
+    Q_PROPERTY(QString reviewQuestion READ reviewQuestion NOTIFY reviewQuestionChanged)
 
 signals:
     void selectionBarRequested(QVariantMap payload);
@@ -227,6 +244,8 @@ signals:
     void busyChanged();
     void uiLanguageChanged(QString lang);
     void dailyBudgetChanged();
+    /// @brief The question went up or came down; reviewQuestion() holds the current one.
+    void reviewQuestionChanged();
 
 private:
     /// @brief Restore provider wire options and persisted connection choices without touching credentials.
@@ -250,6 +269,7 @@ private:
     update::DownloadClient updateDownloader_;
     UpdateDuty             updateDuty_;
     SyncDuty               sync_;
+    ReviewDuty             reviewDuty_;
     llm::LlmClient&        llm_;
     GlobalHotkey&          hotkey_;
     QTimer                 gateTimer_;
@@ -257,6 +277,8 @@ private:
     bool budgetPaused_;
     /// The settings preview's demo card, read once (settingPreview()).
     QVariantMap previewSample_;
+    /// The desktop pet, bound by the composition root. The review duty asks it whether it may take a question.
+    pet::PetController* pet_{nullptr};
 };
 
 }

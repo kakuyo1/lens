@@ -28,6 +28,8 @@ export class PetRenderer {
     this.ctx.imageSmoothingEnabled = false;
     this.canvas = canvas;
     this.images = new Map();
+    /// Which hand holds the sign: 'left' draws the action's effectLeft sheet, anything else the right-hand effect.
+    this.handSide = 'right';
     /** @type {Record<string, (ctx: CanvasRenderingContext2D, state: object) => void>} Face painters by overlay name. */
     this.overlays = {};
   }
@@ -39,7 +41,7 @@ export class PetRenderer {
   async load(urlOf) {
     const { actions, expression, accessories } = this.pet;
     const paths = [
-      ...Object.values(actions).flatMap(a => [a.sheet, a.effect].filter(Boolean)),
+      ...Object.values(actions).flatMap(a => [a.sheet, a.effect, a.effectLeft].filter(Boolean)),
       expression,
       ...accessories.map(a => a.asset)
     ];
@@ -98,11 +100,12 @@ export class PetRenderer {
     const { ctx, width, height, pet } = this;
     const def = pet.actions[state.action];
     const { anchors } = state;
+    const effect = this.handSide === 'left' && def.effectLeft ? def.effectLeft : def.effect;
     const layers = [
       { z: pet.layers.body, path: def.sheet, index: state.frame, at: anchors.body },
       // An overlay replaces the expression sheet: there is no cell in it to point at.
       ...(def.overlay ? [] : [{ z: pet.layers.expression, path: pet.expression, index: state.expression, at: anchors.face }]),
-      ...(def.effect ? [{ z: pet.layers.effect, path: def.effect, index: state.frame, at: [0, 0] }] : []),
+      ...(effect ? [{ z: pet.layers.effect, path: effect, index: state.frame, at: [0, 0] }] : []),
       ...accessories.map(a => ({ z: a.zIndex, path: a.asset, index: 0, at: anchors[a.slot] }))
     ].sort((p, q) => p.z - q.z);
 

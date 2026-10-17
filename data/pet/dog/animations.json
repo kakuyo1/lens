@@ -11,7 +11,8 @@
     "look_around": "look_around",
     "yawn": "yawn",
     "stretch": "stretch",
-    "angry": "angry"
+    "angry": "angry",
+    "ask": "ask"
   },
   "idlePool": [
     "look_around",
@@ -306,6 +307,15 @@
       ],
       "sheet": "sprites/body/scratch.png",
       "effect": "sprites/effects/scratch.png"
+    },
+    "ask": {
+      "frames": 4,
+      "fps": 4,
+      "loop": true,
+      "blink": true,
+      "sheet": "sprites/body/ask.png",
+      "effect": "sprites/effects/ask.png",
+      "effectLeft": "sprites/effects/ask-left.png"
     },
     "sleep": {
       "frames": 4,

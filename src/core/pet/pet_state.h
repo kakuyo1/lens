@@ -35,6 +35,8 @@ enum class Role : std::uint8_t {
     Stretch,
     /// Optional like stretch: a pet without the art never gets angry (docs/pet-package-format.md).
     Angry,
+    /// Optional like angry: a pet without the art shows the review sign with no pose (ADR 0050).
+    Ask,
 };
 
 /// @brief The name an action has in its pet's data, such as "study" or "wobble". The machine does not interpret it.
@@ -54,6 +56,11 @@ enum class PetEvent : std::uint8_t {
     BudgetPaused,
     BudgetResumed,
     UpdateAvailable,
+    /// A review question went up. The word itself never travels with the event (ADR 0050).
+    ReviewAsked,
+    ReviewRemembered,
+    ReviewForgotten,
+    ReviewIgnored,
 };
 
 /// @brief Playback of one action, from animations.json.
@@ -99,7 +106,8 @@ using SceneSource = std::function<std::optional<ActionName>()>;
  * answered.
  *
  * Reading and sleeping are held states: an event keeps them, and the pet returns to them after a
- * one-shot reaction ends. Dragging is not held, so releasing the pet always lands on idle.
+ * one-shot reaction ends. Dragging is not held, so releasing the pet lands on idle, except while a review question is up:
+ * then it lands back on its sign.
  *
  * Idle is not a road to sleep. Every idle turn first rolls for a scene (kSceneChance, ADR 0049); a scene
  * is a looping action whose duration ends it. Miss that, and the turn becomes a nap on kNapChance or an
@@ -139,6 +147,13 @@ struct PetStateMachine {
     ActionName const& action() const
     {
         return current;
+    }
+
+    /// @return Whether the idle role is playing. False during a reaction, a scene, a reading or sleeping state, a drag,
+    ///         and an idle-pool action, which plays with no role.
+    bool idle() const
+    {
+        return currentRole == Role::Idle;
     }
 
     /// @return Whether the expression layer should blink now, from the current action's `blinks` flag.

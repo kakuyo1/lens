@@ -236,6 +236,16 @@ void ExplanationDuty::reviewWord(QString lemma, QPoint const anchor)
                value);
 }
 
+void ExplanationDuty::showReviewAnswer(QString const& lemma, QPoint const anchor)
+{
+    const core::CacheContext context{storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)};
+    const auto               cached = storage_.knownStore().cacheGet(lemma.toStdString(), context);
+    if (not cached or not servable(*cached))
+        return;
+    PendingSelection pending{.anchor = anchor, .kind = QStringLiteral("word"), .surface = lemma, .lemma = lemma};
+    showBubble(fromCache(*cached, lemma), pending, context, /*countsDown=*/true, /*notifyPet=*/false, /*reveal=*/false, /*verdictButtons=*/false);
+}
+
 void ExplanationDuty::dismissReview()
 {
     if (not reviewRaised_) return;
@@ -337,7 +347,7 @@ void ExplanationDuty::sendNext()
     send(std::move(*batch));
 }
 
-void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool const countsDown, bool const notifyPet, bool const reveal)
+void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool const countsDown, bool const notifyPet, bool const reveal, bool const verdictButtons)
 {
     auto const selected = [&](QString const& en, QString const& zh, QString const& translation) {
         return context.language == "en" ? en : context.language == "zh" ? zh
@@ -360,6 +370,7 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
                           {"translation", translation},
                           {"countsDown", countsDown},
                           {"reveal", reveal},
+                          {"verdictButtons", verdictButtons},
                           {"x", selection.anchor.x()},
                           {"y", selection.anchor.y()}};
     if (isWordKind(selection.kind)) {

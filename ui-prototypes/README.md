@@ -15,13 +15,16 @@
 | `bubble.html` | 解释气泡，含单词、实体、句子、译文四种 |
 | `selection-bar.html` | 选区动作条 |
 | `pet.html` | 桌面宠物子页面（扩展 → 桌面宠物，四只宠物的类型下拉、动作与配饰，以及宠物包的导入入口、被拒列表与确认弹窗） |
+| `pet-review.html` | 桌面宠物的复习牌：举牌（牌子挂在手上，左右手随空间切换，随身体起伏）、悬浮出 “忘了 / 记得”、作答后的缓存气泡与超时生气 |
 | `update.html` | 检查更新（关于 分类的检查行）与通知卡片的新版本样式 |
 
 ## 怎么看
 
 双击打开，或访问 `file:///.../settings.html`。URL 追加 `?theme=dark` 直接看静谧暗夜主题，`?theme=frosted` / `?theme=liquid` 看两套玻璃主题（雾面玻璃、流光玻璃），设置面板里的主题下拉也能切。除 `settings.html` 外，每张表面右上角的按钮循环切换四套主题（晴朗白昼、静谧暗夜、雾面玻璃、流光玻璃），按钮文字是当前主题名；带 `?shot` 时按钮隐去。`settings.html` 的流光玻璃与雾面玻璃主题左上角各有一组测试背景单选，底图分别在 `liquid-backdrops/` 与 `frosted-backdrops/`；URL 追加 `?bg=<文件名>` 指定一张（如 `?bg=web-light`、`?bg=checker`），文件属于哪套主题就用哪套。
 
-追加 `?lang=en`、`?lang=ja`、`?lang=es` 按该语言渲染界面，缺省中文。进 README 的五个表面（bubble、selection-bar、settings、words、year-in-words）接了它，其余表面和设置里的子页面仍是中文。pet 页要看到预览舞台，追加 `?on` 直接打开桌面宠物；要直接看宠物包的确认弹窗，追加 `?dlg=1`；README 里的桌面宠物图取自应用本身，不由这里渲染。
+追加 `?lang=en`、`?lang=ja`、`?lang=es` 按该语言渲染界面，缺省中文。进 README 的五个表面（bubble、selection-bar、settings、words、year-in-words）接了它，其余表面和设置里的子页面仍是中文。pet 页要看到预览舞台，追加 `?on` 直接打开桌面宠物；`?act=ask` 让预览直接停在举牌，`?preview` 把面板滚到预览舞台（headless 截图的静止画面不走动画，要看起伏请在浏览器里打开）；要直接看宠物包的确认弹窗，追加 `?dlg=1`；README 里的桌面宠物图取自应用本身，不由这里渲染。
+
+`pet-review.html` 直接停在举牌，默认左手；左侧的牌子连同外侧的小卡放不下时换右手，两侧都放不下取溢出少的一侧。`?scale=1|2|3.01|4` 改宠物尺寸，牌子随之等比缩放；`?hand=left|right` 强制举牌的手；`?f=0` 到 `?f=3` 停在举牌的某一帧，用来看牌子随身体起伏。手是 `data/pet/dog` 里 `ask` 的效果层：`ask.png` 是右手，`ask-left.png` 是左手。`?qa` 把牌子、小卡与气泡的屏幕坐标写在页面左下角，用来核对没有被截断。`?state=hover` 看展开的两枚按钮，`?state=forgot` / `?state=remembered` 看作答后的宠物动作与气泡，`?state=timeout` 看超时生气。作答气泡缺省在举牌的手那一侧（右手在右，左手在左），与宠物垂直居中，那一侧放不下时翻到另一侧；`?side=left|right` 强制气泡一侧，用来看翻边。小卡朝牌子的外侧展开：右手时在右边，左手时在左边；外侧放不下时翻到内侧。`?lang=` 支持四种界面语言；牌上的单词与气泡里的释义是样例内容，不随界面语言变。牌子的像素字体由页面相对引用 `data/fonts/PixelifySans-Regular.ttf`。
 
 `bubble.html` 追加 `?kind=entity`、`?kind=sentence` 或 `?kind=translation` 看实体、句子与中文译文，缺省是单词。前两种的样例文字是英文，与界面语言无关：README 的截图按英文解释渲染，解释语言是设置里另一项；译文那张的样例是中文，因为译文通道只收中文，卡片上画的仍是英文。
 

@@ -31,6 +31,9 @@ void installUiFonts()
     const int chineseRegular = QFontDatabase::addApplicationFont(QStringLiteral(LENS_SYSTEM_FONTS "/msyh.ttc"));
     const int noto           = QFontDatabase::addApplicationFont(QStringLiteral(LENS_SYSTEM_FONTS "/NotoSansSC-VF.ttf"));
     const int mono           = QFontDatabase::addApplicationFont(QStringLiteral(LENS_SYSTEM_FONTS "/CascadiaCode.ttf"));
+    // The review sign's word is drawn in the bundled pixel face, which main() loads from the same place. Not fatal here:
+    // a missing file leaves the fallback, as it does in the application.
+    QFontDatabase::addApplicationFont(QStringLiteral(LENS_DATA_DIR "/fonts/PixelifySans-Regular.ttf"));
     if (latin < 0 or chinese < 0 or chineseRegular < 0 or mono < 0)
         qFatal("could not load the Windows UI font files for the offscreen snapshot");
 

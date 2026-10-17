@@ -26,6 +26,9 @@ endfunction()
 add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/filter_core_test.cpp
   unit/stats_store_test.cpp
+  unit/review_schedule_test.cpp
+  unit/review_store_test.cpp
+  unit/review_duty_test.cpp
   unit/sync_merge_test.cpp
   unit/sync_apply_test.cpp
   unit/settings_section_test.cpp
