@@ -122,6 +122,9 @@ public:
     /// @brief Remove a lemma's mark and every cached explanation context.
     /// @return True when a mark or cache entry was removed.
     bool removeLemma(std::string const& lemma);
+    /// @brief Record a tombstone so a deleted word does not come back through sync, even when it
+    ///        had no known mark of its own. @return True when the tombstone was added.
+    bool markDeleted(std::string const& lemma);
 
     /**
      * @brief The document this store owns, for the section objects that persist beside it.

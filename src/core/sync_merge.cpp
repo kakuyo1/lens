@@ -191,10 +191,24 @@ json merge(const json& local, const json& remote, const std::string& localDevice
     for (const auto& [key, setting] : values)
         settings[key] = json{{"value", setting.value}, {"at", setting.at}};
 
+    json history = mergeHistory(local, remote);
+    // A tombstone keeps the word out of the merged history too: otherwise sync would resurrect a
+    // word the reader deleted on this or another device.
+    if (deleted.is_object()) {
+        json filtered = json::array();
+        for (const json& entry : history) {
+            if (entry.is_object() && entry.contains("word") && entry.at("word").is_string() &&
+                deleted.contains(entry.at("word").get<std::string>()))
+                continue;
+            filtered.push_back(entry);
+        }
+        history = std::move(filtered);
+    }
+
     return json{{"format", kFormat},
                 {"known", known},
                 {"deleted", deleted},
-                {"history", mergeHistory(local, remote)},
+                {"history", std::move(history)},
                 {"daily", mergeDaily(local, remote, localDevice)},
                 {"settings", settings}};
 }

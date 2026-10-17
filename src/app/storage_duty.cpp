@@ -69,8 +69,13 @@ bool StorageDuty::removeWord(QString const& lemma)
     const bool historyRemoved = stats_.removeLemma(value);
     const bool reviewRemoved  = review_.removeLemma(value);
     const bool removed        = marksRemoved || historyRemoved || reviewRemoved;
-    if (removed)
+    if (removed) {
+        // A word can live only in the stats history and have no known mark of its own; the mark's
+        // tombstone would then never be written, and sync would bring the word back. So a removal
+        // always leaves a tombstone behind.
+        store_.markDeleted(value);
         store_.save();
+    }
     return removed;
 }
 

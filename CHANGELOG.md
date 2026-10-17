@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.0 - 2026-10-17
+
+### Fixed
+
+- The review sign and its answer card now composite with per-pixel alpha on Windows, so the window
+  background no longer paints black around the board.
+- Hovering the answer card's buttons no longer closes the card before it can be pressed.
+- Deleted words no longer come back after reopening the words panel or restarting, including across sync.
+
 ## 1.4.5 - 2026-10-17
 
 English text wears a face of your choosing and word lists move in and out as files, while the desktop

@@ -12,6 +12,7 @@
 #include <QFontDatabase>
 #include <QCoreApplication>
 #include <QQmlApplicationEngine>
+#include <QQuickWindow>
 #include <QTimer>
 #include <QVariant>
 #include <QTranslator>
@@ -243,6 +244,10 @@ int main(int argc, char* argv[])
     // fail. Registering the types gives qmllint the property names to check against.
     AppController::provide(&controller);
     Tray::provide(&tray);
+
+    // Transparent frameless windows (the pet, the review sign, the answer card) need an alpha channel in the scene
+    // graph's default surface format, otherwise their transparent pixels composite as black on Windows.
+    QQuickWindow::setDefaultAlphaBuffer(true);
 
     QQmlApplicationEngine engine;
 

@@ -321,6 +321,19 @@ bool KnownStore::removeLemma(std::string const& lemma)
     return removed;
 }
 
+bool KnownStore::markDeleted(std::string const& lemma)
+{
+    // A tombstone only when there is something to keep out: it is what stops another device's
+    // copy of the word from bringing it back through sync.
+    if (lemma.empty())
+        return false;
+    if (deletedAt_.count(lemma) != 0)
+        return false;
+    deletedAt_[lemma] = nowMs();
+    LENS_INFO("marked '{}' as deleted for sync", lemma);
+    return true;
+}
+
 void KnownStore::save() const
 {
     // Start from the document as loaded and overwrite only our own keys; everything else

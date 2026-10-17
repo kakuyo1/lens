@@ -123,11 +123,14 @@ void applyMarks(core::KnownStore& store, const nlohmann::json& merged)
 
 void applyHistory(core::StatsStore& stats, const nlohmann::json& merged)
 {
+    const nlohmann::json&           deleted = merged.value("deleted", nlohmann::json::object());
     std::vector<core::HistoryEntry> rows;
     for (const nlohmann::json& row : merged.value("history", nlohmann::json::array())) {
         if (!row.is_object() || !row.contains("word") || !row.at("word").is_string() || !row.contains("minute") ||
             !row.at("minute").is_string())
             continue;
+        if (deleted.is_object() && deleted.contains(row.at("word").get<std::string>()))
+            continue; // a tombstone keeps the deleted word out, even if a stale copy survived in the cloud
         std::string verdict = row.contains("verdict") && row.at("verdict").is_string() ? row.at("verdict").get<std::string>() : std::string();
         rows.push_back(core::HistoryEntry{row.at("word").get<std::string>(), row.at("minute").get<std::string>(), std::move(verdict)});
     }

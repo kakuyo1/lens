@@ -10,8 +10,9 @@ Window {
 
     /// A button was pressed: true for Remembered, false for Forgot.
     signal answered(bool remembered)
-    /// Whether the pointer is on the card.
-    readonly property bool hovered: hover.hovered
+    /// Whether the pointer is on the card, including its buttons: the buttons sit above the card's hover item, so their own
+    /// hover is counted too, otherwise the card would close the moment the pointer reached a button.
+    readonly property bool hovered: hover.hovered || forgotHover.hovered || rememberedHover.hovered
 
     readonly property SurfaceTokens tokens: SurfaceTokens {}
     readonly property int padding: 8
@@ -69,6 +70,7 @@ Window {
             }
 
             HoverHandler {
+                id: forgotHover
                 cursorShape: Qt.PointingHandCursor
             }
 
@@ -99,6 +101,7 @@ Window {
             }
 
             HoverHandler {
+                id: rememberedHover
                 cursorShape: Qt.PointingHandCursor
             }
 
