@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Lens release 运行内存：构成与优化意见</title>
+<style>
+body { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; max-width: 980px; margin: 2rem auto; padding: 0 1rem; color: #1d1d1f; line-height: 1.6; }
+h1 { font-size: 1.6rem; margin-bottom: .2rem; }
+h2 { font-size: 1.15rem; margin-top: 2.2rem; border-bottom: 1px solid #ddd; padding-bottom: .3rem; }
+table { border-collapse: collapse; width: 100%; margin: .6rem 0 1rem; font-size: .92rem; }
+th, td { border-bottom: 1px solid #e5e5e5; padding: .4rem .5rem; text-align: left; vertical-align: top; }
+th { color: #555; font-weight: 600; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.next { background: #f3f7ff; border-left: 4px solid #3b6fd8; padding: .8rem 1rem; margin: 1.2rem 0; }
+.bar { display: flex; height: 20px; border-radius: 3px; overflow: hidden; margin: .6rem 0 .2rem; }
+.bar div { height: 100%; }
+.legend { font-size: .88rem; color: #444; }
+.legend span { display: inline-block; margin-right: 1.2rem; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+.muted { color: #666; font-size: .9rem; }
+code { background: #f4f4f4; padding: 0 .25rem; border-radius: 3px; font-size: .88em; }
+</style>
+</head>
+<body>
+
+<h1>Lens release 运行内存：构成与优化意见</h1>
+<p class="muted">分支 perf/memory-refine · 2026-10-13 · 测量对象：<code>build-ninja-release\src\app\lens.exe</code>（PID 32180，23:34:13 启动）</p>
+
+<div class="next">
+<strong>下一步（需要你做一件事）：</strong>在正在运行的 lens.exe 里打开设置窗口，保持使用 10 分钟。我同时用只读采样记录内存曲线，用来回答 ADR 0040 留下的未测项：“每秒 15 次的图片加载，内存是否回落”。细节见第 6 节。
+</div>
+
+<h2>1. 结论</h2>
+<ol>
+<li>工作集 637 MB 里，<strong>约 533 MB 是私有页</strong>（私有常驻 528 MB，占 82%）。私有页的大头不在 Qt 代码，也不在字体，而在<strong>显卡驱动为各窗口的 D3D 设备分配的内存</strong>。</li>
+<li>线程 799 个中，<strong>775 个由两家显卡驱动创建</strong>（NVIDIA 535 个，AMD 240 个），Qt 自己只有 16 个。</li>
+<li>机制：Qt 6.9 默认的线程渲染循环<strong>为每个 QQuickWindow 创建一个独立的 QRhi，即一个 ID3D11Device</strong>。应用有 13 个固定窗口（含 Main 与默认隐藏的桌宠），另有每显示器一个 Mask 窗口。窗口首次显示即建设备。</li>
+<li>字体与 DLL 不是主因：映射已提交 676 MB，但常驻只有 32 MB；驱动 DLL 代码常驻 80 MB。C++ 侧的词表固定占 10 到 15 MB（估算），解释缓存无上限、随使用增长（未测）。</li>
+</ol>
+
+<h2>2. 实测数字</h2>
+<table>
+<tr><th>指标</th><th class="num">本次（PID 32180）</th><th class="num">2026-10-05 基线</th><th>备注</th></tr>
+<tr><td>工作集</td><td class="num">637.1 MB（峰值 703.2 MB）</td><td class="num">180.6 → 133.5 MB</td><td>基线为 10 分钟内的首末点</td></tr>
+<tr><td>私有提交（PrivateMemorySize64）</td><td class="num">986.5 MB</td><td class="num">155.9 MB</td><td>同一口径</td></tr>
+<tr><td>句柄</td><td class="num">17,665</td><td class="num">2,782</td><td></td></tr>
+<tr><td>线程</td><td class="num">799</td><td class="num">80</td><td></td></tr>
+<tr><td>GPU 专用显存（NVIDIA / AMD）</td><td class="num">267.5 MB / 23.2 MB</td><td class="num">未测</td><td>不计入上面几项</td></tr>
+</table>
+<p class="muted">
+基线记录早于 ADR 0040（实时刷新）与 ADR 0041（全表面玻璃），不代表现在的代码。
+<code>docs/metrics/resource-footprint/</code> 里“内存不增长”的结论只覆盖空闲态。
+你测到的 550 MB 我无法确认口径；任务管理器的“内存”列通常对应工作集，这里是 637 MB。
+</p>
+<p class="muted">
+采样 5 分钟（每 30 秒一次）：私有字节 986.4 到 986.5 MB，线程 797 到 799，句柄 17,657 到 17,665，处于平台期。此时没有玻璃窗口显示，ADR 0040 的实时刷新没有运行，所以这段数据不覆盖它。
+</p>
+
+<h2>3. 构成</h2>
+
+<p><strong>工作集构成</strong>（逐页查询，645.5 MB；与第 2 节的 637 MB 相差 8 MB，是两次查询的时间差）</p>
+<div class="bar">
+<div style="width:81.8%;background:#3b6fd8" title="私有常驻 528.1 MB"></div>
+<div style="width:12.5%;background:#e0a526" title="共享 DLL 代码 80.4 MB"></div>
+<div style="width:4.9%;background:#6cb36c" title="共享映射 31.7 MB"></div>
+<div style="width:0.8%;background:#a06cc0" title="私有 Image 5.2 MB"></div>
+</div>
+<div class="legend">
+<span><i class="sw" style="background:#3b6fd8"></i>私有常驻 528.1 MB（82%）</span>
+<span><i class="sw" style="background:#e0a526"></i>共享 DLL 代码 80.4 MB（12%）</span>
+<span><i class="sw" style="background:#6cb36c"></i>共享映射 31.7 MB（5%）</span>
+<span><i class="sw" style="background:#a06cc0"></i>私有 Image 5.2 MB（1%）</span>
+</div>
+
+<p><strong>私有提交 939.4 MB，按区域大小</strong></p>
+<table>
+<tr><th>区域大小</th><th class="num">提交 MB</th><th class="num">区域数</th><th>读法</th></tr>
+<tr><td>小（&lt;1 MB）</td><td class="num">153.3</td><td class="num">2,621</td><td>应用堆、Qt 对象、驱动小分配</td></tr>
+<tr><td>中（1 到 16 MB）</td><td class="num">652.4</td><td class="num">233</td><td>主要部分；归属未逐区域证实，形状与驱动的设备级分配池相符</td></tr>
+<tr><td>大（&gt;16 MB）</td><td class="num">135.1</td><td class="num">6</td><td></td></tr>
+</table>
+
+<p><strong>线程 799 个，按起始地址所在模块</strong></p>
+<table>
+<tr><th>创建方</th><th class="num">线程数</th></tr>
+<tr><td>nvwgf2umx.dll（NVIDIA 用户态 D3D 驱动）</td><td class="num">535</td></tr>
+<tr><td>amdxx64.dll（AMD 驱动）</td><td class="num">240</td></tr>
+<tr><td>Qt6Core.dll</td><td class="num">16</td></tr>
+<tr><td>其它（ntdll、ucrtbase 等）</td><td class="num">8</td></tr>
+</table>
+
+<p><strong>已提交的映射 676.1 MB</strong>：主要是系统字体文件（mingliub、NotoSerifSC、simsunb、msjh、msyh、simsun、NotoSansSC、msyhbd 等，前 11 项合计约 218 MB）和两份字体缓存文件。常驻只有 31.7 MB，所以它们主要是已提交、未访问的地址空间。另有 265 个无文件名的 section 映射，合计 40.9 MB。</p>
+
+<h2>4. 归因（按证据强度排序）</h2>
+<ol>
+<li>
+<strong>每窗口一个 D3D 设备：驱动的私有内存与驱动线程，是最大项。</strong>
+<ul>
+<li>源码（Qt 6.9.0）：<code>src/quick/scenegraph/qsgrenderloop.cpp:56</code> 写明 “Uses one QRhi per window”；线程循环在 <code>qsgthreadedrenderloop.cpp:883</code> 对每个窗口调用 <code>createRhi</code>；basic 循环则在 <code>qsgrenderloop.cpp:507</code> 注释为所有窗口共用一个 RHI。</li>
+<li>实测：线程起始地址的 775 个来自两家驱动，见第 3 节。</li>
+<li>旧记录外推：<code>memory-leak-2026-10-05.md</code> 记录首次画出动作条时 +60 MB 私有、+82 线程、+1634 句柄。按此外推，799 线程约相当于 9 个设备，986 MB 私有约相当于 14 个设备。这是粗估，窗口与设备的对应关系未核对。</li>
+<li>未验证：窗口隐藏后设备是否释放；哪些窗口显示过。</li>
+</ul>
+</li>
+<li>
+<strong>玻璃实时刷新（ADR 0040 与 0041）：没有实测，只有结构估计。</strong>
+<ul>
+<li>结构：11 个玻璃表面（12 个 GlassSurface 实例），每个有 3 个 ShaderEffectSource，且默认 live（<code>GlassSurface.qml:95-125</code>）。</li>
+<li>实时刷新约每 67 ms 换一次 <code>serial</code>，即一次新的 QML 图片 URL（<code>glass_backdrop.cpp:54-56</code>，<code>GlassSurface.qml:39</code>）。</li>
+<li>纹理估计：设置窗口约 752×852 DIP 的 sheet，在 125% 缩放下约 940×1065 像素，RGBA 约 4 MB 一张（按代码推算，未测）。CPU 侧 1/4 分辨率的 sheet 在 1080p 全屏下约 0.5 MB，比纹理小得多。</li>
+</ul>
+</li>
+<li>
+<strong>C++ 数据：词表固定，解释缓存随使用增长。</strong>
+<ul>
+<li>词表 <code>unordered_map&lt;string, size_t&gt;</code>（<code>filter_core.cpp:20</code>）加载 <code>data/wordlist.txt</code> 的 168,205 行，按节点结构估计 10 到 15 MB。旧记录写 88,918 条，与现在的行数不一致，原因未核对（可能是文件变了，也可能是计数口径不同）。不规则屈折表约 5,757 条，估计不到 1 MB。</li>
+<li>解释缓存（<code>known_store.cpp</code>）无上限：第 230 行之后没有淘汰，只有 <code>removeLemma</code> 会删（第 238 行）。已加载的条目在 <code>WordCache</code> 与 <code>doc_</code> 两处各存一份；<code>save()</code> 时还会复制 <code>doc_</code> 并重建一棵完整的缓存树，所以保存时的峰值约为缓存的 2 到 3 倍。大小取决于解释过多少词，未测。</li>
+</ul>
+</li>
+<li>
+<strong>字体映射：计入工作集的只有 32 MB。</strong><code>main.cpp:164-168</code> 只设定了两个字族，但映射里的 CJK 字体远多于此。字形回退是可能的原因，尚未证实。</li>
+<li>
+<strong>驱动 DLL 代码常驻 80 MB。</strong>两家驱动同时加载，是因为两块显卡上都有 D3D 设备。减少设备数可能也会减少这部分（未测）。</li>
+</ol>
+
+<h2>5. 优化意见（按预期收益排序）</h2>
+<table>
+<tr><th>#</th><th>做什么</th><th>预期收益</th><th>代价与风险</th><th>怎么验证</th></tr>
+<tr>
+<td>1</td>
+<td>让所有窗口共用一个 RHI：试 <code>QSG_RENDER_LOOP=basic</code> 或等效的代码设置</td>
+<td>设备数大幅减少；按每设备约 60 MB 的旧记录外推，私有内存与驱动线程都会明显下降（未测）</td>
+<td>渲染改在 GUI 线程，玻璃 shader 与动画的帧时间要测；需要新 ADR</td>
+<td>同一脚本、同一操作路径，A/B 对比私有字节、线程数与帧时间</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Mask 窗口按需创建，用完销毁；或用单个窗口覆盖多显示器</td>
+<td>每显示器一个设备的成本只在用到取词时付出</td>
+<td>取词蒙版的打开延迟</td>
+<td>启动后与第一次取词后，分别采样私有字节与线程数</td>
+</tr>
+<tr>
+<td>3</td>
+<td>合并低频表面窗口（统计、词汇、年度、花费、通知、更新、删除确认）</td>
+<td>设备数随之减少</td>
+<td>改动大；与 ADR 0041 “每表面一张幕布”的前提相冲突，需要新 ADR</td>
+<td>设备数（线程数）随打开的窗口数变化的曲线</td>
+</tr>
+<tr>
+<td>4</td>
+<td>玻璃：先测实时刷新的代价，再决定是否降低刷新率或缩小纹理</td>
+<td>未知（ADR 0040 的未测项）</td>
+<td>玻璃的跟随感变差</td>
+<td>玻璃主题下 10 分钟采样，对比玻璃与非玻璃主题</td>
+</tr>
+<tr>
+<td>5</td>
+<td>解释缓存加上限（LRU 或按条数），并去掉 <code>doc_</code> 中与缓存重复的副本</td>
+<td>把“随使用增长”的部分封顶，并降低保存时的峰值（幅度未测）</td>
+<td>超出上限的词要重新请求模型，多花 API 费用；上限数值需要定</td>
+<td>解释 200 个词前后各取一次堆快照，对比增量</td>
+</tr>
+</table>
+<p class="muted">排在后面：词表容器改造（固定 10 到 15 MB，收益要先测）、字体回退链（常驻仅 32 MB）、桌宠贴图（默认未启用，上限 5 MB 级）。</p>
+
+<h2>6. 需要你做的或批准的事</h2>
+<ol>
+<li><strong>最便宜的验证（推荐）：</strong>在当前运行的实例里打开设置窗口，保持使用 10 分钟。我同时只读采样。这需要你操作，我不会动应用。</li>
+<li><strong>A/B 测试 <code>QSG_RENDER_LOOP=basic</code>：</strong>需要启动一个测试实例，它会出现窗口、托盘图标和鼠标钩子，可能影响你当前的使用。需要你批准，并确认能否先关掉正在运行的 lens.exe（PID 32180）。</li>
+</ol>
+
+<h2>7. 未验证与待补</h2>
+<ul>
+<li>窗口隐藏后，QRhi 与驱动线程是否保留，以及哪些窗口显示过（需要看 Qt 的 releaseSwapchain 与隐藏处理）。</li>
+<li>中块私有区域（233 个，652 MB）的归属：驱动还是应用。</li>
+<li>玻璃实时刷新期间是否增长（ADR 0040 未测项）。</li>
+<li>解释缓存的实际占用（取决于解释过的词数）。</li>
+<li>文档偏差：<code>docs/metrics/resource-footprint/</code> 的三份记录基于 10 月 5 日的版本；<code>main.cpp:261</code> 的注释写“九个窗口”，已过时（实际 13 个固定窗口加 Mask）。</li>
+</ul>
+
+<h2>8. 方法</h2>
+<ul>
+<li>全部只读：PowerShell 调用 Windows API（VirtualQueryEx、QueryWorkingSetEx、NtQueryInformationThread、GetMappedFileNameW），以及 Get-Counter 的 GPU Process Memory。没有修改 lens.exe，也没有写入设置。</li>
+<li>C++ 数据面只做了静态阅读，未运行；解释缓存部分的行号来自子代理，未逐一核对。</li>
+<li>原始数据与脚本放在 <code>%TEMP%\lens-mem-scripts\</code> 与 <code>%TEMP%\lens-mem-samples.csv</code>，不入库。</li>
+<li>VMMap（Sysinternals）已下载到 <code>%TEMP%</code>，但它的命令行模式挂起，未使用。</li>
+<li>Qt 源码引用基于 tag v6.9.0。</li>
+</ul>
+
+</body>
+</html>
