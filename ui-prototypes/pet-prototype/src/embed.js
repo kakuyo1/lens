@@ -34,7 +34,7 @@ export async function mountStage(canvas, pet, { scale, resolve, live = true, bou
   let last = 0;
   let frame = 0;
   const tick = now => {
-    engine.update(Math.min(now - last, 100));
+    engine.update(Math.max(Math.min(now - last, 100), 0)); // never backwards: see main.js
     last = now;
     renderer.draw(engine.state, accessories.visibleFor(engine.action));
     frame = requestAnimationFrame(tick);

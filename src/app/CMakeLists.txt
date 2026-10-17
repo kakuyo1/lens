@@ -46,6 +46,7 @@ add_library(lens_app STATIC
   pet/pet_controller.cpp
   pet/pet_package_fs.cpp
   pet/pet_placement.cpp
+  pet/pet_scenes.cpp
   pet/pet_store.cpp
   pet/pet_window_native.cpp
 )

@@ -259,3 +259,18 @@ PY
   时长解析为 0（`test/qtest/components/tst_motion.qml`），以及卡片确实随窗口在 0 与 1 之间走
   （`tst_shadowcard.qml`）。观感靠一次 QML profiler 运行加人工看。写快照用例时要等 `Tokens.motion.pop`
   走完再抓，否则拍到的是半透明的卡片。
+
+## 10 桌面宠物与场景
+
+`PetScene.qml` 是宠物唯一的绘制处，桌面窗口与设置预览都用它。没有场景时它只是一摞
+`SpriteLayer`；进入场景（`Pet.scene` 非空，ADR 0049）后，同一块 88 × 88 的画布里叠三层：
+
+- **静态后层**：`data/scenes/<id>/back.png` 的一帧，不随宠物动。
+- **宠物 rig**：身体、表情、效果与配饰，按 `Pet.sceneShift` 放到座板或滑板上，并用一条
+  `Scale` 绕 `Pet.foot` 缩放——秋千的缩放只有宠物自己有，道具不跟着放大。
+- **静态前层**：`front.png`，挡住宠物的下半身（浴缸、桌沿）。
+
+道具的逐帧运动在渲染时已经烘焙进 sheet，QML 不做旋转；整层再按 `Pet.sceneAlign`（宠物实测脚点 − 场景目录的
+对齐点）平移，所以狗、麻糬与猫头鹰共用同一套道具。窗口尺寸仍是 `Pet.canvas * Pet.scale`，场景不会把窗口
+撑大；层序取 `scenes.json` 的 `layers`，宠物 rig 固定夹在中间。窗口缩放与预览舞台因此都不需要知道场景的
+存在——它们只看见一个 88 × 88 的 `Item`。

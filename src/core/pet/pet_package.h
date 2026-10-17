@@ -56,12 +56,14 @@ private:
 /// @name Limits from docs/pet-package-format.md section 4. A value above its maximum refuses the package as TooLarge; a
 ///       value below its minimum is a Format or BadAnimation refusal, depending on the field.
 /// @{
-constexpr int kMinCanvas      = 16;
-constexpr int kMaxCanvas      = 128;
-constexpr int kMinScale       = 1;
-constexpr int kMaxScale       = 4;
-constexpr int kMaxFrames      = 64;
-constexpr int kMaxFps         = 24;
+constexpr int kMinCanvas = 16;
+constexpr int kMaxCanvas = 128;
+constexpr int kMinScale  = 1;
+constexpr int kMaxScale  = 4;
+constexpr int kMaxFrames = 64;
+constexpr int kMaxFps    = 24;
+/// The longest an action may run by its own clock, in milliseconds: an hour is well past any scene.
+constexpr int kMaxDurationMs  = 3'600'000;
 constexpr int kMaxActions     = 32;
 constexpr int kMaxAccessories = 32;
 constexpr int kMaxIdlePool    = 16;

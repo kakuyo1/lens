@@ -6,6 +6,7 @@
   "eyes": [[5, 6], [11, 6]],
   "mouth": [[7, 8], [8, 9], [9, 9], [10, 8]],
   "yawnMouth": [8, 8, 2, 2],
+  "angryMouth": [[7, 9], [8, 8], [9, 9]],
   "roles": {
     "idle": "idle",
     "study": "study",
@@ -17,7 +18,8 @@
     "pickup": "pickup",
     "look_around": "look_around",
     "yawn": "yawn",
-    "stretch": "stretch"
+    "stretch": "stretch",
+    "angry": "angry"
   },
   "idlePool": ["look_around", "stretch", "wobble", "bounce", "hiccup", "shiver", "spin"],
   "actions": {
@@ -167,6 +169,18 @@
     "blink": {"fps": 10, "loop": false, "frames": [
       {"expression": 1}, {"expression": 2}, {"expression": 1}
     ]},
+    "angry": {"fps": 10, "loop": false, "bodyFrom": "idle", "frames": [
+      {"expression": 9, "pose": {}, "paint": [{"at": [5, -3], "colour": "rose", "pixel": true, "art": ["...#...", "...#...", "...#...", "#######", "...#...", "...#...", "...#..."]}]},
+      {"expression": 9, "pose": {"dx": -1}, "paint": [{"at": [5, -3], "colour": "rose", "pixel": true, "art": ["...#...", "...#...", "...#...", "#######", "...#...", "...#...", "...#..."]}]},
+      {"expression": 9, "pose": {"dx": 1}, "paint": [{"at": [5, -4], "colour": "rose", "pixel": true, "art": ["...#...", "...#...", "...#...", "#######", "...#...", "...#...", "...#..."]}]},
+      {"expression": 9, "pose": {"dx": -1}, "paint": [{"at": [5, -4], "colour": "rose", "pixel": true, "art": ["...#...", "...#...", "...#...", "#######", "...#...", "...#...", "...#..."]}]},
+      {"expression": 9, "pose": {"dy": -1}, "paint": [{"at": [5, -3], "colour": "rose", "pixel": true, "art": ["...#...", "...#...", "...#...", "#######", "...#...", "...#...", "...#..."]}]}
+    ]},
+    "swing": {"fps": 4, "loop": true, "duration": 24000, "bodyFrom": "idle", "frames": [{}, {}, {}, {}, {}, {}, {}, {}]},
+    "desk": {"fps": 4, "loop": true, "duration": 24000, "bodyFrom": "idle", "frames": [{}, {}, {}, {}, {}, {}, {}, {}]},
+    "skate": {"fps": 4, "loop": true, "duration": 24000, "bodyFrom": "idle", "frames": [{}, {}, {}, {}, {}, {}, {}, {}]},
+    "bath": {"fps": 4, "loop": true, "duration": 24000, "bodyFrom": "idle", "frames": [{}, {}, {}, {}, {}, {}, {}, {}]},
+    "rain": {"fps": 4, "loop": true, "duration": 24000, "bodyFrom": "idle", "frames": [{}, {}, {}, {}, {}, {}, {}, {}]},
     "wobble": {"fps": 8, "loop": false, "frames": [
       {},
       {"pose": {"dx": -1, "sx": 1.06, "sy": 0.96}, "paint": [{"at": [-2, 4], "colour": "green", "art": [".#", "#.", "#.", ".#"]}]},

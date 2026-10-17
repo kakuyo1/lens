@@ -20,10 +20,18 @@ python -I scripts/pet/render_pet.py mochi
 配方的字段（完整说明在 `render_pet.py` 的文件头）：
 
 - `body`：身体的基础椭圆 `{cx, cy, rx, ry}`，单位是格子；它的底部中心是所有姿势的轴。
-- `eyes`、`mouth`、`yawnMouth`：表情层的格子，以及张嘴（表情 7）的矩形 `[x, y, w, h]`。
+- `eyes`、`mouth`、`yawnMouth`、`angryMouth`：表情层的格子，以及张嘴（表情 7）的矩形 `[x, y, w, h]` 与生气（表情 9）的撇嘴格子。
 - `roles`、`idlePool`：原样写进 `animations.json`。
-- `actions.<名>`：`fps`、`loop`，可选 `blink`、`returnTo`、`paint`（每帧都画），以及 `frames`。每一帧可有 `pose`（`dx`、`dy` 平移，`sx`、`sy` 绕底部中心缩放）、`expression`、`shapes`（额外形状，`add` 或 `discard`）与 `paint`。
+- `actions.<名>`：`fps`、`loop`，可选 `blink`、`returnTo`、`duration`、`bodyFrom`、`paint`（每帧都画），以及 `frames`。每一帧可有 `pose`（`dx`、`dy` 平移，`sx`、`sy` 绕底部中心缩放）、`expression`、`shapes`（额外形状，`add` 或 `discard`）与 `paint`。`duration`（毫秒）让循环动作到点结束；`bodyFrom` 复用前面某个动作的 body sheet 与锚点，按自己的帧数循环，帧里写了 `pose` 就覆盖锚点。
 - `accessories`：每件 `{id, slot, except, paint}`，`except` 列出它不能穿的动作。
+
+## 场景
+
+`scenes/<id>.json` 是场景的逐帧道具（从原型的 `scenes.js` 机械搬来）与宠物每帧的 `dx`、`dy`、`scale`。`render_scenes.py` 读它们，写 `data/scenes/<id>/{back,front}.png` 与运行时目录 `data/scenes/scenes.json`，并读回核对尺寸、检查道具不出画布。改了场景数据后重跑：
+
+```sh
+python -I scripts/pet/render_scenes.py
+```
 
 ## 小狗的旧脚本
 

@@ -33,6 +33,8 @@ enum class Role : std::uint8_t {
     LookAround,
     Yawn,
     Stretch,
+    /// Optional like stretch: a pet without the art never gets angry (docs/pet-package-format.md).
+    Angry,
 };
 
 /// @brief The name an action has in its pet's data, such as "study" or "wobble". The machine does not interpret it.
@@ -63,6 +65,9 @@ struct ActionSpec {
     std::optional<Role> returnTo;
     /// Whether the expression layer blinks while this action plays (PHASE3 3.3).
     bool blinks;
+    /// How long the action runs before it ends by itself, for a looping action such as a scene. Empty when the
+    /// action ends by its frame count (one-shot) or never ends (idle, a nap).
+    std::optional<std::chrono::milliseconds> duration;
 };
 
 /// @brief Everything the machine plays with, from one pet's animations.json.
@@ -80,6 +85,10 @@ struct Playbook {
 /// @brief Returns a number in [0, 1). Injected so the idle pick and its cooldown are testable.
 using RandomSource = std::function<double()>;
 
+/// @brief Chooses a scene the pet can play, or nothing. Injected so the app decides which scenes a pet has
+///        (only a shipped pet has any) and the machine stays free of the scene catalogue.
+using SceneSource = std::function<std::optional<ActionName>()>;
+
 /**
  * @brief Chooses the action the pet plays, from events and elapsed time.
  *
@@ -92,17 +101,26 @@ using RandomSource = std::function<double()>;
  * Reading and sleeping are held states: an event keeps them, and the pet returns to them after a
  * one-shot reaction ends. Dragging is not held, so releasing the pet always lands on idle.
  *
- * Idle is not a road to sleep. Every idle turn rolls a die first and naps only on kNapChance, so a quiet
- * desktop is mostly the pet's own actions; and a nap ends by itself after nextNap(), so the pet is never
- * asleep for good. Only the budget's hold on sleep outlasts it (PetEvent::BudgetPaused).
+ * Idle is not a road to sleep. Every idle turn first rolls for a scene (kSceneChance, ADR 0049); a scene
+ * is a looping action whose duration ends it. Miss that, and the turn becomes a nap on kNapChance or an
+ * action from the pool. A nap ends by itself after nextNap(), so the pet is never asleep for good. Only
+ * the budget's hold on sleep outlasts it (PetEvent::BudgetPaused).
+ *
+ * A run of kAngryClicks clicks inside kAngryWindow enters the angry action directly, because click_react
+ * is usually still playing and a request at the same priority would be dropped. The role is optional.
  */
 struct PetStateMachine {
     /// @brief Idle wait before a random action: this base, plus up to kIdleCooldownSpread at random.
     static constexpr std::chrono::milliseconds kIdleCooldownBase{20'000};
     /// @brief The top of the idle wait's jitter. Wide on purpose: an even cadence reads as a metronome.
     static constexpr std::chrono::milliseconds kIdleCooldownSpread{70'000};
+    /// @brief The chance an idle turn becomes a scene, when the pet has one to offer.
+    static constexpr double kSceneChance{1.0 / 6.0};
     /// @brief The chance an idle turn becomes a yawn and a nap rather than a random action.
     static constexpr double kNapChance{1.0 / 12.0};
+    /// @brief How many clicks in a row make the pet angry, and how far apart two of them may be.
+    static constexpr int                       kAngryClicks{3};
+    static constexpr std::chrono::milliseconds kAngryWindow{2'000};
     /// @brief How long a nap lasts: drawn per nap between these two.
     static constexpr std::chrono::milliseconds kNapMin{90'000};
     static constexpr std::chrono::milliseconds kNapMax{300'000};
@@ -113,7 +131,9 @@ struct PetStateMachine {
 
     /// @param playbook What the pet plays. It must come from parseAnimations, which checks every role it needs.
     /// @param random Random source in [0, 1).
-    PetStateMachine(Playbook playbook, RandomSource const& random);
+    /// @param scenes What scenes the pet can play, read only on the idle turn's scene roll. Empty for a pet with
+    ///        no scenes, which leaves the turn to the nap and pool below.
+    PetStateMachine(Playbook playbook, RandomSource const& random, SceneSource const& scenes = {});
 
     /// @return The name of the action being played now.
     ActionName const& action() const
@@ -127,6 +147,11 @@ struct PetStateMachine {
     /// @brief Applies one event. A drag ends only through DragEnd.
     /// @param event What happened. Carries no text.
     void handle(PetEvent event);
+
+    /// @brief Starts a scene now, as the idle turn's scene roll would. Ignored unless `name` is an action with a
+    ///        duration, which is what marks a scene, and while the pet is being dragged.
+    /// @param name Scene action as the app's catalogue and the pet's data spell it.
+    void playScene(ActionName const& name);
 
     /// @brief Moves the clock on by `step`: takes an idle turn when one is due, and ends actions that have run out.
     /// @param step Time since the last call.
@@ -169,6 +194,7 @@ private:
 
     Playbook     playbook;
     RandomSource random;
+    SceneSource  scenes;
     ActionName   current;
     /// The role the current action plays. Empty when the idle timer picked it from the pool.
     std::optional<Role> currentRole;
@@ -188,7 +214,10 @@ private:
     /// The last kRecentIdle actions the idle timer played, oldest first. Only the newest entries the
     /// pool can spare are held back, so the pick is never left with nothing.
     std::deque<ActionName> recentIdle;
-    bool                   dragging{false};
+    /// Clicks in a row, and the time since the last one, for the angry threshold. Any other event clears both.
+    int                       clicks{0};
+    std::chrono::milliseconds sinceClick{0};
+    bool                      dragging{false};
 };
 
 } // namespace lens::core::pet

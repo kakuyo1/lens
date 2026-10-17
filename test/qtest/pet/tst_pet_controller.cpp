@@ -11,6 +11,7 @@
 #include <fstream>
 #include <optional>
 
+#include <QPointF>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
@@ -53,6 +54,17 @@ QStringList idsOf(PetController const& controller)
 std::filesystem::path shippedRoot()
 {
     return std::filesystem::path{LENS_DATA_DIR} / "pet";
+}
+
+/// @return The scene ids the app ships. A scene is not an action chip in the settings page (ADR 0049).
+QStringList sceneIds()
+{
+    auto       stream   = std::ifstream{std::filesystem::path{LENS_DATA_DIR} / "scenes" / "scenes.json"};
+    auto const document = nlohmann::json::parse(stream);
+    auto       ids      = QStringList{};
+    for (auto const& scene : document.at("scenes"))
+        ids.append(QString::fromStdString(scene.at("id").get<std::string>()));
+    return ids;
 }
 
 std::filesystem::path settingsIn(QTemporaryDir const& dir)
@@ -131,6 +143,8 @@ private slots:
     void previewShowsAnActionAndTheMachineKeepsItsOwn();
     void previewRunsTheClockOnlyWhileOpen();
     void aOneShotPreviewGoesBackToTheMachine();
+    void threeClicksMakeTheDogAngry();
+    void aPreviewedSceneExposesItsSheetsAndAlignment();
     void accessoryCatalogueAndWornSlotsAreExposed();
     void restoresOnlyAccessoriesInTheirOwnSlot();
     void passthroughDefaultsOffAndIsStored();
@@ -293,6 +307,59 @@ void TstPetController::aOneShotPreviewGoesBackToTheMachine()
     rig.controller.setPreviewing(false);
 }
 
+void TstPetController::threeClicksMakeTheDogAngry()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    Rig rig{settingsIn(dir), shippedRoot()};
+
+    // The first two clicks are the ordinary poke; the third, inside the window, is anger (ADR 0049).
+    rig.controller.click();
+    rig.controller.click();
+    QCOMPARE(rig.controller.action(), QStringLiteral("click_react"));
+
+    rig.controller.click();
+    QCOMPARE(rig.controller.action(), QStringLiteral("angry"));
+    QCOMPARE(rig.controller.expression(), 9);
+    QVERIFY(rig.controller.sheets().value("effect").toString().endsWith(QStringLiteral("/dog/sprites/effects/angry.png")));
+}
+
+void TstPetController::aPreviewedSceneExposesItsSheetsAndAlignment()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    Rig rig{settingsIn(dir), shippedRoot()};
+
+    // The default pet is the dog: its feet sit a pixel and a half left of the catalogue's and a cell lower.
+    QCOMPARE(rig.controller.foot(), QPointF(57.0, 84.0));
+
+    rig.controller.preview(QStringLiteral("swing"));
+    QCOMPARE(rig.controller.scene(), QStringLiteral("swing"));
+    QCOMPARE(rig.controller.sceneFrame(), 0);
+    QVERIFY(rig.controller.sceneSheets().value("back").toString().endsWith(QStringLiteral("/scenes/swing/back.png")));
+    QVERIFY(rig.controller.sceneSheets().value("front").toString().endsWith(QStringLiteral("/scenes/swing/front.png")));
+    QCOMPARE(rig.controller.sceneAlign(), QPointF(-1.5, 3.0));
+    QCOMPARE(rig.controller.sceneScale(), 1.0);
+
+    // The swing's frames carry the pet up and bring it closer to the reader.
+    rig.controller.setPreviewing(true);
+    QTRY_COMPARE_WITH_TIMEOUT(rig.controller.sceneFrame(), 2, 2000);
+    QCOMPARE(rig.controller.sceneShift(), QPointF(-12.0, -3.0));
+    QVERIFY(rig.controller.sceneScale() > 1.0);
+    rig.controller.setPreviewing(false);
+
+    // Outside a scene the properties go back to neutral, so the QML stage draws no props.
+    QVERIFY(rig.controller.scene().isEmpty());
+    QCOMPARE(rig.controller.sceneScale(), 1.0);
+    QCOMPARE(rig.controller.sceneShift(), QPointF(0.0, 0.0));
+
+    // The settings page's scene chips take the real path: the machine plays the scene, not a preview.
+    QVERIFY(rig.controller.scenes().contains(QStringLiteral("swing")));
+    rig.controller.setScene(QStringLiteral("swing"));
+    QCOMPARE(rig.controller.action(), QStringLiteral("swing"));
+    QCOMPARE(rig.controller.scene(), QStringLiteral("swing"));
+}
+
 void TstPetController::accessoryCatalogueAndWornSlotsAreExposed()
 {
     QTemporaryDir dir;
@@ -300,7 +367,8 @@ void TstPetController::accessoryCatalogueAndWornSlotsAreExposed()
     Rig rig{settingsIn(dir), shippedRoot()};
 
     QCOMPARE(rig.controller.accessories().size(), 7);
-    QCOMPARE(rig.controller.actions().size(), 11);
+    // Twelve roles (angry included) and the three idle extras; the five scenes are not chips.
+    QCOMPARE(rig.controller.actions().size(), 15);
     QCOMPARE(rig.controller.actions().first(), QStringLiteral("idle"));
 
     QSignalSpy outfit(&rig.controller, &PetController::outfitChanged);
@@ -381,9 +449,13 @@ void TstPetController::everyShippedPetLoadsWhole()
         QCOMPARE(rig.controller.pet(), id);
         QCOMPARE(QString::fromStdString(rig.petStore.pet()), id);
 
-        // Every action the file names is listed once; the role actions come first, then the extras of the idle pool.
-        auto const names = rig.controller.actions();
-        QCOMPARE(sortedCopy(names), sortedCopy(actionsIn(animations)));
+        // Every action the file names, except the scenes, is listed once; the role actions come first, then
+        // the extras of the idle pool.
+        auto const names    = rig.controller.actions();
+        auto       expected = actionsIn(animations);
+        for (auto const& id : sceneIds())
+            expected.removeAll(id);
+        QCOMPARE(sortedCopy(names), sortedCopy(expected));
 
         auto roles = QStringList{};
         for (auto const& entry : animations.at("roles").items()) {
@@ -410,8 +482,8 @@ void TstPetController::everyShippedPetLoadsWhole()
                 QCOMPARE(point.x() % 3, 0);
                 QCOMPARE(point.y() % 3, 0);
             }
-            // The expression sheet is a row of nine cells.
-            QVERIFY(rig.controller.expression() >= 0 and rig.controller.expression() < 9);
+            // The expression sheet is a row of ten cells: nine faces and the angry one.
+            QVERIFY(rig.controller.expression() >= 0 and rig.controller.expression() < 10);
         }
         rig.controller.setPreviewing(false);
 

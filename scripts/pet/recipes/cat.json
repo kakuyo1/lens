@@ -6,7 +6,8 @@
   "eyes": [[6, 5], [10, 5]],
   "mouth": [[7, 8], [8, 9], [9, 8]],
   "yawnMouth": [7, 8, 3, 2],
-  "roles": {"idle": "idle", "study": "study", "thinking": "thinking", "celebrate": "celebrate", "encourage": "encourage", "sleep": "sleep", "click_react": "click_react", "pickup": "pickup", "look_around": "look_around", "yawn": "yawn", "stretch": "stretch"},
+  "angryMouth": [[7, 8], [8, 7], [9, 8]],
+  "roles": {"idle": "idle", "study": "study", "thinking": "thinking", "celebrate": "celebrate", "encourage": "encourage", "sleep": "sleep", "click_react": "click_react", "pickup": "pickup", "look_around": "look_around", "yawn": "yawn", "stretch": "stretch", "angry": "angry"},
   "idlePool": ["look_around", "stretch", "groom", "tail_flick", "knead", "pounce", "scratch"],
   "actions": {
     "idle": {"fps": 5, "loop": true, "blink": true, "bodyPaint": [{"at": [4, 1], "colour": "rose", "art": ["#"]}, {"at": [4, 2], "colour": "rose", "art": ["#"]}, {"at": [12, 1], "colour": "rose", "art": ["#"]}, {"at": [12, 2], "colour": "rose", "art": ["#"]}, {"at": [8, 7], "colour": "rose", "art": ["#"]}], "frames": [
@@ -118,7 +119,19 @@
       {"expression": 2, "shapes": [{"op": "add", "shape": "ellipse", "cx": 8.5, "cy": 5.5, "rx": 5.25, "ry": 4.5}, {"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 0]}, {"op": "add", "shape": "rect", "cols": [3, 4], "rows": [1, 3]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 0]}, {"op": "add", "shape": "rect", "cols": [12, 13], "rows": [1, 3]}, {"op": "add", "shape": "rect", "cols": [5, 11], "rows": [14, 15]}, {"op": "discard", "shape": "rect", "cols": [8, 8], "rows": [14, 15]}, {"op": "add", "shape": "rect", "cols": [14, 15], "rows": [7, 15]}, {"op": "add", "shape": "rect", "cols": [13, 15], "rows": [14, 15]}, {"op": "add", "shape": "rect", "cols": [2, 4], "rows": [10, 11]}, {"op": "add", "shape": "rect", "cols": [3, 4], "rows": [12, 13]}], "paint": [{"at": [0, 6], "colour": "grey", "art": ["#.", ".#"]}]},
       {"expression": 2, "shapes": [{"op": "add", "shape": "ellipse", "cx": 8.5, "cy": 5.5, "rx": 5.25, "ry": 4.5}, {"op": "add", "shape": "rect", "cols": [4, 4], "rows": [0, 0]}, {"op": "add", "shape": "rect", "cols": [3, 4], "rows": [1, 3]}, {"op": "add", "shape": "rect", "cols": [12, 12], "rows": [0, 0]}, {"op": "add", "shape": "rect", "cols": [12, 13], "rows": [1, 3]}, {"op": "add", "shape": "rect", "cols": [5, 11], "rows": [14, 15]}, {"op": "discard", "shape": "rect", "cols": [8, 8], "rows": [14, 15]}, {"op": "add", "shape": "rect", "cols": [14, 15], "rows": [7, 15]}, {"op": "add", "shape": "rect", "cols": [13, 15], "rows": [14, 15]}, {"op": "add", "shape": "rect", "cols": [3, 4], "rows": [13, 15]}]}
     ]},
-    "blink": {"fps": 10, "loop": false, "frames": [{"expression": 1}, {"expression": 2}, {"expression": 1}]}
+    "blink": {"fps": 10, "loop": false, "frames": [{"expression": 1}, {"expression": 2}, {"expression": 1}]},
+    "angry": {"fps": 10, "loop": false, "bodyFrom": "idle", "frames": [
+      {"expression": 9, "pose": {}, "paint": [{"at": [5, -4], "colour": "rose", "pixel": true, "art": ["...#...", "...#...", "...#...", "#######", "...#...", "...#...", "...#..."]}]},
+      {"expression": 9, "pose": {"dx": -1}, "paint": [{"at": [5, -4], "colour": "rose", "pixel": true, "art": ["...#...", "...#...", "...#...", "#######", "...#...", "...#...", "...#..."]}]},
+      {"expression": 9, "pose": {"dx": 1}, "paint": [{"at": [5, -5], "colour": "rose", "pixel": true, "art": ["...#...", "...#...", "...#...", "#######", "...#...", "...#...", "...#..."]}]},
+      {"expression": 9, "pose": {"dx": -1}, "paint": [{"at": [5, -5], "colour": "rose", "pixel": true, "art": ["...#...", "...#...", "...#...", "#######", "...#...", "...#...", "...#..."]}]},
+      {"expression": 9, "pose": {"dy": -1}, "paint": [{"at": [5, -4], "colour": "rose", "pixel": true, "art": ["...#...", "...#...", "...#...", "#######", "...#...", "...#...", "...#..."]}]}
+    ]},
+    "swing": {"fps": 4, "loop": true, "duration": 24000, "bodyFrom": "idle", "frames": [{}, {}, {}, {}, {}, {}, {}, {}]},
+    "desk": {"fps": 4, "loop": true, "duration": 24000, "bodyFrom": "idle", "frames": [{}, {}, {}, {}, {}, {}, {}, {}]},
+    "skate": {"fps": 4, "loop": true, "duration": 24000, "bodyFrom": "idle", "frames": [{}, {}, {}, {}, {}, {}, {}, {}]},
+    "bath": {"fps": 4, "loop": true, "duration": 24000, "bodyFrom": "idle", "frames": [{}, {}, {}, {}, {}, {}, {}, {}]},
+    "rain": {"fps": 4, "loop": true, "duration": 24000, "bodyFrom": "idle", "frames": [{}, {}, {}, {}, {}, {}, {}, {}]}
   },
   "accessories": [
     {"id": "crown", "slot": "head", "except": ["sleep"], "paint": [{"at": [6, -1], "colour": "grey", "art": ["#.#.#"]}, {"at": [6, 0], "colour": "grey", "art": ["#####"]}]},

@@ -1,0 +1,1464 @@
+{
+  "id": "desk",
+  "name": "敲电脑",
+  "frames": 8,
+  "fps": 4,
+  "foot": [
+    58.5,
+    81
+  ],
+  "layers": {
+    "back": -1,
+    "front": 20
+  },
+  "framesData": [
+    {
+      "dx": 0,
+      "dy": 0,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            14
+          ],
+          "rect": [
+            17,
+            1
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            15
+          ],
+          "rect": [
+            17,
+            1
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            16
+          ],
+          "rect": [
+            1,
+            2
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            17,
+            16
+          ],
+          "rect": [
+            1,
+            2
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            5,
+            9
+          ],
+          "rect": [
+            7,
+            4
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            10
+          ],
+          "rect": [
+            5,
+            2
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            10
+          ],
+          "rect": [
+            2,
+            1
+          ],
+          "colour": "fur"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            11
+          ],
+          "rect": [
+            2,
+            1
+          ],
+          "colour": "fur"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            4,
+            13
+          ],
+          "art": [
+            "#.#.#.#.#"
+          ],
+          "colours": {
+            "#": "ink"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            15,
+            12
+          ],
+          "art": [
+            "rrr",
+            "rrr"
+          ],
+          "colours": {
+            "r": "rose"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            18,
+            12
+          ],
+          "art": [
+            "r"
+          ],
+          "colours": {
+            "r": "rose"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            16,
+            10
+          ],
+          "rect": [
+            1,
+            1
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            17,
+            8
+          ],
+          "rect": [
+            1,
+            1
+          ],
+          "colour": "grey"
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": -3,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            14
+          ],
+          "rect": [
+            17,
+            1
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            15
+          ],
+          "rect": [
+            17,
+            1
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            16
+          ],
+          "rect": [
+            1,
+            2
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            17,
+            16
+          ],
+          "rect": [
+            1,
+            2
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            5,
+            9
+          ],
+          "rect": [
+            7,
+            4
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            10
+          ],
+          "rect": [
+            5,
+            2
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            10
+          ],
+          "rect": [
+            3,
+            1
+          ],
+          "colour": "fur"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            11
+          ],
+          "rect": [
+            2,
+            1
+          ],
+          "colour": "fur"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            4,
+            13
+          ],
+          "art": [
+            "#.#.#.#.#"
+          ],
+          "colours": {
+            "#": "ink"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            15,
+            12
+          ],
+          "art": [
+            "rrr",
+            "rrr"
+          ],
+          "colours": {
+            "r": "rose"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            18,
+            12
+          ],
+          "art": [
+            "r"
+          ],
+          "colours": {
+            "r": "rose"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            16,
+            10
+          ],
+          "rect": [
+            1,
+            1
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            17,
+            8
+          ],
+          "rect": [
+            1,
+            1
+          ],
+          "colour": "grey"
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 0,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            14
+          ],
+          "rect": [
+            17,
+            1
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            15
+          ],
+          "rect": [
+            17,
+            1
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            16
+          ],
+          "rect": [
+            1,
+            2
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            17,
+            16
+          ],
+          "rect": [
+            1,
+            2
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            5,
+            9
+          ],
+          "rect": [
+            7,
+            4
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            10
+          ],
+          "rect": [
+            5,
+            2
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            10
+          ],
+          "rect": [
+            4,
+            1
+          ],
+          "colour": "fur"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            11
+          ],
+          "rect": [
+            3,
+            1
+          ],
+          "colour": "fur"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            4,
+            13
+          ],
+          "art": [
+            "#.#.#.#.#"
+          ],
+          "colours": {
+            "#": "ink"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            15,
+            12
+          ],
+          "art": [
+            "rrr",
+            "rrr"
+          ],
+          "colours": {
+            "r": "rose"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            18,
+            12
+          ],
+          "art": [
+            "r"
+          ],
+          "colours": {
+            "r": "rose"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            16,
+            9
+          ],
+          "rect": [
+            1,
+            1
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            17,
+            7
+          ],
+          "rect": [
+            1,
+            1
+          ],
+          "colour": "grey"
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": -3,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            14
+          ],
+          "rect": [
+            17,
+            1
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            15
+          ],
+          "rect": [
+            17,
+            1
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            16
+          ],
+          "rect": [
+            1,
+            2
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            17,
+            16
+          ],
+          "rect": [
+            1,
+            2
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            5,
+            9
+          ],
+          "rect": [
+            7,
+            4
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            10
+          ],
+          "rect": [
+            5,
+            2
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            10
+          ],
+          "rect": [
+            5,
+            1
+          ],
+          "colour": "fur"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            11
+          ],
+          "rect": [
+            4,
+            1
+          ],
+          "colour": "fur"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            4,
+            13
+          ],
+          "art": [
+            "#.#.#.#.#"
+          ],
+          "colours": {
+            "#": "ink"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            15,
+            12
+          ],
+          "art": [
+            "rrr",
+            "rrr"
+          ],
+          "colours": {
+            "r": "rose"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            18,
+            12
+          ],
+          "art": [
+            "r"
+          ],
+          "colours": {
+            "r": "rose"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            16,
+            9
+          ],
+          "rect": [
+            1,
+            1
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            17,
+            7
+          ],
+          "rect": [
+            1,
+            1
+          ],
+          "colour": "grey"
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 0,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            14
+          ],
+          "rect": [
+            17,
+            1
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            15
+          ],
+          "rect": [
+            17,
+            1
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            16
+          ],
+          "rect": [
+            1,
+            2
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            17,
+            16
+          ],
+          "rect": [
+            1,
+            2
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            5,
+            9
+          ],
+          "rect": [
+            7,
+            4
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            10
+          ],
+          "rect": [
+            5,
+            2
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            10
+          ],
+          "rect": [
+            2,
+            1
+          ],
+          "colour": "fur"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            11
+          ],
+          "rect": [
+            5,
+            1
+          ],
+          "colour": "fur"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            4,
+            13
+          ],
+          "art": [
+            "#.#.#.#.#"
+          ],
+          "colours": {
+            "#": "ink"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            15,
+            12
+          ],
+          "art": [
+            "rrr",
+            "rrr"
+          ],
+          "colours": {
+            "r": "rose"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            18,
+            12
+          ],
+          "art": [
+            "r"
+          ],
+          "colours": {
+            "r": "rose"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            16,
+            10
+          ],
+          "rect": [
+            1,
+            1
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            17,
+            8
+          ],
+          "rect": [
+            1,
+            1
+          ],
+          "colour": "grey"
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": -3,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            14
+          ],
+          "rect": [
+            17,
+            1
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            15
+          ],
+          "rect": [
+            17,
+            1
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            16
+          ],
+          "rect": [
+            1,
+            2
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            17,
+            16
+          ],
+          "rect": [
+            1,
+            2
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            5,
+            9
+          ],
+          "rect": [
+            7,
+            4
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            10
+          ],
+          "rect": [
+            5,
+            2
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            10
+          ],
+          "rect": [
+            3,
+            1
+          ],
+          "colour": "fur"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            11
+          ],
+          "rect": [
+            2,
+            1
+          ],
+          "colour": "fur"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            4,
+            13
+          ],
+          "art": [
+            "#.#.#.#.#"
+          ],
+          "colours": {
+            "#": "ink"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            15,
+            12
+          ],
+          "art": [
+            "rrr",
+            "rrr"
+          ],
+          "colours": {
+            "r": "rose"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            18,
+            12
+          ],
+          "art": [
+            "r"
+          ],
+          "colours": {
+            "r": "rose"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            16,
+            9
+          ],
+          "rect": [
+            1,
+            1
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            17,
+            7
+          ],
+          "rect": [
+            1,
+            1
+          ],
+          "colour": "grey"
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 0,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            14
+          ],
+          "rect": [
+            17,
+            1
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            15
+          ],
+          "rect": [
+            17,
+            1
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            16
+          ],
+          "rect": [
+            1,
+            2
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            17,
+            16
+          ],
+          "rect": [
+            1,
+            2
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            5,
+            9
+          ],
+          "rect": [
+            7,
+            4
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            10
+          ],
+          "rect": [
+            5,
+            2
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            10
+          ],
+          "rect": [
+            4,
+            1
+          ],
+          "colour": "fur"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            11
+          ],
+          "rect": [
+            2,
+            1
+          ],
+          "colour": "fur"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            4,
+            13
+          ],
+          "art": [
+            "#.#.#.#.#"
+          ],
+          "colours": {
+            "#": "ink"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            15,
+            12
+          ],
+          "art": [
+            "rrr",
+            "rrr"
+          ],
+          "colours": {
+            "r": "rose"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            18,
+            12
+          ],
+          "art": [
+            "r"
+          ],
+          "colours": {
+            "r": "rose"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            16,
+            9
+          ],
+          "rect": [
+            1,
+            1
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            17,
+            7
+          ],
+          "rect": [
+            1,
+            1
+          ],
+          "colour": "grey"
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": -3,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            14
+          ],
+          "rect": [
+            17,
+            1
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            15
+          ],
+          "rect": [
+            17,
+            1
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            1,
+            16
+          ],
+          "rect": [
+            1,
+            2
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            17,
+            16
+          ],
+          "rect": [
+            1,
+            2
+          ],
+          "colour": "ink"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            5,
+            9
+          ],
+          "rect": [
+            7,
+            4
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            10
+          ],
+          "rect": [
+            5,
+            2
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            10
+          ],
+          "rect": [
+            5,
+            1
+          ],
+          "colour": "fur"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            11
+          ],
+          "rect": [
+            3,
+            1
+          ],
+          "colour": "fur"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            4,
+            13
+          ],
+          "art": [
+            "#.#.#.#.#"
+          ],
+          "colours": {
+            "#": "ink"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            15,
+            12
+          ],
+          "art": [
+            "rrr",
+            "rrr"
+          ],
+          "colours": {
+            "r": "rose"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            18,
+            12
+          ],
+          "art": [
+            "r"
+          ],
+          "colours": {
+            "r": "rose"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            16,
+            10
+          ],
+          "rect": [
+            1,
+            1
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            17,
+            8
+          ],
+          "rect": [
+            1,
+            1
+          ],
+          "colour": "grey"
+        }
+      ]
+    }
+  ]
+}

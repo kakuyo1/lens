@@ -12,8 +12,8 @@
 
 namespace lens::core::pet {
 
-PetStateMachine::PetStateMachine(Playbook playbook_, RandomSource const& random_)
-    : playbook{std::move(playbook_)}, random{random_}
+PetStateMachine::PetStateMachine(Playbook playbook_, RandomSource const& random_, SceneSource const& scenes_)
+    : playbook{std::move(playbook_)}, random{random_}, scenes{scenes_}
 {
     enterRole(Role::Idle, Priority::Idle);
 }
@@ -26,6 +26,11 @@ bool PetStateMachine::blinking() const
 void PetStateMachine::handle(PetEvent event)
 {
     pendingReturn.reset();
+    // Only a run of clicks counts towards anger; anything else the reader does resets the run.
+    if (event != PetEvent::Click) {
+        clicks     = 0;
+        sinceClick = std::chrono::milliseconds{0};
+    }
     switch (event) {
         case PetEvent::DragStart:
             if (dragging) return;
@@ -38,7 +43,17 @@ void PetStateMachine::handle(PetEvent event)
             enterRole(Role::Idle, Priority::Idle);
             return;
         case PetEvent::Click:
-            if (not dragging) request(Role::ClickReact, Priority::Click);
+            if (dragging) return;
+            // The third click in a row goes straight to anger: by then click_react is usually playing,
+            // and an ordinary request at the same priority would be dropped.
+            clicks     = sinceClick < kAngryWindow ? clicks + 1 : 1;
+            sinceClick = std::chrono::milliseconds{0};
+            if (clicks >= kAngryClicks and playbook.roles.count(Role::Angry) != 0) {
+                clicks = 0;
+                enterRole(Role::Angry, Priority::Click);
+                return;
+            }
+            request(Role::ClickReact, Priority::Click);
             return;
         case PetEvent::SelectionShown:
             request(Role::LookAround, Priority::Event);
@@ -68,8 +83,17 @@ void PetStateMachine::handle(PetEvent event)
     }
 }
 
+void PetStateMachine::playScene(ActionName const& name)
+{
+    auto const found = playbook.actions.find(name);
+    if (found == playbook.actions.end() or not found->second.duration or dragging) return;
+    pendingReturn.reset();
+    enter(name, std::nullopt, Priority::Situational);
+}
+
 void PetStateMachine::advance(std::chrono::milliseconds step)
 {
+    sinceClick += step;
     if (currentRole == Role::Idle) {
         idleMs += step;
         if (idleMs >= idleWait) takeIdleTurn();
@@ -87,14 +111,24 @@ void PetStateMachine::advance(std::chrono::milliseconds step)
         if (not held and elapsed >= napFor) settle();
         return;
     }
-    if (not playbook.actions.at(current).loop and elapsed >= durationOf(current)) settle();
+    // A scene is a looping action with a duration: the frames keep cycling until the clock says it is over.
+    auto const& spec = playbook.actions.at(current);
+    if (spec.duration and elapsed >= *spec.duration) {
+        settle();
+        return;
+    }
+    if (not spec.loop and elapsed >= durationOf(current)) settle();
 }
 
 void PetStateMachine::takeIdleTurn()
 {
     // The idle timer owns the Idle state, so its pick is scheduled rather than requested and does not
     // go through play()'s ladder: nothing can be playing but the idle loop itself.
-    if (random() < kNapChance) {
+    auto const scene = random() < kSceneChance and scenes ? scenes() : std::nullopt;
+    if (scene and playbook.actions.count(*scene) != 0) {
+        // A scene has no role: it is a looping action with a duration, and the duration is what ends it.
+        enter(*scene, std::nullopt, Priority::Situational);
+    } else if (random() < kNapChance) {
         request(Role::Yawn, Priority::Situational);
     } else if (auto const pick = pickRandomIdle()) {
         enter(*pick, std::nullopt, Priority::Idle);

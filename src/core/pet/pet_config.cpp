@@ -28,8 +28,9 @@ struct NamedRole {
     bool             required;
 };
 
-/// Role names as they appear in the data files. Stretch is the only role the first version may leave out (PHASE3 3.1).
-constexpr std::array<NamedRole, 11> kNamedRoles{{
+/// Role names as they appear in the data files. Stretch and angry are optional (PHASE3 3.1, ADR 0049): a
+/// pet without the art simply never stretches or never gets angry.
+constexpr std::array<NamedRole, 12> kNamedRoles{{
     {"idle", Role::Idle, true},
     {"study", Role::Study, true},
     {"thinking", Role::Thinking, true},
@@ -41,6 +42,7 @@ constexpr std::array<NamedRole, 11> kNamedRoles{{
     {"look_around", Role::LookAround, true},
     {"yawn", Role::Yawn, true},
     {"stretch", Role::Stretch, false},
+    {"angry", Role::Angry, false},
 }};
 
 /// @return The role with this name in the data files, or nothing.
@@ -92,7 +94,12 @@ ActionSpec parseSpec(json const& entry, std::string const& name)
         .loop     = entry.at("loop").get<bool>(),
         .returnTo = std::nullopt,
         .blinks   = false,
+        .duration = std::nullopt,
     };
+    if (entry.contains("duration")) {
+        spec.duration = std::chrono::milliseconds{
+            integerIn(entry, "duration", 1, kMaxDurationMs, Refusal::BadAnimation, owner)};
+    }
     if (entry.contains("returnTo")) {
         if (not entry.at("returnTo").is_string()) throw Refused(Refusal::BadAnimation, owner + ".returnTo must be a string");
         auto const target = roleNamed(entry.at("returnTo").get<std::string>());

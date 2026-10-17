@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <exception>
+#include <memory>
 #include <random>
 #include <stdexcept>
 #include <utility>
@@ -126,6 +127,8 @@ PetController::PetController(std::filesystem::path shippedRoot, std::filesystem:
 {
     clock_.setInterval(kTick);
     connect(&clock_, &QTimer::timeout, this, &PetController::tick);
+    // The scenes sit beside the shipped pets: data/pet next to data/scenes.
+    scenes_           = PetScenes::load(shippedRoot_.parent_path() / "scenes");
     catalog_          = scanPets(shippedRoot_, installedRoot_);
     auto const chosen = store_.pet();
     if (usable(chosen)) {
@@ -149,6 +152,15 @@ void PetController::loadPet(std::string const& id)
     expression_   = 0;
     blinkRunning_ = false;
     blinkWait_    = kBlinkEvery;
+    scene_.clear();
+    sceneSheets_.clear();
+    sceneLayers_.clear();
+    sceneFrame_ = 0;
+    sceneShift_ = {};
+    sceneAlign_ = {};
+    sceneScale_ = 1.0;
+    // Scenes are the app's props, drawn for the shipped pets' canvas; a package never gets them.
+    scenesAllowed_ = isShipped(id);
 
     machine_.reset();
     wardrobe_.reset();
@@ -161,10 +173,23 @@ void PetController::loadPet(std::string const& id)
         LENS_ERROR("the desktop pet is off: {}", e.what());
     }
     if (assets_) {
-        auto generator = std::mt19937{std::random_device{}()};
-        machine_       = std::make_unique<core::pet::PetStateMachine>(
-            assets_->animations.playbook,
-            [generator = std::move(generator)]() mutable { return std::uniform_real_distribution<double>{0.0, 1.0}(generator); });
+        // The idle timer and the scene pick draw from the same stream. A scene is offered only to a shipped pet:
+        // a package may use another canvas size, and the app's props are drawn for 88.
+        auto generator = std::make_shared<std::mt19937>(std::random_device{}());
+        auto random    = [generator] { return std::uniform_real_distribution<double>{0.0, 1.0}(*generator); };
+        auto scenes    = [this, generator, id]() -> std::optional<core::pet::ActionName> {
+            if (not isShipped(id)) return std::nullopt;
+            auto const& playbook = assets_->animations.playbook;
+            auto        choices  = std::vector<core::pet::ActionName>{};
+            for (auto const& scene : scenes_.all())
+                if (playbook.actions.count(scene.id) != 0) choices.push_back(scene.id);
+            if (choices.empty()) return std::nullopt;
+            auto const index = std::min(static_cast<std::size_t>(
+                                            std::uniform_real_distribution<double>{0.0, 1.0}(*generator) * static_cast<double>(choices.size())),
+                                        choices.size() - 1);
+            return choices[index];
+        };
+        machine_  = std::make_unique<core::pet::PetStateMachine>(assets_->animations.playbook, random, scenes);
         wardrobe_ = std::make_unique<core::pet::Wardrobe>(assets_->catalogue);
 
         auto const outfit = store_.outfit();
@@ -287,10 +312,58 @@ QStringList PetController::actions() const
         if (not names.contains(name)) names.append(name);
     }
     for (auto const& entry : playbook.actions) {
+        // A scene is a prop rig the idle turn draws on, not a chip in the settings page.
+        if (scenesAllowed_ and scenes_.find(entry.first) != nullptr) continue;
         auto const name = QString::fromStdString(entry.first);
         if (not names.contains(name)) names.append(name);
     }
     return names;
+}
+
+QStringList PetController::scenes() const
+{
+    auto ids = QStringList{};
+    if (not assets_ or not scenesAllowed_) return ids;
+    auto const& playbook = assets_->animations.playbook;
+    for (auto const& scene : scenes_.all()) {
+        if (playbook.actions.count(scene.id) != 0) ids.append(QString::fromStdString(scene.id));
+    }
+    return ids;
+}
+
+QString PetController::scene() const
+{
+    return scene_;
+}
+
+int PetController::sceneFrame() const
+{
+    return sceneFrame_;
+}
+
+QVariantMap PetController::sceneSheets() const
+{
+    return sceneSheets_;
+}
+
+QPointF PetController::sceneShift() const
+{
+    return sceneShift_;
+}
+
+QPointF PetController::sceneAlign() const
+{
+    return sceneAlign_;
+}
+
+double PetController::sceneScale() const
+{
+    return sceneScale_;
+}
+
+QVariantMap PetController::sceneLayers() const
+{
+    return sceneLayers_;
 }
 
 QVariantList PetController::accessories() const
@@ -340,6 +413,11 @@ double PetController::inkCentre() const
     return assets_ ? assets_->inkCentre : 0.0;
 }
 
+QPointF PetController::foot() const
+{
+    return assets_ ? QPointF{assets_->inkCentre, assets_->inkBottom} : QPointF{};
+}
+
 int PetController::minSize() const
 {
     return kMinSize;
@@ -379,6 +457,17 @@ void PetController::preview(QString action)
     // From the first frame even when it is the action already shown, so a second press plays it again.
     preview_       = picked;
     actionElapsed_ = std::chrono::milliseconds{0};
+    sync(std::chrono::milliseconds{0});
+}
+
+void PetController::setScene(QString id)
+{
+    if (not machine_) return;
+    auto const name = id.toStdString();
+    // A scene is real, not a preview: the machine plays it for its duration and then returns to idle. A card's
+    // preview, if one was showing, would otherwise keep it off screen.
+    preview_.reset();
+    machine_->playScene(name);
     sync(std::chrono::milliseconds{0});
 }
 
@@ -644,6 +733,27 @@ void PetController::sync(std::chrono::milliseconds step)
     frameIndex_ = frame;
     expression_ = expression;
     anchors_    = assets.anchors.at(action).at(static_cast<std::size_t>(frame));
+
+    if (auto const* scene = scenesAllowed_ ? scenes_.find(action) : nullptr;
+        scene and static_cast<std::size_t>(frame) < scene->perFrame.size()) {
+        auto const& f = scene->perFrame[static_cast<std::size_t>(frame)];
+        scene_        = QString::fromStdString(scene->id);
+        sceneFrame_   = frame;
+        sceneShift_   = QPointF{f.dx, f.dy};
+        sceneScale_   = f.scale;
+        // The props were drawn for the catalogue's feet; the pet's own feet are measured when it loads.
+        sceneAlign_  = QPointF{assets.inkCentre - scene->foot.x(), assets.inkBottom - scene->foot.y()};
+        sceneSheets_ = QVariantMap{{"back", urlOf(scene->backSheet)}, {"front", urlOf(scene->frontSheet)}};
+        sceneLayers_ = QVariantMap{{"back", scene->backLayer}, {"front", scene->frontLayer}};
+    } else {
+        scene_.clear();
+        sceneSheets_.clear();
+        sceneLayers_.clear();
+        sceneFrame_ = 0;
+        sceneShift_ = {};
+        sceneAlign_ = {};
+        sceneScale_ = 1.0;
+    }
     if (changed) emit frameChanged();
 }
 

@@ -283,11 +283,26 @@ def scratch(n):
     return frames
 
 
+ANGER_MARK = ["...#...", "...#...", "...#...", "#######", "...#...", "...#...", "...#..."]
+
+
+def anger(n):
+    """The anger cross over the head, pulsing up a cell every other frame. One unit per mark pixel."""
+    frames = []
+    for i in range(n):
+        f = Frame()
+        pulse = 3 if (i // 2) % 2 else 0
+        f.glyph(ANGER_MARK, 21, -12 - pulse, COLOURS["rose"], s=1)
+        frames.append(f)
+    return frames
+
+
 BODY = {
     "idle": standing, "study": standing, "thinking": standing, "celebrate": standing,
     "encourage": standing, "click_react": standing, "pickup": standing, "look_around": standing,
     "yawn": standing, "stretch": standing, "sleep": sleep,
-    "wag": standing, "sniff": standing, "scratch": standing,
+    "wag": standing, "sniff": standing, "scratch": standing, "angry": standing,
+    "swing": standing, "desk": standing, "skate": standing, "bath": standing, "rain": standing,
 }
 
 
@@ -304,7 +319,7 @@ EFFECTS = {
     "study": reading_book, "thinking": thought, "celebrate": fireworks,
     "encourage": hearts, "click_react": pokes, "pickup": sweat, "look_around": question,
     "stretch": motion_lines, "sleep": zzz,
-    "wag": wag, "sniff": sniff, "scratch": scratch,
+    "wag": wag, "sniff": sniff, "scratch": scratch, "angry": anger,
 }
 
 
@@ -333,8 +348,13 @@ EYE_PATTERNS = [
     ["###", "###", "..."],  # 6 looking up
     ["...", "###", "..."],  # 7 yawn: eyes shut, mouth opened below
     None,                   # 8 nothing: the sleeping body draws its own eyes
+    ["#..", "###", "###", "###"],  # 9 angry: a scowl with its brow above; mirrored on the right eye
 ]
+# The angry pattern is one unit taller than its eye cell and starts one unit higher: the brow sits above.
+EYE_OFFSETS = [0, 0, 0, 0, 0, 0, 0, 0, 0, -1]
+EYE_MIRRORS = [False, False, False, False, False, False, False, False, False, True]
 YAWN_MOUTH = (2, 6, 4, 2)  # x, y, w, h in cells
+ANGRY_MOUTH = [(7, 6), (8, 5), (9, 6)]  # the frown: the corners down, the middle up
 
 
 def face(index):
@@ -345,12 +365,15 @@ def face(index):
     if index == 7:
         f.cell(*YAWN_MOUTH, INK)
     else:
-        for x, y in MOUTH:
+        for x, y in (ANGRY_MOUTH if index == 9 else MOUTH):
             f.cell(x, y, 1, 1, INK)
+    centre = sum(x for x, _ in EYES) / len(EYES)
     for x, y in EYES:
         f.cell(x, y, 1, 1, FUR)
         left, top, _, _ = cell_box(x, y)
-        for j, row in enumerate(pattern):
+        top += EYE_OFFSETS[index]
+        rows = [row[::-1] for row in pattern] if EYE_MIRRORS[index] and x > centre else pattern
+        for j, row in enumerate(rows):
             for i, ch in enumerate(row):
                 if ch == "#":
                     f.rect(left + i, top + j, 1, 1, INK)

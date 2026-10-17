@@ -28,11 +28,12 @@ using lens::core::pet::PetEvent;
 using lens::core::pet::PetStateMachine;
 using lens::core::pet::RandomSource;
 using lens::core::pet::Role;
+using lens::core::pet::SceneSource;
 using namespace std::chrono_literals;
 
-ActionSpec playback(int frames, int fps, bool loop, std::optional<Role> returnTo = std::nullopt, bool blinks = false)
+ActionSpec playback(int frames, int fps, bool loop, std::optional<Role> returnTo = std::nullopt, bool blinks = false, std::optional<std::chrono::milliseconds> duration = std::nullopt)
 {
-    return ActionSpec{.frames = frames, .fps = fps, .loop = loop, .returnTo = returnTo, .blinks = blinks};
+    return ActionSpec{.frames = frames, .fps = fps, .loop = loop, .returnTo = returnTo, .blinks = blinks, .duration = duration};
 }
 
 /// The dog's playbook: every action by its data name, every role mapped to itself, and the idle pool.
@@ -372,9 +373,10 @@ TEST(PetStateMachine, ANapEndsByItselfAndTheDogWakesIntoIdle)
 
 TEST(PetStateMachine, TheNapsLengthIsDrawnRatherThanFixed)
 {
-    // Draws, in the order the machine reads them: the wait, the die, then the nap. A constant source
-    // cannot be both below the nap's chance and high in the nap's range, so this one is spelled out.
-    auto machine = makeMachine(scripted({0.0, 0.0, 0.999}));
+    // Draws, in the order the machine reads them: the wait, the scene roll, the die, then the nap. A
+    // constant source cannot be both below the nap's chance and high in the nap's range, so this one
+    // is spelled out.
+    auto machine = makeMachine(scripted({0.0, 0.0, 0.0, 0.999}));
     machine.advance(20s);
     ASSERT_EQ(machine.action(), "yawn");
     machine.advance(833ms); // 5 frames at 6 fps
@@ -437,6 +439,123 @@ TEST(PetStateMachine, ClickDuringYawnCancelsTheReturnToSleep)
     ASSERT_EQ(machine.action(), "click_react");
 
     machine.advance(333ms);
+    EXPECT_EQ(machine.action(), "idle");
+}
+
+TEST(PetStateMachine, ThreeQuickClicksMakeTheDogAngryAndItEnds)
+{
+    // Anger is not a random action: it is the third click in a row, inside kAngryWindow. By then
+    // click_react is playing, so the machine enters the action directly rather than requesting it.
+    auto playbook = dogPlaybook();
+    playbook.actions.emplace("angry", playback(5, 10, false));
+    playbook.roles.emplace(Role::Angry, "angry");
+    PetStateMachine machine{playbook, RandomSource{[] { return kFidgets; }}};
+
+    machine.handle(PetEvent::Click);
+    machine.advance(1s);
+    machine.handle(PetEvent::Click);
+    ASSERT_EQ(machine.action(), "click_react");
+    machine.advance(1s);
+
+    machine.handle(PetEvent::Click);
+    EXPECT_EQ(machine.action(), "angry");
+
+    machine.advance(500ms); // 5 frames at 10 fps
+    EXPECT_EQ(machine.action(), "idle");
+}
+
+TEST(PetStateMachine, ClicksSpreadPastTheWindowDoNotAddUp)
+{
+    auto playbook = dogPlaybook();
+    playbook.actions.emplace("angry", playback(5, 10, false));
+    playbook.roles.emplace(Role::Angry, "angry");
+    PetStateMachine machine{playbook, RandomSource{[] { return kFidgets; }}};
+
+    machine.handle(PetEvent::Click);
+    machine.advance(PetStateMachine::kAngryWindow);
+    machine.handle(PetEvent::Click);
+    machine.advance(PetStateMachine::kAngryWindow);
+    machine.handle(PetEvent::Click);
+    EXPECT_EQ(machine.action(), "click_react");
+}
+
+TEST(PetStateMachine, AnotherEventBreaksTheAngryRun)
+{
+    auto playbook = dogPlaybook();
+    playbook.actions.emplace("angry", playback(5, 10, false));
+    playbook.roles.emplace(Role::Angry, "angry");
+    PetStateMachine machine{playbook, RandomSource{[] { return kFidgets; }}};
+
+    machine.handle(PetEvent::Click);
+    machine.handle(PetEvent::Click);
+    machine.advance(500ms);
+    machine.handle(PetEvent::SelectionShown);
+    machine.advance(500ms);
+    machine.handle(PetEvent::Click);
+    EXPECT_EQ(machine.action(), "click_react");
+}
+
+TEST(PetStateMachine, APetWithoutAnAngryActionNeverGetsAngry)
+{
+    // The role is optional (ADR 0049): a package without it keeps its old behaviour, however often it is poked.
+    auto machine = makeMachine(kFidgets);
+    for (int i = 0; i < PetStateMachine::kAngryClicks * 2; ++i) {
+        machine.handle(PetEvent::Click);
+        machine.advance(100ms);
+    }
+    EXPECT_EQ(machine.action(), "click_react");
+}
+
+TEST(PetStateMachine, AnIdleTurnCanPlayASceneAndItsDurationEndsIt)
+{
+    auto playbook = dogPlaybook();
+    playbook.actions.emplace("swing", playback(8, 8, true, std::nullopt, false, 3s));
+    PetStateMachine machine{
+        playbook,
+        RandomSource{[] { return kNaps; }},
+        SceneSource{[]() -> std::optional<std::string> { return "swing"; }},
+    };
+
+    machine.advance(20s);
+    ASSERT_EQ(machine.action(), "swing");
+
+    // A looping action with a duration: its frames would never end it, the clock does.
+    machine.advance(2'999ms);
+    EXPECT_EQ(machine.action(), "swing");
+    machine.advance(1ms);
+    EXPECT_EQ(machine.action(), "idle");
+}
+
+TEST(PetStateMachine, AnEmptySceneSourceLeavesTheTurnToTheNap)
+{
+    // The roll hits, but this pet has no scene: the turn falls through to the nap as it did before.
+    auto machine = PetStateMachine{
+        dogPlaybook(),
+        RandomSource{[] { return kNaps; }},
+        SceneSource{[]() -> std::optional<std::string> { return std::nullopt; }},
+    };
+    machine.advance(20s);
+    EXPECT_EQ(machine.action(), "yawn");
+}
+
+TEST(PetStateMachine, ASceneCanBeStartedOnDemandAndStillEndsByItsDuration)
+{
+    // The settings page's scene chips ask for one directly; it is the same action, so the clock ends it.
+    auto playbook = dogPlaybook();
+    playbook.actions.emplace("swing", playback(8, 8, true, std::nullopt, false, 3s));
+    PetStateMachine machine{playbook, RandomSource{[] { return kFidgets; }}};
+
+    machine.playScene("swing");
+    EXPECT_EQ(machine.action(), "swing");
+    machine.advance(3s);
+    EXPECT_EQ(machine.action(), "idle");
+}
+
+TEST(PetStateMachine, AnOnDemandSceneRefusesAnActionThatIsNotOne)
+{
+    // A duration is what marks a scene. An ordinary one-shot must not be started behind the idle timer's back.
+    auto machine = makeMachine();
+    machine.playScene("celebrate");
     EXPECT_EQ(machine.action(), "idle");
 }
 

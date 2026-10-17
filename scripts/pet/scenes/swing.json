@@ -1,0 +1,496 @@
+{
+  "id": "swing",
+  "name": "荡秋千",
+  "frames": 8,
+  "fps": 4,
+  "foot": [
+    58.5,
+    81
+  ],
+  "layers": {
+    "back": -1,
+    "front": 20
+  },
+  "framesData": [
+    {
+      "dx": -12,
+      "dy": -9,
+      "scale": 1,
+      "back": [
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            -10
+          ],
+          "rect": [
+            1,
+            24
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            14,
+            -10
+          ],
+          "rect": [
+            1,
+            24
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            14
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            15
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "ink"
+        }
+      ],
+      "front": []
+    },
+    {
+      "dx": -12,
+      "dy": -6,
+      "scale": 1.0494974746830583,
+      "back": [
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            -10
+          ],
+          "rect": [
+            1,
+            25
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            14,
+            -10
+          ],
+          "rect": [
+            1,
+            25
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            15
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            16
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "ink"
+        }
+      ],
+      "front": []
+    },
+    {
+      "dx": -12,
+      "dy": -3,
+      "scale": 1.07,
+      "back": [
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            -10
+          ],
+          "rect": [
+            1,
+            26
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            14,
+            -10
+          ],
+          "rect": [
+            1,
+            26
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            16
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            17
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "ink"
+        }
+      ],
+      "front": []
+    },
+    {
+      "dx": -12,
+      "dy": -6,
+      "scale": 1.0494974746830583,
+      "back": [
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            -10
+          ],
+          "rect": [
+            1,
+            25
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            14,
+            -10
+          ],
+          "rect": [
+            1,
+            25
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            15
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            16
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "ink"
+        }
+      ],
+      "front": []
+    },
+    {
+      "dx": -12,
+      "dy": -9,
+      "scale": 1,
+      "back": [
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            -10
+          ],
+          "rect": [
+            1,
+            24
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            14,
+            -10
+          ],
+          "rect": [
+            1,
+            24
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            14
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            15
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "ink"
+        }
+      ],
+      "front": []
+    },
+    {
+      "dx": -12,
+      "dy": -12,
+      "scale": 0.9505025253169417,
+      "back": [
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            -10
+          ],
+          "rect": [
+            1,
+            23
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            14,
+            -10
+          ],
+          "rect": [
+            1,
+            23
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            13
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            14
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "ink"
+        }
+      ],
+      "front": []
+    },
+    {
+      "dx": -12,
+      "dy": -15,
+      "scale": 0.9299999999999999,
+      "back": [
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            -10
+          ],
+          "rect": [
+            1,
+            22
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            14,
+            -10
+          ],
+          "rect": [
+            1,
+            22
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            12
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            13
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "ink"
+        }
+      ],
+      "front": []
+    },
+    {
+      "dx": -12,
+      "dy": -12,
+      "scale": 0.9505025253169417,
+      "back": [
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            -10
+          ],
+          "rect": [
+            1,
+            23
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            14,
+            -10
+          ],
+          "rect": [
+            1,
+            23
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            13
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            14
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "ink"
+        }
+      ],
+      "front": []
+    }
+  ]
+}

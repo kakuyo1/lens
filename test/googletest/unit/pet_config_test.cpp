@@ -3,6 +3,9 @@
  * @brief The pet data parsers, offline: a document is valid or it is refused whole (PHASE3 3.1, 3.8, 3.9).
  */
 
+#include <algorithm>
+#include <chrono>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -364,6 +367,43 @@ TEST(PetConfig, AnAccessoryMayBeVisibleInAnyActionThePetHas)
     doc["accessories"][0]["supportedActions"].push_back("dance");
     auto const catalogue = parseAccessories(doc, parseAnimations(animations).playbook);
     EXPECT_EQ(catalogue.front().supportedActions.back(), "dance");
+}
+
+TEST(PetConfig, TheAngryRoleIsOptional)
+{
+    // A package written before the angry action existed must keep loading: the role is not required.
+    auto document = animationsDocument();
+    EXPECT_NO_THROW(parseAnimations(document));
+
+    document["actions"]["angry"] = {{"frames", 5}, {"fps", 10}, {"loop", false}};
+    document["roles"]["angry"]   = "angry";
+    auto const playbook          = parseAnimations(document).playbook;
+    EXPECT_EQ(playbook.roles.at(Role::Angry), "angry");
+}
+
+TEST(PetConfig, ADurationMarksHowLongALoopingActionRuns)
+{
+    using namespace std::chrono_literals;
+    auto document                = animationsDocument();
+    document["actions"]["swing"] = {{"frames", 8}, {"fps", 8}, {"loop", true}, {"duration", 24000}};
+    auto const playbook          = parseAnimations(document).playbook;
+    EXPECT_EQ(playbook.actions.at("swing").duration, std::optional{24s});
+}
+
+TEST(PetConfig, RefusesADurationThatIsNotPositive)
+{
+    auto document                = animationsDocument();
+    document["actions"]["swing"] = {{"frames", 8}, {"fps", 8}, {"loop", true}, {"duration", 0}};
+    EXPECT_THROW(parseAnimations(document), std::runtime_error);
+}
+
+TEST(PetConfig, ASceneStaysOutOfTheIdlePool)
+{
+    // It loops, and only the scene roll may start it: the pool holds one-shots only (ADR 0048, 0049).
+    auto document                = animationsDocument();
+    document["actions"]["swing"] = {{"frames", 8}, {"fps", 8}, {"loop", true}, {"duration", 24000}};
+    auto const playbook          = parseAnimations(document).playbook;
+    EXPECT_EQ(std::find(playbook.idlePool.begin(), playbook.idlePool.end(), "swing"), playbook.idlePool.end());
 }
 
 } // namespace

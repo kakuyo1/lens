@@ -26,7 +26,7 @@ lens/
 ├── .githooks         # pre-commit and commit-msg; each file's header lists its checks
 ├── cmake             # headers only: the precompiled ones CMakeLists.txt applies
 ├── config            # paths.json — the machine paths; README.md owns the rule and its exemptions
-├── data              # wordlist, llm/ (wire protocol as data), pet/, icons/, sync.json, update.json
+├── data              # wordlist, llm/ (wire protocol as data), pet/, scenes/, icons/, sync.json, update.json
 ├── docs              # QML.md (how QML works here), adr/ (major trade-offs), metrics/, pet-*.md
 ├── i18n              # .ts translations; English is the source language
 ├── installer         # lens.iss — the Inno Setup script; version.iss.in, filled from project()

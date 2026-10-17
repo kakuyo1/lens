@@ -15,10 +15,16 @@ point is a cell centre, (x + 0.5, y + 0.5) for cell (x, y).
   bodyPaint          [{at, colour, art}]: cells coloured on the body sheet, only where the body covers them. An action
                      sets it for every frame; a frame's own list replaces it. Display space, like frame.shapes, so the
                      cells move with anchors.body.
-  eyes, mouth        expression cells. The mouth is drawn for every expression except 7 (yawn) and 8 (blank).
+  eyes, mouth        expression cells. The mouth is drawn for every expression except 7 (yawn), 8 (blank)
+                     and 9 (angry).
   yawnMouth          [x, y, w, h] for expression 7.
+  angryMouth         cells for expression 9, the frown. Omit it and the angry face keeps the smile.
   roles, idlePool    copied to animations.json.
-  actions            name -> {fps, loop, blink?, returnTo?, paint?, frames}. Each item of `frames` is one frame.
+  actions            name -> {fps, loop, blink?, returnTo?, duration?, bodyFrom?, paint?, frames}. Each item of
+                     `frames` is one frame. `duration`, in milliseconds, ends a looping action when it runs out.
+                     `bodyFrom` names an action already earlier in the document whose body sheet and anchors this
+                     action reuses, cycled to its own frame count: the scene actions use it to stand still in the
+                     pet's idle pose, and the angry action overrides a frame's anchors with its own `pose`.
                      `paint`, if set, is drawn on every frame, under that frame's own paint.
     frame.pose       {dx, dy, sx, sy}; defaults 0, 0, 1, 1. sx and sy squash the body about the pivot. dx and dy
                      move the whole pet; they become anchors.body, so the body sheet itself is drawn in place.
@@ -65,6 +71,10 @@ FUR = PALETTE["fur"]
 
 # Copied from scripts/pet/dog/build-assets.py (not imported): the eye patterns, and the glyphs a
 # recipe may name with "glyph". '#' is ink, or one cell for a glyph.
+#
+# A pattern is drawn from its eye cell's top-left corner, except that EYE_OFFSETS moves it up or
+# down in canvas pixels: the angry eyes carry a brow one canvas unit above the cell, so their
+# pattern is four rows tall and starts one unit higher.
 EYE_PATTERNS = [
     ["###", "###", "###"],  # 0 open
     ["...", "###", "###"],  # 1 half
@@ -75,7 +85,12 @@ EYE_PATTERNS = [
     ["###", "###", "..."],  # 6 looking up
     ["...", "###", "..."],  # 7 yawn: eyes shut, mouth opened below
     None,  # 8 nothing: the sleeping body draws its own eyes
+    ["#..", "###", "###", "###"],  # 9 angry: a scowl, its brow above; the right eye mirrors this
 ]
+EYE_OFFSETS = [0, 0, 0, 0, 0, 0, 0, 0, 0, -1]
+# Patterns whose second eye is the first one mirrored: the angry brow slopes inwards, and the
+# eye's notch is on the inner corner. The directional looks (3, 4) are not mirrored.
+EYE_MIRRORS = [False, False, False, False, False, False, False, False, False, True]
 GLYPHS = {
     "question": ["###", "..#", ".##", "...", ".#."],
     "zz": ["###", ".#.", "###"],
@@ -132,7 +147,12 @@ def paint(draw, items):
         ax, ay = item["at"]
         for j, row in enumerate(rows):
             for i, ch in enumerate(row):
-                if ch == "#":
+                if ch != "#":
+                    continue
+                if item.get("pixel"):
+                    # One canvas unit per character, as the eyes are drawn: a glyph finer than a cell.
+                    draw.point((ORIGIN + CELL * ax + i, ORIGIN + CELL * ay + j), fill=colour)
+                else:
                     fill_cell(draw, ax + i, ay + j, colour)
 
 
@@ -165,7 +185,7 @@ def body_frame(body, pivot, pose, shapes, tints):
     return img
 
 
-def face_frame(index, eyes, mouth, yawn):
+def face_frame(index, eyes, mouth, yawn, angry_mouth=()):
     img, draw = new_frame()
     pattern = EYE_PATTERNS[index]
     if pattern is None:
@@ -176,12 +196,15 @@ def face_frame(index, eyes, mouth, yawn):
             for i in range(w):
                 fill_cell(draw, x + i, y + j, INK)
     else:
-        for x, y in mouth:
+        cells = angry_mouth if index == 9 else mouth
+        for x, y in cells:
             fill_cell(draw, x, y, INK)
+    centre = sum(x for x, _ in eyes) / len(eyes)
     for x, y in eyes:
         fill_cell(draw, x, y, FUR)
-        left, top = ORIGIN + CELL * x, ORIGIN + CELL * y
-        for j, row in enumerate(pattern):
+        left, top = ORIGIN + CELL * x, ORIGIN + CELL * y + EYE_OFFSETS[index]
+        rows = [row[::-1] for row in pattern] if EYE_MIRRORS[index] and x > centre else pattern
+        for j, row in enumerate(rows):
             for i, ch in enumerate(row):
                 if ch == "#":
                     draw.point((left + i, top + j), fill=INK)
@@ -239,17 +262,25 @@ def main():
 
     animations = {"roles": recipe["roles"], "idlePool": recipe["idlePool"], "actions": {}}
     anchors = {"actions": {}}
+    rendered = {}
     for name, spec in recipe["actions"].items():
         frames = spec["frames"]
         entry = {"frames": len(frames), "fps": spec["fps"], "loop": spec["loop"]}
-        entry.update({key: spec[key] for key in ("returnTo", "blink") if key in spec})
+        entry.update({key: spec[key] for key in ("returnTo", "blink", "duration") if key in spec})
         entry["expressions"] = [f.get("expression", 0) for f in frames]
         animations["actions"][name] = entry
         if name == "blink":
             continue
 
         poses = [{**DEFAULT_POSE, **f.get("pose", {})} for f in frames]
-        bodies = [body_frame(body, pivot, p, f.get("shapes", []), body_tints(spec, f)) for p, f in zip(poses, frames)]
+        body_from = spec.get("bodyFrom")
+        if body_from:
+            if body_from not in rendered:
+                raise SystemExit(f"{name}: bodyFrom names an action that is not rendered yet: {body_from}")
+            source_bodies, source_anchors = rendered[body_from]
+            bodies = [source_bodies[i % len(source_bodies)] for i in range(len(frames))]
+        else:
+            bodies = [body_frame(body, pivot, p, f.get("shapes", []), body_tints(spec, f)) for p, f in zip(poses, frames)]
         body_path = f"sprites/body/{name}.png"
         save(out / body_path, sheet(bodies), len(frames))
         entry["sheet"] = body_path
@@ -258,12 +289,24 @@ def main():
             effect_path = f"sprites/effects/{name}.png"
             save(out / effect_path, sheet(effects), len(frames))
             entry["effect"] = effect_path
-        anchors["actions"][name] = [
-            {"head": anchor(head, pivot, p), "face": anchor(face, pivot, p), "body": anchor(pivot, pivot, p)}
-            for p in poses
-        ]
+        if body_from:
+            # A frame that names its own pose overrides the reused one; the angry shake is exactly that.
+            per_frame = [
+                {"head": anchor(head, pivot, p), "face": anchor(face, pivot, p), "body": anchor(pivot, pivot, p)}
+                if "pose" in f
+                else source_anchors[i % len(source_anchors)]
+                for i, (p, f) in enumerate(zip(poses, frames))
+            ]
+        else:
+            per_frame = [
+                {"head": anchor(head, pivot, p), "face": anchor(face, pivot, p), "body": anchor(pivot, pivot, p)}
+                for p in poses
+            ]
+        anchors["actions"][name] = per_frame
+        rendered[name] = (bodies, per_frame)
 
-    expression_frames = [face_frame(i, eyes, mouth, recipe["yawnMouth"]) for i in range(len(EYE_PATTERNS))]
+    angry_mouth = [tuple(p) for p in recipe.get("angryMouth", [])]
+    expression_frames = [face_frame(i, eyes, mouth, recipe["yawnMouth"], angry_mouth) for i in range(len(EYE_PATTERNS))]
     save(out / "sprites/expressions/eyes.png", sheet(expression_frames), len(EYE_PATTERNS))
 
     # The bare cell is idle's first frame, so it carries the same ears and tail as the sheet.

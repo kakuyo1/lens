@@ -27,14 +27,20 @@ const section = (title, ...children) => el('section', {}, el('h2', { textContent
 
 /**
  * @param {HTMLElement} root
- * @param {{pet: object, engine: import('./pet-engine.js').PetEngine, accessories: import('./accessory-manager.js').AccessoryManager}} deps
+ * @param {{pet: object, engine: import('./pet-engine.js').PetEngine, accessories: import('./accessory-manager.js').AccessoryManager,
+ *          scenes?: object[], current?: () => string|null, onScene?: (id: string|null) => void}} deps
  * @returns {{refresh: () => void}} Call once per frame to update the status and pressed states.
  */
-export function mountDebugPanel(root, { pet, engine, accessories }) {
+export function mountDebugPanel(root, { pet, engine, accessories, scenes = [], current = () => null, onScene = () => {} }) {
   const status = el('pre', { id: 'status' });
   const actionButtons = Object.keys(pet.actions).map(name => {
     const b = el('button', { type: 'button', textContent: name, onclick: () => engine.play(name) });
     b.dataset.action = name;
+    return b;
+  });
+  const sceneButtons = [null, ...scenes].map(s => {
+    const b = el('button', { type: 'button', textContent: s?.name ?? '无场景', onclick: () => onScene(s?.id ?? null) });
+    b.dataset.scene = s?.id ?? '';
     return b;
   });
   const eventButtons = EVENTS.map(({ label, type }) =>
@@ -54,6 +60,7 @@ export function mountDebugPanel(root, { pet, engine, accessories }) {
   root.replaceChildren(
     el('h2', { textContent: '调试' }),
     status,
+    section('场景', ...sceneButtons),
     section('动作', ...actionButtons),
     section('模拟事件', ...eventButtons),
     section('播放', pauseButton, stepButton, el('label', { className: 'fps' }, 'FPS ', fpsInput)),
@@ -64,6 +71,7 @@ export function mountDebugPanel(root, { pet, engine, accessories }) {
     refresh() {
       const s = engine.state;
       status.textContent = [
+        `场景  ${current() ?? '无'}`,
         `动作  ${s.action}`,
         `帧    ${s.frame}`,
         `表情  ${s.expression}`,
@@ -73,6 +81,7 @@ export function mountDebugPanel(root, { pet, engine, accessories }) {
       pauseButton.textContent = s.paused ? '继续' : '暂停';
       stepButton.disabled = !s.paused;
       for (const b of actionButtons) b.setAttribute('aria-pressed', String(b.dataset.action === s.action));
+      for (const b of sceneButtons) b.setAttribute('aria-pressed', String((b.dataset.scene || null) === current()));
       for (const b of accessoryButtons) b.setAttribute('aria-pressed', String(accessories.isWorn(b.dataset.acc)));
     }
   };

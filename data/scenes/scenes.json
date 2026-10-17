@@ -1,0 +1,305 @@
+{
+  "canvas": 88,
+  "scenes": [
+    {
+      "id": "bath",
+      "name": "泡澡",
+      "frames": 8,
+      "fps": 4,
+      "foot": [
+        58.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "bath/back.png",
+        "front": "bath/front.png"
+      },
+      "framesData": [
+        {
+          "dx": 0,
+          "dy": 9,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 9,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 9,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 9,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 9,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 9,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 9,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 9,
+          "scale": 1
+        }
+      ]
+    },
+    {
+      "id": "desk",
+      "name": "敲电脑",
+      "frames": 8,
+      "fps": 4,
+      "foot": [
+        58.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "desk/back.png",
+        "front": "desk/front.png"
+      },
+      "framesData": [
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": -3,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": -3,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": -3,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": -3,
+          "scale": 1
+        }
+      ]
+    },
+    {
+      "id": "rain",
+      "name": "撑伞看雨",
+      "frames": 8,
+      "fps": 4,
+      "foot": [
+        58.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "rain/back.png",
+        "front": "rain/front.png"
+      },
+      "framesData": [
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        }
+      ]
+    },
+    {
+      "id": "skate",
+      "name": "滑滑板",
+      "frames": 8,
+      "fps": 4,
+      "foot": [
+        58.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "skate/back.png",
+        "front": "skate/front.png"
+      },
+      "framesData": [
+        {
+          "dx": -6,
+          "dy": -12,
+          "scale": 1
+        },
+        {
+          "dx": -6,
+          "dy": -12,
+          "scale": 1
+        },
+        {
+          "dx": -6,
+          "dy": -12,
+          "scale": 1
+        },
+        {
+          "dx": -6,
+          "dy": -12,
+          "scale": 1
+        },
+        {
+          "dx": -6,
+          "dy": -12,
+          "scale": 1
+        },
+        {
+          "dx": -6,
+          "dy": -12,
+          "scale": 1
+        },
+        {
+          "dx": -6,
+          "dy": -12,
+          "scale": 1
+        },
+        {
+          "dx": -6,
+          "dy": -12,
+          "scale": 1
+        }
+      ]
+    },
+    {
+      "id": "swing",
+      "name": "荡秋千",
+      "frames": 8,
+      "fps": 4,
+      "foot": [
+        58.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "swing/back.png",
+        "front": "swing/front.png"
+      },
+      "framesData": [
+        {
+          "dx": -12,
+          "dy": -9,
+          "scale": 1
+        },
+        {
+          "dx": -12,
+          "dy": -6,
+          "scale": 1.0494974746830583
+        },
+        {
+          "dx": -12,
+          "dy": -3,
+          "scale": 1.07
+        },
+        {
+          "dx": -12,
+          "dy": -6,
+          "scale": 1.0494974746830583
+        },
+        {
+          "dx": -12,
+          "dy": -9,
+          "scale": 1
+        },
+        {
+          "dx": -12,
+          "dy": -12,
+          "scale": 0.9505025253169417
+        },
+        {
+          "dx": -12,
+          "dy": -15,
+          "scale": 0.9299999999999999
+        },
+        {
+          "dx": -12,
+          "dy": -12,
+          "scale": 0.9505025253169417
+        }
+      ]
+    }
+  ]
+}

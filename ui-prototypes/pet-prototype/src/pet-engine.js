@@ -49,6 +49,8 @@ export class PetEngine {
     this.idleMs = 0;
     this.idleWait = this.nextIdleWait();
     this.lastIdle = null;
+    /** The ambient clock: random idle, the yawn into sleep, the thinking timeout. A scene turns it off. */
+    this.ambient = true;
   }
 
   get def() {
@@ -147,6 +149,16 @@ export class PetEngine {
 
   resume() {
     this.paused = false;
+  }
+
+  /**
+   * Turns the ambient clock on or off. Off, nothing self-starts: no random idle action, no yawn into sleep, no
+   * thinking timeout. Events and blinks still run, so the pet is still awake and pokeable — it just does what
+   * the scene it is in asks for and nothing else.
+   * @param {boolean} on
+   */
+  setAmbient(on) {
+    this.ambient = on;
   }
 
   /** Advances one frame, used for frame-by-frame review while paused. */
@@ -256,6 +268,7 @@ export class PetEngine {
 
   /** Quiet time yawns the dog into sleep; idle time picks a random situational action; thinking times out. */
   tick(deltaMs) {
+    if (!this.ambient) return;
     this.quietMs += deltaMs;
     if (this.quietMs >= QUIET_MS) {
       this.quietMs = 0;

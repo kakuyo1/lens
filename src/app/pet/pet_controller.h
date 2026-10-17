@@ -10,6 +10,9 @@
  *
  * The one exception is the settings preview: preview() shows a chosen action in place of the machine's, and the
  * machine keeps running underneath. The same pet is on the desktop, so the preview shows there too while it lasts.
+ *
+ * A scene (ADR 0049) is a named action the app ships props for. While one plays, the scene* properties carry the
+ * sheet urls, the pet's per-frame shift and scale, and the alignment between this pet's feet and the catalogue's.
  */
 
 #include <chrono>
@@ -19,6 +22,7 @@
 
 #include <QObject>
 #include <QPoint>
+#include <QPointF>
 #include <QSize>
 #include <QString>
 #include <QStringList>
@@ -29,6 +33,7 @@
 
 #include "app/pet/pet_assets.h"
 #include "app/pet/pet_catalog.h"
+#include "app/pet/pet_scenes.h"
 #include "app/pet/pet_store.h"
 #include "core/pet/accessory.h"
 #include "core/pet/pet_state.h"
@@ -61,9 +66,21 @@ class PetController : public QObject {
     Q_PROPERTY(int size READ size NOTIFY settingsChanged)
     Q_PROPERTY(double scale READ scale NOTIFY settingsChanged)
     Q_PROPERTY(double inkCentre READ inkCentre NOTIFY settingsChanged)
+    /// Where the idle figure's feet are in the sprite's own 88 px canvas: a scene scales the pet about this.
+    Q_PROPERTY(QPointF foot READ foot NOTIFY settingsChanged)
     Q_PROPERTY(int minSize READ minSize CONSTANT)
     Q_PROPERTY(int maxSize READ maxSize CONSTANT)
     Q_PROPERTY(QStringList actions READ actions NOTIFY settingsChanged)
+    /// The scenes this pet can play, in catalogue order. Empty for an installed package (ADR 0049).
+    Q_PROPERTY(QStringList scenes READ scenes NOTIFY settingsChanged)
+    /// Non-empty while the pet is inside a scene (ADR 0049). The rest describe how the scene draws this frame.
+    Q_PROPERTY(QString scene READ scene NOTIFY frameChanged)
+    Q_PROPERTY(int sceneFrame READ sceneFrame NOTIFY frameChanged)
+    Q_PROPERTY(QVariantMap sceneSheets READ sceneSheets NOTIFY frameChanged)
+    Q_PROPERTY(QPointF sceneShift READ sceneShift NOTIFY frameChanged)
+    Q_PROPERTY(QPointF sceneAlign READ sceneAlign NOTIFY frameChanged)
+    Q_PROPERTY(double sceneScale READ sceneScale NOTIFY frameChanged)
+    Q_PROPERTY(QVariantMap sceneLayers READ sceneLayers NOTIFY frameChanged)
     Q_PROPERTY(QVariantList accessories READ accessories NOTIFY settingsChanged)
     Q_PROPERTY(QVariantMap wornIn READ wornIn NOTIFY outfitChanged)
 
@@ -106,10 +123,20 @@ public:
     int          size() const;
     double       scale() const;
     double       inkCentre() const;
+    QPointF      foot() const;
     int          minSize() const;
     int          maxSize() const;
-    /// @return Every action the pet can play, in the order of the state machine's enum.
+    /// @return Every action the pet can play, in the order of the state machine's enum. Scenes are not actions:
+    ///         they have their own entries below and are played only by the idle turn.
     QStringList actions() const;
+    QStringList scenes() const;
+    QString     scene() const;
+    int         sceneFrame() const;
+    QVariantMap sceneSheets() const;
+    QPointF     sceneShift() const;
+    QPointF     sceneAlign() const;
+    double      sceneScale() const;
+    QVariantMap sceneLayers() const;
     /// @return Every accessory in the catalogue as {id, slot}, for the settings page to lay out.
     QVariantList accessories() const;
     /// @return The accessory worn in each slot, keyed by slot name; an empty string where the slot is empty.
@@ -125,6 +152,9 @@ public:
     /// @brief Shows an action in place of the machine's, from its first frame. Ignored for an unknown name.
     /// @param action Name in animations.json, such as "celebrate".
     Q_INVOKABLE void preview(QString action);
+    /// @brief Plays a scene now, for its duration, then back to idle. Ignored for a name this pet has no scene for.
+    /// @param id A scene id from scenes(), such as "swing".
+    Q_INVOKABLE void setScene(QString id);
     Q_INVOKABLE void dragStart();
     Q_INVOKABLE void dragEnd();
     Q_INVOKABLE void click();
@@ -202,6 +232,10 @@ private:
     std::filesystem::path shippedRoot_;
     std::filesystem::path installedRoot_;
     PetCatalog            catalog_;
+    /// The app's own scenes, read once: every shipped pet plays the same five. A package may use another
+    /// canvas, so its action names are never read as scenes.
+    PetScenes scenes_;
+    bool      scenesAllowed_{false};
 
     std::optional<PetAssets>                    assets_;
     PetStore&                                   store_;
@@ -228,6 +262,15 @@ private:
     int                expression_{0};
     QVariantMap        sheets_;
     core::pet::Anchors anchors_{};
+
+    /// The scene the shown action names, and the frame's transform. All empty or neutral outside a scene.
+    QString     scene_;
+    int         sceneFrame_{0};
+    QVariantMap sceneSheets_;
+    QPointF     sceneShift_{};
+    QPointF     sceneAlign_{};
+    double      sceneScale_{1.0};
+    QVariantMap sceneLayers_{};
 };
 
 } // namespace lens::app::pet

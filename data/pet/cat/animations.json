@@ -10,7 +10,8 @@
     "pickup": "pickup",
     "look_around": "look_around",
     "yawn": "yawn",
-    "stretch": "stretch"
+    "stretch": "stretch",
+    "angry": "angry"
   },
   "idlePool": [
     "look_around",
@@ -250,6 +251,105 @@
         2,
         1
       ]
+    },
+    "angry": {
+      "frames": 5,
+      "fps": 10,
+      "loop": false,
+      "expressions": [
+        9,
+        9,
+        9,
+        9,
+        9
+      ],
+      "sheet": "sprites/body/angry.png",
+      "effect": "sprites/effects/angry.png"
+    },
+    "swing": {
+      "frames": 8,
+      "fps": 4,
+      "loop": true,
+      "duration": 24000,
+      "expressions": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/swing.png"
+    },
+    "desk": {
+      "frames": 8,
+      "fps": 4,
+      "loop": true,
+      "duration": 24000,
+      "expressions": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/desk.png"
+    },
+    "skate": {
+      "frames": 8,
+      "fps": 4,
+      "loop": true,
+      "duration": 24000,
+      "expressions": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/skate.png"
+    },
+    "bath": {
+      "frames": 8,
+      "fps": 4,
+      "loop": true,
+      "duration": 24000,
+      "expressions": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/bath.png"
+    },
+    "rain": {
+      "frames": 8,
+      "fps": 4,
+      "loop": true,
+      "duration": 24000,
+      "expressions": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/rain.png"
     }
   }
 }

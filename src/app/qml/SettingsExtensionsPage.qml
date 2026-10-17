@@ -36,6 +36,7 @@ Item {
         case "look_around": return qsTranslate("SettingsPopup", "Look around");
         case "yawn": return qsTranslate("SettingsPopup", "Yawn");
         case "stretch": return qsTranslate("SettingsPopup", "Stretch");
+        case "angry": return qsTranslate("SettingsPopup", "Angry");
         case "wobble": return qsTranslate("SettingsPopup", "Wobble");
         case "bounce": return qsTranslate("SettingsPopup", "Bounce");
         case "hiccup": return qsTranslate("SettingsPopup", "Hiccup");
@@ -52,6 +53,17 @@ Item {
         case "pounce": return qsTranslate("SettingsPopup", "Pounce");
         case "scratch": return qsTranslate("SettingsPopup", "Scratch");
         default: return name;
+        }
+    }
+
+    function sceneLabel(id) {
+        switch (id) {
+        case "swing": return qsTranslate("SettingsPopup", "Swing");
+        case "desk": return qsTranslate("SettingsPopup", "Desk");
+        case "skate": return qsTranslate("SettingsPopup", "Skateboard");
+        case "bath": return qsTranslate("SettingsPopup", "Bubble bath");
+        case "rain": return qsTranslate("SettingsPopup", "Rain");
+        default: return id;
         }
     }
 
@@ -312,6 +324,36 @@ Item {
                             label: page.actionLabel(modelData)
                             selected: Pet.action === modelData
                             onPicked: Pet.preview(modelData)
+                        }
+                    }
+                }
+            }
+
+            Column {
+                width: parent.width
+                spacing: 7
+                // Scenes are the app's own art and only a shipped pet has them (ADR 0049).
+                visible: Pet.scenes.length > 0
+
+                Text {
+                    text: qsTranslate("SettingsPopup", "Scenes")
+                    color: page.tokens.muted
+                    font.pixelSize: 11
+                }
+
+                Flow {
+                    width: parent.width
+                    spacing: 6
+
+                    Repeater {
+                        model: Pet.scenes
+
+                        Chip {
+                            required property string modelData
+
+                            label: page.sceneLabel(modelData)
+                            selected: Pet.scene === modelData
+                            onPicked: Pet.setScene(modelData)
                         }
                     }
                 }

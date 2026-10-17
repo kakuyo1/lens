@@ -74,9 +74,10 @@ PetDocument parsePetDocument(nlohmann::json const& document);
  * @brief Parses animations.json into the playbook for the state machine and into the blink.
  *
  * The document has three parts. `roles` maps every role the product plays to an action the document defines; only
- * stretch may be left out. `idlePool` lists one-shot actions the idle timer may pick, and may be empty. `actions`
- * gives playback for every action, plus the reserved `blink` entry. Each action needs a boolean `loop`, and `frames`
- * and `fps` of at least 1. `returnTo` is optional, but when present it must name a role the document maps.
+ * stretch and angry may be left out. `idlePool` lists one-shot actions the idle timer may pick, and may be empty.
+ * `actions` gives playback for every action, plus the reserved `blink` entry. Each action needs a boolean `loop`, and
+ * `frames` and `fps` of at least 1. `duration` is optional and positive: it ends the action when it runs out, which
+ * is how a looping scene finishes. `returnTo` is optional, but when present it must name a role the document maps.
  * `blink: true` on an action marks it as blinking.
  *
  * The pool the playbook carries is the document's list plus every one-shot action no role names, in

@@ -30,6 +30,9 @@
 | `scripts/pet/dog/manifest.json` | 小狗每个动作的 sheet 路径、帧数、表情索引，以及配饰的资源与 `supportedActions` | 一般不改；动作的帧数改了要同时改 `animations.json` |
 | `scripts/pet/dog/build-assets.py` | 小狗的渲染器：读上面两个文件，画出全部 PNG，直接写入 `data/pet/dog/sprites/` | 只在换了**结构**（比如去掉某个姿势）时才改 |
 | `data/pet/dog/sprites/` | 小狗的应用读取位置，由 `build-assets.py` 直接写入 | 不手改 |
+| `scripts/pet/scenes/<id>.json` | 场景的逐帧道具（原型 `scenes.js` 的机械搬运）与每帧宠物位移 | 改道具、帧数或对齐点时改；`render_scenes.py` 的输入 |
+| `scripts/pet/render_scenes.py` | 场景渲染器：读 `scripts/pet/scenes/`，写 `data/scenes/<id>/{back,front}.png` 与运行时目录 `data/scenes/scenes.json`；读回核对尺寸并检查道具不出画布 | 只在换了场景数据结构时改 |
+| `data/scenes/` | 应用自带的场景：四只随包宠物共用，不进宠物包格式 | 不手改，改 `scripts/pet/scenes/` 后重跑渲染器 |
 | `ui-prototypes/pet.html` | 原型设置页，内嵌了全部 PNG 的 base64 | `cd ui-prototypes/pet-prototype && npm run embed` 重新生成 |
 
 渲染器里还有几处**写死的几何**，换形状后要逐帧看一遍（只适用于小狗的 `build-assets.py`）：
@@ -119,9 +122,10 @@ node --test test/*.test.js
 配方只描述形状与姿势，其余文件由渲染器算出。
 
 - `body`：身体的基础椭圆，单位是格子。它的底部中心是所有姿势的轴。
-- `eyes`、`mouth`、`yawnMouth`：表情层的格子，表情图案 `EYE_PATTERNS` 与小狗共用。
+- `eyes`、`mouth`、`yawnMouth`、`angryMouth`：表情层的格子，表情图案 `EYE_PATTERNS` 与小狗共用。`angryMouth` 是生气那一格的撇嘴，缺省时沿用普通嘴。
 - `roles`、`idlePool`：原样写进 `animations.json`。
-- `actions`：每个动作的 `fps`、`loop`，以及按帧排列的 `frames`。每帧可以有姿势 `pose`（`sx`、`sy` 压扁或拉伸，`dx`、`dy` 平移）、表情、额外的形状与效果层的图形。
+- `actions`：每个动作的 `fps`、`loop`，以及按帧排列的 `frames`。每帧可以有姿势 `pose`（`sx`、`sy` 压扁或拉伸，`dx`、`dy` 平移）、表情、额外的形状与效果层的图形。`duration`（毫秒）让循环动作到点结束，场景动作靠它收场；`bodyFrom` 让一个动作复用前面某个动作的 body sheet 与锚点，按自己的帧数循环，生气与场景动作因此不必重画身体，帧里写了 `pose` 就覆盖复用的锚点。
+- **表情图案的竖向偏移**：`EYE_PATTERNS` 里第 9 格是生气眼，它的眉画在眼睛上方一个单位，因此图案有四行，由 `EYE_OFFSETS` 把它整体上移一行；右眼用 `EYE_MIRRORS` 把图案左右镜像，眉才向鼻梁一侧斜。嘴按表情查表：哈欠用 `yawnMouth`，生气用 `angryMouth`，其余共用 `mouth`。两份 `EYE_PATTERNS`（`render_pet.py` 与 `dog/build-assets.py`）必须同改。
 - `bodyPaint`：身体 sheet 上的着色格子，只画在身体覆盖的格子上。写在动作里时每帧都用，写在某一帧里时替换该动作的列表。坐标是画布格子，渲染器不对它做压扁或拉伸，换姿势要在配方里重新算。猫的粉色耳内与鼻子用它。
 - `accessories`：每件配饰的槽位 `slot`、不能穿的动作 `except`，以及它的图形。
 
@@ -149,6 +153,7 @@ node --test test/*.test.js
 | `scripts/pet/apply_grid.py` | 小狗：网格 → `scripts/pet/dog/sprite.json` 的四段 | 只在给 `--write` 时写 |
 | `scripts/pet/refit_accessories.py` | 小狗：报告质心，按位移对位配饰，可设眼睛 | 只在给 `--write` 时写 |
 | `scripts/pet/dog/build-assets.py` | 小狗：渲染全部 PNG 到 `data/pet/dog/sprites/` | 直接写入 |
+| `scripts/pet/render_scenes.py` | 场景：`scripts/pet/scenes/` → `data/scenes/` | 直接写入，读回核对尺寸 |
 | `scripts/pet/sync_sprites.py` | 小狗：核对尺寸，渲染到临时目录后比对 | 不写文件 |
 | `scripts/pet/compose_check.py` | 小狗：一帧加表情与每件配饰的审查图 | 只写指定的 PNG |
 | `scripts/pet/recipes/original-dog.json` | 1.2.0 小狗的配方，可复现当前网格 | 复制后改 |
@@ -158,7 +163,7 @@ node --test test/*.test.js
 
 这些限制来自现有的渲染器，不是某只宠物的问题。改它们要改渲染器，不要只改某只宠物的配方。
 
-- **眼睛是 3 × 3 的方格**，所有宠物共用 `EYE_PATTERNS`。圆眼睛需要改渲染器。
+- **眼睛是 3 × 3 的方格**，所有宠物共用 `EYE_PATTERNS`；生气那一格向上多出一行画眉。圆眼睛需要改渲染器。
 - **效果层不跟随身体**。效果层固定在画布（0，0）处，身体的平移与压扁都不影响它。挂在身体上的图形要放进 `bodyPaint`，不要放进效果层。
 - **配饰只能用格子画**，没有圆形或多边形图元，圆框眼镜是手绘的格子。
 - **压扁小于 1 时，形状画出的耳朵会脱离身体**，所以新宠物的压扁只用 1 或更大的值。
