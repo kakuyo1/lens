@@ -10,7 +10,7 @@
 namespace lens::app {
 
 StorageDuty::StorageDuty(core::KnownStore& store)
-    : store_(store), stats_(store.document())
+    : store_(store), stats_(store.document()), review_(store.document())
 {
     // Two settings phase 1 carried and nothing reads any more. Taken out through the section like
     // every other write, so the boundary stays the only way into the document; remove() saves by
@@ -40,6 +40,16 @@ const core::StatsStore& StorageDuty::statsStore() const
     return stats_;
 }
 
+core::ReviewStore& StorageDuty::reviewStore()
+{
+    return review_;
+}
+
+const core::ReviewStore& StorageDuty::reviewStore() const
+{
+    return review_;
+}
+
 core::SettingsSection StorageDuty::section(std::string_view const name)
 {
     return store_.section(name);
@@ -57,7 +67,8 @@ bool StorageDuty::removeWord(QString const& lemma)
         return false;
     const bool marksRemoved   = store_.removeLemma(value);
     const bool historyRemoved = stats_.removeLemma(value);
-    const bool removed        = marksRemoved || historyRemoved;
+    const bool reviewRemoved  = review_.removeLemma(value);
+    const bool removed        = marksRemoved || historyRemoved || reviewRemoved;
     if (removed)
         store_.save();
     return removed;
@@ -89,6 +100,20 @@ QVariantList StorageDuty::levelOptions()
                                    {"note", QString::fromUtf8(level.note)}});
     }
     return options;
+}
+
+QVariantList StorageDuty::reviewFrequencyOptions()
+{
+    return QVariantList{
+        QVariantMap{{"value", static_cast<int>(core::ReviewFrequency::Off)},
+                    {"label", QCoreApplication::translate("lens::app::AppController", "Off")}},
+        QVariantMap{{"value", static_cast<int>(core::ReviewFrequency::Every15To30Min)},
+                    {"label", QCoreApplication::translate("lens::app::AppController", "Every 15–30 minutes")}},
+        QVariantMap{{"value", static_cast<int>(core::ReviewFrequency::Every30To60Min)},
+                    {"label", QCoreApplication::translate("lens::app::AppController", "Every 30–60 minutes")}},
+        QVariantMap{{"value", static_cast<int>(core::ReviewFrequency::Every1To2Hours)},
+                    {"label", QCoreApplication::translate("lens::app::AppController", "Every 1–2 hours")}},
+    };
 }
 
 }

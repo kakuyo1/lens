@@ -6,6 +6,7 @@
 #include <string_view>
 
 #include "core/known_store.h"
+#include "core/review_store.h"
 #include "core/settings_section.h"
 #include "core/stats_store.h"
 
@@ -32,6 +33,10 @@ public:
     core::StatsStore&       statsStore();
     const core::StatsStore& statsStore() const;
 
+    /// @return The review section bound to the same document.
+    core::ReviewStore&       reviewStore();
+    const core::ReviewStore& reviewStore() const;
+
     /**
      * @brief The document, or one of its nested objects, as the unit a key is read and written through.
      * @param name Object name to bind to; empty for the document itself.
@@ -43,16 +48,20 @@ public:
     /// @brief Persist the current document, including statistics changes.
     void save() const;
 
-    /// @brief Remove a lemma from marks, explanation cache, and history in one save.
+    /// @brief Remove a lemma from marks, explanation cache, history, and review state in one save.
     /// @return True when any local word state existed.
     bool removeWord(QString const& lemma);
 
     /// @return The vocabulary level options shown by the settings surface.
     static QVariantList levelOptions();
 
+    /// @return The word-review check frequencies the settings surface offers, as {value, label}; the values are core::ReviewFrequency.
+    static QVariantList reviewFrequencyOptions();
+
 private:
     core::KnownStore& store_;
     core::StatsStore  stats_;
+    core::ReviewStore review_;
 };
 
 }

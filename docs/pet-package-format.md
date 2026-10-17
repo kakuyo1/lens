@@ -27,6 +27,7 @@ pets\<id>\
   sprites\
     body\<动作>.png    身体 sheet，横排，每帧一格，帧间无间距
     effects\<动作>.png 特效 sheet，可选，尺寸与身体 sheet 相同
+    `effectLeft` 指向左手的特效 sheet（如 `effects\ask-left.png`），可选，尺寸同上；应用在装载时读取它并量出握点，见 ADR 0052、0053
     expressions\eyes.png 表情 sheet，一排 canvas × canvas 的格子
     accessories\...    配饰单图，每张 canvas × canvas
 ```
@@ -49,7 +50,7 @@ pets\<id>\
 
 `animations.json`、`anchors.json`、`accessories.json`、`sprites\` 的字段与随包宠物**完全相同**，含义见 `docs/pet-art-pipeline.md` 与 `docs/history/PHASE3.md` §3.1。要点：
 
-- `roles` 必须覆盖 12 个动作角色，只有 `stretch` 与 `angry` 可以缺省。角色名是产品定义的闭集，包不能新增；缺 `angry` 的宠物永远不生气。
+- `roles` 必须覆盖 13 个动作角色，只有 `stretch`、`angry` 与 `ask` 可以缺省。角色名是产品定义的闭集，包不能新增；缺 `angry` 的宠物永远不生气，缺 `ask` 的宠物没有手可握，复习牌的去处待定（见 `docs/adr/0052`）。
 - `actions` 里每个动作需要 `frames` 与 `fps`，`loop` 必填，`returnTo` 可选但必须指向 `roles` 里已映射的角色。`duration` 可选，单位毫秒：到点后动作结束，循环动作因此也能自己收场（应用自带的场景用它）。
 - 必须有一个 `blink` 条目（只有表情，没有 sheet）。
 - `idlePool` 只能列单次动作（`loop` 为假）。应用装载时还会把**没被 `roles` 点到的单次动作**补进池子，所以给包加一个新动作就同时给了它一个待机动作；`idlePool` 里写不写同一个名字都行，写了不会重复。循环动作（含带 `duration` 的场景动作）不进池子，只有应用自己的场景抽签能开始它们。
@@ -177,7 +178,7 @@ python -I scripts/pet/render_pet.py <id>
 
 渲染器写出 `data/pet/<id>/`。把它整个目录复制到 `%APPDATA%\Lens\pets\` 下，再打开设置的扩展分类即可看到。`docs/pet-art-pipeline.md` 是完整流程、约束与经验。
 
-自查（应用加载时仍会再查一遍）：`roles` 覆盖 12 个角色（`stretch` 与 `angry` 可省）、`idlePool` 只列单次动作、`returnTo` 指向已映射角色、`duration` 为正数、有 `blink` 条目、锚点条目数等于帧数、sheet 尺寸等于 `frames × canvas`、PNG 魔数正确、路径无 `..`。
+自查（应用加载时仍会再查一遍）：`roles` 覆盖 13 个角色（`stretch`、`angry` 与 `ask` 可省）、`idlePool` 只列单次动作、`returnTo` 指向已映射角色、`duration` 为正数、有 `blink` 条目、锚点条目数等于帧数、sheet 尺寸等于 `frames × canvas`、PNG 魔数正确、路径无 `..`。
 
 ## 10。已知边界
 

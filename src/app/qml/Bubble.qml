@@ -74,6 +74,10 @@ Window {
     /// no count for the reader to read.
     property bool countsDown: true
 
+    /// Whether the Known and New buttons are drawn. The card a review's answer raises is the reader's to read, not to
+    /// mark (UI.md 4.13); the status tag above the title still says what the word is.
+    property bool verdictButtons: true
+
     /// Whether the answer is written out a character at a time (RevealText). A card raised whole out
     /// of the cache is not: the word list puts one up for every row the pointer crosses.
     property bool reveal: true
@@ -151,6 +155,7 @@ Window {
         status = payload.status || "";
         countsDown = payload.countsDown !== false;
         reveal = payload.reveal !== false;
+        verdictButtons = payload.verdictButtons !== false;
         remainingMs = dismissAfterMs;
 
         // A new window must not paint its first frame before Text has settled the card height:
@@ -602,6 +607,7 @@ Window {
 
                 // The verdict buttons, drawn shut until the pointer is on the card (UI.md 4.3).
                 BubbleVerdictRow {
+                    visible: bubble.verdictButtons
                     tokens: bubble.tokens
                     lemma: bubble.title
                     hovering: bubble.hovering

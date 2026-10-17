@@ -24,6 +24,7 @@
 #include <QQmlEngine>
 #include <QJSEngine>
 
+#include <algorithm>
 #include <utility>
 
 #include "autostart.h"
@@ -31,6 +32,7 @@
 #include "glass_settings.h"
 #include "notice.h"
 #include "paths.h"
+#include "pet/pet_controller.h"
 #include "reveal_settings.h"
 #include "update/update_client.h"
 #include "util/log.h"
@@ -72,11 +74,14 @@ QVariantMap loadPreviewSample(const std::filesystem::path& file)
     return parsed.object().toVariantMap();
 }
 
-/// @return The face the application font draws Latin with today: the first family of the list
-///         main() installed. The reader's font setting starts here and goes back here, so its
-///         absence is this face rather than an empty family, which QML would leave unresolved.
-QString defaultFontFamily()
+/// @return The face a reader's font setting draws with: the stored family when this machine has it, else the face the
+///         application font draws Latin with, which is the first family of the list main() installed. The default is that
+///         face rather than an empty family, which QML would leave unresolved. Without a GUI application there is no font
+///         database and no application font, so the answer is the empty family; only the unit tests run that way.
+QString fontFamilyFor(QString const& stored)
 {
+    if (not qobject_cast<QGuiApplication*>(QCoreApplication::instance())) return {};
+    if (QFontDatabase::hasFamily(stored)) return stored;
     const QStringList families = QGuiApplication::font().families();
     return families.isEmpty() ? QString{} : families.first();
 }
@@ -92,7 +97,7 @@ AppController::AppController(core::KnownStore&            store,
                              QObject*                     parent)
     : QObject(parent),
       storage_(store),
-      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), sync_(storage_, dataDir, this), llm_(llm), hotkey_(hotkey), previewSample_(loadPreviewSample(dataDir / "preview.json"))
+      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), sync_(storage_, dataDir, this), reviewDuty_(storage_, [this] { return pet_ != nullptr and pet_->enabled(); }, [this] { return pet_ != nullptr and pet_->idle(); }, this), llm_(llm), hotkey_(hotkey), previewSample_(loadPreviewSample(dataDir / "preview.json"))
 {
     budgetPaused_ = cost_.budgetStatus().exhausted;
     // A change to the statistics or the settings is what a sync carries, so either one schedules
@@ -127,6 +132,8 @@ AppController::AppController(core::KnownStore&            store,
         emit yearDaysChanged();
     });
     connect(&explanation_, &ExplanationDuty::petEvent, this, &AppController::petEvent);
+    connect(&reviewDuty_, &ReviewDuty::wordChanged, this, &AppController::reviewQuestionChanged);
+    connect(&reviewDuty_, &ReviewDuty::petEvent, this, &AppController::petEvent);
     connect(&cost_, &CostDuty::stateChanged, this, [this] {
         refreshCaptureGates();
         explanation_.resumeQueued();
@@ -321,6 +328,36 @@ void AppController::setLevel(int level)
     storage_.knownStore().setLevel(level);
     storage_.save();
     LENS_INFO("level set to {}", level);
+    emit settingsChanged();
+}
+
+QString AppController::reviewQuestion() const
+{
+    return reviewDuty_.word();
+}
+
+void AppController::bindPet(pet::PetController* pet)
+{
+    pet_ = pet;
+}
+
+void AppController::answerReview(bool const remembered, int const x, int const y)
+{
+    auto const lemma = reviewDuty_.answer(remembered, QDateTime::currentMSecsSinceEpoch());
+    if (lemma.isEmpty())
+        return;
+    explanation_.showReviewAnswer(lemma, QPoint{x, y});
+}
+
+void AppController::ignoreReview()
+{
+    reviewDuty_.ignore(QDateTime::currentMSecsSinceEpoch());
+}
+
+void AppController::setReviewFrequency(int const value)
+{
+    auto const clamped = std::clamp(value, static_cast<int>(core::ReviewFrequency::Off), static_cast<int>(core::ReviewFrequency::Every1To2Hours));
+    reviewDuty_.setFrequency(static_cast<core::ReviewFrequency>(clamped), QDateTime::currentMSecsSinceEpoch());
     emit settingsChanged();
 }
 
@@ -560,12 +597,14 @@ QVariantMap AppController::settings()
     const QString storedFont = QString::fromStdString(keys.value<std::string>("font", {}));
     QVariantMap   result{{"level", storage_.knownStore().level()},
                          {"levels", StorageDuty::levelOptions()},
+                         {"reviewFrequency", static_cast<int>(reviewDuty_.frequency())},
+                         {"reviewFrequencyOptions", StorageDuty::reviewFrequencyOptions()},
                          {"explanationLang", QString::fromStdString(storage_.knownStore().explanationLang())},
                          {"multiSense", keys.value<bool>("multiSense", false)},
                          {"etymology", keys.value<bool>("etymology", false)},
                          {"example", keys.value<bool>("example", false)},
                          {"theme", QString::fromStdString(keys.value<std::string>("theme", "light"))},
-                         {"font", QFontDatabase::hasFamily(storedFont) ? storedFont : defaultFontFamily()},
+                         {"font", fontFamilyFor(storedFont)},
                          {"frostedBlur", clampGlass(kFrostedBlur, keys.value<int>("frostedBlur", kFrostedBlur.fallback))},
                          {"frostedSaturation", clampGlass(kFrostedSaturation, keys.value<int>("frostedSaturation", kFrostedSaturation.fallback))},
                          {"frostedRim", clampGlass(kFrostedRim, keys.value<int>("frostedRim", kFrostedRim.fallback))},

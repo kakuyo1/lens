@@ -2,6 +2,8 @@ add_library(lens_core STATIC
   profile.cpp
   filter_core.cpp
   known_store.cpp
+  review_schedule.cpp
+  review_store.cpp
   settings_section.cpp
   stats_store.cpp
   sync_merge.cpp

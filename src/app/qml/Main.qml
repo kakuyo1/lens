@@ -84,7 +84,7 @@ Window {
         // qmllint disable missing-property
         for (const s of Qt.application.screens) {
             const ratio = s.devicePixelRatio || 1;
-            // The origin is not scaled, as dipOn assumes: only the size is in DIPs.
+            // The origin is not scaled, as ScreenPoints.dipOn assumes: only the size is in DIPs.
             const left = s.virtualX;
             const top = s.virtualY;
             const right = left + s.width * ratio;
@@ -288,6 +288,15 @@ Window {
         surface.y = Math.round(y);
         surface.raise();
     }
+
+    /// The answer to a review carries no verdict buttons (Controller.explanationDuty.bubble); every other card is placed
+    /// beside its anchor as before.
+    function placeBubble(surface, payload) {
+        if (payload.verdictButtons === false)
+            reviewSign.placeAnswerCard(surface);
+        else
+            root.placeTransient(surface, payload, surface.gap);
+    }
     // qmllint enable missing-property
 
     /// @return The anchor a panel that replaces `from` is put up at: the corner `from` hangs from, so
@@ -328,7 +337,8 @@ Window {
 
     function repositionVisible() {
         for (const placement of placements) {
-            if (!placement.surface.visible)
+            // A review's answer (a bubble with no verdict buttons) is placed by reviewSign, from its own record.
+            if (!placement.surface.visible || placement.surface.verdictButtons === false)
                 continue;
             if (placement.kind === "panel")
                 root.placePanel(placement.surface, placement.anchor);
@@ -337,6 +347,7 @@ Window {
             else if (!placement.surface.dragging)
                 root.placeTransient(placement.surface, placement.anchor, placement.surface.gap);
         }
+        reviewSign.repositionAnswerCard();
     }
 
     function currentScreenLayoutSignature() {
@@ -425,60 +436,9 @@ Window {
     }
 
     // Debug-only automation called by main.cpp when QT_QML_DEBUG and the profiling scenario
-    // environment flag are both enabled.
+    // environment flag are both enabled. The steps are in ProfileScenario.qml.
     function profileScenario(step) {
-        if (step === 0) {
-            root.showTrayMenu();
-        } else if (step === 1) {
-            trayMenu.listVisible = true;
-        } else if (step === 2) {
-            trayMenu.visible = false;
-            root.showStats();
-        } else if (step === 3) {
-            root.showCost();
-        } else if (step === 4) {
-            root.showWords();
-        } else if (step === 5) {
-            root.showSettings();
-        } else if (step === 6) {
-            bubble.show({title: "profile", type: "word", ipa: "/ˈproʊfaɪl/", en: "profile run", zh: "profile run", status: "new", x: 500, y: 500});
-        } else if (step === 7) {
-            root.hidePanels(null);
-            bubble.visible = false;
-            bar.visible = false;
-            Qt.quit();
-        }
-    }
-
-    /**
-     * @brief The DIP point of a native-pixel point, measured from @p screen's own origin.
-     *
-     * Qt draws a window on a screen at native = origin + (dip - origin) * scale. Measured on the
-     * portrait monitor above the primary at 125% (origin 197,-2560): a card placed at DIP y -1120
-     * was drawn at native y -760. Scaling from zero is right only for a screen whose origin is zero;
-     * on this one it misplaces every point by origin * (1 - 1 / scale), which is 512 DIPs.
-     */
-    // qmllint disable missing-property
-    function dipOn(screen, point) {
-        const ratio = screen.devicePixelRatio || 1;
-        return Qt.point(screen.virtualX + (point.x - screen.virtualX) / ratio,
-                        screen.virtualY + (point.y - screen.virtualY) / ratio);
-    }
-    // qmllint enable missing-property
-
-    /**
-     * Turn a position the mouse hook reported into one a window can be placed at.
-     * The hook reads native screen pixels; windows and QScreen geometry use DIPs.
-     */
-    function toDip(payload) {
-        const target = root.screenForPhysical(Qt.point(payload.x, payload.y));
-        const at = root.dipOn(target, Qt.point(payload.x, payload.y));
-        const out = {};
-        for (const key in payload)
-            out[key] = payload[key];
-        out.x = at.x;
-        out.y = at.y;
-        return out;
+        profile.run(step);
     }
 
     // qmllint disable missing-property
@@ -519,7 +479,7 @@ Window {
     SelectionBar { id: bar }
     Bubble {
         id: bubble
-        onPlacementRequested: (payload) => root.placeTransient(bubble, payload, bubble.gap)
+        onPlacementRequested: (payload) => root.placeBubble(bubble, payload)
         onHeightChanged: root.keepOnScreen(bubble)
     }
     /// The pet's right-click opens the panel on the page that carries the pet's block, beside the pet: the side is
@@ -532,6 +492,30 @@ Window {
             // After, not before: the panel clears its own category every time it comes up, so it opens on the list.
             settingsPopup.openCategory("extensions");
         }
+    }
+
+    /// The pet's review sign (UI.md 4.13) and the card that answers it. Passive like the pet it hangs from.
+    ReviewSignWindow {
+        id: reviewSign
+        petWindow: petWindow
+        workAreaAt: point => root.workArea(root.screenFor(point))
+    }
+
+    /// The debug profiling steps, driven by main.cpp through profileScenario() (ProfileScenario.qml).
+    ProfileScenario {
+        id: profile
+
+        host: root
+        trayMenu: trayMenu
+        bubble: bubble
+        bar: bar
+    }
+
+    /// The mouse hook's native-pixel points, mapped to the DIPs the surfaces are placed in (ScreenPoints.qml).
+    ScreenPoints {
+        id: points
+
+        host: root
     }
 
     Notice {
@@ -624,7 +608,7 @@ Window {
                 return;
             }
 
-            const at = root.toDip(payload);
+            const at = points.toDip(payload);
             bar.selectionText = payload.text;
             bar.selectionKind = payload.kind;
             // Down before it is placed, rather than after: the bar is a window, so showing it
@@ -648,7 +632,7 @@ Window {
 
         function onPointerPressed(at) {
             ++root.selectionBarGeneration;
-            root.dismissOutside(root.toDip(at));
+            root.dismissOutside(points.toDip(at));
         }
     }
 
@@ -658,14 +642,14 @@ Window {
         function onBubbleChanged() {
             const payload = Controller.explanationDuty.bubble;
             if (payload && Object.keys(payload).length > 0) {
-                const at = root.toDip(payload);
+                const at = points.toDip(payload);
                 bubble.show(at);
                 // An answer now arrives a field at a time, so this runs several times for one card: a card the
                 // reader is holding is theirs, and the stream must not pull it back to the anchor (repositionVisible
                 // keeps the same rule for a screen change).
                 Qt.callLater(() => {
                     if (!bubble.dragging)
-                        root.placeTransient(bubble, at, bubble.gap);
+                        root.placeBubble(bubble, at);
                 });
             } else {
                 bubble.visible = false;

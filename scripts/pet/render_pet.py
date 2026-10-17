@@ -32,6 +32,8 @@ point is a cell centre, (x + 0.5, y + 0.5) for cell (x, y).
     frame.shapes     extra shapes, applied in order to the body: {op: add|discard, shape: ellipse|rect, ...}.
                      An ellipse takes cx, cy, rx, ry. A rect takes cols and rows, inclusive cell bounds.
     frame.paint      effect-layer items: {at: [x, y], colour, art | glyph}. In art, '#' is a cell.
+    frame.paintLeft  effect-layer items of the left-hand sheet (effectLeft), when the action has any. A frame's
+                     paintLeft replaces its paint there, so a right-hand paw never shows on the left.
   accessories        [{id, slot: head|face|body, except?: [action, ...], paint}]. Drawn once, in base coordinates.
                      Each action not in `except` goes into supportedActions.
 
@@ -289,6 +291,11 @@ def main():
             effect_path = f"sprites/effects/{name}.png"
             save(out / effect_path, sheet(effects), len(frames))
             entry["effect"] = effect_path
+        if any("paintLeft" in f for f in frames):
+            effects = [paint_frame(spec.get("paint", []) + f.get("paintLeft", f.get("paint", []))) for f in frames]
+            effect_path = f"sprites/effects/{name}-left.png"
+            save(out / effect_path, sheet(effects), len(frames))
+            entry["effectLeft"] = effect_path
         if body_from:
             # A frame that names its own pose overrides the reused one; the angry shake is exactly that.
             per_frame = [

@@ -381,6 +381,18 @@ TEST(PetConfig, TheAngryRoleIsOptional)
     EXPECT_EQ(playbook.roles.at(Role::Angry), "angry");
 }
 
+TEST(PetConfig, TheReviewSignRoleIsOptional)
+{
+    // A third-party package without the ask action must keep loading; its review sign then shows with no pose.
+    auto document = animationsDocument();
+    EXPECT_NO_THROW(parseAnimations(document));
+
+    document["actions"]["ask"] = {{"frames", 4}, {"fps", 4}, {"loop", true}};
+    document["roles"]["ask"]   = "ask";
+    auto const playbook        = parseAnimations(document).playbook;
+    EXPECT_EQ(playbook.roles.at(Role::Ask), "ask");
+}
+
 TEST(PetConfig, ADurationMarksHowLongALoopingActionRuns)
 {
     using namespace std::chrono_literals;

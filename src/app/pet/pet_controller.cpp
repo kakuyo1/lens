@@ -46,6 +46,18 @@ QPoint toPoint(core::pet::Point const& point)
     return QPoint{point.x, point.y};
 }
 
+/// @return The grips of the ask action's first frame, keyed "left" and "right": where the sign hangs at the start of a question.
+QVariantMap restGripsOf(PetAssets const& assets)
+{
+    auto       rest = QVariantMap{};
+    auto const hold = assets.animations.playbook.roles.find(core::pet::Role::Ask);
+    if (hold == assets.animations.playbook.roles.end()) return rest;
+    auto const& pictures = assets.sheets.at(hold->second);
+    if (not pictures.gripRight.empty()) rest["right"] = pictures.gripRight.front();
+    if (not pictures.gripLeft.empty()) rest["left"] = pictures.gripLeft.front();
+    return rest;
+}
+
 /// @return The point an accessory in `slot` is drawn at, for one frame's anchors.
 QPoint pointFor(core::pet::Anchors const& anchors, Slot slot)
 {
@@ -147,6 +159,8 @@ void PetController::loadPet(std::string const& id)
     action_.clear();
     shownAction_.clear();
     sheets_.clear();
+    handGrips_.clear();
+    handRest_.clear();
     anchors_      = {};
     frameIndex_   = 0;
     expression_   = 0;
@@ -191,6 +205,7 @@ void PetController::loadPet(std::string const& id)
         };
         machine_  = std::make_unique<core::pet::PetStateMachine>(assets_->animations.playbook, random, scenes);
         wardrobe_ = std::make_unique<core::pet::Wardrobe>(assets_->catalogue);
+        handRest_ = restGripsOf(*assets_);
 
         auto const outfit = store_.outfit();
         for (auto const& [slot, worn] : {std::pair{Slot::Head, outfit.head}, std::pair{Slot::Face, outfit.face}, std::pair{Slot::Body, outfit.body}}) {
@@ -237,6 +252,11 @@ bool PetController::passthrough() const
     return store_.passthrough();
 }
 
+bool PetController::idle() const
+{
+    return machine_ and machine_->idle();
+}
+
 QString PetController::pet() const
 {
     return QString::fromStdString(store_.pet());
@@ -278,6 +298,28 @@ int PetController::expression() const
 QVariantMap PetController::sheets() const
 {
     return sheets_;
+}
+
+QString PetController::handSide() const
+{
+    return handSide_;
+}
+
+QVariantMap PetController::handGrips() const
+{
+    return handGrips_;
+}
+
+QVariantMap PetController::handRest() const
+{
+    return handRest_;
+}
+
+void PetController::setHandSide(QString side)
+{
+    if ((side != QStringLiteral("left") and side != QStringLiteral("right")) or side == handSide_) return;
+    handSide_ = side;
+    emit handSideChanged();
 }
 
 QVariantMap PetController::anchors() const
@@ -617,6 +659,13 @@ void PetController::watchScreen(QScreen* screen)
     connect(screen, &QScreen::logicalDotsPerInchChanged, this, &PetController::keepOnScreen);
 }
 
+void PetController::keepOutOfCapture(QObject* object)
+{
+    auto const* window = qobject_cast<QWindow*>(object);
+    if (not window) return;
+    if (not excludeFromCapture(*window)) LENS_WARN("a window that must stay out of screen captures can appear in them: Windows refused the exclusion");
+}
+
 void PetController::keepOnScreen()
 {
     if (not window_) return;
@@ -646,6 +695,22 @@ QPoint PetController::initialPosition(QSize size) const
         }
     }
     return bottomRightOf(size, QGuiApplication::primaryScreen()->availableGeometry());
+}
+
+void PetController::fitOnScreen()
+{
+    if (not window_) return;
+    auto areas = QList<QRect>{};
+    for (auto const* screen : QGuiApplication::screens())
+        areas.append(screen->availableGeometry());
+    // The window grows right and down from its top-left, so a screen that holds the top-left is the one it must fit.
+    auto const index = indexOfNearestArea(window_->position(), areas);
+    if (index < 0) return;
+    auto const at = clampedWithin(window_->position(), window_->size(), areas.at(index));
+    if (at == window_->position()) return;
+    window_->setPosition(at);
+    // A remembered spot that no longer fits must not come back at the old size on the next start.
+    savePosition(at);
 }
 
 void PetController::savePosition(QPoint at)
@@ -727,12 +792,15 @@ void PetController::sync(std::chrono::milliseconds step)
     auto const name    = QString::fromStdString(action);
     auto const changed = name != action_ or frame != frameIndex_ or expression != expression_;
     if (name != action_) {
-        sheets_ = QVariantMap{{"body", urlOf(pictures.body)}, {"effect", urlOf(pictures.effect)}, {"expression", urlOf(assets.expressionSheet)}};
+        sheets_ = QVariantMap{{"body", urlOf(pictures.body)}, {"effect", urlOf(pictures.effect)}, {"effectLeft", urlOf(pictures.effectLeft)}, {"expression", urlOf(assets.expressionSheet)}};
     }
-    action_     = name;
-    frameIndex_ = frame;
-    expression_ = expression;
-    anchors_    = assets.anchors.at(action).at(static_cast<std::size_t>(frame));
+    action_       = name;
+    frameIndex_   = frame;
+    expression_   = expression;
+    auto const at = static_cast<std::size_t>(frame);
+    if (at < pictures.gripRight.size()) handGrips_["right"] = pictures.gripRight[at];
+    if (at < pictures.gripLeft.size()) handGrips_["left"] = pictures.gripLeft[at];
+    anchors_ = assets.anchors.at(action).at(static_cast<std::size_t>(frame));
 
     if (auto const* scene = scenesAllowed_ ? scenes_.find(action) : nullptr;
         scene and static_cast<std::size_t>(frame) < scene->perFrame.size()) {

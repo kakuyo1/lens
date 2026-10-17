@@ -20,6 +20,15 @@ QPoint bottomRightOf(QSize size, QRect available)
     return QPoint{available.right() - size.width() + 1, available.bottom() - size.height() + 1};
 }
 
+QPoint clampedWithin(QPoint at, QSize size, QRect area)
+{
+    // The last top-left that still keeps the far edge inside; it lies before the near edge on an axis too short
+    // for the window, which pins that axis to the area's near edge.
+    auto const clampAxis = [](int value, int low, int high) { return high < low ? low : std::clamp(value, low, high); };
+    return QPoint{clampAxis(at.x(), area.left(), area.right() - size.width() + 1),
+                  clampAxis(at.y(), area.top(), area.bottom() - size.height() + 1)};
+}
+
 QPoint placeWithin(QPoint at, QSize size, QList<QRect> const& areas, QRect primary)
 {
     for (auto const& area : areas) {

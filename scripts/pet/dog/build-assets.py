@@ -303,6 +303,7 @@ BODY = {
     "yawn": standing, "stretch": standing, "sleep": sleep,
     "wag": standing, "sniff": standing, "scratch": standing, "angry": standing,
     "swing": standing, "desk": standing, "skate": standing, "bath": standing, "rain": standing,
+    "ask": standing,
 }
 
 
@@ -315,11 +316,55 @@ def reading_book(n):
     return frames
 
 
+# The paw that holds the sign's pole, in two sheets: effects/ask.png (right hand) and effects/ask-left.png (left hand).
+# The fist is one symmetric silhouette, so both hands use the two masks below; only the column differs. A paw moves with
+# the body, so each frame adds the body anchor's dx and dy. The pole is drawn by the UI and comes down through the two
+# open finger rows at column 4, into the fist on row 3. The right fist is clamped inside the canvas (the body moves 3 px
+# right on ask); the left fist sits 3 px over the body's left edge at chest height.
+HAND_X = {"right": 76, "left": 27}
+HAND_Y = 48
+HAND_INK = [
+    ".###.###.",
+    ".#.#.#.#.",
+    ".#.#.#.#.",
+    ".#..#..#.",
+    "#.......#",
+    "#.......#",
+    ".#.....#.",
+    "..#####..",
+]
+HAND_FUR = [
+    ".........",
+    "..#...#..",
+    "..#...#..",
+    "..##.##..",
+    ".#######.",
+    ".#######.",
+    "..#####..",
+    ".........",
+]
+
+
+def hand(n, side):
+    anchors = manifest["actions"]["ask"]["anchors"]
+    frames = []
+    for i in range(n):
+        dx, dy = anchors[i]
+        f = Frame()
+        for colour, mask in ((INK, HAND_INK), (FUR, HAND_FUR)):
+            for j, row in enumerate(mask):
+                for k, ch in enumerate(row):
+                    if ch == "#":
+                        f.rect(HAND_X[side] + dx + k - OFFSET_X, HAND_Y + dy + j - OFFSET, 1, 1, colour)
+        frames.append(f)
+    return frames
+
+
 EFFECTS = {
     "study": reading_book, "thinking": thought, "celebrate": fireworks,
     "encourage": hearts, "click_react": pokes, "pickup": sweat, "look_around": question,
     "stretch": motion_lines, "sleep": zzz,
-    "wag": wag, "sniff": sniff, "scratch": scratch, "angry": anger,
+    "wag": wag, "sniff": sniff, "scratch": scratch, "angry": anger, "ask": lambda n: hand(n, "right"),
 }
 
 
@@ -332,10 +377,14 @@ def save_frames(name, frames):
     sheet.save(path)
 
 
+EFFECTS_LEFT = {"ask": lambda n: hand(n, "left")}
+
 for name, action in manifest["actions"].items():
     save_frames(action["sheet"], BODY[name](action["frames"]))
     if "effect" in action:
         save_frames(action["effect"], EFFECTS[name](action["frames"]))
+    if "effectLeft" in action:
+        save_frames(action["effectLeft"], EFFECTS_LEFT[name](action["frames"]))
 
 # Expression sheet: eye patterns inside each 3x3 eye cell ('#' is ink), then the mouth.
 EYE_PATTERNS = [

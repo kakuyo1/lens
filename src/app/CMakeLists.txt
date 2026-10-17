@@ -28,6 +28,8 @@ add_library(lens_app STATIC
   mouse_selection_hook.cpp
   paths.h
   paths.cpp
+  review_duty.h
+  review_duty.cpp
   selection_text_grabber.cpp
   storage_duty.h
   storage_duty.cpp
@@ -158,6 +160,12 @@ qt_add_qml_module(lens_app
   QML_FILES
     qml/Main.qml
     qml/PetWindow.qml
+    qml/ReviewSignWindow.qml
+    qml/ReviewSignBoard.qml
+    qml/ReviewCard.qml
+    qml/ReviewSignLayout.qml
+    qml/ProfileScenario.qml
+    qml/ScreenPoints.qml
     qml/PetScene.qml
     qml/PetStage.qml
     qml/PetPackageDialog.qml

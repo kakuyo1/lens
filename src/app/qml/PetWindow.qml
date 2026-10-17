@@ -26,13 +26,17 @@ Window {
 
     onVisibleChanged: Pet.setRunning(visible)
 
+    // A resize grows the window right and down from its top-left, which can take it off the screen: nudge it back,
+    // and save where it ended up. Both handlers run; the second finds nothing left to move when the first covered it.
+    onWidthChanged: Pet.fitOnScreen()
+    onHeightChanged: Pet.fitOnScreen()
+
     Component.onCompleted: {
         Pet.attachWindow(petWindow);
         place();
     }
 
-    /// Opens at the saved spot, or the corner when that no longer fits. Changing the size does not move the window: it
-    /// keeps the saved top-left and grows right and down, which may take it partly off-screen.
+    /// Opens at the saved spot, or the corner when that no longer fits.
     function place() {
         const at = Pet.initialPosition(Qt.size(width, height));
         x = at.x;

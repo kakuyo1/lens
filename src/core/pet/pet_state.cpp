@@ -40,7 +40,11 @@ void PetStateMachine::handle(PetEvent event)
         case PetEvent::DragEnd:
             if (not dragging) return;
             dragging = false;
-            enterRole(Role::Idle, Priority::Idle);
+            // A question still up keeps its sign: the board hangs on in its own window until it is answered.
+            if (held == Role::Ask)
+                enterRole(Role::Ask, Priority::Event);
+            else
+                enterRole(Role::Idle, Priority::Idle);
             return;
         case PetEvent::Click:
             if (dragging) return;
@@ -79,6 +83,21 @@ void PetStateMachine::handle(PetEvent event)
             return;
         case PetEvent::BudgetResumed:
             release(Role::Sleep);
+            return;
+        case PetEvent::ReviewAsked:
+            hold(Role::Ask);
+            return;
+        case PetEvent::ReviewRemembered:
+            release(Role::Ask);
+            request(Role::Celebrate, Priority::Event);
+            return;
+        case PetEvent::ReviewForgotten:
+            release(Role::Ask);
+            request(Role::Encourage, Priority::Event);
+            return;
+        case PetEvent::ReviewIgnored:
+            release(Role::Ask);
+            request(Role::Angry, Priority::Event);
             return;
     }
 }
@@ -179,6 +198,8 @@ void PetStateMachine::enterRole(Role role, Priority newPriority)
 
 void PetStateMachine::hold(Role state)
 {
+    // A pet without this role's art cannot hold it: recording it anyway would make settle() look it up later.
+    if (playbook.roles.count(state) == 0) return;
     held = state;
     request(state, Priority::Event);
 }

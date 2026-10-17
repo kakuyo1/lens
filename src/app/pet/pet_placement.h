@@ -19,6 +19,16 @@ bool fitsWithin(QPoint at, QSize size, QRect available);
 QPoint bottomRightOf(QSize size, QRect available);
 
 /**
+ * @brief Nudges a window the least distance that brings it wholly inside `area`.
+ * @param at Current top-left of the window.
+ * @param size Size of the window.
+ * @param area The usable area of one screen.
+ * @return `at` when it already fits, else each overflowing axis pulled back to the area's edge. An axis the window
+ *         cannot fit in at all pins to the area's near edge, so the overflow stays on the far side.
+ */
+QPoint clampedWithin(QPoint at, QSize size, QRect area);
+
+/**
  * @brief Keeps a window where it is while some screen still holds it, else moves it to the primary screen's corner.
  * @param at Current top-left of the window.
  * @param size Size of the window.

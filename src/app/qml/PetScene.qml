@@ -18,6 +18,8 @@ Item {
 
     readonly property bool inScene: Pet.scene !== ""
     readonly property var sceneLayers: Pet.sceneLayers
+    /// The hand that holds the sign, "left" or "right": the desktop pet's own, unless a stage chooses another.
+    property string handSide: Pet.handSide
 
     Item {
         id: stage
@@ -68,7 +70,7 @@ Item {
 
             SpriteLayer {
                 z: Pet.layers.effect
-                sheet: Pet.sheets.effect
+                sheet: root.handSide === "left" && Pet.sheets.effectLeft ? Pet.sheets.effectLeft : Pet.sheets.effect
                 frame: Pet.frameIndex
                 at: Qt.point(0, 0)
             }

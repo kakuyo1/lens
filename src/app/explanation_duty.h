@@ -53,6 +53,17 @@ public:
      * @param anchor Where the row is, in the physical pixels the other surfaces anchor with.
      */
     void reviewWord(QString lemma, QPoint anchor);
+    /**
+     * @brief Show the stored explanation of a word the reader has just answered about (docs/adr/0050).
+     *
+     * Like reviewWord() it makes no request and records no pop, and the pet hears nothing: the answer is
+     * already the event. Unlike it, the card counts down on its own and offers no Known / New buttons.
+     * Nothing shows when the word has no stored copy in the current explanation language.
+     *
+     * @param lemma  The word the question was about.
+     * @param anchor Where the pet's sign is, in the physical pixels the other surfaces anchor with.
+     */
+    void showReviewAnswer(QString const& lemma, QPoint anchor);
     /// @brief Take down a bubble raised by reviewWord(); one raised anywhere else is left alone.
     ///
     /// The row decides this and only the row does. The bubble's own hover state is not read here on
@@ -120,7 +131,10 @@ private:
     /// @param reveal Whether the card writes its answer out a character at a time. False for the
     ///        cards raised whole out of the cache: nothing is arriving there, and the word list puts
     ///        one up for every row the pointer crosses.
-    void    showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool countsDown = true, bool notifyPet = true, bool reveal = true);
+    /// @param verdictButtons Whether the card offers the Known / New buttons. False for the card that
+    ///        follows a review answer: a review result and a manual mark are separate lines, so that
+    ///        card leaves the mark alone.
+    void    showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool countsDown = true, bool notifyPet = true, bool reveal = true, bool verdictButtons = true);
     QString noticeTitle(PendingSelection const& pending) const;
     ///
     /// One reader of this, two uses: the request asks the model for it, and the card decides

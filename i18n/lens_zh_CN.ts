@@ -4,37 +4,37 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="399"/>
+        <location filename="../src/app/qml/Bubble.qml" line="404"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="399"/>
+        <location filename="../src/app/qml/Bubble.qml" line="404"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="398"/>
+        <location filename="../src/app/qml/Bubble.qml" line="403"/>
         <source>Sentence</source>
         <translation>句子</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="397"/>
+        <location filename="../src/app/qml/Bubble.qml" line="402"/>
         <source>Preview</source>
         <translation>预览</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="544"/>
+        <location filename="../src/app/qml/Bubble.qml" line="549"/>
         <source>Etymology</source>
         <translation>词源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="583"/>
+        <location filename="../src/app/qml/Bubble.qml" line="588"/>
         <source>Example</source>
         <translation>例句</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="619"/>
+        <location filename="../src/app/qml/Bubble.qml" line="625"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒后自动消失</translation>
     </message>
@@ -119,6 +119,19 @@
     </message>
 </context>
 <context>
+    <name>ReviewCard</name>
+    <message>
+        <location filename="../src/app/qml/ReviewCard.qml" line="64"/>
+        <source>Forgot</source>
+        <translation>忘了</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/ReviewCard.qml" line="94"/>
+        <source>Remembered</source>
+        <translation>记得</translation>
+    </message>
+</context>
+<context>
     <name>SelectionBar</name>
     <message>
         <location filename="../src/app/qml/SelectionBar.qml" line="127"/>
@@ -200,29 +213,34 @@
         <translation>有未保存的更改</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsLearningPage.qml" line="31"/>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="32"/>
         <source>Vocabulary level</source>
         <translation>词汇档位</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsLearningPage.qml" line="50"/>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="51"/>
         <source>Explanation language</source>
         <translation>解释语言</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsLearningPage.qml" line="69"/>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="70"/>
         <source>Multiple senses</source>
         <translation>多义解释</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsLearningPage.qml" line="81"/>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="82"/>
         <source>Etymology</source>
         <translation>词源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsLearningPage.qml" line="91"/>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="92"/>
         <source>Example sentence</source>
         <translation>例句</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="103"/>
+        <source>Word review</source>
+        <translation>单词复习</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsAboutPage.qml" line="27"/>
@@ -452,7 +470,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="55"/>
-        <location filename="../src/app/app_controller.cpp" line="316"/>
+        <location filename="../src/app/app_controller.cpp" line="320"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -541,8 +559,8 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="44"/>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="157"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="562"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="158"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="585"/>
         <source>Desktop companion</source>
         <translation>桌面宠物</translation>
     </message>
@@ -654,17 +672,17 @@
         <translation>自定义服务</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="308"/>
+        <location filename="../src/app/app_controller.cpp" line="312"/>
         <source>Checking OCR</source>
         <translation>正在检查 OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="309"/>
+        <location filename="../src/app/app_controller.cpp" line="313"/>
         <source>English OCR data is missing</source>
         <translation>缺少英文 OCR 数据</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="313"/>
+        <location filename="../src/app/app_controller.cpp" line="317"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR 运行时不可用</translation>
     </message>
@@ -730,352 +748,357 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="40"/>
+        <source>Hold sign</source>
+        <translation>举牌</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="41"/>
         <source>Wobble</source>
         <translation>摇晃</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="41"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="42"/>
         <source>Bounce</source>
         <translation>弹跳</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="42"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="43"/>
         <source>Hiccup</source>
         <translation>打嗝</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="43"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="44"/>
         <source>Shiver</source>
         <translation>发抖</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="44"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="45"/>
         <source>Spin</source>
         <translation>转圈</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="45"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="46"/>
         <source>Preen</source>
         <translation>梳理羽毛</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="46"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="47"/>
         <source>Hop</source>
         <translation>跳一下</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="47"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="48"/>
         <source>Flap</source>
         <translation>扑翅</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="48"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="49"/>
         <source>Hoot</source>
         <translation>咕咕叫</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="49"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="50"/>
         <source>Nod</source>
         <translation>点头</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="50"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="51"/>
         <source>Groom</source>
         <translation>舔毛</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="51"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="52"/>
         <source>Tail flick</source>
         <translation>甩尾巴</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="52"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="53"/>
         <source>Knead</source>
         <translation>踩奶</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="53"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="54"/>
         <source>Pounce</source>
         <translation>扑击</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="54"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="55"/>
         <source>Scratch</source>
         <translation>抓挠</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="61"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="62"/>
         <source>Swing</source>
         <translation>荡秋千</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="62"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="63"/>
         <source>Desk</source>
         <translation>敲电脑</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="63"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="64"/>
         <source>Skateboard</source>
         <translation>滑滑板</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="64"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="65"/>
         <source>Bubble bath</source>
         <translation>泡澡</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="65"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="66"/>
         <source>Rain</source>
         <translation>撑伞看雨</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="72"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="73"/>
         <source>Top hat</source>
         <translation>礼帽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="73"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="74"/>
         <source>Beanie</source>
         <translation>毛线帽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="74"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="75"/>
         <source>Sprout</source>
         <translation>嫩芽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="75"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="76"/>
         <source>Crown</source>
         <translation>王冠</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="76"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="77"/>
         <source>Round glasses</source>
         <translation>圆框眼镜</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="77"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="78"/>
         <source>Sunglasses</source>
         <translation>墨镜</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="78"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="79"/>
         <source>Bow tie</source>
         <translation>西服领结</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="79"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="80"/>
         <source>Flower</source>
         <translation>花</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="80"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="81"/>
         <source>Party hat</source>
         <translation>派对帽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="81"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="82"/>
         <source>Blush</source>
         <translation>腮红</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="82"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="83"/>
         <source>Scarf</source>
         <translation>围巾</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="83"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="84"/>
         <source>Apron</source>
         <translation>围裙</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="84"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="85"/>
         <source>Hair bow</source>
         <translation>发结</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="85"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="86"/>
         <source>Reading glasses</source>
         <translation>老花镜</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="86"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="87"/>
         <source>Sleep mask</source>
         <translation>眼罩</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="87"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="88"/>
         <source>Vest</source>
         <translation>马甲</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="88"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="89"/>
         <source>Bell collar</source>
         <translation>铃铛项圈</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="89"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="90"/>
         <source>Bandana</source>
         <translation>三角巾</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="96"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="97"/>
         <source>Head</source>
         <translation>头</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="97"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="98"/>
         <source>Face</source>
         <translation>脸</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="98"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="99"/>
         <source>Body</source>
         <translation>身</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="104"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="564"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="105"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="587"/>
         <source>Dog</source>
         <translation>小狗</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="105"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="106"/>
         <source>Mochi</source>
         <translation>麻糬</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="106"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="107"/>
         <source>Owl</source>
         <translation>猫头鹰</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="107"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="108"/>
         <source>Cat</source>
         <translation>猫</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="115"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="116"/>
         <source>The package format is not supported.</source>
         <translation>宠物包格式不受支持。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="116"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="117"/>
         <source>The package exceeds the size limits.</source>
         <translation>宠物包超出大小上限。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="117"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="118"/>
         <source>The package name is not valid.</source>
         <translation>宠物包的名字不合法。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="118"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="119"/>
         <source>A required action is missing.</source>
         <translation>缺少必需的动作。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="119"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="120"/>
         <source>An action is not valid.</source>
         <translation>有动作不合规。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="120"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="121"/>
         <source>The anchor data is not valid.</source>
         <translation>锚点数据不合规。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="121"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="122"/>
         <source>An accessory is not valid.</source>
         <translation>有配饰不合规。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="122"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="123"/>
         <source>An image is not a valid PNG.</source>
         <translation>有图片不是有效的 PNG。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="123"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="124"/>
         <source>An image size does not match its frames.</source>
         <translation>有图片尺寸与帧数不符。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="124"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="125"/>
         <source>An expression index is out of range.</source>
         <translation>有表情索引越界。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="125"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="126"/>
         <source>An image path points outside the package.</source>
         <translation>有图片路径越出包目录。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="126"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="127"/>
         <source>The package id is already in use.</source>
         <translation>宠物包 id 已被占用。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="127"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="128"/>
         <source>The package could not be read.</source>
         <translation>宠物包读不到。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="166"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="167"/>
         <source>Mouse pass-through</source>
         <translation>鼠标穿透</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="182"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="183"/>
         <source>Desktop pet size</source>
         <translation>桌宠大小</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="226"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="227"/>
         <source>Pet type</source>
         <translation>宠物类型</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="238"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="239"/>
         <source>External</source>
         <translation>外部</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="252"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="253"/>
         <source>Pet packages</source>
         <translation>宠物包</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="259"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="260"/>
         <source>Copy a pet package folder into the packages folder. Lens reads it when you open this section.</source>
         <translation>把宠物包文件夹复制到宠物包目录里，打开本分类时 Lens 会重新读取。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="267"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="268"/>
         <source>Open packages folder</source>
         <translation>打开宠物包目录</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="280"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="281"/>
         <source>%1: %2</source>
         <translation>%1：%2</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="294"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="295"/>
         <source>Preview</source>
         <translation>预览</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="309"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="310"/>
         <source>Actions</source>
         <translation>动作</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="339"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="340"/>
         <source>Scenes</source>
         <translation>场景</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="367"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="368"/>
         <source>Accessories</source>
         <translation>配饰</translation>
     </message>
@@ -1242,7 +1265,7 @@
         <translation>确认删除</translation>
     </message>
     <message>
-        <location filename="../src/app/pet/pet_controller.cpp" line="563"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="586"/>
         <source>This pet package is no longer installed. Switched to %1.</source>
         <translation>该宠物包已不存在，已切换到 %1。</translation>
     </message>
@@ -1637,24 +1660,44 @@
 <context>
     <name>lens::app::AppController</name>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="73"/>
-        <location filename="../src/app/storage_duty.cpp" line="74"/>
+        <location filename="../src/app/storage_duty.cpp" line="84"/>
+        <location filename="../src/app/storage_duty.cpp" line="85"/>
         <source>CEFR</source>
         <translation>CEFR</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="75"/>
-        <location filename="../src/app/storage_duty.cpp" line="76"/>
-        <location filename="../src/app/storage_duty.cpp" line="77"/>
-        <location filename="../src/app/storage_duty.cpp" line="78"/>
+        <location filename="../src/app/storage_duty.cpp" line="86"/>
+        <location filename="../src/app/storage_duty.cpp" line="87"/>
+        <location filename="../src/app/storage_duty.cpp" line="88"/>
+        <location filename="../src/app/storage_duty.cpp" line="89"/>
         <source>National exams</source>
         <translation>国内考试</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="79"/>
-        <location filename="../src/app/storage_duty.cpp" line="80"/>
+        <location filename="../src/app/storage_duty.cpp" line="90"/>
+        <location filename="../src/app/storage_duty.cpp" line="91"/>
         <source>Study-abroad exams</source>
         <translation>出国考试</translation>
+    </message>
+    <message>
+        <location filename="../src/app/storage_duty.cpp" line="109"/>
+        <source>Off</source>
+        <translation>关闭</translation>
+    </message>
+    <message>
+        <location filename="../src/app/storage_duty.cpp" line="111"/>
+        <source>Every 15–30 minutes</source>
+        <translation>每 15–30 分钟</translation>
+    </message>
+    <message>
+        <location filename="../src/app/storage_duty.cpp" line="113"/>
+        <source>Every 30–60 minutes</source>
+        <translation>每 30–60 分钟</translation>
+    </message>
+    <message>
+        <location filename="../src/app/storage_duty.cpp" line="115"/>
+        <source>Every 1–2 hours</source>
+        <translation>每 1–2 小时</translation>
     </message>
     <message>
         <location filename="../src/app/explanation_duty.cpp" line="233"/>
@@ -1667,53 +1710,53 @@
         <translation>现在解释</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="316"/>
+        <location filename="../src/app/explanation_duty.cpp" line="326"/>
         <source>Explaining…</source>
         <translation>正在解释…</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="415"/>
+        <location filename="../src/app/explanation_duty.cpp" line="426"/>
         <source>Request failed</source>
         <translation>请求失败</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="301"/>
+        <location filename="../src/app/app_controller.cpp" line="305"/>
         <source>Screenshot capture is off.</source>
         <translation>截图取词未开启。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="302"/>
-        <location filename="../src/app/app_controller.cpp" line="542"/>
+        <location filename="../src/app/app_controller.cpp" line="306"/>
+        <location filename="../src/app/app_controller.cpp" line="576"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>今日预算已用尽。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="303"/>
+        <location filename="../src/app/app_controller.cpp" line="307"/>
         <source>A recognition is already running.</source>
         <translation>正在识别，请稍候。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="305"/>
+        <location filename="../src/app/app_controller.cpp" line="309"/>
         <source>That region cannot be captured.</source>
         <translation>所选区域无法取词（须在同一块屏幕内且不过大）。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="306"/>
+        <location filename="../src/app/app_controller.cpp" line="310"/>
         <source>No text was found in that region.</source>
         <translation>所选区域里没有找到文字。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="307"/>
+        <location filename="../src/app/app_controller.cpp" line="311"/>
         <source>That region could not be read.</source>
         <translation>所选区域无法识别。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="846"/>
+        <location filename="../src/app/app_controller.cpp" line="882"/>
         <source>Auto</source>
         <translation>自动模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="846"/>
+        <location filename="../src/app/app_controller.cpp" line="882"/>
         <source>Manual</source>
         <translation>手动模式</translation>
     </message>

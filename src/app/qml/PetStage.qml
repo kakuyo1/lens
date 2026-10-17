@@ -7,6 +7,9 @@ import QtQuick.Window
  *
  * It shares Pet with the desktop window, so an action picked here plays on the desktop too while the
  * settings stay open. That is the one pet; a second clock would only fight the first for frames.
+ *
+ * While the hold-sign action plays, the review sign's board hangs from the pet's hand as it does on the desktop (UI.md 4.13),
+ * so the reader sees what the action is for. The pet stays where it is; only the board moves, to stay on the stage.
  */
 Rectangle {
     id: stage
@@ -16,7 +19,10 @@ Rectangle {
 
     readonly property bool onScreen: visible && Window.window !== null && Window.window.visible
     readonly property int petSize: Math.round(Pet.canvas * Pet.scale)
-
+    readonly property bool signShown: Pet.action === "ask" && sign.word !== ""
+    /// Where the figure sits: centred on the art's ink, as it always was.
+    readonly property real figureX: stage.width / 2 - Pet.inkCentre * Pet.scale
+    readonly property real figureY: stage.height - stage.petSize - 12
     implicitHeight: petSize + 24
     radius: stage.tokens.radiusGroup
     color: stage.tokens.panel2
@@ -40,9 +46,45 @@ Rectangle {
         color: stage.tokens.line
     }
 
-    PetScene {
-        // Centred on the figure rather than the canvas: the art sits right of its canvas's middle.
-        x: stage.width / 2 - Pet.inkCentre * Pet.scale
-        y: stage.height - stage.petSize - 12
+    /// The sign's placement on this stage, with the stage as the screen and no card counted, as pet-review.html chooses it:
+    /// the hand that holds the sign, and where its board hangs from that hand's grip.
+    ReviewSignLayout {
+        id: layout
+
+        scale: Pet.scale
+        figure: Qt.point(stage.figureX, stage.figureY)
+        area: ({left: 0, top: 0, right: stage.width, bottom: stage.height})
+        restGrips: Pet.handRest
+        grips: Pet.handGrips
+        word: Controller.settingPreview.word || ""
+        // The card pet-review.html draws beside the board: .btn 34 px tall, 8 px padding and a 1 px border on each side.
+        // The preview draws no card, so the card is not counted.
+        cardWidth: 210
+        cardHeight: 52
+        withCard: false
     }
+    readonly property var choice: layout.choose()
+    readonly property string handSide: choice ? choice.hand : "left"
+    readonly property point signAt: choice ? layout.boardAt(choice.hand, layout.nudgeFor(choice.hand, choice.on)) : Qt.point(0, 0)
+
+    PetScene {
+        id: scene
+
+        x: stage.figureX
+        y: stage.figureY
+        handSide: stage.handSide
+    }
+
+    ReviewSignBoard {
+        id: sign
+
+        visible: stage.signShown
+        word: Controller.settingPreview.word || ""
+        petScale: Pet.scale
+        side: stage.handSide
+        designWidth: layout.designWidth
+        x: Math.round(stage.signAt.x)
+        y: Math.round(stage.signAt.y)
+    }
+
 }

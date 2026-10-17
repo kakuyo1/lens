@@ -173,6 +173,9 @@ int main(int argc, char* argv[])
     lens::log::installQtMessageHandler();
 
     const std::filesystem::path dataDir = dataDirectory();
+    // The review sign's word face (UI.md 4.13). Without the file the sign falls back to the monospace family it names.
+    if (QFontDatabase::addApplicationFont(QString::fromStdWString((dataDir / "fonts" / "PixelifySans-Regular.ttf").native())) < 0)
+        LENS_WARN("the review sign's font is missing; the sign uses the monospace family instead");
     try {
         lens::core::loadWordlist(dataDir / "wordlist.txt");
         lens::core::loadIrregulars(dataDir / "irregulars.tsv");
@@ -223,6 +226,7 @@ int main(int argc, char* argv[])
     lens::app::pet::PetController petController(dataDir / "pet", settings.parent_path() / "pets", petStore);
     lens::app::pet::PetController::provide(&petController);
     QObject::connect(&controller, &AppController::petEvent, &petController, &lens::app::pet::PetController::handle);
+    controller.bindPet(&petController);
     QObject::connect(&petController, &lens::app::pet::PetController::fellBack, &controller, [&controller](QString title, QString body) {
         controller.explanationDuty()->showNotice(title, body, QString::fromLatin1(lens::app::kNoticeInfo));
     });

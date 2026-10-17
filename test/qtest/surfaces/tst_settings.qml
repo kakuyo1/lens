@@ -296,6 +296,53 @@ Item {
             tryVerify(() => field.openChildRect === null, 2000, "a press outside the panel left its dropdown list up");
         }
 
+        /// The learning page's word review dropdown, which is the same kind of list as the pet page's.
+        function openLearningPanel() {
+            const main = make();
+            const panel = settingsPanel(main);
+            main.showSettings();
+            wait(25);
+            panel.openCategory("learning");
+            wait(25);
+            return {main: main, panel: panel};
+        }
+
+        function reviewFieldOf(panel) {
+            const fields = findDeep(panel, function (o) {
+                return o.toString().indexOf("DropdownField_QMLTYPE") === 0 && o.objectName === "reviewField";
+            });
+            verify(fields.length > 0, "the learning page has no word review dropdown");
+            return fields[0];
+        }
+
+        function test_aPressOutsideThePanelPutsTheWordReviewListDown() {
+            Pet.setEnabled(true);
+            const shown = openLearningPanel();
+            const field = reviewFieldOf(shown.panel);
+            mouseClick(field, field.width / 2, field.height / 2);
+            tryVerify(() => field.openChildRect !== null, 2000, "the field did not open its list");
+
+            shown.main.dismissOutside(Qt.point(shown.panel.x - 40, shown.panel.y - 40));
+
+            compare(shown.panel.visible, false, "the press did not put the panel down, so the case proves nothing");
+            tryVerify(() => field.openChildRect === null, 2000, "a press outside the panel left the word review list up");
+        }
+
+        /// A press on the list belongs to the list: neither the panel nor the list goes down, so the pick can land.
+        function test_aPressOnTheWordReviewListLeavesThePanelUp() {
+            Pet.setEnabled(true);
+            const shown = openLearningPanel();
+            const field = reviewFieldOf(shown.panel);
+            mouseClick(field, field.width / 2, field.height / 2);
+            tryVerify(() => field.openChildRect !== null, 2000, "the field did not open its list");
+
+            const rect = field.openChildRect;
+            shown.main.dismissOutside(Qt.point(rect.x + rect.width / 2, rect.y + rect.height / 2));
+
+            compare(shown.panel.visible, true, "a press on the list put the panel down");
+            verify(field.openChildRect !== null, "a press on the list put the list down before it could be picked");
+        }
+
         function test_aQuestionOnThePanelTakesEscapeBeforeTheCategoryDoes() {
             const shown = openPetPanel();
             const question = findDeep(shown.panel, function (o) {
