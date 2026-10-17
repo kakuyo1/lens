@@ -358,6 +358,13 @@ Item {
             onToggled: (on) => Controller.updateDuty.setAutoCheck(on)
         }
 
+        // Above the account row: the two are the page's only doors, and one is about this
+        // machine's own copy while the other is about the copy that leaves it.
+        SettingsLinkRow {
+            label: qsTranslate("SettingsPopup", "Font")
+            onPicked: page.childRequested("font")
+        }
+
         SettingsLinkRow {
             label: qsTranslate("SettingsPopup", "Account & sync")
             onPicked: page.childRequested("sync")

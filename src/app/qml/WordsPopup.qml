@@ -32,6 +32,10 @@ Window {
     property bool leaving: false
 
     readonly property int shadowMargin: 26
+    /// The face the words themselves are drawn in, from the reader's font setting (UI.md 4.4). The
+    /// rows are the same English the bubble draws, so they are set in the same one; the dates,
+    /// counts and pills around them are the surface's own and keep the application's face.
+    readonly property string englishFont: Controller.settings.font
     readonly property int minCardWidth: 320
     readonly property int maxCardWidth: 560
 
@@ -403,6 +407,7 @@ Window {
                             anchors.verticalCenter: parent.verticalCenter
                             text: entry.modelData.word
                             color: words.tokens.text
+                            font.family: words.englishFont
                             font.pixelSize: 13
                             elide: Text.ElideRight
 

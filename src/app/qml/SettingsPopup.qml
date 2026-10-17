@@ -61,6 +61,7 @@ Window {
     }
 
     function routeTitle(value) {
+        if (value === "font") return qsTranslate("SettingsPopup", "Font");
         if (value === "clipboard") return qsTranslate("SettingsPopup", "Popup & clipboard");
         if (value === "connection") return qsTranslate("SettingsPopup", "API configuration");
         if (value === "sync") return qsTranslate("SettingsPopup", "Account & sync");
@@ -213,6 +214,7 @@ Window {
         Controller.setExplanationLang("en");
         Controller.setMultiSense(false);
         Controller.setTheme("light");
+        Controller.setFont("");
         Controller.setAnimationsEnabled(true);
         Controller.setRevealSpeed(3);
         Controller.setSelectionCapture(true);
@@ -393,6 +395,7 @@ Window {
                 // qmllint enable missing-property
                 sourceComponent: settings.route === "clipboard" ? clipboardComponent
                                  : settings.route === "connection" ? connectionComponent
+                                 : settings.route === "font" ? fontComponent
                                  : settings.route === "sync" ? syncComponent
                                  : settings.category === "" ? catalogComponent
                                   : settings.category === "general" ? generalComponent
@@ -540,6 +543,12 @@ Window {
         id: budgetComponent
         SettingsBudgetPage {
             onBudgetChanged: (amount) => Controller.setDailyBudget(amount)
+        }
+    }
+    Component {
+        id: fontComponent
+        SettingsFontPage {
+            onPreviewRequested: (key) => settings.previewKey = key
         }
     }
     Component { id: extensionsComponent; SettingsExtensionsPage {} }
