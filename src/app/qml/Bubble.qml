@@ -308,7 +308,6 @@ Window {
             radius: bubble.tokens.radiusCard
             color: bubble.tokens.glassMode === "" ? bubble.tokens.bubbleBg : "transparent"
             border.width: 1
-            // Under glass the rim is the edge; this border belongs to the solid themes.
             border.color: bubble.tokens.glassMode === "" ? bubble.tokens.bubbleBorder : "transparent"
 
             GlassSurface {
