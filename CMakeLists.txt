@@ -174,8 +174,11 @@ add_custom_target(installer
   # Packed from inside portable/ so the archive's root is Lens-<version>/ and unzipping it puts
   # one directory in front of the files. cmake -E tar keeps the path it is given rather than
   # stripping to the basename, so naming portable/ here would leave that in the archive too.
+  # -E chdir runs what follows as a program found on PATH, so cmake is named again here: a bare
+  # `tar` is GNU tar under Git Bash, whose --format table has no zip.
   COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_BINARY_DIR}/installer/portable"
-          tar cf "../Lens-${PROJECT_VERSION}-portable.zip" --format=zip "Lens-${PROJECT_VERSION}"
+          ${CMAKE_COMMAND} -E tar cf "../Lens-${PROJECT_VERSION}-portable.zip" --format=zip
+          "Lens-${PROJECT_VERSION}"
   DEPENDS lens
           "${CMAKE_SOURCE_DIR}/installer/stage_ocr.cmake"
           "${CMAKE_SOURCE_DIR}/installer/THIRD_PARTY_NOTICES.txt"
