@@ -7,6 +7,9 @@
     "exist in the four explanation languages, so the preview can show what picking one produces",
     "-- the language of an explanation is a runtime setting, not the interface's. The example",
     "sentence is English in all four, as it is in a real explanation.",
+    "`vocabulary` is the other preview's content: six words per vocabulary level, in the order the",
+    "word cloud draws them (the first two are the largest). The lists are illustrative, not the",
+    "word list the level is built from.",
     "Read once at startup; editing this file needs no rebuild. A file that cannot be read leaves",
     "the map empty and the preview is then simply not raised."
   ],
@@ -44,5 +47,15 @@
     "es": "Del inglés antiguo springan, saltar o brotar.",
     "ja": "古英語の springan（跳ねる、わき出る）から。"
   },
-  "example": "The cat sprang onto the table."
+  "example": "The cat sprang onto the table.",
+  "vocabulary": {
+    "0": ["achieve", "opportunity", "environment", "approach", "benefit", "circumstance"],
+    "1": ["coherent", "scrutinize", "deteriorate", "ubiquitous", "inevitable", "nuance"],
+    "2": ["accurate", "efficient", "abandon", "campaign", "absorb", "maintain"],
+    "3": ["explicit", "aesthetic", "privilege", "inhibit", "compensate", "deteriorate"],
+    "4": ["bulletin", "adverse", "controversy", "speculate", "facilitate", "eloquent"],
+    "5": ["conundrum", "belligerent", "perfunctory", "esoteric", "abstruse", "acquiesce"],
+    "6": ["accommodation", "urbanisation", "sustainable", "infrastructure", "curriculum", "demographic"],
+    "7": ["hypothesis", "cognitive", "molecule", "terrestrial", "archaeology", "sediment"]
+  }
 }

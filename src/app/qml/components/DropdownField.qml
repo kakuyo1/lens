@@ -194,6 +194,12 @@ Item {
                 return;
         }
         root.optionPreviewWindow.showOption(option);
+        // A preview whose data could not be read says so and stays down, rather than standing
+        // empty beside the list (the vocabulary card when data/preview.json has no words).
+        if (root.optionPreviewWindow.hasContent === false) {
+            root.optionPreviewWindow.visible = false;
+            return;
+        }
         root.placeOptionPreview();
         // The row can be gone by the time placement looks for it, which put the window down.
         if (root.hoveredIndex === -1)
@@ -522,11 +528,11 @@ Item {
                         }
 
                         Text {
-                            visible: group.modelData.note !== ""
+                            visible: (group.modelData.note || "") !== ""
                             anchors.right: parent.right
                             anchors.rightMargin: 11
                             anchors.verticalCenter: parent.verticalCenter
-                            text: group.modelData.note
+                            text: group.modelData.note || ""
                             textFormat: Text.PlainText
                             color: group.modelData.value === root.currentValue ? Qt.rgba(1, 1, 1, 0.62) : root.tokens.faint
                             font.pixelSize: 11

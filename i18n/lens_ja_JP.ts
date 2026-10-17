@@ -4,37 +4,37 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="436"/>
+        <location filename="../src/app/qml/Bubble.qml" line="434"/>
         <source>Preview</source>
         <translation>プレビュー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="437"/>
+        <location filename="../src/app/qml/Bubble.qml" line="435"/>
         <source>Sentence</source>
         <translation>文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="438"/>
+        <location filename="../src/app/qml/Bubble.qml" line="436"/>
         <source>Known</source>
         <translation>覚えた</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="438"/>
+        <location filename="../src/app/qml/Bubble.qml" line="436"/>
         <source>New</source>
         <translation>初見</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="583"/>
+        <location filename="../src/app/qml/Bubble.qml" line="581"/>
         <source>Etymology</source>
         <translation>語源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="622"/>
+        <location filename="../src/app/qml/Bubble.qml" line="620"/>
         <source>Example</source>
         <translation>例文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="660"/>
+        <location filename="../src/app/qml/Bubble.qml" line="658"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒後に消えます</translation>
     </message>
@@ -195,7 +195,7 @@
     <message>
         <location filename="../src/app/qml/SettingsBudgetPage.qml" line="37"/>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="38"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="60"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="63"/>
         <source>Daily budget</source>
         <translation>1 日の予算</translation>
     </message>
@@ -233,7 +233,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="93"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="68"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="71"/>
         <source>Popup &amp; clipboard</source>
         <translation>ポップアップとクリップボード</translation>
     </message>
@@ -251,7 +251,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="18"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="56"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="59"/>
         <source>General</source>
         <translation>一般</translation>
     </message>
@@ -262,7 +262,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="23"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="57"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="60"/>
         <source>Reading &amp; learning</source>
         <translation>読解と学習</translation>
     </message>
@@ -273,13 +273,13 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="28"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="58"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="61"/>
         <source>Capture &amp; popups</source>
         <translation>取得とポップアップ</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="33"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="59"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="62"/>
         <source>Model service</source>
         <translation>モデルサービス</translation>
     </message>
@@ -295,7 +295,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="43"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="61"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="64"/>
         <source>Extensions</source>
         <translation>拡張</translation>
     </message>
@@ -308,7 +308,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="48"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="62"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="65"/>
         <source>About</source>
         <translation>情報</translation>
     </message>
@@ -568,7 +568,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsGeneralPage.qml" line="392"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="70"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="73"/>
         <source>Account &amp; sync</source>
         <translation>アカウントと同期</translation>
     </message>
@@ -578,32 +578,32 @@
         <translation>Windows のアクセシビリティ設定により、アニメーションは無効です。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsLearningPage.qml" line="32"/>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="42"/>
         <source>Vocabulary level</source>
         <translation>語彙レベル</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsLearningPage.qml" line="51"/>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="61"/>
         <source>Explanation language</source>
         <translation>解説の言語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsLearningPage.qml" line="70"/>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="81"/>
         <source>Multiple senses</source>
         <translation>複数の語義</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsLearningPage.qml" line="82"/>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="93"/>
         <source>Etymology</source>
         <translation>語源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsLearningPage.qml" line="92"/>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="103"/>
         <source>Example sentence</source>
         <translation>例文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsLearningPage.qml" line="103"/>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="114"/>
         <source>Word review</source>
         <translation>単語の復習</translation>
     </message>
@@ -619,7 +619,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsModelPage.qml" line="88"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="69"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="72"/>
         <source>API configuration</source>
         <translation>API 設定</translation>
     </message>
@@ -634,33 +634,33 @@
         <translation>未設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="228"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="234"/>
         <source>Saved</source>
         <translation>保存しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="255"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="261"/>
         <source>Defaults restored</source>
         <translation>初期設定に戻しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="340"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="346"/>
         <location filename="../src/app/qml/ThemePreview.qml" line="102"/>
         <source>Settings</source>
         <translation>設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="455"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="461"/>
         <source>Defaults</source>
         <translation>初期設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="471"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="477"/>
         <source>Unsaved changes</source>
         <translation>未保存の変更</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="493"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="499"/>
         <location filename="../src/app/qml/ThemePreview.qml" line="256"/>
         <source>Save</source>
         <translation>保存</translation>
@@ -1108,6 +1108,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="295"/>
+        <location filename="../src/app/qml/VocabPreview.qml" line="122"/>
         <source>Preview</source>
         <translation>プレビュー</translation>
     </message>
@@ -1286,7 +1287,7 @@
     <message>
         <location filename="../src/app/qml/SettingsFontPage.qml" line="45"/>
         <location filename="../src/app/qml/SettingsGeneralPage.qml" line="387"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="67"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="70"/>
         <source>Font</source>
         <translation>フォント</translation>
     </message>
@@ -1294,6 +1295,11 @@
         <location filename="../src/app/qml/SettingsFontPage.qml" line="74"/>
         <source>Hover a font in the list to preview.</source>
         <translation>リスト内のフォントにポインターを合わせるとプレビューできます。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/VocabPreview.qml" line="218"/>
+        <source>Size = commonness</source>
+        <translation>文字サイズ＝頻度</translation>
     </message>
 </context>
 <context>

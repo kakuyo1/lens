@@ -4,37 +4,37 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="438"/>
+        <location filename="../src/app/qml/Bubble.qml" line="436"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="438"/>
+        <location filename="../src/app/qml/Bubble.qml" line="436"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="437"/>
+        <location filename="../src/app/qml/Bubble.qml" line="435"/>
         <source>Sentence</source>
         <translation>句子</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="436"/>
+        <location filename="../src/app/qml/Bubble.qml" line="434"/>
         <source>Preview</source>
         <translation>预览</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="583"/>
+        <location filename="../src/app/qml/Bubble.qml" line="581"/>
         <source>Etymology</source>
         <translation>词源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="622"/>
+        <location filename="../src/app/qml/Bubble.qml" line="620"/>
         <source>Example</source>
         <translation>例句</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="660"/>
+        <location filename="../src/app/qml/Bubble.qml" line="658"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒后自动消失</translation>
     </message>
@@ -193,53 +193,53 @@
 <context>
     <name>SettingsPopup</name>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="228"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="234"/>
         <source>Saved</source>
         <translation>已保存</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="255"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="261"/>
         <source>Defaults restored</source>
         <translation>已恢复默认</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="340"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="346"/>
         <location filename="../src/app/qml/ThemePreview.qml" line="102"/>
         <source>Settings</source>
         <translation>设置</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="471"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="477"/>
         <source>Unsaved changes</source>
         <translation>有未保存的更改</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsLearningPage.qml" line="32"/>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="42"/>
         <source>Vocabulary level</source>
         <translation>词汇档位</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsLearningPage.qml" line="51"/>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="61"/>
         <source>Explanation language</source>
         <translation>解释语言</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsLearningPage.qml" line="70"/>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="81"/>
         <source>Multiple senses</source>
         <translation>多义解释</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsLearningPage.qml" line="82"/>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="93"/>
         <source>Etymology</source>
         <translation>词源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsLearningPage.qml" line="92"/>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="103"/>
         <source>Example sentence</source>
         <translation>例句</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsLearningPage.qml" line="103"/>
+        <location filename="../src/app/qml/SettingsLearningPage.qml" line="114"/>
         <source>Word review</source>
         <translation>单词复习</translation>
     </message>
@@ -435,7 +435,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsGeneralPage.qml" line="392"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="70"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="73"/>
         <source>Account &amp; sync</source>
         <translation>账号与同步</translation>
     </message>
@@ -457,7 +457,7 @@
         <translation>静默放弃</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="455"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="461"/>
         <source>Defaults</source>
         <translation>恢复默认</translation>
     </message>
@@ -490,12 +490,12 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="93"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="68"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="71"/>
         <source>Popup &amp; clipboard</source>
         <translation>弹窗与剪贴板</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="493"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="499"/>
         <location filename="../src/app/qml/ThemePreview.qml" line="256"/>
         <source>Save</source>
         <translation>保存</translation>
@@ -503,7 +503,7 @@
     <message>
         <location filename="../src/app/qml/SettingsBudgetPage.qml" line="37"/>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="38"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="60"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="63"/>
         <source>Daily budget</source>
         <translation>每日预算</translation>
     </message>
@@ -514,7 +514,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="18"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="56"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="59"/>
         <source>General</source>
         <translation>通用</translation>
     </message>
@@ -525,7 +525,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="23"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="57"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="60"/>
         <source>Reading &amp; learning</source>
         <translation>阅读学习</translation>
     </message>
@@ -536,13 +536,13 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="28"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="58"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="61"/>
         <source>Capture &amp; popups</source>
         <translation>取词与弹窗</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="33"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="59"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="62"/>
         <source>Model service</source>
         <translation>模型服务</translation>
     </message>
@@ -558,7 +558,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="43"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="61"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="64"/>
         <source>Extensions</source>
         <translation>扩展</translation>
     </message>
@@ -571,7 +571,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="48"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="62"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="65"/>
         <source>About</source>
         <translation>关于</translation>
     </message>
@@ -642,7 +642,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsModelPage.qml" line="88"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="69"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="72"/>
         <source>API configuration</source>
         <translation>API 配置</translation>
     </message>
@@ -1089,6 +1089,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="295"/>
+        <location filename="../src/app/qml/VocabPreview.qml" line="122"/>
         <source>Preview</source>
         <translation>预览</translation>
     </message>
@@ -1277,7 +1278,7 @@
     <message>
         <location filename="../src/app/qml/SettingsFontPage.qml" line="45"/>
         <location filename="../src/app/qml/SettingsGeneralPage.qml" line="387"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="67"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="70"/>
         <source>Font</source>
         <translation>字体</translation>
     </message>
@@ -1285,6 +1286,11 @@
         <location filename="../src/app/qml/SettingsFontPage.qml" line="74"/>
         <source>Hover a font in the list to preview.</source>
         <translation>指针停在列表中的字体上即可预览效果。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/VocabPreview.qml" line="218"/>
+        <source>Size = commonness</source>
+        <translation>字号 = 常见度</translation>
     </message>
 </context>
 <context>

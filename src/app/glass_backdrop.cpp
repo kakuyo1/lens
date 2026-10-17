@@ -32,7 +32,7 @@ namespace {
 
 /// The glass surfaces, by the name QML gives them in `image://glass/<name>/…`. A fixed set: each one gets its sheet at
 /// construction, so the image provider never has a sheet to create on one of its own threads.
-constexpr std::array<char const*, 13> kSurfaces{
+constexpr std::array<char const*, 14> kSurfaces{
     "settings",
     "tray",
     "stats",
@@ -51,6 +51,9 @@ constexpr std::array<char const*, 13> kSurfaces{
     // The theme dropdown's preview is another transient window beside the settings panel, and it
     // has to show glass whichever theme is stored, so it takes a sheet too.
     "themePreview",
+    // The vocabulary level dropdown's card is a third one: a separate window, and one sheet holds
+    // one backdrop.
+    "vocabPreview",
 };
 /// How far the sheet reaches past the window on each side, in DIP. The window can be dragged this far before the sheet
 /// has to be taken again, and the blur and the refraction read this far around the card.

@@ -23,6 +23,13 @@ Item {
         reviewField.closeList();
     }
 
+    /// The word cloud a hovered vocabulary level raises beside the list. The option carries its
+    /// own level, so the preview needs nothing from this page but the row.
+    Component {
+        id: vocabPreviewComponent
+        VocabPreview {}
+    }
+
     Column {
         id: content
         width: parent.width
@@ -38,9 +45,11 @@ Item {
             }
             DropdownField {
                 id: levelField
+                objectName: "levelField"
                 width: parent.width
                 options: root.settings.levels
                 currentValue: root.settings.level
+                optionPreview: vocabPreviewComponent
                 onPicked: (value) => Controller.setLevel(value)
             }
         }
