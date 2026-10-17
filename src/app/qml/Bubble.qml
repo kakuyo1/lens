@@ -107,7 +107,7 @@ Window {
     /// card -- the word, its pronunciation, the definition and the example. The reader's own
     /// language, in the definition or the translation, keeps the face the application installed,
     /// which is what the setting promises.
-    /// The font dropdown's row asks for a face of its own; null follows the setting.
+    /// The font dropdown's row's face; null follows the setting.
     property var previewFont: null
     readonly property string englishFont: previewFont !== null ? previewFont : Controller.settings.font
 
@@ -308,7 +308,8 @@ Window {
             radius: bubble.tokens.radiusCard
             color: bubble.tokens.glassMode === "" ? bubble.tokens.bubbleBg : "transparent"
             border.width: 1
-            border.color: bubble.tokens.bubbleBorder
+            // Under glass the rim is the edge; this border belongs to the solid themes.
+            border.color: bubble.tokens.glassMode === "" ? bubble.tokens.bubbleBorder : "transparent"
 
             GlassSurface {
                 anchors.fill: parent
