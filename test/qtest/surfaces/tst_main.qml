@@ -69,7 +69,8 @@ Item {
             const main = make();
 
             const payload = { x: 250, y: 500, kind: "word", text: "ubiquitous" };
-            const at = main.toDip(payload);
+            const points = panel(main, "ScreenPoints");
+            const at = points.toDip(payload);
             const ratio = Screen.devicePixelRatio || 1;
 
             verify(at !== payload, "toDip handed back the payload itself; the callers divide in place through it");
@@ -145,7 +146,7 @@ Item {
             const portrait = {virtualX: 197, virtualY: -2560, width: 1152, height: 2048, devicePixelRatio: 1.25};
 
             // The release point of a selection on that monitor, in native pixels.
-            const at = main.dipOn(portrait, Qt.point(876, -1336));
+            const at = panel(main, "ScreenPoints").dipOn(portrait, Qt.point(876, -1336));
             verify(Math.abs(at.x - (197 + (876 - 197) / 1.25)) < 0.01, "x did not convert from the origin");
             verify(Math.abs(at.y - (-2560 + (-1336 + 2560) / 1.25)) < 0.01, "y did not convert from the origin");
 
