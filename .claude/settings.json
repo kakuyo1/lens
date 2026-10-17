@@ -18,5 +18,19 @@
     "keybindings-help": "user-invocable-only",
     "security-review": "user-invocable-only",
     "tldr": "user-invocable-only"
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/scripts/quality/format-edited-cpp.sh\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
   }
 }
