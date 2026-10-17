@@ -20,6 +20,12 @@ Rectangle {
     implicitHeight: 27
     radius: chip.tokens.radiusPill
     color: selected ? chip.tokens.ink : chip.tokens.panel2
+    Behavior on color {
+        ColorAnimation {
+            duration: chip.tokens.motion.press
+            easing.type: chip.tokens.motion.easing
+        }
+    }
     border.width: selected ? 0 : 1
     border.color: chip.tokens.line
     scale: press.pressed ? 0.97 : 1.0
@@ -37,6 +43,12 @@ Rectangle {
         // An action name comes from the pet's data, so it reads as plain text (docs/pet-package-format.md, section 7).
         textFormat: Text.PlainText
         color: chip.selected ? chip.tokens.on : chip.tokens.text
+        Behavior on color {
+            ColorAnimation {
+                duration: chip.tokens.motion.press
+                easing.type: chip.tokens.motion.easing
+            }
+        }
         font.pixelSize: 12
         font.weight: chip.selected ? Font.Bold : Font.Normal
     }

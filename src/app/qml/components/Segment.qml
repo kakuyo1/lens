@@ -46,6 +46,12 @@ Item {
                 height: root.height - 2
                 radius: root.tokens.radiusField - 1
                 color: index === root.currentIndex ? root.tokens.ink : "transparent"
+                Behavior on color {
+                    ColorAnimation {
+                        duration: root.tokens.motion.press
+                        easing.type: root.tokens.motion.easing
+                    }
+                }
                 scale: cellPress.pressed ? 0.97 : 1.0
                 Behavior on scale {
                     NumberAnimation {
@@ -58,6 +64,12 @@ Item {
                     anchors.centerIn: parent
                     text: cell.modelData
                     color: cell.index === root.currentIndex ? root.tokens.on : root.tokens.muted
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: root.tokens.motion.press
+                            easing.type: root.tokens.motion.easing
+                        }
+                    }
                     font.pixelSize: 12
                     font.weight: cell.index === root.currentIndex ? Font.Bold : Font.Normal
                 }

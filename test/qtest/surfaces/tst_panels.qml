@@ -488,8 +488,9 @@ Item {
             mouseClick(pillWith(popup, "Remove"), 5, 5);
 
             compare(popup.pendingRemoval, "", "the card stayed on the question after its answer");
-            compare(Controller.words.some(function (e) { return e.word === word; }), false,
-                    "the answer did not reach Controller.removeWord");
+            // The row folds first; the model is what waits (WordsPopup.removeWordAnimated).
+            tryVerify(function () { return !Controller.words.some(function (e) { return e.word === word; }); },
+                      1000, "the answer did not reach Controller.removeWord");
             compare(rowFor(popup, word), null, "the list still draws a word that is gone");
         }
 
@@ -516,8 +517,8 @@ Item {
             mouseClick(pillWith(popup, "Remove"), 5, 5);
 
             compare(popup.askBeforeRemoving, false, "the answer did not settle the asking");
-            compare(Controller.words.some(function (e) { return e.word === answered; }), false,
-                    "the answer did not reach Controller.removeWord");
+            tryVerify(function () { return !Controller.words.some(function (e) { return e.word === answered; }); },
+                      1000, "the answer did not reach Controller.removeWord");
             // Answered at once; the window waits for the fade (ShadowCard.qml).
             tryCompare(question, "visible", false, 1000, "the question stayed up");
 
@@ -525,8 +526,8 @@ Item {
 
             compare(popup.pendingRemoval, "", "a cross asked the question it was told not to ask");
             compare(question.visible, false, "the question opened with the asking switched off");
-            compare(Controller.words.some(function (e) { return e.word === straightThrough; }), false,
-                    "the silenced cross did not delete the word");
+            tryVerify(function () { return !Controller.words.some(function (e) { return e.word === straightThrough; }); },
+                      1000, "the silenced cross did not delete the word");
         }
 
         /// And the other answer the reader can give there: turn the switch off and answering the
@@ -546,8 +547,8 @@ Item {
             mouseClick(pillWith(popup, "Remove"), 5, 5);
 
             compare(popup.askBeforeRemoving, true, "the switch was off, so asking should stand");
-            compare(Controller.words.some(function (e) { return e.word === answered; }), false,
-                    "the answer did not reach Controller.removeWord");
+            tryVerify(function () { return !Controller.words.some(function (e) { return e.word === answered; }); },
+                      1000, "the answer did not reach Controller.removeWord");
 
             // The window stays modal for the fade, so the list takes presses again only once it
             // has gone -- asking while the old question is still fading would press a dead card.

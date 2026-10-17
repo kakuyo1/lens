@@ -262,6 +262,8 @@ PY
 - **按压反馈有复用件**：`IconButton.qml` 把图标、指针光标、`TapHandler` 与 `.97` 缩放收成一处，表面标题
   行的关闭、返回、导出等图标都用它；整行的点击目标不缩放，按压由底色 `line` 表示，写在
   `MenuRow` / `SettingsCategoryRow` / `SettingsLinkRow` / `StatRow` 与两个下拉列表的行上。
+- **选中态的颜色过渡**：分段与 chip 的选中是状态反馈而不是转场，底色与文字色跟着 `press` 走
+  150 ms，字重仍瞬时切换——它插值不出中间值，强行动画只会让宽度抖动。
 - **动效拍不到快照，也不该拿快照验收**：能断言的是两条——规格表里每个时长都取自令牌、`reduced` 为真时
   时长解析为 0（`test/qtest/components/tst_motion.qml`），以及卡片确实随窗口在 0 与 1 之间走
   （`tst_shadowcard.qml`）。观感靠一次 QML profiler 运行加人工看。写快照用例时要等 `Tokens.motion.pop`

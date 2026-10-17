@@ -39,18 +39,11 @@ Window {
     readonly property int minCardWidth: 320
     readonly property int maxCardWidth: 560
 
-    /// The card is as wide as its widest row and no wider: a word the reader never saw whole is
-    /// the one thing this panel exists to prevent, and a list of short words has no business
-    /// being a wide panel with a hole in it.
-    ///
-    /// The rows report the width rather than being walked for it. A JS loop over Controller.words
-    /// reads a QVariantMap per row, and on this machine that read costs ~170 ms -- 31 rows came
-    /// to 5.3 s of blocked main thread, which is a frozen window rather than a measurement. The
-    /// rows already lay their own text out, so the width is free at the point it is known.
-    ///
-    /// A running maximum, not a recomputed one: it only ever grows within a session, which keeps
-    /// the card from narrowing and widening under the reader as rows change, and the cap above
-    /// bounds it.
+    /// The card is as wide as its widest row: a word the reader never saw whole is the one thing
+    /// this panel exists to prevent. Rows report that width as they lay out rather than being
+    /// walked for it -- a JS loop over Controller.words reads a QVariantMap per row, ~170 ms each
+    /// on this machine, which is a frozen window (docs/QML.md section 6). A running maximum, so
+    /// the card does not narrow under the reader as rows change; the cap above bounds it.
     property real widestRow: 0
 
     /// @brief Note one row's natural width. Called by each row as it lays out.
@@ -76,6 +69,10 @@ Window {
 
     /// The word the question is asking about, "" when it is not up.
     property string pendingRemoval: ""
+
+    /// Rows folding away before the model lets them go, and the words waiting on that fold.
+    property var removingWords: ({})
+    property var removalQueue: []
 
     /// Whether a removal is put to the reader before it happens.
     ///
@@ -104,11 +101,44 @@ Window {
      */
     function requestRemoval(word) {
         if (!askBeforeRemoving) {
-            Controller.removeWord(word);
+            words.removeWordAnimated(word);
             return;
         }
         pendingRemoval = word;
         question.ask();
+    }
+
+    /// @brief Fold @p word's row shut, then take the word out of the list.
+    ///
+    /// The model change rebuilds every delegate, so removing the word first would take the row
+    /// away in one frame instead of letting it close. The fold is the list's own row animation,
+    /// and the controller call waits for it so the list and the window both settle by animation.
+    function removeWordAnimated(word) {
+        if (word === "" || words.removingWords[word])
+            return;
+        if (words.tokens.motion.pop === 0) {
+            Controller.removeWord(word);
+            return;
+        }
+        words.removingWords = Object.assign({}, words.removingWords, { [word]: true });
+        words.removalQueue.push(word);
+        removalTimer.restart();
+    }
+
+    /// @brief Take every folded word out at once, after the last fold has landed.
+    function flushRemovals() {
+        const queue = words.removalQueue;
+        words.removalQueue = [];
+        words.removingWords = ({});
+        for (const word of queue)
+            Controller.removeWord(word);
+    }
+
+    /// Restarted per cross, so every queued row gets a whole fold; the flush takes them together.
+    Timer {
+        id: removalTimer
+        interval: words.tokens.motion.pop
+        onTriggered: words.flushRemovals()
     }
 
     /// @brief The time label of a row, in the reader's language. Empty when the row has no day.
@@ -343,17 +373,18 @@ Window {
                         readonly property bool inScope: words.filter === 0
                                                         || (words.filter === 1 && modelData.verdict === "known")
                                                         || (words.filter === 2 && modelData.verdict === "new")
+                        /// The cross was answered: the row closes before the model lets it go.
+                        readonly property bool removing: words.removingWords[modelData.word] === true
+                        readonly property bool shown: inScope && !removing
 
-                        // A row arrives and leaves by its height, because that is what the
-                        // list's layout reads: a model change rebuilds every delegate, so the
-                        // ListView's own add/remove transitions never run here, and the movement
-                        // the reader actually sees is a filtered row folding shut. `visible`
-                        // follows the animation rather than the filter, so a row on its way out
-                        // is still drawn while it collapses; `clip` is what keeps its contents
-                        // from spilling over the rows it is collapsing between.
-                        height: inScope ? 31 : 0
-                        visible: inScope || height > 0
-                        opacity: inScope ? 1 : 0
+                        // Rows arrive and leave by height, which is what the list lays out: a
+                        // model change rebuilds every delegate, so ListView's add/remove
+                        // transitions never run. `visible` follows the animation, not the
+                        // filter, so a row on its way out is still drawn while it collapses;
+                        // `clip` keeps its contents off the rows it is collapsing between.
+                        height: shown ? 31 : 0
+                        visible: shown || height > 0
+                        opacity: shown ? 1 : 0
                         clip: true
                         Behavior on height {
                             NumberAnimation {
@@ -372,13 +403,11 @@ Window {
                             id: reviewDwell
                             interval: 400
                             onTriggered: {
-                                // 40 px above the word, and the number is not taste: the bubble's
-                                // window carries `Bubble.shadowMargin` (26) of transparent shadow
-                                // around its card and stands 10 px off its anchor, so anchoring at
-                                // the word would leave the window's own edge back across the word it
-                                // belongs to -- which un-hovers it, which takes the bubble down,
-                                // which puts the word back under the pointer, and round again. What
-                                // is watched is the word, so it is the word that has to stay clear.
+                                // 40 px up, not taste: the bubble's window carries
+                                // `Bubble.shadowMargin` (26) of transparent shadow and stands 10 px
+                                // off its anchor, so anchoring at the word would put the window's
+                                // edge back over it -- unhover, bubble down, word under the pointer
+                                // again, round and round.
                                 const at = wordText.mapToGlobal(0, -40);
                                 // The screen's scale on the way out because Main.qml anchors every
                                 // surface from the physical pixels the mouse hook reports; it comes
@@ -549,10 +578,9 @@ Window {
                     }
                 }
 
-                // The six-pixel scrollbar UI.md 4.8 asks for, drawn rather than imported so
-                // the module needs no widget styling of its own. It sits in the card's right
-                // padding, clear of the rows: a bar against the list's edge draws its rounded
-                // end over the verdict pill on every row it passes.
+                // The six-pixel scrollbar UI.md 4.8 asks for, drawn rather than imported so the
+                // module needs no widget styling. It sits in the card's right padding: a bar
+                // against the edge would draw its rounded end over a verdict pill.
                 Rectangle {
                     visible: list.contentHeight > list.height
                     width: 6
@@ -585,7 +613,7 @@ Window {
         onAnswered: (dontAsk) => {
             if (dontAsk)
                 words.askBeforeRemoving = false;
-            Controller.removeWord(words.pendingRemoval);
+            words.removeWordAnimated(words.pendingRemoval);
         }
         // The question is the pending subject's owner, so the list lets go of it the moment the
         // question is put down -- not when its fade ends. The sentence being drawn is displayWord,
@@ -593,16 +621,10 @@ Window {
         onDismissed: words.pendingRemoval = ""
     }
 
-    // Declared in this file rather than in Main.qml: the file holds the words list, so the
-    // surface that shows the list is the one that chooses the destination. QtQuick.Dialogs can
-    // name a file but cannot write one -- that half is Controller.saveWords(), which takes this
-    // dialog's answer. A write that fails is logged there; this surface has nothing to report it
-    // on yet.
-    //
-    // It is also still a native dialog, and that is deliberate for now: choosing a file is the
-    // system's business in a way that confirming a removal is not, and the two are not the same
-    // complaint. Drawing the confirmation above in the app's own language leaves this one the
-    // only native surface here, and it is the only one that is one on purpose.
+    // Declared here, not in Main.qml: this surface shows the list, so it chooses where the list
+    // goes. QtQuick.Dialogs names a file but cannot write one -- Controller.saveWords() takes the
+    // answer, and logs a failed write. Native on purpose: choosing a file is the system's
+    // business in a way that confirming a removal is not.
     FileDialog {
         id: saver
         title: qsTr("Export words")
