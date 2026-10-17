@@ -26,6 +26,9 @@ Repeater {
     required property color englishColor
     required property color translationColor
     required property color separatorColor
+    /// The family the English line is drawn in (UI.md 4.4); the reader's own language keeps the
+    /// application's face, so the translation line is not given it.
+    property string family: ""
 
     /// True while any line of any row is still being written out.
     readonly property bool revealing: {
@@ -73,6 +76,7 @@ Repeater {
             bottomPadding: senseRow.modelData.text === "" ? 6 : 0
             text: senseRow.modelData.en || ""
             color: root.englishColor
+            family: root.family
             pixelSize: 13
             lineHeight: 1.55
         }

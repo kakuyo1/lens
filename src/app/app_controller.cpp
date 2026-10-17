@@ -10,6 +10,7 @@
 #include <QDate>
 #include <QDateTime>
 #include <QFile>
+#include <QFontDatabase>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonValue>
@@ -69,6 +70,15 @@ QVariantMap loadPreviewSample(const std::filesystem::path& file)
         return {};
     }
     return parsed.object().toVariantMap();
+}
+
+/// @return The face the application font draws Latin with today: the first family of the list
+///         main() installed. The reader's font setting starts here and goes back here, so its
+///         absence is this face rather than an empty family, which QML would leave unresolved.
+QString defaultFontFamily()
+{
+    const QStringList families = QGuiApplication::font().families();
+    return families.isEmpty() ? QString{} : families.first();
 }
 
 }
@@ -348,6 +358,31 @@ void AppController::setTheme(QString theme)
     emit settingsChanged();
 }
 
+void AppController::setFont(QString family)
+{
+    const QString chosen = family.trimmed();
+    if (not chosen.isEmpty() and not QFontDatabase::hasFamily(chosen)) {
+        LENS_WARN("unknown font family '{}'; leaving the setting alone", chosen.toStdString());
+        return;
+    }
+    storage_.section().set<std::string>("font", chosen.toStdString());
+    emit settingsChanged();
+}
+
+QVariantList AppController::latinFontFamilies() const
+{
+    // Latin only: this is the face English is read in, and a family with no Latin cannot even
+    // write its own name in the field. The "@" entries are the vertical-writing duplicates of the
+    // families beside them. The database hands the list over sorted and without repeats.
+    QVariantList options;
+    for (const QString& family : QFontDatabase::families(QFontDatabase::Latin)) {
+        if (family.startsWith(u'@'))
+            continue;
+        options.append(QVariantMap{{"value", family}, {"label", family}, {"group", QString{}}, {"note", QString{}}});
+    }
+    return options;
+}
+
 void AppController::setFrostedBlur(int percent)
 {
     storage_.section().set<int>("frostedBlur", clampGlass(kFrostedBlur, percent));
@@ -516,38 +551,45 @@ QVariantMap AppController::settings()
     const QString provider = catalog_.currentProvider();
     // The slider shows the level; the pace the reveal takes is that level through the mapping in
     // reveal_settings.h. Read once so the two the map hands out cannot drift apart.
-    const int   revealSpeed = clampRevealSpeed(keys.value<int>("revealSpeed", kRevealSpeedDefault));
-    QVariantMap result{{"level", storage_.knownStore().level()},
-                       {"levels", StorageDuty::levelOptions()},
-                       {"explanationLang", QString::fromStdString(storage_.knownStore().explanationLang())},
-                       {"multiSense", keys.value<bool>("multiSense", false)},
-                       {"etymology", keys.value<bool>("etymology", false)},
-                       {"example", keys.value<bool>("example", false)},
-                       {"theme", QString::fromStdString(keys.value<std::string>("theme", "light"))},
-                       {"frostedBlur", clampGlass(kFrostedBlur, keys.value<int>("frostedBlur", kFrostedBlur.fallback))},
-                       {"frostedSaturation", clampGlass(kFrostedSaturation, keys.value<int>("frostedSaturation", kFrostedSaturation.fallback))},
-                       {"frostedRim", clampGlass(kFrostedRim, keys.value<int>("frostedRim", kFrostedRim.fallback))},
-                       {"liquidRefraction", clampGlass(kLiquidRefraction, keys.value<int>("liquidRefraction", kLiquidRefraction.fallback))},
-                       {"liquidBlur", clampGlass(kLiquidBlur, keys.value<int>("liquidBlur", kLiquidBlur.fallback))},
-                       {"liquidRim", clampGlass(kLiquidRim, keys.value<int>("liquidRim", kLiquidRim.fallback))},
-                       {"liquidTextColor", QString::fromStdString(keys.value<std::string>("liquidTextColor", std::string{kLiquidTextColorFallback}))},
-                       {"animationsEnabled", keys.value<bool>("animationsEnabled", true)},
-                       {"revealSpeed", revealSpeed},
-                       {"revealCharacterMs", revealMillisPerCharacter(revealSpeed)},
-                       {"uiLanguage", QString::fromStdString(keys.value<std::string>("uiLanguage", "zh"))},
-                       {"hasApiKey", !keys.value<std::string>("API-KEY", {}).empty()},
-                       {"selectionCapture", keys.value<bool>("selectionCapture", true)},
-                       {"clipboardPolicy", QString::fromStdString(keys.value<std::string>("clipboardPolicy", "topmost"))},
-                       {"bubbleDismissSeconds", clampBubbleDismissSeconds(keys.value<int>("bubbleDismissSeconds", kBubbleDismissDefaultSeconds))},
-                       {"bubblePlacement", QString::fromStdString(keys.value<std::string>("bubblePlacement", "above"))},
-                       {"ocrHotkey", hotkey_.keys().toString(QKeySequence::PortableText)},
-                       {"ocrHotkeyConflicted", hotkey_.conflicted()},
-                       {"provider", provider},
-                       {"model", llm_.model()},
-                       {"url", llm_.baseUrl().toString()},
-                       {"dailyBudget", dailyBudget()},
-                       {"autostart", autostartEnabled()}};
-    const auto  captureSettings = capture_.settings();
+    const int revealSpeed = clampRevealSpeed(keys.value<int>("revealSpeed", kRevealSpeedDefault));
+    // The face the English runs are drawn in: the reader's pick, or the application's own when
+    // nothing is stored -- and also when what is stored names a family this machine no longer has,
+    // which a settings document copied from another machine can. Handed out as a family rather
+    // than as the empty string an unset setting holds, because QML binds it straight onto a Text
+    // and an empty family there would put the run back to a font nobody chose.
+    const QString storedFont = QString::fromStdString(keys.value<std::string>("font", {}));
+    QVariantMap   result{{"level", storage_.knownStore().level()},
+                         {"levels", StorageDuty::levelOptions()},
+                         {"explanationLang", QString::fromStdString(storage_.knownStore().explanationLang())},
+                         {"multiSense", keys.value<bool>("multiSense", false)},
+                         {"etymology", keys.value<bool>("etymology", false)},
+                         {"example", keys.value<bool>("example", false)},
+                         {"theme", QString::fromStdString(keys.value<std::string>("theme", "light"))},
+                         {"font", QFontDatabase::hasFamily(storedFont) ? storedFont : defaultFontFamily()},
+                         {"frostedBlur", clampGlass(kFrostedBlur, keys.value<int>("frostedBlur", kFrostedBlur.fallback))},
+                         {"frostedSaturation", clampGlass(kFrostedSaturation, keys.value<int>("frostedSaturation", kFrostedSaturation.fallback))},
+                         {"frostedRim", clampGlass(kFrostedRim, keys.value<int>("frostedRim", kFrostedRim.fallback))},
+                         {"liquidRefraction", clampGlass(kLiquidRefraction, keys.value<int>("liquidRefraction", kLiquidRefraction.fallback))},
+                         {"liquidBlur", clampGlass(kLiquidBlur, keys.value<int>("liquidBlur", kLiquidBlur.fallback))},
+                         {"liquidRim", clampGlass(kLiquidRim, keys.value<int>("liquidRim", kLiquidRim.fallback))},
+                         {"liquidTextColor", QString::fromStdString(keys.value<std::string>("liquidTextColor", std::string{kLiquidTextColorFallback}))},
+                         {"animationsEnabled", keys.value<bool>("animationsEnabled", true)},
+                         {"revealSpeed", revealSpeed},
+                         {"revealCharacterMs", revealMillisPerCharacter(revealSpeed)},
+                         {"uiLanguage", QString::fromStdString(keys.value<std::string>("uiLanguage", "zh"))},
+                         {"hasApiKey", !keys.value<std::string>("API-KEY", {}).empty()},
+                         {"selectionCapture", keys.value<bool>("selectionCapture", true)},
+                         {"clipboardPolicy", QString::fromStdString(keys.value<std::string>("clipboardPolicy", "topmost"))},
+                         {"bubbleDismissSeconds", clampBubbleDismissSeconds(keys.value<int>("bubbleDismissSeconds", kBubbleDismissDefaultSeconds))},
+                         {"bubblePlacement", QString::fromStdString(keys.value<std::string>("bubblePlacement", "above"))},
+                         {"ocrHotkey", hotkey_.keys().toString(QKeySequence::PortableText)},
+                         {"ocrHotkeyConflicted", hotkey_.conflicted()},
+                         {"provider", provider},
+                         {"model", llm_.model()},
+                         {"url", llm_.baseUrl().toString()},
+                         {"dailyBudget", dailyBudget()},
+                         {"autostart", autostartEnabled()}};
+    const auto    captureSettings = capture_.settings();
     for (auto it = captureSettings.cbegin(); it != captureSettings.cend(); ++it)
         result.insert(it.key(), it.value());
     result.insert(QStringLiteral("ocrStatus"), capture_.ocrStatus());

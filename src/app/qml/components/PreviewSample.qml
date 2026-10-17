@@ -16,8 +16,8 @@ import QtQuick
  * translation table: the language of an explanation is a runtime setting, not the interface's.
  */
 QtObject {
-    /// @param key Which setting is being previewed: "speed", "language", "multisense", "etymology"
-    ///        or "example".
+    /// @param key Which setting is being previewed: "speed", "language", "multisense", "etymology",
+    ///        "example" or "font".
     /// @return The payload for Bubble.show(), or null when there is no sample to draw -- a machine
     ///         whose data/preview.json could not be read has no preview rather than an empty card.
     function payload(key) {
@@ -26,7 +26,10 @@ QtObject {
             return null;
         // Read once: Controller.settings rebuilds the whole map on every read of it.
         const settings = Controller.settings;
-        const lang = settings.explanationLang || "en";
+        // The font preview is drawn in English whatever the explanation language is, since English
+        // is what the font setting is about: a card in the reader's own language would show the
+        // setting leaving that language exactly as it found it.
+        const lang = key === "font" ? "en" : (settings.explanationLang || "en");
         /// The sample's text in one language, falling back to the English it is always written in.
         const local = (text) => (text ? (text[lang] || text.en || "") : "");
         // The one part the hovered row forces: several senses, an origin, an example sentence.

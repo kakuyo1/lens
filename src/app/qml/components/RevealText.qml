@@ -36,6 +36,13 @@ Item {
     property int pixelSize: 13
     property int weight: Font.Normal
     property color color: "black"
+    /// The family the field is drawn in, when it names one (UI.md 4.4). Empty is the application's
+    /// own face, and it is left unsaid rather than written as an empty family: a Text told
+    /// `font.family: ""` does not fall back to the application's font, it falls back to whatever
+    /// the font database hands an unmatched request -- measured, Cascadia Code on this machine.
+    /// The measurement follows the family: the size the field reserves and every letter's place
+    /// are read off the font it ends up drawing with.
+    property string family: ""
     /// The line-height multiple the field is set with; Text's own default is one line.
     property real lineHeight: 1.0
     /// Whether the field wraps to the width it is given. A pronunciation beside the word does not:
@@ -235,6 +242,15 @@ Item {
         wrapMode: root.wrapMode
     }
 
+    /// The family, written only when the field names one: see `family`. The three Texts below wear
+    /// their own copy of this, since a binding is one property of one object.
+    Binding {
+        target: measure
+        property: "font.family"
+        value: root.family
+        when: root.family !== ""
+    }
+
     /// One line box of this font, which is the step the lines are laid out on. Measured rather than
     /// computed from the pixel size: a font's line is taller than the type.
     Text {
@@ -244,6 +260,13 @@ Item {
         font.pixelSize: root.pixelSize
         font.weight: root.weight
         lineHeight: root.lineHeight
+    }
+
+    Binding {
+        target: lineBox
+        property: "font.family"
+        value: root.family
+        when: root.family !== ""
     }
 
     /// Measured, never read: see measureWidth(). Its font is the one the text above resolved to
@@ -265,6 +288,8 @@ Item {
         model: root.pieces
 
         delegate: Text {
+            id: settled
+
             required property var modelData
             x: modelData.x
             y: modelData.y + root.topPadding
@@ -274,6 +299,13 @@ Item {
             font.pixelSize: root.pixelSize
             font.weight: root.weight
             lineHeight: root.lineHeight
+
+            Binding {
+                target: settled
+                property: "font.family"
+                value: root.family
+                when: root.family !== ""
+            }
         }
     }
 
@@ -302,6 +334,13 @@ Item {
                 font.pixelSize: root.pixelSize
                 font.weight: root.weight
                 lineHeight: root.lineHeight
+            }
+
+            Binding {
+                target: glyph
+                property: "font.family"
+                value: root.family
+                when: root.family !== ""
             }
 
             MultiEffect {

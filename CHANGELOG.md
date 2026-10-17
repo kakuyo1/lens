@@ -4,6 +4,17 @@
 
 ### Added
 
+- English text has a face of its own: General › Font -- a subpage reached like Account & sync -- lets
+  the reader set it from any family the machine can draw Latin with. The word, its pronunciation, the
+  English definition, the example sentence and the word list follow it; everything in the reader's own
+  language (the Chinese definition, the Spanish or Japanese translation, the dates, the interface)
+  keeps the face the application installed, so this is one choice rather than one per language. The
+  field is the typeable dropdown the model name uses, and a family this machine does not have is
+  refused rather than stored: QML would draw it as whatever the font matcher picked, under a name no
+  list shows. Hovering the page's title raises the explanation card in the chosen face, the same
+  preview the five settings beside it have (UI.md 4.4). Picking a Latin face gives up the one-face
+  pairing of Latin and Chinese that PRODUCT.md chose on 2026-10-03, for English runs only.
+
 - Word lists can be brought in and taken out as files. The words panel's export dialog now offers
   JSON as well as text, and picks the format from the file name the reader typed; the JSON is a
   plain array of the lemmas, nothing else. A folder icon beside the export brings a list in: one

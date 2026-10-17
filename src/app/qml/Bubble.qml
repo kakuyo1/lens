@@ -83,6 +83,13 @@ Window {
     /// `revealAnimation`, so the nine fields read one value rather than the setting each.
     readonly property int revealCharacterMs: Controller.settings.revealCharacterMs
 
+    /// The face the English fields are drawn in, from the reader's font setting (UI.md 4.4). Hoisted
+    /// like the pace, and for one more reason: it is the same answer for every English run on the
+    /// card -- the word, its pronunciation, the definition and the example. The reader's own
+    /// language, in the definition or the translation, keeps the face the application installed,
+    /// which is what the setting promises.
+    readonly property string englishFont: Controller.settings.font
+
     /// True while any field is still being written out: what holds the countdown.
     readonly property bool revealing: definitionText.revealing || chineseText.revealing
                                       || translationText.revealing || ipaText.revealing
@@ -428,6 +435,7 @@ Window {
                         color: bubble.tokens.text
                         font.pixelSize: 20
                         font.weight: Font.Bold
+                        font.family: bubble.englishFont
                         elide: Text.ElideRight
                     }
 
@@ -445,6 +453,7 @@ Window {
                         wrapMode: Text.NoWrap
                         text: bubble.ipa
                         color: bubble.tokens.faint
+                        family: bubble.englishFont
                         pixelSize: 13 // the prototype's 12.5 px, as the definition line rounds it
                     }
                 }
@@ -457,6 +466,7 @@ Window {
                     englishColor: bubble.tokens.muted
                     translationColor: bubble.tokens.text
                     separatorColor: bubble.tokens.line2
+                    family: bubble.englishFont
                 }
 
                 // The definition line, and for a translation bubble the whole card: a translation
@@ -471,6 +481,7 @@ Window {
                     topPadding: 6
                     text: bubble.english
                     color: bubble.type === "translation" ? bubble.tokens.text : bubble.tokens.muted
+                    family: bubble.englishFont
                     pixelSize: 13
                     lineHeight: 1.55
                 }
@@ -544,6 +555,7 @@ Window {
                         width: parent.width
                         text: bubble.etymology
                         color: bubble.tokens.muted
+                        family: bubble.englishFont
                         pixelSize: 12
                         lineHeight: 1.5
                     }
@@ -582,6 +594,7 @@ Window {
                         width: parent.width
                         text: bubble.example
                         color: bubble.tokens.muted
+                        family: bubble.englishFont
                         pixelSize: 12
                         lineHeight: 1.5
                     }

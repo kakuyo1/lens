@@ -209,6 +209,9 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 .pv-block{margin-top:6px;padding-top:5px;border-top:1px solid var(--line2)}
 .pv-block .pv-label{font-size:11px;font-weight:700;color:var(--muted)}
 .pv-block .pv-text{margin-top:5px;font-size:12px;color:var(--muted);line-height:1.5}
+/* 卡片上的英文按读者在“字体”里选的那一张画（设置里就这一项管英文，UI.md 4.4）：词、音标、英文释义、义项的英文行。
+   卡片自己的标签与中文仍是应用那面，与设置只管英文这条口径一致。--en-font 由 applyTheme() 写入。 */
+.pv-word,.pv-ipa,.pv-def,.pv-sense,.pv-block .pv-text{font-family:var(--en-font,inherit)}
 /* 两套玻璃主题下卡片取面板那一档玻璃。液体主题的折射不在这里：位移图按面板尺寸画一次，
    套到 270 px 的卡上会拿面板的梯度去弯它（QML 侧预览卡有自己的幕布与位移图，见 UI.md 4.4）。 */
 html[data-theme=frosted] .preview,html[data-theme=liquid] .preview{backdrop-filter:blur(var(--glass-blur,6px)) saturate(var(--glass-sat,120%))}
@@ -306,8 +309,9 @@ document.documentElement.lang = { en: 'en', zh: 'zh-CN', ja: 'ja', es: 'es' }[la
 for (const el of document.querySelectorAll('[data-l]')) el.textContent = t[el.dataset.l];
 
 const categories = Object.entries(t.cat).map(([id, [name, summary]]) => ({ id, name, summary }));
-const titles = { clipboard: "弹窗与剪贴板", connection: "API 配置" };
+const titles = { font: "字体", clipboard: "弹窗与剪贴板", connection: "API 配置" };
 const defaults = { theme: "light", uiLang: "zh", level: "CET-4", language: "en", startup: false, animations: true, selection: true,
+  font: "Noto Sans SC",
   policy: "topmost", bubbleSeconds: "5", placement: "above", minLen: "3", provider: "DeepSeek", model: "deepseek-flash", api: "", url: "",
   tesseractExe: "", tesseractData: "", triggerKey: "Ctrl+Alt+S",
   dailyBudget: "0", customBg: "#e9ebef", customPanel: "#ffffff", customText: "#1a1a1f", customMuted: "#66666f", customFaint: "#9d9da8", customOk: "#2f9e6e",
@@ -349,14 +353,19 @@ const dropdown = (label, key, opts) => {
 const inp = (label, key, ph, type = "text") => `<div class="field"><label class="flabel" for="${key}">${label}</label><input id="${key}" class="input" type="${type}" data-input="${key}" value="${esc(values[key])}" placeholder="${ph}" autocomplete="off" spellcheck="false"></div>`;
 /// The model: one box the reader types in, with the chevron at its right end opening the list the
 /// service itself answered with. Only the chevron is a button -- the rest of the box is the cursor,
-/// which is what keeps a model no service ever listed reachable by hand.
-const modelField = (label, key, opts) => {
+/// which is what keeps a model no service ever listed reachable by hand. The font page uses the same
+/// shape (UI.md 4.4): the machine has a few hundred families, so a family is found by typing too.
+const modelField = (label, key, opts, placeholder = "输入模型名称", goLabel = "选择模型") => {
   const items = opts.map(o => `<button type="button" class="dd-item" role="option" data-key="${key}" data-value="${esc(o.value)}" aria-selected="${values[key] === o.value}"><span>${o.label}</span></button>`).join("");
   return `<div class="field"><label class="flabel" for="${key}">${label}</label><div class="dd mf">`
-       + `<input id="${key}" class="mf-in" data-input="${key}" value="${esc(values[key])}" placeholder="输入模型名称" autocomplete="off" spellcheck="false">`
-       + '<button type="button" class="mf-go" aria-haspopup="listbox" aria-expanded="false" aria-label="选择模型"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>'
+       + `<input id="${key}" class="mf-in" data-input="${key}" value="${esc(values[key])}" placeholder="${placeholder}" autocomplete="off" spellcheck="false">`
+       + `<button type="button" class="mf-go" aria-haspopup="listbox" aria-expanded="false" aria-label="${goLabel}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>`
        + `<div class="dd-list" role="listbox">${items}</div></div></div>`;
 };
+/// “字体”那一页的样例字族。真机上这份列表是机器自己的几百个（只列能画拉丁文的），原型里取几张
+/// 认得出的脸对视形态：默认那张是应用自己装的，其余是衬线、无衬线、等宽与手写各一张。
+const FONTS = ["Noto Sans SC", "Georgia", "Times New Roman", "Arial", "Verdana", "Cascadia Code", "Segoe Script"]
+  .map(f => ({ value: f, label: f }));
 /// A money field: the symbol is the display currency the rest of the surfaces spend in.
 /// The bubble's duration: whole seconds, the unit drawn at the right end of the box the way the money
 /// field draws its symbol at the left. The range is the one the controller clamps to.
@@ -421,7 +430,8 @@ function page(id) {
       ]) + customColors() + glassOptions() + sw("开机自启", "startup") + sw("动画效果", "animations")
       // 打字速度只在一张会逐字写出的卡片上才有意义，故与开关同进同出（UI.md 4.4）。
       + (values.animations ? slider("打字速度", "revealSpeed", 1, 5, 1, " / 5") : "")
-      + sw("启动时检查更新", "autoUpdate");
+      + sw("启动时检查更新", "autoUpdate")
+      + link("font", "字体");
     case "learning": return dropdown("词汇档位", "level", [
         { value: "B1–B2", label: "B1–B2", group: "CEFR" },
         { value: "C1–C2", label: "C1–C2", group: "CEFR" },
@@ -466,6 +476,8 @@ function page(id) {
 }
 function detail() {
   switch (route) {
+    case "font": return modelField("字体", "font", FONTS, "字体名称", "选择字体") +
+      '<p class="fhelp">指针停在标题上即可预览效果。</p>';
     case "clipboard": return seconds("气泡显示时长", "bubbleSeconds") +
       seg("气泡位置", "placement", [["above", "上方"], ["below", "下方"]]) +
       seg("剪贴板被占用时", "policy", [["topmost", "强制置顶"], ["silent", "静默放弃"]]);
@@ -487,6 +499,10 @@ const BLUR_PX = 0.6;
 function applyTheme() {
   const root = document.documentElement;
   root.dataset.theme = values.theme;
+  // 英文那一张脸（UI.md 4.4）：预览卡上的英文按它画，其余文字都不动。只有清单里认得的名字才写下去——
+  // 与设置里“本机没有的字族名会被拒绝”同一条口径，免得手打一个错名字之后卡片换到浏览器默认字体。
+  const en = FONTS.some(f => f.value === values.font) ? values.font : FONTS[0].value;
+  root.style.setProperty("--en-font", `"${en}"`);
   for (const prop of ["--bg", "--wall", "--panel", "--text", "--muted", "--faint", "--ink", "--on", "--glass-blur", "--glass-sat", "--glass-rim"]) root.style.removeProperty(prop);
   delete root.dataset.refract;
   if (values.theme === "custom") {
@@ -548,8 +564,8 @@ document.querySelector(".close").onclick = () => render();
    卡片就是解释气泡，内容是 data/preview.json 那份样例；样例文字在这里一律英文（与 bubble.html 的样例同理），
    跟着解释语言换行的那一版在应用里看。每个被悬浮项强制画出自己那一块：多义画三条义项、词源与例句各画一块，
    即使开关是关的——“打开它会得到什么”正是这次悬浮要问的问题。 */
-const PREVIEW_ROWS = [["打字速度", "speed"], ["解释语言", "language"], ["多义解释", "senses"],
-                      ["词源", "etymology"], ["例句", "example"]];
+const PREVIEW_ROWS = [["打字速度", "speed"], ["字体", "font"], ["解释语言", "language"],
+                      ["多义解释", "senses"], ["词源", "etymology"], ["例句", "example"]];
 const PREVIEW_SENSES = ["The season between winter and summer.",
                         "A coiled piece of metal that springs back into shape.",
                         "A place where water wells up out of the ground."];

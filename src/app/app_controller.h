@@ -100,6 +100,16 @@ public:
     /// @brief Ask for one example sentence with a word's explanation, and draw it on the bubble.
     Q_INVOKABLE void setExample(bool on);
     Q_INVOKABLE void setTheme(QString theme);
+    /**
+     * @brief Store the family the English runs are drawn in.
+     * @param family A family this machine has, or empty to go back to the face main() installed.
+     * @note A name no family answers to is logged and dropped rather than stored: QML would go on
+     *       drawing it as whatever the font matcher picked, and the field would show a name the
+     *       machine does not have.
+     */
+    Q_INVOKABLE void setFont(QString family);
+    /// @return Every family on this machine that draws Latin, as DropdownField options, sorted.
+    Q_INVOKABLE QVariantList latinFontFamilies() const;
     /// @brief Store the frosted glass's blur, saturation or rim, clamped to the range the page offers.
     Q_INVOKABLE void setFrostedBlur(int percent);
     Q_INVOKABLE void setFrostedSaturation(int percent);
