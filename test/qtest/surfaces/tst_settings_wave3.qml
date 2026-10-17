@@ -168,19 +168,18 @@ Item {
             verify(back, "the settings header disappeared on a child page");
         }
 
-        /// The Account & sync row is the general page's only link row, and it sits among labelled
-        /// switches: its label starts on the same left edge as theirs. It used to carry the 9 px
-        /// the catalog's rows do, which read as a line belonging to nothing beside it.
+        /// The Account & sync row sits among labelled switches: its label starts on the same left
+        /// edge as theirs. It used to carry the 9 px the catalog's rows do, which read as a line
+        /// belonging to nothing beside it. The label is found by its own text rather than by being
+        /// the page's only SettingsLinkRow: Font is the page's other door and sits above it.
         function test_theAccountRowLabelSharesThePagesLeftEdge() {
             const main = make();
             main.showSettings();
             const panel = settingsPanel(main);
             openCategory(panel, "General");
 
-            const link = Util.ofType(panel, "SettingsLinkRow");
-            verify(link, "the general page has no account row");
-            const label = Util.textWith(Util.textsUnder(link), ["Account & sync"]);
-            verify(label, "the account row carries no label");
+            const label = Util.textWith(Util.textsUnder(panel), ["Account & sync"]);
+            verify(label, "the general page has no account row");
             const sibling = Util.textWith(Util.textsUnder(panel), ["Launch at startup"]);
             verify(sibling, "the general page has no labelled switch to compare the row with");
 
