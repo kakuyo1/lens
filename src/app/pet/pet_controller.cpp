@@ -648,6 +648,22 @@ QPoint PetController::initialPosition(QSize size) const
     return bottomRightOf(size, QGuiApplication::primaryScreen()->availableGeometry());
 }
 
+void PetController::fitOnScreen()
+{
+    if (not window_) return;
+    auto areas = QList<QRect>{};
+    for (auto const* screen : QGuiApplication::screens())
+        areas.append(screen->availableGeometry());
+    // The window grows right and down from its top-left, so a screen that holds the top-left is the one it must fit.
+    auto const index = indexOfNearestArea(window_->position(), areas);
+    if (index < 0) return;
+    auto const at = clampedWithin(window_->position(), window_->size(), areas.at(index));
+    if (at == window_->position()) return;
+    window_->setPosition(at);
+    // A remembered spot that no longer fits must not come back at the old size on the next start.
+    savePosition(at);
+}
+
 void PetController::savePosition(QPoint at)
 {
     auto const screens = QGuiApplication::screens();

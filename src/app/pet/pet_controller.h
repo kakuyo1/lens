@@ -179,6 +179,9 @@ public:
     Q_INVOKABLE QPoint cursorPos() const;
     /// @return Where the window should open at this size: the saved spot if it still fits, else the primary screen's corner.
     Q_INVOKABLE QPoint initialPosition(QSize size) const;
+    /// @brief Nudges the window the least distance that keeps it whole on its screen, and saves where it landed.
+    ///        Called after the size changes; does nothing before the window is attached.
+    Q_INVOKABLE void fitOnScreen();
     /// @brief Records where the window was dropped, relative to the screen it landed on.
     Q_INVOKABLE void savePosition(QPoint at);
 
