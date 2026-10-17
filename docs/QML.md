@@ -6,10 +6,10 @@
 ## 1 模块与目录
 
 `src/app/qml/` 根下是十一个 `Window`（表面）加一个 `Mask.qml`——它不是窗口而是窗口的宿主，每块屏幕一个
-（见 §2 与 `UI.md` 4.11）；`src/app/qml/components/` 下是十四个可复用件
-（`Icon` / `ShadowCard` / `Tokens` / `MixedText` / `Segment` / `StatRow` / `MenuRow` /
-`DropdownField` / `Switch` / `SwitchRow` / `PathField` / `HotkeyField` / `RevealText` /
-`SenseRows`），`src/app/qml/theme/` 下是三套主题
+（见 §2 与 `UI.md` 4.11）；`src/app/qml/components/` 下是十五个可复用件
+（`Icon` / `ShadowCard` / `HeightHold` / `Tokens` / `MixedText` / `Segment` / `StatRow` /
+`MenuRow` / `DropdownField` / `Switch` / `SwitchRow` / `PathField` / `HotkeyField` /
+`RevealText` / `SenseRows`），`src/app/qml/theme/` 下是三套主题
 各一份色值表（`Light` / `Dark`）加一份动效表（`Motion`）。三组同属一个 QML 模块（`qt_add_qml_module` 的
 `QML_FILES` 里写子目录路径即可），Qt 给模块内每个文件隐式导入本模块的类型，**跨目录照样按类型名解析，
 谁也不需要写 import**。
@@ -264,6 +264,12 @@ PY
   `MenuRow` / `SettingsCategoryRow` / `SettingsLinkRow` / `StatRow` 与两个下拉列表的行上。
 - **选中态的颜色过渡**：分段与 chip 的选中是状态反馈而不是转场，底色与文字色跟着 `press` 走
   150 ms，字重仍瞬时切换——它插值不出中间值，强行动画只会让宽度抖动。
+- **内容推动窗口高度时，只有顶边固定的表面预尺寸窗口**：气泡的判定行向下展开，卡片顶边不动，窗口
+  在过渡起点一次跳到最大高度，多出的空间正好留给判定行，卡片和内容都不在窗口内移动。
+  `HeightHold.qml` 取 `max(当前内容高, 目标内容高)` 为 floor，窗口读
+  `round(max(floor, 内容高) + 页边距)`；`duration + 17 ms` 后内容还差最后一像素就每 17 ms 重试
+  （docs/adr/0055）。词汇面板的筛选与年度面板的调色板仍然逐帧跟随内容：它们以右下角为锚，预尺寸要求
+  卡片在固定窗口里每帧移动，实测会闪烁，已回退。
 - **动效拍不到快照，也不该拿快照验收**：能断言的是两条——规格表里每个时长都取自令牌、`reduced` 为真时
   时长解析为 0（`test/qtest/components/tst_motion.qml`），以及卡片确实随窗口在 0 与 1 之间走
   （`tst_shadowcard.qml`）。观感靠一次 QML profiler 运行加人工看。写快照用例时要等 `Tokens.motion.pop`

@@ -17,11 +17,9 @@ import QtQuick.Effects
  */
 Window {
     id: bubble
-    /// Whether this window is the settings preview rather than an explanation the reader called up
-    /// (UI.md 4.4). The same card, with the close button, the verdict row, the drag and the hover
-    /// report taken away -- each of them either dismisses an explanation or writes a word mark -- and
-    /// two marks of its own in their place: the tag reads "Preview", and PreviewFrame.qml draws a
-    /// dashed frame around the card. Its own glass sheet, since one sheet holds one backdrop.
+    /// Whether this window is the settings preview (UI.md 4.4): the same card without the close
+    /// button, verdict row, drag or hover report, tagged "Preview" and framed by PreviewFrame.qml.
+    /// Its own glass sheet, since one sheet holds one backdrop.
     property bool preview: false
     /// The desktop under this window, which its glass draws (docs/adr/0041).
     readonly property var glass: Controller.glassBackdrop.surface(bubble.preview ? "preview" : "bubble")
@@ -44,7 +42,13 @@ Window {
     readonly property int dismissAfterMs: Controller.settings.bubbleDismissSeconds * 1000
 
     width: content.implicitWidth + 2 * shadowMargin
-    height: content.implicitHeight + 2 * shadowMargin
+    height: Math.round(Math.max(rowHold.active ? rowHold.floor : 0, content.implicitHeight) + 2 * shadowMargin)
+    onVisibleChanged: if (!visible) rowHold.active = false
+    HeightHold {
+        id: rowHold
+        contentHeight: content.implicitHeight
+        duration: bubble.tokens.motion.bubble
+    }
 
     SurfaceFade {
         id: fade
@@ -116,11 +120,8 @@ Window {
     property int showGeneration: 0
     property int pendingGeneration: 0
 
-    /// Where the pointer and the card were the last time the hover state changed, in screen
-    /// coordinates. Nothing in the application reads them: they are what TODO.md's hover jitter
-    /// needs before it can be told a real exit from something else moving `visible`, and there is
-    /// no QML-to-log path in this tree that is not a probe -- so the sighting is read off these
-    /// two under a debugger instead. See TODO.md, the bubble-hover jitter item.
+    /// Where the pointer and card were when the hover state last changed, in screen coordinates.
+    /// Nothing reads them: they are what TODO.md's hover-jitter item is read off under a debugger.
     property point lastHoverCursor: Qt.point(0, 0)
     property rect lastHoverCard: Qt.rect(0, 0, 0, 0)
 
@@ -217,6 +218,8 @@ Window {
     onHoveringChanged: {
         Controller.bubbleHoverChanged(hovering);
         updateCountdown();
+        if (verdictButtons && status !== "")
+            rowHold.begin(content.implicitHeight + (hovering ? verdictRow.openHeight : -verdictRow.openHeight));
     }
 
     onDraggingChanged: updateCountdown()
@@ -634,6 +637,7 @@ Window {
 
                 // The verdict buttons, drawn shut until the pointer is on the card (UI.md 4.3).
                 BubbleVerdictRow {
+                    id: verdictRow
                     visible: bubble.verdictButtons
                     tokens: bubble.tokens
                     lemma: bubble.title

@@ -210,6 +210,7 @@ qt_add_qml_module(lens_app
     qml/components/Icon.qml
     qml/components/IconButton.qml
     qml/components/ShadowCard.qml
+    qml/components/HeightHold.qml
     qml/components/SurfaceFade.qml
     qml/components/Segment.qml
     qml/components/Switch.qml
