@@ -43,6 +43,15 @@ inline std::string autostartCommand(std::string_view executablePath)
  */
 bool writeAutostart(bool on);
 
+/**
+ * @brief Repoint the Run entry at this executable when the one it names is gone.
+ * @note Called once at startup. The entry stores a path, and a path dies when the tree the
+ *       reader ran from is moved or deleted; presence alone would then leave the settings switch
+ *       on over an executable that no longer exists. A live entry is left alone, and so is a
+ *       missing one.
+ */
+void refreshAutostart();
+
 /// @return Whether the Run entry is present.
 /// @note Presence is the state. The command's text is this build's business and changes
 ///       whenever the executable moves, which is no reason to call the feature off.

@@ -27,6 +27,7 @@
 #include "app/pet/pet_controller.h"
 #include "app/pet/pet_store.h"
 #include "app_controller.h"
+#include "autostart.h"
 #include "core/filter_core.h"
 #include "core/known_store.h"
 #include "global_hotkey.h"
@@ -172,6 +173,9 @@ int main(int argc, char* argv[])
 
     lens::log::init();
     lens::log::installQtMessageHandler();
+
+    // The Run entry names a path, and this launch is the truth about where the executable is.
+    lens::app::refreshAutostart();
 
     const std::filesystem::path dataDir = dataDirectory();
     // The review sign's word face (UI.md 4.13). Without the file the sign falls back to the monospace family it names.
