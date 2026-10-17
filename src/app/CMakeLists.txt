@@ -165,6 +165,7 @@ qt_add_qml_module(lens_app
     qml/ReviewCard.qml
     qml/ReviewSignLayout.qml
     qml/ProfileScenario.qml
+    qml/ScreenPoints.qml
     qml/PetScene.qml
     qml/PetStage.qml
     qml/PetPackageDialog.qml

@@ -84,7 +84,7 @@ Window {
         // qmllint disable missing-property
         for (const s of Qt.application.screens) {
             const ratio = s.devicePixelRatio || 1;
-            // The origin is not scaled, as dipOn assumes: only the size is in DIPs.
+            // The origin is not scaled, as ScreenPoints.dipOn assumes: only the size is in DIPs.
             const left = s.virtualX;
             const top = s.virtualY;
             const right = left + s.width * ratio;
@@ -441,37 +441,6 @@ Window {
         profile.run(step);
     }
 
-    /**
-     * @brief The DIP point of a native-pixel point, measured from @p screen's own origin.
-     *
-     * Qt draws a window on a screen at native = origin + (dip - origin) * scale. Measured on the
-     * portrait monitor above the primary at 125% (origin 197,-2560): a card placed at DIP y -1120
-     * was drawn at native y -760. Scaling from zero is right only for a screen whose origin is zero;
-     * on this one it misplaces every point by origin * (1 - 1 / scale), which is 512 DIPs.
-     */
-    // qmllint disable missing-property
-    function dipOn(screen, point) {
-        const ratio = screen.devicePixelRatio || 1;
-        return Qt.point(screen.virtualX + (point.x - screen.virtualX) / ratio,
-                        screen.virtualY + (point.y - screen.virtualY) / ratio);
-    }
-    // qmllint enable missing-property
-
-    /**
-     * Turn a position the mouse hook reported into one a window can be placed at.
-     * The hook reads native screen pixels; windows and QScreen geometry use DIPs.
-     */
-    function toDip(payload) {
-        const target = root.screenForPhysical(Qt.point(payload.x, payload.y));
-        const at = root.dipOn(target, Qt.point(payload.x, payload.y));
-        const out = {};
-        for (const key in payload)
-            out[key] = payload[key];
-        out.x = at.x;
-        out.y = at.y;
-        return out;
-    }
-
     // qmllint disable missing-property
     function contains(rect, point) {
         return point.x >= rect.x && point.x <= rect.x + rect.width
@@ -540,6 +509,13 @@ Window {
         trayMenu: trayMenu
         bubble: bubble
         bar: bar
+    }
+
+    /// The mouse hook's native-pixel points, mapped to the DIPs the surfaces are placed in (ScreenPoints.qml).
+    ScreenPoints {
+        id: points
+
+        host: root
     }
 
     Notice {
@@ -632,7 +608,7 @@ Window {
                 return;
             }
 
-            const at = root.toDip(payload);
+            const at = points.toDip(payload);
             bar.selectionText = payload.text;
             bar.selectionKind = payload.kind;
             // Down before it is placed, rather than after: the bar is a window, so showing it
@@ -656,7 +632,7 @@ Window {
 
         function onPointerPressed(at) {
             ++root.selectionBarGeneration;
-            root.dismissOutside(root.toDip(at));
+            root.dismissOutside(points.toDip(at));
         }
     }
 
@@ -666,7 +642,7 @@ Window {
         function onBubbleChanged() {
             const payload = Controller.explanationDuty.bubble;
             if (payload && Object.keys(payload).length > 0) {
-                const at = root.toDip(payload);
+                const at = points.toDip(payload);
                 bubble.show(at);
                 // An answer now arrives a field at a time, so this runs several times for one card: a card the
                 // reader is holding is theirs, and the stream must not pull it back to the anchor (repositionVisible
