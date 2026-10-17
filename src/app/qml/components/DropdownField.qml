@@ -63,6 +63,12 @@ Item {
 
     signal picked(var value)
     signal listOpened()
+    /// A row the pointer has entered, with its option. A page whose preview is not a window of
+    /// its own -- the font field raises the settings panel's bubble -- answers this instead of
+    /// setting `optionPreview`.
+    signal optionHovered(var option)
+    /// The pointer has left the row it was on, or the list has gone.
+    signal optionUnhovered()
     /// A value was typed and the reader left the field. Only ever emitted when `editable`.
     signal edited(string text)
 
@@ -163,13 +169,13 @@ Item {
     /// @brief Report a row the pointer has entered or left, which is the whole preview gesture.
     /// @param index The row's index in `shown`.
     /// @param inside Whether the pointer is now on it.
-    function optionHovered(index, inside) {
-        if (root.optionPreview === null)
-            return;
+    function rowHovered(index, inside) {
         if (inside) {
             root.hoveredIndex = index;
             previewSettle.stop();
-            root.showOptionPreview();
+            if (root.optionPreview !== null)
+                root.showOptionPreview();
+            root.optionHovered(root.shown[index]);
         } else if (root.hoveredIndex === index) {
             // Crossing from one row to the next enters the next before the last reports its
             // exit; the beat lets the new row take the window over instead of dropping it.
@@ -242,9 +248,12 @@ Item {
     /// @brief Put the option preview down, and forget the row it pointed at.
     function hideOptionPreview() {
         previewSettle.stop();
+        const hadRow = root.hoveredIndex !== -1;
         root.hoveredIndex = -1;
         if (root.optionPreviewWindow !== null)
             root.optionPreviewWindow.visible = false;
+        if (hadRow)
+            root.optionUnhovered();
     }
 
     /// @return The work area of the screen the list is on, in virtual DIPs: asked of Qt by device
@@ -526,7 +535,7 @@ Item {
                         HoverHandler {
                             id: rowHover
                             cursorShape: Qt.PointingHandCursor
-                            onHoveredChanged: root.optionHovered(group.index, rowHover.hovered)
+                            onHoveredChanged: root.rowHovered(group.index, rowHover.hovered)
                         }
                         TapHandler {
                             id: rowPress

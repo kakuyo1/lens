@@ -119,6 +119,28 @@ Item {
             return previewOf(main);
         }
 
+        /// @return The explanation-language dropdown, with its list up.
+        function languageField(panel) {
+            const field = Util.findAll(panel, function (o) {
+                return o.objectName === "languageField";
+            })[0];
+            verify(field, "the learning page has no language field");
+            if (field.openChildRect === null) {
+                field.openList();
+                wait(50);
+            }
+            return field;
+        }
+
+        /// Rest the pointer on a language row, which is the whole gesture for that preview.
+        function hoverLanguageRow(main, panel, label) {
+            const field = languageField(panel);
+            const row = Util.textWith(Util.textsInNestedWindow(field), [label]);
+            verify(row, "the language list has no '" + label + "' row");
+            mouseMove(row, row.width / 2, row.height / 2);
+            return previewOf(main);
+        }
+
         /// Take the pointer off every title: a place in the panel that is not a label.
         function leaveTitle(main, panel) {
             const preview = previewOf(main);
@@ -282,37 +304,42 @@ Item {
         }
 
         /// One reading per field the controller fills an explanation language into: English and
-        /// Chinese in their own, Spanish and Japanese in the translation (UI.md 4.3).
-        function test_theDefinitionFollowsTheExplanationLanguage() {
+        /// Chinese in their own, Spanish and Japanese in the translation (UI.md 4.3). The card is
+        /// raised by the list's rows now, and each row draws its own language whichever one is
+        /// stored -- the title is not a trigger any more.
+        function test_theDefinitionFollowsTheHoveredLanguageRow() {
             const main = make();
             main.showSettings();
             const panel = settingsPanel(main);
             openCategory(panel, "Reading & learning");
 
             const sample = Controller.settingPreview.definition;
-
-            // The fixture stores Chinese, so the first reading is the Chinese one.
             compare(Controller.settings.explanationLang, "zh");
-            let preview = hoverTitle(main, panel, "Explanation language");
+
+            // A rest on the title is no longer a gesture.
+            const title = Util.textWith(Util.ownWindow(panel), ["Explanation language"]);
+            verify(title, "the learning page has no language title");
+            mouseMove(title, title.width / 2, title.height / 2);
+            wait(200);
+            compare(previewOf(main).visible, false, "the language title still raises the preview");
+
+            // The fixture stores Chinese, but the row under the pointer decides what is drawn.
+            let preview = hoverLanguageRow(main, panel, "中文");
             tryCompare(preview, "visible", true);
             compare(preview.chinese, sample.zh);
             compare(preview.english, "", "a Chinese explanation draws no English definition");
-            leaveTitle(main, panel);
 
-            Controller.setExplanationLang("en");
-            wait(20);
-            preview = hoverTitle(main, panel, "Explanation language");
-            tryCompare(preview, "visible", true);
-            compare(preview.english, sample.en);
+            preview = hoverLanguageRow(main, panel, "English");
+            tryCompare(preview, "english", sample.en);
             compare(preview.chinese, "", "an English explanation draws no Chinese definition");
-            leaveTitle(main, panel);
+            compare(preview.visible, true, "moving to the next row took the card down");
 
-            Controller.setExplanationLang("es");
-            wait(20);
-            preview = hoverTitle(main, panel, "Explanation language");
-            tryCompare(preview, "visible", true);
-            compare(preview.translation, sample.es);
-            leaveTitle(main, panel);
+            preview = hoverLanguageRow(main, panel, "Español");
+            tryCompare(preview, "translation", sample.es);
+            compare(Controller.settings.explanationLang, "zh", "a hover wrote the stored language");
+
+            languageField(panel).closeList();
+            tryCompare(preview, "visible", false);
         }
 
         /// The card draws glass out of a sheet of its own: it is a second Bubble, and two windows

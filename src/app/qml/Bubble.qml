@@ -107,7 +107,9 @@ Window {
     /// card -- the word, its pronunciation, the definition and the example. The reader's own
     /// language, in the definition or the translation, keeps the face the application installed,
     /// which is what the setting promises.
-    readonly property string englishFont: Controller.settings.font
+    /// The font dropdown's row asks for a face of its own; null follows the setting.
+    property var previewFont: null
+    readonly property string englishFont: previewFont !== null ? previewFont : Controller.settings.font
 
     /// True while any field is still being written out: what holds the countdown.
     readonly property bool revealing: definitionText.revealing || chineseText.revealing

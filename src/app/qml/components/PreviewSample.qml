@@ -18,9 +18,11 @@ import QtQuick
 QtObject {
     /// @param key Which setting is being previewed: "speed", "language", "multisense", "etymology",
     ///        "example" or "font".
+    /// @param language For the "language" preview, the language the hovered row carries, which
+    ///        this card is drawn in instead of the stored one.
     /// @return The payload for Bubble.show(), or null when there is no sample to draw -- a machine
     ///         whose data/preview.json could not be read has no preview rather than an empty card.
-    function payload(key) {
+    function payload(key, language) {
         const sample = Controller.settingPreview;
         if (!sample || !sample.word)
             return null;
@@ -29,7 +31,9 @@ QtObject {
         // The font preview is drawn in English whatever the explanation language is, since English
         // is what the font setting is about: a card in the reader's own language would show the
         // setting leaving that language exactly as it found it.
-        const lang = key === "font" ? "en" : (settings.explanationLang || "en");
+        const lang = key === "font" ? "en"
+                   : key === "language" && language ? language
+                   : (settings.explanationLang || "en");
         /// The sample's text in one language, falling back to the English it is always written in.
         const local = (text) => (text ? (text[lang] || text.en || "") : "");
         // The one part the hovered row forces: several senses, an origin, an example sentence.

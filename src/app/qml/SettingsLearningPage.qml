@@ -13,6 +13,9 @@ Item {
     /// The preview the pointer has called up, or "" for none: a row's title raises one on hover
     /// (UI.md 4.4). The popup turns it into the window Main puts beside the card.
     signal previewRequested(string key)
+    /// The language the explanation-language row under the pointer asks to preview. The popup
+    /// draws the same card in that language; "" takes it down.
+    signal languagePreviewRequested(string language)
 
     function closeChild() {
         levelField.closeList();
@@ -45,15 +48,10 @@ Item {
         Column {
             width: parent.width
             spacing: 7
-            // The explanation language is the one row here whose label is its own item rather than
-            // part of a control component, so its preview is raised from here (UI.md 4.4).
             Text {
                 text: qsTranslate("SettingsPopup", "Explanation language")
                 color: root.tokens.muted
                 font.pixelSize: 12
-                HoverHandler {
-                    onHoveredChanged: root.previewRequested(hovered ? "language" : "")
-                }
             }
             DropdownField {
                 id: languageField
@@ -62,6 +60,10 @@ Item {
                 options: root.settings.languages || []
                 currentValue: root.settings.explanationLang
                 onPicked: (value) => Controller.setExplanationLang(value)
+                // The card is the panel's own preview bubble; a row just tells it which language
+                // to write the sample in. The title is not a trigger (UI.md 4.4).
+                onOptionHovered: (option) => root.languagePreviewRequested(String(option.value))
+                onOptionUnhovered: root.languagePreviewRequested("")
             }
         }
 

@@ -252,5 +252,59 @@ Item {
             compare(fields[0].currentValue, Controller.settings.font);
             compare(fields[0].options.length, Controller.latinFontFamilies().length);
         }
+
+        /// The preview used to hang off the "Font" title; it now belongs to the rows of the list
+        /// (UI.md 4.4), and each row draws the same bubble in its own family.
+        function test_theFontRowsRaiseTheBubblePreviewInTheirOwnFace() {
+            Controller.setFont("");
+            const main = createTemporaryObject(mainComponent, root);
+            verify(main);
+            main.showSettings();
+            wait(25);
+
+            const panel = Util.ofType(main, "SettingsPopup");
+            verify(panel, "Main did not build a SettingsPopup");
+            panel.openCategory("general");
+            wait(25);
+            panel.openRoute("font");
+            wait(25);
+
+            const preview = Util.findAll(main, (o) => {
+                return o.toString().indexOf("Bubble_QMLTYPE") === 0 && o.preview === true;
+            })[0];
+            verify(preview, "Main did not build the preview bubble");
+            compare(preview.visible, false);
+
+            // A rest on the title is no longer a gesture: only a row of the list is.
+            const title = Util.textWith(Util.ownWindow(panel), ["Font"]);
+            verify(title, "the font page has no title to rest on");
+            mouseMove(title, title.width / 2, title.height / 2);
+            wait(200);
+            compare(preview.visible, false, "the font title still raises the preview");
+
+            const field = Util.findAll(panel, (o) => o.objectName === "fontField")[0];
+            verify(field, "the font page has no field");
+            field.openList();
+            wait(50);
+
+            // The families are the machine's own, so the row is read from the field rather than
+            // named here; the list is sorted, and the first two rows are always drawn.
+            const first = field.options[0].value;
+            const row = Util.textWith(Util.textsInNestedWindow(field), [first]);
+            verify(row, "the list draws no row for '" + first + "'");
+            mouseMove(row, row.width / 2, row.height / 2);
+            tryCompare(preview, "visible", true);
+            compare(preview.englishFont, first, "the preview did not take the hovered family");
+
+            const second = field.options[1].value;
+            const next = Util.textWith(Util.textsInNestedWindow(field), [second]);
+            verify(next, "the list draws no row for '" + second + "'");
+            mouseMove(next, next.width / 2, next.height / 2);
+            tryCompare(preview, "englishFont", second);
+            compare(preview.visible, true, "moving to the next row took the card down");
+
+            field.closeList();
+            tryCompare(preview, "visible", false);
+        }
     }
 }

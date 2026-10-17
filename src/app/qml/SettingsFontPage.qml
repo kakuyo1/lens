@@ -10,8 +10,8 @@ import QtQuick
  *
  * The list is the machine's own Latin families (Controller.latinFontFamilies), which is why the
  * field is typeable: a machine with a few hundred families is browsed by typing rather than by
- * scrolling. The face itself is shown on the card the label raises (UI.md 4.4) -- the explanation
- * bubble, drawn with the reader's settings, this one included.
+ * scrolling. The face itself is shown on the card a row of that list raises (UI.md 4.4) -- the
+ * explanation bubble, drawn with the reader's settings, this one forced to the row's family.
  */
 Item {
     id: page
@@ -25,8 +25,9 @@ Item {
     readonly property var openChildRect: fontField.openChildRect
     implicitHeight: content.implicitHeight
 
-    /// The preview the pointer has called up, or "" for none (UI.md 4.4).
-    signal previewRequested(string key)
+    /// The preview the pointer has called up, or "" for none (UI.md 4.4). @p font is the family
+    /// to draw it in, and only ever accompanies "font".
+    signal previewRequested(string key, string font)
 
     function closeChild() {
         fontField.closeList();
@@ -40,15 +41,10 @@ Item {
         Column {
             width: parent.width
             spacing: 7
-            // The label raises the preview itself: this row's control is a dropdown, and what the
-            // preview shows is the card, not the list the dropdown opens.
             Text {
                 text: qsTranslate("SettingsPopup", "Font")
                 color: page.tokens.muted
                 font.pixelSize: 12
-                HoverHandler {
-                    onHoveredChanged: page.previewRequested(hovered ? "font" : "")
-                }
             }
             DropdownField {
                 id: fontField
@@ -61,16 +57,21 @@ Item {
                 // A name the machine does not have is refused in C++, and the field goes back to
                 // the family in force by the same binding the model field is drawn by.
                 onEdited: (text) => Controller.setFont(text)
+                // The preview is the settings panel's own bubble, not a window of this field's:
+                // the row hands it the family, and the panel draws it beside itself as it does
+                // for every other setting preview.
+                onOptionHovered: (option) => page.previewRequested("font", String(option.value))
+                onOptionUnhovered: page.previewRequested("", "")
             }
         }
 
-        // The one line the page says: nothing here explains the family, because the label beside it
-        // already draws one. What it names is the only thing a reader cannot guess -- that the same
-        // label answers the question the list leaves open, which is what the family will look like.
+        // The one line the page says: nothing here explains the family, because the card beside
+        // the panel draws one. What it names is the only thing a reader cannot guess -- where the
+        // hover that shows that card lives.
         Text {
             width: parent.width
             wrapMode: Text.WordWrap
-            text: qsTranslate("SettingsPopup", "Hover the title to preview.")
+            text: qsTranslate("SettingsPopup", "Hover a font in the list to preview.")
             color: page.tokens.faint
             font.pixelSize: 11
         }

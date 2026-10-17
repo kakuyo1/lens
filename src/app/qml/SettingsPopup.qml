@@ -26,6 +26,12 @@ Window {
     /// Which setting's preview the pointer is asking for, by key, or "" for none (UI.md 4.4). Main
     /// reads the key, puts the demo card up beside this window's card, and takes it down again.
     property string previewKey: ""
+    /// The family the font dropdown's row asks the preview to draw in, when previewKey is "font".
+    /// Null for every other preview, which follows the stored font.
+    property var previewFont: null
+    /// The language the explanation-language row asks the preview to draw in, when previewKey is
+    /// "language". Null for every other preview, which follows the stored language.
+    property var previewLanguage: null
     property string apiDraft: ""
     property string saveStatus: ""
     readonly property bool hasUnsavedChanges: apiDraft.length > 0
@@ -163,11 +169,16 @@ Window {
     /// machine whose `data/preview.json` could not be read has no payload, and no preview.
     function updatePreview() {
         if (previewKey === "") {
+            // The card keeps the face it was last drawn in while it fades: resetting it here
+            // would flip the text back to the stored font for the beat before it goes.
             previewSettle.restart();
             return;
         }
+        // The font row is the one preview that draws in a face other than the stored one.
+        previewCard.previewFont = previewKey === "font" ? previewFont : null;
         previewSettle.stop();
-        const payload = PreviewSample.payload(previewKey);
+        const payload = PreviewSample.payload(previewKey,
+                                              previewKey === "language" ? previewLanguage : null);
         if (!payload) {
             previewCard.visible = false;
             return;
@@ -176,6 +187,20 @@ Window {
     }
 
     onPreviewKeyChanged: settings.updatePreview()
+
+    /// @brief Ask for the preview of @p key, drawn in @p value when the key names a row preview.
+    ///
+    /// Only the font and explanation-language rows carry a value: a family and a language. Moving
+    /// between two rows of the same list keeps the key, so the card is refreshed here rather than
+    /// waiting for a key change that will not come.
+    function requestPreview(key, value) {
+        previewFont = key === "font" ? value : null;
+        previewLanguage = key === "language" ? value : null;
+        if (previewKey === key)
+            settings.updatePreview();
+        else
+            previewKey = key;
+    }
 
     function closeQuestion() {
         // qmllint disable missing-property
@@ -523,6 +548,15 @@ Window {
         id: learningComponent
         SettingsLearningPage {
             onPreviewRequested: (key) => settings.previewKey = key
+            onLanguagePreviewRequested: (language) => {
+                if (language !== "") {
+                    settings.requestPreview("language", language);
+                } else if (settings.previewKey === "language") {
+                    // The pointer may have moved on to a switch title, whose card must not be
+                    // taken down by this list's delayed leave.
+                    settings.requestPreview("", "");
+                }
+            }
         }
     }
     Component {
@@ -546,7 +580,7 @@ Window {
     Component {
         id: fontComponent
         SettingsFontPage {
-            onPreviewRequested: (key) => settings.previewKey = key
+            onPreviewRequested: (key, font) => settings.requestPreview(key, font)
         }
     }
     Component { id: extensionsComponent; SettingsExtensionsPage {} }
