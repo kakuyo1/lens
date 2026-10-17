@@ -109,10 +109,11 @@ Item {
         function test_aPanelThatGrowsKeepsItsBottomRightCorner() {
             const main = make();
             const stats = panel(main, "StatsPopup");
+            // The screen-layout check runs on a 250 ms timer, and its first tick re-places every visible panel from
+            // its anchor. Let that tick run before the panel is shown, or it lands after the resize below and moves
+            // the panel out from under the comparison.
+            tryVerify(function () { return main.screenLayoutSignature !== ""; }, 2000);
             main.showStats();
-            // The first layout of the window reaches onHeightChanged on the next turn, the way
-            // the resize below does. Let it land before the corner is recorded, or it moves the
-            // window out from under the comparison.
             wait(50);
 
             const area = main.workArea(main.screenFor(Qt.point(stats.x, stats.y)));
