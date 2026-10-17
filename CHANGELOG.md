@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 1.4.5 - 2026-10-17
+
+English text wears a face of your choosing and word lists move in and out as files, while the desktop
+pet lives its own life between clicks. The explanation is drawn as it arrives rather than after, and
+every release now carries a portable zip beside the installer.
 
 ### Added
 
