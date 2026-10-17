@@ -12,7 +12,9 @@ import QtQuick.Effects
  * the model's; only the pace is the view's.
  *
  * The target only grows. A chunk arriving mid-reveal extends `text`, and the cursor carries on from
- * where it stood: starting the field over is the stutter this exists to prevent.
+ * where it stood: starting the field over is the stutter this exists to prevent. The layout grows
+ * with it: an extending chunk lays only the token it touched again, so the characters already on
+ * the card are neither measured nor re-created by the next one.
  *
  * Each character appears soft and sharpens over `blurMs`, which is a fixed multiple of the pace
  * rather than a fixed number of milliseconds: the reader's speed setting moves `characterMs`, and
@@ -90,11 +92,19 @@ Item {
     /// The text last handed over, for telling an extension of it from a different answer.
     property string previous: ""
 
-    /// Where every character of the text sits, in reading order, and the same pieces by text index
-    /// for the tail below. Rebuilt when the text or the width changes rather than bound, because
-    /// building it measures as it goes.
-    property var pieces: []
+    /// Where every character of the text sits, by text index, for the blur tail below. Built as the
+    /// text arrives rather than bound, because building it measures as it goes. An extending chunk
+    /// lays only the token it touched, so the characters already drawn are left alone.
     property var positions: []
+    /// Bumped whenever a layout changes in place, so the tail's binding re-reads positions.
+    property int layoutRevision: 0
+    /// The start of the last token laid out, and the pen it started at: where an extending chunk
+    /// drops that token's pieces and lays them again over the longer text.
+    property int tailStart: 0
+    property real tailX: 0
+    property real tailY: 0
+    /// How many pieces that last token put at the end of the model.
+    property int tailPieces: 0
     /// The advance of each run of characters measured so far, dropped when the font changes.
     property var advances: ({})
 
@@ -129,74 +139,107 @@ Item {
         return Math.max(0, Math.min(1, 1 - (cursor - index - 1) / softSpan));
     }
 
-    /// Lay the whole text out, breaking lines between words.
-    ///
-    /// The two lists are handed over whole, once they are filled: a Repeater reads its model when
-    /// the property changes, so an array assigned empty and then pushed into would leave the field
-    /// drawn out of nothing at all.
+    /// Every character, in reading order, as the model the settled Text items are drawn from. A
+    /// ListModel and not an array: a chunk appends rows, and only those rows get delegates, where
+    /// reassigning an array would reset the model and re-create every character on the card.
+    ListModel {
+        id: pieces
+    }
+
+    /// Lay the whole text out, breaking lines between words. A width, wrap or font change goes
+    /// this way; an extending chunk goes through extend() instead.
     function rebuild() {
-        const found = [];
-        const at = [];
+        pieces.clear();
+        positions = [];
+        tailStart = 0;
+        tailX = 0;
+        tailY = 0;
+        tailPieces = 0;
+        layFrom(0, 0, 0);
+        layoutRevision++;
+    }
+
+    /// Lay every token from @p from to the end of the text, the first one at pen (@p x, @p y), and
+    /// leave tailStart/tailX/tailY on the last token for the next chunk.
+    function layFrom(from, x, y) {
         const source = text;
-        if (source.length > 0) {
-            const step = lineBox.implicitHeight;
-            const limit = wrapMode === Text.NoWrap ? Number.POSITIVE_INFINITY : Math.max(1, width);
-            let x = 0;
-            let y = 0;
-            let index = 0;
-            while (index < source.length) {
-                const start = index;
-                const blank = source.charAt(index) === " " || source.charAt(index) === "\n";
-                while (index < source.length
-                       && (source.charAt(index) === " " || source.charAt(index) === "\n") === blank)
-                    ++index;
-                const token = source.substring(start, index);
+        const step = lineBox.implicitHeight;
+        const limit = wrapMode === Text.NoWrap ? Number.POSITIVE_INFINITY : Math.max(1, width);
+        let index = from;
+        while (index < source.length) {
+            const start = index;
+            const blank = source.charAt(index) === " " || source.charAt(index) === "\n";
+            while (index < source.length
+                   && (source.charAt(index) === " " || source.charAt(index) === "\n") === blank)
+                ++index;
+            const token = source.substring(start, index);
 
-                if (blank) {
-                    // An explicit break moves the line; the spaces between words only move along it.
-                    if (token.indexOf("\n") >= 0) {
-                        y += step;
-                        x = 0;
-                    } else {
-                        x += measureWidth(token);
-                    }
-                    continue;
-                }
+            // Remembered before the token is laid: an appended chunk drops this token and lays it
+            // again from exactly here, which is why the rest of the field never moves.
+            tailStart = start;
+            tailX = x;
+            tailY = y;
+            tailPieces = 0;
 
-                // A word is measured whole, so the break below always falls between two of them.
-                const tokenWidth = measureWidth(token);
-                if (x > 0 && x + tokenWidth > limit) {
-                    x = 0;
+            if (blank) {
+                // An explicit break moves the line; the spaces between words only move along it.
+                if (token.indexOf("\n") >= 0) {
                     y += step;
+                    x = 0;
+                } else {
+                    x += measureWidth(token);
                 }
-                // Each letter sits where the whole run up to it ends rather than where the letters
-                // before it add up to: an advance is whole pixels, and fourteen of them rounded
-                // separately put the word further along than the word itself is wide.
-                for (let i = 0; i < token.length; ++i) {
-                    const piece = { index: start + i, character: token.charAt(i),
-                                    x: x + measureWidth(token.substring(0, i)), y: y };
-                    found.push(piece);
-                    at[start + i] = piece;
-                }
-                // The word's own width rather than the sum of its letters: a pair that is kerned is
-                // narrower than the two apart, and the next word starts where this one ends.
-                x += tokenWidth;
+                continue;
             }
+
+            // A word is measured whole, so the break below always falls between two of them.
+            const tokenWidth = measureWidth(token);
+            if (x > 0 && x + tokenWidth > limit) {
+                x = 0;
+                y += step;
+            }
+            // Each letter sits where the whole run up to it ends rather than where the letters
+            // before it add up to: an advance is whole pixels, and fourteen of them rounded
+            // separately put the word further along than the word itself is wide.
+            for (let i = 0; i < token.length; ++i) {
+                const piece = { index: start + i, character: token.charAt(i),
+                                x: x + measureWidth(token.substring(0, i)), y: y };
+                pieces.append({ charIndex: piece.index, glyph: piece.character,
+                                px: piece.x, py: piece.y });
+                positions[piece.index] = piece;
+                ++tailPieces;
+            }
+            // The word's own width rather than the sum of its letters: a pair that is kerned is
+            // narrower than the two apart, and the next word starts where this one ends.
+            x += tokenWidth;
         }
-        pieces = found;
-        positions = at;
+    }
+
+    /// Lay what an extending chunk added: drop the last token and lay it again from where it
+    /// started. Only that token can have changed -- an append either grows it or follows it -- and
+    /// a word grown past the line's width wraps here from its own start, as a full rebuild would.
+    function extend() {
+        if (tailPieces > 0)
+            pieces.remove(pieces.count - tailPieces, tailPieces);
+        if (positions.length > tailStart)
+            positions.length = tailStart;
+        tailPieces = 0;
+        layFrom(tailStart, tailX, tailY);
+        layoutRevision++;
     }
 
     onTextChanged: {
         const continued = previous.length > 0 && text.startsWith(previous);
         previous = text;
-        if (!continued) {
+        if (continued) {
+            extend();
+        } else {
             startedMs = Date.now();
             cursor = 0;
+            rebuild();
         }
         if (!animated)
             settle();
-        rebuild();
     }
 
     onWidthChanged: rebuild()
@@ -285,16 +328,19 @@ Item {
 
     /// What has settled: plain Text items, with no blur and no shader of their own.
     Repeater {
-        model: root.pieces
+        model: pieces
 
         delegate: Text {
             id: settled
 
-            required property var modelData
-            x: modelData.x
-            y: modelData.y + root.topPadding
-            visible: root.softness(modelData.index) <= 0
-            text: modelData.character
+            required property int charIndex
+            required property string glyph
+            required property real px
+            required property real py
+            x: px
+            y: py + root.topPadding
+            visible: root.softness(charIndex) <= 0
+            text: glyph
             color: root.color
             font.pixelSize: root.pixelSize
             font.weight: root.weight
@@ -320,7 +366,13 @@ Item {
         delegate: Item {
             id: tail
             required property int index
-            readonly property var piece: root.pieceAt(root.revealed - 1 - index)
+            // layoutRevision is read so that a chunk which re-lays the token this character sits
+            // in re-reads its place: positions is edited in place, and a var property does not
+            // announce that.
+            readonly property var piece: {
+                root.layoutRevision;
+                return root.pieceAt(root.revealed - 1 - index);
+            }
 
             x: piece ? piece.x : 0
             y: piece ? piece.y + root.topPadding : 0

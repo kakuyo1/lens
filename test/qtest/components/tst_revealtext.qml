@@ -122,6 +122,41 @@ Item {
             verify(slow.softSpan <= 6, "the tail carries more shaders than the shipped six");
         }
 
+        /// Everything the reader can see, in reading order, as one signature string. The settled
+        /// characters are the Repeater's own children; the tail's copies are nested under a slot,
+        /// and the hidden measure and line box are hidden.
+        function laidOut(reveal) {
+            return Util.findAll(reveal, function (o) {
+                return typeof o.text === "string" && o.visible && o.parent === reveal;
+            }).map(function (o) {
+                return { text: o.text, x: o.x, y: o.y };
+            }).sort(function (a, b) {
+                return a.y - b.y || a.x - b.x;
+            }).map(function (o) {
+                return o.text + " " + o.x + "," + o.y;
+            }).join("|");
+        }
+
+        /// Streaming the text in extends the layout to exactly the one a field given the whole
+        /// answer lays out: the tail token is laid again as the chunks arrive, and that has to
+        /// leave every character before it where a full rebuild would, including a word that
+        /// grows across a line break.
+        function test_anExtendedLayoutMatchesOneLaidOutWhole() {
+            const chunks = ["a gentle", " breeze mo", "ves through the extra",
+                            "ordinary occurrence of", " events by chance"];
+            const streamed = opened({text: chunks[0], animated: false, width: 120});
+            for (let i = 1; i < chunks.length; ++i)
+                streamed.text += chunks[i];
+
+            const whole = opened({text: chunks.join(""), animated: false, width: 120});
+
+            const streamedLayout = laidOut(streamed);
+            compare(streamedLayout, laidOut(whole),
+                    "the extended layout drifted from the whole one");
+            verify(streamedLayout.indexOf("a 0,0") === 0,
+                   "the streamed characters were not drawn at all");
+        }
+
         /// Only the characters still sharpening carry a blur: the settled ones are plain text, so
         /// what the reveal costs the renderer is the tail rather than the length of the field.
         function test_onlyTheSharpeningTailCarriesABlur() {
