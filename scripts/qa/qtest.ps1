@@ -7,8 +7,10 @@
 # builds the target (incremental, a few seconds) so a stale binary cannot answer for the code, and
 # then forwards the case name to the runner.
 #
-# -Case takes what the runner takes: `Main::test_x` or the bare `test_x`. Without it the whole
-# suite runs, which is what a hand-over wants and an edit does not.
+# -Case takes what the runner takes: `Main::test_x` or the bare `test_x`. A class on its own is not
+# one of those, and `-Case Main` is the quiet way to run nothing: the runner prints "Could not find
+# the following test functions" and exits green. Without -Case the whole suite runs, which is what
+# a hand-over wants and an edit does not.
 #
 # Examples. The powershell prefix is the one that works from Git Bash, where these are typed.
 #   powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_surfaces -Case Main::test_hover
