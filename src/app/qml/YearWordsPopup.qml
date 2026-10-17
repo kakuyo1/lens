@@ -46,6 +46,9 @@ Window {
 
     property bool paletteOpen: false
     property int hueIndex: 4
+    /// The ring's turn, in degrees: the selected hue is brought to 90° clockwise (3 o'clock). A click
+    /// takes the shortest way from wherever the last one left the ring.
+    property real wheelRotation: 90 - 30 * hueIndex
     property int selectedLevel: 0
     property string selectedDate: ""
     readonly property var selectedDay: year.days.find(function (day) { return day.date === year.selectedDate; }) || null
@@ -118,6 +121,9 @@ Window {
     }
 
     function selectHue(index) {
+        // Computed before hueIndex moves: wheelRotation's initial binding reads it.
+        const target = 90 - 30 * index;
+        wheelRotation += ((target - wheelRotation) % 360 + 540) % 360 - 180;
         hueIndex = index;
     }
 
@@ -387,15 +393,6 @@ Window {
                     width: 124
                     height: 124
 
-                    Rectangle {
-                        anchors.fill: parent
-                        anchors.margins: 12
-                        radius: width / 2
-                        color: "transparent"
-                        border.width: 1
-                        border.color: year.tokens.line
-                    }
-
                     Item {
                         id: orbit
                         anchors.fill: parent
@@ -410,26 +407,133 @@ Window {
                             running: year.tokens.motion.pop > 0
                         }
 
-                        Repeater {
-                            model: year.hues.length
-                            delegate: Rectangle {
-                                id: hueCell
-                                required property int index
-                                readonly property real angle: index * Math.PI / 6
-                                readonly property int hue: year.hues[index].hue
-                                x: wheel.width / 2 - width / 2 + Math.sin(angle) * 51
-                                y: wheel.height / 2 - height / 2 - Math.cos(angle) * 51
-                                width: 20
-                                height: 20
-                                radius: 10
-                                color: Qt.hsla(hue / 360, 0.72, 0.52, 1)
-                                border.width: year.hueIndex === index ? 2 : 1
-                                border.color: year.hueIndex === index ? year.tokens.text : year.tokens.panel
-                                Accessible.role: Accessible.Button
-                                Accessible.name: year.hues[index].name
-                                TapHandler { onTapped: year.selectHue(hueCell.index) }
+                        // The ring and its dots turn together; the disc at the centre stays put, so the
+                        // name needs no counter-rotation.
+                        Item {
+                            id: spin
+                            anchors.fill: parent
+                            rotation: year.wheelRotation
+                            Behavior on rotation {
+                                NumberAnimation {
+                                    duration: year.tokens.motion.pop
+                                    easing.type: year.tokens.motion.easing
+                                }
+                            }
+
+                            // The colour disc is inset 12 px, as the prototype's is; the beads below straddle
+                            // its rim, which is what makes a flower of them rather than a pie chart.
+                            Canvas {
+                                anchors.fill: parent
+                                onPaint: {
+                                    const ctx = getContext("2d");
+                                    const cx = spin.width / 2;
+                                    const cy = spin.height / 2;
+                                    const radius = spin.width / 2 - 12;
+                                    const colors = ["#ef4444", "#f97316", "#eab308", "#84cc16", "#22c55e", "#14b8a6",
+                                                    "#06b6d4", "#3b82f6", "#6366f1", "#8b5cf6", "#d946ef", "#ec4899"];
+                                    const step = Math.PI / 6;
+                                    // A hair of overlap hides the anti-aliasing seam between neighbouring wedges.
+                                    const overlap = 0.008;
+                                    // An annulus, not a disc: nothing is painted under the middle, so the centre
+                                    // discs over it read as the card's glass rather than as a tinted colour.
+                                    const inner = 27;
+                                    for (let index = 0; index < colors.length; ++index) {
+                                        const from = -Math.PI / 2 + index * step - overlap;
+                                        ctx.beginPath();
+                                        ctx.arc(cx, cy, radius, from, from + step + 2 * overlap);
+                                        ctx.arc(cx, cy, inner, from + step + 2 * overlap, from, true);
+                                        ctx.closePath();
+                                        ctx.fillStyle = colors[index];
+                                        ctx.fill();
+                                    }
+                                    // The beads' rest shadow, one pixel down and soft, as the prototype's
+                                    // box-shadow draws it. Painted here because it turns with their ring.
+                                    for (let index = 0; index < colors.length; ++index) {
+                                        const bx = cx + Math.sin(index * step) * 51;
+                                        const by = cy - Math.cos(index * step) * 51 + 1;
+                                        const shadow = ctx.createRadialGradient(bx, by, 8, bx, by, 14);
+                                        shadow.addColorStop(0, "rgba(20,20,26,0.24)");
+                                        shadow.addColorStop(1, "rgba(20,20,26,0)");
+                                        ctx.beginPath();
+                                        ctx.arc(bx, by, 14, 0, 2 * Math.PI);
+                                        ctx.fillStyle = shadow;
+                                        ctx.fill();
+                                    }
+                                }
+                            }
+
+                            Rectangle {
+                                anchors.fill: parent
+                                anchors.margins: 12
+                                radius: width / 2
+                                color: "transparent"
+                                border.width: 1
+                                border.color: Qt.rgba(1, 1, 1, 0.24)
+                            }
+
+                            Repeater {
+                                model: year.hues.length
+                                delegate: Rectangle {
+                                    id: hueCell
+                                    required property int index
+                                    readonly property real angle: index * Math.PI / 6
+                                    readonly property int hue: year.hues[index].hue
+                                    readonly property bool active: year.hueIndex === index || hueHover.hovered
+                                    x: wheel.width / 2 - width / 2 + Math.sin(angle) * 51
+                                    y: wheel.height / 2 - height / 2 - Math.cos(angle) * 51
+                                    width: 21
+                                    height: 21
+                                    radius: 10.5
+                                    color: Qt.hsla(hue / 360, 0.70, 0.52, 1)
+                                    border.width: 2
+                                    border.color: year.tokens.panel
+                                    scale: active ? 1.12 : 1
+                                    Accessible.role: Accessible.Button
+                                    Accessible.name: year.hues[index].name
+
+                                    Behavior on scale {
+                                        NumberAnimation {
+                                            duration: year.tokens.motion.press
+                                            easing.type: year.tokens.motion.easing
+                                        }
+                                    }
+                                    HoverHandler {
+                                        id: hueHover
+                                        cursorShape: Qt.PointingHandCursor
+                                    }
+                                    TapHandler { onTapped: year.selectHue(hueCell.index) }
+
+                                    // The hover and selected mark: a ring outside the dot, as the prototype draws it.
+                                    Rectangle {
+                                        anchors.centerIn: parent
+                                        width: parent.width + 4
+                                        height: parent.height + 4
+                                        radius: width / 2
+                                        color: "transparent"
+                                        border.width: 2
+                                        border.color: year.tokens.text
+                                        opacity: hueCell.active ? 1 : 0
+                                        Accessible.ignored: true
+                                        Behavior on opacity {
+                                            NumberAnimation {
+                                                duration: year.tokens.motion.press
+                                                easing.type: year.tokens.motion.easing
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
+                    }
+
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 56
+                        height: 56
+                        radius: 28
+                        color: year.tokens.panel
+                        border.width: 1
+                        border.color: year.tokens.line
                     }
 
                     Rectangle {
@@ -438,14 +542,12 @@ Window {
                         height: 48
                         radius: 24
                         color: year.tokens.panel2
-                        border.width: 1
-                        border.color: year.tokens.line
                         Text {
                             anchors.centerIn: parent
                             width: parent.width - 8
                             text: year.hues[year.hueIndex].name
                             color: year.tokens.muted
-                            font.pixelSize: 8
+                            font.pixelSize: 9
                             horizontalAlignment: Text.AlignHCenter
                             elide: Text.ElideRight
                         }
