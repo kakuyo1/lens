@@ -1,20 +1,31 @@
 /** @file capture_test.cpp
- * @brief Offline capture policy, whitelist, stability and candidate boundaries.
+ * @brief Offline capture policy, whitelist, stability, candidate boundaries and the OCR seam.
  */
 #include <gtest/gtest.h>
 
+#include <atomic>
 #include <climits>
 #include <chrono>
+#include <filesystem>
 #include <memory>
+#include <optional>
 
+#include <QCoreApplication>
 #include <QDir>
+#include <QEventLoop>
 #include <QFile>
+#include <QImage>
 #include <QTemporaryDir>
+#include <QTimer>
 
+#include "app/capture_duty.h"
+#include "app/capture_refusal.h"
 #include "app/mouse_selection_hook.h"
+#include "app/storage_duty.h"
 #include "capture/capture_policy.h"
 #include "capture/ocr_engine.h"
 #include "capture/scan_pipeline.h"
+#include "core/known_store.h"
 #include "support.h"
 
 namespace {
@@ -57,6 +68,59 @@ bool writeTrainedData(QString const& directory, const char* code, qint64 bytes =
     QFile file{QDir{directory}.filePath(QString::fromLatin1(code) + QStringLiteral(".traineddata"))};
     if (not file.open(QIODevice::WriteOnly)) return false;
     return file.write(QByteArray(static_cast<int>(bytes), 'x')) == bytes;
+}
+
+/// @brief The in-memory OcrEngine: answers what it is scripted to, the way TesseractOcr frames it.
+///
+/// A null image is InvalidImage and a raised cancel flag is Failed before any recognition, which
+/// is the contract the production adapter keeps; everything else is the scripted result.
+struct FakeOcr final : lens::capture::OcrEngine {
+    lens::capture::OcrResult result{.status = lens::capture::OcrStatus::EmptyText};
+
+    lens::capture::OcrStatus probe(std::shared_ptr<std::atomic_bool> const cancel) const override
+    {
+        if (cancel and cancel->load(std::memory_order_relaxed)) return lens::capture::OcrStatus::Failed;
+        return lens::capture::OcrStatus::Ready;
+    }
+
+    lens::capture::OcrResult recognize(QImage const& image, std::shared_ptr<std::atomic_bool> const cancel) const override
+    {
+        if (image.isNull()) return {.status = lens::capture::OcrStatus::InvalidImage};
+        if (cancel and cancel->load(std::memory_order_relaxed)) return {.status = lens::capture::OcrStatus::Failed};
+        return result;
+    }
+};
+
+/// @return A scan result whose generation and window both still match, with scanning on.
+lens::capture::OcrResultContext currentScan()
+{
+    return {.jobContext        = QStringLiteral("window"),
+            .jobGeneration     = 4,
+            .scanGeneration    = 4,
+            .foregroundContext = QStringLiteral("window"),
+            .autoScan          = true};
+}
+
+/// @brief Run the event loop until @p signal leaves @p sender, or until the bound passes.
+///
+/// The bound only keeps a broken wiring from hanging the suite. This target does not link Qt Test,
+/// so there is no QSignalSpy; a plain connection and a single-shot timer do the same job.
+/// @return Whether the signal came before the bound.
+template <typename Sender, typename Signal>
+bool awaitSignal(Sender const& sender, Signal signal)
+{
+    QEventLoop loop;
+    QTimer     bound;
+    bound.setSingleShot(true);
+    bool fired = false;
+    QObject::connect(&sender, signal, &loop, [&fired, &loop] {
+        fired = true;
+        loop.quit();
+    });
+    QObject::connect(&bound, &QTimer::timeout, &loop, &QEventLoop::quit);
+    bound.start(2000);
+    loop.exec();
+    return fired;
 }
 
 }
@@ -137,4 +201,94 @@ TEST(CapturePolicy, ProcessGateIsExactAndFailClosed)
     EXPECT_FALSE(lens::capture::allowedProcess("not-chrome.exe", {"chrome.exe"}, false));
     EXPECT_FALSE(lens::capture::allowedProcess("chrome.exe", {"chrome.exe"}, true));
     EXPECT_FALSE(lens::capture::allowedProcess("", {"chrome.exe"}, false));
+}
+
+TEST(CapturePolicy, AStaleScreenshotResultIsDroppedAndACurrentOneApplies)
+{
+    using lens::capture::OcrResultFate;
+    lens::capture::OcrResultContext screenshot{.jobGeneration = 2, .scanGeneration = 9, .screenshotGeneration = 2};
+    EXPECT_EQ(lens::capture::ocrResultFate(screenshot), OcrResultFate::Current) << "only the screenshot generation counts";
+    // A screenshot does not care about the window or the scan switch.
+    screenshot.scanPaused   = true;
+    screenshot.budgetPaused = true;
+    EXPECT_EQ(lens::capture::ocrResultFate(screenshot), OcrResultFate::Current);
+    screenshot.screenshotGeneration = 3;
+    EXPECT_EQ(lens::capture::ocrResultFate(screenshot), OcrResultFate::Superseded);
+}
+
+TEST(CapturePolicy, AStaleScanResultIsWithdrawnAndAMovedGenerationOutranksIt)
+{
+    using lens::capture::OcrResultFate;
+    EXPECT_EQ(lens::capture::ocrResultFate(currentScan()), OcrResultFate::Current);
+
+    auto moved           = currentScan();
+    moved.scanGeneration = 5;
+    EXPECT_EQ(lens::capture::ocrResultFate(moved), OcrResultFate::Superseded);
+    moved.scanPaused = true;
+    EXPECT_EQ(lens::capture::ocrResultFate(moved), OcrResultFate::Superseded) << "the generation is read first";
+
+    auto budget         = currentScan();
+    budget.budgetPaused = true;
+    EXPECT_EQ(lens::capture::ocrResultFate(budget), OcrResultFate::Withdrawn);
+    auto paused       = currentScan();
+    paused.scanPaused = true;
+    EXPECT_EQ(lens::capture::ocrResultFate(paused), OcrResultFate::Withdrawn);
+    auto noWindow              = currentScan();
+    noWindow.foregroundContext = std::nullopt;
+    EXPECT_EQ(lens::capture::ocrResultFate(noWindow), OcrResultFate::Withdrawn);
+    auto otherWindow              = currentScan();
+    otherWindow.foregroundContext = QStringLiteral("other");
+    EXPECT_EQ(lens::capture::ocrResultFate(otherWindow), OcrResultFate::Withdrawn);
+    auto switchedOff     = currentScan();
+    switchedOff.autoScan = false;
+    EXPECT_EQ(lens::capture::ocrResultFate(switchedOff), OcrResultFate::Withdrawn);
+}
+
+TEST(CapturePolicy, AnEmptyOrUnreadableRegionIsNotARuntimeFault)
+{
+    using lens::capture::OcrStatus;
+    EXPECT_FALSE(lens::capture::isRuntimeFault(OcrStatus::Ready));
+    EXPECT_FALSE(lens::capture::isRuntimeFault(OcrStatus::EmptyText));
+    EXPECT_FALSE(lens::capture::isRuntimeFault(OcrStatus::InvalidImage));
+    EXPECT_TRUE(lens::capture::isRuntimeFault(OcrStatus::RuntimeMissing));
+    EXPECT_TRUE(lens::capture::isRuntimeFault(OcrStatus::LanguageMissing));
+    EXPECT_TRUE(lens::capture::isRuntimeFault(OcrStatus::StartFailed));
+    EXPECT_TRUE(lens::capture::isRuntimeFault(OcrStatus::TimedOut));
+    EXPECT_TRUE(lens::capture::isRuntimeFault(OcrStatus::Failed));
+}
+
+/// A framed region that reads no text is reported with the status its own result carried, not with
+/// the runtime's: the runtime is Ready by the time a capture can start, so ocrStatus() would say
+/// "ready" about a region that had nothing in it.
+TEST(CaptureDuty, AFramedRegionThatReadsNoTextReportsTheResultsOwnReason)
+{
+    using lens::app::CaptureDuty;
+    using lens::app::CaptureRefusal;
+    using lens::app::MouseSelectionHook;
+    using lens::app::StorageDuty;
+
+    int              argc   = 1;
+    char             name[] = "capture_test";
+    char*            argv[] = {name, nullptr};
+    QCoreApplication application{argc, argv}; // the probe and the screenshot's result arrive on the event loop
+
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    auto        store = lens::core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    StorageDuty storage{store};
+    storage.section().set<bool>("ocrCapture", true);
+
+    // Constructed but never install()ed: only main() installs the hook.
+    MouseSelectionHook            hook;
+    std::optional<CaptureRefusal> reported;
+    CaptureDuty                   duty{storage, hook, std::make_unique<FakeOcr>()};
+    QObject::connect(&duty, &CaptureDuty::screenshotFailed, [&reported](CaptureRefusal refusal) { reported = refusal; });
+
+    // The gate stays shut until the probe has answered on the event loop.
+    ASSERT_TRUE(awaitSignal(duty, &CaptureDuty::settingsChanged));
+    ASSERT_EQ(duty.captureRefusalReason(), std::nullopt);
+
+    ASSERT_TRUE(duty.captureScreenshot(QImage{4, 4, QImage::Format_Grayscale8}, {}));
+    ASSERT_TRUE(awaitSignal(duty, &CaptureDuty::screenshotFailed));
+    EXPECT_EQ(reported, CaptureRefusal::EmptyText);
 }

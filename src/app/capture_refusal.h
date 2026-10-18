@@ -101,4 +101,28 @@ inline std::optional<CaptureRefusal> refusalOf(capture::OcrStatus status)
     return CaptureRefusal::Failed;
 }
 
+/// @brief What the capture gate reads at the moment a capture is asked for.
+struct CaptureGate {
+    bool               budgetPaused = false;
+    bool               probing      = false; ///< The runtime probe is in flight.
+    bool               busy         = false; ///< An OCR job is in flight, the probe included.
+    bool               screenshotOn = false; ///< The reader's OCR capture switch.
+    capture::OcrStatus runtime      = capture::OcrStatus::RuntimeMissing;
+};
+
+/**
+ * @brief Why a capture cannot start, in the order the reasons outrank one another.
+ * @param gate The duty's flags and the runtime's last known state.
+ * @return The first reason that applies: the budget, then the probe, then a job in flight, then
+ *         the reader's switch, then the runtime. Nothing when the capture can start.
+ */
+inline std::optional<CaptureRefusal> gateRefusal(CaptureGate const& gate)
+{
+    if (gate.budgetPaused) return CaptureRefusal::BudgetPaused;
+    if (gate.probing) return CaptureRefusal::Checking;
+    if (gate.busy) return CaptureRefusal::Busy;
+    if (not gate.screenshotOn) return CaptureRefusal::ScreenshotOff;
+    return refusalOf(gate.runtime);
+}
+
 }
