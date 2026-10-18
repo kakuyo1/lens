@@ -35,7 +35,7 @@ The AI provider you configure writes the explanation. Lens does not ship a defin
 - **Year in words.** A year of lookups drawn as a contribution graph. Select a day to see how many words you looked up that day, and choose the colours of the cells from a twelve-hue wheel, each with four shades.
 - **Costs and budget.** The cost view prices each request from the tokens it used, at current rates. A daily budget pauses lookups, capture, and requests when the day's spend reaches it, and resets when the local date changes.
 - **Screen capture and automatic scanning.** Capture dims every screen, reads the region you frame, and translates it. Lens bundles the OCR runtime, and you can point Settings at your own installed Tesseract instead.
-- **Desktop pets.** Four pets ship with Lens: Mochi, Cat, Dog, and Owl. Each one plays actions as you study. Pets are off by default; turn one on in Settings under Extensions. You can drag it, click it, dress it in up to three accessories, set its size from one to four times, or let mouse clicks pass through it. A pet reacts to event types only and never reads your selections, explanations, or screen text. You can also install pet packages: copy a package folder into `%APPDATA%\Lens\pets\`, then open Extensions in Settings. Each package asks you once before it takes effect, and packages hold data only, never code.
+- **Desktop pets.** Seven pets ship with Lens: Stub Cat, Dog, Mochi, Owl, Ghost, Jellyfish, and Cloud. Each one plays actions as you study. Pets are off by default; turn one on in Settings under Extensions. You can drag it, click it, dress it in up to three accessories, set its size from one to four times, or let mouse clicks pass through it. A pet reacts to event types only and never reads your selections, explanations, or screen text. You can also install pet packages: copy a package folder into `%APPDATA%\Lens\pets\`, then open Extensions in Settings. Each package asks you once before it takes effect, and packages hold data only, never code.
 - **Updates.** Lens checks the project's latest release once a day at startup, which you can switch off in General, or when you choose Check for updates on the About page, which also shows the current version and the repository link. A newer version shows a card with View, Download, and Skip this version. Downloads are checked against the release's `SHA256SUMS`, and the installer runs only when you press Install, with no extra arguments. The installer is not code-signed, so the checksum shows the file arrived intact but does not prove who published it. Downloads need a proxy from mainland China; Lens says so when nothing arrives.
 - **Sync.** Sign in with GitHub to keep your word marks, lookup history, statistics, and selected settings in step across devices. The copy is encrypted with a passphrase you set and stored in a secret gist in your own GitHub account. Explanations are not synced. You can log out, or delete the cloud copy, at any time.
 - **Themes.** Light, Dark, Frosted glass, Liquid glass, and Custom. See [Themes](#themes).
@@ -81,7 +81,7 @@ Short clips of the main operations, in the English interface with English explan
 
 ## Desktop pets
 
-Four pets ship with Lens. Each clip shows one of them playing its action.
+Seven pets ship with Lens. Each clip below shows one of the four older pets playing its action.
 
 | Mochi, celebrating | Cat, kneading |
 | --- | --- |

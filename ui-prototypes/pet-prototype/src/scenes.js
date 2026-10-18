@@ -26,8 +26,10 @@ import { CELL, art, rect } from './pixel-art.js';
  */
 const swingRide = ms => Math.round(2 * Math.sin(ms / 560));
 
-/** Recipe pets put their feet there; the dog's are one cell lower and mochi and owl sit a cell left. */
-const OFFSETS = { cat: [0, 0], dog: [0, 1], mochi: [-1, 0], owl: [-1, 0] };
+/** The scene foot is the cat's; the other pets sit one cell lower, or a cell left of that mark. */
+const OFFSETS = {
+  cat: [-1, 0], dog: [0, 1], ghost: [0, 0], jelly: [0, 0], cloud: [0, 0], mochi: [-1, 0], owl: [-1, 0]
+};
 
 /** @param {string} petId @returns {number[]} Cells to shift a scene by, for this pet's art. */
 export const sceneOffset = petId => OFFSETS[petId] ?? [0, 0];

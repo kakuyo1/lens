@@ -1,9 +1,9 @@
 {
   "accessories": [
     {
-      "id": "crown",
+      "id": "beanie",
       "slot": "head",
-      "asset": "sprites/accessories/headwear/crown.png",
+      "asset": "sprites/accessories/headwear/beanie.png",
       "zIndex": 5,
       "supportedActions": [
         "idle",
@@ -31,9 +31,9 @@
       ]
     },
     {
-      "id": "beanie",
+      "id": "crown",
       "slot": "head",
-      "asset": "sprites/accessories/headwear/beanie.png",
+      "asset": "sprites/accessories/headwear/crown.png",
       "zIndex": 5,
       "supportedActions": [
         "idle",
@@ -91,9 +91,9 @@
       ]
     },
     {
-      "id": "sunglasses",
+      "id": "glasses",
       "slot": "face",
-      "asset": "sprites/accessories/glasses/sunglasses.png",
+      "asset": "sprites/accessories/glasses/glasses.png",
       "zIndex": 4,
       "supportedActions": [
         "idle",
@@ -121,9 +121,9 @@
       ]
     },
     {
-      "id": "glasses",
+      "id": "sunglasses",
       "slot": "face",
-      "asset": "sprites/accessories/glasses/glasses.png",
+      "asset": "sprites/accessories/glasses/sunglasses.png",
       "zIndex": 4,
       "supportedActions": [
         "idle",
@@ -241,9 +241,9 @@
       ]
     },
     {
-      "id": "bandana",
+      "id": "scarf",
       "slot": "body",
-      "asset": "sprites/accessories/clothing/bandana.png",
+      "asset": "sprites/accessories/clothing/scarf.png",
       "zIndex": 3,
       "supportedActions": [
         "idle",

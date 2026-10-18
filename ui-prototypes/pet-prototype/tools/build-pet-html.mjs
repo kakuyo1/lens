@@ -12,7 +12,7 @@ const proto = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const petsRoot = path.resolve(proto, '..', '..', 'data', 'pet');
 
 // The picker's order: the dog first, since it is the default, then the others as the design lists them. Any other pet follows, by id.
-const PET_ORDER = ['dog', 'mochi', 'owl', 'cat'];
+const PET_ORDER = ['dog', 'mochi', 'owl', 'cat', 'ghost', 'jelly', 'cloud'];
 
 /**
  * The pets the page offers: every folder under `root` that has a pet.json. A folder still being authored, without one, is left out.

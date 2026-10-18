@@ -12,9 +12,17 @@ point is a cell centre, (x + 0.5, y + 0.5) for cell (x, y).
 
   id, scale          folder name and the whole-number scale the app shows the pet at (3).
   body               {cx, cy, rx, ry}: the base ellipse. Its bottom centre is the pivot of every pose.
-  bodyPaint          [{at, colour, art}]: cells coloured on the body sheet, only where the body covers them. An action
-                     sets it for every frame; a frame's own list replaces it. Display space, like frame.shapes, so the
-                     cells move with anchors.body.
+  pivot, head        Optional [x, y] overrides for the pose pivot and the head anchor. The defaults are the ellipse
+                     bottom centre and top centre. A silhouette mask can sit far from that ellipse, so name both
+                     explicitly when the art is not ellipse-shaped.
+  bodyPaint          [{at, colour, art}]: cells coloured on the body sheet, only where the body covers them. The
+                     recipe's list is the default; an action sets it for every frame; a frame's own list replaces it.
+                     Display space, like frame.shapes, so the cells move with anchors.body.
+  silhouette         Optional mask shape, applied to every frame before that frame's shapes. Its rows use '#' for a
+                     body cell and any other character for empty space. Use it for a shape that a stack of ellipses
+                     and rectangles cannot express (a jellyfish's tentacles, a cat's ears).
+  facePaint          [{at, colour, art | glyph}]: expression-layer items drawn on every expression cell, under the eyes
+                     and mouth. The layer moves with anchors.face, so use it for whiskers or a permanent marking.
   eyes, mouth        expression cells. The mouth is drawn for every expression except 7 (yawn), 8 (blank)
                      and 9 (angry).
   yawnMouth          [x, y, w, h] for expression 7.
@@ -29,8 +37,9 @@ point is a cell centre, (x + 0.5, y + 0.5) for cell (x, y).
     frame.pose       {dx, dy, sx, sy}; defaults 0, 0, 1, 1. sx and sy squash the body about the pivot. dx and dy
                      move the whole pet; they become anchors.body, so the body sheet itself is drawn in place.
     frame.expression index into EYE_PATTERNS; default 0.
-    frame.shapes     extra shapes, applied in order to the body: {op: add|discard, shape: ellipse|rect, ...}.
-                     An ellipse takes cx, cy, rx, ry. A rect takes cols and rows, inclusive cell bounds.
+    frame.shapes     extra shapes, applied in order to the body: {op: add|discard, shape: ellipse|rect|mask, ...}.
+                     An ellipse takes cx, cy, rx, ry. A rect takes cols and rows, inclusive cell bounds. A mask takes
+                     at: [x, y] and rows, where '#' is inside.
     frame.paint      effect-layer items: {at: [x, y], colour, art | glyph}. In art, '#' is a cell.
     frame.paintLeft  effect-layer items of the left-hand sheet (effectLeft), when the action has any. A frame's
                      paintLeft replaces its paint there, so a right-hand paw never shows on the left.
@@ -67,6 +76,11 @@ PALETTE = {
     "sky": (82, 160, 236, 255),
     "green": (52, 170, 96, 255),
     "lilac": (160, 116, 232, 255),
+    "charcoal": (47, 50, 58, 255),
+    "silver": (143, 151, 166, 255),
+    "mist": (211, 216, 226, 255),
+    "aqua": (175, 201, 199, 255),
+    "dust": (143, 166, 184, 255),
 }
 INK = PALETTE["ink"]
 FUR = PALETTE["fur"]
@@ -108,6 +122,12 @@ def covers(shape, x, y):
     """Whether a shape covers the point (x, y), in cell space."""
     if shape["shape"] == "ellipse":
         return ((x - shape["cx"]) / shape["rx"]) ** 2 + ((y - shape["cy"]) / shape["ry"]) ** 2 <= 1.0
+    if shape["shape"] == "mask":
+        ax, ay = shape["at"]
+        # floor, not int: cell centres are negative on the left and above the origin, and int truncates toward zero.
+        row, col = math.floor(y) - ay, math.floor(x) - ax
+        rows = shape["rows"]
+        return 0 <= row < len(rows) and 0 <= col < len(rows[row]) and rows[row][col] == "#"
     (x0, x1), (y0, y1) = shape["cols"], shape["rows"]
     return x0 <= x < x1 + 1 and y0 <= y < y1 + 1
 
@@ -118,14 +138,19 @@ def body_cells(body, pivot, pose, shapes):
     Each cell centre is mapped back through the squash to the base shape, so a squash never has to rebuild the shape.
     """
     cells = set()
-    for y in range(-4, 20):
-        for x in range(-4, 22):
+    # Room for art that reaches past the usual pet box, such as ears, tails and a jellyfish's tentacles. The sheet
+    # itself clips whatever falls outside it.
+    for y in range(-10, 30):
+        for x in range(-10, 30):
             px, py = x + 0.5, y + 0.5
             qx = pivot[0] + (px - pivot[0]) / pose["sx"]
             qy = pivot[1] + (py - pivot[1]) / pose["sy"]
             on = covers(body, qx, qy)
             for shape in shapes:
-                if covers(shape, px, py):
+                # A frame shape is display space by default. A silhouette named at the recipe level follows the
+                # pose, so a squash deforms the art instead of adding an upright copy over it.
+                sx_, sy_ = (qx, qy) if shape.get("followPose") else (px, py)
+                if covers(shape, sx_, sy_):
                     on = shape["op"] == "add"
             if on:
                 cells.add((x, y))
@@ -172,9 +197,9 @@ def cell_colours(items):
     return colours
 
 
-def body_tints(spec, frame):
-    """The body-layer colours of one frame: its own bodyPaint if it has one, else the action's."""
-    return cell_colours(frame.get("bodyPaint", spec.get("bodyPaint", [])))
+def body_tints(spec, frame, default=()):
+    """The body-layer colours of one frame: its own bodyPaint, else the action's, else the recipe's."""
+    return cell_colours(frame.get("bodyPaint", spec.get("bodyPaint", default)))
 
 
 def body_frame(body, pivot, pose, shapes, tints):
@@ -187,10 +212,11 @@ def body_frame(body, pivot, pose, shapes, tints):
     return img
 
 
-def face_frame(index, eyes, mouth, yawn, angry_mouth=()):
+def face_frame(index, eyes, mouth, yawn, angry_mouth=(), face_paint=()):
     img, draw = new_frame()
     pattern = EYE_PATTERNS[index]
     if pattern is None:
+        paint(draw, face_paint)
         return img
     if index == 7:
         x, y, w, h = yawn
@@ -210,6 +236,7 @@ def face_frame(index, eyes, mouth, yawn, angry_mouth=()):
             for i, ch in enumerate(row):
                 if ch == "#":
                     draw.point((left + i, top + j), fill=INK)
+    paint(draw, face_paint)
     return img
 
 
@@ -256,8 +283,10 @@ def main():
     recipe = json.loads((HERE / "recipes" / f"{args.id}.json").read_text(encoding="utf-8"))
     out = ROOT / "data" / "pet" / args.id
     body = dict(recipe["body"], op="add", shape="ellipse")
-    pivot = (body["cx"], body["cy"] + body["ry"])
-    head = (body["cx"], body["cy"] - body["ry"])
+    pivot = tuple(recipe.get("pivot", (body["cx"], body["cy"] + body["ry"])))
+    head = tuple(recipe.get("head", (body["cx"], body["cy"] - body["ry"])))
+    silhouette = [{**recipe["silhouette"], "op": "add", "followPose": True}] if "silhouette" in recipe else []
+    face_paint = recipe.get("facePaint", [])
     eyes = [tuple(p) for p in recipe["eyes"]]
     mouth = [tuple(p) for p in recipe["mouth"]]
     face = (sum(x + 0.5 for x, _ in eyes) / len(eyes), sum(y + 0.5 for _, y in eyes) / len(eyes))
@@ -265,6 +294,7 @@ def main():
     animations = {"roles": recipe["roles"], "idlePool": recipe["idlePool"], "actions": {}}
     anchors = {"actions": {}}
     rendered = {}
+    default_paint = recipe.get("bodyPaint", [])
     for name, spec in recipe["actions"].items():
         frames = spec["frames"]
         entry = {"frames": len(frames), "fps": spec["fps"], "loop": spec["loop"]}
@@ -282,7 +312,10 @@ def main():
             source_bodies, source_anchors = rendered[body_from]
             bodies = [source_bodies[i % len(source_bodies)] for i in range(len(frames))]
         else:
-            bodies = [body_frame(body, pivot, p, f.get("shapes", []), body_tints(spec, f)) for p, f in zip(poses, frames)]
+            bodies = [
+                body_frame(body, pivot, p, silhouette + f.get("shapes", []), body_tints(spec, f, default_paint))
+                for p, f in zip(poses, frames)
+            ]
         body_path = f"sprites/body/{name}.png"
         save(out / body_path, sheet(bodies), len(frames))
         entry["sheet"] = body_path
@@ -313,13 +346,21 @@ def main():
         rendered[name] = (bodies, per_frame)
 
     angry_mouth = [tuple(p) for p in recipe.get("angryMouth", [])]
-    expression_frames = [face_frame(i, eyes, mouth, recipe["yawnMouth"], angry_mouth) for i in range(len(EYE_PATTERNS))]
+    expression_frames = [
+        face_frame(i, eyes, mouth, recipe["yawnMouth"], angry_mouth, face_paint) for i in range(len(EYE_PATTERNS))
+    ]
     save(out / "sprites/expressions/eyes.png", sheet(expression_frames), len(EYE_PATTERNS))
 
     # The bare cell is idle's first frame, so it carries the same ears and tail as the sheet.
     idle_spec = recipe["actions"]["idle"]
     idle = idle_spec["frames"][0]
-    bare_body = body_frame(body, pivot, {**DEFAULT_POSE, **idle.get("pose", {})}, idle.get("shapes", []), body_tints(idle_spec, idle))
+    bare_body = body_frame(
+        body,
+        pivot,
+        {**DEFAULT_POSE, **idle.get("pose", {})},
+        silhouette + idle.get("shapes", []),
+        body_tints(idle_spec, idle, default_paint),
+    )
     bare = Image.alpha_composite(bare_body, expression_frames[0])
     save(out / "sprites/reference/bare.png", bare, 1)
 
