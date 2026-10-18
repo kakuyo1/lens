@@ -123,9 +123,23 @@ Window {
     property var previewFont: null
     readonly property string englishFont: previewFont !== null ? previewFont : Controller.settings.font
 
+    /// The size the answer is read at, from the reader's font-size setting (UI.md 4.4): one answer
+    /// for every run on the card, so the word stays above the definitions at every step. The
+    /// setting names the body size, and the rest is that size against the 13 px the card is drawn
+    /// at by default; the labels, the verdict row and the countdown are the card's chrome and keep
+    /// their own. The size dropdown's row's size; null follows the setting.
+    property var previewFontSize: null
+    readonly property int bodyFontSize: previewFontSize !== null ? previewFontSize : Controller.settings.bubbleFontSize
+    readonly property real fontScale: bodyFontSize / 13
+    /// @param base The size a run is drawn at under the default setting.
+    /// @return That size under the size in force, in whole pixels.
+    function sizeAt(base) {
+        return Math.round(base * fontScale);
+    }
+
     /// True while any field is still being written out: what holds the countdown.
     readonly property bool revealing: definitionText.revealing || chineseText.revealing
-                                      || translationText.revealing || ipaText.revealing
+                                      || translationText.revealing || wordRow.revealing
                                       || etymologyText.revealing || exampleText.revealing
                                       || senseRows.revealing
 
@@ -448,55 +462,16 @@ Window {
                     }
                 }
 
-                // The title and its pronunciation share one line for word bubbles: IPA is set
-                // beside the word, the way a dictionary prints it. Read only --
-                // it is not a control, and nothing about it invites a press. The pair is placed by
-                // hand rather than by a RowLayout: a layout with no item left to grow does not
-                // keep the slack at the end -- measured, a 30 px word and its pronunciation 36 px
-                // apart in a 238 px row -- and a gap that wide reads as two unrelated things.
-                // The prototype's 7 px is what the pair is set with.
-                // A sentence bubble draws no title: the selected sentence is usually long and
-                // overflows the card, and the reader still has it highlighted on screen. Word and
-                // entity titles are short and stay. A translation bubble draws none either, and for
-                // the same reason twice over: the Chinese it came from is long, and the reader asked
-                // for the English of it rather than for the original back (UI.md section 4.3).
-                Item {
+                BubbleTitleRow {
                     id: wordRow
                     visible: bubble.type !== "sentence" && bubble.type !== "translation"
-                    width: parent.width
-                    height: bubble.type === "sentence" || bubble.type === "translation" ? 0 : wordText.implicitHeight
-
-                    Text {
-                        id: wordText
-                        // What is left once the pronunciation has its room: a word with none left
-                        // ends in an ellipsis rather than running under its own IPA.
-                        width: Math.min(implicitWidth, wordRow.width - (ipaText.visible ? ipaText.implicitWidth + 7 : 0))
-                        topPadding: 8
-                        text: bubble.title
-                        color: bubble.tokens.text
-                        font.pixelSize: 20
-                        font.weight: Font.Bold
-                        font.family: bubble.englishFont
-                        elide: Text.ElideRight
-                    }
-
-                    RevealText {
-                        id: ipaText
-                        // On the word's baseline: each item's own baseline offset is the distance
-                        // from its top to that baseline, padding included.
-                        x: wordText.width + 7
-                        y: wordText.baselineOffset - baselineOffset
-                        visible: bubble.type === "word" && bubble.ipa !== ""
-                        animated: bubble.revealAnimation
-                        characterMs: bubble.revealCharacterMs
-                        // Measured, not wrapped, and whole from the first frame: the title gives up
-                        // its room to the full pronunciation, not to what has been written so far.
-                        wrapMode: Text.NoWrap
-                        text: bubble.ipa
-                        color: bubble.tokens.faint
-                        family: bubble.englishFont
-                        pixelSize: 13 // the prototype's 12.5 px, as the definition line rounds it
-                    }
+                    title: bubble.title
+                    ipa: bubble.type === "word" ? bubble.ipa : ""
+                    family: bubble.englishFont
+                    scale: bubble.fontScale
+                    animated: bubble.revealAnimation
+                    characterMs: bubble.revealCharacterMs
+                    tokens: bubble.tokens
                 }
 
                 SenseRows {
@@ -508,6 +483,7 @@ Window {
                     translationColor: bubble.tokens.text
                     separatorColor: bubble.tokens.line2
                     family: bubble.englishFont
+                    scale: bubble.fontScale
                 }
 
                 // The definition line, and for a translation bubble the whole card: a translation
@@ -523,7 +499,7 @@ Window {
                     text: bubble.english
                     color: bubble.type === "translation" ? bubble.tokens.text : bubble.tokens.muted
                     family: bubble.englishFont
-                    pixelSize: 13
+                    pixelSize: bubble.sizeAt(13)
                     lineHeight: 1.55
                 }
 
@@ -536,7 +512,7 @@ Window {
                     topPadding: 5
                     text: bubble.chinese
                     color: bubble.tokens.text
-                    pixelSize: 12
+                    pixelSize: bubble.sizeAt(12)
                     lineHeight: 1.5
                 }
 
@@ -549,7 +525,7 @@ Window {
                     topPadding: 5
                     text: bubble.translation
                     color: bubble.tokens.text
-                    pixelSize: 12
+                    pixelSize: bubble.sizeAt(12)
                     lineHeight: 1.5
                 }
 
@@ -597,7 +573,7 @@ Window {
                         text: bubble.etymology
                         color: bubble.tokens.muted
                         family: bubble.englishFont
-                        pixelSize: 12
+                        pixelSize: bubble.sizeAt(12)
                         lineHeight: 1.5
                     }
                 }
@@ -636,7 +612,7 @@ Window {
                         text: bubble.example
                         color: bubble.tokens.muted
                         family: bubble.englishFont
-                        pixelSize: 12
+                        pixelSize: bubble.sizeAt(12)
                         lineHeight: 1.5
                     }
                 }

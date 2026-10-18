@@ -130,6 +130,16 @@ public:
     Q_INVOKABLE void setFont(QString family);
     /// @return Every family on this machine that draws Latin, as DropdownField options, sorted.
     Q_INVOKABLE QVariantList latinFontFamilies() const;
+    /**
+     * @brief Store the size the bubble's answer is read at, in pixels.
+     * @param pixels The body size the reader picked; clamped to the range the page offers.
+     * @note One number, and the card scales every reading size on it: the word, the pronunciation,
+     *       the definitions and the example are each their own multiple of the 13 px the card is
+     *       drawn at by default, so the hierarchy holds at every step (UI.md 4.4).
+     */
+    Q_INVOKABLE void setBubbleFontSize(int pixels);
+    /// @return The sizes the font page offers, as DropdownField options: the default marked.
+    Q_INVOKABLE QVariantList bubbleFontSizeOptions() const;
     /// @brief Store the frosted glass's blur, saturation or rim, clamped to the range the page offers.
     Q_INVOKABLE void setFrostedBlur(int percent);
     Q_INVOKABLE void setFrostedSaturation(int percent);

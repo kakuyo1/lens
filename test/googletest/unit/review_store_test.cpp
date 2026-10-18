@@ -112,6 +112,11 @@ TEST(ReviewStore, FrequencyFallsBackToTheDefaultWhenUnsetOrOutOfRange)
 
     review.setFrequency(ReviewFrequency::Off);
     EXPECT_EQ(review.frequency(), ReviewFrequency::Off);
+
+    // The appended level's number is above the ones before it, and the range check has to accept
+    // it: a document written by this build reads back as the level it was set to.
+    review.setFrequency(ReviewFrequency::Every5To15Min);
+    EXPECT_EQ(review.frequency(), ReviewFrequency::Every5To15Min);
 }
 
 TEST(ReviewStore, SettingTheFrequencyLeavesEveryCurveAlone)

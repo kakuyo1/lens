@@ -30,6 +30,9 @@ Window {
     /// The family the font dropdown's row asks the preview to draw in, when previewKey is "font".
     /// Null for every other preview, which follows the stored font.
     property var previewFont: null
+    /// The size the font-size dropdown's row asks the preview to draw at, when previewKey is
+    /// "fontSize". Null for every other preview, which follows the stored size.
+    property var previewFontSize: null
     /// The language the explanation-language row asks the preview to draw in, when previewKey is
     /// "language". Null for every other preview, which follows the stored language.
     property var previewLanguage: null
@@ -177,8 +180,10 @@ Window {
             previewSettle.restart();
             return;
         }
-        // The font row is the one preview that draws in a face other than the stored one.
+        // The two font rows are the previews that draw in a face or a size other than the
+        // stored one.
         previewCard.previewFont = previewKey === "font" ? previewFont : null;
+        previewCard.previewFontSize = previewKey === "fontSize" ? previewFontSize : null;
         previewSettle.stop();
         const payload = PreviewSample.payload(previewKey,
                                               previewKey === "language" ? previewLanguage : null);
@@ -193,11 +198,12 @@ Window {
 
     /// @brief Ask for the preview of @p key, drawn in @p value when the key names a row preview.
     ///
-    /// Only the font and explanation-language rows carry a value: a family and a language. Moving
-    /// between two rows of the same list keeps the key, so the card is refreshed here rather than
-    /// waiting for a key change that will not come.
+    /// Only the font, font-size and explanation-language rows carry a value: a family, a size and a
+    /// language. Moving between two rows of the same list keeps the key, so the card is refreshed
+    /// here rather than waiting for a key change that will not come.
     function requestPreview(key, value) {
         previewFont = key === "font" ? value : null;
+        previewFontSize = key === "fontSize" ? value : null;
         previewLanguage = key === "language" ? value : null;
         if (previewKey === key)
             settings.updatePreview();
@@ -540,7 +546,7 @@ Window {
     Component {
         id: fontComponent
         SettingsFontPage {
-            onPreviewRequested: (key, font) => settings.requestPreview(key, font)
+            onPreviewRequested: (key, value) => settings.requestPreview(key, value)
         }
     }
     Component { id: extensionsComponent; SettingsExtensionsPage {} }

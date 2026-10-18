@@ -4,37 +4,37 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="435"/>
+        <location filename="../src/app/qml/Bubble.qml" line="454"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="435"/>
+        <location filename="../src/app/qml/Bubble.qml" line="454"/>
         <source>New</source>
         <translation>New</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="434"/>
+        <location filename="../src/app/qml/Bubble.qml" line="453"/>
         <source>Sentence</source>
         <translation>Sentence</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="433"/>
+        <location filename="../src/app/qml/Bubble.qml" line="452"/>
         <source>Preview</source>
         <translation>Preview</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="580"/>
+        <location filename="../src/app/qml/Bubble.qml" line="561"/>
         <source>Etymology</source>
         <translation>Etymology</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="619"/>
+        <location filename="../src/app/qml/Bubble.qml" line="600"/>
         <source>Example</source>
         <translation>Example</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="657"/>
+        <location filename="../src/app/qml/Bubble.qml" line="638"/>
         <source>Disappears in %1s</source>
         <translation>Disappears in %1s</translation>
     </message>
@@ -221,17 +221,17 @@
 <context>
     <name>SettingsPopup</name>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="243"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="249"/>
         <source>Saved</source>
         <translation>Saved</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="250"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="256"/>
         <source>Defaults restored</source>
         <translation>Defaults restored</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="335"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="341"/>
         <location filename="../src/app/qml/ThemePreview.qml" line="102"/>
         <source>Settings</source>
         <translation>Settings</translation>
@@ -458,7 +458,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsGeneralPage.qml" line="392"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="72"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="75"/>
         <source>Account &amp; sync</source>
         <translation>Account &amp; sync</translation>
     </message>
@@ -480,7 +480,7 @@
         <translation>Give up silently</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="450"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="456"/>
         <location filename="../src/app/qml/ThemePreview.qml" line="261"/>
         <source>Defaults</source>
         <translation>Defaults</translation>
@@ -498,7 +498,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="67"/>
-        <location filename="../src/app/app_controller.cpp" line="350"/>
+        <location filename="../src/app/app_controller.cpp" line="351"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -544,14 +544,14 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="138"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="70"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="73"/>
         <source>Popup &amp; clipboard</source>
         <translation>Popup &amp; clipboard</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsBudgetPage.qml" line="37"/>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="38"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="62"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="65"/>
         <source>Daily budget</source>
         <translation>Daily budget</translation>
     </message>
@@ -562,7 +562,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="18"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="58"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="61"/>
         <source>General</source>
         <translation>General</translation>
     </message>
@@ -573,7 +573,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="23"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="59"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="62"/>
         <source>Reading &amp; learning</source>
         <translation>Reading &amp; learning</translation>
     </message>
@@ -584,13 +584,13 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="28"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="60"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="63"/>
         <source>Capture &amp; popups</source>
         <translation>Capture &amp; popups</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="33"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="61"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="64"/>
         <source>Model service</source>
         <translation>Model service</translation>
     </message>
@@ -606,20 +606,20 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="43"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="63"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="66"/>
         <source>Extensions</source>
         <translation>Extensions</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="44"/>
         <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="170"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="604"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="625"/>
         <source>Desktop companion</source>
         <translation>Desktop companion</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="48"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="64"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="67"/>
         <source>About</source>
         <translation>About</translation>
     </message>
@@ -690,7 +690,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsModelPage.qml" line="88"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="71"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="74"/>
         <source>API configuration</source>
         <translation>API configuration</translation>
     </message>
@@ -725,17 +725,17 @@
         <translation>Custom service</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="342"/>
+        <location filename="../src/app/app_controller.cpp" line="343"/>
         <source>Checking OCR</source>
         <translation>Checking OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="343"/>
+        <location filename="../src/app/app_controller.cpp" line="344"/>
         <source>English OCR data is missing</source>
         <translation>English OCR data is missing</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="347"/>
+        <location filename="../src/app/app_controller.cpp" line="348"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR runtime is unavailable</translation>
     </message>
@@ -1056,7 +1056,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="114"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="606"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="627"/>
         <source>Dog</source>
         <translation>Dog</translation>
     </message>
@@ -1385,21 +1385,26 @@
         <translation>Confirm delete</translation>
     </message>
     <message>
-        <location filename="../src/app/pet/pet_controller.cpp" line="605"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="626"/>
         <source>This pet package is no longer installed. Switched to %1.</source>
         <translation>This pet package is no longer installed. Switched to %1.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsFontPage.qml" line="45"/>
+        <location filename="../src/app/qml/SettingsFontPage.qml" line="51"/>
         <location filename="../src/app/qml/SettingsGeneralPage.qml" line="387"/>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="69"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="72"/>
         <source>Font</source>
         <translation>Font</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsFontPage.qml" line="74"/>
-        <source>Hover a font in the list to preview.</source>
-        <translation>Hover a font in the list to preview.</translation>
+        <location filename="../src/app/qml/SettingsFontPage.qml" line="78"/>
+        <source>Font size</source>
+        <translation>Font size</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsFontPage.qml" line="105"/>
+        <source>Hover a font or a size in the list to preview.</source>
+        <translation>Hover a font or a size in the list to preview.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/VocabPreview.qml" line="229"/>
@@ -1805,22 +1810,27 @@
         <translation>Study-abroad exams</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="114"/>
+        <location filename="../src/app/storage_duty.cpp" line="117"/>
         <source>Off</source>
         <translation>Off</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="116"/>
+        <location filename="../src/app/storage_duty.cpp" line="119"/>
+        <source>Every 5–15 minutes</source>
+        <translation>Every 5–15 minutes</translation>
+    </message>
+    <message>
+        <location filename="../src/app/storage_duty.cpp" line="121"/>
         <source>Every 15–30 minutes</source>
         <translation>Every 15–30 minutes</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="118"/>
+        <location filename="../src/app/storage_duty.cpp" line="123"/>
         <source>Every 30–60 minutes</source>
         <translation>Every 30–60 minutes</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="120"/>
+        <location filename="../src/app/storage_duty.cpp" line="125"/>
         <source>Every 1–2 hours</source>
         <translation>Every 1–2 hours</translation>
     </message>
@@ -1835,53 +1845,63 @@
         <translation>Explain now</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="327"/>
+        <location filename="../src/app/explanation_duty.cpp" line="341"/>
         <source>Explaining…</source>
         <translation>Explaining…</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="427"/>
+        <location filename="../src/app/explanation_duty.cpp" line="446"/>
         <source>Request failed</source>
         <translation>Request failed</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="335"/>
+        <location filename="../src/app/app_controller.cpp" line="336"/>
         <source>Screenshot capture is off.</source>
         <translation>Screenshot capture is off.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="336"/>
-        <location filename="../src/app/app_controller.cpp" line="602"/>
+        <location filename="../src/app/app_controller.cpp" line="337"/>
+        <location filename="../src/app/app_controller.cpp" line="631"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>Today&amp;apos;s budget is used up.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="337"/>
+        <location filename="../src/app/app_controller.cpp" line="338"/>
         <source>A recognition is already running.</source>
         <translation>A recognition is already running.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="339"/>
+        <location filename="../src/app/app_controller.cpp" line="340"/>
         <source>That region cannot be captured.</source>
         <translation>That region cannot be captured.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="340"/>
+        <location filename="../src/app/app_controller.cpp" line="341"/>
         <source>No text was found in that region.</source>
         <translation>No text was found in that region.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="341"/>
+        <location filename="../src/app/app_controller.cpp" line="342"/>
         <source>That region could not be read.</source>
         <translation>That region could not be read.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="833"/>
+        <location filename="../src/app/app_controller.cpp" line="466"/>
+        <source>%1 px</source>
+        <translation>%1 px</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="468"/>
+        <source>Default</source>
+        <translation>Default</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="863"/>
         <source>Auto</source>
         <translation>Auto</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="833"/>
+        <location filename="../src/app/app_controller.cpp" line="863"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>

@@ -25,6 +25,8 @@ constexpr std::array<long long, kMaxReviewLevel + 1> kIntervalsMs{
 std::optional<CheckWindow> checkWindow(ReviewFrequency const frequency)
 {
     switch (frequency) {
+        case ReviewFrequency::Every5To15Min:
+            return CheckWindow{5 * kMinuteMs, 15 * kMinuteMs};
         case ReviewFrequency::Every15To30Min:
             return CheckWindow{15 * kMinuteMs, 30 * kMinuteMs};
         case ReviewFrequency::Every30To60Min:

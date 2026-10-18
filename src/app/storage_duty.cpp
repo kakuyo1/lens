@@ -109,9 +109,14 @@ QVariantList StorageDuty::levelOptions()
 
 QVariantList StorageDuty::reviewFrequencyOptions()
 {
+    // Ordered by how often the pet looks, which is not the order the enum numbers are in: the
+    // 5–15 minute level was appended to keep the stored values of the older ones where they were
+    // (review_schedule.h), and the reader is owed a list that reads from oftenest to rarest.
     return QVariantList{
         QVariantMap{{"value", static_cast<int>(core::ReviewFrequency::Off)},
                     {"label", QCoreApplication::translate("lens::app::AppController", "Off")}},
+        QVariantMap{{"value", static_cast<int>(core::ReviewFrequency::Every5To15Min)},
+                    {"label", QCoreApplication::translate("lens::app::AppController", "Every 5–15 minutes")}},
         QVariantMap{{"value", static_cast<int>(core::ReviewFrequency::Every15To30Min)},
                     {"label", QCoreApplication::translate("lens::app::AppController", "Every 15–30 minutes")}},
         QVariantMap{{"value", static_cast<int>(core::ReviewFrequency::Every30To60Min)},
