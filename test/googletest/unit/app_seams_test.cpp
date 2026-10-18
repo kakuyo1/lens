@@ -226,6 +226,33 @@ TEST(CaptureRefusal, EveryRuntimeStatusNamesItsOwnReasonAndReadyNamesNone)
     EXPECT_EQ(reasonToken(lens::capture::OcrStatus::EmptyText), "empty-text");
 }
 
+/// Each gate refuses on its own, and the reader hears the highest-ranked one when several hold.
+TEST(CaptureRefusal, TheGateNamesEachReasonAndTheHighestRankedWins)
+{
+    using lens::app::gateRefusal;
+    using lens::capture::OcrStatus;
+    EXPECT_EQ(gateRefusal({.budgetPaused = true, .screenshotOn = true, .runtime = OcrStatus::Ready}), CaptureRefusal::BudgetPaused);
+    EXPECT_EQ(gateRefusal({.probing = true, .busy = true, .screenshotOn = true, .runtime = OcrStatus::Ready}), CaptureRefusal::Checking);
+    EXPECT_EQ(gateRefusal({.busy = true, .screenshotOn = true, .runtime = OcrStatus::Ready}), CaptureRefusal::Busy);
+    EXPECT_EQ(gateRefusal({.screenshotOn = false, .runtime = OcrStatus::Ready}), CaptureRefusal::ScreenshotOff);
+    EXPECT_EQ(gateRefusal({.screenshotOn = true, .runtime = OcrStatus::TimedOut}), CaptureRefusal::TimedOut);
+    EXPECT_EQ(gateRefusal({.screenshotOn = true, .runtime = OcrStatus::Ready}), std::nullopt);
+
+    // Every gate shut at once, then opened one by one from the top.
+    lens::app::CaptureGate gate{.budgetPaused = true, .probing = true, .busy = true, .screenshotOn = false, .runtime = OcrStatus::RuntimeMissing};
+    EXPECT_EQ(gateRefusal(gate), CaptureRefusal::BudgetPaused);
+    gate.budgetPaused = false;
+    EXPECT_EQ(gateRefusal(gate), CaptureRefusal::Checking);
+    gate.probing = false;
+    EXPECT_EQ(gateRefusal(gate), CaptureRefusal::Busy);
+    gate.busy = false;
+    EXPECT_EQ(gateRefusal(gate), CaptureRefusal::ScreenshotOff);
+    gate.screenshotOn = true;
+    EXPECT_EQ(gateRefusal(gate), CaptureRefusal::RuntimeMissing);
+    gate.runtime = OcrStatus::Ready;
+    EXPECT_EQ(gateRefusal(gate), std::nullopt);
+}
+
 /// @return The grid's entry for @p date, or an empty map when the window does not carry it.
 QVariantMap gridDay(const QVariantList& grid, const QString& date)
 {
