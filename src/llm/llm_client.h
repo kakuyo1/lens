@@ -28,6 +28,24 @@ struct Config {
     QJsonObject requestOverrides; ///< Provider-specific wire options; null removes a default.
 };
 
+/**
+ * @brief Everything one explanation call decides, so no setter carries state between calls.
+ *
+ * The preset is the selection's own ("default", "translate" or "explain"); presetFor() upgrades it
+ * to "multiple" when @c multipleSenses is set. The language, the sense flag, the origin and the
+ * example are all per-call values: a setting that moves while a request is away cannot retarget
+ * that request, and the next call is not affected by the one before it.
+ */
+struct ExplainRequest {
+    QStringList words;                          ///< Payload to explain, in request order.
+    Channel     channel        = Channel::Word; ///< Which protocol to speak.
+    QString     preset         = QStringLiteral("default");
+    QString     language       = QStringLiteral("en");
+    bool        multipleSenses = false;
+    bool        etymology      = false;
+    bool        example        = false;
+};
+
 /// @brief One frequency-ordered word sense; translation is in the requested output language.
 struct Sense {
     QString en, zh, translation;
@@ -100,13 +118,6 @@ public:
     /// @param parent  QObject parent.
     explicit LlmClient(Config config, QNetworkAccessManager* manager = nullptr, QObject* parent = nullptr);
 
-    /// @brief Set an explanation language from the loaded catalog.
-    ///
-    /// The language only switches the closing line of the system prompt. It is
-    /// a setter rather than a Config field because the reader can change it at
-    /// runtime from the settings popup.
-    void setExplanationLang(const QString& lang);
-
     /// @brief Replace the model used by subsequent requests.
     void setModel(const QString& model);
 
@@ -125,26 +136,6 @@ public:
     ///       Empty, malformed, failed, or timed-out responses leave the current cache untouched.
     void fetchModels();
 
-    /// @brief Set which protocol the next request speaks.
-    ///
-    /// The channel is decided locally, before anything is sent, and selects the request
-    /// template and the response schema. Defaults to Channel::Word, the only channel
-    /// phase 1 produces.
-    void setChannel(Channel channel);
-
-    /// @brief Ask the next request for the word's origin as well.
-    ///
-    /// A setter for the same reason the explanation language is one: the reader can flip it in the
-    /// settings popup, and it changes the system prompt rather than the connection. It is on the
-    /// word channel only in effect -- the other channels' templates have no place for it.
-    void setEtymology(bool etymology);
-
-    /// @brief Ask the next request for one example sentence as well. Same reasoning as setEtymology().
-    void setExample(bool example);
-
-    /// @brief Select the loaded prompt preset for the next request.
-    void setPreset(const QString& preset);
-
     /// @return The model name as sent on the wire, which is the key the price list uses.
     QString model() const
     {
@@ -156,6 +147,14 @@ public:
     {
         return config_.baseUrl;
     }
+
+    /**
+     * @brief Look up one request's payload in one HTTP request.
+     * @param request The payload and every prompt decision that call makes. More than 20 entries
+     *                are silently truncated to the first 20; the current caller sends one, so the
+     *                cap is not reached.
+     */
+    void explainWords(ExplainRequest request);
 
 signals:
     /// @brief Emitted with the validated explanations, in the order the words were asked for.
@@ -178,19 +177,8 @@ signals:
     /// @brief The whole usable catalogue the shared source lists, in the order it gave them.
     void modelsFetched(QStringList models);
 
-public slots:
-    /// @brief Look up the whole payload in one HTTP request.
-    /// @param words Payload to explain. More than 20 entries are silently truncated to the
-    ///              first 20; the current caller sends one, so the cap is not reached.
-    void explainWords(QStringList words);
-
 private:
     Config                 config_;
-    Channel                channel_   = Channel::Word;
-    QString                preset_    = QStringLiteral("default");
-    QString                lang_      = QStringLiteral("en");
-    bool                   etymology_ = false;
-    bool                   example_   = false;
     QNetworkAccessManager* manager_;
 };
 

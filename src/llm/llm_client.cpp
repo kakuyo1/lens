@@ -63,12 +63,6 @@ LlmClient::LlmClient(Config config, QNetworkAccessManager* manager, QObject* par
     LENS_TRACE("LlmClient created: model='{}' base='{}'", config_.model.toStdString(), config_.baseUrl.toString().toStdString());
 }
 
-void LlmClient::setExplanationLang(const QString& lang)
-{
-    LENS_TRACE("LlmClient::setExplanationLang: '{}' -> '{}'", lang_.toStdString(), lang.toStdString());
-    lang_ = lang;
-}
-
 void LlmClient::setModel(const QString& model)
 {
     LENS_TRACE("LlmClient::setModel: '{}' -> '{}'", config_.model.toStdString(), model.toStdString());
@@ -87,12 +81,6 @@ void LlmClient::setApiKey(const QString& apiKey)
     LENS_TRACE("LlmClient::setApiKey: key replaced (value hidden)");
 }
 
-void LlmClient::setChannel(Channel channel)
-{
-    LENS_TRACE("LlmClient::setChannel: '{}' -> '{}'", channelKey(channel_), channelKey(channel));
-    channel_ = channel;
-}
-
 bool LlmClient::setProvider(QString const& provider)
 {
     auto const entry = serviceProvider(provider);
@@ -102,24 +90,6 @@ bool LlmClient::setProvider(QString const& provider)
     if (provider != QLatin1String("custom"))
         setBaseUrl(QUrl{entry.value("baseUrl").toString()});
     return true;
-}
-
-void LlmClient::setPreset(const QString& preset)
-{
-    LENS_TRACE("LlmClient::setPreset: '{}' -> '{}'", preset_.toStdString(), preset.toStdString());
-    preset_ = preset;
-}
-
-void LlmClient::setEtymology(bool etymology)
-{
-    LENS_TRACE("LlmClient::setEtymology: '{}'", etymology ? "on" : "off");
-    etymology_ = etymology;
-}
-
-void LlmClient::setExample(bool example)
-{
-    LENS_TRACE("LlmClient::setExample: '{}'", example ? "on" : "off");
-    example_ = example;
 }
 
 void LlmClient::fetchModels()
@@ -155,8 +125,9 @@ void LlmClient::fetchModels()
     });
 }
 
-void LlmClient::explainWords(QStringList words)
+void LlmClient::explainWords(ExplainRequest request)
 {
+    QStringList words = std::move(request.words);
     if (words.isEmpty()) {
         LENS_ERROR("LlmClient::explainWords called with nothing to look up");
         emit failed(tr("There is nothing to look up."));
@@ -177,20 +148,21 @@ void LlmClient::explainWords(QStringList words)
         path.chop(1);
     url.setPath(path + QStringLiteral("/chat/completions"));
 
-    QNetworkRequest request(url);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
-    request.setRawHeader("Authorization", "Bearer " + config_.apiKey.toUtf8());
-    request.setTransferTimeout(kTimeoutMs);
+    QNetworkRequest httpRequest(url);
+    httpRequest.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+    httpRequest.setRawHeader("Authorization", "Bearer " + config_.apiKey.toUtf8());
+    httpRequest.setTransferTimeout(kTimeoutMs);
 
-    const Channel channel  = channel_;
-    const QString preset   = preset_;
-    auto const    language = lang_;
-    auto const    model    = config_.model;
+    const Channel channel        = request.channel;
+    const QString preset         = presetFor(request);
+    const bool    multipleSenses = request.multipleSenses;
+    auto const    language       = request.language;
+    auto const    model          = config_.model;
     LENS_INFO("explaining {} item(s) on channel '{}' preset '{}' with '{}'", words.size(), channelKey(channel), preset.toStdString(), config_.model.toStdString());
     LENS_TRACE("POST {} (timeout {} ms, key hidden)", url.toString().toStdString(), kTimeoutMs);
 
     QNetworkReply* reply =
-        manager_->post(request, buildRequestBody(config_, channel, words, lang_, preset, etymology_, example_));
+        manager_->post(httpRequest, buildRequestBody(config_, channel, words, language, preset, request.etymology, request.example));
 
     // One stream's state, shared by the two handlers below. A reply that answers with a whole body
     // rather than a stream -- which is what every offline seam and a buffering proxy do -- leaves
@@ -245,7 +217,7 @@ void LlmClient::explainWords(QStringList words)
         emit partial(preview);
     });
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply, stream, words, channel, language, preset, model, consume] {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, stream, words, channel, language, multipleSenses, model, consume] {
         reply->deleteLater();
 
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
@@ -280,7 +252,7 @@ void LlmClient::explainWords(QStringList words)
             body = stream->buffer;
         }
 
-        const auto parsed = parseExplanations(channel, body, words, language, preset == QLatin1String("multiple"));
+        const auto parsed = parseExplanations(channel, body, words, language, multipleSenses);
         if (const auto* message = std::get_if<QString>(&parsed)) {
             emit failed(*message);
             return;

@@ -152,7 +152,6 @@ AppController::AppController(core::KnownStore&            store,
     connect(&updateDuty_, &UpdateDuty::newVersionOffered, this, [this] { emit petEvent(core::pet::PetEvent::UpdateAvailable); });
     connect(&hotkey_, &GlobalHotkey::pressed, this, &AppController::onTriggerHotkey);
     hotkey_.setKeys(storedHotkey(storage_));
-    llm.setExplanationLang(QString::fromStdString(store.explanationLang()));
     restoreModelService();
     cost_.setLegacyModel(llm_.model());
     gateTimer_.setInterval(1000);
@@ -354,7 +353,6 @@ void AppController::setReviewFrequency(int const value)
 void AppController::setExplanationLang(QString lang)
 {
     storage_.knownStore().setExplanationLang(lang.toStdString());
-    llm_.setExplanationLang(lang);
     storage_.save();
     LENS_INFO("explanation language set to '{}'", lang.toStdString());
     emit settingsChanged();

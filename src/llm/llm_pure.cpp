@@ -255,6 +255,11 @@ QString maskSensitive(const QString& text)
     return masked;
 }
 
+QString presetFor(ExplainRequest const& request)
+{
+    return request.multipleSenses ? QStringLiteral("multiple") : request.preset;
+}
+
 QByteArray buildRequestBody(const Config&      config,
                             Channel            channel,
                             const QStringList& inputs,

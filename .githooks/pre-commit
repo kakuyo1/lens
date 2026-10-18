@@ -121,6 +121,7 @@ docs/adr/0056-action-bar-form-is-a-setting.md 0
 docs/adr/0057-sync-run-decisions-are-pure.md 0
 docs/adr/0058-gate-and-fate-rules-are-pure.md 0
 docs/adr/0059-cost-duty-visible-to-qml.md 0
+docs/adr/0060-one-explain-request-per-call.md 0
 docs/metrics/runtime-performance/content-transition-window-resizes-2026-10-17.md 0
 docs/pet-art-pipeline.md 0
 docs/pet-package-format.md 0

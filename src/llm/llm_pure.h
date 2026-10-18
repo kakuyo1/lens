@@ -48,6 +48,18 @@ QString maskSensitive(const QString& text);
 QString httpErrorFor(int status);
 
 /**
+ * @brief The prompt preset a request names.
+ *
+ * The sense flag's "multiple" wins over the selection's own preset: a reader who turned multiple
+ * senses on is asking for the multiple-sense shape whatever button the sentence came from, and a
+ * request that did not ask for them keeps the selection's prompt.
+ *
+ * @param request The call's record.
+ * @return "multiple", or the record's own preset.
+ */
+QString presetFor(ExplainRequest const& request);
+
+/**
  * @brief Build the /chat/completions request body for one channel.
  *
  * Channel decides which template is used, so the caller must know whether it is sending a

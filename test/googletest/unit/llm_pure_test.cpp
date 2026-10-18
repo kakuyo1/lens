@@ -381,6 +381,30 @@ TEST_F(LlmTest, AcceptsAWellFormedResponse)
     EXPECT_EQ(explanations.at(0).zh, QString::fromUtf8("无处不在的"));
 }
 
+TEST_F(LlmTest, TheSenseFlagChoosesTheMultiplePresetOverTheSelectionsOwn)
+{
+    lens::llm::ExplainRequest request;
+    request.preset = QStringLiteral("translate");
+    EXPECT_EQ(lens::llm::presetFor(request), QStringLiteral("translate"));
+
+    request.multipleSenses = true;
+    EXPECT_EQ(lens::llm::presetFor(request), QStringLiteral("multiple"));
+}
+
+TEST_F(LlmTest, KeepsAtMostTheContractSenses)
+{
+    const QString content = QStringLiteral(
+        R"({"results":[{"word":"bank","ipa":"/bæŋk/","senses":[{"en":"a financial house","zh":"银行"},{"en":"the land beside a river","zh":"河岸"},{"en":"to rely on","zh":"依靠"},{"en":"a row of similar objects","zh":"一排"}]}]})");
+
+    const auto multiple = parseExplanations(Channel::Word, envelope(content), {"bank"}, "en", true);
+    ASSERT_TRUE(accepted(multiple)) << errorOf(multiple).toStdString();
+    EXPECT_EQ(std::get<QVector<Explanation>>(multiple).at(0).senses.size(), lens::llm::kMaxSenses);
+
+    const auto single = parseExplanations(Channel::Word, envelope(content), {"bank"}, "en", false);
+    ASSERT_TRUE(accepted(single)) << errorOf(single).toStdString();
+    EXPECT_EQ(std::get<QVector<Explanation>>(single).at(0).senses.size(), 1);
+}
+
 TEST_F(LlmTest, UsesSentencePresetsAndTheSharedEntityPreset)
 {
     const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
