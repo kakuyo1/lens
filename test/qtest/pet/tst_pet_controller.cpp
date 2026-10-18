@@ -440,7 +440,7 @@ void TstPetController::everyShippedPetLoadsWhole()
     QVERIFY(dir.isValid());
     Rig rig{settingsIn(dir), shippedRoot()};
 
-    for (auto const& id : {QStringLiteral("mochi"), QStringLiteral("owl"), QStringLiteral("cat")}) {
+    for (auto const& id : {QStringLiteral("mochi"), QStringLiteral("owl"), QStringLiteral("cat"), QStringLiteral("ghost"), QStringLiteral("jelly"), QStringLiteral("cloud")}) {
         auto const folder     = shippedRoot() / id.toStdString();
         auto const animations = readJson(folder / "animations.json");
 
