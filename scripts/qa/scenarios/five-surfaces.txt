@@ -1,0 +1,36 @@
+# Stage B acceptance (docs/adr/0068 section 10): five surfaces shown and hidden in one process, without a restart.
+# Run with: lens.exe --dev-script=scripts/qa/scenarios/five-surfaces.txt --dev-out=logs/dev-run/five-surfaces.jsonl --settings-file=logs/dev-run/settings.json
+# Read the answers for: windows.total the same in every state line, visible only 0 or 1 per surface, and publishes
+# still reported for every surface in the last state line.
+state
+surface show settings
+wait painted:settings
+state
+surface hide settings
+wait hidden:settings
+state
+surface show tray
+wait painted:tray
+state
+surface hide tray
+wait hidden:tray
+state
+surface show stats
+wait painted:stats
+state
+surface hide stats
+wait hidden:stats
+state
+surface show words
+wait painted:words
+state
+surface hide words
+wait hidden:words
+state
+surface show yearWords
+wait painted:yearWords
+state
+surface hide yearWords
+wait hidden:yearWords
+state
+quit

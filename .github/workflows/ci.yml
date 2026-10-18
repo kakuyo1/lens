@@ -80,6 +80,37 @@ jobs:
       - name: Build
         run: cmake --build --preset ninja-qt6 --target lens
 
+      # docs/adr/0068: the shipped build carries no developer surface, and the packaging scripts never switch
+      # LENS_ENABLE_DEV_SURFACE on. Both are checked as text, because a surface left in would not fail the build.
+      - name: No developer surface in the shipped build
+        shell: pwsh
+        run: |
+          if (Select-String -LiteralPath build-ninja/src/app/lens.exe -Pattern 'dev surface:', 'dev pipe:' -SimpleMatch -Quiet) {
+            throw 'the default build carries the developer surface'
+          }
+          if (Select-String -Path scripts/release/* -Pattern 'LENS_ENABLE_DEV_SURFACE' -SimpleMatch -Quiet) {
+            throw 'a packaging script switches the developer surface on'
+          }
+
+  devsurface:
+    # The developer surface (docs/adr/0068) is compiled out of every other job, so nothing else here would notice
+    # it breaking. This job builds it in, then runs the smoke script against the result.
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/configure
+
+      - name: Reconfigure with the developer surface
+        run: cmake -S . -B build-ninja -DLENS_ENABLE_DEV_SURFACE=ON
+
+      - name: Build
+        run: cmake --build --preset ninja-qt6 --target lens
+
+      - name: Smoke
+        run: scripts/qa/dev-smoke.ps1 -Exe build-ninja/src/app/lens.exe
+
   qml:
     runs-on: windows-latest
 

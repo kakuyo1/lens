@@ -291,6 +291,9 @@ EOF
 # the one in TEST.md, or this one -- has to live outside src/ to stay out of the way.
 PROBE_PATTERN='PROBE|console\.log'
 
+# The developer surface (docs/adr/0068) is not probe scaffolding. It is a standing interface, compiled only under
+# LENS_ENABLE_DEV_SURFACE, and its sources contain neither marker. Nothing in it is removed before a commit, so this
+# check does not treat it as something to remove.
 check_probes() {
     printf '%s\n' "$staged" | grep -q '^src/' || return 0
 

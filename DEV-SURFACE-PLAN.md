@@ -241,6 +241,7 @@ lens.exe --dev-script=scripts/qa/scenarios/two.json  # 起来就跑，跑完退�
 | 接口膨胀 | 每个新表面都要加一条命令，最后变成第二套 UI API | 动词上限十个；新增表面优先复用 `surface show <name>` 的映射表，不新增动词 |
 | 安全 | 开发构建被误发出去，管道可被本机任意进程驱动 | 编译开关默认 OFF、管道名必须显式传、`UserAccessOption` + 会话校验；打包脚本不传该选项 |
 | 命名撞钩子 | `check_probes` 拦下含 `PROBE` / `console.log` 的 `src/` 文件 | 命名用 `dev_surface` / `LENS_DEV_SURFACE`；阶段 C 在钩子注释里说明为什么开发面不算探针 |
+| 开发构建改写用户配置 | 启动时拉取模型目录，`KnownStore` 随之保存 8 次，`%APPDATA%\Lens\settings.json` 被改写（2026-10-18 两次运行） | 未决，见 §14：隔离 profile，或由用户接受。决定之前不在真实 profile 上运行开发脚本 |
 
 ## 13、不做的事
 
@@ -251,3 +252,73 @@ lens.exe --dev-script=scripts/qa/scenarios/two.json  # 起来就跑，跑完退�
 - **不替代 `lens_qtest_surfaces` 与 `ui-capture.ps1`**：offscreen 不建 D3D 设备，量不到驱动线程；
   像素与观感只能看。三者分工不同。
 - **不在 `src/` 里留临时探针**：`TEST.md` §5 的规矩不变，开发面是常设接口，不是探针。
+
+## 14、实施记录
+
+### 阶段 A：代码完成，运行时部分验证
+
+提交：`6a66b15`、`e2dc0f2`、`618017a`、`e3f4052`，分支 `feat/dev-surface`，尚未推送。
+
+与前文不一致的地方，都是实施中定下的，列在这里，前文不改写：
+
+1. 不建 `DevSurface.qml`。C++ 直接调用 `Main.qml` 已有的 `showX()`，窗口按 `objectName` 查找。原因：`Main.qml` 已有 32671 字节，逼近 `docs/QML.md` §1 的 32768 字符上限，只剩约 97 字节。
+2. `Main.qml` 没有 `devSurface` 属性与判空。各表面的根 `Window` 直接带 `objectName`，生产构建也带，无害。`Bubble` 的实例标在 `Main.qml`，因为 `Bubble.qml` 同时也是设置页预览，在它里面标会重名。约定：`src/core/dev_command.h` 的 `kSurfaceNames` 与各表面根窗口的 `objectName` 必须逐字一致，改名时两处同改。
+3. 解析放在 `lens_core`（无 Qt）：`src/core/dev_command.*`。执行器在 `src/app/dev_surface.*`，只随 `LENS_ENABLE_DEV_SURFACE` 编译。
+4. 增加 `--dev-out=<file>`。GUI 程序没有标准输出，应答只能写进文件。
+5. `publishes` 单独计数（`GlassSheet::publishes_`）。`serial_` 在 `clear()` 时也会递增，不能代替它。
+6. 阶段 A 的 `surface show` 只覆盖 `settings`、`tray`、`stats`、`words`、`yearWords`、`cost`。其余六个表面返回 `ok: false`，阶段 B 决定是否补上。
+7. §10 阶段 A 退出标准里的 “CSV” 属于阶段 B 的 `lens-measure.ps1`，阶段 A 只输出 JSON 行。
+8. 阶段 C 的验证里 “`grep -rn devSurface src/app/qml` 只有预期的三处判空” 已不适用：本实现没有 `devSurface` 判空，这条 grep 应为 0 处。改为检查各表面的 `objectName` 与 `kSurfaceNames` 一致。
+9. §9 的 `repeat 10 { show; sleep; hide; settle }` 与 §7 的 “一行一条命令” 脚本格式冲突。阶段 B 有两条路：由 `lens-measure.ps1` 循环发送单条命令，或为解析器增加控制行。后者会让脚本变成小语言，§7 明令不做，建议走前者。
+
+实测（2026-10-18，`scripts/qa/scenarios/two.txt`，Debug 构建，第 4 次运行）：
+
+- 十三条命令全部 `ok: true`。`show` 之后 `painted` 递增，`hide` 之后 `visible` 为 false，`state.theme` 读出生效主题。
+- 幕布计数可读：`wait hidden:tray` 之后，设置与托盘各为 `publishes: 1`。
+- 未验证：“全程指针没动过”。没有测量。
+
+阶段 B 要承接的缺口：
+
+- 首次显示时，设置窗与托盘的 `opacity` 在 `captureTimer` 触发前为 0，实测约 1.73 秒与 0.66 秒，原因未定，记在 `TODO.md`。
+- `hide-all` 对 `bubble`、`selectionBar` 调用 `dismiss` 的结果被忽略，失败时仍答 `ok: true`。
+- `hide-all` 之后托盘与设置还在淡出，脚本必须先 `wait hidden:` 再读状态，`two.txt` 已经这样写。
+
+### 阶段 B 开始前的未决问题
+
+- **开发构建会改写用户配置。**启动时拉取模型目录（`GET https://openrouter.ai/api/v1/models`），拉取完成后 `KnownStore` 保存了 8 次。2026-10-18 的两次运行都改写了 `%APPDATA%\Lens\settings.json`。这与 `AGENTS.md` 的 API key 规定相冲突，也违反 `e2e-side-effect-safety` 的隔离要求。待定两条路：用私有 profile 隔离（先要验证 Lens 是否尊重 `APPDATA` 重定向，并且不能把 API key 复制进临时目录），或者由用户接受这次写入。决定之前，不在真实 profile 上运行开发脚本。
+
+2026-10-18 已决：用户同意 `--settings-file=<path>`。Lens 的设置路径来自 `QStandardPaths::AppDataLocation`，代码里没有覆盖入口，所以不采用 `APPDATA` 重定向（这是对 Qt 的判断，未在 Windows 上核实）。开发构建只在 `LENS_ENABLE_DEV_SURFACE` 下接受该参数；指定后不调用 `settingsPath()`，不复制旧文件；路径为空则拒绝启动。
+
+### 阶段 B 实施记录
+
+与前文不一致的地方，都是实施中定下的，列在这里，前文不改写：
+
+1. `selection` 的锚点取矩形右下角 `(x+w, y+h)`，与左到右拖选的释放点一致。§6 未规定。
+2. 开发路径调用 `beginSelection`，不经过 `onSelectionReleased`，所以不受 “选区捕获” 开关与 “预算暂停” 约束。用户关了选区捕获，动作条仍会出现。
+3. `beginSelection` 由私有改为公开，多一个可选的 `text`。鼠标路径不传，行为不变。
+4. `setting set` 白名单五项：`theme`（light、dark、frosted、liquid）、`liquidBlur`、`frostedBlur`、`liquidRefraction`（整数）、`animationsEnabled`（on、off）。§4 的 “…” 之后的项未加。
+5. 动词恰好十个。`quit` 写完应答后结束脚本；带管道时，脚本跑完不退出，直到收到 `quit`。
+6. `selection` 的文本必须双引号、非空，内部不能有引号；w、h 须大于 0，x、y 可为负。
+7. `--dev-pipe=<name>`：只有显式给名字才创建，空名拒绝启动。`QLocalServer::UserAccessOption`；对端用 `GetNamedPipeClientSessionId` 与当前会话比较，失败即拒绝；一次只接一个客户端；读缓冲 64 KiB；单行 4 KiB，超长即切断；排队 256 行。§7 的 `peerPid` 在 Qt 6.9 的 `QLocalSocket` 上不存在，已改为会话校验。
+8. 修复：`startDevSurface` 在 `app.exec()` 之前调用，而 `QCoreApplication::exit` 在那时无效，原先 “脚本读不到” 不会退出。现在用 `singleShot(0)` 延后到事件循环里。
+
+验证（2026-10-18，Debug 构建，私有设置文件）：
+
+- 单测：`DevCommand*` 11 个、`DevLineFramer*` 6 个，全部通过。framer 的红灯是编译失败（头文件不存在），已观察到。
+- 启动拒绝：`--dev-script` 指向不存在的文件、`--dev-pipe=` 空名，两次退出码都是 1。
+- 管道会话：合法客户端被接受，说明 `socketDescriptor()` 返回的是有效的管道句柄；第二个客户端被拒；被拒后原客户端仍可用；`wait` 按序应答；超长行在 4096 字节处切断；`quit` 后退出码 0。
+- 五表面（`scripts/qa/scenarios/five-surfaces.txt`）：同一进程内，设置、托盘、统计、词、年度词依次显示、隐藏。`windows.total` 始终为 18，各表面 `visible` 只在 0 与 1 之间切换，退出码 0。`yearWords` 的 `publishes` 为 0，玻璃幕布本次运行没有发布（`sheet` 为 null），不计为发布过。
+- `setting set theme dark` 之后 `state.theme` 为 `dark`；两次进程之间私有设置文件保持设置。用户 profile 的 `settings.json` 修改时间早于所有运行，未被改动。
+
+未验证：
+
+- 跨会话拒绝路径：这台机器上制造不了不同会话的客户端。
+- `UserAccessOption` 在 Qt 6.9 Windows 上的实际 ACL：只看了头文件，没有实现源码。
+- 两个实例使用同一管道名时的拒绝：未运行。
+- 出厂构建（开关 OFF）尚未编译，留到阶段 C。
+- `scripts/qa/lens-measure.ps1` 的固定时长模式由用户在 PowerShell 里运行过一次（30 秒，6 行，`state` 每行都是有效应答，用户 profile 未被改动）。结算模式尚未运行。worktree 不能运行 `.ps1`，运行由用户完成。列名按交接里记过的指标定（私有字节、工作集、线程、句柄、`state`），没有与旧的 `exp_*.ps1` 核对，那些脚本不在仓库里。
+
+已知残留风险：
+
+- 同用户的客户端持续发送被拒的行，会在日志里逐行写 INFO，没有限速。
+- 排队满时的拒绝应答可能先于更早排队的应答到达，客户端需按 `cmd` 字段对应。
