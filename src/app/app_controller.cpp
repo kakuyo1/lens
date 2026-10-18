@@ -131,6 +131,9 @@ AppController::AppController(core::KnownStore&            store,
         emit statsChanged();
         emit yearDaysChanged();
     });
+    // A pop is recorded by ExplanationDuty straight into the store, so the duty that projects
+    // today's figures has to be told as well; QML now reads them from Controller.costDuty.
+    connect(&explanation_, &ExplanationDuty::statsChanged, &cost_, &CostDuty::statsChanged);
     connect(&explanation_, &ExplanationDuty::petEvent, this, &AppController::petEvent);
     connect(&reviewDuty_, &ReviewDuty::wordChanged, this, &AppController::reviewQuestionChanged);
     connect(&reviewDuty_, &ReviewDuty::petEvent, this, &AppController::petEvent);

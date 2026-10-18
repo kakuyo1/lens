@@ -75,12 +75,14 @@ public:
     /// @brief Record response usage and notify projections that spending changed.
     void recordUsage(const std::string& minute, const llm::Usage& usage);
 
-    Q_PROPERTY(QVariantMap stats READ stats NOTIFY stateChanged)
+    Q_PROPERTY(QVariantMap stats READ stats NOTIFY statsChanged)
     Q_PROPERTY(QVariantMap cost READ cost NOTIFY stateChanged)
 
 signals:
     /// @brief A budget, usage, or date-driven projection changed.
     void stateChanged();
+    /// @brief The daily tally changed, including a pop recorded by another duty.
+    void statsChanged();
 
 private:
     double amountOf(const core::DailyUsage& usage) const;
