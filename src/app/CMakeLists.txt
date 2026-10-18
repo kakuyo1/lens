@@ -95,7 +95,7 @@ qt_add_executable(lens
 # The developer command surface (docs/adr/0068), only when the build asks for it. It sits in the executable because
 # main.cpp is its one caller and it reaches the windows through the Main window that caller hands it.
 if(LENS_ENABLE_DEV_SURFACE)
-  target_sources(lens PRIVATE dev_surface.cpp dev_surface.h)
+  target_sources(lens PRIVATE dev_surface.cpp dev_surface.h dev_pipe.cpp dev_pipe.h)
   target_compile_definitions(lens PRIVATE LENS_DEV_SURFACE)
 endif()
 

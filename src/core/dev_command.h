@@ -16,6 +16,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <variant>
 #include <vector>
 
 namespace lens::core::dev {
@@ -29,6 +30,9 @@ enum class Verb : std::uint8_t {
     State,
     Version,
     Help,
+    Selection,
+    SettingSet,
+    Quit,
 };
 
 /// The condition a `wait` line polls for, on the surface it names.
@@ -39,11 +43,36 @@ enum class WaitFor : std::uint8_t {
     Painted,
 };
 
+/// A rectangle in physical pixels, the coordinates the mouse hook reports.
+struct Region {
+    int x{0};
+    int y{0};
+    int width{0};
+    int height{0};
+};
+
+/// The settings a `setting set` line may change. A whitelist, not a route to every key the settings file holds.
+enum class SettingKey : std::uint8_t {
+    Theme,
+    LiquidBlur,
+    FrostedBlur,
+    LiquidRefraction,
+    AnimationsEnabled,
+};
+
+/// The value a `setting set` line gives, already checked against what its key takes: a theme name, a whole number or a
+/// switch.
+using SettingValue = std::variant<std::string, int, bool>;
+
 /// One parsed line. Only the fields its verb reads are set; the rest keep their defaults.
 struct Command {
-    Verb        verb{Verb::Help};
-    std::string surface;
-    WaitFor     waitFor{WaitFor::Visible};
+    Verb         verb{Verb::Help};
+    std::string  surface;
+    WaitFor      waitFor{WaitFor::Visible};
+    Region       region;
+    std::string  selectedText;
+    SettingKey   settingKey{SettingKey::Theme};
+    SettingValue settingValue;
 };
 
 /// The outcome of parsing one line: a command, or the reason the line was refused. Exactly one of the two is set.

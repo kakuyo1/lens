@@ -12,6 +12,7 @@
 
 namespace {
 
+using lens::core::dev::SettingKey;
 using lens::core::dev::Verb;
 using lens::core::dev::WaitFor;
 using lens::core::dev::parseCommand;
@@ -55,6 +56,91 @@ TEST(DevCommandParse, RefusesWithAReason)
         EXPECT_FALSE(parsed.command) << line;
         EXPECT_FALSE(parsed.error.empty()) << line;
     }
+}
+
+TEST(DevCommandParse, SelectionTakesARectangleAndItsQuotedText)
+{
+    auto const parsed = parseCommand(R"(selection 160,175,620,70 "the quiet  library")");
+    ASSERT_TRUE(parsed.command);
+    EXPECT_EQ(parsed.command->verb, Verb::Selection);
+    EXPECT_EQ(parsed.command->region.x, 160);
+    EXPECT_EQ(parsed.command->region.y, 175);
+    EXPECT_EQ(parsed.command->region.width, 620);
+    EXPECT_EQ(parsed.command->region.height, 70);
+    // The text keeps the spaces inside its quotes, which the token split would have collapsed.
+    EXPECT_EQ(parsed.command->selectedText, "the quiet  library");
+}
+
+TEST(DevCommandParse, SelectionAllowsANegativeOrigin)
+{
+    // A screen left of or above the primary has negative physical coordinates.
+    auto const parsed = parseCommand(R"(selection -1200,-40,300,20 "x")");
+    ASSERT_TRUE(parsed.command);
+    EXPECT_EQ(parsed.command->region.x, -1200);
+    EXPECT_EQ(parsed.command->region.y, -40);
+}
+
+TEST(DevCommandParse, SelectionRefusesAMalformedLine)
+{
+    for (auto const* line : {
+             "selection",
+             "selection 160,175,620,70",
+             R"(selection 160,175,620,70 "")",
+             R"(selection 160,175,620 "x")",
+             R"(selection 160,175,0,70 "x")",
+             R"(selection 160,175,620,70 "a"b")",
+             R"(selection 160,175,620,70 the quiet)",
+             R"(selection 160.5,175,620,70 "x")",
+         }) {
+        auto const parsed = parseCommand(line);
+        EXPECT_FALSE(parsed.command) << line;
+        EXPECT_FALSE(parsed.error.empty()) << line;
+    }
+}
+
+TEST(DevCommandParse, SettingSetNamesTheSettingAndItsValue)
+{
+    auto const theme = parseCommand("setting set theme light");
+    ASSERT_TRUE(theme.command);
+    EXPECT_EQ(theme.command->verb, Verb::SettingSet);
+    EXPECT_EQ(theme.command->settingKey, SettingKey::Theme);
+    EXPECT_EQ(std::get<std::string>(theme.command->settingValue), "light");
+
+    auto const blur = parseCommand("setting set liquidBlur 40");
+    ASSERT_TRUE(blur.command);
+    EXPECT_EQ(blur.command->settingKey, SettingKey::LiquidBlur);
+    EXPECT_EQ(std::get<int>(blur.command->settingValue), 40);
+
+    auto const animations = parseCommand("setting set animationsEnabled off");
+    ASSERT_TRUE(animations.command);
+    EXPECT_EQ(animations.command->settingKey, SettingKey::AnimationsEnabled);
+    EXPECT_FALSE(std::get<bool>(animations.command->settingValue));
+}
+
+TEST(DevCommandParse, SettingSetRefusesAKeyOrValueOffTheWhitelist)
+{
+    for (auto const* line : {
+             "setting",
+             "setting set theme",
+             "setting set theme sepia",
+             "setting set nothing 1",
+             "setting set liquidBlur forty",
+             "setting set animationsEnabled maybe",
+             "setting get theme",
+             "setting theme light",
+         }) {
+        auto const parsed = parseCommand(line);
+        EXPECT_FALSE(parsed.command) << line;
+        EXPECT_FALSE(parsed.error.empty()) << line;
+    }
+}
+
+TEST(DevCommandParse, QuitTakesNoArguments)
+{
+    auto const parsed = parseCommand("quit");
+    ASSERT_TRUE(parsed.command);
+    EXPECT_EQ(parsed.command->verb, Verb::Quit);
+    EXPECT_FALSE(parseCommand("quit now").command);
 }
 
 TEST(DevCommandState, UnsetFieldsAreNullNotAbsent)

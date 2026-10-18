@@ -6,12 +6,15 @@
 #include "dev_surface.h"
 
 #include "app_controller.h"
+#include "dev_pipe.h"
 #include "glass_backdrop.h"
+#include "paths.h"
 #include "util/log.h"
 
 #include <QCoreApplication>
 #include <QFile>
 #include <QMetaObject>
+#include <QPoint>
 #include <QQuickWindow>
 #include <QVariant>
 #include <QWindow>
@@ -20,7 +23,9 @@
 
 #include <algorithm>
 #include <array>
+#include <filesystem>
 #include <string_view>
+#include <system_error>
 #include <utility>
 
 namespace lens::app {
@@ -31,6 +36,16 @@ namespace {
 constexpr int kWaitTimeoutMs = 5000;
 /// How often a `wait` checks its condition.
 constexpr int kWaitPollMs = 16;
+/// How many pipe lines may wait behind an open `wait`. Past it a line is answered as refused, so a client that sends
+/// faster than the waits resolve cannot grow the queue without bound.
+constexpr qsizetype kMaxQueuedLines = 256;
+
+/// Ends the run with @p code once the event loop is running. QCoreApplication::exit does nothing before exec(), and
+/// startDevSurface runs before it.
+void exitWhenRunning(int code)
+{
+    QTimer::singleShot(0, [code] { QCoreApplication::exit(code); });
+}
 
 /// A surface's opening function on Main.qml. The ones that take `from` are given the undefined value, which is what a
 /// command has in place of the element a click came from.
@@ -105,6 +120,34 @@ void DevSurface::runScript(QStringList const& lines, QString const& outputPath)
     QTimer::singleShot(0, this, &DevSurface::step);
 }
 
+bool DevSurface::listenOnPipe(QString const& name)
+{
+    auto* const pipe = new DevPipe(name, this);
+    if (not pipe->listen()) {
+        delete pipe;
+        return false;
+    }
+    pipe_ = pipe;
+    connect(pipe_, &DevPipe::lineReceived, this, &DevSurface::onPipeLine);
+    return true;
+}
+
+void DevSurface::onPipeLine(QString const& line)
+{
+    // Everything queued has run, so the lines are dropped rather than kept for the life of the run.
+    if (next_ == script_.size()) {
+        script_.clear();
+        next_ = 0;
+    }
+    if (script_.size() - next_ >= kMaxQueuedLines) {
+        answer(line, failure("the queue is full: wait for the answers before sending more"));
+        return;
+    }
+    script_.append(line);
+    if (not waiting_)
+        step();
+}
+
 void DevSurface::step()
 {
     while (next_ < script_.size()) {
@@ -124,8 +167,16 @@ void DevSurface::step()
             return;
         }
         answer(line, execute(*parsed.command));
+        if (parsed.command->verb == core::dev::Verb::Quit) {
+            if (pipe_ != nullptr)
+                pipe_->drain();
+            QCoreApplication::quit();
+            return;
+        }
     }
-    QCoreApplication::quit();
+    // With a pipe the run goes on until a quit line, because the client may send more.
+    if (pipe_ == nullptr)
+        QCoreApplication::quit();
 }
 
 void DevSurface::poll()
@@ -158,6 +209,13 @@ nlohmann::json DevSurface::execute(core::dev::Command const& command)
             return core::dev::versionJson(build_);
         case core::dev::Verb::Help:
             return core::dev::helpJson();
+        case core::dev::Verb::Quit:
+            // step() ends the script after this answer is written.
+            return success();
+        case core::dev::Verb::Selection:
+            return injectSelection(command);
+        case core::dev::Verb::SettingSet:
+            return setSetting(command);
         case core::dev::Verb::Wait:
             break;
     }
@@ -194,6 +252,39 @@ nlohmann::json DevSurface::hideAll()
     for (auto const* const name : {"bubble", "selectionBar"}) {
         if (auto* const surfaceWindow = window(name))
             QMetaObject::invokeMethod(surfaceWindow, "dismiss");
+    }
+    return success();
+}
+
+nlohmann::json DevSurface::injectSelection(core::dev::Command const& command)
+{
+    auto const& region = command.region;
+    // A left-to-right drag releases at the selection's bottom-right corner, so the bar anchors there, as it does for a drag.
+    auto const anchor = QPoint{region.x + region.width, region.y + region.height};
+    controller_->captureDuty()->beginSelection(anchor, QString::fromStdString(command.selectedText));
+    return success();
+}
+
+nlohmann::json DevSurface::setSetting(core::dev::Command const& command)
+{
+    // The setters store the value in the settings file, as the settings page's own controls do.
+    auto const& value = command.settingValue;
+    switch (command.settingKey) {
+        case core::dev::SettingKey::Theme:
+            controller_->setTheme(QString::fromStdString(std::get<std::string>(value)));
+            break;
+        case core::dev::SettingKey::LiquidBlur:
+            controller_->setLiquidBlur(std::get<int>(value));
+            break;
+        case core::dev::SettingKey::FrostedBlur:
+            controller_->setFrostedBlur(std::get<int>(value));
+            break;
+        case core::dev::SettingKey::LiquidRefraction:
+            controller_->setLiquidRefraction(std::get<int>(value));
+            break;
+        case core::dev::SettingKey::AnimationsEnabled:
+            controller_->setAnimationsEnabled(std::get<bool>(value));
+            break;
     }
     return success();
 }
@@ -264,6 +355,8 @@ void DevSurface::answer(QString const& line, nlohmann::json result)
     result["cmd"]   = line.toStdString();
     auto const text = result.dump();
     LENS_INFO("dev surface: {}", text);
+    if (pipe_ != nullptr)
+        pipe_->reply(QString::fromStdString(text));
     if (outputPath_.isEmpty())
         return;
     QFile output{outputPath_};
@@ -273,21 +366,53 @@ void DevSurface::answer(QString const& line, nlohmann::json result)
         LENS_ERROR("dev surface: cannot append to {}", outputPath_.toStdString());
 }
 
+std::optional<std::filesystem::path> devSettingsFile(QStringList const& arguments)
+{
+    auto const value = argumentValue(arguments, QStringLiteral("--settings-file"));
+    if (not value)
+        return std::nullopt;
+    auto path = toPath(*value);
+    if (path.empty())
+        return path;
+    std::error_code ec;
+    std::filesystem::create_directories(path.parent_path(), ec);
+    if (ec)
+        LENS_WARN("settings directory {} could not be created: {}", narrow(path.parent_path()), ec.message());
+    return path;
+}
+
 void startDevSurface(QObject* root, AppController* controller, QStringList const& arguments, core::dev::Build build)
 {
     auto const scriptPath = argumentValue(arguments, QStringLiteral("--dev-script"));
-    if (not scriptPath)
+    auto const pipeName   = argumentValue(arguments, QStringLiteral("--dev-pipe"));
+    if (not scriptPath and not pipeName)
         return;
+    // A bare --dev-pipe names nothing, and a pipe never falls back to a default name: the run is refused.
+    if (pipeName and pipeName->isEmpty()) {
+        LENS_ERROR("dev surface: --dev-pipe takes a name");
+        exitWhenRunning(1);
+        return;
+    }
 
-    QFile script{*scriptPath};
-    if (not script.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        LENS_ERROR("dev surface: cannot read the script {}", scriptPath->toStdString());
-        QCoreApplication::exit(1);
-        return;
+    QStringList lines;
+    if (scriptPath) {
+        QFile script{*scriptPath};
+        if (not script.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            LENS_ERROR("dev surface: cannot read the script {}", scriptPath->toStdString());
+            exitWhenRunning(1);
+            return;
+        }
+        lines = QString::fromUtf8(script.readAll()).split(QLatin1Char('\n'));
     }
     auto const  outputPath = argumentValue(arguments, QStringLiteral("--dev-out")).value_or(QString{});
     auto* const surface    = new DevSurface(root, controller, std::move(build));
-    surface->runScript(QString::fromUtf8(script.readAll()).split(QLatin1Char('\n')), outputPath);
+    if (pipeName and not surface->listenOnPipe(*pipeName)) {
+        LENS_ERROR("dev surface: cannot listen on the pipe '{}'", pipeName->toStdString());
+        exitWhenRunning(1);
+        return;
+    }
+    if (scriptPath)
+        surface->runScript(lines, outputPath);
 }
 
 } // namespace lens::app

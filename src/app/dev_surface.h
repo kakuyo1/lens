@@ -20,6 +20,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <filesystem>
 #include <map>
 #include <optional>
 #include <string>
@@ -27,6 +28,7 @@
 namespace lens::app {
 
 class AppController;
+class DevPipe;
 
 /**
  * @brief Runs command-table lines against one running application's surfaces.
@@ -49,6 +51,11 @@ public:
     /// @note A `wait` line keeps the script going from the event loop, so the window stays responsive while it waits.
     void runScript(QStringList const& lines, QString const& outputPath);
 
+    /// @brief Listen for command lines on a named pipe, for this user and this session (docs/adr/0068).
+    /// @param name The pipe's name, from `--dev-pipe=<name>`.
+    /// @return Whether the pipe is listening. When it is not, nothing is kept and the caller refuses to run.
+    bool listenOnPipe(QString const& name);
+
 private:
     /// A `wait` line that has not been answered yet.
     struct Waiting {
@@ -63,6 +70,10 @@ private:
     nlohmann::json show(std::string const& surface);
     nlohmann::json hide(std::string const& surface);
     nlohmann::json hideAll();
+    /// @brief Start the selection pipeline with the text the command gives, so the clipboard is not read.
+    nlohmann::json injectSelection(core::dev::Command const& command);
+    /// @brief Store one whitelisted setting through the same setter the settings page's control calls.
+    nlohmann::json setSetting(core::dev::Command const& command);
     nlohmann::json state() const;
 
     /// @return The window carrying @p name as its object name, or nullptr when there is none.
@@ -70,6 +81,8 @@ private:
     std::uint64_t paintedCount(std::string const& name) const;
     bool          conditionHolds(Waiting const& waiting) const;
 
+    /// A line the pipe received: queued behind any open wait, and run in its turn.
+    void onPipeLine(QString const& line);
     /// Run lines from the script until one waits or the script ends.
     void step();
     /// One tick of an open wait: answer once its condition holds or it times out.
@@ -89,16 +102,28 @@ private:
     QTimer                                            poll_;
     QElapsedTimer                                     waited_;
     std::optional<Waiting>                            waiting_;
+    /// The developer pipe, when --dev-pipe gave a name. Answers go to it as well as to the log and the output file.
+    DevPipe* pipe_{nullptr};
 };
 
 /**
  * @brief Start the command surface when the command line asks for it: `--dev-script=<file>`, with its answers written
- *        to `--dev-out=<file>`. Without `--dev-script` nothing is created, so the run is the same as without the surface.
+ *        to `--dev-out=<file>`, and/or `--dev-pipe=<name>`, a pipe that takes lines for as long as the run lasts. Without
+ *        either flag nothing is created, so the run is the same as without the surface. A refusal exits the run once its
+ *        event loop is up, never before, since QCoreApplication::exit does nothing before exec().
  * @param root The Main window the surfaces are declared in.
  * @param controller The controller the surfaces are driven through.
  * @param arguments The command line, as QCoreApplication::arguments() gives it.
  * @param build What the state reports about this executable.
  */
 void startDevSurface(QObject* root, AppController* controller, QStringList const& arguments, core::dev::Build build);
+
+/**
+ * @brief The settings document a developer run keeps in a file of its own: `--settings-file=<path>`.
+ * @param arguments The command line, as QCoreApplication::arguments() gives it.
+ * @return The path, or nothing when the flag is absent and the run keeps the reader's document. A flag with no path
+ *         answers with an empty path, which main() refuses, so a run never falls back to the reader's document by accident.
+ */
+std::optional<std::filesystem::path> devSettingsFile(QStringList const& arguments);
 
 } // namespace lens::app

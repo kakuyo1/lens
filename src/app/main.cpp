@@ -242,7 +242,17 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+#if defined(LENS_DEV_SURFACE)
+    // docs/adr/0068: a run given --settings-file keeps its document there, so it never writes the reader's profile.
+    const auto devSettings = lens::app::devSettingsFile(app.arguments());
+    if (devSettings and devSettings->empty()) {
+        LENS_CRITICAL("--settings-file takes a path");
+        return 1;
+    }
+    const std::filesystem::path settings = devSettings ? *devSettings : settingsPath(toPath(QString::fromUtf8(kDevSettingsPath)));
+#else
     const std::filesystem::path settings = settingsPath(toPath(QString::fromUtf8(kDevSettingsPath)));
+#endif
     LENS_INFO("settings document: {}", narrow(settings));
     KnownStore store = KnownStore::load(settings);
 

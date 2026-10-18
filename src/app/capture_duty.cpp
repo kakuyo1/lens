@@ -450,8 +450,12 @@ void CaptureDuty::onSelectionReleased(QPoint const anchor)
     beginSelection(anchor);
 }
 
-void CaptureDuty::beginSelection(QPoint const anchor)
+void CaptureDuty::beginSelection(QPoint const anchor, std::optional<QString> const text)
 {
+    if (text) {
+        classifyText(*text, anchor);
+        return;
+    }
     const auto policy  = clipboardPolicyFromStored(storage_.section().value<std::string>("clipboardPolicy", {}));
     const auto grabbed = grabber_->grab(policy);
     if (const auto* status = std::get_if<GrabStatus>(&grabbed)) {
