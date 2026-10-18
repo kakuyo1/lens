@@ -9,10 +9,22 @@ Item {
     // qmllint enable missing-property
 
     signal childRequested(string route)
-    readonly property var openChildRect: lengthField.openChildRect
+    readonly property var openChildRect: styleField.openChildRect
+                                         ? styleField.openChildRect
+                                         : lengthField.openChildRect
     implicitHeight: content.implicitHeight
 
-    function closeChild() { lengthField.closeList(); }
+    function closeChild() {
+        styleField.closeList();
+        lengthField.closeList();
+    }
+
+    /// The card a hovered style row raises beside the list. The option carries the form it
+    /// stands for, so the preview needs nothing from this page but the option itself.
+    Component {
+        id: stylePreviewComponent
+        SelectionBarPreview {}
+    }
 
     Column {
         id: content
@@ -66,6 +78,39 @@ Item {
                         onToggled: (on) => Controller.captureDuty.setAutoScan(on)
                     }
                 }
+            }
+        }
+
+        // The shape of the action bar the selection channel raises. It sits right after the
+        // channels because it is the surface the first switch owns, and before the OCR key
+        // because that key belongs to the second switch.
+        Column {
+            width: parent.width
+            spacing: 7
+            Text {
+                text: qsTranslate("SettingsPopup", "Selection bar style")
+                color: root.tokens.muted
+                font.pixelSize: 11
+            }
+            DropdownField {
+                id: styleField
+                objectName: "selectionBarStyle"
+                width: parent.width
+                options: [
+                    {value: "bar", label: qsTranslate("SettingsPopup", "Classic bar"),
+                     group: "", note: "", previewStyle: "bar"},
+                    {value: "tab", label: qsTranslate("SettingsPopup", "Side tab"),
+                     group: "", note: "", previewStyle: "tab"},
+                    {value: "hand", label: qsTranslate("SettingsPopup", "Hand of cards"),
+                     group: "", note: "", previewStyle: "hand"},
+                    {value: "tag", label: qsTranslate("SettingsPopup", "Hang tag"),
+                     group: "", note: "", previewStyle: "tag"},
+                    {value: "fan", label: qsTranslate("SettingsPopup", "Fan"),
+                     group: "", note: "", previewStyle: "fan"}
+                ]
+                currentValue: Controller.settings.selectionBarStyle
+                optionPreview: stylePreviewComponent
+                onPicked: (value) => Controller.setSelectionBarStyle(value)
             }
         }
 

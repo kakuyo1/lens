@@ -533,6 +533,16 @@ void AppController::setBubblePlacement(QString placement)
     emit settingsChanged();
 }
 
+void AppController::setSelectionBarStyle(QString style)
+{
+    if (style != QLatin1String("bar") && style != QLatin1String("tab") && style != QLatin1String("hand") && style != QLatin1String("tag") && style != QLatin1String("fan")) {
+        LENS_WARN("unknown selection bar style '{}'; leaving the setting alone", style.toStdString());
+        return;
+    }
+    storage_.section().set<std::string>("selectionBarStyle", style.toStdString());
+    emit settingsChanged();
+}
+
 void AppController::setModel(QString model)
 {
     if (catalog_.setModel(model))
@@ -621,6 +631,7 @@ QVariantMap AppController::settings()
                          {"clipboardPolicy", QString::fromStdString(keys.value<std::string>("clipboardPolicy", "topmost"))},
                          {"bubbleDismissSeconds", clampBubbleDismissSeconds(keys.value<int>("bubbleDismissSeconds", kBubbleDismissDefaultSeconds))},
                          {"bubblePlacement", QString::fromStdString(keys.value<std::string>("bubblePlacement", "above"))},
+                         {"selectionBarStyle", QString::fromStdString(keys.value<std::string>("selectionBarStyle", "bar"))},
                          {"ocrHotkey", hotkey_.keys().toString(QKeySequence::PortableText)},
                          {"ocrHotkeyConflicted", hotkey_.conflicted()},
                          {"provider", provider},

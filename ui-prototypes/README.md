@@ -14,6 +14,7 @@
 | `settings.html` | 设置浮层 |
 | `bubble.html` | 解释气泡，含单词、实体、句子、译文四种 |
 | `selection-bar.html` | 选区动作条 |
+| `selection-bar-variants.html` | 选区动作条的四种备选形态（页边签 / 手牌签 / 吊牌签 / 扇面），落成 QML 的设计对照；默认仍是 `selection-bar.html` 的经典长条，见 `docs/adr/0056` |
 | `pet.html` | 桌面宠物子页面（扩展 → 桌面宠物，四只宠物的类型下拉、动作与配饰，以及宠物包的导入入口、被拒列表与确认弹窗） |
 | `pet-review.html` | 桌面宠物的复习牌：举牌（牌子挂在手上，左右手随空间切换，随身体起伏）、悬浮出 “忘了 / 记得”、作答后的缓存气泡与超时生气 |
 | `update.html` | 检查更新（关于 分类的检查行）与通知卡片的新版本样式 |
@@ -21,6 +22,8 @@
 ## 怎么看
 
 双击打开，或访问 `file:///.../settings.html`。URL 追加 `?theme=dark` 直接看静谧暗夜主题，`?theme=frosted` / `?theme=liquid` 看两套玻璃主题（雾面玻璃、流光玻璃），设置面板里的主题下拉也能切。除 `settings.html` 外，每张表面右上角的按钮循环切换四套主题（晴朗白昼、静谧暗夜、雾面玻璃、流光玻璃），按钮文字是当前主题名；带 `?shot` 时按钮隐去。`settings.html` 的流光玻璃与雾面玻璃主题左上角各有一组测试背景单选，底图分别在 `liquid-backdrops/` 与 `frosted-backdrops/`；URL 追加 `?bg=<文件名>` 指定一张（如 `?bg=web-light`、`?bg=checker`），文件属于哪套主题就用哪套。
+
+`selection-bar-variants.html` 追加 `?v=A|E|H|F` 只看一种形态，`?lang=` 与 `?theme=` 照旧，`?shot` 隐去右上角控件；每条动作条进入视野时出场，滚回去会重播，点一下看它自己的按法。它是动作条样式的备选对照；默认仍是 `selection-bar.html` 的经典长条，行为契约在 `UI.md` 4.10。
 
 追加 `?lang=en`、`?lang=ja`、`?lang=es` 按该语言渲染界面，缺省中文。进 README 的五个表面（bubble、selection-bar、settings、words、year-in-words）接了它，其余表面和设置里的子页面仍是中文。pet 页要看到预览舞台，追加 `?on` 直接打开桌面宠物；`?act=ask` 让预览直接停在举牌，`?preview` 把面板滚到预览舞台（headless 截图的静止画面不走动画，要看起伏请在浏览器里打开）；要直接看宠物包的确认弹窗，追加 `?dlg=1`；README 里的桌面宠物图取自应用本身，不由这里渲染。
 

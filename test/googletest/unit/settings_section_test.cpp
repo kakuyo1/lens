@@ -251,6 +251,7 @@ const DocumentKey kScalarKeys[] = {
     {"clipboardPolicy", "AppController"},
     {"bubbleDismissSeconds", "AppController"},
     {"bubblePlacement", "AppController"},
+    {"selectionBarStyle", "AppController"},
     {"ocrHotkey", "AppController"},
     {"ocrCapture", "CaptureDuty"},
     {"autoScan", "CaptureDuty"},

@@ -289,6 +289,15 @@ Window {
         surface.raise();
     }
 
+    /// @brief Put the action bar up in the form the reader chose (UI.md 4.10).
+    ///
+    /// The form's own placement lives on SelectionBar (placeAt), next to the geometry it is
+    /// placing; this only finds the screen and hands it the work area.
+    function placeSelectionBar(surface, anchor) {
+        root.rememberPlacement(surface, anchor, "transient");
+        surface.placeAt(anchor, root.workArea(root.screenFor(anchor)), root.screenMargin);
+    }
+
     /// The answer to a review carries no verdict buttons (Controller.explanationDuty.bubble); every other card is placed
     /// beside its anchor as before.
     function placeBubble(surface, payload) {
@@ -344,6 +353,8 @@ Window {
                 root.placePanel(placement.surface, placement.anchor);
             else if (placement.kind === "pet")
                 root.placePetPanel(placement.surface);
+            else if (placement.surface === bar)
+                root.placeSelectionBar(bar, placement.anchor);
             else if (!placement.surface.dragging)
                 root.placeTransient(placement.surface, placement.anchor, placement.surface.gap);
         }
@@ -627,7 +638,7 @@ Window {
             Qt.callLater(() => {
                 if (generation !== root.selectionBarGeneration)
                     return;
-                root.placeTransient(bar, at, bar.gap);
+                root.placeSelectionBar(bar, at);
                 bar.open();
             });
         }

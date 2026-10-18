@@ -4,37 +4,37 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="440"/>
+        <location filename="../src/app/qml/Bubble.qml" line="436"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="440"/>
+        <location filename="../src/app/qml/Bubble.qml" line="436"/>
         <source>New</source>
         <translation>New</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="439"/>
+        <location filename="../src/app/qml/Bubble.qml" line="435"/>
         <source>Sentence</source>
         <translation>Sentence</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="438"/>
+        <location filename="../src/app/qml/Bubble.qml" line="434"/>
         <source>Preview</source>
         <translation>Preview</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="585"/>
+        <location filename="../src/app/qml/Bubble.qml" line="581"/>
         <source>Etymology</source>
         <translation>Etymology</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="624"/>
+        <location filename="../src/app/qml/Bubble.qml" line="620"/>
         <source>Example</source>
         <translation>Example</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="662"/>
+        <location filename="../src/app/qml/Bubble.qml" line="658"/>
         <source>Disappears in %1s</source>
         <translation>Disappears in %1s</translation>
     </message>
@@ -134,58 +134,86 @@
 <context>
     <name>SelectionBar</name>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="158"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="54"/>
         <source>Translate</source>
         <translation>Translate</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="159"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="55"/>
         <source>Explain</source>
         <translation>Explain</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="160"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="56"/>
         <source>Copy text</source>
         <translation>Copy text</translation>
     </message>
 </context>
 <context>
+    <name>SelectionBarPreview</name>
+    <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="75"/>
+        <source>The original flat bar</source>
+        <translation>The original flat bar</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="76"/>
+        <source>Stands at the selection&apos;s side</source>
+        <translation>Stands at the selection&apos;s side</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="77"/>
+        <source>Spread above the selection</source>
+        <translation>Spread above the selection</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="78"/>
+        <source>Hangs from the selection on a string</source>
+        <translation>Hangs from the selection on a string</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="79"/>
+        <source>Opens above the selection</source>
+        <translation>Opens above the selection</translation>
+    </message>
+</context>
+<context>
     <name>SettingsCapturePage</name>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="103"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="148"/>
         <source>Checking OCR</source>
         <translation>Checking OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="104"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="149"/>
         <source>English OCR data is missing</source>
         <translation>English OCR data is missing</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="105"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="150"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR runtime is unavailable</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="120"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="125"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="165"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="170"/>
         <source>Tesseract executable</source>
         <translation>Tesseract executable</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="135"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="140"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="180"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="185"/>
         <source>Tesseract data folder</source>
         <translation>Tesseract data folder</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="151"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="196"/>
         <source>Minimum word length</source>
         <translation>Minimum word length</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="170"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="180"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="215"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="225"/>
         <source>Scan whitelist</source>
         <translation>Scan whitelist</translation>
     </message>
@@ -198,12 +226,12 @@
         <translation>Saved</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="270"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="271"/>
         <source>Defaults restored</source>
         <translation>Defaults restored</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="355"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="356"/>
         <location filename="../src/app/qml/ThemePreview.qml" line="102"/>
         <source>Settings</source>
         <translation>Settings</translation>
@@ -440,52 +468,82 @@
         <translation>Animations are disabled by Windows accessibility settings.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="96"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="141"/>
         <location filename="../src/app/qml/SettingsClipboardPage.qml" line="97"/>
         <source>Raise to top</source>
         <translation>Raise to top</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="95"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="140"/>
         <location filename="../src/app/qml/SettingsClipboardPage.qml" line="97"/>
         <source>Give up silently</source>
         <translation>Give up silently</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="470"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="471"/>
         <location filename="../src/app/qml/ThemePreview.qml" line="261"/>
         <source>Defaults</source>
         <translation>Defaults</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="26"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="38"/>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="29"/>
         <source>Trigger channels</source>
         <translation>Trigger channels</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="48"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="60"/>
         <source>Selection</source>
         <translation>Selection</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="55"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="67"/>
         <location filename="../src/app/app_controller.cpp" line="323"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="63"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="75"/>
         <source>Auto scan</source>
         <translation>Auto scan</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="77"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="91"/>
+        <source>Selection bar style</source>
+        <translation>Selection bar style</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="100"/>
+        <source>Classic bar</source>
+        <translation>Classic bar</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="102"/>
+        <source>Side tab</source>
+        <translation>Side tab</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="104"/>
+        <source>Hand of cards</source>
+        <translation>Hand of cards</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="106"/>
+        <source>Hang tag</source>
+        <translation>Hang tag</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="108"/>
+        <source>Fan</source>
+        <translation>Fan</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="122"/>
         <source>OCR trigger key</source>
         <translation>OCR trigger key</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="93"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="138"/>
         <location filename="../src/app/qml/SettingsPopup.qml" line="70"/>
         <source>Popup &amp; clipboard</source>
         <translation>Popup &amp; clipboard</translation>
@@ -1078,6 +1136,12 @@
         <translation>%1: %2</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="125"/>
+        <source>Selection bar</source>
+        <translation>Selection bar</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="134"/>
         <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="295"/>
         <location filename="../src/app/qml/VocabPreview.qml" line="122"/>
         <source>Preview</source>
@@ -1727,7 +1791,7 @@
     </message>
     <message>
         <location filename="../src/app/app_controller.cpp" line="309"/>
-        <location filename="../src/app/app_controller.cpp" line="579"/>
+        <location filename="../src/app/app_controller.cpp" line="589"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>Today&amp;apos;s budget is used up.</translation>
     </message>
@@ -1752,12 +1816,12 @@
         <translation>That region could not be read.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="885"/>
+        <location filename="../src/app/app_controller.cpp" line="896"/>
         <source>Auto</source>
         <translation>Auto</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="885"/>
+        <location filename="../src/app/app_controller.cpp" line="896"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>
