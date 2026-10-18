@@ -19,6 +19,7 @@
 #include "capture/foreground_window.h"
 #include "core/filter_core.h"
 #include "mouse_selection_hook.h"
+#include "settings_defaults.h"
 #include "util/log.h"
 
 namespace lens::app {
@@ -102,12 +103,12 @@ CaptureDuty::~CaptureDuty()
 QVariantMap CaptureDuty::settings() const
 {
     auto const keys = storage_.section();
-    return {{"ocrCapture", keys.value<bool>("ocrCapture", false)},
-            {"autoScan", keys.value<bool>("autoScan", false)},
+    return {{"ocrCapture", keys.value<bool>("ocrCapture", defaults::kOcrCapture)},
+            {"autoScan", keys.value<bool>("autoScan", defaults::kAutoScan)},
             {"ocrAvailable", ocrState_ == capture::OcrStatus::Ready},
             // A length the document did not mean reads as the default, the same way the old
             // read did with its validity flag.
-            {"minimumWordLength", capture::minimumWordLength(keys.value<int>("minimumWordLength", 3))},
+            {"minimumWordLength", capture::minimumWordLength(keys.value<int>("minimumWordLength", defaults::kMinimumWordLength))},
             {"tesseractExecutable", QString::fromStdString(keys.value<std::string>("tesseractExecutable", {}))},
             {"tesseractDataDirectory", QString::fromStdString(keys.value<std::string>("tesseractDataDirectory", {}))},
             // What an empty setting resolves to, for the surface that shows the reader where OCR
@@ -115,7 +116,7 @@ QVariantMap CaptureDuty::settings() const
             // drift from the path the process is actually started with.
             {"resolvedTesseractExecutable", capture::resolveTesseract(storedTesseractConfig(storage_)).executable},
             {"resolvedTesseractDataDirectory", capture::resolveTesseract(storedTesseractConfig(storage_)).dataDirectory},
-            {"scanWhitelist", QString::fromStdString(keys.value<std::string>("scanWhitelist", "chrome.exe;msedge.exe;firefox.exe;AcroRd32.exe"))}};
+            {"scanWhitelist", QString::fromStdString(keys.value<std::string>("scanWhitelist", std::string{defaults::kScanWhitelist}))}};
 }
 
 QString CaptureDuty::ocrStatus() const
@@ -212,10 +213,10 @@ void CaptureDuty::rebuildOcr()
 
 void CaptureDuty::restoreDefaults()
 {
-    setAutoScan(false);
-    setOcrCapture(false);
-    setMinimumWordLength(3);
-    setScanWhitelist(QStringLiteral("chrome.exe;msedge.exe;firefox.exe;AcroRd32.exe"));
+    setAutoScan(defaults::kAutoScan);
+    setOcrCapture(defaults::kOcrCapture);
+    setMinimumWordLength(defaults::kMinimumWordLength);
+    setScanWhitelist(QString::fromStdString(std::string{defaults::kScanWhitelist}));
     setTesseractExecutable(QString{});
     setTesseractDataDirectory(QString{});
 }
@@ -451,17 +452,13 @@ void CaptureDuty::onSelectionReleased(QPoint const anchor)
 
 void CaptureDuty::beginSelection(QPoint const anchor)
 {
-    const auto grabbed = grabber_->grab();
+    const auto policy  = clipboardPolicyFromStored(storage_.section().value<std::string>("clipboardPolicy", {}));
+    const auto grabbed = grabber_->grab(policy);
     if (const auto* status = std::get_if<GrabStatus>(&grabbed)) {
         LENS_DEBUG("selection at ({}, {}) produced no text (status {})", anchor.x(), anchor.y(), static_cast<int>(*status));
         return;
     }
-    const GrabbedText& captured = std::get<GrabbedText>(grabbed);
-    if (captured.clipboardReplaced and storage_.section().value<std::string>("clipboardPolicy", "topmost") == "silent") {
-        LENS_INFO("the clipboard was rewritten during the grab; the policy is silent, so the selection is dropped");
-        return;
-    }
-    classifyText(captured.text, anchor);
+    classifyText(std::get<QString>(grabbed), anchor);
 }
 
 void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const fromScreenshot)

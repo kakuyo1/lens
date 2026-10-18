@@ -38,6 +38,7 @@
 namespace {
 
 using lens::llm::Config;
+using lens::llm::ExplainRequest;
 using lens::llm::LlmClient;
 using lens::llm::Usage;
 using lens::llm::Explanation;
@@ -118,7 +119,7 @@ TEST(LlmSmoke, OneWordRoundTrip)
     });
     QTimer::singleShot(kTimeoutMs, &loop, &QEventLoop::quit);
 
-    client.explainWords({word});
+    client.explainWords(ExplainRequest{.words = {word}});
     loop.exec();
 
     ASSERT_TRUE(failure.isEmpty()) << "the request failed: " << failure.toStdString();

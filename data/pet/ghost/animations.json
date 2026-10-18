@@ -1,0 +1,381 @@
+{
+  "roles": {
+    "idle": "idle",
+    "study": "study",
+    "thinking": "thinking",
+    "celebrate": "celebrate",
+    "encourage": "encourage",
+    "sleep": "sleep",
+    "click_react": "click_react",
+    "pickup": "pickup",
+    "look_around": "look_around",
+    "yawn": "yawn",
+    "stretch": "stretch",
+    "angry": "angry",
+    "ask": "ask"
+  },
+  "idlePool": [
+    "look_around",
+    "stretch",
+    "float",
+    "peek",
+    "boo",
+    "shiver",
+    "spin"
+  ],
+  "hover": {
+    "notice": "peek",
+    "dwell": "boo",
+    "noticeDelayMs": 300,
+    "dwellDelayMs": 2400,
+    "cooldownMs": 7500
+  },
+  "actions": {
+    "idle": {
+      "frames": 5,
+      "fps": 4,
+      "loop": true,
+      "blink": true,
+      "expressions": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/idle.png"
+    },
+    "study": {
+      "frames": 6,
+      "fps": 4,
+      "loop": true,
+      "blink": true,
+      "expressions": [
+        3,
+        3,
+        0,
+        3,
+        3,
+        0
+      ],
+      "sheet": "sprites/body/study.png",
+      "effect": "sprites/effects/study.png"
+    },
+    "thinking": {
+      "frames": 4,
+      "fps": 3,
+      "loop": true,
+      "blink": true,
+      "expressions": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "sheet": "sprites/body/thinking.png",
+      "effect": "sprites/effects/thinking.png"
+    },
+    "celebrate": {
+      "frames": 7,
+      "fps": 10,
+      "loop": false,
+      "expressions": [
+        0,
+        5,
+        5,
+        5,
+        5,
+        5,
+        0
+      ],
+      "sheet": "sprites/body/celebrate.png",
+      "effect": "sprites/effects/celebrate.png"
+    },
+    "encourage": {
+      "frames": 5,
+      "fps": 8,
+      "loop": false,
+      "expressions": [
+        5,
+        5,
+        5,
+        5,
+        0
+      ],
+      "sheet": "sprites/body/encourage.png",
+      "effect": "sprites/effects/encourage.png"
+    },
+    "sleep": {
+      "frames": 4,
+      "fps": 3,
+      "loop": true,
+      "expressions": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "sheet": "sprites/body/sleep.png",
+      "effect": "sprites/effects/sleep.png"
+    },
+    "click_react": {
+      "frames": 4,
+      "fps": 12,
+      "loop": false,
+      "expressions": [
+        2,
+        2,
+        1,
+        0
+      ],
+      "sheet": "sprites/body/click_react.png",
+      "effect": "sprites/effects/click_react.png"
+    },
+    "pickup": {
+      "frames": 4,
+      "fps": 6,
+      "loop": true,
+      "expressions": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "sheet": "sprites/body/pickup.png",
+      "effect": "sprites/effects/pickup.png"
+    },
+    "look_around": {
+      "frames": 6,
+      "fps": 6,
+      "loop": false,
+      "expressions": [
+        0,
+        3,
+        3,
+        0,
+        4,
+        4
+      ],
+      "sheet": "sprites/body/look_around.png",
+      "effect": "sprites/effects/look_around.png"
+    },
+    "yawn": {
+      "frames": 5,
+      "fps": 6,
+      "loop": false,
+      "returnTo": "sleep",
+      "expressions": [
+        1,
+        7,
+        7,
+        7,
+        2
+      ],
+      "sheet": "sprites/body/yawn.png"
+    },
+    "stretch": {
+      "frames": 6,
+      "fps": 6,
+      "loop": false,
+      "expressions": [
+        2,
+        2,
+        5,
+        5,
+        5,
+        0
+      ],
+      "sheet": "sprites/body/stretch.png",
+      "effect": "sprites/effects/stretch.png"
+    },
+    "float": {
+      "frames": 4,
+      "fps": 5,
+      "loop": false,
+      "expressions": [
+        0,
+        5,
+        5,
+        0
+      ],
+      "sheet": "sprites/body/float.png",
+      "effect": "sprites/effects/float.png"
+    },
+    "peek": {
+      "frames": 4,
+      "fps": 6,
+      "loop": false,
+      "expressions": [
+        1,
+        1,
+        3,
+        0
+      ],
+      "sheet": "sprites/body/peek.png",
+      "effect": "sprites/effects/peek.png"
+    },
+    "boo": {
+      "frames": 4,
+      "fps": 8,
+      "loop": false,
+      "expressions": [
+        0,
+        5,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/boo.png",
+      "effect": "sprites/effects/boo.png"
+    },
+    "shiver": {
+      "frames": 4,
+      "fps": 12,
+      "loop": false,
+      "expressions": [
+        1,
+        0,
+        1,
+        0
+      ],
+      "sheet": "sprites/body/shiver.png",
+      "effect": "sprites/effects/shiver.png"
+    },
+    "spin": {
+      "frames": 4,
+      "fps": 8,
+      "loop": false,
+      "expressions": [
+        3,
+        6,
+        4,
+        0
+      ],
+      "sheet": "sprites/body/spin.png",
+      "effect": "sprites/effects/spin.png"
+    },
+    "angry": {
+      "frames": 5,
+      "fps": 10,
+      "loop": false,
+      "expressions": [
+        9,
+        9,
+        9,
+        9,
+        9
+      ],
+      "sheet": "sprites/body/angry.png",
+      "effect": "sprites/effects/angry.png"
+    },
+    "ask": {
+      "frames": 4,
+      "fps": 4,
+      "loop": true,
+      "blink": true,
+      "expressions": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/ask.png",
+      "effect": "sprites/effects/ask.png",
+      "effectLeft": "sprites/effects/ask-left.png"
+    },
+    "blink": {
+      "frames": 3,
+      "fps": 10,
+      "loop": false,
+      "expressions": [
+        1,
+        2,
+        1
+      ]
+    },
+    "swing": {
+      "frames": 8,
+      "fps": 4,
+      "loop": true,
+      "duration": 24000,
+      "expressions": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/swing.png"
+    },
+    "desk": {
+      "frames": 8,
+      "fps": 4,
+      "loop": true,
+      "duration": 24000,
+      "expressions": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/desk.png"
+    },
+    "skate": {
+      "frames": 8,
+      "fps": 4,
+      "loop": true,
+      "duration": 24000,
+      "expressions": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/skate.png"
+    },
+    "bath": {
+      "frames": 8,
+      "fps": 4,
+      "loop": true,
+      "duration": 24000,
+      "expressions": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/bath.png"
+    },
+    "rain": {
+      "frames": 8,
+      "fps": 4,
+      "loop": true,
+      "duration": 24000,
+      "expressions": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/rain.png"
+    }
+  }
+}

@@ -23,6 +23,13 @@
     "hoot",
     "nod"
   ],
+  "hover": {
+    "notice": "hoot",
+    "dwell": "preen",
+    "noticeDelayMs": 500,
+    "dwellDelayMs": 2900,
+    "cooldownMs": 8500
+  },
   "actions": {
     "idle": {
       "frames": 5,

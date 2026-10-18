@@ -154,31 +154,40 @@ std::vector<int> expressionsOf(json const& entry, int cells, std::string const& 
     return indices;
 }
 
-/// @brief Where the figure drawn in the first frame of a sheet sits: its horizontal centre and its feet.
+/// @brief Where the figure drawn in the first frame of a sheet sits: its ink box, horizontal centre and feet.
 struct InkBounds {
-    double centre;
+    double left;
+    double top;
+    double right;
     double bottom;
+    double centre;
 };
 
-/// @return The centre and feet of what the sheet at `path` draws in its first frame, in sheet units. The canvas
-///         centre and bottom when it draws nothing.
+/// @return The ink box, centre and feet of what the sheet at `path` draws in its first frame, in sheet units. The
+///         whole canvas when it draws nothing.
 InkBounds inkBoundsOf(QString const& path, int canvas)
 {
     auto const sheet  = QImageReader{path}.read().convertToFormat(QImage::Format_ARGB32);
     auto       left   = canvas;
+    auto       top    = canvas;
     auto       right  = 0;
     auto       bottom = 0;
     for (auto y = 0; y < canvas; ++y) {
         for (auto x = 0; x < canvas; ++x) {
             if (qAlpha(sheet.pixel(x, y)) < kInkAlpha) continue;
             left   = std::min(left, x);
+            top    = std::min(top, y);
             right  = std::max(right, x + 1);
             bottom = std::max(bottom, y + 1);
         }
     }
+    if (right == 0) return InkBounds{0.0, 0.0, static_cast<double>(canvas), static_cast<double>(canvas), canvas / 2.0};
     return InkBounds{
-        .centre = right == 0 ? canvas / 2.0 : (left + right) / 2.0,
-        .bottom = bottom == 0 ? static_cast<double>(canvas) : static_cast<double>(bottom),
+        .left   = static_cast<double>(left),
+        .top    = static_cast<double>(top),
+        .right  = static_cast<double>(right),
+        .bottom = static_cast<double>(bottom),
+        .centre = (left + right) / 2.0,
     };
 }
 
@@ -296,6 +305,9 @@ PetAssets PetAssets::load(std::filesystem::path const& directory)
         // The idle action is the one the role names, not a fixed folder name: the data decides what the idle role plays.
         auto const& idle   = playbook.roles.at(core::pet::Role::Idle);
         auto const  bounds = inkBoundsOf(assets.sheets.at(idle).body, assets.canvas);
+        assets.inkLeft     = bounds.left;
+        assets.inkTop      = bounds.top;
+        assets.inkRight    = bounds.right;
         assets.inkCentre   = bounds.centre;
         assets.inkBottom   = bounds.bottom;
 

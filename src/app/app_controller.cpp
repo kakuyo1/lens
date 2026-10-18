@@ -11,16 +11,12 @@
 #include <QDateTime>
 #include <QFile>
 #include <QFontDatabase>
-#include <QJsonArray>
 #include <QJsonDocument>
-#include <QJsonValue>
 #include <QGuiApplication>
-#include <QHash>
 #include <QLocale>
 #include <QRegularExpression>
 #include <QSaveFile>
 #include <QScreen>
-#include <QSet>
 #include <QQmlEngine>
 #include <QJSEngine>
 
@@ -34,8 +30,10 @@
 #include "paths.h"
 #include "pet/pet_controller.h"
 #include "reveal_settings.h"
+#include "settings_defaults.h"
 #include "update/update_client.h"
 #include "util/log.h"
+#include "words_view.h"
 #include "year_grid.h"
 
 namespace lens::app {
@@ -131,6 +129,9 @@ AppController::AppController(core::KnownStore&            store,
         emit statsChanged();
         emit yearDaysChanged();
     });
+    // A pop is recorded by ExplanationDuty straight into the store, so the duty that projects
+    // today's figures has to be told as well; QML now reads them from Controller.costDuty.
+    connect(&explanation_, &ExplanationDuty::statsChanged, &cost_, &CostDuty::statsChanged);
     connect(&explanation_, &ExplanationDuty::petEvent, this, &AppController::petEvent);
     connect(&reviewDuty_, &ReviewDuty::wordChanged, this, &AppController::reviewQuestionChanged);
     connect(&reviewDuty_, &ReviewDuty::petEvent, this, &AppController::petEvent);
@@ -152,7 +153,6 @@ AppController::AppController(core::KnownStore&            store,
     connect(&updateDuty_, &UpdateDuty::newVersionOffered, this, [this] { emit petEvent(core::pet::PetEvent::UpdateAvailable); });
     connect(&hotkey_, &GlobalHotkey::pressed, this, &AppController::onTriggerHotkey);
     hotkey_.setKeys(storedHotkey(storage_));
-    llm.setExplanationLang(QString::fromStdString(store.explanationLang()));
     restoreModelService();
     cost_.setLegacyModel(llm_.model());
     gateTimer_.setInterval(1000);
@@ -207,11 +207,6 @@ AppController* AppController::create(QQmlEngine* engine, QJSEngine* scriptEngine
     return instance_;
 }
 
-void AppController::onSelectionReleased(QPoint anchor)
-{
-    capture_.onSelectionReleased(anchor);
-}
-
 QPoint AppController::cursorPos() const
 {
     return QCursor::pos();
@@ -245,6 +240,38 @@ void AppController::restoreCaptureDefaults()
     // the way back from this one too.
     const QKeyCombination fallback = GlobalHotkey::defaultKeys()[0];
     setOcrHotkey(fallback.key(), fallback.keyboardModifiers());
+}
+
+void AppController::restoreDefaults()
+{
+    // Written through the ordinary setters so the clamps and the validation stay the only way a
+    // value reaches the document; what is centralized here is the value, not the write.
+    setLevel(defaults::kLevel);
+    setExplanationLang(QString::fromStdString(std::string{defaults::kExplanationLang}));
+    setMultiSense(defaults::kMultiSense);
+    setEtymology(defaults::kEtymology);
+    setExample(defaults::kExample);
+    setTheme(QString::fromStdString(std::string{defaults::kTheme}));
+    setFont(QString{});
+    setAnimationsEnabled(defaults::kAnimationsEnabled);
+    setRevealSpeed(defaults::kRevealSpeed);
+    setSelectionCapture(defaults::kSelectionCapture);
+    setClipboardPolicy(defaults::kClipboardSilent);
+    setBubbleDismissSeconds(defaults::kBubbleDismissSeconds);
+    setBubblePlacement(QString::fromStdString(std::string{defaults::kBubblePlacement}));
+    setSelectionBarStyle(QString::fromStdString(std::string{defaults::kSelectionBarStyle}));
+    setFrostedBlur(defaults::kFrostedBlurDefault);
+    setFrostedSaturation(defaults::kFrostedSaturationDefault);
+    setFrostedRim(defaults::kFrostedRimDefault);
+    setLiquidRefraction(defaults::kLiquidRefractionDefault);
+    setLiquidBlur(defaults::kLiquidBlurDefault);
+    setLiquidRim(defaults::kLiquidRimDefault);
+    setLiquidTextColor(QString::fromStdString(std::string{defaults::kLiquidTextColor}));
+    setReviewFrequency(static_cast<int>(defaults::kReviewFrequency));
+    if (not catalog_.setProvider(defaults::defaultProviderName()))
+        LENS_WARN("the catalog has no usable default provider; the model service was left alone");
+    setModel(defaults::defaultModelName());
+    restoreCaptureDefaults();
 }
 
 QString AppController::setOcrHotkey(int key, int modifiers)
@@ -349,11 +376,6 @@ void AppController::answerReview(bool const remembered, int const x, int const y
     explanation_.showReviewAnswer(lemma, QPoint{x, y});
 }
 
-void AppController::ignoreReview()
-{
-    reviewDuty_.ignore(QDateTime::currentMSecsSinceEpoch());
-}
-
 void AppController::setReviewFrequency(int const value)
 {
     auto const clamped = std::clamp(value, static_cast<int>(core::ReviewFrequency::Off), static_cast<int>(core::ReviewFrequency::Every1To2Hours));
@@ -364,7 +386,6 @@ void AppController::setReviewFrequency(int const value)
 void AppController::setExplanationLang(QString lang)
 {
     storage_.knownStore().setExplanationLang(lang.toStdString());
-    llm_.setExplanationLang(lang);
     storage_.save();
     LENS_INFO("explanation language set to '{}'", lang.toStdString());
     emit settingsChanged();
@@ -514,14 +535,11 @@ void AppController::setApiKey(QString key)
     emit settingsChanged();
 }
 
-void AppController::setClipboardPolicy(QString policy)
+void AppController::setClipboardPolicy(bool const silent)
 {
-    if (policy != QLatin1String("topmost") && policy != QLatin1String("silent")) {
-        LENS_WARN("unknown clipboard policy '{}'; leaving the setting alone", policy.toStdString());
-        return;
-    }
-    storage_.section().set<std::string>("clipboardPolicy", policy.toStdString());
-    LENS_INFO("clipboard policy set to '{}'", policy.toStdString());
+    const ClipboardPolicy policy = silent ? ClipboardPolicy::Silent : ClipboardPolicy::Topmost;
+    storage_.section().set<std::string>("clipboardPolicy", std::string{clipboardPolicyKey(policy)});
+    LENS_INFO("clipboard policy set to '{}'", clipboardPolicyKey(policy));
     emit settingsChanged();
 }
 
@@ -579,11 +597,6 @@ void AppController::setAutostart(bool on)
     emit settingsChanged();
 }
 
-void AppController::bubbleHoverChanged(bool hovering)
-{
-    LENS_TRACE("bubble hover {}", hovering);
-}
-
 void AppController::reviewWord(QString lemma, int x, int y)
 {
     explanation_.reviewWord(std::move(lemma), QPoint(x, y));
@@ -606,7 +619,7 @@ QVariantMap AppController::settings()
     const QString provider = catalog_.currentProvider();
     // The slider shows the level; the pace the reveal takes is that level through the mapping in
     // reveal_settings.h. Read once so the two the map hands out cannot drift apart.
-    const int revealSpeed = clampRevealSpeed(keys.value<int>("revealSpeed", kRevealSpeedDefault));
+    const int revealSpeed = clampRevealSpeed(keys.value<int>("revealSpeed", defaults::kRevealSpeed));
     // The face the English runs are drawn in: the reader's pick, or the application's own when
     // nothing is stored -- and also when what is stored names a family this machine no longer has,
     // which a settings document copied from another machine can. Handed out as a family rather
@@ -618,10 +631,10 @@ QVariantMap AppController::settings()
                          {"reviewFrequency", static_cast<int>(reviewDuty_.frequency())},
                          {"reviewFrequencyOptions", StorageDuty::reviewFrequencyOptions()},
                          {"explanationLang", QString::fromStdString(storage_.knownStore().explanationLang())},
-                         {"multiSense", keys.value<bool>("multiSense", false)},
-                         {"etymology", keys.value<bool>("etymology", false)},
-                         {"example", keys.value<bool>("example", false)},
-                         {"theme", QString::fromStdString(keys.value<std::string>("theme", "light"))},
+                         {"multiSense", keys.value<bool>("multiSense", defaults::kMultiSense)},
+                         {"etymology", keys.value<bool>("etymology", defaults::kEtymology)},
+                         {"example", keys.value<bool>("example", defaults::kExample)},
+                         {"theme", QString::fromStdString(keys.value<std::string>("theme", std::string{defaults::kTheme}))},
                          {"font", fontFamilyFor(storedFont)},
                          {"frostedBlur", clampGlass(kFrostedBlur, keys.value<int>("frostedBlur", kFrostedBlur.fallback))},
                          {"frostedSaturation", clampGlass(kFrostedSaturation, keys.value<int>("frostedSaturation", kFrostedSaturation.fallback))},
@@ -630,16 +643,16 @@ QVariantMap AppController::settings()
                          {"liquidBlur", clampGlass(kLiquidBlur, keys.value<int>("liquidBlur", kLiquidBlur.fallback))},
                          {"liquidRim", clampGlass(kLiquidRim, keys.value<int>("liquidRim", kLiquidRim.fallback))},
                          {"liquidTextColor", QString::fromStdString(keys.value<std::string>("liquidTextColor", std::string{kLiquidTextColorFallback}))},
-                         {"animationsEnabled", keys.value<bool>("animationsEnabled", true)},
+                         {"animationsEnabled", keys.value<bool>("animationsEnabled", defaults::kAnimationsEnabled)},
                          {"revealSpeed", revealSpeed},
                          {"revealCharacterMs", revealMillisPerCharacter(revealSpeed)},
-                         {"uiLanguage", QString::fromStdString(keys.value<std::string>("uiLanguage", "zh"))},
+                         {"uiLanguage", QString::fromStdString(keys.value<std::string>("uiLanguage", std::string{defaults::kUiLanguage}))},
                          {"hasApiKey", !keys.value<std::string>("API-KEY", {}).empty()},
-                         {"selectionCapture", keys.value<bool>("selectionCapture", true)},
-                         {"clipboardPolicy", QString::fromStdString(keys.value<std::string>("clipboardPolicy", "topmost"))},
-                         {"bubbleDismissSeconds", clampBubbleDismissSeconds(keys.value<int>("bubbleDismissSeconds", kBubbleDismissDefaultSeconds))},
-                         {"bubblePlacement", QString::fromStdString(keys.value<std::string>("bubblePlacement", "above"))},
-                         {"selectionBarStyle", QString::fromStdString(keys.value<std::string>("selectionBarStyle", "bar"))},
+                         {"selectionCapture", keys.value<bool>("selectionCapture", defaults::kSelectionCapture)},
+                         {"clipboardSilent", clipboardPolicyFromStored(keys.value<std::string>("clipboardPolicy", {})) == ClipboardPolicy::Silent},
+                         {"bubbleDismissSeconds", clampBubbleDismissSeconds(keys.value<int>("bubbleDismissSeconds", defaults::kBubbleDismissSeconds))},
+                         {"bubblePlacement", QString::fromStdString(keys.value<std::string>("bubblePlacement", std::string{defaults::kBubblePlacement}))},
+                         {"selectionBarStyle", QString::fromStdString(keys.value<std::string>("selectionBarStyle", std::string{defaults::kSelectionBarStyle}))},
                          {"ocrHotkey", hotkey_.keys().toString(QKeySequence::PortableText)},
                          {"ocrHotkeyConflicted", hotkey_.conflicted()},
                          {"provider", provider},
@@ -657,52 +670,9 @@ QVariantMap AppController::settings()
     return result;
 }
 
-QVariantMap AppController::stats() const
-{
-    return cost_.stats();
-}
-
 QVariantList AppController::words() const
 {
-    const QDate         today = QDate::currentDate();
-    QSet<QString>       seen;
-    QHash<QString, int> pops;
-    const auto&         history = storage_.statsStore().history();
-    for (const core::HistoryEntry& entry : history)
-        ++pops[QString::fromStdString(entry.lemma)];
-
-    QVariantList out;
-    out.reserve(static_cast<qsizetype>(history.size()));
-    for (const core::HistoryEntry& entry : history) {
-        const QString shown = QString::fromStdString(entry.lemma);
-        if (seen.contains(shown))
-            continue;
-        seen.insert(shown);
-
-        const QDateTime moment = QDateTime::fromString(QString::fromStdString(entry.minute), QStringLiteral("yyyy-MM-dd HH:mm"));
-        QString         day;
-        QString         date;
-        QString         time;
-        if (moment.isValid()) {
-            const qint64 daysAgo = moment.date().daysTo(today);
-            if (daysAgo == 0)
-                day = QStringLiteral("today");
-            else if (daysAgo == 1)
-                day = QStringLiteral("yesterday");
-            else
-                day = QStringLiteral("earlier");
-            date = moment.toString(QStringLiteral("MM-dd"));
-            time = moment.toString(QStringLiteral("HH:mm"));
-        }
-
-        out.append(QVariantMap{{"word", shown},
-                               {"day", day},
-                               {"date", date},
-                               {"time", time},
-                               {"verdict", QString::fromStdString(entry.verdict)},
-                               {"pops", pops.value(shown)}});
-    }
-    return out;
+    return wordRows(QDate::currentDate(), storage_.statsStore().history());
 }
 
 QVariantList AppController::yearDays() const
@@ -710,45 +680,44 @@ QVariantList AppController::yearDays() const
     return yearGrid(QDate::currentDate(), storage_.statsStore().daily());
 }
 
+QString AppController::exportFor(core::ExportScope const scope) const
+{
+    return QString::fromStdString(core::exportLemmas(storage_.statsStore().history(), scope));
+}
+
+QString AppController::exportJsonFor(core::ExportScope const scope) const
+{
+    return QString::fromStdString(core::exportLemmasJson(storage_.statsStore().history(), scope));
+}
+
 QString AppController::exportWords(QString scope)
 {
-    core::ExportScope which;
-    if (scope == QLatin1String("all"))
-        which = core::ExportScope::All;
-    else if (scope == QLatin1String("known"))
-        which = core::ExportScope::Known;
-    else if (scope == QLatin1String("new"))
-        which = core::ExportScope::New;
-    else {
+    const auto which = parseScope(scope);
+    if (not which) {
         LENS_WARN("export asked for an unknown scope '{}'; nothing was written", scope.toStdString());
         return {};
     }
-    const QString text = QString::fromStdString(core::exportLemmas(storage_.statsStore().history(), which));
+    const QString text = exportFor(*which);
     LENS_INFO("words export for '{}': {} character(s) ready", scope.toStdString(), text.size());
     return text;
 }
 
 QString AppController::exportWordsJson(QString scope)
 {
-    core::ExportScope which;
-    if (scope == QLatin1String("all"))
-        which = core::ExportScope::All;
-    else if (scope == QLatin1String("known"))
-        which = core::ExportScope::Known;
-    else if (scope == QLatin1String("new"))
-        which = core::ExportScope::New;
-    else {
+    const auto which = parseScope(scope);
+    if (not which) {
         LENS_WARN("json export asked for an unknown scope '{}'; nothing was written", scope.toStdString());
         return {};
     }
-    const QString text = QString::fromStdString(core::exportLemmasJson(storage_.statsStore().history(), which));
+    const QString text = exportJsonFor(*which);
     LENS_INFO("words json export for '{}': {} character(s) ready", scope.toStdString(), text.size());
     return text;
 }
 
 bool AppController::saveWords(QUrl path, QString scope)
 {
-    if (scope != QLatin1String("all") && scope != QLatin1String("known") && scope != QLatin1String("new")) {
+    const auto which = parseScope(scope);
+    if (not which) {
         LENS_WARN("words export asked for an unknown scope '{}'; nothing was written", scope.toStdString());
         return false;
     }
@@ -757,8 +726,7 @@ bool AppController::saveWords(QUrl path, QString scope)
         LENS_WARN("words export was given '{}', which names no local file", path.toString().toStdString());
         return false;
     }
-    const bool    json = local.endsWith(QLatin1String(".json"), Qt::CaseInsensitive);
-    const QString text = json ? exportWordsJson(scope) : exportWords(scope);
+    const QString text = isJsonPath(local) ? exportJsonFor(*which) : exportFor(*which);
     QSaveFile     file(local);
     if (!file.open(QIODevice::WriteOnly)) {
         LENS_WARN("words export could not open '{}' for writing", local.toStdString());
@@ -786,54 +754,28 @@ bool AppController::importWords(QUrl path)
         return false;
     }
     const QByteArray data = file.readAll();
-    const bool       json = local.endsWith(QLatin1String(".json"), Qt::CaseInsensitive);
 
-    std::vector<std::string> incoming;
-    if (json) {
-        const QJsonDocument doc = QJsonDocument::fromJson(data);
-        if (!doc.isArray()) {
-            LENS_WARN("words import: '{}' is not a JSON array", local.toStdString());
-            return false;
-        }
-        for (const QJsonValue& value : doc.array()) {
-            if (value.isString()) {
-                incoming.push_back(value.toString().trimmed().toStdString());
-            } else if (value.isObject()) {
-                const QString word = value.toObject().value(QStringLiteral("word")).toString();
-                if (!word.trimmed().isEmpty())
-                    incoming.push_back(word.trimmed().toStdString());
-            }
-        }
-    } else {
-        const QString text = QString::fromUtf8(data);
-        for (const QString& line : text.split(QLatin1Char('\n'))) {
-            const QString word = line.trimmed();
-            if (!word.isEmpty())
-                incoming.push_back(word.toStdString());
-        }
+    const auto incoming = importLemmas(data, isJsonPath(local));
+    if (not incoming) {
+        LENS_WARN("words import: '{}' is not a JSON array", local.toStdString());
+        return false;
     }
 
-    std::unordered_set<std::string> seen;
     std::unordered_set<std::string> existing;
     for (const auto& entry : storage_.statsStore().history())
         existing.insert(entry.lemma);
-    const QString now   = QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd HH:mm"));
-    int           added = 0;
-    for (const std::string& lemma : incoming) {
-        if (lemma.empty() || seen.count(lemma) || existing.count(lemma))
-            continue;
-        seen.insert(lemma);
-        storage_.statsStore().recordPop(lemma, now.toStdString());
-        storage_.statsStore().recordVerdict(lemma, now.toStdString(), "new");
-        existing.insert(lemma);
-        ++added;
+    const QString now  = QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd HH:mm"));
+    const auto    rows = importRows(*incoming, existing, now.toStdString());
+    for (const auto& row : rows) {
+        storage_.statsStore().recordPop(row.lemma, row.minute);
+        storage_.statsStore().recordVerdict(row.lemma, row.minute, row.verdict);
     }
     storage_.save();
-    if (added > 0) {
+    if (not rows.empty()) {
         emit statsChanged();
         emit yearDaysChanged();
     }
-    LENS_INFO("words import from '{}': {} word(s) added", local.toStdString(), added);
+    LENS_INFO("words import from '{}': {} word(s) added", local.toStdString(), rows.size());
     return true;
 }
 
@@ -859,14 +801,9 @@ bool AppController::removeWord(QString lemma)
     return removed;
 }
 
-QVariantMap AppController::cost() const
+CostDuty* AppController::costDuty()
 {
-    return cost_.cost();
-}
-
-void AppController::checkForUpdatesAtStartup()
-{
-    updateDuty_.checkAtStartup();
+    return &cost_;
 }
 
 UpdateDuty* AppController::updateDuty()

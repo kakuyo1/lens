@@ -31,6 +31,12 @@
 namespace {
 
 using namespace std::chrono_literals;
+using lens::app::ClipboardBorrow;
+using lens::app::ClipboardPolicy;
+using lens::app::ClipboardSnapshot;
+using lens::app::Gesture;
+using lens::app::isSelectionGesture;
+using lens::app::selectionSurvivesClipboardPolicy;
 using lens::capture::FilterPolicy;
 using lens::capture::ScanFrame;
 using lens::capture::ScanPipeline;
@@ -91,7 +97,41 @@ struct FakeOcr final : lens::capture::OcrEngine {
     }
 };
 
-/// @return A scan result whose generation and window both still match, with scanning on.
+/// @brief The in-memory ClipboardPort: scripted sequence and text, recording restores.
+struct FakeClipboard final : lens::app::ClipboardPort {
+    std::optional<ClipboardSnapshot> snapshot       = ClipboardSnapshot{};
+    std::optional<QString>           text           = QStringLiteral("word");
+    unsigned long                    sequenceNumber = 10;
+    bool                             restored       = false;
+
+    std::optional<ClipboardSnapshot> take() override
+    {
+        return snapshot;
+    }
+
+    bool restore(ClipboardSnapshot const&) override
+    {
+        restored = true;
+        return true;
+    }
+
+    unsigned long sequence() override
+    {
+        return sequenceNumber;
+    }
+
+    bool waitForChange(unsigned long) override
+    {
+        return true;
+    }
+
+    std::optional<QString> readText() override
+    {
+        return text;
+    }
+};
+
+/// @brief A scan result whose generation and window both still match, with scanning on.
 lens::capture::OcrResultContext currentScan()
 {
     return {.jobContext        = QStringLiteral("window"),
@@ -131,6 +171,96 @@ TEST(CapturePolicy, DragBoundaryHandlesBothDirections)
     EXPECT_TRUE(lens::capture::exceedsDragThreshold(-2, 0, 2));
     EXPECT_TRUE(lens::capture::exceedsDragThreshold(0, 8, 8));
     EXPECT_TRUE(lens::app::isSelectionGesture({INT_MIN, 0, INT_MAX, 0}, 8));
+}
+
+/// Passed explicitly rather than read from the system, so the cases do not depend on the mouse
+/// settings of whichever machine runs them.
+constexpr int kSlop = 4;
+
+TEST(SelectionGesture, JitterInsideTheSlopIsStillAClick)
+{
+    EXPECT_FALSE(isSelectionGesture(Gesture{100, 200, 100 + kSlop - 1, 200}, kSlop));
+    EXPECT_FALSE(isSelectionGesture(Gesture{100, 200, 100, 200 + kSlop - 1}, kSlop));
+}
+
+TEST(SelectionGesture, MovementAtTheSlopCounts)
+{
+    // The boundary is inclusive: exactly the slop is already a drag, which is the reading
+    // that keeps a two-character selection from being swallowed.
+    EXPECT_TRUE(isSelectionGesture(Gesture{100, 200, 100 + kSlop, 200}, kSlop));
+    EXPECT_TRUE(isSelectionGesture(Gesture{100, 200, 100, 200 + kSlop}, kSlop));
+
+    // Dragging up or to the left selects just as much as dragging down or right.
+    EXPECT_TRUE(isSelectionGesture(Gesture{100, 200, 100 - kSlop, 200}, kSlop));
+    EXPECT_TRUE(isSelectionGesture(Gesture{100, 200, 100, 200 - kSlop}, kSlop));
+}
+
+TEST(SelectionGesture, AStationaryClickNeverSelects)
+{
+    // Double-clicking and triple-clicking have the same stationary endpoints here. Only a drag
+    // should open Lens's selection action bar, so click runs remain outside the selection path.
+    EXPECT_FALSE(isSelectionGesture(Gesture{100, 200, 100, 200}, kSlop));
+}
+
+TEST(ClipboardPolicy, SilentDropsOnlyAReplacedClipboard)
+{
+    EXPECT_TRUE(selectionSurvivesClipboardPolicy(ClipboardPolicy::Topmost, false));
+    EXPECT_TRUE(selectionSurvivesClipboardPolicy(ClipboardPolicy::Topmost, true));
+    EXPECT_TRUE(selectionSurvivesClipboardPolicy(ClipboardPolicy::Silent, false));
+    EXPECT_FALSE(selectionSurvivesClipboardPolicy(ClipboardPolicy::Silent, true));
+}
+
+TEST(ClipboardBorrow, RefusesToBorrowWhatItCannotTake)
+{
+    FakeClipboard clipboard;
+    clipboard.snapshot = std::nullopt;
+
+    ClipboardBorrow borrow{clipboard};
+    EXPECT_FALSE(borrow.begin());
+    EXPECT_FALSE(clipboard.restored);
+}
+
+TEST(ClipboardBorrow, LeavesARewrittenClipboardAlone)
+{
+    FakeClipboard   clipboard;
+    ClipboardBorrow borrow{clipboard};
+    ASSERT_TRUE(borrow.begin());
+
+    clipboard.sequenceNumber = 11; // our copy landed
+    borrow.markCopySequence();
+    clipboard.sequenceNumber = 12; // another process wrote after it
+
+    bool replaced = false;
+    EXPECT_TRUE(borrow.settle(true, replaced));
+    EXPECT_TRUE(replaced);
+    EXPECT_FALSE(clipboard.restored) << "a snapshot put back over a newer clipboard destroys it";
+}
+
+TEST(ClipboardBorrow, PutsTheSnapshotBackWhenNothingElseWrote)
+{
+    FakeClipboard   clipboard;
+    ClipboardBorrow borrow{clipboard};
+    ASSERT_TRUE(borrow.begin());
+
+    clipboard.sequenceNumber = 11;
+    borrow.markCopySequence();
+
+    bool replaced = true;
+    EXPECT_TRUE(borrow.settle(true, replaced));
+    EXPECT_FALSE(replaced);
+    EXPECT_TRUE(clipboard.restored);
+}
+
+TEST(ClipboardBorrow, PutsTheSnapshotBackWhenTheCopyNeverLanded)
+{
+    FakeClipboard   clipboard;
+    ClipboardBorrow borrow{clipboard};
+    ASSERT_TRUE(borrow.begin());
+
+    bool replaced = true;
+    EXPECT_TRUE(borrow.settle(false, replaced));
+    EXPECT_FALSE(replaced);
+    EXPECT_TRUE(clipboard.restored);
 }
 
 TEST(CapturePolicy, ExplicitSelectionLengthCountsUnicodeLettersOnly)

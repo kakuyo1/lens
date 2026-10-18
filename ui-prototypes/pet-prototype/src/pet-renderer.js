@@ -5,8 +5,7 @@
  *
  * A scene draws around the pet through the same transforms: `clear()`, then the scene's back layer, the pet, the
  * scene's front layer. `place()` is the one place a transform is set, so a rig rotation lands on the props and
- * the pet alike. An action whose definition carries `overlay` paints its face through `overlays` instead of the
- * expression sheet — the angry action's way in (angry.js).
+ * the pet alike.
  */
 
 import { paintPart } from './pixel-art.js';
@@ -30,8 +29,6 @@ export class PetRenderer {
     this.images = new Map();
     /// Which hand holds the sign: 'left' draws the action's effectLeft sheet, anything else the right-hand effect.
     this.handSide = 'right';
-    /** @type {Record<string, (ctx: CanvasRenderingContext2D, state: object) => void>} Face painters by overlay name. */
-    this.overlays = {};
   }
 
   /**
@@ -90,21 +87,23 @@ export class PetRenderer {
    *        From PetEngine.state.
    * @param {Array<{asset: string, slot: string, zIndex: number}>} accessories Worn accessories visible for this action.
    * @param {{shift?: number[], motion?: object|null}} [place] See place().
+   * @param {number[]|null} [gaze] Canvas-pixel offset for the expression layer only, so the face can follow the pointer
+   *        while the body stays put.
    */
-  draw(state, accessories, place = {}) {
+  draw(state, accessories, place = {}, gaze = null) {
     this.clear();
-    this.drawPet(state, accessories, place);
+    this.drawPet(state, accessories, place, gaze);
   }
 
-  drawPet(state, accessories, place = {}) {
+  drawPet(state, accessories, place = {}, gaze = null) {
     const { ctx, width, height, pet } = this;
     const def = pet.actions[state.action];
     const { anchors } = state;
+    const faceAt = gaze ? [anchors.face[0] + gaze[0], anchors.face[1] + gaze[1]] : anchors.face;
     const effect = this.handSide === 'left' && def.effectLeft ? def.effectLeft : def.effect;
     const layers = [
       { z: pet.layers.body, path: def.sheet, index: state.frame, at: anchors.body },
-      // An overlay replaces the expression sheet: there is no cell in it to point at.
-      ...(def.overlay ? [] : [{ z: pet.layers.expression, path: pet.expression, index: state.expression, at: anchors.face }]),
+      { z: pet.layers.expression, path: pet.expression, index: state.expression, at: faceAt },
       ...(effect ? [{ z: pet.layers.effect, path: effect, index: state.frame, at: [0, 0] }] : []),
       ...accessories.map(a => ({ z: a.zIndex, path: a.asset, index: 0, at: anchors[a.slot] }))
     ].sort((p, q) => p.z - q.z);
@@ -113,7 +112,6 @@ export class PetRenderer {
     for (const { path, index, at } of layers) {
       ctx.drawImage(this.images.get(path), index * width, 0, width, height, at[0], at[1], width, height);
     }
-    if (def.overlay) this.overlays[def.overlay]?.(ctx, state);
   }
 
   /**

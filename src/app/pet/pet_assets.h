@@ -72,6 +72,11 @@ struct PetAssets {
     /// Horizontal centre of the figure the idle action draws in its first frame, in sheet units. The art is not
     /// centred on its canvas, so the settings preview centres on this instead; a frame with nothing drawn gives the canvas centre.
     double inkCentre;
+    /// The idle figure's ink bounds in sheet units, right and bottom exclusive. Hover distance is measured from this
+    /// box, so empty canvas margins do not make the pet feel farther away. A frame with nothing drawn covers the canvas.
+    double inkLeft;
+    double inkTop;
+    double inkRight;
     /// The lowest drawn row's bottom edge plus one, in sheet units: the pet's feet. A scene aligns the pet by it,
     /// and a frame with nothing drawn gives the canvas bottom.
     double                                        inkBottom;

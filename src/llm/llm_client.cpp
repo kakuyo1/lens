@@ -26,32 +26,6 @@ constexpr int    kMaxWords           = 20; ///< Contract limit.
 constexpr int    kTimeoutMs          = 30000;
 constexpr int    kModelListTimeoutMs = 10000;
 constexpr qint64 kMaxModelListBytes  = 2 * 1024 * 1024;
-/// Bytes needed to tell an SSE stream from one whole body: exactly the length of "data:".
-constexpr int kSseSniffBytes = 5;
-
-/// @brief Rebuild the single envelope parseExplanations() checks, out of what a stream delivered.
-///
-/// That envelope never exists on the wire; it is what lets the finished-answer contract -- and
-/// with it the cache, the known store and the statistics -- run unchanged over a stream. A
-/// stream that ended without a `finish_reason` leaves it empty, which is the failure the
-/// whole-body path already reports for a truncated answer.
-QByteArray streamEnvelope(QString const& content, QString const& finishReason, QJsonObject const& usage)
-{
-    QJsonObject envelope{{"choices", QJsonArray{QJsonObject{{"finish_reason", finishReason}, {"message", QJsonObject{{"content", content}}}}}}};
-    if (not usage.isEmpty())
-        envelope.insert(QStringLiteral("usage"), usage);
-    return QJsonDocument(envelope).toJson(QJsonDocument::Compact);
-}
-
-/// @return Whether a preview has anything the card would draw. The first chunks of an answer are
-///         `{` and `"resul` and the like, and an empty card appearing before any text is not the
-///         point of a stream.
-bool hasAnythingToDraw(Explanation const& partial)
-{
-    return not(partial.title.isEmpty() and partial.ipa.isEmpty() and partial.en.isEmpty() and
-               partial.zh.isEmpty() and partial.translation.isEmpty() and partial.etymology.isEmpty() and
-               partial.example.isEmpty() and partial.senses.isEmpty());
-}
 
 } // namespace
 
@@ -61,12 +35,6 @@ LlmClient::LlmClient(Config config, QNetworkAccessManager* manager, QObject* par
       manager_(manager != nullptr ? manager : new QNetworkAccessManager(this))
 {
     LENS_TRACE("LlmClient created: model='{}' base='{}'", config_.model.toStdString(), config_.baseUrl.toString().toStdString());
-}
-
-void LlmClient::setExplanationLang(const QString& lang)
-{
-    LENS_TRACE("LlmClient::setExplanationLang: '{}' -> '{}'", lang_.toStdString(), lang.toStdString());
-    lang_ = lang;
 }
 
 void LlmClient::setModel(const QString& model)
@@ -87,12 +55,6 @@ void LlmClient::setApiKey(const QString& apiKey)
     LENS_TRACE("LlmClient::setApiKey: key replaced (value hidden)");
 }
 
-void LlmClient::setChannel(Channel channel)
-{
-    LENS_TRACE("LlmClient::setChannel: '{}' -> '{}'", channelKey(channel_), channelKey(channel));
-    channel_ = channel;
-}
-
 bool LlmClient::setProvider(QString const& provider)
 {
     auto const entry = serviceProvider(provider);
@@ -102,24 +64,6 @@ bool LlmClient::setProvider(QString const& provider)
     if (provider != QLatin1String("custom"))
         setBaseUrl(QUrl{entry.value("baseUrl").toString()});
     return true;
-}
-
-void LlmClient::setPreset(const QString& preset)
-{
-    LENS_TRACE("LlmClient::setPreset: '{}' -> '{}'", preset_.toStdString(), preset.toStdString());
-    preset_ = preset;
-}
-
-void LlmClient::setEtymology(bool etymology)
-{
-    LENS_TRACE("LlmClient::setEtymology: '{}'", etymology ? "on" : "off");
-    etymology_ = etymology;
-}
-
-void LlmClient::setExample(bool example)
-{
-    LENS_TRACE("LlmClient::setExample: '{}'", example ? "on" : "off");
-    example_ = example;
 }
 
 void LlmClient::fetchModels()
@@ -155,8 +99,9 @@ void LlmClient::fetchModels()
     });
 }
 
-void LlmClient::explainWords(QStringList words)
+void LlmClient::explainWords(ExplainRequest request)
 {
+    QStringList words = std::move(request.words);
     if (words.isEmpty()) {
         LENS_ERROR("LlmClient::explainWords called with nothing to look up");
         emit failed(tr("There is nothing to look up."));
@@ -177,75 +122,34 @@ void LlmClient::explainWords(QStringList words)
         path.chop(1);
     url.setPath(path + QStringLiteral("/chat/completions"));
 
-    QNetworkRequest request(url);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
-    request.setRawHeader("Authorization", "Bearer " + config_.apiKey.toUtf8());
-    request.setTransferTimeout(kTimeoutMs);
+    QNetworkRequest httpRequest(url);
+    httpRequest.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+    httpRequest.setRawHeader("Authorization", "Bearer " + config_.apiKey.toUtf8());
+    httpRequest.setTransferTimeout(kTimeoutMs);
 
-    const Channel channel  = channel_;
-    const QString preset   = preset_;
-    auto const    language = lang_;
-    auto const    model    = config_.model;
+    const Channel channel        = request.channel;
+    const QString preset         = presetFor(request);
+    const bool    multipleSenses = request.multipleSenses;
+    auto const    language       = request.language;
+    auto const    model          = config_.model;
     LENS_INFO("explaining {} item(s) on channel '{}' preset '{}' with '{}'", words.size(), channelKey(channel), preset.toStdString(), config_.model.toStdString());
     LENS_TRACE("POST {} (timeout {} ms, key hidden)", url.toString().toStdString(), kTimeoutMs);
 
     QNetworkReply* reply =
-        manager_->post(request, buildRequestBody(config_, channel, words, lang_, preset, etymology_, example_));
+        manager_->post(httpRequest, buildRequestBody(config_, channel, words, language, preset, request.etymology, request.example));
 
-    // One stream's state, shared by the two handlers below. A reply that answers with a whole body
-    // rather than a stream -- which is what every offline seam and a buffering proxy do -- leaves
-    // `sse` false and takes the original single-body path at the end.
-    struct Stream {
-        QByteArray  buffer;  ///< Bytes that have not framed into a complete event yet.
-        QString     content; ///< The model's answer as it has arrived.
-        QString     finishReason;
-        QJsonObject usage;
-        Explanation last; ///< The preview last emitted, so a chunk that changes none of it is silent.
-        bool        sse     = false;
-        bool        decided = false;
-    };
-    auto stream = std::make_shared<Stream>();
+    // The whole stream lives in the pure assembler: the handlers below only feed it bytes and
+    // forward what it says is ready. A reply that answers with one body rather than a stream --
+    // which is what every offline seam and a buffering proxy do -- falls back inside it.
+    auto assembler = std::make_shared<StreamAssembler>(channel, words, language, multipleSenses);
 
-    /// Fold the framed events out of @p buffer into the answer so far.
-    /// @return Whether any text arrived, which is when the preview is worth looking at again.
-    const auto consume = [stream](QByteArray& buffer) {
-        bool grew = false;
-        for (const auto& payload : takeSsePayloads(buffer)) {
-            const auto chunk = parseStreamDelta(payload);
-            if (not chunk)
-                continue;
-            stream->content += chunk->content;
-            grew = grew or not chunk->content.isEmpty();
-            if (not chunk->finishReason.isEmpty())
-                stream->finishReason = chunk->finishReason;
-            if (not chunk->usage.isEmpty())
-                stream->usage = chunk->usage;
-        }
-        return grew;
-    };
-
-    connect(reply, &QNetworkReply::readyRead, this, [this, reply, stream, channel, consume] {
-        stream->buffer += reply->readAll();
-        // Decided once there are enough bytes to tell the two shapes apart: a first read of "da" must
-        // not settle it, or a stream split across reads would be judged a whole body and fail.
-        if (not stream->decided and stream->buffer.size() >= kSseSniffBytes) {
-            stream->decided = true;
-            stream->sse     = stream->buffer.startsWith("data:");
-        }
-        // An error body is not a stream, and a stream is the reader's only while it is arriving:
-        // anything else is left to the finished handler, which owns today's failure notices.
-        if (reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() != 200 or not stream->sse)
-            return;
-        if (not consume(stream->buffer))
-            return;
-        auto preview = parsePartialExplanation(channel, stream->content);
-        if (not hasAnythingToDraw(preview) or preview == stream->last)
-            return;
-        stream->last = preview;
-        emit partial(preview);
+    connect(reply, &QNetworkReply::readyRead, this, [this, reply, assembler] {
+        const bool httpOk = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() == 200;
+        if (auto preview = assembler->feed(reply->readAll(), httpOk))
+            emit partial(*preview);
     });
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply, stream, words, channel, language, preset, model, consume] {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, assembler, model] {
         reply->deleteLater();
 
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
@@ -267,28 +171,16 @@ void LlmClient::explainWords(QStringList words)
             return;
         }
 
-        stream->buffer += reply->readAll();
-        // A reply whose whole body arrived in one read: too short to be a stream, it is a body.
-        if (not stream->decided)
-            stream->sse = stream->buffer.size() >= kSseSniffBytes and stream->buffer.startsWith("data:");
-
-        QByteArray body;
-        if (stream->sse) {
-            consume(stream->buffer); // the last event may have arrived without its terminator
-            body = streamEnvelope(stream->content, stream->finishReason, stream->usage);
-        } else {
-            body = stream->buffer;
-        }
-
-        const auto parsed = parseExplanations(channel, body, words, language, preset == QLatin1String("multiple"));
+        const auto parsed = assembler->finish(reply->readAll());
         if (const auto* message = std::get_if<QString>(&parsed)) {
             emit failed(*message);
             return;
         }
-        LENS_INFO("received {} explanation(s)", words.size());
-        auto usage  = parseUsage(body);
+        const auto& explanations = std::get<QVector<Explanation>>(parsed);
+        LENS_INFO("received {} explanation(s)", explanations.size());
+        auto usage  = assembler->usage();
         usage.model = model;
-        emit batchFinished(std::get<QVector<Explanation>>(parsed), usage);
+        emit batchFinished(explanations, usage);
     });
 }
 

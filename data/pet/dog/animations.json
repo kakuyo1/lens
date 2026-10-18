@@ -18,6 +18,13 @@
     "look_around",
     "stretch"
   ],
+  "hover": {
+    "notice": "wag",
+    "dwell": "sniff",
+    "noticeDelayMs": 200,
+    "dwellDelayMs": 2100,
+    "cooldownMs": 6500
+  },
   "actions": {
     "angry": {
       "frames": 5,

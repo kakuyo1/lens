@@ -200,7 +200,12 @@ TEST(PetData, TheIdleFigureCentreIsMeasuredFromItsPixels)
     }
     writeIdleSheet(scratch, sheet);
 
-    EXPECT_DOUBLE_EQ(lens::app::pet::PetAssets::load(scratch.path()).inkCentre, 65.0);
+    auto const assets = lens::app::pet::PetAssets::load(scratch.path());
+    EXPECT_DOUBLE_EQ(assets.inkCentre, 65.0);
+    EXPECT_DOUBLE_EQ(assets.inkLeft, 60.0);
+    EXPECT_DOUBLE_EQ(assets.inkTop, 20.0);
+    EXPECT_DOUBLE_EQ(assets.inkRight, 70.0);
+    EXPECT_DOUBLE_EQ(assets.inkBottom, 60.0);
 }
 
 TEST(PetData, AnIdleFrameWithNothingDrawnCentresOnTheCanvas)
@@ -210,7 +215,12 @@ TEST(PetData, AnIdleFrameWithNothingDrawnCentresOnTheCanvas)
     sheet.fill(Qt::transparent);
     writeIdleSheet(scratch, sheet);
 
-    EXPECT_DOUBLE_EQ(lens::app::pet::PetAssets::load(scratch.path()).inkCentre, 44.0);
+    auto const assets = lens::app::pet::PetAssets::load(scratch.path());
+    EXPECT_DOUBLE_EQ(assets.inkCentre, 44.0);
+    EXPECT_DOUBLE_EQ(assets.inkLeft, 0.0);
+    EXPECT_DOUBLE_EQ(assets.inkTop, 0.0);
+    EXPECT_DOUBLE_EQ(assets.inkRight, 88.0);
+    EXPECT_DOUBLE_EQ(assets.inkBottom, 88.0);
 }
 
 TEST(PetData, LayersStackInTheSpecOrder)

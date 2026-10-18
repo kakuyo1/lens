@@ -53,6 +53,15 @@ Item {
         case "knead": return qsTranslate("SettingsPopup", "Knead");
         case "pounce": return qsTranslate("SettingsPopup", "Pounce");
         case "scratch": return qsTranslate("SettingsPopup", "Scratch");
+        case "float": return qsTranslate("SettingsPopup", "Float");
+        case "peek": return qsTranslate("SettingsPopup", "Peek");
+        case "boo": return qsTranslate("SettingsPopup", "Boo");
+        case "bob": return qsTranslate("SettingsPopup", "Bob");
+        case "squish": return qsTranslate("SettingsPopup", "Squish");
+        case "bubble": return qsTranslate("SettingsPopup", "Bubble");
+        case "drift": return qsTranslate("SettingsPopup", "Drift");
+        case "drizzle": return qsTranslate("SettingsPopup", "Drizzle");
+        case "puff": return qsTranslate("SettingsPopup", "Puff");
         default: return name;
         }
     }
@@ -105,7 +114,10 @@ Item {
         case "dog": return qsTranslate("SettingsPopup", "Dog");
         case "mochi": return qsTranslate("SettingsPopup", "Mochi");
         case "owl": return qsTranslate("SettingsPopup", "Owl");
-        case "cat": return qsTranslate("SettingsPopup", "Cat");
+        case "cat": return qsTranslate("SettingsPopup", "Stub cat");
+        case "ghost": return qsTranslate("SettingsPopup", "Ghost");
+        case "jelly": return qsTranslate("SettingsPopup", "Jellyfish");
+        case "cloud": return qsTranslate("SettingsPopup", "Cloud");
         default: return id;
         }
     }

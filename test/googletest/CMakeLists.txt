@@ -33,6 +33,8 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/sync_apply_test.cpp
   unit/sync_run_test.cpp
   unit/settings_section_test.cpp
+  unit/settings_defaults_test.cpp
+  unit/words_view_test.cpp
   unit/app_seams_test.cpp
   unit/llm_pure_test.cpp
   unit/llm_mock_transport_test.cpp
@@ -46,6 +48,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/util_test.cpp
   unit/capture_test.cpp
   unit/pet_state_test.cpp
+  unit/pet_hover_test.cpp
   unit/pet_config_test.cpp
   unit/pet_accessory_test.cpp
   unit/pet_data_test.cpp

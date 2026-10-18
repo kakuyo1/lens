@@ -33,7 +33,7 @@ Item {
             Controller.setAnimationsEnabled(true);
             Controller.setUiLanguage("zh");
             Controller.setSelectionCapture(true);
-            Controller.setClipboardPolicy("topmost");
+            Controller.setClipboardPolicy(false);
             Controller.modelCatalogDuty.setProvider("DeepSeek");
             Controller.setModel("deepseek-flash");
             Controller.captureDuty.setAutoScan(false);
@@ -101,12 +101,19 @@ Item {
 
             Controller.setLevel(4);
             Controller.setExplanationLang("zh");
+            Controller.setMultiSense(true);
+            Controller.setEtymology(true);
+            Controller.setExample(true);
             Controller.setTheme("dark");
             Controller.setAnimationsEnabled(false);
             Controller.setSelectionCapture(false);
-            Controller.setClipboardPolicy("silent");
+            Controller.setClipboardPolicy(true);
             Controller.setBubbleDismissSeconds(20);
             Controller.setBubblePlacement("below");
+            Controller.setReviewFrequency(0);
+            Controller.setFrostedBlur(50);
+            Controller.modelCatalogDuty.setProvider("openai");
+            Controller.setModel("gpt-4.1-nano");
             Controller.captureDuty.setAutoScan(true);
             wait(20);
 
@@ -115,12 +122,19 @@ Item {
             mouseClick(defaults.parent, defaults.parent.width / 2, defaults.parent.height / 2);
             tryCompare(Controller.settings, "level", 2);
             compare(Controller.settings.explanationLang, "en");
+            compare(Controller.settings.multiSense, false);
+            compare(Controller.settings.etymology, false);
+            compare(Controller.settings.example, false);
             compare(Controller.settings.theme, "light");
             compare(Controller.settings.animationsEnabled, true);
             compare(Controller.settings.selectionCapture, true);
-            compare(Controller.settings.clipboardPolicy, "topmost");
+            compare(Controller.settings.clipboardSilent, false);
             compare(Controller.settings.bubbleDismissSeconds, 5);
             compare(Controller.settings.bubblePlacement, "above");
+            compare(Controller.settings.reviewFrequency, 2);
+            compare(Controller.settings.frostedBlur, 10);
+            compare(Controller.settings.provider, "DeepSeek");
+            compare(Controller.settings.model, "deepseek-flash");
             compare(Controller.settings.autoScan, false);
             compare(Controller.settings.hasApiKey, hasApiKey);
             compare(Controller.settings.autostart, autostart);

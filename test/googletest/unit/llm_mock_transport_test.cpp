@@ -32,6 +32,7 @@ namespace {
 
 using lens::llm::Channel;
 using lens::llm::Config;
+using lens::llm::ExplainRequest;
 using lens::llm::Explanation;
 using lens::llm::LlmClient;
 using lens::llm::Usage;
@@ -87,8 +88,6 @@ TEST_F(LlmTest, CompletesEntityAgainstAnOfflineHttpServer)
     LlmClient client(Config{QUrl(QStringLiteral("http://127.0.0.1:%1").arg(server.serverPort())),
                             QStringLiteral("test-key"),
                             QStringLiteral("deepseek-flash")});
-    client.setChannel(Channel::Entity);
-    client.setPreset(QStringLiteral("default"));
 
     QEventLoop           loop;
     QVector<Explanation> results;
@@ -108,7 +107,7 @@ TEST_F(LlmTest, CompletesEntityAgainstAnOfflineHttpServer)
         loop.quit();
     });
 
-    client.explainWords({QStringLiteral("New York")});
+    client.explainWords(ExplainRequest{.words = {QStringLiteral("New York")}, .channel = Channel::Entity});
     timeout.start();
     loop.exec();
 
@@ -206,7 +205,7 @@ QString runToFailure(LlmClient& client, const QStringList& words)
         loop.quit();
     });
     QTimer::singleShot(kStubTimeoutMs, &loop, &QEventLoop::quit);
-    client.explainWords(words);
+    client.explainWords(ExplainRequest{.words = words});
     loop.exec();
     return failure;
 }
@@ -283,6 +282,83 @@ TEST_F(LlmTest, TruncatesAnOverlongBatchToTheContractCap)
     EXPECT_FALSE(manager.postedBody.contains("word20")) << "the twenty-first word was sent";
 }
 
+/// An answer carrying more senses than the contract keeps is capped at kMaxSenses, and the
+/// multiple prompt is the one the record's sense flag selects, not whatever preset it names.
+TEST_F(LlmTest, SendsTheMultipleSenseRequestAndCapsItsSenses)
+{
+    QtApplication qt;
+
+    const QString content = QStringLiteral(
+        R"({"results":[{"word":"bank","ipa":"/bæŋk/","senses":[{"en":"a financial house","zh":"银行"},{"en":"the land beside a river","zh":"河岸"},{"en":"to rely on","zh":"依靠"},{"en":"a row of similar objects","zh":"一排"}]}]})");
+    const QByteArray body = QJsonDocument(QJsonObject{
+                                              {"choices", QJsonArray{QJsonObject{{"finish_reason", "stop"}, {"message", QJsonObject{{"content", content}}}}}},
+                                              {"usage", QJsonObject{{"prompt_tokens", 12}, {"completion_tokens", 9}}},
+                                          })
+                                .toJson(QJsonDocument::Compact);
+
+    StubManager manager(200, body);
+    LlmClient   client(stubConfig(), &manager);
+
+    QVector<Explanation> results;
+    QString              failure;
+    QEventLoop           loop;
+    QObject::connect(&client, &LlmClient::batchFinished, &loop, [&](QVector<Explanation> received, Usage) {
+        results = std::move(received);
+        loop.quit();
+    });
+    QObject::connect(&client, &LlmClient::failed, &loop, [&](QString message) {
+        failure = std::move(message);
+        loop.quit();
+    });
+    QTimer::singleShot(kStubTimeoutMs, &loop, &QEventLoop::quit);
+    client.explainWords(ExplainRequest{.words          = {QStringLiteral("bank")},
+                                       .preset         = QStringLiteral("translate"),
+                                       .language       = QStringLiteral("zh"),
+                                       .multipleSenses = true,
+                                       .etymology      = true,
+                                       .example        = true});
+    loop.exec();
+
+    EXPECT_TRUE(failure.isEmpty()) << failure.toStdString();
+    ASSERT_EQ(results.size(), 1);
+    EXPECT_EQ(results.front().senses.size(), lens::llm::kMaxSenses);
+    EXPECT_TRUE(manager.postedBody.contains("one to three distinct common senses"))
+        << "the sense flag did not select the multiple prompt";
+    EXPECT_TRUE(manager.postedBody.contains("origin")) << "the call's etymology flag did not reach the prompt";
+    EXPECT_TRUE(manager.postedBody.contains("example")) << "the call's example flag did not reach the prompt";
+}
+
+/// The record's sense flag, not the preset string, decides the response cap: a preset named
+/// "multiple" with the flag off keeps the one sense a single-sense request asked for.
+TEST_F(LlmTest, KeepsOneSenseWhenTheSenseFlagIsOff)
+{
+    QtApplication qt;
+
+    const QString content = QStringLiteral(
+        R"({"results":[{"word":"bank","ipa":"/bæŋk/","senses":[{"en":"a financial house","zh":"银行"},{"en":"the land beside a river","zh":"河岸"},{"en":"to rely on","zh":"依靠"},{"en":"a row of similar objects","zh":"一排"}]}]})");
+    const QByteArray body = QJsonDocument(QJsonObject{
+                                              {"choices", QJsonArray{QJsonObject{{"finish_reason", "stop"}, {"message", QJsonObject{{"content", content}}}}}},
+                                          })
+                                .toJson(QJsonDocument::Compact);
+
+    StubManager manager(200, body);
+    LlmClient   client(stubConfig(), &manager);
+
+    QVector<Explanation> results;
+    QEventLoop           loop;
+    QObject::connect(&client, &LlmClient::batchFinished, &loop, [&](QVector<Explanation> received, Usage) {
+        results = std::move(received);
+        loop.quit();
+    });
+    QObject::connect(&client, &LlmClient::failed, &loop, &QEventLoop::quit);
+    QTimer::singleShot(kStubTimeoutMs, &loop, &QEventLoop::quit);
+    client.explainWords(ExplainRequest{.words = {QStringLiteral("bank")}, .preset = QStringLiteral("multiple")});
+    loop.exec();
+
+    ASSERT_EQ(results.size(), 1);
+    EXPECT_EQ(results.front().senses.size(), 1) << "the preset string decided the cap instead of the sense flag";
+}
+
 /// An empty batch is refused before the network is touched -- there is nothing to ask about.
 TEST_F(LlmTest, RefusesAnEmptyBatchWithoutPosting)
 {
@@ -292,7 +368,7 @@ TEST_F(LlmTest, RefusesAnEmptyBatchWithoutPosting)
 
     QString failure;
     QObject::connect(&client, &LlmClient::failed, [&](QString message) { failure = message; });
-    client.explainWords({});
+    client.explainWords(ExplainRequest{});
 
     EXPECT_TRUE(failure.contains("nothing to look up")) << failure.toStdString();
     EXPECT_TRUE(manager.postedBody.isEmpty());
@@ -308,7 +384,7 @@ TEST_F(LlmTest, RefusesToPostWithoutAnApiKey)
 
     QString failure;
     QObject::connect(&client, &LlmClient::failed, [&](QString message) { failure = message; });
-    client.explainWords({QStringLiteral("ubiquitous")});
+    client.explainWords(ExplainRequest{.words = {QStringLiteral("ubiquitous")}});
 
     EXPECT_TRUE(failure.contains("API key is missing")) << failure.toStdString();
     EXPECT_TRUE(manager.postedBody.isEmpty());
@@ -430,7 +506,7 @@ TEST_F(LlmTest, StreamsTheAnswerAsItArrivesAndFinishesWithTheValidatedOne)
     QObject::connect(&client, &LlmClient::batchFinished, &loop, &QEventLoop::quit);
     QObject::connect(&client, &LlmClient::failed, &loop, &QEventLoop::quit);
     QTimer::singleShot(kStubTimeoutMs, &loop, &QEventLoop::quit);
-    client.explainWords({QStringLiteral("ubiquitous")});
+    client.explainWords(ExplainRequest{.words = {QStringLiteral("ubiquitous")}});
     loop.exec();
 
     ASSERT_GE(previewsAtFinish, 3) << "the answer arrived in more chunks than were reported";

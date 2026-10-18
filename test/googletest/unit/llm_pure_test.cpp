@@ -36,6 +36,7 @@ using lens::llm::parseExplanations;
 using lens::llm::parsePartialExplanation;
 using lens::llm::parseStreamDelta;
 using lens::llm::parseUsage;
+using lens::llm::StreamAssembler;
 using lens::llm::takeSsePayloads;
 using LlmResult = std::variant<QVector<Explanation>, QString>;
 
@@ -379,6 +380,30 @@ TEST_F(LlmTest, AcceptsAWellFormedResponse)
     EXPECT_EQ(explanations.at(0).title, QStringLiteral("ubiquitous"));
     EXPECT_EQ(explanations.at(0).ipa, QString::fromUtf8("/juːˈbɪkwɪtəs/")) << "the IPA was dropped on the way out";
     EXPECT_EQ(explanations.at(0).zh, QString::fromUtf8("无处不在的"));
+}
+
+TEST_F(LlmTest, TheSenseFlagChoosesTheMultiplePresetOverTheSelectionsOwn)
+{
+    lens::llm::ExplainRequest request;
+    request.preset = QStringLiteral("translate");
+    EXPECT_EQ(lens::llm::presetFor(request), QStringLiteral("translate"));
+
+    request.multipleSenses = true;
+    EXPECT_EQ(lens::llm::presetFor(request), QStringLiteral("multiple"));
+}
+
+TEST_F(LlmTest, KeepsAtMostTheContractSenses)
+{
+    const QString content = QStringLiteral(
+        R"({"results":[{"word":"bank","ipa":"/bæŋk/","senses":[{"en":"a financial house","zh":"银行"},{"en":"the land beside a river","zh":"河岸"},{"en":"to rely on","zh":"依靠"},{"en":"a row of similar objects","zh":"一排"}]}]})");
+
+    const auto multiple = parseExplanations(Channel::Word, envelope(content), {"bank"}, "en", true);
+    ASSERT_TRUE(accepted(multiple)) << errorOf(multiple).toStdString();
+    EXPECT_EQ(std::get<QVector<Explanation>>(multiple).at(0).senses.size(), lens::llm::kMaxSenses);
+
+    const auto single = parseExplanations(Channel::Word, envelope(content), {"bank"}, "en", false);
+    ASSERT_TRUE(accepted(single)) << errorOf(single).toStdString();
+    EXPECT_EQ(std::get<QVector<Explanation>>(single).at(0).senses.size(), 1);
 }
 
 TEST_F(LlmTest, UsesSentencePresetsAndTheSharedEntityPreset)
@@ -752,4 +777,83 @@ TEST(PartialExplanation, NeverStandsInForTheWholeResponseCheck)
         << "this is what the card would draw";
     EXPECT_FALSE(accepted(parseExplanations(Channel::Word, envelope(half), kAskedFor)))
         << "an answer that is still being written must not pass the check";
+}
+
+namespace {
+
+QByteArray sseEvent(QString const& content, QString const& finish = {}, QJsonObject const& usage = {})
+{
+    QJsonObject choice{{"delta", QJsonObject{{"content", content}}}};
+    choice.insert(QStringLiteral("finish_reason"), finish.isEmpty() ? QJsonValue() : QJsonValue(finish));
+    QJsonObject root{{"choices", QJsonArray{choice}}};
+    if (not usage.isEmpty())
+        root.insert(QStringLiteral("usage"), usage);
+    return QByteArrayLiteral("data: ") + QJsonDocument(root).toJson(QJsonDocument::Compact) + QByteArrayLiteral("\n\n");
+}
+
+} // namespace
+
+/// The sniff waits for enough bytes, a chunk that completes no drawn field is silent, and the
+/// finished answer goes through the same check as a whole body without a rebuilt envelope.
+TEST(StreamAssembly, SniffsAcrossReadsDeduplicatesPreviewsAndFinishes)
+{
+    const QString head = QStringLiteral(R"({"results":[{"word":"ubiquitous")");
+    const QString mid  = QStringLiteral(R"(,"ipa":"/juːˈbɪkwɪtəs/","en":"existing everywhere")");
+    const QString tail = QStringLiteral(R"(,"zh":"无处不在的"}]})");
+
+    const QByteArray first = sseEvent(head);
+    StreamAssembler  assembler(Channel::Word, kAskedFor, QStringLiteral("zh"), false);
+
+    // Four bytes are not enough to tell a stream from a body; the event is held, not guessed at.
+    EXPECT_FALSE(assembler.feed(first.left(4), true).has_value());
+    auto title = assembler.feed(first.mid(4), true);
+    ASSERT_TRUE(title.has_value());
+    EXPECT_EQ(title->title, QStringLiteral("ubiquitous"));
+    EXPECT_TRUE(title->en.isEmpty()) << "the first preview carries only what had closed";
+
+    auto fields = assembler.feed(sseEvent(mid), false); // an error status draws nothing
+    EXPECT_FALSE(fields.has_value());
+    fields = assembler.feed(QByteArray{}, true); // the same bytes, now with the answer status
+    ASSERT_TRUE(fields.has_value());
+    EXPECT_EQ(fields->en, QStringLiteral("existing everywhere"));
+
+    // A chunk that closes no new field produces the same preview, which is not worth emitting.
+    EXPECT_FALSE(assembler.feed(sseEvent(QStringLiteral(" ")), true).has_value());
+
+    auto zh = assembler.feed(sseEvent(tail, QStringLiteral("stop"), QJsonObject{{"prompt_tokens", 12}, {"completion_tokens", 9}}), true);
+    ASSERT_TRUE(zh.has_value());
+    EXPECT_EQ(zh->zh, QString::fromUtf8("无处不在的"));
+
+    const auto result = assembler.finish(QByteArray{});
+    ASSERT_TRUE(accepted(result)) << errorOf(result).toStdString();
+    EXPECT_TRUE(assembler.streamed());
+    const auto& explanations = std::get<QVector<Explanation>>(result);
+    ASSERT_EQ(explanations.size(), 1);
+    EXPECT_EQ(explanations.front().en, QStringLiteral("existing everywhere"));
+    EXPECT_EQ(assembler.usage().promptTokens, 12);
+    EXPECT_EQ(assembler.usage().completionTokens, 9);
+}
+
+/// A reply whose bytes are one JSON envelope takes the whole-body path, previews and all.
+TEST(StreamAssembly, FallsBackToAWholeBody)
+{
+    StreamAssembler assembler(Channel::Word, kAskedFor, QStringLiteral("en"), false);
+
+    EXPECT_FALSE(assembler.feed(envelope(results(kGoodResult)), true).has_value());
+    const auto result = assembler.finish(QByteArray{});
+    ASSERT_TRUE(accepted(result)) << errorOf(result).toStdString();
+    EXPECT_FALSE(assembler.streamed());
+    EXPECT_EQ(std::get<QVector<Explanation>>(result).front().title, QStringLiteral("ubiquitous"));
+}
+
+/// A stream that ends without the model saying it stopped is today's failure, never a short answer.
+TEST(StreamAssembly, RejectsAStreamThatNeverSaysStop)
+{
+    StreamAssembler assembler(Channel::Word, kAskedFor, QStringLiteral("en"), false);
+    assembler.feed(sseEvent(QStringLiteral(R"({"results":[{"word":"ubiquitous","en":"x","zh":"y"}]})")), true);
+
+    const auto  result  = assembler.finish(QByteArray{});
+    const auto* message = std::get_if<QString>(&result);
+    ASSERT_NE(message, nullptr);
+    EXPECT_TRUE(message->contains("stopped before finishing")) << message->toStdString();
 }

@@ -136,7 +136,7 @@ Item {
 
         SettingsLinkRow {
             label: qsTranslate("SettingsPopup", "Popup & clipboard")
-            note: Controller.settings.clipboardPolicy === "silent"
+            note: Controller.settings.clipboardSilent
                   ? qsTranslate("SettingsPopup", "Give up silently")
                   : qsTranslate("SettingsPopup", "Raise to top")
             onPicked: root.childRequested("clipboard")

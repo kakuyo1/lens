@@ -6,7 +6,7 @@
 
 | 文件 | 作用 |
 | --- | --- |
-| `recipes/<id>.json` | 配方：身体、眼睛、嘴、角色、每个动作的各帧姿势，以及配饰。`mochi.json` 是范例 |
+| `recipes/<id>.json` | 配方：身体、轮廓、眼睛、嘴、角色、每个动作的各帧姿势，以及配饰。`mochi.json` 是椭圆范例，`jelly.json` 是蒙版范例 |
 | `render_pet.py` | 读配方，写出 `data/pet/<id>/` 下的 `pet.json`、`animations.json`、`anchors.json`、`accessories.json` 与全部 PNG，并核对每张 sheet 的尺寸 |
 
 从仓库根目录运行（需要 Pillow）：
@@ -20,6 +20,9 @@ python -I scripts/pet/render_pet.py mochi
 配方的字段（完整说明在 `render_pet.py` 的文件头）：
 
 - `body`：身体的基础椭圆 `{cx, cy, rx, ry}`，单位是格子；它的底部中心是所有姿势的轴。
+- `pivot`、`head`：可选的姿势轴与头锚点；轮廓不是椭圆时用它们把配饰与缩放对到位。
+- `silhouette`：可选的像素轮廓蒙版，`{shape: "mask", at, rows}`；也用于 `frame.shapes`。
+- `bodyPaint`：身体着色格，配方级默认、动作级或单帧覆盖；`facePaint` 画在表情层，随脸移动。
 - `eyes`、`mouth`、`yawnMouth`、`angryMouth`：表情层的格子，以及张嘴（表情 7）的矩形 `[x, y, w, h]` 与生气（表情 9）的撇嘴格子。
 - `roles`、`idlePool`：原样写进 `animations.json`。
 - `actions.<名>`：`fps`、`loop`，可选 `blink`、`returnTo`、`duration`、`bodyFrom`、`paint`（每帧都画），以及 `frames`。每一帧可有 `pose`（`dx`、`dy` 平移，`sx`、`sy` 绕底部中心缩放）、`expression`、`shapes`（额外形状，`add` 或 `discard`）与 `paint`。`duration`（毫秒）让循环动作到点结束；`bodyFrom` 复用前面某个动作的 body sheet 与锚点，按自己的帧数循环，帧里写了 `pose` 就覆盖锚点。

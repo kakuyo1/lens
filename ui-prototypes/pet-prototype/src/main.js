@@ -5,7 +5,6 @@ import { attachPointer } from './pet-pointer.js';
 import { mountDebugPanel } from './debug-panel.js';
 import { assemblePet } from './pet-data.js';
 import { SCENES, sceneOffset, sceneMotion } from './scenes.js';
-import { angryAction, drawAngry } from './angry.js';
 
 // publicDir is data/pet (vite.config.js), so data/pet/<id>/ is served at /<id>/. ?pet=<id> picks the pet; the dog is the default.
 // __PET_IDS__ is the list of those folders, injected by vite.config.js. ?scene=<id> and ?action=<name> start on that.
@@ -23,12 +22,10 @@ const files = Object.fromEntries(await Promise.all(['pet', 'animations', 'anchor
   return [name, await res.json()];
 })));
 const pet = assemblePet(files);
-pet.actions.angry = angryAction(pet); // prototype only, until the recipes carry it: see angry.js
 
 const canvas = document.querySelector('#pet');
 const renderer = new PetRenderer(canvas, pet);
 await renderer.load(path => BASE + path);
-renderer.overlays.angry = (ctx, state) => drawAngry(ctx, state, sceneMs, petId);
 
 const engine = new PetEngine(pet);
 const accessories = new AccessoryManager(pet.accessories);

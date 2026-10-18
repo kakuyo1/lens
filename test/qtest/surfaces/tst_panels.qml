@@ -43,6 +43,7 @@ Item {
         name: "Panels"
         when: windowShown
         property int titleRequests: 0
+        readonly property var costDuty: Controller.costDuty
 
         function make(component) {
             const panel = createTemporaryObject(component, root);
@@ -89,10 +90,10 @@ Item {
             const stats = make(statsComponent);
             const figures = figuresOf(stats);
 
-            compare(heroOf(stats), String(Controller.stats.todayPops));
-            compare(figures["Known"], String(Controller.stats.todayLearned));
-            compare(figures["New"], String(Controller.stats.todayFresh));
-            compare(figures["Cost"], Controller.stats.currency + Controller.stats.todayCost.toFixed(2));
+            compare(heroOf(stats), String(costDuty.stats.todayPops));
+            compare(figures["Known"], String(costDuty.stats.todayLearned));
+            compare(figures["New"], String(costDuty.stats.todayFresh));
+            compare(figures["Cost"], costDuty.stats.currency + costDuty.stats.todayCost.toFixed(2));
             compare(figures["All time"], qsTr("%1 words").arg(Controller.words.length));
         }
 
@@ -103,15 +104,15 @@ Item {
             const figures = figuresOf(cost);
             const notes = notesOf(cost);
 
-            compare(heroOf(cost), Controller.cost.currency + Controller.cost.month.toFixed(2));
-            compare(figures["Today"], Controller.cost.currency + Controller.cost.today.toFixed(2));
-            compare(figures["Yesterday"], Controller.cost.currency + Controller.cost.yesterday.toFixed(2));
-            compare(figures["This week"], Controller.cost.currency + Controller.cost.week.toFixed(2));
-            compare(figures["Daily average"], Controller.cost.currency + Controller.cost.dailyAverage.toFixed(2));
+            compare(heroOf(cost), costDuty.cost.currency + costDuty.cost.month.toFixed(2));
+            compare(figures["Today"], costDuty.cost.currency + costDuty.cost.today.toFixed(2));
+            compare(figures["Yesterday"], costDuty.cost.currency + costDuty.cost.yesterday.toFixed(2));
+            compare(figures["This week"], costDuty.cost.currency + costDuty.cost.week.toFixed(2));
+            compare(figures["Daily average"], costDuty.cost.currency + costDuty.cost.dailyAverage.toFixed(2));
 
-            compare(notes["Today"], qsTr("%1 tokens").arg(String(Controller.cost.todayTokens)));
-            compare(notes["Yesterday"], qsTr("%1 tokens").arg(String(Controller.cost.yesterdayTokens)));
-            compare(notes["This week"], qsTr("%1 tokens").arg(String(Controller.cost.weekTokens)));
+            compare(notes["Today"], qsTr("%1 tokens").arg(String(costDuty.cost.todayTokens)));
+            compare(notes["Yesterday"], qsTr("%1 tokens").arg(String(costDuty.cost.yesterdayTokens)));
+            compare(notes["This week"], qsTr("%1 tokens").arg(String(costDuty.cost.weekTokens)));
             compare(notes["Daily average"], "", "the daily average has no token bucket to draw");
         }
 

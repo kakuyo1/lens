@@ -123,7 +123,7 @@ QRect Tray::geometry() const
 
 TrayState Tray::state() const
 {
-    return trayState(controller_.stats().value("budgetExhausted").toBool(),
+    return trayState(controller_.costDuty()->stats().value("budgetExhausted").toBool(),
                      !controller_.busyLabel().isEmpty(),
                      controller_.settings().value("selectionCapture").toBool());
 }
@@ -132,7 +132,7 @@ void Tray::refresh()
 {
     icon_->setIcon(iconFor(trayIconName(state()), taskbarIsDark()));
 
-    const QVariantMap stats = controller_.stats();
+    const QVariantMap stats = controller_.costDuty()->stats();
     const QString     today = tr("Today %1 words").arg(QString::number(stats.value("todayPops").toInt()));
     icon_->setToolTip(QStringLiteral("Lens · %1 · %2").arg(controller_.modeLabel(), today));
 }

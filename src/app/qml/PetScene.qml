@@ -65,7 +65,9 @@ Item {
                 z: Pet.layers.expression
                 sheet: Pet.sheets.expression
                 frame: Pet.expression
-                at: Pet.anchors.face
+                // The eyes follow a nearby pointer. The offset is one canvas pixel on the dominant axis, and zero
+                // whenever the pet is not idle, so no other action's face is moved.
+                at: Qt.point(Pet.anchors.face.x + Pet.gaze.x, Pet.anchors.face.y + Pet.gaze.y)
             }
 
             SpriteLayer {

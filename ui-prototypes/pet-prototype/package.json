@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "test": "node --test test/*.test.js",
-    "embed": "node tools/build-pet-html.mjs"
+    "embed": "node tools/build-pet-html.mjs",
+    "embed:hover": "node tools/build-pet-hover-html.mjs"
   },
   "devDependencies": {
     "playwright": "^1.64.0",

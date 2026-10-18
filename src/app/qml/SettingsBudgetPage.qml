@@ -13,7 +13,7 @@ Item {
 
     /// The symbol the cost surfaces spend in, so the cap is read in the same money as the tally
     /// it caps rather than as a bare number.
-    readonly property string currency: Controller.stats.currency
+    readonly property string currency: Controller.costDuty.stats.currency
 
     readonly property var openChildRect: null
     implicitHeight: content.implicitHeight

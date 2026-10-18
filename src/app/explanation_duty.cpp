@@ -321,19 +321,20 @@ void ExplanationDuty::send(ExplanationBatch batch)
         channel = llm::Channel::Sentence;
     else if (first.kind == QLatin1String("translation"))
         channel = llm::Channel::Translation;
-    llm_.setChannel(channel);
-    llm_.setExplanationLang(QString::fromStdString(batch.context.language));
-    // A translation keeps the one preset it came with: its channel has no second prompt, because
-    // what the reader wants from Chinese does not depend on which button they pressed.
-    llm_.setPreset(batch.context.multipleSenses ? QStringLiteral("multiple") : first.preset);
-    llm_.setEtymology(isWordKind(first.kind) && etymologyEnabled());
-    llm_.setExample(isWordKind(first.kind) && batch.example);
+    llm::ExplainRequest request;
+    request.channel        = channel;
+    request.preset         = first.preset;
+    request.language       = QString::fromStdString(batch.context.language);
+    request.multipleSenses = batch.context.multipleSenses;
+    request.etymology      = isWordKind(first.kind) && etymologyEnabled();
+    request.example        = isWordKind(first.kind) && batch.example;
     QStringList inputs;
     for (const auto& item : batch.items) {
         inputs << (isWordKind(item.kind) ? item.lemma : item.text);
         if (isWordKind(item.kind))
             storage_.statsStore().recordPop(item.lemma.toStdString(), nowMinute().toStdString());
     }
+    request.words = std::move(inputs);
     // The request goes out with nothing previewed yet: the first preview of this one is the line
     // onPartial() writes.
     previewSeen_ = false;
@@ -342,7 +343,7 @@ void ExplanationDuty::send(ExplanationBatch batch)
     emit petEvent(core::pet::PetEvent::ExplanationRequested);
     storage_.save();
     emit statsChanged();
-    llm_.explainWords(std::move(inputs));
+    llm_.explainWords(std::move(request));
 }
 
 void ExplanationDuty::sendNext()

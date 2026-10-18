@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <map>
 #include <optional>
 #include <string>
@@ -48,10 +49,24 @@ struct Anchors {
     Point body;
 };
 
-/// @brief What animations.json holds: the playbook for the state machine, and the blink on the expression layer.
+/// @brief The optional proximity reactions in animations.json. A pet without this block still follows the pointer with
+///        its eyes; it has no greeting or fuller reaction to play.
+struct HoverSpec {
+    /// The one-shot action a near hold plays first. Required when `dwell` is present.
+    std::optional<ActionName> notice;
+    /// The one-shot action a longer near hold plays once the greeting has had its say.
+    std::optional<ActionName> dwell;
+    std::chrono::milliseconds noticeDelay{350};
+    std::chrono::milliseconds dwellDelay{2600};
+    std::chrono::milliseconds cooldown{8000};
+};
+
+/// @brief What animations.json holds: the playbook for the state machine, the blink on the expression layer, and the
+///        optional hover reactions.
 struct Animations {
-    Playbook   playbook;
-    ActionSpec blink;
+    Playbook                 playbook;
+    ActionSpec               blink;
+    std::optional<HoverSpec> hover;
 };
 
 /// @brief Anchors for every action, one entry per frame.
@@ -73,12 +88,14 @@ PetDocument parsePetDocument(nlohmann::json const& document);
 /**
  * @brief Parses animations.json into the playbook for the state machine and into the blink.
  *
- * The document has three parts. `roles` maps every role the product plays to an action the document defines; only
- * stretch and angry may be left out. `idlePool` lists one-shot actions the idle timer may pick, and may be empty.
- * `actions` gives playback for every action, plus the reserved `blink` entry. Each action needs a boolean `loop`, and
- * `frames` and `fps` of at least 1. `duration` is optional and positive: it ends the action when it runs out, which
- * is how a looping scene finishes. `returnTo` is optional, but when present it must name a role the document maps.
- * `blink: true` on an action marks it as blinking.
+ * The document has three required parts and one optional one. `roles` maps every role the product plays to an action
+ * the document defines; only stretch and angry may be left out. `idlePool` lists one-shot actions the idle timer may
+ * pick, and may be empty. `actions` gives playback for every action, plus the reserved `blink` entry. Each action needs
+ * a boolean `loop`, and `frames` and `fps` of at least 1. `duration` is optional and positive: it ends the action when
+ * it runs out, which is how a looping scene finishes. `returnTo` is optional, but when present it must name a role the
+ * document maps. `blink: true` on an action marks it as blinking. `hover` is optional: it names the one-shot actions a
+ * near hold plays (`notice`, then `dwell`), with optional `noticeDelayMs`, `dwellDelayMs` and `cooldownMs`; a dwell
+ * needs a notice, and both actions must be one-shot.
  *
  * The pool the playbook carries is the document's list plus every one-shot action no role names, in
  * document order then by name. Those are the actions nothing else can reach, so a pet that gains one

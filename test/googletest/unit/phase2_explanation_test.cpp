@@ -785,7 +785,7 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
         QObject::connect(&active, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
         QObject::connect(&active, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
         QTimer::singleShot(2000, &loop, &QEventLoop::quit);
-        active.explainWords({"bank"});
+        active.explainWords(llm::ExplainRequest{.words = {"bank"}});
         loop.exec();
         EXPECT_TRUE(manager.usesTestToken);
         return QJsonDocument::fromJson(manager.posted).object();

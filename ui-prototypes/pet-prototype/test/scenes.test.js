@@ -2,9 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { CELL, PALETTE, partBox } from '../src/pixel-art.js';
 import { SCENES, sceneOffset, sceneParts, sceneMotion } from '../src/scenes.js';
-import { angryAction, angryFace } from '../src/angry.js';
 
-const PETS = ['cat', 'dog', 'mochi', 'owl'];
+const PETS = ['cat', 'cloud', 'dog', 'ghost', 'jelly', 'mochi', 'owl'];
 /** The pet's canvas, in units: a prop that lands outside it is drawn where nothing shows. */
 const CANVAS = 88;
 /** A prop that stands on the floor may run a little past the bottom edge: the bath's tub does, on purpose. */
@@ -131,26 +130,7 @@ test('the pet is placed by whole cells, so nothing lands off the pixel grid', ()
   }
 });
 
-test('the alignment table covers the four shipped pets and the dog sits a cell lower', () => {
-  assert.deepEqual(PETS.map(sceneOffset), [[0, 0], [0, 1], [-1, 0], [-1, 0]]);
+test('the alignment table covers every shipped pet', () => {
+  assert.deepEqual(PETS.map(sceneOffset), [[-1, 0], [0, 0], [0, 1], [0, 0], [0, 0], [-1, 0], [-1, 0]]);
   assert.deepEqual(sceneOffset('axolotl'), [0, 0]);
-});
-
-test('angry shakes the pet and draws a face on every pet, inside the canvas', () => {
-  const pet = { roles: { idle: 'idle' }, actions: { idle: { frames: 5, sheet: 'sprites/body/idle.png' } } };
-  const angry = angryAction(pet);
-  assert.equal(angry.loop, false);
-  assert.equal(angry.sheet, 'sprites/body/idle.png');
-  assert.equal(angry.anchors.length, angry.frames);
-  assert.ok(angry.anchors.some(({ body }) => body[0] !== 0), 'the pet has to move');
-  for (const petId of PETS) {
-    const parts = angryFace(petId, 0);
-    assert.ok(parts.length > 0, `${petId} has no eyes to draw a face from`);
-    for (const part of parts) {
-      const { left, top, right, bottom } = partBox(part);
-      assert.ok(left >= 0 && top >= 0 && right <= CANVAS && bottom <= CANVAS,
-        `${petId} draws its angry face outside the canvas: ${left},${top},${right},${bottom}`);
-    }
-  }
-  assert.deepEqual(angryFace('axolotl', 0), []);
 });

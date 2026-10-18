@@ -96,7 +96,7 @@ Window {
 
             Text {
                 topPadding: 16
-                text: Controller.cost.currency + Controller.cost.month.toFixed(2)
+                text: Controller.costDuty.cost.currency + Controller.costDuty.cost.month.toFixed(2)
                 color: cost.tokens.text
                 font.family: cost.tokens.monoFamily
                 font.pixelSize: 32
@@ -121,27 +121,27 @@ Window {
             StatRow {
                 width: parent.width
                 label: qsTr("Today")
-                note: qsTr("%1 tokens").arg(String(Controller.cost.todayTokens))
-                value: Controller.cost.currency + Controller.cost.today.toFixed(2)
+                note: qsTr("%1 tokens").arg(String(Controller.costDuty.cost.todayTokens))
+                value: Controller.costDuty.cost.currency + Controller.costDuty.cost.today.toFixed(2)
             }
             StatRow {
                 width: parent.width
                 label: qsTr("Yesterday")
-                note: qsTr("%1 tokens").arg(String(Controller.cost.yesterdayTokens))
-                value: Controller.cost.currency + Controller.cost.yesterday.toFixed(2)
+                note: qsTr("%1 tokens").arg(String(Controller.costDuty.cost.yesterdayTokens))
+                value: Controller.costDuty.cost.currency + Controller.costDuty.cost.yesterday.toFixed(2)
             }
             StatRow {
                 width: parent.width
                 label: qsTr("This week")
-                note: qsTr("%1 tokens").arg(String(Controller.cost.weekTokens))
-                value: Controller.cost.currency + Controller.cost.week.toFixed(2)
+                note: qsTr("%1 tokens").arg(String(Controller.costDuty.cost.weekTokens))
+                value: Controller.costDuty.cost.currency + Controller.costDuty.cost.week.toFixed(2)
             }
             StatRow {
                 width: parent.width
                 label: qsTr("Daily average")
                 // A derived average, not a bucket: cost() prices no token count for it, so the
                 // row carries the amount alone rather than a figure invented here.
-                value: Controller.cost.currency + Controller.cost.dailyAverage.toFixed(2)
+                value: Controller.costDuty.cost.currency + Controller.costDuty.cost.dailyAverage.toFixed(2)
             }
         }
     }

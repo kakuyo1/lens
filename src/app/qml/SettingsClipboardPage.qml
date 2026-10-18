@@ -95,8 +95,8 @@ Item {
                 width: parent.width
                 height: 31
                 labels: [qsTranslate("SettingsPopup", "Raise to top"), qsTranslate("SettingsPopup", "Give up silently")]
-                currentIndex: Controller.settings.clipboardPolicy === "silent" ? 1 : 0
-                onPicked: (index) => Controller.setClipboardPolicy(index === 1 ? "silent" : "topmost")
+                currentIndex: Controller.settings.clipboardSilent ? 1 : 0
+                onPicked: (index) => Controller.setClipboardPolicy(index === 1)
             }
         }
     }

@@ -126,6 +126,25 @@ TEST_F(CostDutyTest, MigratesLegacyDailyTokensToOneDeterministicBucket)
     EXPECT_EQ(day.models.at(lens::core::kLegacyUsageModel).completionTokens, 340);
 }
 
+TEST_F(CostDutyTest, ARecordedUsageNotifiesBothProjections)
+{
+    QtApplication        qt;
+    auto                 store = KnownStore::load(path);
+    StatsStore           stats(store.document());
+    lens::llm::LlmClient llm({QUrl{}, {}, QStringLiteral("test-model")});
+    CostDuty             duty(stats, llm, pricing(), [] { return testDate(); });
+
+    int stateChanges = 0;
+    int statsChanges = 0;
+    QObject::connect(&duty, &CostDuty::stateChanged, [&] { ++stateChanges; });
+    QObject::connect(&duty, &CostDuty::statsChanged, [&] { ++statsChanges; });
+
+    duty.recordUsage("2026-10-06 09:00", {10, 5, QStringLiteral("test-model")});
+
+    EXPECT_EQ(stateChanges, 1);
+    EXPECT_EQ(statsChanges, 1) << "today's figures would not follow a new cost";
+}
+
 TEST_F(CostDutyTest, AttributesEachResponseToItsCapturedModel)
 {
     QtApplication qt;

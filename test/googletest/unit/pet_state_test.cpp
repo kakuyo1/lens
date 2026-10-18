@@ -52,6 +52,8 @@ Playbook dogPlaybook()
             {"look_around", playback(6, 6, false)},
             {"yawn", playback(5, 6, false, Role::Sleep)},
             {"stretch", playback(6, 6, false)},
+            {"hover_notice", playback(2, 10, false)},
+            {"hover_dwell", playback(2, 10, false)},
         },
         .roles = {
             {Role::Idle, "idle"},
@@ -113,6 +115,28 @@ std::chrono::milliseconds runUntil(PetStateMachine& machine, std::string const& 
 TEST(PetStateMachine, StartsIdle)
 {
     EXPECT_EQ(makeMachine().action(), "idle");
+}
+
+TEST(PetStateMachine, HoverReactionPlaysOnlyWhileIdle)
+{
+    auto machine = makeMachine();
+    EXPECT_TRUE(machine.playHover("hover_notice"));
+    EXPECT_EQ(machine.action(), "hover_notice");
+
+    machine.advance(200ms);
+    EXPECT_EQ(machine.action(), "idle");
+
+    machine.handle(PetEvent::ExplanationShown);
+    EXPECT_FALSE(machine.playHover("hover_dwell"));
+    EXPECT_EQ(machine.action(), "study");
+}
+
+TEST(PetStateMachine, HoverReactionRejectsLoopingAndUnknownActions)
+{
+    auto machine = makeMachine();
+    EXPECT_FALSE(machine.playHover("idle"));
+    EXPECT_FALSE(machine.playHover("no_such_action"));
+    EXPECT_EQ(machine.action(), "idle");
 }
 
 TEST(PetStateMachine, ClickInterruptsReadingAndReturnsToIt)

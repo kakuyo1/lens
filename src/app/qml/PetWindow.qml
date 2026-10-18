@@ -4,6 +4,9 @@ import QtQuick
  * The desktop pet's own window: frameless, on top, never focused, kept out of screen capture. A left press that does
  * not move is a click, one that moves is a pickup followed by a drop that remembers where it landed, and a right
  * press asks for the settings panel.
+ *
+ * Hover is deliberately not a MouseArea here: the window stays the size of the sprite, and PetController polls the
+ * cursor to move the eyes and play an idle reaction (UI.md 4.14, ADR 0066).
  */
 Window {
     id: petWindow

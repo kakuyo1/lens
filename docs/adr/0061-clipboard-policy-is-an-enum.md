@@ -1,0 +1,6 @@
+# 0061 剪贴板策略是一个枚举，取词的剪贴板有端口
+
+- **状态**：accepted
+- **背景**：`clipboardPolicy` 原先以字符串形式出现在八处：设置校验、设置投影、`CaptureDuty` 的比较、两页设置界面与恢复默认；默认值 `"topmost"` 还硬编码了两次。取词结束后由 `CaptureDuty` 比较字符串决定是否丢弃选区，取词组件只把 “剪贴板被改写” 当作返回值上的一个布尔。ADR 0008 第 8 条要求手势判定是无副作用的纯函数并带边界用例，但那三条阈值用例一直住在 `lens_gtest_integration`，而该目标 CI 不跑（TEST.md 第 42、175 行）。
+- **决定**：新增 `ClipboardPolicy` 枚举（`Topmost` / `Silent`），持久化键的字符串词汇只在 `selection_text_grabber.h` 的键转换函数里出现；缺失或未知的键读作 `Topmost`。QML 边界改为布尔：`setClipboardPolicy(bool silent)`，设置投影改为 `clipboardSilent`，表面无法再写出第三个值；文档里的键仍是 `clipboardPolicy`，值仍是 `topmost` / `silent`。`grab(ClipboardPolicy)` 在取词组件里执行静默丢弃，返回 `GrabStatus::ClipboardRewritten`，`GrabbedText` 与它的标志一起删除，`CaptureDuty` 只记录状态并返回。剪贴板的读、写、序号与等待抽成 `ClipboardPort`：生产适配器是 Win32，测试用内存假件；`ClipboardBorrow` 负责快照、序号与还原次序，由 `lens_gtest_unit` 覆盖。`ClipboardSnapshot` 自身的用例仍留在 integration，因为那几例直接操真实剪贴板，而剪贴板是全机共享的。三条手势阈值用例移到 `lens_gtest_unit`，TEST.md 的目标说明与计数同步更新。
+- **后果**：`Topmost` 与 `Silent` 的行为不变——只有剪贴板被别人改写时 `Silent` 才丢弃，未改写时两种策略都显示。QML 读到的是布尔而不是键字符串，相关 qtest 一并在同一提交更新。新策略值仍需界面标签与段索引，但 C++ 侧的判断只剩枚举与一个纯函数；ADR 0008 第 7 条 “不新增策略开关” 在这条设置早已存在之后只是部分成立，本次不新增开关，只改表示。`vault.h`、`sync_merge.h` 与各 duty 的对外行为不变。

@@ -168,6 +168,12 @@ struct PetStateMachine {
     /// @param name Scene action as the app's catalogue and the pet's data spell it.
     void playScene(ActionName const& name);
 
+    /// @brief Starts a hover reaction only while the pet is idle: a greeting or the fuller reaction from its data.
+    ///        The reaction is a one-shot at situational priority, so a click, a drag or a learning event still wins.
+    /// @param name Action name from animations.json.
+    /// @return Whether it started. False while anything else is playing, and for a looping or unknown action.
+    bool playHover(ActionName const& name);
+
     /// @brief Moves the clock on by `step`: takes an idle turn when one is due, and ends actions that have run out.
     /// @param step Time since the last call.
     void advance(std::chrono::milliseconds step);

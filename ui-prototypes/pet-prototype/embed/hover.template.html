@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · 桌面宠物悬浮感知</title>
+<style>
+:root{
+  --bg:#e9ebef; --panel:#fff; --panel2:#f1f3f7; --line:#d6dae1; --line2:#e6e9ee;
+  --text:#1a1a1f; --muted:#66666f; --faint:#9d9da8; --accent:#7568c4;
+  --sh:0 2px 6px rgba(20,20,26,.05),0 18px 44px -28px rgba(20,20,26,.26);
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased}
+body{
+  font-family:var(--f);color:var(--text);min-height:100vh;font-size:13px;line-height:1.55;
+  background:
+    radial-gradient(900px 420px at 50% -10%,#fff 0,rgba(255,255,255,0) 70%),
+    radial-gradient(circle at 1px 1px,rgba(20,20,26,.055) 1px,rgba(0,0,0,0) 0) 0 0/18px 18px,
+    var(--bg);
+}
+button{font:inherit;color:inherit}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.hero{
+  max-width:1360px;margin:0 auto;padding:40px 24px 24px;display:flex;align-items:flex-end;justify-content:space-between;gap:28px;
+}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+h1{font-size:32px;line-height:1.2;letter-spacing:-.02em;font-weight:650}
+.lede{max-width:600px;margin-top:10px;color:var(--muted);font-size:14px}
+.hero-steps{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;padding-bottom:4px}
+.hero-steps span{display:flex;align-items:center;gap:7px;padding:7px 11px 7px 8px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.62);font-size:12px;color:var(--muted);white-space:nowrap}
+.hero-steps i{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--panel2);color:var(--text);font-style:normal;font-size:10px;font-weight:700}
+.layout{
+  max-width:1360px;margin:0 auto;padding:0 24px 48px;display:grid;grid-template-columns:minmax(0,1fr) 326px;gap:24px;align-items:start;
+}
+.desk{background:linear-gradient(180deg,#fcfcfe 0%,#f4f5f8 100%);border:1px solid var(--line);border-radius:22px;box-shadow:var(--sh);overflow:hidden;min-height:594px;display:flex;flex-direction:column}
+.desk-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid var(--line2);flex:none}
+.desk-title{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:700;letter-spacing:.02em}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#53a77a;box-shadow:0 0 0 3px rgba(83,167,122,.13)}
+.desk-actions{display:flex;align-items:center;gap:6px}
+.quiet{border:0;background:transparent;color:var(--muted);padding:6px 9px;border-radius:8px;font-size:12px;cursor:pointer}
+.quiet:hover{background:var(--panel2);color:var(--text)}
+.switch-line{display:flex;align-items:center;gap:7px;border:0;background:transparent;padding:5px 4px;border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer}
+.switch-line:hover{color:var(--text)}
+.switch{display:inline-flex;align-items:center;height:20px;border:0;background:transparent;padding:0;cursor:pointer;flex:none}
+.track{position:relative;display:block;width:34px;height:20px;border-radius:999px;background:var(--line);transition:background .16s}
+.knob{position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(20,20,26,.2);transition:transform .16s}
+.switch[aria-checked=true] .track,
+.switch-line[aria-checked=true] .track{background:var(--text)}
+.switch[aria-checked=true] .knob,
+.switch-line[aria-checked=true] .knob{transform:translateX(14px)}
+.desk-title .zone-legend{display:none;align-items:center;gap:10px;margin-left:8px;color:var(--faint);font-weight:400;font-size:11px}
+body.zones .zone-legend{display:flex}
+.zone-legend b{display:inline-flex;align-items:center;gap:5px;font-weight:400}
+.zone-legend em{display:block;width:12px;border-top:1px dashed var(--faint);font-style:normal}
+.zone-legend .near em{border-color:rgba(90,96,110,.55)}
+.pet-grid{flex:1;display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:28px 28px;padding:26px 22px 14px}
+.pet-slot{position:relative;width:176px;display:flex;flex-direction:column;align-items:center}
+.field{position:relative;width:176px;height:176px;overflow:visible}
+.pet-canvas{position:relative;z-index:2;display:block;width:176px;height:176px;image-rendering:pixelated;cursor:default;user-select:none}
+.ring{position:absolute;z-index:0;border:1px dashed transparent;border-radius:50%;opacity:0;transition:opacity .2s;pointer-events:none}
+.ring.gaze{border-color:rgba(90,96,110,.22)}
+.ring.near{border-color:rgba(90,96,110,.42);background:rgba(255,255,255,.14)}
+body.zones .ring{opacity:1}
+.caption{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:1px;margin-top:5px;min-height:36px;text-align:center}
+.caption strong{font-size:12.5px;font-weight:700;letter-spacing:.01em}
+.caption .state{font-size:11px;color:var(--faint);min-height:17px;transition:color .18s}
+.pet-slot.warm .state{color:var(--muted)}
+.pet-slot.hot .state{color:var(--accent)}
+.desk-foot{flex:none;padding:0 20px 16px;display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:34px}
+.hint{font-size:12px;color:var(--muted);transition:opacity .35s,transform .35s}
+.has-greeted .hint{opacity:0;transform:translateY(3px)}
+.fineprint{font-size:11px;color:var(--faint);text-align:right}
+.rail{display:flex;flex-direction:column;gap:14px;align-self:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh);padding:17px 18px}
+.card-kicker{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:7px}
+.card h2{font-size:18px;line-height:1.3;letter-spacing:-.01em;font-weight:650}
+.card h3{font-size:12.5px;font-weight:700}
+.card p{color:var(--muted);font-size:12px;margin-top:7px}
+.card-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:13px}
+.card-head span{font-size:10.5px;color:var(--faint)}
+.layer{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;padding:10px 0;border-top:1px solid var(--line2)}
+.layer:first-of-type{border-top:0;padding-top:0}
+.layer:last-child{padding-bottom:0}
+.layer .switch{margin-top:2px}
+.layer strong{display:block;font-size:12px;font-weight:650}
+.layer p{margin-top:2px;font-size:11.5px;line-height:1.5;color:var(--muted)}
+.reaction{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid var(--line2)}
+.reaction:first-child{border-top:0;padding-top:0}
+.reaction:last-child{padding-bottom:0}
+.reaction-name{display:flex;flex-direction:column;gap:0;min-width:0}
+.reaction-name strong{font-size:11.5px;font-weight:650}
+.reaction-name span{font-size:10px;color:var(--faint);font-variant-numeric:tabular-nums}
+.reaction-acts{display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--muted);white-space:nowrap}
+.reaction-acts i{font-style:normal;color:var(--faint);font-size:10px}
+.rules{list-style:none;display:flex;flex-direction:column;gap:7px;margin-top:2px}
+.rules li{position:relative;padding-left:12px;color:var(--muted);font-size:11.5px;line-height:1.5}
+.rules li::before{content:"";position:absolute;left:0;top:.58em;width:4px;height:4px;border-radius:50%;background:var(--line)}
+@media (min-width:1181px){.rail{position:sticky;top:24px}}
+@media (max-width:1180px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .rail{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .card:first-child{grid-column:1/-1}
+}
+@media (max-width:760px){
+  .hero{display:block;padding-top:28px}
+  .hero-steps{justify-content:flex-start;margin-top:18px}
+  h1{font-size:27px}
+  .layout{padding-bottom:28px}
+  .desk{min-height:0}
+  .desk-head{align-items:flex-start;flex-direction:column;gap:8px}
+  .desk-actions{width:100%;justify-content:space-between}
+  .pet-grid{gap:20px 12px;padding:18px 10px 8px}
+  .pet-slot,.field,.pet-canvas{width:150px}
+  .field,.pet-canvas{height:150px}
+  .rail{grid-template-columns:minmax(0,1fr)}
+  .desk-foot{display:block}
+  .fineprint{text-align:left;margin-top:4px}
+}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div>
+    <p class="eyebrow">桌面宠物 · 悬浮交互设计</p>
+    <h1>靠近一点，它就知道</h1>
+    <p class="lede">不点击也能互动。指针靠近时，它先跟眼神；停一下，给个小反应；多停一会，再陪你待一会儿。</p>
+  </div>
+  <div class="hero-steps" aria-label="三层反应">
+    <span><i>1</i>注视跟随</span>
+    <span><i>2</i>停一下 · 小反应</span>
+    <span><i>3</i>再停一会 · 完整回应</span>
+  </div>
+</header>
+<main class="layout">
+  <section class="desk" aria-label="七只桌面宠物">
+    <div class="desk-head">
+      <div class="desk-title">
+        <span class="live-dot" aria-hidden="true"></span>桌面 · 七只宠物
+        <span class="zone-legend" aria-hidden="true">
+          <b><em></em>注视</b><b class="near"><em></em>注意</b>
+        </span>
+      </div>
+      <div class="desk-actions">
+        <button id="reset" class="quiet" type="button">重新打招呼</button>
+        <button id="zones" class="switch-line" type="button" role="switch" aria-checked="false">
+          <span class="switch"><span class="track"><span class="knob"></span></span></span>显示感知范围
+        </button>
+      </div>
+    </div>
+    <div id="grid" class="pet-grid"></div>
+    <div class="desk-foot">
+      <p id="hint" class="hint">把指针移到任意宠物旁边，停一会儿。</p>
+      <p class="fineprint">状态文字仅用于设计演示；产品里的宠物不说话。</p>
+    </div>
+  </section>
+  <aside class="rail">
+    <section class="card">
+      <p class="card-kicker">交互主张</p>
+      <h2>陪伴感，不是按钮感</h2>
+      <p>宠物不弹提示、不抢点击。它只是先注意到你，再决定要不要回应。靠近是礼貌，停留才是邀请。</p>
+    </section>
+    <section class="card">
+      <div class="card-head"><h3>反应层</h3><span>前三层 + 分寸</span></div>
+      <div class="layer">
+        <button class="switch" type="button" role="switch" aria-checked="true" data-layer="gaze"><span class="track"><span class="knob"></span></span></button>
+        <div><strong>01 视线跟随</strong><p>指针进入注视范围，眼睛沿主轴移动 1 像素；离开即回正。身体不动，不打扰。</p></div>
+      </div>
+      <div class="layer">
+        <button class="switch" type="button" role="switch" aria-checked="true" data-layer="notice"><span class="track"><span class="knob"></span></span></button>
+        <div><strong>02 近旁注意</strong><p>在近处停住，等过各自的反应时间，才给一个小动作。快速路过不会触发。</p></div>
+      </div>
+      <div class="layer">
+        <button class="switch" type="button" role="switch" aria-checked="true" data-layer="dwell"><span class="track"><span class="knob"></span></span></button>
+        <div><strong>03 停留回应</strong><p>继续待着，它再给一个完整动作。每轮只演一次，离开后才重新开始。</p></div>
+      </div>
+      <div class="layer">
+        <button class="switch" type="button" role="switch" aria-checked="true" data-layer="habit"><span class="track"><span class="knob"></span></span></button>
+        <div><strong>04 冷却与习惯化</strong><p>刚打过招呼就再靠近，它只看着你，不再重复表演。安静一会儿再回来。</p></div>
+      </div>
+    </section>
+    <section class="card">
+      <div class="card-head"><h3>逐宠反应</h3><span>注意 / 停留</span></div>
+      <div id="reactions"></div>
+    </section>
+    <section class="card">
+      <div class="card-head"><h3>不打扰的边界</h3></div>
+      <ul class="rules">
+        <li>鼠标穿透、睡眠、阅读、思考、举牌、拖动时都不触发。</li>
+        <li>点击、拖拽和学习事件永远优先；悬浮只借空闲时间。</li>
+        <li>场景里只保留眼神，不主动换动作，避免破坏场景。</li>
+        <li>设置预览里不触发：那里的指针是来挑动作的。</li>
+        <li>靠轮询指针位置实现，不扩大窗口、不增加透明点击区。</li>
+      </ul>
+    </section>
+  </aside>
+</main>
+<script>/*@PET_DATA@*/</script>
+<script>/*@PET_BUNDLE@*/</script>
+<script>PetHover.mount(PET_MANIFEST, PET_ASSETS);</script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 本文说明桌面宠物的美术怎样生成，有两条路。
 
-- **新宠物**（麻糬 `mochi`、猫头鹰 `owl`、猫 `cat`）：写一份配方 `scripts/pet/recipes/<id>.json`，运行 `scripts/pet/render_pet.py <id>`，输出直接写进 `data/pet/<id>/`。第 5 节说明步骤。
+- **新宠物**（麻糬 `mochi`、猫头鹰 `owl`、短耳猫 `cat`、小幽灵 `ghost`、小水母 `jelly`、小云 `cloud`）：写一份配方 `scripts/pet/recipes/<id>.json`，运行 `scripts/pet/render_pet.py <id>`，输出直接写进 `data/pet/<id>/`。第 5 节说明步骤。
 - **小狗**（1.2.0 重绘）：第 3 节记录那次实际走过的步骤，脚本在 `scripts/pet/` 与 `scripts/pet/dog/`，输出在 `data/pet/dog/`。第 4 节是那次的经验。
 
 范围只包括**外观**：形状、眼睛、嘴与配饰的位置。动作的帧数、帧率、锚点和数据结构不在本文范围内。改它们要改配方（新宠物）或 `data/pet/dog/*.json`（小狗），并跑测试（见 `docs/history/PHASE3.md` §3.1、§3.8）。
@@ -32,7 +32,7 @@
 | `data/pet/dog/sprites/` | 小狗的应用读取位置，由 `build-assets.py` 直接写入 | 不手改 |
 | `scripts/pet/scenes/<id>.json` | 场景的逐帧道具（原型 `scenes.js` 的机械搬运）与每帧宠物位移 | 改道具、帧数或对齐点时改；`render_scenes.py` 的输入 |
 | `scripts/pet/render_scenes.py` | 场景渲染器：读 `scripts/pet/scenes/`，写 `data/scenes/<id>/{back,front}.png` 与运行时目录 `data/scenes/scenes.json`；读回核对尺寸并检查道具不出画布 | 只在换了场景数据结构时改 |
-| `data/scenes/` | 应用自带的场景：四只随包宠物共用，不进宠物包格式 | 不手改，改 `scripts/pet/scenes/` 后重跑渲染器 |
+| `data/scenes/` | 应用自带的场景：随包宠物共用，不进宠物包格式 | 不手改，改 `scripts/pet/scenes/` 后重跑渲染器 |
 | `ui-prototypes/pet.html` | 原型设置页，内嵌了全部 PNG 的 base64 | `cd ui-prototypes/pet-prototype && npm run embed` 重新生成 |
 
 渲染器里还有几处**写死的几何**，换形状后要逐帧看一遍（只适用于小狗的 `build-assets.py`）：
@@ -121,12 +121,16 @@ node --test test/*.test.js
 
 配方只描述形状与姿势，其余文件由渲染器算出。
 
-- `body`：身体的基础椭圆，单位是格子。它的底部中心是所有姿势的轴。
+- `body`：身体的基础椭圆，单位是格子。它的底部中心是所有姿势的轴，除非配方另外给了 `pivot`（姿势轴）与 `head`（头锚点）；四只定稿宠物都显式给了这两个点。
+- `silhouette`：可选的像素轮廓，`{shape: "mask", at, rows}`，`#` 是身体内部。它按姿势缩放，用来画一组椭圆/矩形拼不出的形状（水母触手、猫耳、云的宽顶）。同一份配方里的每一帧都用它。
+- `bodyPaint`：身体着色格。配方级是默认值，动作或单帧可以覆盖。压扁/拉伸时它是显示空间，生成器按姿势重算（短耳猫、小幽灵、小水母与小云的 `sleep` 就是这样）。
+- `facePaint`：表情层上的固定像素，随 `face` 锚点移动；短耳猫的胡须用它，因为在轮廓之外，不能进身体层。
 - `eyes`、`mouth`、`yawnMouth`、`angryMouth`：表情层的格子，表情图案 `EYE_PATTERNS` 与小狗共用。`angryMouth` 是生气那一格的撇嘴，缺省时沿用普通嘴。
 - `roles`、`idlePool`：原样写进 `animations.json`。
+- `hover`：可选。`{notice, dwell, noticeDelayMs, dwellDelayMs, cooldownMs}` 原样写进 `animations.json`，供指针靠近时的招呼与完整反应使用；两个动作名必须是配方已有的单次动作。字段与校验见 `docs/pet-package-format.md`。
 - `actions`：每个动作的 `fps`、`loop`，以及按帧排列的 `frames`。每帧可以有姿势 `pose`（`sx`、`sy` 压扁或拉伸，`dx`、`dy` 平移）、表情、额外的形状与效果层的图形。`duration`（毫秒）让循环动作到点结束，场景动作靠它收场；`bodyFrom` 让一个动作复用前面某个动作的 body sheet 与锚点，按自己的帧数循环，生气与场景动作因此不必重画身体，帧里写了 `pose` 就覆盖复用的锚点。
 - **表情图案的竖向偏移**：`EYE_PATTERNS` 里第 9 格是生气眼，它的眉画在眼睛上方一个单位，因此图案有四行，由 `EYE_OFFSETS` 把它整体上移一行；右眼用 `EYE_MIRRORS` 把图案左右镜像，眉才向鼻梁一侧斜。嘴按表情查表：哈欠用 `yawnMouth`，生气用 `angryMouth`，其余共用 `mouth`。两份 `EYE_PATTERNS`（`render_pet.py` 与 `dog/build-assets.py`）必须同改。
-- `bodyPaint`：身体 sheet 上的着色格子，只画在身体覆盖的格子上。写在动作里时每帧都用，写在某一帧里时替换该动作的列表。坐标是画布格子，渲染器不对它做压扁或拉伸，换姿势要在配方里重新算。猫的粉色耳内与鼻子用它。
+- `bodyPaint`：身体 sheet 上的着色格子，只画在身体覆盖的格子上。写在配方里时是默认值，写在动作里时每帧都用，写在某一帧里时替换该动作的列表。坐标是画布格子，渲染器不对它做压扁或拉伸，换姿势要在配方里重新算；短耳猫、小幽灵、小水母与小云的睡眠帧都这样生成。猫的粉色耳内与鼻子用它。
 - `accessories`：每件配饰的槽位 `slot`、不能穿的动作 `except`，以及它的图形。
 
 锚点与每件配饰的 `supportedActions` 由渲染器从上面的字段算出，不需要在配方里再写一遍。`blink` 动作照常写在 `actions` 里（3 帧，只有表情没有 sheet）。完整字段见 `render_pet.py` 的文件头。
@@ -157,14 +161,15 @@ node --test test/*.test.js
 | `scripts/pet/sync_sprites.py` | 小狗：核对尺寸，渲染到临时目录后比对 | 不写文件 |
 | `scripts/pet/compose_check.py` | 小狗：一帧加表情与每件配饰的审查图 | 只写指定的 PNG |
 | `scripts/pet/recipes/original-dog.json` | 1.2.0 小狗的配方，可复现当前网格 | 复制后改 |
-| `scripts/pet/recipes/mochi.json`、`owl.json`、`cat.json` | 三只新宠物的配方，`render_pet.py` 的输入 | 复制后改 |
+| `scripts/pet/recipes/mochi.json`、`owl.json`、`cat.json`、`ghost.json`、`jelly.json`、`cloud.json` | 六只新宠物的配方，`render_pet.py` 的输入 | 复制后改 |
 
 ## 7。已知限制
 
 这些限制来自现有的渲染器，不是某只宠物的问题。改它们要改渲染器，不要只改某只宠物的配方。
 
 - **眼睛是 3 × 3 的方格**，所有宠物共用 `EYE_PATTERNS`；生气那一格向上多出一行画眉。圆眼睛需要改渲染器。
-- **效果层不跟随身体**。效果层固定在画布（0，0）处，身体的平移与压扁都不影响它。挂在身体上的图形要放进 `bodyPaint`，不要放进效果层。
+- **效果层不跟随身体**。效果层固定在画布（0，0）处，身体的平移与压扁都不影响它。挂在身体上的图形要放进 `bodyPaint`，不要放进效果层；短耳猫的胡须是表情层（`facePaint`），它跟 `face` 锚点走，但也不随身体压扁。
+- **轮廓蒙版只能写格子**。`silhouette` 的像素与 `bodyPaint` 都在配方里手工维护；用生成器改形时先看一遍 `sprites/reference/bare.png`。
 - **配饰只能用格子画**，没有圆形或多边形图元，圆框眼镜是手绘的格子。
 - **压扁小于 1 时，形状画出的耳朵会脱离身体**，所以新宠物的压扁只用 1 或更大的值。
 
@@ -176,4 +181,4 @@ node --test test/*.test.js
 - **跟随身体**：效果层不跟身体锚点，所以每一帧手的格子要按该帧的身体锚点平移。`ask` 的 `dx` 与 `dy` 同样作用在手上，手随身体上下起伏。小狗由 `scripts/pet/dog/build-assets.py` 的 `hand()` 读 `manifest.json` 的 `ask` 锚点完成这一步；其他三只写在配方每一帧的 `paint` 里。
 - **握法**：9 × 8 像素的拳头，两根手指从上包住杆子，中间一列留空让杆子穿过，杆末端在第 3 行埋进拳头。墨线与指节是同一个轮廓推出来的，颜色用 `ink` 与 `fur`。
 - **配色**：取该宠物已有的调色。不新画身体轮廓，只加这只手。
-- **现状**：左右两只手都已写进 `scripts/pet/recipes/{cat,mochi,owl}.json` 的 `ask` 帧（右手 `paint`，左手 `paintLeft`）与 `scripts/pet/dog/build-assets.py` 的 `hand(n, side)`，并渲染进 `data/pet/*/sprites/effects/`：`ask.png` 是右手，`ask-left.png` 是左手。`render_pet.py` 见到 `paintLeft` 就写出 `effectLeft`，狗的 `manifest.json` 与 `animations.json` 也已对应。原型与设置页都按空间选左右手，默认左手。应用在装载时读取 `effectLeft`，逐帧量出两只手的握点，并按手挂牌（ADR 0052、0053）。
+- **现状**：左右两只手都已写进 `scripts/pet/recipes/{cat,ghost,jelly,cloud,mochi,owl}.json` 的 `ask` 帧（右手 `paint`，左手 `paintLeft`）与 `scripts/pet/dog/build-assets.py` 的 `hand(n, side)`，并渲染进 `data/pet/*/sprites/effects/`：`ask.png` 是右手，`ask-left.png` 是左手。`render_pet.py` 见到 `paintLeft` 就写出 `effectLeft`，狗的 `manifest.json` 与 `animations.json` 也已对应。原型与设置页都按空间选左右手，默认左手。应用在装载时读取 `effectLeft`，逐帧量出两只手的握点，并按手挂牌（ADR 0052、0053）。

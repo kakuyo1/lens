@@ -246,7 +246,6 @@ Window {
     }
 
     onHoveringChanged: {
-        Controller.bubbleHoverChanged(hovering);
         updateCountdown();
         if (verdictButtons && status !== "")
             rowHold.begin(content.implicitHeight + (hovering ? verdictRow.openHeight : -verdictRow.openHeight));

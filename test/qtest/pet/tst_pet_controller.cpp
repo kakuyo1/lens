@@ -367,8 +367,8 @@ void TstPetController::accessoryCatalogueAndWornSlotsAreExposed()
     Rig rig{settingsIn(dir), shippedRoot()};
 
     QCOMPARE(rig.controller.accessories().size(), 7);
-    // Twelve roles (angry included) and the three idle extras; the five scenes are not chips.
-    QCOMPARE(rig.controller.actions().size(), 15);
+    // Thirteen roles (angry and ask included) and the three idle extras; the five scenes are not chips.
+    QCOMPARE(rig.controller.actions().size(), 16);
     QCOMPARE(rig.controller.actions().first(), QStringLiteral("idle"));
 
     QSignalSpy outfit(&rig.controller, &PetController::outfitChanged);
@@ -440,7 +440,7 @@ void TstPetController::everyShippedPetLoadsWhole()
     QVERIFY(dir.isValid());
     Rig rig{settingsIn(dir), shippedRoot()};
 
-    for (auto const& id : {QStringLiteral("mochi"), QStringLiteral("owl"), QStringLiteral("cat")}) {
+    for (auto const& id : {QStringLiteral("mochi"), QStringLiteral("owl"), QStringLiteral("cat"), QStringLiteral("ghost"), QStringLiteral("jelly"), QStringLiteral("cloud")}) {
         auto const folder     = shippedRoot() / id.toStdString();
         auto const animations = readJson(folder / "animations.json");
 

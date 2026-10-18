@@ -63,10 +63,12 @@ constexpr int kMaxScale  = 4;
 constexpr int kMaxFrames = 64;
 constexpr int kMaxFps    = 24;
 /// The longest an action may run by its own clock, in milliseconds: an hour is well past any scene.
-constexpr int kMaxDurationMs  = 3'600'000;
-constexpr int kMaxActions     = 32;
-constexpr int kMaxAccessories = 32;
-constexpr int kMaxIdlePool    = 16;
+constexpr int kMaxDurationMs = 3'600'000;
+/// The longest hover delay or cooldown, in milliseconds. A minute is already far beyond any reaction a reader can read.
+constexpr int kMaxHoverDelayMs = 60'000;
+constexpr int kMaxActions      = 32;
+constexpr int kMaxAccessories  = 32;
+constexpr int kMaxIdlePool     = 16;
 /// Longest declared side of a sheet, width or height: 64 frames of 128 px is 8192, so a sheet of any valid pet fits.
 constexpr int kMaxSheetSide       = 8192;
 constexpr int kMaxExpressionCells = 64;

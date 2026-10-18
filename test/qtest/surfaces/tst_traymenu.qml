@@ -115,7 +115,7 @@ Item {
 
             verify(/^\d+ words · .\d+\.\d\d$/.test(menu.todayFigures),
                    "the figures row is malformed: " + menu.todayFigures);
-            compare(menu.todayFigures.indexOf(String(Controller.stats.todayPops)), 0,
+            compare(menu.todayFigures.indexOf(String(Controller.costDuty.stats.todayPops)), 0,
                     "the figures row does not start with the day's pop count");
         }
 
