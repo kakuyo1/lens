@@ -253,6 +253,10 @@ signals:
 private:
     /// @brief Restore provider wire options and persisted connection choices without touching credentials.
     void restoreModelService();
+    /// @brief The plain-text export for a scope, without the QML string parse.
+    QString exportFor(core::ExportScope scope) const;
+    /// @brief The JSON export for a scope, without the QML string parse.
+    QString exportJsonFor(core::ExportScope scope) const;
     /// @brief Reconcile budget and in-flight request gates with the capture duty.
     void refreshCaptureGates();
     /// @brief The trigger key went down: raise the mask, or say why it cannot be raised.

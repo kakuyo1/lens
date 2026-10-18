@@ -37,6 +37,7 @@ add_library(lens_app STATIC
   system_motion.cpp
   update_duty.h
   update_duty.cpp
+  words_view.h
   sync_duty.h
   sync_duty.cpp
   sync_state.h

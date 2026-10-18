@@ -11,16 +11,12 @@
 #include <QDateTime>
 #include <QFile>
 #include <QFontDatabase>
-#include <QJsonArray>
 #include <QJsonDocument>
-#include <QJsonValue>
 #include <QGuiApplication>
-#include <QHash>
 #include <QLocale>
 #include <QRegularExpression>
 #include <QSaveFile>
 #include <QScreen>
-#include <QSet>
 #include <QQmlEngine>
 #include <QJSEngine>
 
@@ -37,6 +33,7 @@
 #include "settings_defaults.h"
 #include "update/update_client.h"
 #include "util/log.h"
+#include "words_view.h"
 #include "year_grid.h"
 
 namespace lens::app {
@@ -667,45 +664,7 @@ QVariantMap AppController::settings()
 
 QVariantList AppController::words() const
 {
-    const QDate         today = QDate::currentDate();
-    QSet<QString>       seen;
-    QHash<QString, int> pops;
-    const auto&         history = storage_.statsStore().history();
-    for (const core::HistoryEntry& entry : history)
-        ++pops[QString::fromStdString(entry.lemma)];
-
-    QVariantList out;
-    out.reserve(static_cast<qsizetype>(history.size()));
-    for (const core::HistoryEntry& entry : history) {
-        const QString shown = QString::fromStdString(entry.lemma);
-        if (seen.contains(shown))
-            continue;
-        seen.insert(shown);
-
-        const QDateTime moment = QDateTime::fromString(QString::fromStdString(entry.minute), QStringLiteral("yyyy-MM-dd HH:mm"));
-        QString         day;
-        QString         date;
-        QString         time;
-        if (moment.isValid()) {
-            const qint64 daysAgo = moment.date().daysTo(today);
-            if (daysAgo == 0)
-                day = QStringLiteral("today");
-            else if (daysAgo == 1)
-                day = QStringLiteral("yesterday");
-            else
-                day = QStringLiteral("earlier");
-            date = moment.toString(QStringLiteral("MM-dd"));
-            time = moment.toString(QStringLiteral("HH:mm"));
-        }
-
-        out.append(QVariantMap{{"word", shown},
-                               {"day", day},
-                               {"date", date},
-                               {"time", time},
-                               {"verdict", QString::fromStdString(entry.verdict)},
-                               {"pops", pops.value(shown)}});
-    }
-    return out;
+    return wordRows(QDate::currentDate(), storage_.statsStore().history());
 }
 
 QVariantList AppController::yearDays() const
@@ -713,45 +672,44 @@ QVariantList AppController::yearDays() const
     return yearGrid(QDate::currentDate(), storage_.statsStore().daily());
 }
 
+QString AppController::exportFor(core::ExportScope const scope) const
+{
+    return QString::fromStdString(core::exportLemmas(storage_.statsStore().history(), scope));
+}
+
+QString AppController::exportJsonFor(core::ExportScope const scope) const
+{
+    return QString::fromStdString(core::exportLemmasJson(storage_.statsStore().history(), scope));
+}
+
 QString AppController::exportWords(QString scope)
 {
-    core::ExportScope which;
-    if (scope == QLatin1String("all"))
-        which = core::ExportScope::All;
-    else if (scope == QLatin1String("known"))
-        which = core::ExportScope::Known;
-    else if (scope == QLatin1String("new"))
-        which = core::ExportScope::New;
-    else {
+    const auto which = parseScope(scope);
+    if (not which) {
         LENS_WARN("export asked for an unknown scope '{}'; nothing was written", scope.toStdString());
         return {};
     }
-    const QString text = QString::fromStdString(core::exportLemmas(storage_.statsStore().history(), which));
+    const QString text = exportFor(*which);
     LENS_INFO("words export for '{}': {} character(s) ready", scope.toStdString(), text.size());
     return text;
 }
 
 QString AppController::exportWordsJson(QString scope)
 {
-    core::ExportScope which;
-    if (scope == QLatin1String("all"))
-        which = core::ExportScope::All;
-    else if (scope == QLatin1String("known"))
-        which = core::ExportScope::Known;
-    else if (scope == QLatin1String("new"))
-        which = core::ExportScope::New;
-    else {
+    const auto which = parseScope(scope);
+    if (not which) {
         LENS_WARN("json export asked for an unknown scope '{}'; nothing was written", scope.toStdString());
         return {};
     }
-    const QString text = QString::fromStdString(core::exportLemmasJson(storage_.statsStore().history(), which));
+    const QString text = exportJsonFor(*which);
     LENS_INFO("words json export for '{}': {} character(s) ready", scope.toStdString(), text.size());
     return text;
 }
 
 bool AppController::saveWords(QUrl path, QString scope)
 {
-    if (scope != QLatin1String("all") && scope != QLatin1String("known") && scope != QLatin1String("new")) {
+    const auto which = parseScope(scope);
+    if (not which) {
         LENS_WARN("words export asked for an unknown scope '{}'; nothing was written", scope.toStdString());
         return false;
     }
@@ -760,8 +718,7 @@ bool AppController::saveWords(QUrl path, QString scope)
         LENS_WARN("words export was given '{}', which names no local file", path.toString().toStdString());
         return false;
     }
-    const bool    json = local.endsWith(QLatin1String(".json"), Qt::CaseInsensitive);
-    const QString text = json ? exportWordsJson(scope) : exportWords(scope);
+    const QString text = isJsonPath(local) ? exportJsonFor(*which) : exportFor(*which);
     QSaveFile     file(local);
     if (!file.open(QIODevice::WriteOnly)) {
         LENS_WARN("words export could not open '{}' for writing", local.toStdString());
@@ -789,54 +746,28 @@ bool AppController::importWords(QUrl path)
         return false;
     }
     const QByteArray data = file.readAll();
-    const bool       json = local.endsWith(QLatin1String(".json"), Qt::CaseInsensitive);
 
-    std::vector<std::string> incoming;
-    if (json) {
-        const QJsonDocument doc = QJsonDocument::fromJson(data);
-        if (!doc.isArray()) {
-            LENS_WARN("words import: '{}' is not a JSON array", local.toStdString());
-            return false;
-        }
-        for (const QJsonValue& value : doc.array()) {
-            if (value.isString()) {
-                incoming.push_back(value.toString().trimmed().toStdString());
-            } else if (value.isObject()) {
-                const QString word = value.toObject().value(QStringLiteral("word")).toString();
-                if (!word.trimmed().isEmpty())
-                    incoming.push_back(word.trimmed().toStdString());
-            }
-        }
-    } else {
-        const QString text = QString::fromUtf8(data);
-        for (const QString& line : text.split(QLatin1Char('\n'))) {
-            const QString word = line.trimmed();
-            if (!word.isEmpty())
-                incoming.push_back(word.toStdString());
-        }
+    const auto incoming = importLemmas(data, isJsonPath(local));
+    if (not incoming) {
+        LENS_WARN("words import: '{}' is not a JSON array", local.toStdString());
+        return false;
     }
 
-    std::unordered_set<std::string> seen;
     std::unordered_set<std::string> existing;
     for (const auto& entry : storage_.statsStore().history())
         existing.insert(entry.lemma);
-    const QString now   = QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd HH:mm"));
-    int           added = 0;
-    for (const std::string& lemma : incoming) {
-        if (lemma.empty() || seen.count(lemma) || existing.count(lemma))
-            continue;
-        seen.insert(lemma);
-        storage_.statsStore().recordPop(lemma, now.toStdString());
-        storage_.statsStore().recordVerdict(lemma, now.toStdString(), "new");
-        existing.insert(lemma);
-        ++added;
+    const QString now  = QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd HH:mm"));
+    const auto    rows = importRows(*incoming, existing, now.toStdString());
+    for (const auto& row : rows) {
+        storage_.statsStore().recordPop(row.lemma, row.minute);
+        storage_.statsStore().recordVerdict(row.lemma, row.minute, row.verdict);
     }
     storage_.save();
-    if (added > 0) {
+    if (not rows.empty()) {
         emit statsChanged();
         emit yearDaysChanged();
     }
-    LENS_INFO("words import from '{}': {} word(s) added", local.toStdString(), added);
+    LENS_INFO("words import from '{}': {} word(s) added", local.toStdString(), rows.size());
     return true;
 }
 
