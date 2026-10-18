@@ -136,6 +136,8 @@ public:
     Q_INVOKABLE void setBubbleDismissSeconds(int seconds);
     /// @brief Store which side of the selection a bubble and the action bar try first: "above" or "below".
     Q_INVOKABLE void setBubblePlacement(QString placement);
+    /// @brief Store the action bar's form: "bar", "tab", "hand", "tag" or "fan" (UI.md 4.10).
+    Q_INVOKABLE void setSelectionBarStyle(QString style);
     Q_INVOKABLE void setModel(QString model);
     Q_INVOKABLE void setApiUrl(QString url);
     Q_INVOKABLE void setAutostart(bool on);

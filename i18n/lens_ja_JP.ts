@@ -4,37 +4,37 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="438"/>
+        <location filename="../src/app/qml/Bubble.qml" line="434"/>
         <source>Preview</source>
         <translation>プレビュー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="439"/>
+        <location filename="../src/app/qml/Bubble.qml" line="435"/>
         <source>Sentence</source>
         <translation>文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="440"/>
+        <location filename="../src/app/qml/Bubble.qml" line="436"/>
         <source>Known</source>
         <translation>覚えた</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="440"/>
+        <location filename="../src/app/qml/Bubble.qml" line="436"/>
         <source>New</source>
         <translation>初見</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="585"/>
+        <location filename="../src/app/qml/Bubble.qml" line="581"/>
         <source>Etymology</source>
         <translation>語源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="624"/>
+        <location filename="../src/app/qml/Bubble.qml" line="620"/>
         <source>Example</source>
         <translation>例文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="662"/>
+        <location filename="../src/app/qml/Bubble.qml" line="658"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒後に消えます</translation>
     </message>
@@ -134,58 +134,86 @@
 <context>
     <name>SelectionBar</name>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="158"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="54"/>
         <source>Translate</source>
         <translation>翻訳</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="159"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="55"/>
         <source>Explain</source>
         <translation>解説</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="160"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="56"/>
         <source>Copy text</source>
         <translation>テキストをコピー</translation>
     </message>
 </context>
 <context>
+    <name>SelectionBarPreview</name>
+    <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="75"/>
+        <source>The original flat bar</source>
+        <translation>元の横長バー</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="76"/>
+        <source>Stands at the selection&apos;s side</source>
+        <translation>選択範囲の脇に立つ</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="77"/>
+        <source>Spread above the selection</source>
+        <translation>選択範囲の上に広がる</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="78"/>
+        <source>Hangs from the selection on a string</source>
+        <translation>ひもで選択範囲から下がる</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="79"/>
+        <source>Opens above the selection</source>
+        <translation>選択範囲の上で開く</translation>
+    </message>
+</context>
+<context>
     <name>SettingsCapturePage</name>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="103"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="148"/>
         <source>Checking OCR</source>
         <translation>OCR を確認中</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="104"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="149"/>
         <source>English OCR data is missing</source>
         <translation>英語の OCR データがありません</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="105"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="150"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR ランタイムが利用できません</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="120"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="125"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="165"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="170"/>
         <source>Tesseract executable</source>
         <translation>Tesseract の実行ファイル</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="135"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="140"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="180"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="185"/>
         <source>Tesseract data folder</source>
         <translation>Tesseract のデータフォルダー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="151"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="196"/>
         <source>Minimum word length</source>
         <translation>最小語長</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="170"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="180"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="215"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="225"/>
         <source>Scan whitelist</source>
         <translation>スキャン対象プロセス</translation>
     </message>
@@ -205,46 +233,76 @@
         <translation>0 にすると上限を停止します。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="26"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="38"/>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="29"/>
         <source>Trigger channels</source>
         <translation>取得のきっかけ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="48"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="60"/>
         <source>Selection</source>
         <translation>選択</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="55"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="67"/>
         <location filename="../src/app/app_controller.cpp" line="323"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="63"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="75"/>
         <source>Auto scan</source>
         <translation>自動スキャン</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="77"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="91"/>
+        <source>Selection bar style</source>
+        <translation>アクションバーのスタイル</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="100"/>
+        <source>Classic bar</source>
+        <translation>クラシックバー</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="102"/>
+        <source>Side tab</source>
+        <translation>ページ端のしおり</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="104"/>
+        <source>Hand of cards</source>
+        <translation>手札</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="106"/>
+        <source>Hang tag</source>
+        <translation>吊り札</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="108"/>
+        <source>Fan</source>
+        <translation>扇面</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="122"/>
         <source>OCR trigger key</source>
         <translation>OCR の起動キー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="93"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="138"/>
         <location filename="../src/app/qml/SettingsPopup.qml" line="70"/>
         <source>Popup &amp; clipboard</source>
         <translation>ポップアップとクリップボード</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="95"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="140"/>
         <location filename="../src/app/qml/SettingsClipboardPage.qml" line="97"/>
         <source>Give up silently</source>
         <translation>黙って諦める</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="96"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="141"/>
         <location filename="../src/app/qml/SettingsClipboardPage.qml" line="97"/>
         <source>Raise to top</source>
         <translation>強制的に最前面</translation>
@@ -639,18 +697,18 @@
         <translation>保存しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="270"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="271"/>
         <source>Defaults restored</source>
         <translation>初期設定に戻しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="355"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="356"/>
         <location filename="../src/app/qml/ThemePreview.qml" line="102"/>
         <source>Settings</source>
         <translation>設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="470"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="471"/>
         <location filename="../src/app/qml/ThemePreview.qml" line="261"/>
         <source>Defaults</source>
         <translation>初期設定</translation>
@@ -1097,6 +1155,12 @@
         <translation>%1: %2</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="125"/>
+        <source>Selection bar</source>
+        <translation>アクションバー</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="134"/>
         <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="295"/>
         <location filename="../src/app/qml/VocabPreview.qml" line="122"/>
         <source>Preview</source>
@@ -1676,7 +1740,7 @@
     </message>
     <message>
         <location filename="../src/app/app_controller.cpp" line="309"/>
-        <location filename="../src/app/app_controller.cpp" line="579"/>
+        <location filename="../src/app/app_controller.cpp" line="589"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>本日の予算を使い切りました。</translation>
     </message>
@@ -1701,12 +1765,12 @@
         <translation>その範囲を読み取れませんでした。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="885"/>
+        <location filename="../src/app/app_controller.cpp" line="896"/>
         <source>Auto</source>
         <translation>自動</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="885"/>
+        <location filename="../src/app/app_controller.cpp" line="896"/>
         <source>Manual</source>
         <translation>手動</translation>
     </message>

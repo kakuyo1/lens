@@ -4,37 +4,37 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="440"/>
+        <location filename="../src/app/qml/Bubble.qml" line="436"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="440"/>
+        <location filename="../src/app/qml/Bubble.qml" line="436"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="439"/>
+        <location filename="../src/app/qml/Bubble.qml" line="435"/>
         <source>Sentence</source>
         <translation>句子</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="438"/>
+        <location filename="../src/app/qml/Bubble.qml" line="434"/>
         <source>Preview</source>
         <translation>预览</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="585"/>
+        <location filename="../src/app/qml/Bubble.qml" line="581"/>
         <source>Etymology</source>
         <translation>词源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="624"/>
+        <location filename="../src/app/qml/Bubble.qml" line="620"/>
         <source>Example</source>
         <translation>例句</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="662"/>
+        <location filename="../src/app/qml/Bubble.qml" line="658"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒后自动消失</translation>
     </message>
@@ -134,58 +134,86 @@
 <context>
     <name>SelectionBar</name>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="158"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="54"/>
         <source>Translate</source>
         <translation>翻译</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="159"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="55"/>
         <source>Explain</source>
         <translation>解释</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="160"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="56"/>
         <source>Copy text</source>
         <translation>复制文本</translation>
     </message>
 </context>
 <context>
+    <name>SelectionBarPreview</name>
+    <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="75"/>
+        <source>The original flat bar</source>
+        <translation>原来那条横向长条</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="76"/>
+        <source>Stands at the selection&apos;s side</source>
+        <translation>立在选区侧边</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="77"/>
+        <source>Spread above the selection</source>
+        <translation>在选区上方摊开</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="78"/>
+        <source>Hangs from the selection on a string</source>
+        <translation>用细线挂在选区下方</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="79"/>
+        <source>Opens above the selection</source>
+        <translation>在选区上方展开</translation>
+    </message>
+</context>
+<context>
     <name>SettingsCapturePage</name>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="103"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="148"/>
         <source>Checking OCR</source>
         <translation>正在检查 OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="104"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="149"/>
         <source>English OCR data is missing</source>
         <translation>缺少英文 OCR 数据</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="105"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="150"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR 运行时不可用</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="120"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="125"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="165"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="170"/>
         <source>Tesseract executable</source>
         <translation>Tesseract 可执行文件</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="135"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="140"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="180"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="185"/>
         <source>Tesseract data folder</source>
         <translation>Tesseract 数据目录</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="151"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="196"/>
         <source>Minimum word length</source>
         <translation>最小词长</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="170"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="180"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="215"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="225"/>
         <source>Scan whitelist</source>
         <translation>扫描白名单</translation>
     </message>
@@ -198,12 +226,12 @@
         <translation>已保存</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="270"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="271"/>
         <source>Defaults restored</source>
         <translation>已恢复默认</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="355"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="356"/>
         <location filename="../src/app/qml/ThemePreview.qml" line="102"/>
         <source>Settings</source>
         <translation>设置</translation>
@@ -440,52 +468,82 @@
         <translation>Windows 辅助功能设置已关闭动画效果。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="96"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="141"/>
         <location filename="../src/app/qml/SettingsClipboardPage.qml" line="97"/>
         <source>Raise to top</source>
         <translation>强制置顶</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="95"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="140"/>
         <location filename="../src/app/qml/SettingsClipboardPage.qml" line="97"/>
         <source>Give up silently</source>
         <translation>静默放弃</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="470"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="471"/>
         <location filename="../src/app/qml/ThemePreview.qml" line="261"/>
         <source>Defaults</source>
         <translation>恢复默认</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="26"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="38"/>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="29"/>
         <source>Trigger channels</source>
         <translation>触发通道</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="48"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="60"/>
         <source>Selection</source>
         <translation>选区取词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="55"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="67"/>
         <location filename="../src/app/app_controller.cpp" line="323"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="63"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="75"/>
         <source>Auto scan</source>
         <translation>自动扫描</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="77"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="91"/>
+        <source>Selection bar style</source>
+        <translation>动作条样式</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="100"/>
+        <source>Classic bar</source>
+        <translation>经典长条</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="102"/>
+        <source>Side tab</source>
+        <translation>页边签</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="104"/>
+        <source>Hand of cards</source>
+        <translation>手牌签</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="106"/>
+        <source>Hang tag</source>
+        <translation>吊牌签</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="108"/>
+        <source>Fan</source>
+        <translation>扇面</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="122"/>
         <source>OCR trigger key</source>
         <translation>OCR 触发热键</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="93"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="138"/>
         <location filename="../src/app/qml/SettingsPopup.qml" line="70"/>
         <source>Popup &amp; clipboard</source>
         <translation>弹窗与剪贴板</translation>
@@ -1078,6 +1136,12 @@
         <translation>%1：%2</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="125"/>
+        <source>Selection bar</source>
+        <translation>动作条</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SelectionBarPreview.qml" line="134"/>
         <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="295"/>
         <location filename="../src/app/qml/VocabPreview.qml" line="122"/>
         <source>Preview</source>
@@ -1727,7 +1791,7 @@
     </message>
     <message>
         <location filename="../src/app/app_controller.cpp" line="309"/>
-        <location filename="../src/app/app_controller.cpp" line="579"/>
+        <location filename="../src/app/app_controller.cpp" line="589"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>今日预算已用尽。</translation>
     </message>
@@ -1752,12 +1816,12 @@
         <translation>所选区域无法识别。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="885"/>
+        <location filename="../src/app/app_controller.cpp" line="896"/>
         <source>Auto</source>
         <translation>自动模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="885"/>
+        <location filename="../src/app/app_controller.cpp" line="896"/>
         <source>Manual</source>
         <translation>手动模式</translation>
     </message>

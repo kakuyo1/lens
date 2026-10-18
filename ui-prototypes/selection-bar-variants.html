@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · 选区动作条 · 表现形式</title>
+<style>
+:root{
+  --bg:#e9ebef; --panel:#fff; --panel2:#f1f3f7; --line:#d6dae1; --line2:#e6e9ee;
+  --text:#1a1a1f; --muted:#66666f; --faint:#9d9da8;
+  --ink:#1a1a1f; --on:#fff; --sel:rgba(26,26,31,.16);
+  --r-bar:13px; --r-item:9px;
+  --sh2:0 2px 6px rgba(20,20,26,.06),0 24px 60px -24px rgba(20,20,26,.24);
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+  --read:"Charter","Iowan Old Style","Sitka Text",Georgia,serif;
+  --stage:var(--panel);
+  --glass-blur:6px; --glass-sat:120%; --glass-rim:.2;
+  --chrome-text:#1a1a1f; --chrome-muted:#66666f; --chrome-faint:#9d9da8;
+  --chrome-chip:var(--panel2); --chrome-chip-line:var(--line);
+}
+html[data-theme=dark]{
+  --bg:#0b0e13; --panel:#171c25; --panel2:#212936; --line:#36404e; --line2:#242b37;
+  --text:#e9edf3; --muted:#a8b3c2; --faint:#8a95a6;
+  --ink:#eef3fa; --on:#0c1016; --sel:rgba(233,237,243,.16);
+  --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
+  --chrome-text:#e9edf3; --chrome-muted:#a8b3c2; --chrome-faint:#8a95a6;
+  /* The bar's card is panel; a panel-coloured stage would swallow it. */
+  --stage:var(--bg);
+}
+html[data-theme=frosted],html[data-theme=liquid]{
+  --bg:transparent; --stage:transparent;
+  /* 这张对照稿借同一张浅色底图，把四种形态放在可读的页面上；
+     玻璃本身的参数仍以 selection-bar.html 的底图为准。 */
+  --wall:url("frosted-backdrops/sky-light.png");
+  --chrome-muted:#303845; --chrome-faint:#48505c;
+  --chrome-chip:rgba(255,255,255,.34); --chrome-chip-line:rgba(255,255,255,.58);
+  background:var(--wall) center / cover fixed no-repeat;
+}
+html[data-theme=frosted] .reader,html[data-theme=liquid] .reader{
+  max-width:584px; padding:18px 22px; border:1px solid rgba(255,255,255,.55); border-radius:14px;
+  background:rgba(255,255,255,.84); box-shadow:0 2px 14px rgba(20,30,50,.10);
+}
+html[data-theme=frosted]{
+  --panel:rgba(255,255,255,.40); --panel2:rgba(18,24,36,.065);
+  --line:rgba(18,24,36,.15); --line2:rgba(18,24,36,.10);
+  --text:#14161c; --muted:#3c4250; --faint:#535865;
+  --ink:#191b21; --on:#fff;
+  --sh2:0 4px 14px rgb(255 255 255/5.5%);
+}
+html[data-theme=liquid]{
+  --panel:rgba(248,250,254,.78); --panel2:rgba(18,24,36,.075);
+  --line:rgba(18,24,36,.16); --line2:rgba(18,24,36,.11);
+  --text:#101319; --muted:#333846; --faint:#4a4f5e;
+  --ink:#12151b; --on:#fff;
+  --sh2:0 1px 2px rgba(10,14,24,.14),0 22px 54px -20px rgba(10,14,24,.48);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--f);color:var(--chrome-text);background:var(--bg);min-height:100vh}
+::selection{background:var(--sel)}
+button{font:inherit;color:inherit}
+
+.wrap{width:min(1180px,calc(100vw - 96px));margin-inline:auto}
+header{padding:48px 0 26px}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.wordmark{font-size:12.5px;font-weight:650;letter-spacing:.01em}
+.wordmark span{color:var(--chrome-muted);font-weight:500;margin-left:9px}
+.controls{display:flex;align-items:center;gap:8px}
+.langs{display:flex;align-items:center;padding:2px;border:1px solid var(--line);border-radius:999px;background:var(--panel);backdrop-filter:blur(10px)}
+.langs button{min-width:29px;height:23px;padding:0 7px;border:0;border-radius:999px;background:transparent;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:background-color .15s,color .15s}
+.langs button:hover{color:var(--text)}
+.langs button[aria-pressed=true]{background:var(--ink);color:var(--on)}
+.themebtn{padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--muted);font-size:11.5px;cursor:pointer;backdrop-filter:blur(10px)}
+.themebtn:hover{color:var(--text)}
+h1{max-width:760px;margin-top:54px;font-size:clamp(38px,4.6vw,58px);line-height:1.04;letter-spacing:-.035em;font-weight:650}
+.lede{max-width:650px;margin-top:20px;font-size:15px;line-height:1.75;color:var(--chrome-muted)}
+.jump{display:flex;flex-wrap:wrap;gap:6px;margin-top:18px}
+.jump a{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--chrome-muted);font-size:11px;text-decoration:none;transition:border-color .15s,color .15s}
+.jump a b{color:var(--chrome-text);font-weight:700}
+.jump a:hover{border-color:var(--muted);color:var(--chrome-text)}
+
+main{padding-bottom:26px}
+.spec{display:grid;grid-template-columns:272px minmax(0,1fr);gap:52px;align-items:start;padding:38px 0 54px;scroll-margin-top:16px}
+.meta .kicker{display:flex;align-items:center;gap:10px}
+.letter{width:23px;height:23px;display:grid;place-items:center;border:1px solid var(--chrome-chip-line);border-radius:7px;background:var(--chrome-chip);color:var(--chrome-muted);font-size:11px;font-weight:700;flex:none}
+h2{font-size:18px;font-weight:650;letter-spacing:-.01em}
+.idea{margin-top:12px;font-size:13.5px;line-height:1.7;color:var(--chrome-muted)}
+.notes{display:grid;grid-template-columns:42px minmax(0,1fr);gap:8px 10px;margin-top:22px}
+.notes dt{font-size:11px;line-height:1.65;color:var(--chrome-faint)}
+.notes dd{font-size:12.5px;line-height:1.65;color:var(--chrome-muted)}
+
+.stage{position:relative;min-height:300px;padding:112px 32px 42px;border-radius:18px;background:var(--stage)}
+.stage[data-stage="H"]{min-height:360px}
+.stage[data-stage="F"]{padding-top:200px;min-height:440px}
+.reader{max-width:540px}
+.sample{font-family:var(--read);font-size:16.5px;line-height:1.75;letter-spacing:.002em;color:var(--chrome-muted)}
+.sample + .sample{margin-top:11px;font-size:15px;color:var(--chrome-faint)}
+.sel{background:var(--sel);border-radius:3px;color:var(--chrome-text);-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.sel.quiet{background:transparent;color:inherit;box-shadow:none}
+.status{position:absolute;right:24px;bottom:14px;display:flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;background:var(--ink);color:var(--on);font-size:11px;font-weight:600;opacity:0;transform:translateY(3px);transition:opacity .18s,transform .18s;pointer-events:none}
+.status.show{opacity:1;transform:none}
+.status svg{width:12px;height:12px;flex:none}
+
+/* ——— the bar itself ——— */
+.bar{position:absolute;z-index:5;display:flex;align-items:center;opacity:0;pointer-events:none;user-select:none;-webkit-user-select:none;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r-bar);box-shadow:var(--sh2)}
+.bar.on{opacity:1;pointer-events:auto;animation:barIn .22s cubic-bezier(.2,.8,.25,1) backwards}
+.bar:not(.on) .act,.bar:not(.on) .slot,.bar:not(.on) .blade{visibility:hidden}
+@keyframes barIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.act{display:flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid transparent;border-radius:var(--r-item);background:transparent;color:var(--text);font-size:12.5px;font-weight:600;white-space:nowrap;cursor:pointer;transition:background-color .15s,color .15s,transform .15s,border-color .15s}
+.act svg{width:15px;height:15px;color:var(--muted);flex:none;transition:color .15s}
+.act:hover{background:var(--panel2)}
+.act:active{transform:scale(.97)}
+.act:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.act .label{display:block}
+
+/* A · 页边签 */
+.bar-a{flex-direction:column;align-items:stretch;gap:2px;padding:5px 6px 5px 9px}
+.bar-a .spine{position:absolute;left:4px;top:9px;bottom:9px;width:1px;background:var(--line)}
+.bar-a.side-left .spine{left:auto;right:4px}
+.bar-a .act{justify-content:flex-start;padding:7px 10px;border-radius:8px}
+.bar-a .act:hover{transform:translateX(2px)}
+.bar-a .fold{position:absolute;right:1px;bottom:1px;width:0;height:0;border-left:9px solid transparent;border-bottom:9px solid var(--panel2);pointer-events:none}
+.bar-a.side-left .fold{right:auto;left:1px;border-left:0;border-right:9px solid transparent}
+.bar-a.on .act{animation:tabIn .3s cubic-bezier(.2,.8,.25,1) backwards}
+.bar-a.on .act:nth-child(2){animation-delay:.02s}
+.bar-a.on .act:nth-child(3){animation-delay:.06s}
+.bar-a.on .act:nth-child(4){animation-delay:.1s}
+@keyframes tabIn{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
+
+/* E · 手牌签 */
+.bar-e{padding:4px 0 6px;border-radius:0;background:transparent;border-color:transparent;box-shadow:none;backdrop-filter:none}
+.bar-e .hand{display:flex;align-items:center}
+.bar-e .slot{position:relative;width:84px;height:64px;padding:0;border:0;background:none;cursor:pointer}
+.bar-e .slot + .slot{margin-left:-7px}
+.bar-e .slot:nth-of-type(1){z-index:1}
+.bar-e .slot:nth-of-type(2){z-index:3}
+.bar-e .slot:nth-of-type(3){z-index:2}
+.bar-e .face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:6px 5px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);box-shadow:0 2px 8px rgba(20,20,26,.08);transform:rotate(var(--rot,0deg)) translateY(var(--dy,0px));transform-origin:50% 75%;transition:transform .2s cubic-bezier(.2,.8,.25,1),background-color .15s,border-color .15s}
+.bar-e .slot:nth-of-type(1) .face{--rot:-6deg;--dy:2px;--deal-x:34px}
+.bar-e .slot:nth-of-type(2) .face{--rot:0deg;--dy:-2px;--deal-x:0px}
+.bar-e .slot:nth-of-type(3) .face{--rot:6deg;--dy:2px;--deal-x:-34px}
+.bar-e .slot:hover,.bar-e .slot:focus-visible{z-index:5}
+.bar-e .slot:hover .face,.bar-e .slot:focus-visible .face{transform:rotate(0deg) translateY(-6px) scale(1.035);background:var(--panel);border-color:var(--muted)}
+.bar-e .slot:active .face{transform:rotate(0deg) translateY(0) scale(.985)}
+.bar-e .slot:focus-visible{outline:none}
+.bar-e .slot:focus-visible .face{outline:2px solid var(--text);outline-offset:2px}
+.bar-e .face svg{width:15px;height:15px;color:var(--muted);flex:none}
+.bar-e .face .label{font-size:11px;line-height:1.25;font-weight:600;color:var(--text);text-align:center;white-space:normal}
+
+/* H · 吊牌签 */
+.bar-h{--tilt:1.4deg;padding:6px 8px 6px 31px;border-radius:12px;transform:rotate(var(--tilt));transform-origin:15px 11px;transition:transform .24s cubic-bezier(.2,.8,.25,1)}
+.bar-h:hover{transform:rotate(calc(var(--tilt) * .3))}
+.bar-h .string{position:absolute;left:14.5px;top:-16px;width:1.5px;height:26px;background:var(--muted);pointer-events:none}
+.bar-h .string::before{content:"";position:absolute;left:-1.5px;top:-2px;width:4.5px;height:4.5px;border-radius:50%;background:var(--muted)}
+.bar-h .hole{position:absolute;left:8px;top:4px;width:14px;height:14px;border:2px solid var(--line);border-radius:50%;background:var(--panel);pointer-events:none}
+.bar-h .hole::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--panel2)}
+.bar-h.above{--tilt:-1.4deg}
+.bar-h.above .string{top:auto;bottom:-16px}
+.bar-h.above .string::before{top:auto;bottom:-2px}
+.bar-h.above .hole{top:auto;bottom:4px}
+.bar-h .act{padding:7px 9px;border-radius:8px}
+
+/* F · 扇面 */
+.bar-f{display:block;width:260px;height:170px;padding:0;border-color:transparent;background:transparent;box-shadow:none;backdrop-filter:none;filter:drop-shadow(0 2px 6px rgba(20,20,26,.10)) drop-shadow(0 0 .8px var(--line));transform-origin:50% 88%}
+.bar-f .blade{position:absolute;inset:0;padding:0;border:0;background:var(--panel2);cursor:pointer;transition:background-color .15s;z-index:1}
+.bar-f .blade-l{clip-path:polygon(130px 150px,10px 87px,78px 26px);--close:-40deg}
+.bar-f .blade-c{clip-path:polygon(130px 150px,78px 26px,182px 26px);background:var(--panel);z-index:2;--close:0deg}
+.bar-f .blade-r{clip-path:polygon(130px 150px,182px 26px,250px 87px);--close:40deg}
+html[data-theme=light] .bar-f .blade-l,html[data-theme=light] .bar-f .blade-r{background:var(--bg)}
+html[data-theme=light] .bar-f .blade-l:hover,html[data-theme=light] .bar-f .blade-r:hover{background:var(--panel)}
+html[data-theme=light] .bar-f .blade-c:hover{background:var(--panel2)}
+.bar-f .blade:hover{background:var(--panel)}
+.bar-f .blade:active{filter:brightness(.96)}
+.bar-f .blade:focus-visible{outline:none;background:var(--panel)}
+.bar-f .blade-face{position:absolute;display:flex;flex-direction:column;align-items:center;gap:5px;width:66px;transform:translate(-50%,-50%);pointer-events:none;text-align:center}
+.bar-f .blade-l .blade-face{left:62px;top:80px}
+.bar-f .blade-c .blade-face{left:130px;top:76px;width:54px}
+.bar-f .blade-r .blade-face{left:198px;top:80px}
+.bar-f .blade-face svg{width:16px;height:16px;color:var(--muted)}
+.bar-f .blade-face .label{font-size:11.5px;line-height:1.2;color:var(--text)}
+.bar-f .fan-edge{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
+.bar-f .fan-edge path{fill:none;stroke:var(--line);stroke-width:1}
+.bar-f .blade:hover .blade-face{transform:translate(-50%,-50%) translateY(-2px)}
+.bar-f .handle{position:absolute;left:50%;bottom:-4px;width:8px;height:18px;border-radius:4px;background:var(--line);transform:translateX(-50%);z-index:3;pointer-events:none}
+.bar-f .rivet{position:absolute;left:50%;bottom:13px;width:11px;height:11px;border:1px solid var(--line);border-radius:50%;background:var(--panel);transform:translateX(-50%);z-index:4;pointer-events:none}
+.bar-f.on{animation:fanIn .72s cubic-bezier(.2,.8,.25,1) backwards}
+@keyframes fanIn{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+
+/* Glass themes. The base bar already fills with var(--panel) and carries --sh2. */
+html[data-theme=frosted] .bar{border-color:rgba(255,255,255,var(--glass-rim));backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat))}
+/* 真实的流光玻璃本体是透明的；对照稿在平底图上补一层淡底，否则卡片的轮廓会消失。 */
+html[data-theme=liquid] .bar{background:rgba(248,250,254,.34);border-color:rgba(255,255,255,.38);backdrop-filter:blur(var(--glass-blur)) contrast(1.05)}
+/* E is just the three cards; no card behind the hand. */
+html[data-theme=frosted] .bar-e,html[data-theme=liquid] .bar-e,
+html[data-theme=frosted] .bar-f,html[data-theme=liquid] .bar-f{background:transparent;border-color:transparent;box-shadow:none;backdrop-filter:none}
+
+/* Entrances */
+.bar-e.on .face{animation:deal .42s cubic-bezier(.2,.8,.25,1) backwards}
+.bar-e.on .slot:nth-of-type(1) .face{animation-delay:.02s}
+.bar-e.on .slot:nth-of-type(3) .face{animation-delay:.06s}
+@keyframes deal{from{opacity:0;transform:translateX(var(--deal-x,0)) rotate(0deg) translateY(10px) scale(.9)}to{opacity:1;transform:translateX(0) rotate(var(--rot)) translateY(var(--dy))}}
+.bar-h.on{animation:tagIn .8s cubic-bezier(.22,.8,.3,1) backwards}
+@keyframes tagIn{
+  0%{opacity:0;transform:rotate(calc(var(--tilt) - 10.4deg)) translateY(5px)}
+  25%{opacity:1;transform:rotate(calc(var(--tilt) + 1.8deg)) translateY(0)}
+  50%{transform:rotate(calc(var(--tilt) - 2.4deg))}
+  72%{transform:rotate(calc(var(--tilt) + .6deg))}
+  100%{opacity:1;transform:rotate(var(--tilt))}
+}
+
+footer{padding:22px 0 54px;color:var(--chrome-faint);font-size:11.5px;line-height:1.7}
+footer p{max-width:760px}
+
+@media (max-width:1040px){
+  .spec{grid-template-columns:224px minmax(0,1fr);gap:34px}
+  .stage{padding-left:26px;padding-right:26px}
+}
+@media (max-width:900px){
+  .wrap{width:calc(100vw - 48px)}
+  header{padding-top:34px}
+  h1{margin-top:40px}
+  .spec{grid-template-columns:1fr;gap:24px;padding:30px 0 46px}
+  .meta{max-width:560px}
+  .stage{padding:104px 24px 40px}
+}
+@media (max-width:600px){
+  .wrap{width:calc(100vw - 32px)}
+  .topline{align-items:flex-start}
+  h1{margin-top:32px;font-size:34px}
+  .lede{font-size:14px}
+  .stage{padding:96px 18px 38px;min-height:280px}
+  .stage[data-stage="H"]{min-height:340px}
+  .sample{font-size:15.5px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <div class="topline">
+    <div class="wordmark">Lens <span>选区动作条</span></div>
+    <div class="controls">
+      <div class="langs" role="group" aria-label="界面语言">
+        <button type="button" data-lang="zh" aria-pressed="true">中</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+        <button type="button" data-lang="ja" aria-pressed="false">日</button>
+        <button type="button" data-lang="es" aria-pressed="false">ES</button>
+      </div>
+      <button class="themebtn" id="tb" type="button">晴朗白昼</button>
+    </div>
+  </div>
+  <h1>动作条，还能是什么样</h1>
+  <p class="lede">A 页边签、E 手牌签、H 吊牌签留下；再加一个 F 扇面，把同三个动作摆成别的东西。每条进入视野时出场，滚回去会重播；点一下，看它自己的按法。</p>
+  <nav class="jump" aria-label="方案索引">
+    <a href="#v-A"><b>A</b>页边签</a>
+    <a href="#v-E"><b>E</b>手牌签</a>
+    <a href="#v-H"><b>H</b>吊牌签</a>
+    <a href="#v-F"><b>F</b>扇面</a>
+  </nav>
+</header>
+
+<main class="wrap">
+  <section class="spec" id="v-A" data-variant="A">
+    <div class="meta">
+      <div class="kicker"><span class="letter">A</span><h2>页边签</h2></div>
+      <p class="idea">动作条从选区的页边探出来，像夹在段落旁的三枚书签。</p>
+      <dl class="notes">
+        <dt>适合</dt><dd>单行选区；不想让长条压住正在读的上下两行。</dd>
+        <dt>代价</dt><dd>三行的高度会压住相邻两行；窄窗口里更显眼，右侧放不下时要翻到左边。</dd>
+        <dt>落点</dt><dd>贴选区右侧 10 px；右侧放不下时翻到左侧。</dd>
+      </dl>
+    </div>
+    <div class="stage" data-stage="A">
+      <div class="reader">
+        <p class="sample">She gave a candid answer to a question she had been dreading for weeks, and nobody in the room <span class="sel">expected it</span>.</p>
+        <p class="sample">The room stayed quiet. She had rehearsed a careful answer for weeks, and the truth arrived in one sentence.</p>
+      </div>
+      <div class="bar bar-a" data-bar="A"></div>
+      <span class="status" aria-live="polite"></span>
+    </div>
+  </section>
+
+  <section class="spec" id="v-E" data-variant="E">
+    <div class="meta">
+      <div class="kicker"><span class="letter">E</span><h2>手牌签</h2></div>
+      <p class="idea">三张牌从选区上方摊开，指到哪张，哪张就立起来。</p>
+      <dl class="notes">
+        <dt>适合</dt><dd>想让动作条有一点性格；三项都是大靶子，斜着也认得出。</dd>
+        <dt>代价</dt><dd>牌面只能放小字，日语的长标签要折两行；整体比现在更高。</dd>
+        <dt>落点</dt><dd>以选区中点为轴摊在选区上方，左右夹进舞台。</dd>
+      </dl>
+    </div>
+    <div class="stage" data-stage="E">
+      <div class="reader">
+        <p class="sample">She gave a <span class="sel">candid</span> answer to a question she had been dreading for weeks, and nobody in the room expected it.</p>
+        <p class="sample">The room stayed quiet. She had rehearsed a careful answer for weeks, and the truth arrived in one sentence.</p>
+      </div>
+      <div class="bar bar-e" data-bar="E"></div>
+      <span class="status" aria-live="polite"></span>
+    </div>
+  </section>
+
+  <section class="spec" id="v-H" data-variant="H">
+    <div class="meta">
+      <div class="kicker"><span class="letter">H</span><h2>吊牌签</h2></div>
+      <p class="idea">动作条像一枚挂在选区边上的吊牌，用一根细线系着，风一吹会轻摆。</p>
+      <dl class="notes">
+        <dt>适合</dt><dd>想让它和选区的关系看得见；下方有空位时最像吊牌。</dd>
+        <dt>代价</dt><dd>绳子要留 16 px，垂在下一行上；下方放不下时只能翻到上方。</dd>
+        <dt>落点</dt><dd>从选区左下角垂下来，孔位对齐选区；下方不够时翻到上方。</dd>
+      </dl>
+    </div>
+    <div class="stage" data-stage="H">
+      <div class="reader">
+        <p class="sample">She gave a candid answer to a question she had been dreading for weeks, and nobody in the room expected it.</p>
+        <p class="sample">The room stayed quiet. She had rehearsed a careful answer for weeks, and the truth arrived in <span class="sel">one sentence</span>.</p>
+      </div>
+      <div class="bar bar-h" data-bar="H"></div>
+      <span class="status" aria-live="polite"></span>
+    </div>
+  </section>
+
+  <section class="spec" id="v-F" data-variant="F">
+    <div class="meta">
+      <div class="kicker"><span class="letter">F</span><h2>扇面</h2></div>
+      <p class="idea">三片扇骨合成一把扇子，按哪片，扇子就合到哪边再打开。</p>
+      <dl class="notes">
+        <dt>适合</dt><dd>想要一个真正的扇形轮廓；三个动作等权。</dd>
+        <dt>代价</dt><dd>扇骨把面板切成斜的三角形，扇形张开比普通长条高，也更占上方空间。</dd>
+        <dt>落点</dt><dd>以选区中点为轴展开在选区上方；左右夹进舞台。</dd>
+      </dl>
+    </div>
+    <div class="stage" data-stage="F">
+      <div class="reader">
+        <p class="sample">She gave a <span class="sel">candid</span> answer to a question she had been dreading for weeks, and nobody in the room expected it.</p>
+        <p class="sample">The room stayed quiet. She had rehearsed a careful answer for weeks, and the truth arrived in one sentence.</p>
+      </div>
+      <div class="bar bar-f" data-bar="F"></div>
+      <span class="status" aria-live="polite"></span>
+    </div>
+  </section>
+
+</main>
+
+<footer class="wrap">
+  <p>设计对照稿：四种备选形态已按这张稿落成 QML，动作条样式成为设置里的一项（见 `UI.md` 4.10 与 `docs/adr/0056`）；原来的横向长条仍是默认。这张页留着核对四种备选的轮廓、出场与按压，以及四种语言下的字宽。</p>
+</footer>
+
+<script>
+const L = {
+  en: { translate: "Translate", explain: "Explain", copy: "Copy text", themeDark: "Dark", themeLight: "Light", themeFrosted: "Frosted glass", themeLiquid: "Liquid glass" },
+  zh: { translate: "翻译", explain: "解释", copy: "复制文本", themeDark: "静谧暗夜", themeLight: "晴朗白昼", themeFrosted: "雾面玻璃", themeLiquid: "流光玻璃" },
+  ja: { translate: "翻訳", explain: "解説", copy: "テキストをコピー", themeDark: "ダーク", themeLight: "ライト", themeFrosted: "すりガラス", themeLiquid: "リキッドガラス" },
+  es: { translate: "Traducir", explain: "Explicar", copy: "Copiar texto", themeDark: "Oscuro", themeLight: "Claro", themeFrosted: "Vidrio mate", themeLiquid: "Vidrio líquido" }
+};
+const THEME_LABEL = { light: "themeLight", dark: "themeDark", frosted: "themeFrosted", liquid: "themeLiquid" };
+const ICON = {
+  translate: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5.5h9"/><path d="M7.5 3.5v2"/><path d="M10.5 5.5c0 4-2.6 7.4-6.5 8.9"/><path d="M5 9.6c1.2 2.3 3.1 4.1 5.3 5.1"/><path d="M12.6 20.5l3.7-9 3.7 9"/><path d="M14 17.4h4.6"/></svg>',
+  explain: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.6C10.4 5.2 8.3 4.5 5.5 4.5H4v13h1.5c2.8 0 4.9.7 6.5 2.1"/><path d="M12 6.6c1.6-1.4 3.7-2.1 6.5-2.1H20v13h-1.5c-2.8 0-4.9.7-6.5 2.1"/><path d="M12 6.6v13"/></svg>',
+  copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M15 5.5V5a1.5 1.5 0 0 0-1.5-1.5H5A1.5 1.5 0 0 0 3.5 5v8.5A1.5 1.5 0 0 0 5 15h.5"/></svg>'
+};
+const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l4.6 4.5 10-10"/></svg>';
+
+function button(id, extra = "") {
+  return `<button type="button" class="act ${extra}" data-action="${id}">${ICON[id]}<span class="label" data-l="${id}"></span></button>`;
+}
+function slot(id) {
+  return `<button type="button" class="slot" data-action="${id}"><span class="face">${ICON[id]}<span class="label" data-l="${id}"></span></span></button>`;
+}
+function wedge(id, cls) {
+  return `<button type="button" class="blade ${cls}" data-action="${id}"><span class="blade-face">${ICON[id]}<span class="label" data-l="${id}"></span></span></button>`;
+}
+
+const barMarkup = {
+  A: `<span class="spine" aria-hidden="true"></span>${button("translate")}${button("explain")}${button("copy")}<span class="fold" aria-hidden="true"></span>`,
+  E: `<div class="hand">${slot("translate")}${slot("explain")}${slot("copy")}</div>`,
+  H: `<span class="string" aria-hidden="true"></span><span class="hole" aria-hidden="true"></span>${button("translate")}${button("explain")}${button("copy")}`,
+  F: `${wedge("translate", "blade-l")}${wedge("explain", "blade-c")}${wedge("copy", "blade-r")}<svg class="fan-edge" viewBox="0 0 260 170" aria-hidden="true"><path d="M130 150 L10 87 L78 26 L182 26 L250 87 Z"/><path class="fan-div" d="M130 150 L78 26 M130 150 L182 26"/></svg><span class="rivet" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span>`
+};
+document.querySelectorAll("[data-bar]").forEach((bar) => { bar.innerHTML = barMarkup[bar.dataset.bar]; });
+
+const params = new URLSearchParams(location.search);
+const askedLang = (params.get("lang") || "zh").toLowerCase();
+const LANG = askedLang.startsWith("zh") ? "zh" : (L[askedLang] ? askedLang : "zh");
+const THEMES = ["light", "dark", "frosted", "liquid"];
+const root = document.documentElement;
+const themeBtn = document.getElementById("tb");
+let t = L[LANG];
+let theme = THEMES.includes(params.get("theme")) ? params.get("theme") : "light";
+
+if (params.has("shot")) {
+  document.querySelector(".controls").style.display = "none";
+}
+if (["A", "E", "H", "F"].includes(params.get("v"))) {
+  document.querySelectorAll(".spec").forEach((s) => {
+    if (s.dataset.variant !== params.get("v")) s.style.display = "none";
+  });
+}
+
+function clamp(v, lo, hi) {
+  return Math.max(lo, Math.min(v, hi));
+}
+
+function setLang(lang) {
+  t = L[lang];
+  root.lang = { en: "en", zh: "zh-CN", ja: "ja", es: "es" }[lang];
+  document.querySelectorAll("[data-l]").forEach((el) => { el.textContent = t[el.dataset.l]; });
+  document.querySelectorAll("[data-lang]").forEach((b) => {
+    b.setAttribute("aria-pressed", String(b.dataset.lang === lang));
+  });
+  themeBtn.textContent = t[THEME_LABEL[root.dataset.theme || "light"]];
+  layoutAll();
+}
+
+function applyTheme(v) {
+  root.dataset.theme = v;
+  theme = v;
+  themeBtn.textContent = t[THEME_LABEL[v]];
+  // The glass reader is wider than the flat one (it grows a paper margin), so a custom
+  // selection's stored rect would go stale. Fall back to the stage's sample selection.
+  document.querySelectorAll("[data-stage]").forEach((s) => { delete s._selRect; });
+  requestAnimationFrame(layoutAll);
+}
+themeBtn.addEventListener("click", () => {
+  applyTheme(THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length]);
+});
+document.querySelectorAll("[data-lang]").forEach((b) => {
+  b.addEventListener("click", () => setLang(b.dataset.lang));
+});
+
+function stageRect(stage) {
+  const sr = stage.getBoundingClientRect();
+  return (r) => ({
+    left: r.left - sr.left,
+    top: r.top - sr.top,
+    right: r.right - sr.left,
+    bottom: r.bottom - sr.top,
+    width: r.width
+  });
+}
+
+function place(stage) {
+  const bar = stage.querySelector("[data-bar]");
+  if (!bar) return;
+  const toLocal = stageRect(stage);
+  const fallback = stage.querySelector(".sel");
+  const rect = stage._selRect || toLocal(fallback.getBoundingClientRect());
+  const lo = 10, hiX = stage.clientWidth - 10, hiY = stage.clientHeight - 10;
+  const w = bar.offsetWidth, h = bar.offsetHeight;
+  const v = bar.dataset.bar;
+  let left = rect.left;
+  let top = rect.top;
+
+  if (v === "A") {
+    let sideLeft = false;
+    left = rect.right + 10;
+    if (left + w > hiX) { left = rect.left - w - 10; sideLeft = true; }
+    if (left < lo) left = clamp(left, lo, Math.max(lo, hiX - w));
+    if (left + w > hiX) left = hiX - w;
+    top = rect.top - 2;
+    top = clamp(top, 8, Math.max(8, hiY - h));
+    bar.classList.toggle("side-left", sideLeft);
+  } else if (v === "E" || v === "F") {
+    left = clamp(rect.left + rect.width / 2 - w / 2, lo, Math.max(lo, hiX - w));
+    top = rect.top - h - 8;
+    if (top < 8) top = rect.bottom + 8;
+    top = clamp(top, 8, Math.max(8, hiY - h));
+  } else if (v === "H") {
+    // The tag hangs from a 16 px string; its grommet (15 px from the left edge) sits under
+    // the selection's left edge. With no room below, the tag flips above and both the
+    // grommet and the string move to its bottom edge.
+    let above = false;
+    left = clamp(rect.left + 14 - 15, lo, Math.max(lo, hiX - w));
+    top = rect.bottom + 16;
+    if (top + h > hiY) { top = rect.top - h - 16; above = true; }
+    top = clamp(top, 8, Math.max(8, hiY - h));
+    bar.classList.toggle("above", above);
+  } else {
+    left = clamp(rect.left, lo, Math.max(lo, hiX - w));
+    top = rect.top - h - 8;
+    if (top < 8) top = rect.bottom + 8;
+    top = clamp(top, 8, Math.max(8, hiY - h));
+  }
+
+  bar.style.left = `${Math.round(left)}px`;
+  bar.style.top = `${Math.round(top)}px`;
+}
+
+// The bars sit below the fold for most of this sheet, so their entrances are tied to the
+// bar entering the viewport rather than to page load. Leaving the viewport resets it, which
+// also makes the entrance replayable by scrolling back.
+function observeBars() {
+  const bars = [...document.querySelectorAll("[data-bar]")];
+  bars.forEach((bar) => bar.classList.remove("on"));
+  if (!("IntersectionObserver" in window)) {
+    bars.forEach((bar) => bar.classList.add("on"));
+    return;
+  }
+  const io = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      entry.target.classList.toggle("on", entry.isIntersecting);
+    }
+  }, { threshold: 0, rootMargin: "0px 0px -4% 0px" });
+  bars.forEach((bar) => io.observe(bar));
+}
+
+function layoutAll() {
+  document.querySelectorAll("[data-stage]").forEach(place);
+}
+
+// Selecting another passage moves that stage's bar. The first client rect is the anchor:
+// the bar belongs beside the first line of a multi-line selection, not its union.
+document.addEventListener("mouseup", (e) => {
+  if (e.target.closest(".bar, .controls, .langs, .themebtn")) return;
+  const selection = window.getSelection();
+  if (!selection || selection.isCollapsed || !selection.rangeCount) return;
+  const range = selection.getRangeAt(0);
+  const node = range.commonAncestorContainer.nodeType === 1
+    ? range.commonAncestorContainer
+    : range.commonAncestorContainer.parentElement;
+  const reader = node && node.closest(".reader");
+  if (!reader) return;
+  const stage = reader.closest("[data-stage]");
+  const rects = range.getClientRects();
+  if (!stage || !rects.length) return;
+  stage._selRect = stageRect(stage)(rects[0]);
+  const sel = stage.querySelector(".sel");
+  if (sel) sel.classList.add("quiet");
+  place(stage);
+});
+
+// Clicking an item is simulated: it lights the bar's receipt, plays the variant's own
+// press gesture, and sends nothing.
+function playPress(bar, btn, stage, action) {
+  (bar._pressAnims || []).forEach((anim) => anim.cancel());
+  bar._pressAnims = [];
+  const push = (anim) => { if (anim) bar._pressAnims.push(anim); };
+  const variant = bar.dataset.bar;
+
+  if (variant === "A") {
+    push(btn.animate([
+      { transform: "translateX(0)", opacity: 1 },
+      { transform: "translateX(10px)", opacity: .55, offset: .35 },
+      { transform: "translateX(10px)", opacity: .55, offset: .62 },
+      { transform: "translateX(0)", opacity: 1 }
+    ], { duration: 650, easing: "cubic-bezier(.2,.8,.25,1)" }));
+  } else if (variant === "E") {
+    const face = btn.querySelector(".face");
+    if (face) {
+      const base = getComputedStyle(face).transform;
+      push(face.animate([
+        { transform: base, opacity: 1 },
+        { transform: "translateY(-26px) rotate(0deg) scale(1.06)", opacity: 0, offset: .55 },
+        { transform: "translateY(-26px) rotate(0deg) scale(1.06)", opacity: 0, offset: .72 },
+        { transform: base, opacity: 1 }
+      ], { duration: 850, easing: "cubic-bezier(.2,.8,.25,1)" }));
+    }
+  } else if (variant === "H") {
+    const tilt = parseFloat(getComputedStyle(bar).getPropertyValue("--tilt")) || 1.4;
+    push(bar.animate([
+      { transform: `rotate(${tilt}deg)` },
+      { transform: `rotate(${tilt + 6}deg)`, offset: .22 },
+      { transform: `rotate(${tilt - 3.5}deg)`, offset: .48 },
+      { transform: `rotate(${tilt + 1.8}deg)`, offset: .7 },
+      { transform: `rotate(${tilt - .7}deg)`, offset: .86 },
+      { transform: `rotate(${tilt}deg)` }
+    ], { duration: 1000, easing: "ease-in-out" }));
+  } else if (variant === "F") {
+    const deg = parseFloat(getComputedStyle(btn).getPropertyValue("--close")) || 0;
+    push(bar.animate([
+      { transform: "rotate(0deg) scaleX(1)" },
+      { transform: `rotate(${deg}deg) scaleX(.16)`, offset: .4 },
+      { transform: `rotate(${deg}deg) scaleX(.16)`, offset: .62 },
+      { transform: "rotate(0deg) scaleX(1)" }
+    ], { duration: 950, easing: "cubic-bezier(.4,0,.2,1)" }));
+  }
+}
+
+document.querySelectorAll("[data-bar]").forEach((bar) => {
+  bar.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-action]");
+    if (!btn) return;
+    const stage = bar.closest("[data-stage]");
+    const action = btn.dataset.action;
+    const status = stage.querySelector(".status");
+    status.innerHTML = `${CHECK}<span>${t[action]}</span>`;
+    status.classList.add("show");
+    clearTimeout(stage._statusTimer);
+    stage._statusTimer = setTimeout(() => status.classList.remove("show"), 1500);
+    playPress(bar, btn, stage, action);
+  });
+});
+
+let resizeTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    document.querySelectorAll("[data-stage]").forEach((s) => { delete s._selRect; });
+    const selection = window.getSelection();
+    if (selection) selection.removeAllRanges();
+    layoutAll();
+  }, 120);
+});
+
+setLang(LANG);
+applyTheme(theme);
+requestAnimationFrame(() => { layoutAll(); observeBars(); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(layoutAll);
+</script>
+</body>
+</html>
