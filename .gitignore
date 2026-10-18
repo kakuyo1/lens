@@ -36,3 +36,8 @@ CLAUDE.local.md
 assets-private/
 
 logs/
+
+# The assistant's working directory: measurement scripts, VMMap and its dumps, raw sampling CSVs.
+# Per-machine and large (tens of MB of tool binaries); the reports under docs/metrics/ are what
+# carries the numbers into the repository.
+.workbuddy-ai/
