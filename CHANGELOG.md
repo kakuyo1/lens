@@ -1,5 +1,55 @@
 # Changelog
 
+## 1.6.0 - 2026-10-18
+
+The action bar takes the form the reader picks, and the explanation language can be changed from
+the bubble itself. Three new companions join the desktop pet beside a rebuilt cat, and the settings
+dropdowns now show what they offer before a value is chosen.
+
+### Added
+
+- The action bar has five forms: the classic bar (the default), a page-edge tab, three cards dealt
+  above the selection, a hang tag on a string, and a fan of three wedges. The style is a setting
+  under Capture & popups, and each option raises a hover preview of its shape like the other
+  dropdowns. The three actions, the channel rules and the glass are shared by every form
+  (docs/adr/0056).
+- The explanation language can be changed from the bubble: a globe and the current language code
+  sit left of the close cross, and the four catalog languages open in a strip on the card. Picking
+  another language writes the global setting and asks again for the standing card -- from the
+  cache when that language is already stored, otherwise from the model. The card keeps its
+  position and height while the new answer writes itself out from the first character; a cached
+  target is replayed rather than swapped in whole (docs/adr/0067).
+- The desktop pet roster now includes the ghost, jelly and cloud, and the cat has been rebuilt
+  with the final pixel-mask art. The four recipes ship 24 actions each and a shared nine-item
+  wardrobe; each pet also has its own colour accent.
+- An idle pet now notices the pointer near it: its eyes follow, it greets a nearby hold, and then
+  plays one fuller reaction. The window stays the size of the sprite, and hovering only borrows
+  idle time rather than interrupting the pet's rhythm.
+- Settings dropdowns preview their choices: a theme row raises a miniature card drawn in that
+  theme, a vocabulary level raises a word cloud for the band, and the font and explanation-language
+  rows raise the explanation bubble in that face or language. The preview follows the open list and
+  never writes the setting.
+
+### Changed
+
+- The API key saves when its field is left. The settings footer keeps only Defaults and the status
+  line, which says Saved once the key is stored.
+- Surfaces now fade out symmetrically instead of being cut away, and every icon button, switch,
+  segment, chip and field shows press feedback. Deletion and selection got their missing
+  transitions, and the year-in-words hue ring turns to the chosen hue following the prototype's
+  wheel.
+
+### Fixed
+
+- Long Chinese and Japanese explanations now wrap between characters instead of running past the
+  bubble's edge.
+- Under the glass themes the bubble's own border no longer shows through; the glass rim is the only
+  edge.
+- Autostart follows the executable after the program moves, instead of pointing at the old path.
+- The statistics panel refreshes when a cached word is counted by background work.
+- Defaults restores the same values a fresh install has, while leaving the API key, autostart,
+  interface language and daily budget untouched.
+
 ## 1.5.0 - 2026-10-17
 
 ### Fixed
