@@ -6,8 +6,6 @@
 #include <QTimer>
 #include <QtQml/qqmlregistration.h>
 
-#include <nlohmann/json.hpp>
-
 #include <filesystem>
 #include <string>
 
@@ -119,8 +117,9 @@ private:
     /// @brief Run one sync. An empty @p passphrase uses the stored key.
     /// @param asked True when the reader pressed a button; a timer passes false.
     void run(const QString& passphrase, bool asked);
-    /// @brief Given the cloud envelope (null when there is none), merge and push.
-    void process(const QString& gistId, const nlohmann::json& envelope);
+    /// @brief Given the cloud envelope as the gist file carries it (empty when there is none), merge
+    ///        and push. The two decisions are core/sync_run.h's; this performs what they return.
+    void process(const QString& gistId, const std::string& envelopeText);
     void onListed(const QByteArray& body);
     void onGot(const lens::sync::Gist& gist);
     void onCreated(const lens::sync::Gist& gist);
