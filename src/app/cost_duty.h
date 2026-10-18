@@ -3,6 +3,7 @@
 #include <QDate>
 #include <QObject>
 #include <QVariantMap>
+#include <QtQml/qqmlregistration.h>
 
 #include <functional>
 
@@ -30,6 +31,8 @@ struct BudgetStatus {
 
 class CostDuty final : public QObject {
     Q_OBJECT
+    QML_ANONYMOUS
+    QML_UNCREATABLE("Owned by Controller; reached as Controller.costDuty")
 public:
     using DateProvider = std::function<QDate()>;
 
@@ -71,6 +74,9 @@ public:
 
     /// @brief Record response usage and notify projections that spending changed.
     void recordUsage(const std::string& minute, const llm::Usage& usage);
+
+    Q_PROPERTY(QVariantMap stats READ stats NOTIFY stateChanged)
+    Q_PROPERTY(QVariantMap cost READ cost NOTIFY stateChanged)
 
 signals:
     /// @brief A budget, usage, or date-driven projection changed.

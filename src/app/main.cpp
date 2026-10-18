@@ -294,7 +294,7 @@ int main(int argc, char* argv[])
     // take the machine -- the mouse hook and the trigger key -- have had their moment. Once a
     // local date at most: the duty writes the date when the check starts, so a machine that
     // cannot reach the source does not retry on every launch.
-    controller.checkForUpdatesAtStartup();
+    controller.updateDuty()->checkAtStartup();
     controller.syncDuty()->startAtLaunch();
 
 #if defined(QT_QML_DEBUG)

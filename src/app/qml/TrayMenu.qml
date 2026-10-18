@@ -73,8 +73,8 @@ Window {
     signal settingsRequested()
 
     /// The day's tally for the statistics row, in the shape the tray tooltip uses.
-    readonly property string todayFigures: Controller.stats.todayPops + " " + qsTr("words")
-        + " · " + Controller.stats.currency + Controller.stats.todayCost.toFixed(2)
+    readonly property string todayFigures: Controller.costDuty.stats.todayPops + " " + qsTr("words")
+        + " · " + Controller.costDuty.stats.currency + Controller.costDuty.stats.todayCost.toFixed(2)
 
     /// What counts as a press on this surface, in screen coordinates: the card, plus the
     /// language list while it is out. main.qml's outside-press rule reads it.

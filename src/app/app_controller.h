@@ -85,9 +85,6 @@ public:
      */
     bool installHotkey();
 
-    /// @brief Compatibility entry point for a completed selection gesture.
-    void onSelectionReleased(QPoint anchor);
-
     Q_INVOKABLE QPoint cursorPos() const;
     /// @param deviceName The screen's name as QML's Screen.name gives it.
     /// @return That screen's available geometry in DIPs, or an empty rect when no screen has the name.
@@ -141,7 +138,6 @@ public:
     Q_INVOKABLE void setModel(QString model);
     Q_INVOKABLE void setApiUrl(QString url);
     Q_INVOKABLE void setAutostart(bool on);
-    Q_INVOKABLE void bubbleHoverChanged(bool hovering);
     /**
      * @brief Record the trigger combination the reader pressed in the settings field.
      * @param key       Qt key code of the key that was not a modifier.
@@ -166,17 +162,16 @@ public:
     Q_INVOKABLE bool    importWords(QUrl path);
     Q_INVOKABLE bool    removeWord(QString lemma);
     Q_INVOKABLE bool    setDailyBudget(double amount);
-    void                checkForUpdatesAtStartup();
 
     /// @note Not const, and the only projection that is not: reading a document key goes through a
     ///       section, which is a writable view. Every other dependency is borrowed by reference and
     ///       this one is owned, which is what makes the difference; see docs/adr/0024.
     QVariantMap  settings();
-    QVariantMap  stats() const;
     QVariantList words() const;
     /// @brief The last 365 local dates, including zero-use days, for the annual words surface.
     QVariantList yearDays() const;
-    QVariantMap  cost() const;
+    /// @brief The cost duty, which QML reads as `Controller.costDuty`; the facade owns it.
+    CostDuty* costDuty();
     /// @brief The update duty, which QML reads as `Controller.updateDuty`; the facade owns it.
     UpdateDuty* updateDuty();
     /// @brief The sync duty, which QML reads as `Controller.syncDuty`; the facade owns it.
@@ -210,16 +205,13 @@ public:
     void bindPet(pet::PetController* pet);
     /// @brief Answer the question up now. The stored explanation then shows as a bubble beside the sign at (x, y).
     Q_INVOKABLE void answerReview(bool remembered, int x, int y);
-    /// @brief Let the question up now go unanswered; the pet reacts and the word waits out its cooldown.
-    Q_INVOKABLE void ignoreReview();
     /// @brief Set how often the pet checks for a due word. Only the check changes; no word's curve moves.
     Q_INVOKABLE void setReviewFrequency(int value);
 
     Q_PROPERTY(QVariantMap settings READ settings NOTIFY settingsChanged)
-    Q_PROPERTY(QVariantMap stats READ stats NOTIFY statsChanged)
     Q_PROPERTY(QVariantList words READ words NOTIFY statsChanged)
     Q_PROPERTY(QVariantList yearDays READ yearDays NOTIFY yearDaysChanged)
-    Q_PROPERTY(QVariantMap cost READ cost NOTIFY statsChanged)
+    Q_PROPERTY(lens::app::CostDuty* costDuty READ costDuty CONSTANT)
     Q_PROPERTY(lens::app::UpdateDuty* updateDuty READ updateDuty CONSTANT)
     Q_PROPERTY(lens::app::SyncDuty* syncDuty READ syncDuty CONSTANT)
     Q_PROPERTY(lens::app::ExplanationDuty* explanationDuty READ explanationDuty CONSTANT)

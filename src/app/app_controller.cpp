@@ -207,11 +207,6 @@ AppController* AppController::create(QQmlEngine* engine, QJSEngine* scriptEngine
     return instance_;
 }
 
-void AppController::onSelectionReleased(QPoint anchor)
-{
-    capture_.onSelectionReleased(anchor);
-}
-
 QPoint AppController::cursorPos() const
 {
     return QCursor::pos();
@@ -347,11 +342,6 @@ void AppController::answerReview(bool const remembered, int const x, int const y
     if (lemma.isEmpty())
         return;
     explanation_.showReviewAnswer(lemma, QPoint{x, y});
-}
-
-void AppController::ignoreReview()
-{
-    reviewDuty_.ignore(QDateTime::currentMSecsSinceEpoch());
 }
 
 void AppController::setReviewFrequency(int const value)
@@ -571,11 +561,6 @@ void AppController::setAutostart(bool on)
     emit settingsChanged();
 }
 
-void AppController::bubbleHoverChanged(bool hovering)
-{
-    LENS_TRACE("bubble hover {}", hovering);
-}
-
 void AppController::reviewWord(QString lemma, int x, int y)
 {
     explanation_.reviewWord(std::move(lemma), QPoint(x, y));
@@ -647,11 +632,6 @@ QVariantMap AppController::settings()
     for (auto it = explanationSettings.cbegin(); it != explanationSettings.cend(); ++it)
         result.insert(it.key(), it.value());
     return result;
-}
-
-QVariantMap AppController::stats() const
-{
-    return cost_.stats();
 }
 
 QVariantList AppController::words() const
@@ -851,14 +831,9 @@ bool AppController::removeWord(QString lemma)
     return removed;
 }
 
-QVariantMap AppController::cost() const
+CostDuty* AppController::costDuty()
 {
-    return cost_.cost();
-}
-
-void AppController::checkForUpdatesAtStartup()
-{
-    updateDuty_.checkAtStartup();
+    return &cost_;
 }
 
 UpdateDuty* AppController::updateDuty()

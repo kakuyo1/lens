@@ -79,7 +79,7 @@ Window {
 
             Text {
                 topPadding: 16
-                text: String(Controller.stats.todayPops)
+                text: String(Controller.costDuty.stats.todayPops)
                 color: stats.tokens.text
                 font.family: stats.tokens.monoFamily
                 font.pixelSize: 32
@@ -100,17 +100,17 @@ Window {
             StatRow {
                 width: parent.width
                 label: qsTr("Known")
-                value: String(Controller.stats.todayLearned)
+                value: String(Controller.costDuty.stats.todayLearned)
             }
             StatRow {
                 width: parent.width
                 label: qsTr("New")
-                value: String(Controller.stats.todayFresh)
+                value: String(Controller.costDuty.stats.todayFresh)
             }
             StatRow {
                 width: parent.width
                 label: qsTr("Cost")
-                value: Controller.stats.currency + Controller.stats.todayCost.toFixed(2)
+                value: Controller.costDuty.stats.currency + Controller.costDuty.stats.todayCost.toFixed(2)
                 clickable: true
                 onTapped: stats.costRequested()
             }
