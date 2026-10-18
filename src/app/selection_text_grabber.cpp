@@ -228,7 +228,54 @@ std::optional<QString> readClipboardText()
     return text;
 }
 
+/// @brief The Win32 clipboard: the production adapter behind ClipboardPort.
+class Win32Clipboard final : public ClipboardPort {
+public:
+    std::optional<ClipboardSnapshot> take() override
+    {
+        ClipboardSnapshot snapshot = ClipboardSnapshot::take();
+        if (not snapshot.taken()) return std::nullopt;
+        return snapshot;
+    }
+
+    bool restore(ClipboardSnapshot const& snapshot) override
+    {
+        return snapshot.restore();
+    }
+
+    unsigned long sequence() override
+    {
+        return GetClipboardSequenceNumber();
+    }
+
+    bool waitForChange(unsigned long const sequenceBefore) override
+    {
+        return waitForClipboardChange(sequenceBefore);
+    }
+
+    std::optional<QString> readText() override
+    {
+        return readClipboardText();
+    }
+};
+
 } // namespace
+
+bool ClipboardBorrow::begin()
+{
+    auto snapshot = port_.take();
+    if (not snapshot) return false;
+    snapshot_       = std::move(*snapshot);
+    sequenceBefore_ = port_.sequence();
+    return true;
+}
+
+bool ClipboardBorrow::settle(bool const copyLanded, bool& replaced)
+{
+    replaced = copyLanded and port_.sequence() != sequenceOfCopy_;
+    if (replaced) return true;
+    return port_.restore(snapshot_);
+}
 
 std::optional<TerminalCopyKey> terminalCopyKey(std::string_view executableName)
 {
@@ -336,10 +383,10 @@ bool ClipboardSnapshot::restore() const
 }
 
 SelectionTextGrabber::SelectionTextGrabber(QObject* parent)
-    : QObject(parent)
+    : QObject(parent), clipboard_(std::make_unique<Win32Clipboard>())
 {}
 
-std::variant<GrabbedText, GrabStatus> SelectionTextGrabber::grab()
+std::variant<QString, GrabStatus> SelectionTextGrabber::grab(ClipboardPolicy const policy)
 {
     if (grabbing_) {
         // The nested event loop in waitForClipboardChange pumps messages, so the mouse hook
@@ -375,28 +422,26 @@ std::variant<GrabbedText, GrabStatus> SelectionTextGrabber::grab()
 
     // Put the clipboard aside before touching it. Failing to take it means stopping, since
     // clobbering a clipboard that cannot be restored is worse than doing nothing.
-    const ClipboardSnapshot snapshot = ClipboardSnapshot::take();
-    if (!snapshot.taken()) {
+    ClipboardBorrow borrow(*clipboard_);
+    if (not borrow.begin()) {
         LENS_WARN("SelectionTextGrabber::grab: no snapshot of the clipboard; leaving it alone");
         grabbing_ = false;
         return GrabStatus::ClipboardBusy;
     }
 
-    const DWORD sequenceBefore = GetClipboardSequenceNumber();
-
     if (!sendCopyKeystroke(copyKey, copyShift)) {
         LENS_WARN("SelectionTextGrabber::grab: SendInput was refused, which is what an elevated foreground window does");
-        snapshot.restore();
+        borrow.restoreNow();
         grabbing_ = false;
         return GrabStatus::CopyTimedOut;
     }
 
-    const bool landed = waitForClipboardChange(sequenceBefore);
-    // The sequence number the landed copy left behind, which the check below compares against.
-    const DWORD sequenceOfCopy = GetClipboardSequenceNumber();
+    const bool landed = clipboard_->waitForChange(borrow.sequenceBefore());
+    // The sequence number the landed copy left behind, which the settle below compares against.
+    if (landed) borrow.markCopySequence();
 
     // Read before restoring: the restore empties the clipboard and fills it again.
-    const std::optional<QString> copied = landed ? readClipboardText() : std::nullopt;
+    const std::optional<QString> copied = landed ? clipboard_->readText() : std::nullopt;
 
     // Another process can write the clipboard in between -- a clipboard manager looking at
     // what just changed, or the reader copying something themselves. Putting the snapshot back
@@ -407,13 +452,19 @@ std::variant<GrabbedText, GrabStatus> SelectionTextGrabber::grab()
     // A second writer inside the wait, before the read, is indistinguishable from our own copy
     // by sequence number alone; telling them apart needs the clipboard owner, which no case
     // here has yet required.
-    const bool replaced = landed && GetClipboardSequenceNumber() != sequenceOfCopy;
+    bool       replaced = false;
+    const bool restored = borrow.settle(landed, replaced);
+    grabbing_           = false;
+
     if (replaced) {
+        if (not selectionSurvivesClipboardPolicy(policy, replaced)) {
+            LENS_INFO("the clipboard was rewritten during the grab; the policy is silent, so the selection is dropped");
+            return GrabStatus::ClipboardRewritten;
+        }
         LENS_WARN("SelectionTextGrabber::grab: the clipboard was written again while the selection was being read; leaving it as it is now");
-    } else if (!snapshot.restore()) {
+    } else if (!restored) {
         LENS_WARN("SelectionTextGrabber::grab: the reader's clipboard could not be put back in full");
     }
-    grabbing_ = false;
 
     if (!landed) {
         // A terminal's copy combination is the reader's to rebind, so a miss there is worth
@@ -433,10 +484,7 @@ std::variant<GrabbedText, GrabStatus> SelectionTextGrabber::grab()
     if (text.isEmpty()) return GrabStatus::EmptyText;
 
     LENS_INFO("SelectionTextGrabber::grab: captured {} characters from '{}'", text.size(), processName);
-    // The text is the selection either way: it was read before the second writer could change
-    // it. What the caller needs to know is that the clipboard no longer holds what the reader
-    // left on it, which is the flag's whole meaning (clipboardPolicy decides what to do).
-    return GrabbedText{text, replaced};
+    return text;
 }
 
 }

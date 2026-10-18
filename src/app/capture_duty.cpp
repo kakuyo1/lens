@@ -451,17 +451,13 @@ void CaptureDuty::onSelectionReleased(QPoint const anchor)
 
 void CaptureDuty::beginSelection(QPoint const anchor)
 {
-    const auto grabbed = grabber_->grab();
+    const auto policy  = clipboardPolicyFromStored(storage_.section().value<std::string>("clipboardPolicy", {}));
+    const auto grabbed = grabber_->grab(policy);
     if (const auto* status = std::get_if<GrabStatus>(&grabbed)) {
         LENS_DEBUG("selection at ({}, {}) produced no text (status {})", anchor.x(), anchor.y(), static_cast<int>(*status));
         return;
     }
-    const GrabbedText& captured = std::get<GrabbedText>(grabbed);
-    if (captured.clipboardReplaced and storage_.section().value<std::string>("clipboardPolicy", "topmost") == "silent") {
-        LENS_INFO("the clipboard was rewritten during the grab; the policy is silent, so the selection is dropped");
-        return;
-    }
-    classifyText(captured.text, anchor);
+    classifyText(std::get<QString>(grabbed), anchor);
 }
 
 void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const fromScreenshot)

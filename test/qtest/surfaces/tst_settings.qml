@@ -39,7 +39,7 @@ Item {
         /// Every engine in the run shares one Controller and one settings document, so a case
         /// that writes one puts it back rather than leaving the next suite reading it.
         function cleanup() {
-            Controller.setClipboardPolicy("topmost");
+            Controller.setClipboardPolicy(false);
             Controller.setDailyBudget(0);
             Pet.setEnabled(false);
         }
@@ -175,7 +175,7 @@ Item {
 
             // The fixture carries no policy, so it starts on the default. Pinned here rather
             // than assumed, so the case reads the same whatever order the suites run in.
-            Controller.setClipboardPolicy("topmost");
+            Controller.setClipboardPolicy(false);
             wait(20);
 
             const segment = segmentLabelled(panel, "Raise to top");
@@ -187,7 +187,7 @@ Item {
             mouseClick(cell, cell.width / 2, cell.height / 2);
             wait(20);
 
-            compare(Controller.settings.clipboardPolicy, "silent",
+            compare(Controller.settings.clipboardSilent, true,
                     "the pick did not reach setClipboardPolicy");
             compare(segment.currentIndex, 1, "the segment did not follow the policy it wrote");
             compare(Util.textWith(Util.textsUnder(panel), ["Popup frequency"]), null);

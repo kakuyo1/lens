@@ -33,7 +33,7 @@ Item {
             Controller.setAnimationsEnabled(true);
             Controller.setUiLanguage("zh");
             Controller.setSelectionCapture(true);
-            Controller.setClipboardPolicy("topmost");
+            Controller.setClipboardPolicy(false);
             Controller.modelCatalogDuty.setProvider("DeepSeek");
             Controller.setModel("deepseek-flash");
             Controller.captureDuty.setAutoScan(false);
@@ -104,7 +104,7 @@ Item {
             Controller.setTheme("dark");
             Controller.setAnimationsEnabled(false);
             Controller.setSelectionCapture(false);
-            Controller.setClipboardPolicy("silent");
+            Controller.setClipboardPolicy(true);
             Controller.setBubbleDismissSeconds(20);
             Controller.setBubblePlacement("below");
             Controller.captureDuty.setAutoScan(true);
@@ -118,7 +118,7 @@ Item {
             compare(Controller.settings.theme, "light");
             compare(Controller.settings.animationsEnabled, true);
             compare(Controller.settings.selectionCapture, true);
-            compare(Controller.settings.clipboardPolicy, "topmost");
+            compare(Controller.settings.clipboardSilent, false);
             compare(Controller.settings.bubbleDismissSeconds, 5);
             compare(Controller.settings.bubblePlacement, "above");
             compare(Controller.settings.autoScan, false);

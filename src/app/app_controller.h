@@ -128,7 +128,8 @@ public:
     Q_INVOKABLE void setUiLanguage(QString lang);
     Q_INVOKABLE void setSelectionCapture(bool on);
     Q_INVOKABLE void setApiKey(QString key);
-    Q_INVOKABLE void setClipboardPolicy(QString policy);
+    /// @brief Store whether a grab whose clipboard was rewritten is dropped silently.
+    Q_INVOKABLE void setClipboardPolicy(bool silent);
     /// @brief Store how long a bubble stays up, clamped to the range bubble_settings.h names.
     Q_INVOKABLE void setBubbleDismissSeconds(int seconds);
     /// @brief Store which side of the selection a bubble and the action bar try first: "above" or "below".

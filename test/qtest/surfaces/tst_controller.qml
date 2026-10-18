@@ -107,17 +107,14 @@ Item {
             compare(notices, 0, "dismissing an empty notice told the surface");
         }
 
-        /// Only the two values mean anything; a third would sit in the document behaving as the
-        /// default, which is a setting that silently does not exist.
-        function test_anUnknownClipboardPolicyIsRefused() {
-            Controller.setClipboardPolicy("silent");
-            compare(Controller.settings.clipboardPolicy, "silent");
+        /// The policy is a two-way switch at the QML boundary; the stored key vocabulary stays in
+        /// C++, so a third value cannot be written by a surface that only knows the switch.
+        function test_theClipboardPolicyIsATwoWaySwitch() {
+            Controller.setClipboardPolicy(true);
+            compare(Controller.settings.clipboardSilent, true);
 
-            Controller.setClipboardPolicy("nonsense");
-            compare(Controller.settings.clipboardPolicy, "silent", "an unknown policy was written anyway");
-
-            Controller.setClipboardPolicy("topmost");
-            compare(Controller.settings.clipboardPolicy, "topmost");
+            Controller.setClipboardPolicy(false);
+            compare(Controller.settings.clipboardSilent, false);
         }
 
         /// The display time is stored as whole seconds and kept between one and thirty; an out-of-range

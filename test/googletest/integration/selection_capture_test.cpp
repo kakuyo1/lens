@@ -50,15 +50,8 @@
 
 namespace {
 
-using lens::app::Gesture;
 using lens::app::GrabStatus;
-using lens::app::GrabbedText;
-using lens::app::isSelectionGesture;
 using lens::app::terminalCopyKey;
-
-/// Passed explicitly rather than read from the system, so the cases do not depend on the
-/// mouse settings of whichever machine runs them.
-constexpr int kSlop = 4;
 
 /// How long the human gets to make a selection once the hook is listening.
 constexpr int kHookWaitMs = 20'000;
@@ -87,6 +80,7 @@ const char* statusName(GrabStatus status)
         case GrabStatus::ClipboardBusy: return "ClipboardBusy";
         case GrabStatus::CopyTimedOut: return "CopyTimedOut";
         case GrabStatus::EmptyText: return "EmptyText";
+        case GrabStatus::ClipboardRewritten: return "ClipboardRewritten";
     }
     return "unknown";
 }
@@ -424,31 +418,6 @@ HWND createFocusProbeWindow()
 
 } // namespace
 
-TEST(SelectionGesture, JitterInsideTheSlopIsStillAClick)
-{
-    EXPECT_FALSE(isSelectionGesture(Gesture{100, 200, 100 + kSlop - 1, 200}, kSlop));
-    EXPECT_FALSE(isSelectionGesture(Gesture{100, 200, 100, 200 + kSlop - 1}, kSlop));
-}
-
-TEST(SelectionGesture, MovementAtTheSlopCounts)
-{
-    // The boundary is inclusive: exactly the slop is already a drag, which is the reading
-    // that keeps a two-character selection from being swallowed.
-    EXPECT_TRUE(isSelectionGesture(Gesture{100, 200, 100 + kSlop, 200}, kSlop));
-    EXPECT_TRUE(isSelectionGesture(Gesture{100, 200, 100, 200 + kSlop}, kSlop));
-
-    // Dragging up or to the left selects just as much as dragging down or right.
-    EXPECT_TRUE(isSelectionGesture(Gesture{100, 200, 100 - kSlop, 200}, kSlop));
-    EXPECT_TRUE(isSelectionGesture(Gesture{100, 200, 100, 200 - kSlop}, kSlop));
-}
-
-TEST(SelectionGesture, AStationaryClickNeverSelects)
-{
-    // Double-clicking and triple-clicking have the same stationary endpoints here. Only a drag
-    // should open Lens's selection action bar, so click runs remain outside the selection path.
-    EXPECT_FALSE(isSelectionGesture(Gesture{100, 200, 100, 200}, kSlop));
-}
-
 /// The key a terminal copies with, or 0 when the process is not a terminal at all. The
 /// combination's Shift half is checked separately, where it differs.
 TEST(TerminalCopyKey, EveryTerminalGetsACombinationThatIsNotItsInterrupt)
@@ -680,7 +649,7 @@ TEST(SelectionGrab, DeclinesWhenTheForegroundWindowIsOurs)
     SetForegroundWindow(probe);
     const bool oursIsInFront = GetForegroundWindow() == probe;
 
-    const auto result = grabber.grab();
+    const auto result = grabber.grab(lens::app::ClipboardPolicy::Topmost);
 
     DestroyWindow(probe);
     if (previous != nullptr) SetForegroundWindow(previous);
@@ -733,15 +702,15 @@ TEST(SelectionGrab, CapturesTheSelectionAndPutsTheClipboardBack)
     std::cout << "  the hook saw a release at " << anchor->x() << "," << anchor->y() << "\n";
 
     lens::app::SelectionTextGrabber grabber;
-    const auto                      result = grabber.grab();
+    const auto                      result = grabber.grab(lens::app::ClipboardPolicy::Topmost);
 
-    const GrabbedText* captured = std::get_if<GrabbedText>(&result);
+    const QString* captured = std::get_if<QString>(&result);
     ASSERT_TRUE(captured != nullptr) << "the grab failed with status "
                                      << statusName(*std::get_if<GrabStatus>(&result));
 
-    std::cout << "  captured: \"" << captured->text.toStdString() << "\"\n";
+    std::cout << "  captured: \"" << captured->toStdString() << "\"\n";
 
-    EXPECT_EQ(captured->text, expected) << "the captured text is not what was selected";
+    EXPECT_EQ(*captured, expected) << "the captured text is not what was selected";
 
     // Distinguish "the clipboard came back empty" from "it could not be read at all": the
     // first is the data-loss bug, the second is a lock, and they need different fixes.

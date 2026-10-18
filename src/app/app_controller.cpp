@@ -494,14 +494,11 @@ void AppController::setApiKey(QString key)
     emit settingsChanged();
 }
 
-void AppController::setClipboardPolicy(QString policy)
+void AppController::setClipboardPolicy(bool const silent)
 {
-    if (policy != QLatin1String("topmost") && policy != QLatin1String("silent")) {
-        LENS_WARN("unknown clipboard policy '{}'; leaving the setting alone", policy.toStdString());
-        return;
-    }
-    storage_.section().set<std::string>("clipboardPolicy", policy.toStdString());
-    LENS_INFO("clipboard policy set to '{}'", policy.toStdString());
+    const ClipboardPolicy policy = silent ? ClipboardPolicy::Silent : ClipboardPolicy::Topmost;
+    storage_.section().set<std::string>("clipboardPolicy", std::string{clipboardPolicyKey(policy)});
+    LENS_INFO("clipboard policy set to '{}'", clipboardPolicyKey(policy));
     emit settingsChanged();
 }
 
@@ -611,7 +608,7 @@ QVariantMap AppController::settings()
                          {"uiLanguage", QString::fromStdString(keys.value<std::string>("uiLanguage", "zh"))},
                          {"hasApiKey", !keys.value<std::string>("API-KEY", {}).empty()},
                          {"selectionCapture", keys.value<bool>("selectionCapture", true)},
-                         {"clipboardPolicy", QString::fromStdString(keys.value<std::string>("clipboardPolicy", "topmost"))},
+                         {"clipboardSilent", clipboardPolicyFromStored(keys.value<std::string>("clipboardPolicy", {})) == ClipboardPolicy::Silent},
                          {"bubbleDismissSeconds", clampBubbleDismissSeconds(keys.value<int>("bubbleDismissSeconds", kBubbleDismissDefaultSeconds))},
                          {"bubblePlacement", QString::fromStdString(keys.value<std::string>("bubblePlacement", "above"))},
                          {"selectionBarStyle", QString::fromStdString(keys.value<std::string>("selectionBarStyle", "bar"))},

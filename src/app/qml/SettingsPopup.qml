@@ -252,7 +252,7 @@ Window {
         Controller.setAnimationsEnabled(true);
         Controller.setRevealSpeed(3);
         Controller.setSelectionCapture(true);
-        Controller.setClipboardPolicy("topmost");
+        Controller.setClipboardPolicy(false);
         Controller.setBubbleDismissSeconds(5);
         Controller.setBubblePlacement("above");
         Controller.setSelectionBarStyle("bar");
