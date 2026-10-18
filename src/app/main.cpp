@@ -146,6 +146,47 @@ QString settingsValue(KnownStore& store, const char* key)
     return QString::fromStdString(store.section().value<std::string>(key, {}));
 }
 
+/// How long a surface stays hidden before its graphics resources are given back. Panels hide and
+/// re-show while they are being repositioned, and rebuilding the scene graph on every such hop
+/// costs more than the memory it saves; a window that is back within this window is left alone.
+constexpr int kReleaseDelayMs = 500;
+
+/**
+ * @brief Hand a hidden surface's graphics resources back to the driver.
+ *
+ * QQuickWindow keeps its graphics resources -- the device, the swapchain, the buffers and the
+ * textures, and with them the driver's worker threads -- until the last window is deleted, and
+ * setPersistentGraphics() defaults to true, so a hidden window keeps the lot. Measured with
+ * .workbuddy-ai/tools/qwindow-probe on this machine: showing a second window costs about 75
+ * driver threads and 1,200 handles, hiding it returns none of them under Qt's defaults, and
+ * releaseResources() with both persistence hints off returns all of them in one call.
+ *
+ * The two hints only take effect before a window's scene graph is initialised, which is why this
+ * runs straight after the QML is loaded and before the event loop. Every surface but the root
+ * window is hidden at that point; the root is never shown and the pet is up from the start, and
+ * neither of those should be released anyway.
+ */
+void releaseHiddenSurfaces(QObject* root)
+{
+    const auto tune = [](QQuickWindow* window) {
+        window->setPersistentGraphics(false);
+        window->setPersistentSceneGraph(false);
+        QObject::connect(window, &QWindow::visibleChanged, window, [window] {
+            if (window->isVisible())
+                return;
+            QTimer::singleShot(kReleaseDelayMs, window, [window] {
+                if (not window->isVisible())
+                    window->releaseResources();
+            });
+        });
+    };
+
+    if (auto* self = qobject_cast<QQuickWindow*>(root))
+        tune(self);
+    for (auto* window : root->findChildren<QQuickWindow*>())
+        tune(window);
+}
+
 }
 
 int main(int argc, char* argv[])
@@ -274,6 +315,12 @@ int main(int argc, char* argv[])
     engine.loadFromModule("Lens", "Main");
     if (engine.rootObjects().isEmpty())
         return 1;
+
+    // Surfaces are windows that are hidden and re-shown, not windows that are created and
+    // destroyed, so nothing else ever asks the scene graph to let go. LENS_KEEP_GRAPHICS=1 keeps
+    // Qt's defaults, which is how the change is measured against the old behaviour in one binary.
+    if (qEnvironmentVariableIsEmpty("LENS_KEEP_GRAPHICS"))
+        releaseHiddenSurfaces(engine.rootObjects().constFirst());
 
     // Installed here, and not one line earlier. A WH_MOUSE_LL hook is called on the thread that
     // installed it, so from install() until that thread is back in a message loop the mouse
