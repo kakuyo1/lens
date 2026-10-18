@@ -253,6 +253,7 @@ void AppController::restoreDefaults()
     setExample(defaults::kExample);
     setTheme(QString::fromStdString(std::string{defaults::kTheme}));
     setFont(QString{});
+    setBubbleFontSize(defaults::kBubbleFontSize);
     setAnimationsEnabled(defaults::kAnimationsEnabled);
     setRevealSpeed(defaults::kRevealSpeed);
     setSelectionCapture(defaults::kSelectionCapture);
@@ -378,7 +379,7 @@ void AppController::answerReview(bool const remembered, int const x, int const y
 
 void AppController::setReviewFrequency(int const value)
 {
-    auto const clamped = std::clamp(value, static_cast<int>(core::ReviewFrequency::Off), static_cast<int>(core::ReviewFrequency::Every1To2Hours));
+    auto const clamped = std::clamp(value, static_cast<int>(core::ReviewFrequency::Off), static_cast<int>(core::kLastReviewFrequency));
     reviewDuty_.setFrequency(static_cast<core::ReviewFrequency>(clamped), QDateTime::currentMSecsSinceEpoch());
     emit settingsChanged();
 }
@@ -445,6 +446,26 @@ QVariantList AppController::latinFontFamilies() const
         if (family.startsWith(u'@'))
             continue;
         options.append(QVariantMap{{"value", family}, {"label", family}, {"group", QString{}}, {"note", QString{}}});
+    }
+    return options;
+}
+
+void AppController::setBubbleFontSize(int pixels)
+{
+    storage_.section().set<int>("bubbleFontSize", clampBubbleFontSize(pixels));
+    emit settingsChanged();
+}
+
+QVariantList AppController::bubbleFontSizeOptions() const
+{
+    // Every whole pixel of the range: seven rows, which is a list the reader reads down rather
+    // than scrolls, and the preview beside it is what says which one is right.
+    QVariantList options;
+    for (int pixels = kBubbleFontSizeMin; pixels <= kBubbleFontSizeMax; ++pixels) {
+        options.append(QVariantMap{{"value", pixels},
+                                   {"label", QCoreApplication::translate("lens::app::AppController", "%1 px").arg(pixels)},
+                                   {"group", QString{}},
+                                   {"note", pixels == kBubbleFontSizeDefault ? QCoreApplication::translate("lens::app::AppController", "Default") : QString{}}});
     }
     return options;
 }
@@ -636,6 +657,7 @@ QVariantMap AppController::settings()
                          {"example", keys.value<bool>("example", defaults::kExample)},
                          {"theme", QString::fromStdString(keys.value<std::string>("theme", std::string{defaults::kTheme}))},
                          {"font", fontFamilyFor(storedFont)},
+                         {"bubbleFontSize", clampBubbleFontSize(keys.value<int>("bubbleFontSize", defaults::kBubbleFontSize))},
                          {"frostedBlur", clampGlass(kFrostedBlur, keys.value<int>("frostedBlur", kFrostedBlur.fallback))},
                          {"frostedSaturation", clampGlass(kFrostedSaturation, keys.value<int>("frostedSaturation", kFrostedSaturation.fallback))},
                          {"frostedRim", clampGlass(kFrostedRim, keys.value<int>("frostedRim", kFrostedRim.fallback))},

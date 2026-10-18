@@ -37,6 +37,7 @@ inline constexpr int                   kRevealSpeed              = ::lens::app::
 inline constexpr bool                  kSelectionCapture         = true;
 inline constexpr bool                  kClipboardSilent          = false;
 inline constexpr int                   kBubbleDismissSeconds     = ::lens::app::kBubbleDismissDefaultSeconds;
+inline constexpr int                   kBubbleFontSize           = ::lens::app::kBubbleFontSizeDefault;
 inline constexpr std::string_view      kBubblePlacement          = "above";
 inline constexpr std::string_view      kSelectionBarStyle        = "bar";
 inline constexpr std::string_view      kUiLanguage               = "zh";

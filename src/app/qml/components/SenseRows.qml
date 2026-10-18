@@ -29,6 +29,10 @@ Repeater {
     /// The family the English line is drawn in (UI.md 4.4); the reader's own language keeps the
     /// application's face, so the translation line is not given it.
     property string family: ""
+    /// The multiple the lines are drawn at, from the reader's font-size setting (UI.md 4.4). The
+    /// card decides the scale and the block follows it: the senses are part of one answer, not a
+    /// surface with a size of its own.
+    property real scale: 1
 
     /// True while any line of any row is still being written out.
     readonly property bool revealing: {
@@ -77,7 +81,7 @@ Repeater {
             text: senseRow.modelData.en || ""
             color: root.englishColor
             family: root.family
-            pixelSize: 13
+            pixelSize: Math.round(13 * root.scale)
             lineHeight: 1.55
         }
 
@@ -92,7 +96,7 @@ Repeater {
             bottomPadding: 6
             text: senseRow.modelData.text || ""
             color: root.translationColor
-            pixelSize: 12
+            pixelSize: Math.round(12 * root.scale)
             lineHeight: 1.5
         }
     }

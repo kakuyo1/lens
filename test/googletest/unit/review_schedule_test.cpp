@@ -132,4 +132,11 @@ TEST(ReviewSchedule, FrequencyOffHasNoCheckWindowAndEachOtherLevelHasOne)
     const auto longest = lens::core::checkWindow(ReviewFrequency::Every1To2Hours);
     ASSERT_TRUE(longest.has_value());
     EXPECT_EQ(longest->maxMs, 2 * kHour);
+
+    // The newest level, appended to the enum rather than inserted so the stored values of the
+    // older ones stay where they were (review_schedule.h).
+    const auto shortest = lens::core::checkWindow(ReviewFrequency::Every5To15Min);
+    ASSERT_TRUE(shortest.has_value());
+    EXPECT_EQ(shortest->minMs, 5 * kMinute);
+    EXPECT_EQ(shortest->maxMs, 15 * kMinute);
 }

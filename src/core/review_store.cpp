@@ -91,7 +91,7 @@ ReviewFrequency ReviewStore::frequency() const
     if (value == review->end() or not value->is_number_integer())
         return kDefaultReviewFrequency;
     auto const raw = value->get<int>();
-    if (raw < static_cast<int>(ReviewFrequency::Off) or raw > static_cast<int>(ReviewFrequency::Every1To2Hours))
+    if (raw < static_cast<int>(ReviewFrequency::Off) or raw > static_cast<int>(kLastReviewFrequency))
         return kDefaultReviewFrequency;
     return static_cast<ReviewFrequency>(raw);
 }

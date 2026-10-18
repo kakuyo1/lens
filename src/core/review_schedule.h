@@ -32,11 +32,18 @@ struct ReviewCandidate {
 };
 
 /// @brief How often the pet checks for a due word. Affects the check only, never the curve.
+///
+/// The numbers are persisted in the settings document (review_store.h), so a level is appended
+/// rather than inserted: renumbering would silently move every reader's stored choice to the
+/// level next to it. The list the settings page draws is ordered by duration, not by value.
 enum class ReviewFrequency : std::uint8_t { Off            = 0,
                                             Every15To30Min = 1,
                                             Every30To60Min = 2,
-                                            Every1To2Hours = 3 };
+                                            Every1To2Hours = 3,
+                                            Every5To15Min  = 4 };
 
+/// @brief The last enumerator, which is what a stored or asked-for value is clamped to.
+inline constexpr ReviewFrequency kLastReviewFrequency    = ReviewFrequency::Every5To15Min;
 inline constexpr ReviewFrequency kDefaultReviewFrequency = ReviewFrequency::Every30To60Min;
 inline constexpr int             kMaxReviewLevel         = 5;
 /// @brief A word passed over unanswered is not asked again for this long.
