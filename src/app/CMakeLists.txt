@@ -172,6 +172,11 @@ qt_add_qml_module(lens_app
     qml/SpriteLayer.qml
     qml/TrayMenu.qml
     qml/SelectionBar.qml
+    qml/selectionbar/SelectionBarClassicBody.qml
+    qml/selectionbar/SelectionBarTabBody.qml
+    qml/selectionbar/SelectionBarHandBody.qml
+    qml/selectionbar/SelectionBarTagBody.qml
+    qml/selectionbar/SelectionBarFanBody.qml
     qml/Bubble.qml
     qml/Notice.qml
     qml/UpdateCard.qml
@@ -179,6 +184,7 @@ qt_add_qml_module(lens_app
     qml/SettingsPopup.qml
     qml/ThemePreview.qml
     qml/VocabPreview.qml
+    qml/SelectionBarPreview.qml
     qml/SettingsCategoryRow.qml
     qml/SettingsLinkRow.qml
     qml/SettingsCatalog.qml
@@ -284,7 +290,9 @@ qt_add_resources(lens_app "icons"
 qt_add_shaders(lens_app "lens_shaders"
   PREFIX "/shaders"
   BASE ${CMAKE_CURRENT_SOURCE_DIR}/shaders
-  FILES ${CMAKE_CURRENT_SOURCE_DIR}/shaders/glass.frag
+  FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/glass.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/fan.frag
 )
 
 # The .ts files, run through lrelease and embedded at :/i18n/. Rebuilding after a string

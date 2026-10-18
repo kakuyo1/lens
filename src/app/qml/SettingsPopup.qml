@@ -255,6 +255,7 @@ Window {
         Controller.setClipboardPolicy("topmost");
         Controller.setBubbleDismissSeconds(5);
         Controller.setBubblePlacement("above");
+        Controller.setSelectionBarStyle("bar");
         Controller.setFrostedBlur(10);
         Controller.setFrostedSaturation(120);
         Controller.setFrostedRim(20);

@@ -42,6 +42,7 @@ const std::vector<std::string>& syncedKeys()
         "theme", // a custom theme's colours are packed into this value, so they travel with it
         "bubbleDismissSeconds",
         "bubblePlacement",
+        "selectionBarStyle",
         "animationsEnabled",
         "revealSpeed",
         "minimumWordLength",

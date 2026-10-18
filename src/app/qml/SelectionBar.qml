@@ -2,17 +2,18 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Window
-import QtQuick.Effects
 
 /**
- * The bar that comes up when the reader finishes selecting text (UI.md section 4.9).
+ * The bar that comes up when the reader finishes selecting text (UI.md 4.10).
  *
- * It sits beside the selection, on the side the bubble settings choose (above by default). It
- * never takes focus, so clicking one of its items leaves the reader's application in front and
- * the next injected copy keystroke still lands in the right place.
+ * Its form is the reader's setting (`selectionBarStyle`): a page tab beside the selection, a
+ * hand of three cards, a hanging tag, or a fan. All four offer the same three actions and the
+ * same contract -- it never takes focus, so clicking one of its items leaves the reader's
+ * application in front and the next injected copy keystroke still lands in the right place.
  */
 Window {
     id: bar
+
     /// The desktop under this window, which its glass draws (docs/adr/0041).
     readonly property var glass: Controller.glassBackdrop.surface("selectionBar")
     readonly property SurfaceTokens tokens: SurfaceTokens {
@@ -29,14 +30,34 @@ Window {
     property bool surfaceShown: false
 
     readonly property int shadowMargin: 26
-    readonly property int gap: 8 ///< Clearance between the bar and the selection.
+    /// Clearance between the bar and the selection: the tag needs the length of its string.
+    readonly property int gap: bar.barStyle === "tag" ? 16 : 8
 
-    width: content.implicitWidth + 2 * shadowMargin
-    height: content.implicitHeight + 2 * shadowMargin
+    /// The form in force. The original flat bar is the default; an unknown stored value falls
+    /// back to it rather than to a bar with no body at all.
+    readonly property string barStyle: {
+        const value = Controller.settings.selectionBarStyle;
+        return ["bar", "tab", "hand", "tag", "fan"].indexOf(value) >= 0 ? value : "bar";
+    }
+
+    /// The tab's side and the tag's string edge, chosen by Main.qml before the bar is placed.
+    property bool sideLeft: false
+    property bool tagAbove: false
 
     /// The selection the actions apply to, set by Main.qml before it places and shows the bar.
     property string selectionText: ""
     property string selectionKind: "word"
+
+    /// The three actions, in every form. The `qsTr` calls live here, on the surface, so the
+    /// translations keep their SelectionBar context whichever body draws them.
+    readonly property var actions: [
+        {action: "translate", label: qsTr("Translate"), source: "qrc:/icons/ui-translate.svg"},
+        {action: "explain", label: qsTr("Explain"), source: "qrc:/icons/ui-explain.svg"},
+        {action: "copy", label: qsTr("Copy text"), source: "qrc:/icons/ui-copy.svg"}
+    ]
+
+    width: bodyLoader.width + 2 * shadowMargin
+    height: bodyLoader.height + 2 * shadowMargin
 
     SurfaceFade {
         id: fade
@@ -60,153 +81,187 @@ Window {
         surfaceShown = false;
     }
 
+    /// @brief Run the action an item was pressed for. The body has already played its gesture:
+    ///        it emits `picked` from the same tap that started the gesture, so no member of the
+    ///        loaded body has to be reached from here.
+    function pick(action) {
+        Controller.explanationDuty.runSelectionAction(action, bar.selectionText);
+        bar.dismiss();
+    }
+
+    /// @brief Place this window at @p anchor, the point the drag ended at (UI.md 4.10).
+    ///
+    /// @param area The work area of the anchor's screen, in virtual DIPs.
+    /// @param margin The 8 px every surface keeps clear of the work area's edges.
+    ///
+    /// The five forms do not share an edge: the classic bar's left edge sits at the anchor; the
+    /// tab stands beside it; the hand and the fan centre on it; the tag hangs from a grommet 15 px
+    /// in from its card. Each rule also decides which way it flips when the preferred side has no
+    /// room, and the result is clamped into the work area. `sideLeft` and `tagAbove` tell the
+    /// body which way it ended up leaning.
+    function placeAt(anchor: point, area: var, margin: int) {
+        const left = area.left + margin;
+        const top = area.top + margin;
+        const right = area.right - margin;
+        const bottom = area.bottom - margin;
+        const shadow = bar.shadowMargin;
+        const width = bar.width;
+        const height = bar.height;
+        const preferBelow = Controller.settings.bubblePlacement === "below";
+        let x = 0;
+        let y = 0;
+
+        if (bar.barStyle === "bar") {
+            // The original flat bar: its card's left edge sits at the release point, and it
+            // takes the bubble's preferred side with the old flip-then-clamp rule.
+            x = anchor.x - shadow;
+            const below = anchor.y + bar.gap - shadow;
+            const above = anchor.y - bar.gap - height + shadow;
+            y = preferBelow ? (below + height <= bottom ? below : above)
+                            : (above >= top ? above : below);
+        } else if (bar.barStyle === "tab") {
+            // The right of the selection first, the left when the right has no room; the two
+            // outer candidates are ten pixels clear of the release point.
+            const rightX = anchor.x + 10 - shadow;
+            const leftX = anchor.x - 10 - width + shadow;
+            bar.sideLeft = rightX + width > right;
+            x = bar.sideLeft ? leftX : rightX;
+            y = anchor.y - height / 2;
+        } else if (bar.barStyle === "tag") {
+            // The grommet is 15 px from the card's left edge; the string end touches the anchor.
+            x = anchor.x - 15 - shadow;
+            const below = anchor.y + bar.gap - shadow;
+            const above = anchor.y - bar.gap - height + shadow;
+            let aboveFirst = !preferBelow;
+            if (aboveFirst && above < top)
+                aboveFirst = false;
+            else if (!aboveFirst && below + height > bottom)
+                aboveFirst = true;
+            bar.tagAbove = aboveFirst;
+            y = aboveFirst ? above : below;
+        } else {
+            // The hand and the fan centre on the anchor and share the bubble's preferred side.
+            x = anchor.x - width / 2;
+            const below = anchor.y + bar.gap - shadow;
+            const above = anchor.y - bar.gap - height + shadow;
+            y = preferBelow ? (below + height <= bottom ? below : above)
+                            : (above >= top ? above : below);
+        }
+
+        bar.x = Math.round(bar.clampValue(x, left, right - width));
+        bar.y = Math.round(bar.clampValue(y, top, bottom - height));
+        bar.raise();
+    }
+
+    /// @return @p value held inside [@p low, @p high]; an empty range collapses to its low end.
+    function clampValue(value, low, high) {
+        return Math.max(low, Math.min(value, Math.max(low, high)));
+    }
+
     Item {
         id: content
         x: bar.shadowMargin
         y: bar.shadowMargin
-        implicitWidth: row.width + 10
-        implicitHeight: row.height + 10
+        width: bodyLoader.width
+        height: bodyLoader.height
         opacity: fade.progress
         // A bar that is still on screen while it fades out must not take the press that was
         // meant for the text underneath it.
         enabled: bar.surfaceShown
         transform: Translate { y: fade.lift }
 
-        // The shadow is cast from a shape-only copy of the card, never from the card itself.
-        // MultiEffect draws its source through an offscreen texture, and at this monitor's
-        // 125% scale that texture is resampled: measured on the real window, one glyph stem
-        // comes out twice as wide and half as dark as the same text drawn directly. The shape
-        // can afford it; the text cannot. So the shape goes through the effect, the text does
-        // not, and both the shape and the effect are declared before the card to paint under it.
-        Rectangle {
-            id: shadowShape
-            anchors.fill: card
-            radius: card.radius
-            color: bar.tokens.glassMode === "" ? bar.tokens.panel : "transparent"
-            visible: false
+        // The whole bar is the handle: pressing an item taps it, pressing the padding and
+        // moving drags the window. The two reasons this is a timer rather than the handler's
+        // own signal are in ShadowCard.qml.
+        DragHandler {
+            id: mover
+            target: null
+
+            property point grabCursor: Qt.point(0, 0)
+            property point grabWindow: Qt.point(0, 0)
+
+            function place() {
+                const at = Controller.cursorPos();
+                bar.x = Math.round(grabWindow.x + at.x - grabCursor.x);
+                bar.y = Math.round(grabWindow.y + at.y - grabCursor.y);
+            }
+
+            onActiveChanged: {
+                if (active) {
+                    grabCursor = Controller.cursorPos();
+                    grabWindow = Qt.point(bar.x, bar.y);
+                } else {
+                    place();
+                }
+            }
         }
 
-        MultiEffect {
-            // Placed and sized by the effect, from its source. Anchoring it to the window
-            // stretched the card's shape across the whole surface -- see ShadowCard.qml.
-            x: card.x
-            y: card.y
-            source: shadowShape
-            shadowEnabled: true
-            shadowColor: Qt.rgba(20 / 255, 20 / 255, 26 / 255, bar.tokens.dark ? 0.75 : 0.24)
-            shadowBlur: 0.9
-            shadowVerticalOffset: 10
-            blurMax: 40
+        Timer {
+            interval: 16
+            repeat: true
+            running: mover.active
+            onTriggered: mover.place()
         }
 
-        Rectangle {
-            id: card
-            width: parent.implicitWidth
-            height: row.height + 10
-            radius: bar.tokens.radiusMenu
-            color: bar.tokens.glassMode === "" ? bar.tokens.panel : "transparent"
-            border.width: 1
-            border.color: bar.tokens.line
+        Loader {
+            id: bodyLoader
+            sourceComponent: bar.barStyle === "bar" ? classicComponent
+                             : bar.barStyle === "tab" ? tabComponent
+                             : bar.barStyle === "hand" ? handComponent
+                             : bar.barStyle === "tag" ? tagComponent
+                             : fanComponent
+        }
+    }
 
-            GlassSurface {
-                anchors.fill: parent
-                sheet: bar.glass
-                mode: bar.tokens.glassMode
-                radius: card.radius
-            }
+    Component {
+        id: classicComponent
+        SelectionBarClassicBody {
+            actions: bar.actions
+            shown: bar.surfaceShown
+            glassSheet: bar.glass
+            onPicked: (action) => bar.pick(action)
+        }
+    }
 
-            // The card is the handle. The three items keep the pointer over themselves, so
-            // pressing one is a press on the item. The timer below does the moving, and the two
-            // reasons it is not the handler's own signal are in ShadowCard.qml.
-            DragHandler {
-                id: mover
-                target: null
+    Component {
+        id: tabComponent
+        SelectionBarTabBody {
+            actions: bar.actions
+            shown: bar.surfaceShown
+            sideLeft: bar.sideLeft
+            glassSheet: bar.glass
+            onPicked: (action) => bar.pick(action)
+        }
+    }
 
-                property point grabCursor: Qt.point(0, 0)
-                property point grabWindow: Qt.point(0, 0)
+    Component {
+        id: handComponent
+        SelectionBarHandBody {
+            actions: bar.actions
+            shown: bar.surfaceShown
+            glassSheet: bar.glass
+            onPicked: (action) => bar.pick(action)
+        }
+    }
 
-                function place() {
-                    const at = Controller.cursorPos();
-                    bar.x = Math.round(grabWindow.x + at.x - grabCursor.x);
-                    bar.y = Math.round(grabWindow.y + at.y - grabCursor.y);
-                }
+    Component {
+        id: tagComponent
+        SelectionBarTagBody {
+            actions: bar.actions
+            shown: bar.surfaceShown
+            above: bar.tagAbove
+            glassSheet: bar.glass
+            onPicked: (action) => bar.pick(action)
+        }
+    }
 
-                onActiveChanged: {
-                    if (active) {
-                        grabCursor = Controller.cursorPos();
-                        grabWindow = Qt.point(bar.x, bar.y);
-                    } else {
-                        place();
-                    }
-                }
-            }
-
-            Timer {
-                interval: 16
-                repeat: true
-                running: mover.active
-                onTriggered: mover.place()
-            }
-
-            Row {
-                id: row
-                anchors.centerIn: parent
-                spacing: 2
-
-                Repeater {
-                    model: [
-                        { action: "translate", label: qsTr("Translate"), source: "qrc:/icons/ui-translate.svg" },
-                        { action: "explain", label: qsTr("Explain"), source: "qrc:/icons/ui-explain.svg" },
-                        { action: "copy", label: qsTr("Copy text"), source: "qrc:/icons/ui-copy.svg" },
-                    ]
-
-                    delegate: Rectangle {
-                        id: item
-                        required property var modelData
-
-                        width: itemRow.width + 22
-                        height: itemRow.height + 14
-                        radius: bar.tokens.radiusField
-                        color: hover.hovered ? bar.tokens.panel2 : "transparent"
-                        // The press, not the hover: a HoverHandler has no `pressed`, so this
-                        // read gave undefined and the press never shrank the item.
-                        scale: press.pressed ? 0.97 : 1.0
-                        Behavior on scale {
-                            NumberAnimation {
-                                duration: bar.tokens.motion.press
-                                easing.type: bar.tokens.motion.easing
-                            }
-                        }
-
-                        Row {
-                            id: itemRow
-                            anchors.centerIn: parent
-                            spacing: 7
-                            Icon {
-                                anchors.verticalCenter: parent.verticalCenter
-                                source: item.modelData.source
-                                color: bar.tokens.muted
-                            }
-                            Text {
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: item.modelData.label
-                                color: bar.tokens.text
-                                font.pixelSize: 13
-                                font.weight: Font.Bold
-                            }
-                        }
-
-                        HoverHandler { id: hover; cursorShape: Qt.PointingHandCursor }
-                        TapHandler {
-                            id: press
-                            onTapped: {
-                                Controller.explanationDuty.runSelectionAction(item.modelData.action, bar.selectionText);
-                                bar.dismiss();
-                            }
-                        }
-                    }
-                }
-            }
+    Component {
+        id: fanComponent
+        SelectionBarFanBody {
+            actions: bar.actions
+            shown: bar.surfaceShown
+            glassSheet: bar.glass
+            onPicked: (action) => bar.pick(action)
         }
     }
 
