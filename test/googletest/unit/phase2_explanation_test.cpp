@@ -280,6 +280,58 @@ TEST_F(LlmTest, Phase2LanguagesRoundTripThroughDutyTransportAndCache)
     }
 }
 
+TEST_F(LlmTest, Phase2TheBubbleLanguageShortcutReasksTheStandingCardAndKeepsItsShape)
+{
+    QtApplication    qt;
+    QTemporaryDir    temporary;
+    auto             store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    app::StorageDuty storage{store};
+    Manager          manager;
+    manager.response = envelope({plainWord("bank")});
+    llm::LlmClient       client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
+    auto const           pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+    app::CostDuty        cost{storage.statsStore(), client, pricing};
+    app::ExplanationDuty duty{storage, client, cost};
+
+    duty.setSelection(selection());
+    run(duty, client);
+    EXPECT_EQ(duty.bubble().value("en").toString(), QStringLiteral("English"));
+
+    // The card a review answer raises is the one with a shape to lose: it has no verdict buttons,
+    // and a replay must not turn it into a card the reader can mark.
+    duty.dismissBubble();
+    duty.showReviewAnswer("bank", QPoint{200, 400});
+    ASSERT_FALSE(duty.bubble().isEmpty());
+    ASSERT_EQ(duty.bubble().value("verdictButtons").toBool(), false);
+
+    store.setExplanationLang("zh");
+    QEventLoop loop;
+    QObject::connect(&client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
+    QObject::connect(&client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
+    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+    duty.reexplain();
+    loop.exec();
+
+    EXPECT_EQ(manager.posts, 2) << "the standing card was not asked for again in the new language";
+    EXPECT_TRUE(manager.posted.contains("Chinese")) << "the request did not go out under the new language";
+    EXPECT_EQ(duty.bubble().value("zh").toString(), QStringLiteral("中文"));
+    EXPECT_EQ(duty.bubble().value("verdictButtons").toBool(), false)
+        << "the replayed review card grew the verdict buttons it must not have";
+    EXPECT_EQ(duty.bubble().value("sameCard").toBool(), true)
+        << "the replayed answer was not marked as a refresh of the standing card";
+
+    // A language already paid for is put up out of the cache, without a request.
+    store.setExplanationLang("en");
+    duty.reexplain();
+    EXPECT_EQ(manager.posts, 2) << "a stored copy was bought a second time";
+    EXPECT_EQ(duty.bubble().value("en").toString(), QStringLiteral("English"));
+    EXPECT_EQ(duty.bubble().value("verdictButtons").toBool(), false);
+    EXPECT_EQ(duty.bubble().value("sameCard").toBool(), true)
+        << "the cache-hit replay was not marked as a refresh of the standing card";
+    EXPECT_EQ(duty.bubble().value("reveal").toBool(), true)
+        << "the cached language switch was put up whole instead of written out again";
+}
+
 TEST_F(LlmTest, Phase2TheEtymologySettingBringsTheOriginAlongAndKeepsItOutOfTheKey)
 {
     QtApplication        qt;

@@ -104,6 +104,16 @@ public:
     Q_INVOKABLE void restoreDefaults();
     Q_INVOKABLE void setLevel(int level);
     Q_INVOKABLE void setExplanationLang(QString lang);
+    /**
+     * @brief Switch the explanation language from the bubble's shortcut and ask again for the card.
+     *
+     * This is the settings row's setter plus the one thing the reader meant by using it on a card:
+     * the standing explanation is put up in the new language, from the cache when it has one and
+     * from the model otherwise. The choice is a setting, not a one-card override, so the next card
+     * comes up in the same language. A translation has no second language to ask for and is left
+     * alone.
+     */
+    Q_INVOKABLE void reexplainIn(QString language);
     Q_INVOKABLE void setMultiSense(bool on);
     /// @brief Ask for a word's origin with its explanation, and draw it on the bubble.
     Q_INVOKABLE void setEtymology(bool on);

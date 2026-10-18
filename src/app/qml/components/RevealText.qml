@@ -159,6 +159,12 @@ Item {
         layoutRevision++;
     }
 
+    /// Whether a character belongs to a script that breaks between characters rather than at
+    /// spaces. Latin words are measured whole; Chinese and Japanese runs have no spaces to break
+    /// at, and laying them as one word is what put a Chinese definition in a single line past the
+    /// card's edge.
+    readonly property var characterBreaks: /[\u2E80-\u2FFF\u3000-\u303F\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uAC00-\uD7AF\uF900-\uFAFF\uFF00-\uFFEF]/
+
     /// Lay every token from @p from to the end of the text, the first one at pen (@p x, @p y), and
     /// leave tailStart/tailX/tailY on the last token for the next chunk.
     function layFrom(from, x, y) {
@@ -192,6 +198,26 @@ Item {
                 continue;
             }
 
+            // A run with no spaces in it has no word boundary to break at. Chinese and Japanese
+            // can break between any two characters, so those runs are laid a character at a time
+            // and wrap before whichever character would cross the field.
+            if (characterBreaks.test(token)) {
+                for (let i = 0; i < token.length; ++i) {
+                    const character = token.charAt(i);
+                    const width = measureWidth(character);
+                    if (x > 0 && x + width > limit) {
+                        x = 0;
+                        y += step;
+                    }
+                    const piece = { index: start + i, character: character, x: x, y: y };
+                    pieces.append({ charIndex: piece.index, glyph: piece.character,
+                                    px: piece.x, py: piece.y });
+                    positions[piece.index] = piece;
+                    ++tailPieces;
+                    x += width;
+                }
+                continue;
+            }
             // A word is measured whole, so the break below always falls between two of them.
             const tokenWidth = measureWidth(token);
             if (x > 0 && x + tokenWidth > limit) {

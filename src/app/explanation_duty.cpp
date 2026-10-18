@@ -65,7 +65,7 @@ void ExplanationDuty::onPartial(llm::Explanation partial)
                         : (subject->surface.isEmpty() ? subject->text : subject->surface);
     // The sense mode reaches the card masked by the kind, exactly as it does for a finished answer.
     const core::CacheContext display{now.language, now.multipleSenses and isWordKind(subject->kind)};
-    showBubble(partial, *subject, display, /*countsDown=*/true, /*notifyPet=*/false);
+    showBubble(partial, *subject, display, /*notifyPet=*/false);
     // Once per request, and after the staleness rule above has spoken: what this answers is whether
     // the reader's provider streams at all -- the reader's own report was a card that filled in one
     // jump, and a provider that answers in one body looks exactly like that at this level.
@@ -176,7 +176,7 @@ void ExplanationDuty::enqueueScanCandidates(QVariantList candidates, QPoint anch
         if (const auto cached = storage_.knownStore().cacheGet(candidate.lemma.toStdString(), context); cached and servable(*cached)) {
             storage_.statsStore().recordPop(candidate.lemma.toStdString(), nowMinute().toStdString());
             if (bubble_.isEmpty() and not queue_.inFlight())
-                showBubble(fromCache(*cached, candidate.lemma), candidate, context, /*countsDown=*/true, /*notifyPet=*/true, /*reveal=*/false);
+                showBubble(fromCache(*cached, candidate.lemma), candidate, context, /*notifyPet=*/true, /*reveal=*/false);
             continue;
         }
         misses.push_back(std::move(candidate));
@@ -220,8 +220,8 @@ void ExplanationDuty::reviewWord(QString lemma, QPoint const anchor)
     reviewAnchor_ = anchor;
     const core::CacheContext context{storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)};
     if (const auto cached = storage_.knownStore().cacheGet(value.toStdString(), context)) {
-        PendingSelection pending{.anchor = anchor, .kind = QStringLiteral("word"), .surface = value, .lemma = value};
-        showBubble(fromCache(*cached, value), pending, context, /*countsDown=*/false, /*notifyPet=*/true, /*reveal=*/false);
+        PendingSelection pending{.anchor = anchor, .kind = QStringLiteral("word"), .surface = value, .lemma = value, .countsDown = false};
+        showBubble(fromCache(*cached, value), pending, context, /*notifyPet=*/true, /*reveal=*/false);
         reviewRaised_ = true;
         return;
     }
@@ -242,8 +242,8 @@ void ExplanationDuty::showReviewAnswer(QString const& lemma, QPoint const anchor
     const auto               cached = storage_.knownStore().cacheGet(lemma.toStdString(), context);
     if (not cached or not servable(*cached))
         return;
-    PendingSelection pending{.anchor = anchor, .kind = QStringLiteral("word"), .surface = lemma, .lemma = lemma};
-    showBubble(fromCache(*cached, lemma), pending, context, /*countsDown=*/true, /*notifyPet=*/false, /*reveal=*/false, /*verdictButtons=*/false);
+    PendingSelection pending{.anchor = anchor, .kind = QStringLiteral("word"), .surface = lemma, .lemma = lemma, .verdictButtons = false};
+    showBubble(fromCache(*cached, lemma), pending, context, /*notifyPet=*/false, /*reveal=*/false);
 }
 
 void ExplanationDuty::dismissReview()
@@ -258,6 +258,20 @@ void ExplanationDuty::explainLemma(QString lemma)
     if (value.isEmpty()) return;
     PendingSelection pending{.anchor = reviewAnchor_, .kind = QStringLiteral("word"), .surface = value, .lemma = value};
     explain(pending);
+}
+
+void ExplanationDuty::reexplain()
+{
+    if (bubbleSubject_.kind.isEmpty() or bubbleSubject_.kind == QLatin1String("translation"))
+        return;
+    // The cache is local, so it answers even while another request is in flight: the target
+    // language may have been paid for already, and the shortcut must not make the reader wait for
+    // a request it does not need. A miss goes through explain(), which holds it behind that request.
+    const core::CacheContext context{storage_.knownStore().explanationLang(),
+                                     isWordKind(bubbleSubject_.kind) && storage_.section().value<bool>("multiSense", false)};
+    if (showStored(bubbleSubject_, context, /*reveal=*/true))
+        return;
+    explain(bubbleSubject_);
 }
 
 void ExplanationDuty::explain(PendingSelection const& pending)
@@ -281,7 +295,7 @@ void ExplanationDuty::explain(PendingSelection const& pending)
     sendNext();
 }
 
-bool ExplanationDuty::showStored(PendingSelection const& pending, core::CacheContext const& context)
+bool ExplanationDuty::showStored(PendingSelection const& pending, core::CacheContext const& context, bool const reveal)
 {
     if (not isWordKind(pending.kind))
         return false;
@@ -290,7 +304,7 @@ bool ExplanationDuty::showStored(PendingSelection const& pending, core::CacheCon
         return false;
     storage_.statsStore().recordPop(pending.lemma.toStdString(), nowMinute().toStdString());
     storage_.save();
-    showBubble(fromCache(*cached, pending.lemma), pending, context, /*countsDown=*/true, /*notifyPet=*/true, /*reveal=*/false);
+    showBubble(fromCache(*cached, pending.lemma), pending, context, /*notifyPet=*/true, reveal);
     emit statsChanged();
     return true;
 }
@@ -348,7 +362,7 @@ void ExplanationDuty::sendNext()
     send(std::move(*batch));
 }
 
-void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool const countsDown, bool const notifyPet, bool const reveal, bool const verdictButtons)
+void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool const notifyPet, bool const reveal)
 {
     auto const selected = [&](QString const& en, QString const& zh, QString const& translation) {
         return context.language == "en" ? en : context.language == "zh" ? zh
@@ -364,16 +378,20 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
     const QString chinese     = context.language == "zh" and not translated ? explanation.zh : QString{};
     const QString translation = context.language != "en" and context.language != "zh" and not translated ? explanation.translation
                                                                                                          : QString{};
-    QVariantMap   payload{{"title", explanation.title},
-                          {"type", selection.kind},
-                          {"en", english},
-                          {"zh", chinese},
-                          {"translation", translation},
-                          {"countsDown", countsDown},
-                          {"reveal", reveal},
-                          {"verdictButtons", verdictButtons},
-                          {"x", selection.anchor.x()},
-                          {"y", selection.anchor.y()}};
+    // The same card refreshed -- a stream chunk, or a language switch replaying the answer -- is
+    // not a new surface that has to be placed: the reader is already reading it where it stands.
+    const bool  sameCard = not bubble_.isEmpty() and bubbleSubject_.kind == selection.kind and bubbleSubject_.text == selection.text and bubbleSubject_.surface == selection.surface and bubbleSubject_.lemma == selection.lemma and bubbleSubject_.anchor == selection.anchor and bubbleSubject_.preset == selection.preset and bubbleSubject_.countsDown == selection.countsDown and bubbleSubject_.verdictButtons == selection.verdictButtons;
+    QVariantMap payload{{"title", explanation.title},
+                        {"type", selection.kind},
+                        {"sameCard", sameCard},
+                        {"en", english},
+                        {"zh", chinese},
+                        {"translation", translation},
+                        {"countsDown", selection.countsDown},
+                        {"reveal", reveal},
+                        {"verdictButtons", selection.verdictButtons},
+                        {"x", selection.anchor.x()},
+                        {"y", selection.anchor.y()}};
     if (isWordKind(selection.kind)) {
         QVariantList senses;
         auto         entries = explanation.senses;
@@ -400,7 +418,8 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
             payload.insert(QStringLiteral("example"), explanation.example);
         payload.insert(QStringLiteral("status"), storage_.knownStore().isKnown(explanation.title.toStdString()) ? QStringLiteral("known") : QStringLiteral("new"));
     }
-    bubble_ = payload;
+    bubble_        = payload;
+    bubbleSubject_ = selection;
     // Whatever raised this bubble, the one the pointer's row put up is no longer standing: a scan
     // bubble must not be taken down by the pointer leaving a word the reader has moved on from.
     // The held exit goes with it -- this bubble is the reading now.
@@ -439,7 +458,8 @@ void ExplanationDuty::clearBubble()
 {
     // Every way a bubble goes -- the countdown, the cross, a deletion, a notice replacing it --
     // leaves nothing for the pointer to be holding afterwards.
-    reviewRaised_ = false;
+    reviewRaised_  = false;
+    bubbleSubject_ = PendingSelection{};
     if (bubble_.isEmpty()) return;
     bubble_.clear();
     emit bubbleChanged();

@@ -157,6 +157,23 @@ Item {
                    "the streamed characters were not drawn at all");
         }
 
+        /// Chinese has no spaces to break at. A field that only breaks between words lays the whole
+        /// definition along one line and past the card's edge; a run of characters has to wrap
+        /// between two of them, and every glyph stays inside the width it was given.
+        function test_chineseBreaksBetweenCharacters() {
+            const text = "这是一段很长的中文解释，用来确认文字会在卡片的宽度以内自动换行，而不是沿着同一行向右溢出卡片边缘。再补一些字，确保至少占满三行。";
+            const reveal = opened({text: text, animated: false, width: 100});
+
+            compare(reveal.positions.length, text.length);
+            const lines = {};
+            for (let i = 0; i < reveal.positions.length; ++i) {
+                const piece = reveal.positions[i];
+                verify(piece.x >= 0 && piece.x < 100, "a Chinese glyph ran past the field's width");
+                lines[piece.y] = true;
+            }
+            verify(Object.keys(lines).length > 1, "the Chinese answer stayed on one line");
+        }
+
         /// Only the characters still sharpening carry a blur: the settled ones are plain text, so
         /// what the reveal costs the renderer is the tail rather than the length of the field.
         function test_onlyTheSharpeningTailCarriesABlur() {

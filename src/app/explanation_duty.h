@@ -40,6 +40,16 @@ public:
     /// @brief Invalidate queued or in-flight results for a word deleted locally.
     void             invalidateWord(QString const& lemma);
     Q_INVOKABLE void runSelectionAction(QString action, QString text);
+    /**
+     * @brief Ask again for the bubble standing, under the explanation language now in force.
+     *
+     * The bubble's language shortcut changes the setting first and then calls this (AppController).
+     * A copy already stored in the new language is put up without a request; otherwise the standing
+     * card is asked for once more. The subject keeps the display flags it was raised with, so a
+     * review answer replayed this way still carries no verdict buttons. A translation has nothing to
+     * ask -- its one answer is English whatever the setting says -- and raises nothing here.
+     */
+    Q_INVOKABLE void reexplain();
     Q_INVOKABLE void mark(QString lemma, bool learned);
     /**
      * @brief Show what is already stored for a word the reader pointed at, and nothing else.
@@ -102,9 +112,12 @@ signals:
 private:
     void explain(PendingSelection const& pending);
     /// @brief Raise the bubble from the copy already stored for @p pending, and count the pop.
+    /// @param reveal Whether a copy shown this way writes itself out again. False for the cards the
+    ///        word list raises whole; true when a language switch replays the new language, where
+    ///        the reader expects the answer to arrive the same way it originally did.
     /// @return True when there was one; a word that has never been explained is not it, and neither
     ///         is a sentence, which is not something the cache holds.
-    bool showStored(PendingSelection const& pending, core::CacheContext const& context);
+    bool showStored(PendingSelection const& pending, core::CacheContext const& context, bool reveal = false);
     /// @brief Whether a stored entry answers a request made now. With the example setting on, an entry
     ///        bought without one does not: it is asked for again, and paid for once more.
     bool servable(core::WordCache const& cached) const;
@@ -123,18 +136,14 @@ private:
     /// @brief Draw an answer that is still arriving, on the card of the request in flight.
     /// @param partial Whatever fields have completed so far; the rest are absent.
     void onPartial(llm::Explanation partial);
-    /// @param countsDown Whether the bubble takes itself down after its countdown. A bubble the
-    ///        word list raises belongs to the row under the pointer instead, and is taken down when
-    ///        the pointer leaves it.
+    /// The countdown and verdict flags live on @p selection: they are part of how this card
+    /// behaves, and travel with a replay through the queue the same way its text does.
     /// @param notifyPet Whether the pet hears about this card. A stream repaints the same card as
     ///        it grows and stays quiet; only the finished answer is an arrival to react to.
     /// @param reveal Whether the card writes its answer out a character at a time. False for the
     ///        cards raised whole out of the cache: nothing is arriving there, and the word list puts
     ///        one up for every row the pointer crosses.
-    /// @param verdictButtons Whether the card offers the Known / New buttons. False for the card that
-    ///        follows a review answer: a review result and a manual mark are separate lines, so that
-    ///        card leaves the mark alone.
-    void    showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool countsDown = true, bool notifyPet = true, bool reveal = true, bool verdictButtons = true);
+    void    showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool notifyPet = true, bool reveal = true);
     QString noticeTitle(PendingSelection const& pending) const;
     ///
     /// One reader of this, two uses: the request asks the model for it, and the card decides
@@ -156,6 +165,9 @@ private:
     /// only that the reader has moved on.
     ExplanationQueue queue_;
     PendingSelection pending_;
+    /// The selection the standing bubble was raised for. The language shortcut re-asks for this,
+    /// not for whatever selection is pending now.
+    PendingSelection bubbleSubject_;
     QVariantMap      bubble_;
     QVariantMap      notice_;
     QString          busyLabel_;
