@@ -31,6 +31,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/review_duty_test.cpp
   unit/sync_merge_test.cpp
   unit/sync_apply_test.cpp
+  unit/sync_run_test.cpp
   unit/settings_section_test.cpp
   unit/app_seams_test.cpp
   unit/llm_pure_test.cpp

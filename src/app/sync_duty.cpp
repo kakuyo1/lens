@@ -5,8 +5,11 @@
 
 #include "app/sync_duty.h"
 
+#include <nlohmann/json.hpp>
+
 #include "app/sync_state.h"
 #include "core/sync_merge.h"
+#include "core/sync_run.h"
 #include "core/vault.h"
 #include "util/log.h"
 
@@ -18,7 +21,8 @@
 
 namespace lens::app {
 
-namespace vault = core::vault;
+namespace vault   = core::vault;
+namespace syncrun = core::syncrun;
 
 namespace {
 
@@ -88,14 +92,14 @@ QString nowLocal()
 }
 
 /// @return The derived key and its parameters, or std::nullopt when either is missing or malformed.
-std::optional<std::pair<vault::Bytes, vault::KdfParams>> storedKeyOf(const core::SettingsSection& section)
+std::optional<syncrun::StoredKey> storedKeyOf(const core::SettingsSection& section)
 {
     const auto key        = vault::decodeBase64(section.value<std::string>("key", ""));
     const auto salt       = vault::decodeBase64(section.value<std::string>("salt", ""));
     const int  iterations = section.value<int>("iterations", 0);
     if (!key || !salt || key->size() != 32 || iterations <= 0)
         return std::nullopt;
-    return std::make_pair(*key, vault::KdfParams{*salt, static_cast<unsigned>(iterations)});
+    return syncrun::StoredKey{*key, vault::KdfParams{*salt, static_cast<unsigned>(iterations)}};
 }
 
 /// @return The settings object the last successful sync left behind, or an empty object.
@@ -416,7 +420,7 @@ void SyncDuty::onListed(const QByteArray& body)
     const auto id = lens::sync::findGistId(body, QString::fromLatin1(kDescription));
     if (!id) {
         // No gist on this account yet: the merge starts from this device alone.
-        process(QString(), nlohmann::json(nullptr));
+        process(QString(), std::string());
         return;
     }
     step_ = Step::Reading;
@@ -425,78 +429,35 @@ void SyncDuty::onListed(const QByteArray& body)
 
 void SyncDuty::onGot(const lens::sync::Gist& gist)
 {
-    nlohmann::json envelope; // null: the gist has no cloud copy yet
-    const QString  content = gist.files.value(QString::fromLatin1(kFileName)).content;
-    if (!content.isEmpty()) {
-        envelope = nlohmann::json::parse(content.toStdString(), nullptr, false);
-        if (envelope.is_discarded() || !envelope.is_object()) {
-            fail("generic");
-            return;
-        }
-    }
-    process(gist.id, envelope);
+    // The cloud copy as the gist file carries it, which is nothing at all on a gist that has no
+    // file yet; openCloudCopy() reads whatever text it is handed.
+    process(gist.id, gist.files.value(QString::fromLatin1(kFileName)).content.toStdString());
 }
 
-void SyncDuty::process(const QString& gistId, const nlohmann::json& envelope)
+void SyncDuty::process(const QString& gistId, const std::string& envelopeText)
 {
     try {
-        const bool                 hasEnvelope = !envelope.is_null();
-        vault::KdfParams           params;
-        vault::Bytes               key;
-        std::optional<std::string> plaintext;
-
-        if (!passphrase_.empty()) {
-            if (hasEnvelope) {
-                const auto sealedWith = vault::paramsOf(envelope);
-                if (!sealedWith) {
-                    fail("generic");
-                    return;
-                }
-                params    = *sealedWith;
-                key       = vault::deriveKey(passphrase_, params);
-                plaintext = vault::open(key, envelope);
-                if (!plaintext) {
-                    // A wrong passphrase; nothing is stored, so the old key (if any) stays.
-                    fail("passphrase");
-                    return;
-                }
-            } else {
-                params = vault::newParams();
-                key    = vault::deriveKey(passphrase_, params);
-            }
+        const auto opened = syncrun::openCloudCopy({.envelopeText = envelopeText,
+                                                    .passphrase   = passphrase_,
+                                                    .stored       = storedKeyOf(syncSection())});
+        // Written before the error is read, because a run that stopped with "generic" may have
+        // derived a key that opened the cloud copy, and that key is this device's either way.
+        if (opened.keyToStore) {
             auto section = syncSection();
-            section.set<std::string>("key", vault::encodeBase64(key));
-            section.set<std::string>("salt", vault::encodeBase64(params.salt));
-            section.set<int>("iterations", static_cast<int>(params.iterations));
-        } else {
-            const auto stored = storedKeyOf(syncSection());
-            if (!stored) {
-                fail("passphrase");
-                return;
-            }
-            key    = stored->first;
-            params = stored->second;
-            if (hasEnvelope) {
-                plaintext = vault::open(key, envelope);
-                if (!plaintext) {
-                    fail("passphrase");
-                    return;
-                }
-            }
+            section.set<std::string>("key", vault::encodeBase64(opened.keyToStore->key));
+            section.set<std::string>("salt", vault::encodeBase64(opened.keyToStore->params.salt));
+            section.set<int>("iterations", static_cast<int>(opened.keyToStore->params.iterations));
         }
-
-        nlohmann::json remote = nlohmann::json::object();
-        if (plaintext) {
-            remote = nlohmann::json::parse(*plaintext, nullptr, false);
-            if (remote.is_discarded() || !remote.is_object()) {
-                fail("generic");
-                return;
-            }
+        if (!opened.error.empty() || !opened.key) {
+            // A run that stopped has no key to seal under. An empty code beside a missing key is
+            // something other than what the reader did, so it is reported as the generic failure.
+            fail(opened.error.empty() ? "generic" : opened.error.c_str());
+            return;
         }
 
         const std::string    device = deviceId();
         const auto           local  = syncstate::buildLocalDocument(storage_.knownStore(), storage_.statsStore(), storedSnapshot(storage_.knownStore().document()), device, QDateTime::currentMSecsSinceEpoch());
-        const nlohmann::json merged = core::sync::merge(local, remote, device);
+        const nlohmann::json merged = core::sync::merge(local, opened.remote, device);
 
         {
             ApplyScope applying(applying_);
@@ -513,10 +474,13 @@ void SyncDuty::process(const QString& gistId, const nlohmann::json& envelope)
         // made during the run is not in it, so it still counts as new and schedules the next sync.
         pendingFingerprint_ = syncstate::contentFingerprint(storage_.knownStore(), storage_.statsStore());
 
-        // A timer pass that found nothing new on this device has pulled and merged the cloud's changes
-        // above, and has nothing to send back. Skipping the seal and the upload is what keeps the
-        // ten-minute poll from re-uploading an unchanged copy. A reader's own sync always uploads.
-        if (!manual_ && !gistId.isEmpty() && pendingFingerprint_ == uploadedFingerprint_) {
+        const auto upload = syncrun::sealUpload({.key                 = *opened.key,
+                                                 .merged              = merged,
+                                                 .gistId              = gistId.toStdString(),
+                                                 .manual              = manual_,
+                                                 .fingerprint         = pendingFingerprint_,
+                                                 .uploadedFingerprint = uploadedFingerprint_});
+        if (upload.command == syncrun::Upload::Command::None) {
             // Nothing to send is still a sync that worked: it clears a backoff left by an earlier failure.
             setSyncedAt();
             retryAttempt_ = 0;
@@ -525,15 +489,13 @@ void SyncDuty::process(const QString& gistId, const nlohmann::json& envelope)
             return;
         }
 
-        const std::string            body   = merged.dump();
-        const nlohmann::json         sealed = vault::seal(key, body, params);
-        const QMap<QString, QString> files{{QString::fromLatin1(kFileName), QString::fromStdString(sealed.dump())}};
-        if (gistId.isEmpty()) {
+        const QMap<QString, QString> files{{QString::fromLatin1(kFileName), QString::fromStdString(upload.sealed)}};
+        if (upload.command == syncrun::Upload::Command::Create) {
             step_ = Step::Creating;
             gist_.createGist(token(), QString::fromLatin1(kDescription), files);
         } else {
             step_ = Step::Writing;
-            gist_.updateGist(token(), gistId, files);
+            gist_.updateGist(token(), QString::fromStdString(upload.gistId), files);
         }
     } catch (const std::exception& failure) {
         LENS_ERROR("sync: {}", failure.what());
@@ -613,7 +575,7 @@ void SyncDuty::onGistFailed(lens::sync::GistFailure why)
     // run carries on from where the 401 stopped it. ponytail: no expiry is stored and nothing is
     // renewed early -- a 401 is the trigger. Store `expires_in` and renew ahead of time if the
     // wasted round trip ever shows up.
-    if (why == lens::sync::GistFailure::Unauthorised and not refreshToken().isEmpty() and not refreshedThisRun_) {
+    if (syncrun::shouldRenewSignIn(why == lens::sync::GistFailure::Unauthorised, not refreshToken().isEmpty(), refreshedThisRun_)) {
         refreshedThisRun_   = true;
         resumeAfterRefresh_ = step_ == Step::Deleting ? Step::Deleting : Step::Listing;
         // No gist call is in flight now, and the answers to the ones that were are not wanted.

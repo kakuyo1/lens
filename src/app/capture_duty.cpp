@@ -280,11 +280,11 @@ void CaptureDuty::launchOcr(QImage image, QPoint const anchor, QString context)
 
 std::optional<CaptureRefusal> CaptureDuty::captureRefusalReason() const
 {
-    if (budgetPaused_) return CaptureRefusal::BudgetPaused;
-    if (jobContext_ and jobContext_->probe) return CaptureRefusal::Checking;
-    if (job_) return CaptureRefusal::Busy;
-    if (not settings().value("ocrCapture").toBool()) return CaptureRefusal::ScreenshotOff;
-    return refusalOf(ocrState_);
+    return gateRefusal({.budgetPaused = budgetPaused_,
+                        .probing      = jobContext_ and jobContext_->probe,
+                        .busy         = job_ != nullptr,
+                        .screenshotOn = settings().value("ocrCapture").toBool(),
+                        .runtime      = ocrState_});
 }
 
 bool CaptureDuty::captureScreenshot(QImage image, QPoint const anchor)
@@ -372,14 +372,22 @@ void CaptureDuty::pollOcr()
             LENS_WARN("OCR probe failed (status {})", ocrStatus().toStdString());
         return;
     }
-    if (context.generation != (context.context.isEmpty() ? screenshotGeneration_ : generation_)) return;
+    std::optional<QString> foregroundContext;
     if (not context.context.isEmpty()) {
-        auto const foreground = capture::foregroundWindow();
-        if (budgetPaused_ or scanPaused_ or not foreground or foreground->context != context.context or
-            not settings().value("autoScan").toBool()) {
-            invalidateScan();
-            return;
-        }
+        if (auto const foreground = capture::foregroundWindow()) foregroundContext = foreground->context;
+    }
+    auto const fate = capture::ocrResultFate({.jobContext           = context.context,
+                                              .jobGeneration        = context.generation,
+                                              .scanGeneration       = generation_,
+                                              .screenshotGeneration = screenshotGeneration_,
+                                              .foregroundContext    = std::move(foregroundContext),
+                                              .budgetPaused         = budgetPaused_,
+                                              .scanPaused           = scanPaused_,
+                                              .autoScan             = settings().value("autoScan").toBool()});
+    if (fate == capture::OcrResultFate::Superseded) return;
+    if (fate == capture::OcrResultFate::Withdrawn) {
+        invalidateScan();
+        return;
     }
     if (result.status != capture::OcrStatus::Ready) {
         // The status this result carried, never ocrStatus(): that reads ocrState_, which the gate
@@ -393,7 +401,7 @@ void CaptureDuty::pollOcr()
             return;
         }
         scan_->reset();
-        if (result.status != capture::OcrStatus::EmptyText and result.status != capture::OcrStatus::InvalidImage) {
+        if (capture::isRuntimeFault(result.status)) {
             ocrState_ = result.status;
             emit settingsChanged();
             LENS_WARN("OCR worker failed (status {})", ocrStatus().toStdString());

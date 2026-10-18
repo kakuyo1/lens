@@ -1,0 +1,6 @@
+# 0057 一次同步的两个判定是纯函数，留在 core 层
+
+- **状态**：accepted
+- **背景**：`SyncDuty::process()` 原先在一个 Qt 槽里跑完整一次同步：派生密钥或用存着的密钥重开云端副本（`vault` 调用）、把 key 与 salt 写回设置分区、与 `core/sync_merge.h` 合并、把合并结果落进各 store，再封存并上传。测试树下没有一处引用 `SyncDuty`——`sync_apply_test.cpp` 的文件头就写着这些请求不在这里跑——所以首次运行派生密钥、用云端副本自带的 salt 重开、没有新东西可发就跳过上传这一支，以及各条失败路径，都只能靠真实 `GistClient` 与事件循环才跑得出来。合并规则本身有覆盖，它周围的次序没有。
+- **决定**：一次同步里两个判定搬进新的 `src/core/sync_run.h`：`openCloudCopy()` 决定用哪个派生密钥打开云端副本、读出它背后的文档，`sealUpload()` 决定封存合并结果并给出该走哪次 gist 调用（新建、替换，或本次没有要发的），401 是否先用刷新令牌续签由 `shouldRenewSignIn()` 判定。三者都是纯函数，只收普通值，不依赖 Qt、不碰文件与网络、不记录任何日志（口令、派生密钥与云端副本都是读者的）。`SyncDuty` 只做副作用：写设置分区的 `key`/`salt`/`iterations`、把合并结果落进 store、在 `GistClient` 上执行命令。`core/vault.h` 与 `core/sync_merge.h` 行为不变。
+- **后果**：用例在 `test/googletest/unit/sync_run_test.cpp`，没有网络、没有事件循环、只有夹具密钥。拆成两个函数而不是一个，是因为跳过上传要比的指纹只能在合并结果落到 store 之后才取得到，一个函数只能猜它；两个函数让 “要发什么” 与 “这次指纹是什么” 各自成为入参。密钥先用后写：一次因云端副本解密后不是文档而失败的运行仍然留着那把打开了副本的密钥，这与原来的次序一致。放在 `core` 而不是 `app`，是因为它调用 `vault` 与 `sync_merge`，而 `app` 在 `core` 之上；被排除的另一个方案是并进 `app/sync_state.h`，那个文件只有 `SyncDuty` 一个调用者，且要 store 类型。
