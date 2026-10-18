@@ -42,8 +42,15 @@ Window {
     readonly property int dismissAfterMs: Controller.settings.bubbleDismissSeconds * 1000
 
     width: content.implicitWidth + 2 * shadowMargin
-    height: Math.round(Math.max(rowHold.active ? rowHold.floor : 0, content.implicitHeight) + 2 * shadowMargin)
-    onVisibleChanged: if (!visible) rowHold.active = false
+    height: Math.round(Math.max(rowHold.active ? rowHold.floor : 0,
+                                languageReplay ? replayHeight : 0,
+                                content.implicitHeight) + 2 * shadowMargin)
+    onVisibleChanged: {
+        if (!visible) {
+            rowHold.active = false;
+            endLanguageReplay();
+        }
+    }
     HeightHold {
         id: rowHold
         contentHeight: content.implicitHeight
@@ -89,6 +96,11 @@ Window {
     /// no count for the reader to read.
     property bool countsDown: true
 
+    /// Whether a language switch is replaying the answer inside the frame the card already has.
+    property bool languageReplay: false
+    /// The content height that frame was given when the replay began.
+    property real replayHeight: 0
+
     /// Whether the Known and New buttons are drawn. The card a review's answer raises is the reader's to read, not to
     /// mark (UI.md 4.13); the status tag above the title still says what the word is.
     property bool verdictButtons: true
@@ -122,8 +134,6 @@ Window {
     property int showGeneration: 0
     property int pendingGeneration: 0
 
-    /// Where the pointer and card were when the hover state last changed, in screen coordinates.
-    /// Nothing reads them: they are what TODO.md's hover-jitter item is read off under a debugger.
     property point lastHoverCursor: Qt.point(0, 0)
     property rect lastHoverCard: Qt.rect(0, 0, 0, 0)
 
@@ -135,19 +145,36 @@ Window {
     /// the chosen side has no room, and the same call is made again once the text has settled.
     signal placementRequested(var payload)
 
+    /// @brief Hold this card's frame while a language switch writes the answer again.
+    /// The new answer is shorter or longer and arrives in chunks; the window must not follow it.
+    /// The current height becomes a floor and placement is not asked for again until a different
+    /// card or a dismissal ends the replay.
+    function beginLanguageReplay() {
+        if (!surfaceShown)
+            return;
+        replayHeight = Math.max(replayHeight, height - 2 * shadowMargin);
+        languageReplay = true;
+    }
+
+    function endLanguageReplay() {
+        languageReplay = false;
+        replayHeight = 0;
+    }
+
     function show(payload) {
         const wasVisible = visible;
         const generation = ++showGeneration;
+        // A different card ends the replay; it is placed from its own anchor.
+        if (languageReplay && payload.sameCard !== true)
+            endLanguageReplay();
         pendingPayload = payload;
         pendingWasVisible = wasVisible;
         pendingGeneration = generation;
         // A fresh bubble is never mid-drag; a refresh may arrive while the reader is holding it.
         if (!wasVisible)
             dragging = false;
-        // The preview writes itself out again every time it comes up, even when it shows the same
-        // card: RevealText reads a text that continues the last one as the same answer arriving in
-        // another chunk, so clearing first is what makes the fields start over. A real bubble
-        // refreshing under the pointer must not lose the writing it has already done.
+        // A preview starts its fields over every time; a real bubble refreshing under the pointer
+        // must keep the writing it has already done.
         if (preview && !wasVisible) {
             ipa = "";
             english = "";
@@ -182,8 +209,9 @@ Window {
             surfaceShown = false;
         }
 
-        // Growing content re-asks for placement; a card the reader is dragging is theirs.
-        if (!dragging)
+        // Growing content re-asks for placement; a card the reader is dragging is theirs, and one
+        // replaying a language switch keeps the frame it is already in.
+        if (!dragging && !languageReplay)
             placement.restart();
     }
 
@@ -281,8 +309,7 @@ Window {
         }
 
         MultiEffect {
-            // Placed and sized by the effect, from its source. Anchoring it to the window
-            // stretched the card's shape across the whole surface -- see ShadowCard.qml.
+            // Placed and sized by the effect, from its source -- see ShadowCard.qml.
             x: card.x
             y: card.y
             source: shadowShape
@@ -317,9 +344,6 @@ Window {
                 radius: card.radius
             }
 
-            // The card is the handle, through the system's own move loop. The verdict buttons
-            // keep the pointer where they are, so a drag that begins on one of them is a press
-            // on the button rather than a move of the window.
             // The handle a drag moves the window by; the timer below does the moving, and the
             // two reasons it is not the handler's own signal are in ShadowCard.qml. The flag
             // brackets the drag on both edges: setting it only on the way in left the countdown
@@ -361,9 +385,7 @@ Window {
             // card can read as an exit for a frame or two while the verdict row animates open,
             // and each false reading restarts the countdown and collapses the row again.
             // Entering stays immediate, so the row still opens the moment the pointer arrives.
-            // ponytail: a guard, not a diagnosis -- a controlled run with the pointer parked on
-            // the card showed no flapping, so the cause of the reported one is still open. If
-            // it outlasts this, raise the interval.
+            // ponytail: a guard, not a diagnosis; raise the interval if it outlasts this.
             HoverHandler {
                 // A preview does not report hover: the pointer is on a settings row, not holding an answer.
                 enabled: !bubble.preview
@@ -387,23 +409,6 @@ Window {
                 id: hoverSettle
                 interval: 140
                 onTriggered: bubble.hovering = false
-            }
-
-            // The way out for a reader who does not want to wait the countdown out. It takes
-            // the same two steps the countdown takes on its own, so the controller hears about
-            // the dismissal the same way either way. A preview has no countdown to cut short.
-            IconButton {
-                visible: !bubble.preview
-                anchors.right: parent.right
-                anchors.rightMargin: 12
-                anchors.top: parent.top
-                anchors.topMargin: 15
-                source: "qrc:/icons/ui-close.svg"
-                color: bubble.tokens.faint
-                onTapped: {
-                    bubble.dismiss();
-                    Controller.explanationDuty.dismissBubble();
-                }
             }
 
             Column {
@@ -660,6 +665,11 @@ Window {
                     font.pixelSize: 11
                 }
 
+            }
+
+            BubbleHeaderActions {
+                anchors.fill: parent
+                bubbleWindow: bubble
             }
         }
     }

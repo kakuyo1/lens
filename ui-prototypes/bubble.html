@@ -48,7 +48,17 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 
 .bubble{position:relative;width:270px;background:var(--bubble-bg);border:1px solid var(--bubble-bd);border-radius:var(--r-lg);box-shadow:var(--bubble-sh);padding:14px 16px 12px;z-index:3;-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4)}
 .bub-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.bub-close{margin-left:auto;width:15px;height:15px;color:var(--faint)}
+.bub-lang{margin-left:auto;display:inline-flex;align-items:center;gap:3px;height:22px;padding:0 7px;border:0;border-radius:999px;background:transparent;color:var(--faint);font:700 10px var(--f);cursor:pointer}
+.bub-lang svg{width:13px;height:13px}
+.bub-lang:hover,.bubble.lang-open .bub-lang{background:var(--panel2);color:var(--text)}
+.bub-close{width:15px;height:15px;color:var(--faint)}
+/* The language strip floats over the title, the way the in-card picker does (UI.md 4.3). */
+.bub-lang-menu{position:absolute;top:36px;left:12px;right:12px;z-index:5;display:flex;padding:3px;border:1px solid var(--line);border-radius:11px;background:var(--panel);box-shadow:0 8px 24px -8px rgba(20,20,26,.28)}
+.bub-lang-menu[hidden]{display:none}
+.bub-lang-menu button{flex:1;height:30px;border:0;border-radius:8px;background:transparent;color:var(--muted);font:500 12px var(--f);cursor:pointer;white-space:nowrap}
+.bub-lang-menu button:hover:not([aria-pressed=true]){background:var(--panel2);color:var(--text)}
+.bub-lang-menu button[aria-pressed=true]{background:var(--ink);color:var(--on);font-weight:700}
+.bub-lang-menu button:active{transform:scale(.97)}
 .tag{font-size:10.5px;padding:2px 8px;border-radius:99px;background:var(--ok-bg);color:var(--ok-text);font-weight:600}
 .tag.known{background:var(--panel2);color:var(--muted);font-weight:600}
 .tag.outline{background:transparent;border:1px solid var(--line);color:var(--muted);font-weight:600;padding:1px 7px}
@@ -97,7 +107,8 @@ html[data-theme=liquid][data-refract] .bubble{backdrop-filter:blur(var(--glass-b
   </filter>
 </defs></svg>
 <div class="bubble">
-  <div class="bub-top"><span class="tag" data-l="new"></span><svg class="bub-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg></div>
+  <div class="bub-top"><span class="tag" data-l="new"></span><button class="bub-lang" id="langBtn" type="button" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg><span class="bub-lang-code">EN</span></button><svg class="bub-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg></div>
+  <div class="bub-lang-menu" id="langMenu" hidden><button type="button" data-lang="en" aria-pressed="true">English</button><button type="button" data-lang="zh" aria-pressed="false">中文</button><button type="button" data-lang="es" aria-pressed="false">Español</button><button type="button" data-lang="ja" aria-pressed="false">日本語</button></div>
   <div class="bub-word">serendipity<span class="ipa">/ˌserənˈdɪpəti/</span></div>
   <div class="bub-def" data-l="def"></div>
   <div class="bub-etym">
@@ -149,6 +160,41 @@ const lang = asked.startsWith('zh') ? 'zh' : (L[asked] ? asked : 'zh');
 const t = L[lang];
 document.documentElement.lang = { en: 'en', zh: 'zh-CN', ja: 'ja', es: 'es' }[lang];
 for (const el of document.querySelectorAll('[data-l]')) el.textContent = t[el.dataset.l];
+
+/// The explanation language shortcut (UI.md 4.3). The sample explanation starts in the page's
+/// language; a pick changes the sample shown and marks the strip's current item. In the application
+/// the same pick writes the global setting and asks for the standing card again.
+let explained = lang;
+const langBtn = document.getElementById('langBtn');
+const langMenu = document.getElementById('langMenu');
+const langCode = langBtn.querySelector('.bub-lang-code');
+function setLangOpen(open) {
+  langMenu.hidden = !open;
+  langBtn.setAttribute('aria-expanded', open);
+  document.querySelector('.bubble').classList.toggle('lang-open', open);
+}
+langBtn.addEventListener('click', (event) => { event.stopPropagation(); setLangOpen(langMenu.hidden); });
+langMenu.addEventListener('click', (event) => event.stopPropagation());
+document.querySelector('.bubble').addEventListener('click', () => setLangOpen(false));
+for (const button of langMenu.querySelectorAll('button')) {
+  button.addEventListener('click', () => {
+    explained = button.dataset.lang;
+    langCode.textContent = explained.toUpperCase();
+    for (const other of langMenu.querySelectorAll('button'))
+      other.setAttribute('aria-pressed', other === button);
+    // The word sample is translated in all four languages; the entity and sentence samples are
+    // content rather than interface copy and do not change with the setting. The origin follows the
+    // explanation language too; its label is interface copy and stays where it is.
+    if (kind === 'word') {
+      document.querySelector('.bub-def').textContent = L[explained].def;
+      document.querySelector('.bub-etym-text').textContent = L[explained].etym;
+    }
+    setLangOpen(false);
+  });
+}
+langCode.textContent = explained.toUpperCase();
+for (const button of langMenu.querySelectorAll('button'))
+  button.setAttribute('aria-pressed', button.dataset.lang === explained);
 
 /// 折射能力探测：不支持 url() 形式 backdrop-filter 的浏览器会丢掉这条声明，读回空串。此时液体玻璃退回 CSS 的模糊与高光。
 const refractOK = (() => { const p = document.createElement("div"); p.style.backdropFilter = "url(#lg-liquid)"; return p.style.backdropFilter !== ""; })();
@@ -242,12 +288,16 @@ if (kind === 'sentence') {
   tag.textContent = t.sentence;
   document.querySelector('.bub-word').remove();
 }
+
 if (kind === 'translation') {
   // No badge (a translation carries no learning verdict and no type) and no title (the Chinese it came
   // from is usually long, and the reader still has it highlighted on screen). The one line takes the
-  // primary ink, see the .bubble.translation rule.
+  // primary ink, see the .bubble.translation rule. The language shortcut goes with the badge: the
+  // translation channel's answer is English whatever the explanation language says.
   document.querySelector('.tag').remove();
   document.querySelector('.bub-word').remove();
+  document.querySelector('.bub-lang').remove();
+  document.querySelector('.bub-lang-menu').remove();
   document.querySelector('.bubble').classList.add('translation');
 }
 const THEMES = ['light', 'dark', 'frosted', 'liquid'];

@@ -9,7 +9,7 @@
 （见 §2 与 `UI.md` 4.11）；`src/app/qml/components/` 下是可复用件
 （`Icon` / `ShadowCard` / `HeightHold` / `Tokens` / `MixedText` / `Segment` / `StatRow` /
 `MenuRow` / `DropdownField` / `Switch` / `SwitchRow` / `PathField` / `HotkeyField` /
-`RevealText` / `SenseRows`），`src/app/qml/selectionbar/` 下是动作条的五个身体——经典长条、页边签、
+`RevealText` / `SenseRows` / `BubbleVerdictRow` / `BubbleHeaderActions`），`src/app/qml/selectionbar/` 下是动作条的五个身体——经典长条、页边签、
 手牌签、吊牌签、扇面。它们不是可复用件：同一个表面按读者设置换一具身体，拆开是为了不让 `SelectionBar.qml`
 逼近 32768 字符的上限，五个身体各自只认识自己那一种形态。`src/app/qml/theme/` 下是三套主题
 各一份色值表（`Light` / `Dark`）加一份动效表（`Motion`）。三组同属一个 QML 模块（`qt_add_qml_module` 的

@@ -665,7 +665,9 @@ Window {
                 // reader is holding is theirs, and the stream must not pull it back to the anchor (repositionVisible
                 // keeps the same rule for a screen change).
                 Qt.callLater(() => {
-                    if (!bubble.dragging)
+                    // A language switch replays the answer in the frame the card already has:
+                    // asking for placement here would move it as the new text changes height.
+                    if (!bubble.dragging && !bubble.languageReplay)
                         root.placeBubble(bubble, at);
                 });
             } else {

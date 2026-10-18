@@ -371,6 +371,14 @@ void AppController::setExplanationLang(QString lang)
     emit statsChanged();
 }
 
+void AppController::reexplainIn(QString language)
+{
+    if (language.isEmpty() or language == QString::fromStdString(storage_.knownStore().explanationLang()))
+        return;
+    setExplanationLang(std::move(language));
+    explanation_.reexplain();
+}
+
 void AppController::setMultiSense(bool on)
 {
     storage_.section().set<bool>("multiSense", on);
