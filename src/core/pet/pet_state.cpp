@@ -110,6 +110,16 @@ void PetStateMachine::playScene(ActionName const& name)
     enter(name, std::nullopt, Priority::Situational);
 }
 
+bool PetStateMachine::playHover(ActionName const& name)
+{
+    auto const found = playbook.actions.find(name);
+    // A hover reaction never cuts into a role, a scene, a drag or another one-shot. It is only an idle pet's answer.
+    if (currentRole != Role::Idle or dragging or found == playbook.actions.end() or found->second.loop) return false;
+    pendingReturn.reset();
+    enter(name, std::nullopt, Priority::Situational);
+    return true;
+}
+
 void PetStateMachine::advance(std::chrono::milliseconds step)
 {
     sinceClick += step;

@@ -23,6 +23,13 @@
     "ask": "ask"
   },
   "idlePool": ["look_around", "stretch", "preen", "hop", "flap", "hoot", "nod"],
+  "hover": {
+    "notice": "hoot",
+    "dwell": "preen",
+    "noticeDelayMs": 500,
+    "dwellDelayMs": 2900,
+    "cooldownMs": 8500
+  },
   "actions": {
     "idle": {"fps": 5, "loop": true, "blink": true,
       "paint": [{"at": [5, 17], "colour": "ink", "art": ["##"]}, {"at": [10, 17], "colour": "ink", "art": ["##"]}],

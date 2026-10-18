@@ -6,6 +6,7 @@
 #include "app/pet/pet_controller.h"
 
 #include <algorithm>
+#include <cmath>
 #include <exception>
 #include <memory>
 #include <random>
@@ -178,6 +179,8 @@ void PetController::loadPet(std::string const& id)
 
     machine_.reset();
     wardrobe_.reset();
+    hover_.reset();
+    setGaze({});
     try {
         auto const* entry = catalog_.find(id);
         if (not entry) throw std::runtime_error{"the pet is not in the catalogue: " + id};
@@ -207,6 +210,14 @@ void PetController::loadPet(std::string const& id)
         wardrobe_ = std::make_unique<core::pet::Wardrobe>(assets_->catalogue);
         handRest_ = restGripsOf(*assets_);
 
+        auto timing = core::pet::HoverTiming{};
+        if (auto const& hover = assets_->animations.hover) {
+            timing.noticeDelay = hover->noticeDelay;
+            timing.dwellDelay  = hover->dwellDelay;
+            timing.cooldown    = hover->cooldown;
+        }
+        hover_ = std::make_unique<core::pet::HoverSense>(timing);
+
         auto const outfit = store_.outfit();
         for (auto const& [slot, worn] : {std::pair{Slot::Head, outfit.head}, std::pair{Slot::Face, outfit.face}, std::pair{Slot::Body, outfit.body}}) {
             if (worn and wearsInSlot(*worn, slot)) wardrobe_->toggle(*worn);
@@ -233,6 +244,7 @@ PetController* PetController::create(QQmlEngine* engine, QJSEngine* scriptEngine
 void PetController::handle(PetEvent event)
 {
     if (not machine_) return;
+    resetHover();
     machine_->handle(event);
     sync(std::chrono::milliseconds{0});
 }
@@ -325,6 +337,11 @@ void PetController::setHandSide(QString side)
 QVariantMap PetController::anchors() const
 {
     return QVariantMap{{"body", toPoint(anchors_.body)}, {"face", toPoint(anchors_.face)}};
+}
+
+QPoint PetController::gaze() const
+{
+    return gaze_;
 }
 
 QVariantList PetController::wornAccessories() const
@@ -479,12 +496,14 @@ void PetController::setSize(int percent)
 void PetController::setRunning(bool on)
 {
     desktopRunning_ = on;
+    if (not on) resetHover();
     updateClock();
 }
 
 void PetController::setPreviewing(bool on)
 {
     previewing_ = on;
+    resetHover();
     if (not on and preview_) {
         preview_.reset();
         sync(std::chrono::milliseconds{0});
@@ -499,6 +518,7 @@ void PetController::preview(QString action)
     // From the first frame even when it is the action already shown, so a second press plays it again.
     preview_       = picked;
     actionElapsed_ = std::chrono::milliseconds{0};
+    resetHover();
     sync(std::chrono::milliseconds{0});
 }
 
@@ -509,6 +529,7 @@ void PetController::setScene(QString id)
     // A scene is real, not a preview: the machine plays it for its duration and then returns to idle. A card's
     // preview, if one was showing, would otherwise keep it off screen.
     preview_.reset();
+    resetHover();
     machine_->playScene(name);
     sync(std::chrono::milliseconds{0});
 }
@@ -628,6 +649,7 @@ bool PetController::isShipped(std::string const& id) const
 void PetController::setEnabled(bool on)
 {
     store_.setEnabled(on);
+    if (not on) resetHover();
     if (window_) ::lens::app::pet::setPassthrough(*window_, enabled() and store_.passthrough());
     emit settingsChanged();
 }
@@ -635,6 +657,7 @@ void PetController::setEnabled(bool on)
 void PetController::setPassthrough(bool on)
 {
     store_.setPassthrough(on);
+    if (on) resetHover();
     if (window_) ::lens::app::pet::setPassthrough(*window_, enabled() and on);
     emit settingsChanged();
 }
@@ -733,7 +756,87 @@ void PetController::savePosition(QPoint at)
 void PetController::tick()
 {
     machine_->advance(kTick);
+    updateHover(kTick);
     sync(kTick);
+}
+
+void PetController::updateHover(std::chrono::milliseconds step)
+{
+    // Hover is the desktop pet's own sense. It has no meaning while the window is hidden, while clicks pass through,
+    // while the settings preview is open, or before a window exists to measure against.
+    if (not hover_ or not assets_ or not window_ or not desktopRunning_ or previewing_ or store_.passthrough()) {
+        resetHover();
+        return;
+    }
+
+    auto const& hover              = assets_->animations.hover;
+    auto const& action             = machine_->action();
+    auto const  hoverActionPlaying = hover and
+                                    ((hover->notice and action == *hover->notice) or (hover->dwell and action == *hover->dwell));
+    // Hover only borrows idle time. While the pet reads, sleeps, asks, drags, is in a scene or plays any other
+    // one-shot, the approach is forgotten: a long reading must not leave a reaction due the moment it ends.
+    if (not machine_->idle() and not hoverActionPlaying) {
+        resetHover();
+        return;
+    }
+    if (not window_->isVisible()) {
+        resetHover();
+        return;
+    }
+
+    auto const size = window_->size();
+    if (size.width() <= 0 or size.height() <= 0) {
+        resetHover();
+        return;
+    }
+    auto const origin = window_->position();
+    auto const cursor = QCursor::pos();
+    auto const sx     = static_cast<double>(size.width()) / assets_->canvas;
+    auto const sy     = static_cast<double>(size.height()) / assets_->canvas;
+    auto const at     = QPointF{(cursor.x() - origin.x()) / sx, (cursor.y() - origin.y()) / sy};
+
+    auto const result = hover_->update(step, inkDistanceAt(at), machine_->idle());
+    if (result.notice and hover and hover->notice) machine_->playHover(*hover->notice);
+    if (result.dwell and hover and hover->dwell) machine_->playHover(*hover->dwell);
+
+    // The eyes follow only while the pet is idle. During a reaction, a reading or a drag the expression is the
+    // action's own; a brief snap back to centre is less disruptive than moving a face that is already expressive.
+    if (machine_->idle() and hover_->watching())
+        setGaze(gazeOffsetAt(at));
+    else
+        setGaze({});
+}
+
+void PetController::resetHover()
+{
+    if (hover_) hover_->reset();
+    setGaze({});
+}
+
+void PetController::setGaze(QPoint offset)
+{
+    if (offset == gaze_) return;
+    gaze_ = offset;
+    emit gazeChanged();
+}
+
+QPoint PetController::gazeOffsetAt(QPointF cursor) const
+{
+    if (not assets_) return {};
+    auto const middleY = (assets_->inkTop + assets_->inkBottom) / 2.0;
+    auto const dx      = cursor.x() - assets_->inkCentre;
+    auto const dy      = cursor.y() - middleY;
+    if (std::abs(dx) < 2.0 and std::abs(dy) < 2.0) return {};
+    if (std::abs(dx) >= std::abs(dy) * 1.15) return {dx > 0 ? 1 : -1, 0};
+    if (std::abs(dy) >= std::abs(dx) * 1.15) return {0, dy > 0 ? 1 : -1};
+    return {};
+}
+
+double PetController::inkDistanceAt(QPointF at) const
+{
+    auto const dx = std::max({assets_->inkLeft - at.x(), 0.0, at.x() - assets_->inkRight});
+    auto const dy = std::max({assets_->inkTop - at.y(), 0.0, at.y() - assets_->inkBottom});
+    return std::hypot(dx, dy);
 }
 
 void PetController::sync(std::chrono::milliseconds step)

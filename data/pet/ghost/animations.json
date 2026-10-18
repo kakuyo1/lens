@@ -23,6 +23,13 @@
     "shiver",
     "spin"
   ],
+  "hover": {
+    "notice": "peek",
+    "dwell": "boo",
+    "noticeDelayMs": 300,
+    "dwellDelayMs": 2400,
+    "cooldownMs": 7500
+  },
   "actions": {
     "idle": {
       "frames": 5,

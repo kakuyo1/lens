@@ -181,6 +181,13 @@
     "pounce",
     "scratch"
   ],
+  "hover": {
+    "notice": "tail_flick",
+    "dwell": "knead",
+    "noticeDelayMs": 650,
+    "dwellDelayMs": 3200,
+    "cooldownMs": 9000
+  },
   "actions": {
     "idle": {
       "fps": 5,

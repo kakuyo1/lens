@@ -169,6 +169,13 @@
     "float",
     "spin"
   ],
+  "hover": {
+    "notice": "puff",
+    "dwell": "drizzle",
+    "noticeDelayMs": 450,
+    "dwellDelayMs": 2900,
+    "cooldownMs": 8500
+  },
   "actions": {
     "idle": {
       "fps": 4,

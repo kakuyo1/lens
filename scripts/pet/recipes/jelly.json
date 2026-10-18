@@ -153,6 +153,13 @@
     "wobble",
     "drift"
   ],
+  "hover": {
+    "notice": "squish",
+    "dwell": "bubble",
+    "noticeDelayMs": 240,
+    "dwellDelayMs": 2200,
+    "cooldownMs": 7000
+  },
   "actions": {
     "idle": {
       "fps": 4,

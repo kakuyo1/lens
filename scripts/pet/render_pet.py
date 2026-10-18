@@ -28,6 +28,8 @@ point is a cell centre, (x + 0.5, y + 0.5) for cell (x, y).
   yawnMouth          [x, y, w, h] for expression 7.
   angryMouth         cells for expression 9, the frown. Omit it and the angry face keeps the smile.
   roles, idlePool    copied to animations.json.
+  hover              Optional: {notice, dwell, noticeDelayMs, dwellDelayMs, cooldownMs}. The two action names are copied
+                     to animations.json; the app uses them for the proximity greeting and fuller reaction.
   actions            name -> {fps, loop, blink?, returnTo?, duration?, bodyFrom?, paint?, frames}. Each item of
                      `frames` is one frame. `duration`, in milliseconds, ends a looping action when it runs out.
                      `bodyFrom` names an action already earlier in the document whose body sheet and anchors this
@@ -291,7 +293,10 @@ def main():
     mouth = [tuple(p) for p in recipe["mouth"]]
     face = (sum(x + 0.5 for x, _ in eyes) / len(eyes), sum(y + 0.5 for _, y in eyes) / len(eyes))
 
-    animations = {"roles": recipe["roles"], "idlePool": recipe["idlePool"], "actions": {}}
+    animations = {"roles": recipe["roles"], "idlePool": recipe["idlePool"]}
+    if "hover" in recipe:
+        animations["hover"] = recipe["hover"]
+    animations["actions"] = {}
     anchors = {"actions": {}}
     rendered = {}
     default_paint = recipe.get("bodyPaint", [])

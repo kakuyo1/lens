@@ -36,6 +36,7 @@
 #include "app/pet/pet_scenes.h"
 #include "app/pet/pet_store.h"
 #include "core/pet/accessory.h"
+#include "core/pet/hover_sense.h"
 #include "core/pet/pet_state.h"
 
 class QJSEngine;
@@ -69,6 +70,9 @@ class PetController : public QObject {
     /// sign chooses its hand from these, so the choice does not depend on which frame happens to be showing.
     Q_PROPERTY(QVariantMap handRest READ handRest NOTIFY settingsChanged)
     Q_PROPERTY(QVariantMap anchors READ anchors NOTIFY frameChanged)
+    /// Canvas-pixel offset applied to the expression layer only, so the face can follow a nearby pointer while the
+    /// body stays put. Zero when the pointer is away, the pet is busy, or the settings preview is open.
+    Q_PROPERTY(QPoint gaze READ gaze NOTIFY gazeChanged)
     Q_PROPERTY(QVariantList wornAccessories READ wornAccessories NOTIFY frameChanged)
     Q_PROPERTY(QVariantMap layers READ layers NOTIFY settingsChanged)
     Q_PROPERTY(int canvas READ canvas NOTIFY settingsChanged)
@@ -131,6 +135,7 @@ public:
     QVariantMap  handGrips() const;
     QVariantMap  handRest() const;
     QVariantMap  anchors() const;
+    QPoint       gaze() const;
     QVariantList wornAccessories() const;
     QVariantMap  layers() const;
     int          canvas() const;
@@ -208,6 +213,8 @@ public:
 signals:
     void frameChanged();
     void handSideChanged();
+    /// @brief The expression layer's gaze offset changed.
+    void gazeChanged();
     void settingsChanged();
     void outfitChanged();
     /// @brief The scan found different pets or refusals. Only the picker's lists depend on it, so it is not sent per setting.
@@ -233,6 +240,16 @@ private:
     bool isShipped(std::string const& id) const;
     /// @brief Moves the state machine on by `step` and refreshes what the scene reads.
     void tick();
+    /// @brief Polls the cursor and turns proximity into eyes and, when the pet is idle, its hover reactions.
+    void updateHover(std::chrono::milliseconds step);
+    /// @brief Forgets the current approach and centers the eyes.
+    void resetHover();
+    /// @brief Changes the gaze offset and announces it when it moved.
+    void setGaze(QPoint offset);
+    /// @return The eye offset for a pointer at `cursor`, in canvas units, along the dominant axis only.
+    QPoint gazeOffsetAt(QPointF cursor) const;
+    /// @return Canvas pixels from `at` to the idle figure's ink box; zero inside it.
+    double inkDistanceAt(QPointF at) const;
     /// @brief Reads the shown action and blink into the properties, and emits when the frame they show changed.
     void sync(std::chrono::milliseconds step);
     /// @brief Starts the clock while the window or the preview needs it, and stops it otherwise.
@@ -265,8 +282,10 @@ private:
     PetStore&                                   store_;
     std::unique_ptr<core::pet::PetStateMachine> machine_;
     std::unique_ptr<core::pet::Wardrobe>        wardrobe_;
-    QTimer                                      clock_;
-    QWindow*                                    window_ = nullptr;
+    /// Proximity lives beside the action machine: it reads the cursor and asks the machine for an idle reaction.
+    std::unique_ptr<core::pet::HoverSense> hover_;
+    QTimer                                 clock_;
+    QWindow*                               window_ = nullptr;
     /// The clock runs while either of these is set.
     bool desktopRunning_{false};
     bool previewing_{false};
@@ -289,6 +308,7 @@ private:
     QVariantMap        handGrips_;
     QVariantMap        handRest_;
     core::pet::Anchors anchors_{};
+    QPoint             gaze_;
 
     /// The scene the shown action names, and the frame's transform. All empty or neutral outside a scene.
     QString     scene_;

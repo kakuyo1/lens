@@ -126,6 +126,7 @@ docs/adr/0061-clipboard-policy-is-an-enum.md 0
 docs/adr/0062-settings-defaults-in-one-table.md 0
 docs/adr/0063-stream-assembly-is-pure.md 0
 docs/adr/0064-words-import-and-labels-are-pure.md 0
+docs/adr/0066-pet-hover-is-proximity-not-a-hit-area.md 0
 docs/metrics/runtime-performance/content-transition-window-resizes-2026-10-17.md 0
 docs/pet-art-pipeline.md 0
 docs/pet-package-format.md 0

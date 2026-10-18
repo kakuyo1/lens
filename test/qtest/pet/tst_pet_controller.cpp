@@ -367,8 +367,8 @@ void TstPetController::accessoryCatalogueAndWornSlotsAreExposed()
     Rig rig{settingsIn(dir), shippedRoot()};
 
     QCOMPARE(rig.controller.accessories().size(), 7);
-    // Twelve roles (angry included) and the three idle extras; the five scenes are not chips.
-    QCOMPARE(rig.controller.actions().size(), 15);
+    // Thirteen roles (angry and ask included) and the three idle extras; the five scenes are not chips.
+    QCOMPARE(rig.controller.actions().size(), 16);
     QCOMPARE(rig.controller.actions().first(), QStringLiteral("idle"));
 
     QSignalSpy outfit(&rig.controller, &PetController::outfitChanged);

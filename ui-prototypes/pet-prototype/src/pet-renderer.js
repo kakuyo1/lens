@@ -87,20 +87,23 @@ export class PetRenderer {
    *        From PetEngine.state.
    * @param {Array<{asset: string, slot: string, zIndex: number}>} accessories Worn accessories visible for this action.
    * @param {{shift?: number[], motion?: object|null}} [place] See place().
+   * @param {number[]|null} [gaze] Canvas-pixel offset for the expression layer only, so the face can follow the pointer
+   *        while the body stays put.
    */
-  draw(state, accessories, place = {}) {
+  draw(state, accessories, place = {}, gaze = null) {
     this.clear();
-    this.drawPet(state, accessories, place);
+    this.drawPet(state, accessories, place, gaze);
   }
 
-  drawPet(state, accessories, place = {}) {
+  drawPet(state, accessories, place = {}, gaze = null) {
     const { ctx, width, height, pet } = this;
     const def = pet.actions[state.action];
     const { anchors } = state;
+    const faceAt = gaze ? [anchors.face[0] + gaze[0], anchors.face[1] + gaze[1]] : anchors.face;
     const effect = this.handSide === 'left' && def.effectLeft ? def.effectLeft : def.effect;
     const layers = [
       { z: pet.layers.body, path: def.sheet, index: state.frame, at: anchors.body },
-      { z: pet.layers.expression, path: pet.expression, index: state.expression, at: anchors.face },
+      { z: pet.layers.expression, path: pet.expression, index: state.expression, at: faceAt },
       ...(effect ? [{ z: pet.layers.effect, path: effect, index: state.frame, at: [0, 0] }] : []),
       ...accessories.map(a => ({ z: a.zIndex, path: a.asset, index: 0, at: anchors[a.slot] }))
     ].sort((p, q) => p.z - q.z);

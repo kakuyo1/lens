@@ -23,6 +23,13 @@
     "shiver",
     "spin"
   ],
+  "hover": {
+    "notice": "bounce",
+    "dwell": "wobble",
+    "noticeDelayMs": 260,
+    "dwellDelayMs": 2300,
+    "cooldownMs": 7000
+  },
   "actions": {
     "idle": {
       "frames": 5,

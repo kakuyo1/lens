@@ -235,6 +235,38 @@ Animations parseAnimations(json const& document)
         auto const isRoleAction = std::any_of(playbook.roles.begin(), playbook.roles.end(), [&name](auto const& named) { return named.second == name; });
         if (not isRoleAction) playbook.idlePool.push_back(name);
     }
+
+    if (document.contains("hover")) {
+        auto const& hover = document.at("hover");
+        auto const  owner = std::string{"animations: hover"};
+        if (not hover.is_object()) throw Refused(Refusal::BadAnimation, owner + " must be an object");
+
+        auto const actionFor = [&](char const* key) -> std::optional<ActionName> {
+            if (not hover.contains(key)) return std::nullopt;
+            if (not hover.at(key).is_string()) throw Refused(Refusal::BadAnimation, owner + "." + key + " must be an action name");
+            auto const name  = hover.at(key).get<std::string>();
+            auto const found = playbook.actions.find(name);
+            if (found == playbook.actions.end())
+                throw Refused(Refusal::BadAnimation, owner + "." + key + " names an action with no playback: " + name);
+            if (found->second.loop)
+                throw Refused(Refusal::BadAnimation, owner + "." + key + " must name a one-shot: " + name);
+            return name;
+        };
+        auto const delayFor = [&](char const* key, std::chrono::milliseconds fallback) {
+            if (not hover.contains(key)) return fallback;
+            return std::chrono::milliseconds{integerIn(hover, key, 0, kMaxHoverDelayMs, Refusal::BadAnimation, owner)};
+        };
+
+        HoverSpec spec{};
+        spec.notice      = actionFor("notice");
+        spec.dwell       = actionFor("dwell");
+        spec.noticeDelay = delayFor("noticeDelayMs", spec.noticeDelay);
+        spec.dwellDelay  = delayFor("dwellDelayMs", spec.dwellDelay);
+        spec.cooldown    = delayFor("cooldownMs", spec.cooldown);
+        if (not spec.notice and not spec.dwell) throw Refused(Refusal::BadAnimation, owner + " needs notice or dwell");
+        if (spec.dwell and not spec.notice) throw Refused(Refusal::BadAnimation, owner + ".dwell needs notice");
+        animations.hover = std::move(spec);
+    }
     return animations;
 }
 

@@ -127,6 +127,7 @@ node --test test/*.test.js
 - `facePaint`：表情层上的固定像素，随 `face` 锚点移动；短耳猫的胡须用它，因为在轮廓之外，不能进身体层。
 - `eyes`、`mouth`、`yawnMouth`、`angryMouth`：表情层的格子，表情图案 `EYE_PATTERNS` 与小狗共用。`angryMouth` 是生气那一格的撇嘴，缺省时沿用普通嘴。
 - `roles`、`idlePool`：原样写进 `animations.json`。
+- `hover`：可选。`{notice, dwell, noticeDelayMs, dwellDelayMs, cooldownMs}` 原样写进 `animations.json`，供指针靠近时的招呼与完整反应使用；两个动作名必须是配方已有的单次动作。字段与校验见 `docs/pet-package-format.md`。
 - `actions`：每个动作的 `fps`、`loop`，以及按帧排列的 `frames`。每帧可以有姿势 `pose`（`sx`、`sy` 压扁或拉伸，`dx`、`dy` 平移）、表情、额外的形状与效果层的图形。`duration`（毫秒）让循环动作到点结束，场景动作靠它收场；`bodyFrom` 让一个动作复用前面某个动作的 body sheet 与锚点，按自己的帧数循环，生气与场景动作因此不必重画身体，帧里写了 `pose` 就覆盖复用的锚点。
 - **表情图案的竖向偏移**：`EYE_PATTERNS` 里第 9 格是生气眼，它的眉画在眼睛上方一个单位，因此图案有四行，由 `EYE_OFFSETS` 把它整体上移一行；右眼用 `EYE_MIRRORS` 把图案左右镜像，眉才向鼻梁一侧斜。嘴按表情查表：哈欠用 `yawnMouth`，生气用 `angryMouth`，其余共用 `mouth`。两份 `EYE_PATTERNS`（`render_pet.py` 与 `dog/build-assets.py`）必须同改。
 - `bodyPaint`：身体 sheet 上的着色格子，只画在身体覆盖的格子上。写在配方里时是默认值，写在动作里时每帧都用，写在某一帧里时替换该动作的列表。坐标是画布格子，渲染器不对它做压扁或拉伸，换姿势要在配方里重新算；短耳猫、小幽灵、小水母与小云的睡眠帧都这样生成。猫的粉色耳内与鼻子用它。

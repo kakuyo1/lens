@@ -14,6 +14,7 @@
 #include <nlohmann/json.hpp>
 
 #include "core/pet/pet_config.h"
+#include "core/pet/pet_package.h"
 
 namespace {
 
@@ -174,6 +175,78 @@ TEST(PetConfig, BlinkFlagIsReadPerAction)
     EXPECT_TRUE(playbook.actions.at("idle").blinks);
     EXPECT_TRUE(playbook.actions.at("study").blinks);
     EXPECT_FALSE(playbook.actions.at("sleep").blinks);
+}
+
+TEST(PetConfig, ParsesHoverReactionsAndTheirTiming)
+{
+    using namespace std::chrono_literals;
+    auto document     = animationsDocument();
+    document["hover"] = {
+        {"notice", "look_around"},
+        {"dwell", "stretch"},
+        {"noticeDelayMs", 650},
+        {"dwellDelayMs", 3200},
+        {"cooldownMs", 9000},
+    };
+    auto const animations = parseAnimations(document);
+    ASSERT_TRUE(animations.hover.has_value());
+    EXPECT_EQ(animations.hover->notice, "look_around");
+    EXPECT_EQ(animations.hover->dwell, "stretch");
+    EXPECT_EQ(animations.hover->noticeDelay, 650ms);
+    EXPECT_EQ(animations.hover->dwellDelay, 3200ms);
+    EXPECT_EQ(animations.hover->cooldown, 9000ms);
+}
+
+TEST(PetConfig, HoverIsOptionalAndItsDelaysDefault)
+{
+    using namespace std::chrono_literals;
+    auto document         = animationsDocument();
+    document["hover"]     = {{"notice", "look_around"}};
+    auto const animations = parseAnimations(document);
+    ASSERT_TRUE(animations.hover.has_value());
+    EXPECT_EQ(animations.hover->notice, "look_around");
+    EXPECT_FALSE(animations.hover->dwell.has_value());
+    EXPECT_EQ(animations.hover->noticeDelay, 350ms);
+    EXPECT_EQ(animations.hover->dwellDelay, 2600ms);
+    EXPECT_EQ(animations.hover->cooldown, 8000ms);
+
+    document.erase("hover");
+    EXPECT_FALSE(parseAnimations(document).hover.has_value());
+}
+
+TEST(PetConfig, HoverNeedsANoticeAndADwellNeedsANotice)
+{
+    auto document     = animationsDocument();
+    document["hover"] = json::object();
+    EXPECT_THROW(parseAnimations(document), std::runtime_error);
+
+    document["hover"] = {{"dwell", "stretch"}};
+    EXPECT_THROW(parseAnimations(document), std::runtime_error);
+}
+
+TEST(PetConfig, HoverActionsMustExistAndBeOneShot)
+{
+    auto document     = animationsDocument();
+    document["hover"] = {{"notice", "no_such_action"}};
+    EXPECT_THROW(parseAnimations(document), std::runtime_error);
+
+    document["hover"] = {{"notice", "idle"}};
+    EXPECT_THROW(parseAnimations(document), std::runtime_error);
+}
+
+TEST(PetConfig, HoverDelaysStayWithinTheirLimit)
+{
+    auto document     = animationsDocument();
+    document["hover"] = {{"notice", "look_around"}, {"noticeDelayMs", -1}};
+    EXPECT_THROW(parseAnimations(document), std::runtime_error);
+
+    document["hover"] = {{"notice", "look_around"}, {"cooldownMs", 60'001}};
+    try {
+        parseAnimations(document);
+        FAIL() << "a cooldown above the limit must be refused";
+    } catch (lens::core::pet::Refused const& refused) {
+        EXPECT_EQ(refused.reason(), lens::core::pet::Refusal::TooLarge);
+    }
 }
 
 TEST(PetConfig, StretchMayBeLeftOut)
