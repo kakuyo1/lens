@@ -73,6 +73,10 @@ option(LENS_ENABLE_PROFILE "Compile lens_core profile instrumentation in" OFF)
 # changes the executable's instrumentation and is only useful for a dedicated measurement tree.
 option(LENS_ENABLE_QML_DEBUG "Compile the lens executable with QML debugging enabled" OFF)
 
+# Drives the surfaces from a command script instead of the mouse, for measuring what the reader cannot see. Off by
+# default and never shipped: a build that passes it is a measurement build, and it says so in every report (docs/adr/0068).
+option(LENS_ENABLE_DEV_SURFACE "Compile the developer command surface in" OFF)
+
 # Shipped builds resolve OCR only from the application bundle. A developer may opt in to a PATH
 # lookup for a local Tesseract installation, but that fallback is never enabled by default.
 option(LENS_OCR_DEV_PATH_FALLBACK "Allow OCR to use a developer PATH installation" OFF)
