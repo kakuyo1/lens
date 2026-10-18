@@ -37,6 +37,8 @@ Item {
     /// countdown: a card whose fields are still writing itself has nothing to count down yet.
     readonly property bool revealing: ipaText.revealing
 
+    // A column leaves its children at zero width; the title needs the card's, to run in.
+    width: parent ? parent.width : 0
     /// A row that is not drawn holds no height either, since the column it sits in lays out its
     /// children whether they are visible or not.
     height: root.visible ? wordText.implicitHeight : 0

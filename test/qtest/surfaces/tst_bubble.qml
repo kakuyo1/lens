@@ -132,6 +132,8 @@ Item {
             const ipa = Util.textWith(Util.textsUnder(bubble), ["/ˌserənˈdɪpəti/"]);
             verify(ipa);
             compare(ipa.visible, true);
+            const word = Util.textWith(Util.textsUnder(bubble), ["serendipity"]);
+            verify(word.width > 0, "the title row gave the word no width");
         }
 
         /// A pointer arriving on the card is recorded, and the recording is the card rather than
