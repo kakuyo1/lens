@@ -115,6 +115,68 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel           
                                                               bool               multipleSenses  = false);
 
 /**
+ * @brief One answer assembled from the bytes of a streamed or whole-body reply.
+ *
+ * The reply handler owns the socket and nothing else: it hands every read to feed() and the last
+ * read to finish(). Sniffing the two shapes, suppressing previews for an error status, consuming
+ * SSE events, dropping a preview that drew nothing new, and the whole-body fallback all run here,
+ * so they are exercised by recorded bytes rather than by a live or mock QNetworkReply.
+ *
+ * The final result goes through the same checks parseExplanations() uses, directly on the
+ * model's content: the synthetic envelope the client used to rebuild for a stream is gone.
+ */
+class StreamAssembler {
+public:
+    /**
+     * @param channel        Which protocol is being spoken.
+     * @param expectedInputs The payload the request asked for, for the finished check.
+     * @param language       The explanation language the request was made in.
+     * @param multipleSenses Whether the request asked for the multiple-sense shape.
+     */
+    StreamAssembler(Channel channel, QStringList expectedInputs, QString language, bool multipleSenses);
+
+    /**
+     * @brief Append bytes and report a preview that has something new to draw.
+     * @param bytes  The read, which may end anywhere.
+     * @param httpOk Whether the reply's status means the body is the answer. A false one still
+     *               buffers the bytes but emits no preview.
+     * @return The preview whose drawn fields changed, or nothing when none did.
+     */
+    std::optional<Explanation> feed(QByteArray const& bytes, bool httpOk);
+
+    /**
+     * @brief Append the last bytes and produce the validated result.
+     * @param tail The final read.
+     * @return The explanations, or a reader-facing reason.
+     */
+    std::variant<QVector<Explanation>, QString> finish(QByteArray const& tail);
+
+    /// @return The token counts this answer carried; call after finish().
+    Usage usage() const;
+
+    /// @return Whether the answer arrived as SSE rather than as one whole body.
+    bool streamed() const
+    {
+        return sse_;
+    }
+
+private:
+    bool consume(QByteArray& buffer);
+
+    Channel     channel_;
+    QStringList expectedInputs_;
+    QString     language_;
+    bool        multipleSenses_;
+    QByteArray  buffer_;
+    QString     content_;
+    QString     finishReason_;
+    QJsonObject usageObject_;
+    Explanation last_; ///< The preview emitted last, so a chunk that changes nothing is silent.
+    bool        sse_     = false;
+    bool        decided_ = false;
+};
+
+/**
  * @brief Read the ids out of OpenRouter's model answer.
  *
  * One source, one envelope: there is no mapping parameter any more, because there is only one

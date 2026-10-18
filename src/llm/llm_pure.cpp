@@ -12,6 +12,8 @@
 #include <QJsonObject>
 #include <QRegularExpression>
 
+#include <utility>
+
 #include "util/log.h"
 
 namespace lens::llm {
@@ -311,11 +313,26 @@ QByteArray buildRequestBody(const Config&      config,
     return QJsonDocument(body).toJson(QJsonDocument::Compact);
 }
 
-std::variant<QVector<Explanation>, QString> parseExplanations(Channel            channel,
-                                                              const QByteArray&  responseBody,
-                                                              const QStringList& expectedInputs,
-                                                              QString const&     explanationLang,
-                                                              bool const         multipleSenses)
+namespace {
+
+/// @return The reader-facing failure for a finish reason other than "stop", or an empty string.
+QString finishReasonError(QString const& finish)
+{
+    // Only "stop" means the model finished on its own. "length" means the JSON was cut off
+    // mid-way, which no amount of parsing can repair.
+    if (finish == QLatin1String("stop")) return {};
+    return QCoreApplication::translate("lens::llm",
+                                       "The model stopped before finishing "
+                                       "(reason: %1).")
+        .arg(finish.isEmpty() ? QCoreApplication::translate("lens::llm", "absent") : finish);
+}
+
+/// @brief Validate the `results` payload out of one answer's content.
+std::variant<QVector<Explanation>, QString> parseExplanationContent(Channel            channel,
+                                                                    QString const&     content,
+                                                                    const QStringList& expectedInputs,
+                                                                    QString const&     explanationLang,
+                                                                    bool const         multipleSenses)
 {
     using Result = std::variant<QVector<Explanation>, QString>;
 
@@ -325,31 +342,7 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel           
         return reason;
     };
 
-    const auto envelope = QJsonDocument::fromJson(responseBody);
-    if (!envelope.isObject())
-        return reject(QCoreApplication::translate("lens::llm",
-                                                  "The model answered with something that is not "
-                                                  "a JSON object."));
-
-    const auto choices = envelope.object().value("choices").toArray();
-    if (choices.isEmpty())
-        return reject(QCoreApplication::translate("lens::llm",
-                                                  "The model's answer carries no choices."));
-
-    const auto    choice = choices.at(0).toObject();
-    const QString finish = choice.value("finish_reason").toString();
-    // Only "stop" means the model finished on its own. "length" means the JSON was cut off
-    // mid-way, which no amount of parsing can repair.
-    if (finish != QLatin1String("stop"))
-        return reject(QCoreApplication::translate("lens::llm",
-                                                  "The model stopped before finishing "
-                                                  "(reason: %1).")
-                          .arg(finish.isEmpty()
-                                   ? QCoreApplication::translate("lens::llm", "absent")
-                                   : finish));
-
-    const QString content = choice.value("message").toObject().value("content").toString();
-    const auto    payload = QJsonDocument::fromJson(extractJsonObject(content));
+    const auto payload = QJsonDocument::fromJson(extractJsonObject(content));
     if (!payload.isObject())
         return reject(QCoreApplication::translate("lens::llm",
                                                   "The model's answer is not valid JSON."));
@@ -487,6 +480,140 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel           
 
     LENS_TRACE("parseExplanations: accepted {} explanation(s) for channel '{}'", ordered.size(), channelKey(channel));
     return ordered;
+}
+
+} // namespace
+
+std::variant<QVector<Explanation>, QString> parseExplanations(Channel            channel,
+                                                              const QByteArray&  responseBody,
+                                                              const QStringList& expectedInputs,
+                                                              QString const&     explanationLang,
+                                                              bool const         multipleSenses)
+{
+    using Result = std::variant<QVector<Explanation>, QString>;
+
+    /// Reject the whole batch, naming the reason once for both the caller and the log.
+    const auto reject = [](const QString& reason) -> Result {
+        LENS_ERROR("parseExplanations rejected the response: {}", reason.toStdString());
+        return reason;
+    };
+
+    const auto envelope = QJsonDocument::fromJson(responseBody);
+    if (!envelope.isObject())
+        return reject(QCoreApplication::translate("lens::llm",
+                                                  "The model answered with something that is not "
+                                                  "a JSON object."));
+
+    const auto choices = envelope.object().value("choices").toArray();
+    if (choices.isEmpty())
+        return reject(QCoreApplication::translate("lens::llm",
+                                                  "The model's answer carries no choices."));
+
+    const auto    choice = choices.at(0).toObject();
+    const QString finish = choice.value("finish_reason").toString();
+    if (const QString reason = finishReasonError(finish); not reason.isEmpty())
+        return reject(reason);
+
+    const QString content = choice.value("message").toObject().value("content").toString();
+    return parseExplanationContent(channel, content, expectedInputs, explanationLang, multipleSenses);
+}
+
+namespace {
+
+/// Bytes needed to tell an SSE stream from one whole body: exactly the length of "data:".
+constexpr int kSseSniffBytes = 5;
+
+/// @return Whether a preview has anything the card would draw. The first chunks of an answer are
+///         `{` and `"resul` and the like, and an empty card appearing before any text is not the
+///         point of a stream.
+bool hasAnythingToDraw(Explanation const& partial)
+{
+    return not(partial.title.isEmpty() and partial.ipa.isEmpty() and partial.en.isEmpty() and
+               partial.zh.isEmpty() and partial.translation.isEmpty() and partial.etymology.isEmpty() and
+               partial.example.isEmpty() and partial.senses.isEmpty());
+}
+
+/// @brief Read token counts out of a `usage` object, with the one warning both paths share.
+Usage usageFromObject(QJsonObject const& usage)
+{
+    if (usage.isEmpty()) {
+        LENS_WARN("the response carries no usage object; the cost tally loses this call");
+        return {};
+    }
+    const Usage counts{usage.value("prompt_tokens").toInt(), usage.value("completion_tokens").toInt()};
+    LENS_TRACE("usage: {} prompt / {} completion token(s)", counts.promptTokens, counts.completionTokens);
+    return counts;
+}
+
+} // namespace
+
+StreamAssembler::StreamAssembler(Channel channel, QStringList expectedInputs, QString language, bool const multipleSenses)
+    : channel_(channel), expectedInputs_(std::move(expectedInputs)), language_(std::move(language)), multipleSenses_(multipleSenses)
+{}
+
+bool StreamAssembler::consume(QByteArray& buffer)
+{
+    bool grew = false;
+    for (const auto& payload : takeSsePayloads(buffer)) {
+        const auto chunk = parseStreamDelta(payload);
+        if (not chunk)
+            continue;
+        content_ += chunk->content;
+        grew = grew or not chunk->content.isEmpty();
+        if (not chunk->finishReason.isEmpty())
+            finishReason_ = chunk->finishReason;
+        if (not chunk->usage.isEmpty())
+            usageObject_ = chunk->usage;
+    }
+    return grew;
+}
+
+std::optional<Explanation> StreamAssembler::feed(QByteArray const& bytes, bool const httpOk)
+{
+    buffer_ += bytes;
+    // Decided once there are enough bytes to tell the two shapes apart: a first read of "da" must
+    // not settle it, or a stream split across reads would be judged a whole body and fail.
+    if (not decided_ and buffer_.size() >= kSseSniffBytes) {
+        decided_ = true;
+        sse_     = buffer_.startsWith("data:");
+    }
+    // An error body is not a stream, and a stream is the reader's only while it is arriving:
+    // anything else is left to the finished handler, which owns today's failure notices.
+    if (not httpOk or not sse_ or not consume(buffer_))
+        return std::nullopt;
+
+    auto preview = parsePartialExplanation(channel_, content_);
+    if (not hasAnythingToDraw(preview) or preview == last_)
+        return std::nullopt;
+    last_ = preview;
+    return preview;
+}
+
+std::variant<QVector<Explanation>, QString> StreamAssembler::finish(QByteArray const& tail)
+{
+    buffer_ += tail;
+    // A reply whose whole body arrived in one read: too short to be a stream, it is a body.
+    if (not decided_) {
+        decided_ = true;
+        sse_     = buffer_.size() >= kSseSniffBytes and buffer_.startsWith("data:");
+    }
+
+    if (not sse_)
+        return parseExplanations(channel_, buffer_, expectedInputs_, language_, multipleSenses_);
+
+    consume(buffer_); // the last event may have arrived without its terminator
+    if (const QString reason = finishReasonError(finishReason_); not reason.isEmpty()) {
+        LENS_ERROR("parseExplanations rejected the response: {}", reason.toStdString());
+        return reason;
+    }
+    return parseExplanationContent(channel_, content_, expectedInputs_, language_, multipleSenses_);
+}
+
+Usage StreamAssembler::usage() const
+{
+    if (not sse_)
+        return parseUsage(buffer_);
+    return usageFromObject(usageObject_);
 }
 
 QStringList parseModelIds(QByteArray const& body)
@@ -640,15 +767,7 @@ Explanation parsePartialExplanation(Channel const channel, QString const& conten
 Usage parseUsage(const QByteArray& responseBody)
 {
     const auto envelope = QJsonDocument::fromJson(responseBody).object();
-    const auto usage    = envelope.value("usage").toObject();
-    if (usage.isEmpty()) {
-        LENS_WARN("the response carries no usage object; the cost tally loses this call");
-        return {};
-    }
-
-    const Usage counts{usage.value("prompt_tokens").toInt(), usage.value("completion_tokens").toInt()};
-    LENS_TRACE("usage: {} prompt / {} completion token(s)", counts.promptTokens, counts.completionTokens);
-    return counts;
+    return usageFromObject(envelope.value("usage").toObject());
 }
 
 }
