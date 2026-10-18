@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.6.5 - 2026-10-18
+
+The bubble's text size is a setting of its own, word review can check every 5 to 15 minutes, and
+closed windows give their graphics memory back.
+
+### Added
+
+- The explanation text has a size of its own: General › Font gains a bubble font-size dropdown from
+  12 to 18 px, 13 px by default. It sets the body text; the word, pronunciation and example scale by
+  the same multiple, so the card keeps its hierarchy at every size. Hovering a size previews it on
+  the bubble beside the list.
+- Word review gains an every-5-to-15-minutes level. The desktop pet checks for due words that often;
+  the other levels keep their intervals.
+
+### Changed
+
+- On a still desktop with the settings panel open, the app uses about 10% of a core instead of 17%.
+  The blurred backdrop behind a card is no longer redrawn when the picture under it has not changed;
+  scrolling the page behind it still updates the backdrop.
+
+### Fixed
+
+- Closed windows give back their graphics memory and driver threads. Each window used to keep them
+  until the app exited, so closing one returned none of it; a window hidden for half a second now
+  releases them, and reopening it rebuilds them.
+
 ## 1.6.0 - 2026-10-18
 
 The action bar takes the form the reader picks, and the explanation language can be changed from
