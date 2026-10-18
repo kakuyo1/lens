@@ -139,4 +139,23 @@ QRect toNativeRect(QRect logical, QRect screenLogical, QPoint nativeOrigin, doub
  */
 std::optional<std::size_t> nextLive(std::vector<bool> const& live, std::size_t after);
 
+/// Side of the grey thumbnail a picture's fingerprint is taken from: see pictureFingerprint().
+constexpr int kFingerprintSide = 32;
+
+/**
+ * @brief A value that changes when the desktop behind a card changes, and not when it does not.
+ *
+ * A live sheet is retaken about fifteen times a second (docs/adr/0041). On a desktop that is not moving -- the
+ * reader is reading, not scrolling -- every one of those retakes produces the same picture again, and publishing
+ * it again costs a blur and three plane allocations for a card that would look identical. This is what tells the
+ * two cases apart.
+ *
+ * The picture is reduced to a 32 by 32 grey thumbnail before hashing, so a caret blinking or a pixel changing
+ * somewhere under the card does not count: the blur would have hidden it anyway.
+ *
+ * @param picture The desktop under the card, as taken.
+ * @return A hash of the thumbnail; 0 for a null picture.
+ */
+quint64 pictureFingerprint(QImage const& picture);
+
 } // namespace lens::app

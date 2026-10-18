@@ -18,6 +18,7 @@ namespace {
 
 using lens::app::blurredPicture;
 using lens::app::displacementMap;
+using lens::app::pictureFingerprint;
 using lens::app::readTone;
 using lens::app::refractionMap;
 using lens::app::settleTone;
@@ -195,4 +196,39 @@ TEST(GlassMath, NextLiveReturnsTheOnlyLiveSurfaceEveryTime)
     auto const live = std::vector<bool>{false, false, true};
     EXPECT_EQ(lens::app::nextLive(live, 2), 2u);
     EXPECT_EQ(lens::app::nextLive(live, 0), 2u);
+}
+
+TEST(GlassMath, TheFingerprintOfAPictureIsStableAndOfAnotherPictureIsNot)
+{
+    auto const picture = split(64, 64);
+    EXPECT_EQ(pictureFingerprint(picture), pictureFingerprint(picture));
+    EXPECT_NE(pictureFingerprint(picture), pictureFingerprint(solid(64, 64, qRgb(255, 255, 255))));
+    // The same content at another size is the same desktop, so the thumbnail has to come out alike enough to say so.
+    EXPECT_EQ(pictureFingerprint(solid(64, 64, qRgb(40, 90, 140))), pictureFingerprint(solid(128, 96, qRgb(40, 90, 140))));
+}
+
+TEST(GlassMath, TheFingerprintIgnoresASingleChangedPixel)
+{
+    // What the fingerprint is for: a caret blinking under the card is not a reason to blur the sheet again. The
+    // size is a real sheet's, since how much one pixel weighs in the thumbnail depends on it.
+    auto const picture = solid(480, 270, qRgb(30, 30, 30));
+    auto       changed = picture;
+    changed.setPixel(240, 135, qRgb(255, 255, 255));
+    EXPECT_EQ(pictureFingerprint(picture), pictureFingerprint(changed));
+}
+
+TEST(GlassMath, TheFingerprintSeesARealChangeOfBackdrop)
+{
+    // Half the desktop turning white is what the glass has to follow, one pixel or not.
+    auto       picture = solid(480, 270, qRgb(30, 30, 30));
+    auto const before  = pictureFingerprint(picture);
+    for (int y = 0; y < picture.height(); ++y)
+        for (int x = 0; x < picture.width() / 2; ++x)
+            picture.setPixel(x, y, qRgb(255, 255, 255));
+    EXPECT_NE(before, pictureFingerprint(picture));
+}
+
+TEST(GlassMath, TheFingerprintOfNothingIsZero)
+{
+    EXPECT_EQ(pictureFingerprint(QImage{}), 0u);
 }

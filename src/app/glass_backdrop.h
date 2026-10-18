@@ -114,6 +114,9 @@ private:
     double fillAlpha_ = 0.0;
     /// Reads in a row that have asked for the other text tone, for settleTone()'s hold. Reset by a fresh sheet.
     int toneStreak_ = 0;
+    /// The fingerprint of the picture in force, from pictureFingerprint(): a refresh that produces the same one
+    /// again is the same sheet and is not published a second time.
+    quint64 fingerprint_ = 0;
     /// Bumped whenever the sheet is retaken or dropped, so a refresh that began before the change is discarded.
     int generation_ = 0;
     /// Set while setLive() is on. Only the GUI thread reads or writes it.

@@ -268,6 +268,17 @@ void GlassSheet::publish(QRect const region, QRect const screen, QImage picture,
         clear();
         return;
     }
+    // The desktop has not moved since the last refresh: the same sheet over the same region is already in force,
+    // and publishing it again would bump the serial for a card that would look identical. The cost is not nothing
+    // -- every new serial makes each card reload a blurred copy, which is a blur and three plane allocations per
+    // frame, measured at about a sixth of a core with one surface open on a still desktop. Checked before
+    // settleTone() so that a skipped refresh leaves the tone bookkeeping untouched.
+    auto const print = pictureFingerprint(picture);
+    {
+        QMutexLocker const lock(&mutex_);
+        if (not fresh and region == sheet_ and print == fingerprint_)
+            return;
+    }
     auto const settled = lightText();
     // A sheet just taken has no tone in force for its backdrop, so one read decides it; the ~15/s refresh keeps
     // the tone the reader has been reading unless the other one reads decisively better, on kToneHold reads running.
@@ -278,6 +289,7 @@ void GlassSheet::publish(QRect const region, QRect const screen, QImage picture,
         lightText_   = tone;
         sheet_       = region;
         sheetScreen_ = screen;
+        fingerprint_ = print;
         ++serial_;
     }
     // The two contrasts on their own say why the tone moved: a pair within a few percent of each other is the
@@ -322,6 +334,7 @@ void GlassSheet::clear()
         lightText_   = false;
         sheet_       = {};
         sheetScreen_ = {};
+        fingerprint_ = 0;
         ++serial_;
     }
     emit pictureChanged();

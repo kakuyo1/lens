@@ -295,4 +295,23 @@ std::optional<std::size_t> nextLive(std::vector<bool> const& live, std::size_t c
     return std::nullopt;
 }
 
+quint64 pictureFingerprint(QImage const& picture)
+{
+    if (picture.isNull()) return 0;
+    // Smooth rather than fast: averaging is the point, since one changed pixel should not count.
+    auto const small = picture.scaled(kFingerprintSide, kFingerprintSide, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)
+                           .convertToFormat(QImage::Format_Grayscale8);
+    // Five bits a channel, not eight: the last three are below what the blur leaves visible, and keeping them
+    // would make a caret or an antialiased edge count as a changed desktop.
+    quint64 hash = 1469598103934665603ULL;
+    for (int y = 0; y < small.height(); ++y) {
+        auto const* row = small.constScanLine(y);
+        for (int x = 0; x < small.width(); ++x) {
+            hash ^= static_cast<quint64>(row[x] >> 3);
+            hash *= 1099511628211ULL;
+        }
+    }
+    return hash;
+}
+
 } // namespace lens::app
