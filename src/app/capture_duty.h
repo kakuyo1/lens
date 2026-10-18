@@ -90,6 +90,12 @@ public:
     std::optional<CaptureRefusal> captureRefusalReason() const;
     /// @brief Handle a completed selection gesture.
     void onSelectionReleased(QPoint anchor);
+    /// @brief Start the selection pipeline at @p anchor.
+    /// @param anchor Release position, in the physical pixels the mouse hook reports.
+    /// @param text The selected text, when the caller already has it. Given, the clipboard is not read: the developer
+    ///        surface (docs/adr/0068) drives the pipeline this way, with no foreground application to copy from. The
+    ///        mouse path never passes it.
+    void beginSelection(QPoint anchor, std::optional<QString> text = std::nullopt);
 
 signals:
     void selectionBarRequested(QVariantMap payload);
@@ -125,7 +131,6 @@ private:
 
     /// @brief Rebuild the OCR engine around the stored paths and probe the new one.
     void rebuildOcr();
-    void beginSelection(QPoint anchor);
     /// @param fromScreenshot True when the text came out of a framed region rather than a
     ///        selection. A screenshot is the reader saying "translate this": they framed it with a
     ///        gesture of their own, so the action bar's second question would be one they have

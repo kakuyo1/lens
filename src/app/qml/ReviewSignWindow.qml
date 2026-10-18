@@ -9,6 +9,7 @@ import QtQuick
  */
 Window {
     id: sign
+    objectName: "reviewSign"
 
     /// The pet's window: the sign hangs from the pet's hand.
     required property var petWindow

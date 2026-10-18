@@ -1,0 +1,15 @@
+# Stage A exit run (docs/adr/0068 section 10): open settings, close it, open the tray menu, then close everything.
+# Run with: powershell -File scripts/qa/lens-dev.ps1 -Script scripts/qa/scenarios/two.txt
+version
+state
+surface show settings
+wait painted:settings
+state
+surface hide settings
+state
+surface show tray
+wait painted:tray
+state
+surface hide-all
+wait hidden:tray
+state

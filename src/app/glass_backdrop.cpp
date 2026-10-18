@@ -208,6 +208,17 @@ QRect GlassSheet::sheet() const
     return sheet_;
 }
 
+int GlassSheet::publishes() const
+{
+    QMutexLocker const lock(&mutex_);
+    return publishes_;
+}
+
+bool GlassSheet::live() const
+{
+    return live_;
+}
+
 QImage GlassSheet::picture() const
 {
     QMutexLocker const lock(&mutex_);
@@ -291,6 +302,7 @@ void GlassSheet::publish(QRect const region, QRect const screen, QImage picture,
         sheetScreen_ = screen;
         fingerprint_ = print;
         ++serial_;
+        ++publishes_;
     }
     // The two contrasts on their own say why the tone moved: a pair within a few percent of each other is the
     // sample sitting on the crossover, a pair far apart that swaps over is the sample swinging (docs/adr/0041).

@@ -57,6 +57,11 @@ public:
     bool    lightText() const;
     int     serial() const;
     QRect   sheet() const;
+    /// @return How many pictures publish() has put in force. Counted apart from serial(), which also moves when the
+    ///         picture is dropped.
+    int publishes() const;
+    /// @return Whether the sheet is refreshing. Read on the GUI thread only, like setLive().
+    bool live() const;
 
     /// @brief Make sure the picture covers @p window, taking a new sheet only when the window has come near its edge.
     /// @param window The window the glass is drawn in, in device-independent coordinates.
@@ -104,6 +109,7 @@ private:
     QImage         image_;
     bool           lightText_ = false;
     int            serial_    = 0;
+    int            publishes_ = 0;
     QRect          sheet_;
     /// The geometry of the screen the sheet was taken on: a side on that edge has nothing beyond it to read.
     QRect sheetScreen_;

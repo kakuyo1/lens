@@ -10,6 +10,7 @@ import QtQuick.Window
  */
 Window {
     id: notice
+    objectName: "notice"
     /// The desktop under this window, which its glass draws (docs/adr/0041).
     readonly property var glass: Controller.glassBackdrop.surface("notice")
     readonly property SurfaceTokens tokens: SurfaceTokens {

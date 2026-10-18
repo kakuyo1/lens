@@ -1,0 +1,11 @@
+# Selection and setting against a private settings file (docs/adr/0068, section 14).
+# Run with the settings file the dev build reads instead of the reader's profile:
+#   lens.exe --dev-script=scripts/qa/scenarios/selection-setting.txt --dev-out=logs/dev-run/answers.jsonl --settings-file=logs/dev-run/settings.json
+version
+state
+setting set theme light
+state
+selection 160,175,620,70 "the quiet library"
+wait visible:selectionBar
+state
+quit

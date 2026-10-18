@@ -1,5 +1,7 @@
 add_library(lens_core STATIC
   profile.cpp
+  dev_command.cpp
+  dev_line_framer.cpp
   filter_core.cpp
   known_store.cpp
   review_schedule.cpp

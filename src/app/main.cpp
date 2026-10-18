@@ -30,6 +30,10 @@
 #include "autostart.h"
 #include "core/filter_core.h"
 #include "core/known_store.h"
+#if defined(LENS_DEV_SURFACE)
+#include "core/dev_command.h"
+#include "dev_surface.h"
+#endif
 #include "global_hotkey.h"
 #include "llm/llm_client.h"
 #include "llm/llm_pricing.h"
@@ -238,7 +242,17 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+#if defined(LENS_DEV_SURFACE)
+    // docs/adr/0068: a run given --settings-file keeps its document there, so it never writes the reader's profile.
+    const auto devSettings = lens::app::devSettingsFile(app.arguments());
+    if (devSettings and devSettings->empty()) {
+        LENS_CRITICAL("--settings-file takes a path");
+        return 1;
+    }
+    const std::filesystem::path settings = devSettings ? *devSettings : settingsPath(toPath(QString::fromUtf8(kDevSettingsPath)));
+#else
     const std::filesystem::path settings = settingsPath(toPath(QString::fromUtf8(kDevSettingsPath)));
+#endif
     LENS_INFO("settings document: {}", narrow(settings));
     KnownStore store = KnownStore::load(settings);
 
@@ -375,6 +389,22 @@ int main(int argc, char* argv[])
             });
         }
     }
+#endif
+
+#if defined(LENS_DEV_SURFACE)
+    // Starts only with --dev-script, so a run without the flag is the same run as a build without the surface. The build
+    // block is read here because only this target sets QT_QML_DEBUG (docs/adr/0068).
+#if defined(NDEBUG)
+    auto const config = std::string{"optimized"};
+#else
+    auto const config = std::string{"debug"};
+#endif
+#if defined(QT_QML_DEBUG)
+    constexpr bool qmlDebug = true;
+#else
+    constexpr bool qmlDebug = false;
+#endif
+    lens::app::startDevSurface(engine.rootObjects().constFirst(), &controller, app.arguments(), lens::core::dev::Build{.config = config, .qmlDebug = qmlDebug});
 #endif
 
     LENS_INFO("Lens is up");

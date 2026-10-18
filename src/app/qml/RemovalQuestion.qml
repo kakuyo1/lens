@@ -24,6 +24,7 @@ import QtQuick.Window
  */
 Window {
     id: root
+    objectName: "removal"
     /// The desktop under this window, which its glass draws (docs/adr/0041).
     readonly property var glass: Controller.glassBackdrop.surface("removal")
     readonly property SurfaceTokens tokens: SurfaceTokens {
