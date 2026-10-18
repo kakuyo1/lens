@@ -34,6 +34,7 @@
 #include "paths.h"
 #include "pet/pet_controller.h"
 #include "reveal_settings.h"
+#include "settings_defaults.h"
 #include "update/update_client.h"
 #include "util/log.h"
 #include "year_grid.h"
@@ -242,6 +243,38 @@ void AppController::restoreCaptureDefaults()
     // the way back from this one too.
     const QKeyCombination fallback = GlobalHotkey::defaultKeys()[0];
     setOcrHotkey(fallback.key(), fallback.keyboardModifiers());
+}
+
+void AppController::restoreDefaults()
+{
+    // Written through the ordinary setters so the clamps and the validation stay the only way a
+    // value reaches the document; what is centralized here is the value, not the write.
+    setLevel(defaults::kLevel);
+    setExplanationLang(QString::fromStdString(std::string{defaults::kExplanationLang}));
+    setMultiSense(defaults::kMultiSense);
+    setEtymology(defaults::kEtymology);
+    setExample(defaults::kExample);
+    setTheme(QString::fromStdString(std::string{defaults::kTheme}));
+    setFont(QString{});
+    setAnimationsEnabled(defaults::kAnimationsEnabled);
+    setRevealSpeed(defaults::kRevealSpeed);
+    setSelectionCapture(defaults::kSelectionCapture);
+    setClipboardPolicy(defaults::kClipboardSilent);
+    setBubbleDismissSeconds(defaults::kBubbleDismissSeconds);
+    setBubblePlacement(QString::fromStdString(std::string{defaults::kBubblePlacement}));
+    setSelectionBarStyle(QString::fromStdString(std::string{defaults::kSelectionBarStyle}));
+    setFrostedBlur(defaults::kFrostedBlurDefault);
+    setFrostedSaturation(defaults::kFrostedSaturationDefault);
+    setFrostedRim(defaults::kFrostedRimDefault);
+    setLiquidRefraction(defaults::kLiquidRefractionDefault);
+    setLiquidBlur(defaults::kLiquidBlurDefault);
+    setLiquidRim(defaults::kLiquidRimDefault);
+    setLiquidTextColor(QString::fromStdString(std::string{defaults::kLiquidTextColor}));
+    setReviewFrequency(static_cast<int>(defaults::kReviewFrequency));
+    if (not catalog_.setProvider(defaults::defaultProviderName()))
+        LENS_WARN("the catalog has no usable default provider; the model service was left alone");
+    setModel(defaults::defaultModelName());
+    restoreCaptureDefaults();
 }
 
 QString AppController::setOcrHotkey(int key, int modifiers)
@@ -581,7 +614,7 @@ QVariantMap AppController::settings()
     const QString provider = catalog_.currentProvider();
     // The slider shows the level; the pace the reveal takes is that level through the mapping in
     // reveal_settings.h. Read once so the two the map hands out cannot drift apart.
-    const int revealSpeed = clampRevealSpeed(keys.value<int>("revealSpeed", kRevealSpeedDefault));
+    const int revealSpeed = clampRevealSpeed(keys.value<int>("revealSpeed", defaults::kRevealSpeed));
     // The face the English runs are drawn in: the reader's pick, or the application's own when
     // nothing is stored -- and also when what is stored names a family this machine no longer has,
     // which a settings document copied from another machine can. Handed out as a family rather
@@ -593,10 +626,10 @@ QVariantMap AppController::settings()
                          {"reviewFrequency", static_cast<int>(reviewDuty_.frequency())},
                          {"reviewFrequencyOptions", StorageDuty::reviewFrequencyOptions()},
                          {"explanationLang", QString::fromStdString(storage_.knownStore().explanationLang())},
-                         {"multiSense", keys.value<bool>("multiSense", false)},
-                         {"etymology", keys.value<bool>("etymology", false)},
-                         {"example", keys.value<bool>("example", false)},
-                         {"theme", QString::fromStdString(keys.value<std::string>("theme", "light"))},
+                         {"multiSense", keys.value<bool>("multiSense", defaults::kMultiSense)},
+                         {"etymology", keys.value<bool>("etymology", defaults::kEtymology)},
+                         {"example", keys.value<bool>("example", defaults::kExample)},
+                         {"theme", QString::fromStdString(keys.value<std::string>("theme", std::string{defaults::kTheme}))},
                          {"font", fontFamilyFor(storedFont)},
                          {"frostedBlur", clampGlass(kFrostedBlur, keys.value<int>("frostedBlur", kFrostedBlur.fallback))},
                          {"frostedSaturation", clampGlass(kFrostedSaturation, keys.value<int>("frostedSaturation", kFrostedSaturation.fallback))},
@@ -605,16 +638,16 @@ QVariantMap AppController::settings()
                          {"liquidBlur", clampGlass(kLiquidBlur, keys.value<int>("liquidBlur", kLiquidBlur.fallback))},
                          {"liquidRim", clampGlass(kLiquidRim, keys.value<int>("liquidRim", kLiquidRim.fallback))},
                          {"liquidTextColor", QString::fromStdString(keys.value<std::string>("liquidTextColor", std::string{kLiquidTextColorFallback}))},
-                         {"animationsEnabled", keys.value<bool>("animationsEnabled", true)},
+                         {"animationsEnabled", keys.value<bool>("animationsEnabled", defaults::kAnimationsEnabled)},
                          {"revealSpeed", revealSpeed},
                          {"revealCharacterMs", revealMillisPerCharacter(revealSpeed)},
-                         {"uiLanguage", QString::fromStdString(keys.value<std::string>("uiLanguage", "zh"))},
+                         {"uiLanguage", QString::fromStdString(keys.value<std::string>("uiLanguage", std::string{defaults::kUiLanguage}))},
                          {"hasApiKey", !keys.value<std::string>("API-KEY", {}).empty()},
-                         {"selectionCapture", keys.value<bool>("selectionCapture", true)},
+                         {"selectionCapture", keys.value<bool>("selectionCapture", defaults::kSelectionCapture)},
                          {"clipboardSilent", clipboardPolicyFromStored(keys.value<std::string>("clipboardPolicy", {})) == ClipboardPolicy::Silent},
-                         {"bubbleDismissSeconds", clampBubbleDismissSeconds(keys.value<int>("bubbleDismissSeconds", kBubbleDismissDefaultSeconds))},
-                         {"bubblePlacement", QString::fromStdString(keys.value<std::string>("bubblePlacement", "above"))},
-                         {"selectionBarStyle", QString::fromStdString(keys.value<std::string>("selectionBarStyle", "bar"))},
+                         {"bubbleDismissSeconds", clampBubbleDismissSeconds(keys.value<int>("bubbleDismissSeconds", defaults::kBubbleDismissSeconds))},
+                         {"bubblePlacement", QString::fromStdString(keys.value<std::string>("bubblePlacement", std::string{defaults::kBubblePlacement}))},
+                         {"selectionBarStyle", QString::fromStdString(keys.value<std::string>("selectionBarStyle", std::string{defaults::kSelectionBarStyle}))},
                          {"ocrHotkey", hotkey_.keys().toString(QKeySequence::PortableText)},
                          {"ocrHotkeyConflicted", hotkey_.conflicted()},
                          {"provider", provider},

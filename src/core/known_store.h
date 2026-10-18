@@ -62,6 +62,11 @@ struct WordCache {
  */
 class KnownStore {
 public:
+    /// @brief The difficulty a document that names none starts at (CET-4).
+    static constexpr int kDefaultLevel = 2;
+    /// @brief The explanation language a document that names none starts at.
+    static constexpr std::string_view kDefaultExplanationLang = "en";
+
     /**
      * @brief Read the store from disk.
      *
@@ -185,8 +190,8 @@ private:
     std::unordered_set<std::string> known_;
     /// Keyed by explanation language + sense mode + lemma.
     std::unordered_map<std::string, WordCache> cache_;
-    int                                        level_ = 2;    ///< CET-4, the default difficulty level.
-    std::string                                lang_  = "en"; ///< English by default.
+    int                                        level_ = kDefaultLevel;         ///< CET-4, the default difficulty level.
+    std::string                                lang_{kDefaultExplanationLang}; ///< English by default.
 };
 
 }

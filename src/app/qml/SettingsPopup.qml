@@ -244,28 +244,7 @@ Window {
     }
 
     function restoreDefaults() {
-        Controller.setLevel(2);
-        Controller.setExplanationLang("en");
-        Controller.setMultiSense(false);
-        Controller.setTheme("light");
-        Controller.setFont("");
-        Controller.setAnimationsEnabled(true);
-        Controller.setRevealSpeed(3);
-        Controller.setSelectionCapture(true);
-        Controller.setClipboardPolicy(false);
-        Controller.setBubbleDismissSeconds(5);
-        Controller.setBubblePlacement("above");
-        Controller.setSelectionBarStyle("bar");
-        Controller.setFrostedBlur(10);
-        Controller.setFrostedSaturation(120);
-        Controller.setFrostedRim(20);
-        Controller.setLiquidRefraction(20);
-        Controller.setLiquidBlur(10);
-        Controller.setLiquidRim(10);
-        Controller.setLiquidTextColor("#101319");
-        Controller.modelCatalogDuty.setProvider("DeepSeek");
-        Controller.setModel("deepseek-flash");
-        Controller.restoreCaptureDefaults();
+        Controller.restoreDefaults();
         // The interface language is not here on purpose: it belongs to the tray menu, and a
         // panel is not the place that changes a setting the panel does not show.
         saveStatus = qsTranslate("SettingsPopup", "Defaults restored");

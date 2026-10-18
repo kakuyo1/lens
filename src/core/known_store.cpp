@@ -13,8 +13,6 @@
 namespace lens::core {
 namespace {
 
-constexpr int kDefaultLevel = 2; ///< CET-4.
-
 /// @return The current time in ms since the epoch, the unit every mark time is kept in.
 long long nowMs()
 {

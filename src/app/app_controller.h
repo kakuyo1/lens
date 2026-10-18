@@ -94,6 +94,14 @@ public:
     /// @param directory Folder the reader picked in the system's dialog; C++ takes the local path.
     Q_INVOKABLE void setTesseractDataDirectory(QUrl directory);
     Q_INVOKABLE void restoreCaptureDefaults();
+    /**
+     * @brief Put every setting the settings panel owns back to its default.
+     *
+     * The values are the ones settings_defaults.h names, so a restore and a fresh install read
+     * the same table. The API key, autostart, the interface language and the daily budget are
+     * not settings this panel restores and are left as they are.
+     */
+    Q_INVOKABLE void restoreDefaults();
     Q_INVOKABLE void setLevel(int level);
     Q_INVOKABLE void setExplanationLang(QString lang);
     Q_INVOKABLE void setMultiSense(bool on);

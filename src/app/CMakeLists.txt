@@ -31,6 +31,7 @@ add_library(lens_app STATIC
   review_duty.h
   review_duty.cpp
   selection_text_grabber.cpp
+  settings_defaults.h
   storage_duty.h
   storage_duty.cpp
   system_motion.cpp

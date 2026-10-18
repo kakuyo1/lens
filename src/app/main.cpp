@@ -37,6 +37,7 @@
 #include "mouse_selection_hook.h"
 #include "notice.h"
 #include "paths.h"
+#include "settings_defaults.h"
 #include "tray.h"
 #include "util/log.h"
 #include "util/qt_log.h"
@@ -216,9 +217,10 @@ int main(int argc, char* argv[])
     if (apiKey.isEmpty())
         LENS_WARN("no API key in the settings; explanations will be refused until one is set");
 
-    lens::llm::LlmClient llm(lens::llm::Config{QUrl(baseUrl.isEmpty() ? QStringLiteral("https://api.deepseek.com") : baseUrl),
-                                               apiKey,
-                                               model.isEmpty() ? QStringLiteral("deepseek-flash") : model});
+    lens::llm::LlmClient llm(lens::llm::Config{
+        QUrl(baseUrl.isEmpty() ? lens::app::defaults::defaultBaseUrl() : baseUrl),
+        apiKey,
+        model.isEmpty() ? lens::app::defaults::defaultModelName() : model});
 
     MouseSelectionHook hook;
     GlobalHotkey       hotkey;
