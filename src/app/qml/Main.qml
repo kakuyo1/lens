@@ -495,6 +495,7 @@ Window {
     SelectionBar { id: bar }
     Bubble {
         id: bubble
+        objectName: "bubble"
         onPlacementRequested: (payload) => root.placeBubble(bubble, payload)
         onHeightChanged: root.keepOnScreen(bubble)
     }

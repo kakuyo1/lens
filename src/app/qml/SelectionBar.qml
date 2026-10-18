@@ -13,6 +13,7 @@ import QtQuick.Window
  */
 Window {
     id: bar
+    objectName: "selectionBar"
 
     /// The desktop under this window, which its glass draws (docs/adr/0041).
     readonly property var glass: Controller.glassBackdrop.surface("selectionBar")

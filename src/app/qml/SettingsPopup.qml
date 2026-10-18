@@ -11,6 +11,7 @@ import QtQuick.Window
  */
 Window {
     id: settings
+    objectName: "settings"
 
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     color: "transparent"

@@ -17,6 +17,7 @@ import QtQuick.Window
  */
 Window {
     id: card
+    objectName: "update"
     /// The desktop under this window, which its glass draws (docs/adr/0041).
     readonly property var glass: Controller.glassBackdrop.surface("update")
     readonly property SurfaceTokens tokens: SurfaceTokens {
