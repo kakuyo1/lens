@@ -175,39 +175,39 @@ def compose_learning_loop() -> None:
 
 
 def compose_pets_gif() -> None:
-    """Seven pets idling together; each frame stacks the body and eyes sheets from data/pet."""
+    """Seven pets, each playing one of its own actions, on a shared strip."""
     pets = [
-        ("cat", "Stub cat"),
-        ("owl", "Owl"),
-        ("mochi", "Mochi"),
-        ("ghost", "Ghost"),
-        ("jelly", "Jellyfish"),
-        ("cloud", "Cloud"),
-        ("dog", "Dog"),
+        ("cat", "Stub cat", "knead", "Knead"),
+        ("owl", "Owl", "study", "Reading"),
+        ("mochi", "Mochi", "bounce", "Bounce"),
+        ("ghost", "Ghost", "float", "Float"),
+        ("jelly", "Jellyfish", "bob", "Bob"),
+        ("cloud", "Cloud", "drift", "Drift"),
+        ("dog", "Dog", "wag", "Wag"),
     ]
-    width, height = 1600, 420
+    width, height = 1600, 440
     cell_width, gap, pet_top = 176, 32, 100
     margin = (width - (len(pets) * cell_width + (len(pets) - 1) * gap)) // 2
     label_font = font("seguisb.ttf", 20)
+    action_font = font("segoeui.ttf", 13)
 
     prepared = []
-    for pet, label in pets:
+    for pet, label, action, action_label in pets:
         directory = ROOT / "data" / "pet" / pet
         animations = json.loads((directory / "animations.json").read_text(encoding="utf-8"))
-        idle = animations["actions"]["idle"]
-        anchors = json.loads((directory / "anchors.json").read_text(encoding="utf-8"))["actions"]["idle"]
-        prepared.append(
-            (
-                label,
-                idle,
-                anchors,
-                Image.open(directory / "sprites" / "body" / "idle.png").convert("RGBA"),
-                Image.open(directory / "sprites" / "expressions" / "eyes.png").convert("RGBA"),
-            )
-        )
+        definition = animations["actions"][action]
+        anchors = json.loads((directory / "anchors.json").read_text(encoding="utf-8"))["actions"].get(action)
+        if anchors is None:
+            anchors = json.loads((directory / "anchors.json").read_text(encoding="utf-8"))["actions"]["idle"]
+        body_sheet = Image.open(directory / definition["sheet"]).convert("RGBA")
+        eyes_sheet = Image.open(directory / "sprites" / "expressions" / "eyes.png").convert("RGBA")
+        effect_sheet = None
+        if definition.get("effect"):
+            effect_sheet = Image.open(directory / definition["effect"]).convert("RGBA")
+        prepared.append((label, action_label, definition, anchors, body_sheet, eyes_sheet, effect_sheet))
 
     frames = []
-    for step in range(10):
+    for step in range(15):
         canvas = gradient((width, height), (247, 248, 250), (233, 237, 242))
         shadows = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
         shadow_draw = ImageDraw.Draw(shadows)
@@ -217,18 +217,25 @@ def compose_pets_gif() -> None:
         canvas.alpha_composite(shadows.filter(ImageFilter.GaussianBlur(4)))
         draw = ImageDraw.Draw(canvas)
 
-        for index, (label, idle, anchors, body_sheet, eyes_sheet) in enumerate(prepared):
-            frame = int(step * idle["fps"] / 10) % idle["frames"]
-            # A single blink across the group at 0.6-0.8 s; 1 and 2 are the eyes sheet's blink frames.
-            eyes = {6: 1, 7: 2, 8: 1}.get(step, 0)
+        for index, (label, action_label, definition, anchors, body_sheet, eyes_sheet, effect_sheet) in enumerate(prepared):
+            frame = int(step * definition["fps"] / 10) % definition["frames"]
+            expressions = definition.get("expressions") or [0]
+            eyes = expressions[frame % len(expressions)]
             body = body_sheet.crop((frame * 88, 0, (frame + 1) * 88, 88))
             eye = eyes_sheet.crop((eyes * 88, 0, (eyes + 1) * 88, 88))
-            sprite = Image.alpha_composite(body, eye).resize((176, 176), Image.Resampling.NEAREST)
+            sprite = Image.alpha_composite(body, eye)
+            if effect_sheet is not None:
+                effect_frame = frame % (effect_sheet.width // 88)
+                effect = effect_sheet.crop((effect_frame * 88, 0, (effect_frame + 1) * 88, 88))
+                sprite = Image.alpha_composite(sprite, effect)
+            sprite = sprite.resize((176, 176), Image.Resampling.NEAREST)
             dy = anchors[frame % len(anchors)]["body"][1] * 2
             x = margin + index * (cell_width + gap)
             canvas.alpha_composite(sprite, (x, pet_top + dy))
-            text_width = draw.textbbox((0, 0), label, font=label_font)[2]
-            draw.text((x + (cell_width - text_width) / 2, 320), label, font=label_font, fill=(26, 26, 31, 255))
+            name_width = draw.textbbox((0, 0), label, font=label_font)[2]
+            draw.text((x + (cell_width - name_width) / 2, 320), label, font=label_font, fill=(26, 26, 31, 255))
+            action_width = draw.textbbox((0, 0), action_label, font=action_font)[2]
+            draw.text((x + (cell_width - action_width) / 2, 344), action_label, font=action_font, fill=(132, 135, 143, 255))
 
         frames.append(canvas.convert("RGB").quantize(colors=96, method=Image.MEDIANCUT, dither=Image.Dither.NONE))
 

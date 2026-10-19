@@ -21,6 +21,12 @@
   <a href="#idiomas"><img alt="Inglés, chino, español y japonés" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
 </p>
 
+<p align="center">
+  <img alt="C++20" src="https://img.shields.io/badge/C%2B%2B-20-00599C?logo=cplusplus&logoColor=white">
+  <img alt="Qt 6 / QML" src="https://img.shields.io/badge/Qt-6.2%2B%20%2F%20QML-41CD52?logo=qt&logoColor=white">
+  <img alt="CMake 3.21+" src="https://img.shields.io/badge/CMake-3.21%2B-064F8C?logo=cmake&logoColor=white">
+</p>
+
 <p align="center"><sub><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ja.md">日本語</a> · Español</sub></p>
 
 <p align="center">
