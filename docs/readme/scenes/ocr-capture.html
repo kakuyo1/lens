@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · OCR capture</title>
+<!--
+  A README-only illustration of the capture flow: press the hotkey, frame a region of a page
+  whose text cannot be selected, read it locally with OCR and explain it in place. ?stage=
+  start|frame|read|result selects one frame of the GIF. The bubble is the Liquid glass card.
+-->
+<style>
+:root{
+  --paper:#f6f2ea; --text:#101319; --muted:#333846; --faint:#4a4f5e;
+  --line:rgba(18,24,36,.16); --line2:rgba(18,24,36,.11);
+  --ink:#12151b; --on:#fff; --ok:#2f9e6e; --ok-soft:rgba(47,158,110,.16);
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+  --read:"Charter","Iowan Old Style","Sitka Text",Georgia,serif;
+  --glass:rgba(248,250,254,.74); --glass-edge:rgba(255,255,255,.62);
+  --sh:0 1px 2px rgba(10,14,24,.14),0 24px 60px -22px rgba(10,14,24,.42);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{width:900px;height:620px;overflow:hidden;background:var(--paper);color:var(--text);font-family:var(--f);-webkit-font-smoothing:antialiased}
+.page{position:absolute;inset:0;padding:48px 64px}
+.kicker{font:700 11px/1 var(--f);letter-spacing:.16em;text-transform:uppercase;color:#1d7a52}
+h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025em;font-weight:600;margin-top:12px}
+.byline{margin-top:12px;color:var(--faint);font-size:12px}
+.doc-badge{position:absolute;right:40px;top:42px;display:flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid var(--line);border-radius:999px;color:var(--faint);font-size:10px;letter-spacing:.04em;text-transform:uppercase}
+.doc-badge i{width:6px;height:6px;border-radius:50%;background:var(--ok);display:block}
+.sample{max-width:520px;margin-top:90px;font-family:var(--read);font-size:18px;line-height:1.8;color:#33343a}
+.sample strong{font-weight:600;background:var(--ok-soft);border-radius:3px;padding:1px 2px;margin:0 -2px}
+.sample+.sample{margin-top:16px;font-size:16px;color:#66666f}
+.captured{position:absolute;left:56px;top:232px;width:530px;height:82px;border:1.5px solid rgba(47,158,110,.62);border-radius:12px;background:rgba(47,158,110,.035);display:none;pointer-events:none;z-index:2}
+.captured::before{content:"OCR";position:absolute;left:12px;top:-24px;padding:3px 7px;border-radius:999px;background:var(--ok);color:#fff;font:700 9px var(--f);letter-spacing:.08em}
+
+.capture{position:absolute;left:56px;top:232px;width:530px;height:82px;border:1.5px solid rgba(255,255,255,.95);border-radius:12px;box-shadow:0 0 0 9999px rgba(18,22,28,.55);display:none;pointer-events:none;z-index:3}
+.corner{position:absolute;width:15px;height:15px;border:2px solid #fff}
+.corner.tl{left:-2px;top:-2px;border-right:0;border-bottom:0;border-radius:4px 0 0 0}
+.corner.tr{right:-2px;top:-2px;border-left:0;border-bottom:0;border-radius:0 4px 0 0}
+.corner.bl{left:-2px;bottom:-2px;border-right:0;border-top:0;border-radius:0 0 0 4px}
+.corner.br{right:-2px;bottom:-2px;border-left:0;border-top:0;border-radius:0 0 4px 0}
+.capture .ocr-tag{position:absolute;left:12px;top:-27px;padding:4px 8px;border-radius:999px;background:#fff;color:#1d7a52;font:700 9px var(--f);letter-spacing:.08em}
+.scanline{position:absolute;left:14px;right:14px;top:50%;height:2px;border-radius:2px;background:#4dc492;box-shadow:0 0 12px rgba(77,196,146,.9);display:none;z-index:4}
+
+.bubble{position:absolute;left:612px;top:210px;width:252px;padding:14px 16px 12px;border:1px solid var(--glass-edge);border-radius:18px;background:var(--glass);box-shadow:var(--sh);backdrop-filter:blur(22px) saturate(1.35);display:none;z-index:6}
+.bub-top{display:flex;align-items:center;gap:7px}
+.tag{font:700 9.5px var(--f);letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--ok-soft);color:#1d7a52}
+.bub-close{margin-left:auto;width:13px;height:13px;color:var(--faint)}
+.bub-word{font-size:20px;font-weight:650;letter-spacing:-.01em;margin-top:10px}
+.ipa{margin-left:6px;font-size:11px;color:var(--faint);font-weight:400}
+.bub-def{font-size:12.5px;line-height:1.55;color:var(--muted);margin-top:6px}
+.bub-source{display:flex;align-items:center;gap:5px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line2);font-size:10px;color:var(--faint)}
+.bub-source i{width:11px;height:11px;border:1px solid currentColor;border-radius:2px;display:block}
+.bub-actions{display:flex;gap:7px;margin-top:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.5);color:var(--text);font:650 11.5px var(--f);}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:var(--on)}
+.bub-meta{font-size:10px;color:var(--faint);margin-top:10px}
+
+.hint{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);display:none;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.7);color:var(--muted);font:600 13px var(--f);backdrop-filter:blur(14px);z-index:8;white-space:nowrap}
+.hint::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none}
+kbd{display:inline-flex;align-items:center;height:21px;padding:0 6px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;background:rgba(255,255,255,.72);font:600 10.5px var(--f);color:var(--text)}
+
+body.stage-start .hint-start,
+body.stage-frame .capture,
+body.stage-frame .hint-frame,
+body.stage-read .capture,
+body.stage-read .scanline,
+body.stage-read .hint-read,
+body.stage-result .captured,
+body.stage-result .bubble,
+body.stage-result .hint-result{display:flex}
+body.stage-result .captured,
+body.stage-result .bubble{display:block}
+body.stage-start .hint-start,
+body.stage-frame .hint-frame,
+body.stage-read .hint-read,
+body.stage-result .hint-result{display:flex}
+</style>
+</head>
+<body class="stage-start">
+<div class="page">
+  <div class="kicker">Field Notes · PDF</div>
+  <h1>The Art of Noticing</h1>
+  <div class="byline">Mara Ellison · October 2026</div>
+  <div class="doc-badge"><i></i>Scanned page</div>
+  <p class="sample"><strong>Serendipity</strong>, she wrote, is not luck. It is attention. She had come to the archive looking for one thing and found another.</p>
+  <p class="sample">The distinction matters. Luck arrives; attention makes room for it. A reader who stops to ask what a word is really doing is already reading more closely than one who turns the page.</p>
+</div>
+
+<div class="captured"></div>
+
+<div class="capture">
+  <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+  <span class="ocr-tag">OCR</span>
+  <span class="scanline"></span>
+</div>
+
+<div class="bubble">
+  <div class="bub-top"><span class="tag">OCR</span><svg class="bub-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg></div>
+  <div class="bub-word">serendipity<span class="ipa">/ˌserənˈdɪpəti/</span></div>
+  <div class="bub-def">the occurrence of events by chance in a happy or beneficial way</div>
+  <div class="bub-source"><i></i>Read locally with OCR</div>
+  <div class="bub-actions"><span class="btn">Known</span><span class="btn primary">New</span></div>
+  <div class="bub-meta">Disappears in 5s</div>
+</div>
+
+<div class="hint hint-start"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd> Capture text</div>
+<div class="hint hint-frame">Drag to frame the text · Esc cancels</div>
+<div class="hint hint-read">Reading locally with OCR…</div>
+<div class="hint hint-result">Explained in place · the screenshot never leaves your PC</div>
+
+<script>
+const stages = ['start', 'frame', 'read', 'result'];
+const stage = stages.includes(new URLSearchParams(location.search).get('stage'))
+  ? new URLSearchParams(location.search).get('stage') : 'start';
+document.body.className = 'stage-' + stage;
+</script>
+</body>
+</html>

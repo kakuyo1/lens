@@ -59,6 +59,23 @@ def compose_language_gif() -> None:
     )
 
 
+def compose_ocr_gif() -> None:
+    """Four OCR stages: hotkey, frame, local read and the explanation card."""
+    frames = []
+    for stage in ("start", "frame", "read", "result"):
+        frame = Image.open(FRAMES / f"ocr-{stage}.png").convert("RGB").resize((900, 620), Image.Resampling.LANCZOS)
+        frames.append(frame.quantize(colors=128, method=Image.MEDIANCUT))
+    frames[0].save(
+        OUT / "ocr-capture.gif",
+        save_all=True,
+        append_images=frames[1:],
+        duration=[1100, 1200, 900, 2200],
+        loop=0,
+        optimize=True,
+        disposal=2,
+    )
+
+
 def compose_selection_styles() -> None:
     """Five action-bar shapes over one page, one frame each."""
     frames = []
@@ -262,6 +279,7 @@ def main() -> None:
         review_hover.unlink()
 
     compose_language_gif()
+    compose_ocr_gif()
     compose_selection_styles()
     compose_themes()
     compose_learning_loop()
@@ -269,6 +287,7 @@ def main() -> None:
 
     for name in (
         "english-first.gif",
+        "ocr-capture.gif",
         "selection-styles.gif",
         "pets.gif",
         "themes.png",

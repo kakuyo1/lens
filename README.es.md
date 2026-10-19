@@ -68,7 +68,11 @@ La barra de acciones ofrece Traducir, Explicar y Copiar texto. Lens gira alreded
 2. Elige Explicar. La burbuja aparece encima o debajo de la selección.
 3. Márcala como Conocida o Nueva y sigue leyendo.
 
-Cuando el texto no se puede seleccionar, pulsa `Ctrl+Alt+S` (se puede cambiar en Ajustes), enmarca una zona de un PDF, una imagen o un fotograma de vídeo y Lens la lee localmente con OCR. El escaneo automático solo vigila las aplicaciones de tu lista blanca.
+## Texto que no se puede seleccionar
+
+<p align="center"><img src="docs/readme/ocr-capture.gif" width="800" alt="Captura OCR: pulsa Ctrl+Alt+S, enmarca una zona y Lens la explica"></p>
+
+Pulsa `Ctrl+Alt+S` (se puede cambiar en Ajustes), enmarca una zona de un PDF, una imagen o un fotograma de vídeo y Lens la lee localmente con OCR. El escaneo automático solo vigila las aplicaciones de tu lista blanca.
 
 ## Cinco formas de barra de acciones
 

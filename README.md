@@ -68,7 +68,11 @@ The action bar offers Translate, Explain, and Copy text. Explain is the one Lens
 2. Choose Explain. The bubble lands above or below the selection.
 3. Mark it Known or New, and keep reading.
 
-When text cannot be selected, press `Ctrl+Alt+S` (changeable in Settings), frame a region of a PDF, image, or video still, and Lens reads it locally with OCR. Automatic scanning can watch only the apps you whitelist.
+## Text you can't select
+
+<p align="center"><img src="docs/readme/ocr-capture.gif" width="800" alt="OCR capture: press Ctrl+Alt+S, frame a region of a page, and Lens explains it"></p>
+
+Press `Ctrl+Alt+S` (changeable in Settings), frame a region of a PDF, image, or video still, and Lens reads it locally with OCR. Automatic scanning can watch only the apps you whitelist.
 
 ## Five action bars, one set of actions
 

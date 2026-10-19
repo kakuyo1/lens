@@ -115,6 +115,11 @@ screenshot fb-page-menu "ui-prototypes/bubble.html" \
 screenshot fb-page-zh "ui-prototypes/bubble.html" \
     "lang=en&shot=1&theme=liquid&actions=open&page=1&pageScale=1.4&explain=zh" 760 760 2 "$frames"
 
+# OCR flow frames: start, frame the region, read it locally, then explain it in place.
+for stage in start frame read result; do
+    screenshot "ocr-$stage" "docs/readme/scenes/ocr-capture.html" "stage=$stage" 900 620 2 "$frames"
+done
+
 # Five action-bar shapes over the same reading page, one frame each.
 for style in classic side cards tag fan; do
     screenshot "sel-style-$style" "docs/readme/scenes/selection-styles.html" \
