@@ -253,6 +253,37 @@ Item {
             shown.main.hidePanels(null);
         }
 
+        /// Blur at 0 with nothing to bend (docs/adr/0069): the card draws no backdrop, asks for no picture, and does
+        /// not dim itself to photograph a desktop it no longer shows. The live desktop comes from the window's own
+        /// transparency, so this is the one setting where reading the desktop would be pure cost.
+        function test_blurAtZeroLetsTheLiveDesktopThrough() {
+            const shown = openFrostedGeneral();
+            const glass = Util.ofTypeInWindow(shown.panel, "GlassSurface");
+            verify(glass, "the frosted theme drew no glass on the settings card");
+            // Opening the window takes its own backdrop, which dims it for 120 ms: let that finish first.
+            wait(300);
+            compare(glass.passthrough, false, "the card drew passthrough with its blur above 0");
+            verify(glass.sheetUrl.length > 0, "the card asked for no backdrop while its blur was above 0");
+
+            Controller.setFrostedBlur(0);
+            wait(30);
+            compare(glass.passthrough, true, "blur at 0 left the card drawing a backdrop");
+            compare(glass.sheetUrl, "", "blur at 0 still asked for a picture");
+            compare(glass.mapUrl, "", "blur at 0 still asked for a displacement map");
+            compare(shown.panel.glass.live, false, "blur at 0 left the desktop refreshing for a card that draws none");
+            compare(shown.panel.opacity, 1, "the card dimmed itself to photograph the desktop it no longer draws");
+
+            // And it comes back the moment the reader moves the blur up again, without a reload of the window.
+            Controller.setFrostedBlur(10);
+            wait(30);
+            compare(glass.passthrough, false, "raising the blur left the card without a backdrop");
+            verify(glass.sheetUrl.length > 0, "raising the blur asked for no picture");
+
+            Controller.setFrostedBlur(10);
+            Controller.setTheme("light");
+            shown.main.hidePanels(null);
+        }
+
         function test_colorConversionKeepsAlphaForThemeValues() {
             const light = Tokens.colorsForTheme("light");
             verify(light.bubbleBg.length === 9, "light bubble alpha was dropped");

@@ -32,6 +32,12 @@ Item {
     readonly property bool glass: host.window.tokens.glassMode !== ""
     /// The white the card sits under, which the text tone is judged over: the frosted theme's fill, none under liquid.
     readonly property real fillAlpha: host.window.tokens.panel.a
+    /// Whether the card draws no backdrop (GlassRule, docs/adr/0069). Then the desktop shows through the window's own
+    /// transparency at its own rate, and the sheet is only ever asked for one thing: the text tone under the card.
+    readonly property bool passthrough: host.glass && GlassRule.passthrough(host.window.tokens.glassMode,
+                                                                            Controller.settings.frostedBlur,
+                                                                            Controller.settings.liquidBlur,
+                                                                            Controller.settings.liquidRefraction)
 
     function windowRect() {
         return Qt.rect(host.window.x, host.window.y, host.window.width, host.window.height);
@@ -51,7 +57,15 @@ Item {
         }
         if (host.excludedFromCapture) {
             host.sheet.follow(host.windowRect(), host.fillAlpha);
-            host.sheet.setLive(true);
+            // Passthrough keeps the sheet for the tone alone: nothing refreshes, because nothing draws it. The follow()
+            // above still retakes it when the window has outgrown it, which is the only moment the tone can change.
+            host.sheet.setLive(!host.passthrough);
+            return;
+        }
+        if (host.passthrough) {
+            // Not excluded, and the card shows the live desktop: taking a picture would mean hiding the card to do it,
+            // which blanks exactly what this mode exists to show. The tone stays where it was last judged.
+            host.sheet.setLive(false);
             return;
         }
         // Not excluded: the sheet is taken with the card hidden, and never refreshed live, since a live read would photograph it.
@@ -74,6 +88,10 @@ Item {
         if (!host.dragging)
             host.capture();
     }
+
+    /// The reader moved the blur or the refraction across the line where the backdrop goes away. The refresh stops or
+    /// starts here, at once: a slider that took effect only after a panel reopened would read as a broken control.
+    onPassthroughChanged: host.capture()
 
     /// Any move restarts this. Once it settles, the sheet is taken if the window has outgrown it.
     Timer {

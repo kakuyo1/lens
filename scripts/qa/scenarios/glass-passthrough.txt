@@ -1,0 +1,22 @@
+# Screenshot run for docs/adr/0069: hold the frosted panel open at blur 0, so the card can be photographed over the
+# live desktop it now shows, then at the stored blur it replaces. The two holds are 30 seconds each; take the shot
+# inside the one you want. LENS_QA_VISIBLE_IN_CAPTURE=1 must be set on the process, or the card is kept out of the
+# picture entirely (docs/adr/0038, TEST.md 5). The `state` lines answer with each sheet's rectangle, which is what
+# tells the crop where the card is.
+#
+#   LENS_QA_VISIBLE_IN_CAPTURE=1 ./build-ninja/src/app/lens.exe \
+#     --dev-script=scripts/qa/scenarios/glass-passthrough.txt \
+#     --dev-out=logs/dev-run/glass-passthrough.jsonl \
+#     --settings-file=logs/dev-run/settings.json
+version
+setting set theme frosted
+setting set frostedBlur 0
+surface show settings
+wait painted:settings
+state
+wait 30s
+setting set frostedBlur 10
+state
+wait 30s
+surface hide settings
+quit

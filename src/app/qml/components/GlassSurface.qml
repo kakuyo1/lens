@@ -31,14 +31,19 @@ Item {
     property real rim: root.mode === "liquid" ? Controller.settings.liquidRim : Controller.settings.frostedRim
     /// Liquid only: refraction in px.
     property real refraction: Controller.settings.liquidRefraction
+    /// Whether the card draws no backdrop: blur at 0 with nothing to bend (docs/adr/0069). The window is per-pixel
+    /// transparent, so the live desktop shows through it — sharper than any sheet, at the screen's own rate, and with
+    /// no desktop read asked for. GlassHost still keeps one picture for the text tone, and nothing loads it here.
+    readonly property bool passthrough: GlassRule.passthrough(root.mode, Controller.settings.frostedBlur,
+                                                              Controller.settings.liquidBlur, Controller.settings.liquidRefraction)
 
     visible: mode !== ""
 
-    readonly property string sheetUrl: root.mode === ""
+    readonly property string sheetUrl: root.mode === "" || root.passthrough
         ? ""
         : "image://glass/" + root.sheet.name + "/sheet?serial=" + root.sheet.serial + "&blur=" + root.blur
           + "&saturation=" + (root.mode === "frosted" ? root.saturation : 100)
-    readonly property string mapUrl: root.mode === "liquid"
+    readonly property string mapUrl: root.mode === "liquid" && !root.passthrough
         ? "image://glass/" + root.sheet.name + "/map?w=" + root.width + "&h=" + root.height + "&r=" + root.radius
         : ""
 
@@ -130,7 +135,7 @@ Item {
 
     ShaderEffect {
         anchors.fill: parent
-        visible: root.mode !== "" && root.shownSheet.width > 0
+        visible: root.mode !== "" && !root.passthrough && root.shownSheet.width > 0
         fragmentShader: "qrc:/shaders/glass.frag.qsb"
         property variant sheet: root.firstShown ? firstTexture : secondTexture
         property variant map: displacementTexture
