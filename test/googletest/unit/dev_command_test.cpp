@@ -134,6 +134,11 @@ TEST(DevCommandParse, SettingSetNamesTheSettingAndItsValue)
     ASSERT_TRUE(animations.command);
     EXPECT_EQ(animations.command->settingKey, SettingKey::AnimationsEnabled);
     EXPECT_FALSE(std::get<bool>(animations.command->settingValue));
+
+    auto const quality = parseCommand("setting set glassQuality smooth");
+    ASSERT_TRUE(quality.command);
+    EXPECT_EQ(quality.command->settingKey, SettingKey::GlassQuality);
+    EXPECT_EQ(std::get<int>(quality.command->settingValue), 3);
 }
 
 TEST(DevCommandParse, SettingSetRefusesAKeyOrValueOffTheWhitelist)
@@ -145,6 +150,7 @@ TEST(DevCommandParse, SettingSetRefusesAKeyOrValueOffTheWhitelist)
              "setting set nothing 1",
              "setting set liquidBlur forty",
              "setting set animationsEnabled maybe",
+             "setting set glassQuality fastest",
              "setting get theme",
              "setting theme light",
          }) {

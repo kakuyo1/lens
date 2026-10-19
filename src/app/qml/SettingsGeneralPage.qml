@@ -7,7 +7,32 @@ Item {
 
     // qmllint disable missing-property
     readonly property var tokens: Window.window.tokens
+    readonly property var glass: Window.window.glass
     // qmllint enable missing-property
+
+    /// The backdrop refresh tiers, in the order GlassQuality numbers them (docs/adr/0073).
+    readonly property var qualityOptions: [
+        {value: 0, label: qsTranslate("SettingsPopup", "Automatic"), group: "",
+         note: qsTranslate("SettingsPopup", "Follow this screen when it can be duplicated; otherwise read about 15 times a second.")},
+        {value: 1, label: qsTranslate("SettingsPopup", "Battery saver"), group: "",
+         note: qsTranslate("SettingsPopup", "Keep the picture still; retake it only when the card appears or moves.")},
+        {value: 2, label: qsTranslate("SettingsPopup", "Standard"), group: "",
+         note: qsTranslate("SettingsPopup", "About 15 reads a second on the CPU.")},
+        {value: 3, label: qsTranslate("SettingsPopup", "Smooth"), group: "",
+         note: qsTranslate("SettingsPopup", "Follow this screen up to about 60 times a second when it can be duplicated.")}
+    ]
+
+    /// What the chosen tier is doing on this screen: the option's own note, or why Smooth could not be reached.
+    function qualityNote() {
+        let note = "";
+        for (let i = 0; i < page.qualityOptions.length; ++i)
+            if (page.qualityOptions[i].value === Controller.settings.glassQuality)
+                note = page.qualityOptions[i].note;
+        if ((Controller.settings.glassQuality === 0 || Controller.settings.glassQuality === 3)
+                && page.glass && page.glass.duplicationRefused)
+            note = qsTranslate("SettingsPopup", "This screen cannot be duplicated, so the backdrop reads about 15 times a second.");
+        return note;
+    }
 
     property int themeChoice: page.tokens.themeIndex(Controller.settings.theme)
     property var draftColors: ({})
@@ -104,6 +129,37 @@ Item {
                 currentValue: page.themeChoice
                 optionPreview: themePreviewComponent
                 onPicked: (value) => page.chooseTheme(value)
+            }
+        }
+
+        Column {
+            width: parent.width
+            spacing: 10
+            visible: page.themeChoice === 3 || page.themeChoice === 4
+            height: visible ? implicitHeight : 0
+
+            Text {
+                text: qsTranslate("SettingsPopup", "Backdrop refresh")
+                color: page.tokens.text
+                font.pixelSize: 13
+                font.weight: Font.Bold
+            }
+
+            DropdownField {
+                id: qualityField
+                objectName: "glassQualityField"
+                width: parent.width
+                options: page.qualityOptions
+                currentValue: Controller.settings.glassQuality
+                onPicked: (value) => Controller.setGlassQuality(value)
+            }
+
+            Text {
+                width: parent.width
+                wrapMode: Text.WordWrap
+                color: page.tokens.muted
+                font.pixelSize: 12
+                text: page.qualityNote()
             }
         }
 

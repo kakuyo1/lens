@@ -61,6 +61,7 @@ enum class SettingKey : std::uint8_t {
     FrostedBlur,
     LiquidRefraction,
     AnimationsEnabled,
+    GlassQuality,
 };
 
 /// The value a `setting set` line gives, already checked against what its key takes: a theme name, a whole number or a

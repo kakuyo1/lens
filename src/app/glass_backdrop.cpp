@@ -224,6 +224,16 @@ bool GlassSheet::live() const
     return live_;
 }
 
+bool GlassSheet::duplicated() const
+{
+    return duplicated_;
+}
+
+bool GlassSheet::duplicationRefused() const
+{
+    return duplicationRefused_;
+}
+
 QImage GlassSheet::picture() const
 {
     QMutexLocker const lock(&mutex_);
@@ -313,7 +323,7 @@ void GlassSheet::setLive(bool const on)
     emit liveChanged();
 }
 
-void GlassSheet::publish(QRect const region, QRect const screen, QImage picture, ToneRead const& read, bool const fresh)
+void GlassSheet::publish(QRect const region, QRect const screen, QImage picture, ToneRead const& read, bool const fresh, bool const duplicated)
 {
     // A read that failed leaves nothing to show: drop the sheet rather than hold one that no longer matches the window.
     if (picture.isNull()) {
@@ -335,7 +345,9 @@ void GlassSheet::publish(QRect const region, QRect const screen, QImage picture,
     auto const settled = lightText();
     // A sheet just taken has no tone in force for its backdrop, so one read decides it; the ~15/s refresh keeps
     // the tone the reader has been reading unless the other one reads decisively better, on kToneHold reads running.
-    auto const tone = settleTone(read, settled, toneStreak_, fresh ? 1 : kToneHold);
+    auto const tone          = settleTone(read, settled, toneStreak_, fresh ? 1 : kToneHold);
+    auto const sourceChanged = duplicated_ != duplicated;
+    duplicated_              = duplicated;
     {
         QMutexLocker const lock(&mutex_);
         image_       = std::move(picture);
@@ -346,6 +358,7 @@ void GlassSheet::publish(QRect const region, QRect const screen, QImage picture,
         ++serial_;
         ++publishes_;
     }
+    if (sourceChanged) emit captureChanged();
     // Counted outside the sheet's lock: the tally has its own, and the two are never held at once.
     glassStats().countPublish();
     // The two contrasts on their own say why the tone moved: a pair within a few percent of each other is the
@@ -353,6 +366,13 @@ void GlassSheet::publish(QRect const region, QRect const screen, QImage picture,
     if (fresh or tone != settled)
         LENS_INFO("the {} card reads {} text: dark {:.2f}, light {:.2f}", name_.toStdString(), tone ? "light" : "dark", read.againstDark, read.againstLight);
     emit pictureChanged();
+}
+
+void GlassSheet::noteDuplicationRefused(bool const refused)
+{
+    if (duplicationRefused_ == refused) return;
+    duplicationRefused_ = refused;
+    emit captureChanged();
 }
 
 bool GlassSheet::keepOutOfCapture(QObject* window, bool const excluded)
@@ -382,10 +402,16 @@ void GlassSheet::clear()
     setLive(false);
     ++generation_;
     // Nothing is held, so nothing is in force: the next sheet's tone is judged from scratch.
-    toneStreak_ = 0;
+    toneStreak_              = 0;
+    auto const sourceChanged = duplicated_ or duplicationRefused_;
+    duplicated_              = false;
+    duplicationRefused_      = false;
     {
         QMutexLocker const lock(&mutex_);
-        if (image_.isNull() and sheet_.isEmpty()) return;
+        if (image_.isNull() and sheet_.isEmpty()) {
+            if (sourceChanged) emit captureChanged();
+            return;
+        }
         image_       = {};
         lightText_   = false;
         sheet_       = {};
@@ -393,6 +419,7 @@ void GlassSheet::clear()
         fingerprint_ = 0;
         ++serial_;
     }
+    if (sourceChanged) emit captureChanged();
     emit pictureChanged();
 }
 
@@ -423,8 +450,24 @@ GlassSheet* GlassBackdrop::surface(QString const& name) const
     return found == sheets_.end() ? nullptr : *found;
 }
 
+void GlassBackdrop::setQuality(GlassQuality const quality)
+{
+    if (quality_ == quality) return;
+    quality_ = quality;
+    LENS_INFO("glass quality set to {}", glassQualityName(quality));
+    // Eco stops the timer, and the other tiers restart it at their own pace; the picture in force stays on screen.
+    updateLive();
+}
+
+GlassQuality GlassBackdrop::quality() const
+{
+    return quality_;
+}
+
 void GlassBackdrop::refreshNext()
 {
+    // Eco stopped the timer; a timeout already queued still lands here and has nothing to do.
+    if (not glassQualityRefreshes(quality_)) return;
     glassStats().countTick();
     if (window_.hasExpired(kSummaryIntervalMs)) {
         // Logged on the tick, so a window is only ever reported while the refresh is actually running.
@@ -437,7 +480,8 @@ void GlassBackdrop::refreshNext()
         glassStats().countBusySkip();
         return;
     }
-    auto const onDesktop = QGuiApplication::platformName() == QLatin1String("windows");
+    // Standard is the GDI tier: it neither asks a screen to duplicate nor reads faster for one that does.
+    auto const duplicates = QGuiApplication::platformName() == QLatin1String("windows") and glassQualityDuplicates(quality_);
     // The GDI budget is shared by every screen that has no duplication: a fast tick for another screen must not turn a
     // GDI read into a sixty-a-second one.
     auto const gdiDue = not gdiPace_.isValid() or gdiPace_.elapsed() >= kLiveIntervalMs;
@@ -448,7 +492,7 @@ void GlassBackdrop::refreshNext()
         // picture will be, and reading the old region again would only land after it.
         auto const candidate = sheet->live_ and not sheet->reading();
         auto       fast      = false;
-        if (candidate and onDesktop) {
+        if (candidate and duplicates) {
             if (auto* const screen = QGuiApplication::screenAt(sheet->sheet_.center()); screen != nullptr)
                 fast = duplicationFor(*screen)->usable();
         }
@@ -465,7 +509,7 @@ void GlassBackdrop::refreshNext()
     // Only a live sheet is served from a duplicated frame. A sheet just taken, or a drag's deferred retake, still reads
     // through GDI: that path is on the GUI thread or already timed, and its one read is what puts the first picture up.
     GlassDuplication* duplication = nullptr;
-    if (onDesktop) {
+    if (duplicates) {
         if (auto* const screen = QGuiApplication::screenAt(sheet->sheet_.center()); screen != nullptr) {
             auto* const session = duplicationFor(*screen);
             if (session->usable()) duplication = session;
@@ -488,11 +532,15 @@ void GlassBackdrop::refreshNext()
                 if (taken.usedGdi) gdiPace_.restart();
                 // Retaken or dropped while this read ran: the picture is of a region that is no longer held.
                 auto* const target = sheets_[index];
-                if (generation == target->generation_ and not taken.noFrame) {
-                    if (taken.picture.isNull())
-                        target->clear();
-                    else
-                        target->publish(request.region, request.screen, std::move(taken.picture), taken.tone, false);
+                if (generation == target->generation_) {
+                    if (request.duplication != nullptr)
+                        target->noteDuplicationRefused(not request.duplication->usable());
+                    if (not taken.noFrame) {
+                        if (taken.picture.isNull())
+                            target->clear();
+                        else
+                            target->publish(request.region, request.screen, std::move(taken.picture), taken.tone, false, request.duplication != nullptr and not taken.usedGdi);
+                    }
                 }
                 // A session that failed on this read (another recorder took the output, a display mode changed) must
                 // drop the pace back to the GDI budget before the next tick.
@@ -504,13 +552,19 @@ void GlassBackdrop::refreshNext()
 
 void GlassBackdrop::updateLive()
 {
-    auto const onDesktop = QGuiApplication::platformName() == QLatin1String("windows");
-    auto       anyLive   = false;
-    auto       anyFast   = false;
+    // Eco keeps the picture on screen and lets the desktop under it go stale: the one tier that does no live work.
+    if (not glassQualityRefreshes(quality_)) {
+        live_.stop();
+        return;
+    }
+    auto const onDesktop  = QGuiApplication::platformName() == QLatin1String("windows");
+    auto const duplicates = onDesktop and glassQualityDuplicates(quality_);
+    auto       anyLive    = false;
+    auto       anyFast    = false;
     for (auto* const sheet : sheets_) {
         if (not sheet->live_) continue;
         anyLive = true;
-        if (anyFast or not onDesktop) continue;
+        if (anyFast or not duplicates) continue;
         if (auto* const screen = QGuiApplication::screenAt(sheet->sheet_.center()); screen != nullptr)
             anyFast = duplicationFor(*screen)->usable();
     }

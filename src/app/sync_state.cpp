@@ -53,6 +53,7 @@ const std::vector<std::string>& syncedKeys()
         "liquidBlur",
         "liquidRim",
         "liquidTextColor",
+        "glassQuality",
     };
     return keys;
 }

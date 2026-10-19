@@ -98,6 +98,7 @@ AppController::AppController(core::KnownStore&            store,
       cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), sync_(storage_, dataDir, this), reviewDuty_(storage_, [this] { return pet_ != nullptr and pet_->enabled(); }, [this] { return pet_ != nullptr and pet_->idle(); }, this), llm_(llm), hotkey_(hotkey), previewSample_(loadPreviewSample(dataDir / "preview.json"))
 {
     budgetPaused_ = cost_.budgetStatus().exhausted;
+    glass_.setQuality(glassQualityFrom(storage_.section().value<int>("glassQuality", defaults::kGlassQuality)));
     // A change to the statistics or the settings is what a sync carries, so either one schedules
     // a sync. Marks reach here as statsChanged too, since ExplanationDuty forwards it.
     connect(this, &AppController::statsChanged, &sync_, &SyncDuty::scheduleSync);
@@ -268,6 +269,7 @@ void AppController::restoreDefaults()
     setLiquidBlur(defaults::kLiquidBlurDefault);
     setLiquidRim(defaults::kLiquidRimDefault);
     setLiquidTextColor(QString::fromStdString(std::string{defaults::kLiquidTextColor}));
+    setGlassQuality(defaults::kGlassQuality);
     setReviewFrequency(static_cast<int>(defaults::kReviewFrequency));
     if (not catalog_.setProvider(defaults::defaultProviderName()))
         LENS_WARN("the catalog has no usable default provider; the model service was left alone");
@@ -517,6 +519,14 @@ void AppController::setLiquidTextColor(QString color)
     emit settingsChanged();
 }
 
+void AppController::setGlassQuality(int quality)
+{
+    auto const chosen = glassQualityFrom(quality);
+    storage_.section().set<int>("glassQuality", static_cast<int>(chosen));
+    glass_.setQuality(chosen);
+    emit settingsChanged();
+}
+
 void AppController::setAnimationsEnabled(bool on)
 {
     storage_.section().set<bool>("animationsEnabled", on);
@@ -665,6 +675,7 @@ QVariantMap AppController::settings()
                          {"liquidBlur", clampGlass(kLiquidBlur, keys.value<int>("liquidBlur", kLiquidBlur.fallback))},
                          {"liquidRim", clampGlass(kLiquidRim, keys.value<int>("liquidRim", kLiquidRim.fallback))},
                          {"liquidTextColor", QString::fromStdString(keys.value<std::string>("liquidTextColor", std::string{kLiquidTextColorFallback}))},
+                         {"glassQuality", static_cast<int>(glassQualityFrom(keys.value<int>("glassQuality", defaults::kGlassQuality)))},
                          {"animationsEnabled", keys.value<bool>("animationsEnabled", defaults::kAnimationsEnabled)},
                          {"revealSpeed", revealSpeed},
                          {"revealCharacterMs", revealMillisPerCharacter(revealSpeed)},

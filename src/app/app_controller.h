@@ -150,6 +150,11 @@ public:
     Q_INVOKABLE void setLiquidRim(int percent);
     /// @brief Store the liquid glass's text colour as #rrggbb; anything else leaves the stored colour alone.
     Q_INVOKABLE void setLiquidTextColor(QString color);
+    /**
+     * @brief Store the backdrop's quality tier, clamped to Auto, Eco, Standard and Smooth, and apply it at once.
+     * @param quality The tier's number, as the settings page's options carry it (glass_settings.h).
+     */
+    Q_INVOKABLE void setGlassQuality(int quality);
     Q_INVOKABLE void setAnimationsEnabled(bool on);
     /// @brief Store the typing pace, as the speed level reveal_settings.h clamps.
     Q_INVOKABLE void setRevealSpeed(int speed);

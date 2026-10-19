@@ -289,6 +289,9 @@ nlohmann::json DevSurface::setSetting(core::dev::Command const& command)
         case core::dev::SettingKey::AnimationsEnabled:
             controller_->setAnimationsEnabled(std::get<bool>(value));
             break;
+        case core::dev::SettingKey::GlassQuality:
+            controller_->setGlassQuality(std::get<int>(value));
+            break;
     }
     return success();
 }

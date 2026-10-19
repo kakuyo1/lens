@@ -139,6 +139,8 @@ constexpr std::array<WholeSetting, 3> kWholeSettings{{
 }};
 
 constexpr std::array<std::string_view, 4> kThemeNames{"light", "dark", "frosted", "liquid"};
+/// The quality tiers in the order GlassQuality numbers them (src/app/glass_settings.h).
+constexpr std::array<std::string_view, 4> kGlassQualityNames{"auto", "eco", "standard", "smooth"};
 
 /// `setting set <name> <value>`: the name must be on the whitelist, and the value must be one that setting takes.
 Parse parseSetting(std::string_view name, std::string_view value)
@@ -152,6 +154,12 @@ Parse parseSetting(std::string_view name, std::string_view value)
         if (value != "on" and value != "off")
             return refuse("animationsEnabled takes on or off");
         return accept({.verb = Verb::SettingSet, .settingKey = SettingKey::AnimationsEnabled, .settingValue = value == "on"});
+    }
+    if (name == "glassQuality") {
+        auto const tier = std::ranges::find(kGlassQualityNames, value);
+        if (tier == kGlassQualityNames.end())
+            return refuse("glassQuality takes auto, eco, standard or smooth");
+        return accept({.verb = Verb::SettingSet, .settingKey = SettingKey::GlassQuality, .settingValue = static_cast<int>(tier - kGlassQualityNames.begin())});
     }
     auto const whole = std::ranges::find(kWholeSettings, name, &WholeSetting::name);
     if (whole == kWholeSettings.end())

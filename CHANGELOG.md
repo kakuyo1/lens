@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Glass themes gain a Background refresh setting under General: Automatic (the default), Battery saver,
+  Standard and Smooth. Automatic and Smooth follow a screen that can be duplicated up to about 60 times
+  a second; Battery saver keeps the picture still and retakes it when the card appears or moves, and
+  Standard stays on the CPU read at about 15 times a second. When the current screen cannot be
+  duplicated, the row says the backdrop is reading at the standard rate (docs/adr/0073).
+
+### Changed
+
+- A glass backdrop on a screen that can be duplicated now follows that screen's changes instead of the
+  fixed 15-a-second loop, and a still backdrop copies nothing. Screens that refuse duplication keep the
+  old CPU read; on the hybrid laptop here that is the internal panel (docs/adr/0072).
+
 ## 1.6.5 - 2026-10-18
 
 The bubble's text size is a setting of its own, word review can check every 5 to 15 minutes, and

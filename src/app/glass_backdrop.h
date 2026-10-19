@@ -17,6 +17,7 @@
  */
 
 #include "glass_math.h"
+#include "glass_settings.h"
 
 #include <QElapsedTimer>
 #include <QImage>
@@ -58,10 +59,17 @@ class GlassSheet : public QObject {
     Q_PROPERTY(int serial READ serial NOTIFY pictureChanged)
     /// The rectangle of the desktop the picture covers, in device-independent pixels. Empty when none is held.
     Q_PROPERTY(QRect sheet READ sheet NOTIFY pictureChanged)
-    /// Whether the picture is being refreshed: up to sixty times a second from a duplicated output, about fifteen from
-    /// GDI. A card that draws no backdrop turns it off and keeps the sheet for the text tone alone (docs/adr/0069), so
-    /// QML can read which of the two it is in.
+    /// Whether the card wants the sheet refreshed: up to sixty times a second from a duplicated output, about fifteen
+    /// from GDI. A card that draws no backdrop turns it off and keeps the sheet for the text tone alone (docs/adr/0069).
+    /// The Eco tier keeps the refresh timer off even while this is true (docs/adr/0073), so the setting page reads the
+    /// tier, not this property, to say what is happening.
     Q_PROPERTY(bool live READ live NOTIFY liveChanged)
+    /// Whether the picture in force came from a duplicated output. The settings page reads this to say what the
+    /// Smooth and Auto tiers are doing on the screen the panel is on (docs/adr/0073).
+    Q_PROPERTY(bool duplicated READ duplicated NOTIFY captureChanged)
+    /// Whether duplication was tried for this sheet and the screen refused or lost it. The settings page's note says so
+    /// in words, without an error code.
+    Q_PROPERTY(bool duplicationRefused READ duplicationRefused NOTIFY captureChanged)
 
 public:
     GlassSheet(QString name, GlassBackdrop* owner);
@@ -73,8 +81,13 @@ public:
     /// @return How many pictures publish() has put in force. Counted apart from serial(), which also moves when the
     ///         picture is dropped.
     int publishes() const;
-    /// @return Whether the sheet is refreshing. Read on the GUI thread only, like setLive().
+    /// @return Whether the card wants the sheet refreshed; the Eco tier may keep the timer off regardless. Read on the
+    ///         GUI thread only, like setLive().
     bool live() const;
+    /// @return Whether the picture in force came from a duplicated frame. GUI thread only.
+    bool duplicated() const;
+    /// @return Whether a duplication attempt for this sheet failed. GUI thread only.
+    bool duplicationRefused() const;
 
     /// @brief Make sure the picture covers @p window, taking a new sheet only when the window has come near its edge.
     /// @param window The window the glass is drawn in, in device-independent coordinates.
@@ -110,6 +123,8 @@ signals:
     void pictureChanged();
     /// @brief The sheet started or stopped refreshing, so the backdrop starts or stops its timer.
     void liveChanged();
+    /// @brief The picture's source or the duplication refusal changed, for the settings page's note.
+    void captureChanged();
 
 private:
     friend class GlassBackdrop;
@@ -127,7 +142,10 @@ private:
     /// @param read The backdrop's two 10th-percentile contrasts.
     /// @param fresh True for a sheet just taken, which its read decides outright; false for a live refresh of a settled
     ///        sheet, whose tone gives way only to a decisive read that repeats (settleTone).
-    void publish(QRect region, QRect screen, QImage picture, ToneRead const& read, bool fresh);
+    /// @param duplicated Whether the picture came from a duplicated frame rather than GDI.
+    void publish(QRect region, QRect screen, QImage picture, ToneRead const& read, bool fresh, bool duplicated = false);
+    /// @brief Record whether the last duplication attempt was refused, and tell QML if that changed.
+    void noteDuplicationRefused(bool refused);
 
     QString        name_;
     mutable QMutex mutex_;
@@ -155,6 +173,9 @@ private:
     int pending_ = 0;
     /// Set while setLive() is on. Only the GUI thread reads or writes it.
     bool live_ = false;
+    /// Whether the picture in force came from duplication, and whether duplication was refused for this sheet.
+    bool duplicated_         = false;
+    bool duplicationRefused_ = false;
     /// The backdrop that owns this sheet, and the pool a deferred read runs on.
     GlassBackdrop* owner_ = nullptr;
 };
@@ -180,6 +201,16 @@ public:
     /// @brief The sheet of the named glass surface, or nothing when no surface has that name.
     /// @param name One of the surface names: "settings", "tray", "stats", and so on.
     Q_INVOKABLE GlassSheet* surface(QString const& name) const;
+    /**
+     * @brief Set the reader's quality tier: what the live refresh may read, and how quickly (docs/adr/0073).
+     * @param quality The tier; Auto and Smooth may duplicate, Standard is GDI, Eco stops the live refresh.
+     * @note Takes effect at once: a tier that stopped the refresh restarts it, and one that stopped it leaves the
+     *       picture on screen as it was.
+     */
+    void setQuality(GlassQuality quality);
+
+    /// @return The tier in force.
+    GlassQuality quality() const;
 
 private:
     friend class GlassSheet;
@@ -212,6 +243,8 @@ private:
     /// The GDI reads' shared clock: a screen without duplication is read at most once per old refresh period, however
     /// fast the timer runs for another screen's duplicated frames.
     QElapsedTimer gdiPace_;
+    /// The reader's tier; only the GUI thread reads or writes it.
+    GlassQuality quality_ = GlassQuality::Auto;
     /// How long the current summary window has been open. The tally is logged and restarted when it expires, on the
     /// tick rather than on its own timer: a tick is what proves the refresh is actually running.
     QElapsedTimer window_;

@@ -37,6 +37,59 @@ inline constexpr GlassRange kLiquidRim{0, 100, 10};
 inline constexpr std::string_view kLiquidTextColorFallback = "#101319";
 
 /**
+ * @brief How the live backdrop is kept fresh, as the reader chooses it (docs/adr/0073).
+ *
+ * The ladder is about the source and the pace of the desktop read, not an on/off GPU switch: Qt 6 has no CPU-only UI
+ * backend, and whether a screen can be duplicated is a per-output fact (docs/adr/0072). Eco keeps the picture still;
+ * Standard reads it with GDI about fifteen times a second; Auto and Smooth use duplication where the screen offers it.
+ */
+enum class GlassQuality : int {
+    Auto     = 0, ///< Duplication where it works, GDI otherwise: the default.
+    Eco      = 1, ///< No live refresh; the sheet is retaken when the card appears or moves.
+    Standard = 2, ///< GDI, about fifteen reads a second.
+    Smooth   = 3, ///< Duplication where it works, up to the sixty-a-second poll; GDI otherwise.
+};
+
+/// The highest stored value; values outside 0..3 clamp to the nearest tier.
+inline constexpr int kGlassQualityHigh = static_cast<int>(GlassQuality::Smooth);
+/// The tier a document that names none, and restore-defaults, uses.
+inline constexpr int kGlassQualityDefault = static_cast<int>(GlassQuality::Auto);
+
+/**
+ * @brief Read a stored quality as one of the four tiers.
+ * @param value The document's number: a hand edit can write anything.
+ * @return The nearest of Auto, Eco, Standard and Smooth.
+ */
+inline GlassQuality glassQualityFrom(int value)
+{
+    return static_cast<GlassQuality>(std::clamp(value, 0, kGlassQualityHigh));
+}
+
+/// @return Whether this tier keeps the backdrop live at all. Eco does not.
+inline bool glassQualityRefreshes(GlassQuality quality)
+{
+    return quality != GlassQuality::Eco;
+}
+
+/// @return Whether this tier may use a screen's duplication. Standard is the GDI tier.
+inline bool glassQualityDuplicates(GlassQuality quality)
+{
+    return quality == GlassQuality::Auto or quality == GlassQuality::Smooth;
+}
+
+/// @return The tier's name, as the developer command and the log spell it.
+inline std::string_view glassQualityName(GlassQuality quality)
+{
+    switch (quality) {
+        case GlassQuality::Eco: return "eco";
+        case GlassQuality::Standard: return "standard";
+        case GlassQuality::Smooth: return "smooth";
+        case GlassQuality::Auto: break;
+    }
+    return "auto";
+}
+
+/**
  * @brief Bring a glass parameter into the range the page offers.
  * @param range The parameter's range.
  * @param value The value the reader picked, or the one the document holds.

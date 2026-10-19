@@ -119,6 +119,8 @@ TEST_F(LlmTest, RestoreDefaultsMatchesAFreshInstallAndLeavesOwnedStateAlone)
     a.setLiquidBlur(90);
     a.setLiquidRim(2);
     a.setLiquidTextColor(QStringLiteral("#ffffff"));
+    a.setGlassQuality(static_cast<int>(app::GlassQuality::Smooth));
+    ASSERT_EQ(a.glassBackdrop()->quality(), app::GlassQuality::Smooth);
     a.setReviewFrequency(static_cast<int>(core::ReviewFrequency::Every1To2Hours));
     ASSERT_TRUE(a.captureDuty()->setScanWhitelist(QStringLiteral("notepad.exe")));
     a.captureDuty()->setAutoScan(true);
@@ -136,6 +138,7 @@ TEST_F(LlmTest, RestoreDefaultsMatchesAFreshInstallAndLeavesOwnedStateAlone)
         map.remove(QStringLiteral("ocrStatus"));
         return map;
     };
+    EXPECT_EQ(a.glassBackdrop()->quality(), app::GlassQuality::Auto);
     const auto restored = projection(a.settings());
     const auto fresh    = projection(b.settings());
     EXPECT_EQ(restored.keys(), fresh.keys());
@@ -151,4 +154,17 @@ TEST_F(LlmTest, RestoreDefaultsMatchesAFreshInstallAndLeavesOwnedStateAlone)
     EXPECT_EQ(a.settings().value("uiLanguage").toString(), QStringLiteral("ja"));
     EXPECT_TRUE(a.settings().value("hasApiKey").toBool());
     EXPECT_DOUBLE_EQ(a.settings().value("dailyBudget").toDouble(), 1.25);
+}
+
+TEST(GlassQuality, StoredValuesClampToTheFourTiers)
+{
+    // A hand-edited document can hold anything; the four tiers are the only values the refresh understands.
+    EXPECT_EQ(app::glassQualityFrom(-3), app::GlassQuality::Auto);
+    EXPECT_EQ(app::glassQualityFrom(0), app::GlassQuality::Auto);
+    EXPECT_EQ(app::glassQualityFrom(3), app::GlassQuality::Smooth);
+    EXPECT_EQ(app::glassQualityFrom(9), app::GlassQuality::Smooth);
+    EXPECT_TRUE(app::glassQualityDuplicates(app::GlassQuality::Auto));
+    EXPECT_FALSE(app::glassQualityDuplicates(app::GlassQuality::Standard));
+    EXPECT_FALSE(app::glassQualityRefreshes(app::GlassQuality::Eco));
+    EXPECT_TRUE(app::glassQualityRefreshes(app::GlassQuality::Standard));
 }

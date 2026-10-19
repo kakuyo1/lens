@@ -53,6 +53,7 @@ inline constexpr int                   kLiquidRefractionDefault  = kLiquidRefrac
 inline constexpr int                   kLiquidBlurDefault        = kLiquidBlur.fallback;
 inline constexpr int                   kLiquidRimDefault         = kLiquidRim.fallback;
 inline constexpr std::string_view      kLiquidTextColor          = kLiquidTextColorFallback;
+inline constexpr int                   kGlassQuality             = ::lens::app::kGlassQualityDefault;
 
 /// @return The provider a document that names none asks, from the shared catalogue.
 inline QString defaultProviderName()
