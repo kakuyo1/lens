@@ -39,7 +39,7 @@ test/
 | 目标 | 内容 | 何时跑 |
 | --- | --- | --- |
 | `lens_gtest_unit` | 样例集 / KnownStore 与 StatsStore 往返 / LLM 纯函数 / 词汇导入导出与日期标签 / app 接缝的纯部分 / 选区手势阈值 / 桌面宠物的状态机、数据解析与配饰 | 每次改动，可进 CI |
-| `lens_gtest_integration` | 选区捕获：终端排除 / 钩子与剪贴板的真机往返；玻璃幕布：读屏的紧循环与按节奏对照 | 动选区入口或玻璃采集时，人工执行 |
+| `lens_gtest_integration` | 选区捕获：终端排除 / 钩子与剪贴板的真机往返；玻璃幕布：读屏的紧循环与按节奏对照 / 桌面复制的裁剪与旋转 | 动选区入口或玻璃采集时，人工执行 |
 | `lens_gtest_perf` | FilterCore 吞吐 + profiling 报告 | 动内核时 |
 | `lens_gtest_glass_probe` | 玻璃幕布的采集上限：适配器与输出归属 / 桌面复制可用性与一帧的代价 / GDI 读屏对照 / 抓屏排除在复制帧里是否生效 | 动玻璃采集或画质档位时，人工执行（CI 没有可复制的桌面会话） |
 | `lens_gtest_smoke` | 1 词真模型往返，一次进程最多 3 次真实调用 | 动 LLM 链路时，人工执行 |
@@ -68,7 +68,7 @@ PATH="$QT_ROOT/bin:$PATH" QT_QPA_PLATFORM=offscreen QT_FORCE_STDERR_LOGGING=1 \
 - 上表七个目标全部带 `EXCLUDE_FROM_ALL`：默认构建只有主程序 `lens`，测试按名构建，如
   `scripts/build/build.bat --target lens_gtest_unit`。它们在改动 QML 或 `lens_app` / `lens_llm`
   的接口时才会失效，跟着每次改 `src/` 重编没有意义。CI 的构建步骤本来就把要跑的目标逐个列出。
-- 选区捕获：`lens_gtest_integration` 的 13 例（该目标另有 2 例读屏测量，见下面两条），默认 12 例绿、1 例 skip——跳过的那条要人手拖鼠标。
+- 选区捕获：`lens_gtest_integration` 的 13 例（该目标另有 2 例读屏测量与 1 例复制裁剪，见下面两条），默认 12 例绿、2 例 skip——一条要人手拖鼠标，一条要 `LENS_GLASS_DUP_TEST=1`。
   `SelectionGrab.DeclinesWhenTheForegroundWindowIsOurs` 取不到前台时也跳过，故偶尔是 11 绿 2 skip，两种都不是红。
   `LENS_HOOK_SMOKE=1` 放开它，`LENS_HOOK_SMOKE_TEXT` 指定要拖选的词（缺省 `ubiquitous`）。它先往剪贴板放一个哨兵串，再等人在**别的窗口**里拖选那个词，然后断言三件事：取到的文本相符、返回状态是
   `Captured`、哨兵串还在剪贴板上。剪贴板存还原本身另有 `ClipboardSnapshot.*` 三例自动覆盖，不依赖这一条——把它交给人工的那段时间里，它正是坏的。那三例直接操真实的剪贴板，而剪贴板是全机共享的：约 35 次运行里见过 3 次失败，都在别的进程刚写过剪贴板之后，按需复现不了，加重试也没挡住。所以那里单次失败先重跑一次再当信号看，成因仍未知，如实记着。提权窗口（任务管理器、管理员控制台）会被 UIPI 挡下注入，表现为超时而不是报错，别拿它试；终端类进程按名字排除，是故意的。
@@ -79,6 +79,9 @@ PATH="$QT_ROOT/bin:$PATH" QT_QPA_PLATFORM=offscreen QT_FORCE_STDERR_LOGGING=1 \
 - 读屏的节奏与面积：`GlassReadPace.PacedAgainstTight` 与 `GlassReadPace.AreaSetsThePrice`，在 `lens_gtest_integration`
   里，读真实屏幕但不建窗口，共约 90 秒，只打印不判时间。它们回答的是 “探针量到的读屏价能不能代表应用付的价”
   与 “读价随节奏还是随面积”（`src/app/glass_desktop.h` 的抽取理由），数字同上那份报告 3.5 与 3.6。
+- 复制裁剪与旋转：`GlassDuplication.CropFollowsTheRotatedScreen`，也在 `lens_gtest_integration` 里，默认跳过；
+  `LENS_GLASS_DUP_TEST=1` 才跑。它在每块屏上显示一个四色窗口约一秒，验证复制帧的裁剪与旋转，并与 GDI 同区域逐点比较；
+  本机结果见报告 3.9。它需要交互桌面会话，CI 不跑。
 - 不接 ctest：`gtest_discover_tests` 会在构建期执行测试程序，等于要求构建环境也把 Qt DLL 摆在
   `PATH` 上，不值得这层耦合。QTest 侧同理，同样不接。
 - QTest 的用例是 `.qml`，从源码树直接读，不进任何模块的 `QML_FILES`，所以 qmllint 不看它们，那

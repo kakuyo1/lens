@@ -8,10 +8,12 @@
  * Each glass surface (the settings window, the tray menu, a panel, a bubble) has its own GlassSheet: the desktop taken
  * as a sheet a little larger than its window, so a drag moves the card over the same picture instead of taking a new
  * one (docs/adr/0039). The sheets share one reader: one worker thread and one refresh timer, so however many surfaces
- * are live, the desktop is read about fifteen times a second in all (docs/adr/0041). The pictures are kept in memory
- * only: never written to disk, never logged, and dropped when the glass themes are off (docs/adr/0034, docs/adr/0035).
- * QML receives each sheet through GlassSheetItem, one live texture replaced in place, and the liquid theme's displacement
- * map through `image://glass/<surface>/map` (docs/adr/0071).
+ * are live, a GDI screen is read about fifteen times a second in all (docs/adr/0041). A screen whose output duplicates
+ * (docs/adr/0072) is read from the duplicated frame instead, up to sixty times a second, and only when the desktop
+ * behind the card has actually changed. The pictures are kept in memory only: never written to disk, never logged, and
+ * dropped when the glass themes are off (docs/adr/0034, docs/adr/0035). QML receives each sheet through GlassSheetItem,
+ * one live texture replaced in place, and the liquid theme's displacement map through
+ * `image://glass/<surface>/map` (docs/adr/0071).
  */
 
 #include "glass_math.h"
@@ -26,11 +28,15 @@
 #include <QTimer>
 #include <QtQml/qqmlregistration.h>
 
+#include <memory>
 #include <vector>
+
+class QScreen;
 
 namespace lens::app {
 
 class GlassBackdrop;
+class GlassDuplication;
 
 /**
  * @brief The desktop under one glass surface's window, and the text tone the card's text takes over it.
@@ -52,8 +58,9 @@ class GlassSheet : public QObject {
     Q_PROPERTY(int serial READ serial NOTIFY pictureChanged)
     /// The rectangle of the desktop the picture covers, in device-independent pixels. Empty when none is held.
     Q_PROPERTY(QRect sheet READ sheet NOTIFY pictureChanged)
-    /// Whether the picture is being refreshed about fifteen times a second. A card that draws no backdrop turns it off
-    /// and keeps the sheet for the text tone alone (docs/adr/0069), so QML can read which of the two it is in.
+    /// Whether the picture is being refreshed: up to sixty times a second from a duplicated output, about fifteen from
+    /// GDI. A card that draws no backdrop turns it off and keeps the sheet for the text tone alone (docs/adr/0069), so
+    /// QML can read which of the two it is in.
     Q_PROPERTY(bool live READ live NOTIFY liveChanged)
 
 public:
@@ -91,8 +98,7 @@ public:
     /// @return True when the window is now excluded. False off Windows, before the window has a native handle, or when
     ///         the OS refuses; the caller then hides the card for each capture as before.
     Q_INVOKABLE bool keepOutOfCapture(QObject* window, bool excluded);
-    /// @brief Refresh the sheet about fifteen times a second between all live sheets, so video behind the window shows
-    ///        through the glass.
+    /// @brief Refresh the sheet while it is live, so video behind the window shows through the glass.
     /// @param on True to start refreshing; false to stop.
     /// @note Meant for a window kept out of captures: a refresh of a window that is not would photograph the card.
     Q_INVOKABLE void setLive(bool on);
@@ -119,8 +125,8 @@ private:
     void capture(QRect region, QRect window, double fillAlpha);
     /// @brief Hold a new sheet and the tone its read settles on, and announce it to QML.
     /// @param read The backdrop's two 10th-percentile contrasts.
-    /// @param fresh True for a sheet just taken, which its read decides outright; false for the ~15/s refresh
-    ///        of a settled sheet, whose tone gives way only to a decisive read that repeats (settleTone).
+    /// @param fresh True for a sheet just taken, which its read decides outright; false for a live refresh of a settled
+    ///        sheet, whose tone gives way only to a decisive read that repeats (settleTone).
     void publish(QRect region, QRect screen, QImage picture, ToneRead const& read, bool fresh);
 
     QString        name_;
@@ -158,7 +164,9 @@ private:
  *
  * The surfaces are a fixed set, so the sheets are created once and the image provider can look them up from its own
  * threads without a lock. One refresh runs at a time: each tick reads the next live sheet in turn (nextLive), so the
- * cost is fixed however many surfaces show glass.
+ * cost is fixed however many surfaces show glass. A screen with a working duplication session is served from its frames
+ * and sets the tick to the fast pace; the GDI screens keep the old fifteen-a-second budget, shared between them, so a
+ * duplicated screen never makes a GDI read pay for a frame it cannot use.
  */
 class GlassBackdrop : public QObject {
     Q_OBJECT
@@ -177,10 +185,12 @@ private:
     friend class GlassSheet;
 
     /// @brief Start the next refresh on the pool, for the next live sheet in turn. A tick that finds one still running
-    ///        is skipped.
+    ///        is skipped; a GDI sheet is only due again once the shared fifteen-a-second budget has elapsed.
     void refreshNext();
-    /// @brief Run the timer while any sheet is live, and stop it when none is.
+    /// @brief Run the timer while any sheet is live, stop it when none is, and set the pace its reads allow.
     void updateLive();
+    /// @brief The session for @p screen, opened lazily and reused. GUI thread only.
+    GlassDuplication* duplicationFor(QScreen const& screen);
 
     /// Every sheet, in the order the surfaces are listed. The sheets are children of this object.
     std::vector<GlassSheet*> sheets_;
@@ -192,6 +202,16 @@ private:
     QTimer live_;
     /// Runs the desktop reads off the GUI thread. One thread: a read is a few milliseconds and two would only contend.
     QThreadPool pool_;
+    /// One duplication session per screen that has needed one, opened on the worker's first read and reused after. The
+    /// rectangle is the key: two monitors of the same model report the same name, and their screens do not overlap.
+    struct Session {
+        QRect                             desktop;
+        std::unique_ptr<GlassDuplication> open;
+    };
+    std::vector<Session> duplications_;
+    /// The GDI reads' shared clock: a screen without duplication is read at most once per old refresh period, however
+    /// fast the timer runs for another screen's duplicated frames.
+    QElapsedTimer gdiPace_;
     /// How long the current summary window has been open. The tally is logged and restarted when it expires, on the
     /// tick rather than on its own timer: a tick is what proves the refresh is actually running.
     QElapsedTimer window_;

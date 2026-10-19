@@ -66,6 +66,13 @@ void GlassStats::addRead(double const ms)
     ++reads_;
 }
 
+void GlassStats::addFrame(double const ms)
+{
+    QMutexLocker const lock(&mutex_);
+    frame_.add(ms);
+    ++frames_;
+}
+
 void GlassStats::addRequest(double const ms)
 {
     QMutexLocker const lock(&mutex_);
@@ -97,6 +104,12 @@ void GlassStats::countIdenticalSkip()
     ++identicalSkips_;
 }
 
+void GlassStats::countFrameSkip()
+{
+    QMutexLocker const lock(&mutex_);
+    ++frameSkips_;
+}
+
 void GlassStats::appendStage(char const* const label, Samples const& samples, QString& out) const
 {
     if (samples.total == 0) {
@@ -113,10 +126,13 @@ void GlassStats::appendStage(char const* const label, Samples const& samples, QS
 void GlassStats::clearWindow()
 {
     read_.clear();
+    frame_.clear();
     request_.clear();
     ticks_          = 0;
     busySkips_      = 0;
     reads_          = 0;
+    frames_         = 0;
+    frameSkips_     = 0;
     publishes_      = 0;
     identicalSkips_ = 0;
     requests_       = 0;
@@ -125,37 +141,47 @@ void GlassStats::clearWindow()
 QString GlassStats::takeSummaryLine(int const windowSeconds)
 {
     auto read           = Samples{};
+    auto frame          = Samples{};
     auto request        = Samples{};
     auto tickCount      = long{};
     auto busySkipCount  = long{};
     auto readCount      = long{};
+    auto frameCount     = long{};
+    auto frameSkipCount = long{};
     auto publishCount   = long{};
     auto identicalCount = long{};
     auto requestCount   = long{};
     {
         QMutexLocker const lock(&mutex_);
         // Anything at all counts as activity. A sheet taken on the GUI thread never ticks, so the reads alone are a
-        // window worth reporting: that is the one path where a desktop read happens with no tick behind it.
-        if (ticks_ + requests_ + static_cast<long>(read_.total) + static_cast<long>(request_.total) == 0) return {};
+        // window worth reporting: that is the one path where a desktop read happens with no tick behind it. A window
+        // that only polled a still duplicated output has the tick and the skipped frame to show for it.
+        if (ticks_ + requests_ + static_cast<long>(read_.total) + static_cast<long>(frame_.total) + static_cast<long>(request_.total) == 0) return {};
         read           = read_;
+        frame          = frame_;
         request        = request_;
         tickCount      = ticks_;
         busySkipCount  = busySkips_;
         readCount      = reads_;
+        frameCount     = frames_;
+        frameSkipCount = frameSkips_;
         publishCount   = publishes_;
         identicalCount = identicalSkips_;
         requestCount   = requests_;
         clearWindow();
     }
-    auto out = QStringLiteral("glass %1s: ticks %2 busySkips %3 reads %4 publishes %5 sameSkips %6 requests %7")
+    auto out = QStringLiteral("glass %1s: ticks %2 busySkips %3 reads %4 frames %5 noFrame %6 publishes %7 sameSkips %8 requests %9")
                    .arg(windowSeconds)
                    .arg(tickCount)
                    .arg(busySkipCount)
                    .arg(readCount)
+                   .arg(frameCount)
+                   .arg(frameSkipCount)
                    .arg(publishCount)
                    .arg(identicalCount)
                    .arg(requestCount);
     appendStage("desktop read", read, out);
+    appendStage("frame copy", frame, out);
     appendStage("image request", request, out);
     return out;
 }

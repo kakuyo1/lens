@@ -40,7 +40,23 @@ TEST(GlassStats, ReportsMedianPercentileAndWorst)
     auto const line = stats.takeSummaryLine(10);
     // Ten samples: no single middle, so the median is the pair's mean, and the 95th percentile of ten is the last.
     EXPECT_TRUE(hasStage(line, "desktop read", QStringLiteral("5.5"), QStringLiteral("10.0"), QStringLiteral("10.0")));
+    EXPECT_TRUE(line.contains(QStringLiteral("frame copy ms: no sample")));
     EXPECT_TRUE(line.contains(QStringLiteral("image request ms: no sample")));
+}
+
+TEST(GlassStats, ReportsTheDuplicatedFrameStage)
+{
+    auto stats = GlassStats();
+    stats.countTick();
+    stats.addFrame(0.8);
+    stats.addFrame(1.2);
+    stats.countFrameSkip();
+    auto const line = stats.takeSummaryLine(10);
+    // Two samples: the median is their mean, and the 95th percentile of two is the larger.
+    EXPECT_TRUE(hasStage(line, "frame copy", QStringLiteral("1.0"), QStringLiteral("1.2"), QStringLiteral("1.2")));
+    EXPECT_TRUE(line.contains(QStringLiteral("frames 2 noFrame 1")));
+    // The GDI stage was not used, and says so rather than reporting a zero.
+    EXPECT_TRUE(line.contains(QStringLiteral("desktop read ms: no sample")));
 }
 
 TEST(GlassStats, CountsTheRefreshBudget)
@@ -55,7 +71,7 @@ TEST(GlassStats, CountsTheRefreshBudget)
     stats.countIdenticalSkip();
     stats.addRequest(2.0);
     auto const line = stats.takeSummaryLine(7);
-    EXPECT_TRUE(line.contains(QStringLiteral("glass 7s: ticks 3 busySkips 1 reads 1 publishes 1 sameSkips 1 requests 1")));
+    EXPECT_TRUE(line.contains(QStringLiteral("glass 7s: ticks 3 busySkips 1 reads 1 frames 0 noFrame 0 publishes 1 sameSkips 1 requests 1")));
 }
 
 TEST(GlassStats, WindowClosesAndRestarts)

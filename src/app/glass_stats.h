@@ -40,10 +40,12 @@ public:
     /// stretch of time; the cap is only what stops the tally growing without bound.
     static constexpr std::size_t kKeep = 256;
 
-    /// @brief Record one desktop read of @p ms milliseconds, and count it.
+    /// @brief Record one GDI desktop read of @p ms milliseconds, and count it.
     /// @note Duration and count are one call on purpose: a read that was timed was a read that happened, and keeping
     ///       them apart lets a line report a median with no reads behind it.
     void addRead(double ms);
+    /// @brief Record one duplicated frame copied back to the CPU in @p ms milliseconds, and count it.
+    void addFrame(double ms);
     /// @brief Record one image-provider request of @p ms milliseconds: the copy out of the sheet, the blur, the map.
     void addRequest(double ms);
 
@@ -55,6 +57,8 @@ public:
     void countPublish();
     /// @brief Record a read whose fingerprint matched the picture in force, so nothing was published.
     void countIdenticalSkip();
+    /// @brief Record a duplicated-output poll that found no new frame: the desktop behind the card did not change.
+    void countFrameSkip();
 
     /// @return The line covering the window since the last call, and start a fresh window.
     /// @param windowSeconds How long the window was, as the caller counts it: it goes on the line.
@@ -85,10 +89,13 @@ private:
 
     mutable QMutex mutex_;
     Samples        read_;
+    Samples        frame_;
     Samples        request_;
     long           ticks_          = 0;
     long           busySkips_      = 0;
     long           reads_          = 0;
+    long           frames_         = 0;
+    long           frameSkips_     = 0;
     long           publishes_      = 0;
     long           identicalSkips_ = 0;
     long           requests_       = 0;

@@ -7,6 +7,7 @@
 
 #include "glass_capability.h"
 #include "glass_desktop.h"
+#include "glass_duplication.h"
 #include "glass_math.h"
 #include "glass_stats.h"
 #include "pet/pet_window_native.h"
@@ -69,9 +70,13 @@ constexpr int kSheetMargin = 112;
 /// How near the window may come to a side of the sheet that is not on the screen's edge before a new sheet is taken, in
 /// DIP. The old sheet serves while the new one processes, so this covers the distance a drag moves in that time.
 constexpr int kSheetReserve = 72;
-/// The refresh period while any sheet is live: about fifteen reads a second in all, however many sheets are live.
+/// The refresh period a GDI screen keeps: about fifteen reads a second in all, however many sheets are live. A screen
+/// that duplicates does not use this budget, but it no longer raises a GDI read's rate either (docs/adr/0072).
 // ponytail: fixed rate, no back-off when the machine is busy; add one when the reads show up in someone's frame times.
 constexpr int kLiveIntervalMs = 67;
+/// The tick a duplicated screen gets: about sixty polls a second. A poll that finds no new frame costs an acquire and
+/// nothing else, so a still desktop stays nearly free; the frame rate cannot exceed the desktop's own change rate.
+constexpr int kLiveFrameMs = 16;
 /// The sheet is read at the screen's own resolution. The blur runs on the GPU now (docs/adr/0070), and reading full costs
 /// only about 3.5 ms more than a quarter (docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md 3.5):
 /// the quarter existed to keep the CPU blur's input small, and with that gone it would only cost sharpness.
@@ -82,19 +87,22 @@ constexpr int kSummaryIntervalMs = 10000;
 
 /// What a sheet read needs, copied out of Qt's objects on the GUI thread so a refresh on the pool never touches them.
 struct Request {
-    QRect  region;            ///< The sheet, in device-independent pixels.
-    QRect  screen;            ///< The geometry of the screen the sheet lies on.
-    QRect  native;            ///< The sheet in device pixels, on the desktop.
-    QRect  window;            ///< The card the text tone is judged over.
-    double scale     = 1.0;   ///< Device pixels per device-independent pixel.
-    double fillAlpha = 0.0;   ///< The white the card sits under, 0 to 1.
-    bool   onDesktop = false; ///< Whether this platform is the real Windows desktop, the only one there is to read.
+    QRect             region;                ///< The sheet, in device-independent pixels.
+    QRect             screen;                ///< The geometry of the screen the sheet lies on.
+    QRect             native;                ///< The sheet in device pixels, on the desktop.
+    QRect             window;                ///< The card the text tone is judged over.
+    double            scale       = 1.0;     ///< Device pixels per device-independent pixel.
+    double            fillAlpha   = 0.0;     ///< The white the card sits under, 0 to 1.
+    bool              onDesktop   = false;   ///< Whether this platform is the real Windows desktop, the only one to read.
+    GlassDuplication* duplication = nullptr; ///< The screen's frame source, when a live sheet can use one.
 };
 
 /// A picture of the desktop and the text tone read over the card.
 struct Taken {
     QImage   picture;
     ToneRead tone;
+    bool     noFrame = false; ///< The duplicated output had no new frame: nothing changed, nothing to publish.
+    bool     usedGdi = false; ///< The read went to GDI, so the shared fifteen-a-second budget has been spent.
 };
 
 /// The first device pixel of @p screen on the desktop. Windows places the monitors in device pixels; where there is no
@@ -113,31 +121,57 @@ QPoint nativeOriginOf(QScreen const& screen)
 }
 
 /// The request for a sheet over @p region, or nothing when the region does not lie on one screen. GUI thread only.
-std::optional<Request> requestFor(QRect const region, QRect const window, double const fillAlpha)
+std::optional<Request> requestFor(QRect const region, QRect const window, double const fillAlpha, GlassDuplication* const duplication = nullptr)
 {
     auto* const screen = QGuiApplication::screenAt(region.center());
     if (screen == nullptr or region.isEmpty() or not screen->geometry().contains(region)) return std::nullopt;
-    auto const scale = screen->devicePixelRatio();
+    auto const scale     = screen->devicePixelRatio();
+    auto const onDesktop = QGuiApplication::platformName() == QLatin1String("windows");
     return Request{
-        .region    = region,
-        .screen    = screen->geometry(),
-        .native    = toNativeRect(region, screen->geometry(), nativeOriginOf(*screen), scale),
-        .window    = window,
-        .scale     = scale,
-        .fillAlpha = fillAlpha,
-        .onDesktop = QGuiApplication::platformName() == QLatin1String("windows"),
+        .region      = region,
+        .screen      = screen->geometry(),
+        .native      = toNativeRect(region, screen->geometry(), nativeOriginOf(*screen), scale),
+        .window      = window,
+        .scale       = scale,
+        .fillAlpha   = fillAlpha,
+        .onDesktop   = onDesktop,
+        .duplication = onDesktop ? duplication : nullptr,
     };
 }
 
 /// The sheet's picture and the text tone over the card. Touches no Qt object, so it runs on the pool.
 Taken takeSheet(Request const& request)
 {
-    QElapsedTimer started;
-    started.start();
-    auto picture = readDesktopRegion(request.native, kSheetScale, request.onDesktop);
-    // Timed here and not around this whole function: the tone read that follows is a few hundred pixels, and the
-    // question is what one desktop read costs (src/app/glass_stats.h).
-    glassStats().addRead(static_cast<double>(started.nsecsElapsed()) / 1.0e6);
+    auto picture = QImage{};
+    auto noFrame = false;
+    auto usedGdi = false;
+    if (request.duplication != nullptr) {
+        QElapsedTimer started;
+        started.start();
+        auto frame = request.duplication->read(request.native, request.scale);
+        if (frame.newFrame and not frame.image.isNull()) {
+            // Timed separately from GDI: this is the copy the duplication path replaces a screen read with, and the two
+            // are what the frame-rate decision is made of (src/app/glass_stats.h).
+            glassStats().addFrame(static_cast<double>(started.nsecsElapsed()) / 1.0e6);
+            picture = std::move(frame.image);
+        } else if (not frame.newFrame and frame.usable) {
+            // Nothing changed behind the card: the picture in force is still the desktop. Not a failed read, and not a
+            // reason to spend the GDI budget.
+            noFrame = true;
+            glassStats().countFrameSkip();
+        }
+        // A session that is not usable now, or a frame whose copy failed, falls through to GDI.
+    }
+    if (picture.isNull() and not noFrame) {
+        QElapsedTimer started;
+        started.start();
+        picture = readDesktopRegion(request.native, kSheetScale, request.onDesktop);
+        // Timed here and not around this whole function: the tone read that follows is a few hundred pixels, and the
+        // question is what one desktop read costs (src/app/glass_stats.h).
+        glassStats().addRead(static_cast<double>(started.nsecsElapsed()) / 1.0e6);
+        usedGdi = true;
+    }
+    if (picture.isNull()) return {{}, {}, noFrame, usedGdi};
     picture.setDevicePixelRatio(request.scale);
     // The text is judged over the window, not over the margin the sheet adds around it.
     auto const scale = picture.devicePixelRatioF();
@@ -146,7 +180,7 @@ Taken takeSheet(Request const& request)
                             qRound(request.window.width() * scale),
                             qRound(request.window.height() * scale));
     auto const tone  = readTone(picture.copy(card.intersected(picture.rect())), request.fillAlpha);
-    return {std::move(picture), tone};
+    return {std::move(picture), tone, noFrame, usedGdi};
 }
 
 } // namespace
@@ -286,11 +320,10 @@ void GlassSheet::publish(QRect const region, QRect const screen, QImage picture,
         clear();
         return;
     }
-    // The desktop has not moved since the last refresh: the same sheet over the same region is already in force,
-    // and publishing it again would bump the serial for a card that would look identical. The cost is not nothing
-    // -- every new serial makes each card reload a blurred copy, which is a blur and three plane allocations per
-    // frame, measured at about a sixth of a core with one surface open on a still desktop. Checked before
-    // settleTone() so that a skipped refresh leaves the tone bookkeeping untouched.
+    // The desktop has not moved since the last refresh: the same sheet over the same region is already in force, and
+    // publishing it again would bump the serial for a card that would look identical -- a new texture upload and
+    // render for no visible change. Checked before settleTone() so that a skipped refresh leaves the tone bookkeeping
+    // untouched.
     auto const print = pictureFingerprint(picture);
     {
         QMutexLocker const lock(&mutex_);
@@ -404,11 +437,23 @@ void GlassBackdrop::refreshNext()
         glassStats().countBusySkip();
         return;
     }
-    auto live = std::vector<bool>{};
-    for (auto const* const sheet : sheets_)
+    auto const onDesktop = QGuiApplication::platformName() == QLatin1String("windows");
+    // The GDI budget is shared by every screen that has no duplication: a fast tick for another screen must not turn a
+    // GDI read into a sixty-a-second one.
+    auto const gdiDue = not gdiPace_.isValid() or gdiPace_.elapsed() >= kLiveIntervalMs;
+    auto       live   = std::vector<bool>{};
+    live.reserve(sheets_.size());
+    for (auto* const sheet : sheets_) {
         // A sheet whose dragged window is being retaken is skipped for this tick; its deferred read is what the next
         // picture will be, and reading the old region again would only land after it.
-        live.push_back(sheet->live_ and not sheet->reading());
+        auto const candidate = sheet->live_ and not sheet->reading();
+        auto       fast      = false;
+        if (candidate and onDesktop) {
+            if (auto* const screen = QGuiApplication::screenAt(sheet->sheet_.center()); screen != nullptr)
+                fast = duplicationFor(*screen)->usable();
+        }
+        live.push_back(candidate and (fast or gdiDue));
+    }
     auto const next = nextLive(live, cursor_);
     if (not next) {
         updateLive();
@@ -416,7 +461,17 @@ void GlassBackdrop::refreshNext()
     }
     cursor_           = *next;
     auto* const sheet = sheets_[*next];
-    auto const  read  = requestFor(sheet->sheet_, sheet->window_, sheet->fillAlpha_);
+
+    // Only a live sheet is served from a duplicated frame. A sheet just taken, or a drag's deferred retake, still reads
+    // through GDI: that path is on the GUI thread or already timed, and its one read is what puts the first picture up.
+    GlassDuplication* duplication = nullptr;
+    if (onDesktop) {
+        if (auto* const screen = QGuiApplication::screenAt(sheet->sheet_.center()); screen != nullptr) {
+            auto* const session = duplicationFor(*screen);
+            if (session->usable()) duplication = session;
+        }
+    }
+    auto const read = requestFor(sheet->sheet_, sheet->window_, sheet->fillAlpha_, duplication);
     if (not read) {
         sheet->clear();
         return;
@@ -428,10 +483,20 @@ void GlassBackdrop::refreshNext()
             this,
             [this, request, index, generation, taken = std::move(taken)]() mutable {
                 busy_ = false;
+                // The GDI clock starts when the read finishes, which is also when the next one may start: the read itself
+                // is the cost the fifteen-a-second budget is spacing out.
+                if (taken.usedGdi) gdiPace_.restart();
                 // Retaken or dropped while this read ran: the picture is of a region that is no longer held.
                 auto* const target = sheets_[index];
-                if (generation == target->generation_)
-                    target->publish(request.region, request.screen, std::move(taken.picture), taken.tone, false);
+                if (generation == target->generation_ and not taken.noFrame) {
+                    if (taken.picture.isNull())
+                        target->clear();
+                    else
+                        target->publish(request.region, request.screen, std::move(taken.picture), taken.tone, false);
+                }
+                // A session that failed on this read (another recorder took the output, a display mode changed) must
+                // drop the pace back to the GDI budget before the next tick.
+                updateLive();
             },
             Qt::QueuedConnection);
     });
@@ -439,16 +504,43 @@ void GlassBackdrop::refreshNext()
 
 void GlassBackdrop::updateLive()
 {
-    auto const anyLive = std::ranges::any_of(sheets_, [](GlassSheet const* sheet) { return sheet->live_; });
-    if (anyLive and not live_.isActive()) live_.start();
-    if (not anyLive) live_.stop();
-    if (anyLive and not screensLogged_) {
+    auto const onDesktop = QGuiApplication::platformName() == QLatin1String("windows");
+    auto       anyLive   = false;
+    auto       anyFast   = false;
+    for (auto* const sheet : sheets_) {
+        if (not sheet->live_) continue;
+        anyLive = true;
+        if (anyFast or not onDesktop) continue;
+        if (auto* const screen = QGuiApplication::screenAt(sheet->sheet_.center()); screen != nullptr)
+            anyFast = duplicationFor(*screen)->usable();
+    }
+    if (not anyLive) {
+        live_.stop();
+        return;
+    }
+    auto const interval = anyFast ? kLiveFrameMs : kLiveIntervalMs;
+    if (live_.interval() != interval) live_.setInterval(interval);
+    if (not live_.isActive()) live_.start();
+    if (not screensLogged_) {
         // Once per process, and only now: the glass is what reads the desktop, so the screens it will find are worth
         // naming when it first goes to work (src/app/glass_capability.h).
         screensLogged_ = true;
         for (auto const& line : glassScreenLines())
             LENS_INFO("{}", line.toStdString());
     }
+}
+
+GlassDuplication* GlassBackdrop::duplicationFor(QScreen const& screen)
+{
+    // The native rectangle identifies the screen: a monitor's name is its model, and two of one model share it, while
+    // the rectangle is where this screen actually is on the desktop -- in the orientation the sheet is cut in.
+    auto const scale  = screen.devicePixelRatio();
+    auto const native = QRect(nativeOriginOf(screen),
+                              QSize(qRound(screen.geometry().width() * scale), qRound(screen.geometry().height() * scale)));
+    for (auto const& session : duplications_)
+        if (session.desktop == native) return session.open.get();
+    duplications_.push_back(Session{native, std::make_unique<GlassDuplication>(screen.name(), native)});
+    return duplications_.back().open.get();
 }
 
 GlassImageProvider::GlassImageProvider(GlassBackdrop const& backdrop)

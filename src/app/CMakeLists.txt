@@ -23,6 +23,8 @@ add_library(lens_app STATIC
   glass_capability.cpp
   glass_desktop.h
   glass_desktop.cpp
+  glass_duplication.h
+  glass_duplication.cpp
   glass_math.cpp
   glass_sheet_item.h
   glass_sheet_item.cpp
@@ -81,12 +83,11 @@ target_link_libraries(lens_app
   PRIVATE lens_core lens_util lens_capture
 )
 
-# user32 for the hook, SendInput and the clipboard; gdi32 for the glass sheet's desktop read; dxgi for the glass
-# pipeline's screen inventory, which enumerates adapters and outputs and deliberately creates no device
-# (src/app/glass_capability.h). Not guarded by if(WIN32):
-# this module *is* the Win32 one, and the product has no other platform. OLE is deliberately absent --
-# ClipboardSnapshot records why its round trip is not usable here.
-target_link_libraries(lens_app PRIVATE user32 gdi32 dxgi)
+# user32 for the hook, SendInput and the clipboard; gdi32 for the glass sheet's desktop read; dxgi and d3d11 for the
+# glass duplication path, which builds a device on the adapter that owns each output (src/app/glass_duplication.h).
+# Not guarded by if(WIN32): this module *is* the Win32 one, and the product has no other platform. OLE is deliberately
+# absent -- ClipboardSnapshot records why its round trip is not usable here.
+target_link_libraries(lens_app PRIVATE user32 gdi32 dxgi d3d11)
 
 # RC, so the resource script below compiles. The root project() lists CXX alone and the root
 # CMakeLists is another branch's file, but enable_language is directory scoped: turning it on
