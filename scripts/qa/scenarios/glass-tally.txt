@@ -1,0 +1,24 @@
+# Stage 0 measurement run (GLASS-CAPTURE-PLAN.md): hold one glass surface on screen long enough for the pipeline to
+# log three tallies, so a desktop read is timed inside the application at the pace the application keeps -- which is
+# the number the offline probe cannot give (docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md
+# 4.1). The tallies are in logs/lens.log, not in the answers: grep for "glass ".
+#
+# Run it against its own settings document, so nothing is written to the reader's profile (PATH must carry Qt's bin):
+#   ./build-ninja/src/app/lens.exe --dev-script=scripts/qa/scenarios/glass-tally.txt \
+#     --dev-out=logs/dev-run/glass-tally.jsonl --settings-file=logs/dev-run/settings.json
+version
+setting set theme liquid
+# The first show takes the sheet with no native handle yet, so Windows has nothing to exclude and the refresh stays
+# off (this is the TODO item about keepOutOfCapture on first show, reproduced here). The second show has a handle,
+# gets excluded, and is the one that goes live -- which is what the tallies measure.
+surface show settings
+wait painted:settings
+surface hide settings
+wait hidden:settings
+surface show settings
+wait painted:settings
+wait 35s
+state
+surface hide settings
+wait hidden:settings
+quit

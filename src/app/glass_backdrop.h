@@ -16,6 +16,7 @@
 
 #include "glass_math.h"
 
+#include <QElapsedTimer>
 #include <QImage>
 #include <QMutex>
 #include <QObject>
@@ -49,6 +50,9 @@ class GlassSheet : public QObject {
     Q_PROPERTY(int serial READ serial NOTIFY pictureChanged)
     /// The rectangle of the desktop the picture covers, in device-independent pixels. Empty when none is held.
     Q_PROPERTY(QRect sheet READ sheet NOTIFY pictureChanged)
+    /// Whether the picture is being refreshed about fifteen times a second. A card that draws no backdrop turns it off
+    /// and keeps the sheet for the text tone alone (docs/adr/0069), so QML can read which of the two it is in.
+    Q_PROPERTY(bool live READ live NOTIFY liveChanged)
 
 public:
     GlassSheet(QString name, QObject* parent);
@@ -166,6 +170,11 @@ private:
     QTimer live_;
     /// Runs the desktop reads off the GUI thread. One thread: a read is a few milliseconds and two would only contend.
     QThreadPool pool_;
+    /// How long the current summary window has been open. The tally is logged and restarted when it expires, on the
+    /// tick rather than on its own timer: a tick is what proves the refresh is actually running.
+    QElapsedTimer window_;
+    /// Whether the screen inventory has been logged, so it is written once for the process.
+    bool screensLogged_ = false;
 };
 
 /**

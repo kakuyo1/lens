@@ -5,7 +5,10 @@
 
 #include "glass_backdrop.h"
 
+#include "glass_capability.h"
+#include "glass_desktop.h"
 #include "glass_math.h"
+#include "glass_stats.h"
 #include "pet/pet_window_native.h"
 #include "util/log.h"
 
@@ -68,9 +71,13 @@ constexpr int kSheetReserve = 72;
 // ponytail: fixed rate, no back-off when the machine is busy; add one when the reads show up in someone's frame times.
 constexpr int kLiveIntervalMs = 67;
 /// The sheet is read at a quarter of the device resolution. The blur runs on it for every request, and at full size one
-/// blur takes about 40 ms of the image loader.
-// ponytail: one fixed quarter, not sized to the screen; the blur softens the edge anyway.
-constexpr int kSheetDownscale = 4;
+/// blur takes about 40 ms of the image loader. Reading full costs about 3.5 ms more (docs/metrics/runtime-performance/
+/// glass-capture-capability-2026-10-19.md 3.5), so the quarter is the CPU blur's price, not the desktop read's.
+// ponytail: one fixed quarter, not sized to the blur; the day the blur moves to the GPU this becomes a tier setting.
+constexpr auto kSheetScale = SheetScale::Quarter;
+/// How often the pipeline's tally is logged. Ten seconds is long enough for the read's median to mean something on a
+/// still desktop, and short enough that a run of the application shows several windows.
+constexpr int kSummaryIntervalMs = 10000;
 
 /// What a sheet read needs, copied out of Qt's objects on the GUI thread so a refresh on the pool never touches them.
 struct Request {
@@ -104,48 +111,6 @@ QPoint nativeOriginOf(QScreen const& screen)
     return screen.geometry().topLeft();
 }
 
-/// The desktop under @p native, drawn into a picture a quarter of its device size. A null picture means the read failed.
-QImage readDesktop(QRect const native, bool const onDesktop)
-{
-    auto const size = QSize(qMax(1, native.width() / kSheetDownscale), qMax(1, native.height() / kSheetDownscale));
-    if (not onDesktop) {
-        // A test platform has no desktop to read, and must not read the real one: a black sheet stands in for it.
-        auto black = QImage(size, QImage::Format_RGB32);
-        black.fill(Qt::black);
-        return black;
-    }
-#ifdef _WIN32
-    // GDI reads what is on the screen. While the glass shows, the surface's window is kept out of captures, so the read
-    // gets what lies behind the card and not the card itself (docs/adr/0038).
-    auto const screen            = GetDC(nullptr);
-    auto const memory            = CreateCompatibleDC(screen);
-    auto       info              = BITMAPINFO{};
-    info.bmiHeader.biSize        = sizeof(BITMAPINFOHEADER);
-    info.bmiHeader.biWidth       = size.width();
-    info.bmiHeader.biHeight      = -size.height(); // top-down, as QImage stores its rows
-    info.bmiHeader.biPlanes      = 1;
-    info.bmiHeader.biBitCount    = 32;
-    info.bmiHeader.biCompression = BI_RGB;
-    void*      bits              = nullptr;
-    auto const dib               = CreateDIBSection(screen, &info, DIB_RGB_COLORS, &bits, nullptr, 0);
-    auto       read              = QImage();
-    if (dib != nullptr) {
-        auto const previous = SelectObject(memory, dib);
-        SetStretchBltMode(memory, HALFTONE);
-        SetBrushOrgEx(memory, 0, 0, nullptr);
-        StretchBlt(memory, 0, 0, size.width(), size.height(), screen, native.x(), native.y(), native.width(), native.height(), SRCCOPY);
-        read = QImage(static_cast<uchar*>(bits), size.width(), size.height(), QImage::Format_RGB32).copy();
-        SelectObject(memory, previous);
-        DeleteObject(dib);
-    }
-    DeleteDC(memory);
-    ReleaseDC(nullptr, screen);
-    return read;
-#else
-    return {};
-#endif
-}
-
 /// The request for a sheet over @p region, or nothing when the region does not lie on one screen. GUI thread only.
 std::optional<Request> requestFor(QRect const region, QRect const window, double const fillAlpha)
 {
@@ -166,8 +131,13 @@ std::optional<Request> requestFor(QRect const region, QRect const window, double
 /// The sheet's picture and the text tone over the card. Touches no Qt object, so it runs on the pool.
 Taken takeSheet(Request const& request)
 {
-    auto picture = readDesktop(request.native, request.onDesktop);
-    picture.setDevicePixelRatio(request.scale / kSheetDownscale);
+    QElapsedTimer started;
+    started.start();
+    auto picture = readDesktopRegion(request.native, kSheetScale, request.onDesktop);
+    // Timed here and not around this whole function: the tone read that follows is a few hundred pixels, and the
+    // question is what one desktop read costs (src/app/glass_stats.h).
+    glassStats().addRead(static_cast<double>(started.nsecsElapsed()) / 1.0e6);
+    picture.setDevicePixelRatio(request.scale / static_cast<double>(kSheetScale));
     // The text is judged over the window, not over the margin the sheet adds around it.
     auto const scale = picture.devicePixelRatioF();
     auto const card  = QRect(qRound((request.window.x() - request.region.x()) * scale),
@@ -287,8 +257,10 @@ void GlassSheet::publish(QRect const region, QRect const screen, QImage picture,
     auto const print = pictureFingerprint(picture);
     {
         QMutexLocker const lock(&mutex_);
-        if (not fresh and region == sheet_ and print == fingerprint_)
+        if (not fresh and region == sheet_ and print == fingerprint_) {
+            glassStats().countIdenticalSkip();
             return;
+        }
     }
     auto const settled = lightText();
     // A sheet just taken has no tone in force for its backdrop, so one read decides it; the ~15/s refresh keeps
@@ -304,6 +276,8 @@ void GlassSheet::publish(QRect const region, QRect const screen, QImage picture,
         ++serial_;
         ++publishes_;
     }
+    // Counted outside the sheet's lock: the tally has its own, and the two are never held at once.
+    glassStats().countPublish();
     // The two contrasts on their own say why the tone moved: a pair within a few percent of each other is the
     // sample sitting on the crossover, a pair far apart that swaps over is the sample swinging (docs/adr/0041).
     if (fresh or tone != settled)
@@ -364,6 +338,7 @@ GlassBackdrop::GlassBackdrop(QObject* parent)
     live_.setInterval(kLiveIntervalMs);
     connect(&live_, &QTimer::timeout, this, &GlassBackdrop::refreshNext);
     pool_.setMaxThreadCount(1);
+    window_.start();
 }
 
 GlassBackdrop::~GlassBackdrop()
@@ -380,8 +355,18 @@ GlassSheet* GlassBackdrop::surface(QString const& name) const
 
 void GlassBackdrop::refreshNext()
 {
+    glassStats().countTick();
+    if (window_.hasExpired(kSummaryIntervalMs)) {
+        // Logged on the tick, so a window is only ever reported while the refresh is actually running.
+        auto const line = glassStats().takeSummaryLine(static_cast<int>(window_.elapsed() / 1000));
+        if (not line.isEmpty()) LENS_INFO("{}", line.toStdString());
+        window_.restart();
+    }
     // One read at a time across every surface: a tick that finds the last still running is skipped, not queued behind it.
-    if (busy_) return;
+    if (busy_) {
+        glassStats().countBusySkip();
+        return;
+    }
     auto live = std::vector<bool>{};
     for (auto const* const sheet : sheets_)
         live.push_back(sheet->live_);
@@ -418,6 +403,13 @@ void GlassBackdrop::updateLive()
     auto const anyLive = std::ranges::any_of(sheets_, [](GlassSheet const* sheet) { return sheet->live_; });
     if (anyLive and not live_.isActive()) live_.start();
     if (not anyLive) live_.stop();
+    if (anyLive and not screensLogged_) {
+        // Once per process, and only now: the glass is what reads the desktop, so the screens it will find are worth
+        // naming when it first goes to work (src/app/glass_capability.h).
+        screensLogged_ = true;
+        for (auto const& line : glassScreenLines())
+            LENS_INFO("{}", line.toStdString());
+    }
 }
 
 GlassImageProvider::GlassImageProvider(GlassBackdrop const& backdrop)
@@ -427,6 +419,8 @@ GlassImageProvider::GlassImageProvider(GlassBackdrop const& backdrop)
 
 QImage GlassImageProvider::requestImage(QString const& id, QSize* size, QSize const& /*requestedSize*/)
 {
+    QElapsedTimer started;
+    started.start();
     // The id is the surface, the path and then the query, as QML hands it over: "tray/sheet?serial=7&blur=10&saturation=120".
     auto const parts = id.split(QLatin1Char('?'));
     auto const route = parts.value(0).split(QLatin1Char('/'));
@@ -450,6 +444,7 @@ QImage GlassImageProvider::requestImage(QString const& id, QSize* size, QSize co
         image = QImage(1, 1, QImage::Format_ARGB32);
         image.fill(Qt::transparent);
     }
+    glassStats().addRequest(static_cast<double>(started.nsecsElapsed()) / 1.0e6);
     if (size != nullptr) *size = image.size();
     return image;
 }

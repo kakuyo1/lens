@@ -184,7 +184,11 @@ void DevSurface::poll()
     if (not waiting_)
         return;
     bool const done = conditionHolds(*waiting_);
-    if (not done and waited_.elapsed() < kWaitTimeoutMs)
+    // A condition wait gets the standing ceiling; a hold waits out exactly the seconds its line asked for, so a
+    // 25-second hold answers as success at 25 seconds instead of timing out at the ceiling.
+    auto const limit = waiting_->command.waitFor == core::dev::WaitFor::Seconds ? waiting_->command.waitSeconds * 1000
+                                                                                : kWaitTimeoutMs;
+    if (not done and waited_.elapsed() < limit)
         return;
 
     poll_.stop();
@@ -331,7 +335,10 @@ QObject* DevSurface::window(std::string const& name) const
 
 std::uint64_t DevSurface::paintedCount(std::string const& name) const
 {
-    return painted_.at(name).load(std::memory_order_relaxed);
+    // Not a map::at: a `wait <n>s` line names no surface, and asking for the frame count of nothing must answer
+    // nothing rather than throw out of a Qt slot.
+    auto const found = painted_.find(name);
+    return found == painted_.end() ? 0 : found->second.load(std::memory_order_relaxed);
 }
 
 bool DevSurface::conditionHolds(Waiting const& waiting) const
@@ -346,6 +353,9 @@ bool DevSurface::conditionHolds(Waiting const& waiting) const
             return not visible;
         case core::dev::WaitFor::Painted:
             return paintedCount(command.surface) > waiting.baseline;
+        case core::dev::WaitFor::Seconds:
+            // A hold has no condition to watch; the elapsed time is the whole answer.
+            return waited_.elapsed() >= command.waitSeconds * 1000;
     }
     return false;
 }

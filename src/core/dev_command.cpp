@@ -40,12 +40,37 @@ Parse accept(Command command)
     return Parse{.command = std::move(command), .error = {}};
 }
 
+/// The longest plain hold a script may ask for. Longer than this and the run is stuck on one line: the harness that
+/// started it has its own timeout, and a scripted wait should not outlive the reason it is being measured.
+constexpr int kMaxWaitSeconds = 120;
+
+/// The refusal every malformed `wait` line gets, whichever form it was reaching for.
+constexpr char const* const kWaitUsage = "wait takes visible:<name>, hidden:<name>, painted:<name> or <n>s";
+
+/**
+ * @brief `25s` -> hold the script for twenty-five seconds.
+ * @param text what follows `wait` with no condition colon, already trimmed.
+ * @return The hold command, or the reason the line was refused.
+ * @note Nothing is watched: this is the form that keeps a surface on screen while the pipeline fills a tally window.
+ */
+Parse parseWaitSeconds(std::string_view const text)
+{
+    if (text.size() < 2 or text.size() > 4 or text.back() != 's') return refuse(kWaitUsage);
+    auto seconds = 0;
+    for (auto const digit : text.substr(0, text.size() - 1)) {
+        if (digit < '0' or digit > '9') return refuse(kWaitUsage);
+        seconds = seconds * 10 + (digit - '0');
+    }
+    if (seconds < 1 or seconds > kMaxWaitSeconds) return refuse("wait <n>s takes 1 to 120 seconds");
+    return accept({.verb = Verb::Wait, .waitFor = WaitFor::Seconds, .waitSeconds = seconds});
+}
+
 /// `visible:settings` -> the condition and the surface it names, or a refusal.
 Parse parseWait(std::string_view condition)
 {
     auto const colon = condition.find(':');
     if (colon == std::string_view::npos)
-        return refuse("wait takes visible:<name>, hidden:<name> or painted:<name>");
+        return parseWaitSeconds(condition);
     auto const kind = condition.substr(0, colon);
     auto const name = condition.substr(colon + 1);
     if (not isSurfaceName(name))
@@ -262,7 +287,7 @@ nlohmann::json helpJson()
                          "surface show <name>",
                          "surface hide <name>",
                          "surface hide-all",
-                         "wait visible:<name> | hidden:<name> | painted:<name>",
+                         "wait visible:<name> | hidden:<name> | painted:<name> | <n>s",
                          "selection <x>,<y>,<w>,<h> \"<text>\"",
                          "setting set <name> <value>",
                          "state",

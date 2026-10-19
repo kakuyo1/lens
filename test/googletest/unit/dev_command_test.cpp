@@ -48,6 +48,25 @@ TEST(DevCommandParse, WaitReadsItsConditionAndSurface)
     EXPECT_EQ(parseCommand("wait hidden:tray").command->waitFor, WaitFor::Hidden);
 }
 
+TEST(DevCommandParse, WaitSecondsHoldsTheScript)
+{
+    // A hold is the form a measurement run uses: it keeps a surface on screen while the pipeline fills a tally window.
+    auto const held = parseCommand("wait 25s");
+    ASSERT_TRUE(held.command);
+    EXPECT_EQ(held.command->verb, Verb::Wait);
+    EXPECT_EQ(held.command->waitFor, WaitFor::Seconds);
+    EXPECT_EQ(held.command->waitSeconds, 25);
+    EXPECT_TRUE(parseCommand("wait 1s").command);
+    EXPECT_TRUE(parseCommand("wait 120s").command);
+    // A condition wait carries no duration, and its own ceiling is what bounds it.
+    EXPECT_EQ(parseCommand("wait painted:settings").command->waitSeconds, 0);
+    for (auto const* line : {"wait 0s", "wait 121s", "wait s", "wait 25", "wait abcs", "wait -5s", "wait 9999s"}) {
+        auto const parsed = parseCommand(line);
+        EXPECT_FALSE(parsed.command) << line;
+        EXPECT_FALSE(parsed.error.empty()) << line;
+    }
+}
+
 TEST(DevCommandParse, RefusesWithAReason)
 {
     // A refused line is never silently dropped: it has no command and says why.

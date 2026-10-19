@@ -41,6 +41,9 @@ enum class WaitFor : std::uint8_t {
     Hidden,
     /// At least one frame painted after the wait began.
     Painted,
+    /// A plain hold: nothing is watched, the script waits out the seconds the line gives. A measurement run needs it
+    /// because the tallies the glass pipeline logs cover ten seconds each (src/app/glass_stats.h).
+    Seconds,
 };
 
 /// A rectangle in physical pixels, the coordinates the mouse hook reports.
@@ -66,9 +69,11 @@ using SettingValue = std::variant<std::string, int, bool>;
 
 /// One parsed line. Only the fields its verb reads are set; the rest keep their defaults.
 struct Command {
-    Verb         verb{Verb::Help};
-    std::string  surface;
-    WaitFor      waitFor{WaitFor::Visible};
+    Verb        verb{Verb::Help};
+    std::string surface;
+    WaitFor     waitFor{WaitFor::Visible};
+    /// How long a `wait <n>s` line holds, in whole seconds; unread by every other wait.
+    int          waitSeconds{0};
     Region       region;
     std::string  selectedText;
     SettingKey   settingKey{SettingKey::Theme};

@@ -58,6 +58,8 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/pet_store_test.cpp
   unit/pet_window_style_test.cpp
   unit/glass_math_test.cpp
+  unit/glass_desktop_test.cpp
+  unit/glass_stats_test.cpp
   unit/dev_command_test.cpp
   unit/dev_line_framer_test.cpp
   unit/vault_test.cpp
@@ -72,6 +74,16 @@ add_executable(lens_gtest_perf EXCLUDE_FROM_ALL
 )
 target_link_libraries(lens_gtest_perf PRIVATE lens_core GTest::gtest_main)
 lens_gtest_configure(lens_gtest_perf)
+
+# The glass backdrop's hardware ceiling: which adapter owns which output, whether that output
+# duplicates, and what a frame costs against the GDI read used today. Measurement, not a gate,
+# so it sits beside lens_gtest_perf -- but it needs no lens library, only DXGI, D3D11 and GDI.
+# Human-run: a CI runner has no desktop session to duplicate.
+add_executable(lens_gtest_glass_probe EXCLUDE_FROM_ALL
+  perf/glass_capture_probe_test.cpp
+)
+target_link_libraries(lens_gtest_glass_probe PRIVATE dxgi d3d11 user32 gdi32 shcore GTest::gtest_main)
+lens_gtest_configure(lens_gtest_glass_probe)
 
 # Needs a key and spends money, so it is never part of the default run: it reports a skip
 # when settings.local.json has no credentials. Supplies its own main() to get an event loop,
@@ -89,6 +101,7 @@ lens_gtest_configure(lens_gtest_smoke)
 # loop, hence GTest::gtest rather than gtest_main.
 add_executable(lens_gtest_integration EXCLUDE_FROM_ALL
   integration/selection_capture_test.cpp
+  integration/glass_read_pace_test.cpp
 )
 target_link_libraries(lens_gtest_integration PRIVATE lens_app lens_core GTest::gtest)
 lens_gtest_configure(lens_gtest_integration)

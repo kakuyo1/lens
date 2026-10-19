@@ -19,7 +19,13 @@ add_library(lens_app STATIC
   explanation_duty.h
   explanation_duty.cpp
   glass_backdrop.cpp
+  glass_capability.h
+  glass_capability.cpp
+  glass_desktop.h
+  glass_desktop.cpp
   glass_math.cpp
+  glass_stats.h
+  glass_stats.cpp
   global_hotkey.h
   global_hotkey.cpp
   model_catalog_duty.h
@@ -73,10 +79,12 @@ target_link_libraries(lens_app
   PRIVATE lens_core lens_util lens_capture
 )
 
-# user32 for the hook, SendInput and the clipboard; gdi32 for the glass sheet's desktop read. Not guarded by if(WIN32):
+# user32 for the hook, SendInput and the clipboard; gdi32 for the glass sheet's desktop read; dxgi for the glass
+# pipeline's screen inventory, which enumerates adapters and outputs and deliberately creates no device
+# (src/app/glass_capability.h). Not guarded by if(WIN32):
 # this module *is* the Win32 one, and the product has no other platform. OLE is deliberately absent --
 # ClipboardSnapshot records why its round trip is not usable here.
-target_link_libraries(lens_app PRIVATE user32 gdi32)
+target_link_libraries(lens_app PRIVATE user32 gdi32 dxgi)
 
 # RC, so the resource script below compiles. The root project() lists CXX alone and the root
 # CMakeLists is another branch's file, but enable_language is directory scoped: turning it on
@@ -139,6 +147,9 @@ set_source_files_properties(qml/components/Tokens.qml PROPERTIES QT_QML_SINGLETO
 # PreviewSample is the settings preview's payload builder: one table of sample content, asked by
 # every window that could raise a preview, so it is a singleton for the same reason Tokens is.
 set_source_files_properties(qml/components/PreviewSample.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+# GlassRule is the backdrop-or-not rule, read by the card that draws and the window that decides when to read the
+# desktop (docs/adr/0069): a rule the two hold separately is a rule that drifts, so it lives in one singleton.
+set_source_files_properties(qml/components/GlassRule.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 # The URI is Lens, so generated QML tooling files belong below a Lens directory. Keeping the
 # target path aligned makes CMake generate the qmllint response file in every build tree,
@@ -218,6 +229,7 @@ qt_add_qml_module(lens_app
     qml/components/PreviewSample.qml
     qml/components/SurfaceTokens.qml
     qml/components/GlassHost.qml
+    qml/components/GlassRule.qml
     qml/theme/Light.qml
     qml/theme/Dark.qml
     qml/theme/Motion.qml

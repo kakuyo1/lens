@@ -32,6 +32,7 @@
 | [`qml-automated-scenario-baseline-2026-10-03.md`](runtime-performance/qml-automated-scenario-baseline-2026-10-03.md) | 无鼠标自动化场景下的可重复基线 |
 | [`qml-language-list-lazy-loading-validation-2026-10-03.md`](runtime-performance/qml-language-list-lazy-loading-validation-2026-10-03.md) | 语言列表延迟加载是否把成本移出启动 |
 | [`qml-tray-menu-lazy-loading-experiment-2026-10-03.md`](runtime-performance/qml-tray-menu-lazy-loading-experiment-2026-10-03.md) | 托盘菜单正文延迟加载前后对比 |
+| [`glass-capture-capability-2026-10-19.md`](runtime-performance/glass-capture-capability-2026-10-19.md) | 玻璃幕布的帧率上限卡在哪：哪块屏能桌面复制、一帧值多少、GDI 读屏的真实代价 |
 
 ## resource-footprint
 
