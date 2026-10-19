@@ -59,6 +59,23 @@ def compose_language_gif() -> None:
     )
 
 
+def compose_selection_styles() -> None:
+    """Five action-bar shapes over one page, one frame each."""
+    frames = []
+    for style in ("classic", "side", "cards", "tag", "fan"):
+        frame = Image.open(FRAMES / f"sel-style-{style}.png").convert("RGB").resize((900, 620), Image.Resampling.LANCZOS)
+        frames.append(frame.quantize(colors=128, method=Image.MEDIANCUT))
+    frames[0].save(
+        OUT / "selection-styles.gif",
+        save_all=True,
+        append_images=frames[1:],
+        duration=1300,
+        loop=0,
+        optimize=True,
+        disposal=2,
+    )
+
+
 def compose_themes() -> None:
     themes = [
         ("Light", "bubble-page-light.png"),
@@ -238,12 +255,14 @@ def main() -> None:
         review_hover.unlink()
 
     compose_language_gif()
+    compose_selection_styles()
     compose_themes()
     compose_learning_loop()
     compose_pets_gif()
 
     for name in (
         "english-first.gif",
+        "selection-styles.gif",
         "pets.gif",
         "themes.png",
         "learning-loop.png",

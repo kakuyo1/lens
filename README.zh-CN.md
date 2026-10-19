@@ -64,6 +64,12 @@
 
 文字无法选中时，按 `Ctrl+Alt+S`（可在设置中修改），框选 PDF、图片或视频画面中的一块区域，Lens 会在本机用 OCR 读取。自动扫描只监看你加入白名单的应用。
 
+## 五种动作条形态
+
+<p align="center"><img src="docs/readme/selection-styles.gif" width="800" alt="经典长条、页边签、三张牌、吊牌签和扇面五种动作条形态"></p>
+
+在设置 › 取词与弹窗里选择：经典长条、页边签、三张牌、吊牌签或扇面。三项动作和通道规则完全不变。
+
 ## 一个安静的学习循环
 
 <p align="center"><img src="docs/readme/learning-loop.png" width="900" alt="桌面宠物举着到期的单词，以及单词年度记录"></p>

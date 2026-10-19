@@ -64,6 +64,12 @@ The action bar offers Translate, Explain, and Copy text. Explain is the one Lens
 
 When text cannot be selected, press `Ctrl+Alt+S` (changeable in Settings), frame a region of a PDF, image, or video still, and Lens reads it locally with OCR. Automatic scanning can watch only the apps you whitelist.
 
+## Five action bars, one set of actions
+
+<p align="center"><img src="docs/readme/selection-styles.gif" width="800" alt="Classic bar, side tab, three cards, hang tag and fan selection styles"></p>
+
+Choose the shape in Settings › Capture & popups: the classic bar, a page-edge tab, three cards, a hang tag, or a fan. The three actions and channel rules stay the same.
+
 ## A small learning loop
 
 <p align="center"><img src="docs/readme/learning-loop.png" width="900" alt="A due word held up by the desktop pet, and the year-in-words graph"></p>

@@ -115,6 +115,12 @@ screenshot fb-page-menu "ui-prototypes/bubble.html" \
 screenshot fb-page-zh "ui-prototypes/bubble.html" \
     "lang=en&shot=1&theme=liquid&actions=open&page=1&pageScale=1.4&explain=zh" 760 760 2 "$frames"
 
+# Five action-bar shapes over the same reading page, one frame each.
+for style in classic side cards tag fan; do
+    screenshot "sel-style-$style" "docs/readme/scenes/selection-styles.html" \
+        "style=$style" 900 620 2 "$frames"
+done
+
 # The social preview uses a crop of the page-mode light still, so it has to come after that file
 # exists. The crop starts below the article title; keeping the title would cut it at the card.
 python - "$out/bubble-page-liquid.png" "$out/brand/bubble-page-social.png" <<'PY'

@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · selection bar styles</title>
+<!--
+  A README-only gallery of the five action-bar shapes over one reading page. The bar markup and
+  glass treatment follow ui-prototypes/selection-bar.html and selection-bar-variants.html; the
+  page itself is the same warm paper used by the other README demos. ?style=classic|side|cards|tag|fan
+  picks one shape, and the label under the page names it for the GIF frame.
+-->
+<style>
+:root{
+  --paper:#f6f2ea; --text:#101319; --muted:#333846; --faint:#4a4f5e;
+  --line:rgba(18,24,36,.16); --line2:rgba(18,24,36,.11);
+  --ink:#12151b; --on:#fff; --sel:rgba(47,158,110,.17);
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+  --read:"Charter","Iowan Old Style","Sitka Text",Georgia,serif;
+  --r-bar:13px; --r-item:9px;
+  --glass-fill:rgba(248,250,254,.64);
+  --glass-card:rgba(250,251,254,.64);
+  --glass-edge:rgba(255,255,255,.62);
+  --sh2:0 1px 2px rgba(10,14,24,.14),0 22px 54px -20px rgba(10,14,24,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  width:900px;height:620px;overflow:hidden;background:var(--paper);color:var(--text);
+  font-family:var(--f);-webkit-font-smoothing:antialiased;
+}
+.page{position:absolute;inset:0;padding:48px 64px}
+.kicker{font:700 11px/1 var(--f);letter-spacing:.16em;text-transform:uppercase;color:#1d7a52}
+h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025em;font-weight:600;margin-top:12px}
+.byline{margin-top:12px;color:var(--faint);font-size:12px}
+.sample{max-width:700px;margin-top:22px;font-family:var(--read);font-size:19px;line-height:1.8;color:#33343a}
+.sample:first-of-type{margin-top:190px}
+.sample+.sample{margin-top:14px;font-size:16px;color:#66666f}
+.sel{background:var(--sel);border-radius:3px;padding:1px 2px;margin:0 -2px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+
+.bar{position:absolute;z-index:5;display:flex;align-items:center;user-select:none;
+  background:var(--glass-fill);border:1px solid var(--glass-edge);border-radius:var(--r-bar);
+  box-shadow:var(--sh2);backdrop-filter:blur(18px) saturate(1.25)}
+.bar-classic{padding:5px;gap:2px}
+.act{display:flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid transparent;border-radius:var(--r-item);background:transparent;color:var(--text);font-family:var(--f);font-size:12.5px;font-weight:600;white-space:nowrap;cursor:pointer}
+.act svg{width:15px;height:15px;color:var(--muted);flex:none}
+.act .label{display:block}
+
+/* A · side tab */
+.bar-a{flex-direction:column;align-items:stretch;gap:2px;padding:5px 6px 5px 9px}
+.bar-a .spine{position:absolute;left:4px;top:9px;bottom:9px;width:1px;background:var(--line)}
+.bar-a.side-left .spine{left:auto;right:4px}
+.bar-a .act{justify-content:flex-start;padding:7px 10px;border-radius:8px}
+.bar-a .fold{position:absolute;right:1px;bottom:1px;width:0;height:0;border-left:9px solid transparent;border-bottom:9px solid rgba(18,24,36,.1);pointer-events:none}
+.bar-a.side-left .fold{right:auto;left:1px;border-left:0;border-right:9px solid transparent}
+
+/* E · three cards */
+.bar-e{padding:4px 0 6px;border:0;border-radius:0;background:transparent;box-shadow:none;backdrop-filter:none}
+.bar-e .hand{display:flex;align-items:center}
+.bar-e .slot{position:relative;width:84px;height:64px;padding:0;border:0;background:none;cursor:pointer}
+.bar-e .slot+.slot{margin-left:-7px}
+.bar-e .slot:nth-of-type(1){z-index:1}
+.bar-e .slot:nth-of-type(2){z-index:3}
+.bar-e .slot:nth-of-type(3){z-index:2}
+.bar-e .face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:6px 5px;border:1px solid var(--glass-edge);border-radius:10px;background:var(--glass-card);box-shadow:0 2px 8px rgba(20,20,26,.08);backdrop-filter:blur(14px) saturate(1.2);transform:rotate(var(--rot,0deg)) translateY(var(--dy,0px));transform-origin:50% 75%}
+.bar-e .slot:nth-of-type(1) .face{--rot:-6deg;--dy:2px}
+.bar-e .slot:nth-of-type(2) .face{--rot:0deg;--dy:-2px}
+.bar-e .slot:nth-of-type(3) .face{--rot:6deg;--dy:2px}
+.bar-e .face svg{width:15px;height:15px;color:var(--muted);flex:none}
+.bar-e .face .label{font-size:11px;line-height:1.25;font-weight:600;color:var(--text);text-align:center;white-space:normal}
+
+/* H · hang tag */
+.bar-h{--tilt:-1.4deg;padding:6px 8px 6px 31px;border-radius:12px;transform:rotate(var(--tilt));transform-origin:15px 11px}
+.bar-h .string{position:absolute;left:14.5px;bottom:-16px;width:1.5px;height:26px;background:var(--muted);pointer-events:none}
+.bar-h .string::before{content:"";position:absolute;left:-1.5px;bottom:-2px;width:4.5px;height:4.5px;border-radius:50%;background:var(--muted)}
+.bar-h .hole{position:absolute;left:8px;bottom:4px;width:14px;height:14px;border:2px solid var(--line);border-radius:50%;background:var(--glass-fill);pointer-events:none}
+.bar-h .hole::after{content:"";position:absolute;inset:3px;border-radius:50%;background:rgba(18,24,36,.08)}
+.bar-h .act{padding:7px 9px;border-radius:8px}
+
+/* F · fan */
+.bar-f{display:block;width:260px;height:170px;padding:0;border-color:transparent;background:transparent;box-shadow:none;backdrop-filter:none;filter:drop-shadow(0 2px 6px rgba(20,20,26,.10))}
+.bar-f .blade{position:absolute;inset:0;padding:0;border:0;background:var(--glass-card);cursor:pointer;z-index:1;backdrop-filter:blur(14px) saturate(1.2)}
+.bar-f .blade-l{clip-path:polygon(130px 150px,10px 87px,78px 26px)}
+.bar-f .blade-c{clip-path:polygon(130px 150px,78px 26px,182px 26px);background:var(--glass-fill);z-index:2}
+.bar-f .blade-r{clip-path:polygon(130px 150px,182px 26px,250px 87px)}
+.bar-f .blade-face{position:absolute;display:flex;flex-direction:column;align-items:center;gap:5px;width:66px;transform:translate(-50%,-50%);pointer-events:none;text-align:center}
+.bar-f .blade-l .blade-face{left:62px;top:80px}
+.bar-f .blade-c .blade-face{left:130px;top:76px;width:54px}
+.bar-f .blade-r .blade-face{left:198px;top:80px}
+.bar-f .blade-face svg{width:16px;height:16px;color:var(--muted)}
+.bar-f .blade-face .label{font-size:11.5px;line-height:1.2;color:var(--text)}
+.bar-f .fan-edge{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
+.bar-f .fan-edge path{fill:none;stroke:var(--glass-edge);stroke-width:1}
+.bar-f .handle{position:absolute;left:50%;bottom:-4px;width:8px;height:18px;border-radius:4px;background:var(--line);transform:translateX(-50%);z-index:3;pointer-events:none}
+.bar-f .rivet{position:absolute;left:50%;bottom:13px;width:11px;height:11px;border:1px solid var(--glass-edge);border-radius:50%;background:var(--glass-fill);transform:translateX(-50%);z-index:4;pointer-events:none}
+
+.style-label{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.55);color:var(--muted);font:600 14px var(--f);backdrop-filter:blur(12px)}
+.style-label::before{content:"";width:7px;height:7px;border-radius:50%;background:#2f9e6e}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="kicker">Essay · 8 min read</div>
+  <h1>The Art of Noticing</h1>
+  <div class="byline">Mara Ellison · October 2026</div>
+  <p class="sample">She gave a <span class="sel" id="selected">candid</span> answer to a question she had been dreading for weeks, and nobody in the room expected it.</p>
+  <p class="sample">The room stayed quiet. She had rehearsed a careful answer for weeks, and the truth arrived in one sentence.</p>
+</div>
+<div class="bar" id="bar"></div>
+<div class="style-label" id="styleLabel"></div>
+
+<script>
+const ICON = {
+  translate: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h9"/><path d="M7.5 3.5v2"/><path d="M10.5 5.5c0 4-2.6 7.4-6.5 8.9"/><path d="M5 9.6c1.2 2.3 3.1 4.1 5.3 5.1"/><path d="M12.6 20.5l3.7-9 3.7 9"/><path d="M14 17.4h4.6"/></svg>',
+  explain: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.6C10.4 5.2 8.3 4.5 5.5 4.5H4v13h1.5c2.8 0 4.9.7 6.5 2.1"/><path d="M12 6.6c1.6-1.4 3.7-2.1 6.5-2.1H20v13h-1.5c-2.8 0-4.9.7-6.5 2.1"/><path d="M12 6.6v13"/></svg>',
+  copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M15 5.5V5a1.5 1.5 0 0 0-1.5-1.5H5A1.5 1.5 0 0 0 3.5 5v8.5A1.5 1.5 0 0 0 5 15h.5"/></svg>'
+};
+const label = {translate:"Translate", explain:"Explain", copy:"Copy text"};
+const button = id => `<button class="act" type="button">${ICON[id]}<span class="label">${label[id]}</span></button>`;
+const slot = id => `<button class="slot" type="button"><span class="face">${ICON[id]}<span class="label">${label[id]}</span></span></button>`;
+const wedge = (id, cls) => `<button class="blade ${cls}" type="button"><span class="blade-face">${ICON[id]}<span class="label">${label[id]}</span></span></button>`;
+const markup = {
+  classic: button("translate") + button("explain") + button("copy"),
+  side: '<span class="spine"></span>' + button("translate") + button("explain") + button("copy") + '<span class="fold"></span>',
+  cards: '<div class="hand">' + slot("translate") + slot("explain") + slot("copy") + '</div>',
+  tag: '<span class="string"></span><span class="hole"></span>' + button("translate") + button("explain") + button("copy"),
+  fan: wedge("translate","blade-l") + wedge("explain","blade-c") + wedge("copy","blade-r") +
+       '<svg class="fan-edge" viewBox="0 0 260 170"><path d="M130 150 L10 87 L78 26 L182 26 L250 87 Z"/><path d="M130 150 L78 26 M130 150 L182 26"/></svg><span class="rivet"></span><span class="handle"></span>'
+};
+const names = {classic:"Classic bar", side:"Side tab", cards:"Three cards", tag:"Hang tag", fan:"Fan"};
+const classes = {classic:"bar-classic", side:"bar-a", cards:"bar-e", tag:"bar-h", fan:"bar-f"};
+const style = ["classic","side","cards","tag","fan"].includes(new URLSearchParams(location.search).get("style"))
+  ? new URLSearchParams(location.search).get("style") : "classic";
+
+const bar = document.getElementById("bar");
+const selected = document.getElementById("selected");
+bar.className = "bar " + classes[style];
+bar.innerHTML = markup[style];
+document.getElementById("styleLabel").textContent = names[style];
+
+requestAnimationFrame(() => {
+  const r = selected.getBoundingClientRect();
+  const page = document.querySelector(".page").getBoundingClientRect();
+  const w = bar.offsetWidth, h = bar.offsetHeight;
+  let left = r.left, top = r.top;
+
+  if (style === "classic" || style === "cards") {
+    left = r.left + r.width / 2 - w / 2;
+    top = r.top - h - 12;
+  } else if (style === "side") {
+    left = r.right + 10;
+    top = r.top - 2;
+    if (left + w > page.right - 24) {
+      left = r.left - w - 10;
+      bar.classList.add("side-left");
+    }
+  } else if (style === "tag") {
+    left = r.left;
+    top = r.top - h - 18;
+  } else if (style === "fan") {
+    left = r.left + r.width / 2 - 130;
+    top = r.top - h - 12;
+  }
+
+  left = Math.max(24, Math.min(left, page.right - w - 24));
+  top = Math.max(24, Math.min(top, page.bottom - h - 24));
+  bar.style.left = left + "px";
+  bar.style.top = top + "px";
+});
+</script>
+</body>
+</html>

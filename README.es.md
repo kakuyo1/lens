@@ -64,6 +64,12 @@ La barra de acciones ofrece Traducir, Explicar y Copiar texto. Lens gira alreded
 
 Cuando el texto no se puede seleccionar, pulsa `Ctrl+Alt+S` (se puede cambiar en Ajustes), enmarca una zona de un PDF, una imagen o un fotograma de vídeo y Lens la lee localmente con OCR. El escaneo automático solo vigila las aplicaciones de tu lista blanca.
 
+## Cinco formas de barra de acciones
+
+<p align="center"><img src="docs/readme/selection-styles.gif" width="800" alt="Barra clásica, pestaña lateral, tres tarjetas, etiqueta colgante y abanico"></p>
+
+Elige la forma en Ajustes › Captura y ventanas: barra clásica, pestaña lateral, tres tarjetas, etiqueta colgante o abanico. Las tres acciones y las reglas de canal no cambian.
+
 ## Un pequeño bucle de aprendizaje
 
 <p align="center"><img src="docs/readme/learning-loop.png" width="900" alt="El compañero de escritorio con una palabra pendiente y el registro anual de palabras"></p>
