@@ -56,9 +56,11 @@ The language switch is on the card. English is the default; Chinese is one click
 
 ## English first. Translation when you ask.
 
-Explanations default to English. A Chinese selection always comes back in English. When you do want Chinese, open the globe on the bubble and switch the explanation language: the same card is answered again, from cache when it already has one.
+<p align="center"><img src="docs/readme/translate-to-english.gif" width="800" alt="Chinese, Japanese and Spanish passages translated into English"></p>
 
-The action bar offers Translate, Explain, and Copy text. Explain is the one Lens is built around: it tells you what the word means in words you already know, instead of replacing it with a Chinese word you can skip. Translate answers in your explanation language too — English unless you change it.
+Explanations default to English. A selection in Chinese, Japanese, or Spanish comes back in English. When you do want Chinese, open the globe on the bubble and switch the explanation language: the same card is answered again, from cache when it already has one.
+
+The action bar offers Translate, Explain, and Copy text. Explain is the one Lens is built around: it tells you what the word means in words you already know, instead of replacing it with a Chinese word you can skip. Translate is the exception: it turns a Chinese, Japanese, or Spanish passage into English; on English text it answers in your explanation language — English unless you change it.
 
 ## How it works
 
@@ -126,7 +128,7 @@ Only the text you select or capture is sent to the provider you configure, after
 
 ## FAQ
 
-**Is Lens a translator?** It can translate, but it is built for explanations. Explanations default to English; switch the explanation language if you want a translation. Chinese selections always return English.
+**Is Lens a translator?** It can translate, but it is built for explanations. Explanations default to English; switch the explanation language if you want a translation. Chinese, Japanese, and Spanish selections come back in English.
 
 **Do I need an API key?** Yes. Bring one from a supported provider. Lens shows the cost of each request and can cap daily spending.
 

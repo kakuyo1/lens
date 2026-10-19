@@ -120,6 +120,11 @@ for stage in start frame read result; do
     screenshot "ocr-$stage" "docs/readme/scenes/ocr-capture.html" "stage=$stage" 900 620 2 "$frames"
 done
 
+# Chinese, Japanese and Spanish sources for the translate-to-English GIF.
+for lang in zh ja es; do
+    screenshot "translate-$lang" "docs/readme/scenes/translate-to-english.html" "lang=$lang" 900 620 2 "$frames"
+done
+
 # Five action-bar shapes over the same reading page, one frame each.
 for style in classic side cards tag fan; do
     screenshot "sel-style-$style" "docs/readme/scenes/selection-styles.html" \

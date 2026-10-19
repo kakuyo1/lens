@@ -56,9 +56,11 @@ El cambio de idioma está en la tarjeta. El inglés es lo predeterminado; el chi
 
 ## Primero en inglés. Traducción cuando la pidas.
 
-Las explicaciones son en inglés por defecto. Una selección en chino siempre vuelve en inglés. Cuando quieras chino, abre el globo de la burbuja y cambia el idioma de las explicaciones: la misma tarjeta se responde de nuevo y, si ya hay caché, no se envía ninguna petición.
+<p align="center"><img src="docs/readme/translate-to-english.gif" width="800" alt="Pasajes en chino, japonés y español traducidos al inglés"></p>
 
-La barra de acciones ofrece Traducir, Explicar y Copiar texto. Lens gira alrededor de Explicar: te dice qué hace la palabra en ese contexto con palabras que ya conoces, en lugar de sustituirla por una palabra china que puedes saltarte. Traducir también responde en el idioma de las explicaciones: inglés salvo que lo cambies.
+Las explicaciones son en inglés por defecto. Una selección en chino, japonés o español vuelve en inglés. Cuando quieras chino, abre el globo de la burbuja y cambia el idioma de las explicaciones: la misma tarjeta se responde de nuevo y, si ya hay caché, no se envía ninguna petición.
+
+La barra de acciones ofrece Traducir, Explicar y Copiar texto. Lens gira alrededor de Explicar: te dice qué hace la palabra en ese contexto con palabras que ya conoces, en lugar de sustituirla por una palabra china que puedes saltarte. Traducir es la excepción: convierte un pasaje en chino, japonés o español al inglés; en un texto en inglés responde en el idioma de las explicaciones (inglés salvo que lo cambies).
 
 ## Cómo funciona
 
@@ -126,7 +128,7 @@ Solo el texto que seleccionas o capturas se envía al proveedor que configures, 
 
 ## Preguntas frecuentes
 
-**¿Lens es un traductor?** Puede traducir, pero está pensado para explicar. Las explicaciones son en inglés por defecto; cambia el idioma de las explicaciones si quieres una traducción. Las selecciones en chino siempre vuelven en inglés.
+**¿Lens es un traductor?** Puede traducir, pero está pensado para explicar. Las explicaciones son en inglés por defecto; cambia el idioma de las explicaciones si quieres una traducción. Las selecciones en chino, japonés o español vuelven en inglés.
 
 **¿Necesito una clave de API?** Sí. Usa la de un proveedor compatible. Lens muestra el coste de cada petición y puede limitar el gasto diario.
 

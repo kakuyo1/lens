@@ -59,6 +59,23 @@ def compose_language_gif() -> None:
     )
 
 
+def compose_translate_gif() -> None:
+    """Chinese, Japanese and Spanish sources, one English answer."""
+    frames = []
+    for lang in ("zh", "ja", "es"):
+        frame = Image.open(FRAMES / f"translate-{lang}.png").convert("RGB").resize((900, 620), Image.Resampling.LANCZOS)
+        frames.append(frame.quantize(colors=128, method=Image.MEDIANCUT))
+    frames[0].save(
+        OUT / "translate-to-english.gif",
+        save_all=True,
+        append_images=frames[1:],
+        duration=1500,
+        loop=0,
+        optimize=True,
+        disposal=2,
+    )
+
+
 def compose_ocr_gif() -> None:
     """Four OCR stages: hotkey, frame, local read and the explanation card."""
     frames = []
@@ -279,6 +296,7 @@ def main() -> None:
         review_hover.unlink()
 
     compose_language_gif()
+    compose_translate_gif()
     compose_ocr_gif()
     compose_selection_styles()
     compose_themes()
@@ -287,6 +305,7 @@ def main() -> None:
 
     for name in (
         "english-first.gif",
+        "translate-to-english.gif",
         "ocr-capture.gif",
         "selection-styles.gif",
         "pets.gif",
