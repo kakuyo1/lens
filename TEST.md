@@ -262,10 +262,15 @@ offscreen 不会栅格化 `MultiEffect`，因此图标与阴影在这类快照�
 
 ### GIF（逐帧序列）
 
-`scripts/qa/readme-gifs.ps1` 把 README 的动图与设置页截图渲出来。它与快照用同一条离屏路径：只在 `QT_QPA_PLATFORM=offscreen`
+`scripts/qa/readme-gifs.ps1` 把 QML 的离屏动图与设置页截图渲出来。它与快照用同一条离屏路径：只在 `QT_QPA_PLATFORM=offscreen`
 下运行 `test/qtest/surfaces/tst_readme_gifs.qml` 的用例。每个用例在场景里逐步执行动作（`mouseMove`、`mouseClick`
 等 QTest 的场景内事件），每一步用 `grabImage` 截一帧。不显示窗口，不碰真实指针、键盘和剪贴板；设置写进测试副本，
-不改仓库里的 `settings.json` fixture。
+不改仓库里的 `settings.json` fixture。它写 `docs/readme-images/`，是旧的 README 素材管线，当前 README 不再引用这些图片。
+
+当前 README 的营销素材走另一条纯 HTML 路径：`scripts/qa/readme-html-shots.sh` 用无头 Chrome 渲染 `ui-prototypes/`
+与 `docs/readme/scenes/`，`scripts/qa/readme-html-compose.py` 用 Pillow 裁切、合成语言切换 GIF、学习循环拼图与主题拼图；
+社交预览由截图脚本一并渲染。它同样不显示窗口，不碰指针、键盘和剪贴板；运行方式见 `scripts/README.md`。
+改 README 的图时先跑这两条，再检查 `docs/readme/` 下的产物。
 
 运行前先构建目标，然后在仓库根目录执行：
 

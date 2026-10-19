@@ -1,97 +1,135 @@
-# Lens
+<p align="center"><img src="docs/readme/brand/lens-mark.png" width="92" alt="Lens"></p>
 
-**读英文时，不必离开正在看的页面**。Lens 是一款常驻 Windows 系统托盘的英语学习工具，会在文字旁边用小浮层解释单词、名称和句子，不必另开词典窗口。
+<h1 align="center">Lens</h1>
 
-[English](README.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [Español](README.es.md)
+<h3 align="center">用英文，读懂英文。</h3>
 
-## 安装
+<p align="center">
+  Lens 是一款常驻 Windows 系统托盘的英语阅读助手。选中一个单词、一个名字或一个句子，它会在文字旁用更清楚的英文解释——不切页，不开词典，也不把英文先翻译成中文。
+</p>
 
-从[发布页](https://github.com/kakuyo1/lens/releases)下载 `Lens-<版本>-setup.exe` 并运行。它是按用户安装的，Windows 不会要求管理员权限，装完 Lens 就在开始菜单里。
+<p align="center">
+  <a href="https://github.com/kakuyo1/lens/releases/latest"><strong>下载 Windows 版</strong></a> ·
+  <a href="#先看一眼">看它怎么工作</a> ·
+  <a href="https://github.com/kakuyo1/lens/releases">全部版本</a>
+</p>
 
-Windows 会先拦一下。Lens 没有代码签名，Windows Defender SmartScreen 会拦截它不认识的程序。在蓝色的 “Windows 已保护你的电脑” 窗口里，点 “更多信息”，再点 “仍要运行”——绕过方法就这一步，文件本身没有问题。原因是缺签名，不是程序不安全：SmartScreen 认的是签名，而 Lens 目前还没有。
+<p align="center">
+  <a href="https://github.com/kakuyo1/lens/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/kakuyo1/lens?label=release&color=2f9e6e"></a>
+  <a href="#下载"><img alt="Windows 10/11 x64" src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-1a1a1f"></a>
+  <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/github/license/kakuyo1/lens?color=2f9e6e"></a>
+  <a href="#语言"><img alt="英语、中文、西班牙语、日语" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
+</p>
 
-不想装东西的话，每个发布也带一份 `Lens-<版本>-portable.zip`。解压到任意目录，运行其中的 `lens.exe` 即可。里面是同一个程序，只是没有开始菜单快捷方式，也没有卸载项——把目录删掉就没了。Lens 的设置写在 `%APPDATA%\Lens\settings.json`，所以你的生词和 API 键都不在安装包或 zip 里，删掉它也不会丢。
+<p align="center"><sub><a href="README.md">English</a> · 简体中文 · <a href="README.ja.md">日本語</a> · <a href="README.es.md">Español</a></sub></p>
 
-想在运行前核对下载，把文件的 SHA-256 和该版本发布里的 `SHA256SUMS` 对应行比一下即可。这能证明文件没有在传输中损坏，但不能证明发布者是谁：未签名的文件理论上可以连同校验和一起被替换。
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/hero-dark.png">
+    <img src="docs/readme/hero-light.png" width="100%" alt="Lens 在英文文章旁用英文解释 serendipity 这个词">
+  </picture>
+</p>
 
-## Lens 能做什么
+<p align="center"><sub>解释默认使用英文；需要中文、西班牙语或日语时，点气泡上的语言按钮即可切换。</sub></p>
 
-Lens 常驻系统托盘，没有主窗口。选中一段文字后，会弹出一个小动作条，提供翻译、解释和复制三项。结果以气泡的形式显示在触发它的文字旁边。把单词标记为 “已会” 或 “新词” 之后，继续阅读即可。名称和整句也会得到解释。
+## 为什么是 Lens
 
-文字无法选中时，按下截图热键（默认 `Ctrl+Alt+S`，可在设置中修改），框选屏幕上的一块区域，Lens 会用 OCR 识别文字并立即翻译。自动扫描也可以监看你指定的应用中的文字，且只监看这些应用。
+大多数查词工具会把你带离页面，再给一个中文答案。你读完了一段，却没有用英文读它。Lens 的选择相反：提高英语阅读最有效的方式，是留在英语里。
 
-## 发送什么
+**英文进，清楚的英文出。**一条你能直接读懂的英文释义、音标；需要时再加上词源和例句。翻译仍然在，只是它不是默认动作。
 
-Lens 在本机把捕获到的文字分成三类请求：单词请求只发送单词，实体请求只发送名称，句子请求只发送选中的句子。在任何内容离开你的电脑之前，Lens 会遮盖 URL、电子邮件地址以及六位及以上的数字串。
+**答案留在文字旁。**Lens 常驻系统托盘，没有主窗口。气泡出现在选区旁边，鼠标停在上面就会一直留着；你继续往下读，它就退场。
 
-解释由你配置的 AI 服务商生成。Lens 不内置释义词典，但包含一份约 168,000 个常见英语单词的词表，只用来判断候选词是不是真正的英语单词，词表本身不含释义。
+**安静的记忆。**把词标成 “已会” 或 “新词”，Lens 替你记着；桌面宠物之后可能会把词举回来问你。没有连续打卡，也没有课程表。
 
-## 功能
+## 先看一眼
 
-- **解释**。单词会以你选择的解释语言给出最常见的义项，并附上国际音标。打开 “多义解释” 可以查看最多三个义项。打开 “词源” 可以了解单词的由来，再打开其下的 “例句” 开关，会附上一句英文例句。例句默认关闭，因为它会多消耗输出 token。
-- **名称和句子**。名称和整句同样会得到解释，使用同一个解释语言。
-- **气泡**。可以设置气泡停留的时长（1 到 30 秒，默认 5 秒），以及气泡出现在选区的上方还是下方（默认上方）。鼠标移到气泡上时，它会一直停留。
-- **词汇列表**。已会和新词标记都记在同一张列表里，每个词一行，显示最近一次查词的时间。把指针停在某一行上，就能读到 Lens 已经存下的释义，悬停不会发出任何请求。删除单词后无法撤销。
-- **单词年度记录**。一整年的查词次数画成贡献图。选中某一天，可以看到当天查了多少个词。选择格子的配色时，可以在十二等分的色相环上选色，每个色相有四档深浅。
-- **花费与预算**。花费视图根据每次请求用掉的 token 数，按当前价目计算费用。设定每日预算后，当天花费达到上限时，Lens 会暂停取词、截图和请求，并在本地日期变更后重置。
-- **截图取词与自动扫描**。截图时会压暗所有屏幕，读取你框选的区域并翻译。Lens 随附 OCR 运行时；如果你已安装 Tesseract，也可以在设置里指向它。
-- **桌面宠物**。应用随包提供七只宠物：短耳猫、小狗、麻糬、猫头鹰、小幽灵、小水母和小云，学习时会做出相应的动作。默认关闭，可在设置的 “扩展” 分类中开启。你可以拖动它、戳它，给它戴上最多三件配饰，把大小调成一到四倍，也可以开启鼠标穿透，让点击落到下层窗口。宠物只接收事件类型，从不读取你的选区、释义或屏幕文字。也可以安装宠物包：把宠物包目录复制到 `%APPDATA%\Lens\pets\`，再打开设置的 “扩展” 分类。每个宠物包第一次启用前都会确认一次；宠物包只含数据，不含代码。
-- **检查更新**。Lens 会在每天启动时检查项目的最新版本（可在通用设置中关闭），也可以在 “关于” 页点击 “检查更新”。“关于” 是设置目录末尾的一页，显示当前版本和仓库链接。出现新版本时会显示一张卡片，提供查看、下载和跳过此版本。下载的安装包会按发布页中的 `SHA256SUMS` 校验，只有你点击 “安装” 才会运行，且运行时不带任何参数。安装包没有代码签名，因此校验只能说明文件完整到达，不能证明发布者的身份。下载需要中国大陆的代理，若长时间没有收到文件，Lens 会提示。
-- **同步**。用 GitHub 账号登录后，已会与新词标记、查词历史、统计和选定的设置可以在几台设备之间保持一致。云端副本用你设置的口令加密，存放在你自己 GitHub 账号下的一个 secret gist 里。解释不参与同步。你随时可以退出登录，或删除云端数据。
-- **主题**。内置晴朗白昼、静谧暗夜、雾面玻璃和流光玻璃四套主题，另有自定义配色。详见[主题](#主题)。
+<p align="center"><img src="docs/readme/english-first.gif" width="600" alt="在气泡上把解释语言从英文切换到中文"></p>
+
+语言切换就在卡片上。默认英文，中文只差一次点击。
+
+## 英文优先，需要时再翻译
+
+解释默认使用英文。中文选区始终用英文回答。需要中文时，点气泡上的地球按钮切换解释语言：同一张卡会重新作答，已有缓存就不发请求。
+
+动作条提供翻译、解释和复制文本。Lens 围绕的是 “解释”：用你已经认识的英文，说明这个词在这里做什么，而不是换成一个你可以直接跳过、不再需要读英文的中文词。翻译也跟随解释语言——默认英文，除非你改。
+
+## 怎么用
+
+<p align="center"><img src="docs/readme/selection-bar.png" width="800" alt="选中的文字上方出现动作条"></p>
+
+1. 在任意应用里选中一个单词、名字或句子。
+2. 选择 “解释”，气泡出现在选区上方或下方。
+3. 标记 “已会” 或 “新词”，继续读。
+
+文字无法选中时，按 `Ctrl+Alt+S`（可在设置中修改），框选 PDF、图片或视频画面中的一块区域，Lens 会在本机用 OCR 读取。自动扫描只监看你加入白名单的应用。
+
+## 一个安静的学习循环
+
+<p align="center"><img src="docs/readme/learning-loop.png" width="900" alt="桌面宠物举着到期的单词，以及单词年度记录"></p>
+
+已会和新词在同一张词表里。把指针停在某一行上，可以重读 Lens 已经存下的解释，不会发出请求。单词到期时，桌面宠物会举起一块牌子；回答 “忘了” 或 “记得”，它会按 10 分钟到 60 天的间隔再次被问起。年度记录把阅读留下的痕迹画成一格一格的绿色，而不是一条连续打卡。
+
+## 七只桌面宠物，可选
+
+<p align="center"><img src="docs/readme/pets.gif" width="900" alt="Lens 的七只像素宠物"></p>
+
+Lens 随包提供七只像素宠物：短耳猫、猫头鹰、麻糬、小幽灵、小水母、小云和小狗。它们默认关闭，可在设置的 “扩展” 里开启。它们只接收事件类型——从不读取你的选区、解释或屏幕文字——宠物包也只含数据。
+
+## 还有这些
+
+- **自带模型。**DeepSeek、OpenAI、Gemini、OpenRouter、xAI、Moonshot、智谱、通义千问，或任何兼容 OpenAI 的自定义端点。
+- **看得见的花费。**按 token 计算每次请求的费用；每日预算到顶时，暂停取词、截图和请求。
+- **想同步时再同步。**已会/新词标记、查词历史、统计和选定设置用你的口令加密，存放在你自己 GitHub 账号的 secret gist 里；API key 始终留在本机。
+- **词表进得来也出得去。**导入或导出 `.txt` 和 `.json`；删除单词需要一次确认。
+- **按你的习惯来。**五种动作条形态；晴朗白昼、静谧暗夜、雾面玻璃、流光玻璃和自定义主题；以及英文字体与 12–18 px 气泡字号。
+- **四种语言。**界面和解释各自提供英语、中文、西班牙语和日语。西班牙语与日语的翻译由机器生成，尚未经母语人士审校。
 
 ## 主题
 
-晴朗白昼和静谧暗夜是纯色主题。雾面玻璃和流光玻璃会把每张卡片画在模糊的桌面底图之上；玻璃主题开启时，Lens 的窗口会排除在屏幕截图和屏幕共享之外，截图里只有桌面。自定义配色时可以自行选色，Lens 会按 WCAG AA 检查对比度。动画开关跟随 Windows 的动画效果设置。
+<p align="center"><img src="docs/readme/themes.png" width="900" alt="晴朗白昼、静谧暗夜、雾面玻璃和流光玻璃"></p>
 
-| 晴朗白昼 | 静谧暗夜 |
-| --- | --- |
-| ![Lens 解释气泡在晴朗白昼主题下的样子](docs/readme-images/zh-CN/theme-light.png) | ![Lens 解释气泡在静谧暗夜主题下的样子](docs/readme-images/zh-CN/theme-dark.png) |
-| 雾面玻璃 | 流光玻璃 |
-| ![Lens 解释气泡在雾面玻璃主题下的样子](docs/readme-images/zh-CN/theme-frosted.png) | ![Lens 解释气泡在流光玻璃主题下的样子](docs/readme-images/zh-CN/theme-liquid.png) |
+晴朗白昼和静谧暗夜是纯色主题。雾面玻璃和流光玻璃把每张卡片画在模糊的桌面之上；玻璃主题开启时，Lens 会把自己排除在截图和屏幕共享之外。自定义配色会按 WCAG AA 检查对比度。动画开关跟随 Windows 的动画效果设置。
 
-## 界面截图
+## 下载
 
-以下大部分截图来自 [`ui-prototypes/`](ui-prototypes/) 中的 HTML 设计稿，展示的是设计概念，不是运行中应用的截图，实际实现可能有所不同。桌面宠物的截图取自运行中应用的渲染。
+从[发布页](https://github.com/kakuyo1/lens/releases/latest)下载 `Lens-<版本>-setup.exe`，或同一发布里的 `Lens-<版本>-portable.zip`。安装版按用户安装，Windows 不会要求管理员权限；便携版解压后即可运行。
 
-| 解释气泡 | 选区动作条 |
-| --- | --- |
-| ![Lens 解释气泡设计稿，展示单词、音标、释义、词源和例句](docs/readme-images/zh-CN/bubble-ui.png) | ![Lens 选区动作条设计稿，包含翻译、解释和复制操作](docs/readme-images/zh-CN/selection-bar-ui.png) |
+**Windows 10/11 x64。**你需要一个受支持服务商的 API key。Lens 不内置释义词典；它包含一份约 168,000 个英语单词的词表，只用来判断候选词是不是真词。
 
-| 名称解释 | 句子解释 |
-| --- | --- |
-| ![Lens 名称解释设计稿，展示一个人名的英文释义](docs/readme-images/zh-CN/entity-ui.png)<br>Ada Lovelace 的英文解释。 | ![Lens 句子解释设计稿，展示一句谚语的英文解释](docs/readme-images/zh-CN/sentence-ui.png)<br>谚语 “Don't count your chickens before they hatch.” 的英文解释。 |
+<details>
+<summary>Windows 可能会先拦一下</summary>
 
-| 设置 | 词汇历史 |
-| --- | --- |
-| ![Lens 设置界面设计稿，展示设置分类](docs/readme-images/zh-CN/settings-ui.png) | ![Lens 词汇历史设计稿，展示已会和新词标记](docs/readme-images/zh-CN/words-ui.png) |
+Lens 没有代码签名，SmartScreen 会拦截它不认识的程序。点 **“更多信息”**，再点 **“仍要运行”**。这是缺少签名，不是文件损坏。想核对下载是否完整，可以把文件的 SHA-256 和发布里的 `SHA256SUMS` 对应行比一下；这只能证明文件在传输中没有被改动，不能证明发布者是谁。
 
-| 单词年度记录 | 桌面宠物 |
-| --- | --- |
-| ![Lens 单词年度记录设计稿，展开色相盘选择格子配色](docs/readme-images/zh-CN/year-in-words-ui.png) | ![Lens 运行中应用的桌面宠物设置界面，展示宠物类型、预览、动作与配饰](docs/readme-images/zh-CN/pet-ui.png) |
+</details>
 
-## 操作演示
+## 隐私
 
-以下短片展示主要操作，界面和解释都是中文。
+只有你选中或截取到的文字会发送给你配置的服务商，发送前会在本机遮盖 URL、电子邮件地址和六位及以上的数字串。OCR 在本机运行，截图不会被上传。API key 和学习数据保存在 `%APPDATA%\Lens\settings.json`。开启同步后，云端副本用你的口令加密，存放在你自己的 GitHub gist 里；密钥始终只在本机。Lens 没有自己的账号，也没有自己的服务器。完整的数据边界见 [SECURITY.md](SECURITY.md)。
 
-| 解释气泡 | 单词年度记录 |
-| --- | --- |
-| ![带词源和例句的解释气泡动图](docs/readme-images/gifs/zh-CN/word-bubble.gif)<br>单词的解释气泡，带词源和例句。把指针移到气泡上，显示 “已会” 和 “新词”，点击 “已会”，标记随即变化。 | ![单词年度记录动图](docs/readme-images/gifs/zh-CN/year-in-words.gif)<br>一年的查词次数，画成贡献图。选中某一天查看当天次数，也可以选择格子的配色。 |
-| ![截图取词动图](docs/readme-images/gifs/zh-CN/ocr-capture.gif)<br>截图时压暗屏幕，框选一块区域，Lens 用 OCR 识别文字，并在旁边显示译文。这是动画示意，不是实际录屏。 | |
+## 常见问题
 
-## 桌面宠物
+**Lens 是翻译器吗？**它可以翻译，但它是为 “解释” 做的。解释默认英文；想要中文翻译时，把解释语言切成中文即可。中文选区始终返回英文。
 
-应用随包提供七只宠物。下面每段动图展示其中一只宠物做出它的动作。
+**需要 API key 吗？**需要。用受支持服务商的 key；Lens 会显示每次请求的费用，也可以设置每日上限。
 
-| 麻糬，庆祝 | 猫，踩奶 |
-| --- | --- |
-| ![麻糬庆祝动图](docs/readme-images/gifs/pets/mochi-celebrate.gif)<br>麻糬做出庆祝动作。 | ![猫踩奶动图](docs/readme-images/gifs/pets/cat-knead.gif)<br>猫做出踩奶动作。 |
-| ![小狗被戳动图](docs/readme-images/gifs/pets/dog-poked.gif)<br>小狗被戳了一下。 | ![猫头鹰阅读动图](docs/readme-images/gifs/pets/owl-reading.gif)<br>猫头鹰做出阅读动作。 |
+**能离线用吗？**OCR 和词表在本机；解释需要你配置的服务商。
+
+**什么会离开我的电脑？**只有选中或截取到的单词、名字或句子，且在本地脱敏之后。不会上传整页或整张截图。
+
+**为什么 Windows 会警告？**安装包没有代码签名。文件本身是完整的，警告针对的是缺少签名；可以用 `SHA256SUMS` 核对。
+
+**有 macOS 或 Linux 版吗？**目前只有 Windows。
 
 ## 语言
 
-界面语言和解释语言分别设置，两者都可以选择英语、中文、西班牙语和日语。西班牙语与日语的翻译由机器生成，未经母语人士审校。如果发现错误的用语，欢迎反馈。
+[English](README.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [Español](README.es.md)
 
-## 隐私与安全
+界面语言和解释语言是两个独立设置，都可以选择英语、中文、西班牙语和日语。
 
-API key 和学习数据保存在 `%APPDATA%\Lens\settings.json` 中，即你的 Windows 用户配置文件里。密钥不会写入安装目录，也不会写入日志。开启同步后，学习数据的副本会用口令加密，存放在你自己 GitHub 账号下的一个 secret gist 中；API key 始终只保存在本机。Lens 会把你选中或捕获的文字发送给你配置的服务商，请勿发送机密或敏感内容。脱敏只覆盖 URL、电子邮件地址和六位及以上的数字串，不能识别所有类型的个人信息。获取模型列表时不发送 API key，也不发送任何文字。数据流、现有保护措施、已知限制以及安全问题的报告方式，见 [SECURITY.md](SECURITY.md)。
+## 参与和许可
+
+Lens 以 [MIT 许可证](LICENSE)开源。欢迎提 issue 和 PR。如果 Lens 帮你多读了一点英文，点一个 star 会让更多读者找到它。
+
+<sub>界面图片由 Lens 当前的设计原型渲染，实际构建遵循同一套布局与令牌。</sub>

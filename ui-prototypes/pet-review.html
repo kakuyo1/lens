@@ -9,8 +9,8 @@
   默认左手；左侧的牌子和小卡放不下时换右手。指针停在牌上才展开「忘了 / 记得」；作答后牌收起，
   宠物做对应动作，缓存里的解释气泡在举牌的手那一侧出现，与宠物垂直居中。
   牌子、小卡和气泡都不被屏幕边缘截断：宠物不挪动；牌与小卡让开空间选侧，两侧都放不下时才夹进屏内（ADR 0053）。
-  手是 data/pet/dog 里 ask 的效果层（正式图）：ask.png 是右手，ask-left.png 是左手。
-  用法见 README.md：?theme=dark|frosted|liquid、?lang=en|ja|es、
+  手是所选宠物 ask 的效果层（正式图）：ask.png 是右手，ask-left.png 是左手。
+  用法见 README.md：?theme=dark|frosted|liquid、?bg=<当前玻璃主题的底图>、?lang=en|ja|es、?pet=dog|mochi|ghost、
   ?state=hover|forgot|remembered|timeout、?side=left|right（只强制作答气泡的一侧）、
   ?scale=1|2|3.01|4（牌子随宠物缩放）、?hand=left|right（强制举牌的手）、?f=0..3（停在某一帧）、?qa、?shot。
 -->
@@ -64,7 +64,7 @@ body{
 /* 宠物画布 88 × 88，每个画布单位 --u 个 CSS 像素（由 ?scale 决定）。手与牌子都在同一个画布坐标里。 */
 .figure{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);--u:3.01px}
 .layer{position:absolute;left:0;top:0;width:100%;height:100%;background-repeat:no-repeat;image-rendering:pixelated}
-.face{background-image:url("../data/pet/dog/sprites/expressions/eyes.png")}
+.face{background-repeat:no-repeat}
 .fx{display:none}
 
 
@@ -204,6 +204,8 @@ const L = {
   es: {forgot:'Olvidé', remembered:'Recordé', new:'Nueva', meta:'5 s'},
 };
 const params = new URLSearchParams(location.search);
+const PET = ['dog', 'mochi', 'ghost'].includes(params.get('pet')) ? params.get('pet') : 'dog';
+const PET_DIR = `../data/pet/${PET}`;
 const lang = L[params.get('lang')] ? params.get('lang') : 'zh';
 const l = L[lang];
 document.documentElement.lang = lang === 'zh' ? 'zh-CN' : lang;
@@ -212,15 +214,15 @@ for (const el of document.querySelectorAll('[data-l]')) {
 }
 document.getElementById('meta').textContent = l.meta;
 
-// ---- 宠物与举牌的几何（画布单位，狗的数据）----
+// ---- 宠物与举牌的几何（画布单位，随 ?pet= 读取）----
 const CANVAS = 88, HAND = 9;
 /// 杆子：离牌子内侧 14 px、宽 4 px（中心距内侧 16 px）、长 26 px，均为 3.01 倍时的设计尺寸。
 const POLE_LEN = 26, POLE_CENTRE = 16;
-/// 狗的 ask 动作身体锚点（data/pet/dog/anchors.json）。手与牌子跟着同一组锚点起伏。
+/// ask 动作的身体锚点；狗与 mochi 相同，ghost 的拳头整体低 12 行。
 const ASK = [{dx:3,dy:0}, {dx:3,dy:-3}, {dx:3,dy:-6}, {dx:3,dy:-3}];
-/// 手在 ask 效果层里的拳头列（已含身体锚点的 dx）：右手从第 79 列起，左手从第 30 列起；拳头顶行在第 48 行。
-/// 两张效果图 ask.png（右）与 ask-left.png（左）都装在 data/pet/dog/sprites/effects 里，拳头左右对称。
-const FIST = {right: 79, left: 30}, FIST_TOP = 48;
+/// 手在 ask 效果层里的拳头列（已含身体锚点的 dx）：右手从第 79 列起，左手从第 30 列起。
+/// 两张效果图 ask.png（右）与 ask-left.png（左）都装在所选宠物的 sprites/effects 里，拳头左右对称。
+const FIST = {right: 79, left: 30}, FIST_TOP = PET === 'ghost' ? 60 : 48;
 /// 小卡展开后的宽度（.hold.open .ask-pop 的 max-width），以及它与牌子的间距。
 const CARD_W = 210, CARD_GAP = 10;
 /// 屏幕边缘留的空白；身体上下起伏时手会高出 6 个画布单位。
@@ -230,7 +232,7 @@ const SHEET = {
   idle:      {file:'idle.png',      frames:5, fps:5,  loop:true,  face:0},
   ask:       {file:'ask.png',       frames:4, fps:4,  loop:true,  face:0, fx:'ask.png'},
   encourage: {file:'encourage.png', frames:5, fps:8,  loop:false, face:5, fx:'encourage.png'},
-  celebrate: {file:'celebrate.png', frames:8, fps:10, loop:false, face:5, fx:'fireworks.png'},
+  celebrate: {file:'celebrate.png', frames:8, fps:10, loop:false, face:5, fx: PET === 'dog' ? 'fireworks.png' : 'celebrate.png'},
   angry:     {file:'angry.png',     frames:5, fps:10, loop:false, face:9, fx:'angry.png'},
 };
 const SIZES = [1, 2, 3.01, 4];
@@ -264,8 +266,8 @@ const K = () => S / DEFAULT_SCALE;
 function setAct(name) {
   act = name; frame = 0; acc = 0;
   const def = SHEET[name];
-  body.style.backgroundImage = `url("../data/pet/dog/sprites/body/${def.file}")`;
-  face.style.backgroundImage = `url("../data/pet/dog/sprites/expressions/eyes.png")`;
+  body.style.backgroundImage = `url("${PET_DIR}/sprites/body/${def.file}")`;
+  face.style.backgroundImage = `url("${PET_DIR}/sprites/expressions/eyes.png")`;
   fx.style.display = def.fx ? 'block' : 'none';
   fx.style.backgroundRepeat = 'no-repeat';
 }
@@ -403,7 +405,7 @@ function render() {
     // The left paw has its own sheet (effectLeft in animations.json); the right paw's sheet is the default.
     const sheet = act === 'ask' && side === 'left' ? 'ask-left.png' : def.fx;
     if (fx.dataset.sheet !== sheet) {
-      fx.style.backgroundImage = `url("../data/pet/dog/sprites/effects/${sheet}")`;
+      fx.style.backgroundImage = `url("${PET_DIR}/sprites/effects/${sheet}")`;
       fx.dataset.sheet = sheet;
     }
     fx.style.backgroundSize = `${def.frames * CANVAS * S}px ${CANVAS * S}px`;
@@ -533,6 +535,17 @@ function applyTheme() {
   tb.textContent = THEMES.find(([id]) => id === theme)[1];
 }
 applyTheme();
+/// ?bg=<name> swaps in one of the current glass theme's test backdrops, as the other surfaces do.
+const WALLS = {
+  frosted: ['night-lines', 'text-dense', 'color-blocks', 'sky-light', 'checker'],
+  liquid: ['cool-wall', 'web-light', 'web-dark', 'colorful', 'stripes', 'black', 'white'],
+};
+const wallName = params.get('bg');
+if (wallName === 'paper') {
+  document.documentElement.style.background = '#f6f2ea';
+  document.documentElement.style.backgroundImage = 'none';
+} else if ((WALLS[document.documentElement.dataset.theme] || []).includes(wallName))
+  document.documentElement.style.setProperty('--wall', `url("${document.documentElement.dataset.theme}-backdrops/${wallName}.png")`);
 tb.addEventListener('click', () => {
   const i = THEMES.findIndex(([id]) => id === theme);
   theme = THEMES[(i + 1) % THEMES.length][0];

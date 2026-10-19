@@ -122,6 +122,7 @@ html[data-theme=dark] .shade:nth-child(4) i{background:hsl(var(--palette-hue) 68
 @keyframes hue-wheel-in{from{opacity:0;transform:scale(.72) rotate(-22deg)}to{opacity:1;transform:none}}
 @media(max-width:410px){body{padding-inline:10px}.panel{padding-inline:13px}.palette-body{gap:9px}.hue-wheel{width:116px;height:116px}.hue{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(-47px) rotate(calc(var(--angle) * -1))}.hue:hover,.hue[aria-pressed=true]{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(-47px) rotate(calc(var(--angle) * -1)) scale(1.12)}}
 @media(prefers-reduced-motion:reduce){.palette{transition:none}.hue-wheel,.hue-core{animation:none;transition:none}.hue{transition:none}}
+html.shot *{transition:none!important;animation:none!important}
 </style>
 </head>
 <body>
@@ -136,9 +137,9 @@ html[data-theme=dark] .shade:nth-child(4) i{background:hsl(var(--palette-hue) 68
   <header class="header">
     <button class="icon" type="button" aria-label="返回词汇" title="返回词汇"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
     <span class="title" data-l="title"></span>
-    <div class="actions"><button class="year" type="button" aria-label="查看 2025 年">2025</button><button class="icon" type="button" aria-label="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div class="actions"><button class="year" type="button" aria-label="查看 2026 年">2026</button><button class="icon" type="button" aria-label="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
   </header>
-  <div class="summary"><strong>2025</strong><span id="dayDetail"></span><em id="total"></em></div>
+  <div class="summary"><strong>2026</strong><span id="dayDetail"></span><em id="total"></em></div>
   <div class="graph-wrap">
     <div class="month-labels" aria-hidden="true" id="monthLabels"></div>
     <div class="graph-row"><div class="week-labels" aria-hidden="true"><span></span><span data-l="mon"></span><span></span><span data-l="wed"></span><span></span><span data-l="fri"></span><span></span></div><div class="grid" id="grid"></div></div>
@@ -180,7 +181,7 @@ const t = L[lang];
 document.documentElement.lang = { en: 'en', zh: 'zh-CN', ja: 'ja', es: 'es' }[lang];
 for (const el of document.querySelectorAll('[data-l]')) el.textContent = t[el.dataset.l];
 
-const year=2025;
+const year=2026;
 const months=t.months;
 const hues=t.hueNames.map((name,index)=>[name,index*30]);
 const days=[];const counts=new Map();const key=date=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
@@ -254,9 +255,12 @@ const themeArg=new URLSearchParams(location.search).get('theme');setTheme(['dark
 // ?bg=<name> swaps in one of the current glass theme's test backdrops; a name outside that theme's list is ignored.
 const WALLS={frosted:['night-lines','text-dense','color-blocks','sky-light','checker'],liquid:['cool-wall','web-light','web-dark','colorful','stripes','black','white']};
 const bgName=new URLSearchParams(location.search).get('bg');const wallTheme=root.dataset.theme;
-if((WALLS[wallTheme]||[]).includes(bgName))root.style.setProperty('--wall',`url("${wallTheme}-backdrops/${bgName}.png")`);
+if(bgName==='paper'){root.style.background='#f6f2ea';root.style.backgroundImage='none'}else if((WALLS[wallTheme]||[]).includes(bgName))root.style.setProperty('--wall',`url("${wallTheme}-backdrops/${bgName}.png")`);
 // ?shot is for the README's screenshots: the toggle is a way to look at the prototype, not part of the surface.
-if (new URLSearchParams(location.search).has('shot')) theme.remove();
+if (new URLSearchParams(location.search).has('shot')) {
+  document.documentElement.classList.add('shot');
+  theme.remove();
+}
 </script>
 </body>
 </html>

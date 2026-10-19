@@ -200,9 +200,12 @@ check_typography() {
         case "$doc" in
             AGENTS.md | .claude/skills/*) continue ;;
         esac
-        # zhlint's rules are Chinese typography: they flag every Japanese-Latin boundary in
-        # README.ja.md, which is correct Japanese, so that file is left out.
-        [ "$doc" = README.ja.md ] && continue
+        # zhlint's rules are Chinese typography: they flag English punctuation and every
+        # Japanese-Latin boundary in README.ja.md. The English, Spanish and Japanese READMEs
+        # are not Chinese documents, so they are left out; README.zh-CN.md stays in.
+        case "$doc" in
+            README.md | README.es.md | README.ja.md) continue ;;
+        esac
         if [ -z "$limit" ]; then
             echo "pre-commit: $doc has no typography budget, so it is not checked; add one to BASELINES"
             continue

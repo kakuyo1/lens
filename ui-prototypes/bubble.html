@@ -75,7 +75,7 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 .bub-etym-label,.bub-example-label{font-size:11px;font-weight:700;color:var(--muted)}
 .bub-etym-text,.bub-example-text{font-size:12px;color:var(--muted);line-height:1.5;margin-top:5px}
 .bub-actions{display:flex;gap:8px;max-height:0;opacity:0;overflow:hidden;transition:.22s ease}
-.bubble:hover .bub-actions{max-height:44px;opacity:1;margin-top:12px;padding-top:12px;border-top:1px solid var(--line2)}
+.bubble:hover .bub-actions,.bubble.actions-open .bub-actions{max-height:44px;opacity:1;margin-top:12px;padding-top:12px;border-top:1px solid var(--line2)}
 .bub-meta{font-size:11px;color:var(--faint);margin-top:9px;display:flex;align-items:center;gap:6px}
 .bub-meta svg{width:12px;height:12px}
 
@@ -85,6 +85,20 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 .btn:active{transform:scale(.97)}
 .themebtn{position:fixed;top:14px;right:16px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-family:var(--f);font-size:11.5px;cursor:pointer}
 .themebtn:hover{color:var(--text)}
+/* Screenshot-only page mode (?page=1): the bubble floats over a reading page, so a glass theme
+   blurs real text rather than an empty canvas. */
+.read-page{position:fixed;inset:0;z-index:0;background:#f6f2ea;color:#1a1a1f;padding:56px 64px;overflow:hidden;font-family:"Charter","Iowan Old Style","Sitka Text",Georgia,serif}
+.read-page[hidden]{display:none}
+.read-kicker{font:700 11px/1 var(--f);letter-spacing:.16em;text-transform:uppercase;color:var(--ok)}
+.read-page h1{margin-top:14px;font-size:52px;line-height:1.08;letter-spacing:-.025em;font-weight:600}
+.read-byline{margin-top:14px;font:12.5px var(--f);color:#8e8e98}
+.read-page p{max-width:720px;margin-top:22px;font-size:19px;line-height:1.8;color:#33343a}
+.read-page p+p{margin-top:16px;color:#66666f;font-size:17px}
+.read-page blockquote{max-width:680px;margin-top:26px;padding-left:20px;border-left:3px solid var(--ok);font-size:22px;line-height:1.5;color:#1a1a1f}
+.read-sel{background:rgba(47,158,110,.17);border-radius:3px;padding:1px 2px;margin:0 -2px}
+html.page-mode,html.page-mode body{background:#f6f2ea;min-height:0}
+html.page-mode body{display:block;overflow:hidden}
+html.page-mode .bubble{position:absolute;left:43%;top:165px;transform:scale(var(--page-scale,1.5));transform-origin:top left;box-shadow:0 30px 80px -20px rgba(20,20,26,.4),0 0 0 1px rgba(20,20,26,.06)}
 /* Glass card: the bubble is the glass. Fill, rim and shadow come from the tokens, not the light values. */
 html[data-theme=frosted] .bubble{background:var(--panel);box-shadow:var(--sh2);border-color:rgba(255,255,255,var(--glass-rim,.2));backdrop-filter:blur(var(--glass-blur,6px)) saturate(var(--glass-sat,120%))}
 html[data-theme=liquid] .bubble{background:transparent;box-shadow:var(--sh2);border-color:rgba(255,255,255,var(--glass-rim,.1));backdrop-filter:blur(var(--glass-blur,6px)) contrast(1.05)}
@@ -97,9 +111,19 @@ html[data-theme=liquid][data-refract] .bubble{backdrop-filter:blur(var(--glass-b
   html[data-theme=liquid] .bubble{background:var(--panel)}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+html.shot *{transition:none!important;animation:none!important}
 </style>
 </head>
 <body>
+<div class="read-page" id="readPage" hidden>
+  <div class="read-kicker">Essay · 8 min read</div>
+  <h1>The Art of Noticing</h1>
+  <div class="read-byline">Mara Ellison · October 2026</div>
+  <p><span class="read-sel">Serendipity</span>, she wrote, is not luck. It is attention. She had come to the archive looking for one thing and found another: a letter that changed the shape of her book.</p>
+  <p>The distinction matters. Luck arrives; attention makes room for it. A reader who stops to ask what a word is really doing is already reading more closely than one who turns the page.</p>
+  <blockquote>“Attention is a form of hospitality,” she wrote. “It makes a place for the unexpected.”</blockquote>
+  <p>That is why the old reading rooms still feel different from a feed. Nothing there is trying to move you along. The page waits while a sentence opens, and the word you did not know becomes part of the room.</p>
+</div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <filter id="lg-liquid" filterUnits="userSpaceOnUse" x="0" y="0" width="270" height="268" color-interpolation-filters="sRGB">
     <feImage id="lg-map" x="0" y="0" width="270" height="268" preserveAspectRatio="none" result="map"/>
@@ -155,7 +179,14 @@ const L = {
         etym: "Acuñada en 1754 a partir del cuento de los tres príncipes de Serendip, de Horace Walpole.",
         themeDark: "Oscuro", themeLight: "Claro", themeFrosted: "Vidrio mate", themeLiquid: "Vidrio líquido" }
 };
-const asked = (new URLSearchParams(location.search).get('lang') || 'zh').toLowerCase();
+const params = new URLSearchParams(location.search);
+if (params.has('page')) {
+  document.documentElement.classList.add('page-mode');
+  document.getElementById('readPage').hidden = false;
+  const pageScale = Number(params.get('pageScale'));
+  if (Number.isFinite(pageScale) && pageScale > 0) document.documentElement.style.setProperty('--page-scale', pageScale);
+}
+const asked = (params.get('lang') || 'zh').toLowerCase();
 const lang = asked.startsWith('zh') ? 'zh' : (L[asked] ? asked : 'zh');
 const t = L[lang];
 document.documentElement.lang = { en: 'en', zh: 'zh-CN', ja: 'ja', es: 'es' }[lang];
@@ -164,7 +195,7 @@ for (const el of document.querySelectorAll('[data-l]')) el.textContent = t[el.da
 /// The explanation language shortcut (UI.md 4.3). The sample explanation starts in the page's
 /// language; a pick changes the sample shown and marks the strip's current item. In the application
 /// the same pick writes the global setting and asks for the standing card again.
-let explained = lang;
+let explained = L[params.get('explain')] ? params.get('explain') : lang;
 const langBtn = document.getElementById('langBtn');
 const langMenu = document.getElementById('langMenu');
 const langCode = langBtn.querySelector('.bub-lang-code');
@@ -242,7 +273,6 @@ new ResizeObserver(() => {
 }).observe(card);
 
 const tb = document.getElementById('tb');
-const params = new URLSearchParams(location.search);
 /// Test backdrops per glass theme (?bg=). The first name in each list is the default.
 const BG = {
   frosted: ['night-lines', 'text-dense', 'color-blocks', 'sky-light', 'checker'],
@@ -300,11 +330,28 @@ if (kind === 'translation') {
   document.querySelector('.bub-lang-menu').remove();
   document.querySelector('.bubble').classList.add('translation');
 }
+// Screenshot-only states for the README's marketing frames. Normal use never passes these.
+// ?explain=zh starts the card in that explanation language; ?menu=open leaves the strip open;
+// ?actions=open shows the Known/New row; ?transparent drops the page colour for a composed shot.
+if (kind === 'word' && explained !== lang) {
+  document.querySelector('.bub-def').textContent = L[explained].def;
+  document.querySelector('.bub-etym-text').textContent = L[explained].etym;
+}
+if (params.get('menu') === 'open') setLangOpen(true);
+if (params.get('actions') === 'open') document.querySelector('.bubble').classList.add('actions-open');
+if (params.has('transparent')) {
+  document.documentElement.style.background = 'transparent';
+  document.documentElement.style.backgroundImage = 'none';
+  document.body.style.background = 'transparent';
+}
 const THEMES = ['light', 'dark', 'frosted', 'liquid'];
 tb.onclick = () => applyTheme(THEMES[(THEMES.indexOf(root.dataset.theme) + 1) % THEMES.length]);
 // ?shot is for the README's screenshots: the toggle is a way to look at the prototype, not part
 // of the surface, and no image of it ships.
-if (new URLSearchParams(location.search).has('shot')) tb.remove();
+if (params.has('shot')) {
+  document.documentElement.classList.add('shot');
+  tb.remove();
+}
 </script>
 </body>
 </html>

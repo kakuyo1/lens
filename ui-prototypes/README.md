@@ -26,13 +26,13 @@
 
 `selection-bar-variants.html` 追加 `?v=A|E|H|F` 只看一种形态，`?lang=` 与 `?theme=` 照旧，`?shot` 隐去右上角控件；每条动作条进入视野时出场，滚回去会重播，点一下看它自己的按法。它是动作条样式的备选对照；默认仍是 `selection-bar.html` 的经典长条，行为契约在 `UI.md` 4.10。
 
-追加 `?lang=en`、`?lang=ja`、`?lang=es` 按该语言渲染界面，缺省中文。进 README 的五个表面（bubble、selection-bar、settings、words、year-in-words）接了它，其余表面和设置里的子页面仍是中文。pet 页要看到预览舞台，追加 `?on` 直接打开桌面宠物；`?act=ask` 让预览直接停在举牌，`?preview` 把面板滚到预览舞台（headless 截图的静止画面不走动画，要看起伏请在浏览器里打开）；要直接看宠物包的确认弹窗，追加 `?dlg=1`；README 里的桌面宠物图取自应用本身，不由这里渲染。
+追加 `?lang=en`、`?lang=ja`、`?lang=es` 按该语言渲染界面，缺省中文。进 README 的五个表面（bubble、selection-bar、settings、words、year-in-words）接了它，其余表面和设置里的子页面仍是中文。pet 页要看到预览舞台，追加 `?on` 直接打开桌面宠物；`?act=ask` 让预览直接停在举牌，`?preview` 把面板滚到预览舞台（headless 截图的静止画面不走动画，要看起伏请在浏览器里打开）；要直接看宠物包的确认弹窗，追加 `?dlg=1`；README 里的复习牌截图由 `pet-review.html` 渲染；旧的桌面宠物图取自应用本身，当前 README 不再引用。
 
-`pet-review.html` 直接停在举牌，默认左手；左侧的牌子连同外侧的小卡放不下时换右手，两侧都放不下取溢出少的一侧。`?scale=1|2|3.01|4` 改宠物尺寸，牌子随之等比缩放；`?hand=left|right` 强制举牌的手；`?f=0` 到 `?f=3` 停在举牌的某一帧，用来看牌子随身体起伏。手是 `data/pet/dog` 里 `ask` 的效果层：`ask.png` 是右手，`ask-left.png` 是左手。`?qa` 把牌子、小卡与气泡的屏幕坐标写在页面左下角，用来核对没有被截断。`?state=hover` 看展开的两枚按钮，`?state=forgot` / `?state=remembered` 看作答后的宠物动作与气泡，`?state=timeout` 看超时生气。作答气泡缺省在举牌的手那一侧（右手在右，左手在左），与宠物垂直居中，那一侧放不下时翻到另一侧；`?side=left|right` 强制气泡一侧，用来看翻边。小卡朝牌子的外侧展开：右手时在右边，左手时在左边；外侧放不下时翻到内侧。`?lang=` 支持四种界面语言；牌上的单词与气泡里的释义是样例内容，不随界面语言变。牌子的像素字体由页面相对引用 `data/fonts/PixelifySans-Regular.ttf`。
+`pet-review.html` 直接停在举牌，默认左手；左侧的牌子连同外侧的小卡放不下时换右手，两侧都放不下取溢出少的一侧。`?pet=dog|mochi|ghost` 选择举牌的宠物，ghost 的拳头位置会自动下移；`?bg=<当前玻璃主题的底图>` 换背景；`?scale=1|2|3.01|4` 改宠物尺寸，牌子随之等比缩放；`?hand=left|right` 强制举牌的手；`?f=0` 到 `?f=3` 停在举牌的某一帧，用来看牌子随身体起伏。手是 `data/pet/dog` 里 `ask` 的效果层：`ask.png` 是右手，`ask-left.png` 是左手。`?qa` 把牌子、小卡与气泡的屏幕坐标写在页面左下角，用来核对没有被截断。`?state=hover` 看展开的两枚按钮，`?state=forgot` / `?state=remembered` 看作答后的宠物动作与气泡，`?state=timeout` 看超时生气。作答气泡缺省在举牌的手那一侧（右手在右，左手在左），与宠物垂直居中，那一侧放不下时翻到另一侧；`?side=left|right` 强制气泡一侧，用来看翻边。小卡朝牌子的外侧展开：右手时在右边，左手时在左边；外侧放不下时翻到内侧。`?lang=` 支持四种界面语言；牌上的单词与气泡里的释义是样例内容，不随界面语言变。牌子的像素字体由页面相对引用 `data/fonts/PixelifySans-Regular.ttf`。
 
 `pet-hover.html` 是悬浮交互的设计提案，不是已定稿的行为：指针靠近宠物时先跟眼神，停一下给个小反应，再停一会给完整动作；右侧可单独关掉每一层，`?zones` 直接显示注视与注意两只环，`?qa` 暴露页面里的 pet 列表供截图脚本暂停帧用。状态文字只在这个原型里出现，产品里的宠物不说话。
 
-`bubble.html` 追加 `?kind=entity`、`?kind=sentence` 或 `?kind=translation` 看实体、句子与中文译文，缺省是单词。前两种的样例文字是英文，与界面语言无关：README 的截图按英文解释渲染，解释语言是设置里另一项；译文那张的样例是中文，因为译文通道只收中文，卡片上画的仍是英文。
+`bubble.html` 追加 `?kind=entity`、`?kind=sentence` 或 `?kind=translation` 看实体、句子与中文译文，缺省是单词。前两种的样例文字是英文，与界面语言无关：README 的截图按英文解释渲染，解释语言是设置里另一项；译文那张的样例是中文，因为译文通道只收中文，卡片上画的仍是英文。README 的静态与 GIF 帧还会用 `?explain=zh`（以另一门解释语言开场）、`?menu=open`（展开语言条）、`?actions=open`（露出已会/新词行）和 `?transparent`（去掉页面底色）。`?page=1` 会把卡片放到同一文档的一张阅读页上，`?pageScale=1.5` 控制卡片缩放；themes 和语言切换 GIF 都用它，玻璃主题因此会真正模糊背后的文字。带 `?shot` 时页面会加上 `.shot`，关闭过渡与动画，截图停在最终状态。
 
 `settings.html` 的功能预览（UI.md 4.4）：指针停在通用 › 打字速度 / 字体子页里的字体一行，或阅读学习里解释语言 / 多义解释 / 词源 / 例句五行的**标题文字**上，卡片就在面板旁浮出，离开标题即收；命中区只有标题，开关与滑块不触发。字体那一处的卡片按所选的英文字族画英文（词、音标、英文释义），其余文字仍用应用那面——设置只管英文，卡片就只演示英文。卡片按当前主题取玻璃，样例文字一律英文（同 `bubble.html`：跟着解释语言换行的那一版只在应用里有）。它贴在面板右侧优先、右侧放不下才翻到左侧，而原型把面板摆在视口正中，所以这里多半在右侧；应用里面板挂在托盘图标旁，实际多为左侧。README 的截图不拍它（它是一次悬浮，不是一屏）。
 
@@ -48,5 +48,5 @@
 - 扩展分类里的桌面宠物已随 1.2.0 上线，`pet.html` 是它的设计对照。`pet.html` 内嵌的 PNG 来自 `data/pet/`，改了数据要跑 `npm run embed` 重新生成；`pet-hover.html` 用同一份数据，跑 `npm run embed:hover`。改了 `pet-prototype/src/pet-renderer.js` 这类共享文件，两条都要重跑。麻糬、猫头鹰、猫的美术是生成的初版，还需要人工复核。
 - 宠物包一节用两只写死的样例（`PACKAGES` 与 `REFUSED`）对视来源标记、被拒列表与确认弹窗：它们不是扫出来的，预览也复用随包宠物的美术。契约、上限与拒绝原因见 `docs/pet-package-format.md`，决定见 `docs/adr/0043`。
 - 加新表面时，新增一个文件、在这里登记，并在 `UI.md` 的表面表加一行。
-- 界面文字四语言各一份，在每个文件脚本开头的 `L` 表里，取值与 `i18n/lens_*.ts` 一致：改文案先改那边，再抄回来。README 的四十四张截图（十一张图 × 四种语言）由 `scripts/qa/readme-shots.sh` 从这些表生成，写进 `docs/readme-images/<语言>/`，改完记得重跑。桌面宠物图不在其中。
+- 界面文字四语言各一份，在每个文件脚本开头的 `L` 表里，取值与 `i18n/lens_*.ts` 一致：改文案先改那边，再抄回来。README 的营销图由 `scripts/qa/readme-html-shots.sh` 从这些表面渲染，再由 `scripts/qa/readme-html-compose.py` 裁切、合成 GIF、学习循环拼图与主题拼图，写进 `docs/readme/`。旧的 `readme-shots.sh` 与 `readme-gifs.ps1` 生成 `docs/readme-images/`，已不供当前 README 使用。
 - 文件内的中文同样按项目排版规则写，`zhlint` 可查（`.githooks/pre-commit` 的预算里已登记本文件）。

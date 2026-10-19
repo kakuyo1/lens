@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · hero</title>
+<!--
+  A marketing scene for the README, not a product surface. It mirrors the tokens and the two
+  pieces of chrome in ui-prototypes/bubble.html and ui-prototypes/selection-bar.html, placed over
+  an English reading page so the "beside the page" promise is visible. ?theme=dark renders the
+  dark palette; every other value is light.
+-->
+<style>
+:root{
+  --bg:#e7ebf0; --paper:#f6f2ea; --paper-2:#efebe2; --line:#e2e5e9; --line-2:#eceef1;
+  --text:#1a1a1f; --body:#33343a; --muted:#66666f; --faint:#8e8e98;
+  --green:#2f9e6e; --green-bg:#e6f4ee; --green-ink:#1d7a52;
+  --bubble-bg:rgba(248,250,254,.74); --bubble-bd:rgba(255,255,255,.65);
+  --bubble-sh:0 30px 80px -22px rgba(20,20,26,.38),inset 0 1px 0 rgba(255,255,255,.78);
+  --bar-bg:rgba(248,250,254,.74); --bar-bd:rgba(255,255,255,.65);
+  --sel:rgba(47,158,110,.17);
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+  --read:"Charter","Iowan Old Style","Sitka Text",Georgia,serif;
+}
+html[data-theme=dark]{
+  --bg:#0f1115; --paper:#17181d; --paper-2:#1d1f25; --line:#2a2d34; --line-2:#23262d;
+  --text:#eceef3; --body:#c8cad2; --muted:#a0a2ad; --faint:#7c7e89;
+  --green:#4dc492; --green-bg:#1a3527; --green-ink:#6fd6a5;
+  --bubble-bg:rgba(28,29,35,.72); --bubble-bd:rgba(255,255,255,.12);
+  --bubble-sh:0 30px 80px -22px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.08);
+  --bar-bg:rgba(29,31,37,.72); --bar-bd:rgba(255,255,255,.12);
+  --sel:rgba(77,196,146,.22);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  width:1440px;height:960px;overflow:hidden;position:relative;
+  background:
+    radial-gradient(900px 620px at 12% 8%, rgba(255,255,255,.82), transparent 62%),
+    radial-gradient(760px 540px at 88% 92%, rgba(47,158,110,.10), transparent 66%),
+    var(--bg);
+  color:var(--text);font-family:var(--f);-webkit-font-smoothing:antialiased;
+}
+html[data-theme=dark] body{
+  background:
+    radial-gradient(900px 620px at 12% 8%, rgba(67,82,110,.20), transparent 62%),
+    radial-gradient(760px 540px at 88% 92%, rgba(77,196,146,.12), transparent 66%),
+    var(--bg);
+}
+body::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at center, transparent 58%, rgba(20,20,26,.06) 100%);
+}
+html[data-theme=dark] body::after{background:radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.28) 100%)}
+
+.brand{position:absolute;right:76px;top:42px;display:flex;align-items:center;gap:10px;z-index:5;color:var(--muted);font-size:13px}
+.brand img{width:30px;height:30px;border-radius:9px;box-shadow:0 6px 16px -8px rgba(20,20,26,.4)}
+.brand b{color:var(--text);font-size:14px;font-weight:650;letter-spacing:.01em}
+.brand span{font-size:12px;color:var(--faint)}
+
+.reader{
+  position:absolute;left:64px;top:78px;width:872px;height:804px;
+  background:var(--paper);border:1px solid var(--line);border-radius:26px;
+  box-shadow:0 40px 100px -40px rgba(20,20,26,.38),0 2px 8px rgba(20,20,26,.05);
+  overflow:hidden;
+}
+.reader-top{height:58px;display:flex;align-items:center;gap:14px;padding:0 24px;border-bottom:1px solid var(--line-2);background:var(--paper-2)}
+.address{flex:1;height:28px;border:1px solid var(--line);border-radius:9px;background:var(--paper);display:flex;align-items:center;padding:0 12px;color:var(--faint);font-size:11px;letter-spacing:.01em}
+.address b{font-weight:600;color:var(--muted)}
+.reader-tools{display:flex;align-items:center;gap:12px;color:var(--faint);font-size:11px}
+.aa{width:28px;height:28px;border:1px solid var(--line);border-radius:8px;display:grid;place-items:center;font-family:var(--read);font-size:12px;color:var(--muted)}
+
+.article{padding:48px 62px 0}
+.kicker{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--green)}
+h1{font-family:var(--read);font-size:47px;line-height:1.08;letter-spacing:-.025em;font-weight:600;margin-top:14px;color:var(--text)}
+.byline{margin-top:16px;color:var(--faint);font-size:12.5px;display:flex;align-items:center;gap:8px}
+.byline i{width:3px;height:3px;border-radius:50%;background:var(--faint);display:block}
+.article p{font-family:var(--read);font-size:20px;line-height:1.82;color:var(--body);margin-top:24px;letter-spacing:.002em}
+.article p:first-of-type{margin-top:72px}
+.article p+p{margin-top:18px;color:var(--muted);font-size:18px}
+.article blockquote{font-family:var(--read);font-size:25px;line-height:1.5;letter-spacing:-.01em;color:var(--text);border-left:3px solid var(--green);padding-left:22px;margin:30px 0 4px}
+.article blockquote span{display:block;margin-top:10px;font-family:var(--f);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.sel{background:var(--sel);border-radius:4px;color:var(--text);padding:1px 2px;margin:0 -2px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.cursor{position:absolute;width:18px;height:24px;z-index:8;pointer-events:none;filter:drop-shadow(0 2px 3px rgba(20,20,26,.35))}
+.cursor svg{width:18px;height:24px;display:block}
+
+.bar{
+  position:absolute;z-index:9;display:flex;align-items:center;gap:2px;padding:5px;
+  background:var(--bar-bg);border:1px solid var(--bar-bd);border-radius:14px;
+  box-shadow:0 18px 46px -18px rgba(20,20,26,.4),0 2px 6px rgba(20,20,26,.06);
+  backdrop-filter:blur(20px) saturate(1.35);
+}
+.act{display:flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid transparent;border-radius:9px;background:transparent;color:var(--text);font-family:var(--f);font-size:12.5px;font-weight:600;white-space:nowrap}
+.act svg{width:15px;height:15px;color:var(--muted);flex:none}
+.act.primary{background:var(--paper-2)}
+
+.bubble{
+  position:absolute;right:74px;top:250px;width:396px;z-index:7;
+  background:var(--bubble-bg);border:1px solid var(--bubble-bd);border-radius:22px;
+  box-shadow:var(--bubble-sh);padding:22px 24px 20px;
+  backdrop-filter:blur(26px) saturate(1.45);
+}
+.bub-top{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+.tag{font-size:11px;padding:3px 9px;border-radius:99px;background:var(--green-bg);color:var(--green-ink);font-weight:650}
+.bub-lang{margin-left:auto;display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 8px;border:0;border-radius:999px;background:transparent;color:var(--faint);font:700 10px var(--f)}
+.bub-lang svg{width:14px;height:14px}
+.bub-close{width:15px;height:15px;color:var(--faint)}
+.bub-word{font-size:30px;font-weight:650;letter-spacing:-.015em;line-height:1.15}
+.ipa{margin-left:9px;font-size:14px;font-weight:400;color:var(--faint);letter-spacing:0}
+.bub-def{font-size:16px;color:var(--muted);line-height:1.6;margin-top:9px}
+.bub-etym,.bub-example{margin-top:13px;border-top:1px solid var(--line-2);padding-top:11px}
+.bub-etym-label,.bub-example-label{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.01em}
+.bub-etym-text,.bub-example-text{font-size:14px;color:var(--muted);line-height:1.6;margin-top:6px}
+.bub-actions{display:flex;gap:9px;margin-top:15px;padding-top:14px;border-top:1px solid var(--line-2)}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:7px 15px;border-radius:999px;font-size:13px;font-weight:650;border:1px solid transparent;font-family:var(--f)}
+.btn.known{background:var(--paper-2);color:var(--text);border-color:var(--line)}
+.btn.new{background:var(--text);color:var(--paper)}
+.bub-meta{font-size:12px;color:var(--faint);margin-top:14px;display:flex;align-items:center;gap:6px}
+.bub-meta svg{width:12px;height:12px}
+</style>
+</head>
+<body>
+<div class="brand"><img src="../brand/lens-mark.svg" alt=""><b>Lens</b><span>stays in the tray</span></div>
+
+<div class="reader" id="reader">
+  <div class="reader-top">
+    <div class="address"><b>The Commonplace</b>&nbsp; / essays / the-art-of-noticing</div>
+    <div class="reader-tools"><span>Aa</span><div class="aa">A</div></div>
+  </div>
+  <div class="article">
+    <div class="kicker">Essay · 8 min read</div>
+    <h1>The Art of Noticing</h1>
+    <div class="byline">Mara Ellison <i></i> October 2026 <i></i> Reading</div>
+    <p><span class="sel" id="selected">Serendipity</span>, she wrote, is not luck. It is attention. She had come to the archive looking for one thing and found another: a letter that changed the shape of her book.</p>
+    <p>The distinction matters. Luck arrives; attention makes room for it. A reader who stops to ask what a word is really doing is already reading more closely than one who turns the page.</p>
+    <blockquote>“Attention is a form of hospitality,” she wrote. “It makes a place for the unexpected.”<span>From the notebook</span></blockquote>
+    <p>That is why the old reading rooms still feel different from a feed. Nothing there is trying to move you along. The page waits while a sentence opens, and the word you did not know becomes part of the room.</p>
+  </div>
+</div>
+
+<div class="bar" id="bar">
+  <button class="act" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h9"/><path d="M7.5 3.5v2"/><path d="M10.5 5.5c0 4-2.6 7.4-6.5 8.9"/><path d="M5 9.6c1.2 2.3 3.1 4.1 5.3 5.1"/><path d="M12.6 20.5l3.7-9 3.7 9"/><path d="M14 17.4h4.6"/></svg>
+    <span>Translate</span>
+  </button>
+  <button class="act primary" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.6C10.4 5.2 8.3 4.5 5.5 4.5H4v13h1.5c2.8 0 4.9.7 6.5 2.1"/><path d="M12 6.6c1.6-1.4 3.7-2.1 6.5-2.1H20v13h-1.5c-2.8 0-4.9.7-6.5 2.1"/><path d="M12 6.6v13"/></svg>
+    <span>Explain</span>
+  </button>
+  <button class="act" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M15 5.5V5a1.5 1.5 0 0 0-1.5-1.5H5A1.5 1.5 0 0 0 3.5 5v8.5A1.5 1.5 0 0 0 5 15h.5"/></svg>
+    <span>Copy text</span>
+  </button>
+</div>
+
+<div class="bubble">
+  <div class="bub-top">
+    <span class="tag">New</span>
+    <span class="bub-lang"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>EN</span>
+    <svg class="bub-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg>
+  </div>
+  <div class="bub-word">serendipity<span class="ipa">/ˌserənˈdɪpəti/</span></div>
+  <div class="bub-def">the occurrence of events by chance in a happy or beneficial way</div>
+  <div class="bub-etym">
+    <div class="bub-etym-label">Etymology</div>
+    <div class="bub-etym-text">Coined in 1754 from Horace Walpole's tale of the three princes of Serendip.</div>
+  </div>
+  <div class="bub-example">
+    <div class="bub-example-label">Example</div>
+    <div class="bub-example-text">Our first meeting was pure serendipity.</div>
+  </div>
+  <div class="bub-actions"><span class="btn known">Known</span><span class="btn new">New</span></div>
+  <div class="bub-meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 1.8"/></svg>Disappears in 5s</div>
+</div>
+
+<div class="cursor" id="cursor"><svg viewBox="0 0 18 24"><path d="M2 2l5.2 18 3.1-6.2 6.9-1.5L2 2z" fill="#fff" stroke="#1a1a1f" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
+
+<script>
+const params = new URLSearchParams(location.search);
+if (params.get('theme') === 'dark') document.documentElement.dataset.theme = 'dark';
+
+/// Place the bar above the selected word and the pointer at its end, the way the running app does.
+function place() {
+  const selected = document.getElementById('selected').getBoundingClientRect();
+  const bar = document.getElementById('bar');
+  const cursor = document.getElementById('cursor');
+  const reader = document.getElementById('reader').getBoundingClientRect();
+  const left = Math.max(reader.left + 18, Math.min(selected.left - 10, reader.right - bar.offsetWidth - 18));
+  bar.style.left = left + 'px';
+  bar.style.top = (selected.top - bar.offsetHeight - 12) + 'px';
+  cursor.style.left = (selected.right - 4) + 'px';
+  cursor.style.top = (selected.bottom - 8) + 'px';
+}
+requestAnimationFrame(place);
+document.fonts.ready.then(place);
+addEventListener('resize', place);
+</script>
+</body>
+</html>
