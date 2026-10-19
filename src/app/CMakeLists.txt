@@ -24,6 +24,8 @@ add_library(lens_app STATIC
   glass_desktop.h
   glass_desktop.cpp
   glass_math.cpp
+  glass_sheet_item.h
+  glass_sheet_item.cpp
   glass_stats.h
   glass_stats.cpp
   global_hotkey.h
@@ -172,8 +174,11 @@ set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Lens")
 qt_add_qml_module(lens_app
   URI Lens
   VERSION 1.0
+  # GlassSheetItem derives from QQuickItem, so the module's type metadata has to name the module that declares it.
+  IMPORTS QtQuick
   SOURCES
     app_controller.h
+    glass_sheet_item.h
     tray.h
     system_motion.h
     pet/pet_controller.h

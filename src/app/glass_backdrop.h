@@ -10,8 +10,8 @@
  * one (docs/adr/0039). The sheets share one reader: one worker thread and one refresh timer, so however many surfaces
  * are live, the desktop is read about fifteen times a second in all (docs/adr/0041). The pictures are kept in memory
  * only: never written to disk, never logged, and dropped when the glass themes are off (docs/adr/0034, docs/adr/0035).
- * QML reads each sheet through `image://glass/<surface>/sheet` and the liquid theme's displacement map through
- * `image://glass/<surface>/map`. Both are images, not QML types, so the surfaces need no item class of their own.
+ * QML receives each sheet through GlassSheetItem, one live texture replaced in place, and the liquid theme's displacement
+ * map through `image://glass/<surface>/map` (docs/adr/0071).
  */
 
 #include "glass_math.h"
@@ -48,7 +48,7 @@ class GlassSheet : public QObject {
     /// Whether the text over this picture should be light. Read from the backdrop; a live refresh keeps it
     /// until the other tone reads decisively better (settleTone).
     Q_PROPERTY(bool lightText READ lightText NOTIFY pictureChanged)
-    /// Changes with every capture, so QML's image cache never serves an earlier picture.
+    /// Changes with every capture, so a reader can tell one picture from the next.
     Q_PROPERTY(int serial READ serial NOTIFY pictureChanged)
     /// The rectangle of the desktop the picture covers, in device-independent pixels. Empty when none is held.
     Q_PROPERTY(QRect sheet READ sheet NOTIFY pictureChanged)
@@ -200,11 +200,11 @@ private:
 };
 
 /**
- * @brief Serves `image://glass/<surface>/sheet?` and `image://glass/<surface>/map?` for the glass cards.
+ * @brief Serves `image://glass/<surface>/map?` for the liquid theme's displacement map.
  *
- * The sheet query carries a serial that changes with each capture, so QML's image cache reloads a new picture; the blur
- * and the saturation are uniforms on the shader (docs/adr/0070), not part of the URL. The map query carries the card's
- * size and corner radius. Each request runs on the worker thread, so a slider drag does not wait on the GUI thread.
+ * The map query carries the card's size and corner radius and is rebuilt only when those change; the sheet itself goes
+ * through GlassSheetItem, not this provider (docs/adr/0071). Each request runs on the worker thread, so a slider drag
+ * does not wait on the GUI thread.
  *
  * Requests arrive on the image loader's worker threads, which is why the picture is copied out of
  * GlassSheet under its lock rather than shared.

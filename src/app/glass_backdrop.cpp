@@ -460,8 +460,8 @@ QImage GlassImageProvider::requestImage(QString const& id, QSize* size, QSize co
 {
     QElapsedTimer started;
     started.start();
-    // The id is the surface, the path and then the query, as QML hands it over: "tray/sheet?serial=7". The serial is the
-    // whole query the sheet route needs: the blur and the saturation are uniforms now (docs/adr/0070).
+    // The id is the surface, the path and then the query, as QML hands it over: "tray/map?w=380&h=480&r=18". The sheet
+    // itself does not come through here: GlassSheetItem uploads it in place (docs/adr/0071).
     auto const parts = id.split(QLatin1Char('?'));
     auto const route = parts.value(0).split(QLatin1Char('/'));
     auto const query = QUrlQuery(parts.value(1));
@@ -471,10 +471,7 @@ QImage GlassImageProvider::requestImage(QString const& id, QSize* size, QSize co
     auto const        picture = sheet != nullptr ? sheet->picture() : QImage{};
     auto const        path    = route.value(1);
     auto              image   = QImage{};
-    if (path == QLatin1String("sheet")) {
-        // The picture as taken: the shader blurs and saturates it (docs/adr/0039, docs/adr/0070).
-        image = picture;
-    } else if (path == QLatin1String("map") and not picture.isNull()) {
+    if (path == QLatin1String("map") and not picture.isNull()) {
         // The card's size is given in device-independent pixels, as QML knows it; the map is built in device pixels.
         auto const scale = picture.devicePixelRatioF();
         auto const card  = QSize(qRound(value(QStringLiteral("w")) * scale), qRound(value(QStringLiteral("h")) * scale));

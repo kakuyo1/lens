@@ -3,18 +3,20 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 /**
- * The glass a card is drawn on in the two glass themes (UI.md 3.1c and 3.1d, docs/adr/0039, docs/adr/0041, docs/adr/0070).
+ * The glass a card is drawn on in the two glass themes (UI.md 3.1c and 3.1d, docs/adr/0039, docs/adr/0041, docs/adr/0070,
+ * docs/adr/0071).
  *
  * The sheet is the window's own (GlassBackdrop.surface), taken as the desktop under the window a little larger than the
- * window, at the screen's resolution. The shader in shaders/glass.frag blurs and saturates it, places the window within it
- * on every frame, bends it through the displacement map for the liquid theme, and cuts the card's rounded corners. So the
- * glass moves with the window at once, a drag takes no capture (GlassHost takes the others), and a slider move changes a
- * uniform rather than reloading the picture. The fill and the rim are laid over it here.
+ * window, at the screen's resolution. GlassSheetItem carries each picture into one live texture, and the shader in
+ * shaders/glass.frag blurs and saturates it, places the window within it on every frame, bends it through the
+ * displacement map for the liquid theme, and cuts the card's rounded corners. So the glass moves with the window at
+ * once, a drag takes no capture (GlassHost takes the others), a slider move changes a uniform, and a publish replaces a
+ * texture rather than reloading a picture. The fill and the rim are laid over it here.
  */
 Item {
     id: root
 
-    /// The surface's sheet, from GlassBackdrop.surface(name). Its name, serial and rectangle address the picture.
+    /// The surface's sheet, from GlassBackdrop.surface(name). Its name and rectangle address the picture.
     required property var sheet
     /// The colour table of the window this sits in, which decides the glass drawn and the fill's colour.
     // qmllint disable missing-property
@@ -33,15 +35,18 @@ Item {
     property real refraction: Controller.settings.liquidRefraction
     /// Whether the card draws no backdrop: blur at 0 with nothing to bend (docs/adr/0069). The window is per-pixel
     /// transparent, so the live desktop shows through it — sharper than any sheet, at the screen's own rate, and with
-    /// no desktop read asked for. GlassHost still keeps one picture for the text tone, and nothing loads it here.
+    /// no desktop read asked for. GlassHost still keeps one picture for the text tone, and nothing uploads it here.
     readonly property bool passthrough: GlassRule.passthrough(root.mode, Controller.settings.frostedBlur,
                                                               Controller.settings.liquidBlur, Controller.settings.liquidRefraction)
+    /// Whether the card draws the sheet. False with the glass off and in passthrough, so the live texture is released.
+    readonly property bool drawsBackdrop: root.mode !== "" && !root.passthrough
+    /// The rectangle the picture in force covers, in device-independent pixels. The sheet moves it on a capture.
+    readonly property rect shownSheet: root.sheet.sheet
+    /// The live texture, for the tests that check a publish replaces a texture rather than reloading a picture.
+    readonly property alias sheetItem: sheetItem
 
     visible: mode !== ""
 
-    readonly property string sheetUrl: root.mode === "" || root.passthrough
-        ? ""
-        : "image://glass/" + root.sheet.name + "/sheet?serial=" + root.sheet.serial
     readonly property string mapUrl: root.mode === "liquid" && !root.passthrough
         ? "image://glass/" + root.sheet.name + "/map?w=" + root.width + "&h=" + root.height + "&r=" + root.radius
         : ""
@@ -64,61 +69,21 @@ Item {
         (root.Window.window ? root.Window.window.x : 0) + root.placeInWindow(root).x - root.shownSheet.x,
         (root.Window.window ? root.Window.window.y : 0) + root.placeInWindow(root).y - root.shownSheet.y)
 
-    /// Two slots take turns. A new sheet loads into the hidden one and is shown once it is ready, so the glass on screen
-    /// never goes blank. Each slot keeps the rectangle its sheet was taken at, since that is where the shader reads it.
-    property bool firstShown: true
-    property rect firstSheet
-    property rect secondSheet
-    readonly property rect shownSheet: root.firstShown ? root.firstSheet : root.secondSheet
-    readonly property Image shownSlot: root.firstShown ? first : second
-
-    function loadSheet() {
-        if (root.firstShown) {
-            root.secondSheet = root.sheet.sheet;
-            second.source = root.sheetUrl;
-        } else {
-            root.firstSheet = root.sheet.sheet;
-            first.source = root.sheetUrl;
-        }
-    }
-
-    onSheetUrlChanged: root.loadSheet()
-    Component.onCompleted: root.loadSheet()
-
-    Image {
-        id: first
-        width: root.firstSheet.width
-        height: root.firstSheet.height
-        asynchronous: true
-        onStatusChanged: {
-            if (status === Image.Ready && !root.firstShown)
-                root.firstShown = true;
-        }
+    /// One texture, replaced in place: a publish uploads the new picture on the render thread and the old one stays
+    /// until it is ready, so there is no blank frame to cover with a second slot (docs/adr/0071).
+    GlassSheetItem {
+        id: sheetItem
+        sheet: root.sheet
+        active: root.drawsBackdrop
+        width: root.shownSheet.width
+        height: root.shownSheet.height
     }
 
     ShaderEffectSource {
-        id: firstTexture
-        sourceItem: first
+        id: sheetTexture
+        sourceItem: sheetItem
         hideSource: true
         // The blur reads a mip whose texel is one tap wide, so the picture needs its mip chain (docs/adr/0070).
-        mipmap: true
-    }
-
-    Image {
-        id: second
-        width: root.secondSheet.width
-        height: root.secondSheet.height
-        asynchronous: true
-        onStatusChanged: {
-            if (status === Image.Ready && root.firstShown)
-                root.firstShown = false;
-        }
-    }
-
-    ShaderEffectSource {
-        id: secondTexture
-        sourceItem: second
-        hideSource: true
         mipmap: true
     }
 
@@ -137,9 +102,9 @@ Item {
 
     ShaderEffect {
         anchors.fill: parent
-        visible: root.mode !== "" && !root.passthrough && root.shownSheet.width > 0
+        visible: root.drawsBackdrop && root.shownSheet.width > 0
         fragmentShader: "qrc:/shaders/glass.frag.qsb"
-        property variant sheet: root.firstShown ? firstTexture : secondTexture
+        property variant sheet: sheetTexture
         property variant map: displacementTexture
         property real refraction: root.mode === "liquid" ? root.refraction : 0
         property real radius: root.radius

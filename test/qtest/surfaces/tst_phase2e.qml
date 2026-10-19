@@ -234,21 +234,30 @@ Item {
             compare(glass.origin.y, shown.panel.y + shown.panel.shadowMargin - glass.shownSheet.y);
         }
 
-        function test_glassStaysOnScreenWhileItsBlurLoads() {
+        /// One live texture, replaced in place (docs/adr/0071). A blur move is a uniform, so it must not retake the
+        /// sheet, and the sheet rectangle stays non-empty throughout -- the guarantee the old double slot bought with a
+        /// second Image and ShaderEffectSource.
+        function test_glassKeepsItsLiveTextureWhileTheBlurMoves() {
             const shown = openFrostedGeneral();
             const glass = Util.ofTypeInWindow(shown.panel, "GlassSurface");
             verify(glass, "the frosted theme drew no glass on the settings card");
-            tryCompare(glass.shownSlot, "status", Image.Ready);
+            verify(glass.sheetItem, "the glass has no live sheet texture");
+            // Opening the panel takes a sheet after it settles, and the read is off the GUI thread: wait for the first
+            // picture rather than for a fixed time.
+            tryVerify(function () { return glass.sheetItem.pictureSerial > 0; }, 3000,
+                      "the live texture never took a picture");
+            tryVerify(function () { return glass.shownSheet.width > 0; }, 3000,
+                      "the sheet rectangle is empty");
+            const serial = glass.sheetItem.pictureSerial;
 
-            // A new sheet loads into the hidden slot, so the one on screen is never reloaded while the provider works.
             for (let step = 1; step <= 10; ++step) {
                 Controller.setFrostedBlur(10 + step * 5);
-                for (let poll = 0; poll < 8; ++poll) {
+                for (let poll = 0; poll < 4; ++poll) {
                     wait(5);
-                    compare(glass.shownSlot.status, Image.Ready, "the glass on screen went blank while its blur loaded");
+                    compare(glass.sheetItem.pictureSerial, serial, "a blur move retook the sheet");
+                    verify(glass.shownSheet.width > 0, "the sheet went blank while the blur moved");
                 }
             }
-            tryCompare(glass.shownSlot, "status", Image.Ready);
 
             Controller.setFrostedBlur(10);
             Controller.setTheme("light");
@@ -265,12 +274,14 @@ Item {
             // Opening the window takes its own backdrop, which dims it for 120 ms: let that finish first.
             wait(300);
             compare(glass.passthrough, false, "the card drew passthrough with its blur above 0");
-            verify(glass.sheetUrl.length > 0, "the card asked for no backdrop while its blur was above 0");
+            verify(glass.drawsBackdrop, "the card drew no backdrop while its blur was above 0");
+            verify(glass.sheetItem.active, "the card held no live texture while its blur was above 0");
 
             Controller.setFrostedBlur(0);
             wait(30);
             compare(glass.passthrough, true, "blur at 0 left the card drawing a backdrop");
-            compare(glass.sheetUrl, "", "blur at 0 still asked for a picture");
+            compare(glass.drawsBackdrop, false, "blur at 0 still drew a backdrop");
+            compare(glass.sheetItem.active, false, "blur at 0 left the live texture uploaded");
             compare(glass.mapUrl, "", "blur at 0 still asked for a displacement map");
             compare(shown.panel.glass.live, false, "blur at 0 left the desktop refreshing for a card that draws none");
             compare(shown.panel.opacity, 1, "the card dimmed itself to photograph the desktop it no longer draws");
@@ -279,7 +290,8 @@ Item {
             Controller.setFrostedBlur(10);
             wait(30);
             compare(glass.passthrough, false, "raising the blur left the card without a backdrop");
-            verify(glass.sheetUrl.length > 0, "raising the blur asked for no picture");
+            verify(glass.drawsBackdrop, "raising the blur drew no backdrop");
+            verify(glass.sheetItem.active, "raising the blur left the live texture released");
 
             Controller.setFrostedBlur(10);
             Controller.setTheme("light");
@@ -298,12 +310,12 @@ Item {
             verify(effect, "the glass drew no shader");
             compare(effect.blur, Controller.settings.frostedBlur);
             compare(effect.saturation, Controller.settings.frostedSaturation);
-            const picture = glass.sheetUrl;
+            const picture = glass.sheet.serial;
 
             Controller.setFrostedBlur(40);
             wait(30);
             compare(effect.blur, 40, "the blur uniform did not follow the setting");
-            compare(glass.sheetUrl, picture, "moving the blur reloaded the picture instead of changing a uniform");
+            compare(glass.sheet.serial, picture, "moving the blur retook the sheet instead of changing a uniform");
             Controller.setFrostedSaturation(60);
             wait(30);
             compare(effect.saturation, 60, "the saturation uniform did not follow the setting");
