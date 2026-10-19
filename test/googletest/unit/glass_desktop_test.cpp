@@ -42,6 +42,19 @@ TEST(GlassDesktop, NoDesktopIsABlackSheetNotAFailure)
     EXPECT_EQ(picture.pixel(249, 199), QColor(Qt::black).rgb());
 }
 
+TEST(GlassDesktop, ASheetIsOpaqueInEveryByte)
+{
+    // A texture upload reads the fourth byte. GDI leaves it zero on the real read, which made the sheet transparent and
+    // the glass draw nothing (docs/adr/0070); the reader sets it, and the stand-in gets it from the fill. Pinned here
+    // for both, since the real read cannot run in an offline case.
+    auto const picture = readDesktopRegion(kRegion, SheetScale::Quarter, false);
+    ASSERT_FALSE(picture.isNull());
+    auto const* const first = picture.constScanLine(0);
+    auto const* const last  = picture.constScanLine(picture.height() - 1);
+    EXPECT_EQ(first[3], 0xFF);
+    EXPECT_EQ(last[(picture.width() - 1) * 4 + 3], 0xFF);
+}
+
 TEST(GlassDesktop, ARegionSmallerThanTheScaleStillReadsOnePixel)
 {
     // A sheet can be asked for a region one device pixel on a side; dividing it away would give an empty picture and a

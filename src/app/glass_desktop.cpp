@@ -7,6 +7,8 @@
 
 #include <QImage>
 
+#include <cstddef>
+
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -43,6 +45,12 @@ QImage readDesktopRegion(QRect const native, SheetScale const scale, bool const 
         SetStretchBltMode(memory, HALFTONE);
         SetBrushOrgEx(memory, 0, 0, nullptr);
         StretchBlt(memory, 0, 0, size.width(), size.height(), screen, native.x(), native.y(), native.width(), native.height(), SRCCOPY);
+        // GDI leaves the fourth byte at zero. Format_RGB32 calls it opaque, but a texture upload that reads the byte
+        // makes the sheet transparent and the glass draws nothing (docs/adr/0070), so it is set here, before the copy.
+        auto* const pixels = static_cast<QRgb*>(bits);
+        auto const  count  = static_cast<std::size_t>(size.width()) * static_cast<std::size_t>(size.height());
+        for (std::size_t i = 0; i < count; ++i)
+            pixels[i] |= 0xff000000u;
         read = QImage(static_cast<uchar*>(bits), size.width(), size.height(), QImage::Format_RGB32).copy();
         SelectObject(memory, previous);
         DeleteObject(dib);

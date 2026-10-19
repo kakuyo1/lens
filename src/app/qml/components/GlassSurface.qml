@@ -3,13 +3,13 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 /**
- * The glass a card is drawn on in the two glass themes (UI.md 3.1c and 3.1d, docs/adr/0039, docs/adr/0041).
+ * The glass a card is drawn on in the two glass themes (UI.md 3.1c and 3.1d, docs/adr/0039, docs/adr/0041, docs/adr/0070).
  *
  * The sheet is the window's own (GlassBackdrop.surface), taken as the desktop under the window a little larger than the
- * window, and C++ blurs and saturates it per request. The shader in shaders/glass.frag places the window within the sheet
+ * window, at the screen's resolution. The shader in shaders/glass.frag blurs and saturates it, places the window within it
  * on every frame, bends it through the displacement map for the liquid theme, and cuts the card's rounded corners. So the
- * glass moves with the window at once, and a drag takes no capture (GlassHost takes the others). The fill and the rim are
- * laid over it here.
+ * glass moves with the window at once, a drag takes no capture (GlassHost takes the others), and a slider move changes a
+ * uniform rather than reloading the picture. The fill and the rim are laid over it here.
  */
 Item {
     id: root
@@ -41,8 +41,7 @@ Item {
 
     readonly property string sheetUrl: root.mode === "" || root.passthrough
         ? ""
-        : "image://glass/" + root.sheet.name + "/sheet?serial=" + root.sheet.serial + "&blur=" + root.blur
-          + "&saturation=" + (root.mode === "frosted" ? root.saturation : 100)
+        : "image://glass/" + root.sheet.name + "/sheet?serial=" + root.sheet.serial
     readonly property string mapUrl: root.mode === "liquid" && !root.passthrough
         ? "image://glass/" + root.sheet.name + "/map?w=" + root.width + "&h=" + root.height + "&r=" + root.radius
         : ""
@@ -101,6 +100,8 @@ Item {
         id: firstTexture
         sourceItem: first
         hideSource: true
+        // The blur reads a mip whose texel is one tap wide, so the picture needs its mip chain (docs/adr/0070).
+        mipmap: true
     }
 
     Image {
@@ -118,6 +119,7 @@ Item {
         id: secondTexture
         sourceItem: second
         hideSource: true
+        mipmap: true
     }
 
     Image {
@@ -141,9 +143,17 @@ Item {
         property variant map: displacementTexture
         property real refraction: root.mode === "liquid" ? root.refraction : 0
         property real radius: root.radius
+        // Blur and saturation are uniforms, not part of the picture's URL: a slider move repaints the card and
+        // reloads nothing (docs/adr/0070).
+        property real blur: root.blur
+        property real saturation: root.mode === "frosted" ? root.saturation : 100
         property vector2d cardSize: Qt.vector2d(root.width, root.height)
         property vector2d origin: root.origin
         property vector2d sheetSize: Qt.vector2d(root.shownSheet.width, root.shownSheet.height)
+        // The sheet is drawn into a texture at the window's device ratio, so that is the pixel size the blur reads
+        // its texels from, whatever the captured picture's own ratio was.
+        property vector2d sheetPixels: Qt.vector2d(root.shownSheet.width * Screen.devicePixelRatio,
+                                                   root.shownSheet.height * Screen.devicePixelRatio)
     }
 
     Rectangle {

@@ -76,12 +76,13 @@ Item {
         captureTimer.restart();
     }
 
-    /// The window moved. Once it is kept out of captures, the sheet follows it at once: GlassSheet takes a new one only
-    /// when the window nears the sheet's edge, so a drag takes few captures.
+    /// The window moved. Once it is kept out of captures, the sheet follows it: GlassSheet takes a new one only when the
+    /// window nears the sheet's edge, and does it off the GUI thread (followDeferred), so a drag is not stalled while the
+    /// desktop is read.
     function followWindow() {
         moveSettle.restart();
         if (host.excludedFromCapture && host.window.visible)
-            host.sheet.follow(host.windowRect(), host.fillAlpha);
+            host.sheet.followDeferred(host.windowRect(), host.fillAlpha);
     }
 
     onDraggingChanged: {

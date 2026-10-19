@@ -176,10 +176,12 @@ Item {
             compare(opacityChanges.count, 0, "a move the sheet covers dimmed the window");
 
             // Past the margin a new sheet is needed. Excluded from captures that takes no dim; otherwise one dim is two
-            // opacity changes, to 0 and back to 1.
+            // opacity changes, to 0 and back to 1. The exclusion lives on the panel's GlassHost, not on the window.
             shown.panel.x = shown.panel.x + 300;
             wait(600);
-            compare(opacityChanges.count, shown.panel.excludedFromCapture ? 0 : 2, "a move past the sheet did not take the expected dim");
+            const host = Util.ofType(shown.panel, "GlassHost");
+            verify(host, "the settings panel has no GlassHost");
+            compare(opacityChanges.count, host.excludedFromCapture ? 0 : 2, "a move past the sheet did not take the expected dim");
             opacityChanges.target = null;
 
             Controller.setFrostedBlur(10);
@@ -280,6 +282,34 @@ Item {
             verify(glass.sheetUrl.length > 0, "raising the blur asked for no picture");
 
             Controller.setFrostedBlur(10);
+            Controller.setTheme("light");
+            shown.main.hidePanels(null);
+        }
+
+        /// The blur and the saturation are shader uniforms (docs/adr/0070): the picture no longer reloads when they
+        /// move, so the binding from the setting to the effect's property is the whole path.
+        function test_blurAndSaturationReachTheShaderUniforms() {
+            const shown = openFrostedGeneral();
+            const glass = Util.ofTypeInWindow(shown.panel, "GlassSurface");
+            verify(glass, "the frosted theme drew no glass on the settings card");
+            const effect = findDeep(glass, function (o) {
+                return o.fragmentShader !== undefined;
+            })[0];
+            verify(effect, "the glass drew no shader");
+            compare(effect.blur, Controller.settings.frostedBlur);
+            compare(effect.saturation, Controller.settings.frostedSaturation);
+            const picture = glass.sheetUrl;
+
+            Controller.setFrostedBlur(40);
+            wait(30);
+            compare(effect.blur, 40, "the blur uniform did not follow the setting");
+            compare(glass.sheetUrl, picture, "moving the blur reloaded the picture instead of changing a uniform");
+            Controller.setFrostedSaturation(60);
+            wait(30);
+            compare(effect.saturation, 60, "the saturation uniform did not follow the setting");
+
+            Controller.setFrostedBlur(10);
+            Controller.setFrostedSaturation(120);
             Controller.setTheme("light");
             shown.main.hidePanels(null);
         }

@@ -30,6 +30,8 @@
 
 namespace lens::app {
 
+class GlassBackdrop;
+
 /**
  * @brief The desktop under one glass surface's window, and the text tone the card's text takes over it.
  *
@@ -55,7 +57,7 @@ class GlassSheet : public QObject {
     Q_PROPERTY(bool live READ live NOTIFY liveChanged)
 
 public:
-    GlassSheet(QString name, QObject* parent);
+    GlassSheet(QString name, GlassBackdrop* owner);
 
     QString name() const;
     bool    lightText() const;
@@ -72,6 +74,13 @@ public:
     /// @param fillAlpha The white the card sits under, 0 to 1; the text tone is judged over the window.
     /// @note A window that is not on one screen clears the picture rather than stitching one.
     Q_INVOKABLE void follow(QRect window, double fillAlpha);
+    /// @brief The same, off the GUI thread, for a window being dragged: a retake reads the desktop for some 20 ms, and
+    ///        a drag that ran it here would stutter. The picture in force serves until the new one lands.
+    /// @param window The window the glass is drawn in, in device-independent coordinates.
+    /// @param fillAlpha The white the card sits under, 0 to 1; the text tone is judged over the window.
+    /// @note A read already in flight for the same sheet is kept; the next move asks again. Meant for a window that is
+    ///       kept out of captures, since the read happens while the window is showing.
+    Q_INVOKABLE void followDeferred(QRect window, double fillAlpha);
     /// @brief Whether the picture still covers @p window with room to spare, so that no new sheet is needed.
     Q_INVOKABLE bool covers(QRect window) const;
     /// @brief Drop the picture, and stop refreshing it.
@@ -98,6 +107,12 @@ signals:
 
 private:
     friend class GlassBackdrop;
+
+    /// @return Whether a deferred read is in flight for the picture in force. GUI thread only.
+    bool reading() const
+    {
+        return pending_ != 0 and pending_ == generation_;
+    }
 
     /// @brief Take a picture of the desktop under @p region, the sheet, and judge the text tone over @p window.
     /// @note A region that is empty or crosses two screens clears the picture rather than stitching one.
@@ -129,8 +144,13 @@ private:
     quint64 fingerprint_ = 0;
     /// Bumped whenever the sheet is retaken or dropped, so a refresh that began before the change is discarded.
     int generation_ = 0;
+    /// The generation of a deferred read still on the pool, or 0 when none is in flight. Only followDeferred() starts
+    /// one, and the GUI thread owns this field; a live refresh skips the sheet while it is set.
+    int pending_ = 0;
     /// Set while setLive() is on. Only the GUI thread reads or writes it.
     bool live_ = false;
+    /// The backdrop that owns this sheet, and the pool a deferred read runs on.
+    GlassBackdrop* owner_ = nullptr;
 };
 
 /**
@@ -154,6 +174,8 @@ public:
     Q_INVOKABLE GlassSheet* surface(QString const& name) const;
 
 private:
+    friend class GlassSheet;
+
     /// @brief Start the next refresh on the pool, for the next live sheet in turn. A tick that finds one still running
     ///        is skipped.
     void refreshNext();
@@ -180,9 +202,9 @@ private:
 /**
  * @brief Serves `image://glass/<surface>/sheet?` and `image://glass/<surface>/map?` for the glass cards.
  *
- * The sheet query carries the blur and the saturation and a serial that changes with each capture; the map query
- * carries the card's size and corner radius. Each request runs on the worker thread, so a slider drag does not wait
- * on the GUI thread.
+ * The sheet query carries a serial that changes with each capture, so QML's image cache reloads a new picture; the blur
+ * and the saturation are uniforms on the shader (docs/adr/0070), not part of the URL. The map query carries the card's
+ * size and corner radius. Each request runs on the worker thread, so a slider drag does not wait on the GUI thread.
  *
  * Requests arrive on the image loader's worker threads, which is why the picture is copied out of
  * GlassSheet under its lock rather than shared.

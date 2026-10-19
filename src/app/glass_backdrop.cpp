@@ -61,20 +61,21 @@ constexpr std::array<char const*, 15> kSurfaces{
     // miniature bar is still a separate window and needs its own sheet.
     "selectionBarPreview",
 };
-/// How far the sheet reaches past the window on each side, in DIP. The window can be dragged this far before the sheet
-/// has to be taken again, and the blur and the refraction read this far around the card.
-constexpr int kSheetMargin = 160;
+/// How far the sheet reaches past the window on each side, in DIP. It is the reserve plus the hysteresis between
+/// retakes: the shader blurs and bends within the picture, so the sheet no longer has to carry the blur's reach
+/// (docs/adr/0070). Keeping it near kSheetReserve is worth about a fifth of every desktop read, which is priced by area
+/// (docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md 3.6).
+constexpr int kSheetMargin = 112;
 /// How near the window may come to a side of the sheet that is not on the screen's edge before a new sheet is taken, in
 /// DIP. The old sheet serves while the new one processes, so this covers the distance a drag moves in that time.
 constexpr int kSheetReserve = 72;
 /// The refresh period while any sheet is live: about fifteen reads a second in all, however many sheets are live.
 // ponytail: fixed rate, no back-off when the machine is busy; add one when the reads show up in someone's frame times.
 constexpr int kLiveIntervalMs = 67;
-/// The sheet is read at a quarter of the device resolution. The blur runs on it for every request, and at full size one
-/// blur takes about 40 ms of the image loader. Reading full costs about 3.5 ms more (docs/metrics/runtime-performance/
-/// glass-capture-capability-2026-10-19.md 3.5), so the quarter is the CPU blur's price, not the desktop read's.
-// ponytail: one fixed quarter, not sized to the blur; the day the blur moves to the GPU this becomes a tier setting.
-constexpr auto kSheetScale = SheetScale::Quarter;
+/// The sheet is read at the screen's own resolution. The blur runs on the GPU now (docs/adr/0070), and reading full costs
+/// only about 3.5 ms more than a quarter (docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md 3.5):
+/// the quarter existed to keep the CPU blur's input small, and with that gone it would only cost sharpness.
+constexpr auto kSheetScale = SheetScale::Full;
 /// How often the pipeline's tally is logged. Ten seconds is long enough for the read's median to mean something on a
 /// still desktop, and short enough that a run of the application shows several windows.
 constexpr int kSummaryIntervalMs = 10000;
@@ -137,7 +138,7 @@ Taken takeSheet(Request const& request)
     // Timed here and not around this whole function: the tone read that follows is a few hundred pixels, and the
     // question is what one desktop read costs (src/app/glass_stats.h).
     glassStats().addRead(static_cast<double>(started.nsecsElapsed()) / 1.0e6);
-    picture.setDevicePixelRatio(request.scale / static_cast<double>(kSheetScale));
+    picture.setDevicePixelRatio(request.scale);
     // The text is judged over the window, not over the margin the sheet adds around it.
     auto const scale = picture.devicePixelRatioF();
     auto const card  = QRect(qRound((request.window.x() - request.region.x()) * scale),
@@ -150,8 +151,8 @@ Taken takeSheet(Request const& request)
 
 } // namespace
 
-GlassSheet::GlassSheet(QString name, QObject* parent)
-    : QObject(parent), name_(std::move(name))
+GlassSheet::GlassSheet(QString name, GlassBackdrop* owner)
+    : QObject(owner), name_(std::move(name)), owner_(owner)
 {
 }
 
@@ -208,6 +209,42 @@ void GlassSheet::follow(QRect const window, double const fillAlpha)
     }
     auto const sheet = window.adjusted(-kSheetMargin, -kSheetMargin, kSheetMargin, kSheetMargin).intersected(screen->geometry());
     capture(sheet, window, fillAlpha);
+}
+
+void GlassSheet::followDeferred(QRect const window, double const fillAlpha)
+{
+    window_    = window;
+    fillAlpha_ = fillAlpha;
+    // One read per sheet in flight: a move that arrives while the desktop is being read is served by the picture that
+    // is already on its way, whose margin covers more ground than a drag covers in one read.
+    if (reading() or covers(window)) return;
+    auto* const screen = QGuiApplication::screenAt(window.center());
+    if (screen == nullptr or window.isEmpty() or not screen->geometry().contains(window)) {
+        clear();
+        return;
+    }
+    auto const region  = window.adjusted(-kSheetMargin, -kSheetMargin, kSheetMargin, kSheetMargin).intersected(screen->geometry());
+    auto const request = requestFor(region, window, fillAlpha);
+    if (not request) {
+        clear();
+        return;
+    }
+    ++generation_;
+    pending_              = generation_;
+    auto const generation = generation_;
+    owner_->pool_.start([this, request = *request, generation] {
+        auto taken = takeSheet(request);
+        QMetaObject::invokeMethod(
+            this,
+            [this, request, generation, taken = std::move(taken)] {
+                // A retake or a drop since this read began owns the sheet now: the picture is of a region the caller no
+                // longer wants, and clearing pending_ must not clear a newer read's flag.
+                if (pending_ == generation) pending_ = 0;
+                if (generation != generation_) return;
+                publish(request.region, request.screen, std::move(taken.picture), taken.tone, true);
+            },
+            Qt::QueuedConnection);
+    });
 }
 
 bool GlassSheet::covers(QRect const window) const
@@ -369,7 +406,9 @@ void GlassBackdrop::refreshNext()
     }
     auto live = std::vector<bool>{};
     for (auto const* const sheet : sheets_)
-        live.push_back(sheet->live_);
+        // A sheet whose dragged window is being retaken is skipped for this tick; its deferred read is what the next
+        // picture will be, and reading the old region again would only land after it.
+        live.push_back(sheet->live_ and not sheet->reading());
     auto const next = nextLive(live, cursor_);
     if (not next) {
         updateLive();
@@ -421,7 +460,8 @@ QImage GlassImageProvider::requestImage(QString const& id, QSize* size, QSize co
 {
     QElapsedTimer started;
     started.start();
-    // The id is the surface, the path and then the query, as QML hands it over: "tray/sheet?serial=7&blur=10&saturation=120".
+    // The id is the surface, the path and then the query, as QML hands it over: "tray/sheet?serial=7". The serial is the
+    // whole query the sheet route needs: the blur and the saturation are uniforms now (docs/adr/0070).
     auto const parts = id.split(QLatin1Char('?'));
     auto const route = parts.value(0).split(QLatin1Char('/'));
     auto const query = QUrlQuery(parts.value(1));
@@ -432,7 +472,8 @@ QImage GlassImageProvider::requestImage(QString const& id, QSize* size, QSize co
     auto const        path    = route.value(1);
     auto              image   = QImage{};
     if (path == QLatin1String("sheet")) {
-        image = blurredPicture(picture, value(QStringLiteral("blur")), value(QStringLiteral("saturation")));
+        // The picture as taken: the shader blurs and saturates it (docs/adr/0039, docs/adr/0070).
+        image = picture;
     } else if (path == QLatin1String("map") and not picture.isNull()) {
         // The card's size is given in device-independent pixels, as QML knows it; the map is built in device pixels.
         auto const scale = picture.devicePixelRatioF();
