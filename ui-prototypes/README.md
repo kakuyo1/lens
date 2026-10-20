@@ -20,6 +20,8 @@
 | `pet-review.html` | 桌面宠物的复习牌：举牌（牌子挂在手上，左右手随空间切换，随身体起伏）、悬浮出 “忘了 / 记得”、作答后的缓存气泡与超时生气 |
 | `update.html` | 检查更新（关于 分类的检查行）与通知卡片的新版本样式 |
 
+`pet-prototype/` 是一个 Vite 小应用，不是单个 standalone HTML：`walk.html` 是宠物步态与边缘躲藏的 demo，直接在 `pet-prototype/` 里跑 `npm run dev`，再打开 `/walk.html`。它读取 `data/pet` 的原始 JSON 与 PNG，并在页面上合并 `walk/walk.json` 里的原型动作；`walk.html` 里可以切七只宠物、左/右边缘、暂停与速度，勾 “原地播放” 看步态循环，点 “边缘演示” 强制一只躲到边缘，再把边缘的宠物拖出来结束躲藏。页面顶部的 “躲藏举牌” 卡演示躲着用内侧手举牌，牌子跟着 `ask` 的手逐帧移动。
+
 ## 怎么看
 
 双击打开，或访问 `file:///.../settings.html`。URL 追加 `?theme=dark` 直接看静谧暗夜主题，`?theme=frosted` / `?theme=liquid` 看两套玻璃主题（雾面玻璃、流光玻璃），设置面板里的主题下拉也能切。除 `settings.html` 外，每张表面右上角的按钮循环切换四套主题（晴朗白昼、静谧暗夜、雾面玻璃、流光玻璃），按钮文字是当前主题名；带 `?shot` 时按钮隐去。`settings.html` 的流光玻璃与雾面玻璃主题左上角各有一组测试背景单选，底图分别在 `liquid-backdrops/` 与 `frosted-backdrops/`；URL 追加 `?bg=<文件名>` 指定一张（如 `?bg=web-light`、`?bg=checker`），文件属于哪套主题就用哪套。

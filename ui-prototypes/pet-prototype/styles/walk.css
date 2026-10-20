@@ -1,0 +1,289 @@
+:root {
+  --ink: #1a1a1f;
+  --muted: #6b7078;
+  --faint: #969ba4;
+  --line: #dcdfe4;
+  --paper: #ffffff;
+  --soft: #f3f1ec;
+  --accent: #2f9e6e;
+  --accent-soft: #e3f2ea;
+  --shadow: 0 12px 34px rgba(50, 44, 34, .08);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  color: var(--ink);
+  background:
+    radial-gradient(1100px 600px at 12% -10%, #fffdf8 0%, transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, #eef4ef 0%, transparent 55%),
+    var(--soft);
+  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 28px;
+  flex-wrap: wrap;
+  padding: 30px 34px 18px;
+  max-width: 1420px;
+  margin: 0 auto;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  text-decoration: none;
+}
+.back:hover { color: var(--ink); }
+
+h1 {
+  margin: 0;
+  font-size: 26px;
+  letter-spacing: -.03em;
+  font-weight: 700;
+}
+
+.lede {
+  margin: 6px 0 0;
+  max-width: 640px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+code {
+  padding: 1px 5px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #fff;
+  font: 12px/1.4 ui-monospace, Menlo, Consolas, monospace;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 28px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.controls label { display: inline-flex; align-items: center; gap: 6px; }
+.controls select {
+  font: inherit;
+  padding: 5px 7px;
+  color: var(--ink);
+  border: 1px solid #c9ced6;
+  border-radius: 7px;
+  background: #fff;
+}
+.controls button {
+  font: inherit;
+  min-width: 64px;
+  padding: 6px 12px;
+  color: #fff;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent);
+  cursor: pointer;
+}
+.controls button[aria-pressed="false"] { background: #fff; color: var(--ink); border-color: #c9ced6; }
+.controls .check { cursor: pointer; user-select: none; }
+.controls input[type="checkbox"] { accent-color: var(--accent); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: 16px;
+  max-width: 1420px;
+  margin: 0 auto;
+  padding: 0 34px 26px;
+}
+
+.card {
+  overflow: hidden;
+  border: 1px solid rgba(210, 205, 195, .8);
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.card header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 15px 18px 12px;
+}
+.card h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+.card .gait {
+  padding: 3px 8px;
+  color: var(--accent);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  font: 11px/1.4 ui-monospace, Menlo, Consolas, monospace;
+  white-space: nowrap;
+}
+
+.stage {
+  position: relative;
+  height: 360px;
+  margin: 0 12px;
+  overflow: hidden;
+  border: 1px solid #e5e1d8;
+  border-radius: 13px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .7), rgba(255, 255, 255, 0) 45%),
+    repeating-linear-gradient(0deg, transparent 0 23px, rgba(120, 112, 96, .035) 23px 24px),
+    #f7f4ed;
+}
+
+.stage::after {
+  /* the ground line: the pet's feet home sits just above it */
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 22px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #d8d1c3 12%, #d8d1c3 88%, transparent);
+}
+
+.stage canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 264px;
+  height: 264px;
+  image-rendering: pixelated;
+  will-change: transform;
+  touch-action: none;
+}
+
+.home {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background: #c9c1b1;
+  opacity: .75;
+  pointer-events: none;
+}
+
+.range-ring {
+  position: absolute;
+  border: 1px dashed #c7c0b1;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s linear;
+}
+.show-range .range-ring { opacity: .8; }
+
+.stage.hiding .home,
+.stage.hiding .range-ring { opacity: .16; }
+.stage.hiding canvas { cursor: grab; }
+.note.hiding { color: var(--accent); }
+
+.card .note {
+  margin: 0;
+  padding: 10px 18px 16px;
+  color: var(--faint);
+  font-size: 11px;
+}
+
+
+.review-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 0 18px 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.review-controls label { display: inline-flex; align-items: center; gap: 6px; }
+.review-controls select {
+  font: inherit;
+  padding: 5px 7px;
+  color: var(--ink);
+  border: 1px solid #c9ced6;
+  border-radius: 7px;
+  background: #fff;
+}
+.seg {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid #c9ced6;
+  border-radius: 8px;
+  background: #fff;
+}
+.seg button {
+  font: inherit;
+  padding: 5px 10px;
+  color: var(--muted);
+  border: 0;
+  border-right: 1px solid #e3e0d9;
+  background: transparent;
+  cursor: pointer;
+}
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+
+.review-sign {
+  position: absolute;
+  z-index: 3;
+  width: max-content;
+}
+.review-board {
+  padding: 14px 18px 12px;
+  color: #1a1a1f;
+  border: 3px solid #1a1a1f;
+  border-radius: 2px;
+  background: #fffdf7;
+  box-shadow: 0 8px 20px rgba(50, 44, 34, .16);
+  font: 20px/1 ui-monospace, Menlo, Consolas, monospace;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.review-pole {
+  position: absolute;
+  bottom: -26px;
+  width: 4px;
+  height: 26px;
+  background: #1a1a1f;
+}
+.review-sign[data-hand="right"] .review-pole { left: 14px; }
+.review-sign[data-hand="left"] .review-pole { right: 14px; }
+
+.foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  max-width: 1420px;
+  margin: 0 auto;
+  padding: 0 34px 34px;
+  color: var(--faint);
+  font-size: 11px;
+}
+#status { font-variant-numeric: tabular-nums; }
+
+@media (max-width: 640px) {
+  .top { padding: 22px 18px 14px; }
+  .controls { padding-top: 0; }
+  .grid { padding: 0 18px 20px; }
+  .foot { padding: 0 18px 24px; }
+}

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>宠物走路与边缘偷看 demo</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./styles/walk.css">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <a class="back" href="./index.html">← 宠物原型</a>
+      <h1>宠物走路与边缘偷看</h1>
+      <p class="lede">七只宠物各自的新 <code>walk</code> 循环与 <code>edge_peek</code> 偷看。真实应用里两次闲逛间隔约 2–5 分钟；演示压缩为约 8–28 秒。走到左右边缘时 70% 会躲进去偷看，只有把它拖出来才会结束。</p>
+    </div>
+    <div class="controls" role="group" aria-label="演示控制">
+      <button id="toggle" aria-pressed="true">暂停</button>
+      <label>速度
+        <select id="speed">
+          <option value="0.5">0.5×</option>
+          <option value="1" selected>1×</option>
+          <option value="2">2×</option>
+        </select>
+      </label>
+      <button id="peek" title="仅演示：直接让一只宠物躲到边缘">边缘演示</button>
+      <label class="check"><input id="in-place" type="checkbox"> 原地播放</label>
+      <label class="check"><input id="range" type="checkbox"> 显示范围</label>
+    </div>
+  </header>
+
+  <main id="grid" class="grid" aria-live="polite">
+    <article class="card review-card">
+      <header>
+        <h2>躲藏举牌</h2>
+        <span class="gait">hidden → ask</span>
+      </header>
+      <div class="review-controls">
+        <label>宠物 <select id="review-pet"></select></label>
+        <div class="seg" role="group" aria-label="躲藏边缘">
+          <button id="review-left" aria-pressed="true">左边缘</button>
+          <button id="review-right" aria-pressed="false">右边缘</button>
+        </div>
+      </div>
+      <div class="stage review-stage">
+        <canvas id="review-canvas" aria-label="躲藏举牌的宠物"></canvas>
+        <div class="review-sign" id="review-sign" data-hand="right">
+          <div class="review-board" id="review-board">ephemeral</div>
+          <div class="review-pole" aria-hidden="true"></div>
+        </div>
+      </div>
+      <p class="note" id="review-note">躲藏中举牌：牌子选内侧手；拖出来才结束躲藏。</p>
+    </article>
+  </main>
+
+  <footer class="foot">
+    <span>虚线是宠物身体可能覆盖的范围；每步的纵向变化由 walk 动画本身承担。躲到边缘的宠物可以用鼠标拖出来。</span>
+    <span id="status"></span>
+  </footer>
+
+  <script type="module" src="./src/walk-demo.js"></script>
+</body>
+</html>

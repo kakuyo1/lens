@@ -39,6 +39,14 @@ body {
   padding: 4px 6px;
 }
 
+.walk-link {
+  position: absolute;
+  top: 48px;
+  left: 16px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 #pet {
   width: 264px;
   height: 264px;

@@ -182,3 +182,11 @@ node --test test/*.test.js
 - **握法**：9 × 8 像素的拳头，两根手指从上包住杆子，中间一列留空让杆子穿过，杆末端在第 3 行埋进拳头。墨线与指节是同一个轮廓推出来的，颜色用 `ink` 与 `fur`。
 - **配色**：取该宠物已有的调色。不新画身体轮廓，只加这只手。
 - **现状**：左右两只手都已写进 `scripts/pet/recipes/{cat,ghost,jelly,cloud,mochi,owl}.json` 的 `ask` 帧（右手 `paint`，左手 `paintLeft`）与 `scripts/pet/dog/build-assets.py` 的 `hand(n, side)`，并渲染进 `data/pet/*/sprites/effects/`：`ask.png` 是右手，`ask-left.png` 是左手。`render_pet.py` 见到 `paintLeft` 就写出 `effectLeft`，狗的 `manifest.json` 与 `animations.json` 也已对应。原型与设置页都按空间选左右手，默认左手。应用在装载时读取 `effectLeft`，逐帧量出两只手的握点，并按手挂牌（ADR 0052、0053）。
+
+## 9。步态与边缘偷看（原型阶段）
+
+闲逛和边缘躲藏新增两个循环动作：`walk` 与 `edge_peek`。它们仍用配方的 `body_frame`、逐帧 `pose`、表情与效果层，只是不映射角色，也不能进 `idlePool`。原型的美术帧暂时只在 `ui-prototypes/pet-prototype/tools/build-walk-assets.py` 里；接入应用层时要搬进各自的配方，再重渲 `animations.json`、`anchors.json`、`accessories.json` 与 sheet，计划见 `PET-WANDER-INTEGRATION-PLAN.md`，决定见 `docs/adr/0075`。
+
+- **步态**：小狗由抬腿帧组成，麻薯与猫头鹰用压扁、拉伸，猫用低身倾斜，幽灵、水母、云用浮动与雾、泡。`walk` 的身体帧承担主要上下起伏，窗口只做横向移动和很小的纵向补充。
+- **边缘偷看**：`edge_peek` 是 6 帧循环，做 duck 与 look；窗口本身负责探入、缩回，动作本身不画杆或牌。幽灵的风痕、水母的气泡放在效果层；狗的两帧 duck 把整个头下移一格，头部与表情锚点相应下移。
+- **配饰**：新动作和其他动作一样受 `supportedActions` 约束。搬到配方后，渲染器会为每件配饰自动补上这两个动作；小狗的 `manifest.json` 与手写 `accessories.json` 要单独补。没有这两个动作的宠物包不闲逛、不躲藏。
