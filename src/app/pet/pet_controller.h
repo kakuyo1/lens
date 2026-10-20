@@ -17,6 +17,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <optional>
 
@@ -264,6 +265,12 @@ private:
     bool wearsInSlot(std::string const& id, core::pet::Slot slot) const;
     /// @brief Connects a screen's geometry changes to keepOnScreen().
     void watchScreen(QScreen* screen);
+    /// @brief Runs a rule that needs the window's native handle, and never takes that handle before the
+    ///        window has been on screen. Asking a QWindow for its handle creates the platform window, and
+    ///        one created before its first show keeps the transparent pixels of its square black.
+    /// @param window The QML window to watch. It is the connection's own context, so the rule cannot outlive it.
+    /// @param rule What to do with the window, on every show from now on.
+    void onShown(QWindow* window, std::function<void(QWindow const&)> const& rule);
     /// @brief Moves the window back into a visible area when the screens changed under it (PHASE3 3.5).
     void keepOnScreen();
 

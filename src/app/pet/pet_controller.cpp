@@ -650,7 +650,7 @@ void PetController::setEnabled(bool on)
 {
     store_.setEnabled(on);
     if (not on) resetHover();
-    if (window_) ::lens::app::pet::setPassthrough(*window_, enabled() and store_.passthrough());
+    if (window_ and window_->isVisible()) ::lens::app::pet::setPassthrough(*window_, enabled() and store_.passthrough());
     emit settingsChanged();
 }
 
@@ -658,7 +658,7 @@ void PetController::setPassthrough(bool on)
 {
     store_.setPassthrough(on);
     if (on) resetHover();
-    if (window_) ::lens::app::pet::setPassthrough(*window_, enabled() and on);
+    if (window_ and window_->isVisible()) ::lens::app::pet::setPassthrough(*window_, enabled() and on);
     emit settingsChanged();
 }
 
@@ -667,12 +667,23 @@ void PetController::attachWindow(QObject* object)
     window_ = qobject_cast<QWindow*>(object);
     if (not window_) return;
     connect(window_, &QObject::destroyed, this, [this] { window_ = nullptr; });
-    if (not excludeFromCapture(*window_)) LENS_WARN("the desktop pet can appear in screen captures: Windows refused the exclusion");
-    ::lens::app::pet::setPassthrough(*window_, enabled() and store_.passthrough());
+    onShown(window_, [this](QWindow const& window) {
+        if (not excludeFromCapture(window)) LENS_WARN("the desktop pet can appear in screen captures: Windows refused the exclusion");
+        ::lens::app::pet::setPassthrough(window, enabled() and store_.passthrough());
+    });
     connect(qGuiApp, &QGuiApplication::screenAdded, this, &PetController::watchScreen);
     connect(qGuiApp, &QGuiApplication::screenRemoved, this, &PetController::keepOnScreen);
     for (auto* screen : QGuiApplication::screens())
         watchScreen(screen);
+}
+
+void PetController::onShown(QWindow* window, std::function<void(QWindow const&)> const& rule)
+{
+    if (not window) return;
+    QObject::connect(window, &QWindow::visibleChanged, window, [window, rule](bool on) {
+        if (on) rule(*window);
+    });
+    if (window->isVisible()) rule(*window);
 }
 
 void PetController::watchScreen(QScreen* screen)
@@ -684,9 +695,9 @@ void PetController::watchScreen(QScreen* screen)
 
 void PetController::keepOutOfCapture(QObject* object)
 {
-    auto const* window = qobject_cast<QWindow*>(object);
-    if (not window) return;
-    if (not excludeFromCapture(*window)) LENS_WARN("a window that must stay out of screen captures can appear in them: Windows refused the exclusion");
+    onShown(qobject_cast<QWindow*>(object), [](QWindow const& window) {
+        if (not excludeFromCapture(window)) LENS_WARN("a window that must stay out of screen captures can appear in them: Windows refused the exclusion");
+    });
 }
 
 void PetController::keepOnScreen()
