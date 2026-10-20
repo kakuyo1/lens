@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.7.1 - 2026-10-20
+
+The desktop pet stops drawing a black square behind itself, and the Background refresh rows stop
+printing over their own labels.
+
+### Fixed
+
+- The pet, its review sign and the sign's answer card no longer paint a black square behind
+  themselves. Each one's Win32 rules asked for the window handle while the window was still hidden,
+  which created the platform window without the translucent presentation, so its transparent pixels
+  composited as black (docs/adr/0075).
+- A Background refresh row now says its tier's name only. The sentence that used to sit at its right
+  end, where a row has no room for it and it overlapped the label, comes up beside the list when the
+  pointer rests on the row, the way the theme, vocabulary and selection-bar previews do (UI.md 4.4).
+- Pressing the field again puts the list down. The list's own window hangs over the lower part of the
+  field, where Windows hit-tests the rectangle rather than the pixels and dropped the press, and the
+  outside-press rule closed the list a beat before the field read whether it was up, so that press
+  raised it back.
+
 ## 1.7.0 - 2026-10-20
 
 Glass themes gain a Background refresh setting, and a duplicated screen's backdrop now follows that
