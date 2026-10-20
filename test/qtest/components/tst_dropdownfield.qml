@@ -110,10 +110,21 @@ Item {
             const originX = field.Window.window ? field.Window.window.x : 0;
             const originY = field.Window.window ? field.Window.window.y : 0;
             const at = field.mapToItem(null, 0, 0);
-            compare(Math.round(field.openChildRect.x), Math.round(originX + at.x),
+            const listWindow = Util.ofType(field, "ShadowCard").Window.window;
+            compare(Math.round(listWindow.x + listWindow.shadowMargin), Math.round(originX + at.x),
                     "the list's card is not on the field's left edge");
-            compare(Math.round(field.openChildRect.y), Math.round(originY + at.y + field.height + 6),
+            compare(Math.round(listWindow.y + listWindow.shadowMargin), Math.round(originY + at.y + field.height + 6),
                     "the list's card is not below the field");
+
+            // What the panel is told to claim is the card *and* the field it hangs from. A press on
+            // the field belongs to the open list: claimed by nobody, main.qml's outside-press rule
+            // puts the list down a beat before the field's own tap reads whether it is up, and the
+            // second press raises it again instead of putting it away.
+            compare(Math.round(field.openChildRect.y), Math.round(originY + at.y),
+                    "the claimed band does not start at the field");
+            compare(Math.round(field.openChildRect.y + field.openChildRect.height),
+                    Math.round(listWindow.y + listWindow.height - listWindow.shadowMargin),
+                    "the claimed band does not reach the card's bottom edge");
 
             // And the rows sit inside that card, by the list's own padding and no more. Measured
             // against the card rather than the window: the card rises into place as it fades in,
