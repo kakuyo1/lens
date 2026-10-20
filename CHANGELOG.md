@@ -1,20 +1,34 @@
 # Changelog
 
-## Unreleased
+## 1.7.0 - 2026-10-20
+
+Glass themes gain a Background refresh setting, and a duplicated screen's backdrop now follows that
+screen's frames instead of a fixed clock.
 
 ### Added
 
 - Glass themes gain a Background refresh setting under General: Automatic (the default), Battery saver,
-  Standard and Smooth. Automatic and Smooth follow a screen that can be duplicated up to about 60 times
-  a second; Battery saver keeps the picture still and retakes it when the card appears or moves, and
-  Standard stays on the CPU read at about 15 times a second. When the current screen cannot be
-  duplicated, the row says the backdrop is reading at the standard rate (docs/adr/0073).
+  Standard and Smooth. Automatic follows a screen that can be duplicated up to about 60 times a second;
+  Smooth follows that screen's refresh rate. Battery saver keeps the picture still and retakes it when
+  the card appears or moves, and Standard stays on the CPU read at about 15 times a second. When the
+  current screen cannot be duplicated, the row says the backdrop is reading at the standard rate
+  (docs/adr/0073, docs/adr/0074).
 
 ### Changed
 
 - A glass backdrop on a screen that can be duplicated now follows that screen's changes instead of the
   fixed 15-a-second loop, and a still backdrop copies nothing. Screens that refuse duplication keep the
   old CPU read; on the hybrid laptop here that is the internal panel (docs/adr/0072).
+
+- Smooth now reads at the screen's refresh period and keeps a single live sheet's reads chained to the
+  desktop's frames, instead of polling on a 16 ms timer. A duplicated frame is copied back with one GPU
+  copy fewer and without a second full-image pass for the quarter turn, and it skips the fingerprint
+  gate the dirty rectangles have already answered (docs/adr/0074).
+
+### Fixed
+
+- The Background refresh list closes on a second press and with the settings panel, instead of
+  outliving the panel it belongs to.
 
 ## 1.6.5 - 2026-10-18
 
@@ -278,7 +292,7 @@ the glass themes reach every window. The update check moves to a new About page.
 - The update check moved from General to the About page. General keeps the switch that checks at startup.
 - Custom sits last in the theme list, and its colours are set with swatch rows.
 - Selected chips use bold type.
-- In Chinese, the built-in themes are named 晴朗白昼 (Light) and 静谧暗夜 (Dark).
+- In Chinese, the built-in themes are named `晴朗白昼` and `静谧暗夜`.
 
 ### Removed
 
