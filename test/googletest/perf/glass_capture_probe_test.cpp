@@ -797,6 +797,9 @@ TEST(GlassCaptureProbe, ExcludedWindowVanishesFromDuplication)
     const auto window = makeProbeWindow(screen.desktop);
     ASSERT_NE(window, nullptr);
     ShowWindow(window, SW_SHOWNA);
+    // The square is the control: it has to be on top, or a window the reader left over the centre of the output makes
+    // the control read zero and the case fails for a reason that has nothing to do with capture exclusion.
+    SetWindowPos(window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     UpdateWindow(window);
     Sleep(250);
 
