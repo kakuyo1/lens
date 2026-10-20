@@ -73,6 +73,7 @@ public:
         QImage image;            ///< The sheet's pixels, empty unless a new frame was copied.
         bool   newFrame = false; ///< Whether the frame was new since the last read, so there is something to publish.
         bool   usable   = true;  ///< False when the output cannot duplicate now: the caller falls back to GDI for now.
+        double copyMs   = 0.0;   ///< The copy's duration, excluding any wait for the frame: the number the budget is set by.
     };
 
     /**
@@ -91,11 +92,14 @@ public:
      * @brief Take the screen under @p native out of the next new frame, if there is one.
      * @param native The sheet, in desktop device pixels.
      * @param scale Device pixels per device-independent pixel; the picture carries it as its devicePixelRatio.
+     * @param timeoutMs How long to wait for a frame before reporting none, in milliseconds. Zero polls and returns at
+     *        once. The Smooth tier's chained reads wait here instead of relying on a GUI timer: a timer's jitter let
+     *        frames produced between two ticks be coalesced away (docs/adr/0074).
      * @return The picture when a new frame was copied; otherwise empty, with @c newFrame false (nothing changed) or
      *         @c usable false (read with GDI from now on).
      * @note Called on the glass refresh's worker thread, and on no other. The device is created there and used there.
      */
-    Read read(QRect native, double scale);
+    Read read(QRect native, double scale, int timeoutMs = 0);
 
     /// @return Whether the session can be tried now. True before the first attempt; false while a failed session is in
     ///         its cooldown, and after a refusal that cannot change. Safe from another thread.

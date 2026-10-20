@@ -41,13 +41,14 @@ inline constexpr std::string_view kLiquidTextColorFallback = "#101319";
  *
  * The ladder is about the source and the pace of the desktop read, not an on/off GPU switch: Qt 6 has no CPU-only UI
  * backend, and whether a screen can be duplicated is a per-output fact (docs/adr/0072). Eco keeps the picture still;
- * Standard reads it with GDI about fifteen times a second; Auto and Smooth use duplication where the screen offers it.
+ * Standard reads it with GDI about fifteen times a second; Auto duplicates up to about sixty times a second where the
+ * screen offers it; Smooth goes further and follows the screen's own refresh rate (docs/adr/0074).
  */
 enum class GlassQuality : int {
-    Auto     = 0, ///< Duplication where it works, GDI otherwise: the default.
+    Auto     = 0, ///< Duplication where it works up to about sixty a second, GDI otherwise: the default.
     Eco      = 1, ///< No live refresh; the sheet is retaken when the card appears or moves.
     Standard = 2, ///< GDI, about fifteen reads a second.
-    Smooth   = 3, ///< Duplication where it works, up to the sixty-a-second poll; GDI otherwise.
+    Smooth   = 3, ///< Duplication where it works, at the screen's refresh rate; GDI otherwise.
 };
 
 /// The highest stored value; values outside 0..3 clamp to the nearest tier.
@@ -75,6 +76,29 @@ inline bool glassQualityRefreshes(GlassQuality quality)
 inline bool glassQualityDuplicates(GlassQuality quality)
 {
     return quality == GlassQuality::Auto or quality == GlassQuality::Smooth;
+}
+
+/// The poll period Automatic gives a duplicated screen, in ms: about sixty a second.
+inline constexpr int kGlassAutoFrameMs = 16;
+/// The fastest poll any tier takes, in ms: a floor for a pathological refresh rate, not a target.
+inline constexpr int kGlassFrameFloorMs = 4;
+/// The GDI period, in ms: about fifteen reads a second, shared by the screens that cannot duplicate.
+inline constexpr int kGlassGdiFrameMs = 67;
+
+/**
+ * @brief The poll period for a duplicated screen under @p quality.
+ * @param quality The tier in force.
+ * @param refreshRate The screen's rate in Hz, as QScreen reports it; zero or negative when unknown.
+ * @return The period in milliseconds. Automatic keeps kGlassAutoFrameMs; Smooth polls at or just above the screen's own
+ *         period, held between kGlassFrameFloorMs and kGlassGdiFrameMs. Standard and Eco do not duplicate, so their pace
+ *         is the caller's business.
+ * @note Smooth rounds the period down rather than up: at 144 Hz a 6 ms tick polls 166 times a second and catches every
+ *       frame, while a 7 ms tick samples at 142 Hz and misses one in seventy (docs/adr/0074).
+ */
+inline int glassQualityFrameMs(GlassQuality quality, double refreshRate)
+{
+    if (quality != GlassQuality::Smooth or not(refreshRate > 0.0)) return kGlassAutoFrameMs;
+    return std::clamp(static_cast<int>(1000.0 / refreshRate), kGlassFrameFloorMs, kGlassGdiFrameMs);
 }
 
 /// @return The tier's name, as the developer command and the log spell it.

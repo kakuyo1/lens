@@ -42,6 +42,24 @@ QImage split(int w, int h)
 
 } // namespace
 
+TEST(GlassMath, AToneIsReadOverARegionAsItIsOverThatRegionCopiedOut)
+{
+    // The live refresh reads the card's rectangle out of a native-resolution sheet instead of copying it out first.
+    // The sample lattice starts at the rectangle's own corner either way, so the two reads have to agree exactly.
+    auto const picture = split(137, 91);
+    auto const card    = QRect(17, 13, 67, 45);
+    auto const region  = readTone(picture, card, 0.4);
+    auto const copied  = readTone(picture.copy(card), 0.4);
+    EXPECT_DOUBLE_EQ(region.againstDark, copied.againstDark);
+    EXPECT_DOUBLE_EQ(region.againstLight, copied.againstLight);
+    EXPECT_GT(region.againstDark, 0.0);
+
+    // A rectangle wholly outside the picture is no backdrop, not a read of whatever lies at its clamped corner.
+    auto const outside = readTone(picture, QRect(200, 200, 20, 20), 0.4);
+    EXPECT_DOUBLE_EQ(outside.againstDark, 0.0);
+    EXPECT_DOUBLE_EQ(outside.againstLight, 0.0);
+}
+
 TEST(GlassMath, AMarginalBackdropDoesNotFlipASettledTone)
 {
     // 115 and 116 are the greys astride the crossover for the liquid theme, whose card is drawn straight on the

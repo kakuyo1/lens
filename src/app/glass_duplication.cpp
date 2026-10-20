@@ -7,10 +7,11 @@
 
 #include "util/log.h"
 
+#include <QElapsedTimer>
 #include <QTransform>
 
+#include <algorithm>
 #include <atomic>
-#include <cstring>
 #include <utility>
 #include <vector>
 
@@ -153,8 +154,8 @@ struct GlassDuplication::Impl {
     bool ensure();
     /// @brief Remember a failure, release what was open, and set the cooldown or the permanence.
     void fail(HRESULT hr, bool permanentFailure);
-    /// @brief Make the copy and read-back textures for a @p size frame rectangle, reusing them when it fits.
-    bool createTargets(QSize size);
+    /// @brief Make the staging texture for a @p size frame rectangle, reusing it when it fits.
+    bool createStaging(QSize size);
     /// @brief Release the device, the duplication and the textures. Thread and state of failure are left alone.
     void release();
 
@@ -173,10 +174,9 @@ struct GlassDuplication::Impl {
     DXGI_OUTDUPL_DESC              desc{};
     QSize                          frameSize;
     ScreenRotation                 rotation = ScreenRotation::Identity;
-    /// The copied frame rectangle: a default texture for the copy, and a staging one to map it back to the CPU.
-    ComPtr<ID3D11Texture2D> target;
+    /// The copied frame rectangle, in a staging texture that maps it back to the CPU.
     ComPtr<ID3D11Texture2D> staging;
-    QSize                   targetSize;
+    QSize                   stagingSize;
     /// Scratch the frame metadata is read into; a few hundred bytes to a few kilobytes, reused every frame.
     std::vector<BYTE> metadata;
     /// The first acquired frame of a session is the desktop as it stood before the duplication existed, and on the
@@ -278,19 +278,17 @@ void GlassDuplication::Impl::release()
     // A session opened again gets its own unreliable first frame.
     firstFrame = true;
     duplication.Reset();
-    target.Reset();
     staging.Reset();
-    targetSize = {};
+    stagingSize = {};
     context.Reset();
     device.Reset();
 }
 
-bool GlassDuplication::Impl::createTargets(QSize const size)
+bool GlassDuplication::Impl::createStaging(QSize const size)
 {
-    if (target != nullptr and staging != nullptr and targetSize == size) return true;
-    target.Reset();
+    if (staging != nullptr and stagingSize == size) return true;
     staging.Reset();
-    targetSize = {};
+    stagingSize = {};
 
     auto description             = D3D11_TEXTURE2D_DESC{};
     description.Width            = static_cast<UINT>(size.width());
@@ -299,19 +297,14 @@ bool GlassDuplication::Impl::createTargets(QSize const size)
     description.ArraySize        = 1;
     description.Format           = desc.ModeDesc.Format;
     description.SampleDesc.Count = 1;
-    description.Usage            = D3D11_USAGE_DEFAULT;
-    if (auto const hr = device->CreateTexture2D(&description, nullptr, &target); FAILED(hr)) {
-        LENS_INFO("glass duplication on {}: copy texture {}x{} format {} refused (0x{:08X})", deviceName.toStdString(), size.width(), size.height(), static_cast<int>(description.Format), static_cast<unsigned long>(hr));
-        return false;
-    }
-    description.Usage          = D3D11_USAGE_STAGING;
-    description.BindFlags      = 0;
-    description.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+    description.Usage            = D3D11_USAGE_STAGING;
+    description.BindFlags        = 0;
+    description.CPUAccessFlags   = D3D11_CPU_ACCESS_READ;
     if (auto const hr = device->CreateTexture2D(&description, nullptr, &staging); FAILED(hr)) {
         LENS_INFO("glass duplication on {}: staging texture {}x{} refused (0x{:08X})", deviceName.toStdString(), size.width(), size.height(), static_cast<unsigned long>(hr));
         return false;
     }
-    targetSize = size;
+    stagingSize = size;
     return true;
 }
 
@@ -354,20 +347,22 @@ bool GlassDuplication::usable() const
 #endif
 }
 
-GlassDuplication::Read GlassDuplication::read(QRect const native, double const scale)
+GlassDuplication::Read GlassDuplication::read(QRect const native, double const scale, int const timeoutMs)
 {
 #ifdef _WIN32
     auto& session = *impl_;
-    if (not session.ensure()) return {{}, false, false};
+    if (not session.ensure()) return {{}, false, false, 0.0};
 
     auto       frame    = DXGI_OUTDUPL_FRAME_INFO{};
     auto       resource = ComPtr<IDXGIResource>{};
-    auto const hr       = session.duplication->AcquireNextFrame(0, &frame, &resource);
-    if (hr == DXGI_ERROR_WAIT_TIMEOUT) return {{}, false, true};
+    auto const hr       = session.duplication->AcquireNextFrame(static_cast<UINT>(std::max(0, timeoutMs)), &frame, &resource);
+    if (hr == DXGI_ERROR_WAIT_TIMEOUT) return {{}, false, true, 0.0};
     if (FAILED(hr)) {
         session.fail(hr, false);
-        return {{}, false, false};
+        return {{}, false, false, 0.0};
     }
+    QElapsedTimer copyTimer;
+    copyTimer.start();
     auto texture = ComPtr<ID3D11Texture2D>{};
     if (FAILED(resource.As(&texture))) {
         session.duplication->ReleaseFrame();
@@ -408,7 +403,7 @@ GlassDuplication::Read GlassDuplication::read(QRect const native, double const s
         session.duplication->ReleaseFrame();
         return {{}, false, true};
     }
-    if (not session.createTargets(frameRect.size())) {
+    if (not session.createStaging(frameRect.size())) {
         // The frame is still acquired here; it goes before the device does.
         session.duplication->ReleaseFrame();
         session.fail(E_FAIL, false);
@@ -416,35 +411,37 @@ GlassDuplication::Read GlassDuplication::read(QRect const native, double const s
     }
 
     // The acquired texture cannot be mapped; the copy the probe measured at 0.75 ms for a sheet is the way back.
+    // The staging texture is the copy's destination directly: an intermediate default-usage texture bought nothing
+    // and walked the same pixels twice on the GPU (docs/adr/0074).
     auto const source = D3D11_BOX{static_cast<UINT>(frameRect.x()), static_cast<UINT>(frameRect.y()), 0, static_cast<UINT>(frameRect.x() + frameRect.width()), static_cast<UINT>(frameRect.y() + frameRect.height()), 1};
-    session.context->CopySubresourceRegion(session.target.Get(), 0, 0, 0, 0, texture.Get(), 0, &source);
-    session.context->CopyResource(session.staging.Get(), session.target.Get());
+    session.context->CopySubresourceRegion(session.staging.Get(), 0, 0, 0, 0, texture.Get(), 0, &source);
     auto mapped = D3D11_MAPPED_SUBRESOURCE{};
     if (FAILED(session.context->Map(session.staging.Get(), 0, D3D11_MAP_READ, 0, &mapped))) {
         session.duplication->ReleaseFrame();
         session.fail(E_FAIL, false);
         return {{}, false, false};
     }
-    auto              frameImage = QImage(frameRect.size(), QImage::Format_RGB32);
-    auto const        rowBytes   = static_cast<std::size_t>(frameRect.width()) * 4;
-    auto const* const rows       = static_cast<uchar const*>(mapped.pData);
-    for (int y = 0; y < frameRect.height(); ++y)
-        std::memcpy(frameImage.scanLine(y), rows + static_cast<std::size_t>(y) * mapped.RowPitch, rowBytes);
+    // Read the mapped rows where they lie. The old path copied them into a QImage and then turned that copy: two
+    // full passes over the sheet before it could be published. A view of the mapped memory lets the one turn write
+    // the destination directly (docs/adr/0074).
+    auto const sourceView = QImage(static_cast<uchar const*>(mapped.pData),
+                                   frameRect.width(),
+                                   frameRect.height(),
+                                   static_cast<qsizetype>(mapped.RowPitch),
+                                   QImage::Format_RGB32);
+    auto       image      = QImage{};
+    switch (session.rotation) {
+        case ScreenRotation::Rotate90: image = sourceView.transformed(QTransform().rotate(-90), Qt::FastTransformation); break;
+        case ScreenRotation::Rotate180: image = sourceView.transformed(QTransform().rotate(180), Qt::FastTransformation); break;
+        case ScreenRotation::Rotate270: image = sourceView.transformed(QTransform().rotate(90), Qt::FastTransformation); break;
+        case ScreenRotation::Identity: image = sourceView.copy(); break;
+    }
     session.context->Unmap(session.staging.Get(), 0);
     session.duplication->ReleaseFrame();
 
-    // The frame is in the panel's orientation; the card lives in the desktop's. A quarter turn of the crop is what
-    // bridges them, and Qt's 90-degree fast path makes it a row copy rather than a resample.
-    auto image = QImage{};
-    switch (session.rotation) {
-        case ScreenRotation::Rotate90: image = frameImage.transformed(QTransform().rotate(-90), Qt::FastTransformation); break;
-        case ScreenRotation::Rotate180: image = frameImage.transformed(QTransform().rotate(180), Qt::FastTransformation); break;
-        case ScreenRotation::Rotate270: image = frameImage.transformed(QTransform().rotate(90), Qt::FastTransformation); break;
-        case ScreenRotation::Identity: image = std::move(frameImage); break;
-    }
     if (image.format() != QImage::Format_RGB32) image = image.convertToFormat(QImage::Format_RGB32);
     image.setDevicePixelRatio(scale);
-    return {std::move(image), true, true};
+    return {std::move(image), true, true, static_cast<double>(copyTimer.nsecsElapsed()) / 1.0e6};
 #else
     Q_UNUSED(native)
     Q_UNUSED(scale)

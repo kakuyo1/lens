@@ -56,6 +56,20 @@ struct ToneRead {
 ToneRead readTone(QImage const& backdrop, double fillAlpha);
 
 /**
+ * @brief Read the tone over one rectangle of a backdrop, without copying it out first.
+ *
+ * The live refresh reads the tone over the card on every published frame, and the card is a rectangle of the sheet.
+ * Copying that rectangle out of a native-resolution sheet only to sample every fourth pixel of it was one of the
+ * per-frame costs that kept the duplicated path at sixty a second (docs/adr/0074).
+ *
+ * @param backdrop The desktop picture under the card. Read here and not kept.
+ * @param region The card's rectangle, in the picture's pixels; clamped to the picture.
+ * @param fillAlpha Opacity of the white fill over the picture, 0 to 1.
+ * @return The two tones' 10th-percentile contrast over @p region; both zero when it is empty.
+ */
+ToneRead readTone(QImage const& backdrop, QRect const& region, double fillAlpha);
+
+/**
  * @brief The tone to settle on, from a fresh read and the tone already in force.
  *
  * A tone in force is sticky: the other one has to win by kToneMargin, and to do so on @p hold reads

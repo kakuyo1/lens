@@ -134,6 +134,20 @@ Item {
             verify(field.openChildRect !== null, "the field itself did not open the list");
         }
 
+        /// The same press puts the list down again. The list is a window of its own, so a press on the field never
+        /// reaches the panel's outside-press rule; without the toggle the only way out was picking a row.
+        function test_theSecondPressOnTheFieldPutsTheListAway() {
+            const field = make({});
+
+            mouseClick(field, field.width / 2, field.height / 2);
+            wait(50);
+            verify(field.openChildRect !== null, "the field did not open the list");
+
+            mouseClick(field, field.width / 2, field.height / 2);
+            wait(50);
+            compare(field.openChildRect, null, "the second press left the list up");
+        }
+
         /// An editable field is the reader's to type in, so the body of it is theirs and only the
         /// chevron is a button. Which half took the press is the whole shape of the control.
         function test_onlyTheChevronOpensTheListOnceTheFieldIsEditable() {
@@ -146,6 +160,10 @@ Item {
             mouseClick(field, field.width - 18, field.height / 2);
             wait(50);
             verify(field.openChildRect !== null, "the chevron did not open the list");
+
+            mouseClick(field, field.width - 18, field.height / 2);
+            wait(50);
+            compare(field.openChildRect, null, "the second chevron press left the list up");
         }
 
         /// A field whose list is empty has nothing to open, so its chevron is dimmed and takes no

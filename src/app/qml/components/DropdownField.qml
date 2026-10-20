@@ -10,7 +10,8 @@ import QtQuick.Window
  * tall as its contents, so a list drawn inside it would be clipped the moment it opened.
  *
  * Two shapes share the one component because they share the list. A field the reader only picks
- * from shows the current option's label, and the whole field opens the list. An `editable` one
+ * from shows the current option's label, and the whole field opens the list -- and puts it down
+ * again on a second press. An `editable` one
  * shows what was typed instead, and there only the chevron opens the list -- the rest of the
  * field is the reader's cursor, which is what makes a model name the service never listed
  * reachable by hand (UI.md 4.4, docs/adr/0017).
@@ -164,6 +165,14 @@ Item {
         root.placeList();
         list.visible = true;
         listOpened();
+    }
+
+    /// @brief A press on the field's own button: the list comes up, or goes down if it is up.
+    function toggleList() {
+        if (list.visible)
+            root.closeList();
+        else
+            root.openList();
     }
 
     /// @brief Report a row the pointer has entered or left, which is the whole preview gesture.
@@ -409,7 +418,7 @@ Item {
             TapHandler {
                 id: chevronPress
                 enabled: root.hasOptions
-                onTapped: root.openList()
+                onTapped: root.toggleList()
             }
         }
 
@@ -420,7 +429,7 @@ Item {
         TapHandler {
             id: fieldPress
             enabled: !root.editable
-            onTapped: root.openList()
+            onTapped: root.toggleList()
         }
     }
 
@@ -434,7 +443,7 @@ Item {
     }
 
     Component.onDestruction: {
-        previewSettle.stop();
+        root.closeList();
         if (root.optionPreviewWindow !== null)
             root.optionPreviewWindow.destroy();
     }

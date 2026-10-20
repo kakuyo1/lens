@@ -168,3 +168,19 @@ TEST(GlassQuality, StoredValuesClampToTheFourTiers)
     EXPECT_FALSE(app::glassQualityRefreshes(app::GlassQuality::Eco));
     EXPECT_TRUE(app::glassQualityRefreshes(app::GlassQuality::Standard));
 }
+
+TEST(GlassQuality, SmoothFollowsTheScreenWhileAutomaticKeepsTheSixtyHertzCap)
+{
+    using app::GlassQuality;
+    // The default tier is bounded whatever the screen can do; the top tier spends the extra reads to match it.
+    EXPECT_EQ(app::glassQualityFrameMs(GlassQuality::Auto, 144.0), app::kGlassAutoFrameMs);
+    EXPECT_EQ(app::glassQualityFrameMs(GlassQuality::Smooth, 144.0), 6);
+    EXPECT_EQ(app::glassQualityFrameMs(GlassQuality::Smooth, 165.0), 6);
+    EXPECT_EQ(app::glassQualityFrameMs(GlassQuality::Smooth, 60.0), 16);
+    // An unknown rate falls back to the conservative pace rather than a poll with no frame behind it.
+    EXPECT_EQ(app::glassQualityFrameMs(GlassQuality::Smooth, 0.0), app::kGlassAutoFrameMs);
+    // A 1000 Hz report is a floor, not a reason to poll a thousand times: the copy has to fit inside the tick.
+    EXPECT_EQ(app::glassQualityFrameMs(GlassQuality::Smooth, 1000.0), app::kGlassFrameFloorMs);
+    // A slow screen is polled no slower than the GDI budget the other sheets share.
+    EXPECT_EQ(app::glassQualityFrameMs(GlassQuality::Smooth, 10.0), app::kGlassGdiFrameMs);
+}

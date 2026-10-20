@@ -5,7 +5,6 @@
 
 #include "glass_math.h"
 
-#include <QColor>
 #include <QPainter>
 #include <QRectF>
 
@@ -165,23 +164,40 @@ int channelByte(float const value)
 
 ToneRead readTone(QImage const& backdrop, double const fillAlpha)
 {
+    return readTone(backdrop, backdrop.rect(), fillAlpha);
+}
+
+ToneRead readTone(QImage const& backdrop, QRect const& region, double const fillAlpha)
+{
     if (backdrop.isNull()) return {};
+
+    auto const area = region.intersected(backdrop.rect());
+    if (area.isEmpty()) return {};
 
     auto const darkLuminance  = luminance(qRed(kDarkText), qGreen(kDarkText), qBlue(kDarkText));
     auto const lightLuminance = luminance(qRed(kLightText), qGreen(kLightText), qBlue(kLightText));
 
+    auto const          columns = static_cast<std::size_t>((area.width() + kSampleStride - 1) / kSampleStride);
+    auto const          rows    = static_cast<std::size_t>((area.height() + kSampleStride - 1) / kSampleStride);
     std::vector<double> againstDark;
     std::vector<double> againstLight;
-    for (int y = 0; y < backdrop.height(); y += kSampleStride)
-        for (int x = 0; x < backdrop.width(); x += kSampleStride) {
-            auto const pixel = QColor(backdrop.pixel(x, y));
+    againstDark.reserve(columns * rows);
+    againstLight.reserve(columns * rows);
+    // The sheet the live path samples is 32-bit, so its rows are read in place rather than through QImage::pixel(),
+    // whose per-pixel format dispatch and QColor construction were a measurable part of a 144 Hz frame.
+    auto const packed = backdrop.depth() == 32;
+    for (int y = area.top(); y <= area.bottom(); y += kSampleStride) {
+        auto const* const row = packed ? reinterpret_cast<QRgb const*>(backdrop.constScanLine(y)) : nullptr;
+        for (int x = area.left(); x <= area.right(); x += kSampleStride) {
+            auto const pixel = packed ? row[x] : backdrop.pixel(x, y);
             // The card's white fill lies over the picture, so the text stands on the composite.
-            auto const composite = luminance(fillAlpha * 255.0 + (1.0 - fillAlpha) * pixel.red(),
-                                             fillAlpha * 255.0 + (1.0 - fillAlpha) * pixel.green(),
-                                             fillAlpha * 255.0 + (1.0 - fillAlpha) * pixel.blue());
+            auto const composite = luminance(fillAlpha * 255.0 + (1.0 - fillAlpha) * qRed(pixel),
+                                             fillAlpha * 255.0 + (1.0 - fillAlpha) * qGreen(pixel),
+                                             fillAlpha * 255.0 + (1.0 - fillAlpha) * qBlue(pixel));
             againstDark.push_back(contrast(composite, darkLuminance));
             againstLight.push_back(contrast(composite, lightLuminance));
         }
+    }
     if (againstDark.empty()) return {};
     return {tenthPercentile(againstDark), tenthPercentile(againstLight)};
 }

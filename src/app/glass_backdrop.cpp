@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <array>
+#include <functional>
 #include <optional>
 
 #ifdef _WIN32
@@ -70,13 +71,10 @@ constexpr int kSheetMargin = 112;
 /// How near the window may come to a side of the sheet that is not on the screen's edge before a new sheet is taken, in
 /// DIP. The old sheet serves while the new one processes, so this covers the distance a drag moves in that time.
 constexpr int kSheetReserve = 72;
-/// The refresh period a GDI screen keeps: about fifteen reads a second in all, however many sheets are live. A screen
+/// The reference period a GDI screen keeps: about fifteen reads a second in all, however many sheets are live. A screen
 /// that duplicates does not use this budget, but it no longer raises a GDI read's rate either (docs/adr/0072).
 // ponytail: fixed rate, no back-off when the machine is busy; add one when the reads show up in someone's frame times.
-constexpr int kLiveIntervalMs = 67;
-/// The tick a duplicated screen gets: about sixty polls a second. A poll that finds no new frame costs an acquire and
-/// nothing else, so a still desktop stays nearly free; the frame rate cannot exceed the desktop's own change rate.
-constexpr int kLiveFrameMs = 16;
+constexpr int kLiveIntervalMs = kGlassGdiFrameMs;
 /// The sheet is read at the screen's own resolution. The blur runs on the GPU now (docs/adr/0070), and reading full costs
 /// only about 3.5 ms more than a quarter (docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md 3.5):
 /// the quarter existed to keep the CPU blur's input small, and with that gone it would only cost sharpness.
@@ -84,17 +82,22 @@ constexpr auto kSheetScale = SheetScale::Full;
 /// How often the pipeline's tally is logged. Ten seconds is long enough for the read's median to mean something on a
 /// still desktop, and short enough that a run of the application shows several windows.
 constexpr int kSummaryIntervalMs = 10000;
+/// How long a chained read waits for the next duplicated frame, in ms. A 144 Hz frame is 7 ms away, so this covers a
+/// missed composition; on a still desktop the worker wakes four times less often than the old 16 ms poll at 60 Hz and
+/// finds nothing. The chain is what keeps a GUI timer's jitter from coalescing frames away (docs/adr/0074).
+constexpr int kChainWaitMs = 16;
 
 /// What a sheet read needs, copied out of Qt's objects on the GUI thread so a refresh on the pool never touches them.
 struct Request {
-    QRect             region;                ///< The sheet, in device-independent pixels.
-    QRect             screen;                ///< The geometry of the screen the sheet lies on.
-    QRect             native;                ///< The sheet in device pixels, on the desktop.
-    QRect             window;                ///< The card the text tone is judged over.
-    double            scale       = 1.0;     ///< Device pixels per device-independent pixel.
-    double            fillAlpha   = 0.0;     ///< The white the card sits under, 0 to 1.
-    bool              onDesktop   = false;   ///< Whether this platform is the real Windows desktop, the only one to read.
-    GlassDuplication* duplication = nullptr; ///< The screen's frame source, when a live sheet can use one.
+    QRect             region;                     ///< The sheet, in device-independent pixels.
+    QRect             screen;                     ///< The geometry of the screen the sheet lies on.
+    QRect             native;                     ///< The sheet in device pixels, on the desktop.
+    QRect             window;                     ///< The card the text tone is judged over.
+    double            scale            = 1.0;     ///< Device pixels per device-independent pixel.
+    double            fillAlpha        = 0.0;     ///< The white the card sits under, 0 to 1.
+    bool              onDesktop        = false;   ///< Whether this platform is the real Windows desktop, the only one to read.
+    GlassDuplication* duplication      = nullptr; ///< The screen's frame source, when a live sheet can use one.
+    int               acquireTimeoutMs = 0;       ///< How long the worker waits for a new frame; zero for a timer-driven poll.
 };
 
 /// A picture of the desktop and the text tone read over the card.
@@ -146,13 +149,11 @@ Taken takeSheet(Request const& request)
     auto noFrame = false;
     auto usedGdi = false;
     if (request.duplication != nullptr) {
-        QElapsedTimer started;
-        started.start();
-        auto frame = request.duplication->read(request.native, request.scale);
+        auto frame = request.duplication->read(request.native, request.scale, request.acquireTimeoutMs);
         if (frame.newFrame and not frame.image.isNull()) {
-            // Timed separately from GDI: this is the copy the duplication path replaces a screen read with, and the two
-            // are what the frame-rate decision is made of (src/app/glass_stats.h).
-            glassStats().addFrame(static_cast<double>(started.nsecsElapsed()) / 1.0e6);
+            // The copy's own duration, not the wait for the frame: the Smooth tier's chained read sits in
+            // AcquireNextFrame between frames, and counting that wait would price a still desktop as an expensive copy.
+            glassStats().addFrame(frame.copyMs);
             picture = std::move(frame.image);
         } else if (not frame.newFrame and frame.usable) {
             // Nothing changed behind the card: the picture in force is still the desktop. Not a failed read, and not a
@@ -173,13 +174,14 @@ Taken takeSheet(Request const& request)
     }
     if (picture.isNull()) return {{}, {}, noFrame, usedGdi};
     picture.setDevicePixelRatio(request.scale);
-    // The text is judged over the window, not over the margin the sheet adds around it.
+    // The text is judged over the window, not over the margin the sheet adds around it. Read in place: copying the
+    // card out of a native-resolution sheet was a per-frame allocation and a second walk of the same pixels.
     auto const scale = picture.devicePixelRatioF();
     auto const card  = QRect(qRound((request.window.x() - request.region.x()) * scale),
                             qRound((request.window.y() - request.region.y()) * scale),
                             qRound(request.window.width() * scale),
                             qRound(request.window.height() * scale));
-    auto const tone  = readTone(picture.copy(card.intersected(picture.rect())), request.fillAlpha);
+    auto const tone  = readTone(picture, card, request.fillAlpha);
     return {std::move(picture), tone, noFrame, usedGdi};
 }
 
@@ -330,14 +332,13 @@ void GlassSheet::publish(QRect const region, QRect const screen, QImage picture,
         clear();
         return;
     }
-    // The desktop has not moved since the last refresh: the same sheet over the same region is already in force, and
-    // publishing it again would bump the serial for a card that would look identical -- a new texture upload and
-    // render for no visible change. Checked before settleTone() so that a skipped refresh leaves the tone bookkeeping
-    // untouched.
-    auto const print = pictureFingerprint(picture);
+    // A duplicated frame has already been checked against the desktop's dirty and move rectangles: the sheet area
+    // changed, or the frame would not have reached here. The fingerprint's 32 by 32 reduction would only be a second,
+    // heavier opinion on the GUI thread, once per frame -- at 144 Hz that is a cost with nothing left to gate.
+    auto const print = duplicated ? 0 : pictureFingerprint(picture);
     {
         QMutexLocker const lock(&mutex_);
-        if (not fresh and region == sheet_ and print == fingerprint_) {
+        if (not duplicated and not fresh and region == sheet_ and print == fingerprint_) {
             glassStats().countIdenticalSkip();
             return;
         }
@@ -433,6 +434,9 @@ GlassBackdrop::GlassBackdrop(QObject* parent)
         sheets_.push_back(sheet);
     }
     live_.setInterval(kLiveIntervalMs);
+    // A 6 ms tick on a 144 Hz screen is shorter than the coarse timer's own slack, and the poll has to land before the
+    // next composition rather than a few milliseconds after it.
+    live_.setTimerType(Qt::PreciseTimer);
     connect(&live_, &QTimer::timeout, this, &GlassBackdrop::refreshNext);
     pool_.setMaxThreadCount(1);
     window_.start();
@@ -477,7 +481,8 @@ void GlassBackdrop::refreshNext()
     }
     // One read at a time across every surface: a tick that finds the last still running is skipped, not queued behind it.
     if (busy_) {
-        glassStats().countBusySkip();
+        // A chained read is meant to be in flight; counting each tick of it as a skip would drown the tally.
+        if (not chaining_) glassStats().countBusySkip();
         return;
     }
     // Standard is the GDI tier: it neither asks a screen to duplicate nor reads faster for one that does.
@@ -520,34 +525,70 @@ void GlassBackdrop::refreshNext()
         sheet->clear();
         return;
     }
-    busy_ = true;
-    pool_.start([this, request = *read, index = *next, generation = sheet->generation_] {
-        auto taken = takeSheet(request);
-        QMetaObject::invokeMethod(
-            this,
-            [this, request, index, generation, taken = std::move(taken)]() mutable {
-                busy_ = false;
-                // The GDI clock starts when the read finishes, which is also when the next one may start: the read itself
-                // is the cost the fifteen-a-second budget is spacing out.
-                if (taken.usedGdi) gdiPace_.restart();
-                // Retaken or dropped while this read ran: the picture is of a region that is no longer held.
-                auto* const target = sheets_[index];
-                if (generation == target->generation_) {
-                    if (request.duplication != nullptr)
-                        target->noteDuplicationRefused(not request.duplication->usable());
-                    if (not taken.noFrame) {
-                        if (taken.picture.isNull())
-                            target->clear();
-                        else
-                            target->publish(request.region, request.screen, std::move(taken.picture), taken.tone, false, request.duplication != nullptr and not taken.usedGdi);
+    // The read, and the chain that follows it. A single live sheet on Smooth reads the next frame from the worker rather
+    // than from the next GUI tick: a timer's jitter let frames produced between two ticks be coalesced away, and the
+    // display's rate -- not the timer's -- is what that tier is for (docs/adr/0074). The chain lives in this one
+    // std::function, held strongly by the task in flight and weakly by its own body, so it ends when a read decides not
+    // to continue and leaves nothing behind.
+    using StartRead    = std::function<void(std::size_t, int, Request const&)>;
+    auto const starter = std::make_shared<StartRead>();
+    auto const weak    = std::weak_ptr<StartRead>{starter};
+    *starter           = [this, weak](std::size_t const index, int const generation, Request const& request) {
+        busy_ = true;
+        pool_.start([this, request, index, generation, starter = weak.lock()] {
+            auto taken = takeSheet(request);
+            QMetaObject::invokeMethod(
+                this,
+                [this, request, index, generation, taken = std::move(taken), starter]() mutable {
+                    busy_ = false;
+                    // The GDI clock starts when the read finishes, which is also when the next one may start: the read itself
+                    // is the cost the fifteen-a-second budget is spacing out.
+                    if (taken.usedGdi) gdiPace_.restart();
+                    // Retaken or dropped while this read ran: the picture is of a region that is no longer held.
+                    auto* const target = sheets_[index];
+                    if (generation == target->generation_) {
+                        if (request.duplication != nullptr)
+                            target->noteDuplicationRefused(not request.duplication->usable());
+                        if (not taken.noFrame) {
+                            if (taken.picture.isNull())
+                                target->clear();
+                            else
+                                target->publish(request.region, request.screen, std::move(taken.picture), taken.tone, false, request.duplication != nullptr and not taken.usedGdi);
+                        }
                     }
-                }
-                // A session that failed on this read (another recorder took the output, a display mode changed) must
-                // drop the pace back to the GDI budget before the next tick.
-                updateLive();
-            },
-            Qt::QueuedConnection);
-    });
+                    // A session that failed on this read (another recorder took the output, a display mode changed) must
+                    // drop the pace back to the GDI budget before the next tick.
+                    updateLive();
+                    // Continue the chain only while it is still the same live sheet, alone on a duplicated screen. A
+                    // second live surface, a retake, or another tier hands the pace back to the timer.
+                    if (quality_ != GlassQuality::Smooth or not target->live_ or target->reading() or target->generation_ != generation) {
+                        chaining_ = false;
+                        return;
+                    }
+                    auto const liveCount = std::count_if(sheets_.begin(), sheets_.end(), [](GlassSheet const* sheet) { return sheet->live_; });
+                    if (liveCount != 1) {
+                        chaining_ = false;
+                        return;
+                    }
+                    auto* const screen  = QGuiApplication::screenAt(target->sheet_.center());
+                    auto* const session = screen != nullptr ? duplicationFor(*screen) : nullptr;
+                    if (session == nullptr or not session->usable()) {
+                        chaining_ = false;
+                        return;
+                    }
+                    auto next = requestFor(target->sheet_, target->window_, target->fillAlpha_, session);
+                    if (not next or not starter) {
+                        chaining_ = false;
+                        return;
+                    }
+                    next->acquireTimeoutMs = kChainWaitMs;
+                    chaining_              = true;
+                    (*starter)(index, generation, *next);
+                },
+                Qt::QueuedConnection);
+        });
+    };
+    (*starter)(*next, sheet->generation_, *read);
 }
 
 void GlassBackdrop::updateLive()
@@ -561,19 +602,35 @@ void GlassBackdrop::updateLive()
     auto const duplicates = onDesktop and glassQualityDuplicates(quality_);
     auto       anyLive    = false;
     auto       anyFast    = false;
+    auto       fastestHz  = 0.0;
     for (auto* const sheet : sheets_) {
         if (not sheet->live_) continue;
         anyLive = true;
-        if (anyFast or not duplicates) continue;
-        if (auto* const screen = QGuiApplication::screenAt(sheet->sheet_.center()); screen != nullptr)
-            anyFast = duplicationFor(*screen)->usable();
+        if (not duplicates) continue;
+        if (auto* const screen = QGuiApplication::screenAt(sheet->sheet_.center()); screen != nullptr) {
+            if (duplicationFor(*screen)->usable()) {
+                anyFast = true;
+                // Not std::max: windows.h's max macro is in scope in this file.
+                if (screen->refreshRate() > fastestHz) fastestHz = screen->refreshRate();
+            }
+        }
     }
     if (not anyLive) {
         live_.stop();
         return;
     }
-    auto const interval = anyFast ? kLiveFrameMs : kLiveIntervalMs;
-    if (live_.interval() != interval) live_.setInterval(interval);
+    // Automatic keeps the conservative sixty-a-second cap; Smooth is the tier that spends the extra reads to follow the
+    // screen (docs/adr/0074). A screen without duplication, or a Standard tier, keeps the shared GDI budget.
+    auto const interval = not anyFast ? kLiveIntervalMs : glassQualityFrameMs(quality_, fastestHz);
+    if (live_.interval() != interval) {
+        live_.setInterval(interval);
+        if (anyFast) {
+            if (quality_ == GlassQuality::Smooth and fastestHz > 0.0)
+                LENS_INFO("glass refresh on the smooth tier paced at {} ms: the {} Hz screen sets it", interval, qRound(fastestHz));
+            else
+                LENS_INFO("glass refresh on the {} tier paced at {} ms", glassQualityName(quality_), interval);
+        }
+    }
     if (not live_.isActive()) live_.start();
     if (not screensLogged_) {
         // Once per process, and only now: the glass is what reads the desktop, so the screens it will find are worth

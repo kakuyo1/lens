@@ -41,6 +41,8 @@ Item {
         function cleanup() {
             Controller.setClipboardPolicy(false);
             Controller.setDailyBudget(0);
+            Controller.setTheme("dark");
+            Controller.setGlassQuality(0);
             Pet.setEnabled(false);
         }
 
@@ -341,6 +343,32 @@ Item {
 
             compare(shown.panel.visible, true, "a press on the list put the panel down");
             verify(field.openChildRect !== null, "a press on the list put the list down before it could be picked");
+        }
+
+        /// The backdrop refresh list was the one dropdown the General page neither reported as its open child nor
+        /// closed with itself, because it arrived on a page that already had a dropdown. A list is a window of its
+        /// own: unreported, a press outside it fell through to the panel, and unclosed, it outlived the panel.
+        function test_theBackdropRefreshListGoesDownWithThePanel() {
+            Controller.setTheme("frosted");
+            const main = make();
+            main.showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "General");
+
+            const field = findDeep(panel, function (o) {
+                return o.objectName === "glassQualityField";
+            })[0];
+            verify(field, "the General page has no backdrop refresh dropdown");
+
+            mouseClick(field, field.width / 2, field.height / 2);
+            tryVerify(() => field.openChildRect !== null, 2000, "the field did not open its list");
+            verify(panel.openChildRect !== null,
+                   "the panel did not report the refresh list as its open child");
+
+            panel.visible = false;
+            wait(50);
+            tryVerify(() => field.openChildRect === null, 2000,
+                      "closing the panel left the refresh list up");
         }
 
         function test_aQuestionOnThePanelTakesEscapeBeforeTheCategoryDoes() {

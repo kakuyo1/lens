@@ -59,10 +59,10 @@ class GlassSheet : public QObject {
     Q_PROPERTY(int serial READ serial NOTIFY pictureChanged)
     /// The rectangle of the desktop the picture covers, in device-independent pixels. Empty when none is held.
     Q_PROPERTY(QRect sheet READ sheet NOTIFY pictureChanged)
-    /// Whether the card wants the sheet refreshed: up to sixty times a second from a duplicated output, about fifteen
-    /// from GDI. A card that draws no backdrop turns it off and keeps the sheet for the text tone alone (docs/adr/0069).
-    /// The Eco tier keeps the refresh timer off even while this is true (docs/adr/0073), so the setting page reads the
-    /// tier, not this property, to say what is happening.
+    /// Whether the card wants the sheet refreshed: a duplicated output at up to the screen's refresh rate on the Smooth
+    /// tier, about fifteen a second from GDI. A card that draws no backdrop turns it off and keeps the sheet for the text
+    /// tone alone (docs/adr/0069). The Eco tier keeps the refresh timer off even while this is true (docs/adr/0073), so
+    /// the setting page reads the tier, not this property, to say what is happening.
     Q_PROPERTY(bool live READ live NOTIFY liveChanged)
     /// Whether the picture in force came from a duplicated output. The settings page reads this to say what the
     /// Smooth and Auto tiers are doing on the screen the panel is on (docs/adr/0073).
@@ -186,8 +186,9 @@ private:
  * The surfaces are a fixed set, so the sheets are created once and the image provider can look them up from its own
  * threads without a lock. One refresh runs at a time: each tick reads the next live sheet in turn (nextLive), so the
  * cost is fixed however many surfaces show glass. A screen with a working duplication session is served from its frames
- * and sets the tick to the fast pace; the GDI screens keep the old fifteen-a-second budget, shared between them, so a
- * duplicated screen never makes a GDI read pay for a frame it cannot use.
+ * and sets the tick to the fast pace: sixty a second on Automatic, the screen's own refresh period on Smooth. The GDI
+ * screens keep the old fifteen-a-second budget, shared between them, so a duplicated screen never makes a GDI read pay
+ * for a frame it cannot use.
  */
 class GlassBackdrop : public QObject {
     Q_OBJECT
@@ -229,6 +230,9 @@ private:
     std::size_t cursor_ = 0;
     /// Set while the refresh is on the pool; cleared on the GUI thread when its result comes back.
     bool busy_ = false;
+    /// Set while a chained read is feeding itself on the Smooth tier. The GUI timer's busy ticks are its normal state,
+    /// not a skip, and counting them would drown the tally (docs/adr/0074).
+    bool chaining_ = false;
     /// Drives the refresh while any sheet is live.
     QTimer live_;
     /// Runs the desktop reads off the GUI thread. One thread: a read is a few milliseconds and two would only contend.
