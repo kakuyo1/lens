@@ -1,5 +1,37 @@
 # Changelog
 
+## 1.7.5 - 2026-10-21
+
+The desktop pet now wanders near where it was left and can hide at a screen edge, and the source tree
+is regrouped around responsibilities. The regrouping changes nothing the reader sees.
+
+### Added
+
+- The desktop pet wanders after 120 to 300 seconds of accumulated idle time, staying within a short
+  distance of the place the reader left it (10–60% of its own width; 24–46% for the shipped pets).
+  Each of the seven shipped pets has its own gait: the dog trots, the cat pounces, the ghost,
+  jellyfish and cloud float, and the mochi and owl hop. A package declares its gait and its `walk` /
+  `edge_peek` actions in an optional `movement` block in `animations.json`; a package without one
+  stays where it is (docs/adr/0076).
+- A walk that ends against the left or right edge of the screen's work area has a 70% chance of
+  hiding the pet. It slides out until about a third of its body shows, peeks back in every 3.6
+  seconds, and stays there until the reader drags it back into the work area; clicking it does not
+  end the hide.
+- The pet can ask a review question while hidden, using the hand on the inside of the screen.
+  Answering, letting the question time out, or closing it returns the pet to peeking, and the hide
+  continues. Dragging the pet out ends the hide and leaves the question at the new position.
+
+### Changed
+
+- The C++ tree is grouped by responsibility: `src/core` separates domain rules, the settings
+  document, crypto and the developer protocol, and `src/app` separates use cases, platform
+  integration, glass, pet and the developer surface. The QML tree is grouped by surface family,
+  shared components are split by role, and every theme table sits under `theme/`.
+- `Main.qml` and `WordsPopup.qml` were split before reaching the QML size limit. Placement and panel
+  routing moved to `SurfaceHost.qml`, and the words list row became a component of its own.
+- The reference documents route through a single documentation map, and `CODING_STANDARDS.md` states
+  the layer boundaries. A layer check runs in pre-commit and CI; neither changes behavior.
+
 ## 1.7.1 - 2026-10-20
 
 The desktop pet stops drawing a black square behind itself, and the Background refresh rows stop
