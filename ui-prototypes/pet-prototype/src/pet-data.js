@@ -7,8 +7,8 @@
 /**
  * @param {{pet: object, animations: object, anchors: object, accessories: object}} files The parsed files.
  * @returns {object} `actions` holds only the playable actions, each with its per-frame anchors. The `blink` entry is
- *          not an action: it becomes `blink`, the expression sequence of one blink. `roles`, `idlePool` and
- *          `accessories` are taken as the files give them.
+ *          not an action: it becomes `blink`, the expression sequence of one blink. `roles`, `idlePool`, `movement`
+ *          and `accessories` are taken as the files give them.
  */
 export function assemblePet({ pet, animations, anchors, accessories }) {
   const { blink, ...playable } = animations.actions;
@@ -20,6 +20,7 @@ export function assemblePet({ pet, animations, anchors, accessories }) {
     blink: blink.expressions,
     roles: animations.roles,
     idlePool: animations.idlePool,
+    movement: animations.movement,
     actions,
     accessories: accessories.accessories
   };

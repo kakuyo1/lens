@@ -54,6 +54,8 @@ Playbook dogPlaybook()
             {"stretch", playback(6, 6, false)},
             {"hover_notice", playback(2, 10, false)},
             {"hover_dwell", playback(2, 10, false)},
+            {"walk", playback(6, 8, true)},
+            {"edge_peek", playback(6, 5, true)},
         },
         .roles = {
             {Role::Idle, "idle"},
@@ -137,6 +139,84 @@ TEST(PetStateMachine, HoverReactionRejectsLoopingAndUnknownActions)
     EXPECT_FALSE(machine.playHover("idle"));
     EXPECT_FALSE(machine.playHover("no_such_action"));
     EXPECT_EQ(machine.action(), "idle");
+}
+
+TEST(PetStateMachine, AmbientLoopStartsOnlyFromIdleAndOnlyForLoopingActions)
+{
+    auto machine = makeMachine();
+    EXPECT_FALSE(machine.playAmbient("celebrate")) << "a one-shot is not an ambient loop";
+    EXPECT_FALSE(machine.playAmbient("no_such_action"));
+    EXPECT_EQ(machine.action(), "idle");
+
+    EXPECT_TRUE(machine.playAmbient("walk"));
+    EXPECT_EQ(machine.action(), "walk");
+    EXPECT_TRUE(machine.ambient());
+    EXPECT_FALSE(machine.idle());
+
+    // Already walking: a second ambient loop is not a new request.
+    EXPECT_FALSE(machine.playAmbient("edge_peek"));
+    EXPECT_EQ(machine.action(), "walk");
+}
+
+TEST(PetStateMachine, AmbientLoopKeepsTheIdleClockPaused)
+{
+    // Left to its idle timer, this machine would fidget after about 41 s. A walk must hold that back.
+    auto machine = makeMachine(kFidgets);
+    ASSERT_TRUE(machine.playAmbient("walk"));
+    machine.advance(120s);
+    EXPECT_EQ(machine.action(), "walk");
+    EXPECT_FALSE(machine.idle());
+}
+
+TEST(PetStateMachine, StopAmbientReturnsToIdle)
+{
+    auto machine = makeMachine();
+    ASSERT_TRUE(machine.playAmbient("edge_peek"));
+    machine.stopAmbient();
+    EXPECT_EQ(machine.action(), "idle");
+    EXPECT_FALSE(machine.ambient());
+    EXPECT_TRUE(machine.idle());
+}
+
+TEST(PetStateMachine, AnEventWinsOverAnAmbientLoopAndItIsNotResumed)
+{
+    auto machine = makeMachine();
+    ASSERT_TRUE(machine.playAmbient("walk"));
+
+    machine.handle(PetEvent::Click);
+    EXPECT_EQ(machine.action(), "click_react");
+    EXPECT_FALSE(machine.ambient());
+
+    machine.advance(333ms); // 4 frames at 12 fps
+    EXPECT_EQ(machine.action(), "idle");
+}
+
+TEST(PetStateMachine, StopAmbientAfterAnEventLeavesTheEventAlone)
+{
+    auto machine = makeMachine();
+    ASSERT_TRUE(machine.playAmbient("walk"));
+    machine.handle(PetEvent::Click);
+    machine.stopAmbient();
+    EXPECT_EQ(machine.action(), "click_react");
+}
+
+TEST(PetStateMachine, AmbientLoopCannotStartWhileBusyOrDragging)
+{
+    auto machine = makeMachine();
+    machine.handle(PetEvent::ExplanationShown);
+    EXPECT_FALSE(machine.playAmbient("walk"));
+
+    auto dragging = makeMachine();
+    dragging.handle(PetEvent::DragStart);
+    EXPECT_FALSE(dragging.playAmbient("walk"));
+}
+
+TEST(PetStateMachine, HoverDoesNotCutIntoAnAmbientLoop)
+{
+    auto machine = makeMachine();
+    ASSERT_TRUE(machine.playAmbient("walk"));
+    EXPECT_FALSE(machine.playHover("hover_notice"));
+    EXPECT_EQ(machine.action(), "walk");
 }
 
 TEST(PetStateMachine, ClickInterruptsReadingAndReturnsToIt)
@@ -684,6 +764,22 @@ TEST(PetStateMachine, ADragDuringAQuestionReleasesBackToItsSign)
     EXPECT_EQ(machine.action(), "pickup");
     machine.handle(PetEvent::DragEnd);
     EXPECT_EQ(machine.action(), "ask");
+}
+
+TEST(PetStateMachine, AReviewQuestionPreemptsAnAmbientLoopAndTheAnswerEndsIntoIdle)
+{
+    // The controller replays the peek after an answer; the machine only has to hand the idle role back.
+    auto machine = PetStateMachine{dogWithSign(true), RandomSource{[] { return kFidgets; }}};
+    ASSERT_TRUE(machine.playAmbient("edge_peek"));
+
+    machine.handle(PetEvent::ReviewAsked);
+    EXPECT_EQ(machine.action(), "ask");
+    EXPECT_FALSE(machine.ambient());
+
+    machine.handle(PetEvent::ReviewRemembered);
+    EXPECT_EQ(machine.action(), "celebrate");
+    machine.advance(1s);
+    EXPECT_EQ(machine.action(), "idle");
 }
 
 TEST(PetStateMachine, AnAnswerGivenDuringADragReleasesToIdle)

@@ -126,6 +126,18 @@
       "sheet": "body/ask.png", "effect": "effects/ask.png", "effectLeft": "effects/ask-left.png",
       "anchors": [[3, 0], [3, -3], [3, -6], [3, -3]]
     },
+    "walk": {
+      "label": "闲逛", "frames": 6, "fps": 8, "loop": true, "priority": 0,
+      "expressions": [0, 5, 0, 5, 0, 5],
+      "sheet": "body/walk.png", "effect": "effects/walk.png",
+      "anchors": [[-2, 0], [0, -3], [2, 0], [0, -3], [2, 0], [0, -3]]
+    },
+    "edge_peek": {
+      "label": "边缘偷看", "frames": 6, "fps": 5, "loop": true,
+      "expressions": [0, 2, 0, 0, 2, 0],
+      "sheet": "body/edge_peek.png",
+      "anchors": [[0, 0], [0, 3], [0, -2], [0, 0], [0, 3], [0, -2]]
+    },
     "sleep": {
       "label": "睡觉", "frames": 4, "fps": 3, "loop": true, "priority": 40,
       "expressions": [8, 8, 8, 8],
@@ -134,12 +146,12 @@
     }
   },
   "accessories": [
-    { "id": "hat", "label": "礼帽", "slot": "head", "asset": "accessories/headwear/hat.png", "zIndex": 4, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch", "wag", "sniff", "scratch", "angry", "swing", "desk", "skate", "bath", "rain", "ask"] },
-    { "id": "beanie", "label": "毛线帽", "slot": "head", "asset": "accessories/headwear/beanie.png", "zIndex": 4, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch", "wag", "sniff", "scratch", "angry", "swing", "desk", "skate", "bath", "rain", "ask"] },
-    { "id": "sprout", "label": "嫩芽", "slot": "head", "asset": "accessories/headwear/sprout.png", "zIndex": 4, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch", "wag", "sniff", "scratch", "angry", "swing", "desk", "skate", "bath", "rain", "ask"] },
-    { "id": "crown", "label": "王冠", "slot": "head", "asset": "accessories/headwear/crown.png", "zIndex": 4, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch", "wag", "sniff", "scratch", "angry", "swing", "desk", "skate", "bath", "rain", "ask"] },
-    { "id": "glasses", "label": "圆框眼镜", "slot": "face", "asset": "accessories/glasses/glasses.png", "zIndex": 3, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch", "wag", "sniff", "scratch", "angry", "swing", "desk", "skate", "bath", "rain", "ask"] },
-    { "id": "sunglasses", "label": "墨镜", "slot": "face", "asset": "accessories/glasses/sunglasses.png", "zIndex": 3, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch", "wag", "sniff", "scratch", "angry", "swing", "desk", "skate", "bath", "rain", "ask"] },
-    { "id": "bowtie", "label": "西服领结", "slot": "body", "asset": "accessories/clothing/bowtie.png", "zIndex": 1, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch", "wag", "sniff", "scratch", "angry", "swing", "desk", "skate", "bath", "rain", "ask"] }
+    { "id": "hat", "label": "礼帽", "slot": "head", "asset": "accessories/headwear/hat.png", "zIndex": 4, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch", "wag", "sniff", "scratch", "angry", "swing", "desk", "skate", "bath", "rain", "ask", "walk", "edge_peek"] },
+    { "id": "beanie", "label": "毛线帽", "slot": "head", "asset": "accessories/headwear/beanie.png", "zIndex": 4, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch", "wag", "sniff", "scratch", "angry", "swing", "desk", "skate", "bath", "rain", "ask", "walk", "edge_peek"] },
+    { "id": "sprout", "label": "嫩芽", "slot": "head", "asset": "accessories/headwear/sprout.png", "zIndex": 4, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch", "wag", "sniff", "scratch", "angry", "swing", "desk", "skate", "bath", "rain", "ask", "walk", "edge_peek"] },
+    { "id": "crown", "label": "王冠", "slot": "head", "asset": "accessories/headwear/crown.png", "zIndex": 4, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch", "wag", "sniff", "scratch", "angry", "swing", "desk", "skate", "bath", "rain", "ask", "walk", "edge_peek"] },
+    { "id": "glasses", "label": "圆框眼镜", "slot": "face", "asset": "accessories/glasses/glasses.png", "zIndex": 3, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch", "wag", "sniff", "scratch", "angry", "swing", "desk", "skate", "bath", "rain", "ask", "walk", "edge_peek"] },
+    { "id": "sunglasses", "label": "墨镜", "slot": "face", "asset": "accessories/glasses/sunglasses.png", "zIndex": 3, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch", "wag", "sniff", "scratch", "angry", "swing", "desk", "skate", "bath", "rain", "ask", "walk", "edge_peek"] },
+    { "id": "bowtie", "label": "西服领结", "slot": "body", "asset": "accessories/clothing/bowtie.png", "zIndex": 1, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch", "wag", "sniff", "scratch", "angry", "swing", "desk", "skate", "bath", "rain", "ask", "walk", "edge_peek"] }
   ]
 }

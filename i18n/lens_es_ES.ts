@@ -359,8 +359,8 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="44"/>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="170"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="625"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="172"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="711"/>
         <source>Desktop companion</source>
         <translation>Compañero de escritorio</translation>
     </message>
@@ -466,28 +466,28 @@
         <translation>Compilado el %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="106"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="112"/>
         <location filename="../src/app/qml/ThemePreview.qml" line="124"/>
         <source>Theme</source>
         <translation>Tema</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="117"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="123"/>
         <source>Light</source>
         <translation>Claro</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="119"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="125"/>
         <source>Dark</source>
         <translation>Oscuro</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="127"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="133"/>
         <source>Custom</source>
         <translation>Personalizado</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="121"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="127"/>
         <source>Frosted glass</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>Vidrio mate</translation>
@@ -503,45 +503,45 @@
         <translation>Sigue la frecuencia de actualización de esta pantalla cuando se pueda duplicar.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="123"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="129"/>
         <source>Liquid glass</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>Vidrio líquido</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="180"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="190"/>
         <source>Frosted glass parameters</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>Parámetros del vidrio mate</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="195"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="205"/>
         <source>Saturation</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>Saturación</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="187"/>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="233"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="197"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="243"/>
         <source>Blur</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>Desenfoque</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="218"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="228"/>
         <source>Liquid glass parameters</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>Parámetros del vidrio líquido</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="225"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="235"/>
         <source>Refraction</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>Refracción</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="203"/>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="241"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="213"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="251"/>
         <source>Rim highlight</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>Brillo del borde</translation>
@@ -590,84 +590,84 @@
         <translation>Esta pantalla no se puede duplicar, así que el fondo se lee unas 15 veces por segundo.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="149"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="155"/>
         <source>Backdrop refresh</source>
         <translation>Actualización del fondo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="249"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="259"/>
         <source>Text color</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>Color del texto</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="290"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="300"/>
         <source>Custom semantic colors</source>
         <translation>Colores semánticos personalizados</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="299"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="309"/>
         <source>Use six-digit hex colors. Body, muted, and faint text must each pass WCAG AA on the panel.</source>
         <translation>Usa colores hexadecimales de seis dígitos. El texto principal, el secundario y el tenue deben superar WCAG AA sobre el panel.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="306"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="316"/>
         <source>Background</source>
         <translation>Fondo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="307"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="317"/>
         <source>Panel</source>
         <translation>Panel</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="308"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="318"/>
         <source>Body text</source>
         <translation>Texto principal</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="309"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="319"/>
         <source>Muted text</source>
         <translation>Texto secundario</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="310"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="320"/>
         <source>Faint text</source>
         <translation>Texto tenue</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="311"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="321"/>
         <source>Accent</source>
         <translation>Acento</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="369"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="379"/>
         <source>AA contrast passes: body %1, muted %2, faint %3</source>
         <translation>Contraste AA correcto: principal %1, secundario %2, tenue %3</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="373"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="383"/>
         <source>AA contrast requires valid colors and a 4.5:1 ratio for body, muted, and faint text.</source>
         <translation>El contraste AA exige colores válidos y una proporción de 4.5:1 para el texto principal, el secundario y el tenue.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="394"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="404"/>
         <source>Apply custom colors</source>
         <translation>Aplicar colores personalizados</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="410"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="420"/>
         <source>Launch at startup</source>
         <translation>Iniciar con el sistema</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="417"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="427"/>
         <location filename="../src/app/qml/ThemePreview.qml" line="171"/>
         <source>Animations</source>
         <translation>Animaciones</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="430"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="440"/>
         <location filename="../src/app/qml/ThemePreview.qml" line="202"/>
         <source>Typing speed</source>
         <translation>Velocidad de escritura</translation>
@@ -678,18 +678,18 @@
         <translation>Buscar actualizaciones</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="442"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="452"/>
         <source>Check for updates at startup</source>
         <translation>Buscar actualizaciones al iniciar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="455"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="465"/>
         <location filename="../src/app/qml/SettingsPopup.qml" line="76"/>
         <source>Account &amp; sync</source>
         <translation>Cuenta y sincronización</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="462"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="472"/>
         <source>Animations are disabled by Windows accessibility settings.</source>
         <translation>La configuración de accesibilidad de Windows ha desactivado las animaciones.</translation>
     </message>
@@ -883,392 +883,402 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="41"/>
+        <source>Walk</source>
+        <translation>Caminar</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="42"/>
+        <source>Edge peek</source>
+        <translation>Asomarse al borde</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="43"/>
         <source>Wobble</source>
         <translation>Balanceo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="42"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="44"/>
         <source>Bounce</source>
         <translation>Rebote</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="43"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="45"/>
         <source>Hiccup</source>
         <translation>Hipo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="44"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="46"/>
         <source>Shiver</source>
         <translation>Temblor</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="45"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="47"/>
         <source>Spin</source>
         <translation>Giro</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="46"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="48"/>
         <source>Preen</source>
         <translation>Atusarse</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="47"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="49"/>
         <source>Hop</source>
         <translation>Salto</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="48"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="50"/>
         <source>Flap</source>
         <translation>Aleteo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="49"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="51"/>
         <source>Hoot</source>
         <translation>Ulular</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="50"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="52"/>
         <source>Nod</source>
         <translation>Asentir</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="51"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="53"/>
         <source>Groom</source>
         <translation>Asearse</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="52"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="54"/>
         <source>Tail flick</source>
         <translation>Coletazo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="53"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="55"/>
         <source>Knead</source>
         <translation>Amasar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="54"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="56"/>
         <source>Pounce</source>
         <translation>Abalanzarse</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="55"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="57"/>
         <source>Scratch</source>
         <translation>Rascar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="56"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="58"/>
         <source>Float</source>
         <translation>Flotar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="57"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="59"/>
         <source>Peek</source>
         <translation>Asomarse</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="58"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="60"/>
         <source>Boo</source>
         <translation>Bu</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="59"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="61"/>
         <source>Bob</source>
         <translation>Balanceo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="60"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="62"/>
         <source>Squish</source>
         <translation>Aplastarse</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="61"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="63"/>
         <source>Bubble</source>
         <translation>Burbuja</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="62"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="64"/>
         <source>Drift</source>
         <translation>Deriva</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="63"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="65"/>
         <source>Drizzle</source>
         <translation>Llovizna</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="64"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="66"/>
         <source>Puff</source>
         <translation>Soplo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="71"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="73"/>
         <source>Swing</source>
         <translation>Columpio</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="72"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="74"/>
         <source>Desk</source>
         <translation>Escritorio</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="73"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="75"/>
         <source>Skateboard</source>
         <translation>Monopatín</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="74"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="76"/>
         <source>Bubble bath</source>
         <translation>Baño</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="75"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="77"/>
         <source>Rain</source>
         <translation>Lluvia</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="82"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="84"/>
         <source>Top hat</source>
         <translation>Sombrero de copa</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="83"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="85"/>
         <source>Beanie</source>
         <translation>Gorro de lana</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="84"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="86"/>
         <source>Sprout</source>
         <translation>Brote</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="85"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="87"/>
         <source>Crown</source>
         <translation>Corona</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="86"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="88"/>
         <source>Round glasses</source>
         <translation>Gafas redondas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="87"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="89"/>
         <source>Sunglasses</source>
         <translation>Gafas de sol</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="88"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="90"/>
         <source>Bow tie</source>
         <translation>Pajarita</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="89"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="91"/>
         <source>Flower</source>
         <translation>Flor</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="90"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="92"/>
         <source>Party hat</source>
         <translation>Gorro de fiesta</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="91"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="93"/>
         <source>Blush</source>
         <translation>Rubor</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="92"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="94"/>
         <source>Scarf</source>
         <translation>Bufanda</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="93"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="95"/>
         <source>Apron</source>
         <translation>Delantal</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="94"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="96"/>
         <source>Hair bow</source>
         <translation>Lazo para el pelo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="95"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="97"/>
         <source>Reading glasses</source>
         <translation>Gafas de lectura</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="96"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="98"/>
         <source>Sleep mask</source>
         <translation>Antifaz para dormir</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="97"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="99"/>
         <source>Vest</source>
         <translation>Chaleco</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="98"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="100"/>
         <source>Bell collar</source>
         <translation>Collar con cascabel</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="99"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="101"/>
         <source>Bandana</source>
         <translation>Pañuelo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="106"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="108"/>
         <source>Head</source>
         <translation>Cabeza</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="107"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="109"/>
         <source>Face</source>
         <translation>Cara</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="108"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="110"/>
         <source>Body</source>
         <translation>Cuerpo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="114"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="627"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="116"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="713"/>
         <source>Dog</source>
         <translation>Perro</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="115"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="117"/>
         <source>Mochi</source>
         <translation>Mochi</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="116"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="118"/>
         <source>Owl</source>
         <translation>Búho</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="117"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="119"/>
         <source>Stub cat</source>
         <translation>Gato de orejas cortas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="118"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="120"/>
         <source>Ghost</source>
         <translation>Fantasma</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="119"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="121"/>
         <source>Jellyfish</source>
         <translation>Medusa</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="120"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="122"/>
         <source>Cloud</source>
         <translation>Nube</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="128"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="130"/>
         <source>The package format is not supported.</source>
         <translation>El formato del paquete no es compatible.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="129"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="131"/>
         <source>The package exceeds the size limits.</source>
         <translation>El paquete supera los límites de tamaño.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="130"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="132"/>
         <source>The package name is not valid.</source>
         <translation>El nombre del paquete no es válido.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="131"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="133"/>
         <source>A required action is missing.</source>
         <translation>Falta una acción obligatoria.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="132"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="134"/>
         <source>An action is not valid.</source>
         <translation>Una acción no es válida.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="133"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="135"/>
         <source>The anchor data is not valid.</source>
         <translation>Los datos de anclaje no son válidos.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="134"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="136"/>
         <source>An accessory is not valid.</source>
         <translation>Un accesorio no es válido.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="135"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="137"/>
         <source>An image is not a valid PNG.</source>
         <translation>Una imagen no es un PNG válido.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="136"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="138"/>
         <source>An image size does not match its frames.</source>
         <translation>El tamaño de una imagen no coincide con sus fotogramas.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="137"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="139"/>
         <source>An expression index is out of range.</source>
         <translation>Un índice de expresión está fuera de rango.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="138"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="140"/>
         <source>An image path points outside the package.</source>
         <translation>La ruta de una imagen apunta fuera del paquete.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="139"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="141"/>
         <source>The package id is already in use.</source>
         <translation>El id del paquete ya está en uso.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="140"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="142"/>
         <source>The package could not be read.</source>
         <translation>No se pudo leer el paquete.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="179"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="181"/>
         <source>Mouse pass-through</source>
         <translation>Paso del ratón</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="195"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="197"/>
         <source>Desktop pet size</source>
         <translation>Tamaño del compañero</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="239"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="241"/>
         <source>Pet type</source>
         <translation>Tipo de compañero</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="251"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="253"/>
         <source>External</source>
         <translation>Externo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="265"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="267"/>
         <source>Pet packages</source>
         <translation>Paquetes de mascotas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="272"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="274"/>
         <source>Copy a pet package folder into the packages folder. Lens reads it when you open this section.</source>
         <translation>Copia la carpeta de un paquete de mascota en la carpeta de paquetes. Lens la lee al abrir esta sección.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="280"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="282"/>
         <source>Open packages folder</source>
         <translation>Abrir carpeta de paquetes</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="293"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="295"/>
         <source>%1: %2</source>
         <translation>%1: %2</translation>
     </message>
@@ -1279,23 +1289,23 @@
     </message>
     <message>
         <location filename="../src/app/qml/SelectionBarPreview.qml" line="134"/>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="307"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="309"/>
         <location filename="../src/app/qml/VocabPreview.qml" line="122"/>
         <source>Preview</source>
         <translation>Vista previa</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="322"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="324"/>
         <source>Actions</source>
         <translation>Acciones</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="352"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="354"/>
         <source>Scenes</source>
         <translation>Escenas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="380"/>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="382"/>
         <source>Accessories</source>
         <translation>Accesorios</translation>
     </message>
@@ -1452,13 +1462,13 @@
         <translation>Confirmar eliminación</translation>
     </message>
     <message>
-        <location filename="../src/app/pet/pet_controller.cpp" line="626"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="712"/>
         <source>This pet package is no longer installed. Switched to %1.</source>
         <translation>Este paquete de mascota ya no está instalado. Se cambió a %1.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsFontPage.qml" line="51"/>
-        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="450"/>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="460"/>
         <location filename="../src/app/qml/SettingsPopup.qml" line="73"/>
         <source>Font</source>
         <translation>Fuente</translation>

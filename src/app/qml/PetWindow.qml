@@ -64,6 +64,7 @@ Window {
         acceptedButtons: Qt.LeftButton
 
         onPressed: {
+            Pet.stopWandering();
             petWindow.grabCursor = Pet.cursorPos();
             petWindow.grabAt = Qt.point(petWindow.x, petWindow.y);
             petWindow.moved = false;

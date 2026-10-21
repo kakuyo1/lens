@@ -25,8 +25,8 @@ std::optional<long long> epochOf(std::string const& minute)
 
 }
 
-ReviewDuty::ReviewDuty(StorageDuty& storage, std::function<bool()> petEnabled, std::function<bool()> petIdle, QObject* parent)
-    : QObject(parent), storage_(storage), petEnabled_(std::move(petEnabled)), petIdle_(std::move(petIdle))
+ReviewDuty::ReviewDuty(StorageDuty& storage, std::function<bool()> petEnabled, std::function<bool()> petAvailable, QObject* parent)
+    : QObject(parent), storage_(storage), petEnabled_(std::move(petEnabled)), petAvailable_(std::move(petAvailable))
 {
     timeout_.setSingleShot(true);
     timeout_.setInterval(kAnswerTimeoutMs);
@@ -68,13 +68,15 @@ void ReviewDuty::tick(long long const now)
     if (now < nextLook_)
         return;
     nextLook_ = now + drawGap(*window);
-    if (not word_.isEmpty() or not petEnabled_() or not petIdle_())
+    if (not word_.isEmpty() or not petEnabled_() or not petAvailable_())
         return;
     if (auto const lemma = core::pickDue(askable(), now)) {
         word_ = QString::fromStdString(*lemma);
         timeout_.start();
-        emit wordChanged();
+        // The pet hears first: a hidden pet lets its hand in before the sign chooses a side, so the choice and its
+        // nudge are made against the window the sign will actually hang from.
         emit petEvent(core::pet::PetEvent::ReviewAsked);
+        emit wordChanged();
     }
 }
 

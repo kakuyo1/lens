@@ -41,6 +41,9 @@ using core::pet::Slot;
 constexpr std::chrono::milliseconds kTick{20};
 /// Time between blinks while the pet is awake. The prototype blinks on the same cadence.
 constexpr std::chrono::milliseconds kBlinkEvery{4000};
+/// The wait between two strolls while truly idle: 120 to 300 seconds, counted in idle time (ADR 0076).
+constexpr std::chrono::milliseconds kWanderWaitMin{120'000};
+constexpr std::chrono::milliseconds kWanderWaitMax{300'000};
 
 QPoint toPoint(core::pet::Point const& point)
 {
@@ -155,8 +158,21 @@ PetController::~PetController() = default;
 
 void PetController::loadPet(std::string const& id)
 {
+    // A hidden window belongs to the pet that is going away; the replacement starts from the reader's home, not
+    // from the off-screen sliver the old pet was hiding in.
+    if (hiding_ and window_ and wander_ and homeReady_) window_->setPosition(wander_->home());
+
     // What is on screen belongs to the pet that is going away, so none of it carries over.
     preview_.reset();
+    hiding_.reset();
+    stroll_ = StrollPhase::Waiting;
+    step_.reset();
+    stepsLeft_  = 0;
+    hoverPause_ = false;
+    homeReady_  = false;
+    dragging_   = false;
+    wander_.reset();
+    stepDuration_ = std::chrono::milliseconds{0};
     action_.clear();
     shownAction_.clear();
     sheets_.clear();
@@ -190,25 +206,30 @@ void PetController::loadPet(std::string const& id)
         LENS_ERROR("the desktop pet is off: {}", e.what());
     }
     if (assets_) {
-        // The idle timer and the scene pick draw from the same stream. A scene is offered only to a shipped pet:
-        // a package may use another canvas size, and the app's props are drawn for 88.
-        auto generator = std::make_shared<std::mt19937>(std::random_device{}());
-        auto random    = [generator] { return std::uniform_real_distribution<double>{0.0, 1.0}(*generator); };
-        auto scenes    = [this, generator, id]() -> std::optional<core::pet::ActionName> {
+        // The idle timer, the scene pick, the strolls and the hide roll draw from one stream. A scene is offered
+        // only to a shipped pet: a package may use another canvas size, and the app's props are drawn for 88.
+        auto random = [this] { return randomUnit(); };
+        auto scenes = [this, id]() -> std::optional<core::pet::ActionName> {
             if (not isShipped(id)) return std::nullopt;
             auto const& playbook = assets_->animations.playbook;
             auto        choices  = std::vector<core::pet::ActionName>{};
             for (auto const& scene : scenes_.all())
                 if (playbook.actions.count(scene.id) != 0) choices.push_back(scene.id);
             if (choices.empty()) return std::nullopt;
-            auto const index = std::min(static_cast<std::size_t>(
-                                            std::uniform_real_distribution<double>{0.0, 1.0}(*generator) * static_cast<double>(choices.size())),
+            auto const index = std::min(static_cast<std::size_t>(randomUnit() * static_cast<double>(choices.size())),
                                         choices.size() - 1);
             return choices[index];
         };
         machine_  = std::make_unique<core::pet::PetStateMachine>(assets_->animations.playbook, random, scenes);
         wardrobe_ = std::make_unique<core::pet::Wardrobe>(assets_->catalogue);
         handRest_ = restGripsOf(*assets_);
+
+        if (auto const& movement = assets_->animations.movement) {
+            wander_          = std::make_unique<PetWander>(gaitOf(movement->style), movement->range, random);
+            auto const& walk = assets_->animations.playbook.actions.at(movement->walk);
+            stepDuration_    = std::chrono::milliseconds{walk.frames * 1000 / walk.fps};
+            wanderWait_      = nextWanderWait();
+        }
 
         auto timing = core::pet::HoverTiming{};
         if (auto const& hover = assets_->animations.hover) {
@@ -244,6 +265,15 @@ PetController* PetController::create(QQmlEngine* engine, QJSEngine* scriptEngine
 void PetController::handle(PetEvent event)
 {
     if (not machine_) return;
+    // An outside event voids the current wait: the next stroll is drawn again once the pet is idle.
+    wanderWait_ = nextWanderWait();
+    if (hiding_ and event == PetEvent::ReviewAsked) {
+        // Let the window in before the sign window lays itself out, so the hand it chooses is the one on screen.
+        hiding_->asking    = true;
+        hiding_->slide     = PetWander::kHideSlide;
+        hiding_->peekClock = std::chrono::milliseconds{0};
+        if (window_) window_->setPosition(hiding_->base + QPoint{hiding_->askShift, 0});
+    }
     resetHover();
     machine_->handle(event);
     sync(std::chrono::milliseconds{0});
@@ -264,9 +294,17 @@ bool PetController::passthrough() const
     return store_.passthrough();
 }
 
-bool PetController::idle() const
+bool PetController::availableForReview() const
 {
-    return machine_ and machine_->idle();
+    if (not enabled() or not machine_ or dragging_) return false;
+    // A hidden pet may still be asked while it is peeking: the sign goes up at the edge and the hide survives the
+    // answer. A reaction or a reading plays out first, as it does for an idle pet.
+    return machine_->idle() or (hiding_ and machine_->ambient());
+}
+
+double PetController::randomUnit()
+{
+    return std::uniform_real_distribution<double>{0.0, 1.0}(random_);
 }
 
 QString PetController::pet() const
@@ -496,7 +534,11 @@ void PetController::setSize(int percent)
 void PetController::setRunning(bool on)
 {
     desktopRunning_ = on;
-    if (not on) resetHover();
+    if (not on) {
+        cancelStroll();
+        endHiding();
+        resetHover();
+    }
     updateClock();
 }
 
@@ -536,17 +578,62 @@ void PetController::setScene(QString id)
 
 void PetController::dragStart()
 {
+    dragging_ = true;
+    if (stroll_ != StrollPhase::Waiting) cancelStroll();
+    if (hiding_) hiding_->dragging = true;
     handle(PetEvent::DragStart);
 }
 
 void PetController::dragEnd()
 {
+    dragging_ = false;
+    if (hiding_) {
+        auto& hidden    = *hiding_;
+        hidden.dragging = false;
+        auto const at   = window_ ? window_->position() : hidden.base;
+        auto const size = window_ ? window_->size() : QSize{};
+        if (window_ and PetWander::draggedOut(at, size, hidden.area)) {
+            auto const area = hidden.area;
+            hiding_.reset();
+            handle(PetEvent::DragEnd);
+            if (wander_) {
+                wander_->setHome(at);
+                wander_->setBounds(size, area);
+            }
+            homeReady_  = true;
+            stroll_     = StrollPhase::Waiting;
+            wanderWait_ = nextWanderWait();
+        } else {
+            // Not far enough out: the pet keeps hiding, and the drag leaves no trace in the settings.
+            handle(PetEvent::DragEnd);
+            snapBackToHide();
+        }
+        return;
+    }
+
     handle(PetEvent::DragEnd);
+    if (wander_ and window_) {
+        wander_->setHome(window_->position());
+        wander_->setBounds(window_->size(), areaAt(window_->position()));
+        homeReady_ = true;
+    }
+    stroll_     = StrollPhase::Waiting;
+    wanderWait_ = nextWanderWait();
 }
 
 void PetController::click()
 {
+    // A hidden pet only peeks and is dragged out: a click neither wakes it nor plays the poke reaction.
+    if (hiding_) return;
     handle(PetEvent::Click);
+}
+
+void PetController::stopWandering()
+{
+    if (stroll_ != StrollPhase::Waiting) cancelStroll();
+    if (hiding_) return;
+    wanderWait_ = nextWanderWait();
+    hoverPause_ = true;
 }
 
 void PetController::toggleAccessory(QString id)
@@ -649,7 +736,14 @@ bool PetController::isShipped(std::string const& id) const
 void PetController::setEnabled(bool on)
 {
     store_.setEnabled(on);
-    if (not on) resetHover();
+    if (not on) {
+        cancelStroll();
+        endHiding();
+        resetHover();
+        wanderWait_ = nextWanderWait();
+        // Turning the pet off puts it back where the reader left it, so switching it on starts from home again.
+        if (window_ and wander_ and homeReady_) window_->setPosition(wander_->home());
+    }
     if (window_ and window_->isVisible()) ::lens::app::pet::setPassthrough(*window_, enabled() and store_.passthrough());
     emit settingsChanged();
 }
@@ -706,9 +800,36 @@ void PetController::keepOnScreen()
     auto areas = QList<QRect>{};
     for (auto const* screen : QGuiApplication::screens())
         areas.append(screen->availableGeometry());
+    if (areas.isEmpty()) return;
+
+    // A hide survives a change on another screen; if the work area it was hiding on is gone, the pet comes back out
+    // into the nearest safe place rather than staying clipped to a screen that no longer exists.
+    if (hiding_) {
+        if (auto const* screen = screenNamed(hiding_->screen)) {
+            hiding_->area = screen->availableGeometry();
+            refitHiding();
+            return;
+        }
+        endHiding();
+    }
+
+    cancelStroll();
     auto const at   = window_->position();
     auto const kept = placeWithin(at, window_->size(), areas, QGuiApplication::primaryScreen()->availableGeometry());
     if (kept != at) window_->setPosition(kept);
+
+    if (wander_) {
+        // Keep the reader's home while its screen still holds it; otherwise the safe spot is the new home.
+        auto const home  = wander_->home();
+        auto const still = std::any_of(areas.begin(), areas.end(), [this, home](QRect const& area) {
+            return fitsWithin(home, window_->size(), area);
+        });
+        wander_->setHome(still ? home : kept);
+        wander_->setBounds(window_->size(), areaAt(kept));
+        homeReady_ = true;
+    }
+    stroll_     = StrollPhase::Waiting;
+    wanderWait_ = nextWanderWait();
 }
 
 QPoint PetController::cursorPos() const
@@ -716,25 +837,38 @@ QPoint PetController::cursorPos() const
     return QCursor::pos();
 }
 
-QPoint PetController::initialPosition(QSize size) const
+QPoint PetController::initialPosition(QSize size)
 {
-    auto const saved = store_.position();
-    if (saved) {
+    auto at = bottomRightOf(size, QGuiApplication::primaryScreen()->availableGeometry());
+    if (auto const saved = store_.position()) {
         for (auto const* screen : QGuiApplication::screens()) {
             if (deviceNameOf(*screen).toStdString() != saved->screen) continue;
             auto const area = screen->availableGeometry();
-            auto const at   = area.topLeft() + QPoint{saved->x, saved->y};
-            if (fitsWithin(at, size, area)) return at;
+            auto const spot = area.topLeft() + QPoint{saved->x, saved->y};
+            if (fitsWithin(spot, size, area)) at = spot;
             break;
         }
     }
-    return bottomRightOf(size, QGuiApplication::primaryScreen()->availableGeometry());
+    if (wander_) {
+        wander_->setHome(at);
+        wander_->setBounds(size, areaAt(at));
+        homeReady_ = true;
+    }
+    return at;
 }
 
 void PetController::fitOnScreen()
 {
     if (not window_) return;
-    auto areas = QList<QRect>{};
+    // A hidden window is deliberately off screen; resizing it only means recomputing how far it stays out.
+    if (hiding_) {
+        refitHiding();
+        return;
+    }
+    // A resize ends the step: its path was computed for the old size and home.
+    cancelStroll();
+    wanderWait_ = nextWanderWait();
+    auto areas  = QList<QRect>{};
     for (auto const* screen : QGuiApplication::screens())
         areas.append(screen->availableGeometry());
     // The window grows right and down from its top-left, so a screen that holds the top-left is the one it must fit.
@@ -749,6 +883,13 @@ void PetController::fitOnScreen()
 
 void PetController::savePosition(QPoint at)
 {
+    // A hidden window's off-screen spot is not a home; only a drag out of the hide writes one.
+    if (hiding_) return;
+    if (wander_) {
+        wander_->setHome(at);
+        wander_->setBounds(window_ ? window_->size() : QSize{}, areaAt(at));
+        homeReady_ = true;
+    }
     auto const screens = QGuiApplication::screens();
     auto       areas   = QList<QRect>{};
     for (auto const* screen : screens)
@@ -767,15 +908,294 @@ void PetController::savePosition(QPoint at)
 void PetController::tick()
 {
     machine_->advance(kTick);
+    updateWander(kTick);
+    updateHiding(kTick);
     updateHover(kTick);
     sync(kTick);
+}
+
+void PetController::updateWander(std::chrono::milliseconds step)
+{
+    if (not machine_ or not assets_ or not window_ or not wander_ or hiding_) return;
+    auto const& movement = assets_->animations.movement;
+    if (not movement) return;
+    if (not desktopRunning_ or previewing_ or not enabled()) {
+        cancelStroll();
+        return;
+    }
+
+    auto const area = areaAt(window_->position());
+    if (not area.isValid()) {
+        cancelStroll();
+        return;
+    }
+    wander_->setBounds(window_->size(), area);
+    if (not homeReady_) {
+        wander_->setHome(window_->position());
+        homeReady_ = true;
+    }
+
+    // The wait counts idle time only. The pet's own idle fidgets are part of being idle, so they pause it
+    // rather than drawing a new one; every outside event has already drawn a fresh wait in handle().
+    // A step's own ambient walk is also not idle: that is the stroll running, not an interruption.
+    auto const walking = stroll_ == StrollPhase::Walking and machine_->ambient();
+    if (not machine_->idle() and not walking) {
+        if (stroll_ != StrollPhase::Waiting) cancelStroll();
+        return;
+    }
+
+    // A pointer on the pet borrows the idle time for its hover, so a stroll does not start or continue under it.
+    if (cursorOnPet()) {
+        if (stroll_ != StrollPhase::Waiting) cancelStroll();
+        if (not hoverPause_) {
+            hoverPause_ = true;
+            wanderWait_ = nextWanderWait();
+        }
+        return;
+    }
+    hoverPause_ = false;
+
+    switch (stroll_) {
+        case StrollPhase::Waiting:
+            if (wanderWait_ <= std::chrono::milliseconds{0}) {
+                startStroll();
+            } else {
+                wanderWait_ -= step;
+            }
+            break;
+        case StrollPhase::Walking: {
+            stepElapsed_ += step;
+            auto const progress = std::min(1.0, static_cast<double>(stepElapsed_.count()) / static_cast<double>(stepDuration_.count()));
+            window_->setPosition(wander_->positionAt(*step_, progress));
+            if (progress < 1.0) break;
+
+            window_->setPosition(step_->to);
+            auto const side = movement->peek ? wander_->edgeAt(step_->to) : std::nullopt;
+            if (side and wander_->hides(randomUnit())) {
+                enterHiding(*side);
+                break;
+            }
+            machine_->stopAmbient();
+            stroll_    = StrollPhase::Pausing;
+            pauseLeft_ = nextPause();
+            break;
+        }
+        case StrollPhase::Pausing:
+            pauseLeft_ -= step;
+            if (pauseLeft_ > std::chrono::milliseconds{0}) break;
+            --stepsLeft_;
+            if (stepsLeft_ > 0) {
+                if (not beginStep()) finishStroll();
+            } else {
+                finishStroll();
+            }
+            break;
+    }
+}
+
+void PetController::updateHiding(std::chrono::milliseconds step)
+{
+    if (not hiding_ or not window_ or not assets_) return;
+    auto& hidden = *hiding_;
+    if (hidden.dragging) return;
+
+    if (hidden.asking and machine_->idle()) {
+        // The question and its reaction are over: the pet goes back out and picks the peek up from the start.
+        hidden.asking    = false;
+        hidden.peekClock = std::chrono::milliseconds{0};
+    }
+
+    if (hidden.slide < PetWander::kHideSlide) {
+        hidden.slide = std::min(PetWander::kHideSlide, hidden.slide + step);
+        window_->setPosition(PetWander::slideAt(hidden.from, hidden.base, hidden.slide));
+    } else if (hidden.asking) {
+        // The sign's hand must stay on screen, which can mean letting the pet in a little for as long as it is up.
+        window_->setPosition(hidden.base + QPoint{hidden.askShift, 0});
+    } else {
+        hidden.peekClock += step;
+        auto at = hidden.base;
+        at.rx() += (hidden.side == EdgeSide::Left ? 1 : -1) * PetWander::peekOffset(hidden.peekClock);
+        window_->setPosition(at);
+    }
+
+    // A reaction or the sign ends into idle; the hide keeps going and picks its peek loop back up here.
+    auto const& movement = assets_->animations.movement;
+    if (movement and movement->peek and machine_->idle()) machine_->playAmbient(*movement->peek);
+}
+
+bool PetController::beginStep()
+{
+    if (not wander_ or not machine_ or not window_ or not assets_) return false;
+    auto const& movement = assets_->animations.movement;
+    if (not movement) return false;
+
+    auto const step = wander_->nextStep(window_->position());
+    if (not step) return false;
+    if (not machine_->playAmbient(movement->walk)) return false;
+
+    step_        = *step;
+    stepElapsed_ = std::chrono::milliseconds{0};
+    stroll_      = StrollPhase::Walking;
+    return true;
+}
+
+void PetController::startStroll()
+{
+    if (not assets_ or not assets_->animations.movement) return;
+    // A pounce is one leap; every other gait takes one or two steps.
+    stepsLeft_ = gaitOf(assets_->animations.movement->style) == Gait::Pounce ? 1 : 1 + (randomUnit() < 0.5 ? 0 : 1);
+    if (not beginStep()) finishStroll();
+}
+
+void PetController::finishStroll()
+{
+    stroll_    = StrollPhase::Waiting;
+    stepsLeft_ = 0;
+    step_.reset();
+    hoverPause_ = false;
+    wanderWait_ = nextWanderWait();
+}
+
+void PetController::cancelStroll()
+{
+    if (machine_ and machine_->ambient()) machine_->stopAmbient();
+    stroll_    = StrollPhase::Waiting;
+    stepsLeft_ = 0;
+    step_.reset();
+}
+
+void PetController::enterHiding(EdgeSide side)
+{
+    if (not wander_ or not window_ or not assets_) return;
+    auto const& movement = assets_->animations.movement;
+    if (not movement or not movement->peek) return;
+
+    machine_->stopAmbient();
+    auto const size  = window_->size();
+    auto const area  = wander_->area();
+    auto const scale = static_cast<double>(size.width()) / static_cast<double>(assets_->canvas);
+    auto const high  = area.bottom() - size.height() + 1;
+
+    Hiding hidden;
+    hidden.side = side;
+    hidden.area = area;
+    hidden.from = window_->position();
+    hidden.base = QPoint{
+        PetWander::hiddenX(area, size, side, assets_->peekInkLeft * scale, assets_->peekInkRight * scale),
+        high < area.top() ? area.top() : std::clamp(hidden.from.y(), area.top(), high),
+    };
+    if (auto const* screen = screenForArea(area)) hidden.screen = deviceNameOf(*screen);
+    updateAskShift(hidden);
+    hiding_    = hidden;
+    stroll_    = StrollPhase::Waiting;
+    stepsLeft_ = 0;
+    step_.reset();
+    machine_->playAmbient(*movement->peek);
+}
+
+void PetController::endHiding()
+{
+    if (not hiding_) return;
+    hiding_.reset();
+    if (machine_ and machine_->ambient()) machine_->stopAmbient();
+}
+
+void PetController::snapBackToHide()
+{
+    if (not hiding_ or not window_) return;
+    hiding_->slide     = PetWander::kHideSlide;
+    hiding_->peekClock = std::chrono::milliseconds{0};
+    window_->setPosition(hiding_->base + QPoint{hiding_->asking ? hiding_->askShift : 0, 0});
+}
+
+void PetController::refitHiding()
+{
+    if (not hiding_ or not window_ or not assets_) return;
+    auto&      hidden = *hiding_;
+    auto const size   = window_->size();
+    auto const scale  = static_cast<double>(size.width()) / static_cast<double>(assets_->canvas);
+    auto const high   = hidden.area.bottom() - size.height() + 1;
+    hidden.base       = QPoint{
+        PetWander::hiddenX(hidden.area, size, hidden.side, assets_->peekInkLeft * scale, assets_->peekInkRight * scale),
+        high < hidden.area.top() ? hidden.area.top() : std::clamp(hidden.base.y(), hidden.area.top(), high),
+    };
+    updateAskShift(hidden);
+    hidden.slide     = PetWander::kHideSlide;
+    hidden.peekClock = std::chrono::milliseconds{0};
+    window_->setPosition(hidden.base + QPoint{hidden.asking ? hidden.askShift : 0, 0});
+}
+
+std::chrono::milliseconds PetController::nextWanderWait()
+{
+    auto const spread = static_cast<double>((kWanderWaitMax - kWanderWaitMin).count());
+    return kWanderWaitMin + std::chrono::milliseconds{static_cast<std::chrono::milliseconds::rep>(randomUnit() * spread)};
+}
+
+std::chrono::milliseconds PetController::nextPause()
+{
+    auto const gait = assets_ and assets_->animations.movement ? gaitOf(assets_->animations.movement->style) : Gait::Glide;
+    auto const low  = gait == Gait::Pounce ? 600 : gait == Gait::Float ? 400
+                                               : gait == Gait::Glide   ? 300
+                                                                       : 220;
+    auto const high = gait == Gait::Pounce ? 1200 : gait == Gait::Float ? 900
+                                                : gait == Gait::Glide   ? 800
+                                                                        : 620;
+    return std::chrono::milliseconds{low + static_cast<int>(randomUnit() * (high - low))};
+}
+
+QRect PetController::areaAt(QPoint at) const
+{
+    auto areas = QList<QRect>{};
+    for (auto const* screen : QGuiApplication::screens())
+        areas.append(screen->availableGeometry());
+    auto const index = indexOfNearestArea(at, areas);
+    return index < 0 ? QRect{} : areas.at(index);
+}
+
+QScreen* PetController::screenForArea(QRect area) const
+{
+    for (auto* screen : QGuiApplication::screens())
+        if (screen->availableGeometry() == area) return screen;
+    return nullptr;
+}
+
+QScreen* PetController::screenNamed(QString const& name) const
+{
+    if (name.isEmpty()) return nullptr;
+    for (auto* screen : QGuiApplication::screens())
+        if (deviceNameOf(*screen) == name) return screen;
+    return nullptr;
+}
+
+void PetController::updateAskShift(Hiding& hidden) const
+{
+    hidden.askShift = 0;
+    if (not window_ or not assets_ or assets_->canvas <= 0) return;
+
+    // The inner hand is the right one at the left edge and the left one at the right edge (ADR 0076). A sign
+    // brings the window in just far enough for that hand's grip to clear the screen edge.
+    auto const hand = hidden.side == EdgeSide::Right ? QStringLiteral("left") : QStringLiteral("right");
+    if (not handRest_.contains(hand)) return;
+
+    auto const scale   = static_cast<double>(window_->size().width()) / static_cast<double>(assets_->canvas);
+    auto const grip    = static_cast<int>(std::lround(handRest_.value(hand).toPointF().x() * scale));
+    auto const desired = hidden.side == EdgeSide::Right ? hidden.area.right() - 16 - grip
+                                                        : hidden.area.left() + 16 - grip;
+    hidden.askShift    = hidden.side == EdgeSide::Right ? std::min(0, desired - hidden.base.x())
+                                                        : std::max(0, desired - hidden.base.x());
+}
+
+bool PetController::cursorOnPet() const
+{
+    if (not window_ or not window_->isVisible() or store_.passthrough()) return false;
+    return QRect{window_->position(), window_->size()}.contains(QCursor::pos());
 }
 
 void PetController::updateHover(std::chrono::milliseconds step)
 {
     // Hover is the desktop pet's own sense. It has no meaning while the window is hidden, while clicks pass through,
     // while the settings preview is open, or before a window exists to measure against.
-    if (not hover_ or not assets_ or not window_ or not desktopRunning_ or previewing_ or store_.passthrough()) {
+    if (not hover_ or not assets_ or not window_ or not desktopRunning_ or previewing_ or hiding_ or store_.passthrough()) {
         resetHover();
         return;
     }
@@ -807,6 +1227,7 @@ void PetController::updateHover(std::chrono::milliseconds step)
     auto const at     = QPointF{(cursor.x() - origin.x()) / sx, (cursor.y() - origin.y()) / sy};
 
     auto const result = hover_->update(step, inkDistanceAt(at), machine_->idle());
+    if (result.notice or result.dwell) wanderWait_ = nextWanderWait();
     if (result.notice and hover and hover->notice) machine_->playHover(*hover->notice);
     if (result.dwell and hover and hover->dwell) machine_->playHover(*hover->dwell);
 

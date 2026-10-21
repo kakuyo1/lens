@@ -64,6 +64,17 @@ std::optional<Slot> slotNamed(std::string const& name)
     return std::nullopt;
 }
 
+/// @return The gait with this name in animations.json's movement block, or nothing.
+std::optional<MovementStyle> movementStyleNamed(std::string const& name)
+{
+    if (name == "glide") return MovementStyle::Glide;
+    if (name == "float") return MovementStyle::Float;
+    if (name == "hop") return MovementStyle::Hop;
+    if (name == "trot") return MovementStyle::Trot;
+    if (name == "pounce") return MovementStyle::Pounce;
+    return std::nullopt;
+}
+
 /// @return `entry[key]` as an integer. A missing or non-integer value is refused as `invalid`, naming `owner`.
 std::int64_t integerOf(json const& entry, char const* key, Refusal invalid, std::string const& owner)
 {
@@ -266,6 +277,41 @@ Animations parseAnimations(json const& document)
         if (not spec.notice and not spec.dwell) throw Refused(Refusal::BadAnimation, owner + " needs notice or dwell");
         if (spec.dwell and not spec.notice) throw Refused(Refusal::BadAnimation, owner + ".dwell needs notice");
         animations.hover = std::move(spec);
+    }
+
+    if (document.contains("movement")) {
+        auto const& movement = document.at("movement");
+        auto const  owner    = std::string{"animations: movement"};
+        if (not movement.is_object()) throw Refused(Refusal::BadAnimation, owner + " must be an object");
+
+        if (not movement.contains("style") or not movement.at("style").is_string())
+            throw Refused(Refusal::BadAnimation, owner + ".style must be a string");
+        auto const style = movementStyleNamed(movement.at("style").get<std::string>());
+        if (not style) throw Refused(Refusal::BadAnimation, owner + ".style names an unknown gait");
+
+        auto const loopingAction = [&](char const* key, bool required) -> std::optional<ActionName> {
+            if (not movement.contains(key)) {
+                if (required) throw Refused(Refusal::BadAnimation, owner + "." + key + " is required");
+                return std::nullopt;
+            }
+            if (not movement.at(key).is_string()) throw Refused(Refusal::BadAnimation, owner + "." + key + " must be an action name");
+            auto const name  = movement.at(key).get<std::string>();
+            auto const found = playbook.actions.find(name);
+            if (found == playbook.actions.end())
+                throw Refused(Refusal::BadAnimation, owner + "." + key + " names an action with no playback: " + name);
+            if (not found->second.loop)
+                throw Refused(Refusal::BadAnimation, owner + "." + key + " must name a looping action: " + name);
+            return name;
+        };
+
+        MovementSpec spec{};
+        spec.style = *style;
+        spec.walk  = *loopingAction("walk", true);
+        spec.peek  = loopingAction("peek", false);
+        if (movement.contains("range")) {
+            spec.range = integerIn(movement, "range", kMinMovementRange, kMaxMovementRange, Refusal::BadAnimation, owner);
+        }
+        animations.movement = std::move(spec);
     }
     return animations;
 }

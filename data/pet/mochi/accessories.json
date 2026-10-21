@@ -27,7 +27,9 @@
         "bounce",
         "hiccup",
         "shiver",
-        "spin"
+        "spin",
+        "walk",
+        "edge_peek"
       ]
     },
     {
@@ -57,7 +59,9 @@
         "bounce",
         "hiccup",
         "shiver",
-        "spin"
+        "spin",
+        "walk",
+        "edge_peek"
       ]
     },
     {
@@ -87,7 +91,9 @@
         "bounce",
         "hiccup",
         "shiver",
-        "spin"
+        "spin",
+        "walk",
+        "edge_peek"
       ]
     },
     {
@@ -117,7 +123,9 @@
         "bounce",
         "hiccup",
         "shiver",
-        "spin"
+        "spin",
+        "walk",
+        "edge_peek"
       ]
     },
     {
@@ -147,7 +155,9 @@
         "bounce",
         "hiccup",
         "shiver",
-        "spin"
+        "spin",
+        "walk",
+        "edge_peek"
       ]
     },
     {
@@ -177,7 +187,9 @@
         "bounce",
         "hiccup",
         "shiver",
-        "spin"
+        "spin",
+        "walk",
+        "edge_peek"
       ]
     },
     {
@@ -206,7 +218,9 @@
         "wobble",
         "bounce",
         "hiccup",
-        "shiver"
+        "shiver",
+        "walk",
+        "edge_peek"
       ]
     },
     {
@@ -235,7 +249,9 @@
         "wobble",
         "bounce",
         "hiccup",
-        "shiver"
+        "shiver",
+        "walk",
+        "edge_peek"
       ]
     },
     {
@@ -264,7 +280,9 @@
         "wobble",
         "bounce",
         "hiccup",
-        "shiver"
+        "shiver",
+        "walk",
+        "edge_peek"
       ]
     }
   ]

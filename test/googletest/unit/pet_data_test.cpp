@@ -32,20 +32,26 @@ using lens::core::pet::parseAnchors;
 using lens::core::pet::parseAnimations;
 using nlohmann::json;
 
-json load(char const* name)
+json loadAt(std::filesystem::path const& directory, char const* name)
 {
-    auto const path   = std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet" / "dog" / name;
+    auto const path   = directory / name;
     auto       stream = std::ifstream{path};
     EXPECT_TRUE(stream.is_open()) << path.string();
     return json::parse(stream);
+}
+
+json load(char const* name)
+{
+    return loadAt(std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet" / "dog", name);
 }
 
 TEST(PetData, AnimationsLoadAndCarryTheBlink)
 {
     auto const animations = parseAnimations(load("animations.json"));
 
-    // The thirteen role actions (angry and ask included), the three idle extras no role names, and the five scenes.
-    EXPECT_EQ(animations.playbook.actions.size(), 21u);
+    // The thirteen role actions (angry and ask included), the three idle extras no role names, the five scenes,
+    // and the walk and edge-peek loops.
+    EXPECT_EQ(animations.playbook.actions.size(), 23u);
     EXPECT_EQ(animations.blink.frames, 3);
     EXPECT_FALSE(animations.blink.loop);
 }
@@ -102,6 +108,34 @@ TEST(PetData, TheSignHandsGripThePoleAtTheMeasuredPixelOfEveryFrame)
     ASSERT_EQ(ask.gripLeft.size(), 4u);
     EXPECT_EQ(ask.gripRight.front(), QPointF(83.5, 51));
     EXPECT_EQ(ask.gripLeft.front(), QPointF(34.5, 51));
+}
+
+TEST(PetData, EveryShippedPetWalksAndPeeks)
+{
+    auto pets = 0;
+    for (auto const& entry : std::filesystem::directory_iterator{std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet"}) {
+        if (not entry.is_directory()) continue;
+        ++pets;
+        auto const animations = parseAnimations(loadAt(entry.path(), "animations.json"));
+        ASSERT_TRUE(animations.movement.has_value()) << entry.path().filename().string();
+
+        auto const& walk = animations.playbook.actions.at(animations.movement->walk);
+        EXPECT_TRUE(walk.loop) << entry.path().filename().string();
+        ASSERT_TRUE(animations.movement->peek.has_value()) << entry.path().filename().string();
+        auto const& peek = animations.playbook.actions.at(*animations.movement->peek);
+        EXPECT_TRUE(peek.loop) << entry.path().filename().string();
+
+        // A worn accessory stays on during the walk and the peek: the pet should not undress when it moves.
+        for (auto const& accessory : parseAccessories(loadAt(entry.path(), "accessories.json"), animations.playbook)) {
+            auto const supports = [&accessory](std::string const& name) {
+                return std::find(accessory.supportedActions.begin(), accessory.supportedActions.end(), name) != accessory.supportedActions.end();
+            };
+            if (not supports("idle")) continue;
+            EXPECT_TRUE(supports(animations.movement->walk)) << accessory.id;
+            EXPECT_TRUE(supports(*animations.movement->peek)) << accessory.id;
+        }
+    }
+    EXPECT_EQ(pets, 7);
 }
 
 TEST(PetData, EveryShippedPetIsAcceptedWhole)

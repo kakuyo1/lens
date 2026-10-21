@@ -2288,6 +2288,195 @@
         {},
         {}
       ]
+    },
+    "walk": {
+      "fps": 5,
+      "loop": true,
+      "frames": [
+        {
+          "expression": 0
+        },
+        {
+          "pose": {
+            "dy": -1,
+            "sx": 0.98,
+            "sy": 1.03
+          },
+          "expression": 0,
+          "paint": [
+            {
+              "at": [
+                16,
+                5
+              ],
+              "colour": "aqua",
+              "art": [
+                "#"
+              ]
+            }
+          ]
+        },
+        {
+          "pose": {
+            "dy": -2,
+            "sx": 0.96,
+            "sy": 1.06
+          },
+          "expression": 5,
+          "paint": [
+            {
+              "at": [
+                15,
+                4
+              ],
+              "colour": "aqua",
+              "art": [
+                "#"
+              ]
+            },
+            {
+              "at": [
+                16,
+                7
+              ],
+              "colour": "aqua",
+              "art": [
+                "#"
+              ]
+            }
+          ]
+        },
+        {
+          "pose": {
+            "dy": -1,
+            "sx": 0.98,
+            "sy": 1.03
+          },
+          "expression": 5
+        },
+        {
+          "pose": {
+            "sx": 1.03,
+            "sy": 0.97
+          },
+          "expression": 0,
+          "paint": [
+            {
+              "at": [
+                3,
+                10
+              ],
+              "colour": "aqua",
+              "art": [
+                "#"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 0
+        }
+      ]
+    },
+    "edge_peek": {
+      "fps": 5,
+      "loop": true,
+      "frames": [
+        {
+          "expression": 0
+        },
+        {
+          "pose": {
+            "dy": 1,
+            "sx": 1.02,
+            "sy": 0.96
+          },
+          "expression": 2,
+          "paint": [
+            {
+              "at": [
+                16,
+                5
+              ],
+              "colour": "aqua",
+              "art": [
+                "#"
+              ]
+            }
+          ]
+        },
+        {
+          "pose": {
+            "dy": -1,
+            "sx": 0.98,
+            "sy": 1.04
+          },
+          "expression": 0,
+          "paint": [
+            {
+              "at": [
+                15,
+                4
+              ],
+              "colour": "aqua",
+              "art": [
+                "#"
+              ]
+            },
+            {
+              "at": [
+                16,
+                7
+              ],
+              "colour": "aqua",
+              "art": [
+                "#"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 0
+        },
+        {
+          "pose": {
+            "dy": 1,
+            "sx": 1.02,
+            "sy": 0.96
+          },
+          "expression": 2
+        },
+        {
+          "pose": {
+            "dy": -1,
+            "sx": 0.98,
+            "sy": 1.04
+          },
+          "expression": 0,
+          "paint": [
+            {
+              "at": [
+                3,
+                10
+              ],
+              "colour": "aqua",
+              "art": [
+                "#"
+              ]
+            },
+            {
+              "at": [
+                0,
+                7
+              ],
+              "colour": "aqua",
+              "art": [
+                "#"
+              ]
+            }
+          ]
+        }
+      ]
     }
   },
   "accessories": [
@@ -2622,5 +2811,11 @@
         }
       ]
     }
-  ]
+  ],
+  "movement": {
+    "style": "float",
+    "walk": "walk",
+    "peek": "edge_peek",
+    "range": 30
+  }
 }

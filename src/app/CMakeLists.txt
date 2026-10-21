@@ -62,6 +62,7 @@ add_library(lens_app STATIC
   pet/pet_placement.cpp
   pet/pet_scenes.cpp
   pet/pet_store.cpp
+  pet/pet_wander.cpp
   pet/pet_window_native.cpp
 )
 

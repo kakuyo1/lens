@@ -16,10 +16,12 @@
  */
 
 #include <chrono>
+#include <cstdint>
 #include <filesystem>
 #include <functional>
 #include <memory>
 #include <optional>
+#include <random>
 
 #include <QObject>
 #include <QPoint>
@@ -36,6 +38,7 @@
 #include "app/pet/pet_catalog.h"
 #include "app/pet/pet_scenes.h"
 #include "app/pet/pet_store.h"
+#include "app/pet/pet_wander.h"
 #include "core/pet/accessory.h"
 #include "core/pet/hover_sense.h"
 #include "core/pet/pet_state.h"
@@ -120,8 +123,10 @@ public:
     bool available() const;
     bool enabled() const;
     bool passthrough() const;
-    /// @return Whether the idle role is playing, so a review question may go up without cutting a reaction short.
-    bool idle() const;
+    /// @return Whether a review question may go up: the pet is idle, or hiding at a screen edge and peeking, and
+    ///         not being dragged. A hide does not block the sign; a reaction or a reading finishes first
+    ///         (docs/adr/0076).
+    bool availableForReview() const;
     /// @return The folder name of the pet the settings choose.
     QString pet() const;
     /// @return Every pet the settings page offers, as {id, name, external}. The name is the package's own for an installed pet.
@@ -181,6 +186,8 @@ public:
     Q_INVOKABLE void dragStart();
     Q_INVOKABLE void dragEnd();
     Q_INVOKABLE void click();
+    /// @brief Ends a stroll at once, as the pointer landing on the pet should. A hide is left alone: only a drag ends it.
+    Q_INVOKABLE void stopWandering();
     /// @param id Id of an accessory in the catalogue; puts it on, takes it off, or swaps it in its slot.
     Q_INVOKABLE void toggleAccessory(QString id);
     /// @brief Chooses a pet from pets(). An installed one the reader has not confirmed is not switched to: confirmationRequested
@@ -203,8 +210,9 @@ public:
     Q_INVOKABLE void keepOutOfCapture(QObject* window);
     /// @return The mouse position in the same coordinates a window's x and y use.
     Q_INVOKABLE QPoint cursorPos() const;
-    /// @return Where the window should open at this size: the saved spot if it still fits, else the primary screen's corner.
-    Q_INVOKABLE QPoint initialPosition(QSize size) const;
+    /// @return Where the window should open at this size: the saved spot if it still fits, else the primary screen's
+    ///         corner. Also records that spot as the stroll's home.
+    Q_INVOKABLE QPoint initialPosition(QSize size);
     /// @brief Nudges the window the least distance that keeps it whole on its screen, and saves where it landed.
     ///        Called after the size changes; does nothing before the window is attached.
     Q_INVOKABLE void fitOnScreen();
@@ -226,6 +234,8 @@ signals:
     void fellBack(QString title, QString body);
 
 private:
+    struct Hiding;
+
     /// @brief Loads the pet in folder `id` from the catalogue, and starts it from its first frame. A pet the catalogue does
     ///        not hold, or that fails to load, leaves the pet off.
     void loadPet(std::string const& id);
@@ -241,6 +251,42 @@ private:
     bool isShipped(std::string const& id) const;
     /// @brief Moves the state machine on by `step` and refreshes what the scene reads.
     void tick();
+    /// @brief Waits for the next stroll, or moves the window through the current step and its pauses. Does nothing
+    ///        while hidden, previewing, dragging, or busy.
+    void updateWander(std::chrono::milliseconds step);
+    /// @brief Slides the window out of its edge, plays the peek loop, and resumes it after a reaction.
+    void updateHiding(std::chrono::milliseconds step);
+    /// @brief Starts one walk cycle from where the window is now, or returns false when there is no room.
+    bool beginStep();
+    /// @brief Draws the step count and starts the first step.
+    void startStroll();
+    /// @brief Ends the stroll and draws the next long wait.
+    void finishStroll();
+    /// @brief Stops a walk in progress and returns the state machine to idle.
+    void cancelStroll();
+    /// @brief Starts a hide against `side`: stops the walk, computes the hidden base, and plays the peek loop.
+    void enterHiding(EdgeSide side);
+    /// @brief Leaves a hide without moving the window: used when the pet is turned off or the layout changed.
+    void endHiding();
+    /// @brief Puts the window back at its hidden base after a drag that did not pull it out far enough.
+    void snapBackToHide();
+    /// @brief Recomputes a hide's base after the window changed size.
+    void refitHiding();
+    /// @return A fresh wait before the next stroll, 120 to 300 seconds.
+    std::chrono::milliseconds nextWanderWait();
+    /// @return How long the pet pauses between two steps, by gait.
+    std::chrono::milliseconds nextPause();
+    /// @return The work area of the screen nearest `at`, or an invalid rectangle when no screen is attached.
+    QRect areaAt(QPoint at) const;
+    /// @return The attached screen whose work area is exactly `area`, or null.
+    QScreen* screenForArea(QRect area) const;
+    /// @return The attached screen called `name`, or null.
+    QScreen* screenNamed(QString const& name) const;
+    /// @brief Recomputes how far a hidden window lets itself in while the sign is up, from the inner hand's grip.
+    void updateAskShift(Hiding& hidden) const;
+    /// @return Whether the pointer is inside the pet window, which suspends wandering unless clicks pass through.
+    bool   cursorOnPet() const;
+    double randomUnit();
     /// @brief Polls the cursor and turns proximity into eyes and, when the pet is idle, its hover reactions.
     void updateHover(std::chrono::milliseconds step);
     /// @brief Forgets the current approach and centers the eyes.
@@ -291,8 +337,51 @@ private:
     std::unique_ptr<core::pet::Wardrobe>        wardrobe_;
     /// Proximity lives beside the action machine: it reads the cursor and asks the machine for an idle reaction.
     std::unique_ptr<core::pet::HoverSense> hover_;
-    QTimer                                 clock_;
-    QWindow*                               window_ = nullptr;
+
+    /// @brief A hide in progress. `base` is the window's top-left once fully slid out; `from` is where it started.
+    struct Hiding {
+        EdgeSide side;
+        /// The screen it hid on, by device name, so a taskbar or DPI change on that screen does not end the hide.
+        QString                   screen;
+        QRect                     area;
+        QPoint                    base;
+        QPoint                    from;
+        std::chrono::milliseconds slide{0};
+        std::chrono::milliseconds peekClock{0};
+        /// How far the window moves inward while the sign is up, so the inner hand and its pole stay on screen.
+        int askShift{0};
+        /// Whether a review question set the inward shift; it lasts through the reaction that follows.
+        bool asking{false};
+        bool dragging{false};
+    };
+    enum class StrollPhase : std::uint8_t {
+        Waiting,
+        Walking,
+        Pausing,
+    };
+
+    /// One random stream for the idle timer, the scene pick, the strolls and the hide roll.
+    std::mt19937 random_{std::random_device{}()};
+    /// The stroll geometry. Empty for a pet whose data has no movement block.
+    std::unique_ptr<PetWander> wander_;
+    StrollPhase                stroll_{StrollPhase::Waiting};
+    std::optional<WanderStep>  step_;
+    std::chrono::milliseconds  stepElapsed_{0};
+    std::chrono::milliseconds  stepDuration_{0};
+    std::chrono::milliseconds  pauseLeft_{0};
+    std::chrono::milliseconds  wanderWait_{0};
+    /// Steps still to take in this stroll, including the one running.
+    int stepsLeft_{0};
+    /// Whether the pointer is on the pet and has already voided this wait.
+    bool hoverPause_{false};
+    /// Whether the home point is known; false after a load and until the window has a position.
+    bool homeReady_{false};
+    /// Whether the reader is holding the pet, hide or not.
+    bool                  dragging_{false};
+    std::optional<Hiding> hiding_;
+
+    QTimer   clock_;
+    QWindow* window_ = nullptr;
     /// The clock runs while either of these is set.
     bool desktopRunning_{false};
     bool previewing_{false};

@@ -25,7 +25,9 @@
         "skate",
         "bath",
         "rain",
-        "ask"
+        "ask",
+        "walk",
+        "edge_peek"
       ]
     },
     {
@@ -53,7 +55,9 @@
         "skate",
         "bath",
         "rain",
-        "ask"
+        "ask",
+        "walk",
+        "edge_peek"
       ]
     },
     {
@@ -81,7 +85,9 @@
         "skate",
         "bath",
         "rain",
-        "ask"
+        "ask",
+        "walk",
+        "edge_peek"
       ]
     },
     {
@@ -109,7 +115,9 @@
         "skate",
         "bath",
         "rain",
-        "ask"
+        "ask",
+        "walk",
+        "edge_peek"
       ]
     },
     {
@@ -137,7 +145,9 @@
         "skate",
         "bath",
         "rain",
-        "ask"
+        "ask",
+        "walk",
+        "edge_peek"
       ]
     },
     {
@@ -165,7 +175,9 @@
         "skate",
         "bath",
         "rain",
-        "ask"
+        "ask",
+        "walk",
+        "edge_peek"
       ]
     },
     {
@@ -193,7 +205,9 @@
         "skate",
         "bath",
         "rain",
-        "ask"
+        "ask",
+        "walk",
+        "edge_peek"
       ]
     }
   ]

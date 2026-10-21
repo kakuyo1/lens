@@ -79,7 +79,11 @@ struct PetAssets {
     double inkRight;
     /// The lowest drawn row's bottom edge plus one, in sheet units: the pet's feet. A scene aligns the pet by it,
     /// and a frame with nothing drawn gives the canvas bottom.
-    double                                        inkBottom;
+    double inkBottom;
+    /// The ink box, in sheet units, of the edge-peek action's first frame: the sliver a hidden pet leaves visible is
+    /// measured on the figure, not on the square canvas. The idle figure's box when the pet has no peek action.
+    double                                        peekInkLeft;
+    double                                        peekInkRight;
     Layers                                        layers;
     QString                                       expressionSheet;
     core::pet::Animations                         animations;

@@ -2449,6 +2449,147 @@
         {},
         {}
       ]
+    },
+    "walk": {
+      "fps": 7,
+      "loop": true,
+      "frames": [
+        {
+          "expression": 3,
+          "paint": [
+            {
+              "at": [
+                4,
+                17
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            },
+            {
+              "at": [
+                11,
+                17
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "pose": {
+            "dx": -1,
+            "dy": -1,
+            "sx": 1.02,
+            "sy": 0.98
+          },
+          "expression": 3
+        },
+        {
+          "pose": {
+            "dx": -2,
+            "sx": 1.0,
+            "sy": 1.0
+          },
+          "expression": 4,
+          "paint": [
+            {
+              "at": [
+                11,
+                17
+              ],
+              "colour": "dust",
+              "art": [
+                "###"
+              ]
+            }
+          ]
+        },
+        {
+          "pose": {
+            "dy": -1,
+            "sx": 1.02,
+            "sy": 0.98
+          },
+          "expression": 4
+        },
+        {
+          "pose": {
+            "dx": 2,
+            "sx": 1.0,
+            "sy": 1.0
+          },
+          "expression": 3,
+          "paint": [
+            {
+              "at": [
+                4,
+                17
+              ],
+              "colour": "dust",
+              "art": [
+                "###"
+              ]
+            }
+          ]
+        },
+        {
+          "pose": {
+            "dx": 1,
+            "dy": -1,
+            "sx": 1.01,
+            "sy": 0.99
+          },
+          "expression": 3
+        }
+      ]
+    },
+    "edge_peek": {
+      "fps": 5,
+      "loop": true,
+      "frames": [
+        {
+          "expression": 0
+        },
+        {
+          "pose": {
+            "dy": 1,
+            "sx": 1.02,
+            "sy": 0.98
+          },
+          "expression": 2
+        },
+        {
+          "pose": {
+            "dy": -1,
+            "sx": 0.98,
+            "sy": 1.02
+          },
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "pose": {
+            "dy": 1,
+            "sx": 1.02,
+            "sy": 0.98
+          },
+          "expression": 2
+        },
+        {
+          "pose": {
+            "dy": -1,
+            "sx": 0.98,
+            "sy": 1.02
+          },
+          "expression": 0
+        }
+      ]
     }
   },
   "accessories": [
@@ -2783,5 +2924,11 @@
         }
       ]
     }
-  ]
+  ],
+  "movement": {
+    "style": "pounce",
+    "walk": "walk",
+    "peek": "edge_peek",
+    "range": 36
+  }
 }

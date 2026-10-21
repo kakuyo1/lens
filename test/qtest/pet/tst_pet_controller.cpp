@@ -136,6 +136,7 @@ class TstPetController : public QObject {
 
 private slots:
     void eventsDriveTheAction();
+    void reviewAvailabilityFollowsThePet();
     void theClockAdvancesFramesOnlyWhileRunning();
     void wornAccessoriesFollowToggles();
     void sizeIsStoredAndAnnounced();
@@ -156,6 +157,25 @@ private slots:
     void aGonePackageFallsBackToTheShippedDefault();
     void anUnconfirmedChoiceStartsOnTheDefault();
 };
+
+void TstPetController::reviewAvailabilityFollowsThePet()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    Rig rig{settingsIn(dir), shippedRoot()};
+    rig.petStore.setEnabled(true);
+
+    QVERIFY(rig.controller.availableForReview());
+
+    // A drag is not a free moment, and a question waits for the reaction after an answer.
+    rig.controller.handle(PetEvent::DragStart);
+    QVERIFY(!rig.controller.availableForReview());
+    rig.controller.handle(PetEvent::DragEnd);
+    QVERIFY(rig.controller.availableForReview());
+
+    rig.controller.handle(PetEvent::ReviewAsked);
+    QVERIFY(!rig.controller.availableForReview());
+}
 
 void TstPetController::eventsDriveTheAction()
 {
@@ -367,9 +387,12 @@ void TstPetController::accessoryCatalogueAndWornSlotsAreExposed()
     Rig rig{settingsIn(dir), shippedRoot()};
 
     QCOMPARE(rig.controller.accessories().size(), 7);
-    // Thirteen roles (angry and ask included) and the three idle extras; the five scenes are not chips.
-    QCOMPARE(rig.controller.actions().size(), 16);
+    // Thirteen roles (angry and ask included), the three idle extras, and the two movement loops; the five scenes
+    // are not chips.
+    QCOMPARE(rig.controller.actions().size(), 18);
     QCOMPARE(rig.controller.actions().first(), QStringLiteral("idle"));
+    QVERIFY(rig.controller.actions().contains(QStringLiteral("walk")));
+    QVERIFY(rig.controller.actions().contains(QStringLiteral("edge_peek")));
 
     QSignalSpy outfit(&rig.controller, &PetController::outfitChanged);
     rig.controller.toggleAccessory(QStringLiteral("glasses"));
