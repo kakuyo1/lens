@@ -446,7 +446,7 @@
 
 **减少动效**：设置里的 “动画效果” 默认开启，关闭后 `Tokens.motion` 的每个时长解析为 0，所有过渡退化为瞬时。Windows 的
 “辅助功能 → 视觉效果 → 动画效果” 关闭时优先禁用动效；设置页说明该系统状态，但仍保留应用开关值。系统偏好由
-`SystemParametersInfoW(SPI_GETCLIENTAREAANIMATION)`（`src/app/system_motion.h`）在启动时读取一次。
+`SystemParametersInfoW(SPI_GETCLIENTAREAANIMATION)`（`src/app/platform/system_motion.h`）在启动时读取一次。
 
 ## 无障碍与约束
 

@@ -19,10 +19,10 @@
 #include <fstream>
 
 #include "app/app_controller.h"
-#include "app/explanation_duty.h"
-#include "app/model_catalog_duty.h"
-#include "app/storage_duty.h"
-#include "core/known_store.h"
+#include "app/duties/explanation_duty.h"
+#include "app/duties/model_catalog_duty.h"
+#include "app/duties/storage_duty.h"
+#include "core/document/known_store.h"
 #include "llm/llm_pricing.h"
 #include "llm/llm_pure.h"
 #include "llm_support.h"

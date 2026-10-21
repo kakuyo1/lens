@@ -30,6 +30,10 @@
 #     printed, so the hook does not echo the key into the log.
 # 12. Translations. A staged .ts file that still carries an unfinished string has one nobody
 #     translated: lupdate leaves it there, and the goal is zero.
+# 13. Layers. The module boundaries CODING_STANDARDS.md and ADR 0077 name: core stays Qt-free,
+#     and duties, platform, glass and pet do not reach into one another or the facade. It reads
+#     the whole tree when a src/ file is staged, because an include left behind sits in a file
+#     the commit may not touch. scripts/quality/layer-check.sh owns the rules.
 #
 # Only what this commit touches is checked, which keeps a commit hook under a few seconds. The
 # QML check is the exception, and it is the one that only runs when a .qml file is staged.
@@ -526,6 +530,12 @@ check_unfinished() {
     return $status
 }
 
+check_layers() {
+    printf '%s\n' $staged | grep -qE '^src/' || return 0
+    [ -f scripts/quality/layer-check.sh ] || { echo "pre-commit: scripts/quality/layer-check.sh not found, skipping layers"; return 0; }
+    sh scripts/quality/layer-check.sh
+}
+
 # "fail", not "status": every check below keeps its own running answer in a shell-wide
 # "status", so a dispatcher that used the same name would have an earlier failure wiped out by
 # the next check finishing cleanly. That is not hypothetical -- with "status" here, a document
@@ -544,4 +554,5 @@ check_file_headers || fail=1
 check_qml_size || fail=1
 check_api_keys || fail=1
 check_unfinished || fail=1
+check_layers || fail=1
 exit $fail

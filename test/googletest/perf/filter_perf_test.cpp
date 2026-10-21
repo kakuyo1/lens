@@ -24,8 +24,8 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
-#include "core/filter_core.h"
-#include "core/profile.h"
+#include "core/domain/filter_core.h"
+#include "util/profile.h"
 #include "support.h"
 
 namespace {
@@ -67,7 +67,7 @@ TEST_F(CoreTest, FilterWordsThroughput)
     roundMs.reserve(kRounds);
     std::size_t candidates = 0;
 
-    lens::core::profile::reset();
+    lens::util::profile::reset();
 
     for (int round = 0; round < kRounds; ++round) {
         const auto startedAt = std::chrono::steady_clock::now();
@@ -88,7 +88,7 @@ TEST_F(CoreTest, FilterWordsThroughput)
               << "per excerpt: " << medianMs / static_cast<double>(texts.size()) << " ms\n"
               << "candidates kept over " << kRounds << " rounds: " << candidates << "\n";
 
-    const std::string profile = lens::core::profile::report();
+    const std::string profile = lens::util::profile::report();
     if (profile.empty())
         std::cout << "profile: compiled out (configure with -DLENS_ENABLE_PROFILE=ON)\n";
     else

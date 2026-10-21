@@ -22,7 +22,7 @@
 
 #include "app/paths.h"
 #include "app/pet/pet_package_fs.h"
-#include "core/pet/pet_package.h"
+#include "core/domain/pet/pet_package.h"
 
 namespace lens::app::pet {
 

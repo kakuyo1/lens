@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 
-#include "core/filter_core.h"
+#include "core/domain/filter_core.h"
 
 /**
  * @file support.h

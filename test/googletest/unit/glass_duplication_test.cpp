@@ -1,7 +1,7 @@
 /**
  * @file glass_duplication_test.cpp
  * @brief The one part of the duplicated-output read that can be checked without a desktop: where a rectangle of the
- *        screen lands in the frame (src/app/glass_duplication.h).
+ *        screen lands in the frame (src/app/glass/glass_duplication.h).
  *
  * The frame is what DXGI hands over, in the panel's native orientation; the screen rectangle is what the glass knows,
  * in the desktop's. On the measurement machine the external monitor is portrait: 1440 x 2560 on the desktop and a
@@ -15,7 +15,7 @@
 #include <QRect>
 #include <QSize>
 
-#include "app/glass_duplication.h"
+#include "app/glass/glass_duplication.h"
 
 namespace {
 

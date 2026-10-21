@@ -6,7 +6,7 @@
 
 #include <gtest/gtest.h>
 
-#include "core/dev_command.h"
+#include "core/dev/dev_command.h"
 
 #include <nlohmann/json.hpp>
 

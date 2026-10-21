@@ -12,9 +12,9 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
-#include "app/storage_duty.h"
-#include "core/known_store.h"
-#include "core/review_store.h"
+#include "app/duties/storage_duty.h"
+#include "core/document/known_store.h"
+#include "core/document/review_store.h"
 
 namespace {
 

@@ -17,6 +17,12 @@
   带 Qt 类型的进最低那个已依赖 Qt 的模块。领域判定不因为 “收敛” 搬进 util——HTTP 主机白名单、
   宠物名清洗、选区形状分类各有各的错法，留在自己的模块。收敛以删掉原实现为准，不留转发的薄壳。
 
+## 分层
+
+- **目录就是层，依赖只能向下**。`src/util` 不依赖任何模块；`src/core` 不依赖 Qt，只向下依赖 `util`；`src/app/duties` 可以依赖 `platform` 与下层能力，但不碰 `glass`、`pet`、QML 与门面；`glass` 与 `pet` 可以依赖 `platform`，但两者互不依赖；`platform` 不依赖 `glass` 与 `pet`；只有 `app` 根的门面、组合根与 `app/dev` 可以碰全部。`src/app` 根下的设置与投影头文件是跨组共享词汇，不在这条限制里。
+- **越界由 `scripts/quality/layer-check.sh` 检查**，pre-commit 与 CI 都跑它。目录移动时把旧 include 留给同事的编译器，不如让这条检查先说话。
+- **为什么不拆 target**：`qt_add_qml_module` 只注册 backing target 自己的类型，duties、platform、glass 里的 QML 类型要拆出去就得补 `QML_FOREIGN` 垫片；在需要编译器强制之前，目录与检查足够。理由见 `docs/adr/0077`。
+
 ## QML
 
 - **阴影来自一份只有形状的 `visible: false` 副本**，不要把内容包进 `MultiEffect`：它把源渲进离屏贴图，

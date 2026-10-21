@@ -8,7 +8,7 @@
 #include <map>
 #include <string>
 
-#include "core/stats_store.h"
+#include "core/document/stats_store.h"
 
 /**
  * @file year_grid.h

@@ -1,14 +1,14 @@
 /**
  * @file glass_stats_test.cpp
  * @brief The glass pipeline's tally: what one summary line says about the durations and counts it gathered, and what
- *        it forgets when the window closes (src/app/glass_stats.h).
+ *        it forgets when the window closes (src/app/glass/glass_stats.h).
  */
 
 #include <gtest/gtest.h>
 
 #include <QString>
 
-#include "app/glass_stats.h"
+#include "app/glass/glass_stats.h"
 
 #include <cstddef>
 

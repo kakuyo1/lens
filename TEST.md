@@ -78,7 +78,7 @@ PATH="$QT_ROOT/bin:$PATH" QT_QPA_PLATFORM=offscreen QT_FORCE_STDERR_LOGGING=1 \
   本机实测数字与结论在 `docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md`。
 - 读屏的节奏与面积：`GlassReadPace.PacedAgainstTight` 与 `GlassReadPace.AreaSetsThePrice`，在 `lens_gtest_integration`
   里，读真实屏幕但不建窗口，共约 90 秒，只打印不判时间。它们回答的是 “探针量到的读屏价能不能代表应用付的价”
-  与 “读价随节奏还是随面积”（`src/app/glass_desktop.h` 的抽取理由），数字同上那份报告 3.5 与 3.6。
+  与 “读价随节奏还是随面积”（`src/app/glass/glass_desktop.h` 的抽取理由），数字同上那份报告 3.5 与 3.6。
 - 复制裁剪与旋转：`GlassDuplication.CropFollowsTheRotatedScreen`，也在 `lens_gtest_integration` 里，默认跳过；
   `LENS_GLASS_DUP_TEST=1` 才跑。它在每块屏上显示一个四色窗口约一秒，验证复制帧的裁剪与旋转，并与 GDI 同区域逐点比较；
   本机结果见报告 3.9。它需要交互桌面会话，CI 不跑。

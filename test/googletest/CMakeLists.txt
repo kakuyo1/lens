@@ -57,7 +57,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/pet_placement_test.cpp
   unit/pet_wander_test.cpp
   unit/pet_store_test.cpp
-  unit/pet_window_style_test.cpp
+  unit/window_style_test.cpp
   unit/glass_math_test.cpp
   unit/glass_desktop_test.cpp
   unit/glass_duplication_test.cpp

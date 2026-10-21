@@ -65,9 +65,9 @@ if(MSVC)
   add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/utf-8>)
 endif()
 
-# Compile the lens_core measurement points in (core/profile.h). Off by default: it changes
-# how lens_core is built, so turning it on means a rebuild of that target, not a rerun.
-option(LENS_ENABLE_PROFILE "Compile lens_core profile instrumentation in" OFF)
+# Compile the shared measurement points in (util/profile.h). Off by default: it changes
+# how every module that opts in is built, so turning it on means a rebuild, not a rerun.
+option(LENS_ENABLE_PROFILE "Compile the shared profile instrumentation in" OFF)
 
 # QML profiler builds need the engine's debugging hooks. Keep this off for normal builds: it
 # changes the executable's instrumentation and is only useful for a dedicated measurement tree.

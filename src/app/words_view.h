@@ -28,7 +28,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "core/stats_store.h"
+#include "core/document/stats_store.h"
 #include "util/text.h"
 
 namespace lens::app {

@@ -22,8 +22,8 @@
 #include <QString>
 
 #include "app/pet/pet_assets.h"
-#include "core/pet/pet_config.h"
-#include "core/pet/pet_package.h"
+#include "core/domain/pet/pet_config.h"
+#include "core/domain/pet/pet_package.h"
 
 namespace {
 

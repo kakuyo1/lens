@@ -11,7 +11,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "core/filter_core.h"
+#include "core/domain/filter_core.h"
 
 namespace lens::capture {
 

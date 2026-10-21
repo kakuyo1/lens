@@ -18,14 +18,14 @@
 #include <QTemporaryDir>
 #include <QTimer>
 
-#include "app/capture_duty.h"
-#include "app/capture_refusal.h"
-#include "app/mouse_selection_hook.h"
-#include "app/storage_duty.h"
+#include "app/duties/capture_duty.h"
+#include "app/duties/capture_refusal.h"
+#include "app/platform/mouse_selection_hook.h"
+#include "app/duties/storage_duty.h"
 #include "capture/capture_policy.h"
 #include "capture/ocr_engine.h"
 #include "capture/scan_pipeline.h"
-#include "core/known_store.h"
+#include "core/document/known_store.h"
 #include "support.h"
 
 namespace {

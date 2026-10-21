@@ -140,7 +140,7 @@ node --test test/*.test.js
 1. 复制 `scripts/pet/recipes/mochi.json` 为 `scripts/pet/recipes/<id>.json`，改身体、眼睛、嘴、动作与配饰。
 2. 从仓库根目录运行 `python -I scripts/pet/render_pet.py <id>`。渲染器先写出文件，再读回每张 sheet 核对尺寸；尺寸不对会报错退出。
 3. 看图。用 Read 工具打开每张身体 sheet、效果 sheet、表情 sheet 与配饰 PNG，按原尺寸看；可疑的格子截图放大看。发现问题就改配方，不改输出，然后重新运行第 2 步。
-4. 核对数据契约。渲染器只核对尺寸，下面几条由应用加载时检查，不满足会被拒绝（见 `src/core/pet/pet_config.cpp`）：
+4. 核对数据契约。渲染器只核对尺寸，下面几条由应用加载时检查，不满足会被拒绝（见 `src/core/domain/pet/pet_config.cpp`）：
    - `roles` 覆盖 11 个核心角色，只有伸懒腰可以省；
    - `idlePool` 只列单次动作，即 `loop` 为假的动作；
    - `returnTo` 指向 `roles` 里已映射的角色；

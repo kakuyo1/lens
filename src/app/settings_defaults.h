@@ -5,8 +5,8 @@
 #include <string_view>
 
 #include "bubble_settings.h"
-#include "core/known_store.h"
-#include "core/review_schedule.h"
+#include "core/document/known_store.h"
+#include "core/domain/review_schedule.h"
 #include "glass_settings.h"
 #include "llm/llm_protocol.h"
 #include "reveal_settings.h"

@@ -14,7 +14,7 @@
 #include <QImage>
 #include <QRect>
 
-#include "app/glass_desktop.h"
+#include "app/glass/glass_desktop.h"
 
 namespace {
 

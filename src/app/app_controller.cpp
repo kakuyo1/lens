@@ -23,7 +23,7 @@
 #include <algorithm>
 #include <utility>
 
-#include "autostart.h"
+#include "app/platform/autostart.h"
 #include "bubble_settings.h"
 #include "glass_settings.h"
 #include "notice.h"
@@ -878,6 +878,19 @@ QString AppController::modeLabel() const
 QString AppController::busyLabel() const
 {
     return explanation_.busyLabel();
+}
+
+TrayReadout AppController::trayReadout()
+{
+    const QVariantMap document = settings();
+    const QVariantMap stats    = cost_.stats();
+    return TrayReadout{
+        stats.value("budgetExhausted").toBool(),
+        !busyLabel().isEmpty(),
+        document.value("selectionCapture").toBool(),
+        stats.value("todayPops").toInt(),
+        modeLabel(),
+    };
 }
 
 double AppController::dailyBudget() const

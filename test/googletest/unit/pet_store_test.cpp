@@ -8,16 +8,16 @@
 
 #include <gtest/gtest.h>
 
-#include "app/pet/pet_store.h"
-#include "core/known_store.h"
+#include "core/document/pet_store.h"
+#include "core/document/known_store.h"
 
 namespace {
 
-using lens::app::pet::kMaxSize;
-using lens::app::pet::kMinSize;
-using lens::app::pet::magnificationOf;
-using lens::app::pet::PetStore;
-using lens::app::pet::sizeFromScale;
+using lens::core::pet::kMaxSize;
+using lens::core::pet::kMinSize;
+using lens::core::pet::magnificationOf;
+using lens::core::pet::PetStore;
+using lens::core::pet::sizeFromScale;
 using lens::core::KnownStore;
 
 TEST(PetStore, SizeFallsBackUntilTheReaderChoosesOne)
@@ -35,7 +35,7 @@ TEST(PetStore, OutfitReadsBackAsItWasWritten)
     auto       store = KnownStore::load(path);
     auto       pet   = PetStore{store};
 
-    pet.setOutfit(lens::app::pet::Outfit{.head = std::string{"hat"}, .face = std::nullopt, .body = std::nullopt});
+    pet.setOutfit(lens::core::pet::Outfit{.head = std::string{"hat"}, .face = std::nullopt, .body = std::nullopt});
 
     auto const worn = pet.outfit();
     EXPECT_EQ(worn.head, std::optional<std::string>{"hat"});

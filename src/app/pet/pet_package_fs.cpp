@@ -15,7 +15,7 @@
 #include <QString>
 
 #include "app/paths.h"
-#include "core/pet/pet_package.h"
+#include "core/domain/pet/pet_package.h"
 #include "util/text.h"
 
 namespace lens::app::pet {

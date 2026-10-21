@@ -15,10 +15,10 @@
 #include <filesystem>
 
 #include "app/app_controller.h"
-#include "app/global_hotkey.h"
-#include "app/mouse_selection_hook.h"
+#include "app/platform/global_hotkey.h"
+#include "app/platform/mouse_selection_hook.h"
 #include "app/settings_defaults.h"
-#include "core/known_store.h"
+#include "core/document/known_store.h"
 #include "llm/llm_client.h"
 #include "llm/llm_pricing.h"
 #include "llm_support.h"

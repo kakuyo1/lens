@@ -12,9 +12,9 @@
 #include <filesystem>
 #include <limits>
 
-#include "app/cost_duty.h"
-#include "app/storage_duty.h"
-#include "core/known_store.h"
+#include "app/duties/cost_duty.h"
+#include "app/duties/storage_duty.h"
+#include "core/document/known_store.h"
 
 namespace {
 

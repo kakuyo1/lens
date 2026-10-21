@@ -9,7 +9,7 @@
 
 #include <gtest/gtest.h>
 
-#include "core/pet/accessory.h"
+#include "core/domain/pet/accessory.h"
 
 namespace {
 

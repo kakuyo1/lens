@@ -5,7 +5,7 @@
 
 #include <gtest/gtest.h>
 
-#include "core/vault.h"
+#include "core/crypto/vault.h"
 
 namespace vault = lens::core::vault;
 

@@ -18,7 +18,7 @@
 
 #include <gtest/gtest.h>
 
-#include "core/pet/pet_state.h"
+#include "core/domain/pet/pet_state.h"
 
 namespace {
 

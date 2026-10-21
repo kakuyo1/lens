@@ -9,6 +9,7 @@
 | 改产品行为、判定或默认值 | `PRODUCT.md` | `GLOSSARY.md`、`docs/adr/` |
 | 改某个表面的外观或交互 | `UI.md` | `ui-prototypes/README.md`、`docs/QML.md` |
 | 改 QML 实现：窗口、阴影、定位、线程 | `docs/QML.md` | `CODING_STANDARDS.md`、`docs/adr/` |
+| 改代码结构、加模块或搬文件 | `CODING_STANDARDS.md` 的 “分层” | `docs/adr/0077` |
 | 改请求、响应、校验、错误码或价目 | `API.md` | `data/llm/`、`SECURITY.md` |
 | 加测试或决定跑哪条 | `TEST.md` | `docs/qa.md`、`docs/metrics/profiling-and-coverage.md` |
 | 在真机上看界面、拍照或驱动 | `docs/qa.md` | `.claude/skills/run-lens/SKILL.md` |

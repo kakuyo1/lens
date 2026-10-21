@@ -14,8 +14,8 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
-#include "core/sync_run.h"
-#include "core/vault.h"
+#include "core/domain/sync_run.h"
+#include "core/crypto/vault.h"
 
 namespace {
 

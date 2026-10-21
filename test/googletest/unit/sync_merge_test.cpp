@@ -12,7 +12,7 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
-#include "core/sync_merge.h"
+#include "core/domain/sync_merge.h"
 
 namespace {
 

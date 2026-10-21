@@ -37,11 +37,11 @@
 #include "app/pet/pet_assets.h"
 #include "app/pet/pet_catalog.h"
 #include "app/pet/pet_scenes.h"
-#include "app/pet/pet_store.h"
+#include "core/document/pet_store.h"
 #include "app/pet/pet_wander.h"
-#include "core/pet/accessory.h"
-#include "core/pet/hover_sense.h"
-#include "core/pet/pet_state.h"
+#include "core/domain/pet/accessory.h"
+#include "core/domain/pet/hover_sense.h"
+#include "core/domain/pet/pet_state.h"
 
 class QJSEngine;
 class QQmlEngine;
@@ -108,7 +108,7 @@ public:
      * @param store The PET section of the settings document, owned by main().
      * @param parent QObject parent.
      */
-    PetController(std::filesystem::path shippedRoot, std::filesystem::path installedRoot, PetStore& store, QObject* parent = nullptr);
+    PetController(std::filesystem::path shippedRoot, std::filesystem::path installedRoot, core::pet::PetStore& store, QObject* parent = nullptr);
     ~PetController() override;
 
     /// @brief Hand the QML engine the one instance built by the composition root.
@@ -332,7 +332,7 @@ private:
     bool      scenesAllowed_{false};
 
     std::optional<PetAssets>                    assets_;
-    PetStore&                                   store_;
+    core::pet::PetStore&                        store_;
     std::unique_ptr<core::pet::PetStateMachine> machine_;
     std::unique_ptr<core::pet::Wardrobe>        wardrobe_;
     /// Proximity lives beside the action machine: it reads the cursor and asks the machine for an idle reaction.

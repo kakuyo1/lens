@@ -14,8 +14,8 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
-#include "core/pet/pet_config.h"
-#include "core/pet/pet_package.h"
+#include "core/domain/pet/pet_config.h"
+#include "core/domain/pet/pet_package.h"
 
 namespace {
 

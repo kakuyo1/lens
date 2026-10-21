@@ -43,8 +43,8 @@
 
 #ifdef _WIN32
 
-#include "app/glass_desktop.h"
-#include "app/glass_duplication.h"
+#include "app/glass/glass_desktop.h"
+#include "app/glass/glass_duplication.h"
 
 namespace {
 

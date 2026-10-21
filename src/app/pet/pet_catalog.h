@@ -8,7 +8,7 @@
 
 #include <QString>
 
-#include "core/pet/pet_package.h"
+#include "core/domain/pet/pet_package.h"
 
 /**
  * @file pet_catalog.h

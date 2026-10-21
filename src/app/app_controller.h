@@ -20,21 +20,22 @@
 
 #include <filesystem>
 
-#include "capture_duty.h"
-#include "capture_refusal.h"
-#include "core/pet/pet_state.h"
-#include "cost_duty.h"
-#include "explanation_duty.h"
-#include "glass_backdrop.h"
-#include "global_hotkey.h"
+#include "app/duties/capture_duty.h"
+#include "app/duties/capture_refusal.h"
+#include "core/domain/pet/pet_state.h"
+#include "app/duties/cost_duty.h"
+#include "app/duties/explanation_duty.h"
+#include "app/glass/glass_backdrop.h"
+#include "app/platform/global_hotkey.h"
 #include "llm/llm_client.h"
 #include "llm/llm_pricing.h"
-#include "model_catalog_duty.h"
-#include "mouse_selection_hook.h"
-#include "review_duty.h"
-#include "storage_duty.h"
-#include "sync_duty.h"
-#include "update_duty.h"
+#include "app/duties/model_catalog_duty.h"
+#include "app/platform/mouse_selection_hook.h"
+#include "app/platform/tray.h"
+#include "app/duties/review_duty.h"
+#include "app/duties/storage_duty.h"
+#include "app/duties/sync_duty.h"
+#include "app/duties/update_duty.h"
 
 class QQmlEngine;
 class QJSEngine;
@@ -220,7 +221,9 @@ public:
     ModelCatalogDuty* modelCatalogDuty();
     QString           modeLabel() const;
     QString           busyLabel() const;
-    double            dailyBudget() const;
+    /// @return The snapshot the tray icon and its tooltip are drawn from. A projection, not state.
+    TrayReadout trayReadout();
+    double      dailyBudget() const;
     /// @brief The day this build was compiled, as `yyyy-MM-dd`, for the about page. Not the day it runs.
     QString buildDate() const;
     /**

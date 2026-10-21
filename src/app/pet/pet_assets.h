@@ -8,8 +8,8 @@
 #include <QPointF>
 #include <QString>
 
-#include "core/pet/accessory.h"
-#include "core/pet/pet_config.h"
+#include "core/domain/pet/accessory.h"
+#include "core/domain/pet/pet_config.h"
 
 /**
  * @file pet_assets.h

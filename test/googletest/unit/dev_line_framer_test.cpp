@@ -6,7 +6,7 @@
 
 #include <gtest/gtest.h>
 
-#include "core/dev_line_framer.h"
+#include "core/dev/dev_line_framer.h"
 
 #include <string>
 #include <vector>

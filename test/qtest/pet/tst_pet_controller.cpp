@@ -18,14 +18,14 @@
 #include <nlohmann/json.hpp>
 
 #include "app/pet/pet_controller.h"
-#include "app/pet/pet_store.h"
-#include "core/known_store.h"
+#include "core/document/pet_store.h"
+#include "core/document/known_store.h"
 
 namespace {
 
-using lens::app::pet::Outfit;
+using lens::core::pet::Outfit;
 using lens::app::pet::PetController;
-using lens::app::pet::PetStore;
+using lens::core::pet::PetStore;
 using lens::core::KnownStore;
 using lens::core::pet::PetEvent;
 

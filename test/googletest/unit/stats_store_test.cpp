@@ -16,8 +16,8 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
-#include "core/known_store.h"
-#include "core/stats_store.h"
+#include "core/document/known_store.h"
+#include "core/document/stats_store.h"
 
 namespace {
 

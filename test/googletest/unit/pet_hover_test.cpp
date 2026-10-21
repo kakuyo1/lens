@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include "core/pet/hover_sense.h"
+#include "core/domain/pet/hover_sense.h"
 
 namespace {
 

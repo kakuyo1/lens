@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 
-#include "core/review_schedule.h"
+#include "core/domain/review_schedule.h"
 
 namespace {
 

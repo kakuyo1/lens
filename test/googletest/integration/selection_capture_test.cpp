@@ -39,8 +39,8 @@
 #include <QTimer>
 #include <gtest/gtest.h>
 
-#include "app/mouse_selection_hook.h"
-#include "app/selection_text_grabber.h"
+#include "app/platform/mouse_selection_hook.h"
+#include "app/platform/selection_text_grabber.h"
 #include "support.h"
 #include "util/log.h"
 

@@ -9,7 +9,7 @@
 
 #include <QImage>
 
-#include "app/glass_math.h"
+#include "app/glass/glass_math.h"
 
 #include <cstddef>
 #include <vector>

@@ -8,8 +8,8 @@
 #include <QRect>
 #include <QSize>
 
-#include "core/pet/pet_config.h"
-#include "core/pet/pet_state.h"
+#include "core/domain/pet/pet_config.h"
+#include "core/domain/pet/pet_state.h"
 
 /**
  * @file pet_wander.h

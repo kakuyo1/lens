@@ -15,8 +15,8 @@
  * both. A second case answers the other half of the same budget: whether the price follows the *area* read, which is
  * what the "read less of the screen" lever is worth -- the sheet, the same sheet without its 160 DIP margin, and an
  * action bar's card, all three at the application's pace. No window, no sheet, no surface: the point is that nothing
- * else is in the measurement. The read is the application's own, taken from src/app/glass_desktop.h, and the
- * percentiles come from src/app/glass_stats.h -- the same reducer that writes the application's log line, so a number
+ * else is in the measurement. The read is the application's own, taken from src/app/glass/glass_desktop.h, and the
+ * percentiles come from src/app/glass/glass_stats.h -- the same reducer that writes the application's log line, so a number
  * here and a number in `logs/lens.log` mean the same thing.
  *
  * Like every target of this suite it prints rather than asserts on time. What it asserts is that each round really
@@ -37,8 +37,8 @@
 #include <QImage>
 #include <QRect>
 
-#include "app/glass_desktop.h"
-#include "app/glass_stats.h"
+#include "app/glass/glass_desktop.h"
+#include "app/glass/glass_stats.h"
 
 #include <algorithm>
 #include <chrono>
@@ -59,7 +59,7 @@ using lens::app::SheetScale;
 /// The sheet size ADR 0040 measured and the probe re-measured, so all three numbers describe the same rectangle.
 constexpr int kSheetWidth  = 1075;
 constexpr int kSheetHeight = 1231;
-/// The refresh period the application keeps (src/app/glass_backdrop.cpp's kLiveIntervalMs, docs/adr/0040).
+/// The refresh period the application keeps (src/app/glass/glass_backdrop.cpp's kLiveIntervalMs, docs/adr/0040).
 constexpr auto kPace = std::chrono::milliseconds(67);
 /// How long a pacing round runs. Twenty seconds is about 300 paced reads, enough for a median to stop moving.
 constexpr int kPaceRoundSeconds = 20;

@@ -1,8 +1,13 @@
-# The app itself. Three groups of things live here:
+# The app itself. lens_app is grouped by responsibility:
 #
-#   lens_app  -- the C++ the surfaces are driven by: the mouse hook, the grabber, the
-#                controller, and the tray -- plus the QML module those two types are registered
-#                in.
+#   duties/    -- use cases the reader asks for: capture, explanation, review, sync, update.
+#   platform/  -- Win32 and shell integration: the mouse hook, hotkey, tray and window helpers.
+#   glass/     -- the desktop under the cards: capture, duplication and the sheet item.
+#   pet/       -- the pet's Qt shell around the core state machine.
+#   qml/       -- the surfaces, all one QML module.
+#   the root   -- the facade (app_controller), the composition root (main.cpp), and the shared
+#                 settings and projection headers.
+#
 #   lens      -- the executable: main.cpp and the .qm files.
 #   icons/    -- the tray art, compiled into the binary as resources.
 #
@@ -12,66 +17,76 @@
 # register classes that live in lens_app.
 
 add_library(lens_app STATIC
-  capture_duty.h
-  capture_duty.cpp
-  cost_duty.h
-  cost_duty.cpp
-  explanation_duty.h
-  explanation_duty.cpp
-  glass_backdrop.cpp
-  glass_capability.h
-  glass_capability.cpp
-  glass_desktop.h
-  glass_desktop.cpp
-  glass_duplication.h
-  glass_duplication.cpp
-  glass_math.cpp
-  glass_sheet_item.h
-  glass_sheet_item.cpp
-  glass_stats.h
-  glass_stats.cpp
-  global_hotkey.h
-  global_hotkey.cpp
-  model_catalog_duty.h
-  model_catalog_duty.cpp
-  mouse_selection_hook.h
-  mouse_selection_hook.cpp
+  # Facade and composition root.
+  app_controller.cpp
   paths.h
   paths.cpp
-  review_duty.h
-  review_duty.cpp
-  selection_text_grabber.cpp
   settings_defaults.h
-  storage_duty.h
-  storage_duty.cpp
-  system_motion.cpp
-  update_duty.h
-  update_duty.cpp
   words_view.h
-  sync_duty.h
-  sync_duty.cpp
-  sync_state.h
-  sync_state.cpp
-  app_controller.cpp
-  autostart.cpp
-  tray.cpp
+
+  # Use cases: what the reader asks for, independent of a surface.
+  duties/capture_duty.h
+  duties/capture_duty.cpp
+  duties/cost_duty.h
+  duties/cost_duty.cpp
+  duties/explanation_duty.h
+  duties/explanation_duty.cpp
+  duties/model_catalog_duty.h
+  duties/model_catalog_duty.cpp
+  duties/review_duty.h
+  duties/review_duty.cpp
+  duties/storage_duty.h
+  duties/storage_duty.cpp
+  duties/sync_duty.h
+  duties/sync_duty.cpp
+  duties/update_duty.h
+  duties/update_duty.cpp
+
+  # Platform: Win32 and shell integration.
+  platform/autostart.cpp
+  platform/global_hotkey.h
+  platform/global_hotkey.cpp
+  platform/mouse_selection_hook.h
+  platform/mouse_selection_hook.cpp
+  platform/selection_text_grabber.cpp
+  platform/system_motion.cpp
+  platform/tray.cpp
+  platform/window_native.cpp
+
+  # Glass: the desktop under the cards.
+  glass/glass_backdrop.cpp
+  glass/glass_capability.h
+  glass/glass_capability.cpp
+  glass/glass_desktop.h
+  glass/glass_desktop.cpp
+  glass/glass_duplication.h
+  glass/glass_duplication.cpp
+  glass/glass_math.cpp
+  glass/glass_sheet_item.h
+  glass/glass_sheet_item.cpp
+  glass/glass_stats.h
+  glass/glass_stats.cpp
+
+  # Pet: the Qt shell around the core state machine.
   pet/pet_assets.cpp
   pet/pet_catalog.cpp
   pet/pet_controller.cpp
   pet/pet_package_fs.cpp
   pet/pet_placement.cpp
   pet/pet_scenes.cpp
-  pet/pet_store.cpp
   pet/pet_wander.cpp
-  pet/pet_window_native.cpp
 )
 
 # src/ is exposed for self-contained "app/xxx.h" includes (same as lens_core and lens_llm).
 target_include_directories(lens_app PUBLIC ${CMAKE_SOURCE_DIR}/src)
 
-# The QML type registration includes each module header by its basename, so the headers under pet/
-# must be on the include path for that generated file to find pet_controller.h.
-target_include_directories(lens_app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pet)
+# The QML type registration includes each module header by its basename, so the directories that
+# hold a registered header must be on the include path for that generated file to find it.
+target_include_directories(lens_app PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/pet
+  ${CMAKE_CURRENT_SOURCE_DIR}/glass
+  ${CMAKE_CURRENT_SOURCE_DIR}/platform
+)
 
 # Qt6::Gui is public because AppController's interface reaches into it: the clipboard and
 # QPoint come from there. Widgets is public for the tray -- QMenu and QSystemTrayIcon.
@@ -85,7 +100,7 @@ target_link_libraries(lens_app
 )
 
 # user32 for the hook, SendInput and the clipboard; gdi32 for the glass sheet's desktop read; dxgi and d3d11 for the
-# glass duplication path, which builds a device on the adapter that owns each output (src/app/glass_duplication.h).
+# glass duplication path, which builds a device on the adapter that owns each output (src/app/glass/glass_duplication.h).
 # Not guarded by if(WIN32): this module *is* the Win32 one, and the product has no other platform. OLE is deliberately
 # absent -- ClipboardSnapshot records why its round trip is not usable here.
 target_link_libraries(lens_app PRIVATE user32 gdi32 dxgi d3d11)
@@ -107,7 +122,7 @@ qt_add_executable(lens
 # The developer command surface (docs/adr/0068), only when the build asks for it. It sits in the executable because
 # main.cpp is its one caller and it reaches the windows through the Main window that caller hands it.
 if(LENS_ENABLE_DEV_SURFACE)
-  target_sources(lens PRIVATE dev_surface.cpp dev_surface.h dev_pipe.cpp dev_pipe.h)
+  target_sources(lens PRIVATE dev/dev_surface.cpp dev/dev_surface.h dev/dev_pipe.cpp dev/dev_pipe.h)
   target_compile_definitions(lens PRIVATE LENS_DEV_SURFACE)
 endif()
 
@@ -166,7 +181,7 @@ set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Lens")
 # qml/components/, and the two theme value tables plus the motion table sit in qml/theme/, where
 # nothing reads them by name: Tokens forwards the active one. All three are the same QML module, so no group names
 # another in an import: Qt gives every file in the module an implicit import of its own types.
-# The module hangs off lens_app and not off the executable because of where the two types the
+# The module hangs off lens_app and not off the executable because of where the types the
 # surfaces talk to are declared. qt_add_qml_module registers the C++ types of the target it is
 # called on and only that target's; a class living in a linked static library stays invisible to
 # it. A module on `lens` therefore registered nothing, and every read off Controller or Tray
@@ -180,9 +195,9 @@ qt_add_qml_module(lens_app
   IMPORTS QtQuick
   SOURCES
     app_controller.h
-    glass_sheet_item.h
-    tray.h
-    system_motion.h
+    glass/glass_sheet_item.h
+    platform/tray.h
+    platform/system_motion.h
     pet/pet_controller.h
   QML_FILES
     qml/Main.qml

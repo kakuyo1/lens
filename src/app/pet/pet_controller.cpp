@@ -25,11 +25,20 @@
 
 #include "app/paths.h"
 #include "app/pet/pet_placement.h"
-#include "app/pet/pet_window_native.h"
-#include "core/pet/pet_package.h"
+#include "app/platform/window_native.h"
+#include "core/domain/pet/pet_package.h"
 #include "util/log.h"
 
 namespace lens::app::pet {
+
+using core::pet::kDefaultPet;
+using core::pet::kMaxSize;
+using core::pet::kMinSize;
+using core::pet::magnificationOf;
+using core::pet::Outfit;
+using core::pet::PetStore;
+using core::pet::SavedPosition;
+using core::pet::sizeFromScale;
 
 PetController* PetController::instance_ = nullptr;
 
@@ -745,7 +754,7 @@ void PetController::setEnabled(bool on)
         // Turning the pet off puts it back where the reader left it, so switching it on starts from home again.
         if (window_ and wander_ and homeReady_) window_->setPosition(wander_->home());
     }
-    if (window_ and window_->isVisible()) ::lens::app::pet::setPassthrough(*window_, enabled() and store_.passthrough());
+    if (window_ and window_->isVisible()) ::lens::app::setPassthrough(*window_, enabled() and store_.passthrough());
     emit settingsChanged();
 }
 
@@ -753,7 +762,7 @@ void PetController::setPassthrough(bool on)
 {
     store_.setPassthrough(on);
     if (on) resetHover();
-    if (window_ and window_->isVisible()) ::lens::app::pet::setPassthrough(*window_, enabled() and on);
+    if (window_ and window_->isVisible()) ::lens::app::setPassthrough(*window_, enabled() and on);
     emit settingsChanged();
 }
 
@@ -764,7 +773,7 @@ void PetController::attachWindow(QObject* object)
     connect(window_, &QObject::destroyed, this, [this] { window_ = nullptr; });
     onShown(window_, [this](QWindow const& window) {
         if (not excludeFromCapture(window)) LENS_WARN("the desktop pet can appear in screen captures: Windows refused the exclusion");
-        ::lens::app::pet::setPassthrough(window, enabled() and store_.passthrough());
+        ::lens::app::setPassthrough(window, enabled() and store_.passthrough());
     });
     connect(qGuiApp, &QGuiApplication::screenAdded, this, &PetController::watchScreen);
     connect(qGuiApp, &QGuiApplication::screenRemoved, this, &PetController::keepOnScreen);

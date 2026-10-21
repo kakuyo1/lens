@@ -16,18 +16,18 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
-#include "app/sync_state.h"
-#include "core/known_store.h"
-#include "core/stats_store.h"
+#include "core/domain/sync_state.h"
+#include "core/document/known_store.h"
+#include "core/document/stats_store.h"
 
 namespace {
 
-using lens::app::syncstate::applyDaily;
-using lens::app::syncstate::applyHistory;
-using lens::app::syncstate::applyMarks;
-using lens::app::syncstate::applySettings;
-using lens::app::syncstate::buildLocalDocument;
-using lens::app::syncstate::snapshotOf;
+using lens::core::sync::applyDaily;
+using lens::core::sync::applyHistory;
+using lens::core::sync::applyMarks;
+using lens::core::sync::applySettings;
+using lens::core::sync::buildLocalDocument;
+using lens::core::sync::snapshotOf;
 using lens::core::KnownStore;
 using lens::core::StatsStore;
 using nlohmann::json;
@@ -209,11 +209,11 @@ TEST(SyncFingerprint, AChangeToSyncedSettingChangesIt)
     const auto        path  = scratchPath("lens-sync-fingerprint-setting.json");
     KnownStore        store = KnownStore::load(path);
     StatsStore        stats{store.document()};
-    const std::string before = lens::app::syncstate::contentFingerprint(store, stats);
+    const std::string before = lens::core::sync::contentFingerprint(store, stats);
 
     store.document()["theme"] = "dark";
 
-    EXPECT_NE(lens::app::syncstate::contentFingerprint(store, stats), before);
+    EXPECT_NE(lens::core::sync::contentFingerprint(store, stats), before);
     std::filesystem::remove(path);
 }
 
@@ -222,14 +222,14 @@ TEST(SyncFingerprint, AChangeOutsideTheWhitelistLeavesItAlone)
     const auto        path  = scratchPath("lens-sync-fingerprint-outside.json");
     KnownStore        store = KnownStore::load(path);
     StatsStore        stats{store.document()};
-    const std::string before = lens::app::syncstate::contentFingerprint(store, stats);
+    const std::string before = lens::core::sync::contentFingerprint(store, stats);
 
     // An API key, a hotkey and a dismiss-by-hover flag are on this device only: none is in the cloud copy.
     store.document()["API-KEY"]   = "sk-changed";
     store.document()["ocrHotkey"] = "Ctrl+Alt+Q";
     store.document()["autoScan"]  = true;
 
-    EXPECT_EQ(lens::app::syncstate::contentFingerprint(store, stats), before)
+    EXPECT_EQ(lens::core::sync::contentFingerprint(store, stats), before)
         << "a change a sync never sends must not wake the timer, or it would upload for nothing";
     std::filesystem::remove(path);
 }
@@ -241,14 +241,14 @@ TEST(SyncFingerprint, TheTimeAMarkWasSetDoesNotChangeIt)
     StatsStore stats{store.document()};
 
     store.mark("panel", true);
-    const std::string first = lens::app::syncstate::contentFingerprint(store, stats);
+    const std::string first = lens::core::sync::contentFingerprint(store, stats);
 
     // Setting the same verdict again stamps it with a later time. The value is unchanged, so the
     // fingerprint must be too, or every re-mark would look like a change worth uploading.
     std::this_thread::sleep_for(std::chrono::milliseconds(5));
     store.mark("panel", true);
 
-    EXPECT_EQ(lens::app::syncstate::contentFingerprint(store, stats), first)
+    EXPECT_EQ(lens::core::sync::contentFingerprint(store, stats), first)
         << "a re-mark with the same verdict is not a change a sync needs to send";
     std::filesystem::remove(path);
 }

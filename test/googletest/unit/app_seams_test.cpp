@@ -27,18 +27,18 @@
 #include <QVector>
 #include <gtest/gtest.h>
 
-#include "app/autostart.h"
+#include "app/platform/autostart.h"
 #include "app/bubble_settings.h"
-#include "app/capture_refusal.h"
-#include "app/explanation_queue.h"
-#include "app/model_catalog.h"
+#include "app/duties/capture_refusal.h"
+#include "app/duties/explanation_queue.h"
+#include "app/duties/model_catalog.h"
 #include "app/notice.h"
 #include "app/paths.h"
 #include "app/reveal_settings.h"
-#include "app/tray_state.h"
+#include "app/platform/tray_state.h"
 #include "app/year_grid.h"
 #include "capture/ocr_engine.h"
-#include "core/stats_store.h"
+#include "core/document/stats_store.h"
 #include "support.h"
 
 namespace {

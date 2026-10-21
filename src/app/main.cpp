@@ -25,24 +25,24 @@
 #include <system_error>
 
 #include "app/pet/pet_controller.h"
-#include "app/pet/pet_store.h"
+#include "core/document/pet_store.h"
 #include "app_controller.h"
-#include "autostart.h"
-#include "core/filter_core.h"
-#include "core/known_store.h"
+#include "app/platform/autostart.h"
+#include "core/domain/filter_core.h"
+#include "core/document/known_store.h"
 #if defined(LENS_DEV_SURFACE)
-#include "core/dev_command.h"
-#include "dev_surface.h"
+#include "core/dev/dev_command.h"
+#include "app/dev/dev_surface.h"
 #endif
-#include "global_hotkey.h"
+#include "app/platform/global_hotkey.h"
 #include "llm/llm_client.h"
 #include "llm/llm_pricing.h"
 #include "llm/llm_protocol.h"
-#include "mouse_selection_hook.h"
+#include "app/platform/mouse_selection_hook.h"
 #include "notice.h"
 #include "paths.h"
 #include "settings_defaults.h"
-#include "tray.h"
+#include "app/platform/tray.h"
 #include "util/log.h"
 #include "util/qt_log.h"
 
@@ -285,7 +285,7 @@ int main(int argc, char* argv[])
 
     // A refused pet data directory leaves the pet off and says why; the rest of the program is unaffected. The reader's
     // packages sit beside the settings document, in %APPDATA%\Lens\pets (docs/adr/0043).
-    lens::app::pet::PetStore      petStore(store);
+    lens::core::pet::PetStore     petStore(store);
     lens::app::pet::PetController petController(dataDir / "pet", settings.parent_path() / "pets", petStore);
     lens::app::pet::PetController::provide(&petController);
     QObject::connect(&controller, &AppController::petEvent, &petController, &lens::app::pet::PetController::handle);
@@ -294,7 +294,11 @@ int main(int argc, char* argv[])
         controller.explanationDuty()->showNotice(title, body, QString::fromLatin1(lens::app::kNoticeInfo));
     });
 
-    Tray tray(controller);
+    Tray tray([&controller] { return controller.trayReadout(); });
+    QObject::connect(&controller, &AppController::settingsChanged, &tray, &Tray::refresh);
+    QObject::connect(&controller, &AppController::statsChanged, &tray, &Tray::refresh);
+    QObject::connect(&controller, &AppController::busyChanged, &tray, &Tray::refresh);
+    QObject::connect(&controller, &AppController::uiLanguageChanged, &tray, &Tray::refresh);
     if (!tray.show())
         return 1;
 

@@ -12,9 +12,9 @@
 #include <QString>
 #include <gtest/gtest.h>
 
-#include "app/review_duty.h"
-#include "app/storage_duty.h"
-#include "core/known_store.h"
+#include "app/duties/review_duty.h"
+#include "app/duties/storage_duty.h"
+#include "core/document/known_store.h"
 
 namespace {
 

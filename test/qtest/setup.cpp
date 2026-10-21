@@ -92,12 +92,12 @@ void installQaTranslation()
 #include <memory>
 
 #include "app/app_controller.h"
-#include "app/global_hotkey.h"
-#include "app/mouse_selection_hook.h"
+#include "app/platform/global_hotkey.h"
+#include "app/platform/mouse_selection_hook.h"
 #include "app/pet/pet_controller.h"
-#include "app/pet/pet_store.h"
-#include "app/tray.h"
-#include "core/known_store.h"
+#include "core/document/pet_store.h"
+#include "app/platform/tray.h"
+#include "core/document/known_store.h"
 #include "llm/llm_client.h"
 #include "llm/llm_pricing.h"
 
@@ -108,7 +108,7 @@ using lens::app::GlobalHotkey;
 using lens::app::MouseSelectionHook;
 using lens::app::Tray;
 using lens::app::pet::PetController;
-using lens::app::pet::PetStore;
+using lens::core::pet::PetStore;
 using lens::core::KnownStore;
 
 /// @brief The reply every request gets: a failure, delivered on the next event loop turn.
@@ -218,7 +218,7 @@ Singletons& singletons()
         for (auto const channel : {lens::llm::Channel::Word, lens::llm::Channel::Entity, lens::llm::Channel::Sentence, lens::llm::Channel::Translation})
             lens::llm::loadLlmProtocol(channel, std::filesystem::path(LENS_DATA_DIR) / "llm");
         built.controller = std::make_unique<AppController>(*built.store, *built.llm, *built.hook, *built.hotkey, *built.pricing, std::filesystem::path(LENS_DATA_DIR));
-        built.tray       = std::make_unique<Tray>(*built.controller);
+        built.tray       = std::make_unique<Tray>([controller = built.controller.get()] { return controller->trayReadout(); });
         // The pet as main() builds it: a refused data directory leaves it off, and the QML still gets a singleton. The
         // reader's folder is a path that does not exist, so a surfaces run never reads the packages on this machine.
         built.petStore = std::make_unique<PetStore>(*built.store);

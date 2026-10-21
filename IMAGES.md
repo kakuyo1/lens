@@ -96,8 +96,8 @@ sentence. Always write imageQuery in English.
 - [`data/llm/response.word.schema.json`](data/llm/response.word.schema.json)：把两个字段设为可选；`imageable` 必须为布尔值，`imageQuery` 必须为非空字符串。`imageable` 为 true 时 `imageQuery` 缺失，不算整个响应失败，只按不可成像处理。
 - `src/llm/llm_client.h` 的 `Sense` 增加 `bool imageable` 与 `QString imageQuery`；`Explanation` 的顶层保留同样的两个字段，用于单义项/旧形状。相等比较要带上这两个字段，避免流式预览把不同的图片状态当成同一张卡。
 - `src/llm/llm_pure.cpp` 在解析单义项与 `senses` 数组时读取这两个字段；单义项也要归一到第一个 sense，避免 QML 走两条路径。字段缺失或类型不对时置为 false / 空，不抛整条响应。
-- `src/core/known_store.h` 的 `CachedSense` 增加这两个字段；`WordCache` 顶层也保留一份，兼容没有 `senses` 的旧缓存。`known_store.cpp` 的读写与缺失字段处理要成对修改。
-- `src/app/explanation_duty.cpp` 构造气泡 payload 时，把 `imageable` / `imageQuery` 放进每个 sense 的 `QVariantMap`；`Bubble.qml` 的 `senses` 因此能直接判断每行是否画入口。图片字段不受解释语言筛选影响，始终原样带过去。
+- `src/core/document/known_store.h` 的 `CachedSense` 增加这两个字段；`WordCache` 顶层也保留一份，兼容没有 `senses` 的旧缓存。`known_store.cpp` 的读写与缺失字段处理要成对修改。
+- `src/app/duties/explanation_duty.cpp` 构造气泡 payload 时，把 `imageable` / `imageQuery` 放进每个 sense 的 `QVariantMap`；`Bubble.qml` 的 `senses` 因此能直接判断每行是否画入口。图片字段不受解释语言筛选影响，始终原样带过去。
 - 旧缓存没有这两个字段时，v1 推荐**不静默重买**：不显示 `Pictures`，词卡照常。是否在下次换语言/换设置时顺带补字段，留到实现前决定；不要为了补图自动重发全部旧词。
 - 缓存/流式期间：图片入口只在完整响应通过 schema 后出现，不在流式半截里凭猜测画出来；词条完整的定义、缓存、统计与花费规则不变。
 
@@ -142,8 +142,8 @@ sentence. Always write imageQuery in English.
 | 位置 | 职责 |
 |---|---|
 | `src/llm/llm_client.h` / `llm_pure.cpp` | 解析 `imageable` / `imageQuery`，保持单义项与多义项一致 |
-| `src/core/known_store.{h,cpp}` | 把两个字段随释义一起缓存；旧条目缺失时按不可成像 |
-| `src/app/explanation_duty.cpp` | 把字段放进气泡 `senses` payload |
+| `src/core/document/known_store.{h,cpp}` | 把两个字段随释义一起缓存；旧条目缺失时按不可成像 |
+| `src/app/duties/explanation_duty.cpp` | 把字段放进气泡 `senses` payload |
 | `src/app/app_controller.{h,cpp}` | 暴露 `PictureDuty`（与 `costDuty`、`updateDuty` 同一种接线），供 QML 读取 |
 | `src/app/picture_duty.{h,cpp}` | 一次图片请求的状态机、缓存优先、超时、去重、取消/代号、图源调用 |
 | `src/app/picture_source.h` | 图源接口；输入 query，输出候选图与许可元数据 |
@@ -226,8 +226,8 @@ v1 只接 Commons，不接 Google/Bing 图片 API，也不抓搜索结果页。C
 
 1. `data/llm/request.word.json` 与 `data/llm/response.word.schema.json`：字段与提示词。
 2. `src/llm/llm_client.h`、`src/llm/llm_pure.cpp`：解析与相等比较。
-3. `src/core/known_store.{h,cpp}`：缓存字段与旧条目兼容。
-4. `src/app/explanation_duty.cpp`：`senses` payload。
+3. `src/core/document/known_store.{h,cpp}`：缓存字段与旧条目兼容。
+4. `src/app/duties/explanation_duty.cpp`：`senses` payload。
 5. `src/app/picture_source.h`、`src/app/picture_sources/commons_source.{h,cpp}`、`src/app/picture_cache.{h,cpp}`、`src/app/picture_duty.{h,cpp}`。
 6. `src/app/app_controller.{h,cpp}` 与 `src/app/CMakeLists.txt`：暴露 duty、链接 Qt Network。
 7. `src/app/qml/components/PictureStrip.qml`、`SenseRows.qml`、`Bubble.qml`：入口、三态、高度与布局。

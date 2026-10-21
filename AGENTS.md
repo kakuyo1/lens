@@ -41,7 +41,9 @@ lens/
 ├── scripts           # build/, quality/, profiling/, qa/, data/, pet/, release/; see scripts/README.md
 ├── third_party       # vendored: nlohmann/json, spdlog, googletest
 ├── logs              # runtime logs, rotating, gitignored but for .gitkeep
-├── src               # util/, core/ (no Qt), llm/, sync/, update/, capture/, app/ (Qt + app/qml/)
+├── src               # util/; core/ (domain/, document/, crypto/, dev/; no Qt);
+│                     # llm/, sync/, update/, capture/; app/ (duties/, platform/, glass/,
+│                     # pet/, dev/, qml/, and the facade at its root)
 ├── test              # gtest (unit / integration / perf / smoke) and qtest targets, separate from src/
 └── ui-prototypes/    # one HTML prototype per surface; see its README.md
 ```

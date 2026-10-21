@@ -17,8 +17,8 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
-#include "core/filter_core.h"
-#include "core/known_store.h"
+#include "core/domain/filter_core.h"
+#include "core/document/known_store.h"
 #include "support.h"
 
 namespace {
