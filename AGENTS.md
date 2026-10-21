@@ -15,7 +15,7 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
   | Anything else | Nothing; push and let CI run the suites |
 
   A review-comment fix never triggers a full run. Do not escalate "just to be safe". Report what you ran in one line.
-- No commits unless explicitly requested, no AI attribution in commits or PRs.
+- No commits unless explicitly requested, no AI attribution in commits or PRs.When the user said commit and push proactively, no test is needed, immediately commit and push and nothing else, this should be done under 30s.
 - A branch that has been pushed gets a pull request, and its body follows
 `.github/pull_request_template.md`: all three sections filled. Do not stop at handing over the
 compare URL.
