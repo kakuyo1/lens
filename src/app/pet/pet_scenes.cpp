@@ -23,12 +23,6 @@ namespace {
 
 using nlohmann::json;
 
-/// @return The absolute path of a sheet, as Qt reads it.
-QString absolutePath(std::filesystem::path const& file)
-{
-    return QString::fromStdWString(file.wstring());
-}
-
 /// @return `entry[key]` as a number. Refuses a missing or non-numeric value, naming `owner`.
 double numberOf(json const& entry, char const* key, std::string const& owner)
 {
@@ -59,7 +53,7 @@ QPointF pointOf(json const& entry, char const* key, std::string const& owner)
 /// @brief Refuses a sheet whose declared size is not `width` by `height`. The header is read; nothing is decoded.
 void requireSize(std::filesystem::path const& file, int width, int height, std::string const& owner)
 {
-    auto const size = QImageReader{absolutePath(file)}.size();
+    auto const size = QImageReader{widen(file)}.size();
     if (size.width() != width or size.height() != height) {
         throw std::runtime_error{owner + " is " + std::to_string(size.width()) + "x" + std::to_string(size.height()) +
                                  ", want " + std::to_string(width) + "x" + std::to_string(height)};
@@ -108,8 +102,8 @@ PetScenes PetScenes::load(std::filesystem::path const& directory)
             auto const front  = directory / sheets.at("front").get<std::string>();
             requireSize(back, scene.frames * canvas, canvas, owner + " back sheet");
             requireSize(front, scene.frames * canvas, canvas, owner + " front sheet");
-            scene.backSheet  = absolutePath(back);
-            scene.frontSheet = absolutePath(front);
+            scene.backSheet  = widen(back);
+            scene.frontSheet = widen(front);
 
             if (not entry.contains("framesData") or not entry.at("framesData").is_array() or
                 static_cast<int>(entry.at("framesData").size()) != scene.frames)

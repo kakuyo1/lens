@@ -8,14 +8,13 @@
 #include <QEventLoop>
 #include <QTimer>
 
-#include <algorithm>
 #include <array>
-#include <cctype>
 #include <cstring>
 #include <optional>
 #include <string>
 
 #include "util/log.h"
+#include "util/text.h"
 
 // Last, after everything else: windows.h brings a few hundred macros with it (min and max
 // among them), and including it first would let them loose on the standard library.
@@ -284,9 +283,7 @@ std::optional<TerminalCopyKey> terminalCopyKey(std::string_view executableName)
     const std::size_t      separator = executableName.find_last_of("\\/");
     const std::string_view base      = separator == std::string_view::npos ? executableName : executableName.substr(separator + 1);
 
-    std::string lowered(base);
-    const auto  toLower = [](unsigned char c) { return static_cast<char>(std::tolower(c)); };
-    std::transform(lowered.begin(), lowered.end(), lowered.begin(), toLower);
+    std::string const lowered = util::asciiLower(base);
 
     // Exact match, never a substring: a process that merely has "conhost" inside its name is
     // not a terminal, and treating it as one would send it a copy key it does not answer.

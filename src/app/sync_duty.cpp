@@ -12,6 +12,7 @@
 #include "core/sync_run.h"
 #include "core/vault.h"
 #include "util/log.h"
+#include "util/text.h"
 
 #include <QDateTime>
 #include <QUuid>
@@ -88,7 +89,7 @@ QString errorForAuth(lens::sync::AuthFailure why)
 
 QString nowLocal()
 {
-    return QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd HH:mm"));
+    return QString::fromStdString(util::localMinuteNow());
 }
 
 /// @return The derived key and its parameters, or std::nullopt when either is missing or malformed.

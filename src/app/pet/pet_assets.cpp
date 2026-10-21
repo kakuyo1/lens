@@ -54,12 +54,6 @@ std::string stringOf(json const& entry, char const* key, Refusal invalid, std::s
     return entry.at(key).get<std::string>();
 }
 
-/// @return The absolute path of a file, as Qt reads it.
-QString absolutePath(std::filesystem::path const& file)
-{
-    return QString::fromStdWString(file.wstring());
-}
-
 /**
  * @brief The name the settings show: the package's own name with control and format characters removed, in NFC.
  *
@@ -95,7 +89,7 @@ QString displayNameOf(std::optional<std::string> const& written, std::string con
 core::pet::PngSize declaredSizeOf(std::filesystem::path const& file)
 {
     // The type comes from the magic, and the name must agree with it (docs/pet-package-format.md, section 6).
-    if (QString::fromStdWString(file.extension().wstring()).compare(QStringLiteral(".png"), Qt::CaseInsensitive) != 0)
+    if (widen(file.extension()).compare(QStringLiteral(".png"), Qt::CaseInsensitive) != 0)
         throw Refused(Refusal::BadAssetType, "pet: not a .png file: " + narrow(file));
     auto stream = std::ifstream{file, std::ios::binary};
     if (not stream) throw Refused(Refusal::Unreadable, "pet: cannot open " + narrow(file));
@@ -264,7 +258,7 @@ PetAssets PetAssets::load(std::filesystem::path const& directory)
         auto const cells = static_cast<int>(expressionSize.width / canvas);
         if (cells > core::pet::kMaxExpressionCells)
             throw Refused(Refusal::TooLarge, "pet: more than " + std::to_string(core::pet::kMaxExpressionCells) + " expressions");
-        assets.expressionSheet = absolutePath(expressionFile);
+        assets.expressionSheet = widen(expressionFile);
 
         auto const animations = readDocument(directory / "animations.json");
         assets.animations     = core::pet::parseAnimations(animations);
@@ -283,17 +277,17 @@ PetAssets PetAssets::load(std::filesystem::path const& directory)
             auto const   body      = resolvePackageFile(directory, stringOf(entry, "sheet", Refusal::BadAnimation, "animations: " + name));
             auto const   holdsSign = hold != playbook.roles.end() and hold->second == name;
             requireSize(chargedSizeOf(body, pixels), row, assets.canvas, "the body sheet of " + name);
-            pictures.body = absolutePath(body);
+            pictures.body = widen(body);
             if (entry.contains("effect")) {
                 auto const effect = resolvePackageFile(directory, stringOf(entry, "effect", Refusal::BadAnimation, "animations: " + name));
                 requireSize(chargedSizeOf(effect, pixels), row, assets.canvas, "the effect sheet of " + name);
-                pictures.effect = absolutePath(effect);
+                pictures.effect = widen(effect);
                 if (holdsSign) pictures.gripRight = gripsOf(pictures.effect, assets.canvas, playbook.actions.at(name).frames);
             }
             if (entry.contains("effectLeft")) {
                 auto const effectLeft = resolvePackageFile(directory, stringOf(entry, "effectLeft", Refusal::BadAnimation, "animations: " + name));
                 requireSize(chargedSizeOf(effectLeft, pixels), row, assets.canvas, "the left-hand effect sheet of " + name);
-                pictures.effectLeft = absolutePath(effectLeft);
+                pictures.effectLeft = widen(effectLeft);
                 if (holdsSign) pictures.gripLeft = gripsOf(pictures.effectLeft, assets.canvas, playbook.actions.at(name).frames);
             }
             pictures.expressions = expressionsOf(entry, cells, "animations: " + name);
@@ -326,7 +320,7 @@ PetAssets PetAssets::load(std::filesystem::path const& directory)
             requireSize(chargedSizeOf(asset, pixels), assets.canvas, assets.canvas, "the accessory " + id);
             if (not entry.contains("zIndex") or not entry.at("zIndex").is_number_integer())
                 throw Refused(Refusal::BadAccessory, "accessories: " + id + " needs an integer zIndex");
-            assets.accessories.emplace(id, AccessoryArt{absolutePath(asset), entry.at("zIndex").get<int>()});
+            assets.accessories.emplace(id, AccessoryArt{widen(asset), entry.at("zIndex").get<int>()});
         }
         return assets;
     } catch (json::exception const& e) {

@@ -4,43 +4,21 @@
 #include "scan_pipeline.h"
 
 #include <algorithm>
-#include <cctype>
 #include <optional>
 #include <iterator>
 #include <stdexcept>
 #include <utility>
 
 #include "capture_policy.h"
+#include "util/text.h"
 
 namespace lens::capture {
 namespace {
 
-bool letter(char const c)
-{
-    return (c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z');
-}
-
-bool isTitleCase(std::string_view token)
-{
-    if (token.size() < 2 or not letter(token.front()) or token.front() < 'A' or token.front() > 'Z') return false;
-    for (std::size_t i = 1; i < token.size(); ++i)
-        if (token[i] < 'a' or token[i] > 'z') return false;
-    return true;
-}
-
-bool isAcronym(std::string_view token)
-{
-    if (token.size() < 2) return false;
-    return std::all_of(token.begin(), token.end(), [](char const c) { return c >= 'A' and c <= 'Z'; });
-}
-
 std::string basename(std::string_view const path)
 {
-    auto const at   = path.find_last_of("/\\");
-    auto       name = std::string{at == std::string_view::npos ? path : path.substr(at + 1)};
-    for (auto& c : name)
-        if (c >= 'A' and c <= 'Z') c = static_cast<char>(c - 'A' + 'a');
-    return name;
+    auto const at = path.find_last_of("/\\");
+    return util::asciiLower(at == std::string_view::npos ? path : path.substr(at + 1));
 }
 
 struct ScanPipelineImpl final : ScanPipeline {
@@ -162,13 +140,13 @@ std::string normalizedText(std::string_view const text)
     std::string out;
     bool        space = false;
     for (char const c : text) {
-        if (std::isspace(static_cast<unsigned char>(c))) {
+        if (util::isAsciiSpace(c)) {
             space = not out.empty();
             continue;
         }
         if (space) out.push_back(' ');
         space = false;
-        out.push_back(c >= 'A' and c <= 'Z' ? static_cast<char>(c - 'A' + 'a') : c);
+        out.push_back(util::asciiLower(c));
     }
     return out;
 }
@@ -204,7 +182,7 @@ std::size_t unsupportedEntityCount(std::string_view const text)
     std::size_t count = 0;
     std::size_t start = 0;
     while (start < text.size()) {
-        while (start < text.size() and std::isspace(static_cast<unsigned char>(text[start])))
+        while (start < text.size() and util::isAsciiSpace(text[start]))
             ++start;
         auto end = text.find_first_of(" \t\r\n\v\f", start);
         if (end == std::string_view::npos) end = text.size();
@@ -220,9 +198,9 @@ std::size_t unsupportedEntityCount(std::string_view const text)
         }
         auto const last  = token.find_last_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
         auto const clean = token.substr(first, last - first + 1);
-        if (isTitleCase(clean) or isAcronym(clean)) {
+        if (core::isTitleCaseToken(clean) or core::isAcronymToken(clean)) {
             auto next = end;
-            while (next < text.size() and std::isspace(static_cast<unsigned char>(text[next])))
+            while (next < text.size() and util::isAsciiSpace(text[next]))
                 ++next;
             auto nextEnd = text.find_first_of(" \t\r\n\v\f", next);
             if (nextEnd == std::string_view::npos) nextEnd = text.size();
@@ -235,7 +213,7 @@ std::size_t unsupportedEntityCount(std::string_view const text)
                 }
                 auto const nextLast  = nextToken.find_last_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
                 auto const nextClean = nextToken.substr(nextFirst, nextLast - nextFirst + 1);
-                if (isTitleCase(nextClean) or isAcronym(nextClean)) {
+                if (core::isTitleCaseToken(nextClean) or core::isAcronymToken(nextClean)) {
                     ++count;
                     start = nextEnd;
                     continue;

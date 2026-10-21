@@ -50,7 +50,7 @@ bool sameId(std::string const& a, std::string const& b)
 ///         long name cannot stretch the list.
 QString listedNameOf(fs::path const& folder)
 {
-    return plainText(QString::fromStdWString(folder.filename().wstring())).left(core::pet::kMaxNameChars);
+    return plainText(widen(folder.filename())).left(core::pet::kMaxNameChars);
 }
 
 } // namespace

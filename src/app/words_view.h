@@ -29,6 +29,7 @@
 #include <vector>
 
 #include "core/stats_store.h"
+#include "util/text.h"
 
 namespace lens::app {
 
@@ -78,7 +79,7 @@ inline QVariantList wordRows(QDate const& today, std::vector<core::HistoryEntry>
             continue;
         seen.insert(shown);
 
-        const QDateTime moment = QDateTime::fromString(QString::fromStdString(entry.minute), QStringLiteral("yyyy-MM-dd HH:mm"));
+        const QDateTime moment = QDateTime::fromString(QString::fromStdString(entry.minute), QString::fromLatin1(util::kMinuteFormat));
         rows.append(QVariantMap{{"word", shown},
                                 {"day", dayLabel(moment, today)},
                                 {"date", moment.isValid() ? moment.toString(QStringLiteral("MM-dd")) : QString{}},
@@ -133,7 +134,7 @@ struct ImportRow {
  * @brief The rows an import writes: no word the history already holds, and no repeats in the file.
  * @param incoming The file's words, in order, as importLemmas() returned them.
  * @param existing The lemmas the history already holds.
- * @param minute The local "yyyy-MM-dd HH:mm" the import is recorded at; the caller reads the clock.
+ * @param minute The local minute the import is recorded at, in util::kMinuteFormat; the caller reads the clock.
  * @return One row per word to add, in file order.
  */
 inline std::vector<ImportRow> importRows(std::vector<std::string> const&        incoming,

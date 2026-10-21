@@ -7,7 +7,6 @@
 
 #include <QClipboard>
 #include <QCoreApplication>
-#include <QDateTime>
 #include <QGuiApplication>
 
 #include <utility>
@@ -15,13 +14,14 @@
 #include "cost_duty.h"
 #include "notice.h"
 #include "util/log.h"
+#include "util/text.h"
 
 namespace lens::app {
 namespace {
 
 QString nowMinute()
 {
-    return QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd HH:mm"));
+    return QString::fromStdString(util::localMinuteNow());
 }
 
 llm::Explanation fromCache(core::WordCache const& cached, QString const& lemma)

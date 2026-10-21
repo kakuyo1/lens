@@ -54,7 +54,7 @@ public:
     /// @return The code the reader types on github.com, while sign-in is waiting for it; otherwise empty.
     QString userCode() const;
     QString verificationUri() const;
-    /// @return Local "yyyy-MM-dd HH:mm" of the last successful sync, or empty.
+    /// @return The local minute of the last successful sync, in util::kMinuteFormat, or empty.
     QString lastSyncedAt() const;
     /// @return Whether a derived key is stored on this device.
     bool hasPassphrase() const;

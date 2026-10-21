@@ -31,6 +31,7 @@
 #include "pet/pet_controller.h"
 #include "reveal_settings.h"
 #include "settings_defaults.h"
+#include "util/text.h"
 #include "update/update_client.h"
 #include "util/log.h"
 #include "words_view.h"
@@ -59,7 +60,7 @@ QKeySequence storedHotkey(StorageDuty& storage)
 /// come up at all. Only the path is logged -- the reading that failed is the file's, not a field's.
 QVariantMap loadPreviewSample(const std::filesystem::path& file)
 {
-    QFile document(QString::fromStdWString(file.wstring()));
+    QFile document(widen(file));
     if (not document.open(QIODevice::ReadOnly)) {
         LENS_WARN("no settings preview sample at '{}'; the preview stays down", narrow(file));
         return {};
@@ -797,7 +798,7 @@ bool AppController::importWords(QUrl path)
     std::unordered_set<std::string> existing;
     for (const auto& entry : storage_.statsStore().history())
         existing.insert(entry.lemma);
-    const QString now  = QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd HH:mm"));
+    const QString now  = QString::fromStdString(util::localMinuteNow());
     const auto    rows = importRows(*incoming, existing, now.toStdString());
     for (const auto& row : rows) {
         storage_.statsStore().recordPop(row.lemma, row.minute);

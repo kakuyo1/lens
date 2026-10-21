@@ -6,10 +6,10 @@
 #include "core/filter_core.h"
 #include "core/profile.h"
 #include "util/log.h"
+#include "util/text.h"
 
 #include <algorithm>
 #include <chrono>
-#include <cstdint>
 #include <fstream>
 #include <limits>
 #include <stdexcept>
@@ -23,106 +23,31 @@ using Table = std::unordered_map<std::string, std::size_t>;
 /// Word to 1-based frequency rank. Empty means the word list has not been loaded.
 Table g_rank;
 
-bool isLetter(char c)
-{
-    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-}
-bool isDigit(char c)
-{
-    return c >= '0' && c <= '9';
-}
-bool isAlnum(char c)
-{
-    return isLetter(c) || isDigit(c);
-}
-bool isSpace(char c)
-{
-    return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v' || c == '\f';
-}
-
 /// @return Whether @p utf8 holds a Han character anywhere, which is the whole of "this selection
 /// is Chinese".
 ///
-/// Decoded by hand because this file has no Qt and the answer is one question about one block:
-/// CJK Unified Ideographs and Extension A, the range MixedText.qml already splits runs on. A byte
-/// test would be cheaper and wrong -- the same three lead bytes spell Chinese punctuation, kana
-/// and full-width Latin, and a reader who selects a Japanese line has not selected Chinese.
+/// The range is CJK Unified Ideographs and Extension A, the one MixedText.qml splits runs on. A
+/// byte test would be wrong -- the same three lead bytes spell Chinese punctuation, kana and
+/// full-width Latin, and a reader who selects a Japanese line has not selected Chinese. Malformed
+/// UTF-8 is not Chinese: the decoder refuses it, and this answers false.
 bool containsHan(std::string_view utf8)
 {
-    std::size_t i = 0;
-    while (i < utf8.size()) {
-        const auto  lead  = static_cast<unsigned char>(utf8[i]);
-        uint32_t    point = 0;
-        std::size_t width = 0;
-        if (lead < 0x80) {
-            point = lead;
-            width = 1;
-        } else if ((lead & 0xE0) == 0xC0) {
-            point = lead & 0x1F;
-            width = 2;
-        } else if ((lead & 0xF0) == 0xE0) {
-            point = lead & 0x0F;
-            width = 3;
-        } else if ((lead & 0xF8) == 0xF0) {
-            point = lead & 0x07;
-            width = 4;
-        } else { // a continuation byte with no lead, or 0xFE/0xFF: nothing to read, step over it
-            ++i;
-            continue;
-        }
-        if (i + width > utf8.size()) break;
-        bool wellFormed = true;
-        for (std::size_t k = 1; k < width; ++k) {
-            const auto next = static_cast<unsigned char>(utf8[i + k]);
-            if ((next & 0xC0) != 0x80) {
-                wellFormed = false;
-                break;
-            }
-            point = (point << 6) | (next & 0x3F);
-        }
-        if (not wellFormed) { // malformed: resynchronise on the next byte rather than swallow the rest
-            ++i;
-            continue;
-        }
-        if (point >= 0x3400 and point <= 0x9FFF) return true;
-        i += width;
-    }
-    return false;
+    auto const points = util::decodeUtf8(utf8);
+    if (not points) return false;
+    return std::any_of(points->begin(), points->end(), [](char32_t const point) {
+        return point >= 0x3400 && point <= 0x9FFF;
+    });
 }
-
-std::string lower(std::string_view s);
 
 std::string trimPunctuation(std::string_view token)
 {
     std::size_t first = 0;
     std::size_t last  = token.size();
-    while (first < last && !isLetter(token[first]))
+    while (first < last && !util::isAsciiLetter(token[first]))
         ++first;
-    while (last > first && !isLetter(token[last - 1]))
+    while (last > first && !util::isAsciiLetter(token[last - 1]))
         --last;
     return std::string(token.substr(first, last - first));
-}
-
-bool isTitleCaseToken(const std::string& token)
-{
-    if (token.size() < 2 || !isLetter(token.front()) || token.front() < 'A' || token.front() > 'Z')
-        return false;
-    for (std::size_t i = 1; i < token.size(); ++i)
-        if (token[i] < 'a' || token[i] > 'z')
-            return false;
-    return true;
-}
-
-/// A whole token in capitals ("QML", "API"): an acronym, which names things the same way a
-/// Title Case word does.
-bool isAcronymToken(const std::string& token)
-{
-    if (token.size() < 2)
-        return false;
-    for (char c : token)
-        if (c < 'A' || c > 'Z')
-            return false;
-    return true;
 }
 
 bool isEntitySelection(std::string_view text)
@@ -130,7 +55,7 @@ bool isEntitySelection(std::string_view text)
     std::vector<std::string> tokens;
     std::size_t              start = 0;
     while (start < text.size()) {
-        while (start < text.size() && isSpace(text[start]))
+        while (start < text.size() && util::isAsciiSpace(text[start]))
             ++start;
         const std::size_t end  = text.find_first_of(" \t\n\r\v\f", start);
         const std::size_t stop = end == std::string_view::npos ? text.size() : end;
@@ -157,7 +82,7 @@ bool isEntitySelection(std::string_view text)
             ++nameLikeCount;
             continue;
         }
-        const std::string lowered = lower(token);
+        const std::string lowered = util::asciiLower(token);
         if (lowered != "of" && lowered != "the" && lowered != "and" && lowered != "for")
             return false;
     }
@@ -172,37 +97,24 @@ std::string_view loneToken(std::string_view text)
 {
     std::size_t head = 0;
     std::size_t tail = text.size();
-    while (head < tail && isSpace(text[head]))
+    while (head < tail && util::isAsciiSpace(text[head]))
         ++head;
-    while (tail > head && isSpace(text[tail - 1]))
+    while (tail > head && util::isAsciiSpace(text[tail - 1]))
         --tail;
     const std::string_view body  = text.substr(head, tail - head);
     std::size_t            first = 0;
     std::size_t            last  = body.size();
-    while (first < last && !isAlnum(body[first]))
+    while (first < last && !util::isAsciiAlnum(body[first]))
         ++first;
-    while (last > first && !isAlnum(body[last - 1]))
+    while (last > first && !util::isAsciiAlnum(body[last - 1]))
         --last;
     const std::string_view token = body.substr(first, last - first);
     if (token.size() < 2)
         return {};
     for (char c : token)
-        if (!isLetter(c))
+        if (!util::isAsciiLetter(c))
             return {}; // a digit or interior punctuation disqualified it
     return token;
-}
-
-char toLower(char c)
-{
-    return (c >= 'A' && c <= 'Z') ? static_cast<char>(c - 'A' + 'a') : c;
-}
-
-std::string lower(std::string_view s)
-{
-    std::string out(s);
-    for (char& c : out)
-        c = toLower(c);
-    return out;
 }
 
 bool inTable(const std::string& word)
@@ -263,6 +175,26 @@ bool hasVowel(const std::string& s)
 
 } // namespace
 
+bool isTitleCaseToken(std::string_view token)
+{
+    if (token.size() < 2 || !util::isAsciiUpper(token.front()))
+        return false;
+    for (std::size_t i = 1; i < token.size(); ++i)
+        if (!util::isAsciiLower(token[i]))
+            return false;
+    return true;
+}
+
+bool isAcronymToken(std::string_view token)
+{
+    if (token.size() < 2)
+        return false;
+    for (char c : token)
+        if (!util::isAsciiUpper(c))
+            return false;
+    return true;
+}
+
 void loadWordlist(const std::filesystem::path& path)
 {
     const auto startedAt = std::chrono::steady_clock::now();
@@ -282,7 +214,7 @@ void loadWordlist(const std::filesystem::path& path)
             line.pop_back();
         if (line.empty()) continue;
         ++rank;
-        table.emplace(lower(line), rank); // duplicates keep their earliest rank
+        table.emplace(util::asciiLower(line), rank); // duplicates keep their earliest rank
     }
     if (table.empty()) {
         LENS_CRITICAL("loadWordlist: word list '{}' is empty", path.string());
@@ -324,8 +256,8 @@ void loadIrregulars(const std::filesystem::path& path)
                                      " is malformed: " + path.string());
         }
 
-        const std::string form = lower(std::string_view(line).substr(0, tab));
-        const std::string base = lower(std::string_view(line).substr(tab + 1));
+        const std::string form = util::asciiLower(std::string_view(line).substr(0, tab));
+        const std::string base = util::asciiLower(std::string_view(line).substr(tab + 1));
         if (form.empty() || base.empty() || form == base) {
             LENS_CRITICAL("loadIrregulars: line {} carries no usable pair", lineNumber);
             throw std::runtime_error("Irregular table line " + std::to_string(lineNumber) +
@@ -358,7 +290,7 @@ std::string lemmatize(std::string_view token)
 
     LENS_PROFILE_SCOPE("lemmatize"); // entered once per token, so watch the timer cost
 
-    const std::string t = lower(token);
+    const std::string t = util::asciiLower(token);
     if (keepAsIs().count(t) != 0) return t;
 
     // A loaded irregular is authoritative and does not enter the frequency comparison
@@ -481,7 +413,7 @@ std::vector<Candidate> filterWords(
     // check-eval-corpus.py's lone-token rule and test/eval_corpus.json).
     if (allowExplicitToken) {
         if (const std::string_view token = loneToken(text); !token.empty()) {
-            const std::string    surface = lower(token);
+            const std::string    surface = util::asciiLower(token);
             const std::string    lemma   = lemmatize(surface); // RUNNING -> run; an acronym stands as-is
             const CandidateState state   = knownLemmas.count(lemma) != 0                    ? CandidateState::Known
                                            : inTable(lemma) && rankOf(lemma) <= minFreqRank ? CandidateState::Mastered
@@ -499,10 +431,10 @@ std::vector<Candidate> filterWords(
     const std::size_t size = text.size();
     std::size_t       i    = 0;
     while (i < size) {
-        while (i < size && isSpace(text[i]))
+        while (i < size && util::isAsciiSpace(text[i]))
             ++i;
         const std::size_t start = i;
-        while (i < size && !isSpace(text[i]))
+        while (i < size && !util::isAsciiSpace(text[i]))
             ++i;
         if (start == i) continue;
 
@@ -514,9 +446,9 @@ std::vector<Candidate> filterWords(
         // and popped as a real word.
         std::size_t head = start;
         std::size_t tail = i;
-        while (head < tail && !isAlnum(text[head]))
+        while (head < tail && !util::isAsciiAlnum(text[head]))
             ++head;
-        while (tail > head && !isAlnum(text[tail - 1]))
+        while (tail > head && !util::isAsciiAlnum(text[tail - 1]))
             --tail;
         if (head == tail) continue;
 
@@ -525,7 +457,7 @@ std::vector<Candidate> filterWords(
         const std::string_view tok   = text.substr(head, tail - head);
         bool                   glued = false;
         for (char c : tok)
-            if (!isLetter(c)) {
+            if (!util::isAsciiLetter(c)) {
                 glued = true;
                 break;
             }
@@ -540,7 +472,7 @@ std::vector<Candidate> filterWords(
             }
         if (allCaps) continue; // THE / NASA / OK: not a vocabulary candidate
 
-        const std::string surface = lower(tok);
+        const std::string surface = util::asciiLower(tok);
         if (!hasVowel(surface)) continue;
 
         const std::string lemma = lemmatize(surface);
@@ -597,7 +529,7 @@ Selection classifySelection(
         // explanation instead of a dictionary entry with a verdict. A phrase or sentence is a
         // translation: the channel follows the shape, not whether the excerpt holds word-list
         // words -- a sentence is full of them, and explaining only one would be wrong.
-        const std::string surface = lower(token);
+        const std::string surface = util::asciiLower(token);
         if (inTable(surface) || inTable(lemmatize(surface))) {
             selection.kind = SelectionKind::Word;
         } else {

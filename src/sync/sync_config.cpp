@@ -17,7 +17,8 @@ SyncConfig loadSyncConfig(const std::filesystem::path& path)
 {
     LENS_TRACE("loadSyncConfig: reading '{}'", path.string());
 
-    QFile file(QString::fromStdString(path.string()));
+    // The wide form: path.string() is the local narrow code page, which mangles a non-ASCII install path.
+    QFile file(QString::fromStdWString(path.wstring()));
     if (not file.open(QIODevice::ReadOnly)) {
         LENS_WARN("the sync settings could not be read; sign-in is off");
         return {};

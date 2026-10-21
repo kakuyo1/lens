@@ -137,6 +137,15 @@ struct Selection {
 };
 
 /**
+ * @brief Whether @p token is a Title Case word: an upper-case letter followed by lower-case
+ *        letters, at least two letters in all.
+ */
+bool isTitleCaseToken(std::string_view token);
+
+/// @brief Whether @p token is an all-caps acronym of at least two letters.
+bool isAcronymToken(std::string_view token);
+
+/**
  * @brief Decide what a selection is, and produce the candidates a request would choose from.
  *
  * One place decides this, and the surfaces only route on the answer -- so picking translate

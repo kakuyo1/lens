@@ -4,11 +4,11 @@
  */
 
 #include "core/pet/pet_package.h"
+#include "util/text.h"
 
 #include <algorithm>
 #include <array>
 #include <utility>
-#include <vector>
 
 namespace lens::core::pet {
 
@@ -19,40 +19,6 @@ constexpr std::string_view kPngSignature{"\x89PNG\r\n\x1a\n", 8};
 
 /// Longest pet id, in characters; the name limit happens to be the same number, but they are separate rules.
 constexpr std::size_t kMaxIdChars = 32;
-
-/// @return The code points of `text`, or nothing when the bytes are not well-formed UTF-8.
-std::optional<std::vector<char32_t>> decodeUtf8(std::string_view text)
-{
-    auto points = std::vector<char32_t>{};
-    for (std::size_t at = 0; at < text.size();) {
-        auto const lead  = static_cast<unsigned char>(text[at]);
-        auto       more  = std::size_t{0};
-        auto       point = char32_t{0};
-        if (lead < 0x80) {
-            point = lead;
-        } else if ((lead & 0xE0) == 0xC0) {
-            more  = 1;
-            point = lead & 0x1F;
-        } else if ((lead & 0xF0) == 0xE0) {
-            more  = 2;
-            point = lead & 0x0F;
-        } else if ((lead & 0xF8) == 0xF0) {
-            more  = 3;
-            point = lead & 0x07;
-        } else {
-            return std::nullopt;
-        }
-        if (text.size() - at <= more) return std::nullopt;
-        for (auto k = std::size_t{1}; k <= more; ++k) {
-            auto const continuation = static_cast<unsigned char>(text[at + k]);
-            if ((continuation & 0xC0) != 0x80) return std::nullopt;
-            point = (point << 6) | (continuation & 0x3F);
-        }
-        points.push_back(point);
-        at += more + 1;
-    }
-    return points;
-}
 
 /// @return Whether a code point is a control (Cc) or a format character (Cf), the two classes a reader sees as nothing:
 ///         the C0 and C1 controls, and the Unicode 15 format characters, which include the soft hyphen, the Arabic
@@ -110,12 +76,12 @@ bool isContainedSpelling(std::string_view path)
 bool isPetId(std::string_view id)
 {
     if (id.empty() or id.size() > kMaxIdChars) return false;
-    return std::all_of(id.begin(), id.end(), [](char c) { return (c >= 'a' and c <= 'z') or (c >= '0' and c <= '9') or c == '_'; });
+    return std::all_of(id.begin(), id.end(), [](char c) { return util::isAsciiLower(c) or util::isAsciiDigit(c) or c == '_'; });
 }
 
 bool isPlainLabel(std::string_view text)
 {
-    auto const points = decodeUtf8(text);
+    auto const points = util::decodeUtf8(text);
     if (not points or points->empty() or static_cast<int>(points->size()) > kMaxNameChars) return false;
     return std::none_of(points->begin(), points->end(), isControlOrFormat);
 }

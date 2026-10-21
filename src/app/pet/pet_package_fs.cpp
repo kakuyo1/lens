@@ -5,8 +5,6 @@
 
 #include "app/pet/pet_package_fs.h"
 
-#include <algorithm>
-#include <cctype>
 #include <cstdint>
 #include <string>
 #include <system_error>
@@ -18,6 +16,7 @@
 
 #include "app/paths.h"
 #include "core/pet/pet_package.h"
+#include "util/text.h"
 
 namespace lens::app::pet {
 
@@ -85,8 +84,7 @@ void checkPackageTree(fs::path const& root)
                 bytes += size;
                 if (bytes > core::pet::kMaxPackageBytes) throw Refused(Refusal::TooLarge, "pet: the package is over 32 MB");
 
-                auto extension = entry.path().extension().string();
-                std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+                auto const extension = util::asciiLower(entry.path().extension().string());
                 if (extension == ".json" and size > core::pet::kMaxJsonBytes)
                     throw Refused(Refusal::TooLarge, "pet: a JSON file is over 256 KB: " + narrow(entry.path()));
                 if (extension == ".png" and size > core::pet::kMaxPngBytes)

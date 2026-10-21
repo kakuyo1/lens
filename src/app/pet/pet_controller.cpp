@@ -23,6 +23,7 @@
 #include <QUrl>
 #include <QWindow>
 
+#include "app/paths.h"
 #include "app/pet/pet_placement.h"
 #include "app/pet/pet_window_native.h"
 #include "core/pet/pet_package.h"
@@ -681,7 +682,7 @@ void PetController::openPacksFolder()
     auto error = std::error_code{};
     std::filesystem::create_directories(installedRoot_, error);
     if (error) LENS_WARN("the pets folder could not be created: {}", error.message());
-    QDesktopServices::openUrl(QUrl::fromLocalFile(QString::fromStdWString(installedRoot_.wstring())));
+    QDesktopServices::openUrl(QUrl::fromLocalFile(widen(installedRoot_)));
 }
 
 void PetController::applyPet(std::string const& id)

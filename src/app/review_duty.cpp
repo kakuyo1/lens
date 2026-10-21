@@ -11,13 +11,15 @@
 
 #include <QDateTime>
 
+#include "util/text.h"
+
 namespace lens::app {
 namespace {
 
-/// @return Epoch ms of a history minute, "YYYY-MM-DD HH:MM" in local time; std::nullopt when it does not parse.
+/// @return Epoch ms of a history minute in util::kMinuteFormat, read as local time; std::nullopt when it does not parse.
 std::optional<long long> epochOf(std::string const& minute)
 {
-    auto const when = QDateTime::fromString(QString::fromStdString(minute), QStringLiteral("yyyy-MM-dd HH:mm"));
+    auto const when = QDateTime::fromString(QString::fromStdString(minute), QString::fromLatin1(util::kMinuteFormat));
     if (not when.isValid())
         return std::nullopt;
     return when.toMSecsSinceEpoch();

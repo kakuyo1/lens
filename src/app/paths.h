@@ -9,7 +9,7 @@
  * @file paths.h
  * @brief The path helpers src/app needs, and the one of them that draws a boundary.
  *
- * The two conversions are what main.cpp used to keep to itself. settingsPath() moved out of
+ * The three conversions are what main.cpp used to keep to itself. settingsPath() moved out of
  * main.cpp's anonymous namespace because nothing in there can be reached from a test, and the
  * boundary it draws -- the reader's API key rides in that document, so the document belongs to
  * the profile and never to the install tree -- is the one a case locks.
@@ -23,10 +23,16 @@ inline std::filesystem::path toPath(const QString& text)
     return std::filesystem::path{text.toStdWString()};
 }
 
+/// @return @p path as the text Qt reads, for QFile, QImageReader and QUrl.
+inline QString widen(const std::filesystem::path& path)
+{
+    return QString::fromStdWString(path.wstring());
+}
+
 /// @return @p path as the log wants it: UTF-8, whatever the account is named.
 inline std::string narrow(const std::filesystem::path& path)
 {
-    return QString::fromStdWString(path.wstring()).toStdString();
+    return widen(path).toStdString();
 }
 
 /**

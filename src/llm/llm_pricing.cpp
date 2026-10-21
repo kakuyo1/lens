@@ -20,7 +20,8 @@ Pricing Pricing::load(const std::filesystem::path& path)
 {
     LENS_TRACE("Pricing::load: reading '{}'", path.string());
 
-    QFile file(QString::fromStdString(path.string()));
+    // The wide form: path.string() is the local narrow code page, which mangles a non-ASCII install path.
+    QFile file(QString::fromStdWString(path.wstring()));
     if (!file.open(QIODevice::ReadOnly))
         throw std::runtime_error("Cannot read the price list: " + path.string());
 

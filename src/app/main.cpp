@@ -53,6 +53,7 @@ using lens::app::Tray;
 using lens::app::narrow;
 using lens::app::settingsPath;
 using lens::app::toPath;
+using lens::app::widen;
 using lens::core::KnownStore;
 
 namespace {
@@ -225,7 +226,7 @@ int main(int argc, char* argv[])
 
     const std::filesystem::path dataDir = dataDirectory();
     // The review sign's word face (UI.md 4.13). Without the file the sign falls back to the monospace family it names.
-    if (QFontDatabase::addApplicationFont(QString::fromStdWString((dataDir / "fonts" / "PixelifySans-Regular.ttf").native())) < 0)
+    if (QFontDatabase::addApplicationFont(widen(dataDir / "fonts" / "PixelifySans-Regular.ttf")) < 0)
         LENS_WARN("the review sign's font is missing; the sign uses the monospace family instead");
     try {
         lens::core::loadWordlist(dataDir / "wordlist.txt");

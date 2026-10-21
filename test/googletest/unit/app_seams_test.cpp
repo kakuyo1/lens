@@ -61,6 +61,7 @@ using lens::app::refusalKey;
 using lens::app::revealMillisPerCharacter;
 using lens::app::settingsPath;
 using lens::app::toPath;
+using lens::app::widen;
 using lens::app::CaptureRefusal;
 using lens::app::ExplanationQueue;
 using lens::app::modelFollowingProvider;
@@ -391,6 +392,14 @@ TEST(SettingsPath, CarriesTheLegacyDocumentOverOnceAndOnlyOnce)
 
     std::filesystem::remove(legacy);
     std::filesystem::remove_all(profile.parent_path());
+}
+
+/// The conversion every Qt file handle goes through: a narrow round trip is where a non-ASCII
+/// install path is lost.
+TEST(PathText, WidensANonAsciiPathWithoutLosingIt)
+{
+    const QString text = QString::fromUtf8("C:/naïve/lens");
+    EXPECT_EQ(widen(toPath(text)), text);
 }
 
 /// The queue is what the reader has asked for and not yet been answered. These cases are the
