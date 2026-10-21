@@ -57,6 +57,11 @@ Item {
     /// room, and keeps it level with the hovered row.
     property Component optionPreview: null
 
+    /// Whether a row draws its option's `note` at its right end. Off where the note is a sentence
+    /// rather than a word: it would be elided to noise beside the label, and an explanation the
+    /// reader cannot read is not a note. Such a field hands the note to `optionPreview` instead.
+    property bool notesInRows: true
+
     /// The row under the pointer, by its index in `shown`, or -1 for none.
     property int hoveredIndex: -1
     /// The window an option hovers into, created on the first hover and owned by this field.
@@ -105,13 +110,27 @@ Item {
     /// Whether there is a list to open at all.
     readonly property bool hasOptions: options.length > 0
 
-    /// The open list's card in screen coordinates, or null when it is down. main.qml's
-    /// outside-press rule reads it: a press that lands on the list belongs to the list, and the
-    /// panel that opened it must not close over the reader's head.
-    readonly property var openChildRect: list.visible
-        ? Qt.rect(list.x + list.shadowMargin, list.y + list.shadowMargin,
-                  list.width - 2 * list.shadowMargin, list.height - 2 * list.shadowMargin)
-        : null
+    /// The open list's card, and the field it hangs from, as one band in screen coordinates -- null
+    /// when the list is down. main.qml's outside-press rule reads it: a press on the list belongs to
+    /// the list, and so does one on its field. Claimed by nobody, the rule puts the list down a beat
+    /// before the field's own tap reads whether it is up, and the second press opens it again instead
+    /// of closing it. The two rectangles share their width and meet at the field's bottom edge, so
+    /// their union covers nothing but this control.
+    readonly property var openChildRect: {
+        if (!list.visible)
+            return null;
+        const card = Qt.rect(list.x + list.shadowMargin, list.y + list.shadowMargin,
+                             list.width - 2 * list.shadowMargin, list.height - 2 * list.shadowMargin);
+        const at = button.mapToItem(null, 0, 0);
+        const originX = Window.window ? Window.window.x : 0;
+        const originY = Window.window ? Window.window.y : 0;
+        const field = Qt.rect(originX + at.x, originY + at.y, button.width, button.height);
+        const left = Math.min(card.x, field.x);
+        const top = Math.min(card.y, field.y);
+        return Qt.rect(left, top,
+                       Math.max(card.x + card.width, field.x + field.width) - left,
+                       Math.max(card.y + card.height, field.y + field.height) - top);
+    }
 
     /// @brief Take the list down. The panel calls this when it hides itself, since the list is
     ///        a window of its own and would otherwise outlive its owner.
@@ -537,7 +556,7 @@ Item {
                         }
 
                         Text {
-                            visible: (group.modelData.note || "") !== ""
+                            visible: root.notesInRows && (group.modelData.note || "") !== ""
                             anchors.right: parent.right
                             anchors.rightMargin: 11
                             anchors.verticalCenter: parent.verticalCenter
@@ -580,6 +599,18 @@ Item {
                                    ? listColumn.contentY / (listColumn.contentHeight - listColumn.height) * (listColumn.height - height)
                                    : 0)
             }
+        }
+
+        // The window is a shadow margin taller than its card, and the top of that band lies across
+        // the field that opened the list. Windows hit-tests the rectangle rather than the pixels, so
+        // a press on the field's lower half lands on this window with nothing here to press it, and
+        // is dropped. It closes the list, which is what the same press on the field means.
+        Item {
+            x: list.shadowMargin
+            width: list.width - 2 * list.shadowMargin
+            height: list.shadowMargin
+
+            TapHandler { onTapped: root.closeList() }
         }
     }
 }

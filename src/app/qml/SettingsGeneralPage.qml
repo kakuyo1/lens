@@ -94,6 +94,12 @@ Item {
         ThemePreview {}
     }
 
+    /// The card a hovered refresh row raises: the row's own note, which the rows have no room for.
+    Component {
+        id: notePreviewComponent
+        NotePreview {}
+    }
+
     Column {
         id: content
         width: parent.width
@@ -158,6 +164,10 @@ Item {
                 width: parent.width
                 options: page.qualityOptions
                 currentValue: Controller.settings.glassQuality
+                // Each tier's note is a sentence about what it costs on this screen, which no row
+                // has room for: it goes into the card the pointer raises beside the list.
+                notesInRows: false
+                optionPreview: notePreviewComponent
                 onPicked: (value) => Controller.setGlassQuality(value)
             }
 

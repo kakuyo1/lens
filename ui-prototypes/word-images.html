@@ -1,0 +1,1122 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · 图片义项锚 — A/B 提案</title>
+<!--
+  图片义项锚：图跟着义项走，不跟着单词走。
+  A 一键看图：卡内入口把带消歧词的英文查询交给默认浏览器；零新依赖。
+  B 卡内三图：同一义项原地展开三张缩略图，可换义项、看大图与来源。
+
+  用法：?mode=a|b、?theme=dark、?shot；
+  ?open=1 直接打开浏览器 / 展开缩略图；?sense=bird 从“鹤”义项开始；
+  ?photo=1 直接打开第一张图（仅 B 模式）。页面不联网，图在 assets/word-images/。
+
+  照片来源与许可：
+  crane-machine-a.jpg — "Construction crane on clear sky (20151112 122747 1JC) (23902449492).jpg",
+    Alex Panoiu, CC BY 2.0,
+    https://commons.wikimedia.org/wiki/File:Construction_crane_on_clear_sky_(20151112_122747_1JC)_(23902449492).jpg
+  crane-machine-b.jpg — "Red Tower Crane - Knoxville, Tennessee - October 18, 2014.jpg",
+    Lee Ann Ratledge, CC BY 4.0,
+    https://commons.wikimedia.org/wiki/File:Red_Tower_Crane_-_Knoxville,_Tennessee_-_October_18,_2014.jpg
+  crane-machine-c.jpg — "Big colorful mobile crane in the construction site - 1.jpg",
+    KKPCW, CC BY-SA 4.0,
+    https://commons.wikimedia.org/wiki/File:Big_colorful_mobile_crane_in_the_construction_site_-_1.jpg
+  crane-bird-1.jpg — "Common crane (Grus grus) Uckermark.jpg",
+    Charles J. Sharp, CC BY-SA 4.0,
+    https://commons.wikimedia.org/wiki/File:Common_crane_(Grus_grus)_Uckermark.jpg
+  crane-bird-2.jpg — "Crane (Grus grus) calling.jpg",
+    Andreas Weith, CC BY-SA 4.0,
+    https://commons.wikimedia.org/wiki/File:Crane_(Grus_grus)_calling.jpg
+  crane-bird-3.jpg — "Two cranes (Grus grus) flying in the early morning sun.jpg",
+    Andreas Weith, CC BY-SA 4.0,
+    https://commons.wikimedia.org/wiki/File:Two_cranes_(Grus_grus)_flying_in_the_early_morning_sun.jpg
+-->
+<style>
+:root{
+  --chrome:#17171b; --chrome-text:#ececf1; --chrome-muted:#9d9daa; --chrome-line:#2b2b33;
+  --notes:#1b1b20; --notes-text:#ececf1; --notes-muted:#a7a7b2; --notes-faint:#71717d;
+  --desk:#e9e3d7; --desk-deep:#d8d0bf;
+  --paper:#faf7ef; --paper-edge:#e7dfcf;
+  --text:#1a1a1f; --muted:#5f5f69; --faint:#8b8b96;
+  --line:#ded8cb; --line2:#eae4d8;
+  --ok:#2f9e6e; --ok-text:#1d7a52; --ok-bg:#e4f3ec;
+  --ink:#1a1a1f; --on:#fff;
+  --card:rgba(255,255,255,.9); --card-edge:rgba(255,255,255,.96);
+  --card-shadow:0 18px 48px -16px rgba(31,26,18,.28),inset 0 1px 0 #fff;
+  --browser-bg:#fffdf8; --browser-page:#fffdf8; --browser-chrome:#f0ece3;
+  --browser-line:#e2ddd2; --browser-text:#20201f; --browser-muted:#64615b; --browser-faint:#928d84;
+  --scrim:rgba(24,20,15,.42);
+  --r:18px;
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+  --serif:"Charter","Iowan Old Style","Sitka Text",Georgia,serif;
+  --mono:"Cascadia Code","Cascadia Mono",ui-monospace,SFMono-Regular,Consolas,monospace;
+}
+html[data-theme=dark]{
+  --chrome:#0f0f12; --chrome-line:#26262e;
+  --notes:#16161a; --notes-text:#e9e9ee; --notes-muted:#a3a3ae; --notes-faint:#6e6e79;
+  --desk:#121214; --desk-deep:#09090b;
+  --paper:#1d1c19; --paper-edge:#2b2924;
+  --text:#ece9e0; --muted:#b0aa9d; --faint:#7e7a70;
+  --line:#37342d; --line2:#2b2924;
+  --ok:#45c08a; --ok-text:#6fd6a5; --ok-bg:#1a3527;
+  --ink:#ece9e0; --on:#16161a;
+  --card:rgba(30,30,34,.88); --card-edge:rgba(255,255,255,.08);
+  --card-shadow:0 24px 60px -20px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.06);
+  --browser-bg:#1c1b19; --browser-page:#1b1a18; --browser-chrome:#151412;
+  --browser-line:#2e2c27; --browser-text:#e9e5dc; --browser-muted:#a9a49a; --browser-faint:#7b766c;
+  --scrim:rgba(5,4,3,.58);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--f);background:var(--chrome);color:var(--text);overflow:hidden;-webkit-font-smoothing:antialiased}
+button{font-family:var(--f)}
+button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--ok);outline-offset:3px}
+::selection{background:rgba(47,158,110,.22)}
+
+/* ---------- top bar ---------- */
+.topbar{
+  height:64px;display:flex;align-items:center;gap:26px;padding:0 24px;
+  background:var(--chrome);color:var(--chrome-text);border-bottom:1px solid var(--chrome-line);
+  position:relative;z-index:20;
+}
+.brand{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;white-space:nowrap}
+.brand-mark{width:18px;height:18px;border:1.5px solid var(--chrome-text);border-radius:50%;position:relative;flex:none}
+.brand-mark::after{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:var(--ok);right:-1px;top:1px;box-shadow:0 0 0 2px var(--chrome)}
+.brand-sep{color:#45454f;font-weight:400;margin:0 2px}
+.brand-sub{color:var(--chrome-muted);font-weight:400}
+.tabs{display:flex;gap:3px;margin-left:12px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;border:0;border-radius:9px;
+  background:transparent;color:var(--chrome-muted);font-size:12px;cursor:pointer;white-space:nowrap;
+  transition:background .16s,color .16s;
+}
+.tab b{font:600 10px var(--mono);color:var(--notes-faint);letter-spacing:0}
+.tab:hover{color:var(--chrome-text);background:#202027}
+.tab[aria-selected=true]{background:#f2f0e9;color:#17171b}
+.tab[aria-selected=true] b{color:var(--ok-text)}
+.tools{margin-left:auto;display:flex;align-items:center;gap:8px}
+.theme-btn{
+  height:30px;padding:0 13px;border-radius:999px;border:1px solid var(--chrome-line);
+  background:transparent;color:var(--chrome-muted);font-size:11.5px;cursor:pointer;transition:.16s;
+}
+.theme-btn:hover{color:var(--chrome-text);border-color:#55555f}
+
+/* ---------- shell ---------- */
+.main{position:absolute;top:64px;left:0;right:0;bottom:0;display:grid;grid-template-columns:300px minmax(0,1fr)}
+.notes{
+  position:relative;overflow:auto;padding:32px 28px 28px;background:var(--notes);color:var(--notes-text);
+  border-right:1px solid var(--chrome-line);
+  background-image:radial-gradient(rgba(255,255,255,.035) .55px,transparent .55px);
+  background-size:4px 4px;
+}
+.notes::-webkit-scrollbar{width:6px}
+.notes::-webkit-scrollbar-thumb{background:#34343d;border-radius:99px}
+.proposal{
+  display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;
+  background:rgba(47,158,110,.14);color:#7bd3a8;font:600 10px var(--mono);letter-spacing:.04em;text-transform:uppercase;
+}
+.proposal::before{content:"";width:5px;height:5px;border-radius:50%;background:#45c08a}
+.notes-body{transition:opacity .14s ease,transform .14s ease}
+.notes-body.switching{opacity:0;transform:translateY(4px)}
+.notes-num{margin-top:30px;font:600 54px/.9 var(--mono);letter-spacing:-.07em;color:var(--notes-faint)}
+.notes h2{margin-top:12px;font-size:24px;line-height:1.2;letter-spacing:-.02em;font-weight:650}
+.notes-lead{margin-top:11px;font-size:13px;line-height:1.65;color:var(--notes-muted)}
+.notes ul{list-style:none;margin-top:24px;display:grid;gap:12px}
+.notes li{position:relative;padding-left:15px;font-size:12px;line-height:1.62;color:var(--notes-muted)}
+.notes li::before{content:"";position:absolute;left:0;top:7px;width:5px;height:5px;border-radius:50%;background:var(--ok)}
+.notes code{
+  font:10.5px var(--mono);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+  border-radius:4px;padding:1px 4px;color:var(--notes-text);white-space:nowrap;
+}
+.notes-try{margin-top:26px;padding-top:15px;border-top:1px solid var(--chrome-line);font-size:11.5px;line-height:1.6;color:var(--notes-muted)}
+.notes-try strong{display:block;margin-bottom:6px;color:var(--notes-faint);font:600 9.5px var(--mono);letter-spacing:.09em;text-transform:uppercase}
+kbd{
+  display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:19px;padding:0 5px;
+  border:1px solid #45454f;border-radius:5px;background:#24242b;color:#d7d7df;
+  font:500 10.5px var(--mono);line-height:1;vertical-align:middle;
+}
+.notes-cost{margin-top:15px;font-size:11px;line-height:1.62;color:var(--notes-faint)}
+.notes-foot{margin-top:28px;padding-top:14px;border-top:1px solid var(--chrome-line);font:10px var(--mono);line-height:1.7;color:var(--notes-faint)}
+
+/* ---------- stage ---------- */
+.stage{
+  position:relative;overflow:hidden;display:grid;place-items:center;
+  background:radial-gradient(1100px 680px at 52% 36%,var(--desk) 0%,var(--desk-deep) 100%);
+}
+.stage::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(80% 70% at 50% 40%,transparent 45%,rgba(35,28,16,.10) 100%);
+}
+.sheet{
+  position:relative;z-index:1;width:min(1060px,calc(100% - 72px));height:min(690px,calc(100% - 72px));
+  display:grid;grid-template-columns:minmax(0,1fr) 306px;gap:56px;padding:52px 56px;
+  background:var(--paper);border:1px solid var(--paper-edge);border-radius:22px;
+  box-shadow:0 34px 90px -34px rgba(42,33,20,.42),0 2px 0 rgba(255,255,255,.35) inset;
+  overflow:hidden;isolation:isolate;transition:transform .3s ease,filter .3s ease;
+}
+.sheet::before{
+  content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background-image:radial-gradient(rgba(70,58,38,.035) .55px,transparent .55px);
+  background-size:4px 4px;opacity:.7;
+}
+.stage.handoff-on .sheet,.stage.photo-on .sheet{transform:scale(.994);filter:saturate(.78) brightness(.94)}
+
+/* ---------- reading page ---------- */
+.read-col{position:relative;z-index:2;padding-top:4px}
+.kicker{font:700 10px var(--f);letter-spacing:.17em;text-transform:uppercase;color:var(--ok)}
+.read-col h1{margin-top:12px;font-family:var(--serif);font-weight:600;font-size:38px;line-height:1.08;letter-spacing:-.025em;color:var(--text)}
+.byline{margin-top:13px;font-size:11px;color:var(--faint)}
+.read-col p{margin-top:20px;font-family:var(--serif);font-size:15.5px;line-height:1.78;color:var(--text)}
+.read-col p.muted{color:var(--muted)}
+.read-col blockquote{
+  margin-top:21px;padding-left:16px;border-left:2px solid var(--line);
+  font-family:var(--serif);font-size:17px;line-height:1.55;color:var(--text);
+}
+.sel{background:rgba(47,158,110,.16);border-radius:3px;padding:1px 2px;margin:0 -2px;box-decoration-break:clone}
+
+/* ---------- card ---------- */
+.margin-col{position:relative;padding-top:72px;z-index:2}
+.bubble{
+  position:relative;width:306px;background:var(--card);border:1px solid var(--card-edge);
+  border-radius:18px;box-shadow:var(--card-shadow);padding:13px 16px 12px;
+  -webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);
+  color:var(--text);z-index:3;
+}
+.bub-top{display:flex;align-items:center;gap:8px;min-height:22px}
+.tag{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:99px;background:var(--ok-bg);color:var(--ok-text);font-size:10.5px;font-weight:650;letter-spacing:.02em}
+.bub-lang{
+  margin-left:auto;display:inline-flex;align-items:center;gap:3px;height:22px;padding:0 7px;
+  border:0;border-radius:999px;background:transparent;color:var(--faint);font:700 10px var(--f);cursor:default;
+}
+.bub-lang svg{width:13px;height:13px}
+.bub-close{width:15px;height:15px;color:var(--faint);line-height:0;flex:none;display:grid;place-items:center}
+.bub-title{display:flex;align-items:baseline;gap:7px;margin-top:7px;flex-wrap:wrap}
+.bub-word{font-size:21px;font-weight:680;letter-spacing:-.015em;line-height:1.15}
+.ipa{font-size:12px;font-weight:400;color:var(--faint);letter-spacing:.01em}
+.pos{font:600 9.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.signpost{margin-top:5px;font:650 10px var(--f);letter-spacing:.10em;text-transform:uppercase;color:var(--ok-text);transition:opacity .16s}
+.context{
+  margin-top:10px;padding:6px 0 6px 10px;border-left:2px solid var(--line);
+  font-family:var(--serif);font-size:11.5px;line-height:1.55;color:var(--muted);
+}
+.context b{font-weight:600;color:var(--text)}
+.bub-def{margin-top:9px;font-size:12.5px;line-height:1.62;color:var(--muted);transition:opacity .16s}
+.image-card.swap .signpost,.image-card.swap .bub-def{opacity:.2}
+.pic-row{display:flex;align-items:center;gap:8px;margin-top:11px}
+.pic-btn{
+  display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 11px 0 9px;flex:none;
+  border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--text);
+  font-size:11px;font-weight:600;cursor:pointer;transition:background .16s,border-color .16s;
+}
+.pic-btn:hover{background:var(--line2);border-color:var(--faint)}
+.pic-btn svg{width:13px;height:13px;color:var(--muted)}
+.pic-btn .dir{width:11px;height:11px;color:var(--faint);transition:transform .2s}
+.pic-btn .chev{display:none}
+.image-card[data-mode=b] .pic-btn .ext{display:none}
+.image-card[data-mode=b] .pic-btn .chev{display:block}
+.image-card[data-mode=b] .pic-btn[aria-expanded=true] .chev{transform:rotate(180deg)}
+.pic-hint{margin-left:auto;font-size:10px;line-height:1.3;color:var(--faint);text-align:right;white-space:nowrap}
+
+/* pictures inside the card */
+.pictures{display:grid;grid-template-rows:0fr;opacity:0;margin-top:0;pointer-events:none;transition:grid-template-rows .3s cubic-bezier(.2,.7,.2,1),opacity .18s ease,margin-top .3s ease}
+.image-card.open .pictures{grid-template-rows:1fr;opacity:1;margin-top:10px;pointer-events:auto}
+.pictures-inner{overflow:hidden;min-height:0}
+.pic-frame{position:relative}
+.thumb-row{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:2px;transition:opacity .2s ease}
+.image-card.loading .thumb-row{opacity:0}
+.thumb{
+  position:relative;display:block;width:100%;padding:0;border:0;border-radius:8px;overflow:hidden;
+  background:var(--line2);aspect-ratio:4/3;cursor:zoom-in;
+}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:transform .3s ease,opacity .25s ease}
+.image-card.loaded .thumb img{opacity:1}
+.thumb:hover img{transform:scale(1.045)}
+.thumb:focus-visible{outline:2px solid var(--ok);outline-offset:-2px}
+.thumb::after{content:"";position:absolute;inset:0;border:1px solid rgba(0,0,0,.08);border-radius:inherit;pointer-events:none}
+html[data-theme=dark] .thumb::after{border-color:rgba(255,255,255,.08)}
+.skel-row{position:absolute;inset:2px;display:none;grid-template-columns:repeat(3,1fr);gap:4px}
+.image-card.loading .skel-row{display:grid}
+.skel-row i{
+  display:block;border-radius:8px;aspect-ratio:4/3;
+  background:linear-gradient(90deg,var(--line2) 25%,var(--line) 37%,var(--line2) 63%);
+  background-size:400% 100%;animation:shimmer 1.2s linear infinite;
+}
+@keyframes shimmer{from{background-position:100% 0}to{background-position:-100% 0}}
+.pic-caption{display:flex;align-items:baseline;gap:6px;margin-top:5px;padding:0 2px;min-height:15px;font-size:10.5px;line-height:1.4;color:var(--muted)}
+.pic-caption b{font:600 9.5px var(--mono);color:var(--faint);letter-spacing:.02em;flex:none}
+.pic-caption span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pic-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px;padding:0 2px}
+.sense-switch{
+  border:0;background:none;padding:0;color:var(--muted);font-size:10.5px;cursor:pointer;
+  text-decoration:underline dotted var(--faint);text-decoration-thickness:1px;text-underline-offset:3px;
+}
+.sense-switch b{font-weight:650;color:var(--ok-text);letter-spacing:.03em}
+.sense-switch:hover{color:var(--text)}
+.sense-switch:disabled{opacity:.4;cursor:default}
+.pic-open{border:0;background:none;padding:0;color:var(--faint);font-size:10.5px;cursor:pointer;white-space:nowrap}
+.pic-open:hover{color:var(--text)}
+.bub-foot{
+  margin-top:11px;padding-top:7px;border-top:1px solid var(--line2);
+  font:9.5px var(--mono);line-height:1.5;color:var(--faint);letter-spacing:-.01em;
+}
+.bub-foot .q{color:var(--muted);font-weight:500}
+
+/* ---------- browser handoff ---------- */
+.handoff{
+  position:absolute;inset:0;z-index:30;visibility:hidden;opacity:0;pointer-events:none;
+  transition:opacity .2s ease,visibility 0s linear .2s;
+}
+.handoff.open{visibility:visible;opacity:1;pointer-events:auto;transition:opacity .2s ease,visibility 0s}
+.handoff-scrim{
+  position:absolute;inset:0;background:var(--scrim);
+  -webkit-backdrop-filter:blur(2.5px) saturate(.9);backdrop-filter:blur(2.5px) saturate(.9);
+}
+.back-lens{
+  position:absolute;right:22px;top:18px;z-index:3;display:flex;align-items:center;gap:8px;
+  height:34px;padding:0 12px 0 9px;border-radius:999px;border:1px solid rgba(255,255,255,.14);
+  background:#17171b;color:#f5f3ec;font-size:11.5px;cursor:pointer;
+  box-shadow:0 10px 30px -12px rgba(0,0,0,.55);
+}
+.back-lens:hover{background:#22222a}
+.lens-dot{width:14px;height:14px;border:1.4px solid #f5f3ec;border-radius:50%;position:relative;flex:none}
+.lens-dot::after{content:"";position:absolute;width:4px;height:4px;border-radius:50%;background:var(--ok);right:-1px;top:1px;box-shadow:0 0 0 1.5px #17171b}
+.back-lens kbd{height:18px;border-color:#3a3a44;background:#26262d;color:#b9b9c4;margin-left:2px}
+.browser{
+  position:absolute;left:50%;top:50%;z-index:2;width:min(640px,calc(100% - 80px));height:min(590px,calc(100% - 56px));
+  display:flex;flex-direction:column;overflow:hidden;
+  background:var(--browser-bg);border:1px solid var(--browser-line);border-radius:12px;
+  box-shadow:0 40px 100px -30px rgba(0,0,0,.58);
+  transform:translate(-50%,-50%) translateY(10px) scale(.985);
+  transition:transform .26s cubic-bezier(.2,.7,.2,1);
+}
+.handoff.open .browser{transform:translate(-50%,-50%)}
+.browser-chrome{
+  height:36px;flex:none;display:flex;align-items:flex-end;padding:0 8px;
+  background:var(--browser-chrome);border-bottom:1px solid var(--browser-line);
+}
+.browser-tab{
+  display:flex;align-items:center;gap:8px;height:29px;max-width:300px;padding:0 11px;
+  border-radius:8px 8px 0 0;background:var(--browser-bg);color:var(--browser-text);font-size:11px;
+  overflow:hidden;white-space:nowrap;
+}
+.tab-ico{width:12px;height:12px;border-radius:3px;border:1px solid var(--browser-faint);display:grid;place-items:center;flex:none}
+.tab-ico::after{content:"";width:5px;height:4px;border-radius:1px;background:var(--browser-faint)}
+#browserTabTitle{overflow:hidden;text-overflow:ellipsis}
+.tab-x{margin-left:auto;color:var(--browser-faint);font-size:12px}
+.win-ctrl{margin-left:auto;display:flex;align-items:center;gap:2px;padding-bottom:5px}
+.win-ctrl span{width:22px;height:20px;display:grid;place-items:center;color:var(--browser-faint);font-size:10px;border-radius:4px}
+.win-ctrl .win-close{background:none;border:0;font-family:var(--f);cursor:pointer}
+.win-ctrl .win-close:hover{background:rgba(180,60,50,.16);color:#c04a3e}
+.browser-bar{
+  height:40px;flex:none;display:flex;align-items:center;gap:9px;padding:0 12px;
+  background:var(--browser-bg);border-bottom:1px solid var(--browser-line);
+}
+.nav-ico{display:flex;align-items:center;gap:7px;color:var(--browser-faint);font-size:12px;letter-spacing:.06em}
+.url{
+  flex:1;height:27px;min-width:0;display:flex;align-items:center;gap:6px;padding:0 11px;
+  border:1px solid var(--browser-line);border-radius:999px;background:var(--browser-chrome);
+  font:10px var(--mono);color:var(--browser-muted);white-space:nowrap;overflow:hidden;
+}
+.url .url-text{overflow:hidden;text-overflow:ellipsis}
+.url svg{width:10px;height:10px;color:var(--browser-faint);flex:none}
+.bar-right{margin-left:2px;color:var(--browser-faint);font-size:11px;letter-spacing:.12em;white-space:nowrap}
+.browser-page{flex:1;min-height:0;overflow:auto;background:var(--browser-page);padding:16px 20px 16px}
+.browser-page::-webkit-scrollbar{width:7px}
+.browser-page::-webkit-scrollbar-thumb{background:var(--browser-line);border-radius:99px}
+.search-head{display:flex;align-items:center;gap:14px}
+.search-brand{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:650;letter-spacing:-.03em;color:var(--browser-text);flex:none}
+.search-mark{width:19px;height:19px;border:1.5px solid var(--ok);border-radius:50%;position:relative;flex:none}
+.search-mark::after{content:"";position:absolute;width:7px;height:1.5px;background:var(--ok);transform:rotate(45deg);right:-5px;bottom:2px;border-radius:2px}
+.search-box{
+  flex:1;max-width:470px;height:33px;display:flex;align-items:center;gap:8px;padding:0 12px;
+  border:1px solid var(--browser-line);border-radius:999px;background:var(--browser-bg);
+  font-size:12px;color:var(--browser-text);
+}
+.search-box svg{width:12px;height:12px;color:var(--browser-faint);flex:none}
+#browserQuery{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.search-lang{margin-left:auto;font:600 9px var(--mono);color:var(--browser-faint);border:1px solid var(--browser-line);border-radius:999px;padding:2px 6px;flex:none}
+.filters{display:flex;align-items:center;gap:18px;margin-top:12px;padding-bottom:8px;border-bottom:1px solid var(--browser-line);font-size:11px;color:var(--browser-muted)}
+.filters .on{position:relative;color:var(--ok-text);font-weight:650}
+.filters .on::after{content:"";position:absolute;left:0;right:0;bottom:-9px;height:2px;border-radius:2px;background:var(--ok)}
+.safe{margin-left:auto;font-size:9.5px;color:var(--browser-faint);border:1px solid var(--browser-line);border-radius:999px;padding:3px 7px;white-space:nowrap}
+.result-meta{display:flex;align-items:center;justify-content:space-between;margin-top:10px;font:9px var(--mono);color:var(--browser-faint);letter-spacing:.01em}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:9px}
+.result{margin:0;min-width:0}
+.result-img{position:relative;overflow:hidden;border-radius:9px;background:var(--browser-chrome);aspect-ratio:2.2/1}
+.result-img img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s ease}
+.result:hover .result-img img{transform:scale(1.025)}
+.result-title{margin-top:5px;font-size:11px;font-weight:550;line-height:1.35;color:var(--browser-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.result-domain{margin-top:1px;font:9px var(--mono);color:var(--browser-faint)}
+.related{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:12px}
+.related-label{font:600 8.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--browser-faint)}
+.rel-chip{
+  height:22px;padding:0 9px;border:1px solid var(--browser-line);border-radius:999px;
+  background:transparent;color:var(--browser-muted);font-size:10px;cursor:pointer;transition:.15s;
+}
+.rel-chip:hover{border-color:var(--browser-faint);color:var(--browser-text)}
+.rel-chip.current{border-color:var(--ok);color:var(--ok-text);background:var(--ok-bg)}
+.browser-loading{display:none;grid-template-columns:1fr 1fr;gap:12px;margin-top:9px}
+.browser.loading .browser-loading{display:grid}
+.browser.loading .result-grid,.browser.loading .related{visibility:hidden}
+.skel-result i{display:block;border-radius:9px;aspect-ratio:2.2/1;background:linear-gradient(90deg,var(--browser-chrome) 25%,var(--browser-line) 37%,var(--browser-chrome) 63%);background-size:400% 100%;animation:shimmer 1.2s linear infinite}
+.skel-line{height:8px;border-radius:4px;margin-top:7px;background:var(--browser-chrome);animation:shimmer 1.2s linear infinite;background-size:400% 100%}
+.skel-line.short{width:56%}
+@keyframes result-in{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.browser:not(.loading) .result-grid,.browser:not(.loading) .related{animation:result-in .22s ease}
+
+/* ---------- photo lightbox ---------- */
+.lightbox{position:absolute;inset:0;z-index:50;visibility:hidden;opacity:0;pointer-events:none;transition:opacity .2s ease,visibility 0s linear .2s}
+.lightbox.open{visibility:visible;opacity:1;pointer-events:auto;transition:opacity .2s ease,visibility 0s}
+.lightbox-scrim{position:absolute;inset:0;background:rgba(8,7,6,.56);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.photo{
+  position:absolute;left:50%;top:50%;width:min(680px,calc(100% - 80px));overflow:hidden;
+  background:var(--paper);border:1px solid var(--paper-edge);border-radius:16px;
+  box-shadow:0 40px 100px -24px rgba(0,0,0,.68);transform:translate(-50%,-50%) scale(.99);
+  transition:transform .22s ease;margin:0;
+}
+.lightbox.open .photo{transform:translate(-50%,-50%)}
+.photo-stage{position:relative;height:min(420px,50vh);background:#111114;overflow:hidden}
+.photo-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.photo-close{
+  position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.2);background:rgba(18,18,22,.62);color:#fff;
+  display:grid;place-items:center;cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+}
+.photo-close:hover{background:rgba(18,18,22,.85)}
+.photo-body{padding:14px 18px 16px}
+.photo-cap{font-size:14px;line-height:1.4;font-weight:600;color:var(--text)}
+.photo-meta{margin-top:5px;font-size:10.5px;line-height:1.55;color:var(--faint)}
+.photo-meta a{color:var(--muted);text-decoration:none;border-bottom:1px dotted var(--faint)}
+.photo-meta a:hover{color:var(--text)}
+.photo-src{display:inline-flex;margin-top:9px;font-size:11px;color:var(--ok-text);text-decoration:none;border-bottom:1px dotted var(--ok-text);padding-bottom:1px}
+.photo-src:hover{border-bottom-style:solid}
+
+/* ---------- shot + responsive ---------- */
+.shot .topbar,.shot .notes{display:none!important}
+.shot .main{top:0;grid-template-columns:1fr}
+.shot .sheet{width:min(1120px,calc(100% - 80px));height:min(710px,calc(100% - 80px));padding:56px 60px;gap:60px}
+.shot .margin-col{padding-top:78px}
+.shot .read-col h1{font-size:42px}
+.shot .read-col p{font-size:16px}
+.shot .browser{width:min(660px,calc(100% - 120px));height:min(600px,calc(100% - 72px))}
+.shot *{transition:none!important;animation:none!important}
+@media (max-width:1180px){
+  .notes{display:none}
+  .main{grid-template-columns:1fr}
+  .tab{padding:0 9px}
+  .brand-sub,.brand-sep{display:none}
+}
+@media (max-width:820px){
+  .topbar{gap:10px;padding:0 14px}
+  .brand{display:none}
+  .tabs{margin-left:0}
+  .sheet{width:calc(100% - 28px);height:calc(100% - 28px);border-radius:16px;display:block;padding:26px;overflow:auto}
+  .margin-col{padding-top:30px}
+  .bubble{width:min(100%,306px)}
+  .read-col h1{font-size:31px}
+  .read-col p{font-size:15px}
+  .back-lens{right:14px;top:12px}
+  .browser{width:min(640px,calc(100% - 28px));height:min(450px,calc(100% - 110px))}
+  .photo{width:calc(100% - 32px)}
+}
+@media (max-width:900px){
+  .browser{height:min(450px,calc(100% - 110px))}
+  .result-grid .result:nth-child(2),.result-grid .result:nth-child(3){display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>Lens</span><span class="brand-sep">/</span><span class="brand-sub">Image anchor</span>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="两种图片方案">
+    <button class="tab" role="tab" data-mode="a" aria-selected="true"><b>A</b>一键看图</button>
+    <button class="tab" role="tab" data-mode="b" aria-selected="false"><b>B</b>卡内三图</button>
+  </nav>
+  <div class="tools">
+    <button class="theme-btn" id="themeBtn" type="button">Dark</button>
+  </div>
+</header>
+
+<main class="main">
+  <aside class="notes" aria-live="polite">
+    <span class="proposal">Proposal</span>
+    <div class="notes-body" id="notesBody"></div>
+    <div class="notes-foot">不是表面规格，也不是交付物。行为契约在 UI.md。<br>照片：Wikimedia Commons，署名与许可见大图。</div>
+  </aside>
+
+  <div class="stage" id="stage">
+
+    <div class="sheet" id="sheet">
+      <article class="read-col">
+        <div class="kicker">Essay · The river</div>
+        <h1>Low Water</h1>
+        <div class="byline">Mara Ellison · October 2026</div>
+        <p>The tide had gone out further than I had ever seen it. Barges sat on their own reflections; the reeds ticked in the wind.</p>
+        <p>The <span class="sel">crane</span> was the only thing moving on the river that morning.</p>
+        <p class="muted">I watched it for a long time. Then the light changed, and the whole scene went from grey to gold.</p>
+        <p class="muted">Perhaps that is what I had come for: not the bird or the machine, but the pause between the two.</p>
+        <blockquote>“A word is a way of looking. Sometimes you have to look twice.”</blockquote>
+      </article>
+
+      <div class="margin-col">
+        <div class="bubble image-card" id="imageCard" data-mode="a" data-sense="machine">
+          <div class="bub-top">
+            <span class="tag">NEW</span>
+            <span class="bub-lang" aria-label="Definition language: English" title="Definition language: English">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>
+              <span>EN</span>
+            </span>
+            <span class="bub-close" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg>
+            </span>
+          </div>
+          <div class="bub-title"><span class="bub-word">crane</span><span class="ipa">/kreɪn/</span><span class="pos">noun</span></div>
+          <div class="signpost" id="signpost">MACHINE</div>
+          <div class="context">“The <b>crane</b> was the only thing moving on the river that morning.”</div>
+          <div class="bub-def" id="cardDef" aria-live="polite">a tall machine with a long arm, used for lifting heavy things</div>
+
+          <div class="pic-row">
+            <button class="pic-btn" id="picBtn" type="button" aria-expanded="false" aria-controls="pictures">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.4"/><path d="M4.5 17l4.8-4.6 3.2 2.9 2.7-2.4 4.3 4.1"/></svg>
+              <span id="picLabel">Pictures</span>
+              <svg class="dir ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M10 5H5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h13a1 1 0 0 0 1-1v-5"/></svg>
+              <svg class="dir chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <span class="pic-hint" id="picHint">opens in your browser</span>
+          </div>
+
+          <div class="pictures" id="pictures" inert>
+            <div class="pictures-inner">
+              <div class="pic-frame">
+                <div class="thumb-row" id="thumbRow"></div>
+                <div class="skel-row" aria-hidden="true"><i></i><i></i><i></i></div>
+              </div>
+              <div class="pic-caption" id="picCaption"><b>1/3</b><span>Loading pictures…</span></div>
+              <div class="pic-actions">
+                <button class="sense-switch" id="senseSwitch" type="button" disabled>Not this sense? <b id="otherSense">BIRD</b> →</button>
+                <button class="pic-open" id="picOpen" type="button">Open ↗</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bub-foot">query <span class="q" id="queryFoot">“construction crane”</span> · <span id="queryState">browser handoff</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- A: simulated browser handoff -->
+    <div class="handoff" id="handoff" aria-hidden="true">
+      <div class="handoff-scrim" id="handoffScrim"></div>
+      <button class="back-lens" id="backLens" type="button">
+        <span class="lens-dot" aria-hidden="true"></span>
+        Back to Lens
+        <kbd>Esc</kbd>
+      </button>
+
+      <section class="browser" id="browser" role="region" aria-label="Simulated browser image search">
+        <div class="browser-chrome">
+          <div class="browser-tab">
+            <span class="tab-ico" aria-hidden="true"></span>
+            <span id="browserTabTitle">crane — Images</span>
+            <span class="tab-x" aria-hidden="true">×</span>
+          </div>
+          <div class="win-ctrl">
+            <span aria-hidden="true">─</span><span aria-hidden="true">▢</span><button class="win-close" id="winClose" type="button" aria-label="Close browser and return to Lens">×</button>
+          </div>
+        </div>
+        <div class="browser-bar">
+          <div class="nav-ico" aria-hidden="true"><span>←</span><span>→</span><span>⟳</span></div>
+          <div class="url">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            <span class="url-text" id="browserUrl">images.example/?q=construction+crane&amp;hl=en</span>
+          </div>
+          <div class="bar-right" aria-hidden="true">☆ ⋮</div>
+        </div>
+        <div class="browser-page">
+          <div class="search-head">
+            <div class="search-brand"><span class="search-mark" aria-hidden="true"></span>images</div>
+            <div class="search-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
+              <span id="browserQuery">construction crane</span>
+              <span class="search-lang">EN</span>
+            </div>
+          </div>
+          <div class="filters">
+            <span class="on">Images</span><span>Videos</span><span>News</span>
+            <span class="safe">Safe search: on</span>
+          </div>
+          <div class="result-meta"><span id="browserCount">About 12,400 results (0.38 s)</span><span>Any time · Any size</span></div>
+          <div class="browser-loading" aria-hidden="true">
+            <div class="skel-result"><i></i><div class="skel-line"></div><div class="skel-line short"></div></div>
+            <div class="skel-result"><i></i><div class="skel-line"></div><div class="skel-line short"></div></div>
+            <div class="skel-result"><i></i><div class="skel-line"></div><div class="skel-line short"></div></div>
+            <div class="skel-result"><i></i><div class="skel-line"></div><div class="skel-line short"></div></div>
+          </div>
+          <div class="result-grid" id="browserResults"></div>
+          <div class="related" id="relatedChips">
+            <span class="related-label">Related searches</span>
+            <button class="rel-chip" type="button" data-bq="crane bird">crane bird</button>
+            <button class="rel-chip" type="button" data-bq="tower crane">tower crane</button>
+            <button class="rel-chip" type="button" data-bq="mobile crane">mobile crane</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- B: enlarged photo and its source -->
+    <div class="lightbox" id="lightbox" aria-hidden="true">
+      <div class="lightbox-scrim" id="lightboxScrim"></div>
+      <figure class="photo" id="photo" role="dialog" aria-modal="true" aria-label="Photo preview">
+        <div class="photo-stage">
+          <img id="photoImg" alt="">
+          <button class="photo-close" id="photoClose" type="button" aria-label="Close photo">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5l14 14M19 5L5 19"/></svg>
+          </button>
+        </div>
+        <figcaption class="photo-body">
+          <div class="photo-cap" id="photoCap"></div>
+          <div class="photo-meta" id="photoMeta"></div>
+          <a class="photo-src" id="photoSrc" href="#" target="_blank" rel="noopener">Open source ↗</a>
+        </figcaption>
+      </figure>
+    </div>
+
+  </div>
+</main>
+
+<script>
+(() => {
+  const params = new URLSearchParams(location.search);
+  const html = document.documentElement;
+  const body = document.body;
+  if (params.has('shot')) body.classList.add('shot');
+  if (params.get('theme') === 'dark') html.dataset.theme = 'dark';
+
+  const IMAGES = {
+    ma: {
+      src: 'assets/word-images/crane-machine-a.jpg',
+      title: 'Construction crane on clear sky',
+      caption: 'A tower crane against a clear sky',
+      credit: 'Alex Panoiu', license: 'CC BY 2.0',
+      licenseUrl: 'https://creativecommons.org/licenses/by/2.0/',
+      source: 'https://commons.wikimedia.org/wiki/File:Construction_crane_on_clear_sky_(20151112_122747_1JC)_(23902449492).jpg',
+      pos: '50% 45%'
+    },
+    mb: {
+      src: 'assets/word-images/crane-machine-b.jpg',
+      title: 'Red tower crane, Knoxville',
+      caption: 'A red tower crane above a building site',
+      credit: 'Lee Ann Ratledge', license: 'CC BY 4.0',
+      licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
+      source: 'https://commons.wikimedia.org/wiki/File:Red_Tower_Crane_-_Knoxville,_Tennessee_-_October_18,_2014.jpg',
+      pos: '50% 50%'
+    },
+    mc: {
+      src: 'assets/word-images/crane-machine-c.jpg',
+      title: 'Mobile crane at a construction site',
+      caption: 'A mobile crane on a construction site',
+      credit: 'KKPCW', license: 'CC BY-SA 4.0',
+      licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
+      source: 'https://commons.wikimedia.org/wiki/File:Big_colorful_mobile_crane_in_the_construction_site_-_1.jpg',
+      pos: '50% 55%'
+    },
+    b1: {
+      src: 'assets/word-images/crane-bird-1.jpg',
+      title: 'Common crane (Grus grus)',
+      caption: 'A common crane standing in a meadow',
+      credit: 'Charles J. Sharp', license: 'CC BY-SA 4.0',
+      licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
+      source: 'https://commons.wikimedia.org/wiki/File:Common_crane_(Grus_grus)_Uckermark.jpg',
+      pos: '50% 45%'
+    },
+    b2: {
+      src: 'assets/word-images/crane-bird-2.jpg',
+      title: 'Common crane calling',
+      caption: 'A common crane calling in a reedbed',
+      credit: 'Andreas Weith', license: 'CC BY-SA 4.0',
+      licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
+      source: 'https://commons.wikimedia.org/wiki/File:Crane_(Grus_grus)_calling.jpg',
+      pos: '50% 35%'
+    },
+    b3: {
+      src: 'assets/word-images/crane-bird-3.jpg',
+      title: 'Two common cranes in flight',
+      caption: 'Two common cranes flying at sunrise',
+      credit: 'Andreas Weith', license: 'CC BY-SA 4.0',
+      licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
+      source: 'https://commons.wikimedia.org/wiki/File:Two_cranes_(Grus_grus)_flying_in_the_early_morning_sun.jpg',
+      pos: '50% 50%'
+    }
+  };
+
+  const SENSES = {
+    machine: {
+      label: 'MACHINE',
+      def: 'a tall machine with a long arm, used for lifting heavy things',
+      query: 'construction crane',
+      other: 'bird',
+      otherLabel: 'BIRD',
+      images: [IMAGES.ma, IMAGES.mb, IMAGES.mc]
+    },
+    bird: {
+      label: 'BIRD',
+      def: 'a large bird with long legs and a long neck, that lives near water',
+      query: 'crane bird',
+      other: 'machine',
+      otherLabel: 'MACHINE',
+      images: [IMAGES.b1, IMAGES.b2, IMAGES.b3]
+    }
+  };
+
+  const BROWSER_QUERIES = {
+    'construction crane': {
+      count: 'About 12,400 results (0.38 s)',
+      results: [IMAGES.ma, IMAGES.mb, IMAGES.mc, IMAGES.b1]
+    },
+    'crane bird': {
+      count: 'About 8,900 results (0.41 s)',
+      results: [IMAGES.b1, IMAGES.b2, IMAGES.b3, IMAGES.ma]
+    },
+    'tower crane': {
+      count: 'About 21,700 results (0.35 s)',
+      results: [IMAGES.ma, IMAGES.mb, IMAGES.mc, IMAGES.b1]
+    },
+    'mobile crane': {
+      count: 'About 6,700 results (0.44 s)',
+      results: [IMAGES.mc, IMAGES.ma, IMAGES.mb, IMAGES.b1]
+    }
+  };
+
+  const NOTES = {
+    a: {
+      num: 'A',
+      title: '浏览器接手',
+      lead: '浏览器负责图库，Lens 只负责把查询词和义项对上。零新 key，也零图源接入。',
+      items: [
+        '词条请求顺带返回 <code>imageable</code> 与 <code>imageQuery</code>；查询带消歧词，不带原句。',
+        '点击 Pictures，用默认浏览器打开英文图搜；结果、广告和页面都不归 Lens 管。',
+        '最便宜的一步：先把“读者会不会点”验证出来，再决定要不要接图源。'
+      ],
+      tryText: '点 <kbd>click</kbd> 卡片里的 Pictures，看浏览器接手；再用 Related searches 里的 crane bird 改查询，最后 Back to Lens。',
+      cost: '代价：离开阅读现场；回到原文要重新找位置；义项不对时，改查询仍是读者的活。'
+    },
+    b: {
+      num: 'B',
+      title: '卡内三图',
+      lead: '图是义项的非语言锚点，不是词卡的装饰。crane 先给最常见的 MACHINE；读到的却是河上的鸟，点一下换义项，不换词。',
+      items: [
+        '只有 <code>imageable</code> 的义项出现入口；抽象词不出图，避免搜出一堆励志海报。',
+        '三张缩略图原地展开，英文图注与来源跟着走；点图看大图、署名和许可。',
+        '缩略图缓存在 profile；图仍不对时，Open 退回浏览器，两条路不是互斥的。'
+      ],
+      tryText: '点 <kbd>click</kbd> 卡片里的 Pictures 展开，再点一张图看大图；然后点 Not this sense? 切到 BIRD。',
+      cost: '代价：接图源、key/费用、许可与署名、缓存清理；相关性是主要风险，所以必须能换义项。'
+    }
+  };
+
+  const els = {
+    stage: document.getElementById('stage'),
+    sheet: document.getElementById('sheet'),
+    card: document.getElementById('imageCard'),
+    signpost: document.getElementById('signpost'),
+    cardDef: document.getElementById('cardDef'),
+    picBtn: document.getElementById('picBtn'),
+    picLabel: document.getElementById('picLabel'),
+    picHint: document.getElementById('picHint'),
+    pictures: document.getElementById('pictures'),
+    thumbRow: document.getElementById('thumbRow'),
+    picCaption: document.getElementById('picCaption'),
+    senseSwitch: document.getElementById('senseSwitch'),
+    otherSense: document.getElementById('otherSense'),
+    picOpen: document.getElementById('picOpen'),
+    queryFoot: document.getElementById('queryFoot'),
+    queryState: document.getElementById('queryState'),
+    handoff: document.getElementById('handoff'),
+    handoffScrim: document.getElementById('handoffScrim'),
+    backLens: document.getElementById('backLens'),
+    browser: document.getElementById('browser'),
+    browserTabTitle: document.getElementById('browserTabTitle'),
+    browserUrl: document.getElementById('browserUrl'),
+    browserQuery: document.getElementById('browserQuery'),
+    browserCount: document.getElementById('browserCount'),
+    browserResults: document.getElementById('browserResults'),
+    relatedChips: document.getElementById('relatedChips'),
+    winClose: document.getElementById('winClose'),
+    lightbox: document.getElementById('lightbox'),
+    lightboxScrim: document.getElementById('lightboxScrim'),
+    photo: document.getElementById('photo'),
+    photoImg: document.getElementById('photoImg'),
+    photoCap: document.getElementById('photoCap'),
+    photoMeta: document.getElementById('photoMeta'),
+    photoSrc: document.getElementById('photoSrc'),
+    photoClose: document.getElementById('photoClose')
+  };
+
+  let mode = params.get('mode') === 'b' ? 'b' : 'a';
+  let sense = params.get('sense') === 'bird' ? 'bird' : 'machine';
+  let inlineOpen = false;
+  let inlineLoaded = false;
+  let browserOpen = false;
+  let browserLoaded = false;
+  let browserQuery = SENSES[sense].query;
+  let loadToken = 0;
+  let browserToken = 0;
+  let lastFocus = null;
+  let lastPhotoFocus = null;
+  let activeCaption = 0;
+  let notesToken = 0;
+
+  const notesBody = document.getElementById('notesBody');
+  const tabs = [...document.querySelectorAll('.tab')];
+  const thumbButtons = () => [...els.thumbRow.querySelectorAll('.thumb')];
+  const skipMotion = () => body.classList.contains('shot') || matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function renderNotes(animate = true) {
+    const token = ++notesToken;
+    const d = NOTES[mode];
+    const draw = () => {
+      if (token !== notesToken) return;
+      notesBody.innerHTML = `
+        <div class="notes-num">${d.num}</div>
+        <h2>${d.title}</h2>
+        <p class="notes-lead">${d.lead}</p>
+        <ul>${d.items.map(x => `<li>${x}</li>`).join('')}</ul>
+        <div class="notes-try"><strong>Try it</strong>${d.tryText}</div>
+        <div class="notes-cost">${d.cost}</div>`;
+    };
+    if (!animate) { draw(); return; }
+    notesBody.classList.add('switching');
+    setTimeout(() => {
+      draw();
+      if (token === notesToken) notesBody.classList.remove('switching');
+    }, 120);
+  }
+
+  function updateFoot() {
+    const q = SENSES[sense].query;
+    els.queryFoot.textContent = `“${q}”`;
+    if (mode === 'a') els.queryState.textContent = 'browser handoff';
+    else if (!inlineOpen) els.queryState.textContent = 'on demand';
+    else els.queryState.textContent = inlineLoaded ? 'cached' : 'fetching';
+  }
+
+  function updateAffordance() {
+    const isA = mode === 'a';
+    els.card.dataset.mode = mode;
+    els.picHint.textContent = isA
+      ? 'opens in your browser'
+      : (inlineOpen ? 'stays in the card · cached' : 'stays in the card');
+    els.picLabel.textContent = (!isA && inlineOpen) ? 'Hide pictures' : 'Pictures';
+    els.picBtn.setAttribute('aria-expanded', String(!isA && inlineOpen));
+    els.picBtn.setAttribute('aria-label', isA ? 'Pictures, opens in your browser' : 'Pictures, stays in the card');
+    updateFoot();
+  }
+
+  function applySense() {
+    const s = SENSES[sense];
+    els.card.dataset.sense = sense;
+    els.signpost.textContent = s.label;
+    els.cardDef.textContent = s.def;
+    els.otherSense.textContent = s.otherLabel;
+    els.picOpen.setAttribute('aria-label', `Open ${s.query} image search in your browser`);
+    renderThumbs();
+    updateFoot();
+  }
+
+  function renderThumbs() {
+    const s = SENSES[sense];
+    els.thumbRow.innerHTML = '';
+    s.images.forEach((im, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'thumb';
+      b.setAttribute('aria-label', `View larger: ${im.caption}`);
+      b.dataset.index = String(i);
+      const img = document.createElement('img');
+      img.src = im.src;
+      img.alt = im.caption;
+      img.draggable = false;
+      img.style.objectPosition = im.pos || '50% 50%';
+      b.appendChild(img);
+      b.addEventListener('click', () => openPhoto(i));
+      b.addEventListener('mouseenter', () => setCaption(i));
+      b.addEventListener('focus', () => setCaption(i));
+      els.thumbRow.appendChild(b);
+    });
+    activeCaption = 0;
+    setCaption(inlineOpen && !inlineLoaded ? -1 : 0);
+  }
+
+  function setCaption(i) {
+    if (i < 0) {
+      els.picCaption.innerHTML = '<b>···</b><span>Loading pictures…</span>';
+      return;
+    }
+    const s = SENSES[sense];
+    const im = s.images[i];
+    if (!im) return;
+    activeCaption = i;
+    els.picCaption.innerHTML = `<b>${i + 1}/${s.images.length}</b><span>${im.caption}</span>`;
+  }
+
+  function switchSense() {
+    if (SENSES[sense].other === sense) return;
+    closePhoto();
+    sense = SENSES[sense].other;
+    if (!skipMotion()) {
+      els.card.classList.add('swap');
+      setTimeout(() => {
+        applySense();
+        els.card.classList.remove('swap');
+      }, 150);
+    } else applySense();
+    syncUrl();
+  }
+
+  function openInline() {
+    if (mode !== 'b' || inlineOpen) return;
+    inlineOpen = true;
+    els.card.classList.add('open');
+    els.pictures.inert = false;
+    updateAffordance();
+    if (!inlineLoaded) {
+      const token = ++loadToken;
+      els.card.classList.add('loading');
+      els.senseSwitch.disabled = true;
+      setCaption(-1);
+      updateFoot();
+      const done = () => {
+        if (token !== loadToken || !inlineOpen) return;
+        inlineLoaded = true;
+        els.card.classList.remove('loading');
+        els.card.classList.add('loaded');
+        els.senseSwitch.disabled = false;
+        setCaption(activeCaption || 0);
+        updateAffordance();
+      };
+      if (skipMotion()) done();
+      else setTimeout(done, 520);
+    } else {
+      els.card.classList.add('loaded');
+      setCaption(activeCaption || 0);
+      updateAffordance();
+    }
+  }
+
+  function closeInline() {
+    if (!inlineOpen) return;
+    inlineOpen = false;
+    loadToken++;
+    els.card.classList.remove('open');
+    els.pictures.inert = true;
+    els.senseSwitch.disabled = false;
+    updateAffordance();
+  }
+
+  function toggleInline() {
+    if (inlineOpen) closeInline();
+    else openInline();
+  }
+
+  function openBrowser() {
+    if (browserOpen) return;
+    closePhoto();
+    browserOpen = true;
+    lastFocus = document.activeElement;
+    browserQuery = SENSES[sense].query;
+    els.handoff.classList.add('open');
+    els.handoff.setAttribute('aria-hidden', 'false');
+    els.stage.classList.add('handoff-on');
+    els.sheet.inert = true;
+    renderBrowser(browserQuery);
+    els.browser.classList.toggle('loading', !browserLoaded);
+    if (!browserLoaded) {
+      const token = ++browserToken;
+      const done = () => {
+        if (token !== browserToken || !browserOpen) return;
+        browserLoaded = true;
+        els.browser.classList.remove('loading');
+      };
+      if (skipMotion()) done();
+      else setTimeout(done, 380);
+    }
+    if (!skipMotion()) setTimeout(() => els.backLens.focus({ preventScroll: true }), 30);
+  }
+
+  function closeBrowser() {
+    if (!browserOpen) return;
+    browserOpen = false;
+    browserToken++;
+    els.handoff.classList.remove('open');
+    els.handoff.setAttribute('aria-hidden', 'true');
+    els.stage.classList.remove('handoff-on');
+    els.sheet.inert = false;
+    if (lastFocus && document.contains(lastFocus)) lastFocus.focus({ preventScroll: true });
+    lastFocus = null;
+  }
+
+  function setBrowserQuery(q) {
+    if (!BROWSER_QUERIES[q]) q = 'construction crane';
+    browserQuery = q;
+    const token = ++browserToken;
+    renderBrowser(q);
+    els.browser.classList.add('loading');
+    const done = () => {
+      if (token !== browserToken) return;
+      browserLoaded = true;
+      els.browser.classList.remove('loading');
+    };
+    if (skipMotion()) done();
+    else setTimeout(done, 280);
+  }
+
+  function renderBrowser(q) {
+    const data = BROWSER_QUERIES[q] || BROWSER_QUERIES['construction crane'];
+    els.browserQuery.textContent = q;
+    els.browserTabTitle.textContent = `${q} — Images`;
+    els.browserUrl.textContent = `images.example/?q=${q.replace(/ /g, '+')}&hl=en`;
+    els.browserCount.textContent = data.count;
+    els.browserResults.innerHTML = '';
+    data.results.forEach(im => {
+      const fig = document.createElement('figure');
+      fig.className = 'result';
+      const holder = document.createElement('div');
+      holder.className = 'result-img';
+      const img = document.createElement('img');
+      img.src = im.src;
+      img.alt = im.caption;
+      img.style.objectPosition = im.pos || '50% 50%';
+      holder.appendChild(img);
+      const cap = document.createElement('figcaption');
+      cap.innerHTML = `<div class="result-title">${im.title}</div><div class="result-domain">commons.wikimedia.org</div>`;
+      fig.append(holder, cap);
+      els.browserResults.appendChild(fig);
+    });
+    els.relatedChips.querySelectorAll('.rel-chip').forEach(chip => {
+      chip.classList.toggle('current', chip.dataset.bq === q);
+    });
+  }
+
+  function openPhoto(i) {
+    const im = SENSES[sense].images[i];
+    if (!im) return;
+    closeBrowser();
+    lastPhotoFocus = document.activeElement;
+    els.photoImg.src = im.src;
+    els.photoImg.alt = im.caption;
+    els.photoImg.style.objectPosition = im.pos || '50% 50%';
+    els.photoCap.textContent = im.caption;
+    els.photoMeta.innerHTML = `${im.credit} · <a href="${im.licenseUrl}" target="_blank" rel="noopener">${im.license}</a> · Wikimedia Commons`;
+    els.photoSrc.href = im.source;
+    els.photo.setAttribute('aria-label', im.caption);
+    els.lightbox.classList.add('open');
+    els.lightbox.setAttribute('aria-hidden', 'false');
+    els.stage.classList.add('photo-on');
+    els.sheet.inert = true;
+    if (!skipMotion()) setTimeout(() => els.photoClose.focus({ preventScroll: true }), 30);
+  }
+
+  function closePhoto() {
+    if (!els.lightbox.classList.contains('open')) return;
+    els.lightbox.classList.remove('open');
+    els.lightbox.setAttribute('aria-hidden', 'true');
+    els.stage.classList.remove('photo-on');
+    if (!browserOpen) els.sheet.inert = false;
+    if (lastPhotoFocus && document.contains(lastPhotoFocus)) lastPhotoFocus.focus({ preventScroll: true });
+    lastPhotoFocus = null;
+  }
+
+  function setMode(next, { initial = false } = {}) {
+    if (next !== 'a' && next !== 'b') return;
+    if (!initial && next === mode) return;
+    if (next !== mode) closeBrowser();
+    closePhoto();
+    closeInline();
+    mode = next;
+    tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.mode === mode)));
+    updateAffordance();
+    renderNotes(!initial);
+    if (!initial) syncUrl();
+  }
+
+  function syncUrl() {
+    try {
+      const q = new URLSearchParams(location.search);
+      q.set('mode', mode);
+      q.set('sense', sense);
+      history.replaceState(null, '', `${location.pathname}?${q}`);
+    } catch {
+      // file:// pages have an opaque origin; the demo still works without URL sync.
+    }
+  }
+
+  /* ---------------- theme ---------------- */
+  const themeBtn = document.getElementById('themeBtn');
+  function syncThemeLabel() { themeBtn.textContent = html.dataset.theme === 'dark' ? 'Light' : 'Dark'; }
+  themeBtn.addEventListener('click', () => {
+    html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+    syncThemeLabel();
+  });
+  syncThemeLabel();
+
+  /* ---------------- listeners ---------------- */
+  tabs.forEach(t => t.addEventListener('click', () => setMode(t.dataset.mode)));
+  els.picBtn.addEventListener('click', () => {
+    if (mode === 'a') openBrowser();
+    else toggleInline();
+  });
+  els.senseSwitch.addEventListener('click', switchSense);
+  els.picOpen.addEventListener('click', openBrowser);
+  els.backLens.addEventListener('click', closeBrowser);
+  els.handoffScrim.addEventListener('click', closeBrowser);
+  els.winClose.addEventListener('click', closeBrowser);
+  els.lightboxScrim.addEventListener('click', closePhoto);
+  els.photoClose.addEventListener('click', closePhoto);
+  els.relatedChips.addEventListener('click', e => {
+    const chip = e.target.closest('.rel-chip');
+    if (chip) setBrowserQuery(chip.dataset.bq);
+  });
+  window.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      if (els.lightbox.classList.contains('open')) { e.preventDefault(); closePhoto(); }
+      else if (browserOpen) { e.preventDefault(); closeBrowser(); }
+      else if (inlineOpen) { e.preventDefault(); closeInline(); }
+      return;
+    }
+    if (els.lightbox.classList.contains('open') || browserOpen) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') {
+      e.preventDefault(); setMode('a');
+    } else if (e.key === 'b' || e.key === 'B' || e.key === 'ArrowRight') {
+      e.preventDefault(); setMode('b');
+    }
+  });
+
+  /* ---------------- initial state ---------------- */
+  applySense();
+  setMode(mode, { initial: true });
+  if (params.get('open') === '1') {
+    if (mode === 'a') openBrowser();
+    else openInline();
+  }
+  if (params.has('photo') && mode === 'b') {
+    const index = Math.max(0, Math.min(2, (parseInt(params.get('photo'), 10) || 1) - 1));
+    openInline();
+    if (skipMotion()) openPhoto(index);
+    else setTimeout(() => openPhoto(index), 560);
+  }
+})();
+</script>
+</body>
+</html>
