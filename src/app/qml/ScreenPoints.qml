@@ -2,11 +2,11 @@ import QtQuick
 
 /**
  * Maps a position the mouse hook reports, in native screen pixels, to DIPs, the unit a window is placed in. It holds no
- * window and draws nothing: Main.qml owns the screens and the surfaces, and this only turns points, so Main.qml stays
- * under the QML size cap (QML.md section 1), as ProfileScenario.qml does.
+ * window and draws nothing: Main.qml owns the surfaces and SurfaceHost.qml places them, while this only turns points, so
+ * both stay under the QML size cap (QML.md section 1), as ProfileScenario.qml does.
  */
 QtObject {
-    /// Main.qml, whose screenForPhysical() finds the screen a native point is on.
+    /// SurfaceHost.qml, whose screenForPhysical() finds the screen a native point is on.
     required property var host
 
     /**

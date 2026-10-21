@@ -17,7 +17,7 @@ Window {
     property point grabAt
     property bool moved: false
 
-    /// The reader's right-click on the pet. Where the panel goes is Main.qml's business -- beside the pet, rather
+    /// The reader's right-click on the pet. Where the panel goes is SurfaceHost.qml's business -- beside the pet, rather
     /// than at the tray icon the tray menu's own entry uses -- so this asks for it rather than placing anything itself.
     signal settingsRequested()
 

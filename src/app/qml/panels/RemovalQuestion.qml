@@ -7,7 +7,7 @@ import QtQuick.Window
  * The question the words panel's cross asks, as a window of its own over that panel.
  *
  * A window rather than a face drawn inside the panel's card, for two reasons. The card's height is
- * not the panel's to change -- Main.placeBeside puts its bottom edge on the tray icon and nothing
+ * not the panel's to change -- SurfaceHost.placeBeside puts its bottom edge on the tray icon and nothing
  * re-places a panel that changes size afterwards, so a card that shrank for the question would
  * lift away from the icon it was opened from. And it is a window: docs/QML.md section 1 draws the
  * line between a surface and a component at exactly that, so it is a file of its own.

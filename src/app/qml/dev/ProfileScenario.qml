@@ -6,7 +6,7 @@ import QtQuick
  * than in Main.qml, which stays under the size limit (docs/QML.md section 1).
  */
 QtObject {
-    /// Main.qml, whose panel functions the steps call.
+    /// SurfaceHost.qml, whose panel functions the steps call.
     required property var host
     /// The surfaces the steps show and hide.
     required property var trayMenu

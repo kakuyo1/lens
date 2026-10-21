@@ -4,7 +4,7 @@
 #   platform/  -- Win32 and shell integration: the mouse hook, hotkey, tray and window helpers.
 #   glass/     -- the desktop under the cards: capture, duplication and the sheet item.
 #   pet/       -- the pet's Qt shell around the core state machine.
-#   qml/       -- the surfaces, all one QML module.
+#   qml/       -- the surfaces, grouped by surface family, all one QML module.
 #   the root   -- the facade (app_controller), the composition root (main.cpp), and the shared
 #                 settings and projection headers.
 #
@@ -162,25 +162,29 @@ target_compile_definitions(lens PRIVATE
 # Tokens holds the stored theme and the motion table, and is the one singleton of the colour tables. Each surface
 # window owns a SurfaceTokens built from it (docs/adr/0041). The property has to be set before qt_add_qml_module looks at
 # the file, not after: it decides there whether to write a singleton entry into the module's qmldir.
-set_source_files_properties(qml/components/Tokens.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(qml/theme/Tokens.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 # PreviewSample is the settings preview's payload builder: one table of sample content, asked by
 # every window that could raise a preview, so it is a singleton for the same reason Tokens is.
-set_source_files_properties(qml/components/PreviewSample.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(qml/components/preview/PreviewSample.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 # GlassRule is the backdrop-or-not rule, read by the card that draws and the window that decides when to read the
 # desktop (docs/adr/0069): a rule the two hold separately is a rule that drifts, so it lives in one singleton.
-set_source_files_properties(qml/components/GlassRule.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(qml/components/chrome/GlassRule.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 # The URI is Lens, so generated QML tooling files belong below a Lens directory. Keeping the
 # target path aligned makes CMake generate the qmllint response file in every build tree,
 # including the dedicated profiler tree.
 set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Lens")
 
-# Three groups, split by what the file is rather than by where it is used. The ten windows are
-# the surfaces themselves -- one per thing the reader sees -- and they sit at the root so that
-# Main stays loadFromModule("Lens", "Main"). Everything a surface is built out of lives in
-# qml/components/, and the two theme value tables plus the motion table sit in qml/theme/, where
-# nothing reads them by name: Tokens forwards the active one. All three are the same QML module, so no group names
-# another in an import: Qt gives every file in the module an implicit import of its own types.
+# The QML files are grouped by surface family. Main.qml is the module entry point and has to stay
+# at the root; SurfaceHost.qml and ScreenPoints.qml sit beside it, holding the placement and panel
+# rules and the native-to-DIP mapping. Each family owns its window, its private parts and its
+# settings previews: bubble/, selection/ (with bodies/),
+# settings/ (pages/, previews/), pet/, panels/, capture/. dev/ holds the profiling scenario, and
+# components/ holds the cross-family pieces by role (chrome/, controls/, content/, preview/).
+# theme/ owns every table, from
+# TokenTable and the two live views to the five colour tables and the motion table. All of them
+# are the same QML module, so no group names another in an import: Qt gives every file in the
+# module an implicit import of its own types.
 # The module hangs off lens_app and not off the executable because of where the types the
 # surfaces talk to are declared. qt_add_qml_module registers the C++ types of the target it is
 # called on and only that target's; a class living in a linked static library stays invisible to
@@ -201,88 +205,90 @@ qt_add_qml_module(lens_app
     pet/pet_controller.h
   QML_FILES
     qml/Main.qml
-    qml/PetWindow.qml
-    qml/ReviewSignWindow.qml
-    qml/ReviewSignBoard.qml
-    qml/ReviewCard.qml
-    qml/ReviewSignLayout.qml
-    qml/ProfileScenario.qml
+    qml/SurfaceHost.qml
+    qml/pet/PetWindow.qml
+    qml/pet/ReviewSignWindow.qml
+    qml/pet/ReviewSignBoard.qml
+    qml/pet/ReviewCard.qml
+    qml/pet/ReviewSignLayout.qml
+    qml/dev/ProfileScenario.qml
     qml/ScreenPoints.qml
-    qml/PetScene.qml
-    qml/PetStage.qml
-    qml/PetPackageDialog.qml
-    qml/SpriteLayer.qml
-    qml/TrayMenu.qml
-    qml/SelectionBar.qml
-    qml/selectionbar/SelectionBarClassicBody.qml
-    qml/selectionbar/SelectionBarTabBody.qml
-    qml/selectionbar/SelectionBarHandBody.qml
-    qml/selectionbar/SelectionBarTagBody.qml
-    qml/selectionbar/SelectionBarFanBody.qml
-    qml/Bubble.qml
-    qml/Notice.qml
-    qml/UpdateCard.qml
-    qml/Mask.qml
-    qml/SettingsPopup.qml
-    qml/ThemePreview.qml
-    qml/VocabPreview.qml
-    qml/NotePreview.qml
-    qml/SelectionBarPreview.qml
-    qml/SettingsCategoryRow.qml
-    qml/SettingsLinkRow.qml
-    qml/SettingsCatalog.qml
-    qml/SettingsAboutPage.qml
-    qml/SettingsBudgetPage.qml
-    qml/SettingsFontPage.qml
-    qml/SettingsGeneralPage.qml
-    qml/SettingsLearningPage.qml
-    qml/SettingsCapturePage.qml
-    qml/SettingsModelPage.qml
-    qml/SettingsExtensionsPage.qml
-    qml/SettingsClipboardPage.qml
-    qml/SettingsConnectionPage.qml
-    qml/SettingsSyncPage.qml
-     qml/StatsPopup.qml
-     qml/WordsPopup.qml
-     qml/YearWordsPopup.qml
-     qml/RemovalQuestion.qml
-    qml/CostPopup.qml
-    qml/components/Tokens.qml
-    qml/components/TokenTable.qml
-    qml/components/PreviewSample.qml
-    qml/components/SurfaceTokens.qml
-    qml/components/GlassHost.qml
-    qml/components/GlassRule.qml
+    qml/pet/PetScene.qml
+    qml/settings/previews/PetStage.qml
+    qml/pet/PetPackageDialog.qml
+    qml/pet/SpriteLayer.qml
+    qml/panels/TrayMenu.qml
+    qml/selection/SelectionBar.qml
+    qml/selection/bodies/SelectionBarClassicBody.qml
+    qml/selection/bodies/SelectionBarTabBody.qml
+    qml/selection/bodies/SelectionBarHandBody.qml
+    qml/selection/bodies/SelectionBarTagBody.qml
+    qml/selection/bodies/SelectionBarFanBody.qml
+    qml/bubble/Bubble.qml
+    qml/panels/Notice.qml
+    qml/panels/UpdateCard.qml
+    qml/capture/Mask.qml
+    qml/settings/SettingsPopup.qml
+    qml/settings/previews/ThemePreview.qml
+    qml/settings/previews/VocabPreview.qml
+    qml/settings/previews/NotePreview.qml
+    qml/settings/previews/SelectionBarPreview.qml
+    qml/settings/SettingsCategoryRow.qml
+    qml/settings/SettingsLinkRow.qml
+    qml/settings/SettingsCatalog.qml
+    qml/settings/pages/SettingsAboutPage.qml
+    qml/settings/pages/SettingsBudgetPage.qml
+    qml/settings/pages/SettingsFontPage.qml
+    qml/settings/pages/SettingsGeneralPage.qml
+    qml/settings/pages/SettingsLearningPage.qml
+    qml/settings/pages/SettingsCapturePage.qml
+    qml/settings/pages/SettingsModelPage.qml
+    qml/settings/pages/SettingsExtensionsPage.qml
+    qml/settings/pages/SettingsClipboardPage.qml
+    qml/settings/pages/SettingsConnectionPage.qml
+    qml/settings/pages/SettingsSyncPage.qml
+     qml/panels/StatsPopup.qml
+     qml/panels/WordsPopup.qml
+    qml/panels/WordsListRow.qml
+     qml/panels/YearWordsPopup.qml
+     qml/panels/RemovalQuestion.qml
+    qml/panels/CostPopup.qml
+    qml/theme/Tokens.qml
+    qml/theme/TokenTable.qml
+    qml/components/preview/PreviewSample.qml
+    qml/theme/SurfaceTokens.qml
+    qml/components/chrome/GlassHost.qml
+    qml/components/chrome/GlassRule.qml
     qml/theme/Light.qml
     qml/theme/Dark.qml
     qml/theme/Motion.qml
     qml/theme/Frosted.qml
     qml/theme/Liquid.qml
     qml/theme/GlassOnDark.qml
-    qml/components/Icon.qml
-    qml/components/IconButton.qml
-    qml/components/ShadowCard.qml
-    qml/components/HeightHold.qml
-    qml/components/SurfaceFade.qml
-    qml/components/Segment.qml
-    qml/components/Switch.qml
-    qml/components/Chip.qml
-    qml/components/StepSlider.qml
-    qml/components/SwitchRow.qml
-    qml/components/StatRow.qml
-    qml/components/DropdownField.qml
-    qml/components/MenuRow.qml
-    qml/components/PathField.qml
-    qml/components/MixedText.qml
-    qml/components/RevealText.qml
-    qml/components/SenseRows.qml
-    qml/components/BubbleTitleRow.qml
-    qml/components/HotkeyField.qml
-    qml/components/GlassSurface.qml
-    qml/components/SliderRow.qml
-    qml/components/PreviewFrame.qml
-    qml/components/BubbleVerdictRow.qml
-    qml/components/BubbleHeaderActions.qml
+    qml/components/controls/Icon.qml
+    qml/components/controls/IconButton.qml
+    qml/components/chrome/ShadowCard.qml
+    qml/components/chrome/HeightHold.qml
+    qml/components/chrome/SurfaceFade.qml
+    qml/components/controls/Segment.qml
+    qml/components/controls/Switch.qml
+    qml/components/controls/Chip.qml
+    qml/components/controls/StepSlider.qml
+    qml/components/controls/SwitchRow.qml
+    qml/panels/StatRow.qml
+    qml/components/controls/DropdownField.qml
+    qml/panels/MenuRow.qml
+    qml/components/controls/PathField.qml
+    qml/components/content/MixedText.qml
+    qml/components/content/RevealText.qml
+    qml/components/content/SenseRows.qml
+    qml/bubble/BubbleTitleRow.qml
+    qml/components/controls/HotkeyField.qml
+    qml/components/chrome/GlassSurface.qml
+    qml/components/controls/SliderRow.qml
+    qml/components/preview/PreviewFrame.qml
+    qml/bubble/BubbleVerdictRow.qml
+    qml/bubble/BubbleHeaderActions.qml
 )
 
 # The icon art, addressed as :/icons/<name>.svg. BASE strips the source directory so the names

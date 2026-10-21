@@ -13,7 +13,7 @@ Window {
 
     /// The pet's window: the sign hangs from the pet's hand.
     required property var petWindow
-    /// The work area of the screen a point is on, in DIPs: Main.qml's workArea, so the sign and the answer stay on that screen.
+    /// The work area of the screen a point is on, in DIPs: SurfaceHost.qml's workArea, so the sign and the answer stay on that screen.
     required property var workAreaAt
 
     /// The word on the board, whether a question is up, and whether its hand has been chosen.
@@ -97,7 +97,7 @@ Window {
         relayout();
     }
 
-    /// The work area of the screen a point is on. workAreaAt is Main.qml's function handed in, which qmllint cannot type.
+    /// The work area of the screen a point is on. workAreaAt is SurfaceHost.qml's function handed in, which qmllint cannot type.
     function areaAt(point) {
         // qmllint disable use-proper-function
         return workAreaAt(point);

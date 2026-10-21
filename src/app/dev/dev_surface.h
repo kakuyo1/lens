@@ -7,7 +7,7 @@
  *
  * Compiled in only by LENS_ENABLE_DEV_SURFACE, and never shipped. The grammar and the shape of the answers are in
  * core/dev/dev_command.h; this class is what a command does. A surface command calls the function the surface already has
- * (Main.qml's showSettings(), the window's visible property), so a measurement runs the code the reader's click runs.
+ * (SurfaceHost.qml's showSettings(), the window's visible property), so a measurement runs the code the reader's click runs.
  */
 
 #include "core/dev/dev_command.h"
@@ -77,7 +77,9 @@ private:
     nlohmann::json state() const;
 
     /// @return The window carrying @p name as its object name, or nullptr when there is none.
-    QObject*      window(std::string const& name) const;
+    QObject* window(std::string const& name) const;
+    /// @return Main.qml's SurfaceHost, which owns the panel openers and hidePanels(), or nullptr when it is absent.
+    QObject*      panelHost() const;
     std::uint64_t paintedCount(std::string const& name) const;
     bool          conditionHolds(Waiting const& waiting) const;
 

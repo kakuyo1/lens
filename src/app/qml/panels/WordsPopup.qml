@@ -58,7 +58,7 @@ Window {
     width: cardWidth + 2 * shadowMargin
 
     /// The card is as tall as its list, and keeps that height while the question is up. It is
-    /// not re-sized to the question: `Main.placeBeside` puts the card's bottom edge on the tray
+    /// not re-sized to the question: `SurfaceHost.placeBeside` puts the card's bottom edge on the tray
     /// icon and nothing re-places a panel that changes size afterwards, so a card that shrank
     /// when the confirmation opened would leave the icon it was opened from behind. The question
     /// is centred in the height the list left instead, which reads as a card rather than as a
@@ -158,7 +158,7 @@ Window {
         question.dismiss();
     }
 
-    /// The question's card in screen coordinates, or null when it is not up. Main.qml's
+    /// The question's card in screen coordinates, or null when it is not up. SurfaceHost.qml.s
     /// outside-press rule reads it the way it reads the settings panel's open dropdown.
     readonly property var openChildRect: question.visible
         ? Qt.rect(question.x + question.shadowMargin, question.y + question.shadowMargin,
@@ -352,231 +352,10 @@ Window {
                     model: Controller.words
                     boundsBehavior: Flickable.StopAtBounds
 
-                    delegate: Item {
-                        id: entry
-                        required property var modelData
-
-                        width: words.cardWidth - 40
-
-                        /// What this row needs to draw itself whole: the card's padding, the word
-                        /// at its unelided width, the gap, and the right-hand cluster. The card is
-                        /// sized to the widest of these, so the row hands it over rather than
-                        /// having its text measured from outside.
-                        readonly property real naturalWidth: 40 + wordText.implicitWidth + 9 + side.width
-                        onNaturalWidthChanged: words.noteRowWidth(naturalWidth)
-                        Component.onCompleted: words.noteRowWidth(naturalWidth)
-
-                        /// Whether the filter above shows this word. It is the row's presence
-                        /// rather than a switch, which is what the height below animates.
-                        ///
-                        /// The verdict is compared by key, not by the translated label: the
-                        /// two would drift apart the moment a translation changed.
-                        readonly property bool inScope: words.filter === 0
-                                                        || (words.filter === 1 && modelData.verdict === "known")
-                                                        || (words.filter === 2 && modelData.verdict === "new")
-                        /// The cross was answered: the row closes before the model lets it go.
-                        readonly property bool removing: words.removingWords[modelData.word] === true
-                        readonly property bool shown: inScope && !removing
-
-                        // Rows arrive and leave by height, which is what the list lays out: a
-                        // model change rebuilds every delegate, so ListView's add/remove
-                        // transitions never run. `visible` follows the animation, not the
-                        // filter, so a row on its way out is still drawn while it collapses;
-                        // `clip` keeps its contents off the rows it is collapsing between.
-                        height: shown ? 31 : 0
-                        visible: shown || height > 0
-                        opacity: shown ? 1 : 0
-                        clip: true
-                        Behavior on height {
-                            NumberAnimation {
-                                duration: words.tokens.motion.pop
-                                easing.type: words.tokens.motion.easing
-                            }
-                        }
-                        Behavior on opacity {
-                            NumberAnimation {
-                                duration: words.tokens.motion.pop
-                                easing.type: words.tokens.motion.easing
-                            }
-                        }
-
-                        Timer {
-                            id: reviewDwell
-                            interval: 400
-                            onTriggered: {
-                                // 40 px up, not taste: the bubble's window carries
-                                // `Bubble.shadowMargin` (26) of transparent shadow and stands 10 px
-                                // off its anchor, so anchoring at the word would put the window's
-                                // edge back over it -- unhover, bubble down, word under the pointer
-                                // again, round and round.
-                                const at = wordText.mapToGlobal(0, -40);
-                                // The screen's scale on the way out because Main.qml anchors every
-                                // surface from the physical pixels the mouse hook reports; it comes
-                                // back exactly at this point, whatever the monitor's native origin.
-                                const ratio = Screen.devicePixelRatio || 1;
-                                Controller.reviewWord(entry.modelData.word, Math.round(at.x * ratio), Math.round(at.y * ratio));
-                            }
-                        }
-
-                        /// The row is going away -- a filter change rebuilds every delegate -- and
-                        /// a bubble it raised must not outlive it. It is the pointer leaving the
-                        /// row in every sense but the event: a destroyed delegate reports no
-                        /// un-hover.
-                        Component.onDestruction: Controller.explanationDuty.dismissReview()
-
-                        Text {
-                            id: wordText
-                            anchors.left: parent.left
-                            // The word takes what the right-hand side leaves. The card is sized
-                            // to the widest row, so this bites only past maxCardWidth: a word
-                            // longer than that elides rather than pushing the pills off the card.
-                            anchors.right: side.left
-                            anchors.rightMargin: 9
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: entry.modelData.word
-                            color: words.tokens.text
-                            font.family: words.englishFont
-                            font.pixelSize: 13
-                            elide: Text.ElideRight
-
-                            // Pointing at the word, not at the row it sits in: the rest of the row
-                            // is the metadata and the two verdict pills, and a reading is not what a
-                            // pointer crossing those is after. The word hands over the text it is
-                            // already drawing rather than a case looking it up in Controller.words
-                            // -- that walk measured ~170 ms a row (docs/QML.md section 6).
-                            HoverHandler {
-                                onHoveredChanged: {
-                                    if (hovered) {
-                                        // The dwell: a pointer crossing the list on its way
-                                        // somewhere else is not asking about every word it passes.
-                                        reviewDwell.restart();
-                                        return;
-                                    }
-                                    reviewDwell.stop();
-                                    Controller.explanationDuty.dismissReview();
-                                }
-                            }
-                        }
-
-                        Row {
-                            id: side
-                            anchors.right: parent.right
-                            anchors.verticalCenter: parent.verticalCenter
-                            spacing: 8
-
-                            // When the word was last shown, and how many times it has been.
-                            // Both are the same faint metadata, so they sit in one cluster
-                            // rather than as two more columns.
-                            Row {
-                                id: meta
-                                anchors.verticalCenter: parent.verticalCenter
-                                spacing: 6
-
-                                MixedText {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    value: words.whenLabel(entry.modelData)
-                                    color: words.tokens.faint
-                                    pixelSize: 11
-                                }
-
-                                MixedText {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    // The history is what the count is read from, and it is
-                                    // capped, so this is a floor once a word outlives it.
-                                    value: qsTr("%1×").arg(entry.modelData.pops)
-                                    color: words.tokens.faint
-                                    pixelSize: 11
-                                }
-                            }
-
-                            // The bubble's two verdict pills, in the same two shapes, with
-                            // this word's verdict filled instead of both being actions. A word
-                            // that was never marked leaves both plain, which is what it is.
-                            Row {
-                                anchors.verticalCenter: parent.verticalCenter
-                                spacing: 6
-
-                                Rectangle {
-                                    id: knownPill
-                                    readonly property bool current: entry.modelData.verdict === "known"
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: knownLabel.width + 13
-                                    height: 20
-                                    radius: words.tokens.radiusPill
-                                    color: current ? words.tokens.ink : words.tokens.panel2
-                                    border.width: 1
-                                    border.color: current ? words.tokens.ink : words.tokens.line
-                                    scale: knownTap.pressed ? 0.97 : 1.0
-                                    Behavior on scale {
-                                        NumberAnimation {
-                                            duration: words.tokens.motion.press
-                                            easing.type: words.tokens.motion.easing
-                                        }
-                                    }
-
-                                    Text {
-                                        id: knownLabel
-                                        anchors.centerIn: parent
-                                        text: qsTr("Known")
-                                        color: knownPill.current ? words.tokens.on : words.tokens.muted
-                                        font.pixelSize: 11
-                                        font.weight: Font.Bold
-                                    }
-
-                                    HoverHandler { cursorShape: Qt.PointingHandCursor }
-                                    TapHandler {
-                                        id: knownTap
-                                        onTapped: Controller.explanationDuty.mark(entry.modelData.word, true)
-                                    }
-                                }
-
-                                Rectangle {
-                                    id: newPill
-                                    readonly property bool current: entry.modelData.verdict === "new"
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: newLabel.width + 13
-                                    height: 20
-                                    radius: words.tokens.radiusPill
-                                    color: current ? words.tokens.ink : words.tokens.panel2
-                                    border.width: 1
-                                    border.color: current ? words.tokens.ink : words.tokens.line
-                                    scale: newTap.pressed ? 0.97 : 1.0
-                                    Behavior on scale {
-                                        NumberAnimation {
-                                            duration: words.tokens.motion.press
-                                            easing.type: words.tokens.motion.easing
-                                        }
-                                    }
-
-                                    Text {
-                                        id: newLabel
-                                        anchors.centerIn: parent
-                                        text: qsTr("New")
-                                        color: newPill.current ? words.tokens.on : words.tokens.muted
-                                        font.pixelSize: 11
-                                        font.weight: Font.Bold
-                                    }
-
-                                    HoverHandler { cursorShape: Qt.PointingHandCursor }
-                                    TapHandler {
-                                        id: newTap
-                                        onTapped: Controller.explanationDuty.mark(entry.modelData.word, false)
-                                    }
-                                }
-                            }
-
-                            // Centred on the row's own line like the two clusters beside it: left
-                            // to the Row it would sit on the row's first pixel and read high.
-                            IconButton {
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: 14
-                                height: 14
-                                source: "qrc:/icons/ui-close.svg"
-                                color: words.tokens.faint
-                                onTapped: words.requestRemoval(entry.modelData.word)
-                            }
-                        }
+                    delegate: WordsListRow {
+                        host: words
                     }
+
                 }
 
                 // The six-pixel scrollbar UI.md 4.8 asks for, drawn rather than imported so the

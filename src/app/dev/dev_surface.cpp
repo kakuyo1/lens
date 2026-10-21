@@ -233,9 +233,12 @@ nlohmann::json DevSurface::show(std::string const& surface)
     if (opener == kOpeners.end())
         return failure("surface show " + surface + ": no command opens it yet");
 
+    auto* const host = panelHost();
+    if (host == nullptr)
+        return failure("surface show " + surface + ": SurfaceHost is not present");
     bool const invoked = opener->takesFrom
-                             ? QMetaObject::invokeMethod(root_, opener->method, Q_ARG(QVariant, QVariant()))
-                             : QMetaObject::invokeMethod(root_, opener->method);
+                             ? QMetaObject::invokeMethod(host, opener->method, Q_ARG(QVariant, QVariant()))
+                             : QMetaObject::invokeMethod(host, opener->method);
     return invoked ? success() : failure("surface show " + surface + ": " + opener->method + " is not callable");
 }
 
@@ -251,7 +254,8 @@ nlohmann::json DevSurface::hide(std::string const& surface)
 nlohmann::json DevSurface::hideAll()
 {
     // The three calls a click outside makes: the panels, the bubble and the selection bar.
-    if (not QMetaObject::invokeMethod(root_, "hidePanels", Q_ARG(QVariant, QVariant())))
+    auto* const host = panelHost();
+    if (host == nullptr or not QMetaObject::invokeMethod(host, "hidePanels", Q_ARG(QVariant, QVariant())))
         return failure("surface hide-all: hidePanels is not callable");
     for (auto const* const name : {"bubble", "selectionBar"}) {
         if (auto* const surfaceWindow = window(name))
@@ -334,6 +338,11 @@ nlohmann::json DevSurface::state() const
 QObject* DevSurface::window(std::string const& name) const
 {
     return root_->findChild<QObject*>(QString::fromStdString(name), Qt::FindChildrenRecursively);
+}
+
+QObject* DevSurface::panelHost() const
+{
+    return root_->findChild<QObject*>(QStringLiteral("surfaceHost"), Qt::FindChildrenRecursively);
 }
 
 std::uint64_t DevSurface::paintedCount(std::string const& name) const

@@ -67,7 +67,7 @@ Window {
     /// The menu rows are only needed after the tray menu is first opened.
     property bool contentActive: false
 
-    /// The two panels the menu opens. Where a panel goes is Main.qml's business, so the menu
+    /// The two panels the menu opens. Where a panel goes is SurfaceHost.qml's business, so the menu
     /// asks for one rather than calling into the file that instantiated it: that file's `root`
     /// id does resolve at runtime, but nothing declares it and nothing checks it.
     signal statsRequested()

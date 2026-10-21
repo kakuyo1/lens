@@ -155,7 +155,7 @@ Window {
     ///
     /// The root does the placing because only it knows the screens: the card has to stay inside
     /// the work area of the screen the anchor is on, and this window cannot tell which that is.
-    /// Main.qml's placeTransient() answers it, on the side the reader chose or the other one when
+    /// SurfaceHost.qml's placeTransient() answers it, on the side the reader chose or the other one when
     /// the chosen side has no room, and the same call is made again once the text has settled.
     signal placementRequested(var payload)
 
@@ -252,7 +252,7 @@ Window {
             // while hidden would be half-way through its arrival on the first painted frame.
             // A visible bubble refreshing its contents is already at 1, so it does not move.
             bubble.surfaceShown = true;
-            // Showing a surface is two steps: see Main.qml placePanel() for why `visible` on its
+            // Showing a surface is two steps: see SurfaceHost.qml placePanel() for why `visible` on its
             // own can leave a topmost window under the taskbar.
             bubble.raise();
             bubble.updateCountdown();

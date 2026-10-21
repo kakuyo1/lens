@@ -107,7 +107,7 @@ Window {
     /// @return Whether the page had a question up, which this closed. Backing out waits for it, so one Escape answers it
     ///         and the next one backs out.
     /// How far the preview card keeps clear of this panel and of the screen's edges: the 8 px every
-    /// surface keeps (Main.qml's screenMargin).
+    /// surface keeps (SurfaceHost.qml's screenMargin).
     readonly property int previewMargin: 8
 
     /// @return This panel's own card, without the transparent margin its shadow is drawn in.
@@ -117,7 +117,7 @@ Window {
     }
 
     /// @return The work area of the screen this panel is on, in virtual DIPs: asked of Qt by device
-    ///         name, and its own geometry where the screen has none (Main.qml's workArea() for the
+    ///         name, and its own geometry where the screen has none (SurfaceHost.qml's workArea() for the
     ///         surfaces it places).
     function panelWorkArea() {
         // qmllint disable missing-property

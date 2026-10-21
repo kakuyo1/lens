@@ -1,0 +1,236 @@
+import QtQuick
+
+/**
+ * One row of the words list (UI.md 4.8): the word, when it was last shown, its tally, the two
+ * verdict pills and the cross that asks to remove it. A component rather than part of
+ * WordsPopup because that file sits at the QML size cap.
+ *
+ * @p host is the WordsPopup window: the row reads its tokens, filter, removal map and card
+ * width from it, and calls back for the width handshake and the removal request.
+ */
+Item {
+    id: entry
+    required property var modelData
+    required property var host
+
+    width: entry.host.cardWidth - 40
+
+    /// What this row needs to draw itself whole: the card's padding, the word
+    /// at its unelided width, the gap, and the right-hand cluster. The card is
+    /// sized to the widest of these, so the row hands it over rather than
+    /// having its text measured from outside.
+    readonly property real naturalWidth: 40 + wordText.implicitWidth + 9 + side.width
+    onNaturalWidthChanged: entry.host.noteRowWidth(naturalWidth)
+    Component.onCompleted: entry.host.noteRowWidth(naturalWidth)
+
+    /// Whether the filter above shows this word. It is the row's presence
+    /// rather than a switch, which is what the height below animates.
+    ///
+    /// The verdict is compared by key, not by the translated label: the
+    /// two would drift apart the moment a translation changed.
+    readonly property bool inScope: entry.host.filter === 0
+                                    || (entry.host.filter === 1 && modelData.verdict === "known")
+                                    || (entry.host.filter === 2 && modelData.verdict === "new")
+    /// The cross was answered: the row closes before the model lets it go.
+    readonly property bool removing: entry.host.removingWords[modelData.word] === true
+    readonly property bool shown: inScope && !removing
+
+    // Rows arrive and leave by height, which is what the list lays out: a
+    // model change rebuilds every delegate, so ListView's add/remove
+    // transitions never run. `visible` follows the animation, not the
+    // filter, so a row on its way out is still drawn while it collapses;
+    // `clip` keeps its contents off the rows it is collapsing between.
+    height: shown ? 31 : 0
+    visible: shown || height > 0
+    opacity: shown ? 1 : 0
+    clip: true
+    Behavior on height {
+        NumberAnimation {
+            duration: entry.host.tokens.motion.pop
+            easing.type: entry.host.tokens.motion.easing
+        }
+    }
+    Behavior on opacity {
+        NumberAnimation {
+            duration: entry.host.tokens.motion.pop
+            easing.type: entry.host.tokens.motion.easing
+        }
+    }
+
+    Timer {
+        id: reviewDwell
+        interval: 400
+        onTriggered: {
+            // 40 px up, not taste: the bubble's window carries
+            // `Bubble.shadowMargin` (26) of transparent shadow and stands 10 px
+            // off its anchor, so anchoring at the word would put the window's
+            // edge back over it -- unhover, bubble down, word under the pointer
+            // again, round and round.
+            const at = wordText.mapToGlobal(0, -40);
+            // The screen's scale on the way out because SurfaceHost.qml anchors every
+            // surface from the physical pixels the mouse hook reports; it comes
+            // back exactly at this point, whatever the monitor's native origin.
+            const ratio = Screen.devicePixelRatio || 1;
+            Controller.reviewWord(entry.modelData.word, Math.round(at.x * ratio), Math.round(at.y * ratio));
+        }
+    }
+
+    /// The row is going away -- a filter change rebuilds every delegate -- and
+    /// a bubble it raised must not outlive it. It is the pointer leaving the
+    /// row in every sense but the event: a destroyed delegate reports no
+    /// un-hover.
+    Component.onDestruction: Controller.explanationDuty.dismissReview()
+
+    Text {
+        id: wordText
+        anchors.left: parent.left
+        // The word takes what the right-hand side leaves. The card is sized
+        // to the widest row, so this bites only past maxCardWidth: a word
+        // longer than that elides rather than pushing the pills off the card.
+        anchors.right: side.left
+        anchors.rightMargin: 9
+        anchors.verticalCenter: parent.verticalCenter
+        text: entry.modelData.word
+        color: entry.host.tokens.text
+        font.family: entry.host.englishFont
+        font.pixelSize: 13
+        elide: Text.ElideRight
+
+        // Pointing at the word, not at the row it sits in: the rest of the row
+        // is the metadata and the two verdict pills, and a reading is not what a
+        // pointer crossing those is after. The word hands over the text it is
+        // already drawing rather than a case looking it up in Controller.words
+        // -- that walk measured ~170 ms a row (docs/QML.md section 6).
+        HoverHandler {
+            onHoveredChanged: {
+                if (hovered) {
+                    // The dwell: a pointer crossing the list on its way
+                    // somewhere else is not asking about every word it passes.
+                    reviewDwell.restart();
+                    return;
+                }
+                reviewDwell.stop();
+                Controller.explanationDuty.dismissReview();
+            }
+        }
+    }
+
+    Row {
+        id: side
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 8
+
+        // When the word was last shown, and how many times it has been.
+        // Both are the same faint metadata, so they sit in one cluster
+        // rather than as two more columns.
+        Row {
+            id: meta
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 6
+
+            MixedText {
+                anchors.verticalCenter: parent.verticalCenter
+                value: entry.host.whenLabel(entry.modelData)
+                color: entry.host.tokens.faint
+                pixelSize: 11
+            }
+
+            MixedText {
+                anchors.verticalCenter: parent.verticalCenter
+                // The history is what the count is read from, and it is
+                // capped, so this is a floor once a word outlives it.
+                value: qsTr("%1×").arg(entry.modelData.pops)
+                color: entry.host.tokens.faint
+                pixelSize: 11
+            }
+        }
+
+        // The bubble's two verdict pills, in the same two shapes, with
+        // this word's verdict filled instead of both being actions. A word
+        // that was never marked leaves both plain, which is what it is.
+        Row {
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 6
+
+            Rectangle {
+                id: knownPill
+                readonly property bool current: entry.modelData.verdict === "known"
+                anchors.verticalCenter: parent.verticalCenter
+                width: knownLabel.width + 13
+                height: 20
+                radius: entry.host.tokens.radiusPill
+                color: current ? entry.host.tokens.ink : entry.host.tokens.panel2
+                border.width: 1
+                border.color: current ? entry.host.tokens.ink : entry.host.tokens.line
+                scale: knownTap.pressed ? 0.97 : 1.0
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: entry.host.tokens.motion.press
+                        easing.type: entry.host.tokens.motion.easing
+                    }
+                }
+
+                Text {
+                    id: knownLabel
+                    anchors.centerIn: parent
+                    text: qsTr("Known")
+                    color: knownPill.current ? entry.host.tokens.on : entry.host.tokens.muted
+                    font.pixelSize: 11
+                    font.weight: Font.Bold
+                }
+
+                HoverHandler { cursorShape: Qt.PointingHandCursor }
+                TapHandler {
+                    id: knownTap
+                    onTapped: Controller.explanationDuty.mark(entry.modelData.word, true)
+                }
+            }
+
+            Rectangle {
+                id: newPill
+                readonly property bool current: entry.modelData.verdict === "new"
+                anchors.verticalCenter: parent.verticalCenter
+                width: newLabel.width + 13
+                height: 20
+                radius: entry.host.tokens.radiusPill
+                color: current ? entry.host.tokens.ink : entry.host.tokens.panel2
+                border.width: 1
+                border.color: current ? entry.host.tokens.ink : entry.host.tokens.line
+                scale: newTap.pressed ? 0.97 : 1.0
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: entry.host.tokens.motion.press
+                        easing.type: entry.host.tokens.motion.easing
+                    }
+                }
+
+                Text {
+                    id: newLabel
+                    anchors.centerIn: parent
+                    text: qsTr("New")
+                    color: newPill.current ? entry.host.tokens.on : entry.host.tokens.muted
+                    font.pixelSize: 11
+                    font.weight: Font.Bold
+                }
+
+                HoverHandler { cursorShape: Qt.PointingHandCursor }
+                TapHandler {
+                    id: newTap
+                    onTapped: Controller.explanationDuty.mark(entry.modelData.word, false)
+                }
+            }
+        }
+
+        // Centred on the row's own line like the two clusters beside it: left
+        // to the Row it would sit on the row's first pixel and read high.
+        IconButton {
+            anchors.verticalCenter: parent.verticalCenter
+            width: 14
+            height: 14
+            source: "qrc:/icons/ui-close.svg"
+            color: entry.host.tokens.faint
+            onTapped: entry.host.requestRemoval(entry.modelData.word)
+        }
+    }
+}

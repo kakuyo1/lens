@@ -5,25 +5,36 @@
 
 ## 1 模块与目录
 
-`src/app/qml/` 根下是各个表面 `Window` 加一个 `Mask.qml`——它不是窗口而是窗口的宿主，每块屏幕一个
-（见 §2 与 `UI.md` 4.11）；`src/app/qml/components/` 下是可复用件
-（`Icon` / `ShadowCard` / `HeightHold` / `Tokens` / `MixedText` / `Segment` / `StatRow` /
-`MenuRow` / `DropdownField` / `Switch` / `SwitchRow` / `PathField` / `HotkeyField` /
-`RevealText` / `SenseRows` / `BubbleVerdictRow` / `BubbleHeaderActions`），`src/app/qml/selectionbar/` 下是动作条的五个身体——经典长条、页边签、
-手牌签、吊牌签、扇面。它们不是可复用件：同一个表面按读者设置换一具身体，拆开是为了不让 `SelectionBar.qml`
-逼近 32768 字符的上限，五个身体各自只认识自己那一种形态。`src/app/qml/theme/` 下是三套主题
-各一份色值表（`Light` / `Dark`）加一份动效表（`Motion`）。三组同属一个 QML 模块（`qt_add_qml_module` 的
-`QML_FILES` 里写子目录路径即可），Qt 给模块内每个文件隐式导入本模块的类型，**跨目录照样按类型名解析，
-谁也不需要写 import**。
+`src/app/qml/` 按表面家族分组：`bubble/`、`selection/`（`bodies/` 是动作条的五个身体）、`settings/`
+（`pages/` 是十一个设置页，`previews/` 是设置页里嵌的预览）、`pet/`（宠物窗口、复习牌与宠物包确认）、
+`panels/`（托盘菜单、统计 / 词汇 / 年度 / 花费面板、通知与更新卡；`WordsListRow` 是词汇列表的行）、
+`capture/`（取词蒙版）。一个家族
+目录放它的窗口、只属于它的内部件、只给它用的预览。`dev/` 放 `ProfileScenario.qml`，它是 profiling 的
+自动化，不是产品行为。根下只留 `Main.qml`（`loadFromModule("Lens", "Main")` 的入口）、
+`SurfaceHost.qml`（放置、接力与外部点击的规则）与 `ScreenPoints.qml`（原生像素到 DIP 的换算）。
 
-值表既不是表面也不是组件：`Tokens` 把 `Light` / `Dark` 两份都建出来，按 `dark` 取一份，逐令牌转发
-到同名属性上——表面读的还是 `Tokens.<token>`，换主题仍是一次赋值。色值因此只写进 `theme/`，加第三个
-主题是那里多一个文件、`Tokens` 多一臂；为什么不放在 `Tokens` 里见 `docs/adr/0007`。动效表同路进来
-（`Tokens.motion.<token>`），见 §9。
+`src/app/qml/components/` 只放一个以上表面家族都用得到的件，并按角色分四组：`chrome/`（玻璃、阴影、淡入
+淡出、高度保持）、`controls/`（图标、按钮、开关、滑块、下拉、路径与热键输入）、`content/`（混排文字、逐字
+揭示、释义行）、`preview/`（预览框与样例数据）。只被一个家族使用的件跟着家族走——`BubbleTitleRow` /
+`BubbleVerdictRow` / `BubbleHeaderActions` 在 `bubble/`，`MenuRow` / `StatRow` 在 `panels/`。
 
-判据取 “是不是窗口” 而非 “被几处用到”：`Switch` / `MenuRow` / `DropdownField` 今天各只被一处使用，
-它们仍是组件，而按使用次数切会把同类东西拆到两边。十个搬走的文件里没有一处 `qsTr`（文案一律由表面
-传入），所以两份 `.ts` 一行未动。
+`selection/bodies/` 下是动作条的五个身体——经典长条、页边签、手牌签、吊牌签、扇面。它们不是可复用件：
+同一个表面按读者设置换一具身体，拆开是为了不让 `SelectionBar.qml` 逼近 32768 字符的上限，五个身体各自
+只认识自己那一种形态。
+
+`src/app/qml/theme/` 拥有全部值表：基表 `TokenTable`、单例 `Tokens`、每窗一份的 `SurfaceTokens`，以及
+`Light` / `Dark` / `Frosted` / `Liquid` / `GlassOnDark` 五份色值与 `Motion` 动效表。各组同属一个 QML
+模块（`qt_add_qml_module` 的 `QML_FILES` 里写子目录路径即可），Qt 给模块内每个文件隐式导入本模块的类型，
+**跨目录照样按类型名解析，谁也不需要写 import**。
+
+值表既不是表面也不是组件：`TokenTable` 建出五份色值表与动效表，`Tokens` 是转发存储主题的单例，每个表面
+窗口再持一份 `SurfaceTokens`——表面读的还是 `Tokens.<token>` / `SurfaceTokens.<token>`，换主题仍是一次
+赋值。色值因此只写进 `theme/`，加一个主题是那里多一个文件、`TokenTable` 多一臂；为什么不放在 `Tokens`
+里见 `docs/adr/0007`。动效表同路进来（`Tokens.motion.<token>`），见 §9。
+
+判据是 “属于哪个表面家族” 与 “是否跨家族使用”，不是单纯的文件类型或使用次数。`Switch` / `DropdownField`
+只被少数几处用到，仍留在 `components/`，因为它们的读者是多个家族；`MenuRow` 只服务托盘菜单，就跟着
+`TrayMenu` 进 `panels/`。
 
 **单个 `.qml` 文件不得超过 32768 字符**（实测：32767 字符能解析，32768 就报 `Invalid argument`）。这条限制
 来自 CI 与 `docs/metrics/` 共用的那份 `tree-sitter`（`package.json` 里 pin 的 0.21.1），与文件内容无关；
@@ -59,7 +70,7 @@
 - **显示一张表面是两步**：`visible = true` 不够，还要 `raise()`。实机反馈是托盘菜单被任务栏压住一角
   ——`placePanel` 把卡片的右下角对齐图标中心，卡片下缘本就在 48 DIP 任务栏里进了一半，而点托盘图标
   会把任务栏**激活**，它同样是置顶窗口且会把自己重新提到置顶带顶端，于是刚显示出来的面板落在它下面。
-  显示路径（`Main.qml` 的 `placePanel`、`Main.qml` 里选区动作条那条、`Bubble.show`）都补上 `raise()`，
+  显示路径（`SurfaceHost.qml` 的 `placePanel`、`SurfaceHost.qml` 的 `placeSelectionBar()`、`Bubble.show`）都补上 `raise()`，
   没有共用的辅助函数：每处各自只有这一行，为它造一个上下文属性不划算。动作条那条**显示在放置之后**：
   先 `placeTransient()` 定好位置，再 `visible = true`，否则窗口会先在它上次待的地方亮一帧。这改的是**谁在上面**。摆哪儿也改了：`placeBeside` 与 `placeTransient` 按所在屏的工作区夹取，工作区由 `AppController::screenWorkArea` 从 `QScreen::availableGeometry()` 按设备名取，不用 `Screen.desktopAvailable*`：竖屏上它给出的是主屏的尺寸（1536×864），不是这块屏自己的（1152×2048）。早先按整屏夹，任务栏会盖住面板的下缘。
 - **点击外部关闭靠钩子**：表面各是独立 `Window`，落在别的窗口上的按下根本不会送进本进程，只有低层
@@ -98,12 +109,12 @@
 
 - **贴合按卡片算，不按窗口**：每个表面都是卡片加四边各 26 px 透明阴影边距的窗口，早先拿窗口去贴锚点，
   卡片实际偏出一个边距（气泡纵向还多偏一个 gap），看着就是没贴住选区。气泡与动作条的 `placeTransient()`
-  现在把 `shadowMargin` 减掉再算。定位与边缘检测合成一处（`Main.qml` 的 `placeBeside()`：把卡片的右下角放在
+  现在把 `shadowMargin` 减掉再算。定位与边缘检测合成一处（`SurfaceHost.qml` 的 `placeBeside()`：把卡片的右下角放在
   图标**中心**，按锚点所在那屏把窗口整块夹进屏内，上方放不下就翻到下方）；四张面板的 `openNear` 与
   `TrayMenu.openAt` 因此全部删掉，菜单与面板走同一条路。
 - **气泡与动作条同侧**：两张卡片都由 “选区完成” 这一个手势触发，故都往选区的**上方**排，上方空间不足
   时才下移。气泡原规格是挂在锚点**下方**，动作条在**上方**，同一个手势引出的两张卡片一上一下，读起来
-  是两件不相干的东西各自乱落。两张卡片的翻转都在 `Main.qml` 的 `placeTransient()` 里，以所在屏工作区的顶边为界。
+  是两件不相干的东西各自乱落。两张卡片的翻转都在 `SurfaceHost.qml` 的 `placeTransient()` 里，以所在屏工作区的顶边为界。
   早先拿屏幕绝对坐标 0 当上边界，副屏在负 y 时选区一律翻到下方。
 - **锚点是物理像素，窗口坐标不是**：钩子拿到的 `pt` 从不虚拟化，而 QML 窗口落在设备无关像素上，两者差
   一个 `devicePixelRatio`（本机 125% 实测：物理 x=275 的松手位置，窗口坐标是 220）；按 1:1 直接用，
@@ -115,7 +126,7 @@
 - 原先 `toDip` 与 `screenForPhysical` 把原点也乘了缩放，只有原点为零的屏幕才对。这块屏上每个点因此偏 512 DIP，动作条与气泡落在选中文字下方约 640 物理像素处，点击判定又用的是错位的卡片矩形，动作条一按就关。现在 `dipOn()` 按原点换算，与摆放的映射互逆；`screenForPhysical` 的边界也不再乘缩放。
 - 只在这一种布局（主屏原点为零、竖屏在上方）上实测过，主屏右侧或缩放不同的副屏未测。回归用例是 `tst_main` 的 `test_aPortraitScreenAboveThePrimaryConvertsFromItsOrigin`。
 - **按设备名查屏幕，空名字不算名字**：QTest 的 offscreen 平台主屏没有名字，尺寸是 800×800。`AppController::screenWorkArea("")` 原先会匹配到它，把 800×800 交给只有 `width/height` 的假屏幕，`tst_phase2e` 的窄屏用例因此失败。现在空名返回空矩形，调用方回退到自己的几何。
-- **物理 → 设备无关那次换算要造新对象**：`Main.qml` 的 `toDip()` 原形如 `payload.x = payload.x / ratio`，
+- **物理 → 设备无关那次换算要造新对象**：`ScreenPoints.qml` 的 `toDip()` 原形如 `payload.x = payload.x / ratio`，
   而 `payload` 是 `controller.bubble` 这类 `QVariantMap` 属性交出来的 JS 对象——**赋值被接受、读回来
   还是旧值**。实测（临时 `console.log`，已删）：`toDip` 里 `ratio=1.25`、`in=936,248`，同一对象走到
   `Bubble.show()` 里仍是 `936,248`。所以自这条注记写下起，每个表面都落在 1.25 倍的目标位置上：气泡跑到
@@ -141,7 +152,7 @@
 - **主屏的任务栏是自动隐藏的**，`GetSystemMetrics(0/1)` 只给主屏尺寸；要整块虚拟桌面得用 76 / 77 / 78 / 79
   四个索引。
 
-- **表面长大后要重新夹一次**：气泡的动作行展开、面板的列表加载，都发生在摆好之后。窗口的左上角不动，下缘或右缘就越过了工作区。`Main.qml` 的 `keepOnScreen()` 挂在气泡、设置与托盘菜单的 `onWidthChanged` / `onHeightChanged` 上，只做夹取。不能拿锚点重摆：那会把读者拖走的面板摆回原处。
+- **表面长大后要重新夹一次**：气泡的动作行展开、面板的列表加载，都发生在摆好之后。窗口的左上角不动，下缘或右缘就越过了工作区。`SurfaceHost.qml` 的 `keepOnScreen()` 挂在气泡、设置与托盘菜单的 `onWidthChanged` / `onHeightChanged` 上，只做夹取。不能拿锚点重摆：那会把读者拖走的面板摆回原处。
 - **统计一组钉住右下角**：统计、花费、词汇、年度记录改挂 `holdCorner()`，长大时保持右下角不动，夹取只作兜底。它凭上一次摆放记下的尺寸算出右下角；拖动只动位置、不动尺寸，所以拖开过的面板仍钉在它被拖到的那一角。
 - **接力摆放**：子面板从被替换的那张的右下角摆（`anchorFrom(from)`），不从托盘重摆；托盘菜单打开统计时取托盘菜单的右下角。代价：屏幕布局变化时，子面板还停在打开它那一刻的角上，直到下次打开。
 - **切换是交叠，不是先收后开**：被替换的窗口由 `hidePanels(except)` 设 `leaving`，`ShadowCard` 的 `shown` 随之为假，卡片淡出；窗口由 `ShadowCard` 里一个与淡出等长的 `Timer` 收起，而不是等动画的 `finished`：淡入还没完就被替换时，透明度已经在终点，`Behavior` 不启动，`finished` 永远不来，窗口会一直以透明状态拦截点击。`except`（即将打开的那张）的 `leaving` 同一处清掉，计时器停下，淡出中途召回则从当前透明度反向淡入。动画时长为 0 时 `hidePanels` 直接收起，不留一个透明却拦点击的窗口。
@@ -234,21 +245,22 @@ PY
 
 - **`Window.screen` 的成员它当作 `QObject`**：`virtualX` / `width` / `devicePixelRatio` 一律报
   `missing-property`。改用 `Screen` attached 类型它就认得。本机实测（125%，两块屏）：`win.screen.virtualX`
-  与 `Screen.virtualX` 都是 0、`width` 都是 1536、`devicePixelRatio` 都是 1.25——取的是同一个屏，所以
-  `Main.qml` 的 `trayAnchor()` / `toDip()` 都用 `Screen`。
+  与 `Screen.virtualX` 都是 0、`width` 都是 1536、`devicePixelRatio` 都是 1.25——取的是同一个屏。这些函数
+  搬出 `Main.qml` 后，屏幕以 `var` 属性或 `dipOn()` 的参数传入，qmllint 不再按 `Window.screen` 的成员类型
+  检查它们；`dipOn()` 仍保留那圈 `missing-property` 豁免。
 - **`Qt.application.screens` 它完全看不见**：真实对象上是 QScreen 列表，QtQml 的类型信息里没有这个成员。
-  没有等价写法，`Main.qml` 的 `screenFor()` 用 `// qmllint disable missing-property` 把那一个 `for` 豁免掉。
+  没有等价写法，`SurfaceHost.qml` 的 `screenFor()` 用 `// qmllint disable missing-property` 把那一个 `for` 豁免掉。
 - **delegate 的 `modelData` / `index` 分两层**：delegate 根自己的绑定可以直接写，**嵌套子项**（`Text` /
   `Rectangle` / `TapHandler`）里必须写成 `<delegate 的 id>.modelData`，所以带 required 属性的 delegate 根都得
   有 id。`pragma ComponentBehavior: Bound` 管的是另一件事——跨组件读外层 id（`root` / `list` / `menu` 这类），
   它**不**让嵌套子项看见根上的 required 属性。只加 pragma 只消掉后者：本桶实测 70 → 55，剩下的 15 条全是
   嵌套子项读根上的属性。
-- **一个名字在外层文件里 “能用” 不等于被声明**：文件级组件的上下文挂在创建它的上下文上，于是
-  `TrayMenu.qml` 里的 `root.showStats()` 会解析到 `Main.qml` 的根（两文件探针实测）。它能跑，但没有任何地方
-  声明它，qmllint 对这种名字只给一句 `Unqualified access`、不说该怎么办。表面之间的通信因此走信号：
-  `TrayMenu` 现在发 `statsRequested` / `settingsRequested`，由 `Main.qml` 接。
+- **一个名字在外层文件里 “能用” 不等于被声明**：文件级组件的上下文挂在创建它的上下文上，于是子组件里一个
+  裸的 `root.showStats()` 会解析到 `Main.qml` 的根（两文件探针实测）。它能跑，但没有任何地方声明它，qmllint
+  对这种名字只给一句 `Unqualified access`、不说该怎么办。表面之间的通信因此走信号：`TrayMenu` 现在发
+  `statsRequested` / `settingsRequested`，`Main.qml` 接住后交给 `SurfaceHost.showStats()`。
 
-- **新加的 `Q_INVOKABLE` 不一定立刻被 qmllint 认出**：`AppController::screenWorkArea` 加进头文件并构建后，`lens_app.qmltypes` 里已经有它，qmllint 仍报 `missing-property`。原因没有查清；`Main.qml` 的 `workArea()` 因此用 `disable` / `enable` 包住，与 `screenFor()` 同一做法。
+- **新加的 `Q_INVOKABLE` 不一定立刻被 qmllint 认出**：`AppController::screenWorkArea` 加进头文件并构建后，`lens_app.qmltypes` 里已经有它，qmllint 仍报 `missing-property`。原因没有查清；`SurfaceHost.qml` 的 `workArea()` 因此用 `disable` / `enable` 包住，与 `screenFor()` 同一做法。
 
 ## 9 动效
 

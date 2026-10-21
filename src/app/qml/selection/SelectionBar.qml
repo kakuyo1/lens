@@ -41,11 +41,11 @@ Window {
         return ["bar", "tab", "hand", "tag", "fan"].indexOf(value) >= 0 ? value : "bar";
     }
 
-    /// The tab's side and the tag's string edge, chosen by Main.qml before the bar is placed.
+    /// The tab's side and the tag's string edge, chosen by SurfaceHost.qml before the bar is placed.
     property bool sideLeft: false
     property bool tagAbove: false
 
-    /// The selection the actions apply to, set by Main.qml before it places and shows the bar.
+    /// The selection the actions apply to, set by SurfaceHost.qml before it places and shows the bar.
     property string selectionText: ""
     property string selectionKind: "word"
 
