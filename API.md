@@ -92,6 +92,8 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 | `etymology` | string | 词源，一句话，语言跟随解释语言；**可选**：仅词源开关打开时才请求，缩写等来历不明的词没有 |
 | `example` | string | 例句，一句英文，使用该词；**可选**：仅例句开关打开时才请求，且始终为英文（不随解释语言） |
 | `senses` | array | 多义结果，按频率降序；每项含 `en`、`zh`，并在 `es` / `ja` 下含 `translation`，最多保留 3 项 |
+| `signpost` | string | 义项路标，两到四个英文词，给释义链的下一层用；**可选**：没有简短路标的词缺席，卡片不画 |
+| `collocations` | array of string | 最多两个常用搭配，词写作 `~`；**可选**：缺席或为空时脚注不画，超出两项的部分丢弃 |
 
 `etymology` 的开关落在提示词上：`request.word.json` 的 `etymologyPrompt` 给出句子与 JSON 示例里的字段片段，模板用 `{etymologyNote}` 与 `{etymologyField}` 两处占位符接住，代码按开关填入或填成空串——关闭时提示词与没有这个字段时逐字相同，因此单义与多义两份模板各一份就够，不必为 “开 / 关 × 单义 / 多义” 维护四份重复文本。字段不进 `required`：关闭时本就不发，来了也按可选处理。
 

@@ -4,39 +4,52 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="454"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="482"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="454"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="482"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="453"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="481"/>
         <source>Sentence</source>
         <translation>句子</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="452"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="480"/>
         <source>Preview</source>
         <translation>预览</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="561"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="596"/>
         <source>Etymology</source>
         <translation>词源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="600"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="635"/>
         <source>Example</source>
         <translation>例句</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="638"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="673"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒后自动消失</translation>
+    </message>
+</context>
+<context>
+    <name>BubbleChainPanel</name>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="203"/>
+        <source>Explaining %1…</source>
+        <translation>正在解释 %1…</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="215"/>
+        <source>This word could not be explained.</source>
+        <translation>这个词没能解释。</translation>
     </message>
 </context>
 <context>
@@ -1923,22 +1936,22 @@
         <translation>每 1–2 小时</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="233"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="245"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>当前解释语言下没有已存的释义。</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="235"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="247"/>
         <source>Explain now</source>
         <translation>现在解释</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="341"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="410"/>
         <source>Explaining…</source>
         <translation>正在解释…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="446"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="525"/>
         <source>Request failed</source>
         <translation>请求失败</translation>
     </message>
@@ -2005,12 +2018,12 @@
 <context>
     <name>lens::llm</name>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="503"/>
+        <location filename="../src/llm/llm_pure.cpp" line="510"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>模型返回的内容不是一个 JSON 对象。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="509"/>
+        <location filename="../src/llm/llm_pure.cpp" line="516"/>
         <source>The model&apos;s answer carries no choices.</source>
         <translation>模型返回的内容里没有 choices。</translation>
     </message>
@@ -2040,18 +2053,18 @@
         <translation>results 里有一项不是对象。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="404"/>
+        <location filename="../src/llm/llm_pure.cpp" line="411"/>
         <source>A results entry has an empty field (title=%1).</source>
         <translation>results 里有一项字段为空（title=%1）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="455"/>
+        <location filename="../src/llm/llm_pure.cpp" line="462"/>
         <source>The model echoed the same title twice: %1.</source>
         <translation>模型重复回显了同一个标题：%1。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="437"/>
-        <location filename="../src/llm/llm_pure.cpp" line="462"/>
+        <location filename="../src/llm/llm_pure.cpp" line="444"/>
+        <location filename="../src/llm/llm_pure.cpp" line="469"/>
         <source>The model echoed %1 result(s) for the %2 that were asked for.</source>
         <translation>请求了 %2 项，模型回显了 %1 项。</translation>
     </message>
@@ -2061,13 +2074,13 @@
         <translation>results 中有一项不符合响应 schema。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="387"/>
-        <location filename="../src/llm/llm_pure.cpp" line="398"/>
+        <location filename="../src/llm/llm_pure.cpp" line="394"/>
+        <location filename="../src/llm/llm_pure.cpp" line="405"/>
         <source>The requested explanation language is missing.</source>
         <translation>缺少请求的解释语言。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="473"/>
+        <location filename="../src/llm/llm_pure.cpp" line="480"/>
         <source>The model never echoed &quot;%1&quot;.</source>
         <translation>模型没有回显 “%1”。</translation>
     </message>

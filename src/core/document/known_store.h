@@ -51,7 +51,10 @@ struct WordCache {
     std::string                translation;
     std::string                etymology;
     std::optional<std::string> example;
-    std::vector<CachedSense>   senses;
+    /// Optional, like the origin: an entry bought before the chain existed has none, and offers no chain step.
+    std::string              signpost;
+    std::vector<std::string> collocations;
+    std::vector<CachedSense> senses;
 };
 
 /**

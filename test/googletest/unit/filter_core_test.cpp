@@ -300,6 +300,33 @@ TEST_F(CoreTest, ClassifiesTitleCaseAndAcronymPhrasesAsEntities)
     EXPECT_NE(mixedSentence.kind, lens::core::SelectionKind::Entity);
 }
 
+TEST_F(CoreTest, DefinitionLinksOfferWordsAboveTheBandAndUnlistedOnes)
+{
+    // "knack" ranks far above the cut-off; "a", "for" and "others" sit inside it and stay plain.
+    const auto above = lens::core::definitionLinks("a knack for noticing what others miss", 4000);
+    ASSERT_EQ(above.size(), 1u);
+    EXPECT_EQ(above.front().lemma, "knack");
+    EXPECT_EQ(above.front().start, 2u);
+    EXPECT_EQ(above.front().end, 7u);
+
+    // Offsets are bytes: the em dash is three of them. The word is not in the list, so it is offered.
+    const auto unlisted = lens::core::definitionLinks("\xe2\x80\x94 tintinnabulate", 4000);
+    ASSERT_EQ(unlisted.size(), 1u);
+    EXPECT_EQ(unlisted.front().lemma, "tintinnabulate");
+    EXPECT_EQ(unlisted.front().start, 4u);
+    EXPECT_EQ(unlisted.front().end, 18u);
+
+    // The cut-off is inclusive: a word ranked exactly at it is inside the band. "miss" is its own lemma (rank 274).
+    EXPECT_TRUE(lens::core::definitionLinks("miss", 274).empty());
+    EXPECT_EQ(lens::core::definitionLinks("miss", 273).size(), 1u);
+}
+
+TEST_F(CoreTest, RankForLevelClampsToTheTable)
+{
+    EXPECT_EQ(lens::core::rankForLevel(0), 4000u);
+    EXPECT_EQ(lens::core::rankForLevel(99), 12000u);
+}
+
 TEST_F(KnownStoreTest, FreshStoreHoldsTheDocumentedDefaults)
 {
     const auto store = KnownStore::load(path);
@@ -342,6 +369,20 @@ TEST_F(KnownStoreTest, SurvivesASaveAndReload)
     EXPECT_EQ(hit->ipa, "/juːˈbɪkwɪtəs/") << "the pronunciation did not survive the round trip";
     EXPECT_EQ(hit->en, "existing everywhere");
     EXPECT_EQ(hit->zh, "无处不在的");
+}
+
+TEST_F(KnownStoreTest, ChainLabelAndCollocationsSurviveASaveAndReload)
+{
+    writeSeededStore();
+
+    auto store = KnownStore::load(path);
+    store.cachePut("ubiquitous", {.ipa = "/juːˈbɪkwɪtəs/", .en = "existing everywhere", .zh = "无处不在的", .signpost = "found everywhere", .collocations = {"~ presence", "~ in cities"}}, {.language = "en"});
+    store.save();
+
+    const auto hit = KnownStore::load(path).cacheGet("ubiquitous", {.language = "en"});
+    ASSERT_TRUE(hit.has_value());
+    EXPECT_EQ(hit->signpost, "found everywhere");
+    EXPECT_EQ(hit->collocations, (std::vector<std::string>{"~ presence", "~ in cities"}));
 }
 
 /// An entry written before the ipa field existed has no key, so it reads as empty rather than as

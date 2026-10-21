@@ -33,6 +33,12 @@ Repeater {
     /// card decides the scale and the block follows it: the senses are part of one answer, not a
     /// surface with a size of its own.
     property real scale: 1
+    /// The tint of a tappable word's line, and the tint a hovered word takes (ChainText).
+    property color markColor: "gray"
+    property color hoverColor: "transparent"
+
+    /// The reader tapped a word of a sense's English line: the card's definition chain takes it.
+    signal wordTapped(string lemma)
 
     /// True while any line of any row is still being written out.
     readonly property bool revealing: {
@@ -69,7 +75,7 @@ Repeater {
             color: root.separatorColor
         }
 
-        RevealText {
+        ChainText {
             id: senseEnglishText
             objectName: "senseEnglish"
             visible: text !== ""
@@ -83,6 +89,10 @@ Repeater {
             family: root.family
             pixelSize: Math.round(13 * root.scale)
             lineHeight: 1.55
+            spans: senseRow.modelData.spans || []
+            markColor: root.markColor
+            hoverColor: root.hoverColor
+            onWordTapped: lemma => root.wordTapped(lemma)
         }
 
         RevealText {

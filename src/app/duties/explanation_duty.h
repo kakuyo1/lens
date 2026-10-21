@@ -86,6 +86,13 @@ public:
     Q_INVOKABLE void dismissBubble();
     Q_INVOKABLE void dismissNotice();
     /**
+     * @brief Ask for one step of the definition chain: the word the reader tapped on the standing card.
+     *
+     * The answer comes back through chainAnswered(), or chainFailed() when it cannot. It is drawn on the chain
+     * under the card and never on the card itself, and only while the card still stands on the same word.
+     */
+    Q_INVOKABLE void explainChainWord(QString lemma);
+    /**
      * @brief Put a reason card up where no explanation can be.
      * @param title  What the notice is about.
      * @param body   Reader-facing reason, already translated.
@@ -108,6 +115,10 @@ signals:
     void statsChanged();
     /// @brief What the desktop pet should react to: a request, a bubble coming or going, a verdict. Carries no text.
     void petEvent(lens::core::pet::PetEvent event);
+    /// @brief One step of the definition chain is ready. Carries the entry the card's chain draws.
+    void chainAnswered(QVariantMap entry);
+    /// @brief A chain step could not be answered. The card stays as it was.
+    void chainFailed(QString lemma);
 
 private:
     void explain(PendingSelection const& pending);
@@ -154,8 +165,14 @@ private:
     /// @brief Whether the reader wants an example sentence. Read when a request goes out, and again
     ///        when the card is drawn: a stored entry without one is a miss while it is on (docs/adr/0033).
     bool exampleEnabled() const;
-    void clearBubble();
-    void clearNotice();
+    /// @return Whether the card still stands on the word a chain step was asked from.
+    bool chainStanding(PendingSelection const& selection) const;
+    /// @return The chain entry for one answered step, in the explanation language, with its links.
+    QVariantMap chainEntry(llm::Explanation const& explanation, core::CacheContext const& context) const;
+    /// @return The words of an English definition the chain offers, as the UTF-16 spans ChainText draws with.
+    QVariantList spansOf(QString const& text) const;
+    void         clearBubble();
+    void         clearNotice();
 
     StorageDuty&    storage_;
     llm::LlmClient& llm_;

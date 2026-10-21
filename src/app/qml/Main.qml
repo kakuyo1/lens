@@ -258,6 +258,14 @@ Window {
             }
         }
 
+        function onChainAnswered(entry) {
+            bubble.chainSteps.receive(entry);
+        }
+
+        function onChainFailed(lemma) {
+            bubble.chainSteps.fail(lemma);
+        }
+
         function onNoticeChanged() {
             const payload = Controller.explanationDuty.notice;
             if (payload && Object.keys(payload).length > 0)

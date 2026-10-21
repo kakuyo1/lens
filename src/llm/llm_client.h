@@ -72,6 +72,10 @@ struct Explanation {
     QString        etymology;
     QString        example;
     QVector<Sense> senses;
+    /// @note `signpost` and `collocations` feed the definition chain: a short label for the meaning, and up
+    ///       to two collocations with the word written as "~". Both are optional; an absent one is not drawn.
+    QString     signpost;
+    QStringList collocations;
 };
 
 /// @brief Field-wise equality, so a stream's next preview can be told from the one on screen.
@@ -79,7 +83,8 @@ inline bool operator==(Explanation const& a, Explanation const& b)
 {
     return a.title == b.title and a.ipa == b.ipa and a.en == b.en and a.zh == b.zh and
            a.translation == b.translation and a.etymology == b.etymology and a.example == b.example and
-           a.senses == b.senses;
+           a.senses == b.senses and a.signpost == b.signpost and
+           a.collocations == b.collocations;
 }
 
 /// @brief Token counts the service reports for one call, for the cost surfaces.

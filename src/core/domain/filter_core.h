@@ -173,4 +173,30 @@ Selection classifySelection(
     const std::unordered_set<std::string>& knownLemmas,
     std::size_t                            minFreqRank);
 
+/// @brief The difficulty cut-off a reader level implies: a word ranked above it is one the level has not reached.
+/// @param level The reader's level, as KnownStore::level() reports it; out-of-range levels clamp to the nearest.
+std::size_t rankForLevel(int level);
+
+/// @brief One word of an English definition that the chain offers: where it sits and what it stands for.
+struct DefinitionLink {
+    std::size_t start = 0; ///< Byte offset of the word's first letter in the text given.
+    std::size_t end   = 0; ///< Byte offset one past its last letter.
+    std::string lemma;     ///< Dictionary form, as lemmatize() reduces it.
+};
+
+/**
+ * @brief Find the words of an English definition that the chain should offer.
+ *
+ * A word is offered when its lemma ranks above @p cutoffRank, or when the word list does not hold it at
+ * all -- a rare or misspelt word is as far out of the band as a rare one. Words inside the band stay plain.
+ * Only runs of ASCII letters are words here: the caller passes English text, since a Chinese or Spanish
+ * definition has no frequency band to judge against.
+ *
+ * @param text       English definition, UTF-8.
+ * @param cutoffRank Difficulty cut-off, as rankForLevel() gives it.
+ * @return The offered words, in order of appearance.
+ * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet.
+ */
+std::vector<DefinitionLink> definitionLinks(std::string_view text, std::size_t cutoffRank);
+
 }

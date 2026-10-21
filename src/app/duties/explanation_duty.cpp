@@ -11,6 +11,7 @@
 
 #include <utility>
 
+#include "core/domain/filter_core.h"
 #include "cost_duty.h"
 #include "app/notice.h"
 #include "util/log.h"
@@ -32,6 +33,9 @@ llm::Explanation fromCache(core::WordCache const& cached, QString const& lemma)
                             QString::fromStdString(cached.zh),
                             QString::fromStdString(cached.translation)};
     result.etymology = QString::fromStdString(cached.etymology);
+    result.signpost  = QString::fromStdString(cached.signpost);
+    for (auto const& collocation : cached.collocations)
+        result.collocations.push_back(QString::fromStdString(collocation));
     if (cached.example) result.example = QString::fromStdString(*cached.example);
     for (auto const& sense : cached.senses)
         result.senses.push_back({QString::fromStdString(sense.en), QString::fromStdString(sense.zh), QString::fromStdString(sense.translation)});
@@ -57,6 +61,9 @@ void ExplanationDuty::onPartial(llm::Explanation partial)
     const core::CacheContext now{storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)};
     const auto               subject = queue_.liveSubject(partial.title, now);
     if (not subject)
+        return;
+    // A step of the chain is drawn whole or not at all: a preview would put half a definition on the chain.
+    if (subject->chain)
         return;
     // The title is the reader's own text rather than the model's echo, the same rule the finished
     // answer follows, so the card does not rename itself part-way through the stream.
@@ -115,7 +122,10 @@ void ExplanationDuty::onBatchFinished(QVector<llm::Explanation> results, llm::Us
                                .zh          = result.zh.toStdString(),
                                .translation = result.translation.toStdString(),
                                .etymology   = result.etymology.toStdString(),
-                               .example     = settlement.batch.example ? std::optional{result.example.toStdString()} : std::nullopt};
+                               .example     = settlement.batch.example ? std::optional{result.example.toStdString()} : std::nullopt,
+                               .signpost    = result.signpost.toStdString()};
+        for (auto const& collocation : result.collocations)
+            cached.collocations.push_back(collocation.toStdString());
         for (auto const& sense : result.senses)
             cached.senses.push_back({sense.en.toStdString(), sense.zh.toStdString(), sense.translation.toStdString()});
         storage_.knownStore().cachePut(selected.lemma.toStdString(), std::move(cached), settlement.batch.context);
@@ -137,7 +147,9 @@ void ExplanationDuty::onFailed(QString const& message)
     const auto subject = queue_.refusalSubject();
     busyLabel_.clear();
     emit busyChanged();
-    if (subject)
+    if (subject and subject->chain)
+        emit chainFailed(subject->lemma);
+    else if (subject)
         showNotice(noticeTitle(*subject), message, kNoticeError);
     queue_.complete();
     sendNext();
@@ -260,6 +272,63 @@ void ExplanationDuty::explainLemma(QString lemma)
     explain(pending);
 }
 
+void ExplanationDuty::explainChainWord(QString lemma)
+{
+    const QString value = lemma.trimmed();
+    if (value.isEmpty() or bubble_.isEmpty())
+        return;
+    PendingSelection pending{.anchor  = bubbleSubject_.anchor,
+                             .kind    = QStringLiteral("word"),
+                             .surface = value,
+                             .lemma   = value,
+                             .chain   = true,
+                             .parent  = bubble_.value("title").toString()};
+    // Out of budget with nothing stored: explain() would drop the step without a word, and the card would
+    // wait on it for ever. Say so, and the card shows the failure where the answer would have gone.
+    const core::CacheContext context{storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)};
+    if (not cost_.canRequest()) {
+        if (not showStored(pending, context))
+            emit chainFailed(value);
+        return;
+    }
+    explain(pending);
+}
+
+bool ExplanationDuty::chainStanding(PendingSelection const& selection) const
+{
+    return not bubble_.isEmpty() and bubble_.value("title").toString() == selection.parent;
+}
+
+QVariantMap ExplanationDuty::chainEntry(llm::Explanation const& explanation, core::CacheContext const& context) const
+{
+    QString const text = context.language == "en"   ? explanation.en
+                         : context.language == "zh" ? explanation.zh
+                                                    : explanation.translation;
+    QVariantList  collocations;
+    for (auto const& collocation : explanation.collocations)
+        collocations.append(collocation);
+    return QVariantMap{{"title", explanation.title},
+                       {"ipa", explanation.ipa},
+                       {"text", text},
+                       {"signpost", explanation.signpost},
+                       {"collocations", collocations},
+                       {"spans", spansOf(context.language == "en" ? text : QString{})}};
+}
+
+QVariantList ExplanationDuty::spansOf(QString const& text) const
+{
+    // The core counts bytes; ChainText draws with UTF-16 indices, so each offset is converted on its own prefix.
+    QByteArray const bytes  = text.toUtf8();
+    const auto       cutoff = core::rankForLevel(storage_.knownStore().level());
+    QVariantList     spans;
+    for (auto const& link : core::definitionLinks(std::string_view{bytes.constData(), static_cast<std::size_t>(bytes.size())}, cutoff)) {
+        const auto start = QString::fromUtf8(bytes.constData(), static_cast<int>(link.start)).size();
+        const auto end   = QString::fromUtf8(bytes.constData(), static_cast<int>(link.end)).size();
+        spans.append(QVariantMap{{"start", start}, {"end", end}, {"lemma", QString::fromStdString(link.lemma)}});
+    }
+    return spans;
+}
+
 void ExplanationDuty::reexplain()
 {
     if (bubbleSubject_.kind.isEmpty() or bubbleSubject_.kind == QLatin1String("translation"))
@@ -364,6 +433,13 @@ void ExplanationDuty::sendNext()
 
 void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool const notifyPet, bool const reveal)
 {
+    // A step of the chain goes onto the chain under the card and leaves the card alone: its text, its
+    // verdict and its countdown are the card's own, and a step asked from a card that has moved on is dropped.
+    if (selection.chain) {
+        if (chainStanding(selection))
+            emit chainAnswered(chainEntry(explanation, context));
+        return;
+    }
     auto const selected = [&](QString const& en, QString const& zh, QString const& translation) {
         return context.language == "en" ? en : context.language == "zh" ? zh
                                                                         : translation;
@@ -404,11 +480,19 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
             // English was asked for and the reader's language otherwise -- the same pair the singular
             // definition above the sense list is drawn from, and `multipleSenses` decides only how
             // many rows there are.
-            senses.append(QVariantMap{{"en", context.language == "en" ? sense.en : QString{}},
+            QString const senseEnglish = context.language == "en" ? sense.en : QString{};
+            senses.append(QVariantMap{{"en", senseEnglish},
+                                      {"spans", spansOf(senseEnglish)},
                                       {"text", context.language == "en" ? QString{} : selected(sense.en, sense.zh, sense.translation)}});
         }
         payload.insert(QStringLiteral("senses"), senses);
         payload.insert(QStringLiteral("ipa"), explanation.ipa);
+        payload.insert(QStringLiteral("spans"), spansOf(english));
+        payload.insert(QStringLiteral("signpost"), explanation.signpost);
+        QVariantList collocations;
+        for (auto const& collocation : explanation.collocations)
+            collocations.append(collocation);
+        payload.insert(QStringLiteral("collocations"), collocations);
         // Read off the setting as the card is drawn rather than as the request was made: turning
         // the setting off puts the origin away on the next bubble, and the entry it came from is
         // left whole for whoever asks for it later.

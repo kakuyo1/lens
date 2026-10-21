@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>释义链：三个选择</title>
+<style>
+:root{
+  --page:#f3efe6; --panel:#e9e3d7; --wash:#cdc4af; --card:#fffdf8;
+  --text:#1a1a1f; --muted:#55555f; --faint:#6b6b75;
+  --ok:#2f9e6e; --ok-text:#1d7a52; --ok-bg:#e4f3ec;
+  --f:"Segoe UI Variable","Segoe UI","PingFang SC","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--page);color:var(--text);font-family:var(--f);line-height:1.6;-webkit-font-smoothing:antialiased}
+button{font:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:80px 40px 140px}
+h1{font-size:40px;line-height:1.15;letter-spacing:-.02em;font-weight:650}
+.lead{margin-top:16px;font-size:16px;color:var(--muted)}
+section{margin-top:120px}
+h2{font-size:26px;line-height:1.25;letter-spacing:-.01em;font-weight:650}
+.control{margin-top:24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:15px}
+.control output{font-variant-numeric:tabular-nums;font-weight:650;min-width:4ch}
+input[type=range]{width:260px;accent-color:var(--ok)}
+.toggle{height:36px;padding:0 18px;border:0;border-radius:999px;background:var(--text);color:var(--card);font-size:14px;font-weight:600;cursor:pointer}
+.toggle[aria-pressed=false]{background:var(--wash);color:var(--text)}
+.pair{margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:48px}
+.pair.rows{grid-template-columns:1fr;gap:72px}
+.option h3{font-size:17px;line-height:1.4;font-weight:650}
+.option > p{margin-top:10px;font-size:15px}
+.option .cost{color:var(--muted)}
+.stage{margin-top:20px;display:flex;justify-content:center;background:var(--panel);border-radius:22px;padding:40px 24px 36px}
+.stage.duo{flex-wrap:wrap;gap:48px}
+.stack{position:relative;width:306px;max-width:100%}
+.edge{position:absolute;left:10px;right:10px;top:-7px;height:16px;border-radius:14px 14px 6px 6px;background:var(--wash);opacity:0;transition:opacity .2s}
+.edge.e2{left:20px;right:20px;top:-13px}
+.stack.stacked .edge.e1{opacity:1}
+.stack.stacked .edge.e2{opacity:.8}
+.card{position:relative;background:var(--card);border-radius:18px;padding:16px 18px 18px}
+.panel[hidden]{display:none}
+.word-row{display:flex;align-items:baseline;gap:8px}
+.word{font-size:21px;font-weight:700;letter-spacing:-.015em;line-height:1.2}
+.pos{font-size:12px;color:var(--faint)}
+.signpost{margin-top:6px;font-size:12px;font-weight:650;color:var(--ok-text)}
+.def{margin-top:12px;font-size:13.5px;line-height:1.6}
+.senses .def + .def{margin-top:10px}
+.ln{text-decoration:underline dotted;text-decoration-thickness:1px;text-underline-offset:3px;border-radius:3px}
+.ln.live{cursor:pointer}
+.ln.live:hover,.ln.live:focus-visible{background:var(--ok-bg)}
+.ln.live:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
+.head{display:flex;align-items:center;gap:8px;height:22px}
+.back{width:22px;height:22px;border:0;border-radius:50%;background:transparent;color:var(--faint);cursor:pointer;display:grid;place-items:center}
+.back:hover{background:var(--wash);color:var(--text)}
+.back.static{cursor:default;background:none}
+.crumb{font-size:11.5px;color:var(--faint)}
+.crumb b{color:var(--muted);font-weight:600}
+.tests{margin-top:14px;font-size:12px;color:var(--muted)}
+.tests .ln{color:var(--text)}
+@media (max-width:820px){
+  .wrap{padding:48px 20px 96px}
+  h1{font-size:30px}
+  section{margin-top:88px}
+  .pair{grid-template-columns:1fr;gap:56px}
+  .stage{padding:36px 16px 32px}
+  input[type=range]{width:100%}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>释义链的三个选择</h1>
+  <p class="lead">每个选择两种做法。左边的卡可以点虚线词下钻，右边固定是下钻后的样子；拖动档位、切换多义，看另外两个选择的差别。</p>
+
+  <section aria-labelledby="s1">
+    <h2 id="s1">下钻形式</h2>
+    <div class="pair rows">
+      <div class="option">
+        <h3>同窗口换内容（推荐）</h3>
+        <div class="stage duo">
+          <div class="stack chain">
+            <div class="card">
+              <div class="panel root">
+                <div class="word-row"><span class="word">serendipity</span><span class="pos">noun</span></div>
+                <div class="signpost">a happy accident</div>
+                <p class="def" data-root></p>
+              </div>
+              <div class="panel nested" hidden>
+                <div class="head">
+                  <button class="back" type="button" aria-label="返回 serendipity"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+                  <div class="crumb"><b>serendipity</b> › knack</div>
+                </div>
+                <div class="word-row" style="margin-top:12px"><span class="word">knack</span><span class="pos">noun</span></div>
+                <div class="signpost">a natural skill</div>
+                <p class="def">a natural ability to do something well, especially something hard to teach.</p>
+              </div>
+            </div>
+          </div>
+          <div class="stack stacked">
+            <div class="card">
+              <div class="panel">
+                <div class="head">
+                  <span class="back static" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M15 5l-7 7 7 7"/></svg></span>
+                  <div class="crumb"><b>serendipity</b> › knack</div>
+                </div>
+                <div class="word-row" style="margin-top:12px"><span class="word">knack</span><span class="pos">noun</span></div>
+                <div class="signpost">a natural skill</div>
+                <p class="def">a natural ability to do something well, especially something hard to teach.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p>卡片原地换成下一层，顶部留面包屑和返回键，窗口不变。右边是下钻后的样子。</p>
+        <p class="cost">代价：层级只靠面包屑说明。</p>
+      </div>
+
+      <div class="option">
+        <h3>同窗口换内容，加栈边（原型）</h3>
+        <div class="stage duo">
+          <div class="stack chain">
+            <div class="edge e2"></div>
+            <div class="edge e1"></div>
+            <div class="card">
+              <div class="panel root">
+                <div class="word-row"><span class="word">serendipity</span><span class="pos">noun</span></div>
+                <div class="signpost">a happy accident</div>
+                <p class="def" data-root></p>
+              </div>
+              <div class="panel nested" hidden>
+                <div class="head">
+                  <button class="back" type="button" aria-label="返回 serendipity"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+                  <div class="crumb"><b>serendipity</b> › knack</div>
+                </div>
+                <div class="word-row" style="margin-top:12px"><span class="word">knack</span><span class="pos">noun</span></div>
+                <div class="signpost">a natural skill</div>
+                <p class="def">a natural ability to do something well, especially something hard to teach.</p>
+              </div>
+            </div>
+          </div>
+          <div class="stack stacked">
+            <div class="edge e2"></div>
+            <div class="edge e1"></div>
+            <div class="card">
+              <div class="panel">
+                <div class="head">
+                  <span class="back static" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M15 5l-7 7 7 7"/></svg></span>
+                  <div class="crumb"><b>serendipity</b> › knack</div>
+                </div>
+                <div class="word-row" style="margin-top:12px"><span class="word">knack</span><span class="pos">noun</span></div>
+                <div class="signpost">a natural skill</div>
+                <p class="def">a natural ability to do something well, especially something hard to teach.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p>同样原地换内容，下钻后在卡顶画两条栈边，提示下面压着上一层。右边是下钻后的样子。</p>
+        <p class="cost">代价：栈边占卡顶一截，摆放时要把它算进去。</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="s2">
+    <h2 id="s2">哪些词画虚线</h2>
+    <div class="control">
+      <label for="cut">档位：词频序号超过 <output id="cutOut">4000</output> 的词画线</label>
+      <input id="cut" type="range" min="500" max="15000" step="500" value="4000">
+    </div>
+    <div class="pair">
+      <div class="option">
+        <h3>超档即画线，词表外也画（推荐）</h3>
+        <div class="stage">
+          <div class="stack">
+            <div class="card">
+              <div class="panel">
+                <div class="word-row"><span class="word">serendipity</span><span class="pos">noun</span></div>
+                <div class="signpost">a happy accident</div>
+                <p class="def" data-rule="a"></p>
+                <p class="tests" data-tests="a">另外两个词：<span class="tw" data-word="skill">skill</span>（序号 4275）、<span class="tw" data-word="tintinnabulate">tintinnabulate</span>（词表里没有）</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p>序号超过档位的词画线；词表里查不到的词也画线。</p>
+        <p class="cost">代价：人名、拼错的词也会画线，点开可能查出一条不靠谱的释义。</p>
+      </div>
+
+      <div class="option">
+        <h3>超档即画线，词表外不画</h3>
+        <div class="stage">
+          <div class="stack">
+            <div class="card">
+              <div class="panel">
+                <div class="word-row"><span class="word">serendipity</span><span class="pos">noun</span></div>
+                <div class="signpost">a happy accident</div>
+                <p class="def" data-rule="b"></p>
+                <p class="tests" data-tests="b">另外两个词：<span class="tw" data-word="skill">skill</span>（序号 4275）、<span class="tw" data-word="tintinnabulate">tintinnabulate</span>（词表里没有）</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p>只有词表里序号超过档位的词画线，查不到的词保持普通字。</p>
+        <p class="cost">代价：真生僻、词表外的词看起来和普通词一样，读者不知道它难。</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="s3">
+    <h2 id="s3">多义解释开着时</h2>
+    <div class="control">
+      <button id="multi" class="toggle" type="button" aria-pressed="false">多义解释：关</button>
+    </div>
+    <div class="pair">
+      <div class="option">
+        <h3>多义时不画线（v1 推荐）</h3>
+        <div class="stage">
+          <div class="stack">
+            <div class="card">
+              <div class="panel">
+                <div class="word-row"><span class="word">knack</span><span class="pos">noun</span></div>
+                <div class="senses" data-senses="a"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p>多义卡的每一行都是纯文字；关闭多义时，单义卡照常可以下钻。</p>
+        <p class="cost">代价：多义模式下读者没有下钻入口，skill 这类词只能自己查。</p>
+      </div>
+
+      <div class="option">
+        <h3>每一行都画线</h3>
+        <div class="stage">
+          <div class="stack">
+            <div class="card">
+              <div class="panel">
+                <div class="word-row"><span class="word">knack</span><span class="pos">noun</span></div>
+                <div class="senses" data-senses="b"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p>多义的每一行和单义卡用同一套虚线。</p>
+        <p class="cost">代价：SenseRows 也要改成同一套渲染，改动面更大。</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  // Frequency ranks: the 1-based line of each lemma in data/wordlist.txt. Absent words are not listed.
+  const RANK = {
+    a:5, it:6, of:9, the:3, that:8, to:4, for:17, do:22, what:12, well:54, good:65, something:101,
+    look:78, find:138, miss:274, without:265, happy:288, others:624, accident:881, especially:982,
+    teach:1006, hard:316, notice:1173, natural:1471, easier:1570, trick:1526, clever:2087,
+    ability:2668, task:2674, skill:4275, makes:410, knack:13328
+  };
+  const LEMMA = { finding: 'find', looking: 'look', noticing: 'notice' };
+  const BAND = 4000;
+  const rankOf = word => {
+    const w = word.toLowerCase();
+    return RANK[LEMMA[w] || w] || 0;
+  };
+
+  // Writes text into el, wrapping each word that `linked(rank)` accepts in a dotted span.
+  function paintText(el, text, linked) {
+    el.textContent = '';
+    text.split(/([A-Za-z]+)/).forEach((part, i) => {
+      if (i % 2 === 0) { el.append(part); return; }
+      const rank = rankOf(part);
+      if (!linked(rank)) { el.append(part); return; }
+      const span = document.createElement('span');
+      span.className = 'ln';
+      span.textContent = part;
+      span.title = rank ? `序号 ${rank}` : '词表里没有';
+      el.append(span);
+    });
+  }
+
+  // Section 1: the root definition, with the words above the band as live links.
+  const ROOT = 'the happy accident of finding something good without looking for it — a knack for noticing what others miss.';
+  document.querySelectorAll('[data-root]').forEach(el => {
+    paintText(el, ROOT, r => r > BAND);
+    el.querySelectorAll('.ln').forEach(span => {
+      span.classList.add('live');
+      span.setAttribute('role', 'button');
+      span.tabIndex = 0;
+    });
+  });
+
+  function setLevel(stack, deep) {
+    stack.querySelector('.root').hidden = deep;
+    stack.querySelector('.nested').hidden = !deep;
+    stack.classList.toggle('stacked', deep);
+  }
+  document.querySelectorAll('.chain').forEach(stack => {
+    stack.addEventListener('click', e => {
+      if (e.target.closest('.ln.live')) setLevel(stack, true);
+      if (e.target.closest('.back')) setLevel(stack, false);
+    });
+    stack.addEventListener('keydown', e => {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('ln')) {
+        e.preventDefault();
+        setLevel(stack, true);
+      }
+    });
+  });
+
+  // Section 2: the cut-off slider, and the two rules drawn side by side.
+  const cut = document.getElementById('cut');
+  const cutOut = document.getElementById('cutOut');
+  const defA = document.querySelector('[data-rule="a"]');
+  const defB = document.querySelector('[data-rule="b"]');
+  function paintTests(rule, c) {
+    const linked = r => (rule === 'a' ? r === 0 || r > c : r > c);
+    document.querySelectorAll(`.tests[data-tests="${rule}"] .tw`).forEach(word => {
+      word.classList.toggle('ln', linked(rankOf(word.dataset.word)));
+    });
+  }
+  function paintBand() {
+    const c = Number(cut.value);
+    cutOut.textContent = c;
+    paintText(defA, ROOT, r => r === 0 || r > c);
+    paintText(defB, ROOT, r => r > c);
+    paintTests('a', c);
+    paintTests('b', c);
+  }
+  cut.addEventListener('input', paintBand);
+
+  // Section 3: the multi-sense toggle, with the rows drawn under each rule.
+  const SENSES = [
+    'a natural skill to do something well, especially something hard to teach.',
+    'a clever trick for noticing what others miss.',
+    'a skill that makes a task easier.'
+  ];
+  const toggle = document.getElementById('multi');
+  const senseA = document.querySelector('[data-senses="a"]');
+  const senseB = document.querySelector('[data-senses="b"]');
+  let multi = false;
+  function paintSenses() {
+    const list = multi ? SENSES : SENSES.slice(0, 1);
+    const draw = (el, linked) => {
+      el.textContent = '';
+      list.forEach(text => {
+        const p = document.createElement('p');
+        p.className = 'def';
+        paintText(p, text, linked);
+        el.append(p);
+      });
+    };
+    draw(senseA, multi ? () => false : r => r > BAND);
+    draw(senseB, r => r > BAND);
+  }
+  toggle.addEventListener('click', () => {
+    multi = !multi;
+    toggle.setAttribute('aria-pressed', String(multi));
+    toggle.textContent = multi ? '多义解释：开' : '多义解释：关';
+    paintSenses();
+  });
+
+  paintBand();
+  paintSenses();
+})();
+</script>
+</body>
+</html>

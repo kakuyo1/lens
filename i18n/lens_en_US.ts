@@ -4,39 +4,52 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="454"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="482"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="454"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="482"/>
         <source>New</source>
         <translation>New</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="453"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="481"/>
         <source>Sentence</source>
         <translation>Sentence</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="452"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="480"/>
         <source>Preview</source>
         <translation>Preview</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="561"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="596"/>
         <source>Etymology</source>
         <translation>Etymology</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="600"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="635"/>
         <source>Example</source>
         <translation>Example</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="638"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="673"/>
         <source>Disappears in %1s</source>
         <translation>Disappears in %1s</translation>
+    </message>
+</context>
+<context>
+    <name>BubbleChainPanel</name>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="203"/>
+        <source>Explaining %1…</source>
+        <translation>Explaining %1…</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="215"/>
+        <source>This word could not be explained.</source>
+        <translation>This word could not be explained.</translation>
     </message>
 </context>
 <context>
@@ -1923,22 +1936,22 @@
         <translation>Every 1–2 hours</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="233"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="245"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>No explanation is stored for this word in the current language.</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="235"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="247"/>
         <source>Explain now</source>
         <translation>Explain now</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="341"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="410"/>
         <source>Explaining…</source>
         <translation>Explaining…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="446"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="525"/>
         <source>Request failed</source>
         <translation>Request failed</translation>
     </message>
@@ -2005,12 +2018,12 @@
 <context>
     <name>lens::llm</name>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="503"/>
+        <location filename="../src/llm/llm_pure.cpp" line="510"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>The model answered with something that is not a JSON object.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="509"/>
+        <location filename="../src/llm/llm_pure.cpp" line="516"/>
         <source>The model&apos;s answer carries no choices.</source>
         <translation>The model&apos;s answer carries no choices.</translation>
     </message>
@@ -2040,18 +2053,18 @@
         <translation>One of the results entries is not an object.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="404"/>
+        <location filename="../src/llm/llm_pure.cpp" line="411"/>
         <source>A results entry has an empty field (title=%1).</source>
         <translation>A results entry has an empty field (title=%1).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="455"/>
+        <location filename="../src/llm/llm_pure.cpp" line="462"/>
         <source>The model echoed the same title twice: %1.</source>
         <translation>The model echoed the same title twice: %1.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="437"/>
-        <location filename="../src/llm/llm_pure.cpp" line="462"/>
+        <location filename="../src/llm/llm_pure.cpp" line="444"/>
+        <location filename="../src/llm/llm_pure.cpp" line="469"/>
         <source>The model echoed %1 result(s) for the %2 that were asked for.</source>
         <translation>The model echoed %1 result(s) for the %2 that were asked for.</translation>
     </message>
@@ -2061,13 +2074,13 @@
         <translation>A results entry does not match the response schema.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="387"/>
-        <location filename="../src/llm/llm_pure.cpp" line="398"/>
+        <location filename="../src/llm/llm_pure.cpp" line="394"/>
+        <location filename="../src/llm/llm_pure.cpp" line="405"/>
         <source>The requested explanation language is missing.</source>
         <translation>The requested explanation language is missing.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="473"/>
+        <location filename="../src/llm/llm_pure.cpp" line="480"/>
         <source>The model never echoed &quot;%1&quot;.</source>
         <translation>The model never echoed &quot;%1&quot;.</translation>
     </message>

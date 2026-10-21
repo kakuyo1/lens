@@ -4,39 +4,52 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="452"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="480"/>
         <source>Preview</source>
         <translation>プレビュー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="453"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="481"/>
         <source>Sentence</source>
         <translation>文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="454"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="482"/>
         <source>Known</source>
         <translation>覚えた</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="454"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="482"/>
         <source>New</source>
         <translation>初見</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="561"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="596"/>
         <source>Etymology</source>
         <translation>語源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="600"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="635"/>
         <source>Example</source>
         <translation>例文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="638"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="673"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒後に消えます</translation>
+    </message>
+</context>
+<context>
+    <name>BubbleChainPanel</name>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="203"/>
+        <source>Explaining %1…</source>
+        <translation>%1 を解説中…</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="215"/>
+        <source>This word could not be explained.</source>
+        <translation>この単語は解説できませんでした。</translation>
     </message>
 </context>
 <context>
@@ -1938,22 +1951,22 @@
         <translation>手動</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="233"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="245"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>現在の解説言語では、この単語の保存された解説がありません。</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="235"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="247"/>
         <source>Explain now</source>
         <translation>今すぐ解説</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="341"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="410"/>
         <source>Explaining…</source>
         <translation>解説中…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="446"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="525"/>
         <source>Request failed</source>
         <translation>リクエストに失敗しました</translation>
     </message>
@@ -2054,12 +2067,12 @@
         <translation>予期しない HTTP ステータス %1。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="503"/>
+        <location filename="../src/llm/llm_pure.cpp" line="510"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>モデルの応答が JSON オブジェクトではありません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="509"/>
+        <location filename="../src/llm/llm_pure.cpp" line="516"/>
         <source>The model&apos;s answer carries no choices.</source>
         <translation>モデルの応答に choices がありません。</translation>
     </message>
@@ -2094,29 +2107,29 @@
         <translation>results の要素がレスポンススキーマに一致しません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="387"/>
-        <location filename="../src/llm/llm_pure.cpp" line="398"/>
+        <location filename="../src/llm/llm_pure.cpp" line="394"/>
+        <location filename="../src/llm/llm_pure.cpp" line="405"/>
         <source>The requested explanation language is missing.</source>
         <translation>要求した解説の言語がありません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="404"/>
+        <location filename="../src/llm/llm_pure.cpp" line="411"/>
         <source>A results entry has an empty field (title=%1).</source>
         <translation>results の要素に空のフィールドがあります（title=%1）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="437"/>
-        <location filename="../src/llm/llm_pure.cpp" line="462"/>
+        <location filename="../src/llm/llm_pure.cpp" line="444"/>
+        <location filename="../src/llm/llm_pure.cpp" line="469"/>
         <source>The model echoed %1 result(s) for the %2 that were asked for.</source>
         <translation>要求した %2 件に対し、モデルは %1 件を返しました。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="455"/>
+        <location filename="../src/llm/llm_pure.cpp" line="462"/>
         <source>The model echoed the same title twice: %1.</source>
         <translation>モデルが同じタイトルを二度返しました：%1。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="473"/>
+        <location filename="../src/llm/llm_pure.cpp" line="480"/>
         <source>The model never echoed &quot;%1&quot;.</source>
         <translation>モデルが「%1」を返しませんでした。</translation>
     </message>

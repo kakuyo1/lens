@@ -81,6 +81,9 @@ Item {
     implicitWidth: measure.implicitWidth
     implicitHeight: measure.implicitHeight
     readonly property real baselineOffset: measure.baselineOffset
+    /// Where the baseline of a line sits from the top of its line box: the same font and line height, measured
+    /// without the field's own padding, so an overlay on a word can be placed on the word's line.
+    readonly property real lineBaseline: lineBox.baselineOffset
 
     /// Where the reveal has reached, in characters, as a real number: the fraction is what lets the
     /// tail sharpen continuously instead of a character at a time. It runs `softSpan` past the end

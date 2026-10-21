@@ -156,6 +156,25 @@ app::PendingSelection selection()
 
 } // namespace
 
+TEST_F(LlmTest, Phase2ChainFieldsAreReadWhenTheModelGivesThemAndAbsentOtherwise)
+{
+    auto withChain            = plainWord("bank");
+    withChain["signpost"]     = QStringLiteral("a place for money");
+    withChain["collocations"] = QJsonArray{QStringLiteral("~ account"), QStringLiteral("river ~"), QStringLiteral("central ~")};
+    auto const parsed         = llm::parseExplanations(llm::Channel::Word, envelope({withChain}), {"bank"}, "en", false);
+    ASSERT_TRUE(std::holds_alternative<QVector<llm::Explanation>>(parsed));
+    auto const& entry = std::get<QVector<llm::Explanation>>(parsed).front();
+    EXPECT_EQ(entry.signpost, QStringLiteral("a place for money"));
+    // Two collocations at most, whatever the model sends.
+    EXPECT_EQ(entry.collocations, (QStringList{QStringLiteral("~ account"), QStringLiteral("river ~")}));
+
+    // A word with no label still parses, and the card draws none.
+    auto const bare = llm::parseExplanations(llm::Channel::Word, envelope({plainWord("bank")}), {"bank"}, "en", false);
+    ASSERT_TRUE(std::holds_alternative<QVector<llm::Explanation>>(bare));
+    EXPECT_TRUE(std::get<QVector<llm::Explanation>>(bare).front().signpost.isEmpty());
+    EXPECT_TRUE(std::get<QVector<llm::Explanation>>(bare).front().collocations.isEmpty());
+}
+
 TEST_F(LlmTest, Phase2AcceptsLegacyAndCapsOrderedSenses)
 {
     auto const legacy = llm::parseExplanations(llm::Channel::Word,

@@ -282,7 +282,12 @@ qt_add_qml_module(lens_app
     qml/components/content/MixedText.qml
     qml/components/content/RevealText.qml
     qml/components/content/SenseRows.qml
+    qml/components/content/ChainText.qml
     qml/bubble/BubbleTitleRow.qml
+    qml/bubble/BubbleChainPanel.qml
+    qml/bubble/ChainEdges.qml
+    qml/bubble/ChainSignpost.qml
+    qml/bubble/ChainCollocations.qml
     qml/components/controls/HotkeyField.qml
     qml/components/chrome/GlassSurface.qml
     qml/components/controls/SliderRow.qml

@@ -379,6 +379,13 @@ std::variant<QVector<Explanation>, QString> parseExplanationContent(Channel     
         // ponytail: English whatever the explanation language, so es and ja readers get an English sentence.
         // Upgrade: ask for it in the explanation language, as the origin does, once readers ask for that.
         e.example = obj.value(QStringLiteral("example")).toString();
+        // Read for the definition chain and never demanded: a word with no short label still has its
+        // definition, and the card draws no label for it. Two collocations at most, whatever arrives.
+        e.signpost = obj.value(QStringLiteral("signpost")).toString();
+        for (auto const& value : obj.value(QStringLiteral("collocations")).toArray()) {
+            if (e.collocations.size() < 2)
+                e.collocations.push_back(value.toString());
+        }
         if (isWord and obj.contains("senses")) {
             auto const senses = obj.value("senses").toArray();
             for (auto const& value : senses) {

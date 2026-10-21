@@ -69,6 +69,18 @@ std::optional<WordCache> readCache(nlohmann::json const& entry, std::string cons
         if (not entry["example"].is_string()) return std::nullopt;
         result.example = entry["example"].get<std::string>();
     }
+    // The chain's label and collocations: absent when the entry predates them, and not a reason to drop it.
+    if (entry.contains("signpost")) {
+        if (not entry["signpost"].is_string()) return std::nullopt;
+        result.signpost = entry["signpost"].get<std::string>();
+    }
+    if (entry.contains("collocations")) {
+        if (not entry["collocations"].is_array()) return std::nullopt;
+        for (auto const& value : entry["collocations"]) {
+            if (not value.is_string()) return std::nullopt;
+            result.collocations.push_back(value.get<std::string>());
+        }
+    }
     if (language != "en" and language != "zh" and result.translation.empty()) return std::nullopt;
     if (entry.contains("senses")) {
         if (not entry["senses"].is_array() or entry["senses"].empty()) return std::nullopt;
@@ -97,6 +109,8 @@ nlohmann::json writeCache(WordCache const& entry)
     if (not entry.translation.empty()) value["translation"] = entry.translation;
     if (not entry.etymology.empty()) value["etymology"] = entry.etymology;
     if (entry.example) value["example"] = *entry.example;
+    if (not entry.signpost.empty()) value["signpost"] = entry.signpost;
+    if (not entry.collocations.empty()) value["collocations"] = entry.collocations;
     if (not entry.senses.empty()) {
         value["senses"] = nlohmann::json::array();
         for (auto const& sense : entry.senses)

@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <chrono>
 #include <fstream>
+#include <iterator>
 #include <limits>
 #include <stdexcept>
 #include <unordered_map>
@@ -546,6 +547,33 @@ Selection classifySelection(
                selection.kind == SelectionKind::Word ? "word" : selection.kind == SelectionKind::Entity ? "entity"
                                                                                                         : "sentence");
     return selection;
+}
+
+std::size_t rankForLevel(int const level)
+{
+    static constexpr std::size_t kRanks[] = {4000, 9000, 5000, 8000, 8000, 12000, 9000, 12000};
+    constexpr int                kLast    = static_cast<int>(std::size(kRanks)) - 1;
+    return kRanks[std::clamp(level, 0, kLast)];
+}
+
+std::vector<DefinitionLink> definitionLinks(std::string_view const text, std::size_t const cutoffRank)
+{
+    std::vector<DefinitionLink> out;
+    std::size_t                 at = 0;
+    while (at < text.size()) {
+        if (not util::isAsciiLetter(text[at])) {
+            ++at;
+            continue;
+        }
+        std::size_t const start = at;
+        while (at < text.size() and util::isAsciiLetter(text[at]))
+            ++at;
+        std::string const lemma = lemmatize(text.substr(start, at - start));
+        std::size_t const rank  = rankOf(lemma);
+        if (rank == 0 or rank > cutoffRank)
+            out.push_back({.start = start, .end = at, .lemma = lemma});
+    }
+    return out;
 }
 
 }

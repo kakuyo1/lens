@@ -78,6 +78,11 @@ Window {
     /// model had none to give.
     property string example: ""
     property var senses: []
+    property var englishSpans: []
+    property string signpost: ""
+    property var collocations: []
+    readonly property bool atRoot: chainPanel.atRoot
+    property alias chainSteps: chainPanel
     property string status: "" ///< "new", "known", or empty when there is no word verdict (entity / sentence).
 
     property bool hovering: false
@@ -141,7 +146,7 @@ Window {
     readonly property bool revealing: definitionText.revealing || chineseText.revealing
                                       || translationText.revealing || wordRow.revealing
                                       || etymologyText.revealing || exampleText.revealing
-                                      || senseRows.revealing
+                                      || senseRows.revealing || chainPanel.revealing
 
     property var pendingPayload: null
     property bool pendingWasVisible: false
@@ -198,6 +203,10 @@ Window {
             example = "";
             senses = [];
         }
+        chainPanel.refresh(payload);
+        englishSpans = payload.spans || [];
+        signpost = payload.signpost || "";
+        collocations = payload.collocations || [];
         title = payload.title || "";
         type = payload.type || "";
         ipa = payload.ipa || "";
@@ -341,6 +350,12 @@ Window {
             strokeColor: bubble.tokens.muted
         }
 
+        ChainEdges {
+            card: card
+            shown: !bubble.atRoot
+            edgeColor: bubble.tokens.line
+        }
+
         Rectangle {
             id: card
             width: parent.implicitWidth
@@ -431,12 +446,20 @@ Window {
                 width: parent.width - 32
                 spacing: 0
 
+                // The chain takes the card's place while a step is open.
+                BubbleChainPanel {
+                    id: chainPanel
+                    visible: !bubble.atRoot
+                    width: parent.width
+                    bubble: bubble
+                }
+
                 // A word bubble carries the learning verdict; a sentence bubble carries its type
                 // label. An entity bubble carries neither: a named thing is not a learning item,
                 // so it is drawn as title plus encyclopaedic definition with no badge.
                 Rectangle {
                     // A preview wears this row in place of a learning verdict (UI.md 4.4).
-                    visible: bubble.preview || bubble.type === "word" || bubble.type === "sentence"
+                    visible: bubble.atRoot && (bubble.preview || bubble.type === "word" || bubble.type === "sentence")
                     width: tag.width + 16
                     height: 17
                     radius: bubble.tokens.radiusPill
@@ -464,7 +487,7 @@ Window {
 
                 BubbleTitleRow {
                     id: wordRow
-                    visible: bubble.type !== "sentence" && bubble.type !== "translation"
+                    visible: bubble.atRoot && bubble.type !== "sentence" && bubble.type !== "translation"
                     title: bubble.title
                     ipa: bubble.type === "word" ? bubble.ipa : ""
                     family: bubble.englishFont
@@ -474,9 +497,19 @@ Window {
                     tokens: bubble.tokens
                 }
 
+                ChainSignpost {
+                    width: parent.width
+                    label: bubble.atRoot && bubble.type === "word" ? bubble.signpost : ""
+                    tokens: bubble.tokens
+                    scale: bubble.fontScale
+                }
+
                 SenseRows {
                     id: senseRows
-                    senses: bubble.type === "word" ? bubble.senses : []
+                    senses: bubble.atRoot && bubble.type === "word" ? bubble.senses : []
+                    markColor: bubble.tokens.faint
+                    hoverColor: bubble.tokens.okBg
+                    onWordTapped: lemma => chainPanel.step(lemma)
                     animated: bubble.revealAnimation
                     characterMs: bubble.revealCharacterMs
                     englishColor: bubble.tokens.muted
@@ -489,9 +522,9 @@ Window {
                 // The definition line, and for a translation bubble the whole card: a translation
                 // has no title and no badge above it, so drawing it in the definition's secondary
                 // colour would leave the answer looking like a footnote to nothing (UI.md 4.3).
-                RevealText {
+                ChainText {
                     id: definitionText
-                    visible: bubble.senses.length === 0 && bubble.english !== ""
+                    visible: bubble.atRoot && bubble.senses.length === 0 && bubble.english !== ""
                     animated: bubble.revealAnimation
                     characterMs: bubble.revealCharacterMs
                     width: parent.width
@@ -501,11 +534,15 @@ Window {
                     family: bubble.englishFont
                     pixelSize: bubble.sizeAt(13)
                     lineHeight: 1.55
+                    spans: bubble.englishSpans
+                    markColor: bubble.tokens.faint
+                    hoverColor: bubble.tokens.okBg
+                    onWordTapped: lemma => chainPanel.step(lemma)
                 }
 
                 RevealText {
                     id: chineseText
-                    visible: bubble.senses.length === 0 && bubble.chinese !== ""
+                    visible: bubble.atRoot && bubble.senses.length === 0 && bubble.chinese !== ""
                     animated: bubble.revealAnimation
                     characterMs: bubble.revealCharacterMs
                     width: parent.width
@@ -518,7 +555,7 @@ Window {
 
                 RevealText {
                     id: translationText
-                    visible: bubble.senses.length === 0 && bubble.translation !== ""
+                    visible: bubble.atRoot && bubble.senses.length === 0 && bubble.translation !== ""
                     animated: bubble.revealAnimation
                     characterMs: bubble.revealCharacterMs
                     width: parent.width
@@ -544,7 +581,7 @@ Window {
                 Column {
                     id: etymologyBlock
                     objectName: "etymologyBlock"
-                    visible: bubble.etymology !== ""
+                    visible: bubble.atRoot && bubble.etymology !== ""
                     width: parent.width
                     topPadding: 6
                     spacing: 5
@@ -583,7 +620,7 @@ Window {
                 Column {
                     id: exampleBlock
                     objectName: "exampleBlock"
-                    visible: bubble.example !== ""
+                    visible: bubble.atRoot && bubble.example !== ""
                     width: parent.width
                     topPadding: 6
                     spacing: 5
@@ -617,10 +654,17 @@ Window {
                     }
                 }
 
+                ChainCollocations {
+                    width: parent.width
+                    words: bubble.atRoot && bubble.type === "word" ? bubble.collocations : []
+                    tokens: bubble.tokens
+                    scale: bubble.fontScale
+                }
+
                 // The verdict buttons, drawn shut until the pointer is on the card (UI.md 4.3).
                 BubbleVerdictRow {
                     id: verdictRow
-                    visible: bubble.verdictButtons
+                    visible: bubble.atRoot && bubble.verdictButtons
                     tokens: bubble.tokens
                     lemma: bubble.title
                     hovering: bubble.hovering

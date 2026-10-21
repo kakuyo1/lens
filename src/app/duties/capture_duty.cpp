@@ -40,13 +40,6 @@ quintptr monitorOf(QScreen const* screen)
 
 constexpr int kMaxSelectionChars = 1000;
 
-std::size_t rankForLevel(int level)
-{
-    static constexpr std::size_t kRanks[] = {4000, 9000, 5000, 8000, 8000, 12000, 9000, 12000};
-    constexpr int                kLast    = static_cast<int>(std::size(kRanks)) - 1;
-    return kRanks[std::clamp(level, 0, kLast)];
-}
-
 /// @return The Tesseract the reader pointed at, or the bundled runtime when both are empty.
 capture::TesseractConfig storedTesseractConfig(StorageDuty& storage)
 {
@@ -512,7 +505,7 @@ void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const fro
 
 std::size_t CaptureDuty::minFreqRank() const
 {
-    return rankForLevel(storage_.knownStore().level());
+    return core::rankForLevel(storage_.knownStore().level());
 }
 
 }
