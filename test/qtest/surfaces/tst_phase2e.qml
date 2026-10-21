@@ -107,7 +107,7 @@ Item {
             const main = makeMain();
             const panel = Util.ofType(main, "SettingsPopup");
             verify(panel);
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             wait(25);
             panel.openCategory("general");
             wait(25);
@@ -135,7 +135,7 @@ Item {
 
             Controller.setFrostedBlur(10);
             Controller.setTheme("light");
-            shown.main.hidePanels(null);
+            Util.surfaceHost(shown.main).hidePanels(null);
         }
 
         function test_glassSliderDragLeavesTheSettingsWindowOpaque() {
@@ -159,7 +159,7 @@ Item {
 
             Controller.setFrostedBlur(10);
             Controller.setTheme("light");
-            shown.main.hidePanels(null);
+            Util.surfaceHost(shown.main).hidePanels(null);
         }
 
         function test_movingTheSettingsWindowRedrawsItsGlassOnlyWhenTheSheetNoLongerCoversIt() {
@@ -186,7 +186,7 @@ Item {
 
             Controller.setFrostedBlur(10);
             Controller.setTheme("light");
-            shown.main.hidePanels(null);
+            Util.surfaceHost(shown.main).hidePanels(null);
         }
 
         function test_glassThemeDrawsGlassOnTheSettingsCard() {
@@ -194,7 +194,7 @@ Item {
             const panel = Util.ofType(main, "SettingsPopup");
             verify(panel);
             Controller.setTheme("frosted");
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             wait(25);
 
             const frosted = Util.ofTypeInWindow(panel, "GlassSurface");
@@ -261,7 +261,7 @@ Item {
 
             Controller.setFrostedBlur(10);
             Controller.setTheme("light");
-            shown.main.hidePanels(null);
+            Util.surfaceHost(shown.main).hidePanels(null);
         }
 
         /// Blur at 0 with nothing to bend (docs/adr/0069): the card draws no backdrop, asks for no picture, and does
@@ -295,7 +295,7 @@ Item {
 
             Controller.setFrostedBlur(10);
             Controller.setTheme("light");
-            shown.main.hidePanels(null);
+            Util.surfaceHost(shown.main).hidePanels(null);
         }
 
         /// The blur and the saturation are shader uniforms (docs/adr/0070): the picture no longer reloads when they
@@ -323,7 +323,7 @@ Item {
             Controller.setFrostedBlur(10);
             Controller.setFrostedSaturation(120);
             Controller.setTheme("light");
-            shown.main.hidePanels(null);
+            Util.surfaceHost(shown.main).hidePanels(null);
         }
 
         function test_colorConversionKeepsAlphaForThemeValues() {
@@ -406,7 +406,7 @@ Item {
             const main = makeMain();
             const panel = Util.ofType(main, "SettingsPopup");
             verify(panel);
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             panel.openCategory("general");
             wait(25);
 
@@ -433,7 +433,7 @@ Item {
 
             bubble.show({title: "short", type: "word", en: "short", zh: "短", x: 500, y: 500});
             wait(25);
-            main.placeTransient(bubble, anchor, bubble.gap);
+            Util.surfaceHost(main).placeTransient(bubble, anchor, bubble.gap);
             const firstHeight = bubble.height;
             const firstY = bubble.y;
 
@@ -443,7 +443,7 @@ Item {
                 {en: "a third explanation that wraps", text: "第三条"}
             ], x: 500, y: 500});
             wait(25);
-            main.placeTransient(bubble, anchor, bubble.gap);
+            Util.surfaceHost(main).placeTransient(bubble, anchor, bubble.gap);
 
             verify(bubble.height > firstHeight);
             verify(bubble.y < firstY, "placement must use the current height, not the first height");
@@ -452,14 +452,14 @@ Item {
         function test_narrowScreenUsesBoundsWithoutScalingContent() {
             const main = makeMain();
             const screen = {virtualX: -320, virtualY: 40, width: 320, height: 480};
-            const layout = main.layoutFor(screen, 432, 532);
+            const layout = Util.surfaceHost(main).layoutFor(screen, 432, 532);
 
             verify(layout.scale === undefined, "narrow layout must not scale the content tree");
             verify(layout.width <= screen.width - 16);
             verify(layout.height <= screen.height - 16);
 
             const anchor = Qt.rect(-2, 90, 24, 24);
-            const at = main.placeBeside(anchor, layout.width, layout.height, screen);
+            const at = Util.surfaceHost(main).placeBeside(anchor, layout.width, layout.height, screen);
             verify(at.x >= screen.virtualX + 8);
             verify(at.y >= screen.virtualY + 8);
             verify(at.x + layout.width <= screen.virtualX + screen.width - 8);

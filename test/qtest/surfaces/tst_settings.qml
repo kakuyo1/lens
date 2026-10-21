@@ -79,7 +79,7 @@ Item {
             Pet.setEnabled(true);
             const main = make();
             const panel = settingsPanel(main);
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             wait(25);
             panel.openCategory("extensions");
             wait(25);
@@ -154,7 +154,7 @@ Item {
 
         function test_theSignInSwitchShowsWhatTheRegistrySays() {
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             openCategory(panel, "General");
 
@@ -166,7 +166,7 @@ Item {
 
         function test_theClipboardSegmentPicksThePolicyAndFollowsItBack() {
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             openCategory(panel, "Capture & popups");
 
@@ -198,7 +198,7 @@ Item {
         function test_animationSwitchControlsTheMotionTokens() {
             Controller.setAnimationsEnabled(true);
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             openCategory(panel, "General");
 
@@ -227,7 +227,7 @@ Item {
         function test_theTypingSpeedRowFollowsTheAnimationSwitch() {
             Controller.setAnimationsEnabled(true);
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             openCategory(panel, "General");
 
@@ -246,7 +246,7 @@ Item {
 
         function test_theDailyBudgetIsReachableAndPersistsThroughTheController() {
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             openCategory(panel, "Daily budget");
 
@@ -280,7 +280,10 @@ Item {
                 const at = field.mapToItem(null, 0, 0);
                 return Math.round(field.Window.window.y + at.y + field.height + 6);
             };
-            tryVerify(() => Math.round(field.openChildRect.y) === below(), 2000,
+            // One pixel of slack: the field's fractional position and the list window's integer
+            // one round on opposite sides at 125% scaling. The rule is "the list follows the
+            // field", not "both round the same way".
+            tryVerify(() => Math.abs(Math.round(field.openChildRect.y) - below()) <= 1, 2000,
                       "the list did not follow the field when the page scrolled");
         }
 
@@ -292,7 +295,7 @@ Item {
             mouseClick(field, field.width / 2, field.height / 2);
             tryVerify(() => field.openChildRect !== null, 2000, "the field did not open its list");
 
-            shown.main.dismissOutside(Qt.point(shown.panel.x - 40, shown.panel.y - 40));
+            Util.surfaceHost(shown.main).dismissOutside(Qt.point(shown.panel.x - 40, shown.panel.y - 40));
 
             compare(shown.panel.visible, false, "the press did not put the panel down, so the case proves nothing");
             tryVerify(() => field.openChildRect === null, 2000, "a press outside the panel left its dropdown list up");
@@ -302,7 +305,7 @@ Item {
         function openLearningPanel() {
             const main = make();
             const panel = settingsPanel(main);
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             wait(25);
             panel.openCategory("learning");
             wait(25);
@@ -324,7 +327,7 @@ Item {
             mouseClick(field, field.width / 2, field.height / 2);
             tryVerify(() => field.openChildRect !== null, 2000, "the field did not open its list");
 
-            shown.main.dismissOutside(Qt.point(shown.panel.x - 40, shown.panel.y - 40));
+            Util.surfaceHost(shown.main).dismissOutside(Qt.point(shown.panel.x - 40, shown.panel.y - 40));
 
             compare(shown.panel.visible, false, "the press did not put the panel down, so the case proves nothing");
             tryVerify(() => field.openChildRect === null, 2000, "a press outside the panel left the word review list up");
@@ -339,7 +342,7 @@ Item {
             tryVerify(() => field.openChildRect !== null, 2000, "the field did not open its list");
 
             const rect = field.openChildRect;
-            shown.main.dismissOutside(Qt.point(rect.x + rect.width / 2, rect.y + rect.height / 2));
+            Util.surfaceHost(shown.main).dismissOutside(Qt.point(rect.x + rect.width / 2, rect.y + rect.height / 2));
 
             compare(shown.panel.visible, true, "a press on the list put the panel down");
             verify(field.openChildRect !== null, "a press on the list put the list down before it could be picked");
@@ -351,7 +354,7 @@ Item {
         function test_theBackdropRefreshListGoesDownWithThePanel() {
             Controller.setTheme("frosted");
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             openCategory(panel, "General");
 

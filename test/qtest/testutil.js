@@ -51,6 +51,16 @@ function ofType(root, typeName) {
     })[0];
 }
 
+/// @return Main.qml's SurfaceHost, where placement, panel routing and outside-press live.
+/// @throws When Main did not build one, so a case says what is missing instead of failing on
+///         `undefined.showSettings()`.
+function surfaceHost(root) {
+    const host = ofType(root, "SurfaceHost");
+    if (!host)
+        throw new Error("Main did not build a SurfaceHost");
+    return host;
+}
+
 /// @return The first object under `root` of type `typeName` and in `root`'s own window, or null.
 ///         The scoped form of ofType() (see ownWindow()).
 function ofTypeInWindow(root, typeName) {

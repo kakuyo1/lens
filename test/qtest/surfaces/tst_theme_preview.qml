@@ -42,7 +42,7 @@ Item {
         /// @return The theme dropdown, with its list opened.
         function openedThemeField(main) {
             const panel = settingsPanel(main);
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             panel.openCategory("general");
             wait(25);
             const field = Util.findAll(panel, function (o) {
@@ -101,7 +101,7 @@ Item {
             // The card takes the side with room, clear of the list's card. The offscreen screen is
             // narrow, so which side that is is read from the geometry rather than assumed.
             const list = field.openChildRect;
-            const area = main.workArea(main.screenFor(Qt.point(list.x, list.y)));
+            const area = Util.surfaceHost(main).workArea(Util.surfaceHost(main).screenFor(Qt.point(list.x, list.y)));
             const gap = 8;
             if (list.x + list.width + gap + preview.width - preview.shadowMargin <= area.right - gap) {
                 compare(cardLeftOf(preview), list.x + list.width + gap,

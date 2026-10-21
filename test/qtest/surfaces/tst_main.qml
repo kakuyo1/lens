@@ -89,18 +89,18 @@ Item {
 
             // The tray icon's corner, which is where every panel is opened from and the only
             // anchor placeBeside is ever handed.
-            const anchor = main.trayAnchor();
-            const screen = main.screenFor(anchor);
+            const anchor = Util.surfaceHost(main).trayAnchor();
+            const screen = Util.surfaceHost(main).screenFor(anchor);
             verify(screen, "the anchor is on no screen");
 
             const width = 332;
             const height = 300;
-            const at = main.placeBeside(anchor, width, height);
+            const at = Util.surfaceHost(main).placeBeside(anchor, width, height);
 
             verify(at.x >= screen.virtualX + 8, "the panel hangs off the left edge");
             verify(at.x + width <= screen.virtualX + screen.width - 8, "the panel hangs off the right edge");
             verify(at.y >= screen.virtualY + 8, "the panel hangs off the top edge");
-            verify(at.y + height <= main.workArea(screen).bottom - 8, "the panel hangs under the taskbar");
+            verify(at.y + height <= Util.surfaceHost(main).workArea(screen).bottom - 8, "the panel hangs under the taskbar");
         }
 
         /// A panel that grows after it was placed -- a row that opens, a list that loads -- keeps the corner it
@@ -112,11 +112,11 @@ Item {
             // The screen-layout check runs on a 250 ms timer, and its first tick re-places every visible panel from
             // its anchor. Let that tick run before the panel is shown, or it lands after the resize below and moves
             // the panel out from under the comparison.
-            tryVerify(function () { return main.screenLayoutSignature !== ""; }, 2000);
-            main.showStats();
+            tryVerify(function () { return Util.surfaceHost(main).screenLayoutSignature !== ""; }, 2000);
+            Util.surfaceHost(main).showStats();
             wait(50);
 
-            const area = main.workArea(main.screenFor(Qt.point(stats.x, stats.y)));
+            const area = Util.surfaceHost(main).workArea(Util.surfaceHost(main).screenFor(Qt.point(stats.x, stats.y)));
             stats.y = area.bottom - stats.height - 20;
             const right = stats.x + stats.width;
             const bottom = stats.y + stats.height;
@@ -135,7 +135,7 @@ Item {
             const stats = panel(main, "StatsPopup");
             const cost = panel(main, "CostPopup");
 
-            main.showStats();
+            Util.surfaceHost(main).showStats();
             stats.x = stats.x - 40;
             const corner = Qt.point(stats.x + stats.width - stats.shadowMargin, stats.y + stats.height - stats.shadowMargin);
 
@@ -167,14 +167,14 @@ Item {
             const main = make();
             const stats = panel(main, "StatsPopup");
 
-            main.showStats();
+            Util.surfaceHost(main).showStats();
             compare(stats.visible, true, "showStats() did not put the panel up");
 
             const card = Qt.point(stats.x + stats.width / 2, stats.y + stats.height / 2);
-            main.dismissOutside(card);
+            Util.surfaceHost(main).dismissOutside(card);
             compare(stats.visible, true, "a press on the panel closed it");
 
-            main.dismissOutside(Qt.point(0, 0));
+            Util.surfaceHost(main).dismissOutside(Qt.point(0, 0));
             compare(stats.visible, false, "a press away from the panel left it up");
         }
 
@@ -185,10 +185,10 @@ Item {
             const stats = panel(main, "StatsPopup");
             const settings = panel(main, "SettingsPopup");
 
-            main.showStats();
+            Util.surfaceHost(main).showStats();
             compare(stats.visible, true);
 
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             compare(settings.visible, true);
             tryVerify(function () { return !stats.visible; }, 1000, "the statistics panel stayed up behind the settings panel");
         }
@@ -241,21 +241,21 @@ Item {
             const yearWords = panel(main, "YearWordsPopup");
             const menu = panel(main, "TrayMenu");
 
-            main.showStats();
+            Util.surfaceHost(main).showStats();
 
-            main.showCost();
+            Util.surfaceHost(main).showCost();
             compare(cost.visible, true, "showCost() did not put the cost panel up");
             tryCompare(stats, "visible", false);
 
-            main.showWords();
+            Util.surfaceHost(main).showWords();
             compare(words.visible, true, "showWords() did not put the words panel up");
             tryCompare(cost, "visible", false);
 
-            main.showYearWords();
+            Util.surfaceHost(main).showYearWords();
             compare(yearWords.visible, true, "showYearWords() did not put the annual panel up");
             tryCompare(words, "visible", false);
 
-            main.showTrayMenu();
+            Util.surfaceHost(main).showTrayMenu();
             compare(menu.visible, true, "showTrayMenu() did not put the menu up");
             tryCompare(words, "visible", false);
             compare(menu.contentActive, true, "the menu's rows are built only once it is opened");
@@ -270,14 +270,14 @@ Item {
             const cost = panel(main, "CostPopup");
             const words = panel(main, "WordsPopup");
 
-            main.showStats();
+            Util.surfaceHost(main).showStats();
             stats.costRequested();
             compare(cost.visible, true, "the cost arrow did not open the cost panel");
 
             cost.backRequested();
             compare(stats.visible, true, "the cost panel's back arrow did not return to statistics");
 
-            main.showStats();
+            Util.surfaceHost(main).showStats();
             stats.wordsRequested();
             compare(words.visible, true, "the words arrow did not open the words panel");
 
@@ -299,7 +299,7 @@ Item {
             const statsCard = cardOf(stats);
             const costCard = cardOf(cost);
 
-            main.showStats();
+            Util.surfaceHost(main).showStats();
 
             // Reduced motion is not a rare machine: CI runs with it, because the runner reports Windows'
             // client-area animations off. hidePanels then makes the panel go at once instead of leaving,
@@ -340,7 +340,7 @@ Item {
             const stats = panel(main, "StatsPopup");
             const cost = panel(main, "CostPopup");
 
-            main.showStats();
+            Util.surfaceHost(main).showStats();
             stats.costRequested();
             cost.backRequested();
             compare(stats.leaving, false);
@@ -357,11 +357,11 @@ Item {
             const settings = panel(main, "SettingsPopup");
             const menu = panel(main, "TrayMenu");
 
-            main.showTrayMenu();
+            Util.surfaceHost(main).showTrayMenu();
             menu.statsRequested();
             compare(stats.visible, true, "the Statistics entry did not open the panel");
 
-            main.showTrayMenu();
+            Util.surfaceHost(main).showTrayMenu();
             menu.settingsRequested();
             compare(settings.visible, true, "the Settings entry did not open the panel");
             tryCompare(stats, "visible", false);
@@ -420,7 +420,7 @@ Item {
             wait(50);
             verify(petWindow.width > 0 && petWindow.height > 0, "the pet has no rectangle to put a card beside");
 
-            const area = main.workArea(main.screenFor(Qt.point(petWindow.x, petWindow.y)));
+            const area = Util.surfaceHost(main).workArea(Util.surfaceHost(main).screenFor(Qt.point(petWindow.x, petWindow.y)));
             const middle = Math.round(area.top + (area.bottom - area.top - petWindow.height) / 2);
             const click = function () {
                 mouseClick(petWindow.contentItem, petWindow.width / 2, petWindow.height / 2, Qt.RightButton);
@@ -452,17 +452,17 @@ Item {
             const top = 0, bottom = 1000, height = 100, gap = 10, shadow = 26;
 
             // The selection sits mid-screen: both sides fit, so the reader's choice decides.
-            compare(main.transientTop(500, gap, height, shadow, top, bottom, false), 500 - gap - height + shadow,
+            compare(Util.surfaceHost(main).transientTop(500, gap, height, shadow, top, bottom, false), 500 - gap - height + shadow,
                     "above was not taken when there is room above");
-            compare(main.transientTop(500, gap, height, shadow, top, bottom, true), 500 + gap - shadow,
+            compare(Util.surfaceHost(main).transientTop(500, gap, height, shadow, top, bottom, true), 500 + gap - shadow,
                     "below was not taken when the reader chose it and there is room below");
 
             // The selection sits near the top: nothing fits above, so the chosen-above surface drops below.
-            compare(main.transientTop(40, gap, height, shadow, top, bottom, false), 40 + gap - shadow,
+            compare(Util.surfaceHost(main).transientTop(40, gap, height, shadow, top, bottom, false), 40 + gap - shadow,
                     "above did not flip below when there is no room above");
 
             // The selection sits near the bottom: nothing fits below, so the chosen-below surface rises.
-            compare(main.transientTop(960, gap, height, shadow, top, bottom, true), 960 - gap - height + shadow,
+            compare(Util.surfaceHost(main).transientTop(960, gap, height, shadow, top, bottom, true), 960 - gap - height + shadow,
                     "below did not flip above when there is no room below");
         }
     }

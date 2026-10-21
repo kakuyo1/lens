@@ -169,7 +169,7 @@ Item {
 
         function test_aHoverRaisesTheCardBesideThePanelAndLeavingPutsItDown() {
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             openCategory(panel, "General");
 
@@ -214,12 +214,12 @@ Item {
         /// somewhere else on the screen the way a reader can.
         function test_theCardTakesTheSideOfTheScreenThatHasRoom() {
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             openCategory(panel, "General");
 
             const preview = previewOf(main);
-            const area = main.workArea(main.screenFor(Qt.point(panel.x, panel.y)));
+            const area = Util.surfaceHost(main).workArea(Util.surfaceHost(main).screenFor(Qt.point(panel.x, panel.y)));
             const margin = panel.previewMargin;
             const shadow = preview.shadowMargin;
             const width = preview.width;
@@ -251,7 +251,7 @@ Item {
 
         function test_eachRowForcesInThePartItIsAbout() {
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             openCategory(panel, "Reading & learning");
 
@@ -309,7 +309,7 @@ Item {
         /// stored -- the title is not a trigger any more.
         function test_theDefinitionFollowsTheHoveredLanguageRow() {
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             openCategory(panel, "Reading & learning");
 
@@ -352,7 +352,7 @@ Item {
         /// case this target cannot drive, and the reader's own machine is where that half is seen.
         function test_theCardTakesItsOwnGlassSheet() {
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             openCategory(panel, "General");
 
@@ -384,7 +384,7 @@ Item {
                 skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the offscreen snapshot");
 
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             openCategory(panel, "General");
 
@@ -419,7 +419,7 @@ Item {
 
         function test_aPanelThatGoesAwayTakesItsCardWithIt() {
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             openCategory(panel, "General");
 

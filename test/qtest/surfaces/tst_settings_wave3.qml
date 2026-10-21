@@ -94,7 +94,7 @@ Item {
 
         function test_defaultsRestoreAllLocalSettingsWithoutTouchingProtectedState() {
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             const hasApiKey = Controller.settings.hasApiKey;
             const autostart = Controller.settings.autostart;
@@ -142,7 +142,7 @@ Item {
 
         function test_apiKeyFieldUsesOneCursorAcrossItsFullInputArea() {
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             openCategory(panel, "Model service");
             const apiLink = Util.ofType(panel, "SettingsLinkRow");
@@ -163,7 +163,7 @@ Item {
 
         function test_catalogUsesAStableFixedSurfaceAndReturnsFromAChildPage() {
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             compare(panel.width, 432);
             compare(panel.height, 532);
@@ -188,7 +188,7 @@ Item {
         /// the page's only SettingsLinkRow: Font is the page's other door and sits above it.
         function test_theAccountRowLabelSharesThePagesLeftEdge() {
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             openCategory(panel, "General");
 
@@ -207,7 +207,7 @@ Item {
         /// edge lands on the body's, less the 18 px the body keeps under a page.
         function test_theAboutFooterSitsOnTheBodyBottom() {
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             openCategory(panel, "About");
 
@@ -233,7 +233,7 @@ Item {
             }
 
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             const settled = Tokens.motion.pop + 80;
 
@@ -266,7 +266,7 @@ Item {
 
             panel.visible = false;
             wait(20);
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             wait(settled);
             openCategory(panel, "Daily budget");
             wait(settled);
@@ -293,7 +293,7 @@ Item {
             }
 
             const main = make();
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
 
             // The panel is a card that fades and lifts into place (ShadowCard.qml), so a grab

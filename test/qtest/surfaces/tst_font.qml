@@ -231,7 +231,7 @@ Item {
             Controller.setFont("");
             const main = createTemporaryObject(mainComponent, root);
             verify(main);
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             wait(25);
 
             const panel = Util.ofType(main, "SettingsPopup");
@@ -259,7 +259,7 @@ Item {
             Controller.setFont("");
             const main = createTemporaryObject(mainComponent, root);
             verify(main);
-            main.showSettings();
+            Util.surfaceHost(main).showSettings();
             wait(25);
 
             const panel = Util.ofType(main, "SettingsPopup");
