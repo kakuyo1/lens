@@ -30,8 +30,10 @@
 #include <QVariantMap>
 
 #include <cctype>
+#include <chrono>
 #include <filesystem>
 #include <memory>
+#include <thread>
 
 #include <nlohmann/json.hpp>
 
@@ -1051,6 +1053,25 @@ TEST(UpdateDownload, ASumsListArrivingInTheBodyIsHandedOverWhole)
     EXPECT_EQ(received, listing) << "readyRead drained the body and nothing kept it, so the list reached the parser empty";
 }
 
+TEST(UpdateDownload, AChecksumListIsNotReportedAsDownloadProgress)
+{
+    QtApplication          qt;
+    const QByteArray       listing = "e1341962e994b1d278a2e2f66d87b01b0ff3f16f84e4d61edbd09248042c9a2b  Lens-1.1.0-setup.exe\n";
+    ScriptedManager        manager{200, {}, true, listing};
+    lens::update::Settings settings;
+    settings.source   = QUrl{QString::fromLatin1(kReleasePage)};
+    settings.sumsName = QStringLiteral("SHA256SUMS");
+
+    lens::update::DownloadClient client(settings, &manager);
+    int                          progress = 0;
+    QObject::connect(&client, &lens::update::DownloadClient::progressed, [&progress](qint64, qint64) { ++progress; });
+
+    client.fetchSums(QStringLiteral("1.1.0"));
+    settle();
+
+    EXPECT_EQ(progress, 0) << "the digest list is read for the reader, not shown to them as a download";
+}
+
 TEST(UpdateDuty, AFailedChecksumReadWhileNothingIsDownloadingIsNotShownAsADownloadFailure)
 {
     QtApplication qt;
@@ -1145,6 +1166,48 @@ TEST(UpdateDuty, CancellingDeletesTheHalfWrittenFileAndGoesBackToIdle)
 
     EXPECT_EQ(one.duty->download().value("state").toString(), QStringLiteral("idle"));
     EXPECT_FALSE(QFile::exists(one.partialAt()));
+}
+
+TEST(UpdateDuty, AProgressReportCarriesTheBytesTheShareAndTheEstimate)
+{
+    QtApplication    qt;
+    DutyFixture      one(false);
+    const QByteArray contents("the installer as it arrived");
+    one.duty->checkForUpdates();
+    one.answerWithNewer();
+    emit one.downloader->sumsReady(DutyFixture::sumsFor(installerName("1.2.0"), contents));
+    settle();
+    // The scripted list request never answers, and the installer request would be refused while
+    // it is still in flight. Dropping it is what a real transfer does when its list arrives.
+    one.downloader->cancel();
+    one.duty->downloadUpdate();
+
+    // A pace needs some time behind it to be an average rather than a division by nearly nothing.
+    std::this_thread::sleep_for(std::chrono::milliseconds(600));
+    emit one.downloader->progressed(1'000'000, 4'000'000);
+    settle();
+
+    QVariantMap state = one.duty->download();
+    EXPECT_EQ(state.value("received").toLongLong(), 1'000'000);
+    EXPECT_EQ(state.value("total").toLongLong(), 4'000'000);
+    EXPECT_EQ(state.value("percent").toInt(), 25);
+    EXPECT_GT(state.value("etaSeconds").toInt(), 0) << "three quarters of the file at the pace seen is still time left";
+    EXPECT_LE(state.value("etaSeconds").toInt(), 60);
+
+    // A report that states no length leaves the one already known alone, and the bytes still move.
+    emit one.downloader->progressed(2'000'000, -1);
+    settle();
+    state = one.duty->download();
+    EXPECT_EQ(state.value("received").toLongLong(), 2'000'000);
+    EXPECT_EQ(state.value("total").toLongLong(), 4'000'000) << "a known length is not forgotten by a report that omits it";
+    EXPECT_EQ(state.value("percent").toInt(), 50);
+
+    // Cancelling clears the reading along with the transfer.
+    one.duty->cancelDownload();
+    state = one.duty->download();
+    EXPECT_EQ(state.value("received").toLongLong(), 0);
+    EXPECT_EQ(state.value("total").toLongLong(), 0);
+    EXPECT_EQ(state.value("etaSeconds").toInt(), -1);
 }
 
 TEST(UpdateDuty, InstallsOnlyWhatStillMatchesAtTheMomentItIsRun)

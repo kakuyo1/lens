@@ -136,7 +136,8 @@ signals:
     /// @brief The `SHA256SUMS` asset arrived, whole or not; parsing decides what it means.
     void sumsReady(QByteArray sums);
 
-    /// @brief Bytes so far, and the total when the server states one.
+    /// @brief Bytes so far, and the total when the server states one. Installer transfers only:
+    ///        the digest list is read on the reader's behalf, and its size is nobody's progress.
     void progressed(qint64 received, qint64 total);
 
     /// @brief The installer arrived whole, at @p path. Nothing has been checked or renamed.

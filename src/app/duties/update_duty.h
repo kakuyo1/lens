@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDate>
+#include <QElapsedTimer>
 #include <QObject>
 #include <QString>
 #include <QStringList>
@@ -73,10 +74,13 @@ public:
     /**
      * @brief The download's state: `idle`, `downloading`, `verifying`, `ready` or `failed`.
      *
-     * @c percent is 0–100 and only means something while `downloading`; @c available says
-     * whether this release publishes the digest the download is checked against, which is what
-     * decides the Download button; @c failure is `generic`, `proxy` or `checksum` while the
-     * state is `failed`, and empty otherwise.
+     * @c percent is 0–100 and only means something while `downloading`; @c received and @c total
+     * are the transfer's byte counts, with @c total zero when the server states no length; @c
+     * etaSeconds is the remaining time estimated from the average speed since the transfer
+     * started, -1 while it cannot be estimated. @c available says whether this release publishes
+     * the digest the download is checked against, which is what decides the Download button;
+     * @c failure is `generic`, `proxy` or `checksum` while the state is `failed`, and empty
+     * otherwise.
      */
     QVariantMap download() const;
 
@@ -175,6 +179,7 @@ private:
     void    deletePartial();
     void    onSumsReady(QByteArray sums);
     void    onInstallerReady(QString path);
+    void    beginTransfer();
     void    failDownload(const QString& kind);
     /// Removes a finished download for a version the card no longer shows.
     void discardDownload();
@@ -200,8 +205,17 @@ private:
     QString     downloadState_ = QStringLiteral("idle");
     QString     downloadFailure_;
     std::string expectedDigest_;
-    int         downloadPercent_   = 0;
-    bool        downloadAvailable_ = false;
+    int         downloadPercent_ = 0;
+    /// The bytes the installer transfer has reported, and the length it announced.
+    qint64 downloadReceived_ = 0;
+    qint64 downloadTotal_    = 0;
+    /// The remaining time from the average speed since `transferClock_` started, -1 when the
+    /// transfer has not run long enough to say.
+    int downloadEtaSeconds_ = -1;
+    /// Runs for the installer transfer only: the digest list is a different request, and its
+    /// few kilobytes must not set the pace the card reports.
+    QElapsedTimer transferClock_;
+    bool          downloadAvailable_ = false;
     /// Whether this release's digest list has been read, which is what `downloadAvailable_`
     /// means: before it is, the card offers nothing rather than offering something untested.
     bool sumsKnown_ = false;

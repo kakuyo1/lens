@@ -52,7 +52,24 @@ UpdateDuty::UpdateDuty(StorageDuty&            storage,
     connect(&downloader_, &update::DownloadClient::sumsReady, this, &UpdateDuty::onSumsReady);
     connect(&downloader_, &update::DownloadClient::installerReady, this, &UpdateDuty::onInstallerReady);
     connect(&downloader_, &update::DownloadClient::progressed, this, [this](qint64 received, qint64 total) {
-        downloadPercent_ = total > 0 ? static_cast<int>(received * 100 / total) : 0;
+        if (downloadState_ != QLatin1String("downloading"))
+            return;
+        downloadReceived_ = received;
+        if (total > 0)
+            downloadTotal_ = total;
+        downloadPercent_ = downloadTotal_ > 0 ? static_cast<int>(qMin<qint64>(100, received * 100 / downloadTotal_)) : 0;
+        // The pace is the average since the transfer started, so a burst of buffered bytes does
+        // not promise a finish the rest of the transfer cannot keep. Under half a second there is
+        // no average worth showing, and the card leaves the estimate out.
+        downloadEtaSeconds_ = -1;
+        if (downloadTotal_ > 0 and received > 0 and transferClock_.isValid()) {
+            const qint64 elapsedMs = transferClock_.elapsed();
+            if (elapsedMs >= 500) {
+                const qint64 speed     = received * 1000 / elapsedMs;
+                const qint64 remaining = qMax<qint64>(0, downloadTotal_ - received);
+                downloadEtaSeconds_    = speed > 0 ? static_cast<int>((remaining + speed - 1) / speed) : -1;
+            }
+        }
         emit downloadChanged();
     });
     connect(&downloader_, &update::DownloadClient::failed, this, [this](update::DownloadClient::Failure why) {
@@ -279,6 +296,9 @@ QVariantMap UpdateDuty::download() const
 {
     return QVariantMap{{QStringLiteral("state"), downloadState_},
                        {QStringLiteral("percent"), downloadPercent_},
+                       {QStringLiteral("received"), downloadReceived_},
+                       {QStringLiteral("total"), downloadTotal_},
+                       {QStringLiteral("etaSeconds"), downloadEtaSeconds_},
                        {QStringLiteral("available"), downloadAvailable_},
                        {QStringLiteral("failure"), downloadFailure_}};
 }
@@ -333,11 +353,24 @@ void UpdateDuty::discardDownload()
 
 void UpdateDuty::resetDownload(const QString& state)
 {
-    downloadState_   = state;
-    downloadPercent_ = 0;
+    downloadState_      = state;
+    downloadPercent_    = 0;
+    downloadReceived_   = 0;
+    downloadTotal_      = 0;
+    downloadEtaSeconds_ = -1;
+    transferClock_.invalidate();
     if (state != QLatin1String("failed"))
         downloadFailure_.clear();
     emit downloadChanged();
+}
+
+void UpdateDuty::beginTransfer()
+{
+    downloadReceived_   = 0;
+    downloadTotal_      = 0;
+    downloadEtaSeconds_ = -1;
+    transferClock_.start();
+    downloader_.fetchInstaller(downloadVersion_, partialPath());
 }
 
 void UpdateDuty::failDownload(const QString& kind)
@@ -370,7 +403,7 @@ void UpdateDuty::downloadUpdate()
             LENS_INFO("this release publishes no checksum; the card keeps View only");
             return;
         }
-        downloader_.fetchInstaller(downloadVersion_, partialPath());
+        beginTransfer();
         return;
     }
     // The list this release publishes has not been read yet, so the press is remembered and
@@ -425,7 +458,7 @@ void UpdateDuty::onSumsReady(QByteArray sums)
         // The reader pressed Download while the list was still being read.
         downloadWanted_  = false;
         downloadVersion_ = latest_;
-        downloader_.fetchInstaller(downloadVersion_, partialPath());
+        beginTransfer();
     }
 }
 

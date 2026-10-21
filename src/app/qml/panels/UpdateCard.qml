@@ -6,8 +6,9 @@ import QtQuick.Window
  *
  * A passive surface: it takes no part in the panels' mutual exclusion, and it never uses the
  * explanation notice slot, so a card standing can neither replace a notice nor be replaced by
- * one. Its close path clears only the card's own flag -- the version the reader skipped is a
- * separate decision the card's Skip button makes.
+ * one. It can be dragged out of the way like the panels; a drag only moves the window and
+ * answers nothing. Its close path clears only the card's own flag -- the version the reader
+ * skipped is a separate decision the card's Skip button makes.
  *
  * The card also carries the download: what state it is in, how far it has got, and the one
  * thing a reader can do about it. View opens the release page in the browser; Download fetches
@@ -91,6 +92,48 @@ Window {
         return "";
     }
 
+    /// @brief One byte count as the card writes it: binary units, a decimal below ten.
+    function formatBytes(bytes) {
+        if (!(bytes > 0))
+            return "0 B";
+        if (bytes < 1024)
+            return bytes + " B";
+        const units = ["KB", "MB", "GB", "TB"];
+        let value = bytes / 1024;
+        let unit = 0;
+        while (value >= 1024 && unit < units.length - 1) {
+            value /= 1024;
+            ++unit;
+        }
+        return (value < 10 ? value.toFixed(1) : Math.round(value)) + " " + units[unit];
+    }
+
+    /// @brief The transfer's byte counts: the total is left out when the server states none.
+    function bytesText(received, total) {
+        return total > 0 ? formatBytes(received) + " / " + formatBytes(total) : formatBytes(received);
+    }
+
+    /// @brief The time left, written as a clock so no unit word has to be translated.
+    function etaText(seconds) {
+        if (!(seconds > 0))
+            return "";
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const rest = seconds % 60;
+        const clock = hours > 0
+                ? hours + ":" + (minutes < 10 ? "0" : "") + minutes + ":" + (rest < 10 ? "0" : "") + rest
+                : minutes + ":" + (rest < 10 ? "0" : "") + rest;
+        return qsTranslate("UpdateCard", "%1 left").arg(clock);
+    }
+
+    /// @brief The right end of the progress detail: the share done, then the time left when the
+    ///        duty can estimate it.
+    function paceText(percent, etaSeconds) {
+        const share = Math.round(percent) + "%";
+        const eta = etaText(etaSeconds);
+        return eta === "" ? share : share + " · " + eta;
+    }
+
     /// Put the card in the middle of the current screen and raise it, the way Notice.qml does.
     function show(payload) {
         leaving = false
@@ -122,6 +165,7 @@ Window {
     ShadowCard {
         id: panel
         anchors.fill: parent
+        movable: true
         color: card.tokens.glassMode === "" ? card.tokens.panel : "transparent"
         enabled: !card.leaving
 
@@ -191,6 +235,64 @@ Window {
                 lineHeight: 1.35
                 lineHeightMode: Text.ProportionalHeight
                 wrapMode: Text.WordWrap
+            }
+
+            // How the transfer is going, under what it is doing: a bar for the share done and
+            // one line for the bytes and the time the average pace says is left. The bar is
+            // left out when the server announces no length; the byte count never is.
+            Column {
+                width: parent.width
+                spacing: 6
+                visible: card.download.state === "downloading"
+
+                Rectangle {
+                    id: track
+                    width: parent.width
+                    height: 4
+                    radius: 2
+                    color: card.tokens.line
+                    visible: card.download.total > 0
+
+                    Rectangle {
+                        width: parent.width * Math.min(1, card.download.percent / 100)
+                        height: parent.height
+                        radius: parent.radius
+                        color: card.tokens.ink
+
+                        Behavior on width {
+                            NumberAnimation {
+                                duration: card.tokens.motion.press
+                                easing.type: card.tokens.motion.easing
+                            }
+                        }
+                    }
+                }
+
+                Item {
+                    width: parent.width
+                    height: bytesLabel.implicitHeight
+
+                    Text {
+                        id: bytesLabel
+                        anchors.left: parent.left
+                        text: card.bytesText(card.download.received, card.download.total)
+                        color: card.tokens.faint
+                        font.family: card.tokens.monoFamily
+                        font.pixelSize: 11
+                    }
+
+                    Text {
+                        anchors.right: parent.right
+                        anchors.left: bytesLabel.right
+                        anchors.leftMargin: 8
+                        horizontalAlignment: Text.AlignRight
+                        elide: Text.ElideLeft
+                        text: card.download.total > 0 ? card.paceText(card.download.percent, card.download.etaSeconds) : ""
+                        color: card.tokens.faint
+                        font.family: card.tokens.monoFamily
+                        font.pixelSize: 11
+                    }
+                }
             }
 
             Item {

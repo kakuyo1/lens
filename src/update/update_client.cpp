@@ -247,7 +247,7 @@ bool DownloadClient::start(const QUrl& url, Mode mode, int hops)
     const qint64   cap   = mode == Mode::Sums ? settings_.maxBytes : settings_.maxDownloadBytes;
     QNetworkReply* reply = reply_;
 
-    connect(reply, &QNetworkReply::downloadProgress, this, [this, reply, cap](qint64 got, qint64 total) {
+    connect(reply, &QNetworkReply::downloadProgress, this, [this, reply, cap, mode](qint64 got, qint64 total) {
         received_ = got;
         if (total > 0)
             total_ = total;
@@ -263,7 +263,11 @@ bool DownloadClient::start(const QUrl& url, Mode mode, int hops)
             reply->abort();
             return;
         }
-        emit progressed(received_, total_);
+        // Only the installer has a reader watching how far it has got: a checksum list is a
+        // handful of bytes read on the reader's behalf, and reporting it would move the card's
+        // progress bar for a transfer nobody asked to see.
+        if (mode == Mode::Installer)
+            emit progressed(received_, total_);
     });
     connect(reply, &QNetworkReply::readyRead, this, [this, reply, mode] {
         connect_->stop();
@@ -283,7 +287,8 @@ bool DownloadClient::start(const QUrl& url, Mode mode, int hops)
             reply->abort();
             return;
         }
-        emit progressed(received_, total_);
+        if (mode == Mode::Installer)
+            emit progressed(received_, total_);
     });
     connect(reply, &QNetworkReply::finished, this, [this, reply, url, mode, hops] { onFinished(reply, url, mode, hops); });
     return true;
