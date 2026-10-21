@@ -30,6 +30,12 @@
     "dwellDelayMs": 2200,
     "cooldownMs": 7000
   },
+  "movement": {
+    "style": "float",
+    "walk": "walk",
+    "peek": "edge_peek",
+    "range": 30
+  },
   "actions": {
     "idle": {
       "frames": 4,
@@ -374,6 +380,36 @@
         0
       ],
       "sheet": "sprites/body/rain.png"
+    },
+    "walk": {
+      "frames": 6,
+      "fps": 5,
+      "loop": true,
+      "expressions": [
+        0,
+        0,
+        5,
+        5,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/walk.png",
+      "effect": "sprites/effects/walk.png"
+    },
+    "edge_peek": {
+      "frames": 6,
+      "fps": 5,
+      "loop": true,
+      "expressions": [
+        0,
+        2,
+        0,
+        0,
+        2,
+        0
+      ],
+      "sheet": "sprites/body/edge_peek.png",
+      "effect": "sprites/effects/edge_peek.png"
     }
   }
 }

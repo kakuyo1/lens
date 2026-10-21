@@ -30,6 +30,7 @@
     "dwellDelayMs": 2300,
     "cooldownMs": 7000
   },
+  "movement": {"style": "hop", "walk": "walk", "peek": "edge_peek", "range": 30},
   "actions": {
     "idle": {"fps": 5, "loop": true, "blink": true, "frames": [
       {}, {}, {"pose": {"dy": -1}}, {"pose": {"dy": -1}}, {}
@@ -238,6 +239,22 @@
         {"at": [16, 8], "colour": "lilac", "art": ["##"]}
       ]},
       {}
+    ]},
+    "walk": {"fps": 9, "loop": true, "frames": [
+      {"pose": {"sx": 1.1, "sy": 0.86}, "expression": 0, "paint": [{"at": [5, 16], "colour": "rose", "art": ["#", "#"]}, {"at": [11, 16], "colour": "rose", "art": ["#", "#"]}]},
+      {"pose": {"sx": 0.96, "sy": 1.06, "dy": -1}, "expression": 0},
+      {"pose": {"sx": 0.94, "sy": 1.08, "dy": -2}, "expression": 5},
+      {"pose": {"sx": 0.98, "sy": 1.02, "dy": -1, "dx": 1}, "expression": 5},
+      {"pose": {"sx": 1.1, "sy": 0.86, "dx": 1}, "expression": 0, "paint": [{"at": [11, 16], "colour": "rose", "art": ["#", "#"]}, {"at": [17, 16], "colour": "rose", "art": ["#", "#"]}]},
+      {"pose": {"sx": 0.98, "sy": 1.02}, "expression": 0}
+    ]},
+    "edge_peek": {"fps": 5, "loop": true, "frames": [
+      {"expression": 0},
+      {"pose": {"dy": 1, "sx": 1.04, "sy": 0.94}, "expression": 2},
+      {"pose": {"dy": -1, "sx": 0.98, "sy": 1.04}, "expression": 0},
+      {"expression": 0},
+      {"pose": {"dy": 1, "sx": 1.04, "sy": 0.94}, "expression": 2},
+      {"pose": {"dy": -1, "sx": 0.98, "sy": 1.04}, "expression": 0}
     ]}
   },
   "accessories": [

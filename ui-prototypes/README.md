@@ -22,7 +22,7 @@
 | `word-images.html` | 图片作为义项锚的 A/B 对照：A 一键看图（默认浏览器接手），B 卡内三图（原地展开、换义项、看大图与来源）。照片取自 Wikimedia Commons，署名与许可在大图里 |
 | `update.html` | 检查更新（关于 分类的检查行）与通知卡片的新版本样式 |
 
-`pet-prototype/` 是一个 Vite 小应用，不是单个 standalone HTML：`walk.html` 是宠物步态与边缘躲藏的 demo，直接在 `pet-prototype/` 里跑 `npm run dev`，再打开 `/walk.html`。它读取 `data/pet` 的原始 JSON 与 PNG，并在页面上合并 `walk/walk.json` 里的原型动作；`walk.html` 里可以切七只宠物、左/右边缘、暂停与速度，勾 “原地播放” 看步态循环，点 “边缘演示” 强制一只躲到边缘，再把边缘的宠物拖出来结束躲藏。页面顶部的 “躲藏举牌” 卡演示躲着用内侧手举牌，牌子跟着 `ask` 的手逐帧移动。
+`pet-prototype/` 是一个 Vite 小应用，不是单个 standalone HTML：`walk.html` 是宠物步态与边缘躲藏的 demo，直接在 `pet-prototype/` 里跑 `npm run dev`，再打开 `/walk.html`。它读取 `data/pet` 的原始 JSON 与 PNG，`walk`、`edge_peek` 动作和 `movement` 块都取自同一份 `animations.json`；`walk.html` 里可以切七只宠物、左/右边缘、暂停与速度，勾 “原地播放” 看步态循环，点 “边缘演示” 强制一只躲到边缘，再把边缘的宠物拖出来结束躲藏。页面顶部的 “躲藏举牌” 卡演示躲着用内侧手举牌，牌子跟着 `ask` 的手逐帧移动。
 
 ## 怎么看
 

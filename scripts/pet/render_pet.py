@@ -30,6 +30,8 @@ point is a cell centre, (x + 0.5, y + 0.5) for cell (x, y).
   roles, idlePool    copied to animations.json.
   hover              Optional: {notice, dwell, noticeDelayMs, dwellDelayMs, cooldownMs}. The two action names are copied
                      to animations.json; the app uses them for the proximity greeting and fuller reaction.
+  movement           Optional: {style, walk, peek?, range?}. Copied to animations.json. Both action names must loop;
+                     the pet walks while idle and hides at a screen edge only when `peek` is present.
   actions            name -> {fps, loop, blink?, returnTo?, duration?, bodyFrom?, paint?, frames}. Each item of
                      `frames` is one frame. `duration`, in milliseconds, ends a looping action when it runs out.
                      `bodyFrom` names an action already earlier in the document whose body sheet and anchors this
@@ -296,6 +298,8 @@ def main():
     animations = {"roles": recipe["roles"], "idlePool": recipe["idlePool"]}
     if "hover" in recipe:
         animations["hover"] = recipe["hover"]
+    if "movement" in recipe:
+        animations["movement"] = recipe["movement"]
     animations["actions"] = {}
     anchors = {"actions": {}}
     rendered = {}

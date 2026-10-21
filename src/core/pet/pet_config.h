@@ -61,12 +61,34 @@ struct HoverSpec {
     std::chrono::milliseconds cooldown{8000};
 };
 
-/// @brief What animations.json holds: the playbook for the state machine, the blink on the expression layer, and the
-///        optional hover reactions.
+/// @brief How a pet moves when it wanders, from animations.json's optional `movement` block.
+enum class MovementStyle : std::uint8_t {
+    Glide,
+    Float,
+    Hop,
+    Trot,
+    Pounce,
+};
+
+/// @brief The optional wandering block. A pet without it stands still and never hides.
+struct MovementSpec {
+    /// The shape of the window's path; the body's bounce comes from the walk action itself.
+    MovementStyle style;
+    /// The looping action played while a step runs.
+    ActionName walk;
+    /// The looping action played while hidden at a screen edge. Empty means the pet does not hide.
+    std::optional<ActionName> peek;
+    /// The wander radius as a percentage of the window width, 10 to 60.
+    int range{30};
+};
+
+/// @brief What animations.json holds: the playbook for the state machine, the blink on the expression layer, the
+///        optional hover reactions, and the optional movement block.
 struct Animations {
-    Playbook                 playbook;
-    ActionSpec               blink;
-    std::optional<HoverSpec> hover;
+    Playbook                    playbook;
+    ActionSpec                  blink;
+    std::optional<HoverSpec>    hover;
+    std::optional<MovementSpec> movement;
 };
 
 /// @brief Anchors for every action, one entry per frame.
@@ -95,7 +117,8 @@ PetDocument parsePetDocument(nlohmann::json const& document);
  * it runs out, which is how a looping scene finishes. `returnTo` is optional, but when present it must name a role the
  * document maps. `blink: true` on an action marks it as blinking. `hover` is optional: it names the one-shot actions a
  * near hold plays (`notice`, then `dwell`), with optional `noticeDelayMs`, `dwellDelayMs` and `cooldownMs`; a dwell
- * needs a notice, and both actions must be one-shot.
+ * needs a notice, and both actions must be one-shot. `movement` is optional: it names the gait, a looping `walk`
+ * action, an optional looping `peek` action, and a radius of 10 to 60 percent of the window width.
  *
  * The pool the playbook carries is the document's list plus every one-shot action no role names, in
  * document order then by name. Those are the actions nothing else can reach, so a pet that gains one

@@ -116,6 +116,9 @@ using SceneSource = std::function<std::optional<ActionName>()>;
  *
  * A run of kAngryClicks clicks inside kAngryWindow enters the angry action directly, because click_react
  * is usually still playing and a request at the same priority would be dropped. The role is optional.
+ *
+ * An ambient loop (playAmbient) is the app's own movement: a role-less, looping action the controller starts
+ * from true idle and ends with stopAmbient. Any event wins over it, and the idle clock does not run under it.
  */
 struct PetStateMachine {
     /// @brief Idle wait before a random action: this base, plus up to kIdleCooldownSpread at random.
@@ -150,10 +153,16 @@ struct PetStateMachine {
     }
 
     /// @return Whether the idle role is playing. False during a reaction, a scene, a reading or sleeping state, a drag,
-    ///         and an idle-pool action, which plays with no role.
+    ///         and an idle-pool action or ambient loop, which both play with no role.
     bool idle() const
     {
         return currentRole == Role::Idle;
+    }
+
+    /// @return Whether the current action is a loop that playAmbient() started, such as a walk or an edge peek.
+    bool ambient() const
+    {
+        return ambientLoop;
     }
 
     /// @return Whether the expression layer should blink now, from the current action's `blinks` flag.
@@ -167,6 +176,16 @@ struct PetStateMachine {
     ///        duration, which is what marks a scene, and while the pet is being dragged.
     /// @param name Scene action as the app's catalogue and the pet's data spell it.
     void playScene(ActionName const& name);
+
+    /// @brief Starts a looping, role-less action while the pet is idle, for the app's own movement (a walk, an edge
+    ///        peek). It takes the idle priority, so any event wins, and the idle clock stays paused while it plays.
+    /// @param name Action name from animations.json.
+    /// @return Whether it started. False while anything but the idle role is playing, while dragging, and for an
+    ///         unknown or one-shot action.
+    bool playAmbient(ActionName const& name);
+
+    /// @brief Ends the ambient loop and returns to idle. Does nothing when an event has already taken over.
+    void stopAmbient();
 
     /// @brief Starts a hover reaction only while the pet is idle: a greeting or the fuller reaction from its data.
     ///        The reaction is a one-shot at situational priority, so a click, a drag or a learning event still wins.
@@ -239,6 +258,8 @@ private:
     int                       clicks{0};
     std::chrono::milliseconds sinceClick{0};
     bool                      dragging{false};
+    /// Whether `current` is a loop playAmbient() started. Any other enter() clears it.
+    bool ambientLoop{false};
 };
 
 } // namespace lens::core::pet

@@ -110,6 +110,21 @@ void PetStateMachine::playScene(ActionName const& name)
     enter(name, std::nullopt, Priority::Situational);
 }
 
+bool PetStateMachine::playAmbient(ActionName const& name)
+{
+    auto const found = playbook.actions.find(name);
+    if (currentRole != Role::Idle or dragging or found == playbook.actions.end() or not found->second.loop) return false;
+    enter(name, std::nullopt, Priority::Idle);
+    ambientLoop = true;
+    return true;
+}
+
+void PetStateMachine::stopAmbient()
+{
+    if (not ambientLoop) return;
+    enterRole(Role::Idle, Priority::Idle);
+}
+
 bool PetStateMachine::playHover(ActionName const& name)
 {
     auto const found = playbook.actions.find(name);
@@ -194,6 +209,7 @@ void PetStateMachine::enter(ActionName name, std::optional<Role> role, Priority 
     currentRole      = role;
     priority         = newPriority;
     elapsed          = std::chrono::milliseconds{0};
+    ambientLoop      = false;
     if (role == Role::Idle) {
         idleMs   = std::chrono::milliseconds{0};
         idleWait = nextIdleWait();

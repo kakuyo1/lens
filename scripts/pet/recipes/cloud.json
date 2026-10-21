@@ -2392,6 +2392,220 @@
         {},
         {}
       ]
+    },
+    "walk": {
+      "fps": 5,
+      "loop": true,
+      "frames": [
+        {
+          "expression": 0
+        },
+        {
+          "pose": {
+            "dx": -2,
+            "sx": 1.02,
+            "sy": 0.98
+          },
+          "expression": 0,
+          "paint": [
+            {
+              "at": [
+                0,
+                12
+              ],
+              "colour": "dust",
+              "art": [
+                "#"
+              ]
+            }
+          ]
+        },
+        {
+          "pose": {
+            "dx": -3,
+            "dy": -1,
+            "sx": 1.03,
+            "sy": 0.97
+          },
+          "expression": 3,
+          "paint": [
+            {
+              "at": [
+                17,
+                12
+              ],
+              "colour": "dust",
+              "art": [
+                "#"
+              ]
+            },
+            {
+              "at": [
+                0,
+                10
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 0
+        },
+        {
+          "pose": {
+            "dx": 3,
+            "dy": -1,
+            "sx": 1.03,
+            "sy": 0.97
+          },
+          "expression": 4,
+          "paint": [
+            {
+              "at": [
+                0,
+                12
+              ],
+              "colour": "dust",
+              "art": [
+                "#"
+              ]
+            },
+            {
+              "at": [
+                17,
+                10
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "pose": {
+            "dx": 2,
+            "sx": 1.02,
+            "sy": 0.98
+          },
+          "expression": 0,
+          "paint": [
+            {
+              "at": [
+                17,
+                12
+              ],
+              "colour": "dust",
+              "art": [
+                "#"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "edge_peek": {
+      "fps": 5,
+      "loop": true,
+      "frames": [
+        {
+          "expression": 0
+        },
+        {
+          "pose": {
+            "dy": 1,
+            "sx": 0.98,
+            "sy": 0.98
+          },
+          "expression": 2,
+          "paint": [
+            {
+              "at": [
+                17,
+                12
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "pose": {
+            "dy": -1,
+            "sx": 1.02,
+            "sy": 1.02
+          },
+          "expression": 0,
+          "paint": [
+            {
+              "at": [
+                0,
+                12
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            },
+            {
+              "at": [
+                17,
+                10
+              ],
+              "colour": "dust",
+              "art": [
+                "#"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 0
+        },
+        {
+          "pose": {
+            "dy": 1,
+            "sx": 0.98,
+            "sy": 0.98
+          },
+          "expression": 2
+        },
+        {
+          "pose": {
+            "dy": -1,
+            "sx": 1.02,
+            "sy": 1.02
+          },
+          "expression": 0,
+          "paint": [
+            {
+              "at": [
+                0,
+                12
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            },
+            {
+              "at": [
+                17,
+                10
+              ],
+              "colour": "dust",
+              "art": [
+                "#"
+              ]
+            }
+          ]
+        }
+      ]
     }
   },
   "accessories": [
@@ -2726,5 +2940,11 @@
         }
       ]
     }
-  ]
+  ],
+  "movement": {
+    "style": "float",
+    "walk": "walk",
+    "peek": "edge_peek",
+    "range": 46
+  }
 }

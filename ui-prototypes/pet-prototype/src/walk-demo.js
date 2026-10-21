@@ -1,8 +1,8 @@
 /**
  * The walk-cycle study: seven pets, each with its own new walk and edge-peek actions, moving around a small home area.
  *
- * The page is demo scaffolding. It reads each pet's normal data from data/pet (served by Vite), then merges the
- * walk and edge-peek actions from walk/walk.json. The app's animations.json, anchors.json and recipes are not touched.
+ * The page is demo scaffolding. It reads each pet's normal data from data/pet (served by Vite): the walk and
+ * edge-peek actions and the movement block are part of animations.json, the same files the app loads.
  *
  * The movement model is a compressed version of the planned idle wander: a home near the ground, an ellipse around
  * it, one walk cycle per step, a pause, and a long wait between strolls. The real app target is 120–300 s between
@@ -60,14 +60,22 @@ async function fetchJson(url) {
   return res.json();
 }
 
-async function loadPet(id, walk) {
+async function loadPet(id) {
   const names = ['pet', 'animations', 'anchors', 'accessories'];
   const files = Object.fromEntries(await Promise.all(names.map(async name => [name, await fetchJson(`/${id}/${name}.json`)])));
-  const pet = assemblePet(files);
-  // These actions carry their own per-frame anchors. assemblePet gives every normal action that shape already.
-  pet.actions.walk = { ...walk.action, anchors: walk.action.anchors };
-  if (walk.peek) pet.actions.edge_peek = { ...walk.peek, anchors: walk.peek.anchors };
-  return pet;
+  return assemblePet(files);
+}
+
+/// The movement block turned into the actions this page plays.
+function walkOf(pet) {
+  const movement = pet.movement;
+  if (!movement) throw new Error('this pet has no movement block');
+  return {
+    gait: movement.style,
+    range: movement.range,
+    action: pet.actions[movement.walk],
+    peek: movement.peek ? pet.actions[movement.peek] : undefined,
+  };
 }
 
 class Walker {
@@ -655,15 +663,23 @@ function makeCard(id) {
 }
 
 async function build() {
-  const walkData = await fetchJson('./walk/walk.json');
   const pets = new Map();
   const imageMaps = new Map();
+  const loaded = new Map();
+  for (const id of PET_IDS) {
+    const pet = await loadPet(id);
+    loaded.set(id, pet);
+  }
   // Put every card in the grid before the first actor measures its stage: a lone first card would take the full
   // page width, and its home would be wrong as soon as the rest of the grid arrived.
   const cards = new Map();
-  for (const id of PET_IDS) {
-    const walk = walkData.pets[id];
-    if (!walk) continue;
+  for (const [id, pet] of loaded) {
+    let walk;
+    try {
+      walk = walkOf(pet);
+    } catch (error) {
+      continue;
+    }
     const card = makeCard(id);
     card.querySelector('.gait').textContent = GAIT_LABEL[walk.gait] ?? walk.gait;
     card.querySelector('.note').textContent =
@@ -672,9 +688,9 @@ async function build() {
   }
 
   for (const [id, card] of cards) {
-    const walk = walkData.pets[id];
     try {
-      const pet = await loadPet(id, walk);
+      const pet = loaded.get(id);
+      const walk = walkOf(pet);
       const canvas = card.querySelector('canvas');
       const renderer = new PetRenderer(canvas, { ...pet, scale: SCALE });
       await renderer.load(path => `/${id}/${path}`);

@@ -36,12 +36,12 @@ public:
     static constexpr int kClockTickMs{60'000};
 
     /**
-     * @param storage    The storage boundary. History, cache, and review state all come through it.
-     * @param petEnabled Whether the pet is switched on.
-     * @param petIdle    Whether the pet is idle and free to take a question.
-     * @param parent     QObject parent.
+     * @param storage      The storage boundary. History, cache, and review state all come through it.
+     * @param petEnabled   Whether the pet is switched on.
+     * @param petAvailable Whether the pet is free to take a question: idle, or hiding at a screen edge (ADR 0076).
+     * @param parent       QObject parent.
      */
-    ReviewDuty(StorageDuty& storage, std::function<bool()> petEnabled, std::function<bool()> petIdle, QObject* parent = nullptr);
+    ReviewDuty(StorageDuty& storage, std::function<bool()> petEnabled, std::function<bool()> petAvailable, QObject* parent = nullptr);
 
     /// @return The lemma of the question up now; empty when none.
     QString const& word() const
@@ -95,7 +95,7 @@ private:
 
     StorageDuty&          storage_;
     std::function<bool()> petEnabled_;
-    std::function<bool()> petIdle_;
+    std::function<bool()> petAvailable_;
     std::mt19937          random_{std::random_device{}()};
     QString               word_;
     /// Epoch ms of the next look at the clock. Zero until a look is drawn after a start or a change.

@@ -55,6 +55,7 @@ pets\<id>\
 - 必须有一个 `blink` 条目（只有表情，没有 sheet）。
 - `idlePool` 只能列单次动作（`loop` 为假）。应用装载时还会把**没被 `roles` 点到的单次动作**补进池子，所以给包加一个新动作就同时给了它一个待机动作；`idlePool` 里写不写同一个名字都行，写了不会重复。循环动作（含带 `duration` 的场景动作）不进池子，只有应用自己的场景抽签能开始它们。
 - `hover` 可选，控制指针靠近时播什么：`notice` 与 `dwell` 是本包已有的**单次**动作名，`dwell` 必须与 `notice` 同时出现；`noticeDelayMs`、`dwellDelayMs`、`cooldownMs` 可选，依次默认 350、2600、8000，范围都是 0–60000。没有 `hover` 的包仍有视线跟随，但没有靠近动作；`hover` 至少要给出 `notice` 或 `dwell` 之一。
+- `movement` 可选，控制宠物空闲时走几步、贴边时躲不躲：`style` 必填，是 `glide` / `float` / `hop` / `trot` / `pounce` 之一；`walk` 必填，是本包已有的**循环**动作名；`peek` 可选，也是本包已有的循环动作名，缺省表示不躲藏；`range` 可选，是窗口宽度的百分比，范围 10–60，默认 30。没有 `movement` 的包保持原地待机；有 `walk` 没有 `peek` 的包只闲逛、不躲藏。走一步的时长等于 `walk` 的自然时长（`frames × 1000 / fps`），躲藏概率与可见比例是应用常数，不写进包。
 - 锚点条目数必须等于该动作的 `frames`。
 - 配饰的 `slot` 只能是 `head` / `face` / `body`，`supportedActions` 只能列本包已有的动作。
 - `anchors.json` 只列有 sheet 的动作。`blink` 只有表情、没有 sheet，所以不列锚点；列了即整只拒绝（`BadAnchors`）。
@@ -78,6 +79,7 @@ pets\<id>\
 | 动作数 | 32 |
 | 配饰数 | 32 |
 | `idlePool` 条目 | 16 |
+| `movement.range` | 10–60（窗口宽度的百分比） |
 | 单张 sheet 的声明宽度 | `frames × canvas`，且不超过 8192 |
 | 表情 sheet 格数 | 64 |
 | `name` 长度 | 32 个字符 |
@@ -104,7 +106,7 @@ pets\<id>\
 **数值**
 
 6. `format` 必须存在且为 `1`。
-7. `canvas`、`scale`、`frames`、`fps`、动作数、配饰数、`idlePool` 条目与 `hover` 的三个延迟均在 §4 范围内；`hover` 的 `notice` / `dwell` 必须是本包已有的单次动作，`dwell` 不能脱离 `notice` 单独出现。
+7. `canvas`、`scale`、`frames`、`fps`、动作数、配饰数、`idlePool` 条目、`hover` 的三个延迟与 `movement.range` 均在 §4 范围内；`hover` 的 `notice` / `dwell` 必须是本包已有的单次动作，`dwell` 不能脱离 `notice` 单独出现；`movement.style` 必须在闭集内，`movement.walk` / `peek` 必须是本包已有的循环动作。
 8. 每张 sheet 的像素尺寸等于 `frames × canvas` 宽、`canvas` 高；表情 sheet 高为 `canvas`、宽为 `canvas` 的整数倍。
 9. 每个表情索引（含 `blink` 的表情列表）小于表情 sheet 的格数。
 10. 缩放倍数在 1–4 之内。
@@ -131,7 +133,7 @@ pets\<id>\
 | `TooLarge` | 超过 §4 的任一上限 |
 | `BadName` | `id` 或 `name` 不合规 |
 | `MissingRole` | 必需的动作角色没有映射 |
-| `BadAnimation` | `frames`、`fps`、`loop`、`returnTo`、`idlePool`、`hover` 不合规 |
+| `BadAnimation` | `frames`、`fps`、`loop`、`returnTo`、`idlePool`、`hover`、`movement` 不合规 |
 | `BadAnchors` | 锚点缺失或条目数与帧数不符 |
 | `BadAccessory` | 配饰字段不合法、id 重复、槽位未知，或引用了不存在的动作 |
 | `BadAssetType` | 不是 PNG，或魔数与扩展名不符 |
@@ -180,7 +182,7 @@ python -I scripts/pet/render_pet.py <id>
 
 渲染器写出 `data/pet/<id>/`。把它整个目录复制到 `%APPDATA%\Lens\pets\` 下，再打开设置的扩展分类即可看到。`docs/pet-art-pipeline.md` 是完整流程、约束与经验。
 
-自查（应用加载时仍会再查一遍）：`roles` 覆盖 13 个角色（`stretch`、`angry` 与 `ask` 可省）、`idlePool` 只列单次动作、`returnTo` 指向已映射角色、`duration` 为正数、`hover` 的动作存在且为单次、`hover.dwell` 不脱离 `hover.notice`、有 `blink` 条目、锚点条目数等于帧数、sheet 尺寸等于 `frames × canvas`、PNG 魔数正确、路径无 `..`。
+自查（应用加载时仍会再查一遍）：`roles` 覆盖 13 个角色（`stretch`、`angry` 与 `ask` 可省）、`idlePool` 只列单次动作、`returnTo` 指向已映射角色、`duration` 为正数、`hover` 的动作存在且为单次、`hover.dwell` 不脱离 `hover.notice`、`movement.walk` / `peek` 存在且为循环、有 `blink` 条目、锚点条目数等于帧数、sheet 尺寸等于 `frames × canvas`、PNG 魔数正确、路径无 `..`。
 
 ## 10。已知边界
 

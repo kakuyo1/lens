@@ -303,13 +303,20 @@ PetAssets PetAssets::load(std::filesystem::path const& directory)
         assets.anchors = core::pet::parseAnchors(readDocument(directory / "anchors.json"), playbook);
 
         // The idle action is the one the role names, not a fixed folder name: the data decides what the idle role plays.
-        auto const& idle   = playbook.roles.at(core::pet::Role::Idle);
-        auto const  bounds = inkBoundsOf(assets.sheets.at(idle).body, assets.canvas);
-        assets.inkLeft     = bounds.left;
-        assets.inkTop      = bounds.top;
-        assets.inkRight    = bounds.right;
-        assets.inkCentre   = bounds.centre;
-        assets.inkBottom   = bounds.bottom;
+        auto const& idle    = playbook.roles.at(core::pet::Role::Idle);
+        auto const  bounds  = inkBoundsOf(assets.sheets.at(idle).body, assets.canvas);
+        assets.inkLeft      = bounds.left;
+        assets.inkTop       = bounds.top;
+        assets.inkRight     = bounds.right;
+        assets.inkCentre    = bounds.centre;
+        assets.inkBottom    = bounds.bottom;
+        assets.peekInkLeft  = bounds.left;
+        assets.peekInkRight = bounds.right;
+        if (auto const& movement = assets.animations.movement; movement and movement->peek) {
+            auto const peek     = inkBoundsOf(assets.sheets.at(*movement->peek).body, assets.canvas);
+            assets.peekInkLeft  = peek.left;
+            assets.peekInkRight = peek.right;
+        }
 
         auto const accessories = readDocument(directory / "accessories.json");
         assets.catalogue       = core::pet::parseAccessories(accessories, playbook);

@@ -69,6 +69,10 @@ constexpr int kMaxHoverDelayMs = 60'000;
 constexpr int kMaxActions      = 32;
 constexpr int kMaxAccessories  = 32;
 constexpr int kMaxIdlePool     = 16;
+/// The wander radius as a percentage of the window width: below this the step is invisible, above it the pet
+/// leaves the area its home implies and the walk reads as aimless.
+constexpr int kMinMovementRange = 10;
+constexpr int kMaxMovementRange = 60;
 /// Longest declared side of a sheet, width or height: 64 frames of 128 px is 8192, so a sheet of any valid pet fits.
 constexpr int kMaxSheetSide       = 8192;
 constexpr int kMaxExpressionCells = 64;

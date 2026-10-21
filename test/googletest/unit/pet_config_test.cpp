@@ -249,6 +249,88 @@ TEST(PetConfig, HoverDelaysStayWithinTheirLimit)
     }
 }
 
+TEST(PetConfig, ParsesTheMovementBlock)
+{
+    auto document                    = animationsDocument();
+    document["actions"]["walk"]      = {{"frames", 6}, {"fps", 8}, {"loop", true}};
+    document["actions"]["edge_peek"] = {{"frames", 6}, {"fps", 5}, {"loop", true}};
+    document["movement"]             = {
+        {"style", "trot"},
+        {"walk", "walk"},
+        {"peek", "edge_peek"},
+        {"range", 32},
+    };
+
+    auto const animations = parseAnimations(document);
+    ASSERT_TRUE(animations.movement.has_value());
+    EXPECT_EQ(animations.movement->style, lens::core::pet::MovementStyle::Trot);
+    EXPECT_EQ(animations.movement->walk, "walk");
+    EXPECT_EQ(animations.movement->peek, "edge_peek");
+    EXPECT_EQ(animations.movement->range, 32);
+}
+
+TEST(PetConfig, MovementIsOptionalAndItsRadiusDefaults)
+{
+    // A package written before movement existed keeps loading and never wanders.
+    auto document               = animationsDocument();
+    document["actions"]["walk"] = {{"frames", 6}, {"fps", 8}, {"loop", true}};
+    auto const without          = parseAnimations(document);
+    EXPECT_FALSE(without.movement.has_value());
+
+    document["movement"]  = {{"style", "glide"}, {"walk", "walk"}};
+    auto const animations = parseAnimations(document);
+    ASSERT_TRUE(animations.movement.has_value());
+    EXPECT_FALSE(animations.movement->peek.has_value());
+    EXPECT_EQ(animations.movement->range, 30);
+}
+
+TEST(PetConfig, RefusesAnUnknownMovementStyle)
+{
+    auto document               = animationsDocument();
+    document["actions"]["walk"] = {{"frames", 6}, {"fps", 8}, {"loop", true}};
+    document["movement"]        = {{"style", "swim"}, {"walk", "walk"}};
+    EXPECT_THROW(parseAnimations(document), std::runtime_error);
+
+    document["movement"] = {{"walk", "walk"}};
+    EXPECT_THROW(parseAnimations(document), std::runtime_error);
+}
+
+TEST(PetConfig, MovementNeedsALoopingWalkAndPeek)
+{
+    auto document        = animationsDocument();
+    document["movement"] = {{"style", "hop"}, {"walk", "celebrate"}};
+    EXPECT_THROW(parseAnimations(document), std::runtime_error);
+
+    document["actions"]["walk"] = {{"frames", 6}, {"fps", 8}, {"loop", true}};
+    document["movement"]        = {{"style", "hop"}, {"walk", "walk"}, {"peek", "celebrate"}};
+    EXPECT_THROW(parseAnimations(document), std::runtime_error);
+
+    document["movement"] = {{"style", "hop"}, {"walk", "missing"}};
+    EXPECT_THROW(parseAnimations(document), std::runtime_error);
+}
+
+TEST(PetConfig, MovementRadiusStaysBetweenTenAndSixty)
+{
+    auto document               = animationsDocument();
+    document["actions"]["walk"] = {{"frames", 6}, {"fps", 8}, {"loop", true}};
+
+    for (auto const range : {10, 60}) {
+        document["movement"] = {{"style", "float"}, {"walk", "walk"}, {"range", range}};
+        EXPECT_EQ(parseAnimations(document).movement->range, range);
+    }
+
+    document["movement"] = {{"style", "float"}, {"walk", "walk"}, {"range", 9}};
+    EXPECT_THROW(parseAnimations(document), std::runtime_error);
+
+    document["movement"] = {{"style", "float"}, {"walk", "walk"}, {"range", 61}};
+    try {
+        parseAnimations(document);
+        FAIL() << "a radius above the limit must be refused";
+    } catch (lens::core::pet::Refused const& refused) {
+        EXPECT_EQ(refused.reason(), lens::core::pet::Refusal::TooLarge);
+    }
+}
+
 TEST(PetConfig, StretchMayBeLeftOut)
 {
     // PHASE3 3.1: stretch is not required in the first version, so a document without it still loads.

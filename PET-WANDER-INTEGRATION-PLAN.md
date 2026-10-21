@@ -1,15 +1,15 @@
 # 宠物闲逛、边缘躲藏与躲藏举牌：应用层接入计划
 
-- **状态**：原型已确认（2026-10-20），应用层未接入。设计决定见 `docs/adr/0075-pet-wanders-hides-and-keeps-asking.md`。
+- **状态**：应用层已接入（2026-10-21）。设计决定见 `docs/adr/0076-pet-wanders-hides-and-keeps-asking.md`；实现记录见 `docs/pet-idle-and-motion.md` 第 8 节。真机视觉与多屏验收仍待做。
 - **原型**：`ui-prototypes/pet-prototype/walk.html`。七只宠物的 `walk` 循环、70% 边缘躲藏、`edge_peek`、拖出、躲藏举牌都在这里跑过。
-- **新美术**：`data/pet/<id>/sprites/body/{walk,edge_peek}.png` 与部分 `sprites/effects/{walk,edge_peek}.png`；生成器和动作数据暂时只在原型里（`ui-prototypes/pet-prototype/tools/build-walk-assets.py`、`ui-prototypes/pet-prototype/walk/walk.json`）。
+- **新美术**：`data/pet/<id>/sprites/body/{walk,edge_peek}.png` 与部分 `sprites/effects/{walk,edge_peek}.png`；帧已迁入 `scripts/pet/recipes/*.json` 与小狗的 `build-assets.py`，原型生成器已删除，原型页直接读取 `data/pet`。
 - **不在本计划内**：新的桌面宠物设置项、新的一级界面、自由漫游、把宠物包拆到别的进程。
 
 ## 1 已确认的行为
 
 ### 1.1 闲逛
 
-- 只在桌面宠物窗口可见、状态机真正空闲时计时。每次进入 idle 重新抽 120–300 秒；任何动作、阅读、睡眠、举牌、拖动、指针停在宠物窗口上都会作废当前这一次。设置预览、宠物关闭时不走。
+- 只在桌面宠物窗口可见、状态机真正空闲时计时。两次之间累计 120–300 秒真正空闲时间；阅读、复习、点击、拖动、悬停或指针停在宠物窗口上会重抽这次等待，宠物自己的短待机动作只暂停计时（否则每 20–90 秒一次的待机动作会让长等待永远到不了）。设置预览、宠物关闭时不走。
 - 一次闲逛 1–2 步（猫 1 步），每一步播放一次 `walk` 循环，窗口沿步态路径移动；走完停 200–1200 ms（随步态），再决定下一步或结束。
 - home 是读者最后放下宠物的位置；活动范围是窗口宽度的 10–60%，随包宠物 24–46%，形状按步态：`float` 纵向更大，`hop` 以横向为主，`trot`、`pounce` 更低。每 tick 的窗口位置都夹进 home 椭圆和当前屏工作区。
 - 每步时长等于 `walk` 动作的自然时长：`frames × 1000 / fps`。窗口路径只负责平移和很小的纵向补充；身体的主要上下起伏由 `walk` 动画承担。
@@ -92,7 +92,7 @@
 - 六只渲染宠物：把原型生成器里的 `WALKS`、`PEEKS` 帧搬进 `scripts/pet/recipes/<id>.json`，加 `movement`；`render_pet.py` 原样透传 `movement`，并重渲 `animations.json`、`anchors.json`、`accessories.json` 与 sheet。
 - 小狗：在 `scripts/pet/dog/build-assets.py` 增加 `walk`、`edge_peek` 两个动作的绘制分支，更新 `dog/manifest.json`；`data/pet/dog/animations.json`、`anchors.json`、`accessories.json` 是手写源，直接补条目。
 - 幽灵的风痕、麻薯的落地痕、云、水母的雾泡都沿用生成器里已验证的帧；重渲后先看 `git diff`，只接受与这两个动作相关的 PNG、JSON 变化。
-- 旧的原型生成器在数据迁移后可以删除，或缩成只生成预览的工具；应用与原型都以 `data/pet` 为源，原型的 `walk.json` 不再保留第二份动作数据。
+- 旧的原型生成器与 `walk/walk.json` 已删除；应用与原型都以 `data/pet` 为源。
 
 ## 4 核心与状态机
 
@@ -144,10 +144,10 @@ void stopAmbient();                      // 当前是 ambient 时回 idle；已�
 - `PetController` 增加：
 
 ```cpp
-bool availableForReview() const; // enabled && (machine_->idle() || hiding_)
+bool availableForReview() const; // enabled && !dragging && (machine_->idle() || (hiding_ && machine_->ambient()))
 ```
 
-- [AppController](src/app/app_controller.cpp) 的 `ReviewDuty` 回调从 `pet_->idle()` 改为 `pet_->availableForReview()`；`ReviewDuty` 的构造参数改名并改注释，逻辑不变。
+- [AppController](src/app/app_controller.cpp) 的 `ReviewDuty` 回调从 `pet_->idle()` 改为 `pet_->availableForReview()`；`ReviewDuty` 的构造参数改名并改注释，逻辑不变。躲藏时只在偷看循环里算可用，正在播反应或阅读时先让动作放完。
 - 提问到来时，状态机从 ambient 进入 `Ask`；窗口保持隐藏位置；`ReviewSignWindow.relayout()` 照常选内侧手。回答/超时后，控制器在反应动作结束、状态机回 idle 时重新 `playAmbient(edge_peek)`，躲藏继续。
 - 读者拖出时躲藏结束；如果问题还在，牌子跟到新位置，状态机仍是 `Ask`。
 - 不新增 `ReviewDuty` 的 “待复习” 重排：躲藏本身已经允许提问，不需要把 look 留到拖出后。
@@ -155,7 +155,7 @@ bool availableForReview() const; // enabled && (machine_->idle() || hiding_)
 ### 5.4 QML 与交互
 
 - `PetWindow.qml`：按下时新增 `Pet.stopWandering()`；拖拽/松手仍走现有 `dragStart`、`dragEnd`、`savePosition`；窗口在边缘外时可见部分仍能接收鼠标。
-- `PetWindow.qml` 的 `onWidthChanged`、`onHeightChanged` 调 `fitOnScreen()`；C++ 在躲藏时跳过。
+- `PetWindow.qml` 的 `onWidthChanged`、`onHeightChanged` 调 `fitOnScreen()`；C++ 在躲藏时只按新窗口重算隐藏偏移，不把窗口夹回屏内。
 - `ReviewSignWindow.qml`、`ReviewSignLayout.qml`：不改摆位算法；躲藏时 `layout.figure` 是隐藏窗口的位置，`choose()` 会选内侧手。视觉验收重点看杆是否还握在手里。
 - 设置页动作药丸：`walk`、`edge_peek` 要出现在动作列表里，需要在 `SettingsExtensionsPage.qml` 的 `actionLabel()` 加两项，并在四份 `.ts` 补翻译；`edge_peek` 预览只在设置舞台上原地播，不进入躲藏。
 - 不做新的开关：闲逛、躲藏与躲藏举牌都是宠物行为的一部分；读者关宠物即可全部停止。
@@ -174,7 +174,7 @@ bool availableForReview() const; // enabled && (machine_->idle() || hiding_)
 | 关闭宠物 | 停止 | 结束躲藏；再开启从 home 开始 |
 | 切换宠物 | 停止 | 结束躲藏；新宠物从当前落点开始 |
 | 改大小 | 停止当前步 | 保留躲藏，按新窗口重算偏移 |
-| 屏幕移除/工作区变化 | 夹回安全位置 | 取消躲藏并夹回安全位置 |
+| 屏幕移除/工作区变化 | 夹回安全位置 | 同一块屏按新边缘重算；屏幕移除时取消并夹回 |
 | 重启应用 | 从 home 开始 | 从 home 开始，不恢复躲藏 |
 
 ## 7 测试与验收
@@ -199,11 +199,11 @@ bool availableForReview() const; // enabled && (machine_->idle() || hiding_)
 
 ## 8 分阶段实施
 
-1. **数据与美术**：迁移 `walk`、`edge_peek` 到 recipes、dog manifest，补 `movement`，重渲，补配饰支持；解析器与数据测试。验收：`lens_gtest_unit --gtest_filter=PetConfig.*:PetData.*`。
-2. **核心 ambient 循环**：`playAmbient`、`stopAmbient` 与单测；控制器暂时不接窗口。验收：`PetStateMachine.*`。
-3. **闲逛与躲藏**：`PetWander`、控制器 hiding 状态、窗口移动、边缘检测、70%、拖出/缩回；不含复习。验收：`PetWander.*`，一次 `ui-run` 视觉检查。
-4. **复习与牌子**：`availableForReview`、AppController 回调、躲藏 ask、回答/超时恢复 peek、四份翻译与设置动作药丸。验收：ReviewDuty 用例 + 真机举牌。
-5. **收尾**：屏幕变化、改大小、关闭/切换、多屏/DPI、性能、文档、ADR、完整套件。
+1. **数据与美术**（已完成）：迁移 `walk`、`edge_peek` 到 recipes、dog manifest，补 `movement`，重渲，补配饰支持；解析器与数据测试。验收：`lens_gtest_unit --gtest_filter=PetConfig.*:PetData.*`。
+2. **核心 ambient 循环**（已完成）：`playAmbient`、`stopAmbient` 与单测；控制器暂时不接窗口。验收：`PetStateMachine.*`。
+3. **闲逛与躲藏**（已完成）：`PetWander`、控制器 hiding 状态、窗口移动、边缘检测、70%、拖出/缩回；不含复习。验收：`PetWander.*`，一次 `ui-run` 视觉检查。
+4. **复习与牌子**（已完成）：`availableForReview`、AppController 回调、躲藏 ask、回答/超时恢复 peek、四份翻译与设置动作药丸。验收：ReviewDuty 用例 + 真机举牌。
+5. **收尾**（代码与单测已完成；真机验收待做）：屏幕变化、改大小、关闭/切换、多屏/DPI、性能、文档、ADR、完整套件。
 
 每一阶段结束都可以单独回退；第 3 阶段没有复习接入时，躲藏只影响闲逛，风险最小。
 
@@ -219,18 +219,19 @@ bool availableForReview() const; // enabled && (machine_->idle() || hiding_)
 
 ## 10 验收清单
 
-- [ ] 七只随包宠物都有 `walk`、`edge_peek` 与合法 `movement`，配饰支持两者。
-- [ ] 旧宠物包、没有 `movement` 的包仍能加载，行为与现在一致。
-- [ ] 闲逛只在 idle 发生，动作/阅读/睡眠/举牌/拖动/指针在宠物上时停止。
-- [ ] 贴边 70% 进入躲藏，单击不结束，拖出结束，拖不够缩回。
-- [ ] 躲藏位置从不写回设置；拖出后的落点写回 home。
-- [ ] 躲藏中复习牌可举，选内侧手，回答/超时后继续躲。
-- [ ] 屏幕移除、工作区变化、关闭/切换宠物、改大小都有确定行为。
-- [ ] 单测、qtest（如需要）、真机视觉与完整套件通过；文档、ADR、翻译同步。
+- [x] 七只随包宠物都有 `walk`、`edge_peek` 与合法 `movement`，配饰支持两者。
+- [x] 旧宠物包、没有 `movement` 的包仍能加载，行为与现在一致。
+- [x] 闲逛只在 idle 发生，动作/阅读/睡眠/举牌/拖动/指针在宠物上时停止。
+- [x] 贴边 70% 进入躲藏，单击不结束，拖出结束，拖不够缩回。
+- [x] 躲藏位置从不写回设置；拖出后的落点写回 home。
+- [x] 躲藏中复习牌可举，选内侧手，回答/超时后继续躲。
+- [x] 屏幕移除、工作区变化、关闭/切换宠物、改大小都有确定行为。
+- [x] 单测（`lens_gtest_unit` 全量）、`lens_qtest_pet`、文档、ADR 与翻译同步。
+- 待做：`lens_qtest_components` 与 `lens_qtest_surfaces`、真机视觉、多屏、性能验收。qtest 两个目标在本机因缺少 `CascadiaCode.ttf` 无法启动，与本次改动无关。
 
 ## 附录 A：原型对照
 
-- 步态与 `walk`、`edge_peek` 的逐帧美术：`ui-prototypes/pet-prototype/tools/build-walk-assets.py`。
-- 动作数据（最终会并入 `animations.json`、`anchors.json`）：`ui-prototypes/pet-prototype/walk/walk.json`。
+- 步态与 `walk`、`edge_peek` 的逐帧美术：`scripts/pet/recipes/*.json` 与 `scripts/pet/dog/build-assets.py`。
+- 动作数据：`data/pet/<id>/animations.json` 与 `anchors.json`，原型页直接读取。
 - 页面：`ui-prototypes/pet-prototype/walk.html`，`cd ui-prototypes/pet-prototype && npm run dev` 后打开 `/walk.html`。
 - 原型里的等待被压缩为 8–28 秒，真实目标是 120–300 秒；页面上的 “边缘演示” 按钮绕过 70% 只为看美术，真实路径仍是掷签。

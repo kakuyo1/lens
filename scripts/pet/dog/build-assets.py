@@ -30,6 +30,7 @@ COLOURS = {
     "gold": (242, 186, 64, 255),
     "rose": (232, 96, 130, 255),
     "sky": (82, 160, 236, 255),
+    "grey": (74, 78, 86, 255),
 }
 NEIGHBOURS = [(1, 0), (-1, 0), (0, 1), (0, -1)]
 
@@ -297,13 +298,83 @@ def anger(n):
     return frames
 
 
+# The walk cycle: contact, passing, contact, passing, contact, passing. A lifted leg loses its bottom
+# row; the dust marks the foot it lands on.
+DOG_LEFT_LEG = {(x, y) for x in range(4, 7) for y in (15, 16)}
+DOG_RIGHT_LEG = {(x, y) for x in range(11, 14) for y in (15, 16)}
+WALK_CYCLE = [
+    {"lift": "right", "dust": "left"},
+    {"lift": None},
+    {"lift": "left", "dust": "right"},
+    {"lift": None},
+    {"lift": "right", "dust": "left"},
+    {"lift": None},
+]
+
+
+def walk(n):
+    frames = []
+    for i in range(n):
+        item = WALK_CYCLE[i % len(WALK_CYCLE)]
+        cells = set(dog_cells) - DOG_LEFT_LEG - DOG_RIGHT_LEG
+        cells |= DOG_LEFT_LEG if item["lift"] != "left" else {(x, y) for x, y in DOG_LEFT_LEG if y == 15}
+        cells |= DOG_RIGHT_LEG if item["lift"] != "right" else {(x, y) for x, y in DOG_RIGHT_LEG if y == 15}
+        f = Frame()
+        silhouette(f, cells)
+        frames.append(f)
+    return frames
+
+
+def walk_dust(n):
+    frames = []
+    for i in range(n):
+        item = WALK_CYCLE[i % len(WALK_CYCLE)]
+        f = Frame()
+        if item.get("dust") == "left":
+            spots = ((8, 56), (11, 54), (14, 57))
+        elif item.get("dust") == "right":
+            spots = ((50, 56), (53, 54), (56, 57))
+        else:
+            spots = ()
+        for x, y in spots:
+            f.box(x, y, x + 2, y + 1, COLOURS["grey"])
+        frames.append(f)
+    return frames
+
+
+# The edge peek: the whole head ducks one cell for two frames, then the dog looks up over the edge.
+PEEK_CYCLE = [
+    {"duck": False},
+    {"duck": True},
+    {"duck": False},
+    {"duck": False},
+    {"duck": True},
+    {"duck": False},
+]
+
+
+def edge_peek(n):
+    head = grid_cells(sprite["head"])
+    face = set(EYES) | set(MOUTH)
+    body = dog_cells - head - face
+    frames = []
+    for i in range(n):
+        cells = dog_cells
+        if PEEK_CYCLE[i % len(PEEK_CYCLE)]["duck"]:
+            cells = body | {(x, y + 1) for x, y in head | face}
+        f = Frame()
+        silhouette(f, cells)
+        frames.append(f)
+    return frames
+
+
 BODY = {
     "idle": standing, "study": standing, "thinking": standing, "celebrate": standing,
     "encourage": standing, "click_react": standing, "pickup": standing, "look_around": standing,
     "yawn": standing, "stretch": standing, "sleep": sleep,
     "wag": standing, "sniff": standing, "scratch": standing, "angry": standing,
     "swing": standing, "desk": standing, "skate": standing, "bath": standing, "rain": standing,
-    "ask": standing,
+    "ask": standing, "walk": walk, "edge_peek": edge_peek,
 }
 
 
@@ -365,6 +436,7 @@ EFFECTS = {
     "encourage": hearts, "click_react": pokes, "pickup": sweat, "look_around": question,
     "stretch": motion_lines, "sleep": zzz,
     "wag": wag, "sniff": sniff, "scratch": scratch, "angry": anger, "ask": lambda n: hand(n, "right"),
+    "walk": walk_dust,
 }
 
 
