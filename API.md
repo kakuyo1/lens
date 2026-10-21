@@ -1,5 +1,5 @@
 # LLM 协议
-> 本文件描述 Lens 与释义模型之间的线上格式。**实际生效的定义在 `data/llm/` 目录**，代码只组装与校验，不内联任何提示词或字段名。
+> 权威：当前线上协议。**实际生效的定义在 `data/llm/` 目录**，代码只组装与校验，不内联任何提示词或字段名；历史取舍见 `docs/adr/`。
 
 服务商、模型与端点由 `data/llm/catalog.json` 驱动，默认是 DeepSeek；解释请求使用 OpenAI 兼容的 `POST {baseUrl}/chat/completions`，请求头为 `Content-Type: application/json` 与 `Authorization: Bearer <API-KEY>`。模型列表不问服务商：**全部服务商共用 `modelSource` 声明的那一个源**，回答按厂商前缀切分。当前目录包含 DeepSeek（`deepseek-flash`、`deepseek-v4-pro`）、OpenAI（`gpt-4.1-mini`、`gpt-4.1-nano`）和 Custom；Custom 允许在设置中填写模型与 HTTPS 服务地址。价目独立放在 `data/llm/pricing.json`。
 

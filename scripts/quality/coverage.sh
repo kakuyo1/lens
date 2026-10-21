@@ -3,7 +3,7 @@
 #
 # OpenCppCoverage reads the PDB of a binary that is already built, so there is no coverage
 # build tree and no extra build flag: it instruments the Debug objects build-ninja already
-# produced. See TEST.md section 4 for the scope and for what this cannot see.
+# produced. See docs/metrics/profiling-and-coverage.md for the scope and what it cannot see.
 #
 # Usage: scripts/quality/coverage.sh [output-dir] [target...]
 #   output-dir defaults to test/records/coverage, which is gitignored.
@@ -31,7 +31,7 @@ if [ "$#" -gt 0 ]; then shift; fi
 COV='/c/Program Files/OpenCppCoverage/OpenCppCoverage.exe'
 [ -x "$COV" ] || COV=$(command -v OpenCppCoverage 2>/dev/null || true)
 [ -n "$COV" ] && [ -x "$COV" ] || {
-    echo "coverage: OpenCppCoverage is not installed; TEST.md section 4 has the one-line install" >&2
+    echo "coverage: OpenCppCoverage is not installed; docs/metrics/profiling-and-coverage.md has the one-line install" >&2
     exit 1
 }
 [ -d "$BUILD" ] || { echo "coverage: no build tree at $BUILD; run scripts/build/build.bat first" >&2; exit 1; }

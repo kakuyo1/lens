@@ -22,7 +22,7 @@ the flags and arguments go on the end.
 3. Drive a surface that needs a trigger with `scripts/qa/ui-input.ps1 click|drag|dragfast|reveal`.
    `scripts/qa/ui-tray-rects.ps1` prints the taskbar rectangles to check a placement against.
 
-`TEST.md` section 5 owns the rest: the order of a round, what each tool measures, and the two
-driving traps around focus and the clipboard.
+`docs/qa.md` owns the rest: the order of a round, what each tool measures, and the two driving
+traps around focus and the clipboard.
 
 This runs on the reader's own desktop: it opens windows and moves their pointer.

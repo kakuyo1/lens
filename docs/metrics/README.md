@@ -1,6 +1,12 @@
 # 指标报告
 
-本目录按用途分组存放各次采样的指标报告。文件名带采样日期，是那一天的快照，不随源码漂移而改。
+> 权威：指标索引。带日期的文件是那一天的采样快照，不随源码漂移而改；`profiling-and-coverage.md` 是当前测量方法，只有设施或口径变化时才改。
+
+## accessibility
+
+| 文件 | 回答的问题 |
+| --- | --- |
+| [`contrast-2026-10-12.md`](accessibility/contrast-2026-10-12.md) | 暗夜与两套玻璃主题的文字对比度各是多少，哪些组合不达 WCAG AA |
 
 ## compile-performance
 
@@ -42,5 +48,11 @@
 | [`idle-memory-2026-10-05.md`](resource-footprint/idle-memory-2026-10-05.md) | 空闲时进程占多少内存，占在哪 |
 | [`memory-leak-2026-10-05.md`](resource-footprint/memory-leak-2026-10-05.md) | 长时间运行与真实使用会不会让内存只涨不跌 |
 | [`glass-memory-2026-10-18.md`](resource-footprint/glass-memory-2026-10-18.md) | 开了流光玻璃主题为什么占到 967 MB、804 线程，涨在哪，怎么量的 |
+
+## 测量方法
+
+| 文件 | 回答的问题 |
+| --- | --- |
+| [`profiling-and-coverage.md`](profiling-and-coverage.md) | profiling 怎么开、覆盖率两条线各数什么，为什么读数不可比 |
 
 补测清单见 [`coverage/coverage-plan-2026-10-03.md`](coverage/coverage-plan-2026-10-03.md)。

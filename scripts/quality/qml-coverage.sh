@@ -3,8 +3,8 @@
 #
 # The profiler launches the test binary itself, handing it the QML debug connector on the way,
 # so what comes out is coverage by the test suite rather than by a hand-driven session -- which
-# is the number worth pairing with the C++ one. Qt has no QML line-coverage tool; TEST.md
-# section 4 says why, and what this counts instead.
+# is the number worth pairing with the C++ one. Qt has no QML line-coverage tool;
+# docs/metrics/profiling-and-coverage.md says why, and what this counts instead.
 #
 # The same caveat as scripts/quality/coverage.sh applies: it measures an existing build tree, and adds
 # nothing to it.

@@ -1,8 +1,8 @@
 # 测试
 
-> 本文是测试的唯一出处：框架、目录、目标、运行方式、样例集格式、profiling、覆盖率与记录约定。
-> `AGENTS.md` 的 Test 与 Profiling 两节只留指针。
-> 设计总览见 `PRODUCT.md`。
+> 权威：当前测试入口——框架、目录、目标、运行方式、样例集格式与记录约定。
+> Profiling 与覆盖率见 `docs/metrics/profiling-and-coverage.md`；真机驱动与拍照见 `docs/qa.md`。
+> `AGENTS.md` 的 Test 一节只留指针；设计总览见 `PRODUCT.md`。
 
 ## 1 框架与目录
 
@@ -13,7 +13,7 @@
 ```
 test/
 ├── eval_corpus.json      # 自检样例集，兼行为规格（§3）
-├── records/              # 运行记录，gitignored（§5）
+├── records/              # 运行记录，gitignored（§6）
 ├── googletest/           # 不需要窗口的那一半
 │   ├── support.h         # 仓库根 + 词表与屈折表的加载（无 Qt）
 │   ├── llm_support.h     # 线上协议加载（含 Qt，只有 LLM 侧目标包含）
@@ -132,204 +132,11 @@ Translation（语言先于形状判定），其余按形状：单 token 在词�
 
 ## 4 Profiling 与覆盖率
 
-### Profiling
-
-`src/core/profile.{h,cpp}` 放 `lens_core` 内部的测量点，两个原语：`LENS_PROFILE_SCOPE` 是 RAII
-作用域计时器，`LENS_PROFILE_COUNT` 是计数器。二者在 `LENS_PROFILE` 未定义时展开为空，测量代码一字
-不改。
-
-开关是 CMake 选项 `LENS_ENABLE_PROFILE`，挂在 `lens_core` 的 **PUBLIC** 上：调用点要不要发样本由
-这个宏决定，写入侧与读取侧必须看到同一个值。**开它等于重编 `lens_core`，不是重跑。**
-
-profile 数字要有优化才有意义，而两个开发 preset 都是 Debug，所以用第三个树：
-
-```
-cmake --preset ninja-qt6-perf
-cmake --build --preset ninja-qt6-perf --target lens_gtest_perf
-./build-ninja-perf/test/googletest/lens_gtest_perf.exe
-```
-
-（与 `ninja-qt6` 一样需要 MSVC 环境，见 `AGENTS.md` 的 Build 一节。）
-
-三条必须守住：
-
-- **不逐条打日志**。热路径按调用记日志会淹掉日志本身，并盖住要观察的现象。站点只累加，热阶段结束
-  后用一次 `report()` 出汇总表；`profile.h` 自身不写任何日志。
-- **计时器不免费**。同株关掉插桩作对照，插桩整体抬高约 16%，反推一次 `ScopeTimer` 约 60 ns（两次
-  `steady_clock` 读 + 一次注册表查找）。对 `lemmatize` 这种每 token 进入的作用域不可忽略：先用计数器
-  量分母，再决定要不要给内层计时。
-- **一次结论至少三轮**。本机噪声大：同一次运行的 min 与 max 可差 4 倍，`filterWords` 在五轮里从
-  4.36 ms 摆到 7.04 ms，而 `lemmatize` 稳定在 1.85–2.04 ms。报占比要报区间，不报点值。
-
-注册表以字面量的地址为键，所以每次样本不必哈希或拷贝字符串；单线程无锁（`profile.cpp` 的
-`ponytail:` 注释写了升级路径）。`report()` 是 “进程启动至今” 的累计，`lens_gtest_perf` 在计时轮次
-前调 `reset()`，使报告只覆盖被测量的那一段。
-
-### 覆盖率
-
-两条线，两条完全不同的技术路线，**读数不可比，也不许平均**。哪个数字对应哪条线，看目标的语言。
-
-#### C++ 行覆盖
-
-工具是 OpenCppCoverage，winget 装在 `C:\Program Files\OpenCppCoverage\`。它读 Debug 二进制的
-PDB、在运行时插桩，所以**没有覆盖率专用树，也没有覆盖率编译标志**：量的是 `build-ninja` 里已有
-的那批产物。这一点与上面那棵树相反——profiling 要优化过，覆盖率不要。
-
-```
-sh scripts/quality/coverage.sh                                    # 五个无人值守的目标
-sh scripts/quality/coverage.sh test/records/coverage lens_gtest_unit   # 或者只点几个目标
-```
-
-每个目标一份，最后合并成 `test/records/coverage/coverage.xml`；该目录 gitignored。汇总那一行由
-`scripts/quality/coverage-summary.py` 算出：Cobertura 里一个被多个二进制链进去的源文件会出现好几份，
-根节点的 `line-rate` 把它们加在一起，直接读会偏低。`lens_gtest_smoke` 要 key 且花钱，不在内；
-`lens_gtest_integration` 在默认列表里，但 CI 不点它（runner 没有真鼠标与真剪贴板）。
-
-两条口径，读数字之前先读它：
-
-- **没报出来的文件不是 0%**。只被 `lens.exe` 引用的 `main.cpp` 与 `qt_log.cpp` 不会被静态链接拉进
-  测试二进制，声明与宏居多的头文件也没有可执行行——两种都不等于 “没被测过”。
-- **`profile.cpp` 的读数偏低是构建配置**。`LENS_ENABLE_PROFILE` 在这棵树上关着，测量点在调用点
-  展开成空。
-
-#### QML 执行覆盖
-
-Qt 没有 QML 的行覆盖率工具，这不是遗漏而是结构问题：`.qml` 主要在声明对象，而声明一个对象不是一
-行 “执行”。会执行的是它里面的 JavaScript——属性绑定、signal handler、函数——唯一报告这些的是
-QML profiler：每求值一次就记一条带文件与行号的事件，这些位置的并集就是执行集。
-
-```
-npm ci                    # tree-sitter，与 AST 度量共用同一个依赖
-sh scripts/quality/qml-coverage.sh
-```
-
-分母来自 `scripts/quality/qml-coverage.js` 用 `tree-sitter-qmljs` 建的解析树：模块里每个非字面量的
-`ui_property` 与 `ui_binding`，加上每个 `function_declaration`。字面量的绑定被排除在两侧之外
-——编译器把它们折进对象的构造，引擎从不求值，profiler 也就永远报不出来；算进分母就是一笔永远
-扣不掉的分。结果写 `test/records/qmlcov/`。profiler 启动的是那**两个 QTest 目标**本身，所以这是
-测试套件覆盖到多少，不是手工跑一遍应用覆盖到多少。
-
-三条要注意的：
-
-- **它数位置，不数行。**一个绑定只要对象被创建就会求值一次，所以 “两条分支都测过没有” 它答不上
-  来。这不是行覆盖率的替代品。
-- **无头不渲染，`qsTr()` 标签绑定永不被求值。**未执行的位置里约四分之一是这一条造成的，那不是
-  缺口。
-- **构建树必须是新的。**QML 编进二进制，改了 `.qml` 没重新链接测试目标就量到旧模块——本轮真踩过
-  一次，同一个文件读 19% 与 52%。同理适用于 C++ 那条线。
-
-数字读出来之后怎么写、往哪写，见 `docs/metrics/` 里按日期存的那份报告；补什么、按什么顺序补，
-见 `docs/metrics/coverage/coverage-plan-2026-10-03.md`。
+测量设施、构建树、读数口径与两条覆盖率线的差异见 `docs/metrics/profiling-and-coverage.md`。
 
 ## 5 UI 表面
 
-表面没有主窗口，全部靠触发才出现，所以真机验证只能靠驱动与拍照。能脱离屏幕断言的那部分已经搬进
-`lens_qtest_surfaces`（§2）：摆放、关闭规则、面板上的数字、托盘菜单那几个派生值，都不再需要快门。
-剩下的仍是这里的事——卡片对没对齐、阴影糊不糊、图标画出来没有。`scripts/qa/ui-*.ps1` 是四个这样的工具，
-都是 PowerShell，都先把自己设成 per-monitor-v2 感知——不设的话截到的是 Windows 已经拉伸过的位图，
-糊与偏移都会被量成假的。
-
-- `ui-run.ps1`：起应用。`lens.exe` 比 `src/` 旧就先重建 release 树，然后脱离当前 shell 启动，报出 PID、
-  `logs/lens.log` 与有没有出现 `Lens is up`。已在运行就拒绝再起（`-Restart` 先停）。要拍照必须这样起，
-  并带上 `LENS_QA_VISIBLE_IN_CAPTURE=1`：玻璃主题下全部表面对抓屏隐藏（ADR 0038 / 0041），不设它，
-  `ui-capture.ps1` 拍到的是一张空桌面。
-- `ui-capture.ps1`：截屏。`-Virtual` 截整个虚拟桌面，`-Crop x,y,w,h` 裁一块，`-Zoom` 最近邻放大，
-  `-Profile` 打出穿过中间那一行的灰度值。清晰还是糊、卡片对没对齐，靠这行数字定案，光看图看不出来。
-  虚拟桌面那一档不是可选项：表面不只落在主屏上，而 `GetSystemMetrics(0/1)` 只知道主屏。
-- `ui-input.ps1`：驱动指针，这四个里只有它会动指针。`click` 点一下，`drag` 等步进拖，`dragfast`
-  相对位移连发，`reveal` 把指针停到主屏最后一行、把自动隐藏的任务栏勾出来。低层鼠标钩子看得见注入
-  事件，所以拖选、点外部、拖面板都能这样触发。等步进那一档看着没问题，密度超过手速的 `dragfast`
-  才拖出过发散——两者都要跑。
-- `ui-tray-rects.ps1`：打任务栏与通知区的窗口矩形，是 QML 侧位置的比对基准。托盘图标报的坐标是
-  设备无关像素、自动隐藏的任务栏其矩形落在主屏下方，两件事都是拿它查出来的。
-
-另有一个不驱动也不拍照的：`mouse-stall-probe.ps1` 在应用启动的那几秒里连发 `mouse_event` 并给每次调用
-计时，报告慢过阈值的调用。它回答的是 “鼠标被抢走了吗”，不是 “界面画对了吗”——回归对象是钩子跑在自己线程
-上那条约束（`docs/QML.md` §5），一次运行三四十秒。
-
-还有一条既不驱动、也不显示窗口的路：`qml-snapshot.ps1` 用 Qt 的 `offscreen` 平台跑 QTest，把真实 QML 场景
-渲进内存图再写成 PNG。它不显示窗口、不动鼠标、不抓桌面，所以不受桌面遮挡影响，也不需要人工在屏幕前。注意：
-offscreen 不会栅格化 `MultiEffect`，因此图标与阴影在这类快照中可能为空；需要核对真实图标、阴影和窗口合成时，必须
-在未设置 `QT_QPA_PLATFORM` 的真实平台重跑同一用例。方法
-分两处：`setup.cpp` 用 `QFontDatabase::addApplicationFont` 逐个载入 Windows 字体文件，再把输出目录经
-`lensQaSnapshotDir` 交给每个引擎——offscreen 平台本身不带字体，不载就是满屏方框；用例调用 `testutil.js` 的
-`saveSnapshot(testCase, item, name)`，内部走 `TestCase.grabImage(item)` 再 `save()`。脚本设好
-`QT_QPA_PLATFORM=offscreen` 与 `LENS_QA_SNAPSHOT_DIR` 后驱动目标，默认写到 `test/records/snapshots/`。它验的
-是渲染结果本身——字形、字重、对齐、配色；摆放与交互仍归 §2 的 `lens_qtest_surfaces` 和上面那四件套。
-
-一轮的顺序：先 `ui-tray-rects.ps1` 量基准，再 `ui-run.ps1` 起应用，用 `ui-input.ps1` 驱动，用 `ui-capture.ps1`
-截图，必要时 `-Profile` 或放大看像素。为看清而临时加进 QML 的东西（计时器、`console.log`）**提交前
-必须删干净**——`.githooks/pre-commit` 的第三项会拦下 `src/` 下带这两个串的暂存文件，手工确认是
-`grep -rn PROBE src/`。观察点本身由应用自己的日志承担：`logs/lens.log` 每行都刷，可以 `tail -f`。release 树的默认级别是 info，QML 的 `console.log` 属于 debug，要设 `LENS_LOG_LEVEL=debug` 才进日志；C++ 侧用 `LENS_INFO` 即可。离屏的 QTest 没有真实的任务栏、多屏与缩放，只能验证换算公式，屏幕上的位置要在真机截图上核对。
-
-状态与资源问题归开发面，像素问题归 `ui-capture`。开发面（`docs/adr/0068`）只在编译开关 `LENS_ENABLE_DEV_SURFACE` 打开时存在：`--dev-script` 与 `--dev-pipe` 能直接显示、隐藏表面，读出窗口是否可见、幕布发布了几次、生效主题；量内存与线程用 `scripts/qa/lens-measure.ps1`，它把 `state` 作为一列记进 CSV。开发面不动指针、不抓桌面，所以只回答 “现在是什么状态”，不回答 “画对了没有”。摆放、阴影、图标、对齐仍用 `ui-capture` 看；鼠标事件的路径（钩子、命中测试）仍用 `ui-input` 在真机上驱动，因为开发面的 `selection` 跳过了钩子与剪贴板，不能代替它。开发构建的数字只与同构建的数字比，报告首行记 `version` 的应答。
-
-驱动时有两个坑，都是撞了六七次调用才摸出来的：
-
-- **焦点与拖拽必须落在同一个 PowerShell 进程里**。拆成两次调用，中间那次的控制台会抢走前台焦点，注入的
-  Ctrl+C 于是送去了控制台而不是被拖选的应用——取文拿到的是控制台里的东西，或者什么都没有。
-- **取词只认发生变化的剪贴板**。重选同一段文本之前要先用 `Set-Clipboard` 换掉剪贴板内容，否则钩子读回来
-  的还是上一次的字符串，日志只会说 `did not change within 250 ms`，看着像钩子没触发。
-
-### GIF（逐帧序列）
-
-`scripts/qa/readme-gifs.ps1` 把 QML 的离屏动图与设置页截图渲出来。它与快照用同一条离屏路径：只在 `QT_QPA_PLATFORM=offscreen`
-下运行 `test/qtest/surfaces/tst_readme_gifs.qml` 的用例。每个用例在场景里逐步执行动作（`mouseMove`、`mouseClick`
-等 QTest 的场景内事件），每一步用 `grabImage` 截一帧。不显示窗口，不碰真实指针、键盘和剪贴板；设置写进测试副本，
-不改仓库里的 `settings.json` fixture。它写 `docs/readme-images/`，是旧的 README 素材管线，当前 README 不再引用这些图片。
-
-当前 README 的营销素材走另一条纯 HTML 路径：`scripts/qa/readme-html-shots.sh` 用无头 Chrome 渲染 `ui-prototypes/`
-与 `docs/readme/scenes/`，`scripts/qa/readme-html-compose.py` 用 Pillow 裁切、合成语言切换 GIF、学习循环拼图与主题拼图；
-社交预览由截图脚本一并渲染。它同样不显示窗口，不碰指针、键盘和剪贴板；运行方式见 `scripts/README.md`。
-改 README 的图时先跑这两条，再检查 `docs/readme/` 下的产物。
-
-运行前先构建目标，然后在仓库根目录执行：
-
-```powershell
-scripts\build\build.bat --target lens_qtest_surfaces
-powershell -File scripts/qa/readme-gifs.ps1                                # 全部片段与截图、四种语言
-powershell -File scripts/qa/readme-gifs.ps1 -Clip year -Language ja        # 只跑一个片段、一种语言
-powershell -File scripts/qa/readme-gifs.ps1 -Clip pets                     # 四只宠物，只渲一次（英文）
-```
-
-参数：`-Clip`（`word-bubble`、`year`、`pets`、`pet-still`、`all`），`-Language`（`en`、`zh-CN`、`ja`、`es`、`all`），
-`-OutDir`（默认 `docs/readme-images/gifs`），`-StillDir`（默认 `docs/readme-images`，截图写进 `<语言>/pet-ui.png`），
-`-Scratch`（默认 `$env:TEMP\readme-gifs`，帧和中间文件都在这里，不进仓库）。ffmpeg 的路径来自 `config/paths.json` 的 `ffmpeg` 键。
-
-片段一览：
-
-- `word-bubble`：词条的解释气泡，带词源与例句；悬停露出 Known 与 New，点 Known，徽标变化。每种语言一份。
-- `year`：一年记录，选中一天，打开色相盘，选一个色相，收起。每种语言一份。
-- `pets`：四只宠物各做一个动作，映射为 mochi=celebrate、cat=knead、dog=click_react（界面叫 “Poked”）、owl=study（界面叫 “Reading”）。
-  不含文字，只渲一次，写进 `gifs/pets/`，不复制进语言目录。
-- `pet-still`：扩展页的桌面宠物设置，宠物已开启，预览与动作、配饰都在画面里。每种语言一张，写进 `<语言>/pet-ui.png`。
-
-语言规则：
-
-- 输出到 `docs/readme-images/gifs/<语言目录>/`，每种语言一套，界面语言与解释语言都与目录一致。
-- 解释类片段（`word-bubble`）只在有缓存解释的语言下渲染。缓存条目来自 `readme-glosses.json`：每种语言一段词源，
-  例句是一句共用的英文，两者都与 fixture 的 `panel` 条目合并；日语与西班牙语的译文未经母语人士审校。
-  没有释义的语言会被跳过并打印，不编造解释。
-- 设置副本同时开启词源与例句。缓存条目缺例句时会被当作未命中并重新请求（`explanation_duty.h`），所以两个字段都要写全。
-  运行时的日志里没有 `POST`，启动时的模型列表请求在离线下失败，属于预期。
-
-输出检查：宽 640 px，小于 2 MB，时长 3 到 6 秒。未通过的文件不写入输出目录，脚本以非零退出码结束。
-
-添加片段：
-
-1. 在 `tst_readme_gifs.qml` 里加一个 `test_<名字>Clip`。用例在第一帧之前把要操作的元素都找好，帧之间不做查找或等待，
-   否则 GIF 里会停住。
-2. 在 `readme-gifs.ps1` 的 `$clips`（或 `$pets`）里登记：用例名、文件名、是否需要解释。新增一种含解释的语言时，在
-   `readme-glosses.json` 的 `languages` 里加一条该语言的词源，脚本会自动生成缓存条目。
-3. 把文件名写进各语言 README 对应的位置。
-
-离屏的限制：
-
-- `MultiEffect` 不会被栅格化，所以阴影以及依赖它的图标不出现在帧里。
-- 帧的底色取 README 的页面色 `#e9ebef`（把 Window 的清屏色设成它），否则四周是黑的。
-- 托盘、系统通知和真实桌面上的宠物窗口不在帧里。
-- 下拉列表是独立的窗口，截页时拍不进去，所以设置页截图里宠物类型列表保持收起，只显示当前选中的那一只。
-- 开关与滑块要读 `Window.window` 的色表，所以截图的卡片放在 `TokenHost` 这个有色表的窗口里，窗口大小按整页取。
+真机驱动、拍照、离屏快照与像素判读见 `docs/qa.md`。
 
 ## 6 记录
 
@@ -339,7 +146,7 @@ powershell -File scripts/qa/readme-gifs.ps1 -Clip pets                     # 四
 页面形态：白底、系统字体、单列窄栏、无装饰。表格只有横向细分隔线，数字用等宽字体，段落不缩进。CSS
 内联，不引任何外部资源，离线可看，打印可读。
 
-转写规则：数字照抄原始输出，不重算、不四舍五入、不补齐；一次结论至少三轮（§4）；对不上就重跑，
+转写规则：数字照抄原始输出，不重算、不四舍五入、不补齐；一次结论至少三轮（`docs/metrics/profiling-and-coverage.md`）；对不上就重跑，
 不要修数字。
 
 记录目前是手工从运行输出转写的。等它变成例行动作再写生成器——在那之前，生成器只是多一个会腐烂的

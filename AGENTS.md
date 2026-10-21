@@ -21,7 +21,7 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
 compare URL.
 - UI work must comply with `UI.md` and `PRODUCT.md`.
 - Designing or auditing a `ui-prototypes/*.html` page starts by loading the `taste-skill` skill; a surface that has been rendered, the QML ones included, is checked with `visual-qa`.
-- Keep `GLOSSARY.md`, `PRODUCT.md`, and `UI.md` in sync on any design change; record major trade-offs in `docs/adr/`.
+- Keep `GLOSSARY.md`, `PRODUCT.md`, and `UI.md` in sync on any design change; `docs/README.md` owns which doc owns what; record major trade-offs in `docs/adr/`.
 - Reply in the language the user writes in; Chinese by default.
 - The API key lives in `%APPDATA%\Lens\settings.json`, the reader's own profile and never the install directory; it is never logged, never echoed in errors, never committed, and never copied out of the profile: read it in place. The repository's gitignored `settings.local.json` is that document's development source, copied over once on a first run (`src/app/main.cpp`).
 
@@ -35,7 +35,7 @@ lens/
 ├── cmake             # headers only: the precompiled ones CMakeLists.txt applies
 ├── config            # paths.json — the machine paths; README.md owns the rule and its exemptions
 ├── data              # wordlist, llm/ (wire protocol as data), pet/, scenes/, fonts/, icons/, sync.json, update.json
-├── docs              # QML.md (how QML works here), adr/ (major trade-offs), metrics/, pet-*.md
+├── docs              # README.md (doc routing), QML.md (QML facts), adr/ (trade-offs), metrics/, pet-*.md
 ├── i18n              # .ts translations; English is the source language
 ├── installer         # lens.iss — the Inno Setup script; version.iss.in, filled from project()
 ├── scripts           # build/, quality/, profiling/, qa/, data/, pet/, release/; see scripts/README.md
@@ -87,7 +87,7 @@ PATH="$QT_ROOT/bin:$PATH" QT_FORCE_STDERR_LOGGING=1 \
   ./build-ninja/test/googletest/lens_gtest_unit.exe
 ```
 
-`TEST.md` owns the rest: the targets, the corpus format, the profiling facility and its build tree, the coverage scan, the run-record convention, and the drive-and-capture round in section 5.
+`TEST.md` owns the targets, the corpus format and the run-record convention. Profiling and coverage methods live in `docs/metrics/profiling-and-coverage.md`; the drive-and-capture round lives in `docs/qa.md`.
 
 Targets: `lens_util` → `lens_core` → `lens_capture` / `lens_llm` → `lens_app`. The `lens_gtest_*` targets are standalone and never shipped.
 
@@ -130,23 +130,23 @@ Log through the `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_
 
 QML is the exception. `scripts/quality/qml-lint.sh`, called by the hook and by CI, owns its own argument list and its warning ratchet, because a .qml file only lints correctly beside its whole module.
 
-## Reference Documents
+## Documentation map
 
-- `README.md`: product overview, build, run, test, and packaging entry points
-- `GLOSSARY.md`: glossary
-- `PRODUCT.md`: design decisions
-- `UI.md`: UI spec
-- `TEST.md`: framework, targets, corpus, profiling, run records
-- `API.md`: wire format, request body, response envelope, validation rules, error codes
-- `SECURITY.md`: data and trust boundaries, the safeguards and their limits, vulnerability reporting
-- `CODING_STANDARDS.md`: the judgement calls a review can make (C++ and QML)
-- `docs/QML.md`: QML facts, module layout, surfaces vs components, shadows, positioning, threading, fonts
-- `docs/adr/`: major trade-offs, one numbered file each; `README.md` has the numbering and template
-- `scripts/README.md`: script layout, verification entry points, and release commands
-- `ui-prototypes/*.html`: prototype, one file per surface; `README.md` owns the layout and the edit rules
-- `CHANGELOG.md`: what each released version added, changed and fixed
-- `TODO.md`: waiting for implement
-- `CLAUDE.local.md`: this machine's environment
+Start at `docs/README.md` for the full routing and the single-owner list. The short version:
+
+| Task | Read |
+|---|---|
+| Product behavior or defaults | `PRODUCT.md` → `GLOSSARY.md` → `docs/adr/` |
+| Surface look or interaction | `UI.md` → `ui-prototypes/README.md` → `docs/QML.md` |
+| QML implementation | `docs/QML.md` → `CODING_STANDARDS.md` |
+| Wire format or validation | `API.md` → `data/llm/` → `SECURITY.md` |
+| Tests | `TEST.md` → `docs/qa.md` → `docs/metrics/profiling-and-coverage.md` |
+| Security or data boundaries | `SECURITY.md` → `PRODUCT.md` storage shape |
+| Scripts, build or release | `scripts/README.md` → `config/README.md` |
+| Why a decision was made | `docs/adr/README.md` → the matching ADR |
+| Superseded specs | `docs/history/` |
+
+Background: `README.md` (product overview), `CHANGELOG.md`, `TODO.md`, `CLAUDE.local.md` (this machine), and `docs/pet-*.md` (pet package and art).
 
 ## Agent skills
 

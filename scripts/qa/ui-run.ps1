@@ -1,7 +1,7 @@
 # Launch the release build, so a surface can be looked at, driven, or photographed.
 #
 # The surfaces have no main window and appear only on a trigger, so looking at one means running
-# the real application and driving its pointer (TEST.md section 5). Done by hand that is a
+# the real application and driving its pointer (docs/qa.md). Done by hand that is a
 # handful of steps that fail quietly: three lens.exe copies exist and only one is current, the Qt
 # bin has to be on PATH, a launch has to outlive the shell that started it, and the log's path
 # depends on the working directory. This script is that recipe in one place.

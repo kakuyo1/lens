@@ -2,6 +2,8 @@
 
 Lens processes text from the Windows desktop and can send selected content to an AI provider chosen by the reader. This page describes the current data flow, safeguards, and known limits. It is not a guarantee that local data or third-party services are risk-free.
 
+> Authority: the current data and trust boundaries. Decisions behind them live in `docs/adr/` (notably 0012 and 0042).
+
 ## Reporting a vulnerability
 
 Please do not post exploitable details in a public issue. Check whether GitHub's private vulnerability reporting is available for this repository and use it when enabled. If it is unavailable, open a public issue asking for a private reporting channel, without including exploit details or sensitive data.

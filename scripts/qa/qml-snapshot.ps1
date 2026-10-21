@@ -18,7 +18,7 @@
 #
 # It verifies what a surface *looks like* -- glyphs, weight, alignment, colour -- not where it is
 # placed or how it reacts. Layout and interaction stay with lens_qtest_surfaces (TEST.md section
-# 2) and the real-surface tools above. TEST.md section 5 owns the write-up.
+# 2) and the real-surface tools above. docs/qa.md owns the write-up.
 #
 # Examples:
 #   powershell -File scripts/qa/qml-snapshot.ps1

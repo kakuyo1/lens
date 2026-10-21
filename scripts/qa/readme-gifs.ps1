@@ -21,7 +21,7 @@
 #   powershell -File scripts/qa/readme-gifs.ps1 -Clip year -Language ja
 #   powershell -File scripts/qa/readme-gifs.ps1 -Clip pet-still
 #
-# To add a clip, see TEST.md section 5.
+# This is the legacy README pipeline; see scripts/README.md. New clips follow the pattern in $clips.
 
 [CmdletBinding()]
 param(

@@ -28,15 +28,16 @@ python scripts/qa/readme-html-compose.py # 裁图、合成语言切换 GIF、学
 ```
 
 ```powershell
-powershell -File scripts/qa/ui-run.ps1        # 起 release 树的应用：旧了就重建，见 TEST.md 第 5 节
+powershell -File scripts/qa/ui-run.ps1        # 起 release 树的应用：旧了就重建，见 docs/qa.md
 powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_components   # 整套；加 -Case <用例> 只跑一条，见 TEST.md 第 2 节
 powershell -File scripts/qa/readme-gifs.ps1   # 离屏渲染 QML 动图与设置页截图（旧 README 管线，当前 README 不引用）
 ```
 
 旧的 `scripts/qa/readme-shots.sh` 与 `readme-gifs.ps1` 仍保留，但它们写 `docs/readme-images/`，当前 README 不再引用那里的图片；新素材写到 `docs/readme/`。
 整条 HTML 素材管线需要 Pillow（`pip install Pillow`）：截图脚本末尾用它裁社交预览，合成脚本用它做 GIF 和拼图。`readme-html-shots.sh` 会在常见安装位置找 Chrome，不启动应用。
+改 README 的图时先跑上面两条，再检查 `docs/readme/` 下的产物。
 
-具体测试目标、覆盖率口径和桌面验证方法见 [`TEST.md`](../TEST.md)。
+具体测试目标见 [`TEST.md`](../TEST.md)；profiling 与覆盖率口径见 [`docs/metrics/profiling-and-coverage.md`](../docs/metrics/profiling-and-coverage.md)；桌面验证方法见 [`docs/qa.md`](../docs/qa.md)。
 
 ## 发布
 
