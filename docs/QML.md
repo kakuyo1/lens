@@ -202,6 +202,14 @@
   才不报警；`FontMetrics.advanceWidth(字符串)` 是方法调用，绑定照常成立。另一处踩坑：`TextMetrics` 也有
   `text` 属性，`testutil.js` 的 `textsUnder()` 按 “有字符串型 `text`” 找 Text，会把探针一起收进去，
   排序在前的探针顶掉真正的行。
+- **`Shape` 上单写 `antialiasing: true` 没用，要换渲染器**：`Shape` 默认走 geometry 渲染器，它把路径三角化，
+  **根本不看 `antialiasing`**——动作条扇面、页边签的折角、动作条样式的下拉预览里那几片斜边因此都是一级级
+  台阶（本机 125%，一步 1.25 设备像素）。同一枚三角形在真窗口上量中间灰度像素：默认 0 个，
+  `antialiasing: true` 也是 0 个，`preferredRendererType: Shape.CurveRenderer` 是 293 个——curve 渲染器
+  自己做解析式覆盖，加不加 `antialiasing` 结果一样。所以凡是有斜边的 `Shape` 都显式写
+  `preferredRendererType: Shape.CurveRenderer`。反过来说，**圆角 `Rectangle` 本来就有覆盖**：同一枚圆角
+  矩形加不加 `antialiasing: true` 逐像素相同，那行属性是空转；台阶来自 `Shape`，不来自 `Rectangle`。
+  另注：offscreen 平台这四种组合量出来一模一样，这条只能在真窗口上判。
 - **界面出现前仍有约 1.5 s，其中 `loadFromModule` 占 810–923 ms**：临时埋点（已删）测出这一段几乎全在
   `engine.loadFromModule("Lens", "Main")` 一个调用里——`QQmlApplicationEngine` 构造 20 ms、两个 context
   property 0 ms、装翻译器 0 ms。数据侧另算：`wordlist` 229 ms + `irregulars` 24 ms。钩子搬走之后这段

@@ -181,6 +181,10 @@ Item {
             id: fanShadowShape
             anchors.fill: parent
             visible: false
+            // The curve renderer is the one that carries coverage along a path: the geometry
+            // renderer triangulates it and ignores `antialiasing`, so every diagonal of this
+            // form came out as a staircase (docs/QML.md 6).
+            preferredRendererType: Shape.CurveRenderer
 
             ShapePath {
                 fillColor: "white"
@@ -243,6 +247,8 @@ Item {
 
         Shape {
             anchors.fill: parent
+            // The blades' seams and slopes are the edges the reader sees; see fanShadowShape above.
+            preferredRendererType: Shape.CurveRenderer
 
             ShapePath {
                 fillColor: root.bladeLeft
@@ -276,6 +282,8 @@ Item {
         Shape {
             anchors.fill: parent
             visible: root.tokens.glassMode !== ""
+            // A 2 px rim along a diagonal is where the staircase read worst; see fanShadowShape.
+            preferredRendererType: Shape.CurveRenderer
 
             ShapePath {
                 fillColor: "transparent"
@@ -309,6 +317,8 @@ Item {
 
         Shape {
             anchors.fill: parent
+            // The outline itself, and the two seams: see fanShadowShape above.
+            preferredRendererType: Shape.CurveRenderer
 
             ShapePath {
                 fillColor: "transparent"

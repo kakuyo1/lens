@@ -211,6 +211,9 @@ Item {
             height: 9
             x: root.sideLeft ? 1 : card.width - 10
             y: card.height - 10
+            // Its hypotenuse is the one diagonal on this form, and the geometry renderer draws
+            // it without coverage (docs/QML.md 6).
+            preferredRendererType: Shape.CurveRenderer
 
             ShapePath {
                 fillColor: root.tokens.panel2

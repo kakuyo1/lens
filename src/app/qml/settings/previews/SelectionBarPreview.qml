@@ -305,6 +305,11 @@ Window {
                         height: 7
                         x: miniTab.width - 8
                         y: miniTab.height - 8
+                        // The miniature's diagonals are the same edges the real form draws, at a
+                        // third of the size, so the staircase is if anything plainer here: the
+                        // geometry renderer carries no coverage, the curve renderer does
+                        // (docs/QML.md 6).
+                        preferredRendererType: Shape.CurveRenderer
 
                         ShapePath {
                             fillColor: root.barFill2
@@ -457,6 +462,9 @@ Window {
 
                     Shape {
                         anchors.fill: parent
+                        // The stage draws this one at 0.78, so its edges never land on the pixel
+                        // grid; see the tab's fold above.
+                        preferredRendererType: Shape.CurveRenderer
 
                         ShapePath {
                             fillColor: root.barFill2
@@ -489,6 +497,8 @@ Window {
 
                     Shape {
                         anchors.fill: parent
+                        // The outline over the fills above; same reason.
+                        preferredRendererType: Shape.CurveRenderer
 
                         ShapePath {
                             fillColor: "transparent"
