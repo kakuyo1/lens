@@ -1090,16 +1090,12 @@ void PetController::enterHiding(EdgeSide side)
     auto const size  = window_->size();
     auto const area  = wander_->area();
     auto const scale = static_cast<double>(size.width()) / static_cast<double>(assets_->canvas);
-    auto const high  = area.bottom() - size.height() + 1;
 
     Hiding hidden;
     hidden.side = side;
     hidden.area = area;
     hidden.from = window_->position();
-    hidden.base = QPoint{
-        PetWander::hiddenX(area, size, side, assets_->peekInkLeft * scale, assets_->peekInkRight * scale),
-        high < area.top() ? area.top() : std::clamp(hidden.from.y(), area.top(), high),
-    };
+    hidden.base = PetWander::hiddenBase(area, size, side, hidden.from, assets_->peekInkLeft * scale, assets_->peekInkRight * scale);
     if (auto const* screen = screenForArea(area)) hidden.screen = deviceNameOf(*screen);
     updateAskShift(hidden);
     hiding_    = hidden;
@@ -1130,11 +1126,7 @@ void PetController::refitHiding()
     auto&      hidden = *hiding_;
     auto const size   = window_->size();
     auto const scale  = static_cast<double>(size.width()) / static_cast<double>(assets_->canvas);
-    auto const high   = hidden.area.bottom() - size.height() + 1;
-    hidden.base       = QPoint{
-        PetWander::hiddenX(hidden.area, size, hidden.side, assets_->peekInkLeft * scale, assets_->peekInkRight * scale),
-        high < hidden.area.top() ? hidden.area.top() : std::clamp(hidden.base.y(), hidden.area.top(), high),
-    };
+    hidden.base       = PetWander::hiddenBase(hidden.area, size, hidden.side, hidden.base, assets_->peekInkLeft * scale, assets_->peekInkRight * scale);
     updateAskShift(hidden);
     hidden.slide     = PetWander::kHideSlide;
     hidden.peekClock = std::chrono::milliseconds{0};

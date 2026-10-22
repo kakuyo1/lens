@@ -122,6 +122,18 @@ public:
      */
     static int hiddenX(QRect area, QSize size, EdgeSide side, double inkLeft, double inkRight);
 
+    /**
+     * @brief The window's top-left once fully hidden against @p side.
+     * @param area The screen's work area.
+     * @param size The window size.
+     * @param side The edge it hides against.
+     * @param from The window's top-left before the slide; its y is kept where the area allows.
+     * @param inkLeft The figure's left ink edge in screen pixels, from the window's left.
+     * @param inkRight The figure's right ink edge in screen pixels.
+     * @return hiddenX() across, and @p from's y clamped into the area; a window taller than the area sits at its top.
+     */
+    static QPoint hiddenBase(QRect area, QSize size, EdgeSide side, QPoint from, double inkLeft, double inkRight);
+
     /// @return How far the hidden window leans in `clock` into the peek cycle, in screen pixels.
     static int peekOffset(std::chrono::milliseconds clock);
 

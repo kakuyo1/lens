@@ -1,6 +1,6 @@
 /**
  * @file glass_math.cpp
- * @brief Text tone, the glass sheet's blur and saturation, and the displacement map (see glass_math.h).
+ * @brief Text tone and the displacement map (see glass_math.h).
  */
 
 #include "glass_math.h"
@@ -9,7 +9,6 @@
 #include <QRectF>
 
 #include <algorithm>
-#include <array>
 #include <cmath>
 #include <optional>
 #include <vector>
@@ -23,15 +22,11 @@ constexpr QRgb kDarkText{qRgb(0x10, 0x13, 0x19)};
 /// The dark theme's body text, #e9edf3.
 constexpr QRgb kLightText{qRgb(0xe9, 0xed, 0xf3)};
 constexpr int  kSampleStride = 4;
-/// The blur at 100%, in device-independent pixels: the prototype's largest blur.
-constexpr double kBlurAt100 = 60.0;
 /// The softness, in device-independent pixels, of the mask the refraction's offsets are read from.
 constexpr double kMapSoftness = 18.0;
 
 /// A w-by-h field. Single precision is plenty for 8-bit output and halves the memory the blur walks.
 using Field = std::vector<float>;
-/// Three colour channels, each a field of values in [0, 255].
-using Planes = std::array<Field, 3>;
 
 /// WCAG relative luminance of an sRGB channel value in [0, 255].
 double linearChannel(double value)
@@ -102,37 +97,6 @@ void boxBlur(Field& field, int w, int h, int radius)
     }
 }
 
-/// The box radius whose three passes give a Gaussian of @p sigma: one box of radius r adds r(r+1)/3 of variance.
-int boxRadiusFor(double sigma)
-{
-    return static_cast<int>(std::lround((std::sqrt(1.0 + 4.0 * sigma * sigma) - 1.0) / 2.0));
-}
-
-/// The picture as three colour planes, each blurred by a Gaussian of @p sigma pixels.
-Planes blurredPlanes(QImage const& picture, double sigma)
-{
-    auto const rgb   = picture.convertToFormat(QImage::Format_RGB32);
-    int const  w     = rgb.width();
-    int const  h     = rgb.height();
-    auto const count = static_cast<std::size_t>(w) * static_cast<std::size_t>(h);
-
-    Planes planes{Field(count), Field(count), Field(count)};
-    for (int y = 0; y < h; ++y) {
-        auto const* row = reinterpret_cast<QRgb const*>(rgb.constScanLine(y));
-        for (int x = 0; x < w; ++x) {
-            auto const i = static_cast<std::size_t>(y) * w + x;
-            planes[0][i] = static_cast<float>(qRed(row[x]));
-            planes[1][i] = static_cast<float>(qGreen(row[x]));
-            planes[2][i] = static_cast<float>(qBlue(row[x]));
-        }
-    }
-    auto const radius = boxRadiusFor(sigma);
-    for (auto& plane : planes)
-        for (int pass = 0; pass < 3; ++pass)
-            boxBlur(plane, w, h, radius);
-    return planes;
-}
-
 /// The card's coverage, 0 to 1: the rounded rectangle of @p size, antialiased along its edge.
 Field roundedCoverage(QSize const size, double const radius)
 {
@@ -152,12 +116,6 @@ Field roundedCoverage(QSize const size, double const radius)
             alpha[static_cast<std::size_t>(y) * size.width() + x] = static_cast<float>(qAlpha(row[x])) / 255.0f;
     }
     return alpha;
-}
-
-/// A channel value rounded to 8 bits, clamped first: saturation can push a channel past the range.
-int channelByte(float const value)
-{
-    return static_cast<int>(std::clamp(value, 0.0f, 255.0f) + 0.5f);
 }
 
 } // namespace
@@ -264,34 +222,6 @@ QImage displacementMap(QSize const size, double const radius, double const blurP
 QImage refractionMap(QSize const size, double const radius, double const scale)
 {
     return displacementMap(size, radius * scale, kMapSoftness * scale);
-}
-
-QImage blurredPicture(QImage const& picture, double const blurPercent, double const saturationPercent)
-{
-    if (picture.isNull()) return {};
-    auto planes = blurredPlanes(picture, blurPercent / 100.0 * kBlurAt100 * picture.devicePixelRatioF());
-
-    // CSS saturate(s): each output channel mixes the three by luma weights, so s = 0 is grey.
-    auto const s    = static_cast<float>(saturationPercent / 100.0);
-    auto& [r, g, b] = planes;
-    for (std::size_t i = 0; i < r.size(); ++i) {
-        auto const red   = r[i];
-        auto const green = g[i];
-        auto const blue  = b[i];
-        r[i]             = (0.213f + 0.787f * s) * red + (0.715f - 0.715f * s) * green + (0.072f - 0.072f * s) * blue;
-        g[i]             = (0.213f - 0.213f * s) * red + (0.715f + 0.285f * s) * green + (0.072f - 0.072f * s) * blue;
-        b[i]             = (0.213f - 0.213f * s) * red + (0.715f - 0.715f * s) * green + (0.072f + 0.928f * s) * blue;
-    }
-
-    QImage out(picture.size(), QImage::Format_RGB32);
-    for (int y = 0; y < out.height(); ++y) {
-        auto* row = reinterpret_cast<QRgb*>(out.scanLine(y));
-        for (int x = 0; x < out.width(); ++x) {
-            auto const i = static_cast<std::size_t>(y) * out.width() + x;
-            row[x]       = qRgb(channelByte(r[i]), channelByte(g[i]), channelByte(b[i]));
-        }
-    }
-    return out;
 }
 
 QRect toNativeRect(QRect const logical, QRect const screenLogical, QPoint const nativeOrigin, double const scale)

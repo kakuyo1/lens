@@ -140,6 +140,13 @@ int PetWander::hiddenX(QRect area, QSize size, EdgeSide side, double inkLeft, do
     return rightmost + static_cast<int>(std::lround(size.width() - inkLeft - visible));
 }
 
+QPoint PetWander::hiddenBase(QRect area, QSize size, EdgeSide side, QPoint from, double inkLeft, double inkRight)
+{
+    auto const high = area.bottom() - size.height() + 1;
+    return QPoint{hiddenX(area, size, side, inkLeft, inkRight),
+                  high < area.top() ? area.top() : std::clamp(from.y(), area.top(), high)};
+}
+
 int PetWander::peekOffset(std::chrono::milliseconds clock)
 {
     auto const phase = static_cast<double>(clock.count()) / static_cast<double>(kPeekCycle.count()) * kStepAngleTurn;

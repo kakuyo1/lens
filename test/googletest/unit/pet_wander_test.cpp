@@ -167,6 +167,27 @@ TEST(PetWander, HidingWorksOnAScreenWithNegativeCoordinates)
     EXPECT_EQ(right + 90, -54);
 }
 
+TEST(PetWander, TheHiddenBaseLeavesTheInkVisibleOnTheChosenEdge)
+{
+    auto const base = PetWander::hiddenBase(kArea, kPet, EdgeSide::Left, QPoint{120, 300}, 90, 250);
+
+    EXPECT_EQ(base.x(), PetWander::hiddenX(kArea, kPet, EdgeSide::Left, 90, 250));
+    EXPECT_EQ(base.y(), 300) << "a release row already inside the area is kept";
+}
+
+TEST(PetWander, TheHiddenBaseClampsTheReleaseRowIntoTheArea)
+{
+    EXPECT_EQ(PetWander::hiddenBase(kArea, kPet, EdgeSide::Right, QPoint{120, -50}, 90, 250).y(), kArea.top());
+    // The lowest top-left that keeps the window whole is 1040 - 264.
+    EXPECT_EQ(PetWander::hiddenBase(kArea, kPet, EdgeSide::Right, QPoint{120, 2000}, 90, 250).y(), 776);
+}
+
+TEST(PetWander, AHiddenWindowTallerThanTheAreaSitsAtItsTop)
+{
+    QRect const shortArea{0, 0, 1920, 200};
+    EXPECT_EQ(PetWander::hiddenBase(shortArea, kPet, EdgeSide::Left, QPoint{120, 50}, 90, 250).y(), shortArea.top());
+}
+
 TEST(PetWander, ThePeekLeansInAndBackOverItsCycle)
 {
     EXPECT_EQ(PetWander::peekOffset(0ms), 0);

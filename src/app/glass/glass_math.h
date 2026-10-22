@@ -101,20 +101,6 @@ bool settleTone(ToneRead const& read, bool settledLight, int& streak, int hold);
 QImage displacementMap(QSize size, double radius, double blurPx);
 
 /**
- * @brief The desktop picture blurred and saturated: the sheet the glass is cut from (docs/adr/0039).
- *
- * The blur follows CSS blur(): a Gaussian whose deviation is the percentage of 60 px, at 1x. Three box passes
- * approximate it. The saturation is CSS saturate(), so 0 is grey and 100 is untouched. Corners and refraction are
- * not applied here: the shader places the card within this picture on every frame.
- *
- * @param picture The desktop under the sheet, in device pixels. Its devicePixelRatio scales the blur.
- * @param blurPercent Blur, 0 to 100.
- * @param saturationPercent Saturation, 0 to 200; 100 is untouched.
- * @return An opaque RGB32 image of the picture's size.
- */
-QImage blurredPicture(QImage const& picture, double blurPercent, double saturationPercent);
-
-/**
  * @brief The displacement map the liquid glass bends its picture with, for a card of @p size.
  *
  * It depends on the card's size and corners and on neither the blur nor the refraction, so its owner keeps it

@@ -1,4 +1,5 @@
 #version 440
+#extension GL_GOOGLE_include_directive : require
 
 // The horizontal half of the glass's blur (UI.md 3.1c and 3.1d, docs/adr/0082). The sheet is blurred along x into a
 // mipmapped texture here, and glass.frag blurs that along y. One pass of twenty-five taps used to do both axes; nine
@@ -26,14 +27,7 @@ layout(std140, binding = 0) uniform buf {
 
 layout(binding = 1) uniform sampler2D sheet;   // the desktop at the screen's resolution, transparent until it has loaded
 
-/// The blur at 100%, in DIP: the prototype's largest blur.
-const float kBlurAt100 = 60.0;
-/// A tap spacing of this many sigma leaves the nine taps' second moment at one sigma.
-const float kSpacingSigma = 0.95;
-/// How much coarser the prefilter mip is than the tap spacing. A box of exactly one tap's width has a stopband that
-/// folds fine detail back as a visible weave; three quarters of a level more flattens it and lands the same slider a
-/// little softer than the old single pass (docs/adr/0082).
-const float kLodBias = 0.75;
+#include "blur_common.glsl"
 
 float weight(int k)
 {

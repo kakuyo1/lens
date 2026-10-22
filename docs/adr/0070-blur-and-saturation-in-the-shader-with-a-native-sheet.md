@@ -14,7 +14,7 @@
   - **模糊与饱和是 uniform**，不再进图片 URL。`blur` 是百分比（100 即 60 DIP），`saturation` 是百分比（100 不改变），
     两者与 `refraction`、`radius` 一样由 QML 绑定。滑块变化只重画卡片，不重新加载、不上传新图，滑条拖动时那类闪烁随之消失。
   - **幕布回原生分辨率**（`SheetScale::Full`）。图片服务不再调用 `blurredPicture`，直接返回采集到的画面；
-    `picture.setDevicePixelRatio(request.scale)`。`blurredPicture` 与它的用例保留，作为阶段 5 软件回退档的实现，不删。
+    `picture.setDevicePixelRatio(request.scale)`。`blurredPicture` 与它的用例曾保留作阶段 5 软件回退档；ADR 0073 既已决定不做 CPU 后端，这段实现没有调用方，2026-10-22 删除。
   - **采集区域收到窗口四周 112 DIP**（原 160）。模糊由着色器在幕布里算，不再需要把卡片外 160 DIP 的桌面读进来；
     112 是 72 DIP 的拖动余量加 40 DIP 的迟滞。面积实测：1.16 Mpx 25.5 ms、0.56 Mpx 15.1 ms，约省四分之一到四成。
   - **拖动时的重取不在 GUI 线程上做**。`GlassSheet::followDeferred` 把读取投进幕布共用的单线程池，一次只允许一张在途；

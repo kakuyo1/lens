@@ -1,4 +1,5 @@
 #version 440
+#extension GL_GOOGLE_include_directive : require
 
 // The glass of a settings card (UI.md 3.1c and 3.1d, docs/adr/0039, docs/adr/0070, docs/adr/0082). The desktop under the
 // window is taken once, at the screen's own resolution, into a sheet a little larger than the window. glass_hblur.frag
@@ -31,13 +32,7 @@ layout(std140, binding = 0) uniform buf {
 layout(binding = 1) uniform sampler2D blurred; // the sheet, horizontally blurred by glass_hblur.frag
 layout(binding = 2) uniform sampler2D map;     // offsets in red and green, 0.5 meaning none
 
-/// The blur at 100%, in DIP: the prototype's largest blur.
-const float kBlurAt100 = 60.0;
-/// A tap spacing of this many sigma leaves the nine taps' second moment at one sigma.
-const float kSpacingSigma = 0.95;
-/// How much coarser the prefilter mip is than the tap spacing; the same three quarters of a level glass_hblur.frag
-/// uses.
-const float kLodBias = 0.75;
+#include "blur_common.glsl"
 
 /// One tap of the nine along the axis: the outer pair, the inner pair, and the centre. Written as a function of the
 /// index rather than indexed out of a vector: the HLSL the shaders are baked to does not carry a dynamically indexed

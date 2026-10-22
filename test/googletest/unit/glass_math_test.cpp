@@ -1,8 +1,8 @@
 /**
  * @file glass_math_test.cpp
- * @brief The glass sheet's arithmetic: the text tone over the desktop picture, its blur and saturation, and the
- *        displacement map the liquid theme bends with (docs/adr/0035, 0039). The corners and the bend themselves
- *        are in shaders/glass.frag.
+ * @brief The glass sheet's arithmetic: the text tone over the desktop picture and the displacement map the liquid
+ *        theme bends with (docs/adr/0035, 0039). The blur, saturation, corners and the bend itself are in
+ *        shaders/glass.frag.
  */
 
 #include <gtest/gtest.h>
@@ -16,7 +16,6 @@
 
 namespace {
 
-using lens::app::blurredPicture;
 using lens::app::displacementMap;
 using lens::app::pictureFingerprint;
 using lens::app::readTone;
@@ -108,47 +107,6 @@ TEST(GlassMath, ABackdropThatChangesForGoodDoesMoveTheTone)
     // A sheet just taken is judged by its one read, the tone in force giving way across the margin alone.
     auto freshStreak = 0;
     EXPECT_FALSE(settleTone(pale, true, freshStreak, 1));
-}
-
-TEST(GlassMath, ZeroBlurAndFullSaturationLeaveThePictureAsItWas)
-{
-    auto const sheet = blurredPicture(solid(60, 60, qRgb(40, 120, 200)), 0, 100);
-
-    EXPECT_EQ(qRed(sheet.pixel(30, 30)), 40);
-    EXPECT_EQ(qGreen(sheet.pixel(30, 30)), 120);
-    EXPECT_EQ(qBlue(sheet.pixel(30, 30)), 200);
-}
-
-TEST(GlassMath, ZeroSaturationGreysThePictureByLuma)
-{
-    auto const sheet = blurredPicture(solid(60, 60, qRgb(255, 0, 0)), 0, 0);
-
-    // CSS saturate(0): every channel becomes the luma of the pixel, 0.213 of pure red.
-    EXPECT_EQ(qRed(sheet.pixel(30, 30)), 54);
-    EXPECT_EQ(qGreen(sheet.pixel(30, 30)), 54);
-    EXPECT_EQ(qBlue(sheet.pixel(30, 30)), 54);
-}
-
-TEST(GlassMath, BlurSoftensAnEdgeAndLeavesFarPixelsAlone)
-{
-    auto const sheet = blurredPicture(split(60, 60), 10, 100);
-
-    EXPECT_LT(qRed(sheet.pixel(5, 30)), 5);
-    EXPECT_GT(qRed(sheet.pixel(55, 30)), 250);
-    EXPECT_GT(qRed(sheet.pixel(30, 30)), 40);
-    EXPECT_LT(qRed(sheet.pixel(30, 30)), 215);
-}
-
-TEST(GlassMath, TheBlurFollowsTheDevicePixelRatio)
-{
-    // The same content at 2x is twice the device pixels, so the same blur spreads twice as far in them: a pixel six
-    // device pixels from the edge is darker at 1x than at 2x.
-    auto       picture = split(60, 60);
-    auto const at1x    = blurredPicture(picture, 10, 100);
-    picture.setDevicePixelRatio(2.0);
-    auto const at2x = blurredPicture(picture, 10, 100);
-
-    EXPECT_GT(qRed(at2x.pixel(24, 30)), qRed(at1x.pixel(24, 30)) + 10);
 }
 
 TEST(GlassMath, DisplacementMapIsNullWhenEmptyAndNeutralAtTheCentre)
