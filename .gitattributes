@@ -1,0 +1,9 @@
+# .qml files are stored and checked out with LF.
+#
+# QML.md section 1 caps a .qml file at 32768 characters, and both readers of that cap -- the
+# pre-commit hook's size check and the QML coverage job -- count the file as it sits on disk. With
+# core.autocrlf on, a checkout that adds a CR to every line spends about two percent of the ceiling
+# on line endings: the same blob read 32,716 characters here and 32,013 on a checkout that keeps
+# LF, so a commit could be refused locally for a file the parser reads. The attribute makes the
+# count the file's own characters, everywhere.
+*.qml text eol=lf
