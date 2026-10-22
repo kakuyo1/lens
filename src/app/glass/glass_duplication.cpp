@@ -264,9 +264,9 @@ void GlassDuplication::Impl::fail(HRESULT const hr, bool const permanentFailure)
     operational = false;
     permanent   = permanentFailure;
     retryAt     = permanentFailure ? 0 : GetTickCount64() + kRetryMs;
-    // A refusal is a fact about the machine's screens, not an error the reader can act on: the glass keeps working on
-    // GDI. Log it once per attempt and only with the layout, never with pixels (SECURITY.md).
-    LENS_INFO("glass duplication on {}: unavailable (0x{:08X}), the glass reads this screen with GDI{}",
+    // A refusal is a fact about the machine's screens, not an error the reader can act on: Windows Graphics Capture or
+    // GDI takes over. Log it once per attempt and only with the layout, never with pixels (SECURITY.md).
+    LENS_INFO("glass duplication on {}: unavailable (0x{:08X}), the glass falls back on this screen{}",
               deviceName.toStdString(),
               static_cast<unsigned long>(hr),
               permanentFailure ? " from now on" : " for now");
@@ -335,7 +335,7 @@ QString const& GlassDuplication::deviceName() const
 #endif
 }
 
-bool GlassDuplication::canDuplicate() const
+bool GlassDuplication::canFollow() const
 {
 #ifdef _WIN32
     auto const& session = *impl_;

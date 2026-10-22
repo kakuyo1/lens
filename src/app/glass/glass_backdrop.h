@@ -8,9 +8,10 @@
  * Each glass surface (the settings window, the tray menu, a panel, a bubble) has its own GlassSheet: the desktop taken
  * as a sheet a little larger than its window, so a drag moves the card over the same picture instead of taking a new
  * one (docs/adr/0039). The sheets share one reader: one worker thread and one refresh timer, so however many surfaces
- * are live, a GDI screen is read about fifteen times a second in all (docs/adr/0041). A screen whose output duplicates
- * (docs/adr/0072) is read from the duplicated frame instead, up to sixty times a second, and only when the desktop
- * behind the card has actually changed. The pictures are kept in memory only: never written to disk, never logged, and
+ * are live, a GDI screen is read about fifteen times a second in all (docs/adr/0041). A screen with a live frame source
+ * -- a duplicated output (docs/adr/0072) or Windows Graphics Capture when duplication refuses (docs/adr/0087) -- is read
+ * from that source instead, up to the screen's refresh rate, and only when the desktop behind the card has actually
+ * changed. The pictures are kept in memory only: never written to disk, never logged, and
  * dropped when the glass themes are off (docs/adr/0034, docs/adr/0035). QML receives each sheet through GlassSheetItem,
  * one live texture replaced in place, and the liquid theme's displacement map through
  * `image://glass/<surface>/map` (docs/adr/0071).
@@ -38,6 +39,7 @@ class QScreen;
 namespace lens::app {
 
 class GlassBackdrop;
+class GlassCapture;
 class GlassDuplication;
 
 /**
@@ -60,16 +62,17 @@ class GlassSheet : public QObject {
     Q_PROPERTY(int serial READ serial NOTIFY pictureChanged)
     /// The rectangle of the desktop the picture covers, in device-independent pixels. Empty when none is held.
     Q_PROPERTY(QRect sheet READ sheet NOTIFY pictureChanged)
-    /// Whether the card wants the sheet refreshed: a duplicated output at up to the screen's refresh rate on the Smooth
+    /// Whether the card wants the sheet refreshed: a live source at up to the screen's refresh rate on the Smooth
     /// tier, about fifteen a second from GDI. A card that draws no backdrop turns it off and keeps the sheet for the text
     /// tone alone (docs/adr/0069). The Eco tier keeps the refresh timer off even while this is true (docs/adr/0073), so
     /// the setting page reads the tier, not this property, to say what is happening.
     Q_PROPERTY(bool live READ live NOTIFY liveChanged)
-    /// Whether the picture in force came from a duplicated output. The settings page reads this to say what the
-    /// Smooth and Auto tiers are doing on the screen the panel is on (docs/adr/0073).
+    /// Whether the picture in force came from a source that follows frames (duplication or Windows Graphics Capture).
+    /// The settings page reads this to say what the Smooth and Auto tiers are doing on the screen the panel is on
+    /// (docs/adr/0073, docs/adr/0087).
     Q_PROPERTY(bool duplicated READ duplicated NOTIFY captureChanged)
-    /// Whether duplication was tried for this sheet and the screen refused or lost it. The settings page's note says so
-    /// in words, without an error code.
+    /// Whether every live source was tried for this sheet and the screen refused or lost them, leaving GDI. The settings
+    /// page's note says so in words, without an error code.
     Q_PROPERTY(bool duplicationRefused READ duplicationRefused NOTIFY captureChanged)
 
 public:
@@ -217,12 +220,13 @@ public:
 private:
     friend class GlassSheet;
 
-    /// One screen's duplication session and the order its reads keep: the duplicated output while it can, GDI
-    /// otherwise. The rectangle is the key: two monitors of the same model report the same name, and their screens do
-    /// not overlap.
+    /// One screen's capture sessions and the order its reads keep: the duplicated output while it can, Windows
+    /// Graphics Capture next, GDI otherwise. The rectangle is the key: two monitors of the same model report the same
+    /// name, and their screens do not overlap.
     struct Session {
         QRect                             desktop;
         std::unique_ptr<GlassDuplication> duplication;
+        std::unique_ptr<GlassCapture>     capture;
         std::unique_ptr<FallbackSource>   chain;
     };
 

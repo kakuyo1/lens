@@ -42,7 +42,7 @@ struct ScriptedSource final : DesktopSource {
         ++reads;
         return next;
     }
-    bool canDuplicate() const override
+    bool canFollow() const override
     {
         return duplicate;
     }
@@ -72,7 +72,7 @@ TEST(GlassSource, GdiShrinksToTheSheetScaleAndSpendsTheGdiBudget)
     EXPECT_TRUE(read.newFrame);
     EXPECT_TRUE(read.usedGdi);
     EXPECT_FALSE(read.refused);
-    EXPECT_FALSE(source.canDuplicate());
+    EXPECT_FALSE(source.canFollow());
     EXPECT_GE(read.copyMs, 0.0);
 }
 
@@ -80,7 +80,7 @@ TEST(GlassSource, APreferredFrameDoesNotTouchTheFallback)
 {
     auto preferred = ScriptedSource{{.image = picture(Qt::red), .newFrame = true, .copyMs = 0.75}, true};
     auto fallback  = ScriptedSource{{.image = picture(Qt::blue), .usedGdi = true}};
-    auto chain     = FallbackSource{preferred, fallback};
+    auto chain     = FallbackSource{{&preferred, &fallback}};
 
     auto const read = chain.read(kSheet, 1.0);
 
@@ -91,14 +91,14 @@ TEST(GlassSource, APreferredFrameDoesNotTouchTheFallback)
     EXPECT_DOUBLE_EQ(read.copyMs, 0.75);
     EXPECT_EQ(preferred.reads, 1);
     EXPECT_EQ(fallback.reads, 0);
-    EXPECT_TRUE(chain.canDuplicate());
+    EXPECT_TRUE(chain.canFollow());
 }
 
 TEST(GlassSource, ARefusedDuplicationFallsBackToGdiAndSaysSo)
 {
     auto preferred = ScriptedSource{{.refused = true}, true};
     auto fallback  = ScriptedSource{{.image = picture(Qt::blue), .newFrame = true, .usedGdi = true}};
-    auto chain     = FallbackSource{preferred, fallback};
+    auto chain     = FallbackSource{{&preferred, &fallback}};
 
     auto const read = chain.read(kSheet, 1.0);
 
@@ -117,7 +117,7 @@ TEST(GlassSource, NoNewFrameIsNotAFallback)
     // through GDI here would spend the shared budget to publish the same picture.
     auto preferred = ScriptedSource{{}, true};
     auto fallback  = ScriptedSource{{.image = picture(Qt::blue), .usedGdi = true}};
-    auto chain     = FallbackSource{preferred, fallback};
+    auto chain     = FallbackSource{{&preferred, &fallback}};
 
     auto const read = chain.read(kSheet, 1.0);
 
@@ -134,7 +134,7 @@ TEST(GlassSource, ASessionThatCannotDuplicateSkipsIt)
     // duplication was unavailable for this screen.
     auto preferred = ScriptedSource{{.refused = true}, false};
     auto fallback  = ScriptedSource{{.image = picture(Qt::green), .usedGdi = true}};
-    auto chain     = FallbackSource{preferred, fallback};
+    auto chain     = FallbackSource{{&preferred, &fallback}};
 
     auto const read = chain.read(kSheet, 1.0);
 
@@ -143,5 +143,42 @@ TEST(GlassSource, ASessionThatCannotDuplicateSkipsIt)
     EXPECT_TRUE(read.usedGdi);
     EXPECT_EQ(preferred.reads, 0);
     EXPECT_EQ(fallback.reads, 1);
-    EXPECT_FALSE(chain.canDuplicate());
+    EXPECT_FALSE(chain.canFollow());
+}
+
+TEST(GlassSource, AMiddleSourceThatFollowsKeepsTheSlowPathNoteAway)
+{
+    // Duplication refused, Windows Graphics Capture served: the screen is not on the slow path, so the settings page
+    // must not say it is reading fifteen times a second.
+    auto duplication = ScriptedSource{{.refused = true}, false};
+    auto capture     = ScriptedSource{{.image = picture(Qt::yellow), .newFrame = true}, true};
+    auto gdi         = ScriptedSource{{.image = picture(Qt::black), .usedGdi = true}};
+    auto chain       = FallbackSource{{&duplication, &capture, &gdi}};
+
+    auto const read = chain.read(kSheet, 1.0);
+
+    EXPECT_EQ(read.image.pixelColor(0, 0).rgb(), QColor(Qt::yellow).rgb());
+    EXPECT_FALSE(read.usedGdi);
+    EXPECT_FALSE(read.refused);
+    EXPECT_EQ(duplication.reads, 0);
+    EXPECT_EQ(capture.reads, 1);
+    EXPECT_EQ(gdi.reads, 0);
+    EXPECT_TRUE(chain.canFollow());
+}
+
+TEST(GlassSource, EveryFastSourceRefusingLeavesTheLastOneToAnswer)
+{
+    auto duplication = ScriptedSource{{.refused = true}, true};
+    auto capture     = ScriptedSource{{.refused = true}, true};
+    auto gdi         = ScriptedSource{{.image = picture(Qt::black), .usedGdi = true}};
+    auto chain       = FallbackSource{{&duplication, &capture, &gdi}};
+
+    auto const read = chain.read(kSheet, 1.0);
+
+    EXPECT_TRUE(read.usedGdi);
+    // The note follows the source that answered, not the number of refusals before it.
+    EXPECT_TRUE(read.refused);
+    EXPECT_EQ(duplication.reads, 1);
+    EXPECT_EQ(capture.reads, 1);
+    EXPECT_EQ(gdi.reads, 1);
 }

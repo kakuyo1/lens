@@ -7,6 +7,7 @@
 
 #include "core/domain/surface_table.h"
 #include "glass_capability.h"
+#include "glass_capture.h"
 #include "glass_duplication.h"
 #include "glass_math.h"
 #include "glass_stats.h"
@@ -55,7 +56,7 @@ constexpr int kLiveIntervalMs = kGlassGdiFrameMs;
 /// How often the pipeline's tally is logged. Ten seconds is long enough for the read's median to mean something on a
 /// still desktop, and short enough that a run of the application shows several windows.
 constexpr int kSummaryIntervalMs = 10000;
-/// How long a chained read waits for the next duplicated frame, in ms. A 144 Hz frame is 7 ms away, so this covers a
+/// How long a chained read waits for the next frame, in ms. A 144 Hz frame is 7 ms away, so this covers a
 /// missed composition; on a still desktop the worker wakes four times less often than the old 16 ms poll at 60 Hz and
 /// finds nothing. The chain is what keeps a GUI timer's jitter from coalescing frames away (docs/adr/0074).
 constexpr int kChainWaitMs = 16;
@@ -76,8 +77,8 @@ struct Request {
 struct Taken {
     QImage   picture;
     ToneRead tone;
-    bool     noFrame = false; ///< The duplicated output had no new frame: nothing changed, nothing to publish.
-    bool     refused = false; ///< The duplication attempt failed: the settings page's note has something to say.
+    bool     noFrame = false; ///< The live source had no new frame: nothing changed, nothing to publish.
+    bool     refused = false; ///< Every live source refused: the settings page's note has something to say.
     bool     usedGdi = false; ///< The read went to GDI, so the shared fifteen-a-second budget has been spent.
 };
 
@@ -284,9 +285,11 @@ void GlassSheet::publish(QRect const region, QRect const screen, QImage picture,
         clear();
         return;
     }
-    // A duplicated frame has already been checked against the desktop's dirty and move rectangles: the sheet area
-    // changed, or the frame would not have reached here. The fingerprint's 32 by 32 reduction would only be a second,
-    // heavier opinion on the GUI thread, once per frame -- at 144 Hz that is a cost with nothing left to gate.
+    // A frame from a live source is already gated on change: a duplicated one against the desktop's dirty and move
+    // rectangles, a captured one by the compositor drawing again (shortcut: WGC has no dirty rectangles, so a change
+    // anywhere on the monitor publishes; add a region check if uploads show up in frame times). The fingerprint's 32 by
+    // 32 reduction would only be a second, heavier opinion on the GUI thread, once per frame -- at 144 Hz that is a
+    // cost with nothing left to gate.
     auto const print = duplicated ? 0 : pictureFingerprint(picture);
     {
         QMutexLocker const lock(&mutex_);
@@ -400,6 +403,13 @@ GlassBackdrop::~GlassBackdrop()
 {
     // A read still on the pool posts its result back to this object, so let it finish before the object goes.
     pool_.waitForDone();
+    // A capture session belongs to the apartment of the thread that opened it, so it is closed there rather than in
+    // this thread's destructor.
+    for (auto& session : duplications_) {
+        auto* const capture = session.capture.get();
+        pool_.start([capture] { capture->close(); });
+    }
+    pool_.waitForDone();
 }
 
 GlassSheet* GlassBackdrop::surface(QString const& name) const
@@ -440,7 +450,7 @@ void GlassBackdrop::refreshNext()
         return;
     }
     // Standard is the GDI tier: it neither asks a screen to duplicate nor reads faster for one that does.
-    auto const duplicates = QGuiApplication::platformName() == QLatin1String("windows") and glassQualityDuplicates(quality_);
+    auto const duplicates = QGuiApplication::platformName() == QLatin1String("windows") and glassQualityFollows(quality_);
     // The GDI budget is shared by every screen that has no duplication: a fast tick for another screen must not turn a
     // GDI read into a sixty-a-second one.
     auto const gdiDue = not gdiPace_.isValid() or gdiPace_.elapsed() >= kLiveIntervalMs;
@@ -453,7 +463,7 @@ void GlassBackdrop::refreshNext()
         auto       fast      = false;
         if (candidate and duplicates) {
             if (auto* const screen = QGuiApplication::screenAt(sheet->sheet_.center()); screen != nullptr)
-                fast = sessionFor(*screen).duplication->canDuplicate();
+                fast = sessionFor(*screen).chain->canFollow();
         }
         live.push_back(candidate and (fast or gdiDue));
     }
@@ -465,7 +475,7 @@ void GlassBackdrop::refreshNext()
     cursor_           = *next;
     auto* const sheet = sheets_[*next];
 
-    // Only a live sheet is served from a duplicated frame. A sheet just taken, or a drag's deferred retake, still reads
+    // Only a live sheet is served from the follow source. A sheet just taken, or a drag's deferred retake, still reads
     // through GDI: that path is on the GUI thread or already timed, and its one read is what puts the first picture up.
     DesktopSource* source = &gdi_;
     if (duplicates) {
@@ -499,9 +509,9 @@ void GlassBackdrop::refreshNext()
                     // Retaken or dropped while this read ran: the picture is of a region that is no longer held.
                     auto* const target = sheets_[index];
                     if (generation == target->generation_) {
-                        // A GDI-only read never tried duplication, so it must not clear a refusal the reader has
+                        // A GDI-only read never tried a live source, so it must not clear a refusal the reader has
                         // already been told about; a chain that skipped or lost its session did try.
-                        if (request.source->canDuplicate() or taken.refused)
+                        if (request.source->canFollow() or taken.refused)
                             target->noteDuplicationRefused(taken.refused);
                         if (not taken.noFrame) {
                             if (taken.picture.isNull())
@@ -513,7 +523,7 @@ void GlassBackdrop::refreshNext()
                     // A session that failed on this read (another recorder took the output, a display mode changed) must
                     // drop the pace back to the GDI budget before the next tick.
                     updateLive();
-                    // Continue the chain only while it is still the same live sheet, alone on a duplicated screen. A
+                    // Continue the chain only while it is still the same live sheet, alone on a screen that can follow. A
                     // second live surface, a retake, or another tier hands the pace back to the timer.
                     if (quality_ != GlassQuality::Smooth or not target->live_ or target->reading() or target->generation_ != generation) {
                         chaining_ = false;
@@ -525,7 +535,7 @@ void GlassBackdrop::refreshNext()
                         return;
                     }
                     auto* const screen = QGuiApplication::screenAt(target->sheet_.center());
-                    if (screen == nullptr or not sessionFor(*screen).duplication->canDuplicate()) {
+                    if (screen == nullptr or not sessionFor(*screen).chain->canFollow()) {
                         chaining_ = false;
                         return;
                     }
@@ -552,7 +562,7 @@ void GlassBackdrop::updateLive()
         return;
     }
     auto const onDesktop  = QGuiApplication::platformName() == QLatin1String("windows");
-    auto const duplicates = onDesktop and glassQualityDuplicates(quality_);
+    auto const duplicates = onDesktop and glassQualityFollows(quality_);
     auto       anyLive    = false;
     auto       anyFast    = false;
     auto       fastestHz  = 0.0;
@@ -561,7 +571,7 @@ void GlassBackdrop::updateLive()
         anyLive = true;
         if (not duplicates) continue;
         if (auto* const screen = QGuiApplication::screenAt(sheet->sheet_.center()); screen != nullptr) {
-            if (sessionFor(*screen).duplication->canDuplicate()) {
+            if (sessionFor(*screen).chain->canFollow()) {
                 anyFast = true;
                 // Not std::max: windows.h's max macro is in scope in this file.
                 if (screen->refreshRate() > fastestHz) fastestHz = screen->refreshRate();
@@ -573,7 +583,7 @@ void GlassBackdrop::updateLive()
         return;
     }
     // Automatic keeps the conservative sixty-a-second cap; Smooth is the tier that spends the extra reads to follow the
-    // screen (docs/adr/0074). A screen without duplication, or a Standard tier, keeps the shared GDI budget.
+    // screen (docs/adr/0074). A screen without a live source, or a Standard tier, keeps the shared GDI budget.
     auto const interval = not anyFast ? kLiveIntervalMs : glassQualityFrameMs(quality_, fastestHz);
     if (live_.interval() != interval) {
         live_.setInterval(interval);
@@ -603,9 +613,18 @@ GlassBackdrop::Session& GlassBackdrop::sessionFor(QScreen const& screen)
                               QSize(qRound(screen.geometry().width() * scale), qRound(screen.geometry().height() * scale)));
     for (auto& session : duplications_)
         if (session.desktop == native) return session;
-    duplications_.push_back(Session{native, std::make_unique<GlassDuplication>(screen.name(), native), nullptr});
+    auto monitor = quintptr{0};
+#ifdef _WIN32
+    if (auto const* const windows = screen.nativeInterface<QNativeInterface::QWindowsScreen>())
+        monitor = reinterpret_cast<quintptr>(windows->handle());
+#endif
+    duplications_.push_back(Session{native,
+                                    std::make_unique<GlassDuplication>(screen.name(), native),
+                                    std::make_unique<GlassCapture>(screen.name(), native, monitor),
+                                    nullptr});
     auto& session = duplications_.back();
-    session.chain = std::make_unique<FallbackSource>(*session.duplication, gdi_);
+    session.chain = std::make_unique<FallbackSource>(
+        std::initializer_list<DesktopSource*>{session.duplication.get(), session.capture.get(), &gdi_});
     return session;
 }
 

@@ -542,16 +542,6 @@
         <translation>Vidrio mate</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="16"/>
-        <source>Follow this screen up to about 60 times a second when it can be duplicated; otherwise read about 15 times a second.</source>
-        <translation>Sigue esta pantalla hasta unas 60 veces por segundo cuando se pueda duplicar; de lo contrario, lee unas 15 veces por segundo.</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="22"/>
-        <source>Follow this screen&apos;s refresh rate when it can be duplicated.</source>
-        <translation>Sigue la frecuencia de actualización de esta pantalla cuando se pueda duplicar.</translation>
-    </message>
-    <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="129"/>
         <source>Liquid glass</source>
         <translatorcomment>待译者核对</translatorcomment>
@@ -575,6 +565,16 @@
         <source>Blur</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>Desenfoque</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="22"/>
+        <source>Follow this screen&apos;s refresh rate when it can be read live.</source>
+        <translation>Sigue la frecuencia de actualización de esta pantalla cuando se puede leer en directo.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="33"/>
+        <source>This screen cannot be read live, so the backdrop refreshes about 15 times a second.</source>
+        <translation>Esta pantalla no se puede leer en directo, así que el fondo se actualiza unas 15 veces por segundo.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="228"/>
@@ -601,6 +601,11 @@
         <translation>Automático</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="16"/>
+        <source>Follow this screen up to about 60 times a second when it can be read live; otherwise read about 15 times a second.</source>
+        <translation>Sigue esta pantalla hasta unas 60 veces por segundo cuando se puede leer en directo; de lo contrario, lee unas 15 veces por segundo.</translation>
+    </message>
+    <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="17"/>
         <source>Battery saver</source>
         <translation>Ahorro de batería</translation>
@@ -624,11 +629,6 @@
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="21"/>
         <source>Smooth</source>
         <translation>Fluido</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="33"/>
-        <source>This screen cannot be duplicated, so the backdrop reads about 15 times a second.</source>
-        <translation>Esta pantalla no se puede duplicar, así que el fondo se lee unas 15 veces por segundo.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="155"/>

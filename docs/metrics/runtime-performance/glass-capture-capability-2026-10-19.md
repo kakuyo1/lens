@@ -305,3 +305,33 @@ LENS_GLASS_DUP_TEST=1 PATH="$QT_ROOT/bin:$PATH" \
 
 探针不写盘、不落像素：帧只按网格采样成计数，计数之外全部丢弃（ADR 0034、`SECURITY.md`）。同一时刻一个输出只能
 被一个进程复制，跑之前先关掉录屏与会议共享，否则测到的是它们在抢。
+
+## 8、2026-10-23 追加：Windows Graphics Capture（ADR 0087）
+
+上面测的是 DXGI 复制与 GDI。这一节只补新源，不改前面的数字。
+
+真机：Release（RelWithDebInfo），dev 面驱动，私用设置文件；内屏 `\\.\DISPLAY1`（1920 × 1080 @144 Hz，AMD
+Radeon 核显扫描输出），流光，`liquidBlur 40`、`liquidRefraction 20`，smooth 档；后台用 ffplay
+`testsrc2=size=640x480:rate=144` 在同一个屏上制造 144 帧/秒的变化。读数来自应用自己的 10 秒 tally。
+
+| 配置 | 到达（FrameArrived，实测） | 发布（10 秒 tally） | 帧拷贝中位 |
+| --- | --- | --- | --- |
+| GDI（改动前，同屏同档） | — | 60~96 帧（6~10 次/秒） | — |
+| WGC 默认 `MinUpdateInterval` | 240~245 / 5 s（48 次/秒） | 约 480 / 10 s | 1.0~1.4 ms |
+| WGC + 下限 0，设备在 RTX 4060，2 缓冲 | — | 81 次/秒 | 1.1 ms |
+| WGC + 下限 0，设备在核显，2 缓冲 | — | 95 次/秒 | 1.0 ms |
+| WGC + 下限 0，设备在核显，3 缓冲 | — | 107 次/秒 | 1.0 ms |
+| WGC + 下限 0，设备在核显，4 缓冲 | 654 / 5 s（130.8 次/秒） | 1070 / 10 s（128.5 次/秒） | 1.0 ms |
+
+- 同时段用 `DwmFlush` 量合成器：180 次刷新 / 1375.6 ms，**130.9 Hz**；WGC 四缓冲的到达与之对齐，所以 144 Hz
+  面板上的剩余差是合成器的产帧节奏，不是采集。
+- **默认下限是三帧一帧**：一次会话不改 `MinUpdateInterval` 时，同一块屏稳定在 48 次/秒（144/3）；改成 0 后到达
+  130.8。`IGraphicsCaptureSession5` 是 24H2 的接口，更早的系统没有它，保留默认值。
+- **设备必须在扫描输出的 GPU 上**：DXGI 把内屏列在 4060 下，但合成实际由核显扫描输出；设备建在 4060 时 81 次/秒，
+  建在核显 95（同两缓冲）。`QueryDisplayConfig` 的 target `adapterId` 能找到这块 GPU。
+- **缓冲数决定追赶能力**：同一配置两/三/四缓冲分别为 95 / 107 / 130 次/秒；四张 1920 × 1080 BGRA 缓冲约 33 MB。
+- 黄框与光标在整轮运行中都没有出现；外接屏 `\\.\DISPLAY6`（旋转 270°）的 WGC 会话也开得起来，`item.Size()`
+  与桌面矩形同为 1440 × 2560，identity 假设成立——但应用在该屏仍先用 DXGI 复制。
+- 复现：`LENS_GLASS_WGC_TEST=1 PATH="$QT_ROOT/bin:$PATH" ./build-ninja/test/googletest/lens_gtest_integration.exe
+  --gtest_filter='GlassCapture.*'`（逐屏开会话、读一帧、打印尺寸与帧率）；应用内的 tally 需要 dev 面开设置面板，
+  是人工操作，未入库。

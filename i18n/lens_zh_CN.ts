@@ -381,6 +381,11 @@
         <translation>自动</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="16"/>
+        <source>Follow this screen up to about 60 times a second when it can be read live; otherwise read about 15 times a second.</source>
+        <translation>屏幕支持实时读取时，每秒最多跟随约 60 次；否则每秒读取约 15 次。</translation>
+    </message>
+    <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="17"/>
         <source>Battery saver</source>
         <translation>省电</translation>
@@ -406,19 +411,14 @@
         <translation>流畅</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="16"/>
-        <source>Follow this screen up to about 60 times a second when it can be duplicated; otherwise read about 15 times a second.</source>
-        <translation>屏幕支持桌面复制时，最多每秒约 60 次跟随屏幕；否则每秒读取约 15 次。</translation>
-    </message>
-    <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="22"/>
-        <source>Follow this screen&apos;s refresh rate when it can be duplicated.</source>
-        <translation>屏幕支持桌面复制时，跟随该屏幕的刷新率。</translation>
+        <source>Follow this screen&apos;s refresh rate when it can be read live.</source>
+        <translation>屏幕支持实时读取时，跟随其刷新率。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="33"/>
-        <source>This screen cannot be duplicated, so the backdrop reads about 15 times a second.</source>
-        <translation>当前屏幕不支持桌面复制，幕布按每秒约 15 次读取。</translation>
+        <source>This screen cannot be read live, so the backdrop refreshes about 15 times a second.</source>
+        <translation>这块屏幕无法实时读取，幕布每秒刷新约 15 次。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="112"/>

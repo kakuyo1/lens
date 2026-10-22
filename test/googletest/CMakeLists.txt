@@ -111,6 +111,7 @@ add_executable(lens_gtest_integration EXCLUDE_FROM_ALL
   integration/selection_capture_test.cpp
   integration/glass_read_pace_test.cpp
   integration/glass_duplication_test.cpp
+  integration/glass_capture_test.cpp
 )
 target_link_libraries(lens_gtest_integration PRIVATE lens_app lens_core GTest::gtest)
 lens_gtest_configure(lens_gtest_integration)

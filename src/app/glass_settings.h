@@ -22,15 +22,15 @@ namespace lens::app {
  * @brief How the live backdrop is kept fresh, as the reader chooses it (docs/adr/0073).
  *
  * The ladder is about the source and the pace of the desktop read, not an on/off GPU switch: Qt 6 has no CPU-only UI
- * backend, and whether a screen can be duplicated is a per-output fact (docs/adr/0072). Eco keeps the picture still;
- * Standard reads it with GDI about fifteen times a second; Auto duplicates up to about sixty times a second where the
- * screen offers it; Smooth goes further and follows the screen's own refresh rate (docs/adr/0074).
+ * backend, and whether a screen can be followed is a per-output fact (docs/adr/0072, docs/adr/0087). Eco keeps the
+ * picture still; Standard reads it with GDI about fifteen times a second; Auto follows up to about sixty times a second
+ * where the screen offers it; Smooth goes further and follows the screen's own refresh rate (docs/adr/0074).
  */
 enum class GlassQuality : int {
-    Auto     = 0, ///< Duplication where it works up to about sixty a second, GDI otherwise: the default.
+    Auto     = 0, ///< A live source where one works, up to about sixty a second; GDI otherwise: the default.
     Eco      = 1, ///< No live refresh; the sheet is retaken when the card appears or moves.
     Standard = 2, ///< GDI, about fifteen reads a second.
-    Smooth   = 3, ///< Duplication where it works, at the screen's refresh rate; GDI otherwise.
+    Smooth   = 3, ///< A live source where one works, at the screen's refresh rate; GDI otherwise.
 };
 
 /// The highest stored value, from the tier's own row in the settings table.
@@ -54,8 +54,8 @@ inline bool glassQualityRefreshes(GlassQuality quality)
     return quality != GlassQuality::Eco;
 }
 
-/// @return Whether this tier may use a screen's duplication. Standard is the GDI tier.
-inline bool glassQualityDuplicates(GlassQuality quality)
+/// @return Whether this tier may use a screen's live frame source. Standard is the GDI tier.
+inline bool glassQualityFollows(GlassQuality quality)
 {
     return quality == GlassQuality::Auto or quality == GlassQuality::Smooth;
 }

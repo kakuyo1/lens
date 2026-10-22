@@ -163,8 +163,8 @@ TEST(GlassQuality, StoredValuesClampToTheFourTiers)
     EXPECT_EQ(app::glassQualityFrom(0), app::GlassQuality::Auto);
     EXPECT_EQ(app::glassQualityFrom(3), app::GlassQuality::Smooth);
     EXPECT_EQ(app::glassQualityFrom(9), app::GlassQuality::Smooth);
-    EXPECT_TRUE(app::glassQualityDuplicates(app::GlassQuality::Auto));
-    EXPECT_FALSE(app::glassQualityDuplicates(app::GlassQuality::Standard));
+    EXPECT_TRUE(app::glassQualityFollows(app::GlassQuality::Auto));
+    EXPECT_FALSE(app::glassQualityFollows(app::GlassQuality::Standard));
     EXPECT_FALSE(app::glassQualityRefreshes(app::GlassQuality::Eco));
     EXPECT_TRUE(app::glassQualityRefreshes(app::GlassQuality::Standard));
 }

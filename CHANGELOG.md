@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.7.6 - unreleased
+
+### Fixed
+
+- Glass themes on a screen that refuses desktop duplication now follow the desktop through Windows Graphics
+  Capture instead of falling back to the fifteen-a-second CPU read. On the measurement machine's internal panel
+  the backdrop went from 6–10 to 95–130 refreshes a second, with the frame copy at about 1 ms (docs/adr/0087).
+  The setting's note, and the sentence shown when no live source can serve a screen, now say the screen is read
+  live rather than duplicated. Windows 10 keeps the GDI read, and a screen DXGI can duplicate keeps using it.
+
 ## 1.7.5 - 2026-10-21
 
 The desktop pet now wanders near where it was left and can hide at a screen edge, and the source tree

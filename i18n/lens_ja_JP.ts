@@ -542,16 +542,6 @@
         <translation>すりガラス</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="16"/>
-        <source>Follow this screen up to about 60 times a second when it can be duplicated; otherwise read about 15 times a second.</source>
-        <translation>画面を複製できるときは毎秒約 60 回まで追従し、できないときは毎秒約 15 回読み取ります。</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="22"/>
-        <source>Follow this screen&apos;s refresh rate when it can be duplicated.</source>
-        <translation>画面を複製できるときは、その画面のリフレッシュレートに追従します。</translation>
-    </message>
-    <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="129"/>
         <source>Liquid glass</source>
         <translatorcomment>待译者核对</translatorcomment>
@@ -575,6 +565,16 @@
         <source>Blur</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>ぼかし</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="22"/>
+        <source>Follow this screen&apos;s refresh rate when it can be read live.</source>
+        <translation>この画面をリアルタイムで読み取れる場合は、画面のリフレッシュレートに追従します。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="33"/>
+        <source>This screen cannot be read live, so the backdrop refreshes about 15 times a second.</source>
+        <translation>この画面はリアルタイムで読み取れないため、背景は毎秒約 15 回更新されます。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="228"/>
@@ -601,6 +601,11 @@
         <translation>自動</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="16"/>
+        <source>Follow this screen up to about 60 times a second when it can be read live; otherwise read about 15 times a second.</source>
+        <translation>この画面をリアルタイムで読み取れる場合は毎秒約 60 回まで追従し、そうでない場合は毎秒約 15 回読み取ります。</translation>
+    </message>
+    <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="17"/>
         <source>Battery saver</source>
         <translation>省電力</translation>
@@ -624,11 +629,6 @@
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="21"/>
         <source>Smooth</source>
         <translation>なめらか</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="33"/>
-        <source>This screen cannot be duplicated, so the backdrop reads about 15 times a second.</source>
-        <translation>この画面は複製できないため、背景は毎秒約 15 回読み取ります。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="155"/>

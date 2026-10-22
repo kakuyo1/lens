@@ -1,6 +1,7 @@
 # 0086 桌面读取有一条缝：GDI 与复制是同一接口的两个适配器
 
-- **状态**：accepted（架构评审候选 4 “A seam for the desktop” 的落地；行为不变）
+- **状态**：accepted（架构评审候选 4 “A seam for the desktop” 的落地；行为不变；ADR 0087 增加了第四个适配器
+  Windows Graphics Capture，顺序仍在 `FallbackSource`）
 - **背景**：
   - `takeSheet()` 自己决定哪条路回答：`Request.duplication` 非空就走桌面的复制帧，空就走 GDI，
     而 “测试平台不读真实屏幕” 又借一个 `Request.onDesktop` 的 bool 混在同一条判断里。于是 “复制 → GDI → 什么都没有”

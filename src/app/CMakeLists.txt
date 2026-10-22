@@ -61,6 +61,8 @@ add_library(lens_app STATIC
   glass/glass_backdrop.cpp
   glass/glass_capability.h
   glass/glass_capability.cpp
+  glass/glass_capture.h
+  glass/glass_capture.cpp
   glass/glass_desktop.h
   glass/glass_desktop.cpp
   glass/glass_duplication.h
@@ -106,10 +108,36 @@ target_link_libraries(lens_app
 )
 
 # user32 for the hook, SendInput and the clipboard; gdi32 for the glass sheet's desktop read; dxgi and d3d11 for the
-# glass duplication path, which builds a device on the adapter that owns each output (src/app/glass/glass_duplication.h).
-# Not guarded by if(WIN32): this module *is* the Win32 one, and the product has no other platform. OLE is deliberately
-# absent -- ClipboardSnapshot records why its round trip is not usable here.
-target_link_libraries(lens_app PRIVATE user32 gdi32 dxgi d3d11)
+# glass duplication path, which builds a device on the adapter that owns each output (src/app/glass/glass_duplication.h);
+# windowsapp and runtimeobject for Windows Graphics Capture, the source for screens duplication refuses
+# (src/app/glass/glass_capture.h). Not guarded by if(WIN32): this module *is* the Win32 one, and the product has no other
+# platform. OLE is deliberately absent -- ClipboardSnapshot records why its round trip is not usable here.
+target_link_libraries(lens_app PRIVATE user32 gdi32 dxgi d3d11 windowsapp runtimeobject)
+
+# The C++/WinRT projection headers ship beside the SDK's ABI headers, not on the include path vcvars sets. The
+# documented build path runs vcvars first (scripts/build/build.bat), which names the SDK version; an IDE configure
+# without that environment takes the newest SDK under the standard Windows Kits root instead.
+if(DEFINED ENV{WindowsSdkDir} AND DEFINED ENV{WindowsSDKVersion})
+  set(LENS_SDK_VERSION "$ENV{WindowsSDKVersion}")
+  string(REGEX REPLACE "[\\\\/]+$" "" LENS_SDK_VERSION "${LENS_SDK_VERSION}")
+  set(LENS_CPPWINRT "$ENV{WindowsSdkDir}Include/${LENS_SDK_VERSION}/cppwinrt")
+else()
+  set(_lens_pf86 "$ENV{ProgramFiles} (x86)")
+  file(GLOB _lens_cppwinrt "${_lens_pf86}/Windows Kits/10/Include/*/cppwinrt/winrt/base.h")
+  if(_lens_cppwinrt)
+    list(SORT _lens_cppwinrt)
+    list(GET _lens_cppwinrt -1 _lens_cppwinrt_base)
+    get_filename_component(LENS_CPPWINRT "${_lens_cppwinrt_base}" DIRECTORY)
+    get_filename_component(LENS_CPPWINRT "${LENS_CPPWINRT}" DIRECTORY)
+  endif()
+endif()
+file(TO_CMAKE_PATH "${LENS_CPPWINRT}" LENS_CPPWINRT)
+if(NOT LENS_CPPWINRT OR NOT EXISTS "${LENS_CPPWINRT}/winrt/base.h")
+  message(FATAL_ERROR
+    "C++/WinRT headers were not found (looked in '${LENS_CPPWINRT}'); check the Windows SDK installation, or"
+    " configure through scripts/build/build.bat, which enters the MSVC environment.")
+endif()
+target_include_directories(lens_app PRIVATE "${LENS_CPPWINRT}")
 
 # RC, so the resource script below compiles. The root project() lists CXX alone and the root
 # CMakeLists is another branch's file, but enable_language is directory scoped: turning it on

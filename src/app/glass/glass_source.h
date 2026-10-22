@@ -16,6 +16,9 @@
 #include <QImage>
 #include <QRect>
 
+#include <initializer_list>
+#include <vector>
+
 namespace lens::app {
 
 /**
@@ -35,7 +38,7 @@ struct DesktopRead {
  * @brief One way of reading the desktop.
  *
  * The backdrop reads through this and no longer knows which way answered. read() runs on the refresh's worker thread;
- * canDuplicate() is asked on the GUI thread before a read is started, to set the timer's pace.
+ * canFollow() is asked on the GUI thread before a read is started, to set the timer's pace.
  */
 class DesktopSource {
 public:
@@ -51,8 +54,9 @@ public:
      */
     virtual DesktopRead read(QRect native, double scale, int timeoutMs = 0) = 0;
 
-    /// @return Whether a read may come from a duplicated frame, which is what the backdrop paces its timer by.
-    virtual bool canDuplicate() const = 0;
+    /// @return Whether this source may keep up with the screen's frame production, which is what the backdrop paces
+    ///         its timer by. A source that cannot is only worth a read when nothing else can serve one.
+    virtual bool canFollow() const = 0;
 };
 
 /**
@@ -72,7 +76,7 @@ public:
     explicit GdiSource(bool onDesktop, SheetScale scale = SheetScale::Full);
 
     DesktopRead read(QRect native, double scale, int timeoutMs = 0) override;
-    bool        canDuplicate() const override;
+    bool        canFollow() const override;
 
 private:
     bool       onDesktop;
@@ -80,22 +84,22 @@ private:
 };
 
 /**
- * @brief Two sources, tried in the order given: the duplicated output while it can, GDI otherwise.
+ * @brief The sources of one screen, tried in the order given: duplication, then Windows Graphics Capture, then GDI.
  *
  * The fallback is the normal case on hybrid machines, not an error: one output duplicates while another refuses on
- * every adapter (docs/adr/0072). A read the preferred source refuses is re-read from the fallback, and the sheet is
- * told the duplication attempt failed so the settings page can say so in words.
+ * every adapter (docs/adr/0072, docs/adr/0087). A read a source refuses is re-read from the next one, and the sheet is
+ * told the answer came from the slow path so the settings page can say so in words. A source that says it cannot
+ * follow frames is skipped unless it is the last one, which is always asked: a picture has to come from somewhere.
  */
 class FallbackSource final : public DesktopSource {
 public:
-    FallbackSource(DesktopSource& preferred, DesktopSource& fallback);
+    explicit FallbackSource(std::initializer_list<DesktopSource*> sources);
 
     DesktopRead read(QRect native, double scale, int timeoutMs = 0) override;
-    bool        canDuplicate() const override;
+    bool        canFollow() const override;
 
 private:
-    DesktopSource& preferred;
-    DesktopSource& fallback;
+    std::vector<DesktopSource*> sources;
 };
 
 } // namespace lens::app

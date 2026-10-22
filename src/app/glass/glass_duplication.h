@@ -98,7 +98,7 @@ public:
 
     /// @return Whether the session can be tried now. True before the first attempt; false while a failed session is in
     ///         its cooldown, and after a refusal that cannot change. Safe from another thread.
-    bool canDuplicate() const override;
+    bool canFollow() const override;
 
     /// @return The screen name, as given at construction: for the log.
     QString const& deviceName() const;

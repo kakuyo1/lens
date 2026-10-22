@@ -381,6 +381,11 @@
         <translation>Automatic</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="16"/>
+        <source>Follow this screen up to about 60 times a second when it can be read live; otherwise read about 15 times a second.</source>
+        <translation>Follow this screen up to about 60 times a second when it can be read live; otherwise read about 15 times a second.</translation>
+    </message>
+    <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="17"/>
         <source>Battery saver</source>
         <translation>Battery saver</translation>
@@ -406,19 +411,14 @@
         <translation>Smooth</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="16"/>
-        <source>Follow this screen up to about 60 times a second when it can be duplicated; otherwise read about 15 times a second.</source>
-        <translation>Follow this screen up to about 60 times a second when it can be duplicated; otherwise read about 15 times a second.</translation>
-    </message>
-    <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="22"/>
-        <source>Follow this screen&apos;s refresh rate when it can be duplicated.</source>
-        <translation>Follow this screen&apos;s refresh rate when it can be duplicated.</translation>
+        <source>Follow this screen&apos;s refresh rate when it can be read live.</source>
+        <translation>Follow this screen&apos;s refresh rate when it can be read live.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="33"/>
-        <source>This screen cannot be duplicated, so the backdrop reads about 15 times a second.</source>
-        <translation>This screen cannot be duplicated, so the backdrop reads about 15 times a second.</translation>
+        <source>This screen cannot be read live, so the backdrop refreshes about 15 times a second.</source>
+        <translation>This screen cannot be read live, so the backdrop refreshes about 15 times a second.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="112"/>
