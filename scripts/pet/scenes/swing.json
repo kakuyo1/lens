@@ -1,7 +1,7 @@
 {
   "id": "swing",
   "name": "荡秋千",
-  "frames": 8,
+  "frames": 12,
   "fps": 4,
   "foot": [
     58.5,
@@ -431,6 +431,294 @@
         }
       ],
       "front": []
+    },
+    {
+      "dx": -12,
+      "dy": -12,
+      "scale": 0.9505025253169417,
+      "back": [
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            -10
+          ],
+          "rect": [
+            1,
+            23
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            14,
+            -10
+          ],
+          "rect": [
+            1,
+            23
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            13
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            14
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "ink"
+        }
+      ],
+      "front": []
+    },
+    {
+      "dx": -12,
+      "dy": -9,
+      "scale": 1,
+      "back": [
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            -10
+          ],
+          "rect": [
+            1,
+            24
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            14,
+            -10
+          ],
+          "rect": [
+            1,
+            24
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            14
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            15
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "ink"
+        }
+      ],
+      "front": [
+        {
+          "art": [
+            "e.e",
+            "eee",
+            ".e."
+          ],
+          "colours": {
+            "e": "green"
+          },
+          "step": 3,
+          "at": [
+            8,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "dx": -12,
+      "dy": -12,
+      "scale": 0.9505025253169417,
+      "back": [
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            -10
+          ],
+          "rect": [
+            1,
+            23
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            14,
+            -10
+          ],
+          "rect": [
+            1,
+            23
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            13
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            14
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "ink"
+        }
+      ],
+      "front": [
+        {
+          "art": [
+            "e.e",
+            "eee",
+            ".e."
+          ],
+          "colours": {
+            "e": "green"
+          },
+          "step": 3,
+          "at": [
+            9,
+            5
+          ]
+        }
+      ]
+    },
+    {
+      "dx": -12,
+      "dy": -15,
+      "scale": 0.9299999999999999,
+      "back": [
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            -10
+          ],
+          "rect": [
+            1,
+            22
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            14,
+            -10
+          ],
+          "rect": [
+            1,
+            22
+          ],
+          "colour": "grey"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            12
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "sky"
+        },
+        {
+          "layer": "back",
+          "rig": false,
+          "at": [
+            -4,
+            13
+          ],
+          "rect": [
+            19,
+            1
+          ],
+          "colour": "ink"
+        }
+      ],
+      "front": [
+        {
+          "art": [
+            "e.e",
+            "eee",
+            ".e."
+          ],
+          "colours": {
+            "e": "green"
+          },
+          "step": 3,
+          "at": [
+            10,
+            8
+          ]
+        }
+      ]
     },
     {
       "dx": -12,

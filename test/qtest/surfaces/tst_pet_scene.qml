@@ -80,7 +80,7 @@ Item {
             if (!lensQaSnapshotDir)
                 skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the offscreen snapshot");
 
-            for (const id of ["swing", "desk", "skate", "bath", "rain"]) {
+            for (const id of ["swing", "skate", "dog_frisbee", "dog_burying"]) {
                 Pet.preview(id);
                 tryCompare(Pet, "scene", id);
                 verify(Util.saveSnapshot(testCase, frame, lensQaSnapshotDir, "pet-scene-" + id));

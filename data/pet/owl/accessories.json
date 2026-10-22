@@ -21,16 +21,15 @@
         "ask",
         "swing",
         "desk",
-        "skate",
-        "bath",
-        "rain",
         "preen",
         "hop",
         "flap",
         "hoot",
         "nod",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "owl_stargazing",
+        "owl_books"
       ]
     },
     {
@@ -54,16 +53,15 @@
         "ask",
         "swing",
         "desk",
-        "skate",
-        "bath",
-        "rain",
         "preen",
         "hop",
         "flap",
         "hoot",
         "nod",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "owl_stargazing",
+        "owl_books"
       ]
     },
     {
@@ -87,16 +85,15 @@
         "ask",
         "swing",
         "desk",
-        "skate",
-        "bath",
-        "rain",
         "preen",
         "hop",
         "flap",
         "hoot",
         "nod",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "owl_stargazing",
+        "owl_books"
       ]
     },
     {
@@ -119,16 +116,15 @@
         "ask",
         "swing",
         "desk",
-        "skate",
-        "bath",
-        "rain",
         "preen",
         "hop",
         "flap",
         "hoot",
         "nod",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "owl_stargazing",
+        "owl_books"
       ]
     },
     {
@@ -151,16 +147,15 @@
         "ask",
         "swing",
         "desk",
-        "skate",
-        "bath",
-        "rain",
         "preen",
         "hop",
         "flap",
         "hoot",
         "nod",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "owl_stargazing",
+        "owl_books"
       ]
     },
     {
@@ -173,11 +168,10 @@
         "angry",
         "swing",
         "desk",
-        "skate",
-        "bath",
-        "rain",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "owl_stargazing",
+        "owl_books"
       ]
     },
     {
@@ -201,16 +195,15 @@
         "ask",
         "swing",
         "desk",
-        "skate",
-        "bath",
-        "rain",
         "preen",
         "hop",
         "flap",
         "hoot",
         "nod",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "owl_stargazing",
+        "owl_books"
       ]
     },
     {
@@ -234,16 +227,15 @@
         "ask",
         "swing",
         "desk",
-        "skate",
-        "bath",
-        "rain",
         "preen",
         "hop",
         "flap",
         "hoot",
         "nod",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "owl_stargazing",
+        "owl_books"
       ]
     },
     {
@@ -267,16 +259,15 @@
         "ask",
         "swing",
         "desk",
-        "skate",
-        "bath",
-        "rain",
         "preen",
         "hop",
         "flap",
         "hoot",
         "nod",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "owl_stargazing",
+        "owl_books"
       ]
     }
   ]

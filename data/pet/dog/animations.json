@@ -32,121 +32,76 @@
     "range": 32
   },
   "actions": {
-    "angry": {
-      "frames": 5,
-      "fps": 10,
-      "loop": false,
-      "expressions": [
-        9,
-        9,
-        9,
-        9,
-        9
-      ],
-      "sheet": "sprites/body/angry.png",
-      "effect": "sprites/effects/angry.png"
-    },
-    "swing": {
-      "frames": 8,
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "expressions": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "sheet": "sprites/body/swing.png"
-    },
-    "desk": {
-      "frames": 8,
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "expressions": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "sheet": "sprites/body/desk.png"
-    },
-    "skate": {
-      "frames": 8,
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "expressions": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "sheet": "sprites/body/skate.png"
-    },
-    "bath": {
-      "frames": 8,
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "expressions": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "sheet": "sprites/body/bath.png"
-    },
-    "rain": {
-      "frames": 8,
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "expressions": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "sheet": "sprites/body/rain.png"
-    },
-    "blink": {
-      "frames": 3,
-      "fps": 10,
-      "loop": false,
-      "expressions": [
-        1,
-        2,
-        1
-      ]
-    },
     "idle": {
       "frames": 5,
       "fps": 5,
       "loop": true,
       "blink": true,
+      "expressions": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
       "sheet": "sprites/body/idle.png"
+    },
+    "walk": {
+      "frames": 6,
+      "fps": 8,
+      "loop": true,
+      "expressions": [
+        0,
+        5,
+        0,
+        5,
+        0,
+        5
+      ],
+      "sheet": "sprites/body/walk.png",
+      "effect": "sprites/effects/walk.png"
+    },
+    "edge_peek": {
+      "frames": 6,
+      "fps": 5,
+      "loop": true,
+      "expressions": [
+        0,
+        2,
+        0,
+        0,
+        2,
+        0
+      ],
+      "sheet": "sprites/body/edge_peek.png"
+    },
+    "sleep": {
+      "frames": 4,
+      "fps": 3,
+      "loop": true,
+      "expressions": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "sheet": "sprites/body/sleep.png",
+      "effect": "sprites/effects/sleep.png"
+    },
+    "ask": {
+      "frames": 4,
+      "fps": 4,
+      "loop": true,
+      "blink": true,
+      "expressions": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/ask.png",
+      "effect": "sprites/effects/ask.png",
+      "effectLeft": "sprites/effects/ask-left.png"
     },
     "study": {
       "frames": 6,
@@ -193,7 +148,7 @@
         0
       ],
       "sheet": "sprites/body/celebrate.png",
-      "effect": "sprites/effects/fireworks.png"
+      "effect": "sprites/effects/celebrate.png"
     },
     "encourage": {
       "frames": 5,
@@ -247,8 +202,7 @@
         4,
         4
       ],
-      "sheet": "sprites/body/look_around.png",
-      "effect": "sprites/effects/look_around.png"
+      "sheet": "sprites/body/look_around.png"
     },
     "yawn": {
       "frames": 5,
@@ -278,6 +232,20 @@
       ],
       "sheet": "sprites/body/stretch.png",
       "effect": "sprites/effects/stretch.png"
+    },
+    "angry": {
+      "frames": 5,
+      "fps": 10,
+      "loop": false,
+      "expressions": [
+        9,
+        9,
+        9,
+        9,
+        9
+      ],
+      "sheet": "sprites/body/angry.png",
+      "effect": "sprites/effects/angry.png"
     },
     "wag": {
       "frames": 6,
@@ -321,56 +289,100 @@
       "sheet": "sprites/body/scratch.png",
       "effect": "sprites/effects/scratch.png"
     },
-    "ask": {
-      "frames": 4,
+    "blink": {
+      "frames": 3,
+      "fps": 10,
+      "loop": false,
+      "expressions": [
+        1,
+        2,
+        1
+      ]
+    },
+    "swing": {
+      "frames": 12,
       "fps": 4,
       "loop": true,
-      "blink": true,
-      "sheet": "sprites/body/ask.png",
-      "effect": "sprites/effects/ask.png",
-      "effectLeft": "sprites/effects/ask-left.png"
-    },
-    "sleep": {
-      "frames": 4,
-      "fps": 3,
-      "loop": true,
+      "duration": 30000,
       "expressions": [
-        8,
-        8,
-        8,
-        8
-      ],
-      "sheet": "sprites/body/sleep.png",
-      "effect": "sprites/effects/zzz.png"
-    },
-    "walk": {
-      "frames": 6,
-      "fps": 8,
-      "loop": true,
-      "expressions": [
-        0,
+        5,
+        5,
         5,
         0,
+        0,
+        0,
+        5,
+        5,
         5,
         0,
-        5
-      ],
-      "sheet": "sprites/body/walk.png",
-      "effect": "sprites/effects/walk.png"
-    },
-    "edge_peek": {
-      "frames": 6,
-      "fps": 5,
-      "loop": true,
-      "expressions": [
         0,
-        2,
-        0,
-        0,
-        2,
         0
       ],
-      "sheet": "sprites/body/edge_peek.png"
+      "sheet": "sprites/body/swing.png"
+    },
+    "skate": {
+      "frames": 12,
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "expressions": [
+        0,
+        5,
+        5,
+        0,
+        0,
+        5,
+        5,
+        0,
+        0,
+        5,
+        5,
+        0
+      ],
+      "sheet": "sprites/body/skate.png"
+    },
+    "dog_frisbee": {
+      "frames": 12,
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "expressions": [
+        6,
+        6,
+        6,
+        6,
+        0,
+        5,
+        5,
+        5,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/dog_frisbee.png"
+    },
+    "dog_burying": {
+      "frames": 12,
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "expressions": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        5,
+        5,
+        5,
+        5,
+        5
+      ],
+      "sheet": "sprites/body/dog_burying.png",
+      "effect": "sprites/effects/dog_burying.png"
     }
   }
 }

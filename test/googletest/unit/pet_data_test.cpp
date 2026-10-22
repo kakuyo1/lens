@@ -4,11 +4,13 @@
  */
 
 #include <algorithm>
+#include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <map>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -49,9 +51,9 @@ TEST(PetData, AnimationsLoadAndCarryTheBlink)
 {
     auto const animations = parseAnimations(load("animations.json"));
 
-    // The thirteen role actions (angry and ask included), the three idle extras no role names, the five scenes,
+    // The thirteen role actions (angry and ask included), the three idle extras no role names, the four scenes,
     // and the walk and edge-peek loops.
-    EXPECT_EQ(animations.playbook.actions.size(), 23u);
+    EXPECT_EQ(animations.playbook.actions.size(), 22u);
     EXPECT_EQ(animations.blink.frames, 3);
     EXPECT_FALSE(animations.blink.loop);
 }
@@ -100,14 +102,14 @@ TEST(PetData, EverySheetIsTheSizeItsFrameCountSays)
 
 TEST(PetData, TheSignHandsGripThePoleAtTheMeasuredPixelOfEveryFrame)
 {
-    // The fist's top-left ink in frame 0 is (79, 48) for the right hand and (30, 48) for the left; the grip is 4.5 right and 3 down.
+    // The fist's top-left ink in frame 0 is (70, 48) for the right hand and (21, 48) for the left; the grip is 4.5 right and 3 down.
     auto const directory = std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet" / "dog";
     auto const ask       = lens::app::pet::PetAssets::load(directory).sheets.at("ask");
 
     ASSERT_EQ(ask.gripRight.size(), 4u);
     ASSERT_EQ(ask.gripLeft.size(), 4u);
-    EXPECT_EQ(ask.gripRight.front(), QPointF(83.5, 51));
-    EXPECT_EQ(ask.gripLeft.front(), QPointF(34.5, 51));
+    EXPECT_EQ(ask.gripRight.front(), QPointF(74.5, 51));
+    EXPECT_EQ(ask.gripLeft.front(), QPointF(25.5, 51));
 }
 
 TEST(PetData, EveryShippedPetWalksAndPeeks)
@@ -136,6 +138,40 @@ TEST(PetData, EveryShippedPetWalksAndPeeks)
         }
     }
     EXPECT_EQ(pets, 7);
+}
+
+TEST(PetData, EveryShippedPetHasTwoOwnScenesAndTwoSharedOnes)
+{
+    auto const scenesDoc   = loadAt(std::filesystem::path{LENS_SOURCE_DIR} / "data" / "scenes", "scenes.json");
+    auto       sceneFrames = std::map<std::string, int>{};
+    for (auto const& scene : scenesDoc.at("scenes"))
+        sceneFrames.emplace(scene.at("id").get<std::string>(), scene.at("frames").get<int>());
+
+    auto exclusiveOwners = std::map<std::string, int>{};
+    for (auto const& entry : std::filesystem::directory_iterator{std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet"}) {
+        if (not entry.is_directory()) continue;
+        auto const pet        = entry.path().filename().string();
+        auto const animations = parseAnimations(loadAt(entry.path(), "animations.json"));
+        auto       own        = 0;
+        auto       shared     = 0;
+        for (auto const& [name, spec] : animations.playbook.actions) {
+            auto const scene = sceneFrames.find(name);
+            if (scene == sceneFrames.end()) continue;
+            if (name.rfind(pet + "_", 0) == 0) {
+                ++own;
+                ++exclusiveOwners[name];
+            } else {
+                ++shared;
+            }
+            EXPECT_EQ(spec.frames, scene->second) << name;
+            ASSERT_TRUE(spec.duration.has_value()) << name;
+            EXPECT_EQ(*spec.duration, std::chrono::milliseconds{30000}) << name;
+        }
+        EXPECT_EQ(own, 2) << pet;
+        EXPECT_EQ(shared, 2) << pet;
+    }
+    for (auto const& [name, owners] : exclusiveOwners)
+        EXPECT_EQ(owners, 1) << name;
 }
 
 TEST(PetData, EveryShippedPetIsAcceptedWhole)

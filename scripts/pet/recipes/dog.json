@@ -1,0 +1,2472 @@
+{
+  "_comment": "奶糖: the chosen floppy-ear puppy. Recipe pipeline, two-cell eyes, hand-held review sign, dog-only scenes.",
+  "id": "dog",
+  "scale": 3,
+  "body": {
+    "cx": 6.5,
+    "cy": 13,
+    "rx": 1,
+    "ry": 1
+  },
+  "pivot": [
+    6.5,
+    17
+  ],
+  "head": [
+    6.5,
+    -6
+  ],
+  "silhouette": {
+    "shape": "mask",
+    "at": [
+      -5,
+      -6
+    ],
+    "rows": [
+      ".........######.........",
+      ".......##########.......",
+      ".....##############.....",
+      "...##################...",
+      "..####################..",
+      "..####################..",
+      "..####################..",
+      "..####################..",
+      "..####################..",
+      "..####################..",
+      "..####.##########.####..",
+      "..####.##########.####..",
+      "..####.##########.####..",
+      "..####.##########.####..",
+      "...###.##########.###...",
+      "....##.##########.##....",
+      "......############......",
+      ".....##############.....",
+      ".....##############.....",
+      "....################....",
+      "....################....",
+      ".....##############.....",
+      ".......##########......."
+    ]
+  },
+  "bodyPaint": [
+    {
+      "at": [
+        -2,
+        -3
+      ],
+      "colour": "mist",
+      "art": [
+        "###"
+      ]
+    },
+    {
+      "at": [
+        -3,
+        -2
+      ],
+      "colour": "mist",
+      "art": [
+        "####",
+        "####",
+        "####",
+        "####",
+        "####",
+        "####"
+      ]
+    },
+    {
+      "at": [
+        -3,
+        4
+      ],
+      "colour": "mist",
+      "art": [
+        "####",
+        "####",
+        "####",
+        "####"
+      ]
+    },
+    {
+      "at": [
+        -2,
+        8
+      ],
+      "colour": "mist",
+      "art": [
+        "###"
+      ]
+    },
+    {
+      "at": [
+        -1,
+        9
+      ],
+      "colour": "mist",
+      "art": [
+        "##"
+      ]
+    },
+    {
+      "at": [
+        -2,
+        6
+      ],
+      "colour": "rose",
+      "art": [
+        "##",
+        "##"
+      ]
+    },
+    {
+      "at": [
+        13,
+        -3
+      ],
+      "colour": "mist",
+      "art": [
+        "###"
+      ]
+    },
+    {
+      "at": [
+        13,
+        -2
+      ],
+      "colour": "mist",
+      "art": [
+        "####",
+        "####",
+        "####",
+        "####",
+        "####",
+        "####"
+      ]
+    },
+    {
+      "at": [
+        13,
+        4
+      ],
+      "colour": "mist",
+      "art": [
+        "####",
+        "####",
+        "####",
+        "####"
+      ]
+    },
+    {
+      "at": [
+        13,
+        8
+      ],
+      "colour": "mist",
+      "art": [
+        "###"
+      ]
+    },
+    {
+      "at": [
+        13,
+        9
+      ],
+      "colour": "mist",
+      "art": [
+        "##"
+      ]
+    },
+    {
+      "at": [
+        13,
+        6
+      ],
+      "colour": "rose",
+      "art": [
+        "##",
+        "##"
+      ]
+    },
+    {
+      "at": [
+        1,
+        14
+      ],
+      "colour": "mist",
+      "art": [
+        "###",
+        "###"
+      ]
+    },
+    {
+      "at": [
+        10,
+        14
+      ],
+      "colour": "mist",
+      "art": [
+        "###",
+        "###"
+      ]
+    },
+    {
+      "at": [
+        3,
+        12
+      ],
+      "colour": "charcoal",
+      "art": [
+        "########"
+      ]
+    },
+    {
+      "at": [
+        6,
+        13
+      ],
+      "colour": "silver",
+      "art": [
+        "##"
+      ]
+    }
+  ],
+  "facePaint": [
+    {
+      "at": [
+        6,
+        5
+      ],
+      "colour": "ink",
+      "art": [
+        "##",
+        "##"
+      ]
+    },
+    {
+      "at": [
+        6,
+        8
+      ],
+      "colour": "rose",
+      "art": [
+        "##",
+        "##"
+      ]
+    }
+  ],
+  "eyeSize": 2,
+  "eyes": [
+    [
+      4,
+      1
+    ],
+    [
+      9,
+      1
+    ]
+  ],
+  "mouth": [
+    [
+      5,
+      7
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      7,
+      7
+    ]
+  ],
+  "yawnMouth": [
+    5,
+    7,
+    3,
+    2
+  ],
+  "angryMouth": [
+    [
+      5,
+      8
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      7,
+      8
+    ]
+  ],
+  "roles": {
+    "idle": "idle",
+    "study": "study",
+    "thinking": "thinking",
+    "celebrate": "celebrate",
+    "encourage": "encourage",
+    "sleep": "sleep",
+    "click_react": "click_react",
+    "pickup": "pickup",
+    "look_around": "look_around",
+    "yawn": "yawn",
+    "stretch": "stretch",
+    "angry": "angry",
+    "ask": "ask"
+  },
+  "idlePool": [
+    "look_around",
+    "stretch"
+  ],
+  "hover": {
+    "notice": "wag",
+    "dwell": "sniff",
+    "noticeDelayMs": 200,
+    "dwellDelayMs": 2100,
+    "cooldownMs": 6500
+  },
+  "movement": {
+    "style": "trot",
+    "walk": "walk",
+    "peek": "edge_peek",
+    "range": 32
+  },
+  "actions": {
+    "idle": {
+      "fps": 5,
+      "loop": true,
+      "blink": true,
+      "frames": [
+        {},
+        {},
+        {
+          "pose": {
+            "dx": 0,
+            "dy": -1
+          }
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": -1
+          }
+        },
+        {}
+      ]
+    },
+    "walk": {
+      "fps": 8,
+      "loop": true,
+      "frames": [
+        {
+          "expression": 0,
+          "paint": [
+            {
+              "at": [
+                0,
+                16
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "pose": {
+            "dx": -1,
+            "dy": -1,
+            "sx": 1.02,
+            "sy": 0.98
+          },
+          "expression": 5
+        },
+        {
+          "pose": {
+            "dx": -2,
+            "dy": 0
+          },
+          "expression": 0,
+          "paint": [
+            {
+              "at": [
+                13,
+                16
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": -1,
+            "sx": 1.02,
+            "sy": 0.98
+          },
+          "expression": 5
+        },
+        {
+          "pose": {
+            "dx": 2,
+            "dy": 0
+          },
+          "expression": 0,
+          "paint": [
+            {
+              "at": [
+                0,
+                16
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "pose": {
+            "dx": 1,
+            "dy": -1
+          },
+          "expression": 5
+        }
+      ]
+    },
+    "edge_peek": {
+      "fps": 5,
+      "loop": true,
+      "frames": [
+        {
+          "expression": 0
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": 1,
+            "sx": 1.02,
+            "sy": 0.98
+          },
+          "expression": 2
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": -1,
+            "sx": 0.98,
+            "sy": 1.02
+          },
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": 1,
+            "sx": 1.02,
+            "sy": 0.98
+          },
+          "expression": 2
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": -1,
+            "sx": 0.98,
+            "sy": 1.02
+          },
+          "expression": 0
+        }
+      ]
+    },
+    "sleep": {
+      "fps": 3,
+      "loop": true,
+      "frames": [
+        {
+          "pose": {
+            "dx": 0,
+            "dy": 1,
+            "sx": 1.04,
+            "sy": 0.96
+          },
+          "expression": 2,
+          "paint": [
+            {
+              "at": [
+                12,
+                -6
+              ],
+              "colour": "sky",
+              "glyph": "zz"
+            }
+          ]
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": 1,
+            "sx": 1.04,
+            "sy": 0.96
+          },
+          "expression": 2,
+          "paint": [
+            {
+              "at": [
+                12,
+                -6
+              ],
+              "colour": "sky",
+              "glyph": "zz"
+            },
+            {
+              "at": [
+                15,
+                -9
+              ],
+              "colour": "sky",
+              "glyph": "zz"
+            }
+          ]
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": 1,
+            "sx": 1.04,
+            "sy": 0.96
+          },
+          "expression": 2,
+          "paint": [
+            {
+              "at": [
+                12,
+                -7
+              ],
+              "colour": "sky",
+              "glyph": "zz"
+            },
+            {
+              "at": [
+                15,
+                -10
+              ],
+              "colour": "sky",
+              "glyph": "zz"
+            }
+          ]
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": 1,
+            "sx": 1.04,
+            "sy": 0.96
+          },
+          "expression": 2,
+          "paint": [
+            {
+              "at": [
+                12,
+                -6
+              ],
+              "colour": "sky",
+              "glyph": "zz"
+            }
+          ]
+        }
+      ]
+    },
+    "ask": {
+      "fps": 4,
+      "loop": true,
+      "blink": true,
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "paint": [
+            {
+              "at": [
+                13,
+                6
+              ],
+              "colour": "ink",
+              "art": [
+                "..###.###.....",
+                "..#.#.#.#.....",
+                "..#.#.#.#.....",
+                "..#..#..#.....",
+                ".#.......#....",
+                ".#.......#....",
+                "..#.....#.....",
+                "...#####......"
+              ],
+              "pixel": true
+            },
+            {
+              "at": [
+                13,
+                6
+              ],
+              "colour": "fur",
+              "art": [
+                "...#...#......",
+                "...#...#......",
+                "...##.##......",
+                "..#######.....",
+                "..#######.....",
+                "...#####......"
+              ],
+              "pixel": true
+            }
+          ],
+          "paintLeft": [
+            {
+              "at": [
+                -3,
+                6
+              ],
+              "colour": "ink",
+              "art": [
+                ".###.###......",
+                ".#.#.#.#......",
+                ".#.#.#.#......",
+                ".#..#..#......",
+                "#.......#.....",
+                "#.......#.....",
+                ".#.....#......",
+                "..#####......."
+              ],
+              "pixel": true
+            },
+            {
+              "at": [
+                -3,
+                6
+              ],
+              "colour": "fur",
+              "art": [
+                "..#...#.......",
+                "..#...#.......",
+                "..##.##.......",
+                ".#######......",
+                ".#######......",
+                "..#####......."
+              ],
+              "pixel": true
+            }
+          ]
+        },
+        {
+          "paint": [
+            {
+              "at": [
+                13,
+                5
+              ],
+              "colour": "ink",
+              "art": [
+                "..###.###.....",
+                "..#.#.#.#.....",
+                "..#.#.#.#.....",
+                "..#..#..#.....",
+                ".#.......#....",
+                ".#.......#....",
+                "..#.....#.....",
+                "...#####......"
+              ],
+              "pixel": true
+            },
+            {
+              "at": [
+                13,
+                5
+              ],
+              "colour": "fur",
+              "art": [
+                "...#...#......",
+                "...#...#......",
+                "...##.##......",
+                "..#######.....",
+                "..#######.....",
+                "...#####......"
+              ],
+              "pixel": true
+            }
+          ],
+          "paintLeft": [
+            {
+              "at": [
+                -3,
+                5
+              ],
+              "colour": "ink",
+              "art": [
+                ".###.###......",
+                ".#.#.#.#......",
+                ".#.#.#.#......",
+                ".#..#..#......",
+                "#.......#.....",
+                "#.......#.....",
+                ".#.....#......",
+                "..#####......."
+              ],
+              "pixel": true
+            },
+            {
+              "at": [
+                -3,
+                5
+              ],
+              "colour": "fur",
+              "art": [
+                "..#...#.......",
+                "..#...#.......",
+                "..##.##.......",
+                ".#######......",
+                ".#######......",
+                "..#####......."
+              ],
+              "pixel": true
+            }
+          ]
+        },
+        {
+          "paint": [
+            {
+              "at": [
+                13,
+                4
+              ],
+              "colour": "ink",
+              "art": [
+                "..###.###.....",
+                "..#.#.#.#.....",
+                "..#.#.#.#.....",
+                "..#..#..#.....",
+                ".#.......#....",
+                ".#.......#....",
+                "..#.....#.....",
+                "...#####......"
+              ],
+              "pixel": true
+            },
+            {
+              "at": [
+                13,
+                4
+              ],
+              "colour": "fur",
+              "art": [
+                "...#...#......",
+                "...#...#......",
+                "...##.##......",
+                "..#######.....",
+                "..#######.....",
+                "...#####......"
+              ],
+              "pixel": true
+            }
+          ],
+          "paintLeft": [
+            {
+              "at": [
+                -3,
+                4
+              ],
+              "colour": "ink",
+              "art": [
+                ".###.###......",
+                ".#.#.#.#......",
+                ".#.#.#.#......",
+                ".#..#..#......",
+                "#.......#.....",
+                "#.......#.....",
+                ".#.....#......",
+                "..#####......."
+              ],
+              "pixel": true
+            },
+            {
+              "at": [
+                -3,
+                4
+              ],
+              "colour": "fur",
+              "art": [
+                "..#...#.......",
+                "..#...#.......",
+                "..##.##.......",
+                ".#######......",
+                ".#######......",
+                "..#####......."
+              ],
+              "pixel": true
+            }
+          ]
+        },
+        {
+          "paint": [
+            {
+              "at": [
+                13,
+                5
+              ],
+              "colour": "ink",
+              "art": [
+                "..###.###.....",
+                "..#.#.#.#.....",
+                "..#.#.#.#.....",
+                "..#..#..#.....",
+                ".#.......#....",
+                ".#.......#....",
+                "..#.....#.....",
+                "...#####......"
+              ],
+              "pixel": true
+            },
+            {
+              "at": [
+                13,
+                5
+              ],
+              "colour": "fur",
+              "art": [
+                "...#...#......",
+                "...#...#......",
+                "...##.##......",
+                "..#######.....",
+                "..#######.....",
+                "...#####......"
+              ],
+              "pixel": true
+            }
+          ],
+          "paintLeft": [
+            {
+              "at": [
+                -3,
+                5
+              ],
+              "colour": "ink",
+              "art": [
+                ".###.###......",
+                ".#.#.#.#......",
+                ".#.#.#.#......",
+                ".#..#..#......",
+                "#.......#.....",
+                "#.......#.....",
+                ".#.....#......",
+                "..#####......."
+              ],
+              "pixel": true
+            },
+            {
+              "at": [
+                -3,
+                5
+              ],
+              "colour": "fur",
+              "art": [
+                "..#...#.......",
+                "..#...#.......",
+                "..##.##.......",
+                ".#######......",
+                ".#######......",
+                "..#####......."
+              ],
+              "pixel": true
+            }
+          ]
+        }
+      ]
+    },
+    "study": {
+      "fps": 4,
+      "loop": true,
+      "blink": true,
+      "bodyFrom": "idle",
+      "paint": [
+        {
+          "at": [
+            0,
+            10
+          ],
+          "colour": "ink",
+          "art": [
+            "#####",
+            "#...#",
+            "#...#",
+            "#####"
+          ]
+        },
+        {
+          "at": [
+            1,
+            11
+          ],
+          "colour": "fur",
+          "art": [
+            "###",
+            "###"
+          ]
+        },
+        {
+          "at": [
+            2,
+            11
+          ],
+          "colour": "sky",
+          "art": [
+            "#",
+            "#"
+          ]
+        }
+      ],
+      "frames": [
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {},
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {}
+      ]
+    },
+    "thinking": {
+      "fps": 3,
+      "loop": true,
+      "blink": true,
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "expression": 6,
+          "paint": [
+            {
+              "at": [
+                11,
+                -6
+              ],
+              "colour": "sky",
+              "glyph": "question"
+            }
+          ]
+        },
+        {
+          "expression": 6,
+          "paint": [
+            {
+              "at": [
+                11,
+                -7
+              ],
+              "colour": "sky",
+              "glyph": "question"
+            }
+          ]
+        },
+        {
+          "expression": 6,
+          "paint": [
+            {
+              "at": [
+                12,
+                -8
+              ],
+              "colour": "sky",
+              "glyph": "question"
+            }
+          ]
+        },
+        {
+          "expression": 6,
+          "paint": [
+            {
+              "at": [
+                11,
+                -6
+              ],
+              "colour": "sky",
+              "glyph": "question"
+            }
+          ]
+        }
+      ]
+    },
+    "celebrate": {
+      "fps": 10,
+      "loop": false,
+      "bodyFrom": "idle",
+      "paint": [
+        {
+          "at": [
+            -5,
+            1
+          ],
+          "colour": "sky",
+          "art": [
+            ".#.",
+            "###",
+            ".#."
+          ]
+        },
+        {
+          "at": [
+            15,
+            2
+          ],
+          "colour": "rose",
+          "art": [
+            ".#.",
+            "###",
+            ".#."
+          ]
+        },
+        {
+          "at": [
+            1,
+            -8
+          ],
+          "colour": "rose",
+          "art": [
+            ".#.",
+            "###",
+            ".#."
+          ]
+        },
+        {
+          "at": [
+            14,
+            -8
+          ],
+          "colour": "sky",
+          "art": [
+            ".#.",
+            "###",
+            ".#."
+          ]
+        }
+      ],
+      "frames": [
+        {
+          "expression": 0
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": -1
+          },
+          "expression": 5
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": -2
+          },
+          "expression": 5
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": -2
+          },
+          "expression": 5
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": -1
+          },
+          "expression": 5
+        },
+        {
+          "expression": 5
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": -1
+          },
+          "expression": 5
+        },
+        {
+          "expression": 0
+        }
+      ]
+    },
+    "encourage": {
+      "fps": 8,
+      "loop": false,
+      "bodyFrom": "idle",
+      "paint": [
+        {
+          "at": [
+            13,
+            2
+          ],
+          "colour": "rose",
+          "art": [
+            "##.##",
+            "#####",
+            ".###.",
+            "..#.."
+          ]
+        }
+      ],
+      "frames": [
+        {
+          "expression": 5
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": -1
+          },
+          "expression": 5
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": -2
+          },
+          "expression": 5
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": -1
+          },
+          "expression": 5
+        },
+        {
+          "expression": 0
+        }
+      ]
+    },
+    "click_react": {
+      "fps": 12,
+      "loop": false,
+      "bodyFrom": "idle",
+      "paint": [
+        {
+          "at": [
+            14,
+            0
+          ],
+          "colour": "rose",
+          "art": [
+            ".#.",
+            "###",
+            ".#."
+          ]
+        }
+      ],
+      "frames": [
+        {
+          "expression": 2
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": -1
+          },
+          "expression": 2
+        },
+        {
+          "expression": 0
+        },
+        {}
+      ]
+    },
+    "pickup": {
+      "fps": 6,
+      "loop": true,
+      "bodyFrom": "idle",
+      "paint": [
+        {
+          "at": [
+            13,
+            -2
+          ],
+          "colour": "rose",
+          "art": [
+            "##.##",
+            "#####",
+            ".###.",
+            "..#.."
+          ]
+        }
+      ],
+      "frames": [
+        {
+          "expression": 6,
+          "pose": {
+            "dx": -1,
+            "dy": 0
+          }
+        },
+        {
+          "expression": 6
+        },
+        {
+          "expression": 6,
+          "pose": {
+            "dx": 1,
+            "dy": 0
+          }
+        },
+        {
+          "expression": 6
+        }
+      ]
+    },
+    "look_around": {
+      "fps": 6,
+      "loop": false,
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "expression": 0
+        },
+        {
+          "expression": 3,
+          "pose": {
+            "dx": -1,
+            "dy": 0
+          }
+        },
+        {
+          "expression": 3,
+          "pose": {
+            "dx": -1,
+            "dy": 0
+          }
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 4,
+          "pose": {
+            "dx": 1,
+            "dy": 0
+          }
+        },
+        {
+          "expression": 4,
+          "pose": {
+            "dx": 1,
+            "dy": 0
+          }
+        }
+      ]
+    },
+    "yawn": {
+      "fps": 6,
+      "loop": false,
+      "returnTo": "sleep",
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "expression": 1
+        },
+        {
+          "expression": 7,
+          "pose": {
+            "dx": 0,
+            "dy": -1
+          }
+        },
+        {
+          "expression": 7,
+          "pose": {
+            "dx": 0,
+            "dy": -1
+          }
+        },
+        {
+          "expression": 7,
+          "pose": {
+            "dx": 0,
+            "dy": -1
+          }
+        },
+        {
+          "expression": 2
+        }
+      ]
+    },
+    "stretch": {
+      "fps": 6,
+      "loop": false,
+      "bodyFrom": "idle",
+      "paint": [
+        {
+          "at": [
+            -5,
+            6
+          ],
+          "colour": "mist",
+          "art": [
+            ".#.",
+            "###",
+            ".#."
+          ]
+        },
+        {
+          "at": [
+            15,
+            6
+          ],
+          "colour": "mist",
+          "art": [
+            ".#.",
+            "###",
+            ".#."
+          ]
+        }
+      ],
+      "frames": [
+        {
+          "expression": 2
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": -1
+          },
+          "expression": 2
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": -2
+          },
+          "expression": 5
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": -2
+          },
+          "expression": 5
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": -1
+          },
+          "expression": 5
+        },
+        {
+          "expression": 0
+        }
+      ]
+    },
+    "angry": {
+      "fps": 10,
+      "loop": false,
+      "bodyFrom": "idle",
+      "paint": [
+        {
+          "at": [
+            7,
+            -8
+          ],
+          "colour": "rose",
+          "art": [
+            "...#...",
+            "...#...",
+            "...#...",
+            "#######",
+            "...#...",
+            "...#...",
+            "...#..."
+          ],
+          "pixel": true
+        }
+      ],
+      "frames": [
+        {
+          "expression": 9
+        },
+        {
+          "pose": {
+            "dx": -1,
+            "dy": 0
+          },
+          "expression": 9
+        },
+        {
+          "pose": {
+            "dx": 1,
+            "dy": 0
+          },
+          "expression": 9
+        },
+        {
+          "pose": {
+            "dx": -1,
+            "dy": 0
+          },
+          "expression": 9
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": -1
+          },
+          "expression": 9
+        }
+      ]
+    },
+    "wag": {
+      "fps": 8,
+      "loop": false,
+      "paint": [
+        {
+          "at": [
+            15,
+            13
+          ],
+          "colour": "mist",
+          "art": [
+            ".#.",
+            "###",
+            ".#."
+          ]
+        }
+      ],
+      "frames": [
+        {
+          "expression": 5,
+          "shapes": [
+            {
+              "op": "add",
+              "shape": "mask",
+              "at": [
+                13,
+                13
+              ],
+              "rows": [
+                "###",
+                "####",
+                "###"
+              ]
+            }
+          ]
+        },
+        {
+          "pose": {
+            "dx": -1,
+            "dy": 0
+          },
+          "expression": 0,
+          "shapes": [
+            {
+              "op": "add",
+              "shape": "mask",
+              "at": [
+                13,
+                12
+              ],
+              "rows": [
+                "##",
+                "###",
+                "####",
+                "###"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 5,
+          "shapes": [
+            {
+              "op": "add",
+              "shape": "mask",
+              "at": [
+                13,
+                13
+              ],
+              "rows": [
+                "###",
+                "####",
+                "###"
+              ]
+            }
+          ]
+        },
+        {
+          "pose": {
+            "dx": 1,
+            "dy": 0
+          },
+          "expression": 0,
+          "shapes": [
+            {
+              "op": "add",
+              "shape": "mask",
+              "at": [
+                13,
+                14
+              ],
+              "rows": [
+                "###",
+                "####",
+                "###"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 5,
+          "shapes": [
+            {
+              "op": "add",
+              "shape": "mask",
+              "at": [
+                13,
+                12
+              ],
+              "rows": [
+                "##",
+                "###",
+                "####",
+                "###"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 0,
+          "shapes": [
+            {
+              "op": "add",
+              "shape": "mask",
+              "at": [
+                13,
+                13
+              ],
+              "rows": [
+                "###",
+                "####",
+                "###"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "sniff": {
+      "fps": 5,
+      "loop": false,
+      "bodyFrom": "idle",
+      "paint": [
+        {
+          "at": [
+            12,
+            6
+          ],
+          "colour": "mist",
+          "art": [
+            ".#.",
+            "###",
+            ".#."
+          ]
+        }
+      ],
+      "frames": [
+        {
+          "expression": 2
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": 1
+          },
+          "expression": 2
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": 1
+          },
+          "expression": 2
+        },
+        {
+          "pose": {
+            "dx": 0,
+            "dy": 1
+          },
+          "expression": 2
+        },
+        {
+          "expression": 0
+        }
+      ]
+    },
+    "scratch": {
+      "fps": 10,
+      "loop": false,
+      "paint": [
+        {
+          "at": [
+            16,
+            0
+          ],
+          "colour": "ink",
+          "art": [
+            ".#.",
+            "###",
+            ".#."
+          ]
+        }
+      ],
+      "frames": [
+        {
+          "expression": 1,
+          "shapes": [
+            {
+              "op": "add",
+              "shape": "mask",
+              "at": [
+                16,
+                1
+              ],
+              "rows": [
+                "##",
+                "###",
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 0,
+          "shapes": [
+            {
+              "op": "add",
+              "shape": "mask",
+              "at": [
+                16,
+                2
+              ],
+              "rows": [
+                "##",
+                "###",
+                "###"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 1,
+          "shapes": [
+            {
+              "op": "add",
+              "shape": "mask",
+              "at": [
+                16,
+                1
+              ],
+              "rows": [
+                "##",
+                "###",
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 0,
+          "shapes": [
+            {
+              "op": "add",
+              "shape": "mask",
+              "at": [
+                16,
+                1
+              ],
+              "rows": [
+                "##",
+                "###",
+                "##"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "blink": {
+      "fps": 10,
+      "loop": false,
+      "frames": [
+        {
+          "expression": 1
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 1
+        }
+      ]
+    },
+    "swing": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "expression": 5
+        },
+        {
+          "expression": 5
+        },
+        {
+          "expression": 5
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0,
+          "pose": {
+            "dx": 0,
+            "dy": 1
+          }
+        },
+        {
+          "expression": 5,
+          "pose": {
+            "dx": 0,
+            "dy": 2
+          }
+        },
+        {
+          "expression": 5,
+          "pose": {
+            "dx": 0,
+            "dy": 1
+          }
+        },
+        {
+          "expression": 5
+        },
+        {
+          "expression": 0,
+          "pose": {
+            "dx": 0,
+            "dy": 1
+          }
+        },
+        {
+          "expression": 0,
+          "pose": {
+            "dx": 0,
+            "dy": 2
+          }
+        },
+        {
+          "expression": 0,
+          "pose": {
+            "dx": 0,
+            "dy": 1
+          }
+        }
+      ]
+    },
+    "skate": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "expression": 0,
+          "pose": {
+            "dx": 0,
+            "dy": 0
+          }
+        },
+        {
+          "expression": 5,
+          "pose": {
+            "dx": 1,
+            "dy": 0
+          }
+        },
+        {
+          "expression": 5,
+          "pose": {
+            "dx": 1,
+            "dy": 0
+          }
+        },
+        {
+          "expression": 0,
+          "pose": {
+            "dx": 0,
+            "dy": 0
+          }
+        },
+        {
+          "expression": 0,
+          "pose": {
+            "dx": -1,
+            "dy": 0
+          }
+        },
+        {
+          "expression": 5,
+          "pose": {
+            "dx": -1,
+            "dy": 0
+          }
+        },
+        {
+          "expression": 5,
+          "pose": {
+            "dx": 0,
+            "dy": 0
+          }
+        },
+        {
+          "expression": 0,
+          "pose": {
+            "dx": 1,
+            "dy": 0
+          }
+        },
+        {
+          "expression": 0,
+          "pose": {
+            "dx": 1,
+            "dy": 0
+          }
+        },
+        {
+          "expression": 5,
+          "pose": {
+            "dx": 0,
+            "dy": 0
+          }
+        },
+        {
+          "expression": 5,
+          "pose": {
+            "dx": -1,
+            "dy": 0
+          }
+        },
+        {
+          "expression": 0,
+          "pose": {
+            "dx": -1,
+            "dy": 0
+          }
+        }
+      ]
+    },
+    "dog_frisbee": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "expression": 6
+        },
+        {
+          "expression": 6
+        },
+        {
+          "expression": 6
+        },
+        {
+          "expression": 6
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 5
+        },
+        {
+          "expression": 5,
+          "pose": {
+            "dx": 0,
+            "dy": 1
+          }
+        },
+        {
+          "expression": 5,
+          "pose": {
+            "dx": 0,
+            "dy": 2
+          }
+        },
+        {
+          "expression": 0,
+          "pose": {
+            "dx": 0,
+            "dy": 1
+          }
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        }
+      ]
+    },
+    "dog_burying": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "expression": 3,
+          "pose": {
+            "dx": 0,
+            "dy": 0
+          },
+          "paint": [
+            {
+              "at": [
+                0,
+                15
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 3,
+          "pose": {
+            "dx": 0,
+            "dy": 1
+          },
+          "paint": [
+            {
+              "at": [
+                11,
+                15
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 3,
+          "pose": {
+            "dx": 0,
+            "dy": 0
+          },
+          "paint": [
+            {
+              "at": [
+                0,
+                16
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 3,
+          "pose": {
+            "dx": 0,
+            "dy": 1
+          },
+          "paint": [
+            {
+              "at": [
+                11,
+                16
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 3,
+          "pose": {
+            "dx": 0,
+            "dy": 0
+          },
+          "paint": [
+            {
+              "at": [
+                0,
+                15
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 3,
+          "pose": {
+            "dx": 0,
+            "dy": 1
+          },
+          "paint": [
+            {
+              "at": [
+                11,
+                15
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 3,
+          "pose": {
+            "dx": 0,
+            "dy": 0
+          },
+          "paint": [
+            {
+              "at": [
+                0,
+                16
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 5,
+          "pose": {
+            "dx": 0,
+            "dy": 1
+          },
+          "paint": [
+            {
+              "at": [
+                11,
+                16
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 5,
+          "pose": {
+            "dx": 0,
+            "dy": 0
+          },
+          "paint": [
+            {
+              "at": [
+                0,
+                15
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 5,
+          "pose": {
+            "dx": 0,
+            "dy": 1
+          },
+          "paint": [
+            {
+              "at": [
+                11,
+                15
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 5,
+          "pose": {
+            "dx": 0,
+            "dy": 0
+          },
+          "paint": [
+            {
+              "at": [
+                0,
+                16
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            }
+          ]
+        },
+        {
+          "expression": 5,
+          "pose": {
+            "dx": 0,
+            "dy": 1
+          },
+          "paint": [
+            {
+              "at": [
+                11,
+                16
+              ],
+              "colour": "dust",
+              "art": [
+                "##"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "accessories": [
+    {
+      "id": "hat",
+      "slot": "head",
+      "except": [
+        "sleep"
+      ],
+      "paint": [
+        {
+          "at": [
+            2,
+            -5
+          ],
+          "colour": "charcoal",
+          "art": [
+            "##########"
+          ]
+        },
+        {
+          "at": [
+            3,
+            -10
+          ],
+          "colour": "charcoal",
+          "art": [
+            "######",
+            "######",
+            "######",
+            "######",
+            "######"
+          ]
+        },
+        {
+          "at": [
+            3,
+            -8
+          ],
+          "colour": "rose",
+          "art": [
+            "######"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "beanie",
+      "slot": "head",
+      "except": [
+        "sleep"
+      ],
+      "paint": [
+        {
+          "at": [
+            2,
+            -9
+          ],
+          "colour": "rose",
+          "art": [
+            "..#####..",
+            ".#######.",
+            "#########",
+            "#########"
+          ]
+        },
+        {
+          "at": [
+            2,
+            -5
+          ],
+          "colour": "charcoal",
+          "art": [
+            "#########"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sprout",
+      "slot": "head",
+      "except": [
+        "sleep"
+      ],
+      "paint": [
+        {
+          "at": [
+            4,
+            -10
+          ],
+          "colour": "green",
+          "art": [
+            "##.##",
+            "#####"
+          ]
+        },
+        {
+          "at": [
+            5,
+            -9
+          ],
+          "colour": "green",
+          "art": [
+            "###"
+          ]
+        },
+        {
+          "at": [
+            6,
+            -8
+          ],
+          "colour": "green",
+          "art": [
+            "#"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crown",
+      "slot": "head",
+      "except": [
+        "sleep"
+      ],
+      "paint": [
+        {
+          "at": [
+            3,
+            -9
+          ],
+          "colour": "silver",
+          "art": [
+            "#..#..#",
+            "######",
+            "######"
+          ]
+        },
+        {
+          "at": [
+            6,
+            -8
+          ],
+          "colour": "rose",
+          "art": [
+            "#"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "glasses",
+      "slot": "face",
+      "except": [
+        "sleep"
+      ],
+      "paint": [
+        {
+          "at": [
+            3,
+            0
+          ],
+          "colour": "grey",
+          "art": [
+            "########",
+            "#......#",
+            "#......#",
+            "#......#",
+            "#......#",
+            "#......#",
+            "#......#",
+            "########"
+          ],
+          "pixel": true
+        },
+        {
+          "at": [
+            8,
+            0
+          ],
+          "colour": "grey",
+          "art": [
+            "########",
+            "#......#",
+            "#......#",
+            "#......#",
+            "#......#",
+            "#......#",
+            "#......#",
+            "########"
+          ],
+          "pixel": true
+        },
+        {
+          "at": [
+            6,
+            1
+          ],
+          "colour": "grey",
+          "art": [
+            "#########",
+            "#########"
+          ],
+          "pixel": true
+        }
+      ]
+    },
+    {
+      "id": "sunglasses",
+      "slot": "face",
+      "except": [
+        "sleep"
+      ],
+      "paint": [
+        {
+          "at": [
+            3,
+            0
+          ],
+          "colour": "ink",
+          "art": [
+            "####",
+            "####",
+            "####"
+          ]
+        },
+        {
+          "at": [
+            8,
+            0
+          ],
+          "colour": "ink",
+          "art": [
+            "####",
+            "####",
+            "####"
+          ]
+        },
+        {
+          "at": [
+            6,
+            1
+          ],
+          "colour": "ink",
+          "art": [
+            "###",
+            "###"
+          ]
+        },
+        {
+          "at": [
+            4,
+            0
+          ],
+          "colour": "mist",
+          "art": [
+            "#"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bowtie",
+      "slot": "body",
+      "except": [
+        "sleep"
+      ],
+      "paint": [
+        {
+          "at": [
+            5,
+            12
+          ],
+          "colour": "rose",
+          "art": [
+            "##.##",
+            "##.##"
+          ]
+        },
+        {
+          "at": [
+            7,
+            13
+          ],
+          "colour": "ink",
+          "art": [
+            "#"
+          ]
+        }
+      ]
+    }
+  ]
+}

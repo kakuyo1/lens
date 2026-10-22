@@ -219,10 +219,12 @@ const CANVAS = 88, HAND = 9;
 /// 杆子：离牌子内侧 14 px、宽 4 px（中心距内侧 16 px）、长 26 px，均为 3.01 倍时的设计尺寸。
 const POLE_LEN = 26, POLE_CENTRE = 16;
 /// ask 动作的身体锚点；狗与 mochi 相同，ghost 的拳头整体低 12 行。
-const ASK = [{dx:3,dy:0}, {dx:3,dy:-3}, {dx:3,dy:-6}, {dx:3,dy:-3}];
-/// 手在 ask 效果层里的拳头列（已含身体锚点的 dx）：右手从第 79 列起，左手从第 30 列起。
+const ASK = PET === 'dog'
+  ? [{dx:0,dy:0}, {dx:0,dy:0}, {dx:0,dy:-3}, {dx:0,dy:-3}]
+  : [{dx:3,dy:0}, {dx:3,dy:-3}, {dx:3,dy:-6}, {dx:3,dy:-3}];
+/// 手在 ask 效果层里的拳头列（已含身体锚点的 dx）：奶糖右手从第 70 列起、左手从第 21 列起；其他宠物仍是 79 / 30。
 /// 两张效果图 ask.png（右）与 ask-left.png（左）都装在所选宠物的 sprites/effects 里，拳头左右对称。
-const FIST = {right: 79, left: 30}, FIST_TOP = PET === 'ghost' ? 60 : 48;
+const FIST = PET === 'dog' ? {right: 70, left: 21} : {right: 79, left: 30}, FIST_TOP = PET === 'ghost' ? 60 : 48;
 /// 小卡展开后的宽度（.hold.open .ask-pop 的 max-width），以及它与牌子的间距。
 const CARD_W = 210, CARD_GAP = 10;
 /// 屏幕边缘留的空白；身体上下起伏时手会高出 6 个画布单位。
@@ -232,7 +234,7 @@ const SHEET = {
   idle:      {file:'idle.png',      frames:5, fps:5,  loop:true,  face:0},
   ask:       {file:'ask.png',       frames:4, fps:4,  loop:true,  face:0, fx:'ask.png'},
   encourage: {file:'encourage.png', frames:5, fps:8,  loop:false, face:5, fx:'encourage.png'},
-  celebrate: {file:'celebrate.png', frames:8, fps:10, loop:false, face:5, fx: PET === 'dog' ? 'fireworks.png' : 'celebrate.png'},
+  celebrate: {file:'celebrate.png', frames:8, fps:10, loop:false, face:5, fx:'celebrate.png'},
   angry:     {file:'angry.png',     frames:5, fps:10, loop:false, face:9, fx:'angry.png'},
 };
 const SIZES = [1, 2, 3.01, 4];

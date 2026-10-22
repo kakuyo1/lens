@@ -2,10 +2,11 @@
 
     python -I scripts/pet/render_scenes.py
 
-A scene file is one prop rig baked into eight frames. Each frame has the pet's own shift and scale
+A scene file is one prop rig baked into twelve frames. Each frame has the pet's own shift and scale
 (`dx`, `dy` in canvas units, `scale` about its feet) plus `back` and `front` part lists, in the same
 shape the prototype's pixel-art.js uses: a `rect` or `art` drawn from a cell's top-left corner,
-`step` canvas units per character (3 unless it says 1), and colours by name from the pet palette.
+`step` canvas units per character (3 unless it says 1), and colours by name from the scene palette
+(the pet palette plus the warm props cardboard, earth, paper and candlelight use).
 
 Coordinates are the prototype's: cell (x, y) starts at canvas (30 + 3x, 30 + 3y), authored against
 the cat's feet at (58.5, 81). The app measures each pet's own feet at load and shifts the whole stage
@@ -43,6 +44,12 @@ PALETTE = {
     "sky": (82, 160, 236, 255),
     "green": (52, 170, 96, 255),
     "lilac": (160, 116, 232, 255),
+    # Warm props: cardboard, earth, paper, candlelight.
+    "amber": (216, 164, 84, 255),
+    "brown": (150, 98, 54, 255),
+    "cream": (247, 232, 200, 255),
+    "gold": (242, 186, 64, 255),
+    "pumpkin": (240, 136, 56, 255),
 }
 
 

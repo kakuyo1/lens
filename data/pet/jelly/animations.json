@@ -296,29 +296,16 @@
         1
       ]
     },
-    "swing": {
-      "frames": 8,
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "expressions": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "sheet": "sprites/body/swing.png"
-    },
     "desk": {
-      "frames": 8,
+      "frames": 12,
       "fps": 4,
       "loop": true,
-      "duration": 24000,
+      "duration": 30000,
       "expressions": [
+        0,
+        0,
+        0,
+        0,
         0,
         0,
         0,
@@ -330,29 +317,16 @@
       ],
       "sheet": "sprites/body/desk.png"
     },
-    "skate": {
-      "frames": 8,
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "expressions": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "sheet": "sprites/body/skate.png"
-    },
     "bath": {
-      "frames": 8,
+      "frames": 12,
       "fps": 4,
       "loop": true,
-      "duration": 24000,
+      "duration": 30000,
       "expressions": [
+        0,
+        0,
+        0,
+        0,
         0,
         0,
         0,
@@ -363,23 +337,6 @@
         0
       ],
       "sheet": "sprites/body/bath.png"
-    },
-    "rain": {
-      "frames": 8,
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "expressions": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "sheet": "sprites/body/rain.png"
     },
     "walk": {
       "frames": 6,
@@ -410,6 +367,48 @@
       ],
       "sheet": "sprites/body/edge_peek.png",
       "effect": "sprites/effects/edge_peek.png"
+    },
+    "jelly_sundae": {
+      "frames": 12,
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "expressions": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/jelly_sundae.png"
+    },
+    "jelly_trampoline": {
+      "frames": 12,
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "expressions": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/jelly_trampoline.png"
     }
   }
 }
