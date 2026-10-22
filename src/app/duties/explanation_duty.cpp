@@ -319,12 +319,13 @@ QVariantMap ExplanationDuty::chainEntry(llm::Explanation const& explanation, cor
                          : context.language == "zh" ? explanation.zh
                                                     : explanation.translation;
     QVariantList  collocations;
-    for (auto const& collocation : explanation.collocations)
-        collocations.append(collocation);
+    if (showsCardBlock("collocations"))
+        for (auto const& collocation : explanation.collocations)
+            collocations.append(collocation);
     return QVariantMap{{"title", explanation.title},
-                       {"ipa", explanation.ipa},
+                       {"ipa", showsCardBlock("ipa") ? explanation.ipa : QString{}},
                        {"text", text},
-                       {"signpost", explanation.signpost},
+                       {"signpost", showsCardBlock("signpost") ? explanation.signpost : QString{}},
                        {"collocations", collocations},
                        {"spans", spansOf(context.language == "en" ? text : QString{})}};
 }
@@ -481,6 +482,12 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
                         {"x", selection.anchor.x()},
                         {"y", selection.anchor.y()}};
     if (isWordKind(selection.kind)) {
+        // Display switches, read as the card is drawn: the answer keeps every field, and these
+        // decide only which of them reach the payload (see settings_table.h).
+        const bool   showIpa          = showsCardBlock("ipa");
+        const bool   showSignpost     = showsCardBlock("signpost");
+        const bool   showCollocations = showsCardBlock("collocations");
+        const bool   showPictures     = showsCardBlock("pictures");
         QVariantList senses;
         auto         entries = explanation.senses;
         if (entries.isEmpty()) entries.push_back({explanation.en, explanation.zh, explanation.translation, explanation.imageable, explanation.imageQuery});
@@ -496,20 +503,21 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
             senses.append(QVariantMap{{"en", senseEnglish},
                                       {"spans", spansOf(senseEnglish)},
                                       {"text", context.language == "en" ? QString{} : selected(sense.en, sense.zh, sense.translation)},
-                                      // The picture advice for this row, carried as it arrived: the card draws
-                                      // a Pictures entry only for a row whose `imageable` is true, and the
-                                      // duty runs the search with `imageQuery` (IMAGES.md 2.1, 4.2). Neither
-                                      // follows the explanation language, so both are passed through as they are.
-                                      {"imageable", sense.imageable},
-                                      {"imageQuery", sense.imageQuery}});
+                                      // The picture advice for this row: the card draws a Pictures entry only
+                                      // for a row whose `imageable` is true, and the duty runs the search
+                                      // with `imageQuery` (IMAGES.md 2.1, 4.2). Neither follows the
+                                      // explanation language; the Pictures switch is what clears them here.
+                                      {"imageable", showPictures && sense.imageable},
+                                      {"imageQuery", showPictures ? sense.imageQuery : QString{}}});
         }
         payload.insert(QStringLiteral("senses"), senses);
-        payload.insert(QStringLiteral("ipa"), explanation.ipa);
+        payload.insert(QStringLiteral("ipa"), showIpa ? explanation.ipa : QString{});
         payload.insert(QStringLiteral("spans"), spansOf(english));
-        payload.insert(QStringLiteral("signpost"), explanation.signpost);
+        payload.insert(QStringLiteral("signpost"), showSignpost ? explanation.signpost : QString{});
         QVariantList collocations;
-        for (auto const& collocation : explanation.collocations)
-            collocations.append(collocation);
+        if (showCollocations)
+            for (auto const& collocation : explanation.collocations)
+                collocations.append(collocation);
         payload.insert(QStringLiteral("collocations"), collocations);
         // Read off the setting as the card is drawn rather than as the request was made: turning
         // the setting off puts the origin away on the next bubble, and the entry it came from is
@@ -613,6 +621,11 @@ bool ExplanationDuty::etymologyEnabled() const
 bool ExplanationDuty::exampleEnabled() const
 {
     return storage_.section().value<bool>("example", false);
+}
+
+bool ExplanationDuty::showsCardBlock(char const* key) const
+{
+    return storage_.section().value<bool>(key, true);
 }
 
 }

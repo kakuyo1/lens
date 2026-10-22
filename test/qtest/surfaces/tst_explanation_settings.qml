@@ -7,7 +7,9 @@ import "../testutil.js" as Util
 Item {
     id: root
     width: 380
-    height: 480
+    // Taller than the real 480 px panel: seven switch rows make the learning page scroll there,
+    // and the snapshot case below has to see the whole page to review it.
+    height: 640
 
     readonly property var settings: ({
         levels: [{value: 2, label: "CET-4", group: "", note: ""}], level: 2,
@@ -18,6 +20,7 @@ Item {
             {value: "ja", label: "日本語", group: "", note: ""}
         ],
         explanationLang: "es", multiSense: true, etymology: true,
+        ipa: true, signpost: true, collocations: true, pictures: true,
         providers: [{value: "openai", label: "OpenAI", group: "International", note: ""}],
         provider: "openai", model: "gpt-4.1-mini",
         modelPrice: "Input 0.4 / Output 1.6 USD per 1000000 tokens",
@@ -27,7 +30,7 @@ Item {
     Component { id: learning; SettingsLearningPage { width: 320; settings: root.settings } }
     Component { id: model; SettingsModelPage { width: 320; settings: root.settings } }
     Component { id: connection; SettingsConnectionPage { width: 320; settings: root.settings } }
-    Component { id: backdrop; Rectangle { width: 380; height: 480; color: Tokens.panel; z: -1 } }
+    Component { id: backdrop; Rectangle { width: 380; height: root.height; color: Tokens.panel; z: -1 } }
 
     TokenHost { id: host; width: root.width; height: root.height }
 

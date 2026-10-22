@@ -107,6 +107,13 @@ inline constexpr Row kRows[]{
     {.key = "multiSense", .kind = Kind::Toggle, .signal = Signal::Settings, .fallback = false, .synced = true},
     {.key = "etymology", .kind = Kind::Toggle, .signal = Signal::Settings, .fallback = false, .synced = true},
     {.key = "example", .kind = Kind::Toggle, .signal = Signal::Settings, .fallback = false, .synced = true},
+    // What the card draws from an answer it already has. These four are display switches: the
+    // request and the cache are the same either way, and the default is on because the blocks
+    // predate the switches.
+    {.key = "ipa", .kind = Kind::Toggle, .signal = Signal::Settings, .fallback = true, .synced = true},
+    {.key = "signpost", .kind = Kind::Toggle, .signal = Signal::Settings, .fallback = true, .synced = true},
+    {.key = "collocations", .kind = Kind::Toggle, .signal = Signal::Settings, .fallback = true, .synced = true},
+    {.key = "pictures", .kind = Kind::Toggle, .signal = Signal::Settings, .fallback = true, .synced = true},
     // The reader's own interface language: stored and synced, but not the panel's to restore.
     {.key = "uiLanguage", .kind = Kind::Text, .signal = Signal::Language, .fallback = "zh", .synced = true, .restorable = false},
 

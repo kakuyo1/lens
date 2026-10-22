@@ -200,8 +200,9 @@ public:
     /**
      * @brief The demo card the settings preview draws, out of `data/preview.json` (UI.md 4.4).
      *
-     * The keys are `word`, `ipa`, `example`, and `definition`, `etymology`, `senses` -- those
-     * three carrying one entry per explanation language. QML builds a bubble payload out of it
+     * The keys are `word`, `ipa`, `signpost`, `collocations`, `example`, and `definition`,
+     * `etymology`, `senses` -- the last three carrying one entry per explanation language, and
+     * the signpost and collocations plain English like a real answer's. QML builds a payload out of it
      * (components/PreviewSample.qml); nothing here has to know what a setting is. The map is empty
      * when the file could not be read, and the preview then simply does not come up.
      */

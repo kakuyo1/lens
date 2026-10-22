@@ -163,6 +163,11 @@ private:
     /// @brief Whether the reader wants an example sentence. Read when a request goes out, and again
     ///        when the card is drawn: a stored entry without one is a miss while it is on (docs/adr/0033).
     bool exampleEnabled() const;
+    /// @brief Whether the card draws one optional block, @p key, whose switch defaults to on.
+    ///
+    /// A display switch only: the field was bought with the definition and stays in the cache;
+    /// this decides whether the payload carries it to the card.
+    bool showsCardBlock(char const* key) const;
     /// @return Whether the card still stands on the word a chain step was asked from.
     bool chainStanding(PendingSelection const& selection) const;
     /// @return The chain entry for one answered step, in the explanation language, with its links.

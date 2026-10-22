@@ -480,6 +480,54 @@ TEST_F(LlmTest, Phase2TheExampleSettingBuysASentenceOnceAndAStoredWordWithoutOne
     EXPECT_TRUE(rig.store.cacheGet("bank", {"en", false})->example.has_value()) << "turning the setting off dropped the stored sentence";
 }
 
+TEST_F(LlmTest, Phase2TheCardContentSwitchesHideWhatTheCacheStillHolds)
+{
+    QtApplication qt;
+    Rig           rig;
+
+    auto answer            = plainWord("bank");
+    answer["ipa"]          = "/bæŋk/";
+    answer["signpost"]     = "a place for money";
+    answer["collocations"] = QJsonArray{"~ account", "river ~"};
+    answer["imageable"]    = true;
+    answer["imageQuery"]   = "river bank";
+    rig.manager.response   = envelope({answer});
+    rig.explain("bank");
+
+    auto const senseOf = [&] { return rig.duty.bubble().value("senses").toList().front().toMap(); };
+    EXPECT_EQ(rig.duty.bubble().value("ipa").toString(), QStringLiteral("/bæŋk/"));
+    EXPECT_EQ(rig.duty.bubble().value("signpost").toString(), QStringLiteral("a place for money"));
+    EXPECT_EQ(rig.duty.bubble().value("collocations").toList().size(), 2);
+    EXPECT_TRUE(senseOf().value("imageable").toBool());
+    EXPECT_EQ(senseOf().value("imageQuery").toString(), QStringLiteral("river bank"));
+
+    // Off, the same cached word draws none of them -- and is not bought again.
+    rig.duty.dismissBubble();
+    for (auto const key : {"ipa", "signpost", "collocations", "pictures"})
+        rig.store.document()[key] = "false";
+    rig.explain("bank");
+    EXPECT_EQ(rig.manager.posts, 1) << "a display switch sent the word to the model again";
+    EXPECT_TRUE(rig.duty.bubble().value("ipa").toString().isEmpty());
+    EXPECT_TRUE(rig.duty.bubble().value("signpost").toString().isEmpty());
+    EXPECT_TRUE(rig.duty.bubble().value("collocations").toList().isEmpty());
+    EXPECT_FALSE(senseOf().value("imageable").toBool());
+    EXPECT_TRUE(senseOf().value("imageQuery").toString().isEmpty());
+
+    // The entry itself is untouched, which is what lets one switch come back without a purchase.
+    auto const cached = rig.store.cacheGet("bank", {"en", false});
+    ASSERT_TRUE(cached.has_value());
+    EXPECT_EQ(cached->ipa, "/bæŋk/");
+    EXPECT_EQ(cached->signpost, "a place for money");
+    EXPECT_EQ(cached->imageQuery, "river bank");
+
+    rig.duty.dismissBubble();
+    rig.store.document()["ipa"] = "true";
+    rig.explain("bank");
+    EXPECT_EQ(rig.manager.posts, 1);
+    EXPECT_EQ(rig.duty.bubble().value("ipa").toString(), QStringLiteral("/bæŋk/"));
+    EXPECT_TRUE(rig.duty.bubble().value("signpost").toString().isEmpty()) << "another switch was turned on too";
+}
+
 TEST_F(LlmTest, Phase2AnExampleThatIsEmptyIsAnAnswerAndIsNotAskedForAgain)
 {
     QtApplication qt;

@@ -17,7 +17,7 @@ import QtQuick
  */
 QtObject {
     /// @param key Which setting is being previewed: "speed", "language", "multisense", "etymology",
-    ///        "example", "font" or "fontSize".
+    ///        "example", "ipa", "signpost", "collocations", "font" or "fontSize".
     /// @param language For the "language" preview, the language the hovered row carries, which
     ///        this card is drawn in instead of the stored one.
     /// @return The payload for Bubble.show(), or null when there is no sample to draw -- a machine
@@ -38,13 +38,14 @@ QtObject {
                    : (settings.explanationLang || "en");
         /// The sample's text in one language, falling back to the English it is always written in.
         const local = (text) => (text ? (text[lang] || text.en || "") : "");
-        // The one part the hovered row forces: several senses, an origin, an example sentence.
+        // The one part the hovered row forces: several senses, an origin, an example sentence, an
+        // IPA, a signpost or a collocation line. Everything else follows the stored switches.
         const multiple = key === "multisense" || settings.multiSense;
         const senses = multiple ? sample.senses || [] : [];
         const payload = {
             title: sample.word,
             type: "word",
-            ipa: sample.ipa || "",
+            ipa: key === "ipa" || settings.ipa ? sample.ipa || "" : "",
             // No verdict: the demo word is not a word the reader has met, and the tag row says so.
             status: "",
             en: "",
@@ -55,6 +56,8 @@ QtObject {
             // asked for, the reader's own language otherwise, never both.
             senses: senses.map((sense) => ({en: lang === "en" ? sense.en || "" : "",
                                             text: lang === "en" ? "" : local(sense)})),
+            signpost: key === "signpost" || settings.signpost ? sample.signpost || "" : "",
+            collocations: key === "collocations" || settings.collocations ? sample.collocations || [] : [],
             etymology: key === "etymology" || settings.etymology ? local(sample.etymology) : "",
             example: key === "example" || settings.example ? sample.example || "" : "",
             // No clock: this card goes when the pointer leaves the title, not when a count runs out,

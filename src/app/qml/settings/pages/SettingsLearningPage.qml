@@ -107,6 +107,48 @@ Item {
             onPreviewChanged: (key) => root.previewRequested(key)
         }
 
+        // The rest of what a word's card can draw. These are display switches: the field comes
+        // back with the definition either way, and the row only decides whether the card draws it.
+        SwitchRow {
+            width: parent.width
+            objectName: "ipaSwitch"
+            label: qsTranslate("SettingsPopup", "IPA")
+            checked: root.settings.ipa
+            previewKey: "ipa"
+            onToggled: (on) => Controller.setSetting("ipa", on)
+            onPreviewChanged: (key) => root.previewRequested(key)
+        }
+
+        SwitchRow {
+            width: parent.width
+            objectName: "signpostSwitch"
+            label: qsTranslate("SettingsPopup", "Signpost")
+            checked: root.settings.signpost
+            previewKey: "signpost"
+            onToggled: (on) => Controller.setSetting("signpost", on)
+            onPreviewChanged: (key) => root.previewRequested(key)
+        }
+
+        SwitchRow {
+            width: parent.width
+            objectName: "collocationsSwitch"
+            label: qsTranslate("SettingsPopup", "Collocations")
+            checked: root.settings.collocations
+            previewKey: "collocations"
+            onToggled: (on) => Controller.setSetting("collocations", on)
+            onPreviewChanged: (key) => root.previewRequested(key)
+        }
+
+        // No preview: what this one restores is a picture strip that would have to run a real
+        // image search to say anything, and a hover is not the place to start one.
+        SwitchRow {
+            width: parent.width
+            objectName: "picturesSwitch"
+            label: qsTranslate("SettingsPopup", "Pictures")
+            checked: root.settings.pictures
+            onToggled: (on) => Controller.setSetting("pictures", on)
+        }
+
         Column {
             width: parent.width
             spacing: 7

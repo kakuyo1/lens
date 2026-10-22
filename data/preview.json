@@ -6,7 +6,8 @@
     "pre-commit hook keeps the code English. The definition, the senses and the etymology each",
     "exist in the four explanation languages, so the preview can show what picking one produces",
     "-- the language of an explanation is a runtime setting, not the interface's. The example",
-    "sentence is English in all four, as it is in a real explanation.",
+    "sentence is English in all four, as it is in a real explanation; the signpost and the",
+    "collocations are English in every language, as they are in a real explanation.",
     "`vocabulary` is the other preview's content: six words per vocabulary level, in the order the",
     "word cloud draws them (the first two are the largest). The lists are illustrative, not the",
     "word list the level is built from.",
@@ -15,6 +16,8 @@
   ],
   "word": "spring",
   "ipa": "/sprɪŋ/",
+  "signpost": "season of new growth",
+  "collocations": ["early ~", "~ weather"],
   "definition": {
     "en": "The season between winter and summer, when plants begin to grow.",
     "zh": "春季，冬天与夏天之间的季节，植物开始生长。",
