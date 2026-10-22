@@ -34,7 +34,7 @@ Item {
 
         /// The snapshot case changes the theme; every case leaves the fixture's dark in force.
         function cleanup() {
-            Controller.setTheme("dark");
+            Controller.setSetting("theme", "dark");
         }
 
         function settingsPanel(main) {
@@ -117,7 +117,7 @@ Item {
 
             const main = make();
             const field = openedLevelField(main);
-            Controller.setTheme("light");
+            Controller.setSetting("theme", "light");
             wait(50);
             hover(field, "CET-6");
             const preview = field.optionPreviewWindow;
@@ -126,7 +126,7 @@ Item {
             wait(260);
             verify(Util.saveSnapshot(testCase, preview.contentItem, lensQaSnapshotDir,
                                      "vocab-preview-light"));
-            Controller.setTheme("dark");
+            Controller.setSetting("theme", "dark");
             wait(80);
             verify(Util.saveSnapshot(testCase, preview.contentItem, lensQaSnapshotDir,
                                      "vocab-preview-dark"));

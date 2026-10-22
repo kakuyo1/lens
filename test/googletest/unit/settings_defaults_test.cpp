@@ -99,27 +99,27 @@ TEST_F(LlmTest, RestoreDefaultsMatchesAFreshInstallAndLeavesOwnedStateAlone)
     app::AppController a{storeA, clientA, hookA, hotkeyA, pricing(), test::sourceDir() / "data"};
     app::AppController b{storeB, clientB, hookB, hotkeyB, pricing(), test::sourceDir() / "data"};
 
-    a.setLevel(5);
-    a.setExplanationLang(QStringLiteral("ja"));
-    a.setMultiSense(true);
-    a.setEtymology(true);
-    a.setExample(true);
-    a.setTheme(QStringLiteral("dark"));
-    a.setAnimationsEnabled(false);
-    a.setRevealSpeed(1);
-    a.setSelectionCapture(false);
-    a.setClipboardPolicy(true);
-    a.setBubbleDismissSeconds(12);
-    a.setBubblePlacement(QStringLiteral("below"));
-    a.setSelectionBarStyle(QStringLiteral("fan"));
-    a.setFrostedBlur(50);
-    a.setFrostedSaturation(10);
-    a.setFrostedRim(90);
-    a.setLiquidRefraction(2);
-    a.setLiquidBlur(90);
-    a.setLiquidRim(2);
-    a.setLiquidTextColor(QStringLiteral("#ffffff"));
-    a.setGlassQuality(static_cast<int>(app::GlassQuality::Smooth));
+    a.setSetting(QStringLiteral("level"), 5);
+    a.setSetting(QStringLiteral("explanationLang"), QStringLiteral("ja"));
+    a.setSetting(QStringLiteral("multiSense"), true);
+    a.setSetting(QStringLiteral("etymology"), true);
+    a.setSetting(QStringLiteral("example"), true);
+    a.setSetting(QStringLiteral("theme"), QStringLiteral("dark"));
+    a.setSetting(QStringLiteral("animationsEnabled"), false);
+    a.setSetting(QStringLiteral("revealSpeed"), 1);
+    a.setSetting(QStringLiteral("selectionCapture"), false);
+    a.setSetting(QStringLiteral("clipboardPolicy"), QStringLiteral("silent"));
+    a.setSetting(QStringLiteral("bubbleDismissSeconds"), 12);
+    a.setSetting(QStringLiteral("bubblePlacement"), QStringLiteral("below"));
+    a.setSetting(QStringLiteral("selectionBarStyle"), QStringLiteral("fan"));
+    a.setSetting(QStringLiteral("frostedBlur"), 50);
+    a.setSetting(QStringLiteral("frostedSaturation"), 10);
+    a.setSetting(QStringLiteral("frostedRim"), 90);
+    a.setSetting(QStringLiteral("liquidRefraction"), 2);
+    a.setSetting(QStringLiteral("liquidBlur"), 90);
+    a.setSetting(QStringLiteral("liquidRim"), 2);
+    a.setSetting(QStringLiteral("liquidTextColor"), QStringLiteral("#ffffff"));
+    a.setSetting(QStringLiteral("glassQuality"), static_cast<int>(app::GlassQuality::Smooth));
     ASSERT_EQ(a.glassBackdrop()->quality(), app::GlassQuality::Smooth);
     a.setReviewFrequency(static_cast<int>(core::ReviewFrequency::Every1To2Hours));
     ASSERT_TRUE(a.captureDuty()->setScanWhitelist(QStringLiteral("notepad.exe")));
@@ -147,7 +147,7 @@ TEST_F(LlmTest, RestoreDefaultsMatchesAFreshInstallAndLeavesOwnedStateAlone)
     }
 
     // The API key, autostart, interface language and daily budget are not the panel's defaults.
-    a.setUiLanguage(QStringLiteral("ja"));
+    a.setSetting(QStringLiteral("uiLanguage"), QStringLiteral("ja"));
     a.setApiKey(QStringLiteral("fake-test-token"));
     ASSERT_TRUE(a.setDailyBudget(1.25));
     a.restoreDefaults();

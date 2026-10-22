@@ -59,10 +59,10 @@ Item {
                 editable: true
                 options: Controller.latinFontFamilies()
                 currentValue: page.settings.font
-                onPicked: (value) => Controller.setFont(value)
+                onPicked: (value) => Controller.setSetting("font", value)
                 // A name the machine does not have is refused in C++, and the field goes back to
                 // the family in force by the same binding the model field is drawn by.
-                onEdited: (text) => Controller.setFont(text)
+                onEdited: (text) => Controller.setSetting("font", text)
                 // The preview is the settings panel's own bubble, not a window of this field's:
                 // the row hands it the family, and the panel draws it beside itself as it does
                 // for every other setting preview.
@@ -87,7 +87,7 @@ Item {
                 // carry ints, and the setting hands out an int.
                 options: Controller.bubbleFontSizeOptions()
                 currentValue: page.settings.bubbleFontSize
-                onPicked: (value) => Controller.setBubbleFontSize(value)
+                onPicked: (value) => Controller.setSetting("bubbleFontSize", value)
                 // The same card as the family's rows, at the row's size: a number in a field says
                 // nothing about how a sentence reads, and this is the one page where that is the
                 // whole question.

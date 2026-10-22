@@ -2,39 +2,21 @@
 
 /**
  * @file glass_settings.h
- * @brief The glass themes' numbers: each parameter's default and the range the settings page offers.
+ * @brief The glass themes' numbers that are arithmetic rather than settings: how the live backdrop is
+ *        paced, and which of the four tiers does what.
  *
- * Every parameter is a root key of the settings document (docs/adr/0035). The setters and the read
- * path both go through clampGlass(): a hand edit can write anything, and no surface should see a
- * value outside the range the page shows.
+ * Each parameter a reader chooses -- blur, saturation, rim, refraction, the text colour -- is one row
+ * of core/domain/settings_table.h, with its default and the range the page offers. Nothing here
+ * clamps a setting: the clamp lives in the row, and settings_access.cpp is the only place that
+ * applies it.
  */
 
 #include <algorithm>
 #include <string_view>
 
+#include "core/domain/settings_table.h"
+
 namespace lens::app {
-
-/// @brief One glass parameter: the default it falls back to and the closed range it can be set in.
-struct GlassRange {
-    int low;
-    int high;
-    int fallback;
-};
-
-/// @brief Frosted blur, percent of the full scale; 100% is 60 px (UI.md 3.1c).
-inline constexpr GlassRange kFrostedBlur{0, 100, 10};
-/// @brief Frosted saturation, percent; 100% is untouched (UI.md 3.1c).
-inline constexpr GlassRange kFrostedSaturation{0, 200, 120};
-/// @brief Frosted rim highlight, percent of white opacity (UI.md 3.1c).
-inline constexpr GlassRange kFrostedRim{0, 100, 20};
-/// @brief Liquid refraction in px: the displacement at the edge is half of this (UI.md 3.1d).
-inline constexpr GlassRange kLiquidRefraction{0, 40, 20};
-/// @brief Liquid blur, percent, applied before the refraction (UI.md 3.1d).
-inline constexpr GlassRange kLiquidBlur{0, 100, 10};
-/// @brief Liquid rim highlight, percent of white opacity (UI.md 3.1d).
-inline constexpr GlassRange kLiquidRim{0, 100, 10};
-/// @brief The liquid theme's text colour when the reader has not chosen one, as #rrggbb (UI.md 3.1d).
-inline constexpr std::string_view kLiquidTextColorFallback = "#101319";
 
 /**
  * @brief How the live backdrop is kept fresh, as the reader chooses it (docs/adr/0073).
@@ -51,10 +33,10 @@ enum class GlassQuality : int {
     Smooth   = 3, ///< Duplication where it works, at the screen's refresh rate; GDI otherwise.
 };
 
-/// The highest stored value; values outside 0..3 clamp to the nearest tier.
-inline constexpr int kGlassQualityHigh = static_cast<int>(GlassQuality::Smooth);
+/// The highest stored value, from the tier's own row in the settings table.
+inline constexpr int kGlassQualityHigh = core::settings::find("glassQuality")->high;
 /// The tier a document that names none, and restore-defaults, uses.
-inline constexpr int kGlassQualityDefault = static_cast<int>(GlassQuality::Auto);
+inline constexpr int kGlassQualityDefault = core::settings::find("glassQuality")->fallback.number;
 
 /**
  * @brief Read a stored quality as one of the four tiers.
@@ -111,17 +93,6 @@ inline std::string_view glassQualityName(GlassQuality quality)
         case GlassQuality::Auto: break;
     }
     return "auto";
-}
-
-/**
- * @brief Bring a glass parameter into the range the page offers.
- * @param range The parameter's range.
- * @param value The value the reader picked, or the one the document holds.
- * @return @p value, or the nearer edge of @p range.
- */
-inline int clampGlass(GlassRange range, int value)
-{
-    return std::clamp(value, range.low, range.high);
 }
 
 } // namespace lens::app

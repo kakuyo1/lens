@@ -42,7 +42,7 @@ Item {
 
         function cleanup() {
             Controller.restoreCaptureDefaults();
-            Controller.setTheme("dark");
+            Controller.setSetting("theme", "dark");
             Tokens.theme = "dark";
         }
 

@@ -50,7 +50,7 @@ Item {
                 options: root.settings.levels
                 currentValue: root.settings.level
                 optionPreview: vocabPreviewComponent
-                onPicked: (value) => Controller.setLevel(value)
+                onPicked: (value) => Controller.setSetting("level", value)
             }
         }
 
@@ -68,7 +68,7 @@ Item {
                 width: parent.width
                 options: root.settings.languages || []
                 currentValue: root.settings.explanationLang
-                onPicked: (value) => Controller.setExplanationLang(value)
+                onPicked: (value) => Controller.setSetting("explanationLang", value)
                 // The card is the panel's own preview bubble; a row just tells it which language
                 // to write the sample in. The title is not a trigger (UI.md 4.4).
                 onOptionHovered: (option) => root.languagePreviewRequested(String(option.value))
@@ -81,7 +81,7 @@ Item {
             label: qsTranslate("SettingsPopup", "Multiple senses")
             checked: root.settings.multiSense
             previewKey: "multisense"
-            onToggled: (on) => Controller.setMultiSense(on)
+            onToggled: (on) => Controller.setSetting("multiSense", on)
             onPreviewChanged: (key) => root.previewRequested(key)
         }
 
@@ -93,7 +93,7 @@ Item {
             label: qsTranslate("SettingsPopup", "Etymology")
             checked: root.settings.etymology
             previewKey: "etymology"
-            onToggled: (on) => Controller.setEtymology(on)
+            onToggled: (on) => Controller.setSetting("etymology", on)
             onPreviewChanged: (key) => root.previewRequested(key)
         }
 
@@ -103,7 +103,7 @@ Item {
             label: qsTranslate("SettingsPopup", "Example sentence")
             checked: root.settings.example
             previewKey: "example"
-            onToggled: (on) => Controller.setExample(on)
+            onToggled: (on) => Controller.setSetting("example", on)
             onPreviewChanged: (key) => root.previewRequested(key)
         }
 

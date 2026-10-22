@@ -31,7 +31,7 @@ Item {
         /// Every case starts from the default display time, so a case that changes it cannot leave the
         /// countdown checks below reading a bubble of some other length.
         function init() {
-            Controller.setBubbleDismissSeconds(5);
+            Controller.setSetting("bubbleDismissSeconds", 5);
         }
 
         function opened() {
@@ -86,7 +86,7 @@ Item {
         /// The display time the reader chose is the one a fresh bubble counts down from. init() puts
         /// the default back before the next case.
         function test_aFreshBubbleCountsFromTheChosenDisplayTime() {
-            Controller.setBubbleDismissSeconds(12);
+            Controller.setSetting("bubbleDismissSeconds", 12);
             const bubble = opened();
             compare(metaOf(bubble).text, "Disappears in 12s");
         }

@@ -8,7 +8,8 @@
  *
  * The tables name the document's top-level keys and its nested objects. What lives inside those
  * objects -- `UPDATE.autoCheck`, `PET.scale` and the rest -- is not enumerated here, and nothing
- * checks it against the tables.
+ * checks it against the tables. The keys the settings panel owns are not written out at all: they
+ * come from core/domain/settings_table.h, which is where a setting is declared.
  */
 
 #include <filesystem>
@@ -23,12 +24,14 @@
 #include "core/document/known_store.h"
 #include "core/document/settings_section.h"
 #include "core/document/stats_store.h"
+#include "core/domain/settings_table.h"
 
 namespace {
 
 using lens::core::KnownStore;
 using lens::core::SettingsSection;
 using lens::core::StatsStore;
+using lens::core::settings::Signal;
 using nlohmann::json;
 
 /// A document of its own and a count of its commits, so a case can see what a read writes.
@@ -229,37 +232,33 @@ struct StampedKey {
 };
 
 const DocumentKey kScalarKeys[] = {
+    // The four keys the settings table does not carry, because their write is a command of its own:
+    // a secret that is never echoed, and the three the model catalogue owns as one decision.
     {"API-KEY", "AppController"},
-    {"MODEL", "ExplanationDuty + AppController"},
-    {"URL", "AppController + ExplanationDuty"},
-    {"PROVIDER", "ExplanationDuty"},
-    {"multiSense", "AppController"},
-    {"etymology", "AppController"},
-    {"example", "AppController"},
-    {"theme", "AppController"},
-    {"frostedBlur", "AppController"},
-    {"frostedSaturation", "AppController"},
-    {"frostedRim", "AppController"},
-    {"liquidRefraction", "AppController"},
-    {"liquidBlur", "AppController"},
-    {"liquidRim", "AppController"},
-    {"liquidTextColor", "AppController"},
-    {"animationsEnabled", "AppController"},
-    {"revealSpeed", "AppController"},
-    {"uiLanguage", "AppController"},
-    {"selectionCapture", "AppController"},
-    {"clipboardPolicy", "AppController"},
-    {"bubbleDismissSeconds", "AppController"},
-    {"bubblePlacement", "AppController"},
-    {"selectionBarStyle", "AppController"},
+    {"MODEL", "ModelCatalogDuty + AppController"},
+    {"URL", "AppController + ModelCatalogDuty"},
+    {"PROVIDER", "ModelCatalogDuty"},
+    // The trigger key is the fifth: the shell has to take the combination before the document may
+    // record it, so it is written by setOcrHotkey() rather than by the table's generic write.
     {"ocrHotkey", "AppController"},
-    {"ocrCapture", "CaptureDuty"},
-    {"autoScan", "CaptureDuty"},
-    {"minimumWordLength", "CaptureDuty"},
-    {"scanWhitelist", "CaptureDuty"},
-    {"tesseractExecutable", "CaptureDuty"},
-    {"tesseractDataDirectory", "CaptureDuty"},
 };
+
+/// @brief A row the section itself is allowed to write: everything but the two the store re-stamps.
+bool sectionWritable(lens::core::settings::Row const& row)
+{
+    return row.signal != Signal::Level and row.signal != Signal::ExplanationLang;
+}
+
+/// @return Who writes a table row, as the failure message names it.
+std::string_view writerOf(lens::core::settings::Row const& row)
+{
+    switch (row.signal) {
+        case Signal::Capture: return "CaptureDuty";
+        case Signal::Level:
+        case Signal::ExplanationLang: return "KnownStore";
+        default: return "AppController";
+    }
+}
 
 const DocumentObject kObjects[] = {
     {"UPDATE", "UpdateDuty"},
@@ -291,13 +290,15 @@ bool named(const std::string& key)
     for (const StampedKey& entry : kStampedKeys)
         if (key == entry.key)
             return true;
-    return false;
+    // The settings the panel owns are the table's, not a second list written out here.
+    return lens::core::settings::find(key) != nullptr;
 }
 
 } // namespace
 
 /// A scalar written through the section comes back after a save and a load. This is the half the
-/// section is responsible for; the nine below are the half it is not.
+/// section is responsible for; the nine below are the half it is not. The panel's own keys come from
+/// the settings table, so a setting added to it is checked here without being written out twice.
 TEST(SettingsDocumentKeys, EveryScalarKeySurvivesBeingWrittenThroughTheSection)
 {
     const auto path  = scratchPath("lens-settings-section-scalars.json");
@@ -305,11 +306,18 @@ TEST(SettingsDocumentKeys, EveryScalarKeySurvivesBeingWrittenThroughTheSection)
 
     for (const DocumentKey& entry : kScalarKeys)
         store.section().set<std::string>(entry.key, "written-by-the-test");
+    for (auto const& row : lens::core::settings::kRows)
+        if (sectionWritable(row))
+            store.section().set<std::string>(row.key, "written-by-the-test");
 
     KnownStore reloaded = KnownStore::load(path);
     for (const DocumentKey& entry : kScalarKeys)
         EXPECT_EQ(reloaded.section().value<std::string>(entry.key, ""), "written-by-the-test")
             << entry.key << " is written by " << entry.writer;
+    for (auto const& row : lens::core::settings::kRows)
+        if (sectionWritable(row))
+            EXPECT_EQ(reloaded.section().value<std::string>(row.key, ""), "written-by-the-test")
+                << row.key << " is written by " << writerOf(row);
 
     std::filesystem::remove(path);
 }

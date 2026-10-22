@@ -23,6 +23,7 @@
 #include "app/duties/capture_duty.h"
 #include "app/duties/capture_refusal.h"
 #include "core/domain/pet/pet_state.h"
+#include "core/domain/settings_table.h"
 #include "app/duties/cost_duty.h"
 #include "app/duties/explanation_duty.h"
 #include "app/glass/glass_backdrop.h"
@@ -100,80 +101,46 @@ public:
     /**
      * @brief Put every setting the settings panel owns back to its default.
      *
-     * The values are the ones settings_defaults.h names, so a restore and a fresh install read
-     * the same table. The API key, autostart, the interface language and the daily budget are
-     * not settings this panel restores and are left as they are.
+     * The values are the ones the settings table carries, so a restore and a fresh install read the
+     * same rows. The API key, autostart, the interface language and the daily budget are not settings
+     * this panel restores and are left as they are.
      */
     Q_INVOKABLE void restoreDefaults();
-    Q_INVOKABLE void setLevel(int level);
-    Q_INVOKABLE void setExplanationLang(QString lang);
+    /**
+     * @brief Write one setting, by the key the projection hands out.
+     *
+     * The one write path for every key the settings table owns: the value is brought into the row's
+     * rule -- a range, a set of members, #rrggbb, a family this machine has -- and stored, and the row
+     * names the signal the write raises (docs/adr/0083). A setting whose write is a command of its own
+     * keeps its own entry: the API key, the service, the trigger key and the daily budget.
+     *
+     * @param key   The document key, as `settings` reads it.
+     * @param value The value to store: a number, a switch or a string.
+     * @return False when the key is not in the table, or when its row refuses the value; nothing was
+     *         written then.
+     */
+    Q_INVOKABLE bool setSetting(QString key, QVariant value);
+    /// @return The closed range a key's slider runs over, as {low, high}; empty for a key with none.
+    Q_INVOKABLE QVariantMap settingRange(QString key) const;
     /**
      * @brief Switch the explanation language from the bubble's shortcut and ask again for the card.
      *
-     * This is the settings row's setter plus the one thing the reader meant by using it on a card:
+     * This is the settings row's write plus the one thing the reader meant by using it on a card:
      * the standing explanation is put up in the new language, from the cache when it has one and
      * from the model otherwise. The choice is a setting, not a one-card override, so the next card
      * comes up in the same language. A translation has no second language to ask for and is left
      * alone.
      */
     Q_INVOKABLE void reexplainIn(QString language);
-    Q_INVOKABLE void setMultiSense(bool on);
-    /// @brief Ask for a word's origin with its explanation, and draw it on the bubble.
-    Q_INVOKABLE void setEtymology(bool on);
-    /// @brief Ask for one example sentence with a word's explanation, and draw it on the bubble.
-    Q_INVOKABLE void setExample(bool on);
-    Q_INVOKABLE void setTheme(QString theme);
-    /**
-     * @brief Store the family the English runs are drawn in.
-     * @param family A family this machine has, or empty to go back to the face main() installed.
-     * @note A name no family answers to is logged and dropped rather than stored: QML would go on
-     *       drawing it as whatever the font matcher picked, and the field would show a name the
-     *       machine does not have.
-     */
-    Q_INVOKABLE void setFont(QString family);
     /// @return Every family on this machine that draws Latin, as DropdownField options, sorted.
     Q_INVOKABLE QVariantList latinFontFamilies() const;
-    /**
-     * @brief Store the size the bubble's answer is read at, in pixels.
-     * @param pixels The body size the reader picked; clamped to the range the page offers.
-     * @note One number, and the card scales every reading size on it: the word, the pronunciation,
-     *       the definitions and the example are each their own multiple of the 13 px the card is
-     *       drawn at by default, so the hierarchy holds at every step (UI.md 4.4).
-     */
-    Q_INVOKABLE void setBubbleFontSize(int pixels);
     /// @return The sizes the font page offers, as DropdownField options: the default marked.
     Q_INVOKABLE QVariantList bubbleFontSizeOptions() const;
-    /// @brief Store the frosted glass's blur, saturation or rim, clamped to the range the page offers.
-    Q_INVOKABLE void setFrostedBlur(int percent);
-    Q_INVOKABLE void setFrostedSaturation(int percent);
-    Q_INVOKABLE void setFrostedRim(int percent);
-    /// @brief Store the liquid glass's refraction, blur or rim, clamped to the range the page offers.
-    Q_INVOKABLE void setLiquidRefraction(int pixels);
-    Q_INVOKABLE void setLiquidBlur(int percent);
-    Q_INVOKABLE void setLiquidRim(int percent);
-    /// @brief Store the liquid glass's text colour as #rrggbb; anything else leaves the stored colour alone.
-    Q_INVOKABLE void setLiquidTextColor(QString color);
-    /**
-     * @brief Store the backdrop's quality tier, clamped to Auto, Eco, Standard and Smooth, and apply it at once.
-     * @param quality The tier's number, as the settings page's options carry it (glass_settings.h).
-     */
-    Q_INVOKABLE void setGlassQuality(int quality);
-    Q_INVOKABLE void setAnimationsEnabled(bool on);
-    /// @brief Store the typing pace, as the speed level reveal_settings.h clamps.
-    Q_INVOKABLE void setRevealSpeed(int speed);
-    Q_INVOKABLE void setUiLanguage(QString lang);
-    Q_INVOKABLE void setSelectionCapture(bool on);
+    /// @brief Store the key the service is reached with. Never logged, never echoed back.
     Q_INVOKABLE void setApiKey(QString key);
-    /// @brief Store whether a grab whose clipboard was rewritten is dropped silently.
-    Q_INVOKABLE void setClipboardPolicy(bool silent);
-    /// @brief Store how long a bubble stays up, clamped to the range bubble_settings.h names.
-    Q_INVOKABLE void setBubbleDismissSeconds(int seconds);
-    /// @brief Store which side of the selection a bubble and the action bar try first: "above" or "below".
-    Q_INVOKABLE void setBubblePlacement(QString placement);
-    /// @brief Store the action bar's form: "bar", "tab", "hand", "tag" or "fan" (UI.md 4.10).
-    Q_INVOKABLE void setSelectionBarStyle(QString style);
-    Q_INVOKABLE void setModel(QString model);
     Q_INVOKABLE void setApiUrl(QString url);
+    /// @brief Store the model the service is asked for, through the catalogue that owns the choice.
+    Q_INVOKABLE void setModel(QString model);
     Q_INVOKABLE void setAutostart(bool on);
     /**
      * @brief Record the trigger combination the reader pressed in the settings field.
@@ -284,6 +251,8 @@ signals:
     void reviewQuestionChanged();
 
 private:
+    /// @brief Write one row: the value through the row's rule, then the signal the row names.
+    bool writeSetting(core::settings::Row const& row, QVariant const& value);
     /// @brief Restore provider wire options and persisted connection choices without touching credentials.
     void restoreModelService();
     /// @brief The plain-text export for a scope, without the QML string parse.

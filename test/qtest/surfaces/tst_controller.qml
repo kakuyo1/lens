@@ -110,33 +110,33 @@ Item {
         /// The policy is a two-way switch at the QML boundary; the stored key vocabulary stays in
         /// C++, so a third value cannot be written by a surface that only knows the switch.
         function test_theClipboardPolicyIsATwoWaySwitch() {
-            Controller.setClipboardPolicy(true);
-            compare(Controller.settings.clipboardSilent, true);
+            Controller.setSetting("clipboardPolicy", "silent");
+            compare(Controller.settings.clipboardPolicy === "silent", true);
 
-            Controller.setClipboardPolicy(false);
-            compare(Controller.settings.clipboardSilent, false);
+            Controller.setSetting("clipboardPolicy", "topmost");
+            compare(Controller.settings.clipboardPolicy === "silent", false);
         }
 
         /// The display time is stored as whole seconds and kept between one and thirty; an out-of-range
         /// value lands on the nearer edge. A placement that is neither side is refused, as the policy is.
         function test_theBubbleSettingsClampAndRefuseWhatTheyCannotUse() {
-            Controller.setBubbleDismissSeconds(12);
+            Controller.setSetting("bubbleDismissSeconds", 12);
             compare(Controller.settings.bubbleDismissSeconds, 12);
 
-            Controller.setBubbleDismissSeconds(0);
+            Controller.setSetting("bubbleDismissSeconds", 0);
             compare(Controller.settings.bubbleDismissSeconds, 1, "a zero display time was stored");
 
-            Controller.setBubbleDismissSeconds(99);
+            Controller.setSetting("bubbleDismissSeconds", 99);
             compare(Controller.settings.bubbleDismissSeconds, 30, "an oversized display time was stored");
 
-            Controller.setBubblePlacement("below");
+            Controller.setSetting("bubblePlacement", "below");
             compare(Controller.settings.bubblePlacement, "below");
 
-            Controller.setBubblePlacement("nonsense");
+            Controller.setSetting("bubblePlacement", "nonsense");
             compare(Controller.settings.bubblePlacement, "below", "an unknown placement was written anyway");
 
-            Controller.setBubblePlacement("above");
-            Controller.setBubbleDismissSeconds(5);
+            Controller.setSetting("bubblePlacement", "above");
+            Controller.setSetting("bubbleDismissSeconds", 5);
             compare(Controller.settings.bubblePlacement, "above");
             compare(Controller.settings.bubbleDismissSeconds, 5);
         }
@@ -145,19 +145,19 @@ Item {
         /// edge, and the pace the reveal reads follows the level. The exact milliseconds are the
         /// header's own contract (lens_gtest_unit); this reads the wiring to the facade.
         function test_theRevealSpeedClampsAndDrivesThePace() {
-            Controller.setRevealSpeed(2);
+            Controller.setSetting("revealSpeed", 2);
             compare(Controller.settings.revealSpeed, 2);
             const paced = Controller.settings.revealCharacterMs;
 
-            Controller.setRevealSpeed(4);
+            Controller.setSetting("revealSpeed", 4);
             verify(Controller.settings.revealCharacterMs < paced, "a faster speed did not shorten the pace");
 
-            Controller.setRevealSpeed(0);
+            Controller.setSetting("revealSpeed", 0);
             compare(Controller.settings.revealSpeed, 1, "a speed below the range was stored");
-            Controller.setRevealSpeed(99);
+            Controller.setSetting("revealSpeed", 99);
             compare(Controller.settings.revealSpeed, 5, "a speed above the range was stored");
 
-            Controller.setRevealSpeed(3);
+            Controller.setSetting("revealSpeed", 3);
             compare(Controller.settings.revealSpeed, 3);
         }
 

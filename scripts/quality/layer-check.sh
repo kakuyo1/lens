@@ -18,6 +18,10 @@
 #
 # Silent when clean; one line per violation and exit 1 otherwise.
 #
+# One awk pass over the whole list, not a grep per rule per file. The rules are the same either
+# way, but this check runs on every commit that touches src/, and on Windows every grep is a
+# process spawn: the per-file form came to about 800 of them, three minutes of fork and no work.
+#
 # Usage: scripts/quality/layer-check.sh
 
 set -u
@@ -26,77 +30,64 @@ root=$(git rev-parse --show-toplevel 2>/dev/null)
 [ -n "$root" ] || root=$(cd "$(dirname "$0")/../.." && pwd)
 cd "$root" || exit 0
 
-QT='^[[:space:]]*#[[:space:]]*include[[:space:]]*[<"](Q[A-Za-z]|Qt)'
-APP='"app/'
-CORE='"core/'
-CAPABILITY='"(llm|capture|sync|update)/'
-DUTIES='"app/duties/'
-PLATFORM='"app/platform/'
-GLASS='"app/glass/'
-PET='"app/pet/'
-QML='"app/qml/'
-FACADE='"app/app_controller\.h"'
-
-status=0
-
-# Prints each offending line, then records the failure. The pipe is a subshell, so status is
-# assigned after it rather than inside the loop.
-forbid() {
-    file=$1
-    pattern=$2
-    why=$3
-
-    hits=$(grep -nE "$pattern" "$file" || true)
-    [ -n "$hits" ] || return 0
-
-    printf '%s\n' "$hits" | while IFS=: read -r line _; do
-        printf 'layer-check: %s:%s: %s\n' "$file" "$line" "$why"
-    done
-    status=1
-}
-
 files=$(git ls-files src | grep -E '\.(cpp|h)$' || true)
 [ -n "$files" ] || files=$(find src -type f \( -name '*.cpp' -o -name '*.h' \))
 
-for file in $files; do
-    case "$file" in
-        src/util/qt_log.h|src/util/qt_log.cpp)
-            ;;
-        src/util/*)
-            forbid "$file" "$QT" 'util is Qt-free; qt_log is the one exception'
-            forbid "$file" "$CORE|$APP|$CAPABILITY" 'util depends on no other module'
-            ;;
-        src/core/*)
-            forbid "$file" "$QT" 'core is Qt-free'
-            forbid "$file" "$APP" 'core is below app'
-            forbid "$file" "$CAPABILITY" 'core is below the capability modules'
-            ;;
-        src/app/duties/*)
-            forbid "$file" "$GLASS" 'a duty does not know the glass subsystem'
-            forbid "$file" "$PET" 'a duty does not know the pet shell'
-            forbid "$file" "$QML" 'C++ does not include QML'
-            forbid "$file" "$FACADE" 'a duty is below the facade'
-            ;;
-        src/app/platform/*)
-            forbid "$file" "$DUTIES" 'platform is below the use cases'
-            forbid "$file" "$GLASS" 'platform does not know the glass subsystem'
-            forbid "$file" "$PET" 'platform does not know the pet shell'
-            forbid "$file" "$QML" 'C++ does not include QML'
-            forbid "$file" "$FACADE" 'platform is below the facade'
-            ;;
-        src/app/glass/*)
-            forbid "$file" "$DUTIES" 'the glass subsystem is below the use cases'
-            forbid "$file" "$PET" 'the glass subsystem does not know the pet shell'
-            forbid "$file" "$QML" 'C++ does not include QML'
-            forbid "$file" "$FACADE" 'the glass subsystem is below the facade'
-            ;;
-        src/app/pet/*)
-            forbid "$file" "$DUTIES" 'the pet shell is below the use cases'
-            forbid "$file" "$GLASS" 'the pet shell does not know the glass subsystem'
-            forbid "$file" "$QML" 'C++ does not include QML'
-            forbid "$file" "$FACADE" 'the pet shell is below the facade'
-            ;;
-    esac
-done
+printf '%s\n' "$files" | xargs awk '
+function hit(why) {
+    printf "layer-check: %s:%d: %s\n", FILENAME, FNR, why
+    bad = 1
+}
 
-exit $status
+BEGIN {
+    QT         = "^[ \t]*#[ \t]*include[ \t]*[<\"]((Q[A-Za-z])|Qt)"
+    APP        = "\"app/"
+    CORE       = "\"core/"
+    CAPABILITY = "\"(llm|capture|sync|update)/"
+    DUTIES     = "\"app/duties/"
+    PLATFORM   = "\"app/platform/"
+    GLASS      = "\"app/glass/"
+    PET        = "\"app/pet/"
+    QML        = "\"app/qml/"
+    FACADE     = "\"app/app_controller\\.h\""
+    bad        = 0
+}
+
+{
+    if (FILENAME == "src/util/qt_log.h" || FILENAME == "src/util/qt_log.cpp") next
+
+    if (FILENAME ~ /^src\/util\//) {
+        if ($0 ~ QT) hit("util is Qt-free; qt_log is the one exception")
+        if ($0 ~ (CORE "|" APP "|" CAPABILITY)) hit("util depends on no other module")
+    } else if (FILENAME ~ /^src\/core\//) {
+        if ($0 ~ QT) hit("core is Qt-free")
+        if ($0 ~ APP) hit("core is below app")
+        if ($0 ~ CAPABILITY) hit("core is below the capability modules")
+    } else if (FILENAME ~ /^src\/app\/duties\//) {
+        if ($0 ~ GLASS) hit("a duty does not know the glass subsystem")
+        if ($0 ~ PET) hit("a duty does not know the pet shell")
+        if ($0 ~ QML) hit("C++ does not include QML")
+        if ($0 ~ FACADE) hit("a duty is below the facade")
+    } else if (FILENAME ~ /^src\/app\/platform\//) {
+        if ($0 ~ DUTIES) hit("platform is below the use cases")
+        if ($0 ~ GLASS) hit("platform does not know the glass subsystem")
+        if ($0 ~ PET) hit("platform does not know the pet shell")
+        if ($0 ~ QML) hit("C++ does not include QML")
+        if ($0 ~ FACADE) hit("platform is below the facade")
+    } else if (FILENAME ~ /^src\/app\/glass\//) {
+        if ($0 ~ DUTIES) hit("the glass subsystem is below the use cases")
+        if ($0 ~ PET) hit("the glass subsystem does not know the pet shell")
+        if ($0 ~ QML) hit("C++ does not include QML")
+        if ($0 ~ FACADE) hit("the glass subsystem is below the facade")
+    } else if (FILENAME ~ /^src\/app\/pet\//) {
+        if ($0 ~ DUTIES) hit("the pet shell is below the use cases")
+        if ($0 ~ GLASS) hit("the pet shell does not know the glass subsystem")
+        if ($0 ~ QML) hit("C++ does not include QML")
+        if ($0 ~ FACADE) hit("the pet shell is below the facade")
+    }
+}
+
+END { exit bad ? 1 : 0 }
+' || exit 1
+
+exit 0

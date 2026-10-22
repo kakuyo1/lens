@@ -80,7 +80,7 @@ Item {
                 Controller.modelCatalogDuty.setProvider(previous.provider);
                 Controller.setModel(previous.model);
                 Controller.setApiUrl(previous.url);
-                Controller.setExplanationLang(previous.explanationLang);
+                Controller.setSetting("explanationLang", previous.explanationLang);
             }
         }
 

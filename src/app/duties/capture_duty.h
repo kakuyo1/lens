@@ -18,6 +18,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <string_view>
 
 #include "capture/ocr_engine.h"
 #include "capture/scan_pipeline.h"
@@ -62,8 +63,20 @@ public:
                 QObject*                            parent = nullptr);
     ~CaptureDuty() override;
 
-    QVariantMap      settings() const;
-    QString          ocrStatus() const;
+    QVariantMap settings() const;
+    QString     ocrStatus() const;
+    /**
+     * @brief Write one of the capture settings, by the key the settings table names.
+     *
+     * The facade forwards here for every row whose signal is Signal::Capture, because the write is
+     * more than a value: switching capture on bumps the screenshot generation, and the scan and the
+     * OCR engine are rebuilt around the new number or path.
+     *
+     * @param key   The document key; one of the rows the table marks Signal::Capture.
+     * @param value The value the reader picked.
+     * @return False when the key is not one of this duty's, or when its value was refused.
+     */
+    bool             setSetting(std::string_view key, QVariant const& value);
     Q_INVOKABLE void setOcrCapture(bool on);
     Q_INVOKABLE void setAutoScan(bool on);
     Q_INVOKABLE void setMinimumWordLength(int length);
@@ -72,6 +85,7 @@ public:
     Q_INVOKABLE void setTesseractExecutable(QString executable);
     /// @brief Point OCR at the reader's own traineddata directory; empty means the one beside the executable.
     Q_INVOKABLE void setTesseractDataDirectory(QString directory);
+    /// @brief Put every row the table marks Signal::Capture back to its default.
     Q_INVOKABLE void restoreDefaults();
     Q_INVOKABLE void probeOcr();
 

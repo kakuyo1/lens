@@ -65,7 +65,7 @@ Item {
         when: windowShown
 
         function cleanup() {
-            Controller.setFont("");
+            Controller.setSetting("font", "");
         }
 
         /// @return The families the field is offered, as plain names.
@@ -133,16 +133,16 @@ Item {
             if (picked === "")
                 skip("this machine has one Latin family");
 
-            Controller.setFont(picked);
+            Controller.setSetting("font", picked);
             compare(Controller.settings.font, picked);
 
             // A name this machine does not have is dropped rather than stored: QML would draw it
             // as whatever the font matcher picked instead, under a name that is not in the list.
-            Controller.setFont("No Such Family At All");
+            Controller.setSetting("font", "No Such Family At All");
             compare(Controller.settings.font, picked, "an unknown family was stored");
 
             // Empty is the application's own face, which is the first family main() installed.
-            Controller.setFont("");
+            Controller.setSetting("font", "");
             compare(Controller.settings.font, Qt.application.font.family);
         }
 
@@ -163,7 +163,7 @@ Item {
             const definition = definitions[0];
             compare(word.font.family, Controller.settings.font);
 
-            Controller.setFont(other);
+            Controller.setSetting("font", other);
             wait(20);
             compare(word.font.family, other, "the word did not follow the setting");
             compare(definition.font.family, other, "the definition did not follow the setting");
@@ -175,7 +175,7 @@ Item {
                 skip("this machine has one Latin family");
 
             const bubble = opened();
-            Controller.setFont(other);
+            Controller.setSetting("font", other);
             wait(20);
 
             // The Chinese line is drawn a character at a time (RevealText), so its face is read
@@ -213,7 +213,7 @@ Item {
                 skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the offscreen snapshot");
 
             const names = familyNames();
-            Controller.setFont(names.indexOf("Georgia") >= 0 ? "Georgia" : Controller.settings.font);
+            Controller.setSetting("font", names.indexOf("Georgia") >= 0 ? "Georgia" : Controller.settings.font);
             const payload = PreviewSample.payload("font");
             verify(payload, "the font preview has no sample to draw");
 
@@ -228,7 +228,7 @@ Item {
         }
 
         function test_theGeneralPageOpensTheFontPageOnTheFamilyInForce() {
-            Controller.setFont("");
+            Controller.setSetting("font", "");
             const main = createTemporaryObject(mainComponent, root);
             verify(main);
             Util.surfaceHost(main).showSettings();
@@ -256,7 +256,7 @@ Item {
         /// The preview used to hang off the "Font" title; it now belongs to the rows of the list
         /// (UI.md 4.4), and each row draws the same bubble in its own family.
         function test_theFontRowsRaiseTheBubblePreviewInTheirOwnFace() {
-            Controller.setFont("");
+            Controller.setSetting("font", "");
             const main = createTemporaryObject(mainComponent, root);
             verify(main);
             Util.surfaceHost(main).showSettings();

@@ -68,12 +68,12 @@ Item {
         if (index === 2)
             page.loadDraft();
         else
-            Controller.setTheme(page.tokens.themeName(index));
+            Controller.setSetting("theme", page.tokens.themeName(index));
     }
 
     function applyCustomTheme() {
         if (page.contrast.valid)
-            Controller.setTheme(page.tokens.customThemeValue(page.draftColors));
+            Controller.setSetting("theme", page.tokens.customThemeValue(page.draftColors));
     }
 
     Component.onCompleted: page.loadDraft()
@@ -168,7 +168,7 @@ Item {
                 // has room for: it goes into the card the pointer raises beside the list.
                 notesInRows: false
                 optionPreview: notePreviewComponent
-                onPicked: (value) => Controller.setGlassQuality(value)
+                onPicked: (value) => Controller.setSetting("glassQuality", value)
             }
 
             Text {
@@ -196,25 +196,25 @@ Item {
             SliderRow {
                 label: qsTranslate("SettingsPopup", "Blur")
                 suffix: "%"
-                to: 100
+                to: Controller.settingRange("frostedBlur").high
                 value: Controller.settings.frostedBlur
-                onMoved: (stop) => Controller.setFrostedBlur(stop)
+                onMoved: (stop) => Controller.setSetting("frostedBlur", stop)
             }
 
             SliderRow {
                 label: qsTranslate("SettingsPopup", "Saturation")
                 suffix: "%"
-                to: 200
+                to: Controller.settingRange("frostedSaturation").high
                 value: Controller.settings.frostedSaturation
-                onMoved: (stop) => Controller.setFrostedSaturation(stop)
+                onMoved: (stop) => Controller.setSetting("frostedSaturation", stop)
             }
 
             SliderRow {
                 label: qsTranslate("SettingsPopup", "Rim highlight")
                 suffix: "%"
-                to: 100
+                to: Controller.settingRange("frostedRim").high
                 value: Controller.settings.frostedRim
-                onMoved: (stop) => Controller.setFrostedRim(stop)
+                onMoved: (stop) => Controller.setSetting("frostedRim", stop)
             }
         }
 
@@ -234,25 +234,25 @@ Item {
             SliderRow {
                 label: qsTranslate("SettingsPopup", "Refraction")
                 suffix: " px"
-                to: 40
+                to: Controller.settingRange("liquidRefraction").high
                 value: Controller.settings.liquidRefraction
-                onMoved: (stop) => Controller.setLiquidRefraction(stop)
+                onMoved: (stop) => Controller.setSetting("liquidRefraction", stop)
             }
 
             SliderRow {
                 label: qsTranslate("SettingsPopup", "Blur")
                 suffix: "%"
-                to: 100
+                to: Controller.settingRange("liquidBlur").high
                 value: Controller.settings.liquidBlur
-                onMoved: (stop) => Controller.setLiquidBlur(stop)
+                onMoved: (stop) => Controller.setSetting("liquidBlur", stop)
             }
 
             SliderRow {
                 label: qsTranslate("SettingsPopup", "Rim highlight")
                 suffix: "%"
-                to: 100
+                to: Controller.settingRange("liquidRim").high
                 value: Controller.settings.liquidRim
-                onMoved: (stop) => Controller.setLiquidRim(stop)
+                onMoved: (stop) => Controller.setSetting("liquidRim", stop)
             }
 
             Text {
@@ -282,7 +282,7 @@ Item {
                     selectByMouse: true
                     activeFocusOnTab: true
                     onEditingFinished: {
-                        Controller.setLiquidTextColor(text);
+                        Controller.setSetting("liquidTextColor", text);
                         // Back to the stored colour, so a refused value shows what is in force.
                         text = Qt.binding(() => Controller.settings.liquidTextColor);
                     }
@@ -426,7 +426,7 @@ Item {
             width: parent.width
             label: qsTranslate("SettingsPopup", "Animations")
             checked: Controller.settings.animationsEnabled
-            onToggled: (on) => Controller.setAnimationsEnabled(on)
+            onToggled: (on) => Controller.setSetting("animationsEnabled", on)
         }
 
         // The typing pace the answer is written out at. It only means anything while animations are
@@ -438,12 +438,12 @@ Item {
             visible: Controller.settings.animationsEnabled
             height: visible ? implicitHeight : 0
             label: qsTranslate("SettingsPopup", "Typing speed")
-            suffix: " / 5"
-            from: 1
-            to: 5
+            suffix: " / " + Controller.settingRange("revealSpeed").high
+            from: Controller.settingRange("revealSpeed").low
+            to: Controller.settingRange("revealSpeed").high
             value: Controller.settings.revealSpeed
             previewKey: "speed"
-            onMoved: (stop) => Controller.setRevealSpeed(stop)
+            onMoved: (stop) => Controller.setSetting("revealSpeed", stop)
             onPreviewChanged: (key) => page.previewRequested(key)
         }
 

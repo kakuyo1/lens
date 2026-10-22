@@ -14,7 +14,6 @@
 #include <QJsonDocument>
 #include <QGuiApplication>
 #include <QLocale>
-#include <QRegularExpression>
 #include <QSaveFile>
 #include <QScreen>
 #include <QQmlEngine>
@@ -24,12 +23,12 @@
 #include <utility>
 
 #include "app/platform/autostart.h"
-#include "bubble_settings.h"
 #include "glass_settings.h"
 #include "notice.h"
 #include "paths.h"
 #include "pet/pet_controller.h"
 #include "reveal_settings.h"
+#include "settings_access.h"
 #include "settings_defaults.h"
 #include "util/text.h"
 #include "update/update_client.h"
@@ -99,7 +98,10 @@ AppController::AppController(core::KnownStore&            store,
       cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), sync_(storage_, dataDir, this), reviewDuty_(storage_, [this] { return pet_ != nullptr and pet_->enabled(); }, [this] { return pet_ != nullptr and pet_->availableForReview(); }, this), llm_(llm), hotkey_(hotkey), picturesSource_(nullptr, this), picturesCache_(pictures::PictureCache::defaultRoot()), pictureDuty_(picturesSource_, picturesCache_, this), previewSample_(loadPreviewSample(dataDir / "preview.json"))
 {
     budgetPaused_ = cost_.budgetStatus().exhausted;
-    glass_.setQuality(glassQualityFrom(storage_.section().value<int>("glassQuality", defaults::kGlassQuality)));
+    // The backdrop starts on the tier the document holds, read through the row's own clamp so a
+    // hand-edited number cannot reach the refresh code.
+    const auto* const quality = core::settings::find("glassQuality");
+    glass_.setQuality(glassQualityFrom(settings::read(storage_.section(), *quality).toInt()));
     // A change to the statistics or the settings is what a sync carries, so either one schedules
     // a sync. Marks reach here as statsChanged too, since ExplanationDuty forwards it.
     connect(this, &AppController::statsChanged, &sync_, &SyncDuty::scheduleSync);
@@ -246,36 +248,91 @@ void AppController::restoreCaptureDefaults()
 
 void AppController::restoreDefaults()
 {
-    // Written through the ordinary setters so the clamps and the validation stay the only way a
-    // value reaches the document; what is centralized here is the value, not the write.
-    setLevel(defaults::kLevel);
-    setExplanationLang(QString::fromStdString(std::string{defaults::kExplanationLang}));
-    setMultiSense(defaults::kMultiSense);
-    setEtymology(defaults::kEtymology);
-    setExample(defaults::kExample);
-    setTheme(QString::fromStdString(std::string{defaults::kTheme}));
-    setFont(QString{});
-    setBubbleFontSize(defaults::kBubbleFontSize);
-    setAnimationsEnabled(defaults::kAnimationsEnabled);
-    setRevealSpeed(defaults::kRevealSpeed);
-    setSelectionCapture(defaults::kSelectionCapture);
-    setClipboardPolicy(defaults::kClipboardSilent);
-    setBubbleDismissSeconds(defaults::kBubbleDismissSeconds);
-    setBubblePlacement(QString::fromStdString(std::string{defaults::kBubblePlacement}));
-    setSelectionBarStyle(QString::fromStdString(std::string{defaults::kSelectionBarStyle}));
-    setFrostedBlur(defaults::kFrostedBlurDefault);
-    setFrostedSaturation(defaults::kFrostedSaturationDefault);
-    setFrostedRim(defaults::kFrostedRimDefault);
-    setLiquidRefraction(defaults::kLiquidRefractionDefault);
-    setLiquidBlur(defaults::kLiquidBlurDefault);
-    setLiquidRim(defaults::kLiquidRimDefault);
-    setLiquidTextColor(QString::fromStdString(std::string{defaults::kLiquidTextColor}));
-    setGlassQuality(defaults::kGlassQuality);
-    setReviewFrequency(static_cast<int>(defaults::kReviewFrequency));
+    // Every row the panel owns, written through the same path the reader's own choice takes, so the
+    // clamp and the members are the ones a restore would be held to as well. The capture rows are
+    // restoreCaptureDefaults()'s: its writes rebuild the OCR engine, which is more than a value.
+    for (auto const& row : core::settings::kRows)
+        if (row.restorable and row.signal != core::settings::Signal::Capture)
+            writeSetting(row, settings::defaultValue(row));
+    setReviewFrequency(static_cast<int>(core::kDefaultReviewFrequency));
     if (not catalog_.setProvider(defaults::defaultProviderName()))
         LENS_WARN("the catalog has no usable default provider; the model service was left alone");
     setModel(defaults::defaultModelName());
     restoreCaptureDefaults();
+}
+
+bool AppController::setSetting(QString key, QVariant value)
+{
+    const auto* const row = core::settings::find(key.toStdString());
+    if (row == nullptr) {
+        LENS_WARN("'{}' is not a setting; nothing was written", key.toStdString());
+        return false;
+    }
+    return writeSetting(*row, value);
+}
+
+QVariantMap AppController::settingRange(QString key) const
+{
+    const auto* const row = core::settings::find(key.toStdString());
+    return row == nullptr ? QVariantMap{} : settings::rangeOf(*row);
+}
+
+bool AppController::writeSetting(core::settings::Row const& row, QVariant const& value)
+{
+    using core::settings::Signal;
+    switch (row.signal) {
+        case Signal::Capture:
+            return capture_.setSetting(row.key, value);
+        case Signal::Level: {
+            const int level = std::clamp(value.toInt(), row.low, row.high);
+            storage_.knownStore().setLevel(level);
+            storage_.save();
+            LENS_INFO("level set to {}", level);
+            emit settingsChanged();
+            return true;
+        }
+        case Signal::ExplanationLang: {
+            const std::string lang = value.toString().toStdString();
+            if (lang.empty()) {
+                LENS_WARN("an empty explanation language names nothing; leaving the setting alone");
+                return false;
+            }
+            storage_.knownStore().setExplanationLang(lang);
+            storage_.save();
+            LENS_INFO("explanation language set to '{}'", lang);
+            emit settingsChanged();
+            emit statsChanged();
+            return true;
+        }
+        case Signal::Language: {
+            if (not settings::write(storage_.section(), row, value))
+                return false;
+            emit uiLanguageChanged(value.toString());
+            emit settingsChanged();
+            emit statsChanged();
+            return true;
+        }
+        case Signal::Glass: {
+            if (not settings::write(storage_.section(), row, value))
+                return false;
+            glass_.setQuality(glassQualityFrom(settings::read(storage_.section(), row).toInt()));
+            emit settingsChanged();
+            return true;
+        }
+        case Signal::Logged: {
+            if (not settings::write(storage_.section(), row, value))
+                return false;
+            LENS_INFO("{} set to '{}'", std::string{row.key}, settings::read(storage_.section(), row).toString().toStdString());
+            emit settingsChanged();
+            return true;
+        }
+        case Signal::Settings:
+            if (not settings::write(storage_.section(), row, value))
+                return false;
+            emit settingsChanged();
+            return true;
+    }
+    return false;
 }
 
 QString AppController::setOcrHotkey(int key, int modifiers)
@@ -354,14 +411,6 @@ void AppController::reportCaptureRefusal(CaptureRefusal const refusal)
     explanation_.showNotice(QCoreApplication::translate("SettingsPopup", "OCR"), body, QString::fromLatin1(kNoticeError));
 }
 
-void AppController::setLevel(int level)
-{
-    storage_.knownStore().setLevel(level);
-    storage_.save();
-    LENS_INFO("level set to {}", level);
-    emit settingsChanged();
-}
-
 QString AppController::reviewQuestion() const
 {
     return reviewDuty_.word();
@@ -387,56 +436,12 @@ void AppController::setReviewFrequency(int const value)
     emit settingsChanged();
 }
 
-void AppController::setExplanationLang(QString lang)
-{
-    storage_.knownStore().setExplanationLang(lang.toStdString());
-    storage_.save();
-    LENS_INFO("explanation language set to '{}'", lang.toStdString());
-    emit settingsChanged();
-    emit statsChanged();
-}
-
 void AppController::reexplainIn(QString language)
 {
     if (language.isEmpty() or language == QString::fromStdString(storage_.knownStore().explanationLang()))
         return;
-    setExplanationLang(std::move(language));
+    setSetting(QStringLiteral("explanationLang"), language);
     explanation_.reexplain();
-}
-
-void AppController::setMultiSense(bool on)
-{
-    storage_.section().set<bool>("multiSense", on);
-    emit settingsChanged();
-}
-
-void AppController::setEtymology(bool on)
-{
-    storage_.section().set<bool>("etymology", on);
-    emit settingsChanged();
-}
-
-void AppController::setExample(bool on)
-{
-    storage_.section().set<bool>("example", on);
-    emit settingsChanged();
-}
-
-void AppController::setTheme(QString theme)
-{
-    storage_.section().set<std::string>("theme", theme.toStdString());
-    emit settingsChanged();
-}
-
-void AppController::setFont(QString family)
-{
-    const QString chosen = family.trimmed();
-    if (not chosen.isEmpty() and not QFontDatabase::hasFamily(chosen)) {
-        LENS_WARN("unknown font family '{}'; leaving the setting alone", chosen.toStdString());
-        return;
-    }
-    storage_.section().set<std::string>("font", chosen.toStdString());
-    emit settingsChanged();
 }
 
 QVariantList AppController::latinFontFamilies() const
@@ -453,106 +458,19 @@ QVariantList AppController::latinFontFamilies() const
     return options;
 }
 
-void AppController::setBubbleFontSize(int pixels)
-{
-    storage_.section().set<int>("bubbleFontSize", clampBubbleFontSize(pixels));
-    emit settingsChanged();
-}
-
 QVariantList AppController::bubbleFontSizeOptions() const
 {
-    // Every whole pixel of the range: seven rows, which is a list the reader reads down rather
+    // Every whole pixel of the row's range: seven rows, which is a list the reader reads down rather
     // than scrolls, and the preview beside it is what says which one is right.
-    QVariantList options;
-    for (int pixels = kBubbleFontSizeMin; pixels <= kBubbleFontSizeMax; ++pixels) {
+    const auto* const row = core::settings::find("bubbleFontSize");
+    QVariantList      options;
+    for (int pixels = row->low; pixels <= row->high; ++pixels) {
         options.append(QVariantMap{{"value", pixels},
                                    {"label", QCoreApplication::translate("lens::app::AppController", "%1 px").arg(pixels)},
                                    {"group", QString{}},
-                                   {"note", pixels == kBubbleFontSizeDefault ? QCoreApplication::translate("lens::app::AppController", "Default") : QString{}}});
+                                   {"note", pixels == row->fallback.number ? QCoreApplication::translate("lens::app::AppController", "Default") : QString{}}});
     }
     return options;
-}
-
-void AppController::setFrostedBlur(int percent)
-{
-    storage_.section().set<int>("frostedBlur", clampGlass(kFrostedBlur, percent));
-    emit settingsChanged();
-}
-
-void AppController::setFrostedSaturation(int percent)
-{
-    storage_.section().set<int>("frostedSaturation", clampGlass(kFrostedSaturation, percent));
-    emit settingsChanged();
-}
-
-void AppController::setFrostedRim(int percent)
-{
-    storage_.section().set<int>("frostedRim", clampGlass(kFrostedRim, percent));
-    emit settingsChanged();
-}
-
-void AppController::setLiquidRefraction(int pixels)
-{
-    storage_.section().set<int>("liquidRefraction", clampGlass(kLiquidRefraction, pixels));
-    emit settingsChanged();
-}
-
-void AppController::setLiquidBlur(int percent)
-{
-    storage_.section().set<int>("liquidBlur", clampGlass(kLiquidBlur, percent));
-    emit settingsChanged();
-}
-
-void AppController::setLiquidRim(int percent)
-{
-    storage_.section().set<int>("liquidRim", clampGlass(kLiquidRim, percent));
-    emit settingsChanged();
-}
-
-void AppController::setLiquidTextColor(QString color)
-{
-    static const QRegularExpression hexColor{QStringLiteral("^#[0-9a-fA-F]{6}$")};
-    if (not hexColor.match(color).hasMatch()) {
-        LENS_WARN("unknown liquid text colour '{}'; leaving the setting alone", color.toStdString());
-        return;
-    }
-    storage_.section().set<std::string>("liquidTextColor", color.toLower().toStdString());
-    emit settingsChanged();
-}
-
-void AppController::setGlassQuality(int quality)
-{
-    auto const chosen = glassQualityFrom(quality);
-    storage_.section().set<int>("glassQuality", static_cast<int>(chosen));
-    glass_.setQuality(chosen);
-    emit settingsChanged();
-}
-
-void AppController::setAnimationsEnabled(bool on)
-{
-    storage_.section().set<bool>("animationsEnabled", on);
-    emit settingsChanged();
-}
-
-void AppController::setRevealSpeed(int speed)
-{
-    storage_.section().set<int>("revealSpeed", clampRevealSpeed(speed));
-    emit settingsChanged();
-}
-
-void AppController::setUiLanguage(QString lang)
-{
-    storage_.section().set<std::string>("uiLanguage", lang.toStdString());
-    emit uiLanguageChanged(lang);
-    emit settingsChanged();
-    emit statsChanged();
-}
-
-void AppController::setSelectionCapture(bool on)
-{
-    storage_.section().set<bool>("selectionCapture", on);
-    LENS_INFO("selection capture {}", on ? "on" : "off");
-    emit settingsChanged();
 }
 
 void AppController::setApiKey(QString key)
@@ -564,40 +482,6 @@ void AppController::setApiKey(QString key)
     // (docs/adr/0020). The trigger stays because the request is free and this is the moment the
     // reader is most likely looking at the field.
     catalog_.refreshModels();
-    emit settingsChanged();
-}
-
-void AppController::setClipboardPolicy(bool const silent)
-{
-    const ClipboardPolicy policy = silent ? ClipboardPolicy::Silent : ClipboardPolicy::Topmost;
-    storage_.section().set<std::string>("clipboardPolicy", std::string{clipboardPolicyKey(policy)});
-    LENS_INFO("clipboard policy set to '{}'", clipboardPolicyKey(policy));
-    emit settingsChanged();
-}
-
-void AppController::setBubbleDismissSeconds(int seconds)
-{
-    storage_.section().set<int>("bubbleDismissSeconds", clampBubbleDismissSeconds(seconds));
-    emit settingsChanged();
-}
-
-void AppController::setBubblePlacement(QString placement)
-{
-    if (placement != QLatin1String("above") && placement != QLatin1String("below")) {
-        LENS_WARN("unknown bubble placement '{}'; leaving the setting alone", placement.toStdString());
-        return;
-    }
-    storage_.section().set<std::string>("bubblePlacement", placement.toStdString());
-    emit settingsChanged();
-}
-
-void AppController::setSelectionBarStyle(QString style)
-{
-    if (style != QLatin1String("bar") && style != QLatin1String("tab") && style != QLatin1String("hand") && style != QLatin1String("tag") && style != QLatin1String("fan")) {
-        LENS_WARN("unknown selection bar style '{}'; leaving the setting alone", style.toStdString());
-        return;
-    }
-    storage_.section().set<std::string>("selectionBarStyle", style.toStdString());
     emit settingsChanged();
 }
 
@@ -647,54 +531,43 @@ void AppController::explainLemma(QString lemma)
 
 QVariantMap AppController::settings()
 {
-    auto const    keys     = storage_.section();
-    const QString provider = catalog_.currentProvider();
-    // The slider shows the level; the pace the reveal takes is that level through the mapping in
-    // reveal_settings.h. Read once so the two the map hands out cannot drift apart.
-    const int revealSpeed = clampRevealSpeed(keys.value<int>("revealSpeed", defaults::kRevealSpeed));
+    auto const keys = storage_.section();
+    // Every key the settings table owns, read through that row's own rule: the clamp, the members and
+    // the default are the writer's, so what a reader sees is what a writer would store.
+    QVariantMap result;
+    for (auto const& row : core::settings::kRows) {
+        // The two the store holds, rather than the document: save() stamps them from its own state.
+        if (row.signal == core::settings::Signal::Level or row.signal == core::settings::Signal::ExplanationLang)
+            continue;
+        result.insert(settings::keyOf(row), settings::read(keys, row));
+    }
+    // The two the store holds, and the option lists the surface reads beside them.
+    result.insert(QStringLiteral("level"), storage_.knownStore().level());
+    result.insert(QStringLiteral("explanationLang"), QString::fromStdString(storage_.knownStore().explanationLang()));
+    result.insert(QStringLiteral("levels"), StorageDuty::levelOptions());
+    result.insert(QStringLiteral("reviewFrequency"), static_cast<int>(reviewDuty_.frequency()));
+    result.insert(QStringLiteral("reviewFrequencyOptions"), StorageDuty::reviewFrequencyOptions());
     // The face the English runs are drawn in: the reader's pick, or the application's own when
     // nothing is stored -- and also when what is stored names a family this machine no longer has,
     // which a settings document copied from another machine can. Handed out as a family rather
     // than as the empty string an unset setting holds, because QML binds it straight onto a Text
     // and an empty family there would put the run back to a font nobody chose.
-    const QString storedFont = QString::fromStdString(keys.value<std::string>("font", {}));
-    QVariantMap   result{{"level", storage_.knownStore().level()},
-                         {"levels", StorageDuty::levelOptions()},
-                         {"reviewFrequency", static_cast<int>(reviewDuty_.frequency())},
-                         {"reviewFrequencyOptions", StorageDuty::reviewFrequencyOptions()},
-                         {"explanationLang", QString::fromStdString(storage_.knownStore().explanationLang())},
-                         {"multiSense", keys.value<bool>("multiSense", defaults::kMultiSense)},
-                         {"etymology", keys.value<bool>("etymology", defaults::kEtymology)},
-                         {"example", keys.value<bool>("example", defaults::kExample)},
-                         {"theme", QString::fromStdString(keys.value<std::string>("theme", std::string{defaults::kTheme}))},
-                         {"font", fontFamilyFor(storedFont)},
-                         {"bubbleFontSize", clampBubbleFontSize(keys.value<int>("bubbleFontSize", defaults::kBubbleFontSize))},
-                         {"frostedBlur", clampGlass(kFrostedBlur, keys.value<int>("frostedBlur", kFrostedBlur.fallback))},
-                         {"frostedSaturation", clampGlass(kFrostedSaturation, keys.value<int>("frostedSaturation", kFrostedSaturation.fallback))},
-                         {"frostedRim", clampGlass(kFrostedRim, keys.value<int>("frostedRim", kFrostedRim.fallback))},
-                         {"liquidRefraction", clampGlass(kLiquidRefraction, keys.value<int>("liquidRefraction", kLiquidRefraction.fallback))},
-                         {"liquidBlur", clampGlass(kLiquidBlur, keys.value<int>("liquidBlur", kLiquidBlur.fallback))},
-                         {"liquidRim", clampGlass(kLiquidRim, keys.value<int>("liquidRim", kLiquidRim.fallback))},
-                         {"liquidTextColor", QString::fromStdString(keys.value<std::string>("liquidTextColor", std::string{kLiquidTextColorFallback}))},
-                         {"glassQuality", static_cast<int>(glassQualityFrom(keys.value<int>("glassQuality", defaults::kGlassQuality)))},
-                         {"animationsEnabled", keys.value<bool>("animationsEnabled", defaults::kAnimationsEnabled)},
-                         {"revealSpeed", revealSpeed},
-                         {"revealCharacterMs", revealMillisPerCharacter(revealSpeed)},
-                         {"uiLanguage", QString::fromStdString(keys.value<std::string>("uiLanguage", std::string{defaults::kUiLanguage}))},
-                         {"hasApiKey", !keys.value<std::string>("API-KEY", {}).empty()},
-                         {"selectionCapture", keys.value<bool>("selectionCapture", defaults::kSelectionCapture)},
-                         {"clipboardSilent", clipboardPolicyFromStored(keys.value<std::string>("clipboardPolicy", {})) == ClipboardPolicy::Silent},
-                         {"bubbleDismissSeconds", clampBubbleDismissSeconds(keys.value<int>("bubbleDismissSeconds", defaults::kBubbleDismissSeconds))},
-                         {"bubblePlacement", QString::fromStdString(keys.value<std::string>("bubblePlacement", std::string{defaults::kBubblePlacement}))},
-                         {"selectionBarStyle", QString::fromStdString(keys.value<std::string>("selectionBarStyle", std::string{defaults::kSelectionBarStyle}))},
-                         {"ocrHotkey", hotkey_.keys().toString(QKeySequence::PortableText)},
-                         {"ocrHotkeyConflicted", hotkey_.conflicted()},
-                         {"provider", provider},
-                         {"model", llm_.model()},
-                         {"url", llm_.baseUrl().toString()},
-                         {"dailyBudget", dailyBudget()},
-                         {"autostart", autostartEnabled()}};
-    const auto    captureSettings = capture_.settings();
+    result.insert(QStringLiteral("font"), fontFamilyFor(result.value(QStringLiteral("font")).toString()));
+    // The slider shows the level; the pace the reveal takes is that level through the mapping in
+    // reveal_settings.h, read off the row the projection just handed out so the two cannot drift.
+    result.insert(QStringLiteral("revealCharacterMs"),
+                  revealMillisPerCharacter(result.value(QStringLiteral("revealSpeed")).toInt()));
+    result.insert(QStringLiteral("hasApiKey"), !keys.value<std::string>("API-KEY", {}).empty());
+    // The key in force, which is not always the one the document holds: a combination the shell
+    // refused leaves the old one working, and that is the one the field has to show.
+    result.insert(QStringLiteral("ocrHotkey"), hotkey_.keys().toString(QKeySequence::PortableText));
+    result.insert(QStringLiteral("ocrHotkeyConflicted"), hotkey_.conflicted());
+    result.insert(QStringLiteral("provider"), catalog_.currentProvider());
+    result.insert(QStringLiteral("model"), llm_.model());
+    result.insert(QStringLiteral("url"), llm_.baseUrl().toString());
+    result.insert(QStringLiteral("dailyBudget"), dailyBudget());
+    result.insert(QStringLiteral("autostart"), autostartEnabled());
+    const auto captureSettings = capture_.settings();
     for (auto it = captureSettings.cbegin(); it != captureSettings.cend(); ++it)
         result.insert(it.key(), it.value());
     result.insert(QStringLiteral("ocrStatus"), capture_.ocrStatus());

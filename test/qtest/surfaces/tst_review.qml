@@ -49,8 +49,8 @@ Item {
         /// exercising -- a stored explanation is keyed by the language it was stored in, so a case
         /// that reads one has to say which language it is reading. Multi-sense changes the key too.
         function initTestCase() {
-            Controller.setExplanationLang("zh");
-            Controller.setMultiSense(false);
+            Controller.setSetting("explanationLang", "zh");
+            Controller.setSetting("multiSense", false);
         }
 
         function make() {

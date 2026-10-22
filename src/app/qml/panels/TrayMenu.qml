@@ -285,7 +285,7 @@ Window {
                         TapHandler {
                             id: rowPress
                             onTapped: {
-                                Controller.setUiLanguage(option.modelData.value);
+                                Controller.setSetting("uiLanguage", option.modelData.value);
                                 menu.visible = false;
                             }
                         }

@@ -26,14 +26,14 @@ Item {
         }
 
         function cleanup() {
-            Controller.setLevel(2);
-            Controller.setExplanationLang("en");
-            Controller.setMultiSense(false);
-            Controller.setTheme("light");
-            Controller.setAnimationsEnabled(true);
-            Controller.setUiLanguage("zh");
-            Controller.setSelectionCapture(true);
-            Controller.setClipboardPolicy(false);
+            Controller.setSetting("level", 2);
+            Controller.setSetting("explanationLang", "en");
+            Controller.setSetting("multiSense", false);
+            Controller.setSetting("theme", "light");
+            Controller.setSetting("animationsEnabled", true);
+            Controller.setSetting("uiLanguage", "zh");
+            Controller.setSetting("selectionCapture", true);
+            Controller.setSetting("clipboardPolicy", "topmost");
             Controller.modelCatalogDuty.setProvider("DeepSeek");
             Controller.setModel("deepseek-flash");
             Controller.captureDuty.setAutoScan(false);
@@ -99,19 +99,19 @@ Item {
             const hasApiKey = Controller.settings.hasApiKey;
             const autostart = Controller.settings.autostart;
 
-            Controller.setLevel(4);
-            Controller.setExplanationLang("zh");
-            Controller.setMultiSense(true);
-            Controller.setEtymology(true);
-            Controller.setExample(true);
-            Controller.setTheme("dark");
-            Controller.setAnimationsEnabled(false);
-            Controller.setSelectionCapture(false);
-            Controller.setClipboardPolicy(true);
-            Controller.setBubbleDismissSeconds(20);
-            Controller.setBubblePlacement("below");
+            Controller.setSetting("level", 4);
+            Controller.setSetting("explanationLang", "zh");
+            Controller.setSetting("multiSense", true);
+            Controller.setSetting("etymology", true);
+            Controller.setSetting("example", true);
+            Controller.setSetting("theme", "dark");
+            Controller.setSetting("animationsEnabled", false);
+            Controller.setSetting("selectionCapture", false);
+            Controller.setSetting("clipboardPolicy", "silent");
+            Controller.setSetting("bubbleDismissSeconds", 20);
+            Controller.setSetting("bubblePlacement", "below");
             Controller.setReviewFrequency(0);
-            Controller.setFrostedBlur(50);
+            Controller.setSetting("frostedBlur", 50);
             Controller.modelCatalogDuty.setProvider("openai");
             Controller.setModel("gpt-4.1-nano");
             Controller.captureDuty.setAutoScan(true);
@@ -128,7 +128,7 @@ Item {
             compare(Controller.settings.theme, "light");
             compare(Controller.settings.animationsEnabled, true);
             compare(Controller.settings.selectionCapture, true);
-            compare(Controller.settings.clipboardSilent, false);
+            compare(Controller.settings.clipboardPolicy === "silent", false);
             compare(Controller.settings.bubbleDismissSeconds, 5);
             compare(Controller.settings.bubblePlacement, "above");
             compare(Controller.settings.reviewFrequency, 2);
@@ -247,10 +247,10 @@ Item {
 
             openCategory(panel, "General");
             wait(settled);
-            Controller.setTheme("light");
+            Controller.setSetting("theme", "light");
             wait(settled);
             verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-general-light"));
-            Controller.setTheme("dark");
+            Controller.setSetting("theme", "dark");
             wait(settled);
             verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-general-dark"));
             back(panel);
@@ -300,11 +300,11 @@ Item {
             // taken before that has finished photographs a half-transparent card.
             const settled = Tokens.motion.pop + 80;
 
-            Controller.setTheme("light");
+            Controller.setSetting("theme", "light");
             wait(settled);
             verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-light"));
 
-            Controller.setTheme("dark");
+            Controller.setSetting("theme", "dark");
             wait(settled);
             verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-dark"));
         }

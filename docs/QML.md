@@ -88,9 +88,9 @@
 - **界面语言要调 `QQmlApplicationEngine::retranslate()`**：装翻译器不会让 QML 的 `qsTr` 绑定重算，
   托盘菜单当场变是因为 C++ 那侧自己接了 `uiLanguageChanged`，QML 表面没有对应动作。因此 `engine`
   必须声明在接这个信号的 lambda 之前。
-- **换语言时信号的顺序不是随意的**：`setUiLanguage` 先发 `uiLanguageChanged`（它才装翻译器），再发
+- **换语言时信号的顺序不是随意的**：`setSetting("uiLanguage", …)` 先发 `uiLanguageChanged`（它才装翻译器），再发
   `settingsChanged` / `statsChanged`。`words()` 现在只给原始的日期与时间，文字由 `WordsPopup.qml` 的 `qsTr` 绘制，
-  所以它不再依赖这个顺序。
+  所以它不再依赖这个顺序。写入走哪一条由设置表那一行的 `Signal` 决定（`docs/adr/0083`）。
 - **`font.pixelSize` 是整数**：`UI.md` 字号表里的 12.5 / 11.5 / 10.5 px 落不了地，按四舍五入取
   13 / 12 / 11，保住 “最小 11 px” 那条约束。
 

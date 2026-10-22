@@ -46,7 +46,7 @@ Item {
 
                     // The controller clamps, so an empty or out-of-range entry lands on the nearer edge.
                     onEditingFinished: {
-                        Controller.setBubbleDismissSeconds(Number(text))
+                        Controller.setSetting("bubbleDismissSeconds", Number(text))
                         text = Qt.binding(() => String(Controller.settings.bubbleDismissSeconds))
                     }
                 }
@@ -80,7 +80,7 @@ Item {
                 height: 31
                 labels: [qsTranslate("SettingsPopup", "Above"), qsTranslate("SettingsPopup", "Below")]
                 currentIndex: Controller.settings.bubblePlacement === "below" ? 1 : 0
-                onPicked: (index) => Controller.setBubblePlacement(index === 1 ? "below" : "above")
+                onPicked: (index) => Controller.setSetting("bubblePlacement", index === 1 ? "below" : "above")
             }
         }
         Column {
@@ -95,8 +95,8 @@ Item {
                 width: parent.width
                 height: 31
                 labels: [qsTranslate("SettingsPopup", "Raise to top"), qsTranslate("SettingsPopup", "Give up silently")]
-                currentIndex: Controller.settings.clipboardSilent ? 1 : 0
-                onPicked: (index) => Controller.setClipboardPolicy(index === 1)
+                currentIndex: Controller.settings.clipboardPolicy === "silent" ? 1 : 0
+                onPicked: (index) => Controller.setSetting("clipboardPolicy", index === 1 ? "silent" : "topmost")
             }
         }
     }

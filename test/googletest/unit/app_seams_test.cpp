@@ -28,7 +28,6 @@
 #include <gtest/gtest.h>
 
 #include "app/platform/autostart.h"
-#include "app/bubble_settings.h"
 #include "app/duties/capture_refusal.h"
 #include "app/duties/explanation_queue.h"
 #include "app/duties/model_catalog.h"
@@ -44,13 +43,8 @@
 namespace {
 
 using lens::app::autostartCommand;
-using lens::app::clampBubbleDismissSeconds;
-using lens::app::clampRevealSpeed;
 using lens::app::kAutostartRunKey;
 using lens::app::kAutostartValueName;
-using lens::app::kBubbleDismissDefaultSeconds;
-using lens::app::kBubbleDismissMaxSeconds;
-using lens::app::kBubbleDismissMinSeconds;
 using lens::app::kNoticeError;
 using lens::app::kNoticeInfo;
 using lens::app::kRevealSpeedDefault;
@@ -649,24 +643,11 @@ TEST(ModelCatalog, AMachineThatNeverReachedTheSourceReadsTheSeedAndDropsWhatIsNo
     EXPECT_EQ(modelsKnownFor({}, seeded), QStringList({QStringLiteral("deepseek-flash"), QStringLiteral("deepseek-v4-pro")}));
 }
 
-/// The display time starts at five seconds, the timing the bubble has always had, and the setting
-/// takes whole seconds from one to thirty: a value typed past either edge, or hand-written into the
-/// document, lands on the nearer edge rather than being refused.
-TEST(BubbleSettings, DisplayTimeStartsAtFiveSecondsAndClampsToOneToThirty)
-{
-    EXPECT_EQ(clampBubbleDismissSeconds(kBubbleDismissDefaultSeconds), 5);
-    EXPECT_EQ(clampBubbleDismissSeconds(12), 12);
-    EXPECT_EQ(clampBubbleDismissSeconds(kBubbleDismissMinSeconds), 1);
-    EXPECT_EQ(clampBubbleDismissSeconds(0), 1);
-    EXPECT_EQ(clampBubbleDismissSeconds(-7), 1);
-    EXPECT_EQ(clampBubbleDismissSeconds(kBubbleDismissMaxSeconds), 30);
-    EXPECT_EQ(clampBubbleDismissSeconds(31), 30);
-}
-
 /// The typing pace is a level from one to five, slowest first, and the level maps to the
 /// milliseconds the reveal is written at. The default has to stay the pace the reveal shipped with,
-/// because a reader who never opens the setting should see no change.
-TEST(RevealSettings, TheSpeedClampsAndMapsToThePaceTheRevealTakes)
+/// because a reader who never opens the setting should see no change. The level's own default and
+/// range are the settings table's (settings_table_test.cpp), and this is the mapping off them.
+TEST(RevealSettings, TheSpeedMapsToThePaceTheRevealTakes)
 {
     EXPECT_EQ(revealMillisPerCharacter(kRevealSpeedDefault), 35) << "the default pace moved";
 
@@ -674,10 +655,9 @@ TEST(RevealSettings, TheSpeedClampsAndMapsToThePaceTheRevealTakes)
     EXPECT_EQ(revealMillisPerCharacter(kRevealSpeedMax), 15);
 
     // Out of range, either way, lands on the nearer edge rather than indexing past the table.
-    EXPECT_EQ(clampRevealSpeed(0), kRevealSpeedMin);
-    EXPECT_EQ(clampRevealSpeed(-3), kRevealSpeedMin);
-    EXPECT_EQ(clampRevealSpeed(kRevealSpeedMax + 1), kRevealSpeedMax);
     EXPECT_EQ(revealMillisPerCharacter(0), 80);
+    EXPECT_EQ(revealMillisPerCharacter(-3), 80);
+    EXPECT_EQ(revealMillisPerCharacter(kRevealSpeedMax + 1), 15);
     EXPECT_EQ(revealMillisPerCharacter(99), 15);
 
     // Slower is a longer wait all the way up, so the slider reads as one direction and not two.

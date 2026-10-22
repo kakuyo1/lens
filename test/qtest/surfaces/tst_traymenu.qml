@@ -25,8 +25,8 @@ Item {
     /// The two the cases below flip, in the fixture's own values, so a case that throws
     /// halfway through does not leave the next one asserting against its leftovers.
     function restore() {
-        Controller.setSelectionCapture(false);
-        Controller.setUiLanguage("en");
+        Controller.setSetting("selectionCapture", false);
+        Controller.setSetting("uiLanguage", "en");
     }
 
     TestCase {
@@ -88,7 +88,7 @@ Item {
             compare(menu.capturing, false, "the fixture should have capture off");
             compare(stateLine(menu).text, qsTr("Selection capture is off"));
 
-            Controller.setSelectionCapture(true);
+            Controller.setSetting("selectionCapture", true);
             wait(50);
             compare(menu.capturing, true);
             compare(stateLine(menu).text, Controller.modeLabel);
@@ -101,7 +101,7 @@ Item {
             compare(menu.language, "en", "the fixture should have the interface in English");
             compare(menu.languageName, "English");
 
-            Controller.setUiLanguage("zh");
+            Controller.setSetting("uiLanguage", "zh");
             wait(50);
             compare(menu.languageName, "中文");
 

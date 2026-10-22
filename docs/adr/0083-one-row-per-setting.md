@@ -1,0 +1,22 @@
+# 0083 一个设置只有一行：key、类型、默认、clamp、信号
+
+- **状态**：accepted（改写 ADR 0062 的“默认值一张表”：表从默认值扩到整条设置）
+- **背景**：设置分区是文档的写入单元（ADR 0024），但“一个设置”本身没有模块拥有它。加一个设置要改十处：`app_controller.h` 的声明、setter、setter 里的 clamp、投影里的第二遍 clamp、`restoreDefaults()` 的一行、`settings_defaults.h` 的常量、`sync_state.cpp` 的白名单、`dev_surface.cpp` 的重放、QML 的控件与量程、`settings_section_test.cpp` 的 owner 行。其中两处已经真的写错了：clamp 在写（cpp:596）和读（cpp:648-705）各写一遍，手改过的文档能让读者看到一个写入方会拒绝的值；白名单与投影各自列 key，谁都不知道对方少了哪一项。
+- **决定**：
+  - 新增 `src/core/domain/settings_table.h`，一行一个设置：`key`、`Kind`（Toggle/Integer/Choice/Text/Color/Font）、`Signal`（这次写入要发哪个信号、写到哪个 owner 那里）、默认值、clamp 的上下界、Choice 的成员、`synced`、`restorable`。表是 Qt-free 的，所以 `sync_state.cpp` 的白名单由它生成，`core` 不欠 Qt。
+  - 新增 `src/app/settings_access.{h,cpp}`：`read()`/`write()` 是唯一套用行规则的地方——clamp、成员、`#rrggbb`、本机有的字体族都在这里。投影只读 `read()`，写入只走 `write()`，于是“读到的就是写入方会存下的”。
+  - `AppController` 的 24 个 setter 收成 `Q_INVOKABLE bool setSetting(key, value)` 加一个私有 `writeSetting(row, value)`，后者 `switch (row.signal)` 决定发 `settingsChanged` / `statsChanged` / `uiLanguageChanged`，或交给 `KnownStore`、`CaptureDuty`、玻璃背板。QML 改读同一套 key：`Controller.settings.frostedBlur` 读，`Controller.setSetting("frostedBlur", v)` 写。
+  - `restoreDefaults()` 与 `CaptureDuty::restoreDefaults()` 都变成遍历表里 `restorable` 的行；`restoreDefaults` 不再手写 27 行。
+  - QML 滑块量程从 `Controller.settingRange(key)` 取，`SettingsGeneralPage.qml` 里 7 个 `to: 100` 一类的字面量删掉。`glass_settings.h`、`reveal_settings.h` 的上下界与默认值改成从表的行里取，数字只写一次；`bubble_settings.h` 整个删除，它的 1..30 与 12..18 就是两行。
+  - 写入是命令而不是值的四个 key 不进表，并在表头写明理由：`API-KEY`（从不回显的秘密）、`PROVIDER`/`MODEL`/`URL`（模型目录作为一次决定写入）、`ocrHotkey`（外壳先接下组合键，文档才允许记）。`reviewFrequency` 在 review store 自己的对象里，`setReviewFrequency` 保留。
+- **后果**：
+  - `AppController` 的 invokable 从 49 降到 26；`settings()` 的投影从 36 个手写键变成“遍历表 + 十来个派生值”。
+  - 行为的两处收紧，都是有意的：Integer 行越界**一律 clamp**（原先 `minimumWordLength` 越界读回默认 3，现在读回 2 或 5，与写入一致）；Choice/Color 行读到表里没有的值时读回默认（原先原样交给 QML）。手改过的文档是唯一会碰到这两条的情况。
+  - `sync_state.cpp` 的 `applySettings()` 仍按 JSON 的形状写（文本存下的数字仍是文本，ADR 0024），表只决定哪些 key 上云、`level`/`explanationLang` 走哪个 owner。
+  - 新增 `settings_table_test.cpp`：白名单与表的 synced 行相等、每个 key 都在投影里、Integer 行两端都 clamp、Choice 拒收成员外的值、颜色只收 `#rrggbb`、restore 覆盖每个 `restorable` 行且不动 `uiLanguage`、dev 表面的设置名都是表里的行。`settings_section_test.cpp` 的 owner 表只剩四个非表 key，其余从表里取。
+  - 代价：key 现在是 QML 里的字符串，拼错不再编译期报错——所以 `setSetting` 对未知 key 记一行日志并返回 false，`settings_table_test.cpp` 的“每个 key 都在投影里”是那条防线。给 QML 一个强类型 key 需要代码生成，这次没做。
+- **被排除的选项**：
+  - 保留 24 个 setter、只让它们转调 `write()`：clamp 与默认值确实只剩一处，但最宽的接口没动，而这正是这次要收的东西。
+  - 表放在 `src/app`：`sync_state.cpp` 就再也读不到白名单，会退回到两张清单。
+  - 把 `glass_settings.h` 的 `GlassRange` 留在原处、表里再抄一份数字：那是把刚合起来的默认值又拆成两处。
+  - 让表带 `QVariant`：`core` 不欠 Qt，`Kind` + `Fallback` 三个字段就是它的替代。

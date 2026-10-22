@@ -275,29 +275,20 @@ nlohmann::json DevSurface::injectSelection(core::dev::Command const& command)
 
 nlohmann::json DevSurface::setSetting(core::dev::Command const& command)
 {
-    // The setters store the value in the settings file, as the settings page's own controls do.
-    auto const& value = command.settingValue;
-    switch (command.settingKey) {
-        case core::dev::SettingKey::Theme:
-            controller_->setTheme(QString::fromStdString(std::get<std::string>(value)));
-            break;
-        case core::dev::SettingKey::LiquidBlur:
-            controller_->setLiquidBlur(std::get<int>(value));
-            break;
-        case core::dev::SettingKey::FrostedBlur:
-            controller_->setFrostedBlur(std::get<int>(value));
-            break;
-        case core::dev::SettingKey::LiquidRefraction:
-            controller_->setLiquidRefraction(std::get<int>(value));
-            break;
-        case core::dev::SettingKey::AnimationsEnabled:
-            controller_->setAnimationsEnabled(std::get<bool>(value));
-            break;
-        case core::dev::SettingKey::GlassQuality:
-            controller_->setGlassQuality(std::get<int>(value));
-            break;
-    }
-    return success();
+    // One call: the settings table owns the key, its clamp and the signal the write raises, so this
+    // surface no longer replays a setter per key it is allowed to touch (docs/adr/0083).
+    const std::string key{core::dev::settingKeyName(command.settingKey)};
+    QVariant          value;
+    if (auto const* const text = std::get_if<std::string>(&command.settingValue))
+        value = QString::fromStdString(*text);
+    else if (auto const* const number = std::get_if<int>(&command.settingValue))
+        value = *number;
+    else if (auto const* const flag = std::get_if<bool>(&command.settingValue))
+        value = *flag;
+
+    return controller_->setSetting(QString::fromStdString(key), value)
+               ? success()
+               : failure("setting set " + key + ": refused");
 }
 
 nlohmann::json DevSurface::state() const

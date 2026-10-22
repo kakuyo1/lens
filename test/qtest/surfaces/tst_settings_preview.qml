@@ -38,12 +38,12 @@ Item {
         /// Every engine in the run shares one Controller and one settings document, so a case that
         /// writes one puts it back rather than leaving the next suite reading it.
         function cleanup() {
-            Controller.setTheme("dark"); ///< the fixture's, which the snapshot loop above changes
-            Controller.setExplanationLang("zh");
-            Controller.setMultiSense(false);
-            Controller.setEtymology(false);
-            Controller.setExample(false);
-            Controller.setAnimationsEnabled(true);
+            Controller.setSetting("theme", "dark"); ///< the fixture's, which the snapshot loop above changes
+            Controller.setSetting("explanationLang", "zh");
+            Controller.setSetting("multiSense", false);
+            Controller.setSetting("etymology", false);
+            Controller.setSetting("example", false);
+            Controller.setSetting("animationsEnabled", true);
         }
 
         function settingsPanel(main) {
@@ -266,7 +266,7 @@ Item {
             leaveTitle(main, panel);
 
             // The other way round for an English reader: the English definition and no Chinese.
-            Controller.setExplanationLang("en");
+            Controller.setSetting("explanationLang", "en");
             wait(20);
             preview = hoverTitle(main, panel, "Multiple senses");
             tryCompare(preview, "visible", true);
@@ -368,7 +368,7 @@ Item {
                    "the preview and the explanation bubble share one sheet");
 
             for (const theme of ["frosted", "liquid"]) {
-                Controller.setTheme(theme);
+                Controller.setSetting("theme", theme);
                 wait(20);
                 compare(preview.tokens.glassMode, theme);
                 verify(preview.glass, "the preview lost its sheet under " + theme);
@@ -393,7 +393,7 @@ Item {
             // The waiting is the reveal: a card photographed mid-write is a card with half a word on it.
             tryVerify(function () { return !preview.revealing; }, 8000);
             for (const theme of ["light", "dark"]) {
-                Controller.setTheme(theme);
+                Controller.setSetting("theme", theme);
                 wait(20);
                 verify(Util.saveSnapshot(testCase, preview.contentItem, lensQaSnapshotDir,
                                          "settings-preview-" + theme));
@@ -404,8 +404,8 @@ Item {
             // are the English definition and the Chinese the request asks for beside it, which is the
             // pair the duty hands over (explanation_duty.cpp). One card that drew the same sentence
             // twice shipped before this shot existed.
-            Controller.setTheme("light");
-            Controller.setExplanationLang("en");
+            Controller.setSetting("theme", "light");
+            Controller.setSetting("explanationLang", "en");
             wait(20);
             panel.navigateBack();
             openCategory(panel, "Reading & learning");

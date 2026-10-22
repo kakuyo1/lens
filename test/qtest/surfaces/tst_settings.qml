@@ -39,10 +39,10 @@ Item {
         /// Every engine in the run shares one Controller and one settings document, so a case
         /// that writes one puts it back rather than leaving the next suite reading it.
         function cleanup() {
-            Controller.setClipboardPolicy(false);
+            Controller.setSetting("clipboardPolicy", "topmost");
             Controller.setDailyBudget(0);
-            Controller.setTheme("dark");
-            Controller.setGlassQuality(0);
+            Controller.setSetting("theme", "dark");
+            Controller.setSetting("glassQuality", 0);
             Pet.setEnabled(false);
         }
 
@@ -177,7 +177,7 @@ Item {
 
             // The fixture carries no policy, so it starts on the default. Pinned here rather
             // than assumed, so the case reads the same whatever order the suites run in.
-            Controller.setClipboardPolicy(false);
+            Controller.setSetting("clipboardPolicy", "topmost");
             wait(20);
 
             const segment = segmentLabelled(panel, "Raise to top");
@@ -189,14 +189,14 @@ Item {
             mouseClick(cell, cell.width / 2, cell.height / 2);
             wait(20);
 
-            compare(Controller.settings.clipboardSilent, true,
+            compare(Controller.settings.clipboardPolicy === "silent", true,
                     "the pick did not reach setClipboardPolicy");
             compare(segment.currentIndex, 1, "the segment did not follow the policy it wrote");
             compare(Util.textWith(Util.textsUnder(panel), ["Popup frequency"]), null);
         }
 
         function test_animationSwitchControlsTheMotionTokens() {
-            Controller.setAnimationsEnabled(true);
+            Controller.setSetting("animationsEnabled", true);
             const main = make();
             Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
@@ -214,7 +214,7 @@ Item {
             compare(Tokens.motion.pop, 0);
             compare(Tokens.motion.bubble, 0);
 
-            Controller.setAnimationsEnabled(true);
+            Controller.setSetting("animationsEnabled", true);
             tryCompare(row, "checked", true);
             compare(Tokens.motion.press, SystemMotion.reduced ? 0 : 150);
             compare(Tokens.motion.pop, SystemMotion.reduced ? 0 : 180);
@@ -225,7 +225,7 @@ Item {
         /// switch that governs motion and hidden with it, rather than left as a control that moves
         /// without doing anything.
         function test_theTypingSpeedRowFollowsTheAnimationSwitch() {
-            Controller.setAnimationsEnabled(true);
+            Controller.setSetting("animationsEnabled", true);
             const main = make();
             Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
@@ -236,11 +236,11 @@ Item {
             compare(row.visible, true, "the row was hidden while animations were on");
             verify(row.height > 0, "the row took no room while animations were on");
 
-            Controller.setAnimationsEnabled(false);
+            Controller.setSetting("animationsEnabled", false);
             tryCompare(row, "visible", false);
             tryCompare(row, "height", 0);
 
-            Controller.setAnimationsEnabled(true);
+            Controller.setSetting("animationsEnabled", true);
             tryCompare(row, "visible", true);
         }
 
@@ -352,7 +352,7 @@ Item {
         /// closed with itself, because it arrived on a page that already had a dropdown. A list is a window of its
         /// own: unreported, a press outside it fell through to the panel, and unclosed, it outlived the panel.
         function test_theBackdropRefreshListGoesDownWithThePanel() {
-            Controller.setTheme("frosted");
+            Controller.setSetting("theme", "frosted");
             const main = make();
             Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);

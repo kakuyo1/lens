@@ -18,8 +18,9 @@
 #include "capture/capture_policy.h"
 #include "capture/foreground_window.h"
 #include "core/domain/filter_core.h"
+#include "core/domain/settings_table.h"
 #include "app/platform/mouse_selection_hook.h"
-#include "app/settings_defaults.h"
+#include "app/settings_access.h"
 #include "util/log.h"
 
 namespace lens::app {
@@ -96,20 +97,24 @@ CaptureDuty::~CaptureDuty()
 QVariantMap CaptureDuty::settings() const
 {
     auto const keys = storage_.section();
-    return {{"ocrCapture", keys.value<bool>("ocrCapture", defaults::kOcrCapture)},
-            {"autoScan", keys.value<bool>("autoScan", defaults::kAutoScan)},
+    // The six rows the settings table marks Signal::Capture, read through their own rules: a stored
+    // length the document did not mean lands on the row's range the same way a written one would.
+    const auto readOf = [&keys](std::string_view const key) {
+        const auto* const row = core::settings::find(key);
+        return settings::read(keys, *row);
+    };
+    return {{"ocrCapture", readOf("ocrCapture")},
+            {"autoScan", readOf("autoScan")},
             {"ocrAvailable", ocrState_ == capture::OcrStatus::Ready},
-            // A length the document did not mean reads as the default, the same way the old
-            // read did with its validity flag.
-            {"minimumWordLength", capture::minimumWordLength(keys.value<int>("minimumWordLength", defaults::kMinimumWordLength))},
-            {"tesseractExecutable", QString::fromStdString(keys.value<std::string>("tesseractExecutable", {}))},
-            {"tesseractDataDirectory", QString::fromStdString(keys.value<std::string>("tesseractDataDirectory", {}))},
+            {"minimumWordLength", readOf("minimumWordLength")},
+            {"tesseractExecutable", readOf("tesseractExecutable")},
+            {"tesseractDataDirectory", readOf("tesseractDataDirectory")},
             // What an empty setting resolves to, for the surface that shows the reader where OCR
             // will look. Resolved through the engine's own function so the answer on screen cannot
             // drift from the path the process is actually started with.
             {"resolvedTesseractExecutable", capture::resolveTesseract(storedTesseractConfig(storage_)).executable},
             {"resolvedTesseractDataDirectory", capture::resolveTesseract(storedTesseractConfig(storage_)).dataDirectory},
-            {"scanWhitelist", QString::fromStdString(keys.value<std::string>("scanWhitelist", std::string{defaults::kScanWhitelist}))}};
+            {"scanWhitelist", readOf("scanWhitelist")}};
 }
 
 QString CaptureDuty::ocrStatus() const
@@ -128,24 +133,56 @@ void CaptureDuty::invalidateScan()
     scan_->reset();
 }
 
+bool CaptureDuty::setSetting(std::string_view const key, QVariant const& value)
+{
+    // One entry per row the settings table marks Signal::Capture, so the facade's generic write has
+    // somewhere to land and the wiring below stays the duty's own business.
+    if (key == "ocrCapture") {
+        setOcrCapture(value.toBool());
+        return true;
+    }
+    if (key == "autoScan") {
+        setAutoScan(value.toBool());
+        return true;
+    }
+    if (key == "minimumWordLength") {
+        setMinimumWordLength(value.toInt());
+        return true;
+    }
+    if (key == "scanWhitelist")
+        return setScanWhitelist(value.toString());
+    if (key == "tesseractExecutable") {
+        setTesseractExecutable(value.toString());
+        return true;
+    }
+    if (key == "tesseractDataDirectory") {
+        setTesseractDataDirectory(value.toString());
+        return true;
+    }
+    LENS_WARN("'{}' is not a capture setting; nothing was written", std::string{key});
+    return false;
+}
+
 void CaptureDuty::setOcrCapture(bool const on)
 {
-    storage_.section().set<bool>("ocrCapture", on);
+    if (not settings::write(storage_.section(), *core::settings::find("ocrCapture"), on))
+        return;
     ++screenshotGeneration_;
     emit settingsChanged();
 }
 
 void CaptureDuty::setAutoScan(bool const on)
 {
-    storage_.section().set<bool>("autoScan", on);
+    if (not settings::write(storage_.section(), *core::settings::find("autoScan"), on))
+        return;
     invalidateScan();
     emit settingsChanged();
 }
 
 void CaptureDuty::setMinimumWordLength(int const length)
 {
-    if (length < 2 or length > 5) return;
-    storage_.section().set<int>("minimumWordLength", length);
+    if (not settings::write(storage_.section(), *core::settings::find("minimumWordLength"), length))
+        return;
     invalidateScan();
     emit settingsChanged();
 }
@@ -164,7 +201,8 @@ bool CaptureDuty::setScanWhitelist(QString processes)
         normalized.append(name.toLower());
         whitelist.push_back(name.toLower().toStdString());
     }
-    storage_.section().set<std::string>("scanWhitelist", normalized.join(';').toStdString());
+    if (not settings::write(storage_.section(), *core::settings::find("scanWhitelist"), normalized.join(';')))
+        return false;
     invalidateScan();
     scan_->setWhitelist(std::move(whitelist));
     emit settingsChanged();
@@ -176,7 +214,7 @@ void CaptureDuty::setTesseractExecutable(QString executable)
     const QString value = executable.trimmed();
     auto          keys  = storage_.section();
     if (value.toStdString() == keys.value<std::string>("tesseractExecutable", {})) return;
-    keys.set<std::string>("tesseractExecutable", value.toStdString());
+    settings::write(keys, *core::settings::find("tesseractExecutable"), value);
     rebuildOcr();
 }
 
@@ -185,7 +223,7 @@ void CaptureDuty::setTesseractDataDirectory(QString directory)
     const QString value = directory.trimmed();
     auto          keys  = storage_.section();
     if (value.toStdString() == keys.value<std::string>("tesseractDataDirectory", {})) return;
-    keys.set<std::string>("tesseractDataDirectory", value.toStdString());
+    settings::write(keys, *core::settings::find("tesseractDataDirectory"), value);
     rebuildOcr();
 }
 
@@ -206,12 +244,11 @@ void CaptureDuty::rebuildOcr()
 
 void CaptureDuty::restoreDefaults()
 {
-    setAutoScan(defaults::kAutoScan);
-    setOcrCapture(defaults::kOcrCapture);
-    setMinimumWordLength(defaults::kMinimumWordLength);
-    setScanWhitelist(QString::fromStdString(std::string{defaults::kScanWhitelist}));
-    setTesseractExecutable(QString{});
-    setTesseractDataDirectory(QString{});
+    // The rows the table marks Signal::Capture, in the table's order, through the same write path a
+    // choice takes -- so a restore and a fresh install read one list rather than two.
+    for (auto const& row : core::settings::kRows)
+        if (row.signal == core::settings::Signal::Capture and row.restorable)
+            setSetting(row.key, settings::defaultValue(row));
 }
 
 void CaptureDuty::setScanPaused(bool const paused)

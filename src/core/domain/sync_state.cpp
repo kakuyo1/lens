@@ -5,13 +5,11 @@
 
 #include "core/domain/sync_state.h"
 
+#include "core/domain/settings_table.h"
 #include "core/domain/sync_merge.h"
 
 namespace lens::core::sync {
 namespace {
-
-/// Levels run 0..7 (KnownStore). A remote level outside that range is refused, not clamped.
-constexpr int kLevelCount = 8;
 
 /// @return The snapshot's entry for @p key, or null when the snapshot has none.
 nlohmann::json previousOf(const nlohmann::json& snapshot, const std::string& key)
@@ -32,29 +30,14 @@ nlohmann::json stamped(const nlohmann::json& value, const nlohmann::json& previo
 
 const std::vector<std::string>& syncedKeys()
 {
-    static const std::vector<std::string> keys{
-        "level",
-        "explanationLang",
-        "multiSense",
-        "etymology",
-        "example",
-        "uiLanguage",
-        "theme", // a custom theme's colours are packed into this value, so they travel with it
-        "bubbleDismissSeconds",
-        "bubblePlacement",
-        "selectionBarStyle",
-        "animationsEnabled",
-        "revealSpeed",
-        "minimumWordLength",
-        "frostedBlur",
-        "frostedSaturation",
-        "frostedRim",
-        "liquidRefraction",
-        "liquidBlur",
-        "liquidRim",
-        "liquidTextColor",
-        "glassQuality",
-    };
+    // Built from the settings table: a key is carried because its row says so, so there is no second
+    // list that can fall behind the one the projection and restore-defaults read (docs/adr/0083).
+    static const std::vector<std::string> keys = [] {
+        std::vector<std::string> out;
+        for (std::string_view const key : settings::syncedKeys())
+            out.emplace_back(key);
+        return out;
+    }();
     return keys;
 }
 
@@ -148,30 +131,45 @@ void applySettings(KnownStore& store, SettingsSection section, const nlohmann::j
 {
     const nlohmann::json  settings = merged.value("settings", nlohmann::json::object());
     const nlohmann::json& document = store.document();
-    for (const std::string& key : syncedKeys()) {
+    for (auto const& row : lens::core::settings::kRows) {
+        if (not row.synced)
+            continue;
+        const std::string key{row.key};
         if (!settings.contains(key) || !settings.at(key).is_object() || !settings.at(key).contains("value"))
             continue;
         const nlohmann::json& value = settings.at(key).at("value");
         if (value.is_null())
             continue;
 
-        if (key == "level") {
-            if (value.is_number_integer() && value.get<int>() >= 0 && value.get<int>() < kLevelCount && value.get<int>() != store.level())
-                store.setLevel(value.get<int>());
-        } else if (key == "explanationLang") {
-            if (value.is_string() && !value.get<std::string>().empty() && value.get<std::string>() != store.explanationLang())
-                store.setExplanationLang(value.get<std::string>());
-        } else if (!(document.contains(key) && document.at(key) == value)) {
-            // Typed writes keep the encoding the key already has, so a value an older build wrote as
-            // text stays text (docs/adr/0024). setRaw would store a real bool over "true".
-            if (value.is_boolean())
-                section.set<bool>(key, value.get<bool>());
-            else if (value.is_number_integer())
-                section.set<int>(key, value.get<int>());
-            else if (value.is_number())
-                section.set<double>(key, value.get<double>());
-            else if (value.is_string())
-                section.set<std::string>(key, value.get<std::string>());
+        switch (row.signal) {
+            case lens::core::settings::Signal::Level:
+                // Outside the row's range the value is refused, not clamped: the cloud copy is ours,
+                // but a corrupted one should not be able to move the reader's difficulty either.
+                if (value.is_number_integer() && value.get<int>() >= row.low && value.get<int>() <= row.high &&
+                    value.get<int>() != store.level())
+                    store.setLevel(value.get<int>());
+                break;
+            case lens::core::settings::Signal::ExplanationLang:
+                if (value.is_string() && !value.get<std::string>().empty() && value.get<std::string>() != store.explanationLang())
+                    store.setExplanationLang(value.get<std::string>());
+                break;
+            default: {
+                if (document.contains(key) && document.at(key) == value)
+                    break;
+                // Typed writes keep the encoding the key already has, so a value an older build wrote
+                // as text stays text (docs/adr/0024). setRaw would store a real bool over "true". The
+                // shape of the incoming value decides the write, not the row's type: the value is our
+                // own document's, and a text-encoded number is a shape a reader can still open.
+                if (value.is_boolean())
+                    section.set<bool>(key, value.get<bool>());
+                else if (value.is_number_integer())
+                    section.set<int>(key, value.get<int>());
+                else if (value.is_number())
+                    section.set<double>(key, value.get<double>());
+                else if (value.is_string())
+                    section.set<std::string>(key, value.get<std::string>());
+                break;
+            }
         }
     }
 }

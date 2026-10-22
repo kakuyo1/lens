@@ -59,7 +59,7 @@ Item {
                         width: parent.width
                         label: qsTranslate("SettingsPopup", "Selection")
                         checked: Controller.settings.selectionCapture
-                        onToggled: (on) => Controller.setSelectionCapture(on)
+                        onToggled: (on) => Controller.setSetting("selectionCapture", on)
                     }
                     SwitchRow {
                         objectName: "ocrCapture"
@@ -110,7 +110,7 @@ Item {
                 ]
                 currentValue: Controller.settings.selectionBarStyle
                 optionPreview: stylePreviewComponent
-                onPicked: (value) => Controller.setSelectionBarStyle(value)
+                onPicked: (value) => Controller.setSetting("selectionBarStyle", value)
             }
         }
 
@@ -136,7 +136,7 @@ Item {
 
         SettingsLinkRow {
             label: qsTranslate("SettingsPopup", "Popup & clipboard")
-            note: Controller.settings.clipboardSilent
+            note: Controller.settings.clipboardPolicy === "silent"
                   ? qsTranslate("SettingsPopup", "Give up silently")
                   : qsTranslate("SettingsPopup", "Raise to top")
             onPicked: root.childRequested("clipboard")

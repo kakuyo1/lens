@@ -21,6 +21,8 @@ add_library(lens_app STATIC
   app_controller.cpp
   paths.h
   paths.cpp
+  settings_access.h
+  settings_access.cpp
   settings_defaults.h
   words_view.h
 

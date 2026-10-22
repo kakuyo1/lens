@@ -103,7 +103,7 @@ Item {
         }
 
         function openFrostedGeneral() {
-            Controller.setTheme("frosted");
+            Controller.setSetting("theme", "frosted");
             const main = makeMain();
             const panel = Util.ofType(main, "SettingsPopup");
             verify(panel);
@@ -133,8 +133,8 @@ Item {
             compare(Controller.settings.frostedBlur, slider.stopAt(slider.width * 0.8), "the value did not follow the drag");
             mouseRelease(slider, slider.width * 0.8, slider.height / 2);
 
-            Controller.setFrostedBlur(10);
-            Controller.setTheme("light");
+            Controller.setSetting("frostedBlur", 10);
+            Controller.setSetting("theme", "light");
             Util.surfaceHost(shown.main).hidePanels(null);
         }
 
@@ -157,8 +157,8 @@ Item {
             compare(opacityChanges.count, 0, "the settings window dimmed during a slider drag");
             opacityChanges.target = null;
 
-            Controller.setFrostedBlur(10);
-            Controller.setTheme("light");
+            Controller.setSetting("frostedBlur", 10);
+            Controller.setSetting("theme", "light");
             Util.surfaceHost(shown.main).hidePanels(null);
         }
 
@@ -184,8 +184,8 @@ Item {
             compare(opacityChanges.count, host.excludedFromCapture ? 0 : 2, "a move past the sheet did not take the expected dim");
             opacityChanges.target = null;
 
-            Controller.setFrostedBlur(10);
-            Controller.setTheme("light");
+            Controller.setSetting("frostedBlur", 10);
+            Controller.setSetting("theme", "light");
             Util.surfaceHost(shown.main).hidePanels(null);
         }
 
@@ -193,7 +193,7 @@ Item {
             const main = makeMain();
             const panel = Util.ofType(main, "SettingsPopup");
             verify(panel);
-            Controller.setTheme("frosted");
+            Controller.setSetting("theme", "frosted");
             Util.surfaceHost(main).showSettings();
             wait(25);
 
@@ -201,11 +201,11 @@ Item {
             verify(frosted, "the frosted theme drew no glass on the settings card");
             compare(frosted.mode, "frosted");
 
-            Controller.setTheme("liquid");
+            Controller.setSetting("theme", "liquid");
             wait(25);
             compare(frosted.mode, "liquid");
 
-            Controller.setTheme("light");
+            Controller.setSetting("theme", "light");
             wait(25);
             compare(frosted.visible, false);
         }
@@ -251,7 +251,7 @@ Item {
             const serial = glass.sheetItem.pictureSerial;
 
             for (let step = 1; step <= 10; ++step) {
-                Controller.setFrostedBlur(10 + step * 5);
+                Controller.setSetting("frostedBlur", 10 + step * 5);
                 for (let poll = 0; poll < 4; ++poll) {
                     wait(5);
                     compare(glass.sheetItem.pictureSerial, serial, "a blur move retook the sheet");
@@ -259,8 +259,8 @@ Item {
                 }
             }
 
-            Controller.setFrostedBlur(10);
-            Controller.setTheme("light");
+            Controller.setSetting("frostedBlur", 10);
+            Controller.setSetting("theme", "light");
             Util.surfaceHost(shown.main).hidePanels(null);
         }
 
@@ -277,7 +277,7 @@ Item {
             verify(glass.drawsBackdrop, "the card drew no backdrop while its blur was above 0");
             verify(glass.sheetItem.active, "the card held no live texture while its blur was above 0");
 
-            Controller.setFrostedBlur(0);
+            Controller.setSetting("frostedBlur", 0);
             wait(30);
             compare(glass.passthrough, true, "blur at 0 left the card drawing a backdrop");
             compare(glass.drawsBackdrop, false, "blur at 0 still drew a backdrop");
@@ -287,14 +287,14 @@ Item {
             compare(shown.panel.opacity, 1, "the card dimmed itself to photograph the desktop it no longer draws");
 
             // And it comes back the moment the reader moves the blur up again, without a reload of the window.
-            Controller.setFrostedBlur(10);
+            Controller.setSetting("frostedBlur", 10);
             wait(30);
             compare(glass.passthrough, false, "raising the blur left the card without a backdrop");
             verify(glass.drawsBackdrop, "raising the blur drew no backdrop");
             verify(glass.sheetItem.active, "raising the blur left the live texture released");
 
-            Controller.setFrostedBlur(10);
-            Controller.setTheme("light");
+            Controller.setSetting("frostedBlur", 10);
+            Controller.setSetting("theme", "light");
             Util.surfaceHost(shown.main).hidePanels(null);
         }
 
@@ -314,20 +314,28 @@ Item {
             verify(effect, "the glass drew no shader");
             compare(effect.blur, Controller.settings.frostedBlur);
             compare(effect.saturation, Controller.settings.frostedSaturation);
+            // The sheet is published on the card's first frame, which lands after openCategory's
+            // wait on a slow machine and before it on a fast one. Read before it, the serial is the
+            // zero a sheet that was never taken has, and the comparison below would pass or fail on
+            // the machine's pace rather than on what a write does.
+            let frames = 0;
+            while (glass.sheet.serial === 0 && frames++ < 50)
+                wait(20);
             const picture = glass.sheet.serial;
+            verify(picture > 0, "the card never took a sheet to compare against");
 
-            Controller.setFrostedBlur(40);
+            Controller.setSetting("frostedBlur", 40);
             wait(30);
             compare(effect.blur, 40, "the blur uniform did not follow the setting");
             compare(xPass.blur, 40, "the horizontal pass did not follow the blur setting");
             compare(glass.sheet.serial, picture, "moving the blur retook the sheet instead of changing a uniform");
-            Controller.setFrostedSaturation(60);
+            Controller.setSetting("frostedSaturation", 60);
             wait(30);
             compare(effect.saturation, 60, "the saturation uniform did not follow the setting");
 
-            Controller.setFrostedBlur(10);
-            Controller.setFrostedSaturation(120);
-            Controller.setTheme("light");
+            Controller.setSetting("frostedBlur", 10);
+            Controller.setSetting("frostedSaturation", 120);
+            Controller.setSetting("theme", "light");
             Util.surfaceHost(shown.main).hidePanels(null);
         }
 
@@ -397,14 +405,14 @@ Item {
             colors.faint = "#aaaaaa";
             const encoded = Tokens.customThemeValue(colors);
 
-            Controller.setTheme(encoded);
+            Controller.setSetting("theme", encoded);
             wait(25);
             compare(Controller.settings.theme, encoded);
             compare(Tokens.theme, encoded);
 
             verify(makeMain());
             compare(Tokens.theme, Controller.settings.theme);
-            Controller.setTheme(previous);
+            Controller.setSetting("theme", previous);
         }
 
         function test_generalSettingsExposeBuiltInAndCustomChoices() {

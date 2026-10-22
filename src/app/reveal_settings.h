@@ -9,32 +9,24 @@
  * ratio of the pace inside RevealText, so a slow speed makes each character soft for longer without
  * widening the tail into a band of shaders.
  *
- * The level is a root key of the settings document (docs/adr/0035), and both the setter and the
- * read path go through clampRevealSpeed(): a hand edit can write anything.
+ * The level itself is one row of core/domain/settings_table.h, which owns its default and the range
+ * the page offers. What lives here is the mapping from that level to a pace, which is not a setting.
  */
 
 #include <algorithm>
 
+#include "core/domain/settings_table.h"
+
 namespace lens::app {
 
 /// @brief The slowest speed the setting accepts, one character every kRevealMillisPerCharacter[0].
-inline constexpr int kRevealSpeedMin = 1;
+inline constexpr int kRevealSpeedMin = core::settings::find("revealSpeed")->low;
 /// @brief The fastest speed the setting accepts.
-inline constexpr int kRevealSpeedMax = 5;
+inline constexpr int kRevealSpeedMax = core::settings::find("revealSpeed")->high;
 /// @brief What a reader who has not chosen a speed gets: the 35 ms pace the reveal shipped with.
-inline constexpr int kRevealSpeedDefault = 3;
+inline constexpr int kRevealSpeedDefault = core::settings::find("revealSpeed")->fallback.number;
 /// @brief Milliseconds per character at each speed 1..5, slowest first; the default sits in the middle.
 inline constexpr int kRevealMillisPerCharacter[] = {80, 55, 35, 25, 15};
-
-/**
- * @brief Bring a speed into the range the page offers.
- * @param speed The level the reader picked, or the one the document holds.
- * @return @p speed, or the nearer edge of [kRevealSpeedMin, kRevealSpeedMax].
- */
-inline int clampRevealSpeed(int speed)
-{
-    return std::clamp(speed, kRevealSpeedMin, kRevealSpeedMax);
-}
 
 /**
  * @brief The pace a speed level means.
@@ -43,7 +35,7 @@ inline int clampRevealSpeed(int speed)
  */
 inline int revealMillisPerCharacter(int speed)
 {
-    return kRevealMillisPerCharacter[clampRevealSpeed(speed) - kRevealSpeedMin];
+    return kRevealMillisPerCharacter[std::clamp(speed, kRevealSpeedMin, kRevealSpeedMax) - kRevealSpeedMin];
 }
 
 } // namespace lens::app

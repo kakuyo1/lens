@@ -64,6 +64,20 @@ enum class SettingKey : std::uint8_t {
     GlassQuality,
 };
 
+/// @return The document key @p key names, as the settings table spells it (core/domain/settings_table.h).
+constexpr std::string_view settingKeyName(SettingKey const key)
+{
+    switch (key) {
+        case SettingKey::Theme: return "theme";
+        case SettingKey::LiquidBlur: return "liquidBlur";
+        case SettingKey::FrostedBlur: return "frostedBlur";
+        case SettingKey::LiquidRefraction: return "liquidRefraction";
+        case SettingKey::AnimationsEnabled: return "animationsEnabled";
+        case SettingKey::GlassQuality: return "glassQuality";
+    }
+    return {};
+}
+
 /// The value a `setting set` line gives, already checked against what its key takes: a theme name, a whole number or a
 /// switch.
 using SettingValue = std::variant<std::string, int, bool>;
