@@ -193,6 +193,7 @@ void PetController::loadPet(std::string const& id)
     expression_   = 0;
     blinkRunning_ = false;
     blinkWait_    = kBlinkEvery;
+    lastScene_.clear();
     scene_.clear();
     sceneSheets_.clear();
     sceneLayers_.clear();
@@ -225,9 +226,13 @@ void PetController::loadPet(std::string const& id)
             auto        choices  = std::vector<core::pet::ActionName>{};
             for (auto const& scene : scenes_.all())
                 if (playbook.actions.count(scene.id) != 0) choices.push_back(scene.id);
+            // A four-scene pool reads as a pool only if the same one does not come straight back.
+            if (choices.size() > 1)
+                std::erase(choices, lastScene_);
             if (choices.empty()) return std::nullopt;
             auto const index = std::min(static_cast<std::size_t>(randomUnit() * static_cast<double>(choices.size())),
                                         choices.size() - 1);
+            lastScene_       = choices[index];
             return choices[index];
         };
         machine_  = std::make_unique<core::pet::PetStateMachine>(assets_->animations.playbook, random, scenes);
@@ -582,6 +587,7 @@ void PetController::setScene(QString id)
     // preview, if one was showing, would otherwise keep it off screen.
     preview_.reset();
     resetHover();
+    lastScene_ = name;
     machine_->playScene(name);
     sync(std::chrono::milliseconds{0});
 }

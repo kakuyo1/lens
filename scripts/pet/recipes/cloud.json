@@ -2313,60 +2313,16 @@
         }
       ]
     },
-    "swing": {
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "bodyFrom": "idle",
-      "frames": [
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {}
-      ]
-    },
     "desk": {
       "fps": 4,
       "loop": true,
-      "duration": 24000,
+      "duration": 30000,
       "bodyFrom": "idle",
       "frames": [
         {},
         {},
         {},
         {},
-        {},
-        {},
-        {},
-        {}
-      ]
-    },
-    "skate": {
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "bodyFrom": "idle",
-      "frames": [
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {}
-      ]
-    },
-    "bath": {
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "bodyFrom": "idle",
-      "frames": [
         {},
         {},
         {},
@@ -2380,9 +2336,13 @@
     "rain": {
       "fps": 4,
       "loop": true,
-      "duration": 24000,
+      "duration": 30000,
       "bodyFrom": "idle",
       "frames": [
+        {},
+        {},
+        {},
+        {},
         {},
         {},
         {},
@@ -2605,6 +2565,98 @@
             }
           ]
         }
+      ]
+    },
+    "cloud_watering": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "idle",
+      "frames": [
+        {},
+        {},
+        {
+          "pose": {
+            "dy": -1
+          }
+        },
+        {
+          "pose": {
+            "dy": -1
+          }
+        },
+        {
+          "pose": {
+            "dy": -1
+          }
+        },
+        {},
+        {},
+        {},
+        {
+          "pose": {
+            "dy": -1
+          }
+        },
+        {
+          "pose": {
+            "dy": -1
+          }
+        },
+        {
+          "pose": {
+            "dy": -1
+          }
+        },
+        {}
+      ]
+    },
+    "cloud_fishing": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "idle",
+      "frames": [
+        {},
+        {},
+        {},
+        {
+          "pose": {
+            "dx": -1,
+            "dy": -1
+          }
+        },
+        {
+          "pose": {
+            "dx": -1,
+            "dy": -1
+          }
+        },
+        {
+          "pose": {
+            "dx": -1,
+            "dy": -1
+          }
+        },
+        {
+          "pose": {
+            "dx": -1,
+            "dy": -1
+          }
+        },
+        {},
+        {},
+        {
+          "pose": {
+            "dx": 1
+          }
+        },
+        {
+          "pose": {
+            "dx": 1
+          }
+        },
+        {}
       ]
     }
   },

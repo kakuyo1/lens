@@ -1,52 +1,44 @@
 # 桌面宠物美术脚本
 
-桌面宠物的 PNG 与数据文件都从形状配方生成。新宠物用 `render_pet.py`；小狗（1.2.0）仍用 `dog/` 里的旧渲染器。完整流程、约束与经验见 [`docs/pet-art-pipeline.md`](../../docs/pet-art-pipeline.md)。
+七只随包宠物（猫、狗、云、幽灵、水母、麻糬、猫头鹰）都由配方生成。小狗在 2026-10 的奶糖重做后从 `scripts/pet/dog/` 旧渲染器迁到 `recipes/dog.json`（ADR 0081）；旧脚本、`original-dog.json` 与旧美术已删除。完整流程、约束与经验见 [`docs/pet-art-pipeline.md`](../../docs/pet-art-pipeline.md)。
 
-## 新桌宠：配方到输出
+## 配方到输出
 
 | 文件 | 作用 |
 | --- | --- |
-| `recipes/<id>.json` | 配方：身体、轮廓、眼睛、嘴、角色、每个动作的各帧姿势，以及配饰。`mochi.json` 是椭圆范例，`jelly.json` 是蒙版范例 |
+| `recipes/<id>.json` | 配方：身体、轮廓、眼睛、嘴、角色、动作的各帧姿势与配饰。`mochi.json` 是椭圆范例，`dog.json` 是蒙版与 2 × 2 眼睛的范例 |
 | `render_pet.py` | 读配方，写出 `data/pet/<id>/` 下的 `pet.json`、`animations.json`、`anchors.json`、`accessories.json` 与全部 PNG，并核对每张 sheet 的尺寸 |
 
 从仓库根目录运行（需要 Pillow）：
 
 ```sh
-python -I scripts/pet/render_pet.py mochi
+python -I scripts/pet/render_pet.py dog
 ```
 
 它直接覆盖 `data/pet/<id>/`，没有暂存副本，也没有预览模式。
 
-配方的字段（完整说明在 `render_pet.py` 的文件头）：
+配方的主要字段：
 
-- `body`：身体的基础椭圆 `{cx, cy, rx, ry}`，单位是格子；它的底部中心是所有姿势的轴。
-- `pivot`、`head`：可选的姿势轴与头锚点；轮廓不是椭圆时用它们把配饰与缩放对到位。
-- `silhouette`：可选的像素轮廓蒙版，`{shape: "mask", at, rows}`；也用于 `frame.shapes`。
-- `bodyPaint`：身体着色格，配方级默认、动作级或单帧覆盖；`facePaint` 画在表情层，随脸移动。
-- `eyes`、`mouth`、`yawnMouth`、`angryMouth`：表情层的格子，以及张嘴（表情 7）的矩形 `[x, y, w, h]` 与生气（表情 9）的撇嘴格子。
-- `roles`、`idlePool`：原样写进 `animations.json`。
-- `actions.<名>`：`fps`、`loop`，可选 `blink`、`returnTo`、`duration`、`bodyFrom`、`paint`（每帧都画），以及 `frames`。每一帧可有 `pose`（`dx`、`dy` 平移，`sx`、`sy` 绕底部中心缩放）、`expression`、`shapes`（额外形状，`add` 或 `discard`）与 `paint`。`duration`（毫秒）让循环动作到点结束；`bodyFrom` 复用前面某个动作的 body sheet 与锚点，按自己的帧数循环，帧里写了 `pose` 就覆盖锚点。
-- `accessories`：每件 `{id, slot, except, paint}`，`except` 列出它不能穿的动作。
+- `body`：身体的基础椭圆；非椭圆形状用 `pivot`、`head` 与 `silhouette` 蒙版。
+- `bodyPaint`：身体着色格；`facePaint`：表情层固定图形，随 face 锚点移动。奶糖的鼻头与舌头在 `facePaint`，雾灰耳、粉耳内、爪子、项圈与银牌在 `bodyPaint`。
+- `eyes`、`mouth`、`yawnMouth`、`angryMouth`：表情层。默认眼睛是 3 × 3 像素；`eyeSize: 2` 使用 `SMALL_EYE_PATTERNS` 的 2 × 2 格子（6 × 6 像素）眼睛，目前只有奶糖。
+- `roles`、`idlePool`、`hover`、`movement`：原样写进 `animations.json`。
+- `actions.<名>`：`fps`、`loop`，可选 `blink`、`returnTo`、`duration`、`bodyFrom`、`paint`，以及 `frames`。帧里可有 `pose`、`expression`、`shapes` 与 `paint`。`bodyFrom` 复用前面的 body sheet 与锚点；动作级 `bodyPaint` 不生效。
+- `accessories`：每件 `{id, slot, except?, paint}`；图形可走格子，也可用 `pixel: true` 走像素。`supportedActions` 由渲染器生成。
 
 ## 场景
 
-`scenes/<id>.json` 是场景的逐帧道具（从原型的 `scenes.js` 机械搬来）与宠物每帧的 `dx`、`dy`、`scale`。`render_scenes.py` 读它们，写 `data/scenes/<id>/{back,front}.png` 与运行时目录 `data/scenes/scenes.json`，并读回核对尺寸、检查道具不出画布。改了场景数据后重跑：
+`scenes/<id>.json` 是场景的逐帧道具与宠物位移；每个场景 12 帧、4 fps、至少一个中段 beat。`render_scenes.py` 写出 `data/scenes/<id>/{back,front}.png` 与运行时目录 `data/scenes/scenes.json`，并读回核对尺寸、检查道具不出画布。场景归属由宠物的动作表决定：专属场景只写进目标宠物，经典场景每只保留两个。
 
 ```sh
 python -I scripts/pet/render_scenes.py
 ```
 
-## 小狗的旧脚本
+奶糖的专属场景是 `dog_frisbee` 与 `dog_burying`，共享 `skate` 与 `swing`。
 
-小狗的 PNG 已定稿，`data/pet/dog/sprites` 就是源。下面的脚本只在要改小狗的形状时用。
+## 原型与测试
 
-| 脚本 | 作用 | 会改文件吗 |
-| --- | --- | --- |
-| `grid_from_shapes.py` | 形状配方（`recipes/original-dog.json`）→ 网格，打印 ASCII 预览 | 只在给 `--out` 时写临时文件 |
-| `apply_grid.py` | 把网格写进 `dog/sprite.json` 的 head、body、eyes、mouth 四段，默认只显示差异 | 只在给 `--write` 时写 |
-| `refit_accessories.py` | 报告头、身体、眼睛的位置，按位移重新对位配饰 | 只在给 `--write` 时写 |
-| `sync_sprites.py` | 核对小狗 sheet 的尺寸，渲染到临时目录后与 `data/pet/dog/sprites` 比对 | 不写文件 |
-| `compose_check.py` | 一帧加表情与每件配饰，输出审查图 | 只写指定的 PNG |
-| `dog/build-assets.py` | 小狗的渲染器，读 `dog/sprite.json` 与 `dog/manifest.json`，写 `data/pet/dog/sprites`（`--out` 时写到指定目录） | 直接运行即写入 |
-
-这些脚本都从仓库根目录用 `python -I` 运行，需要 Pillow。`apply_grid.py` 与 `refit_accessories.py` 默认只预览，加 `--write` 才写入。
+- `cd ui-prototypes/pet-prototype && npm run embed` 重新生成 `pet.html`；`npm run embed:hover` 生成 `pet-hover.html`。
+- `ui-prototypes/pet-review.html` 与 `ui-prototypes/pet-prototype/walk.html` 直接读 `data/pet`，不需要 embed。
+- 数据契约：`build-ninja/test/googletest/lens_gtest_unit.exe --gtest_filter='PetData.*'`。
+- 原型逻辑：`node --test ui-prototypes/pet-prototype/test/*.test.js`。

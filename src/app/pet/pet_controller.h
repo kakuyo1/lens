@@ -326,7 +326,7 @@ private:
     std::filesystem::path shippedRoot_;
     std::filesystem::path installedRoot_;
     PetCatalog            catalog_;
-    /// The app's own scenes, read once: every shipped pet plays the same five. A package may use another
+    /// The app's own scenes, read once: each shipped pet plays the four its action table names. A package may use another
     /// canvas, so its action names are never read as scenes.
     PetScenes scenes_;
     bool      scenesAllowed_{false};
@@ -406,6 +406,8 @@ private:
     core::pet::Anchors anchors_{};
     QPoint             gaze_;
 
+    /// The last scene the idle roll or the settings page chose, so the next roll does not repeat it.
+    std::string lastScene_;
     /// The scene the shown action names, and the frame's transform. All empty or neutral outside a scene.
     QString     scene_;
     int         sceneFrame_{0};

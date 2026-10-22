@@ -12,9 +12,10 @@
  * @brief The scenes the app ships, read from data/scenes/scenes.json (ADR 0049).
  *
  * A scene is a prop rig baked into a back and a front sheet, plus the pet's own transform for each frame. The
- * catalogue belongs to the application rather than to a pet package: every shipped pet plays the same five, and the
- * pet is aligned by the feet measured when it loads. A broken catalogue turns scenes off for every pet rather than
- * starting half of one, and says why in the log.
+ * catalogue belongs to the application rather than to a pet package; a pet can play a scene only when its action
+ * table names it, which is also how a scene stays exclusive to one pet. Every shipped pet gets four, and the pet is
+ * aligned by the feet measured when it loads. A broken catalogue turns scenes off for every pet rather than starting
+ * half of one, and says why in the log.
  */
 
 namespace lens::app::pet {

@@ -236,11 +236,15 @@
       "effectLeft": "sprites/effects/ask-left.png"
     },
     "swing": {
-      "frames": 8,
+      "frames": 12,
       "fps": 4,
       "loop": true,
-      "duration": 24000,
+      "duration": 30000,
       "expressions": [
+        0,
+        0,
+        0,
+        0,
         0,
         0,
         0,
@@ -253,11 +257,15 @@
       "sheet": "sprites/body/swing.png"
     },
     "desk": {
-      "frames": 8,
+      "frames": 12,
       "fps": 4,
       "loop": true,
-      "duration": 24000,
+      "duration": 30000,
       "expressions": [
+        0,
+        0,
+        0,
+        0,
         0,
         0,
         0,
@@ -268,57 +276,6 @@
         0
       ],
       "sheet": "sprites/body/desk.png"
-    },
-    "skate": {
-      "frames": 8,
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "expressions": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "sheet": "sprites/body/skate.png"
-    },
-    "bath": {
-      "frames": 8,
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "expressions": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "sheet": "sprites/body/bath.png"
-    },
-    "rain": {
-      "frames": 8,
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "expressions": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "sheet": "sprites/body/rain.png"
     },
     "preen": {
       "frames": 4,
@@ -415,6 +372,48 @@
         0
       ],
       "sheet": "sprites/body/edge_peek.png"
+    },
+    "owl_stargazing": {
+      "frames": 12,
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "expressions": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/owl_stargazing.png"
+    },
+    "owl_books": {
+      "frames": 12,
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "expressions": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/owl_books.png"
     }
   }
 }

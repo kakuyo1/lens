@@ -7,7 +7,7 @@ sprite under data/pet/<id>/. The app reads that folder as it is; nothing is stag
 back and checked the way pet_assets.cpp checks it: frames x 88 wide and 88 tall, and the expression sheet is a row of
 88 x 88 cells.
 
-Recipe schema. Units are grid cells. Cell (x, y) covers canvas px (30 + 3x) to (32 + 3x), the dog's mapping. A shape
+Recipe schema. Units are grid cells. Cell (x, y) covers canvas px (30 + 3x) to (32 + 3x), the pet canvas mapping. A shape
 point is a cell centre, (x + 0.5, y + 0.5) for cell (x, y).
 
   id, scale          folder name and the whole-number scale the app shows the pet at (3).
@@ -25,6 +25,8 @@ point is a cell centre, (x + 0.5, y + 0.5) for cell (x, y).
                      and mouth. The layer moves with anchors.face, so use it for whiskers or a permanent marking.
   eyes, mouth        expression cells. The mouth is drawn for every expression except 7 (yawn), 8 (blank)
                      and 9 (angry).
+  eyeSize            Optional 2: use the two-cell (six-pixel) SMALL_EYE_PATTERNS instead of the default
+                     3x3-pixel eyes. The dog uses it; omit it for every other pet.
   yawnMouth          [x, y, w, h] for expression 7.
   angryMouth         cells for expression 9, the frown. Omit it and the angry face keeps the smile.
   roles, idlePool    copied to animations.json.
@@ -89,8 +91,8 @@ PALETTE = {
 INK = PALETTE["ink"]
 FUR = PALETTE["fur"]
 
-# Copied from scripts/pet/dog/build-assets.py (not imported): the eye patterns, and the glyphs a
-# recipe may name with "glyph". '#' is ink, or one cell for a glyph.
+# The shared eye patterns and the glyphs a recipe may name with "glyph". The retired 1.2.0 dog
+# renderer used the same table; the dog now reads them here (ADR 0081).
 #
 # A pattern is drawn from its eye cell's top-left corner, except that EYE_OFFSETS moves it up or
 # down in canvas pixels: the angry eyes carry a brow one canvas unit above the cell, so their
@@ -111,6 +113,22 @@ EYE_OFFSETS = [0, 0, 0, 0, 0, 0, 0, 0, 0, -1]
 # Patterns whose second eye is the first one mirrored: the angry brow slopes inwards, and the
 # eye's notch is on the inner corner. The directional looks (3, 4) are not mirrored.
 EYE_MIRRORS = [False, False, False, False, False, False, False, False, False, True]
+# A recipe may ask for two-cell eyes with "eyeSize": 2. The same ten expressions, drawn at half
+# the width; the dog's design uses them so its face keeps the cat-like dot rather than a 3x3 block.
+SMALL_EYE_PATTERNS = [
+    ["######"] * 6,  # 0 open, two cells
+    ["......"] * 3 + ["######"] * 3,  # 1 half
+    ["......"] * 5 + ["######"],  # 2 closed
+    ["####.."] * 6,  # 3 looking left
+    ["..####"] * 6,  # 4 looking right
+    ["......"] * 4 + ["######"] * 2,  # 5 happy, a low line
+    ["######"] * 4 + ["......"] * 2,  # 6 looking up
+    ["......"] * 5 + ["######"],  # 7 yawn: eyes shut, mouth opened below
+    None,  # 8 nothing
+    ["######"] * 4 + ["......"] * 2,  # 9 angry, a narrowed eye
+]
+SMALL_EYE_OFFSETS = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+SMALL_EYE_MIRRORS = [False, False, False, False, False, False, False, False, False, True]
 GLYPHS = {
     "question": ["###", "..#", ".##", "...", ".#."],
     "zz": ["###", ".#.", "###"],
@@ -216,9 +234,10 @@ def body_frame(body, pivot, pose, shapes, tints):
     return img
 
 
-def face_frame(index, eyes, mouth, yawn, angry_mouth=(), face_paint=()):
+def face_frame(index, eyes, mouth, yawn, angry_mouth=(), face_paint=(),
+               patterns=EYE_PATTERNS, offsets=EYE_OFFSETS, mirrors=EYE_MIRRORS):
     img, draw = new_frame()
-    pattern = EYE_PATTERNS[index]
+    pattern = patterns[index]
     if pattern is None:
         paint(draw, face_paint)
         return img
@@ -234,8 +253,8 @@ def face_frame(index, eyes, mouth, yawn, angry_mouth=(), face_paint=()):
     centre = sum(x for x, _ in eyes) / len(eyes)
     for x, y in eyes:
         fill_cell(draw, x, y, FUR)
-        left, top = ORIGIN + CELL * x, ORIGIN + CELL * y + EYE_OFFSETS[index]
-        rows = [row[::-1] for row in pattern] if EYE_MIRRORS[index] and x > centre else pattern
+        left, top = ORIGIN + CELL * x, ORIGIN + CELL * y + offsets[index]
+        rows = [row[::-1] for row in pattern] if mirrors[index] and x > centre else pattern
         for j, row in enumerate(rows):
             for i, ch in enumerate(row):
                 if ch == "#":
@@ -355,10 +374,15 @@ def main():
         rendered[name] = (bodies, per_frame)
 
     angry_mouth = [tuple(p) for p in recipe.get("angryMouth", [])]
+    if recipe.get("eyeSize", 3) == 2:
+        patterns, offsets, mirrors = SMALL_EYE_PATTERNS, SMALL_EYE_OFFSETS, SMALL_EYE_MIRRORS
+    else:
+        patterns, offsets, mirrors = EYE_PATTERNS, EYE_OFFSETS, EYE_MIRRORS
     expression_frames = [
-        face_frame(i, eyes, mouth, recipe["yawnMouth"], angry_mouth, face_paint) for i in range(len(EYE_PATTERNS))
+        face_frame(i, eyes, mouth, recipe["yawnMouth"], angry_mouth, face_paint, patterns, offsets, mirrors)
+        for i in range(len(patterns))
     ]
-    save(out / "sprites/expressions/eyes.png", sheet(expression_frames), len(EYE_PATTERNS))
+    save(out / "sprites/expressions/eyes.png", sheet(expression_frames), len(patterns))
 
     # The bare cell is idle's first frame, so it carries the same ears and tail as the sheet.
     idle_spec = recipe["actions"]["idle"]

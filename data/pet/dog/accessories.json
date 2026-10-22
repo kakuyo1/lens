@@ -7,6 +7,9 @@
       "zIndex": 5,
       "supportedActions": [
         "idle",
+        "walk",
+        "edge_peek",
+        "ask",
         "study",
         "thinking",
         "celebrate",
@@ -16,18 +19,14 @@
         "look_around",
         "yawn",
         "stretch",
+        "angry",
         "wag",
         "sniff",
         "scratch",
-        "angry",
         "swing",
-        "desk",
         "skate",
-        "bath",
-        "rain",
-        "ask",
-        "walk",
-        "edge_peek"
+        "dog_frisbee",
+        "dog_burying"
       ]
     },
     {
@@ -37,6 +36,9 @@
       "zIndex": 5,
       "supportedActions": [
         "idle",
+        "walk",
+        "edge_peek",
+        "ask",
         "study",
         "thinking",
         "celebrate",
@@ -46,18 +48,14 @@
         "look_around",
         "yawn",
         "stretch",
+        "angry",
         "wag",
         "sniff",
         "scratch",
-        "angry",
         "swing",
-        "desk",
         "skate",
-        "bath",
-        "rain",
-        "ask",
-        "walk",
-        "edge_peek"
+        "dog_frisbee",
+        "dog_burying"
       ]
     },
     {
@@ -67,6 +65,9 @@
       "zIndex": 5,
       "supportedActions": [
         "idle",
+        "walk",
+        "edge_peek",
+        "ask",
         "study",
         "thinking",
         "celebrate",
@@ -76,18 +77,14 @@
         "look_around",
         "yawn",
         "stretch",
+        "angry",
         "wag",
         "sniff",
         "scratch",
-        "angry",
         "swing",
-        "desk",
         "skate",
-        "bath",
-        "rain",
-        "ask",
-        "walk",
-        "edge_peek"
+        "dog_frisbee",
+        "dog_burying"
       ]
     },
     {
@@ -97,6 +94,9 @@
       "zIndex": 5,
       "supportedActions": [
         "idle",
+        "walk",
+        "edge_peek",
+        "ask",
         "study",
         "thinking",
         "celebrate",
@@ -106,18 +106,14 @@
         "look_around",
         "yawn",
         "stretch",
+        "angry",
         "wag",
         "sniff",
         "scratch",
-        "angry",
         "swing",
-        "desk",
         "skate",
-        "bath",
-        "rain",
-        "ask",
-        "walk",
-        "edge_peek"
+        "dog_frisbee",
+        "dog_burying"
       ]
     },
     {
@@ -127,6 +123,9 @@
       "zIndex": 4,
       "supportedActions": [
         "idle",
+        "walk",
+        "edge_peek",
+        "ask",
         "study",
         "thinking",
         "celebrate",
@@ -136,18 +135,14 @@
         "look_around",
         "yawn",
         "stretch",
+        "angry",
         "wag",
         "sniff",
         "scratch",
-        "angry",
         "swing",
-        "desk",
         "skate",
-        "bath",
-        "rain",
-        "ask",
-        "walk",
-        "edge_peek"
+        "dog_frisbee",
+        "dog_burying"
       ]
     },
     {
@@ -157,6 +152,9 @@
       "zIndex": 4,
       "supportedActions": [
         "idle",
+        "walk",
+        "edge_peek",
+        "ask",
         "study",
         "thinking",
         "celebrate",
@@ -166,18 +164,14 @@
         "look_around",
         "yawn",
         "stretch",
+        "angry",
         "wag",
         "sniff",
         "scratch",
-        "angry",
         "swing",
-        "desk",
         "skate",
-        "bath",
-        "rain",
-        "ask",
-        "walk",
-        "edge_peek"
+        "dog_frisbee",
+        "dog_burying"
       ]
     },
     {
@@ -187,6 +181,9 @@
       "zIndex": 3,
       "supportedActions": [
         "idle",
+        "walk",
+        "edge_peek",
+        "ask",
         "study",
         "thinking",
         "celebrate",
@@ -196,18 +193,14 @@
         "look_around",
         "yawn",
         "stretch",
+        "angry",
         "wag",
         "sniff",
         "scratch",
-        "angry",
         "swing",
-        "desk",
         "skate",
-        "bath",
-        "rain",
-        "ask",
-        "walk",
-        "edge_peek"
+        "dog_frisbee",
+        "dog_burying"
       ]
     }
   ]

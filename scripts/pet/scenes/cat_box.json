@@ -1,0 +1,2400 @@
+{
+  "id": "cat_box",
+  "name": "纸箱打盹",
+  "frames": 12,
+  "fps": 4,
+  "foot": [
+    58.5,
+    81
+  ],
+  "layers": {
+    "back": -1,
+    "front": 20
+  },
+  "framesData": [
+    {
+      "dx": 0,
+      "dy": 6,
+      "scale": 1.0,
+      "back": [
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            9
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            -2,
+            7
+          ],
+          "art": [
+            "##..",
+            "..##"
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            16,
+            7
+          ],
+          "art": [
+            "..#",
+            "##."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ],
+      "front": [
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            11
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            9,
+            11
+          ],
+          "rect": [
+            1,
+            7
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            7,
+            13
+          ],
+          "art": [
+            "#.#",
+            ".#.",
+            ".#."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            15,
+            8
+          ],
+          "art": [
+            "..ii",
+            ".iff",
+            "iffi",
+            "ifii",
+            "ii.."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            1,
+            16
+          ],
+          "art": [
+            ".###.",
+            "#r.rm",
+            "#.m.r",
+            ".###."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 6,
+      "scale": 1.0,
+      "back": [
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            9
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            -2,
+            7
+          ],
+          "art": [
+            "##..",
+            "..##"
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            16,
+            7
+          ],
+          "art": [
+            "..#",
+            "##."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ],
+      "front": [
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            11
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            9,
+            11
+          ],
+          "rect": [
+            1,
+            7
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            7,
+            13
+          ],
+          "art": [
+            "#.#",
+            ".#.",
+            ".#."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            15,
+            8
+          ],
+          "art": [
+            "..ii",
+            ".iff",
+            "iffi",
+            "ifii",
+            "ii.."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            1,
+            16
+          ],
+          "art": [
+            ".###.",
+            "#r.rm",
+            "#.m.r",
+            ".###."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 6,
+      "scale": 1.0,
+      "back": [
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            9
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            -2,
+            7
+          ],
+          "art": [
+            "##..",
+            "..##"
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            16,
+            7
+          ],
+          "art": [
+            "..#",
+            "##."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ],
+      "front": [
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            11
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            9,
+            11
+          ],
+          "rect": [
+            1,
+            7
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            7,
+            13
+          ],
+          "art": [
+            "#.#",
+            ".#.",
+            ".#."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            15,
+            8
+          ],
+          "art": [
+            "..ii",
+            ".iff",
+            "iffi",
+            "ifii",
+            "ii.."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            1,
+            16
+          ],
+          "art": [
+            ".###.",
+            "#r.rm",
+            "#.m.r",
+            ".###."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 6,
+      "scale": 1.0,
+      "back": [
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            9
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            -2,
+            7
+          ],
+          "art": [
+            "##..",
+            "..##"
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            16,
+            7
+          ],
+          "art": [
+            "..#",
+            "##."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ],
+      "front": [
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            11
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            9,
+            11
+          ],
+          "rect": [
+            1,
+            7
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            7,
+            13
+          ],
+          "art": [
+            "#.#",
+            ".#.",
+            ".#."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            15,
+            8
+          ],
+          "art": [
+            "..ii",
+            ".iff",
+            "iffi",
+            "ifii",
+            "ii.."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            1,
+            16
+          ],
+          "art": [
+            ".###.",
+            "#r.rm",
+            "#.m.r",
+            ".###."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 6,
+      "scale": 1.0,
+      "back": [
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            9
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            -2,
+            7
+          ],
+          "art": [
+            "##..",
+            "..##"
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            16,
+            7
+          ],
+          "art": [
+            "..#",
+            "##."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ],
+      "front": [
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            11
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            9,
+            11
+          ],
+          "rect": [
+            1,
+            7
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            7,
+            13
+          ],
+          "art": [
+            "#.#",
+            ".#.",
+            ".#."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            15,
+            8
+          ],
+          "art": [
+            "..ii",
+            ".iff",
+            "iffi",
+            "ifii",
+            "ii.."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            1,
+            16
+          ],
+          "art": [
+            ".###.",
+            "#r.rm",
+            "#.m.r",
+            ".###."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 6,
+      "scale": 1.0,
+      "back": [
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            9
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            -2,
+            7
+          ],
+          "art": [
+            "##..",
+            "..##"
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            16,
+            7
+          ],
+          "art": [
+            "..#",
+            "##."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ],
+      "front": [
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            11
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            9,
+            11
+          ],
+          "rect": [
+            1,
+            7
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            7,
+            13
+          ],
+          "art": [
+            "#.#",
+            ".#.",
+            ".#."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            15,
+            9
+          ],
+          "art": [
+            "..ii",
+            ".iff",
+            "iffi",
+            "ifii",
+            "ii.."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            3,
+            9
+          ],
+          "art": [
+            "#f#",
+            "f#f"
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            1,
+            16
+          ],
+          "art": [
+            ".###.",
+            "#r.rm",
+            "#.m.r",
+            ".###."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ]
+    },
+    {
+      "dx": -1,
+      "dy": 6,
+      "scale": 1.0,
+      "back": [
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            9
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            -2,
+            7
+          ],
+          "art": [
+            "##..",
+            "..##"
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            16,
+            7
+          ],
+          "art": [
+            "..#",
+            "##."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ],
+      "front": [
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            11
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            9,
+            11
+          ],
+          "rect": [
+            1,
+            7
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            7,
+            13
+          ],
+          "art": [
+            "#.#",
+            ".#.",
+            ".#."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            15,
+            9
+          ],
+          "art": [
+            "..ii",
+            ".iff",
+            "iffi",
+            "ifii",
+            "ii.."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            3,
+            9
+          ],
+          "art": [
+            "#f#",
+            "f#f"
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            1,
+            16
+          ],
+          "art": [
+            ".###.",
+            "#r.rm",
+            "#.m.r",
+            ".###."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ]
+    },
+    {
+      "dx": -1,
+      "dy": 6,
+      "scale": 1.0,
+      "back": [
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            9
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            -2,
+            7
+          ],
+          "art": [
+            "##..",
+            "..##"
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            16,
+            7
+          ],
+          "art": [
+            "..#",
+            "##."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ],
+      "front": [
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            11
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            9,
+            11
+          ],
+          "rect": [
+            1,
+            7
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            7,
+            13
+          ],
+          "art": [
+            "#.#",
+            ".#.",
+            ".#."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            15,
+            9
+          ],
+          "art": [
+            "..ii",
+            ".iff",
+            "iffi",
+            "ifii",
+            "ii.."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            3,
+            9
+          ],
+          "art": [
+            "#f#",
+            "f#f"
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            1,
+            16
+          ],
+          "art": [
+            ".###.",
+            "#r.rm",
+            "#.m.r",
+            ".###."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ]
+    },
+    {
+      "dx": -1,
+      "dy": 6,
+      "scale": 1.0,
+      "back": [
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            9
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            -2,
+            7
+          ],
+          "art": [
+            "##..",
+            "..##"
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            16,
+            7
+          ],
+          "art": [
+            "..#",
+            "##."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ],
+      "front": [
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            11
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            9,
+            11
+          ],
+          "rect": [
+            1,
+            7
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            7,
+            13
+          ],
+          "art": [
+            "#.#",
+            ".#.",
+            ".#."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            15,
+            9
+          ],
+          "art": [
+            "..ii",
+            ".iff",
+            "iffi",
+            "ifii",
+            "ii.."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            3,
+            9
+          ],
+          "art": [
+            "#f#",
+            "f#f"
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            1,
+            16
+          ],
+          "art": [
+            ".###.",
+            "#r.rm",
+            "#.m.r",
+            ".###."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 6,
+      "scale": 1.0,
+      "back": [
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            9
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            -2,
+            7
+          ],
+          "art": [
+            "##..",
+            "..##"
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            16,
+            7
+          ],
+          "art": [
+            "..#",
+            "##."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ],
+      "front": [
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            11
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            9,
+            11
+          ],
+          "rect": [
+            1,
+            7
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            7,
+            13
+          ],
+          "art": [
+            "#.#",
+            ".#.",
+            ".#."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            15,
+            9
+          ],
+          "art": [
+            "..ii",
+            ".iff",
+            "iffi",
+            "ifii",
+            "ii.."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            0,
+            16
+          ],
+          "art": [
+            ".###.",
+            "#r.rm",
+            "#.m.r",
+            ".###."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 6,
+      "scale": 1.0,
+      "back": [
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            9
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            -2,
+            7
+          ],
+          "art": [
+            "##..",
+            "..##"
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            16,
+            7
+          ],
+          "art": [
+            "..#",
+            "##."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ],
+      "front": [
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            11
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            9,
+            11
+          ],
+          "rect": [
+            1,
+            7
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            7,
+            13
+          ],
+          "art": [
+            "#.#",
+            ".#.",
+            ".#."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            15,
+            9
+          ],
+          "art": [
+            "..ii",
+            ".iff",
+            "iffi",
+            "ifii",
+            "ii.."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            0,
+            16
+          ],
+          "art": [
+            ".###.",
+            "#r.rm",
+            "#.m.r",
+            ".###."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 6,
+      "scale": 1.0,
+      "back": [
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            9
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            8
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            -2,
+            7
+          ],
+          "art": [
+            "##..",
+            "..##"
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            16,
+            7
+          ],
+          "art": [
+            "..#",
+            "##."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ],
+      "front": [
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            9
+          ],
+          "colour": "brown"
+        },
+        {
+          "at": [
+            0,
+            11
+          ],
+          "rect": [
+            18,
+            7
+          ],
+          "colour": "amber"
+        },
+        {
+          "at": [
+            -1,
+            10
+          ],
+          "rect": [
+            20,
+            1
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            9,
+            11
+          ],
+          "rect": [
+            1,
+            7
+          ],
+          "colour": "gold"
+        },
+        {
+          "at": [
+            7,
+            13
+          ],
+          "art": [
+            "#.#",
+            ".#.",
+            ".#."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            15,
+            9
+          ],
+          "art": [
+            "..ii",
+            ".iff",
+            "iffi",
+            "ifii",
+            "ii.."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        },
+        {
+          "at": [
+            0,
+            16
+          ],
+          "art": [
+            ".###.",
+            "#r.rm",
+            "#.m.r",
+            ".###."
+          ],
+          "colours": {
+            "#": "brown",
+            "a": "amber",
+            "l": "gold",
+            "i": "ink",
+            "f": "fur",
+            "r": "rose",
+            "m": "lilac"
+          },
+          "step": 3
+        }
+      ]
+    }
+  ]
+}

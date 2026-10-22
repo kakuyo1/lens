@@ -168,9 +168,7 @@ flowchart LR
 <pre class="mermaid">
 flowchart LR
   R["recipes/ID.json"] --> RP["render_pet.py 写 PNG 与 JSON 并读回核对"]
-  S["dog/sprite.json dog/manifest.json"] --> BA["dog/build-assets.py 旧脚本"]
   RP --> OUT[("data/pet/ID/")]
-  BA --> OUT
   OUT --> APP["应用直接读取"]
   OUT --> EMB["npm run embed"]
   EMB --> PH["ui-prototypes/pet.html 内嵌 base64 PNG"]
@@ -181,7 +179,7 @@ flowchart LR
   <tr><th>文档</th><th>写的是</th><th>现状</th></tr>
   <tr><td>PHASE3 §3.8</td><td>扁平的 <code>data/pet/*.json</code></td><td>每只宠物一个子目录 <code>data/pet/ID/</code>（ADR 0031）</td></tr>
   <tr><td>PHASE3 §3.8</td><td><code>pet.json</code> 含默认配饰</td><td>代码不读取该字段</td></tr>
-  <tr><td>PHASE3 §3.1、§3.4</td><td><code>tools/build-assets.py</code>；<code>data/pet/accessories.json</code></td><td>脚本在 <code>scripts/pet/</code>；配饰表在各宠物目录</td></tr>
+  <tr><td>PHASE3 §3.1、§3.4</td><td><code>tools/build-assets.py</code>；<code>data/pet/accessories.json</code></td><td>配方在 <code>scripts/pet/recipes/</code>，由 <code>render_pet.py</code> 生成配饰表；旧的 <code>dog/build-assets.py</code> 已在 ADR 0081 删除</td></tr>
   <tr><td>ADR 0030</td><td>新增动作名不需要改代码</td><td>设置页的动作名与配饰名是 QML 中的 switch，新名字只显示原始 id</td></tr>
   <tr><td>pet.json</td><td>含 <code>height</code></td><td>代码不读取（无害，但不一致）</td></tr>
   <tr><td>JS 原型</td><td>与 C++ 同一套规则</td><td>状态机在 <code>pet-engine.js</code> 中重复实现，无跨实现的共享用例</td></tr>

@@ -624,7 +624,7 @@ function measureHandEdges(src) {
       ctx.drawImage(img, 0, 0, 88, 88, 0, 0, 88, 88);
       const px = ctx.getImageData(0, 0, 88, 88).data;
       const inked = (x, y) => px[(y * 88 + x) * 4 + 3] > 0;
-      // The chest rows 48 to 55, the rows render_pet.py and build-assets.py measure the paws from.
+      // The chest rows 48 to 55, the rows render_pet.py measures the paws from.
       const xs = [];
       for (let y = 48; y < 56; y++) for (let x = 0; x < 88; x++) if (inked(x, y)) xs.push(x);
       done({ left: Math.min(...xs), right: Math.max(...xs) });
