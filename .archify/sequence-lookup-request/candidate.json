@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Lens Word Lookup Round Trip",
+    "locale": "en",
+    "output": ".archify/sequence-lookup-request-20261022-171017/lookup-round-trip.html",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "viewBox": [1080, 696],
+    "repository": {
+      "url": "git@github.com:kakuyo1/lens.git",
+      "link_mode": "local-only",
+      "revision": "be8d58c43864bf039714de4530d0be3e6b92c3da"
+    },
+    "views": [
+      {
+        "id": "ingress",
+        "label": "Trigger and capture",
+        "focus": ["reader", "app", "capture", "ocr", "surface"],
+        "note": "Two triggers, one pixel grab, one refusal notice when the gate says no."
+      },
+      {
+        "id": "roundtrip",
+        "label": "Provider round trip",
+        "focus": ["app", "llm", "provider"],
+        "note": "One POST per batch, streamed deltas, one rejected batch on a bad echo."
+      }
+    ]
+  },
+  "participants": [
+    {
+      "id": "reader",
+      "type": "external",
+      "label": "Reader",
+      "sublabel": "hotkey · select",
+      "sources": [
+        { "path": "src/app/platform/global_hotkey.cpp", "line": 132, "end_line": 151 },
+        { "path": "src/app/platform/mouse_selection_hook.cpp", "line": 162 }
+      ]
+    },
+    {
+      "id": "app",
+      "type": "backend",
+      "label": "App duties",
+      "sublabel": "capture · explain",
+      "sources": [
+        { "path": "src/app/duties/capture_duty.cpp", "line": 436, "end_line": 444 },
+        { "path": "src/app/duties/explanation_duty.cpp", "line": 393, "end_line": 428 }
+      ]
+    },
+    {
+      "id": "capture",
+      "type": "backend",
+      "label": "lens_capture",
+      "sublabel": "grab · scan gate",
+      "sources": [
+        { "path": "src/app/duties/capture_duty.cpp", "line": 300 },
+        { "path": "src/core/domain/filter_core.cpp", "line": 503, "end_line": 550 }
+      ]
+    },
+    {
+      "id": "ocr",
+      "type": "external",
+      "label": "tesseract.exe",
+      "sublabel": "QProcess child",
+      "sources": [
+        { "path": "src/capture/ocr_engine.cpp", "line": 61, "end_line": 137 }
+      ]
+    },
+    {
+      "id": "llm",
+      "type": "backend",
+      "label": "lens_llm",
+      "sublabel": "body · SSE parse",
+      "sources": [
+        { "path": "src/llm/llm_pure.cpp", "line": 278, "end_line": 327 },
+        { "path": "src/llm/llm_client.cpp", "line": 102, "end_line": 185 }
+      ]
+    },
+    {
+      "id": "provider",
+      "type": "cloud",
+      "label": "LLM provider",
+      "sublabel": "chat completions",
+      "sources": [
+        { "path": "src/llm/llm_client.cpp", "line": 119, "end_line": 123 }
+      ]
+    },
+    {
+      "id": "surface",
+      "type": "frontend",
+      "label": "QML surfaces",
+      "sublabel": "Mask · Bubble",
+      "sources": [
+        { "path": "src/app/qml/Main.qml", "line": 229, "end_line": 259 }
+      ]
+    }
+  ],
+  "segments": [
+    { "from": 154, "to": 240, "label": "Trigger" },
+    { "from": 244, "to": 356, "label": "Capture and OCR" },
+    { "from": 360, "to": 388, "label": "Word filter" },
+    { "from": 392, "to": 504, "label": "Provider round trip" },
+    { "from": 508, "to": 564, "label": "Render" }
+  ],
+  "messages": [
+    { "id": "press", "from": "reader", "to": "app", "y": 168, "label": "hotkey pressed", "variant": "emphasis" },
+    { "id": "open-mask", "from": "app", "to": "surface", "y": 196, "label": "open region mask", "variant": "dashed" },
+    { "id": "region", "from": "surface", "to": "app", "y": 224, "label": "region chosen", "variant": "return" },
+    { "id": "gate", "from": "app", "to": "capture", "y": 258, "label": "refusal gate", "variant": "default" },
+    { "id": "refused", "from": "capture", "to": "surface", "y": 286, "label": "screenshotFailed", "variant": "security", "note": "13 refusal reasons; a stale job is dropped as Superseded or Withdrawn" },
+    { "id": "spawn", "from": "capture", "to": "ocr", "y": 314, "label": "pixels to stdin", "variant": "default" },
+    { "id": "textout", "from": "ocr", "to": "capture", "y": 342, "label": "text or timeout", "variant": "return" },
+    { "id": "filtered", "from": "capture", "to": "app", "y": 374, "label": "one fresh lemma", "variant": "return" },
+    { "id": "enqueue", "from": "app", "to": "llm", "y": 406, "label": "explain batch", "variant": "default" },
+    { "id": "post", "from": "llm", "to": "provider", "y": 434, "label": "POST + bearer key", "variant": "security" },
+    { "id": "deltas", "from": "provider", "to": "llm", "y": 462, "label": "SSE deltas", "variant": "return" },
+    { "id": "parsed", "from": "llm", "to": "app", "y": 490, "label": "answers or rejected", "variant": "return" },
+    { "id": "payload", "from": "app", "to": "surface", "y": 522, "label": "bubble payload", "variant": "emphasis" },
+    { "id": "shown", "from": "surface", "to": "reader", "y": 550, "label": "explanation shown", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "app", "from": 168, "to": 554, "type": "backend" },
+    { "participant": "surface", "from": 196, "to": 552, "type": "frontend" },
+    { "participant": "capture", "from": 258, "to": 378, "type": "backend" },
+    { "participant": "ocr", "from": 314, "to": 346, "type": "external" },
+    { "participant": "llm", "from": 402, "to": 494, "type": "backend" },
+    { "participant": "provider", "from": 434, "to": 466, "type": "cloud" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "One thread, two escapes",
+      "items": [
+        "The GUI thread owns every Qt object and the HTTP reply",
+        "OCR runs detached and is polled on a 25 ms timer",
+        "The mouse hook pumps its own queue and re-enters by queued signal"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "One word per round trip",
+      "items": [
+        "lens_core classifies the text and returns one lemma, never the whole screen",
+        "The queue caps a batch at five words, the client at twenty",
+        "There is no retry: a failed batch shows a notice and re-runs the queue"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Tolerant parse, strict echo",
+      "items": [
+        "Advisory fields are read but never demanded, and a mistyped one reads false",
+        "A repeated word echo is folded into the held entry, not a failure",
+        "A word nobody asked for rejects the whole batch"
+      ]
+    }
+  ]
+}
