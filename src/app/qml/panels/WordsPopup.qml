@@ -368,9 +368,15 @@ Window {
                     color: words.tokens.line
                     x: parent.width + 6
                     height: Math.max(24, list.height * list.height / list.contentHeight)
-                    y: list.contentHeight > list.height
-                       ? list.contentY / (list.contentHeight - list.height) * (list.height - height)
-                       : 0
+                    // Held inside the track rather than mapped straight off contentY. A filter
+                    // change or a removal shortens the list under a contentY the Flickable leaves
+                    // where it was, and the unclamped ratio then draws the thumb below the card.
+                    y: {
+                        if (list.contentHeight <= list.height)
+                            return 0;
+                        const at = list.contentY / (list.contentHeight - list.height);
+                        return (list.height - height) * Math.min(1, Math.max(0, at));
+                    }
                 }
             }
         }

@@ -595,9 +595,15 @@ Item {
                 color: list.tokens.line
                 x: listColumn.x + listColumn.width + 2
                 height: Math.max(24, listColumn.height * listColumn.height / listColumn.contentHeight)
-                y: listColumn.y + (listColumn.contentHeight > listColumn.height
-                                   ? listColumn.contentY / (listColumn.contentHeight - listColumn.height) * (listColumn.height - height)
-                                   : 0)
+                // Held inside the track rather than mapped straight off contentY, as the word list's
+                // bar is: a search shortens the list under a contentY the Flickable leaves where it
+                // was, and the unclamped ratio draws the thumb below the card.
+                y: {
+                    if (listColumn.contentHeight <= listColumn.height)
+                        return listColumn.y;
+                    const at = listColumn.contentY / (listColumn.contentHeight - listColumn.height);
+                    return listColumn.y + (listColumn.height - height) * Math.min(1, Math.max(0, at));
+                }
             }
         }
 
