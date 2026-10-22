@@ -37,7 +37,7 @@ namespace {
 
 /// The glass surfaces, by the name QML gives them in `image://glass/<name>/…`. A fixed set: each one gets its sheet at
 /// construction, so the image provider never has a sheet to create on one of its own threads.
-constexpr std::array<char const*, 15> kSurfaces{
+constexpr std::array<char const*, 16> kSurfaces{
     "settings",
     "tray",
     "stats",
@@ -62,6 +62,9 @@ constexpr std::array<char const*, 15> kSurfaces{
     // The action bar style dropdown's card is the fourth: it follows the stored theme, but its
     // miniature bar is still a separate window and needs its own sheet.
     "selectionBarPreview",
+    // The refresh tier's note card is the fifth: it follows the stored theme, glass and all, so it
+    // reads as the panel it was raised beside.
+    "notePreview",
 };
 /// How far the sheet reaches past the window on each side, in DIP. It is the reserve plus the hysteresis between
 /// retakes: the shader blurs and bends within the picture, so the sheet no longer has to carry the blur's reach

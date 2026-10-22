@@ -46,14 +46,34 @@ Window {
     width: root.cardWidth + 2 * root.shadowMargin
     height: root.cardHeight + 2 * root.shadowMargin
 
-    /// The stored theme, without the glass: this card explains the setting in hand, it does not
-    /// preview another one, and it never covers the card the reader is choosing from.
-    readonly property SurfaceTokens tokens: SurfaceTokens {}
+    /// The desktop under this window, for the glass themes only.
+    readonly property var glass: Controller.glassBackdrop.surface("notePreview")
+    /// The stored theme's table, glass included: this card is raised beside the panel the reader
+    /// is choosing in, and a flat card beside a glass one reads as another surface's note.
+    readonly property TokenTable tokens: TokenTable {
+        theme: Tokens.theme
+        glassEnabled: true
+        liquidTextColor: Tokens.liquidTextColor
+        glassLightText: root.glass ? root.glass.lightText : false
+        motion: Tokens.motion
+    }
+
+    GlassHost {
+        window: root
+        sheet: root.glass
+    }
 
     ShadowCard {
         anchors.fill: parent
         radius: root.tokens.radiusCard
-        color: root.tokens.panel
+        color: root.tokens.glassMode === "" ? root.tokens.panel : "transparent"
+
+        GlassSurface {
+            anchors.fill: parent
+            sheet: root.glass
+            mode: root.tokens.glassMode
+            radius: root.tokens.radiusCard
+        }
 
         Column {
             id: column
