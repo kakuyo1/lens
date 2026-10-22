@@ -88,7 +88,7 @@ Item {
         mipmap: true
     }
 
-    /// The sheet blurred along x (docs/adr/0081). It covers the whole sheet rather than the card, so the vertical pass
+    /// The sheet blurred along x (docs/adr/0082). It covers the whole sheet rather than the card, so the vertical pass
     /// below still has the sheet's margin to read when its outer taps and the refraction reach past the card's edge.
     ShaderEffect {
         id: horizontalBlur
@@ -107,7 +107,7 @@ Item {
         id: blurredTexture
         sourceItem: horizontalBlur
         hideSource: true
-        // The vertical taps stand on this layer's mip chain the same way (docs/adr/0081).
+        // The vertical taps stand on this layer's mip chain the same way (docs/adr/0082).
         mipmap: true
     }
 

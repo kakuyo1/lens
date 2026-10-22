@@ -1,6 +1,6 @@
 #version 440
 
-// The glass of a settings card (UI.md 3.1c and 3.1d, docs/adr/0039, docs/adr/0070, docs/adr/0081). The desktop under the
+// The glass of a settings card (UI.md 3.1c and 3.1d, docs/adr/0039, docs/adr/0070, docs/adr/0082). The desktop under the
 // window is taken once, at the screen's own resolution, into a sheet a little larger than the window. glass_hblur.frag
 // blurs that sheet along x; this shader blurs the result along y, saturates it, places the window within the sheet on
 // every frame, bends the sheet through the displacement map for the liquid theme, and cuts the card's rounded corners
@@ -9,7 +9,7 @@
 //
 // Nine taps along the axis, each at 0.95 sigma and reading a mip three quarters of a level coarser than that spacing.
 // The mip is the prefilter: a box of exactly one tap's width folds fine detail back as a visible weave, and the extra
-// level depth is what flattens it (docs/adr/0081). The two passes together cost what the old single pass's twenty-five
+// level depth is what flattens it (docs/adr/0082). The two passes together cost what the old single pass's twenty-five
 // taps did, the weave is gone, and the same slider lands a little softer: a Gaussian of about 1.2 sigma.
 
 layout(location = 0) in vec2 qt_TexCoord0;

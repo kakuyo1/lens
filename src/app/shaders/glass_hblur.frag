@@ -1,6 +1,6 @@
 #version 440
 
-// The horizontal half of the glass's blur (UI.md 3.1c and 3.1d, docs/adr/0081). The sheet is blurred along x into a
+// The horizontal half of the glass's blur (UI.md 3.1c and 3.1d, docs/adr/0082). The sheet is blurred along x into a
 // mipmapped texture here, and glass.frag blurs that along y. One pass of twenty-five taps used to do both axes; nine
 // taps per axis in two passes is the same sampling cost, but the mip the taps read is three quarters of a level coarser
 // than the tap spacing, and that stronger prefilter is what removes the weave the sparse pass folded into text and fine
@@ -32,7 +32,7 @@ const float kBlurAt100 = 60.0;
 const float kSpacingSigma = 0.95;
 /// How much coarser the prefilter mip is than the tap spacing. A box of exactly one tap's width has a stopband that
 /// folds fine detail back as a visible weave; three quarters of a level more flattens it and lands the same slider a
-/// little softer than the old single pass (docs/adr/0081).
+/// little softer than the old single pass (docs/adr/0082).
 const float kLodBias = 0.75;
 
 float weight(int k)
