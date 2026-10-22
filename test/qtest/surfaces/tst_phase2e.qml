@@ -299,14 +299,18 @@ Item {
         }
 
         /// The blur and the saturation are shader uniforms (docs/adr/0070): the picture no longer reloads when they
-        /// move, so the binding from the setting to the effect's property is the whole path.
+        /// move, so the binding from the setting to the effect's property is the whole path. The blur sits on both
+        /// passes of the separable pair, the saturation only on the compositing one (docs/adr/0082).
         function test_blurAndSaturationReachTheShaderUniforms() {
             const shown = openFrostedGeneral();
             const glass = Util.ofTypeInWindow(shown.panel, "GlassSurface");
             verify(glass, "the frosted theme drew no glass on the settings card");
-            const effect = findDeep(glass, function (o) {
+            const passes = findDeep(glass, function (o) {
                 return o.fragmentShader !== undefined;
-            })[0];
+            });
+            verify(passes.length >= 2, "the glass drew fewer than its two blur passes");
+            const effect = passes.find(function (o) { return o.saturation !== undefined; });
+            const xPass = passes.find(function (o) { return o.saturation === undefined; });
             verify(effect, "the glass drew no shader");
             compare(effect.blur, Controller.settings.frostedBlur);
             compare(effect.saturation, Controller.settings.frostedSaturation);
@@ -315,6 +319,7 @@ Item {
             Controller.setFrostedBlur(40);
             wait(30);
             compare(effect.blur, 40, "the blur uniform did not follow the setting");
+            compare(xPass.blur, 40, "the horizontal pass did not follow the blur setting");
             compare(glass.sheet.serial, picture, "moving the blur retook the sheet instead of changing a uniform");
             Controller.setFrostedSaturation(60);
             wait(30);
