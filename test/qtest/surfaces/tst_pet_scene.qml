@@ -62,15 +62,15 @@ Item {
         }
 
         function test_theStageShiftsToThePetsMeasuredFeet() {
-            // The fixture's pet is the dog: its feet are a pixel and a half left of the catalogue's, a cell lower.
-            compare(Pet.foot.x, 57);
+            // The fixture's pet is the dog: its ink centre is 7.5 px left of the catalogue's foot, its feet a cell lower.
+            compare(Pet.foot.x, 51);
             compare(Pet.foot.y, 84);
 
             Pet.preview("swing");
             tryCompare(Pet, "scene", "swing");
             const stage = Util.findAll(scene, function (o) { return o.objectName === "sceneStage"; })[0];
             verify(stage, "PetScene has no stage");
-            compare(stage.x, -1.5);
+            compare(stage.x, -7.5);
             compare(stage.y, 3);
         }
 
