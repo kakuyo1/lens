@@ -23,13 +23,12 @@
         "spin",
         "angry",
         "ask",
-        "swing",
         "desk",
-        "skate",
         "bath",
-        "rain",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "ghost_lantern",
+        "ghost_mirror"
       ]
     },
     {
@@ -55,13 +54,12 @@
         "spin",
         "angry",
         "ask",
-        "swing",
         "desk",
-        "skate",
         "bath",
-        "rain",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "ghost_lantern",
+        "ghost_mirror"
       ]
     },
     {
@@ -87,13 +85,12 @@
         "spin",
         "angry",
         "ask",
-        "swing",
         "desk",
-        "skate",
         "bath",
-        "rain",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "ghost_lantern",
+        "ghost_mirror"
       ]
     },
     {
@@ -119,13 +116,12 @@
         "spin",
         "angry",
         "ask",
-        "swing",
         "desk",
-        "skate",
         "bath",
-        "rain",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "ghost_lantern",
+        "ghost_mirror"
       ]
     },
     {
@@ -151,13 +147,12 @@
         "spin",
         "angry",
         "ask",
-        "swing",
         "desk",
-        "skate",
         "bath",
-        "rain",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "ghost_lantern",
+        "ghost_mirror"
       ]
     },
     {
@@ -183,13 +178,12 @@
         "spin",
         "angry",
         "ask",
-        "swing",
         "desk",
-        "skate",
         "bath",
-        "rain",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "ghost_lantern",
+        "ghost_mirror"
       ]
     },
     {
@@ -215,13 +209,12 @@
         "spin",
         "angry",
         "ask",
-        "swing",
         "desk",
-        "skate",
         "bath",
-        "rain",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "ghost_lantern",
+        "ghost_mirror"
       ]
     },
     {
@@ -247,13 +240,12 @@
         "spin",
         "angry",
         "ask",
-        "swing",
         "desk",
-        "skate",
         "bath",
-        "rain",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "ghost_lantern",
+        "ghost_mirror"
       ]
     },
     {
@@ -279,13 +271,12 @@
         "spin",
         "angry",
         "ask",
-        "swing",
         "desk",
-        "skate",
         "bath",
-        "rain",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "ghost_lantern",
+        "ghost_mirror"
       ]
     }
   ]

@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Lens · 小狗 · 第三轮</title>
+<style>
+:root{
+  --paper:#f1ece2; --card:#fbf8f1; --stage:#f5efe3; --ink:#1c1a17; --muted:#6d665d;
+  --faint:#9b9489; --line:#d8d0c2; --line2:#e9e2d7; --accent:#b5623a; --accent-soft:#f2dfd1;
+  --on:#fff; --chip:rgba(28,26,23,.055); --dot:rgba(28,26,23,.09);
+  --sh:0 1px 2px rgba(40,32,22,.04), 0 18px 42px -28px rgba(40,32,22,.25);
+  --sh-lg:0 2px 6px rgba(40,32,22,.06), 0 32px 80px -36px rgba(40,32,22,.32);
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,"Helvetica Neue",sans-serif;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,"SFMono-Regular",monospace;
+  --r:22px;
+}
+html[data-theme=dark]{
+  --paper:#151412; --card:#1e1c19; --stage:#26231e; --ink:#f1ece2; --muted:#aba397;
+  --faint:#7e776c; --line:#34312b; --line2:#2a2823; --accent:#e0a478; --accent-soft:#3a2b21;
+  --on:#171512; --chip:rgba(255,255,255,.07); --dot:rgba(255,255,255,.075);
+  --sh:0 1px 2px rgba(0,0,0,.35), 0 18px 42px -28px rgba(0,0,0,.75);
+  --sh-lg:0 2px 6px rgba(0,0,0,.45), 0 32px 80px -36px rgba(0,0,0,.9);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+body{font-family:var(--f);color:var(--ink);background:var(--paper);font-size:14px;line-height:1.6;min-height:100vh}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background-image:radial-gradient(var(--dot) 1px,transparent 1px);background-size:20px 20px}
+body.has-pick{padding-bottom:88px}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.wrap{position:relative;z-index:1;max-width:1220px;margin:0 auto;padding:0 28px 78px}
+[hidden]{display:none!important}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* top */
+.top{display:flex;align-items:center;gap:18px;min-height:70px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.15em;font-size:12px}
+.brand i{width:11px;height:11px;display:block;background:var(--ink);
+  box-shadow:4px 0 0 var(--ink),0 4px 0 var(--ink),4px 4px 0 var(--ink)}
+.brand span{font-weight:500;letter-spacing:.12em;color:var(--faint)}
+.controls{margin-left:auto;display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.tool{height:31px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);
+  font-size:11.5px;color:var(--muted);display:inline-flex;align-items:center;gap:7px}
+.tool:hover{border-color:var(--ink);color:var(--ink)}
+.tool[aria-pressed=true]{background:var(--ink);color:var(--on);border-color:var(--ink)}
+.tool .glyph{width:6px;height:6px;border-radius:2px;background:currentColor;opacity:.45}
+.tool[aria-pressed=true] .glyph{opacity:1}
+.tool#motion .glyph{border-radius:50%}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,.82fr);gap:58px;align-items:end;
+  padding:54px 0 38px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--faint);
+  text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:"";width:22px;height:1px;background:var(--line)}
+h1{font-size:clamp(40px,5.1vw,64px);line-height:1.03;letter-spacing:-.045em;font-weight:650;margin:16px 0 18px;text-wrap:balance}
+h1 em{font-style:normal;color:var(--accent)}
+.lede{max-width:620px;color:var(--muted);font-size:14.5px;line-height:1.9}
+.hero-meta{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:22px;color:var(--faint);font-size:11.5px}
+.hero-meta b{color:var(--ink);font-weight:650}
+.hero-meta .divider{width:3px;height:3px;border-radius:50%;background:var(--faint);opacity:.6}
+.brief{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh);padding:17px 18px 15px}
+.brief-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--line2)}
+.brief-head h2{font-size:11px;letter-spacing:.13em;text-transform:uppercase;font-weight:650;color:var(--muted)}
+.brief-head span{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:var(--faint)}
+.brief dl{display:block}
+.brief dl div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line2)}
+.brief dt{color:var(--muted);font-size:12px}
+.brief dd{font-family:var(--mono);font-size:11px;color:var(--ink)}
+.swatches{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.sw{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;color:var(--muted);
+  border:1px solid var(--line2);border-radius:999px;padding:4px 8px 4px 5px;background:var(--card)}
+.sw::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--c);border:1px solid rgba(0,0,0,.14)}
+.brief-note{margin-top:12px;font-size:11px;line-height:1.7;color:var(--faint)}
+
+/* grid */
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:26px}
+.card{--stage-h:302px;display:block;width:100%;padding:0;border:1px solid var(--line);border-radius:var(--r);
+  background:var(--card);box-shadow:var(--sh);text-align:left;font:inherit;color:inherit;cursor:pointer;
+  overflow:hidden;transition:border-color .2s,box-shadow .2s,transform .2s;
+  animation:rise .55s cubic-bezier(.2,.7,.3,1) both;animation-delay:calc(var(--i,0)*70ms)}
+.card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--ink) 26%,var(--line));box-shadow:var(--sh-lg)}
+.card[aria-checked=true]{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink),var(--sh-lg)}
+.card:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.stage{position:relative;display:flex;align-items:center;justify-content:center;height:var(--stage-h);
+  background:var(--stage);border-bottom:1px solid var(--line2);
+  background-image:radial-gradient(var(--dot) 1px,transparent 1px);background-size:18px 18px}
+.stage::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(80% 70% at 50% 45%,transparent 55%,rgba(40,32,22,.045) 100%)}
+html[data-theme=dark] .stage::after{background:radial-gradient(80% 70% at 50% 45%,transparent 55%,rgba(0,0,0,.22) 100%)}
+.big{width:240px;height:270px;image-rendering:pixelated;position:relative;z-index:1;
+  filter:drop-shadow(0 14px 16px rgba(40,32,22,.10))}
+html[data-theme=dark] .big{filter:drop-shadow(0 14px 18px rgba(0,0,0,.4))}
+.badge{position:absolute;top:12px;left:12px;z-index:2;display:none;align-items:center;gap:5px;
+  height:23px;padding:0 9px;border-radius:999px;background:var(--ink);color:var(--on);
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.08em}
+.badge::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
+.card[aria-checked=true] .badge{display:inline-flex}
+.card-body{padding:15px 18px 17px;display:flex;flex-direction:column;gap:9px}
+.card-head{display:flex;align-items:baseline;gap:10px;min-width:0}
+.idx{font-family:var(--mono);font-size:10px;color:var(--faint)}
+.name{font-size:21px;font-weight:650;letter-spacing:-.02em}
+.en{font-family:var(--mono);font-size:9.5px;letter-spacing:.11em;color:var(--faint);margin-left:auto;white-space:nowrap}
+.tag{font-size:11.5px;color:var(--muted)}
+.desc{font-size:12.5px;line-height:1.72;color:var(--muted);min-height:43px}
+.card-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-top:2px;padding-top:12px;border-top:1px solid var(--line2)}
+.actual{display:flex;align-items:center;gap:10px;min-width:0}
+.chip{width:88px;height:88px;image-rendering:pixelated;flex:none;border:1px solid var(--line);
+  border-radius:12px;background:var(--stage)}
+.actual-label{font-family:var(--mono);font-size:9.5px;line-height:1.55;letter-spacing:.03em;color:var(--faint)}
+.pick{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 13px;border-radius:999px;
+  border:1px solid var(--line);background:var(--chip);font-size:11.5px;color:var(--muted);
+  transition:background .2s,color .2s,border-color .2s;white-space:nowrap;flex:none}
+.pick::before{content:"";width:6px;height:6px;border-radius:50%;border:1px solid currentColor;opacity:.65}
+.pick i{font-style:normal;font-size:13px;line-height:1}
+.card:hover .pick{border-color:var(--ink);color:var(--ink)}
+.card[aria-checked=true] .pick{background:var(--ink);color:var(--on);border-color:var(--ink)}
+.card[aria-checked=true] .pick::before{background:currentColor;border-color:currentColor}
+
+/* notes */
+.notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:30px;margin-top:50px;padding-top:24px;border-top:1px solid var(--line)}
+.notes .num{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:var(--accent)}
+.notes h3{font-size:14.5px;font-weight:650;margin:8px 0 7px;letter-spacing:-.01em}
+.notes p{font-size:12.5px;line-height:1.85;color:var(--muted)}
+.foot{display:flex;justify-content:space-between;gap:18px;margin-top:44px;padding-top:16px;
+  border-top:1px solid var(--line2);font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--faint)}
+
+/* pickbar */
+.pickbar{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:20;display:flex;align-items:center;
+  gap:12px;max-width:calc(100vw - 30px);padding:10px 12px 10px 17px;border-radius:999px;
+  background:#1c1a17;color:#fbf8f1;box-shadow:0 18px 50px -18px rgba(0,0,0,.55);font-size:12px}
+.pickbar-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:#b9b0a2}
+.pickbar-name{font-weight:650;white-space:nowrap}
+.pickbar-hint{color:#b9b0a2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pickbar-clear{border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:5px 10px;
+  font-size:11px;color:#fbf8f1;flex:none}
+.pickbar-clear:hover{border-color:#fbf8f1}
+
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+html[data-shot="1"] .card{animation:none}
+html[data-shot="1"] .pickbar{display:none}
+@media (prefers-reduced-motion:reduce){.card{animation:none}}
+
+@media (max-width:980px){
+  .hero{grid-template-columns:1fr;gap:30px;align-items:start;padding-top:42px}
+  .brief{max-width:560px}
+  .grid{grid-template-columns:1fr}
+  .notes{grid-template-columns:1fr;gap:22px}
+  .pickbar-hint{display:none}
+}
+@media (max-width:640px){
+  .wrap{padding:0 18px 70px}
+  .top{flex-wrap:wrap;padding:12px 0;gap:10px}
+  .controls{margin-left:0;width:100%;justify-content:flex-start}
+  .card{--stage-h:254px}
+  .big{width:192px;height:216px}
+  .card-foot{flex-wrap:wrap}
+  .foot{flex-direction:column;gap:6px}
+  .hero-meta{font-size:11px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand" aria-label="Lens"><i aria-hidden="true"></i>LENS <span>/ PET</span></div>
+  <div class="controls" role="group" aria-label="候选预览选项">
+    <button class="tool" id="sil" type="button" aria-pressed="false"><span class="glyph" aria-hidden="true"></span>只看轮廓</button>
+    <button class="tool" id="dark" type="button" aria-pressed="false"><span class="glyph" aria-hidden="true"></span>深色底</button>
+    <button class="tool" id="motion" type="button" aria-pressed="true"><span class="glyph" aria-hidden="true"></span>动起来</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <p class="eyebrow">PET / DOG — ROUND 03</p>
+      <h1>这次，<em>像一只狗。</em></h1>
+      <p class="lede">上一版的四个候选已整组删除。这一轮先把画法拉回其他宠物：3px 格、1 格墨线、点状眼睛、白色团块。狗的特征只剩垂耳、口鼻、舌头和项圈——不再用大眼、腮红和尖耳。</p>
+      <div class="hero-meta">
+        <span><b>4</b> 个角色</span><span class="divider"></span>
+        <span>同一副骨架</span><span class="divider"></span>
+        <span>点卡片选一只</span>
+      </div>
+    </div>
+    <aside class="brief" aria-label="本轮规格">
+      <div class="brief-head"><h2>本轮规格</h2><span>SPEC</span></div>
+      <dl>
+        <div><dt>画布</dt><dd>88 × 88</dd></div>
+        <div><dt>格子</dt><dd>3 px</dd></div>
+        <div><dt>描边</dt><dd>1 格墨线</dd></div>
+        <div><dt>骨架</dt><dd>四个共用</dd></div>
+      </dl>
+      <div class="swatches" aria-label="宠物色板">
+        <span class="sw" style="--c:#fbfbfd">白</span>
+        <span class="sw" style="--c:#d3d8e2">雾</span>
+        <span class="sw" style="--c:#8f97a6">银</span>
+        <span class="sw" style="--c:#2f323a">墨</span>
+        <span class="sw" style="--c:#ec628c">玫红</span>
+        <span class="sw" style="--c:#52a0ec">冰蓝</span>
+      </div>
+      <p class="brief-note">主体只有白 / 灰 / 黑；玫红只在内耳和舌头，冰蓝只在雪原的眼睛。上一版候选与截图已删除。</p>
+    </aside>
+  </section>
+
+  <section class="grid" id="grid" role="radiogroup" aria-label="狗的形象候选"></section>
+
+  <section class="notes" aria-label="设计说明">
+    <article><span class="num">01</span><h3>垂耳是锚点</h3><p>尖耳 + 圆脸 + 粉脸颊，在这个色块语言里会读成猫或皮卡丘。长垂耳先把轮廓拉成狗，黑鼻头和舌头再补上口鼻。</p></article>
+    <article><span class="num">02</span><h3>黑白灰是主体</h3><p>白、雾灰、银、墨承担全部体积；玫红只在内耳和舌头，冰蓝只出现在雪原的眼睛。没有第三种主色。</p></article>
+    <article><span class="num">03</span><h3>下一步</h3><p>选定后按同一副骨架做 idle / walk / sleep / ask 和场景动作，并重配七件配件；帧仍是 88×88、3px，动作层直接接现有播放器。</p></article>
+  </section>
+
+  <footer class="foot">
+    <span>LENS · PET / DOG · ROUND 03</span>
+    <span>2026-10-22 · 上一版已移除</span>
+  </footer>
+</main>
+
+<div class="pickbar" id="pickbar" hidden>
+  <span class="pickbar-k">已选</span>
+  <span class="pickbar-name" id="pickbar-name"></span>
+  <span class="pickbar-hint">告诉我名字，我就按这只做整套动作、场景和配件。</span>
+  <button class="pickbar-clear" id="clear" type="button">清除</button>
+</div>
+
+<script>
+// Sprites: mask spans [y,x0,x1] + paint layers; the 1-cell ink outline is derived from the mask.
+const DOGS = [{"id":"classic","name":"奶糖","en":"CLASSIC","tag":"白 · 雾灰耳 · 墨项圈","desc":"最安静的一只。垂耳、黑鼻头，舌尖只露一点。","mask":[[0,9,14],[1,7,16],[2,5,18],[3,3,20],[4,2,21],[5,2,21],[6,2,21],[7,2,21],[8,2,21],[9,2,21],[10,2,5],[10,7,16],[10,18,21],[11,2,5],[11,7,16],[11,18,21],[12,2,5],[12,7,16],[12,18,21],[13,2,5],[13,7,16],[13,18,21],[14,3,5],[14,7,16],[14,18,20],[15,4,5],[15,7,16],[15,18,19],[16,6,17],[17,5,18],[18,5,18],[19,4,19],[20,4,19],[21,5,18],[22,7,16]],"paint":[{"at":[3,3],"colour":"mist","art":["###"]},{"at":[2,4],"colour":"mist","art":["####","####","####","####","####","####"]},{"at":[2,10],"colour":"mist","art":["####","####","####","####"]},{"at":[3,14],"colour":"mist","art":["###"]},{"at":[4,15],"colour":"mist","art":["##"]},{"at":[3,12],"colour":"rose","art":["##","##"]},{"at":[18,3],"colour":"mist","art":["###"]},{"at":[18,4],"colour":"mist","art":["####","####","####","####","####","####"]},{"at":[18,10],"colour":"mist","art":["####","####","####","####"]},{"at":[18,14],"colour":"mist","art":["###"]},{"at":[18,15],"colour":"mist","art":["##"]},{"at":[18,12],"colour":"rose","art":["##","##"]},{"at":[11,11],"colour":"ink","art":["##","##"]},{"at":[10,13],"colour":"ink","art":["###"]},{"at":[11,14],"colour":"rose","art":["##","##"]},{"at":[8,18],"colour":"charcoal","art":["########"]},{"at":[11,19],"colour":"silver","art":["##"]},{"at":[6,20],"colour":"mist","art":["###","###"]},{"at":[15,20],"colour":"mist","art":["###","###"]}],"eyes":[{"x":9,"y":7,"color":"ink"},{"x":14,"y":7,"color":"ink"}]},{"id":"tuxedo","name":"礼服","en":"TUXEDO","tag":"银灰身 · 白胸 · 墨耳","desc":"像穿了件小礼服，胸口和爪子是白的。","mask":[[0,9,14],[1,7,16],[2,5,18],[3,3,20],[4,2,21],[5,2,21],[6,2,21],[7,2,21],[8,2,21],[9,2,21],[10,2,5],[10,7,16],[10,18,21],[11,2,5],[11,7,16],[11,18,21],[12,2,5],[12,7,16],[12,18,21],[13,2,5],[13,7,16],[13,18,21],[14,3,5],[14,7,16],[14,18,20],[15,4,5],[15,7,16],[15,18,19],[16,6,17],[17,5,18],[18,5,18],[19,4,19],[20,4,19],[21,5,18],[22,7,16]],"paint":[{"at":[3,3],"colour":"charcoal","art":["###"]},{"at":[2,4],"colour":"charcoal","art":["####","####","####","####","####","####"]},{"at":[2,10],"colour":"charcoal","art":["####","####","####","####"]},{"at":[3,14],"colour":"charcoal","art":["###"]},{"at":[4,15],"colour":"charcoal","art":["##"]},{"at":[3,12],"colour":"rose","art":["##","##"]},{"at":[18,3],"colour":"charcoal","art":["###"]},{"at":[18,4],"colour":"charcoal","art":["####","####","####","####","####","####"]},{"at":[18,10],"colour":"charcoal","art":["####","####","####","####"]},{"at":[18,14],"colour":"charcoal","art":["###"]},{"at":[18,15],"colour":"charcoal","art":["##"]},{"at":[18,12],"colour":"rose","art":["##","##"]},{"at":[2,4],"colour":"mist","art":["#","#","#","#","#","#","#","#","#","#"]},{"at":[3,14],"colour":"mist","art":["#"]},{"at":[4,15],"colour":"mist","art":["#"]},{"at":[21,4],"colour":"mist","art":["#","#","#","#","#","#","#","#","#","#"]},{"at":[20,14],"colour":"mist","art":["#"]},{"at":[19,15],"colour":"mist","art":["#"]},{"at":[11,11],"colour":"ink","art":["##","##"]},{"at":[10,13],"colour":"ink","art":["###"]},{"at":[11,14],"colour":"rose","art":["##","##"]},{"at":[6,16],"colour":"silver","art":["############"]},{"at":[5,17],"colour":"silver","art":["##############"]},{"at":[5,18],"colour":"silver","art":["##############"]},{"at":[4,19],"colour":"silver","art":["################"]},{"at":[4,20],"colour":"silver","art":["################"]},{"at":[5,21],"colour":"silver","art":["##############"]},{"at":[7,22],"colour":"silver","art":["##########"]},{"at":[8,16],"colour":"fur","art":["######"]},{"at":[8,17],"colour":"fur","art":["######"]},{"at":[8,19],"colour":"fur","art":["######"]},{"at":[9,20],"colour":"fur","art":["####"]},{"at":[8,18],"colour":"charcoal","art":["########"]},{"at":[11,19],"colour":"silver","art":["##"]},{"at":[6,20],"colour":"fur","art":["###","###"]},{"at":[15,20],"colour":"fur","art":["###","###"]}],"eyes":[{"x":9,"y":7,"color":"ink"},{"x":14,"y":7,"color":"ink"}]},{"id":"beagle","name":"小猎","en":"BEAGLE","tag":"长垂耳 · 白口鼻 · 雀斑","desc":"耳朵更长，闻到东西就会停下来；舌头也长。","mask":[[0,9,14],[1,7,16],[2,5,18],[3,3,20],[4,2,21],[5,2,21],[6,2,21],[7,2,21],[8,2,21],[9,2,21],[10,2,5],[10,7,16],[10,18,21],[11,2,5],[11,7,16],[11,18,21],[12,2,5],[12,7,16],[12,18,21],[13,2,5],[13,7,16],[13,18,21],[14,3,5],[14,7,16],[14,18,20],[15,4,5],[15,7,16],[15,18,19],[16,6,17],[17,5,18],[18,5,18],[19,4,19],[20,4,19],[21,5,18],[22,7,16],[16,2,5],[16,18,21],[17,2,4],[17,19,21]],"paint":[{"at":[3,3],"colour":"mist","art":["###"]},{"at":[2,4],"colour":"mist","art":["####","####","####","####","####","####"]},{"at":[2,10],"colour":"mist","art":["####","####","####","####"]},{"at":[3,14],"colour":"mist","art":["###"]},{"at":[4,15],"colour":"mist","art":["##"]},{"at":[3,12],"colour":"rose","art":["##","##"]},{"at":[18,3],"colour":"mist","art":["###"]},{"at":[18,4],"colour":"mist","art":["####","####","####","####","####","####"]},{"at":[18,10],"colour":"mist","art":["####","####","####","####"]},{"at":[18,14],"colour":"mist","art":["###"]},{"at":[18,15],"colour":"mist","art":["##"]},{"at":[18,12],"colour":"rose","art":["##","##"]},{"at":[2,16],"colour":"mist","art":["####"]},{"at":[2,17],"colour":"mist","art":["###"]},{"at":[18,16],"colour":"mist","art":["####"]},{"at":[19,17],"colour":"mist","art":["###"]},{"at":[8,12],"colour":"charcoal","art":["#"]},{"at":[15,12],"colour":"charcoal","art":["#"]},{"at":[8,14],"colour":"charcoal","art":["#"]},{"at":[15,14],"colour":"charcoal","art":["#"]},{"at":[11,11],"colour":"ink","art":["##","##"]},{"at":[10,13],"colour":"ink","art":["###"]},{"at":[11,14],"colour":"rose","art":["##","##","##"]},{"at":[8,18],"colour":"charcoal","art":["########"]},{"at":[11,19],"colour":"silver","art":["##"]},{"at":[6,20],"colour":"mist","art":["###","###"]},{"at":[15,20],"colour":"mist","art":["###","###"]}],"eyes":[{"x":9,"y":7,"color":"ink"},{"x":14,"y":7,"color":"ink"}]},{"id":"husky","name":"雪原","en":"HUSKY","tag":"银灰头套 · 白鼻梁 · 冰蓝眼","desc":"看着冷，其实最粘人。只有眼睛用了点缀蓝。","mask":[[0,9,14],[1,7,16],[2,5,18],[3,3,20],[4,2,21],[5,2,21],[6,2,21],[7,2,21],[8,2,21],[9,2,21],[10,2,5],[10,7,16],[10,18,21],[11,2,5],[11,7,16],[11,18,21],[12,2,5],[12,7,16],[12,18,21],[13,2,5],[13,7,16],[13,18,21],[14,3,5],[14,7,16],[14,18,20],[15,4,5],[15,7,16],[15,18,19],[16,6,17],[17,5,18],[18,5,18],[19,4,19],[20,4,19],[21,5,18],[22,7,16]],"paint":[{"at":[3,3],"colour":"silver","art":["###"]},{"at":[2,4],"colour":"silver","art":["####","####","####","####","####","####"]},{"at":[2,10],"colour":"silver","art":["####","####","####","####"]},{"at":[3,14],"colour":"silver","art":["###"]},{"at":[4,15],"colour":"silver","art":["##"]},{"at":[3,12],"colour":"mist","art":["##","##"]},{"at":[18,3],"colour":"silver","art":["###"]},{"at":[18,4],"colour":"silver","art":["####","####","####","####","####","####"]},{"at":[18,10],"colour":"silver","art":["####","####","####","####"]},{"at":[18,14],"colour":"silver","art":["###"]},{"at":[18,15],"colour":"silver","art":["##"]},{"at":[18,12],"colour":"mist","art":["##","##"]},{"at":[5,2],"colour":"silver","art":["##############"]},{"at":[3,3],"colour":"silver","art":["##################"]},{"at":[2,4],"colour":"silver","art":["####################"]},{"at":[2,5],"colour":"silver","art":["####################"]},{"at":[2,6],"colour":"silver","art":["####################"]},{"at":[9,2],"colour":"fur","art":["####"]},{"at":[9,3],"colour":"fur","art":["####"]},{"at":[9,4],"colour":"fur","art":["####"]},{"at":[9,5],"colour":"fur","art":["####"]},{"at":[9,6],"colour":"fur","art":["####"]},{"at":[11,11],"colour":"ink","art":["##","##"]},{"at":[10,13],"colour":"ink","art":["###"]},{"at":[11,14],"colour":"rose","art":["##","##"]},{"at":[5,16],"colour":"silver","art":["##############"]},{"at":[4,17],"colour":"silver","art":["##############"]},{"at":[9,18],"colour":"fur","art":["######"]},{"at":[8,19],"colour":"fur","art":["######"]},{"at":[8,18],"colour":"charcoal","art":["########"]},{"at":[11,19],"colour":"silver","art":["##"]},{"at":[6,20],"colour":"mist","art":["###","###"]},{"at":[15,20],"colour":"mist","art":["###","###"]}],"eyes":[{"x":9,"y":7,"color":"sky"},{"x":14,"y":7,"color":"sky"}]}];
+
+const PAL = {
+  ink:'#1a1a1f', fur:'#fbfbfd', rose:'#ec628c', charcoal:'#2f323a',
+  silver:'#8f97a6', mist:'#d3d8e2', sky:'#52a0ec'
+};
+const DIRS = [[1,0],[-1,0],[0,1],[0,-1]];
+const params = new URLSearchParams(location.search);
+const state = {
+  silhouette: params.has('silhouette'),
+  dark: params.get('theme') === 'dark',
+  motion: !(params.has('shot') || params.get('motion') === 'off'),
+  pick: params.get('pick')
+};
+if (params.has('shot')) document.documentElement.dataset.shot = '1';
+if (state.dark) document.documentElement.dataset.theme = 'dark';
+
+function boundsOf(dog){
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  for (const [y,x0,x1] of dog.mask){
+    minX=Math.min(minX,x0); maxX=Math.max(maxX,x1);
+    minY=Math.min(minY,y);  maxY=Math.max(maxY,y);
+  }
+  return {minX,maxX,minY,maxY};
+}
+
+function spriteMap(dog, silhouette, blink){
+  const fill = new Map();
+  for (const [y,x0,x1] of dog.mask)
+    for (let x=x0;x<=x1;x++) fill.set(x+','+y,'fur');
+
+  const ink = new Set();
+  for (const key of fill.keys()){
+    const [x,y] = key.split(',').map(Number);
+    for (const [dx,dy] of DIRS){
+      const k = (x+dx)+','+(y+dy);
+      if (!fill.has(k)) ink.add(k);
+    }
+  }
+
+  if (silhouette){
+    for (const k of fill.keys()) fill.set(k,'ink');
+    return fill;
+  }
+  if (!silhouette){
+    for (const item of dog.paint){
+      const [ax,ay] = item.at;
+      for (let j=0;j<item.art.length;j++){
+        for (let i=0;i<item.art[j].length;i++){
+          if (item.art[j][i] !== '#') continue;
+          const k = (ax+i)+','+(ay+j);
+          if (fill.has(k)) fill.set(k,item.colour);
+        }
+      }
+    }
+    for (const e of dog.eyes){
+      for (const [ox,oy] of [[0,0],[1,0],[0,1],[1,1]]){
+        const k = (e.x+ox)+','+(e.y+oy);
+        if (fill.has(k)) fill.set(k, blink ? 'fur' : e.color);
+      }
+      if (blink){
+        for (const ox of [0,1]){
+          const k = (e.x+ox)+','+(e.y+1);
+          if (fill.has(k)) fill.set(k,'ink');
+        }
+      }
+    }
+  }
+  for (const k of ink) fill.set(k,'ink');
+  return fill;
+}
+
+function makeViews(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = DOGS.map((dog,i)=>`
+    <button class="card" type="button" role="radio" aria-checked="false" data-id="${dog.id}" style="--i:${i}">
+      <span class="stage">
+        <canvas class="big" aria-hidden="true"></canvas>
+        <span class="badge">已选</span>
+      </span>
+      <span class="card-body">
+        <span class="card-head">
+          <span class="idx">0${i+1}</span>
+          <span class="name">${dog.name}</span>
+          <span class="en">${dog.en}</span>
+        </span>
+        <span class="tag">${dog.tag}</span>
+        <span class="desc">${dog.desc}</span>
+        <span class="card-foot">
+          <span class="actual">
+            <canvas class="chip" aria-hidden="true"></canvas>
+            <span class="actual-label">88 × 88<br>实际大小</span>
+          </span>
+          <span class="pick"><span class="pick-label">选它</span><i aria-hidden="true">→</i></span>
+        </span>
+      </span>
+    </button>`).join('');
+
+  return [...grid.querySelectorAll('.card')].map((card,i)=>{
+    const dog = DOGS.find(d=>d.id===card.dataset.id);
+    const b = boundsOf(dog);
+    const big = card.querySelector('.big');
+    const chip = card.querySelector('.chip');
+    const bigBox = {x0:b.minX-2, y0:b.minY-2, w:b.maxX-b.minX+5, h:b.maxY-b.minY+5};
+    big.width = bigBox.w; big.height = bigBox.h;
+    chip.width = 88; chip.height = 88;
+    const cw = (b.maxX-b.minX+3), ch = (b.maxY-b.minY+3);
+    const cx0 = b.minX-1, cy0 = b.minY-1;
+    return {
+      i, dog, big, chip, bigBox, cx0, cy0,
+      ox: Math.floor((88 - cw*3)/2),
+      oy: Math.floor((88 - ch*3)/2),
+      draw(dy, blink){
+        const map = spriteMap(dog, state.silhouette, blink);
+        const ctx = big.getContext('2d');
+        ctx.clearRect(0,0,bigBox.w,bigBox.h);
+        for (const [k,c] of map){
+          const [x,y] = k.split(',').map(Number);
+          ctx.fillStyle = PAL[c] || PAL.ink;
+          ctx.fillRect(x-bigBox.x0, y+dy-bigBox.y0, 1, 1);
+        }
+        const cctx = chip.getContext('2d');
+        cctx.clearRect(0,0,88,88);
+        for (const [k,c] of map){
+          const [x,y] = k.split(',').map(Number);
+          cctx.fillStyle = PAL[c] || PAL.ink;
+          cctx.fillRect(this.ox+(x-cx0)*3, this.oy+(y+dy-cy0)*3, 3, 3);
+        }
+      }
+    };
+  });
+}
+
+const views = makeViews();
+const cards = [...document.querySelectorAll('.card')];
+const pickbar = document.getElementById('pickbar');
+const pickbarName = document.getElementById('pickbar-name');
+const motionBtn = document.getElementById('motion');
+const silBtn = document.getElementById('sil');
+const darkBtn = document.getElementById('dark');
+
+function drawAll(dy, blink){
+  for (const v of views){
+    const b = blink ? ((performance.now() + v.i*520) % 4600) < 130 : false;
+    v.draw(dy, b);
+  }
+}
+
+function setStateControls(){
+  motionBtn.setAttribute('aria-pressed', String(state.motion));
+  silBtn.setAttribute('aria-pressed', String(state.silhouette));
+  darkBtn.setAttribute('aria-pressed', String(state.dark));
+}
+
+function setPick(id, updateUrl=true){
+  const dog = DOGS.find(d=>d.id===id);
+  state.pick = dog ? id : null;
+  for (const card of cards){
+    const on = card.dataset.id === state.pick;
+    card.setAttribute('aria-checked', String(on));
+    card.querySelector('.pick-label').textContent = on ? '已选' : '选它';
+  }
+  pickbar.hidden = !dog;
+  if (dog) pickbarName.textContent = `${dog.name} · ${dog.en}`;
+  document.body.classList.toggle('has-pick', Boolean(dog));
+  if (!updateUrl) return;
+  const url = new URL(location.href);
+  if (dog) url.searchParams.set('pick', id); else url.searchParams.delete('pick');
+  try { history.replaceState(null,'',url); } catch (e) { /* file:// may refuse */ }
+}
+
+cards.forEach(card=>card.addEventListener('click',()=>setPick(card.dataset.id)));
+document.getElementById('clear').addEventListener('click',()=>setPick(null));
+
+silBtn.addEventListener('click',()=>{
+  state.silhouette = !state.silhouette;
+  setStateControls();
+  if (!state.motion) drawAll(0,false);
+});
+darkBtn.addEventListener('click',()=>{
+  state.dark = !state.dark;
+  document.documentElement.dataset.theme = state.dark ? 'dark' : 'light';
+  setStateControls();
+});
+motionBtn.addEventListener('click',()=>{
+  state.motion = !state.motion;
+  setStateControls();
+  if (!state.motion) drawAll(0,false);
+  clock = performance.now();
+});
+
+setStateControls();
+if (state.pick) setPick(state.pick,false);
+drawAll(0,false);
+
+let clock = performance.now();
+function frame(now){
+  if (state.motion){
+    const phase = now - clock;
+    const dy = (phase % 2800) < 560 ? -1 : 0;
+    for (const v of views){
+      const blink = ((phase + v.i*520) % 4600) < 130;
+      v.draw(dy, blink);
+    }
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

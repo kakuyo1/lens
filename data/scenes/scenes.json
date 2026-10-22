@@ -4,7 +4,7 @@
     {
       "id": "bath",
       "name": "泡澡",
-      "frames": 8,
+      "frames": 12,
       "fps": 4,
       "foot": [
         58.5,
@@ -58,13 +58,353 @@
           "dx": 0,
           "dy": 9,
           "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 9,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 9,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 9,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 9,
+          "scale": 1
+        }
+      ]
+    },
+    {
+      "id": "cat_box",
+      "name": "纸箱打盹",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        58.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "cat_box/back.png",
+        "front": "cat_box/front.png"
+      },
+      "framesData": [
+        {
+          "dx": 0,
+          "dy": 6,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 6,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 6,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 6,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 6,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 6,
+          "scale": 1.0
+        },
+        {
+          "dx": -1,
+          "dy": 6,
+          "scale": 1.0
+        },
+        {
+          "dx": -1,
+          "dy": 6,
+          "scale": 1.0
+        },
+        {
+          "dx": -1,
+          "dy": 6,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 6,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 6,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 6,
+          "scale": 1.0
+        }
+      ]
+    },
+    {
+      "id": "cat_sunbeam",
+      "name": "窗台晒太阳",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        58.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "cat_sunbeam/back.png",
+        "front": "cat_sunbeam/front.png"
+      },
+      "framesData": [
+        {
+          "dx": 2,
+          "dy": -12,
+          "scale": 0.85
+        },
+        {
+          "dx": 2,
+          "dy": -12,
+          "scale": 0.85
+        },
+        {
+          "dx": 2,
+          "dy": -12,
+          "scale": 0.85
+        },
+        {
+          "dx": 2,
+          "dy": -12,
+          "scale": 0.85
+        },
+        {
+          "dx": 2,
+          "dy": -12,
+          "scale": 0.85
+        },
+        {
+          "dx": 2,
+          "dy": -12,
+          "scale": 0.85
+        },
+        {
+          "dx": 2,
+          "dy": -12,
+          "scale": 0.85
+        },
+        {
+          "dx": 2,
+          "dy": -12,
+          "scale": 0.85
+        },
+        {
+          "dx": 2,
+          "dy": -12,
+          "scale": 0.85
+        },
+        {
+          "dx": 2,
+          "dy": -12,
+          "scale": 0.85
+        },
+        {
+          "dx": 2,
+          "dy": -12,
+          "scale": 0.85
+        },
+        {
+          "dx": 2,
+          "dy": -12,
+          "scale": 0.85
+        }
+      ]
+    },
+    {
+      "id": "cloud_fishing",
+      "name": "云上垂钓",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        58.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "cloud_fishing/back.png",
+        "front": "cloud_fishing/front.png"
+      },
+      "framesData": [
+        {
+          "dx": -6,
+          "dy": -22,
+          "scale": 1.0
+        },
+        {
+          "dx": -6,
+          "dy": -22,
+          "scale": 1.0
+        },
+        {
+          "dx": -6,
+          "dy": -22,
+          "scale": 1.0
+        },
+        {
+          "dx": -6,
+          "dy": -22,
+          "scale": 1.0
+        },
+        {
+          "dx": -6,
+          "dy": -22,
+          "scale": 1.0
+        },
+        {
+          "dx": -7,
+          "dy": -22,
+          "scale": 1.0
+        },
+        {
+          "dx": -7,
+          "dy": -22,
+          "scale": 1.0
+        },
+        {
+          "dx": -7,
+          "dy": -22,
+          "scale": 1.0
+        },
+        {
+          "dx": -7,
+          "dy": -22,
+          "scale": 1.0
+        },
+        {
+          "dx": -7,
+          "dy": -22,
+          "scale": 1.0
+        },
+        {
+          "dx": -6,
+          "dy": -22,
+          "scale": 1.0
+        },
+        {
+          "dx": -6,
+          "dy": -22,
+          "scale": 1.0
+        }
+      ]
+    },
+    {
+      "id": "cloud_watering",
+      "name": "给盆栽下雨",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        58.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "cloud_watering/back.png",
+        "front": "cloud_watering/front.png"
+      },
+      "framesData": [
+        {
+          "dx": -2,
+          "dy": -20,
+          "scale": 1.0
+        },
+        {
+          "dx": -2,
+          "dy": -20,
+          "scale": 1.0
+        },
+        {
+          "dx": -2,
+          "dy": -20,
+          "scale": 1.0
+        },
+        {
+          "dx": -2,
+          "dy": -20,
+          "scale": 1.0
+        },
+        {
+          "dx": -2,
+          "dy": -20,
+          "scale": 1.0
+        },
+        {
+          "dx": -2,
+          "dy": -20,
+          "scale": 1.0
+        },
+        {
+          "dx": -2,
+          "dy": -21,
+          "scale": 1.02
+        },
+        {
+          "dx": -2,
+          "dy": -21,
+          "scale": 1.02
+        },
+        {
+          "dx": -2,
+          "dy": -21,
+          "scale": 1.02
+        },
+        {
+          "dx": -2,
+          "dy": -21,
+          "scale": 1.02
+        },
+        {
+          "dx": -2,
+          "dy": -20,
+          "scale": 1.0
+        },
+        {
+          "dx": -2,
+          "dy": -20,
+          "scale": 1.0
         }
       ]
     },
     {
       "id": "desk",
       "name": "敲电脑",
-      "frames": 8,
+      "frames": 12,
       "fps": 4,
       "foot": [
         58.5,
@@ -118,13 +458,833 @@
           "dx": 0,
           "dy": -3,
           "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": -3,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": -3,
+          "scale": 1
+        }
+      ]
+    },
+    {
+      "id": "dog_burying",
+      "name": "埋骨头",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        58.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "dog_burying/back.png",
+        "front": "dog_burying/front.png"
+      },
+      "framesData": [
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 1,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 1,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 1,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 1,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 1,
+          "scale": 1.0
+        }
+      ]
+    },
+    {
+      "id": "dog_frisbee",
+      "name": "接飞盘",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        58.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "dog_frisbee/back.png",
+        "front": "dog_frisbee/front.png"
+      },
+      "framesData": [
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 1,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 2,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": -4,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": -8,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": -12,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": -15,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": -10,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": -5,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        }
+      ]
+    },
+    {
+      "id": "ghost_lantern",
+      "name": "南瓜灯",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        58.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "ghost_lantern/back.png",
+        "front": "ghost_lantern/front.png"
+      },
+      "framesData": [
+        {
+          "dx": -22,
+          "dy": -4,
+          "scale": 1.0
+        },
+        {
+          "dx": -22,
+          "dy": -4,
+          "scale": 1.0
+        },
+        {
+          "dx": -22,
+          "dy": -4,
+          "scale": 1.0
+        },
+        {
+          "dx": -22,
+          "dy": -4,
+          "scale": 1.0
+        },
+        {
+          "dx": -22,
+          "dy": -4,
+          "scale": 1.0
+        },
+        {
+          "dx": -24,
+          "dy": -7,
+          "scale": 1.0
+        },
+        {
+          "dx": -24,
+          "dy": -7,
+          "scale": 1.0
+        },
+        {
+          "dx": -24,
+          "dy": -7,
+          "scale": 1.0
+        },
+        {
+          "dx": -22,
+          "dy": -4,
+          "scale": 1.0
+        },
+        {
+          "dx": -22,
+          "dy": -4,
+          "scale": 1.0
+        },
+        {
+          "dx": -22,
+          "dy": -4,
+          "scale": 1.0
+        },
+        {
+          "dx": -22,
+          "dy": -4,
+          "scale": 1.0
+        }
+      ]
+    },
+    {
+      "id": "ghost_mirror",
+      "name": "镜中无影",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        58.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "ghost_mirror/back.png",
+        "front": "ghost_mirror/front.png"
+      },
+      "framesData": [
+        {
+          "dx": 10,
+          "dy": -2,
+          "scale": 1.0
+        },
+        {
+          "dx": 10,
+          "dy": -2,
+          "scale": 1.0
+        },
+        {
+          "dx": 10,
+          "dy": -2,
+          "scale": 1.0
+        },
+        {
+          "dx": 10,
+          "dy": -2,
+          "scale": 1.0
+        },
+        {
+          "dx": 10,
+          "dy": -2,
+          "scale": 1.0
+        },
+        {
+          "dx": 7,
+          "dy": -1,
+          "scale": 1.0
+        },
+        {
+          "dx": 7,
+          "dy": -1,
+          "scale": 1.0
+        },
+        {
+          "dx": 7,
+          "dy": -1,
+          "scale": 1.0
+        },
+        {
+          "dx": 7,
+          "dy": -1,
+          "scale": 1.0
+        },
+        {
+          "dx": 10,
+          "dy": -2,
+          "scale": 1.0
+        },
+        {
+          "dx": 10,
+          "dy": -2,
+          "scale": 1.0
+        },
+        {
+          "dx": 10,
+          "dy": -2,
+          "scale": 1.0
+        }
+      ]
+    },
+    {
+      "id": "jelly_sundae",
+      "name": "甜品杯",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        58.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "jelly_sundae/back.png",
+        "front": "jelly_sundae/front.png"
+      },
+      "framesData": [
+        {
+          "dx": 0,
+          "dy": 4,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 4,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 4,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 4,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 4,
+          "scale": 1.0
+        },
+        {
+          "dx": -1,
+          "dy": 4,
+          "scale": 1.0
+        },
+        {
+          "dx": -1,
+          "dy": 4,
+          "scale": 1.0
+        },
+        {
+          "dx": -1,
+          "dy": 4,
+          "scale": 1.0
+        },
+        {
+          "dx": -1,
+          "dy": 4,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 4,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 4,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 4,
+          "scale": 1.0
+        }
+      ]
+    },
+    {
+      "id": "jelly_trampoline",
+      "name": "弹跳床",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        58.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "jelly_trampoline/back.png",
+        "front": "jelly_trampoline/front.png"
+      },
+      "framesData": [
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": -2,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": -6,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": -10,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": -6,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": -2,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": -8,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": -12,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": -6,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1.0
+        }
+      ]
+    },
+    {
+      "id": "mochi_grill",
+      "name": "烤年糕",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        58.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "mochi_grill/back.png",
+        "front": "mochi_grill/front.png"
+      },
+      "framesData": [
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": -1,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": -1,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": -1,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": -1,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": -1,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        }
+      ]
+    },
+    {
+      "id": "mochi_onsen",
+      "name": "温泉",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        58.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "mochi_onsen/back.png",
+        "front": "mochi_onsen/front.png"
+      },
+      "framesData": [
+        {
+          "dx": 0,
+          "dy": 7,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 7,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 7,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 7,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 7,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 7,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 7,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 7,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 7,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 7,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 7,
+          "scale": 1.0
+        },
+        {
+          "dx": 0,
+          "dy": 7,
+          "scale": 1.0
+        }
+      ]
+    },
+    {
+      "id": "owl_books",
+      "name": "书堆夜读",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        58.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "owl_books/back.png",
+        "front": "owl_books/front.png"
+      },
+      "framesData": [
+        {
+          "dx": -8,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -8,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -8,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -8,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -8,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -8,
+          "dy": -1,
+          "scale": 1.0
+        },
+        {
+          "dx": -8,
+          "dy": -1,
+          "scale": 1.0
+        },
+        {
+          "dx": -8,
+          "dy": -1,
+          "scale": 1.0
+        },
+        {
+          "dx": -8,
+          "dy": -1,
+          "scale": 1.0
+        },
+        {
+          "dx": -8,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -8,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -8,
+          "dy": 0,
+          "scale": 1.0
+        }
+      ]
+    },
+    {
+      "id": "owl_stargazing",
+      "name": "望远镜观星",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        58.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "owl_stargazing/back.png",
+        "front": "owl_stargazing/front.png"
+      },
+      "framesData": [
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": -1,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": -1,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": -1,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": -1,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
+        },
+        {
+          "dx": -12,
+          "dy": 0,
+          "scale": 1.0
         }
       ]
     },
     {
       "id": "rain",
       "name": "撑伞看雨",
-      "frames": 8,
+      "frames": 12,
       "fps": 4,
       "foot": [
         58.5,
@@ -178,13 +1338,33 @@
           "dx": 0,
           "dy": 0,
           "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
         }
       ]
     },
     {
       "id": "skate",
       "name": "滑滑板",
-      "frames": 8,
+      "frames": 12,
       "fps": 4,
       "foot": [
         58.5,
@@ -238,13 +1418,33 @@
           "dx": -6,
           "dy": -12,
           "scale": 1
+        },
+        {
+          "dx": -6,
+          "dy": -12,
+          "scale": 1
+        },
+        {
+          "dx": -6,
+          "dy": -12,
+          "scale": 1
+        },
+        {
+          "dx": -6,
+          "dy": -12,
+          "scale": 1
+        },
+        {
+          "dx": -6,
+          "dy": -12,
+          "scale": 1
         }
       ]
     },
     {
       "id": "swing",
       "name": "荡秋千",
-      "frames": 8,
+      "frames": 12,
       "fps": 4,
       "foot": [
         58.5,
@@ -278,6 +1478,26 @@
           "dx": -12,
           "dy": -6,
           "scale": 1.0494974746830583
+        },
+        {
+          "dx": -12,
+          "dy": -9,
+          "scale": 1
+        },
+        {
+          "dx": -12,
+          "dy": -12,
+          "scale": 0.9505025253169417
+        },
+        {
+          "dx": -12,
+          "dy": -15,
+          "scale": 0.9299999999999999
+        },
+        {
+          "dx": -12,
+          "dy": -12,
+          "scale": 0.9505025253169417
         },
         {
           "dx": -12,

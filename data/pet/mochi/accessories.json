@@ -19,9 +19,6 @@
         "angry",
         "ask",
         "swing",
-        "desk",
-        "skate",
-        "bath",
         "rain",
         "wobble",
         "bounce",
@@ -29,7 +26,9 @@
         "shiver",
         "spin",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "mochi_onsen",
+        "mochi_grill"
       ]
     },
     {
@@ -51,9 +50,6 @@
         "angry",
         "ask",
         "swing",
-        "desk",
-        "skate",
-        "bath",
         "rain",
         "wobble",
         "bounce",
@@ -61,7 +57,9 @@
         "shiver",
         "spin",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "mochi_onsen",
+        "mochi_grill"
       ]
     },
     {
@@ -83,9 +81,6 @@
         "angry",
         "ask",
         "swing",
-        "desk",
-        "skate",
-        "bath",
         "rain",
         "wobble",
         "bounce",
@@ -93,7 +88,9 @@
         "shiver",
         "spin",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "mochi_onsen",
+        "mochi_grill"
       ]
     },
     {
@@ -115,9 +112,6 @@
         "angry",
         "ask",
         "swing",
-        "desk",
-        "skate",
-        "bath",
         "rain",
         "wobble",
         "bounce",
@@ -125,7 +119,9 @@
         "shiver",
         "spin",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "mochi_onsen",
+        "mochi_grill"
       ]
     },
     {
@@ -147,9 +143,6 @@
         "angry",
         "ask",
         "swing",
-        "desk",
-        "skate",
-        "bath",
         "rain",
         "wobble",
         "bounce",
@@ -157,7 +150,9 @@
         "shiver",
         "spin",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "mochi_onsen",
+        "mochi_grill"
       ]
     },
     {
@@ -179,9 +174,6 @@
         "angry",
         "ask",
         "swing",
-        "desk",
-        "skate",
-        "bath",
         "rain",
         "wobble",
         "bounce",
@@ -189,7 +181,9 @@
         "shiver",
         "spin",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "mochi_onsen",
+        "mochi_grill"
       ]
     },
     {
@@ -211,16 +205,15 @@
         "angry",
         "ask",
         "swing",
-        "desk",
-        "skate",
-        "bath",
         "rain",
         "wobble",
         "bounce",
         "hiccup",
         "shiver",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "mochi_onsen",
+        "mochi_grill"
       ]
     },
     {
@@ -242,16 +235,15 @@
         "angry",
         "ask",
         "swing",
-        "desk",
-        "skate",
-        "bath",
         "rain",
         "wobble",
         "bounce",
         "hiccup",
         "shiver",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "mochi_onsen",
+        "mochi_grill"
       ]
     },
     {
@@ -273,16 +265,15 @@
         "angry",
         "ask",
         "swing",
-        "desk",
-        "skate",
-        "bath",
         "rain",
         "wobble",
         "bounce",
         "hiccup",
         "shiver",
         "walk",
-        "edge_peek"
+        "edge_peek",
+        "mochi_onsen",
+        "mochi_grill"
       ]
     }
   ]

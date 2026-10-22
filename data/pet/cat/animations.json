@@ -299,11 +299,15 @@
       ]
     },
     "swing": {
-      "frames": 8,
+      "frames": 12,
       "fps": 4,
       "loop": true,
-      "duration": 24000,
+      "duration": 30000,
       "expressions": [
+        0,
+        0,
+        0,
+        0,
         0,
         0,
         0,
@@ -315,46 +319,16 @@
       ],
       "sheet": "sprites/body/swing.png"
     },
-    "desk": {
-      "frames": 8,
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "expressions": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "sheet": "sprites/body/desk.png"
-    },
-    "skate": {
-      "frames": 8,
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "expressions": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "sheet": "sprites/body/skate.png"
-    },
     "bath": {
-      "frames": 8,
+      "frames": 12,
       "fps": 4,
       "loop": true,
-      "duration": 24000,
+      "duration": 30000,
       "expressions": [
+        0,
+        0,
+        0,
+        0,
         0,
         0,
         0,
@@ -365,23 +339,6 @@
         0
       ],
       "sheet": "sprites/body/bath.png"
-    },
-    "rain": {
-      "frames": 8,
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "expressions": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "sheet": "sprites/body/rain.png"
     },
     "walk": {
       "frames": 6,
@@ -411,6 +368,48 @@
         0
       ],
       "sheet": "sprites/body/edge_peek.png"
+    },
+    "cat_box": {
+      "frames": 12,
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "expressions": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/cat_box.png"
+    },
+    "cat_sunbeam": {
+      "frames": 12,
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "expressions": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "sheet": "sprites/body/cat_sunbeam.png"
     }
   }
 }

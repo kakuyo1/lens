@@ -75,6 +75,20 @@ Item {
         case "skate": return qsTranslate("SettingsPopup", "Skateboard");
         case "bath": return qsTranslate("SettingsPopup", "Bubble bath");
         case "rain": return qsTranslate("SettingsPopup", "Rain");
+        case "cat_box": return qsTranslate("SettingsPopup", "Cardboard box");
+        case "cat_sunbeam": return qsTranslate("SettingsPopup", "Sunny sill");
+        case "cloud_watering": return qsTranslate("SettingsPopup", "Watering");
+        case "cloud_fishing": return qsTranslate("SettingsPopup", "Star fishing");
+        case "dog_frisbee": return qsTranslate("SettingsPopup", "Frisbee");
+        case "dog_burying": return qsTranslate("SettingsPopup", "Burying a bone");
+        case "ghost_lantern": return qsTranslate("SettingsPopup", "Jack-o'-lantern");
+        case "ghost_mirror": return qsTranslate("SettingsPopup", "Mirror");
+        case "jelly_sundae": return qsTranslate("SettingsPopup", "Sundae");
+        case "jelly_trampoline": return qsTranslate("SettingsPopup", "Trampoline");
+        case "mochi_onsen": return qsTranslate("SettingsPopup", "Hot spring");
+        case "mochi_grill": return qsTranslate("SettingsPopup", "Roasted mochi");
+        case "owl_stargazing": return qsTranslate("SettingsPopup", "Stargazing");
+        case "owl_books": return qsTranslate("SettingsPopup", "Book nook");
         default: return id;
         }
     }
@@ -347,7 +361,7 @@ Item {
             Column {
                 width: parent.width
                 spacing: 7
-                // Scenes are the app's own art and only a shipped pet has them (ADR 0049).
+                // Scenes are the app's own art and only a shipped pet has them (ADR 0049 / 0080).
                 visible: Pet.scenes.length > 0
 
                 Text {

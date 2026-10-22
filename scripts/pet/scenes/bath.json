@@ -1,7 +1,7 @@
 {
   "id": "bath",
   "name": "泡澡",
-  "frames": 8,
+  "frames": 12,
   "fps": 4,
   "foot": [
     58.5,
@@ -22,18 +22,18 @@
           "layer": "front",
           "rig": false,
           "at": [
-            -2,
+            -4,
             12
           ],
           "art": [
-            "###################",
-            "sssssssssssssssssss",
-            "ggggggggggggggggggg",
-            "ggggggggggggggggggg",
-            "ggggggggggggggggggg",
-            ".ggggggggggggggggg.",
-            "..ggggggggggggggg..",
-            "..ggggggggggggggg.."
+            "#######################",
+            "sssssssssssssssssssssss",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            ".ggggggggggggggggggggg.",
+            "..ggggggggggggggggggg..",
+            "..ggggggggggggggggggg.."
           ],
           "colours": {
             "#": "ink",
@@ -145,18 +145,18 @@
           "layer": "front",
           "rig": false,
           "at": [
-            -2,
+            -4,
             12
           ],
           "art": [
-            "###################",
-            "sssssssssssssssssss",
-            "ggggggggggggggggggg",
-            "ggggggggggggggggggg",
-            "ggggggggggggggggggg",
-            ".ggggggggggggggggg.",
-            "..ggggggggggggggg..",
-            "..ggggggggggggggg.."
+            "#######################",
+            "sssssssssssssssssssssss",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            ".ggggggggggggggggggggg.",
+            "..ggggggggggggggggggg..",
+            "..ggggggggggggggggggg.."
           ],
           "colours": {
             "#": "ink",
@@ -249,18 +249,18 @@
           "layer": "front",
           "rig": false,
           "at": [
-            -2,
+            -4,
             12
           ],
           "art": [
-            "###################",
-            "sssssssssssssssssss",
-            "ggggggggggggggggggg",
-            "ggggggggggggggggggg",
-            "ggggggggggggggggggg",
-            ".ggggggggggggggggg.",
-            "..ggggggggggggggg..",
-            "..ggggggggggggggg.."
+            "#######################",
+            "sssssssssssssssssssssss",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            ".ggggggggggggggggggggg.",
+            "..ggggggggggggggggggg..",
+            "..ggggggggggggggggggg.."
           ],
           "colours": {
             "#": "ink",
@@ -372,18 +372,18 @@
           "layer": "front",
           "rig": false,
           "at": [
-            -2,
+            -4,
             12
           ],
           "art": [
-            "###################",
-            "sssssssssssssssssss",
-            "ggggggggggggggggggg",
-            "ggggggggggggggggggg",
-            "ggggggggggggggggggg",
-            ".ggggggggggggggggg.",
-            "..ggggggggggggggg..",
-            "..ggggggggggggggg.."
+            "#######################",
+            "sssssssssssssssssssssss",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            ".ggggggggggggggggggggg.",
+            "..ggggggggggggggggggg..",
+            "..ggggggggggggggggggg.."
           ],
           "colours": {
             "#": "ink",
@@ -458,18 +458,18 @@
           "layer": "front",
           "rig": false,
           "at": [
-            -2,
+            -4,
             12
           ],
           "art": [
-            "###################",
-            "sssssssssssssssssss",
-            "ggggggggggggggggggg",
-            "ggggggggggggggggggg",
-            "ggggggggggggggggggg",
-            ".ggggggggggggggggg.",
-            "..ggggggggggggggg..",
-            "..ggggggggggggggg.."
+            "#######################",
+            "sssssssssssssssssssssss",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            ".ggggggggggggggggggggg.",
+            "..ggggggggggggggggggg..",
+            "..ggggggggggggggggggg.."
           ],
           "colours": {
             "#": "ink",
@@ -545,18 +545,18 @@
           "layer": "front",
           "rig": false,
           "at": [
-            -2,
+            -4,
             12
           ],
           "art": [
-            "###################",
-            "sssssssssssssssssss",
-            "ggggggggggggggggggg",
-            "ggggggggggggggggggg",
-            "ggggggggggggggggggg",
-            ".ggggggggggggggggg.",
-            "..ggggggggggggggg..",
-            "..ggggggggggggggg.."
+            "#######################",
+            "sssssssssssssssssssssss",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            ".ggggggggggggggggggggg.",
+            "..ggggggggggggggggggg..",
+            "..ggggggggggggggggggg.."
           ],
           "colours": {
             "#": "ink",
@@ -650,18 +650,18 @@
           "layer": "front",
           "rig": false,
           "at": [
-            -2,
+            -4,
             12
           ],
           "art": [
-            "###################",
-            "sssssssssssssssssss",
-            "ggggggggggggggggggg",
-            "ggggggggggggggggggg",
-            "ggggggggggggggggggg",
-            ".ggggggggggggggggg.",
-            "..ggggggggggggggg..",
-            "..ggggggggggggggg.."
+            "#######################",
+            "sssssssssssssssssssssss",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            ".ggggggggggggggggggggg.",
+            "..ggggggggggggggggggg..",
+            "..ggggggggggggggggggg.."
           ],
           "colours": {
             "#": "ink",
@@ -737,18 +737,464 @@
           "layer": "front",
           "rig": false,
           "at": [
-            -2,
+            -4,
             12
           ],
           "art": [
-            "###################",
-            "sssssssssssssssssss",
-            "ggggggggggggggggggg",
-            "ggggggggggggggggggg",
-            "ggggggggggggggggggg",
-            ".ggggggggggggggggg.",
-            "..ggggggggggggggg..",
-            "..ggggggggggggggg.."
+            "#######################",
+            "sssssssssssssssssssssss",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            ".ggggggggggggggggggggg.",
+            "..ggggggggggggggggggg..",
+            "..ggggggggggggggggggg.."
+          ],
+          "colours": {
+            "#": "ink",
+            "s": "sky",
+            "g": "grey"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            2,
+            2.4444444444444446
+          ],
+          "art": [
+            ".###.",
+            "#o..#",
+            "#...#",
+            "#...#",
+            ".###."
+          ],
+          "colours": {
+            "#": "ink",
+            "o": "fur"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            6,
+            7.466666666666667
+          ],
+          "art": [
+            ".##.",
+            "#..#",
+            "#..#",
+            ".##."
+          ],
+          "colours": {
+            "#": "ink",
+            "o": "fur"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            10,
+            -2.329411764705883
+          ],
+          "art": [
+            ".###.",
+            "#o..#",
+            "#...#",
+            "#...#",
+            ".###."
+          ],
+          "colours": {
+            "#": "ink",
+            "o": "fur"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            13,
+            4.56
+          ],
+          "art": [
+            ".##.",
+            "#..#",
+            "#..#",
+            ".##."
+          ],
+          "colours": {
+            "#": "ink",
+            "o": "fur"
+          }
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 9,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            -4,
+            12
+          ],
+          "art": [
+            "#######################",
+            "sssssssssssssssssssssss",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            ".ggggggggggggggggggggg.",
+            "..ggggggggggggggggggg..",
+            "..ggggggggggggggggggg.."
+          ],
+          "colours": {
+            "#": "ink",
+            "s": "sky",
+            "g": "grey"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            -2,
+            -2.571428571428573
+          ],
+          "art": [
+            ".##.",
+            "#..#",
+            "#..#",
+            ".##."
+          ],
+          "colours": {
+            "#": "ink",
+            "o": "fur"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            2,
+            9.11111111111111
+          ],
+          "art": [
+            ".###.",
+            "#o..#",
+            "#...#",
+            "#...#",
+            ".###."
+          ],
+          "colours": {
+            "#": "ink",
+            "o": "fur"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            10,
+            4.7294117647058815
+          ],
+          "art": [
+            ".###.",
+            "#o..#",
+            "#...#",
+            "#...#",
+            ".###."
+          ],
+          "colours": {
+            "#": "ink",
+            "o": "fur"
+          }
+        },
+        {
+          "art": [
+            ".###.",
+            "#...#",
+            "#...#",
+            ".###."
+          ],
+          "colours": {
+            "#": "ink"
+          },
+          "step": 3,
+          "at": [
+            2,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 9,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            -4,
+            12
+          ],
+          "art": [
+            "#######################",
+            "sssssssssssssssssssssss",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            ".ggggggggggggggggggggg.",
+            "..ggggggggggggggggggg..",
+            "..ggggggggggggggggggg.."
+          ],
+          "colours": {
+            "#": "ink",
+            "s": "sky",
+            "g": "grey"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            -2,
+            -5.428571428571431
+          ],
+          "art": [
+            ".##.",
+            "#..#",
+            "#..#",
+            ".##."
+          ],
+          "colours": {
+            "#": "ink",
+            "o": "fur"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            2,
+            6.888888888888889
+          ],
+          "art": [
+            ".###.",
+            "#o..#",
+            "#...#",
+            "#...#",
+            ".###."
+          ],
+          "colours": {
+            "#": "ink",
+            "o": "fur"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            10,
+            2.3764705882352937
+          ],
+          "art": [
+            ".###.",
+            "#o..#",
+            "#...#",
+            "#...#",
+            ".###."
+          ],
+          "colours": {
+            "#": "ink",
+            "o": "fur"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            13,
+            9.893333333333333
+          ],
+          "art": [
+            ".##.",
+            "#..#",
+            "#..#",
+            ".##."
+          ],
+          "colours": {
+            "#": "ink",
+            "o": "fur"
+          }
+        },
+        {
+          "art": [
+            ".###.",
+            "#...#",
+            "#...#",
+            ".###."
+          ],
+          "colours": {
+            "#": "ink"
+          },
+          "step": 3,
+          "at": [
+            2,
+            0
+          ]
+        },
+        {
+          "art": [
+            ".#.",
+            "#.#",
+            ".#."
+          ],
+          "colours": {
+            "#": "ink"
+          },
+          "step": 3,
+          "at": [
+            6,
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 9,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            -4,
+            12
+          ],
+          "art": [
+            "#######################",
+            "sssssssssssssssssssssss",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            ".ggggggggggggggggggggg.",
+            "..ggggggggggggggggggg..",
+            "..ggggggggggggggggggg.."
+          ],
+          "colours": {
+            "#": "ink",
+            "s": "sky",
+            "g": "grey"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            2,
+            4.666666666666667
+          ],
+          "art": [
+            ".###.",
+            "#o..#",
+            "#...#",
+            "#...#",
+            ".###."
+          ],
+          "colours": {
+            "#": "ink",
+            "o": "fur"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            10,
+            0.0235294117647058
+          ],
+          "art": [
+            ".###.",
+            "#o..#",
+            "#...#",
+            "#...#",
+            ".###."
+          ],
+          "colours": {
+            "#": "ink",
+            "o": "fur"
+          }
+        },
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            13,
+            7.226666666666667
+          ],
+          "art": [
+            ".##.",
+            "#..#",
+            "#..#",
+            ".##."
+          ],
+          "colours": {
+            "#": "ink",
+            "o": "fur"
+          }
+        },
+        {
+          "art": [
+            ".l.l.",
+            "l...l",
+            ".l.l."
+          ],
+          "colours": {
+            "l": "gold"
+          },
+          "step": 3,
+          "at": [
+            2,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 9,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "layer": "front",
+          "rig": false,
+          "at": [
+            -4,
+            12
+          ],
+          "art": [
+            "#######################",
+            "sssssssssssssssssssssss",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            "ggggggggggggggggggggggg",
+            ".ggggggggggggggggggggg.",
+            "..ggggggggggggggggggg..",
+            "..ggggggggggggggggggg.."
           ],
           "colours": {
             "#": "ink",

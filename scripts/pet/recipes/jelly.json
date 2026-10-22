@@ -2209,44 +2209,16 @@
         }
       ]
     },
-    "swing": {
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "bodyFrom": "idle",
-      "frames": [
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {}
-      ]
-    },
     "desk": {
       "fps": 4,
       "loop": true,
-      "duration": 24000,
+      "duration": 30000,
       "bodyFrom": "idle",
       "frames": [
         {},
         {},
         {},
         {},
-        {},
-        {},
-        {},
-        {}
-      ]
-    },
-    "skate": {
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "bodyFrom": "idle",
-      "frames": [
         {},
         {},
         {},
@@ -2260,25 +2232,13 @@
     "bath": {
       "fps": 4,
       "loop": true,
-      "duration": 24000,
+      "duration": 30000,
       "bodyFrom": "idle",
       "frames": [
         {},
         {},
         {},
         {},
-        {},
-        {},
-        {},
-        {}
-      ]
-    },
-    "rain": {
-      "fps": 4,
-      "loop": true,
-      "duration": 24000,
-      "bodyFrom": "idle",
-      "frames": [
         {},
         {},
         {},
@@ -2476,6 +2436,46 @@
             }
           ]
         }
+      ]
+    },
+    "jelly_sundae": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "wobble",
+      "frames": [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+      ]
+    },
+    "jelly_trampoline": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "squish",
+      "frames": [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
       ]
     }
   },

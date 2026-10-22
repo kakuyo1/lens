@@ -5,9 +5,9 @@ import QtQuick
  * accessories take theirs from accessories.json. The scene scales by Pet.scale, a real magnification the size slider
  * sets: the sprite is drawn nearest-neighbour, so a fractional scale leaves its pixel widths uneven.
  *
- * While the pet is in a scene (ADR 0049) the frame also carries the props: a static back sheet, the pet moved onto
- * the seat or the deck, and a static front sheet that hides the pet's lower body. The stage moves as a whole by the
- * difference between this pet's feet and the catalogue's, so all four pets share one set of props.
+ * While the pet is in a scene (ADR 0049, 0080) the frame also carries the props: a static back sheet, the pet moved
+ * onto the seat or the deck, and a static front sheet that hides the pet's lower body. The stage moves as a whole by
+ * the difference between this pet's feet and the catalogue's, so a shared prop rig fits every pet that names it.
  */
 Item {
     id: root
