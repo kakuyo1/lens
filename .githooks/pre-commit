@@ -292,7 +292,7 @@ EOF
         return 0
     fi
 
-    status=0
+    files=
     for file in $staged; do
         case "$file" in
             third_party/*) continue ;;
@@ -300,10 +300,20 @@ EOF
             *) continue ;;
         esac
         [ -f "$file" ] || continue
+        files="$files $file"
+    done
+    [ -n "$files" ] || return 0
 
-        # --dry-run --Werror exits non-zero when the file differs from .clang-format, which is
-        # the whole test. The config is found by searching upward from the file, so nothing
-        # here has to name it.
+    # One invocation for the whole commit on the clean path: --dry-run --Werror exits non-zero when
+    # any file differs from .clang-format, which is the whole test. The per-file form below runs
+    # only when something is actually wrong, where it can afford to print the diff.
+    if "$formatter" --dry-run --Werror $files >/dev/null 2>&1; then
+        return 0
+    fi
+
+    status=0
+    for file in $files; do
+        # The config is found by searching upward from the file, so nothing here has to name it.
         if ! "$formatter" --dry-run --Werror "$file" >/dev/null 2>&1; then
             echo "pre-commit: $file is not clang-formatted"
             "$formatter" "$file" 2>/dev/null | diff "$file" - | head -8
@@ -318,6 +328,52 @@ EOF
 # the one in TEST.md, or this one -- has to live outside src/ to stay out of the way.
 PROBE_PATTERN='PROBE|console\.log'
 
+# The checks below all ask the same question of a different set of files: does this pattern appear
+# anywhere in them. Asked one file at a time that was a process per file per check -- about 400
+# spawns for a 40-file commit, and on Windows a spawn costs 200-300 ms, which measured 2m20 for a
+# commit whose own work was 27 s of user time. So: filter with the shell's own case (free), then
+# grep the whole list once and group the answer back per file.
+
+# @return The staged files matching @pattern, one per line. A case pattern, so alternation works.
+staged_matching() {
+    for file in $staged; do
+        case "$file" in
+            $1) [ -f "$file" ] && printf '%s\n' "$file" ;;
+        esac
+    done
+}
+
+# @brief Print grep -n -H output as one block per file: @prefix, the file, @suffix, up to ten hits,
+#        then @advice. Reads stdin.
+report_hits() {
+    awk -F: -v prefix="$1" -v suffix="$2" -v advice="$3" '
+        $1 != last {
+            if (last != "") print advice
+            printf "%s%s%s\n", prefix, $1, suffix
+            last = $1
+            shown = 0
+        }
+        shown < 10 { print; shown++ }
+        END { if (last != "") print advice }'
+}
+
+# @brief Search @files for @pattern and report every file it appears in.
+# @return 1 when something was found, so a caller can `scan ... || status=1`.
+scan() {
+    pattern=$1
+    prefix=$2
+    suffix=$3
+    advice=$4
+    shift 4
+    [ "$#" -gt 0 ] || return 0
+
+    hits=$(grep -nHE -- "$pattern" "$@" 2>/dev/null || true)
+    [ -n "$hits" ] || return 0
+
+    printf '%s\n' "$hits" | report_hits "$prefix" "$suffix" "$advice"
+    return 1
+}
+
 # The developer surface (docs/adr/0068) is not probe scaffolding. It is a standing interface, compiled only under
 # LENS_ENABLE_DEV_SURFACE, and its sources contain neither marker. Nothing in it is removed before a commit, so this
 # check does not treat it as something to remove.
@@ -325,22 +381,12 @@ check_probes() {
     printf '%s\n' "$staged" | grep -q '^src/' || return 0
 
     status=0
-    for file in $staged; do
-        case "$file" in
-            src/*) ;;
-            *) continue ;;
-        esac
-        [ -f "$file" ] || continue
+    files=$(staged_matching 'src/*')
+    [ -n "$files" ] || return 0
 
-        hits=$(grep -nE "$PROBE_PATTERN" "$file" || true)
-        [ -n "$hits" ] || continue
-
-        echo "pre-commit: $file still carries probe scaffolding"
-        printf '%s\n' "$hits" | head -10
-        echo "  delete it before committing -- TEST.md section 5 says why"
-        status=1
-    done
-    return $status
+    scan "$PROBE_PATTERN" "pre-commit: " " still carries probe scaffolding" \
+        "  delete it before committing -- TEST.md section 5 says why" $files || return 1
+    return 0
 }
 
 check_qml() {
@@ -356,7 +402,7 @@ check_qml() {
 # file that may hold one is config/paths.json, which exists for that; config/README.md names every
 # exemption below and why it is exempt. Scoped to the files a commit touches, like the rest here.
 check_absolute_paths() {
-    status=0
+    files=
     for file in $staged; do
         case "$file" in
             # Vendored and generated trees, and the file that exists to hold these values.
@@ -370,168 +416,133 @@ check_absolute_paths() {
             test/*) continue ;;
         esac
         [ -f "$file" ] || continue
-
-        # A URL is not a filesystem path and neither is a Qt resource URI. The line is filtered
-        # rather than the file, so a real path sharing a line with a link is still reported.
-        #
-        # The drive letter has to start a token -- nothing alphanumeric or _ before it -- or
-        # cmd's own substitution syntax reports itself: build.bat's QTBACK line puts a letter, a
-        # colon and a slash in that order inside %QT_ROOT:/=\%, with the letter mid-word. The
-        # sequence is spelled out rather than quoted here because the quoting is what matched.
-        # -I skips binary files: compressed image bytes can hold a drive-letter sequence by
-        # chance, and grep reports such a file as a bare "Binary file ... matches" line.
-        hits=$(grep -nIE '(^|[^A-Za-z0-9_])[A-Za-z]:[\\/]' "$file" 2>/dev/null | grep -vE 'https?://|qrc:/' || true)
-        [ -n "$hits" ] || continue
-
-        echo "pre-commit: $file carries an absolute path"
-        printf '%s\n' "$hits" | head -10
-        echo "  machine paths belong in config/paths.json; config/README.md says how to read it,"
-        echo "  and what the check deliberately does not cover."
-        status=1
+        files="$files $file"
     done
-    return $status
+    [ -n "$files" ] || return 0
+
+    # A URL is not a filesystem path and neither is a Qt resource URI. The line is filtered
+    # rather than the file, so a real path sharing a line with a link is still reported.
+    #
+    # The drive letter has to start a token -- nothing alphanumeric or _ before it -- or
+    # cmd's own substitution syntax reports itself: build.bat's QTBACK line puts a letter, a
+    # colon and a slash in that order inside %QT_ROOT:/=\%, with the letter mid-word. The
+    # sequence is spelled out rather than quoted here because the quoting is what matched.
+    # -I skips binary files: compressed image bytes can hold a drive-letter sequence by
+    # chance, and grep reports such a file as a bare "Binary file ... matches" line.
+    hits=$(grep -nHIE '(^|[^A-Za-z0-9_])[A-Za-z]:[\\/]' $files 2>/dev/null | grep -vE 'https?://|qrc:/' || true)
+    [ -n "$hits" ] || return 0
+
+    printf '%s\n' "$hits" | report_hits "pre-commit: " " carries an absolute path" \
+        "  machine paths belong in config/paths.json; config/README.md says how to read it,
+  and what the check deliberately does not cover."
+    return 1
 }
 
 # UI.md section 3.2: two font weights, Normal (400) and Bold (700). Font.DemiBold, Font.SemiBold
 # and the other named weights, or a numeric font.weight, all break that.
 check_font_weights() {
-    status=0
-    for file in $staged; do
-        case "$file" in
-            *.qml) ;;
-            *) continue ;;
-        esac
-        [ -f "$file" ] || continue
+    files=$(staged_matching '*.qml')
+    [ -n "$files" ] || return 0
 
-        hits=$(grep -nE 'Font\.(Thin|ExtraLight|Light|Medium|SemiBold|DemiBold|ExtraBold|Black)\b|font\.weight\s*:\s*[0-9]' "$file" || true)
-        [ -n "$hits" ] || continue
-
-        echo "pre-commit: $file uses a font weight other than 400 or 700"
-        printf '%s\n' "$hits" | head -10
-        echo "  UI.md section 3.2 allows Normal and Bold only"
-        status=1
-    done
-    return $status
+    scan 'Font\.(Thin|ExtraLight|Light|Medium|SemiBold|DemiBold|ExtraBold|Black)\b|font\.weight\s*:\s*[0-9]' \
+        "pre-commit: " " uses a font weight other than 400 or 700" \
+        "  UI.md section 3.2 allows Normal and Bold only" $files || return 1
+    return 0
 }
 
 # UI.md and the prototypes describe the product, and a product surface names no development phase.
 check_phase_labels() {
-    status=0
-    for file in $staged; do
-        case "$file" in
-            UI.md | ui-prototypes/*) ;;
-            *) continue ;;
-        esac
-        [ -f "$file" ] || continue
+    files=$(staged_matching 'UI.md|ui-prototypes/*')
+    [ -n "$files" ] || return 0
 
-        hits=$(grep -nE '阶段[一二三四五六七八九十0-9]|PHASE-?[0-9]' "$file" || true)
-        [ -n "$hits" ] || continue
-
-        echo "pre-commit: $file names a development phase"
-        printf '%s\n' "$hits" | head -10
-        echo "  describe what the surface does instead of which phase it belongs to"
-        status=1
-    done
-    return $status
+    scan '阶段[一二三四五六七八九十0-9]|PHASE-?[0-9]' \
+        "pre-commit: " " names a development phase" \
+        "  describe what the surface does instead of which phase it belongs to" $files || return 1
+    return 0
 }
 
 # UI.md's i18n section: code is English, and every string goes through tr(). The one Chinese
 # fixture lives under test/, outside src/, so src/ has no exception.
 check_cjk() {
-    status=0
-    for file in $staged; do
-        case "$file" in
-            src/*.cpp | src/*.h | src/*.hpp | src/*.cc | src/*.qml) ;;
-            *) continue ;;
-        esac
-        [ -f "$file" ] || continue
+    files=$(staged_matching 'src/*.cpp|src/*.h|src/*.hpp|src/*.cc|src/*.qml')
+    [ -n "$files" ] || return 0
 
-        hits=$(grep -nP '[\x{4E00}-\x{9FFF}]' "$file" || true)
-        [ -n "$hits" ] || continue
+    hits=$(grep -nHP '[\x{4E00}-\x{9FFF}]' $files 2>/dev/null || true)
+    [ -n "$hits" ] || return 0
 
-        echo "pre-commit: $file has Chinese in code"
-        printf '%s\n' "$hits" | head -10
-        echo "  write the English source string and let lupdate carry the Chinese (UI.md, i18n)"
-        status=1
-    done
-    return $status
+    printf '%s\n' "$hits" | report_hits "pre-commit: " " has Chinese in code" \
+        "  write the English source string and let lupdate carry the Chinese (UI.md, i18n)"
+    return 1
 }
 
 # AGENTS.md, Code Style: every src/ C++ file opens with a /** @file block.
 check_file_headers() {
-    status=0
-    for file in $staged; do
-        case "$file" in
-            src/*.cpp | src/*.h | src/*.hpp | src/*.cc) ;;
-            *) continue ;;
-        esac
-        [ -f "$file" ] || continue
+    files=$(staged_matching 'src/*.cpp|src/*.h|src/*.hpp|src/*.cc')
+    [ -n "$files" ] || return 0
 
-        head -n 20 "$file" | grep -q '@file' && continue
+    # One pass for the whole list: awk remembers which files carried the block, and names the rest.
+    missing=$(awk 'FNR <= 20 && /@file/ { seen[FILENAME] = 1 }
+                   END { for (i = 1; i < ARGC; ++i) if (!(ARGV[i] in seen)) print ARGV[i] }' $files)
+    [ -n "$missing" ] || return 0
 
+    printf '%s\n' "$missing" | while read -r file; do
         echo "pre-commit: $file has no /** @file block in its first 20 lines"
         echo "  AGENTS.md, Code Style: every file opens with one"
-        status=1
     done
-    return $status
+    return 1
 }
 
 # QML.md section 1: a .qml file over 32768 characters does not parse.
 check_qml_size() {
-    status=0
-    for file in $staged; do
-        case "$file" in
-            *.qml) ;;
-            *) continue ;;
-        esac
-        [ -f "$file" ] || continue
+    files=$(staged_matching '*.qml')
+    [ -n "$files" ] || return 0
 
-        chars=$(LC_ALL=C.UTF-8 wc -m < "$file")
-        [ "$chars" -le 32768 ] && continue
+    # One wc for the whole list; the count is the first field and the name the second. The last
+    # line wc prints for more than one file is the total, which is not a file.
+    sizes=$(LC_ALL=C.UTF-8 wc -m $files 2>/dev/null || true)
+    [ -n "$sizes" ] || return 0
 
-        echo "pre-commit: $file is $chars characters; QML.md section 1 caps a .qml file at 32768"
-        status=1
-    done
-    return $status
+    printf '%s\n' "$sizes" | awk '$2 == "total" { next }
+        $1 > 32768 {
+            printf "pre-commit: %s is %s characters; QML.md section 1 caps a .qml file at 32768\n", $2, $1
+            bad = 1
+        } END { exit bad ? 1 : 0 }' || return 1
+    return 0
 }
 
 # AGENTS.md: the key lives in the profile's settings.json and nowhere else. Only line numbers are
 # printed: echoing the match would print the key into the terminal and the transcript.
 check_api_keys() {
-    status=0
-    for file in $staged; do
-        [ -f "$file" ] || continue
+    files=$(staged_matching '*')
+    [ -n "$files" ] || return 0
 
-        lines=$(grep -nIE 'sk-[A-Za-z0-9_-]{20,}' "$file" | cut -d: -f1 | tr '\n' ' ' || true)
-        [ -n "$lines" ] || continue
+    hits=$(grep -nHIE 'sk-[A-Za-z0-9_-]{20,}' $files 2>/dev/null || true)
+    [ -n "$hits" ] || return 0
 
-        echo "pre-commit: $file looks like it holds an API key, at line(s) $lines"
-        echo "  keys stay in the profile's settings.json; remove the value before committing"
-        status=1
-    done
-    return $status
+    # One line per file, listing only the line numbers: the match itself never reaches the terminal.
+    printf '%s\n' "$hits" | awk -F: '
+        $1 != last {
+            if (last != "") print "  keys stay in the profile'"'"'s settings.json; remove the value before committing"
+            printf "pre-commit: %s looks like it holds an API key, at line(s) ", $1
+            last = $1
+            sep = ""
+        }
+        { printf "%s%s", sep, $2; sep = " " }
+        END {
+            if (last != "") print "\n  keys stay in the profile'"'"'s settings.json; remove the value before committing"
+        }'
+    return 1
 }
 
 # AGENTS.md, Translations: lupdate appends a new string as unfinished, and the goal is zero. A staged
 # .ts file that still carries one has a string nobody has translated.
 check_unfinished() {
-    status=0
-    for file in $staged; do
-        case "$file" in
-            i18n/*.ts) ;;
-            *) continue ;;
-        esac
-        [ -f "$file" ] || continue
+    files=$(staged_matching 'i18n/*.ts')
+    [ -n "$files" ] || return 0
 
-        hits=$(grep -nF 'type="unfinished"' "$file" || true)
-        [ -n "$hits" ] || continue
-
-        echo "pre-commit: $file has unfinished translations"
-        printf '%s\n' "$hits" | head -10
-        echo "  translate each one and rerun lrelease (AGENTS.md, Translations)"
-        status=1
-    done
-    return $status
+    scan 'type="unfinished"' "pre-commit: " " has unfinished translations" \
+        "  translate each one and rerun lrelease (AGENTS.md, Translations)" $files || return 1
+    return 0
 }
 
 check_layers() {

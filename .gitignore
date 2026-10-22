@@ -41,3 +41,7 @@ logs/
 # Per-machine and large (tens of MB of tool binaries); the reports under docs/metrics/ are what
 # carries the numbers into the repository.
 .workbuddy-ai/
+
+# Architecture review snapshot HTML. Generated locally to track refactor progress; the project's
+# source of truth is docs/adr/ and the commit log, so this working artifact is never committed.
+architecture-review-*.html
