@@ -3,7 +3,6 @@
 #include <QHash>
 #include <QJsonObject>
 #include <QString>
-#include <QStringList>
 
 #include <cstdint>
 #include <filesystem>
@@ -112,11 +111,6 @@ const RequestTemplate& requestTemplate(Channel channel);
  * @throws std::logic_error If the channel or preset has not been loaded.
  */
 const PromptTemplate& promptTemplate(Channel channel, const QString& preset = QStringLiteral("default"));
-
-/// @return Field names every element of `results` must carry, read from that channel's
-///         response schema `items.required`.
-/// @throws std::logic_error If that channel has not been loaded.
-const QStringList& requiredResultFields(Channel channel);
 
 /// @return Loaded schema for validating both legacy entries and nested senses.
 QJsonObject const& resultSchema(Channel channel);

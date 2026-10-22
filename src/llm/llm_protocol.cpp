@@ -28,7 +28,6 @@ constexpr std::size_t kChannelCount = static_cast<std::size_t>(Channel::Count);
 ///        turned out empty", which would otherwise both look like an absent template.
 struct LoadedProtocol {
     RequestTemplate request;
-    QStringList     requiredFields;
     QJsonObject     schema;
     bool            loaded = false;
 };
@@ -241,12 +240,11 @@ void loadLlmProtocol(Channel channel, const std::filesystem::path& dir)
     }
     LoadedProtocol& slot = slotFor(channel);
     slot.request         = std::move(request);
-    slot.requiredFields  = std::move(required);
     slot.schema          = items;
     slot.loaded          = true;
     g_catalog            = std::move(catalog);
 
-    LENS_INFO("llm protocol loaded for channel '{}': {} preset(s), {} required result field(s), max_tokens={}", key, slot.request.prompts.size(), slot.requiredFields.size(), slot.request.maxTokens);
+    LENS_INFO("llm protocol loaded for channel '{}': {} preset(s), {} required result field(s), max_tokens={}", key, slot.request.prompts.size(), required.size(), slot.request.maxTokens);
 }
 
 const RequestTemplate& requestTemplate(Channel channel)
@@ -266,15 +264,6 @@ const PromptTemplate& promptTemplate(Channel channel, const QString& preset)
         throw std::logic_error("lens::llm::promptTemplate: preset '" + preset.toStdString() +
                                "' is not loaded for channel '" + channelKey(channel) + "'");
     return it.value();
-}
-
-const QStringList& requiredResultFields(Channel channel)
-{
-    const LoadedProtocol& slot = slotFor(channel);
-    if (!slot.loaded)
-        throw std::logic_error(std::string("lens::llm::requiredResultFields: channel '") +
-                               channelKey(channel) + "' has not been loaded");
-    return slot.requiredFields;
 }
 
 QJsonObject const& resultSchema(Channel const channel)
