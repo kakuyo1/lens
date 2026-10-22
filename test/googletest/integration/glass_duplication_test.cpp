@@ -43,14 +43,13 @@
 
 #ifdef _WIN32
 
-#include "app/glass/glass_desktop.h"
 #include "app/glass/glass_duplication.h"
+#include "app/glass/glass_source.h"
 
 namespace {
 
+using lens::app::GdiSource;
 using lens::app::GlassDuplication;
-using lens::app::readDesktopRegion;
-using lens::app::SheetScale;
 
 /// The window the test paints: big enough to survive the blur's edge and small enough for a portrait screen.
 constexpr int kCardWidth  = 420;
@@ -169,7 +168,7 @@ FrameWait nextFrame(GlassDuplication& session, QRect const sheet, HWND window, i
     while (GetTickCount64() < deadline) {
         auto read = session.read(sheet, 1.0);
         if (read.newFrame and not read.image.isNull()) return {std::move(read.image), true};
-        if (not read.usable) return {{}, false};
+        if (read.refused) return {{}, false};
         keepPainting(window, 16);
     }
     return {};
@@ -223,7 +222,7 @@ bool testOutput(Monitor const& monitor)
 
     auto const frame = nextFrame(session, sheet, window, 1500);
     // GDI is read while the window is still up, so the two pictures show the same desktop.
-    auto const gdi = readDesktopRegion(sheet, SheetScale::Full, true);
+    auto const gdi = GdiSource{true}.read(sheet, 1.0).image;
     DestroyWindow(window);
     if (not frame.usable) {
         std::printf("  %s: 复制不可用, 该屏留在 GDI\n", monitor.device.toStdString().c_str());

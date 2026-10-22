@@ -68,6 +68,8 @@ add_library(lens_app STATIC
   glass/glass_math.cpp
   glass/glass_sheet_item.h
   glass/glass_sheet_item.cpp
+  glass/glass_source.h
+  glass/glass_source.cpp
   glass/glass_stats.h
   glass/glass_stats.cpp
 

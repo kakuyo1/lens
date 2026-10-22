@@ -17,6 +17,7 @@
  */
 
 #include "glass_math.h"
+#include "glass_source.h"
 #include "app/glass_settings.h"
 
 #include <QElapsedTimer>
@@ -216,13 +217,22 @@ public:
 private:
     friend class GlassSheet;
 
+    /// One screen's duplication session and the order its reads keep: the duplicated output while it can, GDI
+    /// otherwise. The rectangle is the key: two monitors of the same model report the same name, and their screens do
+    /// not overlap.
+    struct Session {
+        QRect                             desktop;
+        std::unique_ptr<GlassDuplication> duplication;
+        std::unique_ptr<FallbackSource>   chain;
+    };
+
     /// @brief Start the next refresh on the pool, for the next live sheet in turn. A tick that finds one still running
     ///        is skipped; a GDI sheet is only due again once the shared fifteen-a-second budget has elapsed.
     void refreshNext();
     /// @brief Run the timer while any sheet is live, stop it when none is, and set the pace its reads allow.
     void updateLive();
     /// @brief The session for @p screen, opened lazily and reused. GUI thread only.
-    GlassDuplication* duplicationFor(QScreen const& screen);
+    Session& sessionFor(QScreen const& screen);
 
     /// Every sheet, in the order the surfaces are listed. The sheets are children of this object.
     std::vector<GlassSheet*> sheets_;
@@ -237,12 +247,10 @@ private:
     QTimer live_;
     /// Runs the desktop reads off the GUI thread. One thread: a read is a few milliseconds and two would only contend.
     QThreadPool pool_;
-    /// One duplication session per screen that has needed one, opened on the worker's first read and reused after. The
-    /// rectangle is the key: two monitors of the same model report the same name, and their screens do not overlap.
-    struct Session {
-        QRect                             desktop;
-        std::unique_ptr<GlassDuplication> open;
-    };
+    /// The GDI source a screen without duplication reads through, and that a fresh sheet and a drag's retake use on
+    /// every screen. Declared before the sessions: their chains hold a reference to it.
+    GdiSource gdi_;
+    /// One session per screen that has needed one, opened on the worker's first read and reused after.
     std::vector<Session> duplications_;
     /// The GDI reads' shared clock: a screen without duplication is read at most once per old refresh period, however
     /// fast the timer runs for another screen's duplicated frames.

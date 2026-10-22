@@ -17,10 +17,13 @@
  * (docs/adr/0071, docs/adr/0072).
  *
  * One session per output, created on the thread that reads it. A screen that cannot duplicate keeps the GDI read: the
- * fallback is the normal case on hybrid machines, not an error.
+ * fallback is the normal case on hybrid machines, not an error. This is the duplication adapter of the desktop seam
+ * (src/app/glass/glass_source.h): it answers the same read as GDI and says when it refused, and the backdrop's
+ * FallbackSource owns the order (docs/adr/0086).
  */
 
-#include <QImage>
+#include "glass_source.h"
+
 #include <QRect>
 #include <QSize>
 #include <QString>
@@ -66,16 +69,8 @@ QRect frameRectFor(QRect screenRect, QSize frameSize, ScreenRotation rotation);
  * `DXGI_ERROR_UNSUPPORTED`) is permanent; an access lost to another recorder or a display mode change is retried after
  * a cooldown, with the GDI read covering the gap.
  */
-class GlassDuplication {
+class GlassDuplication final : public DesktopSource {
 public:
-    /// What one poll produced.
-    struct Read {
-        QImage image;            ///< The sheet's pixels, empty unless a new frame was copied.
-        bool   newFrame = false; ///< Whether the frame was new since the last read, so there is something to publish.
-        bool   usable   = true;  ///< False when the output cannot duplicate now: the caller falls back to GDI for now.
-        double copyMs   = 0.0;   ///< The copy's duration, excluding any wait for the frame: the number the budget is set by.
-    };
-
     /**
      * @brief A session for one output.
      * @param deviceName The output's name as QScreen::name() reports it. On Windows that is the monitor's model, not
@@ -96,14 +91,14 @@ public:
      *        once. The Smooth tier's chained reads wait here instead of relying on a GUI timer: a timer's jitter let
      *        frames produced between two ticks be coalesced away (docs/adr/0074).
      * @return The picture when a new frame was copied; otherwise empty, with @c newFrame false (nothing changed) or
-     *         @c usable false (read with GDI from now on).
+     *         @c refused true (the caller reads with GDI from now on).
      * @note Called on the glass refresh's worker thread, and on no other. The device is created there and used there.
      */
-    Read read(QRect native, double scale, int timeoutMs = 0);
+    DesktopRead read(QRect native, double scale, int timeoutMs = 0) override;
 
     /// @return Whether the session can be tried now. True before the first attempt; false while a failed session is in
     ///         its cooldown, and after a refusal that cannot change. Safe from another thread.
-    bool usable() const;
+    bool canDuplicate() const override;
 
     /// @return The screen name, as given at construction: for the log.
     QString const& deviceName() const;

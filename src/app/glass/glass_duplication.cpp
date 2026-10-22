@@ -335,7 +335,7 @@ QString const& GlassDuplication::deviceName() const
 #endif
 }
 
-bool GlassDuplication::usable() const
+bool GlassDuplication::canDuplicate() const
 {
 #ifdef _WIN32
     auto const& session = *impl_;
@@ -347,26 +347,26 @@ bool GlassDuplication::usable() const
 #endif
 }
 
-GlassDuplication::Read GlassDuplication::read(QRect const native, double const scale, int const timeoutMs)
+DesktopRead GlassDuplication::read(QRect const native, double const scale, int const timeoutMs)
 {
 #ifdef _WIN32
     auto& session = *impl_;
-    if (not session.ensure()) return {{}, false, false, 0.0};
+    if (not session.ensure()) return {.refused = true};
 
     auto       frame    = DXGI_OUTDUPL_FRAME_INFO{};
     auto       resource = ComPtr<IDXGIResource>{};
     auto const hr       = session.duplication->AcquireNextFrame(static_cast<UINT>(std::max(0, timeoutMs)), &frame, &resource);
-    if (hr == DXGI_ERROR_WAIT_TIMEOUT) return {{}, false, true, 0.0};
+    if (hr == DXGI_ERROR_WAIT_TIMEOUT) return {};
     if (FAILED(hr)) {
         session.fail(hr, false);
-        return {{}, false, false, 0.0};
+        return {.refused = true};
     }
     QElapsedTimer copyTimer;
     copyTimer.start();
     auto texture = ComPtr<ID3D11Texture2D>{};
     if (FAILED(resource.As(&texture))) {
         session.duplication->ReleaseFrame();
-        return {{}, false, true};
+        return {};
     }
     // The duplication description's mode is in the desktop's orientation; the acquired surface is not (the rotated
     // monitor of the measurement machine reports 1440 x 2560 there and hands over 2560 x 1440). The frame's own
@@ -382,7 +382,7 @@ GlassDuplication::Read GlassDuplication::read(QRect const native, double const s
     if (session.firstFrame) {
         session.firstFrame = false;
         session.duplication->ReleaseFrame();
-        return {{}, false, true};
+        return {};
     }
 
     auto const screen = QRect(QPoint(0, 0), QSize(session.desktop.width(), session.desktop.height()));
@@ -390,24 +390,24 @@ GlassDuplication::Read GlassDuplication::read(QRect const native, double const s
     // A sheet that is not wholly on this output has no frame to cut: the caller's GDI read clamps to the screen.
     if (local.isEmpty() or not screen.contains(local)) {
         session.duplication->ReleaseFrame();
-        return {{}, false, true};
+        return {};
     }
     auto const box       = frameRectFor(local, session.frameSize, session.rotation);
     auto const frameRect = box.intersected(QRect(QPoint(0, 0), session.frameSize));
     if (frameRect.isEmpty()) {
         session.duplication->ReleaseFrame();
-        return {{}, false, true};
+        return {};
     }
     auto const sheetInFrame = RECT{frameRect.left(), frameRect.top(), frameRect.left() + frameRect.width(), frameRect.top() + frameRect.height()};
     if (not frameTouches(session.duplication.Get(), frame, sheetInFrame, session.metadata)) {
         session.duplication->ReleaseFrame();
-        return {{}, false, true};
+        return {};
     }
     if (not session.createStaging(frameRect.size())) {
         // The frame is still acquired here; it goes before the device does.
         session.duplication->ReleaseFrame();
         session.fail(E_FAIL, false);
-        return {{}, false, false};
+        return {.refused = true};
     }
 
     // The acquired texture cannot be mapped; the copy the probe measured at 0.75 ms for a sheet is the way back.
@@ -419,7 +419,7 @@ GlassDuplication::Read GlassDuplication::read(QRect const native, double const s
     if (FAILED(session.context->Map(session.staging.Get(), 0, D3D11_MAP_READ, 0, &mapped))) {
         session.duplication->ReleaseFrame();
         session.fail(E_FAIL, false);
-        return {{}, false, false};
+        return {.refused = true};
     }
     // Read the mapped rows where they lie. The old path copied them into a QImage and then turned that copy: two
     // full passes over the sheet before it could be published. A view of the mapped memory lets the one turn write
@@ -441,11 +441,11 @@ GlassDuplication::Read GlassDuplication::read(QRect const native, double const s
 
     if (image.format() != QImage::Format_RGB32) image = image.convertToFormat(QImage::Format_RGB32);
     image.setDevicePixelRatio(scale);
-    return {std::move(image), true, true, static_cast<double>(copyTimer.nsecsElapsed()) / 1.0e6};
+    return {.image = std::move(image), .newFrame = true, .copyMs = static_cast<double>(copyTimer.nsecsElapsed()) / 1.0e6};
 #else
     Q_UNUSED(native)
     Q_UNUSED(scale)
-    return {{}, false, false};
+    return {.refused = true};
 #endif
 }
 
