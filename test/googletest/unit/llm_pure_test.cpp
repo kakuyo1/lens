@@ -406,6 +406,72 @@ TEST_F(LlmTest, KeepsAtMostTheContractSenses)
     EXPECT_EQ(std::get<QVector<Explanation>>(single).at(0).senses.size(), 1);
 }
 
+/// The picture advice, read for both shapes the word channel answers in: the pair sits at the top
+/// level when a word carries no `senses`, and inside each sense when it does. A sense is imageable
+/// only when the model both said so and named the words an image search runs with, so a half-answer
+/// -- true with a blank query -- is not a picture to fetch (IMAGES.md 3.1).
+TEST_F(LlmTest, ReadsThePictureAdviceFromEitherShape)
+{
+    const QString singular =
+        QStringLiteral(R"({"results":[{"word":"trowel","ipa":"/ˈtraʊəl/","en":"a small hand tool","zh":"抹刀","imageable":true,"imageQuery":"garden trowel"}]})");
+    const auto one = parseExplanations(Channel::Word, envelope(singular), {"trowel"}, "en", false);
+    ASSERT_TRUE(accepted(one)) << errorOf(one).toStdString();
+    const auto single = std::get<QVector<Explanation>>(one).at(0);
+    EXPECT_TRUE(single.imageable);
+    EXPECT_EQ(single.imageQuery, QStringLiteral("garden trowel"));
+    ASSERT_EQ(single.senses.size(), 1);
+    EXPECT_TRUE(single.senses.front().imageable) << "the singular pair was not folded into the one sense";
+    EXPECT_EQ(single.senses.front().imageQuery, QStringLiteral("garden trowel"));
+
+    const QString multiple =
+        QStringLiteral(R"({"results":[{"word":"crane","ipa":"/kreɪn/","senses":[{"en":"a lifting machine","zh":"起重机","imageable":true,"imageQuery":"construction crane"},{"en":"a wading bird","zh":"鹤","imageable":true,"imageQuery":"   "}]}]})");
+    const auto many = parseExplanations(Channel::Word, envelope(multiple), {"crane"}, "en", true);
+    ASSERT_TRUE(accepted(many)) << errorOf(many).toStdString();
+    const auto pair = std::get<QVector<Explanation>>(many).at(0);
+    ASSERT_EQ(pair.senses.size(), 2);
+    EXPECT_TRUE(pair.senses.at(0).imageable);
+    EXPECT_EQ(pair.senses.at(0).imageQuery, QStringLiteral("construction crane"));
+    EXPECT_FALSE(pair.senses.at(1).imageable) << "a blank query is not a picture to fetch";
+    EXPECT_TRUE(pair.senses.at(1).imageQuery.isEmpty()) << "the query was not trimmed";
+    EXPECT_TRUE(pair.imageable) << "the top-level pair does not mirror the most frequent sense";
+}
+
+/// A word whose advice is the wrong type is still a word: it is read as not imageable and the
+/// definition is kept, because losing an explanation that arrived intact is the worse trade
+/// (IMAGES.md 3.1). Both fields are declared in the schema without a type for exactly this reason.
+TEST_F(LlmTest, ReadsAMistypedPictureFlagAsNotImageableRatherThanFailing)
+{
+    const QString content =
+        QStringLiteral(R"({"results":[{"word":"trowel","ipa":"","en":"a small hand tool","zh":"抹刀","imageable":"true","imageQuery":42}]})");
+    const auto result = parseExplanations(Channel::Word, envelope(content), {"trowel"}, "en", false);
+    ASSERT_TRUE(accepted(result)) << errorOf(result).toStdString();
+    EXPECT_FALSE(std::get<QVector<Explanation>>(result).at(0).imageable);
+}
+
+/// Both word presets ask for the picture advice, and no other channel does: the fields are not
+/// gated on a setting, so a prompt that stopped asking would leave every card without its entry
+/// (IMAGES.md 3.2).
+TEST_F(LlmTest, AsksForThePictureAdviceOnBothWordPresetsOnly)
+{
+    const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
+    const auto   prompt = [&](Channel channel, const QString& preset) {
+        const auto body = QJsonDocument::fromJson(buildRequestBody(config, channel, {"ubiquitous"}, "en", preset));
+        return body.object().value("messages").toArray().at(0).toObject().value("content").toString();
+    };
+
+    for (const auto* preset : {"default", "multiple"}) {
+        SCOPED_TRACE(preset);
+        const auto system = prompt(Channel::Word, preset);
+        EXPECT_TRUE(system.contains(QStringLiteral("\"imageable\""))) << "the format example omits the flag";
+        EXPECT_TRUE(system.contains(QStringLiteral("\"imageQuery\""))) << "the format example omits the query";
+        EXPECT_TRUE(system.contains(QStringLiteral("photograph"))) << "nothing asks whether a picture would help";
+    }
+
+    EXPECT_FALSE(prompt(Channel::Sentence, "translate").contains(QStringLiteral("imageable")))
+        << "a sentence is not something with a picture to fetch";
+    EXPECT_FALSE(prompt(Channel::Entity, "default").contains(QStringLiteral("imageable")));
+}
+
 TEST_F(LlmTest, UsesSentencePresetsAndTheSharedEntityPreset)
 {
     const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
@@ -551,6 +617,46 @@ TEST_F(LlmTest, RejectsTheWholeBatchOnAnyMalformedResponse)
         SCOPED_TRACE(item.what);
         EXPECT_FALSE(accepted(parseExplanations(Channel::Word, item.body, kAskedFor)));
     }
+}
+
+/// A model sometimes writes one result per sense instead of one result with a `senses` array, and so
+/// names its word once per sense. That is an answer to the question asked rather than a broken one:
+/// the repeat is folded into the entry already held rather than failing the batch, because throwing
+/// away definitions that had already arrived is the worse trade (API.md section 4).
+TEST_F(LlmTest, FoldsAWordTheModelAnsweredTwiceInsteadOfFailingTheBatch)
+{
+    const QString twice =
+        QStringLiteral(R"({"results":[{"word":"crane","ipa":"/kreɪn/","en":"a lifting machine","zh":"起重机","imageable":true,"imageQuery":"construction crane"},{"word":"Crane","ipa":"/kreɪn/","en":"a wading bird","zh":"鹤"}]})");
+
+    const auto many = parseExplanations(Channel::Word, envelope(twice), {"crane"}, "en", true);
+    ASSERT_TRUE(accepted(many)) << errorOf(many).toStdString();
+    const auto folded = std::get<QVector<Explanation>>(many).at(0);
+    EXPECT_EQ(folded.title, QStringLiteral("crane")) << "the requested spelling is the one kept";
+    ASSERT_EQ(folded.senses.size(), 2) << "the repeat's definition was lost";
+    EXPECT_EQ(folded.senses.at(0).en, QStringLiteral("a lifting machine"));
+    EXPECT_EQ(folded.senses.at(1).en, QStringLiteral("a wading bird"));
+    EXPECT_TRUE(folded.imageable) << "the first entry keeps its picture advice";
+
+    // Single-sense mode keeps one: the fold respects the cap the parse already applied.
+    const auto single = parseExplanations(Channel::Word, envelope(twice), {"crane"}, "en", false);
+    ASSERT_TRUE(accepted(single)) << errorOf(single).toStdString();
+    EXPECT_EQ(std::get<QVector<Explanation>>(single).at(0).senses.size(), 1);
+
+    // The same definition twice is one sense: what the entry already holds is not appended again.
+    const QString repeated = QStringLiteral(
+        R"({"results":[{"word":"trowel","ipa":"/x/","en":"a small hand tool","zh":"抹刀"},{"word":"trowel","ipa":"/x/","en":"a small hand tool","zh":"抹刀"}]})");
+    const auto same = parseExplanations(Channel::Word, envelope(repeated), {"trowel"}, "en", true);
+    ASSERT_TRUE(accepted(same)) << errorOf(same).toStdString();
+    EXPECT_EQ(std::get<QVector<Explanation>>(same).at(0).senses.size(), 1);
+}
+
+/// An answer that names a word nobody asked for is still a failure: folding a repeat is not the same
+/// as accepting an entry the request never made.
+TEST_F(LlmTest, StillRejectsAnAnswerThatNamesAWordNobodyAskedFor)
+{
+    const QString extra =
+        QStringLiteral(R"({"results":[{"word":"crane","ipa":"/x/","en":"x","zh":"y"},{"word":"heron","ipa":"/x/","en":"x","zh":"y"}]})");
+    EXPECT_FALSE(accepted(parseExplanations(Channel::Word, envelope(extra), {"crane"}, "en", true)));
 }
 
 TEST_F(LlmTest, AcceptsAWordResponseWithoutIPAForAnAcronym)
@@ -741,6 +847,28 @@ TEST(PartialExplanation, GrowsTheSenseArrayOneValueAtATime)
     ASSERT_EQ(partial.senses.size(), 1);
     EXPECT_EQ(partial.senses.front().en, QStringLiteral("a financial house"));
     EXPECT_EQ(partial.senses.front().zh, QString::fromUtf8("银行"));
+}
+
+/// A boolean in the answer does not hold back what is written after it. The preview draws no picture
+/// -- the entry arrives only once the whole answer has passed the schema -- but stopping the read on
+/// `imageable` would keep the row behind it, and any second sense, from appearing as it is written
+/// (IMAGES.md 3.3).
+TEST(PartialExplanation, ReadsPastABooleanToTheFieldsBehindIt)
+{
+    const auto behind = parsePartialExplanation(
+        Channel::Word,
+        QStringLiteral(R"({"results":[{"word":"trowel","en":"a small hand tool","imageable":true,"imageQuery":"garden trowel","zh":"抹刀"})"));
+
+    EXPECT_EQ(behind.en, QStringLiteral("a small hand tool"));
+    EXPECT_EQ(behind.zh, QString::fromUtf8("抹刀")) << "the read stopped at the boolean";
+    EXPECT_FALSE(behind.imageable) << "the preview does not offer a picture before the answer is whole";
+
+    const auto secondSense = parsePartialExplanation(
+        Channel::Word,
+        QStringLiteral(R"({"results":[{"word":"crane","senses":[{"en":"a lifting machine","zh":"起重机","imageable":true},{"en":"a wading bird","zh":"鹤"}]})"));
+
+    ASSERT_EQ(secondSense.senses.size(), 2) << "the sense behind the boolean was lost";
+    EXPECT_EQ(secondSense.senses.at(1).en, QStringLiteral("a wading bird"));
 }
 
 /// The entity and sentence channels echo no title: it is the reader's own selection, stamped on

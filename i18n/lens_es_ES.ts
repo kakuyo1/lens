@@ -4,37 +4,37 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="480"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="478"/>
         <source>Preview</source>
         <translation>Vista previa</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="481"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="479"/>
         <source>Sentence</source>
         <translation>Oración</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="482"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="480"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="482"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="480"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="596"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="601"/>
         <source>Etymology</source>
         <translation>Etimología</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="635"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="640"/>
         <source>Example</source>
         <translation>Ejemplo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="673"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="685"/>
         <source>Disappears in %1s</source>
         <translation>Desaparece en %1 s</translation>
     </message>
@@ -132,6 +132,29 @@
     </message>
 </context>
 <context>
+    <name>PictureStrip</name>
+    <message>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="87"/>
+        <source>Loading pictures…</source>
+        <translation>Cargando imágenes…</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="215"/>
+        <source>Photo: %1 · %2 · %3</source>
+        <translation>Foto: %1 · %2 · %3</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="240"/>
+        <source>Pictures unavailable</source>
+        <translation>Imágenes no disponibles</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="268"/>
+        <source>Open image search</source>
+        <translation>Abrir búsqueda de imágenes</translation>
+    </message>
+</context>
+<context>
     <name>ReviewCard</name>
     <message>
         <location filename="../src/app/qml/pet/ReviewCard.qml" line="73"/>
@@ -188,6 +211,19 @@
         <location filename="../src/app/qml/settings/previews/SelectionBarPreview.qml" line="79"/>
         <source>Opens above the selection</source>
         <translation>Se abre sobre la selección</translation>
+    </message>
+</context>
+<context>
+    <name>SenseRows</name>
+    <message>
+        <location filename="../src/app/qml/components/content/SenseRows.qml" line="214"/>
+        <source>Hide pictures</source>
+        <translation>Ocultar imágenes</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/components/content/SenseRows.qml" line="214"/>
+        <source>Pictures</source>
+        <translation>Imágenes</translation>
     </message>
 </context>
 <context>
@@ -565,10 +601,6 @@
         <translation>Automático</translation>
     </message>
     <message>
-        <source>Follow this screen when it can be duplicated; otherwise read about 15 times a second.</source>
-        <translation type="vanished">Sigue esta pantalla cuando se pueda duplicar; si no, lee unas 15 veces por segundo.</translation>
-    </message>
-    <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="17"/>
         <source>Battery saver</source>
         <translation>Ahorro de batería</translation>
@@ -592,10 +624,6 @@
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="21"/>
         <source>Smooth</source>
         <translation>Fluido</translation>
-    </message>
-    <message>
-        <source>Follow this screen up to about 60 times a second when it can be duplicated.</source>
-        <translation type="vanished">Sigue esta pantalla hasta unas 60 veces por segundo cuando se pueda duplicar.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="33"/>
@@ -1672,10 +1700,6 @@
         <translation>Nueva</translation>
     </message>
     <message>
-        <source>%1×</source>
-        <translation type="vanished">%1×</translation>
-    </message>
-    <message>
         <location filename="../src/app/qml/panels/WordsPopup.qml" line="220"/>
         <source>Words</source>
         <translation>Palabras</translation>
@@ -1941,32 +1965,32 @@
         <translation>Predeterminado</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="875"/>
+        <location filename="../src/app/app_controller.cpp" line="880"/>
         <source>Auto</source>
         <translation>Automático</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="875"/>
+        <location filename="../src/app/app_controller.cpp" line="880"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="245"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="257"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>No hay ninguna explicación guardada para esta palabra en el idioma actual.</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="247"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="259"/>
         <source>Explain now</source>
         <translation>Explicar ahora</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="410"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="422"/>
         <source>Explaining…</source>
         <translation>Explicando…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="525"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="548"/>
         <source>Request failed</source>
         <translation>La solicitud ha fallado</translation>
     </message>
@@ -2027,109 +2051,104 @@
 <context>
     <name>lens::llm</name>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="217"/>
+        <location filename="../src/llm/llm_pure.cpp" line="230"/>
         <source>The request was rejected as malformed (400).</source>
         <translation>La solicitud fue rechazada por mal formada (400).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="220"/>
+        <location filename="../src/llm/llm_pure.cpp" line="233"/>
         <source>The API key is missing or not accepted (401).</source>
         <translation>Falta la clave de API o no se acepta (401).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="223"/>
+        <location filename="../src/llm/llm_pure.cpp" line="236"/>
         <source>The account is out of credit (402).</source>
         <translation>La cuenta no tiene saldo (402).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="226"/>
+        <location filename="../src/llm/llm_pure.cpp" line="239"/>
         <source>The request parameters were rejected (422).</source>
         <translation>Los parámetros de la solicitud fueron rechazados (422).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="229"/>
+        <location filename="../src/llm/llm_pure.cpp" line="242"/>
         <source>Too many requests; the service is rate-limiting (429).</source>
         <translation>Demasiadas solicitudes; el servicio está limitando la frecuencia (429).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="232"/>
+        <location filename="../src/llm/llm_pure.cpp" line="245"/>
         <source>The explanation service failed (500).</source>
         <translation>El servicio de explicaciones ha fallado (500).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="235"/>
+        <location filename="../src/llm/llm_pure.cpp" line="248"/>
         <source>The explanation service is overloaded (503).</source>
         <translation>El servicio de explicaciones está sobrecargado (503).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="238"/>
+        <location filename="../src/llm/llm_pure.cpp" line="251"/>
         <source>Unexpected HTTP status %1.</source>
         <translation>Estado HTTP inesperado %1.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="510"/>
+        <location filename="../src/llm/llm_pure.cpp" line="558"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>El modelo respondió con algo que no es un objeto JSON.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="516"/>
+        <location filename="../src/llm/llm_pure.cpp" line="564"/>
         <source>The model&apos;s answer carries no choices.</source>
         <translation>La respuesta del modelo no trae “choices”.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="324"/>
+        <location filename="../src/llm/llm_pure.cpp" line="337"/>
         <source>The model stopped before finishing (reason: %1).</source>
         <translation>El modelo se detuvo antes de terminar (motivo: %1).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="327"/>
+        <location filename="../src/llm/llm_pure.cpp" line="340"/>
         <source>absent</source>
         <translation>ausente</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="347"/>
+        <location filename="../src/llm/llm_pure.cpp" line="360"/>
         <source>The model&apos;s answer is not valid JSON.</source>
         <translation>La respuesta del modelo no es JSON válido.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="352"/>
+        <location filename="../src/llm/llm_pure.cpp" line="365"/>
         <source>The model&apos;s answer has no results array.</source>
         <translation>La respuesta del modelo no tiene un array “results”.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="363"/>
+        <location filename="../src/llm/llm_pure.cpp" line="376"/>
         <source>One of the results entries is not an object.</source>
         <translation>Una de las entradas de “results” no es un objeto.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="368"/>
+        <location filename="../src/llm/llm_pure.cpp" line="381"/>
         <source>A results entry does not match the response schema.</source>
         <translation>Una entrada de “results” no coincide con el esquema de respuesta.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="394"/>
-        <location filename="../src/llm/llm_pure.cpp" line="405"/>
+        <location filename="../src/llm/llm_pure.cpp" line="416"/>
+        <location filename="../src/llm/llm_pure.cpp" line="433"/>
         <source>The requested explanation language is missing.</source>
         <translation>Falta el idioma de explicación solicitado.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="411"/>
+        <location filename="../src/llm/llm_pure.cpp" line="439"/>
         <source>A results entry has an empty field (title=%1).</source>
         <translation>Una entrada de “results” tiene un campo vacío (title=%1).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="444"/>
-        <location filename="../src/llm/llm_pure.cpp" line="469"/>
+        <location filename="../src/llm/llm_pure.cpp" line="472"/>
+        <location filename="../src/llm/llm_pure.cpp" line="517"/>
         <source>The model echoed %1 result(s) for the %2 that were asked for.</source>
         <translation>El modelo devolvió %1 resultado(s) de los %2 solicitados.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="462"/>
-        <source>The model echoed the same title twice: %1.</source>
-        <translation>El modelo repitió el mismo título dos veces: %1.</translation>
-    </message>
-    <message>
-        <location filename="../src/llm/llm_pure.cpp" line="480"/>
+        <location filename="../src/llm/llm_pure.cpp" line="528"/>
         <source>The model never echoed &quot;%1&quot;.</source>
         <translation>El modelo no devolvió “%1”.</translation>
     </message>

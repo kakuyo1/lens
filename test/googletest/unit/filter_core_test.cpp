@@ -385,6 +385,51 @@ TEST_F(KnownStoreTest, ChainLabelAndCollocationsSurviveASaveAndReload)
     EXPECT_EQ(hit->collocations, (std::vector<std::string>{"~ presence", "~ in cities"}));
 }
 
+/// The picture advice, stored with the sense it came with: both copies survive the round trip, and
+/// an entry that never carried them -- the ones written before the fields existed -- reads as
+/// "no picture" rather than as damaged (IMAGES.md 3.3).
+TEST_F(KnownStoreTest, PictureAdviceSurvivesASaveAndReloadAndAbsentIsNoPicture)
+{
+    writeSeededStore();
+
+    auto store = KnownStore::load(path);
+    store.cachePut("trowel",
+                   {.ipa        = "/ˈtraʊəl/",
+                    .en         = "a small hand tool",
+                    .zh         = "抹刀",
+                    .senses     = {{"a small hand tool", "抹刀", "", true, "garden trowel"}},
+                    .imageable  = true,
+                    .imageQuery = "garden trowel"},
+                   {.language = "en"});
+    store.save();
+
+    const auto hit = KnownStore::load(path).cacheGet("trowel", {.language = "en"});
+    ASSERT_TRUE(hit.has_value());
+    EXPECT_TRUE(hit->imageable);
+    EXPECT_EQ(hit->imageQuery, "garden trowel");
+    ASSERT_EQ(hit->senses.size(), 1);
+    EXPECT_TRUE(hit->senses.front().imageable);
+    EXPECT_EQ(hit->senses.front().imageQuery, "garden trowel");
+
+    // The seeded entry predates the fields, and is still a usable explanation.
+    const auto old = KnownStore::load(path).cacheGet("ubiquitous", {.language = "zh"});
+    ASSERT_TRUE(old.has_value());
+    EXPECT_FALSE(old->imageable);
+    EXPECT_TRUE(old->imageQuery.empty());
+}
+
+/// A stored entry whose advice is the wrong type is still an entry: both fields are optional and
+/// advisory, and throwing the definition away over them would lose far more than it saves.
+TEST_F(KnownStoreTest, AMistypedStoredPictureAdviceIsIgnoredRatherThanFatal)
+{
+    std::ofstream(path) << R"({"cache":{"en":{"trowel":{"ipa":"","en":"a small hand tool","zh":"抹刀","imageable":"yes","imageQuery":5}}}})";
+
+    const auto hit = KnownStore::load(path).cacheGet("trowel", {.language = "en"});
+    ASSERT_TRUE(hit.has_value()) << "the definition was dropped over an advisory field";
+    EXPECT_FALSE(hit->imageable);
+    EXPECT_TRUE(hit->imageQuery.empty());
+}
+
 /// An entry written before the ipa field existed has no key, so it reads as empty rather than as
 /// a bubble that is missing a line. That miss is the whole migration: the next lookup asks the
 /// model and writes a complete entry, and the entry that could not be read goes out of the file

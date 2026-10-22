@@ -192,14 +192,16 @@ TEST_F(LlmTest, Phase2AcceptsLegacyAndCapsOrderedSenses)
     }
 }
 
-TEST_F(LlmTest, Phase2RejectsMalformedNestedSensesAndDuplicateWords)
+/// The repeated word is deliberately not in this list any more: a model that names its word once per
+/// sense is answering the question asked, and the repeat is folded into the first entry rather than
+/// failing the batch (llm_pure_test.cpp, FoldsAWordTheModelAnsweredTwiceInsteadOfFailingTheBatch).
+TEST_F(LlmTest, Phase2RejectsMalformedNestedSenses)
 {
     for (auto const& senses : QJsonArray{QJsonArray{}, "wrong type", QJsonArray{7}, QJsonArray{QJsonObject{{"en", "valid"}}}, QJsonArray{QJsonObject{{"en", " "}, {"zh", "valid"}}}}) {
         auto value      = word();
         value["senses"] = senses;
         EXPECT_TRUE(std::holds_alternative<QString>(llm::parseExplanations(llm::Channel::Word, envelope({value}), {"bank"}, "en", true)));
     }
-    EXPECT_TRUE(std::holds_alternative<QString>(llm::parseExplanations(llm::Channel::Word, envelope({word(), word()}), {"bank"}, "en", true)));
     auto invalidTail      = word(4);
     auto senses           = invalidTail["senses"].toArray();
     senses[3]             = QJsonObject{{"en", "tail"}};

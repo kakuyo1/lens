@@ -26,8 +26,13 @@
 namespace lens::core {
 
 /// @brief One cached sense, with an optional additional-language translation.
+/// @note `imageable` and `imageQuery` are the picture advice, carried with the sense the way the
+///       response carries it. Both are optional and advisory: an entry written before the fields
+///       existed has them false/empty, which is exactly the "no picture entry" reading (IMAGES.md).
 struct CachedSense {
     std::string en, zh, translation;
+    bool        imageable = false;
+    std::string imageQuery;
 };
 
 /// @brief Language and sense mode captured when an explanation request began.
@@ -55,6 +60,11 @@ struct WordCache {
     std::string              signpost;
     std::vector<std::string> collocations;
     std::vector<CachedSense> senses;
+    /// The picture advice in its singular shape, alongside the per-sense copy: a word answered without
+    /// `senses` carries the pair here. Advisory like the origin, and outside the cache key, so turning
+    /// pictures on never buys the same definition twice (IMAGES.md 3.3).
+    bool        imageable = false;
+    std::string imageQuery;
 };
 
 /**

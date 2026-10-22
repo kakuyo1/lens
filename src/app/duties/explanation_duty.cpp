@@ -32,13 +32,19 @@ llm::Explanation fromCache(core::WordCache const& cached, QString const& lemma)
                             QString::fromStdString(cached.en),
                             QString::fromStdString(cached.zh),
                             QString::fromStdString(cached.translation)};
-    result.etymology = QString::fromStdString(cached.etymology);
-    result.signpost  = QString::fromStdString(cached.signpost);
+    result.etymology  = QString::fromStdString(cached.etymology);
+    result.signpost   = QString::fromStdString(cached.signpost);
+    result.imageable  = cached.imageable;
+    result.imageQuery = QString::fromStdString(cached.imageQuery);
     for (auto const& collocation : cached.collocations)
         result.collocations.push_back(QString::fromStdString(collocation));
     if (cached.example) result.example = QString::fromStdString(*cached.example);
-    for (auto const& sense : cached.senses)
-        result.senses.push_back({QString::fromStdString(sense.en), QString::fromStdString(sense.zh), QString::fromStdString(sense.translation)});
+    for (auto const& sense : cached.senses) {
+        llm::Sense parsed{QString::fromStdString(sense.en), QString::fromStdString(sense.zh), QString::fromStdString(sense.translation)};
+        parsed.imageable  = sense.imageable;
+        parsed.imageQuery = QString::fromStdString(sense.imageQuery);
+        result.senses.push_back(std::move(parsed));
+    }
     return result;
 }
 
@@ -123,11 +129,17 @@ void ExplanationDuty::onBatchFinished(QVector<llm::Explanation> results, llm::Us
                                .translation = result.translation.toStdString(),
                                .etymology   = result.etymology.toStdString(),
                                .example     = settlement.batch.example ? std::optional{result.example.toStdString()} : std::nullopt,
-                               .signpost    = result.signpost.toStdString()};
+                               .signpost    = result.signpost.toStdString(),
+                               .imageable   = result.imageable,
+                               .imageQuery  = result.imageQuery.toStdString()};
         for (auto const& collocation : result.collocations)
             cached.collocations.push_back(collocation.toStdString());
-        for (auto const& sense : result.senses)
-            cached.senses.push_back({sense.en.toStdString(), sense.zh.toStdString(), sense.translation.toStdString()});
+        for (auto const& sense : result.senses) {
+            core::CachedSense parsed{sense.en.toStdString(), sense.zh.toStdString(), sense.translation.toStdString()};
+            parsed.imageable  = sense.imageable;
+            parsed.imageQuery = sense.imageQuery.toStdString();
+            cached.senses.push_back(std::move(parsed));
+        }
         storage_.knownStore().cachePut(selected.lemma.toStdString(), std::move(cached), settlement.batch.context);
     }
 
@@ -471,7 +483,7 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
     if (isWordKind(selection.kind)) {
         QVariantList senses;
         auto         entries = explanation.senses;
-        if (entries.isEmpty()) entries.push_back({explanation.en, explanation.zh, explanation.translation});
+        if (entries.isEmpty()) entries.push_back({explanation.en, explanation.zh, explanation.translation, explanation.imageable, explanation.imageQuery});
         for (const auto& sense : entries) {
             if (senses.size() >= (context.multipleSenses ? llm::kMaxSenses : 1)) break;
             // One language a row, the reader's own and no other: the explanation language is the
@@ -483,7 +495,13 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
             QString const senseEnglish = context.language == "en" ? sense.en : QString{};
             senses.append(QVariantMap{{"en", senseEnglish},
                                       {"spans", spansOf(senseEnglish)},
-                                      {"text", context.language == "en" ? QString{} : selected(sense.en, sense.zh, sense.translation)}});
+                                      {"text", context.language == "en" ? QString{} : selected(sense.en, sense.zh, sense.translation)},
+                                      // The picture advice for this row, carried as it arrived: the card draws
+                                      // a Pictures entry only for a row whose `imageable` is true, and the
+                                      // duty runs the search with `imageQuery` (IMAGES.md 2.1, 4.2). Neither
+                                      // follows the explanation language, so both are passed through as they are.
+                                      {"imageable", sense.imageable},
+                                      {"imageQuery", sense.imageQuery}});
         }
         payload.insert(QStringLiteral("senses"), senses);
         payload.insert(QStringLiteral("ipa"), explanation.ipa);

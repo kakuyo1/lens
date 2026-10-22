@@ -4,37 +4,37 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="480"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="478"/>
         <source>Preview</source>
         <translation>プレビュー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="481"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="479"/>
         <source>Sentence</source>
         <translation>文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="482"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="480"/>
         <source>Known</source>
         <translation>覚えた</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="482"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="480"/>
         <source>New</source>
         <translation>初見</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="596"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="601"/>
         <source>Etymology</source>
         <translation>語源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="635"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="640"/>
         <source>Example</source>
         <translation>例文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/Bubble.qml" line="673"/>
+        <location filename="../src/app/qml/bubble/Bubble.qml" line="685"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒後に消えます</translation>
     </message>
@@ -132,6 +132,29 @@
     </message>
 </context>
 <context>
+    <name>PictureStrip</name>
+    <message>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="87"/>
+        <source>Loading pictures…</source>
+        <translation>画像を読み込んでいます…</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="215"/>
+        <source>Photo: %1 · %2 · %3</source>
+        <translation>写真: %1 · %2 · %3</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="240"/>
+        <source>Pictures unavailable</source>
+        <translation>画像を表示できません</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="268"/>
+        <source>Open image search</source>
+        <translation>画像検索を開く</translation>
+    </message>
+</context>
+<context>
     <name>ReviewCard</name>
     <message>
         <location filename="../src/app/qml/pet/ReviewCard.qml" line="73"/>
@@ -188,6 +211,19 @@
         <location filename="../src/app/qml/settings/previews/SelectionBarPreview.qml" line="79"/>
         <source>Opens above the selection</source>
         <translation>選択範囲の上で開く</translation>
+    </message>
+</context>
+<context>
+    <name>SenseRows</name>
+    <message>
+        <location filename="../src/app/qml/components/content/SenseRows.qml" line="214"/>
+        <source>Hide pictures</source>
+        <translation>画像を隠す</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/components/content/SenseRows.qml" line="214"/>
+        <source>Pictures</source>
+        <translation>画像</translation>
     </message>
 </context>
 <context>
@@ -565,10 +601,6 @@
         <translation>自動</translation>
     </message>
     <message>
-        <source>Follow this screen when it can be duplicated; otherwise read about 15 times a second.</source>
-        <translation type="vanished">画面を複製できるときは追従し、できないときは毎秒約 15 回読み取ります。</translation>
-    </message>
-    <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="17"/>
         <source>Battery saver</source>
         <translation>省電力</translation>
@@ -592,10 +624,6 @@
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="21"/>
         <source>Smooth</source>
         <translation>なめらか</translation>
-    </message>
-    <message>
-        <source>Follow this screen up to about 60 times a second when it can be duplicated.</source>
-        <translation type="vanished">画面を複製できるときは、毎秒約 60 回まで追従します。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="33"/>
@@ -1672,10 +1700,6 @@
         <translation>初見</translation>
     </message>
     <message>
-        <source>%1×</source>
-        <translation type="vanished">%1×</translation>
-    </message>
-    <message>
         <location filename="../src/app/qml/panels/WordsPopup.qml" line="220"/>
         <source>Words</source>
         <translation>単語</translation>
@@ -1941,32 +1965,32 @@
         <translation>既定</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="875"/>
+        <location filename="../src/app/app_controller.cpp" line="880"/>
         <source>Auto</source>
         <translation>自動</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="875"/>
+        <location filename="../src/app/app_controller.cpp" line="880"/>
         <source>Manual</source>
         <translation>手動</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="245"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="257"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>現在の解説言語では、この単語の保存された解説がありません。</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="247"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="259"/>
         <source>Explain now</source>
         <translation>今すぐ解説</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="410"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="422"/>
         <source>Explaining…</source>
         <translation>解説中…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="525"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="548"/>
         <source>Request failed</source>
         <translation>リクエストに失敗しました</translation>
     </message>
@@ -2027,109 +2051,104 @@
 <context>
     <name>lens::llm</name>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="217"/>
+        <location filename="../src/llm/llm_pure.cpp" line="230"/>
         <source>The request was rejected as malformed (400).</source>
         <translation>リクエストが不正として拒否されました（400）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="220"/>
+        <location filename="../src/llm/llm_pure.cpp" line="233"/>
         <source>The API key is missing or not accepted (401).</source>
         <translation>API キーがないか受け付けられません（401）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="223"/>
+        <location filename="../src/llm/llm_pure.cpp" line="236"/>
         <source>The account is out of credit (402).</source>
         <translation>アカウントの残高が不足しています（402）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="226"/>
+        <location filename="../src/llm/llm_pure.cpp" line="239"/>
         <source>The request parameters were rejected (422).</source>
         <translation>リクエストのパラメーターが拒否されました（422）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="229"/>
+        <location filename="../src/llm/llm_pure.cpp" line="242"/>
         <source>Too many requests; the service is rate-limiting (429).</source>
         <translation>リクエストが多すぎます。サービスが制限中です（429）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="232"/>
+        <location filename="../src/llm/llm_pure.cpp" line="245"/>
         <source>The explanation service failed (500).</source>
         <translation>解説サービスでエラーが発生しました（500）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="235"/>
+        <location filename="../src/llm/llm_pure.cpp" line="248"/>
         <source>The explanation service is overloaded (503).</source>
         <translation>解説サービスが混雑しています（503）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="238"/>
+        <location filename="../src/llm/llm_pure.cpp" line="251"/>
         <source>Unexpected HTTP status %1.</source>
         <translation>予期しない HTTP ステータス %1。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="510"/>
+        <location filename="../src/llm/llm_pure.cpp" line="558"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>モデルの応答が JSON オブジェクトではありません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="516"/>
+        <location filename="../src/llm/llm_pure.cpp" line="564"/>
         <source>The model&apos;s answer carries no choices.</source>
         <translation>モデルの応答に choices がありません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="324"/>
+        <location filename="../src/llm/llm_pure.cpp" line="337"/>
         <source>The model stopped before finishing (reason: %1).</source>
         <translation>モデルが途中で停止しました（理由：%1）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="327"/>
+        <location filename="../src/llm/llm_pure.cpp" line="340"/>
         <source>absent</source>
         <translation>なし</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="347"/>
+        <location filename="../src/llm/llm_pure.cpp" line="360"/>
         <source>The model&apos;s answer is not valid JSON.</source>
         <translation>モデルの応答が有効な JSON ではありません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="352"/>
+        <location filename="../src/llm/llm_pure.cpp" line="365"/>
         <source>The model&apos;s answer has no results array.</source>
         <translation>モデルの応答に results 配列がありません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="363"/>
+        <location filename="../src/llm/llm_pure.cpp" line="376"/>
         <source>One of the results entries is not an object.</source>
         <translation>results の要素がオブジェクトではありません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="368"/>
+        <location filename="../src/llm/llm_pure.cpp" line="381"/>
         <source>A results entry does not match the response schema.</source>
         <translation>results の要素がレスポンススキーマに一致しません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="394"/>
-        <location filename="../src/llm/llm_pure.cpp" line="405"/>
+        <location filename="../src/llm/llm_pure.cpp" line="416"/>
+        <location filename="../src/llm/llm_pure.cpp" line="433"/>
         <source>The requested explanation language is missing.</source>
         <translation>要求した解説の言語がありません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="411"/>
+        <location filename="../src/llm/llm_pure.cpp" line="439"/>
         <source>A results entry has an empty field (title=%1).</source>
         <translation>results の要素に空のフィールドがあります（title=%1）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="444"/>
-        <location filename="../src/llm/llm_pure.cpp" line="469"/>
+        <location filename="../src/llm/llm_pure.cpp" line="472"/>
+        <location filename="../src/llm/llm_pure.cpp" line="517"/>
         <source>The model echoed %1 result(s) for the %2 that were asked for.</source>
         <translation>要求した %2 件に対し、モデルは %1 件を返しました。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="462"/>
-        <source>The model echoed the same title twice: %1.</source>
-        <translation>モデルが同じタイトルを二度返しました：%1。</translation>
-    </message>
-    <message>
-        <location filename="../src/llm/llm_pure.cpp" line="480"/>
+        <location filename="../src/llm/llm_pure.cpp" line="528"/>
         <source>The model never echoed &quot;%1&quot;.</source>
         <translation>モデルが「%1」を返しませんでした。</translation>
     </message>

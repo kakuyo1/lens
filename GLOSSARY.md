@@ -43,6 +43,9 @@
 - **词源（Etymology）**：单词通道在释义外给一句由来，语言跟随解释语言；默认关，与释义同一次请求取回，缓存键不含开关。见 `docs/adr/0019`。
 - **例句（Example sentence）**：单词通道在释义外给一句英文例句，不附译文；默认关，与释义同一次请求取回，缓存条目分缺失 / 空串 / 有句子三态。见 `docs/adr/0033`。
 - **释义链（Definition chain）**：释义里超出词频档位的词可以点开，在同一张卡内逐层下钻，每层是一次单词解释。见 `UI.md` 4.3 与 `docs/adr/0078`。
+- **义项图（Sense pictures）**：词卡内可选的一层图片，挂在义项上而不是词上；只对模型判定 “一张照片能说得更清楚” 的义项出现入口，一次只展开一条，文字定义先到、图后到。取不到图不影响释义。见 `IMAGES.md`。
+- **图片查询（imageQuery）**：模型随义项给出的两到五个英文词，用来给一次图片搜索消歧（如 `construction crane`）；恒为英文，是取图请求唯一发出去的内容。_Avoid_：搜索词、关键词
+- **取图源（Picture source）**：执行一次图片搜索的地方，v1 只接 Wikimedia Commons；它没有 key、没有 safe-search、也没有 SLA。取不到时卡片改为在系统浏览器里打开一次英文图片搜索，那就是兜底。见 `docs/adr/0079`。
 - **模型目录（Model catalog）**：`data/llm/catalog.json` 里的服务商、base URL、请求覆盖项、模型源、厂商前缀、离线种子与语言表；价目在 `pricing.json`。
 - **模型列表（Model list）**：共用模型源（OpenRouter `/api/v1/models`）按厂商前缀切给各服务商的那一份，按服务商缓存在 `MODELS`；只留输出为 `text` 的模型，刷新不改当前模型。见 `docs/adr/0020`。
 - **解释语言（Explanation language）**：全局设置 `en` / `zh` / `es` / `ja`，决定所有解释内容的语言；气泡上的快捷切换与设置里是同一个值。

@@ -22,6 +22,8 @@
           "example": { "type": "string", "description": "One short English sentence that uses the word. Optional: it is asked for only when the example setting is on, and a model with none to give leaves it out." },
           "signpost": { "type": "string", "description": "A label for the meaning in two to four plain English words, as a label rather than a sentence. Optional: a word with no short label leaves it out." },
           "collocations": { "type": "array", "description": "Up to two common collocations, each with the word written as ~. Optional.", "items": { "type": "string" } },
+          "imageable": { "description": "Whether a photograph can make this sense clearer. Optional and advisory: asked for on the word channel, and declared without a type on purpose -- the reader takes it as a JSON boolean and reads anything else as false, so a mistyped one never costs the definition around it." },
+          "imageQuery": { "description": "Two to five plain English words that disambiguate this sense for an image search, always in English whatever the explanation language. Optional and advisory, as imageable is: a blank or absent one means the sense is not imageable, and neither fails the batch." },
           "senses": {
             "type": "array",
             "minItems": 1,
@@ -32,7 +34,9 @@
               "properties": {
                 "en": { "type": "string", "minLength": 1 },
                 "zh": { "type": "string", "minLength": 1 },
-                "translation": { "type": "string", "minLength": 1 }
+                "translation": { "type": "string", "minLength": 1 },
+                "imageable": { "description": "As the top-level field, one sense at a time." },
+                "imageQuery": { "description": "As the top-level field, for this sense." }
               }
             }
           }

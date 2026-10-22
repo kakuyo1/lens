@@ -95,7 +95,10 @@ QByteArray buildRequestBody(const Config&      config,
  * `stop`; the message content is JSON; it carries a `results` array; every element is an
  * object holding every field that channel's response schema marks required; the fields the
  * overlay shows are non-empty; and the returned words match the requested ones exactly,
- * with no word missing, extra, or misspelled.
+ * with no word missing or misspelled. A word the model answers more than once is not a
+ * failure: the repeat is folded into the entry already held, because a model that writes one
+ * result per sense names its word once per sense, and losing definitions that arrived would
+ * be the worse trade.
  *
  * Any failure rejects the whole batch rather than dropping individual words, because a
  * partial batch would silently explain the wrong thing. The caller sees either the full

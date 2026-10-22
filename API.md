@@ -94,6 +94,10 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 | `senses` | array | 多义结果，按频率降序；每项含 `en`、`zh`，并在 `es` / `ja` 下含 `translation`，最多保留 3 项 |
 | `signpost` | string | 义项路标，两到四个英文词，给释义链的下一层用；**可选**：没有简短路标的词缺席，卡片不画 |
 | `collocations` | array of string | 最多两个常用搭配，词写作 `~`；**可选**：缺席或为空时脚注不画，超出两项的部分丢弃 |
+| `imageable` | boolean | 一张照片能否让这个义项更清楚；**可选且仅供参考**：只有单词通道请求，取不到布尔值时按 `false` 读 |
+| `imageQuery` | string | `imageable` 为 true 时给出的两到五个英文词，供图片搜索消歧；**可选**：恒为英文，不随解释语言变化 |
+
+`imageable` / `imageQuery` 是**建议值，不是契约**：卡片只按 `imageable && imageQuery 非空` 画图片入口，所以一个 true 而没有 query 的义项就是没有图（`IMAGES.md`）。两条都不进 `required`，也**故意不在 schema 里声明类型**——`matchesSchema()` 只校验它认识的词汇，声明成 `boolean` / `string` 会把一个类型写错的建议值升级成整批失败，而丢掉一份已经到手的释义是更坏的取舍。校验层仍然只管 “有没有”，空与错都留给解析层读成 “没有图”。
 
 `etymology` 的开关落在提示词上：`request.word.json` 的 `etymologyPrompt` 给出句子与 JSON 示例里的字段片段，模板用 `{etymologyNote}` 与 `{etymologyField}` 两处占位符接住，代码按开关填入或填成空串——关闭时提示词与没有这个字段时逐字相同，因此单义与多义两份模板各一份就够，不必为 “开 / 关 × 单义 / 多义” 维护四份重复文本。字段不进 `required`：关闭时本就不发，来了也按可选处理。
 
@@ -174,8 +178,8 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 2. `finish_reason` 必须是 `stop`——`length`（截断）、`content_filter`、`insufficient_system_resource`、`aborted` 一律判失败；
 3. `message.content` 能解析成 JSON 对象，且带 `results` 数组（容忍 Markdown ``` 围栏或前后闲话：提取首个 `{` 到末个 `}`）；
 4. `results` 每一项是对象，且**具备所选 schema 要求的全部字段**；
-5. `en` 非空；`zh` 对前三条通道同样必须非空，**译文通道除外**——它只要求 `en`，`zh` 与 `translation` 根本不在它的 schema 里；解释语言为 `es` / `ja` 时 `translation` 也必须非空，同样不适用于译文通道；单词通道额外要求 `word` 非空，`ipa` 可空（孤立缩写的单词没有音标），`etymology` 同样可空（开关关着时不发，来历不明的词也没有）；`example` 也可空（开关关着时不发，模型没有句子可给时缺席）；多义数组按 schema 校验，应用最多保留 3 项；
-6. 单词通道回显的词与请求**逐一对应**：不多、不少、不重、不拼错；实体 / 句子不回显，按请求顺序取结果（`title` 由 App 盖上），模型把一段拆成多条时按顺序**合并**（各条 `en` / `zh` 以换行拼接）。返回顺序不作要求，代码按请求顺序回填。
+5. `en` 非空；`zh` 对前三条通道同样必须非空，**译文通道除外**——它只要求 `en`，`zh` 与 `translation` 根本不在它的 schema 里；解释语言为 `es` / `ja` 时 `translation` 也必须非空，同样不适用于译文通道；单词通道额外要求 `word` 非空，`ipa` 可空（孤立缩写的单词没有音标），`etymology` 同样可空（开关关着时不发，来历不明的词也没有）；`example` 也可空（开关关着时不发，模型没有句子可给时缺席）；`imageable` / `imageQuery` 可空（见 §3 的表：建议值不因缺失或类型不对而判批失败）；多义数组按 schema 校验，应用最多保留 3 项；
+6. 单词通道回显的词与请求**逐一对应**：不少、不拼错；**同一个词回显两次不算失败**——模型把一条义项一个结果写出来时就会这样命名同一个词，代码把重复的那条并入已保留的那条（相同义项去重，条数仍受 3 条上限约束），因为丢掉已经到手的释义比多一次回显更糟；模型回显了请求里没有的词仍然算失败。实体 / 句子不回显，按请求顺序取结果（`title` 由 App 盖上），模型把一段拆成多条时按顺序**合并**（各条 `en` / `zh` 以换行拼接）。返回顺序不作要求，代码按请求顺序回填。
 
 失败原因会经 Qt 翻译（`tr()` / `QCoreApplication::translate()`）后交给 `LlmClient::failed(QString)`，译文见 `i18n/lens_zh_CN.ts`。
 

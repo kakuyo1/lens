@@ -33,6 +33,8 @@ add_library(lens_app STATIC
   duties/explanation_duty.cpp
   duties/model_catalog_duty.h
   duties/model_catalog_duty.cpp
+  duties/picture_duty.h
+  duties/picture_duty.cpp
   duties/review_duty.h
   duties/review_duty.cpp
   duties/storage_duty.h
@@ -95,7 +97,7 @@ target_include_directories(lens_app PRIVATE
 # Quick is public because the QML module below backs this library, and anything linking it is
 # linking the module: that now includes lens_gtest_integration, which used to need no QML.
 target_link_libraries(lens_app
-  PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Quick lens_llm lens_update lens_sync
+  PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Quick lens_llm lens_update lens_sync lens_pictures
   PRIVATE lens_core lens_util lens_capture
 )
 
@@ -282,6 +284,7 @@ qt_add_qml_module(lens_app
     qml/components/content/MixedText.qml
     qml/components/content/RevealText.qml
     qml/components/content/SenseRows.qml
+    qml/components/content/PictureStrip.qml
     qml/components/content/ChainText.qml
     qml/bubble/BubbleTitleRow.qml
     qml/bubble/BubbleChainPanel.qml
@@ -331,6 +334,7 @@ set(LENS_ICONS
   ${CMAKE_SOURCE_DIR}/data/icons/ui-folder.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-github.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-language.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-pictures.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-quit.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-settings.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-stats.svg

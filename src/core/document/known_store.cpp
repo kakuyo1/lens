@@ -81,6 +81,13 @@ std::optional<WordCache> readCache(nlohmann::json const& entry, std::string cons
             result.collocations.push_back(value.get<std::string>());
         }
     }
+    // The picture advice, optional and never load-bearing: absent from every entry written before the
+    // fields existed, and a wrong type is ignored rather than fatal -- the advice is not worth the
+    // definition it came with (IMAGES.md 3.3). A blank query reads as not imageable, the same way the
+    // parser leaves it.
+    if (entry.contains("imageable") and entry["imageable"].is_boolean()) result.imageable = entry["imageable"].get<bool>();
+    if (entry.contains("imageQuery") and entry["imageQuery"].is_string()) result.imageQuery = entry["imageQuery"].get<std::string>();
+    if (result.imageQuery.empty()) result.imageable = false;
     if (language != "en" and language != "zh" and result.translation.empty()) return std::nullopt;
     if (entry.contains("senses")) {
         if (not entry["senses"].is_array() or entry["senses"].empty()) return std::nullopt;
@@ -93,8 +100,12 @@ std::optional<WordCache> readCache(nlohmann::json const& entry, std::string cons
             if (translation != sense.end() and not translation->is_string()) return std::nullopt;
             auto const text = translation == sense.end() ? std::string{} : translation->get<std::string>();
             if (language != "en" and language != "zh" and text.empty()) return std::nullopt;
+            CachedSense parsed{sense["en"].get<std::string>(), sense["zh"].get<std::string>(), text};
+            if (sense.contains("imageable") and sense["imageable"].is_boolean()) parsed.imageable = sense["imageable"].get<bool>();
+            if (sense.contains("imageQuery") and sense["imageQuery"].is_string()) parsed.imageQuery = sense["imageQuery"].get<std::string>();
+            if (parsed.imageQuery.empty()) parsed.imageable = false;
             if (result.senses.size() < 3)
-                result.senses.push_back({sense["en"].get<std::string>(), sense["zh"].get<std::string>(), text});
+                result.senses.push_back(std::move(parsed));
         }
         result.en          = result.senses.front().en;
         result.zh          = result.senses.front().zh;
@@ -111,10 +122,23 @@ nlohmann::json writeCache(WordCache const& entry)
     if (entry.example) value["example"] = *entry.example;
     if (not entry.signpost.empty()) value["signpost"] = entry.signpost;
     if (not entry.collocations.empty()) value["collocations"] = entry.collocations;
+    // Written only when there is a query to run with: the pair says "this sense has a picture to
+    // fetch", and a bare `imageable` without one would be advice the duty can act on. So an entry
+    // that predates the fields, or one whose sense is not imageable, writes neither key.
+    if (not entry.imageQuery.empty()) {
+        value["imageable"]  = entry.imageable;
+        value["imageQuery"] = entry.imageQuery;
+    }
     if (not entry.senses.empty()) {
         value["senses"] = nlohmann::json::array();
-        for (auto const& sense : entry.senses)
-            value["senses"].push_back({{"en", sense.en}, {"zh", sense.zh}, {"translation", sense.translation}});
+        for (auto const& sense : entry.senses) {
+            nlohmann::json written{{"en", sense.en}, {"zh", sense.zh}, {"translation", sense.translation}};
+            if (not sense.imageQuery.empty()) {
+                written["imageable"]  = sense.imageable;
+                written["imageQuery"] = sense.imageQuery;
+            }
+            value["senses"].push_back(std::move(written));
+        }
     }
     return value;
 }

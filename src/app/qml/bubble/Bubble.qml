@@ -48,6 +48,8 @@ Window {
     onVisibleChanged: {
         if (!visible) {
             rowHold.active = false;
+            // The strip belongs to the card that asked, so it goes with it.
+            senseRows.collapse();
             endLanguageReplay();
         }
     }

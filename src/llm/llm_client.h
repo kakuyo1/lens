@@ -47,13 +47,20 @@ struct ExplainRequest {
 };
 
 /// @brief One frequency-ordered word sense; translation is in the requested output language.
+/// @note `imageable` and `imageQuery` are the picture advice the word channel carries (IMAGES.md):
+///       whether a photograph can make this sense clearer, and the two-to-five English words an image
+///       search is run with. Both are advisory, so a sense with `imageable` false -- the default, and
+///       the reading of a word explained before the fields existed -- draws no picture entry.
 struct Sense {
     QString en, zh, translation;
+    bool    imageable = false;
+    QString imageQuery;
 };
 
 inline bool operator==(Sense const& a, Sense const& b)
 {
-    return a.en == b.en and a.zh == b.zh and a.translation == b.translation;
+    return a.en == b.en and a.zh == b.zh and a.translation == b.translation and
+           a.imageable == b.imageable and a.imageQuery == b.imageQuery;
 }
 
 inline constexpr int kMaxSenses = 3;
@@ -76,6 +83,12 @@ struct Explanation {
     ///       to two collocations with the word written as "~". Both are optional; an absent one is not drawn.
     QString     signpost;
     QStringList collocations;
+    /// @note The picture advice in its singular shape: a word answered without `senses` carries the pair
+    ///       here, the way it carries `en` / `zh`. The per-sense copy in `senses` is what the card reads;
+    ///       this one is the shape a single-sense answer arrives in, and is folded into `senses` on parse
+    ///       so nothing downstream has to know which shape it was (IMAGES.md 3.3).
+    bool    imageable = false;
+    QString imageQuery;
 };
 
 /// @brief Field-wise equality, so a stream's next preview can be told from the one on screen.
@@ -84,7 +97,8 @@ inline bool operator==(Explanation const& a, Explanation const& b)
     return a.title == b.title and a.ipa == b.ipa and a.en == b.en and a.zh == b.zh and
            a.translation == b.translation and a.etymology == b.etymology and a.example == b.example and
            a.senses == b.senses and a.signpost == b.signpost and
-           a.collocations == b.collocations;
+           a.collocations == b.collocations and a.imageable == b.imageable and
+           a.imageQuery == b.imageQuery;
 }
 
 /// @brief Token counts the service reports for one call, for the cost surfaces.

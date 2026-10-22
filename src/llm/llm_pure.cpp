@@ -12,6 +12,7 @@
 #include <QJsonObject>
 #include <QRegularExpression>
 
+#include <algorithm>
 #include <utility>
 
 #include "util/log.h"
@@ -162,8 +163,10 @@ int scanSenseArray(QString const& text, int arrayStart, QVector<Sense>& senses)
 /// @brief Read the string fields of the object starting at @p objectStart, as far as they have
 ///        arrived, folding a `senses` array into @p senses.
 /// @return The index just past the object's `}`, or the end of the text while it has not closed.
-/// @note A value that is not a string, and is not the `senses` array, stops the read: the
-///       shipped results hold nothing else, and guessing at a shape would be guessing.
+/// @note A value that is neither a string nor the `senses` array is skipped when it is a scalar --
+///       the word channel's `imageable` is a boolean, and stopping on it would hold back every field
+///       the model writes after it. An array or an object under any other key is a shape the shipped
+///       results do not hold, and guessing at it would be guessing, so that still stops the read.
 int scanJsonObject(QString const& text, int objectStart, QHash<QString, QString>& fields, QVector<Sense>& senses)
 {
     int i = objectStart + 1;
@@ -202,6 +205,16 @@ int scanJsonObject(QString const& text, int objectStart, QHash<QString, QString>
         }
         if (text.at(i) == QLatin1Char('[') and key == QLatin1String("senses")) {
             i = scanSenseArray(text, i, senses);
+            continue;
+        }
+        // A scalar the card does not draw -- `true`, a number, `null`. Skipping to the next separator
+        // keeps the read going, so a field written after it still arrives mid-stream; a scalar carries
+        // no delimiter of its own, so this cannot cut into the value.
+        const QChar token = text.at(i);
+        if (token.isDigit() or token == QLatin1Char('-') or token == QLatin1Char('t') or
+            token == QLatin1Char('f') or token == QLatin1Char('n')) {
+            while (i < text.size() and text.at(i) != QLatin1Char(',') and text.at(i) != QLatin1Char('}'))
+                ++i;
             continue;
         }
         return i;
@@ -386,20 +399,35 @@ std::variant<QVector<Explanation>, QString> parseExplanationContent(Channel     
             if (e.collocations.size() < 2)
                 e.collocations.push_back(value.toString());
         }
+        // The picture advice, read the same way and never demanded (IMAGES.md 3.1): a sense counts as
+        // imageable only when the model both said so and named the words an image search is run with,
+        // so the card's entry and the duty's request agree on what there is to fetch. Blank and absent
+        // therefore read alike, and a mistyped value reads as false rather than costing the definition.
+        const auto readImageAdvice = [](QJsonObject const& source, bool& imageable, QString& query) {
+            query     = source.value(QStringLiteral("imageQuery")).toString().trimmed();
+            imageable = source.value(QStringLiteral("imageable")).toBool() and not query.isEmpty();
+        };
+        readImageAdvice(obj, e.imageable, e.imageQuery);
         if (isWord and obj.contains("senses")) {
             auto const senses = obj.value("senses").toArray();
             for (auto const& value : senses) {
                 auto const sense = value.toObject();
                 if (explanationLang != QLatin1String("en") and explanationLang != QLatin1String("zh") and sense.value("translation").toString().trimmed().isEmpty())
                     return reject(QCoreApplication::translate("lens::llm", "The requested explanation language is missing."));
+                Sense parsedSense{sense.value("en").toString(), sense.value("zh").toString(), sense.value("translation").toString()};
+                readImageAdvice(sense, parsedSense.imageable, parsedSense.imageQuery);
                 if (e.senses.size() < (multipleSenses ? kMaxSenses : 1))
-                    e.senses.push_back({sense.value("en").toString(), sense.value("zh").toString(), sense.value("translation").toString()});
+                    e.senses.push_back(parsedSense);
             }
             e.en          = e.senses.front().en;
             e.zh          = e.senses.front().zh;
             e.translation = e.senses.front().translation;
+            // The top-level pair mirrors the most frequent sense, so an answer read through either shape
+            // says the same thing about its picture.
+            e.imageable  = e.senses.front().imageable;
+            e.imageQuery = e.senses.front().imageQuery;
         } else if (isWord) {
-            e.senses.push_back({e.en, e.zh, e.translation});
+            e.senses.push_back({e.en, e.zh, e.translation, e.imageable, e.imageQuery});
         }
         if (not isTranslation and explanationLang != QLatin1String("en") and explanationLang != QLatin1String("zh") and e.translation.trimmed().isEmpty())
             return reject(QCoreApplication::translate("lens::llm", "The requested explanation language is missing."));
@@ -455,14 +483,34 @@ std::variant<QVector<Explanation>, QString> parseExplanationContent(Channel     
     // explanation attached to the wrong entry before it reaches the bubble. Matching is
     // case-insensitive (a model may capitalize an acronym) and the requested spelling wins, so
     // the cache key and the bubble title stay canonical.
+    //
+    // The same word twice is not a failure. A model that writes one result per sense instead of one
+    // result with a `senses` array names its word once per sense, and that is an answer to the
+    // question asked rather than a broken one -- failing the batch over it threw away definitions
+    // that had already arrived, which is the trade this file refuses everywhere else. The repeat is
+    // folded into the entry already held, exactly as the other channels fold the several entries a
+    // model makes out of one selected block. A word the model never named at all is still a failure:
+    // that one leaves the reader with nothing.
     QHash<QString, Explanation> byTitle;
     for (const auto& e : parsed) {
-        const QString key = e.title.toLower();
-        if (byTitle.contains(key))
-            return reject(QCoreApplication::translate("lens::llm",
-                                                      "The model echoed the same title twice: %1.")
-                              .arg(e.title));
-        byTitle.insert(key, e);
+        const QString key  = e.title.toLower();
+        auto          held = byTitle.find(key);
+        if (held == byTitle.end()) {
+            byTitle.insert(key, e);
+            continue;
+        }
+        Explanation& kept = held.value();
+        const int    cap  = multipleSenses ? kMaxSenses : 1;
+        for (auto const& sense : e.senses) {
+            if (kept.senses.size() >= cap)
+                break;
+            const bool known = std::any_of(kept.senses.cbegin(), kept.senses.cend(), [&sense](Sense const& existing) {
+                return existing.en == sense.en and existing.zh == sense.zh;
+            });
+            if (not known)
+                kept.senses.push_back(sense);
+        }
+        LENS_WARN("the model echoed '{}' more than once; the repeat was folded into the first entry", e.title.toStdString());
     }
 
     if (byTitle.size() != expectedInputs.size())

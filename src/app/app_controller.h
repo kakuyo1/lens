@@ -31,11 +31,13 @@
 #include "llm/llm_pricing.h"
 #include "app/duties/model_catalog_duty.h"
 #include "app/platform/mouse_selection_hook.h"
+#include "app/duties/picture_duty.h"
 #include "app/platform/tray.h"
 #include "app/duties/review_duty.h"
 #include "app/duties/storage_duty.h"
 #include "app/duties/sync_duty.h"
 #include "app/duties/update_duty.h"
+#include "pictures/picture_sources/commons_source.h"
 
 class QQmlEngine;
 class QJSEngine;
@@ -219,8 +221,10 @@ public:
     GlassBackdrop* glassBackdrop();
     /// @brief The model catalogue, which QML reads as `Controller.modelCatalogDuty`; the facade owns it.
     ModelCatalogDuty* modelCatalogDuty();
-    QString           modeLabel() const;
-    QString           busyLabel() const;
+    /// @brief The picture lookup, which QML reads as `Controller.pictureDuty`; the facade owns it.
+    PictureDuty* pictureDuty();
+    QString      modeLabel() const;
+    QString      busyLabel() const;
     /// @return The snapshot the tray icon and its tooltip are drawn from. A projection, not state.
     TrayReadout trayReadout();
     double      dailyBudget() const;
@@ -255,6 +259,7 @@ public:
     Q_PROPERTY(lens::app::CaptureDuty* captureDuty READ captureDuty CONSTANT)
     Q_PROPERTY(lens::app::GlassBackdrop* glassBackdrop READ glassBackdrop CONSTANT)
     Q_PROPERTY(lens::app::ModelCatalogDuty* modelCatalogDuty READ modelCatalogDuty CONSTANT)
+    Q_PROPERTY(lens::app::PictureDuty* pictureDuty READ pictureDuty CONSTANT)
     Q_PROPERTY(QString modeLabel READ modeLabel NOTIFY settingsChanged)
     Q_PROPERTY(QString busyLabel READ busyLabel NOTIFY busyChanged)
     Q_PROPERTY(double dailyBudget READ dailyBudget NOTIFY dailyBudgetChanged)
@@ -305,9 +310,14 @@ private:
     UpdateDuty             updateDuty_;
     SyncDuty               sync_;
     ReviewDuty             reviewDuty_;
-    llm::LlmClient&        llm_;
-    GlobalHotkey&          hotkey_;
-    QTimer                 gateTimer_;
+    /// The picture lookup: the source that searches, the cache beside the settings document, and the
+    /// duty the card reads. Declared in this order so the duty's two references are alive before it.
+    pictures::CommonsSource picturesSource_;
+    pictures::PictureCache  picturesCache_;
+    PictureDuty             pictureDuty_;
+    llm::LlmClient&         llm_;
+    GlobalHotkey&           hotkey_;
+    QTimer                  gateTimer_;
     /// Whether the daily budget was spent the last time the cost duty reported, so a pause and a resume each fire once.
     bool budgetPaused_;
     /// The settings preview's demo card, read once (settingPreview()).
