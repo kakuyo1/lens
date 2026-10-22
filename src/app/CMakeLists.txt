@@ -347,13 +347,15 @@ qt_add_resources(lens_app "icons"
   FILES ${LENS_ICONS}
 )
 
-# The glass shader, compiled by qsb into :/shaders/glass.frag.qsb. qsb comes from the same Qt install as the runtime, so the two
-# cannot drift apart. It is a resource of lens_app for the reason the icons are: a binary that links the surfaces draws them.
+# The glass shaders, compiled by qsb into :/shaders/glass.frag.qsb and :/shaders/glass_hblur.frag.qsb. qsb comes from the
+# same Qt install as the runtime, so the two cannot drift apart. They are resources of lens_app for the reason the icons
+# are: a binary that links the surfaces draws them.
 qt_add_shaders(lens_app "lens_shaders"
   PREFIX "/shaders"
   BASE ${CMAKE_CURRENT_SOURCE_DIR}/shaders
   FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/shaders/glass.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/glass_hblur.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/shaders/fan.frag
 )
 

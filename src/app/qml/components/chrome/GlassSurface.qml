@@ -7,11 +7,12 @@ import QtQuick
  * docs/adr/0071).
  *
  * The sheet is the window's own (GlassBackdrop.surface), taken as the desktop under the window a little larger than the
- * window, at the screen's resolution. GlassSheetItem carries each picture into one live texture, and the shader in
- * shaders/glass.frag blurs and saturates it, places the window within it on every frame, bends it through the
- * displacement map for the liquid theme, and cuts the card's rounded corners. So the glass moves with the window at
- * once, a drag takes no capture (GlassHost takes the others), a slider move changes a uniform, and a publish replaces a
- * texture rather than reloading a picture. The fill and the rim are laid over it here.
+ * window, at the screen's resolution. GlassSheetItem carries each picture into one live texture, and the two shader
+ * passes in shaders/glass_hblur.frag and shaders/glass.frag blur it along x and then along y, saturate it, place the
+ * window within it on every frame, bend it through the displacement map for the liquid theme, and cut the card's
+ * rounded corners. So the glass moves with the window at once, a drag takes no capture (GlassHost takes the others), a
+ * slider move changes a uniform, and a publish replaces a texture rather than reloading a picture. The fill and the rim
+ * are laid over it here.
  */
 Item {
     id: root
@@ -87,6 +88,29 @@ Item {
         mipmap: true
     }
 
+    /// The sheet blurred along x (docs/adr/0081). It covers the whole sheet rather than the card, so the vertical pass
+    /// below still has the sheet's margin to read when its outer taps and the refraction reach past the card's edge.
+    ShaderEffect {
+        id: horizontalBlur
+        visible: root.drawsBackdrop && root.shownSheet.width > 0
+        width: root.shownSheet.width
+        height: root.shownSheet.height
+        fragmentShader: "qrc:/shaders/glass_hblur.frag.qsb"
+        property variant sheet: sheetTexture
+        property real blur: root.blur
+        property vector2d sheetSize: Qt.vector2d(root.shownSheet.width, root.shownSheet.height)
+        property vector2d sheetPixels: Qt.vector2d(root.shownSheet.width * Screen.devicePixelRatio,
+                                                   root.shownSheet.height * Screen.devicePixelRatio)
+    }
+
+    ShaderEffectSource {
+        id: blurredTexture
+        sourceItem: horizontalBlur
+        hideSource: true
+        // The vertical taps stand on this layer's mip chain the same way (docs/adr/0081).
+        mipmap: true
+    }
+
     Image {
         id: displacement
         anchors.fill: parent
@@ -104,7 +128,7 @@ Item {
         anchors.fill: parent
         visible: root.drawsBackdrop && root.shownSheet.width > 0
         fragmentShader: "qrc:/shaders/glass.frag.qsb"
-        property variant sheet: sheetTexture
+        property variant blurred: blurredTexture
         property variant map: displacementTexture
         property real refraction: root.mode === "liquid" ? root.refraction : 0
         property real radius: root.radius
