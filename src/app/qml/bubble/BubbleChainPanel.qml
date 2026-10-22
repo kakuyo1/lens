@@ -135,7 +135,9 @@ Item {
                 anchors.right: parent.right
                 anchors.rightMargin: 96
                 anchors.verticalCenter: parent.verticalCenter
-                text: root.trail.join(" › ")
+                // Nothing to say at the root: the panel is hidden there, and a trail that held the
+                // card's own title would be a second Text reading as that title.
+                text: root.atRoot ? "" : root.trail.join(" › ")
                 color: root.tokens.faint
                 font.pixelSize: Math.round(10.5 * root.fontScale)
                 elide: Text.ElideRight
