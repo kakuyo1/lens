@@ -49,7 +49,7 @@ Window {
         if (!visible) {
             rowHold.active = false;
             // The strip belongs to the card that asked, so it goes with it.
-            senseRows.collapse();
+            content.collapseStrip();
             endLanguageReplay();
         }
     }
@@ -83,8 +83,8 @@ Window {
     property var englishSpans: []
     property string signpost: ""
     property var collocations: []
-    readonly property bool atRoot: chainPanel.atRoot
-    property alias chainSteps: chainPanel
+    readonly property bool atRoot: chainSteps.atRoot
+    property alias chainSteps: content.chainSteps
     property string status: "" ///< "new", "known", or empty when there is no word verdict (entity / sentence).
 
     property bool hovering: false
@@ -145,10 +145,7 @@ Window {
     }
 
     /// True while any field is still being written out: what holds the countdown.
-    readonly property bool revealing: definitionText.revealing || chineseText.revealing
-                                      || translationText.revealing || wordRow.revealing
-                                      || etymologyText.revealing || exampleText.revealing
-                                      || senseRows.revealing || chainPanel.revealing
+    readonly property bool revealing: content.revealing
 
     property var pendingPayload: null
     property bool pendingWasVisible: false
@@ -205,7 +202,7 @@ Window {
             example = "";
             senses = [];
         }
-        chainPanel.refresh(payload);
+        chainSteps.refresh(payload);
         englishSpans = payload.spans || [];
         signpost = payload.signpost || "";
         collocations = payload.collocations || [];
@@ -273,7 +270,7 @@ Window {
     onHoveringChanged: {
         updateCountdown();
         if (verdictButtons && status !== "")
-            rowHold.begin(content.implicitHeight + (hovering ? verdictRow.openHeight : -verdictRow.openHeight));
+            rowHold.begin(content.implicitHeight + (hovering ? content.verdictRowHeight : -content.verdictRowHeight));
     }
 
     onDraggingChanged: updateCountdown()
@@ -309,390 +306,17 @@ Window {
         }
     }
 
-    Item {
+    /// The card the answer is drawn on: its shape, its glass and every row (BubbleCard.qml).
+    BubbleCard {
         id: content
+        bubble: bubble
         x: bubble.shadowMargin
         y: bubble.shadowMargin
-        implicitWidth: 270
-        implicitHeight: card.height
         opacity: fade.progress
         // A window that is still on screen while it fades out is not there to be pressed, and
         // the card that used to be under the pointer must not act for it.
         enabled: bubble.surfaceShown
         transform: Translate { y: fade.lift }
-
-        // The shadow is cast from a shape-only copy of the card, never from the card itself:
-        // MultiEffect draws its source through an offscreen texture, and at this monitor's
-        // 125% scale that texture is resampled. See SelectionBar.qml for the measurement.
-        Rectangle {
-            id: shadowShape
-            anchors.fill: card
-            radius: card.radius
-            color: bubble.tokens.glassMode === "" ? bubble.tokens.bubbleBg : "transparent"
-            visible: false
-        }
-
-        MultiEffect {
-            // Placed and sized by the effect, from its source -- see ShadowCard.qml.
-            x: card.x
-            y: card.y
-            source: shadowShape
-            shadowEnabled: true
-            shadowColor: Qt.rgba(20 / 255, 20 / 255, 26 / 255, bubble.tokens.dark ? 0.75 : 0.26)
-            shadowBlur: 0.9
-            shadowVerticalOffset: 8
-            blurMax: 44
-        }
-
-        // The mark that says this card is a demo (UI.md 4.4).
-        PreviewFrame {
-            visible: bubble.preview
-            card: card
-            cardRadius: bubble.tokens.radiusCard
-            strokeColor: bubble.tokens.muted
-        }
-
-        ChainEdges {
-            card: card
-            shown: !bubble.atRoot
-            edgeColor: bubble.tokens.line
-        }
-
-        Rectangle {
-            id: card
-            width: parent.implicitWidth
-            height: column.height + 26
-            radius: bubble.tokens.radiusCard
-            color: bubble.tokens.glassMode === "" ? bubble.tokens.bubbleBg : "transparent"
-            border.width: 1
-            border.color: bubble.tokens.glassMode === "" ? bubble.tokens.bubbleBorder : "transparent"
-
-            GlassSurface {
-                anchors.fill: parent
-                sheet: bubble.glass
-                mode: bubble.tokens.glassMode
-                radius: card.radius
-            }
-
-            // The handle a drag moves the window by; the timer below does the moving, and the
-            // two reasons it is not the handler's own signal are in ShadowCard.qml. The flag
-            // brackets the drag on both edges: setting it only on the way in left the countdown
-            // stopped for good, and the bubble never went away again.
-            DragHandler {
-                id: mover
-                target: null
-                // A preview belongs to the row under the pointer; a real card is the reader's to move.
-                enabled: !bubble.preview
-
-                property point grabCursor: Qt.point(0, 0)
-                property point grabWindow: Qt.point(0, 0)
-
-                function place() {
-                    const at = Controller.cursorPos();
-                    bubble.x = Math.round(grabWindow.x + at.x - grabCursor.x);
-                    bubble.y = Math.round(grabWindow.y + at.y - grabCursor.y);
-                }
-
-                onActiveChanged: {
-                    bubble.dragging = active;
-                    if (active) {
-                        grabCursor = Controller.cursorPos();
-                        grabWindow = Qt.point(bubble.x, bubble.y);
-                    } else {
-                        place();
-                    }
-                }
-            }
-
-            Timer {
-                interval: 16
-                repeat: true
-                running: mover.active
-                onTriggered: mover.place()
-            }
-
-            // Leaving takes effect only if it lasts: a pointer sitting on the edge of the
-            // card can read as an exit for a frame or two while the verdict row animates open,
-            // and each false reading restarts the countdown and collapses the row again.
-            // Entering stays immediate, so the row still opens the moment the pointer arrives.
-            // ponytail: a guard, not a diagnosis; raise the interval if it outlasts this.
-            HoverHandler {
-                // A preview does not report hover: the pointer is on a settings row, not holding an answer.
-                enabled: !bubble.preview
-                onHoveredChanged: {
-                    // Both readings, every flip: a real exit and something else moving `visible`
-                    // look the same in the log the controller keeps, and these two are what tells
-                    // them apart (TODO.md, the bubble-hover jitter item).
-                    bubble.lastHoverCursor = Controller.cursorPos();
-                    const at = card.mapToGlobal(0, 0);
-                    bubble.lastHoverCard = Qt.rect(at.x, at.y, card.width, card.height);
-                    if (hovered) {
-                        hoverSettle.stop();
-                        bubble.hovering = true;
-                    } else {
-                        hoverSettle.restart();
-                    }
-                }
-            }
-
-            Timer {
-                id: hoverSettle
-                interval: 140
-                onTriggered: bubble.hovering = false
-            }
-
-            Column {
-                id: column
-                x: 16
-                y: 14
-                width: parent.width - 32
-                spacing: 0
-
-                // The chain takes the card's place while a step is open.
-                BubbleChainPanel {
-                    id: chainPanel
-                    visible: !bubble.atRoot
-                    width: parent.width
-                    bubble: bubble
-                }
-
-                // A word bubble carries the learning verdict; a sentence bubble carries its type
-                // label. An entity bubble carries neither: a named thing is not a learning item,
-                // so it is drawn as title plus encyclopaedic definition with no badge.
-                Rectangle {
-                    // A preview wears this row in place of a learning verdict (UI.md 4.4).
-                    visible: bubble.atRoot && (bubble.preview || bubble.type === "word" || bubble.type === "sentence")
-                    width: tag.width + 16
-                    height: 17
-                    radius: bubble.tokens.radiusPill
-                    color: bubble.preview ? bubble.tokens.panel2
-                         : bubble.type === "word" ? (bubble.status === "known" ? bubble.tokens.panel2 : bubble.tokens.okBg)
-                         : "transparent"
-                    border.width: bubble.preview || bubble.type === "word" ? 0 : 1
-                    border.color: bubble.tokens.line
-
-                    Text {
-                        id: tag
-                        anchors.centerIn: parent
-                        text: bubble.preview ? qsTr("Preview")
-                             : bubble.type === "sentence" ? qsTr("Sentence")
-                             : bubble.type === "word" ? (bubble.status === "known" ? qsTr("Known") : qsTr("New"))
-                             : ""
-                        color: bubble.preview ? bubble.tokens.muted
-                             : bubble.type === "sentence" ? bubble.tokens.muted
-                             : bubble.status === "known" ? bubble.tokens.muted
-                             : bubble.tokens.okText
-                        font.pixelSize: 11
-                        font.weight: Font.Bold
-                    }
-                }
-
-                BubbleTitleRow {
-                    id: wordRow
-                    visible: bubble.atRoot && bubble.type !== "sentence" && bubble.type !== "translation"
-                    title: bubble.title
-                    ipa: bubble.type === "word" ? bubble.ipa : ""
-                    family: bubble.englishFont
-                    scale: bubble.fontScale
-                    animated: bubble.revealAnimation
-                    characterMs: bubble.revealCharacterMs
-                    tokens: bubble.tokens
-                }
-
-                ChainSignpost {
-                    width: parent.width
-                    label: bubble.atRoot && bubble.type === "word" ? bubble.signpost : ""
-                    tokens: bubble.tokens
-                    scale: bubble.fontScale
-                }
-
-                SenseRows {
-                    id: senseRows
-                    senses: bubble.atRoot && bubble.type === "word" ? bubble.senses : []
-                    markColor: bubble.tokens.faint
-                    hoverColor: bubble.tokens.okBg
-                    onWordTapped: lemma => chainPanel.step(lemma)
-                    animated: bubble.revealAnimation
-                    characterMs: bubble.revealCharacterMs
-                    englishColor: bubble.tokens.muted
-                    translationColor: bubble.tokens.text
-                    separatorColor: bubble.tokens.line2
-                    family: bubble.englishFont
-                    scale: bubble.fontScale
-                }
-
-                // The definition line, and for a translation bubble the whole card: a translation
-                // has no title and no badge above it, so drawing it in the definition's secondary
-                // colour would leave the answer looking like a footnote to nothing (UI.md 4.3).
-                ChainText {
-                    id: definitionText
-                    visible: bubble.atRoot && bubble.senses.length === 0 && bubble.english !== ""
-                    animated: bubble.revealAnimation
-                    characterMs: bubble.revealCharacterMs
-                    width: parent.width
-                    topPadding: 6
-                    text: bubble.english
-                    color: bubble.type === "translation" ? bubble.tokens.text : bubble.tokens.muted
-                    family: bubble.englishFont
-                    pixelSize: bubble.sizeAt(13)
-                    lineHeight: 1.55
-                    spans: bubble.englishSpans
-                    markColor: bubble.tokens.faint
-                    hoverColor: bubble.tokens.okBg
-                    onWordTapped: lemma => chainPanel.step(lemma)
-                }
-
-                RevealText {
-                    id: chineseText
-                    visible: bubble.atRoot && bubble.senses.length === 0 && bubble.chinese !== ""
-                    animated: bubble.revealAnimation
-                    characterMs: bubble.revealCharacterMs
-                    width: parent.width
-                    topPadding: 5
-                    text: bubble.chinese
-                    color: bubble.tokens.text
-                    pixelSize: bubble.sizeAt(12)
-                    lineHeight: 1.5
-                }
-
-                RevealText {
-                    id: translationText
-                    visible: bubble.atRoot && bubble.senses.length === 0 && bubble.translation !== ""
-                    animated: bubble.revealAnimation
-                    characterMs: bubble.revealCharacterMs
-                    width: parent.width
-                    topPadding: 5
-                    text: bubble.translation
-                    color: bubble.tokens.text
-                    pixelSize: bubble.sizeAt(12)
-                    lineHeight: 1.5
-                }
-
-                // The word's origin, under the explanation it belongs to. A hairline and a small
-                // label are what keep it from reading as one more line of the definition: the
-                // reader asked for two different things and has to see two different things
-                // (UI.md 4.3). The label is the card's label colour and weight; the sentence under
-                // it sits one step down from the definition's colour, because an origin is context
-                // for the meaning rather than another meaning.
-                // Nothing at all is drawn when there is none: an empty labelled slot would read as
-                // a model that failed rather than as a word with no origin to give.
-                // The gap above the rule is the 6 px a sense break uses, not the 12 this block
-                // was drawn with first: measured on the rendered card, that put 24 px of blank
-                // between the definition and the hairline -- the widest gap on the card, in the
-                // one place that is only introducing an aside.
-                Column {
-                    id: etymologyBlock
-                    objectName: "etymologyBlock"
-                    visible: bubble.atRoot && bubble.etymology !== ""
-                    width: parent.width
-                    topPadding: 6
-                    spacing: 5
-
-                    Rectangle {
-                        objectName: "etymologySeparator"
-                        width: parent.width
-                        height: 1
-                        color: bubble.tokens.line2
-                    }
-
-                    Text {
-                        objectName: "etymologyLabel"
-                        text: qsTr("Etymology")
-                        color: bubble.tokens.muted
-                        font.pixelSize: 11
-                        font.weight: Font.Bold
-                    }
-
-                    RevealText {
-                        id: etymologyText
-                        objectName: "etymologyText"
-                        animated: bubble.revealAnimation
-                        characterMs: bubble.revealCharacterMs
-                        width: parent.width
-                        text: bubble.etymology
-                        color: bubble.tokens.muted
-                        family: bubble.englishFont
-                        pixelSize: bubble.sizeAt(12)
-                        lineHeight: 1.5
-                    }
-                }
-
-                // The example sentence sits under the origin in the same set-off form (UI.md 4.3). Drawn
-                // only when there is one: an empty block would read as a model that failed to give one.
-                Column {
-                    id: exampleBlock
-                    objectName: "exampleBlock"
-                    visible: bubble.atRoot && bubble.example !== ""
-                    width: parent.width
-                    topPadding: 6
-                    spacing: 5
-
-                    Rectangle {
-                        objectName: "exampleSeparator"
-                        width: parent.width
-                        height: 1
-                        color: bubble.tokens.line2
-                    }
-
-                    Text {
-                        objectName: "exampleLabel"
-                        text: qsTr("Example")
-                        color: bubble.tokens.muted
-                        font.pixelSize: 11
-                        font.weight: Font.Bold
-                    }
-
-                    RevealText {
-                        id: exampleText
-                        objectName: "exampleText"
-                        animated: bubble.revealAnimation
-                        characterMs: bubble.revealCharacterMs
-                        width: parent.width
-                        text: bubble.example
-                        color: bubble.tokens.muted
-                        family: bubble.englishFont
-                        pixelSize: bubble.sizeAt(12)
-                        lineHeight: 1.5
-                    }
-                }
-
-                ChainCollocations {
-                    width: parent.width
-                    words: bubble.atRoot && bubble.type === "word" ? bubble.collocations : []
-                    tokens: bubble.tokens
-                    scale: bubble.fontScale
-                }
-
-                // The verdict buttons, drawn shut until the pointer is on the card (UI.md 4.3).
-                BubbleVerdictRow {
-                    id: verdictRow
-                    visible: bubble.atRoot && bubble.verdictButtons
-                    tokens: bubble.tokens
-                    lemma: bubble.title
-                    hovering: bubble.hovering
-                    status: bubble.status
-                }
-
-                Text {
-                    // A bubble with no countdown has no seconds to count, and the line's absence is
-                    // what says it will wait.
-                    visible: bubble.countsDown
-                    width: parent.width
-                    topPadding: 9
-                    // The remaining seconds, not the setting that seeded them: the count stands
-                    // still while the pointer holds the bubble and steps down again when it goes.
-                    text: qsTr("Disappears in %1s").arg(Math.ceil(bubble.remainingMs / 1000))
-                    color: bubble.tokens.faint
-                    font.pixelSize: 11
-                }
-
-            }
-
-            BubbleHeaderActions {
-                anchors.fill: parent
-                bubbleWindow: bubble
-            }
-        }
     }
 
     GlassHost {

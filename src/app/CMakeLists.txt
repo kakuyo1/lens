@@ -227,6 +227,7 @@ qt_add_qml_module(lens_app
     qml/selection/bodies/SelectionBarTagBody.qml
     qml/selection/bodies/SelectionBarFanBody.qml
     qml/bubble/Bubble.qml
+    qml/bubble/BubbleCard.qml
     qml/panels/Notice.qml
     qml/panels/UpdateCard.qml
     qml/capture/Mask.qml
