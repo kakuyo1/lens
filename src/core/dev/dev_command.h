@@ -9,6 +9,8 @@
  * app/dev/dev_surface.h. The table is compiled into the application only by LENS_ENABLE_DEV_SURFACE (docs/adr/0068).
  */
 
+#include "core/domain/surface_table.h"
+
 #include <nlohmann/json.hpp>
 
 #include <array>
@@ -102,20 +104,9 @@ struct Parse {
 };
 
 /// The surface names the table knows, in the order `state` reports them. Each is a window's object name in QML.
-inline constexpr std::array<std::string_view, 12> kSurfaceNames{
-    "settings",
-    "tray",
-    "stats",
-    "words",
-    "yearWords",
-    "cost",
-    "bubble",
-    "selectionBar",
-    "notice",
-    "update",
-    "removal",
-    "reviewSign",
-};
+/// Derived from the one surface table (core/domain/surface_table.h), so this list, the glass sheet set and the dev
+/// opener table cannot drift apart the way three hand-written copies did (docs/adr/0084).
+inline constexpr auto kSurfaceNames = lens::core::surface::devNames();
 
 /// @param name A candidate surface name.
 /// @return Whether @p name is one of kSurfaceNames.

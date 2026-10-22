@@ -5,6 +5,7 @@
 
 #include "glass_backdrop.h"
 
+#include "core/domain/surface_table.h"
 #include "glass_capability.h"
 #include "glass_desktop.h"
 #include "glass_duplication.h"
@@ -35,37 +36,11 @@ namespace lens::app {
 
 namespace {
 
-/// The glass surfaces, by the name QML gives them in `image://glass/<name>/…`. A fixed set: each one gets its sheet at
-/// construction, so the image provider never has a sheet to create on one of its own threads.
-constexpr std::array<char const*, 16> kSurfaces{
-    "settings",
-    "tray",
-    "stats",
-    "words",
-    "yearWords",
-    "cost",
-    "bubble",
-    "selectionBar",
-    "notice",
-    "update",
-    "removal",
-    // The settings preview's card is a second Bubble window rather than the bubble itself, so it
-    // takes a sheet of its own: two windows sharing one sheet would take the backdrop of whichever
-    // followed last, and the live refresh would flip the two between them.
-    "preview",
-    // The theme dropdown's preview is another transient window beside the settings panel, and it
-    // has to show glass whichever theme is stored, so it takes a sheet too.
-    "themePreview",
-    // The vocabulary level dropdown's card is a third one: a separate window, and one sheet holds
-    // one backdrop.
-    "vocabPreview",
-    // The action bar style dropdown's card is the fourth: it follows the stored theme, but its
-    // miniature bar is still a separate window and needs its own sheet.
-    "selectionBarPreview",
-    // The refresh tier's note card is the fifth: it follows the stored theme, glass and all, so it
-    // reads as the panel it was raised beside.
-    "notePreview",
-};
+/// The glass surfaces, by the name QML gives them in `image://glass/<name>/…`: every row of the one
+/// surface table flagged `sheet` (core/domain/surface_table.h, docs/adr/0084). A fixed set: each one
+/// gets its sheet at construction, so the image provider never has a sheet to create on one of its
+/// own threads. The preview cards are here for the reason the table records -- a separate window
+/// holds one backdrop (docs/adr/0041).
 /// How far the sheet reaches past the window on each side, in DIP. It is the reserve plus the hysteresis between
 /// retakes: the shader blurs and bends within the picture, so the sheet no longer has to carry the blur's reach
 /// (docs/adr/0070). Keeping it near kSheetReserve is worth about a fifth of every desktop read, which is priced by area
@@ -430,9 +405,11 @@ void GlassSheet::clear()
 GlassBackdrop::GlassBackdrop(QObject* parent)
     : QObject(parent)
 {
-    sheets_.reserve(kSurfaces.size());
-    for (auto const* const name : kSurfaces) {
-        auto* const sheet = new GlassSheet(QString::fromLatin1(name), this);
+    sheets_.reserve(lens::core::surface::sheetCount());
+    for (lens::core::surface::Row const& row : lens::core::surface::kRows) {
+        if (not row.sheet)
+            continue;
+        auto* const sheet = new GlassSheet(QString::fromLatin1(row.name.data(), row.name.size()), this);
         connect(sheet, &GlassSheet::liveChanged, this, &GlassBackdrop::updateLive);
         sheets_.push_back(sheet);
     }

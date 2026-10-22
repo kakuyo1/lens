@@ -37,7 +37,8 @@
   - **开发面可能和真实路径分叉**。命令走状态层，绕过了低层钩子与命中测试，所以它不能替代像素与观感验证：
     `ui-capture.ps1` 仍负责 “卡片对齐、阴影、图标画出来没有”，`TEST.md` §5 要写明这条分工。
   - **多一处要维护的接口**。每加一个表面，命令表要同步。约束是动词不超过十个，超出的走
-    `lens_qtest_surfaces`，不要让它长成第二套 UI API。
+    `lens_qtest_surfaces`，不要让它长成第二套 UI API。表面清单本身已由 `core/domain/surface_table.h`
+    一处拥有（ADR 0084）：`kSurfaceNames` 与 opener 表都从它生成，加一个表面是加一行，不再是改一串清单。
   - **gated 代码会腐烂**。CI 需要一个 `-DLENS_ENABLE_DEV_SURFACE=ON` 的构建跑冒烟用例，否则半年后它编不过。
   - **命名要避开 `PROBE` 与 `console.log`**：`.githooks/pre-commit` 的 `PROBE_PATTERN` 会拦 `src/` 下含这两个
     串的文件。这条规则本身也要改：它假定 “`src/` 里的临时物都要删”，而开发面是常设的。

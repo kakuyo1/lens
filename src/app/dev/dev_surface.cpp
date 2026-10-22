@@ -5,6 +5,7 @@
 
 #include "dev_surface.h"
 
+#include "core/domain/surface_table.h"
 #include "app/app_controller.h"
 #include "dev_pipe.h"
 #include "app/glass/glass_backdrop.h"
@@ -55,14 +56,27 @@ struct Opener {
     bool             takesFrom;
 };
 
-constexpr std::array<Opener, 6> kOpeners{{
-    {"settings", "showSettings", true},
-    {"tray", "showTrayMenu", false},
-    {"stats", "showStats", true},
-    {"words", "showWords", true},
-    {"yearWords", "showYearWords", true},
-    {"cost", "showCost", true},
-}};
+/// How many rows carry a dev opener. Counted, not written: the openers are the surface table's rows
+/// that name an `open` method (core/domain/surface_table.h, docs/adr/0084).
+constexpr std::size_t openerCount()
+{
+    std::size_t count = 0;
+    for (lens::core::surface::Row const& row : lens::core::surface::kRows)
+        if (row.open != nullptr)
+            ++count;
+    return count;
+}
+
+/// The opener table, read straight off the surface rows rather than kept as a second hand-written
+/// copy that used to drift from the surface names (docs/adr/0084).
+constexpr std::array<Opener, openerCount()> kOpeners = [] {
+    std::array<Opener, openerCount()> openers{};
+    std::size_t                       index = 0;
+    for (lens::core::surface::Row const& row : lens::core::surface::kRows)
+        if (row.open != nullptr)
+            openers[index++] = Opener{.surface = row.name, .method = row.open, .takesFrom = row.takesFrom};
+    return openers;
+}();
 
 nlohmann::json success()
 {

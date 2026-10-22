@@ -66,7 +66,7 @@
   这一条靠跑起来验证，不从文档推。
 - **窗口的屏幕坐标是 `x` / `y`**：`Window` 没有 `screenX` / `screenY`（那是 `Item` 的属性），
   在函数里写未加限定的 `screenY = ...` 会去写全局属性并报错。
-- **表面的根窗口带 `objectName`，名字与开发面的表面表逐字一致**：`src/core/dev/dev_command.h` 的 `kSurfaceNames` 与这里的 `objectName` 改名时两处同改（`docs/adr/0068`）。出厂构建也带这些名字，它们不影响行为。`Bubble` 的实例标在 `Main.qml` 上，因为 `Bubble.qml` 同时也是设置页的预览，在它里面标会重名。
+- **表面的根窗口带 `objectName`，名字与表面表的 `name` 逐字一致**：`src/core/domain/surface_table.h` 的一行与这里的 `objectName` 改名时同改（`docs/adr/0084`、`docs/adr/0068`）。玻璃幕布、开发面的 `state` 与 opener 都从那张表读名字，名字写错不会再静默地取不到幕布。出厂构建也带这些名字，它们不影响行为。`Bubble` 的实例标在 `Main.qml` 上，因为 `Bubble.qml` 同时也是设置页的预览，在它里面标会重名。
 - **显示一张表面是两步**：`visible = true` 不够，还要 `raise()`。实机反馈是托盘菜单被任务栏压住一角
   ——`placePanel` 把卡片的右下角对齐图标中心，卡片下缘本就在 48 DIP 任务栏里进了一半，而点托盘图标
   会把任务栏**激活**，它同样是置顶窗口且会把自己重新提到置顶带顶端，于是刚显示出来的面板落在它下面。
