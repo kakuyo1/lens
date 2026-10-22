@@ -67,6 +67,7 @@ using lens::app::trayState;
 using lens::app::yearGrid;
 using lens::core::CacheContext;
 using lens::core::DailyUsage;
+using lens::core::SelectionKind;
 
 /// @return The token a runtime status is reported by, or "<none>" when it is not a reason at all.
 std::string reasonToken(lens::capture::OcrStatus status)
@@ -79,7 +80,7 @@ std::string reasonToken(lens::capture::OcrStatus status)
 PendingSelection aWord(QString const& lemma)
 {
     PendingSelection selection;
-    selection.kind   = QStringLiteral("word");
+    selection.kind   = SelectionKind::Word;
     selection.text   = lemma;
     selection.lemma  = lemma;
     selection.anchor = QPoint{200, 400};
@@ -90,7 +91,7 @@ PendingSelection aWord(QString const& lemma)
 PendingSelection aSentence(QString const& text)
 {
     PendingSelection selection;
-    selection.kind    = QStringLiteral("sentence");
+    selection.kind    = SelectionKind::Sentence;
     selection.text    = text;
     selection.surface = text;
     return selection;

@@ -51,7 +51,7 @@ llm::Explanation fromCache(core::WordCache const& cached, QString const& lemma)
 }
 
 ExplanationDuty::ExplanationDuty(StorageDuty& storage, llm::LlmClient& llm, CostDuty& cost, QObject* parent)
-    : QObject(parent), storage_(storage), llm_(llm), cost_(cost)
+    : QObject(parent), storage_(storage), llm_(llm), cost_(cost), cache_(storage.knownStore())
 {
     connect(&llm_, &llm::LlmClient::batchFinished, this, &ExplanationDuty::onBatchFinished);
     connect(&llm_, &llm::LlmClient::failed, this, &ExplanationDuty::onFailed);
@@ -64,8 +64,8 @@ void ExplanationDuty::onPartial(llm::Explanation partial)
     // for a request already disposed of, reach nothing here.
     if (not queue_.inFlight())
         return;
-    const core::CacheContext now{storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)};
-    const auto               subject = queue_.liveSubject(partial.title, now);
+    const auto now     = cache_.readerContext();
+    const auto subject = queue_.liveSubject(partial.title, now);
     if (not subject)
         return;
     // A step of the chain is drawn whole or not at all: a preview would put half a definition on the chain.
@@ -77,7 +77,7 @@ void ExplanationDuty::onPartial(llm::Explanation partial)
                         ? subject->lemma
                         : (subject->surface.isEmpty() ? subject->text : subject->surface);
     // The sense mode reaches the card masked by the kind, exactly as it does for a finished answer.
-    const core::CacheContext display{now.language, now.multipleSenses and isWordKind(subject->kind)};
+    const auto display = core::ExplanationCache::masked(now, subject->kind);
     showBubble(partial, *subject, display, /*notifyPet=*/false);
     // Once per request, and after the staleness rule above has spoken: what this answers is whether
     // the reader's provider streams at all -- the reader's own report was a card that filled in one
@@ -98,7 +98,7 @@ void ExplanationDuty::onBatchFinished(QVector<llm::Explanation> results, llm::Us
     QStringList titles;
     for (const auto& result : results)
         titles.append(result.title);
-    const auto settlement = queue_.settled(titles, {storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)});
+    const auto settlement = queue_.settled(titles, cache_.readerContext());
 
     busyLabel_.clear();
     emit busyChanged();
@@ -140,7 +140,7 @@ void ExplanationDuty::onBatchFinished(QVector<llm::Explanation> results, llm::Us
             parsed.imageQuery = sense.imageQuery.toStdString();
             cached.senses.push_back(std::move(parsed));
         }
-        storage_.knownStore().cachePut(selected.lemma.toStdString(), std::move(cached), settlement.batch.context);
+        cache_.store(selected.lemma.toStdString(), std::move(cached), settlement.batch.context);
     }
 
     if (settlement.subject)
@@ -186,21 +186,22 @@ void ExplanationDuty::invalidateWord(QString const& lemma)
 void ExplanationDuty::enqueueScanCandidates(QVariantList candidates, QPoint anchor)
 {
     QVector<PendingSelection> misses;
+    // The scan's candidates are words by construction -- the word list is the one thing that fills
+    // this in -- so the one context they are all judged under is the word channel's.
+    const auto context = cache_.contextFor(core::SelectionKind::Word);
     for (const auto& value : candidates) {
-        const auto map = value.toMap();
-        if (not isWordKind(map.value("kind").toString()))
-            continue;
+        const auto       map = value.toMap();
         PendingSelection candidate{.anchor  = anchor,
-                                   .kind    = QStringLiteral("word"),
+                                   .kind    = core::SelectionKind::Word,
                                    .surface = map.value("surface").toString(),
                                    .lemma   = map.value("lemma").toString()};
         if (candidate.lemma.isEmpty())
             continue;
-        const core::CacheContext context{storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)};
-        if (const auto cached = storage_.knownStore().cacheGet(candidate.lemma.toStdString(), context); cached and servable(*cached)) {
+        const auto found = cache_.look(candidate.lemma.toStdString(), context);
+        if (found.state == core::ExplanationCache::State::Hit) {
             storage_.statsStore().recordPop(candidate.lemma.toStdString(), nowMinute().toStdString());
             if (bubble_.isEmpty() and not queue_.inFlight())
-                showBubble(fromCache(*cached, candidate.lemma), candidate, context, /*notifyPet=*/true, /*reveal=*/false);
+                showBubble(fromCache(found.entry, candidate.lemma), candidate, context, /*notifyPet=*/true, /*reveal=*/false);
             continue;
         }
         misses.push_back(std::move(candidate));
@@ -233,7 +234,7 @@ void ExplanationDuty::runSelectionAction(QString action, QString text)
     if (action != QLatin1String("translate") && action != QLatin1String("explain")) return;
     if (text != pending_.text)
         LENS_WARN("selection action text differed from the captured selection; using the captured text");
-    if (pending_.kind == QLatin1String("sentence")) pending_.preset = action;
+    if (pending_.kind == core::SelectionKind::Sentence) pending_.preset = action;
     explain(pending_);
 }
 
@@ -241,11 +242,12 @@ void ExplanationDuty::reviewWord(QString lemma, QPoint const anchor)
 {
     const QString value = lemma.trimmed();
     if (value.isEmpty()) return;
-    reviewAnchor_ = anchor;
-    const core::CacheContext context{storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)};
-    if (const auto cached = storage_.knownStore().cacheGet(value.toStdString(), context)) {
-        PendingSelection pending{.anchor = anchor, .kind = QStringLiteral("word"), .surface = value, .lemma = value, .countsDown = false};
-        showBubble(fromCache(*cached, value), pending, context, /*notifyPet=*/true, /*reveal=*/false);
+    reviewAnchor_      = anchor;
+    const auto context = cache_.contextFor(core::SelectionKind::Word);
+    const auto found   = cache_.look(value.toStdString(), context);
+    if (found.state != core::ExplanationCache::State::Missing) {
+        PendingSelection pending{.anchor = anchor, .kind = core::SelectionKind::Word, .surface = value, .lemma = value, .countsDown = false};
+        showBubble(fromCache(found.entry, value), pending, context, /*notifyPet=*/true, /*reveal=*/false);
         reviewRaised_ = true;
         return;
     }
@@ -262,12 +264,12 @@ void ExplanationDuty::reviewWord(QString lemma, QPoint const anchor)
 
 void ExplanationDuty::showReviewAnswer(QString const& lemma, QPoint const anchor)
 {
-    const core::CacheContext context{storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)};
-    const auto               cached = storage_.knownStore().cacheGet(lemma.toStdString(), context);
-    if (not cached or not servable(*cached))
+    const auto context = cache_.contextFor(core::SelectionKind::Word);
+    const auto found   = cache_.look(lemma.toStdString(), context);
+    if (found.state != core::ExplanationCache::State::Hit)
         return;
-    PendingSelection pending{.anchor = anchor, .kind = QStringLiteral("word"), .surface = lemma, .lemma = lemma, .verdictButtons = false};
-    showBubble(fromCache(*cached, lemma), pending, context, /*notifyPet=*/false, /*reveal=*/false);
+    PendingSelection pending{.anchor = anchor, .kind = core::SelectionKind::Word, .surface = lemma, .lemma = lemma, .verdictButtons = false};
+    showBubble(fromCache(found.entry, lemma), pending, context, /*notifyPet=*/false, /*reveal=*/false);
 }
 
 void ExplanationDuty::dismissReview()
@@ -280,7 +282,7 @@ void ExplanationDuty::explainLemma(QString lemma)
 {
     const QString value = lemma.trimmed();
     if (value.isEmpty()) return;
-    PendingSelection pending{.anchor = reviewAnchor_, .kind = QStringLiteral("word"), .surface = value, .lemma = value};
+    PendingSelection pending{.anchor = reviewAnchor_, .kind = core::SelectionKind::Word, .surface = value, .lemma = value};
     explain(pending);
 }
 
@@ -290,14 +292,14 @@ void ExplanationDuty::explainChainWord(QString lemma)
     if (value.isEmpty() or bubble_.isEmpty())
         return;
     PendingSelection pending{.anchor  = bubbleSubject_.anchor,
-                             .kind    = QStringLiteral("word"),
+                             .kind    = core::SelectionKind::Word,
                              .surface = value,
                              .lemma   = value,
                              .chain   = true,
                              .parent  = bubble_.value("title").toString()};
     // Out of budget with nothing stored: explain() would drop the step without a word, and the card would
     // wait on it for ever. Say so, and the card shows the failure where the answer would have gone.
-    const core::CacheContext context{storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)};
+    const auto context = cache_.contextFor(core::SelectionKind::Word);
     if (not cost_.canRequest()) {
         if (not showStored(pending, context))
             emit chainFailed(value);
@@ -343,13 +345,12 @@ QVariantList ExplanationDuty::spansOf(QString const& text) const
 
 void ExplanationDuty::reexplain()
 {
-    if (bubbleSubject_.kind.isEmpty() or bubbleSubject_.kind == QLatin1String("translation"))
+    if (bubble_.isEmpty() or bubbleSubject_.kind == core::SelectionKind::Translation)
         return;
     // The cache is local, so it answers even while another request is in flight: the target
     // language may have been paid for already, and the shortcut must not make the reader wait for
     // a request it does not need. A miss goes through explain(), which holds it behind that request.
-    const core::CacheContext context{storage_.knownStore().explanationLang(),
-                                     isWordKind(bubbleSubject_.kind) && storage_.section().value<bool>("multiSense", false)};
+    const auto context = cache_.contextFor(bubbleSubject_.kind);
     if (showStored(bubbleSubject_, context, /*reveal=*/true))
         return;
     explain(bubbleSubject_);
@@ -363,8 +364,7 @@ void ExplanationDuty::explain(PendingSelection const& pending)
         queue_.request(pending);
         return;
     }
-    const core::CacheContext context{storage_.knownStore().explanationLang(),
-                                     isWordKind(pending.kind) && storage_.section().value<bool>("multiSense", false)};
+    const auto context = cache_.contextFor(pending.kind);
     if (showStored(pending, context))
         return;
     // Nothing is in flight and nothing is stored, so this one goes out now or not at all: a
@@ -380,12 +380,12 @@ bool ExplanationDuty::showStored(PendingSelection const& pending, core::CacheCon
 {
     if (not isWordKind(pending.kind))
         return false;
-    const auto cached = storage_.knownStore().cacheGet(pending.lemma.toStdString(), context);
-    if (not cached or not servable(*cached))
+    const auto found = cache_.look(pending.lemma.toStdString(), context);
+    if (found.state != core::ExplanationCache::State::Hit)
         return false;
     storage_.statsStore().recordPop(pending.lemma.toStdString(), nowMinute().toStdString());
     storage_.save();
-    showBubble(fromCache(*cached, pending.lemma), pending, context, /*notifyPet=*/true, reveal);
+    showBubble(fromCache(found.entry, pending.lemma), pending, context, /*notifyPet=*/true, reveal);
     emit statsChanged();
     return true;
 }
@@ -396,11 +396,11 @@ void ExplanationDuty::send(ExplanationBatch batch)
     // A word is what is left when the kind names no other channel, which is what the word list's
     // own candidates carry.
     auto channel = llm::Channel::Word;
-    if (first.kind == QLatin1String("entity"))
+    if (first.kind == core::SelectionKind::Entity)
         channel = llm::Channel::Entity;
-    else if (first.kind == QLatin1String("sentence"))
+    else if (first.kind == core::SelectionKind::Sentence)
         channel = llm::Channel::Sentence;
-    else if (first.kind == QLatin1String("translation"))
+    else if (first.kind == core::SelectionKind::Translation)
         channel = llm::Channel::Translation;
     llm::ExplainRequest request;
     request.channel        = channel;
@@ -429,8 +429,8 @@ void ExplanationDuty::send(ExplanationBatch batch)
 
 void ExplanationDuty::sendNext()
 {
-    const core::CacheContext now{storage_.knownStore().explanationLang(), storage_.section().value<bool>("multiSense", false)};
-    auto                     batch = queue_.take(cost_.canRequest(), now, exampleEnabled());
+    const auto now   = cache_.readerContext();
+    auto       batch = queue_.take(cost_.canRequest(), now, exampleEnabled());
     if (not batch)
         return;
     // A held request comes back out through the cache before it is paid for: the batch that has
@@ -461,7 +461,7 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
     // model was asked for English alone. `en` carries it while the other two languages are the
     // ones the reader did not ask for -- the bubble then draws that line and nothing else: no
     // title, no badge, none of the word-only blocks.
-    const bool    translated  = selection.kind == QLatin1String("translation");
+    const bool    translated  = selection.kind == core::SelectionKind::Translation;
     const QString english     = translated or context.language == "en" ? explanation.en : QString{};
     const QString chinese     = context.language == "zh" and not translated ? explanation.zh : QString{};
     const QString translation = context.language != "en" and context.language != "zh" and not translated ? explanation.translation
@@ -470,7 +470,7 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
     // not a new surface that has to be placed: the reader is already reading it where it stands.
     const bool  sameCard = not bubble_.isEmpty() and bubbleSubject_.kind == selection.kind and bubbleSubject_.text == selection.text and bubbleSubject_.surface == selection.surface and bubbleSubject_.lemma == selection.lemma and bubbleSubject_.anchor == selection.anchor and bubbleSubject_.preset == selection.preset and bubbleSubject_.countsDown == selection.countsDown and bubbleSubject_.verdictButtons == selection.verdictButtons;
     QVariantMap payload{{"title", explanation.title},
-                        {"type", selection.kind},
+                        {"type", kindName(selection.kind)},
                         {"sameCard", sameCard},
                         {"en", english},
                         {"zh", chinese},
@@ -544,7 +544,7 @@ QString ExplanationDuty::noticeTitle(PendingSelection const& pending) const
     // A sentence and a translation have no short name to head the card with -- the pending text is
     // the whole of what the reader selected, and a paragraph of it would be the card. A word and an
     // entity are named by the one or two words they are.
-    return pending.kind == QLatin1String("sentence") or pending.kind == QLatin1String("translation")
+    return pending.kind == core::SelectionKind::Sentence or pending.kind == core::SelectionKind::Translation
                ? QCoreApplication::translate("lens::app::AppController", "Request failed")
                : (pending.surface.isEmpty() ? pending.text : pending.surface);
 }
@@ -570,7 +570,7 @@ void ExplanationDuty::clearBubble()
 
 void ExplanationDuty::mark(QString lemma, bool learned)
 {
-    if (!bubble_.isEmpty() && bubble_.value("type").toString() != QLatin1String("word") && bubble_.value("title").toString() == lemma)
+    if (not bubble_.isEmpty() and bubbleSubject_.kind != core::SelectionKind::Word and bubble_.value("title").toString() == lemma)
         return;
     const std::string key = lemma.toStdString();
     storage_.knownStore().mark(key, learned);
@@ -613,11 +613,6 @@ bool ExplanationDuty::etymologyEnabled() const
 bool ExplanationDuty::exampleEnabled() const
 {
     return storage_.section().value<bool>("example", false);
-}
-
-bool ExplanationDuty::servable(core::WordCache const& cached) const
-{
-    return not exampleEnabled() or cached.example.has_value();
 }
 
 }

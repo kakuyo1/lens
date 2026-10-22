@@ -1,6 +1,8 @@
 #pragma once
 
+#include <compare>
 #include <filesystem>
+#include <map>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -39,6 +41,19 @@ struct CachedSense {
 struct CacheContext {
     std::string language;
     bool        multipleSenses = false;
+
+    bool operator==(CacheContext const&) const = default;
+};
+
+/// @brief The cache's key as a value: the context an entry was bought under, and the word it
+///        explains (docs/adr/0019). The entries are keyed by this, so a language, a sense mode and
+///        a lemma are read off the key rather than unpacked from a packed string.
+struct CacheKey {
+    std::string language;
+    std::string lemma;
+    bool        multipleSenses = false;
+
+    auto operator<=>(CacheKey const&) const = default;
 };
 
 /// @brief A word's first definition and its ordered senses, in one cache context.
@@ -202,9 +217,9 @@ private:
     /// Derived view of marks_ holding only the true entries; feeds filterWords.
     std::unordered_set<std::string> known_;
     /// Keyed by explanation language + sense mode + lemma.
-    std::unordered_map<std::string, WordCache> cache_;
-    int                                        level_ = kDefaultLevel;         ///< CET-4, the default difficulty level.
-    std::string                                lang_{kDefaultExplanationLang}; ///< English by default.
+    std::map<CacheKey, WordCache> cache_;
+    int                           level_ = kDefaultLevel;         ///< CET-4, the default difficulty level.
+    std::string                   lang_{kDefaultExplanationLang}; ///< English by default.
 };
 
 }

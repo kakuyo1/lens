@@ -57,6 +57,17 @@ QString tokenOf(CaptureRefusal refusal)
 
 }
 
+QString kindName(core::SelectionKind const kind)
+{
+    switch (kind) {
+        case core::SelectionKind::Entity: return QStringLiteral("entity");
+        case core::SelectionKind::Sentence: return QStringLiteral("sentence");
+        case core::SelectionKind::Translation: return QStringLiteral("translation");
+        case core::SelectionKind::Word: return QStringLiteral("word");
+    }
+    return QStringLiteral("word");
+}
+
 CaptureDuty::CaptureDuty(StorageDuty& storage, MouseSelectionHook& hook, QObject* parent)
     : CaptureDuty(storage, hook, capture::makeTesseractOcr(storedTesseractConfig(storage)), parent)
 {}
@@ -464,8 +475,7 @@ void CaptureDuty::publishBatch(capture::ScanTime const now, QPoint const anchor)
     const auto   batch = scan_->takeBatch(now);
     QVariantList words;
     for (auto const& word : batch)
-        words.append(QVariantMap{{"kind", QStringLiteral("word")},
-                                 {"surface", QString::fromStdString(word.surface)},
+        words.append(QVariantMap{{"surface", QString::fromStdString(word.surface)},
                                  {"lemma", QString::fromStdString(word.lemma)}});
     if (not words.isEmpty()) emit scanCandidatesReady(words, anchor);
 }
@@ -499,31 +509,18 @@ void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const fro
 {
     if (text.size() > kMaxSelectionChars) text = text.left(kMaxSelectionChars) + QStringLiteral("…");
     const core::Selection selection = core::classifySelection(text.toStdString(), storage_.knownStore().known(), minFreqRank());
-    PendingSelection      pending{.anchor = anchor, .text = text};
-    switch (selection.kind) {
-        case core::SelectionKind::Entity:
-            pending.kind = QStringLiteral("entity");
-            break;
-        case core::SelectionKind::Sentence:
-            pending.kind = QStringLiteral("sentence");
-            break;
-        case core::SelectionKind::Translation:
-            // No candidate to pick from and no surface to go back to: the channel was settled by
-            // the text being Chinese, and the whole selection is what gets translated.
-            pending.kind = QStringLiteral("translation");
-            break;
-        case core::SelectionKind::Word: {
-            const auto& candidates = selection.candidates;
-            const auto  fresh      = std::find_if(candidates.begin(), candidates.end(), [](const core::Candidate& candidate) {
-                return candidate.state == core::CandidateState::New;
-            });
-            if (candidates.empty()) return;
-            const core::Candidate& word = fresh != candidates.end() ? *fresh : candidates.front();
-            pending.kind                = QStringLiteral("word");
-            pending.surface             = QString::fromStdString(word.surface);
-            pending.lemma               = QString::fromStdString(word.lemma);
-            break;
-        }
+    PendingSelection      pending{.anchor = anchor, .text = text, .kind = selection.kind};
+    if (selection.kind == core::SelectionKind::Word) {
+        // Only a word narrows to a candidate: the other kinds have no lemma to pick, and the whole
+        // selection is what gets answered.
+        const auto& candidates = selection.candidates;
+        const auto  fresh      = std::find_if(candidates.begin(), candidates.end(), [](const core::Candidate& candidate) {
+            return candidate.state == core::CandidateState::New;
+        });
+        if (candidates.empty()) return;
+        const core::Candidate& word = fresh != candidates.end() ? *fresh : candidates.front();
+        pending.surface             = QString::fromStdString(word.surface);
+        pending.lemma               = QString::fromStdString(word.lemma);
     }
     emit selectionReady(pending);
     if (fromScreenshot) {
@@ -535,7 +532,7 @@ void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const fro
     }
     emit selectionBarRequested(QVariantMap{{"x", anchor.x()},
                                            {"y", anchor.y()},
-                                           {"kind", pending.kind},
+                                           {"kind", kindName(pending.kind)},
                                            {"text", pending.text},
                                            {"letterCount", capture::selectionLetterCount(pending.text)}});
 }

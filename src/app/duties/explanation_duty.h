@@ -10,6 +10,7 @@
 
 #include "capture_duty.h"
 #include "core/domain/pet/pet_state.h"
+#include "core/document/explanation_cache.h"
 #include "explanation_queue.h"
 #include "llm/llm_client.h"
 
@@ -129,9 +130,6 @@ private:
     /// @return True when there was one; a word that has never been explained is not it, and neither
     ///         is a sentence, which is not something the cache holds.
     bool showStored(PendingSelection const& pending, core::CacheContext const& context, bool reveal = false);
-    /// @brief Whether a stored entry answers a request made now. With the example setting on, an entry
-    ///        bought without one does not: it is asked for again, and paid for once more.
-    bool servable(core::WordCache const& cached) const;
     /// @brief Put one batch on the wire, under the context the queue captured for it.
     void send(ExplanationBatch batch);
     /**
@@ -177,6 +175,9 @@ private:
     StorageDuty&    storage_;
     llm::LlmClient& llm_;
     CostDuty&       cost_;
+    /// The rules of the explanation cache: the context a request goes out under, and what a stored
+    /// entry is worth to the reader now. Every ask goes through it; nothing here builds a context.
+    core::ExplanationCache cache_;
     /// What the reader has asked for and not yet been answered. It holds nothing the duty's own
     /// decisions do not read: the selection standing is the selection bar's, and it is told here
     /// only that the reader has moved on.

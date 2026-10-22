@@ -24,6 +24,7 @@
 #include "capture/scan_pipeline.h"
 #include "capture_refusal.h"
 #include "app/platform/selection_text_grabber.h"
+#include "core/domain/filter_core.h"
 #include "storage_duty.h"
 
 namespace lens::app {
@@ -33,10 +34,12 @@ class MouseSelectionHook;
 struct PendingSelection {
     QPoint  anchor;
     QString text;
-    QString kind;
-    QString surface;
-    QString lemma;
-    QString preset = QStringLiteral("default");
+    /// What the selection is, carried as the classifier's own kind: a value everywhere in C++, and a
+    /// string only where a QML payload needs one (kindName()).
+    core::SelectionKind kind = core::SelectionKind::Word;
+    QString             surface;
+    QString             lemma;
+    QString             preset = QStringLiteral("default");
     /// @brief Whether the card this selection raises counts down. A review card belongs to the row
     ///        under the pointer instead and is taken down when the pointer leaves it (UI.md 4.8).
     bool countsDown = true;
@@ -50,6 +53,16 @@ struct PendingSelection {
     ///        showing, so a step asked from a card the reader has since moved on from is dropped.
     QString parent;
 };
+
+/// @return The kind's one spelling on the QML wire, as the selection-bar and bubble payloads carry it.
+QString kindName(core::SelectionKind kind);
+
+/// @return Whether a selection is a word: the one kind the explanation cache, the sense modes and
+///         the word's origin are about.
+inline bool isWordKind(core::SelectionKind const kind)
+{
+    return kind == core::SelectionKind::Word;
+}
 
 class CaptureDuty final : public QObject {
     Q_OBJECT

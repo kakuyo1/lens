@@ -28,7 +28,7 @@ std::optional<long long> epochOf(std::string const& minute)
 }
 
 ReviewDuty::ReviewDuty(StorageDuty& storage, std::function<bool()> petEnabled, std::function<bool()> petAvailable, QObject* parent)
-    : QObject(parent), storage_(storage), petEnabled_(std::move(petEnabled)), petAvailable_(std::move(petAvailable))
+    : QObject(parent), storage_(storage), cache_(storage.knownStore()), petEnabled_(std::move(petEnabled)), petAvailable_(std::move(petAvailable))
 {
     timeout_.setSingleShot(true);
     timeout_.setInterval(kAnswerTimeoutMs);
@@ -109,8 +109,8 @@ void ReviewDuty::dismiss(long long const now)
 
 std::vector<core::ReviewCandidate> ReviewDuty::askable()
 {
-    auto const&                        knownStore = storage_.knownStore();
-    core::CacheContext const           context{knownStore.explanationLang(), storage_.section().value<bool>("multiSense", false)};
+    // A question is asked about a word, so the one context to look under is the word channel's.
+    auto const                         context = cache_.contextFor(core::SelectionKind::Word);
     std::vector<core::ReviewCandidate> candidates;
     std::unordered_set<std::string>    seen;
     // The history is newest first, so the first entry for a word is its last lookup.
@@ -119,7 +119,7 @@ std::vector<core::ReviewCandidate> ReviewDuty::askable()
             continue;
         auto const lastLookup = epochOf(entry.minute);
         // Only a word with a stored explanation in the current language is asked about: a question must not spend money.
-        if (not lastLookup or not knownStore.cacheGet(entry.lemma, context).has_value())
+        if (not lastLookup or cache_.look(entry.lemma, context).state == core::ExplanationCache::State::Missing)
             continue;
         candidates.push_back(core::ReviewCandidate{entry.lemma, storage_.reviewStore().get(entry.lemma).value_or(core::freshState(*lastLookup))});
     }

@@ -11,6 +11,7 @@
 
 #include "core/domain/pet/pet_state.h"
 #include "core/domain/review_schedule.h"
+#include "core/document/explanation_cache.h"
 #include "storage_duty.h"
 
 /**
@@ -93,11 +94,13 @@ private:
     /// @return A random gap in ms within @p window.
     long long drawGap(core::CheckWindow window);
 
-    StorageDuty&          storage_;
-    std::function<bool()> petEnabled_;
-    std::function<bool()> petAvailable_;
-    std::mt19937          random_{std::random_device{}()};
-    QString               word_;
+    StorageDuty& storage_;
+    /// The explanation cache's rules, for asking whether a word has a stored explanation at all.
+    core::ExplanationCache cache_;
+    std::function<bool()>  petEnabled_;
+    std::function<bool()>  petAvailable_;
+    std::mt19937           random_{std::random_device{}()};
+    QString                word_;
     /// Epoch ms of the next look at the clock. Zero until a look is drawn after a start or a change.
     long long nextLook_{0};
     QTimer    clock_;

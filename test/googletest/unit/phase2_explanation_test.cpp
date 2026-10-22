@@ -19,6 +19,7 @@
 #include <fstream>
 
 #include "app/app_controller.h"
+#include "app/duties/cost_duty.h"
 #include "app/duties/explanation_duty.h"
 #include "app/duties/model_catalog_duty.h"
 #include "app/duties/storage_duty.h"
@@ -128,20 +129,20 @@ struct Manager final : QNetworkAccessManager {
     }
 };
 
-void run(app::ExplanationDuty& duty, llm::LlmClient& client)
+void run(app::ExplanationDuty& duty, llm::LlmClient& client, QString const& text = QStringLiteral("bank"))
 {
     QEventLoop loop;
     QObject::connect(&client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
     QObject::connect(&client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
     QTimer::singleShot(2000, &loop, &QEventLoop::quit);
-    duty.runSelectionAction("explain", "bank");
+    duty.runSelectionAction("explain", text);
     loop.exec();
 }
 
 app::PendingSelection selectionFor(QString const& lemma)
 {
     app::PendingSelection result;
-    result.kind   = "word";
+    result.kind   = core::SelectionKind::Word;
     result.text   = lemma;
     result.lemma  = lemma;
     result.preset = "default";
@@ -153,6 +154,57 @@ app::PendingSelection selection()
 {
     return selectionFor("bank");
 }
+
+/// @brief The graph every explanation case needs: a store on a temp dir, the stub transport, and
+///        the duty with its cost, in dependency order.
+///
+/// What a case varies it passes in -- the model, the cost duty's clock -- and the catalog cases add
+/// their own catalog beside it. The test declares its own QtApplication first: one process holds
+/// one, so a rig cannot own it.
+///
+/// What it does not vary is the same nine lines, written once here instead of once per case.
+struct Rig {
+    QTemporaryDir        temporary;
+    core::KnownStore     store;
+    app::StorageDuty     storage;
+    Manager              manager;
+    llm::LlmClient       client;
+    llm::Pricing const   pricing;
+    app::CostDuty        cost;
+    app::ExplanationDuty duty;
+
+    explicit Rig(QString const& model = QStringLiteral("test-model"), app::CostDuty::DateProvider clock = {})
+        : store{core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json")},
+          storage{store},
+          client{{QUrl{"https://example.invalid"}, "fake-test-token", model}, &manager},
+          pricing{llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json")},
+          cost{storage.statsStore(), client, pricing, clockOrDefault(std::move(clock))},
+          duty{storage, client, cost}
+    {
+    }
+
+    /// @return @p clock, or the duty's own today() when a case pinned none: an empty std::function
+    ///         passed explicitly would replace the default argument rather than fall back to it.
+    static app::CostDuty::DateProvider clockOrDefault(app::CostDuty::DateProvider clock)
+    {
+        return clock ? std::move(clock) : app::CostDuty::DateProvider{[] { return QDate::currentDate(); }};
+    }
+
+    /// @brief Ask for @p lemma, and wait only when a request actually went out: a word already
+    ///        stored is answered out of the cache before this returns, so waiting would be waiting
+    ///        for something that is not coming.
+    void explain(QString const& lemma)
+    {
+        const int before = manager.posts;
+        duty.setSelection(selectionFor(lemma));
+        QEventLoop loop;
+        QObject::connect(&client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
+        QObject::connect(&client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
+        QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+        duty.runSelectionAction("explain", lemma);
+        if (manager.posts > before) loop.exec();
+    }
+};
 
 } // namespace
 
@@ -269,335 +321,248 @@ TEST_F(LlmTest, Phase2CachePreservesLegacyEntriesAndSeparatesAllContexts)
 
 TEST_F(LlmTest, Phase2LanguagesRoundTripThroughDutyTransportAndCache)
 {
-    QtApplication qt;
     // One language a sense: the reader picked the language they want to read, and the response's
     // other half is not it (UI.md 4.3).
+    QtApplication qt;
     for (auto const* language : {"en", "es", "ja"}) {
-        QTemporaryDir temporary;
-        auto          store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
-        store.setExplanationLang(language);
-        store.document()["multiSense"] = "true";
-        app::StorageDuty     storage{store};
-        Manager              manager;
-        llm::LlmClient       client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
-        auto const           pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-        app::CostDuty        cost{storage.statsStore(), client, pricing};
-        app::ExplanationDuty duty{storage, client, cost};
-        duty.setSelection(selection());
-        run(duty, client);
-        ASSERT_EQ(duty.bubble().value("senses").toList().size(), 3);
-        auto const first  = duty.bubble().value("senses").toList().front().toMap();
+        Rig rig;
+        rig.store.setExplanationLang(language);
+        rig.store.document()["multiSense"] = "true";
+        rig.explain("bank");
+        ASSERT_EQ(rig.duty.bubble().value("senses").toList().size(), 3);
+        auto const first  = rig.duty.bubble().value("senses").toList().front().toMap();
         const bool asking = language == std::string{"en"};
         EXPECT_EQ(first.value("text").toString(), asking ? QString{} : QString{"translation"});
         EXPECT_EQ(first.value("en").toString(), asking ? QString{"sense 0"} : QString{});
         if (language != std::string{"en"})
-            EXPECT_TRUE(manager.posted.contains(language == std::string{"es"} ? "Spanish" : "Japanese"));
-        ASSERT_TRUE(store.cacheGet("bank", {language, true}));
-        duty.dismissBubble();
-        duty.runSelectionAction("explain", "bank");
-        EXPECT_EQ(manager.posts, 1);
-        EXPECT_EQ(duty.bubble().value("senses").toList().size(), 3);
-        EXPECT_EQ(store.cacheGet("bank", {language, true})->senses.size(), 3u);
+            EXPECT_TRUE(rig.manager.posted.contains(language == std::string{"es"} ? "Spanish" : "Japanese"));
+        ASSERT_TRUE(rig.store.cacheGet("bank", {language, true}));
+        rig.duty.dismissBubble();
+        rig.duty.runSelectionAction("explain", "bank");
+        EXPECT_EQ(rig.manager.posts, 1);
+        EXPECT_EQ(rig.duty.bubble().value("senses").toList().size(), 3);
+        EXPECT_EQ(rig.store.cacheGet("bank", {language, true})->senses.size(), 3u);
     }
 }
 
 TEST_F(LlmTest, Phase2TheBubbleLanguageShortcutReasksTheStandingCardAndKeepsItsShape)
 {
-    QtApplication    qt;
-    QTemporaryDir    temporary;
-    auto             store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
-    app::StorageDuty storage{store};
-    Manager          manager;
-    manager.response = envelope({plainWord("bank")});
-    llm::LlmClient       client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
-    auto const           pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-    app::CostDuty        cost{storage.statsStore(), client, pricing};
-    app::ExplanationDuty duty{storage, client, cost};
-
-    duty.setSelection(selection());
-    run(duty, client);
-    EXPECT_EQ(duty.bubble().value("en").toString(), QStringLiteral("English"));
+    QtApplication qt;
+    Rig           rig;
+    rig.manager.response = envelope({plainWord("bank")});
+    rig.explain("bank");
+    EXPECT_EQ(rig.duty.bubble().value("en").toString(), QStringLiteral("English"));
 
     // The card a review answer raises is the one with a shape to lose: it has no verdict buttons,
     // and a replay must not turn it into a card the reader can mark.
-    duty.dismissBubble();
-    duty.showReviewAnswer("bank", QPoint{200, 400});
-    ASSERT_FALSE(duty.bubble().isEmpty());
-    ASSERT_EQ(duty.bubble().value("verdictButtons").toBool(), false);
+    rig.duty.dismissBubble();
+    rig.duty.showReviewAnswer("bank", QPoint{200, 400});
+    ASSERT_FALSE(rig.duty.bubble().isEmpty());
+    ASSERT_EQ(rig.duty.bubble().value("verdictButtons").toBool(), false);
 
-    store.setExplanationLang("zh");
+    rig.store.setExplanationLang("zh");
     QEventLoop loop;
-    QObject::connect(&client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
-    QObject::connect(&client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
+    QObject::connect(&rig.client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
+    QObject::connect(&rig.client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
     QTimer::singleShot(2000, &loop, &QEventLoop::quit);
-    duty.reexplain();
+    rig.duty.reexplain();
     loop.exec();
 
-    EXPECT_EQ(manager.posts, 2) << "the standing card was not asked for again in the new language";
-    EXPECT_TRUE(manager.posted.contains("Chinese")) << "the request did not go out under the new language";
-    EXPECT_EQ(duty.bubble().value("zh").toString(), QStringLiteral("中文"));
-    EXPECT_EQ(duty.bubble().value("verdictButtons").toBool(), false)
+    EXPECT_EQ(rig.manager.posts, 2) << "the standing card was not asked for again in the new language";
+    EXPECT_TRUE(rig.manager.posted.contains("Chinese")) << "the request did not go out under the new language";
+    EXPECT_EQ(rig.duty.bubble().value("zh").toString(), QStringLiteral("中文"));
+    EXPECT_EQ(rig.duty.bubble().value("verdictButtons").toBool(), false)
         << "the replayed review card grew the verdict buttons it must not have";
-    EXPECT_EQ(duty.bubble().value("sameCard").toBool(), true)
+    EXPECT_EQ(rig.duty.bubble().value("sameCard").toBool(), true)
         << "the replayed answer was not marked as a refresh of the standing card";
 
     // A language already paid for is put up out of the cache, without a request.
-    store.setExplanationLang("en");
-    duty.reexplain();
-    EXPECT_EQ(manager.posts, 2) << "a stored copy was bought a second time";
-    EXPECT_EQ(duty.bubble().value("en").toString(), QStringLiteral("English"));
-    EXPECT_EQ(duty.bubble().value("verdictButtons").toBool(), false);
-    EXPECT_EQ(duty.bubble().value("sameCard").toBool(), true)
+    rig.store.setExplanationLang("en");
+    rig.duty.reexplain();
+    EXPECT_EQ(rig.manager.posts, 2) << "a stored copy was bought a second time";
+    EXPECT_EQ(rig.duty.bubble().value("en").toString(), QStringLiteral("English"));
+    EXPECT_EQ(rig.duty.bubble().value("verdictButtons").toBool(), false);
+    EXPECT_EQ(rig.duty.bubble().value("sameCard").toBool(), true)
         << "the cache-hit replay was not marked as a refresh of the standing card";
-    EXPECT_EQ(duty.bubble().value("reveal").toBool(), true)
+    EXPECT_EQ(rig.duty.bubble().value("reveal").toBool(), true)
         << "the cached language switch was put up whole instead of written out again";
 }
 
 TEST_F(LlmTest, Phase2TheEtymologySettingBringsTheOriginAlongAndKeepsItOutOfTheKey)
 {
-    QtApplication        qt;
-    QTemporaryDir        temporary;
-    auto                 store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
-    app::StorageDuty     storage{store};
-    Manager              manager;
-    llm::LlmClient       client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
-    auto const           pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-    app::CostDuty        cost{storage.statsStore(), client, pricing};
-    app::ExplanationDuty duty{storage, client, cost};
+    QtApplication qt;
+    Rig           rig;
 
-    auto const explain = [&](QString const& lemma) {
-        const int before = manager.posts;
-        duty.setSelection(selectionFor(lemma));
-        QEventLoop loop;
-        QObject::connect(&client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
-        QObject::connect(&client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
-        QTimer::singleShot(2000, &loop, &QEventLoop::quit);
-        duty.runSelectionAction("explain", lemma);
-        // A word already stored is answered without a round trip, so waiting would be waiting for
-        // something that is not coming -- and the bubble is up before this returns.
-        if (manager.posts > before) loop.exec();
-    };
     auto const askedForOrigin = [&] {
         // The prompt is a string inside the posted body, so its own quotes arrive escaped; the
         // question is what the model was told, which means reading the body.
-        const auto messages = QJsonDocument::fromJson(manager.posted).object().value("messages").toArray();
+        const auto messages = QJsonDocument::fromJson(rig.manager.posted).object().value("messages").toArray();
         if (messages.isEmpty()) return false;
         return messages.at(0).toObject().value("content").toString().contains(QStringLiteral("\"etymology\":\"...\""));
     };
 
     // Explained with the setting off, the word is bought without its origin and the card shows none.
-    manager.response = envelope({plainWord("bank")});
-    explain("bank");
+    rig.manager.response = envelope({plainWord("bank")});
+    rig.explain("bank");
     EXPECT_FALSE(askedForOrigin()) << "the origin was paid for though the setting was off";
-    EXPECT_TRUE(duty.bubble().value("etymology").toString().isEmpty());
+    EXPECT_TRUE(rig.duty.bubble().value("etymology").toString().isEmpty());
 
     // The setting decides what is asked for, never what was already paid for: turning it on does
     // not go back and buy the origin of a word explained while it was off (docs/adr/0019).
-    duty.dismissBubble();
-    store.document()["etymology"] = "true";
-    explain("bank");
-    EXPECT_EQ(manager.posts, 1) << "the stored definition was bought a second time";
-    EXPECT_TRUE(duty.bubble().value("etymology").toString().isEmpty());
+    rig.duty.dismissBubble();
+    rig.store.document()["etymology"] = "true";
+    rig.explain("bank");
+    EXPECT_EQ(rig.manager.posts, 1) << "the stored definition was bought a second time";
+    EXPECT_TRUE(rig.duty.bubble().value("etymology").toString().isEmpty());
 
     // Asked for from the start, the origin arrives with the definition and is drawn under it.
-    duty.dismissBubble();
-    manager.response = envelope({plainWord("resilience", "Latin resilire, to leap back.")});
-    explain("resilience");
+    rig.duty.dismissBubble();
+    rig.manager.response = envelope({plainWord("resilience", "Latin resilire, to leap back.")});
+    rig.explain("resilience");
     ASSERT_TRUE(askedForOrigin());
-    EXPECT_EQ(duty.bubble().value("etymology").toString(), QStringLiteral("Latin resilire, to leap back."));
+    EXPECT_EQ(rig.duty.bubble().value("etymology").toString(), QStringLiteral("Latin resilire, to leap back."));
 
     // And it is stored, so putting it away and taking it out again costs nothing: the entry is
     // reused whole, and the setting only decides whether the card draws the part it holds.
-    duty.dismissBubble();
-    store.document()["etymology"] = "false";
-    explain("resilience");
-    EXPECT_EQ(manager.posts, 2);
-    EXPECT_TRUE(duty.bubble().value("etymology").toString().isEmpty()) << "a stored origin was drawn with the setting off";
+    rig.duty.dismissBubble();
+    rig.store.document()["etymology"] = "false";
+    rig.explain("resilience");
+    EXPECT_EQ(rig.manager.posts, 2);
+    EXPECT_TRUE(rig.duty.bubble().value("etymology").toString().isEmpty()) << "a stored origin was drawn with the setting off";
 
-    duty.dismissBubble();
-    store.document()["etymology"] = "true";
-    explain("resilience");
-    EXPECT_EQ(manager.posts, 2) << "the same word was paid for twice";
-    EXPECT_EQ(duty.bubble().value("etymology").toString(), QStringLiteral("Latin resilire, to leap back."));
+    rig.duty.dismissBubble();
+    rig.store.document()["etymology"] = "true";
+    rig.explain("resilience");
+    EXPECT_EQ(rig.manager.posts, 2) << "the same word was paid for twice";
+    EXPECT_EQ(rig.duty.bubble().value("etymology").toString(), QStringLiteral("Latin resilire, to leap back."));
 }
 
 TEST_F(LlmTest, Phase2TheExampleSettingBuysASentenceOnceAndAStoredWordWithoutOneIsBoughtAgain)
 {
-    QtApplication        qt;
-    QTemporaryDir        temporary;
-    auto                 store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
-    app::StorageDuty     storage{store};
-    Manager              manager;
-    llm::LlmClient       client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
-    auto const           pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-    app::CostDuty        cost{storage.statsStore(), client, pricing};
-    app::ExplanationDuty duty{storage, client, cost};
+    QtApplication qt;
+    Rig           rig;
 
-    auto const explain = [&](QString const& lemma) {
-        const int before = manager.posts;
-        duty.setSelection(selectionFor(lemma));
-        QEventLoop loop;
-        QObject::connect(&client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
-        QObject::connect(&client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
-        QTimer::singleShot(2000, &loop, &QEventLoop::quit);
-        duty.runSelectionAction("explain", lemma);
-        // A word already stored is answered without a round trip, so waiting would be waiting for
-        // something that is not coming -- and the bubble is up before this returns.
-        if (manager.posts > before) loop.exec();
-    };
     auto const askedForExample = [&] {
-        const auto messages = QJsonDocument::fromJson(manager.posted).object().value("messages").toArray();
+        const auto messages = QJsonDocument::fromJson(rig.manager.posted).object().value("messages").toArray();
         if (messages.isEmpty()) return false;
         return messages.at(0).toObject().value("content").toString().contains(QStringLiteral("\"example\":\"...\""));
     };
 
     // Explained with the example off, the word is bought without a sentence, and the entry says so.
-    manager.response = envelope({plainWord("bank")});
-    explain("bank");
+    rig.manager.response = envelope({plainWord("bank")});
+    rig.explain("bank");
     EXPECT_FALSE(askedForExample());
-    EXPECT_FALSE(store.cacheGet("bank", {"en", false})->example.has_value()) << "an unasked-for example was stored";
+    EXPECT_FALSE(rig.store.cacheGet("bank", {"en", false})->example.has_value()) << "an unasked-for example was stored";
 
     // Turning the example on does not reuse that entry: it was bought without a sentence, and the
     // reader is owed one now. The second request is paid for, and the answer is what the bubble shows.
-    duty.dismissBubble();
-    store.document()["example"] = "true";
-    manager.response            = envelope({plainWord("bank", {}, "The bank raised its interest rate.")});
-    explain("bank");
-    EXPECT_EQ(manager.posts, 2) << "a stored word without an example was served as if it had one";
+    rig.duty.dismissBubble();
+    rig.store.document()["example"] = "true";
+    rig.manager.response            = envelope({plainWord("bank", {}, "The bank raised its interest rate.")});
+    rig.explain("bank");
+    EXPECT_EQ(rig.manager.posts, 2) << "a stored word without an example was served as if it had one";
     ASSERT_TRUE(askedForExample());
-    EXPECT_EQ(duty.bubble().value("example").toString(), QStringLiteral("The bank raised its interest rate."));
-    EXPECT_EQ(store.cacheGet("bank", {"en", false})->example.value_or("<absent>"), "The bank raised its interest rate.");
+    EXPECT_EQ(rig.duty.bubble().value("example").toString(), QStringLiteral("The bank raised its interest rate."));
+    EXPECT_EQ(rig.store.cacheGet("bank", {"en", false})->example.value_or("<absent>"), "The bank raised its interest rate.");
 
     // With the sentence stored, the next look is served from the cache, and no request is made.
-    duty.dismissBubble();
-    explain("bank");
-    EXPECT_EQ(manager.posts, 2) << "a stored example was bought a second time";
-    EXPECT_EQ(duty.bubble().value("example").toString(), QStringLiteral("The bank raised its interest rate."));
+    rig.duty.dismissBubble();
+    rig.explain("bank");
+    EXPECT_EQ(rig.manager.posts, 2) << "a stored example was bought a second time";
+    EXPECT_EQ(rig.duty.bubble().value("example").toString(), QStringLiteral("The bank raised its interest rate."));
 
     // Turned off, the card leaves the sentence out but keeps it stored, so turning it back on costs nothing.
-    duty.dismissBubble();
-    store.document()["example"] = "false";
-    explain("bank");
-    EXPECT_EQ(manager.posts, 2);
-    EXPECT_TRUE(duty.bubble().value("example").toString().isEmpty()) << "a stored example was drawn with the setting off";
-    EXPECT_TRUE(store.cacheGet("bank", {"en", false})->example.has_value()) << "turning the setting off dropped the stored sentence";
+    rig.duty.dismissBubble();
+    rig.store.document()["example"] = "false";
+    rig.explain("bank");
+    EXPECT_EQ(rig.manager.posts, 2);
+    EXPECT_TRUE(rig.duty.bubble().value("example").toString().isEmpty()) << "a stored example was drawn with the setting off";
+    EXPECT_TRUE(rig.store.cacheGet("bank", {"en", false})->example.has_value()) << "turning the setting off dropped the stored sentence";
 }
 
 TEST_F(LlmTest, Phase2AnExampleThatIsEmptyIsAnAnswerAndIsNotAskedForAgain)
 {
-    QtApplication        qt;
-    QTemporaryDir        temporary;
-    auto                 store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
-    app::StorageDuty     storage{store};
-    Manager              manager;
-    llm::LlmClient       client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
-    auto const           pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-    app::CostDuty        cost{storage.statsStore(), client, pricing};
-    app::ExplanationDuty duty{storage, client, cost};
-
-    auto const explain = [&](QString const& lemma) {
-        const int before = manager.posts;
-        duty.setSelection(selectionFor(lemma));
-        QEventLoop loop;
-        QObject::connect(&client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
-        QObject::connect(&client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
-        QTimer::singleShot(2000, &loop, &QEventLoop::quit);
-        duty.runSelectionAction("explain", lemma);
-        if (manager.posts > before) loop.exec();
-    };
+    QtApplication qt;
+    Rig           rig;
 
     // The model was asked and had no sentence to give: that is a settled answer, so the entry records
     // it as empty and the next look does not spend another request on the same question.
-    store.document()["example"] = "true";
-    manager.response            = envelope({plainWord("acronym")});
-    explain("acronym");
-    EXPECT_EQ(manager.posts, 1);
-    ASSERT_TRUE(store.cacheGet("acronym", {"en", false})->example.has_value()) << "an asked-for but empty example was dropped as a miss";
-    EXPECT_TRUE(store.cacheGet("acronym", {"en", false})->example->empty());
+    rig.store.document()["example"] = "true";
+    rig.manager.response            = envelope({plainWord("acronym")});
+    rig.explain("acronym");
+    EXPECT_EQ(rig.manager.posts, 1);
+    ASSERT_TRUE(rig.store.cacheGet("acronym", {"en", false})->example.has_value()) << "an asked-for but empty example was dropped as a miss";
+    EXPECT_TRUE(rig.store.cacheGet("acronym", {"en", false})->example->empty());
 
-    duty.dismissBubble();
-    explain("acronym");
-    EXPECT_EQ(manager.posts, 1) << "a settled empty example was asked for again";
+    rig.duty.dismissBubble();
+    rig.explain("acronym");
+    EXPECT_EQ(rig.manager.posts, 1) << "a settled empty example was asked for again";
 }
 
 TEST_F(LlmTest, Phase2ChangingSettingsDuringResponseKeepsTheOriginalCacheContext)
 {
     QtApplication qt;
-    QTemporaryDir temporary;
-    auto          store            = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
-    store.document()["multiSense"] = "true";
-    app::StorageDuty     storage{store};
-    Manager              manager;
-    llm::LlmClient       client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
-    auto const           pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-    app::CostDuty        cost{storage.statsStore(), client, pricing};
-    app::ExplanationDuty duty{storage, client, cost};
-    duty.setSelection(selection());
+    Rig           rig;
+    rig.store.document()["multiSense"] = "true";
+    rig.duty.setSelection(selection());
     QEventLoop loop;
-    QObject::connect(&client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
+    QObject::connect(&rig.client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
     QTimer::singleShot(2000, &loop, &QEventLoop::quit);
-    duty.runSelectionAction("explain", "bank");
-    store.setExplanationLang("ja");
-    store.document()["multiSense"] = "false";
+    rig.duty.runSelectionAction("explain", "bank");
+    rig.store.setExplanationLang("ja");
+    rig.store.document()["multiSense"] = "false";
     loop.exec();
-    EXPECT_TRUE(duty.bubble().isEmpty());
-    EXPECT_TRUE(store.cacheGet("bank", {"en", true}));
-    EXPECT_FALSE(store.cacheGet("bank", {"ja", false}));
+    EXPECT_TRUE(rig.duty.bubble().isEmpty());
+    EXPECT_TRUE(rig.store.cacheGet("bank", {"en", true}));
+    EXPECT_FALSE(rig.store.cacheGet("bank", {"ja", false}));
 }
 
 TEST_F(LlmTest, Phase2AProviderChoiceMovesTheEndpointItsWireOptionsAndTheModel)
 {
-    QtApplication    qt;
-    QTemporaryDir    temporary;
-    auto             store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
-    app::StorageDuty storage{store};
-    Manager          manager;
     // A model that belongs to neither service, so both trips through the loop prove the same
     // thing: the one standing is from somewhere else, and following the service replaces it.
-    llm::LlmClient        client{{QUrl{"https://example.invalid"}, "fake-test-token", "gpt-4.1-nano"}, &manager};
-    auto const            pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-    app::CostDuty         cost{storage.statsStore(), client, pricing};
-    app::ModelCatalogDuty catalog{storage, client};
-    app::ExplanationDuty  duty{storage, client, cost};
+    QtApplication         qt;
+    Rig                   rig{QStringLiteral("gpt-4.1-nano")};
+    app::ModelCatalogDuty catalog{rig.storage, rig.client};
     for (auto const* provider : {"DeepSeek", "openai"}) {
         ASSERT_TRUE(catalog.setProvider(provider));
         auto const entry = llm::serviceProvider(provider);
         // The endpoint, its wire quirks -- and the model, which follows the service: a name from
         // another one is the 400 whose message names nothing (docs/adr/0017).
-        EXPECT_EQ(client.model(), provider == std::string_view{"DeepSeek"} ? "deepseek-flash" : "gpt-4.1-mini");
-        EXPECT_EQ(store.document().at("URL"), entry.value("baseUrl").toString().toStdString());
-        duty.setSelection(selection());
-        duty.dismissBubble();
-        store.setExplanationLang("en");
+        EXPECT_EQ(rig.client.model(), provider == std::string_view{"DeepSeek"} ? "deepseek-flash" : "gpt-4.1-mini");
+        EXPECT_EQ(rig.store.document().at("URL"), entry.value("baseUrl").toString().toStdString());
+        rig.duty.setSelection(selection());
+        rig.duty.dismissBubble();
+        rig.store.setExplanationLang("en");
         // A fresh lemma is not needed: clear the in-memory cache by using a different mode.
-        store.document()["multiSense"] = provider == std::string{"DeepSeek"} ? "false" : "true";
-        run(duty, client);
-        EXPECT_EQ(manager.endpoint, QUrl{entry.value("baseUrl").toString() + "/chat/completions"});
-        auto const body = QJsonDocument::fromJson(manager.posted).object();
+        rig.store.document()["multiSense"] = provider == std::string{"DeepSeek"} ? "false" : "true";
+        rig.explain("bank");
+        EXPECT_EQ(rig.manager.endpoint, QUrl{entry.value("baseUrl").toString() + "/chat/completions"});
+        auto const body = QJsonDocument::fromJson(rig.manager.posted).object();
         EXPECT_EQ(body.contains("thinking"), provider == std::string{"DeepSeek"});
     }
     // One shared source, not one endpoint per provider, and it is asked with nothing the reader
     // owns. What came back is split per provider by the vendor prefix in the catalog, and each
     // slice is that provider's cache -- the seed is only for a machine that has never reached it.
-    EXPECT_GE(manager.gets, 1);
-    EXPECT_EQ(manager.listed, QUrl{"https://openrouter.ai/api/v1/models"});
-    EXPECT_TRUE(manager.listedAuthorization.isEmpty()) << "the shared source was sent the API key";
-    EXPECT_TRUE(manager.listedGoogleKey.isEmpty());
+    EXPECT_GE(rig.manager.gets, 1);
+    EXPECT_EQ(rig.manager.listed, QUrl{"https://openrouter.ai/api/v1/models"});
+    EXPECT_TRUE(rig.manager.listedAuthorization.isEmpty()) << "the shared source was sent the API key";
+    EXPECT_TRUE(rig.manager.listedGoogleKey.isEmpty());
     // The routing variant and the image-capable entry are in the answer and in neither slice.
-    EXPECT_EQ(store.document().at("MODELS").at("DeepSeek"), nlohmann::json::array({"deepseek-chat"}));
-    EXPECT_EQ(store.document().at("MODELS").at("openai"), nlohmann::json::array({"gpt-4.1-mini"}));
+    EXPECT_EQ(rig.store.document().at("MODELS").at("DeepSeek"), nlohmann::json::array({"deepseek-chat"}));
+    EXPECT_EQ(rig.store.document().at("MODELS").at("openai"), nlohmann::json::array({"gpt-4.1-mini"}));
 
     // The price shown is the typed model's, not the provider's.
     ASSERT_TRUE(catalog.setModel("gpt-4.1-mini"));
-    EXPECT_GT(pricing.cost(client.model(), {1000, 1000}), 0.0);
+    EXPECT_GT(rig.pricing.cost(rig.client.model(), {1000, 1000}), 0.0);
     EXPECT_FALSE(catalog.settings().value("modelPrice").toString().isEmpty());
     ASSERT_TRUE(catalog.setModel("unlisted-model"));
-    EXPECT_EQ(pricing.cost("unlisted-custom", {1000, 1000}), 0.0);
+    EXPECT_EQ(rig.pricing.cost("unlisted-custom", {1000, 1000}), 0.0);
     EXPECT_TRUE(catalog.settings().value("modelPrice").toString().contains("No listed price"));
     EXPECT_FALSE(catalog.setProvider("unknown"));
     EXPECT_TRUE(catalog.setProvider("custom"));
-    EXPECT_EQ(client.model(), "unlisted-model");
-    auto const restored = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    EXPECT_EQ(rig.client.model(), "unlisted-model");
+    auto const restored = core::KnownStore::load(std::filesystem::path{rig.temporary.path().toStdWString()} / "fixture.json");
     EXPECT_EQ(restored.document().at("PROVIDER"), "custom");
 }
 
@@ -711,69 +676,54 @@ TEST_F(LlmTest, AFetchedListNeverRewritesTheModelInForceButAProviderChangeStillD
 
 TEST_F(LlmTest, Phase2DefaultsToOneSenseAndQueuesTheLatestRequestedMode)
 {
-    QtApplication        qt;
-    QTemporaryDir        temporary;
-    auto                 store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
-    app::StorageDuty     storage{store};
-    Manager              manager;
-    llm::LlmClient       client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
-    auto const           pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-    app::CostDuty        cost{storage.statsStore(), client, pricing};
-    app::ExplanationDuty duty{storage, client, cost};
-    duty.setSelection(selection());
-    run(duty, client);
-    EXPECT_EQ(duty.bubble().value("senses").toList().size(), 1);
-    EXPECT_TRUE(duty.bubble().value("senses").toList().front().toMap().value("text").toString().isEmpty());
-    EXPECT_FALSE(manager.posted.contains("one to three"));
+    QtApplication qt;
+    Rig           rig;
+    rig.explain("bank");
+    EXPECT_EQ(rig.duty.bubble().value("senses").toList().size(), 1);
+    EXPECT_TRUE(rig.duty.bubble().value("senses").toList().front().toMap().value("text").toString().isEmpty());
+    EXPECT_FALSE(rig.manager.posted.contains("one to three"));
 
-    store.setExplanationLang("es");
+    rig.store.setExplanationLang("es");
     QEventLoop loop;
     int        responses = 0;
-    QObject::connect(&client, &llm::LlmClient::batchFinished, &loop, [&](auto, llm::Usage const usage) {
+    QObject::connect(&rig.client, &llm::LlmClient::batchFinished, &loop, [&](auto, llm::Usage const usage) {
         EXPECT_EQ(usage.model, "test-model");
         if (++responses == 2) loop.quit();
     });
     QTimer::singleShot(2000, &loop, &QEventLoop::quit);
-    duty.setSelection(selection());
-    duty.runSelectionAction("explain", "bank");
-    store.document()["multiSense"] = "true";
-    duty.setSelection(selection());
-    duty.runSelectionAction("explain", "bank");
+    rig.duty.setSelection(selection());
+    rig.duty.runSelectionAction("explain", "bank");
+    rig.store.document()["multiSense"] = "true";
+    rig.duty.setSelection(selection());
+    rig.duty.runSelectionAction("explain", "bank");
     loop.exec();
     EXPECT_EQ(responses, 2);
-    EXPECT_EQ(manager.posts, 3);
-    EXPECT_EQ(duty.bubble().value("senses").toList().size(), 3);
-    EXPECT_TRUE(store.cacheGet("bank", {"es", false}));
-    EXPECT_TRUE(store.cacheGet("bank", {"es", true}));
+    EXPECT_EQ(rig.manager.posts, 3);
+    EXPECT_EQ(rig.duty.bubble().value("senses").toList().size(), 3);
+    EXPECT_TRUE(rig.store.cacheGet("bank", {"es", false}));
+    EXPECT_TRUE(rig.store.cacheGet("bank", {"es", true}));
 }
 
 TEST_F(LlmTest, Phase2BudgetStopsQueuedDispatchWithoutAnErrorNotice)
 {
-    QtApplication    qt;
-    QTemporaryDir    temporary;
-    auto             store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
-    app::StorageDuty storage{store};
-    Manager          manager;
-    llm::LlmClient   client{{QUrl{"https://example.invalid"}, "fake-test-token", "deepseek-flash"}, &manager};
-    auto const       pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-    const QDate      date    = QDate::currentDate();
-    app::CostDuty    cost{storage.statsStore(), client, pricing, [date] { return date; }};
-    ASSERT_TRUE(cost.setDailyBudget(0.000045));
-    app::ExplanationDuty duty{storage, client, cost};
+    QtApplication qt;
+    const QDate   date = QDate::currentDate();
+    Rig           rig{QStringLiteral("deepseek-flash"), [date] { return date; }};
+    ASSERT_TRUE(rig.cost.setDailyBudget(0.000045));
 
-    duty.setSelection(selection());
-    duty.runSelectionAction("explain", "bank");
-    duty.setSelection(selectionFor("river"));
-    duty.runSelectionAction("explain", "river");
+    rig.duty.setSelection(selection());
+    rig.duty.runSelectionAction("explain", "bank");
+    rig.duty.setSelection(selectionFor("river"));
+    rig.duty.runSelectionAction("explain", "river");
 
     QEventLoop loop;
-    QObject::connect(&client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
+    QObject::connect(&rig.client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
     QTimer::singleShot(2000, &loop, &QEventLoop::quit);
     loop.exec();
 
-    EXPECT_EQ(manager.posts, 1);
-    EXPECT_TRUE(cost.budgetStatus().exhausted);
-    EXPECT_TRUE(duty.notice().isEmpty());
+    EXPECT_EQ(rig.manager.posts, 1);
+    EXPECT_TRUE(rig.cost.budgetStatus().exhausted);
+    EXPECT_TRUE(rig.duty.notice().isEmpty());
 }
 
 TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
@@ -907,37 +857,24 @@ TEST_F(LlmTest, Phase2RemovingAWordClearsItsOwnBubbleAndLeavesAnotherAlone)
 TEST_F(LlmTest, Phase2AChineseSelectionIsTranslatedAndOnlyTheTranslationIsDrawn)
 {
     QtApplication qt;
-    QTemporaryDir temporary;
-    ASSERT_TRUE(temporary.isValid());
-    auto store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    Rig           rig;
     // A Chinese reader, which is the one the whole channel exists for: the answer is still English,
     // because Chinese is what they selected and the one thing they cannot be asking for.
-    store.setExplanationLang("zh");
-    app::StorageDuty storage{store};
-    Manager          manager;
-    manager.response = envelope({QJsonObject{{"en", "The weather is nice today."}}});
-    llm::LlmClient       client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
-    auto const           pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-    app::CostDuty        cost{storage.statsStore(), client, pricing};
-    app::ExplanationDuty duty{storage, client, cost};
+    rig.store.setExplanationLang("zh");
+    rig.manager.response = envelope({QJsonObject{{"en", "The weather is nice today."}}});
 
     app::PendingSelection chinese;
-    chinese.kind   = QStringLiteral("translation");
+    chinese.kind   = core::SelectionKind::Translation;
     chinese.text   = QStringLiteral("今天天气不错。");
     chinese.anchor = QPoint{200, 400};
-    duty.setSelection(chinese);
+    rig.duty.setSelection(chinese);
 
-    QEventLoop loop;
-    QObject::connect(&client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
-    QObject::connect(&client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
-    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
     // Either button of the action bar lands here: with Chinese there is one decision, and the two
     // items are two ways into it (UI.md section 4.10).
-    duty.runSelectionAction(QStringLiteral("explain"), chinese.text);
-    loop.exec();
+    run(rig.duty, rig.client, chinese.text);
 
-    EXPECT_TRUE(manager.posted.contains("Translate it into English")) << "the request did not go out on the translation channel";
-    const auto bubble = duty.bubble();
+    EXPECT_TRUE(rig.manager.posted.contains("Translate it into English")) << "the request did not go out on the translation channel";
+    const auto bubble = rig.duty.bubble();
     EXPECT_EQ(bubble.value("type").toString(), "translation");
     EXPECT_EQ(bubble.value("en").toString(), "The weather is nice today.");
     EXPECT_TRUE(bubble.value("zh").toString().isEmpty()) << "a Chinese line was drawn beside the translation";

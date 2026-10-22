@@ -214,7 +214,7 @@ Window {
         translation = payload.translation || "";
         etymology = payload.etymology || "";
         example = payload.example || "";
-        senses = payload.senses ? payload.senses.slice(0, 3) : [];
+        senses = payload.senses || [];
         status = payload.status || "";
         countsDown = payload.countsDown !== false;
         reveal = payload.reveal !== false;

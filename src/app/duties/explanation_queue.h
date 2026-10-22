@@ -28,16 +28,9 @@
 #include <utility>
 
 #include "capture_duty.h"
-#include "core/document/known_store.h"
+#include "core/document/explanation_cache.h"
 
 namespace lens::app {
-
-/// @return Whether an item is a word: the one kind the explanation cache, the sense modes and the
-///         word's origin are about.
-inline bool isWordKind(QString const& kind)
-{
-    return kind == QLatin1String("word");
-}
 
 /// @brief The next thing to ask the model, with the context the reader's settings imply for it.
 struct ExplanationBatch {
@@ -272,8 +265,9 @@ private:
     {
         if (not sent_ or requestedGeneration_ != selectionGeneration_)
             return false;
-        return sent_->context.language == now.language and
-               sent_->context.multipleSenses == (isWordKind(sent_->items.front().kind) and now.multipleSenses);
+        // The sense mode counts only on the word channel, so the reader's "now" is masked by the
+        // kind the batch went out under before the two are compared.
+        return sent_->context == core::ExplanationCache::masked(now, sent_->items.front().kind);
     }
 
     /// @brief Make @p items the batch in flight and hand back what the caller is to send.
@@ -285,9 +279,9 @@ private:
     ExplanationBatch open(QVector<PendingSelection> items, core::CacheContext const& now, bool example, bool fromScan)
     {
         forgetInvalidations(items);
-        const core::CacheContext context{now.language, isWordKind(items.front().kind) and now.multipleSenses};
-        requestedGeneration_ = selectionGeneration_;
-        sent_                = ExplanationBatch{std::move(items), context, example, fromScan};
+        const core::CacheContext context = core::ExplanationCache::masked(now, items.front().kind);
+        requestedGeneration_             = selectionGeneration_;
+        sent_                            = ExplanationBatch{std::move(items), context, example, fromScan};
         return *sent_;
     }
 

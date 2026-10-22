@@ -37,13 +37,6 @@ std::unordered_map<std::string, long long> readTimes(nlohmann::json const& times
 }
 /// Order is defined in UI.md 4.4: B1-B2 / C1-C2 / CET-4 / CET-6 / TEM-4 / TEM-8 / IELTS / TOEFL.
 constexpr int kMaxLevel = 7;
-/// Separator between language and lemma in a cache key. Cannot occur inside either.
-constexpr char kSep = '\x1f';
-
-std::string cacheKey(CacheContext const& context, std::string const& lemma)
-{
-    return context.language + kSep + (context.multipleSenses ? "multiple" : "single") + kSep + lemma;
-}
 
 std::optional<WordCache> readCache(nlohmann::json const& entry, std::string const& language)
 {
@@ -207,10 +200,10 @@ KnownStore KnownStore::load(std::filesystem::path path)
                 // Legacy flat entries remain single-sense entries. Multiple mode never falls
                 // back to them; it has its own nested entry under the same lemma.
                 if (auto cached = readCache(e, lang.key()))
-                    store.cache_[cacheKey({lang.key(), false}, entry.key())] = std::move(*cached);
+                    store.cache_[CacheKey{lang.key(), entry.key(), false}] = std::move(*cached);
                 if (e.contains("multiple"))
                     if (auto cached = readCache(e["multiple"], lang.key()); cached and not cached->senses.empty())
-                        store.cache_[cacheKey({lang.key(), true}, entry.key())] = std::move(*cached);
+                        store.cache_[CacheKey{lang.key(), entry.key(), true}] = std::move(*cached);
             }
         }
     }
@@ -310,7 +303,7 @@ std::optional<WordCache> KnownStore::cacheGet(const std::string& lemma) const
 
 std::optional<WordCache> KnownStore::cacheGet(std::string const& lemma, CacheContext const& context) const
 {
-    const auto it = cache_.find(cacheKey(context, lemma));
+    const auto it = cache_.find(CacheKey{context.language, lemma, context.multipleSenses});
     if (it == cache_.end()) {
         LENS_TRACE("KnownStore::cacheGet: miss for '{}' ({})", lemma, lang_);
         return std::nullopt;
@@ -329,7 +322,7 @@ void KnownStore::cachePut(std::string const& lemma, WordCache entry, CacheContex
     LENS_TRACE("KnownStore::cachePut: '{}' ({})", lemma, lang_);
     if (entry.senses.size() > (context.multipleSenses ? 3u : 1u))
         entry.senses.resize(context.multipleSenses ? 3u : 1u);
-    cache_[cacheKey(context, lemma)] = std::move(entry);
+    cache_[CacheKey{context.language, lemma, context.multipleSenses}] = std::move(entry);
 }
 
 bool KnownStore::removeLemma(std::string const& lemma)
@@ -344,8 +337,7 @@ bool KnownStore::removeLemma(std::string const& lemma)
     removed      = known_.erase(lemma) != 0 || removed;
 
     for (auto it = cache_.begin(); it != cache_.end();) {
-        const auto separator = it->first.rfind(kSep);
-        if (separator != std::string::npos && it->first.substr(separator + 1) == lemma) {
+        if (it->first.lemma == lemma) {
             it      = cache_.erase(it);
             removed = true;
         } else {
@@ -392,11 +384,9 @@ void KnownStore::save() const
 
     nlohmann::json cache = nlohmann::json::object();
     for (const auto& [key, entry] : cache_) {
-        auto const languageEnd = key.find(kSep);
-        auto const modeEnd     = key.find(kSep, languageEnd + 1);
-        auto&      word        = cache[key.substr(0, languageEnd)][key.substr(modeEnd + 1)];
+        auto& word = cache[key.language][key.lemma];
         if (not word.is_object()) word = nlohmann::json::object();
-        if (key.substr(languageEnd + 1, modeEnd - languageEnd - 1) == "multiple")
+        if (key.multipleSenses)
             word["multiple"] = writeCache(entry);
         else
             word.update(writeCache(entry));

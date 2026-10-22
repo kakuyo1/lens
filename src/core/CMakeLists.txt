@@ -10,6 +10,7 @@ add_library(lens_core STATIC
   domain/pet/accessory.cpp
   document/settings_section.cpp
   document/known_store.cpp
+  document/explanation_cache.cpp
   document/stats_store.cpp
   document/review_store.cpp
   document/pet_store.cpp
