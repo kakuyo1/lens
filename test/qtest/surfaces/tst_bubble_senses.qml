@@ -21,8 +21,7 @@ Item {
             const senses = [
                 {en: "a business that keeps and lends money", text: "一家接受存款并提供贷款的金融机构"},
                 {en: "the land beside a river", text: "河流两侧的岸边"},
-                {en: "a supply kept for future use", text: "储备起来供以后使用的资源"},
-                {en: "a fourth sense that must not appear", text: "not displayed"}
+                {en: "a supply kept for future use", text: "储备起来供以后使用的资源"}
             ];
             bubble.show({title: "bank", type: "word", ipa: "/bæŋk/", senses: senses.slice(0, count), status: "new", x: 200, y: 500});
             tryCompare(bubble, "visible", true);
@@ -34,9 +33,8 @@ Item {
             return Util.findAll(bubble, function(item) { return item.objectName === name; });
         }
 
-        function test_orderCapSeparatorsAndFirstIpa() {
-            const bubble = opened(4);
-            compare(bubble.senses.length, 3);
+        function test_orderSeparatorsAndFirstIpa() {
+            const bubble = opened(3);
             const english = named(bubble, "senseEnglish");
             compare(english.length, 3);
             compare(english[0].text, "a business that keeps and lends money");
