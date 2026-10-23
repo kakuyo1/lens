@@ -178,6 +178,25 @@ TEST(PetWander, EdgeDetectionUsesAOnePixelTolerance)
     EXPECT_FALSE(wander.edgeAt(QPoint{900, 100}).has_value());
 }
 
+TEST(PetWander, AReleaseAgainstTheEdgeBecomesAHide)
+{
+    // Flush, and one pixel shy of flush, count as they do for a walk that ends on the edge.
+    EXPECT_EQ(PetWander::dropEdge(QPoint{0, 500}, kPet, kArea), EdgeSide::Left);
+    EXPECT_EQ(PetWander::dropEdge(QPoint{1, 500}, kPet, kArea), EdgeSide::Left);
+    EXPECT_EQ(PetWander::dropEdge(QPoint{1656, 500}, kPet, kArea), EdgeSide::Right);
+    EXPECT_EQ(PetWander::dropEdge(QPoint{1655, 500}, kPet, kArea), EdgeSide::Right);
+
+    // A drag that overshoots leaves part of the window past the edge: still that edge's hide.
+    EXPECT_EQ(PetWander::dropEdge(QPoint{-52, 500}, kPet, kArea), EdgeSide::Left);
+    EXPECT_EQ(PetWander::dropEdge(QPoint{1708, 500}, kPet, kArea), EdgeSide::Right);
+
+    // A drop in the middle hides nothing, and a window past the area outright is not at its edge any more.
+    EXPECT_FALSE(PetWander::dropEdge(QPoint{2, 500}, kPet, kArea).has_value());
+    EXPECT_FALSE(PetWander::dropEdge(QPoint{900, 500}, kPet, kArea).has_value());
+    EXPECT_FALSE(PetWander::dropEdge(QPoint{-264, 500}, kPet, kArea).has_value());
+    EXPECT_FALSE(PetWander::dropEdge(QPoint{1921, 500}, kPet, kArea).has_value());
+}
+
 TEST(PetWander, SevenStepsInTenBecomeAHide)
 {
     auto const wander = makeWander(Gait::Trot);

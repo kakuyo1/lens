@@ -330,11 +330,17 @@ void PetController::handle(PetEvent event)
     // An outside event voids the current wait: the next stroll is drawn again once the pet is idle.
     wanderWait_ = nextWanderWait();
     if (hiding_ and event == PetEvent::ReviewAsked) {
-        // The sign stands beside the pet on the hidden sliver's inner side; the pet itself stays where the hide put it.
-        hiding_->asking    = true;
-        hiding_->slide     = PetWander::kHideSlide;
-        hiding_->peekClock = std::chrono::milliseconds{0};
-        if (window_) window_->setPosition(hiding_->base);
+        if (hiding_->leaving) {
+            // The pet is already coming out; the question meets it where it lands, as a dragged-out hide's does.
+            settleOutOfHide();
+        } else {
+            // The sign stands beside the pet on the hidden sliver's inner side; the pet itself stays where the hide
+            // put it.
+            hiding_->asking    = true;
+            hiding_->slide     = PetWander::kHideSlide;
+            hiding_->peekClock = std::chrono::milliseconds{0};
+            if (window_) window_->setPosition(hiding_->base);
+        }
     }
     resetHover();
     machine_->handle(event);
@@ -729,6 +735,17 @@ void PetController::dragEnd()
     }
     stroll_     = StrollPhase::Waiting;
     wanderWait_ = nextWanderWait();
+
+    // A release that leaves the window against a screen edge is the reader asking the pet to hide: it tucks itself
+    // in, without the stroll's probability roll (ADR 0095). A throw's landing is not that release, and a pet without
+    // peek art keeps sitting where it was dropped.
+    if (not previewing_ and wander_ and window_ and assets_) {
+        auto const& movement = assets_->animations.movement;
+        if (movement and movement->peek) {
+            if (auto const side = PetWander::dropEdge(window_->position(), window_->size(), wander_->area()))
+                enterHiding(*side);
+        }
+    }
 }
 
 bool PetController::release(QPointF velocity)
@@ -822,9 +839,13 @@ void PetController::resetThrowMood()
 
 void PetController::click()
 {
-    // A hidden pet only peeks and is dragged out: a click neither wakes it nor plays the poke reaction. A ceremony is
-    // the pet's own business too: a click left over from catching it does not cut the walk.
-    if (hiding_ or ceremony_) return;
+    // A click on the visible sliver calls the pet out rather than poking it: no reaction, no anger count (ADR 0095).
+    // A ceremony is the pet's own business too: a click left over from catching it does not cut the walk.
+    if (hiding_) {
+        lureOut();
+        return;
+    }
+    if (ceremony_) return;
     resetThrowMood();
     handle(PetEvent::Click);
 }
@@ -1714,6 +1735,18 @@ void PetController::updateHiding(std::chrono::milliseconds step)
         hidden.peekClock = std::chrono::milliseconds{0};
     }
 
+    if (hidden.leaving) {
+        // A click on the sliver called the pet out: the window slides back to where the hide began, eased like the
+        // slide out, and the hide ends there.
+        hidden.leave += step;
+        if (hidden.leave < PetWander::kHideSlide) {
+            window_->setPosition(PetWander::slideAt(hidden.leaveFrom, hidden.leaveTo, hidden.leave));
+            return;
+        }
+        settleOutOfHide();
+        return;
+    }
+
     if (hidden.slide < PetWander::kHideSlide) {
         hidden.slide = std::min(PetWander::kHideSlide, hidden.slide + step);
         window_->setPosition(PetWander::slideAt(hidden.from, hidden.base, hidden.slide));
@@ -1722,8 +1755,15 @@ void PetController::updateHiding(std::chrono::milliseconds step)
         window_->setPosition(hidden.base);
     } else {
         hidden.peekClock += step;
-        auto at = hidden.base;
-        at.rx() += (hidden.side == EdgeSide::Left ? 1 : -1) * PetWander::peekOffset(hidden.peekClock);
+        // A pointer near the visible sliver earns a further lean toward the screen, ramped so it reads as a lean.
+        // The peek itself keeps its own cycle underneath (ADR 0095).
+        auto const target = hover_ and hover_->watching() ? static_cast<double>(PetWander::kHoverLean) : 0.0;
+        auto const rate   = static_cast<double>(PetWander::kHoverLean) / PetWander::kHoverLeanTime.count();
+        hidden.lean       = hidden.lean < target ? std::min(target, hidden.lean + rate * step.count())
+                                                 : std::max(target, hidden.lean - rate * step.count());
+        auto at           = hidden.base;
+        at.rx() += (hidden.side == EdgeSide::Left ? 1 : -1) *
+                   (PetWander::peekOffset(hidden.peekClock) + static_cast<int>(std::lround(hidden.lean)));
         window_->setPosition(at);
     }
 
@@ -1811,9 +1851,44 @@ void PetController::endHiding()
 void PetController::snapBackToHide()
 {
     if (not hiding_ or not window_) return;
+    // A drag that never pulled the pet out puts the hide back as it was, including one caught mid-slide from a click.
+    hiding_->leaving   = false;
+    hiding_->lean      = 0.0;
     hiding_->slide     = PetWander::kHideSlide;
     hiding_->peekClock = std::chrono::milliseconds{0};
     window_->setPosition(hiding_->base);
+}
+
+void PetController::lureOut()
+{
+    if (not hiding_ or not window_ or hiding_->dragging or hiding_->leaving) return;
+    auto& hidden     = *hiding_;
+    hidden.leaving   = true;
+    hidden.leave     = std::chrono::milliseconds{0};
+    hidden.leaveFrom = window_->position();
+    auto const size  = window_->size();
+    hidden.leaveTo   = clampedWithin(hidden.from, size, hidden.area);
+}
+
+void PetController::settleOutOfHide()
+{
+    if (not hiding_) return;
+    auto const at   = hiding_->leaveTo;
+    auto const area = hiding_->area;
+    auto const size = window_ ? window_->size() : QSize{};
+    hiding_.reset();
+    if (machine_ and machine_->ambient()) machine_->stopAmbient();
+    if (window_) {
+        window_->setPosition(at);
+        savePosition(at);
+    }
+    if (wander_ and size.isValid()) {
+        wander_->setHome(at);
+        wander_->setBounds(size, area);
+        homeReady_ = true;
+    }
+    stroll_     = StrollPhase::Waiting;
+    wanderWait_ = nextWanderWait();
 }
 
 void PetController::refitHiding()
@@ -1890,11 +1965,17 @@ bool PetController::cursorOnPet() const
 
 void PetController::updateHover(std::chrono::milliseconds step)
 {
-    // Hover is the desktop pet's own sense. It has no meaning while the window is hidden, while clicks pass through,
-    // while the settings preview is open, or before a window exists to measure against.
-    if (not hover_ or not assets_ or not window_ or not desktopRunning_ or previewing_ or hiding_ or ceremony_ or
-        flight_ or angryRepeatsLeft_ > 0 or store_.passthrough()) {
+    // Hover is the desktop pet's own sense. It has no meaning while clicks pass through, while the settings preview
+    // is open, or before a window exists to measure against.
+    if (not hover_ or not assets_ or not window_ or not desktopRunning_ or previewing_ or ceremony_ or flight_ or
+        angryRepeatsLeft_ > 0 or store_.passthrough() or not window_->isVisible()) {
         resetHover();
+        return;
+    }
+
+    // A hidden pet keeps its own, smaller share: eyes and a deeper lean toward the sliver, never a reaction.
+    if (hiding_) {
+        updateHiddenHover(step);
         return;
     }
 
@@ -1905,10 +1986,6 @@ void PetController::updateHover(std::chrono::milliseconds step)
     // Hover only borrows idle time. While the pet reads, sleeps, asks, drags, is in a scene or plays any other
     // one-shot, the approach is forgotten: a long reading must not leave a reaction due the moment it ends.
     if (not machine_->idle() and not hoverActionPlaying) {
-        resetHover();
-        return;
-    }
-    if (not window_->isVisible()) {
         resetHover();
         return;
     }
@@ -1937,6 +2014,38 @@ void PetController::updateHover(std::chrono::milliseconds step)
         setGaze({});
 }
 
+void PetController::updateHiddenHover(std::chrono::milliseconds step)
+{
+    auto& hidden = *hiding_;
+    // The window still sliding out, a sign that is up, a click's slide back in, or a reaction playing: none of them
+    // are the pet peeking on its own terms, so the approach is forgotten and the lean withdraws.
+    if (hidden.dragging or hidden.leaving or hidden.asking or hidden.slide < PetWander::kHideSlide or
+        not machine_->ambient() or not window_->isVisible()) {
+        resetHover();
+        return;
+    }
+
+    auto const size = window_->size();
+    if (size.width() <= 0 or size.height() <= 0) {
+        resetHover();
+        return;
+    }
+    auto const origin = window_->position();
+    auto const cursor = QCursor::pos();
+    auto const sx     = static_cast<double>(size.width()) / assets_->canvas;
+    auto const sy     = static_cast<double>(size.height()) / assets_->canvas;
+    auto const at     = QPointF{(cursor.x() - origin.x()) / sx, (cursor.y() - origin.y()) / sy};
+
+    // The zone is tracked against the visible sliver only, and idle is always false: a hidden pet looks and leans,
+    // but never greets (ADR 0095).
+    hover_->update(step, sliverDistanceAt(cursor), false);
+
+    if (hover_->watching())
+        setGaze(gazeToward(at, (assets_->peekInkLeft + assets_->peekInkRight) / 2.0, (assets_->inkTop + assets_->inkBottom) / 2.0));
+    else
+        setGaze({});
+}
+
 void PetController::resetHover()
 {
     if (hover_) hover_->reset();
@@ -1953,9 +2062,13 @@ void PetController::setGaze(QPoint offset)
 QPoint PetController::gazeOffsetAt(QPointF cursor) const
 {
     if (not assets_) return {};
-    auto const middleY = (assets_->inkTop + assets_->inkBottom) / 2.0;
-    auto const dx      = cursor.x() - assets_->inkCentre;
-    auto const dy      = cursor.y() - middleY;
+    return gazeToward(cursor, assets_->inkCentre, (assets_->inkTop + assets_->inkBottom) / 2.0);
+}
+
+QPoint PetController::gazeToward(QPointF cursor, double centreX, double middleY) const
+{
+    auto const dx = cursor.x() - centreX;
+    auto const dy = cursor.y() - middleY;
     if (std::abs(dx) < 2.0 and std::abs(dy) < 2.0) return {};
     if (std::abs(dx) >= std::abs(dy) * 1.15) return {dx > 0 ? 1 : -1, 0};
     if (std::abs(dy) >= std::abs(dx) * 1.15) return {0, dy > 0 ? 1 : -1};
@@ -1967,6 +2080,27 @@ double PetController::inkDistanceAt(QPointF at) const
     auto const dx = std::max({assets_->inkLeft - at.x(), 0.0, at.x() - assets_->inkRight});
     auto const dy = std::max({assets_->inkTop - at.y(), 0.0, at.y() - assets_->inkBottom});
     return std::hypot(dx, dy);
+}
+
+double PetController::sliverDistanceAt(QPoint cursor) const
+{
+    auto const size   = window_->size();
+    auto const origin = window_->position();
+    auto const sx     = static_cast<double>(size.width()) / assets_->canvas;
+    auto const sy     = static_cast<double>(size.height()) / assets_->canvas;
+    // The sliver is the peek ink clipped at the work-area edge; the rows above and below the figure never count.
+    auto        x1   = origin.x() + assets_->peekInkLeft * sx;
+    auto        x2   = origin.x() + assets_->peekInkRight * sx;
+    auto const  y1   = origin.y() + assets_->inkTop * sy;
+    auto const  y2   = origin.y() + assets_->inkBottom * sy;
+    auto const& area = hiding_->area;
+    if (hiding_->side == EdgeSide::Left)
+        x1 = std::max(x1, static_cast<double>(area.left()));
+    else
+        x2 = std::min(x2, static_cast<double>(area.right() + 1));
+    auto const dx = std::max({x1 - cursor.x(), 0.0, cursor.x() - x2});
+    auto const dy = std::max({y1 - cursor.y(), 0.0, cursor.y() - y2});
+    return std::hypot(dx, dy) / sx;
 }
 
 void PetController::sync(std::chrono::milliseconds step)

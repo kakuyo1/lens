@@ -137,6 +137,17 @@ std::optional<EdgeSide> PetWander::edgeAt(QPoint at) const
     return std::nullopt;
 }
 
+std::optional<EdgeSide> PetWander::dropEdge(QPoint at, QSize size, QRect area)
+{
+    // A drag that overshoots leaves the window past the edge, so the tolerance has to hold the overlaps too, and a
+    // window that has left the area entirely is not at this screen's edge any more.
+    if (size.width() <= 0 or not QRect{at, size}.intersects(area)) return std::nullopt;
+    auto const rightmost = area.right() - size.width() + 1;
+    if (at.x() <= area.left() + 1) return EdgeSide::Left;
+    if (at.x() >= rightmost - 1) return EdgeSide::Right;
+    return std::nullopt;
+}
+
 int PetWander::hiddenX(QRect area, QSize size, EdgeSide side, double inkLeft, double inkRight)
 {
     auto const visible = std::max(0.0, inkRight - inkLeft) * kHideVisible;

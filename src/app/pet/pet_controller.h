@@ -319,6 +319,11 @@ private:
     void enterHiding(EdgeSide side);
     /// @brief Leaves a hide without moving the window: used when the pet is turned off or the layout changed.
     void endHiding();
+    /// @brief Answers a click on the visible sliver: the window slides back to where the hide began, and the hide
+    ///        ends there (ADR 0095).
+    void lureOut();
+    /// @brief Finishes a lured-out hide: the window lands at its leaveTo, which becomes home (ADR 0095).
+    void settleOutOfHide();
     /// @brief Puts the window back at its hidden base after a drag that did not pull it out far enough.
     void snapBackToHide();
     /// @brief Recomputes a hide's base after the window changed size.
@@ -372,14 +377,22 @@ private:
     double randomUnit();
     /// @brief Polls the cursor and turns proximity into eyes and, when the pet is idle, its hover reactions.
     void updateHover(std::chrono::milliseconds step);
+    /// @brief The hidden pet's share of hover: eyes and a deeper lean toward a pointer near the visible sliver, but
+    ///        never a greeting or a reaction (ADR 0095).
+    void updateHiddenHover(std::chrono::milliseconds step);
     /// @brief Forgets the current approach and centers the eyes.
     void resetHover();
     /// @brief Changes the gaze offset and announces it when it moved.
     void setGaze(QPoint offset);
     /// @return The eye offset for a pointer at `cursor`, in canvas units, along the dominant axis only.
     QPoint gazeOffsetAt(QPointF cursor) const;
+    /// @return The same offset measured against another figure's centre, such as the peek sliver's.
+    QPoint gazeToward(QPointF cursor, double centreX, double middleY) const;
     /// @return Canvas pixels from `at` to the idle figure's ink box; zero inside it.
     double inkDistanceAt(QPointF at) const;
+    /// @return Canvas pixels from the screen point to the sliver a hidden pet leaves visible: the peek ink clipped
+    ///         at the work-area edge. Zero inside it.
+    double sliverDistanceAt(QPoint cursor) const;
     /// @brief Reads the shown action and blink into the properties, and emits when the frame they show changed.
     void sync(std::chrono::milliseconds step);
     /// @brief Starts the clock while the window or the preview needs it, and stops it otherwise.
@@ -431,6 +444,13 @@ private:
         QPoint                    from;
         std::chrono::milliseconds slide{0};
         std::chrono::milliseconds peekClock{0};
+        /// The extra lean a pointer near the visible sliver earns, in screen pixels; ramped so it does not snap.
+        double lean{0.0};
+        /// A click on the sliver called the pet out: the window slides back to `leaveTo` and the hide ends (ADR 0095).
+        bool                      leaving{false};
+        QPoint                    leaveFrom;
+        QPoint                    leaveTo;
+        std::chrono::milliseconds leave{0};
         /// Whether a review question is up, so the peek pauses until the question and its reaction are over.
         bool asking{false};
         bool dragging{false};

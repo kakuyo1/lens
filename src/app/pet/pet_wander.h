@@ -60,6 +60,10 @@ public:
     static constexpr double kDragOutFraction{0.8};
     /// @brief How far a hidden pet leans in once per peek cycle, in screen pixels at the reference size.
     static constexpr int kPeekTravel{30};
+    /// @brief How much further the same pet leans while the pointer is near the visible sliver (ADR 0095).
+    static constexpr int kHoverLean{12};
+    /// @brief How long that extra lean takes to come in and to withdraw, so it reads as a lean, not a snap.
+    static constexpr std::chrono::milliseconds kHoverLeanTime{180};
     /// @brief How long the window takes to slide out of the edge.
     static constexpr std::chrono::milliseconds kHideSlide{260};
     /// @brief One lean in and back out while hidden.
@@ -115,6 +119,10 @@ public:
     {
         return roll < hideChance_;
     }
+
+    /// @return The edge a released drag leaves the window on: flush within a pixel, or with part of the window past
+    ///         it. Nothing when the drop is inside, or when the window has left the area altogether (ADR 0095).
+    static std::optional<EdgeSide> dropEdge(QPoint at, QSize size, QRect area);
 
     /**
      * @brief The hidden window's left edge.

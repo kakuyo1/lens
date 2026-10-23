@@ -4,6 +4,9 @@
 
 ### Added
 
+- A pet hiding at a screen edge answers the pointer again: eyes follow a nearby cursor and the
+  peek leans further in, a click on the visible sliver calls the pet out, and dropping a drag
+  against an edge makes the pet tuck itself in (docs/adr/0095).
 - The desktop pet enters from the nearest screen edge and looks around, hands over to a newly
   chosen pet from the same edge, and says goodbye with a heart before walking out. Turning
   animations off, in Windows or in the application, collapses the ceremony to an instant show or
