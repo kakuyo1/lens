@@ -17,9 +17,11 @@
 # same variables whether Qt was restored or installed; actions/cache brings back a directory, not
 # the values the action derives from it.
 #
-# The installation directory is $RUNNER_WORKSPACE/Qt, which is where the action defaults to; both
-# places spell it out so the cache path cannot drift from the install path. Qt's directory drops
-# the `win64_` prefix of the arch name: win64_msvc2022_64 installs to 6.9.0/msvc2022_64.
+# The cache path is $RUNNER_WORKSPACE/Qt, which is where install-qt-action installs by default:
+# its `dir` input is the parent to which it appends Qt, so passing this path there would nest a
+# second Qt (the 2026-10-23 run did, and landed at Qt/Qt/6.9.0). Leave `dir` unset so the install
+# and the restore agree. Qt's directory inside that drops the `win64_` prefix of the arch name:
+# win64_msvc2022_64 installs to 6.9.0/msvc2022_64.
 name: Configure a build tree
 description: Restore or install Qt 6.9.0, enter the MSVC environment, and configure build-ninja against the ninja-qt6 preset.
 
@@ -60,7 +62,6 @@ runs:
         version: ${{ inputs.qtVersion }}
         arch: ${{ inputs.qtArch }}
         modules: ${{ inputs.qtModules }}
-        dir: ${{ runner.workspace }}/Qt
         cache: true
 
     # Actions/cache restores the files but not the variables, so both paths go through this step;
