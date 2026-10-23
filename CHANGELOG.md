@@ -1,23 +1,60 @@
 # Changelog
 
-## 1.7.6 - unreleased
+## 1.8.0 - 2026-10-23
+
+The About page gains a picture-cache line that shows what Lens has downloaded and clears it in
+place. Word cards can now drill into the words their definitions use, sense pictures arrive with
+the card, and the desktop pet brings its own scenes.
+
+### Added
+
+- Sense pictures: the word channel asks the model whether a sense is better shown with a photo and
+  for an English query; opening that sense fetches three Wikimedia Commons thumbnails through the
+  profile cache. A failed or empty lookup becomes an Open image search button, and the explanation
+  never waits on it (docs/adr/0079).
+- Definition chain: words in an English definition that rank above the band for the reader's level,
+  or are not in the word list, draw a dotted line. Tapping one steps down inside the same card with
+  a breadcrumb and a back arrow; each step is one explanation through the existing queue, cache and
+  budget gate, and the trail stops at three (docs/adr/0078).
+- The About page shows the downloaded picture cache's size and clears it in place. Only the
+  thumbnails under `%APPDATA%\Lens\pictures\cache\v1\` go; the paid explanations and the review
+  pool stay, and the next picture lookup downloads again.
+- The desktop pet brings its own scenes: each shipped pet now owns two exclusive scenes plus two
+  shared ones, and the dog is redrawn as a floppy-eared puppy. Action, accessory and scene ids are
+  unchanged (docs/adr/0080).
+- The update card can be dragged, and a running download draws its own bar with the bytes moved,
+  the share done and the time left, read from the average pace rather than the digest list.
 
 ### Changed
 
-- The review sign is now a small wooden sign standing beside the pet instead of a paper card held by a hand.
-  The seven shipped pets no longer share one copied fist; a package without an `ask` pose still gets its sign,
-  and a pet hidden at the screen edge no longer shifts inward to make room for it (docs/adr/0088).
+- The review sign is now a small wooden sign standing beside the pet instead of a paper card held
+  by a hand. The seven shipped pets no longer share one copied fist; a package without an `ask`
+  pose still gets its sign, and a pet hidden at the screen edge no longer shifts inward to make
+  room for it (docs/adr/0088).
+- The card's IPA, signpost, collocations and picture blocks each have a display switch. They only
+  change what is drawn: requests and the cache are the same, and turning one back on restores the
+  block on the next cached card.
 
 ### Fixed
 
-- Glass themes on a screen that refuses desktop duplication now follow the desktop through Windows Graphics
-  Capture instead of falling back to the fifteen-a-second CPU read. On the measurement machine's internal panel
-  the backdrop went from 6–10 to 95–130 refreshes a second, with the frame copy at about 1 ms (docs/adr/0087).
-  The setting's note, and the sentence shown when no live source can serve a screen, now say the screen is read
-  live rather than duplicated. Windows 10 keeps the GDI read, and a screen DXGI can duplicate keeps using it.
-- A frame captured by Windows Graphics Capture is published only when its picture differs from the one the card
-  already shows. Dragging the glass blur or refraction slider no longer competes with a full sheet upload and a
-  second blur at the compositor's frame rate, which made the drag stutter on a screen served by capture.
+- Glass themes on a screen that refuses desktop duplication now follow the desktop through Windows
+  Graphics Capture instead of falling back to the fifteen-a-second CPU read. On the measurement
+  machine's internal panel the backdrop went from 6–10 to 95–130 refreshes a second, with the frame
+  copy at about 1 ms (docs/adr/0087). The setting's note, and the sentence shown when no live source
+  can serve a screen, now say the screen is read live rather than duplicated. Windows 10 keeps the
+  GDI read, and a screen DXGI can duplicate keeps using it.
+- A frame captured by Windows Graphics Capture is published only when its picture differs from the
+  one the card already shows. Dragging the glass blur or refraction slider no longer competes with a
+  full sheet upload and a second blur at the compositor's frame rate, which made the drag stutter on
+  a screen served by capture.
+- Glass themes blur in two separable passes, removing the diagonal weave the single-pass blur left
+  at 125%.
+- The fan, the tab's folded corner and the style previews are drawn with analytic antialiasing, so
+  their diagonals no longer staircase at 125%.
+- A breadcrumb on the word card no longer repeats the card's own title at the root.
+- A filter change or a search no longer leaves either scrollbar's thumb mapped below its track.
+- The backdrop refresh note in settings is drawn on the reader's theme instead of staying a flat
+  panel.
 
 ## 1.7.5 - 2026-10-21
 
