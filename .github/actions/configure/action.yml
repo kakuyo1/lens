@@ -1,11 +1,12 @@
-# The three steps every job in ci.yml needs before it can do anything of its own: Qt, the MSVC
+# The three steps every job that builds needs before it can do anything of its own: Qt, the MSVC
 # environment, and a configured tree. The checkout stays in the workflow, because a local action
 # is read out of the workspace and there is no workspace until it has been checked out.
 #
-# One place and not five, for the reason config/paths.json exists: a Qt version and a preset name
-# written five times is four copies that drift. ilammy/msvc-dev-cmd and jurplel/install-qt-action
-# both publish what they find through GITHUB_ENV, so what they set reaches the calling job's later
-# steps -- which is why a step each in here is enough and nothing has to be passed back.
+# One place and not one copy per job, for the reason config/paths.json exists: a Qt version and a
+# preset name written everywhere is copies that drift. ilammy/msvc-dev-cmd and
+# jurplel/install-qt-action both publish what they find through GITHUB_ENV, so what they set
+# reaches the calling job's later steps -- which is why a step each in here is enough and nothing
+# has to be passed back.
 name: Configure a build tree
 description: Install Qt 6.9.0, enter the MSVC environment, and configure build-ninja against the ninja-qt6 preset.
 

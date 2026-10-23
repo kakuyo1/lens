@@ -11,7 +11,7 @@
 | `pet/` | 桌宠美术流水线：形状配方、网格写入、配饰对位、素材同步与审查图（见其 README 与 `docs/pet-art-pipeline.md`） |
 | `profiling/` | QML profiler、QML 结构指标和 trace 解析 |
 | `qa/` | 起应用、QTest 单条/整套、桌面驱动、截图、QML 快照和鼠标停顿探针；`qa/pet/` 是桌面宠物原型的逐动作对比与交互检查（见其 README） |
-| `quality/` | QML lint、分层边界检查、C++ / QML 覆盖率和 AST 指标 |
+| `quality/` | QML lint、分层边界检查、C++ / QML 覆盖率和 AST 指标；`zhlintrc.json` 是 CI 上排版检查用的仓库内配置 |
 | `release/` | 安装包构建和 GitHub Release 发布 |
 
 ## 构建与验证

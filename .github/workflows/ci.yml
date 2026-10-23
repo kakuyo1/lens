@@ -2,7 +2,7 @@
 # written, but nothing ever ran it -- it held only as long as someone
 # remembered to run it by hand.
 #
-# Six jobs, one concern each, so a red run says what broke instead of naming the one job that
+# Five jobs, one concern each, so a red run says what broke instead of naming the one job that
 # held everything:
 #
 #   unit          the offline gtest suite. The cheapest job in the file: it is the only suite
@@ -11,13 +11,20 @@
 #   app           the executable compiles and links. main.cpp, the translations and the icon
 #                 resources are compiled by no other target, so a break in any of them has no
 #                 other job to fail in.
+#   devsurface    the developer command surface compiles and answers its smoke script.
 #   qml           the QML module: build it, lint it, then run the component and surface suites
 #                 offscreen.
-#   coverage-cpp  the C++ line scan, report only.
-#   coverage-qml  the QML execution scan, report only.
 #   hygiene       the pre-commit hook's checks, over the files this change touches.
 #
-# Every job installs Qt and configures its own tree -- about 45 s of the fixed cost, paid five
+# Coverage is not here. It is report-only, and its two jobs are the longest in the file; running
+# them on a red gate spent twenty minutes proving nothing. .github/workflows/coverage.yml runs
+# them after a green CI instead, so this workflow's status is the merge gate and coverage is a
+# report that follows it.
+#
+# A push whose every changed file is documentation skips this workflow (paths-ignore below);
+# .github/workflows/docs.yml still runs the text checks over those files, without a build.
+#
+# Every job installs Qt and configures its own tree -- about 45 s of the fixed cost, paid four
 # times. That is the price of not shipping a build tree between jobs: a Debug tree with the PDBs
 # the coverage tools read is hundreds of megabytes, which costs more to upload and download than
 # the rebuild does. .github/actions/configure holds the four steps that would otherwise be five
@@ -25,22 +32,24 @@
 #
 # Not here on purpose: lens_gtest_integration needs a real mouse and the real clipboard, and
 # lens_gtest_smoke needs a real model and an API key. Both stay human-run; see TEST.md section 2.
-# The C++ coverage step inherits that split and runs four of the targets, not five.
-#
-# The coverage jobs report and do not gate. The numbers still move between runs of an unchanged
-# tree -- the QML trace's event counts vary from run to run, and each scan is over whatever
-# targets a machine can run, which is not the same set here as on a development box -- so a
-# threshold would fail on the weather. TEST.md section 4 carries the scope of both scans.
-# (The one that used to swing the C++ total, a known-red case in lens_gtest_integration, was
-# fixed on 2026-10-05; that wobble is gone, but the two above are not.)
 
 name: CI
 
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'ui-prototypes/**'
+      - 'LICENSE'
   pull_request:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'ui-prototypes/**'
+      - 'LICENSE'
 
 jobs:
   unit:
@@ -149,89 +158,6 @@ jobs:
           QT_QPA_PLATFORM: offscreen
           QT_FORCE_STDERR_LOGGING: 1
 
-  coverage-cpp:
-    runs-on: windows-latest
-
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: ./.github/actions/configure
-
-      # The four targets a runner can run, which is what the scan below is handed. lens is not
-      # among them: it is covered by nothing and would only be built for its own PDB.
-      - name: Build
-        run: cmake --build --preset ninja-qt6 --target lens_gtest_unit lens_gtest_perf lens_qtest_components lens_qtest_surfaces
-
-      # The image carries neither of the two coverage tools. OpenCppCoverage ships as one
-      # executable that reads a binary's PDB, so installing it is the whole setup; the version is
-      # pinned the way Qt's is, and TEST.md section 4 has the same line for a dev machine.
-      - name: Install OpenCppCoverage
-        run: |
-          $url = "https://github.com/OpenCppCoverage/OpenCppCoverage/releases/download/release-0.9.9.0/OpenCppCoverageSetup-x64-0.9.9.0.exe"
-          Invoke-WebRequest -Uri $url -OutFile "$env:TEMP\OpenCppCoverageSetup.exe"
-          Start-Process -FilePath "$env:TEMP\OpenCppCoverageSetup.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -Wait
-        shell: pwsh
-
-      # lens_gtest_integration is left out even though the script's default includes it: it
-      # drives the real mouse and the real clipboard.
-      - name: Coverage (C++)
-        run: bash scripts/quality/coverage.sh test/records/coverage lens_gtest_unit lens_gtest_perf lens_qtest_components lens_qtest_surfaces
-        shell: bash
-
-      # always(), because a red case is exactly when the report is worth reading. The file is the
-      # raw data behind the report under docs/metrics/.
-      - name: Upload coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-cpp
-          path: test/records/coverage/coverage.xml
-
-  coverage-qml:
-    runs-on: windows-latest
-
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: ./.github/actions/configure
-
-      # qmlprofiler launches the two QTest binaries itself, so this is the same pair of suites
-      # the qml job runs -- measured instead of just checked.
-      - name: Build
-        run: cmake --build --preset ninja-qt6 --target lens_qtest_components lens_qtest_surfaces
-
-      # tree-sitter, for the parse tree the QML scan counts its denominator from. It is the same
-      # dependency the AST metrics use, so this is the one install both share.
-      #
-      # The grammar has no prebuilt binary for this platform, so npm builds it with node-gyp
-      # instead of downloading one -- and the runner's default Visual Studio is now 2026, which
-      # installs as 18.x. node-gyp could not read an 18.x version string until 12.1.0: before
-      # that it reports "unknown version undefined", then "could not find any Visual Studio
-      # installation to use", and stops, which reads like a missing install and is not one.
-      # npm 11.6.3 is the first that bundles node-gyp 12.1, and the runner is on npm 10, so
-      # moving npm is what fixes it. Pinning the job to windows-2022 would also work and was the
-      # wrong direction: it buys a compiler the image is retiring rather than a tool that can
-      # read the one it ships.
-      #
-      # It is also the longest step in the file, which is why it is in this job and not in the
-      # one above: the two scans share no tool, and running them in parallel keeps the 80 s of
-      # node-gyp off the C++ numbers' critical path.
-      - name: Install QML metric dependencies
-        run: |
-          npm install -g "npm@^11.6.3"
-          npm ci
-
-      - name: Coverage (QML)
-        run: bash scripts/quality/qml-coverage.sh
-        shell: bash
-
-      - name: Upload coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-qml
-          path: test/records/qmlcov/qml-coverage.json
-
   hygiene:
     runs-on: windows-latest
 
@@ -246,6 +172,11 @@ jobs:
       # developer's machine does. The hook finds it on PATH.
       - name: Install clang-format
         run: pip install clang-format==19.1.5
+
+      # Pinned to the version the docs' typography budgets were written against. The hook finds
+      # zhlint on PATH and uses the repository config when the machine's skill asset is absent.
+      - name: Install zhlint
+        run: npm install -g zhlint@0.8.2
 
       # The hook checks only the files a change touches, so a change to .clang-format would leave
       # every other file unchecked. This runs the whole tree on every push, so the config and the

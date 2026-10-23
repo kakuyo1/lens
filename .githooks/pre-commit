@@ -205,11 +205,13 @@ check_typography() {
     fi
 
     config=$(lens_path zhlintConfig)
-    if [ -z "$config" ]; then
-        echo "pre-commit: config/paths.json gave no zhlint config path, skipping typography"
+    # The machine value names a skill asset, which a runner does not have. The repository copy
+    # carries the same rules, so CI checks typography with it instead of skipping the check.
+    [ -n "$config" ] && [ -f "$config" ] || config="scripts/quality/zhlintrc.json"
+    if [ ! -f "$config" ]; then
+        echo "pre-commit: $config not found, skipping typography"
         return 0
     fi
-    [ -f "$config" ] || { echo "pre-commit: $config not found, skipping typography"; return 0; }
 
     status=0
     for doc in $staged; do

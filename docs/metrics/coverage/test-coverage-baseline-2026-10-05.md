@@ -175,7 +175,7 @@ C++ 行覆盖 **75.7%（1408/1860，26 个文件）**；QML 执行覆盖 **86.6%
 
 没做，且是故意的：
 
-- **不设阈值**（`.github/workflows/ci.yml` 的注释）。
+- **不设阈值**（`.github/workflows/coverage.yml` 的注释）。
 - **不为 `qsTr()` 标签、`profile.cpp`、`main.cpp` / `qt_log.cpp` 补测**（计划 §6）。
 - **`app_controller.cpp` 的时间与统计口径（约 507–553 行）没抽成纯函数**：计划 §3.1 列了它，但 §5 的
   六步次序里没有它，故留待后续。

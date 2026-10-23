@@ -1,0 +1,63 @@
+# The check a documentation-only change still gets.
+#
+# ci.yml skips when every changed file is documentation (its paths-ignore list), because no
+# target builds or tests a .md file. That skip must not take the documentation checks with it:
+# this workflow runs the same pre-commit text rules over just the documentation paths, with no
+# Qt, no compiler and no build tree.
+#
+# A mixed change runs both workflows; the restriction below keeps this one to the documentation
+# files even then, so it never half-checks code without the tools the hygiene job installs.
+#
+# The typography budgets and the zhlint config live in the hook and scripts/quality/zhlintrc.json.
+# The hook falls back to that copy when the machine's skill asset is absent, which is the case on
+# a runner.
+
+name: Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**.md'
+      - 'docs/**'
+      - 'ui-prototypes/**'
+      - 'LICENSE'
+  pull_request:
+    branches: [main]
+    paths:
+      - '**.md'
+      - 'docs/**'
+      - 'ui-prototypes/**'
+      - 'LICENSE'
+
+jobs:
+  text:
+    name: Text checks
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      # Pinned to the version the docs' typography budgets were written against. The hook uses it
+      # from PATH; the repository config supplies the rules on a runner.
+      - name: Install zhlint
+        run: npm install -g zhlint@0.8.2
+
+      # The same diff base the hygiene job uses: a pull request against its target, a push against
+      # the head it replaced. A brand-new branch's zero "before" has no tree to diff, so the
+      # previous commit stands in; a branch's first push then checks that commit's docs.
+      - name: Text and guard checks
+        shell: bash
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          LENS_SKIP_QML: "1"
+        run: |
+          if [ -z "$BASE" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            BASE=$(git rev-parse HEAD^ 2>/dev/null || git rev-parse HEAD)
+          fi
+          changed=$(git diff --name-only --diff-filter=ACM "$BASE" HEAD)
+          files=$(printf '%s\n' "$changed" | grep -E '(^|/)docs/|\.md$|^ui-prototypes/|^LICENSE$' || true)
+          [ -n "$files" ] || exit 0
+          LENS_CHECK_FILES="$files" sh .githooks/pre-commit

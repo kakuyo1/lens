@@ -1,0 +1,131 @@
+# The coverage scans, after the gate rather than inside it.
+#
+# Both jobs report and do not gate: the numbers move between runs of an unchanged tree -- the QML
+# trace's event counts vary from run to run, and each scan is over whatever targets a machine can
+# run, which is not the same set here as on a development box -- so a threshold would fail on the
+# weather. TEST.md section 4 carries the scope of both scans. (The one that used to swing the C++
+# total, a known-red case in lens_gtest_integration, was fixed on 2026-10-05; that wobble is gone,
+# but the two above are not.)
+#
+# They are also the longest pair in the repository. Running them inside ci.yml meant a qml failure
+# at six minutes still spent twenty more minutes proving nothing, and a green run's overall status
+# was coverage-cpp's twenty minutes rather than the gate's six. This workflow starts only after CI
+# succeeds, so a red gate costs no coverage time and the merge gate is CI's own status.
+#
+# workflow_run's checkout is the head of the run that triggered it, never this workflow's default
+# branch: a pull request's coverage must measure the pull request's commit. A newer push on the
+# same branch cancels an older scan; the latest commit is the one whose report matters.
+#
+# workflow_run can see the base repository's token, so untrusted code is kept out: a run whose
+# head repository is a fork is skipped, and the token is read-only. The scans need no secrets.
+
+name: Coverage
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: coverage-${{ github.event.workflow_run.head_branch || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  coverage-cpp:
+    if: >-
+      github.event_name == 'workflow_dispatch'
+      || (github.event.workflow_run.conclusion == 'success'
+          && github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: ./.github/actions/configure
+
+      # The four targets a runner can run, which is what the scan below is handed. lens is not
+      # among them: it is covered by nothing and would only be built for its own PDB.
+      - name: Build
+        run: cmake --build --preset ninja-qt6 --target lens_gtest_unit lens_gtest_perf lens_qtest_components lens_qtest_surfaces
+
+      # The image carries neither of the two coverage tools. OpenCppCoverage ships as one
+      # executable that reads a binary's PDB, so installing it is the whole setup; the version is
+      # pinned the way Qt's is, and TEST.md section 4 has the same line for a dev machine.
+      - name: Install OpenCppCoverage
+        run: |
+          $url = "https://github.com/OpenCppCoverage/OpenCppCoverage/releases/download/release-0.9.9.0/OpenCppCoverageSetup-x64-0.9.9.0.exe"
+          Invoke-WebRequest -Uri $url -OutFile "$env:TEMP\OpenCppCoverageSetup.exe"
+          Start-Process -FilePath "$env:TEMP\OpenCppCoverageSetup.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -Wait
+        shell: pwsh
+
+      # lens_gtest_integration is left out even though the script's default includes it: it
+      # drives the real mouse and the real clipboard.
+      - name: Coverage (C++)
+        run: bash scripts/quality/coverage.sh test/records/coverage lens_gtest_unit lens_gtest_perf lens_qtest_components lens_qtest_surfaces
+        shell: bash
+
+      # always(), because a red case is exactly when the report is worth reading. The file is the
+      # raw data behind the report under docs/metrics/.
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-cpp
+          path: test/records/coverage/coverage.xml
+
+  coverage-qml:
+    if: >-
+      github.event_name == 'workflow_dispatch'
+      || (github.event.workflow_run.conclusion == 'success'
+          && github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: ./.github/actions/configure
+
+      # qmlprofiler launches the two QTest binaries itself, so this is the same pair of suites
+      # the qml job runs -- measured instead of just checked.
+      - name: Build
+        run: cmake --build --preset ninja-qt6 --target lens_qtest_components lens_qtest_surfaces
+
+      # tree-sitter, for the parse tree the QML scan counts its denominator from. It is the same
+      # dependency the AST metrics use, so this is the one install both share.
+      #
+      # The grammar has no prebuilt binary for this platform, so npm builds it with node-gyp
+      # instead of downloading one -- and the runner's default Visual Studio is now 2026, which
+      # installs as 18.x. node-gyp could not read an 18.x version string until 12.1.0: before
+      # that it reports "unknown version undefined", then "could not find any Visual Studio
+      # installation to use", and stops, which reads like a missing install and is not one.
+      # npm 11.6.3 is the first that bundles node-gyp 12.1, and the runner is on npm 10, so
+      # moving npm is what fixes it. Pinning the job to windows-2022 would also work and was the
+      # wrong direction: it buys a compiler the image is retiring rather than a tool that can
+      # read the one it ships.
+      #
+      # It is also the longest step in this job, which is why the C++ scan is a separate job:
+      # the two share no tool, and running them in parallel keeps node-gyp off the C++ numbers'
+      # critical path.
+      - name: Install QML metric dependencies
+        run: |
+          npm install -g "npm@^11.6.3"
+          npm ci
+
+      - name: Coverage (QML)
+        run: bash scripts/quality/qml-coverage.sh
+        shell: bash
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-qml
+          path: test/records/qmlcov/qml-coverage.json
