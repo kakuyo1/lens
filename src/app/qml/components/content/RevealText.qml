@@ -6,27 +6,22 @@ import QtQuick.Effects
 /**
  * One field of an answer, written out one character at a time (UI-SPEC.md 4.3).
  *
- * The answer streams in and the model finishes it in a jump or two, so a field used to arrive
- * whole. This paces the field itself: one character every `characterMs`, whatever the transport
- * did -- an answer that arrived in one lump is written out at the same speed. The characters are
- * the model's; only the pace is the view's.
+ * The field is paced here, one character every `characterMs`, whatever the transport did: an answer that arrived in one
+ * lump is written out at the same speed. The characters are the model's; only the pace is the view's.
  *
- * The target only grows. A chunk arriving mid-reveal extends `text`, and the cursor carries on from
- * where it stood: starting the field over is the stutter this exists to prevent. The layout grows
- * with it: an extending chunk lays only the token it touched again, so the characters already on
- * the card are neither measured nor re-created by the next one.
+ * The target only grows. A chunk arriving mid-reveal extends `text` and the cursor carries on from where it stood --
+ * starting over is the stutter this exists to prevent. An extending chunk lays only the token it touched again, so the
+ * characters already on the card are neither measured nor re-created.
  *
- * Each character appears soft and sharpens over `blurMs`, which is a fixed multiple of the pace
- * rather than a fixed number of milliseconds: the reader's speed setting moves `characterMs`, and
- * the blur follows it so the tail stays a handful of characters whatever they pick. Only the
- * characters still sharpening are drawn with a blur; everything settled is plain text. That is what
- * keeps the shader count at the tail of the text rather than at the length of the field.
+ * Each character appears soft and sharpens over `blurMs`, a fixed multiple of the pace rather than a fixed number of
+ * milliseconds: the reader's speed setting moves `characterMs`, the blur follows it, and the tail stays a handful of
+ * characters whatever they pick. Only the characters still sharpening carry a blur; everything settled is plain text.
+ * That keeps the shader count at the tail of the text rather than at the length of the field.
  *
- * A character cannot be blurred inside a Text, so every one of them is an item, laid out here. A
- * word is measured whole and the breaks fall between words, so a line never breaks inside one; the
- * price is that a glyph pair is not kerned. `measure` lays the same text out as the one Text the
- * field used to be, and its size is what the field reserves -- the card is its final size as soon
- * as the answer arrives, and the characters fill it in rather than pushing it down.
+ * A character cannot be blurred inside a Text, so every one of them is an item, laid out here. A word is measured whole
+ * and the breaks fall between words, so a line never breaks inside one; the price is that a glyph pair is not kerned.
+ * `measure` lays the same text out, and its size is what the field reserves: the card is its final size as soon as the
+ * answer arrives, and the characters fill it in rather than pushing it down.
  */
 Item {
     id: root
@@ -38,12 +33,10 @@ Item {
     property int pixelSize: 13
     property int weight: Font.Normal
     property color color: "black"
-    /// The family the field is drawn in, when it names one (UI-SPEC.md 4.4). Empty is the application's
-    /// own face, and it is left unsaid rather than written as an empty family: a Text told
-    /// `font.family: ""` does not fall back to the application's font, it falls back to whatever
-    /// the font database hands an unmatched request -- measured, Cascadia Code on this machine.
-    /// The measurement follows the family: the size the field reserves and every letter's place
-    /// are read off the font it ends up drawing with.
+    /// The family the field is drawn in, when it names one (UI-SPEC.md 4.4). Empty leaves the family unset rather than
+    /// writing "": a Text told `font.family: ""` does not fall back to the application's font but to whatever the font
+    /// database hands an unmatched request -- measured, Cascadia Code on this machine. The measurement follows the
+    /// family: the reserved size and every letter's place are read off the font it ends up drawing with.
     property string family: ""
     /// The line-height multiple the field is set with; Text's own default is one line.
     property real lineHeight: 1.0
@@ -60,9 +53,8 @@ Item {
     /// How long a character waits for the next one, in real milliseconds. The card sets it from the
     /// reader's speed setting (UI-SPEC.md 4.3); 35 is the pace the reveal shipped with.
     property int characterMs: 35
-    /// How much longer a character stays soft than it takes to appear. A ratio rather than a fixed
-    /// count so the shader count below does not grow as the reader slows the pace down. This is the
-    /// 180 ms blur the reveal shipped with, taken at the 35 ms pace.
+    /// How much longer a character stays soft than it takes to appear. A ratio, not a fixed count, so the shader count
+    /// below does not grow as the reader slows the pace. 180 ms at the 35 ms pace.
     readonly property real blurRatio: 180 / 35
     /// How long a character stays soft after it appears, at the pace in force.
     readonly property real blurMs: characterMs * blurRatio
@@ -164,8 +156,7 @@ Item {
 
     /// Whether a character belongs to a script that breaks between characters rather than at
     /// spaces. Latin words are measured whole; Chinese and Japanese runs have no spaces to break
-    /// at, and laying them as one word is what put a Chinese definition in a single line past the
-    /// card's edge.
+    /// at, and laid as one word a definition would run in a single line past the card's edge.
     readonly property var characterBreaks: /[\u2E80-\u2FFF\u3000-\u303F\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uAC00-\uD7AF\uF900-\uFAFF\uFF00-\uFFEF]/
 
     /// Lay every token from @p from to the end of the text, the first one at pen (@p x, @p y), and

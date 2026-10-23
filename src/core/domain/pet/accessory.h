@@ -46,7 +46,6 @@ struct Wardrobe {
     /// @throws std::invalid_argument If no accessory in the catalogue has this id.
     void toggle(std::string const& id);
 
-    /// @return Id of the accessory worn in `slot`, or nothing.
     std::optional<std::string> wornIn(Slot slot) const;
 
     /// @return Ids of the worn accessories that support `action`, in slot order.

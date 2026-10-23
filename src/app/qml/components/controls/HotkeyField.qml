@@ -6,9 +6,9 @@ import QtQuick
  * The capture trigger key, as a row the reader presses the combination into (UI-SPEC.md 4.4).
  *
  * The same lockup as SwitchRow -- a label and the value at opposite ends of one line -- because it
- * sits among those rows and answers the same kind of question. What the value is drawn with is the
- * one thing that differs: a combination is read key by key, so each part of it is a capsule the way
- * a keyboard's own key is lettered, and `Ctrl+Alt+S` reads as three keys rather than as a string.
+ * sits among those rows and answers the same kind of question. Only the value's drawing differs: a
+ * combination is read key by key, so each part of it is a capsule, and `Ctrl+Alt+S` reads as three
+ * keys rather than as a string.
  *
  * While it is recording, the row says what it is waiting for instead of showing the old
  * combination, and it takes the keyboard. The combination is not assembled here: the key and the
@@ -112,9 +112,9 @@ Item {
         }
     }
 
-    /// The line under the row: the one thing that goes wrong with a trigger, which is that no key
-    /// press of the reader's reaches it. Nothing is said about which, because there are only two
-    /// ways to get here and the reader is the one who chose the combination.
+    /// The line under the row: a trigger conflicts when no key press of the reader's reaches it.
+    /// Nothing is said about which, because there are only two ways to get here and the reader is
+    /// the one who chose the combination.
     Text {
         id: warning
         anchors.top: box.bottom

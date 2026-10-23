@@ -69,7 +69,7 @@ constexpr std::size_t openerCount()
 }
 
 /// The opener table, read straight off the surface rows rather than kept as a second hand-written
-/// copy that used to drift from the surface names (docs/adr/0084).
+/// copy that would drift from the surface names (docs/adr/0084).
 constexpr std::array<Opener, openerCount()> kOpeners = [] {
     std::array<Opener, openerCount()> openers{};
     std::size_t                       index = 0;
@@ -306,7 +306,7 @@ nlohmann::json DevSurface::setSetting(core::dev::Command const& command)
     }
 
     // One call: the settings table owns the key, its clamp and the signal the write raises, so this
-    // surface no longer replays a setter per key it is allowed to touch (docs/adr/0083).
+    // surface does not replay a setter per key it is allowed to touch (docs/adr/0083).
     const std::string key{core::dev::settingKeyName(command.settingKey)};
     QVariant          value;
     if (auto const* const text = std::get_if<std::string>(&command.settingValue))

@@ -15,10 +15,9 @@ Item {
 
     width: entry.host.cardWidth - 40
 
-    /// What this row needs to draw itself whole: the card's padding, the word
-    /// at its unelided width, the gap, and the right-hand cluster. The card is
-    /// sized to the widest of these, so the row hands it over rather than
-    /// having its text measured from outside.
+    /// What this row needs to draw itself whole: the card's padding, the word at its unelided width,
+    /// the gap, and the right-hand cluster. The card is sized to the widest of these, so the row hands
+    /// it over rather than having its text measured from outside.
     readonly property real naturalWidth: 40 + wordText.implicitWidth + 9 + side.width
     onNaturalWidthChanged: entry.host.noteRowWidth(naturalWidth)
     Component.onCompleted: entry.host.noteRowWidth(naturalWidth)
@@ -35,11 +34,10 @@ Item {
     readonly property bool removing: entry.host.removingWords[modelData.word] === true
     readonly property bool shown: inScope && !removing
 
-    // Rows arrive and leave by height, which is what the list lays out: a
-    // model change rebuilds every delegate, so ListView's add/remove
-    // transitions never run. `visible` follows the animation, not the
-    // filter, so a row on its way out is still drawn while it collapses;
-    // `clip` keeps its contents off the rows it is collapsing between.
+    // Rows arrive and leave by height, which is what the list lays out: a model change rebuilds
+    // every delegate, so ListView's add/remove transitions never run. `visible` follows the
+    // animation, not the filter, so a row on its way out is still drawn while it collapses; `clip`
+    // keeps its contents off the rows it is collapsing between.
     height: shown ? 31 : 0
     visible: shown || height > 0
     opacity: shown ? 1 : 0
@@ -61,32 +59,28 @@ Item {
         id: reviewDwell
         interval: 400
         onTriggered: {
-            // 40 px up, not taste: the bubble's window carries
-            // `Bubble.shadowMargin` (26) of transparent shadow and stands 10 px
-            // off its anchor, so anchoring at the word would put the window's
-            // edge back over it -- unhover, bubble down, word under the pointer
-            // again, round and round.
+            // 40 px up: the bubble's window carries `Bubble.shadowMargin` (26) of transparent shadow
+            // and stands 10 px off its anchor, so anchoring at the word would put the window's edge
+            // back over it -- unhover, bubble down, word under the pointer again.
             const at = wordText.mapToGlobal(0, -40);
-            // The screen's scale on the way out because SurfaceHost.qml anchors every
-            // surface from the physical pixels the mouse hook reports; it comes
-            // back exactly at this point, whatever the monitor's native origin.
+            // The screen's scale on the way out because SurfaceHost.qml anchors every surface from
+            // the physical pixels the mouse hook reports; it comes back exactly here, whatever the
+            // monitor's native origin.
             const ratio = Screen.devicePixelRatio || 1;
             Controller.reviewWord(entry.modelData.word, Math.round(at.x * ratio), Math.round(at.y * ratio));
         }
     }
 
-    /// The row is going away -- a filter change rebuilds every delegate -- and
-    /// a bubble it raised must not outlive it. It is the pointer leaving the
-    /// row in every sense but the event: a destroyed delegate reports no
-    /// un-hover.
+    /// The row is going away -- a filter change rebuilds every delegate -- and a bubble it raised
+    /// must not outlive it. This is the pointer leaving in every sense but the event: a destroyed
+    /// delegate reports no un-hover.
     Component.onDestruction: Controller.explanationDuty.dismissReview()
 
     Text {
         id: wordText
         anchors.left: parent.left
-        // The word takes what the right-hand side leaves. The card is sized
-        // to the widest row, so this bites only past maxCardWidth: a word
-        // longer than that elides rather than pushing the pills off the card.
+        // The word takes what the right-hand side leaves. The card is sized to the widest row, so this
+        // bites only past maxCardWidth: a longer word elides rather than pushing the pills off the card.
         anchors.right: side.left
         anchors.rightMargin: 9
         anchors.verticalCenter: parent.verticalCenter
@@ -96,11 +90,10 @@ Item {
         font.pixelSize: 13
         elide: Text.ElideRight
 
-        // Pointing at the word, not at the row it sits in: the rest of the row
-        // is the metadata and the two verdict pills, and a reading is not what a
-        // pointer crossing those is after. The word hands over the text it is
-        // already drawing rather than a case looking it up in Controller.words
-        // -- that walk measured ~170 ms a row (docs/QML.md section 6).
+        // Pointing at the word, not the row: the rest is metadata and verdict pills, which a pointer
+        // crossing them is not after a reading of. The word hands over the text it is already drawing
+        // rather than a case looking it up in Controller.words -- that walk measured ~170 ms a row
+        // (docs/QML.md section 6).
         HoverHandler {
             onHoveredChanged: {
                 if (hovered) {
@@ -121,9 +114,8 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         spacing: 8
 
-        // When the word was last shown, and how many times it has been.
-        // Both are the same faint metadata, so they sit in one cluster
-        // rather than as two more columns.
+        // When the word was last shown, and how many times: the same faint metadata, so one cluster
+        // rather than two more columns.
         Row {
             id: meta
             anchors.verticalCenter: parent.verticalCenter
@@ -146,9 +138,8 @@ Item {
             }
         }
 
-        // The bubble's two verdict pills, in the same two shapes, with
-        // this word's verdict filled instead of both being actions. A word
-        // that was never marked leaves both plain, which is what it is.
+        // The bubble's two verdict pills, in the same two shapes, with this word's verdict filled
+        // instead of both being actions; a word never marked leaves both plain.
         Row {
             anchors.verticalCenter: parent.verticalCenter
             spacing: 6

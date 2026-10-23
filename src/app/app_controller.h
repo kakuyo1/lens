@@ -62,7 +62,6 @@ public:
      * @param hotkey System-wide capture trigger, owned by main().
      * @param pricing Loaded model price list, owned by main().
      * @param dataDir Directory `data/update.json` is read from, the same one `data/llm/` is.
-     * @param parent QObject parent.
      */
     AppController(core::KnownStore&            store,
                   llm::LlmClient&              llm,
@@ -115,7 +114,7 @@ public:
      * keeps its own entry: the API key, the service, the trigger key and the daily budget.
      *
      * @param key   The document key, as `settings` reads it.
-     * @param value The value to store: a number, a switch or a string.
+     * @param value A number, a switch or a string.
      * @return False when the key is not in the table, or when its row refuses the value; nothing was
      *         written then.
      */
@@ -168,8 +167,8 @@ public:
     Q_INVOKABLE bool    setDailyBudget(double amount);
 
     /// @note Not const, and the only projection that is not: reading a document key goes through a
-    ///       section, which is a writable view. Every other dependency is borrowed by reference and
-    ///       this one is owned, which is what makes the difference; see docs/adr/0024.
+    ///       section, which is a writable view. Every other dependency is borrowed by reference;
+    ///       this one is owned. See docs/adr/0024.
     QVariantMap  settings();
     QVariantList words() const;
     /// @brief The last 365 local dates, including zero-use days, for the annual words surface.
@@ -200,11 +199,11 @@ public:
     /**
      * @brief The demo card the settings preview draws, out of `data/preview.json` (UI-SPEC.md 4.4).
      *
-     * The keys are `word`, `ipa`, `signpost`, `collocations`, `example`, and `definition`,
-     * `etymology`, `senses` -- the last three carrying one entry per explanation language, and
-     * the signpost and collocations plain English like a real answer's. QML builds a payload out of it
+     * Keys: `word`, `ipa`, `signpost`, `collocations`, `example`, `definition`, `etymology`,
+     * `senses` -- the last three carry one entry per explanation language, and the signpost and
+     * collocations are plain English like a real answer's. QML builds a payload out of it
      * (components/PreviewSample.qml); nothing here has to know what a setting is. The map is empty
-     * when the file could not be read, and the preview then simply does not come up.
+     * when the file could not be read, and the preview then does not come up.
      */
     QVariantMap settingPreview() const;
 

@@ -3,10 +3,10 @@
  * @brief The explanation cache module's interface: the context a request goes out under, the mask
  *        that makes the sense mode the word channel's business, and what a stored entry is worth.
  *
- * Every case here is about the module rather than about one call site, which is the point of the
- * refactor: the duty and the review ask the module instead of building a context and re-deriving
- * the example rule, so these cases put each rule on the table without a client, a cost duty, a
- * pricing file or an event loop -- just a store on a temp file.
+ * Every case here is about the module rather than about one call site: the duty and the review
+ * ask the module instead of building a context and re-deriving the example rule, so these cases
+ * put each rule on the table without a client, a cost duty, a pricing file or an event loop --
+ * just a store on a temp file.
  */
 
 #include <gtest/gtest.h>
@@ -58,7 +58,7 @@ protected:
     std::unique_ptr<ExplanationCache> cache;
 };
 
-/// The one spelling of the rule the duty and the queue used to write three and two times.
+/// The one spelling of a rule the duty and the queue each wrote their own copy of.
 TEST_F(ExplanationCacheTest, TheSenseModeCountsOnlyOnTheWordChannel)
 {
     store->document()["multiSense"] = "true";

@@ -98,8 +98,8 @@ bool Tray::show()
         LENS_CRITICAL("no system tray on this desktop; the app has no way to be reached");
         return false;
     }
-    // An icon that failed to load leaves the tray showing a blank slot, which reads as a
-    // missing app rather than a broken resource path.
+    // An icon that failed to load leaves a blank slot in the tray, which reads as a missing app
+    // rather than a broken resource path.
     if (icon_->icon().isNull())
         LENS_ERROR("the tray icon did not load; check the :/icons resources");
 

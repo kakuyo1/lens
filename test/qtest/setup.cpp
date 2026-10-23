@@ -134,8 +134,8 @@ public:
 
 /// @brief A manager that answers nothing, so this target never reaches the network.
 ///
-/// Not a stub of some answer: every request fails at once, which is what "this machine has no
-/// network" looks like to LlmClient -- the model-list fetch warns and leaves the caches alone.
+/// Every request fails at once, which is what "this machine has no network" looks like to
+/// LlmClient: the model-list fetch warns and leaves the caches alone.
 class OfflineManager final : public QNetworkAccessManager {
 protected:
     QNetworkReply* createRequest(Operation, const QNetworkRequest&, QIODevice*) override
@@ -173,10 +173,10 @@ struct Singletons {
 /**
  * @brief Copy the checked-in settings fixture somewhere writable, and return that path.
  *
- * The cases run against a fixture rather than the developer's settings.local.json twice over:
- * an assertion has to see the same values on every machine, and the settings popup's setters
- * persist -- pointed at the repository's copy, one case that switched the theme would rewrite
- * a tracked file.
+ * The cases run against a fixture rather than the developer's settings.local.json, for two
+ * reasons: an assertion has to see the same values on every machine, and the settings popup's
+ * setters persist -- pointed at the repository's copy, one case that switched the theme would
+ * rewrite a tracked file.
  */
 QString writableSettingsCopy()
 {
@@ -200,15 +200,14 @@ Singletons& singletons()
         built.settingsPath = writableSettingsCopy();
         built.store        = std::make_unique<KnownStore>(KnownStore::load(std::filesystem::path(built.settingsPath.toStdString())));
         // No key and no URL, and a manager that refuses everything: nothing in this target asks
-        // the model anything, and a config that could reach the network is one a case could
-        // accidentally spend money through. The manager is not belt-and-braces -- an empty key no
-        // longer keeps this target off the net, because the model list comes from one
-        // unauthenticated source (docs/adr/0020), so a startup refresh really did reach
-        // openrouter.ai on every run, and the model that then followed the service was that
-        // slice's first id rather than the catalog seed the cases assert. The model is named
-        // anyway, the way main() defaults one -- AppController prices every cost row with it, and
-        // a client built from a default Config reports an empty model, which made each of those
-        // calls warn that it had no rate: 280 lines a run, none of them news.
+        // the model anything, and a reachable config would let a case spend money. The manager
+        // is not redundancy: an empty key alone no longer keeps this target off the net, because
+        // the model list comes from one unauthenticated source (docs/adr/0020), so a startup
+        // refresh reached openrouter.ai on every run, and the model that followed the service
+        // overrode the catalog seed the cases assert. The model is named anyway, the way main()
+        // defaults one: AppController prices every cost row with it, and a client built from a
+        // default Config reports an empty model, which made every call warn that it had no rate
+        // -- 280 lines a run.
         static OfflineManager offline;
         built.llm = std::make_unique<lens::llm::LlmClient>(
             lens::llm::Config{QUrl{}, QString{}, QStringLiteral("deepseek-flash")}, &offline);

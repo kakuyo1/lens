@@ -33,7 +33,7 @@ ExplanationCache::Look ExplanationCache::look(std::string const& lemma, CacheCon
     if (not cached)
         return {};
     // docs/adr/0033: an entry bought without asking for an example is not an answer while the
-    // setting is on -- it has to be bought again. An empty example is a settled answer, and is.
+    // setting is on -- it has to be bought again. An empty example is a settled answer, so it hits.
     if (store_.section().value<bool>("example", false) and not cached->example)
         return {State::Rebuy, std::move(*cached)};
     return {State::Hit, std::move(*cached)};

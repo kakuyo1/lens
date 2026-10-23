@@ -24,7 +24,6 @@ Item {
 
     /// Whether the row is open: the pointer on the card, and a word to judge.
     readonly property bool show: root.hovering && root.status !== ""
-    /// The height the row reaches when open.
     readonly property real openHeight: actions.height + 25
 
     width: parent ? parent.width : 0

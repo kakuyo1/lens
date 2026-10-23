@@ -46,7 +46,6 @@
  * to process.
  *
  * @param name Instrument key, a string literal.
- * @param n    Amount to add.
  */
 #define LENS_PROFILE_COUNT(name, n) ::lens::util::profile::count((name), (n))
 
@@ -93,7 +92,6 @@ private:
 /**
  * @brief Add @p n to @p name's counter.
  * @param name Instrument key; see ScopeTimer.
- * @param n    Amount to add.
  */
 void count(const char* name, std::uint64_t n = 1);
 

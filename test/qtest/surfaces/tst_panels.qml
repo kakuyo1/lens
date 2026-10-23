@@ -8,10 +8,9 @@ import "../testutil.js" as Util
  * the word list.
  *
  * Each is built by one expression per figure, off a QVariantMap the controller builds, so the
- * failure worth catching is a key that does not exist -- which draws as "undefined" or as a
- * zero and reads as a quiet figure rather than as an error. The rows are reached through
- * StatRow's own label and value rather than by matching rendered strings, which is what keeps
- * these from turning into a second copy of the panels.
+ * failure to catch is a key that does not exist -- it draws as "undefined" or as a zero, a quiet
+ * figure rather than an error. The rows are reached through StatRow's own label and value rather
+ * than by matching rendered strings, so the cases do not become a second copy of the panels.
  */
 Item {
     id: root
@@ -466,9 +465,9 @@ Item {
 
         /// The confirmation the cross opens, and the answer that carries it out.
         ///
-        /// Not the controller call, which was never in doubt, but the path through the card: the
-        /// cross names the word, the question draws it, the answer reaches Controller.removeWord,
-        /// and the list follows.
+        /// What is tested is the path through the card, not the controller call: the cross names
+        /// the word, the question draws it, the answer reaches Controller.removeWord, and the
+        /// list follows.
         function test_theDeleteCrossAsksBeforeTheWordGoes() {
             const popup = make(wordsComponent);
             popup.visible = true;
@@ -496,8 +495,8 @@ Item {
         }
 
         /// One removal a run is asked about, and the question opens with "do not ask again" on,
-        /// so the second deletion is a deletion. Wrong on the real machine: the switch started
-        /// off, and a reader who did not touch it was asked on every removal.
+        /// so the second deletion is a deletion -- the switch used to start off, asking a reader
+        /// who never touched it on every removal.
         function test_theAskedQuestionSilencesItselfByDefault() {
             const popup = make(wordsComponent);
             popup.visible = true;

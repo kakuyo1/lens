@@ -9,10 +9,10 @@
  * @file paths.h
  * @brief The path helpers src/app needs, and the one of them that draws a boundary.
  *
- * The three conversions are what main.cpp used to keep to itself. settingsPath() moved out of
- * main.cpp's anonymous namespace because nothing in there can be reached from a test, and the
- * boundary it draws -- the reader's API key rides in that document, so the document belongs to
- * the profile and never to the install tree -- is the one a case locks.
+ * These live here rather than in main.cpp's anonymous namespace because nothing in there can be
+ * reached from a test. The boundary settingsPath() draws -- the reader's API key rides in that
+ * document, so the document belongs to the profile and never to the install tree -- is the one a
+ * case locks.
  */
 
 namespace lens::app {
@@ -44,9 +44,9 @@ inline std::string narrow(const std::filesystem::path& path)
  * be read-only under Program Files, and it is shared by every account, while the document
  * carries one reader's API key and word marks.
  *
- * The document used to live at the repository root. A first run whose profile copy is missing
- * copies that one over, once, so a key already configured keeps working. Only the path is ever
- * logged -- the document holds the key, and its contents do not belong in a log.
+ * A first run whose profile copy is missing copies @p legacy over, once, so a key already
+ * configured keeps working. Only the path is ever logged -- the document holds the key, and
+ * its contents do not belong in a log.
  *
  * @param legacy Document to carry over from, when the profile has none yet. May be empty.
  * @return The path to load and save; its directory exists on return unless it could not be

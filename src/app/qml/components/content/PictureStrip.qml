@@ -7,18 +7,16 @@ import QtQuick.Effects
 /**
  * One sense's pictures, as the card draws them (IMAGES.md 2.2, 2.3).
  *
- * Three states and no fourth: a skeleton while the lookup runs, the thumbnails with their caption and
- * attribution once it lands, and one line offering the image search when nothing could be shown. A
- * strip never shows an empty slot or a broken picture -- what arrived is what is drawn (IMAGES.md
- * 2.2).
+ * Three states: a skeleton while the lookup runs, the thumbnails with their caption and attribution once it lands, and
+ * one line offering the image search when nothing could be shown. A strip never shows an empty slot or a broken
+ * picture -- what arrived is what is drawn (IMAGES.md 2.2).
  *
- * The strip is not glass and adds no colour of its own: the skeleton is drawn in the card's line
- * token and the two text lines in its text tokens, so it reads as part of the card rather than as a
- * second surface on it. Only the corners of a photograph are rounded; the picture itself stays
- * rectangular, because a blurred photograph is a second, unreadable thing.
+ * The strip is not glass and adds no colour of its own: the skeleton is drawn in the card's line token and the two text
+ * lines in its text tokens, so it reads as part of the card. Only the corners of a photograph are rounded; the picture
+ * itself stays rectangular, because a blurred photograph is unreadable.
  *
- * The state lives on the duty, keyed by the query: a strip whose own query is not the one the duty is
- * answering for has been collapsed or replaced, and draws nothing (IMAGES.md 2.2).
+ * The state lives on the duty, keyed by the query: a strip whose own query is not the one the duty is answering for has
+ * been collapsed or replaced, and draws nothing (IMAGES.md 2.2).
  */
 Item {
     id: root

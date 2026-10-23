@@ -2,9 +2,8 @@
  * @file surface_table_test.cpp
  * @brief Offline tests for the one surface table (core/domain/surface_table.h).
  *
- * The table replaced four hand-written lists of the same windows that had drifted. These tests hold
- * the topology those lists were supposed to agree on, so a row mis-flagged fails here rather than
- * resolving to nullptr at GlassBackdrop::surface() in silence (docs/adr/0084).
+ * These tests hold the windows' topology as the one table declares it, so a row mis-flagged fails
+ * here rather than resolving to nullptr at GlassBackdrop::surface() in silence (docs/adr/0084).
  */
 
 #include <gtest/gtest.h>

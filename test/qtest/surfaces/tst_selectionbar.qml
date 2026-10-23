@@ -8,10 +8,9 @@ import "../testutil.js" as Util
  *
  * Pressing one of the items also arms the card's DragHandler, whose grab reads
  * Controller.cursorPos(); with no Controller behind it that read trips an assert in the
- * singleton's factory and takes the process down, so the bar could only be checked at all once
- * this target existed. What it buys is the bug that was fixed by hand: the item read `pressed`
- * off a HoverHandler, which has no such property, so the press never shrank it and nothing but
- * an eye could tell.
+ * singleton's factory and takes the process down, so only this target can check the press. The
+ * bug pinned here: the item read `pressed` off a HoverHandler, which has no such property, so
+ * the press never shrank it and nothing but an eye could tell.
  */
 Item {
     id: root

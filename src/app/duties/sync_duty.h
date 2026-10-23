@@ -44,7 +44,6 @@ public:
      * @brief Bind the sync to the settings document and read the OAuth App's client id.
      * @param storage The document owner; the `sync` object is this duty's section of it.
      * @param dataDir Directory `sync.json` is read from, the same one `update.json` is.
-     * @param parent  QObject parent.
      */
     SyncDuty(StorageDuty& storage, const std::filesystem::path& dataDir, QObject* parent = nullptr);
 

@@ -56,7 +56,7 @@ QKeySequence storedHotkey(StorageDuty& storage)
 ///
 /// The settings preview's demo card is a nicety, and one it cannot read is not worth a refused
 /// start: an empty map makes PreviewSample.payload() answer null, and the preview then does not
-/// come up at all. Only the path is logged -- the reading that failed is the file's, not a field's.
+/// come up at all. Only the path is logged -- the failure is the file's, not a field's.
 QVariantMap loadPreviewSample(const std::filesystem::path& file)
 {
     QFile document(widen(file));
@@ -134,7 +134,7 @@ AppController::AppController(core::KnownStore&            store,
         emit yearDaysChanged();
     });
     // A pop is recorded by ExplanationDuty straight into the store, so the duty that projects
-    // today's figures has to be told as well; QML now reads them from Controller.costDuty.
+    // today's figures has to be told as well; QML reads them from Controller.costDuty.
     connect(&explanation_, &ExplanationDuty::statsChanged, &cost_, &CostDuty::statsChanged);
     connect(&explanation_, &ExplanationDuty::petEvent, this, &AppController::petEvent);
     connect(&reviewDuty_, &ReviewDuty::wordChanged, this, &AppController::reviewQuestionChanged);
@@ -248,8 +248,8 @@ void AppController::restoreCaptureDefaults()
 
 void AppController::restoreDefaults()
 {
-    // Every row the panel owns, written through the same path the reader's own choice takes, so the
-    // clamp and the members are the ones a restore would be held to as well. The capture rows are
+    // Every row the panel owns, written through the same path the reader's own choice takes, so
+    // the clamp and the members hold on a restore too. The capture rows are
     // restoreCaptureDefaults()'s: its writes rebuild the OCR engine, which is more than a value.
     for (auto const& row : core::settings::kRows)
         if (row.restorable and row.signal != core::settings::Signal::Capture)
@@ -384,13 +384,13 @@ void AppController::onTriggerHotkey()
 void AppController::reportCaptureRefusal(CaptureRefusal const refusal)
 {
     // The runtime's own states are worded where the settings page words them, so a reader who is
-    // told why from here reads the same sentence they read beside the switch. Every context is
-    // written out at its call: lupdate reads literal arguments only, and a context in a variable
-    // extracts nothing.
+    // told why from here reads the sentence they read beside the switch. Every context is written
+    // out at its call: lupdate reads literal arguments only, and a context in a variable extracts
+    // nothing.
     //
-    // A switch with no default arm, so a reason added to CaptureRefusal has to be given a sentence
-    // here instead of falling into the last one. Four of them share a sentence today, and that is
-    // written out case by case rather than left to whatever the chain ended with.
+    // No default arm: a reason added to CaptureRefusal needs a sentence here instead of falling
+    // into the last one. The four that share a sentence are written out case by case rather than
+    // left to whatever the chain ended with.
     QString body;
     switch (refusal) {
         case CaptureRefusal::ScreenshotOff: body = tr("Screenshot capture is off."); break;

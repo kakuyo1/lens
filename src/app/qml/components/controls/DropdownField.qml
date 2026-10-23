@@ -7,33 +7,28 @@ import "../../util/Numbers.js" as Numbers
 /**
  * The collapsed dropdown from UI-SPEC.md 4.4, and the grouped list it opens.
  *
- * The list is a window of its own rather than a child item: the settings panel is exactly as
- * tall as its contents, so a list drawn inside it would be clipped the moment it opened.
+ * The list is a window of its own rather than a child item: the settings panel is exactly as tall as its contents, so a
+ * list drawn inside it would be clipped the moment it opened.
  *
- * Two shapes share the one component because they share the list. A field the reader only picks
- * from shows the current option's label, and the whole field opens the list -- and puts it down
- * again on a second press. An `editable` one
- * shows what was typed instead, and there only the chevron opens the list -- the rest of the
- * field is the reader's cursor, which is what makes a model name the service never listed
- * reachable by hand (UI-SPEC.md 4.4, docs/adr/0017).
+ * Two shapes share the one component because they share the list. A field the reader only picks from shows the current
+ * option's label, and the whole field opens the list and puts it down again on a second press. An `editable` one shows
+ * what was typed instead, and there only the chevron opens the list -- the rest of the field is the reader's cursor,
+ * which is what makes a model name the service never listed reachable by hand (UI-SPEC.md 4.4, docs/adr/0017).
  *
- * Typing in the editable shape is also how the list is searched: a keystroke narrows the rows to
- * the options whose `value` contains what was typed, and brings the list up by itself, so the
- * reader never presses the chevron to look. It comes down on three things -- the text becoming one
- * of the ids in the list, a row being picked, and a field the reader has emptied -- and it never
- * comes up at all for a search that matches nothing, because an empty card is not a dropdown. The
- * text is never rewritten: a private deployment name the catalogue has never heard of is the reason
- * this field is typeable at all, so an exact match closes the list and changes nothing else.
+ * Typing in the editable shape is also how the list is searched: a keystroke narrows the rows to the options whose
+ * `value` contains what was typed and brings the list up by itself. The list comes down when the text becomes one of
+ * the ids in the list, when a row is picked, and when the reader empties the field; it never comes up for a search
+ * that matches nothing, because an empty card is not a dropdown. The text is never rewritten: a private deployment
+ * name the catalogue has never heard of is the reason this field is typeable, so an exact match closes the list and
+ * changes nothing else.
  *
- * That second path up the list deliberately does not emit `listOpened`, which means "the reader
- * asked for the list" and is wired to a refresh. One request per keystroke is not what that
- * signal says.
+ * That search path deliberately does not emit `listOpened`: that signal means "the reader asked for the list" and is
+ * wired to a refresh, and one request per keystroke is not what it says.
  *
- * A chevron with no list behind it is dimmed and takes no press, the way a switch that cannot be
- * moved is: a service that never answered has no models to offer, and the field is still the
- * reader's to type in. It is greyed rather than taken away because the shape of this control is
- * the thing the reader reads as "the setting took" -- one that comes and goes is worse than one
- * that says nothing is there (docs/adr/0017).
+ * A chevron with no list behind it is dimmed and takes no press: a service that never answered has no models to offer,
+ * and the field is still the reader's to type in. It is greyed rather than taken away because the shape of this control
+ * is what the reader reads as "the setting took" -- one that comes and goes is worse than one that says nothing is
+ * there (docs/adr/0017).
  */
 Item {
     id: root
@@ -59,8 +54,8 @@ Item {
     property Component optionPreview: null
 
     /// Whether a row draws its option's `note` at its right end. Off where the note is a sentence
-    /// rather than a word: it would be elided to noise beside the label, and an explanation the
-    /// reader cannot read is not a note. Such a field hands the note to `optionPreview` instead.
+    /// rather than a word: beside the label it would be elided to noise. Such a field hands the
+    /// note to `optionPreview` instead.
     property bool notesInRows: true
 
     /// The row under the pointer, by its index in `shown`, or -1 for none.
@@ -108,7 +103,6 @@ Item {
 
     readonly property int rowHeight: 29
 
-    /// Whether there is a list to open at all.
     readonly property bool hasOptions: options.length > 0
 
     /// The open list's card, and the field it hangs from, as one band in screen coordinates -- null
@@ -179,8 +173,7 @@ Item {
     function openList() {
         // The search goes, because this is the reader asking for the list outright rather than
         // narrowing it. Leaving the filter on would answer a deliberate press with whatever the
-        // search had left -- and with nothing at all, if it had matched nothing, which is the one
-        // thing the search path never shows.
+        // search had left -- possibly nothing at all, which the search path never shows.
         root.filterText = "";
         root.placeList();
         list.visible = true;

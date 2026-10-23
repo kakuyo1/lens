@@ -59,7 +59,7 @@ ToneRead readTone(QImage const& backdrop, double fillAlpha);
  * @brief Read the tone over one rectangle of a backdrop, without copying it out first.
  *
  * The live refresh reads the tone over the card on every published frame, and the card is a rectangle of the sheet.
- * Copying that rectangle out of a native-resolution sheet only to sample every fourth pixel of it was one of the
+ * Copying that rectangle out of a native-resolution sheet only to sample every fourth pixel of it is one of the
  * per-frame costs that kept the duplicated path at sixty a second (docs/adr/0074).
  *
  * @param backdrop The desktop picture under the card. Read here and not kept.
@@ -145,10 +145,9 @@ constexpr int kFingerprintSide = 32;
 /**
  * @brief A value that changes when the desktop behind a card changes, and not when it does not.
  *
- * A live sheet is retaken about fifteen times a second (docs/adr/0041). On a desktop that is not moving -- the
- * reader is reading, not scrolling -- every one of those retakes produces the same picture again, and publishing
- * it again costs a blur and three plane allocations for a card that would look identical. This is what tells the
- * two cases apart.
+ * A live sheet is retaken about fifteen times a second (docs/adr/0041). On a still desktop -- the reader is reading,
+ * not scrolling -- every retake produces the same picture, and publishing it again costs a blur and three plane
+ * allocations for a card that would look identical.
  *
  * The picture is reduced to a 32 by 32 grey thumbnail before hashing, so a caret blinking or a pixel changing
  * somewhere under the card does not count: the blur would have hidden it anyway.

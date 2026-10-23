@@ -58,10 +58,9 @@ struct CacheKey {
 
 /// @brief A word's first definition and its ordered senses, in one cache context.
 /// @note Persisted IPA must be present but may be empty; older entries without it miss.
-/// @note Etymology is the word's origin in one sentence, in the explanation language. It is not
-///       part of the key: the setting that asks for it is not a context the entry is stored under,
-///       so a word explained with the setting off and one explained with it on are the same entry,
-///       and turning the setting back on never buys the same definition twice.
+/// @note Etymology is the word's origin in one sentence, in the explanation language. Not part of
+///       the key: the setting that asks for it is not a context the entry is stored under, so a
+///       word explained with the setting on and one explained with it off are the same entry.
 /// @note Example follows the same rule, with one difference: it is optional, not absent-or-empty.
 ///       `std::nullopt` means the entry was bought without asking for an example, so a request with
 ///       the example setting on has to buy it again (docs/adr/0033). An empty string means the model
@@ -162,11 +161,10 @@ public:
     /**
      * @brief The document this store owns, for the section objects that persist beside it.
      *
-     * StatsStore keeps its keys in the same document, and only one object may own it: two
-     * copies loaded separately would each save their own stale view and the later save would
-     * drop the earlier one's changes -- a word mark or the API key, silently. So the file has
-     * one owner (this class) and the others write into its document; save() then persists
-     * everything at once.
+     * StatsStore keeps its keys in the same document. The file has one owner (this class): two
+     * copies loaded separately would each save their own stale view, and the later save would
+     * silently drop the earlier one's changes -- a word mark or the API key. The others write
+     * into this document; save() persists everything at once.
      *
      * @return The whole settings document, as loaded.
      */
@@ -218,8 +216,8 @@ private:
     std::unordered_set<std::string> known_;
     /// Keyed by explanation language + sense mode + lemma.
     std::map<CacheKey, WordCache> cache_;
-    int                           level_ = kDefaultLevel;         ///< CET-4, the default difficulty level.
-    std::string                   lang_{kDefaultExplanationLang}; ///< English by default.
+    int                           level_ = kDefaultLevel;
+    std::string                   lang_{kDefaultExplanationLang};
 };
 
 }

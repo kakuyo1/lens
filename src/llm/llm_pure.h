@@ -38,9 +38,8 @@ QString maskSensitive(const QString& text);
 /**
  * @brief Map an HTTP status onto something the reader can act on.
  *
- * Lives here rather than beside the transport so it can be tested without a network, the same
- * reason the request body and the response check do. The API key is never part of the message,
- * and neither is the response body, which may echo the request.
+ * Lives here, like the request body and the response check, so it is testable without a network.
+ * The message never carries the API key or the response body, which may echo the request.
  *
  * @param status HTTP status code the service answered with.
  * @return A reader-facing reason, already routed through translation.
@@ -126,7 +125,7 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel           
  * so they are exercised by recorded bytes rather than by a live or mock QNetworkReply.
  *
  * The final result goes through the same checks parseExplanations() uses, directly on the
- * model's content: the synthetic envelope the client used to rebuild for a stream is gone.
+ * model's content with no synthetic envelope in between.
  */
 class StreamAssembler {
 public:
@@ -182,14 +181,12 @@ private:
 /**
  * @brief Read the ids out of OpenRouter's model answer.
  *
- * One source, one envelope: there is no mapping parameter any more, because there is only one
- * endpoint left to read. Every id the answer carries for a modality other than text, and every
- * routing variant (an id carrying `:`), is dropped -- what comes back is not the catalogue but
- * the part of it a chat completion can be sent to.
+ * One source, one envelope. Every id the answer carries for a modality other than text, and
+ * every routing variant (an id carrying `:`), is dropped -- what comes back is not the catalogue
+ * but the part of it a chat completion can be sent to.
  *
  * A malformed answer is no answer: missing, non-array, oversized or otherwise unusable input
- * returns an empty list rather than a partial one, so a reader is never handed a list that hides
- * the model they wanted.
+ * returns an empty list rather than a partial one that would hide the model the reader wanted.
  *
  * @param body Raw HTTP response body.
  * @return The ids this app can talk to, in the order the source gave them, or an empty list.
@@ -211,9 +208,8 @@ QStringList idsForPrefix(QStringList const& ids, QString const& prefix);
 
 /// @brief What one chunk of a streaming answer contributes to the whole.
 ///
-/// A chunk is the `data:` payload of one SSE event. Folding them -- the text appended, the
-/// reason the model stopped, the token counts -- is what turns a stream back into the one
-/// envelope parseExplanations() already checks, so the finished-answer contract does not fork.
+/// A chunk is the `data:` payload of one SSE event; folding chunks rebuilds the one envelope
+/// parseExplanations() already checks, so the finished-answer contract does not fork.
 struct StreamDelta {
     QString     content;      ///< Text appended to the answer; empty on every chunk but a content one.
     QString     finishReason; ///< "stop" or "length", on the chunk where the model says it stopped.
@@ -247,11 +243,10 @@ std::optional<StreamDelta> parseStreamDelta(const QByteArray& payload);
 /**
  * @brief Pull the fields that have finished arriving out of an answer still being written.
  *
- * The model answers one JSON object, and a stream delivers it a few characters at a time: most
- * of the time the buffer ends in the middle of something. A field is taken only once its string
- * value has closed -- a name, a definition, a pronunciation -- because half a word drawn is
- * worse than the card growing one line later. A field whose value has not arrived, or whose
- * closing quote has not, is simply absent, exactly as it is when a finished answer leaves it out.
+ * The model answers one JSON object, and a stream delivers it a few characters at a time, so the
+ * buffer usually ends mid-something. A field is taken only once its string value has closed --
+ * half a word drawn is worse than the card growing one line later -- and a field whose value or
+ * closing quote has not arrived is absent, exactly as when a finished answer leaves it out.
  *
  * Only `results[0]` is read: a batch of words draws the card for the answer named first, and the
  * rest are stored when the whole answer has arrived (see API.md section 3.4).

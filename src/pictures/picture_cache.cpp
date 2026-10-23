@@ -120,9 +120,8 @@ std::optional<QVector<Picture>> PictureCache::load(QString const& normalizedQuer
     const qint64    fetchedAt = static_cast<qint64>(meta.value(QStringLiteral("fetchedAt")).toDouble());
     std::error_code error;
     if (fetchedAt <= 0 or nowMs() - fetchedAt > kTtlMs) {
-        // Aged out. It goes now rather than being asked for again on this open only: the next
-        // request would write the same directory, and leaving a stale one behind is a file nobody
-        // will ever read.
+        // Aged out. Removed now, not on this open only: the next request would write the same
+        // directory, and a stale entry left behind is a file nobody reads again.
         std::filesystem::remove_all(directory, error);
         LENS_TRACE("picture cache: an entry had aged out and was dropped");
         return std::nullopt;

@@ -8,8 +8,8 @@ import "../testutil.js" as Util
  *
  * Only the half that needs no Controller is here. Pressing one of the items also arms the
  * card's DragHandler, whose grab calls Controller.cursorPos(), and a Controller that was never
- * provided trips an assert in its factory -- so the press-and-hold scale, which is the case
- * worth having, belongs to lens_qtest_surfaces. See TEST.md section 2.
+ * provided trips an assert in its factory -- so the press-and-hold scale belongs to
+ * lens_qtest_surfaces. See TEST.md section 2.
  */
 Item {
     id: root

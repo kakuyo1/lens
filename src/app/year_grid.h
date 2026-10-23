@@ -14,10 +14,9 @@
  * @file year_grid.h
  * @brief The 365-day window the annual words surface draws.
  *
- * AppController answered this from QDate::currentDate(), so its cases could only check the shape
- * of whichever day they happened to run on -- never a leap year, and never a year with a single
- * recorded day. The window is a pure projection of a date and the daily tallies, so it lives
- * here where a case can hand it the date it means.
+ * The window is a pure projection of a date and the daily tallies, so it lives here where a case
+ * can hand it the date it means -- read off QDate::currentDate(), a case could never see a leap
+ * year, or a year with a single recorded day.
  */
 
 namespace lens::app {

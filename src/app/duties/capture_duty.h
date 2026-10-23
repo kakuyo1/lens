@@ -86,7 +86,6 @@ public:
      * OCR engine are rebuilt around the new number or path.
      *
      * @param key   The document key; one of the rows the table marks Signal::Capture.
-     * @param value The value the reader picked.
      * @return False when the key is not one of this duty's, or when its value was refused.
      */
     bool             setSetting(std::string_view key, QVariant const& value);
@@ -102,7 +101,7 @@ public:
     Q_INVOKABLE void restoreDefaults();
     Q_INVOKABLE void probeOcr();
 
-    /// @brief Pause automatic scanning while a request is in flight.
+    /// @brief Pause while a request is in flight.
     void setScanPaused(bool paused);
     /// @brief Pause every acquisition path when the daily budget is exhausted.
     void setBudgetPaused(bool paused);
@@ -121,8 +120,7 @@ public:
     /// @note The one gate both the screenshot and the region path go through, so a reader who is
     ///       told why hears the same reason whichever of the two asked.
     std::optional<CaptureRefusal> captureRefusalReason() const;
-    /// @brief Handle a completed selection gesture.
-    void onSelectionReleased(QPoint anchor);
+    void                          onSelectionReleased(QPoint anchor);
     /// @brief Start the selection pipeline at @p anchor.
     /// @param anchor Release position, in the physical pixels the mouse hook reports.
     /// @param text The selected text, when the caller already has it. Given, the clipboard is not read: the developer
@@ -166,9 +164,9 @@ private:
     void rebuildOcr();
     /// @param fromScreenshot True when the text came out of a framed region rather than a
     ///        selection. A screenshot is the reader saying "translate this": they framed it with a
-    ///        gesture of their own, so the action bar's second question would be one they have
-    ///        already answered. A selection keeps the bar -- there the gesture is only "show me
-    ///        what this says", and the bar is where they say what to do with it.
+    ///        gesture of their own, so the bar would ask a question they have already answered. A
+    ///        selection keeps the bar -- there the gesture only says "show me what this says", and
+    ///        the bar is where they say what to do with it.
     void        classifyText(QString text, QPoint anchor, bool fromScreenshot = false);
     void        scanTick();
     void        pollOcr();

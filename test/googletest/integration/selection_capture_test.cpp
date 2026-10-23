@@ -12,18 +12,17 @@
  * mode, see main().
  *
  * The last one cannot be automated: it needs a drag over another application, so it reports a
- * skip unless LENS_HOOK_SMOKE is set and then waits for a human. What it adds is what only a
- * real application can show — that the injected Ctrl+C fetches the selection, and that the
- * reader's own clipboard content comes back afterwards.
+ * skip unless LENS_HOOK_SMOKE is set and then waits for a human. It checks what only a real
+ * application can show: the injected Ctrl+C fetches the selection, and the reader's own
+ * clipboard content comes back afterwards.
  *
  * Windows only, like the module it covers: it creates real windows and moves the pointer.
  *
  * ClipboardSnapshot.* drives the real clipboard, which this machine shares with everything
- * else running on it. A case has been seen to fail intermittently right after another process
- * wrote the clipboard (three times in about thirty-five runs) and could not be reproduced on
- * demand; an open-clipboard retry did not stop it. So a lone failure there is worth a re-run
- * before it is read as a signal — and the cause is still unknown, which is recorded rather
- * than papered over.
+ * else running on it. One case has failed intermittently right after another process wrote
+ * the clipboard (three times in about thirty-five runs), could not be reproduced on demand,
+ * and was not stopped by an open-clipboard retry; the cause is still unknown. A lone failure
+ * there is worth a re-run before it is read as a signal.
  */
 
 #include <cstring>
@@ -88,9 +87,8 @@ const char* statusName(GrabStatus status)
 /// @brief Open the clipboard, retrying briefly.
 ///
 /// Same reason the product retries: another process holding the clipboard open is normal on a
-/// live desktop, and a single attempt turns that into a spurious failure. The first version
-/// of these cases did not, and failed twice in a full-suite run that then would not reproduce
-/// — a flake with a shared resource is a bug in the test even when the cause is outside it.
+/// live desktop, and a single attempt turns that into a spurious failure. A flake with a shared
+/// resource is a bug in the test even when the cause is outside it.
 bool openClipboardRetrying()
 {
     for (int attempt = 0; attempt < 5; ++attempt) {
@@ -157,10 +155,9 @@ std::optional<QString> readClipboardTextNow()
 /// @brief Fill the clipboard with text and a private format, in one session.
 /// @return The registered format id, or 0 when the write failed.
 /// @note Both formats go on inside a single Open/EmptyClipboard/SetClipboardData session on
-///       purpose. SetClipboardData is only defined once the clipboard has been emptied, so
-///       adding a second format from a later session leaves it undefined whether the first
-///       one survives — which is what made this case fail intermittently before, and why the
-///       case now checks the setup before it starts.
+///       purpose. SetClipboardData is only defined once the clipboard has been emptied, so a
+///       second format from a later session leaves it undefined whether the first survives,
+///       which is why the case checks its setup before it starts.
 unsigned putClipboardTextAndFormat(const QString& text, const char* name, const std::string& bytes)
 {
     const UINT format = RegisterClipboardFormatA(name);
@@ -315,17 +312,15 @@ HWND waitForProbeWindow(DWORD pid)
 /**
  * @brief The probe-window child, owned through a job object.
  *
- * The landing window has to belong to *another process*. The hook ignores any press over a window
- * of its own process — that is the rule that keeps a drag on one of the app's own surfaces from
- * being read as a selection — so a probe owned by the test would be dropped for the right reason
- * and the case could only ever go red. A child of this executable, re-run in probe mode, is the
- * smallest owner that is not the test.
+ * The landing window has to belong to another process: the hook ignores any press over a window
+ * of its own process — the rule that keeps a drag on one of the app's own surfaces from being
+ * read as a selection — so a probe owned by the test would be dropped and the case could only
+ * ever fail. A child of this executable re-run in probe mode is the smallest such owner.
  *
- * The child blocks in its own message loop and has no way out of its own, so the parent has to
- * take it down. A job object with KILL_ON_JOB_CLOSE is what makes that unconditional: closing the
- * handle when the case ends kills the child, and so does this process dying for any reason — a
- * failed assertion, an exception, or a crash — which an explicit TerminateProcess on the way out
- * could not cover.
+ * The child blocks in its own message loop with no way out, so the parent takes it down. A job
+ * object with KILL_ON_JOB_CLOSE makes that unconditional: closing the handle when the case ends
+ * kills the child, and so does this process dying for any reason — a failed assertion, an
+ * exception, or a crash — which an explicit TerminateProcess could not cover.
  */
 class ProbeChild {
 public:
@@ -488,7 +483,7 @@ TEST(TerminalCopyKey, TheMatchIsExactRatherThanASubstring)
 
 /// The guarantee the snapshot exists for. Borrowing a reader's clipboard is only acceptable
 /// because this puts it back, and the interactive case above cannot check it without a hand
-/// on the mouse — which is how the first version shipped broken.
+/// on the mouse.
 TEST(ClipboardSnapshot, PutsBackWhatItTookAfterTheClipboardChanges)
 {
     ASSERT_TRUE(putClipboardText(QStringLiteral("lens-keep-me")));
@@ -584,10 +579,10 @@ TEST(ClipboardSnapshot, ARestoreWithoutATakeLeavesTheClipboardAlone)
 /// reaches a low-level hook the same way real input does, so driving the pointer ourselves
 /// tests the gesture rule and the deferred signal for real rather than through a mock.
 ///
-/// The drag lands on a window owned by a child process. It has to: the hook drops any press over
-/// a window of its own process — the rule that keeps a drag on one of the app's own surfaces from
-/// being read as a selection — so a landing window the test owns would be refused for the right
-/// reason and the case could only ever report "the hook reported nothing".
+/// The drag lands on a window owned by a child process: the hook drops any press over a window
+/// of its own process — the rule that keeps a drag on one of the app's own surfaces from being
+/// read as a selection — so a window the test owns would be refused and the case could only
+/// ever report "the hook reported nothing".
 TEST(SelectionHook, ReportsASynthesisedDragAtItsReleasePoint)
 {
     ProbeChild probe;

@@ -2,11 +2,10 @@
  * @file glass_source_test.cpp
  * @brief The desktop seam's fallback order, crossed without a desktop (src/app/glass/glass_source.h).
  *
- * The backdrop used to decide inside its own read which way answered: a duplicated output, then GDI, then a black
- * picture on a test platform. The order was therefore only observable by assembling a sheet, a window and a QML
- * surface, and the probe re-implemented the same DXGI and GDI calls to measure it (docs/adr/0086). These cases pin the
- * order with scripted sources, so a read that refuses, a read that finds nothing new, and a session that cannot be
- * tried at all are three separate facts, each asserted without a screen.
+ * The fallback order is only observable by assembling a sheet, a window and a QML surface
+ * (docs/adr/0086). These cases pin it with scripted sources, so a read that refuses, a read that
+ * finds nothing new, and a session that cannot be tried at all are three separate facts, each
+ * asserted without a screen.
  */
 
 #include <gtest/gtest.h>

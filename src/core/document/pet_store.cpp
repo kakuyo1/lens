@@ -13,7 +13,7 @@ namespace lens::core::pet {
 
 namespace {
 
-/// @brief Carries a size stored before the unit changed over, once. The old `scale` key held a whole-number
+/// @brief One-time migration of a size stored under the old unit. The `scale` key held a whole-number
 ///        magnification in the manifest's 1..4 range; converted to the percentage the new `size` key holds, and the old
 ///        key taken away, so the conversion never runs a second time and the document is never left ambiguous.
 void migrateLegacySize(SettingsSection pet)

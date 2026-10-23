@@ -5,12 +5,11 @@
  * @brief Every surface the application raises -- a panel, a transient card, the action bar, the
  *        pet's sign -- one row each, as every table that lists windows reads it.
  *
- * The same windows were listed four times by hand: the glass sheet set (glass_backdrop.cpp), the
- * dev surface's reported names (dev_command.h), the dev surface's opener table (dev_surface.cpp)
- * and the surface test's sheet map (tst_phase2e.qml). Four lists of one set of windows, joined only
- * by a name string, had already drifted -- glass listed 16, the dev surface 12, its openers 6, the
- * test 11 -- and a name wrong in the glass list resolves to nullptr at GlassBackdrop::surface() in
- * silence. The rows here are what those lists read instead (docs/adr/0084).
+ * One set of windows was listed four times by hand -- the glass sheet set (glass_backdrop.cpp),
+ * the dev surface's reported names (dev_command.h), its opener table (dev_surface.cpp) and the
+ * surface test's sheet map (tst_phase2e.qml) -- and the copies had drifted: a name wrong in the
+ * glass list resolves to nullptr at GlassBackdrop::surface() in silence. The rows here are what
+ * those lists read instead (docs/adr/0084).
  *
  * A row's flags say which subsystem lists the window:
  *   - @c sheet: GlassBackdrop owns a GlassSheet for it, so `image://glass/<name>` resolves.

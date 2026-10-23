@@ -2,11 +2,9 @@
  * @file glass_capture_probe_test.cpp
  * @brief What the desktop gives the glass backdrop, measured through the application's own read path.
  *
- * The probe used to carry its own DXGI enumeration, `DuplicateOutput`, `AcquireNextFrame` and sheet-copy box maths, so
- * the number it printed and the number the application paid came from two different pieces of code
- * (docs/adr/0086). It now drives the same seam production does: `GlassDuplication` for a duplicated output, `GdiSource`
- * for the compositor's screen DC, both answering `DesktopSource::read` (src/app/glass/glass_source.h). What is left in
- * this file is measurement, not a second read path.
+ * The probe drives the same seam production does: `GlassDuplication` for a duplicated output, `GdiSource` for the
+ * compositor's screen DC, both answering `DesktopSource::read` (src/app/glass/glass_source.h), so the number it prints
+ * is the number the application pays (docs/adr/0086). What is left in this file is measurement, not a second read path.
  *
  * It answers:
  *
@@ -16,13 +14,13 @@
  *   3. what a GDI read of the same sheet costs, at full resolution and at a quarter;
  *   4. whether capture exclusion hides the card from a duplicated frame as it does from GDI.
  *
- * The GPU-path questions the old probe answered — whether the acquired texture can be mapped or shared, and what a
- * whole-output copy costs — settled the CPU-copy decision in ADR-0072 and are recorded in
+ * The GPU-path questions — whether the acquired texture can be mapped or shared, and what a whole-output copy costs —
+ * settled the CPU-copy decision in ADR-0072 and are recorded in
  * `docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md`. They are not re-measured here: the seam the
- * application reads through does not expose the raw texture, and a probe that did would be the second read path again.
+ * application reads through does not expose the raw texture.
  *
  * Like the rest of this suite it prints rather than asserts on time: a wall-clock threshold is flaky on a machine that
- * is also drawing the desktop. What it asserts is that an output duplicates at all, and that capture exclusion works.
+ * is also drawing the desktop. It asserts that an output duplicates at all, and that capture exclusion works.
  *
  * Run it by hand, on the machine whose glass you are asking about, from an interactive desktop session:
  *

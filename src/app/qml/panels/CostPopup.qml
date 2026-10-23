@@ -56,9 +56,8 @@ Window {
             width: cost.cardWidth - 40
             spacing: 0
 
-            // The icons are anchored to the right edge rather than pushed there by a spacer:
-            // a spacer sized around the English title lands the glyphs past the card the
-            // moment the title is a different width, which is every translation of it.
+            // The icons are anchored to the right edge rather than pushed by a spacer: one sized around
+            // the English title lands the glyphs past the card at every other translation's width.
             Item {
                 width: parent.width
                 height: title.height
@@ -78,9 +77,8 @@ Window {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 6
 
-                    // Back to the statistics panel, which is where this one opens from. This
-                    // panel replaces it rather than stacking on it, so the way up has to be
-                    // visible.
+                    // Back to the statistics panel, which this one opens from. The panels replace
+                    // rather than stack, so the way up has to be visible.
                     IconButton {
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/icons/ui-back.svg"
@@ -116,10 +114,10 @@ Window {
             Rectangle { width: parent.width; height: 1; color: cost.tokens.line2 }
             Item { width: 1; height: 6 }
 
-            // The token count goes in the note slot rather than in front of the amount in
-            // `value`: the amount keeps the bold right-aligned face and the four of them keep
-            // one right edge, and the count is quiet enough to sit there at 11px. String(), not
-            // the raw number, is the house way of spelling an integer.
+            // The token count goes in the note slot rather than in front of the amount in `value`:
+            // the amount keeps the bold right-aligned face, the four rows keep one right edge, and
+            // the count is quiet enough there at 11px. String(), not the raw number, is the house
+            // way of spelling an integer.
             StatRow {
                 width: parent.width
                 label: qsTr("Today")

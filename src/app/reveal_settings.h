@@ -5,12 +5,12 @@
  * @brief The typing pace the reveal runs at, as the settings page offers it (UI-SPEC.md 4.3).
  *
  * The reader picks a speed, not a millisecond count: the slider runs 1..5 from slow to fast, and
- * kRevealMillisPerCharacter turns that level into the real pace RevealText takes. The blur stays a
- * ratio of the pace inside RevealText, so a slow speed makes each character soft for longer without
- * widening the tail into a band of shaders.
+ * kRevealMillisPerCharacter turns that level into the pace RevealText takes. The blur stays a
+ * ratio of the pace inside RevealText, so a slow speed keeps each character soft for longer
+ * without widening the tail into a band of shaders.
  *
- * The level itself is one row of core/domain/settings_table.h, which owns its default and the range
- * the page offers. What lives here is the mapping from that level to a pace, which is not a setting.
+ * The level itself is one row of core/domain/settings_table.h, which owns its default and the
+ * range the page offers. The mapping from level to pace lives here, and is not a setting.
  */
 
 #include <algorithm>

@@ -183,9 +183,9 @@ Item {
         }
 
         /// The Account & sync row sits among labelled switches: its label starts on the same left
-        /// edge as theirs. It used to carry the 9 px the catalog's rows do, which read as a line
-        /// belonging to nothing beside it. The label is found by its own text rather than by being
-        /// the page's only SettingsLinkRow: Font is the page's other door and sits above it.
+        /// edge as theirs, not at the 9 px indent the catalog's rows carry. The label is found by
+        /// its own text rather than by being the page's only SettingsLinkRow: Font is the page's
+        /// other door and sits above it.
         function test_theAccountRowLabelSharesThePagesLeftEdge() {
             const main = make();
             Util.surfaceHost(main).showSettings();

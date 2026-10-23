@@ -7,10 +7,10 @@ import "../testutil.js" as Util
 /**
  * The outlined two-way switch, and the delegate wiring it is built out of.
  *
- * The interesting half is not the switch: it is that a Repeater's `modelData` and `index` reach
- * a Text nested one level inside the delegate. Written unqualified, they resolve to nothing,
- * the cells come up empty, and qmllint is documented as blind to it (docs/QML.md section 8) --
- * which is why a pair of eyes was the only check this had. These cases are that pair of eyes.
+ * The half that matters is the delegate wiring: a Repeater's `modelData` and `index` have to
+ * reach a Text nested one level inside the delegate. Written unqualified, they resolve to
+ * nothing, the cells come up empty, and qmllint is documented as blind to it (docs/QML.md
+ * section 8) -- these cases are the check that stands in for it.
  */
 Item {
     id: root

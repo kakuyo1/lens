@@ -17,7 +17,7 @@ Item {
     property string note: ""
     property bool danger: false
 
-    /// Whether the pointer is on this row. The language row watches it to unfold its list.
+    /// The language row watches it to unfold its list.
     readonly property alias hovered: hover.hovered
 
     signal picked()

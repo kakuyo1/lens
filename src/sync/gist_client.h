@@ -68,7 +68,6 @@ class GistClient : public QObject {
 public:
     /**
      * @param manager Network manager to post through, or null to make one.
-     * @param parent  QObject parent.
      */
     explicit GistClient(QNetworkAccessManager* manager = nullptr, QObject* parent = nullptr);
 

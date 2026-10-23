@@ -25,7 +25,6 @@ QString keyOf(core::settings::Row const& row);
  * @brief Read one row out of @p section.
  *
  * @param section The document, or the object the row's key lives in.
- * @param row     The row to read.
  * @return The stored value brought into the row's rule, or the row's default when nothing is stored.
  */
 QVariant read(core::SettingsSection section, core::settings::Row const& row);
@@ -34,8 +33,7 @@ QVariant read(core::SettingsSection section, core::settings::Row const& row);
  * @brief Store @p value through @p row's rule, and save.
  *
  * @param section The document, or the object the row's key lives in.
- * @param row     The row to write.
- * @param value   The value the reader picked; a number, a switch or a string.
+ * @param value   A number, a switch or a string.
  * @return False when the row refuses the value outright -- a colour that is not #rrggbb, a family
  *         this machine does not have, a member a Choice does not list -- and nothing was written.
  */

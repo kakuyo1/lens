@@ -6,10 +6,7 @@
  *        document that names nothing reads as, the clamp, the signal its write raises, and whether a
  *        sync carries it.
  *
- * A setting used to be ten sites: the declaration, the setter, the setter's clamp, the projection's
- * clamp, restore-defaults, the default constant, the sync whitelist, the dev surface's replay, the
- * QML control, and the owner row in the settings-document test. The rows here are what those sites
- * read instead (docs/adr/0083).
+ * One row per setting is what the ten sites that used to restate it read instead (docs/adr/0083).
  *
  * Deliberately Qt-free: sync_state.cpp builds the whitelist a sync carries out of these rows, and
  * core has no Qt. What a key means to a surface -- a label, a preview, an option list -- is not here.
@@ -32,7 +29,7 @@ namespace lens::core::settings {
 
 /// @brief How a key is stored, and therefore how it is read, written and compared.
 enum class Kind : std::uint8_t {
-    Toggle,  ///< A boolean.
+    Toggle,
     Integer, ///< A whole number in a closed range; an enumerated setting's range is its enum's.
     Choice,  ///< One of a fixed set of strings; the members are the row's.
     Text,    ///< Free text: a language code, or a theme's packed value.

@@ -11,16 +11,16 @@
  * GDI reads of the compositor's screen DC may serialize against what is being drawn, which a tight loop exaggerates and
  * a 67 ms timer hides.
  *
- * So this reads the same rectangle twice over, once back to back and once at the pace the application keeps, and prints
+ * This reads the same rectangle twice over, once back to back and once at the pace the application keeps, and prints
  * both. A second case answers the other half of the same budget: whether the price follows the *area* read, which is
  * what the "read less of the screen" lever is worth -- the sheet, the same sheet without its 160 DIP margin, and an
- * action bar's card, all three at the application's pace. No window, no sheet, no surface: the point is that nothing
- * else is in the measurement. The read is the application's own, taken from src/app/glass/glass_desktop.h, and the
- * percentiles come from src/app/glass/glass_stats.h -- the same reducer that writes the application's log line, so a number
- * here and a number in `logs/lens.log` mean the same thing.
+ * action bar's card, all three at the application's pace. No window, no sheet, no surface: nothing else is in the
+ * measurement. The read is the application's own, taken from src/app/glass/glass_desktop.h, and the percentiles come
+ * from src/app/glass/glass_stats.h -- the same reducer that writes the application's log line, so a number here and a
+ * number in `logs/lens.log` mean the same thing.
  *
- * Like every target of this suite it prints rather than asserts on time. What it asserts is that each round really
- * read. Ninety seconds is the cost of one run; it is human-run because it reads the real screen, and a CI runner has
+ * Like every target of this suite it prints rather than asserts on time. It asserts that each round really read.
+ * Ninety seconds is the cost of one run; it is human-run because it reads the real screen, and a CI runner has
  * no desktop to read.
  *
  * Run:
@@ -98,11 +98,9 @@ QRect sheetOf(int const width, int const height)
 
 /**
  * @brief Read @p sheet for @p seconds, at @p pace or as fast as the machine allows.
- * @param sheet The region to read.
  * @param scale What to shrink it by on the way in.
  * @param paced Whether to wait for the next 67 ms boundary before each read.
  * @param stats Where to tally the durations.
- * @param seconds How long to keep reading.
  * @return How many reads landed.
  */
 int readRound(QRect const sheet, SheetScale const scale, bool const paced, GlassStats& stats, int const seconds)

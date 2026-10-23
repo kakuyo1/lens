@@ -2,9 +2,8 @@
  * @file main.cpp
  * @brief The application: load the data the pipeline needs, wire the pieces, put the tray up.
  *
- * There is no main window. The QML root is a window that is never shown; the surfaces are
- * windows of their own, and the only thing the reader can see when nothing is happening is
- * the tray icon.
+ * There is no main window: the QML root is a window that is never shown, the surfaces are
+ * windows of their own, and the tray icon is the only visible thing when nothing is happening.
  */
 
 #include <QApplication>
@@ -62,17 +61,16 @@ namespace {
 /// data/ beside the executable instead, and that one wins. See dataDirectory().
 constexpr const char* kBuildDataDir = LENS_DATA_DIR;
 
-/// The settings document at the repository root, which a first run after the packaging change
-/// copies into the reader's profile once. See settingsPath().
+/// The settings document at the repository root, which a first run copies into the reader's
+/// profile once. See settingsPath().
 constexpr const char* kDevSettingsPath = LENS_SETTINGS_PATH;
 
 /**
  * @brief Where the word list and the protocol files are read from.
  *
- * The installer puts them beside the executable -- `<install>\data` -- which makes the package
+ * The installer puts them beside the executable -- `<install>\data` -- which keeps the package
  * relocatable and compiles nothing about the machine into it. A build tree has no `data/` next
- * to `build-ninja/src/app/lens.exe` (nothing writes one), so running from a build tree is
- * unchanged: it reads the path configure baked in.
+ * to `build-ninja/src/app/lens.exe` (nothing writes one), so it reads the path configure baked in.
  *
  * @return `<applicationDirPath>/data` when that is a directory, else the baked-in path.
  */
@@ -87,13 +85,12 @@ std::filesystem::path dataDirectory()
 
 /// @brief The setting's language code, and the locale whose .qm carries it.
 ///
-/// The two are not the same string: the setting holds "zh", while the file is named for the
-/// locale, lens_zh_CN.qm. Building the file name straight from the setting would look for
-/// lens_zh.qm, which does not exist.
+/// Not the same string: the setting holds "zh", the file is named for the locale, lens_zh_CN.qm.
+/// A name built straight from the setting would look for lens_zh.qm, which does not exist.
 ///
-/// One code per .ts under i18n/, which is also the list `data/llm/catalog.json` offers as
-/// interface languages: a language the catalog names and this function does not is a pick that
-/// silently leaves the interface in English.
+/// One code per .ts under i18n/, also the list `data/llm/catalog.json` offers as interface
+/// languages: a language the catalog names and this function does not silently leaves the
+/// interface in English.
 const char* translationFileFor(const QString& language)
 {
     if (language == QLatin1String("zh"))
@@ -151,9 +148,9 @@ QString settingsValue(KnownStore& store, const char* key)
     return QString::fromStdString(store.section().value<std::string>(key, {}));
 }
 
-/// How long a surface stays hidden before its graphics resources are given back. Panels hide and
+/// How long a surface stays hidden before its graphics resources are released. Panels hide and
 /// re-show while they are being repositioned, and rebuilding the scene graph on every such hop
-/// costs more than the memory it saves; a window that is back within this window is left alone.
+/// costs more than the memory it saves, so a window that is back within this window is left alone.
 constexpr int kReleaseDelayMs = 500;
 
 /**
@@ -163,13 +160,13 @@ constexpr int kReleaseDelayMs = 500;
  * textures, and with them the driver's worker threads -- until the last window is deleted, and
  * setPersistentGraphics() defaults to true, so a hidden window keeps the lot. Measured with
  * .workbuddy-ai/tools/qwindow-probe on this machine: showing a second window costs about 75
- * driver threads and 1,200 handles, hiding it returns none of them under Qt's defaults, and
+ * driver threads and 1,200 handles, hiding returns none of them under Qt's defaults, and
  * releaseResources() with both persistence hints off returns all of them in one call.
  *
- * The two hints only take effect before a window's scene graph is initialised, which is why this
- * runs straight after the QML is loaded and before the event loop. Every surface but the root
- * window is hidden at that point; the root is never shown and the pet is up from the start, and
- * neither of those should be released anyway.
+ * The hints only take effect before a window's scene graph is initialised, so this runs straight
+ * after the QML is loaded and before the event loop. Every surface but the root window is hidden
+ * at that point; the root is never shown and the pet is up from the start, and neither of those
+ * should be released anyway.
  */
 void releaseHiddenSurfaces(QObject* root)
 {
@@ -207,9 +204,9 @@ int main(int argc, char* argv[])
     // The UI font, set here and not in QML because QML cannot express it: a Text's font value
     // type has no families list, and naming a family there replaces the one it would inherit.
     //
-    // Use one face for Latin and CJK when the Windows installation provides it. Mixing a Latin
+    // One face for Latin and CJK when the Windows installation provides it. Mixing a Latin
     // face with a Chinese fallback at the same nominal weight makes the Chinese glyphs visibly
-    // darker because the two faces have different stroke density. Mixed numeric values split
+    // darker, because the two faces differ in stroke density. Mixed numeric values split
     // their runs in MixedText.qml, so digits can still use the crisp monospace face.
     QFont uiFont;
     if (QFontDatabase::hasFamily(QStringLiteral("Noto Sans SC")))
@@ -303,11 +300,11 @@ int main(int argc, char* argv[])
         return 1;
 
     // The surfaces reach both objects as QML singletons -- Controller and Tray -- declared on
-    // the classes themselves with QML_SINGLETON. Context properties are the simpler wiring and
-    // are what this used to do, but no linter can see a name that exists only in the engine's
-    // context: every read off controller or tray came back as unqualified access, 53 warnings
-    // across the surfaces, and a mistyped property name would read as undefined rather than
-    // fail. Registering the types gives qmllint the property names to check against.
+    // the classes themselves with QML_SINGLETON. Context properties would be the simpler wiring,
+    // but no linter can see a name that exists only in the engine's context: every read off
+    // controller or tray came back as unqualified access, 53 warnings across the surfaces, and
+    // a mistyped property name would read as undefined rather than fail. Registering the types
+    // gives qmllint the property names to check against.
     AppController::provide(&controller);
     Tray::provide(&tray);
 
@@ -337,7 +334,7 @@ int main(int argc, char* argv[])
 
     // Surfaces are windows that are hidden and re-shown, not windows that are created and
     // destroyed, so nothing else ever asks the scene graph to let go. LENS_KEEP_GRAPHICS=1 keeps
-    // Qt's defaults, which is how the change is measured against the old behaviour in one binary.
+    // Qt's defaults, for measuring against them in one binary.
     if (qEnvironmentVariableIsEmpty("LENS_KEEP_GRAPHICS"))
         releaseHiddenSurfaces(engine.rootObjects().constFirst());
 

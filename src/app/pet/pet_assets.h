@@ -28,7 +28,6 @@ namespace lens::app::pet {
  * @brief Text a package supplied, made safe to show: control and format characters removed, in NFC (docs/pet-package-format.md
  *        section 5, rule 13). Used for the display name and for the folder names the refusal list shows.
  * @param text The text as the package wrote it.
- * @return The text without those characters.
  */
 QString plainText(QString const& text);
 

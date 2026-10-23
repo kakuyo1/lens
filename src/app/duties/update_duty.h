@@ -58,7 +58,6 @@ public:
      *                     cache, and a test passes a directory of its own so it writes nothing
      *                     outside the run.
      * @param dateProvider Today's local date; a test pins it.
-     * @param parent       QObject parent.
      */
     UpdateDuty(StorageDuty& storage, update::UpdateClient& client, update::DownloadClient& downloader, const QString& currentVersion, Launcher launcher = {}, QString downloadDir = {}, DateProvider dateProvider = [] { return QDate::currentDate(); }, QObject* parent = nullptr);
 

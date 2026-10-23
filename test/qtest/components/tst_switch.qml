@@ -6,9 +6,9 @@ import "../"
 /**
  * The 34x20 pill switch.
  *
- * A non-interactive switch is the case with a rule behind it: the phase-1 placeholders have to
- * read as unavailable without saying why. So it is dimmed and it answers nothing, and the
- * assertion is on both halves -- the dimming alone would leave a switch that still toggles.
+ * The non-interactive switch is the case with a rule behind it: the phase-1 placeholders have
+ * to read as unavailable without saying why. So it is dimmed and answers nothing, and both
+ * halves are asserted -- the dimming alone would leave a switch that still toggles.
  */
 Item {
     id: root

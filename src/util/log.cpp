@@ -38,9 +38,8 @@ void init(spdlog::level::level_enum level, const std::filesystem::path& logDir)
     std::vector<spdlog::sink_ptr> sinks;
     sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 
-    // Collect the file-sink problem instead of throwing: a logging setup failure must not
-    // stop the program from starting, and the logger to report it through does not exist
-    // until the end of this function.
+    // Collect the file-sink problem instead of throwing: a logging setup failure must not stop
+    // startup, and the logger to report it through does not exist until the end of this function.
     std::string fileError;
     if (!logDir.empty()) {
         const std::filesystem::path file = logDir / kLogFileName;
@@ -63,10 +62,9 @@ void init(spdlog::level::level_enum level, const std::filesystem::path& logDir)
     auto logger = std::make_shared<spdlog::logger>("lens", sinks.begin(), sinks.end());
     logger->set_level(levelFromEnvironment(level));
     logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] [t:%t] [%s:%#] %v");
-    // Every line, not just from a warning up: the file is meant to be watched while the app
-    // runs (`tail -f logs/lens.log`), and a reader who has to wait for the next warning to see
-    // what just happened is not watching a log. The volume is a tray app's, so the write costs
-    // nothing worth measuring.
+    // Flush on every line, not only from a warning up: the file is meant to be watched while the
+    // app runs (`tail -f logs/lens.log`). A tray app's volume makes the write cost nothing worth
+    // measuring.
     logger->flush_on(spdlog::level::trace);
     spdlog::set_default_logger(std::move(logger));
 

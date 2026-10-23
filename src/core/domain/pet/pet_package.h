@@ -43,7 +43,6 @@ public:
     {
     }
 
-    /// @return Why the package was refused.
     Refusal reason() const noexcept
     {
         return reason_;

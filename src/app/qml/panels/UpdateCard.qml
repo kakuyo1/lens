@@ -5,17 +5,15 @@ import "../util/Format.js" as Format
 /**
  * The card a new version raises.
  *
- * A passive surface: it takes no part in the panels' mutual exclusion, and it never uses the
- * explanation notice slot, so a card standing can neither replace a notice nor be replaced by
- * one. It can be dragged out of the way like the panels; a drag only moves the window and
- * answers nothing. Its close path clears only the card's own flag -- the version the reader
- * skipped is a separate decision the card's Skip button makes.
+ * A passive surface: no part in the panels' mutual exclusion, and never the explanation notice
+ * slot, so a standing card neither replaces a notice nor is replaced by one. It can be dragged out
+ * of the way like the panels; a drag only moves the window and answers nothing. Its close path
+ * clears only the card's own flag -- skipping a version is the Skip button's separate decision.
  *
- * The card also carries the download: what state it is in, how far it has got, and the one
- * thing a reader can do about it. View opens the release page in the browser; Download fetches
- * the installer and Install runs it, and only after the file has been checked against the
- * digest the same release publishes. The texts here are the duty's states drawn as words --
- * nothing a transfer said reaches this surface.
+ * The card also carries the download: its state, its progress, and the one thing a reader can do
+ * about it. View opens the release page; Download fetches the installer and Install runs it, only
+ * after the file has been checked against the digest the same release publishes. The texts here are
+ * the duty's states drawn as words -- nothing a transfer said reaches this surface.
  */
 Window {
     id: card
@@ -39,23 +37,22 @@ Window {
     property string pageUrl: ""
     property string notes: ""
 
-    /// Whether the card is on its way out. ShadowCard fades it and hides the window when the
-    /// fade is done; the action itself is reported at once, not after it.
+    /// ShadowCard fades it and hides the window when the fade is done; the action itself is
+    /// reported at once, not after it.
     property bool leaving: false
 
-    /// The download's own state, read straight off the duty: the card is the surface that
-    /// shows it, and the duty is the one that owns it.
+    /// The download's own state, read straight off the duty that owns it; the card only shows it.
     readonly property var download: Controller.updateDuty.download
 
-    /// View was pressed: open the release page in the browser.
+    /// Open the release page in the browser.
     signal viewRequested()
-    /// Skip was pressed: stop asking about this exact version.
+    /// Stop asking about this exact version.
     signal skipRequested()
-    /// Download was pressed: fetch the installer for this version.
+    /// Fetch the installer for this version.
     signal downloadRequested()
-    /// Cancel was pressed: stop the transfer and delete what it wrote.
+    /// Stop the transfer and delete what it wrote.
     signal cancelRequested()
-    /// Install was pressed: run the installer that has been checked.
+    /// Run the installer that has been checked.
     signal installRequested()
 
     width: cardWidth + 2 * shadowMargin
@@ -63,9 +60,8 @@ Window {
 
     /// What the line under the title says, for one download state.
     ///
-    /// A function of the state, so the surface can never carry a transport's own words: the
-    /// failure text is picked from three fixed sentences by key. `idle` with nothing to show
-    /// says nothing at all.
+    /// A function of the state, so the surface never carries a transport's own words: failure text
+    /// is one of three fixed sentences picked by key. `idle` with nothing to show says nothing.
     function downloadText(state, failure) {
         if (state === "downloading")
             return qsTranslate("UpdateCard", "Downloading...");
@@ -141,8 +137,7 @@ Window {
             leaving = true
     }
 
-    /// Take the card down. It writes nothing: the cross says "not now", and Skip says "not this
-    /// version", which are different answers to the same question.
+    /// Take the card down and write nothing: the cross means "not now", Skip means "not this version".
     function closeCard() {
         dismiss()
         Controller.updateDuty.closeCard()
@@ -223,9 +218,9 @@ Window {
                 wrapMode: Text.WordWrap
             }
 
-            // How the transfer is going, under what it is doing: a bar for the share done and
-            // one line for the bytes and the time the average pace says is left. The bar is
-            // left out when the server announces no length; the byte count never is.
+            // How the transfer is going, under what it is doing: a bar for the share done and a
+            // line for the bytes and the time left. The bar is left out when the server states no
+            // length; the byte count never is.
             Column {
                 width: parent.width
                 spacing: 6
@@ -291,10 +286,9 @@ Window {
                     height: 26
                     spacing: 12
 
-                    // The one button that changes what it means: Download while the file can be
-                    // fetched, Cancel while it is, Install once it has been checked. Nothing at
-                    // all when this release is not downloadable: an empty pill is a button that
-                    // does nothing.
+                    // The one button that changes meaning: Download while the file can be fetched,
+                    // Cancel while it is, Install once it has been checked. Nothing when this release
+                    // is not downloadable -- an empty pill is a button that does nothing.
                     Rectangle {
                         id: primary
                         visible: primaryLabel.text !== ""

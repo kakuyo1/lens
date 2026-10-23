@@ -41,24 +41,24 @@ namespace {
 /// gets its sheet at construction, so the image provider never has a sheet to create on one of its
 /// own threads. The preview cards are here for the reason the table records -- a separate window
 /// holds one backdrop (docs/adr/0041).
-/// How far the sheet reaches past the window on each side, in DIP. It is the reserve plus the hysteresis between
-/// retakes: the shader blurs and bends within the picture, so the sheet no longer has to carry the blur's reach
-/// (docs/adr/0070). Keeping it near kSheetReserve is worth about a fifth of every desktop read, which is priced by area
+/// How far the sheet reaches past the window on each side, in DIP: the reserve plus the hysteresis between retakes.
+/// The shader blurs and bends within the picture, so the sheet need not carry the blur's reach (docs/adr/0070). Keeping
+/// it near kSheetReserve is worth about a fifth of every desktop read, which is priced by area
 /// (docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md 3.6).
 constexpr int kSheetMargin = 112;
 /// How near the window may come to a side of the sheet that is not on the screen's edge before a new sheet is taken, in
 /// DIP. The old sheet serves while the new one processes, so this covers the distance a drag moves in that time.
 constexpr int kSheetReserve = 72;
 /// The reference period a GDI screen keeps: about fifteen reads a second in all, however many sheets are live. A screen
-/// that duplicates does not use this budget, but it no longer raises a GDI read's rate either (docs/adr/0072).
+/// that duplicates does not use this budget, nor does it raise a GDI read's rate (docs/adr/0072).
 // ponytail: fixed rate, no back-off when the machine is busy; add one when the reads show up in someone's frame times.
 constexpr int kLiveIntervalMs = kGlassGdiFrameMs;
 /// How often the pipeline's tally is logged. Ten seconds is long enough for the read's median to mean something on a
 /// still desktop, and short enough that a run of the application shows several windows.
 constexpr int kSummaryIntervalMs = 10000;
-/// How long a chained read waits for the next frame, in ms. A 144 Hz frame is 7 ms away, so this covers a
-/// missed composition; on a still desktop the worker wakes four times less often than the old 16 ms poll at 60 Hz and
-/// finds nothing. The chain is what keeps a GUI timer's jitter from coalescing frames away (docs/adr/0074).
+/// How long a chained read waits for the next frame, in ms. A 144 Hz frame is 7 ms away, so this covers a missed
+/// composition; on a still desktop the worker wakes four times less often than a 16 ms poll at 60 Hz and finds
+/// nothing. The chain keeps a GUI timer's jitter from coalescing frames away (docs/adr/0074).
 constexpr int kChainWaitMs = 16;
 
 /// What a sheet read needs, copied out of Qt's objects on the GUI thread so a refresh on the pool never touches them.
@@ -130,7 +130,7 @@ Taken takeSheet(Request const& request)
         glassStats().addFrame(read.copyMs);
     if (read.image.isNull()) return {{}, {}, not read.refused and not read.usedGdi, read.refused, read.usedGdi, read.fingerprint};
     // The text is judged over the window, not over the margin the sheet adds around it. Read in place: copying the
-    // card out of a native-resolution sheet was a per-frame allocation and a second walk of the same pixels.
+    // card out of a native-resolution sheet costs a per-frame allocation and a second walk of the same pixels.
     auto const scale = read.image.devicePixelRatioF();
     auto const card  = QRect(qRound((request.window.x() - request.region.x()) * scale),
                             qRound((request.window.y() - request.region.y()) * scale),
@@ -516,10 +516,10 @@ void GlassBackdrop::refreshNext()
         return;
     }
     // The read, and the chain that follows it. A single live sheet on Smooth reads the next frame from the worker rather
-    // than from the next GUI tick: a timer's jitter let frames produced between two ticks be coalesced away, and the
-    // display's rate -- not the timer's -- is what that tier is for (docs/adr/0074). The chain lives in this one
-    // std::function, held strongly by the task in flight and weakly by its own body, so it ends when a read decides not
-    // to continue and leaves nothing behind.
+    // than from the next GUI tick: a timer's jitter coalesces away frames produced between two ticks, and that tier is
+    // for the display's rate, not the timer's (docs/adr/0074). The chain lives in this one std::function, held strongly
+    // by the task in flight and weakly by its own body, so it ends when a read decides not to continue and leaves
+    // nothing behind.
     using StartRead    = std::function<void(std::size_t, int, Request const&)>;
     auto const starter = std::make_shared<StartRead>();
     auto const weak    = std::weak_ptr<StartRead>{starter};

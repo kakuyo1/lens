@@ -31,14 +31,12 @@ Item {
     /**
      * Whether the card is on screen.
      *
-     * It follows the window the card is drawn in, because that is what a surface's appearance
-     * is: the window becomes visible and the card fades and lifts into place. The appearance
-     * lives here rather than once per surface -- a surface that forgets it is a surface that
-     * does not move.
+     * Follows the window the card is drawn in: the window becomes visible and the card fades and
+     * lifts into place, an appearance written once here rather than once per surface.
      *
-     * A card built *after* its window is already up has no such flip to follow, which is the
-     * tray menu's language list: its loader only runs once the list is meant to be out. Its
-     * owner binds this to whatever stands for "the list is out" instead.
+     * A card built *after* its window is already up has no such flip to follow -- the tray menu's
+     * language list, whose loader only runs once the list is meant to be out; its owner binds this
+     * to whatever stands for "the list is out" instead.
      */
     // A window that is leaving (handed over to another panel) keeps its card up until the fade is done, so the two
     // cross-fade. The window itself goes at the end of the fade, below.
@@ -54,10 +52,10 @@ Item {
         }
     }
 
-    // A window that is leaving goes once the fade has run its course. Timed rather than taken from the animation's
-    // finish, because a fade that starts already at its end (a card leaving before it has faded in) never finishes:
-    // its window would then stay up, transparent and taking input. A card taken back before the time is up stops it.
-    // Only a window that declares `leaving` can be leaving; the others read undefined, and the double negation keeps it a bool.
+    // A leaving window is hidden once the fade ends. Timed rather than taken from the animation's finish, because a
+    // fade that starts already at its end (a card leaving before it has faded in) never finishes and its window would
+    // stay up, transparent and taking input. A card taken back before the time is up stops it. Only a window that
+    // declares `leaving` can be leaving; the others read undefined, and the double negation keeps it a bool.
     Timer {
         interval: root.tokens.motion.pop
         // qmllint disable missing-property
@@ -83,12 +81,12 @@ Item {
      * The handle a drag moves the window by.
      *
      * @note Neither the system's move loop nor the handler's own translation can do this, both
-     *       for a reason measured on the real window. startSystemMove() left the window exactly
-     *       where it was for the whole drag and put it down on release -- a jump, not a drag.
-     *       `activeTranslation` is measured *inside* the window, so moving the window changes
-     *       the translation that decided the move: at hand speed the panel went from x=1116 to
-     *       x=-3688 within a few dozen events. What is left is the pointer's own screen
-     *       position, which does not move when the window does.
+     *       measured on the real window. startSystemMove() left the window exactly where it was
+     *       for the whole drag and put it down on release -- a jump, not a drag. `activeTranslation`
+     *       is measured *inside* the window, so moving the window changes the translation that
+     *       decided the move: at hand speed the panel went from x=1116 to x=-3688 within a few
+     *       dozen events. What is left is the pointer's own screen position, which does not move
+     *       when the window does.
      */
     DragHandler {
         id: mover
@@ -136,9 +134,8 @@ Item {
     // The shadow is cast from a shape-only copy of the card, never from the card itself.
     // MultiEffect draws its source through an offscreen texture, and at this monitor's 125%
     // scale that texture is resampled: measured on the real window, one glyph stem comes out
-    // twice as wide and half as dark as the same text drawn directly. The shape can afford it;
-    // the text cannot. Both the shape and the effect are declared before the card so they paint
-    // under it.
+    // twice as wide and half as dark as the same text drawn directly. Both the shape and the
+    // effect are declared before the card so they paint under it.
     Rectangle {
         id: shadowShape
         anchors.fill: card

@@ -134,9 +134,8 @@ LRESULT CALLBACK lowLevelMouseProc(int code, WPARAM wParam, LPARAM lParam)
 
             case WM_LBUTTONUP:
                 if (const auto anchor = g_tracker.onRelease(info->pt.x, info->pt.y)) {
-                    // Emitted from file scope because the callback must be a free function.
-                    // Qt's signals are public, so this is legal; the class's own code would
-                    // read the same way.
+                    // Emitted from file scope because the callback must be a free function; Qt's
+                    // signals are public, so this is legal.
                     MouseSelectionHook* const owner = g_owner;
                     postToOwner(owner, [owner, point = *anchor] { emit owner->selectionReleased(point); });
                 }

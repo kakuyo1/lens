@@ -60,10 +60,9 @@ std::string lemmatize(std::string_view token);
 
 /// @brief Where a candidate stands with the reader. The module records it; the caller acts.
 ///
-/// Known and Mastered are kept apart because they are told apart: one is the reader's own
-/// mark, the other the level's frequency band. Either way the word stays a candidate, since
-/// a selection the reader made by hand is a request to explain it whatever they once marked
-/// (TODO.md item 0). Phase 2's automatic scanning is the caller that will want to skip them.
+/// Known is the reader's own mark, Mastered the level's frequency band. Either way the word
+/// stays a candidate: a hand-made selection is a request to explain it whatever they once
+/// marked (TODO.md item 0), and phase 2's automatic scanning is the caller that will skip them.
 enum class CandidateState {
     New,      ///< Neither marked nor inside the level's band.
     Known,    ///< The reader marked it as known.
@@ -85,9 +84,9 @@ struct Candidate {
  * -> skip all-caps -> lemmatise -> whitelist against the word list -> de-duplicate by lemma
  * -> record each survivor's state.
  *
- * The known set and the frequency cut-off annotate a candidate; they never remove one. What
- * removes a word is the hard filter, and that is the whole test for whether it is a word at
- * all: length, case, a vowel, glued punctuation, and membership of the static word list.
+     * The known set and the frequency cut-off annotate a candidate; they never remove one. What
+     * removes a word is the hard filter: length, case, a vowel, glued punctuation, and membership
+     * of the static word list.
  *
  * One explicit exception: when the whole selection is a single letters-only token of two or
  * more letters, in any case ("QML", "qml", "NASA", "ok", "am"), it is a word the reader picked
@@ -148,9 +147,8 @@ bool isAcronymToken(std::string_view token);
 /**
  * @brief Decide what a selection is, and produce the candidates a request would choose from.
  *
- * One place decides this, and the surfaces only route on the answer -- so picking translate
- * over explain cannot change the channel, and phase 2's entity channel is a branch here
- * rather than a second opinion somewhere else.
+     * One place decides this, and the surfaces only route on the answer: picking translate over
+     * explain cannot change the channel, and phase 2's entity channel is a branch here.
  *
  * @param text         Raw excerpt, exactly as filterWords takes it.
  * @param knownLemmas  Lemmas the reader has already marked as known.

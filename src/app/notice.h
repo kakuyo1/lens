@@ -7,9 +7,9 @@
  * @file notice.h
  * @brief The payload a notice surface binds to: the reason a pop had nothing to explain.
  *
- * A notice is not an explanation and carries no verdict. It exists so the bubble stops being
- * the error reporter: a request that failed, and a selection with no word to look up, both
- * arrive here instead, and the surface that draws a notice can be built on its own.
+ * A notice is not an explanation and carries no verdict; it exists so the bubble is no longer
+ * the error reporter. A request that failed, and a selection with no word to look up, both
+ * arrive here, and the surface that draws a notice can be built on its own.
  *
  * The shape lives here rather than in AppController so that the surface, the controller and
  * the offline test all read one definition of it.

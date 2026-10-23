@@ -271,7 +271,6 @@ Item {
             const shown = openFrostedGeneral();
             const glass = Util.ofTypeInWindow(shown.panel, "GlassSurface");
             verify(glass, "the frosted theme drew no glass on the settings card");
-            // Opening the window takes its own backdrop, which dims it for 120 ms: let that finish first.
             wait(300);
             compare(glass.passthrough, false, "the card drew passthrough with its blur above 0");
             verify(glass.drawsBackdrop, "the card drew no backdrop while its blur was above 0");

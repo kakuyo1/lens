@@ -3,16 +3,15 @@ pragma Singleton
 import QtQuick
 
 /**
- * The one rule that decides whether a glass card draws a backdrop at all (docs/adr/0069).
+ * Whether a glass card draws a backdrop at all (docs/adr/0069).
  *
- * Blur at 0 and nothing to bend means there is nothing the backdrop can add: the desktop under the card is exactly
- * what the reader asked to see. The window is already per-pixel transparent, so DWM composites the live desktop for
- * free -- sharper than any sheet, at the screen's own refresh rate, and at none of the cost of reading the desktop
- * (docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md 3.6 prices one read at 10 to 25 ms).
+ * Blur at 0 and nothing to bend means the backdrop adds nothing: the window is per-pixel transparent, so DWM composites
+ * the live desktop for free -- sharper than any sheet, at the screen's refresh rate, and with no desktop read (one read
+ * costs 10 to 25 ms: docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md 3.6).
  *
- * This is a singleton because both halves of a surface need the answer and must agree: the card that draws
- * (GlassSurface) and the window that decides when to read the desktop (GlassHost). Each theme asks its own numbers, so
- * the rule takes all of them and picks, rather than every caller picking.
+ * A singleton because both halves of a surface need the answer and must agree: the card that draws (GlassSurface) and
+ * the window that decides when to read the desktop (GlassHost). Each theme asks its own numbers, so the rule takes all
+ * of them and picks, rather than every caller picking.
  */
 QtObject {
     /**

@@ -433,9 +433,8 @@ void CaptureDuty::pollOcr()
     }
     if (result.status != capture::OcrStatus::Ready) {
         // The status this result carried, never ocrStatus(): that reads ocrState_, which the gate
-        // requires to be Ready before a framed capture starts at all -- so this branch used to log
-        // "ready" and tell the reader the runtime was unavailable about a region that simply had
-        // no text in it.
+        // requires to be Ready before a framed capture starts at all -- so ocrStatus() would report
+        // the runtime as fine about a region that simply had no text in it.
         const auto refusal = refusalOf(result.status).value_or(CaptureRefusal::Failed);
         if (context.context.isEmpty()) {
             LENS_INFO("OCR of the framed region produced no text (status {})", refusalKey(refusal));

@@ -37,9 +37,8 @@ Pricing Pricing::load(const std::filesystem::path& path)
     if (pricing.currency_.isEmpty() || pricing.unit_ <= 0)
         throw std::runtime_error("The price list states no currency or no unit: " + path.string());
 
-    // Optional: without a `display` block the surfaces show what the vendor quoted, which is
-    // what a price list on its own means. With one, the rates below stay the vendor's and the
-    // conversion is a separate, dated fact.
+    // Optional: without a `display` block the surfaces show what the vendor quoted; with one,
+    // the rates stay the vendor's and the conversion is a separate, dated fact.
     if (const QJsonObject display = root.value("display").toObject(); !display.isEmpty()) {
         const QString code       = display.value("currency").toString();
         const double  multiplier = display.value("multiplier").toDouble();
@@ -63,8 +62,8 @@ Pricing Pricing::load(const std::filesystem::path& path)
     if (pricing.byModel_.isEmpty())
         throw std::runtime_error("The price list names no model: " + path.string());
 
-    // The rate and its date are logged, not just stored: a converted figure on screen raises
-    // "where did that come from", and this is the answer that does not require opening a file.
+    // The rate and its date are logged, not just stored, so a converted figure on screen can be
+    // traced without opening the file.
     std::string shown = pricing.displayCurrency_.toStdString();
     if (pricing.displayMultiplier_ != 1.0) {
         shown += " at " + std::to_string(pricing.displayMultiplier_);

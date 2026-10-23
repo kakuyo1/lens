@@ -64,8 +64,8 @@ QString errorForGist(lens::sync::GistFailure why)
 {
     switch (why) {
         // 401 from api.github.com: the access token is no longer accepted. The device code that
-        // bought it is long gone, so what expired is the sign-in, not the code -- and that is a
-        // different thing to tell the reader, and a different thing to ask them to do about it.
+        // bought it is long gone, so what expired is the sign-in, not the code -- a different thing
+        // to tell the reader and a different thing to ask them to do about it.
         case lens::sync::GistFailure::Unauthorised: return QStringLiteral("signInExpired");
         case lens::sync::GistFailure::NotFound: return QStringLiteral("noGist");
         case lens::sync::GistFailure::Proxy: return QStringLiteral("proxy");

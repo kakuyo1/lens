@@ -4,14 +4,14 @@
  * @file glass_desktop.h
  * @brief Reading the pixels Windows is showing, which is what a glass sheet is cut from.
  *
- * Split out of the sheet's lifecycle (src/app/glass/glass_backdrop.h) because this call is the one whose cost decides the
- * refresh rate. ADR 0040 set 15 reads a second from an offline probe that measured 13.4 ms; the 2026-10-19 probe
+ * Split out of the sheet's lifecycle (src/app/glass/glass_backdrop.h) because this call's cost decides the refresh
+ * rate. ADR 0040 set 15 reads a second from an offline probe that measured 13.4 ms; the 2026-10-19 probe
  * measures 25.2 to 41.2 ms in a tight loop (docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md),
  * while the in-application CPU record divides out to about 6.7 ms
- * (docs/metrics/resource-footprint/glass-memory-2026-10-18.md 9.7). Only a read taken at the pace the application
- * keeps settles which of the two is the truth, and a test has to be able to take one without building a window, a
- * sheet and a QML surface around it. That is the whole reason for this header: the function is unchanged apart from
- * taking its scale as an argument, so the measurement reads exactly what the application reads.
+ * (docs/metrics/resource-footprint/glass-memory-2026-10-18.md 9.7). Only a read taken at the application's own
+ * pace settles which of the two is right, and a test has to take one without building a window, a
+ * sheet and a QML surface around it. The function is unchanged apart from taking its scale as an argument, so the
+ * measurement reads exactly what the application reads.
  */
 
 #include <QImage>

@@ -5,15 +5,13 @@ import QtQuick
 /**
  * One field of an answer whose words the definition chain offers (UI-SPEC.md 4.3).
  *
- * A thin overlay on RevealText rather than a change to it: the field still writes itself out one
- * character at a time, and the words above the reader's band get a dotted line, a hover tint and a
- * tap. Nothing about the text itself is redrawn -- the characters stay exactly where RevealText put
- * them, which matters because a second drawing of the same word would kern its letters differently
- * from the one already on the card and land a pixel or two off. That is also why a link is marked by
- * the line and the tint rather than by a colour change.
+ * A thin overlay on RevealText rather than a change to it: the field still writes itself out one character at a time,
+ * and the words above the reader's band get a dotted line, a hover tint and a tap. The text itself is not redrawn --
+ * the characters stay where RevealText put them, because a second drawing would kern its letters differently and land
+ * a pixel or two off; the same reason marks a link by line and tint rather than a colour change.
  *
- * The positions are read off RevealText's own layout through `layoutRevision`, so a chunk that
- * extends the answer re-lays the token it touched and the line follows it.
+ * The positions are read off RevealText's own layout through `layoutRevision`, so a chunk that extends the answer
+ * re-lays the token it touched and the line follows it.
  */
 Item {
     id: root

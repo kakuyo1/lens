@@ -7,10 +7,9 @@ import "../util/Format.js" as Format
 /**
  * The tray menu (UI-SPEC.md section 4.2), drawn rather than handed to QMenu.
  *
- * A surface like the others: a frameless window with a card in it. The language list is a
- * second card that unfolds to the left of the row it belongs to, which is why the window is
- * wider than the menu card -- the extra strip stays empty, and the window keeps the same width
- * whether the list is out or not, so nothing jumps when it appears.
+ * A surface like the others: a frameless window with a card in it. The language list is a second
+ * card unfolding to the left of its row, which is why the window is wider than the menu card: the
+ * extra strip stays empty, and the window keeps one width whether the list is out or not.
  */
 Window {
     id: menu
@@ -41,18 +40,16 @@ Window {
 
     width: cardLeft + cardWidth + shadowMargin
     readonly property real bodyHeight: bodyLoader.implicitHeight
-    /// The menu card's own height. The window is this while the language list is down, and the
-    /// list's own bounds when it reaches past it -- the list unfolds below the row it belongs to,
-    /// and the catalog decides how many rows it has.
+    /// The menu card's own height. The window is this while the language list is down, and the list's
+    /// own bounds when it reaches past it: the list unfolds below its row, the catalog sets the rows.
     readonly property real cardHeight: bodyHeight + 2 * padding
     height: Math.max(cardHeight, languageList.y + languageList.height) + 2 * shadowMargin
 
     /// True while a selection is captured at all; the state line's dot and label read it.
     readonly property bool capturing: Controller.settings.selectionCapture
 
-    /// The interface language, and the languages to offer. Both lists are the catalog's -- the
-    /// same four the explanation language is chosen from -- so a language added to it is one the
-    /// reader can pick here without a second table to keep in step.
+    /// The interface language, and the languages to offer. Both are the catalog's list, the same four
+    /// the explanation language is chosen from, so an added language needs no second table in step.
     readonly property string language: Controller.settings.uiLanguage
     readonly property var languages: Controller.settings.languages || []
     readonly property string languageName: {
@@ -62,15 +59,13 @@ Window {
         return language;
     }
 
-    /// Whether the language list is unfolded.
     property bool listVisible: false
 
     /// The menu rows are only needed after the tray menu is first opened.
     property bool contentActive: false
 
-    /// The two panels the menu opens. Where a panel goes is SurfaceHost.qml's business, so the menu
-    /// asks for one rather than calling into the file that instantiated it: that file's `root`
-    /// id does resolve at runtime, but nothing declares it and nothing checks it.
+    /// The two panels the menu opens. Placement is SurfaceHost.qml's business, so the menu asks rather
+    /// than calling into the file that instantiated it: its `root` id resolves at runtime, unchecked.
     signal statsRequested()
     signal settingsRequested()
 
@@ -119,14 +114,14 @@ Window {
                 width: menu.cardWidth - 2 * menu.padding
                 spacing: 0
 
-                // The state line: the product mark carries the state -- ok green while a
-                // selection is being captured, faint when it is not -- and the text names what
-                // the app is doing. The mark stands where UI-SPEC.md section 4.2 used to draw an
-                // anonymous dot: it says the same thing, and says whose app this is.
+                // The state line: the product mark carries the state -- ok green while a selection
+                // is being captured, faint when it is not -- and the text names what the app is
+                // doing. The mark stands where UI-SPEC.md section 4.2 draws an anonymous dot: it
+                // says the same thing, and whose app this is.
                 //
-                // Its inset and its size are the rows' beneath it (11 px, 15 px), so the mark
-                // sits in the same column as the statistics, language and settings glyphs
-                // instead of starting a second one.
+                // Its inset and size are the rows' beneath it (11 px, 15 px), so the mark sits in
+                // the same column as the statistics, language and settings glyphs instead of
+                // starting a second one.
                 Item {
                     width: parent.width
                     height: 34
@@ -235,10 +230,9 @@ Window {
             height: listColumn.implicitHeight + 10 + 2 * menu.shadowMargin
             radius: menu.tokens.radiusGroup
             color: menu.tokens.glassMode === "" ? menu.tokens.panel : "transparent"
-            // The list is built by this loader only once it is meant to be out, so the window
-            // it sits in is already visible and ShadowCard's own rule has nothing to animate.
-            // The loader's own status is the flip instead: Loading while the card is being
-            // built, Ready once it is done.
+            // The list is built by this loader only once it is meant to be out, so the window is
+            // already visible and ShadowCard's own rule has nothing to animate. The loader's status
+            // is the flip instead: Loading while the card is being built, Ready once it is done.
             shown: languageList.status === Loader.Ready && !menu.leaving
 
             GlassSurface {

@@ -137,8 +137,8 @@ Item {
         }
 
         /// A pointer arriving on the card is recorded, and the recording is the card rather than
-        /// the window around it. The two readings are the sighting TODO.md's hover jitter needs,
-        /// and this is what says the block that writes them runs without throwing.
+        /// the window around it. Those two readings are what TODO.md's hover-jitter sighting
+        /// needs; this case says the block that writes them runs without throwing.
         function test_hoveringTheCardRecordsIt() {
             const bubble = opened();
             const word = Util.textWith(Util.textsUnder(bubble), ["serendipity"]);

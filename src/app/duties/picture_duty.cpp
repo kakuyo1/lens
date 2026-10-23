@@ -76,8 +76,8 @@ void PictureDuty::request(QString query)
         return;
     }
     // Loading or already up is not asked for again: pressing the entry a second time is the reader
-    // looking at the strip, not asking for another fetch. One that failed is asked for again, which
-    // is what makes closing and reopening the entry the reader's retry (IMAGES.md 2.2).
+    // looking at the strip, not asking for another fetch. One that failed is, which is what makes
+    // closing and reopening the entry the reader's retry (IMAGES.md 2.2).
     if (trimmed == query_ and (state_ == QStringLiteral("loading") or state_ == QStringLiteral("ready")))
         return;
 
@@ -110,7 +110,7 @@ void PictureDuty::request(QString query)
 
 void PictureDuty::clear()
 {
-    // Whatever is arriving is no longer the reader's: the number moves, so its answers land in the
+    // The number moves, so whatever is arriving is no longer the reader's: its answers land in the
     // cache and nowhere else.
     ++requestId_;
     live_ = nullptr;

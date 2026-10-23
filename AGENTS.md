@@ -110,7 +110,7 @@ Removing a string needs `lupdate -no-obsolete`: plain `lupdate` keeps the vanish
 
 ## Code Style
 
-Comments are English and Doxygen-style. `///` with `@brief`, `@param`, `@return`, `@throws` on declarations; a `/** @file ... */` block at the top of each file.
+Comments are English and Doxygen-style. `///` with `@brief` on every declaration, unless the name alone states the whole contract; `@param`, `@return` and `@throws` only where they carry a constraint the name and the type do not -- a tag that restates the signature is left out. A `/** @file ... */` block at the top of each file. A rule is stated once: a `@note` or the prose adds to what the `@brief` said, never a second telling of it. Prose stays plain and as short as the facts allow: state the constraint and the reason, and stop -- no narrative framing, no rhetoric.
 
 ```cpp
 /**

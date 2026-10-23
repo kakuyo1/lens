@@ -92,7 +92,6 @@ public:
      *
      * @param manager Network manager to post through, or null to make one. The default manager's
      *                proxy behaviour is the one wanted, so nothing is set explicitly.
-     * @param parent  QObject parent.
      */
     explicit GithubAuth(QNetworkAccessManager* manager = nullptr, QObject* parent = nullptr);
 

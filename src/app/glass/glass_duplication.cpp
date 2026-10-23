@@ -421,9 +421,8 @@ DesktopRead GlassDuplication::read(QRect const native, double const scale, int c
         session.fail(E_FAIL, false);
         return {.refused = true};
     }
-    // Read the mapped rows where they lie. The old path copied them into a QImage and then turned that copy: two
-    // full passes over the sheet before it could be published. A view of the mapped memory lets the one turn write
-    // the destination directly (docs/adr/0074).
+    // Read the mapped rows where they lie. Copying them into a QImage and turning that copy is two full passes over
+    // the sheet before it can be published; the view lets the one turn write the destination directly (docs/adr/0074).
     auto const sourceView = QImage(static_cast<uchar const*>(mapped.pData),
                                    frameRect.width(),
                                    frameRect.height(),

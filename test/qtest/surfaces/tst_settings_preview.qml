@@ -304,9 +304,9 @@ Item {
         }
 
         /// One reading per field the controller fills an explanation language into: English and
-        /// Chinese in their own, Spanish and Japanese in the translation (UI-SPEC.md 4.3). The card is
-        /// raised by the list's rows now, and each row draws its own language whichever one is
-        /// stored -- the title is not a trigger any more.
+        /// Chinese in their own, Spanish and Japanese in the translation (UI-SPEC.md 4.3). The
+        /// card is raised by the list's rows, and each row draws its own language whichever one
+        /// is stored -- the title is not a trigger.
         function test_theDefinitionFollowsTheHoveredLanguageRow() {
             const main = make();
             Util.surfaceHost(main).showSettings();
@@ -400,10 +400,10 @@ Item {
             }
             leaveTitle(main, panel);
 
-            // And the row that draws several senses, read in English: the two lines under each sense
-            // are the English definition and the Chinese the request asks for beside it, which is the
-            // pair the duty hands over (explanation_duty.cpp). One card that drew the same sentence
-            // twice shipped before this shot existed.
+            // And the row that draws several senses, read in English: the two lines under each
+            // sense are the English definition and the Chinese the request asks for beside it,
+            // the pair the duty hands over (explanation_duty.cpp) -- the duplicate-sentence bug
+            // this shot guards against.
             Controller.setSetting("theme", "light");
             Controller.setSetting("explanationLang", "en");
             wait(20);

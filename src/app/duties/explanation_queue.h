@@ -4,18 +4,13 @@
  * @file explanation_queue.h
  * @brief What the reader has asked for and not yet been answered, and when an answer is theirs.
  *
- * The scheduling and the staleness rule used to be private members and a constructor lambda of
- * ExplanationDuty: two queues, a batch in flight, two generation counters, a set of words deleted
- * under it, and the fields describing the batch in flight smeared across five signal handlers.
- * Nothing behind a private member of that class could be asserted -- reaching any of it meant
- * building a real CostDuty around a real StatsStore, faking a QNetworkReply and running an event
- * loop.
- *
- * What lives here is the decision and not the doing. The queue says which request leaves next and
- * which answer still belongs to anything; the duty sends it, stores it and draws it. Everything
- * the queue needs from the outside arrives as an argument -- the budget's verdict and the context
- * of the moment -- so this holds no reference to a duty, a store or a client, and a case can put
- * every branch of the rule on the table without a network, a document or a clock.
+ * The queue holds the decision, not the doing: which request leaves next and which answer still
+ * belongs to anything; the duty sends it, stores it and draws it. It was split out of
+ * ExplanationDuty's private members because nothing behind them could be asserted -- reaching any
+ * of it meant a real CostDuty around a real StatsStore, a faked QNetworkReply and an event loop.
+ * Everything the queue needs from the outside arrives as an argument -- the budget's verdict and
+ * the context of the moment -- so this holds no reference to a duty, a store or a client, and a
+ * case can put every branch of the rule on the table without a network, a document or a clock.
  */
 
 #include <QSet>
@@ -60,7 +55,7 @@ struct ExplanationSettlement {
     /// @brief The item the answer is shown about, or nothing when it is not the reader's any more.
     ///
     /// Held apart from @c resultFor on purpose: the reader moving on takes the answer off the
-    /// screen and leaves it every bit as worth storing. It was paid for.
+    /// screen and leaves it every bit as worth storing -- the request was sent either way.
     std::optional<PendingSelection> subject;
 };
 
@@ -73,13 +68,13 @@ struct ExplanationSettlement {
  */
 class ExplanationQueue {
 public:
-    /// @brief The word list will not mistake seven words for a free request.
+    /// @brief The cap on one scan batch, so a scan tick cannot turn into an unbounded request.
     static constexpr int kMaximumScanBatch = 5;
 
     /// @brief The reader's selection moved on: another was taken, or this one was acted on.
     ///
-    /// The one thing that makes an answer on its way no longer the reader's. A selection that is
-    /// copied rather than explained counts too -- the reader has said what they wanted with it.
+    /// This is what makes an answer on its way no longer the reader's. A selection that is copied
+    /// rather than explained counts too -- the reader has said what they wanted with it.
     void selectionChanged()
     {
         ++selectionGeneration_;
@@ -88,7 +83,7 @@ public:
     /// @brief A request the reader made, already known not to be in the cache.
     /// @param selection The word, sentence or entity the reader asked about.
     /// @note The latest one taken wins: a reader who points at three words in a second meant the
-    ///       third, and the two before it were never anything but a moving pointer.
+    ///       third.
     void request(PendingSelection selection)
     {
         heldRequest_ = std::move(selection);

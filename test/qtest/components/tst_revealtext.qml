@@ -13,8 +13,8 @@ import "../testutil.js" as Util
  * MultiEffect (TEST.md section 5), so the tail is checked as the count of characters still carrying
  * one rather than as pixels.
  *
- * The clock here is real time, so every direction below is a generous one: the reveal is asserted
- * to have reached a length by a deadline, never to be at an exact one on an exact frame.
+ * The clock here is real time, so every assertion below is generous: the reveal is asserted to
+ * have reached a length by a deadline, never to be at an exact one on an exact frame.
  */
 Item {
     id: root
@@ -112,8 +112,8 @@ Item {
         }
 
         /// A slower pace does not widen the blur: the span is the ratio, not the milliseconds, so
-        /// the tail stays a handful of characters whatever the reader picks. This is the whole
-        /// reason the blur follows the pace as a ratio rather than sitting at a fixed 180 ms.
+        /// the tail stays a handful of characters whatever the reader picks. That is why the blur
+        /// follows the pace as a ratio rather than a fixed 180 ms.
         function test_aSlowerPaceKeepsTheBlurSpanTheSame() {
             const slow = opened({text: answer, characterMs: 200});
             const fast = opened({text: answer, characterMs: 20});

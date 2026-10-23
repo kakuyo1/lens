@@ -48,9 +48,9 @@ struct ExplainRequest {
 
 /// @brief One frequency-ordered word sense; translation is in the requested output language.
 /// @note `imageable` and `imageQuery` are the picture advice the word channel carries (IMAGES.md):
-///       whether a photograph can make this sense clearer, and the two-to-five English words an image
-///       search is run with. Both are advisory, so a sense with `imageable` false -- the default, and
-///       the reading of a word explained before the fields existed -- draws no picture entry.
+///       whether a photograph can make this sense clearer, and the two-to-five English words an
+///       image search runs with. Advisory only; `imageable` false, the default and the reading of
+///       an absent field, draws no picture entry.
 struct Sense {
     QString en, zh, translation;
     bool    imageable = false;
@@ -83,10 +83,10 @@ struct Explanation {
     ///       to two collocations with the word written as "~". Both are optional; an absent one is not drawn.
     QString     signpost;
     QStringList collocations;
-    /// @note The picture advice in its singular shape: a word answered without `senses` carries the pair
-    ///       here, the way it carries `en` / `zh`. The per-sense copy in `senses` is what the card reads;
-    ///       this one is the shape a single-sense answer arrives in, and is folded into `senses` on parse
-    ///       so nothing downstream has to know which shape it was (IMAGES.md 3.3).
+    /// @note The picture advice in its singular shape: a word answered without `senses` carries the
+    ///       pair here, as it carries `en` / `zh`. The card reads the per-sense copy in `senses`;
+    ///       this one is folded into `senses` on parse so nothing downstream sees two shapes
+    ///       (IMAGES.md 3.3).
     bool    imageable = false;
     QString imageQuery;
 };
@@ -134,7 +134,6 @@ public:
     ///
     /// @param config  Connection settings.
     /// @param manager Network manager to post through, or null to make one.
-    /// @param parent  QObject parent.
     explicit LlmClient(Config config, QNetworkAccessManager* manager = nullptr, QObject* parent = nullptr);
 
     /// @brief Replace the model used by subsequent requests.

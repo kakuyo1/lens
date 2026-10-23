@@ -13,9 +13,8 @@
 namespace lens::update {
 namespace {
 
-/// The one repository this check reads, and the one path under it a release tag lives at.
-/// Both are checked rather than assumed: an address from anywhere else is not this project's
-/// release page, and the reader's card would be opening someone else's page.
+/// The one repository this check reads, and the one path under it a release tag lives at; both
+/// are checked, so no other address can pass for this project's release page.
 constexpr auto kReleaseHost = "github.com";
 const QString  kTagPath     = QStringLiteral("/kakuyo1/lens/releases/tag/");
 

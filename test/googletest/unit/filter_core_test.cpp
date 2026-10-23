@@ -430,11 +430,10 @@ TEST_F(KnownStoreTest, AMistypedStoredPictureAdviceIsIgnoredRatherThanFatal)
     EXPECT_TRUE(hit->imageQuery.empty());
 }
 
-/// An entry written before the ipa field existed has no key, so it reads as empty rather than as
-/// a bubble that is missing a line. That miss is the whole migration: the next lookup asks the
-/// model and writes a complete entry, and the entry that could not be read goes out of the file
-/// on the save that follows. An empty ipa is a legitimate entry now (an acronym has none), so
-/// only the missing key is dropped.
+/// An entry with no ipa key reads as empty rather than as a bubble that is missing a line. That
+/// miss is the migration: the next lookup asks the model and writes a complete entry, and the
+/// unreadable entry goes out of the file on the save that follows. An empty ipa is a legitimate
+/// entry (an acronym has none), so only the missing key is dropped.
 TEST_F(KnownStoreTest, ACachedEntryFromBeforeTheIPAFieldIsNotAnEntry)
 {
     std::ofstream(path) << R"({"cache":{"en":{"ubiquitous":{"en":"existing everywhere","zh":"无处不在的"}}}})";

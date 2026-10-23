@@ -8,12 +8,11 @@ import QtQuick.Dialogs
  *
  * It keeps an input's shape -- same fill, border and radius -- and puts the folder glyph a picker
  * is read by at its right end. The whole field is the target, because a reader who clicks a path
- * expects the system's dialog, not a cursor in the middle of it: the glyph is what says so before
- * they try, and typing a path is what this replaced.
+ * expects the system's dialog, not a cursor in the middle of it; the glyph says so before they try.
  *
  * A path nobody has picked yet draws what it would resolve to in the faint colour a placeholder
- * uses, rather than the empty field an unchosen setting otherwise is. The reader can then see
- * where the program will look before deciding to move it.
+ * uses, rather than the empty field an unchosen setting otherwise is: the reader can see where the
+ * program will look before deciding to move it.
  *
  * The path is elided in the middle: a path is read by its two ends, and the file or folder name at
  * the far end is what tells the reader which one they are looking at.

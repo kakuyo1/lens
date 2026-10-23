@@ -147,11 +147,10 @@ Item {
                 Tokens.theme = theme;
             }
         }
-    /// The strip's failure state: the one a reader sees when the source cannot be reached, or answers
-        /// with nothing usable. It is the one state that draws no picture, so the whole block is
-        /// photographable offscreen -- the thumbnails are not -- and it is where the fallback pill has
-        /// to stand on the same left baseline, in the same style, as the entry that opened it
-        /// (IMAGES.md 2.4, 4.5).
+        /// The strip's failure state, seen when the source cannot be reached or answers with
+        /// nothing usable. It draws no picture, so the whole block is photographable offscreen --
+        /// the thumbnails are not -- and it is where the fallback pill has to stand on the same
+        /// left baseline, in the same style, as the entry that opened it (IMAGES.md 2.4, 4.5).
         function test_snapshotPictureStripFailure() {
             if (!lensQaSnapshotDir) skip("Set LENS_QA_SNAPSHOT_DIR to save snapshots");
             const theme = Tokens.theme;

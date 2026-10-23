@@ -49,9 +49,8 @@ std::optional<WordCache> readCache(nlohmann::json const& entry, std::string cons
         if (not entry["translation"].is_string()) return std::nullopt;
         result.translation = entry["translation"].get<std::string>();
     }
-    // Optional, and absent from every entry written before the setting existed. An empty one is
-    // kept as empty rather than failing the read: it says the model had no origin to give, not that
-    // the entry is damaged.
+    // Optional, and absent from every entry written before the field existed. An empty one is kept
+    // as empty rather than failing the read: the model had no origin to give, not damage.
     if (entry.contains("etymology")) {
         if (not entry["etymology"].is_string()) return std::nullopt;
         result.etymology = entry["etymology"].get<std::string>();
@@ -75,9 +74,8 @@ std::optional<WordCache> readCache(nlohmann::json const& entry, std::string cons
         }
     }
     // The picture advice, optional and never load-bearing: absent from every entry written before the
-    // fields existed, and a wrong type is ignored rather than fatal -- the advice is not worth the
-    // definition it came with (IMAGES.md 3.3). A blank query reads as not imageable, the same way the
-    // parser leaves it.
+    // fields existed, and a wrong type is ignored rather than fatal (IMAGES.md 3.3). A blank query
+    // reads as not imageable, the parser's default.
     if (entry.contains("imageable") and entry["imageable"].is_boolean()) result.imageable = entry["imageable"].get<bool>();
     if (entry.contains("imageQuery") and entry["imageQuery"].is_string()) result.imageQuery = entry["imageQuery"].get<std::string>();
     if (result.imageQuery.empty()) result.imageable = false;
@@ -115,9 +113,8 @@ nlohmann::json writeCache(WordCache const& entry)
     if (entry.example) value["example"] = *entry.example;
     if (not entry.signpost.empty()) value["signpost"] = entry.signpost;
     if (not entry.collocations.empty()) value["collocations"] = entry.collocations;
-    // Written only when there is a query to run with: the pair says "this sense has a picture to
-    // fetch", and a bare `imageable` without one would be advice the duty can act on. So an entry
-    // that predates the fields, or one whose sense is not imageable, writes neither key.
+    // Written only when there is a query to run with: a bare `imageable` without one would be advice
+    // the duty can act on. Pre-field entries and non-imageable senses write neither key.
     if (not entry.imageQuery.empty()) {
         value["imageable"]  = entry.imageable;
         value["imageQuery"] = entry.imageQuery;

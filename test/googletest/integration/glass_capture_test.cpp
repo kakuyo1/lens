@@ -7,8 +7,8 @@
  * cannot be duplicated still shows whether the fallback engine works there.
  *
  * It prints the frame rate rather than asserting on it: a static desktop delivers frames at the compositor's pace, not
- * at a number a test could name, and a CI runner has no desktop to capture. What it asserts is that a frame came back
- * and that the capture is refused only where the system says it cannot draw one without the border or the pointer.
+ * at a number a test could name, and a CI runner has no desktop to capture. It asserts that a frame came back and
+ * that the capture is refused only where the system says it cannot draw one without the border or the pointer.
  *
  * Run:
  *

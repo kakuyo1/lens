@@ -65,7 +65,6 @@ public:
      *
      * @param settings Source and limits.
      * @param manager Network manager to post through, or null to make one.
-     * @param parent  QObject parent.
      */
     explicit UpdateClient(Settings settings, QNetworkAccessManager* manager = nullptr, QObject* parent = nullptr);
 
@@ -119,7 +118,6 @@ public:
      *
      * @param settings Source and limits, the same ones the check reads.
      * @param manager  Network manager to post through, or null to make one.
-     * @param parent   QObject parent.
      */
     explicit DownloadClient(Settings settings, QNetworkAccessManager* manager = nullptr, QObject* parent = nullptr);
 

@@ -5,8 +5,7 @@ import QtQuick
  * back, and the marks above a list.
  *
  * Icon.qml draws the glyph; this adds what makes it a control -- the pointing cursor and the
- * press scale UI-SPEC.md's motion table gives every button. The surfaces used to repeat an Icon,
- * a HoverHandler and a TapHandler, and none of those copies shrank when pressed.
+ * press scale UI-SPEC.md's motion table gives every button.
  */
 Icon {
     id: root

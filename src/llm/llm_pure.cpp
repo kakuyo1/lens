@@ -20,10 +20,9 @@
 namespace lens::llm {
 namespace {
 
-// Reader-facing messages go through QCoreApplication::translate with both the context and
-// the text written out as literals at every site. A helper taking the context as an
-// argument would read better and extract worse: lupdate only sees literal arguments, so
-// the strings would silently never reach the .ts files.
+// Reader-facing messages go through QCoreApplication::translate with both the context and the
+// text written out as literals at every site. lupdate extracts literal arguments only, so a
+// helper taking the context as a parameter would keep the strings out of the .ts files.
 
 /// @brief Render a channel's system prompt with the output-language line filled in.
 QString renderSystemPrompt(Channel channel, const QString& explanationLang, const QString& preset, bool const etymology, bool const example)
@@ -38,10 +37,9 @@ QString renderSystemPrompt(Channel channel, const QString& explanationLang, cons
 
     QString prompt = tmpl.systemPromptTemplate;
     prompt.replace(QLatin1String(kOutputLanguagePlaceholder), line);
-    // Clearing both placeholders is the whole of "this word is being asked for without its
-    // origin": the sentence and the field it names travel together, and what is left is the prompt
-    // exactly as it read before the setting existed. A channel whose template never carried them
-    // is untouched, which is how entity and sentence keep out of this.
+    // Off clears both placeholders together: the sentence and the field it names travel, and what
+    // is left is the prompt as it read before the setting existed. A template that never carried
+    // them is untouched, which is what keeps entity and sentence out of this.
     prompt.replace(QLatin1String(kEtymologyNotePlaceholder), etymology ? tmpl.etymologyNote : QString{});
     prompt.replace(QLatin1String(kEtymologyFieldPlaceholder), etymology ? tmpl.etymologyField : QString{});
     prompt.replace(QLatin1String(kExampleNotePlaceholder), example ? tmpl.exampleNote : QString{});
@@ -50,8 +48,7 @@ QString renderSystemPrompt(Channel channel, const QString& explanationLang, cons
 }
 
 /// @return The JSON object bytes inside a model's content, tolerating a surrounding markdown
-/// fence or a line of prose. The model is asked for bare JSON, but a wrapped answer is common
-/// enough that failing the whole batch over it would be brittle.
+/// fence or a line of prose: the model is asked for bare JSON, but wrapped answers are common.
 QByteArray extractJsonObject(const QString& content)
 {
     QString text = content.trimmed();
@@ -122,8 +119,7 @@ int endOfJsonString(QString const& text, int quote)
 }
 
 /// @return A JSON string literal's value, quotes included, with its escapes resolved, or empty
-///         for a literal no JSON reader accepts -- which is how a value the model has not
-///         finished writing reads.
+///         for a literal no JSON reader accepts -- a value the model has not finished writing.
 QString jsonStringValue(QString const& literal)
 {
     const auto array = QJsonDocument::fromJson(QStringLiteral("[%1]").arg(literal).toUtf8()).array();
@@ -164,9 +160,9 @@ int scanSenseArray(QString const& text, int arrayStart, QVector<Sense>& senses)
 ///        arrived, folding a `senses` array into @p senses.
 /// @return The index just past the object's `}`, or the end of the text while it has not closed.
 /// @note A value that is neither a string nor the `senses` array is skipped when it is a scalar --
-///       the word channel's `imageable` is a boolean, and stopping on it would hold back every field
-///       the model writes after it. An array or an object under any other key is a shape the shipped
-///       results do not hold, and guessing at it would be guessing, so that still stops the read.
+///       the word channel's `imageable` is a boolean, and stopping on it would hold back every
+///       field after it. An array or object under any other key is not a shape the shipped results
+///       hold, and still stops the read.
 int scanJsonObject(QString const& text, int objectStart, QHash<QString, QString>& fields, QVector<Sense>& senses)
 {
     int i = objectStart + 1;
@@ -444,11 +440,10 @@ std::variant<QVector<Explanation>, QString> parseExplanationContent(Channel     
     }
 
     if (!isWord) {
-        // Entity, sentence and translation carry no echoed title on the wire: the app already knows the
-        // selected text, and making a model reproduce a long, punctuation-heavy string exactly
-        // only invites drift. A model may also split a selected block (a numbered list, several
-        // sentences) into more entries than were asked for, so fold those into the one result
-        // rather than losing the whole batch.
+        // Entity, sentence and translation carry no echoed title on the wire: the app already knows
+        // the selected text, and making a model reproduce a long, punctuation-heavy string invites
+        // drift. A model may also split a selected block (a numbered list, several sentences) into
+        // more entries than asked for; those fold into one result rather than losing the batch.
         QVector<Explanation> ordered;
         if (parsed.size() == expectedInputs.size()) {
             for (int i = 0; i < expectedInputs.size(); ++i) {
@@ -484,13 +479,12 @@ std::variant<QVector<Explanation>, QString> parseExplanationContent(Channel     
     // case-insensitive (a model may capitalize an acronym) and the requested spelling wins, so
     // the cache key and the bubble title stay canonical.
     //
-    // The same word twice is not a failure. A model that writes one result per sense instead of one
-    // result with a `senses` array names its word once per sense, and that is an answer to the
-    // question asked rather than a broken one -- failing the batch over it threw away definitions
-    // that had already arrived, which is the trade this file refuses everywhere else. The repeat is
-    // folded into the entry already held, exactly as the other channels fold the several entries a
-    // model makes out of one selected block. A word the model never named at all is still a failure:
-    // that one leaves the reader with nothing.
+    // The same word twice is not a failure: a model that writes one result per sense instead of
+    // one result with a `senses` array names its word once per sense, and failing the batch over
+    // it would discard definitions that had arrived -- the trade this file refuses everywhere
+    // else. The repeat folds into the entry already held, as the other channels fold a model's
+    // several entries for one selected block. A word the model never named at all is still a
+    // failure: it leaves the reader with nothing.
     QHash<QString, Explanation> byTitle;
     for (const auto& e : parsed) {
         const QString key  = e.title.toLower();
@@ -547,7 +541,6 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel           
 {
     using Result = std::variant<QVector<Explanation>, QString>;
 
-    /// Reject the whole batch, naming the reason once for both the caller and the log.
     const auto reject = [](const QString& reason) -> Result {
         LENS_ERROR("parseExplanations rejected the response: {}", reason.toStdString());
         return reason;
@@ -578,9 +571,8 @@ namespace {
 /// Bytes needed to tell an SSE stream from one whole body: exactly the length of "data:".
 constexpr int kSseSniffBytes = 5;
 
-/// @return Whether a preview has anything the card would draw. The first chunks of an answer are
-///         `{` and `"resul` and the like, and an empty card appearing before any text is not the
-///         point of a stream.
+/// @return Whether a preview has anything the card would draw. The first chunks are `{` and
+///         `"resul` and the like; an empty card must not appear before any text has arrived.
 bool hasAnythingToDraw(Explanation const& partial)
 {
     return not(partial.title.isEmpty() and partial.ipa.isEmpty() and partial.en.isEmpty() and

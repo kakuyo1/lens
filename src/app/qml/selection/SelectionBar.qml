@@ -83,9 +83,8 @@ Window {
         surfaceShown = false;
     }
 
-    /// @brief Run the action an item was pressed for. The body has already played its gesture:
-    ///        it emits `picked` from the same tap that started the gesture, so no member of the
-    ///        loaded body has to be reached from here.
+    /// @brief Run the action an item was pressed for. The body has already played its gesture -- it
+    ///        emits `picked` from the same tap that started it, so no body member is reached here.
     function pick(action) {
         Controller.explanationDuty.runSelectionAction(action, bar.selectionText);
         bar.dismiss();
@@ -167,9 +166,9 @@ Window {
         enabled: bar.surfaceShown
         transform: Translate { y: fade.lift }
 
-        // The whole bar is the handle: pressing an item taps it, pressing the padding and
-        // moving drags the window. The two reasons this is a timer rather than the handler's
-        // own signal are in ShadowCard.qml.
+        // The whole bar is the handle: pressing an item taps it, pressing the padding and moving drags
+        // the window. The two reasons this is a timer, not the handler's own signal, are in
+        // ShadowCard.qml.
         DragHandler {
             id: mover
             target: null

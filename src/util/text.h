@@ -37,36 +37,30 @@ std::string datePart(std::string_view minute);
 /**
  * @brief Add a signed tally delta without allowing a negative count.
  * @param value Existing non-negative count.
- * @param delta Change to apply.
  * @return The changed count, clamped at zero.
  */
 int clampedAdd(int value, int delta);
 
-/// @return Whether @p c is an ASCII upper-case letter.
 constexpr bool isAsciiUpper(char const c) noexcept
 {
     return c >= 'A' and c <= 'Z';
 }
 
-/// @return Whether @p c is an ASCII lower-case letter.
 constexpr bool isAsciiLower(char const c) noexcept
 {
     return c >= 'a' and c <= 'z';
 }
 
-/// @return Whether @p c is an ASCII letter, A-Z or a-z.
 constexpr bool isAsciiLetter(char const c) noexcept
 {
     return isAsciiUpper(c) or isAsciiLower(c);
 }
 
-/// @return Whether @p c is an ASCII digit, 0-9.
 constexpr bool isAsciiDigit(char const c) noexcept
 {
     return c >= '0' and c <= '9';
 }
 
-/// @return Whether @p c is an ASCII letter or digit.
 constexpr bool isAsciiAlnum(char const c) noexcept
 {
     return isAsciiLetter(c) or isAsciiDigit(c);

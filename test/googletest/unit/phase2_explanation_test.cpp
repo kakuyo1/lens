@@ -161,8 +161,6 @@ app::PendingSelection selection()
 /// What a case varies it passes in -- the model, the cost duty's clock -- and the catalog cases add
 /// their own catalog beside it. The test declares its own QtApplication first: one process holds
 /// one, so a rig cannot own it.
-///
-/// What it does not vary is the same nine lines, written once here instead of once per case.
 struct Rig {
     QTemporaryDir        temporary;
     core::KnownStore     store;
@@ -191,8 +189,7 @@ struct Rig {
     }
 
     /// @brief Ask for @p lemma, and wait only when a request actually went out: a word already
-    ///        stored is answered out of the cache before this returns, so waiting would be waiting
-    ///        for something that is not coming.
+    ///        stored is answered out of the cache before this returns.
     void explain(QString const& lemma)
     {
         const int before = manager.posts;
@@ -700,17 +697,16 @@ TEST_F(LlmTest, AFetchedListNeverRewritesTheModelInForceButAProviderChangeStillD
     QTimer::singleShot(2000, &loop, &QEventLoop::quit);
     loop.exec();
 
-    // The answer lists deepseek-chat, not the deepseek-flash that is in force. Under the old rule
-    // this silently moved every DeepSeek reader onto a name the price list does not carry.
+    // The answer lists deepseek-chat, not the deepseek-flash that is in force: rewriting the
+    // model here would move every DeepSeek reader onto a name the price list does not carry.
     ASSERT_EQ(store.document().at("MODELS").at("DeepSeek").at(0), "deepseek-chat");
     EXPECT_EQ(client.model(), "deepseek-flash");
     EXPECT_EQ(store.document().at("MODEL"), "deepseek-flash");
     EXPECT_FALSE(pricing.cost(client.model(), {1000, 1000}) <= 0.0) << "the shipped default lost its price";
 
     // Re-picking the provider already in force is a tap on the dropdown row, not a change, and the
-    // dropdown passes the current value straight through. Before the shared model list this tap was
-    // harmless, because the list it corrected against was this service's own; now it would replace
-    // a valid model with whichever id the source happens to list first.
+    // dropdown passes the current value straight through. With one list shared by every service,
+    // that tap would otherwise replace a valid model with whichever id the source lists first.
     ASSERT_TRUE(catalog.setProvider("DeepSeek"));
     EXPECT_EQ(client.model(), "deepseek-flash") << "re-picking the standing provider rewrote the model";
     EXPECT_EQ(store.document().at("MODEL"), "deepseek-flash");

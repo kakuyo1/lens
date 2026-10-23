@@ -14,9 +14,9 @@
  * @file model_catalog_duty.h
  * @brief Which service Lens asks, which model it asks for, and the list the model field offers.
  *
- * This is the provider and model-list half of what ExplanationDuty used to be: the rules of
- * docs/adr/0017, 0018 and 0020, and nothing about explanations. The two share the document and the
- * client and no state at all, so what each is for only ever met in the interface they were behind.
+ * The provider and model-list half of the old ExplanationDuty: the rules of docs/adr/0017, 0018
+ * and 0020, and nothing about explanations. The two share the document and the client and no
+ * state at all.
  */
 
 namespace lens::app {

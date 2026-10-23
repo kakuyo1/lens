@@ -19,7 +19,6 @@ Canvas {
     required property var card
     /// The card's corner radius: the frame follows it, five pixels wider.
     required property real cardRadius
-    /// The line's colour.
     required property color strokeColor
     /// How far clear of the card the frame is drawn.
     property real gap: 6

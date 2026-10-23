@@ -112,11 +112,9 @@ struct Parse {
 
 /// The surface names the table knows, in the order `state` reports them. Each is a window's object name in QML.
 /// Derived from the one surface table (core/domain/surface_table.h), so this list, the glass sheet set and the dev
-/// opener table cannot drift apart the way three hand-written copies did (docs/adr/0084).
+/// opener table cannot drift (docs/adr/0084).
 inline constexpr auto kSurfaceNames = lens::core::surface::devNames();
 
-/// @param name A candidate surface name.
-/// @return Whether @p name is one of kSurfaceNames.
 [[nodiscard]] bool isSurfaceName(std::string_view name);
 
 /// @brief Parse one line of the command table.

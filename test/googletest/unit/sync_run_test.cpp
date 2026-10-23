@@ -3,10 +3,10 @@
  * @brief The sync run's own decisions, offline: which key opens the cloud copy, and whether the
  *        merged document goes back up.
  *
- * These are the steps SyncDuty::process() used to run in one Qt method with a real GistClient
- * behind it, which is why the first-run key, the reopen, the pass that has nothing to send and the
- * failure paths had no case. Every passphrase and every key here is a fixture: nothing reaches
- * GitHub, no event loop runs, and no real key is derived under a real passphrase.
+ * These are the steps SyncDuty::process() runs, extracted from the duty so the first-run key, the
+ * reopen, the pass that has nothing to send and the failure paths can be driven offline. Every
+ * passphrase and every key here is a fixture: nothing reaches GitHub, no event loop runs, and no
+ * real key is derived under a real passphrase.
  */
 
 #include <string>

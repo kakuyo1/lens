@@ -53,9 +53,8 @@ Window {
             width: stats.cardWidth - 40
             spacing: 0
 
-            // The close icon is anchored to the right edge rather than pushed there by a
-            // spacer: a spacer sized around the English title lands the glyph past the card
-            // the moment the title is a different width, which is every translation of it.
+            // The close icon is anchored to the right edge rather than pushed by a spacer: one sized
+            // around the English title lands the glyph past the card at every other translation's width.
             Item {
                 width: parent.width
                 height: title.height
@@ -119,9 +118,8 @@ Window {
             StatRow {
                 width: parent.width
                 label: qsTr("All time")
-                // The same count the words panel shows, from the same source: the rows are
-                // deduplicated, so a tally of pops labelled "words" reads as a bug beside a
-                // panel that lists fewer of them.
+                // The same count the words panel shows, from the same source: the rows are deduplicated,
+                // and a tally of pops labelled "words" would read as a bug beside a panel listing fewer.
                 value: qsTr("%1 words").arg(Controller.words.length)
                 clickable: true
                 onTapped: stats.wordsRequested()

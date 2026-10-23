@@ -7,9 +7,8 @@ import Lens
  *
  * setup.cpp builds the Controller the way main() does -- minus the mouse hook and the tray icon
  * -- so this target is the only one that can call it at all: it is a QML singleton, and its
- * constructor wants a store, a client and a hook that no unit test has. What was checked here
- * before was how the surfaces are laid out from that state; these cases check the state itself,
- * which is the half a photograph cannot see.
+ * constructor wants a store, a client and a hook that no unit test has. These cases check the
+ * state itself, the half a photograph cannot see.
  *
  * The entry point that turns a gesture into a selection is not reachable this way -- it is not
  * Q_INVOKABLE and the hook is not exposed to QML -- so beginSelection() and everything below it

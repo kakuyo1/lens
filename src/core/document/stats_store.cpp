@@ -17,9 +17,9 @@ namespace {
 /// @brief Move one word in or out of a day's known / new tally.
 ///
 /// @param delta +1 when a verdict is attached to the day, -1 when one is taken back off it.
-/// @note The clamp is for documents an earlier version wrote, which booked the count on the
-///       day of the mark rather than the day of the pop: taking a verdict back can reach a
-///       bucket that never held it.
+/// @note The clamp covers documents an earlier version wrote, which booked the count on the day
+///       of the mark rather than the day of the pop: taking a verdict back can reach a bucket
+///       that never held it.
 void tallyVerdict(DailyUsage& day, const std::string& verdict, int delta)
 {
     if (verdict == "known")
@@ -140,10 +140,9 @@ void StatsStore::recordPop(std::string lemma, std::string minute)
 
 void StatsStore::recordVerdict(const std::string& lemma, std::string minute, std::string verdict)
 {
-    // The newest entry for the lemma, not the newest *unmarked* one: the newest entry is what
-    // words() reads, so it is the one a mark has to reach. Looking for an unmarked one made the
-    // words popup's verdict pills write-once -- pressing one on a word that already carried a
-    // verdict found nothing to fill, so the row did not move.
+    // The newest entry for the lemma, not the newest unmarked one: the newest entry is what
+    // words() reads, so it is the one a mark has to reach, and a word that already carries a
+    // verdict takes the new one.
     const auto entry = std::find_if(history_.begin(), history_.end(), [&](const HistoryEntry& e) { return e.lemma == lemma; });
 
     if (entry == history_.end()) {
@@ -159,9 +158,8 @@ void StatsStore::recordVerdict(const std::string& lemma, std::string minute, std
         return; // the word already carries this verdict; nothing moved, so the day does not grow
 
     // The count belongs to the day the word was shown -- the panel reads "of today's pops, how
-    // many you settled this way" -- which is also the only day it can be taken back off. So a
-    // re-marked word moves from one column to the other instead of landing in both, and the day
-    // that counted it is the day that gives it up.
+    // many you settled this way" -- which is also the only day it can be taken back off, so a
+    // re-marked word moves from one column to the other instead of landing in both.
     DailyUsage& day = daily_[util::datePart(entry->minute)];
     tallyVerdict(day, entry->verdict, -1);
     entry->verdict = verdict; // keep the pop's own minute; this is when it was shown

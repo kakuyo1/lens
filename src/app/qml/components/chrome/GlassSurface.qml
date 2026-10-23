@@ -35,8 +35,8 @@ Item {
     /// Liquid only: refraction in px.
     property real refraction: Controller.settings.liquidRefraction
     /// Whether the card draws no backdrop: blur at 0 with nothing to bend (docs/adr/0069). The window is per-pixel
-    /// transparent, so the live desktop shows through it — sharper than any sheet, at the screen's own rate, and with
-    /// no desktop read asked for. GlassHost still keeps one picture for the text tone, and nothing uploads it here.
+    /// transparent, so the live desktop shows through it with no desktop read; GlassHost still keeps one picture for
+    /// the text tone, and nothing uploads it here.
     readonly property bool passthrough: GlassRule.passthrough(root.mode, Controller.settings.frostedBlur,
                                                               Controller.settings.liquidBlur, Controller.settings.liquidRefraction)
     /// Whether the card draws the sheet. False with the glass off and in passthrough, so the live texture is released.

@@ -13,9 +13,9 @@ import "../testutil.js" as Util
  * the rectangle that comes back and the reason that goes out -- the same boundary the capture
  * settings are held to (`tst_capture.qml`).
  *
- * What cannot be checked here at all: whether a screen grab taken a moment after the mask hides
- * still has the mask in it. That is the one thing about this feature that needs a real desktop and
- * a real eye, and `Mask.qml` says so where the wait is.
+ * Not checkable here at all: whether a screen grab taken a moment after the mask hides still has
+ * the mask in it. That needs a real desktop and a real eye, and `Mask.qml` says so where the
+ * wait is.
  */
 Item {
     id: root
@@ -146,13 +146,12 @@ Item {
 
         /// The two halves meet at exactly one wire -- the mask's rectangle, handed to the
         /// controller by the root -- and this is that wire. Both halves pass their own cases while
-        /// it is missing, which is what it was: a drag framed a region, the mask went, and nothing
-        /// was asked for, with no error anywhere because nobody was listening.
+        /// it is missing: a drag framed a region and nothing was asked for, with no error anywhere
+        /// because nobody was listening.
         ///
         /// What the case reads is the answer the controller gives back. The fixture has OCR capture
-        /// off, which is the one refusal that reads the same on every machine; the rest depend on
-        /// the runtime this runs on, and `test_aCaptureThatCannotStartSaysWhy` is where that line
-        /// is drawn.
+        /// off, the one refusal that reads the same on every machine; the rest depend on the
+        /// runtime, and `test_aCaptureThatCannotStartSaysWhy` is where that line is drawn.
         function test_theFramedRegionReachesTheControllerThroughTheRoot() {
             compare(Controller.settings.ocrCapture, false, "the fixture should have OCR capture off");
             Controller.explanationDuty.dismissNotice();
@@ -251,6 +250,6 @@ Item {
 
         /// The row's own drawing is checked against the snapshot the settings case already takes of
         /// this page (`tst_settings_wave3.qml` → `settings-capture.png`): a second still of the same
-        /// row from a nested item was a shifted render, and one picture of a surface is enough.
+        /// row from a nested item renders shifted, and one picture of a surface is enough.
     }
 }

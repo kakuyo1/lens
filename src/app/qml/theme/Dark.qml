@@ -3,23 +3,22 @@ import QtQuick
 /**
  * The dark values of every colour token, from DESIGN.md section 3.1b.
  *
- * Dark is not the light theme with the lights turned off, and this table is not the light one
- * with each value inverted. Four things it decides, in the order they are visible:
+ * Not the light theme with the lights off, and not the light table inverted. What it decides, in the
+ * order it is visible:
  *
- * The neutrals carry one cool cast (hue ~216, chroma rising with lightness) rather than sitting
- * at zero saturation. Dead grey is what reads as a default, and three surfaces that differ only
- * in luminance are the hardest to tell apart at the bottom of the range; one tint makes the same
- * steps legible.
+ * The neutrals carry one cool cast (hue ~216, chroma rising with lightness) instead of zero
+ * saturation: dead grey reads as a default, and three surfaces differing only in luminance are the
+ * hardest to tell apart at the bottom of the range; one tint makes the same steps legible.
  *
  * The three surfaces are a ladder, not a rounding -- bg L* 3, panel L* 10, panel2 L* 16. A card
- * floats above the page and an inset sits visibly inside the card. On dark the shadow does almost
+ * floats above the page and an inset sits visibly inside the card; on dark the shadow does almost
  * nothing, so this step is the hierarchy.
  *
- * `line` is the edge. It is lighter than the fill it borders, which is what an edge is on dark,
- * and it is the only thing drawing a card's outline: it sits well above both panel and panel2
- * instead of one step above them, and `line2` stays the quieter hairline it is in light.
+ * `line` is the edge: lighter than the fill it borders, which is what an edge is on dark, and the
+ * only thing drawing a card's outline. It sits well above panel and panel2 rather than one step
+ * above them, and `line2` stays the quieter hairline it is in light.
  *
- * `ok` is tuned for dark rather than lifted from light -- same hue family as `okText` and `okBg`
+ * `ok` is tuned for dark rather than lifted from light: same hue family as `okText` and `okBg`
  * (155, held), lightness raised until it reads on the new panel, saturation left where a green
  * still reads as green instead of glowing.
  *
@@ -47,10 +46,9 @@ QtObject {
     /**
      * The bubble's frosted fill and its border.
      *
-     * The bubble floats over the desktop rather than over a card, so it has to hold its own on
-     * both: the fill is a tone above panel, which is what keeps it visible over a dark
-     * application, and the border is a lit glass edge rather than a separator. The 9% white line
-     * it used to carry vanished into any dark window behind it; it reads as an edge now.
+     * The bubble floats over the desktop rather than over a card, so it must hold its own on both:
+     * the fill is a tone above panel, which keeps it visible over a dark application; the border is
+     * a lit glass edge rather than a separator -- a 9% white line vanishes into any dark window.
      */
     readonly property color bubbleBg: Qt.rgba(30 / 255, 36 / 255, 47 / 255, 0.85)
     readonly property color bubbleBorder: Qt.rgba(1, 1, 1, 0.14)

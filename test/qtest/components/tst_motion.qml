@@ -8,10 +8,10 @@ import "../"
  * them.
  *
  * The two tables below are built with an answer of their own rather than read off the machine,
- * so this case says the same thing whether or not Windows' animations are on. What it pins
- * down is that the durations go to zero together: one that is missed is one animation that
- * still runs for a reader who asked for none, and nothing else would catch it -- a duration is
- * a number no surface is required to be consistent with another about.
+ * so this case says the same thing whether or not Windows' animations are on. It pins that the
+ * durations go to zero together: one that is missed is one animation that still runs for a
+ * reader who asked for none, and nothing else would catch it -- no surface has to keep one
+ * duration consistent with another.
  */
 Item {
     id: root

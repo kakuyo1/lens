@@ -2,13 +2,11 @@ import QtQuick
 
 /**
  * The bubble's header controls (UI-SPEC.md 4.3): the close cross and, to its left, the explanation
- * language shortcut.
- *
- * The shortcut lives where the reader notices they need it -- on the card they cannot read. It
- * unfolds the catalog's languages in a strip under the header; a pick changes the explanation
- * language and asks for the standing card again (Controller.reexplainIn), from the cache when the
- * new language has one. A translation has no second language to ask for, and a card the word list
- * owns goes away with the pointer, so neither offers the shortcut.
+ * language shortcut, on the card the reader cannot read. It unfolds the catalog's languages in a
+ * strip under the header; a pick changes the explanation language and asks for the standing card
+ * again (Controller.reexplainIn), from the cache when the new language has one. A translation has
+ * no second language, and a card the word list owns goes away with the pointer, so neither offers
+ * the shortcut.
  *
  * A component rather than part of Bubble.qml because that file sits at the repository's QML size
  * cap (docs/QML.md section 1), the way BubbleVerdictRow and SenseRows are.
@@ -39,9 +37,9 @@ Item {
     }
 
     /**
-     * Whether the shortcut is offered. The translation channel answers in English whatever the
-     * setting says, and a card without a countdown belongs to the pointer's row rather than to the
-     * reader: both are left as they are.
+     * Whether the shortcut is offered. The translation channel answers in English whatever the setting
+     * says, and a card without a countdown belongs to the pointer's row, not the reader: both are left
+     * as they are.
      */
     readonly property bool switchable: !root.bubbleWindow.preview
                                        && root.bubbleWindow.type !== "translation"
@@ -67,9 +65,8 @@ Item {
         TapHandler { onTapped: root.open = false }
     }
 
-    // The language strip, on the card rather than in a window of its own: the four labels fit one
-    // row, so the whole picker is here and a separate surface would only have to be placed and
-    // dismissed again.
+    // The language strip, on the card rather than in a window of its own: the four labels fit one row,
+    // and a separate surface would only have to be placed and dismissed again.
     Rectangle {
         id: strip
         visible: root.open && root.languages.length > 0
@@ -106,9 +103,8 @@ Item {
         }
     }
 
-    // The way out for a reader who does not want to wait the countdown out. It takes the same two
-    // steps the countdown takes on its own, so the controller hears about the dismissal the same
-    // way either way.
+    // The way out before the countdown ends. It takes the same two steps the countdown takes, so the
+    // controller hears about the dismissal the same way either way.
     IconButton {
         id: closeButton
         visible: !root.bubbleWindow.preview

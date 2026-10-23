@@ -143,8 +143,8 @@ bool GlobalHotkey::nativeEventFilter(QByteArray const& eventType, void* message,
     Q_UNUSED(result)
     if (eventType != QByteArrayLiteral("windows_generic_MSG")) return false;
     const auto* const msg = static_cast<MSG*>(message);
-    // A hotkey posted to this thread's queue carries no window, which is exactly why the filter
-    // sees it: it is not a message any window of this process would otherwise be given.
+    // A hotkey posted to this thread's queue carries no window, which is why the filter sees it:
+    // no window of this process would otherwise be given it.
     if (msg->message != WM_HOTKEY or msg->wParam != kHotkeyId) return false;
     emit pressed();
     return true;

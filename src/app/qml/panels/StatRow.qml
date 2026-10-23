@@ -6,11 +6,10 @@ import QtQuick
  * A clickable row widens its hover area past the text and grows a chevron, which is how the
  * two drill-downs announce themselves.
  *
- * `note` is a second, quieter figure on the same line, left of `value`: the cost rows put the
- * tokens their amount was bought with there. It is its own slot rather than more words in
- * `value` because the two are weighted differently -- the amount is the row's subject and keeps
- * the bold right-aligned face, the count is context -- and because one string wide enough to
- * hold both runs into the label on a card this narrow.
+ * `note` is a second, quieter figure on the same line, left of `value`; the cost rows put the
+ * tokens their amount was bought with there. It is its own slot rather than more words in `value`:
+ * the amount keeps the bold right-aligned face and the count is context, and one string wide enough
+ * for both runs into the label on a card this narrow.
  */
 Item {
     id: root

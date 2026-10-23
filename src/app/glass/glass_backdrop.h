@@ -6,15 +6,14 @@
  *        them to QML.
  *
  * Each glass surface (the settings window, the tray menu, a panel, a bubble) has its own GlassSheet: the desktop taken
- * as a sheet a little larger than its window, so a drag moves the card over the same picture instead of taking a new
- * one (docs/adr/0039). The sheets share one reader: one worker thread and one refresh timer, so however many surfaces
- * are live, a GDI screen is read about fifteen times a second in all (docs/adr/0041). A screen with a live frame source
- * -- a duplicated output (docs/adr/0072) or Windows Graphics Capture when duplication refuses (docs/adr/0087) -- is read
- * from that source instead, up to the screen's refresh rate, and only when the desktop behind the card has actually
- * changed. The pictures are kept in memory only: never written to disk, never logged, and
- * dropped when the glass themes are off (docs/adr/0034, docs/adr/0035). QML receives each sheet through GlassSheetItem,
- * one live texture replaced in place, and the liquid theme's displacement map through
- * `image://glass/<surface>/map` (docs/adr/0071).
+ * as a sheet a little larger than its window, so a drag moves the card over the same picture (docs/adr/0039). The
+ * sheets share one reader: one worker thread and one refresh timer, so however many surfaces are live, a GDI screen is
+ * read about fifteen times a second in all (docs/adr/0041). A screen with a live frame source -- a duplicated output
+ * (docs/adr/0072) or Windows Graphics Capture when duplication refuses (docs/adr/0087) -- is read from that source at
+ * up to the screen's refresh rate, and only when the desktop behind the card has changed. The pictures are kept in
+ * memory only: never written to disk, never logged, and dropped when the glass themes are off (docs/adr/0034,
+ * docs/adr/0035). QML receives each sheet through GlassSheetItem, one live texture replaced in place, and the liquid
+ * theme's displacement map through `image://glass/<surface>/map` (docs/adr/0071).
  */
 
 #include "glass_math.h"
@@ -46,8 +45,8 @@ class GlassDuplication;
  * @brief The desktop under one glass surface's window, and the text tone the card's text takes over it.
  *
  * A sheet is taken by follow() and refreshed while setLive() is on. It holds the rectangle it was taken at, which the
- * shader reads its window's place from, and a serial that changes with each picture, which keeps QML's image cache
- * honest.
+ * shader reads its window's place from, and a serial that changes with each picture, so QML's image cache does not
+ * serve a stale one.
  */
 class GlassSheet : public QObject {
     Q_OBJECT
@@ -179,9 +178,9 @@ private:
     double fillAlpha_ = 0.0;
     /// Reads in a row that have asked for the other text tone, for settleTone()'s hold. Reset by a fresh sheet.
     int toneStreak_ = 0;
-    /// The fingerprint of the picture in force, from pictureFingerprint(): a refresh that produces the same one again
-    /// is the same sheet and is not published a second time. It is also the card and the fill that picture was judged
-    /// under, since the tone comes from the window's place within the sheet and not from the sheet as a whole.
+    /// The fingerprint of the picture in force, from pictureFingerprint(): a refresh that produces the same one is
+    /// the same sheet and is not published again. The comparison also covers the window and fill, since the tone is
+    /// judged from the window's place within the sheet, not from the sheet as a whole.
     quint64 fingerprint_ = 0;
     QRect   publishedWindow_;
     double  publishedFillAlpha_ = 0.0;
@@ -204,10 +203,9 @@ private:
  *
  * The surfaces are a fixed set, so the sheets are created once and the image provider can look them up from its own
  * threads without a lock. One refresh runs at a time: each tick reads the next live sheet in turn (nextLive), so the
- * cost is fixed however many surfaces show glass. A screen with a working duplication session is served from its frames
- * and sets the tick to the fast pace: sixty a second on Automatic, the screen's own refresh period on Smooth. The GDI
- * screens keep the old fifteen-a-second budget, shared between them, so a duplicated screen never makes a GDI read pay
- * for a frame it cannot use.
+ * cost is fixed however many surfaces show glass. A screen with a working duplication session is served from its
+ * frames at the fast pace: sixty a second on Automatic, the screen's own refresh period on Smooth. GDI screens keep
+ * the fifteen-a-second budget shared between them, so a duplicated screen never raises a GDI screen's read rate.
  */
 class GlassBackdrop : public QObject {
     Q_OBJECT
@@ -229,7 +227,6 @@ public:
      */
     void setQuality(GlassQuality quality);
 
-    /// @return The tier in force.
     GlassQuality quality() const;
 
 private:
@@ -287,11 +284,9 @@ private:
  * @brief Serves `image://glass/<surface>/map?` for the liquid theme's displacement map.
  *
  * The map query carries the card's size and corner radius and is rebuilt only when those change; the sheet itself goes
- * through GlassSheetItem, not this provider (docs/adr/0071). Each request runs on the worker thread, so a slider drag
- * does not wait on the GUI thread.
- *
- * Requests arrive on the image loader's worker threads, which is why the picture is copied out of
- * GlassSheet under its lock rather than shared.
+ * through GlassSheetItem, not this provider (docs/adr/0071). Requests arrive on the image loader's worker threads, so
+ * the picture is copied out of GlassSheet under its lock rather than shared, and a slider drag does not wait on the
+ * GUI thread.
  */
 class GlassImageProvider final : public QQuickImageProvider {
 public:

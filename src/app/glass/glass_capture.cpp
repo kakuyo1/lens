@@ -236,9 +236,9 @@ bool GlassCapture::Impl::ensure()
                                                               4,
                                                               item.Size());
         session = pool.CreateCaptureSession(item);
-        // Windows 11 24H2 floors the interval between delivered frames at about a third of the screen's rate: measured
-        // at 48 frames a second on a 144 Hz panel until this line landed, 130 after. Session5 is that build's
-        // interface; an older system keeps the floor, which still beats the GDI read it replaces.
+        // Windows 11 24H2 floors the interval between delivered frames at about a third of the screen's rate: 48
+        // frames a second on a 144 Hz panel without this line, 130 with it. Session5 is that build's interface; an
+        // older system keeps the floor, which still beats the GDI read it replaces.
         if (session.try_as<winrt::Windows::Graphics::Capture::IGraphicsCaptureSession5>())
             session.as<winrt::Windows::Graphics::Capture::IGraphicsCaptureSession5>().MinUpdateInterval(
                 winrt::Windows::Foundation::TimeSpan{});

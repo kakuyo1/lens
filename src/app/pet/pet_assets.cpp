@@ -62,7 +62,6 @@ std::string stringOf(json const& entry, char const* key, Refusal invalid, std::s
  *
  * @param written The `name` as the package wrote it, if it wrote one.
  * @param id The package's id, which stands in for a missing name.
- * @return The cleaned name.
  * @throws Refused BadName when nothing is left, TooLarge when it is over 32 characters.
  */
 QString displayNameOf(std::optional<std::string> const& written, std::string const& id)
@@ -82,7 +81,6 @@ QString displayNameOf(std::optional<std::string> const& written, std::string con
  * size is held to the sheet limits first.
  *
  * @param file A file already resolved inside its package.
- * @return The declared size.
  * @throws Refused Unreadable if it cannot be opened, BadAssetType if it is not a PNG or is not named .png, TooLarge past
  *         the sheet limits.
  */

@@ -45,7 +45,6 @@ KdfParams newParams();
  *
  * @param passphrase The reader's passphrase, as UTF-8. Not stored anywhere by this function.
  * @param params     The salt and iteration count; the same pair always gives the same key.
- * @return The 32-byte key.
  * @throws std::runtime_error If BCrypt refuses the parameters.
  */
 Bytes deriveKey(std::string_view passphrase, const KdfParams& params);
@@ -77,7 +76,6 @@ std::optional<std::string> open(const Bytes& key, const nlohmann::json& envelope
 
 /**
  * @brief The salt and iteration count an envelope was sealed with, so a new device can derive the key.
- * @param envelope An envelope object.
  * @return The parameters, or std::nullopt when the envelope is malformed.
  */
 std::optional<KdfParams> paramsOf(const nlohmann::json& envelope);

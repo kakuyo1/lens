@@ -136,8 +136,8 @@ private:
      * @brief Send whatever the queue gives out next, until it gives out nothing.
      *
      * A request the reader made that waited for a batch to land is answered out of the cache first
-     * when it can be: the batch that has just finished may be what stored that very word, and a
-     * word already paid for is not bought twice.
+     * when it can be: the batch that has just finished may be what stored that very word, and the
+     * cache answer avoids paying for the word twice.
      */
     void sendNext();
     void onBatchFinished(QVector<llm::Explanation> results, llm::Usage usage);

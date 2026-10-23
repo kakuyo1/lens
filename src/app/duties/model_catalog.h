@@ -4,15 +4,12 @@
  * @file model_catalog.h
  * @brief The models a service is known to carry, and whether changing service moves the model.
  *
- * These are the two rules of docs/adr/0017 that docs/adr/0020 kept, and they were the part of
- * ExplanationDuty that nothing could assert on its own: reaching either one meant driving a real
- * duty through a faked QNetworkReply and an event loop, so the only cases that covered them
- * covered the whole round trip with them. A rule stated in an ADR is worth a case that states it.
- *
- * What belongs here is what needs neither the settings document nor the network: the ids a service
- * carries, and the one decision a change of service makes. Reading the served list out of the
- * document and asking the source for a new one stay in the duty, which is what has the document
- * and the client.
+ * These are the two rules of docs/adr/0017 that docs/adr/0020 kept, pulled out of ExplanationDuty
+ * so a case can state them on their own rather than only across a whole round trip through a faked
+ * QNetworkReply and an event loop. What belongs here needs neither the settings document nor the
+ * network: the ids a service carries, and the one decision a change of service makes. Reading the
+ * served list out of the document and asking the source for a new one stay in the duty, which has
+ * the document and the client.
  */
 
 #include <QJsonArray>

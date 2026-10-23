@@ -8,18 +8,16 @@ import "../testutil.js" as Util
  * without spending anything.
  *
  * What is checked is the contract between the row and the controller, not the surfaces that draw
- * it: the row is reached through the words panel and the answer is read off `Controller.explanationDuty.bubble` and
- * `Controller.explanationDuty.notice`, the way the panels are read in tst_panels. Main.qml is what turns either of
- * those into a window, and it is not built here.
+ * it: the row is reached through the words panel and the answer is read off
+ * `Controller.explanationDuty.bubble` and `Controller.explanationDuty.notice`, the way the panels
+ * are read in tst_panels. Main.qml is what turns either of those into a window, and it is not built here.
  *
  * Two rows are enough for both halves, and the fixture has them: `panel` has one stored explanation
  * in the language the fixture explains in (`test/qtest/surfaces/settings.json`), and every other
- * word in its history was explained in a run that stored nothing.
- *
- * Which word carries the stored one is not free. The suite shares one controller and its document,
- * and `tst_panels.qml` really deletes the words it is given -- a deletion drops that lemma's stored
- * explanations with it (Controller.removeWord). `panel` is a word that file never names, and any
- * replacement has to be one too.
+ * word in its history was explained in a run that stored nothing. `panel` is not interchangeable:
+ * the suite shares one controller and its document, and `tst_panels.qml` really deletes the words
+ * it is given -- a deletion drops that lemma's stored explanations with it (Controller.removeWord)
+ * -- so the word has to be one that file never names, and any replacement too.
  *
  * The dwell before an answer is 400 ms, so a case that wants one waits for it; a case that wants
  * the pointer to have moved on has to move it somewhere else, because a row that is never left
@@ -113,9 +111,9 @@ Item {
                       "the bubble outlived the pointer leaving its row");
         }
 
-        /// A word with nothing stored in this language is said to be, rather than left looking like
-        /// a hover that did not register -- and the way to get it explained is offered as a button
-        /// the reader presses, not as a request their hover makes.
+        /// A word with nothing stored in this language gets a notice saying so, rather than
+        /// looking like a hover that did not register, and the way to get it explained is a
+        /// button the reader presses, not a request their hover makes.
         function test_aWordWithNothingStoredOffersToAskTheModel() {
             const popup = make();
             dwellOn(popup, unstored);

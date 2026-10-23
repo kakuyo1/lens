@@ -29,20 +29,18 @@ Window {
     property string noticeBody: ""
     property string noticeKind: "info"
 
-    /// Whether the card is on its way out. ShadowCard fades it and hides the window when the
-    /// fade is done; the dismissal itself is reported at once, not after it.
+    /// ShadowCard fades it and hides the window when the fade is done; the dismissal itself
+    /// is reported at once, not after it.
     property bool leaving: false
 
-    /// The one thing the reader can do about this notice, empty when there is nothing to do. A
-    /// notice is normally the end of the road -- a request failed, and there is nothing left to
-    /// press -- but a word with no stored explanation has an obvious next step, and the reader who
-    /// asked for it by pointing at it should not have to go and find it somewhere else.
+    /// The one thing the reader can do about this notice, empty when there is nothing to do. Most
+    /// notices are a failure with nothing left to press; a word with no stored explanation has an
+    /// obvious next step, offered where the reader asked for it.
     property string noticeAction: ""
     /// The word that action acts on. The surface does not know what the action means; the one that
     /// raised the notice does, and it reads this back off the controller.
     property string noticeLemma: ""
 
-    /// The action was pressed.
     signal actionTriggered()
 
     width: cardWidth + 2 * shadowMargin
@@ -132,9 +130,8 @@ Window {
                 wrapMode: Text.WordWrap
             }
 
-            // Invisible rather than zero-height when there is nothing to press: a positioner skips
-            // an invisible child whole, spacing included, and a zero-height one would still open a
-            // gap between the reason and the card's floor.
+            // Invisible rather than zero-height when there is nothing to press: a positioner skips an
+            // invisible child whole, spacing included, and a zero-height one still opens a gap.
             Item {
                 visible: notice.noticeAction !== ""
                 width: parent.width

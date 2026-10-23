@@ -14,11 +14,10 @@
  *        cloud copy, and whether anything goes back up (docs/adr/0042).
  *
  * Pure: text and JSON in, text and JSON out. No file, no network, no Qt, and nothing logged -- the
- * passphrase, the derived key and the cloud copy are all the reader's (SECURITY.md). The
- * encryption is core/crypto/vault.h's and the merge is core/domain/sync_merge.h's; what lives here is the order
- * the two are called in, which is the part that had no case behind it: first-run key creation,
- * reopening an existing cloud copy, and the pass that has nothing to send were only reachable by
- * driving a real GistClient through a real event loop.
+ * passphrase, the derived key and the cloud copy are all the reader's (SECURITY.md). The encryption
+ * is core/crypto/vault.h's and the merge is core/domain/sync_merge.h's; this is the order the two are
+ * called in, so first-run key creation, reopening an existing cloud copy, and the pass that has
+ * nothing to send are testable without a real GistClient and event loop.
  */
 
 namespace lens::core::syncrun {

@@ -8,9 +8,9 @@ import QtQuick
  * The preview is the explanation bubble itself, so what a reader resting on "Etymology" sees is the
  * card their own bubble would be: the definition in the explanation language they have set, in the
  * fields the controller fills for that language, at the pace they have set. One part is forced in --
- * the block the setting under the pointer adds. A preview that mirrored the settings exactly would
- * draw nothing at all for a switch that is off, and "what do I get if I turn this on" is the question
- * the hover is asking.
+ * the block the setting under the pointer adds -- because a preview that mirrored the settings
+ * exactly would draw nothing at all for a switch that is off, and the hover asks what turning it on
+ * would give.
  *
  * The sample is content rather than interface copy, so it lives in data/preview.json and not in a
  * translation table: the language of an explanation is a runtime setting, not the interface's.

@@ -5,13 +5,13 @@ import QtQuick
 /**
  * The definition chain under the card (UI-SPEC.md 4.3), drawn inside the card that is already standing.
  *
- * The card has no chain of its own: this panel holds it. A step is one tap on a word of the answer. The panel
- * asks the duty for it, takes the answer when it comes, and says where the reader is: a back arrow, and the words
- * they came through. The card hides its own answer while a step is open and this panel takes its place, in the
- * same window, the same width and the same glass -- a step is not a second card.
+ * The card has no chain of its own; this panel holds it. A step is one tap on a word of the answer:
+ * the panel asks the duty, takes the answer, and shows where the reader is (a back arrow and the
+ * words they came through). While a step is open the card hides its answer and this panel takes its
+ * place -- same window, width and glass; a step is not a second card.
  *
- * A word the trail already holds is not offered again, and the steps stop at maxSteps: a definition that names
- * its own words would otherwise take the reader round in a circle, or on for ever.
+ * A word the trail already holds is not offered again, and the steps stop at maxSteps, so a
+ * definition that names its own words cannot loop.
  *
  * The header's right side is left free: the card's close cross and language shortcut are drawn over this row from
  * BubbleHeaderActions, and a breadcrumb that ran under them would be unreadable.
@@ -179,8 +179,7 @@ Item {
             animated: root.bubble.revealAnimation
             characterMs: root.bubble.revealCharacterMs
             markColor: root.tokens.faint
-            // The green tint the card already uses for a new word: the chain is the same
-            // affordance, and a second green would be a second answer to the same question.
+            // The card's green tint for a new word: the chain is the same affordance.
             hoverColor: root.tokens.okBg
             onWordTapped: lemma => root.step(lemma)
         }
@@ -192,9 +191,9 @@ Item {
             scale: root.fontScale
         }
 
-        // What the chain is doing, under the answer. One line, and it says which word: a second tap
-        // while the first is in the air is not answered, so the reader is told rather than left
-        // pressing a word that does nothing.
+        // What the chain is doing, under the answer: one line naming the word, since a second tap
+        // while the first is in the air is not answered and the reader would otherwise press a word
+        // that does nothing.
         Text {
             id: pendingLine
             visible: root.pending !== "" && !root.failed

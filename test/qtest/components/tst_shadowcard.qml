@@ -101,9 +101,9 @@ Item {
         }
 
         /// DESIGN.md 3.1c leaves the card's outer white edge to the rim, which GlassSurface draws
-        /// separately. A glass card used to draw `line` underneath as well, and the shader's
-        /// antialiased cut covers only half of it: at 0% rim the leftover read as a faint white
-        /// edge. A card that fills itself under glass is a popup layer and keeps its line.
+        /// separately; a glass card drawing `line` underneath leaves a faint white edge at 0% rim,
+        /// because the shader's antialiased cut covers only half of it. A card that fills itself
+        /// under glass is a popup layer and keeps its line.
         function test_onlyAFillLessCardUnderGlassDropsItsLineEdge() {
             const window = createTemporaryObject(glassWindowComponent, root);
             verify(window);

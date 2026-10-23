@@ -116,7 +116,7 @@ TEST(ParseModelIds, KeepsOnlyEntriesWhoseOnlyOutputModalityIsText)
     for (const auto& modality : {QStringLiteral("text"), QStringLiteral("image"), QStringLiteral("audio"), QString{}})
         data.append(listed("acme/mixed", modality));
     data.append(listed("acme/quiet"));
-    data.append(QJsonObject{{"id", "acme/silent"}}); // no architecture at all
+    data.append(QJsonObject{{"id", "acme/silent"}});
     const auto body = QJsonDocument(QJsonObject{{"data", data}}).toJson(QJsonDocument::Compact);
 
     const auto ids = lens::llm::parseModelIds(body);
@@ -824,7 +824,7 @@ TEST(PartialExplanation, DrawsOnlyTheValuesThatHaveClosed)
 /// closing quote are both there -- and when they are, the quote the escape stands for is the value.
 TEST(PartialExplanation, WaitsOutAnEscapeSplitByAChunkBoundary)
 {
-    const QString head = QStringLiteral("{\"results\":[{\"word\":\"a\\"); // ends inside the escape
+    const QString head = QStringLiteral("{\"results\":[{\"word\":\"a\\");
     const QString tail = QStringLiteral("\"b\",\"en\":\"present\"}]}");
 
     EXPECT_TRUE(parsePartialExplanation(Channel::Word, head).title.isEmpty())

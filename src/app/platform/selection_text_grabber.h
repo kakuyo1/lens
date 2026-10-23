@@ -17,10 +17,9 @@
  *
  * There is no API that reads another application's selection, so this works the way a person
  * would: put the clipboard aside, press the copy combination into the foreground window, take
- * what landed, and put the clipboard back. Two consequences are handled here rather than left
- * to be discovered — the clipboard is borrowed, and the copy combination is not the same
- * everywhere: Ctrl+C is SIGINT inside a terminal, so a terminal is sent its own copy key
- * instead of the Ctrl+C that every other application takes.
+ * what landed, and put the clipboard back. The clipboard is borrowed, and the copy combination
+ * is not the same everywhere: Ctrl+C is SIGINT inside a terminal, so a terminal is sent its own
+ * copy key instead of the Ctrl+C that every other application takes.
  *
  * @note Windows only, like the rest of src/app. The clipboard work uses the raw Win32
  *       clipboard API rather than OLE's, for the reason recorded in ClipboardSnapshot.

@@ -9,12 +9,11 @@ import QtQuick.Window
  * top. The controller works out which day a word was last shown on, relative to today, and hands
  * over the raw date and time; the labels are drawn here, in the reader's language.
  *
- * It is also where a word is settled: each row carries the bubble's own two verdict pills, so a
- * word the reader did not mark while the bubble was up (or the countdown took away) can be
- * marked here instead.
+ * Also where a word is settled: each row carries the bubble's two verdict pills, so a word the
+ * reader did not mark while the bubble was up (or the countdown took away) is marked here.
  *
- * The cross at the end of a row raises the removal question of the same section, which is a window
- * of its own over this card rather than a face drawn in it -- see the Window below.
+ * The cross at the end of a row raises the removal question of the same section, a window of its
+ * own over this card rather than a face drawn in it -- see the Window below.
  */
 Window {
     id: words
@@ -33,18 +32,16 @@ Window {
     property bool leaving: false
 
     readonly property int shadowMargin: 26
-    /// The face the words themselves are drawn in, from the reader's font setting (UI-SPEC.md 4.4). The
-    /// rows are the same English the bubble draws, so they are set in the same one; the dates,
-    /// counts and pills around them are the surface's own and keep the application's face.
+    /// The face the words themselves are drawn in, from the reader's font setting (UI-SPEC.md 4.4): the
+    /// rows are the same English the bubble draws. Dates, counts and pills keep the application's face.
     readonly property string englishFont: Controller.settings.font
     readonly property int minCardWidth: 320
     readonly property int maxCardWidth: 560
 
-    /// The card is as wide as its widest row: a word the reader never saw whole is the one thing
-    /// this panel exists to prevent. Rows report that width as they lay out rather than being
-    /// walked for it -- a JS loop over Controller.words reads a QVariantMap per row, ~170 ms each
-    /// on this machine, which is a frozen window (docs/QML.md section 6). A running maximum, so
-    /// the card does not narrow under the reader as rows change; the cap above bounds it.
+    /// As wide as its widest row, so no word is ever shown elided. Rows report their width as they
+    /// lay out rather than being walked for it -- a JS loop over Controller.words reads a QVariantMap
+    /// per row, ~170 ms each on this machine, a frozen window (docs/QML.md section 6). A running
+    /// maximum, so the card does not narrow under the reader as rows change; the cap above bounds it.
     property real widestRow: 0
 
     /// @brief Note one row's natural width. Called by each row as it lays out.
@@ -57,12 +54,10 @@ Window {
 
     width: cardWidth + 2 * shadowMargin
 
-    /// The card is as tall as its list, and keeps that height while the question is up. It is
-    /// not re-sized to the question: `SurfaceHost.placeBeside` puts the card's bottom edge on the tray
-    /// icon and nothing re-places a panel that changes size afterwards, so a card that shrank
-    /// when the confirmation opened would leave the icon it was opened from behind. The question
-    /// is centred in the height the list left instead, which reads as a card rather than as a
-    /// card that stopped drawing.
+    /// As tall as its list, and it keeps that height while the question is up. It is not re-sized to
+    /// the question: `SurfaceHost.placeBeside` puts the card's bottom edge on the tray icon and
+    /// nothing re-places a panel that changes size afterwards, so a card that shrank would leave the
+    /// icon it was opened from. The question is centred in the height the list left instead.
     height: column.implicitHeight + 34 + 2 * shadowMargin
 
     /// 0 = all, 1 = known, 2 = new.
@@ -77,13 +72,12 @@ Window {
 
     /// Whether a removal is put to the reader before it happens.
     ///
-    /// Per run, not a setting: the reader asked for the question to be silenceable without the
-    /// answer outliving the session, so this is a property of this surface and nothing is written
-    /// to the settings document.
+    /// Per run, not a setting: the reader asked for the question to be silenceable without the answer
+    /// outliving the session, so this is a property of this surface and nothing is written to the
+    /// settings document.
     ///
-    /// One removal a run is asked about, and the question itself is where the reader says whether
-    /// to keep being asked -- it is put with "do not ask again" already on, so the run's second
-    /// deletion is a deletion and not a question. Only the reader clears this: answering Cancel
+    /// One removal a run is asked about, and the question itself goes up with "do not ask again"
+    /// already on, so the run's second deletion is a deletion. Only the reader clears this: Cancel
     /// removes nothing and asks nothing about asking, so the next deletion is asked about again.
     property bool askBeforeRemoving: true
 
@@ -185,11 +179,10 @@ Window {
         anchors.fill: parent
         color: words.tokens.glassMode === "" ? words.tokens.panel : "transparent"
 
-        /// The list is not an answer to the question, so it takes no press while one is up -- the
-        /// fade included, because the window is modal until it hides. This guard is what holds on
-        /// the offscreen platform, which does not enforce modality: a press that reached the card
-        /// would otherwise act on a row's verdict pill, or on its cross, deleting a second word
-        /// out from under the first.
+        /// The list is not an answer to the question, so it takes no press while one is up -- the fade
+        /// included, because the window is modal until it hides. This guard is what holds on the
+        /// offscreen platform, which does not enforce modality: a press reaching the card would act
+        /// on a verdict pill or a cross, deleting a second word out from under the first.
         enabled: !question.visible
 
         GlassSurface {
@@ -206,9 +199,8 @@ Window {
             width: words.cardWidth - 40
             spacing: 0
 
-            // The icons are anchored to the right edge rather than pushed there by a spacer:
-            // a spacer sized around the English title lands the glyphs past the card the
-            // moment the title is a different width, which is every translation of it.
+            // The icons are anchored to the right edge rather than pushed by a spacer: one sized around
+            // the English title lands the glyphs past the card at every other translation's width.
             Item {
                 width: parent.width
                 height: title.height
@@ -232,11 +224,10 @@ Window {
                     }
                 }
 
-                // The title row is the handle rather than the card, because the card holds the
-                // list: a drag inside a list is a scroll, and a handler covering it would be
-                // competing with the flick for the same gesture. The timer below does the
-                // moving, and the two reasons it is not the handler's own signal are in
-                // ShadowCard.qml.
+                // The title row is the handle rather than the card, because the card holds the list:
+                // a drag inside a list is a scroll, and a handler covering it would compete with the
+                // flick for the same gesture. The timer below does the moving, and the two reasons it
+                // is not the handler's own signal are in ShadowCard.qml.
                 DragHandler {
                     id: mover
                     target: null
@@ -272,9 +263,9 @@ Window {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 6
 
-                    // The export sits with the glyphs the reader already reads as "things this
-                    // window does", rather than on a line of its own under the total: it acts on
-                    // the list, and the list is what the card is.
+                    // The export sits with the glyphs the reader already reads as "things this window
+                    // does", not on a line of its own under the total: it acts on the list, and the
+                    // list is what the card is.
                     IconButton {
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/icons/ui-export.svg"
@@ -288,9 +279,8 @@ Window {
                         onTapped: importer.open()
                     }
 
-                    // Back to the statistics panel, which is where this one opens from. This
-                    // panel replaces it rather than stacking on it, so the way up has to be
-                    // visible.
+                    // Back to the statistics panel, which this one opens from. The panels replace
+                    // rather than stack, so the way up has to be visible.
                     IconButton {
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/icons/ui-back.svg"
@@ -315,10 +305,9 @@ Window {
                     id: count
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
-                    // The list's own count, not the all-time tally the statistics panel shows:
-                    // the rows below are deduplicated, so a word explained twice counts once here
-                    // and twice there. A number that disagrees with the list under it reads as a
-                    // bug, whichever of the two meanings it was meant to carry.
+                    // The list's own count, not the all-time tally the statistics panel shows: the
+                    // rows are deduplicated, so a word explained twice counts once here and twice
+                    // there. A number that disagrees with the list under it reads as a bug either way.
                     text: qsTr("%1 words").arg(Controller.words.length)
                     color: words.tokens.faint
                     font.pixelSize: 12
@@ -407,10 +396,10 @@ Window {
         onDismissed: words.pendingRemoval = ""
     }
 
-    // Declared here, not in Main.qml: this surface shows the list, so it chooses where the list
-    // goes. QtQuick.Dialogs names a file but cannot write one -- Controller.saveWords() takes the
-    // answer, and logs a failed write. Native on purpose: choosing a file is the system's
-    // business in a way that confirming a removal is not.
+    // Declared here, not in Main.qml: this surface shows the list, so it chooses where the list goes.
+    // QtQuick.Dialogs names a file but cannot write one -- Controller.saveWords() takes the answer and
+    // logs a failed write. Native on purpose: choosing a file is the system's business, unlike
+    // confirming a removal.
     FileDialog {
         id: saver
         title: qsTr("Export words")

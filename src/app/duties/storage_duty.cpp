@@ -12,8 +12,8 @@ namespace lens::app {
 StorageDuty::StorageDuty(core::KnownStore& store)
     : store_(store), stats_(store.document()), review_(store.document())
 {
-    // Two settings phase 1 carried and nothing reads any more. Taken out through the section like
-    // every other write, so the boundary stays the only way into the document; remove() saves by
+    // Two settings phase 1 carried and nothing reads any more, taken out through the section like
+    // every other write so the boundary stays the only way into the document; remove() saves by
     // itself, and only when there was something to take away.
     auto keys = section();
     keys.remove("dragSensitivity");
@@ -71,8 +71,8 @@ bool StorageDuty::removeWord(QString const& lemma)
     const bool removed        = marksRemoved || historyRemoved || reviewRemoved;
     if (removed) {
         // A word can live only in the stats history and have no known mark of its own; the mark's
-        // tombstone would then never be written, and sync would bring the word back. So a removal
-        // always leaves a tombstone behind.
+        // tombstone would then never be written, and sync would bring the word back. A removal
+        // therefore always leaves a tombstone behind.
         store_.markDeleted(value);
         store_.save();
     }

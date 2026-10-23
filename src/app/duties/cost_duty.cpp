@@ -36,8 +36,8 @@ CostDuty::CostDuty(core::StatsStore&   stats,
       dateProvider_(std::move(dateProvider)),
       legacyModel_(llm.model())
 {
-    // The cost projection does not depend on a pop, but the statistics one does: every state
-    // change moves today's cost, which today's figures carry.
+    // The cost projection does not depend on a pop, but the statistics one does: every state change
+    // moves today's cost, which today's figures carry.
     connect(this, &CostDuty::stateChanged, this, &CostDuty::statsChanged);
 }
 

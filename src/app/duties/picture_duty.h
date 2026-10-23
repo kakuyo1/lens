@@ -38,7 +38,6 @@ public:
      *
      * @param source The image source, owned by the caller.
      * @param cache  The picture cache, owned by the caller.
-     * @param parent QObject parent.
      */
     PictureDuty(pictures::PictureSource& source, pictures::PictureCache& cache, QObject* parent = nullptr);
 

@@ -3,9 +3,9 @@
  * @brief The settings table is the one place a setting is declared: its key, its default, its clamp,
  *        its members, the signal its write raises, and whether a sync carries it.
  *
- * Every case here is about the table rather than about one setting, which is the point of the
- * refactor: a row added to core/domain/settings_table.h is checked by these cases without a line
- * being written for it, and a row that drifts from what the rest of the application does fails one.
+ * Every case here is about the table rather than about one setting: a row added to
+ * core/domain/settings_table.h is checked by these cases without a line being written for it, and
+ * a row that drifts from what the rest of the application does fails one.
  */
 
 #include <QCoreApplication>
@@ -152,8 +152,8 @@ std::optional<QVariant> movedOffDefault(Row const& row)
 
 } // namespace
 
-/// A sync carries a key because its row says so. This is the case that replaces the hand-written
-/// whitelist sync_state.cpp used to keep: the two lists cannot drift because there is one list.
+/// A sync carries a key because its row says so, not a hand-written whitelist: with one list the
+/// two cannot drift.
 TEST(SettingsTable, TheSyncWhitelistIsTheTablesSyncedRows)
 {
     std::set<std::string> fromTable;

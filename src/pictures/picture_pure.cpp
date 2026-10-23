@@ -39,9 +39,9 @@ bool licenseAllowed(QString const& raw)
 
 /// @brief Whether a title or description names something that is not a photograph.
 ///
-/// A heuristic, and named as one: Commons search does answer with diagrams, maps, coats of arms and
-/// the like, and no filter short of reading the picture can tell a photograph from a drawing. It
-/// drops what it recognises and lets the rest through (IMAGES.md 4.3).
+/// A heuristic: Commons answers with diagrams, maps, coats of arms and the like, and only reading
+/// the picture itself could tell those from photographs. It drops what it recognises and lets the
+/// rest through (IMAGES.md 4.3).
 bool looksLikeNonPhoto(QString const& text)
 {
     if (text.isEmpty())

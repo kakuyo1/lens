@@ -151,19 +151,18 @@ QtObject {
         return Qt.point(Math.round(x), Math.round(Numbers.clamp(y, top, bottom - height)));
     }
 
-    /// @brief Where a panel goes to sit beside the pet's rectangle rather than beside the tray icon.
+    /// @brief Where a panel sits beside the pet's rectangle rather than beside the tray icon.
     ///
-    /// The candidates are the pet's four sides in the order right, left, below, above, each one a card
-    /// @p gap clear of that side and centred across its length. The sides are scored by how much of the
-    /// pet the card covers once it is clamped into the work area, which is 0 for a side the card clears;
-    /// the lowest score wins and the order above breaks a tie. The score rather than a fit test is what
-    /// keeps the card off the pet: a work area too short to hold the card beside the pet clamps the card
-    /// back over it, and the side clamped least far onto the pet is the one that survives. The horizontal
-    /// sides come first because the card is 532 px tall and needs that much of the work area's height to
-    /// clear the pet vertically, which the corner the pet is usually left in does not have.
-    /// @param rectangle The pet window's rectangle as it stands. The pet can be dragged or grown over an
-    ///        edge, so the rectangle is read against the work area first: the part of the pet that is on
-    ///        screen is the part the card is put beside.
+    /// The candidates are the pet's four sides in the order right, left, below, above, each a card
+    /// @p gap clear of that side and centred across its length. Each is scored by how much of the
+    /// pet the clamped card covers (0 for a side the card clears); lowest wins, ties by that order.
+    /// The score rather than a fit test keeps the card off the pet: a work area too short clamps the
+    /// card back over it, and the side clamped least far onto the pet survives. The horizontal sides
+    /// come first because the card is 532 px tall and needs that much work-area height to clear the
+    /// pet vertically, which the corner the pet is usually left in does not have.
+    /// @param rectangle The pet window's rectangle as it stands. The pet can be dragged or grown
+    ///        over an edge, so it is read against the work area first: the on-screen part is what
+    ///        the card is put beside.
     /// @return The panel's top-left corner, in DIPs.
     function placeBesidePet(rectangle, width, height, gap) {
         const area = workArea(screenFor(Qt.point(rectangle.x + rectangle.width / 2,
@@ -361,9 +360,9 @@ QtObject {
     }
 
     /**
-     * Take down every panel but the one being opened. A panel that is up fades out where it stands while the one
-     * opening fades in beside it (ShadowCard), so the hand-over is a cross-fade. With the animations off there is
-     * nothing to fade, so the panel goes at once. The one being opened is taken back from a fade if it was leaving.
+     * Take down every panel but the one being opened: the up panel fades out where it stands while
+     * the opening one fades in beside it (ShadowCard) -- a cross-fade, or an immediate take-down
+     * with the animations off. The one being opened is taken back from a fade if it was leaving.
      */
     function hidePanels(except) {
         const panels = [trayMenu, settingsPopup, statsPopup, wordsPopup, yearWordsPopup, costPopup];
@@ -429,11 +428,10 @@ QtObject {
     // qmllint enable missing-property
 
     function dismissOutside(point) {
-        // A panel with a surface of its own out claims the presses that land on that surface. One
-        // that is not modal -- the settings dropdown -- is put down by a press anywhere else, and
-        // the press is then read again below, where a press outside the panel closes the panel
-        // too. A modal one, the removal question, is a question: a press elsewhere is not an
-        // answer to it, and nothing here is read past it.
+        // A panel with a surface of its own out claims the presses that land on that surface. A
+        // non-modal one, the settings dropdown, is put down by a press anywhere else, and the press
+        // is then read again below, where a press outside closes the panel too. A modal one, the
+        // removal question, takes no answer from a press elsewhere: nothing here is read past it.
         for (const panel of [settingsPopup, wordsPopup]) {
             if (!panel.visible || !panel.openChildRect)
                 continue;

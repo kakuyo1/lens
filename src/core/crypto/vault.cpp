@@ -28,7 +28,6 @@ constexpr std::size_t kTagBytes   = 16; ///< The full GCM tag.
 /// STATUS_AUTH_TAG_MISMATCH, from ntstatus.h, which bcrypt.h does not include.
 constexpr NTSTATUS kAuthTagMismatch = static_cast<NTSTATUS>(0xC000A002u);
 
-/// Closes an algorithm provider when its handle goes out of scope.
 struct AlgorithmCloser {
     void operator()(void* handle) const
     {
@@ -37,7 +36,6 @@ struct AlgorithmCloser {
 };
 using AlgorithmHandle = std::unique_ptr<void, AlgorithmCloser>;
 
-/// Destroys a key handle when it goes out of scope.
 struct KeyCloser {
     void operator()(void* handle) const
     {
@@ -54,7 +52,6 @@ struct GcmKey {
 
 /**
  * @brief Turn a failed NTSTATUS into an exception that names only the code.
- * @param status The value the BCrypt call returned.
  * @param what   The step that failed, for the message.
  * @throws std::runtime_error If @p status is not a success.
  */
@@ -76,7 +73,6 @@ Bytes randomBytes(std::size_t count)
     return out;
 }
 
-/// @return An algorithm provider for @p id, opened with @p flags.
 AlgorithmHandle openAlgorithm(LPCWSTR id, ULONG flags)
 {
     BCRYPT_ALG_HANDLE handle = nullptr;
@@ -154,11 +150,9 @@ struct Envelope {
 /**
  * @brief Read and check every field of an envelope.
  *
- * The envelope may come from the network, so each field is checked for its type and its length
- * before anything trusts it. A field that is absent, of the wrong type, or the wrong size makes the
- * whole envelope malformed.
+ * The envelope may come from the network, so every field is checked for type and length before use;
+ * a field that is absent, of the wrong type, or the wrong size makes the whole envelope malformed.
  *
- * @param envelope The envelope object.
  * @return The fields, or std::nullopt when any of them is not as seal() writes it.
  */
 std::optional<Envelope> readEnvelope(const nlohmann::json& envelope)
@@ -309,7 +303,6 @@ std::optional<Bytes> decodeBase64(std::string_view text)
                     return std::nullopt;
                 ++padding;
             } else {
-                // Data after padding is malformed.
                 if (padding > 0)
                     return std::nullopt;
                 values[j] = sextet(c);

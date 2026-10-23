@@ -136,9 +136,9 @@ TEST(PricingTest, CostsAnUnlistedModelAtZeroRatherThanGuessing)
 }
 
 /// What the price list has to say is about the list, not about the call: a model it does not
-/// carry is still not carried on the thousandth call. Saying so every time is what filled a 2 MB
-/// log in a day -- the budget is re-evaluated twice a second, and each evaluation prices the whole
-/// day's usage -- so the line read as noise instead of as the one thing to act on.
+/// carry is still not carried on the thousandth call. The budget is re-evaluated twice a second,
+/// and each evaluation prices the whole day's usage, so a line per call would flood the log
+/// instead of marking the one thing to act on.
 TEST(PricingTest, AModelTheListDoesNotCarryIsReportedOnceAndNotOnEveryCall)
 {
     const Pricing pricing = Pricing::load(pricingPath());

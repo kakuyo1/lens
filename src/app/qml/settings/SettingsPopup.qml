@@ -105,8 +105,6 @@ Window {
         previewKey = "";
     }
 
-    /// @return Whether the page had a question up, which this closed. Backing out waits for it, so one Escape answers it
-    ///         and the next one backs out.
     /// How far the preview card keeps clear of this panel and of the screen's edges: the 8 px every
     /// surface keeps (SurfaceHost.qml's screenMargin).
     readonly property int previewMargin: 8
@@ -207,6 +205,8 @@ Window {
             previewKey = key;
     }
 
+    /// @return Whether the page had a question up, which this closed. Backing out waits for it, so one Escape answers it
+    ///         and the next one backs out.
     function closeQuestion() {
         // qmllint disable missing-property
         if (viewLoader.status === Loader.Ready && viewLoader.item && viewLoader.item.questionOpen) {

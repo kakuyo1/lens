@@ -28,9 +28,8 @@ Table g_rank;
 /// is Chinese".
 ///
 /// The range is CJK Unified Ideographs and Extension A, the one MixedText.qml splits runs on. A
-/// byte test would be wrong -- the same three lead bytes spell Chinese punctuation, kana and
-/// full-width Latin, and a reader who selects a Japanese line has not selected Chinese. Malformed
-/// UTF-8 is not Chinese: the decoder refuses it, and this answers false.
+/// byte test would be wrong: the same three lead bytes spell Chinese punctuation, kana and
+/// full-width Latin, and a Japanese line is not Chinese. Malformed UTF-8 answers false.
 bool containsHan(std::string_view utf8)
 {
     auto const points = util::decodeUtf8(utf8);
@@ -74,9 +73,8 @@ bool isEntitySelection(std::string_view text)
     if (tokens.size() < 2 || tokens.size() > 5)
         return false;
 
-    // A name is a Title Case word or an all-caps acronym; the rest may only be a short
-    // connector. With no acronym this is exactly the old Title Case rule; the acronym is what
-    // lets a term like "QML API" be a name instead of a two-word sentence.
+    // A name is a Title Case word or an all-caps acronym; the rest may only be a short connector.
+    // The acronym is what lets a term like "QML API" be a name instead of a two-word sentence.
     std::size_t nameLikeCount = 0;
     for (const std::string& token : tokens) {
         if (isTitleCaseToken(token) || isAcronymToken(token)) {
@@ -358,9 +356,8 @@ std::string lemmatize(std::string_view token)
 
     // ponytail: comparatives -er/-est only fire at 6/7+ letters; at 5 letters the stems of
     // offer / under / other are all false reductions.
-    // Cost: short-stem comparatives such as biggest -> big and nicer -> nice go
-    // unreduced. The overlay then explains the inflected form, which is not wrong, but the
-    // word is not merged with its lemma either.
+    // Cost: short-stem comparatives such as biggest -> big and nicer -> nice go unreduced; the
+    // overlay then explains the inflected form, and the word is not merged with its lemma.
     if (endsWith(t, "er") && n > 5) {
         const std::string stem = t.substr(0, n - 2);
         pushIfInTable(cands, stem + "e"); // larger -> large
@@ -439,12 +436,11 @@ std::vector<Candidate> filterWords(
             ++i;
         if (start == i) continue;
 
-        // One whitespace-delimited run of the original text. Trim bytes that are neither
-        // letters nor digits from both ends (punctuation, quotes, full-width CJK symbols);
-        // if any non-letter byte survives inside, the run is glued junk (URL, email,
-        // filename, version2, abbreviation) and is dropped whole. Digits stay inside the
-        // token rather than being trimmed, otherwise version2 would be trimmed to version
-        // and popped as a real word.
+        // One whitespace-delimited run of the original text. Trim bytes that are neither letters
+        // nor digits from both ends (punctuation, quotes, full-width CJK symbols); if any
+        // non-letter byte survives inside, the run is glued junk (URL, email, filename,
+        // version2, abbreviation) and is dropped whole. Digits stay inside the token, otherwise
+        // version2 would be trimmed to version and popped as a real word.
         std::size_t head = start;
         std::size_t tail = i;
         while (head < tail && !util::isAsciiAlnum(text[head]))
@@ -477,8 +473,8 @@ std::vector<Candidate> filterWords(
         if (!hasVowel(surface)) continue;
 
         const std::string lemma = lemmatize(surface);
-        if (!inTable(lemma)) continue;            // static word list: absent means drop
-        if (!seen.insert(lemma).second) continue; // same lemma once per excerpt
+        if (!inTable(lemma)) continue; // static word list: absent means drop
+        if (!seen.insert(lemma).second) continue;
 
         // What the reader has already said about the word annotates it; it does not take the
         // candidate away (TODO.md item 0). An explicit selection is a request to explain the
@@ -508,10 +504,9 @@ Selection classifySelection(
     Selection selection;
 
     // Chinese settles the channel on the way in, before any shape test runs: a Han character
-    // anywhere means the reader is looking at Chinese, and the one thing they want from Chinese is
-    // its English. Which of word, entity or sentence it would have been decides nothing -- all
-    // three ask the same translation prompt (API.md section 1) -- so the gates below, which are all
-    // about how English is spelled, never get a say.
+    // anywhere means the reader is looking at Chinese and wants its English. Word, entity or
+    // sentence would all ask the same translation prompt (API.md section 1), so the gates below,
+    // which are all about how English is spelled, never get a say.
     if (containsHan(text)) {
         selection.kind = SelectionKind::Translation;
         LENS_TRACE("classifySelection: {} char(s) -> translation", text.size());

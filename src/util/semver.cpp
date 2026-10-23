@@ -13,9 +13,8 @@ namespace {
 
 /// @return One dot-separated component of @p text, or nothing when it is not digits.
 ///
-/// The whole component has to be digits: `1.2.0rc` fails on the component, and `1.2.0-rc1`
-/// fails on the empty string that follows the patch number, which is the same rejection for
-/// both suffixes.
+/// The whole component has to be digits: `1.2.0rc` fails on the component, `1.2.0-rc1` on the
+/// empty string after the patch number -- the same rejection for both suffixes.
 std::optional<int> parseComponent(std::string_view text)
 {
     if (text.empty() or text.size() > 9) // Nine digits is the widest that cannot overflow below.

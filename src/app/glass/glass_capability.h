@@ -6,13 +6,12 @@
  *
  * The glass reads the desktop, so what a machine can give it is a per-screen fact, not a per-machine one: on the
  * hybrid laptop of docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md the external monitor
- * duplicates at 137 frames a second while the internal panel refuses duplication on the adapter that owns it. Nothing
- * in the application can be planned against a single "GPU is fast" switch, so the inventory is logged the first time
- * the glass starts refreshing.
+ * duplicates at 137 frames a second while the internal panel refuses duplication on the adapter that owns it. The
+ * inventory is logged the first time the glass starts refreshing.
  *
- * Enumeration only. No D3D11 device is created here, because a device is what pulls a driver thread pool and tens of
- * megabytes (docs/metrics/resource-footprint/glass-memory-2026-10-18.md 4.1 and 9.2), and whether a given output can
- * be duplicated is a question for the probe target `lens_gtest_glass_probe`, not for the shipped application.
+ * Enumeration only. No D3D11 device is created here: a device pulls a driver thread pool and tens of megabytes
+ * (docs/metrics/resource-footprint/glass-memory-2026-10-18.md 4.1 and 9.2), and whether a given output can be
+ * duplicated is checked by the probe target `lens_gtest_glass_probe`, not by the shipped application.
  */
 
 #include <QStringList>

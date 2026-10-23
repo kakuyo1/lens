@@ -8,8 +8,7 @@ import "../testutil.js" as Util
  * derived from the controller rather than from anything the menu holds.
  *
  * The menu is one of the two surfaces TEST.md section 5 says cannot be photographed on this
- * machine at all, so everything below had no automated check of any kind. The cases that go
- * through a setter are the ones worth having: they prove the whole loop -- write, settings
+ * machine at all. The cases that go through a setter prove the whole loop -- write, settings
  * document, settingsChanged, rebinding -- which is what a person was checking by hand.
  */
 Item {

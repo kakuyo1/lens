@@ -106,7 +106,6 @@ public:
      * @param shippedRoot The data/pet folder that came with the install.
      * @param installedRoot The reader's pets folder, %APPDATA%\Lens\pets.
      * @param store The PET section of the settings document, owned by main().
-     * @param parent QObject parent.
      */
     PetController(std::filesystem::path shippedRoot, std::filesystem::path installedRoot, core::pet::PetStore& store, QObject* parent = nullptr);
     ~PetController() override;

@@ -13,15 +13,14 @@
  * @file settings_section.h
  * @brief One object of the settings document, as the unit a key is read and written through.
  *
- * The document is one JSON object several owners write into. This is the seam they cross: the
- * outermost section is the document itself -- the top-level scalars -- and a named one is a
- * nested object (`UPDATE`, `PET`, `MODELS`). One handle serves both.
+ * The document is one JSON object several owners write into. The outermost section is the document
+ * itself -- the top-level scalars -- and a named one is a nested object (`UPDATE`, `PET`,
+ * `MODELS`); one handle serves both.
  *
- * Two rules the call sites kept by hand live here instead. A value is read whether the document
- * holds it as its own type or as text (a real `bool` or `"true"`), and a write keeps the encoding
- * the key already has -- docs/adr/0024 says why the second matters. Absent, null and empty are
- * three different things and stay three: value() falls back, clear() writes null, remove() takes
- * the key away.
+ * A value is read whether the document holds it as its own type or as text (a real `bool` or
+ * `"true"`), and a write keeps the encoding the key already has (docs/adr/0024). Absent, null and
+ * empty are three different things and stay three: value() falls back, clear() writes null,
+ * remove() takes the key away.
  *
  * Ownership is deliberately not enforced: nine keys are re-stamped from a strong-typed owner's
  * own state, so a write to one of them through this handle is silently reverted. docs/adr/0024
@@ -44,9 +43,8 @@ bool textFlag(nlohmann::json const& held, bool fallback);
 /**
  * @brief Read a number the document stored as text.
  *
- * The whole string has to be one: "3" reads as 3, "3x" does not read at all. That is stricter
- * than `std::stoi`, which would take the 3 and leave the rest, and it is what the call sites
- * asked for when they passed a validity flag.
+ * The whole string has to be one: "3" reads as 3, "3x" does not read at all. Stricter than
+ * `std::stoi`, which would take the 3 and leave the rest.
  *
  * @return The number, or @p fallback.
  */
@@ -89,7 +87,6 @@ public:
      *
      * @param key      The key, as the document spells it.
      * @param fallback Returned when there is nothing to read.
-     * @return The value.
      */
     template <typename T>
     T value(std::string_view key, T fallback) const;
@@ -101,7 +98,6 @@ public:
      * read it; a key that is absent is born as its own type. See docs/adr/0024.
      *
      * @param key   The key, as the document spells it.
-     * @param value The value to store.
      */
     template <typename T>
     void set(std::string_view key, const T& value);

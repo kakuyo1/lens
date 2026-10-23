@@ -36,8 +36,8 @@ UpdateDuty::UpdateDuty(StorageDuty&            storage,
 {
     if (not launcher_) {
         launcher_ = [](const QString& path, const QStringList& arguments) {
-            // No arguments at all, and no shell: the installer is a program a reader ran on
-            // purpose, not a silent step, so it opens its own window and asks.
+            // No arguments and no shell: the installer is a program the reader ran on purpose, not
+            // a silent step, so it opens its own window and asks.
             return QProcess::startDetached(path, arguments);
         };
     }
@@ -157,9 +157,9 @@ void UpdateDuty::startCheck(bool manual)
 {
     if (inFlight_) {
         // A reader who pressed the button during the startup check is answered by the answer
-        // already on its way, and it is answered as what they asked for: dropping the press
-        // would leave the status row saying nothing on a dead network, and would keep the card
-        // down for a version they had chosen to skip.
+        // already on its way, as what they asked for: dropping the press would leave the status row
+        // saying nothing on a dead network, and would keep the card down for a version they had
+        // chosen to skip.
         manual_ = manual_ or manual;
         LENS_INFO("a check is already running; the answer will be reported as {}",
                   manual_ ? "asked for" : "automatic");

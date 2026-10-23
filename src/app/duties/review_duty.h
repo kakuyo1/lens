@@ -40,7 +40,6 @@ public:
      * @param storage      The storage boundary. History, cache, and review state all come through it.
      * @param petEnabled   Whether the pet is switched on.
      * @param petAvailable Whether the pet is free to take a question: idle, or hiding at a screen edge (ADR 0076).
-     * @param parent       QObject parent.
      */
     ReviewDuty(StorageDuty& storage, std::function<bool()> petEnabled, std::function<bool()> petAvailable, QObject* parent = nullptr);
 

@@ -12,8 +12,7 @@ import QtQuick
  *
  * A component rather than part of `Bubble.qml` because that file sits at the repository's QML size
  * cap (docs/QML.md section 1), not because this is shared: it is one surface's block lifted out
- * whole. The root is a Repeater so the rows are laid out in the column that holds this, exactly as
- * they were before the move.
+ * whole. The root is a Repeater so the rows are laid out in the column that holds this.
  *
  * `revealing` is the block's own aggregate, so the card can hold its countdown while any line of
  * any row is still being written out.

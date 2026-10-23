@@ -152,9 +152,8 @@ void loadLlmProtocol(Channel channel, const std::filesystem::path& dir)
     request.stream         = root.value("stream").toBool();
     request.streamOptions  = root.value("streamOptions").toObject();
 
-    // Read once, at the channel's own level: both the ordinary prompt and the multiple-senses one
-    // can be asked for the same extra field, and one copy of the sentence is what keeps them saying
-    // the same thing.
+    // Read once, at the channel's own level: the ordinary prompt and the multiple-senses one can
+    // both be asked for the same extra field, and one copy keeps them saying the same thing.
     const QJsonObject etymology = root.value("etymologyPrompt").toObject();
     const QJsonObject example   = root.value("examplePrompt").toObject();
 
@@ -223,10 +222,9 @@ void loadLlmProtocol(Channel channel, const std::filesystem::path& dir)
         auto const url = QUrl{requireString(provider, "baseUrl", dir / "catalog.json")};
         if (not url.isValid() or url.scheme() != QLatin1String("https") or url.host().isEmpty() or not url.userInfo().isEmpty() or url.hasQuery() or url.hasFragment())
             throw std::runtime_error("invalid provider base URL in catalog");
-        // The vendor half of an OpenRouter id, carried by the data rather than by a table here. An empty
-        // prefix is a deliberate value, not a missing one: it means the whole catalogue, ids left
-        // whole, which is what OpenRouter itself needs. So the check is the type and the slash, not
-        // requireString().
+        // The vendor half of an OpenRouter id, carried by the data rather than a table here. An
+        // empty prefix is deliberate: it means the whole catalogue, ids left whole. The check is
+        // therefore type and slash, not requireString().
         if (const auto raw = provider.value("openRouterPrefix"); not raw.isUndefined()) {
             if (not raw.isString() or raw.toString().contains(QLatin1Char('/')))
                 throw std::runtime_error("invalid provider model-source prefix in catalog");

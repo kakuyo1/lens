@@ -2,10 +2,9 @@
  * @file words_view.h
  * @brief The words surface's rows, the export vocabulary and the import rule, as pure functions.
  *
- * AppController used to answer these from the wall clock and three copies of the same scope
- * switch, so the day labels and the import timestamp could not be pinned. Here every answer takes
- * the date or hour it judges against; the invokable that QML reaches reads the clock and passes it
- * in. No file, network or clock is touched.
+ * Every answer takes the date or hour it judges against; the invokable that QML reaches reads the
+ * clock and passes it in, so the day labels and the import timestamp can be pinned by a test.
+ * No file, network or clock is touched.
  */
 
 #pragma once

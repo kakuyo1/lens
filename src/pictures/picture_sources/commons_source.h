@@ -30,7 +30,6 @@ public:
      * manager's proxy behaviour is the one this lookup wants.
      *
      * @param manager Network manager to ask through, or null to make one.
-     * @param parent  QObject parent.
      */
     explicit CommonsSource(QNetworkAccessManager* manager = nullptr, QObject* parent = nullptr);
 

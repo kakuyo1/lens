@@ -121,7 +121,7 @@ void ExplanationDuty::onBatchFinished(QVector<llm::Explanation> results, llm::Us
         const llm::Explanation& result = results.at(answer);
         // Named rather than positional: five of these six fields are strings, and the one that
         // must not be dropped is the one that arrived last. The example is judged from the batch,
-        // not the setting: a sentence paid for with the setting on is kept even if it was turned off
+        // not the setting: one asked for with the setting on is kept even if it was turned off
         // while the request was away.
         core::WordCache cached{.ipa         = result.ipa.toStdString(),
                                .en          = result.en.toStdString(),
@@ -434,8 +434,8 @@ void ExplanationDuty::sendNext()
     auto       batch = queue_.take(cost_.canRequest(), now, exampleEnabled());
     if (not batch)
         return;
-    // A held request comes back out through the cache before it is paid for: the batch that has
-    // just landed may be the one that stored this very word. Nothing else is ever taken here --
+    // A held request comes back out through the cache before it goes to the model: the batch that
+    // has just landed may be the one that stored this very word. Nothing else is ever taken here --
     // the word list's own candidates were answered out of the cache before they were queued.
     if (not batch->fromScan and showStored(batch->items.front(), batch->context)) {
         queue_.complete();
@@ -458,10 +458,9 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
                                                                         : translation;
     };
     // A translation is one line of English whatever the explanation language says: the reader
-    // selected Chinese, so Chinese is the one answer that cannot be the one they want, and the
-    // model was asked for English alone. `en` carries it while the other two languages are the
-    // ones the reader did not ask for -- the bubble then draws that line and nothing else: no
-    // title, no badge, none of the word-only blocks.
+    // selected Chinese, the model was asked for English alone, and the other two language fields
+    // are answers the reader did not ask for. The bubble then draws that line and nothing else --
+    // no title, no badge, none of the word-only blocks.
     const bool    translated  = selection.kind == core::SelectionKind::Translation;
     const QString english     = translated or context.language == "en" ? explanation.en : QString{};
     const QString chinese     = context.language == "zh" and not translated ? explanation.zh : QString{};
@@ -493,12 +492,12 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
         if (entries.isEmpty()) entries.push_back({explanation.en, explanation.zh, explanation.translation, explanation.imageable, explanation.imageQuery});
         for (const auto& sense : entries) {
             if (senses.size() >= (context.multipleSenses ? llm::kMaxSenses : 1)) break;
-            // One language a row, the reader's own and no other: the explanation language is the
-            // answer to "which language do I read this in", and a sense drawn in two of them is that
-            // question answered twice (UI-SPEC.md 4.3). So a row carries the English definition when
-            // English was asked for and the reader's language otherwise -- the same pair the singular
-            // definition above the sense list is drawn from, and `multipleSenses` decides only how
-            // many rows there are.
+            // One language a row, the reader's own and no other: the explanation language answers
+            // "which language do I read this in", and a sense drawn in two of them answers it
+            // twice (UI-SPEC.md 4.3). A row carries the English definition when English was asked
+            // for and the reader's language otherwise -- the same pair the singular definition
+            // above the sense list is drawn from, and `multipleSenses` decides only how many rows
+            // there are.
             QString const senseEnglish = context.language == "en" ? sense.en : QString{};
             senses.append(QVariantMap{{"en", senseEnglish},
                                       {"spans", spansOf(senseEnglish)},

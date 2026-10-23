@@ -26,7 +26,7 @@ constexpr int kMaxHops = 5;
 /// @return A URL with anything that could carry a credential taken out of it, for the log.
 ///
 /// A signed asset address carries a query string that authorises the download, so it is never
-/// logged whole: scheme, host and path say which file was asked for, which is what a log is for.
+/// logged whole: scheme, host and path say which file was asked for.
 std::string forLog(const QUrl& url)
 {
     return QStringLiteral("%1://%2%3").arg(url.scheme(), url.host(), url.path()).toStdString();
@@ -54,8 +54,8 @@ Settings Settings::load(const std::filesystem::path& path)
     const QJsonObject root = document.object();
     Settings          settings;
     settings.source = QUrl{root.value("source").toString()};
-    // A limit that is not a positive number is the default rather than zero: zero would mean
-    // no timeout or no ceiling, which is the opposite of what the number was for.
+    // A limit that is not a positive number takes the default rather than zero: zero would mean
+    // no timeout or no ceiling at all.
     if (const int timeoutMs = root.value("timeoutMs").toInt(); timeoutMs > 0)
         settings.timeoutMs = timeoutMs;
     if (const auto maxBytes = static_cast<qint64>(root.value("maxBytes").toDouble()); maxBytes > 0)
@@ -263,9 +263,8 @@ bool DownloadClient::start(const QUrl& url, Mode mode, int hops)
             reply->abort();
             return;
         }
-        // Only the installer has a reader watching how far it has got: a checksum list is a
-        // handful of bytes read on the reader's behalf, and reporting it would move the card's
-        // progress bar for a transfer nobody asked to see.
+        // Only the installer reports progress: the checksum list is a few bytes read on the
+        // reader's behalf, and its size is not a transfer anyone is watching.
         if (mode == Mode::Installer)
             emit progressed(received_, total_);
     });
@@ -317,9 +316,9 @@ void DownloadClient::onFinished(QNetworkReply* reply, const QUrl& url, Mode mode
         return;
     }
 
-    // A release that publishes no checksum file is a release whose installer cannot be checked, so
-    // it is not downloadable. That is an answer, not a failure: the list is read on every
-    // newer-version check, and reporting its absence as a failed download would be wrong.
+    // A release that publishes no checksum file has an installer that cannot be checked, so it is
+    // not downloadable: the empty list is an answer, not a failure. The list is read on every
+    // newer-version check.
     if (mode == Mode::Sums and status == 404) {
         LENS_INFO("this release publishes no {} file", settings_.sumsName.toStdString());
         reply->deleteLater();
@@ -330,13 +329,12 @@ void DownloadClient::onFinished(QNetworkReply* reply, const QUrl& url, Mode mode
     }
 
     if (reply->error() != QNetworkReply::NoError or status != 200) {
-        // A status is an answer, whatever it says: a 404 is a release with no installer, and a
-        // 5xx is the server's problem. Neither is the network, and neither is fixed by turning
-        // a proxy on, so neither is reported as one. A transfer that failed without any HTTP
-        // answer at all is the connection itself, and that is what `failureFor` judges: nothing
-        // moved, so it is the proxy text; something moved and then stopped, it is a plain failure.
-        // The error text is not logged: for an asset it carries the signed address, and that
-        // address is a credential for the download. The status and the Qt error code are enough.
+        // A status is an answer, whatever it says: a 404 is a release with no installer, a 5xx the
+        // server's problem; neither is the network, so neither is reported as Proxy. A transfer
+        // that failed with no HTTP answer at all is what `failureFor` judges: nothing moved is the
+        // proxy text, something moved and stopped is a plain failure. The error text is not logged
+        // -- for an asset it carries the signed address, a credential for the download; the status
+        // and the Qt error code are enough.
         LENS_WARN("the download did not arrive: HTTP {} (error {})", status, static_cast<int>(reply->error()));
         stop(status == 0 ? failureFor(received_) : Failure::Generic);
         return;

@@ -205,8 +205,7 @@ TEST(SettingsSectionWrite, RemovesAKeyAltogetherAndSavesOnlyWhenSomethingWent)
 }
 
 // ---------------------------------------------------------------------------------------------
-// The document's keys, as a declaration. Before this, "which module may write which key" was a
-// fact you had to read KnownStore::save() and StatsStore::writeBack() to learn.
+// The document's keys, as a declaration: which module may write which key.
 // ---------------------------------------------------------------------------------------------
 
 namespace {
@@ -368,8 +367,7 @@ TEST(SettingsDocumentKeys, TheStoreRestampsItsFourKeysAtSaveTime)
 }
 
 /// The stats section's three are rebuilt by its own write-back, so a direct write survives a
-/// save() and is lost the next time the reader's statistics move -- which is the worse of the two
-/// because it is not even immediate.
+/// save() and is lost the next time the reader's statistics move -- deferred, not immediate.
 TEST(SettingsDocumentKeys, TheStatsStoreRestampsItsThreeOnItsNextWrite)
 {
     const auto path  = scratchPath("lens-settings-section-stamped-stats.json");
@@ -416,12 +414,11 @@ TEST(SettingsDocumentKeys, TheSyncKeysAreRestampedByTheirOwners)
 }
 
 /// The other direction: a top-level key the fixture carries that the tables do not name is drift.
-/// @note A narrow check, and the name is not to be read as more than it says. The fixture is the
-///       qtest one: eight keys, none of them a setting a duty writes, so what this catches is a key
-///       someone hand-added there while trying a setting out. A key added to the code and left out
-///       of the tables is invisible to it, and so is a key that was deleted while its entry stayed.
-///       Catching those needs the whole application to run, which is not this suite. This is the
-///       half that stays uncovered.
+/// @note A narrow check. The fixture is the qtest one: eight keys, none of them a setting a duty
+///       writes, so what this catches is a key someone hand-added there while trying a setting
+///       out. A key added to the code and left out of the tables, or deleted while its entry
+///       stayed, is invisible to it; catching those needs the whole application to run, which is
+///       not this suite.
 TEST(SettingsDocumentKeys, TheShippedFixtureCarriesNoKeyTheTablesDoNotName)
 {
     const auto    fixture = std::filesystem::path{LENS_SOURCE_DIR} / "test" / "qtest" / "surfaces" / "settings.json";

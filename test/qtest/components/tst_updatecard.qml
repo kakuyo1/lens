@@ -83,7 +83,6 @@ Item {
             pressLabel(shown.card, "Skip this version");
             compare(shown.skipped(), 1);
             compare(shown.viewed(), 0, "Skip opened the release page");
-            // The action is reported at once; the window waits for the fade (ShadowCard.qml).
             tryCompare(shown.card, "visible", false);
         }
 

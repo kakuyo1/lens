@@ -13,7 +13,6 @@ Row {
     /// The preview this row raises when the pointer rests on its label (UI-SPEC.md 4.4), empty for the
     /// rows that raise none. The owner sets it and answers previewChanged().
     property string previewKey: ""
-    /// The key the preview should show, or "" for none: raised while the pointer is on the label.
     signal previewChanged(string key)
     /// The table the row takes its colours from: the one of the window it sits in.
     // qmllint disable missing-property

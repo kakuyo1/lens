@@ -4,11 +4,10 @@
  * @file glass_source.h
  * @brief The seam under the glass backdrop: one read of the desktop, whichever way the machine can give it.
  *
- * The backdrop used to decide the way inside its own read: a duplicated output first, GDI when that was not usable, and
- * a black picture on a test platform. That left the fallback order unreachable from a test, and the probe re-implemented
- * the same DXGI and copy-box maths on its own (docs/adr/0086). The order now lives in FallbackSource, over sources that
- * answer one call: GlassDuplication for a duplicated output (src/app/glass/glass_duplication.h), GdiSource for the
- * compositor's screen DC, and a scripted source in the tests, which needs no desktop.
+ * The fallback order lives in FallbackSource, over sources that answer one call, rather than inside the backdrop's own
+ * read: a test and the probe have to reach the order without re-implementing the DXGI and copy-box maths
+ * (docs/adr/0086). GlassDuplication serves a duplicated output (src/app/glass/glass_duplication.h), GdiSource the
+ * compositor's screen DC (a black picture on a test platform), and the tests a scripted source that needs no desktop.
  */
 
 #include "glass_desktop.h"
@@ -42,7 +41,7 @@ struct DesktopRead {
 /**
  * @brief One way of reading the desktop.
  *
- * The backdrop reads through this and no longer knows which way answered. read() runs on the refresh's worker thread;
+ * The backdrop reads through this without knowing which way answered. read() runs on the refresh's worker thread;
  * canFollow() is asked on the GUI thread before a read is started, to set the timer's pace.
  */
 class DesktopSource {
@@ -76,7 +75,7 @@ public:
      * @param onDesktop False where the platform has no desktop to read; a black picture stands in, so a test run never
      *        photographs the reader's real screen.
      * @param scale How far the read is shrunk from device resolution. Full is what the sheet uses: the blur runs on the
-     *        GPU now, so reading at full costs little more and keeps the sheet sharp (docs/adr/0070).
+     *        GPU, so reading at full costs little more and keeps the sheet sharp (docs/adr/0070).
      */
     explicit GdiSource(bool onDesktop, SheetScale scale = SheetScale::Full);
 

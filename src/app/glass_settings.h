@@ -24,7 +24,7 @@ namespace lens::app {
  * The ladder is about the source and the pace of the desktop read, not an on/off GPU switch: Qt 6 has no CPU-only UI
  * backend, and whether a screen can be followed is a per-output fact (docs/adr/0072, docs/adr/0087). Eco keeps the
  * picture still; Standard reads it with GDI about fifteen times a second; Auto follows up to about sixty times a second
- * where the screen offers it; Smooth goes further and follows the screen's own refresh rate (docs/adr/0074).
+ * where the screen offers it; Smooth follows the screen's own refresh rate (docs/adr/0074).
  */
 enum class GlassQuality : int {
     Auto     = 0, ///< A live source where one works, up to about sixty a second; GDI otherwise: the default.

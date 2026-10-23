@@ -6,13 +6,11 @@ import QtQuick.Window
 /**
  * The explanation bubble (UI-SPEC.md section 4.3), the surface the whole channel exists for.
  *
- * It lands on the side the reader chose in the bubble settings, above the selection by default, and
- * takes the other side only when the chosen one has no room. The action bar follows the same setting,
- * so the two surfaces answer the same gesture -- a finished selection -- from the same side. The
- * countdown lives here rather than in the controller: it is the view's behaviour, and hovering is
- * what pauses it.
- * It never takes focus, so clicking Known or New does not change which application the next
- * injected copy keystroke would go to.
+ * Lands on the side the reader chose in the bubble settings, above the selection by default, taking
+ * the other side only when the chosen one has no room; the action bar follows the same setting, so
+ * both surfaces answer a finished selection from the same side. The countdown lives here, not in the
+ * controller: it is the view's behaviour, and hovering pauses it. The window never takes focus, so
+ * clicking Known or New does not change which application the next injected copy keystroke goes to.
  */
 Window {
     id: bubble
@@ -88,7 +86,6 @@ Window {
 
     property bool hovering: false
 
-    /// True while the reader is moving the card with the pointer.
     property bool dragging: false
 
     /// Milliseconds left before the countdown takes the bubble down. The display's number comes
@@ -96,10 +93,8 @@ Window {
     /// the number has to stand still with it. `show()` refills it from `dismissAfterMs`.
     property int remainingMs: 0
 
-    /// Whether the countdown runs at all. A bubble the word list raises belongs to the row under
-    /// the pointer and is taken down when the pointer leaves it, so a clock counting under it would
-    /// be a second, disagreeing answer to the same question -- and nothing to draw, since there is
-    /// no count for the reader to read.
+    /// A bubble the word list raises belongs to the row under the pointer and closes when the
+    /// pointer leaves it; no clock runs under it.
     property bool countsDown: true
 
     /// Whether a language switch is replaying the answer inside the frame the card already has.
@@ -121,10 +116,8 @@ Window {
     readonly property int revealCharacterMs: Controller.settings.revealCharacterMs
 
     /// The face the English fields are drawn in, from the reader's font setting (UI-SPEC.md 4.4). Hoisted
-    /// like the pace, and for one more reason: it is the same answer for every English run on the
-    /// card -- the word, its pronunciation, the definition and the example. The reader's own
-    /// language, in the definition or the translation, keeps the face the application installed,
-    /// which is what the setting promises.
+    /// like the pace: one value for every English run on the card -- word, pronunciation, definition,
+    /// example. The reader's own language, in the definition or the translation, keeps the installed face.
     /// The font dropdown's row's face; null follows the setting.
     property var previewFont: null
     readonly property string englishFont: previewFont !== null ? previewFont : Controller.settings.font
@@ -156,10 +149,9 @@ Window {
 
     /// @brief Asks the root to put the card beside @p payload, before the bubble is shown.
     ///
-    /// The root does the placing because only it knows the screens: the card has to stay inside
-    /// the work area of the screen the anchor is on, and this window cannot tell which that is.
-    /// SurfaceHost.qml's placeTransient() answers it, on the side the reader chose or the other one when
-    /// the chosen side has no room, and the same call is made again once the text has settled.
+    /// Only the root knows the screens; the card must stay inside the anchor screen's work area.
+    /// SurfaceHost.qml's placeTransient() answers, on the chosen side or the other when that side
+    /// has no room, and the same call is made again once the text has settled.
     signal placementRequested(var payload)
 
     /// @brief Hold this card's frame while a language switch writes the answer again.
@@ -220,27 +212,25 @@ Window {
         verdictButtons = payload.verdictButtons !== false;
         remainingMs = dismissAfterMs;
 
-        // A new window must not paint its first frame before Text has settled the card height:
-        // the old path showed it at the old height, then moved it on the next event-loop turn.
-        // Keep an already visible bubble up while its contents are refreshed, so that replacing
-        // one explanation does not turn the fix into a hide-then-show flash. A card that was
-        // fading out has to start again from the bottom, since its window may already be gone.
+        // A new window must not paint its first frame before Text has settled the card height, or it
+        // shows at the old height and moves on the next event-loop turn. An already visible bubble
+        // stays up through a refresh, so replacing one explanation is not a hide-then-show flash. A
+        // card that was fading out starts again from the bottom, since its window may already be gone.
         if (!wasVisible) {
             visible = false;
             surfaceShown = false;
         }
 
-        // Growing content re-asks for placement; a card the reader is dragging is theirs, and one
-        // replaying a language switch keeps the frame it is already in.
+        // Growing content re-asks for placement; a dragged card and a language replay keep their frame.
         if (!dragging && !languageReplay)
             placement.restart();
     }
 
     /// @brief Take the card down, fading it out before the window goes.
     ///
-    /// The semantic half is the caller's: a bubble the reader closed or the countdown ended is
-    /// a dismissal the controller hears about whether or not the card is still fading. Only the
-    /// appearance waits, so a caller that clears the duty does not have to coordinate with it.
+    /// The semantic half is the caller's: the dismissal reaches the controller whether or not the
+    /// card is still fading. Only the appearance waits, so a caller clearing the duty need not
+    /// coordinate with it.
     function dismiss() {
         countdown.stop();
         surfaceShown = false;
@@ -277,10 +267,9 @@ Window {
     /// The clock starts when the reveal ends, not while the answer is still being written.
     onRevealingChanged: updateCountdown()
 
-    /// The countdown stands still while the reader is holding the bubble, under the pointer or in
-    /// the middle of a drag, and picks up the time that is left when they let go of it. The reveal
-    /// holds it too: the display time is the reader's time with the answer, which is only readable
-    /// once it is all on the card.
+    /// The countdown stands still while the bubble is hovered or dragged and picks up the time that
+    /// is left on release. The reveal holds it too: the time shown is the reader's time with the
+    /// answer, readable only once it is all on the card.
     function updateCountdown() {
         if (hovering || dragging || !countsDown || revealing || !surfaceShown)
             countdown.stop();

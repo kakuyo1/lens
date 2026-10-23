@@ -8,14 +8,13 @@ import QtQuick.Effects
  * (UI-SPEC.md section 4.3).
  *
  * Bubble.qml owns the window -- where it lands, how it fades, when it goes -- and hands the card
- * that window to read the answer from. The two are apart because the card is the half that keeps
- * growing: the sense rows, the chain and the picture strip all arrived here, and Bubble.qml was one
- * change away from the 32768-character ceiling QML.md section 1 records.
+ * that window to read the answer from. The two are apart so Bubble.qml stays under the
+ * 32768-character QML size cap (QML.md section 1); the card is the half that keeps growing.
  *
  * It takes the window rather than twenty separate properties, the way BubbleChainPanel.qml does:
  * the rows read the answer, the colours and the size scale off it, and the drag and hover handlers
- * here are what move it. The preview frame, the chain edges and the header actions are drawn over
- * the card rather than in it, and they are here beside it because this is its coordinate space.
+ * here move it. The preview frame, the chain edges and the header actions are drawn over the card,
+ * here because this is its coordinate space.
  */
 Item {
     id: root
@@ -100,10 +99,9 @@ Item {
             radius: card.radius
         }
 
-        // The handle a drag moves the window by; the timer below does the moving, and the
-        // two reasons it is not the handler's own signal are in ShadowCard.qml. The flag
-        // brackets the drag on both edges: setting it only on the way in left the countdown
-        // stopped for good, and the bubble never went away again.
+        // The handle a drag moves the window by; the timer below does the moving, and the two
+        // reasons it is not the handler's own signal are in ShadowCard.qml. The flag is set on both
+        // edges: setting it only on the way in left the countdown stopped for good.
         DragHandler {
             id: mover
             target: null
@@ -137,18 +135,18 @@ Item {
             onTriggered: mover.place()
         }
 
-        // Leaving takes effect only if it lasts: a pointer sitting on the edge of the
-        // card can read as an exit for a frame or two while the verdict row animates open,
-        // and each false reading restarts the countdown and collapses the row again.
-        // Entering stays immediate, so the row still opens the moment the pointer arrives.
+        // Leaving takes effect only if it lasts: a pointer on the card's edge can read as an exit for
+        // a frame or two while the verdict row animates open, and each false reading restarts the
+        // countdown and collapses the row. Entering stays immediate, so the row opens the moment the
+        // pointer arrives.
         // ponytail: a guard, not a diagnosis; raise the interval if it outlasts this.
         HoverHandler {
             // A preview does not report hover: the pointer is on a settings row, not holding an answer.
             enabled: !root.bubble.preview
             onHoveredChanged: {
-                // Both readings, every flip: a real exit and something else moving `visible`
-                // look the same in the log the controller keeps, and these two are what tells
-                // them apart (TODO.md, the bubble-hover jitter item).
+                // Both readings, every flip: a real exit and something else moving `visible` look the
+                // same in the controller's log, and these two tell them apart (TODO.md, the
+                // bubble-hover jitter item).
                 root.bubble.lastHoverCursor = Controller.cursorPos();
                 const at = card.mapToGlobal(0, 0);
                 root.bubble.lastHoverCard = Qt.rect(at.x, at.y, card.width, card.height);
@@ -247,9 +245,9 @@ Item {
                 scale: root.bubble.fontScale
             }
 
-            // The definition line, and for a translation bubble the whole card: a translation
-            // has no title and no badge above it, so drawing it in the definition's secondary
-            // colour would leave the answer looking like a footnote to nothing (UI-SPEC.md 4.3).
+            // The definition line, and for a translation bubble the whole card: a translation has no
+            // title or badge above it, so it takes the answer colour, not the definition's secondary
+            // (UI-SPEC.md 4.3).
             ChainText {
                 id: definitionText
                 visible: root.bubble.atRoot && root.bubble.senses.length === 0 && root.bubble.english !== ""
@@ -294,18 +292,16 @@ Item {
                 lineHeight: 1.5
             }
 
-            // The word's origin, under the explanation it belongs to. A hairline and a small
-            // label are what keep it from reading as one more line of the definition: the
-            // reader asked for two different things and has to see two different things
-            // (UI-SPEC.md 4.3). The label is the card's label colour and weight; the sentence under
-            // it sits one step down from the definition's colour, because an origin is context
-            // for the meaning rather than another meaning.
-            // Nothing at all is drawn when there is none: an empty labelled slot would read as
-            // a model that failed rather than as a word with no origin to give.
-            // The gap above the rule is the 6 px a sense break uses, not the 12 this block
-            // was drawn with first: measured on the rendered card, that put 24 px of blank
-            // between the definition and the hairline -- the widest gap on the card, in the
-            // one place that is only introducing an aside.
+            // The word's origin, under the explanation it belongs to. A hairline and a small label
+            // set it apart from the definition: the reader asked for two different things and sees
+            // two (UI-SPEC.md 4.3). The label is the card's label colour and weight; the sentence
+            // sits one step down from the definition's colour, an origin being context for the
+            // meaning rather than another meaning.
+            // Nothing is drawn when there is none: an empty labelled slot would read as a model
+            // that failed.
+            // The gap above the rule is the 6 px a sense break uses, not the 12 first drawn:
+            // measured on the rendered card, 12 put 24 px of blank between the definition and the
+            // hairline, the widest gap on the card.
             Column {
                 id: etymologyBlock
                 objectName: "etymologyBlock"

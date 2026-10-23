@@ -8,9 +8,9 @@ import "../testutil.js" as Util
  *
  * The controller owns the payload; this case exercises the surface contract with the failure
  * families that can actually reach it. Every current path is an error: network, key, and schema
- * failures. A failed selection grab is dropped silently (a popup per miss was a nag), and the
- * three channels mean a selection always has somewhere to go, so the old "no available channel"
- * info notice no longer exists. The daily budget event is a phase-two placeholder and has no
+ * failures. A failed selection grab is dropped silently -- a popup per miss was a nag -- and the
+ * three channels always give a selection somewhere to go, so a "no available channel" info notice
+ * does not exist. The daily budget event is a phase-two placeholder and has no
  * production payload or fixture here.
  */
 Item {

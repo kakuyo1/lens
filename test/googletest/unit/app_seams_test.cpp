@@ -5,10 +5,10 @@
  *        the model a service carries and whether changing it moves the model, the annual grid's
  *        window, and the settings document's path.
  *
- * Each is the side of a seam that holds no more than Qt Core or the standard library -- which
- * is the difference between an assertion that runs on every change and one a human has to
- * remember. The sides that touch the machine stay human-run cases in lens_gtest_integration
- * (TEST.md section 2): the registry write, and what the live tray icon actually draws.
+ * Each is the side of a seam that holds no more than Qt Core or the standard library, so an
+ * assertion there runs on every change. The sides that touch the machine stay human-run cases
+ * in lens_gtest_integration (TEST.md section 2): the registry write, and what the live tray
+ * icon actually draws.
  */
 
 #include <filesystem>
@@ -156,10 +156,9 @@ TEST(Autostart, TheEntrySitsUnderTheUsersRunKey)
 
 TEST(Autostart, TheCommandQuotesTheExecutablePath)
 {
-    // Quoted even without a space, so the form is one thing rather than two cases, and a path
-    // that has spaces is never the branch nobody tried. The fixtures carry no drive letter:
-    // what is being pinned is the quoting, and a drive path in a source file is what the
-    // pre-commit hook's check exists to reject (config/README.md).
+    // Quoted even without a space, so the form is one case rather than two. The fixtures carry
+    // no drive letter: what is pinned is the quoting, and a drive path in a source file is what
+    // the pre-commit hook's check rejects (config/README.md).
     EXPECT_EQ(autostartCommand(R"(Lens\lens.exe)"), R"("Lens\lens.exe")");
 
     // What the quoting is for: unquoted, Windows would run the first word and hand the rest
@@ -186,9 +185,9 @@ TEST(TrayState, TheExhaustedBudgetOutranksTheRestAndEveryStateNamesItsArt)
     EXPECT_STREQ(trayIconName(TrayState::Off), "off");
 }
 
-/// Every reason names a token, and the token is the byte string that crossed this seam before the
-/// reason had a type: the QML side and the catalogue are written against these, so a rename here
-/// is a change there. The facade reads the token to pick a sentence and nothing else.
+/// Every reason names a token, the byte string that crosses this seam: the QML side and the
+/// catalogue are written against these, so a rename here is a change there. The facade reads
+/// the token to pick a sentence and nothing else.
 TEST(CaptureRefusal, EveryReasonNamesTheTokenTheSurfacesAlreadyRead)
 {
     EXPECT_STREQ(refusalKey(CaptureRefusal::BudgetPaused), "budget-paused");
@@ -206,10 +205,10 @@ TEST(CaptureRefusal, EveryReasonNamesTheTokenTheSurfacesAlreadyRead)
     EXPECT_STREQ(refusalKey(CaptureRefusal::Failed), "failed");
 }
 
-/// One reason per runtime status, and Ready is the one that is not a reason at all: the gate that
-/// used to compare against Ready asks this instead. Both switches name every value and neither has
-/// a default arm, so the whole mapping reads in one place -- and what an unclassified status falls
-/// through to is a runtime that fell over, not a capture that goes ahead.
+/// One reason per runtime status, and Ready is the one that is not a reason at all: a gate asks
+/// this mapping instead of comparing against Ready. Both switches name every value and neither
+/// has a default arm, so the whole mapping reads in one place -- and an unclassified status
+/// falls through to a runtime that fell over, not a capture that goes ahead.
 TEST(CaptureRefusal, EveryRuntimeStatusNamesItsOwnReasonAndReadyNamesNone)
 {
     EXPECT_EQ(reasonToken(lens::capture::OcrStatus::Ready), "<none>");
@@ -259,9 +258,8 @@ QVariantMap gridDay(const QVariantList& grid, const QString& date)
     return {};
 }
 
-/// The window is fixed at 365 days ending on the day it is handed, which is the reason the
-/// projection left AppController: there the date came from the clock, so every assertion was
-/// about whichever day the suite happened to run on.
+/// The window is fixed at 365 days ending on the day it is handed, so the date comes from the
+/// caller and the assertions do not depend on the clock.
 TEST(YearGrid, IsThreeHundredAndSixtyFiveDaysEndingOnTheDayItIsGiven)
 {
     const QVariantList grid = yearGrid(QDate(2026, 3, 1), {});
@@ -398,10 +396,8 @@ TEST(PathText, WidensANonAsciiPathWithoutLosingIt)
 }
 
 /// The queue is what the reader has asked for and not yet been answered. These cases are the
-/// scheduling and the staleness rule itself: which request leaves next, which answer still belongs
-/// to anything, and when an answer has stopped being the reader's. They used to be reachable only
-/// by driving the whole duty through a faked QNetworkReply and a faked event loop, which is what
-/// made them the part nobody changed.
+/// scheduling and the staleness rule itself: which request leaves next, which answer still
+/// belongs to anything, and when an answer has stopped being the reader's.
 TEST(ExplanationQueue, AScanBatchTakesFiveAndLeavesTheRestQueued)
 {
     ExplanationQueue              queue;
@@ -529,9 +525,8 @@ TEST(ExplanationQueue, AWordDeletedWhileItsAnswerWasComingIsNeitherStoredNorShow
     EXPECT_FALSE(settlement.subject.has_value()) << "and nothing to show it about";
 }
 
-/// The one that is easy to get wrong: the reader moving on takes the answer off the screen without
-/// making it worthless. It was paid for, and the word is still a word -- it is stored, and only
-/// the bubble is withheld.
+/// The reader moving on takes the answer off the screen without making it worthless: the answer
+/// is still stored, and only the bubble is withheld.
 TEST(ExplanationQueue, ANewSelectionLeavesAnAnswerOnItsWayUnshownButStillStored)
 {
     ExplanationQueue queue;
@@ -592,8 +587,7 @@ TEST(ExplanationQueue, ARefusalIsReportedOnlyForARequestTheReaderStillWants)
 }
 
 /// What a service is known to carry, and whether changing service moves the model with it. Both
-/// are ADR-0017's rule, kept by ADR-0020 only for the change of service -- and until this lived
-/// here they were reachable only by driving a real duty through a faked network round trip.
+/// are ADR-0017's rule, kept by ADR-0020 only for the change of service.
 TEST(ModelCatalog, AModelOfAnotherServiceDoesNotSurviveTheSwitchToThisOne)
 {
     // The name that reaches the wire is the one the service being switched to answers 400 about,

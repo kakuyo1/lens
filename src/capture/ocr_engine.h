@@ -44,9 +44,8 @@ struct OcrEngine {
  * @brief The recognition languages @p dataDirectory can serve, in the order Tesseract takes them.
  *
  * The reader supplies the data directory, so whether Chinese can be read is a property of that
- * directory rather than a setting: Chinese is added to the list when its traineddata is there, and
- * left out when it is not, which is what keeps one install reading English and the next reading
- * both. Chinese comes first of the pair -- the reader who installed it did so to read Chinese.
+ * directory, not a setting: chi_sim joins the list when its traineddata is there. Chinese comes
+ * first of the pair -- the reader who installed it did so to read Chinese.
  *
  * @param dataDirectory A tessdata directory; may not exist.
  * @return A `-l` value such as `chi_sim+eng` or `eng`, or empty when neither file is readable.

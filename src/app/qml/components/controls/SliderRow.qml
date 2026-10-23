@@ -21,7 +21,6 @@ Column {
     /// The preview this row raises when the pointer rests on its label (UI-SPEC.md 4.4), empty for the
     /// rows that raise none. The owner sets it and answers previewChanged().
     property string previewKey: ""
-    /// The key the preview should show, or "" for none: raised while the pointer is on the label.
     signal previewChanged(string key)
 
     signal moved(int value)

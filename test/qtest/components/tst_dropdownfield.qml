@@ -24,13 +24,13 @@ Item {
     ]
     readonly property var labels: ["whole", "phrase", "rare"]
 
-    /// Options shaped the way the model field really receives them -- the id is both the `value`
-    /// and the `label`, which is why the filter matches on `value` -- and with their groups
-    /// interleaved on purpose. The numbering of the rows above cannot be searched at all, since
-    /// their values are 0, 1 and 2; searching is what this second set is for.
+    /// Options shaped the way the model field receives them -- the id is both the `value` and
+    /// the `label`, which is why the filter matches on `value` -- with their groups interleaved.
+    /// The rows above cannot be searched at all, since their values are 0, 1 and 2; searching is
+    /// what this second set is for.
     ///
-    /// The groups alternate so that a search can bring two rows of the same group together. That
-    /// is the case the group rule has to get right, and it is why these are not simply sorted.
+    /// The groups alternate so a search can bring two rows of the same group together -- the
+    /// case the group rule has to get right, and why these are not simply sorted.
     readonly property var modelOptions: [
         { value: "deepseek-v4-pro", label: "deepseek-v4-pro", group: "Domestic", note: "" },
         { value: "gpt-4.1-pro", label: "gpt-4.1-pro", group: "International", note: "" },
@@ -95,13 +95,12 @@ Item {
             compare(field.openChildRect, null, "closeList() left the list up");
         }
 
-        /// Where the list lands, and where its rows land inside it. Both are in screen
-        /// coordinates, so the comparison is the one the reader makes: the card sits on the
-        /// field's left edge, and the first row sits inside the card and not beside it.
+        /// Where the list lands, and where its rows land inside it, in screen coordinates: the
+        /// card on the field's left edge, the first row inside the card and not beside it.
         ///
-        /// The rows are the half that shipped wrong. `ShadowCard` hands its children to the card
-        /// rather than to the window, so an inset measured from the window counted the shadow
-        /// margin twice and put every row 26px right and low of the field it belongs to.
+        /// The rows are the half that has shipped wrong: `ShadowCard` hands its children to the
+        /// card rather than to the window, so an inset measured from the window counted the
+        /// shadow margin twice and put every row 26px right and low of the field.
         function test_theCardLandsOnTheFieldAndTheRowsLandInsideIt() {
             const field = opened({});
 
@@ -126,7 +125,7 @@ Item {
                     Math.round(listWindow.y + listWindow.height - listWindow.shadowMargin),
                     "the claimed band does not reach the card's bottom edge");
 
-            // And the rows sit inside that card, by the list's own padding and no more. Measured
+            // The rows sit inside that card, by the list's own padding and no more. Measured
             // against the card rather than the window: the card rises into place as it fades in,
             // so where it is in the window is still moving when the first row is asked for.
             const row = Util.findAll(field, (o) => o.height === field.rowHeight)[0];
@@ -180,9 +179,9 @@ Item {
         /// A field whose list is empty has nothing to open, so its chevron is dimmed and takes no
         /// press. The field itself is untouched: what the service never listed is typed by hand.
         ///
-        /// This is what a service that answers 401 to `/models` looks like -- a model field the
-        /// reader clicks and nothing happens, which reads as a broken control rather than as a
-        /// service that has not said what it carries.
+        /// This is what a service that answers 401 to `/models` looks like -- a model field that
+        /// does nothing when clicked, which reads as a broken control rather than as a service
+        /// that has not said what it carries.
         function test_theChevronIsInertWhenThereIsNoList() {
             const field = make({ editable: true, options: [] });
 
@@ -273,17 +272,17 @@ Item {
         /// Search the field: the filter that follows from the text a reader would have left in it.
         ///
         /// Called through the component's own entry point rather than by typing, because nothing
-        /// can type here. Under this QtTest (6.9.0, offscreen) keyPress/keyRelease, keySequence and
-        /// keyClick all leave a TextInput empty, and keyClick with a printable key asserts fatally
-        /// inside qasciikey.cpp and takes the whole binary down with it. Measured, not assumed --
-        /// and it is why `filterTyped` takes the text as an argument.
+        /// can type here. Under this QtTest (6.9.0, offscreen), keyPress/keyRelease, keySequence
+        /// and keyClick all leave a TextInput empty, and keyClick with a printable key asserts
+        /// fatally inside qasciikey.cpp and takes the binary down. Measured, not assumed -- and
+        /// why `filterTyped` takes the text as an argument.
         ///
         /// What that leaves unpinned is the one line joining the two,
         /// `onTextEdited: root.filterTyped(input.text)`. Everything behind it -- narrowing,
         /// showing, hiding, and the ways the list goes down -- is what the cases below cover.
         ///
-        /// No text is the deletion case: an emptied field is one state however it got there, which
-        /// is why the same call covers typing and deleting.
+        /// No text is the deletion case: an emptied field is one state however it got there, so
+        /// the same call covers typing and deleting.
         function type(field, text) {
             field.filterTyped(text);
             wait(20);
@@ -312,10 +311,9 @@ Item {
             compare(field.filterText, "mini");
         }
 
-        /// A substring is a substring, and the reader's case is not the catalogue's. The option is
+        /// The match is a substring, and the reader's case is not the catalogue's: the option is
         /// spelled in caps and typed in lower case, because the reader's keyboard does not know
-        /// how the catalogue spells it. A subsequence match would have found nothing here, which
-        /// is what "reads as a broken filter" means.
+        /// how the catalogue spells it. A subsequence match would find nothing here.
         function test_theMatchIgnoresTheCaseTheReaderTypesIn() {
             const field = make({
                 editable: true,
@@ -363,9 +361,9 @@ Item {
             compare(input.text, "my-own-name", "the search rewrote what is in the field");
         }
 
-        /// A name no id carries leaves no list: an empty card is not a dropdown. The field is still
-        /// open for business afterwards, and the chevron brings the whole list back rather than the
-        /// empty result the search left behind.
+        /// A name no id carries leaves no list: an empty card is not a dropdown. The field still
+        /// works afterwards, and the chevron brings the whole list back rather than the empty
+        /// result the search left behind.
         function test_typingSomethingNoIdContainsLeavesNoList() {
             const field = make({ editable: true, currentValue: "", options: root.modelOptions });
 
@@ -380,10 +378,10 @@ Item {
                     "the chevron did not bring the whole list back");
         }
 
-        /// A space is not a search: it trims to nothing, which is the state an emptied field is
-        /// in, so there is no list and no filter. Worth pinning because the other reading --
-        /// treating the space as a needle -- shows an empty card, and a reader types a space
-        /// without meaning anything by it on the way to a two-word name.
+        /// A space is not a search: it trims to nothing, the state an emptied field is in, so
+        /// there is no list and no filter. Pinned because the other reading -- treating the
+        /// space as a needle -- shows an empty card, and a reader types a space without meaning
+        /// anything by it on the way to a two-word name.
         function test_aSpaceIsNotASearchAndLeavesNoList() {
             const field = make({ editable: true, currentValue: "", options: root.modelOptions });
 
@@ -426,10 +424,10 @@ Item {
             compare(opened, 1, "the chevron did not raise listOpened");
         }
 
-        /// The rule above a row is drawn from the row before it in the list the view is built over.
-        /// "gpt" leaves the two International rows together, so a correctly read list draws no
-        /// rule at all -- while the unfiltered list would put one above the first of them, because
-        /// the row above it there is the Domestic one. That gap is the whole case.
+        /// The rule above a row is drawn from the row before it in the list the view is built
+        /// over. "gpt" leaves the two International rows together, so a correctly read list
+        /// draws no rule at all -- the unfiltered list would put one above the first of them,
+        /// because the row above it there is the Domestic one.
         function test_theGroupRuleFollowsTheFilteredList() {
             const field = make({ editable: true, currentValue: "", options: root.modelOptions });
 
@@ -459,9 +457,9 @@ Item {
             compare(field.filterText, "", "the search outlived the list it narrowed");
         }
 
-        /// A whole search writes nothing: `edited` is the field reporting what the reader left in
-        /// it when they leave it, and `listOpened` is the settings page's cue to fetch. Neither is
-        /// a search's business, and a request per character is what raising the second would cost.
+        /// A search writes nothing: `edited` is the field reporting what the reader left in it
+        /// when they leave it, and `listOpened` is the settings page's cue to fetch. Neither is
+        /// a search's business -- raising the second would cost a request per character.
         function test_aSearchRaisesNoEditAndNoRequest() {
             const field = make({ editable: true, currentValue: "", options: root.modelOptions });
             let edited = -1;

@@ -4,10 +4,10 @@
  * @file tray_state.h
  * @brief What the tray icon is saying, as a priority rather than a sum.
  *
- * Tray used to pick this inline, and the ordering is the whole content of the rule: an exhausted
- * budget is not a request in flight, and a reader who has switched capture off still has to see
- * that the day's money ran out. The state lives here rather than in Tray because nothing behind
- * a private member of it can be asserted.
+ * The ordering is the whole content of the rule: an exhausted budget is not a request in flight,
+ * and a reader who has switched capture off still has to see that the day's money ran out. The
+ * state lives here rather than in Tray because nothing behind a private member of it can be
+ * asserted.
  */
 
 namespace lens::app {

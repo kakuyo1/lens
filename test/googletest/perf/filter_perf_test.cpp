@@ -4,9 +4,9 @@
  *        -DLENS_ENABLE_PROFILE=ON.
  *
  * The numbers are the point, so this prints rather than asserts on them: wall-clock
- * thresholds would be flaky on a shared machine. What it does assert is that the workload
- * reached the pipeline at all, because a benchmark that filters everything to nothing
- * measures the hard filter and nothing else.
+ * thresholds would be flaky on a shared machine. It asserts that the workload reached the
+ * pipeline at all, because a benchmark that filters everything to nothing measures the hard
+ * filter and nothing else.
  *
  * Build with the instrumentation on to see where the time inside the pipeline goes:
  *

@@ -7,10 +7,10 @@ import "../testutil.js" as Util
  * Main.qml: the root that owns every surface, and the placement and dismissal arithmetic the
  * surfaces are put up and taken down by.
  *
- * None of this could be driven at all before this target existed -- the root reads
- * Controller.settings on its first binding, and a Controller that was never provided either
- * reads as null or, in a Debug build, trips an assert in its factory and takes the process
- * down. See TEST.md section 5 for what a person was doing instead.
+ * The root reads Controller.settings on its first binding, and a Controller that was never
+ * provided either reads as null or, in a Debug build, trips an assert in its factory and takes
+ * the process down -- so this target is what makes the surface drivable at all. See TEST.md
+ * section 5 for what a person was doing instead.
  */
 Item {
     id: root
@@ -56,15 +56,14 @@ Item {
             compare(Tokens.dark, true);
         }
 
-        /// The two halves that were measured on the real window: the hook reports physical
-        /// pixels and the windows are placed in device-independent ones, and the payload has
-        /// to be rebuilt rather than edited in place, because writing to the JS view of a
-        /// QVariantMap silently keeps the old value.
+        /// The hook reports physical pixels and the windows are placed in device-independent
+        /// ones, and the payload has to be rebuilt rather than edited in place: writing to the
+        /// JS view of a QVariantMap silently keeps the old value.
         ///
         /// @note This runs on the offscreen platform, whose device pixel ratio is 1, so the
-        ///       division here is the identity: what the case pins down is the copy and the
-        ///       field set, not the arithmetic. Run with QT_SCALE_FACTOR set and the same
-        ///       assertion would also cover the arithmetic.
+        ///       division here is the identity: the case pins the copy and the field set, not
+        ///       the arithmetic. Run with QT_SCALE_FACTOR set, the same assertion would also
+        ///       cover the arithmetic.
         function test_toDipDividesThePositionAndKeepsEveryOtherField() {
             const main = make();
 
@@ -221,8 +220,8 @@ Item {
             compare(bar.selectionText, "words");
 
             // The minimum is a count of letters, and Chinese is counted in characters: a
-            // two-character word is a whole word, so it reaches the bar the floor above would have
-            // hidden it behind -- which is the common size of a Chinese word
+            // two-character word is a whole word, so it reaches the bar the letter minimum
+            // would have hidden it behind -- the common size of a Chinese word
             // (UI-SPEC.md section 4.10).
             Controller.selectionBarRequested({ x: 300, y: 300, kind: "translation", text: "苹果", letterCount: 2 });
             tryCompare(bar, "visible", true);
@@ -301,9 +300,9 @@ Item {
 
             Util.surfaceHost(main).showStats();
 
-            // Reduced motion is not a rare machine: CI runs with it, because the runner reports Windows'
-            // client-area animations off. hidePanels then makes the panel go at once instead of leaving,
-            // and there is no cross-fade left to measure -- so that branch is asserted here rather than
+            // CI runs with reduced motion: the runner reports Windows' client-area animations
+            // off. hidePanels then makes the panel go at once instead of leaving, and there is
+            // no cross-fade left to measure -- so that branch is asserted here rather than
             // skipped, since nothing else covers it.
             if (Tokens.motion.reduced) {
                 tryCompare(stats, "visible", true);

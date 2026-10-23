@@ -17,11 +17,10 @@ namespace lens::app {
 #ifdef _WIN32
 namespace {
 
-/// The rotation Windows reports for an output, in words a reader of the log can act on. It matters because a rotated
-/// panel's desktop rectangle and its frame do not line up: the external monitor of the measurement machine reads
+/// The rotation Windows reports for an output, in words a reader of the log can act on. A rotated panel's desktop
+/// rectangle and its frame do not line up: the external monitor of the measurement machine reads
 /// 1440 x 2560 on the desktop and duplicates a 2560 x 1440 frame
 /// (docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md 3.1).
-/// @param rotation The rotation DXGI reports.
 /// @return The rotation as English text, and the degrees where Windows has a name for them.
 char const* rotationText(DXGI_MODE_ROTATION const rotation)
 {

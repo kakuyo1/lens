@@ -28,7 +28,7 @@ class DevPipe : public QObject {
 
 public:
     /// @param name The pipe's name, as the command line gave it. Never defaulted.
-    /// @param parent QObject parent; the pipe and its client are freed with it.
+    /// @param parent The pipe and its client are freed with it.
     DevPipe(QString name, QObject* parent = nullptr);
 
     /// @brief Start listening on the name, for this user only.

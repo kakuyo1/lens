@@ -23,7 +23,6 @@ public:
     /// @brief How long a run survives after its last landing; another throw inside it continues the run.
     static constexpr std::chrono::milliseconds kWindow{20'000};
 
-    /// @brief Records a landed throw.
     /// @param roll A source in [0, 1), drawn by the controller.
     /// @return Whether the pet is angry: true from the second landed throw in the run when `roll` is under
     ///         kAngryChance. A true result ends the run, so the next throw starts it again.

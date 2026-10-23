@@ -5,8 +5,8 @@ import "../"
 import "../testutil.js" as Util
 
 /**
- * The English font setting (UI-SPEC.md 4.4): the list the field offers, what the setting keeps, and the
- * one thing it is for -- the English runs of an explanation following it while the reader's own
+ * The English font setting (UI-SPEC.md 4.4): the list the field offers, what the setting keeps, and
+ * what it is for -- the English runs of an explanation following it while the reader's own
  * language does not.
  *
  * The setting is a document key, so every case puts it back. The families are the machine's own,
@@ -253,8 +253,8 @@ Item {
             compare(fields[0].options.length, Controller.latinFontFamilies().length);
         }
 
-        /// The preview used to hang off the "Font" title; it now belongs to the rows of the list
-        /// (UI-SPEC.md 4.4), and each row draws the same bubble in its own family.
+        /// The preview belongs to the rows of the list (UI-SPEC.md 4.4), not to the "Font" title,
+        /// and each row draws the same bubble in its own family.
         function test_theFontRowsRaiseTheBubblePreviewInTheirOwnFace() {
             Controller.setSetting("font", "");
             const main = createTemporaryObject(mainComponent, root);

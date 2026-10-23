@@ -6,8 +6,8 @@ import "../../util/Format.js" as Format
 /**
  * The about page: the repository, the version with its update check, and the build stamp.
  *
- * The update check moved here from the General page. Its startup switch stayed there, because the
- * switch is a setting and the check is an action.
+ * The update check's startup switch stays on the General page: the switch is a setting and the
+ * check is an action.
  */
 Item {
     id: page

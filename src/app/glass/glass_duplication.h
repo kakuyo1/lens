@@ -4,12 +4,12 @@
  * @file glass_duplication.h
  * @brief The desktop read that skips GDI: one DXGI output duplicated on its own adapter, cropped to a sheet.
  *
- * ADR 0040 gave up on DXGI because the internal panel of the measurement machine refused duplication; the 2026-10-19
- * probe shows the refusal is per output, not per machine: the external monitor duplicates at 137 frames a second while
- * the integrated panel refuses on every adapter (docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md
+ * ADR 0040 recorded DXGI as a dead end because the internal panel of the measurement machine refused duplication; the
+ * 2026-10-19 probe shows the refusal is per output, not per machine: the external monitor duplicates at 137 frames a
+ * second while the integrated panel refuses on every adapter (docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md
  * 3.1). A GDI read of a sheet costs 13 to 41 ms depending on the screen and the moment; a duplicated frame reaches the
- * CPU in 0.75 ms for the same sheet. That is the difference between a refresh budget of 15 a second and one that can
- * follow the display.
+ * CPU in 0.75 ms for the same sheet, which is what lets the refresh follow the display instead of the 15-a-second GDI
+ * budget.
  *
  * The frame is copied back to the CPU rather than handed to the scene graph as a GPU texture: the shared-texture route
  * needs `QRhiTexture::createFrom`, which lives in a private header, and ADR 0040's rule against private headers stands.

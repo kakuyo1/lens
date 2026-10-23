@@ -4,13 +4,12 @@ import QtQuick.Window
 /**
  * The root, and the only place the surfaces are tied to the controller.
  *
- * There is no main window, and this one is not it either: it is a 1x1 transparent window kept
- * off every screen, and its only job is to own the surfaces and be the engine's root object.
- * It has to be *shown*, though -- a window declared inside another one becomes its transient
- * child, and Windows does not put a transient child on screen while its parent is hidden.
- * Every surface is a window of its own, which is what UI-SPEC.md's "each surface is independent,
- * sharing no window" asks for. Placement and panel routing live in SurfaceHost.qml; ScreenPoints.qml
- * and dev/ProfileScenario.qml hold the other two helpers, so this file stays under the QML size cap.
+ * Not a main window: a 1x1 transparent window kept off every screen, owning the surfaces and being
+ * the engine's root object. It still has to be shown -- a window declared inside another becomes its
+ * transient child, and Windows keeps a transient child off screen while its parent is hidden. Every
+ * surface is a window of its own (UI-SPEC.md's "each surface is independent, sharing no window").
+ * Placement and panel routing live in SurfaceHost.qml; ScreenPoints.qml and dev/ProfileScenario.qml
+ * hold the other two helpers, keeping this file under the QML size cap.
  */
 Window {
     id: root
@@ -55,9 +54,8 @@ Window {
         onPlacementRequested: (payload) => surfaceHost.placeBubble(bubble, payload)
         onHeightChanged: surfaceHost.keepOnScreen(bubble)
     }
-    /// The pet's right-click opens the panel on the page that carries the pet's block, beside the pet: the side is
-    /// chosen from where the pet is at that click, so a pet the reader has moved gets the card on its other side. The
-    /// tray's entry opens the same panel without choosing a page, and at the tray icon.
+    /// The pet's right-click opens the panel on the page that carries the pet's block, beside the pet, on the side
+    /// chosen from where the pet is at that click; the tray's entry opens it without choosing a page, at the tray icon.
     PetWindow {
         id: petWindow
         onSettingsRequested: {
@@ -93,8 +91,7 @@ Window {
 
     Notice {
         id: notice
-        // The one action a notice can carry: the word it is about is the controller's, and so is
-        // what asking for it costs.
+        // The word the notice is about, and the cost of asking for it, are both the controller's.
         onActionTriggered: Controller.explainLemma(notice.noticeLemma)
     }
 
@@ -115,10 +112,8 @@ Window {
     Mask {
         id: mask
         // The one place the mask and the capture duty meet: the rectangle comes back in desktop
-        // coordinates and goes straight to the only thing that can take a shot of it. Nothing else
-        // in the mask knows a controller exists, and the controller never learns a mask does --
-        // which is why this wire had no test over it, and was missing until the reader pressed the
-        // key and framed a region and nothing whatsoever happened.
+        // coordinates and goes straight to the only thing that can take a shot of it. Neither side
+        // knows the other exists; this wire once went missing with no test to catch it.
         onRegionChosen: (region) => Controller.captureRegion(region)
     }
 
@@ -166,8 +161,7 @@ Window {
         onHeightChanged: surfaceHost.keepOnScreen(trayMenu)
     }
 
-    /// The placement and panel rules that used to live here (SurfaceHost.qml); kept out of this
-    /// file to stay under the QML size cap.
+    /// The placement and panel rules live in SurfaceHost.qml, keeping this file under the QML size cap.
     SurfaceHost {
         id: surfaceHost
         objectName: "surfaceHost"
@@ -197,11 +191,9 @@ Window {
 
         function onSelectionBarRequested(payload) {
             const generation = ++root.selectionBarGeneration;
-            // The minimum is a word length, which is a count of letters: it keeps an accidental
-            // drag over two letters of English from raising the bar. Chinese is counted in
-            // characters rather than letters, and one Han character is a word on its own, so the
-            // rule has no floor to set here -- a phrase of two, which is the common size of a
-            // Chinese word, would otherwise never reach the bar at all.
+            // The minimum is a letter count: an accidental drag over two letters of English must not
+            // raise the bar. Chinese is counted in characters, one of which is a word on its own, so
+            // no floor reaches it -- a two-character phrase, the common Chinese word size, never would.
             if (payload.kind !== "translation" && payload.letterCount < Controller.settings.minimumWordLength) {
                 bar.dismiss();
                 return;
@@ -210,12 +202,11 @@ Window {
             const at = points.toDip(payload);
             bar.selectionText = payload.text;
             bar.selectionKind = payload.kind;
-            // A bar that is away is kept down until it has been placed, rather than shown where
-            // it was last left and moved a line later -- a frame of the bar in the wrong place,
-            // the corner of the screen, the first time. One that is already up is moved in the
-            // same turn, so a second selection does not flash it out and in. open() is two
-            // steps for the reason placePanel() gives: `visible` alone can leave a topmost
-            // window under the taskbar.
+            // A bar that is away stays hidden until it has been placed, rather than showing at its
+            // last spot -- the screen corner, the first time -- and moving a frame later. One already
+            // up is moved in the same turn, so a second selection does not flash it out and in.
+            // open() is two steps for the reason placePanel() gives: `visible` alone can leave a
+            // topmost window under the taskbar.
             if (!bar.surfaceShown)
                 bar.visible = false;
             Qt.callLater(() => {
@@ -244,9 +235,9 @@ Window {
             if (payload && Object.keys(payload).length > 0) {
                 const at = points.toDip(payload);
                 bubble.show(at);
-                // An answer now arrives a field at a time, so this runs several times for one card: a card the
-                // reader is holding is theirs, and the stream must not pull it back to the anchor (repositionVisible
-                // keeps the same rule for a screen change).
+                // An answer arrives a field at a time, so this runs several times for one card; a card
+                // being dragged must not be pulled back to its anchor (repositionVisible keeps the
+                // same rule for a screen change).
                 Qt.callLater(() => {
                     // A language switch replays the answer in the frame the card already has:
                     // asking for placement here would move it as the new text changes height.
@@ -278,11 +269,10 @@ Window {
     Connections {
         target: Controller.updateDuty
 
-        /// The card is raised and taken down from one flag the duty holds, rather than from a
-        /// transition through states the reader would see as a flicker. `show()` centres the
-        /// window, so it only runs when there is something new to show: the same signal also
-        /// carries the settings switch and the state the card does not draw, and re-centring
-        /// on those would move the card out from under a reader who is looking at it.
+        /// Raised and taken down from the one flag the duty holds. `show()` centres the window, so
+        /// it only runs when there is something new to show: the signal also carries the settings
+        /// switch and state the card does not draw, and re-centring would move the card out from
+        /// under a reader looking at it.
         function onUpdateChanged() {
             if (!Controller.updateDuty.cardVisible) {
                 updateCard.dismiss();

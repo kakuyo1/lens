@@ -150,7 +150,7 @@ public:
 protected:
     qint64 readData(char* data, qint64 maxSize) override
     {
-        if (body_.isEmpty()) return -1; // end of the stub body
+        if (body_.isEmpty()) return -1;
         const qint64 count = std::min(maxSize, static_cast<qint64>(body_.size()));
         std::memcpy(data, body_.constData(), static_cast<std::size_t>(count));
         body_.remove(0, count);
