@@ -217,7 +217,8 @@ void PetController::loadPet(std::string const& id)
     wardrobe_.reset();
     hover_.reset();
     setGaze({});
-    behavior_ = {};
+    reviewLook_ = {};
+    behavior_   = {};
     try {
         auto const* entry = catalog_.find(id);
         if (not entry) throw std::runtime_error{"the pet is not in the catalogue: " + id};
@@ -315,6 +316,10 @@ void PetController::handle(PetEvent event)
             readingAfterUntil_ = std::chrono::steady_clock::now() + kReadingAfterglow;
         readingSince_.reset();
     }
+    // The sign reports its side after ReviewAsked; the events that take it down leave no direction behind.
+    if (event == PetEvent::ReviewAsked or event == PetEvent::ReviewRemembered or event == PetEvent::ReviewForgotten or
+        event == PetEvent::ReviewIgnored)
+        reviewLook_ = {};
     if (not machine_) return;
     angryRepeatsLeft_ = 0;
     if (flight_) {
@@ -857,6 +862,21 @@ void PetController::stopWandering()
     if (hiding_) return;
     wanderWait_ = nextWanderWait();
     hoverPause_ = true;
+}
+
+void PetController::setReviewLook(QString side)
+{
+    auto const look = side == QStringLiteral("left")    ? QPoint{-1, 0}
+                      : side == QStringLiteral("right") ? QPoint{1, 0}
+                                                        : QPoint{};
+    if (look == reviewLook_) return;
+    reviewLook_ = look;
+    if (look.isNull()) {
+        // The sign is gone: forget the hover round it interrupted, and put the eyes back where the idle face has them.
+        resetHover();
+    } else {
+        setGaze(look);
+    }
 }
 
 void PetController::toggleAccessory(QString id)
@@ -1823,8 +1843,10 @@ void PetController::finishStroll()
     step_.reset();
     hoverPause_ = false;
     wanderWait_ = nextWanderWait();
-    // The walk is over and the pet is back at rest: the after-return context is up (ADR 0093).
+    // The walk is over and the pet is back at rest: the after-return context is up, and it looks around once
+    // before the next idle turn is drawn (ADR 0093, 0098).
     returnAfterUntil_ = std::chrono::steady_clock::now() + kReturnAfterglow;
+    if (machine_ and machine_->idle()) machine_->playRole(Role::LookAround);
 }
 
 void PetController::cancelStroll()
@@ -1983,6 +2005,13 @@ bool PetController::cursorOnPet() const
 
 void PetController::updateHover(std::chrono::milliseconds step)
 {
+    // A review question is not hover: while the sign or its open card is up, the eyes go to that side even when the
+    // pet is not idle, clicks pass through, or the peek is paused (ADR 0097).
+    if (not reviewLook_.isNull()) {
+        setGaze(reviewLook_);
+        return;
+    }
+
     // Hover is the desktop pet's own sense. It has no meaning while clicks pass through, while the settings preview
     // is open, or before a window exists to measure against.
     if (not hover_ or not assets_ or not window_ or not desktopRunning_ or previewing_ or ceremony_ or flight_ or

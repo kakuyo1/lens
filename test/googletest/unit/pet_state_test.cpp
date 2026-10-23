@@ -353,7 +353,11 @@ TEST(PetStateMachine, BudgetPauseSleepsUntilResumed)
     machine.advance(10s);
     EXPECT_EQ(machine.action(), "sleep");
 
+    // Resuming is a wake: one stretch before the pet goes back to idle (ADR 0098).
     machine.handle(PetEvent::BudgetResumed);
+    EXPECT_EQ(machine.action(), "stretch");
+
+    machine.advance(1s); // 6 frames at 6 fps
     EXPECT_EQ(machine.action(), "idle");
 }
 
@@ -481,7 +485,7 @@ TEST(PetStateMachine, AnIdleTurnNapsOnlyWhenTheDieSaysSo)
     EXPECT_EQ(fidgeting.action(), "look_around");
 }
 
-TEST(PetStateMachine, ANapEndsByItselfAndTheDogWakesIntoIdle)
+TEST(PetStateMachine, ANapEndsByItselfAndTheDogWakesIntoAStretch)
 {
     // Nothing has to happen on the desktop for the nap to end: the clock drawn when it started is enough.
     auto machine = makeMachine(kNaps);
@@ -492,7 +496,28 @@ TEST(PetStateMachine, ANapEndsByItselfAndTheDogWakesIntoIdle)
     ASSERT_EQ(machine.action(), "sleep");
 
     machine.advance(PetStateMachine::kNapMin); // the shortest nap, since 0 draws its lower bound
+    EXPECT_EQ(machine.action(), "stretch");
+
+    machine.advance(1s); // 6 frames at 6 fps
     EXPECT_EQ(machine.action(), "idle");
+}
+
+TEST(PetStateMachine, AWakeWithoutStretchLooksAround)
+{
+    // Stretch is the one role a package may omit; the wake reply falls back to a look around rather than a yawn,
+    // whose returnTo sleep would put the pet back down (ADR 0098).
+    auto playbook = dogPlaybook();
+    playbook.actions.erase("stretch");
+    playbook.roles.erase(Role::Stretch);
+    playbook.idlePool = {"look_around"};
+    PetStateMachine machine{playbook, RandomSource{[] { return kNaps; }}};
+
+    machine.advance(20s);
+    ASSERT_EQ(machine.action(), "yawn");
+    machine.advance(833ms);
+    ASSERT_EQ(machine.action(), "sleep");
+    machine.advance(PetStateMachine::kNapMin);
+    EXPECT_EQ(machine.action(), "look_around");
 }
 
 TEST(PetStateMachine, TheNapsLengthIsDrawnRatherThanFixed)
@@ -509,6 +534,9 @@ TEST(PetStateMachine, TheNapsLengthIsDrawnRatherThanFixed)
     machine.advance(299'000ms); // 0.999 of [kNapMin, kNapMax)
     EXPECT_EQ(machine.action(), "sleep");
     machine.advance(1'000ms);
+    EXPECT_EQ(machine.action(), "stretch");
+
+    machine.advance(1s);
     EXPECT_EQ(machine.action(), "idle");
 }
 
@@ -524,7 +552,7 @@ TEST(PetStateMachine, TheBudgetsSleepOutlastsANapAndOnlyTheReaderEndsIt)
     EXPECT_EQ(machine.action(), "sleep");
 
     machine.handle(PetEvent::BudgetResumed);
-    EXPECT_EQ(machine.action(), "idle");
+    EXPECT_EQ(machine.action(), "stretch");
 }
 
 TEST(PetStateMachine, TheYawnReturnsToTheActionTheDataMapsToSleep)
@@ -904,6 +932,57 @@ TEST(PetStateMachine, TheMoodScalesTheNapChance)
     PetStateMachine atNoon{dogPlaybook(), RandomSource{[] { return 0.08; }}, SceneSource{}, behavior};
     atNoon.advance(41s);
     EXPECT_EQ(atNoon.action(), "look_around");
+}
+
+TEST(PetStateMachine, ALongReadingTurnsTheNextIdleTurnIntoAStretch)
+{
+    // The first idle turn after a long reading answers the mood with a stretch, before a scene or a nap is rolled
+    // (ADR 0098). The same context still scales the rolls once the reply has been spent.
+    BehaviorSpec behavior{};
+    behavior.idleBase   = 1s;
+    behavior.idleSpread = 0ms;
+    PetMood mood;
+    mood.justFinishedReading = true;
+    PetStateMachine machine{
+        dogPlaybook(),
+        RandomSource{[] { return kNaps; }},
+        SceneSource{},
+        behavior,
+        MoodSource{[&mood] { return mood; }},
+    };
+
+    machine.advance(1s);
+    EXPECT_EQ(machine.action(), "stretch");
+
+    // The stretch ends into idle; the next turn is ordinary even while the same context still stands.
+    machine.advance(1s);
+    ASSERT_EQ(machine.action(), "idle");
+    machine.advance(1s);
+    EXPECT_EQ(machine.action(), "yawn");
+}
+
+TEST(PetStateMachine, ALongReadingWithoutStretchLooksAround)
+{
+    // A package may omit stretch; the reply falls back to a look around, never to a yawn whose returnTo sleeps.
+    auto playbook = dogPlaybook();
+    playbook.actions.erase("stretch");
+    playbook.roles.erase(Role::Stretch);
+    playbook.idlePool = {"look_around"};
+    BehaviorSpec behavior{};
+    behavior.idleBase   = 1s;
+    behavior.idleSpread = 0ms;
+    PetMood mood;
+    mood.justFinishedReading = true;
+    PetStateMachine machine{
+        playbook,
+        RandomSource{[] { return kNaps; }},
+        SceneSource{},
+        behavior,
+        MoodSource{[&mood] { return mood; }},
+    };
+
+    machine.advance(1s);
+    EXPECT_EQ(machine.action(), "look_around");
 }
 
 } // namespace

@@ -137,6 +137,7 @@ class TstPetController : public QObject {
 private slots:
     void eventsDriveTheAction();
     void reviewAvailabilityFollowsThePet();
+    void reviewLookTurnsTheEyesUntilTheAnswer();
     void theClockAdvancesFramesOnlyWhileRunning();
     void wornAccessoriesFollowToggles();
     void sizeIsStoredAndAnnounced();
@@ -176,6 +177,30 @@ void TstPetController::reviewAvailabilityFollowsThePet()
 
     rig.controller.handle(PetEvent::ReviewAsked);
     QVERIFY(!rig.controller.availableForReview());
+}
+
+void TstPetController::reviewLookTurnsTheEyesUntilTheAnswer()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    Rig rig{settingsIn(dir), shippedRoot()};
+
+    // The sign reports the side it took; only the direction travels, so the pet looks there while the question is up.
+    rig.controller.handle(PetEvent::ReviewAsked);
+    rig.controller.setReviewLook(QStringLiteral("left"));
+    QCOMPARE(rig.controller.gaze(), QPoint(-1, 0));
+    rig.controller.setReviewLook(QStringLiteral("right"));
+    QCOMPARE(rig.controller.gaze(), QPoint(1, 0));
+
+    // Answering takes the sign down, and the eyes go back to centre even before the next tick.
+    rig.controller.handle(PetEvent::ReviewRemembered);
+    QCOMPARE(rig.controller.gaze(), QPoint(0, 0));
+
+    // A question dismissed without an answer clears the same way, through the sign's own report.
+    rig.controller.handle(PetEvent::ReviewAsked);
+    rig.controller.setReviewLook(QStringLiteral("left"));
+    rig.controller.setReviewLook(QString());
+    QCOMPARE(rig.controller.gaze(), QPoint(0, 0));
 }
 
 void TstPetController::eventsDriveTheAction()

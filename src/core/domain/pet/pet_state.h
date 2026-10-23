@@ -169,7 +169,9 @@ using MoodSource = std::function<PetMood()>;
  * is a looping action whose duration ends it. Miss that, and the turn becomes a nap on kNapChance or an
  * action from the pool. A nap ends by itself after nextNap(), so the pet is never asleep for good. Only
  * the budget's hold on sleep outlasts it (PetEvent::BudgetPaused). When the app injects a mood, the two
- * chances are scaled by it (ADR 0093); without one the odds are the behavior's own.
+ * chances are scaled by it (ADR 0093); without one the odds are the behavior's own. A long reading's
+ * context also turns the next idle turn into a stretch, and a pet that wakes from sleep stretches once
+ * (ADR 0098).
  *
  * A run of kAngryClicks clicks inside kAngryWindow enters the angry action directly, because click_react
  * is usually still playing and a request at the same priority would be dropped. The role is optional.
@@ -284,11 +286,15 @@ private:
     void release(Role state);
     /// @brief Ends a one-shot or a held state: to the pending return, else the held state, else idle.
     void settle();
-    /// @brief What an idle wait that has run out becomes: a nap, or one action from the pool.
+    /// @brief What an idle wait that has run out becomes: a stretch after a long reading, a nap, or one action
+    ///        from the pool (ADR 0098).
     void takeIdleTurn();
     /// @return The next idle action from the pool, or nothing only when the pool is empty: the memory of what
     ///         was just played never holds back the last action the pool has.
     std::optional<ActionName> pickRandomIdle();
+    /// @brief Plays a stretch, or a look around for a pet without one, as a mood's visible reply.
+    /// @return Whether a gesture started.
+    bool                      replyWithStretch();
     std::chrono::milliseconds nextIdleWait();
     /// @return How long the nap about to start lasts, in [kNapMin, kNapMax).
     std::chrono::milliseconds nextNap();
@@ -310,6 +316,8 @@ private:
     std::chrono::milliseconds idleWait{0};
     /// How long the nap now running lasts, drawn when it started.
     std::chrono::milliseconds napFor{0};
+    /// Whether the after-reading context has already had its idle-turn stretch; cleared when the context ends.
+    bool repliedToReading{false};
     /// The held state an event keeps: reading while an explanation is up, sleep while the budget is paused.
     std::optional<Role> held;
     /// Where the current action goes when it ends, from its `returnTo`. Any event clears it first, so a

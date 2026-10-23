@@ -74,6 +74,7 @@ Item {
                 sign.destroy();
                 sign = null;
             }
+            Pet.setReviewLook("");
             Pet.setPreviewing(false);
             Pet.setEnabled(false);
         }
@@ -164,6 +165,20 @@ Item {
             compare(sign.card.visible, true);
             compare(sign.x, x, "opening the card moved the sign");
             verify(Math.abs(sign.card.x + sign.card.width + 10 - sign.x) < 1, "the card is not 10 px left of the board: " + sign.card.x);
+        }
+
+        /// The pet looks at the sign's side, turns to the open card's side, and goes back to centre when the question ends.
+        function test_thePetLooksAtTheSignThenTheCard() {
+            askFromPetAt(300);
+            compare(sign.side, "left");
+            compare(sign.cardSide, "right", "this case needs an inner card, got " + sign.cardSide);
+            compare(Pet.gaze, Qt.point(-1, 0));
+
+            openCard();
+            compare(Pet.gaze, Qt.point(1, 0));
+
+            sign.begin("");
+            compare(Pet.gaze, Qt.point(0, 0));
         }
 
         /// The pointer leaving the sign closes the card again, 120 ms later.

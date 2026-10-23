@@ -4,6 +4,12 @@
 
 ### Added
 
+- While a review question is up, the pet looks toward the sign beside it, turns to the answer card
+  when it opens, and returns to centre once answered; only the direction travels, never the word
+  (docs/adr/0097).
+- The pet's mood now shows in three one-off gestures: a stretch on the idle turn after a long
+  reading, a look around when it comes back from a stroll, and a stretch when it wakes from a nap
+  or the reader resumes after a budget pause (docs/adr/0098).
 - Each pet remembers its own size, accessories and window position in the settings document;
   switching pets returns each one to its own nest instead of carrying the previous pet's outfit
   and spot over (docs/adr/0096).

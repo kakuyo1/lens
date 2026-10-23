@@ -178,7 +178,11 @@ void PetStateMachine::advance(std::chrono::milliseconds step)
     // budget's hold on sleep is longer than any nap: that sleep is the reader's, and it lasts until
     // the reader resumes.
     if (currentRole == Role::Sleep) {
-        if (not held and elapsed >= napFor) settle();
+        if (not held and elapsed >= napFor) {
+            settle();
+            // A nap that ends on its own is a real wake: the pet stretches once before its next idle turn (ADR 0098).
+            if (currentRole == Role::Idle) replyWithStretch();
+        }
         return;
     }
     // A scene is a looping action with a duration: the frames keep cycling until the clock says it is over.
@@ -199,8 +203,18 @@ void PetStateMachine::takeIdleTurn()
     auto napFactor   = 1.0;
     if (mood) {
         auto const now = mood();
-        sceneFactor    = moodSceneFactor(now);
-        napFactor      = moodNapFactor(now);
+        // A long reading just ended: this turn answers it with a stretch, once per after-reading context
+        // (ADR 0098). The same mood still scales the rolls below while the context lasts.
+        if (now.justFinishedReading and not repliedToReading) {
+            repliedToReading = true;
+            if (replyWithStretch()) return;
+        } else if (not now.justFinishedReading) {
+            repliedToReading = false;
+        }
+        sceneFactor = moodSceneFactor(now);
+        napFactor   = moodNapFactor(now);
+    } else {
+        repliedToReading = false;
     }
     auto const scene = random() < behavior.sceneChance * sceneFactor and scenes ? scenes() : std::nullopt;
     if (scene and playbook.actions.count(*scene) != 0) {
@@ -267,7 +281,18 @@ void PetStateMachine::hold(Role state)
 void PetStateMachine::release(Role state)
 {
     if (held == state) held.reset();
-    if (currentRole == state) settle();
+    if (currentRole != state) return;
+    settle();
+    // The reader resumed after the budget's sleep: that wake stretches once, like the end of a nap (ADR 0098).
+    if (state == Role::Sleep and currentRole == Role::Idle) replyWithStretch();
+}
+
+bool PetStateMachine::replyWithStretch()
+{
+    // Stretch is the one role a package may omit; a look around says the same thing without a yawn, whose
+    // returnTo sleep would put the pet back down (ADR 0098).
+    if (playRole(Role::Stretch)) return true;
+    return playRole(Role::LookAround);
 }
 
 void PetStateMachine::settle()

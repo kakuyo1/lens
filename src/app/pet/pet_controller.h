@@ -71,8 +71,8 @@ class PetController : public QObject {
     Q_PROPERTY(int expression READ expression NOTIFY frameChanged)
     Q_PROPERTY(QVariantMap sheets READ sheets NOTIFY frameChanged)
     Q_PROPERTY(QVariantMap anchors READ anchors NOTIFY frameChanged)
-    /// Canvas-pixel offset applied to the expression layer only, so the face can follow a nearby pointer while the
-    /// body stays put. Zero when the pointer is away, the pet is busy, or the settings preview is open.
+    /// Canvas-pixel offset applied to the expression layer only, so the face can follow a nearby pointer or the
+    /// review sign while the body stays put. Zero when the pointer is away, no question is up, and the pet is busy.
     Q_PROPERTY(QPoint gaze READ gaze NOTIFY gazeChanged)
     Q_PROPERTY(QVariantList wornAccessories READ wornAccessories NOTIFY frameChanged)
     Q_PROPERTY(QVariantMap layers READ layers NOTIFY settingsChanged)
@@ -192,6 +192,10 @@ public:
     Q_INVOKABLE void click();
     /// @brief Ends a stroll at once, as the pointer landing on the pet should. A hide is left alone: only a drag ends it.
     Q_INVOKABLE void stopWandering();
+    /// @brief Turns the eyes toward the review sign, or the open card, while a question is up (ADR 0097).
+    ///        The sign chooses its side from the room on screen, so only the direction travels, never the word.
+    /// @param side "left" or "right" while the sign or its card is visible; empty clears the look.
+    Q_INVOKABLE void setReviewLook(QString side);
     /// @param id Id of an accessory in the catalogue; puts it on, takes it off, or swaps it in its slot.
     Q_INVOKABLE void toggleAccessory(QString id);
     /// @brief Chooses a pet from pets(). An installed one the reader has not confirmed is not switched to: confirmationRequested
@@ -530,6 +534,8 @@ private:
     QVariantMap        sheets_;
     core::pet::Anchors anchors_{};
     QPoint             gaze_;
+    /// The review sign's side, or its open card's, while either is visible; empty when no question is up.
+    QPoint reviewLook_;
 
     /// The last scene the idle roll or the settings page chose, so the next roll does not repeat it.
     std::string lastScene_;

@@ -55,9 +55,19 @@ Window {
     onVisibleChanged: {
         if (visible)
             raise();
+        reportLook();
     }
+    onExpandedChanged: reportLook()
+    onSideChanged: reportLook()
+    onCardSideChanged: reportLook()
 
     Component.onCompleted: Pet.keepOutOfCapture(sign)
+
+    /// Tells the pet which side to look at: the board's while it stands, the open card's while the pointer holds it
+    /// open. Only the direction travels, never the word (ADR 0097).
+    function reportLook() {
+        Pet.setReviewLook(visible ? (expanded ? cardSide : side) : "");
+    }
 
     Connections {
         target: Controller
