@@ -67,27 +67,7 @@ Item {
 
         /// The settings page the field scrolls in: the nearest ancestor that has a content position.
         function scrollerOf(field) {
-            for (let it = field.parent; it; it = it.parent) {
-                if (it.contentY !== undefined && it.contentHeight !== undefined)
-                    return it;
-            }
-            return null;
-        }
-
-        /// Bring @p item inside the page that scrolls it, so a press can land on it. The learning
-        /// page is taller than the settings body now, and a control below the fold is a press past
-        /// the panel rather than a press on the control.
-        function reveal(item) {
-            const scroller = scrollerOf(item);
-            if (scroller === null)
-                return;
-            const top = item.mapToItem(scroller, 0, 0).y;
-            const bottom = top + item.height;
-            if (top < 0)
-                scroller.contentY = Math.max(0, scroller.contentY + top);
-            else if (bottom > scroller.height)
-                scroller.contentY = Math.min(scroller.contentHeight - scroller.height, scroller.contentY + bottom - scroller.height);
-            wait(20);
+            return Util.scrollerOf(field);
         }
 
         /// The panel on the extensions page with the pet type dropdown in it, the way the reader reaches it.
@@ -340,7 +320,8 @@ Item {
             Pet.setEnabled(true);
             const shown = openLearningPanel();
             const field = reviewFieldOf(shown.panel);
-            reveal(field);
+            Util.reveal(field);
+            wait(20);
             mouseClick(field, field.width / 2, field.height / 2);
             tryVerify(() => field.openChildRect !== null, 2000, "the field did not open its list");
 
@@ -355,7 +336,8 @@ Item {
             Pet.setEnabled(true);
             const shown = openLearningPanel();
             const field = reviewFieldOf(shown.panel);
-            reveal(field);
+            Util.reveal(field);
+            wait(20);
             mouseClick(field, field.width / 2, field.height / 2);
             tryVerify(() => field.openChildRect !== null, 2000, "the field did not open its list");
 

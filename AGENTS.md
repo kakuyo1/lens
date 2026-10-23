@@ -10,7 +10,7 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
   |---|---|
   | Docs, comments, `.ts` text | Nothing |
   | C++ logic | One gtest case or `--gtest_filter` that covers the touched code |
-  | QML that renders a visible surface | One `scripts/qa/ui-run.ps1` capture for visual-qa; no qtest run |
+  | QML that renders a visible surface | One `scripts/qa/ui-run.ps1` capture for visual-qa, plus the qtest case(s) covering the touched surface (`scripts/qa/qtest.ps1 -Target lens_qtest_surfaces -Case Settings::test_x`); no full-suite run |
   | Big merge, release, or cross-target change | The full run |
   | Anything else | Nothing; push and let CI run the suites |
 

@@ -87,11 +87,38 @@ function ownWindow(root) {
 /// The row a case wants is the one showing a label it already knows; reading the delegate by
 /// position would make the case depend on the order the engine happened to create them in.
 function textWith(texts, candidates) {
-    for (let i = 0; i < texts.length; ++i) {
+    for (var i = 0; i < texts.length; ++i) {
         if (candidates.indexOf(texts[i].text) >= 0)
             return texts[i];
     }
     return null;
+}
+
+/// The nearest ancestor of `item` that scrolls: the settings body is a Flickable, and a page
+/// taller than it starts below the fold.
+function scrollerOf(item) {
+    for (let it = item.parent; it; it = it.parent) {
+        if (it.contentY !== undefined && it.contentHeight !== undefined)
+            return it;
+    }
+    return null;
+}
+
+/// Bring `item` inside the page that scrolls it, so a press can land on it.
+///
+/// A control below the fold is a press past the panel rather than a press on the control. The
+/// caller waits for the move to reach the frame after this call; a QML test's wait() is not
+/// available in a library.
+function reveal(item) {
+    const scroller = scrollerOf(item);
+    if (scroller === null)
+        return;
+    const top = item.mapToItem(scroller, 0, 0).y;
+    const bottom = top + item.height;
+    if (top < 0)
+        scroller.contentY = Math.max(0, scroller.contentY + top);
+    else if (bottom > scroller.height)
+        scroller.contentY = Math.min(scroller.contentHeight - scroller.height, scroller.contentY + bottom - scroller.height);
 }
 
 /// Save a snapshot of `item` as `<dir>/<name>.png`, and say whether one was written.
