@@ -39,8 +39,9 @@
 # QML check is the exception, and it is the one that only runs when a .qml file is staged.
 #
 # CI runs this same file over the files a push or pull request changes: LENS_CHECK_FILES carries
-# that list, and LENS_SKIP_QML=1 leaves QML to the qml job, which has the build tree. See
-# .github/workflows/ci.yml, job hygiene.
+# that list, and LENS_SKIP_QML=1 leaves QML to the qml job, which has the build tree. LENS_SKIP_
+# TYPOGRAPHY=1 leaves the typography to .github/workflows/docs.yml, which runs for every change
+# that touches a document. See .github/workflows/ci.yml, job hygiene.
 #
 # Setup, once per clone:  git config core.hooksPath .githooks
 #
@@ -191,6 +192,13 @@ lens_path_list() {
 }
 
 check_typography() {
+    # The document check runs in .github/workflows/docs.yml, which installs the pinned zhlint and
+    # sees every change that touches a .md file. The hygiene job sets this so a mixed change does
+    # not check the same text twice.
+    if [ -n "${LENS_SKIP_TYPOGRAPHY:-}" ]; then
+        return 0
+    fi
+
     # zhlint from PATH when it is installed (npm i -g zhlint), because the npx fallback
     # resolves the package name against the registry on every call: one network round trip
     # per staged doc, which came to minutes of the hook's run time when the proxy was down.

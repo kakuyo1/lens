@@ -29,11 +29,11 @@
 # A push whose every changed file is documentation skips this workflow (paths-ignore below);
 # .github/workflows/docs.yml still runs the text checks over those files, without a build.
 #
-# Every job that builds installs Qt and configures its own tree -- about 45 s of the fixed cost,
+# Every job that builds restores Qt and configures its own tree -- about 40 s of the fixed cost,
 # paid three times. That is the price of not shipping a build tree between jobs: a Debug tree with
-# the PDBs the coverage tools read is hundreds of megabytes, which costs more to upload and
-# download than the rebuild does. .github/actions/configure holds the steps that would otherwise
-# be a copy per job.
+# the PDBs the coverage tools read is gigabytes, which costs more to upload and download than the
+# rebuild does. .github/actions/configure holds the steps that would otherwise be a copy per job,
+# and its Qt cache is what keeps the install from being the largest part of that fixed cost.
 #
 # Not here on purpose: lens_gtest_integration needs a real mouse and the real clipboard, and
 # lens_gtest_smoke needs a real model and an API key. Both stay human-run; see TEST.md section 2.
@@ -197,13 +197,13 @@ jobs:
 
       # 19.1.5 is the version the VS copy ships (config/paths.json), so CI formats the way a
       # developer's machine does. The hook finds it on PATH.
+      #
+      # zhlint is not installed here. Typography only ever looks at .md files, and every change
+      # that touches one runs .github/workflows/docs.yml, which installs the pinned zhlint and
+      # checks exactly those files. Doing it again here cost about 25 s a push and a second
+      # reason for the job to go red on a document.
       - name: Install clang-format
         run: pip install clang-format==19.1.5
-
-      # Pinned to the version the docs' typography budgets were written against. The hook finds
-      # zhlint on PATH and uses the repository config when the machine's skill asset is absent.
-      - name: Install zhlint
-        run: npm install -g zhlint@0.8.2
 
       # The hook checks only the files a change touches, so a change to .clang-format would leave
       # every other file unchecked. This runs the whole tree on every push, so the config and the
@@ -219,5 +219,6 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
           LENS_SKIP_QML: "1"
+          LENS_SKIP_TYPOGRAPHY: "1"
         run: |
           LENS_CHECK_FILES="$(git diff --name-only --diff-filter=ACM "$BASE" HEAD)" sh .githooks/pre-commit

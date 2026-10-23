@@ -7,23 +7,73 @@
 # jurplel/install-qt-action both publish what they find through GITHUB_ENV, so what they set
 # reaches the calling job's later steps -- which is why a step each in here is enough and nothing
 # has to be passed back.
+#
+# Qt is restored from the Actions cache before install-qt-action is asked to do anything. The
+# action's own `cache: true` caches the 344 MB install, but it still runs `pip install aqtinstall`
+# and `aqt list-qt` before it looks: the qml job spent 104 s in the action on 2026-10-23, of which
+# the cached restore was 12 s (the rest was pip and the wheel builds; the unit job, whose pip was
+# warmer, spent 56 s). Restoring here leaves that work to a cache miss, which is a Qt version
+# bump. The environment the action would have set is set below on both paths, so a caller sees the
+# same variables whether Qt was restored or installed; actions/cache brings back a directory, not
+# the values the action derives from it.
+#
+# The installation directory is $RUNNER_WORKSPACE/Qt, which is where the action defaults to; both
+# places spell it out so the cache path cannot drift from the install path. Qt's directory drops
+# the `win64_` prefix of the arch name: win64_msvc2022_64 installs to 6.9.0/msvc2022_64.
 name: Configure a build tree
-description: Install Qt 6.9.0, enter the MSVC environment, and configure build-ninja against the ninja-qt6 preset.
+description: Restore or install Qt 6.9.0, enter the MSVC environment, and configure build-ninja against the ninja-qt6 preset.
+
+inputs:
+  qtVersion:
+    description: Qt version, shared by the cache key, the install and the environment.
+    default: '6.9.0'
+  qtArch:
+    description: Qt architecture; the install directory drops its win64_ prefix.
+    default: 'win64_msvc2022_64'
+  qtModules:
+    description: Additional Qt modules, comma-separated.
+    default: 'qtshadertools'
 
 runs:
   using: composite
   steps:
+    - name: Restore Qt
+      id: qt
+      uses: actions/cache@v6
+      with:
+        path: ${{ runner.workspace }}/Qt
+        key: qt-${{ inputs.qtVersion }}-${{ inputs.qtArch }}-${{ inputs.qtModules }}-${{ runner.os }}
+
     # The base install carries qtbase (Core, Gui, Widgets, Network, and Test, which is where
     # Qt6Test comes from), qtdeclarative (Quick, and QuickTest, which is built out of its
     # src/qmltest), qtsvg, and qttools (LinguistTools). qtshadertools is not in the base: the glass
-    # shader needs its qsb (qt_add_shaders in src/app/CMakeLists.txt). It also puts Qt's bin on
-    # PATH, which is what the test executables need for the Qt DLLs.
-    - uses: jurplel/install-qt-action@v4
+    # shader needs its qsb (qt_add_shaders in src/app/CMakeLists.txt).
+    #
+    # Only on a miss. `cache: true` stays on the action as the fallback for the first run after
+    # this key changes: it restores the action's own copy of the same install rather than
+    # downloading Qt again, and the step below then saves the directory under the key that the
+    # next run looks for first.
+    - name: Install Qt
+      if: steps.qt.outputs.cache-hit != 'true'
+      uses: jurplel/install-qt-action@v4
       with:
-        version: '6.9.0'
-        arch: win64_msvc2022_64
-        modules: 'qtshadertools'
+        version: ${{ inputs.qtVersion }}
+        arch: ${{ inputs.qtArch }}
+        modules: ${{ inputs.qtModules }}
+        dir: ${{ runner.workspace }}/Qt
         cache: true
+
+    # Actions/cache restores the files but not the variables, so both paths go through this step;
+    # install-qt-action sets the same values on a miss, and repeating them is harmless. Qt's
+    # install directory drops the arch's win64_ prefix.
+    - name: Qt environment
+      shell: pwsh
+      run: |
+        $root = "$env:RUNNER_WORKSPACE\Qt\${{ inputs.qtVersion }}\msvc2022_64"
+        "QT_ROOT_DIR=$root" >> $env:GITHUB_ENV
+        "QT_PLUGIN_PATH=$root\plugins" >> $env:GITHUB_ENV
+        "QML2_IMPORT_PATH=$root\qml" >> $env:GITHUB_ENV
+        "$root\bin" >> $env:GITHUB_PATH
 
     # Ninja cannot find MSVC by itself -- the same reason scripts/build/build.bat enters the Visual
     # Studio environment before driving CMake. The runner has VS 2022, so nothing installs.
