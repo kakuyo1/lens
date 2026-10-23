@@ -12,7 +12,7 @@
 #
 # Usage: scripts/qa/qtest-parallel.sh [--build DIR] [--shards N]
 #   --build   build tree, default build-ninja; the tree must already be built
-#   --shards  surface processes at once, default 3
+#   --shards  surface processes at once, default 2
 #
 # Run it from anywhere; the log directory is under logs/, which is gitignored. QT_ROOT, when set,
 # puts Qt's bin on PATH; CI already has it there.
@@ -21,7 +21,7 @@ set -u
 
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 BUILD=build-ninja
-SHARDS=3
+SHARDS=2
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --build)

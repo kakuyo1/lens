@@ -177,12 +177,13 @@ jobs:
           QT_FORCE_STDERR_LOGGING: 1
 
       # The surface suite is the long half of this job and is sharded by case file: one process
-      # per file, three at a time. No file depends on another, and setup.cpp names its settings
+      # per file, two at a time. No file depends on another, and setup.cpp names its settings
       # copy by process id, so the workers share nothing. The script prints one Totals line per
-      # file, and the whole log of a file that went red.
+      # file, and the whole log of a file that went red. Three processes over-subscribed the
+      # four-vCPU runner (2m54 against the single-process 2m51); two is the count it can carry.
       - name: Surface tests (sharded)
         shell: bash
-        run: bash scripts/qa/qtest-parallel.sh --build build-ninja --shards 3
+        run: bash scripts/qa/qtest-parallel.sh --build build-ninja --shards 2
 
   hygiene:
     runs-on: windows-latest

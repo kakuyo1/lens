@@ -24,7 +24,7 @@ scripts\build\build-release.bat
 ```sh
 sh scripts/quality/qml-lint.sh
 sh scripts/quality/layer-check.sh         # app/core 的分组边界，pre-commit 与 CI 也会跑
-bash scripts/qa/qtest-parallel.sh --build build-ninja --shards 3   # QML surfaces，每个文件一个进程
+bash scripts/qa/qtest-parallel.sh --build build-ninja --shards 2   # QML surfaces，每个文件一个进程
 sh scripts/qa/readme-html-shots.sh       # 用无头 Chrome 重画 README 的 HTML 营销图
 python scripts/qa/readme-html-compose.py # 裁图、合成语言切换 GIF、学习循环拼图与主题拼图
 ```
