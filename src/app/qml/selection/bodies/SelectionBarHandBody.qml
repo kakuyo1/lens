@@ -169,7 +169,9 @@ Item {
                          : hover.hovered ? root.tokens.panel
                          : root.tokens.panel2
                     border.width: 1
-                    border.color: hover.hovered ? root.tokens.muted : root.tokens.line
+                    // Under glass the rim is the only edge; hover still lifts and scales the card.
+                    border.color: root.tokens.glassMode === "" ? (hover.hovered ? root.tokens.muted : root.tokens.line)
+                                                               : "transparent"
 
                     GlassSurface {
                         anchors.fill: parent

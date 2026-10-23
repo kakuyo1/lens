@@ -172,7 +172,10 @@ Item {
         radius: root.radius
         color: root.color
         border.width: 1
-        border.color: root.tokens.line
+        // A card with no fill of its own under glass is a glass card: GlassSurface's rim is its
+        // edge. The line underneath is only half covered by the shader's antialiased cut, so it
+        // leaves a faint white edge even at 0% rim (UI.md 3.1c).
+        border.color: root.tokens.glassMode !== "" && root.color.a === 0 ? "transparent" : root.tokens.line
 
         Item {
             id: holder

@@ -56,7 +56,8 @@ Item {
         radius: root.tokens.radiusMenu
         color: root.tokens.glassMode === "" ? root.tokens.panel : "transparent"
         border.width: 1
-        border.color: root.tokens.line
+        // Under glass the rim is the only edge (UI.md 3.1c).
+        border.color: root.tokens.glassMode === "" ? root.tokens.line : "transparent"
 
         GlassSurface {
             anchors.fill: parent

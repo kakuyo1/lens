@@ -38,6 +38,23 @@ Item {
         }
     }
 
+    Component {
+        id: glassWindowComponent
+        Window {
+            readonly property SurfaceTokens tokens: SurfaceTokens {
+                glassEnabled: true
+                theme: "liquid"
+            }
+            width: 260
+            height: 200
+            visible: false
+            ShadowCard {
+                anchors.fill: parent
+                color: tokens.glassMode === "" ? tokens.panel : "transparent"
+            }
+        }
+    }
+
     TokenHost { id: host }
 
     TestCase {
@@ -81,6 +98,24 @@ Item {
             window.visible = false;
             tryVerify(function () { return card.opacity === 0; },
                       1000, "the card did not fade out with its window");
+        }
+
+        /// UI.md 3.1c leaves the card's outer white edge to the rim, which GlassSurface draws
+        /// separately. A glass card used to draw `line` underneath as well, and the shader's
+        /// antialiased cut covers only half of it: at 0% rim the leftover read as a faint white
+        /// edge. A card that fills itself under glass is a popup layer and keeps its line.
+        function test_onlyAFillLessCardUnderGlassDropsItsLineEdge() {
+            const window = createTemporaryObject(glassWindowComponent, root);
+            verify(window);
+            const card = Util.ofType(window, "ShadowCard");
+            verify(card, "the window did not build its card");
+
+            compare(window.tokens.glassMode, "liquid");
+            compare(card.color.a, 0, "the glass card should not fill itself");
+            compare(card.card.border.color.a, 0, "the glass card drew a white edge of its own");
+
+            card.color = window.tokens.popup;
+            verify(card.card.border.color.a > 0, "a filled popup layer lost the line that sets it apart");
         }
     }
 }
