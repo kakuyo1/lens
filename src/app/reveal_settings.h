@@ -2,7 +2,7 @@
 
 /**
  * @file reveal_settings.h
- * @brief The typing pace the reveal runs at, as the settings page offers it (UI.md 4.3).
+ * @brief The typing pace the reveal runs at, as the settings page offers it (UI-SPEC.md 4.3).
  *
  * The reader picks a speed, not a millisecond count: the slider runs 1..5 from slow to fast, and
  * kRevealMillisPerCharacter turns that level into the real pace RevealText takes. The blur stays a

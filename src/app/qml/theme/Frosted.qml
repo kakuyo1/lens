@@ -1,7 +1,7 @@
 import QtQuick
 
 /**
- * The frosted glass values, from UI.md section 3.1c.
+ * The frosted glass values, from DESIGN.md section 3.1c.
  *
  * The card's fill is a fixed 40% white laid over the blurred desktop, so `panel` is translucent and
  * the tokens sitting on it are dark tints. TokenTable reads every role this table leaves out from the

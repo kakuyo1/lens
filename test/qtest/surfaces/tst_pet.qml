@@ -146,7 +146,7 @@ Item {
         }
 
         /// The board is drawn at the pet's magnification: unscaled at the default ×3.01, larger for a larger pet, and smaller
-        /// for a smaller one with no floor (UI.md 4.13).
+        /// for a smaller one with no floor (UI-SPEC.md 4.13).
         function test_signBoardScalesWithThePet() {
             const chosen = Pet.size;
             const page = signPage();

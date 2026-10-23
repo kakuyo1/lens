@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 /**
- * The review sign's wooden board (UI.md 4.13): a pixel plank with the word on it, two grain lines, four nails and a short post,
+ * The review sign's wooden board (UI-SPEC.md 4.13): a pixel plank with the word on it, two grain lines, four nails and a short post,
  * standing beside the pet. The desktop sign window draws it, and so does the settings preview while the ask action plays, so the
  * two read as one object. The board's own size is designWidth by designHeight from the top-left; the shadow runs to its right and
  * below, and the post hangs under it on the board's centre line, its foot at the pet's feet.
@@ -38,10 +38,10 @@ Item {
     /// The window's size: the plank and post plus the shadow that runs to their right and below.
     readonly property real signWidth: (designWidth + shadowOffset) * boardScale
     readonly property real signHeight: (designBase + shadowOffset) * boardScale
-    /// The word is 20 px at every length (UI.md 4.13); a longer word makes a wider plank.
+    /// The word is 20 px at every length (UI-SPEC.md 4.13); a longer word makes a wider plank.
     readonly property int wordPixelSize: 20
     readonly property string wordFamily: Qt.fontFamilies().indexOf("Pixelify Sans") >= 0 ? "Pixelify Sans" : tokens.monoFamily
-    /// The plank's wood: one fixed palette, as the sign is pet art and does not follow the theme (UI.md 4.13).
+    /// The plank's wood: one fixed palette, as the sign is pet art and does not follow the theme (UI-SPEC.md 4.13).
     readonly property color plank: "#d2a76a"
     readonly property color plankLight: "#e6c88f"
     readonly property color plankShade: "#a8783f"

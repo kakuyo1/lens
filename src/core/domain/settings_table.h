@@ -117,7 +117,7 @@ inline constexpr Row kRows[]{
     // The reader's own interface language: stored and synced, but not the panel's to restore.
     {.key = "uiLanguage", .kind = Kind::Text, .signal = Signal::Language, .fallback = "zh", .synced = true, .restorable = false},
 
-    // Appearance: the theme, the face, the pace, and the glass under the cards (UI.md 3.1c, 3.1d).
+    // Appearance: the theme, the face, the pace, and the glass under the cards (DESIGN.md 3.1c, 3.1d).
     // A custom theme's colours are packed into this one value, so they travel with it.
     {.key = "theme", .kind = Kind::Text, .signal = Signal::Settings, .fallback = "light", .synced = true},
     {.key = "font", .kind = Kind::Font, .signal = Signal::Settings, .fallback = ""},
@@ -133,12 +133,12 @@ inline constexpr Row kRows[]{
     {.key = "liquidRim", .kind = Kind::Integer, .signal = Signal::Settings, .fallback = 10, .low = 0, .high = 100, .synced = true},
     {.key = "liquidTextColor", .kind = Kind::Color, .signal = Signal::Settings, .fallback = "#101319", .synced = true},
 
-    // The card: the size its answer is read at (UI.md 4.4), and the rest of its behaviour.
+    // The card: the size its answer is read at (UI-SPEC.md 4.4), and the rest of its behaviour.
     {.key = "bubbleFontSize", .kind = Kind::Integer, .signal = Signal::Settings, .fallback = 13, .low = 12, .high = 18},
     {.key = "bubbleDismissSeconds", .kind = Kind::Integer, .signal = Signal::Settings, .fallback = 5, .low = 1, .high = 30, .synced = true},
     {.key = "bubblePlacement", .kind = Kind::Choice, .signal = Signal::Settings, .fallback = "above", .synced = true, .members = kPlacements},
     {.key = "clipboardPolicy", .kind = Kind::Choice, .signal = Signal::Logged, .fallback = "topmost", .members = kClipboardPolicies},
-    // The action bar's form (UI.md 4.10, docs/adr/0056).
+    // The action bar's form (UI-SPEC.md 4.10, docs/adr/0056).
     {.key = "selectionBarStyle", .kind = Kind::Choice, .signal = Signal::Settings, .fallback = "bar", .synced = true, .members = kBarStyles},
 
     // Capture: what may start a capture, and where the OCR engine is.

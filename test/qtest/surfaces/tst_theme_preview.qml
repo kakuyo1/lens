@@ -4,7 +4,7 @@ import Lens
 import "../testutil.js" as Util
 
 /**
- * The theme dropdown's option preview (UI.md 4.4): resting the pointer on a row raises a miniature
+ * The theme dropdown's option preview (UI-SPEC.md 4.4): resting the pointer on a row raises a miniature
  * settings card drawn in that row's theme beside the list, and taking the list down puts it down.
  *
  * The card is ThemePreview.qml, a window of its own created on the first hover. It is not declared

@@ -83,7 +83,7 @@ signals:
     /// @param at Press position, in the same physical pixels selectionReleased() reports.
     /// @note This fires for every press on the machine while the app runs. The surfaces are
     ///       windows of their own, so a press outside one is never delivered to this process,
-    ///       and the hook is the only place that can see it -- UI.md's "click outside closes"
+    ///       and the hook is the only place that can see it -- UI-SPEC.md's "click outside closes"
     ///       has nothing else to stand on. A view with nothing open should ignore it cheaply.
     void pointerPressed(QPoint at);
 

@@ -1,7 +1,7 @@
 import QtQuick
 
 /**
- * One row of the tray menu (UI.md section 4.2): a glyph and a label, an optional value on the
+ * One row of the tray menu (UI-SPEC.md section 4.2): a glyph and a label, an optional value on the
  * right in the monospace face, and the hover fill. The dangerous one -- Quit -- is the same row
  * in the danger colour.
  */

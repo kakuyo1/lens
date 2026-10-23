@@ -95,7 +95,7 @@ Item {
         /// real time steps it down.
         ///
         /// The clock starts when the answer has stopped being written out rather than when the card
-        /// appears (UI.md 4.3), so the step down is waited for from there. What the seconds read
+        /// appears (UI-SPEC.md 4.3), so the step down is waited for from there. What the seconds read
         /// while the reveal is still running is the subject of tst_bubble_reveal.
         function test_theSecondsStepDownWhileTheBubbleIsUp() {
             const bubble = opened();
@@ -110,7 +110,7 @@ Item {
         /// Holding the bubble stops the clock where it is, and letting go carries on from there
         /// rather than refilling it to five.
         ///
-        /// The clock only runs once the answer has been written out (UI.md 4.3), so the hold begins
+        /// The clock only runs once the answer has been written out (UI-SPEC.md 4.3), so the hold begins
         /// from the first second it takes off rather than from the card's arrival.
         function test_holdingTheBubbleStopsTheCount() {
             const bubble = opened();

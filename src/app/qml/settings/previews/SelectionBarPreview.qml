@@ -5,7 +5,7 @@ import QtQuick.Window
 import QtQuick.Shapes
 
 /**
- * The selection-bar style dropdown's preview (UI.md 4.4 and 4.10): a miniature of the form under
+ * The selection-bar style dropdown's preview (UI-SPEC.md 4.4 and 4.10): a miniature of the form under
  * the pointer, drawn on a sample line with the selected phrase, and raised beside the open list
  * by DropdownField.
  *

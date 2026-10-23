@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 /**
- * The word and its pronunciation on one line (UI.md 4.3).
+ * The word and its pronunciation on one line (UI-SPEC.md 4.3).
  *
  * A component rather than part of `Bubble.qml` because that file sits at the repository's QML size
  * cap (QML.md section 1), not because this is shared: it is one surface's block lifted out whole,
@@ -24,9 +24,9 @@ Item {
 
     required property string title
     required property string ipa
-    /// The family the word is drawn in (UI.md 4.4); the caller's own face is an empty name.
+    /// The family the word is drawn in (UI-SPEC.md 4.4); the caller's own face is an empty name.
     property string family: ""
-    /// The multiple the pair is drawn at, from the reader's font-size setting (UI.md 4.4): the
+    /// The multiple the pair is drawn at, from the reader's font-size setting (UI-SPEC.md 4.4): the
     /// card decides the scale and this block follows it, as every block on it does.
     property real scale: 1
     required property bool animated

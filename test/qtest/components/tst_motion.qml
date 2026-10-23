@@ -4,7 +4,7 @@ import Lens
 import "../"
 
 /**
- * The motion table: the durations UI.md's motion table names, and what reduced motion does to
+ * The motion table: the durations UI-SPEC.md's motion table names, and what reduced motion does to
  * them.
  *
  * The two tables below are built with an answer of their own rather than read off the machine,

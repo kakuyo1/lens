@@ -495,7 +495,7 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
             if (senses.size() >= (context.multipleSenses ? llm::kMaxSenses : 1)) break;
             // One language a row, the reader's own and no other: the explanation language is the
             // answer to "which language do I read this in", and a sense drawn in two of them is that
-            // question answered twice (UI.md 4.3). So a row carries the English definition when
+            // question answered twice (UI-SPEC.md 4.3). So a row carries the English definition when
             // English was asked for and the reader's language otherwise -- the same pair the singular
             // definition above the sense list is drawn from, and `multipleSenses` decides only how
             // many rows there are.

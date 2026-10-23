@@ -41,7 +41,7 @@ struct PendingSelection {
     QString             lemma;
     QString             preset = QStringLiteral("default");
     /// @brief Whether the card this selection raises counts down. A review card belongs to the row
-    ///        under the pointer instead and is taken down when the pointer leaves it (UI.md 4.8).
+    ///        under the pointer instead and is taken down when the pointer leaves it (UI-SPEC.md 4.8).
     bool countsDown = true;
     /// @brief Whether the card offers the Known / New buttons. False for the card that answers a
     ///        review question, so a replay of it draws the same card rather than a markable one.

@@ -4,7 +4,7 @@ import QtQuick
 import QtQuick.Window
 
 /**
- * The dropdown's explanation preview (UI.md 4.4): the note of the row under the pointer, in a card
+ * The dropdown's explanation preview (UI-SPEC.md 4.4): the note of the row under the pointer, in a card
  * beside the open list, for the fields whose note is a sentence rather than a word.
  *
  * A window of its own because the list it belongs to is one, and the settings panel is exactly as

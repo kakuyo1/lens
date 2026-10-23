@@ -4,7 +4,7 @@ import QtQuick
 
 /**
  * The senses of a word, one two-line row each: the English line and the reader's own language
- * under it, with a hairline between rows (UI.md 4.3).
+ * under it, with a hairline between rows (UI-SPEC.md 4.3).
  *
  * A sense the model judged a photograph could make clearer also carries a `Pictures` entry under its
  * lines, and the strip that entry opens (IMAGES.md 2.1). One strip is open at a time, and the row
@@ -30,10 +30,10 @@ Repeater {
     required property color englishColor
     required property color translationColor
     required property color separatorColor
-    /// The family the English line is drawn in (UI.md 4.4); the reader's own language keeps the
+    /// The family the English line is drawn in (UI-SPEC.md 4.4); the reader's own language keeps the
     /// application's face, so the translation line is not given it.
     property string family: ""
-    /// The multiple the lines are drawn at, from the reader's font-size setting (UI.md 4.4). The
+    /// The multiple the lines are drawn at, from the reader's font-size setting (UI-SPEC.md 4.4). The
     /// card decides the scale and the block follows it: the senses are part of one answer, not a
     /// surface with a size of its own.
     property real scale: 1
@@ -163,7 +163,7 @@ Repeater {
                 id: entry
                 // The pill hangs its own left padding off the card's content edge, which puts the
                 // glyph -- the only part drawn until the pointer arrives -- on the same vertical
-                // baseline as the sense above it, and the sense above *that* (UI.md 4.3). Its right
+                // baseline as the sense above it, and the sense above *that* (UI-SPEC.md 4.3). Its right
                 // padding hangs off the same way, so the label stays symmetric inside it.
                 x: -entry.sidePadding
                 y: 0
@@ -185,7 +185,7 @@ Repeater {
                     objectName: "picturesEntryPill"
                     anchors.fill: parent
                     radius: root.tokens.radiusPill
-                    // Open, hovered or keyboard-focused: a button needs a focus state (UI.md).
+                    // Open, hovered or keyboard-focused: a button needs a focus state (DESIGN.md §6).
                     color: pictureEntry.open || entryHover.hovered || entry.activeFocus ? root.tokens.panel2 : "transparent"
                     scale: entryPress.pressed ? 0.97 : 1.0
                     Behavior on scale {

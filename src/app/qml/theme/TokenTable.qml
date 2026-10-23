@@ -1,7 +1,7 @@
 import QtQuick
 
 /**
- * The colour, type and motion table a window reads, from UI.md section 3 and its motion table.
+ * The colour, type and motion table a window reads, from DESIGN.md section 3 and UI-SPEC.md's motion table.
  *
  * Each surface window owns one instance, a SurfaceTokens that forwards the stored theme from Tokens; the glass is on
  * only in the windows that set glassEnabled. Every instance is this file, so a role means the same thing in each and
@@ -56,10 +56,10 @@ QtObject {
     readonly property color bubbleBg: tokenColor("bubbleBg", lightTheme.bubbleBg)
     readonly property color bubbleBorder: tokenColor("bubbleBorder", lightTheme.bubbleBorder)
     /// The dropdown lists and other floating layers: the card fill, except under the glass themes,
-    /// where it is the translucent popup layer (UI.md 3.1c).
+    /// where it is the translucent popup layer (DESIGN.md 3.1c).
     readonly property color popup: custom ? panel : tokenColor("popup", lightTheme.popup)
 
-    /// The liquid theme's card is 22 px; the others keep 18 px (UI.md 3.1d and 4.3).
+    /// The liquid theme's card is 22 px; the others keep 18 px (DESIGN.md 3.1d and UI-SPEC.md 4.3).
     readonly property int radiusCard: glassMode === "liquid" ? 22 : 18
     readonly property int radiusMenu: 13
     readonly property int radiusGroup: 11

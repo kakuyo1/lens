@@ -4,7 +4,7 @@ import QtQuick
 import QtQuick.Window
 
 /**
- * The vocabulary-level dropdown's preview (UI.md 4.4): six words the hovered level should know,
+ * The vocabulary-level dropdown's preview (UI-SPEC.md 4.4): six words the hovered level should know,
  * laid out as a word cloud and raised beside the open list by DropdownField.
  *
  * The words are content rather than interface copy, so they live in data/preview.json with the

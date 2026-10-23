@@ -3,7 +3,7 @@ import QtQuick
 /**
  * The glass roles over a dark desktop, for both glass themes.
  *
- * UI.md 3.1c and 3.1d leave the dark case open: their dark text fails AA on any dark backdrop, and
+ * DESIGN.md 3.1c and 3.1d leave the dark case open: their dark text fails AA on any dark backdrop, and
  * the choice between a light and a dark text is made on the picture under the card (GlassBackdrop).
  * This table is the light side of that choice. Its text ramp is the dark theme's, so the two dark
  * surfaces read alike, and its tints are white rather than ink, since a dark tint vanishes on a dark

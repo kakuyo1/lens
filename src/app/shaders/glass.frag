@@ -1,7 +1,7 @@
 #version 440
 #extension GL_GOOGLE_include_directive : require
 
-// The glass of a settings card (UI.md 3.1c and 3.1d, docs/adr/0039, docs/adr/0070, docs/adr/0082). The desktop under the
+// The glass of a settings card (DESIGN.md 3.1c and 3.1d, docs/adr/0039, docs/adr/0070, docs/adr/0082). The desktop under the
 // window is taken once, at the screen's own resolution, into a sheet a little larger than the window. glass_hblur.frag
 // blurs that sheet along x; this shader blurs the result along y, saturates it, places the window within the sheet on
 // every frame, bends the sheet through the displacement map for the liquid theme, and cuts the card's rounded corners

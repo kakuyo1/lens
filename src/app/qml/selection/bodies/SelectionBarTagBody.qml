@@ -5,7 +5,7 @@ import QtQuick.Window
 import QtQuick.Effects
 
 /**
- * H · the hanging tag (UI.md 4.10): a horizontal card tied to the selection by a 16 px string.
+ * H · the hanging tag (UI-SPEC.md 4.10): a horizontal card tied to the selection by a 16 px string.
  * The grommet sits under the selection's edge; with the reader's side set above, the string and
  * the grommet move to the card's bottom edge and the tag hangs upward.
  */
@@ -187,7 +187,7 @@ Item {
             radius: 12
             color: root.tokens.glassMode === "" ? root.tokens.panel : "transparent"
             border.width: 1
-            // Under glass the rim is the only edge (UI.md 3.1c).
+            // Under glass the rim is the only edge (DESIGN.md 3.1c).
             border.color: root.tokens.glassMode === "" ? root.tokens.line : "transparent"
 
             GlassSurface {

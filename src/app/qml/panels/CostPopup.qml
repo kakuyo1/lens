@@ -3,7 +3,7 @@ import QtQuick.Window
 import "../util/Format.js" as Format
 
 /**
- * What the explanations have cost (UI.md section 4.8): the month in the hero, four figures
+ * What the explanations have cost (UI-SPEC.md section 4.8): the month in the hero, four figures
  * underneath. Same shape as the statistics panel, a different dimension.
  *
  * The three rows the controller buckets carry the tokens their amount was priced from as well as

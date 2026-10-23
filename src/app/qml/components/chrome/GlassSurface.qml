@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 /**
- * The glass a card is drawn on in the two glass themes (UI.md 3.1c and 3.1d, docs/adr/0039, docs/adr/0041, docs/adr/0070,
+ * The glass a card is drawn on in the two glass themes (DESIGN.md 3.1c and 3.1d, docs/adr/0039, docs/adr/0041, docs/adr/0070,
  * docs/adr/0071).
  *
  * The sheet is the window's own (GlassBackdrop.surface), taken as the desktop under the window a little larger than the

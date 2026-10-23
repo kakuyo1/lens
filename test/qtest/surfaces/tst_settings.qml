@@ -5,7 +5,7 @@ import "../testutil.js" as Util
 
 /**
  * The settings panel's category navigation, sign-in switch and clipboard policy page
- * (UI.md section 4.4).
+ * (UI-SPEC.md section 4.4).
  *
  * The sign-in switch is only read, never driven: its setter writes HKCU, and a case that wrote
  * there would change the machine it runs on. What is assertable is the half that matters -- the

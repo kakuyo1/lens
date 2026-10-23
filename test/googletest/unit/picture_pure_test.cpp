@@ -316,7 +316,7 @@ TEST_F(PictureCacheTest, AnAgedEntryIsAMissAndGoes)
 }
 
 /// The About page reads one number and clears the whole directory in one action: the number is
-/// every file the cache holds, and clearing leaves the next open a miss (UI.md 4.4).
+/// every file the cache holds, and clearing leaves the next open a miss (UI-SPEC.md 4.4).
 TEST_F(PictureCacheTest, ReportsItsFootprintAndClearsEveryEntry)
 {
     const PictureCache cache{root};

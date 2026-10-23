@@ -1,7 +1,7 @@
 import QtQuick
 
 /**
- * The bubble's header controls (UI.md 4.3): the close cross and, to its left, the explanation
+ * The bubble's header controls (UI-SPEC.md 4.3): the close cross and, to its left, the explanation
  * language shortcut.
  *
  * The shortcut lives where the reader notices they need it -- on the card they cannot read. It

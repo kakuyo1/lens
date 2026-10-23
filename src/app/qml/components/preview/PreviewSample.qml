@@ -3,7 +3,7 @@ pragma Singleton
 import QtQuick
 
 /**
- * The card the settings preview draws, shaped into the payload Bubble.show() takes (UI.md 4.4).
+ * The card the settings preview draws, shaped into the payload Bubble.show() takes (UI-SPEC.md 4.4).
  *
  * The preview is the explanation bubble itself, so what a reader resting on "Etymology" sees is the
  * card their own bubble would be: the definition in the explanation language they have set, in the
@@ -65,7 +65,7 @@ QtObject {
             countsDown: false
         };
         // The definition line is the one explanation language, in the field the controller fills for
-        // it: English and Chinese in their own, Spanish and Japanese in the translation (UI.md 4.3).
+        // it: English and Chinese in their own, Spanish and Japanese in the translation (UI-SPEC.md 4.3).
         if (lang === "zh")
             payload.zh = local(sample.definition);
         else if (lang === "en")

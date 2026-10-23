@@ -11,7 +11,7 @@ Item {
     implicitHeight: content.implicitHeight
 
     /// The preview the pointer has called up, or "" for none: a row's title raises one on hover
-    /// (UI.md 4.4). The popup turns it into the window Main puts beside the card.
+    /// (UI-SPEC.md 4.4). The popup turns it into the window Main puts beside the card.
     signal previewRequested(string key)
     /// The language the explanation-language row under the pointer asks to preview. The popup
     /// draws the same card in that language; "" takes it down.
@@ -70,7 +70,7 @@ Item {
                 currentValue: root.settings.explanationLang
                 onPicked: (value) => Controller.setSetting("explanationLang", value)
                 // The card is the panel's own preview bubble; a row just tells it which language
-                // to write the sample in. The title is not a trigger (UI.md 4.4).
+                // to write the sample in. The title is not a trigger (UI-SPEC.md 4.4).
                 onOptionHovered: (option) => root.languagePreviewRequested(String(option.value))
                 onOptionUnhovered: root.languagePreviewRequested("")
             }

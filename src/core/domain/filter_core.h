@@ -120,8 +120,8 @@ std::vector<Candidate> filterWords(
 /// @brief What a finished selection turned out to be, which decides the channel it takes.
 ///
 /// Nothing here is decided by the reader: translate and explain are two ways into the same
-/// decision, so it is settled when the selection is analysed, before any press (UI.md section
-/// 4.9). Entity detection is deliberately conservative: only a complete phrase with at least
+/// decision, so it is settled when the selection is analysed, before any press (UI-SPEC.md section
+/// 4.10). Entity detection is deliberately conservative: only a complete phrase with at least
 /// two adjacent Title Case tokens qualifies, never a single capitalized token.
 enum class SelectionKind {
     Word,        ///< The whole selection is one letters-only token: a lookup, not a translation.

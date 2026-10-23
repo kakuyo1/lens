@@ -28,7 +28,7 @@ Item {
     /// Whether the reader has this sense's strip open. Closed, nothing is drawn even when the duty
     /// still holds an answer for the query.
     property bool open: true
-    /// The multiple the answer is drawn at, from the reader's font-size setting (UI.md 4.4).
+    /// The multiple the answer is drawn at, from the reader's font-size setting (UI-SPEC.md 4.4).
     property real scale: 1
 
     /// The table the strip takes its colours from: the one of the window it sits in.
@@ -161,7 +161,7 @@ Item {
                         border.width: 1
                         border.color: root.tokens.line2
                         // A hovered, current or keyboard-focused thumbnail is outlined: a clickable
-                        // cell needs a focus state as much as a card's buttons do (UI.md accessibility).
+                        // cell needs a focus state as much as a card's buttons do (DESIGN.md's accessibility rules).
                         visible: cell.current || thumbnailHover.hovered || cell.activeFocus
                     }
 

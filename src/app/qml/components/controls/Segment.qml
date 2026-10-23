@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 /**
- * The outlined two-or-three-way switch UI.md 4.4 uses for language, theme and the words
+ * The outlined two-or-three-way switch UI-SPEC.md 4.4 uses for language, theme and the words
  * filter: the selected item takes the ink fill, the rest stay plain.
  *
  * The background is a sibling of the Row, not a child of it: a Row lays its children out in a

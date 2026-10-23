@@ -5,7 +5,7 @@ import QtQuick.Effects
 
 /**
  * The explanation card the bubble draws: its shape, its glass and every row of the answer
- * (UI.md section 4.3).
+ * (UI-SPEC.md section 4.3).
  *
  * Bubble.qml owns the window -- where it lands, how it fades, when it goes -- and hands the card
  * that window to read the answer from. The two are apart because the card is the half that keeps
@@ -70,7 +70,7 @@ Item {
         blurMax: 44
     }
 
-    // The mark that says this card is a demo (UI.md 4.4).
+    // The mark that says this card is a demo (UI-SPEC.md 4.4).
     PreviewFrame {
         visible: root.bubble.preview
         card: card
@@ -186,7 +186,7 @@ Item {
             // label. An entity bubble carries neither: a named thing is not a learning item,
             // so it is drawn as title plus encyclopaedic definition with no badge.
             Rectangle {
-                // A preview wears this row in place of a learning verdict (UI.md 4.4).
+                // A preview wears this row in place of a learning verdict (UI-SPEC.md 4.4).
                 visible: root.bubble.atRoot && (root.bubble.preview || root.bubble.type === "word" || root.bubble.type === "sentence")
                 width: tag.width + 16
                 height: 17
@@ -249,7 +249,7 @@ Item {
 
             // The definition line, and for a translation bubble the whole card: a translation
             // has no title and no badge above it, so drawing it in the definition's secondary
-            // colour would leave the answer looking like a footnote to nothing (UI.md 4.3).
+            // colour would leave the answer looking like a footnote to nothing (UI-SPEC.md 4.3).
             ChainText {
                 id: definitionText
                 visible: root.bubble.atRoot && root.bubble.senses.length === 0 && root.bubble.english !== ""
@@ -297,7 +297,7 @@ Item {
             // The word's origin, under the explanation it belongs to. A hairline and a small
             // label are what keep it from reading as one more line of the definition: the
             // reader asked for two different things and has to see two different things
-            // (UI.md 4.3). The label is the card's label colour and weight; the sentence under
+            // (UI-SPEC.md 4.3). The label is the card's label colour and weight; the sentence under
             // it sits one step down from the definition's colour, because an origin is context
             // for the meaning rather than another meaning.
             // Nothing at all is drawn when there is none: an empty labelled slot would read as
@@ -343,7 +343,7 @@ Item {
                 }
             }
 
-            // The example sentence sits under the origin in the same set-off form (UI.md 4.3). Drawn
+            // The example sentence sits under the origin in the same set-off form (UI-SPEC.md 4.3). Drawn
             // only when there is one: an empty block would read as a model that failed to give one.
             Column {
                 id: exampleBlock
@@ -389,7 +389,7 @@ Item {
                 scale: root.bubble.fontScale
             }
 
-            // The verdict buttons, drawn shut until the pointer is on the card (UI.md 4.3).
+            // The verdict buttons, drawn shut until the pointer is on the card (UI-SPEC.md 4.3).
             BubbleVerdictRow {
                 id: verdictRow
                 visible: root.bubble.atRoot && root.bubble.verdictButtons

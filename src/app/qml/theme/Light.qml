@@ -1,7 +1,7 @@
 import QtQuick
 
 /**
- * The light values of every colour token, from UI.md section 3.1.
+ * The light values of every colour token, from DESIGN.md section 3.1.
  *
  * Nothing reads this file by name: TokenTable builds both themes and forwards the active one's
  * properties under the token names the surfaces use, so a surface still asks for `Tokens.panel`

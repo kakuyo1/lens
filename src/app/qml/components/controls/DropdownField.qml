@@ -5,7 +5,7 @@ import QtQuick.Window
 import "../../util/Numbers.js" as Numbers
 
 /**
- * The collapsed dropdown from UI.md 4.4, and the grouped list it opens.
+ * The collapsed dropdown from UI-SPEC.md 4.4, and the grouped list it opens.
  *
  * The list is a window of its own rather than a child item: the settings panel is exactly as
  * tall as its contents, so a list drawn inside it would be clipped the moment it opened.
@@ -15,7 +15,7 @@ import "../../util/Numbers.js" as Numbers
  * again on a second press. An `editable` one
  * shows what was typed instead, and there only the chevron opens the list -- the rest of the
  * field is the reader's cursor, which is what makes a model name the service never listed
- * reachable by hand (UI.md 4.4, docs/adr/0017).
+ * reachable by hand (UI-SPEC.md 4.4, docs/adr/0017).
  *
  * Typing in the editable shape is also how the list is searched: a keystroke narrows the rows to
  * the options whose `value` contains what was typed, and brings the list up by itself, so the
@@ -582,7 +582,7 @@ Item {
             }
 
             // The scrollbar, drawn rather than imported so the module needs no widget styling of
-            // its own -- the same six pixels UI.md 4.8 asks of the word list. Without it a list of
+            // its own -- the same six pixels UI-SPEC.md 4.8 asks of the word list. Without it a list of
             // three hundred looks like a list of ten.
             Rectangle {
                 visible: listColumn.contentHeight > listColumn.height

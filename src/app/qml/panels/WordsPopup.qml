@@ -5,7 +5,7 @@ import QtQuick.Dialogs
 import QtQuick.Window
 
 /**
- * Every word the bubble has shown (UI.md section 4.8), newest first, with a filter across the
+ * Every word the bubble has shown (UI-SPEC.md section 4.8), newest first, with a filter across the
  * top. The controller works out which day a word was last shown on, relative to today, and hands
  * over the raw date and time; the labels are drawn here, in the reader's language.
  *
@@ -33,7 +33,7 @@ Window {
     property bool leaving: false
 
     readonly property int shadowMargin: 26
-    /// The face the words themselves are drawn in, from the reader's font setting (UI.md 4.4). The
+    /// The face the words themselves are drawn in, from the reader's font setting (UI-SPEC.md 4.4). The
     /// rows are the same English the bubble draws, so they are set in the same one; the dates,
     /// counts and pills around them are the surface's own and keep the application's face.
     readonly property string englishFont: Controller.settings.font
@@ -340,7 +340,7 @@ Window {
 
             Item {
                 width: parent.width
-                // UI.md 4.8 gives the list a *maximum* of 306px: a handful of words leaves a
+                // UI-SPEC.md 4.8 gives the list a *maximum* of 306px: a handful of words leaves a
                 // panel sized to those words, not a panel with a hole under them.
                 height: Math.min(306, list.contentHeight)
 
@@ -358,7 +358,7 @@ Window {
 
                 }
 
-                // The six-pixel scrollbar UI.md 4.8 asks for, drawn rather than imported so the
+                // The six-pixel scrollbar UI-SPEC.md 4.8 asks for, drawn rather than imported so the
                 // module needs no widget styling. It sits in the card's right padding: a bar
                 // against the edge would draw its rounded end over a verdict pill.
                 Rectangle {

@@ -1,7 +1,7 @@
 import QtQuick
 
 /**
- * How long a change takes, and what curve it rides, from UI.md's motion table.
+ * How long a change takes, and what curve it rides, from UI-SPEC.md's motion table.
  *
  * The durations are milliseconds and the surfaces never spell one: a Behaviour reads
  * `Tokens.motion.<token>`, so retiming the whole application is an edit here and nothing else.
@@ -30,6 +30,6 @@ QtObject {
     /// anything else here.
     readonly property int bubble: reduced ? 0 : 220
 
-    /// The one curve. UI.md's table says "ease" and says no more than that.
+    /// The one curve. UI-SPEC.md's table says "ease" and says no more than that.
     readonly property int easing: Easing.InOutQuad
 }

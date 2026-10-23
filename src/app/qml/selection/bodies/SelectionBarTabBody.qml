@@ -6,7 +6,7 @@ import QtQuick.Effects
 import QtQuick.Shapes
 
 /**
- * A · the side tab (UI.md 4.10): three actions stacked on a vertical card, with the spine and
+ * A · the side tab (UI-SPEC.md 4.10): three actions stacked on a vertical card, with the spine and
  * folded corner of a page marker. Placed beside the selection, flipping to the other side when
  * the preferred one has no room.
  */
@@ -106,7 +106,7 @@ Item {
         radius: root.tokens.radiusMenu
         color: root.tokens.glassMode === "" ? root.tokens.panel : "transparent"
         border.width: 1
-        // Under glass the rim is the only edge (UI.md 3.1c).
+        // Under glass the rim is the only edge (DESIGN.md 3.1c).
         border.color: root.tokens.glassMode === "" ? root.tokens.line : "transparent"
 
         GlassSurface {

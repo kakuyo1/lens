@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 /**
- * The two edges a stepped card shows above itself: the cards it was stepped from, under this one (UI.md 4.3).
+ * The two edges a stepped card shows above itself: the cards it was stepped from, under this one (UI-SPEC.md 4.3).
  *
  * They are drawn behind the card, from its top edge and inset from its sides, so only the strip above it shows.
  * They stand for depth only; no reader action reaches them.

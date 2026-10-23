@@ -6,7 +6,7 @@ import QtQuick.Effects
 import QtQuick.Shapes
 
 /**
- * F · the fan (UI.md 4.10): three wedge-shaped blades around a pivot at the bottom, opened above
+ * F · the fan (UI-SPEC.md 4.10): three wedge-shaped blades around a pivot at the bottom, opened above
  * the selection. Pressing one folds the fan toward it and back. The blades are one glass fan
  * under a pentagon mask; the seams and the outline are drawn over it.
  */

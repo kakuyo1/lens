@@ -1,7 +1,7 @@
 import QtQuick
 
 /**
- * The dark values of every colour token, from UI.md section 3.1b.
+ * The dark values of every colour token, from DESIGN.md section 3.1b.
  *
  * Dark is not the light theme with the lights turned off, and this table is not the light one
  * with each value inverted. Four things it decides, in the order they are visible:

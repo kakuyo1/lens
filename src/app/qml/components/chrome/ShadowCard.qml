@@ -2,14 +2,14 @@ import QtQuick
 import QtQuick.Effects
 
 /**
- * The rounded card every panel is drawn on, with the drop shadow UI.md section 3.3 gives it.
+ * The rounded card every panel is drawn on, with the drop shadow DESIGN.md section 3.3 gives it.
  *
  * The window around this has to be `shadowMargin` larger on every side than the card: the
  * blur needs room to fall off, and a frameless window gets no shadow from the system. Callers
  * place their content with `anchors.fill: parent` plus the same margin.
  *
  * It also owns the appearance: the panels, the tray menu and the notice are all one of these,
- * so the fade and the lift UI.md's motion table asks of them are written once, here.
+ * so the fade and the lift UI-SPEC.md's motion table asks of them are written once, here.
  */
 Item {
     id: root
@@ -174,7 +174,7 @@ Item {
         border.width: 1
         // A card with no fill of its own under glass is a glass card: GlassSurface's rim is its
         // edge. The line underneath is only half covered by the shader's antialiased cut, so it
-        // leaves a faint white edge even at 0% rim (UI.md 3.1c).
+        // leaves a faint white edge even at 0% rim (DESIGN.md 3.1c).
         border.color: root.tokens.glassMode !== "" && root.color.a === 0 ? "transparent" : root.tokens.line
 
         Item {

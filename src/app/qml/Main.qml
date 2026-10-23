@@ -8,7 +8,7 @@ import QtQuick.Window
  * off every screen, and its only job is to own the surfaces and be the engine's root object.
  * It has to be *shown*, though -- a window declared inside another one becomes its transient
  * child, and Windows does not put a transient child on screen while its parent is hidden.
- * Every surface is a window of its own, which is what UI.md's "each surface is independent,
+ * Every surface is a window of its own, which is what UI-SPEC.md's "each surface is independent,
  * sharing no window" asks for. Placement and panel routing live in SurfaceHost.qml; ScreenPoints.qml
  * and dev/ProfileScenario.qml hold the other two helpers, so this file stays under the QML size cap.
  */
@@ -67,7 +67,7 @@ Window {
         }
     }
 
-    /// The pet's review sign (UI.md 4.13) and the card that answers it. Passive like the pet it hangs from.
+    /// The pet's review sign (UI-SPEC.md 4.13) and the card that answers it. Passive like the pet it hangs from.
     ReviewSignWindow {
         id: reviewSign
         petWindow: petWindow

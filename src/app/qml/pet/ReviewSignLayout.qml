@@ -2,7 +2,7 @@ import QtQuick
 import "../util/Numbers.js" as Numbers
 
 /**
- * The review sign's placement (UI.md 4.13): a wooden sign standing on the pet's feet line beside it,
+ * The review sign's placement (UI-SPEC.md 4.13): a wooden sign standing on the pet's feet line beside it,
  * the side it takes, the nudge that keeps it and its card on the screen, and where the board and the card sit. The desktop sign
  * window and the settings preview both place the sign with this, so they choose the same side. Lengths are in DIPs; the figure is
  * the pet window's top-left, and the pet's idle ink box is in the sprite's own canvas units.

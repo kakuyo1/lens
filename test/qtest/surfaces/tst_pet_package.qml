@@ -4,7 +4,7 @@ import Lens
 import "../"
 
 /**
- * The first pick of an installed pet package asks once (UI.md 4.12, docs/adr/0043): the question holds the pet back until
+ * The first pick of an installed pet package asks once (UI-SPEC.md 4.12, docs/adr/0043): the question holds the pet back until
  * Enable, Cancel or Escape answers it, and a press on the backdrop does not close it.
  */
 Item {

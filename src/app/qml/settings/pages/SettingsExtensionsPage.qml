@@ -139,7 +139,7 @@ Item {
         }
     }
 
-    /// Why a package was refused, in the words UI.md 4.12 gives. The package never supplies these strings.
+    /// Why a package was refused, in the words UI-SPEC.md 4.12 gives. The package never supplies these strings.
     function refusalLabel(reason) {
         switch (reason) {
         case "Format": return qsTranslate("SettingsPopup", "The package format is not supported.");
@@ -158,7 +158,7 @@ Item {
         }
     }
 
-    // Each time the section is opened the page is built again, so this is the rescan UI.md 4.4 asks for.
+    // Each time the section is opened the page is built again, so this is the rescan UI-SPEC.md 4.4 asks for.
     Component.onCompleted: Pet.refresh()
 
     PetPackageDialog {
@@ -273,7 +273,7 @@ Item {
             }
 
             // The packages sit right under the picker that lists them: a refused package is an error the reader must not
-            // have to scroll to find (UI.md 4.4).
+            // have to scroll to find (UI-SPEC.md 4.4).
             Column {
                 width: parent.width
                 spacing: 7

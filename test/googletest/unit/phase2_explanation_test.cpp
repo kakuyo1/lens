@@ -322,7 +322,7 @@ TEST_F(LlmTest, Phase2CachePreservesLegacyEntriesAndSeparatesAllContexts)
 TEST_F(LlmTest, Phase2LanguagesRoundTripThroughDutyTransportAndCache)
 {
     // One language a sense: the reader picked the language they want to read, and the response's
-    // other half is not it (UI.md 4.3).
+    // other half is not it (UI-SPEC.md 4.3).
     QtApplication qt;
     for (auto const* language : {"en", "es", "ja"}) {
         Rig rig;
@@ -918,7 +918,7 @@ TEST_F(LlmTest, Phase2AChineseSelectionIsTranslatedAndOnlyTheTranslationIsDrawn)
     rig.duty.setSelection(chinese);
 
     // Either button of the action bar lands here: with Chinese there is one decision, and the two
-    // items are two ways into it (UI.md section 4.10).
+    // items are two ways into it (UI-SPEC.md section 4.10).
     run(rig.duty, rig.client, chinese.text);
 
     EXPECT_TRUE(rig.manager.posted.contains("Translate it into English")) << "the request did not go out on the translation channel";

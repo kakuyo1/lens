@@ -51,7 +51,7 @@ struct DailyUsage {
 inline constexpr const char* kLegacyUsageModel = "__legacy__";
 
 /// @brief Which rows a words export covers.
-/// @note The three values are the words popup's own filter (UI.md section 4.7), so what a
+/// @note The three values are the words popup's own filter (UI-SPEC.md section 4.7), so what a
 ///       reader exports is what they were looking at.
 enum class ExportScope : std::uint8_t { All,
                                         Known,

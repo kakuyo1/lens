@@ -1,7 +1,7 @@
 import QtQuick
 
 /**
- * The liquid glass values, from UI.md section 3.1d.
+ * The liquid glass values, from DESIGN.md section 3.1d.
  *
  * The card itself is transparent: the refraction is the only thing drawn over the desktop, so
  * `panel` carries no fill. The text colour is not here because the reader sets it (liquidTextColor),

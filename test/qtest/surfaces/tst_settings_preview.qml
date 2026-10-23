@@ -4,7 +4,7 @@ import Lens
 import "../testutil.js" as Util
 
 /**
- * The settings preview (UI.md 4.4): resting the pointer on a setting's title raises the explanation
+ * The settings preview (UI-SPEC.md 4.4): resting the pointer on a setting's title raises the explanation
  * bubble's card beside the panel, and taking the pointer away puts the card down again.
  *
  * The card is the bubble itself, so these cases are about the wiring that turns a hover into one --
@@ -191,7 +191,7 @@ Item {
             }).map(function (t) { return t.text; });
             verify(texts.indexOf("Preview") >= 0, "the preview card carries no preview tag");
             // The verdict buttons are drawn on every card and hidden by a row that clips to nothing
-            // when the card is not hovered, which a preview never is (UI.md 4.3, 4.4).
+            // when the card is not hovered, which a preview never is (UI-SPEC.md 4.3, 4.4).
             compare(preview.hovering, false, "a preview must not take the pointer");
             const verdicts = Util.textsUnder(preview).filter(function (t) {
                 return t.text === "New" || t.text === "Known";
@@ -256,7 +256,7 @@ Item {
             openCategory(panel, "Reading & learning");
 
             // Multiple senses: three of them, whether or not the switch is on, and one language a
-            // sense -- the reader's own, which the fixture stores as Chinese (UI.md 4.3).
+            // sense -- the reader's own, which the fixture stores as Chinese (UI-SPEC.md 4.3).
             compare(Controller.settings.multiSense, false);
             let preview = hoverTitle(main, panel, "Multiple senses");
             tryCompare(preview, "visible", true);
@@ -304,7 +304,7 @@ Item {
         }
 
         /// One reading per field the controller fills an explanation language into: English and
-        /// Chinese in their own, Spanish and Japanese in the translation (UI.md 4.3). The card is
+        /// Chinese in their own, Spanish and Japanese in the translation (UI-SPEC.md 4.3). The card is
         /// raised by the list's rows now, and each row draws its own language whichever one is
         /// stored -- the title is not a trigger any more.
         function test_theDefinitionFollowsTheHoveredLanguageRow() {

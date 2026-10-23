@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 /**
- * The capture trigger key, as a row the reader presses the combination into (UI.md 4.4).
+ * The capture trigger key, as a row the reader presses the combination into (UI-SPEC.md 4.4).
  *
  * The same lockup as SwitchRow -- a label and the value at opposite ends of one line -- because it
  * sits among those rows and answers the same kind of question. What the value is drawn with is the
@@ -27,7 +27,7 @@ Item {
     /// Whether the trigger can fire. False draws the line that says it cannot.
     property bool conflicted: false
     /// Whether the reader can change the combination. False greys the row and says nothing about
-    /// why, the way every other switch this depends on behaves (UI.md 4.4).
+    /// why, the way every other switch this depends on behaves (UI-SPEC.md 4.4).
     property bool interactive: true
 
     signal keyChosen(int key, int modifiers)

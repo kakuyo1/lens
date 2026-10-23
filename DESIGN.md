@@ -2,7 +2,7 @@
 
 > 权威：所有表面共用的视觉约束，**设计 UI 前必读**。逐表面的完整规格在 `UI-SPEC.md`，按需查，用法同 `GLOSSARY.md`；为什么这样定见 `docs/adr/`，实测数字见 `docs/metrics/`，QML 实现事实见 `docs/QML.md`。
 >
-> 编号与 `UI-SPEC.md` 共用：`3.x` 令牌与字体、`5` 动效原则、`6` 无障碍、`7` 文案在本文，`4.x` 表面规格在 `UI-SPEC.md`。旧文档或旧注释里的 `UI.md 3.x` 即本文，`UI.md 4.x` 即 `UI-SPEC.md`。
+> 编号与 `UI-SPEC.md` 共用：`3.x` 令牌与字体、`5` 动效原则、`6` 无障碍、`7` 文案在本文，`4.x` 表面规格在 `UI-SPEC.md`。旧文档里的 `UI.md 3.x` 即本文，`UI.md 4.x` 即 `UI-SPEC.md`。
 
 对应原型：`ui-prototypes/`（每块表面一个文件，用法与修改约定见 `ui-prototypes/README.md`）。
 

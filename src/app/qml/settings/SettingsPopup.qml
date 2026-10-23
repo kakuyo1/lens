@@ -5,7 +5,7 @@ import QtQuick.Window
 import "../util/Numbers.js" as Numbers
 
 /**
- * The settings surface from UI.md section 4.4 and ui-prototypes/settings.html.
+ * The settings surface from UI-SPEC.md section 4.4 and ui-prototypes/settings.html.
  *
  * The window is fixed-size. Navigation changes the loaded page inside the card rather than
  * changing the surface geometry, so placement beside the tray remains stable.
@@ -25,7 +25,7 @@ Window {
     readonly property int cardHeight: 480
     property string category: ""
     property string route: ""
-    /// Which setting's preview the pointer is asking for, by key, or "" for none (UI.md 4.4). Main
+    /// Which setting's preview the pointer is asking for, by key, or "" for none (UI-SPEC.md 4.4). Main
     /// reads the key, puts the demo card up beside this window's card, and takes it down again.
     property string previewKey: ""
     /// The family the font dropdown's row asks the preview to draw in, when previewKey is "font".
@@ -474,7 +474,7 @@ Window {
         }
     }
 
-    /// The settings preview (UI.md 4.4): the card a hovered setting's title raises beside the panel.
+    /// The settings preview (UI-SPEC.md 4.4): the card a hovered setting's title raises beside the panel.
     /// An explanation bubble with `preview` on, and it lives here rather than in Main because the
     /// panel is the one thing it is placed against -- its own screen is the screen the card goes on.
     Bubble {

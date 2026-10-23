@@ -1,7 +1,7 @@
 import QtQuick
 
 /**
- * One labelled figure in the statistics and cost panels (UI.md 4.6 / 4.8).
+ * One labelled figure in the statistics and cost panels (UI-SPEC.md 4.6 / 4.8).
  *
  * A clickable row widens its hover area past the text and grows a chevron, which is how the
  * two drill-downs announce themselves.

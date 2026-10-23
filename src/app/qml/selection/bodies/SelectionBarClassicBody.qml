@@ -5,7 +5,7 @@ import QtQuick.Window
 import QtQuick.Effects
 
 /**
- * The original horizontal bar (UI.md 4.10), kept as the default style: three items on one
+ * The original horizontal bar (UI-SPEC.md 4.10), kept as the default style: three items on one
  * `panel` card, the card's left edge at the release point. It has no entrance or press gesture
  * of its own; the window's fade carries it, and each item shrinks under the press.
  */
@@ -56,7 +56,7 @@ Item {
         radius: root.tokens.radiusMenu
         color: root.tokens.glassMode === "" ? root.tokens.panel : "transparent"
         border.width: 1
-        // Under glass the rim is the only edge (UI.md 3.1c).
+        // Under glass the rim is the only edge (DESIGN.md 3.1c).
         border.color: root.tokens.glassMode === "" ? root.tokens.line : "transparent"
 
         GlassSurface {

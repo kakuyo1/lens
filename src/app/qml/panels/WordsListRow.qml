@@ -1,7 +1,7 @@
 import QtQuick
 
 /**
- * One row of the words list (UI.md 4.8): the word, when it was last shown, its tally, the two
+ * One row of the words list (UI-SPEC.md 4.8): the word, when it was last shown, its tally, the two
  * verdict pills and the cross that asks to remove it. A component rather than part of
  * WordsPopup because that file sits at the QML size cap.
  *

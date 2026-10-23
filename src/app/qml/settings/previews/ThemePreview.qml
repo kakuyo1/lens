@@ -4,7 +4,7 @@ import QtQuick
 import QtQuick.Window
 
 /**
- * The theme dropdown's preview (UI.md 4.4): a miniature settings card drawn in the theme under
+ * The theme dropdown's preview (UI-SPEC.md 4.4): a miniature settings card drawn in the theme under
  * the pointer, put beside the open list by DropdownField.
  *
  * It is a window of its own because the list it belongs to is one: a card drawn inside the list
@@ -269,7 +269,7 @@ Window {
     }
 
     // The card is a demo, and wears the mark the settings preview wears: a dashed frame outside
-    // it rather than an edge of its own (UI.md 4.4).
+    // it rather than an edge of its own (UI-SPEC.md 4.4).
     PreviewFrame {
         card: surface.card
         cardRadius: root.tokens.radiusCard

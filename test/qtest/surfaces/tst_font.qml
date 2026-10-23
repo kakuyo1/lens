@@ -5,7 +5,7 @@ import "../"
 import "../testutil.js" as Util
 
 /**
- * The English font setting (UI.md 4.4): the list the field offers, what the setting keeps, and the
+ * The English font setting (UI-SPEC.md 4.4): the list the field offers, what the setting keeps, and the
  * one thing it is for -- the English runs of an explanation following it while the reader's own
  * language does not.
  *
@@ -205,7 +205,7 @@ Item {
             verify(Util.saveSnapshot(testCase, card, lensQaSnapshotDir, "font-page"));
         }
 
-        /// The preview card the "Font" label raises (UI.md 4.4), offscreen: the same Bubble, with
+        /// The preview card the "Font" label raises (UI-SPEC.md 4.4), offscreen: the same Bubble, with
         /// the payload the panel builds for that key. Set in a serif where the machine has one,
         /// since a snapshot of a face that looks like the one beside it shows nothing.
         function test_captureTheFontPreview() {
@@ -254,7 +254,7 @@ Item {
         }
 
         /// The preview used to hang off the "Font" title; it now belongs to the rows of the list
-        /// (UI.md 4.4), and each row draws the same bubble in its own family.
+        /// (UI-SPEC.md 4.4), and each row draws the same bubble in its own family.
         function test_theFontRowsRaiseTheBubblePreviewInTheirOwnFace() {
             Controller.setSetting("font", "");
             const main = createTemporaryObject(mainComponent, root);

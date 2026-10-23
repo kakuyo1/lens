@@ -2,7 +2,7 @@ import QtQuick
 
 /**
  * The dashed frame that says a card is a demo rather than an explanation the reader called up
- * (UI.md 4.4), drawn `6` pixels clear of the card it is told about.
+ * (UI-SPEC.md 4.4), drawn `6` pixels clear of the card it is told about.
  *
  * Outside the card rather than on its own border: the card stays the same pixels an explanation is,
  * so what tells the two apart is a mark around it and not an edge that quietly changed. A Canvas

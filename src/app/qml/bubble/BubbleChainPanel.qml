@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 /**
- * The definition chain under the card (UI.md 4.3), drawn inside the card that is already standing.
+ * The definition chain under the card (UI-SPEC.md 4.3), drawn inside the card that is already standing.
  *
  * The card has no chain of its own: this panel holds it. A step is one tap on a word of the answer. The panel
  * asks the duty for it, takes the answer when it comes, and says where the reader is: a back arrow, and the words

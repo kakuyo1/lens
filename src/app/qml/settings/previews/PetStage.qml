@@ -9,7 +9,7 @@ import QtQuick.Window
  * settings stay open. That is the one pet; a second clock would only fight the first for frames.
  *
  * While the ask action plays, the review sign stands beside the pet on the stage's foot line as it does on the desktop
- * (UI.md 4.13), so the reader sees what the action is for. The pet stays where it is; only the sign moves, to stay on the stage.
+ * (UI-SPEC.md 4.13), so the reader sees what the action is for. The pet stays where it is; only the sign moves, to stay on the stage.
  */
 Rectangle {
     id: stage

@@ -4,7 +4,7 @@ import Lens
 import "../testutil.js" as Util
 
 /**
- * The vocabulary-level dropdown's preview (UI.md 4.4): resting the pointer on a level row raises
+ * The vocabulary-level dropdown's preview (UI-SPEC.md 4.4): resting the pointer on a level row raises
  * a word-cloud card for that level beside the list, and taking the list down puts it down.
  *
  * The words are content, so the cases read the expected list out of Controller.settingPreview

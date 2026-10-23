@@ -1,7 +1,7 @@
 #version 440
 #extension GL_GOOGLE_include_directive : require
 
-// The horizontal half of the glass's blur (UI.md 3.1c and 3.1d, docs/adr/0082). The sheet is blurred along x into a
+// The horizontal half of the glass's blur (DESIGN.md 3.1c and 3.1d, docs/adr/0082). The sheet is blurred along x into a
 // mipmapped texture here, and glass.frag blurs that along y. One pass of twenty-five taps used to do both axes; nine
 // taps per axis in two passes is the same sampling cost, but the mip the taps read is three quarters of a level coarser
 // than the tap spacing, and that stronger prefilter is what removes the weave the sparse pass folded into text and fine

@@ -5,7 +5,7 @@ import QtQuick.Window
 import "../util/Numbers.js" as Numbers
 
 /**
- * The bar that comes up when the reader finishes selecting text (UI.md 4.10).
+ * The bar that comes up when the reader finishes selecting text (UI-SPEC.md 4.10).
  *
  * Its form is the reader's setting (`selectionBarStyle`): a page tab beside the selection, a
  * hand of three cards, a hanging tag, or a fan. All four offer the same three actions and the
@@ -91,7 +91,7 @@ Window {
         bar.dismiss();
     }
 
-    /// @brief Place this window at @p anchor, the point the drag ended at (UI.md 4.10).
+    /// @brief Place this window at @p anchor, the point the drag ended at (UI-SPEC.md 4.10).
     ///
     /// @param area The work area of the anchor's screen, in virtual DIPs.
     /// @param margin The 8 px every surface keeps clear of the work area's edges.

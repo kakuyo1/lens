@@ -5,7 +5,7 @@ import QtQuick.Window
 import "../util/Format.js" as Format
 
 /**
- * The tray menu (UI.md section 4.2), drawn rather than handed to QMenu.
+ * The tray menu (UI-SPEC.md section 4.2), drawn rather than handed to QMenu.
  *
  * A surface like the others: a frameless window with a card in it. The language list is a
  * second card that unfolds to the left of the row it belongs to, which is why the window is
@@ -121,7 +121,7 @@ Window {
 
                 // The state line: the product mark carries the state -- ok green while a
                 // selection is being captured, faint when it is not -- and the text names what
-                // the app is doing. The mark stands where UI.md section 4.2 used to draw an
+                // the app is doing. The mark stands where UI-SPEC.md section 4.2 used to draw an
                 // anonymous dot: it says the same thing, and says whose app this is.
                 //
                 // Its inset and its size are the rows' beneath it (11 px, 15 px), so the mark

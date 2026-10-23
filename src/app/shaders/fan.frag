@@ -1,6 +1,6 @@
 #version 440
 
-// Cuts the glass fan out of a rectangular GlassSurface capture (UI.md 4.10).
+// Cuts the glass fan out of a rectangular GlassSurface capture (UI-SPEC.md 4.10).
 //
 // The fan is one glass surface, not three cards; a rounded-rectangle GlassSurface cannot follow
 // its pentagon, and Qt's mask route left the rectangle showing. The five edges below are the

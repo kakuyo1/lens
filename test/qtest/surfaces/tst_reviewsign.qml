@@ -4,7 +4,7 @@ import Lens
 import "../testutil.js" as Util
 
 /**
- * The pet's review sign and the answer card and bubble that follow it (UI.md 4.13, ADR 0088).
+ * The pet's review sign and the answer card and bubble that follow it (UI-SPEC.md 4.13, ADR 0088).
  *
  * The sign stands on the pet's foot line beside it: the cases read which side was chosen, that the post's foot is on the
  * pet's feet, and where the card window opens. The pet is a stand-in the size of the figure on screen; the sign stands

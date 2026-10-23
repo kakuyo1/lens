@@ -1,7 +1,7 @@
 import QtQuick
 
 /**
- * The answer card of the review sign (UI.md 4.13): two buttons that open beside the board while the pointer is on the sign or
+ * The answer card of the review sign (UI-SPEC.md 4.13): two buttons that open beside the board while the pointer is on the sign or
  * on the card. A window of its own, so the card can open past the board's window without that window ever changing size
  * (ADR 0053). It never takes focus, and a screen capture does not see it.
  */

@@ -3,7 +3,7 @@ import QtQuick.Window
 import "../util/Format.js" as Format
 
 /**
- * Today's statistics (UI.md section 4.6).
+ * Today's statistics (UI-SPEC.md section 4.6).
  *
  * Two rows drill down: the cost row opens the cost popup and the all-time row opens the
  * words popup. The numbers come straight off the controller, which does the date arithmetic.

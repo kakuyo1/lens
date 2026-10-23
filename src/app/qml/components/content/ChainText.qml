@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 /**
- * One field of an answer whose words the definition chain offers (UI.md 4.3).
+ * One field of an answer whose words the definition chain offers (UI-SPEC.md 4.3).
  *
  * A thin overlay on RevealText rather than a change to it: the field still writes itself out one
  * character at a time, and the words above the reader's band get a dotted line, a hover tint and a
@@ -26,7 +26,7 @@ Item {
     property int pixelSize: 13
     property string family: ""
     property color color: "black"
-    /// The multiple the field is drawn at, from the reader's font-size setting (UI.md 4.4).
+    /// The multiple the field is drawn at, from the reader's font-size setting (UI-SPEC.md 4.4).
     property real lineHeight: 1.0
     /// Whether the field is written out a character at a time.
     property bool animated: true

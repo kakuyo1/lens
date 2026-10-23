@@ -20,7 +20,7 @@ class QJSEngine;
  *
  * The menu was a native QMenu because QML's Qt.labs.platform context menus do not come up on
  * Qt 6.9. That reason still holds, but the cost was a menu that could
- * not be the card UI.md 4.2 draws, so the menu is now one of the surfaces: a frameless window
+ * not be the card UI-SPEC.md 4.2 draws, so the menu is now one of the surfaces: a frameless window
  * like the action bar and the panels. What is left here is the icon the shell owns.
  */
 

@@ -198,7 +198,7 @@ public:
     /// @brief The day this build was compiled, as `yyyy-MM-dd`, for the about page. Not the day it runs.
     QString buildDate() const;
     /**
-     * @brief The demo card the settings preview draws, out of `data/preview.json` (UI.md 4.4).
+     * @brief The demo card the settings preview draws, out of `data/preview.json` (UI-SPEC.md 4.4).
      *
      * The keys are `word`, `ipa`, `signpost`, `collocations`, `example`, and `definition`,
      * `etymology`, `senses` -- the last three carrying one entry per explanation language, and

@@ -2,7 +2,7 @@ import QtQuick
 import "../util/Numbers.js" as Numbers
 
 /**
- * The desktop pet's review sign (UI.md 4.13): a wooden plank on a short post, standing on the pet's
+ * The desktop pet's review sign (UI-SPEC.md 4.13): a wooden plank on a short post, standing on the pet's
  * foot line beside it, with the word on the plank. Its answer card opens beside the board while the pointer is on the sign, in a
  * window of its own (ReviewCard). The sign's side and the card's side are chosen once per question from the room on screen, and the
  * sign then follows the pet as it moves. A window of its own, kept out of screen captures by the pet's native bridge, so the scan
@@ -124,7 +124,7 @@ Window {
         placed = true;
     }
 
-    /// Places the answer's bubble on the sign's side of the pet (UI.md 4.13). The side is kept, so repositionAnswerCard() puts
+    /// Places the answer's bubble on the sign's side of the pet (UI-SPEC.md 4.13). The side is kept, so repositionAnswerCard() puts
     /// the bubble back after a screen change.
     function placeAnswerCard(surface) {
         answerCard = surface;

@@ -271,7 +271,7 @@ QtObject {
         surface.raise();
     }
 
-    /// @brief Put the action bar up in the form the reader chose (UI.md 4.10).
+    /// @brief Put the action bar up in the form the reader chose (UI-SPEC.md 4.10).
     ///
     /// The form's own placement lives on SelectionBar (placeAt), next to the geometry it is
     /// placing; this only finds the screen and hands it the work area.

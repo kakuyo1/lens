@@ -8,7 +8,7 @@ import "../testutil.js" as Util
  * out when there is not.
  *
  * The subject is the same as the origin's -- a reader asked for two different things, and the card
- * has to read as two things (UI.md 4.3). This checks the block's presence, its text, and its place
+ * has to read as two things (UI-SPEC.md 4.3). This checks the block's presence, its text, and its place
  * under the origin. Whether a sentence is asked for at all is the setting's business and the duty's,
  * and that pair is covered by the offline suite.
  */

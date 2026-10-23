@@ -2,7 +2,7 @@
 
 > 权威：逐表面的完整规格，供 QML 实现直接对照，**按需查**，用法同 `GLOSSARY.md`。所有表面共用的视觉约束在 `DESIGN.md`，设计前先读它；为什么这样定见 `docs/adr/`，实测数字见 `docs/metrics/`，QML 实现事实见 `docs/QML.md`。
 >
-> 编号与 `DESIGN.md` 共用：`3.x` 令牌与字体、`5` 动效原则、`6` 无障碍、`7` 文案在 `DESIGN.md`，`4.x` 在本文。本文提到的 “3.1c / 3.1d” 都指 `DESIGN.md` 的小节；旧文档或旧注释里的 `UI.md 4.x` 即本文同编号。
+> 编号与 `DESIGN.md` 共用：`3.x` 令牌与字体、`5` 动效原则、`6` 无障碍、`7` 文案在 `DESIGN.md`，`4.x` 在本文。本文提到的 “3.1c / 3.1d” 都指 `DESIGN.md` 的小节；旧文档里的 `UI.md 4.x` 即本文同编号。
 
 对应原型：`ui-prototypes/{tray-menu,stats,words,year-in-words,cost,settings,bubble,selection-bar}.html`（每块表面一个文件，各自独立；用法与修改约定见 `ui-prototypes/README.md`）。
 

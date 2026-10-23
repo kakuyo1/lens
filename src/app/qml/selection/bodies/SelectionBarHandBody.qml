@@ -5,7 +5,7 @@ import QtQuick.Window
 import QtQuick.Effects
 
 /**
- * E · the hand of cards (UI.md 4.10): three cards fanned out above the selection, with no card
+ * E · the hand of cards (UI-SPEC.md 4.10): three cards fanned out above the selection, with no card
  * behind them. The pointer straightens and lifts the card it is on.
  */
 Item {

@@ -5,7 +5,7 @@ import QtQuick.Controls
 import QtQuick.Window
 
 /**
- * The question asked the first time the reader picks an installed pet package (UI.md 4.12, docs/adr/0043).
+ * The question asked the first time the reader picks an installed pet package (UI-SPEC.md 4.12, docs/adr/0043).
  *
  * A modal popup over the settings panel, so the pet does not switch until Enable is pressed. A press on the backdrop
  * does not close it: only Enable, Cancel and Escape do, and Cancel is the default, so Return backs out too. The package's

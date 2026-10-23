@@ -43,7 +43,7 @@ Item {
     signal childRequested(string value)
 
     /// The preview the pointer has called up, or "" for none: a row's title raises one on hover
-    /// (UI.md 4.4). The popup turns it into the window Main puts beside the card.
+    /// (UI-SPEC.md 4.4). The popup turns it into the window Main puts beside the card.
     signal previewRequested(string key)
 
     function closeChild() {

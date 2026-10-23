@@ -4,7 +4,7 @@ import QtQuick
 import QtQuick.Window
 
 /**
- * The explanation bubble (UI.md section 4.3), the surface the whole channel exists for.
+ * The explanation bubble (UI-SPEC.md section 4.3), the surface the whole channel exists for.
  *
  * It lands on the side the reader chose in the bubble settings, above the selection by default, and
  * takes the other side only when the chosen one has no room. The action bar follows the same setting,
@@ -16,7 +16,7 @@ import QtQuick.Window
  */
 Window {
     id: bubble
-    /// Whether this window is the settings preview (UI.md 4.4): the same card without the close
+    /// Whether this window is the settings preview (UI-SPEC.md 4.4): the same card without the close
     /// button, verdict row, drag or hover report, tagged "Preview" and framed by PreviewFrame.qml.
     /// Its own glass sheet, since one sheet holds one backdrop.
     property bool preview: false
@@ -108,7 +108,7 @@ Window {
     property real replayHeight: 0
 
     /// Whether the Known and New buttons are drawn. The card a review's answer raises is the reader's to read, not to
-    /// mark (UI.md 4.13); the status tag above the title still says what the word is.
+    /// mark (UI-SPEC.md 4.13); the status tag above the title still says what the word is.
     property bool verdictButtons: true
 
     /// Whether the answer is written out a character at a time (RevealText). A card raised whole out
@@ -116,11 +116,11 @@ Window {
     property bool reveal: true
     /// Whether the fields reveal at all, which is the payload's flag and the reader's motion setting.
     readonly property bool revealAnimation: reveal && !bubble.tokens.motion.reduced
-    /// The pace the fields are written at, from the reader's speed setting (UI.md 4.3). Hoisted like
+    /// The pace the fields are written at, from the reader's speed setting (UI-SPEC.md 4.3). Hoisted like
     /// `revealAnimation`, so the nine fields read one value rather than the setting each.
     readonly property int revealCharacterMs: Controller.settings.revealCharacterMs
 
-    /// The face the English fields are drawn in, from the reader's font setting (UI.md 4.4). Hoisted
+    /// The face the English fields are drawn in, from the reader's font setting (UI-SPEC.md 4.4). Hoisted
     /// like the pace, and for one more reason: it is the same answer for every English run on the
     /// card -- the word, its pronunciation, the definition and the example. The reader's own
     /// language, in the definition or the translation, keeps the face the application installed,
@@ -129,7 +129,7 @@ Window {
     property var previewFont: null
     readonly property string englishFont: previewFont !== null ? previewFont : Controller.settings.font
 
-    /// The size the answer is read at, from the reader's font-size setting (UI.md 4.4): one answer
+    /// The size the answer is read at, from the reader's font-size setting (UI-SPEC.md 4.4): one answer
     /// for every run on the card, so the word stays above the definitions at every step. The
     /// setting names the body size, and the rest is that size against the 13 px the card is drawn
     /// at by default; the labels, the verdict row and the countdown are the card's chrome and keep

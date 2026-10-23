@@ -9,7 +9,7 @@ import "../testutil.js" as Util
  *
  * The subject is separation. A reader asked for two different things -- what the word means, and
  * where it came from -- and the card has to read as two things rather than as a longer definition
- * (UI.md 4.3). The rule, the label and the colour step are what do that, so they are what this
+ * (UI-SPEC.md 4.3). The rule, the label and the colour step are what do that, so they are what this
  * checks. Nothing here reaches the controller: whether an origin is asked for at all is the
  * setting's business and the duty's, and that pair is covered by the offline suite.
  */

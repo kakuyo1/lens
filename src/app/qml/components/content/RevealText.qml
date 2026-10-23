@@ -4,7 +4,7 @@ import QtQuick
 import QtQuick.Effects
 
 /**
- * One field of an answer, written out one character at a time (UI.md 4.3).
+ * One field of an answer, written out one character at a time (UI-SPEC.md 4.3).
  *
  * The answer streams in and the model finishes it in a jump or two, so a field used to arrive
  * whole. This paces the field itself: one character every `characterMs`, whatever the transport
@@ -34,11 +34,11 @@ Item {
     /// The whole field, as far as it has arrived. A text that does not continue the last one is a
     /// different answer and reveals from the start; anything else extends the reveal running.
     property string text: ""
-    /// The field's type, from UI.md 4.3: the definitions 13 px, the translations 12 px.
+    /// The field's type, from UI-SPEC.md 4.3: the definitions 13 px, the translations 12 px.
     property int pixelSize: 13
     property int weight: Font.Normal
     property color color: "black"
-    /// The family the field is drawn in, when it names one (UI.md 4.4). Empty is the application's
+    /// The family the field is drawn in, when it names one (UI-SPEC.md 4.4). Empty is the application's
     /// own face, and it is left unsaid rather than written as an empty family: a Text told
     /// `font.family: ""` does not fall back to the application's font, it falls back to whatever
     /// the font database hands an unmatched request -- measured, Cascadia Code on this machine.
@@ -54,11 +54,11 @@ Item {
     property real topPadding: 0
     property real bottomPadding: 0
     /// Whether the reveal runs. A card raised whole out of the cache, and every card under reduced
-    /// motion, arrives complete (UI.md's motion table).
+    /// motion, arrives complete (UI-SPEC.md's motion table).
     property bool animated: true
 
     /// How long a character waits for the next one, in real milliseconds. The card sets it from the
-    /// reader's speed setting (UI.md 4.3); 35 is the pace the reveal shipped with.
+    /// reader's speed setting (UI-SPEC.md 4.3); 35 is the pace the reveal shipped with.
     property int characterMs: 35
     /// How much longer a character stays soft than it takes to appear. A ratio rather than a fixed
     /// count so the shader count below does not grow as the reader slows the pace down. This is the

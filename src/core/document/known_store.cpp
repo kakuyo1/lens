@@ -35,7 +35,7 @@ std::unordered_map<std::string, long long> readTimes(nlohmann::json const& times
         out[it.key()] = timeOf(it.value());
     return out;
 }
-/// Order is defined in UI.md 4.4: B1-B2 / C1-C2 / CET-4 / CET-6 / TEM-4 / TEM-8 / IELTS / TOEFL.
+/// Order is defined in UI-SPEC.md 4.4: B1-B2 / C1-C2 / CET-4 / CET-6 / TEM-4 / TEM-8 / IELTS / TOEFL.
 constexpr int kMaxLevel = 7;
 
 std::optional<WordCache> readCache(nlohmann::json const& entry, std::string const& language)

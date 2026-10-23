@@ -2,7 +2,7 @@ import QtQuick
 
 /**
  * The verdict buttons a bubble opens under the pointer: Known and New, and the hairline above them
- * (UI.md 4.3).
+ * (UI-SPEC.md 4.3).
  *
  * Only a real explanation has a verdict to give -- a notice's title is not a word, so a press there
  * would write a sentence into the word store -- and the row is drawn shut rather than left out, so

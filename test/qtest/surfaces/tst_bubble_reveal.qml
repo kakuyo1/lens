@@ -53,7 +53,7 @@ Item {
         function test_theCountdownWaitsForTheAnswerToBeWrittenOut() {
             const bubble = opened();
 
-            // Under reduced motion the card arrives complete (UI.md's motion table), so the
+            // Under reduced motion the card arrives complete (UI-SPEC.md's motion table), so the
             // clock starts at once instead of waiting for the reveal. Nothing here to check
             // in that case -- it is the sibling test's contract.
             if (bubble.tokens.motion.reduced) {
