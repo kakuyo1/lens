@@ -3,6 +3,7 @@ add_library(lens_core STATIC
   domain/review_schedule.cpp
   domain/sync_merge.cpp
   domain/sync_state.cpp
+  domain/pet/pet_mood.cpp
   domain/pet/pet_state.cpp
   domain/pet/pet_config.cpp
   domain/pet/hover_sense.cpp

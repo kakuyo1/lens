@@ -41,6 +41,23 @@ TEST(HoverSense, AQuickPassOnlyMakesTheEyesFollow)
     EXPECT_FALSE(sense.greeted());
 }
 
+TEST(HoverSense, TheBehaviorMovesTheGazeRadius)
+{
+    // A wider reach sees the pointer as Gaze where the default ring has already let go (ADR 0094).
+    auto wide = quick();
+    wide.update(0ms, 40.0, true);
+    EXPECT_EQ(wide.zone(), HoverZone::Outside);
+    EXPECT_FALSE(wide.watching());
+
+    HoverSense attentive{HoverTiming{100ms, 300ms, 1'000ms}, 40.0};
+    attentive.update(0ms, 40.0, true);
+    EXPECT_EQ(attentive.zone(), HoverZone::Gaze);
+    EXPECT_TRUE(attentive.watching());
+    // The near ring stays where it was: the gaze radius only moves the outer one.
+    attentive.update(50ms, 10.0, true);
+    EXPECT_EQ(attentive.zone(), HoverZone::Near);
+}
+
 TEST(HoverSense, AHoldInTheNearRingGreetsOnceThenEarnsOneReaction)
 {
     auto       sense = quick();

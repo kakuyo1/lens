@@ -54,8 +54,6 @@ struct WanderStep {
  */
 class PetWander {
 public:
-    /// @brief The chance a step that ends on a screen edge becomes a hide.
-    static constexpr double kHideChance{0.7};
     /// @brief The share of the figure's ink width left visible when the window slides out.
     static constexpr double kHideVisible{0.34};
     /// @brief The share of the window width that must be back inside the work area for a drag to end a hide.
@@ -79,8 +77,9 @@ public:
      * @param gait The path shape.
      * @param rangePercent The home radius as a percentage of the window width, 10 to 60.
      * @param random A source in [0, 1), used to pick each step's direction and length.
+     * @param hideChance The chance a step that ends on a screen edge becomes a hide, from the behavior block.
      */
-    PetWander(Gait gait, int rangePercent, core::pet::RandomSource random);
+    PetWander(Gait gait, int rangePercent, core::pet::RandomSource random, double hideChance = core::pet::kHideChance);
 
     /// @brief Sets the point the stroll circles around: where the reader last dropped the pet.
     void   setHome(QPoint home);
@@ -114,7 +113,7 @@ public:
     std::optional<EdgeSide> edgeAt(QPoint at) const;
     bool                    hides(double roll) const
     {
-        return roll < kHideChance;
+        return roll < hideChance_;
     }
 
     /**
@@ -182,6 +181,7 @@ private:
     Gait                    gait_;
     int                     rangePercent_;
     core::pet::RandomSource random_;
+    double                  hideChance_;
     QPoint                  home_{};
     QSize                   size_{kReferenceWidth, kReferenceWidth};
     QRect                   area_{};

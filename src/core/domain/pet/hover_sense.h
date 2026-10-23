@@ -13,8 +13,8 @@
  * click area. This class is pure logic: distances are in canvas pixels, and the caller decides when the pet is idle.
  *
  * The outer ring only drives the eyes. Holding in the near ring first earns a greeting and, after longer, the fuller
- * reaction. Both happen at most once per approach; a cooldown turns a quick return into a quiet hello. The rings are
- * the same for every pet, while the delays and the actions they trigger come from the pet's data.
+ * reaction. Both happen at most once per approach; a cooldown turns a quick return into a quiet hello. The near ring
+ * is the same for every pet, while the gaze radius, the delays and the actions they trigger come from the pet's data.
  */
 
 namespace lens::core::pet {
@@ -53,7 +53,9 @@ public:
     /// @}
 
     /// @param timing Per-pet delays from animations.json; the defaults apply when it has no hover block.
-    explicit HoverSense(HoverTiming timing = {});
+    /// @param gazeRadius The eyes' reach in canvas pixels, from the behavior block; the default is kGazeRadius.
+    ///        It must stay beyond the near ring, kNearRadius + kExitMargin, or the rings would order wrong.
+    explicit HoverSense(HoverTiming timing = {}, double gazeRadius = kGazeRadius);
 
     /// @brief Forgets the approach, the cooldown and the clock. Called when hover cannot be tracked, so a reading or a
     ///        drag never leaves a due reaction behind.
@@ -107,7 +109,9 @@ private:
     /// @brief Starts a fresh approach after the rearm delay.
     void clearApproach();
 
-    HoverTiming                              timing_;
+    HoverTiming timing_;
+    /// The eyes' reach, from the behavior block. The near ring stays the shipped constant.
+    double                                   gazeRadius_;
     std::chrono::milliseconds                now_{0};
     HoverZone                                zone_{HoverZone::Outside};
     std::chrono::milliseconds                outsideSince_{0};

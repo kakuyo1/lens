@@ -94,6 +94,17 @@
     "peek": "edge_peek",
     "range": 24
   },
+  "behavior": {
+    "idleBaseMs": 30000,
+    "idleSpreadMs": 90000,
+    "sceneChance": 0.125,
+    "napChance": 0.05,
+    "hideChance": 0.5,
+    "wanderWaitMinMs": 180000,
+    "wanderWaitMaxMs": 360000,
+    "strollSteps": 1,
+    "gazeRadius": 28
+  },
   "actions": {
     "idle": {
       "fps": 5,

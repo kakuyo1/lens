@@ -3,6 +3,11 @@
   "scenes": [
     {
       "id": "bath",
+      "mood": {
+        "evening": 2.0,
+        "night": 1.5,
+        "afterReturn": 2.0
+      },
       "name": "泡澡",
       "frames": 12,
       "fps": 4,
@@ -83,6 +88,12 @@
     },
     {
       "id": "cat_box",
+      "mood": {
+        "morning": 0.5,
+        "afternoon": 3.0,
+        "night": 0.5,
+        "afterReturn": 2.0
+      },
       "name": "纸箱打盹",
       "frames": 12,
       "fps": 4,
@@ -163,6 +174,12 @@
     },
     {
       "id": "cat_sunbeam",
+      "mood": {
+        "morning": 3.0,
+        "afternoon": 1.5,
+        "night": 0.25,
+        "afterReturn": 1.5
+      },
       "name": "窗台晒太阳",
       "frames": 12,
       "fps": 4,
@@ -243,6 +260,10 @@
     },
     {
       "id": "cloud_fishing",
+      "mood": {
+        "morning": 0.75,
+        "afternoon": 1.5
+      },
       "name": "云上垂钓",
       "frames": 12,
       "fps": 4,
@@ -323,6 +344,10 @@
     },
     {
       "id": "cloud_watering",
+      "mood": {
+        "morning": 1.5,
+        "evening": 0.5
+      },
       "name": "给盆栽下雨",
       "frames": 12,
       "fps": 4,
@@ -403,6 +428,11 @@
     },
     {
       "id": "desk",
+      "mood": {
+        "morning": 0.75,
+        "night": 1.5,
+        "afterReading": 4.0
+      },
       "name": "敲电脑",
       "frames": 12,
       "fps": 4,
@@ -483,6 +513,10 @@
     },
     {
       "id": "dog_burying",
+      "mood": {
+        "morning": 1.25,
+        "afternoon": 1.5
+      },
       "name": "埋骨头",
       "frames": 12,
       "fps": 4,
@@ -563,6 +597,11 @@
     },
     {
       "id": "dog_frisbee",
+      "mood": {
+        "morning": 1.5,
+        "afternoon": 1.25,
+        "night": 0.25
+      },
       "name": "接飞盘",
       "frames": 12,
       "fps": 4,
@@ -643,6 +682,12 @@
     },
     {
       "id": "ghost_lantern",
+      "mood": {
+        "morning": 0.25,
+        "afternoon": 0.25,
+        "evening": 1.5,
+        "night": 4.0
+      },
       "name": "南瓜灯",
       "frames": 12,
       "fps": 4,
@@ -723,6 +768,10 @@
     },
     {
       "id": "ghost_mirror",
+      "mood": {
+        "evening": 1.5,
+        "night": 2.0
+      },
       "name": "镜中无影",
       "frames": 12,
       "fps": 4,
@@ -803,6 +852,10 @@
     },
     {
       "id": "jelly_sundae",
+      "mood": {
+        "afternoon": 1.5,
+        "evening": 1.25
+      },
       "name": "甜品杯",
       "frames": 12,
       "fps": 4,
@@ -883,6 +936,11 @@
     },
     {
       "id": "jelly_trampoline",
+      "mood": {
+        "morning": 1.5,
+        "afternoon": 1.25,
+        "night": 0.5
+      },
       "name": "弹跳床",
       "frames": 12,
       "fps": 4,
@@ -963,6 +1021,10 @@
     },
     {
       "id": "mochi_grill",
+      "mood": {
+        "afternoon": 1.25,
+        "evening": 2.0
+      },
       "name": "烤年糕",
       "frames": 12,
       "fps": 4,
@@ -1043,6 +1105,11 @@
     },
     {
       "id": "mochi_onsen",
+      "mood": {
+        "evening": 2.0,
+        "night": 1.5,
+        "afterReturn": 2.0
+      },
       "name": "温泉",
       "frames": 12,
       "fps": 4,
@@ -1123,6 +1190,11 @@
     },
     {
       "id": "owl_books",
+      "mood": {
+        "evening": 1.25,
+        "night": 1.5,
+        "afterReading": 4.0
+      },
       "name": "书堆夜读",
       "frames": 12,
       "fps": 4,
@@ -1203,6 +1275,12 @@
     },
     {
       "id": "owl_stargazing",
+      "mood": {
+        "morning": 0.25,
+        "afternoon": 0.25,
+        "evening": 1.5,
+        "night": 4.0
+      },
       "name": "望远镜观星",
       "frames": 12,
       "fps": 4,

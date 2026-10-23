@@ -23,6 +23,9 @@
 namespace {
 
 using lens::core::pet::ActionSpec;
+using lens::core::pet::BehaviorSpec;
+using lens::core::pet::MoodSource;
+using lens::core::pet::PetMood;
 using lens::core::pet::Playbook;
 using lens::core::pet::PetEvent;
 using lens::core::pet::PetStateMachine;
@@ -593,9 +596,9 @@ TEST(PetStateMachine, ClicksSpreadPastTheWindowDoNotAddUp)
     PetStateMachine machine{playbook, RandomSource{[] { return kFidgets; }}};
 
     machine.handle(PetEvent::Click);
-    machine.advance(PetStateMachine::kAngryWindow);
+    machine.advance(lens::core::pet::kAngryWindow);
     machine.handle(PetEvent::Click);
-    machine.advance(PetStateMachine::kAngryWindow);
+    machine.advance(lens::core::pet::kAngryWindow);
     machine.handle(PetEvent::Click);
     EXPECT_EQ(machine.action(), "click_react");
 }
@@ -620,7 +623,7 @@ TEST(PetStateMachine, APetWithoutAnAngryActionNeverGetsAngry)
 {
     // The role is optional (ADR 0049): a package without it keeps its old behaviour, however often it is poked.
     auto machine = makeMachine(kFidgets);
-    for (int i = 0; i < PetStateMachine::kAngryClicks * 2; ++i) {
+    for (int i = 0; i < lens::core::pet::kAngryClicks * 2; ++i) {
         machine.handle(PetEvent::Click);
         machine.advance(100ms);
     }
@@ -821,6 +824,86 @@ TEST(PetStateMachine, AnOptionalDizzyGesturePlaysWhenThePetHasIt)
     EXPECT_EQ(machine.action(), "dizzy");
     machine.advance(1s);
     EXPECT_EQ(machine.action(), "idle");
+}
+
+TEST(PetStateMachine, TheBehaviorMovesTheAngryThreshold)
+{
+    // Two quick clicks anger this pet, where the default needs three (ADR 0094).
+    auto playbook               = dogPlaybook();
+    playbook.actions["angry"]   = playback(5, 10, false);
+    playbook.roles[Role::Angry] = "angry";
+    BehaviorSpec behavior{};
+    behavior.angryClicks = 2;
+    PetStateMachine machine{playbook, RandomSource{[] { return kFidgets; }}, SceneSource{}, behavior};
+
+    machine.handle(PetEvent::Click);
+    machine.handle(PetEvent::Click);
+    EXPECT_EQ(machine.action(), "angry");
+}
+
+TEST(PetStateMachine, TheBehaviorMovesTheIdleWait)
+{
+    // The base and the spread come from the behavior: 1 s flat, no jitter.
+    BehaviorSpec behavior{};
+    behavior.idleBase   = 1s;
+    behavior.idleSpread = 0ms;
+    PetStateMachine machine{dogPlaybook(), RandomSource{[] { return kFidgets; }}, SceneSource{}, behavior};
+
+    machine.advance(999ms);
+    EXPECT_EQ(machine.action(), "idle");
+    machine.advance(1ms);
+    EXPECT_NE(machine.action(), "idle");
+}
+
+TEST(PetStateMachine, TheMoodScalesTheSceneChance)
+{
+    // A scene chance the plain roll misses, an evening factor lifts past the same roll (ADR 0093).
+    auto playbook = dogPlaybook();
+    playbook.actions.emplace("swing", playback(8, 8, true, std::nullopt, false, 3s));
+    BehaviorSpec behavior{};
+    behavior.sceneChance = 0.25;
+    PetStateMachine withoutMood{
+        playbook,
+        RandomSource{[] { return kFidgets; }},
+        SceneSource{[]() -> std::optional<std::string> { return "swing"; }},
+        behavior,
+    };
+    withoutMood.advance(41s);
+    EXPECT_NE(withoutMood.action(), "swing");
+
+    PetMood evening;
+    evening.minuteOfDay = 20 * 60;
+    PetStateMachine inTheEvening{
+        playbook,
+        RandomSource{[] { return kFidgets; }},
+        SceneSource{[]() -> std::optional<std::string> { return "swing"; }},
+        behavior,
+        MoodSource{[evening] { return evening; }},
+    };
+    inTheEvening.advance(41s);
+    EXPECT_EQ(inTheEvening.action(), "swing");
+}
+
+TEST(PetStateMachine, TheMoodScalesTheNapChance)
+{
+    // An afternoon doubles the nap chance: the same roll naps in the afternoon and fidgets at noon.
+    BehaviorSpec behavior{};
+    behavior.napChance = 0.05;
+    PetMood afternoon;
+    afternoon.minuteOfDay = 14 * 60;
+    PetStateMachine machine{
+        dogPlaybook(),
+        RandomSource{[] { return 0.08; }},
+        SceneSource{},
+        behavior,
+        MoodSource{[afternoon] { return afternoon; }},
+    };
+    machine.advance(41s);
+    EXPECT_EQ(machine.action(), "yawn");
+
+    PetStateMachine atNoon{dogPlaybook(), RandomSource{[] { return 0.08; }}, SceneSource{}, behavior};
+    atNoon.advance(41s);
+    EXPECT_EQ(atNoon.action(), "look_around");
 }
 
 } // namespace

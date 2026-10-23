@@ -31,9 +31,9 @@ using namespace std::chrono_literals;
 QRect const kArea{0, 0, 1920, 1040};
 QSize const kPet{264, 264};
 
-PetWander makeWander(Gait gait, QPoint home = QPoint{500, 500}, int range = 30, double random = 0.5)
+PetWander makeWander(Gait gait, QPoint home = QPoint{500, 500}, int range = 30, double random = 0.5, double hideChance = lens::core::pet::kHideChance)
 {
-    PetWander wander{gait, range, [random] { return random; }};
+    PetWander wander{gait, range, [random] { return random; }, hideChance};
     wander.setHome(home);
     wander.setBounds(kPet, kArea);
     return wander;
@@ -185,6 +185,15 @@ TEST(PetWander, SevenStepsInTenBecomeAHide)
     EXPECT_TRUE(wander.hides(0.69));
     EXPECT_FALSE(wander.hides(0.7));
     EXPECT_FALSE(wander.hides(0.99));
+}
+
+TEST(PetWander, TheBehaviorMovesTheHideChance)
+{
+    // A shy pet hides on almost every edge step, a bold one rarely (ADR 0094).
+    auto const shy  = makeWander(Gait::Trot, QPoint{500, 500}, 30, 0.5, 0.9);
+    auto const bold = makeWander(Gait::Trot, QPoint{500, 500}, 30, 0.5, 0.3);
+    EXPECT_TRUE(shy.hides(0.85));
+    EXPECT_FALSE(bold.hides(0.85));
 }
 
 TEST(PetWander, TheHiddenWindowLeavesTheFigureInkVisibleNotTheSquareCanvas)

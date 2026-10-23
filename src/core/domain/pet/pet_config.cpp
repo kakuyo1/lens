@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <limits>
 #include <optional>
 #include <set>
@@ -14,6 +15,7 @@
 #include <string_view>
 #include <utility>
 
+#include "core/domain/pet/hover_sense.h"
 #include "core/domain/pet/pet_package.h"
 
 namespace lens::core::pet {
@@ -92,6 +94,18 @@ int integerIn(json const& entry, char const* key, std::int64_t low, std::int64_t
     if (value < low) throw Refused(invalid, owner + "." + key + " is below " + std::to_string(low));
     if (value > high) throw Refused(Refusal::TooLarge, owner + "." + key + " is above " + std::to_string(high));
     return static_cast<int>(value);
+}
+
+/// @return `entry[key]` as a finite number in [low, high]. Below `low` is refused as `invalid`; above `high` is TooLarge.
+double realIn(json const& entry, char const* key, double low, double high, Refusal invalid, std::string const& owner)
+{
+    if (not entry.contains(key) or not entry.at(key).is_number())
+        throw Refused(invalid, owner + "." + key + " must be a number");
+    auto const value = entry.at(key).get<double>();
+    if (not std::isfinite(value)) throw Refused(invalid, owner + "." + key + " must be a finite number");
+    if (value < low) throw Refused(invalid, owner + "." + key + " is below " + std::to_string(low));
+    if (value > high) throw Refused(Refusal::TooLarge, owner + "." + key + " is above " + std::to_string(high));
+    return value;
 }
 
 /// One playback entry. `returnTo` is resolved to a role here, and checked against the document's roles later.
@@ -314,6 +328,49 @@ Animations parseAnimations(json const& document)
             spec.range = integerIn(movement, "range", kMinMovementRange, kMaxMovementRange, Refusal::BadAnimation, owner);
         }
         animations.movement = std::move(spec);
+    }
+
+    // The temperament (ADR 0094). Every field is optional on its own: an omitted one keeps the shipped
+    // constant it replaces, so a block tuning one knob does not have to repeat the rest.
+    if (document.contains("behavior")) {
+        auto const& block = document.at("behavior");
+        auto const  owner = std::string{"animations: behavior"};
+        auto&       spec  = animations.behavior;
+        if (not block.is_object()) throw Refused(Refusal::BadAnimation, owner + " must be an object");
+
+        auto msFor = [&](char const* key, std::chrono::milliseconds fallback, std::int64_t low) {
+            if (not block.contains(key)) return fallback;
+            return std::chrono::milliseconds{integerIn(block, key, low, kMaxBehaviorMs, Refusal::BadAnimation, owner)};
+        };
+        auto chanceFor = [&](char const* key, double fallback) {
+            if (not block.contains(key)) return fallback;
+            return realIn(block, key, 0.0, 1.0, Refusal::BadAnimation, owner);
+        };
+
+        spec.idleBase      = msFor("idleBaseMs", spec.idleBase, kMinIdleBaseMs);
+        spec.idleSpread    = msFor("idleSpreadMs", spec.idleSpread, 0);
+        spec.sceneChance   = chanceFor("sceneChance", spec.sceneChance);
+        spec.napChance     = chanceFor("napChance", spec.napChance);
+        spec.angryWindow   = msFor("angryWindowMs", spec.angryWindow, 0);
+        spec.wanderWaitMin = msFor("wanderWaitMinMs", spec.wanderWaitMin, 0);
+        spec.wanderWaitMax = msFor("wanderWaitMaxMs", spec.wanderWaitMax, 0);
+        if (block.contains("angryClicks")) {
+            spec.angryClicks = integerIn(block, "angryClicks", 1, kMaxAngryClicks, Refusal::BadAnimation, owner);
+        }
+        if (block.contains("strollSteps")) {
+            spec.strollSteps = integerIn(block, "strollSteps", 1, kMaxStrollSteps, Refusal::BadAnimation, owner);
+        }
+        if (block.contains("hideChance")) {
+            spec.hideChance = realIn(block, "hideChance", 0.0, 1.0, Refusal::BadAnimation, owner);
+        }
+        if (block.contains("gazeRadius")) {
+            spec.gazeRadius = realIn(block, "gazeRadius", HoverSense::kNearRadius + HoverSense::kExitMargin, kMaxCanvas, Refusal::BadAnimation, owner);
+            // Strictly beyond the near ring's hold, so a gaze band always exists outside the near one.
+            if (spec.gazeRadius <= HoverSense::kNearRadius + HoverSense::kExitMargin)
+                throw Refused(Refusal::BadAnimation, owner + ".gazeRadius must be beyond the near ring");
+        }
+        if (spec.wanderWaitMin > spec.wanderWaitMax)
+            throw Refused(Refusal::BadAnimation, owner + ".wanderWaitMinMs is above wanderWaitMaxMs");
     }
     return animations;
 }

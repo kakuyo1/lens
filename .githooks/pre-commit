@@ -156,6 +156,8 @@ docs/adr/0089-pet-entrance-and-goodbye-reuse-walk-and-look.md 0
 docs/adr/0090-thrown-pet-bounces-on-its-screen-and-walks-home.md 0
 docs/adr/0091-dizzy-is-an-optional-landing-role.md 0
 docs/adr/0092-throws-stay-where-they-land-and-build-anger.md 0
+docs/adr/0093-pet-mood-weights-the-idle-turn-and-the-scenes.md 0
+docs/adr/0094-pet-behavior-block-is-data.md 0
 docs/metrics/runtime-performance/content-transition-window-resizes-2026-10-17.md 0
 docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md 0
 docs/metrics/README.md 0

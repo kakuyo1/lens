@@ -9,8 +9,8 @@
 
 namespace lens::core::pet {
 
-HoverSense::HoverSense(HoverTiming timing_)
-    : timing_{timing_}
+HoverSense::HoverSense(HoverTiming timing_, double gazeRadius_)
+    : timing_{timing_}, gazeRadius_{gazeRadius_}
 {
 }
 
@@ -81,7 +81,7 @@ HoverZone HoverSense::zoneAt(double distance, HoverZone previous) const
         return distance <= threshold + (inside ? kExitMargin : 0.0);
     };
     if (held(kNearRadius, previous == HoverZone::Near)) return HoverZone::Near;
-    if (held(kGazeRadius, previous != HoverZone::Outside)) return HoverZone::Gaze;
+    if (held(gazeRadius_, previous != HoverZone::Outside)) return HoverZone::Gaze;
     return HoverZone::Outside;
 }
 

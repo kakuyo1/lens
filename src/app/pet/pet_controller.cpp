@@ -19,6 +19,7 @@
 #include <QGuiApplication>
 #include <QQmlEngine>
 #include <QScreen>
+#include <QTime>
 #include <QTimer>
 #include <QUrl>
 #include <QWindow>
@@ -52,9 +53,6 @@ using core::pet::Slot;
 constexpr std::chrono::milliseconds kTick{20};
 /// Time between blinks while the pet is awake. The prototype blinks on the same cadence.
 constexpr std::chrono::milliseconds kBlinkEvery{4000};
-/// The wait between two strolls while truly idle: 120 to 300 seconds, counted in idle time (ADR 0076).
-constexpr std::chrono::milliseconds kWanderWaitMin{120'000};
-constexpr std::chrono::milliseconds kWanderWaitMax{300'000};
 /// The ceremony's beats: a moment to stand after the look, a breath between the look and the heart, and one after the
 /// heart before the pet walks out.
 constexpr std::chrono::milliseconds kSettlePause{140};
@@ -62,6 +60,12 @@ constexpr std::chrono::milliseconds kLookToHeart{120};
 constexpr std::chrono::milliseconds kByeToExit{240};
 /// How long a switch keeps the window off screen while the new pet's QML window takes its size.
 constexpr std::chrono::milliseconds kSwapSettle{60};
+/// A reading this long earns the after-reading context: the pet answers a session, not a glance (ADR 0093).
+constexpr std::chrono::milliseconds kLongReading{180'000};
+/// How long after a long reading the after-reading context stays up.
+constexpr std::chrono::milliseconds kReadingAfterglow{120'000};
+/// How long after a stroll ends the after-return context stays up.
+constexpr std::chrono::milliseconds kReturnAfterglow{90'000};
 
 QPoint toPoint(core::pet::Point const& point)
 {
@@ -213,6 +217,7 @@ void PetController::loadPet(std::string const& id)
     wardrobe_.reset();
     hover_.reset();
     setGaze({});
+    behavior_ = {};
     try {
         auto const* entry = catalog_.find(id);
         if (not entry) throw std::runtime_error{"the pet is not in the catalogue: " + id};
@@ -222,29 +227,47 @@ void PetController::loadPet(std::string const& id)
         LENS_ERROR("the desktop pet is off: {}", e.what());
     }
     if (assets_) {
+        behavior_ = assets_->animations.behavior;
         // The idle timer, the scene pick, the strolls and the hide roll draw from one stream. A scene is offered
         // only to a shipped pet: a package may use another canvas size, and the app's props are drawn for 88.
         auto random = [this] { return randomUnit(); };
+        auto mood   = [this] { return currentMood(); };
         auto scenes = [this, id]() -> std::optional<core::pet::ActionName> {
             if (not isShipped(id)) return std::nullopt;
             auto const& playbook = assets_->animations.playbook;
-            auto        choices  = std::vector<core::pet::ActionName>{};
+            struct Choice {
+                core::pet::ActionName name;
+                double                weight;
+            };
+            auto        choices = std::vector<Choice>{};
+            auto const& now     = currentMood();
             for (auto const& scene : scenes_.all())
-                if (playbook.actions.count(scene.id) != 0) choices.push_back(scene.id);
+                if (playbook.actions.count(scene.id) != 0)
+                    choices.push_back({scene.id, core::pet::sceneWeight(scene.mood, now)});
             // A four-scene pool reads as a pool only if the same one does not come straight back.
-            if (choices.size() > 1)
-                std::erase(choices, lastScene_);
+            if (choices.size() > 1) std::erase_if(choices, [this](Choice const& choice) { return choice.name == lastScene_; });
             if (choices.empty()) return std::nullopt;
-            auto const index = std::min(static_cast<std::size_t>(randomUnit() * static_cast<double>(choices.size())),
-                                        choices.size() - 1);
-            lastScene_       = choices[index];
-            return choices[index];
+            // A weighted draw: every scene keeps a chance in every stretch, the weights only tilt it (ADR 0093).
+            auto total = 0.0;
+            for (auto const& choice : choices)
+                total += choice.weight;
+            auto roll   = randomUnit() * total;
+            auto picked = choices.back();
+            for (auto const& choice : choices) {
+                if (roll < choice.weight) {
+                    picked = choice;
+                    break;
+                }
+                roll -= choice.weight;
+            }
+            lastScene_ = picked.name;
+            return picked.name;
         };
-        machine_  = std::make_unique<core::pet::PetStateMachine>(assets_->animations.playbook, random, scenes);
+        machine_  = std::make_unique<core::pet::PetStateMachine>(assets_->animations.playbook, random, scenes, behavior_, mood);
         wardrobe_ = std::make_unique<core::pet::Wardrobe>(assets_->catalogue);
 
         if (auto const& movement = assets_->animations.movement) {
-            wander_          = std::make_unique<PetWander>(gaitOf(movement->style), movement->range, random);
+            wander_          = std::make_unique<PetWander>(gaitOf(movement->style), movement->range, random, behavior_.hideChance);
             auto const& walk = assets_->animations.playbook.actions.at(movement->walk);
             stepDuration_    = std::chrono::milliseconds{walk.frames * 1000 / walk.fps};
             wanderWait_      = nextWanderWait();
@@ -256,7 +279,7 @@ void PetController::loadPet(std::string const& id)
             timing.dwellDelay  = hover->dwellDelay;
             timing.cooldown    = hover->cooldown;
         }
-        hover_ = std::make_unique<core::pet::HoverSense>(timing);
+        hover_ = std::make_unique<core::pet::HoverSense>(timing, behavior_.gazeRadius);
 
         auto const outfit = store_.outfit();
         for (auto const& [slot, worn] : {std::pair{Slot::Head, outfit.head}, std::pair{Slot::Face, outfit.face}, std::pair{Slot::Body, outfit.body}}) {
@@ -283,6 +306,15 @@ PetController* PetController::create(QQmlEngine* engine, QJSEngine* scriptEngine
 
 void PetController::handle(PetEvent event)
 {
+    // The reading's span belongs to the reader, not to the machine: the after-reading context starts when a long
+    // one ends, whatever the pet was busy with meanwhile (ADR 0093).
+    if (event == PetEvent::ExplanationShown) {
+        readingSince_ = std::chrono::steady_clock::now();
+    } else if (event == PetEvent::ExplanationHidden and readingSince_) {
+        if (std::chrono::steady_clock::now() - *readingSince_ >= kLongReading)
+            readingAfterUntil_ = std::chrono::steady_clock::now() + kReadingAfterglow;
+        readingSince_.reset();
+    }
     if (not machine_) return;
     angryRepeatsLeft_ = 0;
     if (flight_) {
@@ -1719,8 +1751,10 @@ bool PetController::beginStep()
 void PetController::startStroll()
 {
     if (not assets_ or not assets_->animations.movement) return;
-    // A pounce is one leap; every other gait takes one or two steps.
-    stepsLeft_ = gaitOf(assets_->animations.movement->style) == Gait::Pounce ? 1 : 1 + (randomUnit() < 0.5 ? 0 : 1);
+    // A pounce is one leap; every other gait takes one to the behavior's step count.
+    stepsLeft_ = gaitOf(assets_->animations.movement->style) == Gait::Pounce
+                     ? 1
+                     : 1 + static_cast<int>(randomUnit() * behavior_.strollSteps);
     if (not beginStep()) finishStroll();
 }
 
@@ -1731,6 +1765,8 @@ void PetController::finishStroll()
     step_.reset();
     hoverPause_ = false;
     wanderWait_ = nextWanderWait();
+    // The walk is over and the pet is back at rest: the after-return context is up (ADR 0093).
+    returnAfterUntil_ = std::chrono::steady_clock::now() + kReturnAfterglow;
 }
 
 void PetController::cancelStroll()
@@ -1794,8 +1830,20 @@ void PetController::refitHiding()
 
 std::chrono::milliseconds PetController::nextWanderWait()
 {
-    auto const spread = static_cast<double>((kWanderWaitMax - kWanderWaitMin).count());
-    return kWanderWaitMin + std::chrono::milliseconds{static_cast<std::chrono::milliseconds::rep>(randomUnit() * spread)};
+    auto const spread = static_cast<double>((behavior_.wanderWaitMax - behavior_.wanderWaitMin).count());
+    return behavior_.wanderWaitMin +
+           std::chrono::milliseconds{static_cast<std::chrono::milliseconds::rep>(randomUnit() * spread)};
+}
+
+core::pet::PetMood PetController::currentMood() const
+{
+    auto       mood          = core::pet::PetMood{};
+    auto const now           = QTime::currentTime();
+    mood.minuteOfDay         = now.hour() * 60 + now.minute();
+    auto const tick          = std::chrono::steady_clock::now();
+    mood.justFinishedReading = tick < readingAfterUntil_;
+    mood.justReturned        = tick < returnAfterUntil_;
+    return mood;
 }
 
 std::chrono::milliseconds PetController::nextPause()

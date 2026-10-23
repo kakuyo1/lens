@@ -54,7 +54,8 @@ pets\<id>\
 - 必须有一个 `blink` 条目（只有表情，没有 sheet）。
 - `idlePool` 只能列单次动作（`loop` 为假）。应用装载时还会把**没被 `roles` 点到的单次动作**补进池子，所以给包加一个新动作就同时给了它一个待机动作；`idlePool` 里写不写同一个名字都行，写了不会重复。循环动作（含带 `duration` 的场景动作）不进池子，只有应用自己的场景抽签能开始它们。
 - `hover` 可选，控制指针靠近时播什么：`notice` 与 `dwell` 是本包已有的**单次**动作名，`dwell` 必须与 `notice` 同时出现；`noticeDelayMs`、`dwellDelayMs`、`cooldownMs` 可选，依次默认 350、2600、8000，范围都是 0–60000。没有 `hover` 的包仍有视线跟随，但没有靠近动作；`hover` 至少要给出 `notice` 或 `dwell` 之一。
-- `movement` 可选，控制宠物空闲时走几步、贴边时躲不躲：`style` 必填，是 `glide` / `float` / `hop` / `trot` / `pounce` 之一；`walk` 必填，是本包已有的**循环**动作名；`peek` 可选，也是本包已有的循环动作名，缺省表示不躲藏；`range` 可选，是窗口宽度的百分比，范围 10–60，默认 30。没有 `movement` 的包保持原地待机；有 `walk` 没有 `peek` 的包只闲逛、不躲藏。走一步的时长等于 `walk` 的自然时长（`frames × 1000 / fps`），躲藏概率与可见比例是应用常数，不写进包。
+- `movement` 可选，控制宠物空闲时走几步、贴边时躲不躲：`style` 必填，是 `glide` / `float` / `hop` / `trot` / `pounce` 之一；`walk` 必填，是本包已有的**循环**动作名；`peek` 可选，也是本包已有的循环动作名，缺省表示不躲藏；`range` 可选，是窗口宽度的百分比，范围 10–60，默认 30。没有 `movement` 的包保持原地待机；有 `walk` 没有 `peek` 的包只闲逛、不躲藏。走一步的时长等于 `walk` 的自然时长（`frames × 1000 / fps`）；可见比例与滑动时长是应用常数，不写进包。
+- `behavior` 可选，决定这只宠物的脾气（`docs/adr/0094`）。每个字段单独可选，缺哪个用哪个的缺省：`idleBaseMs`（待机等待的基数，默认 20 000）、`idleSpreadMs`（待机等待的抖动上限，默认 70 000）、`sceneChance`（待机回合抽场景的概率，默认 1/6）、`napChance`（待机回合打盹的概率，默认 1/12）、`angryClicks`（几次连击生气，默认 3）、`angryWindowMs`（相邻两次点击的最大间隔，默认 2 000）、`wanderWaitMinMs` / `wanderWaitMaxMs`（两次闲逛之间累计空闲的下限与上限，默认 120 000 / 300 000，前者不得大于后者）、`strollSteps`（一次闲逛的最多步数，默认 2；`pounce` 步态永远只走一步）、`hideChance`（闲逛到屏幕边缘时躲藏的概率，默认 0.7）、`gazeRadius`（眼神跟随的距离，单位是画布像素，默认 26，必须大于近圈 16 与出圈余量 4 之和）。没有 `behavior` 的包保持应用缺省脾气。
 - 锚点条目数必须等于该动作的 `frames`。
 - 配饰的 `slot` 只能是 `head` / `face` / `body`，`supportedActions` 只能列本包已有的动作。
 - `anchors.json` 只列有 sheet 的动作。`blink` 只有表情、没有 sheet，所以不列锚点；列了即整只拒绝（`BadAnchors`）。
@@ -75,6 +76,10 @@ pets\<id>\
 | `fps` | 1–24 |
 | `duration` | 1–3 600 000 ms |
 | `hover` 的三个延迟 / 冷却 | 各 0–60 000 ms |
+| `behavior` 的时间字段 | `idleBaseMs` 1 000–600 000；`idleSpreadMs`、`angryWindowMs`、`wanderWaitMinMs`、`wanderWaitMaxMs` 各 0–600 000 |
+| `behavior` 的概率字段 | `sceneChance`、`napChance`、`hideChance` 各 0–1 |
+| `behavior` 的计数字段 | `angryClicks` 1–10；`strollSteps` 1–4 |
+| `behavior.gazeRadius` | 大于 20（近圈与出圈余量之和），至 128 |
 | 动作数 | 32 |
 | 配饰数 | 32 |
 | `idlePool` 条目 | 16 |
@@ -105,7 +110,7 @@ pets\<id>\
 **数值**
 
 6. `format` 必须存在且为 `1`。
-7. `canvas`、`scale`、`frames`、`fps`、动作数、配饰数、`idlePool` 条目、`hover` 的三个延迟与 `movement.range` 均在 §4 范围内；`hover` 的 `notice` / `dwell` 必须是本包已有的单次动作，`dwell` 不能脱离 `notice` 单独出现；`movement.style` 必须在闭集内，`movement.walk` / `peek` 必须是本包已有的循环动作。
+7. `canvas`、`scale`、`frames`、`fps`、动作数、配饰数、`idlePool` 条目、`hover` 的三个延迟、`movement.range` 与 `behavior` 的各字段均在 §4 范围内；`hover` 的 `notice` / `dwell` 必须是本包已有的单次动作，`dwell` 不能脱离 `notice` 单独出现；`movement.style` 必须在闭集内，`movement.walk` / `peek` 必须是本包已有的循环动作；`behavior` 的 `wanderWaitMinMs` 不得大于 `wanderWaitMaxMs`，`gazeRadius` 必须严格大于 20。
 8. 每张 sheet 的像素尺寸等于 `frames × canvas` 宽、`canvas` 高；表情 sheet 高为 `canvas`、宽为 `canvas` 的整数倍。
 9. 每个表情索引（含 `blink` 的表情列表）小于表情 sheet 的格数。
 10. 缩放倍数在 1–4 之内。
@@ -132,7 +137,7 @@ pets\<id>\
 | `TooLarge` | 超过 §4 的任一上限 |
 | `BadName` | `id` 或 `name` 不合规 |
 | `MissingRole` | 必需的动作角色没有映射 |
-| `BadAnimation` | `frames`、`fps`、`loop`、`returnTo`、`idlePool`、`hover`、`movement` 不合规 |
+| `BadAnimation` | `frames`、`fps`、`loop`、`returnTo`、`idlePool`、`hover`、`movement`、`behavior` 不合规 |
 | `BadAnchors` | 锚点缺失或条目数与帧数不符 |
 | `BadAccessory` | 配饰字段不合法、id 重复、槽位未知，或引用了不存在的动作 |
 | `BadAssetType` | 不是 PNG，或魔数与扩展名不符 |
@@ -181,7 +186,7 @@ python -I scripts/pet/render_pet.py <id>
 
 渲染器写出 `data/pet/<id>/`。把它整个目录复制到 `%APPDATA%\Lens\pets\` 下，再打开设置的扩展分类即可看到。`docs/pet-art-pipeline.md` 是完整流程、约束与经验。
 
-自查（应用加载时仍会再查一遍）：`roles` 覆盖 14 个角色（`stretch`、`angry`、`ask` 与 `dizzy` 可省）、`idlePool` 只列单次动作、`returnTo` 指向已映射角色、`duration` 为正数、`hover` 的动作存在且为单次、`hover.dwell` 不脱离 `hover.notice`、`movement.walk` / `peek` 存在且为循环、有 `blink` 条目、锚点条目数等于帧数、sheet 尺寸等于 `frames × canvas`、PNG 魔数正确、路径无 `..`。
+自查（应用加载时仍会再查一遍）：`roles` 覆盖 14 个角色（`stretch`、`angry`、`ask` 与 `dizzy` 可省）、`idlePool` 只列单次动作、`returnTo` 指向已映射角色、`duration` 为正数、`hover` 的动作存在且为单次、`hover.dwell` 不脱离 `hover.notice`、`movement.walk` / `peek` 存在且为循环、`behavior` 的各字段在 §4 范围内、有 `blink` 条目、锚点条目数等于帧数、sheet 尺寸等于 `frames × canvas`、PNG 魔数正确、路径无 `..`。
 
 ## 10。已知边界
 

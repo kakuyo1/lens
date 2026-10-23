@@ -7,6 +7,8 @@
 #include <QPointF>
 #include <QString>
 
+#include "core/domain/pet/pet_mood.h"
+
 /**
  * @file pet_scenes.h
  * @brief The scenes the app ships, read from data/scenes/scenes.json (ADR 0049).
@@ -15,7 +17,8 @@
  * catalogue belongs to the application rather than to a pet package; a pet can play a scene only when its action
  * table names it, which is also how a scene stays exclusive to one pet. Every shipped pet gets four, and the pet is
  * aligned by the feet measured when it loads. A broken catalogue turns scenes off for every pet rather than starting
- * half of one, and says why in the log.
+ * half of one, and says why in the log. A scene may carry an optional mood table (ADR 0093), which weights the idle
+ * lottery by the stretch of day and the after-contexts; without one it weighs as much as any other.
  */
 
 namespace lens::app::pet {
@@ -41,6 +44,8 @@ struct Scene {
     QString                 backSheet;
     QString                 frontSheet;
     std::vector<SceneFrame> perFrame;
+    /// The optional mood table: the weights the idle lottery gives the scene per stretch and context.
+    core::pet::SceneMood mood{};
 };
 
 /// @brief The shipped scene catalogue.

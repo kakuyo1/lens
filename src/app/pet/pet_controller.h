@@ -355,8 +355,10 @@ private:
     void applyPendingPet();
     /// @brief Changes shown() and announces it when it moved.
     void setShown(bool on);
-    /// @return A fresh wait before the next stroll, 120 to 300 seconds.
+    /// @return A fresh wait before the next stroll, from the behavior block.
     std::chrono::milliseconds nextWanderWait();
+    /// @brief The moment now, for the idle turn: the local day stretch and whether an after-context is up (ADR 0093).
+    core::pet::PetMood currentMood() const;
     /// @return How long the pet pauses between two steps, by gait.
     std::chrono::milliseconds nextPause();
     /// @return The work area of the screen nearest `at`, or an invalid rectangle when no screen is attached.
@@ -463,6 +465,13 @@ private:
     PetThrowMood          throwMood_;
     int                   angryRepeatsLeft_{0};
     std::optional<Hiding> hiding_;
+
+    /// The pet's temperament, from its behavior block; the shipped defaults while no pet is loaded.
+    core::pet::BehaviorSpec behavior_{};
+    /// The reading now running, and when each after-context expires (ADR 0093).
+    std::optional<std::chrono::steady_clock::time_point> readingSince_{};
+    std::chrono::steady_clock::time_point                readingAfterUntil_{};
+    std::chrono::steady_clock::time_point                returnAfterUntil_{};
 
     /// Whether the window is on screen. `enabled()` asks for the pet, this says where its window is: a goodbye keeps
     /// it true after the switch has gone off.

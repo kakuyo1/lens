@@ -55,8 +55,8 @@ Gait gaitOf(core::pet::MovementStyle style)
     return Gait::Glide;
 }
 
-PetWander::PetWander(Gait gait, int rangePercent, core::pet::RandomSource random)
-    : gait_{gait}, rangePercent_{rangePercent}, random_{std::move(random)}
+PetWander::PetWander(Gait gait, int rangePercent, core::pet::RandomSource random, double hideChance)
+    : gait_{gait}, rangePercent_{rangePercent}, random_{std::move(random)}, hideChance_{hideChance}
 {
 }
 

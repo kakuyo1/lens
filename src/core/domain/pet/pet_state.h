@@ -10,15 +10,64 @@
 #include <string>
 #include <vector>
 
+#include "core/domain/pet/hover_sense.h"
+#include "core/domain/pet/pet_mood.h"
+
 /**
  * @file pet_state.h
- * @brief The desktop pet's action state machine (PHASE3 3.2, 3.3), playing the actions its data names.
+ * @brief The desktop pet's action state machine (PHASE3 3.2, 3.3), playing the actions its data names, and the
+ *        temperament the data may tune (ADR 0094).
  *
  * Pure logic: no Qt, no timers, no window. The product decides which role the pet is in, from event types; the
  * pet's playbook decides which named action plays that role. The machine never sees text or selections.
  */
 
 namespace lens::core::pet {
+
+/// @name The temperament the data may carry (ADR 0094). These are the defaults the optional `behavior` block
+///       replaces; the constants ADR 0048, 0049, 0076 and 0092 drew as code.
+/// @{
+/// @brief Idle wait before a random action: the base, plus up to kIdleCooldownSpread at random.
+inline constexpr std::chrono::milliseconds kIdleCooldownBase{20'000};
+/// @brief The top of the idle wait's jitter. Wide on purpose: an even cadence reads as a metronome.
+inline constexpr std::chrono::milliseconds kIdleCooldownSpread{70'000};
+/// @brief The chance an idle turn becomes a scene, when the pet has one to offer.
+inline constexpr double kSceneChance{1.0 / 6.0};
+/// @brief The chance an idle turn becomes a yawn and a nap rather than a random action.
+inline constexpr double kNapChance{1.0 / 12.0};
+/// @brief How many clicks in a row make the pet angry, and how far apart two of them may be.
+inline constexpr int                       kAngryClicks{3};
+inline constexpr std::chrono::milliseconds kAngryWindow{2'000};
+/// @brief The wait between two strolls while truly idle: 120 to 300 seconds, counted in idle time (ADR 0076).
+inline constexpr std::chrono::milliseconds kWanderWaitMin{120'000};
+inline constexpr std::chrono::milliseconds kWanderWaitMax{300'000};
+/// @brief The most steps one stroll takes; the draw is 1..steps. A pounce gait still takes exactly one.
+inline constexpr int kStrollSteps{2};
+/// @brief The chance a step that ends on a screen edge becomes a hide.
+inline constexpr double kHideChance{0.7};
+/// @}
+
+/**
+ * @brief The pet's temperament, from animations.json's optional `behavior` block. Every field defaults to the
+ *        constant it replaces, so data without the block behaves exactly as before.
+ *
+ * The machine reads the idle and anger fields; the controller reads the stroll, hide and gaze fields into
+ * PetWander and HoverSense. All of them describe the same pet, so they travel as one block.
+ */
+struct BehaviorSpec {
+    std::chrono::milliseconds idleBase{kIdleCooldownBase};
+    std::chrono::milliseconds idleSpread{kIdleCooldownSpread};
+    double                    sceneChance{kSceneChance};
+    double                    napChance{kNapChance};
+    int                       angryClicks{kAngryClicks};
+    std::chrono::milliseconds angryWindow{kAngryWindow};
+    std::chrono::milliseconds wanderWaitMin{kWanderWaitMin};
+    std::chrono::milliseconds wanderWaitMax{kWanderWaitMax};
+    int                       strollSteps{kStrollSteps};
+    double                    hideChance{kHideChance};
+    /// The eyes' reach in canvas pixels. Must stay beyond the near ring, HoverSense::kNearRadius + kExitMargin.
+    double gazeRadius{HoverSense::kGazeRadius};
+};
 
 /// @brief A situation the product plays a pet through. Closed by the product: a pet chooses the art for each role.
 enum class Role : std::uint8_t {
@@ -99,6 +148,10 @@ using RandomSource = std::function<double()>;
 ///        (only a shipped pet has any) and the machine stays free of the scene catalogue.
 using SceneSource = std::function<std::optional<ActionName>()>;
 
+/// @brief The moment the idle turn runs in, injected so the day stretch and the after-contexts scale the
+///        scene and nap chances (ADR 0093). Empty means no mood: the behavior's own odds, as before.
+using MoodSource = std::function<PetMood()>;
+
 /**
  * @brief Chooses the action the pet plays, from events and elapsed time.
  *
@@ -115,7 +168,8 @@ using SceneSource = std::function<std::optional<ActionName>()>;
  * Idle is not a road to sleep. Every idle turn first rolls for a scene (kSceneChance, ADR 0049); a scene
  * is a looping action whose duration ends it. Miss that, and the turn becomes a nap on kNapChance or an
  * action from the pool. A nap ends by itself after nextNap(), so the pet is never asleep for good. Only
- * the budget's hold on sleep outlasts it (PetEvent::BudgetPaused).
+ * the budget's hold on sleep outlasts it (PetEvent::BudgetPaused). When the app injects a mood, the two
+ * chances are scaled by it (ADR 0093); without one the odds are the behavior's own.
  *
  * A run of kAngryClicks clicks inside kAngryWindow enters the angry action directly, because click_react
  * is usually still playing and a request at the same priority would be dropped. The role is optional.
@@ -124,17 +178,6 @@ using SceneSource = std::function<std::optional<ActionName>()>;
  * from true idle and ends with stopAmbient. Any event wins over it, and the idle clock does not run under it.
  */
 struct PetStateMachine {
-    /// @brief Idle wait before a random action: this base, plus up to kIdleCooldownSpread at random.
-    static constexpr std::chrono::milliseconds kIdleCooldownBase{20'000};
-    /// @brief The top of the idle wait's jitter. Wide on purpose: an even cadence reads as a metronome.
-    static constexpr std::chrono::milliseconds kIdleCooldownSpread{70'000};
-    /// @brief The chance an idle turn becomes a scene, when the pet has one to offer.
-    static constexpr double kSceneChance{1.0 / 6.0};
-    /// @brief The chance an idle turn becomes a yawn and a nap rather than a random action.
-    static constexpr double kNapChance{1.0 / 12.0};
-    /// @brief How many clicks in a row make the pet angry, and how far apart two of them may be.
-    static constexpr int                       kAngryClicks{3};
-    static constexpr std::chrono::milliseconds kAngryWindow{2'000};
     /// @brief How long a nap lasts: drawn per nap between these two.
     static constexpr std::chrono::milliseconds kNapMin{90'000};
     static constexpr std::chrono::milliseconds kNapMax{300'000};
@@ -147,7 +190,13 @@ struct PetStateMachine {
     /// @param random Random source in [0, 1).
     /// @param scenes What scenes the pet can play, read only on the idle turn's scene roll. Empty for a pet with
     ///        no scenes, which leaves the turn to the nap and pool below.
-    PetStateMachine(Playbook playbook, RandomSource const& random, SceneSource const& scenes = {});
+    /// @param behavior The pet's temperament. Absent fields are already at the shipped defaults.
+    /// @param mood Where the moment comes from, read only on the idle turn. Empty keeps the behavior's own odds.
+    PetStateMachine(Playbook            playbook,
+                    RandomSource const& random,
+                    SceneSource const&  scenes   = {},
+                    BehaviorSpec        behavior = {},
+                    MoodSource const&   mood     = {});
 
     /// @return The name of the action being played now.
     ActionName const& action() const
@@ -248,6 +297,8 @@ private:
     Playbook     playbook;
     RandomSource random;
     SceneSource  scenes;
+    BehaviorSpec behavior;
+    MoodSource   mood;
     ActionName   current;
     /// The role the current action plays. Empty when the idle timer picked it from the pool.
     std::optional<Role> currentRole;

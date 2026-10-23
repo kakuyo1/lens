@@ -34,6 +34,9 @@ point is a cell centre, (x + 0.5, y + 0.5) for cell (x, y).
                      to animations.json; the app uses them for the proximity greeting and fuller reaction.
   movement           Optional: {style, walk, peek?, range?}. Copied to animations.json. Both action names must loop;
                      the pet walks while idle and hides at a screen edge only when `peek` is present.
+  behavior           Optional temperament block, copied to animations.json verbatim: {idleBaseMs, idleSpreadMs,
+                     sceneChance, napChance, angryClicks, angryWindowMs, wanderWaitMinMs, wanderWaitMaxMs,
+                     strollSteps, hideChance, gazeRadius}. Omitted fields keep the app's shipped defaults.
   actions            name -> {fps, loop, blink?, returnTo?, duration?, bodyFrom?, paint?, frames}. Each item of
                      `frames` is one frame. `duration`, in milliseconds, ends a looping action when it runs out.
                      `bodyFrom` names an action already earlier in the document whose body sheet and anchors this
@@ -319,6 +322,8 @@ def main():
         animations["hover"] = recipe["hover"]
     if "movement" in recipe:
         animations["movement"] = recipe["movement"]
+    if "behavior" in recipe:
+        animations["behavior"] = recipe["behavior"]
     animations["actions"] = {}
     anchors = {"actions": {}}
     rendered = {}

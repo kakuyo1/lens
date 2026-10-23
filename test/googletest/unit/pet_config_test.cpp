@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <limits>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -583,6 +584,115 @@ TEST(PetConfig, ASceneStaysOutOfTheIdlePool)
     document["actions"]["swing"] = {{"frames", 8}, {"fps", 8}, {"loop", true}, {"duration", 24000}};
     auto const playbook          = parseAnimations(document).playbook;
     EXPECT_EQ(std::find(playbook.idlePool.begin(), playbook.idlePool.end(), "swing"), playbook.idlePool.end());
+}
+
+TEST(PetConfig, BehaviorIsOptionalAndDefaults)
+{
+    // A package written before the behavior block existed keeps today's temperament (ADR 0094).
+    using namespace std::chrono_literals;
+    auto const animations = parseAnimations(animationsDocument());
+    EXPECT_EQ(animations.behavior.idleBase, 20s);
+    EXPECT_EQ(animations.behavior.idleSpread, 70s);
+    EXPECT_DOUBLE_EQ(animations.behavior.sceneChance, lens::core::pet::kSceneChance);
+    EXPECT_DOUBLE_EQ(animations.behavior.napChance, lens::core::pet::kNapChance);
+    EXPECT_EQ(animations.behavior.angryClicks, 3);
+    EXPECT_EQ(animations.behavior.angryWindow, 2s);
+    EXPECT_EQ(animations.behavior.wanderWaitMin, 120s);
+    EXPECT_EQ(animations.behavior.wanderWaitMax, 300s);
+    EXPECT_EQ(animations.behavior.strollSteps, 2);
+    EXPECT_DOUBLE_EQ(animations.behavior.hideChance, 0.7);
+    EXPECT_DOUBLE_EQ(animations.behavior.gazeRadius, lens::core::pet::HoverSense::kGazeRadius);
+}
+
+TEST(PetConfig, ParsesTheBehaviorBlock)
+{
+    using namespace std::chrono_literals;
+    auto document        = animationsDocument();
+    document["behavior"] = {
+        {"idleBaseMs", 12000},
+        {"idleSpreadMs", 45000},
+        {"sceneChance", 0.2},
+        {"napChance", 0.05},
+        {"angryClicks", 4},
+        {"angryWindowMs", 2500},
+        {"wanderWaitMinMs", 90000},
+        {"wanderWaitMaxMs", 210000},
+        {"strollSteps", 3},
+        {"hideChance", 0.5},
+        {"gazeRadius", 30.0},
+    };
+    auto const behavior = parseAnimations(document).behavior;
+    EXPECT_EQ(behavior.idleBase, 12s);
+    EXPECT_EQ(behavior.idleSpread, 45s);
+    EXPECT_DOUBLE_EQ(behavior.sceneChance, 0.2);
+    EXPECT_DOUBLE_EQ(behavior.napChance, 0.05);
+    EXPECT_EQ(behavior.angryClicks, 4);
+    EXPECT_EQ(behavior.angryWindow, 2500ms);
+    EXPECT_EQ(behavior.wanderWaitMin, 90s);
+    EXPECT_EQ(behavior.wanderWaitMax, 210s);
+    EXPECT_EQ(behavior.strollSteps, 3);
+    EXPECT_DOUBLE_EQ(behavior.hideChance, 0.5);
+    EXPECT_DOUBLE_EQ(behavior.gazeRadius, 30.0);
+}
+
+TEST(PetConfig, BehaviorOmittedFieldsKeepTheDefaults)
+{
+    // A block tuning one knob does not have to repeat the rest.
+    using namespace std::chrono_literals;
+    auto document        = animationsDocument();
+    document["behavior"] = {{"napChance", 0.2}};
+    auto const behavior  = parseAnimations(document).behavior;
+    EXPECT_DOUBLE_EQ(behavior.napChance, 0.2);
+    EXPECT_EQ(behavior.idleBase, 20s);
+    EXPECT_EQ(behavior.strollSteps, 2);
+    EXPECT_DOUBLE_EQ(behavior.gazeRadius, lens::core::pet::HoverSense::kGazeRadius);
+}
+
+TEST(PetConfig, BehaviorStaysWithinItsBounds)
+{
+    auto       document = animationsDocument();
+    auto const refuse   = [&document] { return parseAnimations(document).behavior; };
+
+    document["behavior"] = {{"idleBaseMs", 999}};
+    EXPECT_THROW(refuse(), std::runtime_error);
+    document["behavior"] = {{"idleBaseMs", 600001}};
+    try {
+        refuse();
+        FAIL() << "an idle base above the limit must be refused";
+    } catch (lens::core::pet::Refused const& refused) {
+        EXPECT_EQ(refused.reason(), lens::core::pet::Refusal::TooLarge);
+    }
+    document["behavior"] = {{"idleSpreadMs", -1}};
+    EXPECT_THROW(refuse(), std::runtime_error);
+    document["behavior"] = {{"sceneChance", 1.5}};
+    EXPECT_THROW(refuse(), std::runtime_error);
+    document["behavior"] = {{"napChance", -0.1}};
+    EXPECT_THROW(refuse(), std::runtime_error);
+    document["behavior"] = {{"angryClicks", 0}};
+    EXPECT_THROW(refuse(), std::runtime_error);
+    document["behavior"] = {{"angryClicks", 11}};
+    EXPECT_THROW(refuse(), std::runtime_error);
+    document["behavior"] = {{"strollSteps", 5}};
+    EXPECT_THROW(refuse(), std::runtime_error);
+    document["behavior"] = {{"hideChance", 1.01}};
+    EXPECT_THROW(refuse(), std::runtime_error);
+    document["behavior"] = {{"gazeRadius", 20.0}};
+    // The eyes' reach must stay beyond the near ring and its exit margin.
+    EXPECT_THROW(refuse(), std::runtime_error);
+    document["behavior"] = {{"gazeRadius", 129.0}};
+    EXPECT_THROW(refuse(), std::runtime_error);
+    document["behavior"] = {{"wanderWaitMinMs", 300000}, {"wanderWaitMaxMs", 120000}};
+    EXPECT_THROW(refuse(), std::runtime_error);
+    document["behavior"] = {{"sceneChance", std::numeric_limits<double>::infinity()}};
+    EXPECT_THROW(refuse(), std::runtime_error);
+
+    // The edges themselves are legal.
+    document["behavior"] = {{"idleBaseMs", 1000}, {"idleSpreadMs", 0}, {"sceneChance", 0.0}, {"napChance", 1.0}, {"strollSteps", 1}, {"gazeRadius", 20.5}};
+    auto const behavior  = refuse();
+    EXPECT_EQ(behavior.idleBase, std::chrono::milliseconds{1000});
+    EXPECT_DOUBLE_EQ(behavior.sceneChance, 0.0);
+    EXPECT_EQ(behavior.strollSteps, 1);
+    EXPECT_DOUBLE_EQ(behavior.gazeRadius, 20.5);
 }
 
 } // namespace

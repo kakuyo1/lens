@@ -5,6 +5,7 @@
 
 #include "app/pet/pet_scenes.h"
 
+#include <cmath>
 #include <cstdint>
 #include <fstream>
 #include <stdexcept>
@@ -22,6 +23,22 @@ namespace lens::app::pet {
 namespace {
 
 using nlohmann::json;
+
+/// The top weight one mood entry may carry: above it one scene would starve the rest of the pool.
+constexpr double kMaxSceneWeight{10.0};
+
+/// @return `entry[key]` as a lottery weight in (0, kMaxSceneWeight], or 1 when the key is absent.
+double moodWeightOf(json const& entry, char const* key, std::string const& owner)
+{
+    if (not entry.contains(key)) return 1.0;
+    if (not entry.at(key).is_number()) throw std::runtime_error{owner + "." + key + " must be a number"};
+    auto const weight = entry.at(key).get<double>();
+    if (not std::isfinite(weight) or weight <= 0.0)
+        throw std::runtime_error{owner + "." + key + " must be a positive weight"};
+    if (weight > kMaxSceneWeight)
+        throw std::runtime_error{owner + "." + key + " is above " + std::to_string(kMaxSceneWeight)};
+    return weight;
+}
 
 /// @return `entry[key]` as a number. Refuses a missing or non-numeric value, naming `owner`.
 double numberOf(json const& entry, char const* key, std::string const& owner)
@@ -116,6 +133,19 @@ PetScenes PetScenes::load(std::filesystem::path const& directory)
                     .dx    = numberOf(frame, "dx", owner),
                     .dy    = numberOf(frame, "dy", owner),
                 });
+            }
+
+            // The mood table is optional as a whole and entry by entry (ADR 0093): a scene without one weighs
+            // as much as any other, an entry left out keeps 1.
+            if (entry.contains("mood")) {
+                auto const& moodEntry = entry.at("mood");
+                if (not moodEntry.is_object()) throw std::runtime_error{owner + ".mood must be an object"};
+                scene.mood.morning      = moodWeightOf(moodEntry, "morning", owner);
+                scene.mood.afternoon    = moodWeightOf(moodEntry, "afternoon", owner);
+                scene.mood.evening      = moodWeightOf(moodEntry, "evening", owner);
+                scene.mood.night        = moodWeightOf(moodEntry, "night", owner);
+                scene.mood.afterReading = moodWeightOf(moodEntry, "afterReading", owner);
+                scene.mood.afterReturn  = moodWeightOf(moodEntry, "afterReturn", owner);
             }
             scenes.push_back(std::move(scene));
         }

@@ -83,12 +83,14 @@ struct MovementSpec {
 };
 
 /// @brief What animations.json holds: the playbook for the state machine, the blink on the expression layer, the
-///        optional hover reactions, and the optional movement block.
+///        optional hover reactions, the optional movement block, and the temperament (ADR 0094).
 struct Animations {
     Playbook                    playbook;
     ActionSpec                  blink;
     std::optional<HoverSpec>    hover;
     std::optional<MovementSpec> movement;
+    /// The temperament. Always present: the shipped defaults when the document has no behavior block.
+    BehaviorSpec behavior;
 };
 
 /// @brief Anchors for every action, one entry per frame.
@@ -118,7 +120,8 @@ PetDocument parsePetDocument(nlohmann::json const& document);
  * document maps. `blink: true` on an action marks it as blinking. `hover` is optional: it names the one-shot actions a
  * near hold plays (`notice`, then `dwell`), with optional `noticeDelayMs`, `dwellDelayMs` and `cooldownMs`; a dwell
  * needs a notice, and both actions must be one-shot. `movement` is optional: it names the gait, a looping `walk`
- * action, an optional looping `peek` action, and a radius of 10 to 60 percent of the window width.
+ * action, an optional looping `peek` action, and a radius of 10 to 60 percent of the window width. `behavior` is
+ * optional: every field it omits keeps the shipped temperament constant it replaces.
  *
  * The pool the playbook carries is the document's list plus every one-shot action no role names, in
  * document order then by name. Those are the actions nothing else can reach, so a pet that gains one

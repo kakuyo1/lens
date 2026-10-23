@@ -3155,5 +3155,15 @@
     "walk": "walk",
     "peek": "edge_peek",
     "range": 36
+  },
+  "behavior": {
+    "idleBaseMs": 15000,
+    "idleSpreadMs": 60000,
+    "sceneChance": 0.2,
+    "napChance": 0.15,
+    "hideChance": 0.8,
+    "wanderWaitMinMs": 90000,
+    "wanderWaitMaxMs": 240000,
+    "gazeRadius": 22
   }
 }

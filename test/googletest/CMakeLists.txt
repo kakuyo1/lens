@@ -52,6 +52,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/util_test.cpp
   unit/capture_test.cpp
   unit/pet_state_test.cpp
+  unit/pet_mood_test.cpp
   unit/pet_hover_test.cpp
   unit/pet_config_test.cpp
   unit/pet_accessory_test.cpp

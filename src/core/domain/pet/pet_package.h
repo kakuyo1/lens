@@ -72,6 +72,12 @@ constexpr int kMaxIdlePool     = 16;
 /// leaves the area its home implies and the walk reads as aimless.
 constexpr int kMinMovementRange = 10;
 constexpr int kMaxMovementRange = 60;
+/// The behavior block's time fields, in milliseconds. Ten minutes is past any wait a reader sits through.
+constexpr int kMinIdleBaseMs = 1'000;
+constexpr int kMaxBehaviorMs = 600'000;
+/// The behavior block's count fields: one click cannot be a run, four steps is a walk already.
+constexpr int kMaxAngryClicks = 10;
+constexpr int kMaxStrollSteps = 4;
 /// Longest declared side of a sheet, width or height: 64 frames of 128 px is 8192, so a sheet of any valid pet fits.
 constexpr int kMaxSheetSide       = 8192;
 constexpr int kMaxExpressionCells = 64;

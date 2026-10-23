@@ -12,8 +12,16 @@
 
 namespace lens::core::pet {
 
-PetStateMachine::PetStateMachine(Playbook playbook_, RandomSource const& random_, SceneSource const& scenes_)
-    : playbook{std::move(playbook_)}, random{random_}, scenes{scenes_}
+PetStateMachine::PetStateMachine(Playbook            playbook_,
+                                 RandomSource const& random_,
+                                 SceneSource const&  scenes_,
+                                 BehaviorSpec        behavior_,
+                                 MoodSource const&   mood_)
+    : playbook{std::move(playbook_)},
+      random{random_},
+      scenes{scenes_},
+      behavior{std::move(behavior_)},
+      mood{mood_}
 {
     enterRole(Role::Idle, Priority::Idle);
 }
@@ -48,11 +56,11 @@ void PetStateMachine::handle(PetEvent event)
             return;
         case PetEvent::Click:
             if (dragging) return;
-            // The third click in a row goes straight to anger: by then click_react is usually playing,
+            // The last click of a run goes straight to anger: by then click_react is usually playing,
             // and an ordinary request at the same priority would be dropped.
-            clicks     = sinceClick < kAngryWindow ? clicks + 1 : 1;
+            clicks     = sinceClick < behavior.angryWindow ? clicks + 1 : 1;
             sinceClick = std::chrono::milliseconds{0};
-            if (clicks >= kAngryClicks and playbook.roles.count(Role::Angry) != 0) {
+            if (clicks >= behavior.angryClicks and playbook.roles.count(Role::Angry) != 0) {
                 clicks = 0;
                 enterRole(Role::Angry, Priority::Click);
                 return;
@@ -185,12 +193,20 @@ void PetStateMachine::advance(std::chrono::milliseconds step)
 void PetStateMachine::takeIdleTurn()
 {
     // The idle timer owns the Idle state, so its pick is scheduled rather than requested and does not
-    // go through play()'s ladder: nothing can be playing but the idle loop itself.
-    auto const scene = random() < kSceneChance and scenes ? scenes() : std::nullopt;
+    // go through play()'s ladder: nothing can be playing but the idle loop itself. The mood scales both
+    // rolls when the app injects one; without it the behavior's own odds stand (ADR 0093).
+    auto sceneFactor = 1.0;
+    auto napFactor   = 1.0;
+    if (mood) {
+        auto const now = mood();
+        sceneFactor    = moodSceneFactor(now);
+        napFactor      = moodNapFactor(now);
+    }
+    auto const scene = random() < behavior.sceneChance * sceneFactor and scenes ? scenes() : std::nullopt;
     if (scene and playbook.actions.count(*scene) != 0) {
         // A scene has no role: it is a looping action with a duration, and the duration is what ends it.
         enter(*scene, std::nullopt, Priority::Situational);
-    } else if (random() < kNapChance) {
+    } else if (random() < behavior.napChance * napFactor) {
         request(Role::Yawn, Priority::Situational);
     } else if (auto const pick = pickRandomIdle()) {
         enter(*pick, std::nullopt, Priority::Idle);
@@ -292,8 +308,9 @@ std::optional<ActionName> PetStateMachine::pickRandomIdle()
 
 std::chrono::milliseconds PetStateMachine::nextIdleWait()
 {
-    auto const jitter = static_cast<std::chrono::milliseconds::rep>(random() * static_cast<double>(kIdleCooldownSpread.count()));
-    return kIdleCooldownBase + std::chrono::milliseconds{jitter};
+    auto const jitter = static_cast<std::chrono::milliseconds::rep>(
+        random() * static_cast<double>(behavior.idleSpread.count()));
+    return behavior.idleBase + std::chrono::milliseconds{jitter};
 }
 
 std::chrono::milliseconds PetStateMachine::nextNap()
