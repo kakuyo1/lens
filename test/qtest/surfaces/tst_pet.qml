@@ -70,6 +70,16 @@ Item {
             compare(passthrough.interactive, true);
         }
 
+        /// The landing's optional action is in the same row as the other roles, under its own label.
+        function test_theDizzyRoleHasAChip() {
+            Pet.setEnabled(true);
+            const page = createTemporaryObject(pageComponent, host.contentItem);
+            waitForRendering(host.contentItem);
+            const chips = Util.findAll(page, function (o) { return o.modelData === "dizzy"; });
+            compare(chips.length, 1, "the dizzy landing is not in the actions row");
+            verify(chips[0].label !== "", "the dizzy chip has no label");
+        }
+
         /// The sign action is one of the Actions chips, and its row is captured on its own, since the panel snapshot
         /// above is cut off above the Actions group.
         function test_theSignActionIsAChipInTheActionsRow() {

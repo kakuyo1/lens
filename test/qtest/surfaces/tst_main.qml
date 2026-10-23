@@ -444,9 +444,9 @@ Item {
             Pet.setEnabled(false);
         }
 
-        /// A throw is a window-level behaviour: the pet leaves the ground, lands, plays its poke reaction and walks
-        /// back to the home it was picked up from. A still release stays the ordinary drop (ADR 0090).
-        function test_aThrowLandsAndWalksBackHome() {
+        /// A throw is a window-level behaviour: the pet leaves the ground, lands, plays its dizzy reaction and stays
+        /// at the landing spot, which becomes home. A still release stays the ordinary drop (ADR 0090, 0092).
+        function test_aThrowLandsAndStaysThere() {
             const main = make();
             const petWindow = panel(main, "PetWindow");
             Pet.setEnabled(true);
@@ -469,12 +469,17 @@ Item {
             wait(80);
             verify(petWindow.x !== launched.x || petWindow.y !== launched.y, "the thrown window did not move");
 
-            // The landing reaction and the walk home are over: the pet is idle again at its home spot.
-            tryVerify(() => Pet.action === "idle"
-                      && Math.abs(petWindow.x - home.x) <= 2
-                      && Math.abs(petWindow.y - home.y) <= 2, 9000,
-                      "the pet did not land and walk home: at " + petWindow.x + "," + petWindow.y
-                      + " instead of " + home.x + "," + home.y);
+            // The dog ships the optional dizzy art, so the landing is the stars rather than the poke reaction.
+            tryVerify(() => Pet.action === "dizzy", 6000, "the landing did not play the dizzy action");
+
+            // The landing is the new home: once the daze is over the pet stays on the spot it landed on.
+            const landed = Qt.point(petWindow.x, petWindow.y);
+            tryVerify(() => Pet.action === "idle", 6000, "the landing did not finish");
+            tryVerify(() => Math.abs(petWindow.x - landed.x) <= 2
+                      && Math.abs(petWindow.y - landed.y) <= 2, 1000,
+                      "the pet moved after landing: at " + petWindow.x + "," + petWindow.y
+                      + " instead of " + landed.x + "," + landed.y);
+            verify(landed.x !== home.x || landed.y !== home.y, "the throw landed on the old home");
 
             // A still release is the old drop path: the controller refuses it and the caller saves the spot.
             Pet.dragStart();

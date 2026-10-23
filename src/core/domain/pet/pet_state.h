@@ -37,6 +37,9 @@ enum class Role : std::uint8_t {
     Angry,
     /// Optional like angry: a pet without the art shows the review sign with no pose (ADR 0050).
     Ask,
+    /// Optional like angry: the landing after a throw plays this when the pet has it, and click_react when it does not
+    /// (ADR 0091).
+    Dizzy,
 };
 
 /// @brief The name an action has in its pet's data, such as "study" or "wobble". The machine does not interpret it.

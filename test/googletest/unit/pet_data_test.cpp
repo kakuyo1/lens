@@ -51,9 +51,9 @@ TEST(PetData, AnimationsLoadAndCarryTheBlink)
 {
     auto const animations = parseAnimations(load("animations.json"));
 
-    // The thirteen role actions (angry and ask included), the three idle extras no role names, the four scenes,
-    // and the walk and edge-peek loops.
-    EXPECT_EQ(animations.playbook.actions.size(), 22u);
+    // The fourteen role actions (angry, ask and dizzy included), the three idle extras no role names, the four
+    // scenes, and the walk and edge-peek loops.
+    EXPECT_EQ(animations.playbook.actions.size(), 23u);
     EXPECT_EQ(animations.blink.frames, 3);
     EXPECT_FALSE(animations.blink.loop);
 }
@@ -62,9 +62,9 @@ TEST(PetData, EveryRoleAndTheIdlePoolArePlayable)
 {
     auto const playbook = parseAnimations(load("animations.json")).playbook;
 
-    // The dog maps every role, stretch, angry and ask included. Its pool is the document's list followed by
+    // The dog maps every role, stretch, angry, ask and dizzy included. Its pool is the document's list followed by
     // every action no role names, which the loader adds by name.
-    EXPECT_EQ(playbook.roles.size(), 13u);
+    EXPECT_EQ(playbook.roles.size(), 14u);
     EXPECT_EQ(playbook.idlePool, (std::vector<std::string>{"look_around", "stretch", "scratch", "sniff", "wag"}));
 }
 
@@ -108,6 +108,21 @@ TEST(PetData, TheAskActionIsAPoseAndDrawsNoEffect)
 
     EXPECT_TRUE(ask.effect.isEmpty());
     EXPECT_FALSE(ask.body.isEmpty());
+}
+
+TEST(PetData, EveryShippedPetHasTheDizzyLandingWithStars)
+{
+    for (auto const& entry : std::filesystem::directory_iterator{std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet"}) {
+        if (not entry.is_directory()) continue;
+        auto const animations = parseAnimations(loadAt(entry.path(), "animations.json"));
+        ASSERT_EQ(animations.playbook.roles.count(lens::core::pet::Role::Dizzy), 1u) << entry.path().filename().string();
+
+        auto const name   = animations.playbook.roles.at(lens::core::pet::Role::Dizzy);
+        auto const assets = lens::app::pet::PetAssets::load(entry.path());
+        EXPECT_FALSE(assets.sheets.at(name).body.isEmpty()) << name;
+        EXPECT_FALSE(assets.sheets.at(name).effect.isEmpty()) << name << " has no star sheet";
+        EXPECT_FALSE(animations.playbook.actions.at(name).loop) << name;
+    }
 }
 
 TEST(PetData, EveryShippedPetWalksAndPeeks)

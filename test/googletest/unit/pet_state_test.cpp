@@ -810,4 +810,17 @@ TEST(PetStateMachine, AnAnswerGivenDuringADragReleasesToIdle)
     EXPECT_EQ(machine.action(), "idle");
 }
 
+TEST(PetStateMachine, AnOptionalDizzyGesturePlaysWhenThePetHasIt)
+{
+    auto playbook               = dogPlaybook();
+    playbook.actions["dizzy"]   = playback(6, 6, false);
+    playbook.roles[Role::Dizzy] = "dizzy";
+    PetStateMachine machine{playbook, RandomSource{[] { return kFidgets; }}};
+
+    ASSERT_TRUE(machine.playRole(Role::Dizzy));
+    EXPECT_EQ(machine.action(), "dizzy");
+    machine.advance(1s);
+    EXPECT_EQ(machine.action(), "idle");
+}
+
 } // namespace

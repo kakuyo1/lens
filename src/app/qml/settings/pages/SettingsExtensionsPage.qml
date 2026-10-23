@@ -89,6 +89,7 @@ Item {
         case "mochi_grill": return qsTranslate("SettingsPopup", "Roasted mochi");
         case "owl_stargazing": return qsTranslate("SettingsPopup", "Stargazing");
         case "owl_books": return qsTranslate("SettingsPopup", "Book nook");
+        case "dizzy": return qsTranslate("SettingsPopup", "Dizzy");
         default: return id;
         }
     }

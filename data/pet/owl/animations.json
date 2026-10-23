@@ -12,7 +12,8 @@
     "yawn": "yawn",
     "stretch": "stretch",
     "angry": "angry",
-    "ask": "ask"
+    "ask": "ask",
+    "dizzy": "dizzy"
   },
   "idlePool": [
     "look_around",
@@ -412,6 +413,30 @@
         0
       ],
       "sheet": "sprites/body/owl_books.png"
+    },
+    "dizzy": {
+      "frames": 15,
+      "fps": 6,
+      "loop": false,
+      "expressions": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "sheet": "sprites/body/dizzy.png",
+      "effect": "sprites/effects/dizzy.png"
     }
   }
 }

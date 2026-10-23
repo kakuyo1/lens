@@ -85,6 +85,8 @@ PALETTE = {
     "mist": (211, 216, 226, 255),
     "aqua": (175, 201, 199, 255),
     "dust": (143, 166, 184, 255),
+    # The dizzy landing's stars. An effect colour, not a body accent; it is the only warm yellow in the set.
+    "gold": (245, 192, 66, 255),
 }
 INK = PALETTE["ink"]
 FUR = PALETTE["fur"]

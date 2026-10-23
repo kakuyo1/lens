@@ -28,7 +28,8 @@
         "walk",
         "edge_peek",
         "ghost_lantern",
-        "ghost_mirror"
+        "ghost_mirror",
+        "dizzy"
       ]
     },
     {
@@ -59,7 +60,8 @@
         "walk",
         "edge_peek",
         "ghost_lantern",
-        "ghost_mirror"
+        "ghost_mirror",
+        "dizzy"
       ]
     },
     {
@@ -90,7 +92,8 @@
         "walk",
         "edge_peek",
         "ghost_lantern",
-        "ghost_mirror"
+        "ghost_mirror",
+        "dizzy"
       ]
     },
     {
@@ -121,7 +124,8 @@
         "walk",
         "edge_peek",
         "ghost_lantern",
-        "ghost_mirror"
+        "ghost_mirror",
+        "dizzy"
       ]
     },
     {
@@ -152,7 +156,8 @@
         "walk",
         "edge_peek",
         "ghost_lantern",
-        "ghost_mirror"
+        "ghost_mirror",
+        "dizzy"
       ]
     },
     {
@@ -183,7 +188,8 @@
         "walk",
         "edge_peek",
         "ghost_lantern",
-        "ghost_mirror"
+        "ghost_mirror",
+        "dizzy"
       ]
     },
     {
@@ -214,7 +220,8 @@
         "walk",
         "edge_peek",
         "ghost_lantern",
-        "ghost_mirror"
+        "ghost_mirror",
+        "dizzy"
       ]
     },
     {
@@ -245,7 +252,8 @@
         "walk",
         "edge_peek",
         "ghost_lantern",
-        "ghost_mirror"
+        "ghost_mirror",
+        "dizzy"
       ]
     },
     {
@@ -276,7 +284,8 @@
         "walk",
         "edge_peek",
         "ghost_lantern",
-        "ghost_mirror"
+        "ghost_mirror",
+        "dizzy"
       ]
     }
   ]

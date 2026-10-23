@@ -548,6 +548,18 @@ TEST(PetConfig, TheReviewSignRoleIsOptional)
     EXPECT_EQ(playbook.roles.at(Role::Ask), "ask");
 }
 
+TEST(PetConfig, TheDizzyRoleIsOptional)
+{
+    // A package written before the landing reaction existed keeps loading; its throws land on click_react instead.
+    auto document = animationsDocument();
+    EXPECT_NO_THROW(parseAnimations(document));
+
+    document["actions"]["dizzy"] = {{"frames", 6}, {"fps", 6}, {"loop", false}};
+    document["roles"]["dizzy"]   = "dizzy";
+    auto const playbook          = parseAnimations(document).playbook;
+    EXPECT_EQ(playbook.roles.at(Role::Dizzy), "dizzy");
+}
+
 TEST(PetConfig, ADurationMarksHowLongALoopingActionRuns)
 {
     using namespace std::chrono_literals;

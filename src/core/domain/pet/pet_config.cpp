@@ -28,9 +28,10 @@ struct NamedRole {
     bool             required;
 };
 
-/// Role names as they appear in the data files. Stretch, angry and ask are optional (PHASE3 3.1, ADR 0049, ADR 0050):
-/// a pet without the art simply never stretches, never gets angry, or shows the review sign with no pose.
-constexpr std::array<NamedRole, 13> kNamedRoles{{
+/// Role names as they appear in the data files. Stretch, angry, ask and dizzy are optional (PHASE3 3.1, ADR 0049,
+/// ADR 0050, ADR 0091): a pet without the art simply never stretches, never gets angry, shows the review sign with no
+/// pose, or lands from a throw with click_react instead of dizzy.
+constexpr std::array<NamedRole, 14> kNamedRoles{{
     {"idle", Role::Idle, true},
     {"study", Role::Study, true},
     {"thinking", Role::Thinking, true},
@@ -44,6 +45,7 @@ constexpr std::array<NamedRole, 13> kNamedRoles{{
     {"stretch", Role::Stretch, false},
     {"angry", Role::Angry, false},
     {"ask", Role::Ask, false},
+    {"dizzy", Role::Dizzy, false},
 }};
 
 /// @return The role with this name in the data files, or nothing.
