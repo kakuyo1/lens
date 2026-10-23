@@ -20,10 +20,10 @@
 #    rule and names every exemption, docs/adr/0006 the reasoning. That rule is about what ships,
 #    so test/ is out of scope: several fixtures exist to refuse a machine path, and naming one is
 #    the assertion. See the exemption's own note in config/README.md.
-# 6. Font weights. UI.md section 3.2 allows two weights, 400 and 700. A named or numeric weight
+# 6. Font weights. DESIGN.md section 3.2 allows two weights, 400 and 700. A named or numeric weight
 #    outside those in a .qml file is caught here.
-# 7. Phase labels. UI.md and ui-prototypes/ do not name a development phase.
-# 8. Chinese in code. UI.md's i18n section keeps code English; the one Chinese fixture is in test/.
+# 7. Phase labels. DESIGN.md, UI-SPEC.md and ui-prototypes/ do not name a development phase.
+# 8. Chinese in code. DESIGN.md's i18n section keeps code English; the one Chinese fixture is in test/.
 # 9. File headers. Every src/ C++ file opens with a /** @file block (AGENTS.md, Code Style).
 # 10. QML size. QML.md section 1 caps a .qml file at 32768 characters.
 # 11. API keys. A key-shaped string in a staged file is refused, and only its line number is
@@ -79,7 +79,8 @@ docs/history/PHASE3.md 0
 PRODUCT.md 0
 TEST.md 0
 TODO.md 0
-UI.md 0
+DESIGN.md 0
+UI-SPEC.md 0
 docs/QML.md 0
 docs/README.md 0
 docs/adr/README.md 0
@@ -453,7 +454,7 @@ check_absolute_paths() {
     return 1
 }
 
-# UI.md section 3.2: two font weights, Normal (400) and Bold (700). Font.DemiBold, Font.SemiBold
+# DESIGN.md section 3.2: two font weights, Normal (400) and Bold (700). Font.DemiBold, Font.SemiBold
 # and the other named weights, or a numeric font.weight, all break that.
 check_font_weights() {
     files=$(staged_matching '*.qml')
@@ -461,13 +462,13 @@ check_font_weights() {
 
     scan 'Font\.(Thin|ExtraLight|Light|Medium|SemiBold|DemiBold|ExtraBold|Black)\b|font\.weight\s*:\s*[0-9]' \
         "pre-commit: " " uses a font weight other than 400 or 700" \
-        "  UI.md section 3.2 allows Normal and Bold only" $files || return 1
+        "  DESIGN.md section 3.2 allows Normal and Bold only" $files || return 1
     return 0
 }
 
-# UI.md and the prototypes describe the product, and a product surface names no development phase.
+# DESIGN.md, UI-SPEC.md and the prototypes describe the product, and a product surface names no development phase.
 check_phase_labels() {
-    files=$(staged_matching 'UI.md|ui-prototypes/*')
+    files=$(staged_matching 'DESIGN.md|UI-SPEC.md|ui-prototypes/*')
     [ -n "$files" ] || return 0
 
     scan '阶段[一二三四五六七八九十0-9]|PHASE-?[0-9]' \
@@ -476,7 +477,7 @@ check_phase_labels() {
     return 0
 }
 
-# UI.md's i18n section: code is English, and every string goes through tr(). The one Chinese
+# DESIGN.md's i18n section: code is English, and every string goes through tr(). The one Chinese
 # fixture lives under test/, outside src/, so src/ has no exception.
 check_cjk() {
     files=$(staged_matching 'src/*.cpp|src/*.h|src/*.hpp|src/*.cc|src/*.qml')
@@ -486,7 +487,7 @@ check_cjk() {
     [ -n "$hits" ] || return 0
 
     printf '%s\n' "$hits" | report_hits "pre-commit: " " has Chinese in code" \
-        "  write the English source string and let lupdate carry the Chinese (UI.md, i18n)"
+        "  write the English source string and let lupdate carry the Chinese (DESIGN.md, i18n)"
     return 1
 }
 

@@ -62,7 +62,7 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 /* Glass card: the bar is the glass. The base .bar already fills with var(--panel) and shadows with var(--sh2). */
 html[data-theme=frosted] .bar{border-color:rgba(255,255,255,var(--glass-rim,.2));backdrop-filter:blur(var(--glass-blur,6px)) saturate(var(--glass-sat,120%))}
 html[data-theme=liquid] .bar{background:transparent;border-color:rgba(255,255,255,var(--glass-rim,.1));backdrop-filter:blur(var(--glass-blur,6px)) contrast(1.05)}
-/* Blur first, then the displacement filter: the order is the point (UI.md 3.1d). */
+/* Blur first, then the displacement filter: the order is the point (DESIGN.md 3.1d). */
 html[data-theme=liquid][data-refract] .bar{backdrop-filter:blur(var(--glass-blur,6px)) url(#lg-liquid)}
 /* Reduced transparency: solid card, rim back to the light line. */
 @media (prefers-reduced-transparency:reduce){

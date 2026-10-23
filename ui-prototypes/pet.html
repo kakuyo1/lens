@@ -89,13 +89,13 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 .group-title{font-size:12px;font-weight:700;color:var(--text);margin:16px 0 9px;padding-top:14px;border-top:1px solid var(--line2)}
 #pet-section > .group-title:first-child{margin-top:4px;padding-top:0;border-top:0}
 
-/* 宠物类型：下拉，与设置页的下拉同规格（UI.md 控件规格）。 */
+/* 宠物类型：下拉，与设置页的下拉同规格（UI-SPEC.md 控件规格）。 */
 .dd{position:relative}
 .dd-btn{display:flex;align-items:center;gap:8px;width:100%;height:35px;padding:0 11px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--text);font-family:var(--f);font-size:13px;text-align:left}
 .dd-btn svg{margin-left:auto;width:14px;height:14px;color:var(--faint);flex:none}
 .dd-list{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:9;display:none;background:var(--panel);border:1px solid var(--line);border-radius:11px;box-shadow:var(--sh2);padding:5px;max-height:252px;overflow-y:auto}
 .dd.open .dd-list{display:block}
-/* Popover on frosted: 78% white (UI.md 3.1c), not the card's 40%. Liquid already uses --panel, which is 78%. */
+/* Popover on frosted: 78% white (DESIGN.md 3.1c), not the card's 40%. Liquid already uses --panel, which is 78%. */
 html[data-theme=frosted] .dd-list{background:rgba(255,255,255,.78)}
 .dd-item{display:flex;align-items:center;width:100%;height:29px;padding:0 11px;border:0;border-radius:8px;background:transparent;font-size:13px;color:var(--text);text-align:left}
 .dd-item:hover{background:var(--panel2)}
@@ -107,7 +107,7 @@ html[data-theme=frosted] .dd-list{background:rgba(255,255,255,.78)}
 .stage::after{content:"";position:absolute;left:14px;right:14px;bottom:24px;height:1px;background:var(--line)}
 .stage.dim{opacity:.5}
 .stage canvas{position:absolute;left:50%;bottom:16px;width:176px;height:176px;margin-left:-88px;overflow:visible}
-/* Review sign (UI.md 4.13, ADR 0088): a wooden plank on a short post standing beside the pet on its foot line. The sign is
+/* Review sign (UI-SPEC.md 4.13, ADR 0088): a wooden plank on a short post standing beside the pet on its foot line. The sign is
    drawn at its design size and scaled by the pet's size, so it stays in proportion to the figure. Same object as the app's
    ReviewSignBoard.qml. */
 @font-face{font-family:"Pixelify Sans";src:url("../data/fonts/PixelifySans-Regular.ttf") format("truetype");font-display:block}
@@ -146,7 +146,7 @@ html[data-theme=frosted] .dd-list{background:rgba(255,255,255,.78)}
 /* 下拉里的来源标记：由应用自己画，包无法影响它的有无与外观。 */
 .dd-item .badge{margin-left:auto;flex:none;padding:1px 6px;border-radius:999px;border:1px solid var(--line);font-size:10px;color:var(--muted)}
 .dd-item[aria-selected=true] .badge{border-color:transparent;color:var(--on);opacity:.75}
-/* 确认弹窗：形态同通知卡片（UI.md 4.12），带按钮并吃焦点。点背景不关：它是一次知情同意，不是随手可过的提示。 */
+/* 确认弹窗：形态同通知卡片（UI-SPEC.md 4.12），带按钮并吃焦点。点背景不关：它是一次知情同意，不是随手可过的提示。 */
 .scrim{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:rgba(12,12,16,.42)}
 .dlg{width:320px;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh2);padding:18px 18px 14px}
 html[data-theme=frosted] .dlg{background:rgba(255,255,255,.78)}
@@ -1327,7 +1327,7 @@ renderStatic();
 renderAll();
 // ?dlg=1 直接打开确认弹窗，供对视与截图；与 ?on 一样只是原型的开发开关。
 if (new URLSearchParams(location.search).has('dlg')) openConfirm(PACKAGES[0].id);
-/// The review sign on the stage while ask plays (UI.md 4.13, ADR 0088). The plank stands on the pet's idle foot line beside
+/// The review sign on the stage while ask plays (UI-SPEC.md 4.13, ADR 0088). The plank stands on the pet's idle foot line beside
 /// it: the left when there is room, the right otherwise. The idle ink is measured once from each pet's own sheet, frame 0.
 const idleInk = new Map();
 function measureInk(src) {

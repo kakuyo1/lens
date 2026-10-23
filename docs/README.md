@@ -7,7 +7,8 @@
 | 我要… | 先读 | 需要时再读 |
 |---|---|---|
 | 改产品行为、判定或默认值 | `PRODUCT.md` | `GLOSSARY.md`、`docs/adr/` |
-| 改某个表面的外观或交互 | `UI.md` | `ui-prototypes/README.md`、`docs/QML.md` |
+| 设计 UI、改共用视觉约束 | `DESIGN.md` | `UI-SPEC.md`、`docs/adr/` |
+| 改某个表面的外观或交互 | `DESIGN.md` → `UI-SPEC.md` §4.x | `ui-prototypes/README.md`、`docs/QML.md` |
 | 改 QML 实现：窗口、阴影、定位、线程 | `docs/QML.md` | `CODING_STANDARDS.md`、`docs/adr/` |
 | 改代码结构、加模块或搬文件 | `CODING_STANDARDS.md` 的 “分层” | `docs/adr/0077` |
 | 改请求、响应、校验、错误码或价目 | `API.md` | `data/llm/`、`SECURITY.md` |
@@ -20,14 +21,14 @@
 | 查一个术语 | `GLOSSARY.md` | 词条指向的 owner 文档 |
 | 查某个决定为什么这样做 | `docs/adr/README.md` | 对应 ADR |
 | 查被取代的旧规格或阶段计划 | `docs/history/` | 对应 ADR |
-| 改 HTML 原型 | `ui-prototypes/README.md` | `UI.md` |
+| 改 HTML 原型 | `ui-prototypes/README.md` | `DESIGN.md`、`UI-SPEC.md` |
 
 ## 权威分层
 
 | 层 | 文件 | 回答 | 不写什么 |
 |---|---|---|---|
 | 约束与路由 | `AGENTS.md`、本文件 | 必须遵守什么、先读哪里 | 产品细节 |
-| 当前规格 | `PRODUCT.md`、`UI.md`、`API.md`、`SECURITY.md`、`TEST.md`、`GLOSSARY.md`、`docs/QML.md`、`docs/qa.md` | 现在是什么 | 历史、实测明细、被取代的做法 |
+| 当前规格 | `PRODUCT.md`、`DESIGN.md`、`UI-SPEC.md`、`API.md`、`SECURITY.md`、`TEST.md`、`GLOSSARY.md`、`docs/QML.md`、`docs/qa.md` | 现在是什么 | 历史、实测明细、被取代的做法 |
 | 决定 | `docs/adr/` | 为什么这样定、代价是什么 | 当前状态的完整复述 |
 | 证据 | `docs/metrics/` | 数字是多少、怎么量的 | 应然规则 |
 | 历史 | `docs/history/` | 以前是什么 | 当前行为 |
@@ -42,7 +43,8 @@
 | `README.md` | 产品概览、构建、运行、打包入口 | 设计细节 |
 | `AGENTS.md` | agent 约束、构建 / 测试 / 翻译规则、路由短版 | 产品与 UI 细节 |
 | `PRODUCT.md` | 产品定位、通道、取词与通道规则、模型与成本、存储边界 | 视觉规格、wire format |
-| `UI.md` | 设计令牌、表面结构、组件规格、动效、无障碍 | QML 实现细节、实测数字 |
+| `DESIGN.md` | 设计定位、设计令牌、字体、圆角与阴影、动效原则、无障碍、文案约束 | 逐表面规格、QML 实现细节、实测数字 |
+| `UI-SPEC.md` | 表面结构、逐表面组件规格、动效明细 | 共用令牌与约束、QML 实现细节、实测数字 |
 | `GLOSSARY.md` | 术语与 `_Avoid_` | 行为规则 |
 | `API.md` | 线上协议、请求 / 响应、校验、错误码、价目 | 本地判定、UI |
 | `SECURITY.md` | 数据与信任边界、防护与限制、漏洞报告 | 协议细节 |
@@ -61,7 +63,8 @@
 ## 维护规则
 
 - **一个事实只有一个 owner**。同一规则只写在清单里标为 “拥有” 的那一份，其他文档用链接；发现重复时删掉一份，不要同步两份。
+- **`DESIGN.md` 与 `UI-SPEC.md` 同一次改动同步**。改表面只改 `UI-SPEC.md`；一旦引入或改变令牌、字重、圆角、动效规则，同一次改动回写 `DESIGN.md` 的对应小节。
 - **规格只写当前状态**。带日期的决定、被取代的做法、一次性实测数字不进入规格；分别放 ADR、`docs/history/`、`docs/metrics/`。
 - **冲突不要静默选边**。规格与代码不一致时，在当前改动里改掉 owner 文档，并在提交或 PR 说明哪一边是错的。
-- **读者可见文案以 `i18n/*.ts` 为准**。`UI.md` 只写设计意图，不维护文案表。
+- **读者可见文案以 `i18n/*.ts` 为准**。`DESIGN.md` 与 `UI-SPEC.md` 只写设计意图，不维护文案表。
 - **新增文档先登记**。没有出现在本文件清单里的文档，agent 不会主动读；被取代的规格移进 `docs/history/`。

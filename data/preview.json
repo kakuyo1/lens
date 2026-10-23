@@ -1,6 +1,6 @@
 {
   "_comment": [
-    "The demo card the settings preview draws (UI.md 4.4): what a reader hovering a setting's",
+    "The demo card the settings preview draws (UI-SPEC.md 4.4): what a reader hovering a setting's",
     "title sees beside the panel. It is sample content rather than interface copy, which is why",
     "it is not in a translation table and why it lives here instead of in src/, where the",
     "pre-commit hook keeps the code English. The definition, the senses and the etymology each",

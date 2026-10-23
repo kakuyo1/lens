@@ -20,7 +20,7 @@ html[data-theme=dark]{
   --ink:#e9e9ee; --on:#16161a; --danger:#d98d81;
   --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
 }
-/* 玻璃主题（UI.md 3.1c 雾面、3.1d 流光）：令牌与规则照抄 settings.html，数值不改。 */
+/* 玻璃主题（DESIGN.md 3.1c 雾面、3.1d 流光）：令牌与规则照抄 settings.html，数值不改。 */
 html[data-theme=frosted],html[data-theme=liquid]{
   --bg:transparent;
   background-image:var(--wall); background-attachment:fixed; background-size:cover;
@@ -45,7 +45,7 @@ html[data-theme=frosted] .traymenu{backdrop-filter:blur(var(--glass-blur,6px)) s
 html[data-theme=liquid] .traymenu{background:transparent;border-color:rgba(255,255,255,var(--glass-rim,.1));backdrop-filter:blur(var(--glass-blur,6px)) contrast(1.05);box-shadow:var(--sh2)}
 html[data-theme=liquid][data-refract] .traymenu{backdrop-filter:blur(var(--glass-blur,6px)) url(#lg-liquid)}
 /* 语言子菜单与菜单卡片是同一块玻璃：雾面走 40% 的 --panel、流光整张透明，各自补上模糊、外缘白边与
-   折射。曾经给它铺过弹出层那档 78% 白（UI.md 3.1c / 3.1d 的下拉列表口径），可这张浮层是浮在桌面上的，
+   折射。曾经给它铺过弹出层那档 78% 白（DESIGN.md 3.1c / 3.1d 的下拉列表口径），可这张浮层是浮在桌面上的，
    78% 白一铺就成了不透明的白板，模糊透不出来，读起来仍是「没跟主题」。改回玻璃本体的口径。 */
 html[data-theme=frosted] .submenu{backdrop-filter:blur(var(--glass-blur,6px)) saturate(var(--glass-sat,120%));border-color:rgba(255,255,255,var(--glass-rim,.2))}
 html[data-theme=liquid] .submenu{background:transparent;border-color:rgba(255,255,255,var(--glass-rim,.1));backdrop-filter:blur(var(--glass-blur,6px)) contrast(1.05);box-shadow:var(--sh2)}

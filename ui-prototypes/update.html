@@ -19,7 +19,7 @@ html[data-theme=dark]{
   --ink:#e9e9ee; --on:#16161a;
   --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
 }
-/* 玻璃主题（UI.md 3.1c 雾面、3.1d 流光）：令牌与规则照抄 settings.html，数值不改。设置卡与通知卡各是一张玻璃。 */
+/* 玻璃主题（DESIGN.md 3.1c 雾面、3.1d 流光）：令牌与规则照抄 settings.html，数值不改。设置卡与通知卡各是一张玻璃。 */
 html[data-theme=frosted],html[data-theme=liquid]{
   --bg:transparent;
   background-image:var(--wall); background-attachment:fixed; background-size:cover;
@@ -75,7 +75,7 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .seg button[aria-pressed=true]{background:var(--ink);color:var(--on);font-weight:600}
 .caption{font-size:11px;color:var(--muted);margin:14px 0 8px}
 
-/* 通知卡片（UI.md 4.5）：无边框窗口里的一张卡，宽 320，圆角 18 */
+/* 通知卡片（UI-SPEC.md 4.5）：无边框窗口里的一张卡，宽 320，圆角 18 */
 .notice{position:relative;width:320px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);padding:16px 18px 16px}
 .notice-t{font-size:14px;font-weight:700;padding-right:22px}
 .notice-b{font-size:13px;color:var(--muted);line-height:1.55;margin-top:6px}

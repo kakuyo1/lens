@@ -3,7 +3,7 @@
 
 服务商、模型与端点由 `data/llm/catalog.json` 驱动，默认是 DeepSeek；解释请求使用 OpenAI 兼容的 `POST {baseUrl}/chat/completions`，请求头为 `Content-Type: application/json` 与 `Authorization: Bearer <API-KEY>`。模型列表不问服务商：**全部服务商共用 `modelSource` 声明的那一个源**，回答按厂商前缀切分。当前目录包含 DeepSeek（`deepseek-flash`、`deepseek-v4-pro`）、OpenAI（`gpt-4.1-mini`、`gpt-4.1-nano`）和 Custom；Custom 允许在设置中填写模型与 HTTPS 服务地址。价目独立放在 `data/llm/pricing.json`。
 
-API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装目录、OCR payload 或日志；安装包只承载程序、静态数据与 `ocr/` 下的 Tesseract runtime 和英文 traineddata——读中文要用的 `chi_sim.traineddata` 由读者自己放进那个数据目录（UI.md 4.11）。
+API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装目录、OCR payload 或日志；安装包只承载程序、静态数据与 `ocr/` 下的 Tesseract runtime 和英文 traineddata——读中文要用的 `chi_sim.traineddata` 由读者自己放进那个数据目录（UI-SPEC.md 4.11）。
 
 ## 1 通道
 

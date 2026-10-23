@@ -19,9 +19,9 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
 - A branch that has been pushed gets a pull request, and its body follows
 `.github/pull_request_template.md`: all three sections filled. Do not stop at handing over the
 compare URL.
-- UI work must comply with `UI.md` and `PRODUCT.md`.
+- UI work starts from `DESIGN.md` (the shared visual constraints) and the touched surface's `UI-SPEC.md` §4.x; it must comply with both and `PRODUCT.md`.
 - Designing or auditing a `ui-prototypes/*.html` page starts by loading the `taste-skill` skill; a surface that has been rendered, the QML ones included, is checked with `visual-qa`, driven through the dev surface unless the question is pixels or the real hook path. Mouse injection and screenshots are the last resort, never the first look.
-- Keep `GLOSSARY.md`, `PRODUCT.md`, and `UI.md` in sync on any design change; `docs/README.md` owns which doc owns what; record major trade-offs in `docs/adr/`.
+- Keep `GLOSSARY.md`, `PRODUCT.md`, `DESIGN.md`, and `UI-SPEC.md` in sync on any design change; `docs/README.md` owns which doc owns what; record major trade-offs in `docs/adr/`.
 - Reply in the language the user writes in; Chinese by default.
 - The API key lives in `%APPDATA%\Lens\settings.json`, the reader's own profile and never the install directory; it is never logged, never echoed in errors, never committed, and never copied out of the profile: read it in place. The repository's gitignored `settings.local.json` is that document's development source, copied over once on a first run (`src/app/main.cpp`).
 
@@ -139,7 +139,7 @@ Start at `docs/README.md` for the full routing and the single-owner list. The sh
 | Task | Read |
 |---|---|
 | Product behavior or defaults | `PRODUCT.md` → `GLOSSARY.md` → `docs/adr/` |
-| Surface look or interaction | `UI.md` → `ui-prototypes/README.md` → `docs/QML.md` |
+| Surface look or interaction | `DESIGN.md` → `UI-SPEC.md` §4.x → `ui-prototypes/README.md` → `docs/QML.md` |
 | QML implementation | `docs/QML.md` → `CODING_STANDARDS.md` |
 | Wire format or validation | `API.md` → `data/llm/` → `SECURITY.md` |
 | Tests | `TEST.md` → `docs/qa.md` → `docs/metrics/profiling-and-coverage.md` |

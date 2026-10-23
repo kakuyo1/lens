@@ -1,7 +1,7 @@
 # QML 事实
 
 > 权威：当前 QML 事实。本文放**这个仓库的 QML 事实**：模块结构、表面与组件的分界、阴影怎么投、定位怎么算、跨线程能不能碰、
-> 字体族在哪设。跨文件的判断题见 `CODING_STANDARDS.md`，表面长什么样见 `UI.md`。阶段二新增表面一样受本文约束——这里的每一条都是实机上撞出来的，与阶段号无关。
+> 字体族在哪设。跨文件的判断题见 `CODING_STANDARDS.md`，表面长什么样见 `UI-SPEC.md`，共用视觉约束见 `DESIGN.md`。阶段二新增表面一样受本文约束——这里的每一条都是实机上撞出来的，与阶段号无关。
 
 ## 1 模块与目录
 
@@ -50,8 +50,8 @@
 
 ## 2 窗口
 
-- **各表面是独立 `Window`，不是 `Popup`**（`UI.md` 的 “各表面相互独立，不共用窗口” 正是这么写的）。
-- **宠物窗口的可见性看 `Pet.shown`，不是 `Pet.enabled`**：关闭后窗口还要留到告辞结束，`enabled` 只表示读者打开了它（`UI.md` 4.15、ADR 0089）。宠物窗口同时把 `Tokens.motion.reduced` 交给 `Pet.setMotionReduced()`，所以系统与应用两个动画开关都能让仪式瞬时落地。
+- **各表面是独立 `Window`，不是 `Popup`**（`UI-SPEC.md` 的 “各表面相互独立，不共用窗口” 正是这么写的）。
+- **宠物窗口的可见性看 `Pet.shown`，不是 `Pet.enabled`**：关闭后窗口还要留到告辞结束，`enabled` 只表示读者打开了它（`UI-SPEC.md` 4.15、ADR 0089）。宠物窗口同时把 `Tokens.motion.reduced` 交给 `Pet.setMotionReduced()`，所以系统与应用两个动画开关都能让仪式瞬时落地。
 - **一张表面可以不只一个窗口**：`Mask.qml` 的根是 `Item`，里面用 `Instantiator` 每块屏幕建一张 `Window`。
   两条都是实测：`Repeater` 的 delegate 必须是 `Item`，放 `Window` 会报 `Delegate must be of Item type`
   且一个都不建；`Instantiator` 的 `model` 只认数字、列表或 item model，把 `Qt.application.screens` 这个
@@ -94,7 +94,7 @@
 - **换语言时信号的顺序不是随意的**：`setSetting("uiLanguage", …)` 先发 `uiLanguageChanged`（它才装翻译器），再发
   `settingsChanged` / `statsChanged`。`words()` 现在只给原始的日期与时间，文字由 `WordsPopup.qml` 的 `qsTr` 绘制，
   所以它不再依赖这个顺序。写入走哪一条由设置表那一行的 `Signal` 决定（`docs/adr/0083`）。
-- **`font.pixelSize` 是整数**：`UI.md` 字号表里的 12.5 / 11.5 / 10.5 px 落不了地，按四舍五入取
+- **`font.pixelSize` 是整数**：`DESIGN.md` 字号表里的 12.5 / 11.5 / 10.5 px 落不了地，按四舍五入取
   13 / 12 / 11，保住 “最小 11 px” 那条约束。
 
 ## 3 阴影
@@ -223,7 +223,7 @@
 
 托盘图标（四状态）用 **C++ `QSystemTrayIcon`**：那是 shell 的东西，没有 QML 对应物。**菜单不是原生的**
 ——`Menu` 曾按 “Windows 原生可靠” 选过 `QMenu`（`Qt.labs.platform` 的实验性 QML 类型在 6.9 上右键菜单
-不生效，仍弃用），代价是画不成 `UI.md` §4.2 的卡片；现改为一个普通表面（`qml/TrayMenu.qml`），`Tray`
+不生效，仍弃用），代价是画不成 `UI-SPEC.md` §4.2 的卡片；现改为一个普通表面（`qml/TrayMenu.qml`），`Tray`
 只在图标被点时发一个 `menuRequested`。图标只有三个可达状态（自动扫描开 / 解释中 / 已关），第四态（预算
 耗尽）要等每日预算上限落地；琥珀色的那一份 art（`icons/tray-budget-*.svg`）已经在这里，`tray.h` 的类注记
 写着它为什么先放进来。
