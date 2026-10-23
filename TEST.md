@@ -138,7 +138,13 @@ Translation（语言先于形状判定），其余按形状：单 token 在词�
 
 ## 5 UI 表面
 
-真机驱动、拍照、离屏快照与像素判读见 `docs/qa.md`。
+**顺序**：先开发面，再离屏 QTest，最后才是真实鼠标与截图。能用 `surface show|hide`、`setting set`、
+`state`、`wait` 回答的状态、触发与可见性，一律先走开发面（`scripts/qa/lens-dev.ps1`，构建开关
+`LENS_ENABLE_DEV_SURFACE=ON`，见 `docs/qa.md`）。只有像素问题（字形、阴影、对齐、图标）或必须
+经过真实钩子与命中测试的输入，才用 `ui-input.ps1` 和 `ui-capture.ps1`；用之前先说明是哪一种，并在
+运行记录里记下。开发面不移动指针、不抓屏，也不该为了 “看一眼” 而动用真机驱动。
+
+真机驱动、拍照、离屏快照与像素判读的细节见 `docs/qa.md`。
 
 ## 6 记录
 

@@ -1,0 +1,12 @@
+# The desktop pet's goodbye and entrance through the developer surface. No pointer, no capture.
+# Run with: powershell -File scripts/qa/lens-dev.ps1 -Script scripts/qa/scenarios/pet-ceremony.txt
+# It leaves the pet enabled; the chosen pet is unchanged.
+version
+state
+setting set petEnabled off
+wait 5s
+state
+setting set petEnabled on
+wait 5s
+state
+quit

@@ -51,6 +51,7 @@
 ## 2 窗口
 
 - **各表面是独立 `Window`，不是 `Popup`**（`UI.md` 的 “各表面相互独立，不共用窗口” 正是这么写的）。
+- **宠物窗口的可见性看 `Pet.shown`，不是 `Pet.enabled`**：关闭后窗口还要留到告辞结束，`enabled` 只表示读者打开了它（`UI.md` 4.15、ADR 0089）。宠物窗口同时把 `Tokens.motion.reduced` 交给 `Pet.setMotionReduced()`，所以系统与应用两个动画开关都能让仪式瞬时落地。
 - **一张表面可以不只一个窗口**：`Mask.qml` 的根是 `Item`，里面用 `Instantiator` 每块屏幕建一张 `Window`。
   两条都是实测：`Repeater` 的 delegate 必须是 `Item`，放 `Window` 会报 `Delegate must be of Item type`
   且一个都不建；`Instantiator` 的 `model` 只认数字、列表或 item model，把 `Qt.application.screens` 这个

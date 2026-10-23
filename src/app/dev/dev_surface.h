@@ -29,6 +29,9 @@ namespace lens::app {
 
 class AppController;
 class DevPipe;
+namespace pet {
+class PetController;
+}
 
 /**
  * @brief Runs command-table lines against one running application's surfaces.
@@ -42,8 +45,9 @@ class DevSurface : public QObject {
 public:
     /// @param root The Main window the surfaces are declared in. It is also this object's parent.
     /// @param controller The controller the glass sheets and the settings are read from.
+    /// @param pet The desktop pet, whose switch and choice are two more settings the table can drive.
     /// @param build What the state reports about this executable.
-    DevSurface(QObject* root, AppController* controller, core::dev::Build build);
+    DevSurface(QObject* root, AppController* controller, pet::PetController* pet, core::dev::Build build);
 
     /// @brief Run a script one line at a time, then quit. Blank lines and `#` comments are skipped.
     /// @param lines The script, already split into lines.
@@ -92,9 +96,10 @@ private:
     /// Record one answer, for @p line, to the log and to the output file.
     void answer(QString const& line, nlohmann::json result);
 
-    QObject*         root_;
-    AppController*   controller_;
-    core::dev::Build build_;
+    QObject*            root_;
+    AppController*      controller_;
+    pet::PetController* pet_;
+    core::dev::Build    build_;
     /// Frames swapped per surface window. Filled once in the constructor and only read after, so the render thread can
     /// count into it without a lock.
     std::map<std::string, std::atomic<std::uint64_t>> painted_;
@@ -115,10 +120,11 @@ private:
  *        event loop is up, never before, since QCoreApplication::exit does nothing before exec().
  * @param root The Main window the surfaces are declared in.
  * @param controller The controller the surfaces are driven through.
+ * @param pet The desktop pet the settings table can switch and choose.
  * @param arguments The command line, as QCoreApplication::arguments() gives it.
  * @param build What the state reports about this executable.
  */
-void startDevSurface(QObject* root, AppController* controller, QStringList const& arguments, core::dev::Build build);
+void startDevSurface(QObject* root, AppController* controller, pet::PetController* pet, QStringList const& arguments, core::dev::Build build);
 
 /**
  * @brief The settings document a developer run keeps in a file of its own: `--settings-file=<path>`.

@@ -135,6 +135,24 @@ bool PetStateMachine::playHover(ActionName const& name)
     return true;
 }
 
+bool PetStateMachine::playRole(Role role)
+{
+    auto const named = playbook.roles.find(role);
+    if (named == playbook.roles.end() or currentRole != Role::Idle or dragging) return false;
+    auto const found = playbook.actions.find(named->second);
+    if (found == playbook.actions.end() or found->second.loop) return false;
+    pendingReturn.reset();
+    enterRole(role, Priority::Situational);
+    return true;
+}
+
+void PetStateMachine::rest()
+{
+    pendingReturn.reset();
+    held.reset();
+    enterRole(Role::Idle, Priority::Idle);
+}
+
 void PetStateMachine::advance(std::chrono::milliseconds step)
 {
     sinceClick += step;

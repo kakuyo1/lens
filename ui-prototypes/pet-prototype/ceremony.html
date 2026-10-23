@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>宠物进出场仪式 demo</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./styles/ceremony.css">
+</head>
+<body>
+  <header class="top">
+    <div class="intro">
+      <a class="back" href="./index.html">← 宠物原型</a>
+      <div class="title-row">
+        <h1>进出场仪式</h1>
+        <span class="draft">设计提案 · 未定稿</span>
+      </div>
+      <p class="lede">开启时从屏幕边缘走进来，看看四周再站定；换宠物时旧的走到边上离开、新的走进来再张望一圈；关闭时走到边上回头告辞。舞台上的动作直接读 <code>data/pet</code>，不是画的示意图。</p>
+    </div>
+    <div class="top-side">
+      <a class="ghost-link" href="./walk.html">步态 demo →</a>
+    </div>
+  </header>
+
+  <main class="workbench">
+    <section class="board" aria-label="宠物进出场演示">
+      <div class="screen" id="screen" data-phase="off">
+        <div class="wallpaper" aria-hidden="true">
+          <span class="sun"></span>
+          <span class="ridge r1"></span>
+          <span class="ridge r2"></span>
+          <span class="ridge r3"></span>
+          <span class="grain"></span>
+        </div>
+
+        <div class="screen-meta">
+          <span class="meta-dot"></span>
+          <span>模拟桌面</span>
+          <span class="meta-sep">/</span>
+          <span class="meta-dim" id="work-size">—</span>
+          <span class="meta-right">宠物 ×3 · 264 px</span>
+        </div>
+
+        <span class="edge-label edge-left" aria-hidden="true">屏幕外</span>
+        <span class="edge-label edge-right" aria-hidden="true">屏幕外</span>
+
+        <div class="live" id="live" hidden>
+          <span class="live-dot"></span>
+          <span id="live-text">站定</span>
+        </div>
+
+        <div class="home-marker" id="home-marker" aria-hidden="true">
+          <span class="home-ring"></span>
+          <span class="home-label">落点</span>
+        </div>
+
+        <div class="empty-note" id="empty-note" hidden>
+          <strong>宠物已关闭</strong>
+          <span>打开开关，它会从边缘走进来</span>
+        </div>
+
+        <div class="loading" id="loading">
+          <span class="loading-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>正在载入七只宠物…</span>
+        </div>
+
+        <div class="error" id="error" hidden>
+          <strong>这张页面需要一个本地服务器</strong>
+          <p>它直接读取 <code>data/pet</code> 的 JSON 与 PNG。请在 <code>ui-prototypes/pet-prototype</code> 里运行 <code>npm run dev</code>，再打开 <code>/ceremony.html</code>。</p>
+        </div>
+
+        <div class="taskbar" aria-hidden="true">
+          <span class="tb-start"><i class="win"><b></b><b></b><b></b><b></b></i></span>
+          <span class="tb-center">
+            <i class="tb-icon search"></i>
+            <i class="tb-icon folder"></i>
+            <i class="tb-icon page"></i>
+            <i class="tb-icon lens"><span></span></i>
+          </span>
+          <span class="tb-right">
+            <span class="tray"><i></i><i></i><i></i></span>
+            <span class="clock"><b id="clock-time">21:04</b><small id="clock-date">10/23</small></span>
+          </span>
+        </div>
+
+        <div class="pet-layer" id="pet-layer"></div>
+      </div>
+
+      <div class="script" aria-live="polite">
+        <div class="script-head">
+          <div>
+            <span class="eyebrow">本轮脚本</span>
+            <strong id="script-title">开启 · 入场</strong>
+          </div>
+          <span class="script-note" id="script-note">从离落点最近的左右边缘进出；任务栏那条下边不算入口。</span>
+        </div>
+        <ol class="timeline" id="timeline"></ol>
+        <p class="script-caption"><span class="caption-label">当前</span><span id="script-caption">等待载入</span></p>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div class="panel-head">
+        <h2>演示控制</h2>
+        <span class="status" id="status"><span class="status-dot"></span><span id="status-text">载入中</span></span>
+      </div>
+
+      <section class="control-row">
+        <div class="control-copy">
+          <span class="label">桌面宠物</span>
+          <span class="sub">开关本身就触发进出场</span>
+        </div>
+        <label class="switch">
+          <input id="enabled" type="checkbox" aria-label="桌面宠物">
+          <span class="track"><span class="thumb"></span></span>
+        </label>
+      </section>
+
+      <section class="control-block">
+        <div class="block-label">宠物 <span class="hint">点一只即换</span></div>
+        <div class="pet-grid" id="pet-grid"></div>
+      </section>
+
+      <section class="control-block">
+        <div class="block-label">进出边</div>
+        <div class="seg" id="side-seg" role="group" aria-label="进出边">
+          <button type="button" data-side="auto" aria-pressed="true">跟随落点</button>
+          <button type="button" data-side="left" aria-pressed="false">左</button>
+          <button type="button" data-side="right" aria-pressed="false">右</button>
+        </div>
+        <p class="hint block-hint">进出场都走这一侧；跟随落点 = 离宠物落点最近的左右边缘。上下边不走。</p>
+      </section>
+
+      <section class="control-block">
+        <div class="block-label">演示速度</div>
+        <div class="seg" id="speed-seg" role="group" aria-label="演示速度">
+          <button type="button" data-speed="0.5" aria-pressed="false">0.5×</button>
+          <button type="button" data-speed="1" aria-pressed="true">1×</button>
+          <button type="button" data-speed="1.5" aria-pressed="false">1.5×</button>
+        </div>
+      </section>
+
+      <section class="control-block checks">
+        <label class="check"><input id="instant" type="checkbox"> 瞬时显隐 <span class="hint">现状对照 / 减少动态</span></label>
+        <label class="check"><input id="switch-look" type="checkbox" checked> 换宠后新宠也张望 <span class="hint">可关掉对照</span></label>
+        <label class="check"><input id="show-home" type="checkbox" checked> 显示落点</label>
+      </section>
+
+      <section class="actions">
+        <button type="button" class="primary" id="replay">重播入场</button>
+        <button type="button" class="secondary" id="skip" hidden>跳过</button>
+      </section>
+
+      <section class="rules">
+        <h3>这套仪式</h3>
+        <ol>
+          <li><b>开启</b> 从最近的边缘走入 → <code>look_around</code> 看一圈 → 站定。</li>
+          <li><b>换宠</b> 旧宠走到同一边缘外 → 新宠从那里走进 → 张望一轮 → 站定。</li>
+          <li><b>关闭</b> 走到边上 → 回头看看，<code>encourage</code> 送一颗心 → 走出屏幕。</li>
+          <li>仪式期间动开关或换宠，会立刻收尾再执行新的命令，不排队。</li>
+        </ol>
+        <p>没有新增美术：告辞用的爱心是现有的 <code>encourage</code> 效果层。多屏时以落点所在的屏为准。</p>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="foot">
+    <span>动作、帧率与锚点来自 <code>data/pet/*/animations.json</code>。页面只做演示，不进构建，也不代表已经实现。</span>
+    <span id="foot-status">—</span>
+  </footer>
+
+  <script type="module" src="./src/ceremony-demo.js"></script>
+</body>
+</html>

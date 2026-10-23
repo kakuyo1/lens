@@ -141,6 +141,23 @@ TEST(PetStateMachine, HoverReactionRejectsLoopingAndUnknownActions)
     EXPECT_EQ(machine.action(), "idle");
 }
 
+TEST(PetStateMachine, PlayRoleStartsAOneShotAndRestReturnsToIdle)
+{
+    auto machine = makeMachine();
+
+    EXPECT_TRUE(machine.playRole(Role::LookAround));
+    EXPECT_EQ(machine.action(), "look_around");
+    EXPECT_FALSE(machine.playRole(Role::Encourage)) << "a second gesture does not cut into the first";
+
+    // The controller uses rest() when a ceremony takes the pet back, for a reversal or a goodbye.
+    machine.rest();
+    EXPECT_EQ(machine.action(), "idle");
+    EXPECT_FALSE(machine.playRole(Role::Idle)) << "idle loops, so it is not a gesture";
+
+    EXPECT_TRUE(machine.playRole(Role::Encourage));
+    EXPECT_EQ(machine.action(), "encourage");
+}
+
 TEST(PetStateMachine, AmbientLoopStartsOnlyFromIdleAndOnlyForLoopingActions)
 {
     auto machine = makeMachine();

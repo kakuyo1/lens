@@ -149,6 +149,7 @@ private slots:
     void accessoryCatalogueAndWornSlotsAreExposed();
     void restoresOnlyAccessoriesInTheirOwnSlot();
     void passthroughDefaultsOffAndIsStored();
+    void shownFollowsTheSwitchWithoutAWindow();
     void choosingAPetLoadsItAndDropsWhatItLacks();
     void everyShippedPetLoadsWhole();
     void wornAccessoriesFollowAPetSwitch();
@@ -425,6 +426,27 @@ void TstPetController::passthroughDefaultsOffAndIsStored()
     rig.controller.setPassthrough(true);
     QVERIFY(rig.controller.passthrough());
     QVERIFY(rig.petStore.passthrough());
+}
+
+void TstPetController::shownFollowsTheSwitchWithoutAWindow()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    Rig rig{settingsIn(dir), shippedRoot()};
+
+    // No window is attached, so there is no ceremony to run; the switch still owns what the scene shows.
+    QVERIFY(!rig.controller.shown());
+    QSignalSpy shown(&rig.controller, &PetController::shownChanged);
+
+    rig.controller.setEnabled(true);
+    QVERIFY(rig.controller.enabled());
+    QVERIFY(rig.controller.shown());
+    QCOMPARE(shown.count(), 1);
+
+    rig.controller.setEnabled(false);
+    QVERIFY(!rig.controller.enabled());
+    QVERIFY(!rig.controller.shown());
+    QCOMPARE(shown.count(), 2);
 }
 
 void TstPetController::choosingAPetLoadsItAndDropsWhatItLacks()

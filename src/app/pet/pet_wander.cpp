@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <utility>
 
 #include "app/pet/pet_placement.h"
@@ -92,32 +93,40 @@ std::optional<WanderStep> PetWander::nextStep(QPoint from)
 
 QPoint PetWander::positionAt(WanderStep const& step, double progress) const
 {
+    return clamped(walkAt(step, progress, gait_, size_.width()));
+}
+
+QPoint PetWander::walkAt(WanderStep const& step, double progress, Gait gait, int windowWidth)
+{
     auto const t     = std::clamp(progress, 0.0, 1.0);
-    auto const eased = gait_ == Gait::Pounce or gait_ == Gait::Hop
+    auto const eased = gait == Gait::Pounce or gait == Gait::Hop
                            ? 1.0 - std::pow(1.0 - t, 3.0)
                        : t < 0.5 ? 2.0 * t * t
                                  : 1.0 - std::pow(-2.0 * t + 2.0, 2.0) / 2.0;
 
+    auto const arcOf = [windowWidth](double reference) {
+        return reference * windowWidth / static_cast<double>(kReferenceWidth);
+    };
     auto       x   = static_cast<double>(step.from.x()) + (step.to.x() - step.from.x()) * eased;
     auto       y   = static_cast<double>(step.from.y()) + (step.to.y() - step.from.y()) * eased;
     auto const arc = std::sin(t * 3.14159265358979323846);
-    switch (gait_) {
+    switch (gait) {
         case Gait::Float:
-            y += std::sin(t * kStepAngleTurn) * arcHeight(5.0);
+            y += std::sin(t * kStepAngleTurn) * arcOf(5.0);
             break;
         case Gait::Hop:
-            y -= arc * arcHeight(3.0);
+            y -= arc * arcOf(3.0);
             break;
         case Gait::Trot:
-            y -= arc * arcHeight(2.0);
+            y -= arc * arcOf(2.0);
             break;
         case Gait::Pounce:
-            y -= arc * arcHeight(4.0);
+            y -= arc * arcOf(4.0);
             break;
         case Gait::Glide:
             break;
     }
-    return clamped(QPoint{static_cast<int>(std::lround(x)), static_cast<int>(std::lround(y))});
+    return QPoint{static_cast<int>(std::lround(x)), static_cast<int>(std::lround(y))};
 }
 
 std::optional<EdgeSide> PetWander::edgeAt(QPoint at) const
@@ -170,6 +179,29 @@ bool PetWander::draggedOut(QPoint at, QSize size, QRect area)
     return right - left >= static_cast<double>(size.width()) * kDragOutFraction;
 }
 
+QPoint PetWander::offscreenBase(QRect area, QSize size, QPoint from, EdgeSide side)
+{
+    auto const high = area.bottom() - size.height() + 1;
+    auto const x    = side == EdgeSide::Left ? area.left() - size.width() : area.right() + 1;
+    return QPoint{x, high < area.top() ? area.top() : std::clamp(from.y(), area.top(), high)};
+}
+
+EdgeSide PetWander::nearestEdge(QRect area, QSize size, QPoint from)
+{
+    auto const left  = std::abs(from.x() - area.left());
+    auto const right = std::abs(from.x() + std::max(0, size.width() - 1) - area.right());
+    return left <= right ? EdgeSide::Left : EdgeSide::Right;
+}
+
+std::chrono::milliseconds PetWander::walkDuration(WanderStep const& step)
+{
+    auto const distance = std::abs(step.to.x() - step.from.x());
+    if (distance < 2) return std::chrono::milliseconds{0};
+    auto const travel = std::chrono::milliseconds{static_cast<std::chrono::milliseconds::rep>(
+        std::llround(static_cast<double>(distance) / kWalkPace * 1000.0))};
+    return std::clamp(travel, kWalkMin, kWalkMax);
+}
+
 QPoint PetWander::clamped(QPoint at) const
 {
     auto const inArea = clampedWithin(at, size_, area_);
@@ -192,11 +224,6 @@ QPoint PetWander::clamped(QPoint at) const
 double PetWander::verticalRatio() const
 {
     return verticalRatioFor(gait_);
-}
-
-double PetWander::arcHeight(double reference) const
-{
-    return reference * size_.width() / static_cast<double>(kReferenceWidth);
 }
 
 } // namespace lens::app::pet

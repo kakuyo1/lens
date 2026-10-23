@@ -2,7 +2,23 @@
 
 > 权威：当前真机验证方法。测试目标、何时跑测试与 QTest 的覆盖范围见 `TEST.md` §2；本文只讲真机驱动、拍照、快照与像素判读。
 
-表面没有主窗口，全部靠触发才出现，所以真机验证只能靠驱动与拍照。能脱离屏幕断言的那部分已经搬进
+## 驱动顺序
+
+1. **开发面（首选）**。状态、触发、可见性与等待先用 `scripts/qa/lens-dev.ps1` 的 `--dev-script`（或
+   `--dev-pipe`）回答：`surface show|hide` 打开和收起表面，`setting set` 走真实 setter，`state` 读
+   可见窗口与表面状态，`wait visible|hidden|painted|<n>s` 等一等。它不移动指针、不抓屏，答案是一条条
+   JSON，脚本退出后仍留在 `-Out` 里。宠物也有两把真实 setter：`setting set petEnabled on|off` 与
+   `setting set pet <id>`，`state` 的 `pet` 报 `id` / `enabled` / `shown` / `action`，所以进场、换宠与
+   告辞可以用 “关 → 等 → 开 → 等” 的剧本读阶段，不需要鼠标。开发面只存在于
+   `LENS_ENABLE_DEV_SURFACE=ON` 的构建；`ui-run.ps1` 的 release 树默认没有它，要驱动就先建一棵带
+   开关的树（`docs/adr/0068`）。宠物的一轮开关剧本见 `scripts/qa/scenarios/pet-ceremony.txt`。
+2. **离屏 QTest**。开发面回答不了的摆放、关闭规则、面板数字与派生值，先由 `lens_qtest_surfaces` /
+   `lens_qtest_components` 断言（`TEST.md` §2），不建真实窗口，也不碰桌面。
+3. **真实鼠标与截图（最后手段）**。只有两类问题需要它：像素本身（卡片对没对齐、阴影糊不糊、图标
+   画出来没有、字体与颜色），以及必须经过真实低层钩子、命中测试或剪贴板的输入路径。用之前先写清楚
+   属于哪一类，别用截图代替状态断言，也别为了 “看一眼” 移动读者正在用的指针。
+
+表面没有主窗口，全部靠触发才出现，所以像素与真实输入仍要靠真机。能脱离屏幕断言的那部分已经搬进
 `lens_qtest_surfaces`（`TEST.md` §2）：摆放、关闭规则、面板上的数字、托盘菜单那几个派生值，都不再需要快门。
 剩下的仍是这里的事——卡片对没对齐、阴影糊不糊、图标画出来没有。`scripts/qa/ui-*.ps1` 是四个这样的工具，
 都是 PowerShell，都先把自己设成 per-monitor-v2 感知——不设的话截到的是 Windows 已经拉伸过的位图，
@@ -36,8 +52,9 @@ offscreen 不会栅格化 `MultiEffect`，因此图标与阴影在这类快照�
 `QT_QPA_PLATFORM=offscreen` 与 `LENS_QA_SNAPSHOT_DIR` 后驱动目标，默认写到 `test/records/snapshots/`。它验的
 是渲染结果本身——字形、字重、对齐、配色；摆放与交互仍归 `TEST.md` §2 的 `lens_qtest_surfaces` 和上面那四件套。
 
-一轮的顺序：先 `ui-tray-rects.ps1` 量基准，再 `ui-run.ps1` 起应用，用 `ui-input.ps1` 驱动，用 `ui-capture.ps1`
-截图，必要时 `-Profile` 或放大看像素。为看清而临时加进 QML 的东西（计时器、`console.log`）**提交前
+一轮的顺序：先用开发面（`lens-dev.ps1` 的剧本或管道）到达要验的状态；开发面回答不了的像素问题，才接着
+用 `ui-tray-rects.ps1` 量基准、`ui-run.ps1` 起应用、`ui-input.ps1` 驱动、`ui-capture.ps1` 截图，必要时
+`-Profile` 或放大看像素。为看清而临时加进 QML 的东西（计时器、`console.log`）**提交前
 必须删干净**——`.githooks/pre-commit` 的第三项会拦下 `src/` 下带这两个串的暂存文件，手工确认是
 `grep -rn PROBE src/`。观察点本身由应用自己的日志承担：`logs/lens.log` 每行都刷，可以 `tail -f`。release 树的默认级别是 info，QML 的 `console.log` 属于 debug，要设 `LENS_LOG_LEVEL=debug` 才进日志；C++ 侧用 `LENS_INFO` 即可。离屏的 QTest 没有真实的任务栏、多屏与缩放，只能验证换算公式，屏幕上的位置要在真机截图上核对。
 

@@ -107,6 +107,49 @@ TEST(PetWander, EveryPointOnAPathStaysInsideTheWorkArea)
     }
 }
 
+TEST(PetWander, TheCeremonyPathKeepsTheWalkButDropsTheHomeEllipse)
+{
+    // A stroll of this length would be pulled back into the home ellipse; the entrance and exit walks are straight
+    // crossings, so the same points are not clamped.
+    auto const step = WanderStep{QPoint{0, 400}, QPoint{1000, 400}};
+
+    EXPECT_EQ(PetWander::walkAt(step, 0.0, Gait::Glide, kPet.width()), step.from);
+    EXPECT_EQ(PetWander::walkAt(step, 0.25, Gait::Glide, kPet.width()), (QPoint{125, 400}));
+    EXPECT_EQ(PetWander::walkAt(step, 0.5, Gait::Glide, kPet.width()), (QPoint{500, 400}));
+    EXPECT_EQ(PetWander::walkAt(step, 1.0, Gait::Glide, kPet.width()), step.to);
+
+    // Each gait's arc still belongs to the walk: the hop reaches its target early and lifts on the way.
+    EXPECT_EQ(PetWander::walkAt(step, 0.5, Gait::Hop, kPet.width()), (QPoint{875, 397}));
+}
+
+TEST(PetWander, ACeremonyStartsOneWholeWindowPastTheEdge)
+{
+    auto const left = PetWander::offscreenBase(kArea, kPet, QPoint{120, 300}, EdgeSide::Left);
+    EXPECT_EQ(left, (QPoint{kArea.left() - kPet.width(), 300}));
+
+    auto const right = PetWander::offscreenBase(kArea, kPet, QPoint{120, 300}, EdgeSide::Right);
+    EXPECT_EQ(right, (QPoint{kArea.right() + 1, 300}));
+
+    // The release row obeys the same work-area clamp as a hide.
+    EXPECT_EQ(PetWander::offscreenBase(kArea, kPet, QPoint{120, 2000}, EdgeSide::Left).y(), 776);
+}
+
+TEST(PetWander, TheNearerHorizontalEdgeIsTheOneTheCeremonyUses)
+{
+    EXPECT_EQ(PetWander::nearestEdge(kArea, kPet, QPoint{0, 400}), EdgeSide::Left);
+    EXPECT_EQ(PetWander::nearestEdge(kArea, kPet, QPoint{1656, 400}), EdgeSide::Right);
+    EXPECT_EQ(PetWander::nearestEdge(kArea, kPet, QPoint{700, 400}), EdgeSide::Left);
+    EXPECT_EQ(PetWander::nearestEdge(kArea, kPet, QPoint{1000, 400}), EdgeSide::Right);
+}
+
+TEST(PetWander, AWalkKeepsAPaceAndStaysInsideItsBand)
+{
+    EXPECT_EQ(PetWander::walkDuration(WanderStep{QPoint{0, 0}, QPoint{1, 0}}), 0ms) << "nowhere to walk";
+    EXPECT_EQ(PetWander::walkDuration(WanderStep{QPoint{0, 0}, QPoint{100, 0}}), PetWander::kWalkMin);
+    EXPECT_EQ(PetWander::walkDuration(WanderStep{QPoint{0, 0}, QPoint{600, 0}}), 2000ms);
+    EXPECT_EQ(PetWander::walkDuration(WanderStep{QPoint{0, 0}, QPoint{2000, 0}}), PetWander::kWalkMax);
+}
+
 TEST(PetWander, AStepClampsToTheWorkAreaAndEndsOnTheEdge)
 {
     auto       wander = makeWander(Gait::Trot, QPoint{0, 500}, 60);

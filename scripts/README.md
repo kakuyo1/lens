@@ -30,10 +30,14 @@ python scripts/qa/readme-html-compose.py # 裁图、合成语言切换 GIF、学
 ```
 
 ```powershell
+powershell -File scripts/qa/lens-dev.ps1 -Script <剧本>   # 开发面优先：不移动指针、不抓屏，见 docs/qa.md
 powershell -File scripts/qa/ui-run.ps1        # 起 release 树的应用：旧了就重建，见 docs/qa.md
 powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_components   # 整套；加 -Case <用例> 只跑一条，见 TEST.md 第 2 节
 powershell -File scripts/qa/readme-gifs.ps1   # 离屏渲染 QML 动图与设置页截图（旧 README 管线，当前 README 不引用）
 ```
+
+桌面验证从开发面开始；只有像素问题或必须经过真实钩子与命中测试的输入，才轮到 `ui-input.ps1` 与
+`ui-capture.ps1`。开发面需要 `LENS_ENABLE_DEV_SURFACE=ON` 的构建，默认的 release 树没有它。
 
 旧的 `scripts/qa/readme-shots.sh` 与 `readme-gifs.ps1` 仍保留，但它们写 `docs/readme-images/`，当前 README 不再引用那里的图片；新素材写到 `docs/readme/`。
 整条 HTML 素材管线需要 Pillow（`pip install Pillow`）：截图脚本末尾用它裁社交预览，合成脚本用它做 GIF 和拼图。`readme-html-shots.sh` 会在常见安装位置找 Chrome，不启动应用。

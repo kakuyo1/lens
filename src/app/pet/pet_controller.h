@@ -57,6 +57,9 @@ class PetController : public QObject {
     QML_SINGLETON
     Q_PROPERTY(bool available READ available NOTIFY settingsChanged)
     Q_PROPERTY(bool enabled READ enabled NOTIFY settingsChanged)
+    /// Whether the pet's window is on screen. Not the same as enabled: a pet being turned off keeps its window up
+    /// for the goodbye, so the scene must bind visibility to this rather than to enabled.
+    Q_PROPERTY(bool shown READ shown NOTIFY shownChanged)
     Q_PROPERTY(bool passthrough READ passthrough NOTIFY settingsChanged)
     Q_PROPERTY(QString pet READ pet NOTIFY settingsChanged)
     Q_PROPERTY(QVariantList pets READ pets NOTIFY catalogChanged)
@@ -117,6 +120,7 @@ public:
 
     bool available() const;
     bool enabled() const;
+    bool shown() const;
     bool passthrough() const;
     /// @return Whether a review question may go up: the pet is idle, or hiding at a screen edge and peeking, and
     ///         not being dragged. A hide does not block the sign; a reaction or a reading finishes first
@@ -193,6 +197,10 @@ public:
     Q_INVOKABLE void openPacksFolder();
     Q_INVOKABLE void setEnabled(bool on);
     Q_INVOKABLE void setPassthrough(bool on);
+    /// @brief Tells the ceremonies whether motion is reduced. The pet window mirrors Tokens.motion.reduced here, so the
+    ///        Windows preference and the application's animation switch both collapse the ceremony to its end state.
+    /// @param on True to play every ceremony instantly; a ceremony already running lands at once.
+    Q_INVOKABLE void setMotionReduced(bool on);
     /// @param window The QML Window, whose native handle takes capture exclusion and pass-through.
     Q_INVOKABLE void attachWindow(QObject* window);
     /// @brief Keeps a QML window out of screen captures, as the pet's own is. The review sign needs it: the scan must not read its word.
@@ -214,6 +222,8 @@ signals:
     /// @brief The expression layer's gaze offset changed.
     void gazeChanged();
     void settingsChanged();
+    /// @brief The pet's window went on screen or came off it (see shown()).
+    void shownChanged();
     void outfitChanged();
     /// @brief The scan found different pets or refusals. Only the picker's lists depend on it, so it is not sent per setting.
     void catalogChanged();
@@ -224,6 +234,35 @@ signals:
 
 private:
     struct Hiding;
+
+    /// The stages of one ceremony. A switch runs SwitchOut, Swap, then Entering; an entrance starts at Entering and
+    /// a goodbye at Leaving.
+    enum class CeremonyPhase : std::uint8_t {
+        Entering,
+        EnterLook,
+        Leaving,
+        LeaveLook,
+        LeaveBye,
+        Exiting,
+        SwitchOut,
+        Swap,
+    };
+
+    /// @brief The entrance, switch or goodbye in progress. `walk` is the path the walking phases move along.
+    struct Ceremony {
+        CeremonyPhase phase;
+        EdgeSide      side;
+        WanderStep    walk;
+        /// Where the pet settles once it is inside: home, clamped to the window's current size and work area.
+        QPoint                    home;
+        std::chrono::milliseconds elapsed{0};
+        std::chrono::milliseconds duration{0};
+        /// Swap only: the new pet is loaded and the window has had one beat to take its new size.
+        bool loaded{false};
+    };
+
+    /// @return Whether `phase` belongs to taking the pet off screen.
+    static bool isLeaving(CeremonyPhase phase);
 
     /// @brief Loads the pet in folder `id` from the catalogue, and starts it from its first frame. A pet the catalogue does
     ///        not hold, or that fails to load, leaves the pet off.
@@ -261,6 +300,38 @@ private:
     void snapBackToHide();
     /// @brief Recomputes a hide's base after the window changed size.
     void refitHiding();
+    /// @return Whether this pet has the walk loop a ceremony moves with.
+    bool canWalkCeremony() const;
+    /// @brief Starts the entrance from the nearest edge of home, or from where the pet is when `fromHere`.
+    void startEntrance(bool fromHere);
+    /// @brief Starts the goodbye: to the nearest edge, a look, a heart, then off screen.
+    void startLeave();
+    /// @brief Starts the switch the reader chose: the old pet leaves, the pending one enters from the same edge.
+    void startSwitch();
+    /// @brief Moves the ceremony on by `step`.
+    void updateCeremony(std::chrono::milliseconds step);
+    /// @brief Starts a walk between two points, or marks a zero-length walk for the next tick to step through.
+    /// @return False when the pet has no walk art.
+    bool beginCeremonyWalk(CeremonyPhase phase, QPoint from, QPoint to);
+    /// @brief Plays the action mapped to `role` and waits its playback plus `beat`.
+    /// @return False when the role cannot play as a one-shot.
+    bool beginCeremonyRole(CeremonyPhase phase, core::pet::Role role, std::chrono::milliseconds beat);
+    /// @return How long the action mapped to `role` runs, from its frames and fps.
+    std::chrono::milliseconds rolePlayback(core::pet::Role role) const;
+    /// @brief Ends the ceremony on screen, with the pet at home and at rest.
+    void settleAtHome();
+    /// @brief Ends the ceremony at its outcome now: hides a goodbye, otherwise completes a pending switch and settles.
+    void finishCeremonyNow();
+    /// @brief Ends the ceremony where it is, with the pet still on screen.
+    void abortCeremony();
+    /// @brief Walks from where the goodbye stands to just outside the edge it chose.
+    void beginExitWalk();
+    /// @brief Ends the ceremony and takes the window off screen.
+    void hideNow();
+    /// @brief Applies the pet a switch is waiting on, while the window is off screen.
+    void applyPendingPet();
+    /// @brief Changes shown() and announces it when it moved.
+    void setShown(bool on);
     /// @return A fresh wait before the next stroll, 120 to 300 seconds.
     std::chrono::milliseconds nextWanderWait();
     /// @return How long the pet pauses between two steps, by gait.
@@ -364,6 +435,18 @@ private:
     /// Whether the reader is holding the pet, hide or not.
     bool                  dragging_{false};
     std::optional<Hiding> hiding_;
+
+    /// Whether the window is on screen. `enabled()` asks for the pet, this says where its window is: a goodbye keeps
+    /// it true after the switch has gone off.
+    bool shown_{false};
+    /// The reader's reduced-motion answer, mirrored from Tokens.motion.reduced by the pet window.
+    bool motionReduced_{false};
+    /// The one ceremony in progress, if any.
+    std::optional<Ceremony> ceremony_;
+    /// The pet the reader chose while the old one is still walking out; pet() reports it meanwhile.
+    std::string pendingPet_;
+    /// A drag that caught a goodbye keeps the pet under the pointer until the drop, then hides it.
+    bool hideAfterDrag_{false};
 
     QTimer   clock_;
     QWindow* window_ = nullptr;

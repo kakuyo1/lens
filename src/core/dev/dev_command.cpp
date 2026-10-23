@@ -155,6 +155,17 @@ Parse parseSetting(std::string_view name, std::string_view value)
             return refuse("animationsEnabled takes on or off");
         return accept({.verb = Verb::SettingSet, .settingKey = SettingKey::AnimationsEnabled, .settingValue = value == "on"});
     }
+    if (name == "petEnabled") {
+        if (value != "on" and value != "off")
+            return refuse("petEnabled takes on or off");
+        return accept({.verb = Verb::SettingSet, .settingKey = SettingKey::PetEnabled, .settingValue = value == "on"});
+    }
+    if (name == "pet") {
+        // The catalogue is the authority on which ids exist; the grammar only refuses an empty one.
+        if (value.empty())
+            return refuse("pet takes a pet id");
+        return accept({.verb = Verb::SettingSet, .settingKey = SettingKey::Pet, .settingValue = std::string{value}});
+    }
     if (name == "glassQuality") {
         auto const tier = std::ranges::find(kGlassQualityNames, value);
         if (tier == kGlassQualityNames.end())
@@ -273,12 +284,22 @@ nlohmann::json stateJson(StateInput const& input)
             {"sheet", orNull(surface.sheet)},
         });
     }
+    auto pet = nlohmann::json{};
+    if (input.pet) {
+        pet = {
+            {"id", input.pet->id},
+            {"enabled", input.pet->enabled},
+            {"shown", input.pet->shown},
+            {"action", input.pet->action},
+        };
+    }
     return {
         {"ok", true},
         {"build", buildJson(input.build)},
         {"theme", orNull(input.theme)},
         {"windows", {{"total", input.windowsTotal}, {"visible", input.windowsVisible}}},
         {"surfaces", surfaces},
+        {"pet", pet},
     };
 }
 

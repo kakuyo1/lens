@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- The desktop pet enters from the nearest screen edge and looks around, hands over to a newly
+  chosen pet from the same edge, and says goodbye with a heart before walking out. Turning
+  animations off, in Windows or in the application, collapses the ceremony to an instant show or
+  hide (docs/adr/0089).
+
 ## 1.8.0 - 2026-10-23
 
 The About page gains a picture-cache line that shows what Lens has downloaded and clears it in

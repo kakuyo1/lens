@@ -409,7 +409,7 @@ int main(int argc, char* argv[])
 #else
     constexpr bool qmlDebug = false;
 #endif
-    lens::app::startDevSurface(engine.rootObjects().constFirst(), &controller, app.arguments(), lens::core::dev::Build{.config = config, .qmlDebug = qmlDebug});
+    lens::app::startDevSurface(engine.rootObjects().constFirst(), &controller, &petController, app.arguments(), lens::core::dev::Build{.config = config, .qmlDebug = qmlDebug});
 #endif
 
     LENS_INFO("Lens is up");

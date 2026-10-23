@@ -64,9 +64,14 @@ enum class SettingKey : std::uint8_t {
     LiquidRefraction,
     AnimationsEnabled,
     GlassQuality,
+    /// The desktop pet's switch and choice. Both go through PetController's real setters, so a dev run sees the same
+    /// ceremony a reader's click does.
+    PetEnabled,
+    Pet,
 };
 
-/// @return The document key @p key names, as the settings table spells it (core/domain/settings_table.h).
+/// @return The document key @p key names, as the settings table or the PET section spells it
+///         (core/domain/settings_table.h, core/document/pet_store.cpp).
 constexpr std::string_view settingKeyName(SettingKey const key)
 {
     switch (key) {
@@ -76,6 +81,8 @@ constexpr std::string_view settingKeyName(SettingKey const key)
         case SettingKey::LiquidRefraction: return "liquidRefraction";
         case SettingKey::AnimationsEnabled: return "animationsEnabled";
         case SettingKey::GlassQuality: return "glassQuality";
+        case SettingKey::PetEnabled: return "petEnabled";
+        case SettingKey::Pet: return "pet";
     }
     return {};
 }
@@ -139,6 +146,14 @@ struct SurfaceState {
     std::optional<std::string> sheet;
 };
 
+/// @brief What the desktop pet is doing, when this build has one to report.
+struct PetState {
+    std::string id;
+    bool        enabled{false};
+    bool        shown{false};
+    std::string action;
+};
+
 /// Everything a `state` answer reports, gathered by the application.
 struct StateInput {
     Build                      build;
@@ -146,6 +161,8 @@ struct StateInput {
     int                        windowsTotal{0};
     int                        windowsVisible{0};
     std::vector<SurfaceState>  surfaces;
+    /// Empty when the pet is not bound, which a build without it reports as null rather than leaving the key out.
+    std::optional<PetState> pet;
 };
 
 /// @return The `state` answer: `{"ok": true, "build", "theme", "windows", "surfaces"}`, every key present.

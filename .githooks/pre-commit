@@ -151,6 +151,7 @@ docs/adr/0079-sense-pictures-search-live-with-a-browser-fallback.md 0
 docs/adr/0080-scenes-are-per-pet-sets.md 0
 docs/adr/0081-dog-is-a-recipe.md 0
 docs/adr/0088-review-sign-stands-beside-the-pet.md 0
+docs/adr/0089-pet-entrance-and-goodbye-reuse-walk-and-look.md 0
 docs/metrics/runtime-performance/content-transition-window-resizes-2026-10-17.md 0
 docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md 0
 docs/metrics/README.md 0

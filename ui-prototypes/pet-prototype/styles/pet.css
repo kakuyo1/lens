@@ -47,6 +47,8 @@ body {
   font-size: 12px;
 }
 
+.ceremony-link { top: 68px; }
+
 #pet {
   width: 264px;
   height: 264px;

@@ -45,6 +45,7 @@ PetController* PetController::instance_ = nullptr;
 namespace {
 
 using core::pet::PetEvent;
+using core::pet::Role;
 using core::pet::Slot;
 
 /// One tick of the single frame clock. Frames are at most 24 fps, so a tick is never longer than a frame.
@@ -54,6 +55,13 @@ constexpr std::chrono::milliseconds kBlinkEvery{4000};
 /// The wait between two strolls while truly idle: 120 to 300 seconds, counted in idle time (ADR 0076).
 constexpr std::chrono::milliseconds kWanderWaitMin{120'000};
 constexpr std::chrono::milliseconds kWanderWaitMax{300'000};
+/// The ceremony's beats: a moment to stand after the look, a breath between the look and the heart, and one after the
+/// heart before the pet walks out.
+constexpr std::chrono::milliseconds kSettlePause{140};
+constexpr std::chrono::milliseconds kLookToHeart{120};
+constexpr std::chrono::milliseconds kByeToExit{240};
+/// How long a switch keeps the window off screen while the new pet's QML window takes its size.
+constexpr std::chrono::milliseconds kSwapSettle{60};
 
 QPoint toPoint(core::pet::Point const& point)
 {
@@ -150,6 +158,15 @@ PetController::PetController(std::filesystem::path shippedRoot, std::filesystem:
     } else {
         switchToDefault(chosen);
     }
+    // A launch with the pet already on opens where the reader left it: the entrance belongs to turning the pet on,
+    // not to starting the application over it.
+    shown_ = enabled();
+}
+
+bool PetController::isLeaving(CeremonyPhase phase)
+{
+    return phase == CeremonyPhase::Leaving or phase == CeremonyPhase::LeaveLook or phase == CeremonyPhase::LeaveBye or
+           phase == CeremonyPhase::Exiting;
 }
 
 PetController::~PetController() = default;
@@ -265,6 +282,12 @@ PetController* PetController::create(QQmlEngine* engine, QJSEngine* scriptEngine
 void PetController::handle(PetEvent event)
 {
     if (not machine_) return;
+    if (ceremony_) {
+        // A pet on its way out is not called back by a learning event. One arriving, or changing pets, lands at its
+        // outcome first: the event is what the reader is doing, and the walk has nowhere else to be.
+        if (isLeaving(ceremony_->phase)) return;
+        finishCeremonyNow();
+    }
     // An outside event voids the current wait: the next stroll is drawn again once the pet is idle.
     wanderWait_ = nextWanderWait();
     if (hiding_ and event == PetEvent::ReviewAsked) {
@@ -289,6 +312,11 @@ bool PetController::enabled() const
     return available() and store_.enabled();
 }
 
+bool PetController::shown() const
+{
+    return shown_;
+}
+
 bool PetController::passthrough() const
 {
     return store_.passthrough();
@@ -296,7 +324,8 @@ bool PetController::passthrough() const
 
 bool PetController::availableForReview() const
 {
-    if (not enabled() or not machine_ or dragging_) return false;
+    // A ceremony owns the pet's body and its place, so no question arrives on top of one.
+    if (not enabled() or not machine_ or dragging_ or ceremony_ or hideAfterDrag_) return false;
     // A hidden pet may still be asked while it is peeking: the sign goes up at the edge and the hide survives the
     // answer. A reaction or a reading plays out first, as it does for an idle pet.
     return machine_->idle() or (hiding_ and machine_->ambient());
@@ -309,6 +338,8 @@ double PetController::randomUnit()
 
 QString PetController::pet() const
 {
+    // The picker shows the reader's choice while the old pet is still walking out, so it does not snap back.
+    if (not pendingPet_.empty()) return QString::fromStdString(pendingPet_);
     return QString::fromStdString(store_.pet());
 }
 
@@ -514,6 +545,9 @@ int PetController::maxSize() const
 
 void PetController::setSize(int percent)
 {
+    // The ceremony's path was measured for the old window; a size change lands it at home and lets fitOnScreen pull
+    // the new window into the work area.
+    if (ceremony_) finishCeremonyNow();
     store_.setSize(percent);
     emit settingsChanged();
 }
@@ -522,6 +556,14 @@ void PetController::setRunning(bool on)
 {
     desktopRunning_ = on;
     if (not on) {
+        // The window was taken away under a ceremony (the application is closing, or the scene asked it down):
+        // stop the ceremony rather than leave it half done.
+        if (ceremony_) {
+            ceremony_.reset();
+            pendingPet_.clear();
+            hideAfterDrag_ = false;
+            if (machine_) machine_->rest();
+        }
         cancelStroll();
         endHiding();
         resetHover();
@@ -544,6 +586,7 @@ void PetController::preview(QString action)
 {
     auto const picked = actionNamed(action);
     if (not picked) return;
+    if (ceremony_) finishCeremonyNow();
     // From the first frame even when it is the action already shown, so a second press plays it again.
     preview_       = picked;
     actionElapsed_ = std::chrono::milliseconds{0};
@@ -557,6 +600,7 @@ void PetController::setScene(QString id)
     auto const name = id.toStdString();
     // A scene is real, not a preview: the machine plays it for its duration and then returns to idle. A card's
     // preview, if one was showing, would otherwise keep it off screen.
+    if (ceremony_) finishCeremonyNow();
     preview_.reset();
     resetHover();
     lastScene_ = name;
@@ -566,6 +610,12 @@ void PetController::setScene(QString id)
 
 void PetController::dragStart()
 {
+    if (ceremony_) {
+        // Grabbing the pet ends its ceremony where it stands. A goodbye was taking the window off screen, so the drop
+        // completes it instead of leaving a turned-off pet on the desktop.
+        hideAfterDrag_ = isLeaving(ceremony_->phase);
+        abortCeremony();
+    }
     dragging_ = true;
     if (stroll_ != StrollPhase::Waiting) cancelStroll();
     if (hiding_) hiding_->dragging = true;
@@ -575,6 +625,13 @@ void PetController::dragStart()
 void PetController::dragEnd()
 {
     dragging_ = false;
+    if (hideAfterDrag_) {
+        hideAfterDrag_ = false;
+        handle(PetEvent::DragEnd);
+        setShown(false);
+        wanderWait_ = nextWanderWait();
+        return;
+    }
     if (hiding_) {
         auto& hidden    = *hiding_;
         hidden.dragging = false;
@@ -611,8 +668,9 @@ void PetController::dragEnd()
 
 void PetController::click()
 {
-    // A hidden pet only peeks and is dragged out: a click neither wakes it nor plays the poke reaction.
-    if (hiding_) return;
+    // A hidden pet only peeks and is dragged out: a click neither wakes it nor plays the poke reaction. A ceremony is
+    // the pet's own business too: a click left over from catching it does not cut the walk.
+    if (hiding_ or ceremony_) return;
     handle(PetEvent::Click);
 }
 
@@ -642,7 +700,26 @@ void PetController::setPet(QString id)
         emit confirmationRequested(id, entry->name);
         return;
     }
-    applyPet(name);
+    if (name == store_.pet() and pendingPet_.empty()) return;
+    if (name == pendingPet_) return;
+
+    // With no window under the tests, with the pet off, or with motion reduced, the choice lands at once.
+    if (not enabled() or not shown_ or not window_ or motionReduced_ or not canWalkCeremony()) {
+        if (ceremony_) {
+            if (isLeaving(ceremony_->phase))
+                hideNow();
+            else
+                abortCeremony();
+        }
+        applyPet(name);
+        return;
+    }
+
+    // A new choice interrupts the ceremony before it; the pet it interrupted is the one that walks out.
+    if (ceremony_) abortCeremony();
+    if (hiding_) endHiding();
+    pendingPet_ = name;
+    startSwitch();
 }
 
 void PetController::confirmPet(QString id)
@@ -650,11 +727,18 @@ void PetController::confirmPet(QString id)
     auto const name = id.toStdString();
     if (not catalog_.find(name)) return;
     store_.confirm(name);
-    applyPet(name);
+    setPet(id);
 }
 
 void PetController::refresh()
 {
+    // The section is opened afresh: a ceremony from the last visit does not carry over into the new catalogue.
+    if (ceremony_) {
+        if (isLeaving(ceremony_->phase))
+            hideNow();
+        else
+            abortCeremony();
+    }
     catalog_          = scanPets(shippedRoot_, installedRoot_);
     auto const chosen = store_.pet();
     if (not usable(chosen)) switchToDefault(chosen);
@@ -676,6 +760,7 @@ void PetController::applyPet(std::string const& id)
 {
     auto const previous = store_.pet();
     store_.setPet(id);
+    pendingPet_.clear();
     loadPet(id);
     // A pet that will not load keeps the one the reader had, so the picker stays usable.
     if (not assets_) {
@@ -692,6 +777,7 @@ void PetController::applyPet(std::string const& id)
 
 void PetController::switchToDefault(std::string const& gone)
 {
+    pendingPet_.clear();
     store_.setPet(kDefaultPet);
     loadPet(kDefaultPet);
     if (isShipped(gone)) return;
@@ -723,15 +809,48 @@ bool PetController::isShipped(std::string const& id) const
 
 void PetController::setEnabled(bool on)
 {
+    if (on == store_.enabled()) return;
     store_.setEnabled(on);
-    if (not on) {
-        cancelStroll();
-        endHiding();
-        resetHover();
-        wanderWait_ = nextWanderWait();
-        // Turning the pet off puts it back where the reader left it, so switching it on starts from home again.
-        if (window_ and wander_ and homeReady_) window_->setPosition(wander_->home());
+    hideAfterDrag_ = false;
+
+    if (on) {
+        if (ceremony_ and isLeaving(ceremony_->phase)) {
+            // Turned back on during its goodbye: it walks back in from wherever it had got to, unless motion is
+            // reduced, where it simply stands at home again.
+            if (motionReduced_)
+                settleAtHome();
+            else
+                startEntrance(true);
+        } else if (not shown_) {
+            if (motionReduced_ or not canWalkCeremony()) {
+                settleAtHome();
+            } else {
+                startEntrance(false);
+            }
+        } else {
+            // A drag can hold a turned-off pet on screen; turning it on just keeps it where it is.
+            if (ceremony_) abortCeremony();
+            if (machine_) machine_->rest();
+        }
+    } else {
+        if (ceremony_ and isLeaving(ceremony_->phase)) {
+            // The goodbye is already playing.
+        } else if (hiding_) {
+            // It is already at the edge and mostly out of sight; there is no goodbye left to show.
+            endHiding();
+            hideNow();
+        } else if (not window_ or not shown_ or motionReduced_ or not canWalkCeremony()) {
+            hideNow();
+        } else if (dragging_) {
+            if (ceremony_) abortCeremony();
+            hideAfterDrag_ = true;
+        } else {
+            // A switch in progress gives way to the goodbye; the pet already loaded is the one that leaves.
+            if (ceremony_) abortCeremony();
+            startLeave();
+        }
     }
+
     if (window_ and window_->isVisible()) ::lens::app::setPassthrough(*window_, enabled() and store_.passthrough());
     emit settingsChanged();
 }
@@ -742,6 +861,15 @@ void PetController::setPassthrough(bool on)
     if (on) resetHover();
     if (window_ and window_->isVisible()) ::lens::app::setPassthrough(*window_, enabled() and on);
     emit settingsChanged();
+}
+
+void PetController::setMotionReduced(bool on)
+{
+    if (on == motionReduced_) return;
+    motionReduced_ = on;
+    if (not on or not ceremony_) return;
+    // A switch that had not loaded its pet yet still completes; a goodbye becomes a plain hide.
+    finishCeremonyNow();
 }
 
 void PetController::attachWindow(QObject* object)
@@ -785,6 +913,7 @@ void PetController::keepOutOfCapture(QObject* object)
 void PetController::keepOnScreen()
 {
     if (not window_) return;
+    if (ceremony_) finishCeremonyNow();
     auto areas = QList<QRect>{};
     for (auto const* screen : QGuiApplication::screens())
         areas.append(screen->availableGeometry());
@@ -820,6 +949,402 @@ void PetController::keepOnScreen()
     wanderWait_ = nextWanderWait();
 }
 
+bool PetController::canWalkCeremony() const
+{
+    if (not assets_ or not machine_ or not wander_ or not window_) return false;
+    auto const& movement = assets_->animations.movement;
+    return movement.has_value() and assets_->animations.playbook.actions.count(movement->walk) != 0;
+}
+
+void PetController::startEntrance(bool fromHere)
+{
+    hideAfterDrag_ = false;
+    if (machine_) {
+        machine_->stopAmbient();
+        machine_->rest();
+    }
+    if (not window_ or not wander_) {
+        settleAtHome();
+        return;
+    }
+
+    auto const size = window_->size();
+    auto const here = window_->position();
+    auto const area = areaAt(here);
+    if (not area.isValid()) {
+        settleAtHome();
+        return;
+    }
+
+    wander_->setBounds(size, area);
+    if (not homeReady_) {
+        wander_->setHome(here);
+        homeReady_ = true;
+    }
+    auto const home = clampedWithin(wander_->home(), size, area);
+    auto const side = PetWander::nearestEdge(area, size, home);
+    auto const from = fromHere ? here : PetWander::offscreenBase(area, size, home, side);
+    wander_->setHome(home);
+
+    // Fully off screen before the window is shown, so an entrance never starts with a pop at home.
+    if (not fromHere) window_->setPosition(from);
+    setShown(true);
+
+    Ceremony started;
+    started.phase = CeremonyPhase::Entering;
+    started.side  = side;
+    started.walk  = WanderStep{from, home};
+    started.home  = home;
+    ceremony_     = started;
+    wanderWait_   = nextWanderWait();
+    if (beginCeremonyWalk(CeremonyPhase::Entering, from, home)) {
+        LENS_DEBUG("pet ceremony: entering from the {} edge", side == EdgeSide::Left ? "left" : "right");
+        return;
+    }
+
+    // A pet with no walk art still looks around from home rather than simply appearing.
+    window_->setPosition(home);
+    if (beginCeremonyRole(CeremonyPhase::EnterLook, Role::LookAround, kSettlePause)) return;
+    settleAtHome();
+}
+
+void PetController::startLeave()
+{
+    if (machine_) {
+        machine_->stopAmbient();
+        machine_->rest();
+    }
+    if (not canWalkCeremony()) {
+        hideNow();
+        return;
+    }
+
+    auto const size = window_->size();
+    auto const here = window_->position();
+    auto const area = areaAt(here);
+    if (not area.isValid() or not QRect{here, size}.intersects(area)) {
+        // Already past the edge: there is nothing left to walk out of and nobody can see a goodbye.
+        hideNow();
+        return;
+    }
+
+    auto const side = PetWander::nearestEdge(area, size, here);
+    auto const high = area.bottom() - size.height() + 1;
+    auto const y    = high < area.top() ? area.top() : std::clamp(here.y(), area.top(), high);
+    auto const edge = QPoint{side == EdgeSide::Left ? area.left() : area.right() - size.width() + 1, y};
+
+    Ceremony started;
+    started.phase = CeremonyPhase::Leaving;
+    started.side  = side;
+    started.walk  = WanderStep{here, edge};
+    started.home  = wander_ ? wander_->home() : here;
+    ceremony_     = started;
+    if (beginCeremonyWalk(CeremonyPhase::Leaving, here, edge)) {
+        LENS_DEBUG("pet ceremony: goodbye at the {} edge", side == EdgeSide::Left ? "left" : "right");
+        return;
+    }
+    if (beginCeremonyRole(CeremonyPhase::LeaveLook, Role::LookAround, kLookToHeart)) return;
+    if (beginCeremonyRole(CeremonyPhase::LeaveBye, Role::Encourage, kByeToExit)) return;
+    beginExitWalk();
+}
+
+void PetController::startSwitch()
+{
+    if (pendingPet_.empty()) return;
+    if (machine_) {
+        machine_->stopAmbient();
+        machine_->rest();
+    }
+    if (not canWalkCeremony()) {
+        applyPendingPet();
+        settleAtHome();
+        return;
+    }
+
+    auto const size = window_->size();
+    auto const here = window_->position();
+    auto const area = areaAt(here);
+    if (not area.isValid()) {
+        applyPendingPet();
+        settleAtHome();
+        return;
+    }
+
+    auto const side = PetWander::nearestEdge(area, size, here);
+    auto const out  = PetWander::offscreenBase(area, size, here, side);
+    auto const home = wander_ and homeReady_ ? clampedWithin(wander_->home(), size, area) : here;
+
+    Ceremony started;
+    started.phase = CeremonyPhase::SwitchOut;
+    started.side  = side;
+    started.walk  = WanderStep{here, out};
+    started.home  = home;
+    ceremony_     = started;
+    if (beginCeremonyWalk(CeremonyPhase::SwitchOut, here, out)) {
+        LENS_DEBUG("pet ceremony: switching at the {} edge", side == EdgeSide::Left ? "left" : "right");
+        return;
+    }
+
+    // Already off screen, or the walk cannot play: swap without walking out.
+    ceremony_->phase    = CeremonyPhase::Swap;
+    ceremony_->duration = kSwapSettle;
+    ceremony_->loaded   = false;
+}
+
+void PetController::updateCeremony(std::chrono::milliseconds step)
+{
+    if (not ceremony_) return;
+    if (not window_ or not assets_) {
+        hideNow();
+        return;
+    }
+
+    auto& c = *ceremony_;
+    c.elapsed += step;
+
+    switch (c.phase) {
+        case CeremonyPhase::Entering:
+        case CeremonyPhase::Leaving:
+        case CeremonyPhase::Exiting:
+        case CeremonyPhase::SwitchOut: {
+            auto const gait   = assets_->animations.movement ? gaitOf(assets_->animations.movement->style) : Gait::Glide;
+            auto const done   = c.duration.count() == 0 or c.elapsed >= c.duration;
+            auto const amount = done ? 1.0
+                                     : static_cast<double>(c.elapsed.count()) / static_cast<double>(c.duration.count());
+            window_->setPosition(PetWander::walkAt(c.walk, amount, gait, window_->size().width()));
+            if (not done) return;
+            window_->setPosition(c.walk.to);
+            if (machine_) machine_->stopAmbient();
+
+            switch (c.phase) {
+                case CeremonyPhase::Entering:
+                    LENS_DEBUG("pet ceremony: arrived at home");
+                    if (beginCeremonyRole(CeremonyPhase::EnterLook, Role::LookAround, kSettlePause)) return;
+                    settleAtHome();
+                    return;
+                case CeremonyPhase::Leaving:
+                    if (beginCeremonyRole(CeremonyPhase::LeaveLook, Role::LookAround, kLookToHeart)) return;
+                    if (beginCeremonyRole(CeremonyPhase::LeaveBye, Role::Encourage, kByeToExit)) return;
+                    beginExitWalk();
+                    return;
+                case CeremonyPhase::Exiting:
+                    hideNow();
+                    return;
+                case CeremonyPhase::SwitchOut:
+                    LENS_DEBUG("pet ceremony: the old pet is off screen; loading {}", pendingPet_);
+                    c.phase    = CeremonyPhase::Swap;
+                    c.elapsed  = std::chrono::milliseconds{0};
+                    c.duration = kSwapSettle;
+                    c.loaded   = false;
+                    return;
+                default:
+                    return;
+            }
+        }
+        case CeremonyPhase::EnterLook:
+            if (c.elapsed >= c.duration) settleAtHome();
+            return;
+        case CeremonyPhase::LeaveLook:
+            if (c.elapsed < c.duration) return;
+            if (beginCeremonyRole(CeremonyPhase::LeaveBye, Role::Encourage, kByeToExit)) return;
+            beginExitWalk();
+            return;
+        case CeremonyPhase::LeaveBye:
+            if (c.elapsed >= c.duration) beginExitWalk();
+            return;
+        case CeremonyPhase::Swap:
+            if (not c.loaded) {
+                applyPendingPet();
+                c.loaded  = true;
+                c.elapsed = std::chrono::milliseconds{0};
+                return;
+            }
+            if (c.elapsed < c.duration) return;
+            {
+                auto const area = areaAt(c.home);
+                auto const size = window_->size();
+                auto const home = area.isValid() ? clampedWithin(c.home, size, area) : c.home;
+                c.home          = home;
+                window_->setPosition(area.isValid() ? PetWander::offscreenBase(area, size, home, c.side) : home);
+                if (wander_) {
+                    wander_->setHome(home);
+                    wander_->setBounds(size, area);
+                    homeReady_ = area.isValid();
+                }
+                if (machine_) {
+                    machine_->stopAmbient();
+                    machine_->rest();
+                }
+                wanderWait_ = nextWanderWait();
+                if (beginCeremonyWalk(CeremonyPhase::Entering, window_->position(), home)) {
+                    LENS_DEBUG("pet ceremony: the new pet enters");
+                    return;
+                }
+                window_->setPosition(home);
+                if (beginCeremonyRole(CeremonyPhase::EnterLook, Role::LookAround, kSettlePause)) return;
+                settleAtHome();
+            }
+            return;
+    }
+}
+
+bool PetController::beginCeremonyWalk(CeremonyPhase phase, QPoint from, QPoint to)
+{
+    if (not ceremony_ or not canWalkCeremony()) return false;
+    auto const& movement = assets_->animations.movement;
+    ceremony_->phase     = phase;
+    ceremony_->walk      = WanderStep{from, to};
+    ceremony_->elapsed   = std::chrono::milliseconds{0};
+    ceremony_->duration  = PetWander::walkDuration(ceremony_->walk);
+    LENS_DEBUG("pet ceremony: walk ({},{}) -> ({},{}) in {} ms", from.x(), from.y(), to.x(), to.y(), ceremony_->duration.count());
+    if (ceremony_->duration.count() == 0) return true;
+    if (not machine_->playAmbient(movement->walk)) {
+        LENS_WARN("the pet ceremony cannot play the walk action: {}", movement->walk);
+        return false;
+    }
+    return true;
+}
+
+bool PetController::beginCeremonyRole(CeremonyPhase phase, Role role, std::chrono::milliseconds beat)
+{
+    if (not ceremony_ or not machine_) return false;
+    auto const playback = rolePlayback(role);
+    if (not machine_->playRole(role)) return false;
+    ceremony_->phase    = phase;
+    ceremony_->elapsed  = std::chrono::milliseconds{0};
+    ceremony_->duration = playback + beat;
+    LENS_DEBUG("pet ceremony: {} plays for {} ms", assets_->animations.playbook.roles.at(role), ceremony_->duration.count());
+    return true;
+}
+
+std::chrono::milliseconds PetController::rolePlayback(Role role) const
+{
+    if (not assets_) return std::chrono::milliseconds{0};
+    auto const& playbook = assets_->animations.playbook;
+    auto const  named    = playbook.roles.find(role);
+    if (named == playbook.roles.end()) return std::chrono::milliseconds{0};
+    auto const found = playbook.actions.find(named->second);
+    if (found == playbook.actions.end()) return std::chrono::milliseconds{0};
+    return std::chrono::milliseconds{found->second.frames * 1000 / found->second.fps};
+}
+
+void PetController::beginExitWalk()
+{
+    if (not ceremony_ or not window_) {
+        hideNow();
+        return;
+    }
+    auto const from = window_->position();
+    auto const area = areaAt(from);
+    if (not area.isValid()) {
+        hideNow();
+        return;
+    }
+    auto const to = PetWander::offscreenBase(area, window_->size(), from, ceremony_->side);
+    if (not beginCeremonyWalk(CeremonyPhase::Exiting, from, to)) hideNow();
+}
+
+void PetController::settleAtHome()
+{
+    if (machine_) {
+        machine_->stopAmbient();
+        machine_->rest();
+    }
+    ceremony_.reset();
+    pendingPet_.clear();
+    hideAfterDrag_ = false;
+    if (window_ and wander_) {
+        auto const home = homeReady_ ? wander_->home() : window_->position();
+        auto const area = areaAt(home);
+        if (area.isValid()) {
+            auto const at = clampedWithin(home, window_->size(), area);
+            window_->setPosition(at);
+            wander_->setHome(at);
+            wander_->setBounds(window_->size(), area);
+            homeReady_ = true;
+        } else {
+            window_->setPosition(home);
+        }
+    }
+    wanderWait_ = nextWanderWait();
+    setShown(true);
+    LENS_DEBUG("pet ceremony: settled at home");
+}
+
+void PetController::finishCeremonyNow()
+{
+    if (not ceremony_) return;
+    if (isLeaving(ceremony_->phase)) {
+        hideNow();
+        return;
+    }
+    if (not pendingPet_.empty()) applyPendingPet();
+    settleAtHome();
+}
+
+void PetController::abortCeremony()
+{
+    if (not ceremony_) return;
+    if (machine_) {
+        machine_->stopAmbient();
+        machine_->rest();
+    }
+    pendingPet_.clear();
+    ceremony_.reset();
+    wanderWait_ = nextWanderWait();
+}
+
+void PetController::hideNow()
+{
+    if (machine_) {
+        machine_->stopAmbient();
+        machine_->rest();
+    }
+    cancelStroll();
+    endHiding();
+    resetHover();
+    ceremony_.reset();
+    pendingPet_.clear();
+    hideAfterDrag_ = false;
+    wanderWait_    = nextWanderWait();
+    setShown(false);
+    LENS_DEBUG("pet ceremony: off screen");
+}
+
+void PetController::applyPendingPet()
+{
+    if (pendingPet_.empty()) return;
+    auto const target = pendingPet_;
+    auto const home   = wander_ and homeReady_ ? wander_->home() : (window_ ? window_->position() : QPoint{});
+    auto const area   = window_ ? areaAt(window_->position()) : QRect{};
+    applyPet(target);
+    if (not window_ or not ceremony_) return;
+
+    auto const size = window_->size();
+    auto const at   = area.isValid() ? clampedWithin(home, size, area) : home;
+    if (wander_) {
+        wander_->setHome(at);
+        wander_->setBounds(size, area);
+        homeReady_ = area.isValid();
+    }
+    ceremony_->home = at;
+
+    if (assets_ and area.isValid()) {
+        // The QML window takes its new size on the next event turn. Park it against the larger of the two until then,
+        // so a wider pet cannot show a sliver while the swap finishes.
+        auto const expected = static_cast<int>(std::lround(assets_->canvas * scale()));
+        auto const padded   = QSize{expected + 64, expected + 64};
+        window_->setPosition(PetWander::offscreenBase(area, padded, at, ceremony_->side));
+    }
+}
+
+void PetController::setShown(bool on)
+{
+    if (shown_ == on) return;
+    shown_ = on;
+    emit shownChanged();
+}
+
 QPoint PetController::cursorPos() const
 {
     return QCursor::pos();
@@ -848,6 +1373,9 @@ QPoint PetController::initialPosition(QSize size)
 void PetController::fitOnScreen()
 {
     if (not window_) return;
+    // A ceremony owns the window's path. A switch resizes the window deliberately while the pet is off screen; the
+    // arrival measures its target again once the new size is in place.
+    if (ceremony_) return;
     // A hidden window is deliberately off screen; resizing it only means recomputing how far it stays out.
     if (hiding_) {
         refitHiding();
@@ -896,6 +1424,7 @@ void PetController::savePosition(QPoint at)
 void PetController::tick()
 {
     machine_->advance(kTick);
+    updateCeremony(kTick);
     updateWander(kTick);
     updateHiding(kTick);
     updateHover(kTick);
@@ -904,7 +1433,7 @@ void PetController::tick()
 
 void PetController::updateWander(std::chrono::milliseconds step)
 {
-    if (not machine_ or not assets_ or not window_ or not wander_ or hiding_) return;
+    if (not machine_ or not assets_ or not window_ or not wander_ or hiding_ or ceremony_) return;
     auto const& movement = assets_->animations.movement;
     if (not movement) return;
     if (not desktopRunning_ or previewing_ or not enabled()) {
@@ -1155,7 +1684,8 @@ void PetController::updateHover(std::chrono::milliseconds step)
 {
     // Hover is the desktop pet's own sense. It has no meaning while the window is hidden, while clicks pass through,
     // while the settings preview is open, or before a window exists to measure against.
-    if (not hover_ or not assets_ or not window_ or not desktopRunning_ or previewing_ or hiding_ or store_.passthrough()) {
+    if (not hover_ or not assets_ or not window_ or not desktopRunning_ or previewing_ or hiding_ or ceremony_ or
+        store_.passthrough()) {
         resetHover();
         return;
     }

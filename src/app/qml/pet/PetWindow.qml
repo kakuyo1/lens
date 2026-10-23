@@ -16,6 +16,9 @@ Window {
     property point grabCursor
     property point grabAt
     property bool moved: false
+    /// The reader's motion answer, Windows' and the application's together. The ceremony lives in C++, so the window
+    /// hands it the same token every surface animates by.
+    readonly property bool reducedMotion: tokens.motion.reduced
 
     /// The reader's right-click on the pet. Where the panel goes is SurfaceHost.qml's business -- beside the pet, rather
     /// than at the tray icon the tray menu's own entry uses -- so this asks for it rather than placing anything itself.
@@ -25,9 +28,11 @@ Window {
     height: Math.round(Pet.canvas * Pet.scale)
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowDoesNotAcceptFocus
     color: "transparent"
-    visible: Pet.enabled
+    // Not Pet.enabled: a pet being turned off keeps its window up until the goodbye walks it out.
+    visible: Pet.shown
 
     onVisibleChanged: Pet.setRunning(visible)
+    onReducedMotionChanged: Pet.setMotionReduced(reducedMotion)
 
     // A resize grows the window right and down from its top-left, which can take it off the screen: nudge it back,
     // and save where it ended up. Both handlers run; the second finds nothing left to move when the first covered it.
@@ -35,6 +40,7 @@ Window {
     onHeightChanged: Pet.fitOnScreen()
 
     Component.onCompleted: {
+        Pet.setMotionReduced(reducedMotion);
         Pet.attachWindow(petWindow);
         place();
     }

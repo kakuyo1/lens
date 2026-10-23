@@ -68,6 +68,12 @@ public:
     static constexpr std::chrono::milliseconds kPeekCycle{3600};
     /// @brief The window width the fixed arc heights and peek travel are drawn for.
     static constexpr int kReferenceWidth{264};
+    /// @brief The pace an entrance or exit walk keeps, in screen pixels per second.
+    static constexpr double kWalkPace{300.0};
+    /// @brief The shortest and longest walk to or from a screen edge: a short step still reads, a full crossing
+    ///        does not drag.
+    static constexpr std::chrono::milliseconds kWalkMin{850};
+    static constexpr std::chrono::milliseconds kWalkMax{2600};
 
     /**
      * @param gait The path shape.
@@ -143,13 +149,35 @@ public:
     /// @return Whether a drop has brought at least kDragOutFraction of the window's width back inside `area`.
     static bool draggedOut(QPoint at, QSize size, QRect area);
 
+    /**
+     * @brief The window's top-left when it is wholly outside `area` on `side`, ready to walk in.
+     * @param area The screen's work area.
+     * @param size The window size.
+     * @param from The window's top-left before the walk; its y is kept where the area allows.
+     * @param side The edge the pet enters from or leaves by.
+     * @return hiddenBase()'s row, with x one whole window past the edge.
+     */
+    static QPoint offscreenBase(QRect area, QSize size, QPoint from, EdgeSide side);
+
+    /// @return The screen edge nearer the window at `from`: the left when both are equally near.
+    static EdgeSide nearestEdge(QRect area, QSize size, QPoint from);
+
+    /// @return How long a walk from one point to another takes at kWalkPace, clamped to kWalkMin..kWalkMax.
+    ///         Zero when the two points are less than two pixels apart and there is nowhere to walk.
+    static std::chrono::milliseconds walkDuration(WanderStep const& step);
+
+    /**
+     * @brief The window's point `progress` through a walk, with the gait's arc and no home-ellipse clamp.
+     * @param progress 0 at the start, 1 at the end; clamped.
+     * @param windowWidth The window width the arc heights scale with.
+     */
+    static QPoint walkAt(WanderStep const& step, double progress, Gait gait, int windowWidth);
+
 private:
     /// @return `at` clamped into the work area and then into the home ellipse.
     QPoint clamped(QPoint at) const;
     /// @return The vertical radius of the home ellipse, as a fraction of the horizontal one.
     double verticalRatio() const;
-    /// @return The vertical arc height the gait adds, in screen pixels for this window size.
-    double arcHeight(double reference) const;
 
     Gait                    gait_;
     int                     rangePercent_;

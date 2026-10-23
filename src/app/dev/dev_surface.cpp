@@ -7,6 +7,7 @@
 
 #include "core/domain/surface_table.h"
 #include "app/app_controller.h"
+#include "app/pet/pet_controller.h"
 #include "dev_pipe.h"
 #include "app/glass/glass_backdrop.h"
 #include "app/paths.h"
@@ -101,8 +102,8 @@ std::optional<QString> argumentValue(QStringList const& arguments, QString const
 
 } // namespace
 
-DevSurface::DevSurface(QObject* root, AppController* controller, core::dev::Build build)
-    : QObject(root), root_(root), controller_(controller), build_(std::move(build))
+DevSurface::DevSurface(QObject* root, AppController* controller, pet::PetController* pet, core::dev::Build build)
+    : QObject(root), root_(root), controller_(controller), pet_(pet), build_(std::move(build))
 {
     // Every name gets its counter before any window is wired, so the map is never inserted into after this point.
     for (auto const name : core::dev::kSurfaceNames)
@@ -289,6 +290,21 @@ nlohmann::json DevSurface::injectSelection(core::dev::Command const& command)
 
 nlohmann::json DevSurface::setSetting(core::dev::Command const& command)
 {
+    // The pet's switch and choice live in the PET section, not the settings table, so they go through the controller
+    // that owns them. Both are the reader's own setters, ceremonies included.
+    if (command.settingKey == core::dev::SettingKey::PetEnabled or command.settingKey == core::dev::SettingKey::Pet) {
+        if (pet_ == nullptr)
+            return failure("setting set pet: the desktop pet is not bound");
+        if (command.settingKey == core::dev::SettingKey::PetEnabled) {
+            auto const on = std::get<bool>(command.settingValue);
+            pet_->setEnabled(on);
+            return pet_->enabled() == on ? success() : failure("setting set petEnabled: refused");
+        }
+        auto const id = std::get<std::string>(command.settingValue);
+        pet_->setPet(QString::fromStdString(id));
+        return pet_->pet().toStdString() == id ? success() : failure("setting set pet: unknown pet");
+    }
+
     // One call: the settings table owns the key, its clamp and the signal the write raises, so this
     // surface no longer replays a setter per key it is allowed to touch (docs/adr/0083).
     const std::string key{core::dev::settingKeyName(command.settingKey)};
@@ -313,6 +329,13 @@ nlohmann::json DevSurface::state() const
     auto const settings = controller_->property("settings").toMap();
     if (settings.contains(QStringLiteral("theme")))
         input.theme = settings.value(QStringLiteral("theme")).toString().toStdString();
+    if (pet_ != nullptr)
+        input.pet = core::dev::PetState{
+            .id      = pet_->pet().toStdString(),
+            .enabled = pet_->enabled(),
+            .shown   = pet_->shown(),
+            .action  = pet_->action().toStdString(),
+        };
 
     auto windows = root_->findChildren<QWindow*>();
     if (auto* const self = qobject_cast<QWindow*>(root_))
@@ -408,7 +431,7 @@ std::optional<std::filesystem::path> devSettingsFile(QStringList const& argument
     return path;
 }
 
-void startDevSurface(QObject* root, AppController* controller, QStringList const& arguments, core::dev::Build build)
+void startDevSurface(QObject* root, AppController* controller, pet::PetController* pet, QStringList const& arguments, core::dev::Build build)
 {
     auto const scriptPath = argumentValue(arguments, QStringLiteral("--dev-script"));
     auto const pipeName   = argumentValue(arguments, QStringLiteral("--dev-pipe"));
@@ -432,7 +455,7 @@ void startDevSurface(QObject* root, AppController* controller, QStringList const
         lines = QString::fromUtf8(script.readAll()).split(QLatin1Char('\n'));
     }
     auto const  outputPath = argumentValue(arguments, QStringLiteral("--dev-out")).value_or(QString{});
-    auto* const surface    = new DevSurface(root, controller, std::move(build));
+    auto* const surface    = new DevSurface(root, controller, pet, std::move(build));
     if (pipeName and not surface->listenOnPipe(*pipeName)) {
         LENS_ERROR("dev surface: cannot listen on the pipe '{}'", pipeName->toStdString());
         exitWhenRunning(1);

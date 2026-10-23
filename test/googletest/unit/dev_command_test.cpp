@@ -139,6 +139,17 @@ TEST(DevCommandParse, SettingSetNamesTheSettingAndItsValue)
     ASSERT_TRUE(quality.command);
     EXPECT_EQ(quality.command->settingKey, SettingKey::GlassQuality);
     EXPECT_EQ(std::get<int>(quality.command->settingValue), 3);
+
+    // The pet's switch and choice are settings too, so a dev run can drive the ceremony without a pointer.
+    auto const petOn = parseCommand("setting set petEnabled on");
+    ASSERT_TRUE(petOn.command);
+    EXPECT_EQ(petOn.command->settingKey, SettingKey::PetEnabled);
+    EXPECT_TRUE(std::get<bool>(petOn.command->settingValue));
+
+    auto const pet = parseCommand("setting set pet ghost");
+    ASSERT_TRUE(pet.command);
+    EXPECT_EQ(pet.command->settingKey, SettingKey::Pet);
+    EXPECT_EQ(std::get<std::string>(pet.command->settingValue), "ghost");
 }
 
 TEST(DevCommandParse, SettingSetRefusesAKeyOrValueOffTheWhitelist)
@@ -151,6 +162,7 @@ TEST(DevCommandParse, SettingSetRefusesAKeyOrValueOffTheWhitelist)
              "setting set liquidBlur forty",
              "setting set animationsEnabled maybe",
              "setting set glassQuality fastest",
+             "setting set petEnabled maybe",
              "setting get theme",
              "setting theme light",
          }) {
@@ -183,6 +195,7 @@ TEST(DevCommandState, UnsetFieldsAreNullNotAbsent)
     EXPECT_TRUE(state.at("ok").get<bool>());
     EXPECT_EQ(state.at("build").at("config").get<std::string>(), "optimized");
     EXPECT_TRUE(state.at("theme").is_null());
+    EXPECT_TRUE(state.at("pet").is_null()) << "an unbound pet is null, not an absent key";
     EXPECT_EQ(state.at("windows").at("visible").get<int>(), 2);
 
     ASSERT_EQ(state.at("surfaces").size(), 2u);
@@ -194,6 +207,19 @@ TEST(DevCommandState, UnsetFieldsAreNullNotAbsent)
     EXPECT_EQ(empty.size(), 7u);
     EXPECT_TRUE(empty.at("visible").is_null());
     EXPECT_TRUE(empty.at("sheet").is_null());
+}
+
+TEST(DevCommandState, ThePetReportsItsSwitchWindowAndAction)
+{
+    lens::core::dev::StateInput input;
+    input.pet = lens::core::dev::PetState{.id = "ghost", .enabled = true, .shown = true, .action = "walk"};
+
+    auto const pet = lens::core::dev::stateJson(input).at("pet");
+    ASSERT_TRUE(pet.is_object());
+    EXPECT_EQ(pet.at("id").get<std::string>(), "ghost");
+    EXPECT_TRUE(pet.at("enabled").get<bool>());
+    EXPECT_TRUE(pet.at("shown").get<bool>());
+    EXPECT_EQ(pet.at("action").get<std::string>(), "walk");
 }
 
 } // namespace

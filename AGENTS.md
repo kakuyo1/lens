@@ -10,7 +10,7 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
   |---|---|
   | Docs, comments, `.ts` text | Nothing |
   | C++ logic | One gtest case or `--gtest_filter` that covers the touched code |
-  | QML that renders a visible surface | One `scripts/qa/ui-run.ps1` capture for visual-qa, plus the qtest case(s) covering the touched surface (`scripts/qa/qtest.ps1 -Target lens_qtest_surfaces -Case Settings::test_x`); no full-suite run |
+  | QML that renders a visible surface | Drive it through the dev surface first (`scripts/qa/lens-dev.ps1`, `docs/qa.md`), plus the qtest case(s) covering the touched surface (`scripts/qa/qtest.ps1 -Target lens_qtest_surfaces -Case Settings::test_x`); a `ui-run` capture only when pixels are the question; no full-suite run |
   | Big merge, release, or cross-target change | The full run |
   | Anything else | Nothing; push and let CI run the suites |
 
@@ -20,7 +20,7 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
 `.github/pull_request_template.md`: all three sections filled. Do not stop at handing over the
 compare URL.
 - UI work must comply with `UI.md` and `PRODUCT.md`.
-- Designing or auditing a `ui-prototypes/*.html` page starts by loading the `taste-skill` skill; a surface that has been rendered, the QML ones included, is checked with `visual-qa`.
+- Designing or auditing a `ui-prototypes/*.html` page starts by loading the `taste-skill` skill; a surface that has been rendered, the QML ones included, is checked with `visual-qa`, driven through the dev surface unless the question is pixels or the real hook path. Mouse injection and screenshots are the last resort, never the first look.
 - Keep `GLOSSARY.md`, `PRODUCT.md`, and `UI.md` in sync on any design change; `docs/README.md` owns which doc owns what; record major trade-offs in `docs/adr/`.
 - Reply in the language the user writes in; Chinese by default.
 - The API key lives in `%APPDATA%\Lens\settings.json`, the reader's own profile and never the install directory; it is never logged, never echoed in errors, never committed, and never copied out of the profile: read it in place. The repository's gitignored `settings.local.json` is that document's development source, copied over once on a first run (`src/app/main.cpp`).

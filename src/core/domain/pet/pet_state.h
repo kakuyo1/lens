@@ -193,6 +193,16 @@ struct PetStateMachine {
     /// @return Whether it started. False while anything else is playing, and for a looping or unknown action.
     bool playHover(ActionName const& name);
 
+    /// @brief Starts the action mapped to `role` now, at situational priority, while the pet is idle. The entrance
+    ///        ceremony's look and the goodbye's heart are played through it, so they need no event of their own.
+    /// @return Whether it started. False while anything else is playing, for a looping action, and for a role the pet
+    ///         has no art for.
+    bool playRole(Role role);
+
+    /// @brief Stops whatever is playing and returns to idle with a fresh idle wait. The controller uses it when a
+    ///        ceremony takes over the pet, including one that reverses direction.
+    void rest();
+
     /// @brief Moves the clock on by `step`: takes an idle turn when one is due, and ends actions that have run out.
     /// @param step Time since the last call.
     void advance(std::chrono::milliseconds step);
