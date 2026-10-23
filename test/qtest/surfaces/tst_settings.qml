@@ -74,6 +74,22 @@ Item {
             return null;
         }
 
+        /// Bring @p item inside the page that scrolls it, so a press can land on it. The learning
+        /// page is taller than the settings body now, and a control below the fold is a press past
+        /// the panel rather than a press on the control.
+        function reveal(item) {
+            const scroller = scrollerOf(item);
+            if (scroller === null)
+                return;
+            const top = item.mapToItem(scroller, 0, 0).y;
+            const bottom = top + item.height;
+            if (top < 0)
+                scroller.contentY = Math.max(0, scroller.contentY + top);
+            else if (bottom > scroller.height)
+                scroller.contentY = Math.min(scroller.contentHeight - scroller.height, scroller.contentY + bottom - scroller.height);
+            wait(20);
+        }
+
         /// The panel on the extensions page with the pet type dropdown in it, the way the reader reaches it.
         function openPetPanel() {
             Pet.setEnabled(true);
@@ -324,6 +340,7 @@ Item {
             Pet.setEnabled(true);
             const shown = openLearningPanel();
             const field = reviewFieldOf(shown.panel);
+            reveal(field);
             mouseClick(field, field.width / 2, field.height / 2);
             tryVerify(() => field.openChildRect !== null, 2000, "the field did not open its list");
 
@@ -338,6 +355,7 @@ Item {
             Pet.setEnabled(true);
             const shown = openLearningPanel();
             const field = reviewFieldOf(shown.panel);
+            reveal(field);
             mouseClick(field, field.width / 2, field.height / 2);
             tryVerify(() => field.openChildRect !== null, 2000, "the field did not open its list");
 
