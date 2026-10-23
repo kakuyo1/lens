@@ -444,6 +444,49 @@ Item {
             Pet.setEnabled(false);
         }
 
+        /// A throw is a window-level behaviour: the pet leaves the ground, lands, plays its poke reaction and walks
+        /// back to the home it was picked up from. A still release stays the ordinary drop (ADR 0090).
+        function test_aThrowLandsAndWalksBackHome() {
+            const main = make();
+            const petWindow = panel(main, "PetWindow");
+            Pet.setEnabled(true);
+            tryCompare(petWindow, "visible", true);
+            // The entrance ceremony starts on the next frame; without this wait the idle check below can read the
+            // action from before the ceremony and take the off-screen entrance start for home.
+            wait(100);
+            tryVerify(() => Pet.action === "idle", 6000, "the pet never settled after its entrance");
+            wait(50);
+            const home = Qt.point(petWindow.x, petWindow.y);
+
+            Pet.dragStart();
+            petWindow.x = home.x + 10;
+            petWindow.y = home.y + 10;
+            verify(Pet.release(Qt.point(1200, -1100)), "the controller refused a throw at 1628 px/s");
+            verify(Pet.action !== "idle", "the pet reads as idle during the throw");
+
+            // The controller owns the window for the whole flight: it moves without the pointer.
+            const launched = Qt.point(petWindow.x, petWindow.y);
+            wait(80);
+            verify(petWindow.x !== launched.x || petWindow.y !== launched.y, "the thrown window did not move");
+
+            // The landing reaction and the walk home are over: the pet is idle again at its home spot.
+            tryVerify(() => Pet.action === "idle"
+                      && Math.abs(petWindow.x - home.x) <= 2
+                      && Math.abs(petWindow.y - home.y) <= 2, 9000,
+                      "the pet did not land and walk home: at " + petWindow.x + "," + petWindow.y
+                      + " instead of " + home.x + "," + home.y);
+
+            // A still release is the old drop path: the controller refuses it and the caller saves the spot.
+            Pet.dragStart();
+            petWindow.x = home.x + 40;
+            petWindow.y = home.y + 40;
+            verify(!Pet.release(Qt.point(0, 0)), "a still release was taken as a throw");
+            Pet.dragEnd();
+            Pet.savePosition(Qt.point(petWindow.x, petWindow.y));
+
+            Pet.setEnabled(false);
+        }
+
         /// The bubble and the action bar hang on the side the reader chose. With room on both sides
         /// the chosen side is the one taken; with no room on it, the other side is. Numbers are DIPs
         /// in a 1000-high work area, a 100-high surface, a 10 px gap, and a 26 px shadow margin.

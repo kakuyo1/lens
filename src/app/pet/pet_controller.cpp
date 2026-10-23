@@ -180,7 +180,12 @@ void PetController::loadPet(std::string const& id)
     // What is on screen belongs to the pet that is going away, so none of it carries over.
     preview_.reset();
     hiding_.reset();
-    stroll_ = StrollPhase::Waiting;
+    flight_.reset();
+    returning_.reset();
+    returnPending_  = false;
+    returnHome_     = {};
+    homeBeforeDrag_ = {};
+    stroll_         = StrollPhase::Waiting;
     step_.reset();
     stepsLeft_  = 0;
     hoverPause_ = false;
@@ -282,6 +287,10 @@ PetController* PetController::create(QQmlEngine* engine, QJSEngine* scriptEngine
 void PetController::handle(PetEvent event)
 {
     if (not machine_) return;
+    if (flight_) {
+        // An outside event owns the body: put the throw down where it is and answer. The pet still owes its walk home.
+        endFlight(window_ ? window_->position() : QPoint{}, true);
+    }
     if (ceremony_) {
         // A pet on its way out is not called back by a learning event. One arriving, or changing pets, lands at its
         // outcome first: the event is what the reader is doing, and the walk has nowhere else to be.
@@ -324,8 +333,9 @@ bool PetController::passthrough() const
 
 bool PetController::availableForReview() const
 {
-    // A ceremony owns the pet's body and its place, so no question arrives on top of one.
-    if (not enabled() or not machine_ or dragging_ or ceremony_ or hideAfterDrag_) return false;
+    // A ceremony, a throw and a walk home own the pet's body and its place, so no question arrives on top of one.
+    if (not enabled() or not machine_ or dragging_ or ceremony_ or flight_ or returning_ or returnPending_ or hideAfterDrag_)
+        return false;
     // A hidden pet may still be asked while it is peeking: the sign goes up at the edge and the hide survives the
     // answer. A reaction or a reading plays out first, as it does for an idle pet.
     return machine_->idle() or (hiding_ and machine_->ambient());
@@ -545,6 +555,9 @@ int PetController::maxSize() const
 
 void PetController::setSize(int percent)
 {
+    // A throw and a walk home were measured for the old window; the size change puts the pet down where it is and
+    // lets fitOnScreen pull the new window into the work area.
+    if (flight_ or returning_ or returnPending_) endFlight(window_ ? window_->position() : QPoint{}, false);
     // The ceremony's path was measured for the old window; a size change lands it at home and lets fitOnScreen pull
     // the new window into the work area.
     if (ceremony_) finishCeremonyNow();
@@ -556,6 +569,14 @@ void PetController::setRunning(bool on)
 {
     desktopRunning_ = on;
     if (not on) {
+        // The window is going away under a throw or a walk home: drop both without writing a new home.
+        if (flight_ or returning_ or returnPending_) {
+            flight_.reset();
+            returning_.reset();
+            returnPending_ = false;
+            returnHome_    = {};
+            if (machine_) machine_->rest();
+        }
         // The window was taken away under a ceremony (the application is closing, or the scene asked it down):
         // stop the ceremony rather than leave it half done.
         if (ceremony_) {
@@ -586,6 +607,9 @@ void PetController::preview(QString action)
 {
     auto const picked = actionNamed(action);
     if (not picked) return;
+    // A preview takes the body: put a throw down where it is, still owing the walk home once the preview closes.
+    if (flight_ or returning_ or returnPending_)
+        endFlight(window_ ? window_->position() : QPoint{}, true);
     if (ceremony_) finishCeremonyNow();
     // From the first frame even when it is the action already shown, so a second press plays it again.
     preview_       = picked;
@@ -599,7 +623,10 @@ void PetController::setScene(QString id)
     if (not machine_) return;
     auto const name = id.toStdString();
     // A scene is real, not a preview: the machine plays it for its duration and then returns to idle. A card's
-    // preview, if one was showing, would otherwise keep it off screen.
+    // preview, if one was showing, would otherwise keep it off screen. A throw is put down first and still owes its
+    // walk home once the scene ends.
+    if (flight_ or returning_ or returnPending_)
+        endFlight(window_ ? window_->position() : QPoint{}, true);
     if (ceremony_) finishCeremonyNow();
     preview_.reset();
     resetHover();
@@ -610,13 +637,27 @@ void PetController::setScene(QString id)
 
 void PetController::dragStart()
 {
+    auto       home      = wander_ ? wander_->home() : (window_ ? window_->position() : QPoint{});
+    auto const fromThrow = flight_.has_value() or returning_.has_value() or returnPending_;
+    if (flight_) {
+        // Catching a pet in the air ends the throw where it is; the home it was returning to is kept.
+        endFlight(window_ ? window_->position() : home, false);
+    } else if (returning_ or returnPending_) {
+        returning_.reset();
+        returnPending_ = false;
+        if (machine_ and machine_->ambient()) machine_->stopAmbient();
+    }
+    if (fromThrow) home = returnHome_;
+
     if (ceremony_) {
         // Grabbing the pet ends its ceremony where it stands. A goodbye was taking the window off screen, so the drop
         // completes it instead of leaving a turned-off pet on the desktop.
         hideAfterDrag_ = isLeaving(ceremony_->phase);
         abortCeremony();
+        if (not fromThrow) home = wander_ ? wander_->home() : home;
     }
-    dragging_ = true;
+    homeBeforeDrag_ = home;
+    dragging_       = true;
     if (stroll_ != StrollPhase::Waiting) cancelStroll();
     if (hiding_) hiding_->dragging = true;
     handle(PetEvent::DragStart);
@@ -666,6 +707,123 @@ void PetController::dragEnd()
     wanderWait_ = nextWanderWait();
 }
 
+bool PetController::release(QPointF velocity)
+{
+    if (not dragging_ or not window_) return false;
+    auto const at   = window_->position();
+    auto const size = window_->size();
+    // A pet that was not pulled out of its edge stays hidden: a fast release must not fling the sliver.
+    if (hiding_ and not PetWander::draggedOut(at, size, hiding_->area)) return false;
+    if (hideAfterDrag_ or motionReduced_ or not PetFlight::isFling(velocity)) return false;
+
+    auto const center = at + QPoint{size.width() / 2, size.height() / 2};
+    auto const area   = areaAt(center);
+    if (not area.isValid() or size.width() <= 0 or size.height() <= 0) return false;
+
+    if (hiding_) hiding_.reset();
+    dragging_ = false;
+    returning_.reset();
+    returnPending_ = false;
+    flight_        = PetFlight{at, velocity, size, area};
+    returnHome_    = homeBeforeDrag_;
+    if (wander_) wander_->setBounds(size, area);
+    resetHover();
+    LENS_DEBUG("pet flight: thrown at ({},{}) px/s from ({},{}) in a {}x{} area",
+               std::lround(velocity.x()),
+               std::lround(velocity.y()),
+               at.x(),
+               at.y(),
+               area.width(),
+               area.height());
+    return true;
+}
+
+bool PetController::canReturnHome() const
+{
+    if (not wander_ or not window_ or not homeReady_ or not canWalkCeremony()) return false;
+    return areaAt(returnHome_).isValid();
+}
+
+void PetController::landFlight()
+{
+    if (not flight_ or not flight_->landed()) return;
+    auto const at      = flight_->position();
+    auto const elapsed = flight_->elapsed();
+    flight_.reset();
+    if (window_) window_->setPosition(at);
+
+    // The pickup pose is the throw's; the landing is where the drag ends.
+    handle(PetEvent::DragEnd);
+
+    if (canReturnHome()) {
+        returnPending_ = true;
+    } else if (window_) {
+        // A pet with no walk art cannot walk home: the landing spot becomes its home, as a drop would.
+        savePosition(at);
+    }
+
+    if (machine_ and machine_->idle()) machine_->playRole(Role::ClickReact);
+    LENS_DEBUG("pet flight: landed at ({},{}) after {} ms", at.x(), at.y(), elapsed.count());
+}
+
+void PetController::beginReturnWalk()
+{
+    if (not window_ or not wander_ or not machine_ or not assets_) {
+        returnPending_ = false;
+        return;
+    }
+    auto const area = areaAt(returnHome_);
+    auto const size = window_->size();
+    if (not area.isValid()) {
+        returnPending_ = false;
+        savePosition(window_->position());
+        return;
+    }
+    auto const home     = clampedWithin(returnHome_, size, area);
+    auto const from     = window_->position();
+    auto const distance = std::hypot(static_cast<double>(home.x() - from.x()), static_cast<double>(home.y() - from.y()));
+    if (distance < 2.0) {
+        // The throw landed on its home; there is nowhere to walk.
+        window_->setPosition(home);
+        returnPending_ = false;
+        savePosition(home);
+        wanderWait_ = nextWanderWait();
+        return;
+    }
+
+    auto const& movement = assets_->animations.movement;
+    if (not movement or not machine_->playAmbient(movement->walk)) {
+        if (not machine_->idle()) return;
+        // The walk action is unplayable though the data named one: stay put and make the landing the home.
+        returnPending_ = false;
+        savePosition(from);
+        return;
+    }
+    auto const travel = std::chrono::milliseconds{static_cast<std::chrono::milliseconds::rep>(
+        std::llround(distance / PetWander::kWalkPace * 1000.0))};
+    returning_        = ReturnWalk{WanderStep{from, home},
+                            std::chrono::milliseconds{0},
+                            std::clamp(travel, PetWander::kWalkMin, PetWander::kWalkMax)};
+    LENS_DEBUG("pet flight: walking home from ({},{}) to ({},{}) in {} ms", from.x(), from.y(), home.x(), home.y(), returning_->duration.count());
+}
+
+void PetController::endFlight(QPoint at, bool walkHome)
+{
+    auto const wasFlying = flight_.has_value();
+    if (not wasFlying and not returning_ and not returnPending_) return;
+
+    flight_.reset();
+    returning_.reset();
+    returnPending_ = false;
+    if (machine_ and machine_->ambient()) machine_->stopAmbient();
+    if (window_ and window_->position() != at) window_->setPosition(at);
+
+    // The pickup pose is the throw's; the machine learns the drag ended here.
+    if (wasFlying) handle(PetEvent::DragEnd);
+
+    if (walkHome and canReturnHome()) returnPending_ = true;
+}
+
 void PetController::click()
 {
     // A hidden pet only peeks and is dragged out: a click neither wakes it nor plays the poke reaction. A ceremony is
@@ -702,6 +860,9 @@ void PetController::setPet(QString id)
     }
     if (name == store_.pet() and pendingPet_.empty()) return;
     if (name == pendingPet_) return;
+
+    // Catching a pet in the air is not a request to stop: only a real pet change ends the throw, at the current spot.
+    if (flight_ or returning_ or returnPending_) endFlight(window_ ? window_->position() : QPoint{}, false);
 
     // With no window under the tests, with the pet off, or with motion reduced, the choice lands at once.
     if (not enabled() or not shown_ or not window_ or motionReduced_ or not canWalkCeremony()) {
@@ -833,6 +994,8 @@ void PetController::setEnabled(bool on)
             if (machine_) machine_->rest();
         }
     } else {
+        // A throw or a walk home ends where it is; the pet then leaves from that spot like any other.
+        if (flight_ or returning_ or returnPending_) endFlight(window_ ? window_->position() : QPoint{}, false);
         if (ceremony_ and isLeaving(ceremony_->phase)) {
             // The goodbye is already playing.
         } else if (hiding_) {
@@ -867,6 +1030,13 @@ void PetController::setMotionReduced(bool on)
 {
     if (on == motionReduced_) return;
     motionReduced_ = on;
+    if (on and (flight_ or returning_ or returnPending_)) {
+        // The throw's end state is the pet at home: reduced motion skips the arc, the bounce and the walk back.
+        auto const home = wander_ and homeReady_ ? wander_->home() : (window_ ? window_->position() : QPoint{});
+        endFlight(home, false);
+        if (window_) window_->setPosition(home);
+        savePosition(home);
+    }
     if (not on or not ceremony_) return;
     // A switch that had not loaded its pet yet still completes; a goodbye becomes a plain hide.
     finishCeremonyNow();
@@ -913,6 +1083,9 @@ void PetController::keepOutOfCapture(QObject* object)
 void PetController::keepOnScreen()
 {
     if (not window_) return;
+    // The screen changed under a throw or a walk home: put the pet down where it is and let the safe-spot rule below
+    // choose the new home.
+    if (flight_ or returning_ or returnPending_) endFlight(window_->position(), false);
     if (ceremony_) finishCeremonyNow();
     auto areas = QList<QRect>{};
     for (auto const* screen : QGuiApplication::screens())
@@ -1373,6 +1546,9 @@ QPoint PetController::initialPosition(QSize size)
 void PetController::fitOnScreen()
 {
     if (not window_) return;
+    // A throw and a walk home were measured for the old size; the resize puts the pet down and the clamp below writes
+    // the safe spot as its home.
+    if (flight_ or returning_ or returnPending_) endFlight(window_->position(), false);
     // A ceremony owns the window's path. A switch resizes the window deliberately while the pet is off screen; the
     // arrival measures its target again once the new size is in place.
     if (ceremony_) return;
@@ -1424,6 +1600,8 @@ void PetController::savePosition(QPoint at)
 void PetController::tick()
 {
     machine_->advance(kTick);
+    updateFlight(kTick);
+    updateReturn(kTick);
     updateCeremony(kTick);
     updateWander(kTick);
     updateHiding(kTick);
@@ -1431,9 +1609,58 @@ void PetController::tick()
     sync(kTick);
 }
 
+void PetController::updateFlight(std::chrono::milliseconds step)
+{
+    if (not flight_) return;
+    if (not window_ or not machine_ or not enabled() or not desktopRunning_) {
+        endFlight(window_ ? window_->position() : QPoint{}, false);
+        return;
+    }
+    auto const next = flight_->advance(step);
+    window_->setPosition(next.position);
+    if (next.landed) landFlight();
+}
+
+void PetController::updateReturn(std::chrono::milliseconds step)
+{
+    if (returning_) {
+        // An event took the body mid-walk: stop here and owe the rest of the walk once the machine is idle again.
+        if (not window_ or not machine_ or not machine_->ambient()) {
+            returning_.reset();
+            returnPending_ = true;
+            return;
+        }
+        returning_->elapsed += step;
+        auto const done     = returning_->duration.count() == 0 or returning_->elapsed >= returning_->duration;
+        auto const progress = done ? 1.0
+                                   : static_cast<double>(returning_->elapsed.count()) /
+                                         static_cast<double>(returning_->duration.count());
+        auto const gait =
+            assets_ and assets_->animations.movement ? gaitOf(assets_->animations.movement->style) : Gait::Glide;
+        window_->setPosition(PetWander::walkAt(returning_->step, progress, gait, window_->size().width()));
+        if (not done) return;
+
+        auto const home = returning_->step.to;
+        window_->setPosition(home);
+        machine_->stopAmbient();
+        returning_.reset();
+        returnPending_ = false;
+        savePosition(home);
+        wanderWait_ = nextWanderWait();
+        LENS_DEBUG("pet flight: home again at ({},{})", home.x(), home.y());
+        return;
+    }
+
+    if (not returnPending_ or previewing_ or not machine_ or not machine_->idle()) return;
+    if (not window_ or not enabled() or not desktopRunning_) return;
+    beginReturnWalk();
+}
+
 void PetController::updateWander(std::chrono::milliseconds step)
 {
-    if (not machine_ or not assets_ or not window_ or not wander_ or hiding_ or ceremony_) return;
+    if (not machine_ or not assets_ or not window_ or not wander_ or hiding_ or ceremony_ or flight_ or returning_ or
+        returnPending_)
+        return;
     auto const& movement = assets_->animations.movement;
     if (not movement) return;
     if (not desktopRunning_ or previewing_ or not enabled()) {
@@ -1685,7 +1912,7 @@ void PetController::updateHover(std::chrono::milliseconds step)
     // Hover is the desktop pet's own sense. It has no meaning while the window is hidden, while clicks pass through,
     // while the settings preview is open, or before a window exists to measure against.
     if (not hover_ or not assets_ or not window_ or not desktopRunning_ or previewing_ or hiding_ or ceremony_ or
-        store_.passthrough()) {
+        flight_ or returning_ or returnPending_ or store_.passthrough()) {
         resetHover();
         return;
     }

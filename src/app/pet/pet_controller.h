@@ -37,9 +37,10 @@
 
 #include "app/pet/pet_assets.h"
 #include "app/pet/pet_catalog.h"
+#include "app/pet/pet_flight.h"
 #include "app/pet/pet_scenes.h"
-#include "core/document/pet_store.h"
 #include "app/pet/pet_wander.h"
+#include "core/document/pet_store.h"
 #include "core/domain/pet/accessory.h"
 #include "core/domain/pet/hover_sense.h"
 #include "core/domain/pet/pet_state.h"
@@ -123,8 +124,8 @@ public:
     bool shown() const;
     bool passthrough() const;
     /// @return Whether a review question may go up: the pet is idle, or hiding at a screen edge and peeking, and
-    ///         not being dragged. A hide does not block the sign; a reaction or a reading finishes first
-    ///         (docs/adr/0076).
+    ///         not being dragged, thrown, or walking home. A hide does not block the sign; a reaction or a reading
+    ///         finishes first (docs/adr/0076, 0090).
     bool availableForReview() const;
     /// @return The folder name of the pet the settings choose.
     QString pet() const;
@@ -179,6 +180,14 @@ public:
     Q_INVOKABLE void setScene(QString id);
     Q_INVOKABLE void dragStart();
     Q_INVOKABLE void dragEnd();
+    /**
+     * @brief Ends a drag with the reader's release velocity.
+     * @param velocity The pointer's velocity at release, in DIPs per second.
+     * @return True when the pet was thrown and the controller owns its position; false for a drop, which the caller
+     *         finishes with dragEnd() and savePosition(). A throw is ignored when motion is reduced, when the pet is
+     *         still hidden at an edge, or when the release is slower than PetFlight::kMinSpeed.
+     */
+    Q_INVOKABLE bool release(QPointF velocity);
     Q_INVOKABLE void click();
     /// @brief Ends a stroll at once, as the pointer landing on the pet should. A hide is left alone: only a drag ends it.
     Q_INVOKABLE void stopWandering();
@@ -279,8 +288,22 @@ private:
     bool isShipped(std::string const& id) const;
     /// @brief Moves the state machine on by `step` and refreshes what the scene reads.
     void tick();
+    /// @brief Moves a thrown window through its arc, and lands it when the geometry says so.
+    void updateFlight(std::chrono::milliseconds step);
+    /// @brief Waits for the landing reaction, then walks the pet back to the home it was picked up from.
+    void updateReturn(std::chrono::milliseconds step);
+    /// @brief Ends the throw on the floor, releases the pickup pose, and plays the landing reaction.
+    void landFlight();
+    /// @brief Starts the walk home from the landing spot, once the state machine is idle.
+    void beginReturnWalk();
+    /// @return Whether the pet has a walk action, a known home and a screen to walk it back on.
+    bool canReturnHome() const;
+    /// @brief Ends a throw or a return walk now, optionally still owing the walk home.
+    /// @param at Where the window ends.
+    /// @param walkHome Whether the pet still owes its walk home from `at`.
+    void endFlight(QPoint at, bool walkHome);
     /// @brief Waits for the next stroll, or moves the window through the current step and its pauses. Does nothing
-    ///        while hidden, previewing, dragging, or busy.
+    ///        while hidden, previewing, dragging, flying, walking home, or busy.
     void updateWander(std::chrono::milliseconds step);
     /// @brief Slides the window out of its edge, plays the peek loop, and resumes it after a reaction.
     void updateHiding(std::chrono::milliseconds step);
@@ -416,6 +439,13 @@ private:
         Pausing,
     };
 
+    /// One walk home after a throw: a straight line from the landing spot, with the gait's small arc.
+    struct ReturnWalk {
+        WanderStep                step;
+        std::chrono::milliseconds elapsed{0};
+        std::chrono::milliseconds duration{0};
+    };
+
     /// One random stream for the idle timer, the scene pick, the strolls and the hide roll.
     std::mt19937 random_{std::random_device{}()};
     /// The stroll geometry. Empty for a pet whose data has no movement block.
@@ -433,8 +463,17 @@ private:
     /// Whether the home point is known; false after a load and until the window has a position.
     bool homeReady_{false};
     /// Whether the reader is holding the pet, hide or not.
-    bool                  dragging_{false};
-    std::optional<Hiding> hiding_;
+    bool dragging_{false};
+    /// Where the pet was picked up. A throw returns here; a drop writes its new landing spot over it.
+    QPoint homeBeforeDrag_{};
+    /// The throw in progress. The state machine stays in its pickup pose until the landing releases it.
+    std::optional<PetFlight> flight_;
+    /// The home a throw returns to, captured when the pet was picked up.
+    QPoint returnHome_{};
+    /// The walk home now running, and whether the pet still owes one once the machine is idle again.
+    std::optional<ReturnWalk> returning_;
+    bool                      returnPending_{false};
+    std::optional<Hiding>     hiding_;
 
     /// Whether the window is on screen. `enabled()` asks for the pet, this says where its window is: a goodbye keeps
     /// it true after the switch has gone off.

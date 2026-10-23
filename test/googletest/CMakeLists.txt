@@ -59,6 +59,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/pet_package_test.cpp
   unit/pet_catalog_test.cpp
   unit/pet_placement_test.cpp
+  unit/pet_flight_test.cpp
   unit/pet_wander_test.cpp
   unit/pet_store_test.cpp
   unit/window_style_test.cpp

@@ -2,8 +2,8 @@ import QtQuick
 
 /**
  * The desktop pet's own window: frameless, on top, never focused, kept out of screen capture. A left press that does
- * not move is a click, one that moves is a pickup followed by a drop that remembers where it landed, and a right
- * press asks for the settings panel.
+ * not move is a click; one that moves is a pickup whose release samples the pointer so a throw can fly and a still
+ * release can drop the pet where it landed; and a right press asks for the settings panel.
  *
  * Hover is deliberately not a MouseArea here: the window stays the size of the sprite, and PetController polls the
  * cursor to move the eyes and play an idle reaction (UI.md 4.14, ADR 0066).
@@ -16,6 +16,9 @@ Window {
     property point grabCursor
     property point grabAt
     property bool moved: false
+    /// The pointer positions of the drag so far, with the time each was taken, for the release velocity. Old
+    /// samples are dropped as they go out of the 120 ms window, and the whole list starts again at each pickup.
+    property var releaseSamples: []
     /// The reader's motion answer, Windows' and the application's together. The ceremony lives in C++, so the window
     /// hands it the same token every surface animates by.
     readonly property bool reducedMotion: tokens.motion.reduced
@@ -74,6 +77,7 @@ Window {
             petWindow.grabCursor = Pet.cursorPos();
             petWindow.grabAt = Qt.point(petWindow.x, petWindow.y);
             petWindow.moved = false;
+            petWindow.releaseSamples = [];
         }
 
         onPositionChanged: {
@@ -87,14 +91,23 @@ Window {
                     return;
                 petWindow.moved = true;
                 Pet.dragStart();
+                // The pet may have been flying or walking while the pointer went down: the grab starts from where it
+                // is now, not from the press, so catching it does not snap it back. The sample list starts here too,
+                // since the press itself was not a throw.
+                petWindow.grabCursor = cursor;
+                petWindow.grabAt = Qt.point(petWindow.x, petWindow.y);
+                petWindow.releaseSamples = [];
+                petWindow.addReleaseSample(cursor);
+                return;
             }
             petWindow.x = petWindow.grabAt.x + dx;
             petWindow.y = petWindow.grabAt.y + dy;
+            petWindow.addReleaseSample(cursor);
         }
 
         onReleased: {
             if (petWindow.moved) {
-                petWindow.drop();
+                petWindow.drop(petWindow.releaseVelocity());
             } else {
                 Pet.click();
             }
@@ -104,13 +117,46 @@ Window {
         // holding the pickup.
         onCanceled: {
             if (petWindow.moved)
-                petWindow.drop();
+                petWindow.drop(Qt.point(0, 0));
         }
     }
 
-    function drop() {
-        Pet.dragEnd();
-        Pet.savePosition(Qt.point(petWindow.x, petWindow.y));
+    /// @param at The pointer position in the same coordinates as the window.
+    function addReleaseSample(at) {
+        const now = Date.now();
+        petWindow.releaseSamples.push({t: now, x: at.x, y: at.y});
+        while (petWindow.releaseSamples.length > 1 && now - petWindow.releaseSamples[0].t > 160)
+            petWindow.releaseSamples.shift();
+    }
+
+    /// @return The pointer's velocity over the last ~100 ms, in DIPs per second. A pointer that has been still for
+    ///         a moment releases at zero: stopping before letting go is a drop, not a throw.
+    function releaseVelocity() {
+        const now = Date.now();
+        const cursor = Pet.cursorPos();
+        const samples = petWindow.releaseSamples;
+        if (samples.length === 0 || now - samples[samples.length - 1].t > 60)
+            return Qt.point(0, 0);
+
+        let first = samples[samples.length - 1];
+        for (let i = samples.length - 1; i >= 0; --i) {
+            if (now - samples[i].t > 120)
+                break;
+            first = samples[i];
+        }
+        const span = now - first.t;
+        if (span < 16)
+            return Qt.point(0, 0);
+        return Qt.point((cursor.x - first.x) * 1000 / span, (cursor.y - first.y) * 1000 / span);
+    }
+
+    /// Ends the drag. A release the controller takes as a throw is flown from here; otherwise the pet is simply put
+    /// down where it is and that spot becomes home.
+    function drop(velocity) {
+        if (!Pet.release(velocity)) {
+            Pet.dragEnd();
+            Pet.savePosition(Qt.point(petWindow.x, petWindow.y));
+        }
         petWindow.moved = false;
     }
 }
