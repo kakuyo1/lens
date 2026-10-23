@@ -9,6 +9,9 @@
   the backdrop went from 6–10 to 95–130 refreshes a second, with the frame copy at about 1 ms (docs/adr/0087).
   The setting's note, and the sentence shown when no live source can serve a screen, now say the screen is read
   live rather than duplicated. Windows 10 keeps the GDI read, and a screen DXGI can duplicate keeps using it.
+- A frame captured by Windows Graphics Capture is published only when its picture differs from the one the card
+  already shows. Dragging the glass blur or refraction slider no longer competes with a full sheet upload and a
+  second blur at the compositor's frame rate, which made the drag stutter on a screen served by capture.
 
 ## 1.7.5 - 2026-10-21
 

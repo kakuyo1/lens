@@ -15,6 +15,7 @@
 
 #include <QImage>
 #include <QRect>
+#include <QtGlobal>
 
 #include <initializer_list>
 #include <vector>
@@ -32,6 +33,10 @@ struct DesktopRead {
     bool   refused  = false; ///< This source could not serve; a fallback takes over, and the sheet notes the refusal.
     bool   usedGdi  = false; ///< The read went through GDI, so it spent the shared fifteen-a-second budget.
     double copyMs   = 0.0;   ///< The read's or the frame copy's duration, for the tally.
+    /// The picture's fingerprint (pictureFingerprint()), when the source took one. A source without dirty rectangles --
+    /// Windows Graphics Capture -- computes it on the worker so the sheet can skip an unchanged picture without walking
+    /// it again on the GUI thread. Zero means the source did not take one.
+    quint64 fingerprint = 0;
 };
 
 /**

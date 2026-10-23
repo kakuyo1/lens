@@ -80,6 +80,8 @@ struct Taken {
     bool     noFrame = false; ///< The live source had no new frame: nothing changed, nothing to publish.
     bool     refused = false; ///< Every live source refused: the settings page's note has something to say.
     bool     usedGdi = false; ///< The read went to GDI, so the shared fifteen-a-second budget has been spent.
+    /// The picture's fingerprint when its source took one on the worker, or 0 when the sheet has to take it.
+    quint64 fingerprint = 0;
 };
 
 /// The first device pixel of @p screen on the desktop. Windows places the monitors in device pixels; where there is no
@@ -126,7 +128,7 @@ Taken takeSheet(Request const& request)
         glassStats().countFrameSkip();
     else
         glassStats().addFrame(read.copyMs);
-    if (read.image.isNull()) return {{}, {}, not read.refused and not read.usedGdi, read.refused, read.usedGdi};
+    if (read.image.isNull()) return {{}, {}, not read.refused and not read.usedGdi, read.refused, read.usedGdi, read.fingerprint};
     // The text is judged over the window, not over the margin the sheet adds around it. Read in place: copying the
     // card out of a native-resolution sheet was a per-frame allocation and a second walk of the same pixels.
     auto const scale = read.image.devicePixelRatioF();
@@ -135,7 +137,7 @@ Taken takeSheet(Request const& request)
                             qRound(request.window.width() * scale),
                             qRound(request.window.height() * scale));
     auto const tone  = readTone(read.image, card, request.fillAlpha);
-    return {std::move(read.image), tone, false, read.refused, read.usedGdi};
+    return {std::move(read.image), tone, false, read.refused, read.usedGdi, read.fingerprint};
 }
 
 } // namespace
@@ -240,7 +242,14 @@ void GlassSheet::followDeferred(QRect const window, double const fillAlpha)
                 // longer wants, and clearing pending_ must not clear a newer read's flag.
                 if (pending_ == generation) pending_ = 0;
                 if (generation != generation_) return;
-                publish(request.region, request.screen, std::move(taken.picture), taken.tone, true);
+                publish(request.region,
+                        request.screen,
+                        request.window,
+                        request.fillAlpha,
+                        std::move(taken.picture),
+                        taken.tone,
+                        taken.fingerprint,
+                        true);
             },
             Qt::QueuedConnection);
     });
@@ -268,7 +277,14 @@ void GlassSheet::capture(QRect const region, QRect const window, double const fi
     // A refresh still reading the sheet before this one is now stale, and is dropped when it lands.
     ++generation_;
     auto taken = takeSheet(*request);
-    publish(request->region, request->screen, std::move(taken.picture), taken.tone, true);
+    publish(request->region,
+            request->screen,
+            request->window,
+            request->fillAlpha,
+            std::move(taken.picture),
+            taken.tone,
+            taken.fingerprint,
+            true);
 }
 
 void GlassSheet::setLive(bool const on)
@@ -278,22 +294,30 @@ void GlassSheet::setLive(bool const on)
     emit liveChanged();
 }
 
-void GlassSheet::publish(QRect const region, QRect const screen, QImage picture, ToneRead const& read, bool const fresh, bool const duplicated)
+void GlassSheet::publish(QRect const     region,
+                         QRect const     screen,
+                         QRect const     window,
+                         double const    fillAlpha,
+                         QImage          picture,
+                         ToneRead const& read,
+                         quint64         fingerprint,
+                         bool const      fresh,
+                         bool const      duplicated)
 {
     // A read that failed leaves nothing to show: drop the sheet rather than hold one that no longer matches the window.
     if (picture.isNull()) {
         clear();
         return;
     }
-    // A frame from a live source is already gated on change: a duplicated one against the desktop's dirty and move
-    // rectangles, a captured one by the compositor drawing again (shortcut: WGC has no dirty rectangles, so a change
-    // anywhere on the monitor publishes; add a region check if uploads show up in frame times). The fingerprint's 32 by
-    // 32 reduction would only be a second, heavier opinion on the GUI thread, once per frame -- at 144 Hz that is a
-    // cost with nothing left to gate.
-    auto const print = duplicated ? 0 : pictureFingerprint(picture);
+    // A duplicated frame is gated by the desktop's dirty and move rectangles before it reaches here. Windows Graphics
+    // Capture has neither, so that source takes the fingerprint on the worker and hands it over; the sheet compares it
+    // with the picture in force, which costs nothing on the GUI thread. The window's place and the fill are part of the
+    // comparison: the text tone is judged over the window, not over the whole sheet.
+    auto print = fingerprint;
+    if (print == 0 and not duplicated) print = pictureFingerprint(picture);
     {
         QMutexLocker const lock(&mutex_);
-        if (not duplicated and not fresh and region == sheet_ and print == fingerprint_) {
+        if (not fresh and region == sheet_ and print != 0 and print == fingerprint_ and window == publishedWindow_ and fillAlpha == publishedFillAlpha_) {
             glassStats().countIdenticalSkip();
             return;
         }
@@ -306,11 +330,13 @@ void GlassSheet::publish(QRect const region, QRect const screen, QImage picture,
     duplicated_              = duplicated;
     {
         QMutexLocker const lock(&mutex_);
-        image_       = std::move(picture);
-        lightText_   = tone;
-        sheet_       = region;
-        sheetScreen_ = screen;
-        fingerprint_ = print;
+        image_              = std::move(picture);
+        lightText_          = tone;
+        sheet_              = region;
+        sheetScreen_        = screen;
+        fingerprint_        = print;
+        publishedWindow_    = window;
+        publishedFillAlpha_ = fillAlpha;
         ++serial_;
         ++publishes_;
     }
@@ -368,11 +394,13 @@ void GlassSheet::clear()
             if (sourceChanged) emit captureChanged();
             return;
         }
-        image_       = {};
-        lightText_   = false;
-        sheet_       = {};
-        sheetScreen_ = {};
-        fingerprint_ = 0;
+        image_              = {};
+        lightText_          = false;
+        sheet_              = {};
+        sheetScreen_        = {};
+        fingerprint_        = 0;
+        publishedWindow_    = {};
+        publishedFillAlpha_ = 0.0;
         ++serial_;
     }
     if (sourceChanged) emit captureChanged();
@@ -517,7 +545,15 @@ void GlassBackdrop::refreshNext()
                             if (taken.picture.isNull())
                                 target->clear();
                             else
-                                target->publish(request.region, request.screen, std::move(taken.picture), taken.tone, false, not taken.usedGdi);
+                                target->publish(request.region,
+                                                request.screen,
+                                                request.window,
+                                                request.fillAlpha,
+                                                std::move(taken.picture),
+                                                taken.tone,
+                                                taken.fingerprint,
+                                                false,
+                                                not taken.usedGdi);
                         }
                     }
                     // A session that failed on this read (another recorder took the output, a display mode changed) must

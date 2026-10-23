@@ -166,6 +166,19 @@ TEST(GlassSource, AMiddleSourceThatFollowsKeepsTheSlowPathNoteAway)
     EXPECT_TRUE(chain.canFollow());
 }
 
+TEST(GlassSource, AFrameKeepsTheFingerprintItsSourceTook)
+{
+    // Windows Graphics Capture takes the fingerprint on the worker, where the frame is already mapped, so the sheet can
+    // compare it without walking the picture again on the GUI thread. The chain must carry it through untouched.
+    auto preferred = ScriptedSource{{.image = picture(Qt::red), .newFrame = true, .fingerprint = 0x5eed}, true};
+    auto fallback  = ScriptedSource{};
+    auto chain     = FallbackSource{{&preferred, &fallback}};
+
+    auto const read = chain.read(kSheet, 1.0);
+
+    EXPECT_EQ(read.fingerprint, 0x5eedu);
+}
+
 TEST(GlassSource, EveryFastSourceRefusingLeavesTheLastOneToAnswer)
 {
     auto duplication = ScriptedSource{{.refused = true}, true};

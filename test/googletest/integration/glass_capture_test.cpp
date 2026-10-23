@@ -91,7 +91,12 @@ TEST(GlassCapture, ReadsFramesFromTheScreensItCanCapture)
                 ++refusals;
                 break;
             }
-            if (read.newFrame and not read.image.isNull()) ++frames;
+            if (read.newFrame and not read.image.isNull()) {
+                ++frames;
+                // The sheet drops a frame that repeats the picture in force by this value; a source that leaves it out
+                // would put every compositor frame back on the GUI thread (docs/adr/0087).
+                EXPECT_NE(read.fingerprint, 0u) << "捕获到的帧没有带指纹，幕布无法跳过未改变的画面";
+            }
         }
         auto const rate   = frames > 0 ? frames * 1000.0 / elapsed.elapsed() : 0.0;
         auto const status = refusals > 0

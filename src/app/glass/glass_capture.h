@@ -13,6 +13,10 @@
  * same, and the GPU-texture route stays out until Qt exposes it (docs/adr/0074). One session per output, opened
  * on the thread that reads it.
  *
+ * A captured frame carries the picture's fingerprint, taken on the worker, so the sheet can drop one that repeats the
+ * picture already in force: no upload and no second blur for a frame the compositor produced only because some window
+ * -- this application's own included -- redrew (docs/adr/0087).
+ *
  * This is the middle adapter of the desktop seam (src/app/glass/glass_source.h): duplication is tried first,
  * this second, and GDI last.
  */
@@ -59,8 +63,8 @@ public:
      * @param scale Device pixels per device-independent pixel; the picture carries it as its devicePixelRatio.
      * @param timeoutMs How long to wait for a frame before reporting none, in milliseconds. Zero takes the frame
      *        already waiting, if any.
-     * @return The picture when a frame was copied; otherwise empty, with @c newFrame false (nothing changed) or
-     *         @c refused true (the caller reads with GDI from now on).
+     * @return The picture when a frame was copied, with its fingerprint; otherwise empty, with @c newFrame false
+     *         (nothing changed) or @c refused true (the caller reads with GDI from now on).
      * @note Called on the glass refresh's worker thread, and on no other.
      */
     DesktopRead read(QRect native, double scale, int timeoutMs = 0) override;

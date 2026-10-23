@@ -5,6 +5,7 @@
 
 #include "glass_capture.h"
 
+#include "glass_math.h"
 #include "util/log.h"
 
 #include <QElapsedTimer>
@@ -459,18 +460,24 @@ DesktopRead GlassCapture::read(QRect const native, double const scale, int const
     }
     // The mapped rows are read where they lie; the copy below is the picture's own memory once the staging texture is
     // unmapped. Format_RGB32 ignores the fourth byte, and the upload is opaque (docs/adr/0070).
-    auto const view  = QImage(static_cast<uchar const*>(mapped.pData),
+    auto const view = QImage(static_cast<uchar const*>(mapped.pData),
                              region.width(),
                              region.height(),
                              static_cast<qsizetype>(mapped.RowPitch),
                              QImage::Format_RGB32);
-    auto       image = view.copy();
+    // Windows Graphics Capture has no dirty rectangles: a frame arrives whenever the compositor draws the monitor again,
+    // which includes this application's own repaint while a glass slider moves. The fingerprint lets the sheet drop a
+    // frame whose picture is already in force, instead of uploading it and blurring it a second time at the screen's
+    // pace (docs/adr/0087). It is taken on the worker, so the GUI thread only ever compares it.
+    auto const fingerprint = pictureFingerprint(view);
+    auto       image       = view.copy();
     session.context->Unmap(session.staging.Get(), 0);
     frame.Close();
     image.setDevicePixelRatio(scale);
-    return {.image    = std::move(image),
-            .newFrame = true,
-            .copyMs   = static_cast<double>(copyTimer.nsecsElapsed()) / 1.0e6};
+    return {.image       = std::move(image),
+            .newFrame    = true,
+            .copyMs      = static_cast<double>(copyTimer.nsecsElapsed()) / 1.0e6,
+            .fingerprint = fingerprint};
 #else
     Q_UNUSED(native)
     Q_UNUSED(scale)

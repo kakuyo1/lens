@@ -143,11 +143,23 @@ private:
     /// @note A region that is empty or crosses two screens clears the picture rather than stitching one.
     void capture(QRect region, QRect window, double fillAlpha);
     /// @brief Hold a new sheet and the tone its read settles on, and announce it to QML.
+    /// @param window The card the tone was judged over.
+    /// @param fillAlpha The white the card sits under. Together with the picture's fingerprint they say whether a
+    ///        refresh has anything new to put in force.
+    /// @param fingerprint The picture's fingerprint when its source took one on the worker, or 0 to take it here.
     /// @param read The backdrop's two 10th-percentile contrasts.
     /// @param fresh True for a sheet just taken, which its read decides outright; false for a live refresh of a settled
     ///        sheet, whose tone gives way only to a decisive read that repeats (settleTone).
     /// @param duplicated Whether the picture came from a duplicated frame rather than GDI.
-    void publish(QRect region, QRect screen, QImage picture, ToneRead const& read, bool fresh, bool duplicated = false);
+    void publish(QRect           region,
+                 QRect           screen,
+                 QRect           window,
+                 double          fillAlpha,
+                 QImage          picture,
+                 ToneRead const& read,
+                 quint64         fingerprint,
+                 bool            fresh,
+                 bool            duplicated = false);
     /// @brief Record whether the last duplication attempt was refused, and tell QML if that changed.
     void noteDuplicationRefused(bool refused);
 
@@ -167,9 +179,12 @@ private:
     double fillAlpha_ = 0.0;
     /// Reads in a row that have asked for the other text tone, for settleTone()'s hold. Reset by a fresh sheet.
     int toneStreak_ = 0;
-    /// The fingerprint of the picture in force, from pictureFingerprint(): a refresh that produces the same one
-    /// again is the same sheet and is not published a second time.
+    /// The fingerprint of the picture in force, from pictureFingerprint(): a refresh that produces the same one again
+    /// is the same sheet and is not published a second time. It is also the card and the fill that picture was judged
+    /// under, since the tone comes from the window's place within the sheet and not from the sheet as a whole.
     quint64 fingerprint_ = 0;
+    QRect   publishedWindow_;
+    double  publishedFillAlpha_ = 0.0;
     /// Bumped whenever the sheet is retaken or dropped, so a refresh that began before the change is discarded.
     int generation_ = 0;
     /// The generation of a deferred read still on the pool, or 0 when none is in flight. Only followDeferred() starts
