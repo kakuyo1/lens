@@ -732,7 +732,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="186"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="44"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="728"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="700"/>
         <source>Desktop companion</source>
         <translation>桌面宠物</translation>
     </message>
@@ -920,8 +920,8 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="40"/>
-        <source>Hold sign</source>
-        <translation>举牌</translation>
+        <source>Sign</source>
+        <translation>木牌</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="41"/>
@@ -1255,7 +1255,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="130"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="730"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="702"/>
         <source>Dog</source>
         <translation>小狗</translation>
     </message>
@@ -1584,7 +1584,7 @@
         <translation>确认删除</translation>
     </message>
     <message>
-        <location filename="../src/app/pet/pet_controller.cpp" line="729"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="701"/>
         <source>This pet package is no longer installed. Switched to %1.</source>
         <translation>该宠物包已不存在，已切换到 %1。</translation>
     </message>

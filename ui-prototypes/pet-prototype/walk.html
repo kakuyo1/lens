@@ -32,7 +32,7 @@
   <main id="grid" class="grid" aria-live="polite">
     <article class="card review-card">
       <header>
-        <h2>躲藏举牌</h2>
+        <h2>躲藏提问牌</h2>
         <span class="gait">hidden → ask</span>
       </header>
       <div class="review-controls">
@@ -44,12 +44,17 @@
       </div>
       <div class="stage review-stage">
         <canvas id="review-canvas" aria-label="躲藏举牌的宠物"></canvas>
-        <div class="review-sign" id="review-sign" data-hand="right">
-          <div class="review-board" id="review-board">ephemeral</div>
-          <div class="review-pole" aria-hidden="true"></div>
+        <div class="review-sign" id="review-sign">
+          <div class="review-board" id="review-board">
+            <span class="g1"></span><span class="g2"></span>
+            <span class="n1"></span><span class="n2"></span><span class="n3"></span><span class="n4"></span>
+            <span class="word">ephemeral</span>
+          </div>
+          <div class="review-post" aria-hidden="true"></div>
+          <div class="review-ground" aria-hidden="true"></div>
         </div>
       </div>
-      <p class="note" id="review-note">躲藏中举牌：牌子选内侧手；拖出来才结束躲藏。</p>
+      <p class="note" id="review-note">躲藏中提问：木牌立在露出的内侧，柱脚踩在宠物脚线；拖出来才结束躲藏。</p>
     </article>
   </main>
 

@@ -1,26 +1,26 @@
 import QtQuick
 
 /**
- * The desktop pet's review sign (UI.md 4.13, ui-prototypes/pet-review.html): a paper board with the word on it, held in the pet's
- * hand on the end of a pole. Its answer card opens beside the board while the pointer is on the sign, in a window of its own
- * (ReviewCard). The hand and the card's side are chosen once per question from the grips at the start of the ask action, and
- * the sign then follows the grip of the frame on show. A window of its own, kept out of screen captures by the pet's native
- * bridge, so the scan never reads the word back.
+ * The desktop pet's review sign (UI.md 4.13): a wooden plank on a short post, standing on the pet's
+ * foot line beside it, with the word on the plank. Its answer card opens beside the board while the pointer is on the sign, in a
+ * window of its own (ReviewCard). The sign's side and the card's side are chosen once per question from the room on screen, and the
+ * sign then follows the pet as it moves. A window of its own, kept out of screen captures by the pet's native bridge, so the scan
+ * never reads the word back.
  */
 Window {
     id: sign
     objectName: "reviewSign"
 
-    /// The pet's window: the sign hangs from the pet's hand.
+    /// The pet's window: the sign stands beside it on its foot line.
     required property var petWindow
     /// The work area of the screen a point is on, in DIPs: SurfaceHost.qml's workArea, so the sign and the answer stay on that screen.
     required property var workAreaAt
 
-    /// The word on the board, whether a question is up, and whether its hand has been chosen.
+    /// The word on the board, whether a question is up, and whether its side has been chosen.
     property string word: ""
     property bool asking: false
     property bool placed: false
-    /// The hand that holds the pole, and the card's side: outer when the card is on the hand's side, inner when it is not.
+    /// The sign's side, and the card's side: outer when the card is on the sign's side, inner when it is not.
     property string side: "left"
     property string cardSide: "right"
     /// The move that keeps the sign and its card on the screen (fitSign). Zero unless neither side fits.
@@ -34,19 +34,20 @@ Window {
     /// The answer card's own window, which opens beside the board.
     readonly property alias card: answers
 
-    /// The board's top-left in DIPs, from the grip of the hand it hangs from and the nudge.
+    /// The board's top-left in DIPs, beside the pet on the chosen side and moved by the nudge.
     readonly property point boardAt: layout.boardAt(side, nudge)
     /// The card's top-left in DIPs, beside the board on the card's side.
     readonly property point cardAt: layout.cardAt(boardAt, cardSide)
 
-    // The sign shows while the pet is in its ask action, as pet-review.html's hold does.
-    visible: asking && placed && Pet.action === "ask" && Pet.enabled
+    // The sign stands beside the pet while a question is up, whichever action the pet happens to play: a package with no
+    // ask pose still gets its sign.
+    visible: asking && placed && Pet.enabled
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowDoesNotAcceptFocus
     color: "transparent"
 
     width: paper.width
     height: paper.height
-    // Windows hold whole pixels: rounded, not truncated, so the board lands within half a pixel of the grip.
+    // Windows hold whole pixels: rounded, not truncated, so the plank lands within half a pixel of its place.
     x: Math.round(boardAt.x)
     y: Math.round(boardAt.y)
 
@@ -65,7 +66,7 @@ Window {
         }
     }
 
-    // A pet that is resized changes its scale, so the sign takes a fresh choice of hand as pet-review.html's relayout does.
+    // A pet that is resized changes its scale, so the sign takes a fresh choice of side.
     Connections {
         target: sign.petWindow
 
@@ -104,8 +105,8 @@ Window {
         // qmllint enable use-proper-function
     }
 
-    /// Chooses the hand and the card's side, then the nudge that keeps them on the screen. Runs when a question starts and
-    /// when the pet is resized; the choice is then kept until the next question.
+    /// Chooses the sign's side and the card's side, then the nudge that keeps them on the screen. Runs when a question starts
+    /// and when the pet is resized; the choice is then kept until the next question.
     function relayout() {
         if (!asking)
             return;
@@ -116,21 +117,21 @@ Window {
             placed = false;
             return;
         }
-        side = choice.hand;
+        side = choice.side;
         cardSide = choice.on;
         nudge = layout.nudgeFor(side, cardSide);
-        Pet.setHandSide(side);
         placed = true;
     }
 
-    /// Places the answer's bubble on the hand's side of the pet (UI.md 4.13). The side is kept, so repositionAnswerCard() puts the bubble back after a screen change.
+    /// Places the answer's bubble on the sign's side of the pet (UI.md 4.13). The side is kept, so repositionAnswerCard() puts
+    /// the bubble back after a screen change.
     function placeAnswerCard(surface) {
         answerCard = surface;
         repositionAnswerCard();
     }
 
-    /// The answer's bubble beside the pet on the hand's side, centred on the pet, and kept whole on the screen (placeBubble in
-    /// pet-review.html). It goes to the other side only when the hand's side has no room and the other side has.
+    /// The answer's bubble beside the pet on the sign's side, centred on the pet, and kept whole on the screen. It goes to the
+    /// other side only when the sign's side has no room and the other side has.
     function repositionAnswerCard() {
         const surface = answerCard;
         if (!surface || !surface.visible || surface.dragging || surface.verdictButtons !== false)
@@ -203,9 +204,8 @@ Window {
 
         scale: Pet.scale
         figure: Qt.point(sign.petWindow.x, sign.petWindow.y)
+        ink: Pet.inkBox
         area: sign.workArea
-        restGrips: Pet.handRest
-        grips: Pet.handGrips
         word: sign.word
         cardWidth: answers.width
         cardHeight: answers.height
@@ -217,7 +217,6 @@ Window {
 
         word: sign.word
         petScale: Pet.scale
-        side: sign.side
         designWidth: layout.designWidth
     }
 }

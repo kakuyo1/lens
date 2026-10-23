@@ -284,9 +284,7 @@
         0,
         0
       ],
-      "sheet": "sprites/body/ask.png",
-      "effect": "sprites/effects/ask.png",
-      "effectLeft": "sprites/effects/ask-left.png"
+      "sheet": "sprites/body/ask.png"
     },
     "blink": {
       "frames": 3,

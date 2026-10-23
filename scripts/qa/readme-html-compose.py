@@ -200,7 +200,7 @@ def compose_learning_loop() -> None:
         draw.text((x - text_width / 2, 586), label, font=small_font, fill=(132, 135, 143, 255))
     draw.text((150, 648), "No separate review screen.", font=small_font, fill=(132, 135, 143, 255))
 
-    draw.text((120, 750), "The pet holds up a due word; answer Forgot or Remembered.", font=caption_font, fill=(102, 102, 111, 255))
+    draw.text((120, 750), "A wooden sign stands beside the pet; answer Forgot or Remembered.", font=caption_font, fill=(102, 102, 111, 255))
     draw.text((120, 785), "It comes back on a schedule from 10 minutes to 60 days.", font=small_font, fill=(132, 135, 143, 255))
     draw.text((880, 750), "Every lookup leaves one green square.", font=caption_font, fill=(102, 102, 111, 255))
     draw.text((880, 785), "A year of reading, without a streak.", font=small_font, fill=(132, 135, 143, 255))

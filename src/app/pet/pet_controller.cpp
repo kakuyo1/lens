@@ -60,18 +60,6 @@ QPoint toPoint(core::pet::Point const& point)
     return QPoint{point.x, point.y};
 }
 
-/// @return The grips of the ask action's first frame, keyed "left" and "right": where the sign hangs at the start of a question.
-QVariantMap restGripsOf(PetAssets const& assets)
-{
-    auto       rest = QVariantMap{};
-    auto const hold = assets.animations.playbook.roles.find(core::pet::Role::Ask);
-    if (hold == assets.animations.playbook.roles.end()) return rest;
-    auto const& pictures = assets.sheets.at(hold->second);
-    if (not pictures.gripRight.empty()) rest["right"] = pictures.gripRight.front();
-    if (not pictures.gripLeft.empty()) rest["left"] = pictures.gripLeft.front();
-    return rest;
-}
-
 /// @return The point an accessory in `slot` is drawn at, for one frame's anchors.
 QPoint pointFor(core::pet::Anchors const& anchors, Slot slot)
 {
@@ -186,8 +174,6 @@ void PetController::loadPet(std::string const& id)
     action_.clear();
     shownAction_.clear();
     sheets_.clear();
-    handGrips_.clear();
-    handRest_.clear();
     anchors_      = {};
     frameIndex_   = 0;
     expression_   = 0;
@@ -237,7 +223,6 @@ void PetController::loadPet(std::string const& id)
         };
         machine_  = std::make_unique<core::pet::PetStateMachine>(assets_->animations.playbook, random, scenes);
         wardrobe_ = std::make_unique<core::pet::Wardrobe>(assets_->catalogue);
-        handRest_ = restGripsOf(*assets_);
 
         if (auto const& movement = assets_->animations.movement) {
             wander_          = std::make_unique<PetWander>(gaitOf(movement->style), movement->range, random);
@@ -283,11 +268,11 @@ void PetController::handle(PetEvent event)
     // An outside event voids the current wait: the next stroll is drawn again once the pet is idle.
     wanderWait_ = nextWanderWait();
     if (hiding_ and event == PetEvent::ReviewAsked) {
-        // Let the window in before the sign window lays itself out, so the hand it chooses is the one on screen.
+        // The sign stands beside the pet on the hidden sliver's inner side; the pet itself stays where the hide put it.
         hiding_->asking    = true;
         hiding_->slide     = PetWander::kHideSlide;
         hiding_->peekClock = std::chrono::milliseconds{0};
-        if (window_) window_->setPosition(hiding_->base + QPoint{hiding_->askShift, 0});
+        if (window_) window_->setPosition(hiding_->base);
     }
     resetHover();
     machine_->handle(event);
@@ -363,28 +348,6 @@ int PetController::expression() const
 QVariantMap PetController::sheets() const
 {
     return sheets_;
-}
-
-QString PetController::handSide() const
-{
-    return handSide_;
-}
-
-QVariantMap PetController::handGrips() const
-{
-    return handGrips_;
-}
-
-QVariantMap PetController::handRest() const
-{
-    return handRest_;
-}
-
-void PetController::setHandSide(QString side)
-{
-    if ((side != QStringLiteral("left") and side != QStringLiteral("right")) or side == handSide_) return;
-    handSide_ = side;
-    emit handSideChanged();
 }
 
 QVariantMap PetController::anchors() const
@@ -523,6 +486,15 @@ double PetController::scale() const
 double PetController::inkCentre() const
 {
     return assets_ ? assets_->inkCentre : 0.0;
+}
+
+QRectF PetController::inkBox() const
+{
+    if (not assets_) return {};
+    return QRectF{assets_->inkLeft,
+                  assets_->inkTop,
+                  assets_->inkRight - assets_->inkLeft,
+                  assets_->inkBottom - assets_->inkTop};
 }
 
 QPointF PetController::foot() const
@@ -1025,8 +997,8 @@ void PetController::updateHiding(std::chrono::milliseconds step)
         hidden.slide = std::min(PetWander::kHideSlide, hidden.slide + step);
         window_->setPosition(PetWander::slideAt(hidden.from, hidden.base, hidden.slide));
     } else if (hidden.asking) {
-        // The sign's hand must stay on screen, which can mean letting the pet in a little for as long as it is up.
-        window_->setPosition(hidden.base + QPoint{hidden.askShift, 0});
+        // The question and its sign stand beside the pet; the peek waits until the reaction is over.
+        window_->setPosition(hidden.base);
     } else {
         hidden.peekClock += step;
         auto at = hidden.base;
@@ -1097,7 +1069,6 @@ void PetController::enterHiding(EdgeSide side)
     hidden.from = window_->position();
     hidden.base = PetWander::hiddenBase(area, size, side, hidden.from, assets_->peekInkLeft * scale, assets_->peekInkRight * scale);
     if (auto const* screen = screenForArea(area)) hidden.screen = deviceNameOf(*screen);
-    updateAskShift(hidden);
     hiding_    = hidden;
     stroll_    = StrollPhase::Waiting;
     stepsLeft_ = 0;
@@ -1117,7 +1088,7 @@ void PetController::snapBackToHide()
     if (not hiding_ or not window_) return;
     hiding_->slide     = PetWander::kHideSlide;
     hiding_->peekClock = std::chrono::milliseconds{0};
-    window_->setPosition(hiding_->base + QPoint{hiding_->asking ? hiding_->askShift : 0, 0});
+    window_->setPosition(hiding_->base);
 }
 
 void PetController::refitHiding()
@@ -1127,10 +1098,9 @@ void PetController::refitHiding()
     auto const size   = window_->size();
     auto const scale  = static_cast<double>(size.width()) / static_cast<double>(assets_->canvas);
     hidden.base       = PetWander::hiddenBase(hidden.area, size, hidden.side, hidden.base, assets_->peekInkLeft * scale, assets_->peekInkRight * scale);
-    updateAskShift(hidden);
-    hidden.slide     = PetWander::kHideSlide;
-    hidden.peekClock = std::chrono::milliseconds{0};
-    window_->setPosition(hidden.base + QPoint{hidden.asking ? hidden.askShift : 0, 0});
+    hidden.slide      = PetWander::kHideSlide;
+    hidden.peekClock  = std::chrono::milliseconds{0};
+    window_->setPosition(hidden.base);
 }
 
 std::chrono::milliseconds PetController::nextWanderWait()
@@ -1173,24 +1143,6 @@ QScreen* PetController::screenNamed(QString const& name) const
     for (auto* screen : QGuiApplication::screens())
         if (deviceNameOf(*screen) == name) return screen;
     return nullptr;
-}
-
-void PetController::updateAskShift(Hiding& hidden) const
-{
-    hidden.askShift = 0;
-    if (not window_ or not assets_ or assets_->canvas <= 0) return;
-
-    // The inner hand is the right one at the left edge and the left one at the right edge (ADR 0076). A sign
-    // brings the window in just far enough for that hand's grip to clear the screen edge.
-    auto const hand = hidden.side == EdgeSide::Right ? QStringLiteral("left") : QStringLiteral("right");
-    if (not handRest_.contains(hand)) return;
-
-    auto const scale   = static_cast<double>(window_->size().width()) / static_cast<double>(assets_->canvas);
-    auto const grip    = static_cast<int>(std::lround(handRest_.value(hand).toPointF().x() * scale));
-    auto const desired = hidden.side == EdgeSide::Right ? hidden.area.right() - 16 - grip
-                                                        : hidden.area.left() + 16 - grip;
-    hidden.askShift    = hidden.side == EdgeSide::Right ? std::min(0, desired - hidden.base.x())
-                                                        : std::max(0, desired - hidden.base.x());
 }
 
 bool PetController::cursorOnPet() const
@@ -1335,15 +1287,12 @@ void PetController::sync(std::chrono::milliseconds step)
     auto const name    = QString::fromStdString(action);
     auto const changed = name != action_ or frame != frameIndex_ or expression != expression_;
     if (name != action_) {
-        sheets_ = QVariantMap{{"body", urlOf(pictures.body)}, {"effect", urlOf(pictures.effect)}, {"effectLeft", urlOf(pictures.effectLeft)}, {"expression", urlOf(assets.expressionSheet)}};
+        sheets_ = QVariantMap{{"body", urlOf(pictures.body)}, {"effect", urlOf(pictures.effect)}, {"expression", urlOf(assets.expressionSheet)}};
     }
-    action_       = name;
-    frameIndex_   = frame;
-    expression_   = expression;
-    auto const at = static_cast<std::size_t>(frame);
-    if (at < pictures.gripRight.size()) handGrips_["right"] = pictures.gripRight[at];
-    if (at < pictures.gripLeft.size()) handGrips_["left"] = pictures.gripLeft[at];
-    anchors_ = assets.anchors.at(action).at(static_cast<std::size_t>(frame));
+    action_     = name;
+    frameIndex_ = frame;
+    expression_ = expression;
+    anchors_    = assets.anchors.at(action).at(static_cast<std::size_t>(frame));
 
     if (auto const* scene = scenesAllowed_ ? scenes_.find(action) : nullptr;
         scene and static_cast<std::size_t>(frame) < scene->perFrame.size()) {

@@ -107,15 +107,25 @@ html[data-theme=frosted] .dd-list{background:rgba(255,255,255,.78)}
 .stage::after{content:"";position:absolute;left:14px;right:14px;bottom:24px;height:1px;background:var(--line)}
 .stage.dim{opacity:.5}
 .stage canvas{position:absolute;left:50%;bottom:16px;width:176px;height:176px;margin-left:-88px;overflow:visible}
-/* Hold sign (UI.md 4.13): a hand on the body's side at the chest row, and the sign held out from it. The sign is drawn at its
-   design size and scaled by the pet's size, so it stays in proportion to the figure. Same rule as ui-prototypes/pet-review.html. */
+/* Review sign (UI.md 4.13, ADR 0088): a wooden plank on a short post standing beside the pet on its foot line. The sign is
+   drawn at its design size and scaled by the pet's size, so it stays in proportion to the figure. Same object as the app's
+   ReviewSignBoard.qml. */
 @font-face{font-family:"Pixelify Sans";src:url("../data/fonts/PixelifySans-Regular.ttf") format("truetype");font-display:block}
 .hold-fig{position:absolute;display:none;pointer-events:none;z-index:2}
 .hold-fig.on{display:block}
 .sign-p{position:absolute;transform-origin:0 0;width:max-content;z-index:2}
-.sign-b{background:#f6efd9;color:#26221b;border:3px solid #26221b;border-radius:2px;box-shadow:5px 5px 0 rgba(20,20,26,.13);padding:14px 18px 12px;white-space:nowrap;font-family:"Pixelify Sans",monospace;font-size:20px;line-height:1}
-.pole-b{position:absolute;top:100%;left:14px;width:4px;height:26px;background:#26221b}
-.hold-fig.left .pole-b{left:auto;right:14px}
+.sign-b{position:relative;box-sizing:border-box;background:#d2a76a;color:#2b1a0e;border:3px solid #3a2412;padding:7px 14px;white-space:nowrap;font-family:"Pixelify Sans",monospace;font-size:20px;line-height:20px;box-shadow:inset 1px 1px 0 #e6c88f,inset -1px -1px 0 #a8783f,4px 4px 0 rgba(20,20,26,.11)}
+.sign-b .word{position:relative;z-index:1}
+.sign-b .grain{position:absolute;left:8px;right:8px;height:1px;background:#bd8d4f}
+.sign-b .g1{top:8px}
+.sign-b .g2{bottom:8px}
+.sign-b .nail{position:absolute;width:2px;height:2px;background:#5b3b20;box-shadow:inset 1px 1px 0 #e6c88f}
+.sign-b .n1{left:7px;top:7px}
+.sign-b .n2{right:7px;top:7px}
+.sign-b .n3{left:7px;bottom:7px}
+.sign-b .n4{right:7px;bottom:7px}
+.post-b{position:relative;width:10px;height:32px;margin:-2px auto 0;background:#b8864f;border:2px solid #3a2412;box-shadow:inset 2px 0 0 #d2a76a,inset -2px 0 0 #8a5a2f,4px 4px 0 rgba(20,20,26,.11)}
+.ground-b{position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);width:20px;height:3px;border-radius:1.5px;background:rgba(33,20,20,.10)}
 
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);font-size:12px;color:var(--text)}
@@ -190,8 +200,13 @@ html[data-theme=frosted] .dlg{background:rgba(255,255,255,.78)}
       <div class="stage" id="stage">
     <div class="hold-fig" id="holdFig">
       <div class="sign-p" id="signP">
-        <div class="sign-b" id="signB">spring</div>
-        <div class="pole-b" aria-hidden="true"></div>
+        <div class="sign-b" id="signB">
+          <span class="grain g1"></span><span class="grain g2"></span>
+          <span class="nail n1"></span><span class="nail n2"></span><span class="nail n3"></span><span class="nail n4"></span>
+          <span class="word">spring</span>
+        </div>
+        <div class="post-b" aria-hidden="true"></div>
+        <div class="ground-b" aria-hidden="true"></div>
       </div>
     </div>
   </div>
@@ -610,11 +625,10 @@ renderStatic();
 renderAll();
 // ?dlg=1 直接打开确认弹窗，供对视与截图；与 ?on 一样只是原型的开发开关。
 if (new URLSearchParams(location.search).has('dlg')) openConfirm(PACKAGES[0].id);
-/// The hand and the sign on the stage while Hold sign plays (UI.md 4.13). The hand sits on the body's side at the chest row,
-/// overlapping the silhouette: the right hand by default, the left when the right has no room for the sign. The body's
-/// edges are measured once from the pet's own idle sheet (frame 0, before the anchor), so each pet gets its own hand.
-const handEdges = new Map();
-function measureHandEdges(src) {
+/// The review sign on the stage while ask plays (UI.md 4.13, ADR 0088). The plank stands on the pet's idle foot line beside
+/// it: the left when there is room, the right otherwise. The idle ink is measured once from each pet's own sheet, frame 0.
+const idleInk = new Map();
+function measureInk(src) {
   return new Promise(done => {
     const img = new Image();
     img.onload = () => {
@@ -623,11 +637,14 @@ function measureHandEdges(src) {
       const ctx = c.getContext('2d');
       ctx.drawImage(img, 0, 0, 88, 88, 0, 0, 88, 88);
       const px = ctx.getImageData(0, 0, 88, 88).data;
-      const inked = (x, y) => px[(y * 88 + x) * 4 + 3] > 0;
-      // The chest rows 48 to 55, the rows render_pet.py measures the paws from.
-      const xs = [];
-      for (let y = 48; y < 56; y++) for (let x = 0; x < 88; x++) if (inked(x, y)) xs.push(x);
-      done({ left: Math.min(...xs), right: Math.max(...xs) });
+      let left = 88, right = 0, bottom = 0;
+      for (let y = 0; y < 88; y++) for (let x = 0; x < 88; x++) {
+        if (px[(y * 88 + x) * 4 + 3] === 0) continue;
+        if (x < left) left = x;
+        if (x + 1 > right) right = x + 1;
+        if (y + 1 > bottom) bottom = y + 1;
+      }
+      done({ left, right, bottom });
     };
     img.src = src;
   });
@@ -635,30 +652,25 @@ function measureHandEdges(src) {
 const holdFig = $('holdFig'), signP = $('signP'), signB = $('signB');
 function drawHold() {
   const s = stages[state.pet];
-  const on = Boolean(s && state.on && s.engine.action === 'ask' && handEdges.has(state.pet));
+  const on = Boolean(s && state.on && s.engine.action === 'ask' && idleInk.has(state.pet));
   holdFig.classList.toggle('on', on);
   if (!on) return;
-  const e = handEdges.get(state.pet);
+  const ink = idleInk.get(state.pet);
   const cv = s.canvas;
+  const stageW = cv.parentElement.clientWidth;
   const U = cv.offsetWidth / 88;
-  const [ax, ay] = s.engine.state.anchors.body;
   const K = U / 3.01;
-  const vw = signB.offsetWidth * K;
-  // The fist's column on each side, as the sheets draw it: the right fist ends inside the canvas, the left fist sits three
-  // px over the body's left edge. The sheets already carry the body's dx, so ax is added once.
-  const fist = {right: Math.min(e.right - 2, 88 - 9 - 3) + ax, left: e.left - 6 + ax};
-  const gripOf = side => (fist[side] + 4.5) * U;
-  // The left hand by default; the right when the sign would run off the stage on the left.
-  const side = cv.offsetLeft + gripOf('left') - vw + 16 * K >= 4 ? 'left' : 'right';
-  s.renderer.handSide = side;
-  const gripX = gripOf(side);
-  const gripY = (48 + 3 + ay + 0.5) * U;
+  const bw = signB.offsetWidth * K;
+  const base = cv.offsetTop + ink.bottom * U;
+  const left = cv.offsetLeft + ink.left * U - 8 - bw;
+  const right = cv.offsetLeft + ink.right * U + 8;
+  const side = left >= 4 && left + bw <= stageW - 4 ? 'left' : 'right';
+  const x = side === 'left' ? left : Math.min(right, stageW - 4 - bw);
   holdFig.style.left = cv.offsetLeft + 'px';
   holdFig.style.top = cv.offsetTop + 'px';
   holdFig.style.width = holdFig.style.height = 88 * U + 'px';
-  holdFig.classList.toggle('left', side === 'left');
-  signP.style.left = (side === 'right' ? gripX - 16 * K : gripX - vw + 16 * K) + 'px';
-  signP.style.top = (gripY - (signB.offsetHeight + 26) * K) + 'px';
+  signP.style.left = (x - cv.offsetLeft) + 'px';
+  signP.style.top = (base - cv.offsetTop - (40 + 32 - 2) * K) + 'px';
   signP.style.transform = `scale(${K})`;
 }
 (function loopHold() { drawHold(); requestAnimationFrame(loopHold); })();
@@ -671,7 +683,7 @@ function drawHold() {
     canvas.hidden = true;
     stage.append(canvas);
     stages[id] = { canvas, ...(await PetPreview.mountStage(canvas, pet, { scale: 2, resolve, bounds: stage })) };
-    handEdges.set(id, await measureHandEdges(resolve(pet.actions.idle.sheet)));
+    idleInk.set(id, await measureInk(resolve(pet.actions.idle.sheet)));
   }));
   // ?act=ask (and the other chip names) starts the chosen pet on that action, for screenshots of the page.
   const want = new URLSearchParams(location.search).get('act');

@@ -4,16 +4,16 @@ import Lens
 import "../testutil.js" as Util
 
 /**
- * The pet's review sign and the answer card and bubble that follow it (UI.md 4.13, ADR 0052, 0053).
+ * The pet's review sign and the answer card and bubble that follow it (UI.md 4.13, ADR 0088).
  *
- * The sign hangs from the pet's hand: the cases read which hand was chosen, where the pole's tail sits on the grip, and where
- * the card window opens. The pet is a stand-in the size of the figure on screen; the grips come from the real pet, shown in its
- * ask action with the preview. The snapshots are the visual check and skip without LENS_QA_SNAPSHOT_DIR.
+ * The sign stands on the pet's foot line beside it: the cases read which side was chosen, that the post's foot is on the
+ * pet's feet, and where the card window opens. The pet is a stand-in the size of the figure on screen; the sign stands
+ * against the real pet's idle ink box. The snapshots are the visual check and skip without LENS_QA_SNAPSHOT_DIR.
  */
 Item {
     id: root
 
-    /// The figure the sign hangs from: as big as the pet on screen, and moved by each case.
+    /// The figure the sign stands beside: as big as the pet on screen, and moved by each case.
     Item {
         id: fakePet
 
@@ -78,13 +78,26 @@ Item {
             Pet.setEnabled(false);
         }
 
-        /// The grip of hand `hand` on screen, in the frame the pet shows (pet-review.html's gripX and gripY).
-        function gripOf(hand) {
-            const grip = Pet.handGrips[hand];
-            return Qt.point(fakePet.x + grip.x * Pet.scale, fakePet.y + grip.y * Pet.scale);
+        /// The sign's board item, so its design sizes can be read.
+        function board() {
+            return Util.findAll(sign.contentItem, function (o) { return o.toString().indexOf("ReviewSignBoard_QMLTYPE") === 0; })[0];
         }
 
-        /// Puts a question up on a sign hung from a pet at @p petX, and waits for the hand to be placed and the sign to show.
+        /// The pet's foot line in DIPs: the idle ink's bottom edge.
+        function footLine() {
+            return fakePet.y + (Pet.inkBox.y + Pet.inkBox.height) * Pet.scale;
+        }
+
+        /// The pet's ink's left and right edges in DIPs.
+        function inkLeft() {
+            return fakePet.x + Pet.inkBox.x * Pet.scale;
+        }
+
+        function inkRight() {
+            return fakePet.x + (Pet.inkBox.x + Pet.inkBox.width) * Pet.scale;
+        }
+
+        /// Puts a question up on a sign beside a pet at @p petX, and waits for the side to be placed and the sign to show.
         /// The sign must land on the screen, which is checked here so a misplaced sign fails with its geometry.
         function askFromPetAt(petX) {
             fakePet.x = petX;
@@ -105,41 +118,31 @@ Item {
             wait(50);
         }
 
-        /// A pet with room on its left takes the left hand, and its outer card opens on the left.
-        function test_handIsTheLeftOneWhenThereIsRoom() {
+        /// A pet with room on its left takes the left side, and its outer card opens on the left.
+        function test_signTakesTheLeftSideWhenThereIsRoom() {
             askFromPetAt(Math.round(Screen.desktopAvailableWidth / 2));
             compare(sign.side, "left");
             compare(sign.cardSide, "left");
-            compare(Pet.handSide, "left");
         }
 
-        /// At the left edge the left hand has no room, so the right hand takes the sign and its card opens to the right.
-        function test_handSwitchesToTheRightAtTheLeftEdge() {
+        /// At the left edge the left side has no room, so the sign takes the right side and its card opens to the right.
+        function test_signSwitchesToTheRightAtTheLeftEdge() {
             askFromPetAt(8);
             compare(sign.side, "right");
             compare(sign.cardSide, "right");
-            compare(Pet.handSide, "right");
         }
 
-        /// The pole stands on the grip: its tail sits on the hand's grip pixel and its centre on the grip's column.
-        function test_poleStandsOnTheGrip() {
+        /// The post stands on the pet's feet, and the plank sits clear of the pet's ink on the chosen side.
+        function test_signStandsOnTheFootLineOutsideTheInk() {
             askFromPetAt(Math.round(Screen.desktopAvailableWidth / 2));
-            const grip = gripOf(sign.side);
-            // The window holds whole pixels, so the board's own geometry is read rather than the window's.
-            const board = Util.findAll(sign.contentItem, function (o) { return o.toString().indexOf("ReviewSignBoard_QMLTYPE") === 0; })[0];
-            verify(board, "the sign has no board");
-            const inset = 16 * board.boardScale;
-            const pole = sign.side === "right" ? sign.x + inset : sign.x + board.boardWidth - inset;
-            const tail = sign.y + board.boardHeight + board.poleHeight;
-            verify(Math.abs(tail - grip.y) < 1, "the pole tail is at " + tail + ", not the grip at " + grip.y);
-            verify(Math.abs(pole - grip.x) < 1, "the pole is at " + pole + ", not the grip column at " + grip.x);
-        }
-
-        /// The hand moves through its frames, so the sign follows it frame by frame.
-        function test_signBobsWithTheHandFrameByFrame() {
-            askFromPetAt(Math.round(Screen.desktopAvailableWidth / 2));
-            const before = sign.y;
-            tryVerify(function () { return sign.y !== before; }, 2000, "the sign did not follow the hand's frames");
+            const boardItem = board();
+            verify(boardItem, "the sign has no board");
+            const base = sign.y + boardItem.designBase * boardItem.boardScale;
+            verify(Math.abs(base - footLine()) < 1, "the post's foot is at " + base + ", not the pet's feet at " + footLine());
+            if (sign.side === "left")
+                verify(sign.x + boardItem.boardWidth <= inkLeft() - 8 + 1, "the plank runs into the pet's ink on the left");
+            else
+                verify(sign.x >= inkRight() + 8 - 1, "the plank runs into the pet's ink on the right");
         }
 
         /// The board keeps its place on the pet, so a pet the reader drags takes the sign along.
@@ -149,11 +152,11 @@ Item {
             const gapY = sign.y - fakePet.y;
             fakePet.x = 300;
             fakePet.y = 120;
-            compare(sign.x - fakePet.x, gapX, "the board did not follow the pet across the screen");
-            compare(sign.y - fakePet.y, gapY, "the board did not follow the pet down the screen");
+            compare(sign.x - fakePet.x, gapX, "the sign did not follow the pet across the screen");
+            compare(sign.y - fakePet.y, gapY, "the sign did not follow the pet down the screen");
         }
 
-        /// The card opens in its own window beside the board, on the hand's side, and the sign stays where it is.
+        /// The card opens in its own window beside the board, on the sign's side, and the sign stays where it is.
         function test_cardOpensBesideTheBoardWithoutMovingTheSign() {
             askFromPetAt(Math.round(Screen.desktopAvailableWidth / 2));
             const x = sign.x;
@@ -171,8 +174,8 @@ Item {
             tryCompare(sign, "expanded", false);
         }
 
-        /// The answer's card goes on the hand's side and is centred on the pet, while the work area has room there.
-        function test_answerCardGoesOnTheHandsSideCentredOnThePet() {
+        /// The answer's card goes on the sign's side and is centred on the pet, while the work area has room there.
+        function test_answerCardGoesOnTheSignsSideCentredOnThePet() {
             askFromPetAt(Math.round(Screen.desktopAvailableWidth / 2 - fakePet.width / 2));
             const card = createTemporaryObject(answerComponent, root);
             verify(card);
@@ -185,7 +188,7 @@ Item {
             compare(card.x, fakePet.x + fakePet.width + 10, "the card is not on the right of the pet");
         }
 
-        /// With no room on the hand's side, the card goes to the other side of the pet.
+        /// With no room on the sign's side, the card goes to the other side of the pet.
         function test_answerCardFlipsWhenItHasNoRoom() {
             askFromPetAt(8);
             const card = createTemporaryObject(answerComponent, root);
@@ -219,8 +222,8 @@ Item {
             compare(showAnswerBubble().verdictButtons, false);
         }
 
-        /// The whole sign scales by K = scale / 3.01 from its top-left, as pet-review.html scales it: a 52 px board, the 26 px
-        /// pole under it and the 5 px shadow, all at the default size.
+        /// The whole sign scales by K = scale / 3.01 from its top-left, as pet-review.html scales it: a 40 px plank, the 32 px
+        /// post under it, 2 px of the post behind the plank and the 4 px shadow, all at the default size.
         function test_signScalesWithThePetByK() {
             const chosen = Pet.size;
             try {
@@ -228,7 +231,7 @@ Item {
                     Pet.setSize(size);
                     askFromPetAt(Math.round(Screen.desktopAvailableWidth / 2));
                     const k = Pet.scale / 3.01;
-                    verify(Math.abs(sign.height - (52 + 26 + 5) * k) < 1.5, "the sign is " + sign.height + " tall at scale " + Pet.scale);
+                    verify(Math.abs(sign.height - (40 + 32 - 2 + 4) * k) < 1.5, "the sign is " + sign.height + " tall at scale " + Pet.scale);
                     sign.destroy();
                     sign = null;
                 }

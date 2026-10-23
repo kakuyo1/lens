@@ -18,12 +18,12 @@
 | `dog-candidates.html` | 狗的形象重做候选：同一副垂耳骨架的四个角色（奶糖 / 礼服 / 小猎 / 雪原），黑灰白为主体、玫红与冰蓝点缀；奶糖已选定并落成 `data/pet/dog`，其余三只留作对照。可切“只看轮廓”、深色底、动起来与 88×88 实际大小，URL `?pick=classic` 预选 |
 | `pet.html` | 桌面宠物子页面（扩展 → 桌面宠物，随包宠物的类型下拉、动作与配饰，以及宠物包的导入入口、被拒列表与确认弹窗） |
 | `pet-hover.html` | 桌面宠物的悬浮感知设计提案（未定稿）：视线跟随、近旁注意、停留回应与冷却；`?zones` 显示两只感知环 |
-| `pet-review.html` | 桌面宠物的复习牌：举牌（牌子挂在手上，左右手随空间切换，随身体起伏）、悬浮出 “忘了 / 记得”、作答后的缓存气泡与超时生气 |
+| `pet-review.html` | 桌面宠物的提问牌：一块木牌立在宠物脚边，左右侧随空间切换，宠物只做身体起伏；悬浮出 “忘了 / 记得”、作答后的缓存气泡与超时生气 |
 | `english-in-english.html` | “Read English in English” 的三条交互提案，一页三场景：释义链、铅笔层、按住看中文。左侧说明栏写取舍，是提案不是表面规格；暂只做明暗两套主题 |
 | `word-images.html` | 图片作为义项锚的 A/B 对照：A 一键看图（默认浏览器接手），B 卡内三图（原地展开、换义项、看大图与来源）。照片取自 Wikimedia Commons，署名与许可在大图里 |
 | `update.html` | 检查更新（关于 分类的检查行）与通知卡片的新版本样式 |
 
-`pet-prototype/` 是一个 Vite 小应用，不是单个 standalone HTML：`walk.html` 是宠物步态与边缘躲藏的 demo，直接在 `pet-prototype/` 里跑 `npm run dev`，再打开 `/walk.html`。它读取 `data/pet` 的原始 JSON 与 PNG，`walk`、`edge_peek` 动作和 `movement` 块都取自同一份 `animations.json`；`walk.html` 里可以切七只宠物、左/右边缘、暂停与速度，勾 “原地播放” 看步态循环，点 “边缘演示” 强制一只躲到边缘，再把边缘的宠物拖出来结束躲藏。页面顶部的 “躲藏举牌” 卡演示躲着用内侧手举牌，牌子跟着 `ask` 的手逐帧移动。
+`pet-prototype/` 是一个 Vite 小应用，不是单个 standalone HTML：`walk.html` 是宠物步态与边缘躲藏的 demo，直接在 `pet-prototype/` 里跑 `npm run dev`，再打开 `/walk.html`。它读取 `data/pet` 的原始 JSON 与 PNG，`walk`、`edge_peek` 动作和 `movement` 块都取自同一份 `animations.json`；`walk.html` 里可以切七只宠物、左/右边缘、暂停与速度，勾 “原地播放” 看步态循环，点 “边缘演示” 强制一只躲到边缘，再把边缘的宠物拖出来结束躲藏。页面顶部的 “躲藏提问牌” 卡演示躲藏时木牌立在露出的内侧，柱脚踩在宠物脚线；牌子不再跟手逐帧移动。
 
 ## 怎么看
 
@@ -31,9 +31,9 @@
 
 `selection-bar-variants.html` 追加 `?v=A|E|H|F` 只看一种形态，`?lang=` 与 `?theme=` 照旧，`?shot` 隐去右上角控件；每条动作条进入视野时出场，滚回去会重播，点一下看它自己的按法。它是动作条样式的备选对照；默认仍是 `selection-bar.html` 的经典长条，行为契约在 `UI.md` 4.10。
 
-追加 `?lang=en`、`?lang=ja`、`?lang=es` 按该语言渲染界面，缺省中文。进 README 的五个表面（bubble、selection-bar、settings、words、year-in-words）接了它，其余表面和设置里的子页面仍是中文。pet 页要看到预览舞台，追加 `?on` 直接打开桌面宠物；`?act=ask` 让预览直接停在举牌，`?preview` 把面板滚到预览舞台（headless 截图的静止画面不走动画，要看起伏请在浏览器里打开）；要直接看宠物包的确认弹窗，追加 `?dlg=1`；README 里的复习牌截图由 `pet-review.html` 渲染；旧的桌面宠物图取自应用本身，当前 README 不再引用。
+追加 `?lang=en`、`?lang=ja`、`?lang=es` 按该语言渲染界面，缺省中文。进 README 的五个表面（bubble、selection-bar、settings、words、year-in-words）接了它，其余表面和设置里的子页面仍是中文。pet 页要看到预览舞台，追加 `?on` 直接打开桌面宠物；`?act=ask` 让预览直接停在提问牌，`?preview` 把面板滚到预览舞台（headless 截图的静止画面不走动画，要看起伏请在浏览器里打开）；要直接看宠物包的确认弹窗，追加 `?dlg=1`；README 里的复习牌截图由 `pet-review.html` 渲染；旧的桌面宠物图取自应用本身，当前 README 不再引用。
 
-`pet-review.html` 直接停在举牌，默认左手；左侧的牌子连同外侧的小卡放不下时换右手，两侧都放不下取溢出少的一侧。`?pet=dog|mochi|ghost` 选择举牌的宠物，ghost 的拳头位置会自动下移；`?bg=<当前玻璃主题的底图>` 换背景；`?scale=1|2|3.01|4` 改宠物尺寸，牌子随之等比缩放；`?hand=left|right` 强制举牌的手；`?f=0` 到 `?f=3` 停在举牌的某一帧，用来看牌子随身体起伏。手是 `data/pet/dog` 里 `ask` 的效果层：`ask.png` 是右手，`ask-left.png` 是左手。`?qa` 把牌子、小卡与气泡的屏幕坐标写在页面左下角，用来核对没有被截断。`?state=hover` 看展开的两枚按钮，`?state=forgot` / `?state=remembered` 看作答后的宠物动作与气泡，`?state=timeout` 看超时生气。作答气泡缺省在举牌的手那一侧（右手在右，左手在左），与宠物垂直居中，那一侧放不下时翻到另一侧；`?side=left|right` 强制气泡一侧，用来看翻边。小卡朝牌子的外侧展开：右手时在右边，左手时在左边；外侧放不下时翻到内侧。`?lang=` 支持四种界面语言；牌上的单词与气泡里的释义是样例内容，不随界面语言变。牌子的像素字体由页面相对引用 `data/fonts/PixelifySans-Regular.ttf`。
+`pet-review.html` 直接停在提问牌，默认立在左侧；左侧的木牌连同外侧的小卡放不下时换右侧，两侧都放不下取溢出少的一侧。`?pet=dog|mochi|ghost` 选择宠物；`?bg=<当前玻璃主题的底图>` 换背景；`?scale=1|2|3.01|4` 改宠物尺寸，木牌随之等比缩放；`?sign=left|right` 强制木牌的一侧；`?f=0` 到 `?f=3` 停在宠物 `ask` 的某一帧，用来看身体的起伏（木牌不跟着动）。`?qa` 把木牌、柱、小卡与气泡的屏幕坐标写在页面左下角，用来核对没有被截断。`?state=hover` 看展开的两枚按钮，`?state=forgot` / `?state=remembered` 看作答后的宠物动作与气泡，`?state=timeout` 看超时生气。作答气泡缺省在木牌那一侧，与宠物垂直居中，那一侧放不下时翻到另一侧；`?side=left|right` 强制气泡一侧，用来看翻边。小卡朝木牌的外侧展开：木牌在左时小卡在左，在右时在右；外侧放不下时翻到内侧。`?lang=` 支持四种界面语言；牌上的单词与气泡里的释义是样例内容，不随界面语言变。牌面的像素字体由页面相对引用 `data/fonts/PixelifySans-Regular.ttf`。
 
 `pet-hover.html` 是悬浮交互的设计提案，不是已定稿的行为：指针靠近宠物时先跟眼神，停一下给个小反应，再停一会给完整动作；右侧可单独关掉每一层，`?zones` 直接显示注视与注意两只环，`?qa` 暴露页面里的 pet 列表供截图脚本暂停帧用。状态文字只在这个原型里出现，产品里的宠物不说话。
 

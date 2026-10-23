@@ -70,16 +70,16 @@ Item {
             compare(passthrough.interactive, true);
         }
 
-        /// The hold-sign action is one of the Actions chips, and its row is captured on its own, since the panel
-        /// snapshot above is cut off above the Actions group.
-        function test_holdSignIsAChipInTheActionsRow() {
+        /// The sign action is one of the Actions chips, and its row is captured on its own, since the panel snapshot
+        /// above is cut off above the Actions group.
+        function test_theSignActionIsAChipInTheActionsRow() {
             // The preview, actions and scenes sections are hidden while the pet is off, so the chip only shows with it on.
             Pet.setEnabled(true);
             const page = createTemporaryObject(pageComponent, host.contentItem);
             waitForRendering(host.contentItem);
             const chips = Util.findAll(page, function (o) { return o.modelData === "ask"; });
             compare(chips.length, 1);
-            verify(chips[0].visible, "the hold-sign chip is shown to the reader");
+            verify(chips[0].visible, "the sign chip is shown to the reader");
             if (!lensQaSnapshotDir)
                 skip("Set LENS_QA_SNAPSHOT_DIR to save the snapshot of the actions row");
             // The page is sized to its content, or the rows below its first screen are clipped. Then it moves so the
@@ -92,25 +92,25 @@ Item {
         }
 
         /// The settings panel's content column is 340 DIP wide; the stage and its sign have to fit in that.
-        function holdSignPage() {
+        function signPage() {
             Pet.setEnabled(true);
             const page = createTemporaryObject(pageComponent, host.contentItem, {width: 340});
             waitForRendering(host.contentItem);
             return page;
         }
 
-        /// Picking hold sign in the preview shows the review sign's board hung from the figure, on the stage, and taking
+        /// Picking the sign action in the preview shows the review sign standing beside the figure on the stage, and taking
         /// the action away takes the board down again.
-        function test_holdSignPreviewShowsTheBoardOnTheStage() {
-            const page = holdSignPage();
+        function test_theSignPreviewShowsTheBoardOnTheStage() {
+            const page = signPage();
             const stage = Util.findAll(page, function (o) { return o.toString().indexOf("PetStage_QMLTYPE") === 0; })[0];
             const board = Util.findAll(page, function (o) { return o.toString().indexOf("ReviewSignBoard_QMLTYPE") === 0; })[0];
             verify(stage, "the settings page has no pet stage");
             verify(board, "the settings page has no review sign board");
-            verify(!board.visible, "the sign showed before hold sign was picked");
+            verify(!board.visible, "the sign showed before the sign action was picked");
 
             Pet.preview("ask");
-            tryVerify(() => board.visible, 2000, "hold sign did not show the sign");
+            tryVerify(() => board.visible, 2000, "the sign action did not show the sign");
             verify(board.word !== "", "the preview has no word to put on the sign");
             verify(board.x >= 0 && board.x + board.width <= stage.width,
                    "the sign runs off the stage: " + board.x + " + " + board.width + " on " + stage.width);
@@ -119,11 +119,11 @@ Item {
             tryVerify(() => !board.visible, 2000, "the sign stayed up after another action was picked");
         }
 
-        function test_captureHoldSignPreview() {
+        function test_captureTheSignPreview() {
             if (!lensQaSnapshotDir)
                 skip("Set LENS_QA_SNAPSHOT_DIR to save the snapshot of the hold-sign preview");
 
-            const page = holdSignPage();
+            const page = signPage();
             const stage = Util.findAll(page, function (o) { return o.toString().indexOf("PetStage_QMLTYPE") === 0; })[0];
             // The page is sized to its content and moved so the stage sits near the top of the host: a grab of an item
             // that lies below the host's first screen comes back showing the wrong part of the page.
@@ -132,14 +132,14 @@ Item {
             Pet.preview("ask");
             wait(200);
             waitForRendering(page);
-            verify(Util.saveSnapshot(testCase, page, lensQaSnapshotDir, "pet-preview-hold-sign"));
+            verify(Util.saveSnapshot(testCase, page, lensQaSnapshotDir, "pet-preview-sign"));
         }
 
         /// The board is drawn at the pet's magnification: unscaled at the default ×3.01, larger for a larger pet, and smaller
         /// for a smaller one with no floor (UI.md 4.13).
         function test_signBoardScalesWithThePet() {
             const chosen = Pet.size;
-            const page = holdSignPage();
+            const page = signPage();
             const board = Util.findAll(page, function (o) { return o.toString().indexOf("ReviewSignBoard_QMLTYPE") === 0; })[0];
             try {
                 Pet.setSize(67);
@@ -153,29 +153,28 @@ Item {
             }
         }
 
-        /// The pole's tail sits on the hand's grip at every size, so the board hangs from the hand and never from the feet.
-        function test_signPoleTailSitsOnTheGripAtEverySize() {
+        /// The post stands on the pet's foot line at every size, so the sign never floats above or sinks below the pet.
+        function test_thePostStandsOnTheFootLineAtEverySize() {
             const chosen = Pet.size;
-            const page = holdSignPage();
+            const page = signPage();
             const stage = Util.findAll(page, function (o) { return o.toString().indexOf("PetStage_QMLTYPE") === 0; })[0];
             const board = Util.findAll(page, function (o) { return o.toString().indexOf("ReviewSignBoard_QMLTYPE") === 0; })[0];
             Pet.preview("ask");
-            tryVerify(() => board.visible, 2000, "hold sign did not show the sign");
+            tryVerify(() => board.visible, 2000, "the sign action did not show the sign");
             try {
                 for (const size of [0, 10, 20, 67, 100]) {
                     Pet.setSize(size);
-                    const grip = Pet.handGrips[Pet.handSide];
-                    const tail = board.y + board.height - 5 * board.boardScale;
-                    const gripY = stage.figureY + grip.y * Pet.scale;
-                    verify(Math.abs(tail - gripY) < 1, "the pole tail is at " + tail + ", not the grip at " + gripY + " at size " + size
-                           + " (board y " + board.y + ", height " + board.height + ", hand " + stage.handSide + ", figureY " + stage.figureY + ", grip " + JSON.stringify(grip) + ")");
+                    const base = board.y + board.designBase * board.boardScale;
+                    const feet = stage.figureY + (Pet.inkBox.y + Pet.inkBox.height) * Pet.scale;
+                    verify(Math.abs(base - feet) < 1, "the post's foot is at " + base + ", not the pet's feet at " + feet + " at size " + size
+                           + " (board y " + board.y + ", scale " + board.boardScale + ", figureY " + stage.figureY + ")");
                 }
             } finally {
                 Pet.setSize(chosen);
             }
         }
 
-        function test_captureHoldSignPreviewAcrossSizes() {
+        function test_captureTheSignPreviewAcrossSizes() {
             if (!lensQaSnapshotDir)
                 skip("Set LENS_QA_SNAPSHOT_DIR to save the snapshots of the hold-sign preview at several sizes");
 
@@ -183,14 +182,14 @@ Item {
             try {
                 for (const size of [0, 10, 20, 100]) {
                     Pet.setSize(size);
-                    const page = holdSignPage();
+                    const page = signPage();
                     const stage = Util.findAll(page, function (o) { return o.toString().indexOf("PetStage_QMLTYPE") === 0; })[0];
                     page.height = page.implicitHeight;
                     page.y = 30 - stage.mapToItem(page, 0, 0).y;
                     Pet.preview("ask");
                     wait(200);
                     waitForRendering(page);
-                    verify(Util.saveSnapshot(testCase, page, lensQaSnapshotDir, "pet-preview-hold-sign-size-" + size));
+                    verify(Util.saveSnapshot(testCase, page, lensQaSnapshotDir, "pet-preview-sign-size-" + size));
                     page.destroy();
                     Pet.preview("idle");
                 }

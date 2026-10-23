@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Window
-import QtQuick.Effects
 
 /**
  * The explanation bubble (UI.md section 4.3), the surface the whole channel exists for.

@@ -8,8 +8,8 @@ import QtQuick.Window
  * It shares Pet with the desktop window, so an action picked here plays on the desktop too while the
  * settings stay open. That is the one pet; a second clock would only fight the first for frames.
  *
- * While the hold-sign action plays, the review sign's board hangs from the pet's hand as it does on the desktop (UI.md 4.13),
- * so the reader sees what the action is for. The pet stays where it is; only the board moves, to stay on the stage.
+ * While the ask action plays, the review sign stands beside the pet on the stage's foot line as it does on the desktop
+ * (UI.md 4.13), so the reader sees what the action is for. The pet stays where it is; only the sign moves, to stay on the stage.
  */
 Rectangle {
     id: stage
@@ -46,16 +46,15 @@ Rectangle {
         color: stage.tokens.line
     }
 
-    /// The sign's placement on this stage, with the stage as the screen and no card counted, as pet-review.html chooses it:
-    /// the hand that holds the sign, and where its board hangs from that hand's grip.
+    /// The sign's placement on this stage, with the stage as the screen and no card counted: the side it stands on beside
+    /// the pet, and where its board sits on that side.
     ReviewSignLayout {
         id: layout
 
         scale: Pet.scale
         figure: Qt.point(stage.figureX, stage.figureY)
+        ink: Pet.inkBox
         area: ({left: 0, top: 0, right: stage.width, bottom: stage.height})
-        restGrips: Pet.handRest
-        grips: Pet.handGrips
         word: Controller.settingPreview.word || ""
         // The card pet-review.html draws beside the board: .btn 34 px tall, 8 px padding and a 1 px border on each side.
         // The preview draws no card, so the card is not counted.
@@ -64,15 +63,13 @@ Rectangle {
         withCard: false
     }
     readonly property var choice: layout.choose()
-    readonly property string handSide: choice ? choice.hand : "left"
-    readonly property point signAt: choice ? layout.boardAt(choice.hand, layout.nudgeFor(choice.hand, choice.on)) : Qt.point(0, 0)
+    readonly property point signAt: choice ? layout.boardAt(choice.side, layout.nudgeFor(choice.side, choice.on)) : Qt.point(0, 0)
 
     PetScene {
         id: scene
 
         x: stage.figureX
         y: stage.figureY
-        handSide: stage.handSide
     }
 
     ReviewSignBoard {
@@ -81,7 +78,6 @@ Rectangle {
         visible: stage.signShown
         word: Controller.settingPreview.word || ""
         petScale: Pet.scale
-        side: stage.handSide
         designWidth: layout.designWidth
         x: Math.round(stage.signAt.x)
         y: Math.round(stage.signAt.y)

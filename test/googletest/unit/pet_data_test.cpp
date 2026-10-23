@@ -100,16 +100,14 @@ TEST(PetData, EverySheetIsTheSizeItsFrameCountSays)
     EXPECT_NO_THROW(lens::app::pet::PetAssets::load(directory));
 }
 
-TEST(PetData, TheSignHandsGripThePoleAtTheMeasuredPixelOfEveryFrame)
+TEST(PetData, TheAskActionIsAPoseAndDrawsNoEffect)
 {
-    // The fist's top-left ink in frame 0 is (70, 48) for the right hand and (21, 48) for the left; the grip is 4.5 right and 3 down.
+    // The review sign stands beside the pet, so the ask action bobs the body and holds no hand or other effect sheet.
     auto const directory = std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet" / "dog";
     auto const ask       = lens::app::pet::PetAssets::load(directory).sheets.at("ask");
 
-    ASSERT_EQ(ask.gripRight.size(), 4u);
-    ASSERT_EQ(ask.gripLeft.size(), 4u);
-    EXPECT_EQ(ask.gripRight.front(), QPointF(74.5, 51));
-    EXPECT_EQ(ask.gripLeft.front(), QPointF(25.5, 51));
+    EXPECT_TRUE(ask.effect.isEmpty());
+    EXPECT_FALSE(ask.body.isEmpty());
 }
 
 TEST(PetData, EveryShippedPetWalksAndPeeks)

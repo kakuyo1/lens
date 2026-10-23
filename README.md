@@ -84,9 +84,9 @@ Choose the shape in Settings › Capture & popups: the classic bar, a page-edge 
 
 ## A small learning loop
 
-<p align="center"><img src="docs/readme/learning-loop.png" width="900" alt="A due word held up by the desktop pet, and the year-in-words graph"></p>
+<p align="center"><img src="docs/readme/learning-loop.png" width="900" alt="A wooden review sign beside the desktop pet, and the year-in-words graph"></p>
 
-Known and New live on one word list. Hover a row to reread an explanation Lens already stored, without sending a request. When a word is due, the desktop pet holds up a sign; answer Forgot or Remembered and it comes back on a spaced schedule from ten minutes to sixty days. The year-in-words graph keeps the habit visible without turning it into a streak.
+Known and New live on one word list. Hover a row to reread an explanation Lens already stored, without sending a request. When a word is due, a small wooden sign appears beside the desktop pet; answer Forgot or Remembered and it comes back on a spaced schedule from ten minutes to sixty days. The year-in-words graph keeps the habit visible without turning it into a streak.
 
 ## Seven pets, if you want them
 

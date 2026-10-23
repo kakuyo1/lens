@@ -558,28 +558,21 @@ class ReviewDemo {
     if (!pet) return;
     this.id = id;
     this.pet = pet;
+    this.idle = pet.actions.idle;
     this.ask = pet.actions.ask;
     this.renderer = new PetRenderer(this.canvas, { ...pet, scale: SCALE });
     this.renderer.images = this.images.get(id);
     this.ink = this.bodyInk();
-    this.grips = { right: this.gripsFrom('right'), left: this.gripsFrom('left') };
     this.frame = 0;
     this.frameElapsed = 0;
     this.layout();
   }
 
+  /// The idle body's ink box in CSS px: the sign stands outside its left/right edges and on its bottom edge.
   bodyInk() {
-    const ink = frameInk(this.renderer.images.get(this.ask.sheet), this.pet.canvas, this.ask.frames)[0];
-    if (!ink) return { left: 0, right: this.pet.canvas * SCALE };
-    return { left: ink.left * SCALE, right: (ink.right + 1) * SCALE };
-  }
-
-  gripsFrom(hand) {
-    const path = hand === 'left' ? this.ask.effectLeft : this.ask.effect;
-    const image = path ? this.renderer.images.get(path) : null;
-    if (!image) return [];
-    return frameInk(image, this.pet.canvas, this.ask.frames).map(ink =>
-      ink ? { x: ink.left + 4.5, y: ink.top + 3 } : { x: this.pet.canvas / 2, y: this.pet.canvas / 2 });
+    const ink = frameInk(this.renderer.images.get(this.idle.sheet), this.pet.canvas, this.idle.frames)[0];
+    if (!ink) return { left: 0, right: this.pet.canvas * SCALE, bottom: this.pet.canvas * SCALE };
+    return { left: ink.left * SCALE, right: (ink.right + 1) * SCALE, bottom: (ink.bottom + 1) * SCALE };
   }
 
   setSide(side) {
@@ -600,31 +593,26 @@ class ReviewDemo {
       ? visible - this.ink.right
       : maxX + (this.petW - this.ink.left - visible);
     this.petY = Math.max(0, stageH - this.petH - 28);
-    this.hand = this.side === 'left' ? 'right' : 'left';
-    this.renderer.handSide = this.hand;
     this.canvas.style.transform = `translate(${this.petX}px, ${this.petY}px)`;
     this.placeSign();
     if (this.note) {
-      this.note.textContent = `演示：${NAMES[this.id]} 躲藏中用${this.hand === 'right' ? '右' : '左'}手举牌 · 牌子选内侧手`;
+      const edge = this.side === 'left' ? '左' : '右';
+      this.note.textContent = `演示：${NAMES[this.id]} 躲在${edge}边缘；木牌立在露出的内侧，柱脚踩在宠物脚线`;
     }
   }
 
+  /// The wooden sign on the inner side of the hidden pet, its post on the idle foot line. Only x is clamped to the stage.
   placeSign() {
     if (!this.pet) return;
-    const grips = this.grips[this.hand];
-    const grip = grips?.[this.frame % Math.max(1, grips.length)];
-    if (!grip) return;
-    const gx = this.petX + grip.x * SCALE;
-    const gy = this.petY + grip.y * SCALE;
-    const bw = this.board.offsetWidth;
-    const bh = this.board.offsetHeight;
-    this.sign.dataset.hand = this.hand;
-    let x = this.hand === 'right' ? gx - 16 : gx - bw + 16;
-    let y = gy - bh - 26;
-    x = Math.max(16, Math.min(x, this.stage.clientWidth - bw - 16));
-    y = Math.max(16, Math.min(y, this.stage.clientHeight - bh - 26 - 16));
-    this.sign.style.left = `${x}px`;
-    this.sign.style.top = `${y}px`;
+    const stageW = this.stage.clientWidth;
+    const K = SCALE / 3.01;
+    const bw = this.board.offsetWidth * K;
+    const inner = this.side === 'left' ? 'right' : 'left';
+    const x = inner === 'right' ? this.petX + this.ink.right + 8 : this.petX + this.ink.left - 8 - bw;
+    const base = this.petY + this.ink.bottom;
+    this.sign.style.transform = `scale(${K})`;
+    this.sign.style.left = `${Math.max(16, Math.min(x, stageW - bw - 16))}px`;
+    this.sign.style.top = `${Math.max(16, base - (40 + 32 - 2) * K)}px`;
   }
 
   update(dt) {
@@ -635,7 +623,6 @@ class ReviewDemo {
       this.frameElapsed -= frameMs;
       this.frame = (this.frame + 1) % this.ask.frames;
     }
-    this.renderer.handSide = this.hand;
     this.renderer.clear();
     this.renderer.drawPet({
       action: 'ask',
@@ -643,7 +630,6 @@ class ReviewDemo {
       expression: this.ask.expressions?.[this.frame] ?? 0,
       anchors: this.ask.anchors[this.frame],
     }, []);
-    this.placeSign();
   }
 }
 

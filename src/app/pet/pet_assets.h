@@ -45,12 +45,6 @@ struct ActionSheets {
     QString body;
     /// Absolute path of the effect sheet; empty when the action has no effect layer.
     QString effect;
-    /// Absolute path of the left-hand effect sheet; empty when the action has none (only the ask action holds a sign).
-    QString effectLeft;
-    /// Where the right hand grips the sign's pole in each frame, in sheet units; empty when the action has no right hand.
-    std::vector<QPointF> gripRight;
-    /// Where the left hand grips the sign's pole in each frame, in sheet units; empty when the action has no left hand.
-    std::vector<QPointF> gripLeft;
     /// Expression sheet index for each frame; empty means expression 0 throughout.
     std::vector<int> expressions;
 };

@@ -732,7 +732,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="186"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="44"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="728"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="700"/>
         <source>Desktop companion</source>
         <translation>Desktop companion</translation>
     </message>
@@ -920,8 +920,8 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="40"/>
-        <source>Hold sign</source>
-        <translation>Hold sign</translation>
+        <source>Sign</source>
+        <translation>Sign</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="41"/>
@@ -1255,7 +1255,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="130"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="730"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="702"/>
         <source>Dog</source>
         <translation>Dog</translation>
     </message>
@@ -1584,7 +1584,7 @@
         <translation>Confirm delete</translation>
     </message>
     <message>
-        <location filename="../src/app/pet/pet_controller.cpp" line="729"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="701"/>
         <source>This pet package is no longer installed. Switched to %1.</source>
         <translation>This pet package is no longer installed. Switched to %1.</translation>
     </message>

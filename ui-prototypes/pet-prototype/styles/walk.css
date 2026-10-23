@@ -1,3 +1,4 @@
+@font-face{font-family:"Pixelify Sans";src:url("../../../data/fonts/PixelifySans-Regular.ttf") format("truetype");font-display:block}
 :root {
   --ink: #1a1a1f;
   --muted: #6b7078;
@@ -246,27 +247,60 @@ code {
   position: absolute;
   z-index: 3;
   width: max-content;
+  transform-origin: 0 0;
 }
 .review-board {
-  padding: 14px 18px 12px;
-  color: #1a1a1f;
-  border: 3px solid #1a1a1f;
-  border-radius: 2px;
-  background: #fffdf7;
-  box-shadow: 0 8px 20px rgba(50, 44, 34, .16);
-  font: 20px/1 ui-monospace, Menlo, Consolas, monospace;
+  position: relative;
+  box-sizing: border-box;
+  padding: 7px 14px;
+  color: #2b1a0e;
+  border: 3px solid #3a2412;
+  background: #d2a76a;
+  box-shadow: inset 1px 1px 0 #e6c88f, inset -1px -1px 0 #a8783f, 4px 4px 0 rgba(20, 20, 26, .11);
+  font: 20px/20px "Pixelify Sans", ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0;
   white-space: nowrap;
 }
-.review-pole {
+.review-board .word { position: relative; z-index: 1; }
+.review-board .g1, .review-board .g2 {
   position: absolute;
-  bottom: -26px;
-  width: 4px;
-  height: 26px;
-  background: #1a1a1f;
+  left: 8px;
+  right: 8px;
+  height: 1px;
+  background: #bd8d4f;
 }
-.review-sign[data-hand="right"] .review-pole { left: 14px; }
-.review-sign[data-hand="left"] .review-pole { right: 14px; }
+.review-board .g1 { top: 8px; }
+.review-board .g2 { bottom: 8px; }
+.review-board .n1, .review-board .n2, .review-board .n3, .review-board .n4 {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: #5b3b20;
+  box-shadow: inset 1px 1px 0 #e6c88f;
+}
+.review-board .n1 { left: 7px; top: 7px; }
+.review-board .n2 { right: 7px; top: 7px; }
+.review-board .n3 { left: 7px; bottom: 7px; }
+.review-board .n4 { right: 7px; bottom: 7px; }
+.review-post {
+  position: relative;
+  width: 10px;
+  height: 32px;
+  margin: -2px auto 0;
+  background: #b8864f;
+  border: 2px solid #3a2412;
+  box-shadow: inset 2px 0 0 #d2a76a, inset -2px 0 0 #8a5a2f, 4px 4px 0 rgba(20, 20, 26, .11);
+}
+.review-ground {
+  position: absolute;
+  left: 50%;
+  bottom: -1px;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  border-radius: 1.5px;
+  background: rgba(33, 20, 20, .10);
+}
 
 .foot {
   display: flex;

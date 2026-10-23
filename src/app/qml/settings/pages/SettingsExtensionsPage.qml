@@ -37,7 +37,7 @@ Item {
         case "yawn": return qsTranslate("SettingsPopup", "Yawn");
         case "stretch": return qsTranslate("SettingsPopup", "Stretch");
         case "angry": return qsTranslate("SettingsPopup", "Angry");
-        case "ask": return qsTranslate("SettingsPopup", "Hold sign");
+        case "ask": return qsTranslate("SettingsPopup", "Sign");
         case "walk": return qsTranslate("SettingsPopup", "Walk");
         case "edge_peek": return qsTranslate("SettingsPopup", "Edge peek");
         case "wobble": return qsTranslate("SettingsPopup", "Wobble");

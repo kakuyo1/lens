@@ -38,7 +38,7 @@
 - `roles`、`idlePool`、`hover`、`movement`：原样写进 `animations.json`；两个 hover 动作必须是已有的单次动作，movement 的 walk 与 peek 必须循环。
 - `actions`：每个动作的 `fps`、`loop`，可选 `blink`、`returnTo`、`duration`、`bodyFrom`、`paint`，以及按帧排列的 `frames`。每帧可有 `pose`（`dx`、`dy` 平移，`sx`、`sy` 绕轴压扁或拉伸）、`expression`、`shapes`（额外形状）与 `paint`（效果层图形）。
 - `bodyFrom`：复用前面动作的 body sheet 与锚点，按自己的帧数循环；生气、庆祝、场景等因此不用重画身体。复用的是成品 sheet，动作级 `bodyPaint` 不生效；帧里写了 `pose` 就覆盖复用锚点。
-- `paint`：效果层图形，支持 `at`、`colour`、`art` 或 `glyph`，以及 `pixel: true`（一字符一像素）。`paintLeft` 给出左手 sheet，供举牌选边；`ask` 的右手在 `paint`、左手在 `paintLeft`。
+- `paint`：效果层图形，支持 `at`、`colour`、`art` 或 `glyph`，以及 `pixel: true`（一字符一像素）。效果层是该动作自己的图形；提问牌不再由宠物拿着，所以没有左右手 sheet 的概念。
 - `accessories`：每件 `{id, slot, paint, except?}`。`paint` 可以走格子，也可以走 `pixel`（奶糖的细框眼镜）；`except` 里的动作不显示这件配饰。
 - 表情图案的竖偏移：第 9 格生气眼向上多一行画眉，由 `EYE_OFFSETS` 处理；右眼用 `EYE_MIRRORS` 镜像。嘴按表情查表：哈欠用 `yawnMouth`，生气用 `angryMouth`，其余共用 `mouth`。
 - `blink` 动作照常写在 `actions` 里：3 帧，只有表情，没有 body sheet。
@@ -48,7 +48,7 @@
 1. 复制 `scripts/pet/recipes/mochi.json` 或 `dog.json`，改身体、眼睛、嘴、动作与配饰。
 2. 从仓库根目录运行 `python -I scripts/pet/render_pet.py <id>`。渲染器直接覆盖 `data/pet/<id>/`，写完后读回每张 sheet 核对尺寸；尺寸不对会退出。
 3. 看图。至少看 `sprites/reference/bare.png`、表情 sheet、每个动作的 body/effect sheet 与配饰 PNG；按原尺寸和放大各看一遍。可疑的格子改配方，不改输出。
-4. 核对数据契约：角色、idlePool、blink、锚点条目、场景帧数与 30 秒时长、配饰的 supportedActions。`pet_data_test` 会把狗逐项验一遍，包括评审牌的握点。
+4. 核对数据契约：角色、idlePool、blink、锚点条目、场景帧数与 30 秒时长、配饰的 supportedActions。`pet_data_test` 会把狗逐项验一遍，包括 `ask` 只有身体、没有效果层。
 5. 原型：`cd ui-prototypes/pet-prototype && npm run embed && npm run embed:hover`；`pet-review.html` 与 `walk.html` 直接读 `data/pet`，不用重新生成。改完狗或动作后，至少打开 `pet-review.html?pet=dog` 与 `walk.html` 看一次。
 6. 测试：`lens_gtest_unit --gtest_filter='PetData.*'`；原型侧 `node --test ui-prototypes/pet-prototype/test/*.test.js`。真机看画面另见 `docs/qa.md`。
 
@@ -69,16 +69,7 @@
 - **压扁小于 1 时蒙版里的耳朵会跟着变**；奶糖的 `sleep` 只用 1.04 / 0.96 的轻压，避免脸与身体错位。
 - 小狗没有 `blink` 之外的旧专用动作表；动作名、配饰 id 与场景 id 都与旧版一致，设置页与测试不需要改名。
 
-## 7。举牌的手（`ask`）
-
-`ask` 动作里有一只握着杆的手（ADR 0052）。手画在效果层，不改身体轮廓；杆与牌由 UI 绘制。
-
-- **位置**：9 × 8 像素的拳头，两手在身体左右两侧，胸口一行；奶糖的右手从画布第 70 px 起、左手从第 21 px 起，握点分别是 `(74.5, 51)` 与 `(25.5, 51)`。旧狗的手在 79 / 30，奶糖的耳朵更宽，整体外移了 3 格，牌才落在耳侧而不是脸上。
-- **跟随身体**：效果层不跟身体锚点；`ask` 的每帧 `paint` / `paintLeft` 自己按该帧的起伏给出手的 y。
-- **握法**：拳头用 ink 与 fur 两色，两根手指从上包住杆子，中间留一列让杆穿过。颜色取该宠物已有的调色。
-- **验证**：`pet_data_test` 在装载时量出两只手第 1 帧的握点；改手的位置要同步改那条测试。`ui-prototypes/pet-review.html` 的 `FIST` / `ASK` 也要跟着改（狗的 FIST 是 70 / 21）。
-
-## 8。步态与边缘偷看
+## 7。步态与边缘偷看
 
 `walk` 与 `edge_peek` 是循环动作，不映射角色，也不能进 `idlePool`。它们用配方的 `body_frame`、逐帧 `pose`、表情与效果层。
 
@@ -86,8 +77,8 @@
 - **共享场景**：`skate` 与 `swing` 的宠物动作由各自配方提供；奶糖坐在滑板与秋千上，场景位移负责摆动，帧里只留表情与必要的重心。专属的 `dog_frisbee`、`dog_burying` 由狗单独拥有。
 - **配饰**：渲染器会为每件配饰自动补上 walk 与 peek；小狗没有手写 `supportedActions` 了。
 
-## 9。验证与真机
+## 8。验证与真机
 
-- 数据契约：`PetData.*` 覆盖动作数、角色、idlePool、blink、锚点、场景 2+2、配饰 7、评审牌握点与全部 sheet 尺寸。
+- 数据契约：`PetData.*` 覆盖动作数、角色、idlePool、blink、锚点、场景 2+2、配饰 7、`ask` 没有效果层与全部 sheet 尺寸。
 - 原型：`pet.html` / `pet-hover.html` 是内嵌生成物；`pet-review.html`、`walk.html` 读 `data/pet`。改狗后重跑 embed，并打开这两个页面看一次。
 - 真机：应用在启动时装载 `data/pet/dog`，正在运行的旧进程不会热换；重启 Lens 后才看得到奶糖。宠物窗口默认不进录屏，拍照用 `docs/qa.md` 的 QA 开关。

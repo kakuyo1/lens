@@ -5,14 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lens · 宠物提问</title>
 <!--
-  桌面宠物的复习牌。宠物举牌（ask 动作）时，牌子由一只手握着杆子举起，手随身体上下起伏。
-  默认左手；左侧的牌子和小卡放不下时换右手。指针停在牌上才展开「忘了 / 记得」；作答后牌收起，
-  宠物做对应动作，缓存里的解释气泡在举牌的手那一侧出现，与宠物垂直居中。
-  牌子、小卡和气泡都不被屏幕边缘截断：宠物不挪动；牌与小卡让开空间选侧，两侧都放不下时才夹进屏内（ADR 0053）。
-  手是所选宠物 ask 的效果层（正式图）：ask.png 是右手，ask-left.png 是左手。
+  桌面宠物的提问牌。一块木牌立在宠物脚线、身体一侧；宠物演 ask 时只是身体起伏，不再画手。
+  默认立在左侧；左侧的牌子和小卡放不下时换右侧。指针停在牌上才展开「忘了 / 记得」；作答后牌收起，
+  宠物做对应动作，缓存里的解释气泡在木牌那一侧出现，与宠物垂直居中。
+  牌子、小卡和气泡都不被屏幕边缘截断：宠物不挪动；牌与小卡让开空间选侧，两侧都放不下时才夹进屏内（ADR 0088）。
   用法见 README.md：?theme=dark|frosted|liquid、?bg=<当前玻璃主题的底图>、?lang=en|ja|es、?pet=dog|mochi|ghost、
   ?state=hover|forgot|remembered|timeout、?side=left|right（只强制作答气泡的一侧）、
-  ?scale=1|2|3.01|4（牌子随宠物缩放）、?hand=left|right（强制举牌的手）、?f=0..3（停在某一帧）、?qa、?shot。
+  ?scale=1|2|3.01|4（牌子随宠物缩放）、?sign=left|right（强制木牌的一侧）、?f=0..3（停在某一帧）、?qa、?shot。
 -->
 <style>
 @font-face{font-family:"Pixelify Sans";src:url("../data/fonts/PixelifySans-Regular.ttf") format("truetype");font-display:block}
@@ -22,7 +21,9 @@
   --ok-bg:#e6f4ee; --ok-text:#1d7a52; --ink:#1a1a1f; --on:#fff;
   --bubble-bg:rgba(255,255,255,.86); --bubble-bd:rgba(255,255,255,.95);
   --bubble-sh:0 14px 44px -10px rgba(20,20,26,.26),inset 0 1px 0 #fff;
-  --sign-paper:#f6efd9; --sign-ink:#26221b; --sign-shadow:5px 5px 0 rgba(20,20,26,.13);
+  --wood:#d2a76a; --wood-light:#e6c88f; --wood-shade:#a8783f; --wood-grain:#bd8d4f;
+  --post:#b8864f; --post-light:#d2a76a; --post-shade:#8a5a2f; --wood-line:#3a2412; --wood-ink:#2b1a0e; --nail:#5b3b20;
+  --wood-shadow:4px 4px 0 rgba(20,20,26,.11);
   --r-lg:18px; --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
   --motion:180ms;
 }
@@ -68,19 +69,32 @@ body{
 .fx{display:none}
 
 
-/* 举牌：牌子先按 3.01 倍的尺寸画，再整体乘以 K = scale / 3.01；小卡不缩放（保持点击区）。 */
+/* 提问牌：一块木牌立在宠物脚线，先按 3.01 倍的尺寸画，再整体乘以 K = scale / 3.01；小卡不缩放（保持点击区）。 */
 .hold{position:static}
+.hold[hidden]{display:none}
 .sign-wrap{position:absolute;transform-origin:0 0;z-index:2}
 .sign-core{position:relative;width:max-content}
 .sign{
-  background:var(--sign-paper);color:var(--sign-ink);
-  border:3px solid var(--sign-ink);border-radius:2px;box-shadow:var(--sign-shadow);
-  padding:14px 18px 12px;white-space:nowrap;
-  font-family:"Pixelify Sans",monospace;font-size:20px;line-height:1;letter-spacing:0;
+  position:relative;background:var(--wood);color:var(--wood-ink);
+  border:3px solid var(--wood-line);box-shadow:inset 1px 1px 0 var(--wood-light),inset -1px -1px 0 var(--wood-shade),var(--wood-shadow);
+  padding:7px 14px;white-space:nowrap;
+  font-family:"Pixelify Sans",monospace;font-size:20px;line-height:20px;letter-spacing:0;
 }
-.pole{position:absolute;top:100%;left:14px;width:4px;height:26px;background:var(--sign-ink)}
-.hold[data-side=left] .pole{left:auto;right:14px}
-.hold[hidden]{display:none}
+.sign .word{position:relative;z-index:1}
+.sign .grain{position:absolute;left:8px;right:8px;height:1px;background:var(--wood-grain);z-index:0}
+.sign .g1{top:8px}
+.sign .g2{bottom:8px}
+.sign .nail{position:absolute;width:2px;height:2px;background:var(--nail);box-shadow:inset 1px 1px 0 var(--wood-light)}
+.sign .n1{left:7px;top:7px}
+.sign .n2{right:7px;top:7px}
+.sign .n3{left:7px;bottom:7px}
+.sign .n4{right:7px;bottom:7px}
+.post{
+  position:relative;width:10px;height:32px;margin:-2px auto 0;background:var(--post);
+  border:2px solid var(--wood-line);
+  box-shadow:inset 2px 0 0 var(--post-light),inset -2px 0 0 var(--post-shade),var(--wood-shadow);
+}
+.ground{position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);width:20px;height:3px;border-radius:1.5px;background:rgba(33,20,20,.10)}
 .ask-pop{
   position:absolute;display:flex;gap:8px;padding:8px;z-index:3;width:max-content;
   background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);
@@ -153,8 +167,13 @@ html[data-theme=liquid] .bubble{background:var(--panel);box-shadow:var(--sh2);bo
       <div class="hold" id="hold">
         <div class="sign-wrap" id="signWrap">
           <div class="sign-core">
-            <div class="sign" id="sign">ephemeral</div>
-            <div class="pole" aria-hidden="true"></div>
+            <div class="sign" id="sign">
+              <span class="grain g1"></span><span class="grain g2"></span>
+              <span class="nail n1"></span><span class="nail n2"></span><span class="nail n3"></span><span class="nail n4"></span>
+              <span class="word">ephemeral</span>
+            </div>
+            <div class="post" aria-hidden="true"></div>
+            <div class="ground" aria-hidden="true"></div>
           </div>
         </div>
         <div class="ask-pop" id="askPop" role="group">
@@ -188,7 +207,7 @@ html[data-theme=liquid] .bubble{background:var(--panel);box-shadow:var(--sh2);bo
     <button id="rememberedBtn">记得</button>
     <button id="timeoutBtn">超时</button>
     <button id="scaleBtn"></button>
-    <button id="handBtn"></button>
+    <button id="signBtn"></button>
   </div>
   <button class="themebtn" id="tb"></button>
   <pre class="qa" id="qa" hidden></pre>
@@ -214,25 +233,27 @@ for (const el of document.querySelectorAll('[data-l]')) {
 }
 document.getElementById('meta').textContent = l.meta;
 
-// ---- 宠物与举牌的几何（画布单位，随 ?pet= 读取）----
-const CANVAS = 88, HAND = 9;
-/// 杆子：离牌子内侧 14 px、宽 4 px（中心距内侧 16 px）、长 26 px，均为 3.01 倍时的设计尺寸。
-const POLE_LEN = 26, POLE_CENTRE = 16;
-/// ask 动作的身体锚点；狗与 mochi 相同，ghost 的拳头整体低 12 行。
+// ---- 宠物与木牌的几何（画布单位，随 ?pet= 读取）----
+const CANVAS = 88;
+/// 木牌的设计尺寸（3.01 倍时）：板 40 高、柱 32 高、柱顶压进板下 2 px，再加 4 px 影子；柱脚落在宠物空闲墨迹的底边。
+const BOARD_H = 40, POST_H = 32, POST_OVERLAP = 2, SHADOW = 4;
+const SIGN_BASE = BOARD_H + POST_H - POST_OVERLAP;
+const SIGN_H = SIGN_BASE + SHADOW;
+/// 每只宠物待机身体的墨迹盒（画布单位，右/下为开区间），与 QML 的 Pet.inkBox 同一来源。
+const INK = {
+  dog:   {left:18, top:9,  right:84, bottom:84},
+  mochi: {left:30, top:36, right:81, bottom:81},
+  ghost: {left:27, top:33, right:87, bottom:81},
+};
+/// ask 的身体锚点：狗与 mochi 相同，ghost 的起伏整体低 12 行。木牌不跟着动。
 const ASK = PET === 'dog'
   ? [{dx:0,dy:0}, {dx:0,dy:0}, {dx:0,dy:-3}, {dx:0,dy:-3}]
   : [{dx:3,dy:0}, {dx:3,dy:-3}, {dx:3,dy:-6}, {dx:3,dy:-3}];
-/// 手在 ask 效果层里的拳头列（已含身体锚点的 dx）：奶糖右手从第 70 列起、左手从第 21 列起；其他宠物仍是 79 / 30。
-/// 两张效果图 ask.png（右）与 ask-left.png（左）都装在所选宠物的 sprites/effects 里，拳头左右对称。
-const FIST = PET === 'dog' ? {right: 70, left: 21} : {right: 79, left: 30}, FIST_TOP = PET === 'ghost' ? 60 : 48;
-/// 小卡展开后的宽度（.hold.open .ask-pop 的 max-width），以及它与牌子的间距。
-const CARD_W = 210, CARD_GAP = 10;
-/// 屏幕边缘留的空白；身体上下起伏时手会高出 6 个画布单位。
-const PAD = 16, BOB = 6;
-const BUBBLE_GAP = 10;
+/// 小卡展开后的宽度，牌子与小卡、牌子与宠物墨迹的间距，以及屏幕边缘留的空白。
+const CARD_W = 210, CARD_GAP = 10, SIGN_GAP = 8, PAD = 16, BUBBLE_GAP = 10;
 const SHEET = {
   idle:      {file:'idle.png',      frames:5, fps:5,  loop:true,  face:0},
-  ask:       {file:'ask.png',       frames:4, fps:4,  loop:true,  face:0, fx:'ask.png'},
+  ask:       {file:'ask.png',       frames:4, fps:4,  loop:true,  face:0},
   encourage: {file:'encourage.png', frames:5, fps:8,  loop:false, face:5, fx:'encourage.png'},
   celebrate: {file:'celebrate.png', frames:8, fps:10, loop:false, face:5, fx:'celebrate.png'},
   angry:     {file:'angry.png',     frames:5, fps:10, loop:false, face:9, fx:'angry.png'},
@@ -240,7 +261,7 @@ const SHEET = {
 const SIZES = [1, 2, 3.01, 4];
 const DEFAULT_SCALE = 3.01;
 let S = SIZES.includes(Number(params.get('scale'))) ? Number(params.get('scale')) : DEFAULT_SCALE;
-let hand = ['left', 'right'].includes(params.get('hand')) ? params.get('hand') : 'auto';
+let signWanted = ['left', 'right'].includes(params.get('sign')) ? params.get('sign') : 'auto';
 const FREEZE = params.has('f') ? Number(params.get('f')) : null;
 const sideOverride = params.get('side');
 
@@ -259,7 +280,7 @@ const meta = document.getElementById('meta');
 let act = 'idle', frame = 0, acc = 0, lastT = 0, asking = false, countdown = 0, remaining = 5;
 /// The sign's offset from its hanging place, in layout px: zero unless neither side fits (see fitSign).
 let nudge = {x: 0, y: 0};
-/// The paw's side and the card's side, as relayout() chose them. The card opens on `card`; `side` is the paw's hand.
+/// The sign's side and the card's side, as relayout() chose them. The card opens on `card`; `side` is the wooden sign's side.
 let side = 'left', card = 'right';
 
 /// 当前缩放下的像素：一个画布单位 S 个 CSS 像素；牌子整体乘 K，相对 3.01 倍。
@@ -274,49 +295,67 @@ function setAct(name) {
   fx.style.backgroundRepeat = 'no-repeat';
 }
 
-/// The sign, its pole and its card for paw side `s` and card side `c`, in layout px from the figure's top-left. `dy` is
-/// the body's bob: it moves the paw, the pole and the sign with it.
-function geometry(s, c, dy, n = nudge) {
+/// The sign's board left and top, and the card's left and top, in layout px from the figure's top-left, for a sign on `s`
+/// and a card on `c`. The post's foot stands on the idle ink's bottom edge; the card is centred on the board and kept whole
+/// on the screen.
+function geometry(s, c) {
   const k = K();
-  const vw = signEl.offsetWidth * k, vh = signEl.offsetHeight * k;
-  const gripX = (FIST[s] + HAND / 2) * S;
-  const gripY = (FIST_TOP + dy + HAND / 3) * S;
-  const left = s === 'right' ? gripX - POLE_CENTRE * k : gripX - vw + POLE_CENTRE * k;
-  const top = gripY - (signEl.offsetHeight + POLE_LEN) * k;
-  const cardTop = top + vh / 2 - askPop.offsetHeight / 2;
-  const cardLeft = c === 'right' ? left + vw + CARD_GAP : left - CARD_GAP - CARD_W;
-  return {left: left + n.x, top: top + n.y, vw, gripY: gripY + n.y, cardLeft: cardLeft + n.x, cardTop: cardTop + n.y, cardH: askPop.offsetHeight};
+  const bw = signEl.offsetWidth * k;
+  const top = ink().bottom * S - SIGN_BASE * k;
+  const left = s === 'left' ? ink().left * S - SIGN_GAP - bw : ink().right * S + SIGN_GAP;
+  // The card's real width sets the 10 px gap it is drawn at; the fit reserves the widest it can be (CARD_W), as the app does.
+  const cw = cardWidthNow();
+  const cardLeft = c === 'left' ? left - CARD_GAP - cw : left + bw + CARD_GAP;
+  const cardFitLeft = c === 'left' ? left - CARD_GAP - CARD_W : left + bw + CARD_GAP;
+  return {left, top, bw, cardLeft, cardFitLeft, cardW: cw, cardTop: cardTopFor(top), cardH: askPop.offsetHeight};
 }
 
-/// Puts the sign, the pole and the card where the paw is, for the chosen sides, at this frame's bob.
-function placeHold(dy) {
-  const g = geometry(side, card, dy);
-  signWrap.style.left = g.left + 'px';
+/// The expanded card's width: the two buttons, the 8 px gap, the 8 px padding each side and the 1 px border each side.
+function cardWidthNow() {
+  const f = document.getElementById('forgot'), r = document.getElementById('remembered');
+  return f.offsetWidth + r.offsetWidth + 8 + 16 + 2;
+}
+
+function ink() { return INK[PET]; }
+
+/// The card's top in layout px: centred on the board, then clamped inside the screen's margin.
+function cardTopFor(top) {
+  const fr = figure.getBoundingClientRect();
+  const F = fr.width / (CANVAS * S);
+  const local = top + BOARD_H * K() / 2 - askPop.offsetHeight / 2;
+  const screen = fr.top + local * F;
+  const clamped = Math.max(PAD, Math.min(screen, innerHeight - PAD - askPop.offsetHeight));
+  return (clamped - fr.top) / F;
+}
+
+/// Puts the sign and the card on the chosen sides. The sign does not move with the pet's ask frames: its post stays on the
+/// foot line while the body bobs beside it.
+function placeHold() {
+  const g = geometry(side, card);
+  signWrap.style.left = (g.left + nudge.x) + 'px';
   signWrap.style.top = g.top + 'px';
   signWrap.style.transform = `scale(${K()})`;
   askPop.style.top = g.cardTop + 'px';
   if (card === 'right') {
-    askPop.style.left = g.cardLeft + 'px';
+    askPop.style.left = (g.cardLeft + nudge.x) + 'px';
     askPop.style.right = 'auto';
   } else {
     askPop.style.left = 'auto';
-    askPop.style.right = (CANVAS * S - (g.cardLeft + CARD_W)) + 'px';
+    askPop.style.right = (CANVAS * S - (g.cardLeft + nudge.x + g.cardW)) + 'px';
   }
-  hold.dataset.side = side;
-  hold.dataset.card = card;
 }
 
-/// The sign with its pole, and the open card, and the figure, as screen boxes [left, top, right, bottom] for paw side
-/// `s` and card side `c`. The boxes include the bob's reach upwards, so a frame never leaves the screen.
+/// The sign with its post and shadow, the open card, and the figure, as screen boxes [left, top, right, bottom] for sign
+/// side `s` and card side `c`.
 function boxes(s, c) {
   const fr = figure.getBoundingClientRect();
   const F = fr.width / (CANVAS * S);
-  const g = geometry(s, c, 0);
+  const g = geometry(s, c);
   const box = (x0, y0, x1, y1) => [fr.left + x0 * F, fr.top + y0 * F, fr.left + x1 * F, fr.top + y1 * F];
   return {
     figure: [fr.left, fr.top, fr.right, fr.bottom],
-    sign: box(g.left, g.top - BOB * S, g.left + g.vw, g.gripY),
-    card: box(g.cardLeft, g.cardTop - BOB * S, g.cardLeft + CARD_W, g.cardTop + g.cardH),
+    sign: box(g.left, g.top, g.left + g.bw + SHADOW * K(), g.top + SIGN_H * K()),
+    card: box(g.cardFitLeft, g.cardTop, g.cardFitLeft + CARD_W, g.cardTop + g.cardH),
   };
 }
 
@@ -325,10 +364,10 @@ function overflow([l, t, r, b]) {
   return Math.max(0, PAD - l) + Math.max(0, r - (innerWidth - PAD)) + Math.max(0, PAD - t) + Math.max(0, b - (innerHeight - PAD));
 }
 
-/// The paw side and the card side. Left is the default: a side is taken when its sign and its card fit, the card on the
+/// The sign's side and the card's side. Left is the default: a side is taken when its sign and its card fit, the card on the
 /// outside first, then on the inside. When no side fits, the one that overflows least is taken.
-function chooseHand() {
-  const order = hand === 'auto' ? ['left', 'right'] : [hand];
+function chooseSide() {
+  const order = signWanted === 'auto' ? ['left', 'right'] : [signWanted];
   const other = s => (s === 'left' ? 'right' : 'left');
   let best = null;
   for (const s of order) {
@@ -343,25 +382,25 @@ function chooseHand() {
 }
 
 /// Only when neither side has room for the sign and its card: moves the sign and the card inside the screen, in layout px.
-/// The pet never moves (ADR 0053), so the sign may then come off the hand; that happens only on a screen narrower than the
-/// pet and the sign together. Where the pair is wider or taller than the screen, the start edge is kept.
+/// The pet never moves (ADR 0053), so the sign may then overlap the pet; that happens only on a screen narrower than the pet
+/// and the sign together. The post stays on the foot line: only x moves.
 function fitSign(s, c) {
   const fr = figure.getBoundingClientRect();
   const F = fr.width / (CANVAS * S);
   const b = boxes(s, c);
-  const lo = i => Math.min(b.sign[i], b.card[i]);
-  const hi = i => Math.max(b.sign[i + 2], b.card[i + 2]);
+  const lo = Math.min(b.sign[0], b.card[0]);
+  const hi = Math.max(b.sign[2], b.card[2]);
   const fit = (from, to, room) => {
     if (to - from > room - 2 * PAD || from < PAD) return PAD - from;
     if (to > room - PAD) return room - PAD - to;
     return 0;
   };
-  return {x: fit(lo(0), hi(0), innerWidth) / F, y: fit(lo(1), hi(1), innerHeight) / F};
+  return {x: fit(lo, hi, innerWidth) / F, y: 0};
 }
 
-/// The answer's bubble: on the hand's side, centred on the pet, and kept whole on the screen. It goes to the other side only
-/// when the hand's side has no room and the other side has; when neither has, it stays on the hand's side and covers the
-/// pet's edge, but never the screen's. ?side=left|right forces the side, for comparison.
+/// The answer's bubble: on the wooden sign's side, centred on the pet, and kept whole on the screen. It goes to the other side
+/// only when the sign's side has no room and the other side has; when neither has, it stays on the sign's side and covers the
+/// pet's edge, but never the screen's. ?side=left|right forces the bubble's side, for comparison.
 function placeBubble() {
   const want = sideOverride === 'left' || sideOverride === 'right' ? sideOverride : side;
   const fr = figure.getBoundingClientRect();
@@ -378,14 +417,14 @@ function placeBubble() {
 }
 
 /// Chooses the sides, and moves the sign only when neither side has room (see fitSign). Runs when a question
-/// starts and when the window, the pet's size, or the hand choice changes; the frames only move the paw and the sign.
+/// starts and when the window, the pet's size, or the sign's side changes; the ask frames only move the body.
 function relayout() {
   nudge = {x: 0, y: 0};
-  if (asking && act === 'ask') {
+  if (asking) {
     hold.hidden = false;
-    ({side, card} = chooseHand());
+    ({side, card} = chooseSide());
     nudge = fitSign(side, card);
-    placeHold(ASK[0].dy);
+    placeHold();
   }
   placeBubble();
   report();
@@ -400,15 +439,11 @@ function render() {
   face.style.backgroundSize = `${10 * CANVAS * S}px ${CANVAS * S}px`;
   face.style.backgroundPosition = `${-def.face * CANVAS * S}px 0`;
   face.style.transform = body.style.transform;
-  const showSign = act === 'ask' && asking;
-  hold.hidden = !showSign;
-  if (showSign) placeHold(a.dy);
+  hold.hidden = !asking;
   if (def.fx) {
-    // The left paw has its own sheet (effectLeft in animations.json); the right paw's sheet is the default.
-    const sheet = act === 'ask' && side === 'left' ? 'ask-left.png' : def.fx;
-    if (fx.dataset.sheet !== sheet) {
-      fx.style.backgroundImage = `url("${PET_DIR}/sprites/effects/${sheet}")`;
-      fx.dataset.sheet = sheet;
+    if (fx.dataset.sheet !== def.fx) {
+      fx.style.backgroundImage = `url("${PET_DIR}/sprites/effects/${def.fx}")`;
+      fx.dataset.sheet = def.fx;
     }
     fx.style.backgroundSize = `${def.frames * CANVAS * S}px ${CANVAS * S}px`;
     fx.style.backgroundPosition = `${-frame * CANVAS * S}px 0`;
@@ -499,11 +534,11 @@ document.getElementById('forgotBtn').addEventListener('click', () => answer('for
 document.getElementById('rememberedBtn').addEventListener('click', () => answer('remembered'));
 document.getElementById('timeoutBtn').addEventListener('click', timeout);
 
-// 原型控件：宠物尺寸循环 ×1 / ×2 / ×3.01 / ×4，举牌的手循环 自动 / 右手 / 左手。
+// 原型控件：宠物尺寸循环 ×1 / ×2 / ×3.01 / ×4，木牌的一侧循环 自动 / 左 / 右。
 const scaleBtn = document.getElementById('scaleBtn');
-const handBtn = document.getElementById('handBtn');
-const HAND_LABEL = {auto: '手：自动', right: '手：右', left: '手：左'};
-const HAND_NEXT = {auto: 'right', right: 'left', left: 'auto'};
+const signBtn = document.getElementById('signBtn');
+const SIGN_LABEL = {auto: '边：自动', left: '边：左', right: '边：右'};
+const SIGN_NEXT = {auto: 'left', left: 'right', right: 'auto'};
 function applySize() {
   figure.style.width = figure.style.height = CANVAS * S + 'px';
   figure.style.setProperty('--u', S + 'px');
@@ -515,10 +550,10 @@ scaleBtn.addEventListener('click', () => {
   S = SIZES[(SIZES.indexOf(S) + 1) % SIZES.length];
   applySize();
 });
-handBtn.textContent = HAND_LABEL[hand];
-handBtn.addEventListener('click', () => {
-  hand = HAND_NEXT[hand];
-  handBtn.textContent = HAND_LABEL[hand];
+signBtn.textContent = SIGN_LABEL[signWanted];
+signBtn.addEventListener('click', () => {
+  signWanted = SIGN_NEXT[signWanted];
+  signBtn.textContent = SIGN_LABEL[signWanted];
   relayout();
 });
 
@@ -570,7 +605,7 @@ function report() {
     chosen: {side, card},
     figure: rect(figure),
     sign: hold.hidden ? null : rect(signWrap),
-    pole: hold.hidden ? null : rect(document.querySelector('.pole')),
+    post: hold.hidden ? null : rect(document.querySelector('.post')),
     card: hold.hidden || !hold.classList.contains('open') ? null : rect(askPop),
     bubble: bubbleWrap.hidden ? null : rect(bubbleWrap),
   });

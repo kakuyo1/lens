@@ -2,6 +2,12 @@
 
 ## 1.7.6 - unreleased
 
+### Changed
+
+- The review sign is now a small wooden sign standing beside the pet instead of a paper card held by a hand.
+  The seven shipped pets no longer share one copied fist; a package without an `ask` pose still gets its sign,
+  and a pet hidden at the screen edge no longer shifts inward to make room for it (docs/adr/0088).
+
 ### Fixed
 
 - Glass themes on a screen that refuses desktop duplication now follow the desktop through Windows Graphics

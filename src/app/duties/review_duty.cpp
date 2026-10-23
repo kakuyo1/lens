@@ -75,8 +75,8 @@ void ReviewDuty::tick(long long const now)
     if (auto const lemma = core::pickDue(askable(), now)) {
         word_ = QString::fromStdString(*lemma);
         timeout_.start();
-        // The pet hears first: a hidden pet lets its hand in before the sign chooses a side, so the choice and its
-        // nudge are made against the window the sign will actually hang from.
+        // The pet hears first: the sign stands beside the hidden pet on the inner side, so the side and its nudge are
+        // made against the window the pet actually occupies.
         emit petEvent(core::pet::PetEvent::ReviewAsked);
         emit wordChanged();
     }

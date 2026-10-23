@@ -26,6 +26,7 @@
 #include <QObject>
 #include <QPoint>
 #include <QPointF>
+#include <QRectF>
 #include <QSize>
 #include <QString>
 #include <QStringList>
@@ -64,15 +65,6 @@ class PetController : public QObject {
     Q_PROPERTY(int frameIndex READ frameIndex NOTIFY frameChanged)
     Q_PROPERTY(int expression READ expression NOTIFY frameChanged)
     Q_PROPERTY(QVariantMap sheets READ sheets NOTIFY frameChanged)
-    /// Which hand holds the sign, "left" or "right". The review sign chooses it and the pet draws that hand.
-    Q_PROPERTY(QString handSide READ handSide NOTIFY handSideChanged)
-    /// Where each hand grips the pole in the shown frame, in the sprite's own canvas units, keyed "left" and "right". Kept from
-    /// the last frame that showed a hand, so the sign stays put while the pet does something else; empty until the pet has
-    /// shown its ask action.
-    Q_PROPERTY(QVariantMap handGrips READ handGrips NOTIFY frameChanged)
-    /// Where each hand grips the pole at the start of the ask action, in the same units, keyed "left" and "right". The review
-    /// sign chooses its hand from these, so the choice does not depend on which frame happens to be showing.
-    Q_PROPERTY(QVariantMap handRest READ handRest NOTIFY settingsChanged)
     Q_PROPERTY(QVariantMap anchors READ anchors NOTIFY frameChanged)
     /// Canvas-pixel offset applied to the expression layer only, so the face can follow a nearby pointer while the
     /// body stays put. Zero when the pointer is away, the pet is busy, or the settings preview is open.
@@ -83,6 +75,9 @@ class PetController : public QObject {
     Q_PROPERTY(int size READ size NOTIFY settingsChanged)
     Q_PROPERTY(double scale READ scale NOTIFY settingsChanged)
     Q_PROPERTY(double inkCentre READ inkCentre NOTIFY settingsChanged)
+    /// The idle figure's ink box in the sprite's own canvas units, as {x, y, width, height}. The review sign stands outside it
+    /// and on its bottom edge.
+    Q_PROPERTY(QRectF inkBox READ inkBox NOTIFY settingsChanged)
     /// Where the idle figure's feet are in the sprite's own 88 px canvas: a scene scales the pet about this.
     Q_PROPERTY(QPointF foot READ foot NOTIFY settingsChanged)
     Q_PROPERTY(int minSize READ minSize CONSTANT)
@@ -137,9 +132,6 @@ public:
     int          frameIndex() const;
     int          expression() const;
     QVariantMap  sheets() const;
-    QString      handSide() const;
-    QVariantMap  handGrips() const;
-    QVariantMap  handRest() const;
     QVariantMap  anchors() const;
     QPoint       gaze() const;
     QVariantList wornAccessories() const;
@@ -148,6 +140,7 @@ public:
     int          size() const;
     double       scale() const;
     double       inkCentre() const;
+    QRectF       inkBox() const;
     QPointF      foot() const;
     int          minSize() const;
     int          maxSize() const;
@@ -174,9 +167,6 @@ public:
     Q_INVOKABLE void setRunning(bool on);
     /// @brief Runs the frame clock for the settings preview. Turning it off also ends any preview.
     Q_INVOKABLE void setPreviewing(bool on);
-    /// @brief Chooses the hand that holds the sign. Anything but "left" or "right" is ignored.
-    /// @param side "left" or "right".
-    Q_INVOKABLE void setHandSide(QString side);
     /// @brief Shows an action in place of the machine's, from its first frame. Ignored for an unknown name.
     /// @param action Name in animations.json, such as "celebrate".
     Q_INVOKABLE void preview(QString action);
@@ -221,7 +211,6 @@ public:
 
 signals:
     void frameChanged();
-    void handSideChanged();
     /// @brief The expression layer's gaze offset changed.
     void gazeChanged();
     void settingsChanged();
@@ -282,8 +271,6 @@ private:
     QScreen* screenForArea(QRect area) const;
     /// @return The attached screen called `name`, or null.
     QScreen* screenNamed(QString const& name) const;
-    /// @brief Recomputes how far a hidden window lets itself in while the sign is up, from the inner hand's grip.
-    void updateAskShift(Hiding& hidden) const;
     /// @return Whether the pointer is inside the pet window, which suspends wandering unless clicks pass through.
     bool   cursorOnPet() const;
     double randomUnit();
@@ -348,9 +335,7 @@ private:
         QPoint                    from;
         std::chrono::milliseconds slide{0};
         std::chrono::milliseconds peekClock{0};
-        /// How far the window moves inward while the sign is up, so the inner hand and its pole stay on screen.
-        int askShift{0};
-        /// Whether a review question set the inward shift; it lasts through the reaction that follows.
+        /// Whether a review question is up, so the peek pauses until the question and its reaction are over.
         bool asking{false};
         bool dragging{false};
     };
@@ -400,9 +385,6 @@ private:
     int                frameIndex_{0};
     int                expression_{0};
     QVariantMap        sheets_;
-    QString            handSide_{QStringLiteral("left")};
-    QVariantMap        handGrips_;
-    QVariantMap        handRest_;
     core::pet::Anchors anchors_{};
     QPoint             gaze_;
 

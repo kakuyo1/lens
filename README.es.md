@@ -84,9 +84,9 @@ Elige la forma en Ajustes › Captura y ventanas: barra clásica, pestaña later
 
 ## Un pequeño bucle de aprendizaje
 
-<p align="center"><img src="docs/readme/learning-loop.png" width="900" alt="El compañero de escritorio con una palabra pendiente y el registro anual de palabras"></p>
+<p align="center"><img src="docs/readme/learning-loop.png" width="900" alt="Un cartel de madera de repaso junto al compañero de escritorio y el registro anual de palabras"></p>
 
-Conocida y Nueva viven en una sola lista de palabras. Pasa el ratón por una fila para releer una explicación que Lens ya guardó, sin enviar ninguna petición. Cuando toca repasar una palabra, el compañero de escritorio levanta un cartel; responde Olvidé o Lo recordaba y volverá con un intervalo de entre diez minutos y sesenta días. El registro anual mantiene visible el hábito sin convertirlo en una racha.
+Conocida y Nueva viven en una sola lista de palabras. Pasa el ratón por una fila para releer una explicación que Lens ya guardó, sin enviar ninguna petición. Cuando toca repasar una palabra, un cartel de madera aparece junto al compañero de escritorio; responde Olvidé o Lo recordaba y volverá con un intervalo de entre diez minutos y sesenta días. El registro anual mantiene visible el hábito sin convertirlo en una racha.
 
 ## Siete mascotas, si las quieres
 

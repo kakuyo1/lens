@@ -1,25 +1,23 @@
 import QtQuick
 
 /**
- * The review sign's placement (UI.md 4.13, ui-prototypes/pet-review.html): the hand that holds the sign and the side of its card,
- * the nudge that keeps both on the screen, and where the board, its pole and the card sit for a grip. The desktop sign window
- * and the settings preview both place the sign with this, so they choose the same hand. Lengths are in DIPs; the figure is
- * one canvas unit per `scale` DIPs.
+ * The review sign's placement (UI.md 4.13): a wooden sign standing on the pet's feet line beside it,
+ * the side it takes, the nudge that keeps it and its card on the screen, and where the board and the card sit. The desktop sign
+ * window and the settings preview both place the sign with this, so they choose the same side. Lengths are in DIPs; the figure is
+ * the pet window's top-left, and the pet's idle ink box is in the sprite's own canvas units.
  */
 QtObject {
     id: layout
 
     /// The pet's magnification in DIPs per canvas unit: Pet.scale.
     required property real scale
-    /// The figure's top-left corner in DIPs.
+    /// The pet window's top-left corner in DIPs.
     required property point figure
+    /// The idle figure's ink box in canvas units, as {x, y, width, height}: the sign stands outside it and on its foot line.
+    required property var ink
     /// The screen the sign and its card must stay on, as {left, top, right, bottom} in DIPs.
     required property var area
-    /// The grips of each hand at the start of the ask action, and in the frame on show: {left, right} points in canvas units,
-    /// with a hand the pet does not have left out.
-    required property var restGrips
-    required property var grips
-    /// The word on the board, which sets the board's width.
+    /// The word on the sign, which sets the plank's width.
     required property string word
     /// The card's size in DIPs.
     required property real cardWidth
@@ -30,59 +28,68 @@ QtObject {
     readonly property SurfaceTokens tokens: SurfaceTokens {}
     /// The word's font, as ReviewSignBoard draws it: Pixelify Sans, or the mono family when it is not installed.
     readonly property string wordFamily: Qt.fontFamilies().indexOf("Pixelify Sans") >= 0 ? "Pixelify Sans" : tokens.monoFamily
-    /// The board at its design size, border included: the word's width plus 18 px padding each side and a 3 px border, and a 20 px
-    /// line plus 14 px above and 12 below, and the border (.sign in pet-review.html). The board takes this width, so the placement
-    /// and the drawing agree to the pixel.
+    /// The plank at its design size: the word plus 14 px of wood each side and a 3 px border. The board takes this width, so the
+    /// placement and the drawing agree to the pixel.
     readonly property TextMetrics wordMetrics: TextMetrics {
         font.family: layout.wordFamily
         font.pixelSize: 20
         text: layout.word
     }
-    readonly property real designWidth: wordMetrics.width + 36 + 6
-    readonly property real designHeight: 20 + 26 + 6
+    readonly property real designWidth: wordMetrics.width + 34
+    readonly property real designHeight: 40
+    readonly property real postWidth: 10
+    readonly property real postHeight: 32
+    readonly property real postOverlap: 2
+    readonly property real designBase: designHeight + postHeight - postOverlap
+    readonly property real shadowOffset: 4
 
-    /// The board's magnification: the pet's scale over the 3.01 the design is drawn at (K in pet-review.html).
+    /// The sign's magnification: the pet's scale over the 3.01 the design is drawn at (K = scale / 3.01).
     readonly property real k: scale / 3.01
     readonly property real boardWidth: designWidth * k
     readonly property real boardHeight: designHeight * k
-    readonly property real poleHeight: 26 * k
-    /// The pole's centre sits 16 design px in from the board's edge nearest the pet.
-    readonly property real inset: 16 * k
+    readonly property real signWidth: (designWidth + shadowOffset) * k
+    readonly property real signHeight: (designBase + shadowOffset) * k
+    /// The pet's foot line, where the post's foot stands: the idle ink's bottom edge.
+    readonly property real baseY: figure.y + (ink.y + ink.height) * scale
+    /// The board's top-left y, the same on either side.
+    readonly property real boardTop: baseY - designBase * k
+    readonly property real inkLeft: figure.x + ink.x * scale
+    readonly property real inkRight: figure.x + (ink.x + ink.width) * scale
     /// The margin kept clear of the screen's edges (PAD).
     readonly property int pad: 16
-    /// The gap between the board and its card (CARD_GAP).
-    readonly property int gap: 10
+    /// The gap between the pet's ink and the sign.
+    readonly property int gap: 8
+    /// The gap between the sign and its card.
+    readonly property int cardGap: 10
     /// The card's widest (CARD_W). The fit tests count the card at this width whatever its real width.
     readonly property int cardMax: 210
-    /// How far the ask animation's bob lifts the hand, 6 canvas units (BOB).
-    readonly property real bob: 6 * scale
 
-    // The helpers take points and boxes as plain values, which qmllint cannot type.
-    // qmllint disable missing-property
-    /// The grip of hand `hand` from `from` in DIPs, or null when `from` has no such hand.
-    function gripIn(from, hand) {
-        const grip = from[hand];
-        return grip ? Qt.point(figure.x + grip.x * scale, figure.y + grip.y * scale) : null;
+    /// The board's left in DIPs for a sign on `side`: `gap` clear of the pet's ink on that side.
+    function boardX(side) {
+        return side === "left" ? inkLeft - gap - boardWidth : inkRight + gap;
     }
 
-    /// The board's top-left for a hand whose grip is `grip`: the pole's centre on the grip's column and its tail on its row.
-    function boardOn(hand, grip) {
-        return Qt.point(hand === "right" ? grip.x - inset : grip.x - boardWidth + inset, grip.y - boardHeight - poleHeight);
+    /// The card's left in DIPs beside a board at `left` on `on`. `width` is the card's width.
+    function cardX(left, on, width) {
+        return on === "left" ? left - cardGap - width : left + boardWidth + cardGap;
     }
 
-    /// The card's top-left beside a board at `board`, on side `on`, centred on the board. `width` is the card's width.
-    function cardOn(board, on, width) {
-        return Qt.point(on === "right" ? board.x + boardWidth + gap : board.x - gap - width,
-                        board.y + boardHeight / 2 - cardHeight / 2);
+    /// The card's top in DIPs, centred on the board but kept whole on the screen.
+    function cardY() {
+        const centred = boardTop + boardHeight / 2 - cardHeight / 2;
+        const low = area.top + pad;
+        const high = area.bottom - pad - cardHeight;
+        return high < low ? low : Math.max(low, Math.min(centred, high));
     }
 
-    /// The boxes of the sign and its card for a hand and a card side, as [left, top, right, bottom] in DIPs. The sign's box ends
-    /// at its tail on the grip, and both reach up by the bob. The card counts at its widest.
-    function boxesOf(hand, on, grip) {
-        const board = boardOn(hand, grip);
-        const card = cardOn(board, on, cardMax);
-        return [[board.x, board.y - bob, board.x + boardWidth, grip.y],
-                [card.x, card.y - bob, card.x + cardMax, card.y + cardHeight]];
+    /// The boxes of the sign and its card for a sign side and a card side, as [left, top, right, bottom] in DIPs. The sign's box
+    /// runs from its board's top-left to its foot's shadow; the card counts at its widest.
+    function boxesOf(side, on) {
+        const left = boardX(side);
+        const cardLeft = cardX(left, on, cardMax);
+        const top = cardY();
+        return [[left, boardTop, left + signWidth, boardTop + signHeight],
+                [cardLeft, top, cardLeft + cardMax, top + cardHeight]];
     }
 
     /// The boxes that take part: the sign's, and the card's when there is a card.
@@ -100,24 +107,21 @@ QtObject {
     }
 
     /**
-     * The hand and the card's side (chooseHand in pet-review.html): the left hand first, the card outside before inside. The first
-     * candidate with no overflow wins; when none fits, the one that overflows least, the earlier on a tie.
-     * @return {hand, on}, or null when the pet has no hand.
+     * The sign's side and the card's side: the pet's left first, the card outside before inside.
+     * The first candidate with no overflow wins; when none fits, the one that overflows least, the earlier on a tie.
+     * @return {side, on}.
      */
     function choose() {
         const candidates = [["left", "left"], ["left", "right"], ["right", "right"], ["right", "left"]];
         let best = null;
-        for (const [hand, on] of candidates) {
-            const grip = gripIn(restGrips, hand);
-            if (!grip)
-                continue;
-            const over = overflowOf(boxesOf(hand, on, grip));
+        for (const [side, on] of candidates) {
+            const over = overflowOf(boxesOf(side, on));
             if (over === 0)
-                return {hand: hand, on: on};
+                return {side: side, on: on};
             if (!best || over < best.over)
-                best = {hand: hand, on: on, over: over};
+                best = {side: side, on: on, over: over};
         }
-        return best ? {hand: best.hand, on: best.on} : null;
+        return best;
     }
 
     /// Moves one span [from, to] inside [low, high]: keeps its start edge when it is too wide, else pulls its far edge in.
@@ -129,29 +133,24 @@ QtObject {
         return 0;
     }
 
-    /**
-     * The move that keeps the sign and its card on the screen for a choice (fitSign in pet-review.html). Zero whenever they already
-     * fit. The pet never moves; the sign and its card do, and the sign may come off the hand when neither side fits.
-     */
-    function nudgeFor(hand, on) {
-        const boxes = partsOf(boxesOf(hand, on, gripIn(restGrips, hand)));
-        const low = i => Math.min(...boxes.map(box => box[i]));
-        const high = i => Math.max(...boxes.map(box => box[i + 2]));
-        return Qt.point(fit(low(0), high(0), area.left, area.right), fit(low(1), high(1), area.top, area.bottom));
+    /// The horizontal move that keeps the sign and its card on the screen for a choice. Zero whenever they already fit. The sign's foot stays on the pet's foot line; only x comes back.
+    function nudgeFor(side, on) {
+        const boxes = partsOf(boxesOf(side, on));
+        const low = Math.min(...boxes.map(box => box[0]));
+        const high = Math.max(...boxes.map(box => box[2]));
+        return Qt.point(fit(low, high, area.left, area.right), 0);
     }
 
-    /// The board's top-left in DIPs for hand `hand` in the frame on show, moved by `nudge`. The origin until the pet shows that hand.
-    function boardAt(hand, nudge) {
-        const grip = gripIn(grips, hand);
-        if (!grip)
-            return Qt.point(0, 0);
-        const board = boardOn(hand, grip);
-        return Qt.point(board.x + nudge.x, board.y + nudge.y);
+    // The helpers take points and boxes as plain values, which qmllint cannot type.
+    // qmllint disable missing-property
+    /// The board's top-left in DIPs for a sign on `side`, moved by `nudge`.
+    function boardAt(side, nudge) {
+        return Qt.point(boardX(side) + nudge.x, boardTop);
     }
 
-    /// The card's top-left in DIPs beside a board at `board`, on side `on`, at the card's real width.
+    /// The card's top-left in DIPs beside a board at `board` on side `on`, at the card's real width.
     function cardAt(board, on) {
-        return cardOn(board, on, cardWidth);
+        return Qt.point(board.x + (on === "left" ? -cardGap - cardWidth : boardWidth + cardGap), cardY());
     }
     // qmllint enable missing-property
 }
