@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Window
+import "../../util/Numbers.js" as Numbers
 
 /**
  * The collapsed dropdown from UI.md 4.4, and the grouped list it opens.
@@ -272,11 +273,11 @@ Item {
 
         const at = row.mapToItem(null, 0, 0);
         const center = list.y + at.y + row.height / 2;
-        preview.x = Math.round(root.clamp(x, area.left + margin - shadow,
-                                          area.right - margin - width + shadow));
-        preview.y = Math.round(root.clamp(center - height / 2,
-                                          area.top + margin - shadow,
-                                          area.bottom - margin - height + shadow));
+        preview.x = Math.round(Numbers.clamp(x, area.left + margin - shadow,
+                                             area.right - margin - width + shadow));
+        preview.y = Math.round(Numbers.clamp(center - height / 2,
+                                             area.top + margin - shadow,
+                                             area.bottom - margin - height + shadow));
     }
 
     /// @brief Put the option preview down, and forget the row it pointed at.
@@ -301,11 +302,6 @@ Item {
         return {left: screen.virtualX, top: screen.virtualY,
                 right: screen.virtualX + screen.width, bottom: screen.virtualY + screen.height};
         // qmllint enable missing-property
-    }
-
-    /// @return @p value held inside [@p low, @p high]; an empty range collapses to its low end.
-    function clamp(value, low, high) {
-        return Math.max(low, Math.min(value, Math.max(low, high)));
     }
 
     /// @brief Narrow the list to the text the reader has just typed, and show or hide it to match.

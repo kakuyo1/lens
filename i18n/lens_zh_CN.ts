@@ -356,22 +356,32 @@
         <translation>无法连接</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="76"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="92"/>
         <source>GitHub repository</source>
         <translation>GitHub 仓库</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="122"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="138"/>
         <source>Current version %1</source>
         <translation>当前版本 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="202"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="205"/>
+        <source>Picture cache</source>
+        <translation>图片缓存</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="234"/>
+        <source>Clear</source>
+        <translation>清除</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="264"/>
         <source>Copyright (c) 2026 kakuyo1 · MIT License</source>
         <translation>Copyright (c) 2026 kakuyo1 · MIT 许可证</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="209"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="271"/>
         <source>Built %1</source>
         <translation>构建于 %1</translation>
     </message>
@@ -566,7 +576,7 @@
         <translation>打字速度</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="163"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="179"/>
         <source>Check for updates</source>
         <translation>检查更新</translation>
     </message>

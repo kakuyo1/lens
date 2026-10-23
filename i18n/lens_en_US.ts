@@ -356,22 +356,32 @@
         <translation>Cannot connect</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="76"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="92"/>
         <source>GitHub repository</source>
         <translation>GitHub repository</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="122"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="138"/>
         <source>Current version %1</source>
         <translation>Current version %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="202"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="205"/>
+        <source>Picture cache</source>
+        <translation>Picture cache</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="234"/>
+        <source>Clear</source>
+        <translation>Clear</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="264"/>
         <source>Copyright (c) 2026 kakuyo1 · MIT License</source>
         <translation>Copyright (c) 2026 kakuyo1 · MIT License</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="209"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="271"/>
         <source>Built %1</source>
         <translation>Built %1</translation>
     </message>
@@ -566,7 +576,7 @@
         <translation>Typing speed</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="163"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="179"/>
         <source>Check for updates</source>
         <translation>Check for updates</translation>
     </message>

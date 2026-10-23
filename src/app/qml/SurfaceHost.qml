@@ -1,4 +1,5 @@
 import QtQuick
+import "util/Numbers.js" as Numbers
 
 /**
  * The host's placement and panel routing: where a surface goes, which panel replaces which, and
@@ -131,11 +132,6 @@ QtObject {
         };
     }
 
-    function clamp(value, low, high) {
-        const upper = Math.max(low, high);
-        return Math.max(low, Math.min(value, upper));
-    }
-
     /// @return Where a window of this size goes to sit beside the icon, whole when possible.
     function placeBeside(anchor, width, height, target, shadowMargin) {
         target = target || screenFor(anchorPoint(anchor));
@@ -147,12 +143,12 @@ QtObject {
         const right = area.right - margin;
         const bottom = area.bottom - margin;
 
-        const x = clamp(anchor.x + anchor.width / 2 - width + shadowMargin,
-                             left, right - width);
+        const x = Numbers.clamp(anchor.x + anchor.width / 2 - width + shadowMargin,
+                                left, right - width);
         let y = anchor.y + anchor.height / 2 - height + shadowMargin;
         if (y < top)
             y = anchor.y + anchor.height + 8;
-        return Qt.point(Math.round(x), Math.round(clamp(y, top, bottom - height)));
+        return Qt.point(Math.round(x), Math.round(Numbers.clamp(y, top, bottom - height)));
     }
 
     /// @brief Where a panel goes to sit beside the pet's rectangle rather than beside the tray icon.
@@ -178,10 +174,10 @@ QtObject {
         const bottom = area.bottom - screenMargin;
         // Each clamp is monotone, so a pet dragged wholly past an edge collapses onto that edge
         // rather than turning its rectangle inside out.
-        const petLeft = clamp(rectangle.x, left, right);
-        const petRight = clamp(rectangle.x + rectangle.width, petLeft, right);
-        const petTop = clamp(rectangle.y, top, bottom);
-        const petBottom = clamp(rectangle.y + rectangle.height, petTop, bottom);
+        const petLeft = Numbers.clamp(rectangle.x, left, right);
+        const petRight = Numbers.clamp(rectangle.x + rectangle.width, petLeft, right);
+        const petTop = Numbers.clamp(rectangle.y, top, bottom);
+        const petBottom = Numbers.clamp(rectangle.y + rectangle.height, petTop, bottom);
         const centreX = (petLeft + petRight) / 2;
         const centreY = (petTop + petBottom) / 2;
 
@@ -193,7 +189,7 @@ QtObject {
         ];
         /// The candidate's rectangle, pulled back inside the work area by however much of it hangs out.
         const onScreen = function (at) {
-            return Qt.rect(clamp(at.x, left, right - width), clamp(at.y, top, bottom - height),
+            return Qt.rect(Numbers.clamp(at.x, left, right - width), Numbers.clamp(at.y, top, bottom - height),
                            width, height);
         };
         /// How much of the pet that rectangle covers.
@@ -267,9 +263,9 @@ QtObject {
         const right = area.right - screenMargin;
         const bottom = area.bottom - screenMargin;
         const shadow = surface.shadowMargin;
-        const x = clamp(anchor.x - shadow, left, right - layout.width);
+        const x = Numbers.clamp(anchor.x - shadow, left, right - layout.width);
         const preferBelow = Controller.settings.bubblePlacement === "below";
-        const y = clamp(transientTop(anchor.y, gap, layout.height, shadow, top, bottom, preferBelow), top, bottom - layout.height);
+        const y = Numbers.clamp(transientTop(anchor.y, gap, layout.height, shadow, top, bottom, preferBelow), top, bottom - layout.height);
         surface.x = Math.round(x);
         surface.y = Math.round(y);
         surface.raise();
@@ -326,8 +322,8 @@ QtObject {
         if (!surface.visible)
             return;
         const area = workArea(screenFor(Qt.point(surface.x + surface.width / 2, surface.y + surface.height / 2)));
-        surface.x = clamp(surface.x, area.left + screenMargin, area.right - screenMargin - surface.width);
-        surface.y = clamp(surface.y, area.top + screenMargin, area.bottom - screenMargin - surface.height);
+        surface.x = Numbers.clamp(surface.x, area.left + screenMargin, area.right - screenMargin - surface.width);
+        surface.y = Numbers.clamp(surface.y, area.top + screenMargin, area.bottom - screenMargin - surface.height);
     }
 
     function repositionVisible() {

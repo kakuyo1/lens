@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import "../../util/Format.js" as Format
 
 /**
  * The about page: the repository, the version with its update check, and the build stamp.
@@ -171,6 +172,53 @@ Item {
                     id: checkTap
                     enabled: !page.updatesBusy
                     onTapped: Controller.updateDuty.checkForUpdates()
+                }
+            }
+        }
+
+        /// Pictures are downloaded again on the next open, so this is the one cache the page may
+        /// drop. The explanation cache is paid data and the review's source; it is not offered here.
+        Item {
+            id: cacheRow
+            objectName: "pictureCacheRow"
+            width: parent.width
+            height: 44
+
+            Text {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: qsTranslate("SettingsPopup", "Picture cache")
+                color: page.tokens.text
+                font.pixelSize: 13
+            }
+
+            Row {
+                anchors.right: parent.right
+                anchors.rightMargin: 9
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 8
+
+                Text {
+                    objectName: "pictureCacheSize"
+                    height: parent.height
+                    verticalAlignment: Text.AlignVCenter
+                    text: Format.formatBytes(Controller.pictureDuty.cacheBytes)
+                    color: page.tokens.faint
+                    font.pixelSize: 11
+                }
+
+                Text {
+                    height: parent.height
+                    verticalAlignment: Text.AlignVCenter
+                    text: "·"
+                    color: page.tokens.faint
+                    font.pixelSize: 11
+                }
+
+                Chip {
+                    objectName: "clearPictureCacheButton"
+                    label: qsTranslate("SettingsPopup", "Clear")
+                    onPicked: Controller.pictureDuty.clearCache()
                 }
             }
         }

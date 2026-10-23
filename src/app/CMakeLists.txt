@@ -328,6 +328,8 @@ qt_add_qml_module(lens_app
     qml/components/chrome/GlassSurface.qml
     qml/components/controls/SliderRow.qml
     qml/components/preview/PreviewFrame.qml
+    qml/util/Numbers.js
+    qml/util/Format.js
     qml/bubble/BubbleVerdictRow.qml
     qml/bubble/BubbleHeaderActions.qml
 )

@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Window
+import "../util/Numbers.js" as Numbers
 
 /**
  * The settings surface from UI.md section 4.4 and ui-prototypes/settings.html.
@@ -142,8 +143,8 @@ Window {
         const left = panel.x - settings.previewMargin - width + shadow;
         // qmllint disable missing-property
         const x = right + width - shadow <= area.right - settings.previewMargin ? right : left;
-        return Math.round(settings.clamp(x, area.left + settings.previewMargin - shadow,
-                                         area.right - settings.previewMargin - width + shadow));
+        return Math.round(Numbers.clamp(x, area.left + settings.previewMargin - shadow,
+                                        area.right - settings.previewMargin - width + shadow));
         // qmllint enable missing-property
     }
 
@@ -156,16 +157,11 @@ Window {
         const height = previewCard.height;
         previewCard.x = settings.previewX(panel, area, shadow, previewCard.width);
         // qmllint disable missing-property
-        previewCard.y = Math.round(settings.clamp(panel.y + panel.height / 2 - height / 2,
+        previewCard.y = Math.round(Numbers.clamp(panel.y + panel.height / 2 - height / 2,
                                                   area.top + settings.previewMargin - shadow,
                                                   area.bottom - settings.previewMargin - height + shadow));
         // qmllint enable missing-property
         previewCard.raise();
-    }
-
-    /// @return @p value held inside [@p low, @p high]; a range that is empty collapses to its low end.
-    function clamp(value, low, high) {
-        return Math.max(low, Math.min(value, Math.max(low, high)));
     }
 
     /// @brief Raise the preview card for a key, or put it down for "".

@@ -123,7 +123,7 @@
 | `sync` | 登录令牌与派生密钥 | 不进入同步内容 |
 
 - `StatsStore` 与 `KnownStore` 共用这份文档，但 `StatsStore` 不自己读写，只写 `history` / `daily`。
-- 百科图缓存不住在这份文档里：缩略图与图注、署名落在 `%APPDATA%\Lens\pictures\cache\v1\` 自己的目录，按查询词哈希分目录，默认 64 MB / 30 天，不写入 `settings.json`、不参与同步、不上传；卸载行为沿用 `%APPDATA%\Lens` 的规则（`IMAGES.md`）。
+- 百科图缓存不住在这份文档里：缩略图与图注、署名落在 `%APPDATA%\Lens\pictures\cache\v1\` 自己的目录，按查询词哈希分目录，默认 64 MB / 30 天，不写入 `settings.json`、不参与同步、不上传；关于页显示其大小并可清除，下一次看图重新下载；卸载行为沿用 `%APPDATA%\Lens` 的规则（`IMAGES.md`）。
 - 只存 token，不存金额；金额展示时按当前价目计算（`API.md` §6）。
 - 日期与分钟取本地时间，存 `YYYY-MM-DD HH:MM` 原样。
 - `recordVerdict` 找最新一条同词且未标记的记录回填。

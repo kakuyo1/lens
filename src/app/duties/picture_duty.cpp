@@ -123,6 +123,17 @@ void PictureDuty::clear()
     emit picturesChanged();
 }
 
+qint64 PictureDuty::cacheBytes() const
+{
+    return cache_.bytesOnDisk();
+}
+
+void PictureDuty::clearCache()
+{
+    cache_.clear();
+    emit cacheBytesChanged();
+}
+
 void PictureDuty::openPage(QString url)
 {
     const QUrl target{url};
@@ -193,6 +204,8 @@ void PictureDuty::settle(const std::shared_ptr<Fetch>& fetch)
     // Whatever arrived goes to the cache first, so a strip the reader took down has still left its
     // pictures for the next open. What the card draws is exactly what the cache now holds.
     const auto stored = cache_.store(fetch->key, fetch->ready, fetch->bytes);
+    if (not stored.isEmpty())
+        emit cacheBytesChanged();
     if (fetch->id != requestId_)
         return; // a newer request owns the strip; this one only fed the cache
 

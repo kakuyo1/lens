@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Window
+import "../util/Numbers.js" as Numbers
 
 /**
  * The bar that comes up when the reader finishes selecting text (UI.md 4.10).
@@ -149,14 +150,9 @@ Window {
                             : (above >= top ? above : below);
         }
 
-        bar.x = Math.round(bar.clampValue(x, left, right - width));
-        bar.y = Math.round(bar.clampValue(y, top, bottom - height));
+        bar.x = Math.round(Numbers.clamp(x, left, right - width));
+        bar.y = Math.round(Numbers.clamp(y, top, bottom - height));
         bar.raise();
-    }
-
-    /// @return @p value held inside [@p low, @p high]; an empty range collapses to its low end.
-    function clampValue(value, low, high) {
-        return Math.max(low, Math.min(value, Math.max(low, high)));
     }
 
     Item {

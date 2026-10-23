@@ -303,4 +303,44 @@ void PictureCache::prune() const
     }
 }
 
+qint64 PictureCache::bytesOnDisk() const
+{
+    if (root_.empty())
+        return 0;
+
+    std::error_code error;
+    if (not std::filesystem::is_directory(root_, error))
+        return 0;
+
+    qint64 total = 0;
+    auto   entry = std::filesystem::recursive_directory_iterator(
+        root_, std::filesystem::directory_options::skip_permission_denied, error);
+    const auto end = std::filesystem::recursive_directory_iterator{};
+    while (not error and entry != end) {
+        std::error_code fileError;
+        if (entry->is_regular_file(fileError)) {
+            const auto size = entry->file_size(fileError);
+            if (not fileError)
+                total += static_cast<qint64>(size);
+        }
+        entry.increment(error);
+    }
+    return total;
+}
+
+void PictureCache::clear() const
+{
+    if (root_.empty())
+        return;
+
+    const qint64    bytes = bytesOnDisk();
+    std::error_code error;
+    std::filesystem::remove_all(root_, error);
+    if (error) {
+        LENS_WARN("picture cache: could not be cleared: {}", error.message());
+        return;
+    }
+    LENS_INFO("picture cache: cleared {} bytes", bytes);
+}
+
 }

@@ -1,4 +1,5 @@
 import QtQuick
+import "../util/Numbers.js" as Numbers
 
 /**
  * The review sign's placement (UI.md 4.13): a wooden sign standing on the pet's feet line beside it,
@@ -79,7 +80,7 @@ QtObject {
         const centred = boardTop + boardHeight / 2 - cardHeight / 2;
         const low = area.top + pad;
         const high = area.bottom - pad - cardHeight;
-        return high < low ? low : Math.max(low, Math.min(centred, high));
+        return Numbers.clamp(centred, low, high);
     }
 
     /// The boxes of the sign and its card for a sign side and a card side, as [left, top, right, bottom] in DIPs. The sign's box

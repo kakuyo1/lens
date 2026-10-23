@@ -495,22 +495,32 @@
         <translation>接続できません</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="76"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="92"/>
         <source>GitHub repository</source>
         <translation>GitHub リポジトリ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="122"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="138"/>
         <source>Current version %1</source>
         <translation>現在のバージョン %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="202"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="205"/>
+        <source>Picture cache</source>
+        <translation>画像キャッシュ</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="234"/>
+        <source>Clear</source>
+        <translation>消去</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="264"/>
         <source>Copyright (c) 2026 kakuyo1 · MIT License</source>
         <translation>Copyright (c) 2026 kakuyo1 · MIT ライセンス</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="209"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="271"/>
         <source>Built %1</source>
         <translation>ビルド日 %1</translation>
     </message>
@@ -714,7 +724,7 @@
         <translation>入力速度</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="163"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="179"/>
         <source>Check for updates</source>
         <translation>更新を確認</translation>
     </message>

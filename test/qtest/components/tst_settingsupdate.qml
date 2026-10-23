@@ -3,6 +3,7 @@ import QtTest
 import Lens
 import "../"
 import "../testutil.js" as Util
+import "../../../src/app/qml/util/Format.js" as Format
 
 /**
  * The update block on the About page: the button, the line that answers it, and the version it
@@ -117,6 +118,36 @@ Item {
             page.destroy();
         }
 
+        /// The picture cache line names the one cache the reader may drop, shows what it holds, and
+        /// carries the action. The press is read rather than driven: the controller's cache sits in
+        /// the reader's own profile, and this suite must not empty it.
+        function test_thePictureCacheRowReportsItsSizeAndCarriesAClearAction() {
+            const page = make();
+            compare(Format.formatBytes(0), "0 B");
+            compare(Format.formatBytes(512), "512 B");
+            compare(Format.formatBytes(1536), "1.5 KB");
+
+            const row = Util.findAll(page, function (object) {
+                return object.objectName === "pictureCacheRow";
+            })[0];
+            verify(row, "the About page has no picture cache row");
+
+            const labels = Util.textsUnder(row).map(function (text) { return text.text; });
+            verify(labels.indexOf("Picture cache") >= 0, "the row does not name the cache");
+
+            const size = textByName(page, "pictureCacheSize");
+            verify(size, "the row carries no size");
+            compare(size.text, Format.formatBytes(Controller.pictureDuty.cacheBytes));
+
+            const button = textByName(page, "clearPictureCacheButton");
+            verify(button, "the row carries no clear action");
+            const handler = Util.findAll(button, function (object) {
+                return object.toString().indexOf("QQuickTapHandler") === 0;
+            })[0];
+            verify(handler, "the clear action built no press handler");
+            page.destroy();
+        }
+
         /// The switch reads and writes the controller's own value, so what the reader toggles
         /// is the setting the startup check reads.
         function test_theSwitchIsBoundToTheStartupCheck() {
@@ -139,10 +170,14 @@ Item {
 
             const page = make();
 
+            // The page has no background of its own: in the panel it sits on the card's surface, so
+            // the snapshot has to stand on the same colour rather than the host window's white.
             Tokens.theme = "light";
+            host.color = host.tokens.panel;
             verify(Util.saveSnapshot(testCase, page, lensQaSnapshotDir, "settings-update-light"));
 
             Tokens.theme = "dark";
+            host.color = host.tokens.panel;
             verify(Util.saveSnapshot(testCase, page, lensQaSnapshotDir, "settings-update-dark"));
         }
     }

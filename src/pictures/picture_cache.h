@@ -66,6 +66,17 @@ public:
     /// @brief Drop what falls outside the ceilings and what has aged past the TTL, oldest used first.
     void prune() const;
 
+    /// @return The bytes every file under the root occupies, or 0 when there is no cache yet.
+    qint64 bytesOnDisk() const;
+
+    /**
+     * @brief Remove every entry, leaving the root absent until the next store.
+     *
+     * Pictures are downloaded again on the next open, so this costs no paid answer -- which is why
+     * the About page offers it for this cache and not for the explanation cache.
+     */
+    void clear() const;
+
     /// @return The root directory, for the log and for tests.
     const std::filesystem::path& root() const
     {

@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Window
+import "../util/Format.js" as Format
 
 /**
  * Today's statistics (UI.md section 4.6).
@@ -111,7 +112,7 @@ Window {
             StatRow {
                 width: parent.width
                 label: qsTr("Cost")
-                value: Controller.costDuty.stats.currency + Controller.costDuty.stats.todayCost.toFixed(2)
+                value: Format.formatMoney(Controller.costDuty.stats.currency, Controller.costDuty.stats.todayCost)
                 clickable: true
                 onTapped: stats.costRequested()
             }

@@ -315,6 +315,24 @@ TEST_F(PictureCacheTest, AnAgedEntryIsAMissAndGoes)
     EXPECT_FALSE(std::filesystem::exists(directory)) << "the aged entry was left on disk";
 }
 
+/// The About page reads one number and clears the whole directory in one action: the number is
+/// every file the cache holds, and clearing leaves the next open a miss (UI.md 4.4).
+TEST_F(PictureCacheTest, ReportsItsFootprintAndClearsEveryEntry)
+{
+    const PictureCache cache{root};
+    EXPECT_EQ(cache.bytesOnDisk(), 0);
+    cache.clear(); // an absent root is not an error
+    EXPECT_EQ(cache.bytesOnDisk(), 0);
+
+    ASSERT_EQ(cache.store(QStringLiteral("garden trowel"), {candidate()}, {jpegBytes()}).size(), 1);
+    const qint64 held = cache.bytesOnDisk();
+    EXPECT_GE(held, static_cast<qint64>(jpegBytes().size())) << "the stored picture is not counted";
+
+    cache.clear();
+    EXPECT_EQ(cache.bytesOnDisk(), 0);
+    EXPECT_FALSE(cache.load(QStringLiteral("garden trowel")).has_value());
+}
+
 /// Metadata naming an image that is not there is not an entry: the card is never handed a path it
 /// cannot draw (IMAGES.md 4.4).
 TEST_F(PictureCacheTest, AnEntryWhosePictureIsGoneIsAMissAndGoes)

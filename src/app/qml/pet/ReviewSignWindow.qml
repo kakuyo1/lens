@@ -1,4 +1,5 @@
 import QtQuick
+import "../util/Numbers.js" as Numbers
 
 /**
  * The desktop pet's review sign (UI.md 4.13): a wooden plank on a short post, standing on the pet's
@@ -153,8 +154,8 @@ Window {
                 goLeft = !goLeft;
         }
         const cardX = goLeft ? pet.x - surface.gap - cardWidth : pet.x + pet.width + surface.gap;
-        const cardY = Math.max(top, Math.min(pet.y + (pet.height - cardHeight) / 2, Math.max(top, bottom - cardHeight)));
-        surface.x = Math.round(Math.max(left, Math.min(cardX, Math.max(left, right - cardWidth))) - shadow);
+        const cardY = Numbers.clamp(pet.y + (pet.height - cardHeight) / 2, top, bottom - cardHeight);
+        surface.x = Math.round(Numbers.clamp(cardX, left, right - cardWidth) - shadow);
         surface.y = Math.round(cardY - shadow);
         surface.raise();
     }

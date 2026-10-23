@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Window
+import "../util/Format.js" as Format
 
 /**
  * The card a new version raises.
@@ -92,25 +93,10 @@ Window {
         return "";
     }
 
-    /// @brief One byte count as the card writes it: binary units, a decimal below ten.
-    function formatBytes(bytes) {
-        if (!(bytes > 0))
-            return "0 B";
-        if (bytes < 1024)
-            return bytes + " B";
-        const units = ["KB", "MB", "GB", "TB"];
-        let value = bytes / 1024;
-        let unit = 0;
-        while (value >= 1024 && unit < units.length - 1) {
-            value /= 1024;
-            ++unit;
-        }
-        return (value < 10 ? value.toFixed(1) : Math.round(value)) + " " + units[unit];
-    }
-
     /// @brief The transfer's byte counts: the total is left out when the server states none.
     function bytesText(received, total) {
-        return total > 0 ? formatBytes(received) + " / " + formatBytes(total) : formatBytes(received);
+        return total > 0 ? Format.formatBytes(received) + " / " + Format.formatBytes(total)
+                         : Format.formatBytes(received);
     }
 
     /// @brief The time left, written as a clock so no unit word has to be translated.

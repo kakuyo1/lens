@@ -495,22 +495,32 @@
         <translation>No se puede conectar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="76"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="92"/>
         <source>GitHub repository</source>
         <translation>Repositorio de GitHub</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="122"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="138"/>
         <source>Current version %1</source>
         <translation>Versión actual %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="202"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="205"/>
+        <source>Picture cache</source>
+        <translation>Caché de imágenes</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="234"/>
+        <source>Clear</source>
+        <translation>Borrar</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="264"/>
         <source>Copyright (c) 2026 kakuyo1 · MIT License</source>
         <translation>Copyright (c) 2026 kakuyo1 · Licencia MIT</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="209"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="271"/>
         <source>Built %1</source>
         <translation>Compilado el %1</translation>
     </message>
@@ -714,7 +724,7 @@
         <translation>Velocidad de escritura</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="163"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="179"/>
         <source>Check for updates</source>
         <translation>Buscar actualizaciones</translation>
     </message>

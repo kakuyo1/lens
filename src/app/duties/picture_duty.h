@@ -67,6 +67,12 @@ public:
     /// @brief Take the strip down and stop drawing whatever was arriving.
     Q_INVOKABLE void clear();
 
+    /// @return The bytes the cache holds, for the About page's one storage line.
+    qint64 cacheBytes() const;
+
+    /// @brief Delete every cached picture; the next open downloads them again.
+    Q_INVOKABLE void clearCache();
+
     /// @brief Open a picture's source page in the reader's browser.
     /// @param url The `page` a picture's entry carries. Anything that is not https is refused.
     Q_INVOKABLE void openPage(QString url);
@@ -75,10 +81,13 @@ public:
     Q_INVOKABLE void openFallback();
 
     Q_PROPERTY(QVariantMap pictures READ pictures NOTIFY picturesChanged)
+    Q_PROPERTY(qint64 cacheBytes READ cacheBytes NOTIFY cacheBytesChanged)
 
 signals:
     /// @brief The state, the query, the pictures or the fallback address changed.
     void picturesChanged();
+    /// @brief The cache grew or was cleared; the About page's size line reads it.
+    void cacheBytesChanged();
 
 private:
     /// @brief One lookup, alive until its last answer arrives.

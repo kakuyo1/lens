@@ -13,6 +13,8 @@
 自动化，不是产品行为。根下只留 `Main.qml`（`loadFromModule("Lens", "Main")` 的入口）、
 `SurfaceHost.qml`（放置、接力与外部点击的规则）与 `ScreenPoints.qml`（原生像素到 DIP 的换算）。
 
+`src/app/qml/util/` 放纯函数 JS 库，按职责分文件：`Numbers.js` 收 `clamp`，`Format.js` 收字节与金额的展示格式。它们带 `.pragma library`，拿不到 QML 状态，也不注册成 QML 类型；用它的文件按相对路径 import，如 `import "../util/Format.js" as Format`。页面与控件里不留同一段工具函数的第二份实现；带翻译的句子和领域映射（设置页标题、词表时间文案）不算纯工具，留在自己的模块。
+
 `src/app/qml/components/` 只放一个以上表面家族都用得到的件，并按角色分四组：`chrome/`（玻璃、阴影、淡入
 淡出、高度保持）、`controls/`（图标、按钮、开关、滑块、下拉、路径与热键输入）、`content/`（混排文字、逐字
 揭示、释义行）、`preview/`（预览框与样例数据）。只被一个家族使用的件跟着家族走——`BubbleTitleRow` /
