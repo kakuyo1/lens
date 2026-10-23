@@ -138,7 +138,7 @@ jobs:
       - uses: ./.github/actions/configure
 
       # qmlprofiler launches the two QTest binaries itself, so this is the same pair of suites
-      # the qml job runs -- measured instead of just checked.
+      # the two qml jobs run -- measured instead of just checked.
       - name: Build
         run: cmake --build --preset ninja-qt6 --target lens_qtest_components lens_qtest_surfaces
 

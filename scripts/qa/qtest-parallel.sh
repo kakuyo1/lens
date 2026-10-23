@@ -1,7 +1,7 @@
 #!/bin/sh
 # Run the QML surface suite one case file per process, several files at a time.
 #
-# The surface battery is one executable over 29 QML files and the longest gate in the qml job.
+# The surface battery is one executable over 29 QML files and the longest step in the qml-surfaces job.
 # The files have no order between them, and setup.cpp copies the settings fixture to a file named
 # by the process id, so two processes never share a document. One file per process therefore
 # keeps every case's state to itself, and a failure in one file does not hide the rest.

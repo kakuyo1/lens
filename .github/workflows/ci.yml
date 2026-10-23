@@ -2,24 +2,28 @@
 # written, but nothing ever ran it -- it held only as long as someone
 # remembered to run it by hand.
 #
-# Four jobs, one concern each, so a red run says what broke instead of naming the one job that
+# Five jobs, one concern each, so a red run says what broke instead of naming the one job that
 # held everything:
 #
-#   unit          the offline gtest suite. The cheapest job in the file: it is the only suite
-#                 whose build does not pull in the QML module, and the one that runs on every
-#                 piece of C++ that can reach it.
-#   app           the executable compiles and links, first as it ships and then with the developer
-#                 surface, which it smokes in the same tree. main.cpp, the translations and the
-#                 icon resources are compiled by no other target, so a break in any of them has
-#                 no other job to fail in.
-#   qml           the QML module: build it, lint it, then run the component suite and the surface
-#                 suite offscreen.
-#   hygiene       the pre-commit hook's checks, over the files this change touches.
+#   unit            the offline gtest suite. The cheapest job in the file: it is the only suite
+#                   whose build does not pull in the QML module, and the one that runs on every
+#                   piece of C++ that can reach it.
+#   app             the executable compiles and links, first as it ships and then with the developer
+#                   surface, which it smokes in the same tree. main.cpp, the translations and the
+#                   icon resources are compiled by no other target, so a break in any of them has
+#                   no other job to fail in.
+#   qml-components  the QML module and the component suite, with the lint after the build.
+#   qml-surfaces    the same module and the surface suite, sharded by case file. It is the gate's
+#                   longest step, which is why the component half got a runner of its own: both
+#                   jobs build the module, and that duplicate build runs beside the surface suite
+#                   rather than ahead of it. The two qml jobs share no state -- setup.cpp names its
+#                   settings copy by process id.
+#   hygiene         the pre-commit hook's checks, over the files this change touches.
 #
 # A changes job in front of them reads the changed paths (scripts/quality/ci-changes.sh) and
 # skips a job this change cannot affect: a QML-only change leaves the unit suite out, a
-# googletest change leaves the app and qml jobs out, and a config-only change leaves all three
-# out. Hygiene always runs, because it checks the files the change touches.
+# googletest change leaves the app and both qml jobs out, and a config-only change leaves every
+# build job out. Hygiene always runs, because it checks the files the change touches.
 #
 # Coverage is not here. It is report-only, and its two jobs are the longest in the file; running
 # them on a red gate spent twenty minutes proving nothing. .github/workflows/coverage.yml runs
@@ -30,7 +34,7 @@
 # .github/workflows/docs.yml still runs the text checks over those files, without a build.
 #
 # Every job that builds restores Qt and configures its own tree -- about 40 s of the fixed cost,
-# paid three times. That is the price of not shipping a build tree between jobs: a Debug tree with
+# paid four times. That is the price of not shipping a build tree between jobs: a Debug tree with
 # the PDBs the coverage tools read is gigabytes, which costs more to upload and download than the
 # rebuild does. .github/actions/configure holds the steps that would otherwise be a copy per job,
 # and its Qt cache is what keeps the install from being the largest part of that fixed cost.
@@ -114,8 +118,8 @@ jobs:
       - uses: ./.github/actions/configure
 
       # The shipped executable first. It links lens_app, so this is also where the QML module and
-      # src/app's own sources are compiled; the qml job builds what its suites need and would not
-      # notice a break outside its own link line.
+      # src/app's own sources are compiled; the qml jobs build what their suites need and would
+      # not notice a break outside their own link lines.
       - name: Build
         run: cmake --build --preset ninja-qt6 --target lens
 
@@ -142,7 +146,7 @@ jobs:
       - name: Developer surface smoke
         run: scripts/qa/dev-smoke.ps1 -Exe build-ninja/src/app/lens.exe
 
-  qml:
+  qml-components:
     needs: changes
     if: needs.changes.outputs.qml == 'true'
     runs-on: windows-latest
@@ -152,10 +156,10 @@ jobs:
 
       - uses: ./.github/actions/configure
 
-      # The two QTest targets are the whole QML side, and they need the module the lint below
-      # reads through.
+      # One of the two QTest targets; both link the module plugin, so this build produces
+      # everything the lint below reads and the suite runs.
       - name: Build
-        run: cmake --build --preset ninja-qt6 --target lens_qtest_components lens_qtest_surfaces
+        run: cmake --build --preset ninja-qt6 --target lens_qtest_components
 
       # After the build, never before it: qmllint resolves the module's own types through the
       # build tree's copies of the .qml files, so a tree that has not been built is judged from
@@ -165,7 +169,7 @@ jobs:
         run: bash scripts/quality/qml-lint.sh
         shell: bash
 
-      # QT_QPA_PLATFORM=offscreen is what makes these two headless -- they build real windows,
+      # QT_QPA_PLATFORM=offscreen is what makes the suites headless -- they build real windows,
       # and offscreen is the platform that gives them one without a screen. On a runner there is
       # a console, so QT_FORCE_STDERR_LOGGING is belt and braces here rather than the necessity
       # it is on the development machine; it is set so a failure reads the same in both places,
@@ -176,7 +180,23 @@ jobs:
           QT_QPA_PLATFORM: offscreen
           QT_FORCE_STDERR_LOGGING: 1
 
-      # The surface suite is the long half of this job and is sharded by case file: one process
+  qml-surfaces:
+    needs: changes
+    if: needs.changes.outputs.qml == 'true'
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/configure
+
+      # The other QTest target, and the same module build the component job has just done: the
+      # two suites share no runner, which is what puts this one's start beside that job's run
+      # instead of behind it.
+      - name: Build
+        run: cmake --build --preset ninja-qt6 --target lens_qtest_surfaces
+
+      # The surface suite is the long half of the gate and is sharded by case file: one process
       # per file, two at a time. No file depends on another, and setup.cpp names its settings
       # copy by process id, so the workers share nothing. The script prints one Totals line per
       # file, and the whole log of a file that went red. Three processes over-subscribed the
@@ -190,7 +210,7 @@ jobs:
 
     steps:
       # The pre-commit hook is the one copy of these rules. CI hands it the files this push or pull
-      # request changed, so a red run names the file; the qml job runs the QML lint instead.
+      # request changed, so a red run names the file; the qml-components job runs the QML lint instead.
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
