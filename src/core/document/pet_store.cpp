@@ -44,12 +44,45 @@ void writeSlot(SettingsSection& accessories, const char* key, std::optional<std:
         accessories.clear(key);
 }
 
+/// @brief One-time move of the flat, every-pet-the-same values into the chosen pet's own entry. The flat keys
+///        belonged to whatever pet was on, which is the one the document names; taking them away means the move
+///        never runs twice and the document is never left ambiguous. A key the pet already owns keeps its own value,
+///        which only a hand-edited document could arrange.
+void migrateLegacyPetState(SettingsSection pet)
+{
+    if (not(pet.has("size") or pet.has("position") or pet.has("accessories"))) return;
+    auto const& id  = pet.value<std::string>("pet", kDefaultPet);
+    auto        own = pet.object("pets").object(id);
+
+    if (pet.has("size") and not own.has("size")) own.set<int>("size", pet.value<int>("size", 0));
+    pet.remove("size");
+
+    auto const from = pet.object("position");
+    auto       to   = own.object("position");
+    // All three or nothing, as position() reads: a half-written place is an edited document, not a nest.
+    if (from.has("screen") and from.has("x") and from.has("y") and not to.has("screen")) {
+        to.set<std::string>("screen", from.value<std::string>("screen", {}));
+        to.set<int>("x", from.value<int>("x", 0));
+        to.set<int>("y", from.value<int>("y", 0));
+    }
+    pet.remove("position");
+
+    auto const worn = pet.object("accessories");
+    auto       kept = own.object("accessories");
+    for (auto const* slot : {"head", "face", "body"}) {
+        if (worn.has(slot) and not kept.has(slot)) kept.set<std::string>(slot, worn.value<std::string>(slot, {}));
+    }
+    pet.remove("accessories");
+}
+
 } // namespace
 
 PetStore::PetStore(KnownStore& store)
     : store_(store)
 {
-    migrateLegacySize(store_.section("PET"));
+    auto pet = store_.section("PET");
+    migrateLegacySize(pet);
+    migrateLegacyPetState(pet);
 }
 
 std::string PetStore::pet() const
@@ -95,45 +128,50 @@ void PetStore::setPassthrough(bool on)
     store_.section("PET").set<bool>("passthrough", on);
 }
 
-int PetStore::size(int fallback) const
+int PetStore::size(std::string const& pet, int fallback) const
 {
-    return std::clamp(store_.section("PET").value<int>("size", fallback), kMinSize, kMaxSize);
+    return std::clamp(entry(pet).value<int>("size", fallback), kMinSize, kMaxSize);
 }
 
-void PetStore::setSize(int percent)
+void PetStore::setSize(std::string const& pet, int percent)
 {
-    store_.section("PET").set<int>("size", std::clamp(percent, kMinSize, kMaxSize));
+    entry(pet).set<int>("size", std::clamp(percent, kMinSize, kMaxSize));
 }
 
-Outfit PetStore::outfit() const
+Outfit PetStore::outfit(std::string const& pet) const
 {
-    auto const accessories = store_.section("PET").object("accessories");
+    auto const& accessories = entry(pet).object("accessories");
     return Outfit{wornId(accessories, "head"), wornId(accessories, "face"), wornId(accessories, "body")};
 }
 
-void PetStore::setOutfit(Outfit const& outfit)
+void PetStore::setOutfit(std::string const& pet, Outfit const& outfit)
 {
-    auto accessories = store_.section("PET").object("accessories");
+    auto accessories = entry(pet).object("accessories");
     writeSlot(accessories, "head", outfit.head);
     writeSlot(accessories, "face", outfit.face);
     writeSlot(accessories, "body", outfit.body);
 }
 
-std::optional<SavedPosition> PetStore::position() const
+std::optional<SavedPosition> PetStore::position(std::string const& pet) const
 {
-    auto const at = store_.section("PET").object("position");
+    auto const& at = entry(pet).object("position");
     // All three or nothing: a half-written position is a document someone edited, not a place
     // the window was left.
     if (not at.has("screen") or not at.has("x") or not at.has("y")) return std::nullopt;
     return SavedPosition{at.value<std::string>("screen", {}), at.value<int>("x", 0), at.value<int>("y", 0)};
 }
 
-void PetStore::setPosition(SavedPosition const& at)
+void PetStore::setPosition(std::string const& pet, SavedPosition const& at)
 {
-    auto position = store_.section("PET").object("position");
+    auto position = entry(pet).object("position");
     position.set<std::string>("screen", at.screen);
     position.set<int>("x", at.x);
     position.set<int>("y", at.y);
+}
+
+SettingsSection PetStore::entry(std::string const& pet) const
+{
+    return store_.section("PET").object("pets").object(pet);
 }
 
 } // namespace lens::core::pet

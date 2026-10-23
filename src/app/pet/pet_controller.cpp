@@ -281,7 +281,7 @@ void PetController::loadPet(std::string const& id)
         }
         hover_ = std::make_unique<core::pet::HoverSense>(timing, behavior_.gazeRadius);
 
-        auto const outfit = store_.outfit();
+        auto const outfit = store_.outfit(id);
         for (auto const& [slot, worn] : {std::pair{Slot::Head, outfit.head}, std::pair{Slot::Face, outfit.face}, std::pair{Slot::Body, outfit.body}}) {
             if (worn and wearsInSlot(*worn, slot)) wardrobe_->toggle(*worn);
         }
@@ -551,8 +551,9 @@ int PetController::canvas() const
 
 int PetController::size() const
 {
-    // A reader who has never moved the slider gets the package's declared 1..4 scale, as a percentage.
-    return store_.size(assets_ ? sizeFromScale(assets_->scale) : kMinSize);
+    // A reader who has never moved the slider gets the package's declared 1..4 scale, as a percentage. The size
+    // belongs to the pet on screen, which is the one the settings name (ADR 0096).
+    return store_.size(store_.pet(), assets_ ? sizeFromScale(assets_->scale) : kMinSize);
 }
 
 double PetController::scale() const
@@ -598,7 +599,7 @@ void PetController::setSize(int percent)
     // The ceremony's path was measured for the old window; a size change lands it at home and lets fitOnScreen pull
     // the new window into the work area.
     if (ceremony_) finishCeremonyNow();
-    store_.setSize(percent);
+    store_.setSize(store_.pet(), percent);
     emit settingsChanged();
 }
 
@@ -862,7 +863,7 @@ void PetController::toggleAccessory(QString id)
 {
     if (not wardrobe_ or not knownAccessory(id)) return;
     wardrobe_->toggle(id.toStdString());
-    store_.setOutfit(outfitOf(*wardrobe_));
+    store_.setOutfit(store_.pet(), outfitOf(*wardrobe_));
     emit frameChanged();
     emit outfitChanged();
 }
@@ -947,9 +948,9 @@ void PetController::applyPet(std::string const& id)
         store_.setPet(previous);
         loadPet(previous);
     }
-    // Accessories the new pet does not have leave the saved outfit too, so they do not come back
+    // Accessories the new pet does not have leave its own saved outfit too, so they do not come back
     // when the reader switches again.
-    if (wardrobe_) store_.setOutfit(outfitOf(*wardrobe_));
+    if (wardrobe_) store_.setOutfit(store_.pet(), outfitOf(*wardrobe_));
     emit settingsChanged();
     emit frameChanged();
     emit outfitChanged();
@@ -1506,20 +1507,30 @@ void PetController::hideNow()
 void PetController::applyPendingPet()
 {
     if (pendingPet_.empty()) return;
-    auto const target = pendingPet_;
-    auto const home   = wander_ and homeReady_ ? wander_->home() : (window_ ? window_->position() : QPoint{});
-    auto const area   = window_ ? areaAt(window_->position()) : QRect{};
+    auto const target  = pendingPet_;
+    auto const inherit = wander_ and homeReady_ ? wander_->home() : (window_ ? window_->position() : QPoint{});
+    auto const area    = window_ ? areaAt(window_->position()) : QRect{};
     applyPet(target);
     if (not window_ or not ceremony_) return;
 
     auto const size = window_->size();
-    auto const at   = area.isValid() ? clampedWithin(home, size, area) : home;
+    // The new pet returns to the nest it remembers, on the screen it was left on; one that has no nest yet inherits
+    // the spot the swap happened on (ADR 0096).
+    auto at = inherit;
+    if (auto const nest = nestOf(store_.pet(), size))
+        at = *nest;
+    else if (area.isValid())
+        at = clampedWithin(inherit, size, area);
+    auto const nestArea = areaAt(at);
     if (wander_) {
         wander_->setHome(at);
-        wander_->setBounds(size, area);
-        homeReady_ = area.isValid();
+        wander_->setBounds(size, nestArea);
+        homeReady_ = nestArea.isValid();
     }
     ceremony_->home = at;
+    // A pet on screen for the first time keeps the spot it lands on as its own nest, so the inheritance survives
+    // a restart (ADR 0096).
+    if (not store_.position(store_.pet())) savePosition(at);
 
     if (assets_ and area.isValid()) {
         // The QML window takes its new size on the next event turn. Park it against the larger of the two until then,
@@ -1544,22 +1555,29 @@ QPoint PetController::cursorPos() const
 
 QPoint PetController::initialPosition(QSize size)
 {
+    // The saved nest of the pet the settings name, or the corner when that no longer fits.
     auto at = bottomRightOf(size, QGuiApplication::primaryScreen()->availableGeometry());
-    if (auto const saved = store_.position()) {
-        for (auto const* screen : QGuiApplication::screens()) {
-            if (deviceNameOf(*screen).toStdString() != saved->screen) continue;
-            auto const area = screen->availableGeometry();
-            auto const spot = area.topLeft() + QPoint{saved->x, saved->y};
-            if (fitsWithin(spot, size, area)) at = spot;
-            break;
-        }
-    }
+    if (auto const nest = nestOf(store_.pet(), size)) at = *nest;
     if (wander_) {
         wander_->setHome(at);
         wander_->setBounds(size, areaAt(at));
         homeReady_ = true;
     }
     return at;
+}
+
+std::optional<QPoint> PetController::nestOf(std::string const& id, QSize size) const
+{
+    auto const saved = store_.position(id);
+    if (not saved) return std::nullopt;
+    for (auto const* screen : QGuiApplication::screens()) {
+        if (deviceNameOf(*screen).toStdString() != saved->screen) continue;
+        auto const area = screen->availableGeometry();
+        auto const spot = area.topLeft() + QPoint{saved->x, saved->y};
+        if (fitsWithin(spot, size, area)) return spot;
+        return std::nullopt;
+    }
+    return std::nullopt;
 }
 
 void PetController::fitOnScreen()
@@ -1614,7 +1632,7 @@ void PetController::savePosition(QPoint at)
     auto const  device = deviceNameOf(*screen);
     if (device.isEmpty()) return;
     auto const offset = at - screen->availableGeometry().topLeft();
-    store_.setPosition(SavedPosition{device.toStdString(), offset.x(), offset.y()});
+    store_.setPosition(store_.pet(), SavedPosition{device.toStdString(), offset.x(), offset.y()});
 }
 
 void PetController::tick()

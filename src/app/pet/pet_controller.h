@@ -368,6 +368,9 @@ private:
     std::chrono::milliseconds nextPause();
     /// @return The work area of the screen nearest `at`, or an invalid rectangle when no screen is attached.
     QRect areaAt(QPoint at) const;
+    /// @return The nest the pet `id` remembers: its saved spot, on the screen it was left on, when that screen is
+    ///         still attached and the spot still holds the window. Nothing otherwise (ADR 0096).
+    std::optional<QPoint> nestOf(std::string const& id, QSize size) const;
     /// @return The attached screen whose work area is exactly `area`, or null.
     QScreen* screenForArea(QRect area) const;
     /// @return The attached screen called `name`, or null.

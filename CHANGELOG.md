@@ -4,6 +4,9 @@
 
 ### Added
 
+- Each pet remembers its own size, accessories and window position in the settings document;
+  switching pets returns each one to its own nest instead of carrying the previous pet's outfit
+  and spot over (docs/adr/0096).
 - A pet hiding at a screen edge answers the pointer again: eyes follow a nearby cursor and the
   peek leans further in, a click on the visible sliver calls the pet out, and dropping a drag
   against an edge makes the pet tuck itself in (docs/adr/0095).

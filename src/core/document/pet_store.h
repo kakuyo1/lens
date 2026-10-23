@@ -9,11 +9,14 @@
 
 /**
  * @file pet_store.h
- * @brief The PET section of the settings document: the chosen pet, the two switches, the worn accessories and the
- *        window position (PHASE3 3.6).
+ * @brief The PET section of the settings document: the chosen pet, the two switches, and each pet's own size, outfit
+ *        and window position (PHASE3 3.6, docs/adr/0096).
  *
  * Like StatsStore, this binds to the document KnownStore owns and writes only its own key. It persists through
  * KnownStore::save(), so there is still one file and one writer.
+ *
+ * The size, the outfit and the position belong to one pet each, keyed by id: choosing a pet returns it to the nest
+ * it left, in the clothes it left them in. The switches and the confirmed list are the reader's, not any pet's.
  */
 
 namespace lens::core::pet {
@@ -76,22 +79,26 @@ public:
     bool passthrough() const;
     void setPassthrough(bool on);
 
-    /// @param fallback Returned while the reader has not chosen a size, normally the package's declared scale as a
+    /// @param pet The pet the size belongs to, by folder name.
+    /// @param fallback Returned while that pet has no chosen size, normally the package's declared scale as a
     ///                 percentage through sizeFromScale().
     /// @return The chosen size in kMinSize..kMaxSize.
-    int size(int fallback) const;
+    int size(std::string const& pet, int fallback) const;
     /// @brief Stores the size, clamped to kMinSize..kMaxSize.
-    void setSize(int percent);
+    void setSize(std::string const& pet, int percent);
 
-    /// @return The worn accessories, as last saved.
-    Outfit outfit() const;
-    void   setOutfit(Outfit const& outfit);
+    /// @return The pet's worn accessories, as last saved.
+    Outfit outfit(std::string const& pet) const;
+    void   setOutfit(std::string const& pet, Outfit const& outfit);
 
-    /// @return Where the window was left, or nothing before it was first moved.
-    std::optional<SavedPosition> position() const;
-    void                         setPosition(SavedPosition const& at);
+    /// @return Where the pet's window was left, or nothing before it was first moved.
+    std::optional<SavedPosition> position(std::string const& pet) const;
+    void                         setPosition(std::string const& pet, SavedPosition const& at);
 
 private:
+    /// @return The one pet's own object under PET.pets, where its size, outfit and position live.
+    SettingsSection entry(std::string const& pet) const;
+
     KnownStore& store_;
 };
 

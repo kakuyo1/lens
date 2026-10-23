@@ -231,7 +231,7 @@ void TstPetController::wornAccessoriesFollowToggles()
 
     rig.controller.toggleAccessory(QStringLiteral("hat"));
     QCOMPARE(rig.controller.wornAccessories().size(), 1);
-    QVERIFY(rig.petStore.outfit().head == std::optional<std::string>{"hat"});
+    QVERIFY(rig.petStore.outfit("dog").head == std::optional<std::string>{"hat"});
 
     auto const worn = rig.controller.wornAccessories().first().toMap();
     QVERIFY(worn.value("asset").toString().startsWith("file:///"));
@@ -239,7 +239,7 @@ void TstPetController::wornAccessoriesFollowToggles()
 
     rig.controller.toggleAccessory(QStringLiteral("hat"));
     QCOMPARE(rig.controller.wornAccessories().size(), 0);
-    QVERIFY(!rig.petStore.outfit().head);
+    QVERIFY(!rig.petStore.outfit("dog").head);
 }
 
 void TstPetController::sizeIsStoredAndAnnounced()
@@ -409,7 +409,7 @@ void TstPetController::restoresOnlyAccessoriesInTheirOwnSlot()
     Rig rig{settingsIn(dir), shippedRoot()};
 
     // Glasses saved in the head slot is bad data: it must not be worn there, and the face slot's glasses still is.
-    rig.petStore.setOutfit(Outfit{std::string{"glasses"}, std::string{"glasses"}, std::nullopt});
+    rig.petStore.setOutfit("dog", Outfit{std::string{"glasses"}, std::string{"glasses"}, std::nullopt});
     PetController restored{shippedRoot(), settingsIn(dir).parent_path() / "installed", rig.petStore};
 
     QVERIFY(restored.wornIn().value("head").toString().isEmpty());
@@ -466,11 +466,11 @@ void TstPetController::choosingAPetLoadsItAndDropsWhatItLacks()
     QVERIFY(rig.controller.available());
     QCOMPARE(rig.controller.action(), QStringLiteral("idle"));
     QVERIFY(rig.controller.wornIn().value("head").toString().isEmpty());
-    QVERIFY(!rig.petStore.outfit().head);
+    QVERIFY(!rig.petStore.outfit("hatless").head);
 
-    // The hat was dropped, not hidden: choosing the dog again does not bring it back.
+    // The hat stayed the dog's own: choosing it again brings its outfit back (ADR 0096).
     rig.controller.setPet(QStringLiteral("dog"));
-    QVERIFY(rig.controller.wornIn().value("head").toString().isEmpty());
+    QCOMPARE(rig.controller.wornIn().value("head").toString(), QStringLiteral("hat"));
 
     // A pet that cannot be loaded is refused: the reader keeps the pet they had, and the bad id is not saved.
     rig.controller.setPet(QStringLiteral("missing"));
@@ -552,19 +552,23 @@ void TstPetController::wornAccessoriesFollowAPetSwitch()
     QVERIFY(dir.isValid());
     Rig rig{settingsIn(dir), shippedRoot()};
 
-    // The dog's hat is not in mochi's catalogue, so it comes off; the glasses are, so they stay.
+    // Each pet wears its own memory: mochi starts bare no matter what the dog had on (ADR 0096).
     rig.controller.toggleAccessory(QStringLiteral("hat"));
     rig.controller.toggleAccessory(QStringLiteral("glasses"));
     rig.controller.setPet(QStringLiteral("mochi"));
     QVERIFY(rig.controller.wornIn().value("head").toString().isEmpty());
-    QCOMPARE(rig.controller.wornIn().value("face").toString(), QStringLiteral("glasses"));
-    QVERIFY(!rig.petStore.outfit().head);
-    QVERIFY(rig.petStore.outfit().face == std::optional<std::string>{"glasses"});
+    QVERIFY(rig.controller.wornIn().value("face").toString().isEmpty());
+    QVERIFY(!rig.petStore.outfit("mochi").head);
 
-    // Owl's glasses are reading_glasses, so the glasses come off in the face slot too.
+    // The dog kept its own clothes: choosing it again brings hat and glasses back.
+    rig.controller.setPet(QStringLiteral("dog"));
+    QCOMPARE(rig.controller.wornIn().value("head").toString(), QStringLiteral("hat"));
+    QCOMPARE(rig.controller.wornIn().value("face").toString(), QStringLiteral("glasses"));
+
+    // Owl has its own empty memory too; the dog's glasses do not follow it.
     rig.controller.setPet(QStringLiteral("owl"));
     QVERIFY(rig.controller.wornIn().value("face").toString().isEmpty());
-    QVERIFY(!rig.petStore.outfit().face);
+    QVERIFY(!rig.petStore.outfit("owl").face);
 }
 
 void TstPetController::aRefusedRealPetKeepsThePetOn()
