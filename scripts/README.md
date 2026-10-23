@@ -10,8 +10,8 @@
 | `data/` | 词形数据生成与样例集独立校验 |
 | `pet/` | 桌宠美术流水线：形状配方、网格写入、配饰对位、素材同步与审查图（见其 README 与 `docs/pet-art-pipeline.md`） |
 | `profiling/` | QML profiler、QML 结构指标和 trace 解析 |
-| `qa/` | 起应用、QTest 单条/整套、桌面驱动、截图、QML 快照和鼠标停顿探针；`qa/pet/` 是桌面宠物原型的逐动作对比与交互检查（见其 README） |
-| `quality/` | QML lint、分层边界检查、C++ / QML 覆盖率和 AST 指标；`zhlintrc.json` 是 CI 上排版检查用的仓库内配置 |
+| `qa/` | 起应用、QTest 单条/整套/并行分片、桌面驱动、截图、QML 快照和鼠标停顿探针；`qa/pet/` 是桌面宠物原型的逐动作对比与交互检查（见其 README） |
+| `quality/` | QML lint、分层边界检查、C++ / QML 覆盖率和 AST 指标、CI 变更分类（`ci-changes.sh`）；`zhlintrc.json` 是 CI 上排版检查用的仓库内配置 |
 | `release/` | 安装包构建和 GitHub Release 发布 |
 
 ## 构建与验证
@@ -24,6 +24,7 @@ scripts\build\build-release.bat
 ```sh
 sh scripts/quality/qml-lint.sh
 sh scripts/quality/layer-check.sh         # app/core 的分组边界，pre-commit 与 CI 也会跑
+bash scripts/qa/qtest-parallel.sh --build build-ninja --shards 3   # QML surfaces，每个文件一个进程
 sh scripts/qa/readme-html-shots.sh       # 用无头 Chrome 重画 README 的 HTML 营销图
 python scripts/qa/readme-html-compose.py # 裁图、合成语言切换 GIF、学习循环拼图与主题拼图
 ```

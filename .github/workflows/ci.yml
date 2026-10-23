@@ -2,19 +2,24 @@
 # written, but nothing ever ran it -- it held only as long as someone
 # remembered to run it by hand.
 #
-# Five jobs, one concern each, so a red run says what broke instead of naming the one job that
+# Four jobs, one concern each, so a red run says what broke instead of naming the one job that
 # held everything:
 #
 #   unit          the offline gtest suite. The cheapest job in the file: it is the only suite
 #                 whose build does not pull in the QML module, and the one that runs on every
-#                 change (TEST.md section 2).
-#   app           the executable compiles and links. main.cpp, the translations and the icon
-#                 resources are compiled by no other target, so a break in any of them has no
-#                 other job to fail in.
-#   devsurface    the developer command surface compiles and answers its smoke script.
-#   qml           the QML module: build it, lint it, then run the component and surface suites
-#                 offscreen.
+#                 piece of C++ that can reach it.
+#   app           the executable compiles and links, first as it ships and then with the developer
+#                 surface, which it smokes in the same tree. main.cpp, the translations and the
+#                 icon resources are compiled by no other target, so a break in any of them has
+#                 no other job to fail in.
+#   qml           the QML module: build it, lint it, then run the component suite and the surface
+#                 suite offscreen.
 #   hygiene       the pre-commit hook's checks, over the files this change touches.
+#
+# A changes job in front of them reads the changed paths (scripts/quality/ci-changes.sh) and
+# skips a job this change cannot affect: a QML-only change leaves the unit suite out, a
+# googletest change leaves the app and qml jobs out, and a config-only change leaves all three
+# out. Hygiene always runs, because it checks the files the change touches.
 #
 # Coverage is not here. It is report-only, and its two jobs are the longest in the file; running
 # them on a red gate spent twenty minutes proving nothing. .github/workflows/coverage.yml runs
@@ -24,11 +29,11 @@
 # A push whose every changed file is documentation skips this workflow (paths-ignore below);
 # .github/workflows/docs.yml still runs the text checks over those files, without a build.
 #
-# Every job installs Qt and configures its own tree -- about 45 s of the fixed cost, paid four
-# times. That is the price of not shipping a build tree between jobs: a Debug tree with the PDBs
-# the coverage tools read is hundreds of megabytes, which costs more to upload and download than
-# the rebuild does. .github/actions/configure holds the four steps that would otherwise be five
-# copies of the Qt version.
+# Every job that builds installs Qt and configures its own tree -- about 45 s of the fixed cost,
+# paid three times. That is the price of not shipping a build tree between jobs: a Debug tree with
+# the PDBs the coverage tools read is hundreds of megabytes, which costs more to upload and
+# download than the rebuild does. .github/actions/configure holds the steps that would otherwise
+# be a copy per job.
 #
 # Not here on purpose: lens_gtest_integration needs a real mouse and the real clipboard, and
 # lens_gtest_smoke needs a real model and an API key. Both stay human-run; see TEST.md section 2.
@@ -52,7 +57,30 @@ on:
       - 'LICENSE'
 
 jobs:
+  changes:
+    # The one place the path map lives; scripts/quality/ci-changes.sh reads the diff and prints
+    # the booleans the jobs below consume. Ubuntu runs only git and makes the decision cheap; the
+    # gate waits for it, so this is the only added wall-clock cost of the filter.
+    runs-on: ubuntu-latest
+    outputs:
+      unit: ${{ steps.changes.outputs.unit }}
+      app: ${{ steps.changes.outputs.app }}
+      qml: ${{ steps.changes.outputs.qml }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Classify the change set
+        id: changes
+        shell: bash
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: bash scripts/quality/ci-changes.sh "$BASE" HEAD >> "$GITHUB_OUTPUT"
+
   unit:
+    needs: changes
+    if: needs.changes.outputs.unit == 'true'
     runs-on: windows-latest
 
     steps:
@@ -65,8 +93,8 @@ jobs:
 
       - uses: ./.github/actions/configure
 
-      # Only lens_core and lens_llm, so no QML module and no QML ahead-of-time compilation
-      # figures in this job at all.
+      # The offline suite and the app seams. It links lens_app but not the QML plugin, so no QML
+      # module and no QML ahead-of-time compilation figures in this job.
       - name: Build
         run: cmake --build --preset ninja-qt6 --target lens_gtest_unit
 
@@ -76,6 +104,8 @@ jobs:
           QT_FORCE_STDERR_LOGGING: 1
 
   app:
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
     runs-on: windows-latest
 
     steps:
@@ -83,9 +113,9 @@ jobs:
 
       - uses: ./.github/actions/configure
 
-      # The shipped executable and nothing else. It links lens_app, so this is also where the QML
-      # module and src/app's own sources are compiled; the suites below each build what they need
-      # and would not notice a break outside their own link line.
+      # The shipped executable first. It links lens_app, so this is also where the QML module and
+      # src/app's own sources are compiled; the qml job builds what its suites need and would not
+      # notice a break outside its own link line.
       - name: Build
         run: cmake --build --preset ninja-qt6 --target lens
 
@@ -101,26 +131,20 @@ jobs:
             throw 'a packaging script switches the developer surface on'
           }
 
-  devsurface:
-    # The developer surface (docs/adr/0068) is compiled out of every other job, so nothing else here would notice
-    # it breaking. This job builds it in, then runs the smoke script against the result.
-    runs-on: windows-latest
+      # The developer surface (docs/adr/0068) is compiled out of the shipped build, so nothing above
+      # would notice it breaking. Reconfiguring in the same tree changes the lens target's compile
+      # definition only, so this rebuild is the lens target's sources and a link, not a second build.
+      - name: Build the developer surface
+        run: |
+          cmake -S . -B build-ninja -DLENS_ENABLE_DEV_SURFACE=ON
+          cmake --build --preset ninja-qt6 --target lens
 
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: ./.github/actions/configure
-
-      - name: Reconfigure with the developer surface
-        run: cmake -S . -B build-ninja -DLENS_ENABLE_DEV_SURFACE=ON
-
-      - name: Build
-        run: cmake --build --preset ninja-qt6 --target lens
-
-      - name: Smoke
+      - name: Developer surface smoke
         run: scripts/qa/dev-smoke.ps1 -Exe build-ninja/src/app/lens.exe
 
   qml:
+    needs: changes
+    if: needs.changes.outputs.qml == 'true'
     runs-on: windows-latest
 
     steps:
@@ -152,11 +176,13 @@ jobs:
           QT_QPA_PLATFORM: offscreen
           QT_FORCE_STDERR_LOGGING: 1
 
-      - name: Surface tests
-        run: ./build-ninja/test/qtest/lens_qtest_surfaces.exe
-        env:
-          QT_QPA_PLATFORM: offscreen
-          QT_FORCE_STDERR_LOGGING: 1
+      # The surface suite is the long half of this job and is sharded by case file: one process
+      # per file, three at a time. No file depends on another, and setup.cpp names its settings
+      # copy by process id, so the workers share nothing. The script prints one Totals line per
+      # file, and the whole log of a file that went red.
+      - name: Surface tests (sharded)
+        shell: bash
+        run: bash scripts/qa/qtest-parallel.sh --build build-ninja --shards 3
 
   hygiene:
     runs-on: windows-latest

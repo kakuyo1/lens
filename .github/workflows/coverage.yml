@@ -18,6 +18,10 @@
 #
 # workflow_run can see the base repository's token, so untrusted code is kept out: a run whose
 # head repository is a fork is skipped, and the token is read-only. The scans need no secrets.
+#
+# A classifier in front of the two jobs skips them for a change that cannot move a coverage
+# number: config, a hook, a workflow file, the QML lint. It reads the same map as the CI gate
+# (scripts/quality/ci-changes.sh), so the two cannot disagree about which files matter.
 
 name: Coverage
 
@@ -35,11 +39,49 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  coverage-cpp:
+  changes:
     if: >-
       github.event_name == 'workflow_dispatch'
       || (github.event.workflow_run.conclusion == 'success'
           && github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    outputs:
+      coverage: ${{ steps.changes.outputs.coverage }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Classify the change set
+        id: changes
+        shell: bash
+        env:
+          BASE: ${{ github.event.workflow_run.pull_requests[0].base.sha }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            echo "coverage=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          head=${HEAD_SHA:-$(git rev-parse HEAD)}
+          base=$BASE
+          if [ -n "$base" ] && ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            git fetch --no-tags origin "$base" 2>/dev/null || true
+          fi
+          if [ -z "$base" ] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            base=$(git rev-parse "$head^" 2>/dev/null || git rev-parse "$head")
+          fi
+          bash scripts/quality/ci-changes.sh "$base" "$head" | grep '^coverage=' >> "$GITHUB_OUTPUT"
+
+  coverage-cpp:
+    needs: changes
+    if: >-
+      github.event_name == 'workflow_dispatch'
+      || (github.event.workflow_run.conclusion == 'success'
+          && github.event.workflow_run.head_repository.full_name == github.repository
+          && needs.changes.outputs.coverage == 'true')
     runs-on: windows-latest
 
     steps:
@@ -80,10 +122,12 @@ jobs:
           path: test/records/coverage/coverage.xml
 
   coverage-qml:
+    needs: changes
     if: >-
       github.event_name == 'workflow_dispatch'
       || (github.event.workflow_run.conclusion == 'success'
-          && github.event.workflow_run.head_repository.full_name == github.repository)
+          && github.event.workflow_run.head_repository.full_name == github.repository
+          && needs.changes.outputs.coverage == 'true')
     runs-on: windows-latest
 
     steps:
