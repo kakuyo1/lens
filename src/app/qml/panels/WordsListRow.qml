@@ -162,6 +162,19 @@ Item {
                     }
                 }
 
+                activeFocusOnTab: true
+                Accessible.role: Accessible.Button
+                Accessible.name: knownLabel.text
+                Accessible.onPressAction: knownTap.tapped()
+                Keys.onPressed: (event) => {
+                    if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return
+                         || event.key === Qt.Key_Space) && !event.isAutoRepeat) {
+                        event.accepted = true;
+                        knownTap.tapped();
+                    }
+                }
+                FocusRing { radius: entry.host.tokens.radiusPill }
+
                 Text {
                     id: knownLabel
                     anchors.centerIn: parent
@@ -196,6 +209,19 @@ Item {
                     }
                 }
 
+                activeFocusOnTab: true
+                Accessible.role: Accessible.Button
+                Accessible.name: newLabel.text
+                Accessible.onPressAction: newTap.tapped()
+                Keys.onPressed: (event) => {
+                    if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return
+                         || event.key === Qt.Key_Space) && !event.isAutoRepeat) {
+                        event.accepted = true;
+                        newTap.tapped();
+                    }
+                }
+                FocusRing { radius: entry.host.tokens.radiusPill }
+
                 Text {
                     id: newLabel
                     anchors.centerIn: parent
@@ -221,6 +247,7 @@ Item {
             height: 14
             source: "qrc:/icons/ui-close.svg"
             color: entry.host.tokens.faint
+            accessibleName: qsTr("Remove %1").arg(entry.modelData.word)
             onTapped: entry.host.requestRemoval(entry.modelData.word)
         }
     }

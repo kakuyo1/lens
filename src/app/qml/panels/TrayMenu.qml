@@ -255,6 +255,13 @@ Window {
                         id: option
                         required property var modelData
 
+                        Accessible.role: Accessible.Button
+                        Accessible.name: option.modelData.label
+                        Accessible.onPressAction: {
+                            Controller.setSetting("uiLanguage", option.modelData.value);
+                            menu.visible = false;
+                        }
+
                         width: listColumn.width
                         height: 28
                         radius: 8
@@ -294,5 +301,15 @@ Window {
         id: listHide
         interval: 160
         onTriggered: menu.listVisible = false
+    }
+
+    /// Escape puts the menu down, the way a press outside it does. Application-wide rather than
+    /// window-scoped, for the reason the removal question's Shortcut gives: a window that never
+    /// becomes active cannot answer a window-scoped key.
+    Shortcut {
+        sequence: "Escape"
+        context: Qt.ApplicationShortcut
+        enabled: menu.visible
+        onActivated: menu.visible = false
     }
 }

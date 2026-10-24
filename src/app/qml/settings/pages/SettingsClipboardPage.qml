@@ -41,6 +41,7 @@ Item {
                     color: root.tokens.text
                     font.pixelSize: 13
                     selectByMouse: true
+                    activeFocusOnTab: true
                     inputMethodHints: Qt.ImhDigitsOnly
                     validator: IntValidator { bottom: 1; top: 30 }
 

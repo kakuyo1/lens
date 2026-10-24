@@ -137,6 +137,7 @@ Item {
                 height: 22
                 source: "qrc:/icons/ui-back.svg"
                 color: root.tokens.faint
+                accessibleName: qsTr("Back")
                 onTapped: root.back()
             }
 

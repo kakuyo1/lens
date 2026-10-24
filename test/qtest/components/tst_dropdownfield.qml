@@ -473,5 +473,52 @@ Item {
             compare(edited, -1, "a search reported an edit");
             compare(opened, 0, "a search asked for the list");
         }
+
+        /// The keyboard half: a focused pick-only field opens its list on Return, Space and
+        /// Down, and the same key puts the list away again.
+        function test_returnOpensAndClosesTheList() {
+            const field = make({});
+            host.requestActivate();
+            tryVerify(function () { return host.active; });
+            field.forceActiveFocus();
+            tryVerify(function () { return field.activeFocus; });
+
+            keyClick(Qt.Key_Return);
+            tryVerify(function () { return field.openChildRect !== null; }, 1000,
+                      "Return left the list down");
+
+            // The list is a window of its own, and on the offscreen platform showing any window
+            // takes the focus with it -- the real platform's WindowDoesNotAcceptFocus keeps the
+            // field's, so this brings the field's window and focus back before the same key is
+            // asked to fold the list.
+            host.requestActivate();
+            tryVerify(function () { return host.active; });
+            field.forceActiveFocus();
+            tryVerify(function () { return field.activeFocus; }, 5000,
+                      "the field could not take the focus back from its own list");
+            keyClick(Qt.Key_Return);
+            tryVerify(function () { return field.openChildRect === null; }, 1000,
+                      "the second Return left the list up");
+        }
+
+        /// The tab stops: the pick-only field is one, and the editable field hands the stop to
+        /// the input inside it rather than taking two.
+        function test_theFieldTakesOneTabStopWhereItCanType() {
+            compare(make({}).activeFocusOnTab, true);
+
+            const editable = make({ editable: true });
+            compare(editable.activeFocusOnTab, false);
+            const input = Util.findAll(editable, function (o) { return o.objectName === "fieldInput"; })[0];
+            verify(input, "the editable field built no input");
+            compare(input.activeFocusOnTab, true);
+        }
+
+        /// The screen-reader half: the field is a combo box named after the setting it edits,
+        /// falling back to the current option's label where no name was given.
+        function test_theFieldNamesItselfForTheScreenReader() {
+            compare(make({ accessibleName: "Theme" }).Accessible.name, "Theme");
+            compare(make({ currentValue: 2 }).Accessible.name, "rare");
+            compare(make({}).Accessible.role, Accessible.ComboBox);
+        }
     }
 }

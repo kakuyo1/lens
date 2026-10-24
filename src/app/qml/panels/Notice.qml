@@ -116,6 +116,7 @@ Window {
                     anchors.verticalCenter: parent.verticalCenter
                     source: "qrc:/icons/ui-close.svg"
                     color: notice.tokens.faint
+                    accessibleName: qsTr("Close")
                     onTapped: notice.closeNotice()
                 }
             }
@@ -150,6 +151,12 @@ Window {
                             easing.type: notice.tokens.motion.easing
                         }
                     }
+
+                    // This window takes no focus, so the pill carries a name and a press for the
+                    // screen reader but no tab stop or ring.
+                    Accessible.role: Accessible.Button
+                    Accessible.name: actionLabel.text
+                    Accessible.onPressAction: actionTap.tapped()
 
                     Text {
                         id: actionLabel

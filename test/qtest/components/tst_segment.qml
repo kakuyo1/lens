@@ -64,5 +64,41 @@ Item {
 
             compare(picked, 2);
         }
+
+        /// The keyboard half: the arrows move the choice the way a radio group's do, and the
+        /// ends hold rather than wrap.
+        function test_arrowKeysMoveTheChoiceWithoutWrapping() {
+            const segment = make({ labels: root.labels, currentIndex: 0 });
+            let picked = -1;
+            segment.picked.connect(function (index) { picked = index; });
+            host.requestActivate();
+            tryVerify(function () { return host.active; });
+            segment.forceActiveFocus();
+            tryVerify(function () { return segment.activeFocus; });
+
+            keyClick(Qt.Key_Left);
+            compare(segment.currentIndex, 0, "the choice wrapped below the first cell");
+
+            keyClick(Qt.Key_Right);
+            compare(segment.currentIndex, 1);
+            compare(picked, 1, "the arrow moved the fill without reporting it");
+
+            keyClick(Qt.Key_Right);
+            keyClick(Qt.Key_Right);
+            compare(segment.currentIndex, 2, "the choice wrapped past the last cell");
+        }
+
+        /// The screen-reader half: one cell per option, each named and carrying its own
+        /// checked state, so the group reads as radios even though it takes one tab stop.
+        function test_eachCellIsANamedCheckedRadio() {
+            const segment = make({ labels: root.labels, currentIndex: 2 });
+            const cells = Util.textsUnder(segment).map((t) => t.parent);
+
+            for (let i = 0; i < cells.length; ++i) {
+                compare(cells[i].Accessible.role, Accessible.RadioButton);
+                compare(cells[i].Accessible.name, root.labels[i]);
+                compare(cells[i].Accessible.checked, i === 2);
+            }
+        }
     }
 }

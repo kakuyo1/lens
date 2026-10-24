@@ -14,6 +14,19 @@ Item {
     width: parent ? parent.width : 0
     height: 60
 
+    // The summary is part of the row's name: it is the sentence that tells the categories apart.
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Button
+    Accessible.name: root.title + (root.summary !== "" ? ", " + root.summary : "")
+    Accessible.onPressAction: root.picked()
+    Keys.onPressed: (event) => {
+        if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return || event.key === Qt.Key_Space)
+                && !event.isAutoRepeat) {
+            event.accepted = true;
+            root.picked();
+        }
+    }
+
     Rectangle {
         anchors.fill: parent
         radius: 9
@@ -50,6 +63,8 @@ Item {
         color: root.tokens.faint
         font.pixelSize: 20
     }
+
+    FocusRing { radius: 13 }
 
     HoverHandler {
         id: hover

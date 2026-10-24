@@ -203,6 +203,19 @@ Window {
                             }
                         }
 
+                        activeFocusOnTab: true
+                        Accessible.role: Accessible.Button
+                        Accessible.name: cancelLabel.text
+                        Accessible.onPressAction: cancelTap.tapped()
+                        Keys.onPressed: (event) => {
+                            if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return
+                                 || event.key === Qt.Key_Space) && !event.isAutoRepeat) {
+                                event.accepted = true;
+                                cancelTap.tapped();
+                            }
+                        }
+                        FocusRing { radius: root.tokens.radiusPill }
+
                         Text {
                             id: cancelLabel
                             anchors.centerIn: parent
@@ -233,6 +246,19 @@ Window {
                                 easing.type: root.tokens.motion.easing
                             }
                         }
+
+                        activeFocusOnTab: true
+                        Accessible.role: Accessible.Button
+                        Accessible.name: removeLabel.text
+                        Accessible.onPressAction: removeTap.tapped()
+                        Keys.onPressed: (event) => {
+                            if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return
+                                 || event.key === Qt.Key_Space) && !event.isAutoRepeat) {
+                                event.accepted = true;
+                                removeTap.tapped();
+                            }
+                        }
+                        FocusRing { radius: root.tokens.radiusPill }
 
                         Text {
                             id: removeLabel

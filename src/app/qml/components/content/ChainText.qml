@@ -96,6 +96,12 @@ Item {
             height: body.lineBaseline + 3
             visible: link.settled
 
+            // The word itself is the link's name -- spanMetrics already measures exactly that
+            // substring. No tab stop or ring: the bubble's window never takes focus (UI-SPEC.md 4.3).
+            Accessible.role: Accessible.Button
+            Accessible.name: spanMetrics.text
+            Accessible.onPressAction: root.wordTapped(link.lemma)
+
             Rectangle {
                 x: -1
                 y: -1

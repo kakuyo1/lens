@@ -42,6 +42,7 @@ Item {
                 id: providerField
                 objectName: "providerField"
                 width: parent.width
+                accessibleName: qsTranslate("SettingsPopup", "Provider")
                 options: root.settings.providers || []
                 currentValue: root.settings.provider
                 onPicked: (value) => Controller.modelCatalogDuty.setProvider(value)
@@ -68,6 +69,7 @@ Item {
                 id: modelField
                 objectName: "modelField"
                 width: parent.width
+                accessibleName: qsTranslate("SettingsPopup", "Model")
                 editable: true
                 options: root.modelOptions
                 currentValue: root.settings.model

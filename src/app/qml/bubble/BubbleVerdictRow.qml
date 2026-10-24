@@ -51,6 +51,8 @@ Item {
         color: root.tokens.line2
     }
 
+    // The two pills carry names and a press for the screen reader but no tab stops or rings: the
+    // bubble's window never takes focus (UI-SPEC.md 4.3), so no keyboard focus can reach them.
     Row {
         id: actions
         anchors.top: parent.top
@@ -71,6 +73,11 @@ Item {
                     easing.type: root.tokens.motion.easing
                 }
             }
+
+            Accessible.role: Accessible.Button
+            Accessible.name: knownLabel.text
+            Accessible.onPressAction: knownTap.tapped()
+
             Text {
                 id: knownLabel
                 anchors.centerIn: parent
@@ -98,6 +105,11 @@ Item {
                     easing.type: root.tokens.motion.easing
                 }
             }
+
+            Accessible.role: Accessible.Button
+            Accessible.name: newLabel.text
+            Accessible.onPressAction: newTap.tapped()
+
             Text {
                 id: newLabel
                 anchors.centerIn: parent

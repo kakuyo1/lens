@@ -305,6 +305,7 @@ qt_add_qml_module(lens_app
     qml/theme/GlassOnDark.qml
     qml/components/controls/Icon.qml
     qml/components/controls/IconButton.qml
+    qml/components/controls/FocusRing.qml
     qml/components/chrome/ShadowCard.qml
     qml/components/chrome/HeightHold.qml
     qml/components/chrome/SurfaceFade.qml

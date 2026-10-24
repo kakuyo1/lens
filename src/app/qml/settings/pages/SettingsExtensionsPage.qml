@@ -322,6 +322,7 @@ Item {
                 DropdownField {
                     id: petTypeField
                     width: parent.width
+                    accessibleName: qsTranslate("SettingsPopup", "Pet type")
                     options: Pet.pets.map(entry => ({
                         value: entry.id,
                         label: entry.external ? entry.name : page.petLabel(entry.id),

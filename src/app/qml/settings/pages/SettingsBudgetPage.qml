@@ -67,6 +67,7 @@ Item {
                     color: root.tokens.text
                     font.pixelSize: 13
                     selectByMouse: true
+                    activeFocusOnTab: true
                     inputMethodHints: Qt.ImhFormattedNumbersOnly
                     validator: DoubleValidator { bottom: 0; top: 1000000000; decimals: 2 }
 

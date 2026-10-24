@@ -33,6 +33,15 @@ Window {
     signal costRequested()
     signal wordsRequested()
 
+    /// Escape closes the panel, the way its cross does (the scope is the one the removal
+    /// question's Shortcut explains).
+    Shortcut {
+        sequence: "Escape"
+        context: Qt.ApplicationShortcut
+        enabled: stats.visible
+        onActivated: stats.visible = false
+    }
+
     ShadowCard {
         id: card
         anchors.fill: parent
@@ -74,6 +83,7 @@ Window {
                     anchors.verticalCenter: parent.verticalCenter
                     source: "qrc:/icons/ui-close.svg"
                     color: stats.tokens.faint
+                    accessibleName: qsTr("Close")
                     onTapped: stats.visible = false
                 }
             }

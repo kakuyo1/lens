@@ -241,5 +241,16 @@ Item {
             compare(menu.hitRect.x + menu.hitRect.width, menu.x + menu.cardLeft + menu.cardWidth,
                     "the list should unfold to the left, leaving the card's right edge where it was");
         }
+
+        /// Escape puts the menu down, the way a press outside it does. Application-wide rather
+        /// than window-scoped, for the reason the removal question's shortcut gives.
+        function test_escapePutsTheMenuDown() {
+            const menu = make();
+            menu.visible = true;
+            wait(50);
+
+            keyClick(Qt.Key_Escape);
+            tryCompare(menu, "visible", false, 1000, "Escape left the menu up");
+        }
     }
 }

@@ -21,12 +21,32 @@ Item {
 
     signal picked(int index)
 
+    /// One tab stop for the whole control, the way a radio group takes one: the arrow keys move
+    /// the choice, so the cells themselves are named and checked for the screen reader but are
+    /// not tab stops of their own.
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Grouping
+    Keys.onPressed: (event) => {
+        if (root.labels.length < 2)
+            return;
+        if (event.key === Qt.Key_Left || event.key === Qt.Key_Right) {
+            event.accepted = true;
+            const step = event.key === Qt.Key_Right ? 1 : -1;
+            const next = Math.max(0, Math.min(root.labels.length - 1, root.currentIndex + step));
+            if (next !== root.currentIndex) {
+                root.currentIndex = next;
+                root.picked(next);
+            }
+        }
+    }
+
     Rectangle {
         anchors.fill: parent
         radius: root.tokens.radiusField
         color: root.tokens.panel2
         border.width: 1
-        border.color: root.tokens.line
+        // The focus state UI-SPEC.md 4.4 gives this control: the outline turns ink, no glow.
+        border.color: root.activeFocus ? root.tokens.ink : root.tokens.line
     }
 
     Row {
@@ -41,6 +61,14 @@ Item {
                 id: cell
                 required property int index
                 required property var modelData
+
+                Accessible.role: Accessible.RadioButton
+                Accessible.name: cell.modelData
+                Accessible.checked: cell.index === root.currentIndex
+                Accessible.onToggleAction: {
+                    root.currentIndex = cell.index;
+                    root.picked(cell.index);
+                }
 
                 width: (root.width - 2) / root.labels.length
                 height: root.height - 2

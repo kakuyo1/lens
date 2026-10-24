@@ -36,6 +36,18 @@ Rectangle {
         }
     }
 
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Button
+    Accessible.name: caption.text
+    Accessible.onPressAction: chip.picked()
+    Keys.onPressed: (event) => {
+        if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return || event.key === Qt.Key_Space)
+                && !event.isAutoRepeat) {
+            event.accepted = true;
+            chip.picked();
+        }
+    }
+
     Text {
         id: caption
         anchors.centerIn: parent
@@ -52,6 +64,8 @@ Rectangle {
         font.pixelSize: 12
         font.weight: chip.selected ? Font.Bold : Font.Normal
     }
+
+    FocusRing { radius: chip.radius + 4 }
 
     HoverHandler { cursorShape: Qt.PointingHandCursor }
     TapHandler {

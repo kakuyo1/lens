@@ -143,6 +143,16 @@ Window {
         Controller.updateDuty.closeCard()
     }
 
+    /// Escape is the cross. The card's window takes no focus, so the buttons below carry names
+    /// for the screen reader but no tab stops or rings -- there is no focus for either to mark.
+    /// The shortcut still answers, application-wide, whenever a window of this app has the keys.
+    Shortcut {
+        sequence: "Escape"
+        context: Qt.ApplicationShortcut
+        enabled: card.visible && !card.leaving
+        onActivated: card.closeCard()
+    }
+
     ShadowCard {
         id: panel
         anchors.fill: parent
@@ -187,6 +197,7 @@ Window {
                     anchors.verticalCenter: parent.verticalCenter
                     source: "qrc:/icons/ui-close.svg"
                     color: card.tokens.faint
+                    accessibleName: qsTranslate("UpdateCard", "Close")
                     onTapped: card.closeCard()
                 }
             }
@@ -305,6 +316,10 @@ Window {
                             }
                         }
 
+                        Accessible.role: Accessible.Button
+                        Accessible.name: primaryLabel.text
+                        Accessible.onPressAction: primaryTap.tapped()
+
                         Text {
                             id: primaryLabel
                             anchors.centerIn: parent
@@ -342,6 +357,10 @@ Window {
                             }
                         }
 
+                        Accessible.role: Accessible.Button
+                        Accessible.name: viewLabel.text
+                        Accessible.onPressAction: viewTap.tapped()
+
                         Text {
                             id: viewLabel
                             anchors.centerIn: parent
@@ -376,6 +395,10 @@ Window {
                                 easing.type: card.tokens.motion.easing
                             }
                         }
+
+                        Accessible.role: Accessible.Button
+                        Accessible.name: skipLabel.text
+                        Accessible.onPressAction: skipTap.tapped()
 
                         Text {
                             id: skipLabel

@@ -27,6 +27,20 @@ Item {
 
     height: 29
 
+    // Both faces read as one line: label, the quieter note, then the figure. The clickable ones
+    // press; the rest are plain text the screen reader reads the same way.
+    Accessible.role: root.clickable ? Accessible.Button : Accessible.StaticText
+    Accessible.name: root.label + (root.note !== "" ? ", " + root.note : "") + ", " + root.value
+    activeFocusOnTab: root.clickable
+    Accessible.onPressAction: if (root.clickable) root.tapped()
+    Keys.onPressed: (event) => {
+        if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return || event.key === Qt.Key_Space)
+                && !event.isAutoRepeat && root.clickable) {
+            event.accepted = true;
+            root.tapped();
+        }
+    }
+
     Rectangle {
         // The hover fill reaches 8px past the text on both sides, so the target is bigger
         // than the words in it.
@@ -81,6 +95,12 @@ Item {
         height: 13
         source: "qrc:/icons/ui-chevron-right.svg"
         color: root.tokens.faint
+    }
+
+    FocusRing {
+        radius: 12
+        anchors.leftMargin: root.clickable ? -12 : -4
+        anchors.rightMargin: root.clickable ? -12 : -4
     }
 
     HoverHandler { id: rowHover; cursorShape: root.clickable ? Qt.PointingHandCursor : Qt.ArrowCursor }

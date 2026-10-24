@@ -24,6 +24,20 @@ Item {
 
     implicitHeight: 32
 
+    // The value on the right is part of what the row says: a screen reader that names only the
+    // label leaves the day's tally and the chosen language unread.
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Button
+    Accessible.name: root.label + (root.note !== "" ? ", " + root.note : "")
+    Accessible.onPressAction: root.picked()
+    Keys.onPressed: (event) => {
+        if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return || event.key === Qt.Key_Space)
+                && !event.isAutoRepeat) {
+            event.accepted = true;
+            root.picked();
+        }
+    }
+
     Rectangle {
         anchors.fill: parent
         radius: root.tokens.radiusField
@@ -74,4 +88,6 @@ Item {
         color: root.tokens.faint
         pixelSize: 11
     }
+
+    FocusRing { radius: root.tokens.radiusField + 4 }
 }

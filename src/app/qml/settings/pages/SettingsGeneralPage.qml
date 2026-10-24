@@ -119,6 +119,7 @@ Item {
                 id: themeField
                 objectName: "themeField"
                 width: parent.width
+                accessibleName: qsTranslate("SettingsPopup", "Theme")
                 options: [
                     {value: 0, label: qsTranslate("SettingsPopup", "Light"), group: "", note: "",
                      previewTheme: "light"},
@@ -162,6 +163,7 @@ Item {
                 id: qualityField
                 objectName: "glassQualityField"
                 width: parent.width
+                accessibleName: qsTranslate("SettingsPopup", "Backdrop refresh")
                 options: page.qualityOptions
                 currentValue: Controller.settings.glassQuality
                 // Each tier's note is a sentence about what it costs on this screen, which no row

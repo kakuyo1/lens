@@ -56,6 +56,7 @@ Item {
                 id: fontField
                 objectName: "fontField"
                 width: parent.width
+                accessibleName: qsTranslate("SettingsPopup", "Font")
                 editable: true
                 options: Controller.latinFontFamilies()
                 currentValue: page.settings.font
@@ -83,6 +84,7 @@ Item {
                 id: sizeField
                 objectName: "sizeField"
                 width: parent.width
+                accessibleName: qsTranslate("SettingsPopup", "Font size")
                 // A whole number of pixels, so the field's value is compared as one: the options
                 // carry ints, and the setting hands out an int.
                 options: Controller.bubbleFontSizeOptions()

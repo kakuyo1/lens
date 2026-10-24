@@ -58,6 +58,10 @@ Item {
     /// note to `optionPreview` instead.
     property bool notesInRows: true
 
+    /// What the field says about itself to the keyboard and the screen reader. The page names
+    /// it with the label it already draws beside the field; the field itself owns no words.
+    property string accessibleName: ""
+
     /// The row under the pointer, by its index in `shown`, or -1 for none.
     property int hoveredIndex: -1
     /// The window an option hovers into, created on the first hover and owned by this field.
@@ -73,6 +77,22 @@ Item {
     signal optionUnhovered()
     /// A value was typed and the reader left the field. Only ever emitted when `editable`.
     signal edited(string text)
+
+    /// The pick-only shape is one tab stop that Enter, Space and Down open; the editable shape
+    /// leaves the stop to the input inside it, which is a stop of its own.
+    activeFocusOnTab: !editable
+    Accessible.role: Accessible.ComboBox
+    Accessible.name: accessibleName !== "" ? accessibleName : (current ? current.label : "")
+    Accessible.onPressAction: if (!editable) root.toggleList()
+    Keys.onPressed: (event) => {
+        if (!editable
+                && (event.key === Qt.Key_Enter || event.key === Qt.Key_Return
+                    || event.key === Qt.Key_Space || event.key === Qt.Key_Down)
+                && !event.isAutoRepeat) {
+            event.accepted = true;
+            root.toggleList();
+        }
+    }
 
     implicitHeight: 35
 
@@ -347,7 +367,7 @@ Item {
         radius: root.tokens.radiusField
         color: root.tokens.panel2
         border.width: 1
-        border.color: root.editable && input.activeFocus ? root.tokens.ink : root.tokens.line
+        border.color: (root.editable ? input.activeFocus : root.activeFocus) ? root.tokens.ink : root.tokens.line
         scale: fieldPress.pressed || chevronPress.pressed ? 0.97 : 1.0
         Behavior on scale {
             NumberAnimation {
@@ -389,6 +409,7 @@ Item {
             color: root.tokens.text
             font.pixelSize: 13
             selectByMouse: true
+            activeFocusOnTab: true
             onTextEdited: root.filterTyped(input.text)
             onEditingFinished: {
                 if (text !== root.currentValue)
@@ -529,6 +550,14 @@ Item {
                         width: parent.width
                         height: root.rowHeight
                         radius: 8
+                        // The list window takes no focus, so the rows are pointer-driven; the
+                        // names still stand, for the screen reader's review pass.
+                        Accessible.role: Accessible.Button
+                        Accessible.name: group.modelData.label
+                        Accessible.onPressAction: {
+                            root.picked(group.modelData.value);
+                            root.closeList();
+                        }
                         color: group.modelData.value === root.currentValue ? root.tokens.ink
                              : rowPress.pressed ? root.tokens.line
                              : rowHover.hovered ? root.tokens.panel2

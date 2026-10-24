@@ -164,6 +164,17 @@ Window {
     /// are the ways out.
     readonly property bool openChildIsModal: true
 
+    /// Escape closes the panel, the way its cross does. The removal question answers it first:
+    /// its own shortcut stands while the question stands, and two application-wide shortcuts on
+    /// one key would be ambiguous. Once the question is on its way out this one takes over, so
+    /// a second Escape during its fade still closes the panel.
+    Shortcut {
+        sequence: "Escape"
+        context: Qt.ApplicationShortcut
+        enabled: words.visible && (!question.visible || question.leaving)
+        onActivated: words.visible = false
+    }
+
     /// The filter above, spelled the way exportWords() and saveWords() take it. The list and
     /// an export are the same rows seen twice, so an export follows whatever is on screen.
     readonly property var scopes: ["all", "known", "new"]
@@ -270,12 +281,14 @@ Window {
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/icons/ui-export.svg"
                         color: words.tokens.faint
+                        accessibleName: qsTranslate("WordsPopup", "Export words")
                         onTapped: saver.open()
                     }
                     IconButton {
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/icons/ui-folder.svg"
                         color: words.tokens.faint
+                        accessibleName: qsTranslate("WordsPopup", "Import words")
                         onTapped: importer.open()
                     }
 
@@ -285,12 +298,14 @@ Window {
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/icons/ui-back.svg"
                         color: words.tokens.faint
+                        accessibleName: qsTr("Back")
                         onTapped: words.backRequested()
                     }
                     IconButton {
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/icons/ui-close.svg"
                         color: words.tokens.faint
+                        accessibleName: qsTr("Close")
                         onTapped: words.visible = false
                     }
                 }

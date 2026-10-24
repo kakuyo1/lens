@@ -47,6 +47,7 @@ Item {
                 id: levelField
                 objectName: "levelField"
                 width: parent.width
+                accessibleName: qsTranslate("SettingsPopup", "Vocabulary level")
                 options: root.settings.levels
                 currentValue: root.settings.level
                 optionPreview: vocabPreviewComponent
@@ -66,6 +67,7 @@ Item {
                 id: languageField
                 objectName: "languageField"
                 width: parent.width
+                accessibleName: qsTranslate("SettingsPopup", "Explanation language")
                 options: root.settings.languages || []
                 currentValue: root.settings.explanationLang
                 onPicked: (value) => Controller.setSetting("explanationLang", value)
@@ -162,6 +164,7 @@ Item {
 
                 objectName: "reviewField"
                 width: parent.width
+                accessibleName: qsTranslate("SettingsPopup", "Word review")
                 enabled: Pet.enabled
                 opacity: Pet.enabled ? 1.0 : 0.45
                 options: root.settings.reviewFrequencyOptions

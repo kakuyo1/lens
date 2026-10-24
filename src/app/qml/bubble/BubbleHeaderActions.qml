@@ -111,7 +111,9 @@ Item {
     }
 
     // The way out before the countdown ends. It takes the same two steps the countdown takes, so the
-    // controller hears about the dismissal the same way either way.
+    // controller hears about the dismissal the same way either way. The bubble's window never takes
+    // focus (UI-SPEC.md 4.3), so its controls carry names for the screen reader's review pass but
+    // no tab stops or rings: there is no focus for either to mark.
     IconButton {
         id: closeButton
         visible: !root.bubbleWindow.preview
@@ -121,6 +123,7 @@ Item {
         anchors.topMargin: 15
         source: "qrc:/icons/ui-close.svg"
         color: root.tokens.faint
+        accessibleName: qsTr("Close")
         onTapped: {
             root.open = false;
             root.bubbleWindow.dismiss();
@@ -136,6 +139,10 @@ Item {
         anchors.verticalCenter: closeButton.verticalCenter
         width: glyph.width + code.implicitWidth + 14
         height: 22
+
+        Accessible.role: Accessible.Button
+        Accessible.name: qsTr("Explanation language")
+        Accessible.onPressAction: root.open = !root.open
 
         Rectangle {
             anchors.fill: parent

@@ -131,9 +131,13 @@ Window {
     onVisibleChanged: if (!visible)
         closePalette()
 
+    /// Escape answers the panel as a whole: the palette goes first, the year card after it. The
+    /// application-wide scope is the one the removal question's Shortcut explains.
     Shortcut {
         sequence: "Escape"
-        onActivated: if (year.paletteOpen) year.closePalette()
+        context: Qt.ApplicationShortcut
+        enabled: year.visible
+        onActivated: year.paletteOpen ? year.closePalette() : year.visible = false
     }
 
     ShadowCard {
@@ -165,6 +169,7 @@ Window {
                     anchors.verticalCenter: parent.verticalCenter
                     source: "qrc:/icons/ui-back.svg"
                     color: year.tokens.faint
+                    accessibleName: qsTr("Back")
                     onTapped: year.backRequested()
                 }
 
@@ -192,6 +197,7 @@ Window {
                     IconButton {
                         source: "qrc:/icons/ui-close.svg"
                         color: year.tokens.faint
+                        accessibleName: qsTr("Close")
                         onTapped: year.visible = false
                     }
                 }

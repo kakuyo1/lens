@@ -54,6 +54,7 @@ Row {
         anchors.verticalCenter: parent.verticalCenter
         checked: root.checked
         interactive: root.interactive
+        accessibleName: root.label
         onToggled: (on) => root.toggled(on)
     }
 }

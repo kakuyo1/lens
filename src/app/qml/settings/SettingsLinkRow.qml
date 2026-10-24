@@ -14,6 +14,18 @@ Item {
     width: parent ? parent.width : 0
     height: 44
 
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Button
+    Accessible.name: root.label + (root.note !== "" ? ", " + root.note : "")
+    Accessible.onPressAction: root.picked()
+    Keys.onPressed: (event) => {
+        if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return || event.key === Qt.Key_Space)
+                && !event.isAutoRepeat) {
+            event.accepted = true;
+            root.picked();
+        }
+    }
+
     Rectangle {
         anchors.fill: parent
         // The press reads through the fill rather than a scale: the row is a band the width of
@@ -53,6 +65,8 @@ Item {
         color: root.tokens.faint
         font.pixelSize: 20
     }
+
+    FocusRing { radius: root.tokens.radiusField + 4 }
 
     HoverHandler {
         id: hover

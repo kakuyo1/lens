@@ -49,6 +49,7 @@ Item {
                     color: page.tokens.text
                     font.pixelSize: 13
                     selectByMouse: true
+                    activeFocusOnTab: true
                     onTextEdited: page.apiEdited(text)
                     onEditingFinished: {
                         page.apiCommitted();
@@ -105,6 +106,7 @@ Item {
                     color: page.tokens.text
                     font.pixelSize: 12
                     selectByMouse: true
+                    activeFocusOnTab: true
                     onEditingFinished: Controller.setApiUrl(text)
                 }
             }

@@ -76,5 +76,32 @@ Item {
             mouseClick(clickable, clickable.width / 2, clickable.height / 2);
             compare(taps, 1);
         }
+
+        /// The keyboard half: only the drill-down rows answer keys, the plain figures are text.
+        function test_returnTapsOnlyAClickableRow() {
+            const drill = make({ clickable: true });
+            let taps = 0;
+            drill.tapped.connect(function () { taps++; });
+            host.requestActivate();
+            tryVerify(function () { return host.active; });
+            drill.forceActiveFocus();
+            tryVerify(function () { return drill.activeFocus; });
+            keyClick(Qt.Key_Return);
+            compare(taps, 1, "Return left the drill-down unpressed");
+            compare(drill.activeFocusOnTab, true);
+
+            const plain = make({ clickable: false });
+            plain.forceActiveFocus();
+            keyClick(Qt.Key_Return);
+            compare(plain.activeFocusOnTab, false, "a plain figure is offered to Tab");
+        }
+
+        /// The screen-reader half: one line -- label, note, figure -- and the clickable ones
+        /// say they press.
+        function test_theRowReadsAsOneNamedLine() {
+            compare(make({ note: "2k tokens" }).Accessible.name, "Known, 2k tokens, 128");
+            compare(make({ clickable: true }).Accessible.role, Accessible.Button);
+            compare(make({ clickable: false }).Accessible.role, Accessible.StaticText);
+        }
     }
 }

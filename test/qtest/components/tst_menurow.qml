@@ -58,5 +58,30 @@ Item {
 
             compare(picks, 1);
         }
+
+        /// The keyboard half: Return and Space press the row the pointer never touched.
+        function test_returnAndSpacePickTheRow() {
+            const row = make({});
+            let picks = 0;
+            row.picked.connect(function () { picks++; });
+            host.requestActivate();
+            tryVerify(function () { return host.active; });
+            row.forceActiveFocus();
+            tryVerify(function () { return row.activeFocus; });
+
+            keyClick(Qt.Key_Return);
+            compare(picks, 1, "Return left the row unpressed");
+
+            keyClick(Qt.Key_Space);
+            compare(picks, 2, "Space left the row unpressed");
+        }
+
+        /// The value on the right is part of the row's name, so a reader is told the day's
+        /// tally and not just the word "Statistics".
+        function test_theNameCarriesTheValueOnTheRight() {
+            compare(make({}).Accessible.name, "Settings");
+            compare(make({ note: "128 words" }).Accessible.name, "Settings, 128 words");
+            compare(make({}).Accessible.role, Accessible.Button);
+        }
     }
 }

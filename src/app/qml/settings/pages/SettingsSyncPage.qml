@@ -212,6 +212,7 @@ Item {
                         color: page.tokens.text
                         font.pixelSize: 13
                         selectByMouse: true
+                        activeFocusOnTab: true
                     }
                 }
 

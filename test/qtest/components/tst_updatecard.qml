@@ -59,6 +59,17 @@ Item {
             compare(shown.skipped(), 0, "the cross wrote a skip");
         }
 
+        /// Escape is the cross: the card goes down and nothing is asked for. The card's window
+        /// takes no focus, so the shortcut answers application-wide, the way the removal
+        /// question's does.
+        function test_escapeTakesTheCardDownWithoutAskingForAnything() {
+            const shown = opened();
+            keyClick(Qt.Key_Escape);
+            tryCompare(shown.card, "visible", false);
+            compare(shown.viewed(), 0, "Escape opened the release page");
+            compare(shown.skipped(), 0, "Escape wrote a skip");
+        }
+
         /// The pill carrying one of the card's action labels, pressed where a reader would press it.
         function pressLabel(card, label) {
             const text = Util.textWith(Util.textsUnder(card), [label]);

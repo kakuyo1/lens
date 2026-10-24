@@ -343,6 +343,7 @@ Window {
                     height: 16
                     source: "qrc:/icons/ui-back.svg"
                     color: settings.tokens.muted
+                    accessibleName: qsTranslate("SettingsPopup", "Back")
                     onTapped: settings.navigateBack()
                 }
             }
@@ -398,6 +399,7 @@ Window {
                     height: 16
                     source: "qrc:/icons/ui-close.svg"
                     color: settings.tokens.faint
+                    accessibleName: qsTranslate("SettingsPopup", "Close")
                     onTapped: settings.visible = false
                 }
             }

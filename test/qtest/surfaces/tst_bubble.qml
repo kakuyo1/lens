@@ -191,5 +191,31 @@ Item {
             compare(metaOf(bubble).visible, false, "a bubble with no countdown still drew its clock");
             verify(Util.saveSnapshot(testCase, surfaceOf(bubble), lensQaSnapshotDir, "bubble-review"));
         }
+
+        /// The bubble's window never takes focus (UI-SPEC.md 4.3), so a screen reader reaches it
+        /// by review rather than by focus. This case walks the surface's item tree the way the
+        /// platform bridge does -- the no-focus contract is the flag the window is shown with --
+        /// and asks that every pressable thing carries a name: the two verdicts, the close cross,
+        /// the chain's words.
+        function test_theSurfaceNamesItsPressablesWithoutTakingFocus() {
+            const bubble = opened();
+            const surface = surfaceOf(bubble);
+            tryVerify(function () { return !bubble.revealing; }, 8000);
+
+            const names = [];
+            Util.findAll(surface, function (o) {
+                if (o.Accessible !== undefined && o.Accessible.role === Accessible.Button)
+                    names.push(String(o.Accessible.name));
+                return false;
+            });
+
+            verify((bubble.flags & Qt.WindowDoesNotAcceptFocus) !== 0,
+                   "the bubble dropped the flag that keeps it from taking focus");
+            verify(names.indexOf("Known") >= 0, "the Known verdict is unnamed: " + names);
+            verify(names.indexOf("New") >= 0, "the New verdict is unnamed: " + names);
+            verify(names.indexOf("Close") >= 0, "the close cross is unnamed: " + names);
+            verify(names.every(function (n) { return n !== ""; }),
+                   "a pressable thing on the card carries no name at all");
+        }
     }
 }

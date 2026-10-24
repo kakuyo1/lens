@@ -96,6 +96,7 @@ Item {
                 id: styleField
                 objectName: "selectionBarStyle"
                 width: parent.width
+                accessibleName: qsTranslate("SettingsPopup", "Selection bar style")
                 options: [
                     {value: "bar", label: qsTranslate("SettingsPopup", "Classic bar"),
                      group: "", note: "", previewStyle: "bar"},
@@ -198,6 +199,7 @@ Item {
                 id: lengthField
                 objectName: "minimumWordLength"
                 width: parent.width
+                accessibleName: qsTranslate("SettingsPopup", "Minimum word length")
                 options: [
                     {value: 2, label: "2", group: "", note: ""},
                     {value: 3, label: "3", group: "", note: ""},
