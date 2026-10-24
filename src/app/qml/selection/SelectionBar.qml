@@ -42,6 +42,10 @@ Window {
         return ["bar", "tab", "hand", "tag", "fan"].indexOf(value) >= 0 ? value : "bar";
     }
 
+    /// The body in force, whichever form that is: the surface-level tests reach the press
+    /// gestures and the geometry through it.
+    readonly property alias bodyItem: bodyLoader.item
+
     /// The tab's side and the tag's string edge, chosen by SurfaceHost.qml before the bar is placed.
     property bool sideLeft: false
     property bool tagAbove: false

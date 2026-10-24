@@ -466,8 +466,10 @@ Window {
                         // grid; see the tab's fold above.
                         preferredRendererType: Shape.CurveRenderer
 
+                        // The three blades share one fill (UI-SPEC.md 4.10); the seams below are
+                        // the only boundary between them.
                         ShapePath {
-                            fillColor: root.barFill2
+                            fillColor: root.barFill
                             strokeColor: "transparent"
                             startX: 73
                             startY: 88
@@ -485,7 +487,7 @@ Window {
                             PathLine { x: 73; y: 88 }
                         }
                         ShapePath {
-                            fillColor: root.barFill2
+                            fillColor: root.barFill
                             strokeColor: "transparent"
                             startX: 73
                             startY: 88

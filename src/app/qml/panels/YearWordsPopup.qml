@@ -28,9 +28,11 @@ Window {
     readonly property int shadowMargin: 26
     readonly property int cardWidth: 380
     readonly property int weekCount: 53
-    readonly property int weekdayWidth: 15
-    readonly property int gridGap: 4
-    readonly property int cellGap: 1
+    // The weekday column is as wide as its 11 px labels; with the grid gap the 53 columns of
+    // 4 px cells then fill the card's content width exactly.
+    readonly property int weekdayWidth: 22
+    readonly property int gridGap: 2
+    readonly property int cellGap: 2
     readonly property int cellSize: Math.max(3, Math.floor((cardWidth - 40 - weekdayWidth - gridGap - (weekCount - 1) * cellGap) / weekCount))
     readonly property int graphHeight: cellSize * 7 + cellGap * 6
     readonly property var days: Controller.yearDays
@@ -188,12 +190,6 @@ Window {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 4
 
-                    Text {
-                        text: qsTr("365 days")
-                        color: year.tokens.faint
-                        font.family: year.tokens.monoFamily
-                        font.pixelSize: 10
-                    }
                     IconButton {
                         source: "qrc:/icons/ui-close.svg"
                         color: year.tokens.faint
@@ -212,9 +208,11 @@ Window {
                 Text {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
+                    // The 365-day span is the graph's own caption and rides in the default
+                    // label; the day readout replaces it once a cell is selected.
                     text: year.selectedDay
                           ? qsTr("%1: %2 lookups").arg(year.selectedDay.date).arg(year.selectedDay.pops)
-                          : qsTr("Words explained")
+                          : qsTr("Words explained · 365 days")
                     color: year.tokens.muted
                     font.pixelSize: 11
                 }
@@ -243,7 +241,7 @@ Window {
                 Item {
                     id: monthLabels
                     width: parent.width
-                    height: 12
+                    height: 14
 
                     Repeater {
                         model: year.weekCount
@@ -257,7 +255,7 @@ Window {
                             text: label
                             color: year.tokens.faint
                             font.family: year.tokens.monoFamily
-                            font.pixelSize: 8
+                            font.pixelSize: 11
                         }
                     }
                 }
@@ -281,7 +279,7 @@ Window {
                                 visible: index === 1 || index === 3 || index === 5
                                 text: index === 1 ? qsTr("Mon") : index === 3 ? qsTr("Wed") : qsTr("Fri")
                                 color: year.tokens.faint
-                                font.pixelSize: 8
+                                font.pixelSize: 11
                                 verticalAlignment: Text.AlignVCenter
                             }
                         }
@@ -330,7 +328,7 @@ Window {
                     y: gridRow.y + gridRow.height + 7
                     spacing: 3
 
-                    Text { text: qsTr("Less"); color: year.tokens.faint; font.pixelSize: 8 }
+                    Text { text: qsTr("Less"); color: year.tokens.faint; font.pixelSize: 11 }
                     Repeater {
                         model: 5
                         delegate: Rectangle {
@@ -347,7 +345,7 @@ Window {
                             TapHandler { onTapped: year.toggleLevel(legendCell.index) }
                         }
                     }
-                    Text { text: qsTr("More"); color: year.tokens.faint; font.pixelSize: 8 }
+                    Text { text: qsTr("More"); color: year.tokens.faint; font.pixelSize: 11 }
                 }
             }
 
@@ -559,7 +557,7 @@ Window {
                             width: parent.width - 8
                             text: year.hues[year.hueIndex].name
                             color: year.tokens.muted
-                            font.pixelSize: 9
+                            font.pixelSize: 11
                             horizontalAlignment: Text.AlignHCenter
                             elide: Text.ElideRight
                         }
@@ -599,7 +597,7 @@ Window {
                                 width: parent.width
                                 text: shadeCell.index === 0 ? qsTr("Light") : shadeCell.index === 3 ? qsTr("Dark") : String(shadeCell.index + 1)
                                 color: year.tokens.faint
-                                font.pixelSize: 8
+                                font.pixelSize: 11
                                 horizontalAlignment: Text.AlignHCenter
                             }
                         }

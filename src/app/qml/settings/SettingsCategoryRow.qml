@@ -39,7 +39,9 @@ Item {
 
     Column {
         anchors.left: parent.left
-        anchors.leftMargin: 9
+        // The text sits on the page's own left edge, the one every labelled control and link row
+        // on the pages starts from (UI-SPEC.md 4.4).
+        anchors.leftMargin: 0
         anchors.verticalCenter: parent.verticalCenter
         spacing: 3
 

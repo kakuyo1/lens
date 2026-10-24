@@ -54,7 +54,7 @@ Item {
             enter = 0;
             enterAnim.restart();
         } else {
-            // The pressed card keeps falling through the window's exit fade; the timer clears it.
+            // The tossed card keeps fading through the window's exit fade; the timer clears it.
             enterAnim.stop();
         }
     }
@@ -98,17 +98,21 @@ Item {
                 property real hoverLift: hover.hovered ? -6 : 0
                 property real hoverScale: hover.hovered ? 1.035 : 1
                 property real hoverTurn: hover.hovered ? 0 : 1
+                // The press is a toss: the card lifts off the hand and fades as it goes (UI-SPEC.md 4.10).
+                property real pressRise: root.flashing === slot.modelData.action ? -14 : 0
+                property real pressFade: root.flashing === slot.modelData.action ? 0 : 1
 
                 x: slot.index * 77
                 width: 84
                 height: 64
                 z: hover.hovered ? 5 : (slot.index === 1 ? 3 : (slot.index === 0 ? 1 : 2))
-                opacity: slot.progress * (root.flashing === slot.modelData.action ? 0 : 1)
+                opacity: slot.progress * slot.pressFade
 
                 transform: [
                     Translate {
                         x: (1 - slot.progress) * root.dealX[slot.index]
-                        y: (1 - slot.progress) * 10 + root.cardY[slot.index] * slot.progress + slot.hoverLift
+                        y: (1 - slot.progress) * 10 + root.cardY[slot.index] * slot.progress
+                           + slot.hoverLift + slot.pressRise
                     },
                     Rotation {
                         origin.x: 42
@@ -141,6 +145,18 @@ Item {
                         easing.type: root.tokens.motion.easing
                     }
                 }
+                Behavior on pressRise {
+                    NumberAnimation {
+                        duration: root.tokens.motion.press
+                        easing.type: root.tokens.motion.easing
+                    }
+                }
+                Behavior on pressFade {
+                    NumberAnimation {
+                        duration: root.tokens.motion.press
+                        easing.type: root.tokens.motion.easing
+                    }
+                }
 
                 Rectangle {
                     id: shadowShape
@@ -164,7 +180,7 @@ Item {
                 Rectangle {
                     id: face
                     anchors.fill: parent
-                    radius: 10
+                    radius: root.tokens.radiusGroup
                     color: root.tokens.glassMode !== "" ? "transparent"
                          : hover.hovered ? root.tokens.panel
                          : root.tokens.panel2

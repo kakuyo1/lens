@@ -68,5 +68,55 @@ Item {
             // The tap starts the fade; the window goes when the fade has run (SurfaceFade.qml).
             tryCompare(bar, "visible", false, 1000, "the bar stayed up after one of its items was tapped");
         }
+
+        /// @return The bar, up in @p style. The stored style is left as the test found it only
+        ///         when the test runs to its end, so these cases stay last in the file.
+        function openedWithStyle(style) {
+            Controller.setSetting("selectionBarStyle", style);
+            const bar = createTemporaryObject(barComponent, root);
+            verify(bar);
+            bar.selectionKind = "word";
+            bar.open();
+            wait(50);
+            return bar;
+        }
+
+        function test_theTabItemShiftsAwayFromItsSpine() {
+            const bar = openedWithStyle("tab");
+            const body = bar.bodyItem;
+            verify(body);
+            // The staggered entrance slides the items along the same x; it has to have settled
+            // before the shift's direction can be read on its own.
+            wait(500);
+
+            const item = itemsOf(bar)[0];
+            bar.sideLeft = false;
+            body.playPress("translate");
+            tryVerify(function () { return item.transform[0].x > 5; }, 1000,
+                      "a press on the right-side tab should send the item outward, to the right");
+            wait(250);
+
+            bar.sideLeft = true;
+            body.playPress("translate");
+            tryVerify(function () { return item.transform[0].x < -5; }, 1000,
+                      "with the tab flipped to the left the same press should lift the other way");
+            Controller.setSetting("selectionBarStyle", "bar");
+        }
+
+        function test_thePressedCardTossesUpAndFades() {
+            const bar = openedWithStyle("hand");
+            // The hand's label sits a level deeper than the rows do -- inside the card's face --
+            // so the tossed card is reached by the property only its slot carries.
+            const card = Util.findAll(bar, function (o) { return o.pressFade !== undefined; })[0];
+            verify(card, "the hand dealt no card");
+            // The dealing entrance ends in the card at rest, fully opaque.
+            wait(600);
+
+            compare(card.opacity, 1.0);
+            bar.bodyItem.playPress("translate");
+            tryVerify(function () { return card.opacity < 0.9 && card.transform[0].y < 0; }, 1000,
+                      "the pressed card should lift off the hand and fade as it is tossed");
+            Controller.setSetting("selectionBarStyle", "bar");
+        }
     }
 }

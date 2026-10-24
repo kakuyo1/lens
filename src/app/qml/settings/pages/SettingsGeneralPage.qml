@@ -389,7 +389,7 @@ Item {
 
             Rectangle {
                 width: parent.width
-                height: 35
+                height: 27
                 radius: page.tokens.radiusPill
                 color: page.contrast.valid ? page.tokens.ink : page.tokens.panel2
                 opacity: page.contrast.valid ? 1 : 0.58

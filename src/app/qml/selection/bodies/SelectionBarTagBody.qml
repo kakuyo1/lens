@@ -184,7 +184,7 @@ Item {
             id: card
             width: row.width + 39
             height: row.height + 12
-            radius: 12
+            radius: root.tokens.radiusMenu
             color: root.tokens.glassMode === "" ? root.tokens.panel : "transparent"
             border.width: 1
             // Under glass the rim is the only edge (DESIGN.md 3.1c).
@@ -216,7 +216,7 @@ Item {
 
                         width: itemRow.width + 18
                         height: itemRow.height + 14
-                        radius: 8
+                        radius: root.tokens.radiusField
                         color: hover.hovered ? root.tokens.panel2 : "transparent"
                         opacity: root.flashing === item.modelData.action ? 0.55 : 1
                         scale: press.pressed ? 0.97 : 1

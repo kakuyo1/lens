@@ -37,7 +37,7 @@ Item {
             Text {
                 text: qsTranslate("SettingsPopup", "Trigger channels")
                 color: root.tokens.muted
-                font.pixelSize: 11
+                font.pixelSize: 12
             }
             Rectangle {
                 width: parent.width
@@ -90,7 +90,7 @@ Item {
             Text {
                 text: qsTranslate("SettingsPopup", "Selection bar style")
                 color: root.tokens.muted
-                font.pixelSize: 11
+                font.pixelSize: 12
             }
             DropdownField {
                 id: styleField
@@ -120,7 +120,7 @@ Item {
         Column {
             width: parent.width
             spacing: 7
-            Text { text: qsTranslate("SettingsPopup", "OCR trigger key"); color: root.tokens.muted; font.pixelSize: 11 }
+            Text { text: qsTranslate("SettingsPopup", "OCR trigger key"); color: root.tokens.muted; font.pixelSize: 12 }
             HotkeyField {
                 id: hotkeyField
                 width: parent.width

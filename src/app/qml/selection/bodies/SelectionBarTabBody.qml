@@ -144,12 +144,14 @@ Item {
 
                     width: itemRow.width + 20
                     height: itemRow.height + 14
-                    radius: 8
+                    radius: root.tokens.radiusField
                     color: hover.hovered ? root.tokens.panel2 : "transparent"
                     opacity: item.progress * (root.flashing === item.modelData.action ? 0.55 : 1)
                     scale: press.pressed ? 0.97 : 1
                     transform: Translate {
-                        x: (1 - item.progress) * 8 + item.hoverShift + item.flashShift
+                        // The shift lifts the item away from the spine, so its direction flips
+                        // with the side the tab ended up on.
+                        x: (1 - item.progress) * 8 + (root.sideLeft ? -1 : 1) * (item.hoverShift + item.flashShift)
                     }
 
                     Behavior on hoverShift {

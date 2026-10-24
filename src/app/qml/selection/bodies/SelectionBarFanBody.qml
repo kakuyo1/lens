@@ -69,15 +69,14 @@ Item {
     // fill is repainted from these bindings every time the theme changes, so a fan first shown
     // in one theme cannot keep the colours of another.
     readonly property bool glass: root.tokens.glassMode !== ""
-    readonly property color restSide: root.glass ? root.tokens.panel2
-                                           : (root.tokens.dark ? root.tokens.panel2 : root.tokens.bg)
-    readonly property color restCenter: root.glass ? "transparent" : root.tokens.panel
+    // Three blades of one fill; the 1 px seams are the only boundary, so the three actions read
+    // as equals, and hover picks one blade out with the tint (UI-SPEC.md 4.10).
+    readonly property color restBlade: root.glass ? "transparent" : root.tokens.panel
     readonly property color hoverTint: Qt.rgba(18 / 255, 24 / 255, 36 / 255, 0.12)
-    readonly property color hoverSide: root.glass ? root.hoverTint : root.tokens.panel
-    readonly property color hoverCenter: root.glass ? root.hoverTint : root.tokens.panel2
-    readonly property color bladeLeft: root.hovered === 0 ? root.hoverSide : root.restSide
-    readonly property color bladeCenter: root.hovered === 1 ? root.hoverCenter : root.restCenter
-    readonly property color bladeRight: root.hovered === 2 ? root.hoverSide : root.restSide
+    readonly property color hoverBlade: root.glass ? root.hoverTint : root.tokens.panel2
+    readonly property color bladeLeft: root.hovered === 0 ? root.hoverBlade : root.restBlade
+    readonly property color bladeCenter: root.hovered === 1 ? root.hoverBlade : root.restBlade
+    readonly property color bladeRight: root.hovered === 2 ? root.hoverBlade : root.restBlade
     /// The white rim the other glass cards get from GlassSurface. The fan cannot use that
     /// rounded-rect rim, so it is drawn along the pentagon's own edge from the same setting.
     readonly property real rim: root.tokens.glassMode === "liquid" ? Controller.settings.liquidRim
@@ -376,8 +375,8 @@ Item {
 
                 Icon {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    width: 16
-                    height: 16
+                    width: 15
+                    height: 15
                     source: face.modelData.source
                     color: root.tokens.muted
                 }
@@ -388,6 +387,7 @@ Item {
                     textFormat: Text.PlainText
                     color: root.tokens.text
                     font.pixelSize: 12
+                    font.weight: Font.Bold
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
                     lineHeight: 1.2

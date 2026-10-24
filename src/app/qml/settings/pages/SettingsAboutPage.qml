@@ -146,7 +146,7 @@ Item {
                 anchors.rightMargin: 12
                 anchors.verticalCenter: parent.verticalCenter
                 width: checkLabel.width + 26
-                height: 26
+                height: 27
                 radius: page.tokens.radiusPill
                 color: page.tokens.ink
                 opacity: page.updatesBusy ? 0.58 : 1
