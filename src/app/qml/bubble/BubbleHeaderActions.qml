@@ -3,8 +3,9 @@ import QtQuick
 /**
  * The bubble's header controls (UI-SPEC.md 4.3): the close cross and, to its left, the explanation
  * language shortcut, on the card the reader cannot read. It unfolds the catalog's languages in a
- * strip under the header; a pick changes the explanation language and asks for the standing card
- * again (Controller.reexplainIn), from the cache when the new language has one. A translation has
+ * strip under the header; a pick changes the explanation language and asks the standing card again
+ * (Controller.reexplainIn), or the chain step being read when the reader has drilled down
+ * (Controller.reexplainChainIn), from the cache when the new language has one. A translation has
  * no second language, and a card the word list owns goes away with the pointer, so neither offers
  * the shortcut.
  *
@@ -97,7 +98,13 @@ Item {
                 root.open = false;
                 if (picked !== root.language) {
                     root.bubbleWindow.beginLanguageReplay();
-                    Controller.reexplainIn(picked);
+                    const steps = root.bubbleWindow.chainSteps;
+                    // A step is what the reader is reading: asking for the card's own word would
+                    // walk them back up the chain they came down.
+                    if (!root.bubbleWindow.atRoot && steps.entry)
+                        steps.reexplain(picked, steps.entry.title);
+                    else
+                        Controller.reexplainIn(picked);
                 }
             }
         }

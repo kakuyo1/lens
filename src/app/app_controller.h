@@ -131,6 +131,16 @@ public:
      * alone.
      */
     Q_INVOKABLE void reexplainIn(QString language);
+    /**
+     * @brief The bubble's language shortcut on a chain step: write the language and ask that step again.
+     *
+     * The same setting write as reexplainIn(), but what is asked again is the step the reader is
+     * reading, not the word the chain started from. The steps above it and the breadcrumb stay.
+     *
+     * @param language The language picked from the card's strip.
+     * @param lemma    The word the drawn chain step stands on.
+     */
+    Q_INVOKABLE void reexplainChainIn(QString language, QString lemma);
     /// @return Every family on this machine that draws Latin, as DropdownField options, sorted.
     Q_INVOKABLE QVariantList latinFontFamilies() const;
     /// @return The sizes the font page offers, as DropdownField options: the default marked.

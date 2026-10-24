@@ -49,6 +49,9 @@ struct PendingSelection {
     /// @brief Whether this request is a step of the definition chain. Its answer goes onto the chain under
     ///        the card, and never onto the card itself.
     bool chain = false;
+    /// @brief Whether this chain step is the one drawn, asked again because the explanation language
+    ///        changed. Its answer replaces that step instead of adding another one under it.
+    bool replay = false;
     /// @brief For a chain step, the word the card stands on. A step answers only while that is still the word
     ///        showing, so a step asked from a card the reader has since moved on from is dropped.
     QString parent;

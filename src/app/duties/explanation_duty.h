@@ -94,6 +94,17 @@ public:
      */
     Q_INVOKABLE void explainChainWord(QString lemma);
     /**
+     * @brief Ask again for the chain step standing, under the explanation language now in force.
+     *
+     * The bubble's language shortcut changes the setting first and then calls this (AppController).
+     * The answer replaces the step that is drawn, and the steps above it stay: the reader was
+     * reading this word, not the one the chain started from. A copy already stored in the new
+     * language is put up without a request; otherwise the step is asked for once more.
+     *
+     * @param lemma The word the drawn step stands on.
+     */
+    Q_INVOKABLE void reexplainChainStep(QString lemma);
+    /**
      * @brief Put a reason card up where no explanation can be.
      * @param title  What the notice is about.
      * @param body   Reader-facing reason, already translated.
@@ -168,6 +179,8 @@ private:
     /// A display switch only: the field was bought with the definition and stays in the cache;
     /// this decides whether the payload carries it to the card.
     bool showsCardBlock(char const* key) const;
+    /// @brief Put one chain step through the cache, the budget gate and the queue.
+    void askChainStep(PendingSelection pending);
     /// @return Whether the card still stands on the word a chain step was asked from.
     bool chainStanding(PendingSelection const& selection) const;
     /// @return The chain entry for one answered step, in the explanation language, with its links.

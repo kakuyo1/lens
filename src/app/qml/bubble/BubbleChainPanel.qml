@@ -77,12 +77,24 @@ Item {
         Controller.explanationDuty.explainChainWord(lemma);
     }
 
+    /// @brief Ask again for the step drawn, in @p language, replacing it where it stands.
+    /// The step above stays on the trail, and a step still in the air is given up: its answer is
+    /// in the language the reader has just left.
+    function reexplain(language, lemma) {
+        root.failed = false;
+        root.pending = lemma;
+        Controller.reexplainChainIn(language, lemma);
+    }
+
     /// @brief A step's answer. One for another word is not the step waited for: the reader went back meanwhile.
     function receive(answer) {
         if (answer.title !== root.pending)
             return;
         root.pending = "";
-        root.chain = root.chain.concat([answer]);
+        if (answer.replay === true)
+            root.chain = root.chain.slice(0, -1).concat([answer]);
+        else
+            root.chain = root.chain.concat([answer]);
     }
 
     /// @brief A step that could not be answered, for the word it was asked for.

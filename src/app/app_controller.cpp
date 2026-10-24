@@ -444,6 +444,14 @@ void AppController::reexplainIn(QString language)
     explanation_.reexplain();
 }
 
+void AppController::reexplainChainIn(QString language, QString lemma)
+{
+    if (language.isEmpty() or language == QString::fromStdString(storage_.knownStore().explanationLang()))
+        return;
+    setSetting(QStringLiteral("explanationLang"), language);
+    explanation_.reexplainChainStep(std::move(lemma));
+}
+
 QVariantList AppController::latinFontFamilies() const
 {
     // Latin only: this is the face English is read in, and a family with no Latin cannot even

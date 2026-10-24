@@ -385,6 +385,61 @@ TEST_F(LlmTest, Phase2TheBubbleLanguageShortcutReasksTheStandingCardAndKeepsItsS
         << "the cached language switch was put up whole instead of written out again";
 }
 
+TEST_F(LlmTest, Phase2ALanguageSwitchOnAChainStepAsksThatStepAgainInPlace)
+{
+    QtApplication qt;
+    Rig           rig;
+
+    QVector<QVariantMap> steps;
+    QObject::connect(&rig.duty, &app::ExplanationDuty::chainAnswered, [&](QVariantMap entry) { steps.push_back(std::move(entry)); });
+
+    auto const settle = [&rig] {
+        QEventLoop loop;
+        QObject::connect(&rig.client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
+        QObject::connect(&rig.client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
+        QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+        loop.exec();
+    };
+
+    rig.manager.response = envelope({plainWord("bank")});
+    rig.explain("bank");
+
+    auto step            = plainWord("knack");
+    step["en"]           = "a clever trick";
+    step["zh"]           = "窍门";
+    rig.manager.response = envelope({step});
+    rig.duty.explainChainWord("knack");
+    settle();
+    ASSERT_EQ(steps.size(), 1);
+    EXPECT_EQ(steps.front().value("title").toString(), QStringLiteral("knack"));
+    EXPECT_EQ(steps.front().value("text").toString(), QStringLiteral("a clever trick"));
+    EXPECT_FALSE(steps.front().contains("replay")) << "a first drill was marked as a language replay";
+    EXPECT_EQ(rig.manager.posts, 2);
+
+    // The shortcut on a drilled card asks for the step drawn, not for the card's own word: the
+    // answer replaces that step, and the card behind it is left alone.
+    rig.store.setExplanationLang("zh");
+    rig.duty.reexplainChainStep("knack");
+    settle();
+    ASSERT_EQ(steps.size(), 2);
+    EXPECT_EQ(steps.back().value("title").toString(), QStringLiteral("knack"));
+    EXPECT_EQ(steps.back().value("text").toString(), QStringLiteral("窍门"));
+    EXPECT_EQ(steps.back().value("replay").toBool(), true) << "the replayed step would be added under the one it replaces";
+    EXPECT_EQ(rig.manager.posts, 3) << "the step was not asked again";
+    EXPECT_TRUE(rig.manager.posted.contains("Chinese")) << "the step was not asked for in the new language";
+    EXPECT_EQ(rig.duty.bubble().value("title").toString(), QStringLiteral("bank"));
+    EXPECT_EQ(rig.duty.bubble().value("en").toString(), QStringLiteral("English"))
+        << "the shortcut walked the card back up to its own word";
+
+    // A language already paid for for this step is put up without a request.
+    rig.store.setExplanationLang("en");
+    rig.duty.reexplainChainStep("knack");
+    EXPECT_EQ(rig.manager.posts, 3) << "a stored step was bought a second time";
+    ASSERT_EQ(steps.size(), 3);
+    EXPECT_EQ(steps.back().value("text").toString(), QStringLiteral("a clever trick"));
+    EXPECT_EQ(steps.back().value("replay").toBool(), true);
+}
+
 TEST_F(LlmTest, Phase2TheEtymologySettingBringsTheOriginAlongAndKeepsItOutOfTheKey)
 {
     QtApplication qt;

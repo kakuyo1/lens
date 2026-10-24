@@ -291,18 +291,36 @@ void ExplanationDuty::explainChainWord(QString lemma)
     const QString value = lemma.trimmed();
     if (value.isEmpty() or bubble_.isEmpty())
         return;
-    PendingSelection pending{.anchor  = bubbleSubject_.anchor,
-                             .kind    = core::SelectionKind::Word,
-                             .surface = value,
-                             .lemma   = value,
-                             .chain   = true,
-                             .parent  = bubble_.value("title").toString()};
+    askChainStep(PendingSelection{.anchor  = bubbleSubject_.anchor,
+                                  .kind    = core::SelectionKind::Word,
+                                  .surface = value,
+                                  .lemma   = value,
+                                  .chain   = true,
+                                  .parent  = bubble_.value("title").toString()});
+}
+
+void ExplanationDuty::reexplainChainStep(QString lemma)
+{
+    const QString value = lemma.trimmed();
+    if (value.isEmpty() or bubble_.isEmpty())
+        return;
+    askChainStep(PendingSelection{.anchor  = bubbleSubject_.anchor,
+                                  .kind    = core::SelectionKind::Word,
+                                  .surface = value,
+                                  .lemma   = value,
+                                  .chain   = true,
+                                  .replay  = true,
+                                  .parent  = bubble_.value("title").toString()});
+}
+
+void ExplanationDuty::askChainStep(PendingSelection pending)
+{
     // Out of budget with nothing stored: explain() would drop the step without a word, and the card would
     // wait on it for ever. Say so, and the card shows the failure where the answer would have gone.
     const auto context = cache_.contextFor(core::SelectionKind::Word);
     if (not cost_.canRequest()) {
         if (not showStored(pending, context))
-            emit chainFailed(value);
+            emit chainFailed(pending.lemma);
         return;
     }
     explain(pending);
@@ -449,8 +467,12 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
     // A step of the chain goes onto the chain under the card and leaves the card alone: its text, its
     // verdict and its countdown are the card's own, and a step asked from a card that has moved on is dropped.
     if (selection.chain) {
-        if (chainStanding(selection))
-            emit chainAnswered(chainEntry(explanation, context));
+        if (chainStanding(selection)) {
+            QVariantMap entry = chainEntry(explanation, context);
+            if (selection.replay)
+                entry.insert(QStringLiteral("replay"), true);
+            emit chainAnswered(entry);
+        }
         return;
     }
     auto const selected = [&](QString const& en, QString const& zh, QString const& translation) {
