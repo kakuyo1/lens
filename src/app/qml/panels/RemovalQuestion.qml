@@ -66,13 +66,12 @@ Window {
     readonly property int minCardWidth: 320
     readonly property int maxCardWidth: 460
 
-    /// Whether this answer also settles the asking. On at the run's first question, so one removal
-    /// a run is asked about; the reader turns it off to be asked about the ones after, and it stays
-    /// where they left it.
+    /// Whether this answer also settles the asking. Off, so an irreversible removal is asked about
+    /// every time until the reader chooses otherwise; once chosen it stays where they left it.
     ///
     /// Not reset per question on purpose: `components/Switch.qml` writes its `checked` itself when
     /// tapped, so writing it from elsewhere leaves the switch and the decision disagreeing.
-    property bool dontAsk: true
+    property bool dontAsk: false
 
     /// As wide as the sentence needs and no wider, like the panel's widest row: 320 px floor, and
     /// past 460 a long word or translation wraps rather than widening the card off the screen.
@@ -264,7 +263,7 @@ Window {
                             id: removeLabel
                             anchors.centerIn: parent
                             text: qsTranslate("WordsPopup", "Remove")
-                            color: root.tokens.text
+                            color: root.tokens.danger
                             font.pixelSize: 12
                             font.weight: Font.Bold
                         }

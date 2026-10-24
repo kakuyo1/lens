@@ -128,6 +128,23 @@ Item {
             card.visible = false;
         }
 
+        /// Only Download and Install wear ink. View is a way out, not the card's main act, so it
+        /// takes the secondary recipe: panel2 fill with the ordinary text colour.
+        function test_viewIsSecondaryRatherThanInk() {
+            const card = opened().card;
+            const view = Util.findAll(card, function (o) {
+                return o.objectName === "viewButton";
+            })[0];
+            verify(view, "the card has no View button");
+            compare(view.color.toString(), card.tokens.panel2.toString(),
+                    "View is still wearing the primary fill");
+            const label = Util.textWith(Util.textsUnder(card), ["View"]);
+            verify(label, "the View pill has no label");
+            compare(label.color.toString(), card.tokens.text.toString(),
+                    "View's label is not the ordinary text colour");
+            card.visible = false;
+        }
+
         /// The card shows nothing about a download until one is asked for: the controller is
         /// idle in this case, so the line is empty and there is no primary button at all.
         function test_anIdleCardShowsNoDownloadLine() {

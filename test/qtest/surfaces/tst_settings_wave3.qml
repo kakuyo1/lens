@@ -120,6 +120,15 @@ Item {
             const defaults = Util.textWith(Util.textsUnder(panel), ["Defaults"]);
             verify(defaults, "the settings panel has no Defaults action");
             mouseClick(defaults.parent, defaults.parent.width / 2, defaults.parent.height / 2);
+            wait(20);
+            verify(panel.confirmingDefaults, "Defaults reset on the first press without asking");
+            compare(Controller.settings.level, 4, "one press wrote the defaults before confirming");
+
+            const confirm = Util.findAll(panel, function (o) {
+                return o.objectName === "confirmDefaultsButton";
+            })[0];
+            verify(confirm, "Defaults did not offer a Confirm after the first press");
+            mouseClick(confirm, confirm.width / 2, confirm.height / 2);
             tryCompare(Controller.settings, "level", 2);
             compare(Controller.settings.explanationLang, "en");
             compare(Controller.settings.multiSense, false);
@@ -138,6 +147,47 @@ Item {
             compare(Controller.settings.autoScan, false);
             compare(Controller.settings.hasApiKey, hasApiKey);
             compare(Controller.settings.autostart, autostart);
+        }
+
+        function test_defaultsCanBeCancelledBeforeAnythingIsWritten() {
+            const main = make();
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+
+            Controller.setSetting("level", 4);
+            wait(20);
+            const defaults = Util.textWith(Util.textsUnder(panel), ["Defaults"]);
+            verify(defaults, "the settings panel has no Defaults action");
+            mouseClick(defaults.parent, defaults.parent.width / 2, defaults.parent.height / 2);
+            wait(20);
+
+            const cancel = Util.findAll(panel, function (o) {
+                return o.objectName === "cancelDefaultsButton";
+            })[0];
+            verify(cancel, "Defaults did not offer a Cancel after the first press");
+            mouseClick(cancel, cancel.width / 2, cancel.height / 2);
+            wait(20);
+
+            compare(panel.confirmingDefaults, false, "Cancel left the question up");
+            compare(Controller.settings.level, 4, "Cancel wrote the defaults anyway");
+            const defaultsAgain = Util.textWith(Util.textsUnder(panel), ["Defaults"]);
+            verify(defaultsAgain && defaultsAgain.parent.visible, "Defaults did not return after Cancel");
+        }
+
+        /// The daily budget has no stored default to restore, so the page that owns it must not
+        /// offer a reset that would silently do nothing.
+        function test_theBudgetPageOffersNoDefaultsAction() {
+            const main = make();
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "Daily budget");
+
+            compare(panel.defaultsAvailable, false, "the budget page still counts Defaults as available");
+            const row = Util.findAll(panel, function (o) {
+                return o.objectName === "defaultsRow";
+            })[0];
+            verify(row, "the settings footer has no Defaults row");
+            compare(row.visible, false, "the budget page still draws the Defaults row");
         }
 
         function test_apiKeyFieldUsesOneCursorAcrossItsFullInputArea() {

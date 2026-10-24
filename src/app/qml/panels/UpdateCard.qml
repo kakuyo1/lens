@@ -299,15 +299,20 @@ Window {
 
                     // The one button that changes meaning: Download while the file can be fetched,
                     // Cancel while it is, Install once it has been checked. Nothing when this release
-                    // is not downloadable -- an empty pill is a button that does nothing. Cancel is
-                    // drawn at full opacity: it is pressable, and its label is what distinguishes it.
+                    // is not downloadable -- an empty pill is a button that does nothing. Only
+                    // Download and Install wear ink; Cancel is the transfer's least-wanted act, so
+                    // it takes the secondary recipe at full opacity rather than the loudest style.
                     Rectangle {
                         id: primary
+                        objectName: "primaryButton"
+                        readonly property bool secondary: card.download.state === "downloading"
                         visible: primaryLabel.text !== ""
                         width: primaryLabel.implicitWidth + 26
                         height: 26
                         radius: card.tokens.radiusPill
-                        color: card.tokens.ink
+                        color: secondary ? card.tokens.panel2 : card.tokens.ink
+                        border.width: secondary ? 1 : 0
+                        border.color: card.tokens.line
                         scale: primaryTap.pressed ? 0.97 : 1.0
                         Behavior on scale {
                             NumberAnimation {
@@ -324,7 +329,7 @@ Window {
                             id: primaryLabel
                             anchors.centerIn: parent
                             text: card.primaryAction(card.download.state, card.download.available)
-                            color: card.tokens.on
+                            color: primary.secondary ? card.tokens.text : card.tokens.on
                             font.pixelSize: 12
                             font.weight: Font.Bold
                         }
@@ -345,10 +350,13 @@ Window {
 
                     Rectangle {
                         id: viewButton
+                        objectName: "viewButton"
                         width: viewLabel.width + 26
                         height: 26
                         radius: card.tokens.radiusPill
-                        color: card.tokens.ink
+                        color: card.tokens.panel2
+                        border.width: 1
+                        border.color: card.tokens.line
                         scale: viewTap.pressed ? 0.97 : 1.0
                         Behavior on scale {
                             NumberAnimation {
@@ -365,7 +373,7 @@ Window {
                             id: viewLabel
                             anchors.centerIn: parent
                             text: qsTranslate("UpdateCard", "View")
-                            color: card.tokens.on
+                            color: card.tokens.text
                             font.pixelSize: 12
                             font.weight: Font.Bold
                         }

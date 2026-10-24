@@ -76,8 +76,7 @@ Window {
     /// outliving the session, so this is a property of this surface and nothing is written to the
     /// settings document.
     ///
-    /// One removal a run is asked about, and the question itself goes up with "do not ask again"
-    /// already on, so the run's second deletion is a deletion. Only the reader clears this: Cancel
+    /// Asked about every time, with "do not ask again" off, until the reader turns it on. Cancel
     /// removes nothing and asks nothing about asking, so the next deletion is asked about again.
     property bool askBeforeRemoving: true
 

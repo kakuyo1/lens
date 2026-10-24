@@ -494,17 +494,17 @@ Item {
             compare(rowFor(popup, word), null, "the list still draws a word that is gone");
         }
 
-        /// One removal a run is asked about, and the question opens with "do not ask again" on,
-        /// so the second deletion is a deletion -- the switch used to start off, asking a reader
-        /// who never touched it on every removal.
-        function test_theAskedQuestionSilencesItselfByDefault() {
+        /// The question starts with "do not ask again" off, so answering Remove settles nothing
+        /// about the next removal: it is asked about again. The old default silenced the run on
+        /// its first deletion, which is the wrong way round for an irreversible act.
+        function test_theQuestionKeepsAskingByDefault() {
             const popup = make(wordsComponent);
             popup.visible = true;
             verify(popup.askBeforeRemoving, "the panel should start out asking");
 
             // Words no other case in this file needs: both are really removed.
             const answered = "ostensibly";
-            const straightThrough = "juxtapose";
+            const askedAgain = "juxtapose";
 
             askAbout(popup, answered);
             const question = questionWindow(popup);
@@ -512,32 +512,34 @@ Item {
 
             const switcher = Util.ofType(popup, "Switch");
             verify(switcher, "the question carries no switch");
-            compare(switcher.checked, true, "the question should be put with the switch already on");
+            compare(switcher.checked, false, "the question should be put with the switch off");
 
             mouseClick(pillWith(popup, "Remove"), 5, 5);
 
-            compare(popup.askBeforeRemoving, false, "the answer did not settle the asking");
+            compare(popup.askBeforeRemoving, true, "the answer silenced the asking without being told to");
             tryVerify(function () { return !Controller.words.some(function (e) { return e.word === answered; }); },
                       1000, "the answer did not reach Controller.removeWord");
             // Answered at once; the window waits for the fade (ShadowCard.qml).
             tryCompare(question, "visible", false, 1000, "the question stayed up");
 
-            pressCross(popup, straightThrough);
+            askAbout(popup, askedAgain);
+            compare(questionWindow(popup).visible, true, "the next removal skipped its question");
+            compare(popup.pendingRemoval, askedAgain, "the question is not about the next word");
 
-            compare(popup.pendingRemoval, "", "a cross asked the question it was told not to ask");
-            compare(question.visible, false, "the question opened with the asking switched off");
-            tryVerify(function () { return !Controller.words.some(function (e) { return e.word === straightThrough; }); },
-                      1000, "the silenced cross did not delete the word");
+            mouseClick(pillWith(popup, "Cancel"), 5, 5);
+            tryCompare(question, "visible", false, 1000, "Cancel did not put the question down");
+            verify(Controller.words.some(function (e) { return e.word === askedAgain; }),
+                   "putting the question down removed the word");
         }
 
-        /// And the other answer the reader can give there: turn the switch off and answering the
-        /// question settles nothing about asking, so the next removal is asked about again.
-        function test_aQuestionThatIsLeftAskingComesBack() {
+        /// The other answer the reader can give there: turn the switch on and the answer settles
+        /// the asking, so the next removal is a deletion. The reader's choice persists for the run.
+        function test_aQuestionSilencedByTheReaderStaysSilent() {
             const popup = make(wordsComponent);
             popup.visible = true;
 
             const answered = "ephemeral";
-            const spared = "quintessential";
+            const straightThrough = "quintessential";
 
             askAbout(popup, answered);
             const switcher = Util.ofType(popup, "Switch");
@@ -546,7 +548,7 @@ Item {
 
             mouseClick(pillWith(popup, "Remove"), 5, 5);
 
-            compare(popup.askBeforeRemoving, true, "the switch was off, so asking should stand");
+            compare(popup.askBeforeRemoving, false, "the switch was on, so asking should stand");
             tryVerify(function () { return !Controller.words.some(function (e) { return e.word === answered; }); },
                       1000, "the answer did not reach Controller.removeWord");
 
@@ -554,20 +556,13 @@ Item {
             // has gone -- asking while the old question is still fading would press a dead card.
             tryCompare(questionWindow(popup), "visible", false, 1000,
                        "the answered question stayed up");
-            askAbout(popup, spared);
-            const question = questionWindow(popup);
-            compare(question.visible, true, "the question did not come back");
-            compare(popup.askBeforeRemoving, true, "asking should stand, the switch having been off");
-            // The switch stays where the reader left it rather than being reset per question: the
-            // component writes its own `checked` when tapped, so a reset from elsewhere would have
-            // it showing one thing and the decision reading another.
-            compare(Util.ofType(popup, "Switch").checked, false,
-                    "the switch should still be off, where the reader left it");
 
-            mouseClick(pillWith(popup, "Cancel"), 5, 5);
-            tryCompare(question, "visible", false, 1000, "Cancel did not put the question down");
-            verify(Controller.words.some(function (e) { return e.word === spared; }),
-                   "putting the question down removed the word");
+            pressCross(popup, straightThrough);
+
+            compare(popup.pendingRemoval, "", "a cross asked the question it was told not to ask");
+            compare(questionWindow(popup).visible, false, "the question opened with the asking switched off");
+            tryVerify(function () { return !Controller.words.some(function (e) { return e.word === straightThrough; }); },
+                      1000, "the silenced cross did not delete the word");
         }
 
         /// The list behind the question is not an answer to it, so a press that reaches it must

@@ -39,6 +39,11 @@ Window {
     property var previewLanguage: null
     property string apiDraft: ""
     property string saveStatus: ""
+    /// The footer's Defaults asks a second time before it writes anything: one press turns the
+    /// pill into Confirm beside Cancel, and only Confirm calls restoreDefaults().
+    property bool confirmingDefaults: false
+    /// The budget page has no stored default to put back, so it offers no Defaults at all.
+    readonly property bool defaultsAvailable: category !== "budget"
     // qmllint disable missing-property
     readonly property var openChildRect: viewLoader.status === Loader.Ready && viewLoader.item
         ? viewLoader.item.openChildRect
@@ -92,6 +97,7 @@ Window {
         closeChild();
         category = value;
         route = "";
+        confirmingDefaults = false;
         body.contentY = 0;
         // The page that raised a preview is being swapped for another one, and an item that goes
         // away with its page never reports the pointer leaving it: the key would outlive the row.
@@ -101,6 +107,7 @@ Window {
     function openRoute(value) {
         closeChild();
         route = value;
+        confirmingDefaults = false;
         body.contentY = 0;
         previewKey = "";
     }
@@ -267,6 +274,7 @@ Window {
 
     function restoreDefaults() {
         Controller.restoreDefaults();
+        confirmingDefaults = false;
         // The interface language is not here on purpose: it belongs to the tray menu, and a
         // panel is not the place that changes a setting the panel does not show.
         saveStatus = qsTranslate("SettingsPopup", "Defaults restored");
@@ -278,6 +286,7 @@ Window {
             route = "";
             apiDraft = "";
             saveStatus = "";
+            confirmingDefaults = false;
             body.contentY = 0;
         } else {
             closeChild();
@@ -458,40 +467,58 @@ Window {
                 color: settings.tokens.line2
             }
 
-            Rectangle {
+            // One press only asks: the footer turns into Confirm / Cancel, and the line beside
+            // them says what a reset leaves alone. The reset is wide (sixteen settings), so the
+            // question comes before the write rather than after it.
+            Row {
+                id: defaultsRow
+                objectName: "defaultsRow"
                 x: 20
                 y: 15
-                width: defaultsLabel.width + 28
-                height: 27
-                radius: settings.tokens.radiusPill
-                color: settings.tokens.panel2
-                border.width: 1
-                border.color: settings.tokens.line
+                spacing: 8
+                visible: settings.defaultsAvailable
 
-                Text {
-                    id: defaultsLabel
-                    anchors.centerIn: parent
-                    text: qsTranslate("SettingsPopup", "Defaults")
-                    color: settings.tokens.muted
-                    font.pixelSize: 12
-                    font.weight: Font.Bold
+                Chip {
+                    objectName: "defaultsButton"
+                    visible: !settings.confirmingDefaults
+                    label: qsTranslate("SettingsPopup", "Defaults")
+                    onPicked: settings.confirmingDefaults = true
                 }
-                HoverHandler { cursorShape: Qt.PointingHandCursor }
-                TapHandler { onTapped: settings.restoreDefaults() }
+
+                Chip {
+                    objectName: "confirmDefaultsButton"
+                    visible: settings.confirmingDefaults
+                    label: qsTranslate("SettingsPopup", "Confirm")
+                    selected: true
+                    onPicked: settings.restoreDefaults()
+                }
+
+                Chip {
+                    objectName: "cancelDefaultsButton"
+                    visible: settings.confirmingDefaults
+                    label: qsTranslate("SettingsPopup", "Cancel")
+                    onPicked: settings.confirmingDefaults = false
+                }
             }
 
             Text {
-                anchors.left: defaultsLabel.parent.right
-                anchors.leftMargin: 8
+                anchors.left: settings.defaultsAvailable ? defaultsRow.right : parent.left
+                anchors.leftMargin: settings.defaultsAvailable ? 8 : 20
                 anchors.right: parent.right
                 anchors.rightMargin: 20
                 anchors.verticalCenter: parent.verticalCenter
-                text: settings.saveStatus
+                height: 27
+                verticalAlignment: Text.AlignVCenter
+                text: settings.confirmingDefaults
+                      ? qsTranslate("SettingsPopup", "API key and launch at login stay as they are.")
+                      : settings.saveStatus
                 // Status, not decoration: the second step of the text ramp, so a confirmation
                 // reads beside the value rows it confirms.
                 color: settings.tokens.muted
                 font.pixelSize: 11
                 horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WordWrap
+                maximumLineCount: 2
                 elide: Text.ElideRight
             }
         }
