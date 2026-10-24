@@ -525,6 +525,47 @@ TEST(PetConfig, AnAccessoryMayBeVisibleInAnyActionThePetHas)
     EXPECT_EQ(catalogue.front().supportedActions.back(), "dance");
 }
 
+TEST(PetConfig, ParsesTheSceneWeightsOfAnAccessory)
+{
+    auto doc                              = accessoriesDocument();
+    doc["accessories"][0]["sceneWeights"] = {{"study", 2.5}, {"idle", 1.5}};
+    auto const catalogue                  = parseAccessories(doc, dogPlaybook());
+
+    ASSERT_EQ(catalogue.front().sceneWeights.size(), 2u);
+    EXPECT_DOUBLE_EQ(catalogue.front().sceneWeights.at("study"), 2.5);
+    EXPECT_DOUBLE_EQ(catalogue.front().sceneWeights.at("idle"), 1.5);
+    EXPECT_TRUE(catalogue[1].sceneWeights.empty());
+}
+
+TEST(PetConfig, RefusesASceneWeightThatIsNotPositive)
+{
+    auto doc                              = accessoriesDocument();
+    doc["accessories"][0]["sceneWeights"] = {{"study", 0}};
+    EXPECT_THROW(parseAccessories(doc, dogPlaybook()), std::runtime_error);
+
+    doc["accessories"][0]["sceneWeights"]["study"] = -1.5;
+    EXPECT_THROW(parseAccessories(doc, dogPlaybook()), std::runtime_error);
+}
+
+TEST(PetConfig, RefusesASceneWeightAboveTheLimit)
+{
+    auto doc                              = accessoriesDocument();
+    doc["accessories"][0]["sceneWeights"] = {{"study", lens::core::pet::kMaxAccessorySceneWeight + 0.5}};
+    try {
+        static_cast<void>(parseAccessories(doc, dogPlaybook()));
+        FAIL() << "a weight above the limit was accepted";
+    } catch (lens::core::pet::Refused const& e) {
+        EXPECT_EQ(e.reason(), lens::core::pet::Refusal::TooLarge);
+    }
+}
+
+TEST(PetConfig, RefusesASceneWeightForAnActionThePetDoesNotHave)
+{
+    auto doc                              = accessoriesDocument();
+    doc["accessories"][0]["sceneWeights"] = {{"dance", 2.0}};
+    EXPECT_THROW(parseAccessories(doc, dogPlaybook()), std::runtime_error);
+}
+
 TEST(PetConfig, TheAngryRoleIsOptional)
 {
     // A package written before the angry action existed must keep loading: the role is not required.

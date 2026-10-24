@@ -30,7 +30,10 @@
         "mochi_onsen",
         "mochi_grill",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "mochi_onsen": 2.5
+      }
     },
     {
       "id": "hachimaki",
@@ -62,7 +65,10 @@
         "mochi_onsen",
         "mochi_grill",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "mochi_grill": 3
+      }
     },
     {
       "id": "chasen",
@@ -158,7 +164,10 @@
         "mochi_onsen",
         "mochi_grill",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "swing": 2.5
+      }
     },
     {
       "id": "blush",
@@ -252,7 +261,10 @@
         "mochi_onsen",
         "mochi_grill",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "rain": 2.5
+      }
     },
     {
       "id": "bean_pouch",

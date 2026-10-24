@@ -23,11 +23,14 @@ enum class Slot : std::uint8_t {
     Body,
 };
 
-/// @brief One accessory from accessories.json: its id, the slot it wears in, and the actions it stays visible in.
+/// @brief One accessory from accessories.json: its id, the slot it wears in, the actions it stays visible in, and the
+///        scenes it tilts the idle lottery toward (ADR 0102).
 struct AccessorySpec {
     std::string             id;
     Slot                    slot;
     std::vector<ActionName> supportedActions;
+    /// Scene id to multiplier; empty leaves the lottery as it is. Only scenes the pet plays have any effect.
+    std::map<std::string, double> sceneWeights;
 };
 
 /**
@@ -50,6 +53,9 @@ struct Wardrobe {
 
     /// @return Ids of the worn accessories that support `action`, in slot order.
     std::vector<std::string> visibleFor(ActionName const& action) const;
+
+    /// @return The product of every worn accessory's weight for `scene`; 1 when none of them names it.
+    double sceneWeightFor(std::string const& scene) const;
 
 private:
     std::vector<AccessorySpec>  catalogue;

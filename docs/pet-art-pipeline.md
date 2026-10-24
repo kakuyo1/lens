@@ -41,7 +41,7 @@
 - `actions`：每个动作的 `fps`、`loop`，可选 `blink`、`returnTo`、`duration`、`bodyFrom`、`paint`，以及按帧排列的 `frames`。每帧可有 `pose`（`dx`、`dy` 平移，`sx`、`sy` 绕轴压扁或拉伸）、`expression`、`shapes`（额外形状）与 `paint`（效果层图形）。
 - `bodyFrom`：复用前面动作的 body sheet 与锚点，按自己的帧数循环；生气、庆祝、场景等因此不用重画身体。复用的是成品 sheet，动作级 `bodyPaint` 不生效；帧里写了 `pose` 就覆盖复用锚点。
 - `paint`：效果层图形，支持 `at`、`colour`、`art` 或 `glyph`，以及 `pixel: true`（一字符一像素）。效果层是该动作自己的图形；提问牌不再由宠物拿着，所以没有左右手 sheet 的概念。
-- `accessories`：每件 `{id, slot, paint, except?}`。`paint` 可以走格子，也可以走 `pixel`：每字符一个画布像素，起点按 `at` 的格子角换算；`pixel` 再配 `canvas: true` 时 `at` 直接按画布像素计，用于不落在 3 px 网格上的描边。`except` 里的动作不显示这件配饰。
+- `accessories`：每件 `{id, slot, paint, except?, sceneWeights?}`。`paint` 可以走格子，也可以走 `pixel`：每字符一个画布像素，起点按 `at` 的格子角换算；`pixel` 再配 `canvas: true` 时 `at` 直接按画布像素计，用于不落在 3 px 网格上的描边。`except` 里的动作不显示这件配饰。`sceneWeights` 是 “场景 id → 正数乘子”，戴上后把待机抽景推向这些场景；渲染器原样写进 `accessories.json`，没有该字段的件不改动抽景（ADR 0102）。
 - 表情图案的竖偏移：第 9 格生气眼向上多一行画眉，由 `EYE_OFFSETS` 处理；右眼用 `EYE_MIRRORS` 镜像。嘴按表情查表：哈欠用 `yawnMouth`，生气用 `angryMouth`，其余共用 `mouth`。
 - `blink` 动作照常写在 `actions` 里：3 帧，只有表情，没有 body sheet。
 - **`dizzy`**：抛掷落地后的可选角色动作，15 帧、6 fps、单次，合 2.5 秒；身体在基础姿势上做 ±1 格、±2–3% 的轻晃，效果层每帧画两颗金色（`gold`）三格星星绕头，星星环每 6 帧转一圈，2.5 秒里转两圈半；表情前 10 帧闭眼、最后 5 帧半睁。它不用 `bodyFrom`：复用 sheet 只会换锚点，身体本身不会晃。金色只属于这个效果，不进宠物身体配色。
@@ -51,7 +51,7 @@
 1. 复制 `scripts/pet/recipes/mochi.json` 或 `dog.json`，改身体、眼睛、嘴、动作与配饰。
 2. 从仓库根目录运行 `python -I scripts/pet/render_pet.py <id>`。渲染器直接覆盖 `data/pet/<id>/`，先清空 `sprites/accessories/`，退役件不会留下孤图；写完后读回每张 sheet 核对尺寸，尺寸不对会退出。
 3. 看图。至少看 `sprites/reference/bare.png`、表情 sheet、每个动作的 body/effect sheet 与配饰 PNG；按原尺寸和放大各看一遍。可疑的格子改配方，不改输出。
-4. 核对数据契约：角色、idlePool、blink、锚点条目、场景帧数与 30 秒时长、配饰的 supportedActions。`pet_data_test` 会把狗逐项验一遍，包括 `ask` 只有身体、没有效果层。
+4. 核对数据契约：角色、idlePool、blink、锚点条目、场景帧数与 30 秒时长、配饰的 supportedActions 与 `sceneWeights`（键必须是该宠物真能演的场景）。`pet_data_test` 会把狗逐项验一遍，包括 `ask` 只有身体、没有效果层。
 5. 原型：`cd ui-prototypes/pet-prototype && npm run embed && npm run embed:hover`；`pet-review.html` 与 `walk.html` 直接读 `data/pet`，不用重新生成。改完狗或动作后，至少打开 `pet-review.html?pet=dog` 与 `walk.html` 看一次。
 6. 测试：`lens_gtest_unit --gtest_filter='PetData.*'`；原型侧 `node --test ui-prototypes/pet-prototype/test/*.test.js`。真机看画面另见 `docs/qa.md`。
 

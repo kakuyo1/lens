@@ -30,7 +30,10 @@
         "cat_box",
         "cat_sunbeam",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "bath": 3
+      }
     },
     {
       "id": "fish_clip",
@@ -62,7 +65,10 @@
         "cat_box",
         "cat_sunbeam",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "cat_box": 2.5
+      }
     },
     {
       "id": "flower_crown",
@@ -158,7 +164,10 @@
         "cat_box",
         "cat_sunbeam",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "cat_sunbeam": 3
+      }
     },
     {
       "id": "heart_blush",
@@ -286,7 +295,10 @@
         "cat_box",
         "cat_sunbeam",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "swing": 3
+      }
     }
   ]
 }

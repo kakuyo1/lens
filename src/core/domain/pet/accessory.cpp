@@ -50,4 +50,17 @@ std::vector<std::string> Wardrobe::visibleFor(ActionName const& action) const
     return visible;
 }
 
+double Wardrobe::sceneWeightFor(std::string const& scene) const
+{
+    auto weight = 1.0;
+    for (auto const& wearing : worn) {
+        auto const& id   = wearing.second;
+        auto const  spec = std::find_if(catalogue.begin(), catalogue.end(), [&id](AccessorySpec const& candidate) { return candidate.id == id; });
+        if (spec == catalogue.end()) continue;
+        auto const favoured = spec->sceneWeights.find(scene);
+        if (favoured != spec->sceneWeights.end()) weight *= favoured->second;
+    }
+    return weight;
+}
+
 } // namespace lens::core::pet

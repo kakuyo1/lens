@@ -68,6 +68,10 @@ constexpr int kMaxHoverDelayMs = 60'000;
 constexpr int kMaxActions      = 32;
 constexpr int kMaxAccessories  = 32;
 constexpr int kMaxIdlePool     = 16;
+/// The scenes one accessory may favour, and how far one of them may tilt the lottery: a factor of four on four scenes
+/// already makes one scene the obvious next stop without removing the other three.
+constexpr int    kMaxSceneWeights         = 8;
+constexpr double kMaxAccessorySceneWeight = 4.0;
 /// The wander radius as a percentage of the window width: below this the step is invisible, above it the pet
 /// leaves the area its home implies and the walk reads as aimless.
 constexpr int kMinMovementRange = 10;

@@ -64,7 +64,10 @@
         "owl_stargazing",
         "owl_books",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "owl_stargazing": 3
+      }
     },
     {
       "id": "quill_clip",
@@ -129,7 +132,11 @@
         "owl_stargazing",
         "owl_books",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "owl_books": 3,
+        "desk": 2
+      }
     },
     {
       "id": "sleep_mask",
@@ -227,7 +234,10 @@
         "owl_stargazing",
         "owl_books",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "owl_books": 2.5
+      }
     },
     {
       "id": "scarf",
@@ -260,7 +270,10 @@
         "owl_stargazing",
         "owl_books",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "swing": 2.5
+      }
     },
     {
       "id": "bow_tie",

@@ -30,7 +30,10 @@
         "ghost_lantern",
         "ghost_mirror",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "ghost_lantern": 3
+      }
     },
     {
       "id": "moon_clip",
@@ -126,7 +129,10 @@
         "ghost_lantern",
         "ghost_mirror",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "desk": 3
+      }
     },
     {
       "id": "star_frames",
@@ -222,7 +228,10 @@
         "ghost_lantern",
         "ghost_mirror",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "ghost_mirror": 2
+      }
     },
     {
       "id": "candle",
@@ -286,7 +295,10 @@
         "ghost_lantern",
         "ghost_mirror",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "ghost_mirror": 2.5
+      }
     }
   ]
 }

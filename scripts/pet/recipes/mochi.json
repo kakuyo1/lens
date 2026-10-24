@@ -2347,6 +2347,9 @@
     {
       "id": "kanzashi",
       "slot": "head",
+      "sceneWeights": {
+        "mochi_onsen": 2.5
+      },
       "except": [
         "sleep"
       ],
@@ -2462,6 +2465,9 @@
     {
       "id": "hachimaki",
       "slot": "head",
+      "sceneWeights": {
+        "mochi_grill": 3
+      },
       "except": [
         "sleep"
       ],
@@ -2695,6 +2701,9 @@
     {
       "id": "candy_shades",
       "slot": "face",
+      "sceneWeights": {
+        "swing": 2.5
+      },
       "except": [
         "sleep"
       ],
@@ -2848,6 +2857,9 @@
     {
       "id": "furoshiki",
       "slot": "body",
+      "sceneWeights": {
+        "rain": 2.5
+      },
       "except": [
         "sleep",
         "spin"

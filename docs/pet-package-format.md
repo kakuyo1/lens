@@ -23,7 +23,7 @@ pets\<id>\
   pet.json            画布、缩放、图层序、表情 sheet、格式版本
   animations.json     角色到动作的映射、空闲池、每个动作的播放参数
   anchors.json        每个动作每帧的 head / face / body 锚点
-  accessories.json    配饰的 id、槽位、图、zIndex、可穿动作
+  accessories.json    配饰的 id、槽位、图、zIndex、可穿动作、可选场景权重
   sprites\
     body\<动作>.png    身体 sheet，横排，每帧一格，帧间无间距
     effects\<动作>.png 特效 sheet，可选，尺寸与身体 sheet 相同
@@ -57,7 +57,8 @@ pets\<id>\
 - `movement` 可选，控制宠物空闲时走几步、贴边时躲不躲：`style` 必填，是 `glide` / `float` / `hop` / `trot` / `pounce` 之一；`walk` 必填，是本包已有的**循环**动作名；`peek` 可选，也是本包已有的循环动作名，缺省表示不躲藏；`range` 可选，是窗口宽度的百分比，范围 10–60，默认 30。没有 `movement` 的包保持原地待机；有 `walk` 没有 `peek` 的包只闲逛、不躲藏。走一步的时长等于 `walk` 的自然时长（`frames × 1000 / fps`）；可见比例与滑动时长是应用常数，不写进包。
 - `behavior` 可选，决定这只宠物的脾气（`docs/adr/0094`）。每个字段单独可选，缺哪个用哪个的缺省：`idleBaseMs`（待机等待的基数，默认 20 000）、`idleSpreadMs`（待机等待的抖动上限，默认 70 000）、`sceneChance`（待机回合抽场景的概率，默认 1/6）、`napChance`（待机回合打盹的概率，默认 1/12）、`angryClicks`（几次连击生气，默认 3）、`angryWindowMs`（相邻两次点击的最大间隔，默认 2 000）、`wanderWaitMinMs` / `wanderWaitMaxMs`（两次闲逛之间累计空闲的下限与上限，默认 120 000 / 300 000，前者不得大于后者）、`strollSteps`（一次闲逛的最多步数，默认 2；`pounce` 步态永远只走一步）、`hideChance`（闲逛到屏幕边缘时躲藏的概率，默认 0.7）、`gazeRadius`（眼神跟随的距离，单位是画布像素，默认 26，必须大于近圈 16 与出圈余量 4 之和）。没有 `behavior` 的包保持应用缺省脾气。
 - 锚点条目数必须等于该动作的 `frames`。
-- 配饰的 `slot` 只能是 `head` / `face` / `body`，`supportedActions` 只能列本包已有的动作。
+- 配饰的 `slot` 只能是 `head` / `face` / `body`，`supportedActions` 只能列本包已有的动作。可选的 `sceneWeights` 是 “场景 id → 正数乘子” 的对象：戴上这件配饰后，待机抽景把对应场景的权重乘上该值；摘下即恢复，多个已佩戴件偏爱同一场景时相乘（`docs/adr/0102`）。键必须是本包已有的动作；场景本身属于应用，只有随包宠物有，所以包里的权重目前只被校验与保存，不改变行为（见 §8）。
+- 场景权重不是开关：值大于 0、至多 4，一件配饰至多列 8 个场景；缺省或空对象与没有这个字段相同。
 - `anchors.json` 只列有 sheet 的动作。`blink` 只有表情、没有 sheet，所以不列锚点；列了即整只拒绝（`BadAnchors`）。
 
 ## 4。上限
@@ -82,6 +83,8 @@ pets\<id>\
 | `behavior.gazeRadius` | 大于 20（近圈与出圈余量之和），至 128 |
 | 动作数 | 32 |
 | 配饰数 | 32 |
+| 单件配饰的 `sceneWeights` 条目 | 8 |
+| `sceneWeights` 的单个权重 | 大于 0，至多 4 |
 | `idlePool` 条目 | 16 |
 | `movement.range` | 10–60（窗口宽度的百分比） |
 | 单张 sheet 的声明宽度 | `frames × canvas`，且不超过 8192 |
@@ -110,7 +113,7 @@ pets\<id>\
 **数值**
 
 6. `format` 必须存在且为 `1`。
-7. `canvas`、`scale`、`frames`、`fps`、动作数、配饰数、`idlePool` 条目、`hover` 的三个延迟、`movement.range` 与 `behavior` 的各字段均在 §4 范围内；`hover` 的 `notice` / `dwell` 必须是本包已有的单次动作，`dwell` 不能脱离 `notice` 单独出现；`movement.style` 必须在闭集内，`movement.walk` / `peek` 必须是本包已有的循环动作；`behavior` 的 `wanderWaitMinMs` 不得大于 `wanderWaitMaxMs`，`gazeRadius` 必须严格大于 20。
+7. `canvas`、`scale`、`frames`、`fps`、动作数、配饰数、`idlePool` 条目、`hover` 的三个延迟、`movement.range` 与 `behavior` 的各字段均在 §4 范围内；`hover` 的 `notice` / `dwell` 必须是本包已有的单次动作，`dwell` 不能脱离 `notice` 单独出现；`movement.style` 必须在闭集内，`movement.walk` / `peek` 必须是本包已有的循环动作；`behavior` 的 `wanderWaitMinMs` 不得大于 `wanderWaitMaxMs`，`gazeRadius` 必须严格大于 20。`sceneWeights` 必须是对象，条目数与每个权重在 §4 范围内，每个键是本包已有的动作。
 8. 每张 sheet 的像素尺寸等于 `frames × canvas` 宽、`canvas` 高；表情 sheet 高为 `canvas`、宽为 `canvas` 的整数倍。
 9. 每个表情索引（含 `blink` 的表情列表）小于表情 sheet 的格数。
 10. 缩放倍数在 1–4 之内。
@@ -139,7 +142,7 @@ pets\<id>\
 | `MissingRole` | 必需的动作角色没有映射 |
 | `BadAnimation` | `frames`、`fps`、`loop`、`returnTo`、`idlePool`、`hover`、`movement`、`behavior` 不合规 |
 | `BadAnchors` | 锚点缺失或条目数与帧数不符 |
-| `BadAccessory` | 配饰字段不合法、id 重复、槽位未知，或引用了不存在的动作 |
+| `BadAccessory` | 配饰字段不合法、id 重复、槽位未知、引用了不存在的动作，或 `sceneWeights` 的键或值不合法 |
 | `BadAssetType` | 不是 PNG，或魔数与扩展名不符 |
 | `SheetSize` | sheet 尺寸与帧数、画布不符 |
 | `ExpressionIndex` | 表情索引越界 |
@@ -173,6 +176,7 @@ pets\<id>\
 | 显示名 | `qsTranslate` 按 id 对照，跟随界面语言 | `name` 去掉控制字符后显示，不翻译 |
 | 来源标记 | 无 | 标注外部来源 |
 | 首次启用 | 直接启用 | 弹一次确认 |
+| 场景 | 有，每只四个，`sceneWeights` 改变抽景 | 无；`sceneWeights` 通过校验与保存，但当前不生效 |
 | 缺失或被拒 | 回退到随包默认宠物，不弹通知 | 回退到随包默认宠物，弹一条通知 |
 | 校验 | 同一套 | 同一套，另加上限与路径规则 |
 
@@ -186,11 +190,11 @@ python -I scripts/pet/render_pet.py <id>
 
 渲染器写出 `data/pet/<id>/`。把它整个目录复制到 `%APPDATA%\Lens\pets\` 下，再打开设置的扩展分类即可看到。`docs/pet-art-pipeline.md` 是完整流程、约束与经验。
 
-自查（应用加载时仍会再查一遍）：`roles` 覆盖 14 个角色（`stretch`、`angry`、`ask` 与 `dizzy` 可省）、`idlePool` 只列单次动作、`returnTo` 指向已映射角色、`duration` 为正数、`hover` 的动作存在且为单次、`hover.dwell` 不脱离 `hover.notice`、`movement.walk` / `peek` 存在且为循环、`behavior` 的各字段在 §4 范围内、有 `blink` 条目、锚点条目数等于帧数、sheet 尺寸等于 `frames × canvas`、PNG 魔数正确、路径无 `..`。
+自查（应用加载时仍会再查一遍）：`roles` 覆盖 14 个角色（`stretch`、`angry`、`ask` 与 `dizzy` 可省）、`idlePool` 只列单次动作、`returnTo` 指向已映射角色、`duration` 为正数、`hover` 的动作存在且为单次、`hover.dwell` 不脱离 `hover.notice`、`movement.walk` / `peek` 存在且为循环、`behavior` 的各字段在 §4 范围内、`sceneWeights` 的键存在且值在 §4 范围内、有 `blink` 条目、锚点条目数等于帧数、sheet 尺寸等于 `frames × canvas`、PNG 魔数正确、路径无 `..`。
 
 ## 10。已知边界
 
-- 包未经审核、未签名。本规范只保证 “不执行代码 + 契约校验”，不保证包的外观与行为符合预期。
+- 包未经审核、未签名。本规范只保证 “不执行代码 + 契约校验”，不保证包的外观与行为符合预期。场景是应用自带内容，包没有场景；`sceneWeights` 会被接受与保存，但当前没有可倾斜的抽景。
 - 规范只到 v1。未来版本会另行编号，未知版本按 `Format` 拒绝，不做迁移。
 - 配饰 PNG 的内容不限画法；随包配方的渲染器支持格子、像素与画布像素，但没有圆形或多边形图元。效果层不跟随身体。这些是渲染器的限制，见 `docs/pet-art-pipeline.md` §6。
 - 界面显示名的长度上限是 32 个字符，中文字符按一个计。

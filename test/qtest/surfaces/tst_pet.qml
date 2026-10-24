@@ -230,6 +230,41 @@ Item {
             }
         }
 
+        /// A worn accessory that favours scenes says so in one small line; taking it off takes the line away (ADR 0102).
+        function test_aWornAccessoryExplainsItsSceneTemperament() {
+            Pet.setEnabled(true);
+            const page = createTemporaryObject(pageComponent, host.contentItem);
+            waitForRendering(host.contentItem);
+            const chosen = Pet.pet;
+            let hadSpectacles = false;
+            const lineFor = function () {
+                const label = page.accessoryLabel("spectacles");
+                return Util.findAll(page, o => o.objectName === "accessoryTemperament" && o.text.indexOf(label) === 0)[0];
+            };
+            try {
+                Pet.setPet("dog");
+                tryVerify(() => Pet.pet === "dog", 2000, "did not switch to the dog");
+                hadSpectacles = Pet.wornIn.face === "spectacles";
+                if (hadSpectacles)
+                    Pet.toggleAccessory("spectacles");
+                verify(!lineFor(), "the dog explained its round frames before wearing them");
+
+                Pet.toggleAccessory("spectacles");
+                tryVerify(() => lineFor() !== undefined, 2000, "the worn round frames did not explain themselves");
+                verify(lineFor().text.indexOf(page.sceneLabel("dog_burying")) >= 0,
+                       "the line does not name the favoured scene: " + lineFor().text);
+
+                Pet.toggleAccessory("spectacles");
+                tryVerify(() => lineFor() === undefined, 2000, "the temperament stayed after the round frames came off");
+            } finally {
+                if (Pet.wornIn.face === "spectacles")
+                    Pet.toggleAccessory("spectacles");
+                if (hadSpectacles)
+                    Pet.toggleAccessory("spectacles");
+                Pet.setPet(chosen);
+            }
+        }
+
         /// The accessory rows sit below the first screen; lift them into view for a pixel check.
         function test_captureAccessoryRows() {
             if (!lensQaSnapshotDir) skip("Set LENS_QA_SNAPSHOT_DIR to save the accessory rows");

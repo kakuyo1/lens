@@ -2944,6 +2944,9 @@
     {
       "id": "star_beanie",
       "slot": "head",
+      "sceneWeights": {
+        "cloud_fishing": 3
+      },
       "except": [
         "sleep"
       ],
@@ -3050,6 +3053,9 @@
     {
       "id": "rain_hat",
       "slot": "head",
+      "sceneWeights": {
+        "rain": 3
+      },
       "except": [
         "sleep"
       ],
@@ -3120,6 +3126,9 @@
     {
       "id": "raindrop_glasses",
       "slot": "face",
+      "sceneWeights": {
+        "desk": 2.5
+      },
       "except": [
         "sleep"
       ],
@@ -3482,6 +3491,9 @@
     {
       "id": "mist_scarf",
       "slot": "body",
+      "sceneWeights": {
+        "rain": 2.5
+      },
       "except": [
         "sleep"
       ],

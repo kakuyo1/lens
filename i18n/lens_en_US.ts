@@ -740,9 +740,9 @@
         <translation>Extensions</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="230"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="248"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="44"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="987"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1151"/>
         <source>Desktop companion</source>
         <translation>Desktop companion</translation>
     </message>
@@ -1484,143 +1484,148 @@
         <translation>Body</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="174"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="989"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="187"/>
+        <source>%1: often heads to %2</source>
+        <translation>%1: often heads to %2</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="192"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1153"/>
         <source>Dog</source>
         <translation>Dog</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="175"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="193"/>
         <source>Mochi</source>
         <translation>Mochi</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="176"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="194"/>
         <source>Owl</source>
         <translation>Owl</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="177"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="195"/>
         <source>Stub cat</source>
         <translation>Stub cat</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="178"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="196"/>
         <source>Ghost</source>
         <translation>Ghost</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="179"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="197"/>
         <source>Jellyfish</source>
         <translation>Jellyfish</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="180"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="198"/>
         <source>Cloud</source>
         <translation>Cloud</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="188"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="206"/>
         <source>The package format is not supported.</source>
         <translation>The package format is not supported.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="189"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="207"/>
         <source>The package exceeds the size limits.</source>
         <translation>The package exceeds the size limits.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="190"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="208"/>
         <source>The package name is not valid.</source>
         <translation>The package name is not valid.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="191"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="209"/>
         <source>A required action is missing.</source>
         <translation>A required action is missing.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="192"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="210"/>
         <source>An action is not valid.</source>
         <translation>An action is not valid.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="193"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="211"/>
         <source>The anchor data is not valid.</source>
         <translation>The anchor data is not valid.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="194"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="212"/>
         <source>An accessory is not valid.</source>
         <translation>An accessory is not valid.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="195"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="213"/>
         <source>An image is not a valid PNG.</source>
         <translation>An image is not a valid PNG.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="196"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="214"/>
         <source>An image size does not match its frames.</source>
         <translation>An image size does not match its frames.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="197"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="215"/>
         <source>An expression index is out of range.</source>
         <translation>An expression index is out of range.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="198"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="216"/>
         <source>An image path points outside the package.</source>
         <translation>An image path points outside the package.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="199"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="217"/>
         <source>The package id is already in use.</source>
         <translation>The package id is already in use.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="200"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="218"/>
         <source>The package could not be read.</source>
         <translation>The package could not be read.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="239"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="257"/>
         <source>Mouse pass-through</source>
         <translation>Mouse pass-through</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="255"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="273"/>
         <source>Desktop pet size</source>
         <translation>Desktop pet size</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="299"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="317"/>
         <source>Pet type</source>
         <translation>Pet type</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="311"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="329"/>
         <source>External</source>
         <translation>External</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="325"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="343"/>
         <source>Pet packages</source>
         <translation>Pet packages</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="332"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="350"/>
         <source>Copy a pet package folder into the packages folder. Lens reads it when you open this section.</source>
         <translation>Copy a pet package folder into the packages folder. Lens reads it when you open this section.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="340"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="358"/>
         <source>Open packages folder</source>
         <translation>Open packages folder</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="353"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="371"/>
         <source>%1: %2</source>
         <translation>%1: %2</translation>
     </message>
@@ -1630,24 +1635,24 @@
         <translation>Selection bar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="367"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="385"/>
         <location filename="../src/app/qml/settings/previews/SelectionBarPreview.qml" line="134"/>
         <location filename="../src/app/qml/settings/previews/VocabPreview.qml" line="122"/>
         <source>Preview</source>
         <translation>Preview</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="382"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="400"/>
         <source>Actions</source>
         <translation>Actions</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="412"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="430"/>
         <source>Scenes</source>
         <translation>Scenes</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="440"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="458"/>
         <source>Accessories</source>
         <translation>Accessories</translation>
     </message>
@@ -1814,7 +1819,7 @@
         <translation>Confirm delete</translation>
     </message>
     <message>
-        <location filename="../src/app/pet/pet_controller.cpp" line="988"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1152"/>
         <source>This pet package is no longer installed. Switched to %1.</source>
         <translation>This pet package is no longer installed. Switched to %1.</translation>
     </message>

@@ -2621,6 +2621,9 @@
     {
       "id": "spectacles",
       "slot": "face",
+      "sceneWeights": {
+        "dog_burying": 2.5
+      },
       "except": [
         "sleep"
       ],
@@ -2769,6 +2772,9 @@
     {
       "id": "bandana",
       "slot": "body",
+      "sceneWeights": {
+        "skate": 3
+      },
       "except": [
         "sleep"
       ],
@@ -2887,6 +2893,9 @@
     {
       "id": "knit_scarf",
       "slot": "body",
+      "sceneWeights": {
+        "swing": 2.5
+      },
       "except": [
         "sleep"
       ],
@@ -2960,6 +2969,9 @@
     {
       "id": "backpack",
       "slot": "body",
+      "sceneWeights": {
+        "dog_frisbee": 2.5
+      },
       "except": [
         "sleep"
       ],

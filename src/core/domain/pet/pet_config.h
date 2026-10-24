@@ -150,13 +150,16 @@ AnchorTable parseAnchors(nlohmann::json const& document, Playbook const& playboo
  * @brief Parses accessories.json into the catalogue a Wardrobe is built from.
  *
  * Each accessory needs an id, which must be unique and plain, a slot that is one of head, face or body, and a
- * supportedActions list. Every name in that list must be an action the playbook defines.
+ * supportedActions list. Every name in that list must be an action the playbook defines. An optional sceneWeights
+ * object maps scene ids to positive multipliers, at most kMaxSceneWeights entries and kMaxAccessorySceneWeight each;
+ * every id it names must be an action the pet has, though only the app's scenes ever read the weights.
  *
  * @param document The whole parsed accessories.json, with an `accessories` array.
  * @param playbook The playbook from parseAnimations, which says which action names exist.
  * @return The catalogue, in document order.
- * @throws Refused BadAccessory if an accessory is malformed, its slot is unknown, its id is repeated or not plain, or it
- *         names an action the pet does not have; TooLarge above the accessory limit.
+ * @throws Refused BadAccessory if an accessory is malformed, its slot is unknown, its id is repeated or not plain, it
+ *         names an action the pet does not have, or a scene weight is not a positive number; TooLarge above the
+ *         accessory, weighted-scene or weight limits.
  */
 std::vector<AccessorySpec> parseAccessories(nlohmann::json const& document, Playbook const& playbook);
 

@@ -2821,6 +2821,9 @@
     {
       "id": "boat_hat",
       "slot": "head",
+      "sceneWeights": {
+        "bath": 3
+      },
       "except": [
         "sleep"
       ],
@@ -2923,6 +2926,9 @@
     {
       "id": "fish_clip",
       "slot": "head",
+      "sceneWeights": {
+        "cat_box": 2.5
+      },
       "except": [
         "sleep"
       ],
@@ -3220,6 +3226,9 @@
     {
       "id": "cat_shades",
       "slot": "face",
+      "sceneWeights": {
+        "cat_sunbeam": 3
+      },
       "except": [
         "sleep"
       ],
@@ -3509,6 +3518,9 @@
     {
       "id": "bell_collar",
       "slot": "body",
+      "sceneWeights": {
+        "swing": 3
+      },
       "except": [
         "sleep"
       ],

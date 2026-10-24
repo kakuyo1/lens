@@ -174,6 +174,33 @@ TEST(PetData, EveryShippedPetWalksAndPeeks)
     EXPECT_EQ(pets, 7);
 }
 
+TEST(PetData, EveryAccessorySceneWeightNamesASceneItsPetPlays)
+{
+    auto const scenesDoc = loadAt(std::filesystem::path{LENS_SOURCE_DIR} / "data" / "scenes", "scenes.json");
+    auto       sceneIds  = std::map<std::string, int>{};
+    for (auto const& scene : scenesDoc.at("scenes"))
+        sceneIds.emplace(scene.at("id").get<std::string>(), scene.at("frames").get<int>());
+
+    for (auto const& entry : std::filesystem::directory_iterator{std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet"}) {
+        if (not entry.is_directory()) continue;
+        auto const pet        = entry.path().filename().string();
+        auto const animations = parseAnimations(loadAt(entry.path(), "animations.json"));
+        auto const catalogue  = parseAccessories(loadAt(entry.path(), "accessories.json"), animations.playbook);
+        auto       weighted   = 0;
+        for (auto const& accessory : catalogue) {
+            for (auto const& [scene, weight] : accessory.sceneWeights) {
+                ++weighted;
+                EXPECT_TRUE(sceneIds.count(scene) != 0) << pet << " " << accessory.id << " favours unknown scene " << scene;
+                // A weight on an action this pet cannot play would be a promise the lottery can never keep.
+                EXPECT_TRUE(animations.playbook.actions.count(scene) != 0) << pet << " " << accessory.id << " cannot play " << scene;
+                EXPECT_GT(weight, 0.0) << pet << " " << accessory.id;
+                EXPECT_LE(weight, lens::core::pet::kMaxAccessorySceneWeight) << pet << " " << accessory.id;
+            }
+        }
+        EXPECT_GE(weighted, 3) << pet << " has no accessory with a temperament";
+    }
+}
+
 TEST(PetData, EveryShippedPetHasTwoOwnScenesAndTwoSharedOnes)
 {
     auto const scenesDoc   = loadAt(std::filesystem::path{LENS_SOURCE_DIR} / "data" / "scenes", "scenes.json");

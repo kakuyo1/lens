@@ -2689,6 +2689,9 @@
     {
       "id": "witch_hat",
       "slot": "head",
+      "sceneWeights": {
+        "ghost_lantern": 3
+      },
       "except": [
         "sleep"
       ],
@@ -2923,6 +2926,9 @@
     {
       "id": "monocle",
       "slot": "face",
+      "sceneWeights": {
+        "desk": 3
+      },
       "except": [
         "sleep"
       ],
@@ -3094,6 +3100,9 @@
     {
       "id": "key_chain",
       "slot": "body",
+      "sceneWeights": {
+        "ghost_mirror": 2
+      },
       "except": [
         "sleep"
       ],
@@ -3268,6 +3277,9 @@
     {
       "id": "mist_scarf",
       "slot": "body",
+      "sceneWeights": {
+        "ghost_mirror": 2.5
+      },
       "except": [
         "sleep"
       ],

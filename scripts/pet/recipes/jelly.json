@@ -2669,6 +2669,9 @@
     {
       "id": "bubble_crown",
       "slot": "head",
+      "sceneWeights": {
+        "jelly_trampoline": 2.5
+      },
       "except": [
         "sleep"
       ],
@@ -2903,6 +2906,9 @@
     {
       "id": "bubble_glasses",
       "slot": "face",
+      "sceneWeights": {
+        "desk": 2.5
+      },
       "except": [
         "sleep"
       ],
@@ -2946,6 +2952,9 @@
     {
       "id": "dive_mask",
       "slot": "face",
+      "sceneWeights": {
+        "bath": 3
+      },
       "except": [
         "sleep"
       ],
@@ -3070,6 +3079,9 @@
     {
       "id": "pearls",
       "slot": "body",
+      "sceneWeights": {
+        "jelly_sundae": 2.5
+      },
       "except": [
         "sleep"
       ],

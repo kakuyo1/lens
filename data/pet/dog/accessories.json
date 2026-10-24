@@ -118,7 +118,10 @@
         "dog_frisbee",
         "dog_burying",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "dog_burying": 2.5
+      }
     },
     {
       "id": "round_shades",
@@ -208,7 +211,10 @@
         "dog_frisbee",
         "dog_burying",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "skate": 3
+      }
     },
     {
       "id": "knit_scarf",
@@ -238,7 +244,10 @@
         "dog_frisbee",
         "dog_burying",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "swing": 2.5
+      }
     },
     {
       "id": "backpack",
@@ -268,7 +277,10 @@
         "dog_frisbee",
         "dog_burying",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "dog_frisbee": 2.5
+      }
     }
   ]
 }

@@ -169,6 +169,24 @@ Item {
         }
     }
 
+    /// The scenes an accessory tilts toward, in the order the reader is most likely to see them.
+    function sceneWeightNames(weights) {
+        return Object.keys(weights)
+            .sort((left, right) => weights[right] - weights[left])
+            .map(id => page.sceneLabel(id))
+            .join(" / ")
+    }
+
+    /// One line for the accessories settings: what this piece nudges the pet toward, or "" when it has no such pull.
+    function accessoryTemperament(accessory) {
+        if (!accessory.sceneWeights)
+            return "";
+        const names = page.sceneWeightNames(accessory.sceneWeights);
+        if (names === "")
+            return "";
+        return qsTranslate("SettingsPopup", "%1: often heads to %2").arg(page.accessoryLabel(accessory.id)).arg(names);
+    }
+
     function petLabel(id) {
         switch (id) {
         case "dog": return qsTranslate("SettingsPopup", "Dog");
@@ -477,6 +495,32 @@ Item {
                                 }
                             }
                         }
+                    }
+                }
+
+                // Only a worn piece with sceneWeights speaks here; taking it off removes its line again (ADR 0102).
+                Repeater {
+                    model: {
+                        const lines = [];
+                        for (const item of Pet.accessories) {
+                            if (Pet.wornIn[item.slot] !== item.id)
+                                continue;
+                            const line = page.accessoryTemperament(item);
+                            if (line !== "")
+                                lines.push(line);
+                        }
+                        return lines;
+                    }
+
+                    Text {
+                        objectName: "accessoryTemperament"
+                        required property string modelData
+
+                        width: parent.width
+                        text: modelData
+                        wrapMode: Text.WordWrap
+                        color: page.tokens.faint
+                        font.pixelSize: 11
                     }
                 }
             }

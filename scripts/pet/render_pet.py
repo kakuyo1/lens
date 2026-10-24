@@ -412,13 +412,16 @@ def main():
         folder, z = SLOTS[acc["slot"]]
         asset = f"sprites/accessories/{folder}/{acc['id']}.png"
         save(out / asset, paint_frame(acc["paint"]), 1)
-        catalogue.append({
+        entry = {
             "id": acc["id"],
             "slot": acc["slot"],
             "asset": asset,
             "zIndex": z,
             "supportedActions": [name for name in actions if name not in acc.get("except", [])],
-        })
+        }
+        if "sceneWeights" in acc:
+            entry["sceneWeights"] = acc["sceneWeights"]
+        catalogue.append(entry)
 
     write_json(out / "pet.json", {
         "format": 1,

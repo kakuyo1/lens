@@ -62,7 +62,10 @@
         "cloud_watering",
         "cloud_fishing",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "cloud_fishing": 3
+      }
     },
     {
       "id": "rain_hat",
@@ -94,7 +97,10 @@
         "cloud_watering",
         "cloud_fishing",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "rain": 3
+      }
     },
     {
       "id": "raindrop_glasses",
@@ -126,7 +132,10 @@
         "cloud_watering",
         "cloud_fishing",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "desk": 2.5
+      }
     },
     {
       "id": "cloud_frames",
@@ -254,7 +263,10 @@
         "cloud_watering",
         "cloud_fishing",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "rain": 2.5
+      }
     },
     {
       "id": "bolt_charm",

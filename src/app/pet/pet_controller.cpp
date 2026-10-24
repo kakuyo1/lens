@@ -276,8 +276,11 @@ void PetController::loadPet(std::string const& id)
             auto        choices = std::vector<Choice>{};
             auto const& now     = currentMood();
             for (auto const& scene : scenes_.all())
-                if (playbook.actions.count(scene.id) != 0)
-                    choices.push_back({scene.id, core::pet::sceneWeight(scene.mood, now)});
+                if (playbook.actions.count(scene.id) != 0) {
+                    // A worn accessory tilts the lottery toward the scenes it names (ADR 0102); without one this is 1.
+                    auto const favour = wardrobe_ ? wardrobe_->sceneWeightFor(scene.id) : 1.0;
+                    choices.push_back({scene.id, core::pet::sceneWeight(scene.mood, now) * favour});
+                }
             // A four-scene pool reads as a pool only if the same one does not come straight back.
             if (choices.size() > 1) std::erase_if(choices, [this](Choice const& choice) { return choice.name == lastScene_; });
             if (choices.empty()) return std::nullopt;
@@ -585,7 +588,17 @@ QVariantList PetController::accessories() const
     auto list = QVariantList{};
     if (not assets_) return list;
     for (auto const& spec : assets_->catalogue) {
-        list.append(QVariantMap{{"id", QString::fromStdString(spec.id)}, {"slot", slotName(spec.slot)}});
+        auto item = QVariantMap{{"id", QString::fromStdString(spec.id)}, {"slot", slotName(spec.slot)}};
+        // Only a scene this pet actually plays can be tilted, so the settings line never promises a place it cannot go.
+        if (scenesAllowed_) {
+            auto weights = QVariantMap{};
+            for (auto const& [id, weight] : spec.sceneWeights) {
+                if (scenes_.find(id) != nullptr and assets_->animations.playbook.actions.count(id) != 0)
+                    weights.insert(QString::fromStdString(id), weight);
+            }
+            if (not weights.isEmpty()) item.insert("sceneWeights", weights);
+        }
+        list.append(item);
     }
     return list;
 }

@@ -30,7 +30,10 @@
         "jelly_sundae",
         "jelly_trampoline",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "jelly_trampoline": 2.5
+      }
     },
     {
       "id": "starfish_clip",
@@ -126,7 +129,10 @@
         "jelly_sundae",
         "jelly_trampoline",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "desk": 2.5
+      }
     },
     {
       "id": "dive_mask",
@@ -158,7 +164,10 @@
         "jelly_sundae",
         "jelly_trampoline",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "bath": 3
+      }
     },
     {
       "id": "bubble_cheeks",
@@ -222,7 +231,10 @@
         "jelly_sundae",
         "jelly_trampoline",
         "dizzy"
-      ]
+      ],
+      "sceneWeights": {
+        "jelly_sundae": 2.5
+      }
     },
     {
       "id": "shell_necklace",

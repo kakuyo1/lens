@@ -6174,6 +6174,9 @@
     {
       "id": "nightcap",
       "slot": "head",
+      "sceneWeights": {
+        "owl_stargazing": 3
+      },
       "paint": [
         {
           "at": [
@@ -6424,6 +6427,10 @@
     {
       "id": "readers",
       "slot": "face",
+      "sceneWeights": {
+        "owl_books": 3,
+        "desk": 2
+      },
       "except": [
         "sleep"
       ],
@@ -6615,6 +6622,9 @@
     {
       "id": "satchel",
       "slot": "body",
+      "sceneWeights": {
+        "owl_books": 2.5
+      },
       "paint": [
         {
           "at": [
@@ -6743,6 +6753,9 @@
     {
       "id": "scarf",
       "slot": "body",
+      "sceneWeights": {
+        "swing": 2.5
+      },
       "paint": [
         {
           "at": [

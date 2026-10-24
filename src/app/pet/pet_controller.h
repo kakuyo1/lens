@@ -13,6 +13,7 @@
  *
  * A scene (ADR 0049) is a named action the app ships props for. While one plays, the scene* properties carry the
  * sheet urls, the pet's per-frame shift and scale, and the alignment between this pet's feet and the catalogue's.
+ * The idle lottery weighs each scene by the mood and by the accessories worn when it draws (ADR 0093, 0102).
  */
 
 #include <chrono>
@@ -165,7 +166,8 @@ public:
     double      sceneScale() const;
     QVariantMap sceneLayers() const;
     QVariantMap sceneEntry() const;
-    /// @return Every accessory in the catalogue as {id, slot}, for the settings page to lay out.
+    /// @return Every accessory in the catalogue as {id, slot, sceneWeights?}, for the settings page to lay out. The
+    ///         weights include only scenes this pet plays; an accessory without one carries no sceneWeights key.
     QVariantList accessories() const;
     /// @return The accessory worn in each slot, keyed by slot name; an empty string where the slot is empty.
     QVariantMap wornIn() const;

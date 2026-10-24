@@ -104,4 +104,42 @@ TEST(Wardrobe, TogglingAnUnknownAccessoryIsAnError)
     EXPECT_THROW(wardrobe.toggle("crown"), std::invalid_argument);
 }
 
+TEST(Wardrobe, ASceneWeightOnlyAppliesWhileTheAccessoryIsWorn)
+{
+    auto wardrobe = Wardrobe{{
+        AccessorySpec{"glasses", Slot::Face, awakeActions(), {{"desk", 2.5}, {"owl_books", 2.0}}},
+        AccessorySpec{"hat", Slot::Head, awakeActions()},
+    }};
+
+    EXPECT_DOUBLE_EQ(wardrobe.sceneWeightFor("desk"), 1.0);
+    wardrobe.toggle("glasses");
+    EXPECT_DOUBLE_EQ(wardrobe.sceneWeightFor("desk"), 2.5);
+    EXPECT_DOUBLE_EQ(wardrobe.sceneWeightFor("owl_books"), 2.0);
+    EXPECT_DOUBLE_EQ(wardrobe.sceneWeightFor("swing"), 1.0);
+
+    wardrobe.toggle("glasses");
+    EXPECT_DOUBLE_EQ(wardrobe.sceneWeightFor("desk"), 1.0);
+
+    // A piece without a sceneWeights block leaves the lottery exactly as it was.
+    wardrobe.toggle("hat");
+    EXPECT_DOUBLE_EQ(wardrobe.sceneWeightFor("desk"), 1.0);
+}
+
+TEST(Wardrobe, WornAccessoriesMultiplyTheSameScene)
+{
+    auto wardrobe = Wardrobe{{
+        AccessorySpec{"glasses", Slot::Face, awakeActions(), {{"desk", 2.0}}},
+        AccessorySpec{"scarf", Slot::Body, awakeActions(), {{"desk", 3.0}}},
+        AccessorySpec{"bowtie", Slot::Body, awakeActions()},
+    }};
+
+    wardrobe.toggle("glasses");
+    wardrobe.toggle("scarf");
+    EXPECT_DOUBLE_EQ(wardrobe.sceneWeightFor("desk"), 6.0);
+
+    // Replacing a body piece drops its factor but leaves the face piece in place.
+    wardrobe.toggle("bowtie");
+    EXPECT_DOUBLE_EQ(wardrobe.sceneWeightFor("desk"), 2.0);
+}
+
 } // namespace

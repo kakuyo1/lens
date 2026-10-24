@@ -4,6 +4,10 @@
 
 ### Added
 
+- Some accessories now have a temperament as well as a picture: a worn pair of frames makes the pet
+  head for the desk or book nook more often, a scarf toward the rain, and so on. The pull is a
+  multiplier on the scene lottery, so every scene keeps a chance and taking the piece off restores
+  the old odds; the settings page names it in one faint line (docs/adr/0102).
 - Every shipped pet now has its own nine-piece wardrobe: three head, three face and three body
   pieces, 63 in all, drawn for that pet's silhouette. The shared sets and the dog's seven-piece
   set are retired (docs/adr/0099).
