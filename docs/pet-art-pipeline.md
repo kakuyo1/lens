@@ -12,7 +12,7 @@
 - **配饰**：七只随包宠物各 9 件，头、脸、身各 3 件，共 63 件；每只的套装配色与轮廓按该宠物画，不再四只共用一整套。每件按待机姿势画一次，之后只靠锚点移动。`supportedActions` 由渲染器从 `except` 算出。
 - **原创**：形状只能来自仓库里的配方，不能从外部图片采样。
 - **奶糖的几何**：24 列、23 行的蒙版放在配方坐标 `[-5, -6]`；两只 2 × 2 的格子眼在 `[4, 1]` 与 `[9, 1]`，`eyeSize: 2`；粉耳、爪子、项圈与银牌在身体层，鼻头与舌头在表情层；脚点在 `[6.5, 17]`。
-- **场景**：应用自带，`data/scenes/`；归属由动作表决定，和宠物包格式无关。每只宠物两个专属、两个共享；每个场景 12 帧、4 fps、30 秒，至少一个中段 beat。
+- **场景**：应用自带，`data/scenes/`；归属由动作表决定，和宠物包格式无关。每只宠物两个专属、两个共享；每个场景 12 帧、4 fps、30 秒，至少一个中段 beat。每个场景另有可选的 `entry`：`style`（`hop` / `settle` / `fade`）、可覆盖的 `prepMs` / `moveMs` / `propMs` / `arc` / `cross` / `propRise`，以及 `impact {kind, at}`；19 个场景都有，决定宠物怎样进入场景（ADR 0101）。
 
 ## 2。文件地图
 
@@ -21,12 +21,14 @@
 | `scripts/pet/recipes/<id>.json` | 配方：身体、轮廓、眼睛、嘴、角色、每个动作的各帧姿势与配饰；`dog.json` 是奶糖 | 复制 `mochi.json`（椭圆）或 `dog.json`（蒙版）后改；字段写在 `render_pet.py` 的文件头 |
 | `scripts/pet/render_pet.py` | 渲染器：读配方，写出 `data/pet/<id>/` 的全部文件，并核对尺寸 | 只在换了**结构**（例如新增一种姿势字段）时才改 |
 | `data/pet/<id>/` | 应用直接读取的输出：`pet.json`、`animations.json`、`anchors.json`、`accessories.json` 与 `sprites/` | 不手改，改配方后重新运行渲染器；没有暂存副本 |
-| `scripts/pet/scenes/<id>.json` | 场景的逐帧道具与宠物位移 | 改道具、帧数或对齐点时改；`render_scenes.py` 的输入 |
-| `scripts/pet/render_scenes.py` | 场景渲染器：写 `data/scenes/<id>/{back,front}.png` 与 `data/scenes/scenes.json`，读回核对尺寸 | 只在换了场景结构或调色板时改 |
+| `scripts/pet/scenes/<id>.json` | 场景的逐帧道具、宠物位移与 `entry` 入场编排 | 改道具、帧数、对齐点或入场时改；`render_scenes.py` 的输入 |
+| `scripts/pet/render_scenes.py` | 场景渲染器：写 `data/scenes/<id>/{back,front}.png` 与 `data/scenes/scenes.json`，读回核对尺寸；把源文件的 `entry` 写进目录，并保留只存在于运行时目录的 `mood` | 只在换了场景结构或调色板时改；改这里后重跑一次目视核对 |
 | `data/scenes/` | 应用自带的场景，不入宠物包 | 不手改，改 `scripts/pet/scenes/` 后重跑渲染器 |
 | `ui-prototypes/pet.html` | 原型设置页，内嵌全部 PNG 的 base64 | `cd ui-prototypes/pet-prototype && npm run embed` |
 
-场景没有自己的 `pets` 字段：专属场景使用全局唯一的 id（如 `dog_frisbee`），只出现在狗的 `animations.json`；共享场景（`skate`、`swing`）给每只宠物保留两个。`pet_data_test` 固定每只为 “两个专属 + 两个共享”，并核对动作帧数、场景帧数与 30 秒时长。
+场景没有自己的 `pets` 字段：专属场景使用全局唯一的 id（如 `dog_frisbee`），只出现在狗的 `animations.json`；共享场景（`skate`、`swing`）给每只宠物保留两个。`pet_data_test` 固定每只为 “两个专属 + 两个共享”，并核对动作帧数、场景帧数与 30 秒时长；`entry` 的 style 与粒子类型也由它检查。
+
+入场的弧高与落点在场景数据的 `entry` 里，不在 QML 或控制器里写死：hop 的 `arc`/`cross`、水花/尘土的 `at` 都是场景坐标；`arc` 是上限，控制器会按宠物实测的头顶余量封顶，避免高个宠物在 88 px 画布顶端被裁掉。渲染器只负责把 `entry` 原样带进 `scenes.json`，不画新的 sheet；道具上浮与粒子由 QML 画（`UI-SPEC.md` 4.18、`docs/QML.md` §10）。`mood` 目前只写在运行时目录里，所以渲染器会从旧的 `scenes.json` 读回它，重跑不会把权重丢掉。
 
 ## 3。配方里有什么
 

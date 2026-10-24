@@ -1,5 +1,16 @@
 {
   "id": "bath",
+  "entry": {
+    "style": "hop",
+    "arc": 20,
+    "impact": {
+      "kind": "splash",
+      "at": [
+        44,
+        66
+      ]
+    }
+  },
   "name": "泡澡",
   "frames": 12,
   "fps": 4,

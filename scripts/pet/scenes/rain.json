@@ -1,5 +1,8 @@
 {
   "id": "rain",
+  "entry": {
+    "style": "fade"
+  },
   "name": "撑伞看雨",
   "frames": 12,
   "fps": 4,

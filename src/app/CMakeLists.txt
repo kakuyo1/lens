@@ -250,6 +250,7 @@ qt_add_qml_module(lens_app
     qml/dev/ProfileScenario.qml
     qml/ScreenPoints.qml
     qml/pet/PetScene.qml
+    qml/pet/SceneEntryEffect.qml
     qml/settings/previews/PetStage.qml
     qml/pet/PetPackageDialog.qml
     qml/pet/SpriteLayer.qml

@@ -8,6 +8,17 @@
         "night": 1.5,
         "afterReturn": 2.0
       },
+      "entry": {
+        "style": "hop",
+        "arc": 20,
+        "impact": {
+          "kind": "splash",
+          "at": [
+            44,
+            66
+          ]
+        }
+      },
       "name": "泡澡",
       "frames": 12,
       "fps": 4,
@@ -93,6 +104,17 @@
         "afternoon": 3.0,
         "night": 0.5,
         "afterReturn": 2.0
+      },
+      "entry": {
+        "style": "hop",
+        "arc": 13,
+        "impact": {
+          "kind": "dust",
+          "at": [
+            44,
+            60
+          ]
+        }
       },
       "name": "纸箱打盹",
       "frames": 12,
@@ -180,6 +202,9 @@
         "night": 0.25,
         "afterReturn": 1.5
       },
+      "entry": {
+        "style": "settle"
+      },
       "name": "窗台晒太阳",
       "frames": 12,
       "fps": 4,
@@ -264,6 +289,9 @@
         "morning": 0.75,
         "afternoon": 1.5
       },
+      "entry": {
+        "style": "fade"
+      },
       "name": "云上垂钓",
       "frames": 12,
       "fps": 4,
@@ -347,6 +375,9 @@
       "mood": {
         "morning": 1.5,
         "evening": 0.5
+      },
+      "entry": {
+        "style": "fade"
       },
       "name": "给盆栽下雨",
       "frames": 12,
@@ -433,6 +464,9 @@
         "night": 1.5,
         "afterReading": 4.0
       },
+      "entry": {
+        "style": "settle"
+      },
       "name": "敲电脑",
       "frames": 12,
       "fps": 4,
@@ -516,6 +550,17 @@
       "mood": {
         "morning": 1.25,
         "afternoon": 1.5
+      },
+      "entry": {
+        "style": "hop",
+        "arc": 14,
+        "impact": {
+          "kind": "dust",
+          "at": [
+            60,
+            84
+          ]
+        }
       },
       "name": "埋骨头",
       "frames": 12,
@@ -601,6 +646,10 @@
         "morning": 1.5,
         "afternoon": 1.25,
         "night": 0.25
+      },
+      "entry": {
+        "style": "hop",
+        "arc": 22
       },
       "name": "接飞盘",
       "frames": 12,
@@ -688,6 +737,9 @@
         "evening": 1.5,
         "night": 4.0
       },
+      "entry": {
+        "style": "settle"
+      },
       "name": "南瓜灯",
       "frames": 12,
       "fps": 4,
@@ -772,6 +824,9 @@
         "evening": 1.5,
         "night": 2.0
       },
+      "entry": {
+        "style": "fade"
+      },
       "name": "镜中无影",
       "frames": 12,
       "fps": 4,
@@ -855,6 +910,9 @@
       "mood": {
         "afternoon": 1.5,
         "evening": 1.25
+      },
+      "entry": {
+        "style": "settle"
       },
       "name": "甜品杯",
       "frames": 12,
@@ -941,6 +999,10 @@
         "afternoon": 1.25,
         "night": 0.5
       },
+      "entry": {
+        "style": "hop",
+        "arc": 24
+      },
       "name": "弹跳床",
       "frames": 12,
       "fps": 4,
@@ -1024,6 +1086,9 @@
       "mood": {
         "afternoon": 1.25,
         "evening": 2.0
+      },
+      "entry": {
+        "style": "settle"
       },
       "name": "烤年糕",
       "frames": 12,
@@ -1110,6 +1175,17 @@
         "night": 1.5,
         "afterReturn": 2.0
       },
+      "entry": {
+        "style": "hop",
+        "arc": 18,
+        "impact": {
+          "kind": "splash",
+          "at": [
+            56,
+            70
+          ]
+        }
+      },
       "name": "温泉",
       "frames": 12,
       "fps": 4,
@@ -1194,6 +1270,9 @@
         "evening": 1.25,
         "night": 1.5,
         "afterReading": 4.0
+      },
+      "entry": {
+        "style": "settle"
       },
       "name": "书堆夜读",
       "frames": 12,
@@ -1281,6 +1360,9 @@
         "evening": 1.5,
         "night": 4.0
       },
+      "entry": {
+        "style": "settle"
+      },
       "name": "望远镜观星",
       "frames": 12,
       "fps": 4,
@@ -1361,6 +1443,9 @@
     },
     {
       "id": "rain",
+      "entry": {
+        "style": "fade"
+      },
       "name": "撑伞看雨",
       "frames": 12,
       "fps": 4,
@@ -1441,6 +1526,10 @@
     },
     {
       "id": "skate",
+      "entry": {
+        "style": "hop",
+        "arc": 16
+      },
       "name": "滑滑板",
       "frames": 12,
       "fps": 4,
@@ -1521,6 +1610,10 @@
     },
     {
       "id": "swing",
+      "entry": {
+        "style": "hop",
+        "arc": 28
+      },
       "name": "荡秋千",
       "frames": 12,
       "fps": 4,

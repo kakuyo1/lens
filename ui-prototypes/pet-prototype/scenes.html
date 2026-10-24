@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>场景过渡 demo</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./styles/ceremony.css">
+  <link rel="stylesheet" href="./styles/scenes.css">
+</head>
+<body>
+  <header class="top">
+    <div class="intro">
+      <a class="back" href="./index.html">← 宠物原型</a>
+      <div class="title-row">
+        <h1>场景过渡</h1>
+        <span class="draft">设计提案 · 未定稿</span>
+      </div>
+      <p class="lede">抽到场景时，道具与姿势现在是一帧内硬切。这里试三种入场：保留现状作对照、按场景编排的入场、以及通用淡入。猫的四个场景都读真实的 back / front 图层与身体帧，不是示意图。</p>
+    </div>
+    <div class="top-side">
+      <a class="ghost-link" href="./ceremony.html">进出场 demo →</a>
+    </div>
+  </header>
+
+  <main class="workbench">
+    <section class="board" aria-label="场景过渡演示">
+      <div class="screen" id="screen">
+        <div class="wallpaper" aria-hidden="true">
+          <span class="sun"></span>
+          <span class="ridge r1"></span>
+          <span class="ridge r2"></span>
+          <span class="ridge r3"></span>
+          <span class="grain"></span>
+        </div>
+
+        <div class="screen-meta">
+          <span class="meta-dot"></span>
+          <span>模拟桌面</span>
+          <span class="meta-sep">/</span>
+          <span class="meta-dim">随包猫 · ×3 · 264 px</span>
+          <span class="meta-right" id="frame-meta">场景帧 1 / 12</span>
+        </div>
+
+        <div class="live" id="live" data-busy="true">
+          <span class="live-dot"></span>
+          <span id="live-text">载入场景…</span>
+        </div>
+
+        <div class="scene-stage" id="stage-wrap">
+          <span class="stage-halo" aria-hidden="true"></span>
+          <canvas id="stage" width="264" height="264" aria-label="场景里的桌面宠物"></canvas>
+          <span class="window-box" id="window-box" aria-hidden="true"></span>
+          <span class="stage-caption" id="stage-caption">泡澡</span>
+        </div>
+
+        <div class="loading" id="loading">
+          <span class="loading-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>正在载入场景与精灵帧…</span>
+        </div>
+
+        <div class="error" id="error" hidden>
+          <strong>这张页面需要一个本地服务器</strong>
+          <p>它直接读取 <code>data/scenes</code> 与 <code>data/pet</code> 的 PNG。请在 <code>ui-prototypes/pet-prototype</code> 里运行 <code>npm run dev</code>，再打开 <code>/scenes.html</code>。</p>
+        </div>
+
+        <div class="taskbar" aria-hidden="true">
+          <span class="tb-start"><i class="win"><b></b><b></b><b></b><b></b></i></span>
+          <span class="tb-center">
+            <i class="tb-icon search"></i>
+            <i class="tb-icon folder"></i>
+            <i class="tb-icon page"></i>
+            <i class="tb-icon lens"><span></span></i>
+          </span>
+          <span class="tb-right">
+            <span class="tray"><i></i><i></i><i></i></span>
+            <span class="clock"><b>21:04</b><small>10/24</small></span>
+          </span>
+        </div>
+      </div>
+
+      <div class="script" aria-live="polite">
+        <div class="script-head">
+          <div>
+            <span class="eyebrow">本轮脚本</span>
+            <strong id="script-title">泡澡 · 场景入场</strong>
+          </div>
+          <span class="script-note" id="script-note">道具先就位，宠物在前景蓄力，再用 idle 身体跳进去。</span>
+        </div>
+        <ol class="timeline" id="timeline"></ol>
+        <p class="script-caption"><span class="caption-label">当前</span><span id="script-caption">等待载入</span></p>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div class="panel-head">
+        <h2>演示控制</h2>
+        <span class="status" id="status" data-state="busy">
+          <span class="status-dot"></span>
+          <span id="status-text">载入中</span>
+        </span>
+      </div>
+
+      <section class="control-block">
+        <div class="block-label">场景 <span class="hint">猫的四个，点一个即重播</span></div>
+        <div class="scene-grid" id="scene-grid"></div>
+      </section>
+
+      <section class="control-block">
+        <div class="block-label">入场方式</div>
+        <div class="seg" id="variant-seg" role="group" aria-label="入场方式">
+          <button type="button" data-variant="enter" aria-pressed="true">场景入场</button>
+          <button type="button" data-variant="fade" aria-pressed="false">通用淡入</button>
+          <button type="button" data-variant="cut" aria-pressed="false">现状硬切</button>
+        </div>
+        <p class="hint block-hint" id="variant-hint">按场景编排：泡澡跳水、纸箱一扑、秋千一跃、窗台趴下。</p>
+      </section>
+
+      <section class="control-block">
+        <div class="block-label">演示速度</div>
+        <div class="seg" id="speed-seg" role="group" aria-label="演示速度">
+          <button type="button" data-speed="0.5" aria-pressed="false">0.5×</button>
+          <button type="button" data-speed="1" aria-pressed="true">1×</button>
+          <button type="button" data-speed="1.5" aria-pressed="false">1.5×</button>
+        </div>
+      </section>
+
+      <section class="control-block checks">
+        <label class="check"><input id="reduced" type="checkbox"> 减少动效 <span class="hint">立即到场景</span></label>
+        <label class="check"><input id="auto" type="checkbox" checked> 自动轮播 <span class="hint">约 7 秒换下一个</span></label>
+        <label class="check"><input id="show-box" type="checkbox"> 显示窗口框 <span class="hint">88 × 88 画布</span></label>
+      </section>
+
+      <section class="actions">
+        <button type="button" class="primary" id="replay">重播这段</button>
+        <button type="button" class="secondary" id="next">下一场景</button>
+      </section>
+
+      <section class="rules">
+        <h3>这段入场</h3>
+        <ol id="rules-list"></ol>
+        <p>Demo 读真实的场景帧与宠物帧；配饰暂未接入。水花与尘土是少量像素粒子，接入 QML 时不需要新增宠物美术。</p>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="foot">
+    <span>源：<code>data/scenes/</code> · <code>data/pet/cat/</code> · 场景 12 帧 / 4 fps</span>
+    <span id="foot-status">等待载入</span>
+  </footer>
+
+  <script type="module" src="./src/scene-demo.js"></script>
+</body>
+</html>

@@ -1,5 +1,9 @@
 {
   "id": "swing",
+  "entry": {
+    "style": "hop",
+    "arc": 28
+  },
   "name": "荡秋千",
   "frames": 12,
   "fps": 4,

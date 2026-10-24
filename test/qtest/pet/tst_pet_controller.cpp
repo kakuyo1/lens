@@ -147,6 +147,7 @@ private slots:
     void aOneShotPreviewGoesBackToTheMachine();
     void threeClicksMakeTheDogAngry();
     void aPreviewedSceneExposesItsSheetsAndAlignment();
+    void aSceneEntryHoldsTheIdlePoseAndFlipsLayers();
     void accessoryCatalogueAndWornSlotsAreExposed();
     void restoresOnlyAccessoriesInTheirOwnSlot();
     void passthroughDefaultsOffAndIsStored();
@@ -404,6 +405,55 @@ void TstPetController::aPreviewedSceneExposesItsSheetsAndAlignment()
     rig.controller.setScene(QStringLiteral("swing"));
     QCOMPARE(rig.controller.action(), QStringLiteral("swing"));
     QCOMPARE(rig.controller.scene(), QStringLiteral("swing"));
+}
+
+void TstPetController::aSceneEntryHoldsTheIdlePoseAndFlipsLayers()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    Rig rig{settingsIn(dir), shippedRoot()};
+
+    // The swing is 140 ms of preparation and 440 ms of flight; until it lands the pet wears its idle body.
+    rig.controller.setScene(QStringLiteral("swing"));
+    QCOMPARE(rig.controller.scene(), QStringLiteral("swing"));
+    auto entry = rig.controller.sceneEntry();
+    QVERIFY2(entry.value("active").toBool(), "the scene started without an entry");
+    QVERIFY(entry.value("inFront").toBool());
+    QCOMPARE(entry.value("propAlpha").toDouble(), 0.0);
+    QVERIFY(rig.controller.sheets().value("body").toString().endsWith(QStringLiteral("/sprites/body/idle.png")));
+    QCOMPARE(rig.controller.sceneFrame(), 0);
+    QCOMPARE(rig.controller.sceneShift(), QPointF(0.0, 0.0));
+
+    rig.controller.setPreviewing(true);
+    QTRY_VERIFY_WITH_TIMEOUT(!rig.controller.sceneEntry().value("active").toBool(), 3000);
+    QVERIFY(rig.controller.sheets().value("body").toString().endsWith(QStringLiteral("/sprites/body/swing.png")));
+    QVERIFY(!rig.controller.sceneEntry().value("inFront").toBool());
+    QCOMPARE(rig.controller.sceneEntry().value("propAlpha").toDouble(), 1.0);
+    QCOMPARE(rig.controller.sceneEntry().value("idleAlpha").toDouble(), 1.0);
+    rig.controller.setPreviewing(false);
+
+    // A landing that carries an impact announces it after the pose has switched.
+    QTemporaryDir second;
+    QVERIFY(second.isValid());
+    Rig burying{settingsIn(second), shippedRoot()};
+    burying.controller.setScene(QStringLiteral("dog_burying"));
+    QVERIFY(burying.controller.sceneEntry().value("active").toBool());
+    burying.controller.setPreviewing(true);
+    QTRY_VERIFY_WITH_TIMEOUT(
+        burying.controller.sceneEntry().value("impact").toMap().value("kind").toString() == QStringLiteral("dust"), 3000);
+    burying.controller.setPreviewing(false);
+
+    // Reducing motion mid-entry lands at once, and the scene pose replaces the idle body in the same refresh.
+    QTemporaryDir third;
+    QVERIFY(third.isValid());
+    Rig reduced{settingsIn(third), shippedRoot()};
+    reduced.controller.setScene(QStringLiteral("swing"));
+    QVERIFY(reduced.controller.sceneEntry().value("active").toBool());
+    reduced.controller.setMotionReduced(true);
+    QVERIFY(!reduced.controller.sceneEntry().value("active").toBool());
+    QVERIFY(!reduced.controller.sceneEntry().value("impact").toMap().contains("kind"));
+    QCOMPARE(reduced.controller.sceneEntry().value("propAlpha").toDouble(), 1.0);
+    QVERIFY(reduced.controller.sheets().value("body").toString().endsWith(QStringLiteral("/sprites/body/swing.png")));
 }
 
 void TstPetController::accessoryCatalogueAndWornSlotsAreExposed()

@@ -1,5 +1,9 @@
 {
   "id": "jelly_trampoline",
+  "entry": {
+    "style": "hop",
+    "arc": 24
+  },
   "name": "弹跳床",
   "frames": 12,
   "fps": 4,

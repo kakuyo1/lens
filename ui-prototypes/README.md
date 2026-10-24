@@ -28,6 +28,8 @@
 
 `ceremony.html` 是进出场仪式的原型，QML 已按它落地（ADR 0089）：在模拟桌面里，开启时宠物从离落点最近的左右边缘走入，播一轮 `look_around` 再站定；换宠时旧宠从同一边缘离场、新宠从那里走入并张望一轮；关闭时宠物走到边上，回头并播 `encourage` 的爱心，再走出屏幕。右侧面板可开关宠物、点选七只、改进出边与速度，并保留 “瞬时显隐” 的现状对照；`?pet=cat`、`?side=left|right`、`?speed=0.5|1|1.5`、`?instant=1`、`?switchlook=0`、`?auto=0` 控制初始状态；新宠张望默认开，`?switchlook=0` 或面板里的开关可关掉对照。舞台下方的时间线显示本轮脚本。它和 `walk.html` 一样直接读 `data/pet`，告辞复用现有动作，没有新增美术。
 
+`scenes.html` 是场景入场的提案，QML 已按它落地（ADR 0101）：抽到场景不再硬切，而按场景编排一段约 0.3–0.8 秒的戏——泡澡先出浴缸再跳进去、纸箱一扑、秋千一跃、窗台趴下；道具透明度、宠物前后层与 idle 身体都来自真实的 `data/scenes` 与 `data/pet`。水花与尘土只是几粒像素，不是新美术。`?scene=bath|cat_box|swing|cat_sunbeam`、`?variant=enter|fade|cut`、`?speed=0.5|1|1.5`、`?reduced=1`、`?auto=0`、`?box=1` 控制初始状态，`?t=<ms>` 把舞台冻结在某一刻，供逐帧核对。它和 `ceremony.html` 一样在 `pet-prototype/` 里跑 `npm run dev` 后打开 `/scenes.html`。落地版本见 `src/app/qml/pet/PetScene.qml` 与 `SceneEntryEffect.qml`；设置页的动作预览仍是静止场景，场景药丸走真实入场。
+
 ## 怎么看
 
 双击打开，或访问 `file:///.../settings.html`。URL 追加 `?theme=dark` 直接看静谧暗夜主题，`?theme=frosted` / `?theme=liquid` 看两套玻璃主题（雾面玻璃、流光玻璃），设置面板里的主题下拉也能切。除 `settings.html` 外，每张表面右上角的按钮循环切换四套主题（晴朗白昼、静谧暗夜、雾面玻璃、流光玻璃），按钮文字是当前主题名；带 `?shot` 时按钮隐去。`settings.html` 的流光玻璃与雾面玻璃主题左上角各有一组测试背景单选，底图分别在 `liquid-backdrops/` 与 `frosted-backdrops/`；URL 追加 `?bg=<文件名>` 指定一张（如 `?bg=web-light`、`?bg=checker`），文件属于哪套主题就用哪套。

@@ -1,5 +1,8 @@
 {
   "id": "owl_stargazing",
+  "entry": {
+    "style": "settle"
+  },
   "name": "望远镜观星",
   "frames": 12,
   "fps": 4,

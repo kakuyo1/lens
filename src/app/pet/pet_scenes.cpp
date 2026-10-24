@@ -56,6 +56,31 @@ int integerOf(json const& entry, char const* key, std::string const& owner)
     return entry.at(key).get<int>();
 }
 
+/// @return `entry[key]` as an integer, or @p fallback when the key is absent; a present value must be non-negative.
+int optionalIntegerOf(json const& entry, char const* key, int fallback, std::string const& owner)
+{
+    if (not entry.contains(key)) return fallback;
+    auto const value = integerOf(entry, key, owner);
+    if (value < 0) throw std::runtime_error{owner + "." + key + " must not be negative"};
+    return value;
+}
+
+/// @return `entry[key]` as a number, or @p fallback when the key is absent.
+double optionalNumberOf(json const& entry, char const* key, double fallback, std::string const& owner)
+{
+    if (not entry.contains(key)) return fallback;
+    return numberOf(entry, key, owner);
+}
+
+/// @return The entry style `name` spells, or a refusal naming @p owner.
+SceneEntryStyle entryStyleOf(std::string const& name, std::string const& owner)
+{
+    if (name == "hop") return SceneEntryStyle::Hop;
+    if (name == "settle") return SceneEntryStyle::Settle;
+    if (name == "fade") return SceneEntryStyle::Fade;
+    throw std::runtime_error{owner + ".style must be hop, settle or fade"};
+}
+
 /// @return `[x, y]` as a point. Refuses any other shape.
 QPointF pointOf(json const& entry, char const* key, std::string const& owner)
 {
@@ -133,6 +158,53 @@ PetScenes PetScenes::load(std::filesystem::path const& directory)
                     .dx    = numberOf(frame, "dx", owner),
                     .dy    = numberOf(frame, "dy", owner),
                 });
+            }
+
+            // The entry choreography is optional as a whole (ADR 0101). Durations follow the style: a hop has a
+            // crouch, a flight and a rising prop; a settle glides; a fade only brings the props in.
+            if (entry.contains("entry")) {
+                auto const& block = entry.at("entry");
+                if (not block.is_object()) throw std::runtime_error{owner + ".entry must be an object"};
+                auto const ownerEntry = owner + ".entry";
+                auto const styleName  = block.value("style", std::string{"fade"});
+                auto       parsed     = SceneEntry{};
+                parsed.style          = entryStyleOf(styleName, ownerEntry);
+
+                auto const hop    = parsed.style == SceneEntryStyle::Hop;
+                auto const settle = parsed.style == SceneEntryStyle::Settle;
+                parsed.prepMs     = optionalIntegerOf(block, "prepMs", settle ? 120 : hop ? 140
+                                                                                          : 0,
+                                                  ownerEntry);
+                parsed.moveMs     = optionalIntegerOf(block, "moveMs", settle ? 500 : hop ? 440
+                                                                                          : 0,
+                                                  ownerEntry);
+                parsed.propMs     = optionalIntegerOf(block, "propMs", settle ? 220 : hop ? 180
+                                                                                          : 260,
+                                                  ownerEntry);
+                parsed.arc        = optionalNumberOf(block, "arc", hop ? 14.0 : 0.0, ownerEntry);
+                parsed.cross      = optionalNumberOf(block, "cross", hop ? 0.6 : 1.0, ownerEntry);
+                parsed.propRise   = optionalNumberOf(block, "propRise", hop ? 2.0 : 0.0, ownerEntry);
+                if (parsed.prepMs > 10'000 or parsed.moveMs > 10'000 or parsed.propMs > 10'000)
+                    throw std::runtime_error{ownerEntry + " has a duration above 10 seconds"};
+                if (parsed.arc < 0.0 or parsed.arc > 64.0)
+                    throw std::runtime_error{ownerEntry + ".arc must be within 0..64"};
+                if (parsed.cross < 0.0 or parsed.cross > 1.0)
+                    throw std::runtime_error{ownerEntry + ".cross must be within 0..1"};
+                if (parsed.propRise < 0.0 or parsed.propRise > 16.0)
+                    throw std::runtime_error{ownerEntry + ".propRise must be within 0..16"};
+
+                if (block.contains("impact")) {
+                    auto const& impact = block.at("impact");
+                    if (not impact.is_object()) throw std::runtime_error{ownerEntry + ".impact must be an object"};
+                    auto const kind = impact.value("kind", std::string{});
+                    if (kind != "splash" and kind != "dust")
+                        throw std::runtime_error{ownerEntry + ".impact.kind must be splash or dust"};
+                    auto const at = pointOf(impact, "at", ownerEntry + ".impact");
+                    if (at.x() < 0.0 or at.x() > canvas or at.y() < 0.0 or at.y() > canvas)
+                        throw std::runtime_error{ownerEntry + ".impact.at must be inside the canvas"};
+                    parsed.impact = SceneImpact{QString::fromStdString(kind), at};
+                }
+                scene.entry = std::move(parsed);
             }
 
             // The mood table is optional as a whole and entry by entry (ADR 0093): a scene without one weighs

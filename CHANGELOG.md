@@ -13,9 +13,12 @@
 - The pet's mood now shows in three one-off gestures: a stretch on the idle turn after a long
   reading, a look around when it comes back from a stroll, and a stretch when it wakes from a nap
   or the reader resumes after a budget pause (docs/adr/0098).
-- Each pet remembers its own size, accessories and window position in the settings document;
-  switching pets returns each one to its own nest instead of carrying the previous pet's outfit
-  and spot over (docs/adr/0096).
+- Scenes now begin with a short entrance instead of a hard cut: a hop into the bath, box or swing,
+  a glide into a seat, or a fade for the ghost and cloud scenes; the landing splash or dust is a
+  handful of QML pixels, and reduced motion still lands directly (docs/adr/0101).
+- Each pet remembers its own size and accessories in the settings document; the window spot is one,
+  the reader's, so switching pets no longer moves the window to another remembered place
+  (docs/adr/0096, 0100).
 - A pet hiding at a screen edge answers the pointer again: eyes follow a nearby cursor and the
   peek leans further in, a click on the visible sliver calls the pet out, and dropping a drag
   against an edge makes the pet tuck itself in (docs/adr/0095).

@@ -1,5 +1,16 @@
 {
   "id": "dog_burying",
+  "entry": {
+    "style": "hop",
+    "arc": 14,
+    "impact": {
+      "kind": "dust",
+      "at": [
+        60,
+        84
+      ]
+    }
+  },
   "name": "埋骨头",
   "frames": 12,
   "fps": 4,

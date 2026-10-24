@@ -126,5 +126,76 @@ Item {
             compare(rig.x, 0);
             compare(rig.y, 0);
         }
+
+        /// The two readable moments of a hop, for the hand-checked snapshot set: the idle body in front of the
+        /// props, and the scene body just after the landing.
+        function test_captureSceneEntry() {
+            if (!lensQaSnapshotDir)
+                skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the scene entry frames");
+
+            Pet.setMotionReduced(false);
+            Pet.setPet("cat");
+            tryCompare(Pet, "pet", "cat");
+            Pet.setScene("bath");
+            tryCompare(Pet, "scene", "bath");
+            Pet.setPreviewing(true);
+            wait(300);
+            waitForRendering(frame);
+            verify(Util.saveSnapshot(testCase, frame, lensQaSnapshotDir, "pet-entry-bath-air"));
+            wait(400);
+            waitForRendering(frame);
+            verify(Util.saveSnapshot(testCase, frame, lensQaSnapshotDir, "pet-entry-bath-land"));
+
+            // The scene belongs to the machine; the switch back to the default pet ends it and restores the fixture.
+            Pet.setPet("dog");
+            tryCompare(Pet, "pet", "dog");
+            Pet.setPreviewing(false);
+        }
+
+        /// ADR 0101: a hop starts with the props transparent and the idle body in front of the front layer, then
+        /// lands on the scene pose. A real scene is the machine's, so the case clicks it out at the end.
+        function test_aHopEnterHoldsTheIdlePoseAndFlipsLayers() {
+            Pet.setMotionReduced(false);
+            if (Pet.pet !== "dog") {
+                Pet.setPet("dog");
+                tryCompare(Pet, "pet", "dog");
+            }
+            Pet.setScene("swing");
+            tryCompare(Pet, "scene", "swing");
+            tryVerify(() => Pet.sceneEntry.active === true, 1000, "the scene did not start an entry");
+
+            const back = Util.findAll(scene, function (o) { return o.objectName === "sceneBack"; })[0];
+            const front = Util.findAll(scene, function (o) { return o.objectName === "sceneFront"; })[0];
+            const rig = Util.findAll(scene, function (o) { return o.objectName === "petRig"; })[0];
+            const entryRig = Util.findAll(scene, function (o) { return o.objectName === "entryPoseRig"; })[0];
+            compare(back.opacity, Pet.sceneEntry.propAlpha);
+            compare(back.opacity, 0);
+            verify(rig.z > front.z, "the entering pet is not in front of the props");
+            compare(rig.opacity, 1);
+            verify(Pet.sheets.body.indexOf("/sprites/body/idle.png") >= 0, "a hop did not hold the idle body");
+            verify(!entryRig.visible, "a hop should not draw the settle overlay");
+
+            Pet.setPreviewing(true);
+            tryVerify(() => Pet.sceneEntry.active === false, 3000, "the entry never landed");
+            compare(back.opacity, 1);
+            compare(rig.z, 10);
+            verify(Pet.sheets.body.indexOf("/sprites/body/swing.png") >= 0, "the landing did not switch to the scene body");
+            verify(Pet.sceneEntry.inFront === false);
+
+            // A second scene with a landing effect: the effect item follows the controller's impact map.
+            Pet.setScene("dog_burying");
+            tryVerify(() => Pet.sceneEntry.active === true, 1000, "the second scene did not start an entry");
+            tryVerify(() => Pet.sceneEntry.impact && Pet.sceneEntry.impact.kind === "dust", 3000,
+                       "the dust landing never reached the scene");
+            const effect = Util.findAll(scene, function (o) { return o.objectName === "sceneImpact"; })[0];
+            verify(effect, "PetScene has no landing effect item");
+            verify(effect.on, "the landing effect item is not on");
+
+            // A real scene belongs to the machine and would outlive this case; a click is the product's own way out.
+            Pet.click();
+            tryVerify(() => Pet.scene === "", 2000, "the cleanup click did not end the test scene");
+            tryVerify(() => Pet.action === "idle", 4000, "the cleanup click did not settle");
+            Pet.setPreviewing(false);
+        }
     }
 }

@@ -208,6 +208,34 @@ TEST(PetData, EveryShippedPetHasTwoOwnScenesAndTwoSharedOnes)
         EXPECT_EQ(owners, 1) << name;
 }
 
+TEST(PetData, EveryShippedSceneNamesItsEntry)
+{
+    auto const scenesDoc = loadAt(std::filesystem::path{LENS_SOURCE_DIR} / "data" / "scenes", "scenes.json");
+    auto       scenes    = 0;
+    for (auto const& scene : scenesDoc.at("scenes")) {
+        ++scenes;
+        auto const id = scene.at("id").get<std::string>();
+        ASSERT_TRUE(scene.contains("entry")) << id;
+        auto const& entry = scene.at("entry");
+        auto const  style = entry.at("style").get<std::string>();
+        EXPECT_TRUE(style == "hop" or style == "settle" or style == "fade") << id;
+        if (entry.contains("impact")) {
+            auto const& impact = entry.at("impact");
+            auto const  kind   = impact.at("kind").get<std::string>();
+            EXPECT_TRUE(kind == "splash" or kind == "dust") << id;
+            auto const& at = impact.at("at");
+            ASSERT_EQ(at.size(), 2) << id;
+            EXPECT_GE(at.at(0).get<double>(), 0.0) << id;
+            EXPECT_LE(at.at(0).get<double>(), 88.0) << id;
+            EXPECT_GE(at.at(1).get<double>(), 0.0) << id;
+            EXPECT_LE(at.at(1).get<double>(), 88.0) << id;
+        }
+        // A hop is the only style whose arc and cross guard matter; every style still names its prop reveal.
+        EXPECT_GE(entry.value("propMs", 260), 0) << id;
+    }
+    EXPECT_EQ(scenes, 19);
+}
+
 TEST(PetData, EveryShippedPetIsAcceptedWhole)
 {
     // Each folder under data/pet is a pet the picker offers, so the app must accept every one of them.

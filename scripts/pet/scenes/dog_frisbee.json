@@ -1,5 +1,9 @@
 {
   "id": "dog_frisbee",
+  "entry": {
+    "style": "hop",
+    "arc": 22
+  },
   "name": "接飞盘",
   "frames": 12,
   "fps": 4,

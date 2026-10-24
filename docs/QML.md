@@ -325,3 +325,19 @@ PY
 `Pet.canvas * Pet.scale`，场景不会把窗口
 撑大；层序取 `scenes.json` 的 `layers`，宠物 rig 固定夹在中间。窗口缩放与预览舞台因此都不需要知道场景的
 存在——它们只看见一个 88 × 88 的 `Item`。
+
+场景入场（ADR 0101，`UI-SPEC.md` 4.18）不改变这套三层结构，只是让前三样在头 0.6–0.8 秒动起来。
+`Pet.sceneEntry` 是一个映射：`active`、`inFront`、`propAlpha`、`propOffset`、`idleAlpha`、`sceneAlpha`、
+`sceneSheets` / `sceneAnchors` / `sceneExpression`（settle 的第二层姿势）与 `impact {kind, at, progress}`。
+`PetScene.qml` 把它读成：
+
+- 后层与前层 `opacity: propAlpha`，`at.y` 加 `propOffset`（道具上浮）；场景帧在这段时间固定为 0。
+- `petRig.opacity` 取 `idleAlpha`，`z` 在 `inFront` 时取 `sceneLayers.front + 1`，否则 10；hop 越过 front
+  后 `inFront` 变 false，下半身被浴缸/箱沿挡住。配饰跟着 rig 与 `Pet.anchors` 走。
+- settle 的第二层 `entryPoseRig` 用 `sceneSheets` / `sceneAnchors` / `sceneExpression`，`opacity: sceneAlpha`；
+  hop 与 fade 时它为 0。落地后控制器把场景身体交回 `petRig`，第二层归零。
+- `SceneEntryEffect.qml` 画落地粒子：`impact.kind` 为 `splash` 或 `dust`，`at` 是场景画布坐标，
+  `progress` 由控制器按 320 ms 推进。它是 QML 矩形，不是 sheet。
+
+`preview()` 里的场景是静止第 0 帧，不启动 `sceneEntry`；`setScene()`（设置页场景药丸）与待机抽签才会演。
+减少动效时控制器直接清空 `sceneEntry`，所有绑定回到中性值。窗口尺寸、舞台对齐与复习牌的定位都不参与入场。

@@ -1,7 +1,7 @@
 /**
  * @file pet_store_test.cpp
- * @brief The PET section, offline: a percentage clamps to 0..100, a stored 1..4 scale is converted once, and the
- *        size, the outfit and the position each belong to one pet (PHASE3 3.6, docs/adr/0096).
+ * @brief The PET section, offline: a percentage clamps to 0..100, a stored 1..4 scale is converted once, size and
+ *        outfit belong to one pet each, and the saved spot belongs to the reader (PHASE3 3.6, docs/adr/0096, 0100).
  */
 
 #include <filesystem>
@@ -96,7 +96,7 @@ TEST(PetStore, AnOldScaleIsConvertedOnLoadAndTheOldKeyIsTakenAway)
     EXPECT_FALSE(store.document().at("PET").contains("scale"));
 }
 
-TEST(PetStore, EachPetRemembersItsOwnSizeOutfitAndPosition)
+TEST(PetStore, EachPetRemembersItsOwnSizeAndOutfitButTheSpotIsTheReaders)
 {
     auto const path  = std::filesystem::temp_directory_path() / "lens-pet-store-per-pet.json";
     auto       store = KnownStore::load(path);
@@ -112,16 +112,16 @@ TEST(PetStore, EachPetRemembersItsOwnSizeOutfitAndPosition)
     EXPECT_EQ(pet.outfit("dog").head, std::optional<std::string>{"hat"});
     EXPECT_FALSE(pet.outfit("mochi").head) << "one pet's clothes are not another's";
 
-    pet.setPosition("dog", SavedPosition{"SCREEN1", 120, 40});
-    pet.setPosition("mochi", SavedPosition{"SCREEN2", -30, 500});
-    EXPECT_EQ(pet.position("dog")->screen, std::string{"SCREEN1"});
-    EXPECT_EQ(pet.position("dog")->x, 120);
-    EXPECT_EQ(pet.position("mochi")->screen, std::string{"SCREEN2"});
-    EXPECT_EQ(pet.position("mochi")->x, -30);
-    EXPECT_FALSE(pet.position("owl").has_value());
+    // One spot serves every pet, and no pet entry carries a private copy of it.
+    pet.setPosition(SavedPosition{"SCREEN1", 120, 40});
+    EXPECT_EQ(pet.position()->screen, std::string{"SCREEN1"});
+    EXPECT_EQ(pet.position()->x, 120);
+    auto const& pets = store.document().at("PET").at("pets");
+    EXPECT_FALSE(pets.at("dog").contains("position"));
+    EXPECT_FALSE(pets.at("mochi").contains("position"));
 }
 
-TEST(PetStore, TheFlatEveryPetValuesMoveIntoTheChosenPetsEntry)
+TEST(PetStore, TheFlatSizeAndOutfitMoveIntoTheChosenPetsEntryButTheSpotStaysTheReaders)
 {
     auto const path = std::filesystem::temp_directory_path() / "lens-pet-store-fold.json";
     std::filesystem::remove(path);
@@ -137,19 +137,71 @@ TEST(PetStore, TheFlatEveryPetValuesMoveIntoTheChosenPetsEntry)
     }
 
     auto pet = PetStore{store};
-    // The flat keys belonged to whatever pet was on, which is the one the document names.
+    // Size and outfit belonged to whatever pet was on, which is the one the document names; the spot was always
+    // the reader's and stays at the top level.
     EXPECT_EQ(pet.size("mochi", 0), 55);
     EXPECT_EQ(pet.outfit("mochi").head, std::optional<std::string>{"sprout"});
-    EXPECT_EQ(pet.position("mochi")->x, 12);
+    EXPECT_EQ(pet.position()->x, 12);
     EXPECT_FALSE(pet.outfit("dog").head);
 
-    // The move ran once: the flat keys are gone, and later writes never bring them back.
+    // The move ran once: the moved keys are gone, the spot remains, and later writes never bring the others back.
     auto const& held = store.document().at("PET");
     EXPECT_FALSE(held.contains("size"));
-    EXPECT_FALSE(held.contains("position"));
+    EXPECT_TRUE(held.contains("position"));
+    EXPECT_FALSE(held.at("pets").at("mochi").contains("position"));
     EXPECT_FALSE(held.contains("accessories"));
     pet.setSize("dog", 20);
     EXPECT_FALSE(held.contains("size"));
+}
+
+TEST(PetStore, APerPetSpotFromThePreviousVersionBecomesTheReadersOnLoad)
+{
+    auto const path = std::filesystem::temp_directory_path() / "lens-pet-store-lift-spot.json";
+    std::filesystem::remove(path);
+    auto store = KnownStore::load(path);
+    {
+        auto section = store.section("PET");
+        section.set<std::string>("pet", "mochi");
+        auto mochi = section.object("pets").object("mochi").object("position");
+        mochi.set<std::string>("screen", "SCREEN2");
+        mochi.set<int>("x", -30);
+        mochi.set<int>("y", 500);
+        auto dog = section.object("pets").object("dog").object("position");
+        dog.set<std::string>("screen", "SCREEN1");
+        dog.set<int>("x", 120);
+        dog.set<int>("y", 40);
+    }
+
+    auto pet = PetStore{store};
+    // The pet on screen keeps its spot through the upgrade; the spot no longer belongs to any pet entry.
+    EXPECT_EQ(pet.position()->screen, std::string{"SCREEN2"});
+    EXPECT_EQ(pet.position()->x, -30);
+    EXPECT_EQ(pet.position()->y, 500);
+    auto const& pets = store.document().at("PET").at("pets");
+    EXPECT_FALSE(pets.at("mochi").contains("position"));
+    EXPECT_FALSE(pets.at("dog").contains("position"));
+}
+
+TEST(PetStore, ACompleteFlatSpotWinsOverAStalePerPetOne)
+{
+    auto const path = std::filesystem::temp_directory_path() / "lens-pet-store-flat-wins.json";
+    std::filesystem::remove(path);
+    auto store = KnownStore::load(path);
+    {
+        auto section = store.section("PET");
+        section.set<std::string>("pet", "mochi");
+        section.object("position").set<std::string>("screen", "SCREEN1");
+        section.object("position").set<int>("x", 12);
+        section.object("position").set<int>("y", 34);
+        auto own = section.object("pets").object("mochi").object("position");
+        own.set<std::string>("screen", "SCREEN2");
+        own.set<int>("x", -30);
+        own.set<int>("y", 500);
+    }
+
+    auto pet = PetStore{store};
+    EXPECT_EQ(pet.position()->x, 12);
+    EXPECT_FALSE(store.document().at("PET").at("pets").at("mochi").contains("position"));
 }
 
 } // namespace

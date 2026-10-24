@@ -98,6 +98,10 @@ class PetController : public QObject {
     Q_PROPERTY(QPointF sceneAlign READ sceneAlign NOTIFY frameChanged)
     Q_PROPERTY(double sceneScale READ sceneScale NOTIFY frameChanged)
     Q_PROPERTY(QVariantMap sceneLayers READ sceneLayers NOTIFY frameChanged)
+    /// The entry choreography in progress (ADR 0101): `active`, `inFront`, `propAlpha`, `propOffset`, `idleAlpha`,
+    /// `sceneAlpha`, the scene pose's `sceneSheets` / `sceneAnchors` / `sceneExpression`, and the landing `impact`
+    /// `{kind, at, progress}`. Outside an entry the map holds neutral defaults; an impact may outlive `active`.
+    Q_PROPERTY(QVariantMap sceneEntry READ sceneEntry NOTIFY frameChanged)
     Q_PROPERTY(QVariantList accessories READ accessories NOTIFY settingsChanged)
     Q_PROPERTY(QVariantMap wornIn READ wornIn NOTIFY outfitChanged)
 
@@ -160,6 +164,7 @@ public:
     QPointF     sceneAlign() const;
     double      sceneScale() const;
     QVariantMap sceneLayers() const;
+    QVariantMap sceneEntry() const;
     /// @return Every accessory in the catalogue as {id, slot}, for the settings page to lay out.
     QVariantList accessories() const;
     /// @return The accessory worn in each slot, keyed by slot name; an empty string where the slot is empty.
@@ -362,6 +367,14 @@ private:
     void hideNow();
     /// @brief Applies the pet a switch is waiting on, while the window is off screen.
     void applyPendingPet();
+    /// @brief Starts the entry choreography for a scene that is now the machine's action.
+    void beginSceneEntry(Scene const& scene, core::pet::ActionName const& action);
+    /// @brief Ends the entry at its landing and starts the optional impact; the caller refreshes the frame.
+    void finishSceneEntry();
+    /// @brief Drops an entry and its impact, as when a scene ends or motion is reduced.
+    void clearSceneEntry();
+    /// @brief Publishes a scene's prop sheets, layers and stage alignment.
+    void applySceneProps(Scene const& scene);
     /// @brief Changes shown() and announces it when it moved.
     void setShown(bool on);
     /// @return A fresh wait before the next stroll, from the behavior block.
@@ -372,9 +385,9 @@ private:
     std::chrono::milliseconds nextPause();
     /// @return The work area of the screen nearest `at`, or an invalid rectangle when no screen is attached.
     QRect areaAt(QPoint at) const;
-    /// @return The nest the pet `id` remembers: its saved spot, on the screen it was left on, when that screen is
-    ///         still attached and the spot still holds the window. Nothing otherwise (ADR 0096).
-    std::optional<QPoint> nestOf(std::string const& id, QSize size) const;
+    /// @return The reader's saved spot, on the screen the window was left on, when that screen is still attached
+    ///         and the spot still holds the window. Nothing otherwise (ADR 0100).
+    std::optional<QPoint> savedSpot(QSize size) const;
     /// @return The attached screen whose work area is exactly `area`, or null.
     QScreen* screenForArea(QRect area) const;
     /// @return The attached screen called `name`, or null.
@@ -547,6 +560,34 @@ private:
     QPointF     sceneAlign_{};
     double      sceneScale_{1.0};
     QVariantMap sceneLayers_{};
+    /// The entry in progress (ADR 0101). `poseAction` is the idle action a hop holds; settle and fade show the
+    /// scene's own pose. `poseStartFrame` keeps the idle frame the pet was already on when a hop began.
+    struct SceneEntryState {
+        Scene const*              scene{nullptr};
+        core::pet::ActionName     poseAction;
+        int                       poseStartFrame{0};
+        std::chrono::milliseconds elapsed{0};
+    };
+    std::optional<SceneEntryState> sceneEntry_;
+    /// The landing particles, which may outlive the entry itself.
+    struct SceneImpactState {
+        QString                   kind;
+        QPointF                   at;
+        std::chrono::milliseconds elapsed{0};
+        std::chrono::milliseconds duration{320};
+    };
+    std::optional<SceneImpactState> sceneImpact_;
+    /// Whether an entry was dropped outside sync, so the next normal frame must republish the scene pose.
+    bool        sceneEntryDirty_{false};
+    bool        sceneEntering_{false};
+    bool        sceneEntryInFront_{false};
+    double      scenePropAlpha_{1.0};
+    double      scenePropOffset_{0.0};
+    double      sceneEntryIdleAlpha_{1.0};
+    double      sceneEntrySceneAlpha_{0.0};
+    QVariantMap sceneEntrySceneSheets_;
+    QVariantMap sceneEntrySceneAnchors_;
+    int         sceneEntrySceneExpression_{0};
 };
 
 } // namespace lens::app::pet

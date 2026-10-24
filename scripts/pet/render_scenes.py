@@ -124,6 +124,20 @@ def save_sheet(path, frames):
 
 
 def main():
+    OUT.mkdir(parents=True, exist_ok=True)
+    catalogue_path = OUT / "scenes.json"
+
+    # Mood weights were authored in the runtime catalogue after the renderer last wrote it, so a rerun keeps them
+    # rather than dropping a table the source files do not carry. Entry blocks live in the source files; the runtime
+    # copy is a fallback for an older source tree.
+    previous = {}
+    if catalogue_path.exists():
+        try:
+            held = json.loads(catalogue_path.read_text(encoding="utf-8"))
+            previous = {scene["id"]: scene for scene in held.get("scenes", []) if "id" in scene}
+        except (OSError, ValueError):
+            previous = {}
+
     catalogue = {"canvas": CANVAS, "scenes": []}
     for file in sorted(SOURCE.glob("*.json")):
         scene = json.loads(file.read_text(encoding="utf-8"))
@@ -136,8 +150,14 @@ def main():
         save_sheet(OUT / scene_id / "back.png", [frame_image(f["back"]) for f in frames_data])
         save_sheet(OUT / scene_id / "front.png", [frame_image(f["front"]) for f in frames_data])
 
-        catalogue["scenes"].append({
-            "id": scene_id,
+        scene_out = {"id": scene_id}
+        mood = scene.get("mood", previous.get(scene_id, {}).get("mood"))
+        if mood is not None:
+            scene_out["mood"] = mood
+        entry = scene.get("entry", previous.get(scene_id, {}).get("entry"))
+        if entry is not None:
+            scene_out["entry"] = entry
+        scene_out.update({
             "name": scene["name"],
             "frames": scene["frames"],
             "fps": scene["fps"],
@@ -151,11 +171,11 @@ def main():
                 for f in frames_data
             ],
         })
+        catalogue["scenes"].append(scene_out)
         print(f"wrote {OUT / scene_id}")
 
-    OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / "scenes.json").write_text(json.dumps(catalogue, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"wrote {OUT / 'scenes.json'}")
+    catalogue_path.write_text(json.dumps(catalogue, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(f"wrote {catalogue_path}")
 
 
 if __name__ == "__main__":

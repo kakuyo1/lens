@@ -163,6 +163,8 @@ docs/adr/0096-per-pet-nest-in-the-settings-document.md 0
 docs/adr/0097-review-gaze-follows-the-sign.md 0
 docs/adr/0098-mood-shows-in-three-gestures.md 0
 docs/adr/0099-each-pet-wears-its-own-nine-piece-wardrobe.md 0
+docs/adr/0100-the-window-spot-belongs-to-the-reader.md 0
+docs/adr/0101-scene-entry-is-pet-choreography.md 0
 docs/metrics/runtime-performance/content-transition-window-resizes-2026-10-17.md 0
 docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md 0
 docs/metrics/README.md 0

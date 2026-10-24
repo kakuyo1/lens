@@ -1,5 +1,8 @@
 {
   "id": "cloud_watering",
+  "entry": {
+    "style": "fade"
+  },
   "name": "给盆栽下雨",
   "frames": 12,
   "fps": 4,

@@ -1,5 +1,16 @@
 {
   "id": "cat_box",
+  "entry": {
+    "style": "hop",
+    "arc": 13,
+    "impact": {
+      "kind": "dust",
+      "at": [
+        44,
+        60
+      ]
+    }
+  },
   "name": "纸箱打盹",
   "frames": 12,
   "fps": 4,

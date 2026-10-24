@@ -1,5 +1,9 @@
 {
   "id": "skate",
+  "entry": {
+    "style": "hop",
+    "arc": 16
+  },
   "name": "滑滑板",
   "frames": 12,
   "fps": 4,

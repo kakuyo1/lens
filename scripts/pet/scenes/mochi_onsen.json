@@ -1,5 +1,16 @@
 {
   "id": "mochi_onsen",
+  "entry": {
+    "style": "hop",
+    "arc": 18,
+    "impact": {
+      "kind": "splash",
+      "at": [
+        56,
+        70
+      ]
+    }
+  },
   "name": "温泉",
   "frames": 12,
   "fps": 4,
