@@ -44,28 +44,18 @@ void writeSlot(SettingsSection& accessories, const char* key, std::optional<std:
         accessories.clear(key);
 }
 
-/// @brief One-time move of the flat, every-pet-the-same values into the chosen pet's own entry. The flat keys
-///        belonged to whatever pet was on, which is the one the document names; taking them away means the move
-///        never runs twice and the document is never left ambiguous. A key the pet already owns keeps its own value,
-///        which only a hand-edited document could arrange.
+/// @brief One-time move of the flat size and outfit into the chosen pet's own entry. The flat keys belonged to
+///        whatever pet was on, which is the one the document names; taking them away means the move never runs twice
+///        and the document is never left ambiguous. A key the pet already owns keeps its own value, which only a
+///        hand-edited document could arrange. The flat position stays where it is: it is the reader's spot.
 void migrateLegacyPetState(SettingsSection pet)
 {
-    if (not(pet.has("size") or pet.has("position") or pet.has("accessories"))) return;
+    if (not(pet.has("size") or pet.has("accessories"))) return;
     auto const& id  = pet.value<std::string>("pet", kDefaultPet);
     auto        own = pet.object("pets").object(id);
 
     if (pet.has("size") and not own.has("size")) own.set<int>("size", pet.value<int>("size", 0));
     pet.remove("size");
-
-    auto const from = pet.object("position");
-    auto       to   = own.object("position");
-    // All three or nothing, as position() reads: a half-written place is an edited document, not a nest.
-    if (from.has("screen") and from.has("x") and from.has("y") and not to.has("screen")) {
-        to.set<std::string>("screen", from.value<std::string>("screen", {}));
-        to.set<int>("x", from.value<int>("x", 0));
-        to.set<int>("y", from.value<int>("y", 0));
-    }
-    pet.remove("position");
 
     auto const worn = pet.object("accessories");
     auto       kept = own.object("accessories");
@@ -73,6 +63,40 @@ void migrateLegacyPetState(SettingsSection pet)
         if (worn.has(slot) and not kept.has(slot)) kept.set<std::string>(slot, worn.value<std::string>(slot, {}));
     }
     pet.remove("accessories");
+}
+
+/// @brief One-time reverse of ADR 0096's per-pet spot. The chosen pet's remembered spot becomes the reader's, so an
+///        upgrade does not move the window; a complete flat spot already present wins over a stale entry. Every
+///        `pets.<id>.position` then goes away, because no pet reads one again.
+void liftPositionToTheReader(KnownStore& store)
+{
+    auto       pet  = store.section("PET");
+    auto const flat = pet.object("position");
+    if (not(flat.has("screen") and flat.has("x") and flat.has("y"))) {
+        auto const id  = pet.value<std::string>("pet", kDefaultPet);
+        auto const own = pet.object("pets").object(id).object("position");
+        // All three or nothing, as position() reads: a half-written place is an edited document, not a spot.
+        if (own.has("screen") and own.has("x") and own.has("y")) {
+            auto reader = pet.object("position");
+            reader.set<std::string>("screen", own.value<std::string>("screen", {}));
+            reader.set<int>("x", own.value<int>("x", 0));
+            reader.set<int>("y", own.value<int>("y", 0));
+        }
+    }
+
+    auto  changed  = false;
+    auto& document = store.document();
+    auto  pets     = document.find("PET");
+    if (pets != document.end() and pets->is_object()) {
+        auto entries = pets->find("pets");
+        if (entries != pets->end() and entries->is_object()) {
+            for (auto& entry : entries->items()) {
+                if (not entry.value().is_object()) continue;
+                changed = entry.value().erase("position") > 0 or changed;
+            }
+        }
+    }
+    if (changed) store.save();
 }
 
 } // namespace
@@ -83,6 +107,7 @@ PetStore::PetStore(KnownStore& store)
     auto pet = store_.section("PET");
     migrateLegacySize(pet);
     migrateLegacyPetState(pet);
+    liftPositionToTheReader(store_);
 }
 
 std::string PetStore::pet() const
@@ -152,18 +177,18 @@ void PetStore::setOutfit(std::string const& pet, Outfit const& outfit)
     writeSlot(accessories, "body", outfit.body);
 }
 
-std::optional<SavedPosition> PetStore::position(std::string const& pet) const
+std::optional<SavedPosition> PetStore::position() const
 {
-    auto const& at = entry(pet).object("position");
+    auto const& at = store_.section("PET").object("position");
     // All three or nothing: a half-written position is a document someone edited, not a place
     // the window was left.
     if (not at.has("screen") or not at.has("x") or not at.has("y")) return std::nullopt;
     return SavedPosition{at.value<std::string>("screen", {}), at.value<int>("x", 0), at.value<int>("y", 0)};
 }
 
-void PetStore::setPosition(std::string const& pet, SavedPosition const& at)
+void PetStore::setPosition(SavedPosition const& at)
 {
-    auto position = entry(pet).object("position");
+    auto position = store_.section("PET").object("position");
     position.set<std::string>("screen", at.screen);
     position.set<int>("x", at.x);
     position.set<int>("y", at.y);

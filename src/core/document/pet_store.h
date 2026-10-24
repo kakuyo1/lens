@@ -9,14 +9,15 @@
 
 /**
  * @file pet_store.h
- * @brief The PET section of the settings document: the chosen pet, the two switches, and each pet's own size, outfit
- *        and window position (PHASE3 3.6, docs/adr/0096).
+ * @brief The PET section of the settings document: the chosen pet, the two switches, each pet's own size and outfit,
+ *        and the reader's one saved window position (PHASE3 3.6, docs/adr/0096, docs/adr/0100).
  *
  * Like StatsStore, this binds to the document KnownStore owns and writes only its own key. It persists through
  * KnownStore::save(), so there is still one file and one writer.
  *
- * The size, the outfit and the position belong to one pet each, keyed by id: choosing a pet returns it to the nest
- * it left, in the clothes it left them in. The switches and the confirmed list are the reader's, not any pet's.
+ * The size and the outfit belong to one pet each, keyed by id: choosing a pet returns it in the clothes it left
+ * them in. The window position, the switches and the confirmed list are the reader's: the window is one place on
+ * the desktop, so switching pets leaves it where it is.
  */
 
 namespace lens::core::pet {
@@ -91,12 +92,12 @@ public:
     Outfit outfit(std::string const& pet) const;
     void   setOutfit(std::string const& pet, Outfit const& outfit);
 
-    /// @return Where the pet's window was left, or nothing before it was first moved.
-    std::optional<SavedPosition> position(std::string const& pet) const;
-    void                         setPosition(std::string const& pet, SavedPosition const& at);
+    /// @return Where the reader left the window, or nothing before it was first moved. One spot serves every pet.
+    std::optional<SavedPosition> position() const;
+    void                         setPosition(SavedPosition const& at);
 
 private:
-    /// @return The one pet's own object under PET.pets, where its size, outfit and position live.
+    /// @return The one pet's own object under PET.pets, where its size and outfit live.
     SettingsSection entry(std::string const& pet) const;
 
     KnownStore& store_;
