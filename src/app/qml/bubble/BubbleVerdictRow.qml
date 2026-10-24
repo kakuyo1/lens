@@ -24,7 +24,20 @@ Item {
 
     /// Whether the row is open: the pointer on the card, and a word to judge.
     readonly property bool show: root.hovering && root.status !== ""
-    readonly property real openHeight: actions.height + 25
+    /// The one-time sentence under the pills. It is latched for this opening even though the
+    /// document flag flips at once, and it never returns once the reader has seen it.
+    property bool hintLatch: false
+    readonly property bool showHint: show && hintLatch
+    readonly property real openHeight: actions.height + 25 + (showHint ? hintText.implicitHeight + 8 : 0)
+
+    onShowChanged: {
+        if (show && !Controller.settings.verdictHintSeen) {
+            hintLatch = true;
+            Controller.setSetting("verdictHintSeen", true);
+        } else if (!show) {
+            hintLatch = false;
+        }
+    }
 
     width: parent ? parent.width : 0
     height: show ? openHeight : 0
@@ -124,5 +137,23 @@ Item {
                 onTapped: Controller.explanationDuty.mark(root.lemma, false)
             }
         }
+    }
+
+    // The first verdict row explains the two choices once. It sits under the pills rather than
+    // beside them, so the choice stays the loudest thing on the row; after this opening the
+    // sentence is gone and the row returns to its two-button height.
+    Text {
+        id: hintText
+        objectName: "verdictHint"
+        anchors.top: actions.bottom
+        anchors.topMargin: 8
+        width: parent.width
+        visible: root.showHint
+        text: qsTr("Known stops automatic scans; New keeps the word in review.")
+        color: root.tokens.faint
+        font.pixelSize: 11
+        lineHeight: 1.3
+        lineHeightMode: Text.ProportionalHeight
+        wrapMode: Text.WordWrap
     }
 }

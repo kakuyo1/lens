@@ -167,6 +167,25 @@ Item {
             return -1;
         }
 
+        /// Keyboard focus asks the same question as a pointer on the label: a reader who reaches
+        /// a switch with Tab gets the preview the mouse would have raised.
+        function test_focusingASwitchRaisesItsPreview() {
+            const main = make();
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "Reading & learning");
+
+            const switcher = Util.findAll(panel, function (o) {
+                return o.toString().indexOf("Switch_QMLTYPE") === 0 && o.accessibleName === "Etymology";
+            })[0];
+            verify(switcher, "the learning page has no etymology switch");
+            switcher.forceActiveFocus();
+            const preview = previewOf(main);
+            tryCompare(preview, "visible", true);
+            compare(preview.title, Controller.settingPreview.word, "focus raised the wrong preview");
+            panel.visible = false;
+        }
+
         function test_aHoverRaisesTheCardBesideThePanelAndLeavingPutsItDown() {
             const main = make();
             Util.surfaceHost(main).showSettings();

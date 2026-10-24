@@ -77,6 +77,30 @@ Item {
             return Number(matched[1]);
         }
 
+        /// The verdict row says what its two choices do once, on the first opening. The sentence
+        /// is latched for that opening even though the document flag flips at once, and the next
+        /// bubble's row carries the two pills alone.
+        function test_theVerdictRowExplainsItselfOnce() {
+            Controller.setSetting("verdictHintSeen", false);
+            const first = opened();
+            first.hovering = true;
+            const hint = Util.findAll(first, function (o) {
+                return o.objectName === "verdictHint";
+            })[0];
+            verify(hint, "the verdict row carries no hint");
+            tryCompare(hint, "visible", true);
+            compare(Controller.settings.verdictHintSeen, true, "the hint was not marked as seen");
+            first.visible = false;
+            first.destroy();
+
+            const second = opened();
+            second.hovering = true;
+            wait(50);
+            compare(Util.findAll(second, function (o) {
+                return o.objectName === "verdictHint";
+            })[0].visible, false, "the hint returned on a later bubble");
+        }
+
         /// A fresh bubble starts at its full five.
         function test_aFreshBubbleShowsTheWholeCount() {
             const bubble = opened();

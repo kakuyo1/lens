@@ -161,6 +161,19 @@ Item {
             tryCompare(testCase, "titleRequests", 1);
         }
 
+        function test_calendarOpensYear() {
+            const popup = make(wordsComponent);
+            titleRequests = 0;
+            popup.yearRequested.connect(function () { titleRequests += 1; });
+            const button = Util.findAll(popup, function (o) {
+                return o.objectName === "yearButton";
+            })[0];
+            verify(button, "the words header has no calendar button");
+            compare(button.accessibleName, qsTranslate("WordsPopup", "Year in words"));
+
+            mouseClick(button, button.width / 2, button.height / 2);
+            tryCompare(testCase, "titleRequests", 1);
+        }
         function test_theYearWordsPanelProjectsTheControllerDaysAndPalette() {
             const popup = make(yearWordsComponent);
             popup.visible = true;
@@ -252,8 +265,7 @@ Item {
             }
         }
 
-        /// The card is sized to its widest row, so the columns beside the word must fit under it:
-        /// a word drawn narrower than it measures is one the reader sees cut short.
+        /// The card is sized to its widest row: a narrower word would be seen cut short.
         function test_theWidestWordIsRenderedWhole() {
             const popup = make(wordsComponent);
             popup.visible = true;

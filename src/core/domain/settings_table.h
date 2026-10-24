@@ -134,6 +134,9 @@ inline constexpr Row kRows[]{
     {.key = "bubbleFontSize", .kind = Kind::Integer, .signal = Signal::Settings, .fallback = 13, .low = 12, .high = 18},
     {.key = "bubbleDismissSeconds", .kind = Kind::Integer, .signal = Signal::Settings, .fallback = 5, .low = 1, .high = 30, .synced = true},
     {.key = "bubblePlacement", .kind = Kind::Choice, .signal = Signal::Settings, .fallback = "above", .synced = true, .members = kPlacements},
+    // Not a reader setting: the card writes it after it has shown the verdict row's one-time
+    // sentence, so the sentence does not return on every bubble (UI-SPEC.md 4.3).
+    {.key = "verdictHintSeen", .kind = Kind::Toggle, .signal = Signal::Settings, .fallback = false},
     {.key = "clipboardPolicy", .kind = Kind::Choice, .signal = Signal::Logged, .fallback = "topmost", .members = kClipboardPolicies},
     // The action bar's form (UI-SPEC.md 4.10, docs/adr/0056).
     {.key = "selectionBarStyle", .kind = Kind::Choice, .signal = Signal::Settings, .fallback = "bar", .synced = true, .members = kBarStyles},

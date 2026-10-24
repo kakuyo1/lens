@@ -21,6 +21,15 @@ Row {
 
     signal toggled(bool checked)
 
+    /// A pointer on the label or keyboard focus on the switch asks the same question, so both
+    /// raise the preview: the reader who reached the row with Tab gets the same explanation as
+    /// the one who reached it with the mouse.
+    readonly property bool previewActive: labelHover.hovered || switcher.activeFocus
+    onPreviewActiveChanged: {
+        if (root.previewKey !== "")
+            root.previewChanged(root.previewActive ? root.previewKey : "");
+    }
+
     width: parent ? parent.width : implicitWidth
     height: 33
     spacing: 8
@@ -38,8 +47,8 @@ Row {
         height: root.height
         verticalAlignment: Text.AlignVCenter
         HoverHandler {
+            id: labelHover
             enabled: root.previewKey !== ""
-            onHoveredChanged: root.previewChanged(hovered ? root.previewKey : "")
         }
     }
 

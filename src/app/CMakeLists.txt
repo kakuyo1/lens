@@ -364,6 +364,7 @@ set(LENS_ICONS
   ${CMAKE_SOURCE_DIR}/data/icons/tray-budget-ondark.svg
   ${CMAKE_SOURCE_DIR}/data/icons/tray-budget-onlight.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-back.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-calendar.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-chevron-down.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-chevron-right.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-close.svg

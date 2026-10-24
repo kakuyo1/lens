@@ -273,6 +273,18 @@ Window {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 6
 
+                    // The annual record has a glyph of its own rather than living only behind the
+                    // title: the title's press stays as a shortcut, but the calendar is the entry a
+                    // reader can see, reach with Tab and name to a screen reader.
+                    IconButton {
+                        objectName: "yearButton"
+                        anchors.verticalCenter: parent.verticalCenter
+                        source: "qrc:/icons/ui-calendar.svg"
+                        color: words.tokens.faint
+                        accessibleName: qsTranslate("WordsPopup", "Year in words")
+                        onTapped: words.yearRequested()
+                    }
+
                     // The export sits with the glyphs the reader already reads as "things this window
                     // does", not on a line of its own under the total: it acts on the list, and the
                     // list is what the card is.

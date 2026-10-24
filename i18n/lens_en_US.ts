@@ -73,14 +73,19 @@
 <context>
     <name>BubbleVerdictRow</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="84"/>
+        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="97"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="116"/>
+        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="129"/>
         <source>New</source>
         <translation>New</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="152"/>
+        <source>Known stops automatic scans; New keeps the word in review.</source>
+        <translation>Known stops automatic scans; New keeps the word in review.</translation>
     </message>
 </context>
 <context>
@@ -326,12 +331,12 @@
         <translation>Close</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="490"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="491"/>
         <source>Confirm</source>
         <translation>Confirm</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="512"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="513"/>
         <source>API key and launch at login stay as they are.</source>
         <translation>API key and launch at login stay as they are.</translation>
     </message>
@@ -676,7 +681,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="261"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="483"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="484"/>
         <source>Defaults</source>
         <translation>Defaults</translation>
     </message>
@@ -1830,7 +1835,7 @@
         <location filename="../src/app/qml/pet/PetPackageDialog.qml" line="115"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="152"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="294"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="498"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="499"/>
         <source>Cancel</source>
         <translation>Cancel</translation>
     </message>
@@ -2119,44 +2124,49 @@
         <translation>Words</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="300"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="284"/>
+        <source>Year in words</source>
+        <translation>Year in words</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="312"/>
         <source>Back</source>
         <translation>Back</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="307"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="319"/>
         <source>Close</source>
         <translation>Close</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="325"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="337"/>
         <source>%1 words</source>
         <translation>%1 words</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="335"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="347"/>
         <source>All</source>
         <translation>All</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="335"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="347"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="335"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="347"/>
         <source>New</source>
         <translation>New</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="422"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="433"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="434"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="445"/>
         <source>JSON files (*.json)</source>
         <translation>JSON files (*.json)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="290"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="431"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="302"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="443"/>
         <source>Import words</source>
         <translation>Import words</translation>
     </message>
@@ -2176,20 +2186,20 @@
         <translation>Remove</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="283"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="419"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="295"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="431"/>
         <source>Export words</source>
         <translation>Export words</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="422"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="433"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="434"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="445"/>
         <source>Text files (*.txt)</source>
         <translation>Text files (*.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="422"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="433"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="434"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="445"/>
         <source>All files (*)</source>
         <translation>All files (*)</translation>
     </message>
