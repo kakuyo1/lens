@@ -109,6 +109,10 @@ Item {
             })[0];
             compare(definition.color.toString(), bubble.tokens.text.toString(),
                     "the glass card's body did not take the first text step");
+            const ipa = Util.textWith(Util.textsUnder(bubble), ["/ˌserənˈdɪpəti/"]);
+            verify(ipa, "the bubble has no pronunciation line");
+            compare(ipa.color.toString(), bubble.tokens.faint.toString(),
+                    "metadata moved off the faint step with the body");
             Tokens.theme = previous;
         }
 
