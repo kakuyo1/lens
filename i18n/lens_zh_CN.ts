@@ -24,17 +24,17 @@
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="322"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="323"/>
         <source>Etymology</source>
         <translation>词源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="361"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="362"/>
         <source>Example</source>
         <translation>例句</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="406"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="407"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒后自动消失</translation>
     </message>
@@ -321,28 +321,28 @@
         <translation>已恢复默认</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="355"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="357"/>
         <source>Back</source>
         <translation>返回</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="411"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="413"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="491"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="501"/>
         <source>Confirm</source>
         <translation>确认</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="513"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="527"/>
         <source>API key and launch at login stay as they are.</source>
         <translation>API key 与开机自启保持不变。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="102"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="367"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="369"/>
         <source>Settings</source>
         <translation>设置</translation>
     </message>
@@ -681,7 +681,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="261"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="484"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="487"/>
         <source>Defaults</source>
         <translation>恢复默认</translation>
     </message>
@@ -1835,7 +1835,7 @@
         <location filename="../src/app/qml/pet/PetPackageDialog.qml" line="115"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="152"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="294"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="499"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="510"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
@@ -2049,36 +2049,41 @@
     </message>
     <message>
         <location filename="../src/app/qml/panels/UpdateCard.qml" line="86"/>
+        <source>Checking...</source>
+        <translation>检查中…</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="88"/>
         <source>Install</source>
         <translation>安装</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="88"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="90"/>
         <source>Download</source>
         <translation>下载</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="108"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="110"/>
         <source>%1 left</source>
         <translation>剩余 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="187"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="189"/>
         <source>Lens %1 is available</source>
         <translation>Lens %1 可用</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="200"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="202"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="375"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="386"/>
         <source>View</source>
         <translation>查看</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="414"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="425"/>
         <source>Skip this version</source>
         <translation>跳过此版本</translation>
     </message>

@@ -116,7 +116,8 @@ Item {
         }
 
         /// The one primary button: Download while the file can be fetched, Cancel while it is,
-        /// Install once it has been checked, and nothing when this release cannot be downloaded.
+        /// a disabled Checking… while the digest is verified, Install once it has been checked,
+        /// and nothing when this release cannot be downloaded.
         function test_thePrimaryButtonFollowsTheDownloadState() {
             const card = opened().card;
             compare(card.primaryAction("idle", true), "Download");
@@ -124,7 +125,8 @@ Item {
             compare(card.primaryAction("downloading", true), "Cancel");
             compare(card.primaryAction("ready", true), "Install");
             compare(card.primaryAction("failed", true), "Download", "a failed download can be tried again");
-            compare(card.primaryAction("verifying", true), "", "nothing may be pressed while it is checked");
+            compare(card.primaryAction("verifying", true), "Checking...",
+                    "the checked state has no pill to hold its place");
             card.visible = false;
         }
 

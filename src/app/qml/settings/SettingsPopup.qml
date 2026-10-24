@@ -278,6 +278,8 @@ Window {
         // The interface language is not here on purpose: it belongs to the tray menu, and a
         // panel is not the place that changes a setting the panel does not show.
         saveStatus = qsTranslate("SettingsPopup", "Defaults restored");
+        if (defaultsAvailable)
+            Qt.callLater(() => defaultsButton.forceActiveFocus());
     }
 
     onVisibleChanged: {
@@ -479,13 +481,21 @@ Window {
                 visible: settings.defaultsAvailable
 
                 Chip {
+                    id: defaultsButton
                     objectName: "defaultsButton"
                     visible: !settings.confirmingDefaults
                     label: qsTranslate("SettingsPopup", "Defaults")
-                    onPicked: settings.confirmingDefaults = true
+                    onPicked: {
+                        // A stale "restored" line under a new question reads as a result of the
+                        // press that only asked, so it goes with the old pill.
+                        settings.saveStatus = "";
+                        settings.confirmingDefaults = true;
+                        Qt.callLater(() => confirmDefaultsButton.forceActiveFocus());
+                    }
                 }
 
                 Chip {
+                    id: confirmDefaultsButton
                     objectName: "confirmDefaultsButton"
                     visible: settings.confirmingDefaults
                     label: qsTranslate("SettingsPopup", "Confirm")
@@ -494,10 +504,14 @@ Window {
                 }
 
                 Chip {
+                    id: cancelDefaultsButton
                     objectName: "cancelDefaultsButton"
                     visible: settings.confirmingDefaults
                     label: qsTranslate("SettingsPopup", "Cancel")
-                    onPicked: settings.confirmingDefaults = false
+                    onPicked: {
+                        settings.confirmingDefaults = false;
+                        Qt.callLater(() => defaultsButton.forceActiveFocus());
+                    }
                 }
             }
 

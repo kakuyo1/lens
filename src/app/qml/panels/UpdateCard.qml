@@ -82,6 +82,8 @@ Window {
     function primaryAction(state, available) {
         if (state === "downloading")
             return qsTranslate("UpdateCard", "Cancel");
+        if (state === "verifying")
+            return qsTranslate("UpdateCard", "Checking...");
         if (state === "ready")
             return qsTranslate("UpdateCard", "Install");
         if (state === "failed" || state === "idle")
@@ -235,7 +237,9 @@ Window {
             Column {
                 width: parent.width
                 spacing: 6
-                visible: card.download.state === "downloading"
+                // The block stays through the checksum check: dropping it the moment the bytes
+                // land would shorten the card and then grow it again when Install appears.
+                visible: card.download.state === "downloading" || card.download.state === "verifying"
 
                 Rectangle {
                     id: track
@@ -306,7 +310,11 @@ Window {
                         id: primary
                         objectName: "primaryButton"
                         readonly property bool secondary: card.download.state === "downloading"
+                                                          || card.download.state === "verifying"
+                        readonly property bool busy: card.download.state === "verifying"
                         visible: primaryLabel.text !== ""
+                        enabled: !busy
+                        opacity: enabled ? 1 : 0.45
                         width: primaryLabel.implicitWidth + 26
                         height: 26
                         radius: card.tokens.radiusPill
@@ -334,9 +342,12 @@ Window {
                             font.weight: Font.Bold
                         }
 
-                        HoverHandler { cursorShape: Qt.PointingHandCursor }
+                        HoverHandler {
+                            cursorShape: primary.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                        }
                         TapHandler {
                             id: primaryTap
+                            enabled: primary.enabled
                             onTapped: {
                                 if (card.download.state === "downloading")
                                     card.cancelRequested();
