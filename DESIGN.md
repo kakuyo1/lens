@@ -83,7 +83,7 @@ components:
 
 对应原型：`ui-prototypes/`（每块表面一个文件，用法与修改约定见 `ui-prototypes/README.md`）。
 
-frontmatter 的令牌以**晴朗白昼**为基准面；静谧暗夜、两套玻璃的整表换值见 Colors 下的 3.1b / 3.1c / 3.1d，机器可读的变体表在 `.impeccable/design.json`。
+frontmatter 的令牌以**晴朗白昼**为基准面；静谧暗夜、两套玻璃的整表换值见 Colors 下的 3.1b / 3.1c / 3.1d，机器可读的变体表在 `.impeccable/design.json`（机器本地文件，不入库，由 `/impeccable document` 再生成）。
 
 ## Overview
 

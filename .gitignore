@@ -46,6 +46,12 @@ logs/
 # source of truth is docs/adr/ and the commit log, so this working artifact is never committed.
 architecture-review-*.html
 
+# Impeccable's machine-local directory: the critique campaign plan, the design sidecar, mocks.
+# The per-round critique reports under .impeccable/critique/ are the exception: each round's
+# commit carries its report, and the archive moves to docs/history/ when the campaign ends.
+.impeccable/*
+!.impeccable/critique/
+
 # Python bytecode
 __pycache__/
 *.pyc
