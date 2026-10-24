@@ -28,15 +28,22 @@ Item {
     /// document flag flips at once, and it never returns once the reader has seen it.
     property bool hintLatch: false
     readonly property bool showHint: show && hintLatch
-    readonly property real openHeight: actions.height + 25 + (showHint ? hintText.implicitHeight + 8 : 0)
+    readonly property real hintHeight: hintText.implicitHeight + 8
+    readonly property real openHeight: actions.height + 25 + (showHint ? hintHeight : 0)
 
     onShowChanged: {
-        if (show && !Controller.settings.verdictHintSeen) {
+        if (show && !Controller.settings.verdictHintSeen)
             hintLatch = true;
-            Controller.setSetting("verdictHintSeen", true);
-        } else if (!show) {
+        else if (!show)
             hintLatch = false;
-        }
+    }
+
+    /// A pointer that crosses the row on its way somewhere else should not spend the one
+    /// explanation: the flag is written only once the sentence has stood for a moment.
+    Timer {
+        interval: 1500
+        running: root.showHint && !Controller.settings.verdictHintSeen
+        onTriggered: Controller.setSetting("verdictHintSeen", true)
     }
 
     width: parent ? parent.width : 0
@@ -149,7 +156,7 @@ Item {
         anchors.topMargin: 8
         width: parent.width
         visible: root.showHint
-        text: qsTr("Known stops automatic scans; New keeps the word in review.")
+        text: qsTr("Known stops automatic scans; New marks it for more practice.")
         color: root.tokens.faint
         font.pixelSize: 11
         lineHeight: 1.3

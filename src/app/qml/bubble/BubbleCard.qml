@@ -31,9 +31,12 @@ Item {
                                       || etymologyText.revealing || exampleText.revealing
                                       || senseRows.revealing || chainPanel.revealing
 
-    /// How far the verdict row reaches past the card's own height when it opens. Bubble.qml's height
-    /// hold adds and subtracts it as the pointer comes and goes.
+    /// How far the verdict row reaches past the card's own height when it opens. The one-time hint
+    /// is counted before the row has opened, so the window is already tall enough when it appears;
+    /// Bubble.qml's height hold adds and subtracts this as the pointer comes and goes.
     readonly property int verdictRowHeight: verdictRow.openHeight
+                                            + (!verdictRow.showHint && !Controller.settings.verdictHintSeen
+                                               ? verdictRow.hintHeight : 0)
 
     /// The definition chain, so a step can be pushed into it from outside: Main.qml takes an answered
     /// step and a failed one through here.

@@ -4,37 +4,37 @@
 <context>
     <name>BubbleCard</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="201"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="204"/>
         <source>Preview</source>
         <translation>プレビュー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="202"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="205"/>
         <source>Sentence</source>
         <translation>文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="203"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="206"/>
         <source>Known</source>
         <translation>覚えた</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="203"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="206"/>
         <source>New</source>
         <translation>初見</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="323"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="326"/>
         <source>Etymology</source>
         <translation>語源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="362"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="365"/>
         <source>Example</source>
         <translation>例文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="407"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="410"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒後に消えます</translation>
     </message>
@@ -73,19 +73,19 @@
 <context>
     <name>BubbleVerdictRow</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="97"/>
+        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="104"/>
         <source>Known</source>
         <translation>覚えた</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="129"/>
+        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="136"/>
         <source>New</source>
         <translation>初見</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="152"/>
-        <source>Known stops automatic scans; New keeps the word in review.</source>
-        <translation>「既知」は自動スキャンを止め、「新規」は単語を復習に残します。</translation>
+        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="159"/>
+        <source>Known stops automatic scans; New marks it for more practice.</source>
+        <translation>「既知」は自動スキャンを止め、「新規」はもっと練習する語として残します。</translation>
     </message>
 </context>
 <context>

@@ -124,7 +124,9 @@ Item {
             })[0];
             verify(hint, "the verdict row carries no hint");
             tryCompare(hint, "visible", true);
-            compare(Controller.settings.verdictHintSeen, true, "the hint was not marked as seen");
+            compare(Controller.settings.verdictHintSeen, false,
+                    "the hint was marked as seen before it had stood for a moment");
+            tryCompare(Controller.settings, "verdictHintSeen", true, 2500);
             first.visible = false;
             first.destroy();
 
