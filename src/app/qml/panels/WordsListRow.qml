@@ -16,9 +16,10 @@ Item {
     width: entry.host.cardWidth - 40
 
     /// What this row needs to draw itself whole: the card's padding, the word at its unelided width,
-    /// the gap, and the right-hand cluster. The card is sized to the widest of these, so the row hands
-    /// it over rather than having its text measured from outside.
-    readonly property real naturalWidth: 40 + wordText.implicitWidth + 9 + side.width
+    /// the gap, and the right-hand cluster -- which keeps 8 px off the row's right edge, the room the
+    /// cross's focus ring needs inside the list's clip. The card is sized to the widest of these, so
+    /// the row hands it over rather than having its text measured from outside.
+    readonly property real naturalWidth: 48 + wordText.implicitWidth + 9 + side.width
     onNaturalWidthChanged: entry.host.noteRowWidth(naturalWidth)
     Component.onCompleted: entry.host.noteRowWidth(naturalWidth)
 
@@ -111,6 +112,9 @@ Item {
     Row {
         id: side
         anchors.right: parent.right
+        // The cross is the row's last tab stop, and its ring stands 4 px clear of the glyph: without
+        // this much room the list's clip cuts the ring's right stroke off at the scrollbar.
+        anchors.rightMargin: 8
         anchors.verticalCenter: parent.verticalCenter
         spacing: 8
 
