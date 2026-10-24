@@ -38,11 +38,10 @@ Item {
             const bubble = createTemporaryObject(bubbleComponent, root);
             verify(bubble);
             bubble.show({
-                 title: "serendipity",
-                 type: "word",
+                title: "serendipity",
+                type: "word",
                 ipa: "/ˌserənˈdɪpəti/",
                 en: "the occurrence of events by chance in a happy way",
-                zh: "机缘巧合",
                 status: "new",
                 x: 200,
                 y: 240
@@ -75,6 +74,17 @@ Item {
             const matched = meta.text.match(/([0-9]+)s/);
             verify(matched);
             return Number(matched[1]);
+        }
+
+        /// The controller sends one answer language, never two (explanation_duty.cpp:486-489).
+        /// The fixture has to do the same or it tests a card production cannot draw.
+        function test_theFixtureCarriesOneAnswerLanguage() {
+            const bubble = opened();
+            const populated = [bubble.english, bubble.chinese, bubble.translation].filter(function (text) {
+                return text !== "";
+            });
+            compare(populated.length, 1, "the fixture carries more than one answer language");
+            compare(bubble.english, "the occurrence of events by chance in a happy way");
         }
 
         /// The explanation body is the second text step on an opaque card and the first on glass:
