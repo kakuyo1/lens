@@ -85,12 +85,33 @@ TEST(PetData, ExpressionListsCoverEveryFrame)
     }
 }
 
-TEST(PetData, AccessoriesLoadWithEveryPrototypeItem)
+TEST(PetData, AccessoriesLoadWithEveryWardrobePiece)
 {
     auto const animations = parseAnimations(load("animations.json"));
     auto const catalogue  = parseAccessories(load("accessories.json"), animations.playbook);
 
-    EXPECT_EQ(catalogue.size(), 7u);
+    EXPECT_EQ(catalogue.size(), 9u);
+}
+
+TEST(PetData, EveryShippedPetWearsThreePiecesInEachSlot)
+{
+    for (auto const& entry : std::filesystem::directory_iterator{std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet"}) {
+        if (not entry.is_directory()) continue;
+        auto const animations = parseAnimations(loadAt(entry.path(), "animations.json"));
+        auto const catalogue  = parseAccessories(loadAt(entry.path(), "accessories.json"), animations.playbook);
+
+        auto perSlot = std::map<lens::core::pet::Slot, int>{};
+        for (auto const& accessory : catalogue) {
+            ++perSlot[accessory.slot];
+            // A chip that changes nothing while the pet stands idle reads as broken, so every shipped piece shows then.
+            auto const shows = std::find(accessory.supportedActions.begin(), accessory.supportedActions.end(), "idle");
+            EXPECT_TRUE(shows != accessory.supportedActions.end()) << entry.path().filename().string() << " " << accessory.id;
+        }
+        EXPECT_EQ(catalogue.size(), 9u) << entry.path().filename().string();
+        EXPECT_EQ(perSlot[lens::core::pet::Slot::Head], 3) << entry.path().filename().string();
+        EXPECT_EQ(perSlot[lens::core::pet::Slot::Face], 3) << entry.path().filename().string();
+        EXPECT_EQ(perSlot[lens::core::pet::Slot::Body], 3) << entry.path().filename().string();
+    }
 }
 
 TEST(PetData, EverySheetIsTheSizeItsFrameCountSays)
@@ -449,7 +470,7 @@ TEST(PetData, AnExpressionIndexPastTheSheetIsExpressionIndex)
 TEST(PetData, ANonPngAssetWithAPngNameIsBadAssetType)
 {
     auto scratch = ScratchPet{"svg"};
-    auto out     = std::ofstream{scratch.path() / "sprites/accessories/headwear/hat.png", std::ios::binary};
+    auto out     = std::ofstream{scratch.path() / "sprites/accessories/headwear/flat_cap.png", std::ios::binary};
     out << "<svg xmlns=\"http://www.w3.org/2000/svg\"/>";
     out.close();
 

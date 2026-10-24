@@ -51,7 +51,10 @@ point is a cell centre, (x + 0.5, y + 0.5) for cell (x, y).
                      at: [x, y] and rows, where '#' is inside.
     frame.paint      effect-layer items: {at: [x, y], colour, art | glyph}. In art, '#' is a cell.
   accessories        [{id, slot: head|face|body, except?: [action, ...], paint}]. Drawn once, in base coordinates.
-                     Each action not in `except` goes into supportedActions.
+                     Each action not in `except` goes into supportedActions. A paint item is cells by default;
+                     `pixel: true` draws one canvas pixel per character from `at`'s cell corner, and
+                     `canvas: true` alongside it reads `at` as canvas pixels instead, for outlines that do not
+                     sit on the 3 px grid.
 
 Anchors come from the pose, one set per frame. Three points move with it: head (top of the body), face (mean of the
 eyes) and body (the pivot). An anchor is the move of its point, snapped to whole cells, so accessories stay on the grid.
@@ -61,6 +64,7 @@ import argparse
 import json
 import math
 import pathlib
+import shutil
 import sys
 
 from PIL import Image, ImageDraw
@@ -203,7 +207,10 @@ def paint(draw, items):
                     continue
                 if item.get("pixel"):
                     # One canvas unit per character, as the eyes are drawn: a glyph finer than a cell.
-                    draw.point((ORIGIN + CELL * ax + i, ORIGIN + CELL * ay + j), fill=colour)
+                    if item.get("canvas"):
+                        draw.point((ax + i, ay + j), fill=colour)
+                    else:
+                        draw.point((ORIGIN + CELL * ax + i, ORIGIN + CELL * ay + j), fill=colour)
                 else:
                     fill_cell(draw, ax + i, ay + j, colour)
 
@@ -397,6 +404,8 @@ def main():
     bare = Image.alpha_composite(bare_body, expression_frames[0])
     save(out / "sprites/reference/bare.png", bare, 1)
 
+    # The catalogue is the only owner of these files, so a retired id leaves no picture behind.
+    shutil.rmtree(out / "sprites/accessories", ignore_errors=True)
     catalogue = []
     actions = [name for name in recipe["actions"] if name != "blink"]
     for acc in recipe["accessories"]:

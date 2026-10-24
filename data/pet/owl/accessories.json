@@ -1,9 +1,9 @@
 {
   "accessories": [
     {
-      "id": "beanie",
+      "id": "mortarboard",
       "slot": "head",
-      "asset": "sprites/accessories/headwear/beanie.png",
+      "asset": "sprites/accessories/headwear/mortarboard.png",
       "zIndex": 5,
       "supportedActions": [
         "idle",
@@ -34,9 +34,9 @@
       ]
     },
     {
-      "id": "party_hat",
+      "id": "nightcap",
       "slot": "head",
-      "asset": "sprites/accessories/headwear/party_hat.png",
+      "asset": "sprites/accessories/headwear/nightcap.png",
       "zIndex": 5,
       "supportedActions": [
         "idle",
@@ -67,9 +67,9 @@
       ]
     },
     {
-      "id": "hair_bow",
+      "id": "quill_clip",
       "slot": "head",
-      "asset": "sprites/accessories/headwear/hair_bow.png",
+      "asset": "sprites/accessories/headwear/quill_clip.png",
       "zIndex": 5,
       "supportedActions": [
         "idle",
@@ -100,41 +100,9 @@
       ]
     },
     {
-      "id": "reading_glasses",
+      "id": "readers",
       "slot": "face",
-      "asset": "sprites/accessories/glasses/reading_glasses.png",
-      "zIndex": 4,
-      "supportedActions": [
-        "idle",
-        "study",
-        "thinking",
-        "celebrate",
-        "encourage",
-        "click_react",
-        "pickup",
-        "look_around",
-        "yawn",
-        "stretch",
-        "angry",
-        "ask",
-        "swing",
-        "desk",
-        "preen",
-        "hop",
-        "flap",
-        "hoot",
-        "nod",
-        "walk",
-        "edge_peek",
-        "owl_stargazing",
-        "owl_books",
-        "dizzy"
-      ]
-    },
-    {
-      "id": "sunglasses",
-      "slot": "face",
-      "asset": "sprites/accessories/glasses/sunglasses.png",
+      "asset": "sprites/accessories/glasses/readers.png",
       "zIndex": 4,
       "supportedActions": [
         "idle",
@@ -169,10 +137,26 @@
       "asset": "sprites/accessories/glasses/sleep_mask.png",
       "zIndex": 4,
       "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
         "sleep",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
         "angry",
+        "ask",
         "swing",
         "desk",
+        "preen",
+        "hop",
+        "flap",
+        "hoot",
+        "nod",
         "walk",
         "edge_peek",
         "owl_stargazing",
@@ -181,9 +165,41 @@
       ]
     },
     {
-      "id": "bowtie",
+      "id": "round_shades",
+      "slot": "face",
+      "asset": "sprites/accessories/glasses/round_shades.png",
+      "zIndex": 4,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "angry",
+        "ask",
+        "swing",
+        "desk",
+        "preen",
+        "hop",
+        "flap",
+        "hoot",
+        "nod",
+        "walk",
+        "edge_peek",
+        "owl_stargazing",
+        "owl_books",
+        "dizzy"
+      ]
+    },
+    {
+      "id": "satchel",
       "slot": "body",
-      "asset": "sprites/accessories/clothing/bowtie.png",
+      "asset": "sprites/accessories/clothing/satchel.png",
       "zIndex": 3,
       "supportedActions": [
         "idle",
@@ -247,9 +263,9 @@
       ]
     },
     {
-      "id": "vest",
+      "id": "bow_tie",
       "slot": "body",
-      "asset": "sprites/accessories/clothing/vest.png",
+      "asset": "sprites/accessories/clothing/bow_tie.png",
       "zIndex": 3,
       "supportedActions": [
         "idle",

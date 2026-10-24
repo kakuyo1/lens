@@ -24,7 +24,7 @@ python -I scripts/pet/render_pet.py dog
 - `eyes`、`mouth`、`yawnMouth`、`angryMouth`：表情层。默认眼睛是 3 × 3 像素；`eyeSize: 2` 使用 `SMALL_EYE_PATTERNS` 的 2 × 2 格子（6 × 6 像素）眼睛，目前只有奶糖。
 - `roles`、`idlePool`、`hover`、`movement`：原样写进 `animations.json`。
 - `actions.<名>`：`fps`、`loop`，可选 `blink`、`returnTo`、`duration`、`bodyFrom`、`paint`，以及 `frames`。帧里可有 `pose`、`expression`、`shapes` 与 `paint`。`bodyFrom` 复用前面的 body sheet 与锚点；动作级 `bodyPaint` 不生效。
-- `accessories`：每件 `{id, slot, except?, paint}`；图形可走格子，也可用 `pixel: true` 走像素。`supportedActions` 由渲染器生成。
+- `accessories`：每件 `{id, slot, except?, paint}`；图形可走格子，也可用 `pixel: true` 走像素；`pixel` 再配 `canvas: true` 时 `at` 以画布像素计。`supportedActions` 由渲染器生成。
 
 ## 场景
 

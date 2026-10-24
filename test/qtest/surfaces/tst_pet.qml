@@ -208,6 +208,43 @@ Item {
             }
         }
 
+        /// Every shipped accessory has a label of its own; an id falling through to the raw string is untranslated.
+        function test_everyShippedAccessoryHasALabel() {
+            Pet.setEnabled(true);
+            const page = createTemporaryObject(pageComponent, host.contentItem);
+            waitForRendering(host.contentItem);
+            const chosen = Pet.pet;
+            try {
+                for (const entry of Pet.pets) {
+                    Pet.setPet(entry.id);
+                    tryVerify(() => Pet.pet === entry.id, 2000, "did not switch to " + entry.id);
+                    compare(Pet.accessories.length, 9, entry.id + " does not have nine accessories");
+                    for (const accessory of Pet.accessories) {
+                        const label = page.accessoryLabel(accessory.id);
+                        verify(label !== "", entry.id + "'s " + accessory.id + " has an empty label");
+                        verify(label !== accessory.id, entry.id + "'s " + accessory.id + " falls through to its id");
+                    }
+                }
+            } finally {
+                Pet.setPet(chosen);
+            }
+        }
+
+        /// The accessory rows sit below the first screen; lift them into view for a pixel check.
+        function test_captureAccessoryRows() {
+            if (!lensQaSnapshotDir) skip("Set LENS_QA_SNAPSHOT_DIR to save the accessory rows");
+            Pet.setEnabled(true);
+            const page = createTemporaryObject(pageComponent, host.contentItem);
+            waitForRendering(host.contentItem);
+            page.height = page.implicitHeight;
+            const chip = Util.findAll(page, function (o) { return o.modelData && o.modelData.id === "beret"; })[0];
+            verify(chip, "the dog has no berry beret chip");
+            const section = chip.parent.parent.parent;
+            page.y = 30 - section.mapToItem(page, 0, 0).y;
+            waitForRendering(page);
+            verify(Util.saveSnapshot(testCase, page, lensQaSnapshotDir, "pet-accessories"));
+        }
+
         function test_aLayerShowsTheCellItsFrameNames() {
             const layer = createTemporaryObject(layerComponent, root, {sheet: "", frame: 2, at: Qt.point(0, 0)});
             compare(layer.sourceClipRect.x, 2 * Pet.canvas);

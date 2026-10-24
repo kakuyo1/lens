@@ -4,6 +4,9 @@
 
 ### Added
 
+- Every shipped pet now has its own nine-piece wardrobe: three head, three face and three body
+  pieces, 63 in all, drawn for that pet's silhouette. The shared sets and the dog's seven-piece
+  set are retired (docs/adr/0099).
 - While a review question is up, the pet looks toward the sign beside it, turns to the answer card
   when it opens, and returns to centre once answered; only the direction travels, never the word
   (docs/adr/0097).

@@ -75,7 +75,7 @@ std::filesystem::path settingsIn(QTemporaryDir const& dir)
 nlohmann::json readJson(std::filesystem::path const& file);
 void           writeJson(std::filesystem::path const& file, nlohmann::json const& document);
 
-/// Two pets under `root`: the shipped dog, and a copy of it whose catalogue has no hat, so a switch has one to drop.
+/// Two pets under `root`: the shipped dog, and a copy of it whose catalogue has no newsboy cap, so a switch has one to drop.
 void makeTwoPets(std::filesystem::path const& root)
 {
     auto const shipped = shippedRoot() / "dog";
@@ -94,7 +94,7 @@ void makeTwoPets(std::filesystem::path const& root)
     auto       doc  = nlohmann::json::parse(in);
     auto       kept = nlohmann::json::array();
     for (auto const& entry : doc.at("accessories")) {
-        if (entry.at("id") != "hat") kept.push_back(entry);
+        if (entry.at("id") != "flat_cap") kept.push_back(entry);
     }
     doc["accessories"] = kept;
     auto out           = std::ofstream{file};
@@ -254,15 +254,15 @@ void TstPetController::wornAccessoriesFollowToggles()
     QVERIFY(dir.isValid());
     Rig rig{settingsIn(dir), shippedRoot()};
 
-    rig.controller.toggleAccessory(QStringLiteral("hat"));
+    rig.controller.toggleAccessory(QStringLiteral("flat_cap"));
     QCOMPARE(rig.controller.wornAccessories().size(), 1);
-    QVERIFY(rig.petStore.outfit("dog").head == std::optional<std::string>{"hat"});
+    QVERIFY(rig.petStore.outfit("dog").head == std::optional<std::string>{"flat_cap"});
 
     auto const worn = rig.controller.wornAccessories().first().toMap();
     QVERIFY(worn.value("asset").toString().startsWith("file:///"));
     QCOMPARE(worn.value("zIndex").toInt(), 5);
 
-    rig.controller.toggleAccessory(QStringLiteral("hat"));
+    rig.controller.toggleAccessory(QStringLiteral("flat_cap"));
     QCOMPARE(rig.controller.wornAccessories().size(), 0);
     QVERIFY(!rig.petStore.outfit("dog").head);
 }
@@ -412,7 +412,7 @@ void TstPetController::accessoryCatalogueAndWornSlotsAreExposed()
     QVERIFY(dir.isValid());
     Rig rig{settingsIn(dir), shippedRoot()};
 
-    QCOMPARE(rig.controller.accessories().size(), 7);
+    QCOMPARE(rig.controller.accessories().size(), 9);
     // Thirteen roles (angry and ask included), the three idle extras, and the two movement loops; the four scenes
     // are not chips.
     QCOMPARE(rig.controller.actions().size(), 18);
@@ -421,9 +421,9 @@ void TstPetController::accessoryCatalogueAndWornSlotsAreExposed()
     QVERIFY(rig.controller.actions().contains(QStringLiteral("edge_peek")));
 
     QSignalSpy outfit(&rig.controller, &PetController::outfitChanged);
-    rig.controller.toggleAccessory(QStringLiteral("glasses"));
+    rig.controller.toggleAccessory(QStringLiteral("spectacles"));
     QCOMPARE(outfit.count(), 1);
-    QCOMPARE(rig.controller.wornIn().value("face").toString(), QStringLiteral("glasses"));
+    QCOMPARE(rig.controller.wornIn().value("face").toString(), QStringLiteral("spectacles"));
     QCOMPARE(rig.controller.wornIn().value("head").toString(), QString{});
 }
 
@@ -433,12 +433,12 @@ void TstPetController::restoresOnlyAccessoriesInTheirOwnSlot()
     QVERIFY(dir.isValid());
     Rig rig{settingsIn(dir), shippedRoot()};
 
-    // Glasses saved in the head slot is bad data: it must not be worn there, and the face slot's glasses still is.
-    rig.petStore.setOutfit("dog", Outfit{std::string{"glasses"}, std::string{"glasses"}, std::nullopt});
+    // Spectacles saved in the head slot is bad data: it must not be worn there, and the face slot's pair still is.
+    rig.petStore.setOutfit("dog", Outfit{std::string{"spectacles"}, std::string{"spectacles"}, std::nullopt});
     PetController restored{shippedRoot(), settingsIn(dir).parent_path() / "installed", rig.petStore};
 
     QVERIFY(restored.wornIn().value("head").toString().isEmpty());
-    QCOMPARE(restored.wornIn().value("face").toString(), QStringLiteral("glasses"));
+    QCOMPARE(restored.wornIn().value("face").toString(), QStringLiteral("spectacles"));
 }
 
 void TstPetController::passthroughDefaultsOffAndIsStored()
@@ -485,7 +485,7 @@ void TstPetController::choosingAPetLoadsItAndDropsWhatItLacks()
     QCOMPARE(idsOf(rig.controller), (QStringList{QStringLiteral("dog"), QStringLiteral("hatless")}));
     QCOMPARE(rig.controller.pet(), QStringLiteral("dog"));
 
-    rig.controller.toggleAccessory(QStringLiteral("hat"));
+    rig.controller.toggleAccessory(QStringLiteral("flat_cap"));
     rig.controller.setPet(QStringLiteral("hatless"));
     QCOMPARE(rig.controller.pet(), QStringLiteral("hatless"));
     QVERIFY(rig.controller.available());
@@ -493,9 +493,9 @@ void TstPetController::choosingAPetLoadsItAndDropsWhatItLacks()
     QVERIFY(rig.controller.wornIn().value("head").toString().isEmpty());
     QVERIFY(!rig.petStore.outfit("hatless").head);
 
-    // The hat stayed the dog's own: choosing it again brings its outfit back (ADR 0096).
+    // The cap stayed the dog's own: choosing it again brings its outfit back (ADR 0096).
     rig.controller.setPet(QStringLiteral("dog"));
-    QCOMPARE(rig.controller.wornIn().value("head").toString(), QStringLiteral("hat"));
+    QCOMPARE(rig.controller.wornIn().value("head").toString(), QStringLiteral("flat_cap"));
 
     // A pet that cannot be loaded is refused: the reader keeps the pet they had, and the bad id is not saved.
     rig.controller.setPet(QStringLiteral("missing"));
@@ -578,19 +578,19 @@ void TstPetController::wornAccessoriesFollowAPetSwitch()
     Rig rig{settingsIn(dir), shippedRoot()};
 
     // Each pet wears its own memory: mochi starts bare no matter what the dog had on (ADR 0096).
-    rig.controller.toggleAccessory(QStringLiteral("hat"));
-    rig.controller.toggleAccessory(QStringLiteral("glasses"));
+    rig.controller.toggleAccessory(QStringLiteral("flat_cap"));
+    rig.controller.toggleAccessory(QStringLiteral("spectacles"));
     rig.controller.setPet(QStringLiteral("mochi"));
     QVERIFY(rig.controller.wornIn().value("head").toString().isEmpty());
     QVERIFY(rig.controller.wornIn().value("face").toString().isEmpty());
     QVERIFY(!rig.petStore.outfit("mochi").head);
 
-    // The dog kept its own clothes: choosing it again brings hat and glasses back.
+    // The dog kept its own clothes: choosing it again brings cap and spectacles back.
     rig.controller.setPet(QStringLiteral("dog"));
-    QCOMPARE(rig.controller.wornIn().value("head").toString(), QStringLiteral("hat"));
-    QCOMPARE(rig.controller.wornIn().value("face").toString(), QStringLiteral("glasses"));
+    QCOMPARE(rig.controller.wornIn().value("head").toString(), QStringLiteral("flat_cap"));
+    QCOMPARE(rig.controller.wornIn().value("face").toString(), QStringLiteral("spectacles"));
 
-    // Owl has its own empty memory too; the dog's glasses do not follow it.
+    // Owl has its own empty memory too; the dog's spectacles do not follow it.
     rig.controller.setPet(QStringLiteral("owl"));
     QVERIFY(rig.controller.wornIn().value("face").toString().isEmpty());
     QVERIFY(!rig.petStore.outfit("owl").face);

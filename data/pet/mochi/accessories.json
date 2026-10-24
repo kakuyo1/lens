@@ -1,9 +1,9 @@
 {
   "accessories": [
     {
-      "id": "sprout",
+      "id": "kanzashi",
       "slot": "head",
-      "asset": "sprites/accessories/headwear/sprout.png",
+      "asset": "sprites/accessories/headwear/kanzashi.png",
       "zIndex": 5,
       "supportedActions": [
         "idle",
@@ -33,9 +33,9 @@
       ]
     },
     {
-      "id": "flower",
+      "id": "hachimaki",
       "slot": "head",
-      "asset": "sprites/accessories/headwear/flower.png",
+      "asset": "sprites/accessories/headwear/hachimaki.png",
       "zIndex": 5,
       "supportedActions": [
         "idle",
@@ -65,9 +65,9 @@
       ]
     },
     {
-      "id": "party_hat",
+      "id": "chasen",
       "slot": "head",
-      "asset": "sprites/accessories/headwear/party_hat.png",
+      "asset": "sprites/accessories/headwear/chasen.png",
       "zIndex": 5,
       "supportedActions": [
         "idle",
@@ -129,9 +129,9 @@
       ]
     },
     {
-      "id": "sunglasses",
+      "id": "candy_shades",
       "slot": "face",
-      "asset": "sprites/accessories/glasses/sunglasses.png",
+      "asset": "sprites/accessories/glasses/candy_shades.png",
       "zIndex": 4,
       "supportedActions": [
         "idle",
@@ -193,9 +193,9 @@
       ]
     },
     {
-      "id": "bowtie",
+      "id": "nori",
       "slot": "body",
-      "asset": "sprites/accessories/clothing/bowtie.png",
+      "asset": "sprites/accessories/clothing/nori.png",
       "zIndex": 3,
       "supportedActions": [
         "idle",
@@ -224,9 +224,9 @@
       ]
     },
     {
-      "id": "scarf",
+      "id": "furoshiki",
       "slot": "body",
-      "asset": "sprites/accessories/clothing/scarf.png",
+      "asset": "sprites/accessories/clothing/furoshiki.png",
       "zIndex": 3,
       "supportedActions": [
         "idle",
@@ -255,9 +255,9 @@
       ]
     },
     {
-      "id": "apron",
+      "id": "bean_pouch",
       "slot": "body",
-      "asset": "sprites/accessories/clothing/apron.png",
+      "asset": "sprites/accessories/clothing/bean_pouch.png",
       "zIndex": 3,
       "supportedActions": [
         "idle",

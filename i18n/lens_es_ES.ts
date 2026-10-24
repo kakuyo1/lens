@@ -4,37 +4,37 @@
 <context>
     <name>BubbleCard</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="203"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="201"/>
         <source>Preview</source>
         <translation>Vista previa</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="204"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="202"/>
         <source>Sentence</source>
         <translation>Oración</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="205"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="203"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="205"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="203"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="326"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="322"/>
         <source>Etymology</source>
         <translation>Etimología</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="365"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="361"/>
         <source>Example</source>
         <translation>Ejemplo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="410"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="406"/>
         <source>Disappears in %1s</source>
         <translation>Desaparece en %1 s</translation>
     </message>
@@ -42,12 +42,12 @@
 <context>
     <name>BubbleChainPanel</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="203"/>
+        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="202"/>
         <source>Explaining %1…</source>
         <translation>Explicando %1…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="215"/>
+        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="214"/>
         <source>This word could not be explained.</source>
         <translation>No se pudo explicar esta palabra.</translation>
     </message>
@@ -55,12 +55,12 @@
 <context>
     <name>BubbleVerdictRow</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="78"/>
+        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="77"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="105"/>
+        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="104"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
@@ -68,39 +68,39 @@
 <context>
     <name>CostPopup</name>
     <message>
-        <location filename="../src/app/qml/panels/CostPopup.qml" line="70"/>
+        <location filename="../src/app/qml/panels/CostPopup.qml" line="69"/>
         <source>Cost</source>
         <translation>Gasto</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/CostPopup.qml" line="110"/>
+        <location filename="../src/app/qml/panels/CostPopup.qml" line="108"/>
         <source>Spent this month</source>
         <translation>Gastado este mes</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/CostPopup.qml" line="125"/>
+        <location filename="../src/app/qml/panels/CostPopup.qml" line="123"/>
         <source>Today</source>
         <translation>Hoy</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/CostPopup.qml" line="126"/>
-        <location filename="../src/app/qml/panels/CostPopup.qml" line="132"/>
-        <location filename="../src/app/qml/panels/CostPopup.qml" line="138"/>
+        <location filename="../src/app/qml/panels/CostPopup.qml" line="124"/>
+        <location filename="../src/app/qml/panels/CostPopup.qml" line="130"/>
+        <location filename="../src/app/qml/panels/CostPopup.qml" line="136"/>
         <source>%1 tokens</source>
         <translation>%1 tokens</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/CostPopup.qml" line="131"/>
+        <location filename="../src/app/qml/panels/CostPopup.qml" line="129"/>
         <source>Yesterday</source>
         <translation>Ayer</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/CostPopup.qml" line="137"/>
+        <location filename="../src/app/qml/panels/CostPopup.qml" line="135"/>
         <source>This week</source>
         <translation>Esta semana</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/CostPopup.qml" line="143"/>
+        <location filename="../src/app/qml/panels/CostPopup.qml" line="141"/>
         <source>Daily average</source>
         <translation>Media diaria</translation>
     </message>
@@ -126,7 +126,7 @@
 <context>
     <name>Mask</name>
     <message>
-        <location filename="../src/app/qml/capture/Mask.qml" line="142"/>
+        <location filename="../src/app/qml/capture/Mask.qml" line="138"/>
         <source>Drag to frame the text to read · Esc cancels</source>
         <translation>Arrastra para encuadrar el texto que quieres leer · Esc cancela</translation>
     </message>
@@ -134,22 +134,22 @@
 <context>
     <name>PictureStrip</name>
     <message>
-        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="87"/>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="85"/>
         <source>Loading pictures…</source>
         <translation>Cargando imágenes…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="215"/>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="213"/>
         <source>Photo: %1 · %2 · %3</source>
         <translation>Foto: %1 · %2 · %3</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="240"/>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="238"/>
         <source>Pictures unavailable</source>
         <translation>Imágenes no disponibles</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="297"/>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="295"/>
         <source>Open image search</source>
         <translation>Abrir búsqueda de imágenes</translation>
     </message>
@@ -216,12 +216,12 @@
 <context>
     <name>SenseRows</name>
     <message>
-        <location filename="../src/app/qml/components/content/SenseRows.qml" line="227"/>
+        <location filename="../src/app/qml/components/content/SenseRows.qml" line="226"/>
         <source>Hide pictures</source>
         <translation>Ocultar imágenes</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/components/content/SenseRows.qml" line="227"/>
+        <location filename="../src/app/qml/components/content/SenseRows.qml" line="226"/>
         <source>Pictures</source>
         <translation>Imágenes</translation>
     </message>
@@ -407,9 +407,9 @@
         <translation>Extensiones</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="187"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="230"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="44"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="950"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="987"/>
         <source>Desktop companion</source>
         <translation>Compañero de escritorio</translation>
     </message>
@@ -1183,248 +1183,463 @@
         <translation>Rincón de lectura</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="99"/>
-        <source>Top hat</source>
-        <translation>Sombrero de copa</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="100"/>
-        <source>Beanie</source>
-        <translation>Gorro de lana</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="101"/>
-        <source>Sprout</source>
-        <translation>Brote</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="102"/>
-        <source>Crown</source>
-        <translation>Corona</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="103"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="111"/>
         <source>Round glasses</source>
         <translation>Gafas redondas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="104"/>
-        <source>Sunglasses</source>
-        <translation>Gafas de sol</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="105"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="124"/>
         <source>Bow tie</source>
         <translation>Pajarita</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="106"/>
-        <source>Flower</source>
-        <translation>Flor</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="107"/>
-        <source>Party hat</source>
-        <translation>Gorro de fiesta</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="108"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="113"/>
         <source>Blush</source>
         <translation>Rubor</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="109"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="123"/>
         <source>Scarf</source>
         <translation>Bufanda</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="110"/>
-        <source>Apron</source>
-        <translation>Delantal</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="111"/>
-        <source>Hair bow</source>
-        <translation>Lazo para el pelo</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="112"/>
-        <source>Reading glasses</source>
-        <translation>Gafas de lectura</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="113"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="121"/>
         <source>Sleep mask</source>
         <translation>Antifaz para dormir</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="114"/>
-        <source>Vest</source>
-        <translation>Chaleco</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="115"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="133"/>
         <source>Bell collar</source>
         <translation>Collar con cascabel</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="116"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="105"/>
         <source>Bandana</source>
         <translation>Pañuelo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="123"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="99"/>
+        <source>Newsboy cap</source>
+        <translation>Gorra plana</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="100"/>
+        <source>Berry beret</source>
+        <translation>Boina de baya</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="101"/>
+        <source>Knit beanie</source>
+        <translation>Gorro de punto</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="102"/>
+        <source>Round frames</source>
+        <translation>Montura redonda</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="103"/>
+        <source>Round shades</source>
+        <translation>Gafas de sol redondas</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="104"/>
+        <source>Heart frames</source>
+        <translation>Montura de corazón</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="106"/>
+        <source>Knit scarf</source>
+        <translation>Bufanda de punto</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="107"/>
+        <source>Backpack</source>
+        <translation>Mochila</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="108"/>
+        <source>Sakura pin</source>
+        <translation>Pin de sakura</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="109"/>
+        <source>Hachimaki</source>
+        <translation>Hachimaki</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="110"/>
+        <source>Chasen</source>
+        <translation>Batidor de té</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="112"/>
+        <source>Candy shades</source>
+        <translation>Gafas de sol de caramelo</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="114"/>
+        <source>Nori wrap</source>
+        <translation>Envoltura de nori</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="115"/>
+        <source>Furoshiki</source>
+        <translation>Furoshiki</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="116"/>
+        <source>Bean pouch</source>
+        <translation>Bolsa de judías</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="117"/>
+        <source>Mortarboard</source>
+        <translation>Birrete</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="118"/>
+        <source>Nightcap</source>
+        <translation>Gorro de dormir</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="119"/>
+        <source>Quill clip</source>
+        <translation>Pin de pluma</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="120"/>
+        <source>Reading frames</source>
+        <translation>Montura de lectura</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="122"/>
+        <source>Book satchel</source>
+        <translation>Cartera de libros</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="125"/>
+        <source>Paper boat</source>
+        <translation>Barco de papel</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="126"/>
+        <source>Sardine clip</source>
+        <translation>Pin de sardina</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="127"/>
+        <source>Flower crown</source>
+        <translation>Corona de flores</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="128"/>
+        <source>Cat-eye frames</source>
+        <translation>Montura de ojo de gato</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="129"/>
+        <source>Cat-eye shades</source>
+        <translation>Gafas de sol ojo de gato</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="130"/>
+        <source>Heart blush</source>
+        <translation>Rubor de corazón</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="131"/>
+        <source>Fishbone collar</source>
+        <translation>Collar de espina de pez</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="132"/>
+        <source>Sailor collar</source>
+        <translation>Cuello marinero</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="134"/>
+        <source>Witch hat</source>
+        <translation>Sombrero de bruja</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="135"/>
+        <source>Moon clip</source>
+        <translation>Pin de luna</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="136"/>
+        <source>Halo</source>
+        <translation>Aureola</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="137"/>
+        <source>Monocle</source>
+        <translation>Monóculo</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="138"/>
+        <source>Star frames</source>
+        <translation>Montura de estrella</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="139"/>
+        <source>Mustache</source>
+        <translation>Bigote</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="140"/>
+        <source>Key chain</source>
+        <translation>Cadena con llave</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="141"/>
+        <source>Candle</source>
+        <translation>Vela</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="142"/>
+        <source>Mist scarf</source>
+        <translation>Bufanda de niebla</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="143"/>
+        <source>Bubble crown</source>
+        <translation>Corona de burbujas</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="144"/>
+        <source>Starfish clip</source>
+        <translation>Pin de estrella de mar</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="145"/>
+        <source>Sailor cap</source>
+        <translation>Gorro marinero</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="146"/>
+        <source>Bubble frames</source>
+        <translation>Montura de burbujas</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="147"/>
+        <source>Dive mask</source>
+        <translation>Máscara de buceo</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="148"/>
+        <source>Bubble cheeks</source>
+        <translation>Mejillas de burbuja</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="149"/>
+        <source>Pearl strand</source>
+        <translation>Collar de perlas</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="150"/>
+        <source>Shell necklace</source>
+        <translation>Collar de concha</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="151"/>
+        <source>Fish charm</source>
+        <translation>Dije de pez</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="152"/>
+        <source>Storm cap</source>
+        <translation>Gorro de tormenta</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="153"/>
+        <source>Star beanie</source>
+        <translation>Gorro de estrellas</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="154"/>
+        <source>Rain hat</source>
+        <translation>Sombrero de lluvia</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="155"/>
+        <source>Raindrop frames</source>
+        <translation>Montura de gota de lluvia</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="156"/>
+        <source>Cloud frames</source>
+        <translation>Montura de nube</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="157"/>
+        <source>Snow freckles</source>
+        <translation>Pecas de nieve</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="158"/>
+        <source>Rain chain</source>
+        <translation>Collar de lluvia</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="159"/>
+        <source>Bolt charm</source>
+        <translation>Dije de rayo</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="166"/>
         <source>Head</source>
         <translation>Cabeza</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="124"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="167"/>
         <source>Face</source>
         <translation>Cara</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="125"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="168"/>
         <source>Body</source>
         <translation>Cuerpo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="131"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="952"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="174"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="989"/>
         <source>Dog</source>
         <translation>Perro</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="132"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="175"/>
         <source>Mochi</source>
         <translation>Mochi</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="133"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="176"/>
         <source>Owl</source>
         <translation>Búho</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="134"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="177"/>
         <source>Stub cat</source>
         <translation>Gato de orejas cortas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="135"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="178"/>
         <source>Ghost</source>
         <translation>Fantasma</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="136"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="179"/>
         <source>Jellyfish</source>
         <translation>Medusa</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="137"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="180"/>
         <source>Cloud</source>
         <translation>Nube</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="145"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="188"/>
         <source>The package format is not supported.</source>
         <translation>El formato del paquete no es compatible.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="146"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="189"/>
         <source>The package exceeds the size limits.</source>
         <translation>El paquete supera los límites de tamaño.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="147"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="190"/>
         <source>The package name is not valid.</source>
         <translation>El nombre del paquete no es válido.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="148"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="191"/>
         <source>A required action is missing.</source>
         <translation>Falta una acción obligatoria.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="149"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="192"/>
         <source>An action is not valid.</source>
         <translation>Una acción no es válida.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="150"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="193"/>
         <source>The anchor data is not valid.</source>
         <translation>Los datos de anclaje no son válidos.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="151"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="194"/>
         <source>An accessory is not valid.</source>
         <translation>Un accesorio no es válido.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="152"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="195"/>
         <source>An image is not a valid PNG.</source>
         <translation>Una imagen no es un PNG válido.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="153"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="196"/>
         <source>An image size does not match its frames.</source>
         <translation>El tamaño de una imagen no coincide con sus fotogramas.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="154"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="197"/>
         <source>An expression index is out of range.</source>
         <translation>Un índice de expresión está fuera de rango.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="155"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="198"/>
         <source>An image path points outside the package.</source>
         <translation>La ruta de una imagen apunta fuera del paquete.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="156"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="199"/>
         <source>The package id is already in use.</source>
         <translation>El id del paquete ya está en uso.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="157"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="200"/>
         <source>The package could not be read.</source>
         <translation>No se pudo leer el paquete.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="196"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="239"/>
         <source>Mouse pass-through</source>
         <translation>Paso del ratón</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="212"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="255"/>
         <source>Desktop pet size</source>
         <translation>Tamaño del compañero</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="256"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="299"/>
         <source>Pet type</source>
         <translation>Tipo de compañero</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="268"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="311"/>
         <source>External</source>
         <translation>Externo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="282"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="325"/>
         <source>Pet packages</source>
         <translation>Paquetes de mascotas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="289"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="332"/>
         <source>Copy a pet package folder into the packages folder. Lens reads it when you open this section.</source>
         <translation>Copia la carpeta de un paquete de mascota en la carpeta de paquetes. Lens la lee al abrir esta sección.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="297"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="340"/>
         <source>Open packages folder</source>
         <translation>Abrir carpeta de paquetes</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="310"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="353"/>
         <source>%1: %2</source>
         <translation>%1: %2</translation>
     </message>
@@ -1434,24 +1649,24 @@
         <translation>Barra de acciones</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="324"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="367"/>
         <location filename="../src/app/qml/settings/previews/SelectionBarPreview.qml" line="134"/>
         <location filename="../src/app/qml/settings/previews/VocabPreview.qml" line="122"/>
         <source>Preview</source>
         <translation>Vista previa</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="339"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="382"/>
         <source>Actions</source>
         <translation>Acciones</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="369"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="412"/>
         <source>Scenes</source>
         <translation>Escenas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="397"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="440"/>
         <source>Accessories</source>
         <translation>Accesorios</translation>
     </message>
@@ -1608,7 +1823,7 @@
         <translation>Confirmar eliminación</translation>
     </message>
     <message>
-        <location filename="../src/app/pet/pet_controller.cpp" line="951"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="988"/>
         <source>This pet package is no longer installed. Switched to %1.</source>
         <translation>Este paquete de mascota ya no está instalado. Se cambió a %1.</translation>
     </message>
@@ -1638,37 +1853,37 @@
 <context>
     <name>StatsPopup</name>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="67"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="66"/>
         <source>Today</source>
         <translation>Hoy</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="93"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="92"/>
         <source>Words explained today</source>
         <translation>Palabras explicadas hoy</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="104"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="103"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="109"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="108"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="114"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="113"/>
         <source>Cost</source>
         <translation>Gasto</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="121"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="120"/>
         <source>All time</source>
         <translation>Total</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="125"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="123"/>
         <source>%1 words</source>
         <translation>%1 palabras</translation>
     </message>
@@ -1676,32 +1891,32 @@
 <context>
     <name>TrayMenu</name>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="78"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="73"/>
         <source>words</source>
         <translation>palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="154"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="149"/>
         <source>Selection capture is off</source>
         <translation>La captura por selección está desactivada</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="167"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="162"/>
         <source>Statistics</source>
         <translation>Estadísticas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="176"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="171"/>
         <source>Language</source>
         <translation>Idioma</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="194"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="189"/>
         <source>Settings</source>
         <translation>Ajustes</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="210"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="205"/>
         <source>Quit</source>
         <translation>Salir</translation>
     </message>
@@ -1709,67 +1924,67 @@
 <context>
     <name>UpdateCard</name>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="71"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="67"/>
         <source>Downloading...</source>
         <translation>Descargando…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="73"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="69"/>
         <source>Checking the download...</source>
         <translation>Comprobando la descarga…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="75"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="71"/>
         <source>The installer is ready to run.</source>
         <translation>El instalador está listo para ejecutarse.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="79"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="75"/>
         <source>Downloads from GitHub usually need a proxy in mainland China. Turn on your proxy and try again.</source>
         <translation>En China continental, las descargas desde GitHub suelen necesitar un proxy. Activa el proxy e inténtalo de nuevo.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="81"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="77"/>
         <source>The download did not match the published checksum. It was deleted.</source>
         <translation>La descarga no coincide con la suma de comprobación publicada. Se ha eliminado.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="82"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="78"/>
         <source>Download failed. Check your connection.</source>
         <translation>La descarga ha fallado. Comprueba tu conexión.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="88"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="84"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="90"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="86"/>
         <source>Install</source>
         <translation>Instalar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="92"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="88"/>
         <source>Download</source>
         <translation>Descargar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="112"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="108"/>
         <source>%1 left</source>
         <translation>Queda %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="182"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="177"/>
         <source>Lens %1 is available</source>
         <translation>Lens %1 está disponible</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="354"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="348"/>
         <source>View</source>
         <translation>Ver</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="389"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="383"/>
         <source>Skip this version</source>
         <translation>Omitir esta versión</translation>
     </message>
@@ -1777,17 +1992,17 @@
 <context>
     <name>WordsListRow</name>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="143"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="135"/>
         <source>%1×</source>
         <translation>%1×</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="177"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="168"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="211"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="202"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
@@ -1795,90 +2010,90 @@
 <context>
     <name>WordsPopup</name>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="332"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="321"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="332"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="321"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="220"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="212"/>
         <source>Words</source>
         <translation>Palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="148"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="142"/>
         <source>Today %1</source>
         <translation>Hoy %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="150"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="144"/>
         <source>Yesterday %1</source>
         <translation>Ayer %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="322"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="311"/>
         <source>%1 words</source>
         <translation>%1 palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="332"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="321"/>
         <source>All</source>
         <translation>Todas</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="408"/>
         <location filename="../src/app/qml/panels/WordsPopup.qml" line="419"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="430"/>
         <source>JSON files (*.json)</source>
         <translation>Archivos JSON (*.json)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="428"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="417"/>
         <source>Import words</source>
         <translation>Importar palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/RemovalQuestion.qml" line="181"/>
+        <location filename="../src/app/qml/panels/RemovalQuestion.qml" line="177"/>
         <source>Don&apos;t ask again</source>
         <translation>No volver a preguntar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/RemovalQuestion.qml" line="213"/>
+        <location filename="../src/app/qml/panels/RemovalQuestion.qml" line="209"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/RemovalQuestion.qml" line="244"/>
+        <location filename="../src/app/qml/panels/RemovalQuestion.qml" line="240"/>
         <source>Remove</source>
         <translation>Eliminar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="416"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="405"/>
         <source>Export words</source>
         <translation>Exportar palabras</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="408"/>
         <location filename="../src/app/qml/panels/WordsPopup.qml" line="419"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="430"/>
         <source>Text files (*.txt)</source>
         <translation>Archivos de texto (*.txt)</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="408"/>
         <location filename="../src/app/qml/panels/WordsPopup.qml" line="419"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="430"/>
         <source>All files (*)</source>
         <translation>Todos los archivos (*)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/RemovalQuestion.qml" line="159"/>
+        <location filename="../src/app/qml/panels/RemovalQuestion.qml" line="155"/>
         <source>Remove word</source>
         <translation>Eliminar palabra</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/RemovalQuestion.qml" line="170"/>
+        <location filename="../src/app/qml/panels/RemovalQuestion.qml" line="166"/>
         <source>Remove %1 from your word list and history?</source>
         <translation>¿Eliminar %1 de tu lista de palabras y del historial?</translation>
     </message>
@@ -2095,7 +2310,7 @@
         <translation>Explicando…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="556"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="555"/>
         <source>Request failed</source>
         <translation>La solicitud ha fallado</translation>
     </message>
@@ -2156,104 +2371,104 @@
 <context>
     <name>lens::llm</name>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="230"/>
+        <location filename="../src/llm/llm_pure.cpp" line="226"/>
         <source>The request was rejected as malformed (400).</source>
         <translation>La solicitud fue rechazada por mal formada (400).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="233"/>
+        <location filename="../src/llm/llm_pure.cpp" line="229"/>
         <source>The API key is missing or not accepted (401).</source>
         <translation>Falta la clave de API o no se acepta (401).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="236"/>
+        <location filename="../src/llm/llm_pure.cpp" line="232"/>
         <source>The account is out of credit (402).</source>
         <translation>La cuenta no tiene saldo (402).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="239"/>
+        <location filename="../src/llm/llm_pure.cpp" line="235"/>
         <source>The request parameters were rejected (422).</source>
         <translation>Los parámetros de la solicitud fueron rechazados (422).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="242"/>
+        <location filename="../src/llm/llm_pure.cpp" line="238"/>
         <source>Too many requests; the service is rate-limiting (429).</source>
         <translation>Demasiadas solicitudes; el servicio está limitando la frecuencia (429).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="245"/>
+        <location filename="../src/llm/llm_pure.cpp" line="241"/>
         <source>The explanation service failed (500).</source>
         <translation>El servicio de explicaciones ha fallado (500).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="248"/>
+        <location filename="../src/llm/llm_pure.cpp" line="244"/>
         <source>The explanation service is overloaded (503).</source>
         <translation>El servicio de explicaciones está sobrecargado (503).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="251"/>
+        <location filename="../src/llm/llm_pure.cpp" line="247"/>
         <source>Unexpected HTTP status %1.</source>
         <translation>Estado HTTP inesperado %1.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="558"/>
+        <location filename="../src/llm/llm_pure.cpp" line="551"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>El modelo respondió con algo que no es un objeto JSON.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="564"/>
+        <location filename="../src/llm/llm_pure.cpp" line="557"/>
         <source>The model&apos;s answer carries no choices.</source>
         <translation>La respuesta del modelo no trae “choices”.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="337"/>
+        <location filename="../src/llm/llm_pure.cpp" line="333"/>
         <source>The model stopped before finishing (reason: %1).</source>
         <translation>El modelo se detuvo antes de terminar (motivo: %1).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="340"/>
+        <location filename="../src/llm/llm_pure.cpp" line="336"/>
         <source>absent</source>
         <translation>ausente</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="360"/>
+        <location filename="../src/llm/llm_pure.cpp" line="356"/>
         <source>The model&apos;s answer is not valid JSON.</source>
         <translation>La respuesta del modelo no es JSON válido.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="365"/>
+        <location filename="../src/llm/llm_pure.cpp" line="361"/>
         <source>The model&apos;s answer has no results array.</source>
         <translation>La respuesta del modelo no tiene un array “results”.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="376"/>
+        <location filename="../src/llm/llm_pure.cpp" line="372"/>
         <source>One of the results entries is not an object.</source>
         <translation>Una de las entradas de “results” no es un objeto.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="381"/>
+        <location filename="../src/llm/llm_pure.cpp" line="377"/>
         <source>A results entry does not match the response schema.</source>
         <translation>Una entrada de “results” no coincide con el esquema de respuesta.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="416"/>
-        <location filename="../src/llm/llm_pure.cpp" line="433"/>
+        <location filename="../src/llm/llm_pure.cpp" line="412"/>
+        <location filename="../src/llm/llm_pure.cpp" line="429"/>
         <source>The requested explanation language is missing.</source>
         <translation>Falta el idioma de explicación solicitado.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="439"/>
+        <location filename="../src/llm/llm_pure.cpp" line="435"/>
         <source>A results entry has an empty field (title=%1).</source>
         <translation>Una entrada de “results” tiene un campo vacío (title=%1).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="472"/>
-        <location filename="../src/llm/llm_pure.cpp" line="517"/>
+        <location filename="../src/llm/llm_pure.cpp" line="467"/>
+        <location filename="../src/llm/llm_pure.cpp" line="511"/>
         <source>The model echoed %1 result(s) for the %2 that were asked for.</source>
         <translation>El modelo devolvió %1 resultado(s) de los %2 solicitados.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="528"/>
+        <location filename="../src/llm/llm_pure.cpp" line="522"/>
         <source>The model never echoed &quot;%1&quot;.</source>
         <translation>El modelo no devolvió “%1”.</translation>
     </message>

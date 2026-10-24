@@ -1,9 +1,9 @@
 {
   "accessories": [
     {
-      "id": "hat",
+      "id": "flat_cap",
       "slot": "head",
-      "asset": "sprites/accessories/headwear/hat.png",
+      "asset": "sprites/accessories/headwear/flat_cap.png",
       "zIndex": 5,
       "supportedActions": [
         "idle",
@@ -31,9 +31,9 @@
       ]
     },
     {
-      "id": "beanie",
+      "id": "beret",
       "slot": "head",
-      "asset": "sprites/accessories/headwear/beanie.png",
+      "asset": "sprites/accessories/headwear/beret.png",
       "zIndex": 5,
       "supportedActions": [
         "idle",
@@ -61,9 +61,9 @@
       ]
     },
     {
-      "id": "sprout",
+      "id": "knit_beanie",
       "slot": "head",
-      "asset": "sprites/accessories/headwear/sprout.png",
+      "asset": "sprites/accessories/headwear/knit_beanie.png",
       "zIndex": 5,
       "supportedActions": [
         "idle",
@@ -91,39 +91,9 @@
       ]
     },
     {
-      "id": "crown",
-      "slot": "head",
-      "asset": "sprites/accessories/headwear/crown.png",
-      "zIndex": 5,
-      "supportedActions": [
-        "idle",
-        "walk",
-        "edge_peek",
-        "ask",
-        "study",
-        "thinking",
-        "celebrate",
-        "encourage",
-        "click_react",
-        "pickup",
-        "look_around",
-        "yawn",
-        "stretch",
-        "angry",
-        "wag",
-        "sniff",
-        "scratch",
-        "swing",
-        "skate",
-        "dog_frisbee",
-        "dog_burying",
-        "dizzy"
-      ]
-    },
-    {
-      "id": "glasses",
+      "id": "spectacles",
       "slot": "face",
-      "asset": "sprites/accessories/glasses/glasses.png",
+      "asset": "sprites/accessories/glasses/spectacles.png",
       "zIndex": 4,
       "supportedActions": [
         "idle",
@@ -151,9 +121,9 @@
       ]
     },
     {
-      "id": "sunglasses",
+      "id": "round_shades",
       "slot": "face",
-      "asset": "sprites/accessories/glasses/sunglasses.png",
+      "asset": "sprites/accessories/glasses/round_shades.png",
       "zIndex": 4,
       "supportedActions": [
         "idle",
@@ -181,9 +151,99 @@
       ]
     },
     {
-      "id": "bowtie",
+      "id": "heart_frames",
+      "slot": "face",
+      "asset": "sprites/accessories/glasses/heart_frames.png",
+      "zIndex": 4,
+      "supportedActions": [
+        "idle",
+        "walk",
+        "edge_peek",
+        "ask",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "angry",
+        "wag",
+        "sniff",
+        "scratch",
+        "swing",
+        "skate",
+        "dog_frisbee",
+        "dog_burying",
+        "dizzy"
+      ]
+    },
+    {
+      "id": "bandana",
       "slot": "body",
-      "asset": "sprites/accessories/clothing/bowtie.png",
+      "asset": "sprites/accessories/clothing/bandana.png",
+      "zIndex": 3,
+      "supportedActions": [
+        "idle",
+        "walk",
+        "edge_peek",
+        "ask",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "angry",
+        "wag",
+        "sniff",
+        "scratch",
+        "swing",
+        "skate",
+        "dog_frisbee",
+        "dog_burying",
+        "dizzy"
+      ]
+    },
+    {
+      "id": "knit_scarf",
+      "slot": "body",
+      "asset": "sprites/accessories/clothing/knit_scarf.png",
+      "zIndex": 3,
+      "supportedActions": [
+        "idle",
+        "walk",
+        "edge_peek",
+        "ask",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "angry",
+        "wag",
+        "sniff",
+        "scratch",
+        "swing",
+        "skate",
+        "dog_frisbee",
+        "dog_burying",
+        "dizzy"
+      ]
+    },
+    {
+      "id": "backpack",
+      "slot": "body",
+      "asset": "sprites/accessories/clothing/backpack.png",
       "zIndex": 3,
       "supportedActions": [
         "idle",

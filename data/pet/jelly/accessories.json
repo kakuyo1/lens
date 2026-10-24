@@ -1,9 +1,9 @@
 {
   "accessories": [
     {
-      "id": "beanie",
+      "id": "bubble_crown",
       "slot": "head",
-      "asset": "sprites/accessories/headwear/beanie.png",
+      "asset": "sprites/accessories/headwear/bubble_crown.png",
       "zIndex": 5,
       "supportedActions": [
         "idle",
@@ -33,9 +33,9 @@
       ]
     },
     {
-      "id": "crown",
+      "id": "starfish_clip",
       "slot": "head",
-      "asset": "sprites/accessories/headwear/crown.png",
+      "asset": "sprites/accessories/headwear/starfish_clip.png",
       "zIndex": 5,
       "supportedActions": [
         "idle",
@@ -65,9 +65,9 @@
       ]
     },
     {
-      "id": "hair_bow",
+      "id": "sailor_cap",
       "slot": "head",
-      "asset": "sprites/accessories/headwear/hair_bow.png",
+      "asset": "sprites/accessories/headwear/sailor_cap.png",
       "zIndex": 5,
       "supportedActions": [
         "idle",
@@ -97,9 +97,9 @@
       ]
     },
     {
-      "id": "glasses",
+      "id": "bubble_glasses",
       "slot": "face",
-      "asset": "sprites/accessories/glasses/glasses.png",
+      "asset": "sprites/accessories/glasses/bubble_glasses.png",
       "zIndex": 4,
       "supportedActions": [
         "idle",
@@ -129,9 +129,9 @@
       ]
     },
     {
-      "id": "sunglasses",
+      "id": "dive_mask",
       "slot": "face",
-      "asset": "sprites/accessories/glasses/sunglasses.png",
+      "asset": "sprites/accessories/glasses/dive_mask.png",
       "zIndex": 4,
       "supportedActions": [
         "idle",
@@ -161,9 +161,9 @@
       ]
     },
     {
-      "id": "blush",
+      "id": "bubble_cheeks",
       "slot": "face",
-      "asset": "sprites/accessories/glasses/blush.png",
+      "asset": "sprites/accessories/glasses/bubble_cheeks.png",
       "zIndex": 4,
       "supportedActions": [
         "idle",
@@ -193,9 +193,9 @@
       ]
     },
     {
-      "id": "bowtie",
+      "id": "pearls",
       "slot": "body",
-      "asset": "sprites/accessories/clothing/bowtie.png",
+      "asset": "sprites/accessories/clothing/pearls.png",
       "zIndex": 3,
       "supportedActions": [
         "idle",
@@ -225,9 +225,9 @@
       ]
     },
     {
-      "id": "bell_collar",
+      "id": "shell_necklace",
       "slot": "body",
-      "asset": "sprites/accessories/clothing/bell_collar.png",
+      "asset": "sprites/accessories/clothing/shell_necklace.png",
       "zIndex": 3,
       "supportedActions": [
         "idle",
@@ -257,9 +257,9 @@
       ]
     },
     {
-      "id": "scarf",
+      "id": "fish_charm",
       "slot": "body",
-      "asset": "sprites/accessories/clothing/scarf.png",
+      "asset": "sprites/accessories/clothing/fish_charm.png",
       "zIndex": 3,
       "supportedActions": [
         "idle",

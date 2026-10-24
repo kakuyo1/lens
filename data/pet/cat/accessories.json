@@ -1,9 +1,9 @@
 {
   "accessories": [
     {
-      "id": "beanie",
+      "id": "boat_hat",
       "slot": "head",
-      "asset": "sprites/accessories/headwear/beanie.png",
+      "asset": "sprites/accessories/headwear/boat_hat.png",
       "zIndex": 5,
       "supportedActions": [
         "idle",
@@ -33,9 +33,9 @@
       ]
     },
     {
-      "id": "crown",
+      "id": "fish_clip",
       "slot": "head",
-      "asset": "sprites/accessories/headwear/crown.png",
+      "asset": "sprites/accessories/headwear/fish_clip.png",
       "zIndex": 5,
       "supportedActions": [
         "idle",
@@ -65,9 +65,9 @@
       ]
     },
     {
-      "id": "hair_bow",
+      "id": "flower_crown",
       "slot": "head",
-      "asset": "sprites/accessories/headwear/hair_bow.png",
+      "asset": "sprites/accessories/headwear/flower_crown.png",
       "zIndex": 5,
       "supportedActions": [
         "idle",
@@ -97,9 +97,9 @@
       ]
     },
     {
-      "id": "glasses",
+      "id": "wire_glasses",
       "slot": "face",
-      "asset": "sprites/accessories/glasses/glasses.png",
+      "asset": "sprites/accessories/glasses/wire_glasses.png",
       "zIndex": 4,
       "supportedActions": [
         "idle",
@@ -129,9 +129,9 @@
       ]
     },
     {
-      "id": "sunglasses",
+      "id": "cat_shades",
       "slot": "face",
-      "asset": "sprites/accessories/glasses/sunglasses.png",
+      "asset": "sprites/accessories/glasses/cat_shades.png",
       "zIndex": 4,
       "supportedActions": [
         "idle",
@@ -161,9 +161,9 @@
       ]
     },
     {
-      "id": "blush",
+      "id": "heart_blush",
       "slot": "face",
-      "asset": "sprites/accessories/glasses/blush.png",
+      "asset": "sprites/accessories/glasses/heart_blush.png",
       "zIndex": 4,
       "supportedActions": [
         "idle",
@@ -193,9 +193,41 @@
       ]
     },
     {
-      "id": "bowtie",
+      "id": "fish_collar",
       "slot": "body",
-      "asset": "sprites/accessories/clothing/bowtie.png",
+      "asset": "sprites/accessories/clothing/fish_collar.png",
+      "zIndex": 3,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch",
+        "groom",
+        "tail_flick",
+        "knead",
+        "pounce",
+        "scratch",
+        "angry",
+        "ask",
+        "swing",
+        "bath",
+        "walk",
+        "edge_peek",
+        "cat_box",
+        "cat_sunbeam",
+        "dizzy"
+      ]
+    },
+    {
+      "id": "sailor_collar",
+      "slot": "body",
+      "asset": "sprites/accessories/clothing/sailor_collar.png",
       "zIndex": 3,
       "supportedActions": [
         "idle",
@@ -228,38 +260,6 @@
       "id": "bell_collar",
       "slot": "body",
       "asset": "sprites/accessories/clothing/bell_collar.png",
-      "zIndex": 3,
-      "supportedActions": [
-        "idle",
-        "study",
-        "thinking",
-        "celebrate",
-        "encourage",
-        "click_react",
-        "pickup",
-        "look_around",
-        "yawn",
-        "stretch",
-        "groom",
-        "tail_flick",
-        "knead",
-        "pounce",
-        "scratch",
-        "angry",
-        "ask",
-        "swing",
-        "bath",
-        "walk",
-        "edge_peek",
-        "cat_box",
-        "cat_sunbeam",
-        "dizzy"
-      ]
-    },
-    {
-      "id": "scarf",
-      "slot": "body",
-      "asset": "sprites/accessories/clothing/scarf.png",
       "zIndex": 3,
       "supportedActions": [
         "idle",

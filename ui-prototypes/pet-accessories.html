@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Lens · 宠物配饰 · 九件套</title>
+<!--
+  七只宠物的配饰九件套。每只 3 顶头饰、3 副脸饰、3 件身体件；全部按 88×88 画布的真实锚点合成。
+  页面上可以逐只试穿、切到现状对照、复制当前搭配。用法见 ui-prototypes/README.md：
+  ?pet=dog|mochi|owl|cat|ghost|jelly|cloud 滚到某一只，?theme=dark 暗色，?shot 隐去控件与底部条。
+  配饰数据与色板在本文件的 #pet-data 里，图来自 ../data/pet/<id>/。不是交付物，是九件套试穿页。
+-->
+<style>
+:root{
+  --paper:#f1ece2; --card:#fbf8f1; --stage:#f5efe3; --ink:#1c1a17; --muted:#6d665d;
+  --faint:#9b9489; --line:#d8d0c2; --line2:#e9e2d7; --accent:#b5623a; --accent-soft:#f2dfd1;
+  --on:#fff; --chip:rgba(28,26,23,.055); --dot:rgba(28,26,23,.09); --grid-line:rgba(70,130,220,.20);
+  --head:#a074e8; --face:#52a0ec; --body:#ec628c; --ok:#1d7a52;
+  --sh:0 1px 2px rgba(40,32,22,.04), 0 18px 42px -28px rgba(40,32,22,.25);
+  --sh-lg:0 2px 6px rgba(40,32,22,.06), 0 32px 80px -36px rgba(40,32,22,.32);
+  --pet-shadow:drop-shadow(0 10px 12px rgba(40,32,22,.12));
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,"Helvetica Neue",sans-serif;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,"SFMono-Regular",monospace;
+  --r:22px;
+}
+html[data-theme=dark]{
+  --paper:#151412; --card:#1e1c19; --stage:#26231e; --ink:#f1ece2; --muted:#aba397;
+  --faint:#7e776c; --line:#34312b; --line2:#2a2823; --accent:#e0a478; --accent-soft:#3a2b21;
+  --on:#171512; --chip:rgba(255,255,255,.07); --dot:rgba(255,255,255,.075); --grid-line:rgba(120,170,245,.18);
+  --ok:#6fd6a5;
+  --sh:0 1px 2px rgba(0,0,0,.35), 0 18px 42px -28px rgba(0,0,0,.75);
+  --sh-lg:0 2px 6px rgba(0,0,0,.45), 0 32px 80px -36px rgba(0,0,0,.9);
+  --pet-shadow:drop-shadow(0 10px 14px rgba(0,0,0,.45));
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+body{font-family:var(--f);color:var(--ink);background:var(--paper);font-size:14px;line-height:1.6;min-height:100vh}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background-image:radial-gradient(var(--dot) 1px,transparent 1px);background-size:20px 20px}
+body.has-bar{padding-bottom:92px}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.wrap{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:0 28px 78px}
+[hidden]{display:none!important}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* top */
+.top{display:flex;align-items:center;gap:18px;min-height:70px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.15em;font-size:12px}
+.brand i{width:11px;height:11px;display:block;background:var(--ink);box-shadow:4px 0 0 var(--ink),0 4px 0 var(--ink),4px 4px 0 var(--ink)}
+.brand span{font-weight:500;letter-spacing:.12em;color:var(--faint)}
+.controls{margin-left:auto;display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.tool{height:31px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);
+  font-size:11.5px;color:var(--muted);display:inline-flex;align-items:center;gap:7px}
+.tool:hover{border-color:var(--ink);color:var(--ink)}
+.tool[aria-pressed=true]{background:var(--ink);color:var(--on);border-color:var(--ink)}
+.tool .glyph{width:6px;height:6px;border-radius:2px;background:currentColor;opacity:.45}
+.tool[aria-pressed=true] .glyph{opacity:1}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(310px,.78fr);gap:54px;align-items:center;
+  padding:52px 0 36px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--faint);
+  text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:"";width:22px;height:1px;background:var(--line)}
+h1{font-size:clamp(42px,5.2vw,66px);line-height:1.02;letter-spacing:-.045em;font-weight:650;margin:16px 0 18px;text-wrap:balance}
+h1 em{font-style:normal;color:var(--accent)}
+.lede{max-width:690px;color:var(--muted);font-size:14.5px;line-height:1.9}
+.hero-meta{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:22px;color:var(--faint);font-size:11.5px}
+.hero-meta b{color:var(--ink);font-weight:650}
+.hero-meta .divider{width:3px;height:3px;border-radius:50%;background:var(--faint);opacity:.6}
+.brief{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh);padding:17px 18px 15px}
+.brief-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--line2)}
+.brief-head h2{font-size:11px;letter-spacing:.13em;text-transform:uppercase;font-weight:650;color:var(--muted)}
+.brief-head span{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:var(--faint)}
+.brief dl div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line2)}
+.brief dt{color:var(--muted);font-size:12px}
+.brief dd{font-family:var(--mono);font-size:11px;color:var(--ink)}
+.swatches{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.sw{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;color:var(--muted);
+  border:1px solid var(--line2);border-radius:999px;padding:4px 8px 4px 5px;background:var(--card)}
+.sw::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--c);border:1px solid rgba(0,0,0,.14)}
+.brief-note{margin-top:12px;font-size:11px;line-height:1.7;color:var(--faint)}
+
+/* audit strip */
+.audit{background:#1c1a17;color:#fbf8f1;border-radius:26px;padding:28px 28px 24px;margin-top:40px;
+  box-shadow:0 24px 60px -40px rgba(20,16,12,.65)}
+.audit .eyebrow{color:#b9b0a2}
+.audit .eyebrow::before{background:#4a453d}
+.audit h2{font-size:clamp(24px,2.6vw,32px);line-height:1.2;letter-spacing:-.03em;font-weight:650;margin-top:10px}
+.audit-lede{max-width:620px;margin-top:8px;color:#c9c0b2;font-size:12.5px;line-height:1.8}
+.audit-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:22px}
+.audit-card{background:#211f1b;border:1px solid #34312b;border-radius:16px;padding:9px;overflow:hidden}
+.audit-stage{position:relative;display:flex;align-items:center;justify-content:center;height:244px;--u:2.5;border-radius:11px;
+  background:#26231e;background-image:radial-gradient(rgba(255,255,255,.065) 1px,transparent 1px);background-size:16px 16px;overflow:hidden}
+.audit-stage .scale-tag{background:#211f1b;border-color:#3b3730;color:#b9b0a2}
+.audit-caption{padding:10px 5px 4px}
+.audit-caption .k{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:#b9b0a2;display:block}
+.audit-caption p{margin-top:4px;font-size:12px;line-height:1.7;color:#c9c0b2}
+.mark{position:absolute;border:1px dashed var(--body);background:rgba(236,98,140,.10);border-radius:2px;pointer-events:none;z-index:5}
+.audit .mark{border-color:#ec628c;background:rgba(236,98,140,.09)}
+
+/* how to */
+.how{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:center;margin-top:34px;
+  padding:16px 18px;border:1px solid var(--line);border-radius:16px;background:var(--card)}
+.how p{font-size:12.5px;line-height:1.8;color:var(--muted)}
+.how b{color:var(--ink);font-weight:650}
+.legend{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.pill{display:inline-flex;align-items:center;gap:6px;height:25px;padding:0 9px;border:1px solid var(--line);
+  border-radius:999px;background:var(--card);font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;color:var(--muted)}
+.pill i{width:6px;height:6px;border-radius:50%;background:var(--slot,var(--faint))}
+.pill.head{--slot:var(--head)} .pill.face{--slot:var(--face)} .pill.body{--slot:var(--body)}
+
+/* pet section */
+.pet{padding-top:38px;margin-top:46px;border-top:1px solid var(--line);scroll-margin-top:22px}
+.pet-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:end;margin-bottom:24px}
+.pet-title{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.pet-no{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--faint)}
+.pet-title h2{font-size:30px;line-height:1.1;font-weight:650;letter-spacing:-.02em}
+.pet-en{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--faint)}
+.pet-dot{width:8px;height:8px;border-radius:50%;background:var(--a);display:inline-block;transform:translateY(-3px)}
+.pet-note{max-width:760px;margin-top:8px;font-size:12.5px;line-height:1.8;color:var(--muted)}
+.pet-meta{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:var(--faint);text-align:right;white-space:nowrap}
+.pet-layout{display:grid;grid-template-columns:400px minmax(0,1fr);gap:30px;align-items:start}
+.fitting{position:sticky;top:18px;display:flex;flex-direction:column;gap:11px}
+.fit-head{display:flex;align-items:center;justify-content:space-between;padding:0 2px}
+.fit-head .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:var(--faint)}
+.fit-head .mode{font-size:11px;color:var(--muted)}
+.fit-head .mode.current{color:var(--accent);font-weight:600}
+.fit-head .mode.custom{color:var(--ink)}
+.stage{position:relative;display:flex;align-items:center;justify-content:center;background:var(--stage);
+  border:1px solid var(--line);border-radius:18px;overflow:hidden;
+  background-image:radial-gradient(var(--dot) 1px,transparent 1px);background-size:18px 18px}
+.stage::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(80% 70% at 50% 45%,transparent 55%,rgba(40,32,22,.045) 100%)}
+html[data-theme=dark] .stage::after{background:radial-gradient(80% 70% at 50% 45%,transparent 55%,rgba(0,0,0,.22) 100%)}
+.stage.big{height:400px;--u:4}
+.fitting.is-current .stage{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent-soft)}
+.scale-tag{position:absolute;right:9px;bottom:9px;z-index:7;display:inline-flex;align-items:center;height:20px;padding:0 7px;
+  border:1px solid var(--line);border-radius:999px;background:var(--card);font-family:var(--mono);font-size:8.5px;
+  letter-spacing:.06em;color:var(--faint)}
+.slots{display:flex;flex-direction:column;gap:5px}
+.slot-pill{display:flex;align-items:center;gap:8px;height:29px;padding:0 10px;border:1px solid var(--line);
+  border-radius:999px;background:var(--card);font-size:11.5px;color:var(--muted);min-width:0}
+.slot-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--slot);flex:none}
+.slot-pill b{font-weight:650;color:var(--ink);flex:none}
+.slot-pill .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot-pill .id{font-family:var(--mono);font-size:9px;color:var(--faint);margin-left:auto;white-space:nowrap}
+.slot-pill.head{--slot:var(--head)} .slot-pill.face{--slot:var(--face)} .slot-pill.body{--slot:var(--body)}
+.fit-actions{display:flex;gap:7px;flex-wrap:wrap}
+.btn{height:31px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);
+  font-size:11px;color:var(--muted);transition:background .2s,color .2s,border-color .2s}
+.btn:hover{border-color:var(--ink);color:var(--ink)}
+.btn[aria-pressed=true]{background:var(--ink);color:var(--on);border-color:var(--ink)}
+
+.wardrobe{min-width:0}
+.wardrobe-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 2px 10px}
+.wardrobe-head .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:var(--faint)}
+.wardrobe-head .sum{font-size:11.5px;color:var(--muted)}
+.cand-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}
+.cand{display:flex;flex-direction:column;min-width:0;padding:0;border:1px solid var(--line);border-radius:18px;
+  background:var(--card);box-shadow:var(--sh);overflow:hidden;text-align:left;font:inherit;color:inherit;
+  transition:border-color .2s,box-shadow .2s,transform .2s;animation:rise .5s cubic-bezier(.2,.7,.3,1) both;
+  animation-delay:calc(var(--i,0)*45ms)}
+.cand:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--ink) 26%,var(--line));box-shadow:var(--sh-lg)}
+.cand[aria-pressed=true]{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink),var(--sh-lg)}
+.card-stage{position:relative;display:flex;align-items:center;justify-content:center;height:220px;--u:2.2;
+  border-bottom:1px solid var(--line2);background:var(--stage);overflow:hidden;
+  background-image:radial-gradient(var(--dot) 1px,transparent 1px);background-size:16px 16px}
+.card-stage::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(80% 70% at 50% 45%,transparent 55%,rgba(40,32,22,.045) 100%)}
+html[data-theme=dark] .card-stage::after{background:radial-gradient(80% 70% at 50% 45%,transparent 55%,rgba(0,0,0,.2) 100%)}
+.badge{position:absolute;z-index:7;display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;
+  border:1px solid var(--line);border-radius:999px;background:var(--card);font-family:var(--mono);
+  font-size:9px;letter-spacing:.05em;color:var(--muted)}
+.badge i{width:6px;height:6px;border-radius:50%;background:var(--slot)}
+.badge.head{--slot:var(--head)} .badge.face{--slot:var(--face)} .badge.body{--slot:var(--body)}
+.slot-badge{top:10px;left:10px}
+.card-body{display:flex;flex-direction:column;gap:7px;padding:13px 15px 14px}
+.card-name{display:flex;align-items:baseline;gap:8px;min-width:0}
+.card-name b{font-size:16px;font-weight:650;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-name em{font-family:var(--mono);font-size:8.5px;font-style:normal;letter-spacing:.07em;color:var(--faint);white-space:nowrap}
+.card-note{font-size:11.5px;line-height:1.72;color:var(--muted);min-height:39px}
+.card-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:2px;padding-top:10px;
+  border-top:1px solid var(--line2);font-family:var(--mono);font-size:9px;letter-spacing:.07em;color:var(--faint)}
+.cand[aria-pressed=true] .card-foot .state{color:var(--on);background:var(--ink);border-radius:999px;padding:3px 8px;margin-left:-8px;font-weight:650}
+.cand[aria-pressed=true] .card-foot .arrow{opacity:0}
+.card-foot .arrow{font-size:12px}
+
+/* pet art, shared by stage, cards, chips, audit */
+.pet-box{position:relative;flex:none;width:calc(88px * var(--u));height:calc(88px * var(--u));filter:var(--pet-shadow);z-index:2}
+.pet-art{position:absolute;left:0;top:0;width:88px;height:88px;transform:scale(var(--u));transform-origin:0 0}
+.layer{position:absolute;inset:0;background-repeat:no-repeat;background-position:0 0;background-size:auto 88px;image-rendering:pixelated}
+.worn{position:absolute;left:0;top:0;width:88px;height:88px;image-rendering:pixelated}
+.current{position:absolute;inset:0;display:none}
+.current img{position:absolute;left:0;top:0;width:88px;height:88px;image-rendering:pixelated}
+.pet-box.is-current .current{display:block}
+.pet-box.is-current .worn{display:none}
+.grid{position:absolute;inset:0;z-index:6;pointer-events:none;opacity:0;
+  background-image:linear-gradient(to right,var(--grid-line) 1px,transparent 1px),linear-gradient(to bottom,var(--grid-line) 1px,transparent 1px);
+  background-size:calc(3px * var(--u)) calc(3px * var(--u))}
+html.grid-on .grid{opacity:1}
+
+/* current drawer */
+.drawer{margin-top:22px;border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden}
+.drawer summary{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;list-style:none;font-size:12px;color:var(--muted)}
+.drawer summary::-webkit-details-marker{display:none}
+.drawer summary .k{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--faint)}
+.drawer summary .chev{margin-left:auto;font-family:var(--mono);font-size:16px;line-height:1;color:var(--faint);transition:transform .2s}
+.drawer[open] .chev{transform:rotate(45deg)}
+.current-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:9px;padding:0 11px 12px}
+.cur{border:1px solid var(--line2);border-radius:12px;background:var(--stage);overflow:hidden}
+.chip-stage{position:relative;display:flex;align-items:center;justify-content:center;height:98px;--u:.9;
+  background-image:radial-gradient(var(--dot) 1px,transparent 1px);background-size:14px 14px}
+.cur .cap{padding:6px 8px 7px;background:var(--card);border-top:1px solid var(--line2)}
+.cur .cap b{display:block;font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cur .cap span{display:block;margin-top:1px;font-size:9.5px;color:var(--body)}
+.cur .cap span.ok{color:var(--ok)}
+
+/* notes, foot */
+.notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:30px;margin-top:56px;padding-top:24px;border-top:1px solid var(--line)}
+.notes .num{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:var(--accent)}
+.notes h3{font-size:14.5px;font-weight:650;margin:8px 0 7px;letter-spacing:-.01em}
+.notes p{font-size:12.5px;line-height:1.85;color:var(--muted)}
+.foot{display:flex;justify-content:space-between;gap:18px;margin-top:44px;padding-top:16px;
+  border-top:1px solid var(--line2);font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--faint)}
+
+/* pickbar */
+.pickbar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:12px;
+  max-width:calc(100vw - 24px);padding:9px 10px 9px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.10);
+  background:#1c1a17;color:#fbf8f1;box-shadow:0 18px 50px -18px rgba(0,0,0,.55);font-size:12px}
+.pickbar .k{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:#b9b0a2;white-space:nowrap;flex:none}
+.pickbar .count{font-weight:650;white-space:nowrap;flex:none}
+.pickbar .hint{color:#b9b0a2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pickbar button{border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:6px 12px;font-size:11px;color:#fbf8f1;white-space:nowrap}
+.pickbar button:hover{border-color:#fbf8f1}
+.pickbar button.primary{background:#fbf8f1;color:#1c1a17;border-color:#fbf8f1;font-weight:650}
+.toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%) translateY(6px);z-index:31;
+  background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:7px 13px;
+  font-size:11.5px;box-shadow:var(--sh);opacity:0;pointer-events:none;transition:opacity .18s,transform .18s}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@keyframes rise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+html[data-shot="1"] .cand{animation:none}
+html[data-shot="1"] .pickbar,html[data-shot="1"] .toast,html[data-shot="1"] .controls{display:none}
+html[data-shot="1"] body{padding-bottom:0}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+
+@media (max-width:1080px){
+  .hero{grid-template-columns:1fr;gap:30px;align-items:start;padding-top:42px}
+  .brief{max-width:560px}
+  .scale-tag{display:none}
+  .pet-layout{grid-template-columns:1fr;gap:24px}
+  .fitting{position:static;max-width:480px}
+  .wardrobe{max-width:780px}
+  .stage.big{height:360px;--u:3.8}
+  .how{grid-template-columns:1fr;gap:12px}
+  .legend{justify-content:flex-start}
+  .audit-stage{height:200px;--u:2.0}
+}
+@media (max-width:900px){
+  .audit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .audit-stage{height:228px;--u:2.3}
+}
+@media (max-width:720px){
+  .wrap{padding:0 18px 70px}
+  .top{flex-wrap:wrap;padding:12px 0;gap:10px}
+  .controls{margin-left:0;width:100%;justify-content:flex-start}
+  .hero{padding-top:34px}
+  h1{font-size:40px}
+  .audit{padding:20px 16px 16px;border-radius:20px}
+  .audit-grid{grid-template-columns:1fr}
+  .audit-stage{height:228px;--u:2.3}
+  .pet-head{grid-template-columns:1fr;gap:8px}
+  .pet-meta{text-align:left}
+  .pet-title h2{font-size:26px}
+  .card-stage{height:260px;--u:2.6}
+  .cand-grid{grid-template-columns:1fr}
+  .stage.big{height:300px;--u:2.85}
+  .current-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .notes{grid-template-columns:1fr;gap:20px}
+  .foot{flex-direction:column;gap:6px}
+  .pickbar .hint{display:none}
+  .pickbar{padding-left:13px;gap:8px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand" aria-label="Lens"><i aria-hidden="true"></i>LENS <span>/ WARDROBE</span></div>
+  <div class="controls" role="group" aria-label="页面选项">
+    <button class="tool" id="theme" type="button"><span class="glyph" aria-hidden="true"></span><span id="theme-label">深色</span></button>
+    <button class="tool" id="grid" type="button" aria-pressed="false"><span class="glyph" aria-hidden="true"></span>网格</button>
+    <button class="tool" id="reset-all" type="button"><span class="glyph" aria-hidden="true"></span>全部恢复初始</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <p class="eyebrow">PET / ACCESSORIES — NINE PIECES</p>
+      <h1>先穿对，<em>再穿好。</em></h1>
+      <p class="lede">现有的 61 件里，四只宠物共用同一套 9 件；眼镜的镜孔比眼睛高 2px，围巾压着嘴，领结缠在触手上。这一轮不再做取舍：每只补齐 3 顶头饰、3 副脸饰、3 件身体件，共 63 件，全部按真实锚点画好。</p>
+      <div class="hero-meta">
+        <span><b>7</b> 只宠物</span><span class="divider"></span>
+        <span><b>63</b> 件配饰</span><span class="divider"></span>
+        <span><b>3</b> 槽 ×3</span><span class="divider"></span>
+        <span>88 × 88 · 3px 格</span>
+      </div>
+    </div>
+    <aside class="brief" aria-label="本轮规格">
+      <div class="brief-head"><h2>本轮规格</h2><span>SPEC</span></div>
+      <dl>
+        <div><dt>画布</dt><dd>88 × 88</dd></div>
+        <div><dt>格子</dt><dd>3 px</dd></div>
+        <div><dt>槽位</dt><dd>头 / 脸 / 身 ×3</dd></div>
+        <div><dt>每只</dt><dd>9 件</dd></div>
+        <div><dt>新件描边</dt><dd>1 px</dd></div>
+      </dl>
+      <div class="swatches" aria-label="宠物色板">
+        <span class="sw" style="--c:#1a1a1f">墨</span>
+        <span class="sw" style="--c:#d3d8e2">雾</span>
+        <span class="sw" style="--c:#8f97a6">银</span>
+        <span class="sw" style="--c:#ec628c">玫红</span>
+        <span class="sw" style="--c:#52a0ec">天蓝</span>
+        <span class="sw" style="--c:#a074e8">淡紫</span>
+        <span class="sw" style="--c:#afc9c7">水色</span>
+        <span class="sw" style="--c:#8fa6b8">灰蓝</span>
+        <span class="sw" style="--c:#34aa60">绿</span>
+      </div>
+      <p class="brief-note">主体仍是白 / 灰 / 黑；每只只用自己的点缀色。金色仍只留给 dizzy 的星星，没有新增主色。</p>
+    </aside>
+  </section>
+
+  <section class="audit" aria-label="现有配饰的错位">
+    <p class="eyebrow">AUDIT / 现状</p>
+    <h2>问题不在配色，在坐标。</h2>
+    <p class="audit-lede">先看四处最明显的错位；每张卡圈出的就是问题所在。其余问题在每只的「现在的配饰」里逐件标注。</p>
+    <div class="audit-grid" id="audit-grid"></div>
+  </section>
+
+  <section class="how" aria-label="怎么穿">
+    <p><b>怎么穿：</b>右边九件都在柜子里，点一件就换上，同一槽位单选；左边试衣台 4×，卡片是缩略图。点「现状对照」看旧件的快照，「恢复初始」回到首选；底部可「复制当前搭配」。</p>
+    <div class="legend" aria-label="槽位图例">
+      <span class="pill head"><i></i>头饰 HEAD</span>
+      <span class="pill face"><i></i>脸饰 FACE</span>
+      <span class="pill body"><i></i>身体 BODY</span>
+    </div>
+  </section>
+
+  <div id="pets"></div>
+
+  <section class="notes" aria-label="设计说明">
+    <article><span class="num">01</span><h3>坐标先于花纹</h3><p>新件都按 88 × 88、3px 格子和真实锚点画。脸饰的孔就是眼睛的位置；身体件先找脖子、伞缘或底边，再谈造型。</p></article>
+    <article><span class="num">02</span><h3>一只一色</h3><p>白 / 灰 / 黑仍是主体。奶糖玫红，麻糬玫红 + 绿，猫头鹰天蓝 + 玫红，猫玫红，幽灵淡紫，水母水色，云灰蓝。没有新增主色。</p></article>
+    <article><span class="num">03</span><h3>下一步</h3><p>试穿确认后，九件按同一锚点进配方，同槽单选，按原来的 supportedActions 规则排除 sleep；现有件按宠逐只退役，不一次性删 id。</p></article>
+  </section>
+
+  <footer class="foot">
+    <span>LENS · PET / ACCESSORIES · NINE PIECES</span>
+    <span>2026-10-24 · 63 PIECES</span>
+  </footer>
+</main>
+
+<div class="pickbar" id="pickbar">
+  <span class="k">已选</span>
+  <span class="count" id="pick-count">7 套 · 21 件</span>
+  <span class="hint" id="pick-hint">全部是初始</span>
+  <button class="primary" id="copy" type="button">复制当前搭配</button>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite">已复制当前搭配</div>
+
+<script type="application/json" id="pet-data">{"palette":{"ink":"#1a1a1f","fur":"#fbfbfd","grey":"#4a4e56","rose":"#ec628c","sky":"#52a0ec","green":"#34aa60","lilac":"#a074e8","charcoal":"#2f323a","silver":"#8f97a6","mist":"#d3d8e2","aqua":"#afc9c7","dust":"#8fa6b8"},"pets":[{"id":"dog","name":"奶糖","en":"DOG","note":"奶糖的脖子在 y=9–10，不在胸口。帽子要给垂耳让位，领巾要落在真正的脖子上。","accent":"#ec628c","current":[{"id":"hat","slot":"head","name":"小礼帽","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAk0lEQVR4nO3YsQ3CQBBFwTVyCe4DROiUDlwoHZA6tExF0AKBv+6QZwrYk55WF+xQHbve588Rc97bOlQjl1YPn4XAYQKHCRwmcNhYHXvdlkPmTNtardjgMIHP/EU89mf9OxscJnCYwGEChwkc1uyMlz5R9nLStMFhAgMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANQvvmrsDM8fClLeAAAAAElFTkSuQmCC","issue":"帽筒太小"},{"id":"beanie","slot":"head","name":"毛线帽","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAiklEQVR4nO3UUQmEQBSG0asYwUY2MYMxzLARNotBpoMmEES5jLtzzrvIfFz+CIBTXfyIMq/73W/Hz1LtnX2tH7dC4JYnojyYhbfMhQtOJnBrE1ESZqHmXLjgZAInEziZwMkETjbEy0zbN/6JC04mMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQFxxALegDd+tmnKHAAAAAElFTkSuQmCC","issue":"整块粉帽"},{"id":"sprout","slot":"head","name":"嫩芽","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAdElEQVR4nO3WwQmAMAwF0FYcqbN4djTPzuJOuoA9eIix+N6xBAqfkKSWQbR9Pe/ej2WrT2reNmV9/BcCDjaXwbXOWPgKHRxMwMHStmvEiMi8Fnp0cDABAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlBQXVGYOUBESwqwAAAAASUVORK5CYII=","issue":"只有三笔"},{"id":"crown","slot":"head","name":"小皇冠","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAhklEQVR4nO3UsQmEYAwG0HjcFO7hMgc3gKWTWDqA4DLu4Rpe5WHhX0YU36tSBAIf4YsAKKriwvphWre5az9V5k6W15nHnkjAyW5TESXfefnPY1Mf7pxdC3s+OJmAk73j5sZCLVyFD04mYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAyPMDnyoUBQlNccsAAAAASUVORK5CYII=","issue":"一条锯齿"},{"id":"glasses","slot":"face","name":"细框眼镜","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAg0lEQVR4nO3WOwqAMBBAwVU8XQpLD2lp4fUUKyuj4J/MtCEEwiObCAAAAAAAAAAAAABWVXxYarsptz4OfXXH3mKkzCXtXeCZvVeqnzqoVE38XDpQ6pvPgYJv9vuCx406l3q/MMgUXHrB6cTEf/K3AAAAAAAAAAAAAAAAAAAAAAAQr5sBf5AfosnHSSwAAAAASUVORK5CYII=","issue":"比眼睛高 2px"},{"id":"sunglasses","slot":"face","name":"墨镜","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAe0lEQVR4nO3UqxGAMBAFwIQyMFSCwVAzBkMlGNoAxUdEIDgGZnZV5iZ34omXEgAAAAAAAAAAAACnnD6srpt1fw/jdMz7ri3+X5Y5l3bvuO4+qYo4yknAwX5TEdFUxE+piGACDibgYAIGAAAAAAAAAAAAAAAAAAAAANJrNvC8DxEBYTvrAAAAAElFTkSuQmCC","issue":"黑块偏高"},{"id":"bowtie","slot":"body","name":"小领结","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAbElEQVR4nO3UwQmAMAwF0FQcwVMv7uYMjuEMTugOukAvoq2o7x1D4MMnJAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA7pTihbZp2UvzYZ3TmZ0WupZhf6Tgyvr4kJzH4lt4kguuTMEAAAAAABDXHZv6CWBpkHuXAAAAAElFTkSuQmCC","issue":"结在胸口"}],"currentLook":["beanie","glasses","bowtie"],"candidates":[{"id":"flat_cap","name":"报童帽","en":"NEWSBOY CAP","slot":"head","note":"帽檐压在右眉上方，给垂耳留出两侧；银扣是奶糖项圈上那块牌子的回声。","paint":[{"at":[2,-9],"colour":"charcoal","art":["..####...",".######..","########.","#########"]},{"at":[8,-5],"colour":"charcoal","art":["#####"]},{"at":[37,9],"colour":"silver","art":[".............##........",".............##........",".......................",".......................",".......................",".......................","#######################"],"px":true}]},{"id":"beret","name":"莓果贝雷帽","en":"BERRY BERET","slot":"head","note":"软顶向右倾，底边收在耳根；玫红和耳内、舌头同色，不抢脸。","paint":[{"at":[32,2],"colour":"ink","art":["..........############..........",".........#............#.........",".........#............#.........","....######............######....","...#........................#...","...#........................#...",".###........................###.","#..............................#","#..............................#","#..............................#","#..............................#","#..............................#","#..............................#",".###........................###.","...#........................#...","...#........................#...","....########################...."],"px":true},{"at":[1,-9],"colour":"rose","art":["...####...",".########.","##########","##########",".########."]},{"at":[2,-5],"colour":"charcoal","art":["########"]},{"at":[33,12],"colour":"silver","art":["##","#."],"px":true}]},{"id":"knit_beanie","name":"绒线帽","en":"KNIT BEANIE","slot":"head","note":"玫红帽身、炭色翻边和一颗雾色绒球；比原来的毛线帽多一圈边。","paint":[{"at":[38,2],"colour":"ink","art":[".......###############.......","......#...............#......","......#...............#......","....###...............###....","...#.....................#...","...#.....................#...","...#.....................#...","...#.....................#...","...#.....................#...","...#.....................#...","...#.....................#...","...#.....................#...",".###.....................###.","#...........................#","#...........................#","#...........................#",".###########################."],"px":true},{"at":[3,-9],"colour":"rose","art":["..#####..",".#######.",".#######.",".#######.","#########"]},{"at":[3,-5],"colour":"charcoal","art":["#########"]},{"at":[39,16],"colour":"silver","art":["##","#."],"px":true},{"at":[49,0],"colour":"mist","art":[".###.","#####","#####","#####",".###."],"px":true},{"at":[6,-10],"colour":"mist","art":[".#.","###",".#."]}]},{"id":"spectacles","name":"圆框眼镜","en":"ROUND FRAMES","slot":"face","note":"镜孔和 6×6 的眼睛逐像素对齐，加了镜腿与银高光，不再悬在额头上。","paint":[{"at":[36,32],"colour":"charcoal","art":["......######.........######......",".....#......#.......#......#.....",".....#......#.......#......#.....","######......#########......######","#....#......#.......#......#....#",".....#......#.......#......#.....",".....#......#.......#......#.....","......######.........######......"],"px":true},{"at":[41,33],"colour":"silver","art":["#..............#.......",".......................",".......................",".......................",".......................",".......#..............#"],"px":true}]},{"id":"round_shades","name":"圆墨镜","en":"ROUND SHADES","slot":"face","note":"银圈裹住 6×6 的眼睛，镜片压暗但不再是一块黑条；有镜腿。","paint":[{"at":[42,33],"colour":"charcoal","art":[".####...........####.","######.........######","######.........######","######.........######","######.........######",".####...........####."],"px":true},{"at":[36,32],"colour":"silver","art":["......######.........######......",".....#......#.......#......#.....",".....#......#.......#......#.....","######......#########......######",".....#......#.......#......#.....",".....#......#.......#......#.....",".....#......#.......#......#.....","......######.........######......"],"px":true},{"at":[42,33],"colour":"mist","art":["#..............#.",".#..............#"],"px":true}]},{"id":"heart_frames","name":"心形镜","en":"HEART FRAMES","slot":"face","note":"玫红细框，鼻梁上一个小爱心；眼睛从镜片里露出来。","paint":[{"at":[36,32],"colour":"rose","art":["......######...#.#...######......",".....#......#.#####.#......#.....",".....#......#..###..#......#.....","######......#########......######",".....#......#.......#......#.....",".....#......#.......#......#.....",".....#......#.......#......#.....","......######.........######......"],"px":true},{"at":[41,33],"colour":"silver","art":["#..............#.......",".......................",".......................",".......................",".......................",".......#..............#"],"px":true}]},{"id":"bandana","name":"莓红领巾","en":"BANDANA","slot":"body","note":"结打在左侧，三角垂到胸口；领口在 y=11，落在奶糖的颈下。","paint":[{"at":[41,62],"colour":"ink","art":[".##################.","#..................#","#..................#","#..................#",".###............###.","...#............#...","...#............#...","....###......###....","......#......#......","......#......#......",".......######......."],"px":true},{"at":[4,11],"colour":"rose","art":["######",".####.","..##.."]},{"at":[35,62],"colour":"ink","art":[".######.","#......#","#......#","#......#","#......#","#......#","#......#",".######."],"px":true},{"at":[2,11],"colour":"rose","art":["##","##"]},{"at":[32,68],"colour":"ink","art":[".###.","#...#","#...#","#...#","#...#","#...#","#...#",".###."],"px":true},{"at":[1,13],"colour":"rose","art":["#","#"]},{"at":[51,63],"colour":"ink","art":["#",".",".","#"],"px":true}]},{"id":"knit_scarf","name":"绒线围巾","en":"KNIT SCARF","slot":"body","note":"玫红围巾在 y=10 绕一圈，两条短尾垂到胸口；炭色一道织纹。","paint":[{"at":[38,59],"colour":"ink","art":[".########################.","#........................#","#........................#","#........................#","#........................#","#........................#","#........................#","#......######......######.","#......#....#......#......","#......#....#......#......","#......#....#......#......","#......#....#......#......","#......#....#......#......","#......#....#......#......","#......#....#......#......","#......#....#......#......",".######......######......."],"px":true},{"at":[3,10],"colour":"rose","art":["########","########","##..##..","##..##..","##..##.."]},{"at":[3,11],"colour":"charcoal","art":["########"]},{"at":[39,72],"colour":"mist","art":["##..........##"],"px":true}]},{"id":"backpack","name":"小背包","en":"BACKPACK","slot":"body","note":"炭色小背包挂在右侧，玫红翻盖和银扣；斜带从左肩落到包口。","paint":[{"at":[42,57],"colour":"charcoal","art":["##........................",".###......................","...###....................",".....###..................",".......###................",".........###..............","...........###............",".............###..........","...............###........",".................###......","...................###....",".....................###..",".......................###"],"px":true},{"at":[54,63],"colour":"silver","art":["##","##"],"px":true},{"at":[65,68],"colour":"ink","art":["....#########.","...#.........#","...#.........#",".###.........#","#............#","#............#","#............#","#............#","#............#","#............#",".###.........#","...#.........#","...#.........#","....#########."],"px":true},{"at":[12,13],"colour":"charcoal","art":[".###","####","####",".###"]},{"at":[13,13],"colour":"rose","art":["###","###"]},{"at":[73,70],"colour":"silver","art":["##","##"],"px":true}]}],"recommended":["beret","spectacles","bandana"],"audit":{"currentId":"glasses","box":[38,29,28,14],"caption":"镜孔比眼睛高 2px、左 2px；也没有镜腿。"}},{"id":"mochi","name":"麻糬","en":"MOCHI","note":"麻糬没有脖子，身体就是脸以下那一圈。头顶的件要像插进去的，身体件要顺着圆弧，不要横切。","accent":"#ec628c","current":[{"id":"sprout","slot":"head","name":"嫩芽","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAgElEQVR4nO3UsQmAMABE0ehMzmLtaNbO4k7aWihocZHoe2UIBD7hSgEAAAAAAAAA+KauNGhYpu3sfB3n7smdGvqaj/2RwGFNTsTR1RS8OQtHfnCYwGHNT8Sd6TARH2YiwgQOEzhM4DCBwwQOExgAAAAAAAAAAAAAAAAAAAAAKNXs/VIQHAFAGeEAAAAASUVORK5CYII=","issue":"离头太远"},{"id":"flower","slot":"head","name":"小花","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAq0lEQVR4nO3YsQ3CQBAEwDOiCieW6IJ6CCiHUugI6RPnrgAikBPCtcGeiaxPXl6dVqevAgAAAAAA+HVdbVTfD8/39zi21f7zsNbFeyHgsG6rtdDa43M+DKdaqy5McJiAw4610VqYrrf6UheLbhcmOEzAYbaIMBMcJuCwv98i5uZbwfl+8RaxByoiTMBhAg4TcJiAwwQcJmAAAAAAAAAAAAAAAAAAAAAAoBbzAhDHJljlrEAiAAAAAElFTkSuQmCC","issue":"菱形花"},{"id":"party_hat","slot":"head","name":"派对帽","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAApElEQVR4nO3WsQ3CMBAFUBuUDajSsBszMAYzsBtNKjaIEFSUEULiJ7J5r3Jn3dfp60oBAAAAAAAAaFgtnbqfLs/3+3A9bzbnbquP/4WAwwQcJuAwAYfVXi+HJWtfFDY4TMBhzVfEPD8+1sKSYdjH57fBYQIOq71eC99KXRc2OEzAYU1WxDgef14R03RTES1SEQAAAAAAAAAAAAAAAAAAAABAWc0L0RgUIM40V/gAAAAASUVORK5CYII=","issue":"锥帽偏小"},{"id":"glasses","slot":"face","name":"方框眼镜","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAfElEQVR4nO3WMQqAMBAEwFN8XQpLH2lp4fe0TaFgkRODM3VIYLlbEgEAAAAAAAAAAAAAAAAAAMDnDNGJMi/HW2/t29osl7HVRVwTcLIpOrRXK1xXx5PVvjufVUEmOJmAk3VZEaXROr/xMzHByQQMAAAAAAAAAAAAAADxBydP1BPwuJaNKAAAAABJRU5ErkJggg==","issue":"方框压眼"},{"id":"sunglasses","slot":"face","name":"方框墨镜","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAfUlEQVR4nO3UMQqEMBBA0dnF022hhSB4RUsLLyeLVlpZpHBE8b0qVQY+yUQAAAAAAAAAAAAAAAAAAABwO594iHn+L9u5afvUWdM4nNble9ZFHBM4WRUP0RSshZKv/au7fdVcwQtOJnAygZMJnExgAAAAAAAAAAAAAACIN1gBo9MMDycbbbsAAAAASUVORK5CYII=","issue":"一整块灰"},{"id":"blush","slot":"face","name":"腮红","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAWUlEQVR4nO3QwQmAMBAEwLvUkAqtwTJSQypMD7EBwYcfPWaeC8vCRgAAAAAAAAAAAAAAAAAAAAAAAFBfxoetY+y7vM8z/7LV3pR55mAAAAAAAAAAAAAAiDIupcsIBhpfMJAAAAAASUVORK5CYII=","issue":"贴着嘴"},{"id":"bowtie","slot":"body","name":"小领结","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAb0lEQVR4nO3QsQmAQAxA0egMzuEczmFv5xh29s7hHM7hDmcnFtcGEd+rwkEI9yMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgfU183Dkupfbe7+s9H8NU3e22Of3/bfaBvxM4mcDJBE4mMAAAAMTTBcvtBwyGWnEsAAAAAElFTkSuQmCC","issue":"落在下摆"},{"id":"scarf","slot":"body","name":"围巾","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAeklEQVR4nO3UwQmEUBBEwdEYjNAYNgxjMEJz0JOwV8WGgV8VwfAYugoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAvjRVM8e6ndXUsv8e95ozp3ATeLSJ6DYXb2bhnw8OE3jkiegwRyaiORMRJnCYwGEChwkcJnCYwAAA1IAut6cMHDZAYIkAAAAASUVORK5CYII=","issue":"像腰带"},{"id":"apron","slot":"body","name":"围裙","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAtElEQVR4nO3WsQ3CQAwFUIMYgSoNQ9AwBxMwBwMwBxMwBw1D0KRiB6iILgVF0Jkk4r3KpfXl+7oIAAAAAAAAAAAAAAAAAAAAAAAAAAAAGGwRE9M0m+d73p1u4y4TEdfjtpvb9j44r2XthegTcLJVTEzbf4ZdXYzlm1ooueBkAv63X8Qn+/PjZ3VxOayr5eKCkwk42WwqIrsuatZCyQUnE3CyWVZErbrIqoWSC04mYAAAAIjSC9rfGXgxJVwrAAAAAElFTkSuQmCC","issue":"围裙过大"}],"currentLook":["flower","glasses","scarf"],"candidates":[{"id":"kanzashi","name":"樱枝发簪","en":"SAKURA PIN","slot":"head","note":"绿枝插进米团顶端，一朵玫红小花和一颗垂珠向右探出，给圆脸一个方向。","paint":[{"at":[8,0],"colour":"green","art":["..#","###",".#.",".#."]},{"at":[56,23],"colour":"ink","art":["....###....","...#...#...","...#...#...",".###...###.","#.........#","#.........#","#.........#",".###...###.","...#...#...","...#...#...","....###...."],"px":true},{"at":[9,-2],"colour":"rose","art":[".#.","###",".#."]},{"at":[10,-1],"colour":"silver","art":["#"]},{"at":[64,30],"colour":"silver","art":["#..",".#.",".#.","..#","..#","..#","..#","..#","..#","..#","..#","..#"],"px":true},{"at":[65,41],"colour":"ink","art":[".###.","#...#","#...#","#...#",".###."],"px":true},{"at":[12,4],"colour":"rose","art":["#"]}]},{"id":"hachimaki","name":"波点钵卷","en":"HACHIMAKI","slot":"head","note":"雾白钵卷绕在 y=3–4 的头顶，右侧玫红结和两条短尾；不挡眼睛。","paint":[{"at":[38,41],"colour":"ink","art":[".####################################.","#....................................#","#....................................#","#....................................#",".####################################."],"px":true},{"at":[3,4],"colour":"mist","art":["############"]},{"at":[68,38],"colour":"ink","art":[".######.","#......#","#......#","#......#","#......#","#......#","#......#",".######."],"px":true},{"at":[13,3],"colour":"rose","art":["##","##"]},{"at":[74,41],"colour":"ink","art":[".######.","#......#","#......#","#......#","#......#","#......#","#......#","#......#","#......#","#......#",".######."],"px":true},{"at":[15,4],"colour":"rose","art":["##","##","##"]},{"at":[70,42],"colour":"mist","art":["#..","...","...","..#"],"px":true}]},{"id":"chasen","name":"茶筅","en":"CHASEN","slot":"head","note":"绿竹茶筅插在米团顶端，五根细齿和玫红束带；茶席的甜点。","paint":[{"at":[8,2],"colour":"green","art":["##","##"]},{"at":[50,13],"colour":"green","art":["......#.......","...#..#...#...","...#..#...#...","...#..#...#...","...#..#..#....","#...#.#..#...#","#...#.#..#...#",".#..#.#..#..#.",".#..#.#..#..#.",".#..#.#.#..#..","..#.#.#.#..#..","..#.#.#.#..#..","..#..##.#.#...","...#.##.#.#...","...#.##.##....","....####.#....","....#####.....","....#####.....",".....####.....",".....###......",".....###......","......#.......","......#......."],"px":true},{"at":[8,2],"colour":"rose","art":["##"]},{"at":[55,17],"colour":"mist","art":["#.#"],"px":true}]},{"id":"glasses","name":"圆框眼镜","en":"ROUND FRAMES","slot":"face","note":"镜孔正对两只眼睛，镜腿顺圆弧收在两侧；1px 细框，比原来的方框轻。","paint":[{"at":[38,46],"colour":"charcoal","art":["......#####.............#####......",".....#.....#...........#.....#.....",".....#.....#...........#.....#.....","######.....#.########..#.....######",".....#.....##........###.....#.....",".....#.....#...........#.....#.....","......#####.............#####......"],"px":true},{"at":[44,47],"colour":"silver","art":["#.................#....",".......................",".......................",".......................","....#.................#"],"px":true}]},{"id":"candy_shades","name":"糖果墨镜","en":"CANDY SHADES","slot":"face","note":"玫红镜片配天蓝镜圈，圆镜正好罩住两颗眼睛；像两颗糖。","paint":[{"at":[44,47],"colour":"rose","art":[".###...............###.","#####.............#####","#####.............#####","#####.............#####",".###...............###."],"px":true},{"at":[38,46],"colour":"sky","art":["......#####.............#####......",".....#.....#...........#.....#.....",".....#.....#...........#.....#.....","######.....#############.....######",".....#.....#...........#.....#.....",".....#.....#...........#.....#.....","......#####.............#####......"],"px":true},{"at":[44,47],"colour":"mist","art":["#.................#.",".#.................#"],"px":true}]},{"id":"blush","name":"腮红","en":"BLUSH","slot":"face","note":"两团玫红在 y=7–8 的脸颊上，不碰嘴线；一颗雾色高光。","paint":[{"at":[3,7],"colour":"rose","art":["##.......##","##.......##"]},{"at":[39,51],"colour":"mist","art":["#..........................#"],"px":true}]},{"id":"nori","name":"海苔裹底","en":"NORI WRAP","slot":"body","note":"海苔顺着下半圈的圆弧包上来，右缘有银色的折光和折角；不横切脸部。","paint":[{"at":[2,13],"colour":"charcoal","art":["######...",".#######.","...######",".....###."]},{"at":[39,69],"colour":"silver","art":["#.....#.....#","...#.....#..."],"px":true},{"at":[45,72],"colour":"silver","art":["...............#","................","................","#........#......"],"px":true},{"at":[51,69],"colour":"mist","art":["#.",".#","#."],"px":true}]},{"id":"furoshiki","name":"风吕敷","en":"FUROSHIKI","slot":"body","note":"玫红风吕敷包住下半圈，右侧打结、两条尾；布上点着雾色小点。","paint":[{"at":[35,68],"colour":"ink","art":[".##########################################.","#..........................................#","#..........................................#","#..........................................#",".###....................................###.","...#....................................#...","...#....................................#...","....######........................######....",".........#........................#.........",".........#........................#.........","..........######............######..........","...............#............#...............","...............#............#...............","................############................"],"px":true},{"at":[2,13],"colour":"rose","art":["##############",".############.","...########...",".....####....."]},{"at":[68,68],"colour":"ink","art":[".######.","#......#","#......#","#......#","#......#","#......#","#......#",".######."],"px":true},{"at":[13,13],"colour":"rose","art":["##","##"]},{"at":[71,74],"colour":"ink","art":[".######.","#......#","#......#","#......#","#......#","#......#","#......#",".######."],"px":true},{"at":[14,15],"colour":"rose","art":["##","##"]},{"at":[39,72],"colour":"mist","art":["#....................#","......................","......................",".........#............"],"px":true}]},{"id":"bean_pouch","name":"红豆袋","en":"BEAN POUCH","slot":"body","note":"绿绳绕过身体，右侧挂一只红豆袋；炭色抽绳和银珠。","paint":[{"at":[39,66],"colour":"green","art":["###############################","...............#...............","..............................#"],"px":true},{"at":[68,68],"colour":"ink","art":["....#########.","...#.........#","...#.........#",".###.........#","#............#","#............#","#............#","#............#","#............#","#............#",".###......###.","...#......#...","...#......#...","....######...."],"px":true},{"at":[13,13],"colour":"rose","art":[".###","####","####",".##."]},{"at":[14,13],"colour":"charcoal","art":["###"]},{"at":[73,73],"colour":"silver","art":["##","##"],"px":true},{"at":[78,66],"colour":"green","art":["##","#."],"px":true}]}],"recommended":["kanzashi","glasses","nori"],"audit":null},{"id":"owl","name":"猫头鹰","en":"OWL","note":"猫头鹰的眼睛在 y=5，耳羽在头顶两侧。镜框要小，帽子要能跨过耳羽。","accent":"#52a0ec","current":[{"id":"beanie","slot":"head","name":"毛线帽","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAg0lEQVR4nO3UsQ2EQAxFwTU1UCE1XBnUQIX0ABHhhfZK65mIDO2X9cYAAAAAAAAAAFhTjEXdx/l83/v1m/bObdaPuzBwslg1C/9U58IFJzNwsuiQhZm5cMHJDJwsumWhOhcuOJmBk0XnLFTkwgUnMzAAAAAAAAAAAAAAAAAAAAAAMMq8eOkUGnR3z2oAAAAASUVORK5CYII=","issue":"盖住耳羽"},{"id":"party_hat","slot":"head","name":"派对帽","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAq0lEQVR4nO3Wuw3CMABFUZsZUqVhJyaImIExmAExATvRpMoOUEFHx8vHOadKF/nJunIpAAAAAACrUEujpvP19fnubpfFznlY6sd7YeCwZhNxuk/fRDyGTiJaJRFhtdUs/DJ3LtzgMAOH1T1kYclcuMFhBg6re8vC3Llwg8MMHGbgMAOHGThsk6+Ivj/+/RUxjk+viC2SCAAAAAAAAAAAAAAAAAAAAAAAoKzBG6CNGCXHk/qzAAAAAElFTkSuQmCC","issue":"锥帽偏大"},{"id":"hair_bow","slot":"head","name":"蝴蝶结","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAhklEQVR4nO3WsQmFUAwF0CiOYGXjbs7gGH8Gd7OxcgdtLbSwCN+n55QhEAjhkggAAAAAAAAAgHeqonDr8NvO6u00Vnd6stTZA77OgpM1Ubj2Igq6rv9bLBy54GQWnKz4iFgvPoRlmY9RsJ31+yJeQEQAAAAAAAAAAAAAAAAAAAAAAAAA8XA7UxkZFVyrr3oAAAAASUVORK5CYII=","issue":"小结偏上"},{"id":"reading_glasses","slot":"face","name":"阅读镜","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAkUlEQVR4nO3YOw6DMAwAUIN6ugwdOSQjA9dr1wxUfIQjlbw3Wx4s23ISAQAAAAAAAAAAAAAAAECiIf5EeU+fvZh1mYdWeY4a70rENgXueUWUapzPjn8df1eeK3RwMgVO9oqHKgeuhRZ0cDIFTvbYFbH+uCJa08HJFLjnh0bNXwSbrAgAAAAAAAAAAAAAAIgefAERDCYNKkDCnwAAAABJRU5ErkJggg==","issue":"镜框过大"},{"id":"sunglasses","slot":"face","name":"墨镜","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAb0lEQVR4nO3WMQqAMAwF0NRjZPH+x3LpNXR1KFjQKtL35pAhJJ9EAAAAAAAAAAAAAAAAAADwjRI/kbnuVzW1buWtPr2WpxrRZsAzR0R2nPNod+PCBg9mwDNHxJkvgiYRAQAAAAAAAAAAAAAAADG5A7TwFBC2rPpDAAAAAElFTkSuQmCC","issue":"黑块"},{"id":"sleep_mask","slot":"face","name":"眼罩","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAbklEQVR4nO3WwQ2AIBBFwdUaqIwKLM0KrMwe8OqBI2DMzhQAyQ95IQIAAAAAAAAAAAAAAAAAgG9s8RP1vNuqu66jDNtlH3UQfQbOnIi6MAuzcuEFT2bgzIl484ugSyIAAAAAAAAAAAAAAAAgknsALbUMEAn4OQkAAAAASUVORK5CYII=","issue":"可用"},{"id":"bowtie","slot":"body","name":"小领结","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAd0lEQVR4nO3UsQmAQAwF0OhEFoI7WFg6pKWFOwgWbqSdWFwh6Anie1UIHEdC+BEAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8KQiPq7t+i3VX5f5qKu6Sb6dxiH7/GXuD/7OgjP7fERciYu3Y+HMBWdmwQAAAAAAEPftGzALC/83CZoAAAAASUVORK5CYII=","issue":"在肚子上"},{"id":"scarf","slot":"body","name":"围巾","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAfUlEQVR4nO3WQQ2AMBREwYIGlKEAaShAGR7gyoFb2bSkMwp+XppNSwEAAAAAAAAAAAAAAAAAAAAAAABgaFPp2LqfV+sbjm2pajR/dwpvBB55IlrNRe0sPHnBYQKH/WYiWk2QX0TnTESYwGEChwkcJnCYwGECAwAAAABAqXcD1vQMHMKMkv4AAAAASUVORK5CYII=","issue":"一条直带"},{"id":"vest","slot":"body","name":"马甲","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAApklEQVR4nO3WuwkCURQE0LtiFZvYgoFgDxsYWqShgT0IBnakoS9QEGH8PM8JF/YFwzDcKgAAAAAAAAAAAAAAAAAAAAAAAAD+2lA/aNpsL/e+H/a7IfnvK2aJR7kRcJiAwwQcJuCweXVkai6E9ip4dDm8gwaHCTisq4lojePiY7PQ0uAwAYd1OxHL1bq+gQaHCTis24k4n45fMRcaHCZgAAAAAKgnXQG7DBMG9oCVtgAAAABJRU5ErkJggg==","issue":"可用，略平"}],"currentLook":["hair_bow","reading_glasses","bowtie"],"candidates":[{"id":"mortarboard","name":"学士帽","en":"MORTARBOARD","slot":"head","note":"方板跨过耳羽，帽座只压住头顶中央；玫红流苏从右侧垂到脸旁。","paint":[{"at":[3,-2],"colour":"charcoal","art":["..#######..","###########",".#########."]},{"at":[6,0],"colour":"charcoal","art":["#####","#####"]},{"at":[8,-1],"colour":"silver","art":["#"]},{"at":[46,25],"colour":"silver","art":["####################"],"px":true},{"at":[70,31],"colour":"rose","art":["#......","#......","#......",".#.....",".#.....",".#.....",".#.....","..#....","..#....","..#....","..#....","..#....","..##...",".##.#..",".#.#.#.","#..#..#","#..#..."],"px":true}]},{"id":"nightcap","name":"月纹睡帽","en":"NIGHTCAP","slot":"head","note":"软帽从头顶向右弯下，帽尖一颗雾色绒球；月牙和银边让它在深色背景下也读得出。","paint":[{"at":[47,14],"colour":"ink","art":["............................######.","...........................#......#","...........................#......#",".........................###......#","........................#.........#","........................#.........#","......................###.........#",".....................#............#",".....................#............#","...................###............#","..................#............###.","..................#............#...","................###............#...","...............#............###....","...............#............#......",".............###............#......","............#............###.......","............#............#.........",".############............#.........","#........................#.........","#........................#.........","#........................#.........",".########################.........."],"px":true},{"at":[6,-5],"colour":"sky","art":[".........##","........###",".......####","......####.",".....####..","....####...","########..."]},{"at":[4,1],"colour":"dust","art":["########"]},{"at":[44,33],"colour":"silver","art":["##.","..#","..#","##."],"px":true},{"at":[68,11],"colour":"ink","art":[".######.","#......#","#......#","#......#","#......#","#......#","#......#",".######."],"px":true},{"at":[13,-6],"colour":"mist","art":["##","##"]}]},{"id":"quill_clip","name":"羽毛笔","en":"QUILL CLIP","slot":"head","note":"一根天蓝羽毛笔夹在右耳侧，银笔尖和玫红羽尖；不压脸。","paint":[{"at":[71,23],"colour":"ink","art":[".......###....","......#...#...","......#...#...","......#...###.","......#......#","......#......#","....###......#","...#......###.","...#......#...",".###......#...","#.........#...","#.........#...","#.........#...","#.........#...","#.........#...","#.........#...","#......###....","#......#......","#......#......","#...###.......","#...#.........","#...#.........",".###.........."],"px":true},{"at":[14,-2],"colour":"sky","art":["..#.","..##",".##.","###.","###.","##..","#..."]},{"at":[70,21],"colour":"silver","art":["......#","......#","......#",".....#.",".....#.",".....#.",".....#.","....#..","....#..","....#..","....#..","...#...","...#...","...#...","...#...","..#....","..#....","..#....","..#....",".#.....",".#.....",".#.....",".#.....","#......","#......","#......","#......"],"px":true},{"at":[77,20],"colour":"ink","art":[".###....","#...#...","#...#...","#...###.",".###...#","...#...#","...#...#","....###."],"px":true},{"at":[16,-3],"colour":"rose","art":["#.",".#"]},{"at":[73,30],"colour":"mist","art":["...#","....","....","#..."],"px":true}]},{"id":"readers","name":"阅读镜","en":"READING FRAMES","slot":"face","note":"镜孔正对 y=5 的眼睛，细框加一条短银链；比原来的 5×5 方框小一圈。","paint":[{"at":[40,43],"colour":"charcoal","art":["....#####.............#####....","...#.....#...........#.....#...","...#.....#...........#.....#...","####.....#.#########.#.....####","...#.....##.........##.....#...","...#.....#...........#.....#...","....#####.............#####...."],"px":true},{"at":[44,44],"colour":"silver","art":["#.................#....",".......................",".......................",".......................","....#.................#"],"px":true},{"at":[68,50],"colour":"silver","art":["#.","#.",".#",".#",".#"],"px":true}]},{"id":"sleep_mask","name":"月纹眼罩","en":"SLEEP MASK","slot":"face","note":"天蓝眼罩横过双眼，右侧一枚银月牙，雾色带子绕到耳侧。","paint":[{"at":[41,41],"colour":"ink","art":[".#########.........#########.......","#.........#.......#.........#......","#.........#.......#.........#......","#.........#########.........######.","#.................................#","#.................................#","#.................................#",".#################################."],"px":true},{"at":[4,4],"colour":"sky","art":["###...###..","###########"]},{"at":[62,43],"colour":"silver","art":["###","#.#","###"],"px":true},{"at":[36,42],"colour":"mist","art":[".........##...........................","......................................","......................................","##..................................##"],"px":true}]},{"id":"round_shades","name":"圆墨镜","en":"ROUND SHADES","slot":"face","note":"银圈墨镜，玫红鼻梁；猫头鹰的日间版本。","paint":[{"at":[44,44],"colour":"charcoal","art":[".###...............###.","#####.............#####","#####.............#####","#####.............#####",".###...............###."],"px":true},{"at":[40,43],"colour":"silver","art":["....#####.............#####....","...#.....#...........#.....#...","...#.....#...........#.....#...","####.....#...........#.....####","...#.....#...........#.....#...","...#.....#...........#.....#...","....#####.............#####...."],"px":true},{"at":[50,46],"colour":"rose","art":["###.....###"],"px":true},{"at":[44,44],"colour":"mist","art":["#.................#"],"px":true}]},{"id":"satchel","name":"小书袋","en":"BOOK SATCHEL","slot":"body","note":"斜带从左肩落到右腰，书袋挂在身侧；袋口露出白页边和玫瑰书脊。","paint":[{"at":[42,57],"colour":"charcoal","art":["##........................",".###......................","...###....................",".....###..................",".......###................",".........###..............","...........###............",".............###..........","...............###........",".................###......","...................###....",".....................###..",".......................###"],"px":true},{"at":[54,63],"colour":"silver","art":["##","##"],"px":true},{"at":[65,68],"colour":"ink","art":[".############.","#............#","#............#","#............#","#............#","#............#","#............#","#............#","#............#","#............#",".###......###.","...#......#...","...#......#...","....######...."],"px":true},{"at":[12,13],"colour":"sky","art":["####","####","####",".##."]},{"at":[12,13],"colour":"rose","art":["#","#","#"]},{"at":[13,13],"colour":"fur","art":["###"]},{"at":[70,72],"colour":"ink","art":["#########"],"px":true},{"at":[73,71],"colour":"silver","art":["##","##"],"px":true}]},{"id":"scarf","name":"围巾","en":"SCARF","slot":"body","note":"天蓝围巾在 y=9 绕一圈，玫红一道织纹，短尾垂到胸前。","paint":[{"at":[38,56],"colour":"ink","art":[".#################################.","#.................................#","#.................................#","#.................................#","#.................................#","#.................................#","#.................................#",".########################......###.","........................#......#...","........................#......#...","........................#......#...","........................#......#...","........................#......#...","........................#......#...","........................#......#...","........................#......#...","........................#......#...","........................#......#...","........................#......#...",".........................######...."],"px":true},{"at":[3,9],"colour":"sky","art":["###########","###########","........##.","........##.","........##.","........##."]},{"at":[3,10],"colour":"rose","art":["###########"]},{"at":[42,72],"colour":"mist","art":["#..#.....#"],"px":true}]},{"id":"bow_tie","name":"领结","en":"BOW TIE","slot":"body","note":"玫红领结在 y=10，银扣在中间；猫头鹰的小礼服。","paint":[{"at":[44,56],"colour":"ink","art":[".######.........######.","#......#.......#......#","#......#.......#......#","#......#########......#","#.....................#","#.....................#","#.....................#","#......#########......#","#......#.......#......#","#......#.......#......#",".######.........######."],"px":true},{"at":[5,9],"colour":"rose","art":["##...##","#######","##...##"]},{"at":[53,59],"colour":"ink","art":[".###.","#...#","#...#","#...#",".###."],"px":true},{"at":[8,10],"colour":"silver","art":["#"]},{"at":[47,58],"colour":"mist","art":["##"],"px":true}]}],"recommended":["mortarboard","readers","satchel"],"audit":null},{"id":"cat","name":"短耳猫","en":"CAT","note":"短耳猫的头很宽，耳朵在两侧。帽子要落在两耳之间，身体件要低于嘴线。","accent":"#ec628c","current":[{"id":"beanie","slot":"head","name":"毛线帽","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAgUlEQVR4nO3UMQ2AMBBA0RYNTCx4QwMy0IA3FiY8gAQWrlD63tykucvlpwQAAAAAAAAA8E85/cgxLefdm36di87clfysRRYcLLeQhTdz4YKDWXCw3FoWSufCBQez4GBVJmIYxscTse+bRNRIIgAAAAAAAAAAAAAAAAAAAAAAgPQFFx0oEBUyumhzAAAAAElFTkSuQmCC","issue":"偏左压耳"},{"id":"crown","slot":"head","name":"小皇冠","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAcklEQVR4nO3TMQ5AQBAF0FlxBGdxCIVS6XBKpcL1qIhasoJ9r5r8ZpKfmQgAAAAAAAAAAIDipPi4rh+2Y16XOd3Nc6lyLyidgjOr40e6y/tPTXvmYx9n/jQXnJmCAQAAAAAAAAAAAAAAAAAAAAAAgHi5HfyLEJJa4itbAAAAAElFTkSuQmCC","issue":"一条锯齿"},{"id":"hair_bow","slot":"head","name":"蝴蝶结","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAgElEQVR4nO3UsQ2DQAwAQCdihMzBHJmDno4x0qVnDuZgA5qv2AE6lOLb1+fFXWVZer1s2Y4AAAAAAAAAAAC4nUc0Yh8+Ry7fL98rXt9j9u1rnqrV+az18V1ocGFdNC6l7Xf9s2ekJhNcmAYDAAAAAAAAAAAAAAAAAAAAAAAA8edOZx8Ku2L2/RQAAAAASUVORK5CYII=","issue":"小结偏小"},{"id":"glasses","slot":"face","name":"方框眼镜","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAc0lEQVR4nO3WMQqAMAwF0FQ8nYOjh3R06PX0BEUUA5a+NwcCn/BJBAAAAAAAAAAAAAAAAAAAAL9TohPLup13M/XYy9v5LFP2gtEJONkcHaqNKmjVwtPq+JILTibgZL6IZC44mYABAAAAAAAAAAAAACBGcAEIgRoARztOMwAAAABJRU5ErkJggg==","issue":"方框压眼"},{"id":"sunglasses","slot":"face","name":"墨镜","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAZ0lEQVR4nO3SwQmAMAwF0ChO0UvB/WcSeukaenMCA4a+d8opn3wSAQAAAAAAAAAAAAAAAAAAAEAlWxTRWr+/3jnnSL9/zw5YnYKTHVHQGNc7937Gn/ngZAoGAAAAAAAAAAAAAIBYwQMn4QcORK4XZQAAAABJRU5ErkJggg==","issue":"黑条"},{"id":"blush","slot":"face","name":"腮红","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAWklEQVR4nO3QsRGAIBBE0TtrsEJroAxroEJ7gNDEgIRxYN4LN/jBRgAAAAAAAAAAAAAAAAAAAAAAALC/jEU8192+9rOW/KMz6pgR5eVgAAAAAAAAAAAAAIhtdNXLCAZ2xitSAAAAAElFTkSuQmCC","issue":"可用"},{"id":"bowtie","slot":"body","name":"小领结","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAgUlEQVR4nO3UsQ2DQAwAQIMYIXNkDuZIT8cY6egzB3OwQZqv2AE6RPEdfKTAXWVZer1s2Y4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAgDNV8efm13vJ5Z/jsMVT22XfPj598frr0h/cnQYX1sRFpfTdr3/2jPyCCS5MgwEAAAAAII5bAWxzCrveV2+CAAAAAElFTkSuQmCC","issue":"压在下巴"},{"id":"bell_collar","slot":"body","name":"铃铛项圈","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAd0lEQVR4nO3UoQ2AQAwF0MIMpzBswRAIJJMwD4LNMKwB7hSChANC8p6saNOfphEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUFIVP9E07f7WrG1bi+VSl2rEOQE/7Dcv4op+GPMbWVKX62mePtvTBT9MwAAAAAAAEPcdiD0IC0xXQ+QAAAAASUVORK5CYII=","issue":"偏粗偏高"},{"id":"scarf","slot":"body","name":"围巾","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAj0lEQVR4nO3WsQ2DMABEUcMMqWhYhznSp8sYmSFDMQc7QIdcpEFwIpbeW8DWl3VyKQAAAAAAAAAAAAAAAAAAAAAAAAAAAHBYVxqxPD/rHec+vu9TjfrrrsIvAoc1MxHDMO4TMU+vv56FmhccJnBYMxOR/o1cOQs1LzhM4DCBwwQOEzhM4DCBwwQGAACAUtsA0RYMHGQMFMQAAAAASUVORK5CYII=","issue":"压在嘴上"}],"currentLook":["beanie","sunglasses","scarf"],"candidates":[{"id":"boat_hat","name":"纸船帽","en":"PAPER BOAT","slot":"head","note":"船底落在两耳之间，耳尖完整露出；折线和玫红小旗把纸的质感讲清楚。","paint":[{"at":[35,23],"colour":"ink","art":[".............######.............","............#......#............","............#......#............","..........###......###..........",".........#............#.........",".........#............#.........",".......###............###.......","......#..................#......","......#..................#......",".######..................######.","#..............................#","#..............................#","#..............................#",".##############################."],"px":true},{"at":[2,-2],"colour":"fur","art":["....##....","...####...","..######..","##########"]},{"at":[36,24],"colour":"ink","art":["...............#...............",".............#####.............","...........##..#..##...........","..........#....#....#..........","........##.....#.....##........","......##.......#.......##......",".....#.........#.........#.....","...##..........#..........##...",".##............#............##.","#..............#..............#"],"px":true},{"at":[51,15],"colour":"ink","art":["#","#","#","#","#","#","#","#","#","#"],"px":true},{"at":[52,15],"colour":"rose","art":["###","###"],"px":true}]},{"id":"fish_clip","name":"沙丁鱼发夹","en":"SARDINE CLIP","slot":"head","note":"一条小银鱼夹在右耳内侧，玫红鱼眼和猫的鼻头同色；不遮脸。","paint":[{"at":[59,28],"colour":"ink","art":["....#####....","..##.....##..",".#.........#.","#...........#","#...........#",".#.........#.","..##.....##..","....#####...."],"px":true},{"at":[60,29],"colour":"silver","art":["...#####...",".#########.","###########","###########",".#########.","...#####..."],"px":true},{"at":[70,29],"colour":"ink","art":["..##..",".#..#.","#....#","#....#",".#..#.","..##.."],"px":true},{"at":[71,30],"colour":"silver","art":[".##.","####","####",".##."],"px":true},{"at":[62,32],"colour":"rose","art":["#"],"px":true},{"at":[66,30],"colour":"ink","art":["#","#","#","#"],"px":true},{"at":[64,37],"colour":"ink","art":["###########"],"px":true},{"at":[62,30],"colour":"mist","art":["###"],"px":true}]},{"id":"flower_crown","name":"花环","en":"FLOWER CROWN","slot":"head","note":"三朵小玫红和银叶子落在两耳之间；不压耳尖。","paint":[{"at":[38,35],"colour":"ink","art":[".###...###...###...###.","#...#.#...#.#...#.#...#","#...#.#...#.#...#.#...#","#...#.#...#.#...#.#...#",".###...###...###...###."],"px":true},{"at":[3,2],"colour":"silver","art":["#.#.#.#"]},{"at":[39,36],"colour":"silver","art":["#########################"],"px":true},{"at":[41,32],"colour":"ink","art":[".###.","#...#","#...#","#...#",".###."],"px":true},{"at":[4,1],"colour":"rose","art":["#"]},{"at":[47,29],"colour":"ink","art":[".###.","#...#","#...#","#...#",".###."],"px":true},{"at":[6,0],"colour":"rose","art":["#"]},{"at":[53,32],"colour":"ink","art":[".###.","#...#","#...#","#...#",".###."],"px":true},{"at":[8,1],"colour":"rose","art":["#"]}]},{"id":"wire_glasses","name":"猫眼细框镜","en":"CAT-EYE FRAMES","slot":"face","note":"1px 细框，外上角微微上挑；镜孔对准眼睛，镜腿落在脸侧。","paint":[{"at":[40,45],"colour":"charcoal","art":["..#...................#..","....#####.......#####....","...#.....#.....#.....#...","...#.....#.....#.....#...","####.....#######.....####","...#.....#.....#.....#...","...#.....#.....#.....#...","....#####.......#####...."],"px":true},{"at":[44,47],"colour":"silver","art":["#...........#....",".................",".................",".................","....#...........#"],"px":true}]},{"id":"cat_shades","name":"猫眼墨镜","en":"CAT-EYE SHADES","slot":"face","note":"玫红上挑的镜框和炭色镜片，外角比内角高；猫的日间版本。","paint":[{"at":[44,47],"colour":"charcoal","art":[".###.........###.","#####.......#####","#####.......#####","#####.......#####",".###.........###."],"px":true},{"at":[40,45],"colour":"rose","art":["..#...................#..","....#####.......#####....","...#.....#.....#.....#...","...#.....#.....#.....#...","####.....#######.....####","...#.....#.....#.....#...","...#.....#.....#.....#...","....#####.......#####...."],"px":true},{"at":[44,47],"colour":"mist","art":["#...........#.",".#...........#"],"px":true}]},{"id":"heart_blush","name":"心形腮红","en":"HEART BLUSH","slot":"face","note":"两团玫红心形腮红在 y=8 的脸颊上，低于眼睛、离开嘴线。","paint":[{"at":[40,56],"colour":"rose","art":[".#.#.....................#.#.","#####...................#####",".###.....................###.","..#.......................#.."],"px":true},{"at":[41,57],"colour":"mist","art":["#.......................#"],"px":true}]},{"id":"fish_collar","name":"鱼骨项圈","en":"FISHBONE COLLAR","slot":"body","note":"细玫红项圈在 y=11 的脖子上，炭色鱼骨吊在胸口；不再压住嘴线。","paint":[{"at":[39,63],"colour":"rose","art":["##..............................##","..##############################.."],"px":true},{"at":[54,63],"colour":"silver","art":["##","##"],"px":true},{"at":[53,65],"colour":"charcoal","art":["..####.","..#..#.","..#..#.","..####.","#..#..#",".#####.","#..#..#",".#####.",".#.#.#.","..###..","...#...",".#####.","#..#..#"],"px":true},{"at":[57,70],"colour":"silver","art":["#",".","#",".",".",".","#"],"px":true},{"at":[56,66],"colour":"rose","art":["#"],"px":true}]},{"id":"sailor_collar","name":"水手领","en":"SAILOR COLLAR","slot":"body","note":"雾白水手领披在肩上，玫红滚边和一个小领结；和纸船帽成一套。","paint":[{"at":[38,62],"colour":"ink","art":["....######......######....","...#......#....#......#...","...#......#....#......#...",".###......#....#......###.","#......###......###......#","#......#..........#......#","#......#..........#......#","#......#..........#......#","#......#..........#......#","#......#..........#......#",".######............######."],"px":true},{"at":[3,11],"colour":"mist","art":[".##..##.","##....##","##....##"]},{"at":[39,33],"colour":"rose","art":["......#........#......","....##..........##....","..##..............##..","##..................##","#....................#","#....................#","#....................#"],"px":true},{"at":[47,62],"colour":"ink","art":[".######.","#......#","#......#","#......#","#......#","#......#","#......#","#......#","#......#","#......#",".######."],"px":true},{"at":[6,11],"colour":"rose","art":["##","##","##"]},{"at":[42,36],"colour":"mist","art":["#..#...........#"],"px":true}]},{"id":"bell_collar","name":"银铃项圈","en":"BELL COLLAR","slot":"body","note":"细炭项圈在 y=11，圆银铃垂到 y=15，玫红铃舌。","paint":[{"at":[39,63],"colour":"charcoal","art":["##..............................##","..##############################.."],"px":true},{"at":[51,63],"colour":"charcoal","art":["##","##"],"px":true},{"at":[48,65],"colour":"silver","art":["..#####..",".#######.","#########","#########","#########","#########","#########",".#######.","..#####.."],"px":true},{"at":[47,64],"colour":"charcoal","art":["...#####...","..#.....#..",".#.......#.","#.........#","#.........#","#.........#","#.........#","#.........#",".#.......#.","..#.....#..","...#####..."],"px":true},{"at":[50,73],"colour":"charcoal","art":["#####"],"px":true},{"at":[51,74],"colour":"rose","art":["##","##"],"px":true},{"at":[50,67],"colour":"mist","art":["##"],"px":true}]}],"recommended":["boat_hat","wire_glasses","fish_collar"],"audit":{"currentId":"scarf","box":[42,54,26,16],"caption":"围巾从 y=11 起，嘴线在 y=9–10：直接压在嘴上。"}},{"id":"ghost","name":"幽灵","en":"GHOST","note":"幽灵没有脚，身体下摆是波浪。件要轻，别在下摆堆东西；脸和身体的挂件要有来处。","accent":"#a074e8","current":[{"id":"beanie","slot":"head","name":"毛线帽","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAg0lEQVR4nO3UoQ2AMBRF0cIUpIbVGIIxGKKrYQhbgEQi4DeEnqObipefmxIAAAAAAAAAAEBzutSAMu/H3ZtpGUK26CM+5WLgYF3LWaiRCxcczMDBfpWI8iALUblwwcEMHOxXich5fD0R27ZKxJdJBAAAAAAAAAAAAAAAAAAAAACQqjkBLlgQFXRicJMAAAAASUVORK5CYII=","issue":"浮在头顶"},{"id":"crown","slot":"head","name":"小皇冠","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAcUlEQVR4nO3TrQ2AQAwG0B5hFoY5gWQwxkAiWA8UPwIFXELgPdV8TSqaNgIAAAAAAAAAAACAXYqPym03r/U0Dulqflf11CDOWXBhdfxAPrx/1/R7o40tL8UFF2bBAAAAAAAAAAAAAAAAAAAAAABAvMECWPUQVva9YaQAAAAASUVORK5CYII=","issue":"一条锯齿"},{"id":"hair_bow","slot":"head","name":"蝴蝶结","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAf0lEQVR4nO3UsQ2DQAwAQIMYgk3YhSpDUGWAVAxBxS4ZI82LLaAjKb59BOSusiy9XrZsRwAAAAAAAAAAAADwVcXFTcOy5vLPudvjV//Ovn2MbfH669If/DsNLqyJm0rp87v+2TNyBBNcmAYDAAAAAAAAAAAAAAAAAAAAAABxBhsLNgq76sC5wgAAAABJRU5ErkJggg==","issue":"小结偏上"},{"id":"glasses","slot":"face","name":"方框眼镜","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAdklEQVR4nO3WMQ6AIAwF0Go8nYOjh3R04Hq6MgkJwYh5b6Ydmn7SCAAAAAAAAAAAAAAAAAAAAAAAfmKKAa3bfpXepPOY3urzZG4ppsyAO1ticCmLcB75mvjX9Gllgzsz4M5cEQWuiI/zRQAAAAAAAAAAAECM5QaQ5RoAHQzE6AAAAABJRU5ErkJggg==","issue":"方框压眼"},{"id":"sunglasses","slot":"face","name":"墨镜","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAZ0lEQVR4nO3SMQqAMAxA0SieokvB+59JyNJr6ObkphUr703ZEj6JAAAAAAAAAAAAAAAAAAAAAAAA4P+mGFApdX9rV2t5q9H83ClcEbizJQaXuZ1zrWt8jQ/uTGAAAAAAAAAAAACIsRw6jgcO5vHJkwAAAABJRU5ErkJggg==","issue":"黑条"},{"id":"blush","slot":"face","name":"腮红","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAWElEQVR4nO3QMQ3AMBADwE9QBF5BBEZAFF5ZpAQ+W4evdDd6sCxHAAAAAAAAAAAAAAAAAAAAAAAAAABArsUP3fPZWX6t0ar19y8GceZgAAAAAAAAAACIgl6+4AgGzzbM4wAAAABJRU5ErkJggg==","issue":"可用"},{"id":"bowtie","slot":"body","name":"小领结","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAfklEQVR4nO3UsQ2EMAwFUIMYgk1uFyqGoGIAKoagul1uDJqILaBDFCmDkLj3KiuSXXzZiQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIDnVfFSy7Dtuffx+znrqftle/u5LZZLXWoQeQK+WRN/JqX1ev7Zb6QkG3wzAQMAAEBcHa55CrvHaLcIAAAAAElFTkSuQmCC","issue":"在下摆"},{"id":"bell_collar","slot":"body","name":"铃铛项圈","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAdklEQVR4nO3UoQ2AQAwF0MIUBINjGATyNAOh2BDDGuAuCFBwISHvyYqm/WkaAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAN+r4kfattvf7rlt66OM6vdG4YqAC/vVi7gzjCm/jtQvuT7NTfH9XXBhAgYAAIA4OwBTfAgLmlFHtgAAAABJRU5ErkJggg==","issue":"在下摆"},{"id":"scarf","slot":"body","name":"围巾","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAjklEQVR4nO3WsQ2DMABEUcMUiCZ7UWUIZkjFEKzDJtmCdBFlFOkAw3sL2PqyTi4FAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB20pTKzeN7PeLc59T91K7NX+XeBA6rfiL6/vGdiNewnGIWtrzgMIHDqp+I9G/kn1nY8oLDBA4TOEzgMIHDBA4TOExgAMpVfQCjqQwc3b8GxQAAAABJRU5ErkJggg==","issue":"在下摆"}],"currentLook":["crown","sunglasses","scarf"],"candidates":[{"id":"witch_hat","name":"星点巫帽","en":"WITCH HAT","slot":"head","note":"宽檐落在额前，帽尖向右弯；炭色帽带和银星把淡紫从身体里分出来。","paint":[{"at":[38,20],"colour":"ink","art":["...................#########..........","..................#.........#.........","..................#.........#.........","................###.........#.........","...............#......######..........","...............#......#...............","...............#......#...............","...............#......#...............","...............#......#...............",".............###......###.............","............#............#............","............#............#............","..........###............###..........",".........#..................#.........",".........#..................#.........",".......###..................###.......","......#........................#......","......#........................#......",".######........................######.","#....................................#","#....................................#","#....................................#",".####################################."],"px":true},{"at":[3,-3],"colour":"lilac","art":["......###...",".....##.....",".....##.....","....####....","...######...","..########..","############"]},{"at":[5,2],"colour":"charcoal","art":["########"]},{"at":[42,40],"colour":"silver","art":["######"],"px":true},{"at":[59,36],"colour":"silver","art":[".#.","###",".#."],"px":true}]},{"id":"moon_clip","name":"月牙发夹","en":"MOON CLIP","slot":"head","note":"银月牙夹在右上方，两颗小星陪在旁边；是给幽灵的轻件，不压头。","paint":[{"at":[68,30],"colour":"ink","art":["....##.......","...#..#......","..#...#......",".#..##.......","#..#.........","#..#.........","#..#.........","#..#......##.","#..#.....#..#",".#..#####..#.","..#.......#..","...#.....#...","....#####...."],"px":true},{"at":[69,31],"colour":"silver","art":["...##......","..###......",".##........","##.........","##.........","##.........","##.........","##.......##",".##.....##.","..#######..","...#####..."],"px":true},{"at":[67,26],"colour":"lilac","art":[".............#.","............###",".............#.",".#.............","###............",".#............."],"px":true},{"at":[70,43],"colour":"ink","art":["#########"],"px":true}]},{"id":"halo","name":"光环","en":"HALO","slot":"head","note":"银光环浮在头顶上方，1px 环和一点雾光；不碰头。","paint":[{"at":[40,23],"colour":"silver","art":[".......##################.......","....########################....","..#######..............#######..",".######..................######.","######....................######",".######..................######.","..#######..............#######..","....########################....",".......##################......."],"px":true},{"at":[46,23],"colour":"mist","art":["###"],"px":true},{"at":[69,23],"colour":"lilac","art":[".#.","###",".#."],"px":true}]},{"id":"monocle","name":"单片眼镜","en":"MONOCLE","slot":"face","note":"只罩右眼，炭色镜圈配银链和小星；不对称，但孔位和眼睛对齐。","paint":[{"at":[63,51],"colour":"charcoal","art":[".######.","#......#","#......#","#......#","#......#","#......#","#......#",".######."],"px":true},{"at":[64,52],"colour":"silver","art":["#.....","......","......","......",".....#"],"px":true},{"at":[70,58],"colour":"silver","art":["#..",".#.",".#.","..#","..#","..#"],"px":true},{"at":[72,64],"colour":"lilac","art":[".#.","###",".#."],"px":true}]},{"id":"star_frames","name":"星形镜","en":"STAR FRAMES","slot":"face","note":"两枚银星框住眼睛，星尖在脸侧展开；中间一副细桥。","paint":[{"at":[40,48],"colour":"silver","art":[".........#.................#.........","........#.#...............#.#........",".......#...#.............#...#.......","......##...##...........##...##......","...###.......###.....###.......###...","..#.............#...#.............#..","...#...........#.....#...........#...","###.#.........#########.........#.###","....#.........#.......#.........#....",".....#.......#.........#.......#.....",".....#.......#.........#.......#.....",".....#.......#.........#.......#.....","....#..#####..#.......#..#####..#....",".....##.....##.........##.....##....."],"px":true},{"at":[49,48],"colour":"lilac","art":["#.................#","...................","...................","...................","...................","...................","...................","...................","...................","...................","...................","...................","...................","...................","#.................#"],"px":true}]},{"id":"mustache","name":"小胡子","en":"MUSTACHE","slot":"face","note":"炭色小胡子悬在嘴上方，两端对称上卷；绅士幽灵。","paint":[{"at":[50,60],"colour":"charcoal","art":["..##.......##..",".##.#.....#.##.","##...#...#...##","#.............#"],"px":true},{"at":[52,59],"colour":"mist","art":["#........#"],"px":true}]},{"id":"key_chain","name":"银钥匙项链","en":"KEY CHAIN","slot":"body","note":"银链横过下摆上方，钥匙挂在右侧；链子给了它来处，不再像贴纸。","paint":[{"at":[42,69],"colour":"silver","art":["##.....................##","..####......###########..","......######............."],"px":true},{"at":[65,69],"colour":"charcoal","art":["#####","#...#","#...#","#...#","#####","..#..","..#..","..#..","..#..","..###","..#..","..###","..#.."],"px":true},{"at":[67,71],"colour":"silver","art":["..#","...","...","...","#..","...","...","...","#.."],"px":true},{"at":[67,71],"colour":"lilac","art":["#"],"px":true}]},{"id":"candle","name":"浮烛","en":"CANDLE","slot":"body","note":"一支浮烛停在右侧，雾白烛身、淡紫火焰和银烛台。","paint":[{"at":[71,62],"colour":"ink","art":[".######.","#......#","#......#","#......#","#......#","#......#","#......#","#......#","#......#","#......#","#......#","#......#","#......#",".######."],"px":true},{"at":[14,11],"colour":"mist","art":["##","##","##","##"]},{"at":[14,8],"colour":"lilac","art":["##","##","##"]},{"at":[74,58],"colour":"mist","art":["##"],"px":true},{"at":[74,62],"colour":"charcoal","art":["##"],"px":true},{"at":[69,75],"colour":"silver","art":["############"],"px":true}]},{"id":"mist_scarf","name":"雾围巾","en":"MIST SCARF","slot":"body","note":"雾色围巾在 y=13 绕住下摆上方，淡紫一道纹，两条尾垂下去。","paint":[{"at":[38,68],"colour":"ink","art":[".####################################.","#....................................#","#....................................#","#....................................#","#....................................#","#....................................#","#....................................#",".#####################......#########.",".....................#......#.........",".....................#......#.........",".....................#......#.........",".....................#......#.........",".....................#......#.........",".....................#......#.........",".....................#......#.........",".....................#......#.........","......................######.........."],"px":true},{"at":[3,13],"colour":"mist","art":["############","############",".......##...",".......##...",".......##..."]},{"at":[4,14],"colour":"lilac","art":["##########"]},{"at":[39,72],"colour":"lilac","art":["#.....#.....#"],"px":true}]}],"recommended":["witch_hat","monocle","key_chain"],"audit":null},{"id":"jelly","name":"水母","en":"JELLY","note":"水母的伞缘在 y=8，下面是触手。身体件只能停在伞缘，不能缠到触手上。","accent":"#afc9c7","current":[{"id":"beanie","slot":"head","name":"毛线帽","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAgElEQVR4nO3UQQ2AMAxA0Q0ZXJBBkIFSZBBkcMEGSOBCB2PvnZcsbZqfEgAAAAAAAEDFcvqRZVvPuzfzOBWduSv5WYssOFhuIQtv5sIFB7PgYLm1LJTOhQsOZsHBqkxE3w+PJ+I4domokUQAAAAAAAAAAAAAAAAAAAAAAAAA6eMu6sYQFUDJiGgAAAAASUVORK5CYII=","issue":"浮在钟顶"},{"id":"crown","slot":"head","name":"小皇冠","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAcElEQVR4nO3TsQmAQAwF0Jw43RWWbuAA1m5kaeF6WilXCyd4vleFnyIQkggAAAAAAAAAgDal+Lg8jMdV79uanua1dLUH/J0FV9ZHQ3Lx/tMyl607f5sLrsyCAQAAAAAAAAAAAAAAAAAAAAAAAID4rhN2tRBLZtn0XwAAAABJRU5ErkJggg==","issue":"一条锯齿"},{"id":"hair_bow","slot":"head","name":"蝴蝶结","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAeUlEQVR4nO3UsQmAQAwAwCjuJI5h5w7O4w52jiGOYeMa2onFt/K83lUh8DwJSSIAAAAAAAAAAL6pikIs23qm8mM/3PG0zMm3fdtlq7PO9fFfaPDLmijccezP9U+ekZxM8Ms0GAAAAAAAAAAAAAAAAAAAAAAAAACIcl3cEQq7tfGWYgAAAABJRU5ErkJggg==","issue":"小结偏上"},{"id":"glasses","slot":"face","name":"方框眼镜","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAdklEQVR4nO3WMQ6AIAwF0GI8nYOjh3R04Hq6MgmRYDR5b6Ydmn7SCAAAAAAAAAAAAAAAAHql+KFl3c7am3zs6a0+d6aeYuoMeLA5fi4XES4j3xL/lj69bPBgBjyYK6LCFfFxvggAAAAAAAAAAAAAAAAAACAeuABhvBoA997DNwAAAABJRU5ErkJggg==","issue":"方框压眼"},{"id":"sunglasses","slot":"face","name":"墨镜","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAaElEQVR4nO3SMQqAMAxA0SieokvB+59J6NJr6ObkpEYsvDdlS/gkAgAAAAAAAAAAAAAAAIBEUwyolLp/tav39qjR/N4pXBE42RKDa20751rX+BsfnExgAAAAAAAAAAAAAAAAAAAgbjgAGP8HDi0eCQ4AAAAASUVORK5CYII=","issue":"黑条"},{"id":"blush","slot":"face","name":"腮红","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAV0lEQVR4nO3QsQ3AIBADwCdLoYzBpBkjylRkAb6jeKS70oVlOQIAAAAAAAAAAAAAAAAAAIByWhzo+d65yke/W7X+a8cgcg4GAAAAAAAAAAAAAAAAACLzA7SVCAb32NacAAAAAElFTkSuQmCC","issue":"贴着嘴"},{"id":"bowtie","slot":"body","name":"小领结","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAfUlEQVR4nO3UsQ2DQAwAQCdiJ8QYdOyQediB7sdAjJHm14AuoviGwpES7irL0utly3YEAAAAAAAAAAAAAAAAAAAAAAAAAAAAXPaIH1e2dW/lX+P0ieeyNN+O/ZBe/zP7g7vT4GRd/Kla3+f1b56RbzDByTQYAAAAAAAAItUB4WUKu0jpCOIAAAAASUVORK5CYII=","issue":"缠在触手"},{"id":"bell_collar","slot":"body","name":"铃铛项圈","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAd0lEQVR4nO3UsQmAQAwF0NMxbBxDXMFCsHEDB7B2WhvX0O6sLASDHLxXpgjkE35KAAAAAAAAAAAAAAAAAAAAAAAAAAAA8FqVCtQ07fn1zuPYQ7KoI5ZyE3CwIiviyTDOuTqWbc3zqet/u9MHBxMwAAAAAAAApFAX4JYIC647IXUAAAAASUVORK5CYII=","issue":"缠在触手"},{"id":"scarf","slot":"body","name":"围巾","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAjElEQVR4nO3WwQmEMABE0WgZXixjsQyLswdvliFb1e5NPHgQdNDAew0kfMKQUgAAAAAAAAAAAAAAAAAAAAAAAAAA4FhTKrF8198T546f4VKj9r6rcETgsGomouv6bSKmZX71LOx5wWECh1UzEenfyJ2zsOcFhwkcJnCYwGEChwkcJnCYwAAAAABQTvoDRnQMHM3CihQAAAAASUVORK5CYII=","issue":"缠在触手"}],"currentLook":["hair_bow","sunglasses","bowtie"],"candidates":[{"id":"bubble_crown","name":"气泡冠","en":"BUBBLE CROWN","slot":"head","note":"三颗 1px 气泡悬在钟顶上方，中间最大；中间透明，只留一圈细灰线和雾色高光。","paint":[{"at":[41,17],"colour":"grey","art":["........###....#####................",".......##.##..##...##...............",".......#...#.#.......#..............",".......##.####.......##.............","........###.#.........#.......###...","............#.........#.....##...##.","..###.......#.........#.....#.....#.",".#...#......##.......##....#.......#","#.....#......#.......#.....#.......#","#.....#.......##...##......#.......#","#.....#........#####........#.....#.",".#...#......................##...##.","..###.........................###..."],"px":true},{"at":[41,18],"colour":"mist","art":[".............##...............",".............#................","..............................","..............................","............................##","..............................","##............................"],"px":true},{"at":[47,25],"colour":"aqua","art":["..............#..............","..............#..............",".............................","#...........................#"],"px":true}]},{"id":"starfish_clip","name":"海星发夹","en":"STARFISH CLIP","slot":"head","note":"银海星夹在钟的左侧，水色斑点像吸盘；离开眼睛，也不压伞缘。","paint":[{"at":[37,40],"colour":"ink","art":[".....#.....","....#.#....","....#.#....","..##...##..",".#.......#.","#.........#",".#.......#.","..#.....#..","..#.....#..",".#...#...#.",".#.##.##.#.","..#.....#.."],"px":true},{"at":[38,41],"colour":"silver","art":["....#....","....#....","...###...",".#######.","#########",".#######.","..#####..","..#####..",".###.###.",".#.....#."],"px":true},{"at":[36,40],"colour":"aqua","art":["......#......",".............",".............",".............",".............",".............",".............",".............","#...........#",".............",".............","...#.....#..."],"px":true},{"at":[40,43],"colour":"mist","art":["##","#."],"px":true}]},{"id":"sailor_cap","name":"水手帽","en":"SAILOR CAP","slot":"head","note":"雾白小水手帽扣在钟顶，水色帽带和一颗银星；帽檐停在眼睛上方。","paint":[{"at":[41,17],"colour":"ink","art":["..........##################.......",".........#..................#......",".........#..................#......",".......###..................###....","......#........................#...","......#........................#...","....###........................###.","...#..............................#","...#..............................#","...#..............................#","...#..............................#","...#..............................#","...#..............................#","...#..............................#","...#..............................#",".###..............................#","#.................................#","#.................................#","#.................................#",".#################################."],"px":true},{"at":[4,-4],"colour":"mist","art":["...######..","..########.",".##########",".##########",".##########","###########"]},{"at":[5,0],"colour":"aqua","art":["#########"]},{"at":[56,26],"colour":"silver","art":[".#.","###",".#."],"px":true}]},{"id":"bubble_glasses","name":"气泡圆镜","en":"BUBBLE FRAMES","slot":"face","note":"细炭框和两只眼睛齐平，水色高光像镜片反光；不压伞缘。","paint":[{"at":[42,37],"colour":"charcoal","art":[".....#####.............#####.....","....#.....#...........#.....#....","....#.....#.########..#.....#....","#####.....##........###.....#####","....#.....#...........#.....#....","....#.....#...........#.....#....",".....#####.............#####....."],"px":true},{"at":[47,38],"colour":"aqua","art":["#.................#....",".......................",".......................",".......................","....#.................#"],"px":true}]},{"id":"dive_mask","name":"潜水镜","en":"DIVE MASK","slot":"face","note":"一整片水色潜水镜横过双眼，银框和右侧呼吸管；像在水里。","paint":[{"at":[44,38],"colour":"aqua","art":[".##########################.","############################","############################","############################","############################",".##########################."],"px":true},{"at":[43,37],"colour":"silver","art":[".############################.","##..........................##","#............................#","#............................#","#............................#","#............................#","##..........................##",".############################."],"px":true},{"at":[46,39],"colour":"mist","art":["##","#."],"px":true},{"at":[38,30],"colour":"silver","art":[".......................................#","......................................#.","......................................#.","......................................#.",".....................................#..",".....................................#..",".....................................#..",".....................................#..","....................................#...","....................................#...","#####..............................#####","....................................#...","...................................#....","...................................#...."],"px":true}]},{"id":"bubble_cheeks","name":"泡泡腮红","en":"BUBBLE CHEEKS","slot":"face","note":"两颗大水泡和三颗小水泡贴在脸颊，水色细圈；不挡眼睛。","paint":[{"at":[39,43],"colour":"aqua","art":[".....###.....................###...","....##.##...................##.##..",".####...#................####...#..","##.###.##...............##.###.##..","#...####.#..............#...####.#.","##.##...#.#.............##.##...#.#",".###.....#...............###.....#."],"px":true},{"at":[40,44],"colour":"mist","art":["....#.......................#",".............................","#.......................#...."],"px":true}]},{"id":"pearls","name":"珍珠贝链","en":"PEARL STRAND","slot":"body","note":"银链停在伞缘 y=8，珍珠一颗颗压边，水滴坠在触手之间；不再缠触手。","paint":[{"at":[39,55],"colour":"grey","art":["##............................#######","..#######..........###########.......",".........##########.................."],"px":true},{"at":[42,54],"colour":"grey","art":["#..#","#..#","#..#","#..#"],"px":true},{"at":[43,55],"colour":"fur","art":["##","##"],"px":true},{"at":[43,55],"colour":"silver","art":["#"],"px":true},{"at":[50,54],"colour":"grey","art":["#..#","#..#","#..#","#..#"],"px":true},{"at":[51,55],"colour":"fur","art":["##","##"],"px":true},{"at":[51,55],"colour":"silver","art":["#"],"px":true},{"at":[58,54],"colour":"grey","art":["#..#","#..#","#..#","#..#"],"px":true},{"at":[59,55],"colour":"fur","art":["##","##"],"px":true},{"at":[59,55],"colour":"silver","art":["#"],"px":true},{"at":[66,54],"colour":"grey","art":["#..#","#..#","#..#","#..#"],"px":true},{"at":[67,55],"colour":"fur","art":["##","##"],"px":true},{"at":[67,55],"colour":"silver","art":["#"],"px":true},{"at":[73,54],"colour":"grey","art":["#..#","#..#","#..#","#..#"],"px":true},{"at":[74,55],"colour":"fur","art":["##","##"],"px":true},{"at":[74,55],"colour":"silver","art":["#"],"px":true},{"at":[54,56],"colour":"ink","art":["...##...","..#..#..",".#....#.","#......#","#......#",".#....#.","..#..#..","...##..."],"px":true},{"at":[55,57],"colour":"aqua","art":["..##..",".####.","######","######",".####.","..##.."],"px":true},{"at":[56,59],"colour":"mist","art":[".#","#."],"px":true}]},{"id":"shell_necklace","name":"贝壳链","en":"SHELL NECKLACE","slot":"body","note":"银链停在伞缘 y=8，中央挂一枚扇形银贝壳，水色棱线。","paint":[{"at":[39,55],"colour":"silver","art":["##.........#############.......","..#########.............#######"],"px":true},{"at":[44,56],"colour":"ink","art":["..........######..........",".........#......#.........",".........#......#.........",".......###......###.......","......#............#......","......#............#......","....###............###....","...#..................#...","...#..................#...",".###..................###.","#........................#","#........................#","#........................#",".########################."],"px":true},{"at":[5,9],"colour":"silver","art":["...##...","..####..",".######.","########"]},{"at":[48,57],"colour":"aqua","art":[".........#.........","........###........",".......##.##.......",".......##.##.......","......#.#.#.#......",".....#..#.#..#.....","....#..#...#..#....","...#...#...#...#...","..#....#...#....#..","..#....#...#....#..",".#....#.....#....#.","#.....#.....#.....#"],"px":true},{"at":[56,58],"colour":"mist","art":["##"],"px":true}]},{"id":"fish_charm","name":"小鱼挂件","en":"FISH CHARM","slot":"body","note":"银链在伞缘，右侧挂一条小银鱼，水色鱼眼和银尾巴。","paint":[{"at":[39,55],"colour":"silver","art":["###...............#############","...###############............#"],"px":true},{"at":[63,55],"colour":"ink","art":[".............#..","...######...#.#.","..#......###..#.",".#.............#","#..............#","#..............#",".#........#...#.","..#......#.##.#.","...######....#.."],"px":true},{"at":[64,56],"colour":"silver","art":["............#.","..######...##.",".#############","##############","##############",".########.###.","..######....#."],"px":true},{"at":[66,59],"colour":"aqua","art":["#"],"px":true},{"at":[69,58],"colour":"ink","art":["#","#","#"],"px":true},{"at":[66,58],"colour":"mist","art":["##"],"px":true}]}],"recommended":["bubble_crown","bubble_glasses","pearls"],"audit":{"currentId":"bowtie","box":[45,58,28,22],"caption":"领结落在 y=11，伞缘在 y=8，下面全是触手。"}},{"id":"cloud","name":"云","en":"CLOUD","note":"云的底边就是它的脚线。身体件要么贴着底边，要么有链子垂下来，不能悬空。","accent":"#8fa6b8","current":[{"id":"beanie","slot":"head","name":"毛线帽","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAgklEQVR4nO3UQQ2AMAxA0Q0ZXLCDBlygBBdowA4XbIAECKEjsPfOS5Y2zU8JAAAAAAAAAAAAAIBLcvqRaV72szfj0BeduSn5WY0sOFiuIQtv5sIFB7PgYLm2LJTOhQsOZsHBPpmItu0eT8S2rRLxRRIBAAAAAAAAAAAAAAAAAACkGw6WmBAVnbQxQAAAAABJRU5ErkJggg==","issue":"压在云顶"},{"id":"crown","slot":"head","name":"小皇冠","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAbklEQVR4nO3TsQ5AUAwF0D7xaxaDUcw+z2jwe0zkzXgSnDM1t0OTpo0AAAAAAAAAAAAAAADgqhQv13b9utfLPKWzeSlV6QF/Z8GF1fEhbfb+zTDmrSN/mgsuzIIBAAAAAAAAAAAAAAAAAACAuNcGfoEP+frhJGsAAAAASUVORK5CYII=","issue":"一条锯齿"},{"id":"hair_bow","slot":"head","name":"蝴蝶结","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAfUlEQVR4nO3UsQmFQAwA0CgO5wx/AWtBp/DDr13AGVzHxjW0E4vrVA7571UhcBwJSSIAAAAAAAAAAAAAAAC4qoiX+E3zlsoPXXPE/XdMvm0/dbY6y1wf/wsNflgVL7euy3n9k2ckJxP8MA0GAAAAAAAAAAAAAAAAAAAA4l47RJoKuy6F6TcAAAAASUVORK5CYII=","issue":"浮在云上"},{"id":"glasses","slot":"face","name":"方框眼镜","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAdklEQVR4nO3WIQ6AMAwF0I5wOgSSQyIRux7YKUZCBiy8p9eKpn9pBAAAAAAAAAAAAAAAAAAAAAAAAAC/lqJD07zstTd5W9NTfc4Md4qpM+DGxuhcLiJcRv5K/K/0ucsGN2bAjbkiKlwRH+eLAAAAAAAAAIB4ywFwkhoADvK9WgAAAABJRU5ErkJggg==","issue":"方框压眼"},{"id":"sunglasses","slot":"face","name":"墨镜","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAaElEQVR4nO3SMQqAMAxA0SieokvB+59J6NJr6ObUzVYtvDdlS/gkAgAAAAAAAAAAAAAAAAAAAAAAAAAA2paYUEr5fGtXreVRo7XfKbQIPNgWkyvluOec9/gbHzyYwAAAAAAAAAAQX7kA4YsHDr9iTMMAAAAASUVORK5CYII=","issue":"黑条"},{"id":"blush","slot":"face","name":"腮红","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAWUlEQVR4nO3QQQ2AMBAEwLuqqwZcoKQu0IC7YqD9HQkkM899bDYbAQAAAAAAAAAAAAAAAAAAAAAAAAAAAACVMn5oXPdc5efR82v9rWIQew4GAAAAAACAeNUDXtQIBq7xOjYAAAAASUVORK5CYII=","issue":"贴近嘴巴"},{"id":"bowtie","slot":"body","name":"小领结","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAfUlEQVR4nO3UsQmFQAwA0Ch/OGdwAesP3ykUrF3AGVzH5tb4dmJx7Qnqe1UIHEdCkggAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALirKm5uWtZ/Lj/8uiPuxzn79ts2xeuvS3/wdhpc2CceKqXtvP7ZM3IFE1yYBgMQT7UD590Ku2+75NYAAAAASUVORK5CYII=","issue":"悬在云下"},{"id":"bell_collar","slot":"body","name":"铃铛项圈","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAdUlEQVR4nO3UsQmAMBAF0OgYaZxGEAtLEUs3cGSbrKFdrOwMEnmvvOLgPscPAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAatWECsXYnW/vTOkokkVbYik3ARdWZUU8Gac5V0e/bHm+r8Nnd/rgwgQMQPirC4wuCAslWoMTAAAAAElFTkSuQmCC","issue":"悬在云下"},{"id":"scarf","slot":"body","name":"围巾","asset":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAiUlEQVR4nO3WsQmEMACF4egYNq5zM7iFhVsI1i5wM9x2ZycWdvrQwPctkPATHikFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAF6tKZVYvr//E+eOw+dSo/a+q3BG4LBqJqLr+n0ipnl99SwcecFhAodVMxHp38ids3DkBYcJHCZwmMBhAocJXLI2iywMGCqv+DEAAAAASUVORK5CYII=","issue":"悬在云下"}],"currentLook":["hair_bow","glasses","scarf"],"candidates":[{"id":"storm_cap","name":"雷云帽","en":"STORM CAP","slot":"head","note":"一朵深灰小雷云扣在云顶，天蓝闪电垂到眉前；是帽子，也是天气。","paint":[{"at":[38,35],"colour":"ink","art":[".......#########...#########.......","......#.........#.#.........#......","......#.........#.#.........#......","....###.........###.........###....","...#...........................#...","...#...........................#...",".###...........................###.","#.................................#","#.................................#","#.................................#",".###...........................###.","...#...........................#...","...#...........................#...","....###########################...."],"px":true},{"at":[3,2],"colour":"grey","art":["..###.###..",".#########.","###########",".#########."]},{"at":[45,38],"colour":"silver","art":["##..........##.......#"],"px":true},{"at":[56,48],"colour":"sky","art":["...#","..#.","...#","..#.",".#..",".#..","#...","#...",".#..","#..."],"px":true},{"at":[39,49],"colour":"sky","art":[".................................#.",".#..............................#.#","#.#................................"],"px":true}]},{"id":"star_beanie","name":"星纹绒帽","en":"STAR BEANIE","slot":"head","note":"天蓝帽身、灰蓝翻边，白星在正面；替掉原来那顶没有细节的毛线帽。","paint":[{"at":[44,32],"colour":"ink","art":[".......###############.......","......#...............#......","......#...............#......","....###...............###....","...#.....................#...","...#.....................#...",".###.....................###.","#...........................#","#...........................#","#...........................#","#...........................#","#...........................#","#...........................#",".###########################."],"px":true},{"at":[5,1],"colour":"sky","art":["..#####..",".#######.","#########","#########"]},{"at":[4,4],"colour":"dust","art":["##########"]},{"at":[54,33],"colour":"ink","art":["...#...","..#.#..",".#...#.","#.....#",".#...#.","..#.#..","...#..."],"px":true},{"at":[55,34],"colour":"fur","art":["..#..",".###.","#####",".###.","..#.."],"px":true},{"at":[48,37],"colour":"silver","art":["#.................#","...................","...................","#.................#"],"px":true}]},{"id":"rain_hat","name":"雨帽","en":"RAIN HAT","slot":"head","note":"天蓝雨帽，宽檐压在云顶，银帽带和一颗雾色高光；像随时会下雨。","paint":[{"at":[35,32],"colour":"ink","art":["................############................","...............#............#...............","...............#............#...............",".............###............###.............","............#..................#............","............#..................#............","..........###..................###..........",".........#........................#.........",".........#........................#.........",".#########........................#########.","#..........................................#","#..........................................#","#..........................................#",".##########################################."],"px":true},{"at":[2,1],"colour":"sky","art":[".....####.....","....######....","...########...","##############"]},{"at":[6,3],"colour":"silver","art":["#######"]},{"at":[54,33],"colour":"mist","art":["##","#."],"px":true}]},{"id":"raindrop_glasses","name":"雨滴眼镜","en":"RAINDROP FRAMES","slot":"face","note":"镜框是雨滴形，孔位仍然对准眼睛；天蓝高光点在左上角。","paint":[{"at":[45,55],"colour":"charcoal","art":["...###...............###...","...###...............###...","..##.##.............##.##..",".###.###...........###.###.","###...###.........###...###","##.....##.........##.....##","##.....##.........##.....##","##.....##.........##.....##","##.....##.........##.....##","##.....##.........##.....##","#########.........#########"],"px":true},{"at":[46,58],"colour":"sky","art":["#.................#.....","........................","........................","........................",".....#.................#"],"px":true},{"at":[54,61],"colour":"charcoal","art":["#########"],"px":true},{"at":[41,61],"colour":"charcoal","art":["#####.........................#####"],"px":true}]},{"id":"cloud_frames","name":"云纹圆镜","en":"CLOUD FRAMES","slot":"face","note":"银细圆框，鼻梁上一小朵雾云；镜片里是天蓝高光。","paint":[{"at":[41,58],"colour":"silver","art":["......#####.............#####......",".....#.....#...........#.....#.....",".....#.....#...........#.....#.....","######.....#############.....######",".....#.....#...........#.....#.....",".....#.....#...........#.....#.....","......#####.............#####......"],"px":true},{"at":[47,59],"colour":"sky","art":["#.................#....",".......................",".......................",".......................","....#.................#"],"px":true},{"at":[56,59],"colour":"mist","art":[".#.","###"],"px":true}]},{"id":"snow_freckles","name":"雪斑","en":"SNOW FRECKLES","slot":"face","note":"两颊各两片银雪花，细得像霜；不碰嘴线。","paint":[{"at":[38,65],"colour":"silver","art":["###...........................###","###...........................###","###...........................###","......###...............###......","......###...............###......","......###...............###......"],"px":true},{"at":[39,66],"colour":"mist","art":["#.............................#"],"px":true}]},{"id":"rain_chain","name":"雨滴项链","en":"RAIN CHAIN","slot":"body","note":"灰链贴着云底，三颗雨滴垂下来；链子解释了它们为什么不落。","paint":[{"at":[39,69],"colour":"grey","art":["##............................#######","..#######..........###########.......",".........##########.................."],"px":true},{"at":[44,70],"colour":"ink","art":["...#...","..#.#..",".#...#.","#.....#","#.....#",".#...#.","..#.#..","...#..."],"px":true},{"at":[45,71],"colour":"sky","art":["..#..",".###.","#####","#####",".###.","..#.."],"px":true},{"at":[46,73],"colour":"mist","art":["##"],"px":true},{"at":[52,70],"colour":"ink","art":["...#...","..#.#..",".#...#.","#.....#","#.....#",".#...#.","..#.#..","...#..."],"px":true},{"at":[53,71],"colour":"sky","art":["..#..",".###.","#####","#####",".###.","..#.."],"px":true},{"at":[54,73],"colour":"mist","art":["##"],"px":true},{"at":[60,70],"colour":"ink","art":["...#...","..#.#..",".#...#.","#.....#","#.....#",".#...#.","..#.#..","...#..."],"px":true},{"at":[61,71],"colour":"sky","art":["..#..",".###.","#####","#####",".###.","..#.."],"px":true},{"at":[62,73],"colour":"mist","art":["##"],"px":true},{"at":[68,70],"colour":"ink","art":["..#..",".#.#.","#.#.#",".#.#.","..#.."],"px":true},{"at":[69,71],"colour":"sky","art":[".#.","#.#",".#."],"px":true}]},{"id":"mist_scarf","name":"雾围巾","en":"MIST SCARF","slot":"body","note":"雾色围巾贴着云底 y=15，天蓝一道纹，两条尾垂到云下。","paint":[{"at":[38,74],"colour":"ink","art":[".####################################.","#....................................#","#....................................#","#....................................#",".#####################......#########.",".....................#......#.........",".....................#......#.........",".....................#......#.........",".....................#......#.........",".....................#......#.........",".....................#......#.........",".....................#......#.........",".....................#......#.........","......................######.........."],"px":true},{"at":[3,15],"colour":"mist","art":["############",".......##...",".......##...",".......##..."]},{"at":[39,76],"colour":"sky","art":["##################################"],"px":true},{"at":[39,75],"colour":"sky","art":["#...........#","......#......"],"px":true}]},{"id":"bolt_charm","name":"闪电坠","en":"BOLT CHARM","slot":"body","note":"灰链贴着云底，一枚天蓝闪电垂下来；链子给了它来处。","paint":[{"at":[45,75],"colour":"grey","art":["#########################"],"px":true},{"at":[54,76],"colour":"sky","art":["...#","..#.","...#","..#.",".#..",".#..","#...","#...",".#..","#..."],"px":true},{"at":[55,76],"colour":"silver","art":[".#","#.","..","..","#."],"px":true}]}],"recommended":["storm_cap","raindrop_glasses","rain_chain"],"audit":{"currentId":"scarf","box":[36,70,42,18],"caption":"围巾从 y=15 起，云的身体只到 y=15：整件悬在云底。"}}]}</script>
+<script>
+(function(){
+  'use strict';
+  const DATA = JSON.parse(document.getElementById('pet-data').textContent);
+  const PALETTE = DATA.palette;
+  const SLOTS = ['head', 'face', 'body'];
+  const SLOT_LABEL = {head:'头饰', face:'脸饰', body:'身体'};
+  const SLOT_SHORT = {head:'头', face:'脸', body:'身'};
+  const SLOT_Z = {body:3, face:4, head:5};
+  const STORE = 'lens.petAccessories.picks.v1';
+  const THEME = 'lens.petAccessories.theme';
+  const params = new URLSearchParams(location.search);
+  const bySlot = (pet, ids) => {
+    const out = {};
+    for (const id of ids) {
+      const c = pet.candidates.find(c => c.id === id);
+      if (c) out[c.slot] = id;
+    }
+    return out;
+  };
+  const defaults = pet => bySlot(pet, pet.recommended);
+  const picks = {};
+  const currentMode = {};
+  for (const pet of DATA.pets) { picks[pet.id] = defaults(pet); currentMode[pet.id] = false; }
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORE) || 'null');
+    if (saved) for (const pet of DATA.pets) {
+      const row = saved[pet.id];
+      if (!row) continue;
+      const next = defaults(pet);
+      for (const slot of SLOTS) {
+        const c = pet.candidates.find(c => c.id === row[slot] && c.slot === slot);
+        if (c) next[slot] = c.id;
+      }
+      picks[pet.id] = next;
+    }
+  } catch (e) { /* bad saved picks: keep the recommendations */ }
+
+  let savedTheme = null;
+  try { savedTheme = localStorage.getItem(THEME); } catch (e) {}
+  if (savedTheme === 'dark' || params.get('theme') === 'dark') document.documentElement.dataset.theme = 'dark';
+  if (params.has('shot')) document.documentElement.dataset.shot = '1';
+  document.body.classList.add('has-bar');
+
+  const bodyUrl = pet => `../data/pet/${pet.id}/sprites/body/idle.png`;
+  const faceUrl = pet => `../data/pet/${pet.id}/sprites/expressions/eyes.png`;
+  const byId = (pet, id) => pet.candidates.find(c => c.id === id);
+  const currentById = (pet, id) => pet.current.find(c => c.id === id);
+
+  function art(pet, opts) {
+    const current = (opts && opts.current) || [];
+    const currentHtml = current.map(c => `<img src="${c.asset}" alt="">`).join('');
+    return `<span class="pet-art">
+      <span class="layer body" style="background-image:url('${bodyUrl(pet)}')"></span>
+      <span class="layer face" style="background-image:url('${faceUrl(pet)}')"></span>
+      <canvas class="worn" width="88" height="88"></canvas>
+      <span class="current">${currentHtml}</span>
+    </span>`;
+  }
+
+  function petBox(pet, opts) {
+    const current = (opts && opts.current) || [];
+    const cls = (opts && opts.currentMode) ? ' is-current' : '';
+    const mark = (opts && opts.mark) ? `<span class="mark" style="left:${opts.mark[0]/88*100}%;top:${opts.mark[1]/88*100}%;width:${opts.mark[2]/88*100}%;height:${opts.mark[3]/88*100}%"></span>` : '';
+    return `<span class="pet-box${cls}">${art(pet, {current})}<span class="grid"></span>${mark}</span>`;
+  }
+
+  function paint(canvas, pet, ids) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, 88, 88);
+    ctx.imageSmoothingEnabled = false;
+    const chosen = ids.map(id => byId(pet, id)).filter(Boolean).sort((a, b) => SLOT_Z[a.slot] - SLOT_Z[b.slot]);
+    for (const c of chosen) {
+      for (const item of c.paint) {
+        ctx.fillStyle = PALETTE[item.colour] || '#1a1a1f';
+        const ax = item.at[0], ay = item.at[1];
+        for (let j = 0; j < item.art.length; j++) {
+          const row = item.art[j];
+          for (let i = 0; i < row.length; i++) {
+            if (row[i] !== '#') continue;
+            if (item.px) ctx.fillRect(ax + i, ay + j, 1, 1);
+            else ctx.fillRect(30 + 3 * (ax + i), 30 + 3 * (ay + j), 3, 3);
+          }
+        }
+      }
+    }
+  }
+
+  function currentIds(pet) {
+    return pet.currentLook.map(id => currentById(pet, id)).filter(Boolean)
+      .sort((a, b) => SLOT_Z[a.slot] - SLOT_Z[b.slot]);
+  }
+
+  function stageSlotHtml(pet, mode) {
+    return SLOTS.map(slot => {
+      let item;
+      if (mode) item = currentIds(pet).find(c => c.slot === slot);
+      else item = byId(pet, picks[pet.id][slot]);
+      const name = item ? item.name : '—';
+      const id = item ? item.id : '';
+      return `<span class="slot-pill ${slot}"><span class="dot"></span><b>${SLOT_SHORT[slot]}</b><span class="nm">${name}</span><span class="id">${id}</span></span>`;
+    }).join('');
+  }
+
+  function petSection(pet, index) {
+    const candidates = pet.candidates.map((c, i) => {
+      return `<button class="cand" type="button" data-pet="${pet.id}" data-id="${c.id}" aria-pressed="false" style="--i:${i}">
+        <span class="card-stage">
+          <span class="badge slot-badge ${c.slot}"><i></i>${SLOT_LABEL[c.slot]}</span>
+          ${petBox(pet)}
+        </span>
+        <span class="card-body">
+          <span class="card-name"><b>${c.name}</b><em>${c.en}</em></span>
+          <span class="card-note">${c.note}</span>
+          <span class="card-foot"><span class="state">选它</span><span class="arrow" aria-hidden="true">→</span></span>
+        </span>
+      </button>`;
+    }).join('');
+    const curChips = pet.current.map(c => `<figure class="cur">
+      <span class="chip-stage">${petBox(pet, {current: [c], currentMode: true})}</span>
+      <figcaption class="cap"><b>${c.name}</b><span class="${c.issue === '可用' ? 'ok' : ''}">${c.issue}</span></figcaption>
+    </figure>`).join('');
+    const currentCount = pet.current.length;
+    return `<section class="pet" id="pet-${pet.id}" data-pet="${pet.id}">
+      <header class="pet-head">
+        <div>
+          <div class="pet-title">
+            <span class="pet-no">${String(index + 1).padStart(2, '0')}</span>
+            <h2>${pet.name}</h2><span class="pet-en">${pet.en}</span>
+            <span class="pet-dot" style="--a:${pet.accent}"></span>
+          </div>
+          <p class="pet-note">${pet.note}</p>
+        </div>
+        <div class="pet-meta">9 件<br>3 头 / 3 脸 / 3 身</div>
+      </header>
+      <div class="pet-layout">
+        <aside class="fitting" data-fitting="${pet.id}">
+          <div class="fit-head"><span class="k">FITTING / 试衣台</span><span class="mode" data-mode="${pet.id}">初始搭配</span></div>
+          <div class="stage big" data-stage="${pet.id}">
+            ${petBox(pet, {current: currentIds(pet)})}
+            <span class="scale-tag">×4</span>
+          </div>
+          <div class="slots" data-slots="${pet.id}"></div>
+          <div class="fit-actions">
+            <button class="btn" type="button" data-current="${pet.id}" aria-pressed="false">现状对照</button>
+            <button class="btn" type="button" data-recommend="${pet.id}">恢复初始</button>
+          </div>
+        </aside>
+        <div class="wardrobe">
+          <div class="wardrobe-head"><span class="k">WARDROBE / 九件</span><span class="sum">3 顶头饰 · 3 副脸饰 · 3 件身体</span></div>
+          <div class="cand-grid">${candidates}</div>
+        </div>
+      </div>
+      <details class="drawer">
+        <summary><span class="k">CURRENT / ${currentCount} 件</span><span>看看现在的配饰与问题</span><span class="chev" aria-hidden="true">+</span></summary>
+        <div class="current-grid">${curChips}</div>
+      </details>
+    </section>`;
+  }
+
+  document.getElementById('pets').innerHTML = DATA.pets.map(petSection).join('');
+
+  const models = new Map();
+  for (const pet of DATA.pets) {
+    const section = document.getElementById('pet-' + pet.id);
+    const stage = section.querySelector('[data-stage] .pet-box');
+    const canvas = stage.querySelector('canvas.worn');
+    const fitting = section.querySelector('[data-fitting]');
+    const mode = section.querySelector('[data-mode]');
+    const slots = section.querySelector('[data-slots]');
+    const currentBtn = section.querySelector('[data-current]');
+    const recommendBtn = section.querySelector('[data-recommend]');
+    const cards = [...section.querySelectorAll('.cand')];
+    for (const card of cards) {
+      const c = byId(pet, card.dataset.id);
+      paint(card.querySelector('canvas.worn'), pet, [c.id]);
+    }
+    models.set(pet.id, {section, stage, canvas, fitting, mode, slots, currentBtn, recommendBtn, cards});
+  }
+
+  function renderPet(id) {
+    const pet = DATA.pets.find(p => p.id === id);
+    const m = models.get(id);
+    const isCurrent = currentMode[id];
+    const base = defaults(pet);
+    const isDefault = SLOTS.every(slot => picks[id][slot] === base[slot]);
+    m.stage.classList.toggle('is-current', isCurrent);
+    m.fitting.classList.toggle('is-current', isCurrent);
+    m.mode.textContent = isCurrent ? '现状示例' : (isDefault ? '初始搭配' : '自定义搭配');
+    m.mode.classList.toggle('current', isCurrent);
+    m.mode.classList.toggle('custom', !isCurrent && !isDefault);
+    m.currentBtn.setAttribute('aria-pressed', String(isCurrent));
+    m.currentBtn.textContent = isCurrent ? '回到新的' : '现状对照';
+    if (!isCurrent) paint(m.canvas, pet, SLOTS.map(s => picks[id][s]).filter(Boolean));
+    m.slots.innerHTML = stageSlotHtml(pet, isCurrent);
+    for (const card of m.cards) {
+      const c = byId(pet, card.dataset.id);
+      const sel = !isCurrent && picks[id][c.slot] === c.id;
+      card.setAttribute('aria-pressed', String(sel));
+      card.querySelector('.state').textContent = sel ? '已穿' : '选它';
+    }
+  }
+
+  function renderAll() { for (const pet of DATA.pets) renderPet(pet.id); updateBar(); }
+
+  function save() {
+    try { localStorage.setItem(STORE, JSON.stringify(picks)); } catch (e) {}
+  }
+
+  function changedCount() {
+    let n = 0;
+    for (const pet of DATA.pets) {
+      const d = defaults(pet);
+      for (const slot of SLOTS) if (picks[pet.id][slot] !== d[slot]) n++;
+    }
+    return n;
+  }
+
+  function updateBar() {
+    const total = DATA.pets.length * 3;
+    const changed = changedCount();
+    document.getElementById('pick-count').textContent = `${DATA.pets.length} 套 · ${total} 件`;
+    document.getElementById('pick-hint').textContent = changed ? `改动 ${changed} 件` : '全部是初始';
+  }
+
+  document.querySelectorAll('.cand').forEach(card => card.addEventListener('click', () => {
+    const id = card.dataset.pet;
+    const pet = DATA.pets.find(p => p.id === id);
+    const c = byId(pet, card.dataset.id);
+    picks[id][c.slot] = c.id;
+    currentMode[id] = false;
+    save();
+    renderPet(id);
+    updateBar();
+  }));
+  document.querySelectorAll('[data-current]').forEach(btn => btn.addEventListener('click', () => {
+    const id = btn.dataset.current;
+    currentMode[id] = !currentMode[id];
+    renderPet(id);
+  }));
+  document.querySelectorAll('[data-recommend]').forEach(btn => btn.addEventListener('click', () => {
+    const id = btn.dataset.recommend;
+    const pet = DATA.pets.find(p => p.id === id);
+    picks[id] = defaults(pet);
+    currentMode[id] = false;
+    save();
+    renderPet(id);
+    updateBar();
+  }));
+
+  const themeBtn = document.getElementById('theme');
+  const themeLabel = document.getElementById('theme-label');
+  function themeText() {
+    const dark = document.documentElement.dataset.theme === 'dark';
+    themeLabel.textContent = dark ? '浅色' : '深色';
+  }
+  themeBtn.addEventListener('click', () => {
+    const dark = document.documentElement.dataset.theme === 'dark';
+    document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+    try { localStorage.setItem(THEME, dark ? 'light' : 'dark'); } catch (e) {}
+    themeText();
+  });
+  themeText();
+
+  const gridBtn = document.getElementById('grid');
+  gridBtn.addEventListener('click', () => {
+    const on = document.documentElement.classList.toggle('grid-on');
+    gridBtn.setAttribute('aria-pressed', String(on));
+  });
+
+  document.getElementById('reset-all').addEventListener('click', () => {
+    if (changedCount() && !confirm('把所有宠物恢复为初始搭配？')) return;
+    for (const pet of DATA.pets) { picks[pet.id] = defaults(pet); currentMode[pet.id] = false; }
+    save(); renderAll();
+  });
+
+  function summary() {
+    const lines = ['Lens 宠物配饰九件套 · 当前搭配', ''];
+    for (const pet of DATA.pets) {
+      const parts = SLOTS.map(slot => {
+        const c = byId(pet, picks[pet.id][slot]);
+        return c ? `${SLOT_SHORT[slot]}=${c.name}(${c.id})` : `${SLOT_SHORT[slot]}=—`;
+      });
+      lines.push(`${pet.name} ${pet.id} — ${parts.join(' / ')}`);
+    }
+    const changed = changedCount();
+    lines.push('', changed ? `改动 ${changed} 件` : '全部是初始');
+    return lines.join('\n');
+  }
+
+  const toast = document.getElementById('toast');
+  let toastTimer = 0;
+  function showToast(text) {
+    toast.textContent = text;
+    toast.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('on'), 1800);
+  }
+  async function copySummary() {
+    const text = summary();
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('已复制当前搭配');
+      return;
+    } catch (e) {}
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      const ok = document.execCommand('copy');
+      ta.remove();
+      if (ok) { showToast('已复制当前搭配'); return; }
+    } catch (e) {}
+    window.prompt('复制当前搭配：', text);
+  }
+  document.getElementById('copy').addEventListener('click', copySummary);
+
+  const auditGrid = document.getElementById('audit-grid');
+  auditGrid.innerHTML = DATA.pets.filter(p => p.audit).map(pet => {
+    const cur = currentById(pet, pet.audit.currentId);
+    return `<article class="audit-card">
+      <div class="audit-stage">
+        ${petBox(pet, {current: [cur], currentMode: true, mark: pet.audit.box})}
+        <span class="scale-tag">×2.5</span>
+      </div>
+      <div class="audit-caption"><span class="k">现状 · ${pet.name} / ${cur.name}</span><p>${pet.audit.caption}</p></div>
+    </article>`;
+  }).join('');
+
+  renderAll();
+
+  const petParam = params.get('pet');
+  if (petParam) {
+    const target = document.getElementById('pet-' + petParam);
+    if (target) setTimeout(() => target.scrollIntoView({block:'start', behavior: params.has('shot') ? 'instant' : 'smooth'}), 80);
+  }
+})();
+</script>
+</body>
+</html>

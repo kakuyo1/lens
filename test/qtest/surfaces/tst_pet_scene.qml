@@ -34,6 +34,25 @@ Item {
 
         function cleanup() {
             Pet.setPreviewing(false);
+            for (const id of ["flat_cap", "spectacles", "bandana"])
+                if (Pet.wornIn.head === id || Pet.wornIn.face === id || Pet.wornIn.body === id)
+                    Pet.toggleAccessory(id);
+        }
+
+        /// A worn piece is a sprite layer above the body, with the slot's z: body 3, face 4, head 5.
+        function test_wornAccessoriesDrawInSlotOrder() {
+            for (const id of ["flat_cap", "spectacles", "bandana"]) Pet.toggleAccessory(id);
+            tryVerify(() => Pet.wornAccessories.length === 3, 2000, "three worn pieces did not reach the scene");
+
+            const accessoryLayers = () => Util.findAll(scene, function (o) {
+                return o.sheet && o.sheet.indexOf("/sprites/accessories/") >= 0;
+            });
+            tryVerify(() => accessoryLayers().length === 3, 2000, "the scene did not draw three accessory layers");
+            const layers = accessoryLayers();
+            const zOf = suffix => layers.find(o => o.sheet.endsWith(suffix)).z;
+            compare(zOf("/flat_cap.png"), 5);
+            compare(zOf("/spectacles.png"), 4);
+            compare(zOf("/bandana.png"), 3);
         }
 
         function test_aSceneDrawsItsPropsOnBothSidesOfThePet() {
