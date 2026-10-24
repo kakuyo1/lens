@@ -487,7 +487,9 @@ Window {
                 anchors.rightMargin: 20
                 anchors.verticalCenter: parent.verticalCenter
                 text: settings.saveStatus
-                color: settings.tokens.faint
+                // Status, not decoration: the second step of the text ramp, so a confirmation
+                // reads beside the value rows it confirms.
+                color: settings.tokens.muted
                 font.pixelSize: 11
                 horizontalAlignment: Text.AlignHCenter
                 elide: Text.ElideRight

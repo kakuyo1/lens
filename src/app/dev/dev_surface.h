@@ -76,6 +76,8 @@ private:
     nlohmann::json hideAll();
     /// @brief Walk a `surface route` target into the panel's own pages, through the method the surface table names.
     nlohmann::json route(std::string const& surface, std::string const& target) const;
+    /// @brief Pin the surface's scroller to a content position, the state a reader's wheel leaves behind (docs/adr/0105).
+    nlohmann::json scroll(std::string const& surface, int y) const;
     /// @brief Start the selection pipeline with the text the command gives, so the clipboard is not read.
     nlohmann::json injectSelection(core::dev::Command const& command);
     /// @brief Store one whitelisted setting through the same setter the settings page's control calls.

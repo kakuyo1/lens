@@ -42,7 +42,9 @@ Item {
 
         /// @return The menu's own texts, keyed by what they say about the controller.
         function stateLine(menu) {
-            return Util.textWith(Util.textsUnder(menu), [Controller.modeLabel, qsTr("Selection capture is off")]);
+            return Util.textWith(Util.textsUnder(menu),
+                                 [Controller.modeLabel, qsTr("Selection capture is off"),
+                                  qsTr("Today's budget is used up")]);
         }
 
         /// @return The menu's rows, in declaration order.
@@ -95,6 +97,40 @@ Item {
             restore();
         }
 
+        /// The four states the tray icon can be in (tray_state.h), drawn in words by the same
+        /// priority. The mapping is a pure function of its inputs, so the states the fixture
+        /// cannot reach without spending money are driven through its arguments.
+        function test_theStateLineMapsTheFourTrayStates() {
+            const menu = make();
+
+            const budget = menu.stateLineFor(true, "", true);
+            compare(budget.mark, menu.tokens.warn, "the budget state is not the warn colour");
+            compare(budget.text, qsTr("Today's budget is used up"));
+
+            const busy = menu.stateLineFor(false, "Explaining…", false);
+            compare(busy.mark, menu.tokens.ok, "a busy menu should read as working");
+            compare(busy.text, "Explaining…");
+
+            const auto = menu.stateLineFor(false, "", true);
+            compare(auto.mark, menu.tokens.ok);
+            compare(auto.text, Controller.modeLabel);
+
+            const off = menu.stateLineFor(false, "", false);
+            compare(off.mark, menu.tokens.faint);
+            compare(off.text, qsTr("Selection capture is off"));
+        }
+
+        /// The live readout: the line is built off the controller's own values, so what the
+        /// fixture holds -- capture off, nothing in flight, no spend today -- is what it says.
+        function test_theStateLineTakesTheControllerReadout() {
+            const menu = make();
+            verify(!Controller.costDuty.stats.budgetExhausted,
+                   "the fixture should run with no spend against the budget");
+            compare(Controller.busyLabel, "", "the fixture should run with nothing in flight");
+            compare(menu.stateLine.mark, menu.tokens.faint);
+            compare(menu.stateLine.text, qsTr("Selection capture is off"));
+        }
+
         function test_theLanguageRowNamesTheInterfaceLanguage() {
             const menu = make();
             compare(menu.language, "en", "the fixture should have the interface in English");
@@ -108,11 +144,11 @@ Item {
         }
 
         /// The row's figure is built by the menu, so a mistyped key in it reads as
-        /// "undefined words · undefinedundefined" rather than as a missing value.
+        /// "undefined lookups · undefinedundefined" rather than as a missing value.
         function test_theFiguresRowIsTodaysTally() {
             const menu = make();
 
-            verify(/^\d+ words · .\d+\.\d\d$/.test(menu.todayFigures),
+            verify(/^\d+ lookups · .\d+\.\d\d$/.test(menu.todayFigures),
                    "the figures row is malformed: " + menu.todayFigures);
             compare(menu.todayFigures.indexOf(String(Controller.costDuty.stats.todayPops)), 0,
                     "the figures row does not start with the day's pop count");

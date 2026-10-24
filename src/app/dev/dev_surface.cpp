@@ -250,6 +250,8 @@ nlohmann::json DevSurface::execute(core::dev::Command const& command)
             return hideAll();
         case core::dev::Verb::SurfaceRoute:
             return route(command.surface, command.target);
+        case core::dev::Verb::SurfaceScroll:
+            return scroll(command.surface, command.scrollY);
         case core::dev::Verb::State:
             return state();
         case core::dev::Verb::Version:
@@ -327,6 +329,41 @@ nlohmann::json DevSurface::route(std::string const& surface, std::string const& 
         return failure("surface route " + surface + ": " + router->method + " is not callable");
     return accepted.toBool() ? success()
                              : failure("surface route " + surface + ": " + target + " names no page the panel offers");
+}
+
+nlohmann::json DevSurface::scroll(std::string const& surface, int y) const
+{
+    auto* const target = window(surface);
+    if (target == nullptr)
+        return failure("surface scroll " + surface + ": no such window");
+    // A hidden surface's scroller is reset on the next show, the way a hidden panel's navigation is,
+    // so the line would answer with a state the next show throws away.
+    if (auto const* const surfaceWindow = qobject_cast<QQuickWindow*>(target); surfaceWindow != nullptr and not surfaceWindow->isVisible())
+        return failure("surface scroll " + surface + ": the surface is down; show it first");
+    // The surface's first Flickable, found through the public meta objects alone: the flickable
+    // headers are private, but contentY is a Q_PROPERTY any QObject can write. A ListView and the
+    // other scrollers derive from QQuickFlickable, so the name walk reaches them too.
+    QObject* scroller    = nullptr;
+    auto     isFlickable = [](QMetaObject const* meta) {
+        for (auto const* m = meta; m != nullptr; m = m->superClass())
+            if (qstrcmp(m->className(), "QQuickFlickable") == 0)
+                return true;
+        return false;
+    };
+    for (QObject* const child : target->findChildren<QObject*>()) {
+        if (isFlickable(child->metaObject())) {
+            scroller = child;
+            break;
+        }
+    }
+    if (scroller == nullptr)
+        return failure("surface scroll " + surface + ": the surface has nothing that scrolls");
+    const double contentHeight = scroller->property("contentHeight").toDouble();
+    const double height        = scroller->property("height").toDouble();
+    const double lowest        = std::max(0.0, contentHeight - height);
+    const double pinned        = std::min(std::max(0.0, static_cast<double>(y)), lowest);
+    scroller->setProperty("contentY", pinned);
+    return success();
 }
 
 nlohmann::json DevSurface::injectSelection(core::dev::Command const& command)

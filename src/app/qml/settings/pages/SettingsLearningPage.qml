@@ -171,6 +171,16 @@ Item {
                 currentValue: root.settings.reviewFrequency
                 onPicked: (value) => Controller.setReviewFrequency(value)
             }
+            // The reason the row is dimmed, in the OCR trigger group's manner: the switch that
+            // gates it lives on another page, so the cause has to be said here.
+            Text {
+                width: parent.width
+                visible: !Pet.enabled
+                text: qsTranslate("SettingsPopup", "Unavailable while the pet is off.")
+                color: root.tokens.muted
+                font.pixelSize: 12
+                wrapMode: Text.WordWrap
+            }
         }
     }
 }

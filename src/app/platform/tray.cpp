@@ -123,7 +123,9 @@ void Tray::refresh()
     const TrayReadout readout = readout_();
     icon_->setIcon(iconFor(trayIconName(stateOf(readout)), taskbarIsDark()));
 
-    const QString today = tr("Today %1 words").arg(QString::number(readout.todayPops));
+    // The day's tally counts pop events, so the unit is lookups, not words (ADR 0104): "words"
+    // is reserved for the deduplicated vocabulary the words popup titles.
+    const QString today = tr("Today %1 lookups").arg(QString::number(readout.todayPops));
     icon_->setToolTip(QStringLiteral("Lens · %1 · %2").arg(readout.mode, today));
 }
 

@@ -254,8 +254,18 @@ Parse parseCommand(std::string_view line)
                 return refuse("surface takes no route: " + std::string{tokens[2]});
             return accept({.verb = Verb::SurfaceRoute, .surface = std::string{tokens[2]}, .target = std::string{tokens[3]}});
         }
+        if (args == 3 and tokens[1] == "scroll") {
+            // Whether the surface has anything to scroll is the window's to answer at run time, the way
+            // an unknown route target is the panel's (docs/adr/0105): the grammar only checks the name.
+            if (not isSurfaceName(tokens[2]))
+                return refuse("unknown surface: " + std::string{tokens[2]});
+            auto const y = intOf(tokens[3]);
+            if (not y or *y < 0)
+                return refuse("surface scroll takes a whole position of zero or more: " + std::string{tokens[3]});
+            return accept({.verb = Verb::SurfaceScroll, .surface = std::string{tokens[2]}, .scrollY = *y});
+        }
         if (args != 2 or (tokens[1] != "show" and tokens[1] != "hide"))
-            return refuse("surface takes show <name>, hide <name>, hide-all or route <name> <target>");
+            return refuse("surface takes show <name>, hide <name>, hide-all, route <name> <target> or scroll <name> <y>");
         if (not isSurfaceName(tokens[2]))
             return refuse("unknown surface: " + std::string{tokens[2]});
         auto const shown = tokens[1] == "show";
@@ -327,6 +337,7 @@ nlohmann::json helpJson()
                          "surface hide <name>",
                          "surface hide-all",
                          "surface route <name> <category>[/<page>]",
+                         "surface scroll <name> <y>",
                          "wait visible:<name> | hidden:<name> | painted:<name> | <n>s",
                          "selection <x>,<y>,<w>,<h> \"<text>\"",
                          "setting set <name> <value>",

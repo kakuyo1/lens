@@ -53,6 +53,9 @@ QtObject {
     readonly property color ink: tokenColor("ink", lightTheme.ink)
     readonly property color on: tokenColor("on", lightTheme.on)
     readonly property color danger: tokenColor("danger", lightTheme.danger)
+    /// The budget-exhausted state: the tray icon draws it natively, and the tray menu's state
+    /// line tints its mark with the same token (UI-SPEC.md 4.2).
+    readonly property color warn: tokenColor("warn", lightTheme.warn)
     readonly property color bubbleBg: tokenColor("bubbleBg", lightTheme.bubbleBg)
     readonly property color bubbleBorder: tokenColor("bubbleBorder", lightTheme.bubbleBorder)
     /// The dropdown lists and other floating layers: the card fill, except under the glass themes,
@@ -148,7 +151,7 @@ QtObject {
         const customValuesForTheme = parseCustomTheme(value);
         const result = {};
         const roles = ["bg", "panel", "panel2", "line", "line2", "text", "muted", "faint",
-                       "ok", "okBg", "okText", "ink", "on", "danger", "bubbleBg", "bubbleBorder"];
+                       "ok", "okBg", "okText", "ink", "on", "danger", "warn", "bubbleBg", "bubbleBorder"];
         for (const role of roles)
             result[role] = hex(customValuesForTheme[role], hex(base[role], "#000000"));
         result.mode = customValuesForTheme.mode === "dark" || value === "dark"
@@ -159,7 +162,7 @@ QtObject {
     function customThemeValue(colors) {
         const defaults = colorsForTheme("light");
         const roles = ["bg", "panel", "panel2", "line", "line2", "text", "muted", "faint",
-                       "ok", "okBg", "okText", "ink", "on", "danger", "bubbleBg", "bubbleBorder"];
+                       "ok", "okBg", "okText", "ink", "on", "danger", "warn", "bubbleBg", "bubbleBorder"];
         const table = {mode: colors.mode === "dark" ? "dark" : "light"};
         for (const role of roles)
             table[role] = hex(colors[role], defaults[role]);

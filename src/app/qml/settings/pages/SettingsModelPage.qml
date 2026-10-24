@@ -91,6 +91,7 @@ Item {
             note: root.settings.hasApiKey
                    ? qsTranslate("SettingsPopup", "Configured")
                    : qsTranslate("SettingsPopup", "Not configured")
+            noteIsState: true
             onPicked: root.childRequested("connection")
         }
     }

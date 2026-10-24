@@ -64,6 +64,34 @@ TEST(DevCommandParse, SurfaceRouteNamesTheSurfaceAndItsTarget)
     }
 }
 
+TEST(DevCommandParse, SurfaceScrollPinsTheContentPosition)
+{
+    auto const scrolled = parseCommand("surface scroll settings 250");
+    ASSERT_TRUE(scrolled.command);
+    EXPECT_EQ(scrolled.command->verb, Verb::SurfaceScroll);
+    EXPECT_EQ(scrolled.command->surface, "settings");
+    EXPECT_EQ(scrolled.command->scrollY, 250);
+
+    // The top is a position like any other. Whether the surface has anything to scroll, and whether
+    // it is up, is the window's to answer at run time, so a known name parses even for a surface
+    // that would refuse the line (docs/adr/0105).
+    auto const top = parseCommand("surface scroll tray 0");
+    ASSERT_TRUE(top.command);
+    EXPECT_EQ(top.command->scrollY, 0);
+
+    for (auto const* line : {
+             "surface scroll nowhere 250",
+             "surface scroll settings -1",
+             "surface scroll settings 12.5",
+             "surface scroll settings",
+             "surface scroll settings 250 extra",
+         }) {
+        auto const parsed = parseCommand(line);
+        EXPECT_FALSE(parsed.command) << line;
+        EXPECT_FALSE(parsed.error.empty()) << line;
+    }
+}
+
 TEST(DevCommandParse, WaitReadsItsConditionAndSurface)
 {
     auto const painted = parseCommand("wait painted:settings");

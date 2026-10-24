@@ -1,6 +1,7 @@
 # 0103 开发面：surface route 走面板自己的导航进内页
 
 - **状态**：accepted（2026-10-24）。`surface route <name> <target>` 进入 `LENS_ENABLE_DEV_SURFACE` 的命令表。
+  其 “滚动注入仍然不做” 的后果由 ADR 0105（`surface scroll`）废止，余下决定不动。
 - **背景**：UI 评审要遍历设置面板的七个分类与四个子页拍照（`.impeccable/critique/`）。0068 的命令表只能开到
   表面入口：`surface show settings` 永远落在目录页，分类与子页只能靠真实点击进去——而点击要么抢读者的指针，
   要么先截图定位坐标，评审的驱动反过来依赖了被评审物自己的像素，这条路不接受。

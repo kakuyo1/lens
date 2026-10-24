@@ -68,7 +68,7 @@ Window {
         if (state === "verifying")
             return qsTranslate("UpdateCard", "Checking the download...");
         if (state === "ready")
-            return qsTranslate("UpdateCard", "The installer is ready to run.");
+            return qsTranslate("UpdateCard", "Checksum verified. The installer is ready to run.");
         if (state !== "failed")
             return "";
         if (failure === "proxy")
@@ -299,7 +299,8 @@ Window {
 
                     // The one button that changes meaning: Download while the file can be fetched,
                     // Cancel while it is, Install once it has been checked. Nothing when this release
-                    // is not downloadable -- an empty pill is a button that does nothing.
+                    // is not downloadable -- an empty pill is a button that does nothing. Cancel is
+                    // drawn at full opacity: it is pressable, and its label is what distinguishes it.
                     Rectangle {
                         id: primary
                         visible: primaryLabel.text !== ""
@@ -307,7 +308,6 @@ Window {
                         height: 26
                         radius: card.tokens.radiusPill
                         color: card.tokens.ink
-                        opacity: card.download.state === "downloading" ? 0.58 : 1
                         scale: primaryTap.pressed ? 0.97 : 1.0
                         Behavior on scale {
                             NumberAnimation {

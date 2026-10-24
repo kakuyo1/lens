@@ -9,6 +9,9 @@ Item {
 
     property string label: ""
     property string note: ""
+    /// Whether the note carries a state ("Not configured") rather than a value ("Raise to top"):
+    /// a state is drawn in the second text step so it reads as status, not decoration.
+    property bool noteIsState: false
     signal picked()
 
     width: parent ? parent.width : 0
@@ -51,7 +54,7 @@ Item {
         anchors.rightMargin: 8
         anchors.verticalCenter: parent.verticalCenter
         text: root.note
-        color: root.tokens.faint
+        color: root.noteIsState ? root.tokens.muted : root.tokens.faint
         font.pixelSize: 11
         visible: root.note !== ""
     }

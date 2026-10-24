@@ -29,6 +29,7 @@ enum class Verb : std::uint8_t {
     SurfaceHide,
     SurfaceHideAll,
     SurfaceRoute,
+    SurfaceScroll,
     Wait,
     State,
     Version,
@@ -105,6 +106,9 @@ struct Command {
     std::string  selectedText;
     SettingKey   settingKey{SettingKey::Theme};
     SettingValue settingValue;
+    /// The content position, in pixels from the content's top, that a `surface scroll` line pins the
+    /// surface's scroller to; unread by every other verb.
+    int scrollY{0};
 };
 
 /// The outcome of parsing one line: a command, or the reason the line was refused. Exactly one of the two is set.

@@ -99,7 +99,7 @@ Window {
 
             Text {
                 topPadding: 4
-                text: qsTr("Words explained today")
+                text: qsTr("Lookups today")
                 color: stats.tokens.faint
                 font.pixelSize: 12
             }
@@ -128,8 +128,8 @@ Window {
             StatRow {
                 width: parent.width
                 label: qsTr("All time")
-                // The same count the words panel shows, from the same source: the rows are deduplicated,
-                // and a tally of pops labelled "words" would read as a bug beside a panel listing fewer.
+                // The deduplicated vocabulary, the same count the words popup titles (ADR 0104):
+                // the tallies that count events say "lookups", never "words".
                 value: qsTr("%1 words").arg(Controller.words.length)
                 clickable: true
                 onTapped: stats.wordsRequested()

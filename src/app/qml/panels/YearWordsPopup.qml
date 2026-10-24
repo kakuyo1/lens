@@ -221,9 +221,14 @@ Window {
                 Text {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
-                    text: qsTr("%1 words").arg(year.days.reduce(function (sum, day) { return sum + day.pops; }, 0))
+                    // Both denominators side by side (ADR 0104): the year's pop count in
+                    // lookups, the vocabulary it landed on in words -- the pair is what says
+                    // the words are deduplicated. Mixed CJK units take the app face, the way
+                    // the tray menu's figures row does (UI-SPEC.md 4.7).
+                    text: qsTr("%1 lookups · %2 words")
+                          .arg(year.days.reduce(function (sum, day) { return sum + day.pops; }, 0))
+                          .arg(Controller.words.length)
                     color: year.tokens.faint
-                    font.family: year.tokens.monoFamily
                     font.pixelSize: 11
                 }
             }
@@ -306,7 +311,9 @@ Window {
                                 border.width: visible && year.selectedDate === day.date ? 1 : 0
                                 border.color: year.tokens.text
                                 Accessible.ignored: !visible
-                                Accessible.name: visible ? qsTr("%1, %2 words").arg(day.date).arg(day.pops) : ""
+                                // The count is pop events, so the spoken unit is lookups, the same
+                                // one the summary row writes (ADR 0104).
+                                Accessible.name: visible ? qsTr("%1, %2 lookups").arg(day.date).arg(day.pops) : ""
 
                                 TapHandler {
                                     enabled: parent.visible
@@ -336,7 +343,7 @@ Window {
                             border.width: year.selectedLevel === index ? 1 : 0
                             border.color: year.tokens.text
                             Accessible.role: Accessible.Button
-                            Accessible.name: legendCell.index === 0 ? qsTr("No words, choose color") : qsTr("Level %1, choose color").arg(legendCell.index)
+                            Accessible.name: legendCell.index === 0 ? qsTr("No lookups, choose color") : qsTr("Level %1, choose color").arg(legendCell.index)
                             TapHandler { onTapped: year.toggleLevel(legendCell.index) }
                         }
                     }

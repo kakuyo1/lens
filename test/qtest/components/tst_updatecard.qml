@@ -103,7 +103,7 @@ Item {
             const card = opened().card;
             compare(card.downloadText("downloading", ""), "Downloading...");
             compare(card.downloadText("verifying", ""), "Checking the download...");
-            compare(card.downloadText("ready", ""), "The installer is ready to run.");
+            compare(card.downloadText("ready", ""), "Checksum verified. The installer is ready to run.");
             compare(card.downloadText("failed", "generic"), "Download failed. Check your connection.");
             compare(card.downloadText("failed", "checksum"),
                     "The download did not match the published checksum. It was deleted.");

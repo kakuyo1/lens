@@ -842,6 +842,11 @@
         <translation>Repaso de palabras</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="179"/>
+        <source>Unavailable while the pet is off.</source>
+        <translation>No disponible mientras la mascota esté desactivada.</translation>
+    </message>
+    <message>
         <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="37"/>
         <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="45"/>
         <source>Provider</source>
@@ -1931,8 +1936,8 @@
     </message>
     <message>
         <location filename="../src/app/qml/panels/StatsPopup.qml" line="102"/>
-        <source>Words explained today</source>
-        <translation>Palabras explicadas hoy</translation>
+        <source>Lookups today</source>
+        <translation>Consultas de hoy</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/StatsPopup.qml" line="113"/>
@@ -1963,32 +1968,37 @@
 <context>
     <name>TrayMenu</name>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="73"/>
-        <source>words</source>
-        <translation>palabras</translation>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="66"/>
+        <source>Today&apos;s budget is used up</source>
+        <translation>El presupuesto de hoy se ha agotado</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="149"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="70"/>
         <source>Selection capture is off</source>
         <translation>La captura por selección está desactivada</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="162"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="96"/>
+        <source>lookups</source>
+        <translation>consultas</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="186"/>
         <source>Statistics</source>
         <translation>Estadísticas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="171"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="195"/>
         <source>Language</source>
         <translation>Idioma</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="189"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="213"/>
         <source>Settings</source>
         <translation>Ajustes</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="205"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="229"/>
         <source>Quit</source>
         <translation>Salir</translation>
     </message>
@@ -2007,8 +2017,8 @@
     </message>
     <message>
         <location filename="../src/app/qml/panels/UpdateCard.qml" line="71"/>
-        <source>The installer is ready to run.</source>
-        <translation>El instalador está listo para ejecutarse.</translation>
+        <source>Checksum verified. The installer is ready to run.</source>
+        <translation>Suma de verificación correcta. El instalador está listo para ejecutarse.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/UpdateCard.qml" line="75"/>
@@ -2069,22 +2079,22 @@
 <context>
     <name>WordsListRow</name>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="135"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="139"/>
         <source>%1×</source>
         <translation>%1×</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="181"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="185"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="228"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="232"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="250"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="254"/>
         <source>Remove %1</source>
         <translation>Eliminar %1</translation>
     </message>
@@ -2285,62 +2295,62 @@
         <translation>Palabras explicadas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="224"/>
-        <source>%1 words</source>
-        <translation>%1 palabras</translation>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="228"/>
+        <source>%1 lookups · %2 words</source>
+        <translation>%1 consultas · %2 palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="277"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="282"/>
         <source>Mon</source>
         <translation>Lun</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="277"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="282"/>
         <source>Wed</source>
         <translation>Mié</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="277"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="282"/>
         <source>Fri</source>
         <translation>Vie</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="309"/>
-        <source>%1, %2 words</source>
-        <translation>%1, %2 palabras</translation>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="316"/>
+        <source>%1, %2 lookups</source>
+        <translation>%1, %2 consultas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="326"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="333"/>
         <source>Less</source>
         <translation>Menos</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="339"/>
-        <source>No words, choose color</source>
-        <translation>Sin palabras, elegir color</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="339"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="346"/>
         <source>Level %1, choose color</source>
         <translation>Nivel %1, elegir color</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="343"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="346"/>
+        <source>No lookups, choose color</source>
+        <translation>Sin consultas, elegir color</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="350"/>
         <source>More</source>
         <translation>Más</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="383"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="390"/>
         <source>Cell colors</source>
         <translation>Colores de las celdas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="593"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="600"/>
         <source>Light</source>
         <translation>Claro</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="593"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="600"/>
         <source>Dark</source>
         <translation>Oscuro</translation>
     </message>
@@ -2467,9 +2477,9 @@
 <context>
     <name>lens::app::Tray</name>
     <message>
-        <location filename="../src/app/platform/tray.cpp" line="126"/>
-        <source>Today %1 words</source>
-        <translation>Hoy %1 palabras</translation>
+        <location filename="../src/app/platform/tray.cpp" line="128"/>
+        <source>Today %1 lookups</source>
+        <translation>Hoy %1 consultas</translation>
     </message>
 </context>
 <context>

@@ -385,6 +385,11 @@
         <translation>单词复习</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="179"/>
+        <source>Unavailable while the pet is off.</source>
+        <translation>宠物关闭时不可用。</translation>
+    </message>
+    <message>
         <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="28"/>
         <source>Checking...</source>
         <translation>检查中…</translation>
@@ -1922,8 +1927,8 @@
     </message>
     <message>
         <location filename="../src/app/qml/panels/StatsPopup.qml" line="102"/>
-        <source>Words explained today</source>
-        <translation>今日弹词</translation>
+        <source>Lookups today</source>
+        <translation>今日查阅次数</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/StatsPopup.qml" line="113"/>
@@ -1954,32 +1959,37 @@
 <context>
     <name>TrayMenu</name>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="73"/>
-        <source>words</source>
-        <translation>词</translation>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="66"/>
+        <source>Today&apos;s budget is used up</source>
+        <translation>今日预算已用完</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="149"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="70"/>
         <source>Selection capture is off</source>
         <translation>选区取词已关闭</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="162"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="96"/>
+        <source>lookups</source>
+        <translation>次</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="186"/>
         <source>Statistics</source>
         <translation>今日统计</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="171"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="195"/>
         <source>Language</source>
         <translation>语言</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="189"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="213"/>
         <source>Settings</source>
         <translation>设置</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="205"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="229"/>
         <source>Quit</source>
         <translation>退出</translation>
     </message>
@@ -1998,7 +2008,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/panels/UpdateCard.qml" line="71"/>
-        <source>The installer is ready to run.</source>
+        <source>Checksum verified. The installer is ready to run.</source>
         <translation>安装包已校验，可以安装。</translation>
     </message>
     <message>
@@ -2060,22 +2070,22 @@
 <context>
     <name>WordsListRow</name>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="135"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="139"/>
         <source>%1×</source>
         <translation>%1×</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="181"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="185"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="228"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="232"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="250"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="254"/>
         <source>Remove %1</source>
         <translation>移除 %1</translation>
     </message>
@@ -2276,62 +2286,62 @@
         <translation>弹词总数</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="224"/>
-        <source>%1 words</source>
-        <translation>%1 词</translation>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="228"/>
+        <source>%1 lookups · %2 words</source>
+        <translation>%1 次 · %2 词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="277"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="282"/>
         <source>Mon</source>
         <translation>一</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="277"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="282"/>
         <source>Wed</source>
         <translation>三</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="277"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="282"/>
         <source>Fri</source>
         <translation>五</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="309"/>
-        <source>%1, %2 words</source>
-        <translation>%1，%2 词</translation>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="316"/>
+        <source>%1, %2 lookups</source>
+        <translation>%1，查阅 %2 次</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="326"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="333"/>
         <source>Less</source>
         <translation>少</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="339"/>
-        <source>No words, choose color</source>
-        <translation>无记录，选择配色</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="339"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="346"/>
         <source>Level %1, choose color</source>
         <translation>第 %1 档，选择配色</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="343"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="346"/>
+        <source>No lookups, choose color</source>
+        <translation>无查阅记录，选择配色</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="350"/>
         <source>More</source>
         <translation>多</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="383"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="390"/>
         <source>Cell colors</source>
         <translation>格子配色</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="593"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="600"/>
         <source>Light</source>
         <translation>浅</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="593"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="600"/>
         <source>Dark</source>
         <translation>深</translation>
     </message>
@@ -2458,9 +2468,9 @@
 <context>
     <name>lens::app::Tray</name>
     <message>
-        <location filename="../src/app/platform/tray.cpp" line="126"/>
-        <source>Today %1 words</source>
-        <translation>今日 %1 词</translation>
+        <location filename="../src/app/platform/tray.cpp" line="128"/>
+        <source>Today %1 lookups</source>
+        <translation>今日查阅 %1 次</translation>
     </message>
 </context>
 <context>

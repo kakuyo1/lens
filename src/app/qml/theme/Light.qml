@@ -22,6 +22,7 @@ QtObject {
     readonly property color ink: "#1a1a1f"
     readonly property color on: "#ffffff"
     readonly property color danger: "#b3564a"
+    readonly property color warn: "#b0893c"
     readonly property color popup: "#ffffff"
 
     /**
