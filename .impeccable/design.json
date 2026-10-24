@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-24",
+  "title": "Design System: Lens",
+  "extensions": {
+    "colorMeta": {
+      "bg": { "role": "neutral", "displayName": "页面底", "canonical": "#e9ebef", "tonalRamp": ["oklch(15.0% 0.0026 264.4)", "oklch(26.4% 0.0026 264.4)", "oklch(37.9% 0.0026 264.4)", "oklch(49.3% 0.0026 264.4)", "oklch(60.7% 0.0026 264.4)", "oklch(72.1% 0.0026 264.4)", "oklch(83.6% 0.0026 264.4)", "oklch(95.0% 0.0026 264.4)"] },
+      "panel": { "role": "surface", "displayName": "卡片、菜单、面板", "canonical": "#ffffff", "tonalRamp": ["oklch(15.0% 0 89.9)", "oklch(26.4% 0 89.9)", "oklch(37.9% 0 89.9)", "oklch(49.3% 0 89.9)", "oklch(60.7% 0 89.9)", "oklch(72.1% 0 89.9)", "oklch(83.6% 0 89.9)", "oklch(95.0% 0 89.9)"] },
+      "panel2": { "role": "surface", "displayName": "次级底、输入框、hover", "canonical": "#f1f3f7", "tonalRamp": ["oklch(15.0% 0.0026 264.4)", "oklch(26.4% 0.0026 264.4)", "oklch(37.9% 0.0026 264.4)", "oklch(49.3% 0.0026 264.4)", "oklch(60.7% 0.0026 264.4)", "oklch(72.1% 0.0026 264.4)", "oklch(83.6% 0.0026 264.4)", "oklch(95.0% 0.0026 264.4)"] },
+      "line": { "role": "neutral", "displayName": "主分隔线、描边", "canonical": "#d6dae1", "tonalRamp": ["oklch(15.0% 0.0022 261.5)", "oklch(26.4% 0.0026 261.5)", "oklch(37.9% 0.003 261.5)", "oklch(49.3% 0.0034 261.5)", "oklch(60.7% 0.0038 261.5)", "oklch(72.1% 0.0042 261.5)", "oklch(83.6% 0.0046 261.5)", "oklch(95.0% 0.0049 261.5)"] },
+      "line2": { "role": "neutral", "displayName": "次级分隔线", "canonical": "#e6e9ee", "tonalRamp": ["oklch(15.0% 0.0034 260.5)", "oklch(26.4% 0.0034 260.5)", "oklch(37.9% 0.0034 260.5)", "oklch(49.3% 0.0034 260.5)", "oklch(60.7% 0.0034 260.5)", "oklch(72.1% 0.0034 260.5)", "oklch(83.6% 0.0034 260.5)", "oklch(95.0% 0.0034 260.5)"] },
+      "text": { "role": "neutral", "displayName": "主文字", "canonical": "#1a1a1f", "tonalRamp": ["oklch(15.0% 0.0098 285.9)", "oklch(26.4% 0.0108 285.9)", "oklch(37.9% 0.0118 285.9)", "oklch(49.3% 0.0124 285.9)", "oklch(60.7% 0.0114 285.9)", "oklch(72.1% 0.0104 285.9)", "oklch(83.6% 0.0094 285.9)", "oklch(95.0% 0.0085 285.9)"] },
+      "muted": { "role": "neutral", "displayName": "次要文字", "canonical": "#66666f", "tonalRamp": ["oklch(15.0% 0.0056 286.2)", "oklch(26.4% 0.0063 286.2)", "oklch(37.9% 0.007 286.2)", "oklch(49.3% 0.0078 286.2)", "oklch(60.7% 0.0085 286.2)", "oklch(72.1% 0.0093 286.2)", "oklch(83.6% 0.0087 286.2)", "oklch(95.0% 0.008 286.2)"] },
+      "faint": { "role": "neutral", "displayName": "弱文字、元信息", "canonical": "#73737d", "tonalRamp": ["oklch(15.0% 0.0055 286.2)", "oklch(26.4% 0.0063 286.2)", "oklch(37.9% 0.007 286.2)", "oklch(49.3% 0.0078 286.2)", "oklch(60.7% 0.0085 286.2)", "oklch(72.1% 0.0093 286.2)", "oklch(83.6% 0.0092 286.2)", "oklch(95.0% 0.0084 286.2)"] },
+      "ok": { "role": "accent", "displayName": "状态绿（唯一语义色）", "canonical": "#2f9e6e", "tonalRamp": ["oklch(15.0% 0.0541 169)", "oklch(26.4% 0.0617 169)", "oklch(37.9% 0.0693 169)", "oklch(49.3% 0.0769 169)", "oklch(60.7% 0.0844 169)", "oklch(72.1% 0.092 169)", "oklch(83.6% 0.0934 169)", "oklch(95.0% 0.0858 169)"] },
+      "ok-bg": { "role": "accent", "displayName": "状态绿浅底", "canonical": "#e6f4ee", "tonalRamp": ["oklch(15.0% 0.0033 169)", "oklch(26.4% 0.0039 169)", "oklch(37.9% 0.0045 169)", "oklch(49.3% 0.0051 169)", "oklch(60.7% 0.0057 169)", "oklch(72.1% 0.0063 169)", "oklch(83.6% 0.0069 169)", "oklch(95.0% 0.0075 169)"] },
+      "ok-text": { "role": "accent", "displayName": "状态绿标签文字", "canonical": "#1d7a52", "tonalRamp": ["oklch(15.0% 0.0595 169.2)", "oklch(26.4% 0.0672 169.2)", "oklch(37.9% 0.0749 169.2)", "oklch(49.3% 0.0826 169.2)", "oklch(60.7% 0.0902 169.2)", "oklch(72.1% 0.0975 169.2)", "oklch(83.6% 0.0898 169.2)", "oklch(95.0% 0.0821 169.2)"] },
+      "ink": { "role": "action", "displayName": "主操作色", "canonical": "#1a1a1f", "tonalRamp": ["oklch(15.0% 0.0098 285.9)", "oklch(26.4% 0.0108 285.9)", "oklch(37.9% 0.0118 285.9)", "oklch(49.3% 0.0124 285.9)", "oklch(60.7% 0.0114 285.9)", "oklch(72.1% 0.0104 285.9)", "oklch(83.6% 0.0094 285.9)", "oklch(95.0% 0.0085 285.9)"] },
+      "on": { "role": "action", "displayName": "主操作色上的文字", "canonical": "#ffffff", "tonalRamp": ["oklch(15.0% 0 89.9)", "oklch(26.4% 0 89.9)", "oklch(37.9% 0 89.9)", "oklch(49.3% 0 89.9)", "oklch(60.7% 0 89.9)", "oklch(72.1% 0 89.9)", "oklch(83.6% 0 89.9)", "oklch(95.0% 0 89.9)"] },
+      "danger": { "role": "utility", "displayName": "退出", "canonical": "#b3564a", "tonalRamp": ["oklch(15.0% 0.0441 29.8)", "oklch(26.4% 0.05 29.8)", "oklch(37.9% 0.0559 29.8)", "oklch(49.3% 0.0618 29.8)", "oklch(60.7% 0.0677 29.8)", "oklch(72.1% 0.0736 29.8)", "oklch(83.6% 0.0708 29.8)", "oklch(95.0% 0.0649 29.8)"] },
+      "warn": { "role": "utility", "displayName": "预算耗尽态", "canonical": "#b0893c", "tonalRamp": ["oklch(15.0% 0.0446 89.7)", "oklch(26.4% 0.051 89.7)", "oklch(37.9% 0.0575 89.7)", "oklch(49.3% 0.064 89.7)", "oklch(60.7% 0.0705 89.7)", "oklch(72.1% 0.077 89.7)", "oklch(83.6% 0.0815 89.7)", "oklch(95.0% 0.075 89.7)"] },
+      "tooltip-bg": { "role": "utility", "displayName": "托盘 tooltip 底", "canonical": "#2a2a30", "tonalRamp": ["oklch(15.0% 0.0081 286)", "oklch(26.4% 0.0089 286)", "oklch(37.9% 0.0098 286)", "oklch(49.3% 0.0107 286)", "oklch(60.7% 0.0107 286)", "oklch(72.1% 0.0098 286)", "oklch(83.6% 0.009 286)", "oklch(95.0% 0.0081 286)"] },
+      "popup": { "role": "surface", "displayName": "卡片内部的弹出层", "canonical": "#ffffff", "tonalRamp": ["oklch(15.0% 0 89.9)", "oklch(26.4% 0 89.9)", "oklch(37.9% 0 89.9)", "oklch(49.3% 0 89.9)", "oklch(60.7% 0 89.9)", "oklch(72.1% 0 89.9)", "oklch(83.6% 0 89.9)", "oklch(95.0% 0 89.9)"] },
+      "bubble-bg": { "role": "surface", "displayName": "气泡磨砂填充（86% 白）", "canonical": "#ffffff", "tonalRamp": ["oklch(15.0% 0 89.9)", "oklch(26.4% 0 89.9)", "oklch(37.9% 0 89.9)", "oklch(49.3% 0 89.9)", "oklch(60.7% 0 89.9)", "oklch(72.1% 0 89.9)", "oklch(83.6% 0 89.9)", "oklch(95.0% 0 89.9)"] },
+      "bubble-border": { "role": "surface", "displayName": "气泡玻璃描边（95% 白）", "canonical": "#ffffff", "tonalRamp": ["oklch(15.0% 0 89.9)", "oklch(26.4% 0 89.9)", "oklch(37.9% 0 89.9)", "oklch(49.3% 0 89.9)", "oklch(60.7% 0 89.9)", "oklch(72.1% 0 89.9)", "oklch(83.6% 0 89.9)", "oklch(95.0% 0 89.9)"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "气泡单词", "purpose": "解释气泡的词条头，20 px/700，全系统最大的字。" },
+      "title": { "displayName": "面板标题", "purpose": "面板与浮层的标题行，14 px/700。" },
+      "body": { "displayName": "正文", "purpose": "释义、菜单项、设置项，12–13 px/400。" },
+      "label": { "displayName": "元信息", "purpose": "行标签、字段标签与元信息，11–13 px/400；11 px 仅用于元信息。" },
+      "mono": { "displayName": "等宽数字", "purpose": "数字与金额，Cascadia Code，统计类对齐。" }
+    },
+    "shadows": [
+      { "name": "card-light", "value": "0 2px 6px rgba(20,20,26,.06), 0 24px 60px -24px rgba(20,20,26,.24)", "purpose": "浅色主题卡片、菜单、面板的 resting 阴影。" },
+      { "name": "card-dark", "value": "0 2px 6px rgba(0,0,0,.5), 0 24px 60px -24px rgba(0,0,0,.8)", "purpose": "暗夜主题补强阴影；层次由明度台阶承担，不靠它。" },
+      { "name": "bubble", "value": "0 14px 44px -10px rgba(20,20,26,.26), inset 0 1px 0 #ffffff", "purpose": "气泡浮在桌面上，更近更实，内描高光给玻璃边。" },
+      { "name": "frosted-glass", "value": "0 4px 14px rgb(255 255 255 / 5.5%)", "purpose": "雾面玻璃卡片的柔光，不遮底图。" },
+      { "name": "liquid-glass", "value": "0 1px 2px rgba(10,14,24,.14), 0 22px 54px -20px rgba(10,14,24,.48)", "purpose": "流光玻璃两层阴影，近实远虚，边缘由折射承担。" }
+    ],
+    "motion": [
+      { "name": "press", "value": "150ms", "purpose": "按钮按下与松开、开关跨越、hover 填充到达（QML Tokens.motion.press）。" },
+      { "name": "pop", "value": "180ms", "purpose": "表面出现——面板、菜单、通知——与列表行到达（Tokens.motion.pop）。" },
+      { "name": "bubble", "value": "220ms", "purpose": "气泡判定行折开折合，行程比别的都长（Tokens.motion.bubble）。" },
+      { "name": "easing", "value": "cubic-bezier(0.45, 0, 0.55, 1)", "purpose": "唯一缓动曲线，QML Easing.InOutQuad 的 CSS 近似；减少动效时所有时长解析为 0，行 hover 填充不设过渡。" }
+    ],
+    "themeVariants": {
+      "dark": { "mode": "dark", "source": "DESIGN.md 3.1b / src/app/qml/theme/Dark.qml", "colors": { "bg": "#0b0e13", "panel": "#171c25", "panel2": "#212936", "line": "#36404e", "line2": "#242b37", "text": "#e9edf3", "muted": "#a8b3c2", "faint": "#8a95a6", "ok": "#4dc492", "ok-bg": "#1a4031", "ok-text": "#7ad7b0", "ink": "#eef3fa", "on": "#0c1016", "danger": "#ec9282", "warn": "#d6ac6b", "popup": "#171c25", "bubble-bg": "rgba(30,36,47,0.85)", "bubble-border": "rgba(255,255,255,0.14)" } },
+      "frosted": { "mode": "glass", "source": "DESIGN.md 3.1c", "params": { "blur": "10%", "saturate": "120%", "rim": "20%" }, "colors": { "panel": "rgba(255,255,255,0.40)", "popup": "rgba(255,255,255,0.78)", "panel2": "rgba(18,24,36,0.065)", "line": "rgba(18,24,36,0.15)", "line2": "rgba(18,24,36,0.10)", "text": "#14161c", "muted": "#3c4250", "faint": "#535865", "ink": "#191b21", "on": "#ffffff", "sw-off": "rgba(18,24,36,0.22)" } },
+      "liquid": { "mode": "glass", "source": "DESIGN.md 3.1d", "params": { "refraction": "20px", "blur": "10%", "rim": "10%" }, "radiusCard": "22px", "colors": { "panel": "transparent", "popup": "rgba(248,250,254,0.78)", "panel2": "rgba(18,24,36,0.075)", "line": "rgba(18,24,36,0.16)", "line2": "rgba(18,24,36,0.11)", "text": "#101319", "muted": "#333846", "faint": "#4a4f5e", "ink": "#12151b", "on": "#ffffff", "sw-off": "rgba(18,24,36,0.24)" } }
+    }
+  },
+  "components": [
+    {
+      "name": "Menu Item",
+      "kind": "nav",
+      "refersTo": "dropdown",
+      "description": "托盘菜单 / 子菜单 / 下拉列表的行：hover 瞬时填充，选中项反白。",
+      "html": "<div class=\"ds-menu\"><button class=\"ds-menu-item\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><path d=\"M5 19V9M12 19V5M19 19v-6\"/></svg>今日统计<span class=\"ds-menu-sub\">128 词</span></button><button class=\"ds-menu-item ds-menu-item-selected\">中文</button><button class=\"ds-menu-item ds-menu-item-danger\">退出</button></div>",
+      "css": ".ds-menu{width:240px;background:var(--panel,#fff);border:1px solid var(--line,#d6dae1);border-radius:13px;box-shadow:0 2px 6px rgba(20,20,26,.06),0 24px 60px -24px rgba(20,20,26,.24);padding:6px;display:flex;flex-direction:column;gap:2px}.ds-menu-item{display:flex;align-items:center;gap:9px;padding:8px 11px;border:0;background:transparent;border-radius:9px;font-size:12.5px;color:var(--text,#1a1a1f);font-family:inherit;cursor:pointer;text-align:left}.ds-menu-item svg{width:15px;height:15px;color:var(--muted,#66666f);flex:none}.ds-menu-item:hover{background:var(--panel2,#f1f3f7)}.ds-menu-item:focus-visible{outline:2px solid var(--ink,#1a1a1f);outline-offset:2px}.ds-menu-sub{margin-left:auto;font-size:11px;color:var(--faint,#73737d);font-family:'Cascadia Code',monospace}.ds-menu-item-selected{background:var(--ink,#1a1a1f);color:var(--on,#fff);font-weight:700}.ds-menu-item-danger{color:var(--danger,#b3564a)}"
+    },
+    {
+      "name": "Buttons",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "胶囊按钮：主操作墨底白字，次操作浅底描边；按压缩放 0.97。",
+      "html": "<button class=\"ds-btn-primary\">保存</button> <button class=\"ds-btn-secondary\">恢复默认</button>",
+      "css": ".ds-btn-primary{background:var(--ink,#1a1a1f);color:var(--on,#fff);border:0;border-radius:999px;padding:6px 14px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:transform .15s cubic-bezier(.45,0,.55,1)}.ds-btn-primary:active{transform:scale(.97)}.ds-btn-primary:disabled{opacity:.45;cursor:default}.ds-btn-primary:focus-visible{outline:2px solid var(--ink,#1a1a1f);outline-offset:2px}.ds-btn-secondary{background:var(--panel2,#f1f3f7);color:var(--text,#1a1a1f);border:1px solid var(--line,#d6dae1);border-radius:999px;padding:6px 13px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:transform .15s cubic-bezier(.45,0,.55,1)}.ds-btn-secondary:active{transform:scale(.97)}.ds-btn-secondary:focus-visible{outline:2px solid var(--ink,#1a1a1f);outline-offset:2px}"
+    },
+    {
+      "name": "Status Chip",
+      "kind": "chip",
+      "refersTo": "chip-status",
+      "description": "标签胶囊：新词取状态绿浅底，已会取次级底。",
+      "html": "<span class=\"ds-chip\">新词</span> <span class=\"ds-chip ds-chip-known\">已会</span> <span class=\"ds-chip ds-chip-outline\">预览</span>",
+      "css": ".ds-chip{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--ok-bg,#e6f4ee);color:var(--ok-text,#1d7a52)}.ds-chip-known{background:var(--panel2,#f1f3f7);color:var(--muted,#66666f)}.ds-chip-outline{background:transparent;border:1px solid var(--line,#d6dae1);color:var(--muted,#66666f);padding:1px 7px}"
+    },
+    {
+      "name": "Switch",
+      "kind": "custom",
+      "refersTo": "button-secondary",
+      "description": "34×20 px 胶囊开关，圆钮 16 px，跨越 150 ms。",
+      "html": "<button class=\"ds-switch\" role=\"switch\" aria-checked=\"true\" aria-label=\"动画效果\"></button> <button class=\"ds-switch\" role=\"switch\" aria-checked=\"false\" aria-label=\"开机自启\"></button>",
+      "css": ".ds-switch{width:34px;height:20px;border:0;border-radius:99px;background:var(--sw-off,#d6dae1);position:relative;cursor:pointer;transition:background .15s cubic-bezier(.45,0,.55,1)}.ds-switch::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--panel,#fff);transition:left .15s cubic-bezier(.45,0,.55,1)}.ds-switch[aria-checked=\"true\"]{background:var(--ink,#1a1a1f)}.ds-switch[aria-checked=\"true\"]::after{left:auto;right:2px;background:var(--on,#fff)}.ds-switch:focus-visible{outline:2px solid var(--ink,#1a1a1f);outline-offset:2px}"
+    },
+    {
+      "name": "Input & Segmented",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "输入框与分段控件共用 9 px 圆角、panel2 底、line 描边；焦点描边转 ink。",
+      "html": "<div class=\"ds-seg\"><button aria-pressed=\"true\">手动</button><button aria-pressed=\"false\">自动</button></div><input class=\"ds-input\" placeholder=\"API key\">",
+      "css": ".ds-seg{display:flex;border:1px solid var(--line,#d6dae1);border-radius:9px;overflow:hidden;margin-bottom:10px}.ds-seg button{flex:1;padding:6.5px 0;border:0;background:transparent;font-size:12px;color:var(--muted,#66666f);font-family:inherit;cursor:pointer}.ds-seg button[aria-pressed=\"true\"]{background:var(--ink,#1a1a1f);color:var(--on,#fff);font-weight:700}.ds-seg button:focus-visible{outline:2px solid var(--ink,#1a1a1f);outline-offset:-2px}.ds-input{width:100%;padding:8px 11px;border:1px solid var(--line,#d6dae1);border-radius:9px;background:var(--panel2,#f1f3f7);color:var(--text,#1a1a1f);font-size:12px;font-family:inherit}.ds-input::placeholder{color:var(--faint,#73737d)}.ds-input:focus{outline:none;border-color:var(--ink,#1a1a1f)}"
+    },
+    {
+      "name": "Dropdown",
+      "kind": "custom",
+      "refersTo": "dropdown",
+      "description": "下拉列表：按钮与输入框同规格，列表是弹出层（11 px 圆角、popup 底）。",
+      "html": "<div class=\"ds-dd\"><button class=\"ds-dd-btn\">晴朗白昼<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><path d=\"M6 9l6 6 6-6\"/></svg></button><div class=\"ds-dd-list\"><button class=\"ds-dd-item\" aria-selected=\"true\">晴朗白昼</button><button class=\"ds-dd-item\">静谧暗夜</button><button class=\"ds-dd-item\">雾面玻璃</button></div></div>",
+      "css": ".ds-dd{position:relative;width:200px}.ds-dd-btn{display:flex;align-items:center;gap:8px;width:100%;height:35px;padding:0 11px;border:1px solid var(--line,#d6dae1);border-radius:9px;background:var(--panel2,#f1f3f7);color:var(--text,#1a1a1f);font-size:13px;font-family:inherit;cursor:pointer;text-align:left}.ds-dd-btn svg{margin-left:auto;width:14px;height:14px;color:var(--faint,#73737d)}.ds-dd-btn:focus-visible{outline:2px solid var(--ink,#1a1a1f);outline-offset:2px}.ds-dd-list{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:9;background:var(--popup,#fff);border:1px solid var(--line,#d6dae1);border-radius:11px;box-shadow:0 2px 6px rgba(20,20,26,.06),0 24px 60px -24px rgba(20,20,26,.24);padding:5px}.ds-dd-item{display:flex;align-items:center;width:100%;height:29px;padding:0 11px;border:0;border-radius:8px;background:transparent;font-size:13px;color:var(--text,#1a1a1f);font-family:inherit;cursor:pointer;text-align:left}.ds-dd-item:hover{background:var(--panel2,#f1f3f7)}.ds-dd-item[aria-selected=\"true\"]{background:var(--ink,#1a1a1f);color:var(--on,#fff);font-weight:700}"
+    },
+    {
+      "name": "Explanation Bubble",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "招牌组件：解释气泡。磨砂填充 + 玻璃描边 + 模糊饱和，判定按钮悬停展开。",
+      "html": "<div class=\"ds-bubble\"><div class=\"ds-bub-top\"><span class=\"ds-tag\">新词</span><button class=\"ds-bub-lang\">EN</button></div><div class=\"ds-bub-word\">serendipity<span class=\"ds-ipa\">/ˌserənˈdɪpəti/</span></div><div class=\"ds-bub-def\">偶然遇到美好事物的运气；意外的幸运发现。</div><div class=\"ds-bub-actions\"><button class=\"ds-btn ds-btn-known\">已会</button><button class=\"ds-btn ds-btn-again\">新词</button></div></div>",
+      "css": ".ds-bubble{position:relative;width:270px;padding:14px 16px 12px;background:var(--bubble-bg,rgba(255,255,255,.86));border:1px solid var(--bubble-border,rgba(255,255,255,.95));border-radius:18px;box-shadow:0 14px 44px -10px rgba(20,20,26,.26),inset 0 1px 0 #fff;-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);color:var(--text,#1a1a1f);font-family:'Noto Sans SC','Segoe UI',sans-serif}.ds-bub-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}.ds-tag{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--ok-bg,#e6f4ee);color:var(--ok-text,#1d7a52)}.ds-bub-lang{margin-left:auto;height:22px;padding:0 7px;border:0;border-radius:999px;background:transparent;color:var(--faint,#73737d);font-size:10px;font-weight:700;cursor:pointer}.ds-bub-lang:hover{background:var(--panel2,#f1f3f7);color:var(--text,#1a1a1f)}.ds-bub-lang:focus-visible{outline:2px solid var(--ink,#1a1a1f);outline-offset:2px}.ds-bub-word{font-size:20px;font-weight:700;letter-spacing:-.01em}.ds-ipa{margin-left:7px;font-size:12.5px;font-weight:400;color:var(--faint,#73737d)}.ds-bub-def{font-size:12.5px;color:var(--muted,#66666f);line-height:1.55;margin-top:6px}.ds-bub-actions{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line2,#e6e9ee)}.ds-btn{padding:6px 13px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid transparent;cursor:pointer;transition:transform .15s cubic-bezier(.45,0,.55,1)}.ds-btn:active{transform:scale(.97)}.ds-btn:focus-visible{outline:2px solid var(--ink,#1a1a1f);outline-offset:2px}.ds-btn-known{background:var(--panel2,#f1f3f7);color:var(--text,#1a1a1f);border-color:var(--line,#d6dae1)}.ds-btn-again{background:var(--ink,#1a1a1f);color:var(--on,#fff)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "安静的书页边注（The Quiet Margin）",
+    "overview": "纯托盘常驻的 Windows 桌面英语学习工具，无主窗口，全部交互发生在若干独立表面。每一个表面都像书页边上的一条注：出现时不遮正文、离开时不留痕，视觉重量全部交给内容本身。设计语言：简约、现代、柔软；灰黑白主调，唯一语义色为状态绿。\n\n中性灰阶是这套系统的底色——冷调、低饱和、三档面（页面 / 卡片 / 次级底）拉开层次；玻璃两套主题让卡片随读者的桌面变色，但字重、圆角、动效的纪律不变。柔软来自圆角阶梯与胶囊控件，不来自装饰。",
+    "keyCharacteristics": [
+      "灰黑白冷调主调，状态绿是唯一语义色",
+      "四套主题（晴朗白昼 / 静谧暗夜 / 雾面玻璃 / 流光玻璃）同名换值，组件不感知主题",
+      "字重只有 400 与 700 两档；数字与金额等宽",
+      "圆角只取阶梯值；卡片 18 px 起",
+      "动效只用于反馈与状态变化，hover 无过渡",
+      "表面是浮层不是页面：无网格、无主窗口、互相排斥"
+    ],
+    "rules": [
+      { "name": "The Same Names Rule", "body": "主题切换只换值、不换名。组件一律引用语义令牌，任何表面不写死色值。", "section": "colors" },
+      { "name": "The One Green Rule", "body": "ok 家族是唯一语义色。任何新状态不得引入第二个色相；警示用既有 warn / danger，不添新绿。", "section": "colors" },
+      { "name": "The Two Weights Rule", "body": "全系统只有 400 与 700 两档字重，任何表面不写中间值；中英混排只有 700 才两边同粗。", "section": "typography" },
+      { "name": "The Luminance Ladder Rule", "body": "暗夜的三档面是一整个台阶而非四舍五入（bg L* 3.9 → panel 10.2 → panel2 16.4）；暗色下不得用 1–2 个 sRGB 步的差别表达层次。", "section": "elevation" },
+      { "name": "The Ladder Rule", "body": "圆角与阴影只取阶梯值，不自定义中间值；新增控件落进最近的一档。", "section": "shapes" }
+    ],
+    "dos": [
+      "Do：设计前先读该表面的 UI-SPEC.md §4.x；跨表面的互斥、拖动、接力与工作区收边见 §4.0",
+      "Do：设计先落 ui-prototypes/ 原型；落地后的视觉验收走 dev surface（docs/qa.md），不以截图和鼠标注入为第一手段",
+      "Do：只用 Colors 的语义令牌；主题切换只换值、不换名",
+      "Do：让四套主题都成立：玻璃主题作用于全部表面（桌面宠物与取词蒙版除外），玻璃表面排除抓屏；卡片内部的弹出层与浮在桌面上的浮层不是同一档（3.1c、3.1d）",
+      "Do：字重只取 400 / 700；数字与金额用等宽字",
+      "Do：圆角与阴影只取阶梯值（Shapes、Elevation & Depth）",
+      "Do：保证正文、次要、弱文字在各自底图上过 WCAG AA；实测数字见 docs/metrics/",
+      "Do：所有可点击元素有焦点态（QML：activeFocus 高亮）",
+      "Do：界面文案一律英文源串并经 tr()"
+    ],
+    "donts": [
+      "Don't：新增表面：每块界面都必须是既有表面；表面清单、出现时机与生命周期见 UI-SPEC.md §4.0，新增表面先改 §4.0 并记 ADR",
+      "Don't：写死色值或引入第二个语义色相",
+      "Don't：使用 600 / 650 或任何中间字重",
+      "Don't：给 hover 加过渡（行填充瞬时点亮、瞬时熄灭）",
+      "Don't：在动效里写毫秒数：时长与缓动只取 Tokens.motion",
+      "Don't：用小于 11 px 的字号；11 px 仅用于元信息，正文不小于 12.5 px",
+      "Don't：在本规格里维护文案表：读者可见文案以 i18n/*.ts 为准，本文件的中文是设计意图"
+    ]
+  }
+}

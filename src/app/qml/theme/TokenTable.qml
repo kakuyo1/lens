@@ -1,7 +1,7 @@
 import QtQuick
 
 /**
- * The colour, type and motion table a window reads, from DESIGN.md section 3 and UI-SPEC.md's motion table.
+ * The colour, type and motion table a window reads, from DESIGN.md's Colors and Typography and UI-SPEC.md's motion table.
  *
  * Each surface window owns one instance, a SurfaceTokens that forwards the stored theme from Tokens; the glass is on
  * only in the windows that set glassEnabled. Every instance is this file, so a role means the same thing in each and
