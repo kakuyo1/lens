@@ -16,6 +16,8 @@
  *   - @c dev:   the dev surface's `state` answer lists it (docs/adr/0068).
  *   - @c open:  the Main.qml method that raises it for a dev `surface show` command; a surface a
  *               flow raises rather than a click carries none.
+ *   - @c route: the window method that walks a dev `surface route` target into the panel's own
+ *               pages; a surface with no internal navigation carries none (docs/adr/0103).
  *
  * Deliberately Qt-free: the dev grammar is core, and core has no Qt. What a surface looks like --
  * its placement, its shadow margin, the protocol every surface hand-implements -- is not here; this
@@ -41,6 +43,7 @@ struct Row {
     bool             dev;       ///< The dev surface's `state` answer lists it.
     char const*      open;      ///< The Main.qml method a dev `surface show` calls, or nullptr.
     bool             takesFrom; ///< That method takes the `from` element a click came from.
+    char const*      route;     ///< The window method a dev `surface route` target goes to, or nullptr.
 };
 
 /**
@@ -52,30 +55,31 @@ struct Row {
  */
 inline constexpr Row kRows[]{
     // The panels and the action surfaces: a sheet each, dev-reported, and most raised by a click the
-    // dev surface can replay.
-    {"settings", true, true, "showSettings", true},
-    {"tray", true, true, "showTrayMenu", false},
-    {"stats", true, true, "showStats", true},
-    {"words", true, true, "showWords", true},
-    {"yearWords", true, true, "showYearWords", true},
-    {"cost", true, true, "showCost", true},
+    // dev surface can replay. The settings panel is also the one that routes: its catalog and sub-pages
+    // are pages of its own (docs/adr/0103).
+    {"settings", true, true, "showSettings", true, "routeTo"},
+    {"tray", true, true, "showTrayMenu", false, nullptr},
+    {"stats", true, true, "showStats", true, nullptr},
+    {"words", true, true, "showWords", true, nullptr},
+    {"yearWords", true, true, "showYearWords", true, nullptr},
+    {"cost", true, true, "showCost", true, nullptr},
     // Raised by a flow rather than a click, so no dev opener; still a sheet and dev-reported.
-    {"bubble", true, true, nullptr, false},
-    {"selectionBar", true, true, nullptr, false},
-    {"notice", true, true, nullptr, false},
-    {"update", true, true, nullptr, false},
-    {"removal", true, true, nullptr, false},
+    {"bubble", true, true, nullptr, false, nullptr},
+    {"selectionBar", true, true, nullptr, false, nullptr},
+    {"notice", true, true, nullptr, false, nullptr},
+    {"update", true, true, nullptr, false, nullptr},
+    {"removal", true, true, nullptr, false, nullptr},
     // The review sign: the dev surface reports it, but the review flow raises it and it holds no
     // sheet of its own -- its answer card is a Bubble, which has one (docs/adr/0067).
-    {"reviewSign", false, true, nullptr, false},
+    {"reviewSign", false, true, nullptr, false, nullptr},
     // The preview cards: glass-only. The settings preview's card is a second Bubble window; the
     // theme, level and action-bar dropdowns are transient cards beside their panel; the refresh
     // tier's note is a fifth. Each is its own window, so each takes its own sheet (docs/adr/0041).
-    {"preview", true, false, nullptr, false},
-    {"themePreview", true, false, nullptr, false},
-    {"vocabPreview", true, false, nullptr, false},
-    {"selectionBarPreview", true, false, nullptr, false},
-    {"notePreview", true, false, nullptr, false},
+    {"preview", true, false, nullptr, false, nullptr},
+    {"themePreview", true, false, nullptr, false, nullptr},
+    {"vocabPreview", true, false, nullptr, false, nullptr},
+    {"selectionBarPreview", true, false, nullptr, false, nullptr},
+    {"notePreview", true, false, nullptr, false, nullptr},
 };
 
 /**
@@ -131,6 +135,9 @@ constexpr bool tableIsSound()
             return false;
         // A dev opener only makes sense for a window the dev surface can find and report.
         if (row.open != nullptr and not row.dev)
+            return false;
+        // A route method is the same kind of dev entry as an opener, so it lives by the same rule.
+        if (row.route != nullptr and not row.dev)
             return false;
         // `takesFrom` qualifies an opener; without one it says nothing.
         if (row.takesFrom and row.open == nullptr)

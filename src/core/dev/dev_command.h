@@ -28,6 +28,7 @@ enum class Verb : std::uint8_t {
     SurfaceShow,
     SurfaceHide,
     SurfaceHideAll,
+    SurfaceRoute,
     Wait,
     State,
     Version,
@@ -95,6 +96,8 @@ using SettingValue = std::variant<std::string, int, bool>;
 struct Command {
     Verb        verb{Verb::Help};
     std::string surface;
+    /// The `<category>` or `<category>/<page>` a `surface route` names; the panel's own method splits it.
+    std::string target;
     WaitFor     waitFor{WaitFor::Visible};
     /// How long a `wait <n>s` line holds, in whole seconds; unread by every other wait.
     int          waitSeconds{0};

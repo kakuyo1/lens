@@ -5,7 +5,8 @@
 ## 驱动顺序
 
 1. **开发面（首选）**。状态、触发、可见性与等待先用 `scripts/qa/lens-dev.ps1` 的 `--dev-script`（或
-   `--dev-pipe`）回答：`surface show|hide` 打开和收起表面，`setting set` 走真实 setter，`state` 读
+   `--dev-pipe`）回答：`surface show|hide` 打开和收起表面，`surface route` 走面板自己的导航函数进分类与
+   子页（ADR 0103），`setting set` 走真实 setter，`state` 读
    可见窗口与表面状态，`wait visible|hidden|painted|<n>s` 等一等。它不移动指针、不抓屏，答案是一条条
    JSON，脚本退出后仍留在 `-Out` 里。宠物也有两把真实 setter：`setting set petEnabled on|off` 与
    `setting set pet <id>`，`state` 的 `pet` 报 `id` / `enabled` / `shown` / `action`，所以进场、换宠与

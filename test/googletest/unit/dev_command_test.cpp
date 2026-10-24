@@ -38,6 +38,32 @@ TEST(DevCommandParse, HideAllTakesNoName)
     EXPECT_FALSE(parseCommand("surface hide-all settings").command);
 }
 
+TEST(DevCommandParse, SurfaceRouteNamesTheSurfaceAndItsTarget)
+{
+    auto const category = parseCommand("surface route settings learning");
+    ASSERT_TRUE(category.command);
+    EXPECT_EQ(category.command->verb, Verb::SurfaceRoute);
+    EXPECT_EQ(category.command->surface, "settings");
+    EXPECT_EQ(category.command->target, "learning");
+
+    // A sub-page rides the same token: the panel splits the path and walks its own steps.
+    auto const page = parseCommand("surface route settings general/font");
+    ASSERT_TRUE(page.command);
+    EXPECT_EQ(page.command->target, "general/font");
+
+    // Only a surface whose row names a route method takes a target, and it takes exactly one.
+    for (auto const* line : {
+             "surface route tray learning",
+             "surface route nowhere general/font",
+             "surface route settings",
+             "surface route settings general font",
+         }) {
+        auto const parsed = parseCommand(line);
+        EXPECT_FALSE(parsed.command) << line;
+        EXPECT_FALSE(parsed.error.empty()) << line;
+    }
+}
+
 TEST(DevCommandParse, WaitReadsItsConditionAndSurface)
 {
     auto const painted = parseCommand("wait painted:settings");

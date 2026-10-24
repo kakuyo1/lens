@@ -244,8 +244,18 @@ Parse parseCommand(std::string_view line)
     if (verb == "surface") {
         if (args == 1 and tokens[1] == "hide-all")
             return accept({.verb = Verb::SurfaceHideAll});
+        if (args == 3 and tokens[1] == "route") {
+            // The route method is the surface table's to name (core/domain/surface_table.h); whether the
+            // target itself names a page is the panel's to answer, so the grammar does not spell it here.
+            auto const* const row = lens::core::surface::find(tokens[2]);
+            if (row == nullptr)
+                return refuse("unknown surface: " + std::string{tokens[2]});
+            if (row->route == nullptr)
+                return refuse("surface takes no route: " + std::string{tokens[2]});
+            return accept({.verb = Verb::SurfaceRoute, .surface = std::string{tokens[2]}, .target = std::string{tokens[3]}});
+        }
         if (args != 2 or (tokens[1] != "show" and tokens[1] != "hide"))
-            return refuse("surface takes show <name>, hide <name> or hide-all");
+            return refuse("surface takes show <name>, hide <name>, hide-all or route <name> <target>");
         if (not isSurfaceName(tokens[2]))
             return refuse("unknown surface: " + std::string{tokens[2]});
         auto const shown = tokens[1] == "show";
@@ -316,6 +326,7 @@ nlohmann::json helpJson()
                          "surface show <name>",
                          "surface hide <name>",
                          "surface hide-all",
+                         "surface route <name> <category>[/<page>]",
                          "wait visible:<name> | hidden:<name> | painted:<name> | <n>s",
                          "selection <x>,<y>,<w>,<h> \"<text>\"",
                          "setting set <name> <value>",

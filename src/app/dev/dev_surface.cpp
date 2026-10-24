@@ -79,6 +79,32 @@ constexpr std::array<Opener, openerCount()> kOpeners = [] {
     return openers;
 }();
 
+/// A surface's navigation entry: the window method a `surface route` target walks. Read off the surface rows
+/// like the openers, so a surface that grows internal pages is a row that names one more method.
+struct Router {
+    std::string_view surface;
+    char const*      method;
+};
+
+/// How many rows carry a dev route, counted like the openers are.
+constexpr std::size_t routerCount()
+{
+    std::size_t count = 0;
+    for (lens::core::surface::Row const& row : lens::core::surface::kRows)
+        if (row.route != nullptr)
+            ++count;
+    return count;
+}
+
+constexpr std::array<Router, routerCount()> kRouters = [] {
+    std::array<Router, routerCount()> routers{};
+    std::size_t                       index = 0;
+    for (lens::core::surface::Row const& row : lens::core::surface::kRows)
+        if (row.route != nullptr)
+            routers[index++] = Router{.surface = row.name, .method = row.route};
+    return routers;
+}();
+
 nlohmann::json success()
 {
     return {{"ok", true}};
@@ -222,6 +248,8 @@ nlohmann::json DevSurface::execute(core::dev::Command const& command)
             return hide(command.surface);
         case core::dev::Verb::SurfaceHideAll:
             return hideAll();
+        case core::dev::Verb::SurfaceRoute:
+            return route(command.surface, command.target);
         case core::dev::Verb::State:
             return state();
         case core::dev::Verb::Version:
@@ -277,6 +305,28 @@ nlohmann::json DevSurface::hideAll()
             QMetaObject::invokeMethod(surfaceWindow, "dismiss");
     }
     return success();
+}
+
+nlohmann::json DevSurface::route(std::string const& surface, std::string const& target) const
+{
+    auto const router = std::ranges::find(kRouters, surface, &Router::surface);
+    if (router == kRouters.end())
+        return failure("surface route " + surface + ": no command routes it yet");
+    auto* const panel = window(surface);
+    if (panel == nullptr)
+        return failure("surface route " + surface + ": no such window");
+    // Navigation of a hidden panel would be discarded on the next show, so it is refused here, where the
+    // reason can name it, rather than left to the method's own blanket refusal for unknown targets.
+    if (auto const* const panelWindow = qobject_cast<QQuickWindow*>(panel); panelWindow != nullptr and not panelWindow->isVisible())
+        return failure("surface route " + surface + ": the panel is down; show it first");
+    // The method says whether the target named a page it knows: a hidden panel's navigation would be
+    // discarded on the next show, and an unknown category walks nowhere, so both are its refusal to give.
+    QVariant   accepted{false};
+    bool const invoked = QMetaObject::invokeMethod(panel, router->method, Q_RETURN_ARG(QVariant, accepted), Q_ARG(QVariant, QString::fromStdString(target)));
+    if (not invoked)
+        return failure("surface route " + surface + ": " + router->method + " is not callable");
+    return accepted.toBool() ? success()
+                             : failure("surface route " + surface + ": " + target + " names no page the panel offers");
 }
 
 nlohmann::json DevSurface::injectSelection(core::dev::Command const& command)

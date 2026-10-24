@@ -105,6 +105,25 @@ Window {
         previewKey = "";
     }
 
+    /// @brief Open a category page, or a sub-page under it, by "category" or "category/page" -- the path the
+    ///        dev surface's `surface route` names (docs/adr/0103), which has no pointer to click the rows with.
+    ///        Both steps are the calls a click makes -- openCategory for the catalog's row, openRoute for the
+    ///        page's link row -- so the state reached is the reader's, like the pet's right-click that lands on
+    ///        the extensions category (Main.qml).
+    /// @return False when the panel is down or the path's category is not one the catalog offers.
+    function routeTo(path) {
+        if (!settings.visible)
+            return false;
+        const categories = ["general", "learning", "capture", "model", "budget", "extensions", "about"];
+        const steps = path.split("/");
+        if (!categories.includes(steps[0]))
+            return false;
+        openCategory(steps[0]);
+        if (steps.length > 1)
+            openRoute(steps[1]);
+        return true;
+    }
+
     /// How far the preview card keeps clear of this panel and of the screen's edges: the 8 px every
     /// surface keeps (SurfaceHost.qml's screenMargin).
     readonly property int previewMargin: 8
