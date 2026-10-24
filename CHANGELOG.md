@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 1.8.5 - 2026-10-24
+
+The desktop pet becomes more of a companion: every pet keeps its own wardrobe, size and home while
+the window spot stays with the reader, scenes enter with a short choreography instead of a cut,
+accessories tilt which scene the pet chooses, and the pet answers the pointer while hiding, follows
+the review sign, and shows its mood in small gestures.
 
 ### Added
 
