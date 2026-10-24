@@ -77,6 +77,31 @@ Item {
             return Number(matched[1]);
         }
 
+        /// The explanation body is the second text step on an opaque card and the first on glass:
+        /// the second step is not AA over the 40% white glass (docs/adr/0106).
+        function test_glassBodyUsesTheReadableTextStep() {
+            const previous = Tokens.theme;
+            Tokens.theme = "light";
+            let bubble = opened();
+            let definition = Util.findAll(bubble, function (o) {
+                return o.objectName === "definitionText";
+            })[0];
+            verify(definition, "the bubble has no definition line");
+            compare(definition.color.toString(), bubble.tokens.muted.toString(),
+                    "the solid card's body left its second text step");
+            bubble.visible = false;
+
+            Tokens.theme = "frosted";
+            bubble = opened();
+            compare(bubble.tokens.glassMode, "frosted");
+            definition = Util.findAll(bubble, function (o) {
+                return o.objectName === "definitionText";
+            })[0];
+            compare(definition.color.toString(), bubble.tokens.text.toString(),
+                    "the glass card's body did not take the first text step");
+            Tokens.theme = previous;
+        }
+
         /// The verdict row says what its two choices do once, on the first opening. The sentence
         /// is latched for that opening even though the document flag flips at once, and the next
         /// bubble's row carries the two pills alone.

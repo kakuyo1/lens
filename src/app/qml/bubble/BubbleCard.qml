@@ -202,9 +202,9 @@ Item {
                          : root.bubble.type === "sentence" ? qsTr("Sentence")
                          : root.bubble.type === "word" ? (root.bubble.status === "known" ? qsTr("Known") : qsTr("New"))
                          : ""
-                    color: root.bubble.preview ? root.bubble.tokens.muted
-                         : root.bubble.type === "sentence" ? root.bubble.tokens.muted
-                         : root.bubble.status === "known" ? root.bubble.tokens.muted
+                    color: root.bubble.preview ? root.bubble.tokens.body
+                         : root.bubble.type === "sentence" ? root.bubble.tokens.body
+                         : root.bubble.status === "known" ? root.bubble.tokens.body
                          : root.bubble.tokens.okText
                     font.pixelSize: 11
                     font.weight: Font.Bold
@@ -238,7 +238,7 @@ Item {
                 onWordTapped: lemma => chainPanel.step(lemma)
                 animated: root.bubble.revealAnimation
                 characterMs: root.bubble.revealCharacterMs
-                englishColor: root.bubble.tokens.muted
+                englishColor: root.bubble.tokens.body
                 translationColor: root.bubble.tokens.text
                 separatorColor: root.bubble.tokens.line2
                 family: root.bubble.englishFont
@@ -250,13 +250,14 @@ Item {
             // (UI-SPEC.md 4.3).
             ChainText {
                 id: definitionText
+                objectName: "definitionText"
                 visible: root.bubble.atRoot && root.bubble.senses.length === 0 && root.bubble.english !== ""
                 animated: root.bubble.revealAnimation
                 characterMs: root.bubble.revealCharacterMs
                 width: parent.width
                 topPadding: 6
                 text: root.bubble.english
-                color: root.bubble.type === "translation" ? root.bubble.tokens.text : root.bubble.tokens.muted
+                color: root.bubble.type === "translation" ? root.bubble.tokens.text : root.bubble.tokens.body
                 family: root.bubble.englishFont
                 pixelSize: root.bubble.sizeAt(13)
                 lineHeight: 1.55
@@ -320,7 +321,7 @@ Item {
                 Text {
                     objectName: "etymologyLabel"
                     text: qsTr("Etymology")
-                    color: root.bubble.tokens.muted
+                    color: root.bubble.tokens.body
                     font.pixelSize: 11
                     font.weight: Font.Bold
                 }
@@ -332,7 +333,7 @@ Item {
                     characterMs: root.bubble.revealCharacterMs
                     width: parent.width
                     text: root.bubble.etymology
-                    color: root.bubble.tokens.muted
+                    color: root.bubble.tokens.body
                     family: root.bubble.englishFont
                     pixelSize: root.bubble.sizeAt(12)
                     lineHeight: 1.5
@@ -359,7 +360,7 @@ Item {
                 Text {
                     objectName: "exampleLabel"
                     text: qsTr("Example")
-                    color: root.bubble.tokens.muted
+                    color: root.bubble.tokens.body
                     font.pixelSize: 11
                     font.weight: Font.Bold
                 }
@@ -371,7 +372,7 @@ Item {
                     characterMs: root.bubble.revealCharacterMs
                     width: parent.width
                     text: root.bubble.example
-                    color: root.bubble.tokens.muted
+                    color: root.bubble.tokens.body
                     family: root.bubble.englishFont
                     pixelSize: root.bubble.sizeAt(12)
                     lineHeight: 1.5

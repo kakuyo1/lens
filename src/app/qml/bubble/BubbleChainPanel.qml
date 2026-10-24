@@ -187,7 +187,7 @@ Item {
             spans: root.stepSpans
             pixelSize: Math.round(13 * root.fontScale)
             family: root.family
-            color: root.tokens.muted
+            color: root.tokens.body
             lineHeight: 1.55
             animated: root.bubble.revealAnimation
             characterMs: root.bubble.revealCharacterMs

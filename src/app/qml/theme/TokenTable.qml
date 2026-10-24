@@ -47,6 +47,10 @@ QtObject {
     readonly property color text: tokenColor("text", lightTheme.text)
     readonly property color muted: tokenColor("muted", lightTheme.muted)
     readonly property color faint: tokenColor("faint", lightTheme.faint)
+    /// The colour an explanation's body is read in. On the solid themes it is the second text
+    /// step; on glass it is the first, because the second step is not AA over a 40% white card
+    /// (docs/adr/0106). Hierarchy there comes from size, weight and position.
+    readonly property color body: glassMode === "" ? muted : text
     readonly property color ok: tokenColor("ok", lightTheme.ok)
     readonly property color okBg: tokenColor("okBg", lightTheme.okBg)
     readonly property color okText: tokenColor("okText", lightTheme.okText)
