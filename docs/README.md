@@ -20,7 +20,7 @@
 | 改界面文案或翻译 | `AGENTS.md` 的 Translations | `i18n/*.ts` |
 | 查一个术语 | `GLOSSARY.md` | 词条指向的 owner 文档 |
 | 查某个决定为什么这样做 | `docs/adr/README.md` | 对应 ADR |
-| 查被取代的旧规格或阶段计划 | `docs/history/` | 对应 ADR |
+| 查被取代的旧规格、阶段计划或 2026-10 的 critique | `docs/history/` | `docs/history/impeccable/`、对应 ADR |
 | 改 HTML 原型 | `ui-prototypes/README.md` | `DESIGN.md`、`UI-SPEC.md` |
 
 ## 权威分层
@@ -57,6 +57,7 @@
 | `CODING_STANDARDS.md` | 审查阶段能判的判断题 | 机械格式检查 |
 | `docs/adr/` | 重大取舍与代价 | 当前规格全文 |
 | `docs/history/` | 被取代的阶段规格 | 当前行为 |
+| `docs/history/impeccable/` | 2026-10 六面 critique 的最终报告、过程稿与修复计划 | 当前行为、当前规格 |
 | `scripts/README.md` | 脚本目录、验证入口、发布命令 | 测试口径细节 |
 | `ui-prototypes/` | 每张表面的 HTML 对照稿 | 行为契约 |
 | `CHANGELOG.md` / `TODO.md` | 已发布变更 / 待做事项 | 设计依据 |
