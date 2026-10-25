@@ -47,7 +47,7 @@ struct ExplainRequest {
 };
 
 /// @brief One frequency-ordered word sense; translation is in the requested output language.
-/// @note `imageable` and `imageQuery` are the picture advice the word channel carries (IMAGES.md):
+/// @note `imageable` and `imageQuery` are the picture advice the word channel carries:
 ///       whether a photograph can make this sense clearer, and the two-to-five English words an
 ///       image search runs with. Advisory only; `imageable` false, the default and the reading of
 ///       an absent field, draws no picture entry.
@@ -85,8 +85,7 @@ struct Explanation {
     QStringList collocations;
     /// @note The picture advice in its singular shape: a word answered without `senses` carries the
     ///       pair here, as it carries `en` / `zh`. The card reads the per-sense copy in `senses`;
-    ///       this one is folded into `senses` on parse so nothing downstream sees two shapes
-    ///       (IMAGES.md 3.3).
+    ///       this one is folded into `senses` on parse so nothing downstream sees two shapes.
     bool    imageable = false;
     QString imageQuery;
 };

@@ -256,6 +256,18 @@ Window {
         }
     }
 
+    /// @brief Give the reader a fresh reading window after a screen-reader press.
+    ///
+    /// The countdown knows the pointer and a drag; it cannot see the AT review pass. A press
+    /// arriving through an `Accessible.onPressAction` refills the clock, the same way arriving
+    /// with the pointer holds it, so a card read aloud does not disappear mid-sentence.
+    function readerActed() {
+        if (!countsDown)
+            return;
+        remainingMs = dismissAfterMs;
+        updateCountdown();
+    }
+
     onHoveringChanged: {
         updateCountdown();
         if (verdictButtons && status !== "")

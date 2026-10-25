@@ -279,6 +279,17 @@ Item {
             Util.surfaceHost(main).showStats();
             stats.wordsRequested();
             compare(words.visible, true, "the words arrow did not open the words panel");
+            compare(words.filter, 0, "the all-time arrow should open the unfiltered list");
+
+            Util.surfaceHost(main).showStats();
+            stats.knownRequested();
+            compare(words.visible, true, "the Known row did not open the words panel");
+            compare(words.filter, 1, "the Known row did not carry its filter");
+
+            Util.surfaceHost(main).showStats();
+            stats.newRequested();
+            compare(words.visible, true, "the New row did not open the words panel");
+            compare(words.filter, 2, "the New row did not carry its filter");
 
             words.backRequested();
             compare(stats.visible, true, "the words panel's back arrow did not return to statistics");

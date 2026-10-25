@@ -19,7 +19,7 @@
  * The rules live in picture_pure.h, the source in src/pictures/, the cache in PictureCache; this is
  * the QObject the card reads. It owns one lookup at a time -- the strip shows one sense -- and it is
  * the only place that knows what the reader is looking at, so a lookup that arrives after the reader
- * moved on is still cached and simply not drawn (IMAGES.md 4.2).
+ * moved on is still cached and simply not drawn.
  */
 
 namespace lens::app {
@@ -48,7 +48,9 @@ public:
      * is how the row that asked for the strip tells its own answer from another's; @c items is one
      * entry per picture, each carrying `image` (a local file URL the strip draws), `caption`,
      * `author`, `license`, `licenseUrl`, `page` and `source`; @c fallback is the image-search address
-     * the failure button opens. Nothing here is ever a transport's own words.
+     * the failure button opens; @c failure names why the last lookup failed (`no-results`,
+     * `unreachable` or `download`) and is empty otherwise. Nothing here is ever a transport's own
+     * words.
      */
     QVariantMap pictures() const;
 
@@ -92,7 +94,7 @@ private:
     /// @brief One lookup, alive until its last answer arrives.
     ///
     /// Held by the callbacks rather than by this object, so a lookup the reader has moved on from
-    /// still completes and still writes its pictures to the cache (IMAGES.md 4.2).
+    /// still completes and still writes its pictures to the cache.
     struct Fetch;
 
     void startSearch(const std::shared_ptr<Fetch>& fetch);
@@ -102,13 +104,15 @@ private:
 
     pictures::PictureSource& source_;
     pictures::PictureCache&  cache_;
-    /// The ceiling on one lookup: search, downloads and decode together (IMAGES.md 2.2).
+    /// The ceiling on one lookup: search, downloads and decode together.
     QTimer deadline_;
     /// Which lookup owns the strip. Every answer carries the number it was asked under, and one that
     /// is not the current number is drawn nowhere.
-    int                    requestId_ = 0;
-    QString                query_;
-    QString                state_ = QStringLiteral("idle");
+    int     requestId_ = 0;
+    QString query_;
+    QString state_ = QStringLiteral("idle");
+    /// Why the last lookup failed; empty whenever the strip is not in `failed`.
+    QString                failure_;
     QVariantList           items_;
     std::shared_ptr<Fetch> live_;
 };

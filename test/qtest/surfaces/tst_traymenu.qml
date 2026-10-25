@@ -245,6 +245,33 @@ Item {
             restore();
         }
 
+        /// The menu is a surface the reader opened on purpose, so it takes the keyboard; the first
+        /// row is where that keyboard starts. Escape is a ladder: the language list folds before
+        /// the menu goes, so a reader who opened the list does not lose the whole menu with it.
+        function test_theMenuTakesTheKeyboardAndEscapeUnwindsInOrder() {
+            const menu = make();
+            menu.visible = true;
+            wait(20);
+
+            verify(menu.focusFirstRow(), "the first row did not take the keyboard");
+            compare(menu.activeFocusItem.label, qsTr("Statistics"),
+                    "the keyboard did not start on the first menu row");
+
+            const language = rowWith(menu, qsTr("Language"));
+            language.forceActiveFocus();
+            keyClick(Qt.Key_Return);
+            tryCompare(menu, "listVisible", true);
+
+            keyClick(Qt.Key_Escape);
+            compare(menu.listVisible, false, "Escape did not fold the language list first");
+            compare(menu.visible, true, "Escape took the menu down with the language list");
+            tryCompare(menu, "activeFocusItem", language, 1000,
+                       "the keyboard did not return to the Language row after the fold");
+
+            keyClick(Qt.Key_Escape);
+            tryCompare(menu, "visible", false, 1000, "the second Escape left the menu up");
+        }
+
         /// The list unfolds when the pointer reaches its row and folds again a moment after it
         /// leaves -- the delay is what lets the pointer cross the gap between the two cards.
         function test_hoveringTheLanguageRowUnfoldsTheListAndLeavingFoldsItAgain() {

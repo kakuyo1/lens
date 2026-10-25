@@ -15,6 +15,8 @@ Item {
 
     property var actions: []
     property bool shown: false
+    /// 1 on the first arrival of this shape in a session; 0.5 afterwards (ADR 0109).
+    property real entranceFactor: 1
     property var glassSheet: null
 
     // qmllint disable missing-property
@@ -145,7 +147,7 @@ Item {
         target: root
         property: "enter"
         to: 1
-        duration: root.tokens.motion.pop * 4
+        duration: root.tokens.motion.pop * 4 * root.entranceFactor
         easing.type: Easing.OutCubic
     }
 

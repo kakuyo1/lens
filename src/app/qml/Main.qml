@@ -127,6 +127,8 @@ Window {
         id: statsPopup
         onCostRequested: surfaceHost.showCost(statsPopup)
         onWordsRequested: surfaceHost.showWords(statsPopup)
+        onKnownRequested: surfaceHost.showWords(statsPopup, 1)
+        onNewRequested: surfaceHost.showWords(statsPopup, 2)
         onWidthChanged: surfaceHost.holdCorner(statsPopup)
         onHeightChanged: surfaceHost.holdCorner(statsPopup)
     }

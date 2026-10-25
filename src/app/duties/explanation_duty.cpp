@@ -526,7 +526,7 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
                                       {"text", context.language == "en" ? QString{} : selected(sense.en, sense.zh, sense.translation)},
                                       // The picture advice for this row: the card draws a Pictures entry only
                                       // for a row whose `imageable` is true, and the duty runs the search
-                                      // with `imageQuery` (IMAGES.md 2.1, 4.2). Neither follows the
+                                      // with `imageQuery`. Neither follows the
                                       // explanation language; the Pictures switch is what clears them here.
                                       {"imageable", showPictures && sense.imageable},
                                       {"imageQuery", showPictures ? sense.imageQuery : QString{}}});

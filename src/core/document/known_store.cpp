@@ -74,7 +74,7 @@ std::optional<WordCache> readCache(nlohmann::json const& entry, std::string cons
         }
     }
     // The picture advice, optional and never load-bearing: absent from every entry written before the
-    // fields existed, and a wrong type is ignored rather than fatal (IMAGES.md 3.3). A blank query
+    // fields existed, and a wrong type is ignored rather than fatal. A blank query
     // reads as not imageable, the parser's default.
     if (entry.contains("imageable") and entry["imageable"].is_boolean()) result.imageable = entry["imageable"].get<bool>();
     if (entry.contains("imageQuery") and entry["imageQuery"].is_string()) result.imageQuery = entry["imageQuery"].get<std::string>();

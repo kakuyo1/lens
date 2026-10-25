@@ -34,7 +34,7 @@
         <translation>例句</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="410"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="411"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒后自动消失</translation>
     </message>
@@ -60,12 +60,12 @@
 <context>
     <name>BubbleHeaderActions</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="126"/>
+        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="127"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="144"/>
+        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="145"/>
         <source>Explanation language</source>
         <translation>解释语言</translation>
     </message>
@@ -73,17 +73,17 @@
 <context>
     <name>BubbleVerdictRow</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="104"/>
+        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="110"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="136"/>
+        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="146"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="159"/>
+        <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="169"/>
         <source>Known stops automatic scans; New marks it for more practice.</source>
         <translation>已会会停止自动扫描；新词会标为需要多练。</translation>
     </message>
@@ -141,18 +141,18 @@
 <context>
     <name>HotkeyField</name>
     <message>
-        <location filename="../src/app/qml/components/controls/HotkeyField.qml" line="80"/>
+        <location filename="../src/app/qml/components/controls/HotkeyField.qml" line="82"/>
         <source>Press the combination</source>
         <translation>按下组合键</translation>
     </message>
     <message>
         <location filename="../src/app/qml/components/controls/HotkeyField.qml" line="42"/>
-        <location filename="../src/app/qml/components/controls/HotkeyField.qml" line="80"/>
+        <location filename="../src/app/qml/components/controls/HotkeyField.qml" line="82"/>
         <source>Trigger key</source>
         <translation>触发键</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/components/controls/HotkeyField.qml" line="137"/>
+        <location filename="../src/app/qml/components/controls/HotkeyField.qml" line="139"/>
         <source>Unavailable: it needs Ctrl or Alt, and no other program may hold it</source>
         <translation>不可用：需含 Ctrl 或 Alt，且不能与其他程序冲突</translation>
     </message>
@@ -176,22 +176,32 @@
 <context>
     <name>PictureStrip</name>
     <message>
-        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="85"/>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="54"/>
+        <source>No pictures matched this sense.</source>
+        <translation>没有找到与这个义项匹配的图片。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="56"/>
+        <source>Pictures could not be downloaded. Try again.</source>
+        <translation>图片下载失败。请重试。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="57"/>
+        <source>Pictures unavailable. Check your connection.</source>
+        <translation>图片暂不可用。请检查网络连接。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="97"/>
         <source>Loading pictures…</source>
         <translation>正在加载图片…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="213"/>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="225"/>
         <source>Photo: %1 · %2 · %3</source>
         <translation>图片：%1 · %2 · %3</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="238"/>
-        <source>Pictures unavailable</source>
-        <translation>图片暂不可用</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="295"/>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="308"/>
         <source>Open image search</source>
         <translation>打开图片搜索</translation>
     </message>
@@ -212,17 +222,17 @@
 <context>
     <name>SelectionBar</name>
     <message>
-        <location filename="../src/app/qml/selection/SelectionBar.qml" line="60"/>
+        <location filename="../src/app/qml/selection/SelectionBar.qml" line="66"/>
         <source>Translate</source>
         <translation>翻译</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/selection/SelectionBar.qml" line="61"/>
+        <location filename="../src/app/qml/selection/SelectionBar.qml" line="67"/>
         <source>Explain</source>
         <translation>解释</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/selection/SelectionBar.qml" line="62"/>
+        <location filename="../src/app/qml/selection/SelectionBar.qml" line="68"/>
         <source>Copy text</source>
         <translation>复制文本</translation>
     </message>
@@ -312,38 +322,38 @@
 <context>
     <name>SettingsPopup</name>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="293"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="303"/>
         <source>Saved</source>
         <translation>已保存</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="301"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="311"/>
         <source>Defaults restored</source>
         <translation>已恢复默认</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="378"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="388"/>
         <source>Back</source>
         <translation>返回</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="434"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="444"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="538"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="549"/>
         <source>Confirm</source>
         <translation>确认</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="564"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="575"/>
         <source>API key and launch at login stay as they are.</source>
         <translation>API key 与开机自启保持不变。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="102"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="390"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="400"/>
         <source>Settings</source>
         <translation>设置</translation>
     </message>
@@ -684,7 +694,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="261"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="524"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="535"/>
         <source>Defaults</source>
         <translation>恢复默认</translation>
     </message>
@@ -758,17 +768,37 @@
         <translation>最小词长</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="37"/>
-        <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="71"/>
+        <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="23"/>
+        <source>Today %1 · %2 cap</source>
+        <translation>今日 %1 · 上限 %2</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="26"/>
+        <source>Today %1 · no cap</source>
+        <translation>今日 %1 · 未设上限</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="28"/>
+        <source>The cap is used up; lookups and requests pause until tomorrow.</source>
+        <translation>今日预算已用完；取词与请求暂停到明天。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="30"/>
+        <source>At the cap, lookups and requests pause until tomorrow.</source>
+        <translation>到达上限后，取词与请求暂停到明天。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="31"/>
+        <source>No cap; set an amount to pause at the limit.</source>
+        <translation>未设上限；填入金额即可在到达时暂停。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="52"/>
+        <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="86"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="38"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="72"/>
         <source>Daily budget</source>
         <translation>每日预算</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="88"/>
-        <source>Set 0 to pause the cap.</source>
-        <translation>设为 0 可暂停上限。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="18"/>
@@ -1842,7 +1872,7 @@
         <location filename="../src/app/qml/pet/PetPackageDialog.qml" line="115"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="152"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="295"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="547"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="558"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
@@ -1940,42 +1970,42 @@
 <context>
     <name>StatsPopup</name>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="75"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="78"/>
         <source>Today</source>
         <translation>今日统计</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="86"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="89"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="102"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="105"/>
         <source>Lookups today</source>
         <translation>今日查阅次数</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="113"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="116"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="118"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="123"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="123"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="130"/>
         <source>Cost</source>
         <translation>花费</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="130"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="137"/>
         <source>All time</source>
         <translation>历史累计</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="133"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="140"/>
         <source>%1 words</source>
         <translation>%1 词</translation>
     </message>
@@ -2001,27 +2031,28 @@
         <translation>选区取词已关闭</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="96"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="144"/>
         <source>lookups</source>
         <translation>次</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="189"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="237"/>
         <source>Statistics</source>
         <translation>今日统计</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="199"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="112"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="247"/>
         <source>Language</source>
         <translation>语言</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="227"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="275"/>
         <source>Settings</source>
         <translation>设置</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="242"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="290"/>
         <source>Quit</source>
         <translation>退出</translation>
     </message>
@@ -2029,77 +2060,77 @@
 <context>
     <name>UpdateCard</name>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="71"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="67"/>
         <source>Downloading...</source>
         <translation>下载中…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="73"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="69"/>
         <source>Checking the download...</source>
         <translation>正在校验下载的文件…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="75"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="71"/>
         <source>Checksum verified. The installer is ready to run.</source>
         <translation>安装包已校验，可以安装。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="79"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="75"/>
         <source>Downloads from GitHub usually need a proxy in mainland China. Turn on your proxy and try again.</source>
         <translation>中国大陆访问 GitHub 下载通常需要代理。请开启代理后重试。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="81"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="77"/>
         <source>The download did not match the published checksum. It was deleted.</source>
         <translation>下载的文件与发布的校验值不符，已删除。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="82"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="78"/>
         <source>Download failed. Check your connection.</source>
         <translation>下载失败，请检查网络连接。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="88"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="84"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="90"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="86"/>
         <source>Checking...</source>
         <translation>检查中…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="92"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="88"/>
         <source>Install</source>
         <translation>安装</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="94"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="90"/>
         <source>Download</source>
         <translation>下载</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="114"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="110"/>
         <source>%1 left</source>
         <translation>剩余 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="225"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="212"/>
         <source>Lens %1 is available</source>
         <translation>Lens %1 可用</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="238"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="225"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="415"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="402"/>
         <source>View</source>
         <translation>查看</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/UpdateCard.qml" line="454"/>
+        <location filename="../src/app/qml/panels/UpdateCard.qml" line="441"/>
         <source>Skip this version</source>
         <translation>跳过此版本</translation>
     </message>
@@ -2130,79 +2161,84 @@
 <context>
     <name>WordsPopup</name>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="144"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="153"/>
         <source>Today %1</source>
         <translation>今天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="146"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="155"/>
         <source>Yesterday %1</source>
         <translation>昨天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="225"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="234"/>
         <source>Words</source>
         <translation>词汇</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="287"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="296"/>
         <source>Year in words</source>
         <translation>单词年度记录</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="315"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="324"/>
         <source>Back</source>
         <translation>返回</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="322"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="331"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="340"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="349"/>
         <source>%1 words</source>
         <translation>共 %1 词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="363"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="372"/>
         <source>All</source>
         <translation>全部</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="363"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="372"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="363"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="372"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="399"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="410"/>
         <source>Words you look up will appear here.</source>
         <translation>查过的词会出现在这里。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="463"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="474"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="422"/>
+        <source>No words in this filter.</source>
+        <translation>这个筛选下没有词。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="492"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="503"/>
         <source>JSON files (*.json)</source>
         <translation>JSON 文件 (*.json)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="478"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="507"/>
         <source>Words imported</source>
         <translation>词汇已导入</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="478"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="507"/>
         <source>Import failed</source>
         <translation>导入失败</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="305"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="472"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="314"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="501"/>
         <source>Import words</source>
         <translation>导入词汇</translation>
     </message>
@@ -2222,20 +2258,20 @@
         <translation>移除</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="298"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="460"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="307"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="489"/>
         <source>Export words</source>
         <translation>导出词汇</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="463"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="474"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="492"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="503"/>
         <source>Text files (*.txt)</source>
         <translation>文本文件 (*.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="463"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="474"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="492"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="503"/>
         <source>All files (*)</source>
         <translation>所有文件 (*)</translation>
     </message>
@@ -2253,157 +2289,162 @@
 <context>
     <name>YearWordsPopup</name>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="42"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="37"/>
         <source>Red</source>
         <translation>红</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="42"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="37"/>
         <source>Orange</source>
         <translation>橙</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="43"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="38"/>
         <source>Yellow</source>
         <translation>黄</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="43"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="38"/>
         <source>Yellow green</source>
         <translation>黄绿</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="44"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="39"/>
         <source>Green</source>
         <translation>绿</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="44"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="39"/>
         <source>Teal</source>
         <translation>青绿</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="45"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="40"/>
         <source>Cyan</source>
         <translation>青</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="45"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="40"/>
         <source>Blue</source>
         <translation>蓝</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="46"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="41"/>
         <source>Indigo</source>
         <translation>靛</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="46"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="41"/>
         <source>Violet</source>
         <translation>紫</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="47"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="42"/>
         <source>Magenta</source>
         <translation>洋红</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="47"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="42"/>
         <source>Rose</source>
         <translation>玫红</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="199"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="191"/>
         <source>Back</source>
         <translation>返回</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="207"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="199"/>
         <source>Year in words</source>
         <translation>单词年度记录</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="221"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="213"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="239"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="231"/>
         <source>%1: %2 lookups</source>
         <translation>%1：查阅 %2 次</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="240"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="232"/>
         <source>Lookups · 365 days</source>
         <translation>弹词次数 · 365 天</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="251"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="241"/>
         <source>%1 lookups · %2 words</source>
         <translation>%1 次 · %2 词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="305"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="295"/>
         <source>Mon</source>
         <translation>一</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="305"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="295"/>
         <source>Wed</source>
         <translation>三</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="305"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="295"/>
         <source>Fri</source>
         <translation>五</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="331"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="321"/>
         <source>Year activity. %1, %2 lookups. Use the arrow keys to choose a day.</source>
         <translation>年度活跃记录。%1，%2 次。用方向键选择日期。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="333"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="323"/>
         <source>Year activity. Use the arrow keys to choose a day.</source>
         <translation>年度活跃记录。用方向键选择日期。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="376"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="365"/>
         <source>%1, %2 lookups</source>
         <translation>%1，查阅 %2 次</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="409"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="404"/>
         <source>Less</source>
         <translation>少</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="420"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="416"/>
         <source>Level %1, choose color</source>
         <translation>第 %1 档，选择配色</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="420"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="416"/>
         <source>No lookups, choose color</source>
         <translation>无查阅记录，选择配色</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="443"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="439"/>
         <source>More</source>
         <translation>多</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="483"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="444"/>
+        <source>1 · 2–3 · 4–5 · 6+ lookups</source>
+        <translation>1 · 2–3 · 4–5 · 6+ 次</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="487"/>
         <source>Cell colors</source>
         <translation>格子配色</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="703"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="704"/>
         <source>Light</source>
         <translation>浅</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="703"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="704"/>
         <source>Dark</source>
         <translation>深</translation>
     </message>

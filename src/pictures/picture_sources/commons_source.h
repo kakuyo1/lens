@@ -14,7 +14,7 @@ class QNetworkAccessManager;
  *
  * Commons is the only source this version wires: its images carry a machine-readable licence and
  * author, it has no API key, and it serves a 480 px thumbnail for each file. It has no SLA and no
- * safe-search, which are the two limits IMAGES.md 4.3 records and 9 leaves open.
+ * safe-search, two known limits.
  */
 
 namespace lens::pictures {

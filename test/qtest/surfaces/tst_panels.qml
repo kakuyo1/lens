@@ -194,6 +194,12 @@ Item {
                 verify(monthLabels[i - 1].x + monthLabels[i - 1].width <= monthLabels[i].x);
             }
 
+            const thresholds = Util.findAll(popup, function (item) {
+                return item.objectName === "yearThresholds";
+            })[0];
+            verify(thresholds, "the year legend has no lookup bands");
+            compare(thresholds.text, qsTr("1 · 2–3 · 4–5 · 6+ lookups"));
+
             const selectedDay = Controller.yearDays.find(function (day) { return day.pops > 0; });
             const selectedCell = Util.findAll(popup, function (item) {
                 return item.day && item.day.date === selectedDay.date;
@@ -288,11 +294,7 @@ Item {
             compare(word.elide, Text.ElideRight);
         }
 
-        /// @return Whether the list is showing exactly @p expected, once it has settled.
-        ///
-        /// A filter change folds rows shut over a motion token, so a row on its way out is still
-        /// drawn for the animation. Polling gives the fold exactly its time; a fixed wait would
-        /// be a guess as long as the slowest token.
+        /// @return Whether the list is showing exactly @p expected, once the fold has settled.
         function settleOn(popup, expected) {
             const wanted = expected.slice().sort().join();
             return tryVerify(function () { return wordsShown(popup).sort().join() === wanted; },
@@ -327,7 +329,6 @@ Item {
         }
 
         /// Marking from the list settles a word the reader never marked while the bubble was up.
-        /// The row fills the pill of the verdict it now holds, so the case watches the fill.
         function test_tappingAVerdictMarksTheWordAndTheRowFollows() {
             const popup = make(wordsComponent);
             popup.visible = true;

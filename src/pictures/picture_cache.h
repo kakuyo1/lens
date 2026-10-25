@@ -16,7 +16,7 @@
  * One directory per query, keyed by the query's hash, holding the images and one metadata document.
  * The metadata is written last, so an entry that was interrupted half-way reads as absent rather
  * than as a broken picture; the directory is the reader's private data and is never synced, uploaded
- * or logged (IMAGES.md 4.4).
+ * or logged.
  */
 
 namespace lens::pictures {

@@ -190,10 +190,42 @@ Item {
             compare(row.visible, false, "the budget page still draws the Defaults row");
         }
 
+        /// The budget page reads back what today has cost and what the cap is, and says what
+        /// happens at the cap. The numbers come from the duty's own stats, not a second calculation.
+        function test_theBudgetPageShowsTodaysSpendAndWhatTheCapDoes() {
+            const main = make();
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "Daily budget");
+
+            const original = Controller.settings.dailyBudget;
+            const spent = Controller.costDuty.stats.currency
+                        + Controller.costDuty.stats.todayCost.toFixed(2);
+            try {
+                Controller.setDailyBudget(5);
+                wait(20);
+                const spend = Util.findAll(panel, function (o) {
+                    return o.objectName === "budgetSpend";
+                })[0];
+                const cap = Util.findAll(panel, function (o) {
+                    return o.objectName === "budgetCap";
+                })[0];
+                verify(spend && cap, "the budget page has no spend or cap line");
+                compare(spend.text, "Today " + spent + " · " + Controller.costDuty.stats.currency + "5.00 cap");
+                compare(cap.text, "At the cap, lookups and requests pause until tomorrow.");
+
+                Controller.setDailyBudget(0);
+                wait(20);
+                compare(spend.text, "Today " + spent + " · no cap");
+                compare(cap.text, "No cap; set an amount to pause at the limit.");
+            } finally {
+                Controller.setDailyBudget(original);
+            }
+        }
+
         /// A slider and a pick-only dropdown are keyboard surfaces, not pointer-only ones. This
         /// pins the arrow/Enter path the row's own Tab stop hands them.
-        function test_keyboardDrivesASliderAndAChoiceList() {
-            const main = make();
+        function test_keyboardDrivesASliderAndAChoiceList() {            const main = make();
             Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
 

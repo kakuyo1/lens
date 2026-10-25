@@ -17,7 +17,7 @@ Window {
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     color: "transparent"
     visible: false
-    /// Set by the panel that replaces this one: the card fades out in place, and the window goes when it has.
+    /// Set by the panel that replaces this one; the window waits for the fade.
     property bool leaving: false
 
     readonly property int shadowMargin: 26
@@ -44,16 +44,14 @@ Window {
 
     property bool paletteOpen: false
     property int hueIndex: 4
-    /// The ring's turn, in degrees: the selected hue is brought to 90° clockwise (3 o'clock). A click
-    /// takes the shortest way from wherever the last one left the ring.
+    /// Ring turn in degrees: the selected hue comes to 3 o'clock by the shortest way.
     property real wheelRotation: 90 - 30 * hueIndex
     property int selectedLevel: 0
     property string selectedDate: ""
     readonly property var selectedDay: year.days.find(function (day) { return day.date === year.selectedDate; }) || null
     readonly property bool paletteReady: paletteLoader.status === Loader.Ready
 
-    /// How far the palette has unrolled, 0 shut and 1 open. The card grows and shrinks with it, and the
-    /// graph above rides along with the top edge, so opening the palette glides rather than jumping.
+    /// Palette unroll, 0 shut to 1 open; the card and graph follow it.
     property real paletteProgress: paletteOpen ? 1 : 0
     Behavior on paletteProgress {
         NumberAnimation {
@@ -105,8 +103,7 @@ Window {
         paletteOpen = true;
     }
 
-    /// A legend cell opens the palette at its level, and the level that is already open shuts it again:
-    /// the palette has no close button of its own, the card's title row has the one close.
+    /// A legend cell toggles the palette at its level; the title row owns the close.
     function toggleLevel(level) {
         if (paletteOpen && selectedLevel === level)
             closePalette();
@@ -355,31 +352,37 @@ Window {
                                 required property int index
                                 readonly property int dayIndex: index - year.leadingDays()
                                 readonly property var day: year.dayAt(dayIndex)
+                                readonly property bool selected: day !== null && year.selectedDate === day.date
                                 width: year.cellSize
                                 height: year.cellSize
                                 radius: 1
                                 visible: day !== null
                                 color: visible ? year.cellColor(year.dayLevel(day.pops)) : "transparent"
-                                border.width: visible && year.selectedDate === day.date ? 1 : 0
-                                border.color: year.tokens.text
                                 Accessible.ignored: !visible
                                 Accessible.role: Accessible.Cell
                                 // The count is pop events, so the spoken unit is lookups, the same
                                 // one the summary row writes (ADR 0104).
                                 Accessible.name: visible ? qsTr("%1, %2 lookups").arg(day.date).arg(day.pops) : ""
 
-                                // The focus mark stands outside the chosen cell's 1 px selection
-                                // border, so a ring and a selection remain two marks.
+                                // One outer mark for focus, selection and hover.
                                 Rectangle {
+                                    objectName: "yearCellRing"
                                     anchors.fill: parent
-                                    anchors.margins: -2
-                                    visible: parent.visible && cells.activeFocus && year.selectedDate === parent.day.date
+                                    anchors.margins: -1
+                                    visible: parent.visible
+                                             && (hover.hovered || parent.selected)
                                     radius: 3
                                     color: "transparent"
-                                    border.width: 2
-                                    border.color: year.tokens.ink
+                                    border.width: parent.selected && cells.activeFocus ? 2 : 1
+                                    border.color: parent.selected
+                                                  ? (cells.activeFocus ? year.tokens.ink : year.tokens.text)
+                                                  : year.tokens.muted
                                 }
 
+                                HoverHandler {
+                                    id: hover
+                                    cursorShape: Qt.PointingHandCursor
+                                }
                                 TapHandler {
                                     enabled: parent.visible
                                     onTapped: {
@@ -434,13 +437,21 @@ Window {
                         }
                     }
                     Text { text: qsTr("More"); color: year.tokens.faint; font.pixelSize: 11 }
+                    // The ramp's steps, not a second legend: the five cells' upper bands.
+                    Text {
+                        objectName: "yearThresholds"
+                        leftPadding: 6
+                        text: qsTr("1 · 2–3 · 4–5 · 6+ lookups")
+                        color: year.tokens.faint
+                        font.pixelSize: 11
+                    }
                 }
             }
 
             Loader {
                 id: paletteLoader
                 width: parent.width
-                // Live while it unrolls and while it rolls back up, so the close animates as well as the open.
+                // Live through the open and the close, so both animate.
                 active: year.paletteOpen || year.paletteProgress > 0
                 height: year.paletteProgress * implicitHeight
                 clip: true
@@ -462,7 +473,7 @@ Window {
             implicitHeight: paletteBody.y + paletteBody.height
             width: year.cardWidth - 40
 
-            // The rule and the title sit inside the palette, not in the column, so they unroll with it.
+            // Rule and title unroll with the palette.
             Rectangle {
                 y: 10
                 width: parent.width
@@ -505,8 +516,7 @@ Window {
                             running: year.tokens.motion.pop > 0
                         }
 
-                        // The ring and its dots turn together; the disc at the centre stays put, so the
-                        // name needs no counter-rotation.
+                        // The ring and dots turn together; the centre stays put.
                         Item {
                             id: spin
                             anchors.fill: parent
@@ -518,8 +528,7 @@ Window {
                                 }
                             }
 
-                            // The colour disc is inset 12 px, as the prototype's is; the beads below straddle
-                            // its rim, which is what makes a flower of them rather than a pie chart.
+                            // The colour disc is inset 12 px; the beads straddle its rim.
                             Canvas {
                                 anchors.fill: parent
                                 onPaint: {
@@ -530,7 +539,7 @@ Window {
                                     const colors = ["#ef4444", "#f97316", "#eab308", "#84cc16", "#22c55e", "#14b8a6",
                                                     "#06b6d4", "#3b82f6", "#6366f1", "#8b5cf6", "#d946ef", "#ec4899"];
                                     const step = Math.PI / 6;
-                                    // A hair of overlap hides the anti-aliasing seam between neighbouring wedges.
+                                    // A hair of overlap hides the seam between wedges.
                                     const overlap = 0.008;
                                     // An annulus, so the centre discs read as the card's glass.
                                     const inner = 27;
@@ -543,7 +552,7 @@ Window {
                                         ctx.fillStyle = colors[index];
                                         ctx.fill();
                                     }
-                                    // The beads' soft rest shadow, painted here so it turns with the ring.
+                                    // The beads' rest shadow turns with the ring.
                                     for (let index = 0; index < colors.length; ++index) {
                                         const bx = cx + Math.sin(index * step) * 51;
                                         const by = cy - Math.cos(index * step) * 51 + 1;
@@ -610,7 +619,7 @@ Window {
                                     }
                                     TapHandler { onTapped: year.selectHue(hueCell.index) }
 
-                                    // The hover and selected mark: a ring outside the dot, as the prototype draws it.
+                                    // Hover and selection: one ring outside the dot.
                                     Rectangle {
                                         anchors.centerIn: parent
                                         width: parent.width + 4
@@ -677,7 +686,7 @@ Window {
                             width: (shades.width - 3 * shades.spacing) / 4
                             height: paletteBody.height
 
-                            // The swatch is centred on the wheel's horizontal midline; its caption hangs below it.
+                            // The swatch sits on the wheel's midline; its caption hangs below.
                             Rectangle {
                                 id: swatch
                                 objectName: "yearShadeSwatch"

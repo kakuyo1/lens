@@ -17,7 +17,7 @@ namespace lens::pictures {
 namespace {
 
 /// One search is a small JSON answer; a thumbnail is a picture. Both ceilings are generous for what
-/// they carry and small enough that a hostile or broken answer cannot fill the disk (IMAGES.md 4.3).
+/// they carry and small enough that a hostile or broken answer cannot fill the disk.
 constexpr qint64 kMaxSearchBytes = 2 * 1024 * 1024;
 constexpr qint64 kMaxThumbBytes  = 2 * 1024 * 1024;
 constexpr int    kTimeoutMs      = 4000;
@@ -64,7 +64,7 @@ void CommonsSource::search(QString const& query, PictureSink sink)
     request.setTransferTimeout(kTimeoutMs);
     request.setHeader(QNetworkRequest::UserAgentHeader, userAgent_);
     // The query is the reader's word, which the existing lookup logs already carry; the address is
-    // not logged whole (IMAGES.md 5).
+    // not logged whole.
     LENS_TRACE("picture search: commons, query '{}'", trimmed.toStdString());
 
     QNetworkReply* reply = manager_->get(request);
@@ -77,7 +77,7 @@ void CommonsSource::search(QString const& query, PictureSink sink)
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         if (reply->error() != QNetworkReply::NoError or status != 200) {
             // A status is an answer whatever it says, and the transport's own words never reach a
-            // surface: the card says the same thing for every failure (IMAGES.md 4.5).
+            // surface: the duty names this class with a fixed sentence.
             LENS_WARN("the picture search did not answer: HTTP {} (error {})", status, static_cast<int>(reply->error()));
             sink({}, false);
             return;
@@ -92,7 +92,7 @@ void CommonsSource::fetch(QUrl const& url, ByteSink sink)
 {
     // Only the upload hosts this source names in an answer: a redirect or a hand-edited cache entry
     // pointing anywhere else is refused here, so nothing this app downloads can be steered to
-    // another machine (IMAGES.md 4.3).
+    // another machine.
     if (not isAllowedThumbnailHost(url)) {
         LENS_WARN("a thumbnail address was refused: it is not an upload host this source downloads from");
         sink({}, false);

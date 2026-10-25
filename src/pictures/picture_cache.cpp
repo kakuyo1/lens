@@ -156,7 +156,7 @@ std::optional<QVector<Picture>> PictureCache::load(QString const& normalizedQuer
     }
 
     // Touch the entry: the ceiling is enforced on last use, so a picture being looked at again is
-    // the last one to go (IMAGES.md 4.4).
+    // the last one to go.
     QJsonObject touched = meta;
     touched.insert(QStringLiteral("usedAt"), static_cast<double>(nowMs()));
     writeJsonAtomic(metaFile, touched);

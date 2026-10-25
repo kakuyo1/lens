@@ -1,4 +1,5 @@
 import QtQuick
+import "../../util/Format.js" as Format
 
 Item {
     id: root
@@ -14,6 +15,20 @@ Item {
     /// The symbol the cost surfaces spend in, so the cap is read in the same money as the tally
     /// it caps rather than as a bare number.
     readonly property string currency: Controller.costDuty.stats.currency
+    /// What today has cost so far, and whether the cap has been reached. Both come off the
+    /// duty's own readout; this page does not re-price or re-bucket anything.
+    readonly property real spentToday: Controller.costDuty.stats.todayCost
+    readonly property bool exhausted: Controller.costDuty.stats.budgetExhausted === true
+    readonly property string spendLine: dailyBudget > 0
+        ? qsTranslate("SettingsPopup", "Today %1 · %2 cap")
+              .arg(Format.formatMoney(currency, spentToday))
+              .arg(Format.formatMoney(currency, dailyBudget))
+        : qsTranslate("SettingsPopup", "Today %1 · no cap").arg(Format.formatMoney(currency, spentToday))
+    readonly property string capLine: exhausted
+        ? qsTranslate("SettingsPopup", "The cap is used up; lookups and requests pause until tomorrow.")
+        : dailyBudget > 0
+            ? qsTranslate("SettingsPopup", "At the cap, lookups and requests pause until tomorrow.")
+            : qsTranslate("SettingsPopup", "No cap; set an amount to pause at the limit.")
 
     readonly property var openChildRect: null
     implicitHeight: content.implicitHeight
@@ -85,10 +100,20 @@ Item {
 
             Text {
                 width: parent.width
-                text: qsTranslate("SettingsPopup", "Set 0 to pause the cap.")
+                text: root.spendLine
+                color: root.exhausted ? root.tokens.warn : root.tokens.muted
+                font.pixelSize: 11
+                wrapMode: Text.WordWrap
+                objectName: "budgetSpend"
+            }
+
+            Text {
+                width: parent.width
+                text: root.capLine
                 color: root.tokens.faint
                 font.pixelSize: 11
                 wrapMode: Text.WordWrap
+                objectName: "budgetCap"
             }
         }
     }

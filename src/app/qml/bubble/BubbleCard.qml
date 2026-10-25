@@ -394,6 +394,7 @@ Item {
                 id: verdictRow
                 visible: root.bubble.atRoot && root.bubble.verdictButtons
                 tokens: root.bubble.tokens
+                bubbleWindow: root.bubble
                 lemma: root.bubble.title
                 hovering: root.bubble.hovering
                 status: root.bubble.status

@@ -97,7 +97,7 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 | `imageable` | boolean | 一张照片能否让这个义项更清楚；**可选且仅供参考**：只有单词通道请求，取不到布尔值时按 `false` 读 |
 | `imageQuery` | string | `imageable` 为 true 时给出的两到五个英文词，供图片搜索消歧；**可选**：恒为英文，不随解释语言变化 |
 
-`imageable` / `imageQuery` 是**建议值，不是契约**：卡片只按 `imageable && imageQuery 非空` 画图片入口，所以一个 true 而没有 query 的义项就是没有图（`IMAGES.md`）。两条都不进 `required`，也**故意不在 schema 里声明类型**——`matchesSchema()` 只校验它认识的词汇，声明成 `boolean` / `string` 会把一个类型写错的建议值升级成整批失败，而丢掉一份已经到手的释义是更坏的取舍。校验层仍然只管 “有没有”，空与错都留给解析层读成 “没有图”。
+`imageable` / `imageQuery` 是**建议值，不是契约**：卡片只按 `imageable && imageQuery 非空` 画图片入口，所以一个 true 而没有 query 的义项就是没有图（`docs/adr/0079`）。两条都不进 `required`，也**故意不在 schema 里声明类型**——`matchesSchema()` 只校验它认识的词汇，声明成 `boolean` / `string` 会把一个类型写错的建议值升级成整批失败，而丢掉一份已经到手的释义是更坏的取舍。校验层仍然只管 “有没有”，空与错都留给解析层读成 “没有图”。
 
 `etymology` 的开关落在提示词上：`request.word.json` 的 `etymologyPrompt` 给出句子与 JSON 示例里的字段片段，模板用 `{etymologyNote}` 与 `{etymologyField}` 两处占位符接住，代码按开关填入或填成空串——关闭时提示词与没有这个字段时逐字相同，因此单义与多义两份模板各一份就够，不必为 “开 / 关 × 单义 / 多义” 维护四份重复文本。字段不进 `required`：关闭时本就不发，来了也按可选处理。
 

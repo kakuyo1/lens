@@ -21,7 +21,7 @@ namespace {
 /// @brief The licences a picture may carry to be shown.
 ///
 /// A picture whose licence is anything else -- GFDL-only, fair use, unknown, all rights reserved --
-/// is dropped rather than displayed with an attribution the reader cannot act on (IMAGES.md 4.3).
+/// is dropped rather than displayed with an attribution the reader cannot act on.
 bool licenseAllowed(QString const& raw)
 {
     const QString name = plainText(raw).toLower();
@@ -41,7 +41,7 @@ bool licenseAllowed(QString const& raw)
 ///
 /// A heuristic: Commons answers with diagrams, maps, coats of arms and the like, and only reading
 /// the picture itself could tell those from photographs. It drops what it recognises and lets the
-/// rest through (IMAGES.md 4.3).
+/// rest through.
 bool looksLikeNonPhoto(QString const& text)
 {
     if (text.isEmpty())
@@ -59,7 +59,7 @@ bool looksLikeNonPhoto(QString const& text)
 /// @brief Whether a caption is written in a script the card can read as English.
 ///
 /// A description in another script is dropped for the file name instead: the card's captions are
-/// English, and IMAGES.md 2.3 asks for a fall-back rather than a machine translation.
+/// English, and a fall-back is preferred to a machine translation.
 bool looksEnglish(QString const& text)
 {
     for (const QChar c : text) {

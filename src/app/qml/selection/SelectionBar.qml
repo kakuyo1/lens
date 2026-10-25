@@ -54,6 +54,12 @@ Window {
     property string selectionText: ""
     property string selectionKind: "word"
 
+    /// The shapes this run has already introduced. The first arrival of a shape is the one that
+    /// teaches it; later arrivals halve the entrance (UI-SPEC 4.17, ADR 0109).
+    property var introducedStyles: ({})
+    /// Read by the fan and the tag when they start their entrance; set by open().
+    property real entranceFactor: 1
+
     /// The three actions, in every form. The `qsTr` calls live here, on the surface, so the
     /// translations keep their SelectionBar context whichever body draws them.
     readonly property var actions: [
@@ -77,6 +83,9 @@ Window {
 
     /// @brief Put the bar up. The caller places the window first; this starts the arrival.
     function open() {
+        const seen = introducedStyles[bar.barStyle] === true;
+        entranceFactor = seen ? 0.5 : 1;
+        introducedStyles[bar.barStyle] = true;
         surfaceShown = true;
         visible = true;
         raise();
@@ -250,6 +259,7 @@ Window {
             actions: bar.actions
             shown: bar.surfaceShown
             above: bar.tagAbove
+            entranceFactor: bar.entranceFactor
             glassSheet: bar.glass
             onPicked: (action) => bar.pick(action)
         }
@@ -260,6 +270,7 @@ Window {
         SelectionBarFanBody {
             actions: bar.actions
             shown: bar.surfaceShown
+            entranceFactor: bar.entranceFactor
             glassSheet: bar.glass
             onPicked: (action) => bar.pick(action)
         }

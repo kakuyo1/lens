@@ -16,8 +16,8 @@ namespace {
 
 /// How many thumbnails one query keeps, and the width the cache key names.
 constexpr int kMaxPictures = 3;
-/// The whole lookup's ceiling. A strip that has drawn nothing by then offers the fallback instead
-/// (IMAGES.md 2.2); one that has drawn something keeps what it has.
+/// The whole lookup's ceiling. A strip that has drawn nothing by then offers the fallback instead;
+/// one that has drawn something keeps what it has.
 constexpr int kDeadlineMs = 4000;
 
 /// @return The strip's rows for a set of stored pictures.
@@ -47,7 +47,10 @@ struct PictureDuty::Fetch {
     QVector<pictures::Picture> candidates; ///< What the source answered with.
     QVector<pictures::Picture> ready;      ///< The ones whose bytes arrived and decoded.
     QVector<QByteArray>        bytes;      ///< Their bytes, one per entry above.
-    bool                       finished = false;
+    /// Why this fetch failed before any picture was stored: `no-results`, `unreachable`, or empty
+    /// when the search itself succeeded and only the downloads came up short.
+    QString failure;
+    bool    finished = false;
 };
 
 PictureDuty::PictureDuty(pictures::PictureSource& source, pictures::PictureCache& cache, QObject* parent)
@@ -55,8 +58,13 @@ PictureDuty::PictureDuty(pictures::PictureSource& source, pictures::PictureCache
 {
     deadline_.setSingleShot(true);
     connect(&deadline_, &QTimer::timeout, this, [this] {
-        if (live_ != nullptr)
+        if (live_ != nullptr) {
+            // The source has not answered by the deadline: that is the unreachable line, not a
+            // download that came up short.
+            if (live_->failure.isEmpty())
+                live_->failure = QStringLiteral("unreachable");
             settle(live_);
+        }
     });
 }
 
@@ -65,6 +73,7 @@ QVariantMap PictureDuty::pictures() const
     return QVariantMap{{QStringLiteral("state"), state_},
                        {QStringLiteral("query"), query_},
                        {QStringLiteral("items"), items_},
+                       {QStringLiteral("failure"), failure_},
                        {QStringLiteral("fallback"), query_.isEmpty() ? QString{} : pictures::imageSearchUrl(query_)}};
 }
 
@@ -77,7 +86,7 @@ void PictureDuty::request(QString query)
     }
     // Loading or already up is not asked for again: pressing the entry a second time is the reader
     // looking at the strip, not asking for another fetch. One that failed is, which is what makes
-    // closing and reopening the entry the reader's retry (IMAGES.md 2.2).
+    // closing and reopening the entry the reader's retry.
     if (trimmed == query_ and (state_ == QStringLiteral("loading") or state_ == QStringLiteral("ready")))
         return;
 
@@ -86,7 +95,7 @@ void PictureDuty::request(QString query)
     fetch->key   = pictures::normalizedQuery(trimmed);
 
     // The cache is asked before anything is drawn: a picture already on disk is put up at once and
-    // the network is not touched, so there is no skeleton and no second request (IMAGES.md 2.2).
+    // the network is not touched, so there is no skeleton and no second request.
     if (auto cached = cache_.load(fetch->key); cached and not cached->isEmpty()) {
         ++requestId_;
         live_ = nullptr;
@@ -94,6 +103,7 @@ void PictureDuty::request(QString query)
         query_ = trimmed;
         items_ = itemsOf(*cached);
         state_ = QStringLiteral("ready");
+        failure_.clear();
         emit picturesChanged();
         return;
     }
@@ -103,6 +113,7 @@ void PictureDuty::request(QString query)
     query_    = trimmed;
     items_.clear();
     state_ = QStringLiteral("loading");
+    failure_.clear();
     emit picturesChanged();
     deadline_.start(kDeadlineMs);
     startSearch(fetch);
@@ -120,6 +131,7 @@ void PictureDuty::clear()
     query_.clear();
     items_.clear();
     state_ = QStringLiteral("idle");
+    failure_.clear();
     emit picturesChanged();
 }
 
@@ -151,7 +163,7 @@ void PictureDuty::openFallback()
     if (query_.isEmpty())
         return;
     // The query itself is already the class of data the lookup logs carry; the address is not logged
-    // whole (IMAGES.md 5).
+    // whole.
     LENS_TRACE("picture fallback opened for the query up");
     QDesktopServices::openUrl(QUrl{pictures::imageSearchUrl(query_)});
 }
@@ -161,9 +173,15 @@ void PictureDuty::startSearch(const std::shared_ptr<Fetch>& fetch)
     source_.search(fetch->query, [this, fetch](QVector<pictures::Picture> const& pictures, bool ok) {
         if (fetch->finished)
             return;
-        // Reached and empty, refused, or never reached: all three are the one fallback line the card
-        // shows, and none of them is retried on its own (IMAGES.md 4.5).
-        if (not ok or pictures.isEmpty()) {
+        // Reached and empty, refused, or never reached: the failure line names which, but none of
+        // them is retried on its own.
+        if (not ok) {
+            fetch->failure = QStringLiteral("unreachable");
+            settle(fetch);
+            return;
+        }
+        if (pictures.isEmpty()) {
+            fetch->failure = QStringLiteral("no-results");
             settle(fetch);
             return;
         }
@@ -184,7 +202,7 @@ void PictureDuty::nextThumbnail(const std::shared_ptr<Fetch>& fetch, int index)
         if (fetch->finished)
             return;
         // One picture that did not arrive or did not decode is dropped and the next is asked for:
-        // the strip draws what it has rather than nothing (IMAGES.md 2.2). Whether the bytes are
+        // the strip draws what it has rather than nothing. Whether the bytes are
         // really a picture is settled where they are stored.
         if (ok and not bytes.isEmpty()) {
             fetch->ready.push_back(fetch->candidates.at(index));
@@ -213,14 +231,17 @@ void PictureDuty::settle(const std::shared_ptr<Fetch>& fetch)
     live_ = nullptr;
     if (stored.isEmpty()) {
         // Nothing usable: not an empty strip with a placeholder in it, but the one line that offers
-        // the reader the image search instead (IMAGES.md 4.5).
+        // the reader the image search instead. A search that answered with
+        // candidates but whose downloads all failed is its own reason.
         items_.clear();
-        state_ = QStringLiteral("failed");
+        state_   = QStringLiteral("failed");
+        failure_ = fetch->failure.isEmpty() ? QStringLiteral("download") : fetch->failure;
         emit picturesChanged();
         return;
     }
     items_ = itemsOf(stored);
     state_ = QStringLiteral("ready");
+    failure_.clear();
     emit picturesChanged();
 }
 

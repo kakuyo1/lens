@@ -5,8 +5,9 @@ import "../util/Format.js" as Format
 /**
  * Today's statistics (UI-SPEC.md section 4.6).
  *
- * Two rows drill down: the cost row opens the cost popup and the all-time row opens the
- * words popup. The numbers come straight off the controller, which does the date arithmetic.
+ * Four rows drill down: Known and New open the word list already narrowed to that verdict,
+ * Cost opens the cost popup, and All time opens the unfiltered words popup. The numbers come
+ * straight off the controller, which does the date arithmetic.
  */
 Window {
     id: stats
@@ -32,6 +33,8 @@ Window {
 
     signal costRequested()
     signal wordsRequested()
+    signal knownRequested()
+    signal newRequested()
 
     /// Escape closes the panel, the way its cross does (the scope is the one the removal
     /// question's Shortcut explains).
@@ -112,11 +115,15 @@ Window {
                 width: parent.width
                 label: qsTr("Known")
                 value: String(Controller.costDuty.stats.todayLearned)
+                clickable: true
+                onTapped: stats.knownRequested()
             }
             StatRow {
                 width: parent.width
                 label: qsTr("New")
                 value: String(Controller.costDuty.stats.todayFresh)
+                clickable: true
+                onTapped: stats.newRequested()
             }
             StatRow {
                 width: parent.width

@@ -14,6 +14,8 @@ Item {
 
     property var actions: []
     property bool shown: false
+    /// 1 on the first arrival of this shape in a session; 0.5 afterwards (ADR 0109).
+    property real entranceFactor: 1
     /// The string is below the card (tag above the selection) rather than above it.
     property bool above: false
     property var glassSheet: null
@@ -72,28 +74,28 @@ Item {
             target: root
             property: "swing"
             to: 1.8
-            duration: root.tokens.motion.pop
+            duration: root.tokens.motion.pop * root.entranceFactor
             easing.type: Easing.OutQuad
         }
         NumberAnimation {
             target: root
             property: "swing"
             to: -2.4
-            duration: root.tokens.motion.pop
+            duration: root.tokens.motion.pop * root.entranceFactor
             easing.type: Easing.InOutQuad
         }
         NumberAnimation {
             target: root
             property: "swing"
             to: 0.6
-            duration: root.tokens.motion.pop * 0.8
+            duration: root.tokens.motion.pop * 0.8 * root.entranceFactor
             easing.type: Easing.InOutQuad
         }
         NumberAnimation {
             target: root
             property: "swing"
             to: 0
-            duration: root.tokens.motion.pop * 1.2
+            duration: root.tokens.motion.pop * 1.2 * root.entranceFactor
             easing.type: Easing.InOutQuad
         }
     }

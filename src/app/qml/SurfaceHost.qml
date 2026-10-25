@@ -401,9 +401,12 @@ QtObject {
         placePanel(costPopup, anchor);
     }
 
-    function showWords(from) {
+    /// @param filter The words panel's verdict filter: 0 all, 1 known, 2 new. Called without it
+    ///        (the year card's back arrow) the list opens on all words.
+    function showWords(from, filter) {
         const anchor = anchorFrom(from);
         hidePanels(wordsPopup);
+        wordsPopup.filter = filter === undefined ? 0 : filter;
         placePanel(wordsPopup, anchor);
     }
 
@@ -418,6 +421,16 @@ QtObject {
         trayMenu.contentActive = true;
         trayMenu.listVisible = false;
         placePanel(trayMenu, trayAnchor());
+        // A tray menu is opened by the reader, not by a selection they are still reading: it takes
+        // the keyboard while it is up. The focus call waits for the body loader to build the rows.
+        trayMenu.requestActivate();
+        Qt.callLater(() => {
+            if (!trayMenu.visible)
+                return;
+            trayMenu.requestActivate();
+            if (!trayMenu.focusFirstRow())
+                Qt.callLater(() => { if (trayMenu.visible) trayMenu.focusFirstRow(); });
+        });
     }
 
     // qmllint disable missing-property

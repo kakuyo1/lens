@@ -9,7 +9,7 @@
 
 /**
  * @file picture_source.h
- * @brief The picture source contract: a query in, candidate pictures out (IMAGES.md 4.3).
+ * @brief The picture source contract: a query in, candidate pictures out.
  *
  * One source is wired at a time, and this interface exists so that swapping it -- another provider
  * with its own licence metadata -- is a new implementation rather than an edit to the duty. What a
@@ -22,8 +22,7 @@ namespace lens::pictures {
 /// @brief One picture a source found, with everything the card must show beside it.
 /// @note `thumbnail` and `page` are the source's own addresses; `file` is filled in once the picture
 ///       has been cached, and is what the strip draws. A candidate without an author, a licence or a
-///       source page is dropped while the answer is parsed rather than shown unattributed
-///       (IMAGES.md 4.3).
+///       source page is dropped while the answer is parsed rather than shown unattributed.
 struct Picture {
     QUrl    thumbnail; ///< The 480 px-wide thumbnail the source named, to download.
     QUrl    page;      ///< The source's page for the full image, which the browser opens.
@@ -45,8 +44,8 @@ using ByteSink = std::function<void(QByteArray const& bytes, bool ok)>;
  * @brief What one image source must answer.
  *
  * Both calls are asynchronous and answer exactly once. A refusal is @c ok false with no text: a
- * transport's own words never reach a surface, and the card shows one fallback line whatever went
- * wrong (IMAGES.md 4.5).
+ * transport's own words never reach a surface, and the card names the failure class with a fixed
+ * sentence.
  */
 class PictureSource {
 public:

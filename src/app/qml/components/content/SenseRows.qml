@@ -7,7 +7,7 @@ import QtQuick
  * under it, with a hairline between rows (UI-SPEC.md 4.3).
  *
  * A sense the model judged a photograph could make clearer also carries a `Pictures` entry under its
- * lines, and the strip that entry opens (IMAGES.md 2.1). One strip is open at a time, and the row
+ * lines, and the strip that entry opens. One strip is open at a time, and the row
  * itself is the sense selector, so there is no separate "not this sense?" control.
  *
  * A component rather than part of `Bubble.qml` because that file sits at the repository's QML size
@@ -46,8 +46,7 @@ Repeater {
     // qmllint enable missing-property
 
     /// Which sense's pictures are open, or -1 for none. One at a time: opening another's entry closes
-    /// the first, and the row itself is the sense selector -- there is no "not this sense?" control
-    /// (IMAGES.md 2.1).
+    /// the first, and the row itself is the sense selector -- there is no "not this sense?" control.
     property int expandedIndex: -1
 
     /// The reader tapped a word of a sense's English line: the card's definition chain takes it.
@@ -75,7 +74,7 @@ Repeater {
     model: root.senses
 
     // A new answer is a new set of senses: whatever strip was open belonged to the answer before it,
-    // so it comes down with the answer (IMAGES.md 2.2).
+    // so it comes down with the answer.
     onSensesChanged: root.collapse()
 
     delegate: Column {
@@ -133,8 +132,8 @@ Repeater {
             lineHeight: 1.5
         }
 
-        // The picture entry: only for a sense the model judged a photograph could make clearer
-        // (IMAGES.md 2.1). It is exactly as tall as its pill, so the gaps above and below come from
+        // The picture entry: only for a sense the model judged a photograph could make clearer.
+        // It is exactly as tall as its pill, so the gaps above and below come from
         // the rows around it rather than from dead space of its own.
         Item {
             id: pictureEntry
@@ -153,7 +152,7 @@ Repeater {
                     return;
                 }
                 // One strip at a time: the row that owns it moves first, then the duty is asked, so
-                // the strip that appears is this sense's and no other's (IMAGES.md 2.1).
+                // the strip that appears is this sense's and no other's.
                 root.expandedIndex = senseRow.index;
                 Controller.pictureDuty.request(senseRow.modelData.imageQuery || "");
             }
@@ -171,7 +170,7 @@ Repeater {
                 activeFocusOnTab: true
                 Accessible.role: Accessible.Button
                 // The label carries the state, so a screen reader hears "Hide pictures" once it is
-                // open rather than a picture button with no state at all (IMAGES.md 2.4).
+                // open rather than a picture button with no state at all.
                 Accessible.name: entryLabel.text
                 Accessible.onPressAction: pictureEntry.toggle()
 
@@ -237,7 +236,7 @@ Repeater {
                     onTapped: pictureEntry.toggle()
                 }
                 // The entry is a button: Enter and Space work it, and the focus stays on it rather
-                // than moving into the pictures (IMAGES.md 2.4).
+                // than moving into the pictures.
                 Keys.onSpacePressed: pictureEntry.toggle()
                 Keys.onReturnPressed: pictureEntry.toggle()
             }

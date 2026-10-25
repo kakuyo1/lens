@@ -42,6 +42,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/llm_mock_transport_test.cpp
   unit/llm_pricing_test.cpp
   unit/picture_pure_test.cpp
+  unit/picture_duty_test.cpp
   unit/cost_duty_test.cpp
   unit/semver_test.cpp
   unit/update_pure_test.cpp

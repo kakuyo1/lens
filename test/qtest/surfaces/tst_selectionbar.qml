@@ -81,6 +81,26 @@ Item {
             return bar;
         }
 
+        /// The first arrival of a shape teaches it; the next one in the same run is half the time
+        /// (ADR 0109). The factor is set before the body starts, so the animation reads one number.
+        function test_aShapeEntersInFullOnceThenInHalf() {
+            const bar = openedWithStyle("tag");
+            compare(bar.entranceFactor, 1, "the first tag entrance was already shortened");
+
+            bar.dismiss();
+            bar.open();
+            compare(bar.entranceFactor, 0.5, "the second tag entrance was not halved");
+
+            Controller.setSetting("selectionBarStyle", "fan");
+            bar.open();
+            compare(bar.entranceFactor, 1, "a different shape's first entrance was halved");
+
+            bar.dismiss();
+            bar.open();
+            compare(bar.entranceFactor, 0.5, "the second fan entrance was not halved");
+            Controller.setSetting("selectionBarStyle", "bar");
+        }
+
         function test_theTabItemShiftsAwayFromItsSpine() {
             const bar = openedWithStyle("tab");
             const body = bar.bodyItem;

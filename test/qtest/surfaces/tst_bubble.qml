@@ -128,6 +128,13 @@ Item {
             })[0];
             verify(hint, "the verdict row carries no hint");
             tryCompare(hint, "visible", true);
+            const known = Util.findAll(first, function (o) {
+                return o.Accessible !== undefined && o.Accessible.role === Accessible.Button
+                       && o.Accessible.name === qsTr("Known");
+            })[0];
+            verify(known, "the Known pill is missing");
+            compare(known.Accessible.description, hint.text,
+                    "the screen reader does not hear the one-time hint");
             compare(Controller.settings.verdictHintSeen, false,
                     "the hint was marked as seen before it had stood for a moment");
             tryCompare(Controller.settings, "verdictHintSeen", true, 2500);
@@ -140,6 +147,13 @@ Item {
             compare(Util.findAll(second, function (o) {
                 return o.objectName === "verdictHint";
             })[0].visible, false, "the hint returned on a later bubble");
+            const knownAgain = Util.findAll(second, function (o) {
+                return o.Accessible !== undefined && o.Accessible.role === Accessible.Button
+                       && o.Accessible.name === qsTr("Known");
+            })[0];
+            verify(knownAgain, "the Known pill is missing on the later bubble");
+            compare(knownAgain.Accessible.description, "",
+                    "the spent hint is still attached to the verdict");
         }
 
         /// A fresh bubble starts at its full five.
@@ -191,9 +205,19 @@ Item {
             tryVerify(function () { return bubble.remainingMs < held; }, 1000);
         }
 
-        /// The pronunciation is drawn, and it sits beside the word rather than behind it.
-        function test_theWordCarriesItsPronunciation() {
+        /// The clock cannot see the AT review pass; an accessible press refills it, the way the
+        /// pointer holds it, so a card being read aloud does not vanish mid-sentence.
+        function test_aScreenReaderPressRefillsTheReadingClock() {
             const bubble = opened();
+            tryVerify(function () { return !bubble.revealing; }, 5000);
+            tryVerify(function () { return bubble.remainingMs < 4000; }, 2000);
+
+            bubble.readerActed();
+            compare(bubble.remainingMs, 5000, "the accessible press did not refill the reading window");
+        }
+
+        /// The pronunciation is drawn, and it sits beside the word rather than behind it.
+        function test_theWordCarriesItsPronunciation() {            const bubble = opened();
             const ipa = Util.textWith(Util.textsUnder(bubble), ["/ˌserənˈdɪpəti/"]);
             verify(ipa);
             compare(ipa.visible, true);

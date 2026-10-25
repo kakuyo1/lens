@@ -94,6 +94,7 @@ Item {
             labels: root.labels
             currentIndex: root.currentIndex
             onPicked: (index) => {
+                root.bubbleWindow.readerActed();
                 const picked = root.languages[index].value;
                 root.open = false;
                 if (picked !== root.language) {
@@ -142,7 +143,10 @@ Item {
 
         Accessible.role: Accessible.Button
         Accessible.name: qsTr("Explanation language")
-        Accessible.onPressAction: root.open = !root.open
+        Accessible.onPressAction: {
+            root.bubbleWindow.readerActed();
+            root.open = !root.open;
+        }
 
         Rectangle {
             anchors.fill: parent

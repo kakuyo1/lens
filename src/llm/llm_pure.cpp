@@ -395,7 +395,7 @@ std::variant<QVector<Explanation>, QString> parseExplanationContent(Channel     
             if (e.collocations.size() < 2)
                 e.collocations.push_back(value.toString());
         }
-        // The picture advice, read the same way and never demanded (IMAGES.md 3.1): a sense counts as
+        // The picture advice, read the same way and never demanded: a sense counts as
         // imageable only when the model both said so and named the words an image search is run with,
         // so the card's entry and the duty's request agree on what there is to fetch. Blank and absent
         // therefore read alike, and a mistyped value reads as false rather than costing the definition.

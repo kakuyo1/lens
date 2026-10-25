@@ -5,18 +5,18 @@ import QtQuick.Window
 import QtQuick.Effects
 
 /**
- * One sense's pictures, as the card draws them (IMAGES.md 2.2, 2.3).
+ * One sense's pictures, as the card draws them.
  *
  * Three states: a skeleton while the lookup runs, the thumbnails with their caption and attribution once it lands, and
  * one line offering the image search when nothing could be shown. A strip never shows an empty slot or a broken
- * picture -- what arrived is what is drawn (IMAGES.md 2.2).
+ * picture -- what arrived is what is drawn.
  *
  * The strip is not glass and adds no colour of its own: the skeleton is drawn in the card's line token and the two text
  * lines in its text tokens, so it reads as part of the card. Only the corners of a photograph are rounded; the picture
  * itself stays rectangular, because a blurred photograph is unreadable.
  *
  * The state lives on the duty, keyed by the query: a strip whose own query is not the one the duty is answering for has
- * been collapsed or replaced, and draws nothing (IMAGES.md 2.2).
+ * been collapsed or replaced, and draws nothing.
  */
 Item {
     id: root
@@ -45,6 +45,18 @@ Item {
     implicitHeight: root.visible ? column.implicitHeight : 0
     width: parent ? parent.width : 0
 
+    /// @return The fixed sentence for the duty's failure reason; a transport's own words never
+    ///         reach the card.
+    readonly property string failureText: {
+        if (root.phase !== "failed")
+            return "";
+        if (root.answer.failure === "no-results")
+            return qsTr("No pictures matched this sense.");
+        if (root.answer.failure === "download")
+            return qsTr("Pictures could not be downloaded. Try again.");
+        return qsTr("Pictures unavailable. Check your connection.");
+    }
+
     /// @return The item whose caption and attribution are drawn: the focused one, or the first.
     function currentItem() {
         if (root.items.length === 0)
@@ -58,7 +70,7 @@ Item {
         spacing: 0
 
         // The skeleton: three 4:3 slots in the card's hairline token, static. Reduced motion has
-        // nothing to take away here -- there is no spinner to stop (IMAGES.md 2.3).
+        // nothing to take away here -- there is no spinner to stop.
         Row {
             id: skeleton
             visible: root.phase === "loading"
@@ -111,7 +123,7 @@ Item {
                     height: Math.round(width * 0.75)
                     activeFocusOnTab: true
                     // The caption is the picture's accessible name: a screen reader gets the same
-                    // words the card shows beside it (IMAGES.md 2.4).
+                    // words the card shows beside it.
                     Accessible.role: Accessible.Button
                     Accessible.name: cell.modelData.caption
                     Accessible.onPressAction: root.openPage(cell.modelData.page)
@@ -199,7 +211,7 @@ Item {
         }
 
         // The attribution is permanent, not a tooltip: a licence that only appears on hover is a
-        // licence the reader never saw (IMAGES.md 2.3). Tapping it opens the same source page.
+        // licence the reader never saw. Tapping it opens the same source page.
         Text {
             id: attribution
             visible: root.phase === "ready"
@@ -235,16 +247,16 @@ Item {
             visible: root.phase === "failed"
             topPadding: 6
             width: parent.width
-            text: qsTr("Pictures unavailable")
+            text: root.failureText
             color: root.tokens.muted
             font.pixelSize: Math.round(10.5 * root.scale)
-            elide: Text.ElideRight
+            wrapMode: Text.WordWrap
         }
 
         // The one thing a reader can do about it: the image search, opened in the browser. Not a
-        // browser inside Lens, and no result is read back (IMAGES.md 2.4, 4.5). It is the same pill
-        // as the entry that opened this strip -- same height, same colours, same left baseline --
-        // because it is the same affordance in the state where there is nothing to draw.
+        // browser inside Lens, and no result is read back. It is the same pill
+        // as the entry that opened this strip -- same height, same shape, same left baseline -- but
+        // filled at rest: in the failure state it is the action, not a second line of explanation.
         Item {
             id: fallback
             visible: root.phase === "failed"
@@ -273,9 +285,10 @@ Item {
                     objectName: "picturesFallbackPill"
                     anchors.fill: parent
                     radius: root.tokens.radiusPill
-                    // Hovered or keyboard-focused, not bordered: the entry has no border either, and a
-                    // border would make this read as a second kind of button.
-                    color: fallbackHover.hovered || fallbackPill.activeFocus ? root.tokens.panel2 : "transparent"
+                    // Filled at rest, unlike the entry: when nothing could be drawn, this pill is
+                    // the only action left and has to read as one without waiting for hover.
+                    color: fallbackHover.hovered || fallbackPill.activeFocus ? root.tokens.line
+                                                                             : root.tokens.panel2
                     scale: fallbackPress.pressed ? 0.97 : 1.0
                     Behavior on scale {
                         NumberAnimation {
@@ -293,7 +306,7 @@ Item {
                     height: fallbackPill.height
                     verticalAlignment: Text.AlignVCenter
                     text: qsTr("Open image search")
-                    color: fallbackHover.hovered || fallbackPill.activeFocus ? root.tokens.text : root.tokens.faint
+                    color: fallbackHover.hovered || fallbackPill.activeFocus ? root.tokens.text : root.tokens.muted
                     font.pixelSize: 11
                 }
 

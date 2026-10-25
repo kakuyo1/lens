@@ -387,7 +387,7 @@ TEST_F(KnownStoreTest, ChainLabelAndCollocationsSurviveASaveAndReload)
 
 /// The picture advice, stored with the sense it came with: both copies survive the round trip, and
 /// an entry that never carried them -- the ones written before the fields existed -- reads as
-/// "no picture" rather than as damaged (IMAGES.md 3.3).
+/// "no picture" rather than as damaged.
 TEST_F(KnownStoreTest, PictureAdviceSurvivesASaveAndReloadAndAbsentIsNoPicture)
 {
     writeSeededStore();

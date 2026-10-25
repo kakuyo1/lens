@@ -62,6 +62,15 @@ Window {
 
     /// 0 = all, 1 = known, 2 = new.
     property int filter: 0
+    /// The filter folds rows shut over a motion token; until that settles, a list with no rows is
+    /// still collapsing, not empty. The empty line waits for it.
+    property bool filterSettled: true
+    readonly property bool filterEmpty: filter !== 0 && Controller.words.length > 0
+                                        && filterSettled && list.contentHeight === 0
+    onFilterChanged: {
+        filterSettled = false;
+        filterSettle.restart();
+    }
 
     /// The word the question is asking about, "" when it is not up.
     property string pendingRemoval: ""
@@ -373,9 +382,11 @@ Window {
                 width: parent.width
                 // UI-SPEC.md 4.8 gives the list a *maximum* of 306px: a handful of words leaves a
                 // panel sized to those words, not a panel with a hole under them. An empty list
-                // keeps one line of room for the line that says how it fills.
+                // keeps one line of room for the line that says how it fills; a filter with no
+                // rows gets the same room rather than a card with a hole in it.
                 height: Controller.words.length === 0 ? emptyText.implicitHeight + 6
-                                                      : Math.min(306, list.contentHeight)
+                      : words.filterEmpty ? filteredEmptyText.implicitHeight + 6
+                      : Math.min(306, list.contentHeight)
 
                 ListView {
                     id: list
@@ -400,6 +411,24 @@ Window {
                     color: words.tokens.faint
                     font.pixelSize: 11
                     wrapMode: Text.WordWrap
+                }
+
+                Text {
+                    id: filteredEmptyText
+                    objectName: "filteredEmptyText"
+                    anchors.top: parent.top
+                    width: parent.width
+                    visible: words.filterEmpty
+                    text: qsTr("No words in this filter.")
+                    color: words.tokens.faint
+                    font.pixelSize: 11
+                    wrapMode: Text.WordWrap
+                }
+
+                Timer {
+                    id: filterSettle
+                    interval: words.tokens.motion.pop + 20
+                    onTriggered: words.filterSettled = true
                 }
 
                 // The six-pixel scrollbar UI-SPEC.md 4.8 asks for, drawn rather than imported so the

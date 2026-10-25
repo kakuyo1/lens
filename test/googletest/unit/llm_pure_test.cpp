@@ -409,7 +409,7 @@ TEST_F(LlmTest, KeepsAtMostTheContractSenses)
 /// The picture advice, read for both shapes the word channel answers in: the pair sits at the top
 /// level when a word carries no `senses`, and inside each sense when it does. A sense is imageable
 /// only when the model both said so and named the words an image search runs with, so a half-answer
-/// -- true with a blank query -- is not a picture to fetch (IMAGES.md 3.1).
+/// -- true with a blank query -- is not a picture to fetch.
 TEST_F(LlmTest, ReadsThePictureAdviceFromEitherShape)
 {
     const QString singular =
@@ -437,8 +437,8 @@ TEST_F(LlmTest, ReadsThePictureAdviceFromEitherShape)
 }
 
 /// A word whose advice is the wrong type is still a word: it is read as not imageable and the
-/// definition is kept, because losing an explanation that arrived intact is the worse trade
-/// (IMAGES.md 3.1). Both fields are declared in the schema without a type for exactly this reason.
+/// definition is kept, because losing an explanation that arrived intact is the worse trade.
+/// Both fields are declared in the schema without a type for exactly this reason.
 TEST_F(LlmTest, ReadsAMistypedPictureFlagAsNotImageableRatherThanFailing)
 {
     const QString content =
@@ -449,8 +449,7 @@ TEST_F(LlmTest, ReadsAMistypedPictureFlagAsNotImageableRatherThanFailing)
 }
 
 /// Both word presets ask for the picture advice, and no other channel does: the fields are not
-/// gated on a setting, so a prompt that stopped asking would leave every card without its entry
-/// (IMAGES.md 3.2).
+/// gated on a setting, so a prompt that stopped asking would leave every card without its entry.
 TEST_F(LlmTest, AsksForThePictureAdviceOnBothWordPresetsOnly)
 {
     const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
@@ -851,8 +850,7 @@ TEST(PartialExplanation, GrowsTheSenseArrayOneValueAtATime)
 
 /// A boolean in the answer does not hold back what is written after it. The preview draws no picture
 /// -- the entry arrives only once the whole answer has passed the schema -- but stopping the read on
-/// `imageable` would keep the row behind it, and any second sense, from appearing as it is written
-/// (IMAGES.md 3.3).
+/// `imageable` would keep the row behind it, and any second sense, from appearing as it is written.
 TEST(PartialExplanation, ReadsPastABooleanToTheFieldsBehindIt)
 {
     const auto behind = parsePartialExplanation(

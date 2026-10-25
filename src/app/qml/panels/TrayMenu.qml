@@ -82,6 +82,54 @@ Window {
     }
 
     property bool listVisible: false
+    /// True while the keyboard was handed to a language option, so folding the list can give it
+    /// back to the Language row instead of leaving focus on a hidden item.
+    property bool languageListFocused: false
+    onListVisibleChanged: if (!listVisible) languageListFocused = false
+
+    // qmllint disable missing-property
+    /// @brief Put the keyboard on the first menu row, once the body has built it.
+    /// @return Whether a row took the focus.
+    function focusFirstRow() {
+        if (!bodyLoader.item)
+            return false;
+        for (let i = 0; i < bodyLoader.item.children.length; ++i) {
+            const child = bodyLoader.item.children[i];
+            if (child.activeFocusOnTab) {
+                child.forceActiveFocus();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// @brief Put the keyboard back on the Language row after its list folds.
+    function focusLanguageRow() {
+        if (!bodyLoader.item)
+            return false;
+        for (let i = 0; i < bodyLoader.item.children.length; ++i) {
+            const child = bodyLoader.item.children[i];
+            if (child.label === qsTr("Language")) {
+                child.forceActiveFocus();
+                return true;
+            }
+        }
+        return false;
+    }
+    // qmllint enable missing-property
+
+    /// @brief Escape's own ladder: fold the language list first, then put the menu down.
+    function dismiss() {
+        if (listVisible) {
+            const hadKeyboard = languageListFocused;
+            listVisible = false;
+            languageListFocused = false;
+            if (hadKeyboard)
+                Qt.callLater(menu.focusLanguageRow);
+            return;
+        }
+        visible = false;
+    }
 
     /// The menu rows are only needed after the tray menu is first opened.
     property bool contentActive: false
@@ -275,6 +323,7 @@ Window {
                     const row = listColumn.children[i];
                     if (row.modelData && row.modelData.value === value) {
                         row.forceActiveFocus();
+                        menu.languageListFocused = true;
                         return;
                     }
                 }
@@ -360,13 +409,12 @@ Window {
         onTriggered: menu.listVisible = false
     }
 
-    /// Escape puts the menu down, the way a press outside it does. Application-wide rather than
-    /// window-scoped, for the reason the removal question's Shortcut gives: a window that never
-    /// becomes active cannot answer a window-scoped key.
+    /// Escape is application-wide so it also answers in the moment the tray click raises the menu
+    /// before requestActivate lands. The list folds before the menu does.
     Shortcut {
         sequence: "Escape"
         context: Qt.ApplicationShortcut
         enabled: menu.visible
-        onActivated: menu.visible = false
+        onActivated: menu.dismiss()
     }
 }

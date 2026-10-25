@@ -15,6 +15,8 @@ Item {
     id: root
 
     required property var tokens
+    /// The bubble window this row belongs to, whose reading clock a screen-reader press refills.
+    required property var bubbleWindow
     /// The word a press writes a verdict for.
     required property string lemma
     /// Whether the pointer is on the card.
@@ -96,7 +98,11 @@ Item {
 
             Accessible.role: Accessible.Button
             Accessible.name: knownLabel.text
-            Accessible.onPressAction: knownTap.tapped()
+            Accessible.description: root.showHint ? hintText.text : ""
+            Accessible.onPressAction: {
+                root.bubbleWindow.readerActed();
+                knownTap.tapped();
+            }
 
             Text {
                 id: knownLabel
@@ -128,7 +134,11 @@ Item {
 
             Accessible.role: Accessible.Button
             Accessible.name: newLabel.text
-            Accessible.onPressAction: newTap.tapped()
+            Accessible.description: root.showHint ? hintText.text : ""
+            Accessible.onPressAction: {
+                root.bubbleWindow.readerActed();
+                newTap.tapped();
+            }
 
             Text {
                 id: newLabel

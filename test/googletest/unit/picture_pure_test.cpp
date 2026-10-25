@@ -4,7 +4,7 @@
  *        address, the decode check, and the cache on a temp directory.
  *
  * The filter cases replay a recorded Commons answer rather than searching, so which candidate the
- * card may show is decided here and not by a paid round trip (IMAGES.md 7).
+ * card may show is decided here and not by a paid round trip.
  */
 
 #include <filesystem>
@@ -85,7 +85,7 @@ QByteArray jpegBytes()
 } // namespace
 
 /// A photograph on a licence that permits display, at the size and shape the card needs, survives
-/// with its attribution, and the HTML Commons writes around an artist is stripped (IMAGES.md 2.3).
+/// with its attribution, and the HTML Commons writes around an artist is stripped.
 TEST(ParseCommonsSearch, KeepsAPhotographAndItsAttribution)
 {
     const auto pictures = lens::pictures::parseCommonsSearch(bodyOf(QJsonArray{page("File:Garden trowel.jpg", imageInfo())}));
@@ -120,7 +120,7 @@ TEST(ParseCommonsSearch, DropsWhateverTheCardMayNotShow)
 }
 
 /// A picture whose author is missing keeps its place with a plain attribution, because the card has
-/// to show something; one whose licence is unknown does not get that far (IMAGES.md 4.3).
+/// to show something; one whose licence is unknown does not get that far.
 TEST(ParseCommonsSearch, NamesAMissingAuthorRatherThanDroppingThePicture)
 {
     auto info     = imageInfo();
@@ -134,7 +134,7 @@ TEST(ParseCommonsSearch, NamesAMissingAuthorRatherThanDroppingThePicture)
 }
 
 /// The caption is the source's own description when it is in English, and the file name otherwise:
-/// the card never shows a caption it cannot read, and never machine-translates one (IMAGES.md 2.3).
+/// the card never shows a caption it cannot read, and never machine-translates one.
 TEST(ParseCommonsSearch, FallsBackToTheFileNameForACaptionItCannotRead)
 {
     const auto nonEnglish = lens::pictures::parseCommonsSearch(bodyOf(QJsonArray{
@@ -166,7 +166,7 @@ TEST(ParseCommonsSearch, KeepsSearchOrderAndAtMostThree)
 }
 
 /// A body that is not an answer yields nothing rather than a partial one: the card's fallback line
-/// is the one thing a reader sees for every kind of failure (IMAGES.md 4.5).
+/// is the one thing a reader sees for every kind of failure.
 TEST(ParseCommonsSearch, AnswersNothingForSomethingThatIsNotAnAnswer)
 {
     EXPECT_TRUE(lens::pictures::parseCommonsSearch(QByteArray{}).isEmpty());
@@ -187,7 +187,7 @@ TEST(PictureQuery, NormalizesAndKeysByQueryAndWidth)
 }
 
 /// The fallback is an English image search on https, with the query encoded: an unencoded one would
-/// be cut at its first space (IMAGES.md 4.5).
+/// be cut at its first space.
 TEST(PictureQuery, BuildsAnEnglishImageSearchAddress)
 {
     const QUrl url{lens::pictures::imageSearchUrl(QStringLiteral("garden trowel"))};
@@ -200,7 +200,7 @@ TEST(PictureQuery, BuildsAnEnglishImageSearchAddress)
 }
 
 /// Only the hosts this source serves thumbnails from, over https: a redirect target or a third-party
-/// host is a download this app will not make (IMAGES.md 4.3).
+/// host is a download this app will not make.
 TEST(PictureQuery, AllowsOnlyTheUploadHostsOverHttps)
 {
     EXPECT_TRUE(lens::pictures::isAllowedThumbnailHost(QUrl{QStringLiteral("https://upload.wikimedia.org/x.jpg")}));
@@ -251,8 +251,7 @@ protected:
     std::filesystem::path root;
 };
 
-/// A stored entry comes back with its files, and the second read never touches the source
-/// (IMAGES.md 2.2, 4.4).
+/// A stored entry comes back with its files, and the second read never touches the source.
 TEST_F(PictureCacheTest, StoresAndReadsBackOneEntry)
 {
     const PictureCache cache{root};
@@ -288,7 +287,7 @@ TEST_F(PictureCacheTest, MissingAndUnstorableAreBothMisses)
 }
 
 /// An entry that has aged past the TTL is a miss and is dropped, so the next open asks the source
-/// again (IMAGES.md 4.4).
+/// again.
 TEST_F(PictureCacheTest, AnAgedEntryIsAMissAndGoes)
 {
     const PictureCache cache{root};
@@ -334,7 +333,7 @@ TEST_F(PictureCacheTest, ReportsItsFootprintAndClearsEveryEntry)
 }
 
 /// Metadata naming an image that is not there is not an entry: the card is never handed a path it
-/// cannot draw (IMAGES.md 4.4).
+/// cannot draw.
 TEST_F(PictureCacheTest, AnEntryWhosePictureIsGoneIsAMissAndGoes)
 {
     const PictureCache cache{root};

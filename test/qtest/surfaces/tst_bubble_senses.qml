@@ -84,7 +84,7 @@ Item {
             }
         }
 
-        /// The picture entry, in both themes (IMAGES.md 2.1). Snapshotted because what it has to get
+        /// The picture entry, in both themes. Snapshotted because what it has to get
         /// right is optical: a 13 px glyph, an 11 px label and the sense's own text sharing one
         /// baseline, which is exactly what a number in a test cannot check.
         function test_snapshotPictureEntry() {
@@ -120,7 +120,7 @@ Item {
                     // What the eye judges, as numbers. The glyph is not drawn on the offscreen
                     // platform -- it is an Icon, and Icon colorizes through a MultiEffect, which the
                     // software backend cannot run -- so its placement is asserted instead of
-                    // photographed (IMAGES.md 2.1).
+                    // photographed.
                     const entries = named(bubble, "sensePicturesEntry").filter(function(item) { return item.visible; });
                     compare(entries.length, 2, "one entry per imageable sense");
                     const glyphs = named(bubble, "sensePicturesGlyph");
@@ -150,7 +150,7 @@ Item {
         /// The strip's failure state, seen when the source cannot be reached or answers with
         /// nothing usable. It draws no picture, so the whole block is photographable offscreen --
         /// the thumbnails are not -- and it is where the fallback pill has to stand on the same
-        /// left baseline, in the same style, as the entry that opened it (IMAGES.md 2.4, 4.5).
+        /// left baseline, in the same style, as the entry that opened it.
         function test_snapshotPictureStripFailure() {
             if (!lensQaSnapshotDir) skip("Set LENS_QA_SNAPSHOT_DIR to save snapshots");
             const theme = Tokens.theme;
@@ -191,9 +191,11 @@ Item {
                     compare(idleFallbackPill.height, idleEntryPill.height, "the fallback pill is not the entry's height");
                     compare(idleFallbackPill.radius, idleEntryPill.radius, "the fallback pill is not the entry's shape");
                     compare(idleFallbackPill.border.width, idleEntryPill.border.width, "the fallback pill has a border the entry has not got");
-                    compare(String(idleFallbackPill.color), String(idleEntryPill.color), "the fallback pill is filled differently from the entry");
+                    compare(String(idleFallbackPill.color), String(bubble.tokens.panel2),
+                            "the fallback pill is not visibly a button at rest");
                     compare(idleFallbackLabel.font.pixelSize, idleEntryLabel.font.pixelSize, "the fallback label is not the entry label's size");
-                    compare(String(idleFallbackLabel.color), String(idleEntryLabel.color), "the fallback label is not the entry label's colour");
+                    compare(String(idleFallbackLabel.color), String(bubble.tokens.muted),
+                            "the fallback label is not the action's muted step");
 
                     entry.toggle();
                     tryVerify(function () { return Controller.pictureDuty.pictures.state === "failed"; }, 15000);
@@ -206,8 +208,12 @@ Item {
                     const baseline = named(bubble, "senseEnglish")[0].mapToItem(content, 0, 0).x;
                     const fallbackLabel = Util.textsUnder(named(bubble, "picturesFallback")[0])[0];
                     fuzzyCompare(fallbackLabel.mapToItem(content, 0, 0).x, baseline, 0.6, "the fallback label is not on the card's text baseline");
-                    const line = Util.textsUnder(bubble).filter(function(text) { return text.text === "Pictures unavailable"; })[0];
-                    verify(!!line, "the failure line is not drawn");
+                    const failure = Controller.pictureDuty.pictures.failure;
+                    const expectedLine = failure === "no-results" ? "No pictures matched this sense."
+                                      : failure === "download" ? "Pictures could not be downloaded. Try again."
+                                      : "Pictures unavailable. Check your connection.";
+                    const line = Util.textsUnder(bubble).filter(function(text) { return text.text === expectedLine; })[0];
+                    verify(!!line, "the failure line does not name the reason: " + failure);
                     fuzzyCompare(line.mapToItem(content, 0, 0).x, baseline, 0.6, "the failure line is not on the card's text baseline");
                 }
             } finally {

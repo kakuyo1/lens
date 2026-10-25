@@ -224,9 +224,9 @@
 托盘图标（四状态）用 **C++ `QSystemTrayIcon`**：那是 shell 的东西，没有 QML 对应物。**菜单不是原生的**
 ——`Menu` 曾按 “Windows 原生可靠” 选过 `QMenu`（`Qt.labs.platform` 的实验性 QML 类型在 6.9 上右键菜单
 不生效，仍弃用），代价是画不成 `UI-SPEC.md` §4.2 的卡片；现改为一个普通表面（`qml/TrayMenu.qml`），`Tray`
-只在图标被点时发一个 `menuRequested`。图标只有三个可达状态（自动扫描开 / 解释中 / 已关），第四态（预算
-耗尽）要等每日预算上限落地；琥珀色的那一份 art（`icons/tray-budget-*.svg`）已经在这里，`tray.h` 的类注记
-写着它为什么先放进来。
+只在图标被点时发一个 `menuRequested`。四态都可达（自动扫描开 / 解释中 / 预算耗尽 / 已关）；预算耗尽取
+`icons/tray-budget-*.svg` 的琥珀色。菜单是读者主动打开的，打开时 `requestActivate()` 并把焦点放在首行；
+Esc 先折语言列表、再收菜单（ADR 0108）。
 
 **一族图标只有一个几何**。`icons/lens.svg` 是产品标本身：24×24 的坐标系里，外圆环 `r=7`、描边 2.1，中心
 实心点 `r=2.9`。它和 `ui-*.svg` 一样描白色、由 QML 染色，所以托盘菜单的首行用 `Icon` 取它，绿（`ok`）与
