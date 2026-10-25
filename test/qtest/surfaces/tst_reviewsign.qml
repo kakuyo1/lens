@@ -44,7 +44,7 @@ Item {
         Window {
             property int gap: 10
             property int shadowMargin: 0
-            property bool verdictButtons: false
+            property string cardKind: "reviewAnswer"
             property bool dragging: false
 
             width: 200
@@ -224,6 +224,7 @@ Item {
                 en: "the occurrence of events by chance in a happy way",
                 zh: "机缘巧合",
                 status: "new",
+                cardKind: "reviewAnswer",
                 countsDown: true,
                 reveal: false,
                 verdictButtons: false,

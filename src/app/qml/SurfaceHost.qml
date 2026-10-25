@@ -372,11 +372,12 @@ QtObject {
 
     /// A review card belongs to the word list and is placed against its word's rectangle; the
     /// answer beside the pet's sign is placed by reviewSign; every other card hangs from its anchor.
+    /// The card's own kind is what tells them apart, not flags each caller would have to combine.
     function placeBubble(surface, payload) {
-        if (payload.review === true) {
+        if (payload.cardKind === "review") {
             rememberPlacement(surface, payload, "review");
             placeReviewCard(surface, payload);
-        } else if (payload.verdictButtons === false) {
+        } else if (payload.cardKind === "reviewAnswer") {
             // The sign keeps its own record of where this answer goes; marking the kind here keeps
             // a later height change from reading the review placement that came before it.
             rememberPlacement(surface, payload, "reviewSign");
@@ -425,8 +426,8 @@ QtObject {
 
     function repositionVisible() {
         for (const placement of placements) {
-            // A review's answer (a bubble with no verdict buttons) is placed by reviewSign, from its own record.
-            if (!placement.surface.visible || placement.surface.verdictButtons === false)
+            // A review's answer is placed by reviewSign, from its own record.
+            if (!placement.surface.visible || placement.kind === "reviewSign")
                 continue;
             if (placement.kind === "panel")
                 placePanel(placement.surface, placement.anchor);

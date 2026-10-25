@@ -66,6 +66,10 @@ Window {
     /// The word, entity, or sentence title and its explanation, as the controller hands them over.
     property string title: ""
     property string type: "" ///< "word", "entity", or "sentence".
+    /// The card's identity, settled by the duty's card session: "selection", "review" (the word
+    /// list's hover replay) or "reviewAnswer" (the pet's answer). Placement reads this; the flags
+    /// settled beside it (countsDown, verdictButtons) are what the rows read.
+    property string cardKind: ""
     property string ipa: "" ///< Pronunciation in slashes, beside the word (app_controller.h).
     /// The most common sense's part of speech, drawn after the pronunciation (UI-SPEC.md 4.3).
     /// Empty whenever the answer had none or the display switch is off.
@@ -116,14 +120,10 @@ Window {
     /// a time would stand between the click and the sense it asked for.
     property bool senseSwappedOnce: false
 
-    /// Whether the Known and New buttons are drawn. The card a review's answer raises is the reader's to read, not to
-    /// mark (UI-SPEC.md 4.13); the status tag above the title still says what the word is.
+    /// Whether the Known and New buttons are drawn. The card a review raises is the reader's to
+    /// read, not to mark (UI-SPEC.md 4.8 / 4.13), and the duty settles this once for both review
+    /// kinds; the status tag above the title still says what the word is.
     property bool verdictButtons: true
-
-    /// Whether the word list raised this card by replaying a stored explanation. The replay is the
-    /// pointer's to read, not to judge: its verdict row stays shut no matter where the pointer is,
-    /// and a verdict is given through the action bar (or the list's own pills) instead.
-    property bool replay: false
 
     /// Whether the answer is written out a character at a time (RevealText). A card raised whole out
     /// of the cache is not: the word list puts one up for every row the pointer crosses.
@@ -207,6 +207,7 @@ Window {
         collocations = payload.collocations || [];
         title = payload.title || "";
         type = payload.type || "";
+        cardKind = payload.cardKind || "";
         ipa = payload.ipa || "";
         pos = payload.pos || "";
         english = payload.en || "";
@@ -221,7 +222,6 @@ Window {
         countsDown = payload.countsDown !== false;
         reveal = payload.reveal !== false;
         verdictButtons = payload.verdictButtons !== false;
-        replay = payload.review === true;
         remainingMs = dismissAfterMs;
 
         // A new window must not paint its first frame before Text has settled the card height, or it
@@ -305,7 +305,9 @@ Window {
 
     onHoveringChanged: {
         updateCountdown();
-        if (verdictButtons && !replay && status !== "")
+        // The row's availability is BubbleCard's one reading of it, so this hold and the row itself
+        // cannot disagree about whether a verdict is on offer.
+        if (content.verdictsAvailable)
             rowHold.begin(content.implicitHeight + (hovering ? content.verdictRowHeight : -content.verdictRowHeight));
     }
 

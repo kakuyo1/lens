@@ -29,6 +29,8 @@ add_library(lens_app STATIC
   # Use cases: what the reader asks for, independent of a surface.
   duties/capture_duty.h
   duties/capture_duty.cpp
+  duties/card_session.h
+  duties/card_session.cpp
   duties/cost_duty.h
   duties/cost_duty.cpp
   duties/explanation_duty.h

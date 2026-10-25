@@ -48,6 +48,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/update_pure_test.cpp
   unit/github_auth_test.cpp
   unit/explanation_cache_test.cpp
+  unit/card_session_test.cpp
   unit/phase2_explanation_test.cpp
   unit/log_test.cpp
   unit/util_test.cpp

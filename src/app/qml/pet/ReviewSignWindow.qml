@@ -145,7 +145,7 @@ Window {
     /// other side only when the sign's side has no room and the other side has.
     function repositionAnswerCard() {
         const surface = answerCard;
-        if (!surface || !surface.visible || surface.dragging || surface.verdictButtons !== false)
+        if (!surface || !surface.visible || surface.dragging || surface.cardKind !== "reviewAnswer")
             return;
         const pet = Qt.rect(petWindow.x, petWindow.y, petWindow.width, petWindow.height);
         const area = areaAt(Qt.point(pet.x + pet.width / 2, pet.y + pet.height / 2));

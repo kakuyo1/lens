@@ -486,7 +486,7 @@ Item {
             const bubble = Util.ofType(main, "Bubble");
             verify(bubble);
             bubble.show({title: "panel", type: "word", en: "a panel", x: 300, y: 400,
-                         anchorWidth: 40, anchorHeight: 20, review: true});
+                         anchorWidth: 40, anchorHeight: 20, cardKind: "review"});
             wait(25);
 
             compare(bubble.x, 300 - bubble.shadowMargin);
@@ -502,7 +502,7 @@ Item {
             const bubble = Util.ofType(main, "Bubble");
             verify(bubble);
             bubble.show({title: "panel", type: "word", en: "a panel", x: 500, y: 10,
-                         anchorWidth: 40, anchorHeight: 20, review: true});
+                         anchorWidth: 40, anchorHeight: 20, cardKind: "review"});
             wait(25);
 
             const area = Util.surfaceHost(main).workArea(Util.surfaceHost(main).screenFor(Qt.point(500, 10)));
@@ -515,7 +515,7 @@ Item {
             const main = makeMain();
             const bubble = Util.ofType(main, "Bubble");
             verify(bubble);
-            const anchor = {x: 500, y: 400, anchorWidth: 40, anchorHeight: 20, review: true};
+            const anchor = {x: 500, y: 400, anchorWidth: 40, anchorHeight: 20, cardKind: "review"};
             bubble.show(Object.assign({title: "panel", type: "word", en: "a panel"}, anchor));
             wait(25);
             const gap = 400 - (bubble.y + bubble.height - bubble.shadowMargin);

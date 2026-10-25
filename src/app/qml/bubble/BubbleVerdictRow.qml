@@ -21,11 +21,11 @@ Item {
     required property string lemma
     /// Whether the pointer is on the card.
     required property bool hovering
-    /// "new", "known", or "" for a card that has no verdict to give.
-    required property string status
+    /// Whether this card has a verdict to give, settled once by the card's own reading.
+    required property bool available
 
     /// Whether the row is open: the pointer on the card, and a word to judge.
-    readonly property bool show: root.hovering && root.status !== ""
+    readonly property bool show: root.hovering && root.available
     /// The one-time sentence under the pills. It is latched for this opening even though the
     /// document flag flips at once, and it never returns once the reader has seen it.
     property bool hintLatch: false

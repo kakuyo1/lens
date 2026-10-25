@@ -69,6 +69,10 @@
   这一条靠跑起来验证，不从文档推。
 - **窗口的屏幕坐标是 `x` / `y`**：`Window` 没有 `screenX` / `screenY`（那是 `Item` 的属性），
   在函数里写未加限定的 `screenY = ...` 会去写全局属性并报错。
+- **卡的身份由 duty 结算，QML 不再拼布尔**：`Bubble.show()` 读 `payload.cardKind`（`selection` /
+  `review` / `reviewAnswer`），`SurfaceHost.placeBubble()` 与 `ReviewSignWindow.repositionAnswerCard()`
+  从它分支；`countsDown` 与 `verdictButtons` 是它结算后的显示值，验证行的展开只读后者，QML 不再推导
+  规则（`docs/adr/0114`）。设置预览不走 duty，仍由 `Bubble.preview` 标志自己表示。
 - **表面的根窗口带 `objectName`，名字与表面表的 `name` 逐字一致**：`src/core/domain/surface_table.h` 的一行与这里的 `objectName` 改名时同改（`docs/adr/0084`、`docs/adr/0068`）。玻璃幕布、开发面的 `state` 与 opener 都从那张表读名字，名字写错不会再静默地取不到幕布。出厂构建也带这些名字，它们不影响行为。`Bubble` 的实例标在 `Main.qml` 上，因为 `Bubble.qml` 同时也是设置页的预览，在它里面标会重名。
 - **显示一张表面是两步**：`visible = true` 不够，还要 `raise()`。实机反馈是托盘菜单被任务栏压住一角
   ——`placePanel` 把卡片的右下角对齐图标中心，卡片下缘本就在 48 DIP 任务栏里进了一半，而点托盘图标

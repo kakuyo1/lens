@@ -44,15 +44,6 @@ struct PendingSelection {
     QString             surface;
     QString             lemma;
     QString             preset = QStringLiteral("default");
-    /// @brief Whether the card this selection raises counts down. A review card belongs to the row
-    ///        under the pointer instead and is taken down when the pointer leaves it (UI-SPEC.md 4.8).
-    bool countsDown = true;
-    /// @brief Whether the card offers the Known / New buttons. False for the card that answers a
-    ///        review question, which is the reader's to read rather than to mark.
-    bool verdictButtons = true;
-    /// @brief Whether this card belongs to the word under the pointer in the list. It is placed against
-    ///        the word's own rectangle: bottom edge a fixed gap above it, flipping below near the top edge.
-    bool review = false;
     /// @brief Whether this request is a step of the definition chain. Its answer goes onto the chain under
     ///        the card, and never onto the card itself.
     bool chain = false;

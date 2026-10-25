@@ -10,6 +10,7 @@
 #include <QtQml/qqmlregistration.h>
 
 #include "capture_duty.h"
+#include "card_session.h"
 #include "core/domain/pet/pet_state.h"
 #include "core/document/explanation_cache.h"
 #include "explanation_queue.h"
@@ -182,33 +183,10 @@ private:
     /// @return The mother tongue the peek answers in, as the document holds it.
     QString motherTongue() const;
 
-    /// One word's sense cycle, this session: the answer's own sense first, then the ones the
-    /// Not-the-Sense? entry has bought, each with the one word that labels it -- the answer's
-    /// signpost for the first, the model's hint for the rest.
-    struct SenseCycle {
-        QVector<llm::Sense> senses;
-        QStringList         hints;
-        int                 index     = 0;     ///< The sense the standing card draws.
-        bool                exhausted = false; ///< The model has said there is no further distinct sense.
-        bool                fetching  = false; ///< A next-sense request for index + 1 is on the wire.
-    };
-
-    /// @return The standing word card's cycle, or null when the entry has nothing to cycle: no
-    ///         word card, a step down the chain, multiple senses on -- the rows are the selector
-    ///         there -- or no cycle raised for the word and language the card stands under.
-    /// @param keyOut Set to the cycle's key when a cycle is returned.
-    SenseCycle* standingCycle(QString& keyOut);
-    /// @brief Put the next-sense request for @p cycle on the wire, budget permitting.
-    /// @param advanceOnArrival Whether the answer switches the card onto the sense it brings, as
-    ///        a click asks, or only fills the entry's hint, as a hover asks.
-    void requestNextSense(SenseCycle& cycle, QString const& key, bool advanceOnArrival);
-    /// @brief Tell the card what @p cycle now shows, and leave the payload agreeing with it: a
+    /// @brief Tell the card what its cycle now shows, and leave the payload agreeing with it: a
     ///        later refresh of the same card must not snap the sense back while it stands.
-    void emitSenseSwapped(SenseCycle const& cycle, QString const& key);
-    /// @return The word the entry's right side offers next: the following sense's own word, the
-    ///         first sense's signpost past the last one, and empty while the next sense is
-    ///         still to be asked for.
-    QString nextSenseHint(SenseCycle const& cycle) const;
+    /// @param language The cycle's explanation language, which the row's fields are chosen by.
+    void emitSenseSwapped(CardSession::CycleView const& view, QString const& language);
     /// @brief Draw an answer that is still arriving, on the card of the request in flight.
     /// @param partial Whatever fields have completed so far; the rest are absent.
     void onPartial(llm::Explanation partial);
@@ -218,7 +196,9 @@ private:
     /// @param reveal Whether the card writes its answer out a character at a time. False for the
     ///        cards raised whole out of the cache: nothing is arriving there, and the word list puts
     ///        one up for every row the pointer crosses.
-    void    showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool notifyPet = true, bool reveal = true);
+    /// @param kind   Which identity the card is settled under: a selection, the word list's review
+    ///        replay, or the answer beside the pet's sign.
+    void    showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool notifyPet = true, bool reveal = true, CardKind kind = CardKind::Selection);
     QString noticeTitle(PendingSelection const& pending) const;
     ///
     /// One reader of this, two uses: the request asks the model for it, and the card decides
@@ -256,36 +236,15 @@ private:
     /// only that the reader has moved on.
     ExplanationQueue queue_;
     PendingSelection pending_;
-    /// The selection the standing bubble was raised for, kept apart from whatever is pending now.
-    PendingSelection bubbleSubject_;
-    /// The peek lines this session has paid for, keyed mother tongue then lemma -- and, for a line
-    /// bought under a swapped sense, the sense's index after a '#': the line is an answer for the
-    /// sense that was standing, and the same word's other senses are not answered by it.
-    QHash<QString, QString> peekLines_;
-    /// The sense cycles this session has paid for, keyed explanation language then lemma: the
-    /// Not-the-Sense? entry's senses come back to the same key instead of to the model.
-    QHash<QString, SenseCycle> cycles_;
-    /// The cycle key the one next-sense request in flight was made under, and whether its answer
-    /// is to switch the card onto the sense it brings. Empty when none is out.
-    QString senseRequestKey_;
-    bool    senseRequestAdvances_ = false;
-    /// The key and the sense index the one peek request in flight was made under, captured at the
-    /// request: the answer is stored -- and drawn -- for the sense it was asked about, whatever
-    /// the reader swapped onto the card while it was on its way.
-    QString     peekKey_;
-    int         peekSenseIndex_ = 0;
+    /// The card standing: its identity, its review life, its sense cycle and the requests it has
+    /// out. It is the one owner of what the duty's entry points used to spell for themselves.
+    CardSession session_;
     QVariantMap bubble_;
     QVariantMap notice_;
     QString     busyLabel_;
     /// Where the row the reader is pointing at sits, so the explanation a notice's button asks for
     /// lands in the same place the review bubble did.
     QPoint reviewAnchor_;
-    /// Whether the bubble standing is the one reviewWord() raised. Only that one is the pointer's
-    /// to take down: a scan or a selection bubble outlives the pointer leaving a word-list row.
-    bool reviewRaised_ = false;
-    /// The review card's own hover, and a dismissal that is waiting for it to end (dismissReview).
-    bool reviewCardHeld_       = false;
-    bool reviewDismissPending_ = false;
     /// Whether the request in flight has previewed anything yet. One line is what says whether the
     /// reader's provider streams at all; the rest of the chunks would be a repaint per line.
     bool previewSeen_ = false;

@@ -31,6 +31,11 @@ Item {
                                       || etymologyText.revealing || exampleText.revealing
                                       || senseRows.revealing || chainPanel.revealing
 
+    /// Whether a verdict is on offer at all: the card is one the duty settled as offering one, and
+    /// it has a word's status to show. The row's visibility, its opening and Bubble.qml's height
+    /// hold all read this one value, so the three cannot disagree about the same card.
+    readonly property bool verdictsAvailable: root.bubble.verdictButtons && root.bubble.status !== ""
+
     /// How far the verdict row reaches past the card's own height when it opens. The one-time hint
     /// is counted before the row has opened, so the window is already tall enough when it appears;
     /// Bubble.qml's height hold adds and subtracts this as the pointer comes and goes.
@@ -529,16 +534,16 @@ Item {
             }
 
             // The verdict buttons, drawn shut until the pointer is on the card (UI-SPEC.md 4.3).
-            // A replay from the word list keeps the row shut regardless: the pointer is there to
-            // read, and the verdict goes through the action bar (UI-SPEC.md 4.8).
+            // A card the duty settled as offering no verdict draws no row at all -- the word
+            // list's replay and the pet's answer alike -- so the pointer there is only for reading.
             BubbleVerdictRow {
                 id: verdictRow
-                visible: root.bubble.atRoot && root.bubble.verdictButtons
+                visible: root.bubble.atRoot && root.verdictsAvailable
                 tokens: root.bubble.tokens
                 bubbleWindow: root.bubble
                 lemma: root.bubble.title
-                hovering: root.bubble.hovering && !root.bubble.replay
-                status: root.bubble.status
+                hovering: root.bubble.hovering
+                available: root.verdictsAvailable
             }
 
             Text {
