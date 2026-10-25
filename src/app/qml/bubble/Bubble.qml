@@ -120,6 +120,11 @@ Window {
     /// mark (UI-SPEC.md 4.13); the status tag above the title still says what the word is.
     property bool verdictButtons: true
 
+    /// Whether the word list raised this card by replaying a stored explanation. The replay is the
+    /// pointer's to read, not to judge: its verdict row stays shut no matter where the pointer is,
+    /// and a verdict is given through the action bar (or the list's own pills) instead.
+    property bool replay: false
+
     /// Whether the answer is written out a character at a time (RevealText). A card raised whole out
     /// of the cache is not: the word list puts one up for every row the pointer crosses.
     property bool reveal: true
@@ -216,6 +221,7 @@ Window {
         countsDown = payload.countsDown !== false;
         reveal = payload.reveal !== false;
         verdictButtons = payload.verdictButtons !== false;
+        replay = payload.review === true;
         remainingMs = dismissAfterMs;
 
         // A new window must not paint its first frame before Text has settled the card height, or it
@@ -299,7 +305,7 @@ Window {
 
     onHoveringChanged: {
         updateCountdown();
-        if (verdictButtons && status !== "")
+        if (verdictButtons && !replay && status !== "")
             rowHold.begin(content.implicitHeight + (hovering ? content.verdictRowHeight : -content.verdictRowHeight));
     }
 

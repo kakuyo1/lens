@@ -529,13 +529,15 @@ Item {
             }
 
             // The verdict buttons, drawn shut until the pointer is on the card (UI-SPEC.md 4.3).
+            // A replay from the word list keeps the row shut regardless: the pointer is there to
+            // read, and the verdict goes through the action bar (UI-SPEC.md 4.8).
             BubbleVerdictRow {
                 id: verdictRow
                 visible: root.bubble.atRoot && root.bubble.verdictButtons
                 tokens: root.bubble.tokens
                 bubbleWindow: root.bubble
                 lemma: root.bubble.title
-                hovering: root.bubble.hovering
+                hovering: root.bubble.hovering && !root.bubble.replay
                 status: root.bubble.status
             }
 
