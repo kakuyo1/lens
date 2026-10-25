@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.9.0 - 2026-10-25
 
 The six surfaces have been through a full critique pass. Settings, the bubble, the tray menu, the
 data panels, the selection bar and the update card now share a keyboard and screen-reader floor,
