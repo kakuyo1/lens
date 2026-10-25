@@ -47,6 +47,8 @@ add_library(lens_app STATIC
   duties/sync_duty.cpp
   duties/update_duty.h
   duties/update_duty.cpp
+  duties/word_answer.h
+  duties/word_answer.cpp
 
   # Platform: Win32 and shell integration.
   platform/autostart.cpp

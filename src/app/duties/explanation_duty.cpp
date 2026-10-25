@@ -16,6 +16,7 @@
 #include "app/notice.h"
 #include "util/log.h"
 #include "util/text.h"
+#include "word_answer.h"
 
 namespace lens::app {
 namespace {
@@ -23,30 +24,6 @@ namespace {
 QString nowMinute()
 {
     return QString::fromStdString(util::localMinuteNow());
-}
-
-llm::Explanation fromCache(core::WordCache const& cached, QString const& lemma)
-{
-    llm::Explanation result{lemma,
-                            QString::fromStdString(cached.ipa),
-                            QString::fromStdString(cached.en),
-                            QString::fromStdString(cached.zh),
-                            QString::fromStdString(cached.translation)};
-    result.pos        = QString::fromStdString(cached.pos);
-    result.etymology  = QString::fromStdString(cached.etymology);
-    result.signpost   = QString::fromStdString(cached.signpost);
-    result.imageable  = cached.imageable;
-    result.imageQuery = QString::fromStdString(cached.imageQuery);
-    for (auto const& collocation : cached.collocations)
-        result.collocations.push_back(QString::fromStdString(collocation));
-    if (cached.example) result.example = QString::fromStdString(*cached.example);
-    for (auto const& sense : cached.senses) {
-        llm::Sense parsed{QString::fromStdString(sense.en), QString::fromStdString(sense.zh), QString::fromStdString(sense.translation)};
-        parsed.imageable  = sense.imageable;
-        parsed.imageQuery = QString::fromStdString(sense.imageQuery);
-        result.senses.push_back(std::move(parsed));
-    }
-    return result;
 }
 
 }
@@ -122,29 +99,9 @@ void ExplanationDuty::onBatchFinished(QVector<llm::Explanation> results, llm::Us
         if (answer < 0 or not isWordKind(selected.kind))
             continue;
         const llm::Explanation& result = results.at(answer);
-        // Named rather than positional: five of these six fields are strings, and the one that
-        // must not be dropped is the one that arrived last. The example is judged from the batch,
-        // not the setting: one asked for with the setting on is kept even if it was turned off
-        // while the request was away.
-        core::WordCache cached{.ipa         = result.ipa.toStdString(),
-                               .en          = result.en.toStdString(),
-                               .zh          = result.zh.toStdString(),
-                               .translation = result.translation.toStdString(),
-                               .pos         = result.pos.toStdString(),
-                               .etymology   = result.etymology.toStdString(),
-                               .example     = settlement.batch.example ? std::optional{result.example.toStdString()} : std::nullopt,
-                               .signpost    = result.signpost.toStdString(),
-                               .imageable   = result.imageable,
-                               .imageQuery  = result.imageQuery.toStdString()};
-        for (auto const& collocation : result.collocations)
-            cached.collocations.push_back(collocation.toStdString());
-        for (auto const& sense : result.senses) {
-            core::CachedSense parsed{sense.en.toStdString(), sense.zh.toStdString(), sense.translation.toStdString()};
-            parsed.imageable  = sense.imageable;
-            parsed.imageQuery = sense.imageQuery.toStdString();
-            cached.senses.push_back(std::move(parsed));
-        }
-        cache_.store(selected.lemma.toStdString(), std::move(cached), settlement.batch.context);
+        // The example is stored from the batch's own flag, not the setting as it stands now: an
+        // answer paid for survives the switch turning off mid-request (docs/adr/0033).
+        cache_.store(selected.lemma.toStdString(), word_answer::toCache(result, settlement.batch.example), settlement.batch.context);
     }
 
     if (settlement.subject)
@@ -207,7 +164,7 @@ void ExplanationDuty::enqueueScanCandidates(QVariantList candidates, QPoint anch
         if (found.state == core::ExplanationCache::State::Hit) {
             storage_.statsStore().recordPop(candidate.lemma.toStdString(), nowMinute().toStdString());
             if (bubble_.isEmpty() and not queue_.inFlight())
-                showBubble(fromCache(found.entry, candidate.lemma), candidate, context, /*notifyPet=*/true, /*reveal=*/false);
+                showBubble(word_answer::fromCache(found.entry, candidate.lemma), candidate, context, /*notifyPet=*/true, /*reveal=*/false);
             continue;
         }
         misses.push_back(std::move(candidate));
@@ -253,7 +210,7 @@ void ExplanationDuty::reviewWord(QString lemma, QPoint const anchor, QSize const
     const auto found   = cache_.look(value.toStdString(), context);
     if (found.state != core::ExplanationCache::State::Missing) {
         PendingSelection pending{.anchor = anchor, .anchorSize = anchorSize, .kind = core::SelectionKind::Word, .surface = value, .lemma = value};
-        showBubble(fromCache(found.entry, value), pending, context, /*notifyPet=*/true, /*reveal=*/false, CardKind::Review);
+        showBubble(word_answer::fromCache(found.entry, value), pending, context, /*notifyPet=*/true, /*reveal=*/false, CardKind::Review);
         return;
     }
     // The one thing on this path that reaches the model, and it is a button rather than the hover
@@ -274,7 +231,7 @@ void ExplanationDuty::showReviewAnswer(QString const& lemma, QPoint const anchor
     if (found.state != core::ExplanationCache::State::Hit)
         return;
     PendingSelection pending{.anchor = anchor, .kind = core::SelectionKind::Word, .surface = lemma, .lemma = lemma};
-    showBubble(fromCache(found.entry, lemma), pending, context, /*notifyPet=*/false, /*reveal=*/false, CardKind::ReviewAnswer);
+    showBubble(word_answer::fromCache(found.entry, lemma), pending, context, /*notifyPet=*/false, /*reveal=*/false, CardKind::ReviewAnswer);
 }
 
 void ExplanationDuty::dismissReview()
@@ -335,33 +292,10 @@ bool ExplanationDuty::chainStanding(PendingSelection const& selection) const
 
 QVariantMap ExplanationDuty::chainEntry(llm::Explanation const& explanation, core::CacheContext const& context) const
 {
-    QString const text = context.language == "en"   ? explanation.en
-                         : context.language == "zh" ? explanation.zh
-                                                    : explanation.translation;
-    QVariantList  collocations;
-    if (showsCardBlock("collocations"))
-        for (auto const& collocation : explanation.collocations)
-            collocations.append(collocation);
-    return QVariantMap{{"title", explanation.title},
-                       {"ipa", showsCardBlock("ipa") ? explanation.ipa : QString{}},
-                       {"text", text},
-                       {"signpost", showsCardBlock("signpost") ? explanation.signpost : QString{}},
-                       {"collocations", collocations},
-                       {"spans", spansOf(context.language == "en" ? text : QString{})}};
-}
-
-QVariantList ExplanationDuty::spansOf(QString const& text) const
-{
-    // The core counts bytes; ChainText draws with UTF-16 indices, so each offset is converted on its own prefix.
-    QByteArray const bytes  = text.toUtf8();
-    const auto       cutoff = core::rankForLevel(storage_.knownStore().level());
-    QVariantList     spans;
-    for (auto const& link : core::definitionLinks(std::string_view{bytes.constData(), static_cast<std::size_t>(bytes.size())}, cutoff)) {
-        const auto start = QString::fromUtf8(bytes.constData(), static_cast<int>(link.start)).size();
-        const auto end   = QString::fromUtf8(bytes.constData(), static_cast<int>(link.end)).size();
-        spans.append(QVariantMap{{"start", start}, {"end", end}, {"lemma", QString::fromStdString(link.lemma)}});
-    }
-    return spans;
+    const word_answer::Switches switches{.ipa          = showsCardBlock("ipa"),
+                                         .signpost     = showsCardBlock("signpost"),
+                                         .collocations = showsCardBlock("collocations")};
+    return word_answer::chainEntry(explanation, QString::fromStdString(context.language), switches, storage_.knownStore().level());
 }
 
 void ExplanationDuty::requestPeek()
@@ -460,16 +394,9 @@ void ExplanationDuty::onNextSenseAnswered(QString const& lemma, llm::Explanation
 
 void ExplanationDuty::emitSenseSwapped(CardSession::CycleView const& view, QString const& language)
 {
-    const bool        showSignpost = showsCardBlock("signpost");
-    const bool        showPictures = showsCardBlock("pictures");
-    const llm::Sense& sense        = view.sense;
-    QString const     senseEnglish = language == "en" ? sense.en : QString{};
-    QVariantMap       row{{"en", senseEnglish},
-                          {"spans", spansOf(senseEnglish)},
-                          {"text", language == "en" ? QString{} : language == "zh" ? sense.zh
-                                                                                   : sense.translation},
-                          {"imageable", showPictures && sense.imageable},
-                          {"imageQuery", showPictures ? sense.imageQuery : QString{}}};
+    const bool  showSignpost = showsCardBlock("signpost");
+    const bool  showPictures = showsCardBlock("pictures");
+    QVariantMap row          = word_answer::senseRow(view.sense, language, showPictures, storage_.knownStore().level());
     // The payload keeps agreeing with the card, so a refresh of the same card -- a verdict, a
     // replay -- draws the sense the reader moved to, not the answer's own first one.
     bubble_.insert(QStringLiteral("senses"), QVariantList{row});
@@ -515,7 +442,7 @@ bool ExplanationDuty::showStored(PendingSelection const& pending, core::CacheCon
         return false;
     storage_.statsStore().recordPop(pending.lemma.toStdString(), nowMinute().toStdString());
     storage_.save();
-    showBubble(fromCache(found.entry, pending.lemma), pending, context, /*notifyPet=*/true, /*reveal=*/false);
+    showBubble(word_answer::fromCache(found.entry, pending.lemma), pending, context, /*notifyPet=*/true, /*reveal=*/false);
     emit statsChanged();
     return true;
 }
@@ -582,10 +509,6 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
             emit chainAnswered(chainEntry(explanation, context));
         return;
     }
-    auto const selected = [&](QString const& en, QString const& zh, QString const& translation) {
-        return context.language == "en" ? en : context.language == "zh" ? zh
-                                                                        : translation;
-    };
     // A translation is one line of English whatever the explanation language says: the reader
     // selected Chinese, the model was asked for English alone, and the other two language fields
     // are answers the reader did not ask for. The bubble then draws that line and nothing else --
@@ -616,28 +539,17 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
     if (isWordKind(selection.kind)) {
         // Display switches, read as the card is drawn: the answer keeps every field, and these
         // decide only which of them reach the payload (see settings_table.h).
-        const bool showIpa          = showsCardBlock("ipa");
-        const bool showSignpost     = showsCardBlock("signpost");
-        const bool showCollocations = showsCardBlock("collocations");
-        const bool showPictures     = showsCardBlock("pictures");
-        const bool showPos          = showsCardBlock("pos");
-        // One language a row, the reader's own and no other: the explanation language answers
-        // "which language do I read this in", and a sense drawn in two of them answers it
-        // twice (UI-SPEC.md 4.3). A row carries the English definition when English was asked
-        // for and the reader's language otherwise -- the same pair the singular definition
-        // above the sense list is drawn from.
-        const auto rowOf = [&](llm::Sense const& sense) {
-            QString const senseEnglish = context.language == "en" ? sense.en : QString{};
-            return QVariantMap{{"en", senseEnglish},
-                               {"spans", spansOf(senseEnglish)},
-                               {"text", context.language == "en" ? QString{} : selected(sense.en, sense.zh, sense.translation)},
-                               // The picture advice for this row: the card draws a Pictures entry only
-                               // for a row whose `imageable` is true, and the duty runs the search
-                               // with `imageQuery`. Neither follows the
-                               // explanation language; the Pictures switch is what clears them here.
-                               {"imageable", showPictures && sense.imageable},
-                               {"imageQuery", showPictures ? sense.imageQuery : QString{}}};
-        };
+        const word_answer::Switches switches{.ipa          = showsCardBlock("ipa"),
+                                             .pos          = showsCardBlock("pos"),
+                                             .signpost     = showsCardBlock("signpost"),
+                                             .collocations = showsCardBlock("collocations"),
+                                             .pictures     = showsCardBlock("pictures"),
+                                             .etymology    = etymologyEnabled(),
+                                             .example      = exampleEnabled()};
+        const QString               language = QString::fromStdString(context.language);
+        const QVariantMap           fields   = word_answer::cardFields(explanation, language, switches, storage_.knownStore().level());
+        for (auto it = fields.cbegin(); it != fields.cend(); ++it)
+            payload.insert(it.key(), it.value());
         QVariantList senses;
         if (context.multipleSenses) {
             // The rows are the sense selector themselves (UI-SPEC.md 4.3), and there is no
@@ -648,7 +560,7 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
             for (const auto& sense : entries) {
                 if (senses.size() >= llm::kMaxSenses)
                     break;
-                senses.append(rowOf(sense));
+                senses.append(word_answer::senseRow(sense, language, switches.pictures, storage_.knownStore().level()));
             }
             payload.insert(QStringLiteral("senseCycle"), false);
             payload.insert(QStringLiteral("senseIndex"), 0);
@@ -659,7 +571,7 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
             // the session keeps the senses bought for the word, the answer's own first, and the
             // card draws the one at the cycle's index.
             if (auto const cycle = session_.holdAnswer(context, explanation)) {
-                senses.append(rowOf(cycle->sense));
+                senses.append(word_answer::senseRow(cycle->sense, language, switches.pictures, storage_.knownStore().level()));
                 payload.insert(QStringLiteral("senseCycle"), cycle->offered);
                 payload.insert(QStringLiteral("senseIndex"), cycle->index);
                 payload.insert(QStringLiteral("senseHint"), cycle->hint);
@@ -667,22 +579,6 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
             }
         }
         payload.insert(QStringLiteral("senses"), senses);
-        payload.insert(QStringLiteral("ipa"), showIpa ? explanation.ipa : QString{});
-        payload.insert(QStringLiteral("spans"), spansOf(english));
-        payload.insert(QStringLiteral("signpost"), showSignpost ? explanation.signpost : QString{});
-        payload.insert(QStringLiteral("pos"), showPos ? explanation.pos : QString{});
-        QVariantList collocations;
-        if (showCollocations)
-            for (auto const& collocation : explanation.collocations)
-                collocations.append(collocation);
-        payload.insert(QStringLiteral("collocations"), collocations);
-        // Read off the setting as the card is drawn rather than as the request was made: turning
-        // the setting off puts the origin away on the next bubble, and the entry it came from is
-        // left whole for whoever asks for it later.
-        if (etymologyEnabled())
-            payload.insert(QStringLiteral("etymology"), explanation.etymology);
-        if (exampleEnabled())
-            payload.insert(QStringLiteral("example"), explanation.example);
         payload.insert(QStringLiteral("status"), storage_.knownStore().isKnown(explanation.title.toStdString()) ? QStringLiteral("known") : QStringLiteral("new"));
     }
     // The session raised this card a step earlier, which is what settled its identity and reset

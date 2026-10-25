@@ -220,10 +220,8 @@ private:
     bool chainStanding(PendingSelection const& selection) const;
     /// @return The chain entry for one answered step, in the explanation language, with its links.
     QVariantMap chainEntry(llm::Explanation const& explanation, core::CacheContext const& context) const;
-    /// @return The words of an English definition the chain offers, as the UTF-16 spans ChainText draws with.
-    QVariantList spansOf(QString const& text) const;
-    void         clearBubble();
-    void         clearNotice();
+    void        clearBubble();
+    void        clearNotice();
 
     StorageDuty&    storage_;
     llm::LlmClient& llm_;

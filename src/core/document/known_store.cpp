@@ -5,6 +5,7 @@
 
 #include "core/document/known_store.h"
 #include "util/log.h"
+#include "util/word_fields.h"
 
 #include <chrono>
 #include <fstream>
@@ -38,69 +39,173 @@ std::unordered_map<std::string, long long> readTimes(nlohmann::json const& times
 /// Order is defined in UI-SPEC.md 4.4: B1-B2 / C1-C2 / CET-4 / CET-6 / TEM-4 / TEM-8 / IELTS / TOEFL.
 constexpr int kMaxLevel = 7;
 
-std::optional<WordCache> readCache(nlohmann::json const& entry, std::string const& language)
+/// @brief Read one answer field of a stored entry.
+/// @return False when the entry must be dropped; a wrong type on an advisory row keeps it.
+bool readAnswerField(WordCache& result, nlohmann::json const& entry, word::Field const& field)
 {
-    if (not entry.is_object() or not entry.contains("ipa") or not entry["ipa"].is_string()) return std::nullopt;
-    for (auto const* field : {"en", "zh"})
-        if (not entry.contains(field) or not entry[field].is_string() or entry[field].get<std::string>().empty())
-            return std::nullopt;
-    WordCache result{entry["ipa"].get<std::string>(), entry["en"].get<std::string>(), entry["zh"].get<std::string>()};
-    if (entry.contains("translation")) {
-        if (not entry["translation"].is_string()) return std::nullopt;
-        result.translation = entry["translation"].get<std::string>();
-    }
-    // Optional, and absent from every entry written before the field existed. An empty one is kept
-    // as empty rather than failing the read: the model had no origin to give, not damage.
-    if (entry.contains("etymology")) {
-        if (not entry["etymology"].is_string()) return std::nullopt;
-        result.etymology = entry["etymology"].get<std::string>();
-    }
-    // The part of speech, same shape as the origin: optional, and a wrong type is not fatal -- an
-    // entry that carries one draws it, and one that predates the field draws none.
-    if (entry.contains("pos")) {
-        if (not entry["pos"].is_string()) return std::nullopt;
-        result.pos = entry["pos"].get<std::string>();
-    }
-    // Same shape as the origin, but kept apart: an absent field is "not asked", an empty one is "asked,
-    // none given", and the two are not the same answer when the setting is on (docs/adr/0033).
-    if (entry.contains("example")) {
-        if (not entry["example"].is_string()) return std::nullopt;
-        result.example = entry["example"].get<std::string>();
-    }
-    // The chain's label and collocations: absent when the entry predates them, and not a reason to drop it.
-    if (entry.contains("signpost")) {
-        if (not entry["signpost"].is_string()) return std::nullopt;
-        result.signpost = entry["signpost"].get<std::string>();
-    }
-    if (entry.contains("collocations")) {
-        if (not entry["collocations"].is_array()) return std::nullopt;
-        for (auto const& value : entry["collocations"]) {
-            if (not value.is_string()) return std::nullopt;
-            result.collocations.push_back(value.get<std::string>());
+    const auto key  = std::string{field.key};
+    const auto held = entry.find(key);
+    if (held == entry.end())
+        return not field.required;
+    switch (field.kind) {
+        case word::ValueKind::Text: {
+            if (not held->is_string())
+                return field.wrongType == word::WrongType::Ignore;
+            auto const value = held->get<std::string>();
+            if (field.nonEmpty and value.empty())
+                return false;
+            switch (field.slot) {
+                case word::Slot::Ipa:
+                    result.ipa = value;
+                    break;
+                case word::Slot::Pos:
+                    result.pos = value;
+                    break;
+                case word::Slot::En:
+                    result.en = value;
+                    break;
+                case word::Slot::Zh:
+                    result.zh = value;
+                    break;
+                case word::Slot::Translation:
+                    result.translation = value;
+                    break;
+                case word::Slot::Etymology:
+                    result.etymology = value;
+                    break;
+                case word::Slot::Example:
+                    result.example = value;
+                    break;
+                case word::Slot::Signpost:
+                    result.signpost = value;
+                    break;
+                case word::Slot::ImageQuery:
+                    result.imageQuery = value;
+                    break;
+                default:
+                    break; // no other slot is a text row of an answer
+            }
+            return true;
+        }
+        case word::ValueKind::TextList: {
+            if (not held->is_array())
+                return field.wrongType == word::WrongType::Ignore;
+            std::vector<std::string> values;
+            for (auto const& item : *held) {
+                if (not item.is_string())
+                    return field.wrongType == word::WrongType::Ignore;
+                values.push_back(item.get<std::string>());
+            }
+            result.collocations = std::move(values);
+            return true;
+        }
+        case word::ValueKind::Flag: {
+            if (not held->is_boolean())
+                return field.wrongType == word::WrongType::Ignore;
+            result.imageable = held->get<bool>();
+            return true;
         }
     }
-    // The picture advice, optional and never load-bearing: absent from every entry written before the
-    // fields existed, and a wrong type is ignored rather than fatal. A blank query
-    // reads as not imageable, the parser's default.
-    if (entry.contains("imageable") and entry["imageable"].is_boolean()) result.imageable = entry["imageable"].get<bool>();
-    if (entry.contains("imageQuery") and entry["imageQuery"].is_string()) result.imageQuery = entry["imageQuery"].get<std::string>();
+    return true;
+}
+
+/// @brief Read one sense field of a stored entry, with the same wrong-type rule.
+bool readSenseField(CachedSense& result, nlohmann::json const& sense, word::Field const& field)
+{
+    const auto key  = std::string{field.key};
+    const auto held = sense.find(key);
+    if (held == sense.end())
+        return not field.required;
+    switch (field.kind) {
+        case word::ValueKind::Text: {
+            if (not held->is_string())
+                return field.wrongType == word::WrongType::Ignore;
+            auto const value = held->get<std::string>();
+            if (field.nonEmpty and value.empty())
+                return false;
+            switch (field.slot) {
+                case word::Slot::En:
+                    result.en = value;
+                    break;
+                case word::Slot::Zh:
+                    result.zh = value;
+                    break;
+                case word::Slot::Translation:
+                    result.translation = value;
+                    break;
+                case word::Slot::ImageQuery:
+                    result.imageQuery = value;
+                    break;
+                default:
+                    break; // no other slot is a text row of a sense
+            }
+            return true;
+        }
+        case word::ValueKind::Flag: {
+            if (not held->is_boolean())
+                return field.wrongType == word::WrongType::Ignore;
+            result.imageable = held->get<bool>();
+            return true;
+        }
+        case word::ValueKind::TextList:
+            return true; // no sense row is a list
+    }
+    return true;
+}
+
+/// @return The answer text a stored field is written from; empty for a row that is not text.
+std::string storedText(WordCache const& entry, word::Slot const slot)
+{
+    switch (slot) {
+        case word::Slot::Ipa:
+            return entry.ipa;
+        case word::Slot::Pos:
+            return entry.pos;
+        case word::Slot::En:
+            return entry.en;
+        case word::Slot::Zh:
+            return entry.zh;
+        case word::Slot::Translation:
+            return entry.translation;
+        case word::Slot::Etymology:
+            return entry.etymology;
+        case word::Slot::Example:
+            return entry.example.value_or(std::string{});
+        case word::Slot::Signpost:
+            return entry.signpost;
+        case word::Slot::ImageQuery:
+            return entry.imageQuery;
+        default:
+            return {};
+    }
+}
+
+std::optional<WordCache> readCache(nlohmann::json const& entry, std::string const& language)
+{
+    if (not entry.is_object()) return std::nullopt;
+    WordCache result;
+    for (word::Field const& field : word::kFields) {
+        if (field.scope != word::Scope::Answer)
+            continue;
+        if (not readAnswerField(result, entry, field))
+            return std::nullopt;
+    }
+    // The pair is one decision, the same reading the wire parser applies.
     if (result.imageQuery.empty()) result.imageable = false;
     if (language != "en" and language != "zh" and result.translation.empty()) return std::nullopt;
     if (entry.contains("senses")) {
         if (not entry["senses"].is_array() or entry["senses"].empty()) return std::nullopt;
         for (auto const& sense : entry["senses"]) {
             if (not sense.is_object()) return std::nullopt;
-            for (auto const* field : {"en", "zh"})
-                if (not sense.contains(field) or not sense[field].is_string() or sense[field].get<std::string>().empty())
+            CachedSense parsed;
+            for (word::Field const& field : word::kFields) {
+                if (field.scope != word::Scope::Sense)
+                    continue;
+                if (not readSenseField(parsed, sense, field))
                     return std::nullopt;
-            auto const translation = sense.find("translation");
-            if (translation != sense.end() and not translation->is_string()) return std::nullopt;
-            auto const text = translation == sense.end() ? std::string{} : translation->get<std::string>();
-            if (language != "en" and language != "zh" and text.empty()) return std::nullopt;
-            CachedSense parsed{sense["en"].get<std::string>(), sense["zh"].get<std::string>(), text};
-            if (sense.contains("imageable") and sense["imageable"].is_boolean()) parsed.imageable = sense["imageable"].get<bool>();
-            if (sense.contains("imageQuery") and sense["imageQuery"].is_string()) parsed.imageQuery = sense["imageQuery"].get<std::string>();
+            }
             if (parsed.imageQuery.empty()) parsed.imageable = false;
+            if (language != "en" and language != "zh" and parsed.translation.empty()) return std::nullopt;
             if (result.senses.size() < 3)
                 result.senses.push_back(std::move(parsed));
         }
@@ -113,13 +218,32 @@ std::optional<WordCache> readCache(nlohmann::json const& entry, std::string cons
 
 nlohmann::json writeCache(WordCache const& entry)
 {
-    nlohmann::json value{{"ipa", entry.ipa}, {"en", entry.en}, {"zh", entry.zh}};
-    if (not entry.translation.empty()) value["translation"] = entry.translation;
-    if (not entry.pos.empty()) value["pos"] = entry.pos;
-    if (not entry.etymology.empty()) value["etymology"] = entry.etymology;
-    if (entry.example) value["example"] = *entry.example;
-    if (not entry.signpost.empty()) value["signpost"] = entry.signpost;
-    if (not entry.collocations.empty()) value["collocations"] = entry.collocations;
+    nlohmann::json value = nlohmann::json::object();
+    for (word::Field const& field : word::kFields) {
+        if (field.scope != word::Scope::Answer)
+            continue;
+        // The picture advice is one pair: written below only when there is a query to run with.
+        if (field.block == word::Block::Pictures)
+            continue;
+        switch (field.kind) {
+            case word::ValueKind::Text: {
+                if (field.triState) {
+                    if (entry.example) value[std::string{field.key}] = *entry.example;
+                    break;
+                }
+                auto const text = storedText(entry, field.slot);
+                if (field.alwaysWrite or not text.empty())
+                    value[std::string{field.key}] = text;
+                break;
+            }
+            case word::ValueKind::TextList:
+                if (not entry.collocations.empty())
+                    value[std::string{field.key}] = entry.collocations;
+                break;
+            case word::ValueKind::Flag:
+                break; // the pair below
+        }
+    }
     // Written only when there is a query to run with: a bare `imageable` without one would be advice
     // the duty can act on. Pre-field entries and non-imageable senses write neither key.
     if (not entry.imageQuery.empty()) {
@@ -129,7 +253,24 @@ nlohmann::json writeCache(WordCache const& entry)
     if (not entry.senses.empty()) {
         value["senses"] = nlohmann::json::array();
         for (auto const& sense : entry.senses) {
-            nlohmann::json written{{"en", sense.en}, {"zh", sense.zh}, {"translation", sense.translation}};
+            nlohmann::json written = nlohmann::json::object();
+            for (word::Field const& field : word::kFields) {
+                if (field.scope != word::Scope::Sense or field.block == word::Block::Pictures)
+                    continue;
+                switch (field.slot) {
+                    case word::Slot::En:
+                        written["en"] = sense.en;
+                        break;
+                    case word::Slot::Zh:
+                        written["zh"] = sense.zh;
+                        break;
+                    case word::Slot::Translation:
+                        written["translation"] = sense.translation;
+                        break;
+                    default:
+                        break;
+                }
+            }
             if (not sense.imageQuery.empty()) {
                 written["imageable"]  = sense.imageable;
                 written["imageQuery"] = sense.imageQuery;

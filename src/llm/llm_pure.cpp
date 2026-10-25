@@ -16,6 +16,7 @@
 #include <utility>
 
 #include "util/log.h"
+#include "util/word_fields.h"
 
 namespace lens::llm {
 namespace {
@@ -126,12 +127,13 @@ QString jsonStringValue(QString const& literal)
     return array.isEmpty() ? QString{} : array.at(0).toString();
 }
 
-int scanSenseArray(QString const& text, int arrayStart, QVector<Sense>& senses);
-int scanJsonObject(QString const& text, int objectStart, QHash<QString, QString>& fields, QVector<Sense>& senses);
+int scanSenseArray(QString const& text, int arrayStart, QJsonArray& senses);
+int scanStringArray(QString const& text, int arrayStart, QJsonArray& values);
+int scanJsonObject(QString const& text, int objectStart, QJsonObject& fields, QJsonArray& senses);
 
 /// @brief Read the sense objects of a `senses` array as far as they have arrived.
 /// @return The index just past the array's `]`, or the end of the text while it has not closed.
-int scanSenseArray(QString const& text, int arrayStart, QVector<Sense>& senses)
+int scanSenseArray(QString const& text, int arrayStart, QJsonArray& senses)
 {
     int i = arrayStart + 1;
     while (true) {
@@ -144,26 +146,46 @@ int scanSenseArray(QString const& text, int arrayStart, QVector<Sense>& senses)
         if (text.at(i) != QLatin1Char('{'))
             return i;
 
-        QHash<QString, QString> entry;
-        QVector<Sense>          ignored;
+        QJsonObject entry;
+        QJsonArray  ignored;
         i = scanJsonObject(text, i, entry, ignored);
         // A sense that has named nothing yet contributes no line to the card; one whose first
         // field has closed does, and grows as the rest arrive.
         if (not entry.isEmpty())
-            senses.push_back({entry.value(QStringLiteral("en")),
-                              entry.value(QStringLiteral("zh")),
-                              entry.value(QStringLiteral("translation"))});
+            senses.append(entry);
     }
 }
 
-/// @brief Read the string fields of the object starting at @p objectStart, as far as they have
-///        arrived, folding a `senses` array into @p senses.
+/// @brief Read a `collocations` array of completed strings as far as it has arrived.
+/// @return The index just past the array's `]`, or the end of the text while it has not closed.
+int scanStringArray(QString const& text, int arrayStart, QJsonArray& values)
+{
+    int i = arrayStart + 1;
+    while (true) {
+        while (i < text.size() and (text.at(i).isSpace() or text.at(i) == QLatin1Char(',')))
+            ++i;
+        if (i >= text.size())
+            return text.size();
+        if (text.at(i) == QLatin1Char(']'))
+            return i + 1;
+        if (text.at(i) != QLatin1Char('"'))
+            return i;
+
+        const int valueEnd = endOfJsonString(text, i);
+        if (valueEnd < 0)
+            return text.size();
+        values.append(jsonStringValue(text.mid(i, valueEnd - i + 1)));
+        i = valueEnd + 1;
+    }
+}
+
+/// @brief Read the fields of the object starting at @p objectStart, as far as they have arrived.
 /// @return The index just past the object's `}`, or the end of the text while it has not closed.
-/// @note A value that is neither a string nor the `senses` array is skipped when it is a scalar --
-///       the word channel's `imageable` is a boolean, and stopping on it would hold back every
-///       field after it. An array or object under any other key is not a shape the shipped results
-///       hold, and still stops the read.
-int scanJsonObject(QString const& text, int objectStart, QHash<QString, QString>& fields, QVector<Sense>& senses)
+/// @note A scalar is read once its whole token has arrived -- a boolean the preview may draw, a
+///       number or null skipped -- and any other array or object stops the read, because no shipped
+///       result holds one. An unfinished token waits for the next read, exactly as a half-written
+///       string does.
+int scanJsonObject(QString const& text, int objectStart, QJsonObject& fields, QJsonArray& senses)
 {
     int i = objectStart + 1;
     while (true) {
@@ -199,16 +221,48 @@ int scanJsonObject(QString const& text, int objectStart, QHash<QString, QString>
             i = valueEnd + 1;
             continue;
         }
-        if (text.at(i) == QLatin1Char('[') and key == QLatin1String("senses")) {
-            i = scanSenseArray(text, i, senses);
+        if (text.at(i) == QLatin1Char('[')) {
+            if (key == QLatin1String("senses")) {
+                i = scanSenseArray(text, i, senses);
+            } else if (key == QLatin1String("collocations")) {
+                QJsonArray values;
+                i = scanStringArray(text, i, values);
+                fields.insert(key, values);
+            } else {
+                return i;
+            }
             continue;
         }
-        // A scalar the card does not draw -- `true`, a number, `null`. Skipping to the next separator
-        // keeps the read going, so a field written after it still arrives mid-stream; a scalar carries
-        // no delimiter of its own, so this cannot cut into the value.
+        if (text.at(i) == QLatin1Char('t')) {
+            if (i + 4 > text.size())
+                return text.size(); // "tru" is not a value yet
+            if (text.mid(i, 4) != QLatin1String("true"))
+                return i;
+            fields.insert(key, true);
+            i += 4;
+            continue;
+        }
+        if (text.at(i) == QLatin1Char('f')) {
+            if (i + 5 > text.size())
+                return text.size();
+            if (text.mid(i, 5) != QLatin1String("false"))
+                return i;
+            fields.insert(key, false);
+            i += 5;
+            continue;
+        }
+        if (text.at(i) == QLatin1Char('n')) {
+            if (i + 4 > text.size())
+                return text.size();
+            if (text.mid(i, 4) != QLatin1String("null"))
+                return i;
+            i += 4;
+            continue;
+        }
+        // A number carries no delimiter of its own, so it is skipped to the key's boundary; it is
+        // not a field any shape carries.
         const QChar token = text.at(i);
-        if (token.isDigit() or token == QLatin1Char('-') or token == QLatin1Char('t') or
-            token == QLatin1Char('f') or token == QLatin1Char('n')) {
+        if (token.isDigit() or token == QLatin1Char('-')) {
             while (i < text.size() and text.at(i) != QLatin1Char(',') and text.at(i) != QLatin1Char('}'))
                 ++i;
             continue;
@@ -330,7 +384,7 @@ QByteArray buildRequestBody(const Config&      config,
 
 namespace {
 
-/// @return The reader-facing failure for a finish reason other than "stop", or an empty string.
+/// @brief The reader-facing failure for a finish reason other than "stop", or an empty string.
 QString finishReasonError(QString const& finish)
 {
     // Only "stop" means the model finished on its own. "length" means the JSON was cut off
@@ -340,6 +394,99 @@ QString finishReasonError(QString const& finish)
                                        "The model stopped before finishing "
                                        "(reason: %1).")
         .arg(finish.isEmpty() ? QCoreApplication::translate("lens::llm", "absent") : finish);
+}
+
+/// @brief Copy the answer fields that have arrived onto @p answer.
+/// @param preview Whether this is a streaming preview: a row the table marks `preview` false is left out.
+/// @note The field list, its keys and what a preview may draw all live in util/word_fields.h; the
+///       whole-answer check and the preview run this one reader so the two cannot drift.
+void readAnswerFields(Explanation& answer, QJsonObject const& source, bool const preview = false)
+{
+    answer.imageable = false;
+    answer.imageQuery.clear();
+    for (word::Field const& field : word::kFields) {
+        if (field.scope != word::Scope::Answer or (preview and not field.preview))
+            continue;
+        const QString key = QString::fromLatin1(field.key);
+        if (not source.contains(key))
+            continue;
+        switch (field.slot) {
+            case word::Slot::Ipa:
+                answer.ipa = source.value(key).toString();
+                break;
+            case word::Slot::Pos:
+                answer.pos = source.value(key).toString();
+                break;
+            case word::Slot::En:
+                answer.en = source.value(key).toString();
+                break;
+            case word::Slot::Zh:
+                answer.zh = source.value(key).toString();
+                break;
+            case word::Slot::Translation:
+                answer.translation = source.value(key).toString();
+                break;
+            case word::Slot::Etymology:
+                answer.etymology = source.value(key).toString();
+                break;
+            case word::Slot::Example:
+                answer.example = source.value(key).toString();
+                break;
+            case word::Slot::Signpost:
+                answer.signpost = source.value(key).toString();
+                break;
+            case word::Slot::Collocations:
+                for (auto const& value : source.value(key).toArray()) {
+                    if (answer.collocations.size() >= 2)
+                        break;
+                    answer.collocations.push_back(value.toString());
+                }
+                break;
+            case word::Slot::Imageable:
+                answer.imageable = source.value(key).toBool();
+                break;
+            case word::Slot::ImageQuery:
+                answer.imageQuery = source.value(key).toString().trimmed();
+                break;
+        }
+    }
+    // The pair is one decision: a query the card can run, and a flag that says there is one. A
+    // malformed half reads as no picture, never as advice the duty would act on.
+    answer.imageable = answer.imageable and not answer.imageQuery.isEmpty();
+}
+
+/// @brief Copy the sense fields that have arrived onto @p sense, with the same preview rule.
+void readSenseFields(Sense& sense, QJsonObject const& source, bool const preview = false)
+{
+    sense.imageable = false;
+    sense.imageQuery.clear();
+    for (word::Field const& field : word::kFields) {
+        if (field.scope != word::Scope::Sense or (preview and not field.preview))
+            continue;
+        const QString key = QString::fromLatin1(field.key);
+        if (not source.contains(key))
+            continue;
+        switch (field.slot) {
+            case word::Slot::En:
+                sense.en = source.value(key).toString();
+                break;
+            case word::Slot::Zh:
+                sense.zh = source.value(key).toString();
+                break;
+            case word::Slot::Translation:
+                sense.translation = source.value(key).toString();
+                break;
+            case word::Slot::Imageable:
+                sense.imageable = source.value(key).toBool();
+                break;
+            case word::Slot::ImageQuery:
+                sense.imageQuery = source.value(key).toString().trimmed();
+                break;
+            default:
+                break; // no other slot is a row of a sense
+        }
+    }
+    sense.imageable = sense.imageable and not sense.imageQuery.isEmpty();
 }
 
 /// @brief Validate the `results` payload out of one answer's content.
@@ -390,49 +537,24 @@ std::variant<QVector<Explanation>, QString> parseExplanationContent(Channel     
         if (not matchesSchema(item, resultSchema(channel)))
             return reject(QCoreApplication::translate("lens::llm", "A results entry does not match the response schema."));
 
-        Explanation e{obj.value(titleField).toString(),
-                      obj.value(QStringLiteral("ipa")).toString(),
-                      obj.value(isPeek ? QStringLiteral("line") : QStringLiteral("en")).toString(),
-                      obj.value(QStringLiteral("zh")).toString()};
-        e.translation = obj.value("translation").toString();
-        // The most common sense's part of speech, one lowercase English word. Read and never
-        // demanded, like the origin: a model that leaves it out costs the card nothing but the
-        // label, and failing the batch over it would throw away the definitions that arrived.
-        e.pos = obj.value(QStringLiteral("pos")).toString();
-        // Read and never demanded: the origin is asked for only when the setting is on, an acronym
-        // has none, and the model is free to answer "unknown". Failing a whole batch over it would
-        // throw away the definitions that did arrive, the same trade `ipa` already makes.
-        e.etymology = obj.value(QStringLiteral("etymology")).toString();
-        // ponytail: English whatever the explanation language, so es and ja readers get an English sentence.
-        // Upgrade: ask for it in the explanation language, as the origin does, once readers ask for that.
-        e.example = obj.value(QStringLiteral("example")).toString();
-        // Read for the definition chain and never demanded: a word with no short label still has its
-        // definition, and the card draws no label for it. Two collocations at most, whatever arrives.
-        e.signpost = obj.value(QStringLiteral("signpost")).toString();
-        for (auto const& value : obj.value(QStringLiteral("collocations")).toArray()) {
-            if (e.collocations.size() < 2)
-                e.collocations.push_back(value.toString());
-        }
-        // The picture advice, read the same way and never demanded: a sense counts as
-        // imageable only when the model both said so and named the words an image search is run with,
-        // so the card's entry and the duty's request agree on what there is to fetch. Blank and absent
-        // therefore read alike, and a mistyped value reads as false rather than costing the definition.
-        const auto readImageAdvice = [](QJsonObject const& source, bool& imageable, QString& query) {
-            query     = source.value(QStringLiteral("imageQuery")).toString().trimmed();
-            imageable = source.value(QStringLiteral("imageable")).toBool() and not query.isEmpty();
-        };
-        readImageAdvice(obj, e.imageable, e.imageQuery);
+        Explanation e;
+        e.title = obj.value(titleField).toString();
+        readAnswerFields(e, obj);
+        // The peek's answer travels under `line`, the field its readers read: the table names the
+        // word channel's `en`, and the peek's line is the same answer in the envelope's own key.
+        if (isPeek)
+            e.en = obj.value(QStringLiteral("line")).toString();
         if ((isWord or isSense) and obj.contains("senses")) {
             auto const senses = obj.value("senses").toArray();
             for (auto const& value : senses) {
                 auto const sense = value.toObject();
                 if (explanationLang != QLatin1String("en") and explanationLang != QLatin1String("zh") and sense.value("translation").toString().trimmed().isEmpty())
                     return reject(QCoreApplication::translate("lens::llm", "The requested explanation language is missing."));
-                Sense parsedSense{sense.value("en").toString(), sense.value("zh").toString(), sense.value("translation").toString()};
+                Sense parsedSense;
+                readSenseFields(parsedSense, sense);
                 // The sense channel's one English word for the sense; the word channel's senses
                 // carry none and read as empty, which is what its readers draw.
                 parsedSense.hint = sense.value(QStringLiteral("hint")).toString().trimmed();
-                readImageAdvice(sense, parsedSense.imageable, parsedSense.imageQuery);
                 if (e.senses.size() < (multipleSenses ? kMaxSenses : 1))
                     e.senses.push_back(parsedSense);
             }
@@ -599,11 +721,11 @@ constexpr int kSseSniffBytes = 5;
 
 /// @return Whether a preview has anything the card would draw. The first chunks are `{` and
 ///         `"resul` and the like; an empty card must not appear before any text has arrived.
+/// @note Comparing the whole record rather than a hand-written field list is what keeps a field
+///       added to the table from becoming one the preview silently waits for.
 bool hasAnythingToDraw(Explanation const& partial)
 {
-    return not(partial.title.isEmpty() and partial.ipa.isEmpty() and partial.en.isEmpty() and
-               partial.zh.isEmpty() and partial.translation.isEmpty() and partial.etymology.isEmpty() and
-               partial.example.isEmpty() and partial.senses.isEmpty());
+    return not(partial == Explanation{});
 }
 
 /// @brief Read token counts out of a `usage` object, with the one warning both paths share.
@@ -822,19 +944,26 @@ Explanation parsePartialExplanation(Channel const channel, QString const& conten
     if (cursor >= content.size() or content.at(cursor) != QLatin1Char('{'))
         return partial;
 
-    QHash<QString, QString> fields;
-    scanJsonObject(content, cursor, fields, partial.senses);
+    QJsonObject fields;
+    QJsonArray  senses;
+    scanJsonObject(content, cursor, fields, senses);
 
     // The title field follows the same rule the finished answer's does: the word channel echoes
-    // the word it explained, the others carry no title and have it stamped on further up.
-    partial.title       = fields.value(channel == Channel::Word ? QStringLiteral("word") : QStringLiteral("title"));
-    partial.ipa         = fields.value(QStringLiteral("ipa"));
-    partial.pos         = fields.value(QStringLiteral("pos"));
-    partial.en          = fields.value(QStringLiteral("en"));
-    partial.zh          = fields.value(QStringLiteral("zh"));
-    partial.translation = fields.value(QStringLiteral("translation"));
-    partial.etymology   = fields.value(QStringLiteral("etymology"));
-    partial.example     = fields.value(QStringLiteral("example"));
+    // the word it explained, the others carry no title and have it stamped on further up. The
+    // fields themselves are the table's, read by the same reader the finished answer uses, with
+    // the rows a preview must not draw left out.
+    partial.title = fields.value(channel == Channel::Word ? QStringLiteral("word") : QStringLiteral("title")).toString();
+    readAnswerFields(partial, fields, /*preview=*/true);
+    for (auto const& value : senses) {
+        auto const object = value.toObject();
+        Sense      sense;
+        readSenseFields(sense, object, /*preview=*/true);
+        sense.hint = object.value(QStringLiteral("hint")).toString().trimmed();
+        // An entry that has named nothing yet contributes no line to the card.
+        if (sense.en.isEmpty() and sense.zh.isEmpty() and sense.translation.isEmpty() and sense.hint.isEmpty())
+            continue;
+        partial.senses.push_back(std::move(sense));
+    }
     return partial;
 }
 
