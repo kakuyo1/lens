@@ -449,6 +449,16 @@ Window {
                     // them at birth instead.
                     Component.onCompleted: forceLayout()
 
+                    // A touchpad's momentum can leave the view past its top: contentY below
+                    // zero, the first row pushed down and blank above it, and nothing recalls
+                    // it -- the bounds stop a drag from crossing, but they do not bring back a
+                    // view a gesture already parked across. The first word owes the reader the
+                    // top, so wherever the scroll settles, that is where it returns.
+                    onContentYChanged: if (!moving && contentY < 0)
+                        contentY = 0
+                    onMovementEnded: if (contentY < 0)
+                        contentY = 0
+
                     delegate: WordsListRow {
                         host: words
                     }
