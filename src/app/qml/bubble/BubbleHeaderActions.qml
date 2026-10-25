@@ -1,13 +1,13 @@
 import QtQuick
+import QtQuick.Shapes
 
 /**
- * The bubble's header controls (UI-SPEC.md 4.3): the close cross and, to its left, the explanation
- * language shortcut, on the card the reader cannot read. It unfolds the catalog's languages in a
- * strip under the header; a pick changes the explanation language and asks the standing card again
- * (Controller.reexplainIn), or the chain step being read when the reader has drilled down
- * (Controller.reexplainChainIn), from the cache when the new language has one. A translation has
- * no second language, and a card the word list owns goes away with the pointer, so neither offers
- * the shortcut.
+ * The bubble's header controls (UI-SPEC.md 4.3): the close cross and, to its left, the
+ * mother-tongue peek globe, on the card the reader cannot read. The globe belongs to the
+ * English-in-English read (docs/adr/0112): it stands only on a word card with a countdown, at the
+ * root, under an English explanation, and holding it down asks the duty for the word's meaning in
+ * the mother tongue, which the card draws below the definition while the hold lasts. The
+ * permanent language choice is the settings row and nothing else.
  *
  * A component rather than part of Bubble.qml because that file sits at the repository's QML size
  * cap (docs/QML.md section 1), the way BubbleVerdictRow and SenseRows are.
@@ -22,92 +22,47 @@ Item {
     readonly property var tokens: Window.window.tokens
     // qmllint enable missing-property
 
+    /// How long a hold must last before it counts as asking, and the ring's one full sweep.
+    readonly property int holdMs: 500
+
     readonly property string language: Controller.settings.explanationLang || "en"
-    readonly property var languages: Controller.settings.languages || []
-    readonly property var labels: {
-        const result = [];
-        for (let i = 0; i < languages.length; ++i)
-            result.push(languages[i].label);
-        return result;
-    }
-    readonly property int currentIndex: {
-        for (let i = 0; i < languages.length; ++i)
-            if (languages[i].value === language)
-                return i;
-        return 0;
-    }
 
     /**
-     * Whether the shortcut is offered. The translation channel answers in English whatever the setting
-     * says, and a card without a countdown belongs to the pointer's row, not the reader: both are left
-     * as they are.
+     * Whether the globe is offered. The peek answers a word the reader is reading in English, on
+     * the card itself rather than a step down the chain, with a countdown to hold against. A
+     * translation's input already is the mother tongue, a preview belongs to a settings row, and
+     * the card the word list raises goes away with the pointer: none of them is it for.
      */
-    readonly property bool switchable: !root.bubbleWindow.preview
-                                       && root.bubbleWindow.type !== "translation"
-                                       && root.bubbleWindow.countsDown
+    readonly property bool peekable: !root.bubbleWindow.preview
+                                     && root.bubbleWindow.type === "word"
+                                     && root.bubbleWindow.countsDown
+                                     && root.bubbleWindow.atRoot
+                                     && root.language === "en"
 
-    /// Whether the language strip is out.
-    property bool open: false
-    onSwitchableChanged: if (!switchable) open = false
+    /// Whether the pointer is holding the globe down.
+    property bool holding: false
+    /// Whether a screen-reader press latched the peek on: the press has no release to end it
+    /// with, so the line it asked for stays until the card does (docs/adr/0107).
+    property bool latched: false
+
+    /// Whether the mother-tongue line is on the card: a hold or a latched press, over a line the
+    /// duty has answered for the standing word.
+    readonly property bool peekVisible: (root.holding || root.latched)
+                                        && root.bubbleWindow.peekLine !== ""
+
+    onPeekableChanged: {
+        if (peekable)
+            return;
+        endHold();
+        latched = false;
+    }
 
     Connections {
         target: root.bubbleWindow
         function onVisibleChanged() {
-            if (!root.bubbleWindow.visible)
-                root.open = false;
-        }
-    }
-
-    // A press anywhere else on the card puts the strip away, the way the open list of a dropdown
-    // answers a press outside it. It sits under the strip and under the two header controls.
-    Item {
-        anchors.fill: parent
-        visible: root.open
-        TapHandler { onTapped: root.open = false }
-    }
-
-    // The language strip, on the card rather than in a window of its own: the five labels fit one
-    // row at 11 px, and a separate surface would only have to be placed and dismissed again.
-    Rectangle {
-        id: strip
-        visible: root.open && root.languages.length > 0
-        x: 12
-        y: 36
-        width: parent.width - 24
-        height: 36
-        radius: root.tokens.radiusGroup
-        color: root.tokens.popup
-        border.width: 1
-        border.color: root.tokens.line
-        opacity: root.open ? 1 : 0
-        Behavior on opacity {
-            NumberAnimation {
-                duration: root.tokens.motion.pop
-                easing.type: root.tokens.motion.easing
-            }
-        }
-        transform: Translate { y: (1 - strip.opacity) * 8 }
-
-        Segment {
-            anchors.fill: parent
-            anchors.margins: 3
-            labels: root.labels
-            labelSize: 11
-            currentIndex: root.currentIndex
-            onPicked: (index) => {
-                root.bubbleWindow.readerActed();
-                const picked = root.languages[index].value;
-                root.open = false;
-                if (picked !== root.language) {
-                    root.bubbleWindow.beginLanguageReplay();
-                    const steps = root.bubbleWindow.chainSteps;
-                    // A step is what the reader is reading: asking for the card's own word would
-                    // walk them back up the chain they came down.
-                    if (!root.bubbleWindow.atRoot && steps.entry)
-                        steps.reexplain(picked, steps.entry.title);
-                    else
-                        Controller.reexplainIn(picked);
-                }
+            if (!root.bubbleWindow.visible) {
+                root.endHold();
+                root.latched = false;
             }
         }
     }
@@ -127,32 +82,32 @@ Item {
         color: root.tokens.faint
         accessibleName: qsTr("Close")
         onTapped: {
-            root.open = false;
             root.bubbleWindow.dismiss();
             Controller.explanationDuty.dismissBubble();
         }
     }
 
     Item {
-        id: languageButton
-        visible: root.switchable
+        id: peekButton
+        visible: root.peekable
         anchors.right: closeButton.left
         anchors.rightMargin: 6
         anchors.verticalCenter: closeButton.verticalCenter
-        width: glyph.width + code.implicitWidth + 14
+        width: 22
         height: 22
 
         Accessible.role: Accessible.Button
-        Accessible.name: qsTr("Explanation language")
+        Accessible.name: qsTr("Mother tongue translation")
         Accessible.onPressAction: {
             root.bubbleWindow.readerActed();
-            root.open = !root.open;
+            root.latched = true;
+            Controller.explanationDuty.requestPeek();
         }
 
         Rectangle {
             anchors.fill: parent
             radius: root.tokens.radiusPill
-            color: root.open || hover.hovered ? root.tokens.panel2 : "transparent"
+            color: hover.hovered ? root.tokens.panel2 : "transparent"
             scale: press.pressed ? 0.97 : 1.0
             Behavior on scale {
                 NumberAnimation {
@@ -162,25 +117,35 @@ Item {
             }
         }
 
-        Row {
+        // The hold's progress, one full clockwise turn from the top: the sweep and the hold timer
+        // run the same length, so the turn completing is the request leaving.
+        Shape {
+            anchors.fill: parent
+            visible: root.holding && !root.tokens.motion.reduced
+
+            ShapePath {
+                strokeColor: root.tokens.ok
+                strokeWidth: 1.5
+                fillColor: "transparent"
+
+                PathAngleArc {
+                    id: ringArc
+                    centerX: 11
+                    centerY: 11
+                    radiusX: 9
+                    radiusY: 9
+                    startAngle: -90
+                    sweepAngle: 0
+                }
+            }
+        }
+
+        Icon {
             anchors.centerIn: parent
-            spacing: 3
-
-            Icon {
-                id: glyph
-                width: 13
-                height: 13
-                source: "qrc:/icons/ui-language.svg"
-                color: root.open || hover.hovered ? root.tokens.text : root.tokens.faint
-            }
-
-            Text {
-                id: code
-                text: root.language.toUpperCase()
-                color: root.open || hover.hovered ? root.tokens.text : root.tokens.faint
-                font.pixelSize: 10
-                font.weight: Font.Bold
-            }
+            width: 13
+            height: 13
+            source: "qrc:/icons/ui-language.svg"
+            color: hover.hovered ? root.tokens.text : root.tokens.faint
         }
 
         HoverHandler {
@@ -189,7 +154,46 @@ Item {
         }
         TapHandler {
             id: press
-            onTapped: root.open = !root.open
+            objectName: "peekTap"
+            onPressedChanged: {
+                if (pressed) {
+                    root.holding = true;
+                    holdTimer.restart();
+                    if (!root.tokens.motion.reduced)
+                        ringSweep.restart();
+                } else {
+                    root.endHold();
+                }
+            }
+            onCanceled: root.endHold()
         }
+
+        Timer {
+            id: holdTimer
+            interval: root.holdMs
+            onTriggered: {
+                root.bubbleWindow.readerActed();
+                Controller.explanationDuty.requestPeek();
+            }
+        }
+    }
+
+    NumberAnimation {
+        id: ringSweep
+        target: ringArc
+        property: "sweepAngle"
+        from: 0
+        to: 360
+        duration: root.holdMs
+        easing.type: Easing.Linear
+    }
+
+    /// @brief End a hold: the line the card is showing goes with it, and nothing was asked
+    ///        unless the hold lasted the half second.
+    function endHold() {
+        holding = false;
+        holdTimer.stop();
+        ringSweep.stop();
+        ringArc.sweepAngle = 0;
     }
 }

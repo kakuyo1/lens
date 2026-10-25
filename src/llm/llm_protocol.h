@@ -45,12 +45,14 @@ inline constexpr const char* kExampleFieldPlaceholder = "{exampleField}";
 /// @brief Which channel a request belongs to. Decided locally, before anything is sent.
 ///
 /// Three of them answer for one shape of English and the fourth answers for the language itself:
-/// Translation is what any Chinese selection takes, whatever it would have been otherwise, and it
-/// is the only channel whose response carries one language instead of two.
+/// Translation is what any Chinese selection takes, whatever it would have been otherwise. Peek
+/// answers for the mother tongue in the same one-language way: one English word in, one line out,
+/// for the bubble's held globe (docs/adr/0112).
 enum class Channel : std::uint8_t { Word = 0,
                                     Entity,
                                     Sentence,
                                     Translation,
+                                    Peek,
                                     Count };
 
 /// @brief One channel preset's system prompt, from `request.<channel>.json`.

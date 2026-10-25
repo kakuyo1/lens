@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- A **Mother tongue** setting above the explanation language, and the held peek it feeds: when the
+  explanation language is English, the bubble's header shows a globe that, held for 500 ms (a ring
+  sweeps once), draws the word's meaning in the mother tongue under the definition until the hold
+  ends. A Chinese mother tongue is answered by the pair the explanation already paid for; other
+  mother tongues ask the new `peek` channel, once per word per session (docs/adr/0112).
+
+### Changed
+
+- The bubble's explanation-language shortcut is gone: no strip, no in-place switch, and the
+  re-ask path behind it. Switching the explanation language permanently is a settings action
+  again; the globe is the only language control left on the card (docs/adr/0112, superseding
+  docs/adr/0067).
+
 ## 1.9.0 - 2026-10-25
 
 The six surfaces have been through a full critique pass. Settings, the bubble, the tray menu, the

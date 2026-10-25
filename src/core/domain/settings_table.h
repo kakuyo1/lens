@@ -90,6 +90,9 @@ struct Row {
 inline constexpr std::string_view kPlacements[]{"above", "below"};
 inline constexpr std::string_view kBarStyles[]{"bar", "tab", "hand", "tag", "fan"};
 inline constexpr std::string_view kClipboardPolicies[]{"topmost", "silent"};
+/// The mother tongue the bubble's peek answers in: the catalog's own languages without English,
+/// which is the one value under which the peek would have nothing to peek at (docs/adr/0112).
+inline constexpr std::string_view kMotherTongues[]{"zh", "zh-Hant", "es", "ja"};
 
 /**
  * @brief The table, in the order a restore walks it.
@@ -98,9 +101,11 @@ inline constexpr std::string_view kClipboardPolicies[]{"topmost", "silent"};
  * because a JSON object is keyed, but a stable order keeps two dumps comparable by eye.
  */
 inline constexpr Row kRows[]{
-    // Learning: the difficulty, the language the answer is asked in, and what comes with it.
+    // Learning: the difficulty, the language the answer is asked in, the language the held peek
+    // answers in, and what comes with it.
     {.key = "level", .kind = Kind::Integer, .signal = Signal::Level, .fallback = 2, .low = 0, .high = 7, .synced = true},
     {.key = "explanationLang", .kind = Kind::Text, .signal = Signal::ExplanationLang, .fallback = "en", .synced = true},
+    {.key = "motherTongue", .kind = Kind::Choice, .signal = Signal::Settings, .fallback = "zh", .synced = true, .members = kMotherTongues},
     {.key = "multiSense", .kind = Kind::Toggle, .signal = Signal::Settings, .fallback = false, .synced = true},
     {.key = "etymology", .kind = Kind::Toggle, .signal = Signal::Settings, .fallback = false, .synced = true},
     {.key = "example", .kind = Kind::Toggle, .signal = Signal::Settings, .fallback = false, .synced = true},

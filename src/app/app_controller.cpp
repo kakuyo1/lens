@@ -449,22 +449,6 @@ void AppController::setReviewFrequency(int const value)
     emit settingsChanged();
 }
 
-void AppController::reexplainIn(QString language)
-{
-    if (language.isEmpty() or language == QString::fromStdString(storage_.knownStore().explanationLang()))
-        return;
-    setSetting(QStringLiteral("explanationLang"), language);
-    explanation_.reexplain();
-}
-
-void AppController::reexplainChainIn(QString language, QString lemma)
-{
-    if (language.isEmpty() or language == QString::fromStdString(storage_.knownStore().explanationLang()))
-        return;
-    setSetting(QStringLiteral("explanationLang"), language);
-    explanation_.reexplainChainStep(std::move(lemma));
-}
-
 QVariantList AppController::latinFontFamilies() const
 {
     // Latin only: this is the face English is read in, and a family with no Latin cannot even
@@ -638,6 +622,15 @@ QVariantMap AppController::settings()
     const auto explanationSettings = catalog_.settings();
     for (auto it = explanationSettings.cbegin(); it != explanationSettings.cend(); ++it)
         result.insert(it.key(), it.value());
+    // The mother tongue's list is the catalog's own without English: an English mother tongue
+    // under an English explanation is a peek with nothing to peek at, and the peek is the only
+    // reader of the setting (docs/adr/0112).
+    QVariantList       motherTongueOptions;
+    const QVariantList languages = result.value(QStringLiteral("languages")).toList();
+    for (const QVariant& language : languages)
+        if (language.toMap().value(QStringLiteral("value")).toString() != QLatin1String("en"))
+            motherTongueOptions.append(language);
+    result.insert(QStringLiteral("motherTongueOptions"), motherTongueOptions);
     return result;
 }
 

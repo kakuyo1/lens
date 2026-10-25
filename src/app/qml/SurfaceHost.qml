@@ -328,8 +328,7 @@ QtObject {
     /// on screen, which is the old behaviour.
     function bubbleGeometryChanged(surface) {
         const placement = placements.find(function (candidate) { return candidate.surface === surface; });
-        if (placement && placement.kind === "review" && surface.surfaceShown
-                && !surface.dragging && !surface.languageReplay)
+        if (placement && placement.kind === "review" && surface.surfaceShown && !surface.dragging)
             placeReviewCard(surface, placement.anchor);
         else
             keepOnScreen(surface);

@@ -28,6 +28,9 @@ constexpr int    kModelListTimeoutMs = 10000;
 constexpr qint64 kMaxModelListBytes  = 2 * 1024 * 1024;
 /// A probe should answer while the reader is still looking at the button.
 constexpr int kProbeTimeoutMs = 15000;
+/// A peek answers a reader who is holding a button: it is small and it should not outlast the
+/// patience a held gesture has.
+constexpr int kPeekTimeoutMs = 15000;
 
 } // namespace
 
@@ -264,6 +267,59 @@ void LlmClient::explainWords(ExplainRequest request)
         auto usage  = assembler->usage();
         usage.model = model;
         emit batchFinished(explanations, usage);
+    });
+}
+
+void LlmClient::peekWord(QString const& lemma, QString const& language)
+{
+    if (lemma.isEmpty() or config_.apiKey.isEmpty() or not config_.baseUrl.isValid() or
+        config_.baseUrl.scheme() != QLatin1String("https") or config_.baseUrl.host().isEmpty()) {
+        // Quietly: the peek is a gesture on a card the reader is already reading, and a missing
+        // key or address is the settings page's to explain, not the globe's.
+        LENS_DEBUG("the peek for '{}' went nowhere: the client is not configured", lemma.toStdString());
+        emit peekAnswered(lemma, {}, {});
+        return;
+    }
+
+    QUrl    url  = config_.baseUrl;
+    QString path = url.path();
+    while (path.endsWith(QLatin1Char('/')))
+        path.chop(1);
+    url.setPath(path + QStringLiteral("/chat/completions"));
+
+    QNetworkRequest httpRequest(url);
+    httpRequest.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+    httpRequest.setRawHeader("Authorization", "Bearer " + config_.apiKey.toUtf8());
+    httpRequest.setTransferTimeout(kPeekTimeoutMs);
+
+    const auto model = config_.model;
+    LENS_INFO("peeking '{}' in '{}' with '{}'", lemma.toStdString(), language.toStdString(), config_.model.toStdString());
+    LENS_TRACE("POST {} (timeout {} ms, key hidden)", url.toString().toStdString(), kPeekTimeoutMs);
+
+    QNetworkReply* reply =
+        manager_->post(httpRequest, buildRequestBody(config_, Channel::Peek, {lemma}, language));
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply, lemma, model] {
+        reply->deleteLater();
+        const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        // A 200 that failed mid-transfer carries an incomplete body, which parseExplanations()
+        // rejects like any other malformed answer -- the same quiet failure either way.
+        if (status != 200) {
+            LENS_WARN("the peek for '{}' came back with HTTP {}", lemma.toStdString(), status);
+            emit peekAnswered(lemma, {}, {});
+            return;
+        }
+        const QByteArray body   = reply->readAll();
+        const auto       parsed = parseExplanations(Channel::Peek, body, {lemma});
+        if (const auto* message = std::get_if<QString>(&parsed)) {
+            LENS_WARN("the peek for '{}' was refused: {}", lemma.toStdString(), message->toStdString());
+            emit peekAnswered(lemma, {}, {});
+            return;
+        }
+        const auto& results = std::get<QVector<Explanation>>(parsed);
+        auto        usage   = parseUsage(body);
+        usage.model         = model;
+        emit peekAnswered(lemma, results.isEmpty() ? QString{} : results.front().en, usage);
     });
 }
 

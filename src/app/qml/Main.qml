@@ -246,9 +246,7 @@ Window {
                 // being dragged must not be pulled back to its anchor (repositionVisible keeps the
                 // same rule for a screen change).
                 Qt.callLater(() => {
-                    // A language switch replays the answer in the frame the card already has:
-                    // asking for placement here would move it as the new text changes height.
-                    if (!bubble.dragging && !bubble.languageReplay)
+                    if (!bubble.dragging)
                         surfaceHost.placeBubble(bubble, at);
                 });
             } else {
@@ -262,6 +260,12 @@ Window {
 
         function onChainFailed(lemma) {
             bubble.chainSteps.fail(lemma);
+        }
+
+        function onPeekArrived(line) {
+            // The duty has already checked that the answer belongs to the card standing; the
+            // header actions decide whether the hold that asked for it is still going.
+            bubble.peekLine = line;
         }
 
         function onNoticeChanged() {

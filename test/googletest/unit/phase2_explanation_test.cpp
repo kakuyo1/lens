@@ -342,102 +342,64 @@ TEST_F(LlmTest, Phase2LanguagesRoundTripThroughDutyTransportAndCache)
     }
 }
 
-TEST_F(LlmTest, Phase2TheBubbleLanguageShortcutReasksTheStandingCardAndKeepsItsShape)
+TEST_F(LlmTest, Phase2ThePeekAnswersTheStandingWordFromThePairTheAnswerCarried)
 {
     QtApplication qt;
     Rig           rig;
     rig.manager.response = envelope({plainWord("bank")});
     rig.explain("bank");
-    EXPECT_EQ(rig.duty.bubble().value("en").toString(), QStringLiteral("English"));
+    ASSERT_EQ(rig.duty.bubble().value("en").toString(), QStringLiteral("English"));
 
-    // The card a review answer raises is the one with a shape to lose: it has no verdict buttons,
-    // and a replay must not turn it into a card the reader can mark.
+    QStringList lines;
+    QObject::connect(&rig.duty, &app::ExplanationDuty::peekArrived, [&](QString line) { lines.push_back(std::move(line)); });
+
+    // The word channel always buys the Chinese pair along with the explanation, so the held globe
+    // under a Chinese mother tongue is answered by the entry the standing card came from.
+    rig.storage.section().set<std::string>("motherTongue", "zh");
+    rig.duty.requestPeek();
+    ASSERT_EQ(lines.size(), 1);
+    EXPECT_EQ(lines.front(), QStringLiteral("中文"));
+    EXPECT_EQ(rig.manager.posts, 1) << "a pair the word channel had already paid for was bought again";
+
+    // A peek is a word card's thing: nothing stands, nothing is asked, nothing answers.
     rig.duty.dismissBubble();
-    rig.duty.showReviewAnswer("bank", QPoint{200, 400});
-    ASSERT_FALSE(rig.duty.bubble().isEmpty());
-    ASSERT_EQ(rig.duty.bubble().value("verdictButtons").toBool(), false);
-
-    rig.store.setExplanationLang("zh");
-    QEventLoop loop;
-    QObject::connect(&rig.client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
-    QObject::connect(&rig.client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
-    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
-    rig.duty.reexplain();
-    loop.exec();
-
-    EXPECT_EQ(rig.manager.posts, 2) << "the standing card was not asked for again in the new language";
-    EXPECT_TRUE(rig.manager.posted.contains("Chinese")) << "the request did not go out under the new language";
-    EXPECT_EQ(rig.duty.bubble().value("zh").toString(), QStringLiteral("中文"));
-    EXPECT_EQ(rig.duty.bubble().value("verdictButtons").toBool(), false)
-        << "the replayed review card grew the verdict buttons it must not have";
-    EXPECT_EQ(rig.duty.bubble().value("sameCard").toBool(), true)
-        << "the replayed answer was not marked as a refresh of the standing card";
-
-    // A language already paid for is put up out of the cache, without a request.
-    rig.store.setExplanationLang("en");
-    rig.duty.reexplain();
-    EXPECT_EQ(rig.manager.posts, 2) << "a stored copy was bought a second time";
-    EXPECT_EQ(rig.duty.bubble().value("en").toString(), QStringLiteral("English"));
-    EXPECT_EQ(rig.duty.bubble().value("verdictButtons").toBool(), false);
-    EXPECT_EQ(rig.duty.bubble().value("sameCard").toBool(), true)
-        << "the cache-hit replay was not marked as a refresh of the standing card";
-    EXPECT_EQ(rig.duty.bubble().value("reveal").toBool(), true)
-        << "the cached language switch was put up whole instead of written out again";
+    rig.duty.requestPeek();
+    EXPECT_EQ(lines.size(), 1) << "a peek without a standing card answered";
+    EXPECT_EQ(rig.manager.posts, 1);
 }
 
-TEST_F(LlmTest, Phase2ALanguageSwitchOnAChainStepAsksThatStepAgainInPlace)
+TEST_F(LlmTest, Phase2ThePeekAsksTheModelInTheMotherTongueAndKeepsTheLineForTheSession)
 {
     QtApplication qt;
     Rig           rig;
-
-    QVector<QVariantMap> steps;
-    QObject::connect(&rig.duty, &app::ExplanationDuty::chainAnswered, [&](QVariantMap entry) { steps.push_back(std::move(entry)); });
-
-    auto const settle = [&rig] {
-        QEventLoop loop;
-        QObject::connect(&rig.client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
-        QObject::connect(&rig.client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
-        QTimer::singleShot(2000, &loop, &QEventLoop::quit);
-        loop.exec();
-    };
-
-    rig.manager.response = envelope({plainWord("bank")});
     rig.explain("bank");
 
-    auto step            = plainWord("knack");
-    step["en"]           = "a clever trick";
-    step["zh"]           = "窍门";
-    rig.manager.response = envelope({step});
-    rig.duty.explainChainWord("knack");
-    settle();
-    ASSERT_EQ(steps.size(), 1);
-    EXPECT_EQ(steps.front().value("title").toString(), QStringLiteral("knack"));
-    EXPECT_EQ(steps.front().value("text").toString(), QStringLiteral("a clever trick"));
-    EXPECT_FALSE(steps.front().contains("replay")) << "a first drill was marked as a language replay";
+    QStringList lines;
+    QObject::connect(&rig.duty, &app::ExplanationDuty::peekArrived, [&](QString line) { lines.push_back(std::move(line)); });
+
+    // A mother tongue the word answer does not carry goes to the peek channel, in that language.
+    rig.storage.section().set<std::string>("motherTongue", "es");
+    rig.manager.response =
+        envelope(QJsonArray{QJsonObject{{"line", QStringLiteral("la dicha de hallar algo bueno sin buscarlo")}}});
+    QEventLoop loop;
+    QObject::connect(&rig.duty, &app::ExplanationDuty::peekArrived, &loop, &QEventLoop::quit);
+    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+    rig.duty.requestPeek();
+    loop.exec();
+
+    ASSERT_EQ(lines.size(), 1);
+    EXPECT_EQ(lines.front(), QStringLiteral("la dicha de hallar algo bueno sin buscarlo"));
     EXPECT_EQ(rig.manager.posts, 2);
+    const auto messages = QJsonDocument::fromJson(rig.manager.posted).object().value("messages").toArray();
+    EXPECT_TRUE(messages.at(0).toObject().value("content").toString().contains(QStringLiteral("Write the line in Spanish.")))
+        << "the peek did not go out under the mother tongue";
+    EXPECT_EQ(messages.at(1).toObject().value("content").toString(), QStringLiteral("bank"));
 
-    // The shortcut on a drilled card asks for the step drawn, not for the card's own word: the
-    // answer replaces that step, and the card behind it is left alone.
-    rig.store.setExplanationLang("zh");
-    rig.duty.reexplainChainStep("knack");
-    settle();
-    ASSERT_EQ(steps.size(), 2);
-    EXPECT_EQ(steps.back().value("title").toString(), QStringLiteral("knack"));
-    EXPECT_EQ(steps.back().value("text").toString(), QStringLiteral("窍门"));
-    EXPECT_EQ(steps.back().value("replay").toBool(), true) << "the replayed step would be added under the one it replaces";
-    EXPECT_EQ(rig.manager.posts, 3) << "the step was not asked again";
-    EXPECT_TRUE(rig.manager.posted.contains("Chinese")) << "the step was not asked for in the new language";
-    EXPECT_EQ(rig.duty.bubble().value("title").toString(), QStringLiteral("bank"));
-    EXPECT_EQ(rig.duty.bubble().value("en").toString(), QStringLiteral("English"))
-        << "the shortcut walked the card back up to its own word";
-
-    // A language already paid for for this step is put up without a request.
-    rig.store.setExplanationLang("en");
-    rig.duty.reexplainChainStep("knack");
-    EXPECT_EQ(rig.manager.posts, 3) << "a stored step was bought a second time";
-    ASSERT_EQ(steps.size(), 3);
-    EXPECT_EQ(steps.back().value("text").toString(), QStringLiteral("a clever trick"));
-    EXPECT_EQ(steps.back().value("replay").toBool(), true);
+    // The second hold on the same word is answered from the session, not from the model.
+    rig.duty.requestPeek();
+    ASSERT_EQ(lines.size(), 2);
+    EXPECT_EQ(lines.back(), lines.front());
+    EXPECT_EQ(rig.manager.posts, 2) << "a line the session had already paid for was bought again";
 }
 
 TEST_F(LlmTest, Phase2TheEtymologySettingBringsTheOriginAlongAndKeepsItOutOfTheKey)

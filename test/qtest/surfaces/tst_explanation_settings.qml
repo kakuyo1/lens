@@ -7,9 +7,10 @@ import "../testutil.js" as Util
 Item {
     id: root
     width: 380
-    // Taller than the real 480 px panel: seven switch rows make the learning page scroll there,
-    // and the snapshot case below has to see the whole page to review it.
-    height: 640
+    // Taller than the real 480 px panel: the level, mother-tongue and language rows, seven switch
+    // rows and the review row make the learning page scroll there, and the snapshot case below has
+    // to see the whole page to review it.
+    height: 760
 
     readonly property var settings: ({
         levels: [{value: 2, label: "CET-4", group: "", note: ""}], level: 2,
@@ -21,6 +22,13 @@ Item {
             {value: "ja", label: "日本語", group: "", note: ""}
         ],
         explanationLang: "es", multiSense: true, etymology: true,
+        motherTongue: "zh",
+        motherTongueOptions: [
+            {value: "zh", label: "中文", group: "", note: ""},
+            {value: "zh-Hant", label: "繁體中文", group: "", note: ""},
+            {value: "es", label: "Español", group: "", note: ""},
+            {value: "ja", label: "日本語", group: "", note: ""}
+        ],
         ipa: true, signpost: true, collocations: true, pictures: true,
         providers: [{value: "openai", label: "OpenAI", group: "International", note: ""}],
         provider: "openai", model: "gpt-4.1-mini",
@@ -108,6 +116,29 @@ Item {
             const modelField = findChild(service, "modelField");
             verify(modelField, "the model page has no model field");
             compare(modelField.currentValue, "gpt-4.1-mini");
+        }
+
+        /// The mother tongue is its own row above the explanation language: the peek it feeds only
+        /// exists under an English explanation, so the reader reads it as the language they fall
+        /// back to, then chooses what everything is explained in.
+        function test_theMotherTongueRowWritesTheSetting() {
+            const page = createTemporaryObject(learning, host.contentItem);
+            waitForRendering(host.contentItem);
+            verify(page);
+            const field = findChild(page, "motherTongueField");
+            verify(field, "the learning page draws no mother-tongue row");
+            const explanationField = findChild(page, "languageField");
+            verify(explanationField);
+            verify(field.mapToItem(page, 0, 0).y < explanationField.mapToItem(page, 0, 0).y,
+                   "the mother tongue sat below the explanation language");
+            const previous = Controller.settings.motherTongue;
+            try {
+                field.picked("ja");
+                compare(Controller.settings.motherTongue, "ja");
+            } finally {
+                Controller.setSetting("motherTongue", previous);
+            }
+            compare(Controller.settings.motherTongue, previous);
         }
 
         /// The etymology switch is a setting, not a view: it reads what the document holds and

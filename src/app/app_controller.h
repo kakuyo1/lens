@@ -121,26 +121,6 @@ public:
     Q_INVOKABLE bool setSetting(QString key, QVariant value);
     /// @return The closed range a key's slider runs over, as {low, high}; empty for a key with none.
     Q_INVOKABLE QVariantMap settingRange(QString key) const;
-    /**
-     * @brief Switch the explanation language from the bubble's shortcut and ask again for the card.
-     *
-     * This is the settings row's write plus the one thing the reader meant by using it on a card:
-     * the standing explanation is put up in the new language, from the cache when it has one and
-     * from the model otherwise. The choice is a setting, not a one-card override, so the next card
-     * comes up in the same language. A translation has no second language to ask for and is left
-     * alone.
-     */
-    Q_INVOKABLE void reexplainIn(QString language);
-    /**
-     * @brief The bubble's language shortcut on a chain step: write the language and ask that step again.
-     *
-     * The same setting write as reexplainIn(), but what is asked again is the step the reader is
-     * reading, not the word the chain started from. The steps above it and the breadcrumb stay.
-     *
-     * @param language The language picked from the card's strip.
-     * @param lemma    The word the drawn chain step stands on.
-     */
-    Q_INVOKABLE void reexplainChainIn(QString language, QString lemma);
     /// @return Every family on this machine that draws Latin, as DropdownField options, sorted.
     Q_INVOKABLE QVariantList latinFontFamilies() const;
     /// @return The sizes the font page offers, as DropdownField options: the default marked.

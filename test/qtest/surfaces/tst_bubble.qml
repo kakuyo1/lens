@@ -74,26 +74,83 @@ Item {
             return found[0];
         }
 
-        /// The shortcut draws the catalog's list, not a four-item copy: the fifth language and
-        /// the narrower 11 px cell are what keep Traditional Chinese on one row.
-        function test_theLanguageStripOffersEveryCatalogLanguage() {
-            const bubble = opened();
-            wait(200);
-            const button = Util.findAll(bubble, function (o) {
-                return o.Accessible !== undefined && o.Accessible.name === "Explanation language";
+        /// @return The peek globe, found by its screen-reader name rather than by its place.
+        function globeOf(bubble) {
+            return Util.findAll(bubble, function (o) {
+                return o.Accessible !== undefined && o.Accessible.name === "Mother tongue translation";
             })[0];
-            verify(button, "the bubble has no explanation-language shortcut");
-            mouseClick(button, button.width / 2, button.height / 2);
-            wait(200);
-            const segment = Util.findAll(bubble, function (o) {
-                return o.toString().indexOf("Segment_QMLTYPE") === 0;
-            })[0];
-            verify(segment, "the language strip did not open");
-            compare(segment.labels.length, Controller.settings.languages.length);
-            verify(segment.labels.indexOf("繁體中文") >= 0,
-                   "the language strip did not offer Traditional Chinese");
-            compare(segment.labelSize, 11, "five labels need the strip's narrower cell text");
-            bubble.visible = false;
+        }
+
+        /// The globe the reader holds for the mother-tongue line stands only under an English
+        /// explanation, on a word card with a countdown (UI-SPEC.md 4.3): a translation's input
+        /// already is the mother tongue, and a card without a clock is the pointer's to lose.
+        function test_thePeekGlobeAppearsOnlyUnderAnEnglishExplanation() {
+            const previous = Controller.settings.explanationLang;
+            try {
+                Controller.setSetting("explanationLang", "en");
+                const bubble = opened();
+                const globe = globeOf(bubble);
+                verify(globe, "the bubble has no peek globe under an English explanation");
+                compare(globe.visible, true);
+
+                Controller.setSetting("explanationLang", "zh");
+                tryCompare(globe, "visible", false, 2000, "the globe outlived the English explanation");
+                bubble.visible = false;
+
+                const held = createTemporaryObject(bubbleComponent, root);
+                verify(held);
+                held.show({
+                    title: "serendipity",
+                    type: "word",
+                    ipa: "/ˌserənˈdɪpəti/",
+                    en: "the occurrence of events by chance in a happy way",
+                    status: "new",
+                    countsDown: false,
+                    x: 200,
+                    y: 240
+                });
+                wait(50);
+                const heldGlobe = globeOf(held);
+                verify(heldGlobe, "the bubble drew no globe item at all");
+                compare(heldGlobe.visible, false, "a card without a countdown still offered the peek");
+                held.visible = false;
+            } finally {
+                Controller.setSetting("explanationLang", previous);
+            }
+        }
+
+        /// The line is the hold's answer: it shows while the globe is held and goes when the hold
+        /// ends. The duty is not standing behind this window -- show() was the only way in -- so
+        /// the case writes the line the controller would have delivered and asks the gesture's
+        /// half alone; the asking itself is the phase2 suite's.
+        function test_theMotherTongueLineShowsWhileTheGlobeIsHeld() {
+            const previous = Controller.settings.explanationLang;
+            try {
+                Controller.setSetting("explanationLang", "en");
+                const bubble = opened();
+                bubble.peekLine = "机缘巧合";
+                const globe = globeOf(bubble);
+                verify(globe);
+                compare(globe.visible, true, "the globe was not offered under an English explanation");
+                const line = Util.findAll(bubble, function (o) {
+                    return o.objectName === "peekText";
+                })[0];
+                verify(line, "the card drew no slot for the mother-tongue line");
+                compare(line.visible, false, "the line showed before anything was held");
+
+                mouseMove(globe, globe.width / 2, globe.height / 2);
+                mousePress(globe, globe.width / 2, globe.height / 2);
+                wait(100);
+                const tap = findChild(bubble, "peekTap");
+                verify(tap, "the globe carries no tap handler");
+                compare(tap.pressed, true, "the press never reached the globe's tap handler");
+                tryCompare(line, "visible", true);
+                mouseRelease(globe, globe.width / 2, globe.height / 2);
+                tryCompare(line, "visible", false, 2000, "the line outlived the hold");
+                bubble.visible = false;
+            } finally {
+                Controller.setSetting("explanationLang", previous);
+            }
         }
 
         /// @return The whole seconds the meta line is showing.

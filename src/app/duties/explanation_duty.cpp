@@ -56,6 +56,7 @@ ExplanationDuty::ExplanationDuty(StorageDuty& storage, llm::LlmClient& llm, Cost
     connect(&llm_, &llm::LlmClient::batchFinished, this, &ExplanationDuty::onBatchFinished);
     connect(&llm_, &llm::LlmClient::failed, this, &ExplanationDuty::onFailed);
     connect(&llm_, &llm::LlmClient::partial, this, &ExplanationDuty::onPartial);
+    connect(&llm_, &llm::LlmClient::peekAnswered, this, &ExplanationDuty::onPeekAnswered);
 }
 
 void ExplanationDuty::onPartial(llm::Explanation partial)
@@ -299,20 +300,6 @@ void ExplanationDuty::explainChainWord(QString lemma)
                                   .parent  = bubble_.value("title").toString()});
 }
 
-void ExplanationDuty::reexplainChainStep(QString lemma)
-{
-    const QString value = lemma.trimmed();
-    if (value.isEmpty() or bubble_.isEmpty())
-        return;
-    askChainStep(PendingSelection{.anchor  = bubbleSubject_.anchor,
-                                  .kind    = core::SelectionKind::Word,
-                                  .surface = value,
-                                  .lemma   = value,
-                                  .chain   = true,
-                                  .replay  = true,
-                                  .parent  = bubble_.value("title").toString()});
-}
-
 void ExplanationDuty::askChainStep(PendingSelection pending)
 {
     // Out of budget with nothing stored: explain() would drop the step without a word, and the card would
@@ -362,17 +349,57 @@ QVariantList ExplanationDuty::spansOf(QString const& text) const
     return spans;
 }
 
-void ExplanationDuty::reexplain()
+void ExplanationDuty::requestPeek()
 {
-    if (bubble_.isEmpty() or bubbleSubject_.kind == core::SelectionKind::Translation)
+    if (bubble_.isEmpty() or bubbleSubject_.kind != core::SelectionKind::Word or bubbleSubject_.chain)
         return;
-    // The cache is local, so it answers even while another request is in flight: the target
-    // language may have been paid for already, and the shortcut must not make the reader wait for
-    // a request it does not need. A miss goes through explain(), which holds it behind that request.
-    const auto context = cache_.contextFor(bubbleSubject_.kind);
-    if (showStored(bubbleSubject_, context, /*reveal=*/true))
+    if (storage_.knownStore().explanationLang() != "en")
         return;
-    explain(bubbleSubject_);
+    const QString mother = motherTongue();
+    if (mother.isEmpty() or mother == QLatin1String("en"))
+        return;
+    const QString lemma = bubbleSubject_.lemma;
+
+    // The word channel always buys the Chinese pair along with the explanation, so a Chinese
+    // mother tongue is answered by the entry the standing card came from: the reader held a globe
+    // the answer had already paid for. The cache is keyed by the explanation language, which is
+    // exactly the English the globe exists under.
+    if (mother == QLatin1String("zh")) {
+        const auto found = cache_.look(lemma.toStdString(), cache_.contextFor(core::SelectionKind::Word));
+        if (found.state != core::ExplanationCache::State::Missing and not found.entry.zh.empty()) {
+            emit peekArrived(QString::fromStdString(found.entry.zh));
+            return;
+        }
+    }
+    // A line this session has paid for is the second hold's answer, not the model's to sell twice.
+    const QString key  = mother + QLatin1Char('|') + lemma;
+    const auto    held = peekLines_.constFind(key);
+    if (held != peekLines_.cend()) {
+        emit peekArrived(*held);
+        return;
+    }
+    // Out of budget the hold buys nothing and says nothing: the definition on the card is the
+    // reader's answer either way, and a notice is a whole surface, not a line under it.
+    if (not cost_.canRequest()) {
+        LENS_DEBUG("the peek for '{}' waits: today's budget is spent", lemma.toStdString());
+        return;
+    }
+    llm_.peekWord(lemma, mother);
+}
+
+void ExplanationDuty::onPeekAnswered(QString const& lemma, QString const& line, llm::Usage const usage)
+{
+    cost_.recordUsage(nowMinute().toStdString(), usage);
+    if (line.trimmed().isEmpty())
+        return;
+    peekLines_.insert(motherTongue() + QLatin1Char('|') + lemma, line);
+    if (not bubble_.isEmpty() and bubbleSubject_.kind == core::SelectionKind::Word and not bubbleSubject_.chain and bubbleSubject_.lemma == lemma)
+        emit peekArrived(line);
+}
+
+QString ExplanationDuty::motherTongue() const
+{
+    return QString::fromStdString(storage_.section().value<std::string>("motherTongue", "zh"));
 }
 
 void ExplanationDuty::explain(PendingSelection const& pending)
@@ -395,7 +422,7 @@ void ExplanationDuty::explain(PendingSelection const& pending)
     sendNext();
 }
 
-bool ExplanationDuty::showStored(PendingSelection const& pending, core::CacheContext const& context, bool const reveal)
+bool ExplanationDuty::showStored(PendingSelection const& pending, core::CacheContext const& context)
 {
     if (not isWordKind(pending.kind))
         return false;
@@ -404,7 +431,7 @@ bool ExplanationDuty::showStored(PendingSelection const& pending, core::CacheCon
         return false;
     storage_.statsStore().recordPop(pending.lemma.toStdString(), nowMinute().toStdString());
     storage_.save();
-    showBubble(fromCache(found.entry, pending.lemma), pending, context, /*notifyPet=*/true, reveal);
+    showBubble(fromCache(found.entry, pending.lemma), pending, context, /*notifyPet=*/true, /*reveal=*/false);
     emit statsChanged();
     return true;
 }
@@ -467,12 +494,8 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
     // A step of the chain goes onto the chain under the card and leaves the card alone: its text, its
     // verdict and its countdown are the card's own, and a step asked from a card that has moved on is dropped.
     if (selection.chain) {
-        if (chainStanding(selection)) {
-            QVariantMap entry = chainEntry(explanation, context);
-            if (selection.replay)
-                entry.insert(QStringLiteral("replay"), true);
-            emit chainAnswered(entry);
-        }
+        if (chainStanding(selection))
+            emit chainAnswered(chainEntry(explanation, context));
         return;
     }
     auto const selected = [&](QString const& en, QString const& zh, QString const& translation) {

@@ -40,14 +40,14 @@ Window {
 
     width: content.implicitWidth + 2 * shadowMargin
     height: Math.round(Math.max(rowHold.active ? rowHold.floor : 0,
-                                languageReplay ? replayHeight : 0,
                                 content.implicitHeight) + 2 * shadowMargin)
     onVisibleChanged: {
         if (!visible) {
             rowHold.active = false;
-            // The strip belongs to the card that asked, so it goes with it.
+            // The picture strip belongs to the card that asked, so it goes with it.
             content.collapseStrip();
-            endLanguageReplay();
+            // So does the peek line: the next card has not asked for one.
+            peekLine = "";
         }
     }
     HeightHold {
@@ -97,10 +97,10 @@ Window {
     /// pointer leaves it; no clock runs under it.
     property bool countsDown: true
 
-    /// Whether a language switch is replaying the answer inside the frame the card already has.
-    property bool languageReplay: false
-    /// The content height that frame was given when the replay began.
-    property real replayHeight: 0
+    /// The mother-tongue line the held globe asked for (UI-SPEC.md 4.3), for the word standing
+    /// when it arrived. Main.qml sets it from the duty's peekArrived; the card draws it while the
+    /// hold lasts, and a different card starts over without it.
+    property string peekLine: ""
 
     /// Whether the Known and New buttons are drawn. The card a review's answer raises is the reader's to read, not to
     /// mark (UI-SPEC.md 4.13); the status tag above the title still says what the word is.
@@ -154,28 +154,13 @@ Window {
     /// has no room, and the same call is made again once the text has settled.
     signal placementRequested(var payload)
 
-    /// @brief Hold this card's frame while a language switch writes the answer again.
-    /// The new answer is shorter or longer and arrives in chunks; the window must not follow it.
-    /// The current height becomes a floor and placement is not asked for again until a different
-    /// card or a dismissal ends the replay.
-    function beginLanguageReplay() {
-        if (!surfaceShown)
-            return;
-        replayHeight = Math.max(replayHeight, height - 2 * shadowMargin);
-        languageReplay = true;
-    }
-
-    function endLanguageReplay() {
-        languageReplay = false;
-        replayHeight = 0;
-    }
-
     function show(payload) {
         const wasVisible = visible;
         const generation = ++showGeneration;
-        // A different card ends the replay; it is placed from its own anchor.
-        if (languageReplay && payload.sameCard !== true)
-            endLanguageReplay();
+        // A different card has not asked for a peek line: the one on the card was answered for
+        // the word that stood before it.
+        if (payload.sameCard !== true)
+            peekLine = "";
         pendingPayload = payload;
         pendingWasVisible = wasVisible;
         pendingGeneration = generation;
@@ -221,8 +206,8 @@ Window {
             surfaceShown = false;
         }
 
-        // Growing content re-asks for placement; a dragged card and a language replay keep their frame.
-        if (!dragging && !languageReplay)
+        // Growing content re-asks for placement; a dragged card keeps its frame.
+        if (!dragging)
             placement.restart();
     }
 

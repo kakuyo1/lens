@@ -574,6 +574,47 @@ TEST_F(LlmTest, AcceptsATranslationThatCarriesEnglishAlone)
     }
 }
 
+TEST_F(LlmTest, PeeksOneLineInTheMotherTongue)
+{
+    // The peek is the second one-language channel: one English word in, one `line` out, stamped
+    // with the asked-for word like the translation's selected text is.
+    const auto peeked = parseExplanations(
+        Channel::Peek,
+        envelope(QStringLiteral(R"({"results":[{"line":"意外的幸运"}]})")),
+        {"serendipity"});
+    ASSERT_TRUE(accepted(peeked)) << errorOf(peeked).toStdString();
+    const auto& result = std::get<QVector<Explanation>>(peeked).at(0);
+    EXPECT_EQ(result.en, QStringLiteral("意外的幸运"));
+    EXPECT_EQ(result.title, QStringLiteral("serendipity")) << "the app stamps the asked-for word on";
+    EXPECT_TRUE(result.zh.isEmpty());
+
+    // An empty line is the one emptiness this channel refuses: it is the whole answer.
+    EXPECT_FALSE(accepted(parseExplanations(
+        Channel::Peek, envelope(QStringLiteral(R"({"results":[{"line":" "}]})")), {"serendipity"})));
+    EXPECT_FALSE(accepted(parseExplanations(
+        Channel::Peek, envelope(QStringLiteral(R"({"results":[{}]})")), {"serendipity"})));
+}
+
+TEST_F(LlmTest, ThePeekPromptAsksInTheMotherTongueAndNeverStreams)
+{
+    // The closing line follows the mother tongue the request was made in, not the explanation
+    // language; the answer is one whole body, because a held gesture draws nothing half-written.
+    const Config      config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
+    const QStringList expectations{
+        "Write the line in English.", "Write the line in Simplified Chinese.", "Write the line in Traditional Chinese.", "Write the line in Spanish.", "Write the line in Japanese."};
+    const QStringList codes{"en", "zh", "zh-Hant", "es", "ja"};
+    for (int i = 0; i < codes.size(); ++i) {
+        SCOPED_TRACE(codes.at(i).toStdString());
+        const auto body = QJsonDocument::fromJson(
+            buildRequestBody(config, Channel::Peek, {"serendipity"}, codes.at(i), "default"));
+        const auto prompt = body.object().value("messages").toArray().at(0).toObject().value("content").toString();
+        EXPECT_TRUE(prompt.contains(expectations.at(i)));
+        const auto user = body.object().value("messages").toArray().at(1).toObject().value("content").toString();
+        EXPECT_EQ(user, QStringLiteral("serendipity"));
+        EXPECT_FALSE(body.object().value("stream").toBool());
+    }
+}
+
 TEST_F(LlmTest, FoldsSeveralEntityOrSentenceResultsIntoTheOneRequested)
 {
     // A model may split a selected block (a numbered list, several sentences) into more entries

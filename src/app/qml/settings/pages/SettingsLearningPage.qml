@@ -7,7 +7,7 @@ Item {
     // qmllint enable missing-property
     property var settings: Controller.settings
 
-    readonly property var openChildRect: levelField.openChildRect || languageField.openChildRect || reviewField.openChildRect
+    readonly property var openChildRect: motherTongueField.openChildRect || levelField.openChildRect || languageField.openChildRect || reviewField.openChildRect
     implicitHeight: content.implicitHeight
 
     /// The preview the pointer has called up, or "" for none: a row's title raises one on hover
@@ -18,11 +18,11 @@ Item {
     signal languagePreviewRequested(string language)
 
     function closeChild() {
+        motherTongueField.closeList();
         levelField.closeList();
         languageField.closeList();
         reviewField.closeList();
     }
-
     /// The word cloud a hovered vocabulary level raises beside the list. The option carries its
     /// own level, so the preview needs nothing from this page but the row.
     Component {
@@ -52,6 +52,29 @@ Item {
                 currentValue: root.settings.level
                 optionPreview: vocabPreviewComponent
                 onPicked: (value) => Controller.setSetting("level", value)
+            }
+        }
+
+        // Above the explanation language, because the peek it feeds only exists under an English
+        // explanation: the reader reads this as "the language I fall back to", then chooses what
+        // everything is explained in (docs/adr/0112). Its rows raise no preview -- the peek is a
+        // hold on the reader's own card, and the preview bubble draws no globe.
+        Column {
+            width: parent.width
+            spacing: 7
+            Text {
+                text: qsTranslate("SettingsPopup", "Mother tongue")
+                color: root.tokens.muted
+                font.pixelSize: 12
+            }
+            DropdownField {
+                id: motherTongueField
+                objectName: "motherTongueField"
+                width: parent.width
+                accessibleName: qsTranslate("SettingsPopup", "Mother tongue")
+                options: root.settings.motherTongueOptions || []
+                currentValue: root.settings.motherTongue
+                onPicked: (value) => Controller.setSetting("motherTongue", value)
             }
         }
 

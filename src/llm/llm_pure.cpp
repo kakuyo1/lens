@@ -368,9 +368,14 @@ std::variant<QVector<Explanation>, QString> parseExplanationContent(Channel     
             "lens::llm", "The model's answer has no results array."));
 
     // Presence is gated on the response schema, so adding a required field is a data edit.
-    const bool    isWord        = channel == Channel::Word;
-    const bool    isTranslation = channel == Channel::Translation;
-    const QString titleField    = isWord ? QStringLiteral("word") : QStringLiteral("title");
+    const bool isWord        = channel == Channel::Word;
+    const bool isTranslation = channel == Channel::Translation;
+    const bool isPeek        = channel == Channel::Peek;
+    // Translation and Peek are the two one-language channels: neither carries the en/zh pair the
+    // other channels are checked against, so neither is asked for a second line to be empty. The
+    // peek's answer travels under `line` and lands in `en`, the field the peek's readers read.
+    const bool    oneLanguage = isTranslation or isPeek;
+    const QString titleField  = isWord ? QStringLiteral("word") : QStringLiteral("title");
 
     QVector<Explanation> parsed;
     for (const auto& item : resultsValue.toArray()) {
@@ -384,7 +389,7 @@ std::variant<QVector<Explanation>, QString> parseExplanationContent(Channel     
 
         Explanation e{obj.value(titleField).toString(),
                       obj.value(QStringLiteral("ipa")).toString(),
-                      obj.value(QStringLiteral("en")).toString(),
+                      obj.value(isPeek ? QStringLiteral("line") : QStringLiteral("en")).toString(),
                       obj.value(QStringLiteral("zh")).toString()};
         e.translation = obj.value("translation").toString();
         // Read and never demanded: the origin is asked for only when the setting is on, an acronym
@@ -431,13 +436,13 @@ std::variant<QVector<Explanation>, QString> parseExplanationContent(Channel     
         } else if (isWord) {
             e.senses.push_back({e.en, e.zh, e.translation, e.imageable, e.imageQuery});
         }
-        if (not isTranslation and explanationLang != QLatin1String("en") and explanationLang != QLatin1String("zh") and e.translation.trimmed().isEmpty())
+        if (not oneLanguage and explanationLang != QLatin1String("en") and explanationLang != QLatin1String("zh") and e.translation.trimmed().isEmpty())
             return reject(QCoreApplication::translate("lens::llm", "The requested explanation language is missing."));
         // Presence is the schema's business; emptiness is not. Both language definitions are
-        // required by every channel but the translation one, which has no explanation language to
-        // follow and so no second line to be empty. A word must also name itself (its IPA stays
-        // optional: an acronym has none); the other channels carry no echoed title.
-        if (e.en.trimmed().isEmpty() || (not isTranslation and e.zh.trimmed().isEmpty()) || (isWord && e.title.trimmed().isEmpty()))
+        // required by every channel but the translation and peek ones, which have no explanation
+        // language to follow and so no second line to be empty. A word must also name itself (its
+        // IPA stays optional: an acronym has none); the other channels carry no echoed title.
+        if (e.en.trimmed().isEmpty() || (not oneLanguage and e.zh.trimmed().isEmpty()) || (isWord && e.title.trimmed().isEmpty()))
             return reject(QCoreApplication::translate("lens::llm",
                                                       "A results entry has an empty field "
                                                       "(title=%1).")

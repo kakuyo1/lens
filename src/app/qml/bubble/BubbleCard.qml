@@ -296,6 +296,38 @@ Item {
                 lineHeight: 1.5
             }
 
+            // The mother-tongue line the held globe asked for (UI-SPEC.md 4.3): the meaning the
+            // card is already carrying, said once in the reader's own words. It takes the set-off
+            // form the origin and the example use, without their label -- a second telling of the
+            // same answer is not a section of its own -- and it is drawn whole while the hold
+            // lasts, never written out: nothing is arriving, it was held for.
+            Column {
+                id: peekBlock
+                objectName: "peekBlock"
+                visible: headerActions.peekVisible
+                width: parent.width
+                topPadding: 6
+                spacing: 5
+
+                Rectangle {
+                    objectName: "peekSeparator"
+                    width: parent.width
+                    height: 1
+                    color: root.bubble.tokens.line2
+                }
+
+                Text {
+                    id: peekText
+                    objectName: "peekText"
+                    width: parent.width
+                    text: root.bubble.peekLine
+                    color: root.bubble.tokens.muted
+                    font.pixelSize: root.bubble.sizeAt(12)
+                    lineHeight: 1.5
+                    wrapMode: Text.WordWrap
+                }
+            }
+
             // The word's origin, under the explanation it belongs to. A hairline and a small label
             // set it apart from the definition: the reader asked for two different things and sees
             // two (UI-SPEC.md 4.3). The label is the card's label colour and weight; the sentence
@@ -416,6 +448,7 @@ Item {
         }
 
         BubbleHeaderActions {
+            id: headerActions
             anchors.fill: parent
             bubbleWindow: root.bubble
         }

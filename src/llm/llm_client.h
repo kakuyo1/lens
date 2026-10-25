@@ -180,10 +180,25 @@ public:
      */
     void explainWords(ExplainRequest request);
 
+    /// @brief Ask for one word's meaning in one language, one short line, one whole body.
+    ///
+    /// The peek is what the bubble's held globe asks for (docs/adr/0112): one word in the mother
+    /// tongue is all the reader wants while they hold, so the request does not stream -- the line
+    /// is drawn whole or not at all. It rides its own signal rather than batchFinished(), so its
+    /// answer can never be mistaken for an explanation batch's, and it fails quietly: a gesture
+    /// that bought nothing owes the reader no notice.
+    /// @param lemma    The word, as the standing card names it.
+    /// @param language The mother tongue's catalog code; picks the prompt's closing line.
+    void peekWord(QString const& lemma, QString const& language);
+
 signals:
     /// @brief Emitted with the validated explanations, in the order the words were asked for.
     /// @param usage Token counts from the same response, all zero when it carried none.
     void batchFinished(QVector<Explanation> results, Usage usage);
+
+    /// @brief The peek's answer for @p lemma: @p line, empty when the request failed or was
+    ///        refused. @p usage carries the call's token counts, all zero when it never went out.
+    void peekAnswered(QString const& lemma, QString const& line, Usage usage);
 
     /// @brief Emitted while the answer is still arriving, with whatever has been written so far.
     ///

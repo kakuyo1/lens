@@ -56,32 +56,14 @@ Item {
             compare(panel.pending, "");
         }
 
-        /// A language replay of the drawn step replaces it: the same word must not appear twice
-        /// on the trail, and going back must land on the level above it.
-        function test_aReplayedStepReplacesTheOneDrawn() {
-            const panel = opened();
-            panel.pending = "knack";
-            panel.receive({title: "knack", ipa: "", text: "a clever trick"});
-            panel.pending = "knack";
-            panel.receive({title: "knack", ipa: "", text: "窍门", replay: true});
-
-            compare(panel.chain.length, 1, "the replay was stacked under the step it replaces");
-            compare(panel.chain[0].text, "窍门");
-            compare(panel.trail.length, 2);
-
-            panel.back();
-            compare(panel.atRoot, true);
-            compare(panel.chain.length, 0);
-        }
-
-        /// An answer for a word that is not the one waited for is dropped, replay or not: the
-        /// reader went back or asked for something else meanwhile.
+        /// An answer for a word that is not the one waited for is dropped: the reader went back
+        /// or asked for something else meanwhile.
         function test_anAnswerForAnotherWordIsDropped() {
             const panel = opened();
             panel.pending = "knack";
             panel.receive({title: "knack", ipa: "", text: "a clever trick"});
             panel.pending = "grace";
-            panel.receive({title: "knack", ipa: "", text: "窍门", replay: true});
+            panel.receive({title: "knack", ipa: "", text: "窍门"});
 
             compare(panel.chain.length, 1);
             compare(panel.chain[0].text, "a clever trick");

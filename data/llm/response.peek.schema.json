@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Lens mother-tongue peek response",
+  "description": "The object the model is asked to return inside choices[0].message.content. One English word in, one line out in the mother tongue the request was made in: the bubble draws it whole while the reader holds the globe, so nothing second may be asked for and nothing may arrive a piece at a time.",
+  "type": "object",
+  "required": ["results"],
+  "properties": {
+    "results": {
+      "type": "array",
+      "description": "Exactly one entry: the whole message is one item. No echoed title; the app stamps the asked-for word onto the result.",
+      "items": {
+        "type": "object",
+        "required": ["line"],
+        "properties": {
+          "line": { "type": "string", "minLength": 1, "description": "The word's most likely meaning, one short line, in the mother tongue." }
+        }
+      }
+    }
+  }
+}

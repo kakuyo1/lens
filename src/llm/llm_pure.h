@@ -250,7 +250,7 @@ std::optional<StreamDelta> parseStreamDelta(const QByteArray& payload);
  * closing quote has not arrived is absent, exactly as when a finished answer leaves it out.
  *
  * Only `results[0]` is read: a batch of words draws the card for the answer named first, and the
- * rest are stored when the whole answer has arrived (see API.md section 3.4).
+ * rest are stored when the whole answer has arrived (see API.md section 3.5).
  *
  * @param channel Which protocol is being spoken; picks the field the title is read from.
  * @param content The model's answer as it has arrived; a fence or a line of prose is tolerated.

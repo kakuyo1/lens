@@ -48,7 +48,7 @@ struct PendingSelection {
     ///        under the pointer instead and is taken down when the pointer leaves it (UI-SPEC.md 4.8).
     bool countsDown = true;
     /// @brief Whether the card offers the Known / New buttons. False for the card that answers a
-    ///        review question, so a replay of it draws the same card rather than a markable one.
+    ///        review question, which is the reader's to read rather than to mark.
     bool verdictButtons = true;
     /// @brief Whether this card belongs to the word under the pointer in the list. It is placed against
     ///        the word's own rectangle: bottom edge a fixed gap above it, flipping below near the top edge.
@@ -56,9 +56,6 @@ struct PendingSelection {
     /// @brief Whether this request is a step of the definition chain. Its answer goes onto the chain under
     ///        the card, and never onto the card itself.
     bool chain = false;
-    /// @brief Whether this chain step is the one drawn, asked again because the explanation language
-    ///        changed. Its answer replaces that step instead of adding another one under it.
-    bool replay = false;
     /// @brief For a chain step, the word the card stands on. A step answers only while that is still the word
     ///        showing, so a step asked from a card the reader has since moved on from is dropped.
     QString parent;

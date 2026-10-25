@@ -50,7 +50,9 @@
 - **取图源（Picture source）**：执行一次图片搜索的地方，v1 只接 Wikimedia Commons；它没有 key、没有 safe-search、也没有 SLA。取不到时卡片改为在系统浏览器里打开一次英文图片搜索，那就是兜底。见 `docs/adr/0079`。
 - **模型目录（Model catalog）**：`data/llm/catalog.json` 里的服务商、base URL、请求覆盖项、模型源、厂商前缀、离线种子与语言表；价目在 `pricing.json`。
 - **模型列表（Model list）**：共用模型源（OpenRouter `/api/v1/models`）按厂商前缀切给各服务商的那一份，按服务商缓存在 `MODELS`；只留输出为 `text` 的模型，刷新不改当前模型。见 `docs/adr/0020`。
-- **解释语言（Explanation language）**：全局设置 `en` / `zh` / `es` / `ja`，决定所有解释内容的语言；气泡上的快捷切换与设置里是同一个值。
+- **解释语言（Explanation language）**：全局设置，取自模型目录的语言表（`en` / `zh` / `zh-Hant` / `es` / `ja`），决定所有解释内容的语言；只在设置里改，气泡上没有切换入口（ADR 0112）。
+- **母语（Mother tongue）**：一瞥释义的目标语言，全局设置，目录语言表去掉英文，默认中文；解释语言为英文时一瞥才出现。_Avoid_：本地语言、native language
+- **母语一瞥（Peek）**：解释语言为英文时按住卡片上的地球 500 ms，释义下方浮出一行母语释义、松手即收的手势；不写任何设置。母语为中文时取当卡已付费的中英对，其余母语走 `peek` 通道。见 `UI-SPEC.md` 4.3 与 `docs/adr/0112`。
 - **界面语言（UI language）**：按钮、菜单与设置标签的显示语言，取自模型目录的语言表，每种语言一套 `.ts` / `.qm`；与解释语言相互独立。
 - **主题（Theme）**：晴朗白昼 / 静谧暗夜 / 雾面玻璃 / 流光玻璃 / Custom；设置浮层选择，作用于全部表面。规格见 `DESIGN.md` 3.1。
 - **幕布（Sheet）**：玻璃卡片底下那张桌面截图，按屏幕原生分辨率采集，比窗口每边大 112 DIP；模糊、饱和与折射在着色器里计算。见 `docs/adr/0039`、`docs/adr/0070`。

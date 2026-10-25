@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QHash>
 #include <QPoint>
 #include <QString>
 #include <QVariantList>
@@ -41,16 +42,6 @@ public:
     /// @brief Invalidate queued or in-flight results for a word deleted locally.
     void             invalidateWord(QString const& lemma);
     Q_INVOKABLE void runSelectionAction(QString action, QString text);
-    /**
-     * @brief Ask again for the bubble standing, under the explanation language now in force.
-     *
-     * The bubble's language shortcut changes the setting first and then calls this (AppController).
-     * A copy already stored in the new language is put up without a request; otherwise the standing
-     * card is asked for once more. The subject keeps the display flags it was raised with, so a
-     * review answer replayed this way still carries no verdict buttons. A translation has nothing to
-     * ask -- its one answer is English whatever the setting says -- and raises nothing here.
-     */
-    Q_INVOKABLE void reexplain();
     Q_INVOKABLE void mark(QString lemma, bool learned);
     /**
      * @brief Show what is already stored for a word the reader pointed at, and nothing else.
@@ -94,17 +85,14 @@ public:
      * under the card and never on the card itself, and only while the card still stands on the same word.
      */
     Q_INVOKABLE void explainChainWord(QString lemma);
-    /**
-     * @brief Ask again for the chain step standing, under the explanation language now in force.
-     *
-     * The bubble's language shortcut changes the setting first and then calls this (AppController).
-     * The answer replaces the step that is drawn, and the steps above it stay: the reader was
-     * reading this word, not the one the chain started from. A copy already stored in the new
-     * language is put up without a request; otherwise the step is asked for once more.
-     *
-     * @param lemma The word the drawn step stands on.
-     */
-    Q_INVOKABLE void reexplainChainStep(QString lemma);
+    /// @brief Ask for the standing word's meaning in the mother tongue, as the held globe does.
+    ///
+    /// The peek belongs to the word card standing when the hold completed, under the English
+    /// explanation the globe only exists under. A line this session already paid for, or the
+    /// Chinese pair every word answer carries, is emitted without a request; anything else goes
+    /// to the peek channel, budget permitting. The answer lands in peekArrived() and failure is
+    /// quiet: a held gesture that bought nothing owes the reader no notice (docs/adr/0112).
+    Q_INVOKABLE void requestPeek();
     /**
      * @brief Put a reason card up where no explanation can be.
      * @param title  What the notice is about.
@@ -132,16 +120,16 @@ signals:
     void chainAnswered(QVariantMap entry);
     /// @brief A chain step could not be answered. The card stays as it was.
     void chainFailed(QString lemma);
+    /// @brief The mother-tongue line for the word the reader held the globe on. The line belongs
+    ///        to the word card standing when it arrives; a hold that has since ended draws nothing.
+    void peekArrived(QString line);
 
 private:
     void explain(PendingSelection const& pending);
     /// @brief Raise the bubble from the copy already stored for @p pending, and count the pop.
-    /// @param reveal Whether a copy shown this way writes itself out again. False for the cards the
-    ///        word list raises whole; true when a language switch replays the new language, where
-    ///        the reader expects the answer to arrive the same way it originally did.
     /// @return True when there was one; a word that has never been explained is not it, and neither
     ///         is a sentence, which is not something the cache holds.
-    bool showStored(PendingSelection const& pending, core::CacheContext const& context, bool reveal = false);
+    bool showStored(PendingSelection const& pending, core::CacheContext const& context);
     /// @brief Put one batch on the wire, under the context the queue captured for it.
     void send(ExplanationBatch batch);
     /**
@@ -154,11 +142,14 @@ private:
     void sendNext();
     void onBatchFinished(QVector<llm::Explanation> results, llm::Usage usage);
     void onFailed(QString const& message);
+    /// @brief Put a peek answer away for the session, and onto the card when it still stands.
+    void onPeekAnswered(QString const& lemma, QString const& line, llm::Usage usage);
+    /// @return The mother tongue the peek answers in, as the document holds it.
+    QString motherTongue() const;
     /// @brief Draw an answer that is still arriving, on the card of the request in flight.
     /// @param partial Whatever fields have completed so far; the rest are absent.
     void onPartial(llm::Explanation partial);
-    /// The countdown and verdict flags live on @p selection: they are part of how this card
-    /// behaves, and travel with a replay through the queue the same way its text does.
+    /// The countdown and verdict flags live on @p selection: they are part of how this card behaves.
     /// @param notifyPet Whether the pet hears about this card. A stream repaints the same card as
     ///        it grows and stays quiet; only the finished answer is an arrival to react to.
     /// @param reveal Whether the card writes its answer out a character at a time. False for the
@@ -202,12 +193,14 @@ private:
     /// only that the reader has moved on.
     ExplanationQueue queue_;
     PendingSelection pending_;
-    /// The selection the standing bubble was raised for. The language shortcut re-asks for this,
-    /// not for whatever selection is pending now.
+    /// The selection the standing bubble was raised for, kept apart from whatever is pending now.
     PendingSelection bubbleSubject_;
-    QVariantMap      bubble_;
-    QVariantMap      notice_;
-    QString          busyLabel_;
+    /// The peek lines this session has paid for, keyed mother tongue then lemma: a second hold on
+    /// the same word is answered from here, not from the model.
+    QHash<QString, QString> peekLines_;
+    QVariantMap             bubble_;
+    QVariantMap             notice_;
+    QString                 busyLabel_;
     /// Where the row the reader is pointing at sits, so the explanation a notice's button asks for
     /// lands in the same place the review bubble did.
     QPoint reviewAnchor_;
