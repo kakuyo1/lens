@@ -15,6 +15,7 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
   | Anything else | Nothing; push and let CI run the suites |
 
   A review-comment fix never triggers a full run. Do not escalate "just to be safe". Report what you ran in one line.
+- Reproducing a bug before fixing it is a judgement call, not a gate. Weigh what a reproduction would change against what it costs; when the fix is already clear, or when reproduction needs a human hand on the UI, fix directly and hand it to manual verification. A bug that would take a heavy repro rig to see again is usually not worth the rig -- skip the step.
 - No commits unless explicitly requested, no AI attribution in commits or PRs.When the user said commit and push proactively, no test is needed, immediately commit and push and nothing else, this should be done under 30s.
 - A branch that has been pushed gets a pull request, and its body follows
 `.github/pull_request_template.md`: all three sections filled. Do not stop at handing over the
