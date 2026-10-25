@@ -16,6 +16,7 @@ Item {
         languages: [
             {value: "en", label: "English", group: "", note: ""},
             {value: "zh", label: "中文", group: "", note: ""},
+            {value: "zh-Hant", label: "繁體中文", group: "", note: ""},
             {value: "es", label: "Español", group: "", note: ""},
             {value: "ja", label: "日本語", group: "", note: ""}
         ],
@@ -93,7 +94,7 @@ Item {
             verify(page);
             const field = findChild(page, "languageField");
             verify(field);
-            compare(field.options.length, 4);
+            compare(field.options.length, 5);
             compare(field.current.label, "Español");
             field.currentValue = "ja";
             compare(field.current.label, "日本語");

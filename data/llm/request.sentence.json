@@ -7,7 +7,8 @@
           "en": "Explain in plain English what the text means, in one or two sentences. Put that English explanation in \"en\", and a plain Chinese explanation in \"zh\".",
           "zh": "Translate the text into Chinese literally, keeping its wording and tone. Put the literal Chinese translation in \"zh\", and an English translation in \"en\".",
           "es": "Translate the text literally into Spanish in a nonempty \"translation\" field, keeping its wording and tone. Also supply \"en\" and \"zh\".",
-          "ja": "Translate the text literally into Japanese in a nonempty \"translation\" field, keeping its wording and tone. Also supply \"en\" and \"zh\"."
+          "ja": "Translate the text literally into Japanese in a nonempty \"translation\" field, keeping its wording and tone. Also supply \"en\" and \"zh\".",
+          "zh-Hant": "Translate the text literally into Traditional Chinese in a nonempty \"translation\" field, keeping its wording and tone. Also supply \"en\" and \"zh\"."
         }
       }
     },
@@ -18,7 +19,8 @@
           "en": "Explain in plain English what the text means, in one or two sentences. Put that English explanation in \"en\", and a plain Chinese explanation in \"zh\".",
           "zh": "Explain what the text means in plain, everyday Chinese. Put that Chinese explanation in \"zh\", and a plain English explanation in \"en\".",
           "es": "Explain the text in plain Spanish in a nonempty \"translation\" field. Also supply \"en\" and \"zh\".",
-          "ja": "Explain the text in plain Japanese in a nonempty \"translation\" field. Also supply \"en\" and \"zh\"."
+          "ja": "Explain the text in plain Japanese in a nonempty \"translation\" field. Also supply \"en\" and \"zh\".",
+          "zh-Hant": "Explain the text in plain Traditional Chinese in a nonempty \"translation\" field. Also supply \"en\" and \"zh\"."
         }
       }
     }

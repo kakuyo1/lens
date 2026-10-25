@@ -56,7 +56,7 @@ enum class Channel : std::uint8_t { Word = 0,
 /// @brief One channel preset's system prompt, from `request.<channel>.json`.
 struct PromptTemplate {
     QString                 systemPromptTemplate; ///< Carries kOutputLanguagePlaceholder.
-    QHash<QString, QString> outputLanguageLine;   ///< "en" / "zh" -> closing prompt line.
+    QHash<QString, QString> outputLanguageLine;   ///< catalog language code -> closing prompt line.
     /// The sentence asking for the word's origin, substituted into kEtymologyNotePlaceholder --
     /// the reader's setting keeps it or clears it, and one channel prompt therefore serves both.
     QString etymologyNote;

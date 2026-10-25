@@ -18,7 +18,7 @@
   <a href="https://github.com/kakuyo1/lens/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/kakuyo1/lens?label=release&color=2f9e6e"></a>
   <a href="#descargar"><img alt="Windows 10/11 x64" src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-1a1a1f"></a>
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/github/license/kakuyo1/lens?color=2f9e6e"></a>
-  <a href="#idiomas"><img alt="Inglés, chino, español y japonés" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
+  <a href="#idiomas"><img alt="Inglés, chino, chino tradicional, español y japonés" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH-HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
 </p>
 
 <p align="center">
@@ -36,7 +36,7 @@
   </picture>
 </p>
 
-<p align="center"><sub>Las explicaciones son en inglés por defecto. Puedes cambiar a chino, español o japonés desde la burbuja cuando quieras.</sub></p>
+<p align="center"><sub>Las explicaciones son en inglés por defecto. Puedes cambiar a chino, chino tradicional, español o japonés desde la burbuja cuando quieras.</sub></p>
 
 ## Por qué Lens
 
@@ -54,13 +54,13 @@ La mayoría de las herramientas de consulta te sacan de la página y responden e
 
 <p align="center"><img src="docs/readme/english-first.gif" width="600" alt="Cambiar el idioma de las explicaciones de inglés a chino en la burbuja"></p>
 
-El cambio de idioma está en la tarjeta. El inglés es lo predeterminado; el chino está a un clic.
+El cambio de idioma está en la tarjeta. El inglés es lo predeterminado; el chino y el chino tradicional están a un clic.
 
 ## Primero en inglés. Traducción cuando la pidas.
 
 <p align="center"><img src="docs/readme/translate-to-english.gif" width="800" alt="Pasajes en chino, japonés y español traducidos al inglés"></p>
 
-Las explicaciones son en inglés por defecto. Una selección en chino, japonés o español vuelve en inglés. Cuando quieras chino, abre el globo de la burbuja y cambia el idioma de las explicaciones: la misma tarjeta se responde de nuevo y, si ya hay caché, no se envía ninguna petición.
+Las explicaciones son en inglés por defecto. Una selección en chino, japonés o español vuelve en inglés. Cuando quieras chino o chino tradicional, abre el globo de la burbuja y cambia el idioma de las explicaciones: la misma tarjeta se responde de nuevo y, si ya hay caché, no se envía ninguna petición.
 
 La barra de acciones ofrece Traducir, Explicar y Copiar texto. Lens gira alrededor de Explicar: te dice qué hace la palabra en ese contexto con palabras que ya conoces, en lugar de sustituirla por una palabra china que puedes saltarte. Traducir es la excepción: convierte un pasaje en chino, japonés o español al inglés; en un texto en inglés responde en el idioma de las explicaciones (inglés salvo que lo cambies).
 
@@ -104,7 +104,7 @@ Lens incluye siete mascotas de píxeles: Gato de orejas cortas, Búho, Mochi, Fa
 - **Listas de palabras de ida y vuelta.** Importa o exporta `.txt` y `.json`; borra una palabra con una confirmación.
 - **Fotos cuando ayudan.** Si el modelo cree que una foto explica mejor un sentido, la tarjeta puede abrir tres imágenes de Wikimedia Commons. Se guardan en caché local y «Acerca de» muestra su tamaño y permite borrarla.
 - **Hazlo tuyo.** Cinco formas de barra de acciones; temas Claro, Oscuro, Vidrio mate, Vidrio líquido y Personalizado; y una tipografía inglesa con texto de burbuja de 12–18 px.
-- **Cuatro idiomas.** La interfaz y las explicaciones ofrecen inglés, chino, español y japonés. Las traducciones al español y al japonés están generadas por máquina y no han sido revisadas por un hablante nativo.
+- **Cinco idiomas.** La interfaz y las explicaciones ofrecen inglés, chino, chino tradicional, español y japonés. Las traducciones al chino tradicional, al español y al japonés están generadas por máquina y no han sido revisadas por un hablante nativo.
 
 ## Temas
 
@@ -147,7 +147,7 @@ Solo el texto que seleccionas o capturas se envía al proveedor que configures, 
 
 [English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [Español](README.es.md)
 
-El idioma de la interfaz y el de las explicaciones son ajustes independientes. Ambos ofrecen inglés, chino, español y japonés.
+El idioma de la interfaz y el de las explicaciones son ajustes independientes. Ambos ofrecen inglés, chino, chino tradicional, español y japonés.
 
 ## Contribuir y licencia
 

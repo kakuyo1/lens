@@ -7,7 +7,8 @@
           "en": "Make the English explanation the main one.",
           "zh": "Make the Chinese explanation the main one.",
           "es": "Add a nonempty \"translation\" field with the explanation in Spanish. Also supply \"en\" and \"zh\".",
-          "ja": "Add a nonempty \"translation\" field with the explanation in Japanese. Also supply \"en\" and \"zh\"."
+          "ja": "Add a nonempty \"translation\" field with the explanation in Japanese. Also supply \"en\" and \"zh\".",
+          "zh-Hant": "Add a nonempty \"translation\" field with the explanation in Traditional Chinese. Also supply \"en\" and \"zh\"."
         }
       }
     }

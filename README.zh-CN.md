@@ -18,7 +18,7 @@
   <a href="https://github.com/kakuyo1/lens/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/kakuyo1/lens?label=release&color=2f9e6e"></a>
   <a href="#下载"><img alt="Windows 10/11 x64" src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-1a1a1f"></a>
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/github/license/kakuyo1/lens?color=2f9e6e"></a>
-  <a href="#语言"><img alt="英语、中文、西班牙语、日语" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
+  <a href="#语言"><img alt="英语、中文、繁体中文、西班牙语、日语" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH-HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
 </p>
 
 <p align="center">
@@ -36,7 +36,7 @@
   </picture>
 </p>
 
-<p align="center"><sub>解释默认使用英文；需要中文、西班牙语或日语时，点气泡上的语言按钮即可切换。</sub></p>
+<p align="center"><sub>解释默认使用英文；需要中文、繁体中文、西班牙语或日语时，点气泡上的语言按钮即可切换。</sub></p>
 
 ## 为什么是 Lens
 
@@ -54,13 +54,13 @@
 
 <p align="center"><img src="docs/readme/english-first.gif" width="600" alt="在气泡上把解释语言从英文切换到中文"></p>
 
-语言切换就在卡片上。默认英文，中文只差一次点击。
+语言切换就在卡片上。默认英文，中文与繁体中文只差一次点击。
 
 ## 英文优先，需要时再翻译
 
 <p align="center"><img src="docs/readme/translate-to-english.gif" width="800" alt="中文、日文和西班牙文选区都译成英文"></p>
 
-解释默认使用英文。中文、日文或西班牙文的选区都会用英文回答。需要中文时，点气泡上的地球按钮切换解释语言：同一张卡会重新作答，已有缓存就不发请求。
+解释默认使用英文。中文、日文或西班牙文的选区都会用英文回答。需要中文或繁体中文时，点气泡上的地球按钮切换解释语言：同一张卡会重新作答，已有缓存就不发请求。
 
 动作条提供翻译、解释和复制文本。Lens 围绕的是 “解释”：用你已经认识的英文，说明这个词在这里做什么，而不是换成一个你可以直接跳过、不再需要读英文的中文词。翻译是例外：中文、日文或西班牙文的选区会译成英文；英文选区则按解释语言回答——默认英文，除非你改。
 
@@ -104,7 +104,7 @@ Lens 随包提供七只像素宠物：短耳猫、猫头鹰、麻糬、小幽灵
 - **词表进得来也出得去。**导入或导出 `.txt` 和 `.json`；删除单词需要一次确认。
 - **该给图时给图。**模型判断某条义项用照片更好说明时，卡片可以展开三张 Wikimedia Commons 图片；图片缓存在本机，“关于” 页显示缓存大小并可原地清除。
 - **按你的习惯来。**五种动作条形态；晴朗白昼、静谧暗夜、雾面玻璃、流光玻璃和自定义主题；以及英文字体与 12–18 px 气泡字号。
-- **四种语言。**界面和解释各自提供英语、中文、西班牙语和日语。西班牙语与日语的翻译由机器生成，尚未经母语人士审校。
+- **五种语言。**界面和解释各自提供英语、中文、繁体中文、西班牙语和日语。繁体中文、西班牙语与日语的翻译由机器生成，尚未经母语人士审校。
 
 ## 主题
 
@@ -131,7 +131,7 @@ Lens 没有代码签名，SmartScreen 会拦截它不认识的程序。点 **“
 
 ## 常见问题
 
-**Lens 是翻译器吗？**它可以翻译，但它是为 “解释” 做的。解释默认英文；想要中文翻译时，把解释语言切成中文即可。中文、日文或西班牙文的选区返回英文。
+**Lens 是翻译器吗？**它可以翻译，但它是为 “解释” 做的。解释默认英文；想要中文翻译时，把解释语言切成中文或繁体中文即可。中文、日文或西班牙文的选区返回英文。
 
 **需要 API key 吗？**需要。用受支持服务商的 key；Lens 会显示每次请求的费用，也可以设置每日上限。
 
@@ -147,7 +147,7 @@ Lens 没有代码签名，SmartScreen 会拦截它不认识的程序。点 **“
 
 [English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [Español](README.es.md)
 
-界面语言和解释语言是两个独立设置，都可以选择英语、中文、西班牙语和日语。
+界面语言和解释语言是两个独立设置，都可以选择英语、中文、繁体中文、西班牙语和日语。
 
 ## 参与和许可
 

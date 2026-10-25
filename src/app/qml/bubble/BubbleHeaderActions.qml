@@ -66,8 +66,8 @@ Item {
         TapHandler { onTapped: root.open = false }
     }
 
-    // The language strip, on the card rather than in a window of its own: the four labels fit one row,
-    // and a separate surface would only have to be placed and dismissed again.
+    // The language strip, on the card rather than in a window of its own: the five labels fit one
+    // row at 11 px, and a separate surface would only have to be placed and dismissed again.
     Rectangle {
         id: strip
         visible: root.open && root.languages.length > 0
@@ -92,6 +92,7 @@ Item {
             anchors.fill: parent
             anchors.margins: 3
             labels: root.labels
+            labelSize: 11
             currentIndex: root.currentIndex
             onPicked: (index) => {
                 root.bubbleWindow.readerActed();

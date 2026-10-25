@@ -74,6 +74,28 @@ Item {
             return found[0];
         }
 
+        /// The shortcut draws the catalog's list, not a four-item copy: the fifth language and
+        /// the narrower 11 px cell are what keep Traditional Chinese on one row.
+        function test_theLanguageStripOffersEveryCatalogLanguage() {
+            const bubble = opened();
+            wait(200);
+            const button = Util.findAll(bubble, function (o) {
+                return o.Accessible !== undefined && o.Accessible.name === "Explanation language";
+            })[0];
+            verify(button, "the bubble has no explanation-language shortcut");
+            mouseClick(button, button.width / 2, button.height / 2);
+            wait(200);
+            const segment = Util.findAll(bubble, function (o) {
+                return o.toString().indexOf("Segment_QMLTYPE") === 0;
+            })[0];
+            verify(segment, "the language strip did not open");
+            compare(segment.labels.length, Controller.settings.languages.length);
+            verify(segment.labels.indexOf("繁體中文") >= 0,
+                   "the language strip did not offer Traditional Chinese");
+            compare(segment.labelSize, 11, "five labels need the strip's narrower cell text");
+            bubble.visible = false;
+        }
+
         /// @return The whole seconds the meta line is showing.
         function secondsOf(meta) {
             const matched = meta.text.match(/([0-9]+)s/);

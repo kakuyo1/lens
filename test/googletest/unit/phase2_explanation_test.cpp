@@ -841,8 +841,18 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
     app::AppController      controller{store, client, hook, hotkey, pricing, test::sourceDir() / "data"};
     int                     settingsChanges = 0;
     QObject::connect(&controller, &app::AppController::settingsChanged, [&] { ++settingsChanges; });
-    auto const initial = controller.settings();
-    EXPECT_EQ(initial.value("languages").toList().size(), 4);
+    auto const initial   = controller.settings();
+    const auto languages = initial.value("languages").toList();
+    ASSERT_EQ(languages.size(), 5);
+    bool hasTraditionalChinese = false;
+    for (auto const& value : languages) {
+        const auto language = value.toMap();
+        if (language.value("value").toString() == "zh-Hant") {
+            EXPECT_EQ(language.value("label").toString(), QStringLiteral("繁體中文"));
+            hasTraditionalChinese = true;
+        }
+    }
+    EXPECT_TRUE(hasTraditionalChinese) << "the catalog lost its Traditional Chinese entry";
     EXPECT_EQ(initial.value("providers").toList().size(), 9);
     EXPECT_EQ(initial.value("provider").toString(), "DeepSeek");
     // The provider carries no model, so the one the client was built with stands.

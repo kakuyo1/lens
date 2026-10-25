@@ -69,7 +69,8 @@ QString presetFor(ExplainRequest const& request);
  * @param config          Supplies the model name.
  * @param channel         Which protocol to speak.
  * @param inputs          Payload to explain; each entry is masked before it is embedded.
- * @param explanationLang "en" or "zh"; picks the closing line of the system prompt.
+ * @param explanationLang A catalog language code; picks the closing line of the system prompt.
+ *                        "en" and "zh" fill their own fields, other codes the translation field.
  *                        An unknown value falls back to "en" and logs a warning.
  * @param preset          Prompt preset, such as sentence's "translate" or "explain".
  * @param etymology       Ask for the word's origin as well. The word channel's templates carry the

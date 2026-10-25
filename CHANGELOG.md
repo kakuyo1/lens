@@ -9,6 +9,8 @@ paths that were still silent. The tray menu stays pointer-first by decision (doc
 
 ### Added
 
+- Traditional Chinese is now a fifth interface and explanation language, with a complete
+  translation table, model prompt lines, and preview samples.
 - A **Test connection** button on the API configuration page sends one minimal completion to check
   the address, key and model together, reports one fixed sentence, and never echoes the key
   (docs/adr/0110).

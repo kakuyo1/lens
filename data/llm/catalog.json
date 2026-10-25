@@ -18,6 +18,7 @@
   "languages": [
     {"value": "en", "label": "English", "group": "", "note": ""},
     {"value": "zh", "label": "中文", "group": "", "note": ""},
+    {"value": "zh-Hant", "label": "繁體中文", "group": "", "note": ""},
     {"value": "es", "label": "Español", "group": "", "note": ""},
     {"value": "ja", "label": "日本語", "group": "", "note": ""}
   ],

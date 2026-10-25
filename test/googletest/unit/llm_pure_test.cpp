@@ -271,6 +271,27 @@ TEST_F(LlmTest, RequestBodyKeepsTheDeepSeekContract)
     }
 }
 
+/// Traditional Chinese is a fifth catalog language but the same response shape as Spanish and
+/// Japanese: the model writes it into `translation` while `zh` stays the Simplified field. The
+/// prompt has to ask for it by name, or the reader gets Simplified Chinese with a new label.
+TEST_F(LlmTest, TraditionalChineseHasItsOwnPromptAndTheTranslationField)
+{
+    const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
+    const auto   body = QJsonDocument::fromJson(
+        buildRequestBody(config, Channel::Word, {"ubiquitous"}, "zh-Hant", "default"));
+    const auto system = body.object().value("messages").toArray().at(0).toObject().value("content").toString();
+    EXPECT_TRUE(system.contains("Traditional Chinese")) << system.toStdString();
+    EXPECT_TRUE(system.contains("\"translation\"")) << system.toStdString();
+
+    const QString content =
+        QStringLiteral(R"({"results":[{"word":"ubiquitous","ipa":"/x/","en":"existing everywhere","zh":"无处不在的","translation":"無處不在的"}]})");
+    const auto parsed = parseExplanations(Channel::Word, envelope(content), {"ubiquitous"}, "zh-Hant", false);
+    ASSERT_TRUE(accepted(parsed)) << errorOf(parsed).toStdString();
+    const auto& explanation = std::get<QVector<Explanation>>(parsed).at(0);
+    EXPECT_EQ(explanation.translation, QStringLiteral("無處不在的"));
+    EXPECT_EQ(explanation.zh, QStringLiteral("无处不在的")) << "the Simplified field was overwritten";
+}
+
 TEST_F(LlmTest, AsksForTheEtymologyOnlyWhenAskedAndOnlyOnTheWordChannel)
 {
     const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
@@ -543,7 +564,7 @@ TEST_F(LlmTest, AcceptsATranslationThatCarriesEnglishAlone)
     // The prompt does not move with the reader's language: whatever the explanation language is,
     // the model is asked for English, which is also what the loader demands of this channel.
     const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
-    for (const char* lang : {"en", "zh", "es", "ja"}) {
+    for (const char* lang : {"en", "zh", "zh-Hant", "es", "ja"}) {
         SCOPED_TRACE(lang);
         const auto body = QJsonDocument::fromJson(
             buildRequestBody(config, Channel::Translation, {"今天天气不错。"}, lang, "default"));

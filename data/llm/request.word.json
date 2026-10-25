@@ -5,7 +5,8 @@
       "en": "Make the English definition the main one.",
       "zh": "Make the Chinese definition the main one.",
       "es": "Add a nonempty \"translation\" field with the definition in Spanish. Also supply \"en\" and \"zh\".",
-      "ja": "Add a nonempty \"translation\" field with the definition in Japanese. Also supply \"en\" and \"zh\"."
+      "ja": "Add a nonempty \"translation\" field with the definition in Japanese. Also supply \"en\" and \"zh\".",
+      "zh-Hant": "Add a nonempty \"translation\" field with the definition in Traditional Chinese. Also supply \"en\" and \"zh\"."
     }
   },
   "multiplePrompt": {
@@ -15,7 +16,8 @@
         "en": "Make the English definitions the main ones.",
         "zh": "Make the Chinese definitions the main ones.",
         "es": "Add a nonempty \"translation\" field to every sense with its definition in Spanish. Also supply \"en\" and \"zh\".",
-        "ja": "Add a nonempty \"translation\" field to every sense with its definition in Japanese. Also supply \"en\" and \"zh\"."
+        "ja": "Add a nonempty \"translation\" field to every sense with its definition in Japanese. Also supply \"en\" and \"zh\".",
+        "zh-Hant": "Add a nonempty \"translation\" field to every sense with its definition in Traditional Chinese. Also supply \"en\" and \"zh\"."
       }
     }
   },

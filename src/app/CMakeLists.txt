@@ -406,6 +406,7 @@ qt_add_translations(lens
   TS_FILES
     ${CMAKE_SOURCE_DIR}/i18n/lens_en_US.ts
     ${CMAKE_SOURCE_DIR}/i18n/lens_zh_CN.ts
+    ${CMAKE_SOURCE_DIR}/i18n/lens_zh_TW.ts
     ${CMAKE_SOURCE_DIR}/i18n/lens_es_ES.ts
     ${CMAKE_SOURCE_DIR}/i18n/lens_ja_JP.ts
   RESOURCE_PREFIX "/i18n"

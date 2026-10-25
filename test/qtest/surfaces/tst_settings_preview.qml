@@ -323,9 +323,9 @@ Item {
         }
 
         /// One reading per field the controller fills an explanation language into: English and
-        /// Chinese in their own, Spanish and Japanese in the translation (UI-SPEC.md 4.3). The
-        /// card is raised by the list's rows, and each row draws its own language whichever one
-        /// is stored -- the title is not a trigger.
+        /// Simplified Chinese in their own, Traditional Chinese, Spanish and Japanese in the
+        /// translation (UI-SPEC.md 4.3). The card is raised by the list's rows, and each row draws
+        /// its own language whichever one is stored -- the title is not a trigger.
         function test_theDefinitionFollowsTheHoveredLanguageRow() {
             const main = make();
             Util.surfaceHost(main).showSettings();
@@ -355,6 +355,10 @@ Item {
 
             preview = hoverLanguageRow(main, panel, "Español");
             tryCompare(preview, "translation", sample.es);
+
+            preview = hoverLanguageRow(main, panel, "繁體中文");
+            tryCompare(preview, "translation", sample["zh-Hant"]);
+            compare(preview.chinese, "", "a Traditional Chinese explanation reused the Simplified field");
             compare(Controller.settings.explanationLang, "zh", "a hover wrote the stored language");
 
             languageField(panel).closeList();

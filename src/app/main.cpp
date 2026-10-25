@@ -85,8 +85,10 @@ std::filesystem::path dataDirectory()
 
 /// @brief The setting's language code, and the locale whose .qm carries it.
 ///
-/// Not the same string: the setting holds "zh", the file is named for the locale, lens_zh_CN.qm.
-/// A name built straight from the setting would look for lens_zh.qm, which does not exist.
+/// Not the same string: the setting holds "zh", the file is named for the locale, lens_zh_CN.qm;
+/// "zh-Hant" is the script-tagged code the catalog offers, and its file is lens_zh_TW.qm. A name
+/// built straight from the setting would look for lens_zh.qm or lens_zh-Hant.qm, neither of which
+/// exists.
 ///
 /// One code per .ts under i18n/, also the list `data/llm/catalog.json` offers as interface
 /// languages: a language the catalog names and this function does not silently leaves the
@@ -95,6 +97,8 @@ const char* translationFileFor(const QString& language)
 {
     if (language == QLatin1String("zh"))
         return "zh_CN";
+    if (language == QLatin1String("zh-Hant"))
+        return "zh_TW";
     if (language == QLatin1String("en"))
         return "en_US";
     if (language == QLatin1String("es"))

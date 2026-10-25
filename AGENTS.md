@@ -95,14 +95,14 @@ Targets: `lens_util` → `lens_core` → `lens_capture` / `lens_llm` → `lens_a
 
  ## Translations
 
-English is the source language: `i18n/lens_en_US.ts` mirrors the source strings, and `lens_zh_CN.ts` / `lens_es_ES.ts` / `lens_ja_JP.ts` carry the Chinese, Spanish and Japanese. After adding or changing a reader-facing string:
+English is the source language: `i18n/lens_en_US.ts` mirrors the source strings, and `lens_zh_CN.ts` / `lens_zh_TW.ts` / `lens_es_ES.ts` / `lens_ja_JP.ts` carry the Simplified Chinese, Traditional Chinese, Spanish and Japanese. After adding or changing a reader-facing string:
 
 ```
-PATH="$QT_ROOT/bin:$PATH" lupdate src -ts i18n/lens_en_US.ts i18n/lens_zh_CN.ts i18n/lens_es_ES.ts i18n/lens_ja_JP.ts
-PATH="$QT_ROOT/bin:$PATH" lrelease i18n/lens_en_US.ts i18n/lens_zh_CN.ts i18n/lens_es_ES.ts i18n/lens_ja_JP.ts
+PATH="$QT_ROOT/bin:$PATH" lupdate src -ts i18n/lens_en_US.ts i18n/lens_zh_CN.ts i18n/lens_zh_TW.ts i18n/lens_es_ES.ts i18n/lens_ja_JP.ts
+PATH="$QT_ROOT/bin:$PATH" lrelease i18n/lens_en_US.ts i18n/lens_zh_CN.ts i18n/lens_zh_TW.ts i18n/lens_es_ES.ts i18n/lens_ja_JP.ts
 ```
 
-`lupdate` appends new strings as `unfinished` and leaves existing translations alone, so rerunning is safe. Write the Chinese into `lens_zh_CN.ts`, the Spanish into `lens_es_ES.ts` and the Japanese into `lens_ja_JP.ts`, copying the source text into `lens_en_US.ts`; `lrelease` is the check, and the goal is zero unfinished. All four reach zero before the commit, not after: `.githooks/pre-commit` refuses a staged `.ts` that still carries one, so the languages left untranslated are what blocks it. The `.qm` files are build output and stay gitignored.
+`lupdate` appends new strings as `unfinished` and leaves existing translations alone, so rerunning is safe. Write the Simplified Chinese into `lens_zh_CN.ts`, the Traditional Chinese into `lens_zh_TW.ts`, the Spanish into `lens_es_ES.ts` and the Japanese into `lens_ja_JP.ts`, copying the source text into `lens_en_US.ts`; `lrelease` is the check, and the goal is zero unfinished. All five reach zero before the commit, not after: `.githooks/pre-commit` refuses a staged `.ts` that still carries one, so the languages left untranslated are what blocks it. The interface language code `zh-Hant` maps to `lens_zh_TW.qm` in `src/app/main.cpp`; the explanation language uses the same catalog code, and its prompt line lives in `data/llm/request.*.json`. The `.qm` files are build output and stay gitignored.
 
 Removing a string needs `lupdate -no-obsolete`: plain `lupdate` keeps the vanished entries in the file as `<translation type="vanished">`, so a deleted surface's strings go on sitting there with nothing to read them.
 

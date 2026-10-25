@@ -14,6 +14,9 @@ Item {
 
     property var labels: []
     property int currentIndex: 0
+    /// The cell label size. Twelve fits the theme and filter rows; the bubble's five-language
+    /// strip has narrower cells and asks for eleven.
+    property int labelSize: 12
     /// The table the segments take their colours from: the one of the window they sit in.
     // qmllint disable missing-property
     readonly property var tokens: Window.window.tokens
@@ -98,7 +101,7 @@ Item {
                             easing.type: root.tokens.motion.easing
                         }
                     }
-                    font.pixelSize: 12
+                    font.pixelSize: root.labelSize
                     font.weight: cell.index === root.currentIndex ? Font.Bold : Font.Normal
                 }
 

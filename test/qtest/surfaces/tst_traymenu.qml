@@ -239,6 +239,12 @@ Item {
             verify(options.length > 2, "the catalog should carry more than the two written interfaces");
             const chinese = options.filter(function (o) { return o.modelData.value === "zh"; })[0];
             verify(chinese, "the language list has no Chinese option");
+            const traditional = options.filter(function (o) { return o.modelData.value === "zh-Hant"; })[0];
+            verify(traditional, "the language list has no Traditional Chinese option");
+            compare(traditional.modelData.label, "繁體中文");
+
+            mouseClick(traditional, traditional.width / 2, traditional.height / 2);
+            compare(menu.language, "zh-Hant", "the Traditional Chinese pick did not reach the controller");
 
             mouseClick(chinese, chinese.width / 2, chinese.height / 2);
 

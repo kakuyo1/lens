@@ -60,12 +60,12 @@
 <context>
     <name>BubbleHeaderActions</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="127"/>
+        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="128"/>
         <source>Close</source>
         <translation>Cerrar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="145"/>
+        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="146"/>
         <source>Explanation language</source>
         <translation>Idioma de explicación</translation>
     </message>

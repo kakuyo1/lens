@@ -60,12 +60,12 @@
 <context>
     <name>BubbleHeaderActions</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="127"/>
+        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="128"/>
         <source>Close</source>
         <translation>Close</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="145"/>
+        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="146"/>
         <source>Explanation language</source>
         <translation>Explanation language</translation>
     </message>
@@ -790,7 +790,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="28"/>
         <source>Today&apos;s budget is used up; lookups and requests pause until tomorrow.</source>
-        <translation>Today's budget is used up; lookups and requests pause until tomorrow.</translation>
+        <translation>Today&apos;s budget is used up; lookups and requests pause until tomorrow.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="30"/>
@@ -918,7 +918,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsConnectionPage.qml" line="81"/>
         <source>Create a key in your provider&apos;s dashboard; it is stored on this device only and sent only to the address below.</source>
-        <translation>Create a key in your provider's dashboard; it is stored on this device only and sent only to the address below.</translation>
+        <translation>Create a key in your provider&apos;s dashboard; it is stored on this device only and sent only to the address below.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsConnectionPage.qml" line="92"/>

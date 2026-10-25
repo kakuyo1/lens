@@ -65,7 +65,7 @@ QtObject {
             countsDown: false
         };
         // The definition line is the one explanation language, in the field the controller fills for
-        // it: English and Chinese in their own, Spanish and Japanese in the translation (UI-SPEC.md 4.3).
+        // it: English and Chinese in their own, every other language in the translation (UI-SPEC.md 4.3).
         if (lang === "zh")
             payload.zh = local(sample.definition);
         else if (lang === "en")

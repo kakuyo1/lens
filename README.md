@@ -18,7 +18,7 @@
   <a href="https://github.com/kakuyo1/lens/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/kakuyo1/lens?label=release&color=2f9e6e"></a>
   <a href="#download"><img alt="Windows 10 and 11, x64" src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-1a1a1f"></a>
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/github/license/kakuyo1/lens?color=2f9e6e"></a>
-  <a href="#languages"><img alt="English, Chinese, Spanish and Japanese" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
+  <a href="#languages"><img alt="English, Chinese, Traditional Chinese, Spanish and Japanese" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH-HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
 </p>
 
 <p align="center">
@@ -36,7 +36,7 @@
   </picture>
 </p>
 
-<p align="center"><sub>Explanations default to English. Switch to Chinese, Spanish, or Japanese from the bubble whenever you want.</sub></p>
+<p align="center"><sub>Explanations default to English. Switch to Chinese, Traditional Chinese, Spanish, or Japanese from the bubble whenever you want.</sub></p>
 
 ## Why Lens
 
@@ -54,13 +54,13 @@ Most lookup tools pull you out of the page and answer in your first language. Yo
 
 <p align="center"><img src="docs/readme/english-first.gif" width="600" alt="Switching the explanation language from English to Chinese on the bubble"></p>
 
-The language switch is on the card. English is the default; Chinese is one click away.
+The language switch is on the card. English is the default; Chinese and Traditional Chinese are one click away.
 
 ## English first. Translation when you ask.
 
 <p align="center"><img src="docs/readme/translate-to-english.gif" width="800" alt="Chinese, Japanese and Spanish passages translated into English"></p>
 
-Explanations default to English. A selection in Chinese, Japanese, or Spanish comes back in English. When you do want Chinese, open the globe on the bubble and switch the explanation language: the same card is answered again, from cache when it already has one.
+Explanations default to English. A selection in Chinese, Japanese, or Spanish comes back in English. When you do want Chinese or Traditional Chinese, open the globe on the bubble and switch the explanation language: the same card is answered again, from cache when it already has one.
 
 The action bar offers Translate, Explain, and Copy text. Explain is the one Lens is built around: it tells you what the word means in words you already know, instead of replacing it with a Chinese word you can skip. Translate is the exception: it turns a Chinese, Japanese, or Spanish passage into English; on English text it answers in your explanation language — English unless you change it.
 
@@ -104,7 +104,7 @@ Seven pixel companions ship with Lens: Stub cat, Owl, Mochi, Ghost, Jellyfish, C
 - **Word lists in and out.** Import or export `.txt` and `.json`; delete a word with one confirmation.
 - **Pictures when they help.** A sense the model thinks a photo explains better can open three Wikimedia Commons pictures. They are cached locally, and About shows the cache size and clears it in place.
 - **Make it yours.** Five action-bar shapes; Light, Dark, Frosted glass, Liquid glass, and Custom themes; and an English typeface with 12–18 px bubble text.
-- **Four languages.** Interface and explanations each offer English, Chinese, Spanish, and Japanese. The Spanish and Japanese translations are machine-generated and have not been reviewed by a native speaker.
+- **Five languages.** Interface and explanations each offer English, Chinese, Traditional Chinese, Spanish, and Japanese. The Traditional Chinese, Spanish, and Japanese translations are machine-generated and have not been reviewed by a native speaker.
 
 ## Themes
 
@@ -147,7 +147,7 @@ Only the text you select or capture is sent to the provider you configure, after
 
 [English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [Español](README.es.md)
 
-The interface language and the explanation language are separate settings. Both offer English, Chinese, Spanish, and Japanese.
+The interface language and the explanation language are separate settings. Both offer English, Chinese, Traditional Chinese, Spanish, and Japanese.
 
 ## Contributing and license
 

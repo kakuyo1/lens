@@ -4,9 +4,9 @@
     "title sees beside the panel. It is sample content rather than interface copy, which is why",
     "it is not in a translation table and why it lives here instead of in src/, where the",
     "pre-commit hook keeps the code English. The definition, the senses and the etymology each",
-    "exist in the four explanation languages, so the preview can show what picking one produces",
+    "exist in the five explanation languages, so the preview can show what picking one produces",
     "-- the language of an explanation is a runtime setting, not the interface's. The example",
-    "sentence is English in all four, as it is in a real explanation; the signpost and the",
+    "sentence is English in all five, as it is in a real explanation; the signpost and the",
     "collocations are English in every language, as they are in a real explanation.",
     "`vocabulary` is the other preview's content: six words per vocabulary level, in the order the",
     "word cloud draws them (the first two are the largest). The lists are illustrative, not the",
@@ -21,6 +21,7 @@
   "definition": {
     "en": "The season between winter and summer, when plants begin to grow.",
     "zh": "春季，冬天与夏天之间的季节，植物开始生长。",
+    "zh-Hant": "春季，冬天與夏天之間的季節，植物開始生長。",
     "es": "La estación entre el invierno y el verano, cuando las plantas empiezan a crecer.",
     "ja": "冬と夏の間の季節で、植物が育ちはじめるころ。"
   },
@@ -28,18 +29,21 @@
     {
       "en": "The season between winter and summer.",
       "zh": "春季，冬天与夏天之间的季节。",
+      "zh-Hant": "春季，冬天與夏天之間的季節。",
       "es": "La estación entre el invierno y el verano.",
       "ja": "冬と夏の間の季節。"
     },
     {
       "en": "A coiled piece of metal that springs back into shape.",
       "zh": "弹簧，受压后恢复原状的金属件。",
+      "zh-Hant": "彈簧，受壓後恢復原狀的金屬件。",
       "es": "Muelle: una pieza de metal que recupera su forma.",
       "ja": "ばね。押しても元の形に戻る金属。"
     },
     {
       "en": "A place where water wells up out of the ground.",
       "zh": "泉，地下水涌出地面的地方。",
+      "zh-Hant": "泉，地下水湧出地面的地方。",
       "es": "Manantial: donde el agua brota del suelo.",
       "ja": "泉。地面から水がわき出る場所。"
     }
@@ -47,6 +51,7 @@
   "etymology": {
     "en": "From Old English springan, to leap up or burst forth.",
     "zh": "源自古英语 springan，意为跃起、迸发。",
+    "zh-Hant": "源自古英語 springan，意為躍起、迸發。",
     "es": "Del inglés antiguo springan, saltar o brotar.",
     "ja": "古英語の springan（跳ねる、わき出る）から。"
   },
