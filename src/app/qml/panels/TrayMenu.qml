@@ -173,7 +173,7 @@ Window {
                         anchors.topMargin: 2
                         anchors.bottomMargin: 2
                         radius: 8
-                        color: rowHover.hovered && menu.budgetExhausted ? menu.tokens.panel2 : "transparent"
+                        color: stateHover.hovered && menu.budgetExhausted ? menu.tokens.panel2 : "transparent"
                     }
 
                     Rectangle {
@@ -218,7 +218,7 @@ Window {
                     }
 
                     HoverHandler {
-                        id: rowHover
+                        id: stateHover
                         enabled: menu.budgetExhausted
                         cursorShape: Qt.PointingHandCursor
                     }

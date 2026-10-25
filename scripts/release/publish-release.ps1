@@ -61,8 +61,13 @@ try {
     }
     . "$PSScriptRoot\..\build\paths.ps1"
     $qtBin = (Get-LensPaths -Root $root).qtBin
-    & (Join-Path $qtBin 'qmllint.exe') '@build-ninja-release/src/app/.rcc/qmllint/lens_app.rsp'
-    if ($LASTEXITCODE -ne 0) { throw 'publish-release: release QML lint failed' }
+    $lint = & (Join-Path $qtBin 'qmllint.exe') '@build-ninja-release/src/app/.rcc/qmllint/lens_app.rsp' 2>&1
+    $lint | ForEach-Object { Write-Output $_ }
+    # qmllint exits 0 for an Error: line on some severities; the release gate has to read the
+    # report, not just the process code.
+    if ($LASTEXITCODE -ne 0 -or ($lint -match '(?m)^Error:')) {
+        throw 'publish-release: release QML lint failed'
+    }
     $builtVersion = Get-Content -LiteralPath 'build-ninja-release/installer/version.iss' -Raw -Encoding UTF8
     if ($builtVersion -notmatch ('#define AppVersion "' + [regex]::Escape($Version) + '"')) {
         throw 'publish-release: generated installer version does not match'

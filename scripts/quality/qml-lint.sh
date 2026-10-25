@@ -84,10 +84,17 @@ if [ -z "$qmllint" ]; then
 fi
 
 report=$("$qmllint" "@$rsp" 2>&1)
+errors=$(printf '%s\n' "$report" | grep -cE '^Error: ')
 count=$(printf '%s\n' "$report" | grep -cE '^Warning: ')
 
-if [ "${1:-}" = "--report" ]; then
+if [ "${1:-}" = "--report" ] || [ "$errors" -gt 0 ]; then
     printf '%s\n' "$report"
+fi
+
+# Errors are not ratcheted: a duplicate id or a broken import is not a warning count to spend.
+if [ "$errors" -gt 0 ]; then
+    echo "qml-lint: $errors errors -- errors must be fixed, not ratcheted"
+    exit 1
 fi
 
 if [ "$count" -le "$BASELINE" ]; then
@@ -95,7 +102,6 @@ if [ "$count" -le "$BASELINE" ]; then
     exit 0
 fi
 
-printf '%s\n' "$report"
 echo
 echo "qml-lint: $count warnings, baseline $BASELINE -- the baseline only goes down;"
 echo "  fix warnings rather than raise it. A delegate usually wants a required property,"
