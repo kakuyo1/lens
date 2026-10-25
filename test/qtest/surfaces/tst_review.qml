@@ -111,6 +111,158 @@ Item {
                       "the bubble outlived the pointer leaving its row");
         }
 
+        /// Leaving the word for the card above it is a reading, not an exit: the dismissal the row
+        /// asks for waits out a grace long enough for the pointer to arrive on the card, and the
+        /// card reports the arrival itself. What is checked here is the duty's half of that --
+        /// the card window is Main.qml's, which this harness does not build.
+        function test_theReadingSurvivesThePointerMovingOntoTheCard() {
+            const popup = make();
+            dwellOn(popup, stored);
+            compare(Controller.explanationDuty.bubble.title, stored);
+
+            // The pointer's arrival on the card, as BubbleCard reports it, before the move.
+            Controller.explanationDuty.holdReviewCard(true);
+            mouseMove(popup, 2, 2);
+            wait(600); // past the row's grace, into the waiting dismissal
+            compare(Controller.explanationDuty.bubble.title, stored,
+                    "the reading went while the pointer was on the card");
+
+            // The pointer leaving the card lands the dismissal that waited for it.
+            Controller.explanationDuty.holdReviewCard(false);
+            tryVerify(function () { return Object.keys(Controller.explanationDuty.bubble).length === 0; }, 1000,
+                      "the dismissal outlived the pointer leaving the card");
+        }
+
+        /// A pointer that leaves the word for nowhere still takes the reading with it: the grace
+        /// is the moment it takes to reach the card, no more, and nothing reports an arrival.
+        function test_leavingTheWordForNowhereStillTakesTheReading() {
+            const popup = make();
+            dwellOn(popup, stored);
+            compare(Controller.explanationDuty.bubble.title, stored);
+
+            mouseMove(popup, 2, 2);
+            wait(120); // inside the grace
+            compare(Controller.explanationDuty.bubble.title, stored,
+                    "the grace was shorter than the move onto the card");
+            tryVerify(function () { return Object.keys(Controller.explanationDuty.bubble).length === 0; }, 1000,
+                      "the reading outlived the pointer leaving for nowhere");
+        }
+
+        /// @return The words list itself, the scroller a wheel or a flick reaches.
+        function listIn(popup) {
+            return Util.findAll(popup, function (o) {
+                return o.contentY !== undefined && o.count !== undefined
+                       && o.contentHeight !== undefined;
+            })[0];
+        }
+
+        /// @brief Import @p words into the store through the reader's own import, so the list has
+        ///        rows enough to scroll. The words are removed again by the case that seeded them.
+        /// @return The seeded words, or an empty list when the import did not land.
+        function seed(words) {
+            const at = lensQaFiles.tempDir() + "/seed-" + Date.now() + ".txt";
+            if (!lensQaFiles.write(at, words.join("\n") + "\n"))
+                return [];
+            return Controller.importWords(at) ? words : [];
+        }
+
+        /// Scrolling the list stays inside the words: the content it reports is the rows it holds
+        /// and the bounds stop past the last row, at the bottom itself and back. The rows are
+        /// seeded past the viewport's 306 px first -- a list shorter than that cannot scroll at
+        /// all, and a case that never scrolls verifies nothing. The position is pinned rather
+        /// than wheeled: this platform's synthetic wheel does not reach the Flickable, and a
+        /// gesture the case cannot make is not one it can assert (the real gesture is driven on
+        /// the dev surface, where it lands).
+        function test_scrollingTheListStaysInsideTheWords() {
+            const words = [];
+            for (let i = 0; i < 40; ++i)
+                words.push("zzscrollprobe" + i);
+            verify(seed(words).length === 40, "the seed words were not imported");
+            let popup = null;
+            let list = null;
+            try {
+                popup = make();
+                list = listIn(popup);
+                verify(list, "the words list was not found");
+                verify(list.count >= 40, "the seeded rows did not arrive: " + list.count);
+                verify(list.contentHeight > list.height + 100,
+                        "the list still does not scroll: content " + list.contentHeight + " in " + list.height);
+
+                // The bottom, the top, and the middle: each a place the reader leaves the list.
+                for (const at of [list.contentHeight - list.height, 0, Math.round((list.contentHeight - list.height) / 2)]) {
+                    list.contentY = at;
+                    wait(150); // the delegates the position asks for arrive
+                    compare(list.contentHeight, list.count * popup.rowHeight,
+                            "the content left the rows' own measure at contentY " + at);
+                    verify(list.contentY <= list.contentHeight - list.height + 1,
+                           "contentY " + list.contentY + " past content " + list.contentHeight + " in " + list.height);
+                    verify(list.contentY >= -1, "the list was left above its first row");
+                }
+                // And the viewport holds its own measure wherever the content stands.
+                compare(list.height, Math.min(306, list.count * popup.rowHeight),
+                        "the viewport left the row count's measure");
+            } finally {
+                for (const word of words)
+                    Controller.removeWord(word);
+            }
+        }
+
+        /// The viewport cannot outlive the content: scrolled to the bottom and left with fewer
+        /// words -- the row's cross, a filter -- the list has to bring the viewport back onto the
+        /// words rather than leave it standing past the last one, looking at blank.
+        function test_theViewportComesBackWhenTheRowsUnderItGo() {
+            const words = [];
+            for (let i = 0; i < 40; ++i)
+                words.push("zzshrinkprobe" + i);
+            verify(seed(words).length === 40, "the seed words were not imported");
+            let popup = null;
+            let list = null;
+            try {
+                popup = make();
+                list = listIn(popup);
+                verify(list, "the words list was not found");
+                // The bottom, arrived the way the reader arrives at it.
+                list.contentY = list.contentHeight - list.height;
+                wait(200);
+
+                // The row's own removal, the way the cross performs it: the fold, then the model.
+                for (let i = 0; i < 30; ++i)
+                    popup.removeWordAnimated(words[i]);
+                wait(900); // the fold, the flush, the rebuild
+                const lowest = list.contentHeight - list.height;
+                verify(list.contentY <= Math.max(0, lowest) + 1,
+                       "after the removals the viewport stands past the last word: contentY "
+                       + list.contentY + " against content " + list.contentHeight + " in " + list.height);
+                verify(list.contentY >= -1, "the removals left the list above its first row");
+
+                // And the filter's collapse is the same shrink by another door: Known folds away
+                // every seeded word, every one of them being new.
+                popup.filter = 1;
+                wait(900);
+                verify(list.contentY <= Math.max(0, list.contentHeight - list.height) + 1,
+                       "after the filter the viewport stands past the last word: contentY "
+                       + list.contentY + " against content " + list.contentHeight);
+                // The viewport is a fact of the row count, not of the fold's progress: the moment
+                // the filter comes back it is the whole of its cap again, and never chases the
+                // content the rows are still unfolding into -- a viewport that chased it fed the
+                // view's own estimate back into itself, and the list rang (measured: contentHeight
+                // swinging 279..2666 with the viewport collapsing along, the reader looking at blank).
+                popup.filter = 0;
+                compare(list.height, Math.min(306, list.count * popup.rowHeight),
+                        "the viewport followed the fold instead of the row count");
+                wait(900);
+                verify(list.contentY <= Math.max(0, list.contentHeight - list.height) + 1,
+                       "after the filter came back the viewport stands past the last word: contentY "
+                       + list.contentY + " against content " + list.contentHeight);
+                compare(list.height, Math.min(306, list.count * popup.rowHeight),
+                        "the settled viewport left the row count's measure");
+            } finally {
+                popup.filter = 0;
+                for (const word of words)
+                    Controller.removeWord(word);
+            }
+        }
+
         /// A word with nothing stored in this language gets a notice saying so, rather than
         /// looking like a hover that did not register, and the way to get it explained is a
         /// button the reader presses, not a request their hover makes.

@@ -81,6 +81,13 @@ Item {
             })[0];
         }
 
+        /// @return The Not-the-Sense? entry, found by its object name rather than by its place.
+        function cycleEntryOf(bubble) {
+            return Util.findAll(bubble, function (o) {
+                return o.objectName === "senseCycleEntry";
+            })[0];
+        }
+
         /// The globe the reader holds for the mother-tongue line stands only under an English
         /// explanation, on a word card with a countdown (UI-SPEC.md 4.3): a translation's input
         /// already is the mother tongue, and a card without a clock is the pointer's to lose.
@@ -325,6 +332,123 @@ Item {
             verify(word.width > 0, "the title row gave the word no width");
         }
 
+        /// The part of speech sits after the pronunciation, on the same line, the way a
+        /// dictionary prints the pair; the payload the duty builds decides that it is there,
+        /// and an answer without one draws no empty slot.
+        function test_theWordCarriesItsPartOfSpeechBesideThePronunciation() {
+            const bubble = createTemporaryObject(bubbleComponent, root);
+            verify(bubble);
+            bubble.show({
+                title: "spring", type: "word", ipa: "/sprɪŋ/", pos: "noun",
+                en: "The season between winter and summer.", status: "new",
+                x: 200, y: 240
+            });
+            wait(50);
+            // The capitals are the drawing's (font.capitalization), so the text is matched as
+            // the model wrote it.
+            const pos = Util.textWith(Util.textsUnder(bubble), ["noun"]);
+            verify(pos, "the card drew no part of speech");
+            compare(pos.color.toString(), bubble.tokens.faint.toString());
+            const ipa = Util.textWith(Util.textsUnder(bubble), ["/sprɪŋ/"]);
+            verify(ipa, "the card drew no pronunciation");
+            verify(pos.x > ipa.x + ipa.width - 1, "the part of speech did not sit after the pronunciation");
+            bubble.visible = false;
+
+            const bare = createTemporaryObject(bubbleComponent, root);
+            verify(bare);
+            bare.show({
+                title: "spring", type: "word", ipa: "/sprɪŋ/",
+                en: "The season between winter and summer.", status: "new",
+                x: 200, y: 240
+            });
+            wait(50);
+            compare(Util.textWith(Util.textsUnder(bare), ["noun"]), null,
+                    "an answer without a part of speech drew one");
+            bare.visible = false;
+        }
+
+        /// The entry is the single-sense card's: the payload offers the cycle, the reader's
+        /// multi-sense switch stands it down while the rows are the selector, and the word it
+        /// offers beside the click is the one the duty's cycle is holding.
+        function test_theNotTheSenseEntryStandsWhereItsPayloadPutsIt() {
+            const bubble = createTemporaryObject(bubbleComponent, root);
+            verify(bubble);
+            bubble.show({
+                title: "spring", type: "word", ipa: "/sprɪŋ/",
+                senses: [{en: "The season between winter and summer.", text: "", spans: [], imageable: false, imageQuery: ""}],
+                senseCycle: true, senseIndex: 0, senseHint: "coil",
+                status: "new", x: 200, y: 240
+            });
+            wait(50);
+            const entry = cycleEntryOf(bubble);
+            verify(entry, "the card drew no Not-the-Sense? entry");
+            compare(entry.visible, true);
+            verify(Util.textWith(Util.textsUnder(bubble), ["coil →"]),
+                   "the entry carried no word for the sense it offers");
+
+            const previous = Controller.settings.multiSense;
+            try {
+                Controller.setSetting("multiSense", true);
+                tryCompare(entry, "visible", false, 2000, "the entry outlived the multi-sense switch");
+                Controller.setSetting("multiSense", false);
+                tryCompare(entry, "visible", true, 2000);
+            } finally {
+                Controller.setSetting("multiSense", previous);
+            }
+            bubble.visible = false;
+        }
+
+        /// A preview draws no control that cannot act: the entry is the duty's cycle to move,
+        /// and a preview has no cycle behind it.
+        function test_theEntryStandsOutOfThePreview() {
+            const preview = createTemporaryObject(bubbleComponent, root, {preview: true});
+            verify(preview);
+            preview.show({
+                title: "spring", type: "word", ipa: "/sprɪŋ/",
+                senses: [{en: "The season between winter and summer.", text: "", spans: [], imageable: false, imageQuery: ""}],
+                senseCycle: true, senseIndex: 0, senseHint: "coil",
+                x: 200, y: 240
+            });
+            wait(50);
+            const entry = cycleEntryOf(preview);
+            verify(entry, "the card drew no entry item at all");
+            compare(entry.visible, false, "the preview offered the cycle's entry");
+            preview.visible = false;
+        }
+
+        /// The entry's answer swaps the row where it stands: the window keeps the place the
+        /// reader left it at, the definition and the signpost change with the sense, and the
+        /// text arrives whole rather than written out a character at a time.
+        function test_aSenseSwapChangesTheRowWithoutMovingTheCard() {
+            const bubble = createTemporaryObject(bubbleComponent, root);
+            verify(bubble);
+            bubble.show({
+                title: "spring", type: "word", ipa: "/sprɪŋ/",
+                senses: [{en: "The season between winter and summer.", text: "", spans: [], imageable: false, imageQuery: ""}],
+                signpost: "season of new growth",
+                senseCycle: true, senseIndex: 0, senseHint: "coil",
+                status: "new", x: 200, y: 240
+            });
+            tryVerify(function () { return !bubble.revealing; }, 8000);
+            const at = {x: bubble.x, y: bubble.y};
+
+            bubble.applySense({
+                cycle: true, index: 1, hint: "", exhausted: false,
+                row: {en: "A coiled piece of metal that springs back.", text: "", spans: [], imageable: false, imageQuery: ""},
+                signpost: "spring back"
+            });
+
+            compare(bubble.x, at.x, "the swap moved the card sideways");
+            compare(bubble.y, at.y, "the swap moved the card");
+            compare(bubble.senses[0].en, "A coiled piece of metal that springs back.");
+            compare(bubble.signpost, "spring back");
+            compare(bubble.senseSwappedOnce, true, "the swap did not put the card's writing away");
+            tryVerify(function () {
+                return Util.textWith(Util.textsUnder(bubble), ["A coiled piece of metal that springs back."]) !== null;
+            }, 2000, "the swapped definition never arrived on the card");
+            bubble.visible = false;
+        }
+
         /// A pointer arriving on the card is recorded, and the recording is the card rather than
         /// the window around it. Those two readings are what TODO.md's hover-jitter sighting
         /// needs; this case says the block that writes them runs without throwing.
@@ -379,6 +503,39 @@ Item {
 
             compare(metaOf(bubble).visible, false, "a bubble with no countdown still drew its clock");
             verify(Util.saveSnapshot(testCase, surfaceOf(bubble), lensQaSnapshotDir, "bubble-review"));
+        }
+
+        /// The single-sense card's new furniture: the part of speech beside the pronunciation and
+        /// the Not-the-Sense? entry at the foot with the word it offers — photographed on the
+        /// swapped sense, which is the state a reader ends up in after one press.
+        function test_captureTheBubbleWithTheSenseEntry() {
+            if (!lensQaSnapshotDir)
+                skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the offscreen snapshot");
+
+            const bubble = createTemporaryObject(bubbleComponent, root);
+            verify(bubble);
+            bubble.show({
+                title: "spring",
+                type: "word",
+                ipa: "/sprɪŋ/",
+                pos: "noun",
+                senses: [{en: "The season between winter and summer, when plants begin to grow.", text: "", spans: [], imageable: false, imageQuery: ""}],
+                signpost: "season of new growth",
+                senseCycle: true,
+                senseIndex: 0,
+                senseHint: "coil",
+                status: "new",
+                x: 200,
+                y: 240
+            });
+            tryVerify(function () { return !bubble.revealing; }, 8000);
+            bubble.applySense({
+                cycle: true, index: 1, hint: "water", exhausted: false,
+                row: {en: "A coiled piece of metal that springs back into shape.", text: "", spans: [], imageable: false, imageQuery: ""},
+                signpost: "spring back"
+            });
+            wait(100);
+            verify(Util.saveSnapshot(testCase, surfaceOf(bubble), lensQaSnapshotDir, "bubble-sense-entry"));
         }
 
         /// The bubble's window never takes focus (UI-SPEC.md 4.3), so a screen reader reaches it

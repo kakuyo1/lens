@@ -49,6 +49,29 @@ Item {
         senseRows.collapse();
     }
 
+    /// @brief Point the open picture strip at @p query, or take it down when the sense has none.
+    ///
+    /// The strip follows the sense the Not-the-Sense? entry swapped in: the query moves, the duty
+    /// re-asks under it, and the skeleton the strip already draws stands in while the new pictures
+    /// come. A sense with no query has no strip to show, and it goes the way collapseStrip() takes it.
+    function followSense(query) {
+        if (senseRows.expandedIndex < 0)
+            return;
+        if (query === "")
+            senseRows.collapse();
+        else
+            Controller.pictureDuty.request(query);
+    }
+
+    /// @brief Tell the duty whether the pointer is on this card, when this card is one the word
+    ///        list raised: its life is the pointer's, and a pointer that moved onto it from the
+    ///        word is reading it -- the entry at its foot is there to be pressed. Every other
+    ///        card keeps its own clock or belongs to no row, and says nothing.
+    function syncReviewHold() {
+        if (!root.bubble.preview && !root.bubble.countsDown)
+            Controller.explanationDuty.holdReviewCard(root.bubble.hovering);
+    }
+
     // The shadow is cast from a shape-only copy of the card, never from the card itself:
     // MultiEffect draws its source through an offscreen texture, and at this monitor's
     // 125% scale that texture is resampled. See SelectionBar.qml for the measurement.
@@ -159,13 +182,17 @@ Item {
                 } else {
                     hoverSettle.restart();
                 }
+                root.syncReviewHold();
             }
         }
 
         Timer {
             id: hoverSettle
             interval: 140
-            onTriggered: root.bubble.hovering = false
+            onTriggered: {
+                root.bubble.hovering = false;
+                root.syncReviewHold();
+            }
         }
 
         Column {
@@ -219,6 +246,7 @@ Item {
                 visible: root.bubble.atRoot && root.bubble.type !== "sentence" && root.bubble.type !== "translation"
                 title: root.bubble.title
                 ipa: root.bubble.type === "word" ? root.bubble.ipa : ""
+                pos: root.bubble.type === "word" ? root.bubble.pos : ""
                 family: root.bubble.englishFont
                 scale: root.bubble.fontScale
                 animated: root.bubble.revealAnimation
@@ -236,10 +264,13 @@ Item {
             SenseRows {
                 id: senseRows
                 senses: root.bubble.atRoot && root.bubble.type === "word" ? root.bubble.senses : []
+                // Once a swapped sense has been drawn the rows draw whole (Bubble.qml): the
+                // reader has read this card already, and a switched sense typed out a character
+                // at a time would stand between the click and the sense it asked for.
+                animated: root.bubble.revealAnimation && !root.bubble.senseSwappedOnce
                 markColor: root.bubble.tokens.faint
                 hoverColor: root.bubble.tokens.okBg
                 onWordTapped: lemma => chainPanel.step(lemma)
-                animated: root.bubble.revealAnimation
                 characterMs: root.bubble.revealCharacterMs
                 englishColor: root.bubble.tokens.body
                 translationColor: root.bubble.tokens.text
@@ -421,6 +452,93 @@ Item {
                 words: root.bubble.atRoot && root.bubble.type === "word" ? root.bubble.collocations : []
                 tokens: root.bubble.tokens
                 scale: root.bubble.fontScale
+            }
+
+            // The Not-the-Sense? entry (UI-SPEC.md 4.3): the single-sense card's way onto the
+            // word's next distinct common sense, for words with pictures and words without alike.
+            // The offer and the word beside it are one press: the cycle swaps the sense in place,
+            // and an open picture strip follows it. Hovering asks for the next sense before the
+            // click does, so the click itself has nothing to wait for; the quiet the duty keeps
+            // about it is the held peek's. The rows are the selector while multiple senses are
+            // on, so the entry stands only when they are not.
+            Item {
+                id: senseCycleEntry
+                objectName: "senseCycleEntry"
+                visible: root.bubble.atRoot && !root.bubble.preview
+                         && root.bubble.senseCycle === true
+                         && Controller.settings.multiSense !== true
+                width: parent.width
+                // The 6 px a sense break uses above the pill's own 22, and none at all when the
+                // duty has retired the entry: an exhausted cycle with one sense has nothing to offer.
+                height: visible ? 28 : 0
+                activeFocusOnTab: true
+
+                Rectangle {
+                    anchors.fill: parent
+                    anchors.topMargin: 6
+                    radius: root.bubble.tokens.radiusPill
+                    color: cycleHover.hovered || senseCycleEntry.activeFocus ? root.bubble.tokens.panel2 : "transparent"
+                    scale: cyclePress.pressed ? 0.97 : 1.0
+                    Behavior on scale {
+                        NumberAnimation {
+                            duration: root.bubble.tokens.motion.press
+                            easing.type: root.bubble.tokens.motion.easing
+                        }
+                    }
+                }
+
+                Text {
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.verticalCenterOffset: 3
+                    text: qsTr("Not the Sense?")
+                    color: cycleHover.hovered || senseCycleEntry.activeFocus ? root.bubble.tokens.text : root.bubble.tokens.faint
+                    font.pixelSize: 11
+                }
+
+                Text {
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.verticalCenterOffset: 3
+                    // The word the next press would swap in, with the way it points. Not drawn
+                    // while the sense it names is still being asked for: an empty right side is
+                    // the entry's waiting.
+                    visible: root.bubble.senseHint !== ""
+                    text: root.bubble.senseHint + " →"
+                    color: root.bubble.tokens.okText
+                    font.pixelSize: 11
+                    font.weight: Font.Bold
+                }
+
+                HoverHandler {
+                    id: cycleHover
+                    cursorShape: Qt.PointingHandCursor
+                    onHoveredChanged: {
+                        if (hovered)
+                            Controller.explanationDuty.ensureNextSense();
+                    }
+                }
+                TapHandler {
+                    id: cyclePress
+                    onTapped: {
+                        root.bubble.readerActed();
+                        Controller.explanationDuty.cycleSense();
+                    }
+                }
+                Keys.onSpacePressed: {
+                    root.bubble.readerActed();
+                    Controller.explanationDuty.cycleSense();
+                }
+                Keys.onReturnPressed: {
+                    root.bubble.readerActed();
+                    Controller.explanationDuty.cycleSense();
+                }
+                Accessible.role: Accessible.Button
+                Accessible.name: qsTr("Not the Sense?")
+                Accessible.onPressAction: {
+                    root.bubble.readerActed();
+                    Controller.explanationDuty.cycleSense();
+                }
             }
 
             // The verdict buttons, drawn shut until the pointer is on the card (UI-SPEC.md 4.3).

@@ -62,6 +62,10 @@ Window {
 
     /// 0 = all, 1 = known, 2 = new.
     property int filter: 0
+    /// One row's drawn height, the number the list's own sizing keys on (WordsListRow.qml). The
+    /// rows' fold animation runs this between it and zero; stating it here keeps the viewport a
+    /// fact of the row count rather than of the animation's progress.
+    readonly property int rowHeight: 31
     /// The filter folds rows shut over a motion token; until that settles, a list with no rows is
     /// still collapsing, not empty. The empty line waits for it.
     property bool filterSettled: true
@@ -93,10 +97,12 @@ Window {
     property bool askBeforeRemoving: true
 
     /// A question left half-answered by a press elsewhere is not a state to come back to, and
-    /// neither is a review bubble: the pointer left the panel, whatever it is doing now.
+    /// neither is a review bubble: the pointer left the panel, whatever it is doing now. Forced,
+    /// not graceful: the card may be held by a pointer standing on it, and the panel going means
+    /// the reading goes too, held or not.
     onVisibleChanged: if (!visible) {
         closeChild();
-        Controller.explanationDuty.dismissReview();
+        Controller.explanationDuty.dismissReviewNow();
     }
 
     /**
@@ -406,8 +412,19 @@ Window {
                 // panel sized to those words, not a panel with a hole under them. An empty list
                 // keeps one line of room for the line that says how it fills; a filter with no
                 // rows gets the same room rather than a card with a hole in it.
+                //
+                // Unfiltered, the viewport is the row count times the row height, never the
+                // view's own contentHeight: with most rows not instantiated, that number is an
+                // estimate the view revises as rows fold and instantiate, and a viewport bound
+                // to it feeds the revisions back -- the list wobbles, and a fold mid-scroll
+                // leaves the reader looking at blank while both ends of the scroll chase each
+                // other (measured: contentHeight ringing between 279 and 2666 for seconds, the
+                // viewport collapsing with it). The count is a fact; the estimate is not. A
+                // filter keeps the tight fit: its few rows are all instantiated, so its
+                // contentHeight is exact.
                 height: Controller.words.length === 0 ? emptyText.implicitHeight + 6
                       : words.filterEmpty ? filteredEmptyText.implicitHeight + 6
+                      : words.filter === 0 ? Math.min(306, list.count * words.rowHeight)
                       : Math.min(306, list.contentHeight)
 
                 ListView {
@@ -417,6 +434,13 @@ Window {
                     clip: true
                     model: Controller.words
                     boundsBehavior: Flickable.StopAtBounds
+                    // Every row stays instantiated: a lazily-filled view reports a contentHeight
+                    // it estimates from the rows it holds, and while the fold animation runs that
+                    // estimate swings wildly (measured: 691 one moment, 2666 the next, the scroll
+                    // position dragged around with it and the tail of the list reading as blank).
+                    // A vocabulary list is a few hundred simple rows; holding them all costs
+                    // nothing next to a scroll that lies about what it holds.
+                    cacheBuffer: 6000
 
                     delegate: WordsListRow {
                         host: words

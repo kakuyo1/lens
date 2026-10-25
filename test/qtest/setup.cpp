@@ -231,6 +231,33 @@ Singletons& singletons()
 
 } // namespace
 
+/// @brief The one thing QML cannot do for itself: put a file on disk, so a case can seed inputs the
+///        controller only reads from files (an import list, an export target).
+class QaFiles final : public QObject {
+    Q_OBJECT
+public:
+    using QObject::QObject;
+
+    /// @return A directory this run may write to, as a local file URL, for a case's scratch files.
+    Q_INVOKABLE QUrl tempDir() const
+    {
+        const QString path = QDir::temp().filePath(QStringLiteral("lens-qtest"));
+        QDir{}.mkpath(path);
+        return QUrl::fromLocalFile(path);
+    }
+
+    /// @return Whether @p text landed at @p path whole, as UTF-8 without a BOM.
+    Q_INVOKABLE bool write(QUrl const& path, QString const& text) const
+    {
+        if (not path.isLocalFile())
+            return false;
+        QFile file(path.toLocalFile());
+        if (not file.open(QIODevice::WriteOnly | QIODevice::Truncate))
+            return false;
+        return file.write(text.toUtf8()) == text.toUtf8().size();
+    }
+};
+
 void LensTestSetup::qmlEngineAvailable(QQmlEngine* engine)
 {
     installUiFonts();
@@ -238,6 +265,7 @@ void LensTestSetup::qmlEngineAvailable(QQmlEngine* engine)
 
     engine->rootContext()->setContextProperty("lensQaSnapshotDir", qEnvironmentVariable("LENS_QA_SNAPSHOT_DIR"));
     engine->rootContext()->setContextProperty("lensQaUiLanguage", qEnvironmentVariable("LENS_QA_UI_LANGUAGE"));
+    engine->rootContext()->setContextProperty("lensQaFiles", new QaFiles(engine));
 
     Singletons& one = singletons();
     AppController::provide(one.controller.get());
@@ -256,3 +284,5 @@ void LensTestSetup::qmlEngineAvailable(QQmlEngine* engine)
 }
 
 #endif
+
+#include "setup.moc"

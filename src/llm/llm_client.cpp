@@ -31,6 +31,9 @@ constexpr int kProbeTimeoutMs = 15000;
 /// A peek answers a reader who is holding a button: it is small and it should not outlast the
 /// patience a held gesture has.
 constexpr int kPeekTimeoutMs = 15000;
+/// The sense channel answers a click on the card it belongs to: small like the peek, and the
+/// same ceiling keeps a slow service from outlasting the reader's attention.
+constexpr int kSenseTimeoutMs = 15000;
 
 } // namespace
 
@@ -270,7 +273,7 @@ void LlmClient::explainWords(ExplainRequest request)
     });
 }
 
-void LlmClient::peekWord(QString const& lemma, QString const& language)
+void LlmClient::peekWord(QString const& lemma, QString const& language, QString const& sense)
 {
     if (lemma.isEmpty() or config_.apiKey.isEmpty() or not config_.baseUrl.isValid() or
         config_.baseUrl.scheme() != QLatin1String("https") or config_.baseUrl.host().isEmpty()) {
@@ -293,11 +296,17 @@ void LlmClient::peekWord(QString const& lemma, QString const& language)
     httpRequest.setTransferTimeout(kPeekTimeoutMs);
 
     const auto model = config_.model;
+    // The wire payload: the word alone, or the word and a line naming the sense the card is
+    // showing -- a hold on a swapped sense asks for that sense's line, not the word's most
+    // common one.
+    const QString content = sense.isEmpty()
+                                ? lemma
+                                : lemma + QLatin1Char('\n') + QStringLiteral("sense: ") + sense;
     LENS_INFO("peeking '{}' in '{}' with '{}'", lemma.toStdString(), language.toStdString(), config_.model.toStdString());
     LENS_TRACE("POST {} (timeout {} ms, key hidden)", url.toString().toStdString(), kPeekTimeoutMs);
 
     QNetworkReply* reply =
-        manager_->post(httpRequest, buildRequestBody(config_, Channel::Peek, {lemma}, language));
+        manager_->post(httpRequest, buildRequestBody(config_, Channel::Peek, {content}, language));
 
     connect(reply, &QNetworkReply::finished, this, [this, reply, lemma, model] {
         reply->deleteLater();
@@ -320,6 +329,59 @@ void LlmClient::peekWord(QString const& lemma, QString const& language)
         auto        usage   = parseUsage(body);
         usage.model         = model;
         emit peekAnswered(lemma, results.isEmpty() ? QString{} : results.front().en, usage);
+    });
+}
+
+void LlmClient::nextSenseWord(QString const& lemma, QString const& input, QString const& language)
+{
+    if (lemma.isEmpty() or input.isEmpty() or config_.apiKey.isEmpty() or not config_.baseUrl.isValid() or
+        config_.baseUrl.scheme() != QLatin1String("https") or config_.baseUrl.host().isEmpty()) {
+        // Quietly, like the peek: the entry lives on a card the reader is already reading, and a
+        // missing key or address is the settings page's to explain, not the entry's.
+        LENS_DEBUG("the next sense for '{}' went nowhere: the client is not configured", lemma.toStdString());
+        emit senseAnswered(lemma, {}, {});
+        return;
+    }
+
+    QUrl    url  = config_.baseUrl;
+    QString path = url.path();
+    while (path.endsWith(QLatin1Char('/')))
+        path.chop(1);
+    url.setPath(path + QStringLiteral("/chat/completions"));
+
+    QNetworkRequest httpRequest(url);
+    httpRequest.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+    httpRequest.setRawHeader("Authorization", "Bearer " + config_.apiKey.toUtf8());
+    httpRequest.setTransferTimeout(kSenseTimeoutMs);
+
+    const auto model = config_.model;
+    LENS_INFO("asking for the next sense of '{}' in '{}' with '{}'", lemma.toStdString(), language.toStdString(), config_.model.toStdString());
+    LENS_TRACE("POST {} (timeout {} ms, key hidden)", url.toString().toStdString(), kSenseTimeoutMs);
+
+    QNetworkReply* reply =
+        manager_->post(httpRequest, buildRequestBody(config_, Channel::Sense, {input}, language));
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply, lemma, model] {
+        reply->deleteLater();
+        const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        if (status != 200) {
+            LENS_WARN("the next sense for '{}' came back with HTTP {}", lemma.toStdString(), status);
+            emit senseAnswered(lemma, {}, {});
+            return;
+        }
+        // The body rides the same parseExplanations() checks every channel's answer does; the
+        // sense channel's schema lets the senses array be empty, which is the exhaustion answer.
+        const QByteArray body   = reply->readAll();
+        const auto       parsed = parseExplanations(Channel::Sense, body, {lemma});
+        if (const auto* message = std::get_if<QString>(&parsed)) {
+            LENS_WARN("the next sense for '{}' was refused: {}", lemma.toStdString(), message->toStdString());
+            emit senseAnswered(lemma, {}, {});
+            return;
+        }
+        const auto& results = std::get<QVector<Explanation>>(parsed);
+        auto        usage   = parseUsage(body);
+        usage.model         = model;
+        emit senseAnswered(lemma, results.isEmpty() ? Explanation{} : results.front(), usage);
     });
 }
 

@@ -268,6 +268,12 @@ Window {
             bubble.peekLine = line;
         }
 
+        function onSenseSwapped(swap) {
+            // The sense cycle changed under the standing card: the row and the entry swap in
+            // place, and the window stays where the reader left it.
+            bubble.applySense(swap);
+        }
+
         function onNoticeChanged() {
             const payload = Controller.explanationDuty.notice;
             if (payload && Object.keys(payload).length > 0)

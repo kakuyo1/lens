@@ -23,13 +23,16 @@
 
 namespace lens::core::dev {
 
-/// The verbs the table takes. At most ten (docs/adr/0068): a new surface is a new name, not a new verb.
+/// The verbs the table takes. Few and settled (docs/adr/0068): a new surface is a new name, not a new verb.
 enum class Verb : std::uint8_t {
     SurfaceShow,
     SurfaceHide,
     SurfaceHideAll,
     SurfaceRoute,
     SurfaceScroll,
+    /// Wheel the surface's scroller: the reader's own gesture, posted to its window, so a scroll
+    /// question is settled by the same delivery a wheel arrives through and not by a pinned value.
+    SurfaceWheel,
     Wait,
     State,
     Version,
@@ -109,6 +112,12 @@ struct Command {
     /// The content position, in pixels from the content's top, that a `surface scroll` line pins the
     /// surface's scroller to; unread by every other verb.
     int scrollY{0};
+    /// How many wheel ticks a `surface wheel` line turns, positive down and negative up; unread by
+    /// every other verb.
+    int wheelSteps{0};
+    /// Whether those ticks are a touchpad's rather than a mouse's: pixel deltas carried in scroll
+    /// phases, the gesture a Flickable answers with its own momentum rather than a step per notch.
+    bool wheelPad{false};
 };
 
 /// The outcome of parsing one line: a command, or the reason the line was refused. Exactly one of the two is set.
@@ -149,6 +158,14 @@ struct SurfaceState {
     std::optional<bool>          live;
     /// The sheet's size as "WIDTHxHEIGHT".
     std::optional<std::string> sheet;
+    /// The scroller's stand, when the surface has one: where it has been left, what the content
+    /// says it holds, and the viewport it holds it in. A scroll question is settled with these,
+    /// and `state` is the read-only way to ask it (a `surface scroll` line moves to read).
+    std::optional<double> scrollY;
+    std::optional<double> scrollContentHeight;
+    std::optional<double> scrollViewportHeight;
+    /// How many items the scroller counts, when it is a view: the rows the content says it holds.
+    std::optional<int> scrollCount;
 };
 
 /// @brief What the desktop pet is doing, when this build has one to report.

@@ -55,6 +55,12 @@ std::optional<WordCache> readCache(nlohmann::json const& entry, std::string cons
         if (not entry["etymology"].is_string()) return std::nullopt;
         result.etymology = entry["etymology"].get<std::string>();
     }
+    // The part of speech, same shape as the origin: optional, and a wrong type is not fatal -- an
+    // entry that carries one draws it, and one that predates the field draws none.
+    if (entry.contains("pos")) {
+        if (not entry["pos"].is_string()) return std::nullopt;
+        result.pos = entry["pos"].get<std::string>();
+    }
     // Same shape as the origin, but kept apart: an absent field is "not asked", an empty one is "asked,
     // none given", and the two are not the same answer when the setting is on (docs/adr/0033).
     if (entry.contains("example")) {
@@ -109,6 +115,7 @@ nlohmann::json writeCache(WordCache const& entry)
 {
     nlohmann::json value{{"ipa", entry.ipa}, {"en", entry.en}, {"zh", entry.zh}};
     if (not entry.translation.empty()) value["translation"] = entry.translation;
+    if (not entry.pos.empty()) value["pos"] = entry.pos;
     if (not entry.etymology.empty()) value["etymology"] = entry.etymology;
     if (entry.example) value["example"] = *entry.example;
     if (not entry.signpost.empty()) value["signpost"] = entry.signpost;

@@ -17,8 +17,8 @@ import QtQuick
  */
 QtObject {
     /// @param key Which setting is being previewed: "speed", "language", "motherTongue",
-    ///        "multisense", "etymology", "example", "ipa", "signpost", "collocations", "font" or
-    ///        "fontSize".
+    ///        "multisense", "etymology", "example", "ipa", "pos", "signpost", "collocations",
+    ///        "font" or "fontSize".
     /// @param language For the "language" preview, the language the hovered row carries, which
     ///        this card is drawn in instead of the stored one; for the "motherTongue" preview,
     ///        the mother tongue whose peek line the card draws under its English definition.
@@ -50,6 +50,7 @@ QtObject {
             title: sample.word,
             type: "word",
             ipa: key === "ipa" || settings.ipa ? sample.ipa || "" : "",
+            pos: key === "pos" || settings.pos ? sample.pos || "" : "",
             // No verdict: the demo word is not a word the reader has met, and the tag row says so.
             status: "",
             en: "",

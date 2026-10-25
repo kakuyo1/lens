@@ -47,12 +47,15 @@ inline constexpr const char* kExampleFieldPlaceholder = "{exampleField}";
 /// Three of them answer for one shape of English and the fourth answers for the language itself:
 /// Translation is what any Chinese selection takes, whatever it would have been otherwise. Peek
 /// answers for the mother tongue in the same one-language way: one English word in, one line out,
-/// for the bubble's held globe (docs/adr/0112).
+/// for the bubble's held globe (docs/adr/0112). Sense answers for the bubble's Not-the-Sense?
+/// entry: one word and its already-shown senses in, one more distinct common sense out (or none,
+/// which is the exhaustion answer), so the card can switch senses without re-explaining the word.
 enum class Channel : std::uint8_t { Word = 0,
                                     Entity,
                                     Sentence,
                                     Translation,
                                     Peek,
+                                    Sense,
                                     Count };
 
 /// @brief One channel preset's system prompt, from `request.<channel>.json`.

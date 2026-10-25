@@ -402,6 +402,183 @@ TEST_F(LlmTest, Phase2ThePeekAsksTheModelInTheMotherTongueAndKeepsTheLineForTheS
     EXPECT_EQ(rig.manager.posts, 2) << "a line the session had already paid for was bought again";
 }
 
+/// The peek answers the sense the card is showing: a hold on a swapped sense asks for that
+/// sense's line -- the wire names the sense, and a Chinese mother tongue is answered by the pair
+/// the sense channel bought with the sense -- and the line comes back to the same sense on the
+/// second hold without the model being asked twice.
+TEST_F(LlmTest, Phase2ThePeekAnswersTheSenseTheCardIsShowing)
+{
+    QtApplication qt;
+    Rig           rig;
+    rig.explain("bank");
+
+    QVariantMap swapped;
+    QObject::connect(&rig.duty, &app::ExplanationDuty::senseSwapped, [&](QVariantMap map) { swapped = std::move(map); });
+    rig.manager.response =
+        envelope(QJsonArray{QJsonObject{{"word", "bank"}, {"senses", QJsonArray{QJsonObject{{"en", "the land beside a river"}, {"zh", "河岸"}, {"translation", "la orilla de un río"}, {"hint", "riverside"}}}}}});
+    QEventLoop swapLoop;
+    QObject::connect(&rig.duty, &app::ExplanationDuty::senseSwapped, &swapLoop, &QEventLoop::quit);
+    QTimer::singleShot(2000, &swapLoop, &QEventLoop::quit);
+    rig.duty.cycleSense();
+    swapLoop.exec();
+    ASSERT_EQ(swapped.value("index").toInt(), 1);
+
+    // A Spanish mother tongue goes to the peek channel, and the wire names the sense standing.
+    rig.storage.section().set<std::string>("motherTongue", "es");
+    QStringList lines;
+    QObject::connect(&rig.duty, &app::ExplanationDuty::peekArrived, [&](QString line) { lines.push_back(std::move(line)); });
+    rig.manager.response =
+        envelope(QJsonArray{QJsonObject{{"line", QStringLiteral("la orilla del río")}}});
+    QEventLoop peekLoop;
+    QObject::connect(&rig.duty, &app::ExplanationDuty::peekArrived, &peekLoop, &QEventLoop::quit);
+    QTimer::singleShot(2000, &peekLoop, &QEventLoop::quit);
+    rig.duty.requestPeek();
+    peekLoop.exec();
+
+    ASSERT_EQ(lines.size(), 1);
+    EXPECT_EQ(lines.front(), QStringLiteral("la orilla del río"));
+    const auto messages = QJsonDocument::fromJson(rig.manager.posted).object().value("messages").toArray();
+    EXPECT_EQ(messages.at(1).toObject().value("content").toString(),
+              QStringLiteral("bank\nsense: the land beside a river"))
+        << "the peek did not name the sense the card is showing";
+    // The second hold on the same sense is answered from the session.
+    rig.duty.requestPeek();
+    ASSERT_EQ(lines.size(), 2);
+    EXPECT_EQ(lines.back(), lines.front());
+    EXPECT_EQ(rig.manager.posts, 3) << "a line the session had already paid for was bought again";
+
+    // A Chinese mother tongue is answered by the pair the sense channel bought with the sense:
+    // the hold costs nothing, and the line is the swapped sense's own.
+    rig.storage.section().set<std::string>("motherTongue", "zh");
+    rig.duty.requestPeek();
+    ASSERT_EQ(lines.size(), 3);
+    EXPECT_EQ(lines.back(), QStringLiteral("河岸"));
+    EXPECT_EQ(rig.manager.posts, 3) << "a Chinese peek was bought when the sense already carried the pair";
+}
+
+/// The review card's life is the pointer's: a dismissal the row asks for while the pointer is on
+/// the card waits for it to leave, and the panel closing takes the card down held or not.
+TEST_F(LlmTest, Phase2AReviewCardStaysWhileThePointerIsOnIt)
+{
+    QtApplication qt;
+    Rig           rig;
+    rig.explain("bank");
+
+    rig.duty.reviewWord(QStringLiteral("bank"), {200, 400}, {60, 20});
+    EXPECT_EQ(rig.duty.bubble().value("title").toString(), QStringLiteral("bank"));
+
+    // The row's dismissal, with the pointer arrived on the card: it waits.
+    rig.duty.holdReviewCard(true);
+    rig.duty.dismissReview();
+    EXPECT_EQ(rig.duty.bubble().value("title").toString(), QStringLiteral("bank"))
+        << "the review card went while the pointer was on it";
+    // A second arrival report is not a second hold; the waiting dismissal still waits.
+    rig.duty.holdReviewCard(true);
+    EXPECT_EQ(rig.duty.bubble().value("title").toString(), QStringLiteral("bank"));
+
+    // The pointer leaving the card lands what waited.
+    rig.duty.holdReviewCard(false);
+    EXPECT_TRUE(rig.duty.bubble().isEmpty()) << "the dismissal outlived the pointer leaving the card";
+
+    // The panel closing is not the pointer leaving: it takes the card down held or not.
+    rig.duty.reviewWord(QStringLiteral("bank"), {200, 400}, {60, 20});
+    rig.duty.holdReviewCard(true);
+    rig.duty.dismissReviewNow();
+    EXPECT_TRUE(rig.duty.bubble().isEmpty()) << "a held review card outlived the panel closing";
+
+    // With the pointer never on it, the row's dismissal is the immediate one it always was.
+    rig.duty.reviewWord(QStringLiteral("bank"), {200, 400}, {60, 20});
+    rig.duty.dismissReview();
+    EXPECT_TRUE(rig.duty.bubble().isEmpty());
+}
+
+/// The Not-the-Sense? entry's cycle: the part of speech is a display switch over a stored field,
+/// the click asks the sense channel for the next distinct common sense, and past the last one
+/// the cycle turns back to the most common one without asking again.
+TEST_F(LlmTest, Phase2TheNotTheSenseEntryCyclesTheSensesTheSessionBought)
+{
+    QtApplication qt;
+    Rig           rig;
+
+    auto answer          = plainWord("bank");
+    answer["pos"]        = "noun";
+    answer["signpost"]   = "a place for money";
+    rig.manager.response = envelope({answer});
+    // The switch is a display one, the way the pronunciation's is: what was bought stays stored,
+    // and the card draws it or not as the setting stands when the card is drawn.
+    rig.store.document()["pos"] = "false";
+    rig.explain("bank");
+    EXPECT_EQ(rig.manager.posts, 1);
+    EXPECT_TRUE(rig.duty.bubble().value("pos").toString().isEmpty()) << "a part of speech was drawn with the switch off";
+
+    rig.duty.dismissBubble();
+    rig.store.document()["pos"] = "true";
+    rig.explain("bank");
+    EXPECT_EQ(rig.manager.posts, 1) << "the stored part of speech was bought a second time";
+    EXPECT_EQ(rig.duty.bubble().value("pos").toString(), QStringLiteral("noun"));
+    EXPECT_EQ(rig.duty.bubble().value("senseCycle").toBool(), true);
+    EXPECT_EQ(rig.duty.bubble().value("senseIndex").toInt(), 0);
+    EXPECT_TRUE(rig.duty.bubble().value("senseHint").toString().isEmpty())
+        << "the entry offered a word no request had paid for";
+
+    // The click asks for the next distinct common sense on the sense channel, with the senses
+    // already shown listed under the word, and the answer swaps the row in place.
+    QVariantMap swapped;
+    QObject::connect(&rig.duty, &app::ExplanationDuty::senseSwapped, [&](QVariantMap map) { swapped = std::move(map); });
+    rig.manager.response =
+        envelope(QJsonArray{QJsonObject{{"word", "bank"}, {"senses", QJsonArray{QJsonObject{{"en", "the land beside a river"}, {"zh", "河岸"}, {"hint", "riverside"}, {"imageable", true}, {"imageQuery", "river bank"}}}}}});
+    QEventLoop loop;
+    QObject::connect(&rig.duty, &app::ExplanationDuty::senseSwapped, &loop, &QEventLoop::quit);
+    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+    rig.duty.cycleSense();
+    loop.exec();
+
+    EXPECT_EQ(rig.manager.posts, 2);
+    const auto messages = QJsonDocument::fromJson(rig.manager.posted).object().value("messages").toArray();
+    EXPECT_TRUE(messages.at(0).toObject().value("content").toString().contains(QStringLiteral("\"hint\"")))
+        << "the sense channel went out without asking for the one-word label";
+    const auto user = messages.at(1).toObject().value("content").toString();
+    EXPECT_TRUE(user.contains(QStringLiteral("bank")) && user.contains(QStringLiteral("- English")))
+        << "the wire payload dropped the word or the sense already shown";
+    ASSERT_FALSE(swapped.isEmpty());
+    EXPECT_EQ(swapped.value("index").toInt(), 1);
+    EXPECT_EQ(swapped.value("hint").toString(), QString()) << "the entry offered a sense that was not bought yet";
+    EXPECT_EQ(swapped.value("row").toMap().value("en").toString(), QStringLiteral("the land beside a river"));
+    EXPECT_EQ(swapped.value("signpost").toString(), QStringLiteral("riverside"))
+        << "the swapped sense carried no label of its own";
+    EXPECT_EQ(rig.duty.bubble().value("senses").toList().at(0).toMap().value("en").toString(),
+              QStringLiteral("the land beside a river"))
+        << "the payload stopped agreeing with the card";
+
+    // The next click asks again, and a whole answer without a sense has said there is nothing
+    // further: the entry offers the way back to the most common sense instead.
+    rig.manager.response = envelope(QJsonArray{QJsonObject{{"word", "bank"}, {"senses", QJsonArray{}}}});
+    QEventLoop exhaustedLoop;
+    QObject::connect(&rig.duty, &app::ExplanationDuty::senseSwapped, &exhaustedLoop, &QEventLoop::quit);
+    QTimer::singleShot(2000, &exhaustedLoop, &QEventLoop::quit);
+    rig.duty.cycleSense();
+    exhaustedLoop.exec();
+
+    EXPECT_EQ(rig.manager.posts, 3);
+    EXPECT_EQ(swapped.value("index").toInt(), 1) << "an exhausted cycle still moved onto a sense it did not have";
+    EXPECT_EQ(swapped.value("exhausted").toBool(), true);
+    EXPECT_EQ(swapped.value("hint").toString(), QStringLiteral("a place for money"))
+        << "the way back to the first sense carried no label for it";
+
+    // And the turn itself is the session's: no third request is paid for a rotation.
+    rig.duty.cycleSense();
+    EXPECT_EQ(rig.manager.posts, 3);
+    EXPECT_EQ(swapped.value("index").toInt(), 0);
+    EXPECT_EQ(swapped.value("row").toMap().value("en").toString(), QStringLiteral("English"));
+    EXPECT_EQ(swapped.value("hint").toString(), QStringLiteral("riverside"));
+
+    // With multiple senses on, the rows are the selector themselves: the entry has no cycle to move.
+    rig.storage.section().set<std::string>("multiSense", "true");
+    rig.duty.cycleSense();
+    EXPECT_EQ(rig.manager.posts, 3) << "a cycle was moved while the rows were the selector";
+    EXPECT_EQ(swapped.value("index").toInt(), 0);
+}
+
 TEST_F(LlmTest, Phase2TheEtymologySettingBringsTheOriginAlongAndKeepsItOutOfTheKey)
 {
     QtApplication qt;

@@ -67,6 +67,9 @@ Window {
     property string title: ""
     property string type: "" ///< "word", "entity", or "sentence".
     property string ipa: "" ///< Pronunciation in slashes, beside the word (app_controller.h).
+    /// The most common sense's part of speech, drawn after the pronunciation (UI-SPEC.md 4.3).
+    /// Empty whenever the answer had none or the display switch is off.
+    property string pos: ""
     property string english: ""
     property string chinese: ""
     property string translation: ""
@@ -101,6 +104,17 @@ Window {
     /// when it arrived. Main.qml sets it from the duty's peekArrived; the card draws it while the
     /// hold lasts, and a different card starts over without it.
     property string peekLine: ""
+
+    /// The Not-the-Sense? entry's state (UI-SPEC.md 4.3), as the duty's cycle holds it: whether
+    /// the entry is offered at all, and the word it offers next -- the way back past the last
+    /// sense. The duty's senseSwapped carries the changes, and a card drawn fresh starts at the
+    /// answer's own sense.
+    property bool   senseCycle: false
+    property string senseHint: ""
+    /// Whether a swapped sense has been drawn. From then on the card's fields draw whole: the
+    /// reader has already read this card once, and writing a switched sense out a character at
+    /// a time would stand between the click and the sense it asked for.
+    property bool senseSwappedOnce: false
 
     /// Whether the Known and New buttons are drawn. The card a review's answer raises is the reader's to read, not to
     /// mark (UI-SPEC.md 4.13); the status tag above the title still says what the word is.
@@ -159,9 +173,12 @@ Window {
         const generation = ++showGeneration;
         // A different card has not asked for a peek line: the one on the card was answered for
         // the word that stood before it. The payload itself may carry one -- the mother-tongue
-        // row the settings preview draws under -- and that line wins.
-        if (payload.sameCard !== true)
+        // row the settings preview draws under -- and that line wins. A different card has also
+        // not had a sense swapped onto it.
+        if (payload.sameCard !== true) {
             peekLine = payload.peekLine || "";
+            senseSwappedOnce = false;
+        }
         pendingPayload = payload;
         pendingWasVisible = wasVisible;
         pendingGeneration = generation;
@@ -186,6 +203,7 @@ Window {
         title = payload.title || "";
         type = payload.type || "";
         ipa = payload.ipa || "";
+        pos = payload.pos || "";
         english = payload.en || "";
         chinese = payload.zh || "";
         translation = payload.translation || "";
@@ -193,6 +211,8 @@ Window {
         example = payload.example || "";
         senses = payload.senses || [];
         status = payload.status || "";
+        senseCycle = payload.senseCycle === true;
+        senseHint = payload.senseHint || "";
         countsDown = payload.countsDown !== false;
         reveal = payload.reveal !== false;
         verdictButtons = payload.verdictButtons !== false;
@@ -220,6 +240,29 @@ Window {
     function dismiss() {
         countdown.stop();
         surfaceShown = false;
+    }
+
+    /// @brief Draw what the duty's sense cycle now shows, in place.
+    ///
+    /// The Not-the-Sense? entry's answer: the row's texts and pictures swap where they stand and
+    /// the window is not re-placed -- the card is where the reader left it, and pulling it back
+    /// to its anchor would take it away from them. The entry's own fields follow the map either
+    /// way, so a hint that lands without a switch still reaches the card.
+    function applySense(swap) {
+        senseCycle = swap.cycle !== false;
+        senseHint = swap.hint || "";
+        const row = swap.row;
+        if (row === undefined)
+            return;
+        senseSwappedOnce = true;
+        senses = [row];
+        signpost = swap.signpost || "";
+        // The peek line on the card answered the sense before the swap; the next hold asks for
+        // the swapped sense's own line, and the stale one does not stay to be read as it.
+        peekLine = "";
+        // The strip belongs to the sense: open, it follows the row's own query, and a sense with
+        // none takes it down.
+        content.followSense(row.imageQuery || "");
     }
 
     Timer {

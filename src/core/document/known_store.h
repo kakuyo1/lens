@@ -66,8 +66,11 @@ struct CacheKey {
 ///       the example setting on has to buy it again (docs/adr/0033). An empty string means the model
 ///       was asked and had none to give, which is a settled answer and is not asked for again.
 struct WordCache {
-    std::string                ipa, en, zh;
-    std::string                translation;
+    std::string ipa, en, zh;
+    std::string translation;
+    /// The most common sense's part of speech, one lowercase English word. Optional like the
+    /// origin: absent from every entry written before the field existed, and not a reason to drop one.
+    std::string                pos;
     std::string                etymology;
     std::optional<std::string> example;
     /// Optional, like the origin: an entry bought before the chain existed has none, and offers no chain step.

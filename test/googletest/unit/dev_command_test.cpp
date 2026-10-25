@@ -92,6 +92,41 @@ TEST(DevCommandParse, SurfaceScrollPinsTheContentPosition)
     }
 }
 
+TEST(DevCommandParse, SurfaceWheelTurnsTheReadersOwnTicks)
+{
+    auto const down = parseCommand("surface wheel words 30");
+    ASSERT_TRUE(down.command);
+    EXPECT_EQ(down.command->verb, Verb::SurfaceWheel);
+    EXPECT_EQ(down.command->surface, "words");
+    EXPECT_EQ(down.command->wheelSteps, 30);
+
+    // Up is the same gesture the other way: the sign is the whole difference.
+    auto const up = parseCommand("surface wheel words -30");
+    ASSERT_TRUE(up.command);
+    EXPECT_EQ(up.command->wheelSteps, -30);
+
+    // The touchpad's shape of the same gesture: pixel deltas in phases, and the momentum a
+    // Flickable keeps up when the fingers lift.
+    auto const pad = parseCommand("surface wheel words 12 pad");
+    ASSERT_TRUE(pad.command);
+    EXPECT_EQ(pad.command->wheelSteps, 12);
+    EXPECT_TRUE(pad.command->wheelPad);
+
+    for (auto const* line : {
+             "surface wheel nowhere 30",
+             "surface wheel words 0",
+             "surface wheel words 2.5",
+             "surface wheel words",
+             "surface wheel words 30 extra",
+             "surface wheel words 12 taps",
+             "surface wheel words 12 pad extra",
+         }) {
+        auto const parsed = parseCommand(line);
+        EXPECT_FALSE(parsed.command) << line;
+        EXPECT_FALSE(parsed.error.empty()) << line;
+    }
+}
+
 TEST(DevCommandParse, WaitReadsItsConditionAndSurface)
 {
     auto const painted = parseCommand("wait painted:settings");

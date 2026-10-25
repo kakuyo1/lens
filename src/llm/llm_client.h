@@ -50,16 +50,18 @@ struct ExplainRequest {
 /// @note `imageable` and `imageQuery` are the picture advice the word channel carries:
 ///       whether a photograph can make this sense clearer, and the two-to-five English words an
 ///       image search runs with. Advisory only; `imageable` false, the default and the reading of
-///       an absent field, draws no picture entry.
+///       an absent field, draws no picture entry. `hint` is the sense channel's one English word
+///       for the sense, and stays empty for senses that came from the word channel.
 struct Sense {
     QString en, zh, translation;
+    QString hint;
     bool    imageable = false;
     QString imageQuery;
 };
 
 inline bool operator==(Sense const& a, Sense const& b)
 {
-    return a.en == b.en and a.zh == b.zh and a.translation == b.translation and
+    return a.en == b.en and a.zh == b.zh and a.translation == b.translation and a.hint == b.hint and
            a.imageable == b.imageable and a.imageQuery == b.imageQuery;
 }
 
@@ -76,6 +78,7 @@ inline constexpr int kMaxSenses = 3;
 struct Explanation {
     QString        title, ipa, en, zh;
     QString        translation;
+    QString        pos; ///< The most common sense's part of speech, one lowercase English word. Optional like `ipa`.
     QString        etymology;
     QString        example;
     QVector<Sense> senses;
@@ -94,8 +97,8 @@ struct Explanation {
 inline bool operator==(Explanation const& a, Explanation const& b)
 {
     return a.title == b.title and a.ipa == b.ipa and a.en == b.en and a.zh == b.zh and
-           a.translation == b.translation and a.etymology == b.etymology and a.example == b.example and
-           a.senses == b.senses and a.signpost == b.signpost and
+           a.translation == b.translation and a.pos == b.pos and a.etymology == b.etymology and
+           a.example == b.example and a.senses == b.senses and a.signpost == b.signpost and
            a.collocations == b.collocations and a.imageable == b.imageable and
            a.imageQuery == b.imageQuery;
 }
@@ -189,7 +192,22 @@ public:
     /// that bought nothing owes the reader no notice.
     /// @param lemma    The word, as the standing card names it.
     /// @param language The mother tongue's catalog code; picks the prompt's closing line.
-    void peekWord(QString const& lemma, QString const& language);
+    /// @param sense    The English definition of the sense the card is showing, when it is not the
+    ///                 answer's own first one: the line then answers for that sense alone rather
+    ///                 than for the word's most common one (UI-SPEC.md 4.3, the sense cycle).
+    void peekWord(QString const& lemma, QString const& language, QString const& sense = {});
+
+    /// @brief Ask for the next distinct common sense of a word whose senses are already known.
+    ///
+    /// The sense channel is what the bubble's Not-the-Sense? entry asks for: the word on the first
+    /// line of @p input and the senses already shown under it, one sense back, or an empty answer
+    /// when the listed senses are all the word has. Like the peek it does not stream and rides its
+    /// own signal, and it fails quietly: the definition on the card is the reader's answer either
+    /// way, and the entry is the one thing that says there was nothing more to buy.
+    /// @param lemma    The word, as the standing card names it; echoed back unchanged.
+    /// @param input    The wire payload: the lemma, then one already-known definition per line.
+    /// @param language The explanation language's catalog code; picks the prompt's closing line.
+    void nextSenseWord(QString const& lemma, QString const& input, QString const& language);
 
 signals:
     /// @brief Emitted with the validated explanations, in the order the words were asked for.
@@ -199,6 +217,12 @@ signals:
     /// @brief The peek's answer for @p lemma: @p line, empty when the request failed or was
     ///        refused. @p usage carries the call's token counts, all zero when it never went out.
     void peekAnswered(QString const& lemma, QString const& line, Usage usage);
+
+    /// @brief The sense channel's answer for @p lemma. An @p answer whose `senses` is empty is the
+    ///        exhaustion answer -- the word has no further distinct common sense -- and is also
+    ///        what a failed or refused request reports, the peek's quietness carried over.
+    ///        @p usage carries the call's token counts, all zero when it never went out.
+    void senseAnswered(QString const& lemma, Explanation const& answer, Usage usage);
 
     /// @brief Emitted while the answer is still arriving, with whatever has been written so far.
     ///

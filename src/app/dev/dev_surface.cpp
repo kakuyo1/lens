@@ -14,11 +14,15 @@
 #include "util/log.h"
 
 #include <QCoreApplication>
+#include <QEventLoop>
 #include <QFile>
 #include <QMetaObject>
 #include <QPoint>
+#include <QQuickItem>
 #include <QQuickWindow>
+#include <QThread>
 #include <QVariant>
+#include <QWheelEvent>
 #include <QWindow>
 
 #include <nlohmann/json.hpp>
@@ -49,12 +53,13 @@ void exitWhenRunning(int code)
     QTimer::singleShot(0, [code] { QCoreApplication::exit(code); });
 }
 
-/// A surface's opening function on Main.qml. The ones that take `from` are given the undefined value, which is what a
-/// command has in place of the element a click came from.
+/// A surface's opening function on Main.qml, and how many arguments the call passes. The first is
+/// the undefined value a command has in place of the element a click came from; a method with
+/// further parameters takes the same undefined for each, which is what its own defaults key on.
 struct Opener {
     std::string_view surface;
     char const*      method;
-    bool             takesFrom;
+    int              args;
 };
 
 /// How many rows carry a dev opener. Counted, not written: the openers are the surface table's rows
@@ -75,7 +80,7 @@ constexpr std::array<Opener, openerCount()> kOpeners = [] {
     std::size_t                       index = 0;
     for (lens::core::surface::Row const& row : lens::core::surface::kRows)
         if (row.open != nullptr)
-            openers[index++] = Opener{.surface = row.name, .method = row.open, .takesFrom = row.takesFrom};
+            openers[index++] = Opener{.surface = row.name, .method = row.open, .args = row.openArity};
     return openers;
 }();
 
@@ -113,6 +118,36 @@ nlohmann::json success()
 nlohmann::json failure(std::string error)
 {
     return {{"ok", false}, {"error", std::move(error)}};
+}
+
+/// @return The surface's first scroller, found through the public meta objects alone: the
+///         flickable headers are private, but contentY is a Q_PROPERTY any QObject can read. A
+///         ListView and the other scrollers derive from QQuickFlickable, so the name walk
+///         reaches them too.
+QObject* scrollerOf(QObject const* window)
+{
+    auto isFlickable = [](QMetaObject const* meta) {
+        for (auto const* m = meta; m != nullptr; m = m->superClass())
+            if (qstrcmp(m->className(), "QQuickFlickable") == 0)
+                return true;
+        return false;
+    };
+    for (QObject* const child : window->findChildren<QObject*>())
+        if (isFlickable(child->metaObject()))
+            return child;
+    return nullptr;
+}
+
+/// @return The scroller's numbers a scroll question is settled with: what the content says it
+///         holds, where it stands and -- for a view -- how many rows it counts.
+nlohmann::json scrollerFacts(QObject const* scroller)
+{
+    nlohmann::json facts{{"contentY", scroller->property("contentY").toDouble()},
+                         {"contentHeight", scroller->property("contentHeight").toDouble()},
+                         {"viewportHeight", scroller->property("height").toDouble()}};
+    if (const QVariant count = scroller->property("count"); count.isValid())
+        facts["count"] = count.toInt();
+    return facts;
 }
 
 /// The value of `--name=value` on the command line, when there is one.
@@ -252,6 +287,8 @@ nlohmann::json DevSurface::execute(core::dev::Command const& command)
             return route(command.surface, command.target);
         case core::dev::Verb::SurfaceScroll:
             return scroll(command.surface, command.scrollY);
+        case core::dev::Verb::SurfaceWheel:
+            return wheel(command.surface, command.wheelSteps, command.wheelPad);
         case core::dev::Verb::State:
             return state();
         case core::dev::Verb::Version:
@@ -281,9 +318,16 @@ nlohmann::json DevSurface::show(std::string const& surface)
     auto* const host = panelHost();
     if (host == nullptr)
         return failure("surface show " + surface + ": SurfaceHost is not present");
-    bool const invoked = opener->takesFrom
+    // The argument count has to match the method's parameters exactly: QMetaObject::invokeMethod
+    // resolves a QML function by name and arity together, and a call one short of them answers
+    // "not callable" for a surface the table claims to open. Every argument is the undefined a
+    // command has in place of the element a click came from, which is what the methods' own
+    // default handling keys on.
+    bool const invoked = opener->args == 0
+                             ? QMetaObject::invokeMethod(host, opener->method)
+                         : opener->args == 1
                              ? QMetaObject::invokeMethod(host, opener->method, Q_ARG(QVariant, QVariant()))
-                             : QMetaObject::invokeMethod(host, opener->method);
+                             : QMetaObject::invokeMethod(host, opener->method, Q_ARG(QVariant, QVariant()), Q_ARG(QVariant, QVariant()));
     return invoked ? success() : failure("surface show " + surface + ": " + opener->method + " is not callable");
 }
 
@@ -340,22 +384,7 @@ nlohmann::json DevSurface::scroll(std::string const& surface, int y) const
     // so the line would answer with a state the next show throws away.
     if (auto const* const surfaceWindow = qobject_cast<QQuickWindow*>(target); surfaceWindow != nullptr and not surfaceWindow->isVisible())
         return failure("surface scroll " + surface + ": the surface is down; show it first");
-    // The surface's first Flickable, found through the public meta objects alone: the flickable
-    // headers are private, but contentY is a Q_PROPERTY any QObject can write. A ListView and the
-    // other scrollers derive from QQuickFlickable, so the name walk reaches them too.
-    QObject* scroller    = nullptr;
-    auto     isFlickable = [](QMetaObject const* meta) {
-        for (auto const* m = meta; m != nullptr; m = m->superClass())
-            if (qstrcmp(m->className(), "QQuickFlickable") == 0)
-                return true;
-        return false;
-    };
-    for (QObject* const child : target->findChildren<QObject*>()) {
-        if (isFlickable(child->metaObject())) {
-            scroller = child;
-            break;
-        }
-    }
+    QObject* scroller = scrollerOf(target);
     if (scroller == nullptr)
         return failure("surface scroll " + surface + ": the surface has nothing that scrolls");
     const double contentHeight = scroller->property("contentHeight").toDouble();
@@ -363,7 +392,68 @@ nlohmann::json DevSurface::scroll(std::string const& surface, int y) const
     const double lowest        = std::max(0.0, contentHeight - height);
     const double pinned        = std::min(std::max(0.0, static_cast<double>(y)), lowest);
     scroller->setProperty("contentY", pinned);
-    return success();
+    // The answer carries the scroller as it stands after the pin, the numbers a scroll question
+    // is settled with: a content taller than its rows can account for is a bug the pin has just
+    // exposed, and reading it off the answer keeps the pointer out of the run (docs/qa.md).
+    nlohmann::json answer = success();
+    answer.merge_patch(scrollerFacts(scroller));
+    return answer;
+}
+
+nlohmann::json DevSurface::wheel(std::string const& surface, int steps, bool const pad)
+{
+    auto* const target = window(surface);
+    if (target == nullptr)
+        return failure("surface wheel " + surface + ": no such window");
+    auto* const surfaceWindow = qobject_cast<QQuickWindow*>(target);
+    if (surfaceWindow == nullptr or not surfaceWindow->isVisible())
+        return failure("surface wheel " + surface + ": the surface is down; show it first");
+    QObject* scroller = scrollerOf(target);
+    if (scroller == nullptr)
+        return failure("surface wheel " + surface + ": the surface has nothing that scrolls");
+    auto* const item = qobject_cast<QQuickItem*>(scroller);
+    if (item == nullptr)
+        return failure("surface wheel " + surface + ": the scroller is not an item");
+    // The wheel arrives on the scroller's own centre, the way a reader's does, and travels the
+    // same delivery a real wheel takes -- the window's event handling, the handlers on the items
+    // under it, the Flickable's own bounds. A pinned contentY (surface scroll) proves the numbers;
+    // this proves the gesture.
+    const QPointF centre = item->mapToScene(QPointF(item->width() / 2, item->height() / 2));
+    const QPointF global = surfaceWindow->mapToGlobal(centre.toPoint());
+    // Rising timestamps, the one thing the delivery reads the gesture's speed from: every event
+    // posted in one turn would otherwise read as one instant, and a touchpad's momentum with it.
+    quint64    timestamp = 0;
+    const auto post      = [&](QPoint const& pixel, QPoint const& angle, Qt::ScrollPhase phase) {
+        QWheelEvent wheelEvent(centre, global, pixel, angle, Qt::NoButton, Qt::NoModifier, phase, /*inverted=*/false);
+        wheelEvent.setTimestamp(timestamp);
+        QCoreApplication::sendEvent(surfaceWindow, &wheelEvent);
+        timestamp += 16; // one frame apart, a two-finger swipe's own pace
+    };
+    if (not pad) {
+        const QPoint tick{0, steps > 0 ? -120 : 120}; // one notch: down turns the content up
+        for (int turned = 0; turned < std::abs(steps); ++turned)
+            post(QPoint(), tick, Qt::NoScrollPhase);
+    } else {
+        // A touchpad's swipe: phases around the deltas, pixel units rather than notches, and a
+        // momentum the Flickable itself keeps up once the fingers lift (the End). Spaced by real
+        // time and flushed between events, the way a swipe's own pace arrives: posted in one turn
+        // the gesture reads as one instant, and the smooth-scroll animation coalesces it into a
+        // single step instead of the run of them a reader's fingers make.
+        post(QPoint(), QPoint(), Qt::ScrollBegin);
+        // Pixel deltas on this delivery scroll down with a positive y, the touchpad's own axis.
+        const QPoint stride{0, steps > 0 ? 48 : -48}; // pixels per frame, a deliberate swipe
+        for (int turned = 0; turned < std::abs(steps); ++turned) {
+            QThread::msleep(12);
+            QCoreApplication::processEvents(QEventLoop::AllEvents);
+            post(stride, QPoint(), Qt::ScrollUpdate);
+        }
+        QThread::msleep(12);
+        QCoreApplication::processEvents(QEventLoop::AllEvents);
+        post(QPoint(), QPoint(), Qt::ScrollEnd);
+    }
+    nlohmann::json answer = success();
+    answer.merge_patch(scrollerFacts(scroller));
+    return answer;
 }
 
 nlohmann::json DevSurface::injectSelection(core::dev::Command const& command)
@@ -444,6 +534,15 @@ nlohmann::json DevSurface::state() const
             auto const region = backdropSheet->sheet();
             if (not region.isEmpty())
                 surface.sheet = std::to_string(region.width()) + "x" + std::to_string(region.height());
+        }
+        // The scroller's stand, read without moving anything: `state` is the read-only half of the
+        // scroll questions, the half a `surface scroll` line answers by moving to it.
+        if (auto const* const scroller = scrollerOf(window(key)); scroller != nullptr) {
+            surface.scrollY              = scroller->property("contentY").toDouble();
+            surface.scrollContentHeight  = scroller->property("contentHeight").toDouble();
+            surface.scrollViewportHeight = scroller->property("height").toDouble();
+            if (const QVariant counted = scroller->property("count"); counted.isValid())
+                surface.scrollCount = counted.toInt();
         }
         input.surfaces.push_back(std::move(surface));
     }

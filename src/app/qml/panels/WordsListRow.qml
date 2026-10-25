@@ -39,7 +39,7 @@ Item {
     // every delegate, so ListView's add/remove transitions never run. `visible` follows the
     // animation, not the filter, so a row on its way out is still drawn while it collapses; `clip`
     // keeps its contents off the rows it is collapsing between.
-    height: shown ? 31 : 0
+    height: shown ? entry.host.rowHeight : 0
     visible: shown || height > 0
     opacity: shown ? 1 : 0
     clip: true
@@ -72,10 +72,21 @@ Item {
         }
     }
 
+    /// The dismissal a pointer leaving the word asks for, held back the moment it takes to move
+    /// from the word onto the card above it. The card reports the arrival itself
+    /// (holdReviewCard), and a dismissal that lands while the pointer is on the card waits for it
+    /// to leave instead -- the entry at the card's foot is there to be pressed, and it cannot be
+    /// pressed by a pointer the word's exit has already chased away.
+    Timer {
+        id: reviewGrace
+        interval: 260
+        onTriggered: Controller.explanationDuty.dismissReview()
+    }
+
     /// The row is going away -- a filter change rebuilds every delegate -- and a bubble it raised
     /// must not outlive it. This is the pointer leaving in every sense but the event: a destroyed
-    /// delegate reports no un-hover.
-    Component.onDestruction: Controller.explanationDuty.dismissReview()
+    /// delegate reports no un-hover, so the grace has nothing left to wait for.
+    Component.onDestruction: Controller.explanationDuty.dismissReviewNow()
 
     Text {
         id: wordText
@@ -100,11 +111,15 @@ Item {
                 if (hovered) {
                     // The dwell: a pointer crossing the list on its way
                     // somewhere else is not asking about every word it passes.
+                    // The grace goes with it: a pointer coming back to the word
+                    // has not left the reading, and the dismissal it started by
+                    // leaving is not one it still wants.
+                    reviewGrace.stop();
                     reviewDwell.restart();
                     return;
                 }
                 reviewDwell.stop();
-                Controller.explanationDuty.dismissReview();
+                reviewGrace.restart();
             }
         }
     }

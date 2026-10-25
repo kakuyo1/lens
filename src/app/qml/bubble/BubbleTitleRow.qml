@@ -24,6 +24,10 @@ Item {
 
     required property string title
     required property string ipa
+    /// The most common sense's part of speech, one lowercase English word, drawn in small
+    /// capitals after the pronunciation (UI-SPEC.md 4.3). Empty whenever the answer had none or
+    /// the display switch is off.
+    property string pos: ""
     /// The family the word is drawn in (UI-SPEC.md 4.4); the caller's own face is an empty name.
     property string family: ""
     /// The multiple the pair is drawn at, from the reader's font-size setting (UI-SPEC.md 4.4): the
@@ -43,11 +47,16 @@ Item {
     /// children whether they are visible or not.
     height: root.visible ? wordText.implicitHeight : 0
 
+    /// Where a label after the pronunciation starts: the pronunciation's own end when it is
+    /// drawn, the word's otherwise.
+    readonly property real labelX: ipaText.visible ? ipaText.x + ipaText.implicitWidth : wordText.width
+
     Text {
         id: wordText
-        // What is left once the pronunciation has its room: a word with none left ends in an
-        // ellipsis rather than running under its own IPA.
-        width: Math.min(implicitWidth, root.width - (ipaText.visible ? ipaText.implicitWidth + 7 : 0))
+        // What is left once the pronunciation and the part of speech have their room: a word
+        // with none left ends in an ellipsis rather than running under its own IPA.
+        width: Math.min(implicitWidth, root.width - (ipaText.visible ? ipaText.implicitWidth + 7 : 0)
+                                                    - (posText.visible ? posText.implicitWidth + 7 : 0))
         topPadding: 8
         text: root.title
         color: root.tokens.text
@@ -73,5 +82,21 @@ Item {
         color: root.tokens.faint
         family: root.family
         pixelSize: Math.round(13 * root.scale) // the prototype's 12.5 px, as the definition line rounds it
+    }
+
+    Text {
+        id: posText
+        // After the pronunciation, on the same baseline, the way the prototype sets the pair:
+        // small mono capitals, the metadata step down from the word like the pronunciation is.
+        x: root.labelX + 7
+        y: wordText.baselineOffset - baselineOffset
+        visible: root.pos !== ""
+        wrapMode: Text.NoWrap
+        text: root.pos
+        color: root.tokens.faint
+        font.pixelSize: Math.round(9.5 * root.scale) // the prototype's 9.5 px
+        font.family: root.tokens.monoFamily
+        font.capitalization: Font.AllUppercase
+        font.letterSpacing: 0.8
     }
 }

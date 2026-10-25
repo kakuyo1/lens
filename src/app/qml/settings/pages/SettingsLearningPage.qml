@@ -176,6 +176,18 @@ Item {
                 onPreviewChanged: (key) => root.previewRequested(key)
             }
 
+            // Beside the pronunciation, where a dictionary prints it: the part of speech is the
+            // other half of how a word is named, and its switch reads like the pronunciation's.
+            SwitchRow {
+                width: parent.width
+                objectName: "posSwitch"
+                label: qsTranslate("SettingsPopup", "Part of speech")
+                checked: root.settings.pos
+                previewKey: "pos"
+                onToggled: (on) => Controller.setSetting("pos", on)
+                onPreviewChanged: (key) => root.previewRequested(key)
+            }
+
             SwitchRow {
                 width: parent.width
                 objectName: "signpostSwitch"

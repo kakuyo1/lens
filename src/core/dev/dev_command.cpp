@@ -264,8 +264,29 @@ Parse parseCommand(std::string_view line)
                 return refuse("surface scroll takes a whole position of zero or more: " + std::string{tokens[3]});
             return accept({.verb = Verb::SurfaceScroll, .surface = std::string{tokens[2]}, .scrollY = *y});
         }
+        if (args == 3 and tokens[1] == "wheel") {
+            if (not isSurfaceName(tokens[2]))
+                return refuse("unknown surface: " + std::string{tokens[2]});
+            auto const steps = intOf(tokens[3]);
+            if (not steps or *steps == 0)
+                return refuse("surface wheel takes a nonzero whole number of ticks: " + std::string{tokens[3]});
+            return accept({.verb = Verb::SurfaceWheel, .surface = std::string{tokens[2]}, .wheelSteps = *steps});
+        }
+        if (args == 4 and tokens[1] == "wheel") {
+            // The touchpad's own gesture: pixel deltas in scroll phases, the shape a Flickable
+            // answers with momentum. Whether the surface has anything to scroll stays the
+            // window's to answer, as every scroll line's is.
+            if (not isSurfaceName(tokens[2]))
+                return refuse("unknown surface: " + std::string{tokens[2]});
+            if (tokens[4] != "pad")
+                return refuse("surface wheel takes pad, not " + std::string{tokens[4]} + ": " + std::string{line});
+            auto const steps = intOf(tokens[3]);
+            if (not steps or *steps == 0)
+                return refuse("surface wheel takes a nonzero whole number of ticks: " + std::string{tokens[3]});
+            return accept({.verb = Verb::SurfaceWheel, .surface = std::string{tokens[2]}, .wheelSteps = *steps, .wheelPad = true});
+        }
         if (args != 2 or (tokens[1] != "show" and tokens[1] != "hide"))
-            return refuse("surface takes show <name>, hide <name>, hide-all, route <name> <target> or scroll <name> <y>");
+            return refuse("surface takes show <name>, hide <name>, hide-all, route <name> <target>, scroll <name> <y> or wheel <name> <ticks> [pad]");
         if (not isSurfaceName(tokens[2]))
             return refuse("unknown surface: " + std::string{tokens[2]});
         auto const shown = tokens[1] == "show";
@@ -302,6 +323,10 @@ nlohmann::json stateJson(StateInput const& input)
             {"publishes", orNull(surface.publishes)},
             {"live", orNull(surface.live)},
             {"sheet", orNull(surface.sheet)},
+            {"scrollY", orNull(surface.scrollY)},
+            {"scrollContentHeight", orNull(surface.scrollContentHeight)},
+            {"scrollViewportHeight", orNull(surface.scrollViewportHeight)},
+            {"scrollCount", orNull(surface.scrollCount)},
         });
     }
     auto pet = nlohmann::json{};
@@ -338,6 +363,7 @@ nlohmann::json helpJson()
                          "surface hide-all",
                          "surface route <name> <category>[/<page>]",
                          "surface scroll <name> <y>",
+                         "surface wheel <name> <ticks> [pad]",
                          "wait visible:<name> | hidden:<name> | painted:<name> | <n>s",
                          "selection <x>,<y>,<w>,<h> \"<text>\"",
                          "setting set <name> <value>",

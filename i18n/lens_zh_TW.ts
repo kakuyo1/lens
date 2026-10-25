@@ -4,37 +4,43 @@
 <context>
     <name>BubbleCard</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="204"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="218"/>
         <source>Preview</source>
         <translation>預覽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="205"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="219"/>
         <source>Sentence</source>
         <translation>句子</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="206"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="220"/>
         <source>Known</source>
         <translation>已會</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="206"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="220"/>
         <source>New</source>
         <translation>新詞</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="358"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="378"/>
         <source>Etymology</source>
         <translation>詞源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="397"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="417"/>
         <source>Example</source>
         <translation>例句</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="443"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="481"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="524"/>
+        <source>Not the Sense?</source>
+        <translation>不是這個義項？</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="550"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒後自動消失</translation>
     </message>
@@ -321,112 +327,117 @@
 <context>
     <name>SettingsPopup</name>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="306"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="308"/>
         <source>Saved</source>
         <translation>已儲存</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="314"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="316"/>
         <source>Defaults restored</source>
         <translation>已還原預設</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="412"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="414"/>
         <source>Back</source>
         <translation>返回</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="468"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="470"/>
         <source>Close</source>
         <translation>關閉</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="574"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="576"/>
         <source>Confirm</source>
         <translation>確認</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="602"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="604"/>
         <source>API key and launch at login stay as they are.</source>
         <translation>API key 與開機時啟動保持不變。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="102"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="424"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="426"/>
         <source>Settings</source>
         <translation>設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="42"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="50"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="45"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="53"/>
         <source>Vocabulary level</source>
         <translation>詞彙等級</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="66"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="74"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="69"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="77"/>
         <source>Mother tongue</source>
         <translation>母語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="85"/>
         <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="93"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="101"/>
         <source>Explanation language</source>
         <translation>解釋語言</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="112"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="120"/>
         <source>Card content</source>
         <translation>詞卡內容</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="119"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="127"/>
         <source>Multiple senses</source>
         <translation>多義解釋</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="131"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="139"/>
         <source>Etymology</source>
         <translation>詞源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="141"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="149"/>
         <source>Example sentence</source>
         <translation>例句</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="156"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="164"/>
         <source>Word details</source>
         <translation>詞卡細節</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="164"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="172"/>
         <source>IPA</source>
         <translation>音標</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="174"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="184"/>
+        <source>Part of speech</source>
+        <translation>詞性</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="194"/>
         <source>Signpost</source>
         <translation>義項路標</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="184"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="204"/>
         <source>Collocations</source>
         <translation>搭配</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="196"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="216"/>
         <source>Pictures</source>
         <translation>圖片</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="206"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="215"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="226"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="235"/>
         <source>Word review</source>
         <translation>單字複習</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="227"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="247"/>
         <source>Unavailable while the pet is off.</source>
         <translation>寵物關閉時不可用。</translation>
     </message>
@@ -686,7 +697,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="486"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="82"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="84"/>
         <source>Account &amp; sync</source>
         <translation>帳號與同步</translation>
     </message>
@@ -709,7 +720,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="261"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="560"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="562"/>
         <source>Defaults</source>
         <translation>還原預設</translation>
     </message>
@@ -774,7 +785,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="154"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="80"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="82"/>
         <source>Popup &amp; clipboard</source>
         <translation>彈出視窗與剪貼簿</translation>
     </message>
@@ -812,13 +823,13 @@
         <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="52"/>
         <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="86"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="38"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="72"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="74"/>
         <source>Daily budget</source>
         <translation>每日預算</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="18"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="68"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="70"/>
         <source>General</source>
         <translation>一般</translation>
     </message>
@@ -829,7 +840,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="23"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="69"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="71"/>
         <source>Reading &amp; learning</source>
         <translation>閱讀學習</translation>
     </message>
@@ -840,13 +851,13 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="28"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="70"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="72"/>
         <source>Capture &amp; popups</source>
         <translation>取詞與彈出視窗</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="33"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="71"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="73"/>
         <source>Model service</source>
         <translation>模型服務</translation>
     </message>
@@ -862,7 +873,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="43"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="73"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="75"/>
         <source>Extensions</source>
         <translation>擴充功能</translation>
     </message>
@@ -875,7 +886,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="48"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="74"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="76"/>
         <source>About</source>
         <translation>關於</translation>
     </message>
@@ -966,7 +977,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="101"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="81"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="83"/>
         <source>API configuration</source>
         <translation>API 設定</translation>
     </message>
@@ -1903,7 +1914,7 @@
         <location filename="../src/app/qml/pet/PetPackageDialog.qml" line="115"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="152"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="295"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="583"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="585"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
@@ -1977,7 +1988,7 @@
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="51"/>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="59"/>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="481"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="79"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="81"/>
         <source>Font</source>
         <translation>字型</translation>
     </message>
@@ -2528,22 +2539,22 @@
         <translation>每 1–2 小時</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="260"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="283"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>目前解釋語言下沒有已存的釋義。</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="262"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="285"/>
         <source>Explain now</source>
         <translation>現在解釋</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="469"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="656"/>
         <source>Explaining…</source>
         <translation>正在解釋…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="604"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="829"/>
         <source>Request failed</source>
         <translation>請求失敗</translation>
     </message>
@@ -2610,12 +2621,12 @@
 <context>
     <name>lens::llm</name>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="562"/>
+        <location filename="../src/llm/llm_pure.cpp" line="576"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>模型返回的內容不是一個 JSON 物件。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="568"/>
+        <location filename="../src/llm/llm_pure.cpp" line="582"/>
         <source>The model&apos;s answer carries no choices.</source>
         <translation>模型返回的內容裡沒有 choices。</translation>
     </message>
@@ -2640,34 +2651,34 @@
         <translation>模型返回的內容裡沒有 results 陣列。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="383"/>
+        <location filename="../src/llm/llm_pure.cpp" line="386"/>
         <source>One of the results entries is not an object.</source>
         <translation>results 裡有一項不是物件。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="446"/>
+        <location filename="../src/llm/llm_pure.cpp" line="460"/>
         <source>A results entry has an empty field (title=%1).</source>
         <translation>results 裡有一項欄位為空（title=%1）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="478"/>
-        <location filename="../src/llm/llm_pure.cpp" line="522"/>
+        <location filename="../src/llm/llm_pure.cpp" line="492"/>
+        <location filename="../src/llm/llm_pure.cpp" line="536"/>
         <source>The model echoed %1 result(s) for the %2 that were asked for.</source>
         <translation>請求了 %2 項，模型回傳了 %1 項。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="388"/>
+        <location filename="../src/llm/llm_pure.cpp" line="391"/>
         <source>A results entry does not match the response schema.</source>
         <translation>results 中有一項不符合回應 schema。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="423"/>
-        <location filename="../src/llm/llm_pure.cpp" line="440"/>
+        <location filename="../src/llm/llm_pure.cpp" line="430"/>
+        <location filename="../src/llm/llm_pure.cpp" line="454"/>
         <source>The requested explanation language is missing.</source>
         <translation>缺少請求的解釋語言。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="533"/>
+        <location filename="../src/llm/llm_pure.cpp" line="547"/>
         <source>The model never echoed &quot;%1&quot;.</source>
         <translation>模型沒有回傳 “%1”。</translation>
     </message>
@@ -2725,48 +2736,48 @@
 <context>
     <name>lens::llm::LlmClient</name>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="110"/>
+        <location filename="../src/llm/llm_client.cpp" line="113"/>
         <source>Enter an API key first.</source>
         <translation>請先填寫 API key。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="114"/>
+        <location filename="../src/llm/llm_client.cpp" line="117"/>
         <source>Choose a model first.</source>
         <translation>請先選擇模型。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="118"/>
+        <location filename="../src/llm/llm_client.cpp" line="121"/>
         <source>Enter a service address that starts with https://.</source>
         <translation>請填寫以 https:// 開頭的服務地址。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="167"/>
+        <location filename="../src/llm/llm_client.cpp" line="170"/>
         <source>Could not reach the service. Check the address and your connection.</source>
         <translation>無法連線到服務，請檢查地址和網路連線。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="180"/>
+        <location filename="../src/llm/llm_client.cpp" line="183"/>
         <source>The service answered, but not like a model. Check the address.</source>
         <translation>服務有回應，但返回的不像模型回應，請檢查地址。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="184"/>
+        <location filename="../src/llm/llm_client.cpp" line="187"/>
         <source>Connected. The key and model are accepted.</source>
         <translation>連線成功，API key 與模型均被接受。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="193"/>
+        <location filename="../src/llm/llm_client.cpp" line="196"/>
         <source>There is nothing to look up.</source>
         <translation>沒有待查內容。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="201"/>
+        <location filename="../src/llm/llm_client.cpp" line="204"/>
         <source>The API key is missing.</source>
         <translation>未設定 API 金鑰。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="246"/>
-        <location filename="../src/llm/llm_client.cpp" line="251"/>
+        <location filename="../src/llm/llm_client.cpp" line="249"/>
+        <location filename="../src/llm/llm_client.cpp" line="254"/>
         <source>The request could not reach the service: %1</source>
         <translation>請求未能送達服務：%1</translation>
     </message>

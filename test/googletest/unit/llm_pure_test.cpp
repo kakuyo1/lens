@@ -609,10 +609,80 @@ TEST_F(LlmTest, ThePeekPromptAsksInTheMotherTongueAndNeverStreams)
             buildRequestBody(config, Channel::Peek, {"serendipity"}, codes.at(i), "default"));
         const auto prompt = body.object().value("messages").toArray().at(0).toObject().value("content").toString();
         EXPECT_TRUE(prompt.contains(expectations.at(i)));
+        // The prompt knows the sense line a hold on a swapped sense names: without the sentence,
+        // the line would read as part of the word and the answer would answer anything.
+        EXPECT_TRUE(prompt.contains("sense:")) << "the prompt does not know the sense line";
         const auto user = body.object().value("messages").toArray().at(1).toObject().value("content").toString();
         EXPECT_EQ(user, QStringLiteral("serendipity"));
         EXPECT_FALSE(body.object().value("stream").toBool());
     }
+}
+
+/// The part of speech rides the word answer the way the pronunciation does: read when it is
+/// there, absent without failing the batch, and previewed while it is still arriving.
+TEST_F(LlmTest, ReadsThePartOfSpeechAndShrugsWithoutIt)
+{
+    const QString withPos =
+        QStringLiteral(R"({"word":"spring","ipa":"/sprɪŋ/","pos":"noun","en":"the season","zh":"春季"})");
+    const auto parsed = parseExplanations(Channel::Word, envelope(results(withPos)), {"spring"});
+    ASSERT_TRUE(accepted(parsed)) << errorOf(parsed).toStdString();
+    EXPECT_EQ(std::get<QVector<Explanation>>(parsed).at(0).pos, QStringLiteral("noun"));
+
+    const auto bare = parseExplanations(Channel::Word, envelope(results(kGoodResult)), kAskedFor);
+    ASSERT_TRUE(accepted(bare)) << errorOf(bare).toStdString();
+    EXPECT_EQ(std::get<QVector<Explanation>>(bare).at(0).pos, QString());
+
+    // A stream carries it like any other string field: whole once its quotes have closed.
+    const QString content = results(withPos);
+    const auto    partial = parsePartialExplanation(Channel::Word, content.left(content.indexOf(QStringLiteral("\"pos\""))));
+    EXPECT_TRUE(partial.pos.isEmpty());
+    const auto arrived = parsePartialExplanation(Channel::Word, content);
+    EXPECT_EQ(arrived.pos, QStringLiteral("noun"));
+}
+
+/// The sense channel answers the Not-the-Sense? entry: one more distinct common sense with its
+/// one-word hint, stamped with the asked-for word like the peek's line is.
+TEST_F(LlmTest, TheSenseChannelAcceptsOneSenseWithItsHint)
+{
+    const QString content =
+        QStringLiteral(R"({"results":[{"word":"crane","senses":[{"en":"a large bird with long legs","zh":"鹤","hint":"bird","imageable":true,"imageQuery":"crane bird"}]}]})");
+    const auto parsed = parseExplanations(Channel::Sense, envelope(content), {"crane"}, "en", false);
+    ASSERT_TRUE(accepted(parsed)) << errorOf(parsed).toStdString();
+    const auto& explanation = std::get<QVector<Explanation>>(parsed).at(0);
+    ASSERT_EQ(explanation.senses.size(), 1);
+    EXPECT_EQ(explanation.senses.front().en, QStringLiteral("a large bird with long legs"));
+    EXPECT_EQ(explanation.senses.front().hint, QStringLiteral("bird"));
+    EXPECT_EQ(explanation.senses.front().imageQuery, QStringLiteral("crane bird"));
+    EXPECT_EQ(explanation.title, QStringLiteral("crane")) << "the app stamps the asked-for word on";
+}
+
+/// Past the last sense the model answers with the same shape and nothing in `senses`. That is
+/// the exhaustion answer the duty retires the entry on -- not a failure the batch dies of.
+TEST_F(LlmTest, TheSenseChannelReadsAnEmptySensesArrayAsTheExhaustionAnswer)
+{
+    const auto parsed = parseExplanations(
+        Channel::Sense, envelope(QStringLiteral(R"({"results":[{"word":"crane","senses":[]}]})")), {"crane"});
+    ASSERT_TRUE(accepted(parsed)) << errorOf(parsed).toStdString();
+    EXPECT_TRUE(std::get<QVector<Explanation>>(parsed).at(0).senses.isEmpty());
+
+    // A sense without its definitions is still refused: the entry has nothing to swap in.
+    EXPECT_FALSE(accepted(parseExplanations(
+        Channel::Sense, envelope(QStringLiteral(R"({"results":[{"word":"crane","senses":[{"en":"a bird"}]}]})")), {"crane"})));
+}
+
+TEST_F(LlmTest, TheSensePromptAsksForOneMoreSenseWithAHintAndNeverStreams)
+{
+    const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
+    const auto   body = QJsonDocument::fromJson(
+        buildRequestBody(config, Channel::Sense, {QStringLiteral("crane\n- a tall machine with a long arm")}, "en"));
+    const auto& root = body.object();
+    EXPECT_FALSE(root.value("stream").toBool()) << "the entry's answer is drawn whole or not at all";
+    const auto system = root.value("messages").toArray().at(0).toObject().value("content").toString();
+    const auto user   = root.value("messages").toArray().at(1).toObject().value("content").toString();
+    EXPECT_TRUE(system.contains("\"hint\"")) << "the prompt never asks for the one-word label";
+    EXPECT_TRUE(system.contains("\"senses\"")) << "the prompt shows no format example";
+    EXPECT_TRUE(user.contains(QStringLiteral("crane")) && user.contains(QStringLiteral("- a tall machine")))
+        << "the user message dropped the word or the senses already shown";
 }
 
 TEST_F(LlmTest, FoldsSeveralEntityOrSentenceResultsIntoTheOneRequested)

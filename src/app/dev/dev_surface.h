@@ -78,6 +78,14 @@ private:
     nlohmann::json route(std::string const& surface, std::string const& target) const;
     /// @brief Pin the surface's scroller to a content position, the state a reader's wheel leaves behind (docs/adr/0105).
     nlohmann::json scroll(std::string const& surface, int y) const;
+    /// @brief Turn @p steps of wheel on the surface's scroller, through the delivery a real wheel takes.
+    ///
+    /// The events are posted to the surface's own window, on the scroller's centre, so the gesture
+    /// runs the same path a reader's wheel does -- the items under it, their handlers, the
+    /// Flickable's own bounds -- and the answer carries where the scroller ended up. With @p pad,
+    /// the ticks are a touchpad's: pixel deltas in scroll phases, the gesture a Flickable answers
+    /// with its own momentum.
+    nlohmann::json wheel(std::string const& surface, int steps, bool pad);
     /// @brief Start the selection pipeline with the text the command gives, so the clipboard is not read.
     nlohmann::json injectSelection(core::dev::Command const& command);
     /// @brief Store one whitelisted setting through the same setter the settings page's control calls.

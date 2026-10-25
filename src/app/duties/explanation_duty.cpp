@@ -9,6 +9,7 @@
 #include <QCoreApplication>
 #include <QGuiApplication>
 
+#include <algorithm>
 #include <utility>
 
 #include "core/domain/filter_core.h"
@@ -25,6 +26,14 @@ QString nowMinute()
     return QString::fromStdString(util::localMinuteNow());
 }
 
+/// @brief The key a word's sense cycle lives under: the explanation language names it, because a
+///        sense is an answer in a language, and the lemma because the cycles outlive the cards.
+///        Neither part carries the separator on its own.
+QString cycleKey(QString const& language, QString const& lemma)
+{
+    return language + QLatin1Char('|') + lemma;
+}
+
 llm::Explanation fromCache(core::WordCache const& cached, QString const& lemma)
 {
     llm::Explanation result{lemma,
@@ -32,6 +41,7 @@ llm::Explanation fromCache(core::WordCache const& cached, QString const& lemma)
                             QString::fromStdString(cached.en),
                             QString::fromStdString(cached.zh),
                             QString::fromStdString(cached.translation)};
+    result.pos        = QString::fromStdString(cached.pos);
     result.etymology  = QString::fromStdString(cached.etymology);
     result.signpost   = QString::fromStdString(cached.signpost);
     result.imageable  = cached.imageable;
@@ -57,6 +67,7 @@ ExplanationDuty::ExplanationDuty(StorageDuty& storage, llm::LlmClient& llm, Cost
     connect(&llm_, &llm::LlmClient::failed, this, &ExplanationDuty::onFailed);
     connect(&llm_, &llm::LlmClient::partial, this, &ExplanationDuty::onPartial);
     connect(&llm_, &llm::LlmClient::peekAnswered, this, &ExplanationDuty::onPeekAnswered);
+    connect(&llm_, &llm::LlmClient::senseAnswered, this, &ExplanationDuty::onNextSenseAnswered);
 }
 
 void ExplanationDuty::onPartial(llm::Explanation partial)
@@ -128,6 +139,7 @@ void ExplanationDuty::onBatchFinished(QVector<llm::Explanation> results, llm::Us
                                .en          = result.en.toStdString(),
                                .zh          = result.zh.toStdString(),
                                .translation = result.translation.toStdString(),
+                               .pos         = result.pos.toStdString(),
                                .etymology   = result.etymology.toStdString(),
                                .example     = settlement.batch.example ? std::optional{result.example.toStdString()} : std::nullopt,
                                .signpost    = result.signpost.toStdString(),
@@ -180,6 +192,25 @@ void ExplanationDuty::invalidateWord(QString const& lemma)
     if (value.isEmpty())
         return;
     queue_.invalidate(value);
+    // The senses the cycle bought for the word are answers about a word that no longer exists:
+    // they go with the cache entry, and a request out for one is left without a home. The peek
+    // lines the session bought are the same answers' other half, and go with them.
+    for (auto it = cycles_.begin(); it != cycles_.end();) {
+        if (it.key().endsWith(QLatin1Char('|') + value))
+            it = cycles_.erase(it);
+        else
+            ++it;
+    }
+    for (auto it = peekLines_.begin(); it != peekLines_.end();) {
+        if (it.key().section(QLatin1Char('|'), 1).section(QLatin1Char('#'), 0, 0) == value)
+            it = peekLines_.erase(it);
+        else
+            ++it;
+    }
+    if (senseRequestKey_.endsWith(QLatin1Char('|') + value)) {
+        senseRequestKey_.clear();
+        senseRequestAdvances_ = false;
+    }
     if (QString::compare(bubble_.value("title").toString(), value, Qt::CaseInsensitive) == 0)
         clearBubble();
 }
@@ -276,7 +307,38 @@ void ExplanationDuty::showReviewAnswer(QString const& lemma, QPoint const anchor
 void ExplanationDuty::dismissReview()
 {
     if (not reviewRaised_) return;
+    // A pointer on the card is reading it -- and the entry at its foot is there to be pressed --
+    // so the dismissal waits for the pointer to leave the card, which the card itself reports.
+    if (reviewCardHeld_) {
+        reviewDismissPending_ = true;
+        return;
+    }
     clearBubble();
+}
+
+void ExplanationDuty::dismissReviewNow()
+{
+    reviewDismissPending_ = false;
+    if (not reviewRaised_) return;
+    clearBubble();
+}
+
+void ExplanationDuty::holdReviewCard(bool const on)
+{
+    if (reviewCardHeld_ == on)
+        return;
+    reviewCardHeld_ = on;
+    if (on) {
+        // The pointer arrived on the card: whatever dismissal was waiting for it to leave the
+        // word is obsolete -- the reader moved onto the card, not away from the reading.
+        reviewDismissPending_ = false;
+        return;
+    }
+    // The pointer has now left the card as well: a dismissal that waited for it lands.
+    if (reviewDismissPending_ and reviewRaised_) {
+        reviewDismissPending_ = false;
+        clearBubble();
+    }
 }
 
 void ExplanationDuty::explainLemma(QString lemma)
@@ -360,11 +422,26 @@ void ExplanationDuty::requestPeek()
         return;
     const QString lemma = bubbleSubject_.lemma;
 
+    // The line answers the sense the card is showing, not the word in the abstract: a swapped
+    // sense is as far from the answer's own first one as the card has moved, and the peek has to
+    // move with it (UI-SPEC.md 4.3, the sense cycle).
+    QString     cycleKey;
+    SenseCycle* cycle      = standingCycle(cycleKey);
+    const int   senseIndex = cycle ? cycle->index : 0;
+
     // The word channel always buys the Chinese pair along with the explanation, so a Chinese
     // mother tongue is answered by the entry the standing card came from: the reader held a globe
     // the answer had already paid for. The cache is keyed by the explanation language, which is
-    // exactly the English the globe exists under.
+    // exactly the English the globe exists under. A swapped sense carries its own pair -- the
+    // sense channel's answer bought it with the definition -- and that is the one drawn.
     if (mother == QLatin1String("zh")) {
+        if (cycle and senseIndex > 0) {
+            const QString swapped = cycle->senses.value(senseIndex).zh;
+            if (not swapped.trimmed().isEmpty()) {
+                emit peekArrived(swapped);
+                return;
+            }
+        }
         const auto found = cache_.look(lemma.toStdString(), cache_.contextFor(core::SelectionKind::Word));
         if (found.state != core::ExplanationCache::State::Missing and not found.entry.zh.empty()) {
             emit peekArrived(QString::fromStdString(found.entry.zh));
@@ -372,7 +449,9 @@ void ExplanationDuty::requestPeek()
         }
     }
     // A line this session has paid for is the second hold's answer, not the model's to sell twice.
-    const QString key  = mother + QLatin1Char('|') + lemma;
+    // The key carries the sense it was bought for: a line bought under the first sense does not
+    // answer a hold on the third one, and coming back to a sense finds its line waiting.
+    const QString key  = mother + QLatin1Char('|') + lemma + (senseIndex > 0 ? QLatin1Char('#') + QString::number(senseIndex) : QString{});
     const auto    held = peekLines_.constFind(key);
     if (held != peekLines_.cend()) {
         emit peekArrived(*held);
@@ -384,7 +463,9 @@ void ExplanationDuty::requestPeek()
         LENS_DEBUG("the peek for '{}' waits: today's budget is spent", lemma.toStdString());
         return;
     }
-    llm_.peekWord(lemma, mother);
+    peekKey_        = key;
+    peekSenseIndex_ = senseIndex;
+    llm_.peekWord(lemma, mother, cycle and senseIndex > 0 ? cycle->senses.value(senseIndex).en : QString{});
 }
 
 void ExplanationDuty::onPeekAnswered(QString const& lemma, QString const& line, llm::Usage const usage)
@@ -392,14 +473,191 @@ void ExplanationDuty::onPeekAnswered(QString const& lemma, QString const& line, 
     cost_.recordUsage(nowMinute().toStdString(), usage);
     if (line.trimmed().isEmpty())
         return;
-    peekLines_.insert(motherTongue() + QLatin1Char('|') + lemma, line);
-    if (not bubble_.isEmpty() and bubbleSubject_.kind == core::SelectionKind::Word and not bubbleSubject_.chain and bubbleSubject_.lemma == lemma)
-        emit peekArrived(line);
+    // Stored under the key the request went out with, which names the sense the line answers for;
+    // the reader may have swapped onto another sense while it was on its way, and a line drawn
+    // then would answer the sense next to the one on the card.
+    const QString key      = not peekKey_.isEmpty() ? peekKey_ : motherTongue() + QLatin1Char('|') + lemma;
+    const int     forSense = peekSenseIndex_;
+    peekKey_.clear();
+    peekSenseIndex_ = 0;
+    peekLines_.insert(key, line);
+    if (not bubble_.isEmpty() and bubbleSubject_.kind == core::SelectionKind::Word and not bubbleSubject_.chain and bubbleSubject_.lemma == lemma) {
+        QString     standingKey;
+        SenseCycle* standing = standingCycle(standingKey);
+        if ((standing != nullptr and standing->index == forSense) or (standing == nullptr and forSense == 0))
+            emit peekArrived(line);
+    }
 }
 
 QString ExplanationDuty::motherTongue() const
 {
     return QString::fromStdString(storage_.section().value<std::string>("motherTongue", "zh"));
+}
+
+QString ExplanationDuty::nextSenseHint(SenseCycle const& cycle) const
+{
+    // Still on the wire: the entry stands with its offer and no word under it yet.
+    if (cycle.fetching)
+        return {};
+    const int count = cycle.senses.size();
+    if (count <= 1 and cycle.exhausted)
+        return {};
+    // Past the last sense the cycle turns back to the most common one, and the entry says so
+    // with the first sense's own label.
+    const int next = cycle.exhausted ? (cycle.index + 1) % count : cycle.index + 1;
+    return next < count ? cycle.hints.at(next) : QString{};
+}
+
+ExplanationDuty::SenseCycle* ExplanationDuty::standingCycle(QString& keyOut)
+{
+    if (bubble_.isEmpty() or bubbleSubject_.kind != core::SelectionKind::Word or bubbleSubject_.chain)
+        return nullptr;
+    // With multiple senses on the rows are the selector themselves: the entry is the
+    // single-sense card's, whatever the request that raised this card was captured under.
+    if (storage_.section().value<bool>("multiSense", false))
+        return nullptr;
+    const QString key   = cycleKey(QString::fromStdString(cache_.readerContext().language), bubbleSubject_.lemma);
+    const auto    found = cycles_.find(key);
+    if (found == cycles_.end())
+        return nullptr;
+    keyOut = key;
+    return &found.value();
+}
+
+void ExplanationDuty::requestNextSense(SenseCycle& cycle, QString const& key, bool const advanceOnArrival)
+{
+    if (cycle.fetching)
+        return;
+    // Out of budget the click buys nothing and says nothing: the definition on the card is the
+    // reader's answer either way, the same quiet the held peek keeps (docs/adr/0112).
+    if (not cost_.canRequest()) {
+        LENS_DEBUG("the next sense of '{}' waits: today's budget is spent", bubbleSubject_.lemma.toStdString());
+        return;
+    }
+    // The wire payload: the word, then the senses already shown, one per line, most frequent
+    // first -- the list the model is asked to add to, in English whatever the card reads.
+    QStringList known;
+    for (auto const& sense : cycle.senses)
+        known << QLatin1String("- ") + sense.en;
+    cycle.fetching        = true;
+    senseRequestKey_      = key;
+    senseRequestAdvances_ = advanceOnArrival;
+    LENS_INFO("asking for the next sense of '{}' ({} known, advance={})", bubbleSubject_.lemma.toStdString(), cycle.senses.size(), advanceOnArrival);
+    llm_.nextSenseWord(bubbleSubject_.lemma,
+                       bubbleSubject_.lemma + QLatin1Char('\n') + known.join(QLatin1Char('\n')),
+                       QString::fromStdString(cache_.readerContext().language));
+}
+
+void ExplanationDuty::cycleSense()
+{
+    QString     key;
+    SenseCycle* cycle = standingCycle(key);
+    if (cycle == nullptr)
+        return;
+    int next = cycle->index + 1;
+    if (next >= cycle->senses.size()) {
+        if (cycle->exhausted) {
+            if (cycle->senses.size() <= 1)
+                return; // the entry that has nowhere to go is not drawn, and a stray press does nothing
+            next = 0;
+        } else {
+            // The sense the click asks for has not been bought yet: the request goes out and
+            // the answer switches the card onto it when it lands.
+            requestNextSense(*cycle, key, /*advanceOnArrival=*/true);
+            return;
+        }
+    }
+    cycle->index = next;
+    emitSenseSwapped(*cycle, key);
+}
+
+void ExplanationDuty::ensureNextSense()
+{
+    QString     key;
+    SenseCycle* cycle = standingCycle(key);
+    if (cycle == nullptr or cycle->fetching or cycle->exhausted)
+        return;
+    if (cycle->index + 1 < cycle->senses.size())
+        return; // the word the hover would fill the entry with is already known
+    requestNextSense(*cycle, key, /*advanceOnArrival=*/false);
+}
+
+void ExplanationDuty::onNextSenseAnswered(QString const& lemma, llm::Explanation const& answer, llm::Usage const usage)
+{
+    cost_.recordUsage(nowMinute().toStdString(), usage);
+    const QString key     = senseRequestKey_;
+    const bool    advance = senseRequestAdvances_;
+    senseRequestKey_.clear();
+    senseRequestAdvances_ = false;
+    if (key.isEmpty())
+        return;
+    const auto found = cycles_.find(key);
+    if (found == cycles_.end())
+        return;
+    SenseCycle& cycle = found.value();
+    cycle.fetching    = false;
+    if (answer.senses.isEmpty()) {
+        // An answer that reached the model and came back whole without a sense has said there is
+        // nothing further; one that carries no usage at all never got that far, and the entry
+        // stays up to ask again.
+        if (usage.promptTokens == 0 and usage.completionTokens == 0) {
+            LENS_DEBUG("the next sense of '{}' was refused; the entry stays", lemma.toStdString());
+            return;
+        }
+        cycle.exhausted = true;
+        LENS_INFO("the model has no further sense for '{}'", lemma.toStdString());
+    } else {
+        const llm::Sense& sense = answer.senses.front();
+        // A model that repeats a listed sense has said "nothing further" in the shape of a
+        // definition; the repetition is the exhaustion answer, not a sixth sense.
+        const bool known = std::any_of(cycle.senses.cbegin(), cycle.senses.cend(), [&sense](llm::Sense const& existing) { return existing.en == sense.en; });
+        if (known) {
+            cycle.exhausted = true;
+            LENS_INFO("the model repeated a sense of '{}'; the cycle is exhausted", lemma.toStdString());
+        } else {
+            cycle.senses.push_back(sense);
+            cycle.hints.push_back(sense.hint);
+        }
+    }
+    // A click's answer switches the card onto the sense it brought; a hover's only fills the
+    // entry. Neither moves a cycle that was exhausted on the way.
+    if (advance and not cycle.exhausted and cycle.index + 1 < cycle.senses.size())
+        cycle.index += 1;
+    // The swap belongs to a single-sense card: the reader who turned multiple senses on while
+    // the request was away has rows to read, and a one-row payload would take them away.
+    if (not bubble_.isEmpty() and bubbleSubject_.kind == core::SelectionKind::Word and not bubbleSubject_.chain and bubbleSubject_.lemma == lemma and
+        not storage_.section().value<bool>("multiSense", false))
+        emitSenseSwapped(cycle, key);
+}
+
+void ExplanationDuty::emitSenseSwapped(SenseCycle const& cycle, QString const& key)
+{
+    const QString     language     = key.left(key.indexOf(QLatin1Char('|')));
+    const bool        showSignpost = showsCardBlock("signpost");
+    const bool        showPictures = showsCardBlock("pictures");
+    const llm::Sense& sense        = cycle.senses.at(cycle.index);
+    const QString     label        = cycle.index == 0 ? cycle.hints.at(0) : sense.hint;
+    QString const     senseEnglish = language == "en" ? sense.en : QString{};
+    QVariantMap       row{{"en", senseEnglish},
+                          {"spans", spansOf(senseEnglish)},
+                          {"text", language == "en" ? QString{} : language == "zh" ? sense.zh
+                                                                                   : sense.translation},
+                          {"imageable", showPictures && sense.imageable},
+                          {"imageQuery", showPictures ? sense.imageQuery : QString{}}};
+    // The payload keeps agreeing with the card, so a refresh of the same card -- a verdict, a
+    // replay -- draws the sense the reader moved to, not the answer's own first one.
+    bubble_.insert(QStringLiteral("senses"), QVariantList{row});
+    bubble_.insert(QStringLiteral("signpost"), showSignpost ? label : QString{});
+    bubble_.insert(QStringLiteral("senseCycle"), not(cycle.exhausted and cycle.senses.size() <= 1));
+    bubble_.insert(QStringLiteral("senseIndex"), cycle.index);
+    bubble_.insert(QStringLiteral("senseHint"), nextSenseHint(cycle));
+    bubble_.insert(QStringLiteral("senseExhausted"), cycle.exhausted);
+    emit senseSwapped(QVariantMap{{"cycle", not(cycle.exhausted and cycle.senses.size() <= 1)},
+                                  {"index", cycle.index},
+                                  {"hint", nextSenseHint(cycle)},
+                                  {"exhausted", cycle.exhausted},
+                                  {"row", row},
+                                  {"signpost", label}});
 }
 
 void ExplanationDuty::explain(PendingSelection const& pending)
@@ -531,36 +789,73 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
     if (isWordKind(selection.kind)) {
         // Display switches, read as the card is drawn: the answer keeps every field, and these
         // decide only which of them reach the payload (see settings_table.h).
-        const bool   showIpa          = showsCardBlock("ipa");
-        const bool   showSignpost     = showsCardBlock("signpost");
-        const bool   showCollocations = showsCardBlock("collocations");
-        const bool   showPictures     = showsCardBlock("pictures");
-        QVariantList senses;
-        auto         entries = explanation.senses;
-        if (entries.isEmpty()) entries.push_back({explanation.en, explanation.zh, explanation.translation, explanation.imageable, explanation.imageQuery});
-        for (const auto& sense : entries) {
-            if (senses.size() >= (context.multipleSenses ? llm::kMaxSenses : 1)) break;
-            // One language a row, the reader's own and no other: the explanation language answers
-            // "which language do I read this in", and a sense drawn in two of them answers it
-            // twice (UI-SPEC.md 4.3). A row carries the English definition when English was asked
-            // for and the reader's language otherwise -- the same pair the singular definition
-            // above the sense list is drawn from, and `multipleSenses` decides only how many rows
-            // there are.
+        const bool showIpa          = showsCardBlock("ipa");
+        const bool showSignpost     = showsCardBlock("signpost");
+        const bool showCollocations = showsCardBlock("collocations");
+        const bool showPictures     = showsCardBlock("pictures");
+        const bool showPos          = showsCardBlock("pos");
+        // One language a row, the reader's own and no other: the explanation language answers
+        // "which language do I read this in", and a sense drawn in two of them answers it
+        // twice (UI-SPEC.md 4.3). A row carries the English definition when English was asked
+        // for and the reader's language otherwise -- the same pair the singular definition
+        // above the sense list is drawn from.
+        const auto rowOf = [&](llm::Sense const& sense) {
             QString const senseEnglish = context.language == "en" ? sense.en : QString{};
-            senses.append(QVariantMap{{"en", senseEnglish},
-                                      {"spans", spansOf(senseEnglish)},
-                                      {"text", context.language == "en" ? QString{} : selected(sense.en, sense.zh, sense.translation)},
-                                      // The picture advice for this row: the card draws a Pictures entry only
-                                      // for a row whose `imageable` is true, and the duty runs the search
-                                      // with `imageQuery`. Neither follows the
-                                      // explanation language; the Pictures switch is what clears them here.
-                                      {"imageable", showPictures && sense.imageable},
-                                      {"imageQuery", showPictures ? sense.imageQuery : QString{}}});
+            return QVariantMap{{"en", senseEnglish},
+                               {"spans", spansOf(senseEnglish)},
+                               {"text", context.language == "en" ? QString{} : selected(sense.en, sense.zh, sense.translation)},
+                               // The picture advice for this row: the card draws a Pictures entry only
+                               // for a row whose `imageable` is true, and the duty runs the search
+                               // with `imageQuery`. Neither follows the
+                               // explanation language; the Pictures switch is what clears them here.
+                               {"imageable", showPictures && sense.imageable},
+                               {"imageQuery", showPictures ? sense.imageQuery : QString{}}};
+        };
+        QVariantList senses;
+        if (context.multipleSenses) {
+            // The rows are the sense selector themselves (UI-SPEC.md 4.3), and there is no
+            // Not-the-Sense? entry beside them to be one.
+            auto entries = explanation.senses;
+            if (entries.isEmpty())
+                entries.push_back({explanation.en, explanation.zh, explanation.translation, QString{}, explanation.imageable, explanation.imageQuery});
+            for (const auto& sense : entries) {
+                if (senses.size() >= llm::kMaxSenses)
+                    break;
+                senses.append(rowOf(sense));
+            }
+            payload.insert(QStringLiteral("senseCycle"), false);
+            payload.insert(QStringLiteral("senseIndex"), 0);
+            payload.insert(QStringLiteral("senseHint"), QString{});
+            payload.insert(QStringLiteral("senseExhausted"), false);
+        } else {
+            // The one sense the card draws is the Not-the-Sense? entry's to move (UI-SPEC.md 4.3):
+            // the cycle keeps the senses this session has bought for the word, the answer's own
+            // first, and the card draws the one at the cycle's index. A fresh draw of the card
+            // restarts it -- what is arriving, on the wire or out of the cache, is the most
+            // common sense's to write, and the senses already bought wait under the same key.
+            SenseCycle&      cycle = cycles_[cycleKey(QString::fromStdString(context.language), selection.lemma)];
+            const llm::Sense own{explanation.en, explanation.zh, explanation.translation, QString{}, explanation.imageable, explanation.imageQuery};
+            if (cycle.senses.isEmpty()) {
+                cycle.senses.push_back(own);
+                // The first sense's label is the signpost the answer already carried: past the
+                // last sense the entry offers the reader the way back to it.
+                cycle.hints.push_back(explanation.signpost);
+            } else {
+                cycle.senses[0] = own;
+                cycle.hints[0]  = explanation.signpost;
+            }
+            cycle.index = 0;
+            senses.append(rowOf(cycle.senses.at(cycle.index)));
+            payload.insert(QStringLiteral("senseCycle"), not(cycle.exhausted and cycle.senses.size() <= 1));
+            payload.insert(QStringLiteral("senseIndex"), cycle.index);
+            payload.insert(QStringLiteral("senseHint"), nextSenseHint(cycle));
+            payload.insert(QStringLiteral("senseExhausted"), cycle.exhausted);
         }
         payload.insert(QStringLiteral("senses"), senses);
         payload.insert(QStringLiteral("ipa"), showIpa ? explanation.ipa : QString{});
         payload.insert(QStringLiteral("spans"), spansOf(english));
         payload.insert(QStringLiteral("signpost"), showSignpost ? explanation.signpost : QString{});
+        payload.insert(QStringLiteral("pos"), showPos ? explanation.pos : QString{});
         QVariantList collocations;
         if (showCollocations)
             for (auto const& collocation : explanation.collocations)
@@ -580,7 +875,9 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
     // Whatever raised this bubble, the one the pointer's row put up is no longer standing: a scan
     // bubble must not be taken down by the pointer leaving a word the reader has moved on from.
     // The held exit goes with it -- this bubble is the reading now.
-    reviewRaised_ = false;
+    reviewRaised_         = false;
+    reviewCardHeld_       = false;
+    reviewDismissPending_ = false;
     clearNotice();
     emit bubbleChanged();
     if (notifyPet)
@@ -615,8 +912,10 @@ void ExplanationDuty::clearBubble()
 {
     // Every way a bubble goes -- the countdown, the cross, a deletion, a notice replacing it --
     // leaves nothing for the pointer to be holding afterwards.
-    reviewRaised_  = false;
-    bubbleSubject_ = PendingSelection{};
+    reviewRaised_         = false;
+    reviewCardHeld_       = false;
+    reviewDismissPending_ = false;
+    bubbleSubject_        = PendingSelection{};
     if (bubble_.isEmpty()) return;
     bubble_.clear();
     emit bubbleChanged();

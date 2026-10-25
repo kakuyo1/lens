@@ -369,13 +369,16 @@ std::variant<QVector<Explanation>, QString> parseExplanationContent(Channel     
 
     // Presence is gated on the response schema, so adding a required field is a data edit.
     const bool isWord        = channel == Channel::Word;
+    const bool isSense       = channel == Channel::Sense;
     const bool isTranslation = channel == Channel::Translation;
     const bool isPeek        = channel == Channel::Peek;
     // Translation and Peek are the two one-language channels: neither carries the en/zh pair the
     // other channels are checked against, so neither is asked for a second line to be empty. The
     // peek's answer travels under `line` and lands in `en`, the field the peek's readers read.
-    const bool    oneLanguage = isTranslation or isPeek;
-    const QString titleField  = isWord ? QStringLiteral("word") : QStringLiteral("title");
+    // Sense is the third: its exhaustion answer names the word and nothing else, so it too is
+    // allowed to leave both definition fields empty.
+    const bool    oneLanguage = isTranslation or isPeek or isSense;
+    const QString titleField  = (isWord or isSense) ? QStringLiteral("word") : QStringLiteral("title");
 
     QVector<Explanation> parsed;
     for (const auto& item : resultsValue.toArray()) {
@@ -392,6 +395,10 @@ std::variant<QVector<Explanation>, QString> parseExplanationContent(Channel     
                       obj.value(isPeek ? QStringLiteral("line") : QStringLiteral("en")).toString(),
                       obj.value(QStringLiteral("zh")).toString()};
         e.translation = obj.value("translation").toString();
+        // The most common sense's part of speech, one lowercase English word. Read and never
+        // demanded, like the origin: a model that leaves it out costs the card nothing but the
+        // label, and failing the batch over it would throw away the definitions that arrived.
+        e.pos = obj.value(QStringLiteral("pos")).toString();
         // Read and never demanded: the origin is asked for only when the setting is on, an acronym
         // has none, and the model is free to answer "unknown". Failing a whole batch over it would
         // throw away the definitions that did arrive, the same trade `ipa` already makes.
@@ -415,34 +422,42 @@ std::variant<QVector<Explanation>, QString> parseExplanationContent(Channel     
             imageable = source.value(QStringLiteral("imageable")).toBool() and not query.isEmpty();
         };
         readImageAdvice(obj, e.imageable, e.imageQuery);
-        if (isWord and obj.contains("senses")) {
+        if ((isWord or isSense) and obj.contains("senses")) {
             auto const senses = obj.value("senses").toArray();
             for (auto const& value : senses) {
                 auto const sense = value.toObject();
                 if (explanationLang != QLatin1String("en") and explanationLang != QLatin1String("zh") and sense.value("translation").toString().trimmed().isEmpty())
                     return reject(QCoreApplication::translate("lens::llm", "The requested explanation language is missing."));
                 Sense parsedSense{sense.value("en").toString(), sense.value("zh").toString(), sense.value("translation").toString()};
+                // The sense channel's one English word for the sense; the word channel's senses
+                // carry none and read as empty, which is what its readers draw.
+                parsedSense.hint = sense.value(QStringLiteral("hint")).toString().trimmed();
                 readImageAdvice(sense, parsedSense.imageable, parsedSense.imageQuery);
                 if (e.senses.size() < (multipleSenses ? kMaxSenses : 1))
                     e.senses.push_back(parsedSense);
             }
-            e.en          = e.senses.front().en;
-            e.zh          = e.senses.front().zh;
-            e.translation = e.senses.front().translation;
-            // The top-level pair mirrors the most frequent sense, so an answer read through either shape
-            // says the same thing about its picture.
-            e.imageable  = e.senses.front().imageable;
-            e.imageQuery = e.senses.front().imageQuery;
+            // The sense channel's exhaustion answer arrives as an empty `senses` array, so the
+            // top-level pair is left empty with it rather than read out of a sense that is not there.
+            if (not e.senses.isEmpty()) {
+                e.en          = e.senses.front().en;
+                e.zh          = e.senses.front().zh;
+                e.translation = e.senses.front().translation;
+                // The top-level pair mirrors the most frequent sense, so an answer read through either shape
+                // says the same thing about its picture.
+                e.imageable  = e.senses.front().imageable;
+                e.imageQuery = e.senses.front().imageQuery;
+            }
         } else if (isWord) {
-            e.senses.push_back({e.en, e.zh, e.translation, e.imageable, e.imageQuery});
+            e.senses.push_back({e.en, e.zh, e.translation, QString{}, e.imageable, e.imageQuery});
         }
         if (not oneLanguage and explanationLang != QLatin1String("en") and explanationLang != QLatin1String("zh") and e.translation.trimmed().isEmpty())
             return reject(QCoreApplication::translate("lens::llm", "The requested explanation language is missing."));
         // Presence is the schema's business; emptiness is not. Both language definitions are
         // required by every channel but the translation and peek ones, which have no explanation
-        // language to follow and so no second line to be empty. A word must also name itself (its
+        // language to follow and so no second line to be empty -- and but the sense one, whose
+        // exhaustion answer names the word and nothing else. A word must also name itself (its
         // IPA stays optional: an acronym has none); the other channels carry no echoed title.
-        if (e.en.trimmed().isEmpty() || (not oneLanguage and e.zh.trimmed().isEmpty()) || (isWord && e.title.trimmed().isEmpty()))
+        if ((not isSense and e.en.trimmed().isEmpty()) || (not oneLanguage and e.zh.trimmed().isEmpty()) || (isWord && e.title.trimmed().isEmpty()))
             return reject(QCoreApplication::translate("lens::llm",
                                                       "A results entry has an empty field "
                                                       "(title=%1).")
@@ -814,6 +829,7 @@ Explanation parsePartialExplanation(Channel const channel, QString const& conten
     // the word it explained, the others carry no title and have it stamped on further up.
     partial.title       = fields.value(channel == Channel::Word ? QStringLiteral("word") : QStringLiteral("title"));
     partial.ipa         = fields.value(QStringLiteral("ipa"));
+    partial.pos         = fields.value(QStringLiteral("pos"));
     partial.en          = fields.value(QStringLiteral("en"));
     partial.zh          = fields.value(QStringLiteral("zh"));
     partial.translation = fields.value(QStringLiteral("translation"));

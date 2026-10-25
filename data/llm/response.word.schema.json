@@ -15,6 +15,7 @@
         "properties": {
           "word": { "type": "string", "minLength": 1, "description": "The input word, spelled exactly as requested." },
           "ipa": { "type": "string", "description": "IPA pronunciation, in slashes." },
+          "pos": { "type": "string", "description": "The part of speech of the most common sense, one lowercase English word, such as \"noun\". Optional: the model may leave it out, and the card then draws none beside the pronunciation." },
           "en": { "type": "string", "minLength": 1, "description": "One-line English definition." },
           "zh": { "type": "string", "minLength": 1, "description": "One-line Chinese definition." },
           "translation": { "type": "string", "minLength": 1 },

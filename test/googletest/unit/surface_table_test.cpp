@@ -8,9 +8,11 @@
 
 #include <gtest/gtest.h>
 
+#include <initializer_list>
 #include <set>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "core/domain/surface_table.h"
@@ -83,11 +85,27 @@ TEST(SurfaceTable, AnOpenerIsAShowMethodOnAReportedSurface)
     for (Row const& row : kRows) {
         if (row.open == nullptr) {
             EXPECT_FALSE(row.takesFrom) << std::string(row.name) << " takes `from` but has no opener";
+            EXPECT_EQ(row.openArity, 0) << std::string(row.name) << " carries an arity with no opener";
             continue;
         }
         EXPECT_TRUE(row.dev) << std::string(row.name) << " is openable but the dev surface does not report it";
         std::string_view const method = row.open;
         EXPECT_EQ(method.find("show"), 0u) << std::string(method) << " is not a show method";
+        if (row.takesFrom)
+            EXPECT_GE(row.openArity, 1) << std::string(row.name) << " takes `from` but its arity leaves no room for it";
+    }
+}
+
+/// The arity names real parameters of the method the opener calls, and the dev surface invokes with
+/// exactly that many arguments -- a count one short answers "not callable", which is how `surface
+/// show words` went missing until the column existed. This pins the three shapes the openers have.
+TEST(SurfaceTable, TheOpenerAritiesNameTheMethodsRealParameters)
+{
+    for (auto const& [name, expected] : std::initializer_list<std::pair<std::string_view, int>>{
+             {"settings", 1}, {"tray", 0}, {"stats", 1}, {"words", 2}, {"yearWords", 1}, {"cost", 1}}) {
+        Row const* const row = find(name);
+        ASSERT_NE(row, nullptr) << std::string(name);
+        EXPECT_EQ(row->openArity, expected) << std::string(name) << " changed its opener's shape";
     }
 }
 
