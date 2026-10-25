@@ -195,6 +195,37 @@ Config stubConfig(const QString& key = QStringLiteral("test-key"))
     return Config{QUrl(QStringLiteral("http://example.invalid")), key, QStringLiteral("deepseek-flash")};
 }
 
+/// The probe is only offered against an https endpoint, the one every real configuration uses.
+Config probeConfig(const QString& key   = QStringLiteral("test-key"),
+                   const QString& model = QStringLiteral("deepseek-flash"))
+{
+    return Config{QUrl(QStringLiteral("https://example.invalid")), key, model};
+}
+
+struct ProbeResult {
+    bool    ok = false;
+    QString message;
+};
+
+/// @brief Run one probe to its answer. A missing configuration answers synchronously, before
+///        the loop would start, so the wait is only entered when nothing has answered yet.
+ProbeResult runProbe(LlmClient& client)
+{
+    ProbeResult result;
+    bool        answered = false;
+    QEventLoop  loop;
+    QObject::connect(&client, &LlmClient::probeFinished, &loop, [&](bool ok, QString message) {
+        result   = {ok, std::move(message)};
+        answered = true;
+        loop.quit();
+    });
+    QTimer::singleShot(kStubTimeoutMs, &loop, &QEventLoop::quit);
+    client.probeConnection();
+    if (not answered)
+        loop.exec();
+    return result;
+}
+
 /// @brief Run one explainWords() to completion and return the failure it reported, if any.
 QString runToFailure(LlmClient& client, const QStringList& words)
 {
@@ -211,6 +242,68 @@ QString runToFailure(LlmClient& client, const QStringList& words)
 }
 
 } // namespace
+
+/// The probe asks the smallest thing that still makes the service check all three parts, and
+/// its success sentence never carries the key.
+TEST_F(LlmTest, ProbeAcceptsAnAnswerFromTheModelAndSendsNoExplanation)
+{
+    QtApplication qt;
+    StubManager   manager(200, QByteArray(R"({"choices":[]})"));
+    LlmClient     client(probeConfig(), &manager);
+
+    const ProbeResult result = runProbe(client);
+
+    EXPECT_TRUE(result.ok) << result.message.toStdString();
+    EXPECT_TRUE(result.message.contains("Connected")) << result.message.toStdString();
+    EXPECT_FALSE(result.message.contains("test-key")) << "the probe echoed the key";
+    EXPECT_TRUE(manager.postedBody.contains("\"model\":\"deepseek-flash\"")) << manager.postedBody.toStdString();
+    EXPECT_TRUE(manager.postedBody.contains("\"max_tokens\":1")) << manager.postedBody.toStdString();
+    EXPECT_TRUE(manager.postedBody.contains("\"stream\":false")) << manager.postedBody.toStdString();
+    EXPECT_FALSE(manager.postedBody.contains("test-key")) << "the key reached the request body";
+}
+
+/// An HTTP answer is the service speaking: a rejected key has its own sentence rather than the
+/// reach failure, and a 200 without a completion shape is not accepted as a model.
+TEST_F(LlmTest, ProbeReportsARejectedKeyAndANonModelAnswer)
+{
+    QtApplication qt;
+    {
+        StubManager       manager(401, QByteArray());
+        LlmClient         client(probeConfig(), &manager);
+        const ProbeResult result = runProbe(client);
+        EXPECT_FALSE(result.ok);
+        EXPECT_TRUE(result.message.contains("API key")) << result.message.toStdString();
+    }
+    {
+        StubManager       manager(200, QByteArrayLiteral("<html>sign in</html>"));
+        LlmClient         client(probeConfig(), &manager);
+        const ProbeResult result = runProbe(client);
+        EXPECT_FALSE(result.ok);
+        EXPECT_TRUE(result.message.contains("not like a model")) << result.message.toStdString();
+    }
+}
+
+/// Missing parts answer without a socket, so a reader who presses too early gets a sentence
+/// rather than a spinning button.
+TEST_F(LlmTest, ProbeNamesTheMissingPartBeforeSending)
+{
+    QtApplication qt;
+    StubManager   manager(200, QByteArray(R"({"choices":[]})"));
+
+    {
+        LlmClient         client(probeConfig(QString()), &manager);
+        const ProbeResult result = runProbe(client);
+        EXPECT_FALSE(result.ok);
+        EXPECT_TRUE(result.message.contains("API key")) << result.message.toStdString();
+    }
+    {
+        LlmClient         client(probeConfig(QStringLiteral("test-key"), QString()), &manager);
+        const ProbeResult result = runProbe(client);
+        EXPECT_FALSE(result.ok);
+        EXPECT_TRUE(result.message.contains("model")) << result.message.toStdString();
+    }
+    EXPECT_TRUE(manager.postedBody.isEmpty()) << "a probe with missing parts still sent a request";
+}
 
 /// A status the service answered with is turned into its own reader-facing message, not the
 /// generic transport one. These are the branches the httpErrorFor table exists for.

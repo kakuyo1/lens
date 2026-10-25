@@ -223,7 +223,7 @@ Item {
                 })[0];
                 verify(spend && cap, "the budget page has no spend or cap line");
                 compare(spend.text, "Today " + spent + " · " + Controller.costDuty.stats.currency + "5.00 cap");
-                compare(cap.text, "At the cap, lookups and requests pause until tomorrow.");
+                compare(cap.text, "At the daily budget, lookups and requests pause until tomorrow.");
 
                 Controller.setDailyBudget(0);
                 wait(20);
@@ -306,6 +306,129 @@ Item {
                 return at >= body.contentY - 1
                        && at + pictures.height <= body.contentY + body.height + 1;
             }, 1000, "focus stayed below the visible body");
+        }
+
+        /// The seven card switches are split by two quiet labels, not by a new container; the
+        /// label is the page's own 11 px muted voice (UI-SPEC 4.4).
+        function test_theLearningSwitchesCarryTheirGroupLabels() {
+            const main = make();
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "Reading & learning");
+
+            const content = Util.textWith(Util.textsUnder(panel), ["Card content"]);
+            const details = Util.textWith(Util.textsUnder(panel), ["Word details"]);
+            verify(content, "the learning page has no card-content label");
+            verify(details, "the learning page has no word-details label");
+            compare(content.font.pixelSize, 11);
+            compare(details.font.pixelSize, 11);
+            compare(content.color.toString(), panel.tokens.muted.toString());
+            compare(details.color.toString(), panel.tokens.muted.toString());
+        }
+
+        /// The box names itself only while it is waiting for a combination; at rest the section
+        /// label above it is the name, and the screen reader reads that same name.
+        function test_theHotkeyBoxSpeaksOnlyWhileRecording() {
+            const main = make();
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "Capture & popups");
+
+            const field = Util.ofType(panel, "HotkeyField");
+            verify(field, "the capture page has no hotkey field");
+            verify(field.Accessible.name.indexOf("OCR trigger key") === 0,
+                   "the hotkey field does not carry the section's name");
+            const hint = Util.textWith(Util.textsUnder(field), ["Press the combination"]);
+            verify(hint, "the recording hint is missing from the hotkey field");
+            compare(hint.visible, false, "the hotkey box named itself twice at rest");
+
+            const recorder = Util.findAll(field, function (o) {
+                return o.objectName === "hotkeyRecorder";
+            })[0];
+            verify(recorder, "the hotkey field has no recording surface");
+            recorder.forceActiveFocus();
+            tryVerify(function () { return hint.visible; }, 1000,
+                      "the hotkey box stayed silent while recording");
+            keyClick(Qt.Key_Escape);
+        }
+
+        /// A number that changes under the thumb keeps its width in the mono face; the slider's
+        /// label stays in the app font.
+        function test_theGlassSliderReadoutIsMono() {
+            const main = make();
+            Controller.setSetting("theme", "frosted");
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "General");
+
+            const blur = Util.findAll(panel, function (o) {
+                return o.toString().indexOf("SliderRow_QMLTYPE") === 0 && o.label === "Blur";
+            })[0];
+            verify(blur, "the frosted theme drew no Blur slider");
+            const readout = Util.findAll(blur, function (o) {
+                return typeof o.text === "string" && o.text.indexOf("%") >= 0;
+            })[0];
+            verify(readout, "the slider has no value readout");
+            compare(readout.font.family, Tokens.monoFamily);
+            const label = Util.textWith(Util.textsUnder(blur), ["Blur"]);
+            verify(label, "the slider has no label");
+            verify(label.font.family !== Tokens.monoFamily,
+                   "the slider label drifted into the numeric face");
+        }
+
+        /// The connection page's one action reports in the panel's status voice. The fixture has
+        /// no key, so the probe answers without a socket and the button must say why.
+        function test_theConnectionPageTestsWithAStatusLine() {
+            const main = make();
+            verify(!Controller.settings.hasApiKey, "the fixture is expected to hold no API key");
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "Model service");
+            const apiLink = Util.ofType(panel, "SettingsLinkRow");
+            verify(apiLink, "the model page has no API configuration link");
+            mouseClick(apiLink, apiLink.width / 2, apiLink.height / 2);
+            wait(20);
+
+            const button = Util.findAll(panel, function (o) {
+                return o.objectName === "testConnectionButton";
+            })[0];
+            verify(button, "the connection page has no test button");
+            compare(button.label, "Test connection");
+            const result = Util.findAll(panel, function (o) {
+                return o.objectName === "connectionResult";
+            })[0];
+            verify(result, "the connection page has no result line");
+            compare(result.visible, false, "a result was shown before anything was tested");
+
+            mouseClick(button, button.width / 2, button.height / 2);
+            tryVerify(function () { return result.visible; }, 1000,
+                      "the test button reported nothing");
+            verify(result.text.indexOf("Enter an API key") >= 0,
+                   "the missing key was not named: " + result.text);
+            compare(Controller.connectionTesting, false);
+            compare(Controller.connectionOk, false);
+        }
+
+        /// The model price line and the key field each carry their missing words: what a token
+        /// is, and where the key comes from.
+        function test_theMoneyAndKeyPagesSayWhatTheirWordsMean() {
+            const main = make();
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+
+            openCategory(panel, "Model service");
+            verify(Util.findAll(panel, function (o) {
+                return typeof o.text === "string" && o.text.indexOf("A token is a small piece") >= 0;
+            }).length > 0, "the model page does not explain tokens");
+
+            const apiLink = Util.ofType(panel, "SettingsLinkRow");
+            verify(apiLink, "the model page has no API configuration link");
+            mouseClick(apiLink, apiLink.width / 2, apiLink.height / 2);
+            wait(20);
+            verify(Util.findAll(panel, function (o) {
+                return typeof o.text === "string"
+                       && o.text.indexOf("Create a key in your provider's dashboard") >= 0;
+            }).length > 0, "the connection page does not say where the key comes from");
         }
 
         /// The thumb measures the body, so it has to stay in the body's viewport while the content

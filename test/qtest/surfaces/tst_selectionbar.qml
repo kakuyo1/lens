@@ -143,6 +143,76 @@ Item {
             Controller.setSetting("selectionBarStyle", "bar");
         }
 
+        /// The tag's press is the swing of the whole card, not a per-item shift and fade; the
+        /// state that names the pressed action clears with the swing instead of waiting for the
+        /// next show (UI-SPEC 4.10).
+        function test_theTagAnswersAPressWithItsSwingAlone() {
+            const bar = openedWithStyle("tag");
+            const body = bar.bodyItem;
+            verify(body);
+            wait(800);
+            const item = itemsOf(bar)[0];
+
+            compare(item.opacity, 1.0, "the tag item should not fade on press");
+            compare(item.transform[0].x, 0.0, "the tag item should not shift on press");
+
+            body.playPress("translate");
+            compare(body.flashing, "translate", "the pressed action was not recorded");
+            tryVerify(function () { return body.flashing === ""; }, 1000,
+                      "the tag's press state outlived its swing");
+            compare(item.opacity, 1.0, "the tag item faded as well as swinging");
+            Controller.setSetting("selectionBarStyle", "bar");
+        }
+
+        /// §4.10's "2 px" is how much higher the middle card sits, not its offset from the
+        /// hand's top edge; the two sides are equal and the difference is exactly 2.
+        function test_theHandLiftsItsMiddleCardTwoPixels() {
+            const bar = openedWithStyle("hand");
+            const body = bar.bodyItem;
+            verify(body);
+            compare(body.cardY[0], body.cardY[2], "the two outer cards should sit at one height");
+            compare(body.cardY[0] - body.cardY[1], 2,
+                    "the middle card should sit 2 px above its neighbours");
+            Controller.setSetting("selectionBarStyle", "bar");
+        }
+
+        function test_theTabSpineAndFoldReadAtRest() {
+            const bar = openedWithStyle("tab");
+            wait(500);
+            const tokens = bar.tokens;
+
+            const spine = Util.findAll(bar, function (o) {
+                return o.width === 1 && o.height > 40 && o.color !== undefined;
+            })[0];
+            verify(spine, "the tab has no spine");
+            compare(spine.color, tokens.muted, "the spine should read before hover");
+
+            const fold = Util.findAll(bar, function (o) {
+                return o.strokeColor !== undefined && o.strokeWidth === 1 && o.strokeColor.a > 0;
+            })[0];
+            verify(fold, "the tab has no fold");
+            compare(fold.strokeColor, tokens.line, "the fold should carry its own edge");
+            Controller.setSetting("selectionBarStyle", "bar");
+        }
+
+        function test_theFanRibsReadAtRest() {
+            const bar = openedWithStyle("fan");
+            wait(800);
+            const tokens = bar.tokens;
+            // The fill paths carry a transparent stroke at the default width; only the drawn
+            // outline and the two ribs have ink in the stroke.
+            const paths = Util.findAll(bar, function (o) {
+                return o.strokeColor !== undefined && o.strokeWidth === 1 && o.strokeColor.a > 0;
+            });
+            const ribs = paths.filter(function (path) {
+                return String(path.strokeColor) === String(tokens.muted);
+            });
+
+            compare(paths.length, 3, "the fan should draw an outline and two ribs");
+            compare(ribs.length, 2, "the two ribs should read before hover");
+            Controller.setSetting("selectionBarStyle", "bar");
+        }
+
         function test_thePressedCardTossesUpAndFades() {
             const bar = openedWithStyle("hand");
             // The hand's label sits a level deeper than the rows do -- inside the card's face --

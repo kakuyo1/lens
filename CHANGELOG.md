@@ -1,5 +1,59 @@
 # Changelog
 
+## Unreleased
+
+The six surfaces have been through a full critique pass. Settings, the bubble, the tray menu, the
+data panels, the selection bar and the update card now share a keyboard and screen-reader floor,
+their quiet-state copy says what is actually happening, and the second pass closes the failure
+paths that were still silent. The tray menu stays pointer-first by decision (docs/adr/0108).
+
+### Added
+
+- A **Test connection** button on the API configuration page sends one minimal completion to check
+  the address, key and model together, reports one fixed sentence, and never echoes the key
+  (docs/adr/0110).
+- Picture lookups now name why they failed (offline, no results, rate-limited, other), and the
+  retry pill has the same quiet button face as the rest of the card.
+- The statistics panel's Known and New rows open the words panel on that verdict, and the annual
+  grid shows the selected day, its thresholds and an empty state per filter.
+- The daily-budget page reads back today's spend, the cap and what reaching it does; an exhausted
+  budget's tray row opens that page.
+- Settings and the annual grid have a complete keyboard path: a visible scrollbar that follows
+  focus, keyboard sliders and choices, named inputs and buttons, and arrow-key days. The selection
+  bar, tray language list and words panel keep named screen-reader actions without taking focus
+  (docs/adr/0107).
+
+### Changed
+
+- The review bubble in the words panel is placed against the word's own rectangle, keeps one
+  window gap above it as it grows, and flips below when the top edge has no room.
+- The wheel scrolls the settings, words and dropdown cards from any point, including the header,
+  footer and scrollbar strip; the settings thumb follows the body instead of staying still.
+- The selection bar's first arrival in a session keeps its full entrance; later arrivals take half
+  the time (docs/adr/0109). Its at-rest forms now read as themselves: fan ribs and the tab's spine
+  and fold are drawn one step brighter, the hand's middle card sits 2 px higher, the tag answers a
+  press with its swing alone, and the settings preview keeps the hand's depth.
+- The update card's checking state can be cancelled in place: Cancel replaces View in the same
+  slot, checking runs a chunk at a time so the button can answer, and cancelling deletes the
+  downloaded bytes. Its failure sentences now say the partial file was deleted.
+- The tray menu marks an in-flight explanation with the same corner dot as the tray icon, and a
+  left click opens the same menu as a right click.
+- The reading page groups its seven card switches under quiet "Card content" and "Word details"
+  labels; the model page explains tokens and the currency the cost panel shows; the connection page
+  says where the key comes from; the hotkey box only names itself while recording; slider readouts
+  use the mono face.
+
+### Fixed
+
+- Long collocations and hue names wrap instead of drawing past their card, the Defaults status
+  stays readable, and a long API key is clipped to its field.
+- A failed picture lookup is no longer just "unavailable", and the bubble's countdown holds for a
+  screen reader's press while its one-time verdict hint is exposed as a description.
+- The selection bar's tag no longer freezes half-faded after a press, and the tray menu's
+  pointer-first contract is restored after its keyboard experiment was reverted.
+- The desktop pet gives control back when a scene entry stalls, through a scene guard and a
+  frame-clock watchdog.
+
 ## 1.8.5 - 2026-10-24
 
 The desktop pet becomes more of a companion: every pet keeps its own wardrobe, size and home while

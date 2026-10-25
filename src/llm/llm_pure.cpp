@@ -228,6 +228,12 @@ QString httpErrorFor(int status)
         case 401:
             return QCoreApplication::translate("lens::llm",
                                                "The API key is missing or not accepted (401).");
+        case 403:
+            return QCoreApplication::translate("lens::llm",
+                                               "The service refused the key for this model (403).");
+        case 404:
+            return QCoreApplication::translate("lens::llm",
+                                               "The service or model was not found (404).");
         case 402:
             return QCoreApplication::translate("lens::llm",
                                                "The account is out of credit (402).");

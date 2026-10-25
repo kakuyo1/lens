@@ -1,7 +1,9 @@
 #pragma once
 
+#include <QCryptographicHash>
 #include <QDate>
 #include <QElapsedTimer>
+#include <QFile>
 #include <QObject>
 #include <QString>
 #include <QStringList>
@@ -178,8 +180,13 @@ private:
     void    deletePartial();
     void    onSumsReady(QByteArray sums);
     void    onInstallerReady(QString path);
-    void    beginTransfer();
-    void    failDownload(const QString& kind);
+    /// @brief Hash one chunk of the finished download, then yield to the event loop.
+    ///
+    /// The check runs in turns rather than one call so the card can paint the verifying state
+    /// and its Cancel can be pressed; cancelling closes the file before it is deleted.
+    void verifyStep();
+    void beginTransfer();
+    void failDownload(const QString& kind);
     /// Removes a finished download for a version the card no longer shows.
     void discardDownload();
     void resetDownload(const QString& state);
@@ -228,6 +235,10 @@ private:
     QString sumsFor_;
     /// Set while cancelDownload() stops the transfer, so its own stop report is not a failure.
     bool cancelling_ = false;
+    /// The file being checked and the hash built from it; both live only for `verifying`.
+    QFile              verifyFile_;
+    QCryptographicHash verifyHash_{QCryptographicHash::Sha256};
+    QString            verifyPath_;
 };
 
 }

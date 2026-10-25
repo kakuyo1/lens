@@ -39,6 +39,7 @@ Item {
 
     function playPress(action) {
         root.flashing = action;
+        flashTimer.restart();
         swingAnim.stop();
         pressAnim.restart();
     }
@@ -51,6 +52,7 @@ Item {
     onShownChanged: {
         if (shown) {
             flashing = "";
+            flashTimer.stop();
             pressAnim.stop();
             swing = -10.4;
             swingAnim.restart();
@@ -98,6 +100,14 @@ Item {
             duration: root.tokens.motion.pop * 1.2 * root.entranceFactor
             easing.type: Easing.InOutQuad
         }
+    }
+
+    // The swing is the tag's only press gesture (UI-SPEC 4.10); the action name is cleared when
+    // the swing ends so a slow exit cannot leave a press state behind.
+    Timer {
+        id: flashTimer
+        interval: root.tokens.motion.press * 2
+        onTriggered: root.flashing = ""
     }
 
     SequentialAnimation {
@@ -214,13 +224,11 @@ Item {
                         required property int index
 
                         property real hoverShift: hover.hovered ? 1 : 0
-                        property real flashShift: root.flashing === item.modelData.action ? 8 : 0
 
                         width: itemRow.width + 18
                         height: itemRow.height + 14
                         radius: root.tokens.radiusField
                         color: hover.hovered ? root.tokens.panel2 : "transparent"
-                        opacity: root.flashing === item.modelData.action ? 0.55 : 1
                         scale: press.pressed ? 0.97 : 1
 
                         Accessible.role: Accessible.Button
@@ -228,16 +236,10 @@ Item {
                         Accessible.onPressAction: root.activate(item.modelData.action)
 
                         transform: Translate {
-                            x: item.hoverShift + item.flashShift
+                            x: item.hoverShift
                         }
 
                         Behavior on hoverShift {
-                            NumberAnimation {
-                                duration: root.tokens.motion.press
-                                easing.type: root.tokens.motion.easing
-                            }
-                        }
-                        Behavior on flashShift {
                             NumberAnimation {
                                 duration: root.tokens.motion.press
                                 easing.type: root.tokens.motion.easing

@@ -125,6 +125,19 @@ AppController::AppController(core::KnownStore&            store,
     connect(&capture_, &CaptureDuty::screenshotFailed, this, &AppController::reportCaptureRefusal);
     connect(&capture_, &CaptureDuty::settingsChanged, this, &AppController::settingsChanged);
     connect(&catalog_, &ModelCatalogDuty::settingsChanged, this, &AppController::settingsChanged);
+    connect(&catalog_, &ModelCatalogDuty::settingsChanged, this, &AppController::invalidateConnectionTest);
+    connect(&llm_, &llm::LlmClient::probeFinished, this, [this](bool ok, QString message) {
+        connectionTesting_ = false;
+        // An answer for a configuration that has since changed only frees the button; it must
+        // not be shown beside the new key or model.
+        if (connectionAnswered_ != connectionGeneration_) {
+            emit connectionTestChanged();
+            return;
+        }
+        connectionOk_     = ok;
+        connectionResult_ = std::move(message);
+        emit connectionTestChanged();
+    });
     connect(&explanation_, &ExplanationDuty::busyChanged, this, [this] {
         refreshCaptureGates();
         emit busyChanged();
@@ -490,13 +503,16 @@ void AppController::setApiKey(QString key)
     // (docs/adr/0020). The trigger stays because the request is free and this is the moment the
     // reader is most likely looking at the field.
     catalog_.refreshModels();
+    invalidateConnectionTest();
     emit settingsChanged();
 }
 
 void AppController::setModel(QString model)
 {
-    if (catalog_.setModel(model))
+    if (catalog_.setModel(model)) {
+        invalidateConnectionTest();
         emit settingsChanged();
+    }
 }
 
 void AppController::setApiUrl(QString url)
@@ -512,7 +528,47 @@ void AppController::setApiUrl(QString url)
     // and the models in hand are not the old service's. The refresh is kept only because the
     // triggers were deliberately left alone (docs/adr/0020); the request is free.
     catalog_.refreshModels();
+    invalidateConnectionTest();
     emit settingsChanged();
+}
+
+void AppController::testConnection()
+{
+    if (connectionTesting_)
+        return;
+    ++connectionGeneration_;
+    connectionAnswered_ = connectionGeneration_;
+    connectionTesting_  = true;
+    connectionOk_       = false;
+    connectionResult_.clear();
+    emit connectionTestChanged();
+    llm_.probeConnection();
+}
+
+bool AppController::connectionTesting() const
+{
+    return connectionTesting_;
+}
+
+QString AppController::connectionResult() const
+{
+    return connectionResult_;
+}
+
+bool AppController::connectionOk() const
+{
+    return connectionOk_;
+}
+
+void AppController::invalidateConnectionTest()
+{
+    // A result belongs to the key, address and model it was measured with; so does a probe
+    // still in flight. Raising the generation makes the old answer drop when it arrives, and
+    // keeping `connectionTesting_` until then keeps two probes from overlapping.
+    ++connectionGeneration_;
+    connectionOk_ = false;
+    connectionResult_.clear();
+    emit connectionTestChanged();
 }
 
 void AppController::setAutostart(bool on)

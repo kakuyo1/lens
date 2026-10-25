@@ -78,77 +78,102 @@ Item {
             }
         }
 
-        SwitchRow {
+        // The seven card switches are one column, but not one undivided list: a quiet group
+        // label names what the switches below it decide, without adding a card around them
+        // (UI-SPEC 4.4).
+        Column {
             width: parent.width
-            label: qsTranslate("SettingsPopup", "Multiple senses")
-            checked: root.settings.multiSense
-            previewKey: "multisense"
-            onToggled: (on) => Controller.setSetting("multiSense", on)
-            onPreviewChanged: (key) => root.previewRequested(key)
-        }
+            spacing: 8
 
-        // Beside "multiple senses" rather than in a category of its own: both decide what a word's
-        // explanation is made of, and one is read as a richer version of the other.
-        SwitchRow {
-            width: parent.width
-            objectName: "etymologySwitch"
-            label: qsTranslate("SettingsPopup", "Etymology")
-            checked: root.settings.etymology
-            previewKey: "etymology"
-            onToggled: (on) => Controller.setSetting("etymology", on)
-            onPreviewChanged: (key) => root.previewRequested(key)
-        }
+            Text {
+                text: qsTranslate("SettingsPopup", "Card content")
+                color: root.tokens.muted
+                font.pixelSize: 11
+            }
 
-        SwitchRow {
-            width: parent.width
-            objectName: "exampleSwitch"
-            label: qsTranslate("SettingsPopup", "Example sentence")
-            checked: root.settings.example
-            previewKey: "example"
-            onToggled: (on) => Controller.setSetting("example", on)
-            onPreviewChanged: (key) => root.previewRequested(key)
+            SwitchRow {
+                width: parent.width
+                label: qsTranslate("SettingsPopup", "Multiple senses")
+                checked: root.settings.multiSense
+                previewKey: "multisense"
+                onToggled: (on) => Controller.setSetting("multiSense", on)
+                onPreviewChanged: (key) => root.previewRequested(key)
+            }
+
+            // Beside "multiple senses" rather than in a category of its own: both decide what a word's
+            // explanation is made of, and one is read as a richer version of the other.
+            SwitchRow {
+                width: parent.width
+                objectName: "etymologySwitch"
+                label: qsTranslate("SettingsPopup", "Etymology")
+                checked: root.settings.etymology
+                previewKey: "etymology"
+                onToggled: (on) => Controller.setSetting("etymology", on)
+                onPreviewChanged: (key) => root.previewRequested(key)
+            }
+
+            SwitchRow {
+                width: parent.width
+                objectName: "exampleSwitch"
+                label: qsTranslate("SettingsPopup", "Example sentence")
+                checked: root.settings.example
+                previewKey: "example"
+                onToggled: (on) => Controller.setSetting("example", on)
+                onPreviewChanged: (key) => root.previewRequested(key)
+            }
         }
 
         // The rest of what a word's card can draw. These are display switches: the field comes
         // back with the definition either way, and the row only decides whether the card draws it.
-        SwitchRow {
+        Column {
             width: parent.width
-            objectName: "ipaSwitch"
-            label: qsTranslate("SettingsPopup", "IPA")
-            checked: root.settings.ipa
-            previewKey: "ipa"
-            onToggled: (on) => Controller.setSetting("ipa", on)
-            onPreviewChanged: (key) => root.previewRequested(key)
-        }
+            spacing: 8
 
-        SwitchRow {
-            width: parent.width
-            objectName: "signpostSwitch"
-            label: qsTranslate("SettingsPopup", "Signpost")
-            checked: root.settings.signpost
-            previewKey: "signpost"
-            onToggled: (on) => Controller.setSetting("signpost", on)
-            onPreviewChanged: (key) => root.previewRequested(key)
-        }
+            Text {
+                text: qsTranslate("SettingsPopup", "Word details")
+                color: root.tokens.muted
+                font.pixelSize: 11
+            }
 
-        SwitchRow {
-            width: parent.width
-            objectName: "collocationsSwitch"
-            label: qsTranslate("SettingsPopup", "Collocations")
-            checked: root.settings.collocations
-            previewKey: "collocations"
-            onToggled: (on) => Controller.setSetting("collocations", on)
-            onPreviewChanged: (key) => root.previewRequested(key)
-        }
+            SwitchRow {
+                width: parent.width
+                objectName: "ipaSwitch"
+                label: qsTranslate("SettingsPopup", "IPA")
+                checked: root.settings.ipa
+                previewKey: "ipa"
+                onToggled: (on) => Controller.setSetting("ipa", on)
+                onPreviewChanged: (key) => root.previewRequested(key)
+            }
 
-        // No preview: what this one restores is a picture strip that would have to run a real
-        // image search to say anything, and a hover is not the place to start one.
-        SwitchRow {
-            width: parent.width
-            objectName: "picturesSwitch"
-            label: qsTranslate("SettingsPopup", "Pictures")
-            checked: root.settings.pictures
-            onToggled: (on) => Controller.setSetting("pictures", on)
+            SwitchRow {
+                width: parent.width
+                objectName: "signpostSwitch"
+                label: qsTranslate("SettingsPopup", "Signpost")
+                checked: root.settings.signpost
+                previewKey: "signpost"
+                onToggled: (on) => Controller.setSetting("signpost", on)
+                onPreviewChanged: (key) => root.previewRequested(key)
+            }
+
+            SwitchRow {
+                width: parent.width
+                objectName: "collocationsSwitch"
+                label: qsTranslate("SettingsPopup", "Collocations")
+                checked: root.settings.collocations
+                previewKey: "collocations"
+                onToggled: (on) => Controller.setSetting("collocations", on)
+                onPreviewChanged: (key) => root.previewRequested(key)
+            }
+
+            // No preview: what this one restores is a picture strip that would have to run a real
+            // image search to say anything, and a hover is not the place to start one.
+            SwitchRow {
+                width: parent.width
+                objectName: "picturesSwitch"
+                label: qsTranslate("SettingsPopup", "Pictures")
+                checked: root.settings.pictures
+                onToggled: (on) => Controller.setSetting("pictures", on)
+            }
         }
 
         Column {

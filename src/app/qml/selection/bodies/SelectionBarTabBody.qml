@@ -121,7 +121,8 @@ Item {
             y: 9
             width: 1
             height: card.height - 18
-            color: root.tokens.line
+            // The spine is part of the page-marker identity, so it has to read before hover.
+            color: root.tokens.muted
         }
 
         Column {
@@ -225,7 +226,9 @@ Item {
 
             ShapePath {
                 fillColor: root.tokens.panel2
-                strokeColor: "transparent"
+                // `panel2` alone is a hair above the card, so the fold's own edge is drawn too.
+                strokeColor: root.tokens.line
+                strokeWidth: 1
                 startX: root.sideLeft ? 9 : 0
                 startY: 0
                 PathLine { x: 9; y: 9 }

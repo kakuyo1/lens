@@ -354,9 +354,11 @@ Item {
                 PathLine { x: 250; y: 87 }
                 PathLine { x: 130; y: 150 }
             }
+            // The ribs are the only boundary between the three equal blades; `line` is too close
+            // to the panel fill to read at rest, so they take the next step up (UI-SPEC 4.10).
             ShapePath {
                 fillColor: "transparent"
-                strokeColor: root.tokens.line
+                strokeColor: root.tokens.muted
                 strokeWidth: 1
                 startX: 130
                 startY: 150
@@ -364,7 +366,7 @@ Item {
             }
             ShapePath {
                 fillColor: "transparent"
-                strokeColor: root.tokens.line
+                strokeColor: root.tokens.muted
                 strokeWidth: 1
                 startX: 130
                 startY: 150

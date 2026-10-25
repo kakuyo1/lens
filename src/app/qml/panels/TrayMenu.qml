@@ -47,12 +47,21 @@ Window {
 
     /// True while a selection is captured at all; the state line's dot and label read it.
     readonly property bool capturing: Controller.settings.selectionCapture
+    /// Whether the day's budget has stopped lookups; the first row becomes the budget shortcut.
+    readonly property bool budgetExhausted: Controller.costDuty.stats.budgetExhausted === true
+    /// The label an in-flight explanation carries; empty when nothing is.
+    readonly property string busyLabel: Controller.busyLabel
 
     /// The state line, straight off the controller: the day's budget gate, the label an
-    /// in-flight explanation carries (empty when nothing is), and the capture switch above.
-    /// stateLineFor() puts the three in the tray icon's own priority order (tray_state.h).
-    readonly property var stateLine: stateLineFor(Controller.costDuty.stats.budgetExhausted === true,
-                                                  Controller.busyLabel, menu.capturing)
+    /// in-flight explanation carries, and the capture switch above. stateLineFor() puts the
+    /// three in the tray icon's own priority order (tray_state.h).
+    readonly property var stateLine: stateLineFor(menu.budgetExhausted, menu.busyLabel, menu.capturing)
+
+    /// @return Whether the product mark carries the busy corner dot. The tray icon draws the
+    ///         same dot for the same state; an exhausted budget outranks it (tray_state.h).
+    function busyDotVisible(exhausted, busyLabel) {
+        return !exhausted && busyLabel !== "";
+    }
 
     /// @return The state line's mark colour and text for one readout.
     ///
@@ -90,6 +99,8 @@ Window {
     /// than calling into the file that instantiated it: its `root` id resolves at runtime, unchecked.
     signal statsRequested()
     signal settingsRequested()
+    /// The budget row was pressed; the settings panel opens on the daily-budget page.
+    signal budgetRequested()
 
     /// The day's tally for the statistics row, in the shape the tray tooltip uses. The count is
     /// pop events, so the unit is lookups (ADR 0104): "words" is the deduplicated vocabulary.
@@ -147,8 +158,23 @@ Window {
                 // the same column as the statistics, language and settings glyphs instead of
                 // starting a second one.
                 Item {
+                    id: stateRow
                     width: parent.width
                     height: 34
+
+                    // While the budget is spent this row is the way to the daily-budget page;
+                    // at rest it is a status line, not a button (UI-SPEC 4.2).
+                    Accessible.role: menu.budgetExhausted ? Accessible.Button : Accessible.StaticText
+                    Accessible.name: menu.stateLine.text
+                    Accessible.onPressAction: if (menu.budgetExhausted) menu.budgetRequested()
+
+                    Rectangle {
+                        anchors.fill: parent
+                        anchors.topMargin: 2
+                        anchors.bottomMargin: 2
+                        radius: 8
+                        color: rowHover.hovered && menu.budgetExhausted ? menu.tokens.panel2 : "transparent"
+                    }
 
                     Rectangle {
                         anchors.left: parent.left
@@ -166,6 +192,18 @@ Window {
                         source: "qrc:/icons/lens.svg"
                         color: menu.stateLine.mark
                     }
+
+                    // The busy tray icon's corner dot, drawn at the mark's own corner.
+                    Rectangle {
+                        x: mark.x + mark.width - 3
+                        y: mark.y
+                        width: 3
+                        height: 3
+                        radius: 1.5
+                        color: menu.tokens.ok
+                        visible: menu.busyDotVisible(menu.budgetExhausted, menu.busyLabel)
+                    }
+
                     Text {
                         anchors.left: mark.right
                         anchors.leftMargin: 9
@@ -177,6 +215,16 @@ Window {
                         font.pixelSize: 12
                         font.weight: Font.Bold
                         elide: Text.ElideRight
+                    }
+
+                    HoverHandler {
+                        id: rowHover
+                        enabled: menu.budgetExhausted
+                        cursorShape: Qt.PointingHandCursor
+                    }
+                    TapHandler {
+                        enabled: menu.budgetExhausted
+                        onTapped: menu.budgetRequested()
                     }
                 }
 

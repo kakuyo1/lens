@@ -24,6 +24,8 @@ Item {
 
     /// The combination in force, as the controller writes it: "Ctrl+Alt+S".
     property string combination: ""
+    /// The name the row carries for the screen reader, which the page's own section label supplies.
+    property string accessibleName: qsTr("Trigger key")
     /// Whether the trigger can fire. False draws the line that says it cannot.
     property bool conflicted: false
     /// Whether the reader can change the combination. False greys the row and says nothing about
@@ -39,7 +41,7 @@ Item {
 
     activeFocusOnTab: interactive
     Accessible.role: Accessible.Button
-    Accessible.name: qsTr("Trigger key") + (combination !== "" ? ", " + combination : "")
+    Accessible.name: accessibleName + (combination !== "" ? ", " + combination : "")
     Accessible.onPressAction: recorder.forceActiveFocus()
     Keys.onPressed: (event) => {
         if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return || event.key === Qt.Key_Space)
@@ -73,14 +75,17 @@ Item {
         // Around the box, not the warning line below it.
         FocusRing { visible: root.activeFocus; radius: root.tokens.radiusField + 4 }
 
+        // The section label above the field already names it at rest, so the box only speaks
+        // while it is waiting for a combination; otherwise the keys stand alone (UI-SPEC 4.4).
         Text {
             anchors.left: parent.left
             anchors.leftMargin: 11
             anchors.right: keys.left
             anchors.rightMargin: 8
             anchors.verticalCenter: parent.verticalCenter
-            text: root.recording ? qsTr("Press the combination") : qsTr("Trigger key")
-            color: root.recording ? root.tokens.muted : root.interactive ? root.tokens.text : root.tokens.faint
+            visible: root.recording
+            text: qsTr("Press the combination")
+            color: root.tokens.muted
             font.pixelSize: 13
             elide: Text.ElideRight
         }
@@ -146,6 +151,7 @@ Item {
     /// and clicks -- and exists to hold the focus that receives the keys.
     Item {
         id: recorder
+        objectName: "hotkeyRecorder"
         anchors.fill: box
 
         Keys.onPressed: (event) => {

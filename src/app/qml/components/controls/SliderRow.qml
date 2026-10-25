@@ -53,6 +53,9 @@ Column {
             anchors.right: parent.right
             text: root.value + root.suffix
             color: root.tokens.text
+            // A number that changes under the thumb keeps its width only in the mono face
+            // (DESIGN's numeric voice); the label stays in the app font.
+            font.family: root.tokens.monoFamily
             font.pixelSize: 12
         }
 

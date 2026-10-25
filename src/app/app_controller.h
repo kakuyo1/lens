@@ -150,6 +150,11 @@ public:
     Q_INVOKABLE void setApiUrl(QString url);
     /// @brief Store the model the service is asked for, through the catalogue that owns the choice.
     Q_INVOKABLE void setModel(QString model);
+    /// @brief Check the configured service, key and model with one minimal request.
+    ///
+    /// One probe at a time: a second press while one is in flight is ignored. The answer is a
+    /// fixed sentence in connectionResult(), never the key or a transport's own error text.
+    Q_INVOKABLE void testConnection();
     Q_INVOKABLE void setAutostart(bool on);
     /**
      * @brief Record the trigger combination the reader pressed in the settings field.
@@ -202,6 +207,12 @@ public:
     PictureDuty* pictureDuty();
     QString      modeLabel() const;
     QString      busyLabel() const;
+    /// @return Whether a connection probe is in flight.
+    bool connectionTesting() const;
+    /// @return The last probe's fixed sentence, empty before the first one.
+    QString connectionResult() const;
+    /// @return Whether the last probe succeeded; false before the first one and after a change.
+    bool connectionOk() const;
     /// @return The snapshot the tray icon and its tooltip are drawn from. A projection, not state.
     TrayReadout trayReadout();
     double      dailyBudget() const;
@@ -240,6 +251,9 @@ public:
     Q_PROPERTY(lens::app::PictureDuty* pictureDuty READ pictureDuty CONSTANT)
     Q_PROPERTY(QString modeLabel READ modeLabel NOTIFY settingsChanged)
     Q_PROPERTY(QString busyLabel READ busyLabel NOTIFY busyChanged)
+    Q_PROPERTY(bool connectionTesting READ connectionTesting NOTIFY connectionTestChanged)
+    Q_PROPERTY(QString connectionResult READ connectionResult NOTIFY connectionTestChanged)
+    Q_PROPERTY(bool connectionOk READ connectionOk NOTIFY connectionTestChanged)
     Q_PROPERTY(double dailyBudget READ dailyBudget NOTIFY dailyBudgetChanged)
     Q_PROPERTY(QString buildDate READ buildDate CONSTANT)
     Q_PROPERTY(QVariantMap settingPreview READ settingPreview CONSTANT)
@@ -256,6 +270,8 @@ signals:
     void statsChanged();
     void yearDaysChanged();
     void busyChanged();
+    /// @brief The probe went up or came down; the three connection properties hold the answer.
+    void connectionTestChanged();
     void uiLanguageChanged(QString lang);
     void dailyBudgetChanged();
     /// @brief The question went up or came down; reviewQuestion() holds the current one.
@@ -274,6 +290,8 @@ private:
     void refreshCaptureGates();
     /// @brief The trigger key went down: raise the mask, or say why it cannot be raised.
     void onTriggerHotkey();
+    /// @brief Retire a probe result measured against a key, address or model that has changed.
+    void invalidateConnectionTest();
     /// @brief Report a capture that will not start, in the reader's words rather than a code.
     void reportCaptureRefusal(CaptureRefusal refusal);
 
@@ -300,6 +318,13 @@ private:
     QTimer                  gateTimer_;
     /// Whether the daily budget was spent the last time the cost duty reported, so a pause and a resume each fire once.
     bool budgetPaused_;
+    /// The connection probe's own state. The generation is raised by a start and by any change
+    /// to the key, address or model, so an answer for an older configuration is dropped.
+    bool    connectionTesting_ = false;
+    bool    connectionOk_      = false;
+    QString connectionResult_;
+    int     connectionGeneration_ = 0;
+    int     connectionAnswered_   = 0;
     /// The settings preview's demo card, read once (settingPreview()).
     QVariantMap previewSample_;
     /// The desktop pet, bound by the composition root. The review duty asks it whether it may take a question.

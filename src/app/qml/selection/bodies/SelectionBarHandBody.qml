@@ -25,7 +25,9 @@ Item {
     property string flashing: ""
 
     readonly property var cardAngles: [-6, 0, 6]
-    readonly property var cardY: [2, -2, 2]
+    /// The middle card sits 2 px above its neighbours; §4.10's "2 px" is a height difference,
+    /// not this offset (the offset would be 1 px).
+    readonly property var cardY: [1, -1, 1]
     readonly property var dealX: [34, 0, -34]
 
     implicitWidth: 238

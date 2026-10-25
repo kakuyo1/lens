@@ -104,7 +104,8 @@ Item {
             compare(card.downloadText("downloading", ""), "Downloading...");
             compare(card.downloadText("verifying", ""), "Checking the download...");
             compare(card.downloadText("ready", ""), "Checksum verified. The installer is ready to run.");
-            compare(card.downloadText("failed", "generic"), "Download failed. Check your connection.");
+            compare(card.downloadText("failed", "generic"),
+                    "Download failed. Check your connection. The partial download was deleted.");
             compare(card.downloadText("failed", "checksum"),
                     "The download did not match the published checksum. It was deleted.");
             compare(card.downloadText("failed", "proxy"),
@@ -127,6 +128,27 @@ Item {
             compare(card.primaryAction("failed", true), "Download", "a failed download can be tried again");
             compare(card.primaryAction("verifying", true), "Checking...",
                     "the checked state has no pill to hold its place");
+            card.visible = false;
+        }
+
+        /// The View slot carries Cancel while the download is checked. Both labels are laid out
+        /// from the start, so the slot takes the wider one and swapping them moves nothing.
+        function test_theViewSlotKeepsItsWidthForCancel() {
+            const card = opened().card;
+            const view = Util.findAll(card, function (o) {
+                return o.objectName === "viewButton";
+            })[0];
+            verify(view, "the card has no View slot");
+            const viewLabel = Util.textWith(Util.textsUnder(card), ["View"]);
+            verify(viewLabel, "the View slot has no View label");
+            const cancelLabel = Util.textWith(Util.textsUnder(card), ["Cancel"]);
+            verify(cancelLabel, "the View slot has no Cancel label");
+            compare(cancelLabel.visible, false, "Cancel should not show before the check starts");
+            compare(view.width, Math.max(viewLabel.implicitWidth, cancelLabel.implicitWidth) + 26,
+                    "the slot should reserve the wider of its two labels");
+            compare(view.height, 27, "the secondary pill should be the shared 27 px high");
+            compare(card.secondaryIntent("idle"), "view");
+            compare(card.secondaryIntent("verifying"), "cancel");
             card.visible = false;
         }
 

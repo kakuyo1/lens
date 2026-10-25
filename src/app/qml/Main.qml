@@ -159,6 +159,11 @@ Window {
         id: trayMenu
         onStatsRequested: surfaceHost.showStats(trayMenu)
         onSettingsRequested: surfaceHost.showSettings()
+        onBudgetRequested: {
+            surfaceHost.showSettings()
+            // After, not before: the panel clears its category when it comes up.
+            settingsPopup.openCategory("budget")
+        }
         onWidthChanged: surfaceHost.keepOnScreen(trayMenu)
         onHeightChanged: surfaceHost.keepOnScreen(trayMenu)
     }

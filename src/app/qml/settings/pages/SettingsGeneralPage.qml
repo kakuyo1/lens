@@ -152,11 +152,12 @@ Item {
                     qualityField.closeList();
             }
 
+            // A field under Theme, not a section of its own: it takes the other field labels'
+            // 12 px muted weight rather than the bold section heading (UI-SPEC 4.4).
             Text {
                 text: qsTranslate("SettingsPopup", "Backdrop refresh")
-                color: page.tokens.text
-                font.pixelSize: 13
-                font.weight: Font.Bold
+                color: page.tokens.muted
+                font.pixelSize: 12
             }
 
             DropdownField {

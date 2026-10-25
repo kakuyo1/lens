@@ -26,6 +26,8 @@ constexpr int    kMaxWords           = 20; ///< Contract limit.
 constexpr int    kTimeoutMs          = 30000;
 constexpr int    kModelListTimeoutMs = 10000;
 constexpr qint64 kMaxModelListBytes  = 2 * 1024 * 1024;
+/// A probe should answer while the reader is still looking at the button.
+constexpr int kProbeTimeoutMs = 15000;
 
 } // namespace
 
@@ -96,6 +98,87 @@ void LlmClient::fetchModels()
         const QStringList ids = parseModelIds(reply->readAll());
         if (ids.isEmpty()) return;
         emit modelsFetched(ids);
+    });
+}
+
+void LlmClient::probeConnection()
+{
+    if (config_.apiKey.isEmpty()) {
+        emit probeFinished(false, tr("Enter an API key first."));
+        return;
+    }
+    if (config_.model.isEmpty()) {
+        emit probeFinished(false, tr("Choose a model first."));
+        return;
+    }
+    if (not config_.baseUrl.isValid() or config_.baseUrl.scheme() != QLatin1String("https") or config_.baseUrl.host().isEmpty()) {
+        emit probeFinished(false, tr("Enter a service address that starts with https://."));
+        return;
+    }
+
+    QUrl    url  = config_.baseUrl;
+    QString path = url.path();
+    while (path.endsWith(QLatin1Char('/')))
+        path.chop(1);
+    url.setPath(path + QStringLiteral("/chat/completions"));
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+    request.setRawHeader("Authorization", "Bearer " + config_.apiKey.toUtf8());
+    request.setTransferTimeout(kProbeTimeoutMs);
+
+    // No prompt, no schema, no stream: this is the smallest request that still makes the
+    // service look at the endpoint, the key and the model together.
+    QJsonObject body{
+        {"model", config_.model},
+        {"messages", QJsonArray{QJsonObject{{"role", "user"}, {"content", "ping"}}}},
+        {"max_tokens", 1},
+        {"stream", false},
+    };
+    auto overrides = config_.requestOverrides;
+    if (overrides.isEmpty()) {
+        for (auto const& value : serviceCatalog().value("providers").toArray()) {
+            auto const provider = value.toObject();
+            if (provider.value("baseUrl").toString() == config_.baseUrl.toString())
+                overrides = provider.value("requestOverrides").toObject();
+        }
+    }
+    for (auto it = overrides.begin(); it != overrides.end(); ++it) {
+        if (it.value().isNull())
+            body.remove(it.key());
+        else
+            body.insert(it.key(), it.value());
+    }
+
+    LENS_INFO("testing the model service connection with '{}'", config_.model.toStdString());
+    LENS_TRACE("connection probe: POST to the configured endpoint (key hidden)");
+
+    QNetworkReply* reply = manager_->post(request, QJsonDocument(body).toJson(QJsonDocument::Compact));
+    connect(reply, &QNetworkReply::finished, this, [this, reply] {
+        reply->deleteLater();
+        const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        // An HTTP answer is the service speaking, even when Qt also marks the reply failed;
+        // only no status at all, or a 200 that failed mid-transfer, is a reach failure.
+        if (status == 0 or (reply->error() != QNetworkReply::NoError and status == 200)) {
+            LENS_WARN("the connection probe could not reach the service");
+            emit probeFinished(false, tr("Could not reach the service. Check the address and your connection."));
+            return;
+        }
+        if (status != 200) {
+            LENS_WARN("the connection probe answered HTTP {}", status);
+            emit probeFinished(false, httpErrorFor(status));
+            return;
+        }
+        // A proxy that answers 200 with a login page is still not a model: the probe accepts
+        // only the shape every compatible service answers a completion with.
+        const QJsonDocument answer = QJsonDocument::fromJson(reply->readAll());
+        if (not answer.isObject() or not answer.object().value("choices").isArray()) {
+            LENS_WARN("the connection probe answered 200 without a model-shaped body");
+            emit probeFinished(false, tr("The service answered, but not like a model. Check the address."));
+            return;
+        }
+        LENS_INFO("the model service accepted the connection probe");
+        emit probeFinished(true, tr("Connected. The key and model are accepted."));
     });
 }
 

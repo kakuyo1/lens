@@ -153,6 +153,13 @@ public:
     ///       Empty, malformed, failed, or timed-out responses leave the current cache untouched.
     void fetchModels();
 
+    /// @brief Check the endpoint, key and model with one minimal, non-streaming completion.
+    ///
+    /// A single `ping` with `max_tokens: 1` makes the service validate all three parts without
+    /// producing an explanation; the cost is one tiny request. The result is a fixed sentence
+    /// in probeFinished(), never a transport's own words, and never contains the key.
+    void probeConnection();
+
     /// @return The model name as sent on the wire, which is the key the price list uses.
     QString model() const
     {
@@ -193,6 +200,9 @@ signals:
 
     /// @brief The whole usable catalogue the shared source lists, in the order it gave them.
     void modelsFetched(QStringList models);
+
+    /// @brief The connection probe's answer: whether the service accepted it, and why not.
+    void probeFinished(bool ok, QString message);
 
 private:
     Config                 config_;

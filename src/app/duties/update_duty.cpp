@@ -419,6 +419,13 @@ void UpdateDuty::cancelDownload()
     // installs it or a newer answer discards it; cancelling it here would orphan it on disk.
     if (downloadState_ != QLatin1String("downloading") and downloadState_ != QLatin1String("verifying"))
         return;
+    // A check in progress has the file open; closing it here is what lets the delete below
+    // succeed on Windows. The queued verifyStep that follows finds the state gone and returns.
+    if (downloadState_ == QLatin1String("verifying")) {
+        verifyFile_.close();
+        verifyHash_.reset();
+        verifyPath_.clear();
+    }
     // The transfer reports its own stop through `failed`; that report is not a failure the reader
     // should see, because the reader asked for this one.
     cancelling_ = true;
@@ -465,7 +472,57 @@ void UpdateDuty::onSumsReady(QByteArray sums)
 void UpdateDuty::onInstallerReady(QString path)
 {
     resetDownload(QStringLiteral("verifying"));
-    if (path.isEmpty() or expectedDigest_.empty() or not update::digestMatches(path, expectedDigest_)) {
+    if (path.isEmpty() or expectedDigest_.empty()) {
+        deletePartial();
+        failDownload(QStringLiteral("checksum"));
+        return;
+    }
+
+    verifyPath_ = path;
+    verifyFile_.setFileName(path);
+    if (not verifyFile_.open(QIODevice::ReadOnly)) {
+        LENS_WARN("the downloaded file could not be read for checking");
+        verifyPath_.clear();
+        deletePartial();
+        failDownload(QStringLiteral("checksum"));
+        return;
+    }
+    verifyHash_.reset();
+    // One chunk per turn of the event loop, not the whole file in this call: the card has to be
+    // able to paint the verifying state, and its Cancel has to be able to answer before the
+    // check is over.
+    QMetaObject::invokeMethod(this, &UpdateDuty::verifyStep, Qt::QueuedConnection);
+}
+
+void UpdateDuty::verifyStep()
+{
+    if (downloadState_ != QLatin1String("verifying"))
+        return;
+
+    // A megabyte per turn keeps each turn short enough that a click lands between them.
+    constexpr qint64 turnBytes = 1024 * 1024;
+    qint64           read      = 0;
+    while (read < turnBytes) {
+        const QByteArray chunk = verifyFile_.read(qMin<qint64>(64 * 1024, turnBytes - read));
+        if (chunk.isEmpty())
+            break;
+        verifyHash_.addData(chunk);
+        read += chunk.size();
+    }
+    if (verifyFile_.error() != QFileDevice::NoError) {
+        verifyFile_.close();
+        deletePartial();
+        failDownload(QStringLiteral("checksum"));
+        return;
+    }
+    if (not verifyFile_.atEnd()) {
+        QMetaObject::invokeMethod(this, &UpdateDuty::verifyStep, Qt::QueuedConnection);
+        return;
+    }
+
+    verifyFile_.close();
+    const QString actual = QString::fromLatin1(verifyHash_.result().toHex());
+    if (actual.compare(QString::fromStdString(expectedDigest_), Qt::CaseInsensitive) != 0) {
         deletePartial();
         failDownload(QStringLiteral("checksum"));
         return;
@@ -475,12 +532,14 @@ void UpdateDuty::onInstallerReady(QString path)
     // installer is replaced rather than kept beside it.
     const QString target = installerPath();
     QFile::remove(target);
-    if (not QFile::rename(path, target)) {
+    if (not QFile::rename(verifyPath_, target)) {
         LENS_WARN("the checked installer could not be moved into place");
-        QFile::remove(path); // a checked partial is not left behind where nothing will clean it up
+        QFile::remove(verifyPath_); // a checked partial is not left behind where nothing will clean it up
+        verifyPath_.clear();
         failDownload(QStringLiteral("generic"));
         return;
     }
+    verifyPath_.clear();
     LENS_INFO("the installer for {} was downloaded and checked", latest_.toStdString());
     resetDownload(QStringLiteral("ready"));
 }

@@ -1168,6 +1168,35 @@ TEST(UpdateDuty, CancellingDeletesTheHalfWrittenFileAndGoesBackToIdle)
     EXPECT_FALSE(QFile::exists(one.partialAt()));
 }
 
+TEST(UpdateDuty, CancellingWhileTheFileIsCheckedDeletesItAndGoesBackToIdle)
+{
+    QtApplication    qt;
+    DutyFixture      one(false);
+    const QByteArray contents("the installer as it arrived");
+    one.duty->checkForUpdates();
+    one.answerWithNewer();
+    emit one.downloader->sumsReady(DutyFixture::sumsFor(installerName("1.2.0"), contents));
+    settle();
+    // The list request the check started never answered; drop it so the installer request is
+    // not refused as a second transfer, the way a real list answer would have ended it.
+    one.downloader->cancel();
+    one.duty->downloadUpdate();
+
+    QFile partial(one.partialAt());
+    ASSERT_TRUE(partial.open(QIODevice::WriteOnly));
+    partial.write(contents);
+    partial.close();
+    emit one.downloader->installerReady(one.partialAt());
+
+    // The check runs a chunk per turn of the loop, so the state is still verifying here and
+    // the Cancel beside Checking… has something to answer.
+    ASSERT_EQ(one.duty->download().value("state").toString(), QStringLiteral("verifying"));
+    one.duty->cancelDownload();
+
+    EXPECT_EQ(one.duty->download().value("state").toString(), QStringLiteral("idle"));
+    EXPECT_FALSE(QFile::exists(one.partialAt())) << "the file being checked was not deleted";
+}
+
 TEST(UpdateDuty, AProgressReportCarriesTheBytesTheShareAndTheEstimate)
 {
     QtApplication    qt;

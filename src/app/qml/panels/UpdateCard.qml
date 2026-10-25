@@ -75,7 +75,7 @@ Window {
             return qsTranslate("UpdateCard", "Downloads from GitHub usually need a proxy in mainland China. Turn on your proxy and try again.");
         if (failure === "checksum")
             return qsTranslate("UpdateCard", "The download did not match the published checksum. It was deleted.");
-        return qsTranslate("UpdateCard", "Download failed. Check your connection.");
+        return qsTranslate("UpdateCard", "Download failed. Check your connection. The partial download was deleted.");
     }
 
     /// What the primary button says in this state, and whether it is there at all.
@@ -165,6 +165,21 @@ Window {
             installRequested();
         else if (intent === "download")
             downloadRequested();
+    }
+
+    /// The pill beside the primary one is View, except while the download is being checked:
+    /// then it is Cancel, in the same slot and at the same width (UI-SPEC 4.0).
+    function secondaryIntent(state) {
+        return state === "verifying" ? "cancel" : "view";
+    }
+
+    function triggerSecondary() {
+        if (secondaryIntent(download.state) === "cancel") {
+            cancelRequested();
+            return;
+        }
+        dismiss();
+        viewRequested();
     }
 
     /// Escape is the cross. The card's window takes no focus, so the buttons below carry names
@@ -321,7 +336,7 @@ Window {
                 Row {
                     id: row
                     width: (primaryLabel.text !== "" ? primary.width + 12 : 0) + viewButton.width + 12 + skipButton.width
-                    height: 26
+                    height: 27
                     spacing: 12
 
                     // The one button that changes meaning: Download while the file can be fetched,
@@ -339,7 +354,7 @@ Window {
                         enabled: !busy
                         opacity: enabled ? 1 : 0.45
                         width: primaryLabel.implicitWidth + 26
-                        height: 26
+                        height: 27
                         radius: card.tokens.radiusPill
                         color: secondary ? card.tokens.panel2 : card.tokens.ink
                         border.width: secondary ? 1 : 0
@@ -375,11 +390,15 @@ Window {
                         }
                     }
 
+                    // The View slot carries Cancel while the download is being checked. Both
+                    // labels are laid out all along, so the slot keeps the wider of the two and
+                    // swapping one for the other does not move the row (UI-SPEC 4.0, D4).
                     Rectangle {
                         id: viewButton
                         objectName: "viewButton"
-                        width: viewLabel.width + 26
-                        height: 26
+                        readonly property string intent: card.secondaryIntent(card.download.state)
+                        width: Math.max(viewLabel.implicitWidth, cancelLabel.implicitWidth) + 26
+                        height: 27
                         radius: card.tokens.radiusPill
                         color: card.tokens.panel2
                         border.width: 1
@@ -393,13 +412,24 @@ Window {
                         }
 
                         Accessible.role: Accessible.Button
-                        Accessible.name: viewLabel.text
-                        Accessible.onPressAction: viewTap.tapped()
+                        Accessible.name: viewButton.intent === "cancel" ? cancelLabel.text : viewLabel.text
+                        Accessible.onPressAction: card.triggerSecondary()
 
                         Text {
                             id: viewLabel
                             anchors.centerIn: parent
+                            visible: viewButton.intent !== "cancel"
                             text: qsTranslate("UpdateCard", "View")
+                            color: card.tokens.text
+                            font.pixelSize: 12
+                            font.weight: Font.Bold
+                        }
+
+                        Text {
+                            id: cancelLabel
+                            anchors.centerIn: parent
+                            visible: viewButton.intent === "cancel"
+                            text: qsTranslate("UpdateCard", "Cancel")
                             color: card.tokens.text
                             font.pixelSize: 12
                             font.weight: Font.Bold
@@ -408,17 +438,14 @@ Window {
                         HoverHandler { cursorShape: Qt.PointingHandCursor }
                         TapHandler {
                             id: viewTap
-                            onTapped: {
-                                card.dismiss()
-                                card.viewRequested()
-                            }
+                            onTapped: card.triggerSecondary()
                         }
                     }
 
                     Rectangle {
                         id: skipButton
                         width: skipLabel.width + 26
-                        height: 26
+                        height: 27
                         radius: card.tokens.radiusPill
                         color: "transparent"
                         border.width: 1

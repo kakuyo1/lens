@@ -25,9 +25,9 @@ Item {
               .arg(Format.formatMoney(currency, dailyBudget))
         : qsTranslate("SettingsPopup", "Today %1 · no cap").arg(Format.formatMoney(currency, spentToday))
     readonly property string capLine: exhausted
-        ? qsTranslate("SettingsPopup", "The cap is used up; lookups and requests pause until tomorrow.")
+        ? qsTranslate("SettingsPopup", "Today's budget is used up; lookups and requests pause until tomorrow.")
         : dailyBudget > 0
-            ? qsTranslate("SettingsPopup", "At the cap, lookups and requests pause until tomorrow.")
+            ? qsTranslate("SettingsPopup", "At the daily budget, lookups and requests pause until tomorrow.")
             : qsTranslate("SettingsPopup", "No cap; set an amount to pause at the limit.")
 
     readonly property var openChildRect: null

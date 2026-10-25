@@ -333,6 +333,8 @@ Window {
 
                     readonly property var cardX: [0, 47, 94]
                     readonly property var cardAngle: [-6, 0, 6]
+                    /// Mirrors the real hand's middle-card lift, so the preview keeps its depth.
+                    readonly property var cardY: [4, 2, 4]
 
                     Repeater {
                         model: 3
@@ -342,7 +344,7 @@ Window {
                             required property int index
 
                             x: miniHand.cardX[miniCard.index]
-                            y: 3
+                            y: miniHand.cardY[miniCard.index]
                             width: 52
                             height: 40
                             radius: 7

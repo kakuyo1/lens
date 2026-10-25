@@ -77,9 +77,11 @@ Item {
                 }
             }
             Text {
-                text: qsTranslate("SettingsPopup", "The key is stored on this device only.")
+                width: parent.width
+                text: qsTranslate("SettingsPopup", "Create a key in your provider's dashboard; it is stored on this device only and sent only to the address below.")
                 color: page.tokens.muted
                 font.pixelSize: 11
+                wrapMode: Text.WordWrap
             }
         }
 
@@ -118,6 +120,34 @@ Item {
                 width: parent.width
                 text: qsTranslate("SettingsPopup", "This address is a common one for the provider and can go stale; check it against their documentation.")
                 color: page.tokens.muted
+                font.pixelSize: 11
+                wrapMode: Text.WordWrap
+            }
+        }
+
+        // The probe is the page's one action: it costs a tiny request and answers in the same
+        // 11 px status voice the rest of the panel uses. The sentence is the controller's,
+        // never a transport's own words, and never contains the key.
+        Column {
+            width: parent.width
+            spacing: 7
+
+            Chip {
+                objectName: "testConnectionButton"
+                label: Controller.connectionTesting
+                       ? qsTranslate("SettingsPopup", "Testing...")
+                       : qsTranslate("SettingsPopup", "Test connection")
+                enabled: !Controller.connectionTesting
+                opacity: enabled ? 1.0 : 0.6
+                onPicked: Controller.testConnection()
+            }
+
+            Text {
+                objectName: "connectionResult"
+                width: parent.width
+                visible: text !== ""
+                text: Controller.connectionResult
+                color: Controller.connectionOk ? page.tokens.muted : page.tokens.danger
                 font.pixelSize: 11
                 wrapMode: Text.WordWrap
             }

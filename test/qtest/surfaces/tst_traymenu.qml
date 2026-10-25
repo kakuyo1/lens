@@ -120,6 +120,32 @@ Item {
             compare(off.text, qsTr("Selection capture is off"));
         }
 
+        /// The corner dot means the tray icon's busy state, so the exhausted budget outranks it
+        /// exactly as it does in the icon (tray_state.h).
+        function test_theBusyDotOnlyShowsWhileWorking() {
+            const menu = make();
+            compare(menu.busyDotVisible(false, ""), false);
+            compare(menu.busyDotVisible(false, "Explaining…"), true);
+            compare(menu.busyDotVisible(true, "Explaining…"), false,
+                    "an exhausted budget should not also wear the busy dot");
+        }
+
+        /// The first row is a status line at rest and only becomes the budget shortcut when the
+        /// budget is spent; the fixture has spend at zero, so a tap must ask for nothing.
+        function test_theBudgetRowDoesNotActWhileTheBudgetIsFine() {
+            const menu = make();
+            let asked = 0;
+            menu.budgetRequested.connect(function () { ++asked; });
+            const line = stateLine(menu);
+            verify(line, "the state line was not drawn");
+            const row = line.parent;
+            compare(row.Accessible.role, Accessible.StaticText,
+                    "a healthy state line should not be announced as a button");
+            mouseClick(row, row.width / 2, row.height / 2);
+            wait(50);
+            compare(asked, 0, "a healthy state line opened the budget page");
+        }
+
         /// The live readout: the line is built off the controller's own values, so what the
         /// fixture holds -- capture off, nothing in flight, no spend today -- is what it says.
         function test_theStateLineTakesTheControllerReadout() {

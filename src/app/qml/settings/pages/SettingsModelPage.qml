@@ -84,6 +84,17 @@ Item {
                 font.pixelSize: 11
                 wrapMode: Text.Wrap
             }
+
+            // The two words the price line uses without saying what they mean: a token is the
+            // unit the service bills, and the cost panel is where those prices become the
+            // reader's own currency (API.md 6).
+            Text {
+                width: parent.width
+                text: qsTranslate("SettingsPopup", "A token is a small piece of text the model bills by; prices are per million tokens. Each lookup bills the tokens it sends and receives, converted into the currency the cost panel shows.")
+                color: root.tokens.muted
+                font.pixelSize: 11
+                wrapMode: Text.WordWrap
+            }
         }
 
         SettingsLinkRow {

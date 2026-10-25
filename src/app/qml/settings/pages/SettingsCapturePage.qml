@@ -139,6 +139,7 @@ Item {
                 id: hotkeyField
                 width: parent.width
                 objectName: "ocrHotkey"
+                accessibleName: qsTranslate("SettingsPopup", "OCR trigger key")
                 combination: Controller.settings.ocrHotkey
                 interactive: Controller.settings.ocrAvailable
                 // A combination the shell would not take says so until the reader picks one that
