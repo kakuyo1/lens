@@ -59,21 +59,17 @@ Item {
             compare(picks, 1);
         }
 
-        /// The keyboard half: Return and Space press the row the pointer never touched.
-        function test_returnAndSpacePickTheRow() {
+        /// The tray menu is pointer-first by decision (ADR 0108). A row has no Tab stop and no
+        /// keyboard handler; the pointer and the screen reader's press action are its paths.
+        function test_theRowStaysPointerFirst() {
             const row = make({});
             let picks = 0;
             row.picked.connect(function () { picks++; });
-            host.requestActivate();
-            tryVerify(function () { return host.active; });
-            row.forceActiveFocus();
-            tryVerify(function () { return row.activeFocus; });
 
+            compare(row.activeFocusOnTab, false, "a tray row claimed a Tab stop");
             keyClick(Qt.Key_Return);
-            compare(picks, 1, "Return left the row unpressed");
-
             keyClick(Qt.Key_Space);
-            compare(picks, 2, "Space left the row unpressed");
+            compare(picks, 0, "a tray row answered the keyboard");
         }
 
         /// The value on the right is part of the row's name, so a reader is told the day's
