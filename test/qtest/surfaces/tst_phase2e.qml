@@ -478,8 +478,9 @@ Item {
             verify(bubble.y < firstY, "placement must use the current height, not the first height");
         }
 
-        /// A review card is pinned by the window's bottom edge a fixed gap above the word, with
-        /// its left edge on the word's left edge (UI-SPEC.md 4.8).
+        /// A review card is pinned by its visible bottom edge a fixed gap above the word, with
+        /// its left edge on the word's left edge; the window's shadow band dips over the word
+        /// rather than hanging clear of it (UI-SPEC.md 4.8).
         function test_reviewCardKeepsItsGapAboveTheWord() {
             const main = makeMain();
             const bubble = Util.ofType(main, "Bubble");
@@ -489,13 +490,13 @@ Item {
             wait(25);
 
             compare(bubble.x, 300 - bubble.shadowMargin);
-            compare(bubble.y + bubble.height, 400 - bubble.gap);
+            compare(bubble.y + bubble.height, 400 - bubble.gap + bubble.shadowMargin);
             compare(bubble.y + bubble.height - bubble.shadowMargin,
-                    400 - bubble.gap - bubble.shadowMargin);
+                    400 - bubble.gap);
         }
 
         /// Near the top of the work area the card flips below the word rather than leaving a
-        /// different gap above it.
+        /// different gap under it.
         function test_reviewCardFlipsBelowTheWordAtTheTopEdge() {
             const main = makeMain();
             const bubble = Util.ofType(main, "Bubble");
@@ -506,7 +507,7 @@ Item {
 
             const area = Util.surfaceHost(main).workArea(Util.surfaceHost(main).screenFor(Qt.point(500, 10)));
             verify(bubble.y >= area.top + Util.surfaceHost(main).screenMargin);
-            compare(bubble.y, 10 + 20 + bubble.gap);
+            compare(bubble.y, 10 + 20 + bubble.gap - bubble.shadowMargin);
         }
 
         /// A longer answer grows the card upward: the bottom stays where the gap put it.
