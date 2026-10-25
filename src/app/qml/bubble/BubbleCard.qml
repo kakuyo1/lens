@@ -63,15 +63,6 @@ Item {
             Controller.pictureDuty.request(query);
     }
 
-    /// @brief Tell the duty whether the pointer is on this card, when this card is one the word
-    ///        list raised: its life is the pointer's, and a pointer that moved onto it from the
-    ///        word is reading it -- the entry at its foot is there to be pressed. Every other
-    ///        card keeps its own clock or belongs to no row, and says nothing.
-    function syncReviewHold() {
-        if (!root.bubble.preview && !root.bubble.countsDown)
-            Controller.explanationDuty.holdReviewCard(root.bubble.hovering);
-    }
-
     // The shadow is cast from a shape-only copy of the card, never from the card itself:
     // MultiEffect draws its source through an offscreen texture, and at this monitor's
     // 125% scale that texture is resampled. See SelectionBar.qml for the measurement.
@@ -182,17 +173,13 @@ Item {
                 } else {
                     hoverSettle.restart();
                 }
-                root.syncReviewHold();
             }
         }
 
         Timer {
             id: hoverSettle
             interval: 140
-            onTriggered: {
-                root.bubble.hovering = false;
-                root.syncReviewHold();
-            }
+            onTriggered: root.bubble.hovering = false
         }
 
         Column {

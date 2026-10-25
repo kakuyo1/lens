@@ -272,17 +272,18 @@ QtObject {
 
     /// @brief Where a list's review card sits against the word it belongs to (UI-SPEC.md 4.8).
     ///
-    /// The window's bottom edge keeps a fixed gap above the word and its left edge lines up with
+    /// The card's bottom edge keeps a fixed gap above the word and its left edge lines up with
     /// the word's left edge. The height is read at placement time and the card is put back whenever
     /// it changes, because a card that grew after placement would otherwise creep down over the
     /// word and every word would end up with a different gap. Near the top of the screen it flips
     /// below the word; near either side edge it is clamped, so the gap survives the edge and only
     /// the horizontal alignment gives way.
     ///
-    /// The gap is measured on the window, not the card: the 26 px shadow margin still takes mouse
-    /// input, and a shadow over the word would take its hover away for a frame, close the card,
-    /// and start the dwell again. The transparent band therefore stays above the word too, and the
-    /// visible gap is the shadow margin plus the ordinary 10 px.
+    /// The gap is measured on the card, not the window: the window's 26 px shadow margin dips over
+    /// the word instead of hanging clear of it, so the visible gap is the plain `gap` and the
+    /// pointer's road from the word onto the card is that short. The margin still takes mouse
+    /// input, so the band over the word steals its hover -- reviewHold answers that hold with
+    /// geometry, or the theft would close the card under a pointer that never left the reading.
     ///
     /// @param surface The bubble, already sized to its content.
     /// @param payload The anchor rectangle in DIPs: the word's x, y, anchorWidth and anchorHeight.
@@ -298,11 +299,10 @@ QtObject {
         const shadow = surface.shadowMargin;
         const width = surface.width;
         const height = surface.height;
-        const clearance = surface.gap + shadow;
         const anchorHeight = payload.anchorHeight || 0;
 
-        const above = payload.y - clearance - height + shadow;
-        const below = payload.y + anchorHeight + clearance - shadow;
+        const above = payload.y - surface.gap + shadow - height;
+        const below = payload.y + anchorHeight + surface.gap - shadow;
         let y;
         if (above >= top)
             y = above;
@@ -319,6 +319,33 @@ QtObject {
         surface.x = Math.round(x);
         surface.y = Math.round(y);
         surface.raise();
+        reviewHold.restart();
+    }
+
+    /// The hold a review card's life runs on: the pointer is on the reading exactly while it is
+    /// inside the card's window, the shadow band that dips over the word included -- the word
+    /// under that band is still where the reading started. Geometry, not hover events: the band
+    /// takes the word's hover away the frame the window lands on it, and a hold that waited for
+    /// a hover the theft suppressed would let the card close under a pointer that never moved.
+    readonly property Timer reviewHold: Timer {
+        interval: 80
+        repeat: true
+
+        onTriggered: {
+            const placement = host.placements.find(function (candidate) {
+                return candidate.kind === "review" && candidate.surface.visible;
+            });
+            if (!placement) {
+                stop();
+                Controller.explanationDuty.holdReviewCard(false);
+                return;
+            }
+            const at = Controller.cursorPos();
+            const s = placement.surface;
+            Controller.explanationDuty.holdReviewCard(
+                        at.x >= s.x && at.x <= s.x + s.width
+                        && at.y >= s.y && at.y <= s.y + s.height);
+        }
     }
 
     /// @brief Re-place a bubble after its height changed.
