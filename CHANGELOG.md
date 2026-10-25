@@ -8,7 +8,8 @@
   explanation language is English, the bubble's header shows a globe that, held for 500 ms (a ring
   sweeps once), draws the word's meaning in the mother tongue under the definition until the hold
   ends. A Chinese mother tongue is answered by the pair the explanation already paid for; other
-  mother tongues ask the new `peek` channel, once per word per session (docs/adr/0112).
+  mother tongues ask the new `peek` channel, once per word per session (docs/adr/0112). Hovering a
+  mother-tongue dropdown row in the settings previews the English card with that row's peek line.
 
 ### Changed
 

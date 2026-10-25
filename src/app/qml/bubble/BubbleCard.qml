@@ -300,11 +300,13 @@ Item {
             // card is already carrying, said once in the reader's own words. It takes the set-off
             // form the origin and the example use, without their label -- a second telling of the
             // same answer is not a section of its own -- and it is drawn whole while the hold
-            // lasts, never written out: nothing is arriving, it was held for.
+            // lasts, never written out: nothing is arriving, it was held for. The settings
+            // preview's mother-tongue row is the one place it shows without a hold: the line the
+            // payload carries is what that row has to show (UI-SPEC.md 4.4).
             Column {
                 id: peekBlock
                 objectName: "peekBlock"
-                visible: headerActions.peekVisible
+                visible: headerActions.peekVisible || (root.bubble.preview && root.bubble.peekLine !== "")
                 width: parent.width
                 topPadding: 6
                 spacing: 5

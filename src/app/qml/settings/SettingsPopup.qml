@@ -34,8 +34,10 @@ Window {
     /// The size the font-size dropdown's row asks the preview to draw at, when previewKey is
     /// "fontSize". Null for every other preview, which follows the stored size.
     property var previewFontSize: null
-    /// The language the explanation-language row asks the preview to draw in, when previewKey is
-    /// "language". Null for every other preview, which follows the stored language.
+    /// The language the explanation-language or mother-tongue dropdown's row asks the preview to
+    /// draw with, when previewKey is "language" or "motherTongue" -- the card's own language for
+    /// the former, the peek line's for the latter. Null for every other preview, which follows
+    /// the stored settings.
     property var previewLanguage: null
     property string apiDraft: ""
     property string saveStatus: ""
@@ -240,7 +242,7 @@ Window {
         previewCard.previewFontSize = previewKey === "fontSize" ? previewFontSize : null;
         previewSettle.stop();
         const payload = PreviewSample.payload(previewKey,
-                                              previewKey === "language" ? previewLanguage : null);
+                                              previewKey === "language" || previewKey === "motherTongue" ? previewLanguage : null);
         if (!payload) {
             previewCard.visible = false;
             return;
@@ -252,13 +254,13 @@ Window {
 
     /// @brief Ask for the preview of @p key, drawn in @p value when the key names a row preview.
     ///
-    /// Only the font, font-size and explanation-language rows carry a value: a family, a size and a
-    /// language. Moving between two rows of the same list keeps the key, so the card is refreshed
-    /// here rather than waiting for a key change that will not come.
+    /// The font, font-size, explanation-language and mother-tongue rows carry a value: a family, a
+    /// size and a language each. Moving between two rows of the same list keeps the key, so the
+    /// card is refreshed here rather than waiting for a key change that will not come.
     function requestPreview(key, value) {
         previewFont = key === "font" ? value : null;
         previewFontSize = key === "fontSize" ? value : null;
-        previewLanguage = key === "language" ? value : null;
+        previewLanguage = key === "language" || key === "motherTongue" ? value : null;
         if (previewKey === key)
             settings.updatePreview();
         else
@@ -654,6 +656,14 @@ Window {
                 } else if (settings.previewKey === "language") {
                     // The pointer may have moved on to a switch title, whose card must not be
                     // taken down by this list's delayed leave.
+                    settings.requestPreview("", "");
+                }
+            }
+            onMotherTonguePreviewRequested: (language) => {
+                if (language !== "") {
+                    settings.requestPreview("motherTongue", language);
+                } else if (settings.previewKey === "motherTongue") {
+                    // The same delayed-leave rule the language list keeps.
                     settings.requestPreview("", "");
                 }
             }

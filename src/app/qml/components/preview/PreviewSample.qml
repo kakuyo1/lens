@@ -16,10 +16,12 @@ import QtQuick
  * translation table: the language of an explanation is a runtime setting, not the interface's.
  */
 QtObject {
-    /// @param key Which setting is being previewed: "speed", "language", "multisense", "etymology",
-    ///        "example", "ipa", "signpost", "collocations", "font" or "fontSize".
+    /// @param key Which setting is being previewed: "speed", "language", "motherTongue",
+    ///        "multisense", "etymology", "example", "ipa", "signpost", "collocations", "font" or
+    ///        "fontSize".
     /// @param language For the "language" preview, the language the hovered row carries, which
-    ///        this card is drawn in instead of the stored one.
+    ///        this card is drawn in instead of the stored one; for the "motherTongue" preview,
+    ///        the mother tongue whose peek line the card draws under its English definition.
     /// @return The payload for Bubble.show(), or null when there is no sample to draw -- a machine
     ///         whose data/preview.json could not be read has no preview rather than an empty card.
     function payload(key, language) {
@@ -32,8 +34,10 @@ QtObject {
         // is what the font setting is about: a card in the reader's own language would show the
         // setting leaving that language exactly as it found it. The size preview is drawn in
         // English for the same reason once removed: the English definition is the longest run on
-        // the card, so it is the one that shows what a size does to the card's height.
-        const lang = key === "font" || key === "fontSize" ? "en"
+        // the card, so it is the one that shows what a size does to the card's height. The
+        // mother-tongue preview is drawn in English for the reason next door: the peek exists
+        // only under an English explanation, so English is the card the peek line lands on.
+        const lang = key === "font" || key === "fontSize" || key === "motherTongue" ? "en"
                    : key === "language" && language ? language
                    : (settings.explanationLang || "en");
         /// The sample's text in one language, falling back to the English it is always written in.
@@ -60,6 +64,10 @@ QtObject {
             collocations: key === "collocations" || settings.collocations ? sample.collocations || [] : [],
             etymology: key === "etymology" || settings.etymology ? local(sample.etymology) : "",
             example: key === "example" || settings.example ? sample.example || "" : "",
+            // The mother-tongue preview's one forced block: the peek line in the hovered
+            // language, the same rule the real peek reads its line by. Every other payload
+            // carries none, and the card draws no peek slot for an empty one.
+            peekLine: key === "motherTongue" && language ? sample.definition[language] || "" : "",
             // No clock: this card goes when the pointer leaves the title, not when a count runs out,
             // and the countdown line is one of the two things only a real bubble carries.
             countsDown: false

@@ -16,6 +16,9 @@ Item {
     /// The language the explanation-language row under the pointer asks to preview. The popup
     /// draws the same card in that language; "" takes it down.
     signal languagePreviewRequested(string language)
+    /// The language the mother-tongue row under the pointer asks to preview. The popup draws the
+    /// English card with the peek line in that language; "" takes it down.
+    signal motherTonguePreviewRequested(string language)
 
     function closeChild() {
         motherTongueField.closeList();
@@ -75,6 +78,11 @@ Item {
                 options: root.settings.motherTongueOptions || []
                 currentValue: root.settings.motherTongue
                 onPicked: (value) => Controller.setSetting("motherTongue", value)
+                // The peek line is the one thing this setting changes on the card, and the peek
+                // only exists under an English explanation: the row's preview draws the English
+                // card with the line in the hovered language (UI-SPEC.md 4.4).
+                onOptionHovered: (option) => root.motherTonguePreviewRequested(String(option.value))
+                onOptionUnhovered: root.motherTonguePreviewRequested("")
             }
         }
 

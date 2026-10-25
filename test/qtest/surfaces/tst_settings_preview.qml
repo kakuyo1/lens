@@ -141,6 +141,28 @@ Item {
             return previewOf(main);
         }
 
+        /// @return The mother-tongue dropdown, with its list up.
+        function motherTongueField(panel) {
+            const field = Util.findAll(panel, function (o) {
+                return o.objectName === "motherTongueField";
+            })[0];
+            verify(field, "the learning page has no mother-tongue field");
+            if (field.openChildRect === null) {
+                field.openList();
+                wait(50);
+            }
+            return field;
+        }
+
+        /// Rest the pointer on a mother-tongue row, which is the whole gesture for that preview.
+        function hoverMotherTongueRow(main, panel, label) {
+            const field = motherTongueField(panel);
+            const row = Util.textWith(Util.textsInNestedWindow(field), [label]);
+            verify(row, "the mother-tongue list has no '" + label + "' row");
+            mouseMove(row, row.width / 2, row.height / 2);
+            return previewOf(main);
+        }
+
         /// Take the pointer off every title: a place in the panel that is not a label.
         function leaveTitle(main, panel) {
             const preview = previewOf(main);
@@ -363,6 +385,38 @@ Item {
 
             languageField(panel).closeList();
             tryCompare(preview, "visible", false);
+        }
+
+        /// The mother-tongue rows preview the one thing that setting changes: the peek line under
+        /// an English explanation. The card is drawn in English whatever is stored, because the
+        /// peek exists only there, and each row draws its own language's line without writing it.
+        function test_theMotherTongueRowPreviewsThePeekLine() {
+            const main = make();
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "Reading & learning");
+
+            const sample = Controller.settingPreview.definition;
+            const previous = Controller.settings.explanationLang;
+            try {
+                Controller.setSetting("explanationLang", "es");
+                let preview = hoverMotherTongueRow(main, panel, "中文");
+                tryCompare(preview, "visible", true);
+                tryCompare(preview, "english", sample.en);
+                compare(preview.chinese, "", "an English explanation draws no Chinese definition");
+                compare(preview.peekLine, sample.zh);
+
+                preview = hoverMotherTongueRow(main, panel, "繁體中文");
+                tryCompare(preview, "peekLine", sample["zh-Hant"]);
+                preview = hoverMotherTongueRow(main, panel, "日本語");
+                tryCompare(preview, "peekLine", sample.ja);
+                compare(Controller.settings.explanationLang, "es", "a hover wrote the stored language");
+
+                motherTongueField(panel).closeList();
+                tryCompare(preview, "visible", false);
+            } finally {
+                Controller.setSetting("explanationLang", previous);
+            }
         }
 
         /// The card draws glass out of a sheet of its own: it is a second Bubble, and two windows

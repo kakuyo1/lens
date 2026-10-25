@@ -158,9 +158,10 @@ Window {
         const wasVisible = visible;
         const generation = ++showGeneration;
         // A different card has not asked for a peek line: the one on the card was answered for
-        // the word that stood before it.
+        // the word that stood before it. The payload itself may carry one -- the mother-tongue
+        // row the settings preview draws under -- and that line wins.
         if (payload.sameCard !== true)
-            peekLine = "";
+            peekLine = payload.peekLine || "";
         pendingPayload = payload;
         pendingWasVisible = wasVisible;
         pendingGeneration = generation;
