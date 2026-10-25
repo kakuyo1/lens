@@ -27,7 +27,7 @@
   <img alt="CMake 3.21+" src="https://img.shields.io/badge/CMake-3.21%2B-064F8C?logo=cmake&logoColor=white">
 </p>
 
-<p align="center"><sub>English · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.es.md">Español</a></sub></p>
+<p align="center"><sub>English · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.es.md">Español</a></sub></p>
 
 <p align="center">
   <picture>
@@ -47,6 +47,8 @@ Most lookup tools pull you out of the page and answer in your first language. Yo
 **The answer stays on the page.** Lens lives in the system tray and has no main window. The bubble opens beside the selection, holds while you hover, and is gone when you keep reading.
 
 **A quiet memory.** Mark a word Known or New. Lens keeps the list; the desktop pet can ask it back later. No streaks, no lesson plan.
+
+**A definition you can walk into.** A word in a definition that sits above your level stays dotted. Open it and the same card steps down one layer, with a breadcrumb back; the cache, budget, and verdict rules follow every step.
 
 ## A quick look
 
@@ -78,9 +80,9 @@ Press `Ctrl+Alt+S` (changeable in Settings), frame a region of a PDF, image, or 
 
 ## Five action bars, one set of actions
 
-<p align="center"><img src="docs/readme/selection-styles.gif" width="800" alt="Classic bar, side tab, three cards, hang tag and fan selection styles"></p>
+<p align="center"><img src="docs/readme/selection-styles.gif" width="800" alt="Classic bar, side tab, hand of cards, hang tag and fan selection styles"></p>
 
-Choose the shape in Settings › Capture & popups: the classic bar, a page-edge tab, three cards, a hang tag, or a fan. The three actions and channel rules stay the same.
+Choose the shape in Settings › Capture & popups: the classic bar, a page-edge tab, a hand of cards, a hang tag, or a fan. The three actions and channel rules stay the same.
 
 ## A small learning loop
 
@@ -92,7 +94,7 @@ Known and New live on one word list. Hover a row to reread an explanation Lens a
 
 <p align="center"><img src="docs/readme/pets.gif" width="900" alt="Lens's seven pixel pets"></p>
 
-Seven pixel companions ship with Lens: Stub cat, Owl, Mochi, Ghost, Jellyfish, Cloud, and Dog. They are off by default; turn one on in Settings › Extensions. They react to event types only — never to your selections, explanations, or screen text — and packages hold data only.
+Seven pixel companions ship with Lens: Stub cat, Owl, Mochi, Ghost, Jellyfish, Cloud, and Dog. They are off by default; turn one on in Settings › Extensions. Each pet has its own nine-piece wardrobe and four scenes; a scarf or a pair of frames can tilt which scene it chooses, and its size and outfit are remembered per pet while the window stays where you put it. They react to event types only — never to your selections, explanations, or screen text — and packages hold data only.
 
 ## Also in the box
 
@@ -100,6 +102,7 @@ Seven pixel companions ship with Lens: Stub cat, Owl, Mochi, Ghost, Jellyfish, C
 - **Costs you can see.** Per-request cost from tokens, and a daily budget that pauses lookups, capture, and requests when the day reaches it.
 - **Sync when you want it.** Word marks, lookup history, statistics, and selected settings are encrypted with your passphrase and kept in a secret gist in your own GitHub account. The API key stays on this device.
 - **Word lists in and out.** Import or export `.txt` and `.json`; delete a word with one confirmation.
+- **Pictures when they help.** A sense the model thinks a photo explains better can open three Wikimedia Commons pictures. They are cached locally, and About shows the cache size and clears it in place.
 - **Make it yours.** Five action-bar shapes; Light, Dark, Frosted glass, Liquid glass, and Custom themes; and an English typeface with 12–18 px bubble text.
 - **Four languages.** Interface and explanations each offer English, Chinese, Spanish, and Japanese. The Spanish and Japanese translations are machine-generated and have not been reviewed by a native speaker.
 
@@ -142,7 +145,7 @@ Only the text you select or capture is sent to the provider you configure, after
 
 ## Languages
 
-[English](README.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [Español](README.es.md)
+[English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [Español](README.es.md)
 
 The interface language and the explanation language are separate settings. Both offer English, Chinese, Spanish, and Japanese.
 

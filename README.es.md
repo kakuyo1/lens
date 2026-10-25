@@ -27,7 +27,7 @@
   <img alt="CMake 3.21+" src="https://img.shields.io/badge/CMake-3.21%2B-064F8C?logo=cmake&logoColor=white">
 </p>
 
-<p align="center"><sub><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ja.md">日本語</a> · Español</sub></p>
+<p align="center"><sub><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · Español</sub></p>
 
 <p align="center">
   <picture>
@@ -47,6 +47,8 @@ La mayoría de las herramientas de consulta te sacan de la página y responden e
 **La respuesta se queda junto al texto.** Lens vive en la bandeja del sistema y no tiene ventana principal. La burbuja aparece junto a la selección, se queda mientras pasas el ratón y desaparece cuando sigues leyendo.
 
 **Una memoria tranquila.** Marca una palabra como Conocida o Nueva. Lens guarda la lista; el compañero de escritorio puede preguntártela más tarde. Sin rachas ni planes de estudio.
+
+**Una definición por la que se puede entrar.** Las palabras de una definición que quedan por encima de tu nivel conservan el subrayado de puntos. Ábrela y la misma tarjeta baja un nivel, con una ruta para volver; la caché, el presupuesto y las reglas de veredicto acompañan cada paso.
 
 ## Un vistazo
 
@@ -78,9 +80,9 @@ Pulsa `Ctrl+Alt+S` (se puede cambiar en Ajustes), enmarca una zona de un PDF, un
 
 ## Cinco formas de barra de acciones
 
-<p align="center"><img src="docs/readme/selection-styles.gif" width="800" alt="Barra clásica, pestaña lateral, tres tarjetas, etiqueta colgante y abanico"></p>
+<p align="center"><img src="docs/readme/selection-styles.gif" width="800" alt="Barra clásica, pestaña lateral, mano de cartas, etiqueta colgante y abanico"></p>
 
-Elige la forma en Ajustes › Captura y ventanas: barra clásica, pestaña lateral, tres tarjetas, etiqueta colgante o abanico. Las tres acciones y las reglas de canal no cambian.
+Elige la forma en Ajustes › Captura y ventanas: barra clásica, pestaña lateral, mano de cartas, etiqueta colgante o abanico. Las tres acciones y las reglas de canal no cambian.
 
 ## Un pequeño bucle de aprendizaje
 
@@ -92,7 +94,7 @@ Conocida y Nueva viven en una sola lista de palabras. Pasa el ratón por una fil
 
 <p align="center"><img src="docs/readme/pets.gif" width="900" alt="Las siete mascotas de píxeles de Lens"></p>
 
-Lens incluye siete mascotas de píxeles: Gato de orejas cortas, Búho, Mochi, Fantasma, Medusa, Nube y Perro. Están desactivadas por defecto; activa una en Ajustes › Extensiones. Solo reciben tipos de evento — nunca tus selecciones, explicaciones o texto en pantalla — y los paquetes solo contienen datos.
+Lens incluye siete mascotas de píxeles: Gato de orejas cortas, Búho, Mochi, Fantasma, Medusa, Nube y Perro. Están desactivadas por defecto; activa una en Ajustes › Extensiones. Cada mascota tiene su propio vestuario de nueve piezas y cuatro escenas; una bufanda o unas gafas inclinan qué escena elige, y su tamaño y su ropa se recuerdan por mascota mientras la ventana se queda donde la dejas. Solo reciben tipos de evento — nunca tus selecciones, explicaciones o texto en pantalla — y los paquetes solo contienen datos.
 
 ## También incluido
 
@@ -100,6 +102,7 @@ Lens incluye siete mascotas de píxeles: Gato de orejas cortas, Búho, Mochi, Fa
 - **Costes visibles.** Coste por petición a partir de los tokens y un presupuesto diario que pausa las consultas, la captura y las peticiones cuando se alcanza.
 - **Sincronización cuando la quieras.** Las marcas Conocida/Nueva, el historial, las estadísticas y los ajustes seleccionados se cifran con tu frase de contraseña y se guardan en un gist secreto de tu propia cuenta de GitHub. La clave de API se queda en este dispositivo.
 - **Listas de palabras de ida y vuelta.** Importa o exporta `.txt` y `.json`; borra una palabra con una confirmación.
+- **Fotos cuando ayudan.** Si el modelo cree que una foto explica mejor un sentido, la tarjeta puede abrir tres imágenes de Wikimedia Commons. Se guardan en caché local y «Acerca de» muestra su tamaño y permite borrarla.
 - **Hazlo tuyo.** Cinco formas de barra de acciones; temas Claro, Oscuro, Vidrio mate, Vidrio líquido y Personalizado; y una tipografía inglesa con texto de burbuja de 12–18 px.
 - **Cuatro idiomas.** La interfaz y las explicaciones ofrecen inglés, chino, español y japonés. Las traducciones al español y al japonés están generadas por máquina y no han sido revisadas por un hablante nativo.
 
@@ -142,7 +145,7 @@ Solo el texto que seleccionas o capturas se envía al proveedor que configures, 
 
 ## Idiomas
 
-[English](README.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [Español](README.es.md)
+[English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [Español](README.es.md)
 
 El idioma de la interfaz y el de las explicaciones son ajustes independientes. Ambos ofrecen inglés, chino, español y japonés.
 
