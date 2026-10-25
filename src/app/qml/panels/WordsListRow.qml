@@ -60,15 +60,15 @@ Item {
         id: reviewDwell
         interval: 400
         onTriggered: {
-            // 40 px up: the bubble's window carries `Bubble.shadowMargin` (26) of transparent shadow
-            // and stands 10 px off its anchor, so anchoring at the word would put the window's edge
-            // back over it -- unhover, bubble down, word under the pointer again.
-            const at = wordText.mapToGlobal(0, -40);
-            // The screen's scale on the way out because SurfaceHost.qml anchors every surface from
-            // the physical pixels the mouse hook reports; it comes back exactly here, whatever the
-            // monitor's native origin.
+            // The word's own rectangle, not a point above it: the review card is pinned by its
+            // bottom edge to the word and flips below when the screen has no room above. The
+            // pixels go out in the physical units the other surface anchors use, and the card's
+            // own height is read when it is placed, so a long answer moves its top, never its gap.
+            const at = wordText.mapToGlobal(0, 0);
             const ratio = Screen.devicePixelRatio || 1;
-            Controller.reviewWord(entry.modelData.word, Math.round(at.x * ratio), Math.round(at.y * ratio));
+            Controller.reviewWord(entry.modelData.word,
+                                  Math.round(at.x * ratio), Math.round(at.y * ratio),
+                                  Math.round(wordText.width * ratio), Math.round(wordText.height * ratio));
         }
     }
 

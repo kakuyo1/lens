@@ -238,7 +238,7 @@ void ExplanationDuty::runSelectionAction(QString action, QString text)
     explain(pending_);
 }
 
-void ExplanationDuty::reviewWord(QString lemma, QPoint const anchor)
+void ExplanationDuty::reviewWord(QString lemma, QPoint const anchor, QSize const anchorSize)
 {
     const QString value = lemma.trimmed();
     if (value.isEmpty()) return;
@@ -246,7 +246,7 @@ void ExplanationDuty::reviewWord(QString lemma, QPoint const anchor)
     const auto context = cache_.contextFor(core::SelectionKind::Word);
     const auto found   = cache_.look(value.toStdString(), context);
     if (found.state != core::ExplanationCache::State::Missing) {
-        PendingSelection pending{.anchor = anchor, .kind = core::SelectionKind::Word, .surface = value, .lemma = value, .countsDown = false};
+        PendingSelection pending{.anchor = anchor, .anchorSize = anchorSize, .kind = core::SelectionKind::Word, .surface = value, .lemma = value, .countsDown = false, .review = true};
         showBubble(fromCache(found.entry, value), pending, context, /*notifyPet=*/true, /*reveal=*/false);
         reviewRaised_ = true;
         return;
@@ -490,7 +490,7 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
                                                                                                          : QString{};
     // The same card refreshed -- a stream chunk, or a language switch replaying the answer -- is
     // not a new surface that has to be placed: the reader is already reading it where it stands.
-    const bool  sameCard = not bubble_.isEmpty() and bubbleSubject_.kind == selection.kind and bubbleSubject_.text == selection.text and bubbleSubject_.surface == selection.surface and bubbleSubject_.lemma == selection.lemma and bubbleSubject_.anchor == selection.anchor and bubbleSubject_.preset == selection.preset and bubbleSubject_.countsDown == selection.countsDown and bubbleSubject_.verdictButtons == selection.verdictButtons;
+    const bool  sameCard = not bubble_.isEmpty() and bubbleSubject_.kind == selection.kind and bubbleSubject_.text == selection.text and bubbleSubject_.surface == selection.surface and bubbleSubject_.lemma == selection.lemma and bubbleSubject_.anchor == selection.anchor and bubbleSubject_.anchorSize == selection.anchorSize and bubbleSubject_.preset == selection.preset and bubbleSubject_.countsDown == selection.countsDown and bubbleSubject_.verdictButtons == selection.verdictButtons and bubbleSubject_.review == selection.review;
     QVariantMap payload{{"title", explanation.title},
                         {"type", kindName(selection.kind)},
                         {"sameCard", sameCard},
@@ -500,6 +500,9 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
                         {"countsDown", selection.countsDown},
                         {"reveal", reveal},
                         {"verdictButtons", selection.verdictButtons},
+                        {"review", selection.review},
+                        {"anchorWidth", selection.anchorSize.width()},
+                        {"anchorHeight", selection.anchorSize.height()},
                         {"x", selection.anchor.x()},
                         {"y", selection.anchor.y()}};
     if (isWordKind(selection.kind)) {

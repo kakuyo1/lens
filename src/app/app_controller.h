@@ -162,8 +162,9 @@ public:
      */
     Q_INVOKABLE QString setOcrHotkey(int key, int modifiers);
     /// @brief Show the explanation already stored for a word the reader pointed at, if there is one.
-    /// @param x,y Where the row is, in the physical pixels the mouse hook reports.
-    Q_INVOKABLE void reviewWord(QString lemma, int x, int y);
+    /// @param x,y          The word's top-left, in the physical pixels the mouse hook reports.
+    /// @param width,height The word's size in those pixels, so the card can be placed against it.
+    Q_INVOKABLE void reviewWord(QString lemma, int x, int y, int width, int height);
     /// @brief Ask the model about a lemma the reader asked for by name, anchored where it was read.
     Q_INVOKABLE void explainLemma(QString lemma);
     /// @brief Capture a region the reader dragged on the mask.

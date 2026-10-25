@@ -566,6 +566,26 @@ Item {
             radius: list.tokens.radiusGroup
             color: list.tokens.popup
 
+            // The card's padding and bar are part of the list's page: a wheel there scrolls the
+            // rows instead of doing nothing. The view gets the event first when the pointer is
+            // over the rows themselves, so its own wheel handling is left untouched.
+            WheelHandler {
+                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                onWheel: (event) => {
+                    if (listColumn.contentHeight <= listColumn.height)
+                        return;
+                    let step = event.pixelDelta.y;
+                    if (step === 0)
+                        step = -event.angleDelta.y / 120 * 72;
+                    const next = Math.max(0, Math.min(listColumn.contentY + step,
+                                                      listColumn.contentHeight - listColumn.height));
+                    if (next !== listColumn.contentY) {
+                        listColumn.contentY = next;
+                        event.accepted = true;
+                    }
+                }
+            }
+
             // A view rather than a column: the delegates are built as they come into sight, so a
             // list of several hundred costs the ten that are drawn and no more.
             //

@@ -368,6 +368,27 @@ Window {
             mode: settings.tokens.glassMode
         }
 
+        // The body scrolls, and the header and footer are part of the same page: a wheel over
+        // either scrolls it rather than doing nothing. The handler is the card's, so a wheel over
+        // the body reaches the Flickable first and keeps its acceleration; this only answers for
+        // the bands the Flickable does not cover.
+        WheelHandler {
+            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+            onWheel: (event) => {
+                if (body.contentHeight <= body.height)
+                    return;
+                let step = event.pixelDelta.y;
+                if (step === 0)
+                    step = -event.angleDelta.y / 120 * 72;
+                const next = Math.max(0, Math.min(body.contentY + step,
+                                                  body.contentHeight - body.height));
+                if (next !== body.contentY) {
+                    body.contentY = next;
+                    event.accepted = true;
+                }
+            }
+        }
+
         Item {
             id: header
             x: 0
@@ -460,23 +481,6 @@ Window {
             contentWidth: width
             contentHeight: Math.max(height, viewLoader.y + viewLoader.height + 18)
 
-            // The six-pixel thumb UI-SPEC.md 4.4 asks for: transparent track, faint thumb, in the
-            // card's right margin. Drawn rather than imported so the module keeps no widget style.
-            Rectangle {
-                id: scrollThumb
-                objectName: "scrollThumb"
-                visible: body.contentHeight > body.height
-                x: body.width - width
-                y: body.y + (body.contentHeight <= body.height ? 0
-                            : (body.height - height) * Math.min(1, Math.max(0,
-                              body.contentY / (body.contentHeight - body.height))))
-                width: 6
-                height: Math.max(24, body.height * body.height / body.contentHeight)
-                radius: 3
-                color: settings.tokens.faint
-                opacity: body.moving ? 0.9 : 0.55
-            }
-
             Loader {
                 id: viewLoader
                 x: 20
@@ -504,6 +508,24 @@ Window {
                                   : settings.category === "about" ? aboutComponent
                                   : extensionsComponent
             }
+        }
+
+        // The six-pixel thumb UI-SPEC.md 4.4 asks for: transparent track, faint thumb, in the
+        // card's right margin. It is a sibling of the body, not a child: a child scrolls with
+        // the content it is supposed to measure, and reads as a bar that never moves.
+        Rectangle {
+            id: scrollThumb
+            objectName: "scrollThumb"
+            x: body.width - width
+            y: body.y + (body.contentHeight <= body.height ? 0
+                        : (body.height - height) * Math.min(1, Math.max(0,
+                          body.contentY / (body.contentHeight - body.height))))
+            width: 6
+            height: Math.max(24, body.height * body.height / body.contentHeight)
+            radius: 3
+            color: settings.tokens.faint
+            visible: body.contentHeight > body.height
+            opacity: body.moving ? 0.9 : 0.55
         }
 
         Item {

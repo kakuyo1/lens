@@ -214,6 +214,28 @@ Window {
             radius: card.radius
         }
 
+        // The list is the only scroller, but the title, the filters and the card's right padding
+        // are part of the same page: a wheel anywhere on the card scrolls the list. The handler
+        // sits on the card, behind the view in delivery order, so a wheel over the list itself is
+        // still the ListView's (and keeps its acceleration); this only answers where that view
+        // declined the event.
+        WheelHandler {
+            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+            onWheel: (event) => {
+                if (list.contentHeight <= list.height)
+                    return;
+                let step = event.pixelDelta.y;
+                if (step === 0)
+                    step = -event.angleDelta.y / 120 * 72;
+                const next = Math.max(0, Math.min(list.contentY + step,
+                                                  list.contentHeight - list.height));
+                if (next !== list.contentY) {
+                    list.contentY = next;
+                    event.accepted = true;
+                }
+            }
+        }
+
         Column {
             id: column
             x: 20

@@ -8,6 +8,7 @@
 #include <QObject>
 #include <QPoint>
 #include <QRect>
+#include <QSize>
 #include <QString>
 #include <QTimer>
 #include <QVariantList>
@@ -32,7 +33,10 @@ namespace lens::app {
 class MouseSelectionHook;
 
 struct PendingSelection {
-    QPoint  anchor;
+    QPoint anchor;
+    /// @brief The anchor's own size, for a card placed against a whole object rather than a point.
+    ///        The word list's review bubble is placed above the word's rectangle, not at its corner.
+    QSize   anchorSize;
     QString text;
     /// What the selection is, carried as the classifier's own kind: a value everywhere in C++, and a
     /// string only where a QML payload needs one (kindName()).
@@ -46,6 +50,9 @@ struct PendingSelection {
     /// @brief Whether the card offers the Known / New buttons. False for the card that answers a
     ///        review question, so a replay of it draws the same card rather than a markable one.
     bool verdictButtons = true;
+    /// @brief Whether this card belongs to the word under the pointer in the list. It is placed against
+    ///        the word's own rectangle: bottom edge a fixed gap above it, flipping below near the top edge.
+    bool review = false;
     /// @brief Whether this request is a step of the definition chain. Its answer goes onto the chain under
     ///        the card, and never onto the card itself.
     bool chain = false;

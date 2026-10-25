@@ -52,7 +52,7 @@ Window {
         id: bubble
         objectName: "bubble"
         onPlacementRequested: (payload) => surfaceHost.placeBubble(bubble, payload)
-        onHeightChanged: surfaceHost.keepOnScreen(bubble)
+        onHeightChanged: surfaceHost.bubbleGeometryChanged(bubble)
     }
     /// The pet's right-click opens the panel on the page that carries the pet's block, beside the pet, on the side
     /// chosen from where the pet is at that click; the tray's entry opens it without choosing a page, at the tray icon.

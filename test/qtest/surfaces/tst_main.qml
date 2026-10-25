@@ -67,7 +67,8 @@ Item {
         function test_toDipDividesThePositionAndKeepsEveryOtherField() {
             const main = make();
 
-            const payload = { x: 250, y: 500, kind: "word", text: "ubiquitous" };
+            const payload = { x: 250, y: 500, kind: "word", text: "ubiquitous",
+                              anchorWidth: 80, anchorHeight: 40 };
             const points = panel(main, "ScreenPoints");
             const at = points.toDip(payload);
             const ratio = Screen.devicePixelRatio || 1;
@@ -75,9 +76,12 @@ Item {
             verify(at !== payload, "toDip handed back the payload itself; the callers divide in place through it");
             compare(at.x, 250 / ratio);
             compare(at.y, 500 / ratio);
+            compare(at.anchorWidth, 80 / ratio);
+            compare(at.anchorHeight, 40 / ratio);
             compare(at.kind, "word");
             compare(at.text, "ubiquitous");
             compare(payload.x, 250, "toDip wrote through to the payload the caller still holds");
+            compare(payload.anchorWidth, 80, "toDip wrote the size through to the caller's payload");
         }
 
         /// The clamp is the whole point of the function: the panels are wider than the tray

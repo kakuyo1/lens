@@ -521,9 +521,9 @@ void AppController::setAutostart(bool on)
     emit settingsChanged();
 }
 
-void AppController::reviewWord(QString lemma, int x, int y)
+void AppController::reviewWord(QString lemma, int x, int y, int width, int height)
 {
-    explanation_.reviewWord(std::move(lemma), QPoint(x, y));
+    explanation_.reviewWord(std::move(lemma), QPoint(x, y), QSize(width, height));
 }
 
 void AppController::explainLemma(QString lemma)

@@ -33,11 +33,18 @@ QtObject {
     function toDip(payload) {
         const target = host.screenForPhysical(Qt.point(payload.x, payload.y));
         const at = dipOn(target, Qt.point(payload.x, payload.y));
+        const ratio = target.devicePixelRatio || 1;
         const out = {};
         for (const key in payload)
             out[key] = payload[key];
         out.x = at.x;
         out.y = at.y;
+        // The anchor's own size travels with it when the card is placed against a whole object:
+        // a native-pixel size divided by the same screen scale gives the DIP size the window sees.
+        if (payload.anchorWidth !== undefined)
+            out.anchorWidth = payload.anchorWidth / ratio;
+        if (payload.anchorHeight !== undefined)
+            out.anchorHeight = payload.anchorHeight / ratio;
         return out;
     }
     // qmllint enable missing-property

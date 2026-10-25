@@ -143,7 +143,7 @@ Item {
             const bubble = panel(main, "Bubble");
             bubble.color = pageColor;
 
-            Controller.reviewWord("panel", 360, 240);
+            Controller.reviewWord("panel", 360, 240, 40, 20);
             tryCompare(bubble, "visible", true);
             compare(bubble.status, "new", "the fixture should leave panel unmarked");
             verify(bubble.etymology !== "", "the cached entry carries no origin to draw");

@@ -270,6 +270,71 @@ QtObject {
         surface.raise();
     }
 
+    /// @brief Where a list's review card sits against the word it belongs to (UI-SPEC.md 4.8).
+    ///
+    /// The window's bottom edge keeps a fixed gap above the word and its left edge lines up with
+    /// the word's left edge. The height is read at placement time and the card is put back whenever
+    /// it changes, because a card that grew after placement would otherwise creep down over the
+    /// word and every word would end up with a different gap. Near the top of the screen it flips
+    /// below the word; near either side edge it is clamped, so the gap survives the edge and only
+    /// the horizontal alignment gives way.
+    ///
+    /// The gap is measured on the window, not the card: the 26 px shadow margin still takes mouse
+    /// input, and a shadow over the word would take its hover away for a frame, close the card,
+    /// and start the dwell again. The transparent band therefore stays above the word too, and the
+    /// visible gap is the shadow margin plus the ordinary 10 px.
+    ///
+    /// @param surface The bubble, already sized to its content.
+    /// @param payload The anchor rectangle in DIPs: the word's x, y, anchorWidth and anchorHeight.
+    function placeReviewCard(surface, payload) {
+        if (!surface || surface.dragging)
+            return;
+        const target = screenFor(Qt.point(payload.x, payload.y));
+        const area = workArea(target);
+        const left = area.left + screenMargin;
+        const top = area.top + screenMargin;
+        const right = area.right - screenMargin;
+        const bottom = area.bottom - screenMargin;
+        const shadow = surface.shadowMargin;
+        const width = surface.width;
+        const height = surface.height;
+        const clearance = surface.gap + shadow;
+        const anchorHeight = payload.anchorHeight || 0;
+
+        const above = payload.y - clearance - height + shadow;
+        const below = payload.y + anchorHeight + clearance - shadow;
+        let y;
+        if (above >= top)
+            y = above;
+        else if (below + height <= bottom)
+            y = below;
+        else if (payload.y - top >= bottom - (payload.y + anchorHeight))
+            y = top;
+        else
+            y = bottom - height;
+        y = Numbers.clamp(y, top, bottom - height);
+
+        // The card's left edge, not the window's: the window carries the shadow margin.
+        const x = Numbers.clamp(payload.x - shadow, left, right - width);
+        surface.x = Math.round(x);
+        surface.y = Math.round(y);
+        surface.raise();
+    }
+
+    /// @brief Re-place a bubble after its height changed.
+    ///
+    /// A review card is pinned by its bottom edge, so growing content must move the top, not the
+    /// gap to the word. Every other bubble keeps the top it was placed at and is only pulled back
+    /// on screen, which is the old behaviour.
+    function bubbleGeometryChanged(surface) {
+        const placement = placements.find(function (candidate) { return candidate.surface === surface; });
+        if (placement && placement.kind === "review" && surface.surfaceShown
+                && !surface.dragging && !surface.languageReplay)
+            placeReviewCard(surface, placement.anchor);
+        else
+            keepOnScreen(surface);
+    }
+
     /// @brief Put the action bar up in the form the reader chose (UI-SPEC.md 4.10).
     ///
     /// The form's own placement lives on SelectionBar (placeAt), next to the geometry it is
@@ -279,13 +344,20 @@ QtObject {
         surface.placeAt(anchor, workArea(screenFor(anchor)), screenMargin);
     }
 
-    /// The answer to a review carries no verdict buttons (Controller.explanationDuty.bubble); every other card is placed
-    /// beside its anchor as before.
+    /// A review card belongs to the word list and is placed against its word's rectangle; the
+    /// answer beside the pet's sign is placed by reviewSign; every other card hangs from its anchor.
     function placeBubble(surface, payload) {
-        if (payload.verdictButtons === false)
+        if (payload.review === true) {
+            rememberPlacement(surface, payload, "review");
+            placeReviewCard(surface, payload);
+        } else if (payload.verdictButtons === false) {
+            // The sign keeps its own record of where this answer goes; marking the kind here keeps
+            // a later height change from reading the review placement that came before it.
+            rememberPlacement(surface, payload, "reviewSign");
             reviewSign.placeAnswerCard(surface);
-        else
+        } else {
             placeTransient(surface, payload, surface.gap);
+        }
     }
     // qmllint enable missing-property
 
@@ -334,6 +406,8 @@ QtObject {
                 placePanel(placement.surface, placement.anchor);
             else if (placement.kind === "pet")
                 placePetPanel(placement.surface);
+            else if (placement.kind === "review")
+                placeReviewCard(placement.surface, placement.anchor);
             else if (placement.surface === bar)
                 placeSelectionBar(bar, placement.anchor);
             else if (!placement.surface.dragging)

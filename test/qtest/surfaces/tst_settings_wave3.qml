@@ -308,6 +308,44 @@ Item {
             }, 1000, "focus stayed below the visible body");
         }
 
+        /// The thumb measures the body, so it has to stay in the body's viewport while the content
+        /// moves under it. A thumb declared inside the Flickable scrolls away with the content and
+        /// reads as a bar that never moves.
+        function test_theScrollThumbTracksTheBodyAndStaysInItsViewport() {
+            const main = make();
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "Reading & learning");
+            wait(20);
+
+            const thumb = Util.findAll(panel, function (o) {
+                return o.objectName === "scrollThumb";
+            })[0];
+            verify(thumb, "the settings body has no scrollbar");
+            const body = Util.findAll(panel, function (o) {
+                return o.contentY !== undefined && o.contentHeight !== undefined;
+            })[0];
+            verify(body, "the settings body is not a Flickable");
+            verify(body.contentHeight > body.height, "the fixture page does not scroll");
+
+            const bodyTop = body.mapToItem(panel.contentItem, 0, 0).y;
+            body.contentY = 0;
+            wait(20);
+            const atTop = thumb.mapToItem(panel.contentItem, 0, 0).y;
+
+            body.contentY = Math.min(120, body.contentHeight - body.height);
+            wait(20);
+            const atDown = thumb.mapToItem(panel.contentItem, 0, 0).y;
+            verify(atDown > atTop, "the thumb moved with the content instead of down the track");
+
+            body.contentY = body.contentHeight - body.height;
+            wait(20);
+            const atBottom = thumb.mapToItem(panel.contentItem, 0, 0).y;
+            verify(atBottom >= bodyTop - 1, "the thumb left the body at the top");
+            verify(atBottom + thumb.height <= bodyTop + body.height + 1,
+                   "the thumb left the body at the bottom");
+        }
+
         function test_apiKeyFieldUsesOneCursorAcrossItsFullInputArea() {
             const main = make();
             Util.surfaceHost(main).showSettings();

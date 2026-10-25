@@ -461,6 +461,60 @@ Item {
             verify(bubble.y < firstY, "placement must use the current height, not the first height");
         }
 
+        /// A review card is pinned by the window's bottom edge a fixed gap above the word, with
+        /// its left edge on the word's left edge (UI-SPEC.md 4.8).
+        function test_reviewCardKeepsItsGapAboveTheWord() {
+            const main = makeMain();
+            const bubble = Util.ofType(main, "Bubble");
+            verify(bubble);
+            bubble.show({title: "panel", type: "word", en: "a panel", x: 300, y: 400,
+                         anchorWidth: 40, anchorHeight: 20, review: true});
+            wait(25);
+
+            compare(bubble.x, 300 - bubble.shadowMargin);
+            compare(bubble.y + bubble.height, 400 - bubble.gap);
+            compare(bubble.y + bubble.height - bubble.shadowMargin,
+                    400 - bubble.gap - bubble.shadowMargin);
+        }
+
+        /// Near the top of the work area the card flips below the word rather than leaving a
+        /// different gap above it.
+        function test_reviewCardFlipsBelowTheWordAtTheTopEdge() {
+            const main = makeMain();
+            const bubble = Util.ofType(main, "Bubble");
+            verify(bubble);
+            bubble.show({title: "panel", type: "word", en: "a panel", x: 500, y: 10,
+                         anchorWidth: 40, anchorHeight: 20, review: true});
+            wait(25);
+
+            const area = Util.surfaceHost(main).workArea(Util.surfaceHost(main).screenFor(Qt.point(500, 10)));
+            verify(bubble.y >= area.top + Util.surfaceHost(main).screenMargin);
+            compare(bubble.y, 10 + 20 + bubble.gap);
+        }
+
+        /// A longer answer grows the card upward: the bottom stays where the gap put it.
+        function test_reviewCardGrowsAwayFromTheWord() {
+            const main = makeMain();
+            const bubble = Util.ofType(main, "Bubble");
+            verify(bubble);
+            const anchor = {x: 500, y: 400, anchorWidth: 40, anchorHeight: 20, review: true};
+            bubble.show(Object.assign({title: "panel", type: "word", en: "a panel"}, anchor));
+            wait(25);
+            const gap = 400 - (bubble.y + bubble.height - bubble.shadowMargin);
+            const firstY = bubble.y;
+
+            bubble.show(Object.assign({title: "panel", type: "word", senses: [
+                {en: "a longer explanation that wraps", text: "第一条"},
+                {en: "another explanation that wraps", text: "第二条"},
+                {en: "a third explanation that wraps", text: "第三条"}
+            ]}, anchor));
+            wait(25);
+
+            compare(400 - (bubble.y + bubble.height - bubble.shadowMargin), gap,
+                    "the card's bottom edge moved away from the word");
+            verify(bubble.y < firstY, "the longer card must grow upward, not over the word");
+        }
+
         function test_narrowScreenUsesBoundsWithoutScalingContent() {
             const main = makeMain();
             const screen = {virtualX: -320, virtualY: 40, width: 320, height: 480};

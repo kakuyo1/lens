@@ -60,10 +60,11 @@ public:
      * the current explanation language gets a notice saying so, with the one button that does ask
      * the model, so the reader chooses to spend rather than hovering their way into it.
      *
-     * @param lemma  The word, as the row draws it.
-     * @param anchor Where the row is, in the physical pixels the other surfaces anchor with.
+     * @param lemma      The word, as the row draws it.
+     * @param anchor     The word's top-left, in the physical pixels the other surfaces anchor with.
+     * @param anchorSize The word's size in physical pixels, so the card can sit above it whole or flip below it.
      */
-    void reviewWord(QString lemma, QPoint anchor);
+    void reviewWord(QString lemma, QPoint anchor, QSize anchorSize);
     /**
      * @brief Show the stored explanation of a word the reader has just answered about (docs/adr/0050).
      *

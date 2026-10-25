@@ -76,6 +76,9 @@
   显示路径（`SurfaceHost.qml` 的 `placePanel`、`SurfaceHost.qml` 的 `placeSelectionBar()`、`Bubble.show`）都补上 `raise()`，
   没有共用的辅助函数：每处各自只有这一行，为它造一个上下文属性不划算。动作条那条**显示在放置之后**：
   先 `placeTransient()` 定好位置，再 `visible = true`，否则窗口会先在它上次待的地方亮一帧。这改的是**谁在上面**。摆哪儿也改了：`placeBeside` 与 `placeTransient` 按所在屏的工作区夹取，工作区由 `AppController::screenWorkArea` 从 `QScreen::availableGeometry()` 按设备名取，不用 `Screen.desktopAvailable*`：竖屏上它给出的是主屏的尺寸（1536×864），不是这块屏自己的（1152×2048）。早先按整屏夹，任务栏会盖住面板的下缘。
+- **可滚页面的滚轮兜底**：设置、词汇与下拉列表在卡片根上挂 `WheelHandler`，只在子 `Flickable` / `ListView`
+  没有接受滚轮时（标题、页脚、卡片留白与滚动条区域）滚动同一个视图；指针在内容上时仍由视图自己处理，
+  保留它的加速与惯性。兜底只补上视图覆盖不到的条带，不另造一套滚动物理。
 - **点击外部关闭靠钩子**：表面各是独立 `Window`，落在别的窗口上的按下根本不会送进本进程，只有低层
   钩子看得见（`MouseSelectionHook::pointerPressed` → `AppController` 转发 → `main.qml` 的
   `dismissOutside()`）。判 “外面” 用的是卡片矩形而非窗口矩形，四周 26 px 阴影边距算外面。
