@@ -1,15 +1,16 @@
 #version 440
 #extension GL_GOOGLE_include_directive : require
 
-// The horizontal half of the glass's blur (DESIGN.md 3.1c and 3.1d, docs/adr/0082). The sheet is blurred along x into a
-// mipmapped texture here, and glass.frag blurs that along y. One pass of twenty-five taps used to do both axes; nine
-// taps per axis in two passes is the same sampling cost, but the mip the taps read is three quarters of a level coarser
-// than the tap spacing, and that stronger prefilter is what removes the weave the sparse pass folded into text and fine
-// detail.
+// The horizontal half of the glass's blur (DESIGN.md 3.1c and 3.1d, docs/adr/0082, docs/adr/0111). The sheet is blurred
+// along x into a mipmapped texture here, and glass.frag blurs that along y. One pass of twenty-five taps used to do both
+// axes; nine taps per axis in two passes is the same sampling cost, but the mip the taps read is three quarters of a
+// level coarser than the tap spacing, and that stronger prefilter is what removes the weave the sparse pass folded into
+// text and fine detail.
 //
-// The weights are fixed because the tap spacing is a fixed fraction of sigma: w(i) = exp(-(0.95 i)^2 / 2), normalized.
-// Weight is a function of the index rather than a vector lookup: the HLSL qsb bakes does not carry a dynamically indexed
-// constant vector over intact (docs/adr/0070).
+// The Smooth tier pays seventeen taps at half the spacing under a prefilter half a level deeper (docs/adr/0111); the
+// other tiers keep the nine. The weights are fixed because the tap spacing is a fixed fraction of sigma:
+// w(i) = exp(-(0.95 i)^2 / 2), normalized. Weight is a function of the index rather than a vector lookup: the HLSL qsb
+// bakes does not carry a dynamically indexed constant vector over intact (docs/adr/0070).
 //
 // The pass covers the whole sheet, not just the card, so the vertical pass still has the sheet's margin to read when its
 // outer taps and the refraction reach past the card's edge.
@@ -21,6 +22,7 @@ layout(std140, binding = 0) uniform buf {
     mat4 qt_Matrix;
     float qt_Opacity;
     float blur;         // percent of the full scale; 100 is 60 DIP
+    float dense;        // 1 on the Smooth tier: seventeen taps at half the spacing, a deeper prefilter
     vec2 sheetSize;     // DIP
     vec2 sheetPixels;   // device pixels the sheet's texture covers; sheetSize / this is one texel in DIP
 } ubuf;
@@ -44,10 +46,17 @@ void main()
         return;
     }
     vec2  texel  = ubuf.sheetSize / ubuf.sheetPixels;
-    float lod    = max(0.0, log2(kSpacingSigma * sigma / texel.x) + kLodBias);
-    float stepUV = exp2(lod) / ubuf.sheetPixels.x;
+    bool  dense  = ubuf.dense > 0.5;
+    float lod    = max(0.0, log2(kSpacingSigma * sigma / texel.x) + (dense ? kDenseLodBias : kLodBias));
+    // The standard taps sit one mip texel apart; the Smooth tier's sit at half of it, so their tents overlap.
+    float stepUV = exp2(lod) / ubuf.sheetPixels.x * (dense ? 0.5 : 1.0);
     vec4  sum    = vec4(0.0);
-    for (int i = -4; i <= 4; ++i)
-        sum += textureLod(sheet, qt_TexCoord0 + vec2(float(i) * stepUV, 0.0), lod) * weight(i);
+    if (dense) {
+        for (int i = -8; i <= 8; ++i)
+            sum += textureLod(sheet, qt_TexCoord0 + vec2(float(i) * stepUV, 0.0), lod) * denseWeight(i);
+    } else {
+        for (int i = -4; i <= 4; ++i)
+            sum += textureLod(sheet, qt_TexCoord0 + vec2(float(i) * stepUV, 0.0), lod) * weight(i);
+    }
     fragColor = sum * ubuf.qt_Opacity;
 }

@@ -34,6 +34,9 @@ Item {
     property real rim: root.mode === "liquid" ? Controller.settings.liquidRim : Controller.settings.frostedRim
     /// Liquid only: refraction in px.
     property real refraction: Controller.settings.liquidRefraction
+    /// Whether the blur draws with the Smooth tier's taps (docs/adr/0111): seventeen a pass at half the spacing under a
+    /// prefilter half a level deeper, instead of the nine every tier shares.
+    readonly property bool denseBlur: Controller.settings.glassQuality === 3
     /// Whether the card draws no backdrop: blur at 0 with nothing to bend (docs/adr/0069). The window is per-pixel
     /// transparent, so the live desktop shows through it with no desktop read; GlassHost still keeps one picture for
     /// the text tone, and nothing uploads it here.
@@ -98,6 +101,7 @@ Item {
         fragmentShader: "qrc:/shaders/glass_hblur.frag.qsb"
         property variant sheet: sheetTexture
         property real blur: root.blur
+        property real dense: root.denseBlur ? 1.0 : 0.0
         property vector2d sheetSize: Qt.vector2d(root.shownSheet.width, root.shownSheet.height)
         property vector2d sheetPixels: Qt.vector2d(root.shownSheet.width * Screen.devicePixelRatio,
                                                    root.shownSheet.height * Screen.devicePixelRatio)
@@ -136,6 +140,7 @@ Item {
         // reloads nothing (docs/adr/0070).
         property real blur: root.blur
         property real saturation: root.mode === "frosted" ? root.saturation : 100
+        property real dense: root.denseBlur ? 1.0 : 0.0
         property vector2d cardSize: Qt.vector2d(root.width, root.height)
         property vector2d origin: root.origin
         property vector2d sheetSize: Qt.vector2d(root.shownSheet.width, root.shownSheet.height)

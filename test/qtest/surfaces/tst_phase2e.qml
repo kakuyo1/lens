@@ -210,6 +210,23 @@ Item {
             compare(frosted.visible, false);
         }
 
+        /// Only the Smooth tier pays the denser blur taps (docs/adr/0111); the flag follows the tier live.
+        function test_glassBlurDensifiesOnlyOnTheSmoothTier() {
+            Controller.setSetting("theme", "frosted");
+            const main = makeMain();
+            const glass = Util.ofType(main, "GlassSurface");
+            verify(glass, "the frosted theme drew no glass on the settings card");
+
+            Controller.setSetting("glassQuality", 2);
+            verify(!glass.denseBlur, "the Standard tier paid the denser taps");
+            Controller.setSetting("glassQuality", 3);
+            verify(glass.denseBlur, "the Smooth tier did not pay the denser taps");
+            Controller.setSetting("glassQuality", 0);
+            verify(!glass.denseBlur, "the Automatic tier paid the denser taps");
+
+            Controller.setSetting("theme", "light");
+        }
+
         function test_everyGlassSurfaceReadsItsOwnTableAndSheet() {
             const main = makeMain();
             const sheets = {

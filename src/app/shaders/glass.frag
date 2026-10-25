@@ -11,7 +11,8 @@
 // Nine taps along the axis, each at 0.95 sigma and reading a mip three quarters of a level coarser than that spacing.
 // The mip is the prefilter: a box of exactly one tap's width folds fine detail back as a visible weave, and the extra
 // level depth is what flattens it (docs/adr/0082). The two passes together cost what the old single pass's twenty-five
-// taps did, the weave is gone, and the same slider lands a little softer: a Gaussian of about 1.2 sigma.
+// taps did, the weave is gone, and the same slider lands a little softer: a Gaussian of about 1.2 sigma. The Smooth tier
+// pays seventeen taps at half the spacing under a prefilter half a level deeper instead (docs/adr/0111).
 
 layout(location = 0) in vec2 qt_TexCoord0;
 layout(location = 0) out vec4 fragColor;
@@ -23,6 +24,7 @@ layout(std140, binding = 0) uniform buf {
     float radius;       // DIP, the card's corner radius
     float blur;         // percent of the full scale; 100 is 60 DIP
     float saturation;   // percent; 100 is untouched
+    float dense;        // 1 on the Smooth tier: seventeen taps at half the spacing, a deeper prefilter
     vec2 cardSize;      // DIP
     vec2 origin;        // DIP, where the card's top-left corner is within the sheet
     vec2 sheetSize;     // DIP
@@ -50,12 +52,19 @@ vec4 blurredVertically(vec2 uv, float sigma)
     if (sigma < 0.2) return texture(blurred, uv);
     // One texel at mip 0, in DIP, and the mip whose texel is one tap wide, three quarters of a level coarser. The tap
     // step is that texel in UV: a distance in DIP added to a normalized coordinate would walk a whole sheet per tap.
+    // The Smooth tier reads a deeper mip and sits its seventeen taps at half the texel, so their tents overlap.
     vec2  texel  = ubuf.sheetSize / ubuf.sheetPixels;
-    float lod    = max(0.0, log2(kSpacingSigma * sigma / texel.y) + kLodBias);
-    float stepUV = exp2(lod) / ubuf.sheetPixels.y;
+    bool  dense  = ubuf.dense > 0.5;
+    float lod    = max(0.0, log2(kSpacingSigma * sigma / texel.y) + (dense ? kDenseLodBias : kLodBias));
+    float stepUV = exp2(lod) / ubuf.sheetPixels.y * (dense ? 0.5 : 1.0);
     vec4  sum    = vec4(0.0);
-    for (int j = -4; j <= 4; ++j)
-        sum += textureLod(blurred, uv + vec2(0.0, float(j) * stepUV), lod) * weight(j);
+    if (dense) {
+        for (int j = -8; j <= 8; ++j)
+            sum += textureLod(blurred, uv + vec2(0.0, float(j) * stepUV), lod) * denseWeight(j);
+    } else {
+        for (int j = -4; j <= 4; ++j)
+            sum += textureLod(blurred, uv + vec2(0.0, float(j) * stepUV), lod) * weight(j);
+    }
     return sum;
 }
 
