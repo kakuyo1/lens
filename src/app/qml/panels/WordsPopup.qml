@@ -441,6 +441,13 @@ Window {
                     // A vocabulary list is a few hundred simple rows; holding them all costs
                     // nothing next to a scroll that lies about what it holds.
                     cacheBuffer: 6000
+                    // The viewport above is the count times the row height, a number the view
+                    // itself never computes, so nothing in the view's own layout obliges it to
+                    // build the rows: a view that first shows up already sized waits for its
+                    // first rendered frame to fill in, and a reader (or a case) looking the
+                    // instant the panel lands finds no rows. One synchronous layout here builds
+                    // them at birth instead.
+                    Component.onCompleted: forceLayout()
 
                     delegate: WordsListRow {
                         host: words
