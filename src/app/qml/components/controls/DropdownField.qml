@@ -604,59 +604,11 @@ Item {
                         anchors.margins: 5
                     }
 
-                    Rectangle {
+                    DropdownRow {
                         width: parent.width
-                        height: root.rowHeight
-                        radius: 8
-                        // The list window takes no focus, so the rows are pointer-driven; the
-                        // names still stand, for the screen reader's review pass.
-                        Accessible.role: Accessible.Button
-                        Accessible.name: group.modelData.label
-                        Accessible.onPressAction: {
-                            root.picked(group.modelData.value);
-                            root.closeList();
-                        }
-                        color: group.modelData.value === root.currentValue ? root.tokens.ink
-                             : rowPress.pressed || group.index === root.highlightIndex ? root.tokens.line
-                             : rowHover.hovered ? root.tokens.panel2
-                             : "transparent"
-
-                        Text {
-                            anchors.left: parent.left
-                            anchors.leftMargin: 11
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: group.modelData.label
-                            textFormat: Text.PlainText
-                            color: group.modelData.value === root.currentValue ? root.tokens.on : root.tokens.text
-                            font.pixelSize: 13
-                        }
-
-                        Text {
-                            visible: root.notesInRows && (group.modelData.note || "") !== ""
-                            anchors.right: parent.right
-                            anchors.rightMargin: 11
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: group.modelData.note || ""
-                            textFormat: Text.PlainText
-                            color: group.modelData.value === root.currentValue ? Qt.rgba(1, 1, 1, 0.62) : root.tokens.faint
-                            font.pixelSize: 11
-                        }
-
-                        HoverHandler {
-                            id: rowHover
-                            cursorShape: Qt.PointingHandCursor
-                            onHoveredChanged: root.rowHovered(group.index, rowHover.hovered)
-                        }
-                        TapHandler {
-                            id: rowPress
-                            onTapped: {
-                                root.picked(group.modelData.value);
-                                // Through closeList(), so a search that was narrowing the list
-                                // is dropped with it: the next chevron opens the whole list
-                                // again rather than the fragment the reader just picked from.
-                                root.closeList();
-                            }
-                        }
+                        field: root
+                        option: group.modelData
+                        rowIndex: group.index
                     }
                 }
             }

@@ -21,7 +21,7 @@ Window {
         glassLightText: menu.glass.lightText
     }
 
-    flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+    flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowDoesNotAcceptFocus
     color: "transparent"
     visible: false
     /// Set by the panel that replaces this one: the card fades out in place, and the window goes when it has.
@@ -82,54 +82,6 @@ Window {
     }
 
     property bool listVisible: false
-    /// True while the keyboard was handed to a language option, so folding the list can give it
-    /// back to the Language row instead of leaving focus on a hidden item.
-    property bool languageListFocused: false
-    onListVisibleChanged: if (!listVisible) languageListFocused = false
-
-    // qmllint disable missing-property
-    /// @brief Put the keyboard on the first menu row, once the body has built it.
-    /// @return Whether a row took the focus.
-    function focusFirstRow() {
-        if (!bodyLoader.item)
-            return false;
-        for (let i = 0; i < bodyLoader.item.children.length; ++i) {
-            const child = bodyLoader.item.children[i];
-            if (child.activeFocusOnTab) {
-                child.forceActiveFocus();
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /// @brief Put the keyboard back on the Language row after its list folds.
-    function focusLanguageRow() {
-        if (!bodyLoader.item)
-            return false;
-        for (let i = 0; i < bodyLoader.item.children.length; ++i) {
-            const child = bodyLoader.item.children[i];
-            if (child.label === qsTr("Language")) {
-                child.forceActiveFocus();
-                return true;
-            }
-        }
-        return false;
-    }
-    // qmllint enable missing-property
-
-    /// @brief Escape's own ladder: fold the language list first, then put the menu down.
-    function dismiss() {
-        if (listVisible) {
-            const hadKeyboard = languageListFocused;
-            listVisible = false;
-            languageListFocused = false;
-            if (hadKeyboard)
-                Qt.callLater(menu.focusLanguageRow);
-            return;
-        }
-        visible = false;
-    }
 
     /// The menu rows are only needed after the tray menu is first opened.
     property bool contentActive: false
@@ -257,16 +209,9 @@ Window {
                             listHide.restart();
                         }
                     }
-                    // Enter / Space takes the row's own path, so the list is not hover-only. The
-                    // current language takes the focus when it opens; Tab then walks the four.
-                    onPicked: {
-                        menu.listVisible = !menu.listVisible;
-                        if (menu.listVisible)
-                            Qt.callLater(() => {
-                                if (languageList.item)
-                                    languageList.item.focusLanguage(menu.language);
-                            });
-                    }
+                    // A press on the row is another way to unfold the list; the menu itself stays
+                    // pointer-first, so the row and its options carry screen-reader names only.
+                    onPicked: menu.listVisible = !menu.listVisible
                 }
 
                 MenuRow {
@@ -315,19 +260,6 @@ Window {
             height: listColumn.implicitHeight + 10 + 2 * menu.shadowMargin
             radius: menu.tokens.radiusGroup
             color: menu.tokens.glassMode === "" ? menu.tokens.panel : "transparent"
-
-            /// @brief Put the keyboard on the row carrying @p value, so the opened list is usable
-            ///        without the pointer.
-            function focusLanguage(value) {
-                for (let i = 0; i < listColumn.children.length; ++i) {
-                    const row = listColumn.children[i];
-                    if (row.modelData && row.modelData.value === value) {
-                        row.forceActiveFocus();
-                        menu.languageListFocused = true;
-                        return;
-                    }
-                }
-            }
             // The list is built by this loader only once it is meant to be out, so the window is
             // already visible and ShadowCard's own rule has nothing to animate. The loader's status
             // is the flip instead: Loading while the card is being built, Ready once it is done.
@@ -358,18 +290,9 @@ Window {
                             menu.visible = false;
                         }
 
-                        activeFocusOnTab: true
                         Accessible.role: Accessible.Button
                         Accessible.name: option.modelData.label
                         Accessible.onPressAction: option.choose()
-                        Keys.onPressed: (event) => {
-                            if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return || event.key === Qt.Key_Space)
-                                    && !event.isAutoRepeat) {
-                                event.accepted = true;
-                                option.choose();
-                            }
-                        }
-                        FocusRing { radius: 8 }
 
                         width: listColumn.width
                         height: 28
@@ -409,12 +332,13 @@ Window {
         onTriggered: menu.listVisible = false
     }
 
-    /// Escape is application-wide so it also answers in the moment the tray click raises the menu
-    /// before requestActivate lands. The list folds before the menu does.
+    /// Escape puts the menu down, the way a press outside it does. Application-wide rather than
+    /// window-scoped, for the reason the removal question's Shortcut gives: a window that never
+    /// becomes active cannot answer a window-scoped key.
     Shortcut {
         sequence: "Escape"
         context: Qt.ApplicationShortcut
         enabled: menu.visible
-        onActivated: menu.dismiss()
+        onActivated: menu.visible = false
     }
 }

@@ -222,7 +222,10 @@ Window {
             body.contentY = Math.min(limit, Math.max(0, bottom - body.height));
     }
 
-    onActiveFocusItemChanged: Qt.callLater(() => settings.revealFocus(settings.activeFocusItem))
+    onActiveFocusItemChanged: Qt.callLater(() => {
+        if (settings)
+            settings.revealFocus(settings.activeFocusItem);
+    })
 
     function updatePreview() {
         if (previewKey === "") {
@@ -558,18 +561,20 @@ Window {
                     label: qsTranslate("SettingsPopup", "Cancel")
                     onPicked: {
                         settings.confirmingDefaults = false;
-                        Qt.callLater(() => defaultsButton.forceActiveFocus());
+                        cancelDefaultsButton.focus = false;
                     }
                 }
             }
 
             Text {
+                id: defaultsStatus
+                objectName: "defaultsStatus"
                 anchors.left: settings.defaultsAvailable ? defaultsRow.right : parent.left
                 anchors.leftMargin: settings.defaultsAvailable ? 8 : 20
                 anchors.right: parent.right
                 anchors.rightMargin: 20
                 anchors.verticalCenter: parent.verticalCenter
-                height: 27
+                height: 40
                 verticalAlignment: Text.AlignVCenter
                 text: settings.confirmingDefaults
                       ? qsTranslate("SettingsPopup", "API key and launch at login stay as they are.")
@@ -580,8 +585,7 @@ Window {
                 font.pixelSize: 11
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
-                maximumLineCount: 2
-                elide: Text.ElideRight
+                maximumLineCount: 3
             }
         }
     }

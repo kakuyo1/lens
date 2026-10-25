@@ -51,6 +51,10 @@ using core::pet::Slot;
 
 /// One tick of the single frame clock. Frames are at most 24 fps, so a tick is never longer than a frame.
 constexpr std::chrono::milliseconds kTick{20};
+/// The pet's frame clock should publish a visible frame well inside this window; a longer silence
+/// means the state machine or the clock has stalled, not that the pet is resting.
+constexpr std::chrono::milliseconds kStallAfter{4000};
+constexpr int                       kHealthIntervalMs{2000};
 /// Time between blinks while the pet is awake. The prototype blinks on the same cadence.
 constexpr std::chrono::milliseconds kBlinkEvery{4000};
 /// The ceremony's beats: a moment to stand after the look, a breath between the look and the heart, and one after the
@@ -174,6 +178,11 @@ PetController::PetController(std::filesystem::path shippedRoot, std::filesystem:
 {
     clock_.setInterval(kTick);
     connect(&clock_, &QTimer::timeout, this, &PetController::tick);
+    // A defensive check around the frame clock: if it is stopped while the window is still up, or
+    // if it runs without publishing a frame, return the pet to idle instead of leaving it frozen.
+    health_.setInterval(kHealthIntervalMs);
+    connect(&health_, &QTimer::timeout, this, &PetController::checkHealth);
+    health_.start();
     // The scenes sit beside the shipped pets: data/pet next to data/scenes.
     scenes_           = PetScenes::load(shippedRoot_.parent_path() / "scenes");
     catalog_          = scanPets(shippedRoot_, installedRoot_);
@@ -325,6 +334,7 @@ void PetController::loadPet(std::string const& id)
         sync(std::chrono::milliseconds{0});
     }
     updateClock();
+    lastFramePulse_ = std::chrono::steady_clock::now();
 }
 
 void PetController::provide(PetController* instance)
@@ -681,6 +691,8 @@ void PetController::setSize(int percent)
 void PetController::setRunning(bool on)
 {
     desktopRunning_ = on;
+    if (on)
+        lastFramePulse_ = std::chrono::steady_clock::now();
     if (not on) {
         // The window is going away under a throw: stop it without leaving the pickup pose behind.
         if (flight_) {
@@ -1048,7 +1060,7 @@ void PetController::toggleAccessory(QString id)
     if (not wardrobe_ or not knownAccessory(id)) return;
     wardrobe_->toggle(id.toStdString());
     store_.setOutfit(store_.pet(), outfitOf(*wardrobe_));
-    emit frameChanged();
+    pulse();
     emit outfitChanged();
 }
 
@@ -1109,7 +1121,7 @@ void PetController::refresh()
     if (not usable(chosen)) switchToDefault(chosen);
     emit catalogChanged();
     emit settingsChanged();
-    emit frameChanged();
+    pulse();
     emit outfitChanged();
 }
 
@@ -1136,7 +1148,7 @@ void PetController::applyPet(std::string const& id)
     // when the reader switches again.
     if (wardrobe_) store_.setOutfit(store_.pet(), outfitOf(*wardrobe_));
     emit settingsChanged();
-    emit frameChanged();
+    pulse();
     emit outfitChanged();
 }
 
@@ -1734,6 +1746,8 @@ void PetController::setShown(bool on)
 {
     if (shown_ == on) return;
     shown_ = on;
+    if (on)
+        lastFramePulse_ = std::chrono::steady_clock::now();
     emit shownChanged();
 }
 
@@ -2437,7 +2451,7 @@ void PetController::sync(std::chrono::milliseconds step)
                                            : 0;
         }
         action_ = QString::fromStdString(action);
-        emit frameChanged();
+        pulse();
         return;
     }
 
@@ -2514,7 +2528,7 @@ void PetController::sync(std::chrono::milliseconds step)
         sceneScale_ = 1.0;
         if (sceneImpact_) sceneImpact_.reset();
     }
-    if (changed or entryJustFinished or entryVisualDirty or impactWasActive or sceneImpact_) emit frameChanged();
+    if (changed or entryJustFinished or entryVisualDirty or impactWasActive or sceneImpact_) pulse();
 }
 
 void PetController::updateClock()
@@ -2524,6 +2538,46 @@ void PetController::updateClock()
     } else {
         clock_.stop();
     }
+}
+
+void PetController::pulse()
+{
+    lastFramePulse_ = std::chrono::steady_clock::now();
+    emit frameChanged();
+}
+
+void PetController::checkHealth()
+{
+    if (not machine_ or not shown_ or not desktopRunning_ or previewing_ or preview_ or dragging_)
+        return;
+
+    const auto now = std::chrono::steady_clock::now();
+    if (not clock_.isActive()) {
+        // The window is still up, so the pet must not be left on a still frame because its clock
+        // was stopped by a transition that did not start it again.
+        LENS_WARN("pet frame clock stopped while the pet was on screen; restarting it");
+        clock_.start();
+        lastFramePulse_ = now;
+        return;
+    }
+    if (now - lastFramePulse_ < kStallAfter)
+        return;
+
+    // The clock is running but no visible frame has been published for long enough that every
+    // shipped action should have moved. Return to idle rather than leave a still pet on screen.
+    const auto quiet = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastFramePulse_);
+    LENS_WARN("pet animation published no frame for {} ms; returning to idle", quiet.count());
+    cancelStroll();
+    resetHover();
+    hoverPause_ = false;
+    sceneEntry_.reset();
+    sceneImpact_.reset();
+    sceneEntryDirty_ = true;
+    sceneEntering_   = false;
+    actionElapsed_   = std::chrono::milliseconds{0};
+    machine_->rest();
+    sync(std::chrono::milliseconds{0});
+    lastFramePulse_ = std::chrono::steady_clock::now();
 }
 
 core::pet::ActionName PetController::shownAction() const

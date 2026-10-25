@@ -21,6 +21,11 @@ Item {
         Bubble {}
     }
 
+    Component {
+        id: collocationsComponent
+        ChainCollocations {}
+    }
+
     TestCase {
         id: testCase
         name: "Bubble"
@@ -214,6 +219,22 @@ Item {
 
             bubble.readerActed();
             compare(bubble.remainingMs, 5000, "the accessible press did not refill the reading window");
+        }
+
+        /// A collocation is a footnote, not a line the card may overflow: a long one wraps inside
+        /// the card instead of painting past its right edge.
+        function test_longCollocationsWrapInsideTheCard() {
+            const line = createTemporaryObject(collocationsComponent, root, {
+                width: 160,
+                tokens: Tokens,
+                words: ["a deliberately long collocation that would run past the card",
+                        "another long one"]
+            });
+            verify(line, "the collocation line is not drawn");
+            compare(line.wrapMode, Text.WordWrap);
+            tryVerify(function () { return line.lineCount > 1; }, 1000,
+                      "the long collocation stayed on one line; width " + line.width
+                      + ", text length " + line.text.length);
         }
 
         /// The pronunciation is drawn, and it sits beside the word rather than behind it.

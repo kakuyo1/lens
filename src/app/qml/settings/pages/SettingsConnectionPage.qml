@@ -43,6 +43,7 @@ Item {
                     anchors.fill: parent
                     anchors.leftMargin: 11
                     anchors.rightMargin: 11
+                    clip: true
                     verticalAlignment: TextInput.AlignVCenter
                     text: page.apiDraft
                     echoMode: TextInput.Password
@@ -102,6 +103,7 @@ Item {
                     anchors.fill: parent
                     anchors.leftMargin: 11
                     anchors.rightMargin: 11
+                    clip: true
                     verticalAlignment: TextInput.AlignVCenter
                     text: page.settings.url
                     color: page.tokens.text

@@ -7,6 +7,7 @@ import QtQuick
  */
 Text {
     id: root
+    objectName: "collocations"
 
     /// The collocations to draw, as strings; none draws nothing.
     required property var words
@@ -21,4 +22,5 @@ Text {
     color: root.tokens.faint
     font.pixelSize: Math.round(10.5 * root.scale)
     font.family: root.tokens.monoFamily
+    wrapMode: Text.WordWrap
 }

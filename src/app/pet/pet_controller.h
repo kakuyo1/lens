@@ -417,6 +417,10 @@ private:
     double sliverDistanceAt(QPoint cursor) const;
     /// @brief Reads the shown action and blink into the properties, and emits when the frame they show changed.
     void sync(std::chrono::milliseconds step);
+    /// @brief Publish the frame properties and note that a visible frame was produced.
+    void pulse();
+    /// @brief Restart a stopped clock, or return a silently frozen pet to idle.
+    void checkHealth();
     /// @brief Starts the clock while the window or the preview needs it, and stops it otherwise.
     void updateClock();
     /// @return The action on screen: the preview's while one is set, else the machine's.
@@ -527,7 +531,10 @@ private:
     /// A drag that caught a goodbye keeps the pet under the pointer until the drop, then hides it.
     bool hideAfterDrag_{false};
 
-    QTimer   clock_;
+    QTimer clock_;
+    /// Watches a frame clock that is running but no longer producing a visible frame, and a clock
+    /// that was stopped while the pet is still on screen. Recovery is logged; it is a last resort.
+    QTimer   health_;
     QWindow* window_ = nullptr;
     /// The clock runs while either of these is set.
     bool desktopRunning_{false};
@@ -538,6 +545,8 @@ private:
     /// The action the frame properties were last computed for, and how long it has played.
     core::pet::ActionName     shownAction_;
     std::chrono::milliseconds actionElapsed_{0};
+    /// When a frame was last published, for the health watchdog.
+    std::chrono::steady_clock::time_point lastFramePulse_{std::chrono::steady_clock::now()};
     /// Blink timing: the wait to the next blink, and the time into the one running.
     std::chrono::milliseconds blinkWait_{0};
     std::chrono::milliseconds blinkElapsed_{0};

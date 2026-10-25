@@ -3,7 +3,7 @@ target: 批次③ 托盘菜单 · 最终版
 total_score: 32
 max_score: 40
 p0_count: 0
-p1_count: 1
+p1_count: 0
 target_identity: "file:C:\\Users\\wdmzs\\Desktop\\ClaudeCode\\demo\\src\\app\\qml\\panels\\TrayMenu.qml"
 target_fingerprint: "sha256:1eecd9c375963b56fe5f2066cc503940d6aa1242fd7896d01b2e1b43e06efa40"
 target_path: "C:\\Users\\wdmzs\\Desktop\\ClaudeCode\\demo\\src\\app\\qml\\panels\\TrayMenu.qml"
@@ -30,11 +30,11 @@ code_commit: 5dbe839
 |---|---|---|---|
 | 1 | 系统状态可见 | 4 | 首行四态与 `tray_state.h` 同优先级；忙碌与空闲用文字分开；预算耗尽压过模式名，因为取词会随之暂停 |
 | 2 | 贴近真实世界 | 4 | 次 / 词口径（ADR 0104）在菜单与 tooltip 一致；MixedText 让数字留在 Cascadia，中文单位用应用字体 |
-| 3 | 用户控制与自由 | 2 | 语言行现在有 `onPicked`，列表行有 Enter / Space；但 Escape 仍是整张菜单收起，不会先把列表折回去，且菜单是否真的激活未被证明 |
+| 3 | 用户控制与自由 | 2 | 语言行有 `onPicked`，列表行有读屏按压动作；菜单保持指针优先，`Esc` 收整张菜单（ADR 0108） |
 | 4 | 一致与标准 | 3 | 分隔线改成真结构，不再有死的 `anchors.margins`；仍欠的是左键也开菜单，而 §4.0 只写右键 |
 | 5 | 错误预防 | 3 | Quit 立即执行；危险色与分隔线是唯一防护，符合托盘惯例，仅此而已 |
 | 6 | 识别而非回忆 | 4 | 每行带自己的实时值：统计行是今日次数与花费，语言行是当前语言 |
-| 7 | 灵活与效率 | 2 | 行内没有键盘路径的实证；窗口由托盘手势打开，没有 `requestActivate`；规格却写着语言行是 Tab 站 |
+| 7 | 灵活与效率 | 2 | 指针优先是产品选择（ADR 0108）；行内没有键盘路径，规格已不再承诺 Tab |
 | 8 | 美学与极简 | 4 | 五行、一列、全令牌；状态标与功能图标同列，安静成立 |
 | 9 | 错误恢复 | 3 | 预算耗尽说得很直，但仍是死胡同；设置就在两行下，却没有链接 |
 | 10 | 帮助与文档 | 3 | tooltip 4.6 承担模式与次数；240px 卡内不该再塞更多 |
@@ -47,7 +47,7 @@ code_commit: 5dbe839
 
 | 序 | 候选 | 项 | 级别 |
 |---|---|---|---|
-| 1 | C1 | 菜单键盘路径 | P1 |
+| 1 | C1 | 菜单保持指针优先（键盘路径已回退） | 已回退 |
 | 2 | C10 | 预算行、忙碌标、左键规格 | P3 |
 
 ## 2. 专属性判定
@@ -56,7 +56,7 @@ code_commit: 5dbe839
 
 ## 3. 最终切片里真正改掉的
 
-1. **语言行不再 hover-only**：`TrayMenu.qml:207-220` 的 `onPicked` 切换 `listVisible`，展开时 `Qt.callLater` 把焦点交给当前语言；列表项各有 `activeFocusOnTab`、`Accessible.role` / `name` / `onPressAction`、Enter / Space 和 FocusRing（`:305-325`）。`tst_traymenu.qml:228` 用键盘打开并选中，`:205` 覆盖指针选择。
+1. **语言行不再 hover-only**：`TrayMenu.qml` 的 `onPicked` 切换 `listVisible`；列表项保留 `Accessible.role` / `name` / `onPressAction`，指针 hover / 点击展开与选择。菜单使用 `WindowDoesNotAcceptFocus`，没有 Tab 站与焦点环（ADR 0108）；`tst_traymenu.qml` 的指针选择用例通过。
 2. **长本地化串不再画出卡缘**：状态文字右锚到卡右缘并 `ElideRight`（`:169-180`）；西班牙语的长句与「1,280 consultas · ¥12.34」一类的重日不会压到行标。
 3. **分隔线符合规格**：`x: 2`、`width: parent.width - 4` 的 1px 线（`:236-241`），不再用无锚定的 `anchors.margins: 5` 冒充上下留白。
 4. **四态映射有了测试**：`test_theStateLineMapsTheFourTrayStates` 与 `test_theStateLineTakesTheControllerReadout` 把优先级和实时接线钉住；预算耗尽态有真机快照 `lens-budget-tray-exhausted.png` 核对琥珀标。
@@ -65,18 +65,19 @@ code_commit: 5dbe839
 
 | 来源 | 问题 | 结局 |
 |---|---|---|
-| 第 3 轮 P1 | 语言子菜单 hover-only，读屏按压动作落空 | `onPicked` 接线；列表行有 Tab / Enter / Space / Accessible；qtest 键盘与指针各一例 |
+| 第 3 轮 P1 | 语言子菜单 hover-only，读屏按压动作落空 | `onPicked` 接线；列表行保留读屏名称与按压动作；qtest 指针选择一例（键盘路径已随 C1 回退） |
 | 第 3 轮 P2 | 长本地化串无右锚、无省略 | 状态文字右锚 + `ElideRight`；统计 note 也有宽度约束 |
 | 第 3 轮 P2 | Quit 分隔线的 `anchors.margins: 5` 是死代码 | 改成有真实几何的 1px 线 |
-| 第 2 轮 P1 | 语言子菜单 hover-only 且无可访问动作 | 同上 |
+| 第 2 轮 P1 | 语言子菜单 hover-only 且无可访问动作 | `onPicked` 接线；读屏按压动作可用；键盘遍历不做（C1 回退） |
 | 第 2 轮 P2 | 状态行无右锚无省略 | 同上 |
 | 第 2 轮 P2 | 分隔线不守 5px 呼吸 | 同上 |
 
 ## 5. 仍然开着的问题
 
+> C1 已回退：托盘菜单保持指针优先，不再有键盘路径；下面不再把激活契约列为开放项。
+
 | 优先级 | 问题 | 证据 | 为什么还没关 |
 |---|---|---|---|
-| P1（按影响） | 菜单的键盘路径没有被证明；规格、实现、激活模型三方不一致 | UI-SPEC 4.2 写「语言行是 Tab 站、展开时当前语言行接管焦点」，`TrayMenu.qml:305-325` 也给了 Tab / Enter；但窗口没有 `WindowDoesNotAcceptFocus`，由 `SurfaceHost.qml:416` 的 `placePanel` 显示，没有 `requestActivate`；同文件的 Escape 注释（`:363-365`）明确假设「a window that never becomes active」 | 已实现（C1，ADR 0108）：打开时请求激活，首行接管焦点，Esc 先折列表；qtest 焦点链通过，真托盘 Tab 仍待一次手动确认 |
 | P3 | 预算耗尽行是陈述，不是可点的出路 | `TrayMenu.qml:144-181` 的状态行没有 TapHandler；Settings 就在下面两行 | 第 3 轮 P3；读者看到「今日预算已用完」后仍要自己找设置 |
 | P3 | 左键也开菜单，§4.0 只写右键 | `tray.cpp:55-59` 对 `Trigger` 与 `Context` 一视同仁；UI-SPEC §4.0 只列右键 | 第 3 轮 P3 的规格漂移仍在；对托盘常驻产品，左键开菜单可能是对的，但规格得承认 |
 | P3 | 忙碌态与就绪态共用同一个绿色产品标 | `stateLineFor()` 的 `busyLabel` 分支返回 `ok` 绿，和「空闲且取词开启」同色；文字区分，图形不分 | 第 3 轮认知负荷项；托盘图标有忙碌小点，菜单首行没有孪生 |
@@ -87,25 +88,25 @@ code_commit: 5dbe839
 
 - **Quit 没有二次确认**：托盘菜单的行业惯例，危险色与分隔线是全部防护；不为它单独立确认，是本轮接受的取舍。
 - **tooltip 外观归 Windows**：UI-SPEC 4.6 只定内容与次数口径，外观、圆角、字体、出现时机不由 Lens 控制；因此不把 tooltip 的观感算进这个表面的分数。
-- **菜单不抢焦点**如果是产品选择，那么 Shift+Tab / 方向键都不该承诺；麻烦的是当前规格承诺了 Tab。这不是纯文档问题，是契约裁决。
+- **菜单不抢焦点**是产品选择：窗口使用 `WindowDoesNotAcceptFocus`，不设 Tab 与焦点环；行与语言项保留读屏名称与按压动作（ADR 0108）。
 - **真实屏幕阅读器会话**没有跑；即使读屏按压动作在树里，菜单是否会在朗读时被外部点击收起，未验证。
 
 ## 7. 画像
 
 - **Alex（效率型）**：每天开菜单看状态，只能看不能切；设置是来回一趟，左键也没有承担取词开关。预算耗尽时，他看到一句话，却没有就地解决的门。
-- **Sam（读屏）**：语言列表的选项现在有名称与按压动作，比上一轮好；C1 已让菜单在打开时接管焦点，qtest 焦点链通过，真托盘 Tab 仍待一次手动确认。预算耗尽行的文字读得到，行动点没有。
+- **Sam（读屏）**：语言列表的选项现在有名称与按压动作，比上一轮好；菜单保持指针优先（C1 已回退，ADR 0108），读屏以浏览模式可达，键盘不可遍历。预算耗尽行的文字读得到，行动点没有。
 - **Jordan（初访者）**：五行很容易懂；「今日统计」的 `128 次 · ¥0.42` 自释；语言行右侧当前值也清楚。他不知道的是左键为什么也开菜单，以及预算耗尽后该去哪。
 - **预算敏感者**：预算耗尽被诚实说出，但没有「去调预算」的下一步。
 
 ## 8. 开放问题
 
-1. 这张菜单收不收焦点？已裁 D1：收——打开时请求激活，保留 Tab / Enter，Esc 先折列表再收菜单；剩下的是验证 Windows 下 `requestActivate` 是否会被托盘点击吞掉。如果被吞掉，才退回「无焦点 + 读屏地板」并改规格。
+1. 这张菜单收不收焦点？已回退：不收——保持指针优先，行与语言项保留读屏名称与按压动作（ADR 0108）。如果以后要恢复键盘路径，先重新裁定，不要悄悄加回 `requestActivate()`。
 2. 首行是状态条，还是产品头条？对一个没有主窗口的产品，这一行是全部门面；把「今天做了什么」放上来、把状态降给托盘图标，值不值得打破五行的平衡？
 3. 预算耗尽时，状态行能不能直接点进设置预算页？这会把一个死胡同变成一条最短修复路径，成本是一行 TapHandler。
 4. 取词开关该不该有一席之地？如果托盘是唯一常驻入口，最常用的开关藏在设置里的距离，可能比多一行更贵。
 
 ## 9. 证据与未采样
 
-**证据**：`%TEMP%\lens-critique\tray-light.png`、`tray-dark.png`（菜单两主题）；`%TEMP%\lens-budget-tray.png`、`lens-budget-tray-full.png`、`lens-budget-tray-crop.png`、`lens-budget-tray-exhausted.png`（预算态与琥珀标）；`tst_traymenu.qml` 的四态映射、实时读数、语言键盘与指针选择、长串省略、Escape、Quit 危险样式、菜单宽度。
+**证据**：`%TEMP%\lens-critique\tray-light.png`、`tray-dark.png`（菜单两主题）；`%TEMP%\lens-budget-tray.png`、`lens-budget-tray-full.png`、`lens-budget-tray-crop.png`、`lens-budget-tray-exhausted.png`（预算态与琥珀标）；`tst_traymenu.qml` 的四态映射、实时读数、语言指针选择、长串省略、Escape、Quit 危险样式、菜单宽度，以及 C1 回退后的指针优先断言。
 
 **未采样**：语言列表展开后的真实焦点落点、两主题下的 hover / 按压运行态、左键打开的实机路径、菜单在真实读屏器中的朗读顺序、屏幕边缘翻边后的语言列表位置。

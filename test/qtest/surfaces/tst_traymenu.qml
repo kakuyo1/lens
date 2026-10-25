@@ -223,53 +223,18 @@ Item {
             restore();
         }
 
-        /// The language row is in the Tab order, and Enter opens the list; the current language
-        /// takes the focus, so the four rows are reachable without the pointer.
-        function test_keyboardOnTheLanguageRowOpensAndPicks() {
+        /// The menu is opened by the pointer and does not take the keyboard: it should read as a
+        /// quiet card on first sight, not a focused control. Its rows still carry screen-reader
+        /// names and press actions, which is the floor ADR 0107 asks for.
+        function test_theMenuStaysPointerFirst() {
             const menu = make();
-            menu.visible = true;
-            wait(20);
-            const row = rowWith(menu, qsTr("Language"));
-            row.forceActiveFocus();
-            keyClick(Qt.Key_Return);
-            tryCompare(menu, "listVisible", true);
-
-            const chinese = languageOptions(menu).filter(function (o) {
-                return o.modelData.value === "zh";
-            })[0];
-            verify(chinese, "the language list has no Chinese option");
-            chinese.forceActiveFocus();
-            keyClick(Qt.Key_Return);
-            compare(menu.language, "zh", "the keyboard pick did not reach the controller");
-            tryCompare(menu, "visible", false, 1000, "the menu stayed up after a keyboard pick");
-            restore();
-        }
-
-        /// The menu is a surface the reader opened on purpose, so it takes the keyboard; the first
-        /// row is where that keyboard starts. Escape is a ladder: the language list folds before
-        /// the menu goes, so a reader who opened the list does not lose the whole menu with it.
-        function test_theMenuTakesTheKeyboardAndEscapeUnwindsInOrder() {
-            const menu = make();
-            menu.visible = true;
-            wait(20);
-
-            verify(menu.focusFirstRow(), "the first row did not take the keyboard");
-            compare(menu.activeFocusItem.label, qsTr("Statistics"),
-                    "the keyboard did not start on the first menu row");
-
+            verify((menu.flags & Qt.WindowDoesNotAcceptFocus) !== 0,
+                   "the tray menu took the focus back");
             const language = rowWith(menu, qsTr("Language"));
-            language.forceActiveFocus();
-            keyClick(Qt.Key_Return);
-            tryCompare(menu, "listVisible", true);
-
-            keyClick(Qt.Key_Escape);
-            compare(menu.listVisible, false, "Escape did not fold the language list first");
-            compare(menu.visible, true, "Escape took the menu down with the language list");
-            tryCompare(menu, "activeFocusItem", language, 1000,
-                       "the keyboard did not return to the Language row after the fold");
-
-            keyClick(Qt.Key_Escape);
-            tryCompare(menu, "visible", false, 1000, "the second Escape left the menu up");
+            compare(language.activeFocusOnTab, false,
+                    "a tray row still claims a Tab stop");
+            compare(language.Accessible.role, Accessible.Button);
+            verify(language.Accessible.name !== "", "the row lost its screen-reader name");
         }
 
         /// The list unfolds when the pointer reaches its row and folds again a moment after it

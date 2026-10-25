@@ -216,14 +216,23 @@ void PetStateMachine::takeIdleTurn()
     } else {
         repliedToReading = false;
     }
-    auto const scene = random() < behavior.sceneChance * sceneFactor and scenes ? scenes() : std::nullopt;
-    if (scene and playbook.actions.count(*scene) != 0) {
-        // A scene has no role: it is a looping action with a duration, and the duration is what ends it.
-        enter(*scene, std::nullopt, Priority::Situational);
-    } else if (random() < behavior.napChance * napFactor) {
-        request(Role::Yawn, Priority::Situational);
-    } else if (auto const pick = pickRandomIdle()) {
-        enter(*pick, std::nullopt, Priority::Idle);
+    auto const scene   = random() < behavior.sceneChance * sceneFactor and scenes ? scenes() : std::nullopt;
+    bool       started = false;
+    if (scene) {
+        auto const found = playbook.actions.find(*scene);
+        // A duration is what makes a scene an action the clock can end. Without it, entering it
+        // would leave a looping, role-less action playing forever: the frozen pet this guard prevents.
+        if (found != playbook.actions.end() && found->second.duration) {
+            enter(*scene, std::nullopt, Priority::Situational);
+            started = true;
+        }
+    }
+    if (not started) {
+        if (random() < behavior.napChance * napFactor) {
+            request(Role::Yawn, Priority::Situational);
+        } else if (auto const pick = pickRandomIdle()) {
+            enter(*pick, std::nullopt, Priority::Idle);
+        }
     }
     // Nothing was left to pick, or the playbook maps no yawn to fall back on. Re-arm rather than
     // rolling again on every tick, which would turn the odds above into a certainty.

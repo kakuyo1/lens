@@ -421,16 +421,6 @@ QtObject {
         trayMenu.contentActive = true;
         trayMenu.listVisible = false;
         placePanel(trayMenu, trayAnchor());
-        // A tray menu is opened by the reader, not by a selection they are still reading: it takes
-        // the keyboard while it is up. The focus call waits for the body loader to build the rows.
-        trayMenu.requestActivate();
-        Qt.callLater(() => {
-            if (!trayMenu.visible)
-                return;
-            trayMenu.requestActivate();
-            if (!trayMenu.focusFirstRow())
-                Qt.callLater(() => { if (trayMenu.visible) trayMenu.focusFirstRow(); });
-        });
     }
 
     // qmllint disable missing-property

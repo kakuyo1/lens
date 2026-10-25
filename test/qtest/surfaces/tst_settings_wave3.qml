@@ -172,6 +172,17 @@ Item {
             compare(Controller.settings.level, 4, "Cancel wrote the defaults anyway");
             const defaultsAgain = Util.textWith(Util.textsUnder(panel), ["Defaults"]);
             verify(defaultsAgain && defaultsAgain.parent.visible, "Defaults did not return after Cancel");
+            const status = Util.findAll(panel, function (o) {
+                return o.objectName === "defaultsStatus";
+            })[0];
+            verify(status, "the footer has no Defaults status line");
+            compare(status.elide, Text.ElideNone, "the confirmation still ends in an ellipsis");
+            compare(status.wrapMode, Text.WordWrap);
+            const defaultsButton = Util.findAll(panel, function (o) {
+                return o.objectName === "defaultsButton";
+            })[0];
+            verify(defaultsButton, "Defaults did not return as the button");
+            compare(defaultsButton.activeFocus, false, "Cancel put the focus ring back on Defaults");
         }
 
         /// The daily budget has no stored default to restore, so the page that owns it must not
@@ -310,6 +321,7 @@ Item {
                 return typeof o.text === "string" && o.echoMode === TextInput.Password;
             });
             verify(inputs.length > 0, "the settings panel has no API key input");
+            compare(inputs[0].clip, true, "a long API key can paint outside its field");
 
             const handlers = Util.findAll(inputs[0], function (o) {
                 return o.cursorShape === Qt.PointingHandCursor;

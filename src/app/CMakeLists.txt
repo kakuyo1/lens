@@ -289,6 +289,7 @@ qt_add_qml_module(lens_app
      qml/panels/WordsPopup.qml
     qml/panels/WordsListRow.qml
      qml/panels/YearWordsPopup.qml
+    qml/panels/YearPalette.qml
      qml/panels/RemovalQuestion.qml
     qml/panels/CostPopup.qml
     qml/theme/Tokens.qml
@@ -316,6 +317,7 @@ qt_add_qml_module(lens_app
     qml/components/controls/SwitchRow.qml
     qml/panels/StatRow.qml
     qml/components/controls/DropdownField.qml
+    qml/components/controls/DropdownRow.qml
     qml/panels/MenuRow.qml
     qml/components/controls/PathField.qml
     qml/components/content/MixedText.qml

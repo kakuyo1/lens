@@ -690,6 +690,18 @@ TEST(PetStateMachine, AnEmptySceneSourceLeavesTheTurnToTheNap)
     EXPECT_EQ(machine.action(), "yawn");
 }
 
+TEST(PetStateMachine, AnIdleSceneWithoutDurationIsNotEntered)
+{
+    // A scene needs a duration for its clock to end it. A looping action without one would leave the
+    // pet on the same frame forever, so the idle turn must fall through to the nap or the pool.
+    auto playbook = dogPlaybook();
+    playbook.actions.emplace("swing", playback(8, 8, true));
+    PetStateMachine machine{playbook, RandomSource{[] { return 0.0; }}, SceneSource{[]() -> std::optional<std::string> { return std::string{"swing"}; }}};
+
+    machine.advance(20s);
+    EXPECT_NE(machine.action(), "swing");
+}
+
 TEST(PetStateMachine, ASceneCanBeStartedOnDemandAndStillEndsByItsDuration)
 {
     // The settings page's scene chips ask for one directly; it is the same action, so the clock ends it.
