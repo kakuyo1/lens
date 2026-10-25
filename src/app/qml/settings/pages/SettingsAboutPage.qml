@@ -42,6 +42,10 @@ Item {
 
     readonly property bool updatesBusy: page.updateBusy(Controller.updateDuty.update.state)
 
+    function openRepository() {
+        Qt.openUrlExternally("https://github.com/kakuyo1/lens");
+    }
+
     /// The blocks, the 24 px the prototype leaves under them, and the footer. This is the whole
     /// page when it stands alone, as a case builds it; the panel stretches it to the body it loads
     /// it into, and the footer -- anchored to the page's bottom -- drops to the body's own bottom.
@@ -58,6 +62,19 @@ Item {
             height: 44
             radius: page.tokens.radiusField
             color: repoHover.hovered ? page.tokens.panel2 : "transparent"
+
+            activeFocusOnTab: true
+            Accessible.role: Accessible.Button
+            Accessible.name: qsTranslate("SettingsPopup", "GitHub repository")
+            Accessible.onPressAction: page.openRepository()
+            Keys.onPressed: (event) => {
+                if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return || event.key === Qt.Key_Space)
+                        && !event.isAutoRepeat) {
+                    event.accepted = true;
+                    page.openRepository();
+                }
+            }
+            FocusRing { radius: page.tokens.radiusField + 4 }
 
             Icon {
                 id: githubIcon
@@ -93,7 +110,7 @@ Item {
                 cursorShape: Qt.PointingHandCursor
             }
             TapHandler {
-                onTapped: Qt.openUrlExternally("https://github.com/kakuyo1/lens")
+                onTapped: page.openRepository()
             }
         }
 
@@ -149,8 +166,22 @@ Item {
                 height: 27
                 radius: page.tokens.radiusPill
                 color: page.tokens.ink
-                opacity: page.updatesBusy ? 0.58 : 1
+                opacity: page.updatesBusy ? 0.45 : 1
                 scale: checkTap.pressed ? 0.97 : 1.0
+
+                activeFocusOnTab: !page.updatesBusy
+                Accessible.role: Accessible.Button
+                Accessible.name: checkLabel.text
+                Accessible.onPressAction: checkTap.tapped()
+                Keys.onPressed: (event) => {
+                    if (!page.updatesBusy
+                            && (event.key === Qt.Key_Enter || event.key === Qt.Key_Return || event.key === Qt.Key_Space)
+                            && !event.isAutoRepeat) {
+                        event.accepted = true;
+                        checkTap.tapped();
+                    }
+                }
+                FocusRing { radius: page.tokens.radiusPill }
                 Behavior on scale {
                     NumberAnimation {
                         duration: page.tokens.motion.press

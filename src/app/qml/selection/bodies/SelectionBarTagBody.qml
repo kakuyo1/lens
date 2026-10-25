@@ -220,6 +220,11 @@ Item {
                         color: hover.hovered ? root.tokens.panel2 : "transparent"
                         opacity: root.flashing === item.modelData.action ? 0.55 : 1
                         scale: press.pressed ? 0.97 : 1
+
+                        Accessible.role: Accessible.Button
+                        Accessible.name: item.modelData.label
+                        Accessible.onPressAction: root.activate(item.modelData.action)
+
                         transform: Translate {
                             x: item.hoverShift + item.flashShift
                         }

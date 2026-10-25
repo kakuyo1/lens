@@ -283,6 +283,7 @@ Item {
                     font.pixelSize: 13
                     selectByMouse: true
                     activeFocusOnTab: true
+                    Accessible.name: qsTranslate("SettingsPopup", "Text color")
                     onEditingFinished: {
                         Controller.setSetting("liquidTextColor", text);
                         // Back to the stored colour, so a refused value shows what is in force.
@@ -368,6 +369,7 @@ Item {
                             font.pixelSize: 13
                             selectByMouse: true
                             activeFocusOnTab: true
+                            Accessible.name: colorField.modelData.label
                             onTextEdited: page.updateDraft(colorField.modelData.role, text)
                         }
                     }
@@ -388,11 +390,12 @@ Item {
             }
 
             Rectangle {
+                objectName: "applyCustomColorsButton"
                 width: parent.width
                 height: 27
                 radius: page.tokens.radiusPill
                 color: page.contrast.valid ? page.tokens.ink : page.tokens.panel2
-                opacity: page.contrast.valid ? 1 : 0.58
+                opacity: page.contrast.valid ? 1 : 0.45
                 scale: applyPress.pressed ? 0.97 : 1.0
                 Behavior on scale {
                     NumberAnimation {
@@ -401,7 +404,22 @@ Item {
                     }
                 }
 
+                activeFocusOnTab: page.contrast.valid
+                Accessible.role: Accessible.Button
+                Accessible.name: applyLabel.text
+                Accessible.onPressAction: if (page.contrast.valid) page.applyCustomTheme()
+                Keys.onPressed: (event) => {
+                    if (page.contrast.valid
+                            && (event.key === Qt.Key_Enter || event.key === Qt.Key_Return || event.key === Qt.Key_Space)
+                            && !event.isAutoRepeat) {
+                        event.accepted = true;
+                        page.applyCustomTheme();
+                    }
+                }
+                FocusRing { radius: page.tokens.radiusPill }
+
                 Text {
+                    id: applyLabel
                     anchors.centerIn: parent
                     text: qsTranslate("SettingsPopup", "Apply custom colors")
                     color: page.contrast.valid ? page.tokens.on : page.tokens.faint

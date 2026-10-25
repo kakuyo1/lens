@@ -108,6 +108,10 @@ Item {
                 z: hover.hovered ? 5 : (slot.index === 1 ? 3 : (slot.index === 0 ? 1 : 2))
                 opacity: slot.progress * slot.pressFade
 
+                Accessible.role: Accessible.Button
+                Accessible.name: slot.modelData.label
+                Accessible.onPressAction: root.activate(slot.modelData.action)
+
                 transform: [
                     Translate {
                         x: (1 - slot.progress) * root.dealX[slot.index]

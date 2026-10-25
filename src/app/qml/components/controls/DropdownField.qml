@@ -7,28 +7,11 @@ import "../../util/Numbers.js" as Numbers
 /**
  * The collapsed dropdown from UI-SPEC.md 4.4, and the grouped list it opens.
  *
- * The list is a window of its own rather than a child item: the settings panel is exactly as tall as its contents, so a
- * list drawn inside it would be clipped the moment it opened.
- *
- * Two shapes share the one component because they share the list. A field the reader only picks from shows the current
- * option's label, and the whole field opens the list and puts it down again on a second press. An `editable` one shows
- * what was typed instead, and there only the chevron opens the list -- the rest of the field is the reader's cursor,
- * which is what makes a model name the service never listed reachable by hand (UI-SPEC.md 4.4, docs/adr/0017).
- *
- * Typing in the editable shape is also how the list is searched: a keystroke narrows the rows to the options whose
- * `value` contains what was typed and brings the list up by itself. The list comes down when the text becomes one of
- * the ids in the list, when a row is picked, and when the reader empties the field; it never comes up for a search
- * that matches nothing, because an empty card is not a dropdown. The text is never rewritten: a private deployment
- * name the catalogue has never heard of is the reason this field is typeable, so an exact match closes the list and
- * changes nothing else.
- *
- * That search path deliberately does not emit `listOpened`: that signal means "the reader asked for the list" and is
- * wired to a refresh, and one request per keystroke is not what it says.
- *
- * A chevron with no list behind it is dimmed and takes no press: a service that never answered has no models to offer,
- * and the field is still the reader's to type in. It is greyed rather than taken away because the shape of this control
- * is what the reader reads as "the setting took" -- one that comes and goes is worse than one that says nothing is
- * there (docs/adr/0017).
+ * The list is a window of its own: the settings panel is exactly as tall as its contents, so a
+ * list drawn inside it would be clipped when it opened. A pick-only field opens the list from
+ * the whole row; an editable field leaves the row to its cursor and only the chevron opens the
+ * list (docs/adr/0017). Typing narrows the rows by `value` without rewriting the text; a search
+ * that matches nothing shows no card. A chevron with no list is dimmed and takes no press.
  */
 Item {
     id: root
@@ -64,6 +47,10 @@ Item {
 
     /// The row under the pointer, by its index in `shown`, or -1 for none.
     property int hoveredIndex: -1
+    /// The row the keyboard is on while the list is up, by its index in `shown`, or -1.
+    property int highlightIndex: -1
+    /// Whether the list's window is up. The field keeps the focus: the list itself takes none.
+    readonly property bool listVisible: list.visible
     /// The window an option hovers into, created on the first hover and owned by this field.
     property var optionPreviewWindow: null
 
@@ -85,6 +72,8 @@ Item {
     Accessible.name: accessibleName !== "" ? accessibleName : (current ? current.label : "")
     Accessible.onPressAction: if (!editable) root.toggleList()
     Keys.onPressed: (event) => {
+        if (root.listVisible && root.handleListKey(event))
+            return;
         if (!editable
                 && (event.key === Qt.Key_Enter || event.key === Qt.Key_Return
                     || event.key === Qt.Key_Space || event.key === Qt.Key_Down)
@@ -155,6 +144,7 @@ Item {
     function closeList() {
         list.visible = false;
         root.filterText = "";
+        root.highlightIndex = -1;
         root.hideOptionPreview();
     }
 
@@ -197,7 +187,68 @@ Item {
         root.filterText = "";
         root.placeList();
         list.visible = true;
+        root.highlightCurrent();
         listOpened();
+    }
+
+    /// @brief Put the keyboard's row on the value in force, or the first row when it is absent.
+    function highlightCurrent() {
+        let index = 0;
+        for (let i = 0; i < root.shown.length; ++i) {
+            if (root.shown[i].value === root.currentValue) {
+                index = i;
+                break;
+            }
+        }
+        root.setHighlight(index);
+    }
+
+    /// @brief Move the keyboard's row, staying inside the list.
+    function setHighlight(index) {
+        if (root.shown.length === 0) {
+            root.highlightIndex = -1;
+            return;
+        }
+        const bounded = Math.max(0, Math.min(root.shown.length - 1, index));
+        root.highlightIndex = bounded;
+        listColumn.positionViewAtIndex(bounded, ListView.Contain);
+    }
+
+    /// @brief Take the row the keyboard is on, the way a press takes the row under the pointer.
+    function chooseHighlight() {
+        const option = root.shown[root.highlightIndex];
+        if (!option)
+            return;
+        root.picked(option.value);
+        root.closeList();
+    }
+
+    /// @brief Handle the list's keys while the field keeps the focus.
+    /// @return True when the key belonged to the list and has been accepted.
+    function handleListKey(event) {
+        if (event.key === Qt.Key_Escape) {
+            root.closeList();
+            event.accepted = true;
+            return true;
+        }
+        if (event.isAutoRepeat)
+            return false;
+        if (event.key === Qt.Key_Down) {
+            root.setHighlight(root.highlightIndex < 0 ? 0 : root.highlightIndex + 1);
+            event.accepted = true;
+            return true;
+        }
+        if (event.key === Qt.Key_Up) {
+            root.setHighlight(root.highlightIndex < 0 ? root.shown.length - 1 : root.highlightIndex - 1);
+            event.accepted = true;
+            return true;
+        }
+        if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return || event.key === Qt.Key_Space) {
+            root.chooseHighlight();
+            event.accepted = true;
+            return true;
+        }
+        return false;
     }
 
     /// @brief A press on the field's own button: the list comes up, or goes down if it is up.
@@ -359,6 +410,7 @@ Item {
         }
         root.placeList();
         list.visible = true;
+        root.setHighlight(0);
     }
 
     Rectangle {
@@ -410,6 +462,12 @@ Item {
             font.pixelSize: 13
             selectByMouse: true
             activeFocusOnTab: true
+            Keys.onPressed: (event) => {
+                // Space is a character in an editable field's value, not a pick: only the keys
+                // that have no typing meaning move through the open list here.
+                if (root.listVisible && event.key !== Qt.Key_Space)
+                    root.handleListKey(event);
+            }
             onTextEdited: root.filterTyped(input.text)
             onEditingFinished: {
                 if (text !== root.currentValue)
@@ -559,7 +617,7 @@ Item {
                             root.closeList();
                         }
                         color: group.modelData.value === root.currentValue ? root.tokens.ink
-                             : rowPress.pressed ? root.tokens.line
+                             : rowPress.pressed || group.index === root.highlightIndex ? root.tokens.line
                              : rowHover.hovered ? root.tokens.panel2
                              : "transparent"
 

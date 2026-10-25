@@ -119,6 +119,27 @@ Item {
             enterAnim.restart();
     }
 
+    // The fan draws one shape, not three items, so the three actions get their names on
+    // invisible targets over their own blades. They take no pointer: the wedge handler below
+    // remains the one press path, and these exist for the screen reader's review pass.
+    Repeater {
+        model: root.actions
+
+        delegate: Item {
+            required property var modelData
+            required property int index
+
+            x: root.bladeCentres[index].x - 42
+            y: root.bladeCentres[index].y - 34
+            width: 84
+            height: 68
+
+            Accessible.role: Accessible.Button
+            Accessible.name: modelData.label
+            Accessible.onPressAction: root.activate(modelData.action)
+        }
+    }
+
     NumberAnimation {
         id: enterAnim
         target: root

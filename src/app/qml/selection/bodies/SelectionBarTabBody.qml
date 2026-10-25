@@ -148,6 +148,11 @@ Item {
                     color: hover.hovered ? root.tokens.panel2 : "transparent"
                     opacity: item.progress * (root.flashing === item.modelData.action ? 0.55 : 1)
                     scale: press.pressed ? 0.97 : 1
+
+                    Accessible.role: Accessible.Button
+                    Accessible.name: item.modelData.label
+                    Accessible.onPressAction: root.activate(item.modelData.action)
+
                     transform: Translate {
                         // The shift lifts the item away from the spine, so its direction flips
                         // with the side the tab ended up on.

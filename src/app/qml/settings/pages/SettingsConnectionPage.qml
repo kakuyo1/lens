@@ -50,6 +50,7 @@ Item {
                     font.pixelSize: 13
                     selectByMouse: true
                     activeFocusOnTab: true
+                    Accessible.name: qsTranslate("SettingsPopup", "API key")
                     onTextEdited: page.apiEdited(text)
                     onEditingFinished: {
                         page.apiCommitted();
@@ -107,6 +108,7 @@ Item {
                     font.pixelSize: 12
                     selectByMouse: true
                     activeFocusOnTab: true
+                    Accessible.name: qsTranslate("SettingsPopup", "Service address")
                     onEditingFinished: Controller.setApiUrl(text)
                 }
             }

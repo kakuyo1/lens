@@ -86,6 +86,10 @@ Item {
                     // gave undefined and the press never shrank the item.
                     scale: press.pressed ? 0.97 : 1.0
 
+                    Accessible.role: Accessible.Button
+                    Accessible.name: item.modelData.label
+                    Accessible.onPressAction: root.activate(item.modelData.action)
+
                     Behavior on scale {
                         NumberAnimation {
                             duration: root.tokens.motion.press

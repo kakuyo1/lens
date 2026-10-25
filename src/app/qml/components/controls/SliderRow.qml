@@ -25,6 +25,13 @@ Column {
 
     signal moved(int value)
 
+    /// The pointer on the label or keyboard focus on the slider asks the same question.
+    readonly property bool previewActive: labelHover.hovered || slider.activeFocus
+    onPreviewActiveChanged: {
+        if (root.previewKey !== "")
+            root.previewChanged(root.previewActive ? root.previewKey : "");
+    }
+
     width: parent.width
     spacing: 6
 
@@ -50,16 +57,18 @@ Column {
         }
 
         HoverHandler {
+            id: labelHover
             enabled: root.previewKey !== ""
-            onHoveredChanged: root.previewChanged(hovered ? root.previewKey : "")
         }
     }
 
     StepSlider {
+        id: slider
         width: parent.width
         from: root.from
         to: root.to
         value: root.value
+        accessibleName: root.label
         onMoved: (stop) => root.moved(stop)
     }
 }

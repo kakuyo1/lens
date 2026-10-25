@@ -190,6 +190,81 @@ Item {
             compare(row.visible, false, "the budget page still draws the Defaults row");
         }
 
+        /// A slider and a pick-only dropdown are keyboard surfaces, not pointer-only ones. This
+        /// pins the arrow/Enter path the row's own Tab stop hands them.
+        function test_keyboardDrivesASliderAndAChoiceList() {
+            const main = make();
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+
+            Controller.setSetting("animationsEnabled", true);
+            Controller.setSetting("revealSpeed", 3);
+            openCategory(panel, "General");
+            wait(20);
+            const slider = Util.findAll(panel, function (o) {
+                return o.toString().indexOf("StepSlider_QMLTYPE") === 0
+                       && o.accessibleName === "Typing speed";
+            })[0];
+            verify(slider, "the general page has no typing-speed slider");
+            compare(slider.activeFocusOnTab, true, "the slider is not in the tab order");
+            compare(slider.nextValue(Qt.Key_Right, 3), 4, "Right did not step forward");
+            compare(slider.nextValue(Qt.Key_Left, 3), 2, "Left did not step back");
+            compare(slider.nextValue(Qt.Key_Home, 3), 1, "Home did not take the floor");
+            compare(slider.nextValue(Qt.Key_End, 3), 5, "End did not take the ceiling");
+            Controller.setSetting("revealSpeed", 3);
+
+            panel.navigateBack();
+            wait(20);
+            Controller.setSetting("selectionBarStyle", "bar");
+            openCategory(panel, "Capture & popups");
+            const field = Util.findAll(panel, function (o) {
+                return o.objectName === "selectionBarStyle";
+            })[0];
+            verify(field, "the capture page has no selection-bar-style field");
+            field.openList();
+            tryCompare(field, "listVisible", true);
+            const down = {key: Qt.Key_Down, isAutoRepeat: false, accepted: false};
+            verify(field.handleListKey(down), "Down was not treated as a list key");
+            compare(field.highlightIndex, 1, "Down did not move the list's highlight");
+            const enter = {key: Qt.Key_Return, isAutoRepeat: false, accepted: false};
+            verify(field.handleListKey(enter), "Return was not treated as a list key");
+            wait(20);
+            compare(Controller.settings.selectionBarStyle, "tab",
+                    "Return did not take the highlighted choice");
+            Controller.setSetting("selectionBarStyle", "bar");
+        }
+
+        /// A tall page shows its scrollbar, and focus on a control below the fold brings that
+        /// control back into the viewport rather than leaving the ring off screen.
+        function test_theBodyShowsAScrollbarAndFollowsFocus() {
+            const main = make();
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "Reading & learning");
+            wait(20);
+
+            const thumb = Util.findAll(panel, function (o) {
+                return o.objectName === "scrollThumb";
+            })[0];
+            verify(thumb, "the settings body has no scrollbar");
+            compare(thumb.visible, true, "a page taller than the body drew no scrollbar");
+
+            const body = Util.findAll(panel, function (o) {
+                return o.contentY !== undefined && o.contentHeight !== undefined;
+            })[0];
+            verify(body, "the settings body is not a Flickable");
+            const pictures = Util.findAll(panel, function (o) {
+                return o.toString().indexOf("Switch_QMLTYPE") === 0 && o.accessibleName === "Pictures";
+            })[0];
+            verify(pictures, "the learning page has no Pictures switch");
+            pictures.forceActiveFocus();
+            tryVerify(function () {
+                const at = pictures.mapToItem(body.contentItem, 0, 0).y;
+                return at >= body.contentY - 1
+                       && at + pictures.height <= body.contentY + body.height + 1;
+            }, 1000, "focus stayed below the visible body");
+        }
+
         function test_apiKeyFieldUsesOneCursorAcrossItsFullInputArea() {
             const main = make();
             Util.surfaceHost(main).showSettings();
@@ -259,7 +334,10 @@ Item {
             const main = make();
             Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
-            openCategory(panel, "About");
+            // The route reaches the page without pressing a catalog row at the fold: this case is
+            // about the footer's place, not about the scroll position a press needs.
+            panel.routeTo("about");
+            wait(20);
 
             const page = Util.ofType(panel, "SettingsAboutPage");
             verify(page, "the settings panel has no about page");

@@ -37,6 +37,18 @@ Item {
     /// True while the row is waiting for a combination.
     readonly property bool recording: recorder.activeFocus
 
+    activeFocusOnTab: interactive
+    Accessible.role: Accessible.Button
+    Accessible.name: qsTr("Trigger key") + (combination !== "" ? ", " + combination : "")
+    Accessible.onPressAction: recorder.forceActiveFocus()
+    Keys.onPressed: (event) => {
+        if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return || event.key === Qt.Key_Space)
+                && !event.isAutoRepeat) {
+            event.accepted = true;
+            recorder.forceActiveFocus();
+        }
+    }
+
     /// Which keys are shown, one capsule each. An empty combination draws nothing.
     readonly property var parts: combination.length > 0 ? combination.split("+") : []
 
@@ -57,6 +69,9 @@ Item {
                 easing.type: root.tokens.motion.easing
             }
         }
+
+        // Around the box, not the warning line below it.
+        FocusRing { visible: root.activeFocus; radius: root.tokens.radiusField + 4 }
 
         Text {
             anchors.left: parent.left

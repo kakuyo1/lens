@@ -42,6 +42,7 @@ Item {
                     font.pixelSize: 13
                     selectByMouse: true
                     activeFocusOnTab: true
+                    Accessible.name: qsTranslate("SettingsPopup", "Bubble duration")
                     inputMethodHints: Qt.ImhDigitsOnly
                     validator: IntValidator { bottom: 1; top: 30 }
 

@@ -145,6 +145,28 @@ Window {
         Controller.updateDuty.closeCard()
     }
 
+    /// @brief Which signal the one primary action stands for in a state, or "" for nothing.
+    function primaryIntent(state, available) {
+        if (state === "downloading")
+            return "cancel";
+        if (state === "ready")
+            return "install";
+        if ((state === "failed" || state === "idle") && available)
+            return "download";
+        return "";
+    }
+
+    /// @brief Press the one primary action, the way the pill or Return does.
+    function triggerPrimary() {
+        const intent = primaryIntent(download.state, download.available);
+        if (intent === "cancel")
+            cancelRequested();
+        else if (intent === "install")
+            installRequested();
+        else if (intent === "download")
+            downloadRequested();
+    }
+
     /// Escape is the cross. The card's window takes no focus, so the buttons below carry names
     /// for the screen reader but no tab stops or rings -- there is no focus for either to mark.
     /// The shortcut still answers, application-wide, whenever a window of this app has the keys.
@@ -154,6 +176,7 @@ Window {
         enabled: card.visible && !card.leaving
         onActivated: card.closeCard()
     }
+
 
     ShadowCard {
         id: panel
@@ -348,14 +371,7 @@ Window {
                         TapHandler {
                             id: primaryTap
                             enabled: primary.enabled
-                            onTapped: {
-                                if (card.download.state === "downloading")
-                                    card.cancelRequested();
-                                else if (card.download.state === "ready")
-                                    card.installRequested();
-                                else
-                                    card.downloadRequested();
-                            }
+                            onTapped: card.triggerPrimary()
                         }
                     }
 

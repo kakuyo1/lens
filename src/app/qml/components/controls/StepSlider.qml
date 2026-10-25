@@ -16,6 +16,8 @@ Item {
     property int to: 4
     property int value: from
     property bool interactive: true
+    /// What the slider says about itself: the row's label plus the value in force.
+    property string accessibleName: ""
 
     readonly property real knobSize: 16
     readonly property real travel: width - knobSize
@@ -26,6 +28,51 @@ Item {
     implicitWidth: 160
     implicitHeight: 20
     opacity: interactive ? 1.0 : 0.45
+
+    activeFocusOnTab: interactive
+    Accessible.role: Accessible.Slider
+    Accessible.name: {
+        const named = root.accessibleName !== "" ? root.accessibleName : qsTr("Slider");
+        return named + ", " + root.value;
+    }
+    Accessible.onPressAction: root.focus = true
+
+    /// @brief Whether @p key is one this slider steps on.
+    function handlesKey(key) {
+        return [Qt.Key_Left, Qt.Key_Down, Qt.Key_Right, Qt.Key_Up,
+                Qt.Key_PageDown, Qt.Key_PageUp, Qt.Key_Home, Qt.Key_End].indexOf(key) >= 0;
+    }
+
+    /// @brief The stop @p key moves @p current to, clamped to the row's range.
+    function nextValue(key, current) {
+        let next = current;
+        if (key === Qt.Key_Left || key === Qt.Key_Down)
+            next -= 1;
+        else if (key === Qt.Key_Right || key === Qt.Key_Up)
+            next += 1;
+        else if (key === Qt.Key_PageDown)
+            next -= Math.max(1, Math.round((root.to - root.from) / 10));
+        else if (key === Qt.Key_PageUp)
+            next += Math.max(1, Math.round((root.to - root.from) / 10));
+        else if (key === Qt.Key_Home)
+            next = root.from;
+        else if (key === Qt.Key_End)
+            next = root.to;
+        return Math.max(root.from, Math.min(root.to, next));
+    }
+
+    Keys.onPressed: (event) => {
+        if (!root.interactive || !root.handlesKey(event.key)) {
+            event.accepted = false;
+            return;
+        }
+        event.accepted = true;
+        const next = root.nextValue(event.key, root.value);
+        if (next !== root.value)
+            root.moved(next);
+    }
+
+    FocusRing { radius: 6 }
 
     function stopAt(x) {
         const clamped = Math.max(0, Math.min(1, (x - knobSize / 2) / travel));

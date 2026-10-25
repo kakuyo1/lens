@@ -3,12 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Window
 
-/**
- * The last 365 local days of word lookups, shown as a compact contribution graph.
- *
- * The controller owns the date projection. This surface only maps it to seven rows and lets the
- * reader choose the hue used by the four non-empty levels.
- */
+/// The last 365 local days as a contribution graph, with a hue for its four active levels.
 Window {
     id: year
     objectName: "yearWords"
@@ -130,6 +125,31 @@ Window {
         hueIndex = index;
     }
 
+    /// @brief Select the day at @p index in the year, clamped to the data.
+    function selectDayAt(index) {
+        if (year.days.length === 0)
+            return;
+        const bounded = Math.max(0, Math.min(year.days.length - 1, index));
+        year.selectedDate = year.days[bounded].date;
+    }
+
+    /// @brief Move the selected day by @p delta days, starting from today when none is selected.
+    function moveSelectedDay(delta) {
+        let index = year.days.length - 1;
+        if (year.selectedDate !== "") {
+            const found = year.days.findIndex(function (day) { return day.date === year.selectedDate; });
+            if (found >= 0)
+                index = found;
+        }
+        year.selectDayAt(index + delta);
+    }
+
+    /// @brief Give the grid a selected day when it takes focus, so the first arrow has an origin.
+    function beginGridKeyboard() {
+        if (year.selectedDate === "")
+            year.selectDayAt(year.days.length - 1);
+    }
+
     onVisibleChanged: if (!visible)
         closePalette()
 
@@ -212,17 +232,15 @@ Window {
                     // label; the day readout replaces it once a cell is selected.
                     text: year.selectedDay
                           ? qsTr("%1: %2 lookups").arg(year.selectedDay.date).arg(year.selectedDay.pops)
-                          : qsTr("Words explained · 365 days")
+                          : qsTr("Lookups · 365 days")
                     color: year.tokens.muted
                     font.pixelSize: 11
                 }
                 Text {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
-                    // Both denominators side by side (ADR 0104): the year's pop count in
-                    // lookups, the vocabulary it landed on in words -- the pair is what says
-                    // the words are deduplicated. Mixed CJK units take the app face, the way
-                    // the tray menu's figures row does (UI-SPEC.md 4.7).
+                    // Both denominators side by side (ADR 0104): lookups and the deduplicated
+                    // vocabulary. Mixed CJK units take the app face (UI-SPEC.md 4.7).
                     text: qsTr("%1 lookups · %2 words")
                           .arg(year.days.reduce(function (sum, day) { return sum + day.pops; }, 0))
                           .arg(Controller.words.length)
@@ -287,6 +305,7 @@ Window {
 
                     Grid {
                         id: cells
+                        objectName: "yearGrid"
                         columns: year.weekCount
                         rows: 7
                         flow: Grid.TopToBottom
@@ -294,6 +313,41 @@ Window {
                         height: year.graphHeight
                         columnSpacing: year.cellGap
                         rowSpacing: year.cellGap
+
+                        // One tab stop for the year, not 365: the arrows move the selected day.
+                        // The cells keep their names for the screen reader's review pass.
+                        activeFocusOnTab: true
+                        Accessible.role: Accessible.Table
+                        Accessible.name: {
+                            const day = year.selectedDay;
+                            return day
+                                ? qsTr("Year activity. %1, %2 lookups. Use the arrow keys to choose a day.")
+                                  .arg(day.date).arg(day.pops)
+                                : qsTr("Year activity. Use the arrow keys to choose a day.");
+                        }
+                        Keys.onPressed: (event) => {
+                            let handled = true;
+                            if (event.key === Qt.Key_Left)
+                                year.moveSelectedDay(-1);
+                            else if (event.key === Qt.Key_Right)
+                                year.moveSelectedDay(1);
+                            else if (event.key === Qt.Key_Up)
+                                year.moveSelectedDay(-7);
+                            else if (event.key === Qt.Key_Down)
+                                year.moveSelectedDay(7);
+                            else if (event.key === Qt.Key_PageUp)
+                                year.moveSelectedDay(-7);
+                            else if (event.key === Qt.Key_PageDown)
+                                year.moveSelectedDay(7);
+                            else if (event.key === Qt.Key_Home)
+                                year.selectDayAt(0);
+                            else if (event.key === Qt.Key_End)
+                                year.selectDayAt(year.days.length - 1);
+                            else
+                                handled = false;
+                            event.accepted = handled;
+                        }
+                        onActiveFocusChanged: if (activeFocus) year.beginGridKeyboard()
 
                         Repeater {
                             model: year.weekCount * 7
@@ -309,13 +363,29 @@ Window {
                                 border.width: visible && year.selectedDate === day.date ? 1 : 0
                                 border.color: year.tokens.text
                                 Accessible.ignored: !visible
+                                Accessible.role: Accessible.Cell
                                 // The count is pop events, so the spoken unit is lookups, the same
                                 // one the summary row writes (ADR 0104).
                                 Accessible.name: visible ? qsTr("%1, %2 lookups").arg(day.date).arg(day.pops) : ""
 
+                                // The focus mark stands outside the chosen cell's 1 px selection
+                                // border, so a ring and a selection remain two marks.
+                                Rectangle {
+                                    anchors.fill: parent
+                                    anchors.margins: -2
+                                    visible: parent.visible && cells.activeFocus && year.selectedDate === parent.day.date
+                                    radius: 3
+                                    color: "transparent"
+                                    border.width: 2
+                                    border.color: year.tokens.ink
+                                }
+
                                 TapHandler {
                                     enabled: parent.visible
-                                    onTapped: year.selectedDate = parent.day.date
+                                    onTapped: {
+                                        cells.forceActiveFocus();
+                                        year.selectedDate = parent.day.date;
+                                    }
                                 }
                             }
                         }
@@ -331,17 +401,35 @@ Window {
                     Text { text: qsTr("Less"); color: year.tokens.faint; font.pixelSize: 11 }
                     Repeater {
                         model: 5
-                        delegate: Rectangle {
+                        delegate: Item {
                             id: legendCell
+                            objectName: "yearLegendCell"
                             required property int index
-                            width: 9
-                            height: 9
-                            radius: 1
-                            color: year.cellColor(index)
-                            border.width: year.selectedLevel === index ? 1 : 0
-                            border.color: year.tokens.text
+                            width: 16
+                            height: 16
+
+                            activeFocusOnTab: true
                             Accessible.role: Accessible.Button
                             Accessible.name: legendCell.index === 0 ? qsTr("No lookups, choose color") : qsTr("Level %1, choose color").arg(legendCell.index)
+                            Accessible.onPressAction: year.toggleLevel(legendCell.index)
+                            Keys.onPressed: (event) => {
+                                if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return || event.key === Qt.Key_Space)
+                                        && !event.isAutoRepeat) {
+                                    event.accepted = true;
+                                    year.toggleLevel(legendCell.index);
+                                }
+                            }
+                            FocusRing { radius: 5 }
+
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: 9
+                                height: 9
+                                radius: 1
+                                color: year.cellColor(legendCell.index)
+                                border.width: year.selectedLevel === legendCell.index ? 1 : 0
+                                border.color: year.tokens.text
+                            }
                             TapHandler { onTapped: year.toggleLevel(legendCell.index) }
                         }
                     }
@@ -444,8 +532,7 @@ Window {
                                     const step = Math.PI / 6;
                                     // A hair of overlap hides the anti-aliasing seam between neighbouring wedges.
                                     const overlap = 0.008;
-                                    // An annulus, not a disc: nothing is painted under the middle, so the centre
-                                    // discs over it read as the card's glass rather than as a tinted colour.
+                                    // An annulus, so the centre discs read as the card's glass.
                                     const inner = 27;
                                     for (let index = 0; index < colors.length; ++index) {
                                         const from = -Math.PI / 2 + index * step - overlap;
@@ -456,8 +543,7 @@ Window {
                                         ctx.fillStyle = colors[index];
                                         ctx.fill();
                                     }
-                                    // The beads' rest shadow, one pixel down and soft, as the prototype's
-                                    // box-shadow draws it. Painted here because it turns with their ring.
+                                    // The beads' soft rest shadow, painted here so it turns with the ring.
                                     for (let index = 0; index < colors.length; ++index) {
                                         const bx = cx + Math.sin(index * step) * 51;
                                         const by = cy - Math.cos(index * step) * 51 + 1;
@@ -485,6 +571,7 @@ Window {
                                 model: year.hues.length
                                 delegate: Rectangle {
                                     id: hueCell
+                                    objectName: "yearHueCell"
                                     required property int index
                                     readonly property real angle: index * Math.PI / 6
                                     readonly property int hue: year.hues[index].hue
@@ -498,8 +585,18 @@ Window {
                                     border.width: 2
                                     border.color: year.tokens.panel
                                     scale: active ? 1.12 : 1
+                                    activeFocusOnTab: true
                                     Accessible.role: Accessible.Button
                                     Accessible.name: year.hues[index].name
+                                    Accessible.onPressAction: year.selectHue(hueCell.index)
+                                    Keys.onPressed: (event) => {
+                                        if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return || event.key === Qt.Key_Space)
+                                                && !event.isAutoRepeat) {
+                                            event.accepted = true;
+                                            year.selectHue(hueCell.index);
+                                        }
+                                    }
+                                    FocusRing { radius: 10.5 }
 
                                     Behavior on scale {
                                         NumberAnimation {

@@ -68,6 +68,7 @@ Item {
                     font.pixelSize: 13
                     selectByMouse: true
                     activeFocusOnTab: true
+                    Accessible.name: qsTranslate("SettingsPopup", "Daily budget")
                     inputMethodHints: Qt.ImhFormattedNumbersOnly
                     validator: DoubleValidator { bottom: 0; top: 1000000000; decimals: 2 }
 

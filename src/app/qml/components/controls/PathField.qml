@@ -46,12 +46,32 @@ Item {
         }
     }
 
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Button
+    Accessible.name: root.label
+    Accessible.onPressAction: root.openPicker()
+    Keys.onPressed: (event) => {
+        if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return || event.key === Qt.Key_Space)
+                && !event.isAutoRepeat) {
+            event.accepted = true;
+            root.openPicker();
+        }
+    }
+    FocusRing { radius: root.tokens.radiusField + 4 }
+
+    function openPicker() {
+        if (root.folder)
+            folderPicker.open();
+        else
+            filePicker.open();
+    }
+
     Rectangle {
         anchors.fill: parent
         radius: root.tokens.radiusField
         color: root.tokens.panel2
-        border.width: 1
-        border.color: root.tokens.line
+        border.width: root.activeFocus ? 2 : 1
+        border.color: root.activeFocus ? root.tokens.ink : root.tokens.line
 
         Text {
             anchors.left: parent.left
@@ -77,7 +97,7 @@ Item {
         HoverHandler { cursorShape: Qt.PointingHandCursor }
         TapHandler {
             id: pick
-            onTapped: root.folder ? folderPicker.open() : filePicker.open()
+            onTapped: root.openPicker()
         }
     }
 

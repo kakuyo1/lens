@@ -103,6 +103,26 @@ Item {
             Controller.setSetting("selectionBarStyle", "bar");
         }
 
+        /// The window takes no focus, so the actions cannot be Tabbed to; the screen reader still
+        /// has to find all three in every form. The names are the action labels themselves.
+        function test_everyFormNamesItsThreeActions() {
+            for (const style of ["bar", "tab", "hand", "tag", "fan"]) {
+                const bar = openedWithStyle(style);
+                wait(500);
+                const names = Util.findAll(bar, function (o) {
+                    // Only Items carry the attached property; asking a ShapePath or a Timer for
+                    // it prints a warning rather than answering.
+                    return o.hasOwnProperty("activeFocusOnTab")
+                           && o.Accessible !== undefined && o.Accessible.name !== "";
+                }).map(function (o) { return o.Accessible.name; });
+                for (const label of ["Translate", "Explain", "Copy text"]) {
+                    verify(names.indexOf(label) >= 0, style + " has no accessible '" + label + "' action");
+                }
+                bar.visible = false;
+            }
+            Controller.setSetting("selectionBarStyle", "bar");
+        }
+
         function test_thePressedCardTossesUpAndFades() {
             const bar = openedWithStyle("hand");
             // The hand's label sits a level deeper than the rows do -- inside the card's face --

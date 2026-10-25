@@ -147,6 +147,19 @@ Item {
             card.visible = false;
         }
 
+        /// Return presses the same signal as the pill, and the intent is a pure function of the
+        /// duty's state so the mapping can be checked without a transfer.
+        function test_thePrimaryIntentFollowsTheStateAndNothingRunsWhileChecking() {
+            const card = opened().card;
+            compare(card.primaryIntent("idle", true), "download");
+            compare(card.primaryIntent("idle", false), "");
+            compare(card.primaryIntent("downloading", true), "cancel");
+            compare(card.primaryIntent("verifying", true), "");
+            compare(card.primaryIntent("ready", true), "install");
+            compare(card.primaryIntent("failed", true), "download");
+            card.visible = false;
+        }
+
         /// The card shows nothing about a download until one is asked for: the controller is
         /// idle in this case, so the line is empty and there is no primary button at all.
         function test_anIdleCardShowsNoDownloadLine() {

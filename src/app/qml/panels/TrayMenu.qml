@@ -169,11 +169,14 @@ Window {
                     Text {
                         anchors.left: mark.right
                         anchors.leftMargin: 9
+                        anchors.right: parent.right
+                        anchors.rightMargin: 11
                         anchors.verticalCenter: parent.verticalCenter
                         text: menu.stateLine.text
                         color: menu.tokens.text
                         font.pixelSize: 12
                         font.weight: Font.Bold
+                        elide: Text.ElideRight
                     }
                 }
 
@@ -190,6 +193,7 @@ Window {
                 }
 
                 MenuRow {
+                    id: languageRow
                     width: parent.width
                     source: "qrc:/icons/ui-language.svg"
                     label: qsTr("Language")
@@ -204,6 +208,16 @@ Window {
                         } else {
                             listHide.restart();
                         }
+                    }
+                    // Enter / Space takes the row's own path, so the list is not hover-only. The
+                    // current language takes the focus when it opens; Tab then walks the four.
+                    onPicked: {
+                        menu.listVisible = !menu.listVisible;
+                        if (menu.listVisible)
+                            Qt.callLater(() => {
+                                if (languageList.item)
+                                    languageList.item.focusLanguage(menu.language);
+                            });
                     }
                 }
 
@@ -220,7 +234,6 @@ Window {
                     width: parent.width - 4
                     height: 1
                     color: menu.tokens.line2
-                    anchors.margins: 5
                 }
 
                 MenuRow {
@@ -254,6 +267,18 @@ Window {
             height: listColumn.implicitHeight + 10 + 2 * menu.shadowMargin
             radius: menu.tokens.radiusGroup
             color: menu.tokens.glassMode === "" ? menu.tokens.panel : "transparent"
+
+            /// @brief Put the keyboard on the row carrying @p value, so the opened list is usable
+            ///        without the pointer.
+            function focusLanguage(value) {
+                for (let i = 0; i < listColumn.children.length; ++i) {
+                    const row = listColumn.children[i];
+                    if (row.modelData && row.modelData.value === value) {
+                        row.forceActiveFocus();
+                        return;
+                    }
+                }
+            }
             // The list is built by this loader only once it is meant to be out, so the window is
             // already visible and ShadowCard's own rule has nothing to animate. The loader's status
             // is the flip instead: Loading while the card is being built, Ready once it is done.
@@ -279,12 +304,23 @@ Window {
                         id: option
                         required property var modelData
 
-                        Accessible.role: Accessible.Button
-                        Accessible.name: option.modelData.label
-                        Accessible.onPressAction: {
+                        function choose() {
                             Controller.setSetting("uiLanguage", option.modelData.value);
                             menu.visible = false;
                         }
+
+                        activeFocusOnTab: true
+                        Accessible.role: Accessible.Button
+                        Accessible.name: option.modelData.label
+                        Accessible.onPressAction: option.choose()
+                        Keys.onPressed: (event) => {
+                            if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return || event.key === Qt.Key_Space)
+                                    && !event.isAutoRepeat) {
+                                event.accepted = true;
+                                option.choose();
+                            }
+                        }
+                        FocusRing { radius: 8 }
 
                         width: listColumn.width
                         height: 28
@@ -310,10 +346,7 @@ Window {
                         }
                         TapHandler {
                             id: rowPress
-                            onTapped: {
-                                Controller.setSetting("uiLanguage", option.modelData.value);
-                                menu.visible = false;
-                            }
+                            onTapped: option.choose()
                         }
                     }
                 }

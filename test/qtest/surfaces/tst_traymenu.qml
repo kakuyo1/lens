@@ -223,6 +223,28 @@ Item {
             restore();
         }
 
+        /// The language row is in the Tab order, and Enter opens the list; the current language
+        /// takes the focus, so the four rows are reachable without the pointer.
+        function test_keyboardOnTheLanguageRowOpensAndPicks() {
+            const menu = make();
+            menu.visible = true;
+            wait(20);
+            const row = rowWith(menu, qsTr("Language"));
+            row.forceActiveFocus();
+            keyClick(Qt.Key_Return);
+            tryCompare(menu, "listVisible", true);
+
+            const chinese = languageOptions(menu).filter(function (o) {
+                return o.modelData.value === "zh";
+            })[0];
+            verify(chinese, "the language list has no Chinese option");
+            chinese.forceActiveFocus();
+            keyClick(Qt.Key_Return);
+            compare(menu.language, "zh", "the keyboard pick did not reach the controller");
+            tryCompare(menu, "visible", false, 1000, "the menu stayed up after a keyboard pick");
+            restore();
+        }
+
         /// The list unfolds when the pointer reaches its row and folds again a moment after it
         /// leaves -- the delay is what lets the pointer cross the gap between the two cards.
         function test_hoveringTheLanguageRowUnfoldsTheListAndLeavingFoldsItAgain() {

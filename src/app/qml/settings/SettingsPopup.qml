@@ -193,6 +193,37 @@ Window {
     /// The card is the explanation bubble itself (Bubble.qml's `preview`), so the demo follows the
     /// reader's settings: the definition in their explanation language, at their typing pace. A
     /// machine whose `data/preview.json` could not be read has no payload, and no preview.
+    /// @brief Scroll the body so the item holding keyboard focus is inside the viewport.
+    ///
+    /// A focused control below the fold is still focused, but a reader cannot see the ring or
+    /// what they are about to change. This runs on every focus change, after the page has laid
+    /// out, and leaves a 12 px band above and below the control.
+    function revealFocus(item) {
+        if (!item || !settings.visible || item.Window.window !== settings)
+            return;
+        let insideBody = false;
+        for (let parent = item; parent; parent = parent.parent) {
+            if (parent === body) {
+                insideBody = true;
+                break;
+            }
+        }
+        if (!insideBody)
+            return;
+        const at = item.mapToItem(body.contentItem, 0, 0);
+        const top = at.y;
+        const bottom = top + item.height;
+        const limit = Math.max(0, body.contentHeight - body.height);
+        // No margin band: a row already touching the footer must not move under the pointer that
+        // just focused it. The control's own edge is the contract.
+        if (top < body.contentY)
+            body.contentY = Math.min(limit, Math.max(0, top));
+        else if (bottom > body.contentY + body.height)
+            body.contentY = Math.min(limit, Math.max(0, bottom - body.height));
+    }
+
+    onActiveFocusItemChanged: Qt.callLater(() => settings.revealFocus(settings.activeFocusItem))
+
     function updatePreview() {
         if (previewKey === "") {
             // The card keeps the face it was last drawn in while it fades: resetting it here
@@ -425,6 +456,23 @@ Window {
             clip: true
             contentWidth: width
             contentHeight: Math.max(height, viewLoader.y + viewLoader.height + 18)
+
+            // The six-pixel thumb UI-SPEC.md 4.4 asks for: transparent track, faint thumb, in the
+            // card's right margin. Drawn rather than imported so the module keeps no widget style.
+            Rectangle {
+                id: scrollThumb
+                objectName: "scrollThumb"
+                visible: body.contentHeight > body.height
+                x: body.width - width
+                y: body.y + (body.contentHeight <= body.height ? 0
+                            : (body.height - height) * Math.min(1, Math.max(0,
+                              body.contentY / (body.contentHeight - body.height))))
+                width: 6
+                height: Math.max(24, body.height * body.height / body.contentHeight)
+                radius: 3
+                color: settings.tokens.faint
+                opacity: body.moving ? 0.9 : 0.55
+            }
 
             Loader {
                 id: viewLoader

@@ -81,6 +81,20 @@ Item {
             }
         }
 
+        // The reason the OCR switches are grey belongs under those switches, not below the two
+        // path fields: the reader on a machine without the runtime should not have to scroll to
+        // find out why the first three lines will not move.
+        Text {
+            width: parent.width
+            visible: !Controller.settings.ocrAvailable
+            text: Controller.settings.ocrStatus === "checking" ? qsTr("Checking OCR")
+                  : Controller.settings.ocrStatus === "english-data-missing" ? qsTr("English OCR data is missing")
+                  : qsTr("OCR runtime is unavailable")
+            color: root.tokens.muted
+            font.pixelSize: 12
+            wrapMode: Text.WordWrap
+        }
+
         // The shape of the action bar the selection channel raises. It sits right after the
         // channels because it is the surface the first switch owns, and before the OCR key
         // because that key belongs to the second switch.
@@ -141,17 +155,6 @@ Item {
                   ? qsTranslate("SettingsPopup", "Give up silently")
                   : qsTranslate("SettingsPopup", "Raise to top")
             onPicked: root.childRequested("clipboard")
-        }
-
-        Text {
-            width: parent.width
-            visible: !Controller.settings.ocrAvailable
-            text: Controller.settings.ocrStatus === "checking" ? qsTr("Checking OCR")
-                  : Controller.settings.ocrStatus === "english-data-missing" ? qsTr("English OCR data is missing")
-                  : qsTr("OCR runtime is unavailable")
-            color: root.tokens.muted
-            font.pixelSize: 12
-            wrapMode: Text.WordWrap
         }
 
         // The bundled runtime is what the installer lays down; these two are for a reader who
@@ -223,6 +226,7 @@ Item {
                 font.pixelSize: 13
                 color: root.tokens.text
                 selectByMouse: true
+                activeFocusOnTab: true
                 maximumLength: 4096
                 Accessible.name: qsTr("Scan whitelist")
                 background: Rectangle {

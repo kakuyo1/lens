@@ -69,6 +69,9 @@ Window {
     /// Rows folding away before the model lets them go, and the words waiting on that fold.
     property var removingWords: ({})
     property var removalQueue: []
+    /// The one line an import leaves behind, in the count row so the card does not change height.
+    property string importStatus: ""
+    property bool importFailed: false
 
     /// Whether a removal is put to the reader before it happens.
     ///
@@ -338,6 +341,19 @@ Window {
                     color: words.tokens.faint
                     font.pixelSize: 12
                 }
+
+                Text {
+                    anchors.left: count.right
+                    anchors.leftMargin: 10
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: words.importStatus !== ""
+                    text: words.importStatus
+                    color: words.importFailed ? words.tokens.danger : words.tokens.muted
+                    font.pixelSize: 11
+                    horizontalAlignment: Text.AlignRight
+                    elide: Text.ElideRight
+                }
             }
 
             Item { width: 1; height: 12 }
@@ -356,8 +372,10 @@ Window {
             Item {
                 width: parent.width
                 // UI-SPEC.md 4.8 gives the list a *maximum* of 306px: a handful of words leaves a
-                // panel sized to those words, not a panel with a hole under them.
-                height: Math.min(306, list.contentHeight)
+                // panel sized to those words, not a panel with a hole under them. An empty list
+                // keeps one line of room for the line that says how it fills.
+                height: Controller.words.length === 0 ? emptyText.implicitHeight + 6
+                                                      : Math.min(306, list.contentHeight)
 
                 ListView {
                     id: list
@@ -371,6 +389,17 @@ Window {
                         host: words
                     }
 
+                }
+
+                Text {
+                    id: emptyText
+                    anchors.top: parent.top
+                    width: parent.width
+                    visible: Controller.words.length === 0
+                    text: qsTr("Words you look up will appear here.")
+                    color: words.tokens.faint
+                    font.pixelSize: 11
+                    wrapMode: Text.WordWrap
                 }
 
                 // The six-pixel scrollbar UI-SPEC.md 4.8 asks for, drawn rather than imported so the
@@ -443,6 +472,17 @@ Window {
         title: qsTr("Import words")
         fileMode: FileDialog.OpenFile
         nameFilters: [qsTr("Text files (*.txt)"), qsTr("JSON files (*.json)"), qsTr("All files (*)")]
-        onAccepted: Controller.importWords(importer.selectedFile)
+        onAccepted: {
+            const imported = Controller.importWords(importer.selectedFile);
+            words.importFailed = !imported;
+            words.importStatus = imported ? qsTr("Words imported") : qsTr("Import failed");
+            importStatusTimer.restart();
+        }
+    }
+
+    Timer {
+        id: importStatusTimer
+        interval: 2600
+        onTriggered: words.importStatus = ""
     }
 }

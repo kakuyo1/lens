@@ -501,6 +501,33 @@ Item {
                       "the second Return left the list up");
         }
 
+        /// With the list open, Down moves the highlight and Return takes it. The field keeps the
+        /// focus in the real window; the offscreen platform takes it with the list's window, so
+        /// the test gives it back before the keys that follow.
+        function test_theKeyboardPicksFromTheOpenList() {
+            const field = make({});
+            host.requestActivate();
+            tryVerify(function () { return host.active; });
+            field.forceActiveFocus();
+            tryVerify(function () { return field.activeFocus; });
+
+            let picked = -1;
+            field.picked.connect(function (value) { picked = value; });
+            keyClick(Qt.Key_Return);
+            tryVerify(function () { return field.openChildRect !== null; }, 1000);
+
+            host.requestActivate();
+            tryVerify(function () { return host.active; });
+            field.forceActiveFocus();
+            tryVerify(function () { return field.activeFocus; }, 5000);
+            keyClick(Qt.Key_Down);
+            keyClick(Qt.Key_Return);
+
+            compare(picked, 1, "Return took no highlighted choice");
+            tryVerify(function () { return field.openChildRect === null; }, 1000,
+                      "picking left the list up");
+        }
+
         /// The tab stops: the pick-only field is one, and the editable field hands the stop to
         /// the input inside it rather than taking two.
         function test_theFieldTakesOneTabStopWhereItCanType() {
