@@ -12,8 +12,10 @@
 #include <utility>
 
 #include "core/domain/filter_core.h"
+#include "core/domain/settings_table.h"
 #include "cost_duty.h"
 #include "app/notice.h"
+#include "app/settings_access.h"
 #include "util/log.h"
 #include "util/text.h"
 #include "word_answer.h"
@@ -339,7 +341,9 @@ void ExplanationDuty::onPeekAnswered(QString const& lemma, QString const& line, 
 
 QString ExplanationDuty::motherTongue() const
 {
-    return QString::fromStdString(storage_.section().value<std::string>("motherTongue", "zh"));
+    // A Choice row, so a hand-edited value the table does not list reads as the row's default
+    // rather than reaching the peek prompt raw.
+    return settings::read(storage_.section(), *core::settings::find("motherTongue")).toString();
 }
 
 void ExplanationDuty::cycleSense()
@@ -666,17 +670,17 @@ QString ExplanationDuty::busyLabel() const
 
 bool ExplanationDuty::etymologyEnabled() const
 {
-    return storage_.section().value<bool>("etymology", false);
+    return settings::read(storage_.section(), *core::settings::find("etymology")).toBool();
 }
 
 bool ExplanationDuty::exampleEnabled() const
 {
-    return storage_.section().value<bool>("example", false);
+    return settings::read(storage_.section(), *core::settings::find("example")).toBool();
 }
 
 bool ExplanationDuty::showsCardBlock(char const* key) const
 {
-    return storage_.section().value<bool>(key, true);
+    return settings::read(storage_.section(), *core::settings::find(key)).toBool();
 }
 
 }

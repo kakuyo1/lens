@@ -27,7 +27,9 @@
 #include "core/document/pet_store.h"
 #include "app_controller.h"
 #include "app/platform/autostart.h"
+#include "app/settings_access.h"
 #include "core/domain/filter_core.h"
+#include "core/domain/settings_table.h"
 #include "core/document/known_store.h"
 #if defined(LENS_DEV_SURFACE)
 #include "core/dev/dev_command.h"
@@ -321,8 +323,10 @@ int main(int argc, char* argv[])
     QQmlApplicationEngine engine;
 
     TranslationKeeper translations;
-    const QString     uiLanguage = settingsValue(store, "uiLanguage");
-    translations.select(uiLanguage.isEmpty() ? QStringLiteral("zh") : uiLanguage);
+    // Through the row: uiLanguage is a table row, and its "not stored yet" answer is the row's
+    // own default, not an empty language code the caller has to patch over.
+    const QString uiLanguage = settings::read(store.section(), *core::settings::find("uiLanguage")).toString();
+    translations.select(uiLanguage);
     // Installing a translator does not make QML's qsTr bindings re-evaluate -- the tray menu
     // follows along only because Tray::retranslate() listens for this signal, and the surfaces
     // had no equivalent. engine.retranslate() is the hook Qt 6.2 added for exactly this, and it

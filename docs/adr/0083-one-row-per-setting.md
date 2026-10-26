@@ -14,6 +14,7 @@
   - 行为的两处收紧，都是有意的：Integer 行越界**一律 clamp**（原先 `minimumWordLength` 越界读回默认 3，现在读回 2 或 5，与写入一致）；Choice/Color 行读到表里没有的值时读回默认（原先原样交给 QML）。手改过的文档是唯一会碰到这两条的情况。
   - `sync_state.cpp` 的 `applySettings()` 仍按 JSON 的形状写（文本存下的数字仍是文本，ADR 0024），表只决定哪些 key 上云、`level`/`explanationLang` 走哪个 owner。
   - 新增 `settings_table_test.cpp`：白名单与表的 synced 行相等、每个 key 都在投影里、Integer 行两端都 clamp、Choice 拒收成员外的值、颜色只收 `#rrggbb`、restore 覆盖每个 `restorable` 行且不动 `uiLanguage`、dev 表面的设置名都是表里的行。`settings_section_test.cpp` 的 owner 表只剩四个非表 key，其余从表里取。
+  - duty 与缓存侧的读取也收进了行（2026-10-26）：`capture_duty`、`explanation_duty`、`explanation_cache` 与 `main.cpp` 里 13 处裸 `value(key, 字面缺省)` 改走行——应用侧走 `read()`，core 的两处 Toggle 走 Qt-free 的 `document/settings_rows.h`；`motherTongue` 的 Choice 规则与 `minimumWordLength` 的夹取从此不会被裸读绕开。表外的 key（`API-KEY`/`PROVIDER`/`MODEL`/`URL`/`ocrHotkey`）保持裸读，是表头写明的有意豁免。
   - 代价：key 现在是 QML 里的字符串，拼错不再编译期报错——所以 `setSetting` 对未知 key 记一行日志并返回 false，`settings_table_test.cpp` 的“每个 key 都在投影里”是那条防线。给 QML 一个强类型 key 需要代码生成，这次没做。
 - **被排除的选项**：
   - 保留 24 个 setter、只让它们转调 `write()`：clamp 与默认值确实只剩一处，但最宽的接口没动，而这正是这次要收的东西。

@@ -45,8 +45,8 @@ constexpr int kMaxSelectionChars = 1000;
 capture::TesseractConfig storedTesseractConfig(StorageDuty& storage)
 {
     auto const keys = storage.section();
-    return {QString::fromStdString(keys.value<std::string>("tesseractExecutable", {})),
-            QString::fromStdString(keys.value<std::string>("tesseractDataDirectory", {}))};
+    return {settings::read(keys, *core::settings::find("tesseractExecutable")).toString(),
+            settings::read(keys, *core::settings::find("tesseractDataDirectory")).toString()};
 }
 
 /// @return The token for a reason, as the QString the QML boundary reads.
@@ -224,7 +224,7 @@ void CaptureDuty::setTesseractExecutable(QString executable)
 {
     const QString value = executable.trimmed();
     auto          keys  = storage_.section();
-    if (value.toStdString() == keys.value<std::string>("tesseractExecutable", {})) return;
+    if (value == settings::read(keys, *core::settings::find("tesseractExecutable")).toString()) return;
     settings::write(keys, *core::settings::find("tesseractExecutable"), value);
     rebuildOcr();
 }
@@ -233,7 +233,7 @@ void CaptureDuty::setTesseractDataDirectory(QString directory)
 {
     const QString value = directory.trimmed();
     auto          keys  = storage_.section();
-    if (value.toStdString() == keys.value<std::string>("tesseractDataDirectory", {})) return;
+    if (value == settings::read(keys, *core::settings::find("tesseractDataDirectory")).toString()) return;
     settings::write(keys, *core::settings::find("tesseractDataDirectory"), value);
     rebuildOcr();
 }
@@ -482,7 +482,7 @@ void CaptureDuty::publishBatch(capture::ScanTime const now, QPoint const anchor)
 void CaptureDuty::onSelectionReleased(QPoint const anchor)
 {
     if (budgetPaused_) return;
-    if (not storage_.section().value<bool>("selectionCapture", true)) {
+    if (not settings::read(storage_.section(), *core::settings::find("selectionCapture")).toBool()) {
         LENS_TRACE("selection at ({}, {}) ignored: selection capture is off", anchor.x(), anchor.y());
         return;
     }
@@ -495,7 +495,8 @@ void CaptureDuty::beginSelection(QPoint const anchor, std::optional<QString> con
         classifyText(*text, anchor);
         return;
     }
-    const auto policy  = clipboardPolicyFromStored(storage_.section().value<std::string>("clipboardPolicy", {}));
+    const auto policy = clipboardPolicyFromStored(
+        settings::read(storage_.section(), *core::settings::find("clipboardPolicy")).toString().toStdString());
     const auto grabbed = grabber_->grab(policy);
     if (const auto* status = std::get_if<GrabStatus>(&grabbed)) {
         LENS_DEBUG("selection at ({}, {}) produced no text (status {})", anchor.x(), anchor.y(), static_cast<int>(*status));

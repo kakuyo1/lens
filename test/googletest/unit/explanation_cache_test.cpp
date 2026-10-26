@@ -86,6 +86,20 @@ TEST_F(ExplanationCacheTest, TheReaderContextFollowsTheSettings)
     EXPECT_EQ(cache->readerContext(), (CacheContext{"ja", true}));
 }
 
+/// The toggles read through the settings table's rows, not a restated key and default: a key the
+/// document holds as the wrong shape, as null, or not at all answers the row's own default
+/// (docs/adr/0083).
+TEST_F(ExplanationCacheTest, TheTogglesReadThroughTheTableRows)
+{
+    auto& document         = store->document();
+    document["multiSense"] = 3; // a number is not a toggle
+    document["example"]    = nullptr;
+
+    EXPECT_EQ(cache->readerContext(), (CacheContext{kLanguage, false}));
+    cache->store("bank", anEntry(), {kLanguage, false});
+    EXPECT_EQ(cache->look("bank", {kLanguage, false}).state, ExplanationCache::State::Hit);
+}
+
 TEST_F(ExplanationCacheTest, NothingStoredUnderTheContextIsMissing)
 {
     EXPECT_EQ(cache->look("bank", {kLanguage, false}).state, ExplanationCache::State::Missing);
