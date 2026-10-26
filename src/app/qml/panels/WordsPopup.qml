@@ -423,15 +423,13 @@ Window {
                 id: listBox
                 width: parent.width
                 // UI-SPEC.md 4.8 gives the list a *maximum* of 306px: a handful of words leaves a
-                // panel sized to those words, not a panel with a hole under them. An empty list
-                // keeps one line of room for the line that says how it fills; a filter with no
-                // rows gets the same room rather than a card with a hole in it.
+                // panel sized to those words, not a panel with a hole under them; an empty list,
+                // and a filter with no rows, keep one line of room for the line that fills it.
                 //
-                // The viewport is the model's row count times the row height, never the view's
-                // own contentHeight: a lazily-filled view estimates that number from the rows it
-                // holds, and a viewport bound to it feeds the revisions back. The count is the
-                // model's fact. A decrease waits for the remove transition below, so a short
-                // list does not cut the folding row out of its own viewport.
+                // The viewport is the model's row count times the row height, never the view's own
+                // contentHeight -- a lazily-filled view estimates that from the rows it holds, and
+                // a viewport bound to it feeds the revisions back. A decrease waits for the remove
+                // transition below, so a short list does not cut the folding row out of its view.
                 property int viewportRows: 0
                 property bool holding: false
 
@@ -488,7 +486,11 @@ Window {
                             easing.type: words.tokens.motion.easing
                         }
                     }
+                    // No fold, no transition: a zero-length one is still one the view runs, and it
+                    // left the last row of each removal run drawn over the rows that stayed
+                    // (docs/adr/0122).
                     remove: Transition {
+                        enabled: !words.tokens.motion.reduced
                         NumberAnimation {
                             property: "height"
                             to: 0
@@ -511,7 +513,9 @@ Window {
                     }
 
                     onCountChanged: {
-                        if (list.count > listBox.viewportRows || words.tokens.motion.pop === 0) {
+                        // A switch holds its arrivals with no fold too, so the viewport holds.
+                        if (list.count > listBox.viewportRows
+                            || (words.tokens.motion.pop === 0 && !Controller.wordsModel.filterSwitching)) {
                             listBox.viewportRows = list.count;
                             listBox.holding = false;
                         } else {
@@ -552,11 +556,10 @@ Window {
                 /// Holds the viewport at the height it had before a removal, through the remove
                 /// transition that closes the rows; then the count is the settled one.
                 ///
-                /// It outlasts the model's swap (a fold plus the frame between its signal and this
-                /// view) and it defers while a switch runs at all, even one that started after it
-                /// did: the count it would take there is the intersection's, which for two verdicts
-                /// is no rows at all. The card dropped to its empty height and grew back a frame
-                /// later -- 183 px on the way to 276 -- and the reader saw it blink.
+                /// It outlasts the model's swap and defers while a switch runs at all, even one
+                /// that started after it did: the count it would take there is the intersection's,
+                /// which for two verdicts is no rows at all -- 183 px on the way to 276, a blink
+                /// the reader saw.
                 Timer {
                     id: viewHold
                     interval: Controller.wordsModel.swapMs + 20
