@@ -136,6 +136,11 @@ inline constexpr Row kRows[]{
     {.key = "liquidBlur", .kind = Kind::Integer, .signal = Signal::Settings, .fallback = 10, .low = 0, .high = 100, .synced = true},
     {.key = "liquidRim", .kind = Kind::Integer, .signal = Signal::Settings, .fallback = 10, .low = 0, .high = 100, .synced = true},
     {.key = "liquidTextColor", .kind = Kind::Color, .signal = Signal::Settings, .fallback = "#101319", .synced = true},
+    // The four active levels of the year graph, as a place in the twelve hues that panel offers
+    // (UI-SPEC.md 4.8b). An index into the panel's own list rather than an angle, numbered the way
+    // glassQuality is numbered: the list is the authority on what a number means, and it is the
+    // panel that reads it. The pick outlives the panel, so it lives here rather than in the window.
+    {.key = "yearHueIndex", .kind = Kind::Integer, .signal = Signal::Settings, .fallback = 4, .low = 0, .high = 11, .synced = true},
 
     // The card: the size its answer is read at (UI-SPEC.md 4.4), and the rest of its behaviour.
     {.key = "bubbleFontSize", .kind = Kind::Integer, .signal = Signal::Settings, .fallback = 13, .low = 12, .high = 18},

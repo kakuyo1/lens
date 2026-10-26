@@ -89,6 +89,18 @@ Item {
             compare(popup.hueIndex, 7);
             verify(!Qt.colorEqual(green, popup.cellColor(1)));
 
+            // The pick is the settings document's, not this window's: the window is built once per
+            // run, so a hue kept in it is the one that comes back green after a restart.
+            compare(Controller.settings.yearHueIndex, 7,
+                    "the hue the reader picked is not in the settings document");
+            // And the grid reads that document rather than a copy taken when it was built, so a
+            // write from elsewhere -- a sync, the next open -- reaches it.
+            Controller.setSetting("yearHueIndex", 2);
+            compare(popup.hueIndex, 2, "the grid does not follow the hue the document holds");
+            // Back to the fixture's green: the rest of this case and the snapshots below read it.
+            popup.selectHue(4);
+            verify(Qt.colorEqual(green, popup.cellColor(1)));
+
             popup.closePalette();
             compare(popup.paletteOpen, false);
 

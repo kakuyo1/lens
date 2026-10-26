@@ -43,7 +43,11 @@ Window {
     ]
 
     property bool paletteOpen: false
-    property int hueIndex: 4
+    /// The hue the reader picked for the four active levels (UI-SPEC.md 4.8b), as a place in `hues`.
+    /// The settings document holds it rather than this window, so the pick survives a restart and
+    /// travels with the reader's settings; `selectHue` below is the one write, so the two cannot
+    /// disagree.
+    property int hueIndex: Controller.settings.yearHueIndex
     /// Ring turn in degrees: the selected hue comes to 3 o'clock by the shortest way.
     property real wheelRotation: 90 - 30 * hueIndex
     property int selectedLevel: 0
@@ -116,10 +120,12 @@ Window {
     }
 
     function selectHue(index) {
-        // Computed before hueIndex moves: wheelRotation's initial binding reads it.
+        // Computed before hueIndex moves: wheelRotation's initial binding reads it, and the turn has
+        // to start from where the wheel is rather than from where the pick will put it.
         const target = 90 - 30 * index;
         wheelRotation += ((target - wheelRotation) % 360 + 540) % 360 - 180;
-        hueIndex = index;
+        // The document is the value; `hueIndex` follows it when the write raises settingsChanged.
+        Controller.setSetting("yearHueIndex", index);
     }
 
     /// @brief Select the day at @p index in the year, clamped to the data.
