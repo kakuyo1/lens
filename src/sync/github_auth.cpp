@@ -61,6 +61,17 @@ AuthFailure failureFor(int status, const QByteArray& body)
     return status == 0 and body.isEmpty() ? AuthFailure::Proxy : AuthFailure::Generic;
 }
 
+/// @return The `error` field of a token answer, or an empty string when it carries none.
+///
+/// The field and never the body: a granted answer carries two tokens, and every place this is used
+/// is one where the answer was not understood, which is exactly when a body is worth reading and
+/// worth not writing down.
+QString errorCodeOf(const QByteArray& body)
+{
+    const QJsonDocument document = QJsonDocument::fromJson(body);
+    return document.isObject() ? document.object().value(QStringLiteral("error")).toString() : QString{};
+}
+
 } // namespace
 
 std::optional<DeviceCode> parseDeviceCode(const QByteArray& body)
@@ -118,6 +129,13 @@ PollResult parseTokenPoll(const QByteArray& body)
     if (error == QLatin1String("access_denied"))
         return {PollState::Denied, {}};
     if (error == QLatin1String("bad_refresh_token"))
+        return {PollState::BadRefresh, {}};
+    // The app's own credentials, not the token's. An OAuth App cannot spend a refresh token without
+    // its client secret, and a desktop application has nowhere to keep one, so this is the same dead
+    // end as a spent refresh token: nothing the reader can do here but sign in again. It went
+    // unrecognised until 2026-10-26, when an expired token made every sync answer this and the page
+    // offered a Sync now that could not work.
+    if (error == QLatin1String("incorrect_client_credentials"))
         return {PollState::BadRefresh, {}};
     return {};
 }
@@ -300,12 +318,18 @@ void GithubAuth::onRefreshFinished(QNetworkReply* reply)
             emit refreshed(result.token);
             return;
         case PollState::BadRefresh:
-            LENS_WARN("the refresh token was refused; the reader has to sign in again");
+            // The token or the app's own credentials, both of which end at the same place. The code
+            // says which, because the two look identical from the page and one of them is a
+            // registration problem rather than an expired sign-in.
+            LENS_WARN("the refresh was refused ('{}'); the reader has to sign in again", errorCodeOf(body).toStdString());
             fail(AuthFailure::BadRefresh);
             return;
         default:
             // Pending, slow_down and the device-code states do not belong to this endpoint.
-            LENS_WARN("the token refresh answer was not recognised");
+            // The status and GitHub's own code, never the body: "not recognised" on its own is a
+            // line that cannot be acted on, and the one failure that cost an hour of reading
+            // (incorrect_client_credentials, 2026-10-26) was named in the body it did not print.
+            LENS_WARN("the token refresh answer was not recognised: HTTP {}, error '{}'", status, errorCodeOf(body).toStdString());
             fail(AuthFailure::Generic);
             return;
     }

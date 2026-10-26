@@ -52,7 +52,7 @@ struct Answer {
         NotFound,       ///< The gist is not there any more.
         Proxy,          ///< The connection never got a byte.
         Generic,        ///< Anything else, or a body that was not what was asked for.
-        RefusedRefresh, ///< The refresh token itself is refused.
+        RefusedRefresh, ///< The refresh was refused for good: the token, or the app's credentials.
     };
 
     Failure     failure = Failure::None;

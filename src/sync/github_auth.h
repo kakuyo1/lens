@@ -70,7 +70,8 @@ enum class AuthFailure { Generic,
                          Expired,
                          Denied,
                          Proxy,
-                         /// The stored refresh token is dead: the reader has to sign in again.
+                         /// Nothing can renew this sign-in: the stored refresh token is dead, or the
+                         /// app's own credentials were refused. Either way the reader signs in again.
                          BadRefresh };
 
 /**

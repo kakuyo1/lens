@@ -45,7 +45,7 @@
   - **gist API**：`POST /gists`（secret）、`GET /gists`（分页，按描述找回）、`GET /gists/{id}`（文件 `truncated` 时读 `raw_url`）、`PATCH /gists/{id}`、`DELETE /gists/{id}`、`GET /user`（取登录名，用于设置页显示）。
   - **设备流**：`POST https://github.com/login/device/code`，`POST https://github.com/login/oauth/access_token`，`grant_type` 为 `urn:ietf:params:oauth:grant-type:device_code`。`slow_down` 时间隔加 5 秒；`authorization_pending` 继续轮询；`expired_token` 与 `access_denied` 结束登录。
   - **本地 `sync` 对象**：`deviceId`、`token`、`refreshToken`、`login`、`gistId`、`key`（派生密钥，base64）、`salt`、`iterations`、`lastSyncedAt`。任何一项都不写入日志。“退出登录” 把两个令牌与派生密钥一并删掉。
-  - **令牌续期**：登录响应里的 `refresh_token` 存进 `sync` 对象的 `refreshToken`，续期拿到的新一对令牌覆盖旧的一对。gist API 回 401（`GistFailure::Unauthorised`）且手上有刷新令牌时，用 `grant_type=refresh_token` 换一对新令牌，存下这一对，再把这次同步（或删除）从断掉的那一步重来一次；**每次运行最多换一次**，所以一个被吊销的令牌只花一次请求。刷新令牌自己被拒（`bad_refresh_token`）时忘掉本地两个令牌，页面回到未登录态并提示读者重新登录 —— 设备码过期与应用不认这个登录是两回事，文案与出路都不同。应用不过期令牌时响应里没有刷新令牌，行为与从前一致。
+  - **令牌续期**：登录响应里的 `refresh_token` 存进 `sync` 对象的 `refreshToken`，续期拿到的新一对令牌覆盖旧的一对。gist API 回 401（`GistFailure::Unauthorised`）且手上有刷新令牌时，用 `grant_type=refresh_token` 换一对新令牌，存下这一对，再把这次同步（或删除）从断掉的那一步重来一次；**每次运行最多换一次**，所以一个被吊销的令牌只花一次请求。刷新令牌自己被拒（`bad_refresh_token`）时忘掉本地两个令牌，页面回到未登录态并提示读者重新登录 —— 设备码过期与应用不认这个登录是两回事，文案与出路都不同。应用不过期令牌时响应里没有刷新令牌，行为与从前一致。（2026-10-26 补：换令牌时应用自己那对凭据被拒（`incorrect_client_credentials`）走同一条路 —— 见后果里那条实测。）
 
 - **后果**：
   - **存储格式要改**：`known` 增加时间与墓碑，`daily` 增加远端桶。这是本决定最大的改动，涉及 `KnownStore` 与 `StatsStore`。老数据没有新字段，按上面的约定读作默认值，并配迁移测试。
@@ -57,3 +57,4 @@
   - **不同步的缓存**：换设备后解释要重新请求，会再花一次钱。这是为了体积与简单做的取舍。
   - **8 小时令牌是默认，不是例外**（2026-10-16 补）：勾了 “Expire user access tokens” 的 OAuth App，登录后 8 小时访问令牌失效。此前应用只存访问令牌、也没有续期路径，于是**每次同步都回 401，而页面把 401 说成 “登录码已过期”**，读者反复重登也只在 8 小时内有效 —— 这就是真机上那个 “Account & Sync 一直提示 the sign-in code is expired”。现在存刷新令牌并自动续期，读者不必每 8 小时重登；代价是 `settings.json` 里多一个同等级的密钥（`SECURITY.md` 已更新），以及 401 的时候多一次请求。
   - **续期只做一层**：只对 gist 的 401 续期，且每次运行最多一次，不做提前续期（不存 `expires_in` 换算出的到期时刻）。令牌被吊销时因此只花一次请求就落到 “请重新登录”，而不是反复重试；如果将来这个多出来的一次往返值得省，再存到期时刻提前换。
+  - **OAuth App 的续期在真机上走不通**（2026-10-26 实测）：`POST /login/oauth/access_token` 的 `refresh_token` grant 要求 `client_secret`；GitHub 文档里 “设备流签发的令牌可以不传 secret” 那条写在 GitHub App 名下，OAuth App 不适用。实测：同一个 client id 对 `/login/device/code` 正常，带真实 refresh token 换令牌却回 `incorrect_client_credentials`。桌面应用无处安放 secret（放进 `data/sync.json` 等于公开），所以这条路在当前形态下是死的：**要么关掉 OAuth App 的 “Expire user access tokens”，让访问令牌不过期、续期永不触发；要么 8 小时重登一次**。选择前者，续期代码保留（将来换到能带 secret 的客户端，或 GitHub 给 OAuth App 开公共客户端）。这个错误码此前不被 `parseTokenPoll()` 识别，落到 “通用失败”，页面于是留着一个永远不成功的 “Sync now”；现在它与 `bad_refresh_token` 同归 “请重新登录”，日志里也带上状态码与 GitHub 自己的错误码。

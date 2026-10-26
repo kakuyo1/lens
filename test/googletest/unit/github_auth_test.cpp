@@ -106,15 +106,21 @@ TEST(TokenPoll, ReadsTheRefreshTokenAnExpiringAppSends)
 
 TEST(TokenPoll, KnowsARefusedRefreshTokenFromAnyOtherFailure)
 {
-    // The one answer that ends a sign-in for good: nothing is left to renew with, so this is the
-    // reader being sent back through the flow rather than a failure worth retrying.
+    // The answers that end a sign-in for good: nothing is left to renew with, so this is the reader
+    // being sent back through the flow rather than a failure worth retrying.
     EXPECT_EQ(parseTokenPoll(R"({"error":"bad_refresh_token","error_description":"The refresh token is invalid or expired."})").state,
               PollState::BadRefresh);
+    // The app's own credentials, which an OAuth App needs before it may spend a refresh token at all.
+    // A desktop application has nowhere to keep a client secret, so every refresh answers this and
+    // the sign-in is as dead as a spent token. It read as "failed" until 2026-10-26, which left the
+    // page offering a Sync now that could never work.
+    const auto refused = parseTokenPoll(R"({"error":"incorrect_client_credentials","error_description":"The client_id and/or client_secret passed are incorrect."})");
+    EXPECT_EQ(refused.state, PollState::BadRefresh);
 }
 
 TEST(TokenPoll, TreatsAnyOtherAnswerAsFailed)
 {
-    EXPECT_EQ(parseTokenPoll(R"({"error":"incorrect_client_credentials"})").state, PollState::Failed);
+    EXPECT_EQ(parseTokenPoll(R"({"error":"unsupported_grant_type"})").state, PollState::Failed);
     EXPECT_EQ(parseTokenPoll("<html>gateway</html>").state, PollState::Failed);
     EXPECT_EQ(parseTokenPoll("").state, PollState::Failed);
 }
@@ -357,5 +363,25 @@ TEST(GithubRefresh, ARefusedRefreshTokenEndsTheSignInRatherThanRetrying)
     EXPECT_EQ(seen.refreshed, 0);
     ASSERT_EQ(seen.failed, 1);
     // Its own kind, because it is the only answer that says "sign in again" rather than "try again".
+    EXPECT_EQ(seen.why, AuthFailure::BadRefresh);
+}
+
+/// The other refusal that ends a sign-in: an OAuth App cannot spend a refresh token without its
+/// client secret, and a desktop application has nowhere to keep one. GitHub names the app's
+/// credentials rather than the token, and the answer has to land in the same place -- a reader sent
+/// back through the flow, not a Sync now that fails the same way every time.
+TEST(GithubRefresh, ACredentialRefusalEndsTheSignInToo)
+{
+    QtApplication qt;
+    CannedManager manager{200, R"({"error":"incorrect_client_credentials","error_description":"The client_id and/or client_secret passed are incorrect."})"};
+    GithubAuth    auth{&manager};
+    Reports       seen;
+    record(auth, seen);
+
+    auth.refresh("Ov23li0i58xw4shNcF7I", "ghr_old");
+    ASSERT_TRUE(spinUntil([&seen] { return seen.refreshed + seen.failed > 0; }));
+
+    EXPECT_EQ(seen.refreshed, 0);
+    ASSERT_EQ(seen.failed, 1);
     EXPECT_EQ(seen.why, AuthFailure::BadRefresh);
 }
