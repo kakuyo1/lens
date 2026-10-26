@@ -291,11 +291,16 @@ TEST(DevCommandState, UnsetFieldsAreNullNotAbsent)
     EXPECT_EQ(state.at("surfaces")[0].at("painted").get<int>(), 41);
     EXPECT_EQ(state.at("surfaces")[0].at("sheet").get<std::string>(), "1075x1231");
 
-    // A surface with no window and no sheet keeps all seven keys, each one null.
+    // A surface with no window and no sheet keeps all eleven keys, each one null. The four
+    // scroll fields are what the dev surface reads to report a scroller's stand (docs/adr/0105).
     auto const& empty = state.at("surfaces")[1];
-    EXPECT_EQ(empty.size(), 7u);
+    EXPECT_EQ(empty.size(), 11u);
     EXPECT_TRUE(empty.at("visible").is_null());
     EXPECT_TRUE(empty.at("sheet").is_null());
+    EXPECT_TRUE(empty.at("scrollY").is_null());
+    EXPECT_TRUE(empty.at("scrollContentHeight").is_null());
+    EXPECT_TRUE(empty.at("scrollViewportHeight").is_null());
+    EXPECT_TRUE(empty.at("scrollCount").is_null());
 }
 
 TEST(DevCommandState, ThePetReportsItsSwitchWindowAndAction)

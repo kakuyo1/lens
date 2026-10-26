@@ -159,16 +159,19 @@ Item {
             const defaults = Util.textWith(Util.textsUnder(panel), ["Defaults"]);
             verify(defaults, "the settings panel has no Defaults action");
             mouseClick(defaults.parent, defaults.parent.width / 2, defaults.parent.height / 2);
-            wait(20);
+            tryCompare(panel, "confirmingDefaults", true, 1000, "Defaults did not ask before writing");
 
             const cancel = Util.findAll(panel, function (o) {
                 return o.objectName === "cancelDefaultsButton";
             })[0];
             verify(cancel, "Defaults did not offer a Cancel after the first press");
+            // The row lays out after the switch, and a click sent before it lands on Confirm,
+            // which sits where Defaults was. Cancel holds the second place in the row.
+            tryVerify(function () { return cancel.visible && cancel.x > 0; }, 1000,
+                      "Cancel did not take its place beside Confirm");
             mouseClick(cancel, cancel.width / 2, cancel.height / 2);
-            wait(20);
+            tryCompare(panel, "confirmingDefaults", false, 1000, "Cancel left the question up");
 
-            compare(panel.confirmingDefaults, false, "Cancel left the question up");
             compare(Controller.settings.level, 4, "Cancel wrote the defaults anyway");
             const defaultsAgain = Util.textWith(Util.textsUnder(panel), ["Defaults"]);
             verify(defaultsAgain && defaultsAgain.parent.visible, "Defaults did not return after Cancel");
