@@ -214,8 +214,7 @@ void PetController::loadPet(std::string const& id)
     // What is on screen belongs to the pet that is going away, so none of it carries over.
     preview_.reset();
     hiding_.reset();
-    flight_.reset();
-    resetThrowMood();
+    throw_.stop(ThrowStop::PetChanged);
     stroll_ = StrollPhase::Waiting;
     step_.reset();
     stepsLeft_  = 0;
@@ -367,10 +366,11 @@ void PetController::handle(PetEvent event)
         event == PetEvent::ReviewIgnored)
         reviewLook_ = {};
     if (not machine_) return;
-    angryRepeatsLeft_ = 0;
-    if (flight_) {
+    // DragStart and DragEnd only arrive here after the drag has already settled the throw.
+    if (throw_.active() and event != PetEvent::DragStart and event != PetEvent::DragEnd) {
         // An outside event owns the body: put the throw down where it is and answer. The landing spot becomes home.
-        endFlight(window_ ? window_->position() : QPoint{}, true);
+        // A click starts the run over; a learning event only cancels the plays still owed (ADR 0092).
+        endThrow(window_ ? window_->position() : QPoint{}, true, event == PetEvent::Click ? ThrowStop::Clicked : ThrowStop::Learning);
     }
     if (ceremony_) {
         // A pet on its way out is not called back by a learning event. One arriving, or changing pets, lands at its
@@ -421,7 +421,7 @@ bool PetController::passthrough() const
 bool PetController::availableForReview() const
 {
     // A ceremony, a throw and its landing's angry repeat own the pet's body, so no question arrives on top of one.
-    if (not enabled() or not machine_ or dragging_ or ceremony_ or flight_ or angryRepeatsLeft_ > 0 or hideAfterDrag_)
+    if (not enabled() or not machine_ or dragging_ or ceremony_ or throw_.flying() or throw_.repeatsOwed() or hideAfterDrag_)
         return false;
     // A hidden pet may still be asked while it is peeking: the sign goes up at the edge and the hide survives the
     // answer. A reaction or a reading plays out first, as it does for an idle pet.
@@ -679,8 +679,7 @@ void PetController::setSize(int percent)
 {
     // A throw was measured for the old window; the size change puts the pet down where it is and lets fitOnScreen
     // pull the new window into the work area. Changing size ends a run of throws.
-    if (flight_) endFlight(window_ ? window_->position() : QPoint{}, true);
-    resetThrowMood();
+    endThrow(window_ ? window_->position() : QPoint{}, true, ThrowStop::Resized);
     // The ceremony's path was measured for the old window; a size change lands it at home and lets fitOnScreen pull
     // the new window into the work area.
     if (ceremony_) finishCeremonyNow();
@@ -695,11 +694,8 @@ void PetController::setRunning(bool on)
         lastFramePulse_ = std::chrono::steady_clock::now();
     if (not on) {
         // The window is going away under a throw: stop it without leaving the pickup pose behind.
-        if (flight_) {
-            flight_.reset();
-            if (machine_) machine_->rest();
-        }
-        resetThrowMood();
+        if (throw_.flying() and machine_) machine_->rest();
+        throw_.stop(ThrowStop::WindowGone);
         // The window was taken away under a ceremony (the application is closing, or the scene asked it down):
         // stop the ceremony rather than leave it half done.
         if (ceremony_) {
@@ -718,7 +714,8 @@ void PetController::setRunning(bool on)
 void PetController::setPreviewing(bool on)
 {
     previewing_ = on;
-    if (on) resetThrowMood();
+    // A preview takes the body: a throw is put down where it is and that spot becomes home.
+    if (on) endThrow(window_ ? window_->position() : QPoint{}, true, ThrowStop::Staged);
     resetHover();
     if (not on and preview_) {
         preview_.reset();
@@ -732,8 +729,7 @@ void PetController::preview(QString action)
     auto const picked = actionNamed(action);
     if (not picked) return;
     // A preview takes the body: a throw is put down where it is and that spot becomes home.
-    if (flight_) endFlight(window_ ? window_->position() : QPoint{}, true);
-    resetThrowMood();
+    endThrow(window_ ? window_->position() : QPoint{}, true, ThrowStop::Staged);
     if (ceremony_) finishCeremonyNow();
     // From the first frame even when it is the action already shown, so a second press plays it again.
     preview_       = picked;
@@ -749,8 +745,7 @@ void PetController::setScene(QString id)
     // A scene is real, not a preview: the machine plays it for its duration and then returns to idle. A card's
     // preview, if one was showing, would otherwise keep it off screen. A throw is put down first and its landing
     // becomes home.
-    if (flight_) endFlight(window_ ? window_->position() : QPoint{}, true);
-    resetThrowMood();
+    endThrow(window_ ? window_->position() : QPoint{}, true, ThrowStop::Staged);
     if (ceremony_) finishCeremonyNow();
     preview_.reset();
     resetHover();
@@ -855,11 +850,13 @@ void PetController::clearSceneEntry()
 
 void PetController::dragStart()
 {
-    if (flight_) {
+    if (throw_.flying()) {
         // Catching a pet in the air ends the throw where it is; this drag, not the throw, decides where it lands.
-        endFlight(window_ ? window_->position() : QPoint{}, false);
+        endThrow(window_ ? window_->position() : QPoint{}, false, ThrowStop::Caught);
+    } else {
+        // Picking up a settled pet takes the plays its landing still owed; the run goes on with the next throw.
+        throw_.stop(ThrowStop::Held);
     }
-    angryRepeatsLeft_ = 0;
 
     if (ceremony_) {
         // Grabbing the pet ends its ceremony where it stands. A goodbye was taking the window off screen, so the drop
@@ -876,7 +873,7 @@ void PetController::dragStart()
 void PetController::dragEnd()
 {
     // A release that is not a throw ends the run of landed throws.
-    resetThrowMood();
+    throw_.stop(ThrowStop::Dropped);
     dragging_ = false;
     if (hideAfterDrag_) {
         hideAfterDrag_ = false;
@@ -937,16 +934,15 @@ bool PetController::release(QPointF velocity)
     auto const size = window_->size();
     // A pet that was not pulled out of its edge stays hidden: a fast release must not fling the sliver.
     if (hiding_ and not PetWander::draggedOut(at, size, hiding_->area)) return false;
-    if (hideAfterDrag_ or motionReduced_ or not PetFlight::isFling(velocity)) return false;
+    if (hideAfterDrag_ or motionReduced_) return false;
 
     auto const center = at + QPoint{size.width() / 2, size.height() / 2};
     auto const area   = areaAt(center);
     if (not area.isValid() or size.width() <= 0 or size.height() <= 0) return false;
+    if (not throw_.begin(at, velocity, size, area)) return false;
 
     if (hiding_) hiding_.reset();
-    dragging_         = false;
-    angryRepeatsLeft_ = 0;
-    flight_           = PetFlight{at, velocity, size, area};
+    dragging_ = false;
     if (wander_) wander_->setBounds(size, area);
     resetHover();
     LENS_DEBUG("pet flight: thrown at ({},{}) px/s from ({},{}) in a {}x{} area",
@@ -959,64 +955,16 @@ bool PetController::release(QPointF velocity)
     return true;
 }
 
-void PetController::landFlight()
+void PetController::endThrow(QPoint at, bool saveHome, ThrowStop why)
 {
-    if (not flight_ or not flight_->landed()) return;
-    auto const at      = flight_->position();
-    auto const elapsed = flight_->elapsed();
-    flight_.reset();
-    if (window_) window_->setPosition(at);
+    auto const flying = throw_.flying();
+    throw_.stop(why);
+    if (not flying) return;
 
-    // The pickup pose is the throw's; the landing is where the drag ends. The pet stays here: the landing spot
-    // becomes its home (ADR 0092).
-    handle(PetEvent::DragEnd);
-    if (window_) savePosition(at);
-
-    auto const angry = throwMood_.landed(randomUnit());
-    if (machine_ and machine_->idle()) {
-        // A pet with the optional dizzy art shows its stars; a package without it falls back to the poke reaction.
-        auto const dizzy = machine_->playRole(Role::Dizzy);
-        if (not dizzy) machine_->playRole(Role::ClickReact);
-        // Only a dizzy landing can turn into anger, and only after the run has built up.
-        if (dizzy and angry) angryRepeatsLeft_ = PetThrowMood::kAngryRepeats;
-    }
-    LENS_DEBUG("pet flight: landed at ({},{}) after {} ms", at.x(), at.y(), elapsed.count());
-}
-
-void PetController::updateLandingAngry()
-{
-    if (angryRepeatsLeft_ <= 0) return;
-    if (not machine_ or not enabled() or not desktopRunning_) {
-        angryRepeatsLeft_ = 0;
-        return;
-    }
-    if (dragging_ or flight_ or ceremony_ or hiding_ or previewing_) return;
-    if (not machine_->idle()) return;
-
-    if (machine_->playRole(Role::Angry)) {
-        --angryRepeatsLeft_;
-    } else {
-        // The pet has no angry art (or it is not a one-shot): there is nothing to repeat.
-        angryRepeatsLeft_ = 0;
-    }
-}
-
-void PetController::endFlight(QPoint at, bool saveHome)
-{
-    if (not flight_) return;
-    flight_.reset();
     if (window_ and window_->position() != at) window_->setPosition(at);
-
-    // The pickup pose is the throw's; the machine learns the drag ended here.
+    // The pickup pose is the throw's; the machine learns the drag ended where the throw was put down.
     handle(PetEvent::DragEnd);
     if (saveHome and window_) savePosition(at);
-    resetThrowMood();
-}
-
-void PetController::resetThrowMood()
-{
-    throwMood_.reset();
-    angryRepeatsLeft_ = 0;
 }
 
 void PetController::click()
@@ -1028,7 +976,6 @@ void PetController::click()
         return;
     }
     if (ceremony_) return;
-    resetThrowMood();
     handle(PetEvent::Click);
 }
 
@@ -1077,8 +1024,7 @@ void PetController::setPet(QString id)
     if (name == pendingPet_) return;
 
     // Catching a pet in the air is not a request to stop: only a real pet change ends the throw, at the current spot.
-    if (flight_) endFlight(window_ ? window_->position() : QPoint{}, true);
-    resetThrowMood();
+    endThrow(window_ ? window_->position() : QPoint{}, true, ThrowStop::PetChanged);
 
     // With no window under the tests, with the pet off, or with motion reduced, the choice lands at once.
     if (not enabled() or not shown_ or not window_ or motionReduced_ or not canWalkCeremony()) {
@@ -1189,7 +1135,8 @@ void PetController::setEnabled(bool on)
     if (on == store_.enabled()) return;
     store_.setEnabled(on);
     hideAfterDrag_ = false;
-    resetThrowMood();
+    // A throw ends where it is; the pet then leaves from that spot like any other.
+    endThrow(window_ ? window_->position() : QPoint{}, true, ThrowStop::Toggled);
 
     if (on) {
         if (ceremony_ and isLeaving(ceremony_->phase)) {
@@ -1211,8 +1158,6 @@ void PetController::setEnabled(bool on)
             if (machine_) machine_->rest();
         }
     } else {
-        // A throw ends where it is; the pet then leaves from that spot like any other.
-        if (flight_) endFlight(window_ ? window_->position() : QPoint{}, true);
         if (ceremony_ and isLeaving(ceremony_->phase)) {
             // The goodbye is already playing.
         } else if (hiding_) {
@@ -1247,11 +1192,9 @@ void PetController::setMotionReduced(bool on)
 {
     if (on == motionReduced_) return;
     motionReduced_ = on;
-    if (on and flight_) {
-        // Reduced motion skips the rest of the arc: the pet stays where it is, and that spot becomes home.
-        endFlight(window_ ? window_->position() : QPoint{}, true);
-    }
-    resetThrowMood();
+    // Reduced motion skips the rest of the arc: the pet stays where it is, and that spot becomes home. Turning it
+    // off is not an interruption: it neither moves the pet nor ends a run of landings.
+    if (on) endThrow(window_ ? window_->position() : QPoint{}, true, ThrowStop::MotionReduced);
     // A scene entry is a movement too: reduced motion puts the pet straight into its scene pose.
     if (on and (sceneEntry_ or sceneImpact_)) {
         clearSceneEntry();
@@ -1308,8 +1251,7 @@ void PetController::keepOnScreen()
     if (not window_) return;
     // The screen changed under a throw: put the pet down where it is and let the safe-spot rule below choose the new
     // home.
-    if (flight_) endFlight(window_->position(), true);
-    resetThrowMood();
+    endThrow(window_->position(), true, ThrowStop::ScreenChanged);
     if (ceremony_) finishCeremonyNow();
     auto areas = QList<QRect>{};
     for (auto const* screen : QGuiApplication::screens())
@@ -1788,8 +1730,7 @@ void PetController::fitOnScreen()
     if (not window_) return;
     // A throw was measured for the old size; the resize puts the pet down and the clamp below writes the safe spot as
     // its home.
-    if (flight_) endFlight(window_->position(), true);
-    resetThrowMood();
+    endThrow(window_->position(), true, ThrowStop::Resized);
     // A ceremony owns the window's path. A switch resizes the window deliberately while the pet is off screen; the
     // arrival measures its target again once the new size is in place.
     if (ceremony_) return;
@@ -1841,9 +1782,7 @@ void PetController::savePosition(QPoint at)
 void PetController::tick()
 {
     machine_->advance(kTick);
-    throwMood_.advance(kTick);
-    updateFlight(kTick);
-    updateLandingAngry();
+    updateThrow(kTick);
     updateCeremony(kTick);
     updateWander(kTick);
     updateHiding(kTick);
@@ -1851,22 +1790,43 @@ void PetController::tick()
     sync(kTick);
 }
 
-void PetController::updateFlight(std::chrono::milliseconds step)
+void PetController::updateThrow(std::chrono::milliseconds step)
 {
-    if (not flight_) return;
     if (not window_ or not machine_ or not enabled() or not desktopRunning_) {
-        endFlight(window_ ? window_->position() : QPoint{}, true);
+        if (throw_.flying()) endThrow(window_ ? window_->position() : QPoint{}, true, ThrowStop::WindowGone);
+        throw_.dropRepeats();
         return;
     }
-    auto const next = flight_->advance(step);
-    window_->setPosition(next.position);
-    if (next.landed) landFlight();
+
+    auto const canPlay = machine_->idle() and not dragging_ and not ceremony_ and not hiding_ and not previewing_;
+    auto const answer  = throw_.tick(step, canPlay);
+    if (answer.position and window_) window_->setPosition(*answer.position);
+
+    if (answer.landed) {
+        // The pickup pose is the throw's; the landing is where the drag ends. The pet stays here: the landing spot
+        // becomes its home (ADR 0092).
+        handle(PetEvent::DragEnd);
+        if (window_ and answer.position) savePosition(*answer.position);
+
+        // A pet with the optional dizzy art shows its stars; a package without it falls back to the poke reaction.
+        // Only a dizzy landing can turn into anger, and only after the run has built up.
+        auto const dizzy = answer.role and (*answer.role) == Role::Dizzy and machine_->playRole(*answer.role);
+        if (not dizzy) machine_->playRole(Role::ClickReact);
+        throw_.landingReacted(dizzy);
+        auto const at = answer.position.value_or(QPoint{});
+        LENS_DEBUG("pet flight: landed at ({},{}) after {} ms", at.x(), at.y(), answer.elapsed.count());
+        return;
+    }
+    if (answer.role and not machine_->playRole(*answer.role)) {
+        // The pet has no angry art (or it is not a one-shot): there is nothing to repeat.
+        throw_.dropRepeats();
+    }
 }
 
 void PetController::updateWander(std::chrono::milliseconds step)
 {
-    if (not machine_ or not assets_ or not window_ or not wander_ or hiding_ or ceremony_ or flight_ or
-        angryRepeatsLeft_ > 0)
+    if (not machine_ or not assets_ or not window_ or not wander_ or hiding_ or ceremony_ or throw_.flying() or
+        throw_.repeatsOwed())
         return;
     auto const& movement = assets_->animations.movement;
     if (not movement) return;
@@ -2197,8 +2157,8 @@ void PetController::updateHover(std::chrono::milliseconds step)
 
     // Hover is the desktop pet's own sense. It has no meaning while clicks pass through, while the settings preview
     // is open, or before a window exists to measure against.
-    if (not hover_ or not assets_ or not window_ or not desktopRunning_ or previewing_ or ceremony_ or flight_ or
-        angryRepeatsLeft_ > 0 or store_.passthrough() or not window_->isVisible()) {
+    if (not hover_ or not assets_ or not window_ or not desktopRunning_ or previewing_ or ceremony_ or throw_.flying() or
+        throw_.repeatsOwed() or store_.passthrough() or not window_->isVisible()) {
         resetHover();
         return;
     }

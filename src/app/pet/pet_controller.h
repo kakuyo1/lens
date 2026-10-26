@@ -38,9 +38,8 @@
 
 #include "app/pet/pet_assets.h"
 #include "app/pet/pet_catalog.h"
-#include "app/pet/pet_flight.h"
 #include "app/pet/pet_scenes.h"
-#include "app/pet/pet_throw_mood.h"
+#include "app/pet/pet_throw.h"
 #include "app/pet/pet_wander.h"
 #include "core/document/pet_store.h"
 #include "core/domain/pet/accessory.h"
@@ -192,7 +191,7 @@ public:
      * @param velocity The pointer's velocity at release, in DIPs per second.
      * @return True when the pet was thrown and the controller owns its position; false for a drop, which the caller
      *         finishes with dragEnd() and savePosition(). A throw is ignored when motion is reduced, when the pet is
-     *         still hidden at an edge, or when the release is slower than PetFlight::kMinSpeed. A landed throw stays
+     *         still hidden at an edge, or when the release is too slow to be one. A landed throw stays
      *         where it lands and that spot becomes home; there is no walk back (ADR 0092).
      */
     Q_INVOKABLE bool release(QPointF velocity);
@@ -300,19 +299,13 @@ private:
     bool isShipped(std::string const& id) const;
     /// @brief Moves the state machine on by `step` and refreshes what the scene reads.
     void tick();
-    /// @brief Moves a thrown window through its arc, and lands it when the geometry says so.
-    void updateFlight(std::chrono::milliseconds step);
-    /// @brief Plays the angry action again while the landing still owes repeats, once the machine is idle.
-    void updateLandingAngry();
-    /// @brief Ends the throw on the floor, releases the pickup pose, saves the landing as home, and plays the landing
-    ///        reaction. A qualifying run of throws schedules the angry repeats (ADR 0092).
-    void landFlight();
-    /// @brief Ends a throw now and releases the pickup pose.
+    /// @brief Moves the throw on: the window through its arc, then the landing's role and the angry repeat it owes.
+    void updateThrow(std::chrono::milliseconds step);
+    /// @brief Stops the throw by kind, putting the pet down where it is and ending the pickup pose.
     /// @param at Where the window ends.
     /// @param saveHome Whether `at` becomes the pet's home.
-    void endFlight(QPoint at, bool saveHome);
-    /// @brief Forgets the landed-throw run and any angry repeats it still owes.
-    void resetThrowMood();
+    /// @param why What interrupted it (ADR 0092).
+    void endThrow(QPoint at, bool saveHome, ThrowStop why);
     /// @brief Waits for the next stroll, or moves the window through the current step and its pauses. Does nothing
     ///        while hidden, previewing, dragging, flying, angry, or busy.
     void updateWander(std::chrono::milliseconds step);
@@ -505,11 +498,9 @@ private:
     bool homeReady_{false};
     /// Whether the reader is holding the pet, hide or not.
     bool dragging_{false};
-    /// The throw in progress. The state machine stays in its pickup pose until the landing releases it.
-    std::optional<PetFlight> flight_;
-    /// The landed throws in a row inside their window, and the angry plays a landing still owes.
-    PetThrowMood          throwMood_;
-    int                   angryRepeatsLeft_{0};
+    /// The throw in progress and the run of landings behind it. The state machine stays in its pickup pose until the
+    /// landing releases it.
+    PetThrow              throw_{[this] { return randomUnit(); }};
     std::optional<Hiding> hiding_;
 
     /// The pet's temperament, from its behavior block; the shipped defaults while no pet is loaded.

@@ -7,7 +7,7 @@
  * @brief The temper a run of landed throws builds: after two landings, a 70% chance of an angry landing, and how
  *        long the run survives without another throw (ADR 0092).
  *
- * Pure logic: the controller supplies the random roll and owns the angry playback; this class only counts the run.
+ * Pure logic: PetThrow supplies the roll and owns the angry playback; this class only counts the run.
  */
 
 namespace lens::app::pet {
@@ -18,12 +18,10 @@ public:
     static constexpr int kThrowsBeforeAngry{2};
     /// @brief The chance a qualifying landing angers.
     static constexpr double kAngryChance{0.7};
-    /// @brief How many times the angry action plays when that chance fires.
-    static constexpr int kAngryRepeats{3};
     /// @brief How long a run survives after its last landing; another throw inside it continues the run.
     static constexpr std::chrono::milliseconds kWindow{20'000};
 
-    /// @param roll A source in [0, 1), drawn by the controller.
+    /// @param roll A source in [0, 1), drawn by PetThrow.
     /// @return Whether the pet is angry: true from the second landed throw in the run when `roll` is under
     ///         kAngryChance. A true result ends the run, so the next throw starts it again.
     bool landed(double roll);
