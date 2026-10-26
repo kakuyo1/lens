@@ -1,0 +1,434 @@
+{
+  "design": "dog-tag",
+  "frames": 6,
+  "every": 2,
+  "beatMs": 120,
+  "margin": 2,
+  "foot": 38,
+  "word": {
+    "top": 11,
+    "color": "#6b3d4d"
+  },
+  "bins": [
+    {
+      "width": 8,
+      "W": 72,
+      "cellWidth": 78,
+      "cellHeight": 46,
+      "sheet": "sign/8.png"
+    },
+    {
+      "width": 12,
+      "W": 76,
+      "cellWidth": 82,
+      "cellHeight": 46,
+      "sheet": "sign/12.png"
+    },
+    {
+      "width": 16,
+      "W": 80,
+      "cellWidth": 86,
+      "cellHeight": 46,
+      "sheet": "sign/16.png"
+    },
+    {
+      "width": 20,
+      "W": 84,
+      "cellWidth": 90,
+      "cellHeight": 46,
+      "sheet": "sign/20.png"
+    },
+    {
+      "width": 24,
+      "W": 88,
+      "cellWidth": 94,
+      "cellHeight": 46,
+      "sheet": "sign/24.png"
+    },
+    {
+      "width": 28,
+      "W": 92,
+      "cellWidth": 98,
+      "cellHeight": 46,
+      "sheet": "sign/28.png"
+    },
+    {
+      "width": 32,
+      "W": 96,
+      "cellWidth": 102,
+      "cellHeight": 46,
+      "sheet": "sign/32.png"
+    },
+    {
+      "width": 36,
+      "W": 100,
+      "cellWidth": 106,
+      "cellHeight": 46,
+      "sheet": "sign/36.png"
+    },
+    {
+      "width": 40,
+      "W": 104,
+      "cellWidth": 110,
+      "cellHeight": 46,
+      "sheet": "sign/40.png"
+    },
+    {
+      "width": 44,
+      "W": 108,
+      "cellWidth": 114,
+      "cellHeight": 46,
+      "sheet": "sign/44.png"
+    },
+    {
+      "width": 48,
+      "W": 112,
+      "cellWidth": 118,
+      "cellHeight": 46,
+      "sheet": "sign/48.png"
+    },
+    {
+      "width": 52,
+      "W": 116,
+      "cellWidth": 122,
+      "cellHeight": 46,
+      "sheet": "sign/52.png"
+    },
+    {
+      "width": 56,
+      "W": 120,
+      "cellWidth": 126,
+      "cellHeight": 46,
+      "sheet": "sign/56.png"
+    },
+    {
+      "width": 60,
+      "W": 124,
+      "cellWidth": 130,
+      "cellHeight": 46,
+      "sheet": "sign/60.png"
+    },
+    {
+      "width": 64,
+      "W": 128,
+      "cellWidth": 134,
+      "cellHeight": 46,
+      "sheet": "sign/64.png"
+    },
+    {
+      "width": 68,
+      "W": 132,
+      "cellWidth": 138,
+      "cellHeight": 46,
+      "sheet": "sign/68.png"
+    },
+    {
+      "width": 72,
+      "W": 136,
+      "cellWidth": 142,
+      "cellHeight": 46,
+      "sheet": "sign/72.png"
+    },
+    {
+      "width": 76,
+      "W": 140,
+      "cellWidth": 146,
+      "cellHeight": 46,
+      "sheet": "sign/76.png"
+    },
+    {
+      "width": 80,
+      "W": 144,
+      "cellWidth": 150,
+      "cellHeight": 46,
+      "sheet": "sign/80.png"
+    },
+    {
+      "width": 84,
+      "W": 148,
+      "cellWidth": 154,
+      "cellHeight": 46,
+      "sheet": "sign/84.png"
+    },
+    {
+      "width": 88,
+      "W": 152,
+      "cellWidth": 158,
+      "cellHeight": 46,
+      "sheet": "sign/88.png"
+    },
+    {
+      "width": 92,
+      "W": 156,
+      "cellWidth": 162,
+      "cellHeight": 46,
+      "sheet": "sign/92.png"
+    },
+    {
+      "width": 96,
+      "W": 160,
+      "cellWidth": 166,
+      "cellHeight": 46,
+      "sheet": "sign/96.png"
+    },
+    {
+      "width": 100,
+      "W": 164,
+      "cellWidth": 170,
+      "cellHeight": 46,
+      "sheet": "sign/100.png"
+    },
+    {
+      "width": 104,
+      "W": 168,
+      "cellWidth": 174,
+      "cellHeight": 46,
+      "sheet": "sign/104.png"
+    },
+    {
+      "width": 108,
+      "W": 172,
+      "cellWidth": 178,
+      "cellHeight": 46,
+      "sheet": "sign/108.png"
+    },
+    {
+      "width": 112,
+      "W": 176,
+      "cellWidth": 182,
+      "cellHeight": 46,
+      "sheet": "sign/112.png"
+    },
+    {
+      "width": 116,
+      "W": 180,
+      "cellWidth": 186,
+      "cellHeight": 46,
+      "sheet": "sign/116.png"
+    },
+    {
+      "width": 120,
+      "W": 184,
+      "cellWidth": 190,
+      "cellHeight": 46,
+      "sheet": "sign/120.png"
+    },
+    {
+      "width": 124,
+      "W": 188,
+      "cellWidth": 194,
+      "cellHeight": 46,
+      "sheet": "sign/124.png"
+    },
+    {
+      "width": 128,
+      "W": 192,
+      "cellWidth": 198,
+      "cellHeight": 46,
+      "sheet": "sign/128.png"
+    },
+    {
+      "width": 132,
+      "W": 196,
+      "cellWidth": 202,
+      "cellHeight": 46,
+      "sheet": "sign/132.png"
+    },
+    {
+      "width": 136,
+      "W": 200,
+      "cellWidth": 206,
+      "cellHeight": 46,
+      "sheet": "sign/136.png"
+    },
+    {
+      "width": 140,
+      "W": 204,
+      "cellWidth": 210,
+      "cellHeight": 46,
+      "sheet": "sign/140.png"
+    },
+    {
+      "width": 144,
+      "W": 208,
+      "cellWidth": 214,
+      "cellHeight": 46,
+      "sheet": "sign/144.png"
+    },
+    {
+      "width": 148,
+      "W": 212,
+      "cellWidth": 218,
+      "cellHeight": 46,
+      "sheet": "sign/148.png"
+    },
+    {
+      "width": 152,
+      "W": 216,
+      "cellWidth": 222,
+      "cellHeight": 46,
+      "sheet": "sign/152.png"
+    },
+    {
+      "width": 156,
+      "W": 220,
+      "cellWidth": 226,
+      "cellHeight": 46,
+      "sheet": "sign/156.png"
+    },
+    {
+      "width": 160,
+      "W": 224,
+      "cellWidth": 230,
+      "cellHeight": 46,
+      "sheet": "sign/160.png"
+    },
+    {
+      "width": 164,
+      "W": 228,
+      "cellWidth": 234,
+      "cellHeight": 46,
+      "sheet": "sign/164.png"
+    },
+    {
+      "width": 168,
+      "W": 232,
+      "cellWidth": 238,
+      "cellHeight": 46,
+      "sheet": "sign/168.png"
+    },
+    {
+      "width": 172,
+      "W": 236,
+      "cellWidth": 242,
+      "cellHeight": 46,
+      "sheet": "sign/172.png"
+    },
+    {
+      "width": 176,
+      "W": 240,
+      "cellWidth": 246,
+      "cellHeight": 46,
+      "sheet": "sign/176.png"
+    },
+    {
+      "width": 180,
+      "W": 244,
+      "cellWidth": 250,
+      "cellHeight": 46,
+      "sheet": "sign/180.png"
+    },
+    {
+      "width": 184,
+      "W": 248,
+      "cellWidth": 254,
+      "cellHeight": 46,
+      "sheet": "sign/184.png"
+    },
+    {
+      "width": 188,
+      "W": 252,
+      "cellWidth": 258,
+      "cellHeight": 46,
+      "sheet": "sign/188.png"
+    },
+    {
+      "width": 192,
+      "W": 256,
+      "cellWidth": 262,
+      "cellHeight": 46,
+      "sheet": "sign/192.png"
+    },
+    {
+      "width": 196,
+      "W": 260,
+      "cellWidth": 266,
+      "cellHeight": 46,
+      "sheet": "sign/196.png"
+    },
+    {
+      "width": 200,
+      "W": 264,
+      "cellWidth": 270,
+      "cellHeight": 46,
+      "sheet": "sign/200.png"
+    },
+    {
+      "width": 204,
+      "W": 268,
+      "cellWidth": 274,
+      "cellHeight": 46,
+      "sheet": "sign/204.png"
+    },
+    {
+      "width": 208,
+      "W": 272,
+      "cellWidth": 278,
+      "cellHeight": 46,
+      "sheet": "sign/208.png"
+    },
+    {
+      "width": 212,
+      "W": 276,
+      "cellWidth": 282,
+      "cellHeight": 46,
+      "sheet": "sign/212.png"
+    },
+    {
+      "width": 216,
+      "W": 280,
+      "cellWidth": 286,
+      "cellHeight": 46,
+      "sheet": "sign/216.png"
+    },
+    {
+      "width": 220,
+      "W": 284,
+      "cellWidth": 290,
+      "cellHeight": 46,
+      "sheet": "sign/220.png"
+    },
+    {
+      "width": 224,
+      "W": 288,
+      "cellWidth": 294,
+      "cellHeight": 46,
+      "sheet": "sign/224.png"
+    },
+    {
+      "width": 228,
+      "W": 292,
+      "cellWidth": 298,
+      "cellHeight": 46,
+      "sheet": "sign/228.png"
+    },
+    {
+      "width": 232,
+      "W": 296,
+      "cellWidth": 302,
+      "cellHeight": 46,
+      "sheet": "sign/232.png"
+    },
+    {
+      "width": 236,
+      "W": 300,
+      "cellWidth": 306,
+      "cellHeight": 46,
+      "sheet": "sign/236.png"
+    },
+    {
+      "width": 240,
+      "W": 304,
+      "cellWidth": 310,
+      "cellHeight": 46,
+      "sheet": "sign/240.png"
+    },
+    {
+      "width": 244,
+      "W": 308,
+      "cellWidth": 314,
+      "cellHeight": 46,
+      "sheet": "sign/244.png"
+    }
+  ]
+}

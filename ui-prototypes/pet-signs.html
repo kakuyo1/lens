@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · 宠物复习牌 · 选定候选与动效</title>
+<style>
+@font-face{font-family:"Pixelify Sans";src:url("../data/fonts/PixelifySans-Regular.ttf") format("truetype");font-display:block}
+:root{--page-bg:#e9ebef;--page-panel:#ffffff;--page-ink:#1a1a1f;--page-muted:#5c5f69;--page-field:#eef0f4;--accent:#2f9e6e}
+html[data-theme=dark]{--page-bg:#0b0e13;--page-panel:#171c25;--page-ink:#e9edf3;--page-muted:#a8b3c2;--page-field:#222a37}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page-bg);color:var(--page-ink);font-family:"Noto Sans SC","Segoe UI Variable","Microsoft YaHei UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 22px 80px}
+h1{margin:0 0 8px;font-size:30px;font-weight:700;letter-spacing:-.01em}
+.lede{margin:0;max-width:760px;color:var(--page-muted);font-size:14px;line-height:1.7}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:16px 28px;margin-top:22px;padding:14px 18px;background:var(--page-panel);border-radius:12px}
+.ctl{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--page-muted)}
+.ctl b{color:var(--page-ink)}
+.ctl input[type=range]{width:160px;accent-color:var(--accent)}
+.ctl input[type=text]{width:140px;padding:6px 10px;border:0;border-radius:8px;background:var(--page-field);color:var(--page-ink);font:18px "Pixelify Sans",sans-serif}
+.seg{display:inline-flex;padding:3px;border-radius:999px;background:var(--page-field)}
+.seg button{appearance:none;border:0;background:transparent;color:var(--page-muted);font:700 12px system-ui,sans-serif;padding:6px 14px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--page-ink);color:var(--page-panel)}
+.section{margin-top:44px}
+.section-head{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.section-head h2{margin:0;font-size:20px}
+.section-head .en{color:var(--page-muted);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media(max-width:1100px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.card{display:flex;flex-direction:column;overflow:hidden;background:var(--page-panel);border-radius:12px}
+.stage{display:flex;align-items:flex-end;justify-content:center;height:316px;padding-bottom:36px;background:#eef0f4}
+.sign{position:relative;flex:none}
+.sign-in{position:absolute;left:0;top:0;transform-origin:0 0}
+.sign-in img{position:absolute;image-rendering:pixelated;max-width:none}
+.word{position:absolute;left:0;height:20px;font:20px/20px "Pixelify Sans",sans-serif;text-align:center;white-space:nowrap}
+.pet{flex:none;background-repeat:no-repeat;background-position:0 0;image-rendering:pixelated}
+.card-body{display:flex;flex-direction:column;gap:6px;padding:14px 18px 18px}
+.card-title{font-size:15px;font-weight:700}
+.card-note{color:var(--page-muted);font-size:13px;line-height:1.6}
+.foot{margin-top:32px;color:var(--page-muted);font-size:13px;line-height:1.7}
+.word-measure{position:absolute;left:-9999px;visibility:hidden;white-space:nowrap;font:20px "Pixelify Sans",sans-serif}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>宠物复习牌 · 选定候选与动效</h1>
+    <p class="lede">七只宠物各选定一个牌子，逐像素绘制，各带一个只在牌内动的小动效：蝴蝶结抖动、骨头反光、烛火摇曳、小鱼游动、云上星星闪烁、糖粒跳动、书袋上的心跳。牌子的脚线不动。开启系统“减少动态效果”时默认关闭动效。</p>
+  </header>
+
+  <div class="controls">
+    <div class="ctl"><b>底色</b>
+      <span class="seg" id="themeSeg">
+        <button type="button" data-theme="light" aria-pressed="true">浅色</button>
+        <button type="button" data-theme="dark" aria-pressed="false">深色</button>
+      </span>
+    </div>
+    <div class="ctl"><b>大小</b>
+      <input type="range" id="mag" min="0.8" max="3.01" step="0.01" value="3.01">
+      <span id="magVal">×3.01 原样</span>
+    </div>
+    <div class="ctl"><b>牌面单词</b>
+      <input type="text" id="word" value="hello" maxlength="14" spellcheck="false">
+    </div>
+    <div class="ctl"><b>动效</b>
+      <span class="seg" id="motionSeg">
+        <button type="button" data-on="1" aria-pressed="true">开</button>
+        <button type="button" data-on="0" aria-pressed="false">关</button>
+      </span>
+    </div>
+  </div>
+
+  <section class="section" id="defaultSection">
+    <div class="section-head"><h2>默认木牌</h2><span class="en">外部拓展宠物 · 不动</span></div>
+    <div class="grid" id="defaultGrid"></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>七只宠物的复习牌</h2><span class="en">已选 · 带动效</span></div>
+    <div class="grid" id="petGrid"></div>
+  </section>
+
+  <footer class="foot">约束（UI-SPEC §4.13）：牌面只放一个单词，Pixelify Sans 20 px，一行不换行；装饰不放字；木牌整块随宠物大小等比缩放；底座踩在脚线上，动效只在牌内发生。</footer>
+</div>
+<span class="word-measure" id="measure">hello</span>
+
+<script type="module">
+import { P, paint, WOOD, PETS, PETS_CANDS } from "../scripts/pet/signs/designs.mjs";
+const cache = new Map();
+let word = "hello", S = 3.01;
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------- motion: every frame is painted ahead; one shared clock steps them ---------- */
+const anims = new Map();
+const TICK = 120;                                   // ms per clock tick
+let tick = 0;
+let moving = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/** Paints every frame of a candidate for the current word; foot is the largest of them, so the sign never moves its base. */
+function animate(cand, tw) {
+  const key = cand.id + "|" + word;
+  if (!anims.has(key)) {
+    const frames = [];
+    let foot = 0;
+    for (let f = 0; f < cand.anim.n; f++) {
+      const { img, foot: ft } = paint(cand.build(tw, f));
+      foot = Math.max(foot, ft);
+      const cv = document.createElement("canvas");
+      cv.width = img.width; cv.height = img.height;
+      cv.getContext("2d").putImageData(new ImageData(img.data, img.width, img.height), 0, 0);
+      frames.push(cv.toDataURL());
+    }
+    anims.set(key, { frames, every: cand.anim.every, foot });
+  }
+  return anims.get(key);
+}
+
+/** The frame a candidate shows at the current tick; frame 0 when motion is off. */
+const frameAt = (cand, a) => moving ? Math.floor(tick / a.every) % a.frames.length : 0;
+
+function stepFrames() {
+  tick++;
+  for (const img of $$("img[data-anim]")) {
+    const a = anims.get(img.dataset.anim), cand = img.dataset.cand;
+    const f = frameAt(PETS_CANDS[cand], a);
+    if (+img.dataset.f !== f) { img.dataset.f = f; img.src = a.frames[f]; }
+  }
+}
+setInterval(stepFrames, TICK);
+
+function signHTML(cand, tw) {
+  const d = cand.build(tw, 0), a = animate(cand, tw), k = S / 3.01;
+  const off = d.off ?? 2, cw = d.W + off + 2 * P, ch = d.H + off + 2 * P;
+  const f0 = frameAt(cand, a);
+  return `<div class="sign" style="width:${d.W * k}px;height:${a.foot * k}px">`
+    + `<div class="sign-in" style="width:${d.W}px;height:${d.H}px;transform:scale(${k})">`
+    + `<img data-anim="${esc(cand.id + "|" + word)}" data-cand="${cand.id}" data-f="${f0}" src="${a.frames[f0]}" alt="" style="left:${-P}px;top:${-P}px;width:${cw}px;height:${ch}px">`
+    + `<div class="word" style="width:${d.W}px;top:${d.ty}px;color:${d.tc}">${esc(word)}</div>`
+    + `</div></div>`;
+}
+
+/* ---------- rendering ---------- */
+function textWidth() {
+  const m = $("#measure");
+  m.textContent = word || "word";
+  return m.getBoundingClientRect().width;
+}
+
+/* One card: the sign at its design size, scaled by S, with the pet beside it and its feet on the sign's foot line. */
+function cardHTML(cand, tw, pet) {
+  let actor = signHTML(cand, tw);
+  if (pet) {
+    const [left, , bottom] = pet.ink, box88 = 88 * S;
+    actor += `<div class="pet" style="width:${box88}px;height:${box88}px;margin-left:${8 - left * S}px;margin-bottom:${-(88 - bottom) * S}px;`
+      + `background-image:url(../data/pet/${pet.id}/sprites/body/idle.png);background-size:auto 100%"></div>`;
+  }
+  const title = pet ? `${pet.zh} · ${cand.name}` : cand.name;
+  return `<article class="card">`
+    + `<div class="stage">${actor}</div>`
+    + `<div class="card-body"><div class="card-title">${esc(title)}</div>`
+    + `<div class="card-note">${esc(cand.note)}</div></div></article>`;
+}
+
+function render() {
+  const tw = textWidth();
+  $("#defaultGrid").innerHTML = cardHTML(WOOD, tw, null);
+  $("#petGrid").innerHTML = PETS.map(p => cardHTML(p.cand, tw, p)).join("");
+}
+
+function setMotion(on) {
+  moving = on;
+  $$("#motionSeg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.on === (on ? "1" : "0"))));
+  stepFrames();
+}
+
+$("#themeSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  document.documentElement.dataset.theme = b.dataset.theme;
+  $$("#themeSeg button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+});
+$("#motionSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  setMotion(b.dataset.on === "1");
+});
+$("#mag").addEventListener("input", e => {
+  S = +e.target.value;
+  $("#magVal").textContent = S >= 3.005 ? "×3.01 原样" : "×" + S.toFixed(2);
+  render();
+});
+$("#word").addEventListener("input", e => { word = e.target.value.slice(0, 14); render(); });
+
+S = +$("#mag").value;
+setMotion(moving);
+document.fonts.load('20px "Pixelify Sans"').then(render, render);
+</script>
+</body>
+</html>

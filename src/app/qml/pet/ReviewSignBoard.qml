@@ -10,6 +10,9 @@ import QtQuick
  *
  * The sign is drawn at its design size and scaled from the top-left by the pet's magnification, so it stays in proportion to the
  * figure it stands beside.
+ *
+ * A pet with sign art of its own draws that instead: one frame of the bin the word takes, with the word on it in the pet's colour.
+ * The art's cell starts `bleed` before the board, so the board keeps its place for both.
  */
 Item {
     id: sign
@@ -20,24 +23,32 @@ Item {
     required property real petScale
     /// The board's width at the design size, border included. The parent passes it, the same figure the placement uses.
     required property real designWidth
+    /// The pet's sign art (Pet.reviewSign), and the bin of it the word takes; null for the wooden board.
+    required property var reviewSign
+    required property var bin
 
+    readonly property bool art: bin !== null
     readonly property SurfaceTokens tokens: SurfaceTokens {}
     /// The magnification the sign is drawn at, the default ×3.01, where it is not scaled at all.
     readonly property real designScale: 3.01
     readonly property real boardScale: petScale / designScale
-    /// The plank's height at the design size; it holds one 20 px line and 10 px of wood above and below it.
-    readonly property real designHeight: 40
+    /// The plank's height at the design size, one 20 px line with 10 px of wood each side; the art's board is as tall as its foot.
+    readonly property real designHeight: art ? reviewSign.foot : 40
     /// The post under the plank: ten pixels wide, two pixels of it hidden behind the board, and its foot on the ground.
     readonly property real postWidth: 10
     readonly property real postHeight: 32
     readonly property real postOverlap: 2
-    readonly property real designBase: designHeight + postHeight - postOverlap
+    readonly property real designBase: art ? reviewSign.foot : designHeight + postHeight - postOverlap
     readonly property real shadowOffset: 4
     readonly property real boardWidth: designWidth * boardScale
     readonly property real boardHeight: designHeight * boardScale
-    /// The window's size: the plank and post plus the shadow that runs to their right and below.
-    readonly property real signWidth: (designWidth + shadowOffset) * boardScale
-    readonly property real signHeight: (designBase + shadowOffset) * boardScale
+    /// The window's size: the plank and post plus the shadow that runs to their right and below, or the art's cell.
+    readonly property real signWidth: (art ? bin.cellWidth : designWidth + shadowOffset) * boardScale
+    readonly property real signHeight: (art ? bin.cellHeight : designBase + shadowOffset) * boardScale
+    /// How far the window starts before the board's top-left: the art's margin, nothing for the wooden board.
+    readonly property real bleed: art ? reviewSign.margin * boardScale : 0
+    /// Whether the sign is on a window that is shown, which is when its motion runs.
+    readonly property bool onScreen: visible && Window.window !== null && Window.window.visible
     /// The word is 20 px at every length (UI-SPEC.md 4.13); a longer word makes a wider plank.
     readonly property int wordPixelSize: 20
     readonly property string wordFamily: Qt.fontFamilies().indexOf("Pixelify Sans") >= 0 ? "Pixelify Sans" : tokens.monoFamily
@@ -59,6 +70,7 @@ Item {
 
     // The design-size drawing, scaled from its top-left: plank, post, nails, wood grain and shadow shrink together.
     Item {
+        visible: !sign.art
         width: sign.designWidth + sign.shadowOffset
         height: sign.designBase + sign.shadowOffset
         scale: sign.boardScale
@@ -219,6 +231,54 @@ Item {
                 font.family: sign.wordFamily
                 font.pixelSize: sign.wordPixelSize
                 wrapMode: Text.NoWrap
+            }
+        }
+    }
+
+    // The pet's own art, from the board's top-left: the cell starts `bleed` before it.
+    Loader {
+        objectName: "reviewSignArt"
+        active: sign.art
+        x: sign.bleed
+        y: sign.bleed
+        scale: sign.boardScale
+        transformOrigin: Item.TopLeft
+
+        sourceComponent: Item {
+            id: artwork
+
+            /// Beats since the sign came up; the frame advances one step per `every` of them.
+            property int beat: 0
+            readonly property bool moving: sign.onScreen && !sign.tokens.motion.reduced
+            readonly property int frame: moving ? Math.floor(beat / sign.reviewSign.every) % sign.reviewSign.frames : 0
+
+            Image {
+                x: -sign.reviewSign.margin
+                y: -sign.reviewSign.margin
+                width: sign.bin.cellWidth
+                height: sign.bin.cellHeight
+                source: sign.bin.source
+                sourceClipRect: Qt.rect(artwork.frame * sign.bin.cellWidth, 0, sign.bin.cellWidth, sign.bin.cellHeight)
+                smooth: false
+            }
+
+            Text {
+                objectName: "reviewSignWord"
+                y: sign.reviewSign.wordTop
+                width: sign.designWidth
+                horizontalAlignment: Text.AlignHCenter
+                text: sign.word
+                color: sign.reviewSign.wordColor
+                font.family: sign.wordFamily
+                font.pixelSize: sign.wordPixelSize
+                wrapMode: Text.NoWrap
+            }
+
+            Timer {
+                interval: sign.reviewSign.beatMs
+                running: artwork.moving
+                repeat: true
+                onTriggered: artwork.beat++
             }
         }
     }

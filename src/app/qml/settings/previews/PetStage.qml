@@ -56,6 +56,7 @@ Rectangle {
         ink: Pet.inkBox
         area: ({left: 0, top: 0, right: stage.width, bottom: stage.height})
         word: Controller.settingPreview.word || ""
+        reviewSign: Pet.reviewSign
         // The card pet-review.html draws beside the board: .btn 34 px tall, 8 px padding and a 1 px border on each side.
         // The preview draws no card, so the card is not counted.
         cardWidth: 210
@@ -79,8 +80,10 @@ Rectangle {
         word: Controller.settingPreview.word || ""
         petScale: Pet.scale
         designWidth: layout.designWidth
-        x: Math.round(stage.signAt.x)
-        y: Math.round(stage.signAt.y)
+        reviewSign: Pet.reviewSign
+        bin: layout.bin
+        x: Math.round(stage.signAt.x - layout.bleed)
+        y: Math.round(stage.signAt.y - layout.bleed)
     }
 
 }

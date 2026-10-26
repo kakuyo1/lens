@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <exception>
 #include <fstream>
 #include <optional>
 #include <string>
@@ -23,6 +24,7 @@
 #include "app/paths.h"
 #include "app/pet/pet_package_fs.h"
 #include "core/domain/pet/pet_package.h"
+#include "util/log.h"
 
 namespace lens::app::pet {
 
@@ -183,6 +185,59 @@ InkBounds inkBoundsOf(QString const& path, int canvas)
     };
 }
 
+/**
+ * @brief Reads a bundled pet's review sign: sign.json, and every sheet its bins name at the size the bin says.
+ *
+ * A folder with no sign.json has no sign and says nothing. Any other fault drops the sign with one warning; the pet loads
+ * without it.
+ *
+ * @param directory One bundled pet's folder.
+ * @return The sign, or nothing.
+ */
+std::optional<ReviewSign> reviewSignOf(std::filesystem::path const& directory)
+{
+    try {
+        if (not std::filesystem::exists(directory / "sign.json")) return std::nullopt;
+        auto const  document = readDocument(directory / "sign.json");
+        auto const& word     = document.at("word");
+        auto        sign     = ReviewSign{
+                       .frames    = document.at("frames").get<int>(),
+                       .every     = document.at("every").get<int>(),
+                       .beatMs    = document.at("beatMs").get<int>(),
+                       .margin    = document.at("margin").get<int>(),
+                       .foot      = document.at("foot").get<int>(),
+                       .wordTop   = word.at("top").get<int>(),
+                       .wordColor = QString::fromStdString(word.at("color").get<std::string>()),
+        };
+        if (sign.frames < 1 or sign.every < 1 or sign.beatMs < 1 or sign.margin < 0)
+            throw Refused(Refusal::Format, "pet: the review sign has a frame count, beat or margin out of range");
+        for (auto const& entry : document.at("bins")) {
+            auto const width      = entry.at("width").get<int>();
+            auto const cellWidth  = entry.at("cellWidth").get<int>();
+            auto const cellHeight = entry.at("cellHeight").get<int>();
+            if (not sign.bins.empty() and width <= sign.bins.back().width)
+                throw Refused(Refusal::Format, "pet: the review sign's bins are not in ascending order of width");
+            auto const sheet = resolvePackageFile(directory, stringOf(entry, "sheet", Refusal::Format, "sign bin"));
+            auto const size  = declaredSizeOf(sheet);
+            if (static_cast<std::int64_t>(size.width) != static_cast<std::int64_t>(cellWidth) * sign.frames or
+                static_cast<std::int64_t>(size.height) != cellHeight)
+                throw Refused(Refusal::SheetSize, "pet: " + narrow(sheet) + " is not the size its review sign bin says");
+            sign.bins.push_back(ReviewSignBin{
+                .width      = width,
+                .boardWidth = entry.at("W").get<int>(),
+                .cellWidth  = cellWidth,
+                .cellHeight = cellHeight,
+                .sheet      = widen(sheet),
+            });
+        }
+        if (sign.bins.empty()) throw Refused(Refusal::Format, "pet: the review sign has no bins");
+        return sign;
+    } catch (std::exception const& e) {
+        LENS_WARN("the review sign of {} is dropped: {}", narrow(directory.filename()), e.what());
+        return std::nullopt;
+    }
+}
+
 } // namespace
 
 QString plainText(QString const& text)
@@ -196,7 +251,7 @@ QString plainText(QString const& text)
     return kept.normalized(QString::NormalizationForm_C);
 }
 
-PetAssets PetAssets::load(std::filesystem::path const& directory)
+PetAssets PetAssets::load(std::filesystem::path const& directory, PetSource source)
 {
     try {
         checkPackageTree(directory);
@@ -276,6 +331,7 @@ PetAssets PetAssets::load(std::filesystem::path const& directory)
                 throw Refused(Refusal::BadAccessory, "accessories: " + id + " needs an integer zIndex");
             assets.accessories.emplace(id, AccessoryArt{widen(asset), entry.at("zIndex").get<int>()});
         }
+        if (source == PetSource::Shipped) assets.reviewSign = reviewSignOf(directory);
         return assets;
     } catch (json::exception const& e) {
         // A document the parsers did not expect in shape. Every field read above is checked first, so this is the net.

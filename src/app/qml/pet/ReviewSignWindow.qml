@@ -2,8 +2,8 @@ import QtQuick
 import "../util/Numbers.js" as Numbers
 
 /**
- * The desktop pet's review sign (UI-SPEC.md 4.13): a wooden plank on a short post, standing on the pet's
- * foot line beside it, with the word on the plank. Its answer card opens beside the board while the pointer is on the sign, in a
+ * The desktop pet's review sign (UI-SPEC.md 4.13): the pet's own sign, or a wooden plank on a short post for a pet
+ * without one, standing on the pet's foot line beside it, with the word on it. Its answer card opens beside the board while the pointer is on the sign, in a
  * window of its own (ReviewCard). The sign's side and the card's side are chosen once per question from the room on screen, and the
  * sign then follows the pet as it moves. A window of its own, kept out of screen captures by the pet's native bridge, so the scan
  * never reads the word back.
@@ -49,8 +49,8 @@ Window {
     width: paper.width
     height: paper.height
     // Windows hold whole pixels: rounded, not truncated, so the plank lands within half a pixel of its place.
-    x: Math.round(boardAt.x)
-    y: Math.round(boardAt.y)
+    x: Math.round(boardAt.x - layout.bleed)
+    y: Math.round(boardAt.y - layout.bleed)
 
     onVisibleChanged: {
         if (visible)
@@ -221,6 +221,7 @@ Window {
         ink: Pet.inkBox
         area: sign.workArea
         word: sign.word
+        reviewSign: Pet.reviewSign
         cardWidth: answers.width
         cardHeight: answers.height
         withCard: true
@@ -232,5 +233,7 @@ Window {
         word: sign.word
         petScale: Pet.scale
         designWidth: layout.designWidth
+        reviewSign: Pet.reviewSign
+        bin: layout.bin
     }
 }

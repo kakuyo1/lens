@@ -234,7 +234,7 @@ void PetController::loadPet(std::string const& id)
     try {
         auto const* entry = catalog_.find(id);
         if (not entry) throw std::runtime_error{"the pet is not in the catalogue: " + id};
-        assets_ = PetAssets::load(entry->directory);
+        assets_ = PetAssets::load(entry->directory, entry->source);
     } catch (std::exception const& e) {
         assets_.reset();
         LENS_ERROR("the desktop pet is off: {}", e.what());
@@ -596,6 +596,28 @@ QRectF PetController::inkBox() const
                   assets_->inkTop,
                   assets_->inkRight - assets_->inkLeft,
                   assets_->inkBottom - assets_->inkTop};
+}
+
+QVariantMap PetController::reviewSign() const
+{
+    if (not assets_ or not assets_->reviewSign) return {};
+    auto const& sign = *assets_->reviewSign;
+    auto        bins = QVariantList{};
+    for (auto const& bin : sign.bins) {
+        bins.push_back(QVariantMap{{"width", bin.width},
+                                   {"W", bin.boardWidth},
+                                   {"cellWidth", bin.cellWidth},
+                                   {"cellHeight", bin.cellHeight},
+                                   {"source", QUrl::fromLocalFile(bin.sheet)}});
+    }
+    return QVariantMap{{"frames", sign.frames},
+                       {"every", sign.every},
+                       {"beatMs", sign.beatMs},
+                       {"margin", sign.margin},
+                       {"foot", sign.foot},
+                       {"wordTop", sign.wordTop},
+                       {"wordColor", sign.wordColor},
+                       {"bins", bins}};
 }
 
 QPointF PetController::foot() const

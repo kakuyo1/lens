@@ -2,7 +2,7 @@ import QtQuick
 import "../util/Numbers.js" as Numbers
 
 /**
- * The review sign's placement (UI-SPEC.md 4.13): a wooden sign standing on the pet's feet line beside it,
+ * The review sign's placement (UI-SPEC.md 4.13): a sign, the pet's own art or the wooden board, standing on the pet's feet line beside it,
  * the side it takes, the nudge that keeps it and its card on the screen, and where the board and the card sit. The desktop sign
  * window and the settings preview both place the sign with this, so they choose the same side. Lengths are in DIPs; the figure is
  * the pet window's top-left, and the pet's idle ink box is in the sprite's own canvas units.
@@ -25,6 +25,8 @@ QtObject {
     required property real cardHeight
     /// Whether the card takes part in the choice and the fit. The desktop sign has one; the settings preview draws none.
     required property bool withCard
+    /// The pet's sign art (Pet.reviewSign), empty when the pet has none.
+    required property var reviewSign
 
     readonly property SurfaceTokens tokens: SurfaceTokens {}
     /// The word's font, as ReviewSignBoard draws it: Pixelify Sans, or the mono family when it is not installed.
@@ -36,20 +38,28 @@ QtObject {
         font.pixelSize: 20
         text: layout.word
     }
-    readonly property real designWidth: wordMetrics.width + 34
-    readonly property real designHeight: 40
+    /// Whether the pet has sign art of its own; without it the wooden board is drawn.
+    readonly property bool art: reviewSign.bins !== undefined
+    /// The bin of the art the word takes: the first whose width holds the word, else the widest. Null for the wooden board.
+    readonly property var bin: art ? binFor(wordMetrics.width) : null
+    /// The art's board is its bin's board width and stands on its foot.
+    readonly property real designWidth: art ? bin.W : wordMetrics.width + 34
+    readonly property real designHeight: art ? reviewSign.foot : 40
     readonly property real postWidth: 10
     readonly property real postHeight: 32
     readonly property real postOverlap: 2
-    readonly property real designBase: designHeight + postHeight - postOverlap
+    readonly property real designBase: art ? reviewSign.foot : designHeight + postHeight - postOverlap
     readonly property real shadowOffset: 4
 
     /// The sign's magnification: the pet's scale over the 3.01 the design is drawn at (K = scale / 3.01).
     readonly property real k: scale / 3.01
     readonly property real boardWidth: designWidth * k
     readonly property real boardHeight: designHeight * k
-    readonly property real signWidth: (designWidth + shadowOffset) * k
-    readonly property real signHeight: (designBase + shadowOffset) * k
+    /// The sign's window: the plank and its shadow, or the art's cell.
+    readonly property real signWidth: (art ? bin.cellWidth : designWidth + shadowOffset) * k
+    readonly property real signHeight: (art ? bin.cellHeight : designBase + shadowOffset) * k
+    /// How far the window starts before the board's top-left: the art's margin, nothing for the wooden board.
+    readonly property real bleed: art ? reviewSign.margin * k : 0
     /// The pet's foot line, where the post's foot stands: the idle ink's bottom edge.
     readonly property real baseY: figure.y + (ink.y + ink.height) * scale
     /// The board's top-left y, the same on either side.
@@ -64,6 +74,12 @@ QtObject {
     readonly property int cardGap: 10
     /// The card's widest (CARD_W). The fit tests count the card at this width whatever its real width.
     readonly property int cardMax: 210
+
+    /// The bin of the pet's art that holds a word `width` DIPs wide, else the widest.
+    function binFor(width) {
+        const bins = reviewSign.bins;
+        return bins.find(entry => entry.width >= width) || bins[bins.length - 1];
+    }
 
     /// The board's left in DIPs for a sign on `side`: `gap` clear of the pet's ink on that side.
     function boardX(side) {
@@ -84,12 +100,12 @@ QtObject {
     }
 
     /// The boxes of the sign and its card for a sign side and a card side, as [left, top, right, bottom] in DIPs. The sign's box
-    /// runs from its board's top-left to its foot's shadow; the card counts at its widest.
+    /// is its window, which starts `bleed` before its board; the card counts at its widest.
     function boxesOf(side, on) {
         const left = boardX(side);
         const cardLeft = cardX(left, on, cardMax);
         const top = cardY();
-        return [[left, boardTop, left + signWidth, boardTop + signHeight],
+        return [[left - bleed, boardTop - bleed, left - bleed + signWidth, boardTop - bleed + signHeight],
                 [cardLeft, top, cardLeft + cardMax, top + cardHeight]];
     }
 

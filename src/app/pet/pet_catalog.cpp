@@ -70,7 +70,7 @@ PetCatalog scanPets(fs::path const& shippedRoot, fs::path const& installedRoot)
         auto const id = narrow(folder.filename());
         reserved.push_back(id);
         try {
-            auto const assets = PetAssets::load(folder);
+            auto const assets = PetAssets::load(folder, PetSource::Shipped);
             catalog.pets.push_back(PetEntry{id, assets.name, PetSource::Shipped, folder});
         } catch (std::exception const& e) {
             LENS_ERROR("the shipped pet {} is off: {}", id, e.what());
@@ -80,7 +80,7 @@ PetCatalog scanPets(fs::path const& shippedRoot, fs::path const& installedRoot)
     for (auto const& folder : foldersIn(installedRoot)) {
         auto const id = narrow(folder.filename());
         try {
-            auto const assets = PetAssets::load(folder);
+            auto const assets = PetAssets::load(folder, PetSource::Installed);
             auto const taken  = std::any_of(reserved.begin(), reserved.end(), [&id](std::string const& shipped) { return sameId(shipped, id); });
             if (taken) throw Refused(Refusal::IdTaken, "pet: " + id + " is the id of a shipped pet");
             catalog.pets.push_back(PetEntry{id, assets.name, PetSource::Installed, folder});

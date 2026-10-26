@@ -1,7 +1,9 @@
 #pragma once
 
+#include <cstdint>
 #include <filesystem>
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -19,10 +21,46 @@
  * The core parsers own pet.json, animations, anchors and the accessory catalogue. This file adds what only the window
  * needs: sheet paths, expression indices, layer order, each accessory's picture, and the checks on the files
  * themselves. Everything is checked before the pet starts, so a missing or wrong-sized sheet refuses the whole pet
- * and never a half-drawn one.
+ * and never a half-drawn one. The review sign is the one exception: a bundled pet's sign that fails is dropped alone.
  */
 
 namespace lens::app::pet {
+
+/// @brief Where a pet came from. The install folder and the reader's own folder are the only two sources.
+enum class PetSource : std::uint8_t {
+    Shipped,
+    Installed,
+};
+
+/// @brief One width step of a review sign: the sheet that draws the sign at that word width.
+struct ReviewSignBin {
+    /// The word width this step is drawn for, in pixels.
+    int width;
+    /// The board's width in pixels at this step, without the outline and the shadow.
+    int boardWidth;
+    /// One frame's cell in the sheet, in pixels. The sheet holds the frames side by side.
+    int cellWidth;
+    int cellHeight;
+    /// Absolute path of the sheet.
+    QString sheet;
+};
+
+/// @brief A bundled pet's own review sign, as its sign.json and sheets describe it (ADR 0125, 0126).
+struct ReviewSign {
+    /// Frames in each sheet, and the beats each frame stays.
+    int frames;
+    int every;
+    /// One beat of the shared clock, in milliseconds.
+    int beatMs;
+    /// Pixels of outline and shadow around the art.
+    int margin;
+    /// The sign's base row in sprite units: the pet's feet line.
+    int     foot;
+    int     wordTop;
+    QString wordColor;
+    /// Width steps, in ascending order of width.
+    std::vector<ReviewSignBin> bins;
+};
 
 /**
  * @brief Text a package supplied, made safe to show: control and format characters removed, in NFC (docs/pet-package-format.md
@@ -86,15 +124,18 @@ struct PetAssets {
     std::map<std::string, AccessoryArt>           accessories;
     /// Expression indices the blink plays through, one per blink frame.
     std::vector<int> blinkExpressions;
+    /// The review sign of a bundled pet. Empty for a package, and for a bundled pet whose sign is missing or fails its checks.
+    std::optional<ReviewSign> reviewSign;
 
     /**
      * @brief Checks the whole folder, then reads every file under it and checks each sheet against its frame count.
      * @param directory One pet's folder, data/pet/<id> or a package under %APPDATA%\Lens\pets. Sheet paths in the
      *                  documents are relative to it.
+     * @param source Where the pet came from. Only a shipped pet's review sign is read.
      * @return The whole pet.
      * @throws core::pet::Refused with the reason the package is refused, which the settings page shows.
      */
-    static PetAssets load(std::filesystem::path const& directory);
+    static PetAssets load(std::filesystem::path const& directory, PetSource source);
 };
 
 } // namespace lens::app::pet

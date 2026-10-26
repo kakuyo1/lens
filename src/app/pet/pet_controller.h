@@ -87,6 +87,8 @@ class PetController : public QObject {
     /// The idle figure's ink box in the sprite's own canvas units, as {x, y, width, height}. The review sign stands outside it
     /// and on its bottom edge.
     Q_PROPERTY(QRectF inkBox READ inkBox NOTIFY settingsChanged)
+    /// The pet's own review sign as {frames, every, beatMs, margin, foot, wordTop, wordColor, bins}; empty when it has none.
+    Q_PROPERTY(QVariantMap reviewSign READ reviewSign NOTIFY settingsChanged)
     /// Where the idle figure's feet are in the sprite's own 88 px canvas: a scene scales the pet about this.
     Q_PROPERTY(QPointF foot READ foot NOTIFY settingsChanged)
     Q_PROPERTY(int minSize READ minSize CONSTANT)
@@ -154,9 +156,11 @@ public:
     double       scale() const;
     double       inkCentre() const;
     QRectF       inkBox() const;
-    QPointF      foot() const;
-    int          minSize() const;
-    int          maxSize() const;
+    /// @return The review sign of the pet on screen, keyed as the QML reads it; empty when the pet has none.
+    QVariantMap reviewSign() const;
+    QPointF     foot() const;
+    int         minSize() const;
+    int         maxSize() const;
     /// @return Every action the pet can play, in the order of the state machine's enum. Scenes are not actions:
     ///         they have their own entries below and are played only by the idle turn.
     QStringList actions() const;
