@@ -245,43 +245,8 @@ Item {
             Controller.wordsModel.filter = 0;
         }
 
-        /// A filter switch moves in two phases: the rows it hides close, and the rows it wants
-        /// arrive one fold later. Two words on one line is what the reader would call a ghost, so
-        /// this asks, for as long as the model says it is between its phases, whether an arriving
-        /// word is drawn while a leaving one still is.
-        ///
-        /// The window is the model's own `filterSwitching`, not a count of samples: a fold is drawn
-        /// at the renderer's pace, so a fixed number of 25 ms samples covers a different part of the
-        /// move on every machine. While the model holds its arrivals there is nothing to draw them
-        /// from, and that is the whole promise of the two phases.
-        function test_aFilterSwitchNeverDrawsTwoWordsOnOneLine() {
-            const popup = make(wordsComponent);
-            popup.visible = true;
-            wait(300);
-            const all = Controller.wordsModel.allRows();
-            const known = all.filter(function (e) { return e.verdict === "known"; }).map(function (e) { return e.word; });
-            const fresh = all.filter(function (e) { return e.verdict === "new"; }).map(function (e) { return e.word; });
-            verify(known.length > 0 && fresh.length > 0, "the fixture needs both verdicts");
-
-            Controller.wordsModel.filter = 1;
-            settleOn(popup, known);
-
-            Controller.wordsModel.filter = 2;
-            let sample = 0;
-            while (Controller.wordsModel.filterSwitching && sample < 400) {
-                const shown = wordsShown(popup);
-                const arriving = shown.filter(function (w) { return fresh.indexOf(w) >= 0; });
-                verify(arriving.length === 0,
-                       "sample " + sample + " of the switch drew " + JSON.stringify(arriving)
-                       + " before the leaving rows had gone");
-                wait(10);
-                ++sample;
-            }
-            verify(sample < 400, "the switch never landed");
-            verify(sample > 0, "the switch never held its arrivals: it landed in one phase");
-            settleOn(popup, fresh);
-            Controller.wordsModel.filter = 0;
-        }
+        /// The switch itself -- its two phases, the ghost they prevent and the card's height through
+        /// them -- is tst_panels_switch.qml, split out when this file reached the QML size cap.
 
         /// @return The row drawing @p word, or null when no row shows it.
         function rowFor(popup, word) {

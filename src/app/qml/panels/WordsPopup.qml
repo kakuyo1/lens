@@ -468,12 +468,10 @@ Window {
                     // switch's arrivals for one token (wordsModel.swapMs), so the two never share
                     // a line. The durations are the fold token, not second ones.
                     //
-                    // Both directions ride their opacity too, and that is what keeps the fold from
-                    // reading as a cut: a row clips its own content (the cross's ring has to stay
-                    // inside the list), so a closing height slices the word, the pills and the time
-                    // at a hard edge that walks up the glyphs. Fading with the fold leaves that edge
-                    // nothing to cut, and the two land together -- a second beat is what a 180 ms
-                    // fold has no room for.
+                    // Both directions ride their opacity too: a row clips its own content (the
+                    // cross's ring stays inside the list), so a closing height slices the word at a
+                    // hard edge that walks up the glyphs. Fading with the fold leaves that edge
+                    // nothing to cut, and the two land together -- a 180 ms fold has no second beat.
                     add: Transition {
                         NumberAnimation {
                             property: "height"
@@ -553,10 +551,20 @@ Window {
 
                 /// Holds the viewport at the height it had before a removal, through the remove
                 /// transition that closes the rows; then the count is the settled one.
+                ///
+                /// It outlasts the model's swap (a fold plus the frame between its signal and this
+                /// view) and it defers while a switch runs at all, even one that started after it
+                /// did: the count it would take there is the intersection's, which for two verdicts
+                /// is no rows at all. The card dropped to its empty height and grew back a frame
+                /// later -- 183 px on the way to 276 -- and the reader saw it blink.
                 Timer {
                     id: viewHold
-                    interval: words.tokens.motion.pop + 20
+                    interval: Controller.wordsModel.swapMs + 20
                     onTriggered: {
+                        if (Controller.wordsModel.filterSwitching) {
+                            restart();
+                            return;
+                        }
                         listBox.viewportRows = list.count;
                         listBox.holding = false;
                     }
