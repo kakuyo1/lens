@@ -9,6 +9,9 @@
 
 #include <filesystem>
 
+#include <QCoreApplication>
+#include <QElapsedTimer>
+#include <QEventLoop>
 #include <QUrl>
 #include <gtest/gtest.h>
 
@@ -30,7 +33,8 @@ class FakeSource final : public PictureSource {
 public:
     enum class Mode { NoResults,
                       Unreachable,
-                      DownloadFails };
+                      DownloadFails,
+                      NeverAnswers };
 
     explicit FakeSource(Mode mode)
         : mode_(mode)
@@ -38,6 +42,8 @@ public:
 
     void search(QString const&, PictureSink sink) override
     {
+        if (mode_ == Mode::NeverAnswers)
+            return; // the deadline, not this source, is what ends the lookup
         if (mode_ == Mode::Unreachable) {
             sink({}, false);
             return;
@@ -65,9 +71,19 @@ private:
     Mode mode_;
 };
 
+/// The application the deadline's timer fires in; every case here needs one.
+struct QtApplication {
+    int              argc     = 1;
+    char             name[32] = "picture_duty_test";
+    char*            argv[2]  = {name, nullptr};
+    QCoreApplication application{argc, argv};
+};
+
 /// @brief One duty over a cache directory of its own.
 struct PictureDutyTest : ::testing::Test {
-protected:
+    /// The deadline is a timer, so every case here runs with an application to fire it in.
+    QtApplication qt;
+
     void SetUp() override
     {
         root_ = std::filesystem::temp_directory_path() / "lens_picture_duty_test";
@@ -115,6 +131,29 @@ TEST_F(PictureDutyTest, NamesAFailedDownload)
     const auto pictures = duty.pictures();
     EXPECT_EQ(pictures.value(QStringLiteral("state")).toString(), QStringLiteral("failed"));
     EXPECT_EQ(pictures.value(QStringLiteral("failure")).toString(), QStringLiteral("download"));
+}
+
+/// A search that never answers ends at the deadline, not in a crash: settle used to take the
+/// deadline's `live_` by reference and release it mid-body, and the next read went through null
+/// (dump lens.exe.5160.dmp, 2026-10-26: AV at QString::isEmpty on a null Fetch).
+TEST_F(PictureDutyTest, SettlesAnUnansweredSearchAtTheDeadline)
+{
+    FakeSource  source(FakeSource::Mode::NeverAnswers);
+    PictureDuty duty(source, *cache_, nullptr, 20);
+    duty.request(QStringLiteral("garden trowel"));
+    EXPECT_EQ(duty.pictures().value(QStringLiteral("state")).toString(), QStringLiteral("loading"));
+
+    QElapsedTimer waited;
+    waited.start();
+    while (waited.elapsed() < 2000) {
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+        if (duty.pictures().value(QStringLiteral("state")).toString() != QStringLiteral("loading"))
+            break;
+    }
+
+    const auto pictures = duty.pictures();
+    EXPECT_EQ(pictures.value(QStringLiteral("state")).toString(), QStringLiteral("failed"));
+    EXPECT_EQ(pictures.value(QStringLiteral("failure")).toString(), QStringLiteral("unreachable"));
 }
 
 } // namespace

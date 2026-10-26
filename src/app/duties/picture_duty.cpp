@@ -16,9 +16,6 @@ namespace {
 
 /// How many thumbnails one query keeps, and the width the cache key names.
 constexpr int kMaxPictures = 3;
-/// The whole lookup's ceiling. A strip that has drawn nothing by then offers the fallback instead;
-/// one that has drawn something keeps what it has.
-constexpr int kDeadlineMs = 4000;
 
 /// @return The strip's rows for a set of stored pictures.
 QVariantList itemsOf(QVector<pictures::Picture> const& pictures)
@@ -53,10 +50,11 @@ struct PictureDuty::Fetch {
     bool    finished = false;
 };
 
-PictureDuty::PictureDuty(pictures::PictureSource& source, pictures::PictureCache& cache, QObject* parent)
+PictureDuty::PictureDuty(pictures::PictureSource& source, pictures::PictureCache& cache, QObject* parent, int deadlineMs)
     : QObject(parent), source_(source), cache_(cache)
 {
     deadline_.setSingleShot(true);
+    deadline_.setInterval(deadlineMs);
     connect(&deadline_, &QTimer::timeout, this, [this] {
         if (live_ != nullptr) {
             // The source has not answered by the deadline: that is the unreachable line, not a
@@ -115,7 +113,7 @@ void PictureDuty::request(QString query)
     state_ = QStringLiteral("loading");
     failure_.clear();
     emit picturesChanged();
-    deadline_.start(kDeadlineMs);
+    deadline_.start();
     startSearch(fetch);
 }
 
@@ -212,7 +210,7 @@ void PictureDuty::nextThumbnail(const std::shared_ptr<Fetch>& fetch, int index)
     });
 }
 
-void PictureDuty::settle(const std::shared_ptr<Fetch>& fetch)
+void PictureDuty::settle(std::shared_ptr<Fetch> fetch)
 {
     // One settle per lookup: the deadline and the last download can both arrive at it.
     if (fetch->finished)

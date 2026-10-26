@@ -29,6 +29,9 @@ class PictureDuty final : public QObject {
     QML_ANONYMOUS
     QML_UNCREATABLE("Owned by Controller; reached as Controller.pictureDuty")
 public:
+    /// @brief The whole lookup's ceiling in milliseconds: search, downloads and decode together.
+    static constexpr int kDeadlineMs = 4000;
+
     /**
      * @brief Bind the duty to the source that searches and the cache that remembers.
      *
@@ -36,10 +39,11 @@ public:
      * and the network manager are the caller's, so the duty's own decisions can be reached without
      * a socket.
      *
-     * @param source The image source, owned by the caller.
-     * @param cache  The picture cache, owned by the caller.
+     * @param source     The image source, owned by the caller.
+     * @param cache      The picture cache, owned by the caller.
+     * @param deadlineMs The lookup's ceiling; the composition root keeps the default, a test shortens it.
      */
-    PictureDuty(pictures::PictureSource& source, pictures::PictureCache& cache, QObject* parent = nullptr);
+    PictureDuty(pictures::PictureSource& source, pictures::PictureCache& cache, QObject* parent = nullptr, int deadlineMs = kDeadlineMs);
 
     /**
      * @brief What the picture strip reads.
@@ -99,8 +103,13 @@ private:
 
     void startSearch(const std::shared_ptr<Fetch>& fetch);
     void nextThumbnail(const std::shared_ptr<Fetch>& fetch, int index);
-    /// @brief Cache whatever arrived and, when it is still the reader's, draw it.
-    void settle(const std::shared_ptr<Fetch>& fetch);
+    /**
+     * @brief Cache whatever arrived and, when it is still the reader's, draw it.
+     *
+     * @param fetch Held by value: the deadline's call hands over @c live_ itself, and this body
+     *              releases @c live_ on the way -- a reference would dangle before the body ends.
+     */
+    void settle(std::shared_ptr<Fetch> fetch);
 
     pictures::PictureSource& source_;
     pictures::PictureCache&  cache_;
