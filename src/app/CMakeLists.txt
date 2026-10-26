@@ -46,6 +46,8 @@ add_library(lens_app STATIC
   duties/storage_duty.cpp
   duties/sync_duty.h
   duties/sync_duty.cpp
+  duties/sync_transport.h
+  duties/sync_transport.cpp
   duties/update_duty.h
   duties/update_duty.cpp
   duties/word_answer.h

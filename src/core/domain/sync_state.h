@@ -14,7 +14,7 @@
  * @brief The Qt-free part of one sync: what this device sends, and how a merged document is written
  *        back into the stores (docs/adr/0042).
  *
- * Nothing here touches the network or the file. SyncDuty runs the requests and calls these in
+ * Nothing here touches the network or the file. SyncRound runs the requests and calls these in
  * order: build the local document, merge it with the cloud's, apply the result, then seal it. Keeping
  * the mapping pure is what lets the tests assert each step against a store they built in memory.
  */

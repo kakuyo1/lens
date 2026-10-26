@@ -1,28 +1,32 @@
 #pragma once
 
-#include <QByteArray>
 #include <QObject>
 #include <QString>
 #include <QTimer>
 #include <QtQml/qqmlregistration.h>
 
 #include <filesystem>
-#include <string>
 
+#include "core/domain/sync_partition.h"
+#include "core/domain/sync_round.h"
 #include "storage_duty.h"
-#include "sync/github_auth.h"
+#include "sync_transport.h"
 #include "sync/gist_client.h"
+#include "sync/github_auth.h"
 #include "sync/sync_config.h"
+
+class QNetworkAccessManager;
 
 /**
  * @file sync_duty.h
  * @brief Signs the reader in with GitHub and keeps the encrypted cloud copy in step with this device
  *        (docs/adr/0042).
  *
- * The pure mapping lives in core/domain/sync_state.h and the merge in core/domain/sync_merge.h; this is
- * the QObject that runs the requests in order, holds the state the settings page reads, and decides when
- * a sync is due. Nothing starts on construction: sign-in is a user action, and the first sync waits for a
- * launch or a local change, so a surface test with no token never reaches the network.
+ * The round itself -- the order of the requests, the 401's renewal, the backoff and the run a change
+ * during one asks for -- lives in core/domain/sync_round.h, Qt-free and answerable offline. This is
+ * the adapter: the QObject the settings page reads, the timers, and the sign-in flow, which is not a
+ * sync round. Nothing starts on construction: sign-in is a user action, and the first sync waits for
+ * a launch or a local change, so a surface test with no token never reaches the network.
  */
 
 namespace lens::app {
@@ -44,8 +48,9 @@ public:
      * @brief Bind the sync to the settings document and read the OAuth App's client id.
      * @param storage The document owner; the `sync` object is this duty's section of it.
      * @param dataDir Directory `sync.json` is read from, the same one `update.json` is.
+     * @param manager Network manager to post through, or null to make one; a test supplies a scripted one.
      */
-    SyncDuty(StorageDuty& storage, const std::filesystem::path& dataDir, QObject* parent = nullptr);
+    SyncDuty(StorageDuty& storage, const std::filesystem::path& dataDir, QNetworkAccessManager* manager = nullptr, QObject* parent = nullptr);
 
     /// @return "unconfigured", "signedOut", "codePending", "signedIn" or "syncing".
     QString state() const;
@@ -57,7 +62,7 @@ public:
     QString lastSyncedAt() const;
     /// @return Whether a derived key is stored on this device.
     bool hasPassphrase() const;
-    /// @return "", "proxy", "passphrase", "generic", "expired", "denied" or "noGist".
+    /// @return "", "proxy", "passphrase", "generic", "expired", "denied", "signInExpired" or "noGist".
     QString error() const;
 
     /// @brief Ask GitHub for a device code and wait for the reader to enter it.
@@ -91,92 +96,37 @@ signals:
     void remoteApplied();
 
 private:
+    /// The sign-in flow's phase; a sync round's own phase is SyncRound's.
     enum class Phase { Idle,
                        CodePending,
-                       Working };
-    /// Which request is in flight, so a reply that does not match it is dropped.
-    enum class Step { None,
-                      Listing,
-                      Reading,
-                      Creating,
-                      Writing,
-                      Naming,
-                      Deleting };
+                       /// The tokens are in; the login name is being read.
+                       Naming };
 
-    /// @return The `sync` object as a section of the document.
-    core::SettingsSection syncSection() const;
-    /// @return This device's id, made on first use.
-    std::string deviceId();
-    /// @return The GitHub token, or empty when the reader is not signed in.
-    QString token() const;
-    /// @return The stored refresh token, empty when the OAuth app's tokens do not expire or the
-    ///         reader has not signed in since the app started expiring them.
-    QString refreshToken() const;
-    bool    signedIn() const;
+    /// @brief What the round tells this adapter; every hook is a member so it can reach the surfaces.
+    core::sync::Hooks roundHooks();
+
     /// @brief Run one sync. An empty @p passphrase uses the stored key.
     /// @param asked True when the reader pressed a button; a timer passes false.
     void run(const QString& passphrase, bool asked);
-    /// @brief Given the cloud envelope as the gist file carries it (empty when there is none), merge
-    ///        and push. The two decisions are core/domain/sync_run.h's; this performs what they return.
-    void process(const QString& gistId, const std::string& envelopeText);
-    void onListed(const QByteArray& body);
-    void onGot(const lens::sync::Gist& gist);
-    void onCreated(const lens::sync::Gist& gist);
-    void onWritten();
-    /// @brief Record a successful upload: its fingerprint, the time, and a cleared retry count.
-    void onUploaded();
-    /// @brief Stamp the time of the last successful sync, which the settings page shows.
-    void setSyncedAt();
     void onNamed(const QString& login);
-    void onDeleted();
-    /// @brief A refresh token bought new tokens: store both and carry on with what the 401 interrupted.
-    void onRefreshed(lens::sync::Token token);
-    void onGistFailed(lens::sync::GistFailure why);
-    /// @brief Keep the tokens a sign-in or a refresh just produced. Both secrets, neither logged.
-    void storeTokens(lens::sync::Token const& token);
-    /// @brief Forget the tokens a refused refresh proved dead, so the page offers sign-in again.
-    void forgetTokens();
-    /// @brief Set the error and end the run.
-    void fail(const char* code);
+    /// @brief The login name could not be read: report it and leave the flow.
+    void onLoginGistFailed(lens::sync::GistFailure why);
     /// @brief Set an error code (empty for none) and notify.
     void setError(const QString& code);
-    /// @brief Return to Idle, notify, and run a sync that was requested while this one was busy.
-    void finish();
-    /// @brief End a run that failed with @p code, and retry it with backoff when it was automatic and
-    ///        the failure can clear by itself. A success clears the backoff (see onUploaded).
-    void endFailedRun(const QString& code);
 
-    StorageDuty&           storage_;
-    lens::sync::SyncConfig config_;
-    lens::sync::GithubAuth auth_;
-    lens::sync::GistClient gist_;
-    QTimer                 debounce_;
-    QTimer                 poll_;  ///< Pulls the cloud copy while signed in.
-    QTimer                 retry_; ///< Re-runs a failed automatic sync, with backoff.
-    Phase                  phase_    = Phase::Idle;
-    Step                   step_     = Step::None;
-    bool                   applying_ = false;
-    bool                   dirty_    = false;
-    /// Whether the run in flight was asked for by the reader rather than by a timer. A failed
-    /// automatic run is retried; a failed run the reader asked for is reported and left alone.
-    bool manual_       = false;
-    int  retryAttempt_ = 0;
-    /// What the last successful upload carried, as core::sync's contentFingerprint(). Empty until
-    /// one has succeeded in this session, so the first sync after launch always uploads.
-    std::string uploadedFingerprint_;
-    /// The fingerprint of the upload in flight. It becomes uploadedFingerprint_ only when the upload
-    /// succeeds, so a failed upload leaves the last good one in place and the next change still syncs.
-    std::string pendingFingerprint_;
-    std::string passphrase_; ///< Held only for the run that was given it; cleared when the run ends.
-    /// The step a 401's refresh carries on from: Listing to redo the sync, Deleting to redo the
-    /// delete. None when no refresh is under way.
-    Step resumeAfterRefresh_ = Step::None;
-    /// One refresh per run, whether it worked or not, so a token that is gone for good costs one
-    /// request rather than one per call.
-    bool    refreshedThisRun_ = false;
-    QString userCode_;
-    QString verificationUri_;
-    QString error_;
+    lens::sync::SyncConfig    config_;
+    lens::sync::GithubAuth    auth_;
+    lens::sync::GistClient    gist_;
+    SyncTransport             transport_;
+    core::sync::SyncPartition partition_;
+    core::sync::SyncRound     round_;
+    QTimer                    debounce_;
+    QTimer                    poll_;  ///< Pulls the cloud copy while signed in.
+    QTimer                    retry_; ///< Re-runs a failed automatic sync, with backoff.
+    Phase                     phase_ = Phase::Idle;
+    QString                   userCode_;
+    QString                   verificationUri_;
+    QString                   error_;
 };
 
 }

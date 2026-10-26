@@ -2,6 +2,8 @@ add_library(lens_core STATIC
   domain/filter_core.cpp
   domain/review_schedule.cpp
   domain/sync_merge.cpp
+  domain/sync_partition.cpp
+  domain/sync_round.cpp
   domain/sync_state.cpp
   domain/pet/pet_mood.cpp
   domain/pet/pet_state.cpp

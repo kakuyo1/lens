@@ -42,6 +42,7 @@
 #include "app/duties/storage_duty.h"
 #include "app/duties/update_duty.h"
 #include "core/document/known_store.h"
+#include "scripted_manager.h"
 #include "update/update_client.h"
 #include "update/update_pure.h"
 
@@ -54,6 +55,8 @@ using lens::update::shouldPrompt;
 using lens::update::StoredUpdate;
 
 namespace {
+
+using lens::test::ScriptedManager;
 
 struct QtApplication {
     int              argc     = 1;
@@ -70,97 +73,6 @@ QUrl releaseUrl(const char* tag)
 {
     return QUrl{QStringLiteral("https://github.com/kakuyo1/lens/releases/tag/%1").arg(QLatin1String(tag))};
 }
-
-/// A reply that finishes on the next turn of the loop, so the client's own connections exist
-/// before `finished` arrives. It carries the two things this check reads -- a status and,
-/// for a redirect, the `Location` -- and no body, which is the shape a redirect really has.
-/// `abort()` is what an answer that outgrew its ceiling does: a cancelled reply, which the
-/// client has to read as offline.
-class ScriptedReply final : public QNetworkReply {
-public:
-    ScriptedReply(QObject* parent, int status, QString location = {}, qint64 length = 0, bool answers = true, QByteArray body = {})
-        : QNetworkReply(parent), status_(status), body_(std::move(body))
-    {
-        // A reply that never answers has no status: a real connection that times out before its
-        // headers arrive reports none, and the proxy judgement depends on that difference.
-        if (answers)
-            setAttribute(QNetworkRequest::HttpStatusCodeAttribute, status_);
-        if (not location.isEmpty())
-            setHeader(QNetworkRequest::LocationHeader, location);
-        if (length > 0)
-            setHeader(QNetworkRequest::ContentLengthHeader, length);
-        open(QIODevice::ReadOnly);
-        if (answers)
-            QTimer::singleShot(0, this, [this] { deliver(); });
-    }
-
-    void abort() override
-    {
-        setError(QNetworkReply::OperationCanceledError, QStringLiteral("the answer outgrew its ceiling"));
-        deliver();
-    }
-
-    qint64 readData(char* data, qint64 max) override
-    {
-        if (body_.isEmpty())
-            return -1;
-        const qint64 n = std::min<qint64>(max, body_.size());
-        std::memcpy(data, body_.constData(), static_cast<std::size_t>(n));
-        body_.remove(0, static_cast<int>(n));
-        return n;
-    }
-
-    /// Finish once, whichever of the two paths arrives first: a reply that finishes twice is
-    /// not a shape Qt produces, and the counts below are only meaningful if it does not.
-    void deliver()
-    {
-        if (delivered_)
-            return;
-        delivered_ = true;
-        // A real transfer announces its bytes before it finishes, and the client reads them then.
-        if (not body_.isEmpty())
-            emit readyRead();
-        setFinished(true);
-        emit finished();
-    }
-
-private:
-    int        status_;
-    QByteArray body_;
-    bool       delivered_ = false;
-};
-
-/// The seam LlmClient takes, counting what it was asked for.
-class ScriptedManager final : public QNetworkAccessManager {
-public:
-    explicit ScriptedManager(int status = 302, QString location = {}, bool answers = true, QByteArray body = {})
-        : status_(status), location_(std::move(location)), answers_(answers), body_(std::move(body))
-    {
-    }
-
-    int requests = 0;
-    /// What the answer says it is, when a case wants the server to announce a size.
-    qint64 announceLength = 0;
-    /// What the request asked about redirects, kept so a case can read it back: a stub manager
-    /// never follows one whatever the policy says, so the count alone would prove nothing.
-    QVariant redirectPolicy;
-
-protected:
-    QNetworkReply* createRequest(Operation, const QNetworkRequest& request, QIODevice*) override
-    {
-        ++requests;
-        redirectPolicy = request.attribute(QNetworkRequest::RedirectPolicyAttribute);
-        return new ScriptedReply(this, status_, location_, announceLength, answers_, body_);
-    }
-
-private:
-    int     status_;
-    QString location_;
-    /// Whether a reply ever finishes. False leaves it pending, which is how a case drives a
-    /// client whose answer it delivers itself rather than one the stub hands over.
-    bool       answers_;
-    QByteArray body_;
-};
 
 /// One turn of the loop, which is when a scripted answer arrives.
 void settle()
