@@ -199,6 +199,23 @@ Item {
             tryVerify(function () { return !stats.visible; }, 1000, "the statistics panel stayed up behind the settings panel");
         }
 
+        /// The drill-down asks for a filter, and the model owns it (docs/adr/0122): the host writes
+        /// the model and the panel reads it back. The open used to assign the panel's readonly
+        /// property, which threw mid-open and left every stats drill-down except cost dead.
+        function test_theDrillDownFilterReachesTheWordsPanel() {
+            const main = make();
+            const words = panel(main, "WordsPopup");
+            const host = Util.surfaceHost(main);
+
+            host.showWords(main, 1);
+            compare(words.visible, true, "showWords() did not put the panel up");
+            compare(Controller.wordsModel.filter, 1, "the known filter did not reach the model");
+            compare(words.filter, 1, "the panel did not read the filter back");
+
+            host.showWords(main);
+            compare(Controller.wordsModel.filter, 0, "opening without a filter did not reset to all");
+        }
+
         function test_selectionBarRequiresTheConfiguredLetterCount() {
             const main = make();
             const bar = panel(main, "SelectionBar");

@@ -419,11 +419,12 @@ QtObject {
     }
 
     /// @param filter The words panel's verdict filter: 0 all, 1 known, 2 new. Called without it
-    ///        (the year card's back arrow) the list opens on all words.
+    ///        (the year card's back arrow) the list opens on all words. The model owns the filter
+    ///        (docs/adr/0122); the panel only reads it back.
     function showWords(from, filter) {
         const anchor = anchorFrom(from);
         hidePanels(wordsPopup);
-        wordsPopup.filter = filter === undefined ? 0 : filter;
+        Controller.wordsModel.filter = filter === undefined ? 0 : filter;
         placePanel(wordsPopup, anchor);
     }
 
