@@ -4,10 +4,10 @@ import QtQuick.Shapes
 /**
  * The bubble's header controls (UI-SPEC.md 4.3): the close cross and, to its left, the
  * mother-tongue peek globe, on the card the reader cannot read. The globe belongs to the
- * English-in-English read (docs/adr/0112): it stands only on a word card with a countdown, at the
- * root, under an English explanation, and holding it down asks the duty for the word's meaning in
- * the mother tongue, which the card draws below the definition while the hold lasts. The
- * permanent language choice is the settings row and nothing else.
+ * English-in-English read (docs/adr/0112, 0124): it stands only on a word, sentence or entity card
+ * with a countdown, at the root, under an English explanation, and holding it down asks the duty for
+ * the mother tongue's meaning of that text, which the card draws below the definition while the hold
+ * lasts. The permanent language choice is the settings row and nothing else.
  *
  * A component rather than part of Bubble.qml because that file sits at the repository's QML size
  * cap (docs/QML.md section 1), the way BubbleVerdictRow and SenseRows are.
@@ -28,13 +28,13 @@ Item {
     readonly property string language: Controller.settings.explanationLang || "en"
 
     /**
-     * Whether the globe is offered. The peek answers a word the reader is reading in English, on
-     * the card itself rather than a step down the chain, with a countdown to hold against. A
-     * translation's input already is the mother tongue, a preview belongs to a settings row, and
-     * the card the word list raises goes away with the pointer: none of them is it for.
+     * Whether the globe is offered. The peek answers a word, sentence or entity the reader is reading
+     * in English, on the card itself rather than a step down the chain, with a countdown to hold
+     * against. A translation's input already is the mother tongue, a preview belongs to a settings
+     * row, and the card the word list raises goes away with the pointer: none of them is it for.
      */
     readonly property bool peekable: !root.bubbleWindow.preview
-                                     && root.bubbleWindow.type === "word"
+                                     && ["word", "sentence", "entity"].includes(root.bubbleWindow.type)
                                      && root.bubbleWindow.countsDown
                                      && root.bubbleWindow.atRoot
                                      && root.language === "en"

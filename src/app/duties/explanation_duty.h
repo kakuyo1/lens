@@ -99,9 +99,9 @@ public:
     Q_INVOKABLE void explainChainWord(QString lemma);
     /// @brief Ask for the standing word's meaning in the mother tongue, as the held globe does.
     ///
-    /// The peek belongs to the word card standing when the hold completed, under the English
-    /// explanation the globe only exists under. A line this session already paid for, or the
-    /// Chinese pair every word answer carries, is emitted without a request; anything else goes
+    /// The peek belongs to the word, sentence or entity card standing when the hold completed, under
+    /// the English explanation the globe only exists under. A line this session already paid for, or
+    /// the Chinese pair a word answer carries, is emitted without a request; anything else goes
     /// to the peek channel, budget permitting. The answer lands in peekArrived() and failure is
     /// quiet: a held gesture that bought nothing owes the reader no notice (docs/adr/0112).
     Q_INVOKABLE void requestPeek();

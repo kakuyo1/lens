@@ -69,6 +69,17 @@ bool CardSession::wordCard() const
     return standing() and not subject_->chain and isWordKind(subject_->kind);
 }
 
+bool CardSession::peekableCard() const
+{
+    // A translation's input already is the mother tongue, so its card has no globe (UI-SPEC.md 4.3).
+    return standing() and not subject_->chain and subject_->kind != core::SelectionKind::Translation;
+}
+
+QString CardSession::peekKey() const
+{
+    return isWordKind(subject_->kind) ? subject_->lemma : subject_->text;
+}
+
 CardSession::ReviewDismissal CardSession::dismissReview()
 {
     if (kind_ != CardKind::Review)
@@ -286,14 +297,14 @@ CardSession::SenseOutcome CardSession::senseAnswered(QString const&            l
 
 CardSession::PeekStep CardSession::requestPeek(PeekFacts const& facts)
 {
-    if (!wordCard())
-        return {.kind = PeekStep::Kind::None, .why = PeekStep::Why::NoWordCard};
+    if (!peekableCard())
+        return {.kind = PeekStep::Kind::None, .why = PeekStep::Why::NotPeekable};
     if (QString::fromStdString(facts.now.language) != QLatin1String("en"))
         return {.kind = PeekStep::Kind::None, .why = PeekStep::Why::NotEnglish};
     if (facts.mother.isEmpty() or facts.mother == QLatin1String("en"))
         return {.kind = PeekStep::Kind::None, .why = PeekStep::Why::NoMotherTongue};
 
-    const QString            lemma      = subject_->lemma;
+    const QString            lemma      = peekKey();
     std::optional<CycleView> cycle      = standingCycle(facts.now);
     const int                senseIndex = cycle ? cycle->index : 0;
 
@@ -343,7 +354,7 @@ std::optional<QString> CardSession::peekAnswered(QString const& lemma, QString c
     // the reader may have swapped onto another sense while it was on its way.
     peekLines_[pending.mother][lemma][pending.senseIndex] = line;
 
-    if (!wordCard() or subject_->lemma != lemma)
+    if (!peekableCard() or peekKey() != lemma)
         return std::nullopt;
     auto const cycle     = standingCycle(now);
     const bool sameSense = cycle ? cycle->index == pending.senseIndex : pending.senseIndex == 0;

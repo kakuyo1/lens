@@ -36,6 +36,10 @@ Item {
     required property bool animated
     required property int characterMs
     required property var tokens
+    /// The width the header controls take at the card's right edge (BubbleHeaderActions.qml). A bare
+    /// title, with no pronunciation or part of speech beside it, gives that room up; a line that has
+    /// them keeps its width, as it always has.
+    property real headerReserve: 0
 
     /// True while the pronunciation is still being written out, which is what holds the card's
     /// countdown: a card whose fields are still writing itself has nothing to count down yet.
@@ -56,7 +60,8 @@ Item {
         // What is left once the pronunciation and the part of speech have their room: a word
         // with none left ends in an ellipsis rather than running under its own IPA.
         width: Math.min(implicitWidth, root.width - (ipaText.visible ? ipaText.implicitWidth + 7 : 0)
-                                                    - (posText.visible ? posText.implicitWidth + 7 : 0))
+                                                    - (posText.visible ? posText.implicitWidth + 7 : 0)
+                                                    - ((ipaText.visible || posText.visible) ? 0 : root.headerReserve))
         topPadding: 8
         text: root.title
         color: root.tokens.text

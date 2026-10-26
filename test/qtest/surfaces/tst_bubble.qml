@@ -126,6 +126,59 @@ Item {
             }
         }
 
+        /// A sentence and an entity card take the globe as a word card does (UI-SPEC.md 4.3): the peek
+        /// asks about their text. A translation card has none, its input already being the mother tongue.
+        function test_thePeekGlobeAppearsOnSentenceAndEntityCardsButNotOnATranslation() {
+            const previous = Controller.settings.explanationLang;
+            try {
+                Controller.setSetting("explanationLang", "en");
+                const offered = {sentence: true, entity: true, translation: false};
+                for (const type in offered) {
+                    const bubble = createTemporaryObject(bubbleComponent, root);
+                    verify(bubble);
+                    bubble.show({
+                        title: "The bank was closed on Sunday.",
+                        type: type,
+                        en: "The bank did not open on Sunday.",
+                        x: 200,
+                        y: 240
+                    });
+                    wait(50);
+                    const globe = globeOf(bubble);
+                    verify(globe, "the " + type + " card drew no globe item at all");
+                    compare(globe.visible, offered[type], "the " + type + " card's globe");
+                    bubble.visible = false;
+                }
+            } finally {
+                Controller.setSetting("explanationLang", previous);
+            }
+        }
+
+        /// A bare title gives up the room the header's controls stand in: a long entity name ends before
+        /// the globe and the cross, not under them.
+        function test_aLongEntityTitleEndsBeforeTheHeaderControls() {
+            const bubble = createTemporaryObject(bubbleComponent, root);
+            verify(bubble);
+            bubble.show({
+                title: "United Nations Security Council",
+                type: "entity",
+                en: "The principal body for international peace and security.",
+                x: 200,
+                y: 240
+            });
+            wait(50);
+            const title = Util.findAll(bubble, function (o) {
+                return typeof o.text === "string" && o.text === "United Nations Security Council";
+            })[0];
+            verify(title, "the entity card drew no title");
+            const globe = globeOf(bubble);
+            verify(globe, "the entity card drew no globe item at all");
+            const titleRight = title.mapToItem(bubble.contentItem, 0, 0).x + title.width;
+            const globeLeft = globe.mapToItem(bubble.contentItem, 0, 0).x;
+            verify(titleRight <= globeLeft, "the title runs to " + titleRight + " under the header controls at " + globeLeft);
+            bubble.visible = false;
+        }
+
         /// The line is the hold's answer: it shows while the globe is held and goes when the hold
         /// ends. The duty is not standing behind this window -- show() was the only way in -- so
         /// the case writes the line the controller would have delivered and asks the gesture's

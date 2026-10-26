@@ -402,6 +402,59 @@ TEST_F(LlmTest, Phase2ThePeekAsksTheModelInTheMotherTongueAndKeepsTheLineForTheS
     EXPECT_EQ(rig.manager.posts, 2) << "a line the session had already paid for was bought again";
 }
 
+/// A sentence card holds the globe as a word card does, but it has no lemma: the peek asks for the
+/// text the card was made from, and a Chinese mother tongue is asked too, since a sentence answer's
+/// Chinese pair is not kept.
+TEST_F(LlmTest, Phase2ThePeekAnswersASentenceFromItsText)
+{
+    QtApplication qt;
+    Rig           rig;
+    const QString text   = QStringLiteral("The bank was closed on Sunday.");
+    rig.manager.response = envelope({QJsonObject{{"en", "The bank did not open on Sunday."}, {"zh", "银行周日没开门。"}}});
+
+    app::PendingSelection sentence;
+    sentence.kind   = core::SelectionKind::Sentence;
+    sentence.text   = text;
+    sentence.anchor = QPoint{200, 400};
+    rig.duty.setSelection(sentence);
+    run(rig.duty, rig.client, text);
+    ASSERT_EQ(rig.duty.bubble().value("type").toString(), QStringLiteral("sentence"));
+
+    QStringList lines;
+    QObject::connect(&rig.duty, &app::ExplanationDuty::peekArrived, [&](QString line) { lines.push_back(std::move(line)); });
+
+    rig.storage.section().set<std::string>("motherTongue", "es");
+    rig.manager.response = envelope(QJsonArray{QJsonObject{{"line", QStringLiteral("El banco no abrió el domingo.")}}});
+    QEventLoop loop;
+    QObject::connect(&rig.duty, &app::ExplanationDuty::peekArrived, &loop, &QEventLoop::quit);
+    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+    rig.duty.requestPeek();
+    loop.exec();
+
+    ASSERT_EQ(lines.size(), 1);
+    EXPECT_EQ(lines.front(), QStringLiteral("El banco no abrió el domingo."));
+    const auto messages = QJsonDocument::fromJson(rig.manager.posted).object().value("messages").toArray();
+    EXPECT_EQ(messages.at(1).toObject().value("content").toString(), text) << "the peek did not ask about the sentence's text";
+    EXPECT_EQ(rig.manager.posts, 2);
+
+    // The second hold on the same sentence is answered from the session.
+    rig.duty.requestPeek();
+    ASSERT_EQ(lines.size(), 2);
+    EXPECT_EQ(rig.manager.posts, 2) << "a line the session had already paid for was bought again";
+
+    // The Chinese pair the sentence answer carried was not kept, so Chinese is asked for like any other.
+    rig.storage.section().set<std::string>("motherTongue", "zh");
+    rig.manager.response = envelope(QJsonArray{QJsonObject{{"line", QStringLiteral("银行周日关门了。")}}});
+    QEventLoop chineseLoop;
+    QObject::connect(&rig.duty, &app::ExplanationDuty::peekArrived, &chineseLoop, &QEventLoop::quit);
+    QTimer::singleShot(2000, &chineseLoop, &QEventLoop::quit);
+    rig.duty.requestPeek();
+    chineseLoop.exec();
+    ASSERT_EQ(lines.size(), 3);
+    EXPECT_EQ(lines.back(), QStringLiteral("银行周日关门了。"));
+    EXPECT_EQ(rig.manager.posts, 3);
+}
+
 /// The peek answers the sense the card is showing: a hold on a swapped sense asks for that
 /// sense's line -- the wire names the sense, and a Chinese mother tongue is answered by the pair
 /// the sense channel bought with the sense -- and the line comes back to the same sense on the

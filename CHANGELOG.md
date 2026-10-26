@@ -5,10 +5,11 @@
 ### Added
 
 - A **Mother tongue** setting above the explanation language, and the held peek it feeds: when the
-  explanation language is English, the bubble's header shows a globe that, held for 500 ms (a ring
-  sweeps once), draws the word's meaning in the mother tongue under the definition until the hold
-  ends. A Chinese mother tongue is answered by the pair the explanation already paid for; other
-  mother tongues ask the new `peek` channel, once per word per session (docs/adr/0112). Hovering a
+  explanation language is English, the header of a word, sentence or entity bubble shows a globe that, held for 500 ms (a ring
+  sweeps once), draws the meaning in the mother tongue under the definition until the hold
+  ends. On a word, a Chinese mother tongue is answered by the pair the explanation already paid
+  for; other mother tongues ask the new `peek` channel, once per word or text per session
+  (docs/adr/0112, 0124). Hovering a
   mother-tongue dropdown row in the settings previews the English card with that row's peek line.
 
 ### Changed
