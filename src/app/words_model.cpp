@@ -12,6 +12,8 @@ namespace lens::app {
 WordsModel::WordsModel(QObject* parent)
     : QAbstractListModel(parent)
 {
+    swap_.setSingleShot(true);
+    connect(&swap_, &QTimer::timeout, this, &WordsModel::finishSwitch);
 }
 
 int WordsModel::rowCount(QModelIndex const& parent) const
@@ -67,24 +69,54 @@ QVariantList WordsModel::allRows() const
     return rows;
 }
 
+void WordsModel::setSwapMs(int value)
+{
+    if (value == swapMs_)
+        return;
+    swapMs_ = qMax(0, value);
+    emit swapMsChanged();
+}
+
 void WordsModel::setFilter(int value)
 {
     if (value < All or value > New or value == filter_)
         return;
+    if (hasPending_)
+        finishSwitch(); // a second segment before the first landed: land that one now
     filter_ = value;
-    // A switch replaces the list rather than folding it. The view would only read a transition's
-    // state on its own update pass, after this call had returned, so "these rows are not
-    // deletions" cannot be carried to the transition -- and a row that folds while its
-    // replacement is already drawn puts two words on one line. The reader asked for another set
-    // of words; the set arrives. Rows the reader deletes go through update(), which diffs.
-    beginResetModel();
-    visible_ = filtered(all_, filter_);
-    endResetModel();
     emit filterChanged();
+
+    auto next = filtered(all_, filter_);
+    if (swapMs_ <= 0) {
+        diffVisible(std::move(next));
+        return;
+    }
+
+    // The rows the new filter hides close first. Their space is what the arriving rows take, so
+    // the two sets are never drawn on one line -- the reader sees one list become the other.
+    switching_ = true;
+    emit filterSwitchingChanged();
+    diffVisible(next, /*insertRows=*/false);
+    pending_    = std::move(next);
+    hasPending_ = true;
+    swap_.start(swapMs_);
+}
+
+void WordsModel::finishSwitch()
+{
+    if (not hasPending_)
+        return;
+    hasPending_ = false;
+    diffVisible(pending_);
+    pending_.clear();
+    switching_ = false;
+    emit filterSwitchingChanged();
 }
 
 void WordsModel::update(QDate const& today, std::vector<core::HistoryEntry> const& history)
 {
+    if (hasPending_)
+        finishSwitch(); // a row cannot arrive under a statistics change meant for the set before it
     std::vector<WordRow> nextAll     = wordRowList(today, history);
     std::vector<WordRow> nextVisible = filtered(nextAll, filter_);
     const int            oldCount    = allCount();
@@ -141,7 +173,7 @@ std::vector<WordRow> WordsModel::filtered(std::vector<WordRow> const& rows, int 
     return visible;
 }
 
-void WordsModel::diffVisible(std::vector<WordRow> next)
+void WordsModel::diffVisible(std::vector<WordRow> next, bool insertRows)
 {
     QHash<QString, int> oldAt;
     QHash<QString, int> nextAt;
@@ -165,6 +197,9 @@ void WordsModel::diffVisible(std::vector<WordRow> next)
         endRemoveRows();
         end = start - 1;
     }
+
+    if (not insertRows)
+        return;
 
     // Then the new rows, in their final order. The common rows are already in that order,
     // which update() checked, so the insertion point is the number of rows placed so far.

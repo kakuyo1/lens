@@ -215,21 +215,32 @@ Item {
             settleOn(popup, fresh);
         }
 
-        /// A filter switch is not a deletion: the list is replaced, so no row folds under one of
-        /// the new list's own -- two words on one line read as a ghost of the old word.
-        function test_aFilterSwitchLeavesNoFoldingRows() {
+        /// A filter switch moves in two phases: the rows it hides close, and the rows it wants
+        /// arrive one fold later. Two words on one line is what the reader would call a ghost, so
+        /// this samples across the whole move and asks, at every frame, whether an arriving word
+        /// is drawn while a leaving one still is.
+        function test_aFilterSwitchNeverDrawsTwoWordsOnOneLine() {
             const popup = make(wordsComponent);
             popup.visible = true;
             wait(300);
             const all = Controller.wordsModel.allRows();
             const known = all.filter(function (e) { return e.verdict === "known"; }).map(function (e) { return e.word; });
-            verify(known.length > 0 && known.length < all.length, "the fixture needs both shown and hidden words");
+            const fresh = all.filter(function (e) { return e.verdict === "new"; }).map(function (e) { return e.word; });
+            verify(known.length > 0 && fresh.length > 0, "the fixture needs both verdicts");
 
             Controller.wordsModel.filter = 1;
-            wait(60); // well inside the fold token: a row still closing would be drawn here
-            compare(wordsShown(popup).sort(), known.slice().sort(),
-                    "the filter switch left rows folding under the new list");
-
+            settleOn(popup, known);
+            Controller.wordsModel.filter = 2;
+            for (let sample = 0; sample < 14; ++sample) {
+                wait(25);
+                const shown = wordsShown(popup);
+                const leaving = shown.filter(function (w) { return known.indexOf(w) >= 0; });
+                const arriving = shown.filter(function (w) { return fresh.indexOf(w) >= 0; });
+                verify(leaving.length === 0 || arriving.length === 0,
+                       "at " + (sample * 25) + " ms the switch drew " + JSON.stringify(arriving)
+                       + " over " + JSON.stringify(leaving));
+            }
+            settleOn(popup, fresh);
             Controller.wordsModel.filter = 0;
         }
 

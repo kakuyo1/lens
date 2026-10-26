@@ -1,9 +1,12 @@
 /**
  * @file words_model_test.cpp
- * @brief The words item model's diff and filter, without a view.
+ * @brief The words item model's diff, its filter and the switch's two phases, without a view.
  */
 
+#include <QCoreApplication>
 #include <QDate>
+#include <QElapsedTimer>
+#include <QEventLoop>
 #include <QList>
 #include <QModelIndex>
 #include <QString>
@@ -144,7 +147,7 @@ TEST(WordsModel, ANewWordIsInsertedAtTheFront)
     EXPECT_EQ(wordAt(model, 1), QStringLiteral("bank"));
 }
 
-TEST(WordsModel, AFilterSwitchReplacesTheListAndADeletionStillRemovesRows)
+TEST(WordsModel, AFilterSwitchDiffsBothSetsAndADeletionStillRemovesRows)
 {
     WordsModel model;
     model.update(kToday,
@@ -153,24 +156,73 @@ TEST(WordsModel, AFilterSwitchReplacesTheListAndADeletionStillRemovesRows)
                   entry("ghost", "2026-10-18 08:00", "known")});
 
     int removed = 0;
+    int added   = 0;
     int reset   = 0;
     QObject::connect(&model, &QAbstractItemModel::rowsRemoved, [&](QModelIndex const&, int, int) { ++removed; });
+    QObject::connect(&model, &QAbstractItemModel::rowsInserted, [&](QModelIndex const&, int, int) { ++added; });
     QObject::connect(&model, &QAbstractItemModel::modelReset, [&] { ++reset; });
 
-    // The switch is the reader asking for another set of words. Folding it would leave a row
-    // closing under one of the new list's own, which reads as a ghost of the old word.
-    model.setFilter(static_cast<int>(ExportScope::Known));
-    EXPECT_EQ(reset, 1);
-    EXPECT_EQ(removed, 0);
-    ASSERT_EQ(model.rowCount(), 2);
+    // With no swap to wait for, both phases land in the call: the list is still told row by row,
+    // never dropped and rebuilt.
+    model.setFilter(static_cast<int>(ExportScope::New));
+    EXPECT_GT(removed, 0);
+    EXPECT_GT(added, 0);
+    EXPECT_EQ(reset, 0);
+    ASSERT_EQ(model.rowCount(), 1);
+    EXPECT_EQ(wordAt(model, 0), QStringLiteral("river"));
+    EXPECT_FALSE(model.filterSwitching());
 
-    // A word the reader takes away is the other case: one removal, and the view folds that row.
+    removed = 0;
+    added   = 0;
+    model.setFilter(static_cast<int>(ExportScope::All));
+    EXPECT_EQ(added, 2);
+    EXPECT_EQ(removed, 0);
+
     removed = 0;
     reset   = 0;
     model.update(kToday, {entry("bank", "2026-10-20 09:00", "known")});
-    EXPECT_EQ(removed, 1);
+    EXPECT_EQ(removed, 2);
     EXPECT_EQ(reset, 0);
     EXPECT_EQ(model.rowCount(), 1);
+}
+
+/// The switch's two phases: the rows the new filter hides leave, and the rows it wants arrive one
+/// fold later, so no word is ever drawn under a closing one.
+TEST(WordsModel, AFilterSwitchHoldsItsArrivalsForOneFold)
+{
+    struct QtApplication {
+        int              argc     = 1;
+        char             name[32] = "words_model_test";
+        char*            argv[2]  = {name, nullptr};
+        QCoreApplication application{argc, argv};
+    } qt;
+
+    WordsModel model;
+    model.setSwapMs(30);
+    model.update(kToday,
+                 {entry("bank", "2026-10-20 09:00", "known"),
+                  entry("river", "2026-10-19 10:00", "new"),
+                  entry("ghost", "2026-10-18 08:00", "known")});
+
+    model.setFilter(static_cast<int>(ExportScope::New));
+    EXPECT_EQ(model.rowCount(), 1) << "only the leaving rows have gone so far";
+    EXPECT_EQ(wordAt(model, 0), QStringLiteral("river"));
+    EXPECT_TRUE(model.filterSwitching());
+
+    QElapsedTimer waited;
+    waited.start();
+    while (model.filterSwitching() and waited.elapsed() < 2000)
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 10);
+    EXPECT_FALSE(model.filterSwitching());
+    EXPECT_EQ(model.rowCount(), 1);
+    EXPECT_EQ(wordAt(model, 0), QStringLiteral("river"));
+
+    // And the other direction keeps the row it holds in common with neither set waiting too.
+    model.setFilter(static_cast<int>(ExportScope::All));
+    EXPECT_EQ(model.rowCount(), 1) << "the known rows are still on their way";
+    while (model.filterSwitching() and waited.elapsed() < 2000)
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 10);
+    EXPECT_EQ(model.rowCount(), 3);
 }
 
 TEST(WordsModel, AReorderIsTheDocumentedReset)

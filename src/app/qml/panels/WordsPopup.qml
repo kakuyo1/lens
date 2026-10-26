@@ -67,17 +67,14 @@ Window {
     /// viewport is a fact of the row count rather than of an animation's progress.
     readonly property int rowHeight: 31
     /// The filter's rows close over a motion token; until that settles, a list with no rows is
-    /// still collapsing, not empty. The empty line waits for it.
+    /// still collapsing, not empty -- and a switch holds its arriving rows for a token more.
     property bool filterSettled: true
     readonly property bool filterEmpty: filter !== 0 && Controller.wordsModel.allCount > 0
-                                        && filterSettled && !listBox.holding && list.count === 0
+                                        && filterSettled && !listBox.holding
+                                        && !Controller.wordsModel.filterSwitching && list.count === 0
     onFilterChanged: {
         filterSettled = false;
         filterSettle.restart();
-        // A switch replaces the list, so no row is folding: the viewport takes the new count at
-        // once rather than holding the old one over a transition that will not run.
-        listBox.viewportRows = list.count;
-        listBox.holding = false;
     }
     /// The unfiltered list's line waits for the last row's remove transition too.
     readonly property bool showEmpty: Controller.wordsModel.allCount === 0 && !listBox.holding
@@ -157,6 +154,16 @@ Window {
         to: 0
         duration: words.tokens.motion.pop
         easing.type: words.tokens.motion.easing
+    }
+
+    /// The model paces a filter's two phases by the same token the rows fold over, so whoever
+    /// writes the filter -- the segment, a statistics drill-down -- gets the same move. The slack
+    /// is the frame between the model's signal and the view starting the fold: without it the
+    /// arriving rows could land while a leaving row still has a little closing to do.
+    Binding {
+        target: Controller.wordsModel
+        property: "swapMs"
+        value: words.tokens.motion.pop + 30
     }
 
     /// @brief The time label of a row, in the reader's language. Empty when the row has no day.
@@ -454,11 +461,21 @@ Window {
                     // synchronous layout here builds them at birth instead.
                     Component.onCompleted: forceLayout()
 
-                    // The model removes a row at once; these are what make the leave visible.
-                    // The row closes to zero height while the rows below move up by the same
-                    // amount on the same curve, so their edges meet at every frame. Only
-                    // deletions arrive here: a filter switch replaces the list (docs/adr/0122).
-                    // The duration is the fold token, not a second one.
+                    // The model removes a row at once; these are what make the leave and the
+                    // arrival visible. A closing row shrinks to zero while the rows below move up
+                    // by the same amount on the same curve, so their edges meet at every frame; an
+                    // arriving row grows into the space the closing ones left. The model holds a
+                    // switch's arrivals for one token (wordsModel.swapMs), so the two never share
+                    // a line. The durations are the fold token, not second ones.
+                    add: Transition {
+                        NumberAnimation {
+                            property: "height"
+                            from: 0
+                            to: words.rowHeight
+                            duration: words.tokens.motion.pop
+                            easing.type: words.tokens.motion.easing
+                        }
+                    }
                     remove: Transition {
                         NumberAnimation {
                             property: "height"

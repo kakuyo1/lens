@@ -18,6 +18,7 @@
 #include <QAbstractListModel>
 #include <QDate>
 #include <QHash>
+#include <QTimer>
 #include <QVariantList>
 #include <QtQml/qqmlregistration.h>
 
@@ -34,6 +35,13 @@ class WordsModel : public QAbstractListModel {
     QML_UNCREATABLE("Owned by Controller; reached as Controller.wordsModel")
     Q_PROPERTY(int filter READ filter WRITE setFilter NOTIFY filterChanged)
     Q_PROPERTY(int allCount READ allCount NOTIFY allCountChanged)
+    /// @brief How long the view takes to close a row. A filter switch waits that long between the
+    ///        rows leaving and the rows arriving, so the two never share a line. Zero, the default,
+    ///        lands both phases at once, which is what a case wants.
+    Q_PROPERTY(int swapMs READ swapMs WRITE setSwapMs NOTIFY swapMsChanged)
+    /// @brief Whether a filter switch is between its two phases. The list is the intersection of
+    ///        the two sets while it holds, so an empty line must not be drawn yet.
+    Q_PROPERTY(bool filterSwitching READ filterSwitching NOTIFY filterSwitchingChanged)
 public:
     /// The roles WordsListRow declares. Keep the names and the enum together.
     enum Role {
@@ -58,12 +66,21 @@ public:
     {
         return filter_;
     }
-    /// @brief Show the rows one segment names. The list is replaced, not folded: a switch is the
-    ///        reader asking for another set of words, and rows leaving by hand are deletions.
+    /// @brief Show the rows one segment names: the rows the new filter hides close first, and the
+    ///        rows it wants arrive after @c swapMs, so no word is drawn under a closing one.
     void setFilter(int value);
     int  allCount() const
     {
         return static_cast<int>(all_.size());
+    }
+    int swapMs() const
+    {
+        return swapMs_;
+    }
+    void setSwapMs(int value);
+    bool filterSwitching() const
+    {
+        return switching_;
     }
 
     /// @brief Replace the rows with those @p history describes, emitting the difference.
@@ -72,6 +89,8 @@ public:
 signals:
     void filterChanged();
     void allCountChanged();
+    void swapMsChanged();
+    void filterSwitchingChanged();
 
 private:
     enum Filter { All   = 0,
@@ -81,11 +100,20 @@ private:
     static bool                 matches(WordRow const& row, int filter);
     static std::vector<WordRow> filtered(std::vector<WordRow> const& rows, int filter);
     /// @brief Emit the difference between the visible rows and @p next, whose common rows keep their order.
-    void diffVisible(std::vector<WordRow> next);
+    /// @param insertRows Whether the rows @p next adds may arrive; a switch's first phase holds them.
+    void diffVisible(std::vector<WordRow> next, bool insertRows = true);
+    /// @brief Land a held switch: the rows its filter wants arrive now.
+    void finishSwitch();
 
     std::vector<WordRow> all_;
     std::vector<WordRow> visible_;
-    int                  filter_ = All;
+    /// The rows a switch is holding back until the closing ones have landed.
+    std::vector<WordRow> pending_;
+    bool                 hasPending_ = false;
+    bool                 switching_  = false;
+    int                  filter_     = All;
+    int                  swapMs_     = 0;
+    QTimer               swap_;
 };
 
 }
