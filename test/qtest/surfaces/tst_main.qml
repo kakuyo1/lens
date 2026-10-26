@@ -84,9 +84,10 @@ Item {
             compare(payload.anchorWidth, 80, "toDip wrote the size through to the caller's payload");
         }
 
-        /// The clamp is the whole point of the function: the panels are wider than the tray
-        /// icon's distance from the screen edge, so without it a panel opened from the corner
-        /// hangs off the side.
+        /// The clamp is the whole point of the rule: the panels are wider than the tray icon's distance
+        /// from the screen edge, so without it a panel opened from the corner hangs off the side. The
+        /// arithmetic is surface_geometry_test's; this case pins the handover -- SurfaceHost reads the
+        /// anchor screen's work area and writes back the window's top-left.
         function test_placeBesideKeepsThePanelOnTheScreenItBelongsTo() {
             const main = make();
 
@@ -149,6 +150,8 @@ Item {
 
         /// The monitor above the primary, at 125%: Qt draws a window on it about its own origin, so a
         /// point on it converts from that origin, not from zero. Values from the reader's machine.
+        /// surface_geometry_test owns the formula; this case pins that ScreenPoints hands the screen's
+        /// origin over rather than converting from zero itself.
         function test_aPortraitScreenAboveThePrimaryConvertsFromItsOrigin() {
             const main = make();
             const portrait = {virtualX: 197, virtualY: -2560, width: 1152, height: 2048, devicePixelRatio: 1.25};
@@ -518,26 +521,30 @@ Item {
             Pet.setEnabled(false);
         }
 
-        /// The bubble and the action bar hang on the side the reader chose. With room on both sides
-        /// the chosen side is the one taken; with no room on it, the other side is. Numbers are DIPs
-        /// in a 1000-high work area, a 100-high surface, a 10 px gap, and a 26 px shadow margin.
-        function test_aTransientSurfaceHangsOnTheChosenSideAndFlipsOnlyWhenItHasNoRoom() {
+        /// The reader's side reaches the geometry: with room on both sides at mid-screen, above puts
+        /// the card over the anchor and below under it. The rule itself is surface_geometry_test's;
+        /// this case pins that placeTransient() hands the setting over.
+        function test_aBubbleHangsOnTheSideTheReaderChose() {
             const main = make();
-            const top = 0, bottom = 1000, height = 100, gap = 10, shadow = 26;
+            const bubble = panel(main, "Bubble");
+            const anchor = Qt.point(400, 300);
+            const previous = Controller.settings.bubblePlacement;
 
-            // The selection sits mid-screen: both sides fit, so the reader's choice decides.
-            compare(Util.surfaceHost(main).transientTop(500, gap, height, shadow, top, bottom, false), 500 - gap - height + shadow,
-                    "above was not taken when there is room above");
-            compare(Util.surfaceHost(main).transientTop(500, gap, height, shadow, top, bottom, true), 500 + gap - shadow,
-                    "below was not taken when the reader chose it and there is room below");
+            try {
+                Controller.setSetting("bubblePlacement", "above");
+                Util.surfaceHost(main).placeTransient(bubble, anchor, bubble.gap);
+                const above = bubble.y;
+                verify(above + bubble.height - bubble.shadowMargin <= anchor.y,
+                       "the card did not hang above the anchor");
 
-            // The selection sits near the top: nothing fits above, so the chosen-above surface drops below.
-            compare(Util.surfaceHost(main).transientTop(40, gap, height, shadow, top, bottom, false), 40 + gap - shadow,
-                    "above did not flip below when there is no room above");
-
-            // The selection sits near the bottom: nothing fits below, so the chosen-below surface rises.
-            compare(Util.surfaceHost(main).transientTop(960, gap, height, shadow, top, bottom, true), 960 - gap - height + shadow,
-                    "below did not flip above when there is no room below");
+                Controller.setSetting("bubblePlacement", "below");
+                Util.surfaceHost(main).placeTransient(bubble, anchor, bubble.gap);
+                verify(bubble.y + bubble.shadowMargin >= anchor.y,
+                       "the card did not hang below the anchor");
+                verify(bubble.y !== above, "the reader's side did not move the card");
+            } finally {
+                Controller.setSetting("bubblePlacement", previous);
+            }
         }
     }
 }
