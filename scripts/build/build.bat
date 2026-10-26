@@ -19,7 +19,7 @@ set "BUILDDIR=build-ninja"
 if defined LENS_BUILD_PRESET set "PRESET=%LENS_BUILD_PRESET%"
 if defined LENS_BUILD_DIR set "BUILDDIR=%LENS_BUILD_DIR%"
 
-REM The Qt prefix comes from config/paths.json, through the same reader the PowerShell scripts use.
+REM The Qt prefix comes from config/paths.default.json, through the same reader the PowerShell scripts use.
 REM CMakePresets.json can only read the environment -- a preset cannot open the file -- so it takes
 REM QT_ROOT and this exports it. config/README.md owns the rule, docs/adr/0006 the reasoning.
 REM Through a temp file rather than "for /f", for the same reason the VSDIR lookup below avoids it:
@@ -29,7 +29,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ". .\scripts\build\paths.
 set /p QT_ROOT=<"%QTFILE%"
 del "%QTFILE%" >nul 2>&1
 if not defined QT_ROOT (
-  echo [build] config\paths.json has no readable qtRoot -- see config\README.md
+  echo [build] config\paths.default.json has no readable qtRoot -- see config\README.md
   exit /b 1
 )
 REM cmd's "if exist" reads a forward slash as a switch, and the config writes paths with forward
@@ -38,7 +38,7 @@ REM below avoid parentheses for the reason the VSDIR note gives: inside an if bl
 REM "(" opens a group cmd never closes, and the sentence quietly becomes the block.
 set "QTBACK=%QT_ROOT:/=\%"
 if not exist "%QTBACK%\lib\cmake\Qt6" (
-  echo [build] Qt is not at "%QT_ROOT%" -- edit config\paths.json, see config\README.md
+  echo [build] Qt is not at "%QT_ROOT%" -- edit config\paths.default.json, see config\README.md
   exit /b 1
 )
 
@@ -57,7 +57,7 @@ del "%VSDIRFILE%" >nul 2>&1
 
 REM vswhere reads the installer's own database, and a Visual Studio that was moved after being
 REM installed is not in it: it exits 0 and prints nothing, which is indistinguishable from "not
-REM installed". So when it comes back empty, the root is taken from config\paths.json's vsRoot --
+REM installed". So when it comes back empty, the root is taken from config\paths.default.json's vsRoot --
 REM a machine path, so it belongs there and not in an environment variable (config\README.md).
 if not defined VSDIR (
   REM The redirect names the file literally rather than through a variable set in this same
@@ -70,7 +70,7 @@ if not defined VSDIR (
 )
 
 if not defined VSDIR (
-  echo [build] Visual Studio not found. Install the C++ workload, give config\paths.json a
+  echo [build] Visual Studio not found. Install the C++ workload, give config\paths.default.json a
   echo [build] vsRoot, or call cmake --preset %PRESET% from a VS developer command prompt instead.
   exit /b 1
 )

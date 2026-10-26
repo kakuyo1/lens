@@ -195,7 +195,7 @@ $paths = Get-LensPaths -Root $root
 if (-not $QtBin) { $QtBin = $paths.qtBin }
 $ffmpeg = $paths.ffmpeg
 if (-not $ffmpeg -or -not (Test-Path -LiteralPath $ffmpeg)) {
-    throw "readme-gifs: ffmpeg is not at '$ffmpeg'. Set the 'ffmpeg' key in config/paths.json (config/README.md)."
+    throw "readme-gifs: ffmpeg is not at '$ffmpeg'. Set the 'ffmpeg' key in config/paths.default.json (config/README.md)."
 }
 $ffprobe = Join-Path (Split-Path -Parent $ffmpeg) 'ffprobe.exe'
 $lrelease = Join-Path $QtBin 'lrelease.exe'

@@ -20,7 +20,7 @@ function Get-RepositoryRoot {
     return $root.Trim()
 }
 
-# Machine paths come from config/paths.json; config/README.md owns the rule.
+# Machine paths come from config/paths.default.json; config/README.md owns the rule.
 . "$PSScriptRoot\..\build\paths.ps1"
 
 $root = Get-RepositoryRoot

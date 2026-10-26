@@ -17,7 +17,7 @@
 # screenshot. ?lang is left off for Chinese, which is what the prototypes open as.
 #
 # Chrome is a machine path, and this file is committed, so it is looked for under the environment
-# variables Windows sets instead of in config/paths.json -- see config/README.md for why the one
+# variables Windows sets instead of in config/paths.default.json -- see config/README.md for why the one
 # file that may hold a machine path is not this one.
 #
 # pet-ui.png is not rendered here. The pet is shown as the running application draws it, so this

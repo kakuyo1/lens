@@ -34,7 +34,7 @@ lens/
 ├── .clang-format     # code format spec
 ├── .githooks         # pre-commit and commit-msg; each file's header lists its checks
 ├── cmake             # headers only: the precompiled ones CMakeLists.txt applies
-├── config            # paths.json + paths.local.json — the machine paths; README.md owns the rule and its exemptions
+├── config            # paths.default.json + paths.local.json — the machine paths; README.md owns the rule and its exemptions
 ├── data              # wordlist, llm/ (wire protocol as data), pet/, scenes/, fonts/, icons/, sync.json, update.json
 ├── docs              # README.md (doc routing), QML.md (QML facts), adr/ (trade-offs), metrics/, pet-*.md
 ├── i18n              # .ts translations; English is the source language
@@ -75,11 +75,11 @@ The last line runs the application rather than building it: it rebuilds `build-n
 `lens.exe` is older than `src/`, launches it with the repository as its working directory, and reports
 the PID and `logs/lens.log`. The `run-lens` skill carries the driving and photographing around it.
 
-The Qt prefix lives in the merged machine config: `config/paths.json`, overridden key by key by the gitignored
+The Qt prefix lives in the merged machine config: `config/paths.default.json`, overridden key by key by the gitignored
 `config/paths.local.json`. `scripts/build/paths.ps1` is the one reader; `scripts/build/build.bat` uses it to export
 `QT_ROOT` before it drives the presets. `scripts/build/show-paths.ps1` prints the effective values, their source file
 and whether each resolves. `config/README.md` owns the rule: machine paths come from those two files, project paths
-stay relative to the repository root, and nothing else writes either kind by hand — never parse `paths.json` alone.
+stay relative to the repository root, and nothing else writes either kind by hand — never parse `paths.default.json` alone.
 
 ## Test
 
@@ -94,7 +94,7 @@ powershell -File scripts/qa/gtest.ps1 -Target lens_gtest_integration
 ```
 
 `-Filter` is the gtest filter; `-Target` defaults to `lens_gtest_unit`. Never copy `qtRoot` out of
-`config/paths.json` by hand: it is the committed template, and a different machine overrides it in
+`config/paths.default.json` by hand: it is the committed template, and a different machine overrides it in
 `config/paths.local.json`; `scripts/build/show-paths.ps1` prints the merged values and their source.
 
 `TEST.md` owns the targets, the corpus format and the run-record convention. Profiling and coverage methods live in `docs/metrics/profiling-and-coverage.md`; the drive-and-capture round lives in `docs/qa.md`.

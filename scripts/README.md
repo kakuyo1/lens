@@ -1,7 +1,7 @@
 # 脚本目录
 
 脚本按用途分组。命令默认从仓库根目录执行，机器相关路径统一由 `scripts/build/paths.ps1` 读取
-`config/paths.json` 与 `config/paths.local.json` 的合并结果；`scripts/build/show-paths.ps1` 打印合并后的值、
+`config/paths.default.json` 与 `config/paths.local.json` 的合并结果；`scripts/build/show-paths.ps1` 打印合并后的值、
 来源文件与是否可用。
 
 ## 目录

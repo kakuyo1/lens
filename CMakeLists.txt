@@ -9,14 +9,14 @@ set(CMAKE_AUTOMOC ON)
 
 # Test and QuickTest are for test/qtest/ alone: a QTest run needs a QGuiApplication and a Qt
 # Quick scene, which is what that directory exists to get.
-# Machine paths come from config/paths.json. A literal in a CMakeLists is a value that is wrong on
+# Machine paths come from config/paths.default.json. A literal in a CMakeLists is a value that is wrong on
 # the next machine, and duplicated by the time it is written a third time. config/README.md owns
 # the rule and its exemptions, docs/adr/0006 the reasoning.
 set(LENS_CONFIG_DIR "${CMAKE_SOURCE_DIR}/config")
-if(NOT EXISTS "${LENS_CONFIG_DIR}/paths.json")
-  message(FATAL_ERROR "config/paths.json is missing; see config/README.md")
+if(NOT EXISTS "${LENS_CONFIG_DIR}/paths.default.json")
+  message(FATAL_ERROR "config/paths.default.json is missing; see config/README.md")
 endif()
-file(READ "${LENS_CONFIG_DIR}/paths.json" LENS_PATHS_RAW)
+file(READ "${LENS_CONFIG_DIR}/paths.default.json" LENS_PATHS_RAW)
 if(EXISTS "${LENS_CONFIG_DIR}/paths.local.json")
   file(READ "${LENS_CONFIG_DIR}/paths.local.json" LENS_PATHS_LOCAL_RAW)
 else()
@@ -29,7 +29,7 @@ endif()
 function(lens_path out key)
   string(JSON value ERROR_VARIABLE error GET "${LENS_PATHS_RAW}" "${key}")
   if(error)
-    message(FATAL_ERROR "config/paths.json has no '${key}'; see config/README.md")
+    message(FATAL_ERROR "config/paths.default.json has no '${key}'; see config/README.md")
   endif()
   string(JSON local ERROR_VARIABLE error GET "${LENS_PATHS_LOCAL_RAW}" "${key}")
   if(NOT error)
@@ -42,12 +42,12 @@ endfunction()
 # reading the file at run time.
 lens_path(LENS_SYSTEM_FONTS systemFonts)
 
-# A preset cannot read config/paths.json, so CMakePresets.json takes the Qt prefix from the
+# A preset cannot read config/paths.default.json, so CMakePresets.json takes the Qt prefix from the
 # environment and scripts/build/build.bat exports it from the file. Saying so here beats Qt's own
 # "package configuration file not found", which does not name the lever.
 if((NOT DEFINED CMAKE_PREFIX_PATH OR CMAKE_PREFIX_PATH STREQUAL "") AND NOT DEFINED ENV{QT_ROOT})
   message(FATAL_ERROR
-    "Qt was not located. Set QT_ROOT to the Qt 6 prefix -- config/paths.json carries it as"
+    "Qt was not located. Set QT_ROOT to the Qt 6 prefix -- config/paths.default.json carries it as"
     " qtRoot -- or configure with -DCMAKE_PREFIX_PATH=<prefix>. scripts/build/build.bat does this"
     " for you; see config/README.md.")
 endif()
@@ -146,7 +146,7 @@ configure_file(
 # not let them run the installer over; see docs/adr/0047. It is built here rather than in the
 # release script so that both packages come out of one target and cannot drift.
 #
-# Three machine paths, all from config/paths.json; config/README.md owns the rule.
+# Three machine paths, all from config/paths.default.json; config/README.md owns the rule.
 lens_path(LENS_QT_BIN qtBin)
 lens_path(LENS_INNO_SETUP innoSetup)
 lens_path(LENS_TESSERACT_ROOT tesseractRoot)

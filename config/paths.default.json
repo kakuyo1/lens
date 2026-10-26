@@ -4,8 +4,9 @@
     "the repository -- by CMAKE_SOURCE_DIR in CMake, by 'git rev-parse --show-toplevel' in the",
     "scripts -- and must stay that way; see config/README.md for the rule and its exemptions.",
     "",
-    "These values are the ones this machine was set up with. config/paths.local.json, which is",
-    "gitignored, overrides any key present in it; that is the file to edit on another machine.",
+    "These values are the committed defaults, the ones this machine was set up with. The name says",
+    "template: config/paths.local.json, which is gitignored, overrides any key present here; that is",
+    "the file to edit on another machine.",
     "${HOME} is expanded by the reader, so the user name stays out of the repository."
   ],
   "qtRoot": "B:/qtt/6.9.0/msvc2022_64",

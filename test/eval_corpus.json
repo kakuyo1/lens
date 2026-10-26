@@ -1225,7 +1225,7 @@
   },
   {
     "note": "a path with a slash: dropped whole",
-    "text": "config/paths.json",
+    "text": "config/paths.default.json",
     "expect": [],
     "expectKind": "Sentence"
   },

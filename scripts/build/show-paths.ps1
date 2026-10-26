@@ -1,9 +1,9 @@
-# Print the machine paths Lens actually uses: config/paths.json merged with the gitignored
+# Print the machine paths Lens actually uses: config/paths.default.json merged with the gitignored
 # config/paths.local.json, the latter winning key by key.
 #
 # The merged values are what every script reads through scripts/build/paths.ps1. This wrapper
 # exists so a person or an agent does not have to re-implement that merge -- and, more to the
-# point, so nobody reads config/paths.json alone: that file is the committed template, and a
+# point, so nobody reads config/paths.default.json alone: that file is the committed template, and a
 # machine that differs overrides it in paths.local.json.
 #
 # Each row names the file the key came from and whether the value resolves on this machine. A
@@ -49,7 +49,7 @@ if (-not [string]::IsNullOrWhiteSpace($Key)) {
 # Where each key was last written. Get-LensPaths returns the merge; provenance is only for this
 # report, so reading the two documents again here is cheaper than widening the reader.
 $source = @{}
-foreach ($name in @('paths.json', 'paths.local.json')) {
+foreach ($name in @('paths.default.json', 'paths.local.json')) {
     $file = Join-Path $root "config/$name"
     if (-not (Test-Path -LiteralPath $file)) { continue }
     $document = Get-Content -LiteralPath $file -Raw | ConvertFrom-Json

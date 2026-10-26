@@ -23,7 +23,7 @@ namespace {
 
 void installUiFonts()
 {
-    // LENS_SYSTEM_FONTS is a machine path and arrives from config/paths.json through CMake, the
+    // LENS_SYSTEM_FONTS is a machine path and arrives from config/paths.default.json through CMake, the
     // way LENS_DATA_DIR and LENS_QTEST_DIR already do; only the file names belong here. Adjacent
     // literals concatenate in the preprocessor, so this is still one QStringLiteral.
     const int latin          = QFontDatabase::addApplicationFont(QStringLiteral(LENS_SYSTEM_FONTS "/SegUIVar.ttf"));

@@ -1,4 +1,4 @@
-# The one reader for config/paths.json.
+# The one reader for config/paths.default.json.
 #
 # Every script that needs a machine path comes through here, so the value is written once and a
 # machine that differs overrides it in config/paths.local.json instead of editing four files.
@@ -12,7 +12,7 @@
 function Get-LensPaths {
     <#
     .SYNOPSIS
-        config/paths.json merged with config/paths.local.json, the latter winning key by key.
+        config/paths.default.json merged with config/paths.local.json, the latter winning key by key.
     .PARAMETER Root
         Repository root holding the config/ directory.
     .OUTPUTS
@@ -23,8 +23,8 @@ function Get-LensPaths {
     )
 
     $merged = @{}
-    # Order is the override: 'paths.json' first, so a key in the local file replaces it.
-    foreach ($name in @('paths.json', 'paths.local.json')) {
+    # Order is the override: 'paths.default.json' first, so a key in the local file replaces it.
+    foreach ($name in @('paths.default.json', 'paths.local.json')) {
         $file = Join-Path $Root "config/$name"
         if (-not (Test-Path -LiteralPath $file)) { continue }
         $document = Get-Content -LiteralPath $file -Raw | ConvertFrom-Json

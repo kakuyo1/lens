@@ -6,7 +6,7 @@
 ## 前置条件
 
 1. 原型依赖已安装：`cd ui-prototypes/pet-prototype && npm ci`（脚本从这里取 `playwright` 与 `vite`）。
-2. Chrome 已安装。路径从 `config/paths.json` 的 `chromeExe` 读取，换机器时写进 `config/paths.local.json`；
+2. Chrome 已安装。路径从 `config/paths.default.json` 的 `chromeExe` 读取，换机器时写进 `config/paths.local.json`；
    环境变量 `CHROME` 可以临时覆盖。
 3. 如果改过 `pet-prototype/src/` 或 `embed/settings.template.html`，先重新生成设置页：
    `cd ui-prototypes/pet-prototype && npm run embed`。两个脚本测的是仓库里已有的 `pet.html`，不会自己生成它。

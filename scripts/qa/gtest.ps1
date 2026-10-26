@@ -1,8 +1,8 @@
 # Run one GoogleTest target out of the Debug tree -- a filter, or the whole target -- with the Qt
 # bin and environment the binary needs.
 #
-# The Qt bin comes from config/paths.json merged with config/paths.local.json, through the same
-# scripts/build/paths.ps1 the build reads. Never copy qtRoot out of config/paths.json by hand:
+# The Qt bin comes from config/paths.default.json merged with config/paths.local.json, through the same
+# scripts/build/paths.ps1 the build reads. Never copy qtRoot out of config/paths.default.json by hand:
 # that file is the committed template, and a machine that differs overrides it in
 # paths.local.json. scripts/build/show-paths.ps1 prints the merged values and their source.
 #

@@ -1,6 +1,6 @@
 # `config/` 存什么
 
-机器相关的路径只有这一处配置：签入的模板 `config/paths.json`，加上本机覆盖 `config/paths.local.json`
+机器相关的路径只有这一处配置：签入的模板 `config/paths.default.json`，加上本机覆盖 `config/paths.local.json`
 （gitignore）。项目**自己**的路径不在这里——它们一律相对仓库根解析，
 CMake 侧是 `CMAKE_SOURCE_DIR`（`src/app/CMakeLists.txt`、`test/qtest/CMakeLists.txt` 都在用），脚本侧是
 `git rev-parse --show-toplevel`。这两套机制本来就可迁移，再叠一份配置就是第二个真相，迟早漂移。
@@ -23,7 +23,7 @@ C++ 不读这个文件：路径在 configure 期由 CMake 变成编译定义，�
 
 ## 换机器
 
-`config/paths.local.json`（gitignore）里出现的键逐键覆盖 `paths.json`。换机器改它，不要动提交进仓库的那份。
+`config/paths.local.json`（gitignore）里出现的键逐键覆盖 `paths.default.json`。换机器改它，不要动提交进仓库的那份。
 合并结果、每个键来自哪份文件、值在本机是否存在，用 `powershell -File scripts/build/show-paths.ps1` 查看。
 
 ## 豁免
@@ -37,6 +37,6 @@ C++ 不读这个文件：路径在 configure 期由 CMake 变成编译定义，�
 - 含 `http://`、`https://`、`qrc:/` 的行——URL 与 Qt 资源 URI 都不是文件系统路径。
 - 驱动器号要落在词的边界上（前面不是字母、数字或下划线）：cmd 的 `%VAR:/=\%` 这类替换语法里那个
   `T:/`，因此不算路径。
-- `config/paths.json` 自己——它就是那一处。
+- `config/paths.default.json` 自己——它就是那一处。
 
 取舍与备选方案见 `docs/adr/0006`。

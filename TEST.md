@@ -46,8 +46,8 @@ test/
 | `lens_qtest_components` | `qml/components/` 那八个的接线与交互 | 动组件时，无头，可进 CI |
 | `lens_qtest_surfaces` | 表面：Main 的摆放与关闭、托盘菜单、通知卡片、三张面板、行动条 | 动表面时，无头，可进 CI |
 
-Qt 来自 `config/paths.json` 被 `config/paths.local.json` 逐键覆盖后的合并值，由运行器读取；不要手抄
-`paths.json` 的 `qtRoot`。两个运行器都先做增量构建，再把环境变量配好：
+Qt 来自 `config/paths.default.json` 被 `config/paths.local.json` 逐键覆盖后的合并值，由运行器读取；不要手抄
+`paths.default.json` 的 `qtRoot`。两个运行器都先做增量构建，再把环境变量配好：
 
 ```
 powershell -File scripts/qa/gtest.ps1 -Filter 'PetThrow*'

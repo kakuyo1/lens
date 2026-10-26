@@ -19,7 +19,7 @@
 #   ./scripts/qa/mouse-stall-probe.ps1 -App build-ninja-perf/src/app/lens.exe -Seconds 30
 param(
     [string]$App = 'build-ninja/src/app/lens.exe',  # relative to the repository root, or absolute
-    [string]$QtBin,                 # the app needs the Qt DLLs on PATH; default is config/paths.json
+    [string]$QtBin,                 # the app needs the Qt DLLs on PATH; default is config/paths.default.json
     [int]$Seconds = 20,             # how long to sample for
     [double]$LaunchAfter = 1.5,     # seconds of baseline before the app is started
     [double]$ThresholdMs = 60       # report a call slower than this
@@ -35,7 +35,7 @@ $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $exe = if ([IO.Path]::IsPathRooted($App)) { $App } else { Join-Path $root $App }
 if (-not (Test-Path $exe)) { throw "no executable at $exe" }
 
-# The Qt DLLs the app links against: -QtBin overrides, otherwise config/paths.json, which is the
+# The Qt DLLs the app links against: -QtBin overrides, otherwise config/paths.default.json, which is the
 # one place a machine path is written (config/README.md).
 . "$PSScriptRoot\..\build\paths.ps1"
 if ([string]::IsNullOrWhiteSpace($QtBin)) { $QtBin = (Get-LensPaths -Root $root).qtBin }

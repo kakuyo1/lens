@@ -9,7 +9,7 @@
 # against the wrong .clang-format or none. third_party/ is left alone, as the pre-commit check does.
 #
 # The formatter is found the way check_formatting() in .githooks/pre-commit finds it: clang-format
-# from PATH, else the copies under clangFormatFallbacks in config/paths.json. lens_path_list is
+# from PATH, else the copies under clangFormatFallbacks in config/paths.default.json. lens_path_list is
 # copied from that hook for the same reason. If one of them changes, change both.
 #
 # A missing jq, a missing formatter or a file that is not there exits 0 and says nothing: the
@@ -32,7 +32,7 @@ esac
 
 lens_path_list() {
     command -v powershell >/dev/null 2>&1 || return 0
-    [ -f config/paths.json ] || return 0
+    [ -f config/paths.default.json ] || return 0
     powershell -NoProfile -ExecutionPolicy Bypass -Command \
         ". ./scripts/build/paths.ps1; Get-LensPathList -Root \$PWD -Key $1" 2>/dev/null | tr -d '\r'
 }

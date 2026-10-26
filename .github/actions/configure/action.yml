@@ -2,7 +2,7 @@
 # environment, and a configured tree. The checkout stays in the workflow, because a local action
 # is read out of the workspace and there is no workspace until it has been checked out.
 #
-# One place and not one copy per job, for the reason config/paths.json exists: a Qt version and a
+# One place and not one copy per job, for the reason config/paths.default.json exists: a Qt version and a
 # preset name written everywhere is copies that drift. ilammy/msvc-dev-cmd and
 # jurplel/install-qt-action both publish what they find through GITHUB_ENV, so what they set
 # reaches the calling job's later steps -- which is why a step each in here is enough and nothing
@@ -80,7 +80,7 @@ runs:
     # Studio environment before driving CMake. The runner has VS 2022, so nothing installs.
     - uses: ilammy/msvc-dev-cmd@v1
 
-    # The preset bakes in this machine's Qt prefix, which is where config/paths.json keeps it for
+    # The preset bakes in this machine's Qt prefix, which is where config/paths.default.json keeps it for
     # everything else. Override it here with wherever the action put Qt; the rest of the preset is
     # meant to be used as written. `shell` is not optional in a composite action, and pwsh is what
     # the $env: syntax needs.

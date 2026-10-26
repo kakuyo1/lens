@@ -74,7 +74,7 @@ function Get-QtBin([string]$root, [string]$build, [string]$requested) {
     return (Get-LensPaths -Root $root).qtBin
 }
 
-# Machine paths come from config/paths.json; config/README.md owns the rule.
+# Machine paths come from config/paths.default.json; config/README.md owns the rule.
 . "$PSScriptRoot\..\build\paths.ps1"
 
 $root = Get-RepositoryRoot

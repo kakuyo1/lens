@@ -215,7 +215,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # 19.1.5 is the version the VS copy ships (config/paths.json), so CI formats the way a
+      # 19.1.5 is the version the VS copy ships (config/paths.default.json), so CI formats the way a
       # developer's machine does. The hook finds it on PATH.
       #
       # zhlint is not installed here. Typography only ever looks at .md files, and every change

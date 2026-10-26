@@ -3,7 +3,7 @@
 # The suites are the slowest part of the loop: lens_qtest_surfaces is 188 cases and about two
 # minutes, where a single case is about five seconds. Which of the two to run follows from what
 # changed, and TEST.md section 2 owns that. This script is here so that choosing the narrow one
-# costs nothing: it reads the Qt bin from the merged machine config (config/paths.json, overridden
+# costs nothing: it reads the Qt bin from the merged machine config (config/paths.default.json, overridden
 # by config/paths.local.json), sets QT_QPA_PLATFORM=offscreen, builds the target (incremental, a
 # few seconds) so a stale binary cannot answer for the code, and then forwards the case name to
 # the runner.
@@ -24,7 +24,7 @@ param(
     [string]$Target,
     # A test-function selector, forwarded to the runner as-is.
     [string]$Case,
-    # The Qt the tree runs against. Defaults to qtBin in config/paths.json.
+    # The Qt the tree runs against. Defaults to qtBin in config/paths.default.json.
     [string]$QtBin,
     # The Debug tree, which is where the assertions and the PDB are.
     [string]$BuildDir = "build-ninja"

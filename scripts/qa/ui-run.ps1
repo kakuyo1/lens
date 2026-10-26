@@ -29,7 +29,7 @@ param(
     [switch]$Restart,
     # Seconds to wait for the app's own "Lens is up" line.
     [int]$TimeoutSeconds = 30,
-    # The Qt the tree runs against. Defaults to qtBin in config/paths.json.
+    # The Qt the tree runs against. Defaults to qtBin in config/paths.default.json.
     [string]$QtBin
 )
 
@@ -125,7 +125,7 @@ if ([string]::IsNullOrWhiteSpace($QtBin)) {
     $QtBin = (Get-LensPaths -Root $root).qtBin
 }
 if ([string]::IsNullOrWhiteSpace($QtBin)) {
-    throw "ui-run: config/paths.json carries no qtBin, and -QtBin was not given"
+    throw "ui-run: config/paths.default.json carries no qtBin, and -QtBin was not given"
 }
 
 $before = if (Test-Path -LiteralPath $log) { (Get-Item -LiteralPath $log).Length } else { 0 }
