@@ -11,6 +11,8 @@
 #   app/platform/ no duties/, glass/, pet/, qml/, or the facade.
 #   app/glass/    no duties/, pet/, qml/, or the facade.
 #   app/pet/      no duties/, glass/, qml/, or the facade.
+#   app/geometry/ no duties/, glass/, pet/, qml/, or the facade: the surfaces and their tests
+#                 share it, so it stays a leaf over Qt's value types.
 #
 # app/ at the root is the facade and the shared settings headers, and app/dev/ is the developer
 # tool over the facade; neither is restricted. The platform and pet groups may include the
@@ -84,6 +86,12 @@ BEGIN {
         if ($0 ~ GLASS) hit("the pet shell does not know the glass subsystem")
         if ($0 ~ QML) hit("C++ does not include QML")
         if ($0 ~ FACADE) hit("the pet shell is below the facade")
+    } else if (FILENAME ~ /^src\/app\/geometry\//) {
+        if ($0 ~ DUTIES) hit("the geometry module is below the use cases")
+        if ($0 ~ GLASS) hit("the geometry module does not know the glass subsystem")
+        if ($0 ~ PET) hit("the geometry module does not know the pet shell")
+        if ($0 ~ QML) hit("C++ does not include QML")
+        if ($0 ~ FACADE) hit("the geometry module is below the facade")
     }
 }
 

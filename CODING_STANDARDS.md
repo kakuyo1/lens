@@ -32,5 +32,8 @@
 - **跨线程回调只能排队投递**到拥有表面的线程（`QMetaObject::invokeMethod(..., Qt::QueuedConnection)`）。
 - **纯函数进 `src/app/qml/util/` 的 JS 库，不留在页面或控件里**：`.pragma library` 只接受参数、不碰 QML
   状态；同一段逻辑第二次出现时收进去，原实现删掉。带翻译的句子和领域映射留在自己的模块。
+- **落点几何不归 QML**：锚点、卡尺寸、间距、阴影、工作区与按屏 DIP ↔ native 换算住在
+  `src/app/geometry/surface_geometry.{h,cpp}`，由 `surface_geometry_test` 做值测试（`docs/adr/0116`）。
+  QML 那侧只剩读窗口、写 `x` / `y` 的 adapter；纯 JS 库到不了 gtest，这条不适用。
 
 前四条背后的实测数字与既知边界见 `docs/QML.md` §2 / §3 / §4 / §5。

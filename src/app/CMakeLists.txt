@@ -4,6 +4,7 @@
 #   platform/  -- Win32 and shell integration: the mouse hook, hotkey, tray and window helpers.
 #   glass/     -- the desktop under the cards: capture, duplication and the sheet item.
 #   pet/       -- the pet's Qt shell around the core state machine.
+#   geometry/  -- where a surface goes: anchor, size, gap, shadow and work area in, top-left out.
 #   qml/       -- the surfaces, grouped by surface family, all one QML module.
 #   the root   -- the facade (app_controller), the composition root (main.cpp), and the shared
 #                 settings and projection headers.
@@ -89,6 +90,9 @@ add_library(lens_app STATIC
   pet/pet_placement.cpp
   pet/pet_scenes.cpp
   pet/pet_wander.cpp
+
+  # Geometry: every surface's place, and the one native-to-DIP conversion.
+  geometry/surface_geometry.cpp
 )
 
 # src/ is exposed for self-contained "app/xxx.h" includes (same as lens_core and lens_llm).
@@ -97,6 +101,7 @@ target_include_directories(lens_app PUBLIC ${CMAKE_SOURCE_DIR}/src)
 # The QML type registration includes each module header by its basename, so the directories that
 # hold a registered header must be on the include path for that generated file to find it.
 target_include_directories(lens_app PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/geometry
   ${CMAKE_CURRENT_SOURCE_DIR}/pet
   ${CMAKE_CURRENT_SOURCE_DIR}/glass
   ${CMAKE_CURRENT_SOURCE_DIR}/platform
@@ -216,9 +221,10 @@ set_source_files_properties(qml/components/chrome/GlassRule.qml PROPERTIES QT_QM
 set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Lens")
 
 # The QML files are grouped by surface family. Main.qml is the module entry point and has to stay
-# at the root; SurfaceHost.qml and ScreenPoints.qml sit beside it, holding the placement and panel
-# rules and the native-to-DIP mapping. Each family owns its window, its private parts and its
-# settings previews: bubble/, selection/ (with bodies/),
+# at the root; SurfaceHost.qml and ScreenPoints.qml sit beside it, holding the panel routing and
+# the screen lookup while the placement arithmetic and native-to-DIP mapping live in the
+# SurfaceGeometry singleton (geometry/surface_geometry.cpp). Each family owns its window, its
+# private parts and its settings previews: bubble/, selection/ (with bodies/),
 # settings/ (pages/, previews/), pet/, panels/, capture/. dev/ holds the profiling scenario, and
 # components/ holds the cross-family pieces by role (chrome/, controls/, content/, preview/).
 # theme/ owns every table, from
@@ -239,6 +245,7 @@ qt_add_qml_module(lens_app
   IMPORTS QtQuick
   SOURCES
     app_controller.h
+    geometry/surface_geometry.h
     glass/glass_sheet_item.h
     platform/tray.h
     platform/system_motion.h

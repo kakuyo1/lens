@@ -8,7 +8,8 @@ import QtQuick.Window
  * the engine's root object. It still has to be shown -- a window declared inside another becomes its
  * transient child, and Windows keeps a transient child off screen while its parent is hidden. Every
  * surface is a window of its own (UI-SPEC.md's "each surface is independent, sharing no window").
- * Placement and panel routing live in SurfaceHost.qml; ScreenPoints.qml and dev/ProfileScenario.qml
+ * Placement and panel routing live in SurfaceHost.qml, on the arithmetic in the SurfaceGeometry
+ * singleton (src/app/geometry/surface_geometry.h); ScreenPoints.qml and dev/ProfileScenario.qml
  * hold the other two helpers, keeping this file under the QML size cap.
  */
 Window {
@@ -168,7 +169,8 @@ Window {
         onHeightChanged: surfaceHost.keepOnScreen(trayMenu)
     }
 
-    /// The placement and panel rules live in SurfaceHost.qml, keeping this file under the QML size cap.
+    /// The panel routing lives in SurfaceHost.qml and the placement arithmetic in SurfaceGeometry,
+    /// keeping this file under the QML size cap.
     SurfaceHost {
         id: surfaceHost
         objectName: "surfaceHost"

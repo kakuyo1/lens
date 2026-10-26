@@ -86,11 +86,14 @@ Window {
         }
     }
 
-    /// Answers the question. The bubble's anchor goes out in physical pixels, as every other surface's does.
+    /// Answers the question. The bubble's anchor goes out in physical pixels, as every other surface's does,
+    /// converted from this screen's own origin (surface_geometry.h).
     function answer(remembered) {
-        const ratio = Screen.devicePixelRatio || 1;
         const centre = Qt.point(boardAt.x + paper.boardWidth / 2, boardAt.y + paper.boardHeight / 2);
-        Controller.answerReview(remembered, Math.round(centre.x * ratio), Math.round(centre.y * ratio));
+        const nativeAt = SurfaceGeometry.nativeFromDipPoint(centre,
+                                                            Qt.point(Screen.virtualX, Screen.virtualY),
+                                                            Screen.devicePixelRatio || 1);
+        Controller.answerReview(remembered, nativeAt.x, nativeAt.y);
     }
 
     /**

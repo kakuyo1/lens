@@ -11,9 +11,11 @@
 `capture/`（取词蒙版）。一个家族
 目录放它的窗口、只属于它的内部件、只给它用的预览。`dev/` 放 `ProfileScenario.qml`，它是 profiling 的
 自动化，不是产品行为。根下只留 `Main.qml`（`loadFromModule("Lens", "Main")` 的入口）、
-`SurfaceHost.qml`（放置、接力与外部点击的规则）与 `ScreenPoints.qml`（原生像素到 DIP 的换算）。
+`SurfaceHost.qml`（面板路由、接力、外部点击，以及读窗口写位置）与 `ScreenPoints.qml`（找屏与复制 payload）。
+落点算术与按屏换算不在这两个文件里：它们是 C++ 的 `SurfaceGeometry`（`src/app/geometry/surface_geometry.h`，
+§4）。
 
-`src/app/qml/util/` 放纯函数 JS 库，按职责分文件：`Numbers.js` 收 `clamp`，`Format.js` 收字节与金额的展示格式。它们带 `.pragma library`，拿不到 QML 状态，也不注册成 QML 类型；用它的文件按相对路径 import，如 `import "../util/Format.js" as Format`。页面与控件里不留同一段工具函数的第二份实现；带翻译的句子和领域映射（设置页标题、词表时间文案）不算纯工具，留在自己的模块。
+`src/app/qml/util/` 放纯函数 JS 库，按职责分文件：`Numbers.js` 收 `clamp`，`Format.js` 收字节与金额的展示格式。它们带 `.pragma library`，拿不到 QML 状态，也不注册成 QML 类型；用它的文件按相对路径 import，如 `import "../util/Format.js" as Format`。页面与控件里不留同一段工具函数的第二份实现；带翻译的句子和领域映射（设置页标题、词表时间文案）不算纯工具，留在自己的模块。落点几何是例外：它跨表面、要进程内值测试，住在 `app/geometry`（`docs/adr/0116`）。
 
 `src/app/qml/components/` 只放一个以上表面家族都用得到的件，并按角色分四组：`chrome/`（玻璃、阴影、淡入
 淡出、高度保持）、`controls/`（图标、按钮、开关、滑块、下拉、路径与热键输入）、`content/`（混排文字、逐字
@@ -117,24 +119,26 @@
 
 ## 4 定位
 
+- **跨表面的落点算术只有一份**：锚点、卡尺寸、间距、阴影与工作区进去，窗口左上角出来——`src/app/geometry/surface_geometry.h` 的 `SurfaceGeometry`。它是无状态的 QML singleton，不读窗口、不问屏幕、不持状态；`SurfaceHost.qml` 只读窗口与屏幕、取工作区、写 `x` / `y`，`ScreenPoints.qml` 只找屏与复制 payload（`docs/adr/0116`）。带自己形态的表面（`SelectionBar` 的五个身体、`ReviewSignLayout` 的签与卡）保留各自的边与对齐规则。规则由 `surface_geometry_test` 的值用例钉住，原来要搭起整个 `Main.qml` 才测得到的落点断言搬了过去；`tst_main` 保留交接用的 adapter 用例与面板增长、路由的行为。
 - **贴合按卡片算，不按窗口**：每个表面都是卡片加四边各 26 px 透明阴影边距的窗口，早先拿窗口去贴锚点，
-  卡片实际偏出一个边距（气泡纵向还多偏一个 gap），看着就是没贴住选区。气泡与动作条的 `placeTransient()`
-  现在把 `shadowMargin` 减掉再算。定位与边缘检测合成一处（`SurfaceHost.qml` 的 `placeBeside()`：把卡片的右下角放在
+  卡片实际偏出一个边距（气泡纵向还多偏一个 gap），看着就是没贴住选区。气泡与动作条的 `transient()`
+  现在把 `shadowMargin` 减掉再算。定位与边缘检测合成一处（`surface_geometry.cpp` 的 `besideAnchor()`：把卡片的右下角放在
   图标**中心**，按锚点所在那屏把窗口整块夹进屏内，上方放不下就翻到下方）；四张面板的 `openNear` 与
   `TrayMenu.openAt` 因此全部删掉，菜单与面板走同一条路。
 - **气泡与动作条同侧**：两张卡片都由 “选区完成” 这一个手势触发，故都往选区的**上方**排，上方空间不足
   时才下移。气泡原规格是挂在锚点**下方**，动作条在**上方**，同一个手势引出的两张卡片一上一下，读起来
-  是两件不相干的东西各自乱落。两张卡片的翻转都在 `SurfaceHost.qml` 的 `placeTransient()` 里，以所在屏工作区的顶边为界。
+  是两件不相干的东西各自乱落。气泡的翻转在 `SurfaceGeometry.transient()` 里，动作条的各形态在自身的 `placeAt()` 里用同一条上下规则，两者都以所在屏工作区的顶边为界。
   早先拿屏幕绝对坐标 0 当上边界，副屏在负 y 时选区一律翻到下方。
 - **锚点是物理像素，窗口坐标不是**：钩子拿到的 `pt` 从不虚拟化，而 QML 窗口落在设备无关像素上，两者差
   一个 `devicePixelRatio`（本机 125% 实测：物理 x=275 的松手位置，窗口坐标是 220）；按 1:1 直接用，
   动作条会偏出选区四分之一屏，渲染循环还会记 “矩形不与屏幕相交”。Qt 会把 `QGuiApplication` 设成
   per-monitor aware（实测进程感知级别 = 2），这一条只决定渲染清晰度，不改变上面的换算——交给动作条与
-  气泡之前必须先除。
+  气泡之前必须先除。这一步只有 `SurfaceGeometry.dipFromNativePoint()` 一份。
 - **Qt 按屏幕原点摆放窗口，换算也要按原点**：窗口落在某块屏上时，原生像素等于原点加上（DIP 减原点）乘以缩放。
   实测竖屏在主屏上方（`G52plus`，原点 `197,-2560`，尺寸 `1152x2048`，125%）：卡片摆在 DIP y 为 -1120 处，画在原生 y 为 -760 处。
-- 原先 `toDip` 与 `screenForPhysical` 把原点也乘了缩放，只有原点为零的屏幕才对。这块屏上每个点因此偏 512 DIP，动作条与气泡落在选中文字下方约 640 物理像素处，点击判定又用的是错位的卡片矩形，动作条一按就关。现在 `dipOn()` 按原点换算，与摆放的映射互逆；`screenForPhysical` 的边界也不再乘缩放。
-- 只在这一种布局（主屏原点为零、竖屏在上方）上实测过，主屏右侧或缩放不同的副屏未测。回归用例是 `tst_main` 的 `test_aPortraitScreenAboveThePrimaryConvertsFromItsOrigin`。
+- 原先 `toDip` 与 `screenForPhysical` 把原点也乘了缩放，只有原点为零的屏幕才对。这块屏上每个点因此偏 512 DIP，动作条与气泡落在选中文字下方约 640 物理像素处，点击判定又用的是错位的卡片矩形，动作条一按就关。现在 `dipFromNativePoint()` 按原点换算，与摆放的映射互逆；`screenForPhysical` 的边界也不再乘缩放。
+- **DIP → 原生也要按原点**：`WordsListRow.qml` 与 `ReviewSignWindow.qml` 早先把 DIP 坐标从 0 起乘 `ratio`，与上面那条公式只在原点为零的屏幕上一致；屏幕原点不为零时偏 `origin * (1 - ratio)`，复习卡在那块屏上落偏。现在两处都走 `SurfaceGeometry.nativeFromDipPoint()`，与 `dipFromNativePoint()` 互逆。
+- 只在这一种布局（主屏原点为零、竖屏在上方）上实测过，主屏右侧或缩放不同的副屏未测。回归用例是 `surface_geometry_test` 的 `APointConvertsFromItsScreensOwnOrigin`，以及 `tst_main` 的 `test_aPortraitScreenAboveThePrimaryConvertsFromItsOrigin`（钉住 `ScreenPoints` 把屏幕原点交出去）。
 - **按设备名查屏幕，空名字不算名字**：QTest 的 offscreen 平台主屏没有名字，尺寸是 800×800。`AppController::screenWorkArea("")` 原先会匹配到它，把 800×800 交给只有 `width/height` 的假屏幕，`tst_phase2e` 的窄屏用例因此失败。现在空名返回空矩形，调用方回退到自己的几何。
 - **物理 → 设备无关那次换算要造新对象**：`ScreenPoints.qml` 的 `toDip()` 原形如 `payload.x = payload.x / ratio`，
   而 `payload` 是 `controller.bubble` 这类 `QVariantMap` 属性交出来的 JS 对象——**赋值被接受、读回来
@@ -146,7 +150,8 @@
 - **气泡的高度要在布局之后再量一次**：`Bubble.show()` 原来在同一次调用里算完位置，而 `height` 是内容的，
   刚赋过 `text` 的 `Text` 还没布局——实测这一步读到 85，卡片实际占 132。卡片于是按 “矮” 定位，随后向下
   长过它本应让开的选区。现在先摆一次（这一帧要画的东西），再 `Qt.callLater(place, payload)` 按真实高度
-  摆第二次。同一机制对 `SelectionBar` 无影响：它三项固定、高度不随内容变。
+  摆第二次。窗口高度由 `SurfaceGeometry.windowHeight()` 结算，预撑高的 floor 由 `heldFloor()` 结算
+  （`docs/adr/0055`）。同一机制对 `SelectionBar` 无影响：它三项固定、高度不随内容变。
 - **`QSystemTrayIcon::geometry()` 给的是设备无关像素，不是物理像素**，而且任务栏自动隐藏时不报值。实测：
   把任务栏勾出来时返回 `(1313, 816, 32, 48)`——1313 DIP 对应物理 1641，正是通知区左缘，48 DIP 是那
   60 物理像素的任务栏厚度。任务栏一收回去它就变 0，而弹窗都是从托盘菜单点开的，点的那一刻任务栏已经
@@ -162,7 +167,7 @@
 - **主屏的任务栏是自动隐藏的**，`GetSystemMetrics(0/1)` 只给主屏尺寸；要整块虚拟桌面得用 76 / 77 / 78 / 79
   四个索引。
 
-- **表面长大后要重新夹一次**：气泡的动作行展开、面板的列表加载，都发生在摆好之后。窗口的左上角不动，下缘或右缘就越过了工作区。`SurfaceHost.qml` 的 `keepOnScreen()` 挂在气泡、设置与托盘菜单的 `onWidthChanged` / `onHeightChanged` 上，只做夹取。不能拿锚点重摆：那会把读者拖走的面板摆回原处。
+- **表面长大后要重新夹一次**：气泡的动作行展开、面板的列表加载，都发生在摆好之后。窗口的左上角不动，下缘或右缘就越过了工作区。`SurfaceHost.qml` 的 `keepOnScreen()` 挂在气泡、设置与托盘菜单的 `onWidthChanged` / `onHeightChanged` 上，夹取本身是 `SurfaceGeometry.keptOnScreen()`。不能拿锚点重摆：那会把读者拖走的面板摆回原处。
 - **统计一组钉住右下角**：统计、花费、词汇、年度记录改挂 `holdCorner()`，长大时保持右下角不动，夹取只作兜底。它凭上一次摆放记下的尺寸算出右下角；拖动只动位置、不动尺寸，所以拖开过的面板仍钉在它被拖到的那一角。
 - **接力摆放**：子面板从被替换的那张的右下角摆（`anchorFrom(from)`），不从托盘重摆；托盘菜单打开统计时取托盘菜单的右下角。代价：屏幕布局变化时，子面板还停在打开它那一刻的角上，直到下次打开。
 - **切换是交叠，不是先收后开**：被替换的窗口由 `hidePanels(except)` 设 `leaving`，`ShadowCard` 的 `shown` 随之为假，卡片淡出；窗口由 `ShadowCard` 里一个与淡出等长的 `Timer` 收起，而不是等动画的 `finished`：淡入还没完就被替换时，透明度已经在终点，`Behavior` 不启动，`finished` 永远不来，窗口会一直以透明状态拦截点击。`except`（即将打开的那张）的 `leaving` 同一处清掉，计时器停下，淡出中途召回则从当前透明度反向淡入。动画时长为 0 时 `hidePanels` 直接收起，不留一个透明却拦点击的窗口。

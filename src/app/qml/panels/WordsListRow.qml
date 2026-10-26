@@ -62,13 +62,18 @@ Item {
         onTriggered: {
             // The word's own rectangle, not a point above it: the review card is pinned by its
             // bottom edge to the word and flips below when the screen has no room above. The
-            // pixels go out in the physical units the other surface anchors use, and the card's
-            // own height is read when it is placed, so a long answer moves its top, never its gap.
-            const at = wordText.mapToGlobal(0, 0);
+            // pixels go out in the physical units the other surface anchors use, converted from
+            // this screen's own origin rather than from zero -- on a screen away from zero the
+            // two differ by origin * (1 - ratio) (docs/QML.md section 4). The card's own height
+            // is read when it is placed, so a long answer moves its top, never its gap.
             const ratio = Screen.devicePixelRatio || 1;
-            Controller.reviewWord(entry.modelData.word,
-                                  Math.round(at.x * ratio), Math.round(at.y * ratio),
-                                  Math.round(wordText.width * ratio), Math.round(wordText.height * ratio));
+            const at = wordText.mapToGlobal(0, 0);
+            const nativeAt = SurfaceGeometry.nativeFromDipPoint(Qt.point(at.x, at.y),
+                                                                Qt.point(Screen.virtualX, Screen.virtualY),
+                                                                ratio);
+            Controller.reviewWord(entry.modelData.word, nativeAt.x, nativeAt.y,
+                                  SurfaceGeometry.nativeFromDipLength(wordText.width, ratio),
+                                  SurfaceGeometry.nativeFromDipLength(wordText.height, ratio));
         }
     }
 

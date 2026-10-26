@@ -39,8 +39,7 @@ Window {
     readonly property int dismissAfterMs: Controller.settings.bubbleDismissSeconds * 1000
 
     width: content.implicitWidth + 2 * shadowMargin
-    height: Math.round(Math.max(rowHold.active ? rowHold.floor : 0,
-                                content.implicitHeight) + 2 * shadowMargin)
+    height: SurfaceGeometry.windowHeight(content.implicitHeight, rowHold.active ? rowHold.floor : 0, shadowMargin)
     onVisibleChanged: {
         if (!visible) {
             rowHold.active = false;

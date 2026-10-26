@@ -2,8 +2,9 @@ import QtQuick
 
 /**
  * Maps a position the mouse hook reports, in native screen pixels, to DIPs, the unit a window is placed in. It holds no
- * window and draws nothing: Main.qml owns the surfaces and SurfaceHost.qml places them, while this only turns points, so
- * both stay under the QML size cap (QML.md section 1), as ProfileScenario.qml does.
+ * window and draws nothing: Main.qml owns the surfaces and SurfaceHost.qml places them, while this turns the hook's
+ * payloads around. The conversion itself is SurfaceGeometry's (src/app/geometry/surface_geometry.h), the one copy
+ * every surface and the tests read (docs/adr/0116).
  */
 QtObject {
     /// SurfaceHost.qml, whose screenForPhysical() finds the screen a native point is on.
@@ -14,14 +15,14 @@ QtObject {
      *
      * Qt draws a window on a screen at native = origin + (dip - origin) * scale. Measured on the
      * portrait monitor above the primary at 125% (origin 197,-2560): a card placed at DIP y -1120
-     * was drawn at native y -760. Scaling from zero is right only for a screen whose origin is zero;
-     * on this one it misplaces every point by origin * (1 - 1 / scale), which is 512 DIPs.
+     * was drawn at native y -760. SurfaceGeometry.dipFromNativePoint carries the formula and its
+     * value test; this finds the screen first.
      */
     // qmllint disable missing-property
     function dipOn(screen, point) {
-        const ratio = screen.devicePixelRatio || 1;
-        return Qt.point(screen.virtualX + (point.x - screen.virtualX) / ratio,
-                        screen.virtualY + (point.y - screen.virtualY) / ratio);
+        return SurfaceGeometry.dipFromNativePoint(Qt.point(point.x, point.y),
+                                                  Qt.point(screen.virtualX, screen.virtualY),
+                                                  screen.devicePixelRatio || 1);
     }
     // qmllint enable missing-property
 
@@ -42,9 +43,9 @@ QtObject {
         // The anchor's own size travels with it when the card is placed against a whole object:
         // a native-pixel size divided by the same screen scale gives the DIP size the window sees.
         if (payload.anchorWidth !== undefined)
-            out.anchorWidth = payload.anchorWidth / ratio;
+            out.anchorWidth = SurfaceGeometry.dipFromNativeLength(payload.anchorWidth, ratio);
         if (payload.anchorHeight !== undefined)
-            out.anchorHeight = payload.anchorHeight / ratio;
+            out.anchorHeight = SurfaceGeometry.dipFromNativeLength(payload.anchorHeight, ratio);
         return out;
     }
     // qmllint enable missing-property

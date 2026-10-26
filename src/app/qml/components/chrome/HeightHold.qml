@@ -11,7 +11,8 @@ import QtQuick
  * flickers -- the two panels in docs/adr/0055 keep following their content frame by frame.
  *
  * A transition starts with begin() and ends when the content reaches the target; the target is
- * the caller's, because only it knows which rows the new state will show.
+ * the caller's, because only it knows which rows the new state will show. The floor and the window
+ * height are SurfaceGeometry's (surface_geometry.h); this object owns the transition's timing.
  */
 QtObject {
     id: root
@@ -38,7 +39,7 @@ QtObject {
             active = false;
             return;
         }
-        floor = Math.max(active ? floor : contentHeight, lastTarget);
+        floor = SurfaceGeometry.heldFloor(root.floor, root.active, root.contentHeight, lastTarget);
         active = true;
         checks = 0;
         settle.interval = root.duration + 17;

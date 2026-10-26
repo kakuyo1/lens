@@ -1,13 +1,15 @@
 import QtQuick
-import "util/Numbers.js" as Numbers
 
 /**
- * The host's placement and panel routing: where a surface goes, which panel replaces which, and
- * what a press outside closes. Main.qml owns the surfaces; this owns the rules that place them,
- * so the root object stays under the QML size cap (docs/QML.md section 1).
+ * The host's placement and panel routing: which rule puts a surface where, which panel replaces
+ * which, and what a press outside closes. Main.qml owns the surfaces; this gathers the facts a
+ * rule needs and writes the answer, so the root object stays under the QML size cap (docs/QML.md
+ * section 1).
  *
- * Coordinates are DIPs. ScreenPoints maps the mouse hook's native pixels to DIPs before anything
- * here is called.
+ * The arithmetic is SurfaceGeometry's (src/app/geometry/surface_geometry.h): this file reads the
+ * windows, the screens and their work areas, hands those facts over, and writes back the top-left
+ * it gets. Coordinates are DIPs; ScreenPoints maps the mouse hook's native pixels to DIPs before
+ * anything here is called.
  */
 QtObject {
     id: host
@@ -25,7 +27,8 @@ QtObject {
     required property var yearWordsPopup
     required property var costPopup
 
-    readonly property int screenMargin: 8
+    /// The clear band every surface keeps off the work area's edges, from the one geometry module.
+    readonly property int screenMargin: SurfaceGeometry.margin
     property var placements: []
     property string screenLayoutSignature: ""
 
@@ -71,7 +74,7 @@ QtObject {
         // qmllint disable missing-property
         for (const s of Qt.application.screens) {
             const ratio = s.devicePixelRatio || 1;
-            // The origin is not scaled, as ScreenPoints.dipOn assumes: only the size is in DIPs.
+            // The origin is not scaled, as SurfaceGeometry.dipFromNativePoint() assumes: only the size is in DIPs.
             const left = s.virtualX;
             const top = s.virtualY;
             const right = left + s.width * ratio;
@@ -121,14 +124,19 @@ QtObject {
     }
     // qmllint enable missing-property
 
+    /// @return @p target's work area as the rectangle SurfaceGeometry takes: its far edges are `right`
+    ///         and `bottom`, which is how QRectF reads them.
+    function areaOf(target) {
+        const area = workArea(target);
+        return Qt.rect(area.left, area.top, area.right - area.left, area.bottom - area.top);
+    }
+
     /// @return A native-size surface bounded to the work area without changing its content scale.
     function layoutFor(target, width, height) {
-        const area = workArea(target);
-        const availableWidth = Math.max(1, area.right - area.left - 2 * screenMargin);
-        const availableHeight = Math.max(1, area.bottom - area.top - 2 * screenMargin);
+        const size = SurfaceGeometry.boundedSize(Qt.size(width, height), areaOf(target), screenMargin);
         return {
-            width: Math.min(Math.max(1, width), availableWidth),
-            height: Math.min(Math.max(1, height), availableHeight)
+            width: size.width,
+            height: size.height
         };
     }
 
@@ -136,74 +144,20 @@ QtObject {
     function placeBeside(anchor, width, height, target, shadowMargin) {
         target = target || screenFor(anchorPoint(anchor));
         shadowMargin = shadowMargin === undefined ? 26 : shadowMargin;
-        const margin = screenMargin;
-        const area = workArea(target);
-        const left = area.left + margin;
-        const top = area.top + margin;
-        const right = area.right - margin;
-        const bottom = area.bottom - margin;
-
-        const x = Numbers.clamp(anchor.x + anchor.width / 2 - width + shadowMargin,
-                                left, right - width);
-        let y = anchor.y + anchor.height / 2 - height + shadowMargin;
-        if (y < top)
-            y = anchor.y + anchor.height + 8;
-        return Qt.point(Math.round(x), Math.round(Numbers.clamp(y, top, bottom - height)));
+        return SurfaceGeometry.besideAnchor(Qt.rect(anchor.x, anchor.y, anchor.width, anchor.height),
+                                            Qt.size(width, height), areaOf(target), shadowMargin, screenMargin);
     }
 
     /// @brief Where a panel sits beside the pet's rectangle rather than beside the tray icon.
-    ///
-    /// The candidates are the pet's four sides in the order right, left, below, above, each a card
-    /// @p gap clear of that side and centred across its length. Each is scored by how much of the
-    /// pet the clamped card covers (0 for a side the card clears); lowest wins, ties by that order.
-    /// The score rather than a fit test keeps the card off the pet: a work area too short clamps the
-    /// card back over it, and the side clamped least far onto the pet survives. The horizontal sides
-    /// come first because the card is 532 px tall and needs that much work-area height to clear the
-    /// pet vertically, which the corner the pet is usually left in does not have.
     /// @param rectangle The pet window's rectangle as it stands. The pet can be dragged or grown
     ///        over an edge, so it is read against the work area first: the on-screen part is what
     ///        the card is put beside.
     /// @return The panel's top-left corner, in DIPs.
     function placeBesidePet(rectangle, width, height, gap) {
-        const area = workArea(screenFor(Qt.point(rectangle.x + rectangle.width / 2,
-                                                           rectangle.y + rectangle.height / 2)));
-        const left = area.left + screenMargin;
-        const top = area.top + screenMargin;
-        const right = area.right - screenMargin;
-        const bottom = area.bottom - screenMargin;
-        // Each clamp is monotone, so a pet dragged wholly past an edge collapses onto that edge
-        // rather than turning its rectangle inside out.
-        const petLeft = Numbers.clamp(rectangle.x, left, right);
-        const petRight = Numbers.clamp(rectangle.x + rectangle.width, petLeft, right);
-        const petTop = Numbers.clamp(rectangle.y, top, bottom);
-        const petBottom = Numbers.clamp(rectangle.y + rectangle.height, petTop, bottom);
-        const centreX = (petLeft + petRight) / 2;
-        const centreY = (petTop + petBottom) / 2;
-
-        const candidates = [
-            Qt.point(petRight + gap, centreY - height / 2),
-            Qt.point(petLeft - gap - width, centreY - height / 2),
-            Qt.point(centreX - width / 2, petBottom + gap),
-            Qt.point(centreX - width / 2, petTop - gap - height)
-        ];
-        /// The candidate's rectangle, pulled back inside the work area by however much of it hangs out.
-        const onScreen = function (at) {
-            return Qt.rect(Numbers.clamp(at.x, left, right - width), Numbers.clamp(at.y, top, bottom - height),
-                           width, height);
-        };
-        /// How much of the pet that rectangle covers.
-        const covered = function (at) {
-            return Math.max(0, Math.min(at.x + at.width, petRight) - Math.max(at.x, petLeft))
-                 * Math.max(0, Math.min(at.y + at.height, petBottom) - Math.max(at.y, petTop));
-        };
-
-        let chosen = onScreen(candidates[0]);
-        for (const candidate of candidates) {
-            const at = onScreen(candidate);
-            if (covered(at) < covered(chosen))
-                chosen = at;
-        }
-        return Qt.point(Math.round(chosen.x), Math.round(chosen.y));
+        const target = screenFor(Qt.point(rectangle.x + rectangle.width / 2,
+                                          rectangle.y + rectangle.height / 2));
+        return SurfaceGeometry.besidePet(Qt.rect(rectangle.x, rectangle.y, rectangle.width, rectangle.height),
+                                         Qt.size(width, height), areaOf(target), gap, screenMargin);
     }
 
     /// @brief Put a panel up beside the pet, and remember that it went there: a placement is recomputed
@@ -235,20 +189,6 @@ QtObject {
         panel.raise();
     }
 
-    /// @brief Where a surface that hangs from an anchor sits, before it is clamped into the work area.
-    ///
-    /// The side the reader chose (bubblePlacement) is tried first. The other side is taken when the
-    /// chosen one has no room, and that is also the answer when neither side has any: the clamp in
-    /// placeTransient() then keeps the surface on screen.
-    /// @return The window's top edge, in DIPs.
-    function transientTop(anchorY, gap, height, shadow, top, bottom, preferBelow) {
-        const above = anchorY - gap - height + shadow;
-        const below = anchorY + gap - shadow;
-        if (preferBelow)
-            return below + height <= bottom ? below : above;
-        return above >= top ? above : below;
-    }
-
     // qmllint disable missing-property
     function placeTransient(surface, anchor, gap) {
         rememberPlacement(surface, anchor, "transient");
@@ -256,17 +196,11 @@ QtObject {
         // Read the dimensions at placement time. Bubble's implicit height changes when its
         // senses, translation, or hover actions settle; caching its first size breaks that path.
         const layout = layoutFor(target, surface.width, surface.height);
-        const area = workArea(target);
-        const left = area.left + screenMargin;
-        const top = area.top + screenMargin;
-        const right = area.right - screenMargin;
-        const bottom = area.bottom - screenMargin;
-        const shadow = surface.shadowMargin;
-        const x = Numbers.clamp(anchor.x - shadow, left, right - layout.width);
-        const preferBelow = Controller.settings.bubblePlacement === "below";
-        const y = Numbers.clamp(transientTop(anchor.y, gap, layout.height, shadow, top, bottom, preferBelow), top, bottom - layout.height);
-        surface.x = Math.round(x);
-        surface.y = Math.round(y);
+        const at = SurfaceGeometry.transient(Qt.point(anchor.x, anchor.y), Qt.size(layout.width, layout.height),
+                                             areaOf(target), gap, surface.shadowMargin,
+                                             Controller.settings.bubblePlacement === "below", screenMargin);
+        surface.x = at.x;
+        surface.y = at.y;
         surface.raise();
     }
 
@@ -291,33 +225,12 @@ QtObject {
         if (!surface || surface.dragging)
             return;
         const target = screenFor(Qt.point(payload.x, payload.y));
-        const area = workArea(target);
-        const left = area.left + screenMargin;
-        const top = area.top + screenMargin;
-        const right = area.right - screenMargin;
-        const bottom = area.bottom - screenMargin;
-        const shadow = surface.shadowMargin;
-        const width = surface.width;
-        const height = surface.height;
-        const anchorHeight = payload.anchorHeight || 0;
-
-        const above = payload.y - surface.gap + shadow - height;
-        const below = payload.y + anchorHeight + surface.gap - shadow;
-        let y;
-        if (above >= top)
-            y = above;
-        else if (below + height <= bottom)
-            y = below;
-        else if (payload.y - top >= bottom - (payload.y + anchorHeight))
-            y = top;
-        else
-            y = bottom - height;
-        y = Numbers.clamp(y, top, bottom - height);
-
-        // The card's left edge, not the window's: the window carries the shadow margin.
-        const x = Numbers.clamp(payload.x - shadow, left, right - width);
-        surface.x = Math.round(x);
-        surface.y = Math.round(y);
+        const at = SurfaceGeometry.reviewCard(
+                    Qt.rect(payload.x, payload.y, payload.anchorWidth || 0, payload.anchorHeight || 0),
+                    Qt.size(surface.width, surface.height), areaOf(target),
+                    surface.gap, surface.shadowMargin, screenMargin);
+        surface.x = at.x;
+        surface.y = at.y;
         surface.raise();
         reviewHold.restart();
     }
@@ -419,9 +332,12 @@ QtObject {
     function keepOnScreen(surface) {
         if (!surface.visible)
             return;
-        const area = workArea(screenFor(Qt.point(surface.x + surface.width / 2, surface.y + surface.height / 2)));
-        surface.x = Numbers.clamp(surface.x, area.left + screenMargin, area.right - screenMargin - surface.width);
-        surface.y = Numbers.clamp(surface.y, area.top + screenMargin, area.bottom - screenMargin - surface.height);
+        const at = SurfaceGeometry.keptOnScreen(
+                    Qt.point(surface.x, surface.y), Qt.size(surface.width, surface.height),
+                    areaOf(screenFor(Qt.point(surface.x + surface.width / 2, surface.y + surface.height / 2))),
+                    screenMargin);
+        surface.x = at.x;
+        surface.y = at.y;
     }
 
     function repositionVisible() {
