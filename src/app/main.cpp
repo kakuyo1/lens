@@ -324,8 +324,10 @@ int main(int argc, char* argv[])
 
     TranslationKeeper translations;
     // Through the row: uiLanguage is a table row, and its "not stored yet" answer is the row's
-    // own default, not an empty language code the caller has to patch over.
-    const QString uiLanguage = settings::read(store.section(), *core::settings::find("uiLanguage")).toString();
+    // own default, not an empty language code the caller has to patch over. Qualified here, the
+    // way the rest of this file names what it uses: main() is outside the namespaces.
+    const QString uiLanguage =
+        lens::app::settings::read(store.section(), *lens::core::settings::find("uiLanguage")).toString();
     translations.select(uiLanguage);
     // Installing a translator does not make QML's qsTr bindings re-evaluate -- the tray menu
     // follows along only because Tray::retranslate() listens for this signal, and the surfaces
