@@ -155,23 +155,27 @@ TEST(WordsModel, AFilterSwitchDiffsBothSetsAndADeletionStillRemovesRows)
                   entry("river", "2026-10-19 10:00", "new"),
                   entry("ghost", "2026-10-18 08:00", "known")});
 
+    // Rows, not signals: a filter that drops neighbours reports one run for the stretch, so a
+    // count of rowsRemoved emissions would answer a different question than the one asked here.
     int removed = 0;
     int added   = 0;
     int reset   = 0;
-    QObject::connect(&model, &QAbstractItemModel::rowsRemoved, [&](QModelIndex const&, int, int) { ++removed; });
-    QObject::connect(&model, &QAbstractItemModel::rowsInserted, [&](QModelIndex const&, int, int) { ++added; });
+    QObject::connect(&model, &QAbstractItemModel::rowsRemoved, [&](QModelIndex const&, int first, int last) { removed += last - first + 1; });
+    QObject::connect(&model, &QAbstractItemModel::rowsInserted, [&](QModelIndex const&, int first, int last) { added += last - first + 1; });
     QObject::connect(&model, &QAbstractItemModel::modelReset, [&] { ++reset; });
 
     // With no swap to wait for, both phases land in the call: the list is still told row by row,
-    // never dropped and rebuilt.
+    // never dropped and rebuilt. A narrower set only takes rows away -- nothing in it is a row the
+    // list did not already hold.
     model.setFilter(static_cast<int>(ExportScope::New));
-    EXPECT_GT(removed, 0);
-    EXPECT_GT(added, 0);
+    EXPECT_EQ(removed, 2);
+    EXPECT_EQ(added, 0);
     EXPECT_EQ(reset, 0);
     ASSERT_EQ(model.rowCount(), 1);
     EXPECT_EQ(wordAt(model, 0), QStringLiteral("river"));
     EXPECT_FALSE(model.filterSwitching());
 
+    // And the way back is the other direction: the rows it wants are the ones that arrive.
     removed = 0;
     added   = 0;
     model.setFilter(static_cast<int>(ExportScope::All));

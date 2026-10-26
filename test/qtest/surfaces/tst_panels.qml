@@ -39,6 +39,17 @@ Item {
         readonly property var costDuty: Controller.costDuty
 
         function make(component) {
+            // The words panel opens on the whole list (WordsPopup's Component.onCompleted), and a
+            // panel is born on whatever the model holds at that moment. A case that follows one
+            // which left a filter behind would therefore be born on a partial list, and a list
+            // that grows while the window is still hidden keeps its holes until the first frame --
+            // so the model is put back on the whole list *before* the panel exists, and the switch
+            // that does it is given the time to land. The other two panels never read the model,
+            // so the write costs them nothing.
+            Controller.wordsModel.filter = 0;
+            tryVerify(function () { return !Controller.wordsModel.filterSwitching; },
+                      5000, "the words model never came back to the whole list");
+
             const panel = createTemporaryObject(component, root);
             verify(panel);
             wait(50);
@@ -168,21 +179,26 @@ Item {
             mouseClick(button, button.width / 2, button.height / 2);
             tryCompare(testCase, "titleRequests", 1);
         }
-        /// The card is sized to its widest row: a narrower word would be seen cut short.
+        /// The card is sized to its widest row: a card narrower than the row it draws would cut the
+        /// word in it.
+        ///
+        /// The floor is 320 px of whatever face the machine resolves, so whether the longest word in
+        /// the fixture outgrows it is the machine's business rather than the view's -- this case used
+        /// to require that it did, which passed on the runner and failed on a desktop whose font
+        /// draws the same word 34 px narrower. What the card promises either way is that it is as
+        /// wide as its widest row asks for, up to the cap, and that the word is then drawn whole.
         function test_theWidestWordIsRenderedWhole() {
             const popup = make(wordsComponent);
             popup.visible = true;
 
-            // The fixture carries a word long enough to outgrow the panel's base width, so a
-            // card that stayed at the base would fail the comparison below rather than pass it.
             const widest = Controller.wordsModel.allRows().slice().sort(function (a, b) {
                 return b.word.length - a.word.length;
             })[0].word;
-            verify(popup.cardWidth > popup.minCardWidth,
-                   "the widest word did not widen the card past its base");
 
             const row = rowFor(popup, widest);
             verify(row, "the row for " + widest + " is not on screen");
+            verify(popup.cardWidth >= Math.ceil(row.naturalWidth) || popup.cardWidth === popup.maxCardWidth,
+                   "the card is narrower than the row it draws");
 
             const word = Util.findAll(row, function (o) { return o.text === widest; })[0];
             verify(word, "the row does not draw the word");
@@ -192,10 +208,20 @@ Item {
         }
 
         /// @return Whether the list is showing exactly @p expected, once the fold has settled.
+        ///
+        /// A switch lands its arrivals one fold after the leaving rows (docs/adr/0122), and the
+        /// fold is drawn at the renderer's pace, not the token's: the same card on the same machine
+        /// takes 11 ms one moment and 290 ms the next, and a runner sharing its cores with a second
+        /// suite takes longer still. So the wait is QTest's own default rather than one token, and
+        /// the message names what the list actually drew -- a timeout says the rows are late, a
+        /// wrong set says they are wrong, and the two are worth telling apart.
         function settleOn(popup, expected) {
             const wanted = expected.slice().sort().join();
-            return tryVerify(function () { return wordsShown(popup).sort().join() === wanted; },
-                             1000, "the list is not showing " + wanted);
+            tryVerify(function () { return !Controller.wordsModel.filterSwitching; },
+                      5000, "the filter switch never landed");
+            tryVerify(function () { return wordsShown(popup).sort().join() === wanted; },
+                      5000, "the list is not showing " + wanted
+                      + "; it is showing " + wordsShown(popup).sort().join());
         }
 
         /// A delegate nested inside a Repeater inside a ListView, read through the model's own
@@ -213,12 +239,21 @@ Item {
             Controller.wordsModel.filter = 2;
             const fresh = Controller.wordsModel.allRows().filter(function (e) { return e.verdict === "new"; }).map(function (e) { return e.word; });
             settleOn(popup, fresh);
+
+            // The model is shared by every case in the run; leave it where the next one expects to
+            // find it rather than on the last segment this case happened to try.
+            Controller.wordsModel.filter = 0;
         }
 
         /// A filter switch moves in two phases: the rows it hides close, and the rows it wants
         /// arrive one fold later. Two words on one line is what the reader would call a ghost, so
-        /// this samples across the whole move and asks, at every frame, whether an arriving word
-        /// is drawn while a leaving one still is.
+        /// this asks, for as long as the model says it is between its phases, whether an arriving
+        /// word is drawn while a leaving one still is.
+        ///
+        /// The window is the model's own `filterSwitching`, not a count of samples: a fold is drawn
+        /// at the renderer's pace, so a fixed number of 25 ms samples covers a different part of the
+        /// move on every machine. While the model holds its arrivals there is nothing to draw them
+        /// from, and that is the whole promise of the two phases.
         function test_aFilterSwitchNeverDrawsTwoWordsOnOneLine() {
             const popup = make(wordsComponent);
             popup.visible = true;
@@ -230,16 +265,20 @@ Item {
 
             Controller.wordsModel.filter = 1;
             settleOn(popup, known);
+
             Controller.wordsModel.filter = 2;
-            for (let sample = 0; sample < 14; ++sample) {
-                wait(25);
+            let sample = 0;
+            while (Controller.wordsModel.filterSwitching && sample < 400) {
                 const shown = wordsShown(popup);
-                const leaving = shown.filter(function (w) { return known.indexOf(w) >= 0; });
                 const arriving = shown.filter(function (w) { return fresh.indexOf(w) >= 0; });
-                verify(leaving.length === 0 || arriving.length === 0,
-                       "at " + (sample * 25) + " ms the switch drew " + JSON.stringify(arriving)
-                       + " over " + JSON.stringify(leaving));
+                verify(arriving.length === 0,
+                       "sample " + sample + " of the switch drew " + JSON.stringify(arriving)
+                       + " before the leaving rows had gone");
+                wait(10);
+                ++sample;
             }
+            verify(sample < 400, "the switch never landed");
+            verify(sample > 0, "the switch never held its arrivals: it landed in one phase");
             settleOn(popup, fresh);
             Controller.wordsModel.filter = 0;
         }
@@ -581,6 +620,10 @@ Item {
             // A path under a directory that does not exist, so a write could not land even if
             // the scope check let it through.
             compare(Controller.saveWords("file:///no-such-directory/words.txt", "everything"), false);
+
+            // The filter is the model's, and the model outlives this case: a list left on the last
+            // segment would be the state the next case opened on.
+            Controller.wordsModel.filter = 0;
         }
     }
 }
