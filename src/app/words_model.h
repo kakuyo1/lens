@@ -58,6 +58,8 @@ public:
     {
         return filter_;
     }
+    /// @brief Show the rows one segment names. The list is replaced, not folded: a switch is the
+    ///        reader asking for another set of words, and rows leaving by hand are deletions.
     void setFilter(int value);
     int  allCount() const
     {

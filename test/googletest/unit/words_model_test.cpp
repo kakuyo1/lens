@@ -144,7 +144,7 @@ TEST(WordsModel, ANewWordIsInsertedAtTheFront)
     EXPECT_EQ(wordAt(model, 1), QStringLiteral("bank"));
 }
 
-TEST(WordsModel, AFilterChangeDiffsTheVisibleRows)
+TEST(WordsModel, AFilterSwitchReplacesTheListAndADeletionStillRemovesRows)
 {
     WordsModel model;
     model.update(kToday,
@@ -157,14 +157,20 @@ TEST(WordsModel, AFilterChangeDiffsTheVisibleRows)
     QObject::connect(&model, &QAbstractItemModel::rowsRemoved, [&](QModelIndex const&, int, int) { ++removed; });
     QObject::connect(&model, &QAbstractItemModel::modelReset, [&] { ++reset; });
 
+    // The switch is the reader asking for another set of words. Folding it would leave a row
+    // closing under one of the new list's own, which reads as a ghost of the old word.
     model.setFilter(static_cast<int>(ExportScope::Known));
-    EXPECT_EQ(removed, 1);
-    EXPECT_EQ(reset, 0);
+    EXPECT_EQ(reset, 1);
+    EXPECT_EQ(removed, 0);
     ASSERT_EQ(model.rowCount(), 2);
 
-    model.setFilter(static_cast<int>(ExportScope::All));
-    EXPECT_EQ(model.rowCount(), 3);
+    // A word the reader takes away is the other case: one removal, and the view folds that row.
+    removed = 0;
+    reset   = 0;
+    model.update(kToday, {entry("bank", "2026-10-20 09:00", "known")});
+    EXPECT_EQ(removed, 1);
     EXPECT_EQ(reset, 0);
+    EXPECT_EQ(model.rowCount(), 1);
 }
 
 TEST(WordsModel, AReorderIsTheDocumentedReset)

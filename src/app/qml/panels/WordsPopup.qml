@@ -74,6 +74,10 @@ Window {
     onFilterChanged: {
         filterSettled = false;
         filterSettle.restart();
+        // A switch replaces the list, so no row is folding: the viewport takes the new count at
+        // once rather than holding the old one over a transition that will not run.
+        listBox.viewportRows = list.count;
+        listBox.holding = false;
     }
     /// The unfiltered list's line waits for the last row's remove transition too.
     readonly property bool showEmpty: Controller.wordsModel.allCount === 0 && !listBox.holding
@@ -452,8 +456,9 @@ Window {
 
                     // The model removes a row at once; these are what make the leave visible.
                     // The row closes to zero height while the rows below move up by the same
-                    // amount on the same curve, so their edges meet at every frame. The duration
-                    // is the fold token, not a second one.
+                    // amount on the same curve, so their edges meet at every frame. Only
+                    // deletions arrive here: a filter switch replaces the list (docs/adr/0122).
+                    // The duration is the fold token, not a second one.
                     remove: Transition {
                         NumberAnimation {
                             property: "height"

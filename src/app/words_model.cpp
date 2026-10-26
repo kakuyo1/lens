@@ -72,7 +72,14 @@ void WordsModel::setFilter(int value)
     if (value < All or value > New or value == filter_)
         return;
     filter_ = value;
-    diffVisible(filtered(all_, filter_));
+    // A switch replaces the list rather than folding it. The view would only read a transition's
+    // state on its own update pass, after this call had returned, so "these rows are not
+    // deletions" cannot be carried to the transition -- and a row that folds while its
+    // replacement is already drawn puts two words on one line. The reader asked for another set
+    // of words; the set arrives. Rows the reader deletes go through update(), which diffs.
+    beginResetModel();
+    visible_ = filtered(all_, filter_);
+    endResetModel();
     emit filterChanged();
 }
 

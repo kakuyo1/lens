@@ -215,6 +215,24 @@ Item {
             settleOn(popup, fresh);
         }
 
+        /// A filter switch is not a deletion: the list is replaced, so no row folds under one of
+        /// the new list's own -- two words on one line read as a ghost of the old word.
+        function test_aFilterSwitchLeavesNoFoldingRows() {
+            const popup = make(wordsComponent);
+            popup.visible = true;
+            wait(300);
+            const all = Controller.wordsModel.allRows();
+            const known = all.filter(function (e) { return e.verdict === "known"; }).map(function (e) { return e.word; });
+            verify(known.length > 0 && known.length < all.length, "the fixture needs both shown and hidden words");
+
+            Controller.wordsModel.filter = 1;
+            wait(60); // well inside the fold token: a row still closing would be drawn here
+            compare(wordsShown(popup).sort(), known.slice().sort(),
+                    "the filter switch left rows folding under the new list");
+
+            Controller.wordsModel.filter = 0;
+        }
+
         /// @return The row drawing @p word, or null when no row shows it.
         function rowFor(popup, word) {
             const text = Util.textWith(Util.textsUnder(popup), [word]);
