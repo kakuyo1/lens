@@ -64,33 +64,12 @@ constexpr std::chrono::milliseconds kLookToHeart{120};
 constexpr std::chrono::milliseconds kByeToExit{240};
 /// How long a switch keeps the window off screen while the new pet's QML window takes its size.
 constexpr std::chrono::milliseconds kSwapSettle{60};
-/// A reading this long earns the after-reading context: the pet answers a session, not a glance (ADR 0093).
-constexpr std::chrono::milliseconds kLongReading{180'000};
-/// How long after a long reading the after-reading context stays up.
-constexpr std::chrono::milliseconds kReadingAfterglow{120'000};
-/// The fold where a settle hands the idle pose over to the scene pose (ADR 0101).
-constexpr std::chrono::milliseconds kSceneCrossfade{180};
-constexpr double                    kPi{3.14159265358979323846};
 
 /// @return @p value clamped to 0..1, for the entry's progress fractions.
 double clampUnit(double value)
 {
     return std::clamp(value, 0.0, 1.0);
 }
-
-double easeOutCubic(double t)
-{
-    auto const v = clampUnit(t);
-    return 1.0 - std::pow(1.0 - v, 3.0);
-}
-
-double easeInOutCubic(double t)
-{
-    auto const v = clampUnit(t);
-    return v < 0.5 ? 4.0 * v * v * v : 1.0 - std::pow(-2.0 * v + 2.0, 3.0) / 2.0;
-}
-/// How long after a stroll ends the after-return context stays up.
-constexpr std::chrono::milliseconds kReturnAfterglow{90'000};
 
 QPoint toPoint(core::pet::Point const& point)
 {
@@ -231,26 +210,18 @@ void PetController::loadPet(std::string const& id)
     expression_   = 0;
     blinkRunning_ = false;
     blinkWait_    = kBlinkEvery;
-    lastScene_.clear();
+    // The lottery's memory, the entry and its impact belong to the pet that is going away; the two after-contexts
+    // belong to the reader, so they stay.
+    stage_.reset();
+    entryPose_.reset();
     scene_.clear();
     sceneSheets_.clear();
     sceneLayers_.clear();
-    sceneFrame_ = 0;
-    sceneShift_ = {};
-    sceneAlign_ = {};
-    sceneScale_ = 1.0;
-    sceneEntry_.reset();
-    sceneImpact_.reset();
-    sceneEntryDirty_      = false;
-    sceneEntering_        = false;
-    sceneEntryInFront_    = false;
-    scenePropAlpha_       = 1.0;
-    scenePropOffset_      = 0.0;
-    sceneEntryIdleAlpha_  = 1.0;
-    sceneEntrySceneAlpha_ = 0.0;
-    sceneEntrySceneSheets_.clear();
-    sceneEntrySceneAnchors_.clear();
-    sceneEntrySceneExpression_ = 0;
+    sceneFrame_      = 0;
+    sceneShift_      = {};
+    sceneAlign_      = {};
+    sceneScale_      = 1.0;
+    sceneEntryDirty_ = false;
     // Scenes are the app's props, drawn for the shipped pets' canvas; a package never gets them.
     scenesAllowed_ = isShipped(id);
 
@@ -277,36 +248,13 @@ void PetController::loadPet(std::string const& id)
         auto scenes = [this, id]() -> std::optional<core::pet::ActionName> {
             if (not isShipped(id)) return std::nullopt;
             auto const& playbook = assets_->animations.playbook;
-            struct Choice {
-                core::pet::ActionName name;
-                double                weight;
-            };
-            auto        choices = std::vector<Choice>{};
-            auto const& now     = currentMood();
+            auto        offers   = std::vector<PetStage::Offer>{};
             for (auto const& scene : scenes_.all())
                 if (playbook.actions.count(scene.id) != 0) {
                     // A worn accessory tilts the lottery toward the scenes it names (ADR 0102); without one this is 1.
-                    auto const favour = wardrobe_ ? wardrobe_->sceneWeightFor(scene.id) : 1.0;
-                    choices.push_back({scene.id, core::pet::sceneWeight(scene.mood, now) * favour});
+                    offers.push_back({scene.id, scene.mood, wardrobe_ ? wardrobe_->sceneWeightFor(scene.id) : 1.0});
                 }
-            // A four-scene pool reads as a pool only if the same one does not come straight back.
-            if (choices.size() > 1) std::erase_if(choices, [this](Choice const& choice) { return choice.name == lastScene_; });
-            if (choices.empty()) return std::nullopt;
-            // A weighted draw: every scene keeps a chance in every stretch, the weights only tilt it (ADR 0093).
-            auto total = 0.0;
-            for (auto const& choice : choices)
-                total += choice.weight;
-            auto roll   = randomUnit() * total;
-            auto picked = choices.back();
-            for (auto const& choice : choices) {
-                if (roll < choice.weight) {
-                    picked = choice;
-                    break;
-                }
-                roll -= choice.weight;
-            }
-            lastScene_ = picked.name;
-            return picked.name;
+            return stage_.draw(offers, currentMood());
         };
         machine_  = std::make_unique<core::pet::PetStateMachine>(assets_->animations.playbook, random, scenes, behavior_, mood);
         wardrobe_ = std::make_unique<core::pet::Wardrobe>(assets_->catalogue);
@@ -355,11 +303,9 @@ void PetController::handle(PetEvent event)
     // The reading's span belongs to the reader, not to the machine: the after-reading context starts when a long
     // one ends, whatever the pet was busy with meanwhile (ADR 0093).
     if (event == PetEvent::ExplanationShown) {
-        readingSince_ = std::chrono::steady_clock::now();
-    } else if (event == PetEvent::ExplanationHidden and readingSince_) {
-        if (std::chrono::steady_clock::now() - *readingSince_ >= kLongReading)
-            readingAfterUntil_ = std::chrono::steady_clock::now() + kReadingAfterglow;
-        readingSince_.reset();
+        stage_.readingBegan(std::chrono::steady_clock::now());
+    } else if (event == PetEvent::ExplanationHidden) {
+        stage_.readingEnded(std::chrono::steady_clock::now());
     }
     // The sign reports its side after ReviewAsked; the events that take it down leave no direction behind.
     if (event == PetEvent::ReviewAsked or event == PetEvent::ReviewRemembered or event == PetEvent::ReviewForgotten or
@@ -489,7 +435,7 @@ QVariantList PetController::wornAccessories() const
 
     auto const& catalogue = assets_->catalogue;
     // An entry draws the idle pose while the machine is already in the scene, so the pieces follow the pose on screen.
-    auto const pose = sceneEntry_ ? sceneEntry_->poseAction : shownAction();
+    auto const pose = stage_.entering() and entryPose_ ? entryPose_->poseAction : shownAction();
     for (auto const& id : wardrobe_->visibleFor(pose)) {
         auto const spec = std::find_if(catalogue.begin(), catalogue.end(), [&id](auto const& candidate) { return candidate.id == id; });
         if (spec == catalogue.end()) continue;
@@ -568,22 +514,20 @@ QVariantMap PetController::sceneLayers() const
 QVariantMap PetController::sceneEntry() const
 {
     auto impact = QVariantMap{};
-    if (sceneImpact_) {
-        auto const p = sceneImpact_->duration.count() > 0
-                           ? clampUnit(static_cast<double>(sceneImpact_->elapsed.count()) /
-                                       static_cast<double>(sceneImpact_->duration.count()))
-                           : 1.0;
-        impact       = QVariantMap{{"kind", sceneImpact_->kind}, {"at", sceneImpact_->at}, {"progress", p}};
+    if (auto const running = stage_.impact()) {
+        impact = QVariantMap{{"kind", running->kind}, {"at", running->at}, {"progress", running->progress}};
     }
-    return QVariantMap{{"active", sceneEntering_},
-                       {"inFront", sceneEntryInFront_},
-                       {"propAlpha", scenePropAlpha_},
-                       {"propOffset", scenePropOffset_},
-                       {"idleAlpha", sceneEntryIdleAlpha_},
-                       {"sceneAlpha", sceneEntrySceneAlpha_},
-                       {"sceneSheets", sceneEntrySceneSheets_},
-                       {"sceneAnchors", sceneEntrySceneAnchors_},
-                       {"sceneExpression", sceneEntrySceneExpression_},
+    auto const  active = stage_.entering();
+    auto const& entry  = stage_.frame();
+    return QVariantMap{{"active", active},
+                       {"inFront", entry.inFront},
+                       {"propAlpha", entry.propAlpha},
+                       {"propOffset", entry.propOffset},
+                       {"idleAlpha", entry.idleAlpha},
+                       {"sceneAlpha", entry.sceneAlpha},
+                       {"sceneSheets", active and entryPose_ ? entryPose_->sheets : QVariantMap{}},
+                       {"sceneAnchors", active and entryPose_ ? entryPose_->anchors : QVariantMap{}},
+                       {"sceneExpression", active and entryPose_ ? entryPose_->expression : 0},
                        {"impact", impact}};
 }
 
@@ -743,7 +687,7 @@ void PetController::setScene(QString id)
     if (ceremony_) finishCeremonyNow();
     preview_.reset();
     resetHover();
-    lastScene_ = name;
+    stage_.notePlayed(name);
     machine_->playScene(name);
     // The settings page calls this directly, so the entry starts here rather than waiting for the idle roll's sync.
     if (auto const* scene = scenesAllowed_ ? scenes_.find(name) : nullptr;
@@ -755,11 +699,12 @@ void PetController::setScene(QString id)
 void PetController::applySceneProps(Scene const& scene)
 {
     if (not assets_) return;
-    scene_       = QString::fromStdString(scene.id);
-    sceneFrame_  = 0;
-    sceneAlign_  = QPointF{assets_->inkCentre - scene.foot.x(), assets_->inkBottom - scene.foot.y()};
-    sceneSheets_ = QVariantMap{{"back", urlOf(scene.backSheet)}, {"front", urlOf(scene.frontSheet)}};
-    sceneLayers_ = QVariantMap{{"back", scene.backLayer}, {"front", scene.frontLayer}};
+    auto const frame = PetStage::frameOf(scene, 0, foot());
+    scene_           = QString::fromStdString(scene.id);
+    sceneFrame_      = frame.index;
+    sceneAlign_      = frame.align;
+    sceneSheets_     = QVariantMap{{"back", urlOf(scene.backSheet)}, {"front", urlOf(scene.frontSheet)}};
+    sceneLayers_     = QVariantMap{{"back", scene.backLayer}, {"front", scene.frontLayer}};
 }
 
 void PetController::beginSceneEntry(Scene const& scene, core::pet::ActionName const& action)
@@ -778,68 +723,30 @@ void PetController::beginSceneEntry(Scene const& scene, core::pet::ActionName co
     auto const  poseSpec = playbook.actions.find(poseAction);
     if (poseSpec == playbook.actions.end()) return;
 
+    // A hop that catches the pet mid-bob carries on from the frame it was on rather than restarting the idle loop.
     auto poseStartFrame = 0;
     if (action_ == QString::fromStdString(poseAction) and frameIndex_ >= 0 and frameIndex_ < poseSpec->second.frames)
         poseStartFrame = frameIndex_;
 
-    sceneEntry_      = SceneEntryState{&scene, poseAction, poseStartFrame, std::chrono::milliseconds{0}};
-    sceneEntryDirty_ = false;
+    auto const& scenePictures = assets_->sheets.at(action);
+    auto const& sceneAnchors  = assets_->anchors.at(action).at(0);
+    entryPose_                = EntryPose{poseAction,
+                           QVariantMap{{"body", urlOf(scenePictures.body)},
+                                                      {"effect", urlOf(scenePictures.effect)},
+                                                      {"expression", urlOf(assets_->expressionSheet)}},
+                           QVariantMap{{"body", toPoint(sceneAnchors.body)}, {"face", toPoint(sceneAnchors.face)}},
+                           scenePictures.expressions.empty() ? 0 : scenePictures.expressions.front()};
+
+    stage_.beginEntry(scene,
+                      PetStage::Pose{poseSpec->second.frames, poseSpec->second.fps, poseSpec->second.loop, poseStartFrame},
+                      assets_->inkTop);
     applySceneProps(scene);
 
-    auto const& scenePictures  = assets_->sheets.at(action);
-    sceneEntrySceneSheets_     = QVariantMap{{"body", urlOf(scenePictures.body)},
-                                             {"effect", urlOf(scenePictures.effect)},
-                                             {"expression", urlOf(assets_->expressionSheet)}};
-    auto const& sceneAnchors   = assets_->anchors.at(action).at(0);
-    sceneEntrySceneAnchors_    = QVariantMap{{"body", toPoint(sceneAnchors.body)}, {"face", toPoint(sceneAnchors.face)}};
-    sceneEntrySceneExpression_ = scenePictures.expressions.empty() ? 0 : scenePictures.expressions.front();
-
-    sceneEntering_        = true;
-    sceneEntryInFront_    = scene.entry->style != SceneEntryStyle::Fade;
-    scenePropAlpha_       = 0.0;
-    scenePropOffset_      = scene.entry->propRise;
-    sceneEntryIdleAlpha_  = 1.0;
-    sceneEntrySceneAlpha_ = 0.0;
-    sceneImpact_.reset();
-    action_ = QString::fromStdString(action);
+    action_          = QString::fromStdString(action);
+    sceneEntryDirty_ = false;
     setGaze({});
     blinkRunning_ = false;
     blinkWait_    = kBlinkEvery;
-}
-
-void PetController::finishSceneEntry()
-{
-    auto const* scene = sceneEntry_ ? sceneEntry_->scene : nullptr;
-    if (scene and scene->entry and scene->entry->impact) {
-        sceneImpact_ = SceneImpactState{scene->entry->impact->kind, scene->entry->impact->at};
-    }
-    sceneEntry_.reset();
-    sceneEntering_        = false;
-    sceneEntryInFront_    = false;
-    scenePropAlpha_       = 1.0;
-    scenePropOffset_      = 0.0;
-    sceneEntryIdleAlpha_  = 1.0;
-    sceneEntrySceneAlpha_ = 0.0;
-    sceneEntrySceneSheets_.clear();
-    sceneEntrySceneAnchors_.clear();
-    sceneEntrySceneExpression_ = 0;
-    actionElapsed_             = std::chrono::milliseconds{0};
-}
-
-void PetController::clearSceneEntry()
-{
-    sceneEntry_.reset();
-    sceneImpact_.reset();
-    sceneEntryDirty_      = true;
-    sceneEntering_        = false;
-    sceneEntryInFront_    = false;
-    scenePropAlpha_       = 1.0;
-    scenePropOffset_      = 0.0;
-    sceneEntryIdleAlpha_  = 1.0;
-    sceneEntrySceneAlpha_ = 0.0;
-    sceneEntrySceneSheets_.clear();
-    sceneEntrySceneAnchors_.clear();
-    sceneEntrySceneExpression_ = 0;
 }
 
 void PetController::dragStart()
@@ -1186,12 +1093,15 @@ void PetController::setMotionReduced(bool on)
     // Reduced motion skips the rest of the arc: the pet stays where it is, and that spot becomes home. Turning it
     // off is not an interruption: it neither moves the pet nor ends a run of landings.
     if (on) endThrow(window_ ? window_->position() : QPoint{}, true, ThrowStop::MotionReduced);
-    // A scene entry is a movement too: reduced motion puts the pet straight into its scene pose.
-    if (on and (sceneEntry_ or sceneImpact_)) {
-        clearSceneEntry();
-        actionElapsed_ = std::chrono::milliseconds{0};
-        // clearSceneEntry marks the frame dirty, so sync republishes the scene pose even when the scene frame was
-        // already 0; QML then drops the overlay and the props' opacity returns to 1.
+    // A scene entry is a movement too: reduced motion puts the pet straight into its scene pose, and the scene stays
+    // remembered as entered so turning the setting back off does not replay the entry.
+    if (on and (stage_.entering() or stage_.impact())) {
+        stage_.landEntry();
+        entryPose_.reset();
+        sceneEntryDirty_ = true;
+        actionElapsed_   = std::chrono::milliseconds{0};
+        // The dirty flag makes sync republish the scene pose even when the scene frame was already 0; QML then drops
+        // the overlay and the props' opacity returns to 1.
         if (assets_ and machine_) sync(std::chrono::milliseconds{0});
     }
     if (not on or not ceremony_) return;
@@ -1948,7 +1858,7 @@ void PetController::finishStroll()
     wanderWait_ = nextWanderWait();
     // The walk is over and the pet is back at rest: the after-return context is up, and it looks around once
     // before the next idle turn is drawn (ADR 0093, 0098).
-    returnAfterUntil_ = std::chrono::steady_clock::now() + kReturnAfterglow;
+    stage_.returnedHome(std::chrono::steady_clock::now());
     if (machine_ and machine_->idle()) machine_->playRole(Role::LookAround);
 }
 
@@ -2036,13 +1946,9 @@ std::chrono::milliseconds PetController::nextWanderWait()
 
 core::pet::PetMood PetController::currentMood() const
 {
-    auto       mood          = core::pet::PetMood{};
-    auto const now           = QTime::currentTime();
-    mood.minuteOfDay         = now.hour() * 60 + now.minute();
-    auto const tick          = std::chrono::steady_clock::now();
-    mood.justFinishedReading = tick < readingAfterUntil_;
-    mood.justReturned        = tick < returnAfterUntil_;
-    return mood;
+    // The stage owns the two after-contexts; the wall clock is the adapter's to read and hand in.
+    auto const now = QTime::currentTime();
+    return stage_.mood(std::chrono::steady_clock::now(), now.hour() * 60 + now.minute());
 }
 
 std::chrono::milliseconds PetController::nextPause()
@@ -2239,16 +2145,19 @@ void PetController::sync(std::chrono::milliseconds step)
 
     // A real scene starts its entry here. A previewed scene is a still, not an entry, and reduced motion lands directly.
     auto const* currentScene    = (scenesAllowed_ and not preview_) ? scenes_.find(action) : nullptr;
-    auto const  impactWasActive = sceneImpact_.has_value();
-    if ((sceneEntry_ and sceneEntry_->scene != currentScene) or (not currentScene and sceneImpact_))
-        clearSceneEntry();
-
-    auto beganEntry = false;
-    if (currentScene and currentScene->entry and not motionReduced_ and
-        scene_ != QString::fromStdString(currentScene->id)) {
-        beginSceneEntry(*currentScene, action);
-        beganEntry = sceneEntry_.has_value();
+    auto const  impactWasActive = stage_.impact().has_value();
+    auto const& enteredScene    = stage_.sceneId();
+    if ((not enteredScene.empty() and (not currentScene or currentScene->id != enteredScene)) or
+        (not currentScene and stage_.impact())) {
+        // The scene changed under an entry, or ended while its particles were still going: both belong to the scene
+        // that is gone.
+        stage_.stopEntry();
+        entryPose_.reset();
+        sceneEntryDirty_ = true;
     }
+
+    if (currentScene and currentScene->entry and not motionReduced_ and stage_.sceneId() != currentScene->id)
+        beginSceneEntry(*currentScene, action);
 
     auto const entryVisualDirty = sceneEntryDirty_;
     sceneEntryDirty_            = false;
@@ -2260,74 +2169,20 @@ void PetController::sync(std::chrono::milliseconds step)
         actionElapsed_ += step;
     }
 
-    if (sceneEntry_ and not beganEntry) sceneEntry_->elapsed += step;
-
-    if (sceneImpact_) {
-        sceneImpact_->elapsed += step;
-        if (sceneImpact_->elapsed >= sceneImpact_->duration) sceneImpact_.reset();
-    }
-
     // The landing is decided before the frame is computed, so its first scene frame is frame 0.
-    auto entryJustFinished = false;
-    if (sceneEntry_) {
-        auto const& entry    = *sceneEntry_->scene->entry;
-        auto const  switchAt = entry.style == SceneEntryStyle::Fade ? entry.propMs : entry.prepMs + entry.moveMs;
-        if (sceneEntry_->elapsed.count() >= switchAt) {
-            finishSceneEntry();
-            entryJustFinished = true;
-        }
+    auto const sceneStep         = stage_.tick(step);
+    auto const entryJustFinished = sceneStep.landed;
+    if (entryJustFinished) {
+        entryPose_.reset();
+        actionElapsed_ = std::chrono::milliseconds{0};
     }
 
-    if (sceneEntry_) {
-        auto const& scene   = *sceneEntry_->scene;
-        auto const& entry   = *scene.entry;
-        auto const  target  = scene.perFrame.front();
-        auto const  elapsed = sceneEntry_->elapsed.count();
-
-        auto prop = 1.0;
-        if (entry.propMs > 0) prop = easeOutCubic(static_cast<double>(elapsed) / entry.propMs);
-        scenePropAlpha_  = prop;
-        scenePropOffset_ = (1.0 - prop) * entry.propRise;
-        sceneEntering_   = true;
-
-        if (entry.style == SceneEntryStyle::Fade) {
-            // The scene pose is already where it belongs; only the props and their rise move.
-            sceneShift_           = QPointF{target.dx, target.dy};
-            sceneScale_           = target.scale;
-            sceneEntryInFront_    = false;
-            sceneEntryIdleAlpha_  = 1.0;
-            sceneEntrySceneAlpha_ = 0.0;
-        } else {
-            auto const progress = entry.moveMs > 0
-                                      ? clampUnit(static_cast<double>(elapsed - entry.prepMs) / entry.moveMs)
-                                      : 1.0;
-            auto const eased    = entry.style == SceneEntryStyle::Hop ? easeInOutCubic(progress) : easeOutCubic(progress);
-            auto       x        = target.dx * eased;
-            auto       y        = target.dy * eased;
-            if (entry.style == SceneEntryStyle::Hop) {
-                // A tall pet has little headroom in the 88 px canvas. The idle bob can lift the body another 3 px,
-                // so cap the arc against the measured ink top rather than clipping ears at the top of the window.
-                auto const headroom = std::max(0.0, assets.inkTop + target.dy * 0.5 - 4.0);
-                y -= std::min(entry.arc, headroom) * std::sin(kPi * progress);
-            }
-            sceneShift_ = QPointF{x, y};
-            sceneScale_ = 1.0 + (target.scale - 1.0) * eased;
-            if (entry.style == SceneEntryStyle::Hop) {
-                sceneEntryInFront_ = progress < entry.cross;
-            } else {
-                sceneEntryInFront_    = true;
-                auto const switchAt   = entry.prepMs + entry.moveMs;
-                auto const blend      = kSceneCrossfade.count() > 0
-                                            ? clampUnit(static_cast<double>(elapsed - (switchAt - kSceneCrossfade.count())) /
-                                                   kSceneCrossfade.count())
-                                            : 1.0;
-                sceneEntrySceneAlpha_ = easeInOutCubic(blend);
-                sceneEntryIdleAlpha_  = 1.0 - sceneEntrySceneAlpha_;
-            }
-        }
-
-        if (entry.style == SceneEntryStyle::Fade) {
-            // Fade shows the scene's own first frame while the props come in.
+    if (sceneStep.frame) {
+        auto const& frame = *sceneStep.frame;
+        sceneShift_       = frame.shift;
+        sceneScale_       = frame.scale;
+        if (frame.scenePose or not entryPose_) {
+            // A fade shows the scene's own first frame while the props come in.
             auto const& scenePictures = assets.sheets.at(action);
             sheets_                   = QVariantMap{{"body", urlOf(scenePictures.body)},
                                                     {"effect", urlOf(scenePictures.effect)},
@@ -2336,17 +2191,16 @@ void PetController::sync(std::chrono::milliseconds step)
             anchors_                  = assets.anchors.at(action).at(0);
             expression_               = scenePictures.expressions.empty() ? 0 : scenePictures.expressions.front();
         } else {
-            auto const& posePictures = assets.sheets.at(sceneEntry_->poseAction);
-            auto const& poseSpec     = assets.animations.playbook.actions.at(sceneEntry_->poseAction);
-            auto        poseFrame    = static_cast<int>(sceneEntry_->poseStartFrame + elapsed * poseSpec.fps / 1000);
-            poseFrame                = poseSpec.loop ? poseFrame % poseSpec.frames : std::min(poseFrame, poseSpec.frames - 1);
+            // A hop or a settle holds the idle body until it lands, on the frame the idle loop had reached.
+            auto const& poseAction   = entryPose_->poseAction;
+            auto const& posePictures = assets.sheets.at(poseAction);
             sheets_                  = QVariantMap{{"body", urlOf(posePictures.body)},
                                                    {"effect", urlOf(posePictures.effect)},
                                                    {"expression", urlOf(assets.expressionSheet)}};
-            frameIndex_              = poseFrame;
-            anchors_                 = assets.anchors.at(sceneEntry_->poseAction).at(static_cast<std::size_t>(poseFrame));
-            expression_              = static_cast<std::size_t>(poseFrame) < posePictures.expressions.size()
-                                           ? posePictures.expressions[static_cast<std::size_t>(poseFrame)]
+            frameIndex_              = frame.poseFrame;
+            anchors_                 = assets.anchors.at(poseAction).at(static_cast<std::size_t>(frame.poseFrame));
+            expression_              = static_cast<std::size_t>(frame.poseFrame) < posePictures.expressions.size()
+                                           ? posePictures.expressions[static_cast<std::size_t>(frame.poseFrame)]
                                            : 0;
         }
         action_ = QString::fromStdString(action);
@@ -2406,17 +2260,15 @@ void PetController::sync(std::chrono::milliseconds step)
     expression_ = expression;
     anchors_    = assets.anchors.at(action).at(static_cast<std::size_t>(frame));
 
-    if (auto const* scene = scenesAllowed_ ? scenes_.find(action) : nullptr;
-        scene and static_cast<std::size_t>(frame) < scene->perFrame.size()) {
-        auto const& f = scene->perFrame[static_cast<std::size_t>(frame)];
-        scene_        = QString::fromStdString(scene->id);
-        sceneFrame_   = frame;
-        sceneShift_   = QPointF{f.dx, f.dy};
-        sceneScale_   = f.scale;
-        // The props were drawn for the catalogue's feet; the pet's own feet are measured when it loads.
-        sceneAlign_  = QPointF{assets.inkCentre - scene->foot.x(), assets.inkBottom - scene->foot.y()};
-        sceneSheets_ = QVariantMap{{"back", urlOf(scene->backSheet)}, {"front", urlOf(scene->frontSheet)}};
-        sceneLayers_ = QVariantMap{{"back", scene->backLayer}, {"front", scene->frontLayer}};
+    if (auto const* scene = scenesAllowed_ ? scenes_.find(action) : nullptr) {
+        auto const one = PetStage::frameOf(*scene, frame, foot());
+        scene_         = QString::fromStdString(scene->id);
+        sceneFrame_    = one.index;
+        sceneShift_    = one.shift;
+        sceneScale_    = one.scale;
+        sceneAlign_    = one.align;
+        sceneSheets_   = QVariantMap{{"back", urlOf(scene->backSheet)}, {"front", urlOf(scene->frontSheet)}};
+        sceneLayers_   = QVariantMap{{"back", scene->backLayer}, {"front", scene->frontLayer}};
     } else {
         scene_.clear();
         sceneSheets_.clear();
@@ -2425,9 +2277,8 @@ void PetController::sync(std::chrono::milliseconds step)
         sceneShift_ = {};
         sceneAlign_ = {};
         sceneScale_ = 1.0;
-        if (sceneImpact_) sceneImpact_.reset();
     }
-    if (changed or entryJustFinished or entryVisualDirty or impactWasActive or sceneImpact_) pulse();
+    if (changed or entryJustFinished or entryVisualDirty or impactWasActive or stage_.impact()) pulse();
 }
 
 void PetController::updateClock()
@@ -2469,10 +2320,11 @@ void PetController::checkHealth()
     cancelStroll();
     resetHover();
     hoverPause_ = false;
-    sceneEntry_.reset();
-    sceneImpact_.reset();
+    // One call clears the entry, its impact and the scene it belonged to, so the watchdog cannot leave half of an
+    // entry behind.
+    stage_.stopEntry();
+    entryPose_.reset();
     sceneEntryDirty_ = true;
-    sceneEntering_   = false;
     actionElapsed_   = std::chrono::milliseconds{0};
     machine_->rest();
     sync(std::chrono::milliseconds{0});

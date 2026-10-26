@@ -13,7 +13,9 @@
  *
  * A scene (ADR 0049) is a named action the app ships props for. While one plays, the scene* properties carry the
  * sheet urls, the pet's per-frame shift and scale, and the alignment between this pet's feet and the catalogue's.
- * The idle lottery weighs each scene by the mood and by the accessories worn when it draws (ADR 0093, 0102).
+ * The idle lottery weighs each scene by the mood and by the accessories worn when it draws (ADR 0093, 0102). The
+ * lottery, the entry timeline and the frame belong to PetStage (ADR 0123); this class reads both clocks, gathers the
+ * offers and publishes what the stage answers.
  */
 
 #include <chrono>
@@ -40,6 +42,7 @@
 #include "app/pet/pet_catalog.h"
 #include "app/pet/pet_hide.h"
 #include "app/pet/pet_scenes.h"
+#include "app/pet/pet_stage.h"
 #include "app/pet/pet_throw.h"
 #include "app/pet/pet_wander.h"
 #include "core/document/pet_store.h"
@@ -362,10 +365,6 @@ private:
     void applyPendingPet();
     /// @brief Starts the entry choreography for a scene that is now the machine's action.
     void beginSceneEntry(Scene const& scene, core::pet::ActionName const& action);
-    /// @brief Ends the entry at its landing and starts the optional impact; the caller refreshes the frame.
-    void finishSceneEntry();
-    /// @brief Drops an entry and its impact, as when a scene ends or motion is reduced.
-    void clearSceneEntry();
     /// @brief Publishes a scene's prop sheets, layers and stage alignment.
     void applySceneProps(Scene const& scene);
     /// @brief Changes shown() and announces it when it moved.
@@ -483,10 +482,6 @@ private:
 
     /// The pet's temperament, from its behavior block; the shipped defaults while no pet is loaded.
     core::pet::BehaviorSpec behavior_{};
-    /// The reading now running, and when each after-context expires (ADR 0093).
-    std::optional<std::chrono::steady_clock::time_point> readingSince_{};
-    std::chrono::steady_clock::time_point                readingAfterUntil_{};
-    std::chrono::steady_clock::time_point                returnAfterUntil_{};
 
     /// Whether the window is on screen. `enabled()` asks for the pet, this says where its window is: a goodbye keeps
     /// it true after the switch has gone off.
@@ -530,8 +525,6 @@ private:
     /// The review sign's side, or its open card's, while either is visible; empty when no question is up.
     QPoint reviewLook_;
 
-    /// The last scene the idle roll or the settings page chose, so the next roll does not repeat it.
-    std::string lastScene_;
     /// The scene the shown action names, and the frame's transform. All empty or neutral outside a scene.
     QString     scene_;
     int         sceneFrame_{0};
@@ -539,35 +532,21 @@ private:
     QPointF     sceneShift_{};
     QPointF     sceneAlign_{};
     double      sceneScale_{1.0};
-    QVariantMap sceneLayers_{};
-    /// The entry in progress (ADR 0101). `poseAction` is the idle action a hop holds; settle and fade show the
-    /// scene's own pose. `poseStartFrame` keeps the idle frame the pet was already on when a hop began.
-    struct SceneEntryState {
-        Scene const*              scene{nullptr};
-        core::pet::ActionName     poseAction;
-        int                       poseStartFrame{0};
-        std::chrono::milliseconds elapsed{0};
+    QVariantMap sceneLayers_;
+    /// The stage: the idle lottery, the entry timeline and the two after-contexts (ADR 0123). The controller reads
+    /// both clocks, gathers the offers and publishes the frame it answers.
+    PetStage stage_{[this] { return randomUnit(); }};
+    /// The scene pose an entry shows beside the body it holds: the sheets, anchors and expression of the scene
+    /// action's first frame, and the action whose body a hop or a settle holds until it lands.
+    struct EntryPose {
+        core::pet::ActionName poseAction;
+        QVariantMap           sheets;
+        QVariantMap           anchors;
+        int                   expression{0};
     };
-    std::optional<SceneEntryState> sceneEntry_;
-    /// The landing particles, which may outlive the entry itself.
-    struct SceneImpactState {
-        QString                   kind;
-        QPointF                   at;
-        std::chrono::milliseconds elapsed{0};
-        std::chrono::milliseconds duration{320};
-    };
-    std::optional<SceneImpactState> sceneImpact_;
+    std::optional<EntryPose> entryPose_;
     /// Whether an entry was dropped outside sync, so the next normal frame must republish the scene pose.
-    bool        sceneEntryDirty_{false};
-    bool        sceneEntering_{false};
-    bool        sceneEntryInFront_{false};
-    double      scenePropAlpha_{1.0};
-    double      scenePropOffset_{0.0};
-    double      sceneEntryIdleAlpha_{1.0};
-    double      sceneEntrySceneAlpha_{0.0};
-    QVariantMap sceneEntrySceneSheets_;
-    QVariantMap sceneEntrySceneAnchors_;
-    int         sceneEntrySceneExpression_{0};
+    bool sceneEntryDirty_{false};
 };
 
 } // namespace lens::app::pet

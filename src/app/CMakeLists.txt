@@ -95,6 +95,7 @@ add_library(lens_app STATIC
   pet/pet_throw_mood.cpp
   pet/pet_placement.cpp
   pet/pet_scenes.cpp
+  pet/pet_stage.cpp
   pet/pet_throw.cpp
   pet/pet_wander.cpp
 
