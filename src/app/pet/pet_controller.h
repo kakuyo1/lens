@@ -38,6 +38,7 @@
 
 #include "app/pet/pet_assets.h"
 #include "app/pet/pet_catalog.h"
+#include "app/pet/pet_hide.h"
 #include "app/pet/pet_scenes.h"
 #include "app/pet/pet_throw.h"
 #include "app/pet/pet_wander.h"
@@ -253,8 +254,6 @@ signals:
     void fellBack(QString title, QString body);
 
 private:
-    struct Hiding;
-
     /// The stages of one ceremony. A switch runs SwitchOut, Swap, then Entering; an entrance starts at Entering and
     /// a goodbye at Leaving.
     enum class CeremonyPhase : std::uint8_t {
@@ -323,15 +322,14 @@ private:
     void enterHiding(EdgeSide side);
     /// @brief Leaves a hide without moving the window: used when the pet is turned off or the layout changed.
     void endHiding();
-    /// @brief Answers a click on the visible sliver: the window slides back to where the hide began, and the hide
-    ///        ends there (ADR 0095).
+    /// @brief Answers a click on the visible sliver: the hide slides back to where it began and ends there (ADR 0095).
     void lureOut();
-    /// @brief Finishes a lured-out hide: the window lands at its leaveTo, which becomes home (ADR 0095).
-    void settleOutOfHide();
-    /// @brief Puts the window back at its hidden base after a drag that did not pull it out far enough.
-    void snapBackToHide();
-    /// @brief Recomputes a hide's base after the window changed size.
-    void refitHiding();
+    /// @brief Finishes a lured-out hide, putting the pet at `at` and making that spot its home (ADR 0095).
+    /// @param at Where the call-out landed.
+    void settleOutOfHide(QPoint at);
+    /// @brief Recomputes a hide's base after the window or its screen changed.
+    /// @param area The work area it hides on; the same one unless the screen changed.
+    void refitHiding(QRect area);
     /// @return Whether this pet has the walk loop a ceremony moves with.
     bool canWalkCeremony() const;
     /// @brief Starts the entrance from the nearest edge of home, or from where the pet is when `fromHere`.
@@ -453,27 +451,8 @@ private:
     /// Proximity lives beside the action machine: it reads the cursor and asks the machine for an idle reaction.
     std::unique_ptr<core::pet::HoverSense> hover_;
 
-    /// @brief A hide in progress. `base` is the window's top-left once fully slid out; `from` is where it started.
-    struct Hiding {
-        EdgeSide side;
-        /// The screen it hid on, by device name, so a taskbar or DPI change on that screen does not end the hide.
-        QString                   screen;
-        QRect                     area;
-        QPoint                    base;
-        QPoint                    from;
-        std::chrono::milliseconds slide{0};
-        std::chrono::milliseconds peekClock{0};
-        /// The extra lean a pointer near the visible sliver earns, in screen pixels; ramped so it does not snap.
-        double lean{0.0};
-        /// A click on the sliver called the pet out: the window slides back to `leaveTo` and the hide ends (ADR 0095).
-        bool                      leaving{false};
-        QPoint                    leaveFrom;
-        QPoint                    leaveTo;
-        std::chrono::milliseconds leave{0};
-        /// Whether a review question is up, so the peek pauses until the question and its reaction are over.
-        bool asking{false};
-        bool dragging{false};
-    };
+    /// @brief The hide in progress: the slide, the peek, the pointer's lean, the ask's pause and the call-out.
+    PetHide hide_;
     enum class StrollPhase : std::uint8_t {
         Waiting,
         Walking,
@@ -500,8 +479,7 @@ private:
     bool dragging_{false};
     /// The throw in progress and the run of landings behind it. The state machine stays in its pickup pose until the
     /// landing releases it.
-    PetThrow              throw_{[this] { return randomUnit(); }};
-    std::optional<Hiding> hiding_;
+    PetThrow throw_{[this] { return randomUnit(); }};
 
     /// The pet's temperament, from its behavior block; the shipped defaults while no pet is loaded.
     core::pet::BehaviorSpec behavior_{};

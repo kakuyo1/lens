@@ -85,6 +85,7 @@ add_library(lens_app STATIC
   pet/pet_catalog.cpp
   pet/pet_controller.cpp
   pet/pet_flight.cpp
+  pet/pet_hide.cpp
   pet/pet_package_fs.cpp
   pet/pet_throw_mood.cpp
   pet/pet_placement.cpp
