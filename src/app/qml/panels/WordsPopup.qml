@@ -467,6 +467,13 @@ Window {
                     // arriving row grows into the space the closing ones left. The model holds a
                     // switch's arrivals for one token (wordsModel.swapMs), so the two never share
                     // a line. The durations are the fold token, not second ones.
+                    //
+                    // Both directions ride their opacity too, and that is what keeps the fold from
+                    // reading as a cut: a row clips its own content (the cross's ring has to stay
+                    // inside the list), so a closing height slices the word, the pills and the time
+                    // at a hard edge that walks up the glyphs. Fading with the fold leaves that edge
+                    // nothing to cut, and the two land together -- a second beat is what a 180 ms
+                    // fold has no room for.
                     add: Transition {
                         NumberAnimation {
                             property: "height"
@@ -475,10 +482,23 @@ Window {
                             duration: words.tokens.motion.pop
                             easing.type: words.tokens.motion.easing
                         }
+                        NumberAnimation {
+                            property: "opacity"
+                            from: 0
+                            to: 1
+                            duration: words.tokens.motion.pop
+                            easing.type: words.tokens.motion.easing
+                        }
                     }
                     remove: Transition {
                         NumberAnimation {
                             property: "height"
+                            to: 0
+                            duration: words.tokens.motion.pop
+                            easing.type: words.tokens.motion.easing
+                        }
+                        NumberAnimation {
+                            property: "opacity"
                             to: 0
                             duration: words.tokens.motion.pop
                             easing.type: words.tokens.motion.easing
