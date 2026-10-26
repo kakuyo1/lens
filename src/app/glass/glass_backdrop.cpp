@@ -49,10 +49,6 @@ constexpr int kSheetMargin = 112;
 /// How near the window may come to a side of the sheet that is not on the screen's edge before a new sheet is taken, in
 /// DIP. The old sheet serves while the new one processes, so this covers the distance a drag moves in that time.
 constexpr int kSheetReserve = 72;
-/// The reference period a GDI screen keeps: about fifteen reads a second in all, however many sheets are live. A screen
-/// that duplicates does not use this budget, nor does it raise a GDI read's rate (docs/adr/0072).
-// ponytail: fixed rate, no back-off when the machine is busy; add one when the reads show up in someone's frame times.
-constexpr int kLiveIntervalMs = kGlassGdiFrameMs;
 /// How often the pipeline's tally is logged. Ten seconds is long enough for the read's median to mean something on a
 /// still desktop, and short enough that a run of the application shows several windows.
 constexpr int kSummaryIntervalMs = 10000;
@@ -418,7 +414,7 @@ GlassBackdrop::GlassBackdrop(QObject* parent)
         connect(sheet, &GlassSheet::liveChanged, this, &GlassBackdrop::updateLive);
         sheets_.push_back(sheet);
     }
-    live_.setInterval(kLiveIntervalMs);
+    live_.setInterval(kGlassGdiFrameMs);
     // A 6 ms tick on a 144 Hz screen is shorter than the coarse timer's own slack, and the poll has to land before the
     // next composition rather than a few milliseconds after it.
     live_.setTimerType(Qt::PreciseTimer);
@@ -460,10 +456,48 @@ GlassQuality GlassBackdrop::quality() const
     return quality_;
 }
 
+GlassBackdrop::Gathered GlassBackdrop::gather()
+{
+    auto  gathered = Gathered{};
+    auto& facts    = gathered.facts;
+    facts.quality  = quality_;
+    facts.desktop  = QGuiApplication::platformName() == QLatin1String("windows");
+    facts.busy     = busy_;
+    facts.gdiDue   = not gdiPace_.isValid() or gdiPace_.elapsed() >= kGlassGdiFrameMs;
+    facts.cursor   = cursor_;
+    facts.sheets.reserve(sheets_.size());
+    gathered.chains.assign(sheets_.size(), nullptr);
+    auto const duplicates = facts.desktop and glassQualityFollows(quality_);
+    for (auto index = std::size_t{0}; index < sheets_.size(); ++index) {
+        auto* const sheet = sheets_[index];
+        auto        fact  = RefreshSheet{};
+        fact.live         = sheet->live_;
+        fact.reading      = sheet->reading();
+        fact.generation   = sheet->generation_;
+        // The screen is asked once per sheet and tick; its answer serves the due check, the route and the chain's
+        // continuation alike, which is what keeps "can this screen follow" in one place (docs/adr/0121).
+        if (fact.live and duplicates) {
+            if (auto* const screen = QGuiApplication::screenAt(sheet->sheet_.center()); screen != nullptr) {
+                auto& session          = sessionFor(*screen);
+                fact.onScreen          = true;
+                fact.canFollow         = session.chain->canFollow();
+                fact.refreshRate       = screen->refreshRate();
+                gathered.chains[index] = session.chain.get();
+            }
+        }
+        facts.sheets.push_back(fact);
+    }
+    return gathered;
+}
+
 void GlassBackdrop::refreshNext()
 {
-    // Eco stopped the timer; a timeout already queued still lands here and has nothing to do.
-    if (not glassQualityRefreshes(quality_)) return;
+    auto const gathered = gather();
+    auto const plan     = planRefresh(gathered.facts);
+    applyPace(plan);
+    // Eco stopped the timer, and no live sheet stops it too: a timeout already queued has nothing to do. Neither is the
+    // refresh running, so neither counts as a tick.
+    if (plan.intervalMs == 0) return;
     glassStats().countTick();
     if (window_.hasExpired(kSummaryIntervalMs)) {
         // Logged on the tick, so a window is only ever reported while the refresh is actually running.
@@ -471,47 +505,20 @@ void GlassBackdrop::refreshNext()
         if (not line.isEmpty()) LENS_INFO("{}", line.toStdString());
         window_.restart();
     }
-    // One read at a time across every surface: a tick that finds the last still running is skipped, not queued behind it.
-    if (busy_) {
+    if (not plan.read) {
         // A chained read is meant to be in flight; counting each tick of it as a skip would drown the tally.
-        if (not chaining_) glassStats().countBusySkip();
+        if (busy_ and not chaining_) glassStats().countBusySkip();
         return;
     }
-    // Standard is the GDI tier: it neither asks a screen to duplicate nor reads faster for one that does.
-    auto const duplicates = QGuiApplication::platformName() == QLatin1String("windows") and glassQualityFollows(quality_);
-    // The GDI budget is shared by every screen that has no duplication: a fast tick for another screen must not turn a
-    // GDI read into a sixty-a-second one.
-    auto const gdiDue = not gdiPace_.isValid() or gdiPace_.elapsed() >= kLiveIntervalMs;
-    auto       live   = std::vector<bool>{};
-    live.reserve(sheets_.size());
-    for (auto* const sheet : sheets_) {
-        // A sheet whose dragged window is being retaken is skipped for this tick; its deferred read is what the next
-        // picture will be, and reading the old region again would only land after it.
-        auto const candidate = sheet->live_ and not sheet->reading();
-        auto       fast      = false;
-        if (candidate and duplicates) {
-            if (auto* const screen = QGuiApplication::screenAt(sheet->sheet_.center()); screen != nullptr)
-                fast = sessionFor(*screen).chain->canFollow();
-        }
-        live.push_back(candidate and (fast or gdiDue));
-    }
-    auto const next = nextLive(live, cursor_);
-    if (not next) {
-        updateLive();
-        return;
-    }
-    cursor_           = *next;
-    auto* const sheet = sheets_[*next];
+    auto const& read  = *plan.read;
+    cursor_           = read.sheet;
+    auto* const sheet = sheets_[read.sheet];
 
-    // Only a live sheet is served from the follow source. A sheet just taken, or a drag's deferred retake, still reads
+    // Only a live sheet is served from a follow source. A sheet just taken, or a drag's deferred retake, still reads
     // through GDI: that path is on the GUI thread or already timed, and its one read is what puts the first picture up.
-    DesktopSource* source = &gdi_;
-    if (duplicates) {
-        if (auto* const screen = QGuiApplication::screenAt(sheet->sheet_.center()); screen != nullptr)
-            source = sessionFor(*screen).chain.get();
-    }
-    auto const read = requestFor(sheet->sheet_, sheet->window_, sheet->fillAlpha_, source);
-    if (not read) {
+    DesktopSource* const source  = read.chain ? gathered.chains[read.sheet] : &gdi_;
+    auto const           request = requestFor(sheet->sheet_, sheet->window_, sheet->fillAlpha_, source);
+    if (not request) {
         sheet->clear();
         return;
     }
@@ -520,114 +527,73 @@ void GlassBackdrop::refreshNext()
     // for the display's rate, not the timer's (docs/adr/0074). The chain lives in this one std::function, held strongly
     // by the task in flight and weakly by its own body, so it ends when a read decides not to continue and leaves
     // nothing behind.
-    using StartRead    = std::function<void(std::size_t, int, Request const&)>;
+    using StartRead    = std::function<void(RefreshRead const&, Request const&)>;
     auto const starter = std::make_shared<StartRead>();
     auto const weak    = std::weak_ptr<StartRead>{starter};
-    *starter           = [this, weak](std::size_t const index, int const generation, Request const& request) {
+    *starter           = [this, weak](RefreshRead const& read, Request const& request) {
         busy_ = true;
-        pool_.start([this, request, index, generation, starter = weak.lock()] {
+        pool_.start([this, read, request, starter = weak.lock()] {
             auto taken = takeSheet(request);
             QMetaObject::invokeMethod(
                 this,
-                [this, request, index, generation, taken = std::move(taken), starter]() mutable {
+                [this, read, request, taken = std::move(taken), starter]() mutable {
                     busy_ = false;
                     // The GDI clock starts when the read finishes, which is also when the next one may start: the read itself
                     // is the cost the fifteen-a-second budget is spacing out.
                     if (taken.usedGdi) gdiPace_.restart();
-                    // Retaken or dropped while this read ran: the picture is of a region that is no longer held.
-                    auto* const target = sheets_[index];
-                    if (generation == target->generation_) {
-                        // A GDI-only read never tried a live source, so it must not clear a refusal the reader has
-                        // already been told about; a chain that skipped or lost its session did try.
-                        if (request.source->canFollow() or taken.refused)
-                            target->noteDuplicationRefused(taken.refused);
-                        if (not taken.noFrame) {
-                            if (taken.picture.isNull())
-                                target->clear();
-                            else
-                                target->publish(request.region,
-                                                request.screen,
-                                                request.window,
-                                                request.fillAlpha,
-                                                std::move(taken.picture),
-                                                taken.tone,
-                                                taken.fingerprint,
-                                                false,
-                                                not taken.usedGdi);
-                        }
-                    }
+                    auto const  gathered = gather();
+                    auto const  landing  = landRefresh(gathered.facts, read, {taken.refused, taken.noFrame, not taken.picture.isNull()});
+                    auto* const target   = sheets_[read.sheet];
+                    if (landing.note) target->noteDuplicationRefused(taken.refused);
+                    if (landing.apply == RefreshLanding::Apply::Publish)
+                        target->publish(request.region,
+                                        request.screen,
+                                        request.window,
+                                        request.fillAlpha,
+                                        std::move(taken.picture),
+                                        taken.tone,
+                                        taken.fingerprint,
+                                        false,
+                                        not taken.usedGdi);
+                    else if (landing.apply == RefreshLanding::Apply::Clear)
+                        target->clear();
                     // A session that failed on this read (another recorder took the output, a display mode changed) must
                     // drop the pace back to the GDI budget before the next tick.
                     updateLive();
-                    // Continue the chain only while it is still the same live sheet, alone on a screen that can follow. A
-                    // second live surface, a retake, or another tier hands the pace back to the timer.
-                    if (quality_ != GlassQuality::Smooth or not target->live_ or target->reading() or target->generation_ != generation) {
+                    if (not landing.chain or not starter) {
                         chaining_ = false;
                         return;
                     }
-                    auto const liveCount = std::count_if(sheets_.begin(), sheets_.end(), [](GlassSheet const* sheet) { return sheet->live_; });
-                    if (liveCount != 1) {
-                        chaining_ = false;
-                        return;
-                    }
-                    auto* const screen = QGuiApplication::screenAt(target->sheet_.center());
-                    if (screen == nullptr or not sessionFor(*screen).chain->canFollow()) {
-                        chaining_ = false;
-                        return;
-                    }
-                    auto next = requestFor(target->sheet_, target->window_, target->fillAlpha_, sessionFor(*screen).chain.get());
-                    if (not next or not starter) {
+                    auto next = requestFor(target->sheet_, target->window_, target->fillAlpha_, gathered.chains[read.sheet]);
+                    if (not next) {
                         chaining_ = false;
                         return;
                     }
                     next->acquireTimeoutMs = kChainWaitMs;
                     chaining_              = true;
-                    (*starter)(index, generation, *next);
+                    (*starter)(RefreshRead{read.sheet, true, read.generation}, *next);
                 },
                 Qt::QueuedConnection);
         });
     };
-    (*starter)(*next, sheet->generation_, *read);
+    (*starter)(read, *request);
 }
 
-void GlassBackdrop::updateLive()
+void GlassBackdrop::applyPace(RefreshPlan const& plan)
 {
-    // Eco keeps the picture on screen and lets the desktop under it go stale: the one tier that does no live work.
-    if (not glassQualityRefreshes(quality_)) {
-        live_.stop();
-        return;
-    }
-    auto const onDesktop  = QGuiApplication::platformName() == QLatin1String("windows");
-    auto const duplicates = onDesktop and glassQualityFollows(quality_);
-    auto       anyLive    = false;
-    auto       anyFast    = false;
-    auto       fastestHz  = 0.0;
-    for (auto* const sheet : sheets_) {
-        if (not sheet->live_) continue;
-        anyLive = true;
-        if (not duplicates) continue;
-        if (auto* const screen = QGuiApplication::screenAt(sheet->sheet_.center()); screen != nullptr) {
-            if (sessionFor(*screen).chain->canFollow()) {
-                anyFast = true;
-                // Not std::max: windows.h's max macro is in scope in this file.
-                if (screen->refreshRate() > fastestHz) fastestHz = screen->refreshRate();
-            }
-        }
-    }
-    if (not anyLive) {
+    if (plan.intervalMs == 0) {
         live_.stop();
         return;
     }
     // Automatic keeps the conservative sixty-a-second cap; Smooth is the tier that spends the extra reads to follow the
     // screen (docs/adr/0074). A screen without a live source, or a Standard tier, keeps the shared GDI budget.
-    auto const interval = not anyFast ? kLiveIntervalMs : glassQualityFrameMs(quality_, fastestHz);
-    if (live_.interval() != interval) {
-        live_.setInterval(interval);
-        if (anyFast) {
-            if (quality_ == GlassQuality::Smooth and fastestHz > 0.0)
-                LENS_INFO("glass refresh on the smooth tier paced at {} ms: the {} Hz screen sets it", interval, qRound(fastestHz));
+    if (live_.interval() != plan.intervalMs) {
+        live_.setInterval(plan.intervalMs);
+        if (plan.fast) {
+            if (quality_ == GlassQuality::Smooth and plan.fastestHz > 0.0)
+                LENS_INFO("glass refresh on the smooth tier paced at {} ms: the {} Hz screen sets it", plan.intervalMs, qRound(plan.fastestHz));
             else
-                LENS_INFO("glass refresh on the {} tier paced at {} ms", glassQualityName(quality_), interval);
+                LENS_INFO("glass refresh on the {} tier paced at {} ms", glassQualityName(quality_), plan.intervalMs);
         }
     }
     if (not live_.isActive()) live_.start();
@@ -638,6 +604,11 @@ void GlassBackdrop::updateLive()
         for (auto const& line : glassScreenLines())
             LENS_INFO("{}", line.toStdString());
     }
+}
+
+void GlassBackdrop::updateLive()
+{
+    applyPace(planRefresh(gather().facts));
 }
 
 GlassBackdrop::Session& GlassBackdrop::sessionFor(QScreen const& screen)

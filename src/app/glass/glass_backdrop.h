@@ -13,10 +13,13 @@
  * up to the screen's refresh rate, and only when the desktop behind the card has changed. The pictures are kept in
  * memory only: never written to disk, never logged, and dropped when the glass themes are off (docs/adr/0034,
  * docs/adr/0035). QML receives each sheet through GlassSheetItem, one live texture replaced in place, and the liquid
- * theme's displacement map through `image://glass/<surface>/map` (docs/adr/0071).
+ * theme's displacement map through `image://glass/<surface>/map` (docs/adr/0071). Which sheet a refresh reads, through
+ * which source, and how fast the timer runs are decided by glass_refresh.h from plain facts; this object supplies the
+ * facts, the timer, the pool and the screens' sessions (docs/adr/0121).
  */
 
 #include "glass_math.h"
+#include "glass_refresh.h"
 #include "glass_source.h"
 #include "app/glass_settings.h"
 
@@ -202,10 +205,11 @@ private:
  * @brief Owns the glass sheets of every glass surface, and reads the desktop for whichever of them is live.
  *
  * The surfaces are a fixed set, so the sheets are created once and the image provider can look them up from its own
- * threads without a lock. One refresh runs at a time: each tick reads the next live sheet in turn (nextLive), so the
- * cost is fixed however many surfaces show glass. A screen with a working duplication session is served from its
- * frames at the fast pace: sixty a second on Automatic, the screen's own refresh period on Smooth. GDI screens keep
- * the fifteen-a-second budget shared between them, so a duplicated screen never raises a GDI screen's read rate.
+ * threads without a lock. One refresh runs at a time: each tick asks glass_refresh.h which live sheet to read and at
+ * what pace, so the cost is fixed however many surfaces show glass. A screen with a working duplication session is
+ * served from its frames at the fast pace: sixty a second on Automatic, the screen's own refresh period on Smooth.
+ * GDI screens keep the fifteen-a-second budget shared between them, so a duplicated screen never raises a GDI screen's
+ * read rate.
  */
 class GlassBackdrop : public QObject {
     Q_OBJECT
@@ -242,10 +246,20 @@ private:
         std::unique_ptr<FallbackSource>   chain;
     };
 
-    /// @brief Start the next refresh on the pool, for the next live sheet in turn. A tick that finds one still running
-    ///        is skipped; a GDI sheet is only due again once the shared fifteen-a-second budget has elapsed.
+    /// @brief The facts the refresh plan reads, and the chain of the screen each sheet lies on, by the same index.
+    struct Gathered {
+        RefreshFacts                facts;
+        std::vector<DesktopSource*> chains;
+    };
+
+    /// @brief Gather the plan's facts, asking each live sheet's screen once whether it can follow frames. GUI thread only.
+    Gathered gather();
+    /// @brief Start the next refresh on the pool, if the plan asks for one. A tick that finds a read still running is
+    ///        skipped; a GDI sheet is only due again once the shared fifteen-a-second budget has elapsed.
     void refreshNext();
-    /// @brief Run the timer while any sheet is live, stop it when none is, and set the pace its reads allow.
+    /// @brief Stop the timer when the plan has no live sheet, or set the interval its reads allow and log the pace.
+    void applyPace(RefreshPlan const& plan);
+    /// @brief Re-plan and apply the pace, for a change outside a tick. GUI thread only.
     void updateLive();
     /// @brief The session for @p screen, opened lazily and reused. GUI thread only.
     Session& sessionFor(QScreen const& screen);

@@ -11,10 +11,6 @@
 #include <QRect>
 #include <QSize>
 
-#include <cstddef>
-#include <optional>
-#include <vector>
-
 namespace lens::app {
 
 /// How much better the other tone has to read before a tone in force gives way. A live sheet is re-read
@@ -126,18 +122,6 @@ QImage refractionMap(QSize size, double radius, double scale);
  * @return The rectangle in device pixels on the desktop.
  */
 QRect toNativeRect(QRect logical, QRect screenLogical, QPoint nativeOrigin, double scale);
-
-/**
- * @brief The next surface whose picture needs a refresh: the first live one after @p after, walking round.
- *
- * Walking round from the last one served means no surface is always first in line, so with several live at once
- * each gets its turn in the same order every time.
- *
- * @param live Whether each surface is live, in the order the cursor walks them.
- * @param after The index the last refresh served. The walk starts one past it and comes back to it last.
- * @return The index of the next live surface, or nothing when none is live.
- */
-std::optional<std::size_t> nextLive(std::vector<bool> const& live, std::size_t after);
 
 /// Side of the grey thumbnail a picture's fingerprint is taken from: see pictureFingerprint().
 constexpr int kFingerprintSide = 32;

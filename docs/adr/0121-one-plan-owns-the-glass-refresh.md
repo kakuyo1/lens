@@ -1,0 +1,22 @@
+# 0121 玻璃刷新的一次 tick 由一个刷新规划 module 给出
+
+- **状态**：accepted（2026-10-26；架构评审候选 07 的落地；行为不变）
+- **背景**：
+  - `GlassBackdrop` 的每个 tick 把 “读哪张幕布、走哪条源、多快” 与 `screenAt`、`QTimer`、`QThreadPool` 混在同一段代码里：`refreshNext()` 先拼 `live` 向量，`updateLive()` 再按同一批屏幕重算节拍，读回来的结果又在完成回调里各自判断发布、跳过、清除与续链。只有 `nextLive`、文字色调这类零件有单测，组合没有；快路径（复制 / WGC）只有在真实 DXGI 机器上跑一遍才看得到。
+  - “这块屏能不能跟帧” 在四处各问一次（due、选源、续链、节拍），`platformName() == "windows"` 问两次。换一个新源要改 backdrop 55 行（WGC，`cc74b73`），改跳帧规则要改 82 行（`24aa227`）。
+  - 0086 在 `FallbackSource` 处的 seam 是真的：4 个产品适配器（复制、WGC、GDI、Scripted）都接在同一个接口上。但 backdrop 这一侧只有一个 adapter，因为 `sessionFor()` 自己搭链，模块看不到 “这块屏用什么源”。
+- **决定**：新增 `src/app/glass/glass_refresh.{h,cpp}`，一个无 Qt、无时钟、无线程池的刷新规划 module；`GlassBackdrop` 退为 adapter。
+  - **事实进**：`RefreshFacts` 载着 tier、是否桌面、是否已有读在飞、GDI 预算是否到期、上一次服务的游标，以及每个幕布的 `live` / `reading` / `generation` / 是否在屏上 / 该屏的源能否跟帧 / 刷新率。屏幕查询仍由 adapter 做一次（`screenAt` + `sessionFor`），每张 live 幕布只问一次 `canFollow()`。
+  - **值出**：`RefreshPlan` 给出这一 tick 要读的 `RefreshRead { sheet, chain, generation }`（或没有）、计时器周期、是否在跟帧的屏上、最快刷新率。`chain` 只表示 “走该屏的链”，指针由 adapter 从 `Gathered.chains` 交进来；module 不认识 `DesktopSource`、`QScreen` 或任何 Qt 类型。
+  - **落地判定**：`landRefresh(facts, read, outcome)` 给出 `RefreshLanding { Apply, note, chain }`——发布 / 清除 / 什么都不做、要不要更新设置页的拒绝提示、要不要续链。`RefreshOutcome` 是 `refused` / `noFrame` / `picture` 三个事实。
+  - **adapter 保留**：`gather()` 只做屏幕与 session 查询；`refreshNext()` 只把 plan 变成一次线程池读；`applyPace()` 只写 `live_` 计时器并在换档时打日志；发布、指纹门、文字色调、统计、抓屏排除、`sessionFor()` 全留在原处。`updateLive()` 变成 “重新 plan 一次再 applyPace”。
+  - `nextLive` 从 `glass_math` 移进本 module：游标轮转是刷新决策的一部分，像素算术不再是它的主人。
+  - 行为保持 0072 / 0073 / 0074 / 0087：GDI 屏共享 15 次/秒预算且不被快屏抬高；Auto 16 ms、Smooth 按屏刷新率；链只在 Smooth、仅一张 live 幕布、该屏能跟帧时续；首图与拖动重取仍走 GDI；仅 GDI 的读不清拒绝提示。
+- **后果**：
+  - `glass_refresh_test` 的 20 个值用例不碰屏幕：三条此前测不到的不变量第一次有断言——仅 GDI 读不清拒绝提示、第二张幕布 live 时续链停、快屏不抬高 GDI 屏的频率；另有游标轮转、四档节拍、读在飞 / 延迟重取跳过、Standard 不跟帧、屏不可跟帧时仍走链以便报告拒绝、陈旧 generation 丢弃、无新帧续链、Smooth/Auto 的续链条件。
+  - “能否跟帧” 从 4 份收成 1 份（`gather()`），平台判断从 2 份收成 1 份；新源不再改 backdrop 的决策代码，只在 `sessionFor()` 的链里加一项。
+  - 一处只影响统计的差异：Eco 或没有 live 幕布时，队列里遗留的一次 timeout 不再计 `ticks`——刷新本来就没在跑，摘要窗口不该被它推动。其余日志口径不变。
+  - 对 QML 的口径不变：`GlassSheet` 的属性、`GlassBackdrop::surface()` / `setQuality()` 与 `image://glass` 都没动。
+  - 真机检查仍待做：本轮在代码与单测层面完成，GT710 与 4060 两台机器各需一次 “设置面板 live、Smooth” 的观察，确认 tally 的 `frames` / `publishes` 形状与 ADR 0074 / 0087 的记录一致。
+  - 被排除的方案：把决策留在 `GlassBackdrop`、只补一个 qtest（仍要真实的窗口与桌面，且是在测 adapter 而不是规则）；让 module 拥有计时器、线程池或 session（它就不再是值进值出，单测重新需要 Qt 平台）；把 `DesktopSource*` 放进事实（module 会拥有生命周期，`ScriptedSource` 只能用真的链）；拆成 due / pace / landing 三个 module（它们读同一份事实，分开只会多两份 gather）。
+- **ADR 关系**：0086 的 seam 在这里延伸到 backdrop 一侧——各屏的源由 `sessionFor()` 建好后交进来，规划不再自己搭链；0074 的续链行为与 0073 的四档节拍原样保留；0057 / 0114 / 0116 / 0118 / 0120 的 “纯 module + adapter” 在玻璃刷新再落一处。

@@ -59,7 +59,7 @@ using lens::app::SheetScale;
 /// The sheet size ADR 0040 measured and the probe re-measured, so all three numbers describe the same rectangle.
 constexpr int kSheetWidth  = 1075;
 constexpr int kSheetHeight = 1231;
-/// The refresh period the application keeps (src/app/glass/glass_backdrop.cpp's kLiveIntervalMs, docs/adr/0040).
+/// The refresh period the application keeps (src/app/glass/glass_settings.h's kGlassGdiFrameMs, docs/adr/0040).
 constexpr auto kPace = std::chrono::milliseconds(67);
 /// How long a pacing round runs. Twenty seconds is about 300 paced reads, enough for a median to stop moving.
 constexpr int kPaceRoundSeconds = 20;

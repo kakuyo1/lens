@@ -75,6 +75,7 @@ add_library(lens_app STATIC
   glass/glass_duplication.h
   glass/glass_duplication.cpp
   glass/glass_math.cpp
+  glass/glass_refresh.cpp
   glass/glass_sheet_item.h
   glass/glass_sheet_item.cpp
   glass/glass_source.h

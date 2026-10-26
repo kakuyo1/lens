@@ -10,7 +10,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <optional>
 #include <vector>
 
 namespace lens::app {
@@ -229,16 +228,6 @@ QRect toNativeRect(QRect const logical, QRect const screenLogical, QPoint const 
     auto const offset = logical.topLeft() - screenLogical.topLeft();
     auto const corner = nativeOrigin + QPoint(qRound(offset.x() * scale), qRound(offset.y() * scale));
     return QRect(corner, QSize(qRound(logical.width() * scale), qRound(logical.height() * scale)));
-}
-
-std::optional<std::size_t> nextLive(std::vector<bool> const& live, std::size_t const after)
-{
-    auto const count = live.size();
-    for (auto step = std::size_t{1}; step <= count; ++step) {
-        auto const index = (after + step) % count;
-        if (live[index]) return index;
-    }
-    return std::nullopt;
 }
 
 quint64 pictureFingerprint(QImage const& picture)
