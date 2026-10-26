@@ -34,7 +34,7 @@ lens/
 ├── .clang-format     # code format spec
 ├── .githooks         # pre-commit and commit-msg; each file's header lists its checks
 ├── cmake             # headers only: the precompiled ones CMakeLists.txt applies
-├── config            # paths.json — the machine paths; README.md owns the rule and its exemptions
+├── config            # paths.json + paths.local.json — the machine paths; README.md owns the rule and its exemptions
 ├── data              # wordlist, llm/ (wire protocol as data), pet/, scenes/, fonts/, icons/, sync.json, update.json
 ├── docs              # README.md (doc routing), QML.md (QML facts), adr/ (trade-offs), metrics/, pet-*.md
 ├── i18n              # .ts translations; English is the source language
@@ -75,20 +75,27 @@ The last line runs the application rather than building it: it rebuilds `build-n
 `lens.exe` is older than `src/`, launches it with the repository as its working directory, and reports
 the PID and `logs/lens.log`. The `run-lens` skill carries the driving and photographing around it.
 
-The Qt prefix lives in `config/paths.json`, which `scripts/build/build.bat` exports as `QT_ROOT` before it drives
-the presets. `config/README.md` owns the rule: machine paths come from that file, project paths stay
-relative to the repository root, and nothing else writes either kind by hand.
+The Qt prefix lives in the merged machine config: `config/paths.json`, overridden key by key by the gitignored
+`config/paths.local.json`. `scripts/build/paths.ps1` is the one reader; `scripts/build/build.bat` uses it to export
+`QT_ROOT` before it drives the presets. `scripts/build/show-paths.ps1` prints the effective values, their source file
+and whether each resolves. `config/README.md` owns the rule: machine paths come from those two files, project paths
+stay relative to the repository root, and nothing else writes either kind by hand — never parse `paths.json` alone.
 
 ## Test
 
 Tests live under `test/googletest/` (gtest): `unit/` offline, `integration/` real Windows APIs (human-run), `perf/` measurement, `smoke/` real model. The Qt and QML side is `test/qtest/` (QTest), which needs a window; it is not here.
 
-Set `QT_ROOT` from the `qtRoot` key of `config/paths.json` first; `build.bat` does that for itself.
+The Qt bin comes from the same merged config. `scripts/qa/gtest.ps1` reads it, builds the target incrementally and
+runs it with the environment the binary needs:
 
 ```
-PATH="$QT_ROOT/bin:$PATH" QT_FORCE_STDERR_LOGGING=1 \
-  ./build-ninja/test/googletest/lens_gtest_unit.exe
+powershell -File scripts/qa/gtest.ps1 -Filter 'PetThrow*'
+powershell -File scripts/qa/gtest.ps1 -Target lens_gtest_integration
 ```
+
+`-Filter` is the gtest filter; `-Target` defaults to `lens_gtest_unit`. Never copy `qtRoot` out of
+`config/paths.json` by hand: it is the committed template, and a different machine overrides it in
+`config/paths.local.json`; `scripts/build/show-paths.ps1` prints the merged values and their source.
 
 `TEST.md` owns the targets, the corpus format and the run-record convention. Profiling and coverage methods live in `docs/metrics/profiling-and-coverage.md`; the drive-and-capture round lives in `docs/qa.md`.
 
@@ -99,8 +106,9 @@ Targets: `lens_util` → `lens_core` → `lens_capture` / `lens_llm` → `lens_a
 English is the source language: `i18n/lens_en_US.ts` mirrors the source strings, and `lens_zh_CN.ts` / `lens_zh_TW.ts` / `lens_es_ES.ts` / `lens_ja_JP.ts` carry the Simplified Chinese, Traditional Chinese, Spanish and Japanese. After adding or changing a reader-facing string:
 
 ```
-PATH="$QT_ROOT/bin:$PATH" lupdate src -ts i18n/lens_en_US.ts i18n/lens_zh_CN.ts i18n/lens_zh_TW.ts i18n/lens_es_ES.ts i18n/lens_ja_JP.ts
-PATH="$QT_ROOT/bin:$PATH" lrelease i18n/lens_en_US.ts i18n/lens_zh_CN.ts i18n/lens_zh_TW.ts i18n/lens_es_ES.ts i18n/lens_ja_JP.ts
+QT_BIN="$(powershell -NoProfile -File scripts/build/show-paths.ps1 -Key qtBin)"
+PATH="$QT_BIN:$PATH" lupdate src -ts i18n/lens_en_US.ts i18n/lens_zh_CN.ts i18n/lens_zh_TW.ts i18n/lens_es_ES.ts i18n/lens_ja_JP.ts
+PATH="$QT_BIN:$PATH" lrelease i18n/lens_en_US.ts i18n/lens_zh_CN.ts i18n/lens_zh_TW.ts i18n/lens_es_ES.ts i18n/lens_ja_JP.ts
 ```
 
 `lupdate` appends new strings as `unfinished` and leaves existing translations alone, so rerunning is safe. Write the Simplified Chinese into `lens_zh_CN.ts`, the Traditional Chinese into `lens_zh_TW.ts`, the Spanish into `lens_es_ES.ts` and the Japanese into `lens_ja_JP.ts`, copying the source text into `lens_en_US.ts`; `lrelease` is the check, and the goal is zero unfinished. All five reach zero before the commit, not after: `.githooks/pre-commit` refuses a staged `.ts` that still carries one, so the languages left untranslated are what blocks it. The interface language code `zh-Hant` maps to `lens_zh_TW.qm` in `src/app/main.cpp`; the explanation language uses the same catalog code, and its prompt line lives in `data/llm/request.*.json`. The `.qm` files are build output and stay gitignored.

@@ -1,16 +1,18 @@
 # 脚本目录
 
-脚本按用途分组。命令默认从仓库根目录执行，机器相关路径统一由 `scripts/build/paths.ps1` 读取 `config/paths.json`。
+脚本按用途分组。命令默认从仓库根目录执行，机器相关路径统一由 `scripts/build/paths.ps1` 读取
+`config/paths.json` 与 `config/paths.local.json` 的合并结果；`scripts/build/show-paths.ps1` 打印合并后的值、
+来源文件与是否可用。
 
 ## 目录
 
 | 目录 | 用途 |
 | --- | --- |
-| `build/` | Debug、RelWithDebInfo 构建和机器路径读取 |
+| `build/` | Debug、RelWithDebInfo 构建和机器路径读取、查看 |
 | `data/` | 词形数据生成与样例集独立校验 |
 | `pet/` | 桌宠美术流水线：形状配方、网格写入、配饰对位、素材同步与审查图（见其 README 与 `docs/pet-art-pipeline.md`） |
 | `profiling/` | QML profiler、QML 结构指标和 trace 解析 |
-| `qa/` | 起应用、QTest 单条/整套/并行分片、桌面驱动、截图、QML 快照和鼠标停顿探针；`qa/pet/` 是桌面宠物原型的逐动作对比与交互检查（见其 README） |
+| `qa/` | 起应用、gtest 单条/整套、QTest 单条/整套/并行分片、桌面驱动、截图、QML 快照和鼠标停顿探针；`qa/pet/` 是桌面宠物原型的逐动作对比与交互检查（见其 README） |
 | `quality/` | QML lint、分层边界检查、C++ / QML 覆盖率和 AST 指标、CI 变更分类（`ci-changes.sh`）；`zhlintrc.json` 是 CI 上排版检查用的仓库内配置 |
 | `release/` | 安装包构建和 GitHub Release 发布 |
 
@@ -30,6 +32,8 @@ python scripts/qa/readme-html-compose.py # 裁图、合成语言切换 GIF、学
 ```
 
 ```powershell
+powershell -File scripts/build/show-paths.ps1             # 合并后的机器路径、来源与是否可用
+powershell -File scripts/qa/gtest.ps1 -Filter 'PetThrow*'  # gtest；-Target 缺省 lens_gtest_unit
 powershell -File scripts/qa/lens-dev.ps1 -Script <剧本>   # 开发面优先：不移动指针、不抓屏，见 docs/qa.md
 powershell -File scripts/qa/ui-run.ps1        # 起 release 树的应用：旧了就重建，见 docs/qa.md
 powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_components   # 整套；加 -Case <用例> 只跑一条，见 TEST.md 第 2 节

@@ -1,5 +1,6 @@
-build/
-build-*/
+# Build trees at the repository root only: scripts/build/ is source, not output.
+/build/
+/build-*/
 CMakeCache.txt
 *.user
 node_modules/

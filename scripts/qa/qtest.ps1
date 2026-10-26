@@ -3,9 +3,10 @@
 # The suites are the slowest part of the loop: lens_qtest_surfaces is 188 cases and about two
 # minutes, where a single case is about five seconds. Which of the two to run follows from what
 # changed, and TEST.md section 2 owns that. This script is here so that choosing the narrow one
-# costs nothing: it reads the Qt bin from config/paths.json, sets QT_QPA_PLATFORM=offscreen,
-# builds the target (incremental, a few seconds) so a stale binary cannot answer for the code, and
-# then forwards the case name to the runner.
+# costs nothing: it reads the Qt bin from the merged machine config (config/paths.json, overridden
+# by config/paths.local.json), sets QT_QPA_PLATFORM=offscreen, builds the target (incremental, a
+# few seconds) so a stale binary cannot answer for the code, and then forwards the case name to
+# the runner.
 #
 # -Case takes what the runner takes: `Main::test_x` or the bare `test_x`. A class on its own is not
 # one of those, and `-Case Main` is the quiet way to run nothing: the runner prints "Could not find
@@ -46,7 +47,11 @@ if ([string]::IsNullOrWhiteSpace($QtBin)) {
     $QtBin = (Get-LensPaths -Root $root).qtBin
 }
 if ([string]::IsNullOrWhiteSpace($QtBin)) {
-    throw "qtest: config/paths.json carries no qtBin, and -QtBin was not given"
+    throw "qtest: the merged config carries no qtBin, and -QtBin was not given; see scripts/build/show-paths.ps1"
+}
+if (-not (Test-Path -LiteralPath (Join-Path $QtBin "Qt6Core.dll")) -and
+    -not (Test-Path -LiteralPath (Join-Path $QtBin "Qt6Cored.dll"))) {
+    throw "qtest: no Qt6Core DLL in '$QtBin'; the merged machine paths are probably stale -- see scripts/build/show-paths.ps1"
 }
 
 Push-Location $root

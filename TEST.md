@@ -46,26 +46,24 @@ test/
 | `lens_qtest_components` | `qml/components/` 那八个的接线与交互 | 动组件时，无头，可进 CI |
 | `lens_qtest_surfaces` | 表面：Main 的摆放与关闭、托盘菜单、通知卡片、三张面板、行动条 | 动表面时，无头，可进 CI |
 
-运行前先把 `QT_ROOT` 设为 `config/paths.json` 的 `qtRoot`：
+Qt 来自 `config/paths.json` 被 `config/paths.local.json` 逐键覆盖后的合并值，由运行器读取；不要手抄
+`paths.json` 的 `qtRoot`。两个运行器都先做增量构建，再把环境变量配好：
 
 ```
-PATH="$QT_ROOT/bin:$PATH" QT_FORCE_STDERR_LOGGING=1 \
-  ./build-ninja/test/googletest/lens_gtest_unit.exe
-
-PATH="$QT_ROOT/bin:$PATH" QT_QPA_PLATFORM=offscreen QT_FORCE_STDERR_LOGGING=1 \
-  ./build-ninja/test/qtest/lens_qtest_components.exe
-
-PATH="$QT_ROOT/bin:$PATH" QT_QPA_PLATFORM=offscreen QT_FORCE_STDERR_LOGGING=1 \
-  ./build-ninja/test/qtest/lens_qtest_surfaces.exe
+powershell -File scripts/qa/gtest.ps1 -Filter 'PetThrow*'
+powershell -File scripts/qa/gtest.ps1 -Target lens_gtest_integration
+powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_components -Case Main::test_x
+powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_surfaces
 ```
 
-- 改动后先跑**覆盖它的那条用例**，不跑整套：用例名直接跟在目标后面，如
-  `./build-ninja/test/qtest/lens_qtest_surfaces.exe Main::test_x`，约 5 秒；整套 surfaces 249 例，
-  全量留给收尾那一次。`scripts/qa/qtest.ps1 -Target <目标> -Case <用例>` 把环境变量与增量构建包在一起。
+需要看合并后的机器路径、来源文件与是否可用：`powershell -File scripts/build/show-paths.ps1`。
+
+- 改动后先跑**覆盖它的那条用例**，不跑整套：gtest 用 `gtest.ps1 -Filter 'PetThrow*'`，QTest 用
+  `qtest.ps1 -Target <目标> -Case Main::test_x`，约 5 秒；整套 surfaces 249 例，全量留给收尾那一次。
 - 整套 surfaces 可以按文件并行：`bash scripts/qa/qtest-parallel.sh --build build-ninja --shards 2`。
   CI 用同一条命令；每个 `.qml` 一个进程，设置副本按 PID 隔离，成功时每个文件一行 `Totals`，红文件打印完整日志。
 - 链接 `lens_llm` 或 `lens_app` 的目标需要 Qt DLL 在 `PATH` 上（即 `unit` / `integration` /
-  `smoke` / `glass_probe`）。`lens_gtest_perf` 只链 `lens_core`，保持无 Qt，什么都不需要。
+  `smoke` / `glass_probe`），运行器已把合并后的 `qtBin` 放进去。`lens_gtest_perf` 只链 `lens_core`，保持无 Qt，什么都不需要。
   `lens_gtest_glass_probe` 链 `lens_app`，因为它和应用读同一条桌面来源（`src/app/glass/glass_source.h`）。
 - 上表七个目标全部带 `EXCLUDE_FROM_ALL`：默认构建只有主程序 `lens`，测试按名构建，如
   `scripts/build/build.bat --target lens_gtest_unit`。它们在改动 QML 或 `lens_app` / `lens_llm`
@@ -107,7 +105,7 @@ PATH="$QT_ROOT/bin:$PATH" QT_QPA_PLATFORM=offscreen QT_FORCE_STDERR_LOGGING=1 \
 - 夹具里 `selectionCapture` 写的是字符串 `"false"`，不是 JSON 布尔。两种写法现在都读得出来（设置
   分区读时两种编码都认），所以手写成 `false` 不再被当作缺省值 `"true"` 静默忽略；但**写**下去时保留
   该键已有的编码，手写的字符串键不会变成真布尔，只有从未存在过的新键才按真类型出生（`docs/adr/0024`）。
-- 冒烟：`LENS_SMOKE_WORD=ubiquitous ./build-ninja/test/googletest/lens_gtest_smoke.exe`。词取自
+- 冒烟：`LENS_SMOKE_WORD=ubiquitous powershell -NoProfile -File scripts/qa/gtest.ps1 -Target lens_gtest_smoke`。词取自
   `LENS_SMOKE_WORD`，缺省 `ubiquitous`。`settings.local.json` 缺 URL / MODEL / API-KEY 时报 skip
   而不是失败——要 key、要花钱、结论靠人看，所以它不进 CI。密钥读进内存后不打印、不进日志、不进
   失败消息。

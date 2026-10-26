@@ -1,6 +1,7 @@
 # `config/` 存什么
 
-机器相关的路径只有这一处：`config/paths.json`。项目**自己**的路径不在这里——它们一律相对仓库根解析，
+机器相关的路径只有这一处配置：签入的模板 `config/paths.json`，加上本机覆盖 `config/paths.local.json`
+（gitignore）。项目**自己**的路径不在这里——它们一律相对仓库根解析，
 CMake 侧是 `CMAKE_SOURCE_DIR`（`src/app/CMakeLists.txt`、`test/qtest/CMakeLists.txt` 都在用），脚本侧是
 `git rev-parse --show-toplevel`。这两套机制本来就可迁移，再叠一份配置就是第二个真相，迟早漂移。
 
@@ -23,6 +24,7 @@ C++ 不读这个文件：路径在 configure 期由 CMake 变成编译定义，�
 ## 换机器
 
 `config/paths.local.json`（gitignore）里出现的键逐键覆盖 `paths.json`。换机器改它，不要动提交进仓库的那份。
+合并结果、每个键来自哪份文件、值在本机是否存在，用 `powershell -File scripts/build/show-paths.ps1` 查看。
 
 ## 豁免
 
