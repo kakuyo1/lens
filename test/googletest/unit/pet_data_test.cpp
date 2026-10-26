@@ -29,6 +29,7 @@
 
 namespace {
 
+using lens::app::pet::PetSource;
 using lens::core::pet::parseAccessories;
 using lens::core::pet::parseAnchors;
 using lens::core::pet::parseAnimations;
@@ -118,14 +119,14 @@ TEST(PetData, EverySheetIsTheSizeItsFrameCountSays)
 {
     auto const directory = std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet" / "dog";
 
-    EXPECT_NO_THROW(lens::app::pet::PetAssets::load(directory));
+    EXPECT_NO_THROW(lens::app::pet::PetAssets::load(directory, PetSource::Shipped));
 }
 
 TEST(PetData, TheAskActionIsAPoseAndDrawsNoEffect)
 {
     // The review sign stands beside the pet, so the ask action bobs the body and holds no hand or other effect sheet.
     auto const directory = std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet" / "dog";
-    auto const ask       = lens::app::pet::PetAssets::load(directory).sheets.at("ask");
+    auto const ask       = lens::app::pet::PetAssets::load(directory, PetSource::Shipped).sheets.at("ask");
 
     EXPECT_TRUE(ask.effect.isEmpty());
     EXPECT_FALSE(ask.body.isEmpty());
@@ -139,7 +140,7 @@ TEST(PetData, EveryShippedPetHasTheDizzyLandingWithStars)
         ASSERT_EQ(animations.playbook.roles.count(lens::core::pet::Role::Dizzy), 1u) << entry.path().filename().string();
 
         auto const name   = animations.playbook.roles.at(lens::core::pet::Role::Dizzy);
-        auto const assets = lens::app::pet::PetAssets::load(entry.path());
+        auto const assets = lens::app::pet::PetAssets::load(entry.path(), PetSource::Shipped);
         EXPECT_FALSE(assets.sheets.at(name).body.isEmpty()) << name;
         EXPECT_FALSE(assets.sheets.at(name).effect.isEmpty()) << name << " has no star sheet";
         EXPECT_FALSE(animations.playbook.actions.at(name).loop) << name;
@@ -270,7 +271,7 @@ TEST(PetData, EveryShippedPetIsAcceptedWhole)
     for (auto const& entry : std::filesystem::directory_iterator{std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet"}) {
         if (not entry.is_directory()) continue;
         ++pets;
-        EXPECT_NO_THROW(lens::app::pet::PetAssets::load(entry.path())) << entry.path().string();
+        EXPECT_NO_THROW(lens::app::pet::PetAssets::load(entry.path(), PetSource::Shipped)) << entry.path().string();
     }
     EXPECT_GT(pets, 0);
 }
@@ -329,7 +330,7 @@ TEST(PetData, AScaleOutsideTheSliderRangeRefusesThePet)
     auto scratch = ScratchPet{"scale"};
     scratch.replaceIn("pet.json", "\"scale\": 3", "\"scale\": 99");
 
-    EXPECT_THROW(lens::app::pet::PetAssets::load(scratch.path()), std::runtime_error);
+    EXPECT_THROW(lens::app::pet::PetAssets::load(scratch.path(), PetSource::Installed), std::runtime_error);
 }
 
 TEST(PetData, ASheetOfTheWrongWidthRefusesThePet)
@@ -338,7 +339,7 @@ TEST(PetData, ASheetOfTheWrongWidthRefusesThePet)
     auto scratch = ScratchPet{"sheet"};
     std::filesystem::copy_file(scratch.path() / "sprites/body/study.png", scratch.path() / "sprites/body/idle.png", std::filesystem::copy_options::overwrite_existing);
 
-    EXPECT_THROW(lens::app::pet::PetAssets::load(scratch.path()), std::runtime_error);
+    EXPECT_THROW(lens::app::pet::PetAssets::load(scratch.path(), PetSource::Installed), std::runtime_error);
 }
 
 /// Writes `sheet` over the idle body sheet of a scratch pet, at the size the sheet already has.
@@ -359,7 +360,7 @@ TEST(PetData, TheIdleFigureCentreIsMeasuredFromItsPixels)
     }
     writeIdleSheet(scratch, sheet);
 
-    auto const assets = lens::app::pet::PetAssets::load(scratch.path());
+    auto const assets = lens::app::pet::PetAssets::load(scratch.path(), PetSource::Installed);
     EXPECT_DOUBLE_EQ(assets.inkCentre, 65.0);
     EXPECT_DOUBLE_EQ(assets.inkLeft, 60.0);
     EXPECT_DOUBLE_EQ(assets.inkTop, 20.0);
@@ -374,7 +375,7 @@ TEST(PetData, AnIdleFrameWithNothingDrawnCentresOnTheCanvas)
     sheet.fill(Qt::transparent);
     writeIdleSheet(scratch, sheet);
 
-    auto const assets = lens::app::pet::PetAssets::load(scratch.path());
+    auto const assets = lens::app::pet::PetAssets::load(scratch.path(), PetSource::Installed);
     EXPECT_DOUBLE_EQ(assets.inkCentre, 44.0);
     EXPECT_DOUBLE_EQ(assets.inkLeft, 0.0);
     EXPECT_DOUBLE_EQ(assets.inkTop, 0.0);
@@ -416,7 +417,7 @@ TEST(PetData, LayersStackInTheSpecOrder)
 std::optional<lens::core::pet::Refusal> refusalOfLoad(std::filesystem::path const& directory)
 {
     try {
-        lens::app::pet::PetAssets::load(directory);
+        lens::app::pet::PetAssets::load(directory, PetSource::Installed);
     } catch (lens::core::pet::Refused const& refused) {
         return refused.reason();
     }
@@ -595,7 +596,7 @@ TEST(PetData, ANameIsCleanedOfControlAndFormatCharactersAndNormalised)
     doc["name"]  = "\u202Ee\u0301\u200B";
     scratch.writeJson("pet.json", doc);
 
-    auto const assets = lens::app::pet::PetAssets::load(scratch.path());
+    auto const assets = lens::app::pet::PetAssets::load(scratch.path(), PetSource::Installed);
     EXPECT_EQ(assets.name, QString::fromUtf8("\u00e9"));
 }
 
@@ -613,7 +614,49 @@ TEST(PetData, ThePetNameIsTheIdWhenThePackageGivesNone)
 {
     auto scratch = ScratchPet{"no-name"};
 
-    EXPECT_EQ(lens::app::pet::PetAssets::load(scratch.path()).name, QStringLiteral("dog"));
+    EXPECT_EQ(lens::app::pet::PetAssets::load(scratch.path(), PetSource::Installed).name, QStringLiteral("dog"));
+}
+
+TEST(PetData, EveryBundledPetDrawsItsOwnReviewSignInSixtyBins)
+{
+    auto pets = 0;
+    for (auto const& entry : std::filesystem::directory_iterator{std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet"}) {
+        if (not entry.is_directory()) continue;
+        ++pets;
+        auto const assets = lens::app::pet::PetAssets::load(entry.path(), PetSource::Shipped);
+        ASSERT_TRUE(assets.reviewSign.has_value()) << entry.path().filename().string();
+        EXPECT_EQ(assets.reviewSign->bins.size(), 60u) << entry.path().filename().string();
+    }
+    EXPECT_EQ(pets, 7);
+}
+
+TEST(PetData, APackageNeverGetsAReviewSign)
+{
+    // The dog's sign is well formed, so the only reason a package has none is that its source is not the app's own.
+    auto scratch = ScratchPet{"package-sign"};
+
+    EXPECT_FALSE(lens::app::pet::PetAssets::load(scratch.path(), PetSource::Installed).reviewSign.has_value());
+}
+
+TEST(PetData, AMissingReviewSignSheetDropsTheSignAndKeepsThePet)
+{
+    auto scratch = ScratchPet{"sign-missing"};
+    std::filesystem::remove(scratch.path() / "sign/8.png");
+
+    auto const assets = lens::app::pet::PetAssets::load(scratch.path(), PetSource::Shipped);
+    EXPECT_FALSE(assets.reviewSign.has_value());
+    EXPECT_FALSE(assets.sheets.empty());
+}
+
+TEST(PetData, AReviewSignSheetOfTheWrongSizeDropsTheSignAndKeepsThePet)
+{
+    // The header is a valid PNG header, but 10 by 10 is no size any bin of the dog's sign declares.
+    auto scratch = ScratchPet{"sign-size"};
+    writeDeclaredPng(scratch.path() / "sign/8.png", 10, 10);
+
+    auto const assets = lens::app::pet::PetAssets::load(scratch.path(), PetSource::Shipped);
+    EXPECT_FALSE(assets.reviewSign.has_value());
+    EXPECT_FALSE(assets.sheets.empty());
 }
 
 } // namespace

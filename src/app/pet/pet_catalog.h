@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <filesystem>
 #include <string>
 #include <string_view>
@@ -8,6 +7,7 @@
 
 #include <QString>
 
+#include "app/pet/pet_assets.h"
 #include "core/domain/pet/pet_package.h"
 
 /**
@@ -20,12 +20,6 @@
  */
 
 namespace lens::app::pet {
-
-/// @brief Where a pet came from. The install folder and the reader's own folder are the only two sources.
-enum class PetSource : std::uint8_t {
-    Shipped,
-    Installed,
-};
 
 /// @brief One pet the picker offers, checked whole.
 struct PetEntry {

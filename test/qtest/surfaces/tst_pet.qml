@@ -174,7 +174,7 @@ Item {
             try {
                 for (const size of [0, 10, 20, 67, 100]) {
                     Pet.setSize(size);
-                    const base = board.y + board.designBase * board.boardScale;
+                    const base = board.y + board.bleed + board.designBase * board.boardScale;
                     const feet = stage.figureY + (Pet.inkBox.y + Pet.inkBox.height) * Pet.scale;
                     verify(Math.abs(base - feet) < 1, "the post's foot is at " + base + ", not the pet's feet at " + feet + " at size " + size
                            + " (board y " + board.y + ", scale " + board.boardScale + ", figureY " + stage.figureY + ")");

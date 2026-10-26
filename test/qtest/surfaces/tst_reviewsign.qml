@@ -100,11 +100,11 @@ Item {
 
         /// Puts a question up on a sign beside a pet at @p petX, and waits for the side to be placed and the sign to show.
         /// The sign must land on the screen, which is checked here so a misplaced sign fails with its geometry.
-        function askFromPetAt(petX) {
+        function askFromPetAt(petX, word) {
             fakePet.x = petX;
             sign = signComponent.createObject(null);
             verify(sign);
-            sign.begin("serendipity");
+            sign.begin(word || "serendipity");
             tryVerify(function () { return sign.visible; }, 2000);
             verify(sign.x >= 0 && sign.x + sign.width <= Screen.desktopAvailableWidth && sign.y >= 0 && sign.y + sign.height <= Screen.desktopAvailableHeight,
                    "the sign is on the screen: " + sign.x + "," + sign.y + " " + sign.width + "x" + sign.height + " on " + Screen.desktopAvailableWidth + "x" + Screen.desktopAvailableHeight);
@@ -138,12 +138,13 @@ Item {
             askFromPetAt(Math.round(Screen.desktopAvailableWidth / 2));
             const boardItem = board();
             verify(boardItem, "the sign has no board");
-            const base = sign.y + boardItem.designBase * boardItem.boardScale;
+            const base = sign.y + boardItem.bleed + boardItem.designBase * boardItem.boardScale;
             verify(Math.abs(base - footLine()) < 1, "the post's foot is at " + base + ", not the pet's feet at " + footLine());
+            const left = sign.x + boardItem.bleed;
             if (sign.side === "left")
-                verify(sign.x + boardItem.boardWidth <= inkLeft() - 8 + 1, "the plank runs into the pet's ink on the left");
+                verify(left + boardItem.boardWidth <= inkLeft() - 8 + 1, "the plank runs into the pet's ink on the left");
             else
-                verify(sign.x >= inkRight() + 8 - 1, "the plank runs into the pet's ink on the right");
+                verify(left >= inkRight() + 8 - 1, "the plank runs into the pet's ink on the right");
         }
 
         /// The board keeps its place on the pet, so a pet the reader drags takes the sign along.
@@ -164,7 +165,8 @@ Item {
             openCard();
             compare(sign.card.visible, true);
             compare(sign.x, x, "opening the card moved the sign");
-            verify(Math.abs(sign.card.x + sign.card.width + 10 - sign.x) < 1, "the card is not 10 px left of the board: " + sign.card.x);
+            const boardLeft = sign.x + board().bleed;
+            verify(Math.abs(sign.card.x + sign.card.width + 10 - boardLeft) < 1, "the card is not 10 px left of the board: " + sign.card.x);
         }
 
         /// The pet looks at the sign's side, turns to the open card's side, and goes back to centre when the question ends.
@@ -238,22 +240,60 @@ Item {
             compare(showAnswerBubble().verdictButtons, false);
         }
 
-        /// The whole sign scales by K = scale / 3.01 from its top-left, as pet-review.html scales it: a 40 px plank, the 32 px
-        /// post under it, 2 px of the post behind the plank and the 4 px shadow, all at the default size.
+        /// The whole sign scales by K = scale / 3.01 from its top-left: the pet's art cell, or for a pet without art the wooden
+        /// board's 40 px plank, the 32 px post under it, 2 px of the post behind the plank and the 4 px shadow.
         function test_signScalesWithThePetByK() {
             const chosen = Pet.size;
+            const designHeight = Pet.reviewSign.bins ? Pet.reviewSign.bins[0].cellHeight : 40 + 32 - 2 + 4;
             try {
                 for (const size of [0, 67, 100]) {
                     Pet.setSize(size);
                     askFromPetAt(Math.round(Screen.desktopAvailableWidth / 2));
                     const k = Pet.scale / 3.01;
-                    verify(Math.abs(sign.height - (40 + 32 - 2 + 4) * k) < 1.5, "the sign is " + sign.height + " tall at scale " + Pet.scale);
+                    verify(Math.abs(sign.height - designHeight * k) < 1.5, "the sign is " + sign.height + " tall at scale " + Pet.scale);
                     sign.destroy();
                     sign = null;
                 }
             } finally {
                 Pet.setSize(chosen);
             }
+        }
+
+        /// The word's Text on the sign, which the pet's art draws inside its loader.
+        function wordText() {
+            const artwork = Util.findAll(sign.contentItem, function (o) { return o.objectName === "reviewSignArt"; })[0];
+            return Util.findAll(artwork.item, function (o) { return o.objectName === "reviewSignWord"; })[0];
+        }
+
+        /// The word on the sign at ×1 and at the default ×3.01: the sign stays on the screen, the word fits the board's width,
+        /// and the post stands on the pet's feet within half a pixel.
+        function checkTheSignFitsTheWord(word) {
+            const chosen = Pet.size;
+            try {
+                for (const size of [0, 67]) {
+                    Pet.setSize(size);
+                    askFromPetAt(Math.round(Screen.desktopAvailableWidth / 2), word);
+                    const boardItem = board();
+                    const text = wordText();
+                    verify(text, "the sign draws no word");
+                    verify(text.paintedWidth <= boardItem.designWidth,
+                           "'" + word + "' is " + text.paintedWidth + " wide on a board " + boardItem.designWidth + " wide at size " + size);
+                    const base = sign.y + boardItem.bleed + boardItem.designBase * boardItem.boardScale;
+                    verify(Math.abs(base - footLine()) <= 0.5, "the post's foot is at " + base + ", not the pet's feet at " + footLine() + " at size " + size);
+                    sign.destroy();
+                    sign = null;
+                }
+            } finally {
+                Pet.setSize(chosen);
+            }
+        }
+
+        function test_aOneLetterWordFitsItsBoard() {
+            checkTheSignFitsTheWord("a");
+        }
+
+        function test_aFourteenLetterWordFitsItsBoard() {
+            checkTheSignFitsTheWord("abcdefghijklmn");
         }
 
         function test_captureTheClosedSign() {

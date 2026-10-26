@@ -36,6 +36,10 @@ python -I scripts/pet/render_scenes.py
 
 奶糖的专属场景是 `dog_frisbee` 与 `dog_burying`，共享 `skate` 与 `swing`。
 
+## 复习牌
+
+七只随包宠物的复习牌画法在 `ui-prototypes/pet-signs.html` 与 `signs/designs.mjs` 中，两者共用同一份引擎。`signs/export.mjs` 在仓库根目录运行（`node scripts/pet/signs/export.mjs`），按 4 px 宽度档渲染每只宠物的牌，写出 `data/pet/<id>/sign.json` 与 `sign/<宽>.png`。改了画法后重跑导出并提交生成的数据（ADR 0127）。
+
 ## 原型与测试
 
 - `cd ui-prototypes/pet-prototype && npm run embed` 重新生成 `pet.html`；`npm run embed:hover` 生成 `pet-hover.html`。
