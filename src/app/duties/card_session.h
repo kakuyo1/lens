@@ -73,6 +73,11 @@ public:
     /// @return Whether the card is a word at its root: the guard the peek, the sense cycle and the
     ///         chain all used to spell for themselves.
     [[nodiscard]] bool wordCard() const;
+    /// @return Whether the card is one the held globe answers: a word, sentence or entity at its root.
+    [[nodiscard]] bool peekableCard() const;
+    /// @return What the peek asks about and keys its answers by: the lemma for a word, the selected
+    ///         text for a sentence or entity, which carry no lemma. Meaningful while peekableCard() holds.
+    [[nodiscard]] QString peekKey() const;
 
     /// @brief The word-list review card's dismissal, as the pointer allows it to land.
     enum class ReviewDismissal { NotReview,
@@ -162,7 +167,7 @@ public:
                           Ask,
                           Waiting } kind = Kind::None;
         enum class Why { None,
-                         NoWordCard,
+                         NotPeekable,
                          NotEnglish,
                          NoMotherTongue,
                          InFlight,
@@ -221,8 +226,8 @@ private:
     QHash<QString, QHash<QString, Cycle>> cycles_;
     /// The peek lines bought this session, keyed mother tongue, lemma and sense index.
     QHash<QString, QHash<QString, QHash<int, QString>>> peekLines_;
-    /// The one peek request out per word, under the key it was asked with. A signal carries only
-    /// the lemma, so a second request for the same word cannot be told from the first one's answer.
+    /// The one peek request out per subject, under the peekKey() it was asked with. A signal carries
+    /// only that key, so a second request for the same subject cannot be told from the first one's answer.
     QHash<QString, PendingPeek> peekInFlight_;
     /// The one sense request out per word, under the cycle it was asked from.
     QHash<QString, PendingSense> senseInFlight_;

@@ -244,6 +244,8 @@ Item {
                 animated: root.bubble.revealAnimation
                 characterMs: root.bubble.revealCharacterMs
                 tokens: root.bubble.tokens
+                // The globe and the cross stand at the right edge, where a bare title would run under them.
+                headerReserve: 48
             }
 
             ChainSignpost {

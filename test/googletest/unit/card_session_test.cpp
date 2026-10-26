@@ -370,16 +370,33 @@ TEST(CardSession, AChinesePeekReadsThePairTheAnswerAlreadyCarried)
     EXPECT_EQ(step.line, QStringLiteral("河岸"));
 }
 
-TEST(CardSession, TheGlobeOnlyExistsOnAWordCardInEnglish)
+TEST(CardSession, TheGlobeExistsOnAWordSentenceOrEntityCardButNotOnATranslation)
 {
     CardSession session;
-    EXPECT_EQ(session.requestPeek(spanishPeek()).why, CardSession::PeekStep::Why::NoWordCard);
+    EXPECT_EQ(session.requestPeek(spanishPeek()).why, CardSession::PeekStep::Why::NotPeekable);
 
+    // A sentence and an entity have no lemma: the peek asks about the text they were selected from.
     PendingSelection sentence;
     sentence.kind = SelectionKind::Sentence;
     sentence.text = QStringLiteral("a sentence");
     session.raise(sentence, CardKind::Selection, sentence.text);
-    EXPECT_EQ(session.requestPeek(spanishPeek()).why, CardSession::PeekStep::Why::NoWordCard);
+    auto step = session.requestPeek(spanishPeek());
+    ASSERT_EQ(step.kind, CardSession::PeekStep::Kind::Ask);
+    EXPECT_EQ(step.lemma, QStringLiteral("a sentence"));
+
+    PendingSelection entity;
+    entity.kind = SelectionKind::Entity;
+    entity.text = QStringLiteral("New York");
+    session.raise(entity, CardKind::Selection, entity.text);
+    step = session.requestPeek(spanishPeek());
+    ASSERT_EQ(step.kind, CardSession::PeekStep::Kind::Ask);
+    EXPECT_EQ(step.lemma, QStringLiteral("New York"));
+
+    // A translation's input already is the mother tongue, so its card has no globe.
+    PendingSelection translation = sentence;
+    translation.kind             = SelectionKind::Translation;
+    session.raise(translation, CardKind::Selection, translation.text);
+    EXPECT_EQ(session.requestPeek(spanishPeek()).why, CardSession::PeekStep::Why::NotPeekable);
 
     raiseCard(session, QStringLiteral("bank"));
     auto chineseExplanation = spanishPeek();

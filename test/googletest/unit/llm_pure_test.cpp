@@ -576,7 +576,7 @@ TEST_F(LlmTest, AcceptsATranslationThatCarriesEnglishAlone)
 
 TEST_F(LlmTest, PeeksOneLineInTheMotherTongue)
 {
-    // The peek is the second one-language channel: one English word in, one `line` out, stamped
+    // The peek is the second one-language channel: one English word, phrase or sentence in, one `line` out, stamped
     // with the asked-for word like the translation's selected text is.
     const auto peeked = parseExplanations(
         Channel::Peek,
