@@ -40,6 +40,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/settings_table_test.cpp
   unit/surface_table_test.cpp
   unit/words_view_test.cpp
+  unit/words_model_test.cpp
   unit/app_seams_test.cpp
   unit/llm_pure_test.cpp
   unit/llm_mock_transport_test.cpp

@@ -39,8 +39,8 @@ Window {
     readonly property int maxCardWidth: 560
 
     /// As wide as its widest row, so no word is ever shown elided. Rows report their width as they
-    /// lay out rather than being walked for it -- a JS loop over Controller.words reads a QVariantMap
-    /// per row, ~170 ms each on this machine, a frozen window (docs/QML.md section 6). A running
+    /// lay out rather than being walked for it -- a JS loop over the model's rows reads a
+    /// QVariantMap per row, ~170 ms each on this machine, a frozen window (docs/QML.md section 6). A running
     /// maximum, so the card does not narrow under the reader as rows change; the cap above bounds it.
     property real widestRow: 0
 
@@ -60,28 +60,27 @@ Window {
     /// icon it was opened from. The question is centred in the height the list left instead.
     height: column.implicitHeight + 34 + 2 * shadowMargin
 
-    /// 0 = all, 1 = known, 2 = new.
-    property int filter: 0
+    /// 0 = all, 1 = known, 2 = new. The model owns the filter, so the list only ever holds the
+    /// rows this names; the segment and the export scope read it back (docs/adr/0122).
+    readonly property int filter: Controller.wordsModel.filter
     /// One row's drawn height, the number the list's own sizing keys on (WordsListRow.qml). The
-    /// rows' fold animation runs this between it and zero; stating it here keeps the viewport a
-    /// fact of the row count rather than of the animation's progress.
+    /// viewport is a fact of the row count rather than of an animation's progress.
     readonly property int rowHeight: 31
-    /// The filter folds rows shut over a motion token; until that settles, a list with no rows is
+    /// The filter's rows close over a motion token; until that settles, a list with no rows is
     /// still collapsing, not empty. The empty line waits for it.
     property bool filterSettled: true
-    readonly property bool filterEmpty: filter !== 0 && Controller.words.length > 0
-                                        && filterSettled && list.contentHeight === 0
+    readonly property bool filterEmpty: filter !== 0 && Controller.wordsModel.allCount > 0
+                                        && filterSettled && !listBox.holding && list.count === 0
     onFilterChanged: {
         filterSettled = false;
         filterSettle.restart();
     }
+    /// The unfiltered list's line waits for the last row's remove transition too.
+    readonly property bool showEmpty: Controller.wordsModel.allCount === 0 && !listBox.holding
 
     /// The word the question is asking about, "" when it is not up.
     property string pendingRemoval: ""
 
-    /// Rows folding away before the model lets them go, and the words waiting on that fold.
-    property var removingWords: ({})
-    property var removalQueue: []
     /// The one line an import leaves behind, in the count row so the card does not change height.
     property string importStatus: ""
     property bool importFailed: false
@@ -105,6 +104,9 @@ Window {
         Controller.explanationDuty.dismissReviewNow();
     }
 
+    /// A fresh panel opens on the whole list, the way it did when the filter lived here.
+    Component.onCompleted: Controller.wordsModel.filter = 0
+
     /**
      * @brief Settle a word the row's cross asked to delete.
      * @param word Lemma that row was showing.
@@ -120,47 +122,47 @@ Window {
         question.ask();
     }
 
-    /// @brief Fold @p word's row shut, then take the word out of the list.
+    /// @brief Take @p word out of the list, with the row closing.
     ///
-    /// The model change rebuilds every delegate, so removing the word first would take the row
-    /// away in one frame instead of letting it close. The fold is the list's own row animation,
-    /// and the controller call waits for it so the list and the window both settle by animation.
+    /// The model removes the row at once and the ListView's own remove transition closes it;
+    /// there is no second timer and no delegate rebuild. Two geometry holds keep that
+    /// transition visible: a short list's viewport waits for the fold before it shortens, and a
+    /// removal at the scroll's end adds a row of bottom margin so the fold does not happen below
+    /// the viewport (docs/adr/0122).
     function removeWordAnimated(word) {
-        if (word === "" || words.removingWords[word])
+        if (word === "")
             return;
         if (words.tokens.motion.pop === 0) {
             Controller.removeWord(word);
             return;
         }
-        words.removingWords = Object.assign({}, words.removingWords, { [word]: true });
-        words.removalQueue.push(word);
-        removalTimer.restart();
+        if (list.contentY + list.height >= list.contentHeight - 1)
+            list.bottomMargin = words.rowHeight;
+        Controller.removeWord(word);
+        if (list.bottomMargin > 0)
+            bottomMarginBack.restart();
     }
 
-    /// @brief Take every folded word out at once, after the last fold has landed.
-    function flushRemovals() {
-        const queue = words.removalQueue;
-        words.removalQueue = [];
-        words.removingWords = ({});
-        for (const word of queue)
-            Controller.removeWord(word);
-    }
-
-    /// Restarted per cross, so every queued row gets a whole fold; the flush takes them together.
-    Timer {
-        id: removalTimer
-        interval: words.tokens.motion.pop
-        onTriggered: words.flushRemovals()
+    /// The scroll room a removal at the end adds while its row folds. Without it the view clamps
+    /// contentY to the shorter content at once, and the row closes below the viewport.
+    NumberAnimation {
+        id: bottomMarginBack
+        target: list
+        property: "bottomMargin"
+        from: words.rowHeight
+        to: 0
+        duration: words.tokens.motion.pop
+        easing.type: words.tokens.motion.easing
     }
 
     /// @brief The time label of a row, in the reader's language. Empty when the row has no day.
-    function whenLabel(row) {
-        if (row.day === "today")
-            return qsTr("Today %1").arg(row.time);
-        if (row.day === "yesterday")
-            return qsTr("Yesterday %1").arg(row.time);
-        if (row.day === "earlier")
-            return row.date + " " + row.time;
+    function whenLabel(day, date, time) {
+        if (day === "today")
+            return qsTr("Today %1").arg(time);
+        if (day === "yesterday")
+            return qsTr("Yesterday %1").arg(time);
+        if (day === "earlier")
+            return date + " " + time;
         return "";
     }
 
@@ -374,7 +376,7 @@ Window {
                     // The list's own count, not the all-time tally the statistics panel shows: the
                     // rows are deduplicated, so a word explained twice counts once here and twice
                     // there. A number that disagrees with the list under it reads as a bug either way.
-                    text: qsTr("%1 words").arg(Controller.words.length)
+                    text: qsTr("%1 words").arg(Controller.wordsModel.allCount)
                     color: words.tokens.faint
                     font.pixelSize: 12
                 }
@@ -399,7 +401,7 @@ Window {
                 height: 28
                 labels: [qsTr("All"), qsTr("Known"), qsTr("New")]
                 currentIndex: words.filter
-                onPicked: (index) => words.filter = index
+                onPicked: (index) => Controller.wordsModel.filter = index
             }
 
             Item { width: 1; height: 13 }
@@ -407,57 +409,99 @@ Window {
             Item { width: 1; height: 6 }
 
             Item {
+                id: listBox
                 width: parent.width
                 // UI-SPEC.md 4.8 gives the list a *maximum* of 306px: a handful of words leaves a
                 // panel sized to those words, not a panel with a hole under them. An empty list
                 // keeps one line of room for the line that says how it fills; a filter with no
                 // rows gets the same room rather than a card with a hole in it.
                 //
-                // Unfiltered, the viewport is the row count times the row height, never the
-                // view's own contentHeight: with most rows not instantiated, that number is an
-                // estimate the view revises as rows fold and instantiate, and a viewport bound
-                // to it feeds the revisions back -- the list wobbles, and a fold mid-scroll
-                // leaves the reader looking at blank while both ends of the scroll chase each
-                // other (measured: contentHeight ringing between 279 and 2666 for seconds, the
-                // viewport collapsing with it). The count is a fact; the estimate is not. A
-                // filter keeps the tight fit: its few rows are all instantiated, so its
-                // contentHeight is exact.
-                height: Controller.words.length === 0 ? emptyText.implicitHeight + 6
+                // The viewport is the model's row count times the row height, never the view's
+                // own contentHeight: a lazily-filled view estimates that number from the rows it
+                // holds, and a viewport bound to it feeds the revisions back. The count is the
+                // model's fact. A decrease waits for the remove transition below, so a short
+                // list does not cut the folding row out of its own viewport.
+                property int viewportRows: 0
+                property bool holding: false
+
+                height: words.showEmpty ? emptyText.implicitHeight + 6
                       : words.filterEmpty ? filteredEmptyText.implicitHeight + 6
-                      : words.filter === 0 ? Math.min(306, list.count * words.rowHeight)
-                      : Math.min(306, list.contentHeight)
+                      : Math.min(306, viewportRows * words.rowHeight)
+
+                Component.onCompleted: viewportRows = list.count
 
                 ListView {
                     id: list
                     width: parent.width
                     height: parent.height
                     clip: true
-                    model: Controller.words
+                    model: Controller.wordsModel
                     boundsBehavior: Flickable.StopAtBounds
-                    // Every row stays instantiated: a lazily-filled view reports a contentHeight
-                    // it estimates from the rows it holds, and while the fold animation runs that
-                    // estimate swings wildly (measured: 691 one moment, 2666 the next, the scroll
-                    // position dragged around with it and the tail of the list reading as blank).
-                    // A vocabulary list is a few hundred simple rows; holding them all costs
-                    // nothing next to a scroll that lies about what it holds.
+                    // Every row stays instantiated, not for the viewport (that is the model's
+                    // count now) but for the width handshake: a row outside the cache has not
+                    // measured its word yet, and the card would widen under the reader's scroll
+                    // when it finally does. The spike measured the card at 320 px until a 428 px
+                    // row was scrolled to; a few hundred simple rows cost nothing next to that.
                     cacheBuffer: 6000
-                    // The viewport above is the count times the row height, a number the view
-                    // itself never computes, so nothing in the view's own layout obliges it to
-                    // build the rows: a view that first shows up already sized waits for its
-                    // first rendered frame to fill in, and a reader (or a case) looking the
-                    // instant the panel lands finds no rows. One synchronous layout here builds
-                    // them at birth instead.
+                    // The viewport above is a number the view itself never computes, so nothing
+                    // in its own layout obliges it to build the rows: a view that first shows up
+                    // already sized waits for its first rendered frame to fill in, and a reader
+                    // (or a case) looking the instant the panel lands finds no rows. One
+                    // synchronous layout here builds them at birth instead.
                     Component.onCompleted: forceLayout()
 
-                    // A touchpad's momentum can leave the view past its top: contentY below
-                    // zero, the first row pushed down and blank above it, and nothing recalls
-                    // it -- the bounds stop a drag from crossing, but they do not bring back a
-                    // view a gesture already parked across. The first word owes the reader the
-                    // top, so wherever the scroll settles, that is where it returns.
-                    onContentYChanged: if (!moving && contentY < 0)
-                        contentY = 0
-                    onMovementEnded: if (contentY < 0)
-                        contentY = 0
+                    // The model removes a row at once; these are what make the leave visible.
+                    // The row closes to zero height while the rows below move up by the same
+                    // amount on the same curve, so their edges meet at every frame. The duration
+                    // is the fold token, not a second one.
+                    remove: Transition {
+                        NumberAnimation {
+                            property: "height"
+                            to: 0
+                            duration: words.tokens.motion.pop
+                            easing.type: words.tokens.motion.easing
+                        }
+                    }
+                    displaced: Transition {
+                        NumberAnimation {
+                            property: "y"
+                            duration: words.tokens.motion.pop
+                            easing.type: words.tokens.motion.easing
+                        }
+                    }
+
+                    onCountChanged: {
+                        if (list.count > listBox.viewportRows || words.tokens.motion.pop === 0) {
+                            listBox.viewportRows = list.count;
+                            listBox.holding = false;
+                        } else {
+                            listBox.holding = true;
+                            viewHold.restart();
+                        }
+                    }
+
+                    // A model removal shortens contentHeight without a gesture, and the view
+                    // does not always clamp a contentY the removals left behind -- a bulk
+                    // removal measured 1120 against a settled 558, and a filter 868 against 93.
+                    // The bottom margin is part of the scroll's range; clamping to it is what
+                    // keeps a fold at the end in view while the margin animation closes, and
+                    // settles the view after it. Checking on contentY itself catches the view's
+                    // own pinned position after a refill, which a contentHeight handler misses.
+                    // The negative half recalls a touchpad's momentum parked past the top, which
+                    // StopAtBounds stops from crossing but does not bring back after the gesture.
+                    onContentYChanged: if (!moving)
+                        clampScroll()
+                    onMovementEnded: clampScroll()
+                    onContentHeightChanged: clampScroll()
+                    onHeightChanged: clampScroll()
+                    onBottomMarginChanged: clampScroll()
+                    function clampScroll() {
+                        const lowest = Math.max(0, contentHeight + bottomMargin - height);
+                        if (contentY < 0)
+                            contentY = 0;
+                        else if (contentY > lowest)
+                            contentY = lowest;
+                    }
 
                     delegate: WordsListRow {
                         host: words
@@ -465,11 +509,22 @@ Window {
 
                 }
 
+                /// Holds the viewport at the height it had before a removal, through the remove
+                /// transition that closes the rows; then the count is the settled one.
+                Timer {
+                    id: viewHold
+                    interval: words.tokens.motion.pop + 20
+                    onTriggered: {
+                        listBox.viewportRows = list.count;
+                        listBox.holding = false;
+                    }
+                }
+
                 Text {
                     id: emptyText
                     anchors.top: parent.top
                     width: parent.width
-                    visible: Controller.words.length === 0
+                    visible: words.showEmpty
                     text: qsTr("Words you look up will appear here.")
                     color: words.tokens.faint
                     font.pixelSize: 11
@@ -504,9 +559,9 @@ Window {
                     color: words.tokens.line
                     x: parent.width + 6
                     height: Math.max(24, list.height * list.height / list.contentHeight)
-                    // Held inside the track rather than mapped straight off contentY. A filter
-                    // change or a removal shortens the list under a contentY the Flickable leaves
-                    // where it was, and the unclamped ratio then draws the thumb below the card.
+                    // Held inside the track rather than mapped straight off contentY. A removal
+                    // shortens the content under a contentY the Flickable leaves where it was,
+                    // and the unclamped ratio then draws the thumb below the card.
                     y: {
                         if (list.contentHeight <= list.height)
                             return 0;

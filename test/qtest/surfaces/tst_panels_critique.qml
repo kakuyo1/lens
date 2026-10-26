@@ -62,12 +62,12 @@ Item {
             const popup = make(wordsComponent);
             const empty = [1, 2].find(function (filter) {
                 const verdict = filter === 1 ? "known" : "new";
-                return Controller.words.filter(function (e) { return e.verdict === verdict; }).length === 0;
+                return Controller.wordsModel.allRows().filter(function (e) { return e.verdict === verdict; }).length === 0;
             });
             if (empty === undefined)
                 skip("the fixture carries both known and new words");
 
-            popup.filter = empty;
+            Controller.wordsModel.filter = empty;
             tryCompare(popup, "filterEmpty", true, 1500, "an empty filter did not settle to its line");
             const line = Util.findAll(popup, function (o) {
                 return o.objectName === "filteredEmptyText";

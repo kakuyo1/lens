@@ -26,6 +26,8 @@ add_library(lens_app STATIC
   settings_access.cpp
   settings_defaults.h
   words_view.h
+  words_model.h
+  words_model.cpp
 
   # Use cases: what the reader asks for, independent of a surface.
   duties/capture_duty.h

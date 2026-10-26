@@ -31,7 +31,7 @@ Item {
             compare(Controller.exportWords("nonsense"), "", "an unknown scope should export nothing");
 
             const byLemma = {};
-            Controller.words.forEach(function (row) { byLemma[row.word] = row.verdict; });
+            Controller.wordsModel.allRows().forEach(function (row) { byLemma[row.word] = row.verdict; });
 
             // Every line is one of the words the list holds, and the known / new scopes narrow it
             // to the rows carrying that verdict. Empty lines are the text's trailing break.
@@ -64,7 +64,7 @@ Item {
         /// time apart, with the label drawn by WordsPopup. The fixture is all January, so every
         /// dated row is "earlier" here.
         function test_theWordRowsCarryRawDayAndTimeNotALabel() {
-            const rows = Controller.words;
+            const rows = Controller.wordsModel.allRows();
             verify(rows.length > 0, "the fixture needs at least one word");
             verify(rows.every(function (row) {
                 return ["today", "yesterday", "earlier", ""].indexOf(row.day) >= 0

@@ -58,20 +58,37 @@ inline QString dayLabel(QDateTime const& moment, QDate const& today)
 }
 
 /**
+ * @brief One row of the words popup, before QML sees it.
+ *
+ * The model, its filter and the export range all judge this typed row rather than a map, so
+ * the row's fields are spelt once (docs/adr/0122).
+ */
+struct WordRow {
+    QString word;
+    QString day;     ///< "today", "yesterday", "earlier", or empty for an unreadable time.
+    QString date;    ///< "MM-dd", empty for an unreadable time.
+    QString time;    ///< "HH:mm", empty for an unreadable time.
+    QString verdict; ///< Empty until marked, then "known" or "new".
+    int     pops = 0;
+
+    bool operator==(WordRow const&) const = default;
+};
+
+/**
  * @brief The words popup's rows: each lemma once, its newest entry deciding the labels and verdict.
  * @param today The day the labels are relative to; the caller reads the clock.
  * @param history The statistics history, newest first.
- * @return One map per distinct lemma: word, day, date, time, verdict and the total pop count.
+ * @return One row per distinct lemma, in the history's order.
  */
-inline QVariantList wordRows(QDate const& today, std::vector<core::HistoryEntry> const& history)
+inline std::vector<WordRow> wordRowList(QDate const& today, std::vector<core::HistoryEntry> const& history)
 {
     QSet<QString>       seen;
     QHash<QString, int> pops;
     for (const core::HistoryEntry& entry : history)
         ++pops[QString::fromStdString(entry.lemma)];
 
-    QVariantList rows;
-    rows.reserve(static_cast<qsizetype>(history.size()));
+    std::vector<WordRow> rows;
+    rows.reserve(history.size());
     for (const core::HistoryEntry& entry : history) {
         const QString shown = QString::fromStdString(entry.lemma);
         if (seen.contains(shown))
@@ -79,13 +96,48 @@ inline QVariantList wordRows(QDate const& today, std::vector<core::HistoryEntry>
         seen.insert(shown);
 
         const QDateTime moment = QDateTime::fromString(QString::fromStdString(entry.minute), QString::fromLatin1(util::kMinuteFormat));
-        rows.append(QVariantMap{{"word", shown},
-                                {"day", dayLabel(moment, today)},
-                                {"date", moment.isValid() ? moment.toString(QStringLiteral("MM-dd")) : QString{}},
-                                {"time", moment.isValid() ? moment.toString(QStringLiteral("HH:mm")) : QString{}},
-                                {"verdict", QString::fromStdString(entry.verdict)},
-                                {"pops", pops.value(shown)}});
+        rows.push_back(WordRow{shown,
+                               dayLabel(moment, today),
+                               moment.isValid() ? moment.toString(QStringLiteral("MM-dd")) : QString{},
+                               moment.isValid() ? moment.toString(QStringLiteral("HH:mm")) : QString{},
+                               QString::fromStdString(entry.verdict),
+                               pops.value(shown)});
     }
+    return rows;
+}
+
+/// @return Whether @p row belongs under @p scope, the rule the filter and an export share.
+inline bool rowInScope(WordRow const& row, core::ExportScope const scope)
+{
+    switch (scope) {
+        case core::ExportScope::All:
+            return true;
+        case core::ExportScope::Known:
+            return row.verdict == QLatin1String("known");
+        case core::ExportScope::New:
+            return row.verdict == QLatin1String("new");
+    }
+    return false;
+}
+
+/**
+ * @brief The words popup's rows as the plain values QML used to read.
+ * @param today The day the labels are relative to; the caller reads the clock.
+ * @param history The statistics history, newest first.
+ * @return One map per distinct lemma: word, day, date, time, verdict and the total pop count.
+ */
+inline QVariantList wordRows(QDate const& today, std::vector<core::HistoryEntry> const& history)
+{
+    QVariantList rows;
+    const auto   typed = wordRowList(today, history);
+    rows.reserve(static_cast<qsizetype>(typed.size()));
+    for (const WordRow& row : typed)
+        rows.append(QVariantMap{{"word", row.word},
+                                {"day", row.day},
+                                {"date", row.date},
+                                {"time", row.time},
+                                {"verdict", row.verdict},
+                                {"pops", row.pops}});
     return rows;
 }
 

@@ -179,6 +179,13 @@ AppController::AppController(core::KnownStore&            store,
     });
     gateTimer_.start();
     refreshCaptureGates();
+    // The words list follows every statistics change -- a pop, a mark, an import, a removal or
+    // a sync -- through one diff in the model, so the view keeps the delegates whose rows did
+    // not change (docs/adr/0122). The first update also fills it before QML is built.
+    connect(this, &AppController::statsChanged, this, [this] {
+        wordsModel_.update(QDate::currentDate(), storage_.statsStore().history());
+    });
+    wordsModel_.update(QDate::currentDate(), storage_.statsStore().history());
     LENS_INFO("AppController ready: level={} explanation language '{}'", store.level(), store.explanationLang());
 }
 
@@ -634,9 +641,9 @@ QVariantMap AppController::settings()
     return result;
 }
 
-QVariantList AppController::words() const
+WordsModel* AppController::wordsModel()
 {
-    return wordRows(QDate::currentDate(), storage_.statsStore().history());
+    return &wordsModel_;
 }
 
 QVariantList AppController::yearDays() const

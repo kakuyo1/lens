@@ -5,13 +5,21 @@ import QtQuick
  * verdict pills and the cross that asks to remove it. A component rather than part of
  * WordsPopup because that file sits at the QML size cap.
  *
- * @p host is the WordsPopup window: the row reads its tokens, filter, removal map and card
- * width from it, and calls back for the width handshake and the removal request.
+ * The model supplies the row's fields as roles; the view's remove transition closes the row when
+ * the model lets it go, so nothing here folds, hides or rebuilds (docs/adr/0122).
+ *
+ * @p host is the WordsPopup window: the row reads its tokens and card width from it, and calls
+ * back for the width handshake and the removal request.
  */
 Item {
     id: entry
-    required property var modelData
-    required property var host
+    required property string word
+    required property string day
+    required property string date
+    required property string time
+    required property string verdict
+    required property int    pops
+    required property var    host
 
     width: entry.host.cardWidth - 40
 
@@ -23,38 +31,10 @@ Item {
     onNaturalWidthChanged: entry.host.noteRowWidth(naturalWidth)
     Component.onCompleted: entry.host.noteRowWidth(naturalWidth)
 
-    /// Whether the filter above shows this word. It is the row's presence
-    /// rather than a switch, which is what the height below animates.
-    ///
-    /// The verdict is compared by key, not by the translated label: the
-    /// two would drift apart the moment a translation changed.
-    readonly property bool inScope: entry.host.filter === 0
-                                    || (entry.host.filter === 1 && modelData.verdict === "known")
-                                    || (entry.host.filter === 2 && modelData.verdict === "new")
-    /// The cross was answered: the row closes before the model lets it go.
-    readonly property bool removing: entry.host.removingWords[modelData.word] === true
-    readonly property bool shown: inScope && !removing
-
-    // Rows arrive and leave by height, which is what the list lays out: a model change rebuilds
-    // every delegate, so ListView's add/remove transitions never run. `visible` follows the
-    // animation, not the filter, so a row on its way out is still drawn while it collapses; `clip`
-    // keeps its contents off the rows it is collapsing between.
-    height: shown ? entry.host.rowHeight : 0
-    visible: shown || height > 0
-    opacity: shown ? 1 : 0
+    // The remove transition animates this from the row's height to zero; a binding would only
+    // be re-read if the row height token changed, which it does not while a row is leaving.
+    height: entry.host.rowHeight
     clip: true
-    Behavior on height {
-        NumberAnimation {
-            duration: entry.host.tokens.motion.pop
-            easing.type: entry.host.tokens.motion.easing
-        }
-    }
-    Behavior on opacity {
-        NumberAnimation {
-            duration: entry.host.tokens.motion.pop
-            easing.type: entry.host.tokens.motion.easing
-        }
-    }
 
     Timer {
         id: reviewDwell
@@ -71,7 +51,7 @@ Item {
             const nativeAt = SurfaceGeometry.nativeFromDipPoint(Qt.point(at.x, at.y),
                                                                 Qt.point(Screen.virtualX, Screen.virtualY),
                                                                 ratio);
-            Controller.reviewWord(entry.modelData.word, nativeAt.x, nativeAt.y,
+            Controller.reviewWord(entry.word, nativeAt.x, nativeAt.y,
                                   SurfaceGeometry.nativeFromDipLength(wordText.width, ratio),
                                   SurfaceGeometry.nativeFromDipLength(wordText.height, ratio));
         }
@@ -88,7 +68,7 @@ Item {
         onTriggered: Controller.explanationDuty.dismissReview()
     }
 
-    /// The row is going away -- a filter change rebuilds every delegate -- and a bubble it raised
+    /// The row is going away -- removed from the model, or the list reset -- and a bubble it raised
     /// must not outlive it. This is the pointer leaving in every sense but the event: a destroyed
     /// delegate reports no un-hover, so the grace has nothing left to wait for.
     Component.onDestruction: Controller.explanationDuty.dismissReviewNow()
@@ -101,7 +81,7 @@ Item {
         anchors.right: side.left
         anchors.rightMargin: 9
         anchors.verticalCenter: parent.verticalCenter
-        text: entry.modelData.word
+        text: entry.word
         color: entry.host.tokens.text
         font.family: entry.host.englishFont
         font.pixelSize: 13
@@ -109,7 +89,7 @@ Item {
 
         // Pointing at the word, not the row: the rest is metadata and verdict pills, which a pointer
         // crossing them is not after a reading of. The word hands over the text it is already drawing
-        // rather than a case looking it up in Controller.words -- that walk measured ~170 ms a row
+        // rather than a case looking it up in the model -- that walk measured ~170 ms a row
         // (docs/QML.md section 6).
         HoverHandler {
             onHoveredChanged: {
@@ -147,7 +127,7 @@ Item {
 
             MixedText {
                 anchors.verticalCenter: parent.verticalCenter
-                value: entry.host.whenLabel(entry.modelData)
+                value: entry.host.whenLabel(entry.day, entry.date, entry.time)
                 color: entry.host.tokens.faint
                 pixelSize: 11
             }
@@ -156,7 +136,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 // The history is what the count is read from, and it is
                 // capped, so this is a floor once a word outlives it.
-                value: qsTr("%1×").arg(entry.modelData.pops)
+                value: qsTr("%1×").arg(entry.pops)
                 color: entry.host.tokens.faint
                 pixelSize: 11
             }
@@ -170,7 +150,7 @@ Item {
 
             Rectangle {
                 id: knownPill
-                readonly property bool current: entry.modelData.verdict === "known"
+                readonly property bool current: entry.verdict === "known"
                 anchors.verticalCenter: parent.verticalCenter
                 width: knownLabel.width + 13
                 height: 20
@@ -211,13 +191,13 @@ Item {
                 HoverHandler { cursorShape: Qt.PointingHandCursor }
                 TapHandler {
                     id: knownTap
-                    onTapped: Controller.explanationDuty.mark(entry.modelData.word, true)
+                    onTapped: Controller.explanationDuty.mark(entry.word, true)
                 }
             }
 
             Rectangle {
                 id: newPill
-                readonly property bool current: entry.modelData.verdict === "new"
+                readonly property bool current: entry.verdict === "new"
                 anchors.verticalCenter: parent.verticalCenter
                 width: newLabel.width + 13
                 height: 20
@@ -258,7 +238,7 @@ Item {
                 HoverHandler { cursorShape: Qt.PointingHandCursor }
                 TapHandler {
                     id: newTap
-                    onTapped: Controller.explanationDuty.mark(entry.modelData.word, false)
+                    onTapped: Controller.explanationDuty.mark(entry.word, false)
                 }
             }
         }
@@ -271,8 +251,8 @@ Item {
             height: 14
             source: "qrc:/icons/ui-close.svg"
             color: entry.host.tokens.faint
-            accessibleName: qsTr("Remove %1").arg(entry.modelData.word)
-            onTapped: entry.host.requestRemoval(entry.modelData.word)
+            accessibleName: qsTr("Remove %1").arg(entry.word)
+            onTapped: entry.host.requestRemoval(entry.word)
         }
     }
 }

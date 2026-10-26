@@ -21,6 +21,7 @@ using lens::app::dayLabel;
 using lens::app::importLemmas;
 using lens::app::importRows;
 using lens::app::parseScope;
+using lens::app::rowInScope;
 using lens::app::wordRows;
 
 } // namespace
@@ -72,6 +73,23 @@ TEST(WordsView, RowsKeepTheNewestEntryPerLemmaAndCountEveryPop)
     EXPECT_TRUE(ghost.value("day").toString().isEmpty());
     EXPECT_TRUE(ghost.value("date").toString().isEmpty());
     EXPECT_TRUE(ghost.value("time").toString().isEmpty());
+}
+
+TEST(WordsView, TheFilterAndAnExportShareTheScopeRule)
+{
+    const lens::app::WordRow known{"bank", "today", "10-20", "09:00", "known", 2};
+    const lens::app::WordRow fresh{"river", "today", "10-20", "10:00", "new", 1};
+    const lens::app::WordRow unmarked{"ghost", "today", "10-20", "11:00", "", 1};
+
+    EXPECT_TRUE(rowInScope(known, lens::core::ExportScope::All));
+    EXPECT_TRUE(rowInScope(fresh, lens::core::ExportScope::All));
+    EXPECT_TRUE(rowInScope(unmarked, lens::core::ExportScope::All));
+    EXPECT_TRUE(rowInScope(known, lens::core::ExportScope::Known));
+    EXPECT_FALSE(rowInScope(fresh, lens::core::ExportScope::Known));
+    EXPECT_FALSE(rowInScope(unmarked, lens::core::ExportScope::Known));
+    EXPECT_TRUE(rowInScope(fresh, lens::core::ExportScope::New));
+    EXPECT_FALSE(rowInScope(known, lens::core::ExportScope::New));
+    EXPECT_FALSE(rowInScope(unmarked, lens::core::ExportScope::New));
 }
 
 TEST(WordsView, ImportReadsTextAndTheTwoJsonShapes)

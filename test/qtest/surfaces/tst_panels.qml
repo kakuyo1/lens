@@ -87,7 +87,7 @@ Item {
             compare(figures["Known"], String(costDuty.stats.todayLearned));
             compare(figures["New"], String(costDuty.stats.todayFresh));
             compare(figures["Cost"], costDuty.stats.currency + costDuty.stats.todayCost.toFixed(2));
-            compare(figures["All time"], qsTr("%1 words").arg(Controller.words.length));
+            compare(figures["All time"], qsTr("%1 words").arg(Controller.wordsModel.allRows().length));
         }
 
         /// The cost panel's other dimension: every row draws the amount, and the three priced
@@ -111,7 +111,7 @@ Item {
 
         /// @return The word each row is showing, for the rows the filter lets through.
         function wordsShown(popup) {
-            const words = Controller.words.map(function (entry) { return entry.word; });
+            const words = Controller.wordsModel.allRows().map(function (entry) { return entry.word; });
             return Util.findAll(popup, function (o) {
                 return typeof o.text === "string" && o.visible && words.indexOf(o.text) >= 0;
             }).map(function (o) { return o.text; });
@@ -119,7 +119,7 @@ Item {
 
         function test_theWordsPanelListsEveryDistinctWordTheControllerHolds() {
             const popup = make(wordsComponent);
-            const words = Controller.words.map(function (entry) { return entry.word; });
+            const words = Controller.wordsModel.allRows().map(function (entry) { return entry.word; });
             verify(words.length > 1, "the fixture needs more than one word for this to mean anything");
 
             compare(wordsShown(popup).sort(), words.slice().sort());
@@ -129,10 +129,10 @@ Item {
         /// the fixture is all January, so today and yesterday rows are built by hand.
         function test_theWordsPanelFormatsEachDaysTimeLabel() {
             const popup = make(wordsComponent);
-            compare(popup.whenLabel({ day: "today", date: "10-11", time: "09:15" }), "Today 09:15");
-            compare(popup.whenLabel({ day: "yesterday", date: "10-10", time: "23:40" }), "Yesterday 23:40");
-            compare(popup.whenLabel({ day: "earlier", date: "03-07", time: "08:05" }), "03-07 08:05");
-            compare(popup.whenLabel({ day: "", date: "", time: "" }), "");
+            compare(popup.whenLabel("today", "10-11", "09:15"), "Today 09:15");
+            compare(popup.whenLabel("yesterday", "10-10", "23:40"), "Yesterday 23:40");
+            compare(popup.whenLabel("earlier", "03-07", "08:05"), "03-07 08:05");
+            compare(popup.whenLabel("", "", ""), "");
         }
 
         /// Known and New are the verdict pills' own labels, so each row draws one of each. The
@@ -140,8 +140,8 @@ Item {
         function test_theWordsPanelLabelsTheVerdictsKnownAndNew() {
             const popup = make(wordsComponent);
             const texts = Util.textsUnder(popup).map(function (o) { return o.text; });
-            compare(texts.filter(function (t) { return t === "Known"; }).length, Controller.words.length + 1);
-            compare(texts.filter(function (t) { return t === "New"; }).length, Controller.words.length + 1);
+            compare(texts.filter(function (t) { return t === "Known"; }).length, Controller.wordsModel.allRows().length + 1);
+            compare(texts.filter(function (t) { return t === "New"; }).length, Controller.wordsModel.allRows().length + 1);
         }
 
         function test_theWordsTitleRequestsTheYearPanel() {
@@ -175,7 +175,7 @@ Item {
 
             // The fixture carries a word long enough to outgrow the panel's base width, so a
             // card that stayed at the base would fail the comparison below rather than pass it.
-            const widest = Controller.words.slice().sort(function (a, b) {
+            const widest = Controller.wordsModel.allRows().slice().sort(function (a, b) {
                 return b.word.length - a.word.length;
             })[0].word;
             verify(popup.cardWidth > popup.minCardWidth,
@@ -202,13 +202,16 @@ Item {
         /// verdict rather than through the translated label the row draws.
         function test_theVerdictFilterNarrowsTheList() {
             const popup = make(wordsComponent);
+            // The rows leave through the view's remove transition, which needs a visible view
+            // to run; only the window's rendering owns that, not the model's count.
+            popup.visible = true;
 
-            popup.filter = 1;
-            const known = Controller.words.filter(function (e) { return e.verdict === "known"; }).map(function (e) { return e.word; });
+            Controller.wordsModel.filter = 1;
+            const known = Controller.wordsModel.allRows().filter(function (e) { return e.verdict === "known"; }).map(function (e) { return e.word; });
             settleOn(popup, known);
 
-            popup.filter = 2;
-            const fresh = Controller.words.filter(function (e) { return e.verdict === "new"; }).map(function (e) { return e.word; });
+            Controller.wordsModel.filter = 2;
+            const fresh = Controller.wordsModel.allRows().filter(function (e) { return e.verdict === "new"; }).map(function (e) { return e.word; });
             settleOn(popup, fresh);
         }
 
@@ -230,7 +233,7 @@ Item {
             const popup = make(wordsComponent);
             popup.visible = true;
 
-            const unmarked = Controller.words.filter(function (e) { return e.verdict === ""; });
+            const unmarked = Controller.wordsModel.allRows().filter(function (e) { return e.verdict === ""; });
             verify(unmarked.length > 0, "the fixture needs a word that was never marked");
             const word = unmarked[0].word;
 
@@ -247,7 +250,7 @@ Item {
                 return follow !== null && Qt.colorEqual(pillFor(follow, "Known").color, Tokens.ink);
             }, 1000, "the Known pill did not fill after the tap");
 
-            const marked = Controller.words.filter(function (e) { return e.word === word; })[0];
+            const marked = Controller.wordsModel.allRows().filter(function (e) { return e.word === word; })[0];
             compare(marked.verdict, "known", "the tap did not reach the controller");
         }
 
@@ -257,7 +260,7 @@ Item {
             const popup = make(wordsComponent);
             popup.visible = true;
 
-            const settled = Controller.words.filter(function (e) { return e.verdict === "known"; });
+            const settled = Controller.wordsModel.allRows().filter(function (e) { return e.verdict === "known"; });
             verify(settled.length > 0, "the fixture needs a word already marked known");
             const word = settled[0].word;
 
@@ -385,7 +388,7 @@ Item {
             // A word no other case in this file needs: this one is really removed, and the
             // Controller is shared by every case in the run.
             const word = "ubiquitous";
-            verify(Controller.words.some(function (e) { return e.word === word; }),
+            verify(Controller.wordsModel.allRows().some(function (e) { return e.word === word; }),
                    "the fixture no longer carries " + word);
 
             askAbout(popup, word);
@@ -398,10 +401,12 @@ Item {
             mouseClick(pillWith(popup, "Remove"), 5, 5);
 
             compare(popup.pendingRemoval, "", "the card stayed on the question after its answer");
-            // The row folds first; the model is what waits (WordsPopup.removeWordAnimated).
-            tryVerify(function () { return !Controller.words.some(function (e) { return e.word === word; }); },
+            // The model removes the row at once; the view's remove transition is what closes it,
+            // so the delegate stays drawn for the fold and is gone when the fold lands.
+            tryVerify(function () { return !Controller.wordsModel.allRows().some(function (e) { return e.word === word; }); },
                       1000, "the answer did not reach Controller.removeWord");
-            compare(rowFor(popup, word), null, "the list still draws a word that is gone");
+            tryVerify(function () { return rowFor(popup, word) === null; },
+                      1000, "the list still draws a word that is gone");
         }
 
         /// The question starts with "do not ask again" off, so answering Remove settles nothing
@@ -427,7 +432,7 @@ Item {
             mouseClick(pillWith(popup, "Remove"), 5, 5);
 
             compare(popup.askBeforeRemoving, true, "the answer silenced the asking without being told to");
-            tryVerify(function () { return !Controller.words.some(function (e) { return e.word === answered; }); },
+            tryVerify(function () { return !Controller.wordsModel.allRows().some(function (e) { return e.word === answered; }); },
                       1000, "the answer did not reach Controller.removeWord");
             // Answered at once; the window waits for the fade (ShadowCard.qml).
             tryCompare(question, "visible", false, 1000, "the question stayed up");
@@ -438,7 +443,7 @@ Item {
 
             mouseClick(pillWith(popup, "Cancel"), 5, 5);
             tryCompare(question, "visible", false, 1000, "Cancel did not put the question down");
-            verify(Controller.words.some(function (e) { return e.word === askedAgain; }),
+            verify(Controller.wordsModel.allRows().some(function (e) { return e.word === askedAgain; }),
                    "putting the question down removed the word");
         }
 
@@ -459,7 +464,7 @@ Item {
             mouseClick(pillWith(popup, "Remove"), 5, 5);
 
             compare(popup.askBeforeRemoving, false, "the switch was on, so asking should stand");
-            tryVerify(function () { return !Controller.words.some(function (e) { return e.word === answered; }); },
+            tryVerify(function () { return !Controller.wordsModel.allRows().some(function (e) { return e.word === answered; }); },
                       1000, "the answer did not reach Controller.removeWord");
 
             // The window stays modal for the fade, so the list takes presses again only once it
@@ -471,7 +476,7 @@ Item {
 
             compare(popup.pendingRemoval, "", "a cross asked the question it was told not to ask");
             compare(questionWindow(popup).visible, false, "the question opened with the asking switched off");
-            tryVerify(function () { return !Controller.words.some(function (e) { return e.word === straightThrough; }); },
+            tryVerify(function () { return !Controller.wordsModel.allRows().some(function (e) { return e.word === straightThrough; }); },
                       1000, "the silenced cross did not delete the word");
         }
 
@@ -483,7 +488,7 @@ Item {
             popup.visible = true;
 
             const word = "run";
-            const before = Controller.words.filter(function (e) { return e.word === word; })[0].verdict;
+            const before = Controller.wordsModel.allRows().filter(function (e) { return e.word === word; })[0].verdict;
 
             askAbout(popup, word);
             const question = questionWindow(popup);
@@ -495,7 +500,7 @@ Item {
 
             compare(question.visible, true, "the press behind the question dismissed it");
             compare(popup.pendingRemoval, word, "the press behind the question changed its subject");
-            compare(Controller.words.filter(function (e) { return e.word === word; })[0].verdict,
+            compare(Controller.wordsModel.allRows().filter(function (e) { return e.word === word; })[0].verdict,
                     before, "the list behind the question took a press");
 
             popup.closeChild();
@@ -512,7 +517,7 @@ Item {
             mouseClick(pillWith(popup, "Cancel"), 5, 5);
 
             compare(popup.pendingRemoval, "", "the card stayed on the question");
-            verify(Controller.words.some(function (e) { return e.word === word; }),
+            verify(Controller.wordsModel.allRows().some(function (e) { return e.word === word; }),
                    "putting the question down removed the word");
 
             // Keep the modality fixed while visible: Qt updates its modal list only on show and
@@ -528,7 +533,7 @@ Item {
             keyClick(Qt.Key_Escape);
 
             compare(popup.pendingRemoval, "", "Escape did not put the question down");
-            verify(Controller.words.some(function (e) { return e.word === word; }),
+            verify(Controller.wordsModel.allRows().some(function (e) { return e.word === word; }),
                    "Escape removed the word");
         }
 
@@ -539,9 +544,9 @@ Item {
             const popup = make(wordsComponent);
 
             compare(popup.scope, "all", "the panel opens on the whole list");
-            popup.filter = 1;
+            Controller.wordsModel.filter = 1;
             compare(popup.scope, "known");
-            popup.filter = 2;
+            Controller.wordsModel.filter = 2;
             compare(popup.scope, "new");
 
             // A path under a directory that does not exist, so a write could not land even if

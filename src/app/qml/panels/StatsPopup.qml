@@ -137,7 +137,7 @@ Window {
                 label: qsTr("All time")
                 // The deduplicated vocabulary, the same count the words popup titles (ADR 0104):
                 // the tallies that count events say "lookups", never "words".
-                value: qsTr("%1 words").arg(Controller.words.length)
+                value: qsTr("%1 words").arg(Controller.wordsModel.allCount)
                 clickable: true
                 onTapped: stats.wordsRequested()
             }

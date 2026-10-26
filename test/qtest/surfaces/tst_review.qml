@@ -225,31 +225,34 @@ Item {
                 list.contentY = list.contentHeight - list.height;
                 wait(200);
 
-                // The row's own removal, the way the cross performs it: the fold, then the model.
+                // The row's own removal, the way the cross performs it: the model lets it go at
+                // once, and the view's remove transition closes it while the bottom margin keeps
+                // that fold above the viewport's edge.
                 for (let i = 0; i < 30; ++i)
                     popup.removeWordAnimated(words[i]);
-                wait(900); // the fold, the flush, the rebuild
+                wait(900); // the remove transitions and the viewport hold
                 const lowest = list.contentHeight - list.height;
                 verify(list.contentY <= Math.max(0, lowest) + 1,
                        "after the removals the viewport stands past the last word: contentY "
                        + list.contentY + " against content " + list.contentHeight + " in " + list.height);
                 verify(list.contentY >= -1, "the removals left the list above its first row");
 
-                // And the filter's collapse is the same shrink by another door: Known folds away
+                // And the filter's collapse is the same shrink by another door: Known removes
                 // every seeded word, every one of them being new.
-                popup.filter = 1;
+                Controller.wordsModel.filter = 1;
                 wait(900);
                 verify(list.contentY <= Math.max(0, list.contentHeight - list.height) + 1,
                        "after the filter the viewport stands past the last word: contentY "
                        + list.contentY + " against content " + list.contentHeight);
-                // The viewport is a fact of the row count, not of the fold's progress: the moment
-                // the filter comes back it is the whole of its cap again, and never chases the
-                // content the rows are still unfolding into -- a viewport that chased it fed the
-                // view's own estimate back into itself, and the list rang (measured: contentHeight
-                // swinging 279..2666 with the viewport collapsing along, the reader looking at blank).
-                popup.filter = 0;
-                compare(list.height, Math.min(306, list.count * popup.rowHeight),
-                        "the viewport followed the fold instead of the row count");
+                // The viewport is a fact of the row count, not of the fold's progress: the model
+                // inserts the rows back and the height follows its count on the next frame,
+                // never the content the remove transitions are still closing -- a viewport that
+                // chased that fed the view's own estimate back into itself, and the list rang
+                // (measured: contentHeight swinging 279..2666 with the viewport collapsing along,
+                // the reader looking at blank).
+                Controller.wordsModel.filter = 0;
+                tryCompare(list, "height", Math.min(306, list.count * popup.rowHeight), 1000,
+                           "the viewport followed the fold instead of the row count");
                 wait(900);
                 verify(list.contentY <= Math.max(0, list.contentHeight - list.height) + 1,
                        "after the filter came back the viewport stands past the last word: contentY "
@@ -257,7 +260,7 @@ Item {
                 compare(list.height, Math.min(306, list.count * popup.rowHeight),
                         "the settled viewport left the row count's measure");
             } finally {
-                popup.filter = 0;
+                Controller.wordsModel.filter = 0;
                 for (const word of words)
                     Controller.removeWord(word);
             }

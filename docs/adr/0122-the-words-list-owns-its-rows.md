@@ -1,0 +1,21 @@
+# 0122 词汇表的行由一个 item model 拥有
+
+- **状态**：accepted（2026-10-26；架构评审候选 11 的落地）
+- **背景**：
+  - `Controller.words` 是一份每次 `statsChanged` 整体替换的 `QVariantList`。视图靠把行折成 0 高来过滤，`contentHeight` 是懒填充下的估计，面板为它打了四个补丁：视口按行数估算、`cacheBuffer: 6000`、出生即 `forceLayout()`、动量位置手动夹回；删除走 “先折叠、计时器到点再删” 的队列。近 13 次提交里 4 次在修这张列表（`bec9b31`、`65d5446`、`df46566`、`8f05439`）。
+  - ListView 的 add/remove 过渡从不运行：模型整体替换把每个 delegate 重建。
+  - Spike（2026-10-26，offscreen 实测）确认三件事可以落地：增量删除驱动的 remove 过渡能让被删行按 180 ms 收拢、后续行同步位移；行宽握手在 item model 下仍然成立；自绘滚动条全程留在轨道内。两处需要本地机制：短列表的视口要等过渡结束再缩短；列表已在滚动尽头时，移除会让 `contentY` 立即夹到新界内，折叠发生在视口外。
+- **决定**：
+  - 新增 `src/app/words_model.{h,cpp}`：`WordsModel`（QAbstractListModel）拥有行、过滤与删除。控制器在每个 `statsChanged` 后把 history 交给 `update()`；模型按 lemma 做差，向视图发 removeRows / insertRows / dataChanged。共有行的顺序改变时退回 reset——词被重新弹出移到最前的情形，旧列表本来就会整表重建。
+  - 过滤是模型的属性，三个值与 `core::ExportScope` 对齐；一行是否在范围内只问一次 `rowInScope()`（`words_view.h`），列表与导出共用同一条规则。
+  - 行按角色给出（`word` / `day` / `date` / `time` / `verdict` / `pops`），`WordsListRow` 用 required property 接住；`allRows()` 是给测试与导出读的原始投影，视图不再读整份列表。
+  - 视图侧的两个本地机制取代旧补丁：`viewportRows` 在行数变少时保持一个过渡的时长再缩短；移除发生在滚动尽头时，先垫一行 `bottomMargin` 再用同一段动画收回去，折叠因此留在视口内。`contentY` 的夹取扩到两端，并挂在 contentY / height / bottomMargin 的变化上——批量删除实测会把 contentY 留在 1120 而内容只有 558，过滤后留在 868 而内容只有 93，视图自己的夹取接不住。
+  - `cacheBuffer: 6000` 与 `forceLayout()` 保留：前者为宽度握手（视口外的长词不参与测量，卡片会在滚动中从 320 px 涨到 428 px），后者为出生即有行。动量夹回并入同一个 clamp。
+  - 删除队列（`removingWords` / `removalQueue` / `removalTimer`）删除；`Controller.removeWord()` 触发模型的 removeRows，过渡立即开始，不再有第二个计时器。
+- **后果**：
+  - 删除与过滤的行离场走 ListView 自己的过渡；面板的四个补丁收成两个更小的机制，都长在视图上而不是模型里。
+  - `words_model_test` 的 8 个值用例不碰视图：去重与顺序、过滤、删除是 removal 不是 reset、判定是 dataChanged、新词是插入、过滤改动的差分、重排退回 reset（钉住文档化的行为）、`allRows()` 投影。
+  - 统计面板与年度记录的 “All time” 读 `wordsModel.allCount`；`Controller.words` 属性删除，qtest 改读 `allRows()`。
+  - 已知边界：词被重新弹出而列表开着时模型 reset、视图重建（旧行为本来如此）；滚动条拇指在删除开始的一帧跳到新尺寸（contentHeight 立即变化，长列表上不可见）。
+  - 被排除的方案：`QSortFilterProxyModel`（过滤规则仍要在视图侧拼写，删除差分不归它）；保留 delegate 的 height Behavior、只把模型换成 item model（过滤依旧靠 0 高行，contentHeight 仍是估计）；`DelegateModel`（为过滤引入第二份行）。
+- **ADR 关系**：0064 的纯函数仍是行的来源（`wordRowList` 是 `wordRows` 的类型化版本）；0104 的 “All time 与词汇弹窗标题同源” 不变，来源从 `Controller.words.length` 换成 `wordsModel.allCount`；0057 的 “纯 module + adapter” 在这里落成 “模型拥有行，视图只画”。

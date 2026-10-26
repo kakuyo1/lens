@@ -240,7 +240,7 @@ Window {
                     // vocabulary. Mixed CJK units take the app face (UI-SPEC.md 4.7).
                     text: qsTr("%1 lookups · %2 words")
                           .arg(year.days.reduce(function (sum, day) { return sum + day.pops; }, 0))
-                          .arg(Controller.words.length)
+                          .arg(Controller.wordsModel.allCount)
                     color: year.tokens.faint
                     font.pixelSize: 11
                 }

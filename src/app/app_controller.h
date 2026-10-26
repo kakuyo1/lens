@@ -38,6 +38,7 @@
 #include "app/duties/storage_duty.h"
 #include "app/duties/sync_duty.h"
 #include "app/duties/update_duty.h"
+#include "app/words_model.h"
 #include "pictures/picture_sources/commons_source.h"
 
 class QQmlEngine;
@@ -165,8 +166,9 @@ public:
     /// @note Not const, and the only projection that is not: reading a document key goes through a
     ///       section, which is a writable view. Every other dependency is borrowed by reference;
     ///       this one is owned. See docs/adr/0024.
-    QVariantMap  settings();
-    QVariantList words() const;
+    QVariantMap settings();
+    /// @brief The words list's model, which owns its rows, filter and removals (docs/adr/0122).
+    WordsModel* wordsModel();
     /// @brief The last 365 local dates, including zero-use days, for the annual words surface.
     QVariantList yearDays() const;
     /// @brief The cost duty, which QML reads as `Controller.costDuty`; the facade owns it.
@@ -219,7 +221,7 @@ public:
     Q_INVOKABLE void setReviewFrequency(int value);
 
     Q_PROPERTY(QVariantMap settings READ settings NOTIFY settingsChanged)
-    Q_PROPERTY(QVariantList words READ words NOTIFY statsChanged)
+    Q_PROPERTY(lens::app::WordsModel* wordsModel READ wordsModel CONSTANT)
     Q_PROPERTY(QVariantList yearDays READ yearDays NOTIFY yearDaysChanged)
     Q_PROPERTY(lens::app::CostDuty* costDuty READ costDuty CONSTANT)
     Q_PROPERTY(lens::app::UpdateDuty* updateDuty READ updateDuty CONSTANT)
@@ -278,6 +280,7 @@ private:
     static AppController* instance_;
 
     StorageDuty            storage_;
+    WordsModel             wordsModel_;
     CostDuty               cost_;
     CaptureDuty            capture_;
     GlassBackdrop          glass_;
