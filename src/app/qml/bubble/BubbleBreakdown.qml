@@ -5,8 +5,8 @@ import QtQuick
 /**
  * The breakdown card's body (UI-SPEC.md 4.3): the sentence as the answer split it, each role's run
  * tinted at 16%, and a legend naming the roles the sentence has. A correction card draws the same sentence
- * with the words the model changed underlined, and no legend. The legend row keeps one height through
- * pending, failed and ready, so the card does not jump when the answer lands.
+ * with the words the model changed underlined, and no legend. The legend row holds its line through
+ * pending and failed, so a breakdown does not jump when it lands; a legend too wide for the card wraps.
  */
 Column {
     id: root
@@ -149,11 +149,15 @@ Column {
     }
 
     Item {
+        objectName: "legendRow"
         width: root.width
-        height: 16
+        // A correction's ready card has no legend row: it draws the sentence alone (UI-SPEC.md 4.10).
+        visible: !(root.correcting && root.ready)
+        height: Math.max(16, legend.height)
 
-        Row {
-            anchors.verticalCenter: parent.verticalCenter
+        Flow {
+            id: legend
+            width: parent.width
             spacing: 12
 
             Repeater {
@@ -163,6 +167,7 @@ Column {
                     id: legendItem
                     required property string modelData
 
+                    height: 16
                     spacing: 5
 
                     Rectangle {
@@ -186,7 +191,7 @@ Column {
             visible: !root.ready
             anchors.verticalCenter: parent.verticalCenter
             text: root.bubble.breakdown === "failed"
-                  ? (root.correcting ? qsTr("This could not be corrected.") : qsTr("This sentence could not be broken down."))
+                  ? qsTr("Failed: %1").arg(root.bubble.failure)
                   : (root.correcting ? qsTr("Correcting…") : qsTr("Breaking down…"))
             color: root.bubble.tokens.muted
             font.pixelSize: root.bubble.sizeAt(11)

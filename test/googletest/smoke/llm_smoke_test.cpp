@@ -171,10 +171,12 @@ TEST(LlmSmoke, SentenceBreakdownRoundTrip)
     QEventLoop                       loop;
     std::optional<QVector<RoleSpan>> spans;
     Usage                            usageSeen;
+    QString                          failureSeen;
 
-    QObject::connect(&client, &LlmClient::breakdownAnswered, [&](const QString&, const QVector<RoleSpan>& answered, Usage usage) {
-        spans     = answered;
-        usageSeen = usage;
+    QObject::connect(&client, &LlmClient::breakdownAnswered, [&](const QString&, const QVector<RoleSpan>& answered, Usage usage, const QString& failure) {
+        spans       = answered;
+        usageSeen   = usage;
+        failureSeen = failure;
         loop.quit();
     });
     QTimer::singleShot(kTimeoutMs, &loop, &QEventLoop::quit);
@@ -192,7 +194,7 @@ TEST(LlmSmoke, SentenceBreakdownRoundTrip)
         std::cout << "span role=" << static_cast<int>(span.role) << " [" << span.from << ".." << span.to << "] "
                   << covered.join(QLatin1Char(' ')).toStdString() << "\n";
     }
-    EXPECT_FALSE(spans->isEmpty()) << "the answer was refused: the log says why";
+    EXPECT_FALSE(spans->isEmpty()) << "the answer was refused: " << failureSeen.toStdString();
 }
 
 int main(int argc, char** argv)

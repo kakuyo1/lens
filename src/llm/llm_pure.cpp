@@ -310,6 +310,14 @@ QString httpErrorFor(int status)
     }
 }
 
+QString failureLineFor(int const status)
+{
+    if (status < 0) return QCoreApplication::translate("lens::llm", "The service is not set up.");
+    if (status == 0) return QCoreApplication::translate("lens::llm", "No connection or timeout.");
+    if (status == 200) return QCoreApplication::translate("lens::llm", "The answer could not be read.");
+    return QCoreApplication::translate("lens::llm", "Service error (HTTP %1).").arg(status);
+}
+
 QString maskSensitive(const QString& text)
 {
     static const QRegularExpression url(R"(\bhttps?://\S+)");
@@ -924,7 +932,9 @@ std::variant<QVector<RoleSpan>, QString> parseBreakdown(QByteArray const& respon
             return reject(QStringLiteral("a span role is not S, V, C or A"));
         if (not wordIndex(span.value("from"), wordCount, parsed.from) or not wordIndex(span.value("to"), wordCount, parsed.to) or
             parsed.from > parsed.to)
-            return reject(QStringLiteral("a span names words outside the sentence or runs backwards"));
+            return reject(QStringLiteral("a span names words outside the sentence or runs backwards: from %1, to %2, %3 words")
+                              .arg(span.value("from").toVariant().toString(), span.value("to").toVariant().toString())
+                              .arg(wordCount));
         spans.push_back(parsed);
     }
 

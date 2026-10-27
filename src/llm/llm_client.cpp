@@ -400,7 +400,7 @@ void LlmClient::postCorrection(Channel const channel, QString const& text)
     if (text.isEmpty() or config_.apiKey.isEmpty() or not config_.baseUrl.isValid() or
         config_.baseUrl.scheme() != QLatin1String("https") or config_.baseUrl.host().isEmpty()) {
         LENS_DEBUG("the {} correction went nowhere: the client is not configured", channelKey(channel));
-        emit correctionAnswered(text, channel, {}, {});
+        emit correctionAnswered(text, channel, {}, {}, failureLineFor(-1));
         return;
     }
 
@@ -426,7 +426,7 @@ void LlmClient::postCorrection(Channel const channel, QString const& text)
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         if (status != 200) {
             LENS_WARN("the {} correction came back with HTTP {}", channelKey(channel), status);
-            emit correctionAnswered(text, channel, {}, {});
+            emit correctionAnswered(text, channel, {}, {}, failureLineFor(status));
             return;
         }
         // A refused answer was still paid for, so its usage goes out with the empty correction.
@@ -435,10 +435,10 @@ void LlmClient::postCorrection(Channel const channel, QString const& text)
         usage.model            = model;
         const auto parsed      = parseCorrection(channel, body);
         if (const auto* corrected = std::get_if<QString>(&parsed)) {
-            emit correctionAnswered(text, channel, *corrected, usage);
+            emit correctionAnswered(text, channel, *corrected, usage, {});
             return;
         }
-        emit correctionAnswered(text, channel, {}, usage);
+        emit correctionAnswered(text, channel, {}, usage, failureLineFor(status));
     });
 }
 
@@ -447,7 +447,7 @@ void LlmClient::breakdownSentence(QString const& sentence, QStringList const& wo
     if (words.isEmpty() or config_.apiKey.isEmpty() or not config_.baseUrl.isValid() or
         config_.baseUrl.scheme() != QLatin1String("https") or config_.baseUrl.host().isEmpty()) {
         LENS_DEBUG("the breakdown went nowhere: the client is not configured");
-        emit breakdownAnswered(sentence, {}, {});
+        emit breakdownAnswered(sentence, {}, {}, failureLineFor(-1));
         return;
     }
 
@@ -473,7 +473,7 @@ void LlmClient::breakdownSentence(QString const& sentence, QStringList const& wo
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         if (status != 200) {
             LENS_WARN("the breakdown came back with HTTP {}", status);
-            emit breakdownAnswered(sentence, {}, {});
+            emit breakdownAnswered(sentence, {}, {}, failureLineFor(status));
             return;
         }
         // A refused answer was still paid for, so its usage goes out with the empty result.
@@ -483,10 +483,10 @@ void LlmClient::breakdownSentence(QString const& sentence, QStringList const& wo
         const auto parsed      = parseBreakdown(body, static_cast<int>(count));
         if (const auto* message = std::get_if<QString>(&parsed)) {
             LENS_WARN("the breakdown was refused: {}", message->toStdString());
-            emit breakdownAnswered(sentence, {}, usage);
+            emit breakdownAnswered(sentence, {}, usage, failureLineFor(status));
             return;
         }
-        emit breakdownAnswered(sentence, std::get<QVector<RoleSpan>>(parsed), usage);
+        emit breakdownAnswered(sentence, std::get<QVector<RoleSpan>>(parsed), usage, {});
     });
 }
 

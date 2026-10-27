@@ -47,6 +47,18 @@ QString maskSensitive(const QString& text);
 QString httpErrorFor(int status);
 
 /**
+ * @brief The one line a reader sees when a breakdown or a correction draws nothing.
+ *
+ * Carries only the status code, never the response body or the key, so nothing the service sent
+ * reaches the card.
+ *
+ * @param status The HTTP status; 0 when no response arrived, 200 when the answer came but failed
+ *               the shape check, -1 when the client was never set up.
+ * @return A reader-facing reason, already routed through translation.
+ */
+QString failureLineFor(int status);
+
+/**
  * @brief The prompt preset a request names.
  *
  * The sense flag's "multiple" wins over the selection's own preset: a reader who turned multiple
@@ -117,8 +129,8 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel           
                                                               QString const&     explanationLang = QStringLiteral("en"),
                                                               bool               multipleSenses  = false);
 
-/// The longest English sentence the breakdown takes: the starting value, not yet measured on real text.
-inline constexpr int kBreakdownMaxWords = 40;
+/// The longest English sentence the breakdown takes: a starting value; one real 80-word answer was refused (API.md 3.6).
+inline constexpr int kBreakdownMaxWords = 80;
 
 /**
  * @brief Split a sentence into the words a breakdown indexes, on whitespace.

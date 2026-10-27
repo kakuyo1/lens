@@ -24,22 +24,17 @@
         <translation>状语</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="189"/>
-        <source>This sentence could not be broken down.</source>
-        <translation>这句没能拆开。</translation>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="194"/>
+        <source>Failed: %1</source>
+        <translation>失败：%1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="189"/>
-        <source>This could not be corrected.</source>
-        <translation>没能纠正。</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="190"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="195"/>
         <source>Breaking down…</source>
         <translation>正在拆解…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="190"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="195"/>
         <source>Correcting…</source>
         <translation>正在纠正…</translation>
     </message>
@@ -2622,12 +2617,12 @@
         <translation>现在解释</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="652"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="656"/>
         <source>Explaining…</source>
         <translation>正在解释…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="780"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="784"/>
         <source>Request failed</source>
         <translation>请求失败</translation>
     </message>
@@ -2694,64 +2689,84 @@
 <context>
     <name>lens::llm</name>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="700"/>
+        <location filename="../src/llm/llm_pure.cpp" line="708"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>模型返回的内容不是一个 JSON 对象。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="706"/>
+        <location filename="../src/llm/llm_pure.cpp" line="714"/>
         <source>The model&apos;s answer carries no choices.</source>
         <translation>模型返回的内容里没有 choices。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="394"/>
+        <location filename="../src/llm/llm_pure.cpp" line="402"/>
         <source>The model stopped before finishing (reason: %1).</source>
         <translation>模型未正常结束（原因：%1）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="397"/>
+        <location filename="../src/llm/llm_pure.cpp" line="315"/>
+        <source>The service is not set up.</source>
+        <translation>服务尚未设置。</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="316"/>
+        <source>No connection or timeout.</source>
+        <translation>无法连接或超时。</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="317"/>
+        <source>The answer could not be read.</source>
+        <translation>回答无法读取。</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="318"/>
+        <source>Service error (HTTP %1).</source>
+        <translation>服务返回错误（HTTP %1）。</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="405"/>
         <source>absent</source>
         <translation>缺失</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="510"/>
+        <location filename="../src/llm/llm_pure.cpp" line="518"/>
         <source>The model&apos;s answer is not valid JSON.</source>
         <translation>模型返回的内容不是合法 JSON。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="515"/>
+        <location filename="../src/llm/llm_pure.cpp" line="523"/>
         <source>The model&apos;s answer has no results array.</source>
         <translation>模型返回的内容里没有 results 数组。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="534"/>
+        <location filename="../src/llm/llm_pure.cpp" line="542"/>
         <source>One of the results entries is not an object.</source>
         <translation>results 里有一项不是对象。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="584"/>
+        <location filename="../src/llm/llm_pure.cpp" line="592"/>
         <source>A results entry has an empty field (title=%1).</source>
         <translation>results 里有一项字段为空（title=%1）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="616"/>
-        <location filename="../src/llm/llm_pure.cpp" line="660"/>
+        <location filename="../src/llm/llm_pure.cpp" line="624"/>
+        <location filename="../src/llm/llm_pure.cpp" line="668"/>
         <source>The model echoed %1 result(s) for the %2 that were asked for.</source>
         <translation>请求了 %2 项，模型回显了 %1 项。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="539"/>
+        <location filename="../src/llm/llm_pure.cpp" line="547"/>
         <source>A results entry does not match the response schema.</source>
         <translation>results 中有一项不符合响应 schema。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="553"/>
-        <location filename="../src/llm/llm_pure.cpp" line="577"/>
+        <location filename="../src/llm/llm_pure.cpp" line="561"/>
+        <location filename="../src/llm/llm_pure.cpp" line="585"/>
         <source>The requested explanation language is missing.</source>
         <translation>缺少请求的解释语言。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="671"/>
+        <location filename="../src/llm/llm_pure.cpp" line="679"/>
         <source>The model never echoed &quot;%1&quot;.</source>
         <translation>模型没有回显 “%1”。</translation>
     </message>

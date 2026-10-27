@@ -43,12 +43,12 @@ Item {
 
         /// The breakdown's payload as the duty sends it: pending holds the sentence as one run, and
         /// ready splits it into role runs; whitespace stays in its own run either way.
-        function breakdownPayload(state, roles) {
+        function breakdownPayload(state, roles, failure) {
             const segments = state === "ready"
                 ? [{text: "The rain", role: "S"}, {text: " ", role: ""}, {text: "stopped.", role: "V"}]
                 : [{text: "The rain stopped.", role: ""}];
             return {
-                title: "", type: "sentence", breakdown: state, segments: segments, roles: roles,
+                title: "", type: "sentence", breakdown: state, segments: segments, roles: roles, failure: failure || "",
                 countsDown: true, verdictButtons: false, reveal: false, x: 200, y: 240
             };
         }
@@ -98,10 +98,33 @@ Item {
             wait(50);
             verify(Util.textWith(Util.textsUnder(bubble), ["Breaking down…"]), "pending drew no line");
 
-            bubble.show(breakdownPayload("failed", []));
+            bubble.show(breakdownPayload("failed", [], "No connection or timeout."));
             wait(50);
-            verify(Util.textWith(Util.textsUnder(bubble), ["This sentence could not be broken down."]),
+            verify(Util.textWith(Util.textsUnder(bubble), ["Failed: No connection or timeout."]),
                    "failed drew no line");
+            bubble.visible = false;
+        }
+
+        /// A legend wider than the card wraps onto a second line, and no role name runs past the card's edge.
+        function test_theLegendWrapsInsideTheCardWhenItIsWiderThanIt() {
+            const bubble = createTemporaryObject(bubbleComponent, root);
+            verify(bubble);
+            bubble.show({title: "", type: "sentence", breakdown: "ready", roles: ["S", "V", "C", "A"], countsDown: true,
+                         verdictButtons: false, reveal: false, x: 200, y: 240,
+                         segments: [{text: "The dog", role: "S"}, {text: " chased ", role: "V"},
+                                    {text: "the cat", role: "C"}, {text: " quickly.", role: "A"}]});
+            wait(50);
+            const block = breakdownOf(bubble);
+            const names = Util.textsUnder(bubble).filter(function (t) {
+                return ["Subject", "Verb", "Complement", "Adverbial"].indexOf(t.text) >= 0;
+            });
+            compare(names.length, 4, "the legend did not name all four roles");
+            const lines = {};
+            names.forEach(function (t) { lines[Math.round(t.mapToItem(block, 0, 0).y)] = true; });
+            verify(Object.keys(lines).length >= 2, "the legend did not wrap");
+            names.forEach(function (t) {
+                verify(t.mapToItem(block, t.width, 0).x <= block.width, t.text + " runs past the card");
+            });
             bubble.visible = false;
         }
 
@@ -194,10 +217,10 @@ Item {
 
         /// A correction's payload as the duty sends it: the breakdown's state field, the changed words marked by
         /// role, and no legend.
-        function correctionPayload(state, kind, segments, type) {
+        function correctionPayload(state, kind, segments, type, failure) {
             return {
                 title: "", type: type || "sentence", breakdown: state, correction: kind, segments: segments, roles: [],
-                countsDown: true, verdictButtons: false, reveal: false, x: 200, y: 240
+                failure: failure || "", countsDown: true, verdictButtons: false, reveal: false, x: 200, y: 240
             };
         }
 
@@ -256,9 +279,29 @@ Item {
             compare(Util.findAll(breakdownOf(bubble), function (o) { return o.objectName === "underlineBox"; }).length, 0,
                     "a pending correction drew a rule");
 
-            bubble.show(correctionPayload("failed", "spell", plain, "word"));
+            bubble.show(correctionPayload("failed", "spell", plain, "word", "The answer could not be read."));
             wait(50);
-            verify(Util.textWith(Util.textsUnder(bubble), ["This could not be corrected."]), "failed did not say so");
+            verify(Util.textWith(Util.textsUnder(bubble), ["Failed: The answer could not be read."]), "failed did not say so");
+            bubble.visible = false;
+        }
+
+        /// A correction that has landed draws the sentence alone: its legend row and the gap above it go, while the
+        /// pending card still holds them.
+        function test_aCorrectionReadyTakesNoLegendRow() {
+            const bubble = createTemporaryObject(bubbleComponent, root);
+            verify(bubble);
+            const segments = [{text: "She ", role: ""}, {text: "goes", role: "changed"}, {text: " home.", role: ""}];
+            bubble.show(correctionPayload("pending", "grammar", segments));
+            wait(50);
+            const block = breakdownOf(bubble);
+            const pendingHeight = block.height;
+            const legend = Util.findAll(block, function (o) { return o.objectName === "legendRow"; })[0];
+            verify(legend, "the breakdown drew no legend row");
+            verify(legend.visible, "the pending correction drew no legend row");
+
+            bubble.show(correctionPayload("ready", "grammar", segments));
+            tryCompare(legend, "visible", false, 1000, "the ready correction kept its legend row");
+            tryCompare(block, "height", pendingHeight - 26, 1000, "the ready correction kept the legend row's space");
             bubble.visible = false;
         }
 

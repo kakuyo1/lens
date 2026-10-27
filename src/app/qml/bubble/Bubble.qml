@@ -97,6 +97,8 @@ Window {
     /// The correction's kind, "spell" or "grammar", for a card that shows a correction of the selection; empty
     /// otherwise. It rides the same state field as the breakdown: `breakdown` is its pending, ready or failed.
     property string correction: ""
+    /// The reader's reason on a failed breakdown or correction, already translated; empty otherwise.
+    property string failure: ""
     /// A card that marks up the sentence rather than defines a word: a breakdown or a correction. Such a card
     /// has no title, no verdict, no peek globe and no definition.
     readonly property bool annotated: breakdown !== "" || correction !== ""
@@ -229,6 +231,7 @@ Window {
         status = payload.status || "";
         breakdown = payload.breakdown || "";
         correction = payload.correction || "";
+        failure = payload.failure || "";
         segments = payload.segments || [];
         roles = payload.roles || [];
         senseCycle = payload.senseCycle === true;

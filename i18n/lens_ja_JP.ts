@@ -24,22 +24,17 @@
         <translation>状語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="189"/>
-        <source>This sentence could not be broken down.</source>
-        <translation>この文は分解できませんでした。</translation>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="194"/>
+        <source>Failed: %1</source>
+        <translation>失敗：%1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="189"/>
-        <source>This could not be corrected.</source>
-        <translation>修正できませんでした。</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="190"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="195"/>
         <source>Breaking down…</source>
         <translation>分解中…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="190"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="195"/>
         <source>Correcting…</source>
         <translation>修正中…</translation>
     </message>
@@ -2637,12 +2632,12 @@
         <translation>今すぐ解説</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="652"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="656"/>
         <source>Explaining…</source>
         <translation>解説中…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="780"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="784"/>
         <source>Request failed</source>
         <translation>リクエストに失敗しました</translation>
     </message>
@@ -2753,64 +2748,84 @@
         <translation>予期しない HTTP ステータス %1。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="700"/>
+        <location filename="../src/llm/llm_pure.cpp" line="315"/>
+        <source>The service is not set up.</source>
+        <translation>サービスがまだ設定されていません。</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="316"/>
+        <source>No connection or timeout.</source>
+        <translation>接続できないか、タイムアウトしました。</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="317"/>
+        <source>The answer could not be read.</source>
+        <translation>回答を読み取れませんでした。</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="318"/>
+        <source>Service error (HTTP %1).</source>
+        <translation>サービスがエラーを返しました（HTTP %1）。</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="708"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>モデルの応答が JSON オブジェクトではありません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="706"/>
+        <location filename="../src/llm/llm_pure.cpp" line="714"/>
         <source>The model&apos;s answer carries no choices.</source>
         <translation>モデルの応答に choices がありません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="394"/>
+        <location filename="../src/llm/llm_pure.cpp" line="402"/>
         <source>The model stopped before finishing (reason: %1).</source>
         <translation>モデルが途中で停止しました（理由：%1）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="397"/>
+        <location filename="../src/llm/llm_pure.cpp" line="405"/>
         <source>absent</source>
         <translation>なし</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="510"/>
+        <location filename="../src/llm/llm_pure.cpp" line="518"/>
         <source>The model&apos;s answer is not valid JSON.</source>
         <translation>モデルの応答が有効な JSON ではありません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="515"/>
+        <location filename="../src/llm/llm_pure.cpp" line="523"/>
         <source>The model&apos;s answer has no results array.</source>
         <translation>モデルの応答に results 配列がありません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="534"/>
+        <location filename="../src/llm/llm_pure.cpp" line="542"/>
         <source>One of the results entries is not an object.</source>
         <translation>results の要素がオブジェクトではありません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="539"/>
+        <location filename="../src/llm/llm_pure.cpp" line="547"/>
         <source>A results entry does not match the response schema.</source>
         <translation>results の要素がレスポンススキーマに一致しません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="553"/>
-        <location filename="../src/llm/llm_pure.cpp" line="577"/>
+        <location filename="../src/llm/llm_pure.cpp" line="561"/>
+        <location filename="../src/llm/llm_pure.cpp" line="585"/>
         <source>The requested explanation language is missing.</source>
         <translation>要求した解説の言語がありません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="584"/>
+        <location filename="../src/llm/llm_pure.cpp" line="592"/>
         <source>A results entry has an empty field (title=%1).</source>
         <translation>results の要素に空のフィールドがあります（title=%1）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="616"/>
-        <location filename="../src/llm/llm_pure.cpp" line="660"/>
+        <location filename="../src/llm/llm_pure.cpp" line="624"/>
+        <location filename="../src/llm/llm_pure.cpp" line="668"/>
         <source>The model echoed %1 result(s) for the %2 that were asked for.</source>
         <translation>要求した %2 件に対し、モデルは %1 件を返しました。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="671"/>
+        <location filename="../src/llm/llm_pure.cpp" line="679"/>
         <source>The model never echoed &quot;%1&quot;.</source>
         <translation>モデルが「%1」を返しませんでした。</translation>
     </message>

@@ -24,22 +24,17 @@
         <translation>Adverbial</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="189"/>
-        <source>This sentence could not be broken down.</source>
-        <translation>This sentence could not be broken down.</translation>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="194"/>
+        <source>Failed: %1</source>
+        <translation>Failed: %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="189"/>
-        <source>This could not be corrected.</source>
-        <translation>This could not be corrected.</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="190"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="195"/>
         <source>Breaking down…</source>
         <translation>Breaking down…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="190"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="195"/>
         <source>Correcting…</source>
         <translation>Correcting…</translation>
     </message>
@@ -2622,12 +2617,12 @@
         <translation>Explain now</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="652"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="656"/>
         <source>Explaining…</source>
         <translation>Explaining…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="780"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="784"/>
         <source>Request failed</source>
         <translation>Request failed</translation>
     </message>
@@ -2694,64 +2689,84 @@
 <context>
     <name>lens::llm</name>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="700"/>
+        <location filename="../src/llm/llm_pure.cpp" line="708"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>The model answered with something that is not a JSON object.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="706"/>
+        <location filename="../src/llm/llm_pure.cpp" line="714"/>
         <source>The model&apos;s answer carries no choices.</source>
         <translation>The model&apos;s answer carries no choices.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="394"/>
+        <location filename="../src/llm/llm_pure.cpp" line="402"/>
         <source>The model stopped before finishing (reason: %1).</source>
         <translation>The model stopped before finishing (reason: %1).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="397"/>
+        <location filename="../src/llm/llm_pure.cpp" line="315"/>
+        <source>The service is not set up.</source>
+        <translation>The service is not set up.</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="316"/>
+        <source>No connection or timeout.</source>
+        <translation>No connection or timeout.</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="317"/>
+        <source>The answer could not be read.</source>
+        <translation>The answer could not be read.</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="318"/>
+        <source>Service error (HTTP %1).</source>
+        <translation>Service error (HTTP %1).</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="405"/>
         <source>absent</source>
         <translation>absent</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="510"/>
+        <location filename="../src/llm/llm_pure.cpp" line="518"/>
         <source>The model&apos;s answer is not valid JSON.</source>
         <translation>The model&apos;s answer is not valid JSON.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="515"/>
+        <location filename="../src/llm/llm_pure.cpp" line="523"/>
         <source>The model&apos;s answer has no results array.</source>
         <translation>The model&apos;s answer has no results array.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="534"/>
+        <location filename="../src/llm/llm_pure.cpp" line="542"/>
         <source>One of the results entries is not an object.</source>
         <translation>One of the results entries is not an object.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="584"/>
+        <location filename="../src/llm/llm_pure.cpp" line="592"/>
         <source>A results entry has an empty field (title=%1).</source>
         <translation>A results entry has an empty field (title=%1).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="616"/>
-        <location filename="../src/llm/llm_pure.cpp" line="660"/>
+        <location filename="../src/llm/llm_pure.cpp" line="624"/>
+        <location filename="../src/llm/llm_pure.cpp" line="668"/>
         <source>The model echoed %1 result(s) for the %2 that were asked for.</source>
         <translation>The model echoed %1 result(s) for the %2 that were asked for.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="539"/>
+        <location filename="../src/llm/llm_pure.cpp" line="547"/>
         <source>A results entry does not match the response schema.</source>
         <translation>A results entry does not match the response schema.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="553"/>
-        <location filename="../src/llm/llm_pure.cpp" line="577"/>
+        <location filename="../src/llm/llm_pure.cpp" line="561"/>
+        <location filename="../src/llm/llm_pure.cpp" line="585"/>
         <source>The requested explanation language is missing.</source>
         <translation>The requested explanation language is missing.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="671"/>
+        <location filename="../src/llm/llm_pure.cpp" line="679"/>
         <source>The model never echoed &quot;%1&quot;.</source>
         <translation>The model never echoed &quot;%1&quot;.</translation>
     </message>

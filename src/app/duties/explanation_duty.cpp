@@ -465,7 +465,7 @@ void ExplanationDuty::breakdown(PendingSelection const& pending)
     if (card != nullptr and card->preset == kBreakdownPreset and card->text == pending.text and
         bubble_.value(QStringLiteral("breakdown")).toString() != QLatin1String("failed"))
         return;
-    showBreakdown(pending, QStringLiteral("pending"), QVariantList{QVariantMap{{"text", pending.text}, {"role", QString{}}}}, {});
+    showBreakdown(pending, QStringLiteral("pending"), QVariantList{QVariantMap{{"text", pending.text}, {"role", QString{}}}}, {}, {});
     llm_.breakdownSentence(pending.text, llm::breakdownWords(pending.text));
 }
 
@@ -483,14 +483,14 @@ void ExplanationDuty::correct(PendingSelection const& pending, QString const& pr
         return;
     PendingSelection selection = pending;
     selection.preset           = preset;
-    showCorrection(selection, QStringLiteral("pending"), {});
+    showCorrection(selection, QStringLiteral("pending"), {}, {});
     if (preset == kSpellPreset)
         llm_.correctSpelling(pending.text);
     else
         llm_.correctGrammar(pending.text);
 }
 
-void ExplanationDuty::onCorrectionAnswered(QString const& text, llm::Channel const channel, QString const& corrected, llm::Usage const usage)
+void ExplanationDuty::onCorrectionAnswered(QString const& text, llm::Channel const channel, QString const& corrected, llm::Usage const usage, QString const& failure)
 {
     cost_.recordUsage(nowMinute().toStdString(), usage);
     // The answer belongs to the card standing on this text and no other, as the breakdown's does.
@@ -499,13 +499,13 @@ void ExplanationDuty::onCorrectionAnswered(QString const& text, llm::Channel con
     if (card == nullptr or card->preset != preset or card->text != text) return;
     const PendingSelection selection = *card;
     if (corrected.isEmpty()) {
-        showCorrection(selection, QStringLiteral("failed"), {});
+        showCorrection(selection, QStringLiteral("failed"), {}, failure);
         return;
     }
-    showCorrection(selection, QStringLiteral("ready"), correctionSegments(text, corrected));
+    showCorrection(selection, QStringLiteral("ready"), correctionSegments(text, corrected), {});
 }
 
-void ExplanationDuty::showCorrection(PendingSelection const& selection, QString const& state, QVariantList const& segments)
+void ExplanationDuty::showCorrection(PendingSelection const& selection, QString const& state, QVariantList const& segments, QString const& failure)
 {
     // The correction reuses the breakdown's bubble shape: its runs draw as the sentence, with no legend and no
     // meaning. The preset tells the label apart, so the card names the correction it is showing.
@@ -519,6 +519,7 @@ void ExplanationDuty::showCorrection(PendingSelection const& selection, QString 
                         {"correction", selection.preset},
                         {"segments", segments},
                         {"roles", QStringList{}},
+                        {"failure", failure},
                         {"en", QString{}},
                         {"zh", QString{}},
                         {"translation", QString{}},
@@ -538,7 +539,7 @@ void ExplanationDuty::showCorrection(PendingSelection const& selection, QString 
         emit petEvent(core::pet::PetEvent::ExplanationShown);
 }
 
-void ExplanationDuty::onBreakdownAnswered(QString const& sentence, QVector<llm::RoleSpan> const& spans, llm::Usage const usage)
+void ExplanationDuty::onBreakdownAnswered(QString const& sentence, QVector<llm::RoleSpan> const& spans, llm::Usage const usage, QString const& failure)
 {
     cost_.recordUsage(nowMinute().toStdString(), usage);
     // The answer belongs to the card standing on this sentence and to nothing else: the reader may have
@@ -547,13 +548,13 @@ void ExplanationDuty::onBreakdownAnswered(QString const& sentence, QVector<llm::
     if (card == nullptr or card->preset != kBreakdownPreset or card->text != sentence) return;
     const PendingSelection selection = *card;
     if (spans.isEmpty()) {
-        showBreakdown(selection, QStringLiteral("failed"), {}, {});
+        showBreakdown(selection, QStringLiteral("failed"), {}, {}, failure);
         return;
     }
-    showBreakdown(selection, QStringLiteral("ready"), breakdownSegments(sentence, spans), llm::breakdownRoles(spans));
+    showBreakdown(selection, QStringLiteral("ready"), breakdownSegments(sentence, spans), llm::breakdownRoles(spans), {});
 }
 
-void ExplanationDuty::showBreakdown(PendingSelection const& selection, QString const& state, QVariantList const& segments, QStringList const& roles)
+void ExplanationDuty::showBreakdown(PendingSelection const& selection, QString const& state, QVariantList const& segments, QStringList const& roles, QString const& failure)
 {
     const bool sameCard = session_.raise(selection, CardKind::Selection, selection.text);
     const auto face     = session_.presentation();
@@ -566,6 +567,7 @@ void ExplanationDuty::showBreakdown(PendingSelection const& selection, QString c
                         {"breakdown", state},
                         {"segments", segments},
                         {"roles", roles},
+                        {"failure", failure},
                         {"en", QString{}},
                         {"zh", QString{}},
                         {"translation", QString{}},

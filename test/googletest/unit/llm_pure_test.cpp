@@ -32,6 +32,8 @@ using lens::llm::Explanation;
 using lens::llm::breakdownApplies;
 using lens::llm::breakdownWords;
 using lens::llm::buildRequestBody;
+using lens::llm::failureLineFor;
+using lens::llm::grammarApplies;
 using lens::llm::httpErrorFor;
 using lens::llm::maskSensitive;
 using lens::llm::parseBreakdown;
@@ -778,15 +780,29 @@ TEST_F(LlmTest, TheBreakdownSplitsOnWhitespaceAndKeepsPunctuationWithItsWord)
     EXPECT_EQ(breakdownWords(QStringLiteral("  The cat,\tsleeps.\n")), (QStringList{"The", "cat,", "sleeps."}));
 }
 
-TEST_F(LlmTest, TheBreakdownAppliesToEnglishSentencesOfFortyWordsOrFewer)
+TEST_F(LlmTest, TheBreakdownAppliesToEnglishSentencesOfEightyWordsOrFewer)
 {
     EXPECT_TRUE(breakdownApplies(QStringLiteral("The cat sleeps.")));
     EXPECT_TRUE(breakdownApplies(QStringLiteral("It’s fine.")));
-    EXPECT_TRUE(breakdownApplies(QStringList(40, QStringLiteral("word")).join(QLatin1Char(' '))));
-    EXPECT_FALSE(breakdownApplies(QStringList(41, QStringLiteral("word")).join(QLatin1Char(' '))));
+    EXPECT_TRUE(breakdownApplies(QStringList(80, QStringLiteral("word")).join(QLatin1Char(' '))));
+    EXPECT_FALSE(breakdownApplies(QStringList(81, QStringLiteral("word")).join(QLatin1Char(' '))));
     EXPECT_FALSE(breakdownApplies(QStringLiteral("   ")));
     EXPECT_FALSE(breakdownApplies(QStringLiteral("Привет мир")));
     EXPECT_FALSE(breakdownApplies(QStringLiteral("这句话 is English?")));
+}
+
+TEST_F(LlmTest, TheGrammarCorrectionTakesTheSameSentencesAsTheBreakdown)
+{
+    EXPECT_TRUE(grammarApplies(QStringList(80, QStringLiteral("word")).join(QLatin1Char(' '))));
+    EXPECT_FALSE(grammarApplies(QStringList(81, QStringLiteral("word")).join(QLatin1Char(' '))));
+}
+
+TEST_F(LlmTest, AFailedBreakdownOrCorrectionSaysWhyInOneReaderLine)
+{
+    EXPECT_EQ(failureLineFor(0), QStringLiteral("No connection or timeout."));
+    EXPECT_EQ(failureLineFor(503), QStringLiteral("Service error (HTTP 503)."));
+    EXPECT_EQ(failureLineFor(200), QStringLiteral("The answer could not be read."));
+    EXPECT_EQ(failureLineFor(-1), QStringLiteral("The service is not set up."));
 }
 
 TEST_F(LlmTest, TheBreakdownRunsCoverTheSentenceAndColourOnlyTheMarkedWords)

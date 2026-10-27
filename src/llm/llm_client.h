@@ -255,12 +255,14 @@ signals:
     void senseAnswered(QString const& lemma, Explanation const& answer, Usage usage);
 
     /// @brief The breakdown's answer for @p sentence: @p spans, empty when the request failed or
-    ///        the answer was refused. @p usage carries the call's token counts whenever it came back.
-    void breakdownAnswered(QString const& sentence, QVector<RoleSpan> spans, Usage usage);
+    ///        the answer was refused, and then @p failure holds the reader's reason. @p usage carries the
+    ///        call's token counts whenever it came back.
+    void breakdownAnswered(QString const& sentence, QVector<RoleSpan> spans, Usage usage, QString failure);
 
     /// @brief The correction's answer for @p text: @p corrected, empty when the request failed or the
-    ///        answer was refused. @p channel says which correction answered, so the duty files it right.
-    void correctionAnswered(QString const& text, Channel channel, QString corrected, Usage usage);
+    ///        answer was refused, and then @p failure holds the reader's reason. @p channel says which
+    ///        correction answered, so the duty files it right.
+    void correctionAnswered(QString const& text, Channel channel, QString corrected, Usage usage, QString failure);
 
     /// @brief Emitted while the answer is still arriving, with whatever has been written so far.
     ///

@@ -184,16 +184,18 @@ private:
     void breakdown(PendingSelection const& pending);
     /// @brief Draw the answer for the breakdown card standing on @p sentence; an answer for a card the
     ///        reader has moved on from is dropped, though its usage is still paid.
-    void onBreakdownAnswered(QString const& sentence, QVector<llm::RoleSpan> const& spans, llm::Usage usage);
+    void onBreakdownAnswered(QString const& sentence, QVector<llm::RoleSpan> const& spans, llm::Usage usage, QString const& failure);
     /// @brief Ask for the spelling or grammar correction of the selection, onto a card raised now.
     /// @param preset kSpellPreset or kGrammarPreset.
     void correct(PendingSelection const& pending, QString const& preset);
     /// @brief Draw the corrected text for the card standing on @p text, or the failure line when none came back.
-    void onCorrectionAnswered(QString const& text, llm::Channel channel, QString const& corrected, llm::Usage usage);
-    /// @brief Raise the correction card in @p state, the same shape as the breakdown card.
-    void showCorrection(PendingSelection const& selection, QString const& state, QVariantList const& segments);
-    /// @brief Raise the breakdown card on @p selection in @p state: "pending", "ready" or "failed".
-    void showBreakdown(PendingSelection const& selection, QString const& state, QVariantList const& segments, QStringList const& roles);
+    void onCorrectionAnswered(QString const& text, llm::Channel channel, QString const& corrected, llm::Usage usage, QString const& failure);
+    /// @brief Raise the correction card in @p state, the same shape as the breakdown card; @p failure is the
+    ///        reader's reason on a failed card and empty otherwise.
+    void showCorrection(PendingSelection const& selection, QString const& state, QVariantList const& segments, QString const& failure);
+    /// @brief Raise the breakdown card on @p selection in @p state: "pending", "ready" or "failed"; @p failure is
+    ///        the reader's reason on a failed card and empty otherwise.
+    void showBreakdown(PendingSelection const& selection, QString const& state, QVariantList const& segments, QStringList const& roles, QString const& failure);
     /// @return The mother tongue the peek answers in, as the document holds it.
     QString motherTongue() const;
 
