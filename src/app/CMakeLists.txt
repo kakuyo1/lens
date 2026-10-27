@@ -291,6 +291,7 @@ qt_add_qml_module(lens_app
     qml/settings/previews/VocabPreview.qml
     qml/settings/previews/NotePreview.qml
     qml/settings/previews/SelectionBarPreview.qml
+    qml/settings/previews/PetPostcardPreview.qml
     qml/settings/SettingsCategoryRow.qml
     qml/settings/SettingsLinkRow.qml
     qml/settings/SettingsCatalog.qml

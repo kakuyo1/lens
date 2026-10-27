@@ -222,6 +222,13 @@ Item {
     // Each time the section is opened the page is built again, so this is the rescan UI-SPEC.md 4.4 asks for.
     Component.onCompleted: Pet.refresh()
 
+    /// The postcard a hovered pet row raises beside the list. Every option carries whether it is a package, so the
+    /// card needs nothing from this page but the option itself.
+    Component {
+        id: petPostcardComponent
+        PetPostcardPreview {}
+    }
+
     PetPackageDialog {
         id: packageDialog
 
@@ -321,15 +328,19 @@ Item {
 
                 DropdownField {
                     id: petTypeField
+                    objectName: "petTypeField"
                     width: parent.width
                     accessibleName: qsTranslate("SettingsPopup", "Pet type")
                     options: Pet.pets.map(entry => ({
                         value: entry.id,
                         label: entry.external ? entry.name : page.petLabel(entry.id),
                         group: "",
-                        note: entry.external ? qsTranslate("SettingsPopup", "External") : ""
+                        note: entry.external ? qsTranslate("SettingsPopup", "External") : "",
+                        // A package has no postcard: the card is the app's picture of the pets it came with.
+                        external: entry.external
                     }))
                     currentValue: Pet.pet
+                    optionPreview: petPostcardComponent
                     onPicked: (value) => Pet.setPet(value)
                 }
             }

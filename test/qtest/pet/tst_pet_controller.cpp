@@ -154,6 +154,7 @@ private slots:
     void shownFollowsTheSwitchWithoutAWindow();
     void choosingAPetLoadsItAndDropsWhatItLacks();
     void everyShippedPetLoadsWhole();
+    void everyShippedPetHasAPortrait();
     void wornAccessoriesFollowAPetSwitch();
     void aRefusedRealPetKeepsThePetOn();
     void anInstalledPackageWaitsForItsConfirmation();
@@ -619,6 +620,58 @@ void TstPetController::everyShippedPetLoadsWhole()
         QCOMPARE(catalogue.size(), 9);
         QCOMPARE(sortedCopy(catalogue), sortedCopy(fileIds));
     }
+}
+
+/// The picker's card is drawn from the pet's own folder rather than from what is on screen, so it can picture a pet
+/// that is not the one in force (UI-SPEC.md 4.4). Only a shipped pet has one.
+void TstPetController::everyShippedPetHasAPortrait()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    Rig rig{settingsIn(dir), shippedRoot()};
+
+    for (auto const& id : idsOf(rig.controller)) {
+        auto const card = rig.controller.portrait(id);
+        QVERIFY2(!card.isEmpty(), qPrintable(id));
+
+        auto const canvas = card.value("canvas").toInt();
+        QVERIFY(canvas > 0);
+        auto const sheets = card.value("sheets").toMap();
+        QVERIFY2(sheets.value("body").toString().endsWith(QStringLiteral("/%1/sprites/body/idle.png").arg(id)),
+                 qPrintable(sheets.value("body").toString()));
+        QVERIFY(sheets.value("expression").toString().endsWith(QStringLiteral("/sprites/expressions/eyes.png")));
+        QVERIFY(!sheets.value("body").toString().startsWith(QStringLiteral("qrc:")));
+
+        // The figure is placed by its feet and its ink's centre, both inside the canvas it is drawn on.
+        auto const foot = card.value("foot").toPointF();
+        QVERIFY(foot.x() > 0 and foot.x() < canvas);
+        QVERIFY(foot.y() > 0 and foot.y() < canvas);
+
+        // The face layer is placed by the data's anchor, and its cell is one of the ten the sheet holds.
+        auto const anchors = card.value("anchors").toMap();
+        QVERIFY(anchors.contains(QStringLiteral("body")));
+        QVERIFY(anchors.contains(QStringLiteral("face")));
+        QVERIFY(card.value("expression").toInt() >= 0 and card.value("expression").toInt() < 10);
+    }
+
+    // The card follows the catalogue: an id it does not hold has none, and a package the reader installed has none
+    // either, even though it loads and plays like a shipped pet.
+    QVERIFY(rig.controller.portrait(QStringLiteral("no-such-pet")).isEmpty());
+
+    auto const installed = settingsIn(dir).parent_path() / "installed";
+    std::filesystem::create_directories(installed);
+    std::filesystem::copy(shippedRoot() / "dog", installed / "lounge", std::filesystem::copy_options::recursive);
+    auto doc  = readJson(installed / "lounge" / "pet.json");
+    doc["id"] = "lounge";
+    writeJson(installed / "lounge" / "pet.json", doc);
+    rig.controller.refresh();
+    QVERIFY(idsOf(rig.controller).contains(QStringLiteral("lounge")));
+    QVERIFY(rig.controller.portrait(QStringLiteral("lounge")).isEmpty());
+
+    // A rescan drops what it read, so a folder that changes under the picker is read again.
+    QVERIFY(!rig.controller.portrait(QStringLiteral("cat")).isEmpty());
+    rig.controller.refresh();
+    QVERIFY(!rig.controller.portrait(QStringLiteral("cat")).isEmpty());
 }
 
 void TstPetController::wornAccessoriesFollowAPetSwitch()

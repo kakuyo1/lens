@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <functional>
+#include <map>
 #include <memory>
 #include <optional>
 #include <random>
@@ -141,6 +142,19 @@ public:
     QString pet() const;
     /// @return Every pet the settings page offers, as {id, name, external}. The name is the package's own for an installed pet.
     QVariantList pets() const;
+    /**
+     * @brief One still of a shipped pet's idle figure, for the card the picker raises beside its list (UI-SPEC.md 4.4).
+     *
+     * Read from the pet's own folder rather than from what is on screen, so the card can picture a pet that is not
+     * the one in force. Only a shipped pet has one: an installed package is the reader's own art, and the card is the
+     * app's picture of the pets it came with.
+     *
+     * @param id A folder name from pets().
+     * @return {canvas, foot, sheets, anchors, expression}, keyed as the sprite layer reads them, or an empty map for
+     *         an installed package, an unknown id, or a folder that will not load. Read once and kept until the next
+     *         refresh().
+     */
+    Q_INVOKABLE QVariantMap portrait(QString id);
     /// @return Every installed package that was refused, as {id, reason}. The reason is the Refusal name, such as "BadName".
     QVariantList refusals() const;
     QString      action() const;
@@ -442,6 +456,8 @@ private:
     std::filesystem::path shippedRoot_;
     std::filesystem::path installedRoot_;
     PetCatalog            catalog_;
+    /// The picker's postcards by pet id: read on the first hover and dropped when the catalogue is rescanned.
+    std::map<std::string, QVariantMap> portraits_;
     /// The app's own scenes, read once: each shipped pet plays the four its action table names. A package may use another
     /// canvas, so its action names are never read as scenes.
     PetScenes scenes_;

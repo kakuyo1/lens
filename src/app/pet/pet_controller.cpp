@@ -398,6 +398,38 @@ QVariantList PetController::refusals() const
     return list;
 }
 
+QVariantMap PetController::portrait(QString id)
+{
+    auto const key = id.toStdString();
+    if (auto const found = portraits_.find(key); found != portraits_.end())
+        return found->second;
+
+    // Only a shipped pet is pictured: a package's art is the reader's, and the card stands for the pets Lens came
+    // with (UI-SPEC.md 4.4). An id the catalogue does not hold, and a folder that fails its own checks, both answer
+    // with nothing -- the picker raises no card rather than an empty one.
+    auto card = QVariantMap{};
+    if (auto const* entry = catalog_.find(key); entry and entry->source == PetSource::Shipped) {
+        try {
+            auto const  assets   = PetAssets::load(entry->directory, entry->source);
+            auto const  idle     = assets.animations.playbook.roles.at(core::pet::Role::Idle);
+            auto const& frames   = assets.anchors.at(idle);
+            auto const& pictures = assets.sheets.at(idle);
+            if (not frames.empty()) {
+                card = QVariantMap{
+                    {"canvas", assets.canvas},
+                    {"foot", QPointF{assets.inkCentre, assets.inkBottom}},
+                    {"sheets", QVariantMap{{"body", urlOf(pictures.body)}, {"expression", urlOf(assets.expressionSheet)}}},
+                    {"anchors", QVariantMap{{"body", toPoint(frames.front().body)}, {"face", toPoint(frames.front().face)}}},
+                    {"expression", pictures.expressions.empty() ? 0 : pictures.expressions.front()},
+                };
+            }
+        } catch (std::exception const& e) {
+            LENS_WARN("the pet picker has no card for {}: {}", key, e.what());
+        }
+    }
+    return portraits_.emplace(key, card).first->second;
+}
+
 QString PetController::action() const
 {
     return action_;
@@ -982,7 +1014,9 @@ void PetController::refresh()
         else
             abortCeremony();
     }
-    catalog_          = scanPets(shippedRoot_, installedRoot_);
+    catalog_ = scanPets(shippedRoot_, installedRoot_);
+    // A rescan is the one moment a folder may have changed under a card already read.
+    portraits_.clear();
     auto const chosen = store_.pet();
     if (not usable(chosen)) switchToDefault(chosen);
     emit catalogChanged();
