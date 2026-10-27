@@ -62,6 +62,11 @@ QtObject {
     readonly property color warn: tokenColor("warn", lightTheme.warn)
     readonly property color bubbleBg: tokenColor("bubbleBg", lightTheme.bubbleBg)
     readonly property color bubbleBorder: tokenColor("bubbleBorder", lightTheme.bubbleBorder)
+    /// The breakdown roles (DESIGN.md 3.1e). They mark grammar only: never a state, a button or a surface.
+    readonly property color roleS: tokenColor("roleS", lightTheme.roleS)
+    readonly property color roleV: tokenColor("roleV", lightTheme.roleV)
+    readonly property color roleC: tokenColor("roleC", lightTheme.roleC)
+    readonly property color roleA: tokenColor("roleA", lightTheme.roleA)
     /// The dropdown lists and other floating layers: the card fill, except under the glass themes,
     /// where it is the translucent popup layer (DESIGN.md 3.1c).
     readonly property color popup: custom ? panel : tokenColor("popup", lightTheme.popup)

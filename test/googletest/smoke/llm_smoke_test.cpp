@@ -27,6 +27,7 @@
 #include <nlohmann/json.hpp>
 
 #include "llm/llm_client.h"
+#include "llm/llm_pure.h"
 #include "llm_support.h"
 #include "util/log.h"
 #include "util/qt_log.h"
@@ -42,6 +43,7 @@ using lens::llm::ExplainRequest;
 using lens::llm::LlmClient;
 using lens::llm::Usage;
 using lens::llm::Explanation;
+using lens::llm::RoleSpan;
 
 /// How long to wait for the model before calling it a timeout.
 constexpr int kTimeoutMs = 60'000;
@@ -60,6 +62,14 @@ int callCap()
     bool      ok    = false;
     const int asked = qEnvironmentVariableIntValue("LENS_SMOKE_MAX_CALLS", &ok);
     return ok && asked > 0 ? asked : kDefaultCallCap;
+}
+
+/// @return The settings document the key is read from, in place: LENS_SMOKE_SETTINGS when set (the
+///         reader's own profile), else the repository's development copy.
+std::filesystem::path smokeSettingsPath()
+{
+    const QString asked = qEnvironmentVariable("LENS_SMOKE_SETTINGS");
+    return asked.isEmpty() ? lens::test::sourceDir() / "settings.local.json" : std::filesystem::path(asked.toStdWString());
 }
 
 std::optional<Config> readConfigFrom(const std::filesystem::path& path)
@@ -84,7 +94,7 @@ TEST(LlmSmoke, OneWordRoundTrip)
 {
     lens::test::requireLlmProtocolLoaded();
 
-    const auto config = readConfigFrom(lens::test::sourceDir() / "settings.local.json");
+    const auto config = readConfigFrom(smokeSettingsPath());
     if (!config)
         GTEST_SKIP() << "settings.local.json has no URL / MODEL / API-KEY: the smoke test "
                         "needs a key and spends money, so it is skipped rather than failed";
@@ -135,6 +145,54 @@ TEST(LlmSmoke, OneWordRoundTrip)
     EXPECT_FALSE(explanation.ipa.isEmpty());
     EXPECT_FALSE(explanation.en.isEmpty());
     EXPECT_FALSE(explanation.zh.isEmpty());
+}
+
+TEST(LlmSmoke, SentenceBreakdownRoundTrip)
+{
+    lens::test::requireLlmProtocolLoaded();
+
+    const auto config = readConfigFrom(smokeSettingsPath());
+    if (!config)
+        GTEST_SKIP() << "settings.local.json has no URL / MODEL / API-KEY: the smoke test "
+                        "needs a key and spends money, so it is skipped rather than failed";
+    if (callsMade >= callCap())
+        GTEST_SKIP() << "this run has already made " << callsMade << " real model call(s), its cap is "
+                     << callCap() << " (LENS_SMOKE_MAX_CALLS); raise it to make more";
+    ++callsMade;
+
+    const QString     sentence = qEnvironmentVariable("LENS_SMOKE_SENTENCE",
+                                                  QStringLiteral("Although it was raining, the children played outside."));
+    const QStringList words    = lens::llm::breakdownWords(sentence);
+    std::cout << "smoke: breakdown of " << words.size() << " word(s) via " << config->model.toStdString()
+              << " (key read into memory, never printed)\n";
+
+    LlmClient client(*config);
+
+    QEventLoop                       loop;
+    std::optional<QVector<RoleSpan>> spans;
+    Usage                            usageSeen;
+
+    QObject::connect(&client, &LlmClient::breakdownAnswered, [&](const QString&, const QVector<RoleSpan>& answered, Usage usage) {
+        spans     = answered;
+        usageSeen = usage;
+        loop.quit();
+    });
+    QTimer::singleShot(kTimeoutMs, &loop, &QEventLoop::quit);
+
+    client.breakdownSentence(sentence, words);
+    loop.exec();
+
+    std::cout << "usage: " << usageSeen.promptTokens << " prompt / " << usageSeen.completionTokens
+              << " completion token(s)\n";
+    ASSERT_TRUE(spans.has_value()) << "no answer within " << kTimeoutMs << " ms";
+    for (const auto& span : *spans) {
+        QStringList covered;
+        for (int i = span.from; i <= span.to; ++i)
+            covered << words.at(i);
+        std::cout << "span role=" << static_cast<int>(span.role) << " [" << span.from << ".." << span.to << "] "
+                  << covered.join(QLatin1Char(' ')).toStdString() << "\n";
+    }
+    EXPECT_FALSE(spans->isEmpty()) << "the answer was refused: the log says why";
 }
 
 int main(int argc, char** argv)

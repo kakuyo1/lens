@@ -89,6 +89,17 @@ Window {
     readonly property bool atRoot: chainSteps.atRoot
     property alias chainSteps: content.chainSteps
     property string status: "" ///< "new", "known", or empty when there is no word verdict (entity / sentence).
+    /// The sentence breakdown's state (UI-SPEC.md 4.3): empty for any other card, else "pending",
+    /// "ready" or "failed". `segments` is the sentence in order, each `{text, role}`; `roles` the roles present.
+    property string breakdown: ""
+    property var segments: []
+    property var roles: []
+    /// The correction's kind, "spell" or "grammar", for a card that shows a correction of the selection; empty
+    /// otherwise. It rides the same state field as the breakdown: `breakdown` is its pending, ready or failed.
+    property string correction: ""
+    /// A card that marks up the sentence rather than defines a word: a breakdown or a correction. Such a card
+    /// has no title, no verdict, no peek globe and no definition.
+    readonly property bool annotated: breakdown !== "" || correction !== ""
 
     property bool hovering: false
 
@@ -216,6 +227,10 @@ Window {
         example = payload.example || "";
         senses = payload.senses || [];
         status = payload.status || "";
+        breakdown = payload.breakdown || "";
+        correction = payload.correction || "";
+        segments = payload.segments || [];
+        roles = payload.roles || [];
         senseCycle = payload.senseCycle === true;
         senseHint = payload.senseHint || "";
         countsDown = payload.countsDown !== false;
@@ -319,7 +334,7 @@ Window {
     /// is left on release. The reveal holds it too: the time shown is the reader's time with the
     /// answer, readable only once it is all on the card.
     function updateCountdown() {
-        if (hovering || dragging || !countsDown || revealing || !surfaceShown)
+        if (hovering || dragging || !countsDown || revealing || breakdown === "pending" || !surfaceShown)
             countdown.stop();
         else
             countdown.start();

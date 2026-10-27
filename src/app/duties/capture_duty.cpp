@@ -21,6 +21,7 @@
 #include "core/domain/settings_table.h"
 #include "app/platform/mouse_selection_hook.h"
 #include "app/settings_access.h"
+#include "llm/llm_pure.h"
 #include "util/log.h"
 
 namespace lens::app {
@@ -534,7 +535,10 @@ void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const fro
                                            {"y", anchor.y()},
                                            {"kind", kindName(pending.kind)},
                                            {"text", pending.text},
-                                           {"letterCount", capture::selectionLetterCount(pending.text)}});
+                                           {"letterCount", capture::selectionLetterCount(pending.text)},
+                                           {"breakdownable", pending.kind == core::SelectionKind::Sentence and llm::breakdownApplies(pending.text)},
+                                           {"spellable", llm::spellingApplies(pending.text) and pending.kind != core::SelectionKind::Translation},
+                                           {"grammarable", pending.kind == core::SelectionKind::Sentence and llm::grammarApplies(pending.text)}});
 }
 
 std::size_t CaptureDuty::minFreqRank() const

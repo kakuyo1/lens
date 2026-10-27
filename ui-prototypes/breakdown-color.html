@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · 句子拆解 · 颜色候选</title>
+<style>
+:root{
+  --bg:#e9ebef; --panel:#fff; --panel2:#f1f3f7; --line:#d6dae1;
+  --text:#1a1a1f; --muted:#66666f; --faint:#73737d;
+  --ink:#1a1a1f; --on:#fff;
+  --bubble-bg:rgba(255,255,255,.86); --bubble-bd:rgba(255,255,255,.95);
+  --bubble-sh:0 14px 44px -10px rgba(20,20,26,.26),inset 0 1px 0 #fff;
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+  --read:"Charter","Iowan Old Style","Sitka Text",Georgia,serif;
+  --stage:var(--panel);
+  --chrome-text:#1a1a1f; --chrome-muted:#66666f; --chrome-faint:#73737d;
+  --chrome-chip:var(--panel2); --chrome-chip-line:var(--line);
+  /* Four role hues. Not in DESIGN.md yet: see the footer. */
+  --r-S:#2f6fd6; --r-V:#c2415a; --r-C:#13858f; --r-A:#a86f12;
+}
+html[data-theme=dark]{
+  --bg:#0b0e13; --panel:#171c25; --panel2:#212936; --line:#36404e;
+  --text:#e9edf3; --muted:#a8b3c2; --faint:#8a95a6;
+  --ink:#eef3fa; --on:#0c1016;
+  --bubble-bg:rgba(30,30,35,.82); --bubble-bd:rgba(255,255,255,.09);
+  --bubble-sh:0 16px 48px -12px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.06);
+  --chrome-text:#e9edf3; --chrome-muted:#a8b3c2; --chrome-faint:#8a95a6;
+  --stage:var(--bg);
+  --r-S:#7aa9f5; --r-V:#f07d93; --r-C:#5fcad2; --r-A:#e3b25c;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--f);color:var(--chrome-text);background:var(--bg);min-height:100vh}
+button{font:inherit;color:inherit}
+[data-r="S"]{--c:var(--r-S)}
+[data-r="V"]{--c:var(--r-V)}
+[data-r="C"]{--c:var(--r-C)}
+[data-r="A"]{--c:var(--r-A)}
+
+.wrap{width:min(1180px,calc(100vw - 96px));margin-inline:auto}
+header{padding:48px 0 26px}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.wordmark{font-size:12.5px;font-weight:700;letter-spacing:.01em}
+.wordmark span{color:var(--chrome-muted);font-weight:400;margin-left:9px}
+.controls{display:flex;align-items:center;gap:8px}
+.langs{display:flex;align-items:center;padding:2px;border:1px solid var(--line);border-radius:999px;background:var(--panel)}
+.langs button{min-width:29px;height:23px;padding:0 7px;border:0;border-radius:999px;background:transparent;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer}
+.langs button:hover{color:var(--text)}
+.langs button[aria-pressed=true]{background:var(--ink);color:var(--on)}
+.themebtn{padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--muted);font-size:11.5px;cursor:pointer}
+.themebtn:hover{color:var(--text)}
+h1{max-width:760px;margin-top:50px;font-size:clamp(34px,4.2vw,52px);line-height:1.06;letter-spacing:-.03em;font-weight:700}
+.lede{max-width:680px;margin-top:18px;font-size:15px;line-height:1.75;color:var(--chrome-muted)}
+
+main{padding-bottom:26px}
+.spec{display:grid;grid-template-columns:272px minmax(0,1fr);gap:52px;align-items:start;padding:38px 0 54px}
+.kicker{display:flex;align-items:center;gap:10px}
+.letter{width:23px;height:23px;display:grid;place-items:center;border:1px solid var(--chrome-chip-line);border-radius:7px;background:var(--chrome-chip);color:var(--chrome-muted);font-size:11px;font-weight:700;flex:none}
+h2{font-size:18px;font-weight:700;letter-spacing:-.01em}
+.idea{margin-top:12px;font-size:13.5px;line-height:1.7;color:var(--chrome-muted)}
+.notes{display:grid;grid-template-columns:42px minmax(0,1fr);gap:8px 10px;margin-top:22px}
+.notes dt{font-size:11px;line-height:1.65;color:var(--chrome-faint)}
+.notes dd{font-size:12.5px;line-height:1.65;color:var(--chrome-muted)}
+
+.stage{display:flex;justify-content:flex-start;padding:34px 32px 36px;border-radius:18px;background:var(--stage)}
+
+/* The explanation bubble, as bubble.html draws it: 270 px, the same ground and rim. */
+.bubble{position:relative;width:270px;padding:14px 16px 12px;background:var(--bubble-bg);border:1px solid var(--bubble-bd);border-radius:18px;box-shadow:var(--bubble-sh)}
+.tag{display:inline-block;padding:2px 9px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:11px;font-weight:700}
+
+.bk{margin-top:8px;font-family:var(--f);font-size:13px;color:var(--text)}
+.bk.chip{line-height:2.4}
+.bk.line{line-height:2.1}
+.bk.tint{line-height:1.9}
+/* Underline: the colour of the role, 2 px, a little below the baseline. */
+.bk.chip .ck,.bk.line .ck{text-decoration:underline;text-decoration-color:var(--c);text-decoration-thickness:2px;text-underline-offset:4px}
+/* Tint: a pale wash of the role colour behind the words, the words stay in the text ink. */
+.bk.tint .ck{background:color-mix(in srgb,var(--c) 16%,transparent);border-radius:9px;padding:1px 2px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.role{display:inline-block;margin-right:4px;padding:0 5px;border-radius:4px;font:700 11px/1.6 var(--f);color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);white-space:nowrap;vertical-align:1px}
+
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:12px;font-size:11px;line-height:1.5;color:var(--muted)}
+.legend span{white-space:nowrap}
+.sw{display:inline-block;width:9px;height:9px;margin-right:5px;border-radius:9px;background:var(--c);vertical-align:-1px}
+
+@media (max-width:1040px){
+  .spec{grid-template-columns:224px minmax(0,1fr);gap:34px}
+}
+@media (max-width:900px){
+  .wrap{width:calc(100vw - 48px)}
+  header{padding-top:34px}
+  h1{margin-top:40px}
+  .spec{grid-template-columns:1fr;gap:24px;padding:30px 0 46px}
+}
+@media (max-width:600px){
+  .wrap{width:calc(100vw - 32px)}
+  .topline{align-items:flex-start}
+  h1{margin-top:32px;font-size:32px}
+  .lede{font-size:14px}
+}
+footer{padding:22px 0 54px;color:var(--chrome-faint);font-size:11.5px;line-height:1.7}
+footer p{max-width:760px}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <div class="topline">
+    <div class="wordmark">Lens <span>句子拆解 · 颜色候选</span></div>
+    <div class="controls">
+      <div class="langs" role="group" aria-label="界面语言">
+        <button type="button" data-lang="zh" aria-pressed="true">中</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+        <button type="button" data-lang="ja" aria-pressed="false">日</button>
+        <button type="button" data-lang="es" aria-pressed="false">ES</button>
+      </div>
+      <button class="themebtn" id="tb" type="button">晴朗白昼</button>
+    </div>
+  </div>
+  <h1>每段一个颜色，选定色底</h1>
+  <p class="lede">参照你给的截图：每个成分一种颜色，下划线与签同色。三种候选只换颜色落在哪里，句子排版与气泡宽度不变。样句与上一版相同：<span lang="en">Although the rain had stopped, the streets remained flooded for hours.</span></p>
+</header>
+
+<main class="wrap" id="main"></main>
+
+<footer class="wrap">
+  <p>颜色是四个角色色：主语蓝、谓语玫红、表语青、状语琥珀，令牌见 DESIGN.md 3.1e，决定见 docs/adr/0128。选定的画法是 G 色底；E、F 暂留作对照。角色划分是样句的示意，真实拆解由 LLM 的词索引决定。</p>
+</footer>
+
+<script>
+const params = new URLSearchParams(location.search);
+const askedLang = (params.get("lang") || "zh").toLowerCase();
+const TAG = { zh: "拆解", en: "Breakdown", ja: "文の分解", es: "Análisis" };
+const ROLES = {
+  zh: { S: "主语", V: "谓语", C: "表语", A: "状语" },
+  en: { S: "Subject", V: "Verb", C: "Complement", A: "Adverbial" },
+  ja: { S: "主語", V: "述語", C: "補語", A: "修飾語" },
+  es: { S: "Sujeto", V: "Verbo", C: "Complemento", A: "Adverbial" }
+};
+const LANG = ROLES[askedLang] ? askedLang : (askedLang.startsWith("zh") ? "zh" : "zh");
+const THEME_TEXT = { light: { zh: "晴朗白昼", en: "Light", ja: "ライト", es: "Claro" }, dark: { zh: "静谧暗夜", en: "Dark", ja: "ダーク", es: "Oscuro" } };
+
+/// The sample split into its parts. A is the adverbial clause and the adverbial phrase; both are "A".
+const CHUNKS = [
+  { r: "A", text: "Although the rain had stopped," },
+  { r: "S", text: "the streets" },
+  { r: "V", text: "remained" },
+  { r: "C", text: "flooded" },
+  { r: "A", text: "for hours." }
+];
+
+const CANDS = [
+  { letter: "E", name: "色下划线加角色签", mode: "chip",
+    idea: "每段前面一枚同色小签，写明它是什么成分；下划线与签同色，文字和颜色互相印证。",
+    notes: [["适合", "想一眼认出成分，又要读句子本身；签上的字让颜色不必单独承担含义。"], ["代价", "每段多一枚签，气泡会比现在高；签占宽，长段要多断一次行。"], ["颜色", "下划线 2 px，偏移 4 px；签底是同色的 14% 淡底。"]] },
+  { letter: "F", name: "只用色下划线", mode: "line",
+    idea: "不加签，只用颜色划线；成分名放在气泡底部的图例里，读的时候对照。",
+    notes: [["适合", "行距与原句相同，句子排得和原来一样；颜色只是一层提示。"], ["代价", "要靠图例对应颜色，四种颜色需要记一会儿；色盲读者只能靠位置区分。"], ["颜色", "同 E 的下划线，去掉签。图例每项一枚色块。"]] },
+  { letter: "G", name: "色底", mode: "tint",
+    idea: "每段染一层淡色底，颜色覆盖的面积最大，读起来更像高亮，比线醒目。",
+    notes: [["适合", "相邻段颜色不同，边界清楚；一眼看出哪几段是一组。"], ["代价", "读者的选区本身已有高亮，两层底色容易混在一起；相邻同色段边界会糊。"], ["颜色", "淡底是同色的 16%，文字保持正文色，不改字色。"]] }
+];
+
+const main = document.getElementById("main");
+main.innerHTML = CANDS.map((c) => `
+  <section class="spec" id="c-${c.letter}">
+    <div class="meta">
+      <div class="kicker"><span class="letter">${c.letter}</span><h2>${c.name}</h2></div>
+      <p class="idea">${c.idea}</p>
+      <dl class="notes">${c.notes.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>
+    </div>
+    <div class="stage">
+      <div class="bubble">
+        <span class="tag" data-tag></span>
+        <div class="bk ${c.mode}" data-bk="${c.letter}"></div>
+        ${c.mode === "chip" ? "" : `<div class="legend" data-legend="${c.letter}"></div>`}
+      </div>
+    </div>
+  </section>`).join("");
+
+const root = document.documentElement;
+const themeBtn = document.getElementById("tb");
+let lang = LANG;
+let theme = params.get("theme") === "dark" ? "dark" : "light";
+
+if (params.has("shot")) document.querySelector(".controls").style.display = "none";
+
+function renderAll() {
+  CANDS.forEach((c) => {
+    const bk = document.querySelector(`[data-bk="${c.letter}"]`);
+    bk.innerHTML = CHUNKS.map((k) => `<span class="ck" data-r="${k.r}">${c.mode === "chip" ? `<i class="role">${ROLES[lang][k.r]}</i>` : ""}${k.text}</span>`).join(" ");
+    const legend = document.querySelector(`[data-legend="${c.letter}"]`);
+    if (legend) legend.innerHTML = ["S", "V", "C", "A"].map((r) => `<span data-r="${r}"><i class="sw"></i>${ROLES[lang][r]}</span>`).join("");
+  });
+  document.querySelectorAll("[data-tag]").forEach((n) => { n.textContent = TAG[lang]; });
+}
+
+function applyLang(v) {
+  lang = v;
+  root.lang = { en: "en", zh: "zh-CN", ja: "ja", es: "es" }[v];
+  document.querySelectorAll(".langs button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === v)));
+  themeBtn.textContent = THEME_TEXT[theme][v];
+  renderAll();
+}
+
+function applyTheme(v) {
+  theme = v;
+  root.dataset.theme = v;
+  themeBtn.textContent = THEME_TEXT[v][lang];
+}
+
+document.querySelectorAll(".langs button").forEach((b) => b.addEventListener("click", () => applyLang(b.dataset.lang)));
+themeBtn.addEventListener("click", () => { applyTheme(theme === "light" ? "dark" : "light"); applyLang(lang); });
+
+applyTheme(theme);
+applyLang(lang);
+</script>
+</body>
+</html>

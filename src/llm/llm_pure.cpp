@@ -13,6 +13,7 @@
 #include <QRegularExpression>
 
 #include <algorithm>
+#include <cmath>
 #include <utility>
 
 #include "util/log.h"
@@ -712,6 +713,227 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel           
 
     const QString content = choice.value("message").toObject().value("content").toString();
     return parseExplanationContent(channel, content, expectedInputs, explanationLang, multipleSenses);
+}
+
+QStringList breakdownWords(QString const& sentence)
+{
+    return sentence.split(QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts);
+}
+
+bool breakdownApplies(QString const& sentence)
+{
+    const auto words = breakdownWords(sentence);
+    if (words.isEmpty() or words.size() > kBreakdownMaxWords) return false;
+    // A letter outside ASCII is another script (Han, Cyrillic, kana, or an accented Latin letter):
+    // the breakdown is for English. Punctuation such as a curly apostrophe is not a letter.
+    return std::none_of(sentence.cbegin(), sentence.cend(), [](QChar c) { return c.isLetter() and c.unicode() > 0x7F; });
+}
+
+QString roleCode(Role const role)
+{
+    switch (role) {
+        case Role::Subject: return QStringLiteral("S");
+        case Role::Verb: return QStringLiteral("V");
+        case Role::Complement: return QStringLiteral("C");
+        case Role::Adverbial: return QStringLiteral("A");
+    }
+    return {};
+}
+
+QVector<BreakdownRun> breakdownRuns(QString const& sentence, QVector<RoleSpan> const& spans)
+{
+    const auto       words = breakdownWords(sentence);
+    QVector<QString> roles(words.size());
+    for (auto const& span : spans)
+        for (int i = span.from; i <= span.to and i < roles.size(); ++i)
+            roles[i] = roleCode(span.role);
+
+    QVector<BreakdownRun> runs;
+    const auto            append = [&runs](QString const& text, QString const& role) {
+        if (text.isEmpty()) return;
+        if (not runs.isEmpty() and runs.back().role == role)
+            runs.back().text += text;
+        else
+            runs.append(BreakdownRun{text, role});
+    };
+    int cursor = 0;
+    for (int i = 0; i < words.size(); ++i) {
+        const int at = sentence.indexOf(words.at(i), cursor);
+        // The whitespace before a word keeps the run's role only when the word before it shares that role.
+        const QString gapRole = i > 0 and roles.at(i) == roles.at(i - 1) ? roles.at(i) : QString{};
+        append(sentence.mid(cursor, at - cursor), gapRole);
+        append(words.at(i), roles.at(i));
+        cursor = at + words.at(i).size();
+    }
+    append(sentence.mid(cursor), QString{});
+    return runs;
+}
+
+bool spellingApplies(QString const& text)
+{
+    return breakdownWords(text).size() == 1;
+}
+
+bool grammarApplies(QString const& text)
+{
+    return breakdownApplies(text);
+}
+
+std::variant<QString, CorrectionRejected> parseCorrection(Channel const channel, QByteArray const& responseBody)
+{
+    using Result = std::variant<QString, CorrectionRejected>;
+
+    // The reason only reaches the log: a refused correction draws nothing, and says nothing to the reader.
+    const auto reject = [](const QString& reason) -> Result {
+        LENS_ERROR("parseCorrection rejected the response: {}", reason.toStdString());
+        return CorrectionRejected{};
+    };
+
+    const auto envelope = QJsonDocument::fromJson(responseBody);
+    if (!envelope.isObject()) return reject(QStringLiteral("the answer is not a JSON object"));
+    const auto choices = envelope.object().value("choices").toArray();
+    if (choices.isEmpty()) return reject(QStringLiteral("the answer carries no choices"));
+
+    const auto choice = choices.at(0).toObject();
+    if (const QString reason = finishReasonError(choice.value("finish_reason").toString()); not reason.isEmpty())
+        return reject(reason);
+
+    const QString content = choice.value("message").toObject().value("content").toString();
+    const auto    payload = QJsonDocument::fromJson(extractJsonObject(content));
+    if (!payload.isObject()) return reject(QStringLiteral("the content is not a JSON object"));
+
+    const auto results = payload.object().value("results").toArray();
+    if (results.size() != 1 or not matchesSchema(results.at(0), resultSchema(channel)))
+        return reject(QStringLiteral("the content does not hold one correction entry"));
+
+    const QString corrected = results.at(0).toObject().value("corrected").toString().trimmed();
+    if (corrected.isEmpty()) return reject(QStringLiteral("the correction is empty"));
+    if (channel == Channel::Spell and corrected.contains(QRegularExpression(QStringLiteral("\\s"))))
+        return reject(QStringLiteral("a spelling correction holds more than one word"));
+
+    LENS_TRACE("parseCorrection: accepted a correction for channel '{}'", channelKey(channel));
+    return corrected;
+}
+
+QVector<CorrectionRun> correctionRuns(QString const& original, QString const& corrected)
+{
+    const auto before = original.split(QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts);
+    const auto after  = corrected.split(QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts);
+
+    // Longest common subsequence over the words: a word the original also has, in order, is unchanged,
+    // and everything else in the corrected sentence is an insertion or a respelling. Aligning by
+    // position would mark the whole tail the moment one word is deleted.
+    const int             n = static_cast<int>(before.size());
+    const int             m = static_cast<int>(after.size());
+    QVector<QVector<int>> lcs(n + 1, QVector<int>(m + 1, 0));
+    for (int i = n - 1; i >= 0; --i)
+        for (int j = m - 1; j >= 0; --j)
+            lcs[i][j] = before.at(i) == after.at(j) ? lcs[i + 1][j + 1] + 1 : std::max(lcs[i + 1][j], lcs[i][j + 1]);
+
+    QVector<bool> kept(m, false);
+    for (int i = 0, j = 0; i < n and j < m;) {
+        if (before.at(i) == after.at(j)) {
+            kept[j] = true;
+            ++i;
+            ++j;
+        } else if (lcs[i + 1][j] >= lcs[i][j + 1]) {
+            ++i;
+        } else {
+            ++j;
+        }
+    }
+
+    QVector<CorrectionRun> runs;
+    int                    cursor = 0;
+    for (int j = 0; j < m; ++j) {
+        const int     at  = corrected.indexOf(after.at(j), cursor);
+        const QString gap = corrected.mid(cursor, at - cursor);
+        if (not gap.isEmpty()) runs.append(CorrectionRun{gap, false});
+        runs.append(CorrectionRun{after.at(j), not kept.at(j)});
+        cursor = at + after.at(j).size();
+    }
+    if (cursor < corrected.size()) runs.append(CorrectionRun{corrected.mid(cursor), false});
+    return runs;
+}
+
+QStringList breakdownRoles(QVector<RoleSpan> const& spans)
+{
+    QStringList present;
+    for (auto const role : {Role::Subject, Role::Verb, Role::Complement, Role::Adverbial}) {
+        const bool used = std::any_of(spans.cbegin(), spans.cend(), [role](RoleSpan const& span) { return span.role == role; });
+        if (used) present.append(roleCode(role));
+    }
+    return present;
+}
+
+namespace {
+
+/// @return Whether @p value is a whole number in [0, @p wordCount), stored in @p index.
+bool wordIndex(QJsonValue const& value, int const wordCount, int& index)
+{
+    if (not value.isDouble()) return false;
+    const double number = value.toDouble();
+    if (number != std::floor(number) or number < 0 or number >= wordCount) return false;
+    index = static_cast<int>(number);
+    return true;
+}
+
+} // namespace
+
+std::variant<QVector<RoleSpan>, QString> parseBreakdown(QByteArray const& responseBody, int const wordCount)
+{
+    using Result = std::variant<QVector<RoleSpan>, QString>;
+
+    // The reason only reaches the log: the breakdown card's one failure line is the app's own.
+    const auto reject = [](const QString& reason) -> Result {
+        LENS_ERROR("parseBreakdown rejected the response: {}", reason.toStdString());
+        return reason;
+    };
+
+    const auto envelope = QJsonDocument::fromJson(responseBody);
+    if (!envelope.isObject()) return reject(QStringLiteral("the answer is not a JSON object"));
+    const auto choices = envelope.object().value("choices").toArray();
+    if (choices.isEmpty()) return reject(QStringLiteral("the answer carries no choices"));
+
+    const auto choice = choices.at(0).toObject();
+    if (const QString reason = finishReasonError(choice.value("finish_reason").toString()); not reason.isEmpty())
+        return reject(reason);
+
+    const QString content = choice.value("message").toObject().value("content").toString();
+    const auto    payload = QJsonDocument::fromJson(extractJsonObject(content));
+    if (!payload.isObject()) return reject(QStringLiteral("the content is not a JSON object"));
+
+    const auto results = payload.object().value("results").toArray();
+    if (results.size() != 1 or not matchesSchema(results.at(0), resultSchema(Channel::Breakdown)))
+        return reject(QStringLiteral("the content does not hold one breakdown entry"));
+
+    QVector<RoleSpan> spans;
+    for (auto const& value : results.at(0).toObject().value("spans").toArray()) {
+        auto const span = value.toObject();
+        RoleSpan   parsed;
+        auto const code = span.value("role").toString();
+        if (code == QLatin1String("S"))
+            parsed.role = Role::Subject;
+        else if (code == QLatin1String("V"))
+            parsed.role = Role::Verb;
+        else if (code == QLatin1String("C"))
+            parsed.role = Role::Complement;
+        else if (code == QLatin1String("A"))
+            parsed.role = Role::Adverbial;
+        else
+            return reject(QStringLiteral("a span role is not S, V, C or A"));
+        if (not wordIndex(span.value("from"), wordCount, parsed.from) or not wordIndex(span.value("to"), wordCount, parsed.to) or
+            parsed.from > parsed.to)
+            return reject(QStringLiteral("a span names words outside the sentence or runs backwards"));
+        spans.push_back(parsed);
+    }
+
+    std::sort(spans.begin(), spans.end(), [](RoleSpan const& a, RoleSpan const& b) { return a.from < b.from; });
+    for (qsizetype i = 1; i < spans.size(); ++i)
+        if (spans.at(i).from <= spans.at(i - 1).to) return reject(QStringLiteral("two spans share a word"));
+
+    LENS_TRACE("parseBreakdown: accepted {} span(s) over {} word(s)", spans.size(), wordCount);
+    return spans;
 }
 
 namespace {

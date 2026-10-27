@@ -211,21 +211,25 @@ Item {
                 width: tag.width + 16
                 height: 17
                 radius: root.bubble.tokens.radiusPill
+                // A correction is typed as a word or a sentence, but its tag is a label: it takes the sentence's look.
                 color: root.bubble.preview ? root.bubble.tokens.panel2
-                     : root.bubble.type === "word" ? (root.bubble.status === "known" ? root.bubble.tokens.panel2 : root.bubble.tokens.okBg)
+                     : root.bubble.type === "word" && !root.bubble.annotated ? (root.bubble.status === "known" ? root.bubble.tokens.panel2 : root.bubble.tokens.okBg)
                      : "transparent"
-                border.width: root.bubble.preview || root.bubble.type === "word" ? 0 : 1
+                border.width: root.bubble.preview || (root.bubble.type === "word" && !root.bubble.annotated) ? 0 : 1
                 border.color: root.bubble.tokens.line
 
                 Text {
                     id: tag
                     anchors.centerIn: parent
                     text: root.bubble.preview ? qsTr("Preview")
+                         : root.bubble.correction === "spell" ? qsTr("Spelling")
+                         : root.bubble.correction === "grammar" ? qsTr("Grammar")
+                         : root.bubble.breakdown !== "" ? qsTr("Breakdown")
                          : root.bubble.type === "sentence" ? qsTr("Sentence")
                          : root.bubble.type === "word" ? (root.bubble.status === "known" ? qsTr("Known") : qsTr("New"))
                          : ""
                     color: root.bubble.preview ? root.bubble.tokens.body
-                         : root.bubble.type === "sentence" ? root.bubble.tokens.body
+                         : root.bubble.type === "sentence" || root.bubble.annotated ? root.bubble.tokens.body
                          : root.bubble.status === "known" ? root.bubble.tokens.body
                          : root.bubble.tokens.okText
                     font.pixelSize: 11
@@ -233,9 +237,16 @@ Item {
                 }
             }
 
+            // The breakdown takes the sentence's place: the sentence in its tints and the legend under it.
+            BubbleBreakdown {
+                visible: root.bubble.atRoot && root.bubble.breakdown !== ""
+                width: parent.width
+                bubble: root.bubble
+            }
+
             BubbleTitleRow {
                 id: wordRow
-                visible: root.bubble.atRoot && root.bubble.type !== "sentence" && root.bubble.type !== "translation"
+                visible: root.bubble.atRoot && !root.bubble.annotated && root.bubble.type !== "sentence" && root.bubble.type !== "translation"
                 title: root.bubble.title
                 ipa: root.bubble.type === "word" ? root.bubble.ipa : ""
                 pos: root.bubble.type === "word" ? root.bubble.pos : ""

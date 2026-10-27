@@ -67,6 +67,20 @@ inline bool operator==(Sense const& a, Sense const& b)
 
 inline constexpr int kMaxSenses = 3;
 
+/// @brief What a sentence part does: the S / V / C / A codes the breakdown prompt asks for.
+enum class Role : std::uint8_t { Subject,
+                                 Verb,
+                                 Complement,
+                                 Adverbial };
+
+/// @brief One run of a sentence's words that plays one role; @p from and @p to are word indices,
+///        both inclusive, counted from 0 in the order breakdownWords() gives them.
+struct RoleSpan {
+    Role role = Role::Subject;
+    int  from = 0;
+    int  to   = 0;
+};
+
 /// @brief One explanation as returned by the model.
 /// @note `title` is `word` on the word channel and the echoed sentence or entity otherwise.
 ///       `ipa` is required only by the word schema; sentence and entity responses have three
@@ -209,6 +223,22 @@ public:
     /// @param language The explanation language's catalog code; picks the prompt's closing line.
     void nextSenseWord(QString const& lemma, QString const& input, QString const& language);
 
+    /// @brief Ask which part of an English sentence each run of words plays (UI-SPEC.md 4.3).
+    ///
+    /// Not streamed, and it rides its own signal like the peek: the breakdown is drawn whole or not
+    /// at all, and the answer never reaches the cache or the verdicts.
+    /// @param sentence The selected text, echoed back so the answer can be matched to its card.
+    /// @param words    The sentence split by breakdownWords(); the answer indexes into it.
+    void breakdownSentence(QString const& sentence, QStringList const& words);
+
+    /// @brief Ask for the corrected spelling of one word (UI-SPEC.md 4.10, the copy drawer).
+    /// @param text The selected word, echoed back so the answer can be matched to its card.
+    void correctSpelling(QString const& text);
+
+    /// @brief Ask for the corrected grammar of one English sentence (UI-SPEC.md 4.10, the copy drawer).
+    /// @param text The selected sentence, echoed back so the answer can be matched to its card.
+    void correctGrammar(QString const& text);
+
 signals:
     /// @brief Emitted with the validated explanations, in the order the words were asked for.
     /// @param usage Token counts from the same response, all zero when it carried none.
@@ -223,6 +253,14 @@ signals:
     ///        what a failed or refused request reports, the peek's quietness carried over.
     ///        @p usage carries the call's token counts, all zero when it never went out.
     void senseAnswered(QString const& lemma, Explanation const& answer, Usage usage);
+
+    /// @brief The breakdown's answer for @p sentence: @p spans, empty when the request failed or
+    ///        the answer was refused. @p usage carries the call's token counts whenever it came back.
+    void breakdownAnswered(QString const& sentence, QVector<RoleSpan> spans, Usage usage);
+
+    /// @brief The correction's answer for @p text: @p corrected, empty when the request failed or the
+    ///        answer was refused. @p channel says which correction answered, so the duty files it right.
+    void correctionAnswered(QString const& text, Channel channel, QString corrected, Usage usage);
 
     /// @brief Emitted while the answer is still arriving, with whatever has been written so far.
     ///
@@ -244,6 +282,9 @@ signals:
     void probeFinished(bool ok, QString message);
 
 private:
+    /// Post a one-word or one-sentence correction on @p channel and report it through correctionAnswered().
+    void postCorrection(Channel channel, QString const& text);
+
     Config                 config_;
     QNetworkAccessManager* manager_;
 };

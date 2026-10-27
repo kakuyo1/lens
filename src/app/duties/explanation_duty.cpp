@@ -16,6 +16,7 @@
 #include "cost_duty.h"
 #include "app/notice.h"
 #include "app/settings_access.h"
+#include "llm/llm_pure.h"
 #include "util/log.h"
 #include "util/text.h"
 #include "word_answer.h"
@@ -28,6 +29,24 @@ QString nowMinute()
     return QString::fromStdString(util::localMinuteNow());
 }
 
+/// @return The sentence's runs as the bubble draws them: a {text, role} map per run, in order.
+QVariantList breakdownSegments(QString const& sentence, QVector<llm::RoleSpan> const& spans)
+{
+    QVariantList segments;
+    for (auto const& run : llm::breakdownRuns(sentence, spans))
+        segments.append(QVariantMap{{"text", run.text}, {"role", run.role}});
+    return segments;
+}
+
+/// @return The corrected text as runs: a changed word carries the role "changed", which the bubble underlines.
+QVariantList correctionSegments(QString const& original, QString const& corrected)
+{
+    QVariantList segments;
+    for (auto const& run : llm::correctionRuns(original, corrected))
+        segments.append(QVariantMap{{"text", run.text}, {"role", run.changed ? QStringLiteral("changed") : QString{}}});
+    return segments;
+}
+
 }
 
 ExplanationDuty::ExplanationDuty(StorageDuty& storage, llm::LlmClient& llm, CostDuty& cost, QObject* parent)
@@ -38,6 +57,8 @@ ExplanationDuty::ExplanationDuty(StorageDuty& storage, llm::LlmClient& llm, Cost
     connect(&llm_, &llm::LlmClient::partial, this, &ExplanationDuty::onPartial);
     connect(&llm_, &llm::LlmClient::peekAnswered, this, &ExplanationDuty::onPeekAnswered);
     connect(&llm_, &llm::LlmClient::senseAnswered, this, &ExplanationDuty::onNextSenseAnswered);
+    connect(&llm_, &llm::LlmClient::breakdownAnswered, this, &ExplanationDuty::onBreakdownAnswered);
+    connect(&llm_, &llm::LlmClient::correctionAnswered, this, &ExplanationDuty::onCorrectionAnswered);
 }
 
 void ExplanationDuty::onPartial(llm::Explanation partial)
@@ -194,6 +215,20 @@ void ExplanationDuty::runSelectionAction(QString action, QString text)
         QGuiApplication::clipboard()->setText(pending_.text);
         pending_ = PendingSelection{};
         queue_.selectionChanged();
+        return;
+    }
+    if (action == QLatin1String("breakdown")) {
+        // Only a sentence has a breakdown preset: a word carrying it would ask the word channel for a prompt it does not have.
+        if (pending_.kind == core::SelectionKind::Sentence) pending_.preset = kBreakdownPreset;
+        breakdown(pending_);
+        return;
+    }
+    if (action == QLatin1String("spell")) {
+        correct(pending_, kSpellPreset);
+        return;
+    }
+    if (action == QLatin1String("grammar")) {
+        correct(pending_, kGrammarPreset);
         return;
     }
     if (action != QLatin1String("translate") && action != QLatin1String("explain")) return;
@@ -415,6 +450,140 @@ void ExplanationDuty::emitSenseSwapped(CardSession::CycleView const& view, QStri
                                   {"exhausted", view.exhausted},
                                   {"row", row},
                                   {"signpost", view.label}});
+}
+
+void ExplanationDuty::breakdown(PendingSelection const& pending)
+{
+    // The drawer offers the breakdown only where it applies; the check here keeps a stale action from
+    // reaching the model.
+    if (pending.kind != core::SelectionKind::Sentence or not llm::breakdownApplies(pending.text)) return;
+    // Out of budget the facade has already said why, and a breakdown that cannot be bought draws nothing.
+    if (not cost_.canRequest()) return;
+    // A card already standing on this sentence has its answer or is waiting for it: asking again would buy
+    // it twice. Only a failed one is asked again.
+    auto const* card = session_.subject();
+    if (card != nullptr and card->preset == kBreakdownPreset and card->text == pending.text and
+        bubble_.value(QStringLiteral("breakdown")).toString() != QLatin1String("failed"))
+        return;
+    showBreakdown(pending, QStringLiteral("pending"), QVariantList{QVariantMap{{"text", pending.text}, {"role", QString{}}}}, {});
+    llm_.breakdownSentence(pending.text, llm::breakdownWords(pending.text));
+}
+
+void ExplanationDuty::correct(PendingSelection const& pending, QString const& preset)
+{
+    // The drawer offers each correction only where it applies; the check here keeps a stale action from
+    // reaching the model. Spelling takes one token, grammar an English sentence.
+    const bool applies = preset == kSpellPreset ? llm::spellingApplies(pending.text) : llm::grammarApplies(pending.text);
+    if (not applies) return;
+    if (not cost_.canRequest()) return;
+    // A card already standing on this text has its answer or is waiting for it: asking again would buy it twice.
+    auto const* card = session_.subject();
+    if (card != nullptr and card->preset == preset and card->text == pending.text and
+        bubble_.value(QStringLiteral("breakdown")).toString() != QLatin1String("failed"))
+        return;
+    PendingSelection selection = pending;
+    selection.preset           = preset;
+    showCorrection(selection, QStringLiteral("pending"), {});
+    if (preset == kSpellPreset)
+        llm_.correctSpelling(pending.text);
+    else
+        llm_.correctGrammar(pending.text);
+}
+
+void ExplanationDuty::onCorrectionAnswered(QString const& text, llm::Channel const channel, QString const& corrected, llm::Usage const usage)
+{
+    cost_.recordUsage(nowMinute().toStdString(), usage);
+    // The answer belongs to the card standing on this text and no other, as the breakdown's does.
+    auto const*   card   = session_.subject();
+    const QString preset = channel == llm::Channel::Spell ? kSpellPreset : kGrammarPreset;
+    if (card == nullptr or card->preset != preset or card->text != text) return;
+    const PendingSelection selection = *card;
+    if (corrected.isEmpty()) {
+        showCorrection(selection, QStringLiteral("failed"), {});
+        return;
+    }
+    showCorrection(selection, QStringLiteral("ready"), correctionSegments(text, corrected));
+}
+
+void ExplanationDuty::showCorrection(PendingSelection const& selection, QString const& state, QVariantList const& segments)
+{
+    // The correction reuses the breakdown's bubble shape: its runs draw as the sentence, with no legend and no
+    // meaning. The preset tells the label apart, so the card names the correction it is showing.
+    const bool  sameCard = session_.raise(selection, CardKind::Selection, selection.text);
+    const auto  face     = session_.presentation();
+    QVariantMap payload{{"title", QString{}},
+                        {"type", kindName(selection.kind)},
+                        {"cardKind", cardKindName(face.kind)},
+                        {"sameCard", sameCard},
+                        {"breakdown", state},
+                        {"correction", selection.preset},
+                        {"segments", segments},
+                        {"roles", QStringList{}},
+                        {"en", QString{}},
+                        {"zh", QString{}},
+                        {"translation", QString{}},
+                        {"senses", QVariantList{}},
+                        {"status", QString{}},
+                        {"countsDown", face.countsDown},
+                        {"reveal", false},
+                        {"verdictButtons", false},
+                        {"anchorWidth", selection.anchorSize.width()},
+                        {"anchorHeight", selection.anchorSize.height()},
+                        {"x", selection.anchor.x()},
+                        {"y", selection.anchor.y()}};
+    bubble_ = payload;
+    clearNotice();
+    emit bubbleChanged();
+    if (state != QLatin1String("pending"))
+        emit petEvent(core::pet::PetEvent::ExplanationShown);
+}
+
+void ExplanationDuty::onBreakdownAnswered(QString const& sentence, QVector<llm::RoleSpan> const& spans, llm::Usage const usage)
+{
+    cost_.recordUsage(nowMinute().toStdString(), usage);
+    // The answer belongs to the card standing on this sentence and to nothing else: the reader may have
+    // moved on, and a breakdown is never kept for later.
+    auto const* card = session_.subject();
+    if (card == nullptr or card->preset != kBreakdownPreset or card->text != sentence) return;
+    const PendingSelection selection = *card;
+    if (spans.isEmpty()) {
+        showBreakdown(selection, QStringLiteral("failed"), {}, {});
+        return;
+    }
+    showBreakdown(selection, QStringLiteral("ready"), breakdownSegments(sentence, spans), llm::breakdownRoles(spans));
+}
+
+void ExplanationDuty::showBreakdown(PendingSelection const& selection, QString const& state, QVariantList const& segments, QStringList const& roles)
+{
+    const bool sameCard = session_.raise(selection, CardKind::Selection, selection.text);
+    const auto face     = session_.presentation();
+    // The sentence is the card's text: no title, no meaning, no verdict. The keys the bubble draws the
+    // meaning from stay present and empty, so the card is one shape whatever it is showing.
+    QVariantMap payload{{"title", QString{}},
+                        {"type", kindName(selection.kind)},
+                        {"cardKind", cardKindName(face.kind)},
+                        {"sameCard", sameCard},
+                        {"breakdown", state},
+                        {"segments", segments},
+                        {"roles", roles},
+                        {"en", QString{}},
+                        {"zh", QString{}},
+                        {"translation", QString{}},
+                        {"senses", QVariantList{}},
+                        {"status", QString{}},
+                        {"countsDown", face.countsDown},
+                        {"reveal", false},
+                        {"verdictButtons", false},
+                        {"anchorWidth", selection.anchorSize.width()},
+                        {"anchorHeight", selection.anchorSize.height()},
+                        {"x", selection.anchor.x()},
+                        {"y", selection.anchor.y()}};
+    bubble_ = payload;
+    clearNotice();
+    emit bubbleChanged();
+    // The pet reacts once, to an answer that arrived; a card still waiting on one makes no arrival yet.
+    if (state != QLatin1String("pending"))
+        emit petEvent(core::pet::PetEvent::ExplanationShown);
 }
 
 void ExplanationDuty::explain(PendingSelection const& pending)

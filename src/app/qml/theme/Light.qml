@@ -34,4 +34,10 @@ QtObject {
      */
     readonly property color bubbleBg: Qt.rgba(1, 1, 1, 0.86)
     readonly property color bubbleBorder: Qt.rgba(1, 1, 1, 0.95)
+
+    /// The sentence-breakdown roles (DESIGN.md 3.1e): subject, verb, complement, adverbial.
+    readonly property color roleS: "#2f6fd6"
+    readonly property color roleV: "#c2415a"
+    readonly property color roleC: "#13858f"
+    readonly property color roleA: "#a86f12"
 }

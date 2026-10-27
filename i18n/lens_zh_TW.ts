@@ -2,45 +2,103 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_TW">
 <context>
+    <name>BubbleBreakdown</name>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="28"/>
+        <source>Subject</source>
+        <translation>主語</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="29"/>
+        <source>Verb</source>
+        <translation>述語</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="30"/>
+        <source>Complement</source>
+        <translation>表語</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="31"/>
+        <source>Adverbial</source>
+        <translation>狀語</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="189"/>
+        <source>This sentence could not be broken down.</source>
+        <translation>這句沒能拆開。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="189"/>
+        <source>This could not be corrected.</source>
+        <translation>沒能糾正。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="190"/>
+        <source>Breaking down…</source>
+        <translation>正在拆解…</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="190"/>
+        <source>Correcting…</source>
+        <translation>正在糾正…</translation>
+    </message>
+</context>
+<context>
     <name>BubbleCard</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="218"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="224"/>
         <source>Preview</source>
         <translation>預覽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="219"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="225"/>
+        <source>Spelling</source>
+        <translation>拼寫</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="226"/>
+        <source>Grammar</source>
+        <translation>語法</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="227"/>
+        <source>Breakdown</source>
+        <translation>拆解</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="228"/>
         <source>Sentence</source>
         <translation>句子</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="220"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="229"/>
         <source>Known</source>
         <translation>已會</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="220"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="229"/>
         <source>New</source>
         <translation>新詞</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="378"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="396"/>
         <source>Etymology</source>
         <translation>詞源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="417"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="435"/>
         <source>Example</source>
         <translation>例句</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="481"/>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="524"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="499"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="542"/>
         <source>Not the Sense?</source>
         <translation>不是這個義項？</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="550"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="570"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒後自動消失</translation>
     </message>
@@ -66,12 +124,12 @@
 <context>
     <name>BubbleHeaderActions</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="83"/>
+        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="84"/>
         <source>Close</source>
         <translation>關閉</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="100"/>
+        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="101"/>
         <source>Mother tongue translation</source>
         <translation>母語翻譯</translation>
     </message>
@@ -227,19 +285,34 @@
 <context>
     <name>SelectionBar</name>
     <message>
-        <location filename="../src/app/qml/selection/SelectionBar.qml" line="66"/>
+        <location filename="../src/app/qml/selection/SelectionBar.qml" line="72"/>
         <source>Translate</source>
         <translation>翻譯</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/selection/SelectionBar.qml" line="67"/>
+        <location filename="../src/app/qml/selection/SelectionBar.qml" line="73"/>
         <source>Explain</source>
         <translation>解釋</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/selection/SelectionBar.qml" line="68"/>
+        <location filename="../src/app/qml/selection/SelectionBar.qml" line="74"/>
         <source>Copy text</source>
         <translation>複製文字</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/selection/SelectionBar.qml" line="82"/>
+        <source>Spell correction</source>
+        <translation>糾正拼寫</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/selection/SelectionBar.qml" line="84"/>
+        <source>Grammar correction</source>
+        <translation>糾正語法</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/selection/SelectionBar.qml" line="86"/>
+        <source>Sentence breakdown</source>
+        <translation>句子拆解</translation>
     </message>
 </context>
 <context>
@@ -737,7 +810,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="67"/>
-        <location filename="../src/app/app_controller.cpp" line="424"/>
+        <location filename="../src/app/app_controller.cpp" line="431"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -880,7 +953,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="248"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="44"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1163"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1029"/>
         <source>Desktop companion</source>
         <translation>桌面寵物</translation>
     </message>
@@ -1012,17 +1085,17 @@
         <translation>自訂服務</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="416"/>
+        <location filename="../src/app/app_controller.cpp" line="423"/>
         <source>Checking OCR</source>
         <translation>正在檢查 OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="417"/>
+        <location filename="../src/app/app_controller.cpp" line="424"/>
         <source>English OCR data is missing</source>
         <translation>缺少英文 OCR 資料</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="421"/>
+        <location filename="../src/app/app_controller.cpp" line="428"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR 執行環境不可用</translation>
     </message>
@@ -1648,7 +1721,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="192"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1165"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1031"/>
         <source>Dog</source>
         <translation>小狗</translation>
     </message>
@@ -1980,7 +2053,7 @@
         <translation>確認刪除</translation>
     </message>
     <message>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1164"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1030"/>
         <source>This pet package is no longer installed. Switched to %1.</source>
         <translation>該寵物包已不存在，已切換到 %1。</translation>
     </message>
@@ -2203,84 +2276,84 @@
 <context>
     <name>WordsPopup</name>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="153"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="172"/>
         <source>Today %1</source>
         <translation>今天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="155"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="174"/>
         <source>Yesterday %1</source>
         <translation>昨天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="256"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="275"/>
         <source>Words</source>
         <translation>詞彙</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="318"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="337"/>
         <source>Year in words</source>
         <translation>單字年度記錄</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="346"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="365"/>
         <source>Back</source>
         <translation>返回</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="353"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="372"/>
         <source>Close</source>
         <translation>關閉</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="371"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="390"/>
         <source>%1 words</source>
         <translation>共 %1 詞</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="394"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="413"/>
         <source>All</source>
         <translation>全部</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="394"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="413"/>
         <source>Known</source>
         <translation>已會</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="394"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="413"/>
         <source>New</source>
         <translation>新詞</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="432"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="581"/>
         <source>Words you look up will appear here.</source>
         <translation>查過的詞會出現在這裡。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="444"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="593"/>
         <source>No words in this filter.</source>
         <translation>這個篩選下沒有詞。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="514"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="525"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="663"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="674"/>
         <source>JSON files (*.json)</source>
         <translation>JSON 檔案 (*.json)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="529"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="678"/>
         <source>Words imported</source>
         <translation>詞彙已匯入</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="529"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="678"/>
         <source>Import failed</source>
         <translation>匯入失敗</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="336"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="523"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="355"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="672"/>
         <source>Import words</source>
         <translation>匯入詞彙</translation>
     </message>
@@ -2300,20 +2373,20 @@
         <translation>移除</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="329"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="511"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="348"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="660"/>
         <source>Export words</source>
         <translation>匯出詞彙</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="514"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="525"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="663"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="674"/>
         <source>Text files (*.txt)</source>
         <translation>文字檔 (*.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="514"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="525"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="663"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="674"/>
         <source>All files (*)</source>
         <translation>所有檔案 (*)</translation>
     </message>
@@ -2391,87 +2464,87 @@
         <translation>玫紅</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="191"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="197"/>
         <source>Back</source>
         <translation>返回</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="199"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="205"/>
         <source>Year in words</source>
         <translation>單字年度記錄</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="213"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="219"/>
         <source>Close</source>
         <translation>關閉</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="231"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="237"/>
         <source>%1: %2 lookups</source>
         <translation>%1：查閱 %2 次</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="232"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="238"/>
         <source>Lookups · 365 days</source>
         <translation>查閱次數 · 365 天</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="241"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="247"/>
         <source>%1 lookups · %2 words</source>
         <translation>%1 次 · %2 詞</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="295"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="301"/>
         <source>Mon</source>
         <translation>一</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="295"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="301"/>
         <source>Wed</source>
         <translation>三</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="295"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="301"/>
         <source>Fri</source>
         <translation>五</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="321"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="327"/>
         <source>Year activity. %1, %2 lookups. Use the arrow keys to choose a day.</source>
         <translation>年度活躍記錄。%1，%2 次。用方向鍵選擇日期。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="323"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="329"/>
         <source>Year activity. Use the arrow keys to choose a day.</source>
         <translation>年度活躍記錄。用方向鍵選擇日期。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="365"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="371"/>
         <source>%1, %2 lookups</source>
         <translation>%1，查閱 %2 次</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="404"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="410"/>
         <source>Less</source>
         <translation>少</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="416"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="422"/>
         <source>Level %1, choose color</source>
         <translation>第 %1 級，選擇配色</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="416"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="422"/>
         <source>No lookups, choose color</source>
         <translation>無查閱記錄，選擇配色</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="439"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="445"/>
         <source>More</source>
         <translation>多</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="444"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="450"/>
         <source>1 · 2–3 · 4–5 · 6+ lookups</source>
         <translation>1 · 2–3 · 4–5 · 6+ 次</translation>
     </message>
@@ -2539,73 +2612,73 @@
         <translation>每 1–2 小時</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="283"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="258"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>目前解釋語言下沒有已存的釋義。</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="285"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="260"/>
         <source>Explain now</source>
         <translation>現在解釋</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="656"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="652"/>
         <source>Explaining…</source>
         <translation>正在解釋…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="829"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="780"/>
         <source>Request failed</source>
         <translation>請求失敗</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="409"/>
+        <location filename="../src/app/app_controller.cpp" line="416"/>
         <source>Screenshot capture is off.</source>
         <translation>截圖取詞未開啟。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="410"/>
-        <location filename="../src/app/app_controller.cpp" line="574"/>
+        <location filename="../src/app/app_controller.cpp" line="417"/>
+        <location filename="../src/app/app_controller.cpp" line="581"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>今日預算已用完。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="411"/>
+        <location filename="../src/app/app_controller.cpp" line="418"/>
         <source>A recognition is already running.</source>
         <translation>正在識別，請稍候。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="413"/>
+        <location filename="../src/app/app_controller.cpp" line="420"/>
         <source>That region cannot be captured.</source>
         <translation>所選區域無法取詞（須在同一塊螢幕內且不過大）。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="414"/>
+        <location filename="../src/app/app_controller.cpp" line="421"/>
         <source>No text was found in that region.</source>
         <translation>所選區域裡沒有找到文字。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="415"/>
+        <location filename="../src/app/app_controller.cpp" line="422"/>
         <source>That region could not be read.</source>
         <translation>所選區域無法識別。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="474"/>
+        <location filename="../src/app/app_controller.cpp" line="481"/>
         <source>%1 px</source>
         <translation>%1 px</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="476"/>
+        <location filename="../src/app/app_controller.cpp" line="483"/>
         <source>Default</source>
         <translation>預設</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="810"/>
+        <location filename="../src/app/app_controller.cpp" line="817"/>
         <source>Auto</source>
         <translation>自動模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="810"/>
+        <location filename="../src/app/app_controller.cpp" line="817"/>
         <source>Manual</source>
         <translation>手動模式</translation>
     </message>
@@ -2621,114 +2694,114 @@
 <context>
     <name>lens::llm</name>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="576"/>
+        <location filename="../src/llm/llm_pure.cpp" line="700"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>模型返回的內容不是一個 JSON 物件。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="582"/>
+        <location filename="../src/llm/llm_pure.cpp" line="706"/>
         <source>The model&apos;s answer carries no choices.</source>
         <translation>模型返回的內容裡沒有 choices。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="339"/>
+        <location filename="../src/llm/llm_pure.cpp" line="394"/>
         <source>The model stopped before finishing (reason: %1).</source>
         <translation>模型未正常結束（原因：%1）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="342"/>
+        <location filename="../src/llm/llm_pure.cpp" line="397"/>
         <source>absent</source>
         <translation>缺失</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="362"/>
+        <location filename="../src/llm/llm_pure.cpp" line="510"/>
         <source>The model&apos;s answer is not valid JSON.</source>
         <translation>模型返回的內容不是合法 JSON。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="367"/>
+        <location filename="../src/llm/llm_pure.cpp" line="515"/>
         <source>The model&apos;s answer has no results array.</source>
         <translation>模型返回的內容裡沒有 results 陣列。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="386"/>
+        <location filename="../src/llm/llm_pure.cpp" line="534"/>
         <source>One of the results entries is not an object.</source>
         <translation>results 裡有一項不是物件。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="460"/>
+        <location filename="../src/llm/llm_pure.cpp" line="584"/>
         <source>A results entry has an empty field (title=%1).</source>
         <translation>results 裡有一項欄位為空（title=%1）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="492"/>
-        <location filename="../src/llm/llm_pure.cpp" line="536"/>
+        <location filename="../src/llm/llm_pure.cpp" line="616"/>
+        <location filename="../src/llm/llm_pure.cpp" line="660"/>
         <source>The model echoed %1 result(s) for the %2 that were asked for.</source>
         <translation>請求了 %2 項，模型回傳了 %1 項。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="391"/>
+        <location filename="../src/llm/llm_pure.cpp" line="539"/>
         <source>A results entry does not match the response schema.</source>
         <translation>results 中有一項不符合回應 schema。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="430"/>
-        <location filename="../src/llm/llm_pure.cpp" line="454"/>
+        <location filename="../src/llm/llm_pure.cpp" line="553"/>
+        <location filename="../src/llm/llm_pure.cpp" line="577"/>
         <source>The requested explanation language is missing.</source>
         <translation>缺少請求的解釋語言。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="547"/>
+        <location filename="../src/llm/llm_pure.cpp" line="671"/>
         <source>The model never echoed &quot;%1&quot;.</source>
         <translation>模型沒有回傳 “%1”。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="226"/>
+        <location filename="../src/llm/llm_pure.cpp" line="281"/>
         <source>The request was rejected as malformed (400).</source>
         <translation>請求格式有誤，被服務拒絕（400）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="229"/>
+        <location filename="../src/llm/llm_pure.cpp" line="284"/>
         <source>The API key is missing or not accepted (401).</source>
         <translation>API key 缺失或未被接受（401）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="232"/>
+        <location filename="../src/llm/llm_pure.cpp" line="287"/>
         <source>The service refused the key for this model (403).</source>
         <translation>服務不允許這個 API key 使用此模型（403）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="235"/>
+        <location filename="../src/llm/llm_pure.cpp" line="290"/>
         <source>The service or model was not found (404).</source>
         <translation>沒有找到該服務或模型（404）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="238"/>
+        <location filename="../src/llm/llm_pure.cpp" line="293"/>
         <source>The account is out of credit (402).</source>
         <translation>帳戶餘額不足（402）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="241"/>
+        <location filename="../src/llm/llm_pure.cpp" line="296"/>
         <source>The request parameters were rejected (422).</source>
         <translation>請求參數被拒絕（422）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="244"/>
+        <location filename="../src/llm/llm_pure.cpp" line="299"/>
         <source>Too many requests; the service is rate-limiting (429).</source>
         <translation>請求過於頻繁，服務正在限制頻率（429）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="247"/>
+        <location filename="../src/llm/llm_pure.cpp" line="302"/>
         <source>The explanation service failed (500).</source>
         <translation>釋義服務出錯（500）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="250"/>
+        <location filename="../src/llm/llm_pure.cpp" line="305"/>
         <source>The explanation service is overloaded (503).</source>
         <translation>釋義服務負載過高（503）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="253"/>
+        <location filename="../src/llm/llm_pure.cpp" line="308"/>
         <source>Unexpected HTTP status %1.</source>
         <translation>意外的 HTTP 狀態碼 %1。</translation>
     </message>

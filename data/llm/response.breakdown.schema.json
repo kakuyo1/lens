@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Lens sentence breakdown response",
+  "description": "The object the model is asked to return inside choices[0].message.content. The words are sent one per line and numbered from 0, so the model answers with indices, never with the words themselves: the app checks every index against the word count and refuses the whole answer on any mismatch.",
+  "type": "object",
+  "required": ["results"],
+  "properties": {
+    "results": {
+      "type": "array",
+      "description": "Exactly one entry: the whole sentence is one item.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["spans"],
+        "properties": {
+          "spans": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["role", "from", "to"],
+              "properties": {
+                "role": { "type": "string", "enum": ["S", "V", "C", "A"], "description": "Subject, verb, complement, or adverbial." },
+                "from": { "type": "integer", "minimum": 0, "description": "Index of the first word, counting from 0." },
+                "to": { "type": "integer", "minimum": 0, "description": "Index of the last word, inclusive." }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

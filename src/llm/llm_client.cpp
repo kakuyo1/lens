@@ -385,4 +385,109 @@ void LlmClient::nextSenseWord(QString const& lemma, QString const& input, QStrin
     });
 }
 
+void LlmClient::correctSpelling(QString const& text)
+{
+    postCorrection(Channel::Spell, text);
+}
+
+void LlmClient::correctGrammar(QString const& text)
+{
+    postCorrection(Channel::Grammar, text);
+}
+
+void LlmClient::postCorrection(Channel const channel, QString const& text)
+{
+    if (text.isEmpty() or config_.apiKey.isEmpty() or not config_.baseUrl.isValid() or
+        config_.baseUrl.scheme() != QLatin1String("https") or config_.baseUrl.host().isEmpty()) {
+        LENS_DEBUG("the {} correction went nowhere: the client is not configured", channelKey(channel));
+        emit correctionAnswered(text, channel, {}, {});
+        return;
+    }
+
+    QUrl    url  = config_.baseUrl;
+    QString path = url.path();
+    while (path.endsWith(QLatin1Char('/')))
+        path.chop(1);
+    url.setPath(path + QStringLiteral("/chat/completions"));
+
+    QNetworkRequest httpRequest(url);
+    httpRequest.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+    httpRequest.setRawHeader("Authorization", "Bearer " + config_.apiKey.toUtf8());
+    httpRequest.setTransferTimeout(kTimeoutMs);
+
+    const auto model = config_.model;
+    LENS_INFO("correcting a {} with '{}'", channelKey(channel), config_.model.toStdString());
+    LENS_TRACE("POST {} (timeout {} ms, key hidden)", url.toString().toStdString(), kTimeoutMs);
+
+    QNetworkReply* reply = manager_->post(httpRequest, buildRequestBody(config_, channel, {text}, QStringLiteral("en")));
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply, text, channel, model] {
+        reply->deleteLater();
+        const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        if (status != 200) {
+            LENS_WARN("the {} correction came back with HTTP {}", channelKey(channel), status);
+            emit correctionAnswered(text, channel, {}, {});
+            return;
+        }
+        // A refused answer was still paid for, so its usage goes out with the empty correction.
+        const QByteArray body  = reply->readAll();
+        auto             usage = parseUsage(body);
+        usage.model            = model;
+        const auto parsed      = parseCorrection(channel, body);
+        if (const auto* corrected = std::get_if<QString>(&parsed)) {
+            emit correctionAnswered(text, channel, *corrected, usage);
+            return;
+        }
+        emit correctionAnswered(text, channel, {}, usage);
+    });
+}
+
+void LlmClient::breakdownSentence(QString const& sentence, QStringList const& words)
+{
+    if (words.isEmpty() or config_.apiKey.isEmpty() or not config_.baseUrl.isValid() or
+        config_.baseUrl.scheme() != QLatin1String("https") or config_.baseUrl.host().isEmpty()) {
+        LENS_DEBUG("the breakdown went nowhere: the client is not configured");
+        emit breakdownAnswered(sentence, {}, {});
+        return;
+    }
+
+    QUrl    url  = config_.baseUrl;
+    QString path = url.path();
+    while (path.endsWith(QLatin1Char('/')))
+        path.chop(1);
+    url.setPath(path + QStringLiteral("/chat/completions"));
+
+    QNetworkRequest httpRequest(url);
+    httpRequest.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+    httpRequest.setRawHeader("Authorization", "Bearer " + config_.apiKey.toUtf8());
+    httpRequest.setTransferTimeout(kTimeoutMs);
+
+    const auto model = config_.model;
+    LENS_INFO("breaking down a {}-word sentence with '{}'", words.size(), config_.model.toStdString());
+    LENS_TRACE("POST {} (timeout {} ms, key hidden)", url.toString().toStdString(), kTimeoutMs);
+
+    QNetworkReply* reply = manager_->post(httpRequest, buildRequestBody(config_, Channel::Breakdown, words, QStringLiteral("en")));
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply, sentence, count = words.size(), model] {
+        reply->deleteLater();
+        const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        if (status != 200) {
+            LENS_WARN("the breakdown came back with HTTP {}", status);
+            emit breakdownAnswered(sentence, {}, {});
+            return;
+        }
+        // A refused answer was still paid for, so its usage goes out with the empty result.
+        const QByteArray body  = reply->readAll();
+        auto             usage = parseUsage(body);
+        usage.model            = model;
+        const auto parsed      = parseBreakdown(body, static_cast<int>(count));
+        if (const auto* message = std::get_if<QString>(&parsed)) {
+            LENS_WARN("the breakdown was refused: {}", message->toStdString());
+            emit breakdownAnswered(sentence, {}, usage);
+            return;
+        }
+        emit breakdownAnswered(sentence, std::get<QVector<RoleSpan>>(parsed), usage);
+    });
+}
+
 }

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Lens spelling correction response",
+  "description": "The object the model is asked to return inside choices[0].message.content on the spell channel. One word in, the corrected word out. The app checks that the answer is one token, so a sentence in place of a word is refused.",
+  "type": "object",
+  "required": ["results"],
+  "properties": {
+    "results": {
+      "type": "array",
+      "description": "Exactly one entry: the whole message is one item.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["corrected"],
+        "properties": {
+          "corrected": { "type": "string", "minLength": 1, "description": "The word with its spelling corrected, or unchanged when it was spelled correctly." }
+        }
+      }
+    }
+  }
+}

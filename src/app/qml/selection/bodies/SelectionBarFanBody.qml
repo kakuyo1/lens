@@ -18,6 +18,10 @@ Item {
     /// 1 on the first arrival of this shape in a session; 0.5 afterwards (ADR 0109).
     property real entranceFactor: 1
     property var glassSheet: null
+    property var drawerItems: []
+    property string drawerSide: ""
+    /// The fan's drawer, which the bar sizes its window from.
+    property var drawer: fanDrawer
 
     // qmllint disable missing-property
     readonly property var tokens: Window.window.tokens
@@ -138,8 +142,23 @@ Item {
 
             Accessible.role: Accessible.Button
             Accessible.name: modelData.label
-            Accessible.onPressAction: root.activate(modelData.action)
+            Accessible.onPressAction: modelData.action === "copy" && fanDrawer.applies ? fanDrawer.expand() : root.activate(modelData.action)
         }
+    }
+
+    // The drawer is the fan's own, drawn from its right edge: the fan does not turn it.
+    CopyDrawer {
+        id: fanDrawer
+        form: "fan"
+        items: root.drawerItems
+        side: root.drawerSide
+        copyHovered: root.hovered === 2
+        shown: root.shown
+        tokens: root.tokens
+        glassSheet: root.glassSheet
+        anchorW: root.implicitWidth
+        anchorH: root.implicitHeight
+        onPicked: (action) => root.activate(action)
     }
 
     NumberAnimation {

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Lens grammar correction response",
+  "description": "The object the model is asked to return inside choices[0].message.content on the grammar channel. One sentence in, the corrected sentence out. The sentence is not echoed back as a title: the app already holds it.",
+  "type": "object",
+  "required": ["results"],
+  "properties": {
+    "results": {
+      "type": "array",
+      "description": "Exactly one entry: the whole message is one item.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["corrected"],
+        "properties": {
+          "corrected": { "type": "string", "minLength": 1, "description": "The whole sentence with its mistakes corrected, or unchanged when it was already correct." }
+        }
+      }
+    }
+  }
+}

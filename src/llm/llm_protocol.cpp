@@ -135,6 +135,9 @@ const char* channelKey(Channel channel)
         case Channel::Translation: return "translation";
         case Channel::Peek: return "peek";
         case Channel::Sense: return "sense";
+        case Channel::Breakdown: return "breakdown";
+        case Channel::Spell: return "spell";
+        case Channel::Grammar: return "grammar";
         case Channel::Count: break;
     }
     throw std::logic_error("lens::llm::channelKey: Channel::Count is not a real channel");

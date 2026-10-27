@@ -117,6 +117,113 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel           
                                                               QString const&     explanationLang = QStringLiteral("en"),
                                                               bool               multipleSenses  = false);
 
+/// The longest English sentence the breakdown takes: the starting value, not yet measured on real text.
+inline constexpr int kBreakdownMaxWords = 40;
+
+/**
+ * @brief Split a sentence into the words a breakdown indexes, on whitespace.
+ *
+ * Punctuation stays with the word it is attached to, so the words are the same units the reader
+ * sees and the indices the model answers with name them unambiguously.
+ *
+ * @param sentence The selected text.
+ * @return The words in order; empty for a blank selection.
+ */
+QStringList breakdownWords(QString const& sentence);
+
+/**
+ * @brief Whether a selection is one the breakdown is offered for: English, and no more than
+ *        kBreakdownMaxWords words.
+ *
+ * "English" means no letter outside ASCII. Curly quotes and dashes are punctuation and do not
+ * count against it.
+ *
+ * @param sentence The selected text.
+ * @return True when the breakdown applies to @p sentence.
+ */
+bool breakdownApplies(QString const& sentence);
+
+/// @return The wire code of @p role: S, V, C or A.
+QString roleCode(Role role);
+
+/// @brief A run of a sentence's text that plays one role: the unit the breakdown card colours.
+struct BreakdownRun {
+    QString text;
+    QString role; ///< roleCode() of the run's role; empty for text no span marks.
+};
+
+/**
+ * @brief Cut a sentence into the runs the breakdown card draws, in order.
+ *
+ * Whitespace between two words of one run belongs to that run, so a span reads as one band of colour
+ * rather than a colour per word. Joined, the runs give back the sentence exactly.
+ *
+ * @param sentence The selected text.
+ * @param spans    The validated answer from parseBreakdown(), indexed against breakdownWords().
+ * @return The runs covering every character of @p sentence.
+ */
+QVector<BreakdownRun> breakdownRuns(QString const& sentence, QVector<RoleSpan> const& spans);
+
+/// @return The roles @p spans use, as codes in the legend's fixed S, V, C, A order.
+QStringList breakdownRoles(QVector<RoleSpan> const& spans);
+
+/// @brief Whether a selection is one the spelling correction is offered for: a single token.
+///
+/// Decided by the token count alone, not by how the classifier filed the word: a misspelled word
+/// the word list does not know is filed as an entity, and it still needs its correction (ADR 0129).
+bool spellingApplies(QString const& text);
+
+/// @brief Whether a selection is one the grammar correction is offered for: the same English sentences the
+///        breakdown takes (UI-SPEC.md 4.10).
+bool grammarApplies(QString const& text);
+
+/// @brief One correction answer that failed the shape check; the reason is for the log only.
+struct CorrectionRejected {};
+
+/**
+ * @brief Read the corrected text out of a spell or grammar answer.
+ *
+ * Checks the envelope and finish reason as parseBreakdown() does, then exactly one results entry
+ * with a non-empty `corrected`. The spell channel also refuses a value with whitespace in it: a
+ * sentence in place of a word is not a spelling.
+ *
+ * @param channel      Channel::Spell or Channel::Grammar; picks the whitespace rule.
+ * @param responseBody Raw HTTP response body.
+ * @return The corrected text, or CorrectionRejected.
+ */
+std::variant<QString, CorrectionRejected> parseCorrection(Channel channel, QByteArray const& responseBody);
+
+/// @brief One run of corrected text; @p changed marks the words the model moved, for the underline.
+struct CorrectionRun {
+    QString text;
+    bool    changed = false;
+};
+
+/**
+ * @brief Cut the corrected sentence into runs, underlining the words that differ from the original.
+ *
+ * The comparison is word by word on whitespace, so a corrected word is marked whole. Joined, the runs
+ * give back @p corrected exactly. Done here rather than trusting the model to mark its own edits.
+ *
+ * @param original  The reader's text.
+ * @param corrected The model's corrected text.
+ * @return The runs covering every character of @p corrected.
+ */
+QVector<CorrectionRun> correctionRuns(QString const& original, QString const& corrected);
+
+/**
+ * @brief Validate a breakdown answer. Every index must name a word, and no two runs may share one.
+ *
+ * Checks, in order: the envelope and finish reason as parseExplanations() does; exactly one results
+ * entry; a non-empty spans array; each span's role is S, V, C or A; each index is a whole number in
+ * [0, @p wordCount - 1] with from <= to; no two spans overlap. Any failure rejects the whole answer.
+ *
+ * @param responseBody Raw HTTP response body.
+ * @param wordCount    Number of words the request sent.
+ * @return The spans in order of their first word, or a reason for the log.
+ */
+std::variant<QVector<RoleSpan>, QString> parseBreakdown(QByteArray const& responseBody, int wordCount);
+
 /**
  * @brief One answer assembled from the bytes of a streamed or whole-body reply.
  *
