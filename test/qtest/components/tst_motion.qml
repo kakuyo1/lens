@@ -47,6 +47,7 @@ Item {
             compare(still.press, 0);
             compare(still.pop, 0);
             compare(still.bubble, 0);
+            compare(still.pulse, 0);
         }
 
         function test_theDurationsAreTheOnesTheSpecNames() {
@@ -55,6 +56,7 @@ Item {
             compare(moving.press, 150);
             compare(moving.pop, 180);
             compare(moving.bubble, 220);
+            compare(moving.pulse, 900);
         }
 
         /// The curve is not a duration: reduced motion takes the movement out of an animation

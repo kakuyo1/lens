@@ -14,49 +14,49 @@
     "Read once at startup; editing this file needs no rebuild. A file that cannot be read leaves",
     "the map empty and the preview is then simply not raised."
   ],
-  "word": "spring",
-  "ipa": "/sprɪŋ/",
+  "word": "len",
+  "ipa": "/len/",
   "pos": "noun",
-  "signpost": "season of new growth",
-  "collocations": ["early ~", "~ weather"],
+  "signpost": "a clearer way of seeing",
+  "collocations": ["through the ~", "camera ~"],
   "definition": {
-    "en": "The season between winter and summer, when plants begin to grow.",
-    "zh": "春季，冬天与夏天之间的季节，植物开始生长。",
-    "zh-Hant": "春季，冬天與夏天之間的季節，植物開始生長。",
-    "es": "La estación entre el invierno y el verano, cuando las plantas empiezan a crecer.",
-    "ja": "冬と夏の間の季節で、植物が育ちはじめるころ。"
+    "en": "A curved piece of glass that makes small or distant things look bigger and clearer.",
+    "zh": "镜片，一片弧形的玻璃，能把小而远的东西看得更大更清楚。",
+    "zh-Hant": "鏡片，一片弧形的玻璃，能把小而遠的東西看得更大更清楚。",
+    "es": "Un vidrio curvo que hace que las cosas pequeñas o lejanas se vean más grandes y claras.",
+    "ja": "小さなものや遠くのものを、大きくはっきり見せる曲面のガラス。"
   },
   "senses": [
     {
-      "en": "The season between winter and summer.",
-      "zh": "春季，冬天与夏天之间的季节。",
-      "zh-Hant": "春季，冬天與夏天之間的季節。",
-      "es": "La estación entre el invierno y el verano.",
-      "ja": "冬と夏の間の季節。"
+      "en": "A curved piece of glass that makes things look bigger or clearer.",
+      "zh": "镜片，让东西看起来更大更清楚的弧形玻璃。",
+      "zh-Hant": "鏡片，讓東西看起來更大更清楚的弧形玻璃。",
+      "es": "Un vidrio curvo que hace que las cosas se vean más grandes o claras.",
+      "ja": "ものを大きく、はっきり見せる曲面のガラス。"
     },
     {
-      "en": "A coiled piece of metal that springs back into shape.",
-      "zh": "弹簧，受压后恢复原状的金属件。",
-      "zh-Hant": "彈簧，受壓後恢復原狀的金屬件。",
-      "es": "Muelle: una pieza de metal que recupera su forma.",
-      "ja": "ばね。押しても元の形に戻る金属。"
+      "en": "The glass in a camera or an eye that focuses light.",
+      "zh": "镜头，相机或眼睛里聚焦光线的部件。",
+      "zh-Hant": "鏡頭，相機或眼睛裡聚焦光線的部件。",
+      "es": "El vidrio de una cámara o de un ojo que enfoca la luz.",
+      "ja": "カメラや目の中で光を集める部分。"
     },
     {
-      "en": "A place where water wells up out of the ground.",
-      "zh": "泉，地下水涌出地面的地方。",
-      "zh-Hant": "泉，地下水湧出地面的地方。",
-      "es": "Manantial: donde el agua brota del suelo.",
-      "ja": "泉。地面から水がわき出る場所。"
+      "en": "A particular way of looking at or thinking about something.",
+      "zh": "视角，看待或思考事物的一种方式。",
+      "zh-Hant": "視角，看待或思考事物的一種方式。",
+      "es": "Una manera particular de ver o pensar sobre algo.",
+      "ja": "ものごとを見たり考えたりする特定のやり方。"
     }
   ],
   "etymology": {
-    "en": "From Old English springan, to leap up or burst forth.",
-    "zh": "源自古英语 springan，意为跃起、迸发。",
-    "zh-Hant": "源自古英語 springan，意為躍起、迸發。",
-    "es": "Del inglés antiguo springan, saltar o brotar.",
-    "ja": "古英語の springan（跳ねる、わき出る）から。"
+    "en": "From Latin lens, lentis: the lentil, whose plump round shape the first ground glass took.",
+    "zh": "源自拉丁语 lens（扁豆），最早的磨制镜片正似扁豆的浑圆。",
+    "zh-Hant": "源自拉丁語 lens（扁豆），最早的磨製鏡片正似扁豆的渾圓。",
+    "es": "Del latín lens, lentis: la lenteja, cuya forma redonda tomó el primer vidrio tallado.",
+    "ja": "ラテン語 lens（レンズマメ）から。初めて磨かれたレンズはその丸い形に似ていた。"
   },
-  "example": "The cat sprang onto the table.",
+  "example": "The print grows clear under a steady len.",
   "vocabulary": {
     "0": ["achieve", "opportunity", "environment", "approach", "benefit", "circumstance"],
     "1": ["coherent", "scrutinize", "deteriorate", "ubiquitous", "inevitable", "nuance"],

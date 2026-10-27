@@ -27,6 +27,10 @@ QtObject {
     /// anything else here.
     readonly property int bubble: reduced ? 0 : 220
 
+    /// A loading skeleton breathing while it waits. A loop, not a transition: one token is
+    /// half a cycle -- dim and return reads as one breath of twice this.
+    readonly property int pulse: reduced ? 0 : 900
+
     /// The one curve. UI-SPEC.md's table says "ease" and says no more than that.
     readonly property int easing: Easing.InOutQuad
 }

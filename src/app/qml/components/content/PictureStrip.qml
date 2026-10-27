@@ -69,8 +69,8 @@ Item {
         width: parent.width
         spacing: 0
 
-        // The skeleton: three 4:3 slots in the card's hairline token, static. Reduced motion has
-        // nothing to take away here -- there is no spinner to stop.
+        // The skeleton: three 4:3 slots in the card's hairline token, breathing while the lookup
+        // runs. Reduced motion stops the breath -- the slots rest at full opacity.
         Row {
             id: skeleton
             visible: root.phase === "loading"
@@ -85,6 +85,21 @@ Item {
                     height: Math.round(width * 0.75)
                     radius: 8
                     color: root.tokens.line2
+
+                    SequentialAnimation on opacity {
+                        loops: Animation.Infinite
+                        running: root.phase === "loading" && !root.tokens.motion.reduced
+                        NumberAnimation {
+                            to: 0.55
+                            duration: root.tokens.motion.pulse
+                            easing.type: root.tokens.motion.easing
+                        }
+                        NumberAnimation {
+                            to: 1.0
+                            duration: root.tokens.motion.pulse
+                            easing.type: root.tokens.motion.easing
+                        }
+                    }
                 }
             }
         }
@@ -162,6 +177,15 @@ Item {
                         source: art
                         maskEnabled: true
                         maskSource: mask
+                        // The pixels arrive when they arrive: the thumbnail fades in once the image
+                        // is ready, and a cached one is already at 1 and draws without waiting.
+                        opacity: art.status === Image.Ready ? 1 : 0
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: root.tokens.motion.pop
+                                easing.type: root.tokens.motion.easing
+                            }
+                        }
                     }
 
                     Rectangle {
