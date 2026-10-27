@@ -67,6 +67,8 @@
 
 ## 自动扫描的 OCR 替换方案
 
+调研、同类实现与实验矩阵见 `docs/ocr-research-2026-10.md`。
+
 先实测 Tesseract `--psm 3` / `--psm 11` 与 `--dpi 96` 对 96 DPI 小字的影响，再决定是否放大后识别。中期候选：
 
 - **Windows.Media.Ocr**：系统自带、离线、带词框，不必起子进程；依赖系统语言包，走 WinRT，与 ADR 0014 冲突，采用前另开 ADR。
