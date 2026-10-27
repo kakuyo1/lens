@@ -18,6 +18,9 @@
   re-ask path behind it. Switching the explanation language permanently is a settings action
   again; the globe is the only language control left on the card (docs/adr/0112, superseding
   docs/adr/0067).
+- In English, the sentence translate action restates the sentence in simpler English instead of
+  explaining it again; explain is unchanged. The two used to send the same prompt, so they gave the
+  same answer.
 
 ## 1.9.0 - 2026-10-25
 
