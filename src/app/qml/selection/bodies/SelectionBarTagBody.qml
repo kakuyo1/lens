@@ -75,34 +75,35 @@ Item {
 
     SequentialAnimation {
         id: swingAnim
+        onStopped: if (root.drawer) root.drawer.settle();
 
         NumberAnimation {
             target: root
             property: "swing"
             to: 1.8
             duration: root.tokens.motion.pop * root.entranceFactor
-            easing.type: Easing.OutQuad
+            easing.type: Easing.InOutSine
         }
         NumberAnimation {
             target: root
             property: "swing"
             to: -2.4
             duration: root.tokens.motion.pop * root.entranceFactor
-            easing.type: Easing.InOutQuad
+            easing.type: Easing.InOutSine
         }
         NumberAnimation {
             target: root
             property: "swing"
             to: 0.6
             duration: root.tokens.motion.pop * 0.8 * root.entranceFactor
-            easing.type: Easing.InOutQuad
+            easing.type: Easing.InOutSine
         }
         NumberAnimation {
             target: root
             property: "swing"
             to: 0
             duration: root.tokens.motion.pop * 1.2 * root.entranceFactor
-            easing.type: Easing.InOutQuad
+            easing.type: Easing.InOutSine
         }
     }
 
@@ -116,27 +117,28 @@ Item {
 
     SequentialAnimation {
         id: pressAnim
+        onStopped: if (root.drawer) root.drawer.settle();
 
         NumberAnimation {
             target: root
             property: "swing"
             to: 6
             duration: root.tokens.motion.press * 0.6
-            easing.type: Easing.OutQuad
+            easing.type: Easing.InOutSine
         }
         NumberAnimation {
             target: root
             property: "swing"
             to: -3
             duration: root.tokens.motion.press * 0.6
-            easing.type: Easing.InOutQuad
+            easing.type: Easing.InOutSine
         }
         NumberAnimation {
             target: root
             property: "swing"
             to: 0
             duration: root.tokens.motion.press * 0.8
-            easing.type: Easing.InOutQuad
+            easing.type: Easing.InOutSine
         }
     }
 
@@ -144,6 +146,7 @@ Item {
         NumberAnimation {
             duration: root.tokens.motion.press
             easing.type: root.tokens.motion.easing
+            onStopped: if (root.drawer) root.drawer.settle();
         }
     }
 
@@ -304,10 +307,9 @@ Item {
                             form: "tag"
                             items: item.modelData.action === "copy" ? root.drawerItems : []
                             side: root.drawerSide
-                            // The drawer turns with the tag's tilt, which includes the entrance swing. Half a degree is
-                            // the step: the window resizes on a few steps of the swing, not on every frame, and the
-                            // room is within about 2 px of the drawer's real place.
-                            tilt: Math.round((root.restTilt + root.swing) * 2) / 2
+                            // The room the window keeps for the drawer follows its resting tilt only. Following the swing moved
+                            // and resized the window at every step of the swing, and that judders on screen.
+                            tilt: root.tilt * (tagHover.hovered ? 0.3 : 1)
                             copyHovered: hover.hovered
                             shown: root.shown
                             tokens: root.tokens

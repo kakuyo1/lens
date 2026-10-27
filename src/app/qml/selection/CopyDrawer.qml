@@ -96,6 +96,12 @@ Item {
     /// other items' bindings, which mapToItem() does not report; each move ticks this, and overhangIn() reads it.
     property int geomTick: 0
 
+    /// Measures again the room the window keeps for the drawer, once the tag has stopped turning. The room is not
+    /// re-measured while it turns, so the window does not move with the turn.
+    function settle() {
+        root.geomTick++;
+    }
+
     /// The rotation, in degrees, of an item above the copy text that the drawer hangs under. mapToItem() carries it
     /// into the drawer's place, but nothing signals a rotation as a move, so the body passes it in and overhangIn()
     /// reads it. A body whose drawer is not under a turning item leaves it at 0.
