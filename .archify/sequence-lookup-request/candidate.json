@@ -4,14 +4,14 @@
   "meta": {
     "title": "Lens Word Lookup Round Trip",
     "locale": "en",
-    "output": ".archify/sequence-lookup-request-20261022-171017/lookup-round-trip.html",
+    "output": ".archify/sequence-lookup-request/lookup-round-trip.html",
     "quality_profile": "showcase",
     "column_fit": "spread",
     "viewBox": [1080, 696],
     "repository": {
       "url": "git@github.com:kakuyo1/lens.git",
       "link_mode": "local-only",
-      "revision": "be8d58c43864bf039714de4530d0be3e6b92c3da"
+      "revision": "04433bb0f30f642a8fa3194ea32bfb3d1e9312fa"
     },
     "views": [
       {
@@ -55,7 +55,7 @@
       "label": "lens_capture",
       "sublabel": "grab · scan gate",
       "sources": [
-        { "path": "src/app/duties/capture_duty.cpp", "line": 300 },
+        { "path": "src/app/duties/capture_duty.cpp", "line": 305 },
         { "path": "src/core/domain/filter_core.cpp", "line": 503, "end_line": 550 }
       ]
     },
@@ -74,8 +74,8 @@
       "label": "lens_llm",
       "sublabel": "body · SSE parse",
       "sources": [
-        { "path": "src/llm/llm_pure.cpp", "line": 278, "end_line": 327 },
-        { "path": "src/llm/llm_client.cpp", "line": 102, "end_line": 185 }
+        { "path": "src/llm/llm_pure.cpp", "line": 1008, "end_line": 1031 },
+        { "path": "src/llm/llm_client.cpp", "line": 212, "end_line": 231 }
       ]
     },
     {
@@ -84,7 +84,7 @@
       "label": "LLM provider",
       "sublabel": "chat completions",
       "sources": [
-        { "path": "src/llm/llm_client.cpp", "line": 119, "end_line": 123 }
+        { "path": "src/llm/llm_client.cpp", "line": 212, "end_line": 220 }
       ]
     },
     {

@@ -4,12 +4,12 @@
   "meta": {
     "title": "Lens Module Architecture",
     "locale": "en",
-    "output": ".archify/architecture-lens-modules-20261022-171017/lens-modules.html",
+    "output": ".archify/architecture-lens-modules/lens-modules.html",
     "quality_profile": "showcase",
     "repository": {
       "url": "git@github.com:kakuyo1/lens.git",
       "link_mode": "local-only",
-      "revision": "be8d58c43864bf039714de4530d0be3e6b92c3da"
+      "revision": "04433bb0f30f642a8fa3194ea32bfb3d1e9312fa"
     },
     "views": [
       {
@@ -53,7 +53,7 @@
       "pos": [40, 190],
       "size": [150, 66],
       "sources": [
-        { "path": "src/app/CMakeLists.txt", "line": 48, "end_line": 56 },
+        { "path": "src/app/CMakeLists.txt", "line": 59, "end_line": 63 },
         { "path": "src/app/app_controller.cpp", "line": 312, "end_line": 325 }
       ]
     },
@@ -120,7 +120,7 @@
       "id": "app",
       "type": "backend",
       "label": "lens_app",
-      "sublabel": "AppController facade · ten duties · pet · glass · GUI thread",
+      "sublabel": "AppController facade · nine duties · pet · glass · GUI thread",
       "tag": "one process",
       "icon": "backend",
       "pos": [320, 340],
@@ -140,7 +140,7 @@
       "size": [150, 66],
       "sources": [
         { "path": "src/llm/CMakeLists.txt", "line": 13, "end_line": 18 },
-        { "path": "src/llm/llm_client.cpp", "line": 119, "end_line": 128 }
+        { "path": "src/llm/llm_client.cpp", "line": 212, "end_line": 223 }
       ]
     },
     {
@@ -151,19 +151,19 @@
       "pos": [600, 40],
       "size": [150, 66],
       "sources": [
-        { "path": "src/app/settings_defaults.h", "line": 59, "end_line": 75 }
+        { "path": "src/app/settings_defaults.h", "line": 26, "end_line": 37 }
       ]
     },
     {
       "id": "pet",
       "type": "backend",
       "label": "app/pet",
-      "sublabel": "controller + wander",
+      "sublabel": "controller · stage · wander · hide",
       "pos": [600, 490],
       "size": [150, 66],
       "sources": [
-        { "path": "src/app/pet/pet_controller.cpp", "line": 1042, "end_line": 1056 },
-        { "path": "src/core/domain/pet/pet_state.h", "line": 24, "end_line": 40 }
+        { "path": "src/app/pet/pet_controller.h", "line": 475, "end_line": 487 },
+        { "path": "src/app/pet/pet_stage.h", "line": 28, "end_line": 31 }
       ]
     },
     {
@@ -246,7 +246,7 @@
       "size": [150, 66],
       "sources": [
         { "path": "src/core/CMakeLists.txt", "line": 11, "end_line": 15 },
-        { "path": "src/app/main.cpp", "line": 258 }
+        { "path": "src/app/main.cpp", "line": 266 }
       ]
     }
   ],
