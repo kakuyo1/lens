@@ -504,10 +504,10 @@ TEST_F(LlmTest, UsesSentencePresetsAndTheSharedEntityPreset)
     const auto entity       = QJsonDocument::fromJson(buildRequestBody(config, Channel::Entity, {"New York"}, "en"));
     const auto entityPrompt = entity.object().value("messages").toArray().at(0).toObject().value("content").toString();
 
-    // With an English explanation language the two sentence items are the same job: explain in
-    // plain English. The distinction only exists for Chinese readers.
-    EXPECT_EQ(sentencePrompt("en", "translate"), sentencePrompt("en", "explain"));
-    EXPECT_TRUE(sentencePrompt("en", "translate").contains("plain English"));
+    // In English, translate restates the sentence in simpler English; explain says what it means.
+    EXPECT_NE(sentencePrompt("en", "translate"), sentencePrompt("en", "explain"));
+    EXPECT_TRUE(sentencePrompt("en", "translate").contains("simpler English"));
+    EXPECT_TRUE(sentencePrompt("en", "explain").contains("plain English"));
 
     // With Chinese, translate is literal and explain is plain-language.
     EXPECT_TRUE(sentencePrompt("zh", "translate").contains("literally"));
