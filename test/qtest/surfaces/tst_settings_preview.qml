@@ -112,9 +112,23 @@ Item {
             return label;
         }
 
+        /// Scroll the settings body until a label is inside it: the word details sit below the fold of the
+        /// learning page, and a pointer on a row the body clips reaches nothing.
+        function revealLabel(label) {
+            const body = scrollerOf(label);
+            if (!body)
+                return;
+            const bottom = label.mapToItem(body, 0, label.height).y;
+            if (bottom > body.height) {
+                body.contentY = Math.min(body.contentY + bottom - body.height, body.contentHeight - body.height);
+                wait(20);
+            }
+        }
+
         /// Rest the pointer on a row's title, which is the whole gesture.
         function hoverTitle(main, panel, text) {
             const label = labelOf(panel, text);
+            revealLabel(label);
             mouseMove(label, label.width / 2, label.height / 2);
             return previewOf(main);
         }
@@ -342,6 +356,35 @@ Item {
             verify(definition.length === 1);
             compare(definition[0].text, Controller.settingPreview.example);
             leaveTitle(main, panel);
+        }
+
+        /// A switch's card draws the one block that switch adds, so the four word-detail cards differ even
+        /// with every one of them on (UI-SPEC.md 4.4): each shows its own block and none of the others.
+        function test_aWordDetailPreviewDrawsOnlyItsOwnBlock() {
+            const main = make();
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "Reading & learning");
+
+            const keys = {"IPA": "ipa", "Part of speech": "pos", "Signpost": "signpost", "Collocations": "collocations"};
+            const previous = {};
+            try {
+                for (const label in keys) {
+                    previous[label] = Controller.settings[keys[label]];
+                    Controller.setSetting(keys[label], true);
+                }
+                wait(20);
+                for (const label in keys) {
+                    const preview = hoverTitle(main, panel, label);
+                    tryCompare(preview, "visible", true);
+                    for (const other in keys)
+                        compare(preview[keys[other]].length > 0, other === label, label + " card drew " + keys[other]);
+                    leaveTitle(main, panel);
+                }
+            } finally {
+                for (const label in previous)
+                    Controller.setSetting(keys[label], previous[label]);
+            }
         }
 
         /// One reading per field the controller fills an explanation language into: English and

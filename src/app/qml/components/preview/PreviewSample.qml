@@ -7,10 +7,10 @@ import QtQuick
  *
  * The preview is the explanation bubble itself, so what a reader resting on "Etymology" sees is the
  * card their own bubble would be: the definition in the explanation language they have set, in the
- * fields the controller fills for that language, at the pace they have set. One part is forced in --
- * the block the setting under the pointer adds -- because a preview that mirrored the settings
- * exactly would draw nothing at all for a switch that is off, and the hover asks what turning it on
- * would give.
+ * fields the controller fills for that language, at the pace they have set. A switch's preview is the
+ * exception: it draws the one block that switch adds and no other, because a card that carried every
+ * stored switch would look the same for each switch that is on, and the hover asks what turning this
+ * one on would give.
  *
  * The sample is content rather than interface copy, so it lives in data/preview.json and not in a
  * translation table: the language of an explanation is a runtime setting, not the interface's.
@@ -42,15 +42,17 @@ QtObject {
                    : (settings.explanationLang || "en");
         /// The sample's text in one language, falling back to the English it is always written in.
         const local = (text) => (text ? (text[lang] || text.en || "") : "");
-        // The one part the hovered row forces: several senses, an origin, an example sentence, an
-        // IPA, a signpost or a collocation line. Everything else follows the stored switches.
-        const multiple = key === "multisense" || settings.multiSense;
+        // A switch's preview draws its own block alone; the other previews follow the stored switches.
+        const switches = ["multisense", "etymology", "example", "ipa", "pos", "signpost", "collocations"];
+        const isSwitch = switches.indexOf(key) >= 0;
+        const shows = (name, on) => isSwitch ? key === name : on;
+        const multiple = shows("multisense", settings.multiSense);
         const senses = multiple ? sample.senses || [] : [];
         const payload = {
             title: sample.word,
             type: "word",
-            ipa: key === "ipa" || settings.ipa ? sample.ipa || "" : "",
-            pos: key === "pos" || settings.pos ? sample.pos || "" : "",
+            ipa: shows("ipa", settings.ipa) ? sample.ipa || "" : "",
+            pos: shows("pos", settings.pos) ? sample.pos || "" : "",
             // No verdict: the demo word is not a word the reader has met, and the tag row says so.
             status: "",
             en: "",
@@ -61,10 +63,10 @@ QtObject {
             // asked for, the reader's own language otherwise, never both.
             senses: senses.map((sense) => ({en: lang === "en" ? sense.en || "" : "",
                                             text: lang === "en" ? "" : local(sense)})),
-            signpost: key === "signpost" || settings.signpost ? sample.signpost || "" : "",
-            collocations: key === "collocations" || settings.collocations ? sample.collocations || [] : [],
-            etymology: key === "etymology" || settings.etymology ? local(sample.etymology) : "",
-            example: key === "example" || settings.example ? sample.example || "" : "",
+            signpost: shows("signpost", settings.signpost) ? sample.signpost || "" : "",
+            collocations: shows("collocations", settings.collocations) ? sample.collocations || [] : [],
+            etymology: shows("etymology", settings.etymology) ? local(sample.etymology) : "",
+            example: shows("example", settings.example) ? sample.example || "" : "",
             // The mother-tongue preview's one forced block: the peek line in the hovered
             // language, the same rule the real peek reads its line by. Every other payload
             // carries none, and the card draws no peek slot for an empty one.
