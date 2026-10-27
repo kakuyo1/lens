@@ -24,17 +24,17 @@
         <translation>状语</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="194"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="199"/>
         <source>Failed: %1</source>
         <translation>失败：%1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="195"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="200"/>
         <source>Breaking down…</source>
         <translation>正在拆解…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="195"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="200"/>
         <source>Correcting…</source>
         <translation>正在纠正…</translation>
     </message>
@@ -2607,22 +2607,22 @@
         <translation>每 1–2 小时</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="258"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="264"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>当前解释语言下没有已存的释义。</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="260"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="266"/>
         <source>Explain now</source>
         <translation>现在解释</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="656"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="660"/>
         <source>Explaining…</source>
         <translation>正在解释…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="784"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="788"/>
         <source>Request failed</source>
         <translation>请求失败</translation>
     </message>
@@ -2704,26 +2704,6 @@
         <translation>模型未正常结束（原因：%1）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="315"/>
-        <source>The service is not set up.</source>
-        <translation>服务尚未设置。</translation>
-    </message>
-    <message>
-        <location filename="../src/llm/llm_pure.cpp" line="316"/>
-        <source>No connection or timeout.</source>
-        <translation>无法连接或超时。</translation>
-    </message>
-    <message>
-        <location filename="../src/llm/llm_pure.cpp" line="317"/>
-        <source>The answer could not be read.</source>
-        <translation>回答无法读取。</translation>
-    </message>
-    <message>
-        <location filename="../src/llm/llm_pure.cpp" line="318"/>
-        <source>Service error (HTTP %1).</source>
-        <translation>服务返回错误（HTTP %1）。</translation>
-    </message>
-    <message>
         <location filename="../src/llm/llm_pure.cpp" line="405"/>
         <source>absent</source>
         <translation>缺失</translation>
@@ -2758,6 +2738,26 @@
         <location filename="../src/llm/llm_pure.cpp" line="547"/>
         <source>A results entry does not match the response schema.</source>
         <translation>results 中有一项不符合响应 schema。</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="315"/>
+        <source>The service is not set up. Add an API key in Settings.</source>
+        <translation>服务尚未设置，请先在设置中添加 API key。</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="316"/>
+        <source>No connection or timeout. Check the network and try again.</source>
+        <translation>无法连接或超时。请检查网络后重试。</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="317"/>
+        <source>The model&apos;s answer did not match the sentence. Try again.</source>
+        <translation>模型的回答与这句话对不上。请重试。</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="318"/>
+        <source>The service returned an error (HTTP %1). Try again later.</source>
+        <translation>服务返回了错误（HTTP %1）。请稍后重试。</translation>
     </message>
     <message>
         <location filename="../src/llm/llm_pure.cpp" line="561"/>

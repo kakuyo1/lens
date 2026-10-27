@@ -24,17 +24,17 @@
         <translation>Adverbial</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="194"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="199"/>
         <source>Failed: %1</source>
         <translation>Fallo: %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="195"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="200"/>
         <source>Breaking down…</source>
         <translation>Analizando…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="195"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="200"/>
         <source>Correcting…</source>
         <translation>Corrigiendo…</translation>
     </message>
@@ -2622,22 +2622,22 @@
         <translation>Manual</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="258"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="264"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>No hay ninguna explicación guardada para esta palabra en el idioma actual.</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="260"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="266"/>
         <source>Explain now</source>
         <translation>Explicar ahora</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="656"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="660"/>
         <source>Explaining…</source>
         <translation>Explicando…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="784"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="788"/>
         <source>Request failed</source>
         <translation>La solicitud ha fallado</translation>
     </message>
@@ -2748,26 +2748,6 @@
         <translation>Estado HTTP inesperado %1.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="315"/>
-        <source>The service is not set up.</source>
-        <translation>El servicio aún no está configurado.</translation>
-    </message>
-    <message>
-        <location filename="../src/llm/llm_pure.cpp" line="316"/>
-        <source>No connection or timeout.</source>
-        <translation>Sin conexión o tiempo de espera agotado.</translation>
-    </message>
-    <message>
-        <location filename="../src/llm/llm_pure.cpp" line="317"/>
-        <source>The answer could not be read.</source>
-        <translation>No se pudo leer la respuesta.</translation>
-    </message>
-    <message>
-        <location filename="../src/llm/llm_pure.cpp" line="318"/>
-        <source>Service error (HTTP %1).</source>
-        <translation>Error del servicio (HTTP %1).</translation>
-    </message>
-    <message>
         <location filename="../src/llm/llm_pure.cpp" line="708"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>El modelo respondió con algo que no es un objeto JSON.</translation>
@@ -2781,6 +2761,26 @@
         <location filename="../src/llm/llm_pure.cpp" line="402"/>
         <source>The model stopped before finishing (reason: %1).</source>
         <translation>El modelo se detuvo antes de terminar (motivo: %1).</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="315"/>
+        <source>The service is not set up. Add an API key in Settings.</source>
+        <translation>El servicio no está configurado. Añade una clave de API en Ajustes.</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="316"/>
+        <source>No connection or timeout. Check the network and try again.</source>
+        <translation>Sin conexión o tiempo agotado. Comprueba la red e inténtalo de nuevo.</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="317"/>
+        <source>The model&apos;s answer did not match the sentence. Try again.</source>
+        <translation>La respuesta del modelo no coincidía con la frase. Inténtalo de nuevo.</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="318"/>
+        <source>The service returned an error (HTTP %1). Try again later.</source>
+        <translation>El servicio devolvió un error (HTTP %1). Inténtalo más tarde.</translation>
     </message>
     <message>
         <location filename="../src/llm/llm_pure.cpp" line="405"/>

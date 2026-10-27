@@ -60,6 +60,11 @@ Column {
         }
         return boxes;
     }
+    /// The runs a breakdown tints: the four roles only. The segments can briefly carry a correction's "changed"
+    /// run while the card's correction flag is still clearing, so the tint never takes a role it has no colour for.
+    readonly property var tintBoxes: root.runBoxes.filter(box => root.roleOrder.indexOf(box.role) >= 0)
+    /// The runs a correction underlines: its changed words and nothing else.
+    readonly property var changeBoxes: root.runBoxes.filter(box => box.role === "changed")
 
     /// @return The role colour at 16% over the bubble's own fill, as the hex a box is painted with.
     function tintOf(color) {
@@ -90,7 +95,7 @@ Column {
             }
 
             Repeater {
-                model: root.correcting ? [] : root.runBoxes
+                model: root.correcting ? [] : root.tintBoxes
 
                 delegate: Rectangle {
                     id: box
@@ -108,7 +113,7 @@ Column {
 
             // A correction's changed words: a 1 px rule under each word's baseline, whole pixels so it stays crisp.
             Repeater {
-                model: root.correcting ? root.runBoxes : []
+                model: root.correcting ? root.changeBoxes : []
 
                 delegate: Rectangle {
                     id: mark

@@ -144,6 +144,17 @@ inline constexpr int kBreakdownMaxWords = 80;
 QStringList breakdownWords(QString const& sentence);
 
 /**
+ * @brief The breakdown's user message: each word on its own line, led by its index and a space.
+ *
+ * The model answers with these indices, so they are written out rather than left for the model to count
+ * lines it cannot see the numbers of.
+ *
+ * @param words The sentence split by breakdownWords().
+ * @return One "index word" line per word, in order.
+ */
+QStringList breakdownLines(QStringList const& words);
+
+/**
  * @brief Whether a selection is one the breakdown is offered for: English, and no more than
  *        kBreakdownMaxWords words.
  *

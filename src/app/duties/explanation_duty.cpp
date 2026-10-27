@@ -38,6 +38,12 @@ QVariantList breakdownSegments(QString const& sentence, QVector<llm::RoleSpan> c
     return segments;
 }
 
+/// @return The sentence as one unmarked run, the shape a card shows while it waits or when its answer failed.
+QVariantList plainSegments(QString const& sentence)
+{
+    return QVariantList{QVariantMap{{"text", sentence}, {"role", QString{}}}};
+}
+
 /// @return The corrected text as runs: a changed word carries the role "changed", which the bubble underlines.
 QVariantList correctionSegments(QString const& original, QString const& corrected)
 {
@@ -465,7 +471,7 @@ void ExplanationDuty::breakdown(PendingSelection const& pending)
     if (card != nullptr and card->preset == kBreakdownPreset and card->text == pending.text and
         bubble_.value(QStringLiteral("breakdown")).toString() != QLatin1String("failed"))
         return;
-    showBreakdown(pending, QStringLiteral("pending"), QVariantList{QVariantMap{{"text", pending.text}, {"role", QString{}}}}, {}, {});
+    showBreakdown(pending, QStringLiteral("pending"), plainSegments(pending.text), {}, {});
     llm_.breakdownSentence(pending.text, llm::breakdownWords(pending.text));
 }
 
@@ -483,7 +489,7 @@ void ExplanationDuty::correct(PendingSelection const& pending, QString const& pr
         return;
     PendingSelection selection = pending;
     selection.preset           = preset;
-    showCorrection(selection, QStringLiteral("pending"), {}, {});
+    showCorrection(selection, QStringLiteral("pending"), plainSegments(pending.text), {});
     if (preset == kSpellPreset)
         llm_.correctSpelling(pending.text);
     else
@@ -499,7 +505,7 @@ void ExplanationDuty::onCorrectionAnswered(QString const& text, llm::Channel con
     if (card == nullptr or card->preset != preset or card->text != text) return;
     const PendingSelection selection = *card;
     if (corrected.isEmpty()) {
-        showCorrection(selection, QStringLiteral("failed"), {}, failure);
+        showCorrection(selection, QStringLiteral("failed"), plainSegments(text), failure);
         return;
     }
     showCorrection(selection, QStringLiteral("ready"), correctionSegments(text, corrected), {});
@@ -548,7 +554,7 @@ void ExplanationDuty::onBreakdownAnswered(QString const& sentence, QVector<llm::
     if (card == nullptr or card->preset != kBreakdownPreset or card->text != sentence) return;
     const PendingSelection selection = *card;
     if (spans.isEmpty()) {
-        showBreakdown(selection, QStringLiteral("failed"), {}, {}, failure);
+        showBreakdown(selection, QStringLiteral("failed"), plainSegments(sentence), {}, failure);
         return;
     }
     showBreakdown(selection, QStringLiteral("ready"), breakdownSegments(sentence, spans), llm::breakdownRoles(spans), {});

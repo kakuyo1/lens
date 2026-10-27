@@ -30,6 +30,7 @@ using lens::llm::Config;
 using lens::llm::Usage;
 using lens::llm::Explanation;
 using lens::llm::breakdownApplies;
+using lens::llm::breakdownLines;
 using lens::llm::breakdownWords;
 using lens::llm::buildRequestBody;
 using lens::llm::failureLineFor;
@@ -799,10 +800,17 @@ TEST_F(LlmTest, TheGrammarCorrectionTakesTheSameSentencesAsTheBreakdown)
 
 TEST_F(LlmTest, AFailedBreakdownOrCorrectionSaysWhyInOneReaderLine)
 {
-    EXPECT_EQ(failureLineFor(0), QStringLiteral("No connection or timeout."));
-    EXPECT_EQ(failureLineFor(503), QStringLiteral("Service error (HTTP 503)."));
-    EXPECT_EQ(failureLineFor(200), QStringLiteral("The answer could not be read."));
-    EXPECT_EQ(failureLineFor(-1), QStringLiteral("The service is not set up."));
+    EXPECT_EQ(failureLineFor(0), QStringLiteral("No connection or timeout. Check the network and try again."));
+    EXPECT_EQ(failureLineFor(503), QStringLiteral("The service returned an error (HTTP 503). Try again later."));
+    EXPECT_EQ(failureLineFor(200), QStringLiteral("The model's answer did not match the sentence. Try again."));
+    EXPECT_EQ(failureLineFor(-1), QStringLiteral("The service is not set up. Add an API key in Settings."));
+}
+
+TEST_F(LlmTest, TheBreakdownAsksWithEachWordAndItsIndex)
+{
+    EXPECT_EQ(breakdownLines(QStringList{"The", "cat,", "sleeps."}),
+              (QStringList{"0 The", "1 cat,", "2 sleeps."}));
+    EXPECT_TRUE(breakdownLines({}).isEmpty());
 }
 
 TEST_F(LlmTest, TheBreakdownRunsCoverTheSentenceAndColourOnlyTheMarkedWords)

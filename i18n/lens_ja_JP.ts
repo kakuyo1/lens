@@ -24,17 +24,17 @@
         <translation>状語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="194"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="199"/>
         <source>Failed: %1</source>
         <translation>失敗：%1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="195"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="200"/>
         <source>Breaking down…</source>
         <translation>分解中…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="195"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="200"/>
         <source>Correcting…</source>
         <translation>修正中…</translation>
     </message>
@@ -2622,22 +2622,22 @@
         <translation>手動</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="258"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="264"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>現在の解説言語では、この単語の保存された解説がありません。</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="260"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="266"/>
         <source>Explain now</source>
         <translation>今すぐ解説</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="656"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="660"/>
         <source>Explaining…</source>
         <translation>解説中…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="784"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="788"/>
         <source>Request failed</source>
         <translation>リクエストに失敗しました</translation>
     </message>
@@ -2748,26 +2748,6 @@
         <translation>予期しない HTTP ステータス %1。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="315"/>
-        <source>The service is not set up.</source>
-        <translation>サービスがまだ設定されていません。</translation>
-    </message>
-    <message>
-        <location filename="../src/llm/llm_pure.cpp" line="316"/>
-        <source>No connection or timeout.</source>
-        <translation>接続できないか、タイムアウトしました。</translation>
-    </message>
-    <message>
-        <location filename="../src/llm/llm_pure.cpp" line="317"/>
-        <source>The answer could not be read.</source>
-        <translation>回答を読み取れませんでした。</translation>
-    </message>
-    <message>
-        <location filename="../src/llm/llm_pure.cpp" line="318"/>
-        <source>Service error (HTTP %1).</source>
-        <translation>サービスがエラーを返しました（HTTP %1）。</translation>
-    </message>
-    <message>
         <location filename="../src/llm/llm_pure.cpp" line="708"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>モデルの応答が JSON オブジェクトではありません。</translation>
@@ -2781,6 +2761,26 @@
         <location filename="../src/llm/llm_pure.cpp" line="402"/>
         <source>The model stopped before finishing (reason: %1).</source>
         <translation>モデルが途中で停止しました（理由：%1）。</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="315"/>
+        <source>The service is not set up. Add an API key in Settings.</source>
+        <translation>サービスが設定されていません。設定で API キーを追加してください。</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="316"/>
+        <source>No connection or timeout. Check the network and try again.</source>
+        <translation>接続できないか、タイムアウトしました。ネットワークを確認して、もう一度お試しください。</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="317"/>
+        <source>The model&apos;s answer did not match the sentence. Try again.</source>
+        <translation>モデルの回答が文と一致しませんでした。もう一度お試しください。</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="318"/>
+        <source>The service returned an error (HTTP %1). Try again later.</source>
+        <translation>サービスがエラーを返しました（HTTP %1）。しばらくしてから、もう一度お試しください。</translation>
     </message>
     <message>
         <location filename="../src/llm/llm_pure.cpp" line="405"/>

@@ -312,10 +312,10 @@ QString httpErrorFor(int status)
 
 QString failureLineFor(int const status)
 {
-    if (status < 0) return QCoreApplication::translate("lens::llm", "The service is not set up.");
-    if (status == 0) return QCoreApplication::translate("lens::llm", "No connection or timeout.");
-    if (status == 200) return QCoreApplication::translate("lens::llm", "The answer could not be read.");
-    return QCoreApplication::translate("lens::llm", "Service error (HTTP %1).").arg(status);
+    if (status < 0) return QCoreApplication::translate("lens::llm", "The service is not set up. Add an API key in Settings.");
+    if (status == 0) return QCoreApplication::translate("lens::llm", "No connection or timeout. Check the network and try again.");
+    if (status == 200) return QCoreApplication::translate("lens::llm", "The model's answer did not match the sentence. Try again.");
+    return QCoreApplication::translate("lens::llm", "The service returned an error (HTTP %1). Try again later.").arg(status);
 }
 
 QString maskSensitive(const QString& text)
@@ -726,6 +726,15 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel           
 QStringList breakdownWords(QString const& sentence)
 {
     return sentence.split(QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts);
+}
+
+QStringList breakdownLines(QStringList const& words)
+{
+    QStringList lines;
+    lines.reserve(words.size());
+    for (qsizetype i = 0; i < words.size(); ++i)
+        lines << QStringLiteral("%1 %2").arg(i).arg(words.at(i));
+    return lines;
 }
 
 bool breakdownApplies(QString const& sentence)

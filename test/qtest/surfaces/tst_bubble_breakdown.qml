@@ -41,8 +41,8 @@ Item {
             })[0];
         }
 
-        /// The breakdown's payload as the duty sends it: pending holds the sentence as one run, and
-        /// ready splits it into role runs; whitespace stays in its own run either way.
+        /// The breakdown's payload as the duty sends it: pending and failed hold the sentence as one run,
+        /// and ready splits it into role runs; whitespace stays in its own run either way.
         function breakdownPayload(state, roles, failure) {
             const segments = state === "ready"
                 ? [{text: "The rain", role: "S"}, {text: " ", role: ""}, {text: "stopped.", role: "V"}]
@@ -102,6 +102,41 @@ Item {
             wait(50);
             verify(Util.textWith(Util.textsUnder(bubble), ["Failed: No connection or timeout."]),
                    "failed drew no line");
+            bubble.visible = false;
+        }
+
+        /// @return The sentence's text item on the breakdown card, the one a reader reads in every state.
+        function sentenceOf(bubble) {
+            return Util.findAll(breakdownOf(bubble), function (o) { return o.objectName === "breakdownSentence"; })[0];
+        }
+
+        /// A failed breakdown keeps the sentence on the card with its reason beneath, so the reader sees what
+        /// did not break down; the card does not go blank.
+        function test_aFailedBreakdownKeepsTheSentenceOnTheCard() {
+            const bubble = createTemporaryObject(bubbleComponent, root);
+            verify(bubble);
+            bubble.show(breakdownPayload("failed", [], "The model's answer did not match the sentence. Try again."));
+            wait(50);
+            compare(sentenceOf(bubble).text, "The rain stopped.", "the failed card lost its sentence");
+            verify(Util.textWith(Util.textsUnder(bubble), ["Failed: The model's answer did not match the sentence. Try again."]),
+                   "failed drew no reason");
+            bubble.visible = false;
+        }
+
+        /// A changed run left over from a correction must not be tinted once the card is a breakdown: the breakdown
+        /// tints only the four roles, so the run draws no box at all.
+        function test_aChangedRunLeftOverFromACorrectionIsNotTinted() {
+            const bubble = createTemporaryObject(bubbleComponent, root);
+            verify(bubble);
+            bubble.show(correctionPayload("ready", "grammar", [
+                {text: "She ", role: ""}, {text: "goes", role: "changed"}, {text: " home.", role: ""}
+            ]));
+            wait(50);
+            // The flag clears before the segments are replaced, so the old "changed" run is still there for a moment.
+            bubble.correction = "";
+            wait(50);
+            compare(Util.findAll(breakdownOf(bubble), function (o) { return o.objectName === "tintBox"; }).length, 0,
+                    "a changed run was tinted as a breakdown");
             bubble.visible = false;
         }
 
@@ -276,12 +311,15 @@ Item {
             bubble.show(correctionPayload("pending", "spell", plain, "word"));
             wait(50);
             verify(Util.textWith(Util.textsUnder(bubble), ["Correcting…"]), "pending did not say Correcting…");
+            compare(sentenceOf(bubble).text, "She recieve home.", "a pending correction lost its sentence");
             compare(Util.findAll(breakdownOf(bubble), function (o) { return o.objectName === "underlineBox"; }).length, 0,
                     "a pending correction drew a rule");
 
-            bubble.show(correctionPayload("failed", "spell", plain, "word", "The answer could not be read."));
+            bubble.show(correctionPayload("failed", "spell", plain, "word", "The model's answer did not match the sentence. Try again."));
             wait(50);
-            verify(Util.textWith(Util.textsUnder(bubble), ["Failed: The answer could not be read."]), "failed did not say so");
+            compare(sentenceOf(bubble).text, "She recieve home.", "a failed correction lost its sentence");
+            verify(Util.textWith(Util.textsUnder(bubble), ["Failed: The model's answer did not match the sentence. Try again."]),
+                   "failed did not say so");
             bubble.visible = false;
         }
 

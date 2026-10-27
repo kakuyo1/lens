@@ -466,7 +466,7 @@ void LlmClient::breakdownSentence(QString const& sentence, QStringList const& wo
     LENS_INFO("breaking down a {}-word sentence with '{}'", words.size(), config_.model.toStdString());
     LENS_TRACE("POST {} (timeout {} ms, key hidden)", url.toString().toStdString(), kTimeoutMs);
 
-    QNetworkReply* reply = manager_->post(httpRequest, buildRequestBody(config_, Channel::Breakdown, words, QStringLiteral("en")));
+    QNetworkReply* reply = manager_->post(httpRequest, buildRequestBody(config_, Channel::Breakdown, breakdownLines(words), QStringLiteral("en")));
 
     connect(reply, &QNetworkReply::finished, this, [this, reply, sentence, count = words.size(), model] {
         reply->deleteLater();
