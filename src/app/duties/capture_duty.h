@@ -62,6 +62,13 @@ inline bool isWordKind(core::SelectionKind const kind)
     return kind == core::SelectionKind::Word;
 }
 
+/// @brief The preset a sentence selection carries once the reader asks for its breakdown. It is part
+///        of the card's identity, so a breakdown and a translation or explanation of one text stay apart.
+inline QString const kBreakdownPreset{QStringLiteral("breakdown")};
+/// @brief The presets a spelling and a grammar correction carry, for the same reason as the breakdown's.
+inline QString const kSpellPreset{QStringLiteral("spell")};
+inline QString const kGrammarPreset{QStringLiteral("grammar")};
+
 class CaptureDuty final : public QObject {
     Q_OBJECT
     QML_ANONYMOUS

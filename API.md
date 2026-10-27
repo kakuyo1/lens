@@ -17,8 +17,11 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 | 译文 | `data/llm/request.translation.json` | `data/llm/response.translation.schema.json` | 中文选区专用，只回 `en` 一个字段 |
 | 一瞥 | `data/llm/request.peek.json` | `data/llm/response.peek.schema.json` | 气泡按住地球的母语一行，只回 `line` 一个字段，不流式 |
 | 义项 | `data/llm/request.sense.json` | `data/llm/response.sense.schema.json` | 气泡 Not-the-Sense? 条目的下一个常见义项，至多一个，不流式 |
+| 拆解 | `data/llm/request.breakdown.json` | `data/llm/response.breakdown.schema.json` | 句子选区的成分拆解，只回词的下标，不流式，已落地（§3.6） |
+| 纠正拼写 | `data/llm/request.spell.json` | `data/llm/response.spell.schema.json` | 单个 token 的拼写修正，只回修正后的词，不流式（§3.7） |
+| 纠正语法 | `data/llm/request.grammar.json` | `data/llm/response.grammar.schema.json` | 句子的语法与拼写修正，只回修正后的整句，不流式（§3.7） |
 
-前三条通道由**选区的形状**决定，第四条由**语言**决定：选区里出现汉字（CJK 表意文字）时，它是单词、实体还是句子都不再作数，整段走译文通道，**三种形状共用这一套提示词**（`docs/adr/0044`）。读者要的是中文的英文，词、专名、整句都一样。第五条由**手势**决定：解释语言为英文时按住气泡上的地球，为一个词、句子或实体要一行母语释义（`docs/adr/0112`、`docs/adr/0124`）。第六条由**卡片上的条目**决定：多义关闭时单义卡底部的 `Not-the-Sense?` 条目，为立着的词要一个尚未给出的更常见义项（`docs/adr/0113`）。
+前三条通道由**选区的形状**决定，第四条由**语言**决定：选区里出现汉字（CJK 表意文字）时，它是单词、实体还是句子都不再作数，整段走译文通道，**三种形状共用这一套提示词**（`docs/adr/0044`）。读者要的是中文的英文，词、专名、整句都一样。第五条由**手势**决定：解释语言为英文时按住气泡上的地球，为一个词、句子或实体要一行母语释义（`docs/adr/0112`、`docs/adr/0124`）。第六条由**卡片上的条目**决定：多义关闭时单义卡底部的 `Not-the-Sense?` 条目，为立着的词要一个尚未给出的更常见义项（`docs/adr/0113`）。第七条由**复制抽屉里的 “句子拆解”** 决定，只对句子选区发出（`UI-SPEC.md` 4.3）；它不回显文字，只回词的下标，协议见 §3.6。第八条由**复制抽屉里的 “纠正拼写”** 决定，只对单个 token 选区发出；第九条由**复制抽屉里的 “纠正语法”** 决定，只对句子选区发出。两者都不回显原文，应用持有原文并自行对比修正（§3.7）。注意：第七至第九条的通道由读者按下的动作决定，形状只决定该动作是否出现（`docs/adr/0009` 修订）。
 
 `llm_protocol.{h,cpp}` 加载并校验这些文件：缺文件、非法 JSON、必填值为空一律抛，**不回落内置默认值**——回落会正好掩盖这次抽离要防的漂移。
 
@@ -42,7 +45,7 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 ```
 
 - `messages[0]` 是系统提示词，取自所选通道与预设的 `systemPrompt.template`；末句由 `{outputLanguage}` 占位符按语言码替换——解释语言定四条解释通道的收尾行，母语定一瞥的（`outputLanguage.en` / `.zh` / `.zh-Hant` / `.es` / `.ja`）。提示词本身是英文。
-- `messages[1]` 是待查内容，**一行一个**。单词只发词根，实体只发实体名，句子只发选中的句子；发送前做脱敏兜底（邮箱 / 长数字 / URL 掩码成 `<email>` / `<num>` / `<url>`）。
+- `messages[1]` 是待查内容，**一行一个**。单词只发词根，实体只发实体名，句子只发选中的句子，拆解只发切好的词（§3.6）；发送前做脱敏兜底（邮箱 / 长数字 / URL 掩码成 `<email>` / `<num>` / `<url>`），脱敏只替换行内文字、不增减行数，所以拆解的下标不因此错位。
 - `thinking` 必须显式设成 `disabled`：DeepSeek 默认开启思考模式（effort=high），开着会白付 reasoning token 且更慢。思考模式下 `temperature` 无效；`top_p` 仅思考模式生效（有效区间 0.95–1.0），非思考模式固定 1.0。
 - `max_tokens` 必须显式设（非思考模式缺省 8K）：JSON 被截断时接口不报错，只把 `finish_reason` 置为 `length`。
 - `response_format` 为 `json_object`，因此系统提示词里必须出现 `json` 字样并给出格式示例，缺了模型会一路吐空白到 `max_tokens` 用尽。
@@ -212,6 +215,53 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 
 客户端按字节缓冲、到事件终止（空行）才解码，所以一个 `data:` 行、一段转义、一个多字节字符被读取边界切开都不会读坏；事件终止既认 `\n\n` 也认 `\r\n\r\n`。`partial` 只在真正画得出的字段发生变化时才再发一次。
 
+## 3.6 响应体：拆解
+
+句子选区的成分拆解（`UI-SPEC.md` 4.3）。**应用先切词，模型只回下标**：切词在本地做，模型不负责数词，所以它数错一个词不会把颜色画到别的词上。
+
+- `messages[1]` 是切好的词，**一行一个**，每行先写下标（从 0 起）、一个空格、再写词，如 `0 The`、`1 rain`。下标由应用写定（`breakdownLines`），不交给模型去数行。切词按空白，标点随词，与选区分类所用的切词一致。
+- 系统提示词说明四个角色：`S` 主语、`V` 谓语、`C` 表语、`A` 状语。从句按其在句中的功能归入（状语从句归 `A`）。`from` 与 `to` 是待查内容中从 0 起的行号，两端含。
+- 响应只给被标出的词：
+
+```json
+{
+  "results": [
+    {
+      "spans": [
+        { "role": "A", "from": 0, "to": 4 },
+        { "role": "S", "from": 5, "to": 6 },
+        { "role": "V", "from": 7, "to": 7 },
+        { "role": "C", "from": 8, "to": 8 },
+        { "role": "A", "from": 9, "to": 10 }
+      ]
+    }
+  ]
+}
+```
+
+- 没有标出的词照常画原色，不加底。同一个词只属于一段。
+- 请求与 §2 相同，除了 `stream` 为 `false`（整份到达才画，同一瞥的理由）；因此不发 `stream_options`，用量由非流式响应的 `usage` 给出，花费按 §6 计。`max_tokens` 取 1024 作起点值。一次 80 词的真实调用 completion 为 454 token，未截断，但某个 span 的索引被判越界。此前请求不带下标，模型要自己数行，数错即越界；现每行带下标（见上文），待复测；拒收时日志记下越界的 `from` / `to` 值。
+- 响应不回显句子文字。气泡上的原句由应用自己持有，与句子通道的 `title` 盖章规则一样。
+- 结果不入单词缓存，不进 verdict。
+- 失败（网络、状态码、回答不合格式）须带上一句读者可读的原因交给气泡，不以空结果掩盖（`UI-SPEC.md` 4.3 校验）。原因由应用给出（`failureLineFor`），不取服务返回的原文。
+
+## 3.7 响应体：纠正
+
+纠正拼写与纠正语法（`UI-SPEC.md` 4.10）。两条通道的请求与 §2 相同，`stream` 为 `false`，只回修正后的文字，不回显原文；应用持有原文，修正前后的词差由应用本地对比得出，模型不负责标出改动。
+
+```json
+{
+  "results": [
+    { "corrected": "receive" }
+  ]
+}
+```
+
+- 拼写通道只收单个 token：修正结果不得含空白，否则整份作废。语法通道的修正结果是整句，不得为空。
+- 原文与修正相同即 “无需改动”，不作失败。
+- 失败的读者原因与 §3.6 相同，由应用给出（`failureLineFor`）。
+- 结果不入单词缓存，不进 verdict，计入花费。
+
 ## 4 校验规则
 
 响应是**第三方不可信数据**，任一项不过即整批失败，不静默丢词：
@@ -222,6 +272,9 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 4. `results` 每一项是对象，且**具备所选 schema 要求的全部字段**；
 5. `en` 非空；`zh` 对前三条通道同样必须非空，**译文与一瞥通道除外**——它们只要求各自的一行（译文的 `en`、一瞥的 `line`），`zh` 与 `translation` 根本不在它们的 schema 里；解释语言为 `es` / `ja` 时 `translation` 也必须非空，同样不适用于这两条一行通道；义项通道的空 `senses` 应答连 `en` 都可以空——那是耗尽正答，不是残批；单词通道额外要求 `word` 非空，`ipa` 可空（孤立缩写的单词没有音标），`etymology` 同样可空（开关关着时不发，来历不明的词也没有）；`example` 也可空（开关关着时不发，模型没有句子可给时缺席）；`imageable` / `imageQuery` 可空（见 §3 的表：建议值不因缺失或类型不对而判批失败）；多义数组按 schema 校验，应用最多保留 3 项；
 6. 单词通道回显的词与请求**逐一对应**：不少、不拼错；**同一个词回显两次不算失败**——模型把一条义项一个结果写出来时就会这样命名同一个词，代码把重复的那条并入已保留的那条（相同义项去重，条数仍受 3 条上限约束），因为丢掉已经到手的释义比多一次回显更糟；模型回显了请求里没有的词仍然算失败。实体 / 句子不回显，按请求顺序取结果（`title` 由 App 盖上），模型把一段拆成多条时按顺序**合并**（各条 `en` / `zh` 以换行拼接）。返回顺序不作要求，代码按请求顺序回填。
+
+7. **拆解通道**（§3.6）：`spans` 必须是非空数组；每项的 `role` 只能是 `S` / `V` / `C` / `A`，`from` 与 `to` 是 `[0, 词数 − 1]` 内的整数且 `from ≤ to`，各段互不重叠。任一项不过即整份失败，不画部分色。
+8. **纠正通道**（§3.7）：`results` 恰好一项，`corrected` 非空；拼写通道的 `corrected` 不得含空白。任一项不过即整份失败。
 
 失败原因会经 Qt 翻译（`tr()` / `QCoreApplication::translate()`）后交给 `LlmClient::failed(QString)`，译文见 `i18n/lens_zh_CN.ts`。
 
@@ -253,6 +306,8 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 
 - `data/llm/request.word.json`、`request.entity.json`、`request.sentence.json`、`request.translation.json`、`request.peek.json` — 请求模板、预设、系统提示词与输出语言行
 - `data/llm/response.word.schema.json`、`response.entity.schema.json`、`response.sentence.schema.json`、`response.translation.schema.json`、`response.peek.schema.json` — 响应 schema（校验真源）
+- `data/llm/request.breakdown.json`、`data/llm/response.breakdown.schema.json` — 拆解通道的请求模板与校验真源（§3.6）
+- `data/llm/request.spell.json`、`data/llm/response.spell.schema.json`、`data/llm/request.grammar.json`、`data/llm/response.grammar.schema.json` — 纠正通道的请求模板与校验真源（§3.7）
 - `data/llm/pricing.json` — 价目数据，算金额用（§6）
 - `data/llm/catalog.json` — 服务商、离线模型种子、共用模型源与厂商前缀、base URL、解释语言与请求覆盖项
 - `src/llm/llm_protocol.{h,cpp}` — 加载与访问上述协议文件

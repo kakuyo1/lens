@@ -14,6 +14,12 @@ Item {
     property var actions: []
     property bool shown: false
     property var glassSheet: null
+    property var drawerItems: []
+    property string drawerSide: ""
+    /// Whether the pointer is on the copy card, which the drawer opens from.
+    property bool copyHovered: false
+    /// The copy card's drawer, which the bar sizes its window from.
+    property var drawer: copyDrawer
 
     // qmllint disable missing-property
     readonly property var tokens: Window.window.tokens
@@ -112,7 +118,7 @@ Item {
 
                 Accessible.role: Accessible.Button
                 Accessible.name: slot.modelData.label
-                Accessible.onPressAction: root.activate(slot.modelData.action)
+                Accessible.onPressAction: slot.modelData.action === "copy" && copyDrawer.applies ? copyDrawer.expand() : root.activate(slot.modelData.action)
 
                 transform: [
                     Translate {
@@ -232,12 +238,33 @@ Item {
                 HoverHandler {
                     id: hover
                     cursorShape: Qt.PointingHandCursor
+                    onHoveredChanged: {
+                        if (slot.modelData.action === "copy")
+                            root.copyHovered = hover.hovered;
+                    }
                 }
                 TapHandler {
                     id: press
                     onTapped: root.activate(slot.modelData.action)
                 }
             }
+        }
+
+        // The copy card is the third slot, so the drawer stands over its left edge at 2 * 77 and
+        // stays out of the card's tilt, which a child of the card would inherit.
+        CopyDrawer {
+            id: copyDrawer
+            form: "hand"
+            items: root.drawerItems
+            side: root.drawerSide
+            copyHovered: root.copyHovered
+            shown: root.shown
+            tokens: root.tokens
+            glassSheet: root.glassSheet
+            anchorX: 2 * 77
+            anchorW: 84
+            anchorH: 64
+            onPicked: (action) => root.activate(action)
         }
     }
 }

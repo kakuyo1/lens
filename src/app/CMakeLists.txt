@@ -275,6 +275,7 @@ qt_add_qml_module(lens_app
     qml/pet/SpriteLayer.qml
     qml/panels/TrayMenu.qml
     qml/selection/SelectionBar.qml
+    qml/selection/CopyDrawer.qml
     qml/selection/bodies/SelectionBarClassicBody.qml
     qml/selection/bodies/SelectionBarTabBody.qml
     qml/selection/bodies/SelectionBarHandBody.qml
@@ -346,6 +347,7 @@ qt_add_qml_module(lens_app
     qml/components/content/ChainText.qml
     qml/bubble/BubbleTitleRow.qml
     qml/bubble/BubbleChainPanel.qml
+    qml/bubble/BubbleBreakdown.qml
     qml/bubble/ChainEdges.qml
     qml/bubble/ChainSignpost.qml
     qml/bubble/ChainCollocations.qml
@@ -389,6 +391,9 @@ set(LENS_ICONS
   ${CMAKE_SOURCE_DIR}/data/icons/ui-chevron-down.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-chevron-right.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-close.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-breakdown.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-grammar.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-spell.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-copy.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-explain.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-export.svg
@@ -417,6 +422,7 @@ qt_add_shaders(lens_app "lens_shaders"
     ${CMAKE_CURRENT_SOURCE_DIR}/shaders/glass.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/shaders/glass_hblur.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/shaders/fan.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/fan_drawer.frag
 )
 
 # The .ts files, run through lrelease and embedded at :/i18n/. Rebuilding after a string

@@ -211,6 +211,9 @@ Window {
             const at = points.toDip(payload);
             bar.selectionText = payload.text;
             bar.selectionKind = payload.kind;
+            bar.breakdownable = payload.breakdownable === true;
+            bar.spellable = payload.spellable === true;
+            bar.grammarable = payload.grammarable === true;
             // A bar that is away stays hidden until it has been placed, rather than showing at its
             // last spot -- the screen corner, the first time -- and moving a frame later. One already
             // up is moved in the same turn, so a second selection does not flash it out and in.

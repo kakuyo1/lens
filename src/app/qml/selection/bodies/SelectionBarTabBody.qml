@@ -18,6 +18,10 @@ Item {
     /// The tab is to the left of the selection, so its spine and fold move to the other edge.
     property bool sideLeft: false
     property var glassSheet: null
+    property var drawerItems: []
+    property string drawerSide: ""
+    /// The copy item's drawer, which the bar sizes its window from.
+    property var drawer: null
 
     // qmllint disable missing-property
     readonly property var tokens: Window.window.tokens
@@ -152,7 +156,7 @@ Item {
 
                     Accessible.role: Accessible.Button
                     Accessible.name: item.modelData.label
-                    Accessible.onPressAction: root.activate(item.modelData.action)
+                    Accessible.onPressAction: item.modelData.action === "copy" && drawer.applies ? drawer.expand() : root.activate(item.modelData.action)
 
                     transform: Translate {
                         // The shift lifts the item away from the spine, so its direction flips
@@ -209,6 +213,33 @@ Item {
                     TapHandler {
                         id: press
                         onTapped: root.activate(item.modelData.action)
+                    }
+
+                    Icon {
+                        visible: item.modelData.action === "copy" && root.drawerItems.length > 0
+                        anchors.right: parent.right
+                        anchors.rightMargin: 1
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 9
+                        height: 9
+                        source: "qrc:/icons/ui-chevron-down.svg"
+                        color: root.tokens.muted
+                    }
+
+                    CopyDrawer {
+                        id: drawer
+                        form: "tab"
+                        items: item.modelData.action === "copy" ? root.drawerItems : []
+                        side: root.drawerSide
+                        copyHovered: hover.hovered
+                        shown: root.shown
+                        tokens: root.tokens
+                        glassSheet: root.glassSheet
+                        onPicked: (action) => root.activate(action)
+                        Component.onCompleted: {
+                            if (item.modelData.action === "copy")
+                                root.drawer = drawer;
+                        }
                     }
                 }
             }

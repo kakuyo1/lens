@@ -46,13 +46,19 @@ Window {
     /// gestures and the geometry through it.
     readonly property alias bodyItem: bodyLoader.item
 
-    /// The tab's side and the tag's string edge, chosen by SurfaceHost.qml before the bar is placed.
+    /// The tab's side and the tag's string edge, chosen by placeAt() before the bar is shown.
     property bool sideLeft: false
     property bool tagAbove: false
 
-    /// The selection the actions apply to, set by SurfaceHost.qml before it places and shows the bar.
+    /// The selection the actions apply to, set by Main.qml before it places and shows the bar.
     property string selectionText: ""
     property string selectionKind: "word"
+    /// Whether the selection is a sentence the breakdown can take (English, 40 words or fewer).
+    property bool breakdownable: false
+    /// Whether the selection is one token the spelling correction can take, and whether it is an English
+    /// sentence of 40 words or fewer the grammar correction can take. Set from the selection's payload.
+    property bool spellable: false
+    property bool grammarable: false
 
     /// The shapes this run has already introduced. The first arrival of a shape is the one that
     /// teaches it; later arrivals halve the entrance (UI-SPEC 4.17, ADR 0109).
@@ -68,8 +74,58 @@ Window {
         {action: "copy", label: qsTr("Copy text"), source: "qrc:/icons/ui-copy.svg"}
     ]
 
-    width: bodyLoader.width + 2 * shadowMargin
-    height: bodyLoader.height + 2 * shadowMargin
+    /// What the copy text's drawer offers for this selection (UI-SPEC.md 4.10), in the order the spec lists
+    /// them: the two corrections, then the breakdown.
+    readonly property var drawerItems: {
+        const items = [];
+        if (bar.spellable)
+            items.push({action: "spell", label: qsTr("Fix spelling"), source: "qrc:/icons/ui-spell.svg"});
+        if (bar.grammarable)
+            items.push({action: "grammar", label: qsTr("Fix syntax"), source: "qrc:/icons/ui-grammar.svg"});
+        if (bar.selectionKind === "sentence" && bar.breakdownable)
+            items.push({action: "breakdown", label: qsTr("Breakdown", "copy drawer item"), source: "qrc:/icons/ui-breakdown.svg"});
+        return items;
+    }
+
+    /// How far the drawer reaches past the body on each side, in px (UI-SPEC.md 4.10). The window keeps that room
+    /// while the drawer applies, so the drawer draws inside the window and the body keeps its place. It is
+    /// measured from the drawer's own labels, so a longer label or a second item widens the window with it.
+    // qmllint disable missing-property
+    readonly property var reach: drawerItems.length > 0 && bar.bodyItem && bar.bodyItem.drawer
+                                 ? bar.bodyItem.drawer.overhangIn(bar.bodyItem)
+                                 : ({top: 0, right: 0, bottom: 0, left: 0})
+    // qmllint enable missing-property
+    /// Where the body's top-left corner sits inside the window.
+    readonly property real originX: shadowMargin + reach.left
+    readonly property real originY: shadowMargin + reach.top
+
+    /// The card's place on screen is held while the room around it changes: when the origin moves, the window
+    /// moves the other way by the same amount, so the window grows toward the drawer and the card stays put.
+    /// The window's position is whole pixels, so the hold works on the rounded origin; a fraction taken from
+    /// each step would otherwise be lost, and the card would drift by a pixel a step.
+    property int heldOriginX: 0
+    property int heldOriginY: 0
+    onOriginXChanged: {
+        const now = Math.round(bar.originX);
+        bar.x += bar.heldOriginX - now;
+        bar.heldOriginX = now;
+    }
+    onOriginYChanged: {
+        const now = Math.round(bar.originY);
+        bar.y += bar.heldOriginY - now;
+        bar.heldOriginY = now;
+    }
+    Component.onCompleted: {
+        bar.heldOriginX = Math.round(bar.originX);
+        bar.heldOriginY = Math.round(bar.originY);
+    }
+
+    /// Which edge the drawer opens from: "up" or "down" for the vertical forms, "right" for the fan.
+    /// Set by placeAt() once the bar is placed; empty while it is not.
+    property string drawerSide: ""
+
+    width: bodyLoader.width + 2 * shadowMargin + reach.left + reach.right
+    height: bodyLoader.height + 2 * shadowMargin + reach.top + reach.bottom
 
     SurfaceFade {
         id: fade
@@ -112,15 +168,19 @@ Window {
     /// tab stands beside it; the hand and the fan centre on it; the tag hangs from a grommet 15 px
     /// in from its card. Each rule also decides which way it flips when the preferred side has no
     /// room, and the result is clamped into the work area. `sideLeft` and `tagAbove` tell the
-    /// body which way it ended up leaning.
+    /// body which way it ended up leaning, and `drawerSide` which way the drawer opens.
     function placeAt(anchor: point, area: var, margin: int) {
         const left = area.left + margin;
         const top = area.top + margin;
         const right = area.right - margin;
         const bottom = area.bottom - margin;
-        const shadow = bar.shadowMargin;
+        // Whole pixels, as the window's place is: the same origin the hold above keeps the card at.
+        const ox = Math.round(bar.originX);
+        const oy = Math.round(bar.originY);
         const width = bar.width;
         const height = bar.height;
+        const bodyWidth = bodyLoader.width;
+        const bodyHeight = bodyLoader.height;
         const preferBelow = Controller.settings.bubblePlacement === "below";
         let x = 0;
         let y = 0;
@@ -128,24 +188,24 @@ Window {
         if (bar.barStyle === "bar") {
             // The original flat bar: its card's left edge sits at the release point, and it
             // takes the bubble's preferred side with the old flip-then-clamp rule.
-            x = anchor.x - shadow;
-            const below = anchor.y + bar.gap - shadow;
-            const above = anchor.y - bar.gap - height + shadow;
+            x = anchor.x - ox;
+            const below = anchor.y + bar.gap - oy;
+            const above = anchor.y - bar.gap - bodyHeight - oy;
             y = preferBelow ? (below + height <= bottom ? below : above)
                             : (above >= top ? above : below);
         } else if (bar.barStyle === "tab") {
             // The right of the selection first, the left when the right has no room; the two
             // outer candidates are ten pixels clear of the release point.
-            const rightX = anchor.x + 10 - shadow;
-            const leftX = anchor.x - 10 - width + shadow;
+            const rightX = anchor.x + 10 - ox;
+            const leftX = anchor.x - 10 - bodyWidth - ox;
             bar.sideLeft = rightX + width > right;
             x = bar.sideLeft ? leftX : rightX;
-            y = anchor.y - height / 2;
+            y = anchor.y - bodyHeight / 2 - oy;
         } else if (bar.barStyle === "tag") {
             // The grommet is 15 px from the card's left edge; the string end touches the anchor.
-            x = anchor.x - 15 - shadow;
-            const below = anchor.y + bar.gap - shadow;
-            const above = anchor.y - bar.gap - height + shadow;
+            x = anchor.x - 15 - ox;
+            const below = anchor.y + bar.gap - oy;
+            const above = anchor.y - bar.gap - bodyHeight - oy;
             let aboveFirst = !preferBelow;
             if (aboveFirst && above < top)
                 aboveFirst = false;
@@ -155,9 +215,9 @@ Window {
             y = aboveFirst ? above : below;
         } else {
             // The hand and the fan centre on the anchor and share the bubble's preferred side.
-            x = anchor.x - width / 2;
-            const below = anchor.y + bar.gap - shadow;
-            const above = anchor.y - bar.gap - height + shadow;
+            x = anchor.x - bodyWidth / 2 - ox;
+            const below = anchor.y + bar.gap - oy;
+            const above = anchor.y - bar.gap - bodyHeight - oy;
             y = preferBelow ? (below + height <= bottom ? below : above)
                             : (above >= top ? above : below);
         }
@@ -165,12 +225,27 @@ Window {
         bar.x = Math.round(Numbers.clamp(x, left, right - width));
         bar.y = Math.round(Numbers.clamp(y, top, bottom - height));
         bar.raise();
+
+        // The drawer opens away from the selection where it can (the classic bar), up for the
+        // hand, down for the tab and the tag, and to the right for the fan; it flips when its side
+        // has no room. The reserved room above is what the window already holds for it.
+        const bodyTop = bar.y + oy;
+        const roomAbove = bodyTop - top >= bar.reach.top;
+        const roomBelow = bottom - (bodyTop + bodyHeight) >= bar.reach.bottom;
+        let up = bar.barStyle === "bar" ? bodyTop < anchor.y : bar.barStyle === "hand";
+        if (up && !roomAbove)
+            up = false;
+        else if (!up && !roomBelow)
+            up = true;
+        bar.drawerSide = bar.drawerItems.length === 0 ? ""
+                       : bar.barStyle === "fan" ? "right"
+                       : up ? "up" : "down";
     }
 
     Item {
         id: content
-        x: bar.shadowMargin
-        y: bar.shadowMargin
+        x: bar.originX
+        y: bar.originY
         width: bodyLoader.width
         height: bodyLoader.height
         opacity: fade.progress
@@ -226,6 +301,8 @@ Window {
         id: classicComponent
         SelectionBarClassicBody {
             actions: bar.actions
+            drawerItems: bar.drawerItems
+            drawerSide: bar.drawerSide
             shown: bar.surfaceShown
             glassSheet: bar.glass
             onPicked: (action) => bar.pick(action)
@@ -236,6 +313,8 @@ Window {
         id: tabComponent
         SelectionBarTabBody {
             actions: bar.actions
+            drawerItems: bar.drawerItems
+            drawerSide: bar.drawerSide
             shown: bar.surfaceShown
             sideLeft: bar.sideLeft
             glassSheet: bar.glass
@@ -247,6 +326,8 @@ Window {
         id: handComponent
         SelectionBarHandBody {
             actions: bar.actions
+            drawerItems: bar.drawerItems
+            drawerSide: bar.drawerSide
             shown: bar.surfaceShown
             glassSheet: bar.glass
             onPicked: (action) => bar.pick(action)
@@ -257,6 +338,8 @@ Window {
         id: tagComponent
         SelectionBarTagBody {
             actions: bar.actions
+            drawerItems: bar.drawerItems
+            drawerSide: bar.drawerSide
             shown: bar.surfaceShown
             above: bar.tagAbove
             entranceFactor: bar.entranceFactor
@@ -269,6 +352,8 @@ Window {
         id: fanComponent
         SelectionBarFanBody {
             actions: bar.actions
+            drawerItems: bar.drawerItems
+            drawerSide: bar.drawerSide
             shown: bar.surfaceShown
             entranceFactor: bar.entranceFactor
             glassSheet: bar.glass

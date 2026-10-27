@@ -26,6 +26,9 @@ inline void requireLlmProtocolLoaded()
         lens::llm::loadLlmProtocol(lens::llm::Channel::Translation, dir);
         lens::llm::loadLlmProtocol(lens::llm::Channel::Peek, dir);
         lens::llm::loadLlmProtocol(lens::llm::Channel::Sense, dir);
+        lens::llm::loadLlmProtocol(lens::llm::Channel::Breakdown, dir);
+        lens::llm::loadLlmProtocol(lens::llm::Channel::Spell, dir);
+        lens::llm::loadLlmProtocol(lens::llm::Channel::Grammar, dir);
         return true;
     }();
     (void)loaded;

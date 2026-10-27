@@ -2,45 +2,98 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="es_ES">
 <context>
+    <name>BubbleBreakdown</name>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="30"/>
+        <source>Subject</source>
+        <translation>Sujeto</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="31"/>
+        <source>Verb</source>
+        <translation>Verbo</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="32"/>
+        <source>Complement</source>
+        <translation>Complemento</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="33"/>
+        <source>Adverbial</source>
+        <translation>Adverbial</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="208"/>
+        <source>Failed: %1</source>
+        <translation>Fallo: %1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="209"/>
+        <source>Breaking down…</source>
+        <translation>Analizando…</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="209"/>
+        <source>Correcting…</source>
+        <translation>Corrigiendo…</translation>
+    </message>
+</context>
+<context>
     <name>BubbleCard</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="218"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="224"/>
         <source>Preview</source>
         <translation>Vista previa</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="219"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="225"/>
+        <source>Spelling</source>
+        <translation>Ortografía</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="226"/>
+        <source>Grammar</source>
+        <translation>Gramática</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="227"/>
+        <source>Breakdown</source>
+        <translation>Análisis</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="228"/>
         <source>Sentence</source>
         <translation>Oración</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="220"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="229"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="220"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="229"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="378"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="396"/>
         <source>Etymology</source>
         <translation>Etimología</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="417"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="435"/>
         <source>Example</source>
         <translation>Ejemplo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="481"/>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="524"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="499"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="542"/>
         <source>Not the Sense?</source>
         <translation>¿No es este sentido?</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="550"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="570"/>
         <source>Disappears in %1s</source>
         <translation>Desaparece en %1 s</translation>
     </message>
@@ -66,12 +119,12 @@
 <context>
     <name>BubbleHeaderActions</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="83"/>
+        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="84"/>
         <source>Close</source>
         <translation>Cerrar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="100"/>
+        <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="101"/>
         <source>Mother tongue translation</source>
         <translation>Traducción en lengua materna</translation>
     </message>
@@ -227,19 +280,35 @@
 <context>
     <name>SelectionBar</name>
     <message>
-        <location filename="../src/app/qml/selection/SelectionBar.qml" line="66"/>
+        <location filename="../src/app/qml/selection/SelectionBar.qml" line="72"/>
         <source>Translate</source>
         <translation>Traducir</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/selection/SelectionBar.qml" line="67"/>
+        <location filename="../src/app/qml/selection/SelectionBar.qml" line="73"/>
         <source>Explain</source>
         <translation>Explicar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/selection/SelectionBar.qml" line="68"/>
+        <location filename="../src/app/qml/selection/SelectionBar.qml" line="74"/>
         <source>Copy text</source>
         <translation>Copiar texto</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/selection/SelectionBar.qml" line="82"/>
+        <source>Fix spelling</source>
+        <translation>Corregir ortografía</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/selection/SelectionBar.qml" line="84"/>
+        <source>Fix syntax</source>
+        <translation>Corregir gramática</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/selection/SelectionBar.qml" line="86"/>
+        <source>Breakdown</source>
+        <comment>copy drawer item</comment>
+        <translation>Análisis sintáctico</translation>
     </message>
 </context>
 <context>
@@ -372,7 +441,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="67"/>
-        <location filename="../src/app/app_controller.cpp" line="424"/>
+        <location filename="../src/app/app_controller.cpp" line="431"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -494,7 +563,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="248"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="44"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1163"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1029"/>
         <source>Desktop companion</source>
         <translation>Compañero de escritorio</translation>
     </message>
@@ -1021,17 +1090,17 @@
         <translation>Servicio propio</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="416"/>
+        <location filename="../src/app/app_controller.cpp" line="423"/>
         <source>Checking OCR</source>
         <translation>Comprobando el OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="417"/>
+        <location filename="../src/app/app_controller.cpp" line="424"/>
         <source>English OCR data is missing</source>
         <translation>Faltan los datos de OCR en inglés</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="421"/>
+        <location filename="../src/app/app_controller.cpp" line="428"/>
         <source>OCR runtime is unavailable</source>
         <translation>El entorno de OCR no está disponible</translation>
     </message>
@@ -1667,7 +1736,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="192"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1165"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1031"/>
         <source>Dog</source>
         <translation>Perro</translation>
     </message>
@@ -1989,7 +2058,7 @@
         <translation>Confirmar eliminación</translation>
     </message>
     <message>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1164"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1030"/>
         <source>This pet package is no longer installed. Switched to %1.</source>
         <translation>Este paquete de mascota ya no está instalado. Se cambió a %1.</translation>
     </message>
@@ -2212,84 +2281,84 @@
 <context>
     <name>WordsPopup</name>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="394"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="413"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="394"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="413"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="256"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="275"/>
         <source>Words</source>
         <translation>Palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="153"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="172"/>
         <source>Today %1</source>
         <translation>Hoy %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="155"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="174"/>
         <source>Yesterday %1</source>
         <translation>Ayer %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="318"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="337"/>
         <source>Year in words</source>
         <translation>Año en palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="346"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="365"/>
         <source>Back</source>
         <translation>Atrás</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="353"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="372"/>
         <source>Close</source>
         <translation>Cerrar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="371"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="390"/>
         <source>%1 words</source>
         <translation>%1 palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="394"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="413"/>
         <source>All</source>
         <translation>Todas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="432"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="581"/>
         <source>Words you look up will appear here.</source>
         <translation>Las palabras que consultes aparecerán aquí.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="444"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="593"/>
         <source>No words in this filter.</source>
         <translation>No hay palabras con este filtro.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="514"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="525"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="663"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="674"/>
         <source>JSON files (*.json)</source>
         <translation>Archivos JSON (*.json)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="529"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="678"/>
         <source>Words imported</source>
         <translation>Palabras importadas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="529"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="678"/>
         <source>Import failed</source>
         <translation>Error al importar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="336"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="523"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="355"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="672"/>
         <source>Import words</source>
         <translation>Importar palabras</translation>
     </message>
@@ -2309,20 +2378,20 @@
         <translation>Eliminar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="329"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="511"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="348"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="660"/>
         <source>Export words</source>
         <translation>Exportar palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="514"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="525"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="663"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="674"/>
         <source>Text files (*.txt)</source>
         <translation>Archivos de texto (*.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="514"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="525"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="663"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="674"/>
         <source>All files (*)</source>
         <translation>Todos los archivos (*)</translation>
     </message>
@@ -2400,87 +2469,87 @@
         <translation>Rosa</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="191"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="197"/>
         <source>Back</source>
         <translation>Atrás</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="199"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="205"/>
         <source>Year in words</source>
         <translation>Año en palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="213"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="219"/>
         <source>Close</source>
         <translation>Cerrar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="231"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="237"/>
         <source>%1: %2 lookups</source>
         <translation>%1: %2 consultas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="232"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="238"/>
         <source>Lookups · 365 days</source>
         <translation>Consultas · 365 días</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="241"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="247"/>
         <source>%1 lookups · %2 words</source>
         <translation>%1 consultas · %2 palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="295"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="301"/>
         <source>Mon</source>
         <translation>Lun</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="295"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="301"/>
         <source>Wed</source>
         <translation>Mié</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="295"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="301"/>
         <source>Fri</source>
         <translation>Vie</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="321"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="327"/>
         <source>Year activity. %1, %2 lookups. Use the arrow keys to choose a day.</source>
         <translation>Actividad anual. %1, %2 consultas. Usa las flechas para elegir un día.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="323"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="329"/>
         <source>Year activity. Use the arrow keys to choose a day.</source>
         <translation>Actividad anual. Usa las flechas para elegir un día.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="365"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="371"/>
         <source>%1, %2 lookups</source>
         <translation>%1, %2 consultas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="404"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="410"/>
         <source>Less</source>
         <translation>Menos</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="416"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="422"/>
         <source>Level %1, choose color</source>
         <translation>Nivel %1, elegir color</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="416"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="422"/>
         <source>No lookups, choose color</source>
         <translation>Sin consultas, elegir color</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="439"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="445"/>
         <source>More</source>
         <translation>Más</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="444"/>
+        <location filename="../src/app/qml/panels/YearWordsPopup.qml" line="450"/>
         <source>1 · 2–3 · 4–5 · 6+ lookups</source>
         <translation>1 · 2–3 · 4–5 · 6+ consultas</translation>
     </message>
@@ -2503,73 +2572,73 @@
 <context>
     <name>lens::app::AppController</name>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="409"/>
+        <location filename="../src/app/app_controller.cpp" line="416"/>
         <source>Screenshot capture is off.</source>
         <translation>La captura de pantalla está desactivada.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="410"/>
-        <location filename="../src/app/app_controller.cpp" line="574"/>
+        <location filename="../src/app/app_controller.cpp" line="417"/>
+        <location filename="../src/app/app_controller.cpp" line="581"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>El presupuesto de hoy se ha agotado.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="411"/>
+        <location filename="../src/app/app_controller.cpp" line="418"/>
         <source>A recognition is already running.</source>
         <translation>Ya hay un reconocimiento en curso.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="413"/>
+        <location filename="../src/app/app_controller.cpp" line="420"/>
         <source>That region cannot be captured.</source>
         <translation>Esa región no se puede capturar.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="414"/>
+        <location filename="../src/app/app_controller.cpp" line="421"/>
         <source>No text was found in that region.</source>
         <translation>No se encontró texto en esa región.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="415"/>
+        <location filename="../src/app/app_controller.cpp" line="422"/>
         <source>That region could not be read.</source>
         <translation>No se pudo leer esa región.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="474"/>
+        <location filename="../src/app/app_controller.cpp" line="481"/>
         <source>%1 px</source>
         <translation>%1 px</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="476"/>
+        <location filename="../src/app/app_controller.cpp" line="483"/>
         <source>Default</source>
         <translation>Predeterminado</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="810"/>
+        <location filename="../src/app/app_controller.cpp" line="817"/>
         <source>Auto</source>
         <translation>Automático</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="810"/>
+        <location filename="../src/app/app_controller.cpp" line="817"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="283"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="264"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>No hay ninguna explicación guardada para esta palabra en el idioma actual.</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="285"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="266"/>
         <source>Explain now</source>
         <translation>Explicar ahora</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="656"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="660"/>
         <source>Explaining…</source>
         <translation>Explicando…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="829"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="788"/>
         <source>Request failed</source>
         <translation>La solicitud ha fallado</translation>
     </message>
@@ -2630,114 +2699,134 @@
 <context>
     <name>lens::llm</name>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="226"/>
+        <location filename="../src/llm/llm_pure.cpp" line="281"/>
         <source>The request was rejected as malformed (400).</source>
         <translation>La solicitud fue rechazada por mal formada (400).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="229"/>
+        <location filename="../src/llm/llm_pure.cpp" line="284"/>
         <source>The API key is missing or not accepted (401).</source>
         <translation>Falta la clave de API o no se acepta (401).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="232"/>
+        <location filename="../src/llm/llm_pure.cpp" line="287"/>
         <source>The service refused the key for this model (403).</source>
         <translation>El servicio ha rechazado la clave para este modelo (403).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="235"/>
+        <location filename="../src/llm/llm_pure.cpp" line="290"/>
         <source>The service or model was not found (404).</source>
         <translation>No se ha encontrado el servicio o el modelo (404).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="238"/>
+        <location filename="../src/llm/llm_pure.cpp" line="293"/>
         <source>The account is out of credit (402).</source>
         <translation>La cuenta no tiene saldo (402).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="241"/>
+        <location filename="../src/llm/llm_pure.cpp" line="296"/>
         <source>The request parameters were rejected (422).</source>
         <translation>Los parámetros de la solicitud fueron rechazados (422).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="244"/>
+        <location filename="../src/llm/llm_pure.cpp" line="299"/>
         <source>Too many requests; the service is rate-limiting (429).</source>
         <translation>Demasiadas solicitudes; el servicio está limitando la frecuencia (429).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="247"/>
+        <location filename="../src/llm/llm_pure.cpp" line="302"/>
         <source>The explanation service failed (500).</source>
         <translation>El servicio de explicaciones ha fallado (500).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="250"/>
+        <location filename="../src/llm/llm_pure.cpp" line="305"/>
         <source>The explanation service is overloaded (503).</source>
         <translation>El servicio de explicaciones está sobrecargado (503).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="253"/>
+        <location filename="../src/llm/llm_pure.cpp" line="308"/>
         <source>Unexpected HTTP status %1.</source>
         <translation>Estado HTTP inesperado %1.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="576"/>
+        <location filename="../src/llm/llm_pure.cpp" line="708"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>El modelo respondió con algo que no es un objeto JSON.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="582"/>
+        <location filename="../src/llm/llm_pure.cpp" line="714"/>
         <source>The model&apos;s answer carries no choices.</source>
         <translation>La respuesta del modelo no trae “choices”.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="339"/>
+        <location filename="../src/llm/llm_pure.cpp" line="402"/>
         <source>The model stopped before finishing (reason: %1).</source>
         <translation>El modelo se detuvo antes de terminar (motivo: %1).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="342"/>
+        <location filename="../src/llm/llm_pure.cpp" line="315"/>
+        <source>The service is not set up. Add an API key in Settings.</source>
+        <translation>El servicio no está configurado. Añade una clave de API en Ajustes.</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="316"/>
+        <source>No connection or timeout. Check the network and try again.</source>
+        <translation>Sin conexión o tiempo agotado. Comprueba la red e inténtalo de nuevo.</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="317"/>
+        <source>The model&apos;s answer did not match the sentence. Try again.</source>
+        <translation>La respuesta del modelo no coincidía con la frase. Inténtalo de nuevo.</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="318"/>
+        <source>The service returned an error (HTTP %1). Try again later.</source>
+        <translation>El servicio devolvió un error (HTTP %1). Inténtalo más tarde.</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="405"/>
         <source>absent</source>
         <translation>ausente</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="362"/>
+        <location filename="../src/llm/llm_pure.cpp" line="518"/>
         <source>The model&apos;s answer is not valid JSON.</source>
         <translation>La respuesta del modelo no es JSON válido.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="367"/>
+        <location filename="../src/llm/llm_pure.cpp" line="523"/>
         <source>The model&apos;s answer has no results array.</source>
         <translation>La respuesta del modelo no tiene un array “results”.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="386"/>
+        <location filename="../src/llm/llm_pure.cpp" line="542"/>
         <source>One of the results entries is not an object.</source>
         <translation>Una de las entradas de “results” no es un objeto.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="391"/>
+        <location filename="../src/llm/llm_pure.cpp" line="547"/>
         <source>A results entry does not match the response schema.</source>
         <translation>Una entrada de “results” no coincide con el esquema de respuesta.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="430"/>
-        <location filename="../src/llm/llm_pure.cpp" line="454"/>
+        <location filename="../src/llm/llm_pure.cpp" line="561"/>
+        <location filename="../src/llm/llm_pure.cpp" line="585"/>
         <source>The requested explanation language is missing.</source>
         <translation>Falta el idioma de explicación solicitado.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="460"/>
+        <location filename="../src/llm/llm_pure.cpp" line="592"/>
         <source>A results entry has an empty field (title=%1).</source>
         <translation>Una entrada de “results” tiene un campo vacío (title=%1).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="492"/>
-        <location filename="../src/llm/llm_pure.cpp" line="536"/>
+        <location filename="../src/llm/llm_pure.cpp" line="624"/>
+        <location filename="../src/llm/llm_pure.cpp" line="668"/>
         <source>The model echoed %1 result(s) for the %2 that were asked for.</source>
         <translation>El modelo devolvió %1 resultado(s) de los %2 solicitados.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="547"/>
+        <location filename="../src/llm/llm_pure.cpp" line="679"/>
         <source>The model never echoed &quot;%1&quot;.</source>
         <translation>El modelo no devolvió “%1”.</translation>
     </message>

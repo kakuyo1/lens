@@ -53,4 +53,10 @@ QtObject {
      */
     readonly property color bubbleBg: Qt.rgba(30 / 255, 36 / 255, 47 / 255, 0.85)
     readonly property color bubbleBorder: Qt.rgba(1, 1, 1, 0.14)
+
+    /// The sentence-breakdown roles (DESIGN.md 3.1e), lifted for the dark desktop.
+    readonly property color roleS: "#7aa9f5"
+    readonly property color roleV: "#f07d93"
+    readonly property color roleC: "#5fcad2"
+    readonly property color roleA: "#e3b25c"
 }

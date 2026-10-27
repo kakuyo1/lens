@@ -36,6 +36,7 @@ Item {
     readonly property bool peekable: !root.bubbleWindow.preview
                                      && ["word", "sentence", "entity"].includes(root.bubbleWindow.type)
                                      && root.bubbleWindow.countsDown
+                                     && !root.bubbleWindow.annotated
                                      && root.bubbleWindow.atRoot
                                      && root.language === "en"
 

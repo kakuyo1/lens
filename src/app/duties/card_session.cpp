@@ -71,8 +71,10 @@ bool CardSession::wordCard() const
 
 bool CardSession::peekableCard() const
 {
-    // A translation's input already is the mother tongue, so its card has no globe (UI-SPEC.md 4.3).
-    return standing() and not subject_->chain and subject_->kind != core::SelectionKind::Translation;
+    // A translation's input already is the mother tongue, and a breakdown has no meaning to hold for:
+    // neither card has a globe (UI-SPEC.md 4.3).
+    return standing() and not subject_->chain and subject_->kind != core::SelectionKind::Translation and
+           subject_->preset != kBreakdownPreset;
 }
 
 QString CardSession::peekKey() const

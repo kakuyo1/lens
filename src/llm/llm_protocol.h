@@ -56,6 +56,9 @@ enum class Channel : std::uint8_t { Word = 0,
                                     Translation,
                                     Peek,
                                     Sense,
+                                    Breakdown,
+                                    Spell,
+                                    Grammar,
                                     Count };
 
 /// @brief One channel preset's system prompt, from `request.<channel>.json`.

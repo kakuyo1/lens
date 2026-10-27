@@ -23,6 +23,7 @@ Item {
     }
 
     TestCase {
+        id: testCase
         name: "SelectionBar"
         when: windowShown
 
@@ -143,6 +144,236 @@ Item {
             Controller.setSetting("selectionBarStyle", "bar");
         }
 
+        /// Bar, tab and tag draw each drawer item with its icon and label on one line, the icon to the left of the
+        /// label and centred on it; hand and fan keep their labels under the icon.
+        function test_theDrawerItemsKeepTheirIconAndLabelOnOneLine() {
+            for (const style of ["bar", "tab", "tag"]) {
+                Controller.setSetting("selectionBarStyle", style);
+                const bar = createTemporaryObject(barComponent, root);
+                verify(bar);
+                bar.selectionKind = "sentence";
+                bar.breakdownable = true;
+                bar.grammarable = true;
+                bar.placeAt(Qt.point(300, 300), {left: 0, top: 0, right: 800, bottom: 600}, 8);
+                bar.open();
+                wait(500);
+                const items = Util.findAll(bar, function (o) {
+                    return o.Accessible !== undefined
+                           && ["Fix syntax", "Breakdown"].indexOf(o.Accessible.name) >= 0;
+                });
+                verify(items.length === 2, style + " drew " + items.length + " drawer items, not two");
+                for (const item of items) {
+                    const icon = Util.findAll(item, function (o) { return o.objectName === "drawerIcon"; })[0];
+                    const text = Util.findAll(item, function (o) { return o.text === item.Accessible.name; })[0];
+                    verify(icon && text, style + " '" + item.Accessible.name + "' has no icon or no label");
+                    const iconCentre = icon.mapToItem(item, icon.width / 2, icon.height / 2);
+                    const textCentre = text.mapToItem(item, 0, text.height / 2);
+                    verify(Math.abs(iconCentre.y - textCentre.y) <= 1,
+                           style + " '" + item.Accessible.name + "' puts its icon and label on different lines");
+                    verify(iconCentre.x < textCentre.x, style + " '" + item.Accessible.name + "' has its icon right of its label");
+                }
+                bar.visible = false;
+            }
+            Controller.setSetting("selectionBarStyle", "bar");
+        }
+
+        /// The copy drawer anywhere in the bar. The hand's and the fan's drawers stand beside the copy item, not inside it.
+        function drawerIn(bar) {
+            return Util.findAll(bar, function (o) {
+                return o.expand !== undefined && o.form !== undefined;
+            })[0];
+        }
+
+        /// A sentence's bar in one form, placed so its drawer opens to the side the cases below read.
+        function sentenceBarIn(style) {
+            Controller.setSetting("selectionBarStyle", style);
+            const bar = createTemporaryObject(barComponent, root);
+            verify(bar);
+            bar.selectionKind = "sentence";
+            bar.breakdownable = true;
+            bar.grammarable = true;
+            bar.placeAt(Qt.point(300, 300), {left: 0, top: 0, right: 800, bottom: 600}, 8);
+            bar.open();
+            wait(50);
+            return bar;
+        }
+
+        /// The fan's hinge is the outer corner of its right blade, (250, 87) in the body's own coordinates. The drawer's
+        /// lower blade starts at its bottom-left corner, so that corner must land on the hinge (UI-SPEC.md 4.10).
+        function test_theFanDrawerHingesOnTheFansRightBladeCorner() {
+            const bar = sentenceBarIn("fan");
+            const drawer = drawerIn(bar);
+            verify(drawer && drawer.applies, "the fan drew no drawer");
+            const body = Util.findAll(bar, function (o) { return o.bladeRight !== undefined; })[0];
+            verify(body, "the fan drew no body");
+            const hinge = drawer.mapToItem(body, 0, 140);
+            verify(Math.abs(hinge.x - 250) < 0.5 && Math.abs(hinge.y - 87) < 0.5,
+                   "the drawer hinges at " + hinge.x + ", " + hinge.y + " rather than 250, 87");
+            bar.visible = false;
+            Controller.setSetting("selectionBarStyle", "bar");
+        }
+
+        /// Under a glass theme the hand's cards and the fan's blades are glass, as the bar's own are: each card carries a
+        /// GlassSurface, and the fan one GlassSurface cut to its two blades (UI-SPEC.md 4.10).
+        function test_theHandAndFanDrawersAreGlassUnderAGlassTheme() {
+            const saved = Tokens.theme;
+            Tokens.theme = "frosted";
+
+            const hand = sentenceBarIn("hand");
+            const handDrawer = drawerIn(hand);
+            handDrawer.open = true;
+            wait(300);
+            const cardGlass = Util.findAll(handDrawer, function (o) { return o.objectName === "drawerCardGlass"; });
+            compare(cardGlass.length, 2, "the hand's drawer cards are not glass");
+            for (const glass of cardGlass)
+                verify(glass.visible, "a hand's drawer card draws no glass");
+            hand.visible = false;
+
+            const fan = sentenceBarIn("fan");
+            const fanDrawer = drawerIn(fan);
+            fanDrawer.open = true;
+            wait(300);
+            const bladeGlass = Util.findAll(fanDrawer, function (o) { return o.objectName === "drawerBladeGlass"; });
+            compare(bladeGlass.length, 1, "the fan's drawer has no glass under its blades");
+            verify(bladeGlass[0].visible, "the fan's drawer draws no glass under its blades");
+            fan.visible = false;
+
+            Tokens.theme = saved;
+            Controller.setSetting("selectionBarStyle", "bar");
+        }
+
+        /// The hand's drawer cards fold toward the copy card when the drawer is shut, fan out when it opens, and the card
+        /// under the pointer straightens and lifts, as the bar's own hand does (UI-SPEC.md 4.10).
+        function test_theHandDrawerCardsFanOutAndLiftUnderThePointer() {
+            const bar = sentenceBarIn("hand");
+            const drawer = drawerIn(bar);
+            const card = function (name) {
+                return Util.findAll(bar, function (o) {
+                    return o.Accessible !== undefined && o.Accessible.name === name && o.turn !== undefined;
+                })[0];
+            };
+            const grammar = card("Fix syntax");
+            const breakdown = card("Breakdown");
+            verify(grammar && breakdown, "the hand drew no drawer cards");
+
+            compare(grammar.drop, 12, "a shut card does not sit low");
+            compare(grammar.grow, 0.9, "a shut card is not folded small");
+            drawer.open = true;
+            tryCompare(grammar, "turn", -6, 1000, "the first card did not fan out to -6 degrees");
+            tryCompare(breakdown, "turn", 6, 1000, "the second card did not fan out to 6 degrees");
+
+            mouseMove(breakdown, breakdown.width / 2, breakdown.height / 2);
+            tryCompare(breakdown, "drop", -6, 1000, "the card under the pointer did not lift");
+            tryCompare(breakdown, "grow", 1.035, 1000, "the card under the pointer did not grow");
+            compare(breakdown.turn, 0, "the card under the pointer did not straighten");
+            bar.visible = false;
+            Controller.setSetting("selectionBarStyle", "bar");
+        }
+
+        /// The fan's drawer unfolds from its hinge as it opens, and the blade under the pointer takes the hover tint.
+        function test_theFanDrawerUnfoldsFromItsHingeAndLightsTheBladeUnderThePointer() {
+            const bar = sentenceBarIn("fan");
+            const drawer = drawerIn(bar);
+            compare(drawer.scale, 0.9, "a shut fan drawer is not folded small");
+            drawer.open = true;
+            tryCompare(drawer, "scale", 1, 1000, "the fan drawer did not unfold to full size");
+
+            mouseMove(drawer, 120, 110);
+            compare(drawer.hoveredBlade, 0, "the lower blade did not light under the pointer");
+            mouseMove(drawer, 30, 30);
+            compare(drawer.hoveredBlade, 1, "the upper blade did not light under the pointer");
+            bar.visible = false;
+            Controller.setSetting("selectionBarStyle", "bar");
+        }
+
+        /// A single-word bar in one form, with the spelling correction as its only drawer item.
+        function wordBarIn(style) {
+            Controller.setSetting("selectionBarStyle", style);
+            const bar = createTemporaryObject(barComponent, root);
+            verify(bar);
+            bar.selectionKind = "word";
+            bar.spellable = true;
+            bar.placeAt(Qt.point(300, 300), {left: 0, top: 0, right: 800, bottom: 600}, 8);
+            bar.open();
+            wait(50);
+            return bar;
+        }
+
+        /// @return Whether two grabbed pixels match, alpha included.
+        function samePixel(actual, expected) {
+            const a = Qt.color(actual);
+            const e = Qt.color(expected);
+            return Math.abs(a.r - e.r) < 0.02 && Math.abs(a.g - e.g) < 0.02 && Math.abs(a.b - e.b) < 0.02
+                   && Math.abs(a.a - e.a) < 0.02;
+        }
+
+        /// One drawer item is one blade, the lower one, and the upper blade's place stays empty. Checked by the pixels in the
+        /// solid theme, where the blades are painted; the glass theme's cut is checked by its own case below.
+        function test_aLoneFanItemDrawsOnlyItsBlade() {
+            const saved = Tokens.theme;
+            for (const theme of ["light"]) {
+                Tokens.theme = theme;
+                const bar = wordBarIn("fan");
+                const drawer = drawerIn(bar);
+                drawer.open = true;
+                wait(300);
+                const surface = bar.contentItem;
+                const grab = testCase.grabImage(surface);
+                const at = function (x, y) {
+                    const p = drawer.mapToItem(surface, x, y);
+                    return grab.pixel(Math.round(p.x), Math.round(p.y));
+                };
+                // The corner of the window is outside the drawer, so it is what nothing drawn looks like.
+                const nothing = grab.pixel(2, 2);
+                verify(!samePixel(at(120, 125), nothing), theme + ": the lone item's lower blade is not drawn");
+                verify(samePixel(at(14, 100), nothing), theme + ": the lone item draws the upper blade it does not use");
+                bar.visible = false;
+            }
+            Tokens.theme = saved;
+            Controller.setSetting("selectionBarStyle", "bar");
+        }
+
+        /// Two drawer items draw both blades: the upper blade is drawn with the lower one, so its place is not empty.
+        function test_twoFanItemsDrawBothBlades() {
+            const saved = Tokens.theme;
+            for (const theme of ["light"]) {
+                Tokens.theme = theme;
+                const bar = sentenceBarIn("fan");
+                const drawer = drawerIn(bar);
+                drawer.open = true;
+                wait(300);
+                const surface = bar.contentItem;
+                const grab = testCase.grabImage(surface);
+                const p = drawer.mapToItem(surface, 14, 100);
+                verify(!samePixel(grab.pixel(Math.round(p.x), Math.round(p.y)), grab.pixel(2, 2)),
+                       theme + ": two items left the upper blade's place empty");
+                bar.visible = false;
+            }
+            Tokens.theme = saved;
+            Controller.setSetting("selectionBarStyle", "bar");
+        }
+
+        /// Under glass the drawer's blades are one glass fan cut to the blades it draws: the cut covers both blades for two
+        /// items and the lower blade alone for one (UI-SPEC.md 4.10). Read from the cut's own parameter, since an offscreen
+        /// grab does not show glass.
+        function test_aLoneFanItemCutsItsGlassToItsBlade() {
+            const saved = Tokens.theme;
+            Tokens.theme = "frosted";
+            const lone = wordBarIn("fan");
+            const loneCut = Util.findAll(drawerIn(lone), function (o) { return o.objectName === "drawerBladeCut"; })[0];
+            verify(loneCut, "the fan drew no glass cut");
+            compare(loneCut.solo, 1, "a lone item's glass still covers the upper blade");
+            lone.visible = false;
+
+            const pair = sentenceBarIn("fan");
+            const pairCut = Util.findAll(drawerIn(pair), function (o) { return o.objectName === "drawerBladeCut"; })[0];
+            compare(pairCut.solo, 0, "two items' glass is cut to one blade");
+            pair.visible = false;
+
+            Tokens.theme = saved;
+            Controller.setSetting("selectionBarStyle", "bar");
+        }
+
         /// The tag's press is the swing of the whole card, not a per-item shift and fade; the
         /// state that names the pressed action clears with the swing instead of waiting for the
         /// next show (UI-SPEC 4.10).
@@ -227,6 +458,133 @@ Item {
             tryVerify(function () { return card.opacity < 0.9 && card.transform[0].y < 0; }, 1000,
                       "the pressed card should lift off the hand and fade as it is tossed");
             Controller.setSetting("selectionBarStyle", "bar");
+        }
+
+        /// @return The copy text's item, the one the screen reader names by its label.
+        function copyOf(bar) {
+            return Util.findAll(bar, function (o) {
+                return o.Accessible !== undefined && o.Accessible.name === "Copy text";
+            })[0];
+        }
+
+        /// @return The copy drawer, which every form draws inside the copy text's own item.
+        function drawerOf(bar) {
+            return Util.findAll(copyOf(bar), function (o) {
+                return o.expand !== undefined;
+            })[0];
+        }
+
+        /// The drawer offers the breakdown only to a sentence the breakdown can take (UI-SPEC.md 4.10).
+        function test_theCopyDrawerOffersTheBreakdownOnlyForABreakdownableSentence() {
+            const bar = createTemporaryObject(barComponent, root);
+            verify(bar);
+            bar.selectionKind = "word";
+            bar.breakdownable = true;
+            compare(bar.drawerItems.length, 0, "a word offered the copy drawer");
+
+            bar.selectionKind = "sentence";
+            bar.breakdownable = false;
+            compare(bar.drawerItems.length, 0, "a sentence the breakdown cannot take offered it");
+
+            bar.breakdownable = true;
+            compare(bar.drawerItems.length, 1);
+            compare(bar.drawerItems[0].action, "breakdown");
+        }
+
+        /// The drawer opens after the pointer rests on the copy text and closes once the pointer has left it
+        /// (UI-SPEC.md 4.10). The placement is the real one, so the drawer's side is the one a reader gets.
+        function test_theCopyDrawerOpensOnHoverAndClosesWhenThePointerLeaves() {
+            const bar = createTemporaryObject(barComponent, root);
+            verify(bar);
+            bar.selectionKind = "sentence";
+            bar.breakdownable = true;
+            bar.placeAt(Qt.point(300, 300), {left: 0, top: 0, right: 800, bottom: 600}, 8);
+            bar.open();
+            wait(50);
+
+            const drawer = drawerOf(bar);
+            verify(drawer, "the bar draws no copy drawer");
+            verify(drawer.applies, "the drawer does not apply to the sentence");
+            compare(drawer.open, false, "the drawer was out before any hover");
+
+            const copy = copyOf(bar);
+            verify(copy, "the bar draws no copy text");
+            mouseMove(copy, copy.width / 2, copy.height / 2);
+            tryCompare(drawer, "open", true, 1000, "the drawer did not open under the pointer");
+
+            mouseMove(bar.contentItem, 1, 1);
+            tryCompare(drawer, "open", false, 1000, "the drawer stayed out after the pointer left");
+            bar.visible = false;
+        }
+
+        /// The drawer's item is a named button for the screen reader, and a word has no drawer to speak of.
+        function test_theCopyDrawerItemIsANamedButtonAndAWordHasNoDrawer() {
+            const bar = createTemporaryObject(barComponent, root);
+            verify(bar);
+            bar.selectionKind = "sentence";
+            bar.breakdownable = true;
+            bar.placeAt(Qt.point(300, 300), {left: 0, top: 0, right: 800, bottom: 600}, 8);
+            bar.open();
+            wait(50);
+
+            const named = Util.findAll(bar, function (o) {
+                return o.Accessible !== undefined && o.Accessible.name === "Breakdown";
+            });
+            compare(named.length, 1, "the drawer item has no name for the screen reader");
+            compare(named[0].Accessible.role, Accessible.Button);
+
+            bar.selectionKind = "word";
+            bar.breakdownable = false;
+            wait(50);
+            compare(drawerOf(bar).applies, false, "the drawer still applies to a word");
+            compare(drawerOf(bar).visible, false, "a word drew the copy drawer");
+            bar.visible = false;
+        }
+
+        /// The spelling correction is offered for one token and the grammar correction for a sentence, and
+        /// neither is offered for the other's selection (UI-SPEC.md 4.10, docs/adr/0129).
+        function test_theCopyDrawerOffersSpellingForATokenAndGrammarForASentence() {
+            const bar = createTemporaryObject(barComponent, root);
+            verify(bar);
+            bar.selectionKind = "word";
+            bar.spellable = true;
+            compare(bar.drawerItems.map(item => item.action), ["spell"], "a single token did not offer the spelling correction");
+            bar.spellable = false;
+            compare(bar.drawerItems.length, 0, "a token the spelling correction cannot take still offered a drawer");
+
+            bar.selectionKind = "sentence";
+            bar.grammarable = true;
+            compare(bar.drawerItems.map(item => item.action), ["grammar"], "a sentence did not offer the grammar correction");
+            bar.grammarable = false;
+            compare(bar.drawerItems.length, 0, "a sentence the grammar correction cannot take still offered a drawer");
+        }
+
+        /// The corrections come ahead of the breakdown, in the order the spec lists them.
+        function test_theCopyDrawerListsTheCorrectionsBeforeTheBreakdown() {
+            const bar = createTemporaryObject(barComponent, root);
+            verify(bar);
+            bar.selectionKind = "sentence";
+            bar.grammarable = true;
+            bar.breakdownable = true;
+            compare(bar.drawerItems.map(item => item.action), ["grammar", "breakdown"]);
+        }
+
+        /// The spelling correction's item is a named button for the screen reader, drawn once the drawer applies.
+        function test_theSpellingCorrectionIsANamedButton() {
+            const bar = createTemporaryObject(barComponent, root);
+            verify(bar);
+            bar.selectionKind = "word";
+            bar.spellable = true;
+            bar.placeAt(Qt.point(300, 300), {left: 0, top: 0, right: 800, bottom: 600}, 8);
+            bar.open();
+            wait(50);
+
+            const named = Util.findAll(bar, function (o) {
+                return o.Accessible !== undefined && o.Accessible.name === "Fix spelling";
+            });
+            compare(named.length, 1, "the spelling correction has no name for the screen reader");
+            compare(named[0].Accessible.role, Accessible.Button);
+            bar.visible = false;
         }
     }
 }

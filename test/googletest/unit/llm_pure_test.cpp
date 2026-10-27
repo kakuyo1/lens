@@ -29,16 +29,26 @@ using lens::llm::Channel;
 using lens::llm::Config;
 using lens::llm::Usage;
 using lens::llm::Explanation;
+using lens::llm::breakdownApplies;
+using lens::llm::breakdownLines;
+using lens::llm::breakdownWords;
 using lens::llm::buildRequestBody;
+using lens::llm::failureLineFor;
+using lens::llm::grammarApplies;
 using lens::llm::httpErrorFor;
 using lens::llm::maskSensitive;
+using lens::llm::parseBreakdown;
 using lens::llm::parseExplanations;
 using lens::llm::parsePartialExplanation;
 using lens::llm::parseStreamDelta;
 using lens::llm::parseUsage;
 using lens::llm::StreamAssembler;
 using lens::llm::takeSsePayloads;
-using LlmResult = std::variant<QVector<Explanation>, QString>;
+using lens::llm::CorrectionRejected;
+using lens::llm::Role;
+using lens::llm::RoleSpan;
+using LlmResult       = std::variant<QVector<Explanation>, QString>;
+using BreakdownResult = std::variant<QVector<RoleSpan>, QString>;
 
 // TEST_F pastes the fixture name into a class definition, so it has to be unqualified.
 using lens::test::LlmTest;
@@ -683,6 +693,187 @@ TEST_F(LlmTest, TheSensePromptAsksForOneMoreSenseWithAHintAndNeverStreams)
     EXPECT_TRUE(system.contains("\"senses\"")) << "the prompt shows no format example";
     EXPECT_TRUE(user.contains(QStringLiteral("crane")) && user.contains(QStringLiteral("- a tall machine")))
         << "the user message dropped the word or the senses already shown";
+}
+
+TEST_F(LlmTest, TheSpellingCorrectionAppliesOnlyToASingleToken)
+{
+    EXPECT_TRUE(lens::llm::spellingApplies(QStringLiteral("recieve")));
+    EXPECT_TRUE(lens::llm::spellingApplies(QStringLiteral("  recieve  ")));
+    EXPECT_FALSE(lens::llm::spellingApplies(QStringLiteral("recieve it")));
+    EXPECT_FALSE(lens::llm::spellingApplies(QStringLiteral("   ")));
+}
+
+TEST_F(LlmTest, TheSpellingRequestSendsOneWordWithoutStreaming)
+{
+    const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
+    const auto   body = QJsonDocument::fromJson(buildRequestBody(config, Channel::Spell, {"recieve"}, "en"));
+    EXPECT_FALSE(body.object().value("stream").toBool());
+    EXPECT_EQ(body.object().value("messages").toArray().at(1).toObject().value("content").toString(), QStringLiteral("recieve"));
+}
+
+TEST_F(LlmTest, TheSpellingAnswerIsOneTokenAndAnyOtherShapeIsRefused)
+{
+    const auto accepted = lens::llm::parseCorrection(Channel::Spell, envelope(QStringLiteral(R"({"results":[{"corrected":"receive"}]})")));
+    ASSERT_TRUE(std::holds_alternative<QString>(accepted));
+    EXPECT_EQ(std::get<QString>(accepted), QStringLiteral("receive"));
+
+    for (auto const* content : {R"({"results":[{"corrected":"receive it"}]})", R"({"results":[{"corrected":""}]})"}) {
+        const auto refused = lens::llm::parseCorrection(Channel::Spell, envelope(QString::fromUtf8(content)));
+        EXPECT_TRUE(std::holds_alternative<CorrectionRejected>(refused)) << content;
+    }
+}
+
+TEST_F(LlmTest, TheGrammarAnswerIsTheWholeSentenceAndMayEqualTheOriginal)
+{
+    const auto parsed = lens::llm::parseCorrection(
+        Channel::Grammar, envelope(QStringLiteral(R"({"results":[{"corrected":"She goes to school every day."}]})")));
+    ASSERT_TRUE(std::holds_alternative<QString>(parsed));
+    EXPECT_EQ(std::get<QString>(parsed), QStringLiteral("She goes to school every day."));
+}
+
+TEST_F(LlmTest, TheCorrectionMarksOnlyTheWordsThatChanged)
+{
+    const auto runs = lens::llm::correctionRuns(QStringLiteral("She go to school"), QStringLiteral("She goes to school"));
+    QString    rebuilt;
+    for (auto const& run : runs)
+        rebuilt += run.text;
+    EXPECT_EQ(rebuilt, QStringLiteral("She goes to school")) << "the runs must read as the corrected sentence";
+
+    QStringList changed;
+    for (auto const& run : runs)
+        if (run.changed) changed << run.text;
+    EXPECT_EQ(changed, (QStringList{"goes"})) << "only the word that moved is underlined";
+}
+
+TEST_F(LlmTest, ADeletedWordDoesNotMarkTheWordsAfterIt)
+{
+    // The model dropped "very": the words after it did not change, so none of them may be underlined.
+    const auto runs = lens::llm::correctionRuns(QStringLiteral("it is very good now"), QStringLiteral("it is good now"));
+    for (auto const& run : runs)
+        EXPECT_FALSE(run.changed) << run.text.toStdString();
+}
+
+TEST_F(LlmTest, TheCorrectionOfAnUnchangedWordMarksNothing)
+{
+    const auto runs = lens::llm::correctionRuns(QStringLiteral("receive"), QStringLiteral("receive"));
+    for (auto const& run : runs)
+        EXPECT_FALSE(run.changed);
+}
+
+bool breakdownAccepted(const BreakdownResult& result)
+{
+    return std::holds_alternative<QVector<RoleSpan>>(result);
+}
+
+TEST_F(LlmTest, TheBreakdownRequestSendsOneWordPerLineWithoutStreaming)
+{
+    const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
+    const auto   body = QJsonDocument::fromJson(buildRequestBody(config, Channel::Breakdown, {"The", "cat", "sleeps."}, "en"));
+    const auto&  root = body.object();
+    EXPECT_FALSE(root.value("stream").toBool()) << "the breakdown is drawn whole or not at all";
+    EXPECT_FALSE(root.contains("stream_options")) << "a whole body asks for no usage stream";
+    EXPECT_EQ(root.value("messages").toArray().at(1).toObject().value("content").toString(), QStringLiteral("The\ncat\nsleeps."))
+        << "the indices the model answers with are line numbers, so one word must stay one line";
+}
+
+TEST_F(LlmTest, TheBreakdownSplitsOnWhitespaceAndKeepsPunctuationWithItsWord)
+{
+    EXPECT_EQ(breakdownWords(QStringLiteral("  The cat,\tsleeps.\n")), (QStringList{"The", "cat,", "sleeps."}));
+}
+
+TEST_F(LlmTest, TheBreakdownAppliesToEnglishSentencesOfEightyWordsOrFewer)
+{
+    EXPECT_TRUE(breakdownApplies(QStringLiteral("The cat sleeps.")));
+    EXPECT_TRUE(breakdownApplies(QStringLiteral("It’s fine.")));
+    EXPECT_TRUE(breakdownApplies(QStringList(80, QStringLiteral("word")).join(QLatin1Char(' '))));
+    EXPECT_FALSE(breakdownApplies(QStringList(81, QStringLiteral("word")).join(QLatin1Char(' '))));
+    EXPECT_FALSE(breakdownApplies(QStringLiteral("   ")));
+    EXPECT_FALSE(breakdownApplies(QStringLiteral("Привет мир")));
+    EXPECT_FALSE(breakdownApplies(QStringLiteral("这句话 is English?")));
+}
+
+TEST_F(LlmTest, TheGrammarCorrectionTakesTheSameSentencesAsTheBreakdown)
+{
+    EXPECT_TRUE(grammarApplies(QStringList(80, QStringLiteral("word")).join(QLatin1Char(' '))));
+    EXPECT_FALSE(grammarApplies(QStringList(81, QStringLiteral("word")).join(QLatin1Char(' '))));
+}
+
+TEST_F(LlmTest, AFailedBreakdownOrCorrectionSaysWhyInOneReaderLine)
+{
+    EXPECT_EQ(failureLineFor(0), QStringLiteral("No connection or timeout. Check the network and try again."));
+    EXPECT_EQ(failureLineFor(503), QStringLiteral("The service returned an error (HTTP 503). Try again later."));
+    EXPECT_EQ(failureLineFor(200), QStringLiteral("The model's answer did not match the sentence. Try again."));
+    EXPECT_EQ(failureLineFor(-1), QStringLiteral("The service is not set up. Add an API key in Settings."));
+}
+
+TEST_F(LlmTest, TheBreakdownAsksWithEachWordAndItsIndex)
+{
+    EXPECT_EQ(breakdownLines(QStringList{"The", "cat,", "sleeps."}),
+              (QStringList{"0 The", "1 cat,", "2 sleeps."}));
+    EXPECT_TRUE(breakdownLines({}).isEmpty());
+}
+
+TEST_F(LlmTest, TheBreakdownRunsCoverTheSentenceAndColourOnlyTheMarkedWords)
+{
+    const QString           sentence = QStringLiteral("Although it was raining, the children played outside.");
+    const QVector<RoleSpan> spans{{Role::Adverbial, 0, 3}, {Role::Subject, 4, 5}, {Role::Verb, 6, 6}, {Role::Adverbial, 7, 7}};
+    const auto              runs = lens::llm::breakdownRuns(sentence, spans);
+
+    QString rebuilt;
+    for (auto const& run : runs)
+        rebuilt += run.text;
+    EXPECT_EQ(rebuilt, sentence) << "the runs must give the sentence back exactly";
+
+    ASSERT_EQ(runs.size(), 7);
+    EXPECT_EQ(runs.at(0).text, QStringLiteral("Although it was raining,"));
+    EXPECT_EQ(runs.at(0).role, QStringLiteral("A")) << "whitespace inside a run keeps its colour";
+    EXPECT_EQ(runs.at(1).text, QStringLiteral(" "));
+    EXPECT_TRUE(runs.at(1).role.isEmpty()) << "the gap between two different roles is plain";
+    EXPECT_EQ(runs.at(2).text, QStringLiteral("the children"));
+    EXPECT_EQ(runs.at(2).role, QStringLiteral("S"));
+    EXPECT_EQ(runs.at(4).text, QStringLiteral("played"));
+    EXPECT_EQ(runs.at(4).role, QStringLiteral("V"));
+    EXPECT_EQ(runs.at(6).text, QStringLiteral("outside."));
+    EXPECT_EQ(runs.at(6).role, QStringLiteral("A"));
+}
+
+TEST_F(LlmTest, TheBreakdownLegendListsTheUsedRolesInFixedOrder)
+{
+    const QVector<RoleSpan> spans{{Role::Adverbial, 0, 0}, {Role::Subject, 1, 1}};
+    EXPECT_EQ(lens::llm::breakdownRoles(spans), (QStringList{"S", "A"}));
+}
+
+TEST_F(LlmTest, TheBreakdownAcceptsSpansThatTakeEachWordAtMostOnce)
+{
+    const auto parsed = parseBreakdown(
+        envelope(QStringLiteral(R"({"results":[{"spans":[{"role":"S","from":0,"to":1},{"role":"V","from":2,"to":2}]}]})")), 4);
+    ASSERT_TRUE(breakdownAccepted(parsed));
+    const auto& spans = std::get<QVector<RoleSpan>>(parsed);
+    ASSERT_EQ(spans.size(), 2);
+    EXPECT_EQ(spans.at(0).role, Role::Subject);
+    EXPECT_EQ(spans.at(0).from, 0);
+    EXPECT_EQ(spans.at(0).to, 1);
+    EXPECT_EQ(spans.at(1).role, Role::Verb);
+}
+
+TEST_F(LlmTest, TheBreakdownRefusesTheWholeAnswerOnAnyBadSpan)
+{
+    const QStringList refused{
+        QStringLiteral(R"({"results":[{"spans":[{"role":"S","from":0,"to":4}]}]})"),
+        QStringLiteral(R"({"results":[{"spans":[{"role":"S","from":2,"to":1}]}]})"),
+        QStringLiteral(R"({"results":[{"spans":[{"role":"S","from":0,"to":2},{"role":"V","from":2,"to":3}]}]})"),
+        QStringLiteral(R"({"results":[{"spans":[{"role":"X","from":0,"to":1}]}]})"),
+        QStringLiteral(R"({"results":[{"spans":[{"role":"S","from":0.5,"to":1}]}]})"),
+        QStringLiteral(R"({"results":[{"spans":[{"role":"S","from":-1,"to":1}]}]})"),
+        QStringLiteral(R"({"results":[{"spans":[]}]})"),
+        QStringLiteral(R"({"results":[{"spans":[{"role":"S","from":0,"to":1}]},{"spans":[{"role":"V","from":0,"to":0}]}]})"),
+    };
+    for (auto const& content : refused)
+        EXPECT_FALSE(breakdownAccepted(parseBreakdown(envelope(content), 4))) << content.toStdString();
+
+    const auto valid = QStringLiteral(R"({"results":[{"spans":[{"role":"S","from":0,"to":1}]}]})");
+    EXPECT_FALSE(breakdownAccepted(parseBreakdown(envelope(valid, QStringLiteral("length")), 4)))
+        << "a cut-off answer is never complete";
 }
 
 TEST_F(LlmTest, FoldsSeveralEntityOrSentenceResultsIntoTheOneRequested)
