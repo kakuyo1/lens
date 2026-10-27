@@ -79,11 +79,11 @@ Window {
     readonly property var drawerItems: {
         const items = [];
         if (bar.spellable)
-            items.push({action: "spell", label: qsTr("Spell correction"), source: "qrc:/icons/ui-spell.svg"});
+            items.push({action: "spell", label: qsTr("Fix spelling"), source: "qrc:/icons/ui-spell.svg"});
         if (bar.grammarable)
-            items.push({action: "grammar", label: qsTr("Grammar correction"), source: "qrc:/icons/ui-grammar.svg"});
+            items.push({action: "grammar", label: qsTr("Fix syntax"), source: "qrc:/icons/ui-grammar.svg"});
         if (bar.selectionKind === "sentence" && bar.breakdownable)
-            items.push({action: "breakdown", label: qsTr("Sentence breakdown"), source: "qrc:/icons/ui-breakdown.svg"});
+            items.push({action: "breakdown", label: qsTr("Breakdown", "copy drawer item"), source: "qrc:/icons/ui-breakdown.svg"});
         return items;
     }
 

@@ -4,7 +4,7 @@ import QtQuick
 
 /**
  * The breakdown card's body (UI-SPEC.md 4.3): the sentence as the answer split it, each role's run
- * tinted at 16%, and a legend naming the roles the sentence has. A correction card draws the same sentence
+ * tinted, and a legend naming the roles the sentence has, its swatches wearing the same tint. A correction card draws the same sentence
  * with the words the model changed underlined, and no legend. The legend row holds its line through
  * pending and failed, so a breakdown does not jump when it lands; a legend too wide for the card wraps.
  */
@@ -17,6 +17,8 @@ Column {
     readonly property bool ready: root.bubble.breakdown === "ready"
     /// A correction marks its changed words with an underline where a breakdown tints its roles.
     readonly property bool correcting: root.bubble.correction !== ""
+    /// The share of a role's colour a run takes over the bubble's fill (DESIGN.md 3.1e, UI-SPEC.md 4.3).
+    readonly property real tintShare: 0.2
     readonly property var roleOrder: ["S", "V", "C", "A"]
     readonly property var roleColors: ({
         S: root.bubble.tokens.roleS,
@@ -66,10 +68,10 @@ Column {
     /// The runs a correction underlines: its changed words and nothing else.
     readonly property var changeBoxes: root.runBoxes.filter(box => box.role === "changed")
 
-    /// @return The role colour at 16% over the bubble's own fill, as the hex a box is painted with.
+    /// @return The role colour at tintShare over the bubble's own fill, as the hex a box is painted with.
     function tintOf(color) {
         const base = root.bubble.tokens.bubbleBg;
-        const mix = (c, b) => Math.round((c * 0.16 + b * 0.84) * 255).toString(16).padStart(2, "0");
+        const mix = (c, b) => Math.round((c * root.tintShare + b * (1 - root.tintShare)) * 255).toString(16).padStart(2, "0");
         return "#" + mix(color.r, base.r) + mix(color.g, base.g) + mix(color.b, base.b);
     }
 
@@ -158,7 +160,7 @@ Column {
         width: root.width
         // A correction's ready card has no legend row: it draws the sentence alone (UI-SPEC.md 4.10).
         visible: !(root.correcting && root.ready)
-        height: Math.max(16, legend.height)
+        height: Math.max(16, root.ready ? legend.height : statusLine.height)
 
         Flow {
             id: legend
@@ -175,12 +177,15 @@ Column {
                     height: 16
                     spacing: 5
 
+                    // The swatch wears the run's tint with the role's colour as its edge, so it matches the words it names.
                     Rectangle {
                         y: (parent.height - height) / 2
                         width: 9
                         height: 9
                         radius: 4.5
-                        color: root.roleColors[legendItem.modelData]
+                        color: root.tintOf(root.roleColors[legendItem.modelData])
+                        border.width: 1
+                        border.color: root.roleColors[legendItem.modelData]
                     }
 
                     Text {
@@ -192,13 +197,17 @@ Column {
             }
         }
 
+        // A failure in the danger red wraps inside the card, and the row grows with it.
         Text {
+            id: statusLine
             visible: !root.ready
+            width: parent.width
             anchors.verticalCenter: parent.verticalCenter
+            wrapMode: Text.Wrap
             text: root.bubble.breakdown === "failed"
                   ? qsTr("Failed: %1").arg(root.bubble.failure)
                   : (root.correcting ? qsTr("Correcting…") : qsTr("Breaking down…"))
-            color: root.bubble.tokens.muted
+            color: root.bubble.breakdown === "failed" ? root.bubble.tokens.danger : root.bubble.tokens.muted
             font.pixelSize: root.bubble.sizeAt(11)
         }
     }

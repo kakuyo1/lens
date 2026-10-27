@@ -422,6 +422,7 @@ qt_add_shaders(lens_app "lens_shaders"
     ${CMAKE_CURRENT_SOURCE_DIR}/shaders/glass.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/shaders/glass_hblur.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/shaders/fan.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/fan_drawer.frag
 )
 
 # The .ts files, run through lrelease and embedded at :/i18n/. Rebuilding after a string

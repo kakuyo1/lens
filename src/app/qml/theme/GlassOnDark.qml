@@ -7,9 +7,12 @@ import QtQuick
  * the choice between a light and a dark text is made on the picture under the card (GlassBackdrop).
  * This table is the light side of that choice. Its text ramp is the dark theme's, so the two dark
  * surfaces read alike, and its tints are white rather than ink, since a dark tint vanishes on a dark
- * picture.
+ * picture. The breakdown's tints sit on the dark theme's bubble fill, and a failed line in its danger red,
+ * so the light text on them reads as it does on the dark theme.
  */
 QtObject {
+    readonly property color bubbleBg: Qt.rgba(30 / 255, 36 / 255, 47 / 255, 0.85)
+    readonly property color danger: "#ec9282"
     readonly property color popup: Qt.rgba(23 / 255, 28 / 255, 37 / 255, 0.78)
     readonly property color panel2: Qt.rgba(1, 1, 1, 0.08)
     readonly property color line: Qt.rgba(1, 1, 1, 0.18)

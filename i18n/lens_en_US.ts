@@ -4,37 +4,37 @@
 <context>
     <name>BubbleBreakdown</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="28"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="30"/>
         <source>Subject</source>
         <translation>Subject</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="29"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="31"/>
         <source>Verb</source>
         <translation>Verb</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="30"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="32"/>
         <source>Complement</source>
         <translation>Complement</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="31"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="33"/>
         <source>Adverbial</source>
         <translation>Adverbial</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="199"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="208"/>
         <source>Failed: %1</source>
         <translation>Failed: %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="200"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="209"/>
         <source>Breaking down…</source>
         <translation>Breaking down…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="200"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="209"/>
         <source>Correcting…</source>
         <translation>Correcting…</translation>
     </message>
@@ -296,18 +296,19 @@
     </message>
     <message>
         <location filename="../src/app/qml/selection/SelectionBar.qml" line="82"/>
-        <source>Spell correction</source>
-        <translation>Spell correction</translation>
+        <source>Fix spelling</source>
+        <translation>Fix spelling</translation>
     </message>
     <message>
         <location filename="../src/app/qml/selection/SelectionBar.qml" line="84"/>
-        <source>Grammar correction</source>
-        <translation>Grammar correction</translation>
+        <source>Fix syntax</source>
+        <translation>Fix syntax</translation>
     </message>
     <message>
         <location filename="../src/app/qml/selection/SelectionBar.qml" line="86"/>
-        <source>Sentence breakdown</source>
-        <translation>Sentence breakdown</translation>
+        <source>Breakdown</source>
+        <comment>copy drawer item</comment>
+        <translation>Breakdown</translation>
     </message>
 </context>
 <context>

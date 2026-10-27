@@ -156,8 +156,6 @@ Item {
         shown: root.shown
         tokens: root.tokens
         glassSheet: root.glassSheet
-        anchorW: root.implicitWidth
-        anchorH: root.implicitHeight
         onPicked: (action) => root.activate(action)
     }
 

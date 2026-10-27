@@ -4,37 +4,37 @@
 <context>
     <name>BubbleBreakdown</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="28"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="30"/>
         <source>Subject</source>
         <translation>主语</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="29"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="31"/>
         <source>Verb</source>
         <translation>谓语</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="30"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="32"/>
         <source>Complement</source>
         <translation>表语</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="31"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="33"/>
         <source>Adverbial</source>
         <translation>状语</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="199"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="208"/>
         <source>Failed: %1</source>
         <translation>失败：%1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="200"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="209"/>
         <source>Breaking down…</source>
         <translation>正在拆解…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="200"/>
+        <location filename="../src/app/qml/bubble/BubbleBreakdown.qml" line="209"/>
         <source>Correcting…</source>
         <translation>正在纠正…</translation>
     </message>
@@ -296,17 +296,18 @@
     </message>
     <message>
         <location filename="../src/app/qml/selection/SelectionBar.qml" line="82"/>
-        <source>Spell correction</source>
+        <source>Fix spelling</source>
         <translation>纠正拼写</translation>
     </message>
     <message>
         <location filename="../src/app/qml/selection/SelectionBar.qml" line="84"/>
-        <source>Grammar correction</source>
+        <source>Fix syntax</source>
         <translation>纠正语法</translation>
     </message>
     <message>
         <location filename="../src/app/qml/selection/SelectionBar.qml" line="86"/>
-        <source>Sentence breakdown</source>
+        <source>Breakdown</source>
+        <comment>copy drawer item</comment>
         <translation>句子拆解</translation>
     </message>
 </context>

@@ -343,6 +343,39 @@ Item {
             bubble.visible = false;
         }
 
+        /// A failed breakdown's reason is drawn in the danger red and wraps inside the card when it is too long.
+        function test_aFailedLineIsDangerRedAndWrapsInsideTheCard() {
+            const bubble = createTemporaryObject(bubbleComponent, root);
+            verify(bubble);
+            bubble.show(breakdownPayload("failed", [], "The model's answer did not match the sentence. Try again."));
+            wait(50);
+            const block = breakdownOf(bubble);
+            const line = Util.textsUnder(bubble).filter(function (t) { return t.text.indexOf("Failed: ") === 0; })[0];
+            verify(line, "failed drew no reason line");
+            verify(sameColour(line.color, bubble.tokens.danger), "the failed line is not in the danger red");
+            verify(line.mapToItem(block, line.width, 0).x <= block.width, "the failed line runs past the card");
+            verify(line.height > 16, "the failed line did not wrap");
+            bubble.visible = false;
+        }
+
+        /// On a dark picture the glass reads light text, so the breakdown's tints take the dark bubble fill
+        /// and the sentence stays readable on them.
+        function test_onADarkGlassTheTintsSitOnADarkFillUnderLightText() {
+            const previousTheme = Tokens.theme;
+            Tokens.theme = "frosted";
+            const bubble = createTemporaryObject(bubbleComponent, root);
+            verify(bubble);
+            // The bubble reads its light text from the desktop it sits on, which is sampled after a delay; pin it here.
+            bubble.tokens.glassLightText = true;
+            bubble.show(breakdownPayload("ready", ["S", "V"]));
+            wait(50);
+            const block = breakdownOf(bubble);
+            verify(sameColour(bubble.tokens.text, Qt.color("#e9edf3")), "the glass did not read light text");
+            verify(Qt.color(block.tintOf(bubble.tokens.roleS)).hslLightness < 0.5, "the tint is light under light text");
+            bubble.visible = false;
+            Tokens.theme = previousTheme;
+        }
+
         /// The tag names the correction on the card: Spelling for a word, Grammar for a sentence, and never the
         /// word's New or Known.
         function test_theCorrectionTagNamesItsKind() {
