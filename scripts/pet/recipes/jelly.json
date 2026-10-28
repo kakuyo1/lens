@@ -2672,9 +2672,6 @@
       "sceneWeights": {
         "jelly_trampoline": 2.5
       },
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -2738,9 +2735,6 @@
     {
       "id": "starfish_clip",
       "slot": "head",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -2827,9 +2821,6 @@
     {
       "id": "sailor_cap",
       "slot": "head",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3038,9 +3029,6 @@
     {
       "id": "bubble_cheeks",
       "slot": "face",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3082,9 +3070,6 @@
       "sceneWeights": {
         "jelly_sundae": 2.5
       },
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3349,14 +3334,14 @@
           "pixel": true,
           "canvas": true
         }
+      ],
+      "except": [
+        "sleep"
       ]
     },
     {
       "id": "shell_necklace",
       "slot": "body",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3444,14 +3429,14 @@
           "pixel": true,
           "canvas": true
         }
+      ],
+      "except": [
+        "sleep"
       ]
     },
     {
       "id": "fish_charm",
       "slot": "body",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3542,6 +3527,9 @@
           "pixel": true,
           "canvas": true
         }
+      ],
+      "except": [
+        "sleep"
       ]
     }
   ],

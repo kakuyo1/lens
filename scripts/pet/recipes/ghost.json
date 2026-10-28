@@ -2692,9 +2692,6 @@
       "sceneWeights": {
         "ghost_lantern": 3
       },
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -2787,9 +2784,6 @@
     {
       "id": "moon_clip",
       "slot": "head",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -2871,9 +2865,6 @@
     {
       "id": "halo",
       "slot": "head",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3064,9 +3055,6 @@
     {
       "id": "mustache",
       "slot": "face",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3103,9 +3091,6 @@
       "sceneWeights": {
         "ghost_mirror": 2
       },
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3177,14 +3162,14 @@
           "pixel": true,
           "canvas": true
         }
+      ],
+      "except": [
+        "sleep"
       ]
     },
     {
       "id": "candle",
       "slot": "body",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3272,6 +3257,9 @@
           "pixel": true,
           "canvas": true
         }
+      ],
+      "except": [
+        "sleep"
       ]
     },
     {
@@ -3280,9 +3268,6 @@
       "sceneWeights": {
         "ghost_mirror": 2.5
       },
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3348,6 +3333,9 @@
           "pixel": true,
           "canvas": true
         }
+      ],
+      "except": [
+        "sleep"
       ]
     }
   ],

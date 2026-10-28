@@ -175,6 +175,22 @@ TEST(PetData, EveryShippedPetWalksAndPeeks)
     EXPECT_EQ(pets, 7);
 }
 
+TEST(PetData, ASleepingPetIsNotStrippedOfItsWholeWardrobe)
+{
+    // A piece whose anchor cannot follow the curled sleep pose may come off (eyewear, neck wear), but a pet that
+    // sleeps bare head to body is the bug once shipped: at least one worn piece has to stay through the sleep.
+    for (auto const& entry : std::filesystem::directory_iterator{std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet"}) {
+        if (not entry.is_directory()) continue;
+        auto const animations = parseAnimations(loadAt(entry.path(), "animations.json"));
+        auto const catalogue  = parseAccessories(loadAt(entry.path(), "accessories.json"), animations.playbook);
+
+        auto const sleeping = std::count_if(catalogue.begin(), catalogue.end(), [](auto const& accessory) {
+            return std::find(accessory.supportedActions.begin(), accessory.supportedActions.end(), "sleep") != accessory.supportedActions.end();
+        });
+        EXPECT_GT(sleeping, 0) << entry.path().filename().string();
+    }
+}
+
 TEST(PetData, EveryAccessorySceneWeightNamesASceneItsPetPlays)
 {
     auto const scenesDoc = loadAt(std::filesystem::path{LENS_SOURCE_DIR} / "data" / "scenes", "scenes.json");

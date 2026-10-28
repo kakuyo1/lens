@@ -2850,9 +2850,6 @@
     {
       "id": "storm_cap",
       "slot": "head",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -2947,9 +2944,6 @@
       "sceneWeights": {
         "cloud_fishing": 3
       },
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3056,9 +3050,6 @@
       "sceneWeights": {
         "rain": 3
       },
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3256,9 +3247,6 @@
     {
       "id": "snow_freckles",
       "slot": "face",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3294,9 +3282,6 @@
     {
       "id": "rain_chain",
       "slot": "body",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3486,6 +3471,9 @@
           "pixel": true,
           "canvas": true
         }
+      ],
+      "except": [
+        "sleep"
       ]
     },
     {
@@ -3494,9 +3482,6 @@
       "sceneWeights": {
         "rain": 2.5
       },
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3561,14 +3546,14 @@
           "pixel": true,
           "canvas": true
         }
+      ],
+      "except": [
+        "sleep"
       ]
     },
     {
       "id": "bolt_charm",
       "slot": "body",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3619,6 +3604,9 @@
           "pixel": true,
           "canvas": true
         }
+      ],
+      "except": [
+        "sleep"
       ]
     }
   ],

@@ -2824,9 +2824,6 @@
       "sceneWeights": {
         "bath": 3
       },
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -2929,9 +2926,6 @@
       "sceneWeights": {
         "cat_box": 2.5
       },
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3057,9 +3051,6 @@
     {
       "id": "flower_crown",
       "slot": "head",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3286,9 +3277,6 @@
     {
       "id": "heart_blush",
       "slot": "face",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3322,9 +3310,6 @@
     {
       "id": "fish_collar",
       "slot": "body",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3406,14 +3391,14 @@
           "pixel": true,
           "canvas": true
         }
+      ],
+      "except": [
+        "sleep"
       ]
     },
     {
       "id": "sailor_collar",
       "slot": "body",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3513,6 +3498,9 @@
           "pixel": true,
           "canvas": true
         }
+      ],
+      "except": [
+        "sleep"
       ]
     },
     {
@@ -3521,9 +3509,6 @@
       "sceneWeights": {
         "swing": 3
       },
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3630,6 +3615,9 @@
           "pixel": true,
           "canvas": true
         }
+      ],
+      "except": [
+        "sleep"
       ]
     }
   ],

@@ -2395,9 +2395,6 @@
     {
       "id": "flat_cap",
       "slot": "head",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -2445,9 +2442,6 @@
     {
       "id": "beret",
       "slot": "head",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -2519,9 +2513,6 @@
     {
       "id": "knit_beanie",
       "slot": "head",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -2775,9 +2766,6 @@
       "sceneWeights": {
         "skate": 3
       },
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -2888,6 +2876,9 @@
           "pixel": true,
           "canvas": true
         }
+      ],
+      "except": [
+        "sleep"
       ]
     },
     {
@@ -2896,9 +2887,6 @@
       "sceneWeights": {
         "swing": 2.5
       },
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -2964,6 +2952,9 @@
           "pixel": true,
           "canvas": true
         }
+      ],
+      "except": [
+        "sleep"
       ]
     },
     {
@@ -2972,9 +2963,6 @@
       "sceneWeights": {
         "dog_frisbee": 2.5
       },
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -3075,6 +3063,9 @@
           "pixel": true,
           "canvas": true
         }
+      ],
+      "except": [
+        "sleep"
       ]
     }
   ]

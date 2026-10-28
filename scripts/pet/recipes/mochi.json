@@ -2350,9 +2350,6 @@
       "sceneWeights": {
         "mochi_onsen": 2.5
       },
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -2468,9 +2465,6 @@
       "sceneWeights": {
         "mochi_grill": 3
       },
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -2577,14 +2571,14 @@
           "pixel": true,
           "canvas": true
         }
+      ],
+      "except": [
+        "sleep"
       ]
     },
     {
       "id": "chasen",
       "slot": "head",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
@@ -2760,9 +2754,6 @@
     {
       "id": "blush",
       "slot": "face",
-      "except": [
-        "sleep"
-      ],
       "paint": [
         {
           "at": [
