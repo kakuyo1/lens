@@ -51,10 +51,14 @@ sh scripts/quality/coverage.sh                                    # 五个无人
 sh scripts/quality/coverage.sh test/records/coverage lens_gtest_unit   # 或者只点几个目标
 ```
 
-每个目标一份，最后合并成 `test/records/coverage/coverage.xml`；该目录 gitignored。汇总那一行由
-`scripts/quality/coverage-summary.py` 算出：Cobertura 里一个被多个二进制链进去的源文件会出现好几份，
-根节点的 `line-rate` 把它们加在一起，直接读会偏低。`lens_gtest_smoke` 要 key 且花钱，不在内；
-`lens_gtest_integration` 在默认列表里，但 CI 不点它（runner 没有真鼠标与真剪贴板）。
+每个非表面目标各跑一整份，表面套件按用例文件各起一个进程、两个并发（与 QML 那条线共用
+`scripts/qa/qtest-cases.sh` 的排序）。CI 再把它拆成三个并行 job：三个小目标一个，表面套件按
+`--cases K/N` 分到两个 runner；每个 job 只上传 `.cov`，由 `scripts/quality/coverage-merge.sh`
+合并成 `test/records/coverage/coverage.xml`（该目录 gitignored），本地单机跑也由它收尾。
+汇总那一行由 `scripts/quality/coverage-summary.py` 算出：Cobertura 里一个被
+多个二进制链进去的源文件会出现好几份，根节点的 `line-rate` 把它们加在一起，直接读会偏低。
+`lens_gtest_smoke` 要 key 且花钱，不在内；`lens_gtest_integration` 在默认列表里，但 CI 不点它
+（runner 没有真鼠标与真剪贴板）。
 
 两条口径，读数字之前先读它：
 
@@ -79,6 +83,11 @@ sh scripts/quality/qml-coverage.sh
 ——编译器把它们折进对象的构造，引擎从不求值，profiler 也就永远报不出来；算进分母就是一笔永远
 扣不掉的分。结果写 `test/records/qmlcov/`。profiler 启动的是那**两个 QTest 目标**本身，所以这是
 测试套件覆盖到多少，不是手工跑一遍应用覆盖到多少。
+
+表面套件的每个用例文件各起一个 profiler，两个并发，最后的并集由同一条命令合并。原因是 trace 的
+体积：绑定事件按求值次数记，一个等动画的用例每帧都在求值，整个套件能写出超过 512 MB 的一份文件
+——那已经越过 JS 字符串的上限，读不进来。拆开之后单份 trace 更小，耗时也是最长的那个文件而不是
+总和；`qml-coverage.js` 本身按块扫描，不把整份 trace 变成字符串。
 
 三条要注意的：
 

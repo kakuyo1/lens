@@ -1,6 +1,6 @@
 # The coverage scans, after the gate rather than inside it.
 #
-# Both jobs report and do not gate: the numbers move between runs of an unchanged tree -- the QML
+# The scans report and do not gate: the numbers move between runs of an unchanged tree -- the QML
 # trace's event counts vary from run to run, and each scan is over whatever targets a machine can
 # run, which is not the same set here as on a development box -- so a threshold would fail on the
 # weather. TEST.md section 4 carries the scope of both scans. (The one that used to swing the C++
@@ -12,6 +12,12 @@
 # was coverage-cpp's twenty minutes rather than the gate's six. This workflow starts only after CI
 # succeeds, so a red gate costs no coverage time and the merge gate is CI's own status.
 #
+# The C++ scan is four jobs: three that scan in parallel and the report that merges them. One job
+# could not shrink further -- the surface suite is most of the cost and the job that runs it must
+# build before it runs -- so its case files are cut in two across two runners, each running two
+# at a time, and the small targets get a runner of their own. Every job uploads the .cov files it
+# produced, never a merged report, so the union happens once, after all three.
+#
 # workflow_run's checkout is the head of the run that triggered it, never this workflow's default
 # branch: a pull request's coverage must measure the pull request's commit. A newer push on the
 # same branch cancels an older scan; the latest commit is the one whose report matters.
@@ -19,7 +25,7 @@
 # workflow_run can see the base repository's token, so untrusted code is kept out: a run whose
 # head repository is a fork is skipped, and the token is read-only. The scans need no secrets.
 #
-# A classifier in front of the two jobs skips them for a change that cannot move a coverage
+# A classifier in front of the scans skips them for a change that cannot move a coverage
 # number: config, a hook, a workflow file, the QML lint. It reads the same map as the CI gate
 # (scripts/quality/ci-changes.sh), so the two cannot disagree about which files matter.
 
@@ -75,13 +81,12 @@ jobs:
           fi
           bash scripts/quality/ci-changes.sh "$base" "$head" | grep '^coverage=' >> "$GITHUB_OUTPUT"
 
-  coverage-cpp:
+  # The three targets that are minutes together. lens_gtest_integration is left out even though
+  # the script's default includes it: it drives the real mouse and the real clipboard, and a
+  # runner has neither. lens itself is covered by nothing and never enters a scan.
+  coverage-cpp-targets:
     needs: changes
-    if: >-
-      github.event_name == 'workflow_dispatch'
-      || (github.event.workflow_run.conclusion == 'success'
-          && github.event.workflow_run.head_repository.full_name == github.repository
-          && needs.changes.outputs.coverage == 'true')
+    if: needs.changes.result == 'success' && needs.changes.outputs.coverage == 'true'
     runs-on: windows-latest
 
     steps:
@@ -91,29 +96,113 @@ jobs:
 
       - uses: ./.github/actions/configure
 
-      # The four targets a runner can run, which is what the scan below is handed. lens is not
-      # among them: it is covered by nothing and would only be built for its own PDB.
       - name: Build
-        run: cmake --build --preset ninja-qt6 --target lens_gtest_unit lens_gtest_perf lens_qtest_components lens_qtest_surfaces
+        run: cmake --build --preset ninja-qt6 --target lens_gtest_unit lens_gtest_perf lens_qtest_components
 
-      # The image carries neither of the two coverage tools. OpenCppCoverage ships as one
-      # executable that reads a binary's PDB, so installing it is the whole setup; the version is
-      # pinned the way Qt's is, and TEST.md section 4 has the same line for a dev machine.
-      - name: Install OpenCppCoverage
-        run: |
-          $url = "https://github.com/OpenCppCoverage/OpenCppCoverage/releases/download/release-0.9.9.0/OpenCppCoverageSetup-x64-0.9.9.0.exe"
-          Invoke-WebRequest -Uri $url -OutFile "$env:TEMP\OpenCppCoverageSetup.exe"
-          Start-Process -FilePath "$env:TEMP\OpenCppCoverageSetup.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -Wait
-        shell: pwsh
+      - uses: ./.github/actions/opencppcoverage
 
-      # lens_gtest_integration is left out even though the script's default includes it: it
-      # drives the real mouse and the real clipboard.
       - name: Coverage (C++)
-        run: bash scripts/quality/coverage.sh test/records/coverage lens_gtest_unit lens_gtest_perf lens_qtest_components lens_qtest_surfaces
+        run: bash scripts/quality/coverage.sh test/records/coverage lens_gtest_unit lens_gtest_perf lens_qtest_components
         shell: bash
 
-      # always(), because a red case is exactly when the report is worth reading. The file is the
-      # raw data behind the report under docs/metrics/.
+      # The .cov files, not the report: the merge across jobs is the report job's one job.
+      # always(), because a red case is exactly when its coverage is worth reading.
+      - name: Upload coverage data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-cpp-targets
+          path: test/records/coverage/**/*.cov
+
+  # The surface suite, cut in two by --cases. Each job runs its half two at a time, which is the
+  # same count the single-job scan carried; splitting the files across runners is what turns the
+  # wall clock from the whole suite into the slower half.
+  coverage-cpp-surfaces-1:
+    needs: changes
+    if: needs.changes.result == 'success' && needs.changes.outputs.coverage == 'true'
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: ./.github/actions/configure
+
+      - name: Build
+        run: cmake --build --preset ninja-qt6 --target lens_qtest_surfaces
+
+      - uses: ./.github/actions/opencppcoverage
+
+      - name: Coverage (C++), surface half 1
+        run: bash scripts/quality/coverage.sh --cases 1/2 test/records/coverage lens_qtest_surfaces
+        shell: bash
+
+      - name: Upload coverage data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-cpp-surfaces-1
+          path: test/records/coverage/**/*.cov
+
+  coverage-cpp-surfaces-2:
+    needs: changes
+    if: needs.changes.result == 'success' && needs.changes.outputs.coverage == 'true'
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: ./.github/actions/configure
+
+      - name: Build
+        run: cmake --build --preset ninja-qt6 --target lens_qtest_surfaces
+
+      - uses: ./.github/actions/opencppcoverage
+
+      - name: Coverage (C++), surface half 2
+        run: bash scripts/quality/coverage.sh --cases 2/2 test/records/coverage lens_qtest_surfaces
+        shell: bash
+
+      - name: Upload coverage data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-cpp-surfaces-2
+          path: test/records/coverage/**/*.cov
+
+  # The union of the three scans, and the one artifact the numbers in docs/metrics/ are read
+  # from. It needs no build tree and no Qt: OpenCppCoverage's merge reads the .cov files, and the
+  # summary is Python over the Cobertura it writes.
+  #
+  # always(), because a scan job that went red still uploaded what it did run, and a partial
+  # number names the hole; the download takes whatever the three uploaded.
+  coverage-cpp-report:
+    needs: [changes, coverage-cpp-targets, coverage-cpp-surfaces-1, coverage-cpp-surfaces-2]
+    if: always() && needs.changes.result == 'success' && needs.changes.outputs.coverage == 'true'
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: ./.github/actions/opencppcoverage
+
+      - name: Collect coverage data
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-cpp-*
+          path: test/records/coverage
+          merge-multiple: true
+
+      - name: Merge and report
+        run: bash scripts/quality/coverage-merge.sh test/records/coverage
+        shell: bash
+
+      # The file is the raw data behind the report under docs/metrics/.
       - name: Upload coverage
         if: always()
         uses: actions/upload-artifact@v4
@@ -137,8 +226,10 @@ jobs:
 
       - uses: ./.github/actions/configure
 
-      # qmlprofiler launches the two QTest binaries itself, so this is the same pair of suites
-      # the two qml jobs run -- measured instead of just checked.
+      # The same pair of suites the two qml jobs run -- measured instead of just checked. The
+      # surface side is one profiler per case file, two at a time: the record is per binding
+      # evaluation, and one suite that waits on animations writes a trace too large for a
+      # single process to be the unit (scripts/quality/qml-coverage.sh carries the reasoning).
       - name: Build
         run: cmake --build --preset ninja-qt6 --target lens_qtest_components lens_qtest_surfaces
 

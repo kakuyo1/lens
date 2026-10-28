@@ -1,0 +1,27 @@
+# The coverage tool, installed the way it ships. The image carries none: OpenCppCoverage is one
+# executable plus a DLL that reads a binary's PDB at run time, so this step is the whole setup.
+#
+# The version is pinned the way Qt's is (scripts/quality/coverage.sh reads the tool from its
+# install path, so the pin lives here and the scanner never names a version). A newer release
+# changes how line numbers come out of the PDB, and a coverage number that moved because the
+# tool moved is a number nobody can compare with the ones in docs/metrics/.
+#
+# One place and not one copy per job: the C++ scan is four jobs now -- three scans and the merge
+# that follows them -- and four copies of an installer URL is the drift config/paths.default.json
+# exists to prevent.
+#
+# The silent install is waited on, because the next step runs the tool. It writes to the fixed
+# location under Program Files, which is where the scan's own lookup starts, so nothing here has
+# to hand a path to the calling job.
+name: Install OpenCppCoverage
+description: Install OpenCppCoverage 0.9.9.0, the version the coverage numbers in docs/metrics/ were taken with.
+
+runs:
+  using: composite
+  steps:
+    - name: Install OpenCppCoverage
+      shell: pwsh
+      run: |
+        $url = "https://github.com/OpenCppCoverage/OpenCppCoverage/releases/download/release-0.9.9.0/OpenCppCoverageSetup-x64-0.9.9.0.exe"
+        Invoke-WebRequest -Uri $url -OutFile "$env:TEMP\OpenCppCoverageSetup.exe"
+        Start-Process -FilePath "$env:TEMP\OpenCppCoverageSetup.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -Wait

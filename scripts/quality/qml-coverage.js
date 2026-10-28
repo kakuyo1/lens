@@ -119,28 +119,105 @@ function coverableLines(file) {
     return { lines, skippedLiteralLines };
 }
 
+/// The trace is XML with one <event> element per evaluated expression, and a suite that waits on
+/// animations writes an enormous number of them -- past 2^29 characters, which is where
+/// readFileSync stops: "Cannot create a string longer than 0x1fffffe8 characters". So the file is
+/// walked a chunk at a time and each event is cut out of the buffer as bytes; only the filename
+/// and the line are ever decoded. Memory stays flat in the size of one event.
+const CHUNK = 1 << 20;
+const EVENT_OPEN = Buffer.from("<event");
+const EVENT_CLOSE = Buffer.from("</event>");
+const FIELD_OPEN = {
+    type: Buffer.from("<type>"),
+    filename: Buffer.from("<filename>"),
+    line: Buffer.from("<line>"),
+};
+const FIELD_CLOSE = {
+    type: Buffer.from("</type>"),
+    filename: Buffer.from("</filename>"),
+    line: Buffer.from("</line>"),
+};
+
+/// `<eventData>` opens with the same six bytes, so an event's open tag is the one followed by
+/// whitespace or `>`.
+function eventStart(buffer, from) {
+    for (let at = buffer.indexOf(EVENT_OPEN, from); at !== -1; at = buffer.indexOf(EVENT_OPEN, at + EVENT_OPEN.length)) {
+        const next = buffer[at + EVENT_OPEN.length];
+        if (next === 0x20 || next === 0x09 || next === 0x0a || next === 0x0d || next === 0x3e) return at;
+    }
+    return -1;
+}
+
+/// Where one field's text sits inside the event body, or undefined when the field is absent or
+/// lands outside it. The first occurrence wins, as the XML writes the fields before <details>.
+function fieldSpan(buffer, from, to, tag) {
+    const open = buffer.indexOf(FIELD_OPEN[tag], from);
+    if (open === -1 || open >= to) return undefined;
+    const start = open + FIELD_OPEN[tag].length;
+    const end = buffer.indexOf(FIELD_CLOSE[tag], start);
+    if (end === -1 || end > to) return undefined;
+    return [start, end];
+}
+
+/// Call @p visit(buffer, bodyStart, bodyEnd) for every complete <event> in @p trace. An event
+/// split across two reads is carried into the next one; a read boundary never drops a field.
+function eachEvent(trace, visit) {
+    const fd = fs.openSync(trace, "r");
+    try {
+        const chunk = Buffer.allocUnsafe(CHUNK);
+        let pending = Buffer.alloc(0);
+        for (;;) {
+            const read = fs.readSync(fd, chunk, 0, CHUNK, null);
+            if (read === 0) break;
+            pending = Buffer.concat([pending, Buffer.from(chunk.subarray(0, read))]);
+
+            let cursor = 0;
+            for (;;) {
+                const open = eventStart(pending, cursor);
+                if (open === -1) {
+                    // A read can stop in the middle of an open tag (`<ev`, `<event`), so the
+                    // last few bytes are kept even though no tag was found in them.
+                    pending = pending.subarray(Math.max(cursor, pending.length - EVENT_OPEN.length));
+                    break;
+                }
+                const tagEnd = pending.indexOf(0x3e, open + EVENT_OPEN.length);
+                const close = tagEnd === -1 ? -1 : pending.indexOf(EVENT_CLOSE, tagEnd);
+                if (tagEnd === -1 || close === -1) {
+                    pending = pending.subarray(open);
+                    break;
+                }
+                visit(pending, tagEnd + 1, close);
+                cursor = close + EVENT_CLOSE.length;
+            }
+        }
+    } finally {
+        fs.closeSync(fd);
+    }
+}
+
 /// Every {file, line} the profiler reported an evaluated expression at, across every trace
-/// given. One target's trace and another's are unioned: a location reached in either run counts.
+/// given. One run's trace and another's are unioned: a location reached in either run counts.
 function executedLocations(traces) {
     const executed = new Map();
     const counts = { Binding: 0, HandlingSignal: 0, Javascript: 0, other: 0 };
 
     for (const trace of traces) {
-        const text = fs.readFileSync(trace, "utf8");
-        for (const [, body] of text.matchAll(/<event[^>]*>([\s\S]*?)<\/event>/g)) {
-            const field = tag => (body.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`)) || [])[1];
-            const kind = field("type") || "";
+        eachEvent(trace, (buffer, from, to) => {
+            const type = fieldSpan(buffer, from, to, "type");
+            const kind = type ? buffer.toString("latin1", type[0], type[1]) : "";
             if (!(kind in counts)) {
                 counts.other++;
-                continue;
+                return;
             }
             counts[kind]++;
-            const file = field("filename") || "";
-            if (!file.startsWith(RESOURCE_PREFIX)) continue;
-            const relative = file.slice(RESOURCE_PREFIX.length);
+            const file = fieldSpan(buffer, from, to, "filename");
+            const path = file ? buffer.toString("utf8", file[0], file[1]) : "";
+            if (!path.startsWith(RESOURCE_PREFIX)) return;
+            const relative = path.slice(RESOURCE_PREFIX.length);
+            const line = fieldSpan(buffer, from, to, "line");
             if (!executed.has(relative)) executed.set(relative, new Set());
-            executed.get(relative).add(Number(field("line")));
-        }
+            executed.get(relative).add(line ? Number(buffer.toString("latin1", line[0], line[1])) : NaN);
+        });
     }
     return { executed, counts };
 }

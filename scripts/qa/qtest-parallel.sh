@@ -67,15 +67,9 @@ LOG_DIR=$(mktemp -d "$ROOT/logs/qtest-parallel.XXXXXX") || {
 }
 
 # Function count is a cheap proxy for a file's cost and keeps the heavy cases in different
-# workers. The path itself is the tie-break, so a run's assignment is reproducible.
+# workers. The list itself is scripts/qa/qtest-cases.sh, which the coverage scans share.
 FILES="$LOG_DIR/files"
-for file in "$SURFACES"/tst_*.qml; do
-    [ -f "$file" ] || continue
-    weight=$(grep -c '^[[:space:]]*function test_' "$file" 2>/dev/null || true)
-    printf '%s %s\n' "${weight:-0}" "$file" >> "$LOG_DIR/weighted"
-done
-sort -k1,1nr -k2,2 "$LOG_DIR/weighted" -o "$LOG_DIR/weighted"
-cut -d' ' -f2- "$LOG_DIR/weighted" > "$FILES"
+sh "$ROOT/scripts/qa/qtest-cases.sh" "$SURFACES" > "$FILES"
 
 export LENS_QTEST_EXE="$EXE"
 export LENS_QTEST_LOG="$LOG_DIR"
