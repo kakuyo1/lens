@@ -219,6 +219,122 @@ Item {
             }
         }
 
+        // Pronunciation (UI-SPEC.md 4.4, docs/adr/0134): a group of its own, because these decide
+        // what the card does rather than what it draws. No row here raises a preview: a card that
+        // demonstrated one of them would have to synthesise a word on a hover, and a hover that
+        // makes a sound is exactly the interruption auto-play is off by default to avoid.
+        Column {
+            width: parent.width
+            spacing: 8
+
+            Text {
+                text: qsTranslate("SettingsPopup", "Pronunciation")
+                color: root.tokens.muted
+                font.pixelSize: 11
+            }
+
+            SwitchRow {
+                width: parent.width
+                objectName: "speechAutoPlaySwitch"
+                label: qsTranslate("SettingsPopup", "Auto-play")
+                checked: root.settings.speechAutoPlay === true
+                onToggled: (on) => Controller.setSetting("speechAutoPlay", on)
+            }
+
+            // Two ways of saying an English word, so a two-way switch rather than a list: the
+            // reader is picking one of two, not searching a catalogue.
+            Column {
+                width: parent.width
+                spacing: 7
+                Text {
+                    text: qsTranslate("SettingsPopup", "Accent")
+                    color: root.tokens.muted
+                    font.pixelSize: 12
+                }
+                Segment {
+                    objectName: "speechAccentField"
+                    width: parent.width
+                    height: 31
+                    labels: [qsTranslate("SettingsPopup", "American"), qsTranslate("SettingsPopup", "British")]
+                    currentIndex: root.settings.speechAccent === "uk" ? 1 : 0
+                    onPicked: (index) => Controller.setSetting("speechAccent", index === 1 ? "uk" : "us")
+                }
+            }
+
+            Column {
+                width: parent.width
+                spacing: 7
+                Text {
+                    text: qsTranslate("SettingsPopup", "Engine")
+                    color: root.tokens.muted
+                    font.pixelSize: 12
+                }
+                DropdownField {
+                    objectName: "speechEngineField"
+                    width: parent.width
+                    accessibleName: qsTranslate("SettingsPopup", "Engine")
+                    options: root.settings.speechEngineOptions || []
+                    currentValue: root.settings.speechEngine
+                    onPicked: (value) => Controller.setSetting("speechEngine", value)
+                }
+                // Whose voice the reader is hearing is part of the setting, not a detail: the system
+                // synthesiser's quality is whatever their Windows language pack installed, so the
+                // page names it -- and says so plainly when there is none (docs/adr/0134).
+                Text {
+                    width: parent.width
+                    visible: root.settings.speechEngine === "system"
+                    text: root.settings.speechSystemAvailable
+                          ? qsTranslate("SettingsPopup", "Voice: %1").arg(root.settings.speechSystemVoice)
+                          : qsTranslate("SettingsPopup", "No system voice is installed for this accent.")
+                    color: root.settings.speechSystemAvailable ? root.tokens.muted : root.tokens.faint
+                    font.pixelSize: 12
+                    wrapMode: Text.WordWrap
+                }
+            }
+
+            Column {
+                width: parent.width
+                spacing: 7
+                Text {
+                    text: qsTranslate("SettingsPopup", "Fallback")
+                    color: root.tokens.muted
+                    font.pixelSize: 12
+                }
+                DropdownField {
+                    objectName: "speechFallbackField"
+                    width: parent.width
+                    accessibleName: qsTranslate("SettingsPopup", "Fallback")
+                    options: root.settings.speechFallbackOptions || []
+                    currentValue: root.settings.speechFallback
+                    onPicked: (value) => Controller.setSetting("speechFallback", value)
+                }
+            }
+
+            // The local model is not in the package: the runtime ships, the voices are downloaded
+            // per accent and verified (docs/adr/0134). Until a voice is there, this row says so and
+            // nothing else -- a download entry arrives with the downloader, and a button that
+            // downloaded nothing would be worse than the sentence.
+            Column {
+                width: parent.width
+                spacing: 7
+                Text {
+                    text: qsTranslate("SettingsPopup", "Local voice")
+                    color: root.tokens.muted
+                    font.pixelSize: 12
+                }
+                Text {
+                    width: parent.width
+                    objectName: "speechLocalVoiceState"
+                    text: root.settings.speechLocalAvailable
+                          ? qsTranslate("SettingsPopup", "Downloaded and verified.")
+                          : qsTranslate("SettingsPopup", "Not downloaded. The local engine stays silent.")
+                    color: root.tokens.faint
+                    font.pixelSize: 12
+                    wrapMode: Text.WordWrap
+                }
+            }
+        }
+
         Column {
             width: parent.width
             spacing: 7

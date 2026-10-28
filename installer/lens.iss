@@ -82,6 +82,7 @@ Type: dirifempty; Name: "{app}\networkinformation"
 Type: dirifempty; Name: "{app}\platforms"
 Type: dirifempty; Name: "{app}\qml"
 Type: dirifempty; Name: "{app}\styles"
+Type: dirifempty; Name: "{app}\texttospeech"
 Type: dirifempty; Name: "{app}\tls"
 
 [Run]

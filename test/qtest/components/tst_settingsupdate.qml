@@ -148,6 +148,33 @@ Item {
             page.destroy();
         }
 
+        /// The audio cache line, beside the picture one and for the same reason: a recording is
+        /// fetched again for free on the next press, so the reader may drop it. Read rather than
+        /// driven, like the picture row: this suite must not empty the reader's own cache.
+        function test_theAudioCacheRowReportsItsSizeAndCarriesAClearAction() {
+            const page = make();
+
+            const row = Util.findAll(page, function (object) {
+                return object.objectName === "audioCacheRow";
+            })[0];
+            verify(row, "the About page has no audio cache row");
+
+            const labels = Util.textsUnder(row).map(function (text) { return text.text; });
+            verify(labels.indexOf("Audio cache") >= 0, "the row does not name the cache");
+
+            const size = textByName(page, "audioCacheSize");
+            verify(size, "the row carries no size");
+            compare(size.text, Format.formatBytes(Controller.speechDuty.cacheBytes));
+
+            const button = textByName(page, "clearAudioCacheButton");
+            verify(button, "the row carries no clear action");
+            const handler = Util.findAll(button, function (object) {
+                return object.toString().indexOf("QQuickTapHandler") === 0;
+            })[0];
+            verify(handler, "the clear action built no press handler");
+            page.destroy();
+        }
+
         /// The switch reads and writes the controller's own value, so what the reader toggles
         /// is the setting the startup check reads.
         function test_theSwitchIsBoundToTheStartupCheck() {

@@ -65,6 +65,14 @@ Item {
             return found;
         }
 
+        /// The one object carrying `objectName` under `scope`, or null. The pronunciation rows are        /// addressed this way: their labels are translated, so a case that looked them up by text
+        /// would only pass in the language it was written in.
+        function named(scope, name) {
+            return Util.findAll(scope, function (o) {
+                return o.objectName === name;
+            })[0] || null;
+        }
+
         /// The settings page the field scrolls in: the nearest ancestor that has a content position.
         function scrollerOf(field) {
             return Util.scrollerOf(field);
@@ -238,6 +246,91 @@ Item {
 
             Controller.setSetting("animationsEnabled", true);
             tryCompare(row, "visible", true);
+        }
+
+        /// The pronunciation group (UI-SPEC.md 4.4, docs/adr/0134): two switches and two engine
+        /// rows, each writing through the one setting path and reading back from the projection.
+        /// The rows are driven rather than only read because a setting the reader can move but not
+        /// see come back is the failure this page has to not have.
+        function test_thePronunciationRowsWriteThroughTheController() {
+            Controller.setSetting("speechAutoPlay", false);
+            Controller.setSetting("speechAccent", "us");
+            Controller.setSetting("speechEngine", "system");
+            Controller.setSetting("speechFallback", "online");
+
+            const main = make();
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "Reading & learning");
+
+            // Auto-play: the one switch, off unless the reader turns it on.
+            const autoPlay = named(panel, "speechAutoPlaySwitch");
+            verify(autoPlay, "the pronunciation group has no auto-play row");
+            compare(autoPlay.checked, false, "auto-play did not start off");
+
+            // The group sits below the fold of a 720 px panel, so the page is scrolled the way the
+            // reader scrolls it: the row is brought into the middle of the viewport rather than to
+            // the very bottom, where the panel's header would be over it.
+            const scroller = Util.scrollerOf(autoPlay);
+            verify(scroller, "the pronunciation rows are not inside a scrolling page");
+            const rowInContent = autoPlay.mapToItem(scroller.contentItem, 0, 0).y;
+            scroller.contentY = Math.max(0, Math.min(scroller.contentHeight - scroller.height, rowInContent - 160));
+            wait(20);
+
+            const autoPlaySwitch = Util.findAll(autoPlay, function (o) {
+                return o.toString().indexOf("Switch_QMLTYPE") === 0;
+            })[0];
+            verify(autoPlaySwitch, "the auto-play row has no switch");
+            mouseClick(autoPlaySwitch, autoPlaySwitch.width / 2, autoPlaySwitch.height / 2);
+            wait(20);
+            compare(Controller.settings.speechAutoPlay, true, "the auto-play switch did not reach the document");
+            compare(autoPlay.checked, true, "the row did not follow the value it wrote");
+
+            // Accent: a two-way segment, and British is the second cell.
+            const accent = named(panel, "speechAccentField");
+            verify(accent, "the pronunciation group has no accent segment");
+            compare(accent.labels.length, 2, "the accent is a two-way choice");
+            compare(accent.currentIndex, 0, "the accent did not start on the American default");
+            const british = Util.textWith(Util.textsUnder(accent), ["British"]).parent;
+            mouseClick(british, british.width / 2, british.height / 2);
+            wait(20);
+            compare(Controller.settings.speechAccent, "uk", "the accent pick did not reach the document");
+            compare(accent.currentIndex, 1, "the segment did not follow the accent it wrote");
+
+            // The two engine rows are dropdowns, and the values they offer are the ones the table
+            // stores -- a label the document would refuse is a row that writes nothing.
+            const engine = named(panel, "speechEngineField");
+            verify(engine, "the pronunciation group has no engine field");
+            compare(engine.options.length, 3, "the engine is a three-way choice");
+            compare(engine.currentValue, "system", "the engine did not start on the system default");
+            Controller.setSetting("speechEngine", "online");
+            wait(20);
+            compare(engine.currentValue, "online", "the engine field did not follow the document");
+
+            const fallback = named(panel, "speechFallbackField");
+            verify(fallback, "the pronunciation group has no fallback field");
+            compare(fallback.options.length, 3, "the fallback is a three-way choice");
+            compare(fallback.currentValue, "online", "the fallback did not start on the online default");
+
+            // The system engine's line: either it names the voice this machine will use, or it says
+            // there is none for this accent. Which of the two depends on the machine's voice pack,
+            // so the case asserts that the two halves agree rather than what they say.
+            compare(Controller.settings.speechSystemAvailable,
+                    Controller.settings.speechSystemVoice !== "",
+                    "the system voice's availability and its name disagree");
+
+            // The local voice has nothing downloaded, and the page says so rather than offering a
+            // download that is not there yet (step 4 of the ADR's plan).
+            const voiceState = named(panel, "speechLocalVoiceState");
+            verify(voiceState, "the pronunciation group has no local voice line");
+            compare(voiceState.visible, true);
+            verify(voiceState.text.length > 0, "the local voice line says nothing");
+
+            // Put the four back: every case in this run shares one document.
+            Controller.setSetting("speechAutoPlay", false);
+            Controller.setSetting("speechAccent", "us");
+            Controller.setSetting("speechEngine", "system");
+            Controller.setSetting("speechFallback", "online");
         }
 
         function test_theDailyBudgetIsReachableAndPersistsThroughTheController() {

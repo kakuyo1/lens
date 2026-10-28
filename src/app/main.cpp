@@ -201,6 +201,14 @@ void releaseHiddenSurfaces(QObject* root)
 
 int main(int argc, char* argv[])
 {
+    // The Windows media backend, and only it (installer/lens.iss): the FFmpeg backend is 17.5 MB of
+    // DLLs that a word's 20 KB recording does not need, so the package does not carry it and this
+    // names the one it does. Set before the application is built, because the backend is chosen
+    // when the first player is made; a value the environment already carries is left alone, so a
+    // developer can run the other backend without rebuilding.
+    if (qEnvironmentVariableIsEmpty("QT_MEDIA_BACKEND"))
+        qputenv("QT_MEDIA_BACKEND", "windows");
+
     // Widgets, not just Gui: the tray menu is a QMenu, which the contract chose over QML's
     // experimental platform menu types.
     QApplication app(argc, argv);

@@ -77,23 +77,23 @@
         <translation>初見</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="396"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="402"/>
         <source>Etymology</source>
         <translation>語源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="435"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="441"/>
         <source>Example</source>
         <translation>例文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="499"/>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="542"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="505"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="548"/>
         <source>Not the Sense?</source>
         <translation>この意味ではない？</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="570"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="576"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒後に消えます</translation>
     </message>
@@ -106,12 +106,12 @@
         <translation>戻る</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="203"/>
+        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="212"/>
         <source>Explaining %1…</source>
         <translation>%1 を解説中…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="215"/>
+        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="224"/>
         <source>This word could not be explained.</source>
         <translation>この単語は解説できませんでした。</translation>
     </message>
@@ -127,6 +127,14 @@
         <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="101"/>
         <source>Mother tongue translation</source>
         <translation>母語での翻訳</translation>
+    </message>
+</context>
+<context>
+    <name>BubbleTitleRow</name>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleTitleRow.qml" line="178"/>
+        <source>Pronounce %1</source>
+        <translation>%1 を発音</translation>
     </message>
 </context>
 <context>
@@ -579,7 +587,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="255"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="44"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1063"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1111"/>
         <source>Desktop companion</source>
         <translation>デスクトップの相棒</translation>
     </message>
@@ -695,16 +703,22 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="251"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="298"/>
         <source>Clear</source>
         <translation>消去</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="281"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="268"/>
+        <source>Audio cache</source>
+        <translation>音声キャッシュ</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="328"/>
         <source>Copyright (c) 2026 kakuyo1 · MIT License</source>
         <translation>Copyright (c) 2026 kakuyo1 · MIT ライセンス</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="288"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="335"/>
         <source>Built %1</source>
         <translation>ビルド日 %1</translation>
     </message>
@@ -876,6 +890,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="325"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="250"/>
         <source>Accent</source>
         <translation>アクセント</translation>
     </message>
@@ -1001,13 +1016,70 @@
         <translation>画像</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="226"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="235"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="231"/>
+        <source>Pronunciation</source>
+        <translation>発音</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="239"/>
+        <source>Auto-play</source>
+        <translation>自動再生</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="258"/>
+        <source>American</source>
+        <translation>アメリカ英語</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="258"/>
+        <source>British</source>
+        <translation>イギリス英語</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="268"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="275"/>
+        <source>Engine</source>
+        <translation>エンジン</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="287"/>
+        <source>Voice: %1</source>
+        <translation>音声: %1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="288"/>
+        <source>No system voice is installed for this accent.</source>
+        <translation>このアクセントのシステム音声がインストールされていません。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="299"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="306"/>
+        <source>Fallback</source>
+        <translation>フォールバック</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="321"/>
+        <source>Local voice</source>
+        <translation>ローカル音声</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="329"/>
+        <source>Downloaded and verified.</source>
+        <translation>ダウンロード済み・検証済み。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="330"/>
+        <source>Not downloaded. The local engine stays silent.</source>
+        <translation>未ダウンロード。ローカルエンジンは無音のままです。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="342"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="351"/>
         <source>Word review</source>
         <translation>単語の復習</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="247"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="363"/>
         <source>Unavailable while the pet is off.</source>
         <translation>ペットがオフの間は利用できません。</translation>
     </message>
@@ -1839,7 +1911,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="192"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1065"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1113"/>
         <source>Dog</source>
         <translation>犬</translation>
     </message>
@@ -2162,7 +2234,7 @@
         <translation>削除を確認</translation>
     </message>
     <message>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1064"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1112"/>
         <source>This pet package is no longer installed. Switched to %1.</source>
         <translation>この宠物包はインストールされていません。%1 に切り替えました。</translation>
     </message>
@@ -3052,12 +3124,44 @@
         <translation>既定</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="876"/>
+        <location filename="../src/app/app_controller.cpp" line="670"/>
+        <source>American</source>
+        <translation>アメリカ英語</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="672"/>
+        <source>British</source>
+        <translation>イギリス英語</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="677"/>
+        <source>System voice</source>
+        <translation>システム音声</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="679"/>
+        <location filename="../src/app/app_controller.cpp" line="686"/>
+        <source>Online audio</source>
+        <translation>オンライン音声</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="681"/>
+        <location filename="../src/app/app_controller.cpp" line="688"/>
+        <source>Local model</source>
+        <translation>ローカルモデル</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="690"/>
+        <source>Silent</source>
+        <translation>発音しない</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="916"/>
         <source>Auto</source>
         <translation>自動</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="876"/>
+        <location filename="../src/app/app_controller.cpp" line="916"/>
         <source>Manual</source>
         <translation>手動</translation>
     </message>

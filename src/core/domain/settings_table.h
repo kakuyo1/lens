@@ -99,6 +99,11 @@ inline constexpr std::string_view kOcrOnlineLanguages[]{"eng", "auto"};
 /// The mother tongue the bubble's peek answers in: the catalog's own languages without English,
 /// which is the one value under which the peek would have nothing to peek at (docs/adr/0112).
 inline constexpr std::string_view kMotherTongues[]{"zh", "zh-Hant", "es", "ja"};
+/// Pronunciation (docs/adr/0134). The accent is the two the reader's own English comes in; the
+/// engine is one of three and the fallback is one of three, and neither is a switch.
+inline constexpr std::string_view kSpeechAccents[]{"us", "uk"};
+inline constexpr std::string_view kSpeechEngines[]{"system", "online", "local"};
+inline constexpr std::string_view kSpeechFallbacks[]{"online", "local", "none"};
 
 /**
  * @brief The table, in the order a restore walks it.
@@ -124,6 +129,15 @@ inline constexpr Row kRows[]{
     {.key = "signpost", .kind = Kind::Toggle, .signal = Signal::Settings, .fallback = true, .synced = true},
     {.key = "collocations", .kind = Kind::Toggle, .signal = Signal::Settings, .fallback = true, .synced = true},
     {.key = "pictures", .kind = Kind::Toggle, .signal = Signal::Settings, .fallback = true, .synced = true},
+    // Pronunciation (docs/adr/0134): one word at a time, and the reader's four decisions about it.
+    // Auto-play is off by default -- sound interrupts reading, and a scan pops card after card --
+    // and the engine is the system synthesiser, with the dictionary's recordings as the fallback.
+    // None of the four is a path or a secret: the recordings live in the profile and the voices, when
+    // they come, are downloaded per accent rather than named here.
+    {.key = "speechAutoPlay", .kind = Kind::Toggle, .signal = Signal::Settings, .fallback = false, .synced = true},
+    {.key = "speechAccent", .kind = Kind::Choice, .signal = Signal::Settings, .fallback = "us", .synced = true, .members = kSpeechAccents},
+    {.key = "speechEngine", .kind = Kind::Choice, .signal = Signal::Settings, .fallback = "system", .synced = true, .members = kSpeechEngines},
+    {.key = "speechFallback", .kind = Kind::Choice, .signal = Signal::Settings, .fallback = "online", .synced = true, .members = kSpeechFallbacks},
     // The reader's own interface language: stored and synced, but not the panel's to restore.
     {.key = "uiLanguage", .kind = Kind::Text, .signal = Signal::Language, .fallback = "zh", .synced = true, .restorable = false},
 

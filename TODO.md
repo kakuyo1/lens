@@ -2,6 +2,16 @@
 
 > 只写还没做的。每条说清还剩什么、从哪下手；做完直接删，不记日期与过程。
 
+## 单词发音（ADR 0134）
+
+契约已定（`docs/adr/0134`、`PRODUCT.md` 的发音一节、`API.md` §9、`UI-SPEC.md` 4.3 / 4.4），第 1、2、3、5、6 步已落地（2026-10-28 / 29）：`src/app/duties/speech_duty.{h,cpp}` 用 `QTextToSpeech` 读系统音色、用 `QMediaPlayer` + `QAudioOutput` + `QBuffer` 播内存里的 mp3，`src/speech/` 是源、缓存与引擎规则，`src/core/crypto/hash.{h,cpp}` 提供 `sha1(口音|词)`。**只剩本地模型这一档。**
+
+- **系统合成（已接）**：Qt 6.9.0 的 TextToSpeech 组件是装上去的——官方 6.9.0 归档仓库的 `qt.qt6.690.addons.qtspeech.win64_msvc2022_64` 包解压进 `B:/qtt/6.9.0/msvc2022_64`（`bin/Qt6TextToSpeech.dll`、`plugins/texttospeech/`、`lib/cmake/Qt6TextToSpeech/`），根 `CMakeLists.txt` 的 `find_package` 已带 `TextToSpeech`。**维护工具不肯把它当可安装项**：它只认受支持的那 326 个包，6.9.0 已在归档仓库里，`--add-repository` 之后仍然报 “No components available with the current selection”；所以这一份文件是手工落盘的，`components.xml` 里没有这条记录——将来在维护工具里升级或修复安装时，这棵树可能被当成有外来文件。重装 Qt 时按上面那条路径重新装一次即可。
+- **音色按口音挑**：`SpeechDuty::systemFor(accent)` 先问 winrt，问不到再问 sapi（`mock` 永不使用，它出声为假）。本机实测：winrt 只有 `Huihui / Yaoyao / Kangkang`（zh_CN），sapi 只有 `Huihui Desktop`（zh_CN），**没有 en-US / en-GB**，所以本机 `systemAvailable()` 为假、设置页写 “No system voice is installed for this accent”，发音落到在线兜底。要听系统音色，得在 Windows 设置里加一个英文语音包。每次启动一条 INFO 记下引擎与音色清单（`pronunciation: engine 'winrt', 3 voice(s): ...`），这是排查没声音的第一条线索。
+- **本地模型（第 4 步，未做）**：sherpa-onnx 运行时与按口音分槽的音色模型、SHA256 校验、`%APPDATA%\Lens\voices\` 的下载都没做；`SpeechDuty::localAvailable()` 恒为假，设置页的本地音色行因此只写 “Not downloaded”。`PRODUCT.md` 存储表里 `speech` 的本地音色只记状态那一条要等这一档落地才有东西可记。
+
+自动播放只对 `cardKind === "selection"` 的单词卡生效（`Bubble.qml` 的 `show()`），预览卡、悬浮复习卡与宠物作答卡都不读；句子、实体、译文与拆解卡没有喇叭（`BubbleCard.qml` 的 `speakable`）。
+
 ## 义项图的真机复核
 
 代码已落地（`docs/adr/0079`），但卡片上的图片条还没在真机上看过一眼：入口与三态（加载骨架 / 就绪 / 失败那一行 `Open image search`）、1 / 2 / 3 张图、暗色与玻璃主题、高 DPI、贴近屏幕底部时卡片仍整体收进工作区。要看它需要一份真带 `imageable` 义项的解释（或手工往解释缓存里种一条 `imageable` / `imageQuery` 的条目），然后点开入口。顺带看一眼：三条义项各一枚入口在 270 px 卡内是否拥挤；C++ 侧已按真实 Commons 响应验过筛选与取值（12 条候选留 3 条），未验的是画面。

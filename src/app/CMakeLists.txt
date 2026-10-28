@@ -46,6 +46,8 @@ add_library(lens_app STATIC
   duties/picture_duty.cpp
   duties/review_duty.h
   duties/review_duty.cpp
+  duties/speech_duty.h
+  duties/speech_duty.cpp
   duties/storage_duty.h
   duties/storage_duty.cpp
   duties/sync_duty.h
@@ -126,9 +128,20 @@ target_include_directories(lens_app PRIVATE
 # Quick is public because the QML module below backs this library, and anything linking it is
 # linking the module: that now includes lens_gtest_integration, which used to need no QML.
 target_link_libraries(lens_app
-  PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Quick lens_llm lens_update lens_sync lens_pictures lens_ocr
+  PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Quick lens_llm lens_update lens_sync lens_pictures lens_ocr lens_speech
   PRIVATE lens_core lens_util lens_capture
 )
+
+# Multimedia is the player behind the pronunciation duty (SpeechDuty), and it is PRIVATE: no header
+# in this module names a QMediaPlayer or a QAudioOutput, they are built in speech_duty.cpp and
+# nowhere else. Only the Windows backend ships (installer/lens.iss), which is why main.cpp pins
+# QT_MEDIA_BACKEND=windows before the application is built.
+#
+# TextToSpeech is the default pronunciation engine, the Windows synthesiser Qt wraps. It is
+# PRIVATE for the same reason: QTextToSpeech is named in speech_duty.cpp alone. The module is an
+# add-on of the Qt install rather than part of the base, so a machine that lacks it fails here at
+# configure time with a message that names the component -- see config/README.md.
+target_link_libraries(lens_app PRIVATE Qt6::Multimedia Qt6::TextToSpeech)
 
 # user32 for the hook, SendInput and the clipboard; gdi32 for the glass sheet's desktop read; dxgi and d3d11 for the
 # glass duplication path, which builds a device on the adapter that owns each output (src/app/glass/glass_duplication.h);
@@ -401,6 +414,7 @@ set(LENS_ICONS
   ${CMAKE_SOURCE_DIR}/data/icons/ui-close.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-breakdown.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-grammar.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-speaker.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-spell.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-copy.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-explain.svg

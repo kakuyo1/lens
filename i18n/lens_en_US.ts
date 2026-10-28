@@ -77,23 +77,23 @@
         <translation>New</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="396"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="402"/>
         <source>Etymology</source>
         <translation>Etymology</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="435"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="441"/>
         <source>Example</source>
         <translation>Example</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="499"/>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="542"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="505"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="548"/>
         <source>Not the Sense?</source>
         <translation>Not the Sense?</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="570"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="576"/>
         <source>Disappears in %1s</source>
         <translation>Disappears in %1s</translation>
     </message>
@@ -106,12 +106,12 @@
         <translation>Back</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="203"/>
+        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="212"/>
         <source>Explaining %1…</source>
         <translation>Explaining %1…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="215"/>
+        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="224"/>
         <source>This word could not be explained.</source>
         <translation>This word could not be explained.</translation>
     </message>
@@ -127,6 +127,14 @@
         <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="101"/>
         <source>Mother tongue translation</source>
         <translation>Mother tongue translation</translation>
+    </message>
+</context>
+<context>
+    <name>BubbleTitleRow</name>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleTitleRow.qml" line="178"/>
+        <source>Pronounce %1</source>
+        <translation>Pronounce %1</translation>
     </message>
 </context>
 <context>
@@ -571,13 +579,70 @@
         <translation>Pictures</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="226"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="235"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="231"/>
+        <source>Pronunciation</source>
+        <translation>Pronunciation</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="239"/>
+        <source>Auto-play</source>
+        <translation>Auto-play</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="258"/>
+        <source>American</source>
+        <translation>American</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="258"/>
+        <source>British</source>
+        <translation>British</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="268"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="275"/>
+        <source>Engine</source>
+        <translation>Engine</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="287"/>
+        <source>Voice: %1</source>
+        <translation>Voice: %1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="288"/>
+        <source>No system voice is installed for this accent.</source>
+        <translation>No system voice is installed for this accent.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="299"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="306"/>
+        <source>Fallback</source>
+        <translation>Fallback</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="321"/>
+        <source>Local voice</source>
+        <translation>Local voice</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="329"/>
+        <source>Downloaded and verified.</source>
+        <translation>Downloaded and verified.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="330"/>
+        <source>Not downloaded. The local engine stays silent.</source>
+        <translation>Not downloaded. The local engine stays silent.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="342"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="351"/>
         <source>Word review</source>
         <translation>Word review</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="247"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="363"/>
         <source>Unavailable while the pet is off.</source>
         <translation>Unavailable while the pet is off.</translation>
     </message>
@@ -619,16 +684,22 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="251"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="298"/>
         <source>Clear</source>
         <translation>Clear</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="281"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="268"/>
+        <source>Audio cache</source>
+        <translation>Audio cache</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="328"/>
         <source>Copyright (c) 2026 kakuyo1 · MIT License</source>
         <translation>Copyright (c) 2026 kakuyo1 · MIT License</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="288"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="335"/>
         <source>Built %1</source>
         <translation>Built %1</translation>
     </message>
@@ -791,6 +862,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="325"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="250"/>
         <source>Accent</source>
         <translation>Accent</translation>
     </message>
@@ -1054,7 +1126,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="255"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="44"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1063"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1111"/>
         <source>Desktop companion</source>
         <translation>Desktop companion</translation>
     </message>
@@ -1820,7 +1892,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="192"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1065"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1113"/>
         <source>Dog</source>
         <translation>Dog</translation>
     </message>
@@ -2153,7 +2225,7 @@
         <translation>Confirm delete</translation>
     </message>
     <message>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1064"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1112"/>
         <source>This pet package is no longer installed. Switched to %1.</source>
         <translation>This pet package is no longer installed. Switched to %1.</translation>
     </message>
@@ -3108,12 +3180,44 @@
         <translation>Default</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="876"/>
+        <location filename="../src/app/app_controller.cpp" line="670"/>
+        <source>American</source>
+        <translation>American</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="672"/>
+        <source>British</source>
+        <translation>British</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="677"/>
+        <source>System voice</source>
+        <translation>System voice</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="679"/>
+        <location filename="../src/app/app_controller.cpp" line="686"/>
+        <source>Online audio</source>
+        <translation>Online audio</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="681"/>
+        <location filename="../src/app/app_controller.cpp" line="688"/>
+        <source>Local model</source>
+        <translation>Local model</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="690"/>
+        <source>Silent</source>
+        <translation>Silent</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="916"/>
         <source>Auto</source>
         <translation>Auto</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="876"/>
+        <location filename="../src/app/app_controller.cpp" line="916"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>

@@ -8,11 +8,16 @@ import QtQuick
  * A component rather than part of `Bubble.qml` because that file sits at the repository's QML size
  * cap (QML.md section 1), not because this is shared: it is one surface's block lifted out whole,
  * the same move `SenseRows` took. The pronunciation is set beside the word, the way a dictionary
- * prints it. The pair is read only -- it is not a control, and nothing about it invites a press --
- * and it is placed by hand rather than by a RowLayout: a layout with no item left to grow does not
- * keep the slack at the end -- measured, a 30 px word and its pronunciation 36 px apart in a 238 px
- * row -- and a gap that wide reads as two unrelated things. The prototype's 7 px is what the pair is
- * set with.
+ * prints it. It is placed by hand rather than by a RowLayout: a layout with no item left to grow
+ * does not keep the slack at the end -- measured, a 30 px word and its pronunciation 36 px apart in
+ * a 238 px row -- and a gap that wide reads as two unrelated things. The prototype's 7 px is what
+ * the pair is set with.
+ *
+ * A word carries a speaker after the pronunciation, and the pronunciation itself is a press target:
+ * either one reads the headword, once (docs/adr/0134). The glyph is the whole affordance -- there is
+ * no tooltip, no ring and no state text -- and its colour is the only thing a press or a playing
+ * recording changes. Nothing here moves when the sound starts: the card is anchored to the reader's
+ * word and a card that grew a pixel would pull itself off it.
  *
  * A sentence or translation bubble draws no title, and the caller says so by hiding this row: the
  * selected sentence is usually long and overflows the card while the reader still has it
@@ -40,10 +45,24 @@ Item {
     /// title, with no pronunciation or part of speech beside it, gives that room up; a line that has
     /// them keeps its width, as it always has.
     property real headerReserve: 0
+    /// Whether this card's word may be read aloud. The word card and the chain's own entries say
+    /// yes; a sentence, a translation, a breakdown, an entity and the settings preview say no, and
+    /// a card that is not drawn says nothing at all. The speaker is tied to the pronunciation: the
+    /// IPA switch off means no glyph either (UI-SPEC.md 4.3).
+    property bool speakable: false
+    /// Whether this word is the one coming out of the speaker now, which is the one thing that
+    /// turns the glyph from faint to the answer's own colour.
+    property bool speaking: false
+
+    /// A press on the glyph or on the pronunciation: read this headword once.
+    signal speakRequested()
 
     /// True while the pronunciation is still being written out, which is what holds the card's
     /// countdown: a card whose fields are still writing itself has nothing to count down yet.
     readonly property bool revealing: ipaText.revealing
+
+    /// Whether the speaker is drawn at all: it follows the pronunciation it stands beside.
+    readonly property bool speakerVisible: root.speakable && root.ipa !== ""
 
     // A column leaves its children at zero width; the title needs the card's, to run in.
     width: parent ? parent.width : 0
@@ -51,15 +70,16 @@ Item {
     /// children whether they are visible or not.
     height: root.visible ? wordText.implicitHeight : 0
 
-    /// Where a label after the pronunciation starts: the pronunciation's own end when it is
-    /// drawn, the word's otherwise.
-    readonly property real labelX: ipaText.visible ? ipaText.x + ipaText.implicitWidth : wordText.width
+    /// Where a label after the pronunciation starts: past the speaker when it is drawn, the
+    /// pronunciation's own end when only that is, the word's otherwise.
+    readonly property real labelX: speakerVisible ? speaker.x + speaker.width : (ipaText.visible ? ipaText.x + ipaText.implicitWidth : wordText.width)
 
     Text {
         id: wordText
-        // What is left once the pronunciation and the part of speech have their room: a word
-        // with none left ends in an ellipsis rather than running under its own IPA.
+        // What is left once the pronunciation, the speaker and the part of speech have their room:
+        // a word with none left ends in an ellipsis rather than running under its own IPA.
         width: Math.min(implicitWidth, root.width - (ipaText.visible ? ipaText.implicitWidth + 7 : 0)
+                                                    - (root.speakerVisible ? speaker.width + 5 : 0)
                                                     - (posText.visible ? posText.implicitWidth + 7 : 0)
                                                     - ((ipaText.visible || posText.visible) ? 0 : root.headerReserve))
         topPadding: 8
@@ -89,6 +109,52 @@ Item {
         pixelSize: Math.round(13 * root.scale) // the prototype's 12.5 px, as the definition line rounds it
     }
 
+    // The pronunciation is a press target in its own right (UI-SPEC.md 4.3): a reader who has just
+    // read the IPA is already looking at it, and asking them to find a 12 px glyph beside it is a
+    // second aim for one action. It keeps the faint colour it is drawn in -- turning it the body
+    // colour on hover would read as a link, which is not what it is -- and says so with the cursor.
+    MouseArea {
+        anchors.fill: ipaText
+        enabled: root.speakerVisible
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: root.speakRequested()
+    }
+
+    Item {
+        id: speaker
+        // Directly after the pronunciation, centred on it: the glyph is 12 px and the pronunciation
+        // is 13, so the pair sits on one line rather than the speaker floating beside it.
+        x: ipaText.x + ipaText.implicitWidth + 5
+        y: ipaText.y + (ipaText.implicitHeight - height) / 2
+        width: Math.round(12 * root.scale)
+        height: width
+        visible: root.speakerVisible
+        // The press is the only thing that scales: a glyph that shrank on hover would read as the
+        // whole row moving, and the row is the card's anchor line.
+        scale: press.pressed ? 0.97 : 1
+        transformOrigin: Item.Center
+
+        Icon {
+            anchors.fill: parent
+            source: "qrc:/icons/ui-speaker.svg"
+            // Playing is the answer's own colour; at rest the glyph is as quiet as the
+            // pronunciation beside it, and the pointer is what says it can be pressed.
+            color: root.speaking ? root.tokens.ok : (press.containsMouse ? root.tokens.text : root.tokens.faint)
+        }
+
+        MouseArea {
+            id: press
+            // Two pixels of slack around a 12 px glyph: the aim a reader gets is the 16 px box a
+            // pointer can actually find, while the row still measures the glyph.
+            anchors.fill: parent
+            anchors.margins: -2
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.speakRequested()
+        }
+    }
+
     Text {
         id: posText
         // After the pronunciation, on the same baseline, the way the prototype sets the pair:
@@ -104,4 +170,12 @@ Item {
         font.capitalization: Font.AllUppercase
         font.letterSpacing: 0.8
     }
+
+    // One name and one action for the pronunciation and the glyph together: a screen reader has no
+    // pointer to put on a 12 px speaker, and the two are one control to the reader (UI-SPEC.md 4.3).
+    // A row with no speaker is not a button, so nothing announces an action that is not there.
+    Accessible.role: root.speakerVisible ? Accessible.Button : Accessible.StaticText
+    Accessible.name: root.speakable ? qsTr("Pronounce %1").arg(root.title) : ""
+    Accessible.ignored: !root.speakerVisible
+    Accessible.onPressAction: root.speakRequested()
 }

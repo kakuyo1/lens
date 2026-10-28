@@ -170,6 +170,28 @@ Window {
     /// True while any field is still being written out: what holds the countdown.
     readonly property bool revealing: content.revealing
 
+    /// Whether the word on this card is the one coming out of the speaker now (UI-SPEC.md 4.3).
+    /// The word is compared as well as the flag: a card that replaces another one while a recording
+    /// is still playing must not wear the playing colour for a word it does not show.
+    readonly property bool speaking: Controller.speechDuty.playing && Controller.speechDuty.playingWord === bubble.title
+
+    /// Whether a card that appears reads its word by itself (docs/adr/0134). Off by default: sound
+    /// interrupts reading, and an automatic scan pops card after card.
+    readonly property bool autoPlay: Controller.settings.speechAutoPlay === true
+
+    /// The word this card has already read by itself. One word, one reading: a card arrives a field
+    /// at a time and show() runs once per field, so without this the word would be spoken several
+    /// times over. It is cleared when a different card takes this one's place.
+    property string autoPlayedWord: ""
+
+    /// @brief Read this card's headword once, because the reader pressed its speaker or its
+    ///        pronunciation. A card with no word -- a sentence, an entity, a breakdown -- has
+    ///        nothing to read and says nothing.
+    function speak() {
+        if (type === "word" && title !== "")
+            Controller.speechDuty.speak(title);
+    }
+
     property var pendingPayload: null
     property bool pendingWasVisible: false
     property int showGeneration: 0
@@ -241,6 +263,23 @@ Window {
         verdictButtons = payload.verdictButtons !== false;
         remainingMs = dismissAfterMs;
 
+        // Auto-play (docs/adr/0134, PRODUCT.md's pronunciation table). Only the card a selection
+        // pops reads by itself: the settings preview is a by-product of changing a setting, and the
+        // word list's hover replay and the pet's answer are surfaces the reader did not ask to hear
+        // -- one reads a row the pointer crossed, the other answers the pet's question for them.
+        // "selection" is the card kind that means the reader pointed at a word, so it is the whole
+        // of the test along with the word and the setting.
+        if (payload.sameCard !== true) {
+            autoPlayedWord = "";
+            // A different card is a different word: whatever the last one was reading stops here,
+            // whether or not this one reads at all.
+            Controller.speechDuty.stop();
+        }
+        if (autoPlay && cardKind === "selection" && !preview && type === "word" && title !== "" && title !== autoPlayedWord) {
+            autoPlayedWord = title;
+            Controller.speechDuty.speak(title);
+        }
+
         // A new window must not paint its first frame before Text has settled the card height, or it
         // shows at the old height and moves on the next event-loop turn. An already visible bubble
         // stays up through a refresh, so replacing one explanation is not a hide-then-show flash. A
@@ -262,6 +301,10 @@ Window {
     /// coordinate with it.
     function dismiss() {
         countdown.stop();
+        // The recording belongs to the card that asked for it, so it goes with it: a word still
+        // being read out of a card the reader has closed is a voice with nothing on screen to
+        // explain it.
+        Controller.speechDuty.stop();
         surfaceShown = false;
     }
 

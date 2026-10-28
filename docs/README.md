@@ -22,6 +22,7 @@
 | 查某个决定为什么这样做 | `docs/adr/README.md` | 对应 ADR |
 | 查被取代的旧规格、阶段计划或 2026-10 的 critique | `docs/history/` | `docs/history/impeccable/`、对应 ADR |
 | 开发本地与在线多引擎 OCR | `docs/ocr-development.md` | `docs/adr/0130-local-and-online-ocr-are-separate-modes.md`、`docs/adr/0132-rapidocr-model-paths-stay-ascii.md`、`docs/adr/0133-offline-ocr-ships-tesseract-and-rapidocr.md`、产品与安全目标约定 |
+| 加发音、改发音引擎或音色 | `PRODUCT.md` 的发音一节 | `docs/adr/0134-pronunciation-is-word-only-and-system-first.md`、`UI-SPEC.md` 4.3 / 4.4、`API.md` §9、`docs/research/tts-survey-2026-10-28.html` |
 | 改 HTML 原型 | `ui-prototypes/README.md` | `DESIGN.md`、`UI-SPEC.md` |
 
 ## 权威分层

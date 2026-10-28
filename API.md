@@ -335,3 +335,19 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 成功响应必须同时满足：`OCRExitCode=1`、`IsErroredOnProcessing=false`、`ParsedResults` 恰有一项、`FileParseExitCode=1`、`ParsedText` 为字符串。`OCRExitCode=2` 返回部分识别错误，不进入翻译。`TextOverlay.Lines[].Words[]` 的 `WordText` / `Left` / `Top` / `Width` / `Height` 用于词框，行框为词框并集；坐标必须落在原裁剪图内。该协议没有可依据的置信度字段，统一返回缺失；overlay 缺失但文本有效时允许纯文本成功。
 
 请求来源必须是已确认的手动截图或显式在线检测；`AutoScan` 在编码前即被拒绝。未确认、取消、端点或密钥改变都保持上传次数为 0；传输失败或超时最多接受一次显式人工重试，不自动重试。`src/ocr/ocr_space.cpp` 是协议与边界检查的唯一位置，`test/googletest/unit/ocr_space_test.cpp` 用替身锁住请求字段、响应映射与零上传断言。
+
+## 9 发音：在线音频（已实现）
+
+发音不是解释请求，不经过上面的模型通道，也不花读者的钱；引擎与兜底的取舍见 `docs/adr/0134`。本节只写在线音频那一档的线上协议——它是发音的缺省兜底，也可以被读者明确选为唯一引擎。端点行为由 2026-10-28 的实测得到（单词三次重复测量，句子与短语各两次）；客户端实现在 `src/speech/youdao_source.{h,cpp}`。
+
+| 项 | 取值 |
+|---|---|
+| 方法与端点 | `GET https://dict.youdao.com/dictvoice?audio={word}&type={accent}`；端点是编译期常量，不是设置 |
+| 鉴权 | 无 key、无 Referer、无安装标识；普通 UA 即可 |
+| 口音 | `type=1` 英音、`type=2` 美音；由设置里的口音开关决定，缺省美式 → `2` |
+| 词 | 只发 headword 本身，URL 编码；缓存文件名取 `sha1(口音\|词)`，不缓存整个 URL |
+| 响应 | `Content-Type: audio/mpeg`；单词 10–45 KB，写缓存后交播放层（`QMediaPlayer` + `QBuffer`） |
+| 时间与大小 | 实测 TTFB 126–175 ms；单次 10 秒、响应 ≤ 1 MiB，超限按失败 |
+| 失败 | 静默：非 200、超限或超时都不发音、不弹通知、不重试。任意句子与部分短语（如 `give up the ghost`）返回 `500` + 120 字节——它是词典条目音频，不是通用合成，这就是发音只做单词的原因之一 |
+
+实现满足：请求只含词本身（`SECURITY.md` 的出站边界）；重定向不跟随，地址是编译期常量而不是设置；命中缓存时零网络，文件落在 `%APPDATA%\Lens\audio\<sha1(口音|词)>.mp3`，按最后使用时间做 LRU、上限 50 MB，命中会刷新时间戳；引擎选择与兜底语义以 `docs/adr/0134` 为准——明确选了在线或本地后不在两者之间静默切换（`src/speech/speech_pure.h` 的 `plan()` 是这条规则的唯一实现）。

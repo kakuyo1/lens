@@ -253,6 +253,53 @@ Item {
                 }
             }
         }
+
+        /// The recordings the speaker has played (docs/adr/0134). Free to fetch again, like the
+        /// pictures and unlike the explanation cache, so the reader may drop them.
+        Item {
+            id: audioCacheRow
+            objectName: "audioCacheRow"
+            width: parent.width
+            height: 44
+
+            Text {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: qsTranslate("SettingsPopup", "Audio cache")
+                color: page.tokens.text
+                font.pixelSize: 13
+            }
+
+            Row {
+                anchors.right: parent.right
+                anchors.rightMargin: 9
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 8
+
+                Text {
+                    objectName: "audioCacheSize"
+                    height: parent.height
+                    verticalAlignment: Text.AlignVCenter
+                    text: Format.formatBytes(Controller.speechDuty.cacheBytes)
+                    color: page.tokens.faint
+                    font.pixelSize: 11
+                }
+
+                Text {
+                    height: parent.height
+                    verticalAlignment: Text.AlignVCenter
+                    text: "·"
+                    color: page.tokens.faint
+                    font.pixelSize: 11
+                }
+
+                Chip {
+                    objectName: "clearAudioCacheButton"
+                    label: qsTranslate("SettingsPopup", "Clear")
+                    onPicked: Controller.speechDuty.clearCache()
+                }
+            }
+        }
     }
 
     // The footer is the page's last line, centred, and it hangs off the page's own bottom edge:

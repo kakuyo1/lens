@@ -18,6 +18,7 @@ add_library(lens_core STATIC
   document/review_store.cpp
   document/pet_store.cpp
   crypto/vault.cpp
+  crypto/hash.cpp
   dev/dev_command.cpp
   dev/dev_line_framer.cpp
 )

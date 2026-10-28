@@ -98,7 +98,7 @@ AppController::AppController(core::KnownStore&            store,
                              QObject*                     parent)
     : QObject(parent),
       storage_(store),
-      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), sync_(storage_, dataDir, nullptr, this), reviewDuty_(storage_, [this] { return pet_ != nullptr and pet_->enabled(); }, [this] { return pet_ != nullptr and pet_->availableForReview(); }, this), llm_(llm), hotkey_(hotkey), picturesSource_(nullptr, this), picturesCache_(pictures::PictureCache::defaultRoot()), pictureDuty_(picturesSource_, picturesCache_, this), previewSample_(loadPreviewSample(dataDir / "preview.json"))
+      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), sync_(storage_, dataDir, nullptr, this), reviewDuty_(storage_, [this] { return pet_ != nullptr and pet_->enabled(); }, [this] { return pet_ != nullptr and pet_->availableForReview(); }, this), llm_(llm), hotkey_(hotkey), picturesSource_(nullptr, this), picturesCache_(pictures::PictureCache::defaultRoot()), pictureDuty_(picturesSource_, picturesCache_, this), speechSource_(nullptr, this), speechCache_(speech::AudioCache::defaultRoot()), speechDuty_(speechSource_, speechCache_, storage_, this), previewSample_(loadPreviewSample(dataDir / "preview.json"))
 {
     budgetPaused_ = cost_.budgetStatus().exhausted;
     // The backdrop starts on the tier the document holds, read through the row's own clamp so a
@@ -660,6 +660,41 @@ QVariantMap AppController::settings()
     result.insert(QStringLiteral("levels"), StorageDuty::levelOptions());
     result.insert(QStringLiteral("reviewFrequency"), static_cast<int>(reviewDuty_.frequency()));
     result.insert(QStringLiteral("reviewFrequencyOptions"), StorageDuty::reviewFrequencyOptions());
+    // Pronunciation's three choice rows, labelled for the settings page (UI-SPEC.md 4.4). The values
+    // are the ones the table stores, so a pick travels back through setSetting() unchanged; what the
+    // reader sees is only ever a label. Whether a chosen engine can actually serve is not a list --
+    // it is the duty's answer for this machine, which the page reads off Controller.speechDuty.
+    result.insert(QStringLiteral("speechAccentOptions"),
+                  QVariantList{
+                      QVariantMap{{QStringLiteral("value"), QStringLiteral("us")},
+                                  {QStringLiteral("label"), QCoreApplication::translate("lens::app::AppController", "American")}},
+                      QVariantMap{{QStringLiteral("value"), QStringLiteral("uk")},
+                                  {QStringLiteral("label"), QCoreApplication::translate("lens::app::AppController", "British")}},
+                  });
+    result.insert(QStringLiteral("speechEngineOptions"),
+                  QVariantList{
+                      QVariantMap{{QStringLiteral("value"), QStringLiteral("system")},
+                                  {QStringLiteral("label"), QCoreApplication::translate("lens::app::AppController", "System voice")}},
+                      QVariantMap{{QStringLiteral("value"), QStringLiteral("online")},
+                                  {QStringLiteral("label"), QCoreApplication::translate("lens::app::AppController", "Online audio")}},
+                      QVariantMap{{QStringLiteral("value"), QStringLiteral("local")},
+                                  {QStringLiteral("label"), QCoreApplication::translate("lens::app::AppController", "Local model")}},
+                  });
+    result.insert(QStringLiteral("speechFallbackOptions"),
+                  QVariantList{
+                      QVariantMap{{QStringLiteral("value"), QStringLiteral("online")},
+                                  {QStringLiteral("label"), QCoreApplication::translate("lens::app::AppController", "Online audio")}},
+                      QVariantMap{{QStringLiteral("value"), QStringLiteral("local")},
+                                  {QStringLiteral("label"), QCoreApplication::translate("lens::app::AppController", "Local model")}},
+                      QVariantMap{{QStringLiteral("value"), QStringLiteral("none")},
+                                  {QStringLiteral("label"), QCoreApplication::translate("lens::app::AppController", "Silent")}},
+                  });
+    // What the engine rows can actually serve on this machine, which is not a setting: the page
+    // shows the voice's name so the reader knows whose voice they are hearing (ADR 0134), and says
+    // "Unavailable" for an engine this build or this accent has none of.
+    result.insert(QStringLiteral("speechSystemAvailable"), speechDuty_.systemAvailable());
+    result.insert(QStringLiteral("speechSystemVoice"), speechDuty_.systemVoice());
+    result.insert(QStringLiteral("speechLocalAvailable"), speechDuty_.localAvailable());
     // The face the English runs are drawn in: the reader's pick, or the application's own when
     // nothing is stored -- and also when what is stored names a family this machine no longer has,
     // which a settings document copied from another machine can. Handed out as a family rather
@@ -869,6 +904,11 @@ ModelCatalogDuty* AppController::modelCatalogDuty()
 PictureDuty* AppController::pictureDuty()
 {
     return &pictureDuty_;
+}
+
+SpeechDuty* AppController::speechDuty()
+{
+    return &speechDuty_;
 }
 
 QString AppController::modeLabel() const

@@ -1,0 +1,18 @@
+# The pronunciation group on the reading & learning page (docs/adr/0134, UI-SPEC.md 4.4).
+#
+# What this answers without a pointer: the panel comes up, the learning page routes in, and the page
+# still paints after scrolling to the group that carries auto-play, accent, engine, fallback and the
+# local voice line. It does not answer whether the speaker glyph is drawn on a word card -- that
+# needs a card, and a card needs an answer; the bubble cases in lens_qtest_surfaces own that.
+#
+# Run with:
+#   powershell -File scripts/qa/lens-dev.ps1 -Script scripts/qa/scenarios/pronunciation.txt
+state
+surface show settings
+wait painted:settings
+surface route settings learning
+wait painted:settings
+# The group sits below the fold; 700 is far enough that the local voice line is on screen.
+surface scroll settings 700
+state
+quit

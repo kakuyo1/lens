@@ -77,23 +77,23 @@
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="396"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="402"/>
         <source>Etymology</source>
         <translation>词源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="435"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="441"/>
         <source>Example</source>
         <translation>例句</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="499"/>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="542"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="505"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="548"/>
         <source>Not the Sense?</source>
         <translation>不是这个义项？</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="570"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="576"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒后自动消失</translation>
     </message>
@@ -106,12 +106,12 @@
         <translation>返回</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="203"/>
+        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="212"/>
         <source>Explaining %1…</source>
         <translation>正在解释 %1…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="215"/>
+        <location filename="../src/app/qml/bubble/BubbleChainPanel.qml" line="224"/>
         <source>This word could not be explained.</source>
         <translation>这个词没能解释。</translation>
     </message>
@@ -127,6 +127,14 @@
         <location filename="../src/app/qml/bubble/BubbleHeaderActions.qml" line="101"/>
         <source>Mother tongue translation</source>
         <translation>母语翻译</translation>
+    </message>
+</context>
+<context>
+    <name>BubbleTitleRow</name>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleTitleRow.qml" line="178"/>
+        <source>Pronounce %1</source>
+        <translation>朗读 %1</translation>
     </message>
 </context>
 <context>
@@ -571,13 +579,70 @@
         <translation>图片</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="226"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="235"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="231"/>
+        <source>Pronunciation</source>
+        <translation>发音</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="239"/>
+        <source>Auto-play</source>
+        <translation>自动播放</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="258"/>
+        <source>American</source>
+        <translation>美式</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="258"/>
+        <source>British</source>
+        <translation>英式</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="268"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="275"/>
+        <source>Engine</source>
+        <translation>引擎</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="287"/>
+        <source>Voice: %1</source>
+        <translation>音色：%1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="288"/>
+        <source>No system voice is installed for this accent.</source>
+        <translation>这个口音没有已安装的系统音色。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="299"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="306"/>
+        <source>Fallback</source>
+        <translation>兜底</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="321"/>
+        <source>Local voice</source>
+        <translation>本地音色</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="329"/>
+        <source>Downloaded and verified.</source>
+        <translation>已下载并校验。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="330"/>
+        <source>Not downloaded. The local engine stays silent.</source>
+        <translation>未下载。本地引擎不会发声。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="342"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="351"/>
         <source>Word review</source>
         <translation>单词复习</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="247"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="363"/>
         <source>Unavailable while the pet is off.</source>
         <translation>宠物关闭时不可用。</translation>
     </message>
@@ -619,16 +684,22 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="251"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="298"/>
         <source>Clear</source>
         <translation>清除</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="281"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="268"/>
+        <source>Audio cache</source>
+        <translation>音频缓存</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="328"/>
         <source>Copyright (c) 2026 kakuyo1 · MIT License</source>
         <translation>Copyright (c) 2026 kakuyo1 · MIT 许可证</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="288"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="335"/>
         <source>Built %1</source>
         <translation>构建于 %1</translation>
     </message>
@@ -791,6 +862,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="325"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="250"/>
         <source>Accent</source>
         <translation>强调色</translation>
     </message>
@@ -1054,7 +1126,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="255"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="44"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1063"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1111"/>
         <source>Desktop companion</source>
         <translation>桌面宠物</translation>
     </message>
@@ -1820,7 +1892,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="192"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1065"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1113"/>
         <source>Dog</source>
         <translation>小狗</translation>
     </message>
@@ -2153,7 +2225,7 @@
         <translation>确认删除</translation>
     </message>
     <message>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1064"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1112"/>
         <source>This pet package is no longer installed. Switched to %1.</source>
         <translation>该宠物包已不存在，已切换到 %1。</translation>
     </message>
@@ -3108,12 +3180,44 @@
         <translation>默认</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="876"/>
+        <location filename="../src/app/app_controller.cpp" line="670"/>
+        <source>American</source>
+        <translation>美式</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="672"/>
+        <source>British</source>
+        <translation>英式</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="677"/>
+        <source>System voice</source>
+        <translation>系统合成</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="679"/>
+        <location filename="../src/app/app_controller.cpp" line="686"/>
+        <source>Online audio</source>
+        <translation>在线音频</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="681"/>
+        <location filename="../src/app/app_controller.cpp" line="688"/>
+        <source>Local model</source>
+        <translation>本地模型</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="690"/>
+        <source>Silent</source>
+        <translation>不发音</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="916"/>
         <source>Auto</source>
         <translation>自动模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="876"/>
+        <location filename="../src/app/app_controller.cpp" line="916"/>
         <source>Manual</source>
         <translation>手动模式</translation>
     </message>

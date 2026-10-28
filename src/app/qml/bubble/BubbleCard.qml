@@ -250,6 +250,12 @@ Item {
                 title: root.bubble.title
                 ipa: root.bubble.type === "word" ? root.bubble.ipa : ""
                 pos: root.bubble.type === "word" ? root.bubble.pos : ""
+                // A word card carries a speaker; a sentence, a translation and a breakdown do not,
+                // and neither does the settings preview -- a demonstration of a setting is not a
+                // word the reader looked up (UI-SPEC.md 4.3).
+                speakable: root.bubble.type === "word" && !root.bubble.preview
+                speaking: root.bubble.speaking
+                onSpeakRequested: root.bubble.speak()
                 family: root.bubble.englishFont
                 scale: root.bubble.fontScale
                 animated: root.bubble.revealAnimation

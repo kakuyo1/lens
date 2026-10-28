@@ -152,6 +152,15 @@ Item {
             width: parent.width
             title: root.entry ? root.entry.title : ""
             ipa: root.entry ? root.entry.ipa : ""
+            // A chain step is a word the reader asked to look at, so it is read the same way the
+            // card it hangs under is (UI-SPEC.md 4.3). Its playing state is its own word's, not the
+            // root card's: the two can be different words.
+            speakable: root.entry !== null
+            speaking: Controller.speechDuty.playing && Controller.speechDuty.playingWord === (root.entry ? root.entry.title : "")
+            onSpeakRequested: {
+                if (root.entry !== null)
+                    Controller.speechDuty.speak(root.entry.title);
+            }
             family: root.family
             scale: root.fontScale
             animated: root.bubble.revealAnimation

@@ -35,11 +35,13 @@
 #include "app/duties/picture_duty.h"
 #include "app/platform/tray.h"
 #include "app/duties/review_duty.h"
+#include "app/duties/speech_duty.h"
 #include "app/duties/storage_duty.h"
 #include "app/duties/sync_duty.h"
 #include "app/duties/update_duty.h"
 #include "app/words_model.h"
 #include "pictures/picture_sources/commons_source.h"
+#include "speech/youdao_source.h"
 
 class QQmlEngine;
 class QJSEngine;
@@ -202,8 +204,10 @@ public:
     ModelCatalogDuty* modelCatalogDuty();
     /// @brief The picture lookup, which QML reads as `Controller.pictureDuty`; the facade owns it.
     PictureDuty* pictureDuty();
-    QString      modeLabel() const;
-    QString      busyLabel() const;
+    /// @brief The pronunciation of one word, which QML reads as `Controller.speechDuty`; the facade owns it.
+    SpeechDuty* speechDuty();
+    QString     modeLabel() const;
+    QString     busyLabel() const;
     /// @return Whether a connection probe is in flight.
     bool connectionTesting() const;
     /// @return The last probe's fixed sentence, empty before the first one.
@@ -246,6 +250,7 @@ public:
     Q_PROPERTY(lens::app::GlassBackdrop* glassBackdrop READ glassBackdrop CONSTANT)
     Q_PROPERTY(lens::app::ModelCatalogDuty* modelCatalogDuty READ modelCatalogDuty CONSTANT)
     Q_PROPERTY(lens::app::PictureDuty* pictureDuty READ pictureDuty CONSTANT)
+    Q_PROPERTY(lens::app::SpeechDuty* speechDuty READ speechDuty CONSTANT)
     Q_PROPERTY(QString modeLabel READ modeLabel NOTIFY settingsChanged)
     Q_PROPERTY(QString busyLabel READ busyLabel NOTIFY busyChanged)
     Q_PROPERTY(bool connectionTesting READ connectionTesting NOTIFY connectionTestChanged)
@@ -311,9 +316,15 @@ private:
     pictures::CommonsSource picturesSource_;
     pictures::PictureCache  picturesCache_;
     PictureDuty             pictureDuty_;
-    llm::LlmClient&         llm_;
-    GlobalHotkey&           hotkey_;
-    QTimer                  gateTimer_;
+    /// Pronunciation: the source that fetches a recording, the cache beside the settings document,
+    /// and the duty the speaker icon reads. Declared in this order for the same reason the three
+    /// above are -- the duty borrows the other two.
+    speech::YoudaoSource speechSource_;
+    speech::AudioCache   speechCache_;
+    SpeechDuty           speechDuty_;
+    llm::LlmClient&      llm_;
+    GlobalHotkey&        hotkey_;
+    QTimer               gateTimer_;
     /// Whether the daily budget was spent the last time the cost duty reported, so a pause and a resume each fire once.
     bool budgetPaused_;
     /// The connection probe's own state. The generation is raised by a start and by any change
