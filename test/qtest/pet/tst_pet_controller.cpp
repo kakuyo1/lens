@@ -652,6 +652,24 @@ void TstPetController::everyShippedPetHasAPortrait()
         QVERIFY(anchors.contains(QStringLiteral("body")));
         QVERIFY(anchors.contains(QStringLiteral("face")));
         QVERIFY(card.value("expression").toInt() >= 0 and card.value("expression").toInt() < 10);
+
+        // The card dresses the pet: head and body always, the face only when it is not eyewear, so the face stays
+        // visible (the reader's rule: no glasses on a postcard). Two or three pieces, never a bare pet.
+        auto const outfit = card.value("outfit").toList();
+        QVERIFY2(outfit.size() >= 2 and outfit.size() <= 3, qPrintable(id));
+        auto       hasHead = false;
+        auto       hasBody = false;
+        auto const eyewear = QStringList{"wire_glasses", "cat_shades", "spectacles", "round_shades", "heart_frames", "monocle", "star_frames", "glasses", "candy_shades", "readers", "sleep_mask", "bubble_glasses", "dive_mask", "raindrop_glasses", "cloud_frames"};
+        for (auto const& piece : outfit) {
+            auto const art = piece.toMap();
+            QVERIFY2(art.value("asset").toString().endsWith(QStringLiteral(".png")), qPrintable(id));
+            auto const z = art.value("zIndex").toInt();
+            QVERIFY(z >= 3 and z <= 5);
+            hasHead = hasHead or z == 5;
+            hasBody = hasBody or z == 3;
+            QVERIFY2(!eyewear.contains(art.value("id").toString()), qPrintable(art.value("id").toString()));
+        }
+        QVERIFY2(hasHead and hasBody, qPrintable(id));
     }
 
     // The card follows the catalogue: an id it does not hold has none, and a package the reader installed has none

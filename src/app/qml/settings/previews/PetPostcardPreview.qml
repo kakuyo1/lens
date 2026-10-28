@@ -8,9 +8,10 @@ import QtQuick.Window
  * DropdownField.
  *
  * A postcard rather than a row of text because the question a hover asks is "what does this one look like": the
- * picture is the pet's own idle frame, drawn at whole-number magnification so the pixel art keeps its edges, and the
- * marks around it -- a perforated stamp, a postmark, a printed caption -- say what kind of card this is without a word
- * of interface copy. The name on the caption is the row's own label.
+ * picture is the pet dressed in one piece per slot and standing in a painted landscape of its own, drawn at
+ * whole-number magnification so the pixel art keeps its edges, and the marks around it -- a perforated stamp, a
+ * postmark, a printed caption -- say what kind of card this is without a word of interface copy. The name on the
+ * caption is the row's own label.
  *
  * Only a shipped pet has a card: Pet.portrait() answers with nothing for an installed package, and the window then
  * stays down rather than standing empty beside the list. Like the other dropdown previews it is a window of its own
@@ -73,6 +74,32 @@ Window {
     readonly property string faceSheet: root.still && root.still.sheets ? String(root.still.sheets.expression) : ""
     readonly property int faceFrame: root.still && root.still.expression !== undefined ? root.still.expression : 0
 
+    /// The pieces the card dresses the pet in: one per slot, the face only when it is not eyewear, so the face
+    /// stays visible. Empty when the portrait carries no outfit.
+    readonly property var outfit: root.still && root.still.outfit !== undefined ? root.still.outfit : []
+    /// The landscape behind the pet: a painted sky, a sun or moon, two hills and the ground. One palette per pet,
+    /// so each card stands somewhere of its own without a single new art file.
+    readonly property var scenery: {
+        switch (root.option ? String(root.option.value) : "") {
+        case "cat":
+            return { sky: ["#f7dcb4", "#f2b98c"], sun: "#fff1c9", hillFar: "#d79a78", hillNear: "#c07f5f", ground: "#8fa86a", night: false };
+        case "dog":
+            return { sky: ["#c3e7f8", "#8fc9e8"], sun: "#fff7d6", hillFar: "#8fbf74", hillNear: "#6f9e57", ground: "#5f8c4a", night: false };
+        case "ghost":
+            return { sky: ["#2a2f4a", "#161a2c"], sun: "#f2f0d8", hillFar: "#333a5c", hillNear: "#232840", ground: "#1b1f33", night: true };
+        case "mochi":
+            return { sky: ["#fbe2e8", "#f6c4cf"], sun: "#fff3d0", hillFar: "#e0a7b3", hillNear: "#c98a98", ground: "#9fb06a", night: false };
+        case "owl":
+            return { sky: ["#4a3a63", "#7a5a82"], sun: "#f5e9c8", hillFar: "#3b3050", hillNear: "#2e2740", ground: "#241f33", night: true };
+        case "jelly":
+            return { sky: ["#c3f0ea", "#6fc9c4"], sun: "#e8fff8", hillFar: "#5fb3ab", hillNear: "#3e8c86", ground: "#2f6f6a", night: false };
+        case "cloud":
+            return { sky: ["#e8f1fb", "#c4d8ec"], sun: "#ffffff", hillFar: "#b9cee2", hillNear: "#a2bcd4", ground: "#c8d8e8", night: false };
+        default:
+            return { sky: ["#dfe7ef", "#c3d1df"], sun: "#f5f0d8", hillFar: "#a8bccd", hillNear: "#8ea4b8", ground: "#9fb0a8", night: false };
+        }
+    }
+
     GlassHost {
         window: root
         sheet: root.glass
@@ -91,9 +118,9 @@ Window {
             radius: root.tokens.radiusCard
         }
 
-        // The picture: a well of its own, a shade darker at the top and dissolving into the card's paper at the foot,
-        // so the pet stands in a soft ground rather than on a hard-edged panel. The card's paper shows around it, as
-        // the margin of a printed postcard does.
+        // The picture: the pet in a painted landscape of its own -- sky, a sun or moon, two hills and the ground --
+        // with the card's paper showing around it, as the margin of a printed postcard does. The landscape takes the
+        // pet's own palette rather than the theme's, because a postcard's photograph does not change with the app.
         Rectangle {
             id: photo
             anchors.left: parent.left
@@ -105,21 +132,75 @@ Window {
             border.width: 1
             border.color: root.tokens.line2
             clip: true
-            gradient: Gradient {
-                GradientStop { position: 0.0; color: root.tokens.panel2 }
-                GradientStop { position: 1.0; color: root.tokens.panel }
-            }
 
             /// The line the pet stands on, in the picture's own coordinates.
             readonly property real ground: photo.height - 18
 
-            // The ground line, the same device the settings stage uses: the figure is placed on it, not above it.
+            // The sky, from the top of the card down to the horizon.
             Rectangle {
-                x: 30
+                anchors.fill: parent
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: root.scenery.sky[0] }
+                    GradientStop { position: 1.0; color: root.scenery.sky[1] }
+                }
+            }
+
+            // The sun, or a night card's moon: one disc, in the corner the stamp leaves free.
+            Rectangle {
+                x: 26
+                y: 20
+                width: 22
+                height: 22
+                radius: 11
+                color: root.scenery.sun
+                opacity: 0.9
+            }
+
+            // Stars, only where the card is a night one: four small dots, placed by hand.
+            Repeater {
+                model: root.scenery.night ? [[60, 26], [78, 50], [52, 64], [104, 22]] : []
+
+                Rectangle {
+                    required property var modelData
+                    x: modelData[0]
+                    y: modelData[1]
+                    width: 2
+                    height: 2
+                    color: "#ffffff"
+                    opacity: 0.7
+                }
+            }
+
+            // Two hills at the horizon: big discs whose tops are the only part above the ground line.
+            Rectangle {
+                x: -22
+                y: photo.ground - width * 0.56
+                width: photo.width * 0.64
+                height: width
+                radius: width / 2
+                color: root.scenery.hillFar
+            }
+            Rectangle {
+                x: photo.width - width + 26
+                y: photo.ground - width * 0.44
+                width: photo.width * 0.66
+                height: width
+                radius: width / 2
+                color: root.scenery.hillNear
+            }
+
+            // The ground the pet stands on, and a hairline where it meets the sky.
+            Rectangle {
                 y: photo.ground
-                width: photo.width - 60
+                width: parent.width
+                height: parent.height - photo.ground
+                color: root.scenery.ground
+            }
+            Rectangle {
+                y: photo.ground
+                width: parent.width
                 height: 1
-                color: root.tokens.line
+                color: Qt.darker(root.scenery.ground, 1.18)
             }
 
             // The pet, drawn as the desktop draws it: one cell of the idle sheet per layer, at the anchors the data
@@ -137,6 +218,7 @@ Window {
                 transformOrigin: Item.TopLeft
 
                 Image {
+                    z: 0
                     x: root.bodyAt.x
                     y: root.bodyAt.y
                     width: root.canvas
@@ -148,6 +230,7 @@ Window {
                 }
 
                 Image {
+                    z: 2
                     x: root.faceAt.x
                     y: root.faceAt.y
                     width: root.canvas
@@ -156,6 +239,26 @@ Window {
                     sourceClipRect: Qt.rect(root.faceFrame * root.canvas, 0, root.canvas, root.canvas)
                     smooth: false
                     visible: source !== ""
+                }
+
+                // The clothes: one accessory per slot, each at the anchor the data gives for its slot and in the
+                // stacking order accessories.json sets -- body 3, face 4, head 5, so they sit over the pet's own
+                // layers (body 0, expression 2) and under nothing else on this card.
+                Repeater {
+                    model: root.outfit
+
+                    Image {
+                        required property var modelData
+
+                        z: modelData.zIndex
+                        x: modelData.x
+                        y: modelData.y
+                        width: root.canvas
+                        height: root.canvas
+                        source: modelData.asset
+                        sourceClipRect: Qt.rect(0, 0, root.canvas, root.canvas)
+                        smooth: false
+                    }
                 }
             }
 

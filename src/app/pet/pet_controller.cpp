@@ -90,6 +90,33 @@ QPoint pointFor(core::pet::Anchors const& anchors, Slot slot)
     return {};
 }
 
+/// @return Whether an accessory covers the eyes. A postcard dresses the pet without glasses, so the face stays
+///         visible: the face slot takes the first piece that is not one of these, and wears nothing when every piece
+///         in it is. Head and body are never filtered.
+bool isEyewear(std::string const& id)
+{
+    static constexpr char const* kEyewear[] = {
+        "wire_glasses",
+        "cat_shades",
+        "spectacles",
+        "round_shades",
+        "heart_frames",
+        "monocle",
+        "star_frames",
+        "glasses",
+        "candy_shades",
+        "readers",
+        "sleep_mask",
+        "bubble_glasses",
+        "dive_mask",
+        "raindrop_glasses",
+        "cloud_frames",
+    };
+    for (auto const name : kEyewear)
+        if (id == name) return true;
+    return false;
+}
+
 /// @return The file as a URL string, which is what an Image source takes. A Windows path would read as a scheme.
 QString urlOf(QString const& path)
 {
@@ -422,6 +449,27 @@ QVariantMap PetController::portrait(QString id)
                     {"anchors", QVariantMap{{"body", toPoint(frames.front().body)}, {"face", toPoint(frames.front().face)}}},
                     {"expression", pictures.expressions.empty() ? 0 : pictures.expressions.front()},
                 };
+
+                // A card dresses the pet: one piece per slot, head then body then face, the order the settings page
+                // lays the slots out. The face slot skips eyewear so the face stays visible; head and body always
+                // find a piece, so a card never shows a bare pet. A pet whose face slot is all eyewear wears two.
+                auto outfit = QVariantList{};
+                for (auto const slot : {Slot::Head, Slot::Body, Slot::Face}) {
+                    for (auto const& spec : assets.catalogue) {
+                        if (spec.slot != slot) continue;
+                        if (slot == Slot::Face && isEyewear(spec.id)) continue;
+                        auto const art = assets.accessories.find(spec.id);
+                        if (art == assets.accessories.end()) continue;
+                        auto const at = pointFor(frames.front(), spec.slot);
+                        outfit.append(QVariantMap{{"id", QString::fromStdString(spec.id)},
+                                                  {"asset", urlOf(art->second.asset)},
+                                                  {"zIndex", art->second.zIndex},
+                                                  {"x", at.x()},
+                                                  {"y", at.y()}});
+                        break;
+                    }
+                }
+                card.insert("outfit", outfit);
             }
         } catch (std::exception const& e) {
             LENS_WARN("the pet picker has no card for {}: {}", key, e.what());
