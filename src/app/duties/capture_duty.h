@@ -137,6 +137,7 @@ public:
     /// @brief Drop a pending or running online request and its image.
     Q_INVOKABLE void cancelOnlineUpload();
     /// @brief Re-read the online configuration after a credential change and drop any consent.
+    /// @note The caller announces the setting change; an upload this clears announces itself.
     void invalidateOnlineConfiguration();
     /// @brief Put every row the table marks Signal::Capture back to its default.
     Q_INVOKABLE void restoreDefaults();

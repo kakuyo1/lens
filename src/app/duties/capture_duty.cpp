@@ -506,6 +506,7 @@ void CaptureDuty::setOcrOnlineProvider(QString provider)
     // A credential is bound to the destination it was entered for.
     if (not previous.isEmpty()) keys.set<std::string>("OCR-API-KEY", {});
     invalidateOnlineConfiguration();
+    emit settingsChanged();
 }
 
 void CaptureDuty::setOcrOnlineEndpoint(QString endpoint)
@@ -522,6 +523,7 @@ void CaptureDuty::setOcrOnlineEndpoint(QString endpoint)
     // again. Clearing only the key is enough: the endpoint stays visible for the re-entry.
     if (not previous.isEmpty() and value != previous) keys.set<std::string>("OCR-API-KEY", {});
     invalidateOnlineConfiguration();
+    emit settingsChanged();
 }
 
 void CaptureDuty::setOcrOnlineLanguage(QString language)
@@ -532,6 +534,7 @@ void CaptureDuty::setOcrOnlineLanguage(QString language)
     if (value == settings::read(keys, *core::settings::find("ocrOnlineLanguage")).toString()) return;
     if (not settings::write(keys, *core::settings::find("ocrOnlineLanguage"), value)) return;
     invalidateOnlineConfiguration();
+    emit settingsChanged();
 }
 
 bool CaptureDuty::onlineConfigured() const
@@ -557,7 +560,6 @@ void CaptureDuty::invalidateOnlineConfiguration()
         ocrTestState_ = QStringLiteral("idle");
     }
     clearUpload(QStringLiteral("configuration-changed"), true);
-    emit settingsChanged();
 }
 
 void CaptureDuty::rebuildOcr()

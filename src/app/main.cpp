@@ -28,6 +28,7 @@
 #include "app_controller.h"
 #include "consent_preview.h"
 #include "app/platform/autostart.h"
+#include "app/platform/running_instance.h"
 #include "app/settings_access.h"
 #include "core/domain/filter_core.h"
 #include "core/domain/settings_table.h"
@@ -227,6 +228,7 @@ int main(int argc, char* argv[])
 
     // The Run entry names a path, and this launch is the truth about where the executable is.
     lens::app::refreshAutostart();
+    lens::app::holdRunningInstance();
 
     const std::filesystem::path dataDir = dataDirectory();
     // The review sign's word face (UI-SPEC.md 4.13). Without the file the sign falls back to the monospace family it names.

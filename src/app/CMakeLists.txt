@@ -63,6 +63,8 @@ add_library(lens_app STATIC
   platform/global_hotkey.cpp
   platform/mouse_selection_hook.h
   platform/mouse_selection_hook.cpp
+  platform/running_instance.h
+  platform/running_instance.cpp
   platform/selection_text_grabber.cpp
   platform/system_motion.cpp
   platform/tray.cpp

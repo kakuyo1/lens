@@ -57,7 +57,37 @@
 
 ## 5 未验证
 
-- 开始菜单快捷方式在卸载后的单独检查；`[Icons]` 创建的入口没有逐项核对。
-- 安装后观察到 `lens.exe` 进程启动（静默安装后的运行/autostart），但没有做界面、首次运行复制 `settings.local.json` 与日志写入安装目录 `logs/` 的验证；最终只验证了安装/卸载文件、注册项、profile 与进程状态。
-- setup 日志没有按预期路径落盘，静默安装日志未作为证据。
+- 开始菜单快捷方式：已在 6.2 复核，卸载后入口消失。
+- 静默安装后的 `lens.exe` 进程：已在 6.2 复核，升级会关闭正在运行的 Lens 且不再重启；安装后的界面、首次运行复制 `settings.local.json` 与 `logs/` 写入仍未验证。
+- setup 日志：已用 `/LOG` 落到指定路径，并作为 6.2 的证据。
 - 真实在线请求、Windows 稀疏包和真机视觉检查不在本报告内，分别见 [OCR 基线](ocr-baseline-2026-10-28.md)与[稀疏包矩阵](windows-ocr-sparse-package-2026-10-28.md)。
+
+## 6 修复与复验（同日）
+
+### 6.1 根因与修复
+
+| 现象 | 根因 | 修复 |
+|---|---|---|
+| 静默升级后 `lens.exe` 被拉起 | Inno 的 `RestartApplications` 默认为 yes：替换文件前 RestartManager 关闭 Lens，安装结束后又启动它 | `installer/lens.iss` 显式 `CloseApplications=yes`、`RestartApplications=no` |
+| 运行中卸载留下程序文件 | Inno 卸载器不会像安装器那样关闭占用文件的程序，也没有运行态检测 | 应用持有进程级命名互斥量 `Lens.Desktop.Running`（`src/app/platform/running_instance.*`）；卸载器在 `usUninstall` 用 `CheckForMutexes` 检测到就提示并 `Abort` |
+| 卸载后 HKCU `Run\Lens` 残留 | 该项由应用写，安装器不拥有它；旧卸载器没有删除 | `[Code]` 在 `usUninstall` 删除指向本次 `{app}\lens.exe` 的值；路径先归一化斜杠并忽略大小写，指向其他副本的值保留 |
+| 卸载后空插件目录残留 | 覆盖安装不拥有升级前已存在的目录，Inno 不会删除它们 | `[UninstallDelete]` 对 windeployqt 的顶层目录加 `dirifempty`，只删空目录 |
+
+### 6.2 矩阵
+
+用 15:38 重建的产物复跑（setup 68,380,007 B，portable 99,903,787 B；payload `lens.exe` SHA-256 `e0c18aec4c5b6983613732550347d1e9f1e9f46965fd4717584ec34c369f2b40`，与 release 树一致）：
+
+| 步骤 | 结果 |
+|---|---|
+| 旧 1.9.0 正在运行，静默覆盖升级 | exit 0，12.6 s；`/LOG` 记录 RestartManager 找到 `lens.exe`；升级后没有 `lens.exe` 进程；exe 换成新哈希；HKCU `DisplayVersion=1.9.0`；`Run\Lens` 保留 |
+| 新 Lens 运行中，静默卸载 | exit 1，1.1 s；Lens 仍在运行；`lens.exe`、`unins000.exe`、卸载注册项与 `Run\Lens` 全部保留 |
+| 停止 Lens 后静默卸载 | exit 0，2.1 s；安装目录（含空插件目录）整体移除；卸载注册项、`Run\Lens`、开始菜单入口移除；`%APPDATA%\Lens\settings.json` 保留（只检查存在，未读内容） |
+| 最终静默重装 | exit 0；没有自动启动 `lens.exe`；新哈希；`DisplayVersion=1.9.0`；`Run\Lens` 保持移除状态，随后恢复为测试前的值（指向 `%LOCALAPPDATA%\Programs\Lens\lens.exe`） |
+
+`payload/ocr` 与安装后的 `ocr/` 复核：`--list-langs` 仍只有 `eng`，TSV 首行仍是 12 列表头；portable 中仍没有 `settings*.json`、截图/快照、`chi_sim*` 或密钥样值。
+
+### 6.3 仍未验证
+
+- 交互式卸载时 `SuppressibleMsgBox` 的实际文案与按钮路径；静默路径只验证了拒绝和退出码 1。
+- 升级后下一次 Windows 登录时 autostart 是否启动；测试只验证了 Run 值与进程状态。
+- 同一 AppId 的升级组合只复跑了 1.9.0 → 1.9.0（修复前后），没有覆盖 1.7.1 → 1.9.0 的其他路径。
