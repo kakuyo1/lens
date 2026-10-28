@@ -70,14 +70,15 @@ TEST(SurfaceTable, ThePreviewCardsAreTheOnlySheetsTheDevSurfaceDoesNotReport)
     for (Row const& row : kRows)
         if (row.sheet and not row.dev)
             sheetNotReported.push_back(row.name);
-    // Exactly the five preview cards and nothing else: a separate window holds one backdrop
+    // Exactly the six preview cards and nothing else: a separate window holds one backdrop
     // (docs/adr/0041), so each takes a sheet, while the dev surface reports none of them.
-    ASSERT_EQ(sheetNotReported.size(), 5u);
+    ASSERT_EQ(sheetNotReported.size(), 6u);
     EXPECT_EQ(sheetNotReported[0], "preview");
     EXPECT_EQ(sheetNotReported[1], "themePreview");
     EXPECT_EQ(sheetNotReported[2], "vocabPreview");
     EXPECT_EQ(sheetNotReported[3], "selectionBarPreview");
     EXPECT_EQ(sheetNotReported[4], "notePreview");
+    EXPECT_EQ(sheetNotReported[5], "petPreview");
 }
 
 TEST(SurfaceTable, AnOpenerIsAShowMethodOnAReportedSurface)
