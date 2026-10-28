@@ -28,9 +28,8 @@ enum class OcrStatus : std::uint8_t {
     Cancelled,
     RuntimeMissing,
     LanguageMissing,
-    PathUnsupported,       ///< A local engine path is not one it can use, such as RapidOCR's non-ASCII model folder.
-    Untrusted,             ///< The reader has not trusted this third-party engine, or its files changed.
-    DeploymentUnsupported, ///< The engine's packaging or platform condition is not satisfied.
+    PathUnsupported, ///< A local engine path is not one it can use, such as RapidOCR's non-ASCII model folder.
+    Untrusted,       ///< The reader has not trusted this third-party engine, or its files changed.
     StartFailed,
     TimedOut,
     Failed,
@@ -77,7 +76,6 @@ enum class OcrFallbackReason : std::uint8_t {
     None,
     PrimaryUnavailable,
     PrimaryLanguageMissing,
-    PrimaryDeploymentUnsupported,
     PrimaryInputTooLarge,
     PrimaryFailed,
     PrimaryTimedOut,

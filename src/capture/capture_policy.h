@@ -69,7 +69,6 @@ constexpr bool isRuntimeFault(OcrStatus const status)
         case OcrStatus::LanguageMissing:
         case OcrStatus::PathUnsupported:
         case OcrStatus::Untrusted:
-        case OcrStatus::DeploymentUnsupported:
         case OcrStatus::StartFailed:
         case OcrStatus::TimedOut:
         case OcrStatus::Failed: return true;

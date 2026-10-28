@@ -4,9 +4,8 @@ import QtQuick
  * The local OCR configuration from docs/ocr-development.md 10.1.
  *
  * The page owns the engine, the recognition language and the local engine paths; the first capture
- * page keeps only the readiness summary and the link that opens this page. Auto is the default:
- * Windows OCR is chosen only when its deployment and build conditions are both satisfied, and
- * Tesseract otherwise. An explicit choice is never rewritten, so an unavailable one says why
+ * page keeps only the readiness summary and the link that opens this page. Auto is the default and
+ * resolves to Tesseract. An explicit choice is never rewritten, so an unavailable one says why
  * rather than quietly falling back. RapidOCR is user-installed, needs an explicit detection, and
  * refuses a model folder whose path is not ASCII because the upstream binary crashes on one.
  */
@@ -33,7 +32,6 @@ Item {
 
     /// @return The engine the result came from, in the reader's words.
     function engineName(value) {
-        if (value === "windows") return qsTranslate("SettingsPopup", "Windows OCR");
         if (value === "ocrspace") return "OCR.space";
         if (value === "rapidocr" || value === "rapidocr-json") return "RapidOCR";
         return qsTranslate("SettingsPopup", "Tesseract");
@@ -50,8 +48,6 @@ Item {
                 return qsTranslate("SettingsPopup", "RapidOCR's program or models changed. Detect and trust it again.");
             return qsTranslate("SettingsPopup", "RapidOCR is not trusted yet. Detect it before use.");
         }
-        if (settings.ocrStatus === "deployment-unsupported")
-            return qsTranslate("SettingsPopup", "Windows OCR is not supported by this installation.");
         if (settings.ocrStatus === "language-missing") {
             if (settings.ocrLocalEngine === "rapidocr")
                 return qsTranslate("SettingsPopup", "RapidOCR's model files are missing: %1").arg(settings.localEngineReason);
@@ -62,12 +58,8 @@ Item {
                 return qsTranslate("SettingsPopup", "RapidOCR is not installed.");
             return qsTranslate("SettingsPopup", "Tesseract is not installed.");
         }
-        if (settings.ocrStatus === "ready") {
-            const ready = qsTranslate("SettingsPopup", "%1 is ready.").arg(page.engineName(settings.actualLocalEngine));
-            if (settings.ocrLocalEngine === "auto" && settings.windowsOcrReason !== "ready")
-                return ready + " " + qsTranslate("SettingsPopup", "Windows OCR is unavailable; Tesseract is used.");
-            return ready;
-        }
+        if (settings.ocrStatus === "ready")
+            return qsTranslate("SettingsPopup", "%1 is ready.").arg(page.engineName(settings.actualLocalEngine));
         return qsTranslate("SettingsPopup", "OCR is not ready.");
     }
 
@@ -88,8 +80,6 @@ Item {
                 return qsTranslate("SettingsPopup", "RapidOCR's model files are missing.");
             return qsTranslate("SettingsPopup", "The OCR language data is missing.");
         }
-        if (settings.ocrTestState === "deployment-unsupported")
-            return qsTranslate("SettingsPopup", "Windows OCR is not supported by this installation.");
         if (settings.ocrTestState === "runtime-missing") {
             if (settings.ocrLocalEngine === "rapidocr")
                 return qsTranslate("SettingsPopup", "RapidOCR is not installed.");
@@ -169,12 +159,10 @@ Item {
                 accessibleName: qsTranslate("SettingsPopup", "Local engine")
                 options: [
                     {value: "auto", label: qsTranslate("SettingsPopup", "Automatic"),
-                     group: "", note: qsTranslate("SettingsPopup", "Windows OCR when supported, otherwise Tesseract")},
+                     group: "", note: "Tesseract"},
                     {value: "tesseract", label: "Tesseract", group: "", note: ""},
                     {value: "rapidocr", label: "RapidOCR-json",
-                     group: "", note: qsTranslate("SettingsPopup", "User-installed; ASCII model folder required")},
-                    {value: "windows", label: qsTranslate("SettingsPopup", "Windows OCR"),
-                     group: "", note: qsTranslate("SettingsPopup", "Not available in this build")}
+                     group: "", note: qsTranslate("SettingsPopup", "User-installed; ASCII model folder required")}
                 ]
                 currentValue: page.settings.ocrLocalEngine
                 onPicked: (value) => Controller.captureDuty.setOcrLocalEngine(value)
@@ -342,12 +330,12 @@ Item {
         }
 
         // The bundled runtime is what the installer lays down; these two are for a reader who
-        // already keeps their own Tesseract. They are hidden for an explicit Windows or RapidOCR
-        // choice, which does not use them.
+        // already keeps their own Tesseract. They are hidden for an explicit RapidOCR choice,
+        // which does not use them.
         Column {
             width: parent.width
             spacing: 7
-            visible: page.settings.ocrLocalEngine !== "windows" && page.settings.ocrLocalEngine !== "rapidocr"
+            visible: page.settings.ocrLocalEngine !== "rapidocr"
             Text { text: qsTranslate("SettingsPopup", "Tesseract executable"); color: page.tokens.muted; font.pixelSize: 12 }
             PathField {
                 id: tesseractField
@@ -363,7 +351,7 @@ Item {
         Column {
             width: parent.width
             spacing: 7
-            visible: page.settings.ocrLocalEngine !== "windows" && page.settings.ocrLocalEngine !== "rapidocr"
+            visible: page.settings.ocrLocalEngine !== "rapidocr"
             Text { text: qsTranslate("SettingsPopup", "Tesseract data folder"); color: page.tokens.muted; font.pixelSize: 12 }
             PathField {
                 id: tesseractDataField
@@ -377,13 +365,5 @@ Item {
             }
         }
 
-        Text {
-            width: parent.width
-            visible: page.settings.ocrLocalEngine === "windows" && page.settings.ocrStatus === "deployment-unsupported"
-            text: qsTranslate("SettingsPopup", "Packaged installations may support Windows OCR; this build does not. Choose Automatic or Tesseract to read text now.")
-            color: page.tokens.muted
-            font.pixelSize: 11
-            wrapMode: Text.WordWrap
-        }
     }
 }

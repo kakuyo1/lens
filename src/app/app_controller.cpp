@@ -454,9 +454,6 @@ void AppController::reportCaptureRefusal(CaptureRefusal const refusal)
         case CaptureRefusal::Cancelled: body = tr("The recognition was cancelled."); break;
         case CaptureRefusal::Checking: body = QCoreApplication::translate("SettingsPopup", "Checking OCR"); break;
         case CaptureRefusal::LanguageMissing: body = QCoreApplication::translate("SettingsPopup", "The OCR language data is missing"); break;
-        case CaptureRefusal::DeploymentUnsupported:
-            body = QCoreApplication::translate("SettingsPopup", "Windows OCR is not supported by this installation");
-            break;
         case CaptureRefusal::ProtocolError: body = tr("The OCR result could not be read."); break;
         case CaptureRefusal::TransportFailed: body = tr("The online OCR service could not be reached."); break;
         case CaptureRefusal::PartialResult: body = tr("The online OCR service returned an incomplete result."); break;

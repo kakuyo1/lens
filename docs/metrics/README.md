@@ -12,8 +12,7 @@
 
 | 文件 | 回答的问题 |
 | --- | --- |
-| [`ocr-baseline-2026-10-28.md`](ocr-baseline-2026-10-28.md) | 合成语料的 Tesseract 英语、中文与混排基线；Windows OCR 在本机是否可用、为何不能作为交付默认；RapidOCR v0.2.0 的协议、退出与非 ASCII 模型路径审计；哪些后端与在线请求仍未验证 |
-| [`windows-ocr-sparse-package-2026-10-28.md`](windows-ocr-sparse-package-2026-10-28.md) | 签名稀疏 MSIX 的探针矩阵：机器级证书信任下包标识、中文 Windows OCR、升级与卸载通过；英语 OCR 能力因 Windows Update 停滞未验证 |
+| [`ocr-baseline-2026-10-28.md`](ocr-baseline-2026-10-28.md) | 合成语料的 Tesseract 英语、中文与混排基线；RapidOCR v0.2.0 的协议、退出与非 ASCII 模型路径审计；哪些后端与在线请求仍未验证 |
 | [`ocr-installer-2026-10-28.md`](ocr-installer-2026-10-28.md) | 安装产物的随包 Tesseract 是否能输出 TSV、`chi_sim` 是否被排除、设置/截图/密钥是否进入 portable 与 payload；覆盖升级、运行中卸载拒绝与清理复验 |
 
 ## compile-performance

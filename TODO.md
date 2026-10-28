@@ -67,11 +67,8 @@
 
 ## 自动扫描的 OCR 替换方案
 
-调研、同类实现与实验矩阵见 `docs/ocr-research-2026-10.md`。
-
 先实测 Tesseract `--psm 3` / `--psm 11` 与 `--dpi 96` 对 96 DPI 小字的影响，再决定是否放大后识别。中期候选：
 
-- **Windows.Media.Ocr**：系统自带、离线、带词框，不必起子进程；依赖系统语言包，走 WinRT，与 ADR 0014 冲突，采用前另开 ADR。
 - **UI Automation TextPattern**：Chrome / Edge / Word / Acrobat 可直接读文字与词框；代价是首次启用 Chromium 无障碍模式的性能开销，以及 `SECURITY.md` 要写清读取边界。
 
 评估口径：96 / 125 / 150% DPI 下的词框精度、整窗耗时、中文 `traineddata` 依赖、打包体积、隐私边界。切换点是给 `capture::OcrEngine` 加词框能力，扫描侧不感知具体引擎。

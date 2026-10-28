@@ -24,27 +24,26 @@ namespace lens::app {
 /// answer, or the framed region said. Every value is told apart here even though several share
 /// one sentence: the sentence is the facade's decision, and this is the vocabulary (docs/adr/0025).
 enum class CaptureRefusal {
-    BudgetPaused,          ///< Today's spend reached the cap.
-    Checking,              ///< The runtime is still being probed.
-    Busy,                  ///< A recognition is in flight.
-    ScreenshotOff,         ///< The reader has the OCR capture switch off.
-    OnlineNotConfigured,   ///< The manual mode is online, but no online service is configured.
-    OutsideScreen,         ///< The framed region is not wholly inside one screen.
-    RegionTooLarge,        ///< The framed region is larger than the grabber or backend takes.
-    EmptyText,             ///< OCR ran and found nothing in the region.
-    InvalidImage,          ///< OCR could not read the image at all.
-    Cancelled,             ///< The request was cancelled or superseded before an answer.
-    LanguageMissing,       ///< The traineddata or model files the chosen language needs are not there.
-    RuntimeMissing,        ///< There is no Tesseract or RapidOCR runtime to run.
-    PathUnsupported,       ///< A local engine path is unusable, such as RapidOCR's non-ASCII model folder.
-    Untrusted,             ///< The reader has not trusted this third-party engine, or its files changed.
-    DeploymentUnsupported, ///< The engine's packaging or platform condition is not satisfied.
-    StartFailed,           ///< The runtime is there and refused to start.
-    TimedOut,              ///< The runtime started and did not finish in time.
-    ProtocolError,         ///< The engine answered in a shape the adapter may not consume.
-    TransportFailed,       ///< Online only: no complete response arrived.
-    PartialResult,         ///< Online only: the service returned only part of the image's text.
-    Failed,                ///< The runtime started and fell over.
+    BudgetPaused,        ///< Today's spend reached the cap.
+    Checking,            ///< The runtime is still being probed.
+    Busy,                ///< A recognition is in flight.
+    ScreenshotOff,       ///< The reader has the OCR capture switch off.
+    OnlineNotConfigured, ///< The manual mode is online, but no online service is configured.
+    OutsideScreen,       ///< The framed region is not wholly inside one screen.
+    RegionTooLarge,      ///< The framed region is larger than the grabber or backend takes.
+    EmptyText,           ///< OCR ran and found nothing in the region.
+    InvalidImage,        ///< OCR could not read the image at all.
+    Cancelled,           ///< The request was cancelled or superseded before an answer.
+    LanguageMissing,     ///< The traineddata or model files the chosen language needs are not there.
+    RuntimeMissing,      ///< There is no Tesseract or RapidOCR runtime to run.
+    PathUnsupported,     ///< A local engine path is unusable, such as RapidOCR's non-ASCII model folder.
+    Untrusted,           ///< The reader has not trusted this third-party engine, or its files changed.
+    StartFailed,         ///< The runtime is there and refused to start.
+    TimedOut,            ///< The runtime started and did not finish in time.
+    ProtocolError,       ///< The engine answered in a shape the adapter may not consume.
+    TransportFailed,     ///< Online only: no complete response arrived.
+    PartialResult,       ///< Online only: the service returned only part of the image's text.
+    Failed,              ///< The runtime started and fell over.
 };
 
 /**
@@ -52,8 +51,8 @@ enum class CaptureRefusal {
  * @return One of "budget-paused", "checking", "busy", "screenshot-off", "online-unconfigured",
  *         "outside-screen", "too-large", "empty-text", "invalid-image", "cancelled",
  *         "language-missing", "runtime-missing", "path-unsupported", "untrusted",
- *         "deployment-unsupported", "start-failed", "timeout", "protocol-error",
- *         "transport-failed", "partial-result", "failed". Every one is asserted in the unit suite.
+ *         "start-failed", "timeout", "protocol-error", "transport-failed",
+ *         "partial-result", "failed". Every one is asserted in the unit suite.
  */
 inline const char* refusalKey(CaptureRefusal refusal)
 {
@@ -72,7 +71,6 @@ inline const char* refusalKey(CaptureRefusal refusal)
         case CaptureRefusal::RuntimeMissing: return "runtime-missing";
         case CaptureRefusal::PathUnsupported: return "path-unsupported";
         case CaptureRefusal::Untrusted: return "untrusted";
-        case CaptureRefusal::DeploymentUnsupported: return "deployment-unsupported";
         case CaptureRefusal::StartFailed: return "start-failed";
         case CaptureRefusal::TimedOut: return "timeout";
         case CaptureRefusal::ProtocolError: return "protocol-error";
@@ -105,7 +103,6 @@ inline std::optional<CaptureRefusal> refusalOf(capture::OcrStatus status)
         case capture::OcrStatus::LanguageMissing: return CaptureRefusal::LanguageMissing;
         case capture::OcrStatus::PathUnsupported: return CaptureRefusal::PathUnsupported;
         case capture::OcrStatus::Untrusted: return CaptureRefusal::Untrusted;
-        case capture::OcrStatus::DeploymentUnsupported: return CaptureRefusal::DeploymentUnsupported;
         case capture::OcrStatus::StartFailed: return CaptureRefusal::StartFailed;
         case capture::OcrStatus::TimedOut: return CaptureRefusal::TimedOut;
         case capture::OcrStatus::Failed: return CaptureRefusal::Failed;

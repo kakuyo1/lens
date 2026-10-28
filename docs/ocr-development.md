@@ -3,7 +3,7 @@
 > 日期：2026-10-28。代码核对基点：`dbc7c81`。
 > 状态：目标方案已获批准；A–F 已部分实现，逐阶段真实/替身/未验证证据见 §17 与
 > [OCR 基线与接入验证](metrics/ocr-baseline-2026-10-28.md)。本文其余章节仍是目标契约，不因代码存在而自动成为已验证能力。
-> 前置调研：[OCR 研究报告](ocr-research-2026-10.md)。取舍记录：[ADR 0130](adr/0130-local-and-online-ocr-are-separate-modes.md)。
+> 取舍记录：[ADR 0130](adr/0130-local-and-online-ocr-are-separate-modes.md)、[ADR 0133](adr/0133-offline-ocr-ships-tesseract-and-rapidocr.md)。
 
 ## 1 目标、范围与交付边界
 
@@ -15,8 +15,8 @@
 
 | 能力 | 交付内容 |
 |---|---|
-| 本地自动选择 | 优先使用可用且满足识别语言要求的 Windows OCR，必要时回退 Tesseract |
-| 本地明确选择 | Windows OCR、Tesseract，以及通过适配验收的用户安装引擎 |
+| 本地自动选择 | 使用随包 Tesseract |
+| 本地明确选择 | Tesseract 与通过适配验收的 RapidOCR-json |
 | 安装包 | 继续随包带 Tesseract 及英文数据；不捆绑 RapidOCR、PaddleOCR 或它们的模型 |
 | 可选引擎 | 优先验证 RapidOCR-json；PaddleOCR-json 保留为下一适配项，不假装两者任意版本通用 |
 | 在线识别 | 独立配置，用户主动框选后确认上传，仅接入一个经过核实的协议 |
@@ -26,8 +26,8 @@
 
 ### 1.2 不随首轮交付
 
-- 不做引擎商店、插件脚本、自动下载模型、自动安装 Windows 语言包。
-- 不做云端自动扫描、字幕模式、UI Automation、Windows AI TextRecognizer。
+- 不做引擎商店、插件脚本、自动下载模型。
+- 不做云端自动扫描、字幕模式、UI Automation。
 - 不做多引擎并行投票、基于置信度的自动付费重试。
 - 不做完整 OCR 编辑器、批量图片、PDF、表格恢复、手写识别专项。
 - 不把点词高亮、扫描行级差分、纠词和校对条绑进多引擎上线条件；这些是后续独立迭代。
@@ -70,20 +70,18 @@
 
 ### 3.2 本地自动与明确选择
 
-自动策略只包含 Windows OCR 和 Tesseract，不因为目录中发现 RapidOCR／PaddleOCR 就擅自运行。
+自动策略只使用 Tesseract，不因为目录中发现 RapidOCR／PaddleOCR 就擅自运行。
 
-| Windows OCR 的结果 | 自动策略 | 明确选择 Windows OCR |
+| 本地结果 | 自动策略 | 明确选择 |
 |---|---|---|
-| 支持条件未满足、语言缺失、创建失败 | 直接尝试 Tesseract | 报告原因，不回退 |
-| 尺寸超出能力，且不能无损接受 | 尝试支持该输入的 Tesseract | 拒绝输入，提示缩小选区 |
-| 运行失败或到时限 | 在总时限仍足够且旧操作已收束时，最多尝试一次 Tesseract | 报告错误 |
-| 成功但无文字 | 返回无文字，不再识别 | 返回无文字 |
-| 成功但无置信度或存在低质量疑点 | 返回结果，不自动复跑 | 返回结果 |
-| 用户取消、配置改变、请求过期 | 结束整次请求，不启动回退 | 同左 |
+| 资源缺失、语言缺失、启动失败 | 报告不可用，不换引擎 | 报告原因，不回退 |
+| 运行失败或到时限 | 返回错误，不自动换引擎 | 报告错误 |
+| 成功但无文字 | 返回无文字 | 返回无文字 |
+| 用户取消、配置改变、请求过期 | 结束整次请求 | 同左 |
 
 明确选择 Tesseract 或可选引擎也不静默回退。路径未配置、运行程序消失或模型失效时，保留用户选择并显示不可用，不能悄悄写回自动。
 
-结果同时记录 `requestedEngine`、`actualEngine` 与枚举型 `fallbackReason`。界面可显示实际后端，但不以通知卡逐帧报告扫描回退。
+结果同时记录 `requestedEngine` 与 `actualEngine`；界面可显示实际后端。
 
 ### 3.3 识别语言独立于解释语言
 
@@ -91,7 +89,6 @@
 
 首轮本地语言选项为 `en`、`zh-Hans` 与 `zh-Hans+en`，分别代表英语、简体中文和中英混排。新配置缺省 `en`；不提供未经证明的 “自动识别全部语言”。
 
-- Windows OCR：枚举系统可用语言并检查匹配；英语不只用字符串全等判断 en-US，使用系统语言解析能力。混排不能通过 “英文包 ＋ 中文包均存在” 推断可用，必须用对应识别器做混排语料验收。
 - Tesseract：英语用 `eng`，简体中文用 `chi_sim`；混排用 `chi_sim+eng` 并要求两份模型可读。显式选择一种语言而资源不齐时报告缺失，不把中文静默丢掉。
 - 可选引擎：语言能力由已验证的模型组合决定；没有证据不声明可识别某语言。
 - 在线：仅列该协议与所选服务档位已支持的语言，使用独立 `ocrOnlineLanguage`；不沿用本地语言枚举假定能力相同。
@@ -205,7 +202,7 @@ C++ 使用数据 struct 表达配置与结果，行为由小型抽象 Interface 
 
 Adapter 内部负责逆变换：去掉白边偏移，再撤销缩放、旋转与二次裁剪；调用方只负责原图到屏幕的映射，不知道后端预处理细节。只有首次点词功能落地时才消费屏幕词框，不提前扩展屏幕 UI。
 
-Windows `OcrLine` 没有直接的矩形属性，行框由真实词框并集得到；RapidOCR 的文本块多边形不能标成逐词框。保留后端阅读顺序，不对整页简单按 y 排序而打乱多栏。
+Tesseract TSV 的行框由真实词框并集得到；RapidOCR 的文本块多边形不能标成逐词框。保留后端阅读顺序，不对整页简单按 y 排序而打乱多栏。
 
 ### 5.4 限额
 
@@ -227,27 +224,7 @@ Windows `OcrLine` 没有直接的矩形属性，行框由真实词框并集得�
 
 ## 6 本地后端实现
 
-### 6.1 Windows OCR
-
-先通过部署验证，再决定是否对该交付形态启用。
-
-微软官方将 Windows.Media.Ocr 的桌面支持限定为具有 package identity。Lens 当前是 Inno Setup 与便携 ZIP，现有 WinRT 构建基础不能代替部署条件。
-
-验证必须记录：Windows 版本、进程包标识、系统语言、可识别语言、安装版 / 便携版启动位置、普通用户权限。未打包程序某次能识别，不等于获得官方支持；生产默认启用须同时满足已决定的支持范围与测试矩阵。
-
-若需 MSIX 或稀疏包标识，另行明确安装、更新、卸载方案并批准，不在 OCR 实现里悄悄改变打包形态。验证未完成时，自动策略诚实回退 Tesseract，Windows 选项说明部署条件未满足。
-
-2026-10-28 决策：1.0 不引入包标识，Windows 适配器不实现、不启用；将来若启用，候选形态是签名稀疏 MSIX（external location），不是完整 MSIX。理由与矩阵见 [ADR 0131](adr/0131-windows-ocr-waits-for-a-signed-package.md) 与[基线证据](metrics/ocr-baseline-2026-10-28.md)。
-
-实现要点：
-
-- 在拥有 WinRT 工作的线程初始化 apartment；对象创建、异步完成与释放遵循其线程模型。
-- 以运行时能力枚举语言，查询最大图像边长，转换到受支持的 SoftwareBitmap 格式；不重复 PNG 编解码。
-- 从 OcrResult 取得行与词、从词取得 BoundingRect；无置信度正常返回缺失。
-- 捕获 HRESULT 并映射固定错误码；不把系统错误原话或识别文本送入通知 / 日志。
-- 取消是协作式；不得以丢弃结果冒充底层已停。进程内后端无法按时收束是上线阻断项，不允许继续累积悬挂操作；必要时重新评估进程隔离，不强杀 C++ 线程。
-
-### 6.2 Tesseract
+### 6.1 Tesseract
 
 继续采用随包可执行文件或用户选定的绝对路径；不依赖 PATH 搜索。运行时必须独立自足，不能从开发环境借 DLL 或 traineddata。
 
@@ -259,7 +236,7 @@ Windows `OcrLine` 没有直接的矩形属性，行框由真实词框并集得�
 - 缩放、灰度、反色、白边均作为独立实验因子；只落地可重复改善目标语料的组合。修改 DPI 元数据不等于增加像素信息。
 - 使用可取消的有界进程；关闭 stdin、排空输出、超时终止和 wait 清理都计入资源生命周期。
 
-### 6.3 用户安装的 RapidOCR／PaddleOCR
+### 6.2 用户安装的 RapidOCR／PaddleOCR
 
 它们不是任意路径指向一个 exe 就能互换的同一种产品。Lens 只支持明确的发行物、协议与模型组合，不承诺兼容 Python 包、所有 ONNX 模型或任意命令行封装。
 
@@ -418,7 +395,7 @@ OCR 服务费用不进入现有按 token 估算的解释账单，不伪造为零
 |---|---|---|
 | `ocrConfigVersion` | 整数，首轮 1 | 迁移与读取版本，不由 UI 修改 |
 | `ocrMode` | `local`／`online`，缺省 `local` | 切换即撤销旧截图事务 |
-| `ocrLocalEngine` | `auto`／`windows`／`tesseract`／已验证候选，缺省 `auto` | 明确选择不静默改写 |
+| `ocrLocalEngine` | `auto`／`tesseract`／`rapidocr`，缺省 `auto` | 明确选择不静默改写 |
 | `ocrLocalLanguage` | `en`／`zh-Hans`／`zh-Hans+en`，缺省 `en` | 变更使本地能力检测失效 |
 | `tesseractExecutable` | 字符串，空 | 空表示随包 exe，继续使用现有键 |
 | `tesseractDataDirectory` | 字符串，空 | 空表示所选 exe 的相邻 tessdata |
@@ -467,7 +444,7 @@ OCR 子页面顺序：
 4. 在线配置入口及已配置 / 未配置状态。
 5. 实际后端与最近检测结果，不展示文章文本。
 
-本地自动选择时显示 Windows 条件与 Tesseract 兜底摘要；明确选择时只显示该引擎对应字段。用户安装程序 / 模型用文件或目录选择器，不提供自由命令行。
+本地自动选择时显示 Tesseract 摘要；明确选择时只显示该引擎对应字段。用户安装程序 / 模型用文件或目录选择器，不提供自由命令行。
 
 在线配置页面首轮只有服务协议、完整 HTTPS 端点、语言、密钥、显式连接检测及清除配置。只有 Adapter 需要时才显示模型字段。
 
@@ -482,7 +459,6 @@ OCR 子页面顺序：
 | 检查中 | 一次用户检测在进行 | 检测按钮禁用；不改变其他模式 |
 | 可用 | 已验证当前配置 | 可接收匹配来源的请求 |
 | 缺语言／模型 | 明确资源名称 | 不替用户安装，允许修改配置 |
-| 部署不支持 | Windows OCR 支持条件未满足 | 自动可回退，明确 Windows 不运行 |
 | 上次请求失败 | 网络／识别失败的固定原因 | 不把一次超时永久标记为未安装 |
 | 配置已改变 | 检测结果失效 | 撤旧成功状态，不自动联网复测 |
 
@@ -586,7 +562,7 @@ OCR 子页面顺序：
 | 在线 | 请求次数、上传体积、超时、取消与重复提交，不捏造收费金额 |
 | 包体 | 安装 payload 与下载包分别测；保留 Tesseract 不声称省掉其体积 |
 
-原研究的 WER 降低 30%、误弹降低 50%、Windows OCR p95 小于 400 ms 等均为待校准目标，不是本方案已证实的结果。首轮可发布条件是关键语言 / 场景不出现无法解释的退化、所有安全断言通过、部署矩阵有证据；具体性能门槛在基线完成后按目标机器锁定。
+早期调研的 WER 降低 30%、误弹降低 50% 等均为待校准目标，不是本方案已证实的结果。首轮可发布条件是关键语言 / 场景不出现无法解释的退化、所有安全断言通过、部署矩阵有证据；具体性能门槛在基线完成后按目标机器锁定。
 
 ### 12.4 执行安全与最小测试集
 
@@ -605,9 +581,9 @@ OCR 子页面顺序：
 
 | 阶段 | 产出 | 完成条件 | 依赖 |
 |---|---|---|---|
-| A：基准与接入验证 | 小语料、Windows 支持矩阵、候选发行物／在线协议核对 | 明确哪些后端可以交付，哪些仍是候选 | 无 |
+| A：基准与接入验证 | 小语料、候选发行物／在线协议核对 | 明确哪些后端可以交付，哪些仍是候选 | 无 |
 | B：结果与执行器 | 结构化结果、TSV、坐标还原、有界任务生命周期 | 现有本地截图／扫描行为保持，取消与超限测试通过 | A 的本地基线 |
-| C：本地配置与路由 | 自动／明确选择、语言、路径、分来源状态、迁移 | 可安装版本开箱即用；缺系统语言包可回退 | B、Windows 决策门 |
+| C：本地配置与路由 | 自动／明确选择、语言、路径、分来源状态、迁移 | 可安装版本开箱即用；缺 Tesseract 数据时报缺失 | B |
 | D：可选本地后端 | RapidOCR-json 首个 Adapter、信任与检测 UI | 指定发行物、模型、非 ASCII 路径与清理实测通过 | A、B、C |
 | E：在线事务与传输 | 独立 key、上传授权、单协议解析、额度告知 | 离线模拟下所有零上传／无重试／密钥隔离断言通过 | B、C |
 | F：在线 UI 与交付验证 | 确认卡、连接检测、取消与错误、五语言、隔离 QA | 合成图 smoke、UI 状态与安装产物一致 | E |
@@ -615,13 +591,13 @@ OCR 子页面顺序：
 
 A 的部署或候选协议不通过时停止该后端，不以增加兼容分支绕过；B、Tesseract 改进和安全模型仍可独立推进。C 的本地能力不必等待云 OCR，E 不必等待可选模型。
 
-不沿用研究报告的周数作为承诺：外部程序适配、Windows 包标识、真实语料与多语言 UI 是主要不确定项。基线和首个适配验证完成后，再按实际改动拆可估算任务。
+不沿用早期调研的周数作为承诺：外部程序适配、真实语料与多语言 UI 是主要不确定项。基线和首个适配验证完成后，再按实际改动拆可估算任务。
 
 ### 13.1 文件级开发落点
 
 | 位置 | 工作 |
 |---|---|
-| `src/capture/ocr_engine.h` 与实现 | 拆出结果与能力类型，Tesseract TSV、Windows Adapter、本地路由 |
+| `src/capture/ocr_engine.h` 与实现 | 拆出结果与能力类型，Tesseract TSV、RapidOCR Adapter、本地路由 |
 | `src/capture/scan_pipeline.*` | 首轮不改稳定算法；改消费入口时保留现有行为测试 |
 | 新增 `src/ocr/` | 在线协议、传输与结果适配；不依赖解释请求协议 |
 | `src/app/duties/capture_duty.*` | 来源准入、执行器、确认事务、状态投影与代次 |
@@ -646,7 +622,7 @@ A 的部署或候选协议不通过时停止该后端，不以增加兼容分支
 3. 全文相似度只辅助页面稳定，真正准备弹出的目标词需要更严格的一致性或独立质量判定，避免长页面掩盖一个词变化。
 4. 稳定样本与像素门共同设计，静止页面不能因为跳过后续识别而永远无法达到首次稳定。
 5. 像素变化率不是视频分类器，不能直接用固定 15% 阈值封禁滚动页面。
-6. 置信度缺失不自动拒绝 Windows 结果；阈值按后端分别校准，不能拿 Tesseract 分数与其他模型分数比较。
+6. 置信度缺失不自动拒绝该结果；阈值按后端分别校准，不能拿 Tesseract 分数与其他模型分数比较。
 7. 不用词表编辑距离静默纠正专名；断行修复、连字归一化与真正拼写改写分开评估。
 
 ## 15 文档迁移与发布检查
@@ -664,14 +640,11 @@ A 的部署或候选协议不通过时停止该后端，不以增加兼容分支
 | `TEST.md`／`scripts/README.md` | 新测试入口与脚本实际存在后登记 |
 | ADR 0014 | 本地多引擎实际取代单引擎时标明由 ADR 0130 取代，不现在改写历史事实 |
 
-发布前逐项核查：实际选择与设置一致；离线默认无外传；随包 Tesseract 可运行；第三方程序须主动配置；Windows 支持条件已决定；在线确认、取消和次数上限可测；五种界面语言无缺项；没有原始截图或密钥进入日志、仓库、同步与安装包。
+发布前逐项核查：实际选择与设置一致；离线默认无外传；随包 Tesseract 可运行；第三方程序须主动配置；在线确认、取消和次数上限可测；五种界面语言无缺项；没有原始截图或密钥进入日志、仓库、同步与安装包。
 
 ## 16 证据与尚未验证项
 
 - 当前代码：第 2 节列出的文件，核对基点 `dbc7c81`；不是 OCR 性能测试。
-- [Windows.Media.Ocr 支持范围](https://learn.microsoft.com/en-us/uwp/api/windows.media.ocr#remarks)：桌面 package identity 限制。
-- [Windows OcrEngine](https://learn.microsoft.com/en-us/uwp/api/windows.media.ocr.ocrengine)：语言、最大图像尺寸与异步识别能力。
-- [Windows OcrLine](https://learn.microsoft.com/en-us/uwp/api/windows.media.ocr.ocrline)：行只直接暴露 Text 与 Words。
 - [Tesseract 图像质量说明](https://tesseract-ocr.github.io/tessdoc/ImproveQuality.html)：预处理与 PSM 依据，不代表 Lens 已取得性能收益。
 
 方案成文时未运行真实引擎、未安装语言包 / 模型、未调用在线识别；这些限制描述的是 2026-10-28 的文档状态，不是实施后的状态。实施取得的真实引擎、替身与未验证分层见第 17 节和[基线证据](metrics/ocr-baseline-2026-10-28.md)。
@@ -682,18 +655,17 @@ A 的部署或候选协议不通过时停止该后端，不以增加兼容分支
 
 | 阶段 | 已实现 | 已验证 | 未完成 / 阻塞 |
 |---|---|---|---|
-| A 基准与接入 | 21 张合成语料与生成器；`scripts/qa/ocr-bench.ps1`；Windows OCR 探针；RapidOCR 发行物审计 | Tesseract 英语、中文与混排基线；Windows 探针（无包标识、仅 `zh-Hans-CN`、合成图识别成功）；RapidOCR 协议、退出与清理实测；稀疏包 identity/中文/升级/卸载实测 | 英语 OCR 语言能力未验证（Windows Update 停滞）；生产证书与安装器注册未做 |
-| B 结果与执行器 | 结构化 `OcrResult`（行/词/框/置信度/实际后端/耗时/几何层级）；严格 TSV 解析；单一 worker `OcrExecutor`；取消、超时、输出限额 | `OcrTsv.*` 12 例；`OcrEngineProbe.*` 真实 Tesseract；`CaptureDuty.*` | 回退封装尚未有真实 Windows 后端可接 |
-| C 本地配置与路由 | `ocrMode` / `ocrLocalEngine` / `ocrLocalLanguage` / `ocrConfigVersion`；旧配置迁移；自动→Tesseract（Windows 门未开）；明确 Windows 报部署不支持；OCR 设置子页与合成图测试 | `OcrLocal.*`、`OcrMigration.*`、`SettingsTableRig.*`、QTest `CaptureSettings::*` | Windows 适配器未实现（ADR 0131：1.0 不引入包标识）；真机像素检查 |
+| A 基准与接入 | 21 张合成语料与生成器；`scripts/qa/ocr-bench.ps1`；RapidOCR 发行物审计 | Tesseract 英语、中文与混排基线；RapidOCR 协议、退出与清理实测 | — |
+| B 结果与执行器 | 结构化 `OcrResult`（行/词/框/置信度/实际后端/耗时/几何层级）；严格 TSV 解析；单一 worker `OcrExecutor`；取消、超时、输出限额 | `OcrTsv.*` 12 例；`OcrEngineProbe.*` 真实 Tesseract；`CaptureDuty.*` | — |
+| C 本地配置与路由 | `ocrMode` / `ocrLocalEngine` / `ocrLocalLanguage` / `ocrConfigVersion`；旧配置迁移；自动→Tesseract；明确选择不回退；OCR 设置子页与合成图测试 | `OcrLocal.*`、`OcrMigration.*`、`SettingsTableRig.*`、QTest `CaptureSettings::*` | 真机像素检查 |
 | D 可选本地后端 | RapidOCR v0.2.0 适配器；ASCII 模型路径校验；显式检测/信任摘要；设置页与第三方风险说明 | `OcrRapidOcr.*` 10 例；`RapidOcrProbe.*` 3 例真实发行物；QML 非 ASCII 拒绝/检测失败 2 例；终止后无残留进程 | 中英混排丢拉丁词间空格；不进入安装包；模型目录必须 ASCII（ADR 0132） |
 | E 在线事务与传输 | 新增 `lens_ocr`；OCR.space 请求构造与严格响应解析；HTTPS/无重定向/大小/超时/取消；独立 `OCR-API-KEY`；确认事务、60/120/30 秒窗口、一次人工重试 | `OcrSpace.*` 13 例；`CaptureDuty` 的未确认零上传、取消零上传、本地零在线、确认一次发送 | 真实 OCR.space 往返；真实密钥与计费验证 |
-| F 在线 UI 与交付 | OCR 子页、在线配置页、上传确认卡、受控图片源、五语言文案 | QTest `CaptureSettings::test_theConsentCard*`、`test_theOnlinePageDrawsItsFields`、`test_onlineModeWithout*`；OCR 两页、RapidOCR 区与确认卡的离屏快照（`qml-snapshot.ps1`） | 真机视觉检查；setup 升级/安装/卸载已跑，残留空目录与 autostart 项；真实在线 smoke；确认卡预览在离屏快照中没有注册应用图片源，实际 preview 路径仅由应用启动验证 |
+| F 在线 UI 与交付 | OCR 子页、在线配置页、上传确认卡、受控图片源、五语言文案 | QTest `CaptureSettings::test_theConsentCard*`、`test_theOnlinePageDrawsItsFields`、`test_onlineModeWithout*`；OCR 两页、RapidOCR 区与确认卡的离屏快照（`qml-snapshot.ps1`） | 真机视觉检查；setup 升级/安装/卸载与残留清理已复验；真实在线 smoke；确认卡预览在离屏快照中没有注册应用图片源，实际 preview 路径仅由应用启动验证 |
 
 已知偏差与说明：
 
-- Windows OCR 在本机未打包进程中可识别中文合成图；稀疏包探针在机器级证书信任下已通过包标识、中文 OCR、升级与卸载，但英语/双语 OCR 能力因 Windows Update 停滞未验证，生产证书与 Inno Setup 注册也未实现。ADR 0131 仍决定 1.0 不启用 Windows 后端，自动策略回退 Tesseract，明确选择报 `deployment-unsupported`。
 - RapidOCR 按 ADR 0132 只接受 ASCII 模型目录；设置页会警示并禁用检测，捕获门报 `path-unsupported`，不回退 Tesseract。中英混排仍丢拉丁词间空格，不能靠假词框或静默纠正掩盖。
 - RapidOCR 发行物未签名，启动横幅为 `v1.1.0` 与标签 `v0.2.0` 不一致，发行包也没有模型许可文件；设置页已说明第三方风险，信任按可执行文件、模型目录和当前语言文件摘要建立。
 - 在线重试沿用同一事务 id；方案要求的第二次请求使用新 requestId 尚未实现。
 - 启动时本地就绪只做文件/语言检查，不启动子进程；显式测试 OCR 才运行合成图；RapidOCR 的信任验证只做摘要，不启动程序。
-- 真实在线请求未执行；安装产物已构建并检查 payload/portable 与安装目录的 TSV、`chi_sim` 排除与密钥/截图边界；1.7.1 → 1.9.0 升级、卸载、重装已执行，profile 保留，卸载残留空插件目录与 HKCU autostart 项。`chi_sim` 只是本机 Tesseract 数据文件，不是系统语言包，也未进入安装包。这些不是代码完成可以替代的验收。
+- 真实在线请求未执行；安装产物已构建并检查 payload/portable 与安装目录的 TSV、`chi_sim` 排除与密钥/截图边界；1.7.1 → 1.9.0 升级、卸载、重装已执行，profile 保留；修复后 1.9.0 → 1.9.0 的运行中升级、运行中卸载拒绝、干净卸载（含空目录与 `Run\Lens` 清理）和重装已复验。`chi_sim` 只是本机 Tesseract 数据文件，不是系统语言包，也未进入安装包。这些不是代码完成可以替代的验收。

@@ -16,7 +16,6 @@ namespace lens::capture {
 
 enum class LocalEngineChoice : std::uint8_t {
     Auto,
-    Windows,
     Tesseract,
     RapidOcr,
 };
@@ -34,9 +33,8 @@ struct LocalOcrConfig {
 /// @brief What a configuration can do without starting an external program.
 struct LocalOcrInspection {
     OcrStatus status = OcrStatus::RuntimeMissing;
-    QString   engine;        ///< "windows", "tesseract" or "rapidocr": the engine the configuration would ask.
-    QString   reason;        ///< The chosen engine's missing token, empty when ready.
-    QString   windowsReason; ///< Why Windows was not chosen, for Auto; empty when it was.
+    QString   engine; ///< "tesseract" or "rapidocr": the engine the configuration would ask.
+    QString   reason; ///< The chosen engine's missing token, empty when ready.
 };
 
 /// @return Whether Tesseract's executable and the chosen language data are present, without running it.
@@ -51,9 +49,8 @@ LocalOcrInspection inspectLocalOcr(LocalOcrConfig const& config, bool verifyTrus
 /**
  * @brief Build the engine a configuration names.
  *
- * Auto chooses Windows only when its deployment and build conditions are both satisfied, and
- * otherwise Tesseract. An explicit choice is never rewritten: a missing Windows condition or a
- * missing Tesseract path is reported by that engine, not replaced by the other one.
+ * Auto uses Tesseract. An explicit choice is never rewritten: a missing Tesseract path or
+ * RapidOCR resource is reported by that engine, not replaced by the other one.
  */
 std::unique_ptr<OcrEngine> makeLocalOcr(LocalOcrConfig const& config);
 

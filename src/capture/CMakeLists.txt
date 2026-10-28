@@ -14,8 +14,6 @@ add_library(lens_capture STATIC
   ocr_rapidocr.cpp
   ocr_migration.h
   ocr_migration.cpp
-  windows_ocr.h
-  windows_ocr.cpp
   foreground_window.h
   foreground_window.cpp
 )

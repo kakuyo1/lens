@@ -95,7 +95,6 @@ Item {
                   : Controller.settings.ocrStatus === "language-missing" ? qsTranslate("SettingsPopup", "The OCR language data is missing")
                   : Controller.settings.ocrStatus === "path-unsupported" ? qsTranslate("SettingsPopup", "RapidOCR's model folder path must contain only ASCII characters")
                   : Controller.settings.ocrStatus === "untrusted" ? qsTranslate("SettingsPopup", "RapidOCR is not trusted yet")
-                  : Controller.settings.ocrStatus === "deployment-unsupported" ? qsTranslate("SettingsPopup", "Windows OCR is not supported by this installation")
                   : Controller.settings.ocrStatus === "runtime-missing"
                     ? (Controller.settings.ocrLocalEngine === "rapidocr"
                        ? qsTranslate("SettingsPopup", "RapidOCR is not installed.")
@@ -178,8 +177,8 @@ Item {
             note: Controller.settings.screenshotAvailability === "ready"
                   ? (Controller.settings.ocrMode === "online"
                      ? "OCR.space"
-                     : (Controller.settings.actualLocalEngine === "windows"
-                        ? qsTranslate("SettingsPopup", "Windows OCR")
+                     : (Controller.settings.actualLocalEngine === "rapidocr"
+                        ? "RapidOCR"
                         : qsTranslate("SettingsPopup", "Tesseract")))
                   : (Controller.settings.ocrStatus === "checking"
                      ? qsTranslate("SettingsPopup", "Checking OCR")

@@ -220,7 +220,6 @@ QVariantMap CaptureDuty::settings() const
             {"scanAvailability", tokenFor(ocrState_)},
             {"actualLocalEngine", localInspection_.engine},
             {"localEngineReason", localInspection_.reason},
-            {"windowsOcrReason", localInspection_.windowsReason},
             {"ocrTestState", ocrTestState_},
             {"ocrTestEngine", ocrTestEngine_},
             {"ocrTestLanguage", ocrTestLanguage_},
@@ -253,6 +252,10 @@ QString CaptureDuty::ocrStatus() const
 void CaptureDuty::migrateOcrSettings()
 {
     auto keys = storage_.section();
+    if (keys.value<std::string>("ocrLocalEngine", std::string{}) == "windows") {
+        settings::write(keys, *core::settings::find("ocrLocalEngine"), QStringLiteral("auto"));
+        LENS_INFO("OCR engine 'windows' removed; using auto");
+    }
     if (keys.value<int>("ocrConfigVersion", 0) >= 1) return;
 
     auto const tesseract = storedTesseractConfig(storage_);

@@ -91,10 +91,9 @@ inline constexpr std::string_view kPlacements[]{"above", "below"};
 inline constexpr std::string_view kBarStyles[]{"bar", "tab", "hand", "tag", "fan"};
 inline constexpr std::string_view kClipboardPolicies[]{"topmost", "silent"};
 /// The two ways a manual capture may leave the machine, and the local engines the first release
-/// offers. `windows` stays a stored member so a future packaged build can add it without a
-/// migration; this build reports it as unavailable rather than silently changing the choice.
+/// offers.
 inline constexpr std::string_view kOcrModes[]{"local", "online"};
-inline constexpr std::string_view kOcrLocalEngines[]{"auto", "windows", "tesseract", "rapidocr"};
+inline constexpr std::string_view kOcrLocalEngines[]{"auto", "tesseract", "rapidocr"};
 inline constexpr std::string_view kOcrLocalLanguages[]{"en", "zh-Hans", "zh-Hans+en"};
 inline constexpr std::string_view kOcrOnlineLanguages[]{"eng", "auto"};
 /// The mother tongue the bubble's peek answers in: the catalog's own languages without English,

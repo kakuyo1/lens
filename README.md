@@ -76,7 +76,7 @@ The action bar offers Translate, Explain, and Copy text. Explain is the one Lens
 
 <p align="center"><img src="docs/readme/ocr-capture.gif" width="800" alt="OCR capture: press Ctrl+Alt+S, frame a region of a page, and Lens explains it"></p>
 
-Press `Ctrl+Alt+S` (changeable in Settings), frame a region of a PDF, image, or video still, and Lens reads it locally with OCR by default. The bundled Tesseract is the automatic engine; Windows OCR is not enabled in this build. A reader can install RapidOCR-json, choose it explicitly, and point it at an ASCII model folder after an explicit trust check. Online OCR is opt-in and asks before each upload. Automatic scanning can watch only the apps you whitelist.
+Press `Ctrl+Alt+S` (changeable in Settings), frame a region of a PDF, image, or video still, and Lens reads it locally with OCR by default. The bundled Tesseract is the automatic engine. A reader can install RapidOCR-json, choose it explicitly, and point it at an ASCII model folder after an explicit trust check. Online OCR is opt-in and asks before each upload. Automatic scanning can watch only the apps you whitelist.
 
 ## Five action bars, one set of actions
 

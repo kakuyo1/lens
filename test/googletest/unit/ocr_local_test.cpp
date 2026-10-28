@@ -48,7 +48,7 @@ struct Runtime {
 
 }
 
-TEST(OcrLocal, AutoUsesTesseractWhileWindowsDeploymentIsNotUsable)
+TEST(OcrLocal, AutoUsesTesseract)
 {
     Runtime runtime;
     runtime.language("eng");
@@ -59,18 +59,6 @@ TEST(OcrLocal, AutoUsesTesseractWhileWindowsDeploymentIsNotUsable)
 
     EXPECT_EQ(inspection.status, OcrStatus::Ready);
     EXPECT_EQ(inspection.engine, QStringLiteral("tesseract"));
-    EXPECT_EQ(inspection.windowsReason, QStringLiteral("deployment-unsupported"));
-}
-
-TEST(OcrLocal, ExplicitWindowsReportsTheDeploymentGateAndNeverFallsBack)
-{
-    auto const inspection = lens::capture::inspectLocalOcr({.engine = LocalEngineChoice::Windows});
-    EXPECT_EQ(inspection.status, OcrStatus::DeploymentUnsupported);
-    EXPECT_EQ(inspection.engine, QStringLiteral("windows"));
-
-    auto const engine = lens::capture::makeLocalOcr({.engine = LocalEngineChoice::Windows});
-    ASSERT_TRUE(engine);
-    EXPECT_EQ(engine->probe(), OcrStatus::DeploymentUnsupported);
 }
 
 TEST(OcrLocal, TheChosenLanguageNamesTheMissingTrainedData)

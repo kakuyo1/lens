@@ -404,7 +404,6 @@ TEST(CapturePolicy, AnEmptyOrUnreadableRegionIsNotARuntimeFault)
     EXPECT_FALSE(lens::capture::isRuntimeFault(OcrStatus::TransportFailed));
     EXPECT_FALSE(lens::capture::isRuntimeFault(OcrStatus::PartialResult));
     EXPECT_TRUE(lens::capture::isRuntimeFault(OcrStatus::RuntimeMissing));
-    EXPECT_TRUE(lens::capture::isRuntimeFault(OcrStatus::DeploymentUnsupported));
     EXPECT_TRUE(lens::capture::isRuntimeFault(OcrStatus::LanguageMissing));
     EXPECT_TRUE(lens::capture::isRuntimeFault(OcrStatus::PathUnsupported));
     EXPECT_TRUE(lens::capture::isRuntimeFault(OcrStatus::Untrusted));

@@ -27,14 +27,14 @@ web
 ## Operating Context
 
 - 阅读发生在其他应用（浏览器、文档、终端等）里，Lens 在后台伴随。
-- 当前手动截图缺省走本地；本地自动策略只有在 Windows OCR 的部署与语言条件都满足时才选它，本构建未满足，因此实际使用随包 Tesseract。Windows OCR 的 1.0 交付形态已定为不引入包标识（[ADR 0131](docs/adr/0131-windows-ocr-waits-for-a-signed-package.md)）。Tesseract 默认取程序目录 `ocr/` 下随包那份，不依赖系统 PATH；读者可在设置里指向自己的 Tesseract。识别语言为英语、简体中文或中英混排，缺对应数据时报告缺失，不静默丢掉一种语言。明确选择 Windows OCR 时报部署不支持，不回退。
+- 当前手动截图缺省走本地；本地自动策略使用随包 Tesseract。Tesseract 默认取程序目录 `ocr/` 下随包那份，不依赖系统 PATH；读者可在设置里指向自己的 Tesseract。RapidOCR-json 由读者自行安装并明确选择。识别语言为英语、简体中文或中英混排，缺对应数据时报告缺失，不静默丢掉一种语言；明确选择 RapidOCR 时缺资源报缺失，不回退。
 
 ### OCR 约定（2026-10-28 部分交付）
 
-技术拆分见 [OCR 开发方案](docs/ocr-development.md)，取舍见 [ADR 0130](docs/adr/0130-local-and-online-ocr-are-separate-modes.md)。以下条目区分已实现、未交付与未验证；真实服务与安装产物验证不能由代码存在替代。
+技术拆分见 [OCR 开发方案](docs/ocr-development.md)，取舍见 [ADR 0130](docs/adr/0130-local-and-online-ocr-are-separate-modes.md) 与 [ADR 0133](docs/adr/0133-offline-ocr-ships-tesseract-and-rapidocr.md)。以下条目区分已实现、未交付与未验证；真实服务与安装产物验证不能由代码存在替代。
 
-- **已实现（Windows 适配器未交付）**：手动截图提供本地 / 在线模式，缺省本地；本地自动选择在部署条件与语言满足时优先 Windows OCR，否则 Tesseract；明确选择不回退。本构建的自动策略实际回退 Tesseract。
-- **已实现（ASCII 路径限制）**：安装包继续只带 Tesseract 与英文数据。RapidOCR-json v0.2.0 的程序与模型由读者自行安装，只能明确选择，自动策略不会运行它。模型目录必须是 ASCII 路径；设置页会警示并禁用检测，捕获门报 `path-unsupported`，不回退 Tesseract。首次使用需显式检测并信任，信任摘要绑定可执行文件、模型目录和当前语言模型；程序或模型改变会撤销信任。详见 [ADR 0132](docs/adr/0132-rapidocr-model-paths-stay-ascii.md) 与[基线证据](docs/metrics/ocr-baseline-2026-10-28.md#3-rapidocr-json-v020-审计)。
+- **已实现**：手动截图提供本地 / 在线模式，缺省本地；本地自动选择使用 Tesseract，RapidOCR 只能明确选择；明确选择不回退。
+- **已实现（ASCII 路径限制）**：安装包继续只带 Tesseract 与英文数据。RapidOCR-json v0.2.0 的程序与模型由读者自行安装，只能明确选择，自动策略不会运行它。模型目录必须是 ASCII 路径；设置页会警示并禁用检测，捕获门报 `path-unsupported`，不回退 Tesseract。首次使用需显式检测并信任，信任摘要绑定可执行文件、模型目录和当前语言模型；程序或模型改变会撤销信任。详见 [ADR 0132](docs/adr/0132-rapidocr-model-paths-stay-ascii.md) 与[基线证据](docs/metrics/ocr-baseline-2026-10-28.md#2-rapidocr-json-v020-审计)。
 - **已实现**：自动扫描始终使用本地引擎，独立于手动截图模式；原生选区仍不走 OCR。截图与扫描开关的关闭默认值不变。
 - **已实现（真实服务未验证）**：在线 OCR 每次只上传读者框选并确认的像素区域；本地失败、低置信度、模式选择或连接检测都不构成截图上传授权。没有自动云端重试或跨服务商回退；一次明确的人工重试可用。
 - **已实现**：识别后仍由本地分类，必要文字进入既有解释通道；上传确认同时说明后续解释出站。现有 “发送最小化” 约束继续适用于解释请求，不能被解释为在线 OCR 上传前已经完成图像脱敏。

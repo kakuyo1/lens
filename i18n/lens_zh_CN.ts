@@ -360,30 +360,18 @@
         <translation>正在检查 OCR</translation>
     </message>
     <message>
-        <source>English OCR data is missing</source>
-        <translation type="vanished">缺少英文 OCR 数据</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="103"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="102"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR 运行时不可用</translation>
     </message>
     <message>
-        <source>Tesseract executable</source>
-        <translation type="vanished">Tesseract 可执行文件</translation>
-    </message>
-    <message>
-        <source>Tesseract data folder</source>
-        <translation type="vanished">Tesseract 数据目录</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="193"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="192"/>
         <source>Minimum word length</source>
         <translation>最小词长</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="213"/>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="224"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="212"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="223"/>
         <source>Scan whitelist</source>
         <translation>扫描白名单</translation>
     </message>
@@ -646,7 +634,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="15"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="171"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="161"/>
         <source>Automatic</source>
         <translation>自动</translation>
     </message>
@@ -860,13 +848,13 @@
         <translation>Windows 辅助功能设置已关闭动画效果。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="168"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="167"/>
         <location filename="../src/app/qml/settings/pages/SettingsClipboardPage.qml" line="99"/>
         <source>Raise to top</source>
         <translation>强制置顶</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="167"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="166"/>
         <location filename="../src/app/qml/settings/pages/SettingsClipboardPage.qml" line="99"/>
         <source>Give up silently</source>
         <translation>静默放弃</translation>
@@ -890,7 +878,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="67"/>
-        <location filename="../src/app/app_controller.cpp" line="469"/>
+        <location filename="../src/app/app_controller.cpp" line="466"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -916,80 +904,67 @@
         <translation>RapidOCR 尚未受信任</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="98"/>
-        <location filename="../src/app/app_controller.cpp" line="458"/>
-        <source>Windows OCR is not supported by this installation</source>
-        <translation>当前安装方式不支持 Windows OCR</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="116"/>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="124"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="115"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="123"/>
         <source>Selection bar style</source>
         <translation>动作条样式</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="126"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="125"/>
         <source>Classic bar</source>
         <translation>经典长条</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="128"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="127"/>
         <source>Side tab</source>
         <translation>页边签</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="130"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="129"/>
         <source>Hand of cards</source>
         <translation>手牌签</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="132"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="131"/>
         <source>Hang tag</source>
         <translation>吊牌签</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="134"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="133"/>
         <source>Fan</source>
         <translation>扇面</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="148"/>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="153"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="147"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="152"/>
         <source>OCR trigger key</source>
         <translation>OCR 触发热键</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="165"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="164"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="83"/>
         <source>Popup &amp; clipboard</source>
         <translation>弹窗与剪贴板</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="177"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="176"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="84"/>
         <source>OCR engine</source>
         <translation>OCR 引擎</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="182"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="36"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="176"/>
-        <source>Windows OCR</source>
-        <translation>Windows OCR</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="183"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="39"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="37"/>
         <source>Tesseract</source>
         <translation>Tesseract</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="186"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="185"/>
         <source>Needs attention</source>
         <translation>需要处理</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="198"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="197"/>
         <source>Minimum word length</source>
         <translation>最小词长</translation>
     </message>
@@ -1187,7 +1162,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="104"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="340"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="328"/>
         <source>Not configured</source>
         <translation>未配置</translation>
     </message>
@@ -1212,18 +1187,14 @@
         <translation>自定义服务</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="185"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="45"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="184"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="43"/>
         <location filename="../src/app/app_controller.cpp" line="455"/>
         <source>Checking OCR</source>
         <translation>正在检查 OCR</translation>
     </message>
     <message>
-        <source>English OCR data is missing</source>
-        <translation type="vanished">缺少英文 OCR 数据</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="466"/>
+        <location filename="../src/app/app_controller.cpp" line="463"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR 运行时不可用</translation>
     </message>
@@ -2212,265 +2183,239 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="54"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="92"/>
-        <source>Windows OCR is not supported by this installation.</source>
-        <translation>当前安装方式不支持 Windows OCR。</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="58"/>
         <source>The OCR language data is missing: %1</source>
         <translation>缺少 OCR 语言数据：%1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="102"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="63"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="96"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="101"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="59"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="86"/>
         <source>Tesseract is not installed.</source>
         <translation>未安装 Tesseract。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="66"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="62"/>
         <source>%1 is ready.</source>
         <translation>%1 已就绪。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="68"/>
-        <source>Windows OCR is unavailable; Tesseract is used.</source>
-        <translation>Windows OCR 不可用，已使用 Tesseract。</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="71"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="63"/>
         <source>OCR is not ready.</source>
         <translation>OCR 尚未就绪。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="79"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="71"/>
         <source>Recognized with %1 in %2 ms.</source>
         <translation>已用 %1 识别，耗时 %2 毫秒。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="89"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="81"/>
         <source>The OCR language data is missing.</source>
         <translation>缺少 OCR 语言数据。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="98"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="88"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="36"/>
         <source>The test could not read the image.</source>
         <translation>测试无法读取图片。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="129"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="119"/>
         <source>Manual capture</source>
         <translation>手动截图</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="137"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="127"/>
         <source>Manual capture mode</source>
         <translation>手动截图模式</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="139"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="129"/>
         <source>Local</source>
         <translation>本地</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="140"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="130"/>
         <source>Recognize on this machine</source>
         <translation>在本机识别</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="141"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="131"/>
         <source>Online</source>
         <translation>在线</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="142"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="132"/>
         <source>Ask before each upload</source>
         <translation>每次上传前询问</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="93"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="150"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="140"/>
         <source>Online OCR is not configured yet; screenshots stay disabled until it is.</source>
         <translation>在线 OCR 尚未配置；配置完成前截图不可用。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="337"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="325"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="85"/>
         <source>Online OCR</source>
         <translation>在线 OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="161"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="169"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="151"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="159"/>
         <source>Local engine</source>
         <translation>本地引擎</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="47"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="297"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="45"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="285"/>
         <source>RapidOCR&apos;s model folder path must contain only ASCII characters. Move the models to an ASCII-only path and choose it again.</source>
         <translation>RapidOCR 的模型目录路径只能包含 ASCII 字符。请把模型移到一个只含 ASCII 字符的路径后重新选择。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="50"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="48"/>
         <source>RapidOCR&apos;s program or models changed. Detect and trust it again.</source>
         <translation>RapidOCR 的程序或模型已改变，请重新检测并信任。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="51"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="85"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="49"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="77"/>
         <source>RapidOCR is not trusted yet. Detect it before use.</source>
         <translation>RapidOCR 尚未受信任，使用前请先检测。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="57"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="53"/>
         <source>RapidOCR&apos;s model files are missing: %1</source>
         <translation>RapidOCR 缺少模型文件：%1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="101"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="62"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="95"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="110"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="100"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="58"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="85"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="100"/>
         <source>RapidOCR is not installed.</source>
         <translation>RapidOCR 未安装。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="83"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="108"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="75"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="98"/>
         <source>RapidOCR&apos;s model folder path must contain only ASCII characters.</source>
         <translation>RapidOCR 的模型目录路径只能包含 ASCII 字符。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="88"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="112"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="80"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="102"/>
         <source>RapidOCR&apos;s model files are missing.</source>
         <translation>RapidOCR 缺少模型文件。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="106"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="96"/>
         <source>RapidOCR is trusted and ready (%1 ms).</source>
         <translation>RapidOCR 已受信任并可用（%1 毫秒）。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="114"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="104"/>
         <source>RapidOCR could not read the test image.</source>
         <translation>RapidOCR 无法读取测试图片。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="116"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="106"/>
         <source>RapidOCR did not finish in time.</source>
         <translation>RapidOCR 未在时限内完成。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="117"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="107"/>
         <source>Detection failed; RapidOCR is not trusted.</source>
         <translation>检测失败，RapidOCR 尚未受信任。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="172"/>
-        <source>Windows OCR when supported, otherwise Tesseract</source>
-        <translation>条件支持时使用 Windows OCR，否则使用 Tesseract</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="175"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="165"/>
         <source>User-installed; ASCII model folder required</source>
         <translation>用户自行安装；模型目录需为 ASCII 路径</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="177"/>
-        <source>Not available in this build</source>
-        <translation>当前版本不可用</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="193"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="181"/>
         <source>Automatic scanning always uses this local engine and never an online service.</source>
         <translation>自动扫描始终使用此本地引擎，绝不调用在线服务。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="204"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="212"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="192"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="200"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="117"/>
         <source>Recognition language</source>
         <translation>识别语言</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="214"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="202"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="124"/>
         <source>English</source>
         <translation>英语</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="215"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="203"/>
         <source>Simplified Chinese</source>
         <translation>简体中文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="216"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="204"/>
         <source>Chinese and English</source>
         <translation>中英混排</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="223"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="211"/>
         <source>This is the language in the picture, not the language the explanation is written in.</source>
         <translation>这里选的是图片中的语言，不是解释所用的语言。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="237"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="225"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="208"/>
         <source>Testing…</source>
         <translation>测试中…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="238"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="226"/>
         <source>Test OCR</source>
         <translation>测试 OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="264"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="272"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="252"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="260"/>
         <source>RapidOCR executable</source>
         <translation>RapidOCR 可执行文件</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="278"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="286"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="266"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="274"/>
         <source>RapidOCR model folder</source>
         <translation>RapidOCR 模型目录</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="306"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="294"/>
         <source>Detecting…</source>
         <translation>检测中…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="307"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="295"/>
         <source>Detect and trust</source>
         <translation>检测并信任</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="328"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="316"/>
         <source>RapidOCR-json is a third-party program. It runs with your user permissions and can read other files or use the network; Lens does not install or update it.</source>
         <translation>RapidOCR-json 是第三方程序，以当前用户权限运行，可能读取其他文件或使用网络；Lens 不安装也不更新它。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="351"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="356"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="339"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="344"/>
         <source>Tesseract executable</source>
         <translation>Tesseract 程序</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="367"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="372"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="355"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="360"/>
         <source>Tesseract data folder</source>
         <translation>Tesseract 数据目录</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="383"/>
-        <source>Packaged installations may support Windows OCR; this build does not. Choose Automatic or Tesseract to read text now.</source>
-        <translation>打包安装可能支持 Windows OCR，但当前版本不支持。请选择“自动”或 Tesseract 来识别文字。</translation>
     </message>
 </context>
 <context>
@@ -3108,7 +3053,7 @@
     </message>
     <message>
         <location filename="../src/app/app_controller.cpp" line="448"/>
-        <location filename="../src/app/app_controller.cpp" line="642"/>
+        <location filename="../src/app/app_controller.cpp" line="639"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>今日预算已用尽。</translation>
     </message>
@@ -3138,37 +3083,37 @@
         <translation>识别已取消。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="460"/>
+        <location filename="../src/app/app_controller.cpp" line="457"/>
         <source>The OCR result could not be read.</source>
         <translation>无法读取 OCR 结果。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="461"/>
+        <location filename="../src/app/app_controller.cpp" line="458"/>
         <source>The online OCR service could not be reached.</source>
         <translation>无法连接在线 OCR 服务。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="462"/>
+        <location filename="../src/app/app_controller.cpp" line="459"/>
         <source>The online OCR service returned an incomplete result.</source>
         <translation>在线 OCR 服务返回了不完整的结果。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="519"/>
+        <location filename="../src/app/app_controller.cpp" line="516"/>
         <source>%1 px</source>
         <translation>%1 px</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="521"/>
+        <location filename="../src/app/app_controller.cpp" line="518"/>
         <source>Default</source>
         <translation>默认</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="879"/>
+        <location filename="../src/app/app_controller.cpp" line="876"/>
         <source>Auto</source>
         <translation>自动模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="879"/>
+        <location filename="../src/app/app_controller.cpp" line="876"/>
         <source>Manual</source>
         <translation>手动模式</translation>
     </message>

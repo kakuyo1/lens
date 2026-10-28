@@ -176,18 +176,15 @@ Item {
             compare(child(page, "autoScan").interactive, Controller.settings.scanAvailable);
         }
 
-        /// An explicit Windows choice is kept, and its unmet deployment condition is reported.
-        /// Falling back to Tesseract here would be the silent rewrite the product forbids.
-        function test_anExplicitWindowsChoiceIsKeptAndReportsItsDeploymentGate() {
+        /// Offline OCR offers exactly Auto, Tesseract and RapidOCR; the removed Windows choice
+        /// must not come back through the settings list.
+        function test_theLocalEngineListKeepsThreeChoices() {
             const page = makeOcrPage();
-            compare(child(page, "ocrLocalEngine").currentValue, Controller.settings.ocrLocalEngine);
-
-            Controller.captureDuty.setOcrLocalEngine("windows");
-            tryVerify(() => Controller.settings.ocrLocalEngine === "windows");
-            tryVerify(() => Controller.settings.ocrStatus !== "checking", 15000);
-            compare(Controller.settings.ocrStatus, "deployment-unsupported");
-            compare(Controller.settings.actualLocalEngine, "windows");
-            compare(Controller.settings.ocrAvailable, false);
+            const field = child(page, "ocrLocalEngine");
+            compare(field.options.length, 3);
+            compare(field.options[0].value, "auto");
+            compare(field.options[1].value, "tesseract");
+            compare(field.options[2].value, "rapidocr");
         }
 
         /// RapidOCR's v0.2.0 binary crashes before initialization when the model folder path

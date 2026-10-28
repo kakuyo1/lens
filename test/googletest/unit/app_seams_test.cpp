@@ -202,7 +202,6 @@ TEST(CaptureRefusal, EveryReasonNamesTheTokenTheSurfacesAlreadyRead)
     EXPECT_STREQ(refusalKey(CaptureRefusal::Cancelled), "cancelled");
     EXPECT_STREQ(refusalKey(CaptureRefusal::LanguageMissing), "language-missing");
     EXPECT_STREQ(refusalKey(CaptureRefusal::RuntimeMissing), "runtime-missing");
-    EXPECT_STREQ(refusalKey(CaptureRefusal::DeploymentUnsupported), "deployment-unsupported");
     EXPECT_STREQ(refusalKey(CaptureRefusal::StartFailed), "start-failed");
     EXPECT_STREQ(refusalKey(CaptureRefusal::TimedOut), "timeout");
     EXPECT_STREQ(refusalKey(CaptureRefusal::ProtocolError), "protocol-error");
@@ -222,7 +221,6 @@ TEST(CaptureRefusal, EveryRuntimeStatusNamesItsOwnReasonAndReadyNamesNone)
     EXPECT_EQ(reasonToken(lens::capture::OcrStatus::LanguageMissing), "language-missing");
     EXPECT_EQ(reasonToken(lens::capture::OcrStatus::PathUnsupported), "path-unsupported");
     EXPECT_EQ(reasonToken(lens::capture::OcrStatus::Untrusted), "untrusted");
-    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::DeploymentUnsupported), "deployment-unsupported");
     EXPECT_EQ(reasonToken(lens::capture::OcrStatus::StartFailed), "start-failed");
     EXPECT_EQ(reasonToken(lens::capture::OcrStatus::TimedOut), "timeout");
     EXPECT_EQ(reasonToken(lens::capture::OcrStatus::Failed), "failed");
