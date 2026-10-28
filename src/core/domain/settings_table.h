@@ -90,6 +90,13 @@ struct Row {
 inline constexpr std::string_view kPlacements[]{"above", "below"};
 inline constexpr std::string_view kBarStyles[]{"bar", "tab", "hand", "tag", "fan"};
 inline constexpr std::string_view kClipboardPolicies[]{"topmost", "silent"};
+/// The two ways a manual capture may leave the machine, and the local engines the first release
+/// offers. `windows` stays a stored member so a future packaged build can add it without a
+/// migration; this build reports it as unavailable rather than silently changing the choice.
+inline constexpr std::string_view kOcrModes[]{"local", "online"};
+inline constexpr std::string_view kOcrLocalEngines[]{"auto", "windows", "tesseract", "rapidocr"};
+inline constexpr std::string_view kOcrLocalLanguages[]{"en", "zh-Hans", "zh-Hans+en"};
+inline constexpr std::string_view kOcrOnlineLanguages[]{"eng", "auto"};
 /// The mother tongue the bubble's peek answers in: the catalog's own languages without English,
 /// which is the one value under which the peek would have nothing to peek at (docs/adr/0112).
 inline constexpr std::string_view kMotherTongues[]{"zh", "zh-Hant", "es", "ja"};
@@ -161,6 +168,22 @@ inline constexpr Row kRows[]{
     {.key = "scanWhitelist", .kind = Kind::Text, .signal = Signal::Capture, .fallback = "chrome.exe;msedge.exe;firefox.exe;acrord32.exe"},
     {.key = "tesseractExecutable", .kind = Kind::Text, .signal = Signal::Capture, .fallback = ""},
     {.key = "tesseractDataDirectory", .kind = Kind::Text, .signal = Signal::Capture, .fallback = ""},
+    // The user-installed RapidOCR distribution. The trust digest binds the explicit detection to
+    // the executable and the selected model files; clearing either path clears it (ADR 0132).
+    {.key = "rapidOcrExecutable", .kind = Kind::Text, .signal = Signal::Capture, .fallback = ""},
+    {.key = "rapidOcrModelsDirectory", .kind = Kind::Text, .signal = Signal::Capture, .fallback = ""},
+    {.key = "rapidOcrTrust", .kind = Kind::Text, .signal = Signal::Capture, .fallback = ""},
+    // The local OCR configuration. None of it syncs: paths and a future online endpoint belong to
+    // this machine, and a credential is not a row at all (docs/adr/0130).
+    {.key = "ocrConfigVersion", .kind = Kind::Integer, .signal = Signal::Capture, .fallback = 1, .low = 0, .high = 1000, .restorable = false},
+    {.key = "ocrMode", .kind = Kind::Choice, .signal = Signal::Capture, .fallback = "local", .members = kOcrModes},
+    {.key = "ocrLocalEngine", .kind = Kind::Choice, .signal = Signal::Capture, .fallback = "auto", .members = kOcrLocalEngines},
+    {.key = "ocrLocalLanguage", .kind = Kind::Choice, .signal = Signal::Capture, .fallback = "en", .members = kOcrLocalLanguages},
+    // The online half. The key is deliberately not a row: it is a secret, written by its own
+    // command and never echoed into a projection (docs/adr/0130).
+    {.key = "ocrOnlineProvider", .kind = Kind::Text, .signal = Signal::Capture, .fallback = ""},
+    {.key = "ocrOnlineEndpoint", .kind = Kind::Text, .signal = Signal::Capture, .fallback = ""},
+    {.key = "ocrOnlineLanguage", .kind = Kind::Choice, .signal = Signal::Capture, .fallback = "eng", .members = kOcrOnlineLanguages},
 };
 
 /**

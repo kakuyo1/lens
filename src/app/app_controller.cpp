@@ -5,6 +5,8 @@
 
 #include "app_controller.h"
 
+#include "consent_preview.h"
+
 #include <QCoreApplication>
 #include <QCursor>
 #include <QDate>
@@ -13,6 +15,7 @@
 #include <QFontDatabase>
 #include <QJsonDocument>
 #include <QGuiApplication>
+#include <QImage>
 #include <QLocale>
 #include <QSaveFile>
 #include <QScreen>
@@ -124,6 +127,13 @@ AppController::AppController(core::KnownStore&            store,
     });
     connect(&capture_, &CaptureDuty::screenshotFailed, this, &AppController::reportCaptureRefusal);
     connect(&capture_, &CaptureDuty::settingsChanged, this, &AppController::settingsChanged);
+    connect(&capture_, &CaptureDuty::uploadPreviewReady, this, [this](qulonglong requestId, QImage const& image) {
+        if (consentPreview_) consentPreview_->set(requestId, image);
+    });
+    connect(&capture_, &CaptureDuty::uploadFinished, this, [this](QVariantMap outcome) {
+        if (consentPreview_ and outcome.value("canRetry").toBool() != true)
+            consentPreview_->clear(outcome.value("requestId").toULongLong());
+    });
     connect(&catalog_, &ModelCatalogDuty::settingsChanged, this, &AppController::settingsChanged);
     connect(&catalog_, &ModelCatalogDuty::settingsChanged, this, &AppController::invalidateConnectionTest);
     connect(&llm_, &llm::LlmClient::probeFinished, this, [this](bool ok, QString message) {
@@ -220,6 +230,11 @@ void AppController::provide(AppController* instance)
     instance_ = instance;
 }
 
+void AppController::bindConsentPreview(ConsentPreview* preview)
+{
+    consentPreview_ = preview;
+}
+
 AppController* AppController::create(QQmlEngine* engine, QJSEngine* scriptEngine)
 {
     Q_UNUSED(scriptEngine)
@@ -255,6 +270,21 @@ void AppController::setTesseractExecutable(QUrl executable)
 void AppController::setTesseractDataDirectory(QUrl directory)
 {
     capture_.setTesseractDataDirectory(directory.toLocalFile());
+}
+
+void AppController::setRapidOcrExecutable(QUrl executable)
+{
+    capture_.setRapidOcrExecutable(executable.toLocalFile());
+}
+
+void AppController::setRapidOcrModelsDirectory(QUrl directory)
+{
+    capture_.setRapidOcrModelsDirectory(directory.toLocalFile());
+}
+
+void AppController::detectRapidOcr()
+{
+    capture_.detectRapidOcr();
 }
 
 void AppController::restoreCaptureDefaults()
@@ -414,14 +444,22 @@ void AppController::reportCaptureRefusal(CaptureRefusal const refusal)
     QString body;
     switch (refusal) {
         case CaptureRefusal::ScreenshotOff: body = tr("Screenshot capture is off."); break;
+        case CaptureRefusal::OnlineNotConfigured: body = tr("Online OCR is not configured."); break;
         case CaptureRefusal::BudgetPaused: body = tr("Today's budget is used up."); break;
         case CaptureRefusal::Busy: body = tr("A recognition is already running."); break;
         case CaptureRefusal::OutsideScreen:
         case CaptureRefusal::RegionTooLarge: body = tr("That region cannot be captured."); break;
         case CaptureRefusal::EmptyText: body = tr("No text was found in that region."); break;
         case CaptureRefusal::InvalidImage: body = tr("That region could not be read."); break;
+        case CaptureRefusal::Cancelled: body = tr("The recognition was cancelled."); break;
         case CaptureRefusal::Checking: body = QCoreApplication::translate("SettingsPopup", "Checking OCR"); break;
-        case CaptureRefusal::LanguageMissing: body = QCoreApplication::translate("SettingsPopup", "English OCR data is missing"); break;
+        case CaptureRefusal::LanguageMissing: body = QCoreApplication::translate("SettingsPopup", "The OCR language data is missing"); break;
+        case CaptureRefusal::DeploymentUnsupported:
+            body = QCoreApplication::translate("SettingsPopup", "Windows OCR is not supported by this installation");
+            break;
+        case CaptureRefusal::ProtocolError: body = tr("The OCR result could not be read."); break;
+        case CaptureRefusal::TransportFailed: body = tr("The online OCR service could not be reached."); break;
+        case CaptureRefusal::PartialResult: body = tr("The online OCR service returned an incomplete result."); break;
         case CaptureRefusal::RuntimeMissing:
         case CaptureRefusal::StartFailed:
         case CaptureRefusal::TimedOut:
@@ -495,13 +533,35 @@ void AppController::setApiKey(QString key)
     // reader is most likely looking at the field.
     catalog_.refreshModels();
     invalidateConnectionTest();
+    // A pending online OCR consent froze the explanation destination too; the text would go to a
+    // service the reader did not confirm.
+    capture_.invalidateOnlineConfiguration();
     emit settingsChanged();
+}
+
+void AppController::setOcrApiKey(QString key)
+{
+    auto const value = key.trimmed().left(4096);
+    storage_.section().set<std::string>("OCR-API-KEY", value.toStdString());
+    capture_.invalidateOnlineConfiguration();
+    LENS_INFO("OCR API key {}", value.isEmpty() ? "cleared" : "updated");
+    emit settingsChanged();
+}
+
+void AppController::clearOcrOnlineConfiguration()
+{
+    capture_.setOcrOnlineProvider({});
+    capture_.setOcrOnlineEndpoint({});
+    capture_.setOcrOnlineLanguage(QStringLiteral("eng"));
+    setOcrApiKey({});
+    capture_.setOcrMode(QStringLiteral("local"));
 }
 
 void AppController::setModel(QString model)
 {
     if (catalog_.setModel(model)) {
         invalidateConnectionTest();
+        capture_.invalidateOnlineConfiguration();
         emit settingsChanged();
     }
 }
@@ -520,6 +580,7 @@ void AppController::setApiUrl(QString url)
     // triggers were deliberately left alone (docs/adr/0020); the request is free.
     catalog_.refreshModels();
     invalidateConnectionTest();
+    capture_.invalidateOnlineConfiguration();
     emit settingsChanged();
 }
 
@@ -613,6 +674,7 @@ QVariantMap AppController::settings()
     result.insert(QStringLiteral("revealCharacterMs"),
                   revealMillisPerCharacter(result.value(QStringLiteral("revealSpeed")).toInt()));
     result.insert(QStringLiteral("hasApiKey"), !keys.value<std::string>("API-KEY", {}).empty());
+    result.insert(QStringLiteral("hasOcrApiKey"), !keys.value<std::string>("OCR-API-KEY", {}).empty());
     // The key in force, which is not always the one the document holds: a combination the shell
     // refused leaves the old one working, and that is the one the field has to show.
     result.insert(QStringLiteral("ocrHotkey"), hotkey_.keys().toString(QKeySequence::PortableText));

@@ -25,6 +25,7 @@
 #include "capture/capture_policy.h"
 #include "capture/ocr_engine.h"
 #include "capture/scan_pipeline.h"
+#include "ocr/http_transport.h"
 #include "core/document/known_store.h"
 #include "support.h"
 
@@ -82,18 +83,34 @@ bool writeTrainedData(QString const& directory, const char* code, qint64 bytes =
 /// is the contract the production adapter keeps; everything else is the scripted result.
 struct FakeOcr final : lens::capture::OcrEngine {
     lens::capture::OcrResult result{.status = lens::capture::OcrStatus::EmptyText};
+    lens::capture::OcrStatus probeStatus = lens::capture::OcrStatus::Ready;
 
     lens::capture::OcrStatus probe(std::shared_ptr<std::atomic_bool> const cancel) const override
     {
-        if (cancel and cancel->load(std::memory_order_relaxed)) return lens::capture::OcrStatus::Failed;
-        return lens::capture::OcrStatus::Ready;
+        if (cancel and cancel->load(std::memory_order_relaxed)) return lens::capture::OcrStatus::Cancelled;
+        return probeStatus;
     }
 
-    lens::capture::OcrResult recognize(QImage const& image, std::shared_ptr<std::atomic_bool> const cancel) const override
+    lens::capture::OcrResult recognize(lens::capture::OcrRequest const&        request,
+                                       std::shared_ptr<std::atomic_bool> const cancel) const override
     {
-        if (image.isNull()) return {.status = lens::capture::OcrStatus::InvalidImage};
-        if (cancel and cancel->load(std::memory_order_relaxed)) return {.status = lens::capture::OcrStatus::Failed};
+        if (request.image.isNull()) return {.status = lens::capture::OcrStatus::InvalidImage};
+        if (cancel and cancel->load(std::memory_order_relaxed)) return {.status = lens::capture::OcrStatus::Cancelled};
         return result;
+    }
+};
+
+/// @brief The in-memory HTTP transport: counts uploads and answers with a scripted response.
+struct FakeHttp final : lens::ocr::HttpTransport {
+    lens::ocr::HttpResponse response;
+    int                     calls = 0;
+    QByteArray              uploadedBody;
+
+    lens::ocr::HttpResponse send(lens::ocr::HttpRequest const& request, std::shared_ptr<std::atomic_bool>) override
+    {
+        ++calls;
+        uploadedBody = request.body;
+        return response;
     }
 };
 
@@ -380,11 +397,263 @@ TEST(CapturePolicy, AnEmptyOrUnreadableRegionIsNotARuntimeFault)
     EXPECT_FALSE(lens::capture::isRuntimeFault(OcrStatus::Ready));
     EXPECT_FALSE(lens::capture::isRuntimeFault(OcrStatus::EmptyText));
     EXPECT_FALSE(lens::capture::isRuntimeFault(OcrStatus::InvalidImage));
+    EXPECT_FALSE(lens::capture::isRuntimeFault(OcrStatus::Cancelled));
+    EXPECT_FALSE(lens::capture::isRuntimeFault(OcrStatus::ProtocolError));
+    EXPECT_FALSE(lens::capture::isRuntimeFault(OcrStatus::InputTooLarge));
+    EXPECT_FALSE(lens::capture::isRuntimeFault(OcrStatus::ResultTooLarge));
+    EXPECT_FALSE(lens::capture::isRuntimeFault(OcrStatus::TransportFailed));
+    EXPECT_FALSE(lens::capture::isRuntimeFault(OcrStatus::PartialResult));
     EXPECT_TRUE(lens::capture::isRuntimeFault(OcrStatus::RuntimeMissing));
+    EXPECT_TRUE(lens::capture::isRuntimeFault(OcrStatus::DeploymentUnsupported));
     EXPECT_TRUE(lens::capture::isRuntimeFault(OcrStatus::LanguageMissing));
+    EXPECT_TRUE(lens::capture::isRuntimeFault(OcrStatus::PathUnsupported));
+    EXPECT_TRUE(lens::capture::isRuntimeFault(OcrStatus::Untrusted));
     EXPECT_TRUE(lens::capture::isRuntimeFault(OcrStatus::StartFailed));
     EXPECT_TRUE(lens::capture::isRuntimeFault(OcrStatus::TimedOut));
     EXPECT_TRUE(lens::capture::isRuntimeFault(OcrStatus::Failed));
+}
+
+/// A document written before ocrConfigVersion keeps the engine the reader installed, and its
+/// traineddata pair becomes mixed recognition. Version is written last, so an interrupted run
+/// repeats the same migration rather than leaving a half-chosen policy.
+TEST(CaptureDuty, AnOldTesseractPathIsMigratedToAnExplicitChoiceAndItsLanguages)
+{
+    using lens::app::CaptureDuty;
+    using lens::app::MouseSelectionHook;
+    using lens::app::StorageDuty;
+
+    int              argc   = 1;
+    char             name[] = "capture_migration";
+    char*            argv[] = {name, nullptr};
+    QCoreApplication application{argc, argv};
+
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    QDir const root{temporary.path()};
+    ASSERT_TRUE(root.mkpath(QStringLiteral("tessdata")));
+    ASSERT_TRUE(writeTrainedData(root.filePath(QStringLiteral("tessdata")), "eng"));
+    ASSERT_TRUE(writeTrainedData(root.filePath(QStringLiteral("tessdata")), "chi_sim"));
+
+    auto        store = lens::core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    StorageDuty storage{store};
+    storage.section().set<std::string>("tesseractExecutable", root.filePath(QStringLiteral("tesseract.exe")).toStdString());
+    storage.section().set<std::string>("tesseractDataDirectory", root.filePath(QStringLiteral("tessdata")).toStdString());
+
+    MouseSelectionHook hook;
+    CaptureDuty        duty{storage, hook, std::make_unique<FakeOcr>()};
+
+    auto const rows = storage.section();
+    EXPECT_EQ(rows.value<int>("ocrConfigVersion", 0), 1);
+    EXPECT_EQ(rows.value<std::string>("ocrLocalEngine", ""), "tesseract");
+    EXPECT_EQ(rows.value<std::string>("ocrLocalLanguage", ""), "zh-Hans+en");
+    EXPECT_EQ(rows.value<std::string>("ocrMode", ""), "local");
+}
+
+TEST(CaptureDuty, OnlineModeRefusesWithoutAnOnlineServiceWhileScanningStaysLocal)
+{
+    using lens::app::CaptureDuty;
+    using lens::app::CaptureRefusal;
+    using lens::app::MouseSelectionHook;
+    using lens::app::StorageDuty;
+
+    int              argc   = 1;
+    char             name[] = "capture_online_gate";
+    char*            argv[] = {name, nullptr};
+    QCoreApplication application{argc, argv};
+
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    auto        store = lens::core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    StorageDuty storage{store};
+    storage.section().set<bool>("ocrCapture", true);
+
+    MouseSelectionHook hook;
+    CaptureDuty        duty{storage, hook, std::make_unique<FakeOcr>()};
+    ASSERT_TRUE(awaitSignal(duty, &CaptureDuty::settingsChanged));
+    duty.setOcrMode(QStringLiteral("online"));
+    ASSERT_EQ(duty.captureRefusalReason(), CaptureRefusal::OnlineNotConfigured);
+    EXPECT_EQ(duty.settings().value("scanAvailability").toString(), QStringLiteral("ready"));
+}
+
+void configureOnline(lens::app::StorageDuty& storage)
+{
+    auto keys = storage.section();
+    keys.set<int>("ocrConfigVersion", 1);
+    keys.set<std::string>("ocrMode", "online");
+    keys.set<std::string>("ocrOnlineProvider", "ocrspace");
+    keys.set<std::string>("ocrOnlineEndpoint", "https://example.invalid/parse/image");
+    keys.set<std::string>("ocrOnlineLanguage", "eng");
+    keys.set<std::string>("OCR-API-KEY", "test-key");
+    keys.set<bool>("ocrCapture", true);
+}
+
+TEST(CaptureDuty, ChangingTheEndpointDropsTheCredentialBoundToTheOldOne)
+{
+    using lens::app::CaptureDuty;
+    using lens::app::MouseSelectionHook;
+    using lens::app::StorageDuty;
+
+    int              argc   = 1;
+    char             name[] = "capture_online_rebind";
+    char*            argv[] = {name, nullptr};
+    QCoreApplication application{argc, argv};
+
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    auto        store = lens::core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    StorageDuty storage{store};
+    configureOnline(storage);
+
+    auto               transport = std::make_shared<FakeHttp>();
+    MouseSelectionHook hook;
+    CaptureDuty        duty{storage, hook, std::make_unique<FakeOcr>(), transport};
+    ASSERT_TRUE(awaitSignal(duty, &CaptureDuty::settingsChanged));
+    ASSERT_TRUE(duty.settings().value("onlineConfigured").toBool());
+
+    duty.setOcrOnlineEndpoint(QStringLiteral("https://other.invalid/parse/image"));
+    EXPECT_TRUE(storage.section().value<std::string>("OCR-API-KEY", {}).empty())
+        << "the old key must not be sent to a new address";
+    EXPECT_FALSE(duty.settings().value("onlineConfigured").toBool());
+}
+
+TEST(CaptureDuty, AConfiguredOnlineModeDoesNotDependOnTheLocalRuntime)
+{
+    using lens::app::CaptureDuty;
+    using lens::app::MouseSelectionHook;
+    using lens::app::StorageDuty;
+
+    int              argc   = 1;
+    char             name[] = "capture_online_runtime";
+    char*            argv[] = {name, nullptr};
+    QCoreApplication application{argc, argv};
+
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    auto        store = lens::core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    StorageDuty storage{store};
+    configureOnline(storage);
+
+    auto ocr                     = std::make_unique<FakeOcr>();
+    ocr->probeStatus             = lens::capture::OcrStatus::RuntimeMissing;
+    auto               transport = std::make_shared<FakeHttp>();
+    MouseSelectionHook hook;
+    CaptureDuty        duty{storage, hook, std::move(ocr), transport};
+    ASSERT_TRUE(awaitSignal(duty, &CaptureDuty::settingsChanged));
+
+    EXPECT_EQ(duty.settings().value("localAvailability").toString(), QStringLiteral("runtime-missing"));
+    EXPECT_EQ(duty.captureRefusalReason(), std::nullopt)
+        << "a missing Tesseract must not disable a configured online capture";
+}
+
+TEST(CaptureDuty, OnlineUploadWaitsForConsentAndThenSendsExactlyOnce)
+{
+    lens::test::requireFilterTablesLoaded();
+    using lens::app::CaptureDuty;
+    using lens::app::MouseSelectionHook;
+    using lens::app::StorageDuty;
+
+    int              argc   = 1;
+    char             name[] = "capture_online_consent";
+    char*            argv[] = {name, nullptr};
+    QCoreApplication application{argc, argv};
+
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    auto        store = lens::core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    StorageDuty storage{store};
+    configureOnline(storage);
+
+    auto transport      = std::make_shared<FakeHttp>();
+    transport->response = {.status      = 200,
+                           .body        = QByteArray{R"({"ParsedResults":[{"FileParseExitCode":1,"ParsedText":"harbour clock"}],"OCRExitCode":1,"IsErroredOnProcessing":false})"},
+                           .transportOk = true};
+    MouseSelectionHook hook;
+    CaptureDuty        duty{storage, hook, std::make_unique<FakeOcr>(), transport};
+    ASSERT_TRUE(awaitSignal(duty, &CaptureDuty::settingsChanged));
+
+    QVariantMap consent;
+    QObject::connect(&duty, &CaptureDuty::uploadConsentRequested, [&consent](QVariantMap payload) { consent = payload; });
+    QString action;
+    QString text;
+    QObject::connect(&duty, &CaptureDuty::selectionActionRequested, [&action, &text](QString a, QString t) {
+        action = a;
+        text   = t;
+    });
+
+    QImage image{200, 100, QImage::Format_RGB32};
+    image.fill(Qt::white);
+    ASSERT_TRUE(duty.captureScreenshot(image, QPoint{10, 20}));
+    EXPECT_EQ(transport->calls, 0) << "a frozen crop is not an upload";
+    ASSERT_FALSE(consent.isEmpty());
+    EXPECT_EQ(duty.settings().value("uploadPhase").toString(), QStringLiteral("awaiting-consent"));
+
+    auto const requestId = consent.value("requestId").toULongLong();
+    duty.confirmOnlineUpload(requestId);
+    ASSERT_TRUE(awaitSignal(duty, &CaptureDuty::uploadFinished));
+    EXPECT_EQ(transport->calls, 1) << "one confirmation is one request";
+    EXPECT_EQ(action, QStringLiteral("translate"));
+    EXPECT_EQ(text, QStringLiteral("harbour clock"));
+    EXPECT_EQ(duty.settings().value("uploadPhase").toString(), QStringLiteral("idle"));
+    EXPECT_FALSE(transport->uploadedBody.isEmpty());
+}
+
+TEST(CaptureDuty, CancellingConsentSendsNothingAndReleasesTheCrop)
+{
+    using lens::app::CaptureDuty;
+    using lens::app::MouseSelectionHook;
+    using lens::app::StorageDuty;
+
+    int              argc   = 1;
+    char             name[] = "capture_online_cancel";
+    char*            argv[] = {name, nullptr};
+    QCoreApplication application{argc, argv};
+
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    auto        store = lens::core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    StorageDuty storage{store};
+    configureOnline(storage);
+
+    auto               transport = std::make_shared<FakeHttp>();
+    MouseSelectionHook hook;
+    CaptureDuty        duty{storage, hook, std::make_unique<FakeOcr>(), transport};
+    ASSERT_TRUE(awaitSignal(duty, &CaptureDuty::settingsChanged));
+
+    QImage image{200, 100, QImage::Format_RGB32};
+    image.fill(Qt::white);
+    ASSERT_TRUE(duty.captureScreenshot(image, QPoint{10, 20}));
+    duty.cancelOnlineUpload();
+    EXPECT_EQ(transport->calls, 0);
+    EXPECT_EQ(duty.settings().value("uploadPhase").toString(), QStringLiteral("idle"));
+}
+
+TEST(CaptureDuty, ALocalRecognitionNeverTouchesTheOnlineTransport)
+{
+    using lens::app::CaptureDuty;
+    using lens::app::MouseSelectionHook;
+    using lens::app::StorageDuty;
+
+    int              argc   = 1;
+    char             name[] = "capture_online_isolation";
+    char*            argv[] = {name, nullptr};
+    QCoreApplication application{argc, argv};
+
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    auto        store = lens::core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    StorageDuty storage{store};
+    configureOnline(storage);
+    storage.section().set<std::string>("ocrMode", "local");
+
+    auto               transport = std::make_shared<FakeHttp>();
+    MouseSelectionHook hook;
+    CaptureDuty        duty{storage, hook, std::make_unique<FakeOcr>(), transport};
+    ASSERT_TRUE(awaitSignal(duty, &CaptureDuty::settingsChanged));
+
+    QImage image{200, 100, QImage::Format_RGB32};
+    image.fill(Qt::white);
+    ASSERT_TRUE(duty.captureScreenshot(image, QPoint{10, 20}));
+    EXPECT_EQ(transport->calls, 0);
 }
 
 /// A framed region that reads no text is reported with the status its own result carried, not with

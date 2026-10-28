@@ -58,6 +58,8 @@ powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_surfaces
 
 需要看合并后的机器路径、来源文件与是否可用：`powershell -File scripts/build/show-paths.ps1`。
 
+- OCR 的离线契约在 `lens_gtest_unit`：`OcrTsv.*`、`OcrLocal.*`、`OcrRapidOcr.*`、`OcrMigration.*`、`OcrSpace.*`、`CaptureDuty.*`（含零上传断言）。真实引擎用 `lens_gtest_integration` 的 `WindowsOcrProbe*`、`OcrEngineProbe*` 与 `RapidOcrProbe*`，只读合成图，不读桌面；`RapidOcrProbe*` 需要 `LENS_RAPIDOCR_ROOT` 指向解压后的 RapidOCR-json v0.2.0，否则跳过。英语、中文与混排基线用 `scripts/qa/ocr-bench.ps1`（`-Language chi_sim` / `chi_sim+eng`），证据见 `docs/metrics/ocr-baseline-2026-10-28.md`；安装产物检查见 `docs/metrics/ocr-installer-2026-10-28.md`，稀疏包矩阵见 `docs/metrics/windows-ocr-sparse-package-2026-10-28.md`。真实在线 smoke 与 setup 安装/卸载不在日常套件里。
+
 - 改动后先跑**覆盖它的那条用例**，不跑整套：gtest 用 `gtest.ps1 -Filter 'PetThrow*'`，QTest 用
   `qtest.ps1 -Target <目标> -Case Main::test_x`，约 5 秒；整套 surfaces 249 例，全量留给收尾那一次。
 - 整套 surfaces 可以按文件并行：`bash scripts/qa/qtest-parallel.sh --build build-ninja --shards 2`。

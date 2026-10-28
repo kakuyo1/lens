@@ -26,6 +26,7 @@
 #include "app/pet/pet_controller.h"
 #include "core/document/pet_store.h"
 #include "app_controller.h"
+#include "consent_preview.h"
 #include "app/platform/autostart.h"
 #include "app/settings_access.h"
 #include "core/domain/filter_core.h"
@@ -324,6 +325,11 @@ int main(int argc, char* argv[])
     QQuickWindow::setDefaultAlphaBuffer(true);
 
     QQmlApplicationEngine engine;
+    // The engine owns the provider; the controller only holds a non-owning pointer to fill it
+    // from the capture duty's frozen crop. The image never reaches a file or a QML property.
+    auto* consentPreview = new lens::app::ConsentPreview;
+    engine.addImageProvider(QStringLiteral("ocr-consent"), consentPreview);
+    controller.bindConsentPreview(consentPreview);
 
     TranslationKeeper translations;
     // Through the row: uiLanguage is a table row, and its "not stored yet" answer is the row's

@@ -19,31 +19,41 @@ namespace lens::app {
 
 /// @brief Why a capture cannot start, or why one that did produced nothing.
 ///
-/// The first four are this duty's own gates -- the budget, the probe, a job in flight, the
-/// reader's switch. The rest are what the runtime or the framed region said. All thirteen are
-/// told apart here even though four of them share one sentence: the sentence is the facade's
-/// decision, and this is the vocabulary (docs/adr/0025).
+/// The first five are this duty's own gates -- the budget, the probe, a job in flight, the
+/// reader's switch, and an unconfigured online mode. The rest are what the runtime, the engine's
+/// answer, or the framed region said. Every value is told apart here even though several share
+/// one sentence: the sentence is the facade's decision, and this is the vocabulary (docs/adr/0025).
 enum class CaptureRefusal {
-    BudgetPaused,    ///< Today's spend reached the cap.
-    Checking,        ///< The runtime is still being probed.
-    Busy,            ///< A recognition is in flight.
-    ScreenshotOff,   ///< The reader has the OCR capture switch off.
-    OutsideScreen,   ///< The framed region is not wholly inside one screen.
-    RegionTooLarge,  ///< The framed region is larger than the grabber takes.
-    EmptyText,       ///< OCR ran and found nothing in the region.
-    InvalidImage,    ///< OCR could not read the image at all.
-    LanguageMissing, ///< Neither the English nor the Chinese traineddata is there.
-    RuntimeMissing,  ///< There is no Tesseract runtime to run.
-    StartFailed,     ///< The runtime is there and refused to start.
-    TimedOut,        ///< The runtime started and did not finish in time.
-    Failed,          ///< The runtime started and fell over.
+    BudgetPaused,          ///< Today's spend reached the cap.
+    Checking,              ///< The runtime is still being probed.
+    Busy,                  ///< A recognition is in flight.
+    ScreenshotOff,         ///< The reader has the OCR capture switch off.
+    OnlineNotConfigured,   ///< The manual mode is online, but no online service is configured.
+    OutsideScreen,         ///< The framed region is not wholly inside one screen.
+    RegionTooLarge,        ///< The framed region is larger than the grabber or backend takes.
+    EmptyText,             ///< OCR ran and found nothing in the region.
+    InvalidImage,          ///< OCR could not read the image at all.
+    Cancelled,             ///< The request was cancelled or superseded before an answer.
+    LanguageMissing,       ///< The traineddata or model files the chosen language needs are not there.
+    RuntimeMissing,        ///< There is no Tesseract or RapidOCR runtime to run.
+    PathUnsupported,       ///< A local engine path is unusable, such as RapidOCR's non-ASCII model folder.
+    Untrusted,             ///< The reader has not trusted this third-party engine, or its files changed.
+    DeploymentUnsupported, ///< The engine's packaging or platform condition is not satisfied.
+    StartFailed,           ///< The runtime is there and refused to start.
+    TimedOut,              ///< The runtime started and did not finish in time.
+    ProtocolError,         ///< The engine answered in a shape the adapter may not consume.
+    TransportFailed,       ///< Online only: no complete response arrived.
+    PartialResult,         ///< Online only: the service returned only part of the image's text.
+    Failed,                ///< The runtime started and fell over.
 };
 
 /**
  * @brief The token a reason is named by.
- * @return One of "budget-paused", "checking", "busy", "screenshot-off", "outside-screen",
- *         "too-large", "empty-text", "invalid-image", "english-data-missing", "runtime-missing",
- *         "start-failed", "timeout", "failed". Every one is asserted in the unit suite.
+ * @return One of "budget-paused", "checking", "busy", "screenshot-off", "online-unconfigured",
+ *         "outside-screen", "too-large", "empty-text", "invalid-image", "cancelled",
+ *         "language-missing", "runtime-missing", "path-unsupported", "untrusted",
+ *         "deployment-unsupported", "start-failed", "timeout", "protocol-error",
+ *         "transport-failed", "partial-result", "failed". Every one is asserted in the unit suite.
  */
 inline const char* refusalKey(CaptureRefusal refusal)
 {
@@ -52,14 +62,22 @@ inline const char* refusalKey(CaptureRefusal refusal)
         case CaptureRefusal::Checking: return "checking";
         case CaptureRefusal::Busy: return "busy";
         case CaptureRefusal::ScreenshotOff: return "screenshot-off";
+        case CaptureRefusal::OnlineNotConfigured: return "online-unconfigured";
         case CaptureRefusal::OutsideScreen: return "outside-screen";
         case CaptureRefusal::RegionTooLarge: return "too-large";
         case CaptureRefusal::EmptyText: return "empty-text";
         case CaptureRefusal::InvalidImage: return "invalid-image";
-        case CaptureRefusal::LanguageMissing: return "english-data-missing";
+        case CaptureRefusal::Cancelled: return "cancelled";
+        case CaptureRefusal::LanguageMissing: return "language-missing";
         case CaptureRefusal::RuntimeMissing: return "runtime-missing";
+        case CaptureRefusal::PathUnsupported: return "path-unsupported";
+        case CaptureRefusal::Untrusted: return "untrusted";
+        case CaptureRefusal::DeploymentUnsupported: return "deployment-unsupported";
         case CaptureRefusal::StartFailed: return "start-failed";
         case CaptureRefusal::TimedOut: return "timeout";
+        case CaptureRefusal::ProtocolError: return "protocol-error";
+        case CaptureRefusal::TransportFailed: return "transport-failed";
+        case CaptureRefusal::PartialResult: return "partial-result";
         case CaptureRefusal::Failed: break;
     }
     return "failed";
@@ -85,29 +103,41 @@ inline std::optional<CaptureRefusal> refusalOf(capture::OcrStatus status)
         case capture::OcrStatus::Ready: return std::nullopt;
         case capture::OcrStatus::RuntimeMissing: return CaptureRefusal::RuntimeMissing;
         case capture::OcrStatus::LanguageMissing: return CaptureRefusal::LanguageMissing;
+        case capture::OcrStatus::PathUnsupported: return CaptureRefusal::PathUnsupported;
+        case capture::OcrStatus::Untrusted: return CaptureRefusal::Untrusted;
+        case capture::OcrStatus::DeploymentUnsupported: return CaptureRefusal::DeploymentUnsupported;
         case capture::OcrStatus::StartFailed: return CaptureRefusal::StartFailed;
         case capture::OcrStatus::TimedOut: return CaptureRefusal::TimedOut;
         case capture::OcrStatus::Failed: return CaptureRefusal::Failed;
         case capture::OcrStatus::InvalidImage: return CaptureRefusal::InvalidImage;
         case capture::OcrStatus::EmptyText: return CaptureRefusal::EmptyText;
+        case capture::OcrStatus::Cancelled: return CaptureRefusal::Cancelled;
+        case capture::OcrStatus::InputTooLarge: return CaptureRefusal::RegionTooLarge;
+        case capture::OcrStatus::ProtocolError: return CaptureRefusal::ProtocolError;
+        case capture::OcrStatus::ResultTooLarge: return CaptureRefusal::ProtocolError;
+        case capture::OcrStatus::TransportFailed: return CaptureRefusal::TransportFailed;
+        case capture::OcrStatus::PartialResult: return CaptureRefusal::PartialResult;
     }
     return CaptureRefusal::Failed;
 }
 
 /// @brief What the capture gate reads at the moment a capture is asked for.
 struct CaptureGate {
-    bool               budgetPaused = false;
-    bool               probing      = false; ///< The runtime probe is in flight.
-    bool               busy         = false; ///< An OCR job is in flight, the probe included.
-    bool               screenshotOn = false; ///< The reader's OCR capture switch.
-    capture::OcrStatus runtime      = capture::OcrStatus::RuntimeMissing;
+    bool               budgetPaused     = false;
+    bool               probing          = false; ///< The runtime probe is in flight.
+    bool               busy             = false; ///< An OCR job is in flight, the probe included.
+    bool               screenshotOn     = false; ///< The reader's OCR capture switch.
+    bool               online           = false; ///< The manual mode is online.
+    bool               onlineConfigured = false; ///< The online endpoint and key are complete.
+    capture::OcrStatus runtime          = capture::OcrStatus::RuntimeMissing;
 };
 
 /**
  * @brief Why a capture cannot start, in the order the reasons outrank one another.
  * @param gate The duty's flags and the runtime's last known state.
  * @return The first reason that applies: the budget, then the probe, then a job in flight, then
- *         the reader's switch, then the runtime. Nothing when the capture can start.
+ *         the reader's switch, then an unconfigured online mode, then the local runtime. A
+ *         configured online mode does not consult the local runtime at all.
  */
 inline std::optional<CaptureRefusal> gateRefusal(CaptureGate const& gate)
 {
@@ -115,6 +145,7 @@ inline std::optional<CaptureRefusal> gateRefusal(CaptureGate const& gate)
     if (gate.probing) return CaptureRefusal::Checking;
     if (gate.busy) return CaptureRefusal::Busy;
     if (not gate.screenshotOn) return CaptureRefusal::ScreenshotOff;
+    if (gate.online) return gate.onlineConfigured ? std::nullopt : std::optional<CaptureRefusal>{CaptureRefusal::OnlineNotConfigured};
     return refusalOf(gate.runtime);
 }
 

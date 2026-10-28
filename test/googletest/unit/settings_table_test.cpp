@@ -129,6 +129,8 @@ std::optional<QVariant> movedOffDefault(Row const& row)
     // A path this machine does not have would start an OCR probe, which is not this suite's business.
     if (row.key == "tesseractExecutable" or row.key == "tesseractDataDirectory")
         return std::nullopt;
+    if (row.key == "ocrOnlineProvider") return QVariant{QStringLiteral("ocrspace")};
+    if (row.key == "ocrOnlineEndpoint") return QVariant{QStringLiteral("https://example.invalid/parse/image")};
 
     switch (row.kind) {
         case Kind::Toggle:
@@ -259,6 +261,26 @@ TEST_F(SettingsTableRig, TheColourRowTakesSixHexDigitsAndNothingElse)
     EXPECT_EQ(rig.stored(row).toString(), fallback);
 }
 
+/// The OCR key is a secret, not a row: it never reaches the projection or the sync whitelist, and
+/// the surface only learns whether one is stored.
+TEST_F(SettingsTableRig, TheOcrKeyIsNotAProjectionRowAndDoesNotSync)
+{
+    QtApplication qt;
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    Rig rig{std::filesystem::path{temporary.path().toStdWString()}};
+
+    rig.controller.setOcrApiKey(QStringLiteral("ocr-test-token"));
+    auto const projection = rig.controller.settings();
+    EXPECT_FALSE(projection.contains(QStringLiteral("OCR-API-KEY")));
+    EXPECT_TRUE(projection.value(QStringLiteral("hasOcrApiKey")).toBool());
+
+    for (auto const& key : core::sync::syncedKeys())
+        EXPECT_NE(key, "OCR-API-KEY");
+    EXPECT_FALSE(rig.store.document().value("OCR-API-KEY", std::string{}).empty())
+        << "the key is stored in the profile, just not projected";
+}
+
 /// Restore-defaults covers every row the table marks restorable, and leaves the one it does not.
 TEST_F(SettingsTableRig, RestoreDefaultsCoversEveryRestorableRow)
 {
@@ -268,12 +290,12 @@ TEST_F(SettingsTableRig, RestoreDefaultsCoversEveryRestorableRow)
     Rig rig{std::filesystem::path{temporary.path().toStdWString()}};
 
     for (auto const& row : core::settings::kRows) {
+        if (not row.restorable) continue;
         const auto moved = movedOffDefault(row);
         if (not moved)
             continue;
         ASSERT_TRUE(rig.controller.setSetting(app::settings::keyOf(row), *moved)) << row.key;
-        if (row.restorable)
-            ASSERT_NE(rig.stored(row), app::settings::defaultValue(row)) << row.key << " did not move at all";
+        ASSERT_NE(rig.stored(row), app::settings::defaultValue(row)) << row.key << " did not move at all";
     }
     // The interface language is not the panel's to reset, so it is moved by hand and has to stay.
     ASSERT_TRUE(rig.controller.setSetting(QStringLiteral("uiLanguage"), QStringLiteral("ja")));
@@ -282,7 +304,10 @@ TEST_F(SettingsTableRig, RestoreDefaultsCoversEveryRestorableRow)
 
     for (auto const& row : core::settings::kRows) {
         if (not row.restorable) {
-            EXPECT_EQ(rig.stored(row).toString(), QStringLiteral("ja")) << row.key << " was restored, and it is not the panel's";
+            // Only the interface language was moved by hand above; the rest are machine state
+            // (the OCR configuration version) and keep whatever they were born with.
+            const QVariant expected = row.key == "uiLanguage" ? QVariant{QStringLiteral("ja")} : app::settings::defaultValue(row);
+            EXPECT_EQ(rig.stored(row), expected) << row.key << " was restored, and it is not the panel's";
             continue;
         }
         EXPECT_EQ(rig.stored(row), app::settings::defaultValue(row)) << row.key << " did not go back to its default";

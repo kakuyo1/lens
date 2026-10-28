@@ -50,6 +50,8 @@ class PetController;
 
 namespace lens::app {
 
+class ConsentPreview;
+
 class AppController : public QObject {
     Q_OBJECT
     QML_NAMED_ELEMENT(Controller)
@@ -76,6 +78,9 @@ public:
     /// @brief Hand the QML engine the one instance built by the composition root.
     static void provide(AppController* instance);
 
+    /// @brief Point the consent card's image provider at the engine-owned instance.
+    void bindConsentPreview(ConsentPreview* preview);
+
     /// @brief Factory used by the QML singleton registration.
     static AppController* create(QQmlEngine* engine, QJSEngine* scriptEngine);
 
@@ -97,6 +102,12 @@ public:
     Q_INVOKABLE void setTesseractExecutable(QUrl executable);
     /// @param directory Folder the reader picked in the system's dialog; C++ takes the local path.
     Q_INVOKABLE void setTesseractDataDirectory(QUrl directory);
+    /// @param executable User-installed RapidOCR-json executable; clears its trust record.
+    Q_INVOKABLE void setRapidOcrExecutable(QUrl executable);
+    /// @param directory RapidOCR model folder; must be an ASCII path; clears its trust record.
+    Q_INVOKABLE void setRapidOcrModelsDirectory(QUrl directory);
+    /// @brief Run the explicit RapidOCR detection and record trust on success.
+    Q_INVOKABLE void detectRapidOcr();
     Q_INVOKABLE void restoreCaptureDefaults();
     /**
      * @brief Put every setting the settings panel owns back to its default.
@@ -128,6 +139,10 @@ public:
     Q_INVOKABLE QVariantList bubbleFontSizeOptions() const;
     /// @brief Store the key the service is reached with. Never logged, never echoed back.
     Q_INVOKABLE void setApiKey(QString key);
+    /// @brief Store the OCR service's own key, separate from the explanation key. Never echoed.
+    Q_INVOKABLE void setOcrApiKey(QString key);
+    /// @brief Remove the online OCR endpoint, key and language, and return manual capture to local.
+    Q_INVOKABLE void clearOcrOnlineConfiguration();
     Q_INVOKABLE void setApiUrl(QString url);
     /// @brief Store the model the service is asked for, through the catalogue that owns the choice.
     Q_INVOKABLE void setModel(QString model);
@@ -312,6 +327,8 @@ private:
     QVariantMap previewSample_;
     /// The desktop pet, bound by the composition root. The review duty asks it whether it may take a question.
     pet::PetController* pet_{nullptr};
+    /// The engine-owned preview provider, bound after the QML engine exists; not owned here.
+    ConsentPreview* consentPreview_{nullptr};
 };
 
 }

@@ -66,7 +66,7 @@ Item {
                         width: parent.width
                         label: qsTranslate("SettingsPopup", "OCR")
                         checked: Controller.settings.ocrCapture
-                        interactive: Controller.settings.ocrAvailable
+                        interactive: Controller.settings.screenshotAvailable
                         onToggled: (on) => Controller.captureDuty.setOcrCapture(on)
                     }
                     SwitchRow {
@@ -74,7 +74,7 @@ Item {
                         width: parent.width
                         label: qsTranslate("SettingsPopup", "Auto scan")
                         checked: Controller.settings.autoScan
-                        interactive: Controller.settings.ocrAvailable
+                        interactive: Controller.settings.scanAvailable
                         onToggled: (on) => Controller.captureDuty.setAutoScan(on)
                     }
                 }
@@ -86,9 +86,20 @@ Item {
         // find out why the first three lines will not move.
         Text {
             width: parent.width
-            visible: !Controller.settings.ocrAvailable
-            text: Controller.settings.ocrStatus === "checking" ? qsTr("Checking OCR")
-                  : Controller.settings.ocrStatus === "english-data-missing" ? qsTr("English OCR data is missing")
+            visible: Controller.settings.ocrMode === "online"
+                     ? !Controller.settings.onlineConfigured
+                     : !Controller.settings.ocrAvailable
+            text: Controller.settings.ocrMode === "online"
+                  ? qsTranslate("SettingsPopup", "Online OCR is not configured yet; screenshots stay disabled until it is.")
+                  : Controller.settings.ocrStatus === "checking" ? qsTr("Checking OCR")
+                  : Controller.settings.ocrStatus === "language-missing" ? qsTranslate("SettingsPopup", "The OCR language data is missing")
+                  : Controller.settings.ocrStatus === "path-unsupported" ? qsTranslate("SettingsPopup", "RapidOCR's model folder path must contain only ASCII characters")
+                  : Controller.settings.ocrStatus === "untrusted" ? qsTranslate("SettingsPopup", "RapidOCR is not trusted yet")
+                  : Controller.settings.ocrStatus === "deployment-unsupported" ? qsTranslate("SettingsPopup", "Windows OCR is not supported by this installation")
+                  : Controller.settings.ocrStatus === "runtime-missing"
+                    ? (Controller.settings.ocrLocalEngine === "rapidocr"
+                       ? qsTranslate("SettingsPopup", "RapidOCR is not installed.")
+                       : qsTranslate("SettingsPopup", "Tesseract is not installed."))
                   : qsTr("OCR runtime is unavailable")
             color: root.tokens.muted
             font.pixelSize: 12
@@ -141,7 +152,7 @@ Item {
                 objectName: "ocrHotkey"
                 accessibleName: qsTranslate("SettingsPopup", "OCR trigger key")
                 combination: Controller.settings.ocrHotkey
-                interactive: Controller.settings.ocrAvailable
+                interactive: Controller.settings.screenshotAvailable
                 // A combination the shell would not take says so until the reader picks one that
                 // it will: the property is where the controller's own answer is kept.
                 conflicted: Controller.settings.ocrHotkeyConflicted || hotkeyField.refused
@@ -158,41 +169,22 @@ Item {
             onPicked: root.childRequested("clipboard")
         }
 
-        // The bundled runtime is what the installer lays down; these two are for a reader who
-        // already keeps their own Tesseract and would rather point at it. Each is chosen rather
-        // than typed -- the path is picked in the system's own dialog and shown here, and the
-        // folder glyph at its right end is what says so. An unchosen one draws what it will
-        // resolve to, in the faint colour a placeholder uses, so the reader can see where OCR
-        // looks before deciding to move it. `Defaults` in the footer is the way back to that.
-        Column {
-            width: parent.width
-            spacing: 7
-            Text { text: qsTr("Tesseract executable"); color: root.tokens.muted; font.pixelSize: 12 }
-            PathField {
-                id: tesseractField
-                width: parent.width
-                objectName: "tesseractExecutable"
-                label: qsTr("Tesseract executable")
-                path: Controller.settings.tesseractExecutable
-                fallback: Controller.settings.resolvedTesseractExecutable
-                onChosen: (picked) => Controller.setTesseractExecutable(picked)
-            }
-        }
-
-        Column {
-            width: parent.width
-            spacing: 7
-            Text { text: qsTr("Tesseract data folder"); color: root.tokens.muted; font.pixelSize: 12 }
-            PathField {
-                id: tesseractDataField
-                width: parent.width
-                objectName: "tesseractDataDirectory"
-                label: qsTr("Tesseract data folder")
-                path: Controller.settings.tesseractDataDirectory
-                fallback: Controller.settings.resolvedTesseractDataDirectory
-                folder: true
-                onChosen: (picked) => Controller.setTesseractDataDirectory(picked)
-            }
+        // The bundled runtime and the reader's own Tesseract live on the OCR page. The first
+        // screen keeps the readiness sentence and one row that opens the configuration, so a
+        // reader on a working default never has to scroll past two paths they did not set.
+        SettingsLinkRow {
+            objectName: "ocrSettings"
+            label: qsTranslate("SettingsPopup", "OCR engine")
+            note: Controller.settings.screenshotAvailability === "ready"
+                  ? (Controller.settings.ocrMode === "online"
+                     ? "OCR.space"
+                     : (Controller.settings.actualLocalEngine === "windows"
+                        ? qsTranslate("SettingsPopup", "Windows OCR")
+                        : qsTranslate("SettingsPopup", "Tesseract")))
+                  : (Controller.settings.ocrStatus === "checking"
+                     ? qsTranslate("SettingsPopup", "Checking OCR")
+                     : qsTranslate("SettingsPopup", "Needs attention"))
+            onPicked: root.childRequested("ocr")
         }
 
         Column {

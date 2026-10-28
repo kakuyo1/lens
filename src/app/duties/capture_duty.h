@@ -11,22 +11,29 @@
 #include <QSize>
 #include <QString>
 #include <QTimer>
+#include <QUrl>
 #include <QVariantList>
 #include <QVariantMap>
 #include <QtQml/qqmlregistration.h>
 
-#include <atomic>
+#include <chrono>
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <string_view>
 
 #include "capture/ocr_engine.h"
+#include "capture/ocr_executor.h"
+#include "capture/ocr_local.h"
 #include "capture/scan_pipeline.h"
 #include "capture_refusal.h"
 #include "app/platform/selection_text_grabber.h"
 #include "core/domain/filter_core.h"
 #include "storage_duty.h"
+
+namespace lens::ocr {
+struct HttpTransport;
+struct OnlineOcrClient;
+}
 
 namespace lens::app {
 
@@ -79,6 +86,11 @@ public:
                 MouseSelectionHook&                 hook,
                 std::unique_ptr<capture::OcrEngine> ocr,
                 QObject*                            parent = nullptr);
+    CaptureDuty(StorageDuty&                        storage,
+                MouseSelectionHook&                 hook,
+                std::unique_ptr<capture::OcrEngine> ocr,
+                std::shared_ptr<ocr::HttpTransport> onlineTransport,
+                QObject*                            parent = nullptr);
     ~CaptureDuty() override;
 
     QVariantMap settings() const;
@@ -102,9 +114,36 @@ public:
     Q_INVOKABLE void setTesseractExecutable(QString executable);
     /// @brief Point OCR at the reader's own traineddata directory; empty means the one beside the executable.
     Q_INVOKABLE void setTesseractDataDirectory(QString directory);
+    /// @brief Point the user-installed RapidOCR at its executable; clears the trust record.
+    Q_INVOKABLE void setRapidOcrExecutable(QString executable);
+    /// @brief Point RapidOCR at its model folder; the path must be ASCII; clears the trust record.
+    Q_INVOKABLE void setRapidOcrModelsDirectory(QString directory);
+    /// @brief Run one synthetic image through RapidOCR and record its trust digest on success.
+    Q_INVOKABLE void detectRapidOcr();
+    /// @brief Choose how a local capture picks its engine: Auto, Windows, Tesseract or RapidOCR.
+    Q_INVOKABLE void setOcrLocalEngine(QString engine);
+    /// @brief Choose the language the local engine reads: en, zh-Hans or zh-Hans+en.
+    Q_INVOKABLE void setOcrLocalLanguage(QString language);
+    /// @brief Choose whether a manual capture stays local or goes online.
+    Q_INVOKABLE void setOcrMode(QString mode);
+    /// @brief Set the online provider id; empty clears it.
+    Q_INVOKABLE void setOcrOnlineProvider(QString provider);
+    /// @brief Set the full HTTPS OCR endpoint; empty clears it.
+    Q_INVOKABLE void setOcrOnlineEndpoint(QString endpoint);
+    /// @brief Set the online recognition language: `eng` or `auto`.
+    Q_INVOKABLE void setOcrOnlineLanguage(QString language);
+    /// @brief The reader confirmed the frozen crop for @p requestId; this is the only upload gate.
+    Q_INVOKABLE void confirmOnlineUpload(qulonglong requestId);
+    /// @brief Drop a pending or running online request and its image.
+    Q_INVOKABLE void cancelOnlineUpload();
+    /// @brief Re-read the online configuration after a credential change and drop any consent.
+    void invalidateOnlineConfiguration();
     /// @brief Put every row the table marks Signal::Capture back to its default.
     Q_INVOKABLE void restoreDefaults();
-    Q_INVOKABLE void probeOcr();
+    /// @brief Recognize a synthetic image with the configured local engine; no desktop is read.
+    Q_INVOKABLE void testLocalOcr();
+    /// @brief Send one synthetic image to the configured online service; this may be billed.
+    Q_INVOKABLE void testOnlineOcr();
 
     /// @brief Pause while a request is in flight.
     void setScanPaused(bool paused);
@@ -145,6 +184,12 @@ signals:
     void scanCandidatesReady(QVariantList candidates, QPoint anchor);
     /// @brief Count-only report for entity-shaped text unsupported by the scan channel.
     void scanEntitiesUnsupported(int count);
+    /// @brief A frozen crop is waiting for the reader's explicit upload decision.
+    void uploadConsentRequested(QVariantMap consent);
+    /// @brief The frozen crop itself, for the confirmation card's controlled image source.
+    void uploadPreviewReady(qulonglong requestId, QImage image);
+    /// @brief The upload transaction ended, or needs a fresh manual retry decision.
+    void uploadFinished(QVariantMap outcome);
     /// @brief A framed region produced no text, or an image OCR could not read.
     ///
     /// Only the framed region, and only the reason: a scan that hiccups is not worth a card, and
@@ -155,18 +200,31 @@ private:
     struct OcrJob {
         QPoint        anchor;
         QString       context;
-        std::uint64_t generation = 0;
-        bool          probe      = false;
-    };
-    struct OcrJobState {
-        std::shared_ptr<std::atomic_bool> cancelled = std::make_shared<std::atomic_bool>(false);
-        std::mutex                        mutex;
-        capture::OcrResult                result;
-        bool                              done = false;
+        std::uint64_t generation  = 0;
+        std::uint64_t requestId   = 0;
+        bool          probe       = false;
+        bool          test        = false;
+        bool          online      = false;
+        bool          detectRapid = false;
     };
 
-    /// @brief Rebuild the OCR engine around the stored paths and probe the new one.
+    struct PendingUpload {
+        std::uint64_t                         requestId = 0;
+        QImage                                image;
+        QPoint                                anchor;
+        QUrl                                  endpoint;
+        QString                               apiKey;
+        QString                               language;
+        std::chrono::steady_clock::time_point absoluteDeadline;
+        int                                   attempts = 0;
+    };
+
+    /// @brief Rebuild the OCR engine around the stored paths and inspect the new one.
     void rebuildOcr();
+    /// @brief Run the injected engine's readiness probe; production readiness is file inspection.
+    void probeOcr();
+    /// @brief Write the local policy for a document that predates ocrConfigVersion.
+    void migrateOcrSettings();
     /// @param fromScreenshot True when the text came out of a framed region rather than a
     ///        selection. A screenshot is the reader saying "translate this": they framed it with a
     ///        gesture of their own, so the bar would ask a question they have already answered. A
@@ -174,8 +232,15 @@ private:
     ///        the bar is where they say what to do with it.
     void        classifyText(QString text, QPoint anchor, bool fromScreenshot = false);
     void        scanTick();
-    void        pollOcr();
-    void        launchOcr(QImage image, QPoint anchor, QString context);
+    void        onOcrFinished(std::uint64_t requestId, capture::OcrResult result);
+    bool        launchOcr(QImage image, QPoint anchor, QString context);
+    void        beginOnlineUpload(QImage image, QPoint anchor);
+    void        onConsentTimeout();
+    void        onUploadTimeout();
+    void        finishOnline(capture::OcrResult const& result);
+    void        clearUpload(QString outcome, bool notify);
+    bool        onlineConfigured() const;
+    QString     onlineKey() const;
     void        invalidateScan();
     void        publishBatch(capture::ScanTime now, QPoint anchor);
     std::size_t minFreqRank() const;
@@ -184,18 +249,31 @@ private:
     MouseSelectionHook&                    hook_;
     std::unique_ptr<SelectionTextGrabber>  grabber_;
     std::shared_ptr<capture::OcrEngine>    ocr_;
+    std::unique_ptr<capture::OcrExecutor>  executor_;
+    std::shared_ptr<ocr::HttpTransport>    onlineTransport_;
     std::unique_ptr<capture::ScanPipeline> scan_;
     QTimer                                 scanTimer_;
-    QTimer                                 pollTimer_;
-    std::shared_ptr<OcrJobState>           job_;
     std::optional<OcrJob>                  jobContext_;
+    std::optional<PendingUpload>           upload_;
+    QTimer                                 consentTimer_;
+    QTimer                                 uploadTimer_;
+    QString                                uploadPhase_          = QStringLiteral("idle");
+    bool                                   uploadCanRetry_       = false;
     capture::OcrStatus                     ocrState_             = capture::OcrStatus::RuntimeMissing;
     std::uint64_t                          generation_           = 0;
     std::uint64_t                          screenshotGeneration_ = 0;
+    std::uint64_t                          nextRequestId_        = 0;
     QString                                scanContext_;
     QPoint                                 scanAnchor_;
     bool                                   scanPaused_   = false;
     bool                                   budgetPaused_ = false;
+    QString                                ocrTestState_ = QStringLiteral("idle");
+    QString                                ocrTestEngine_;
+    QString                                ocrTestLanguage_;
+    int                                    ocrTestMs_ = 0;
+    capture::LocalOcrInspection            localInspection_;
+    QString                                rapidOcrDetectState_ = QStringLiteral("idle");
+    int                                    rapidOcrDetectMs_    = 0;
 };
 
 }

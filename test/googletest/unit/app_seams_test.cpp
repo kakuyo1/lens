@@ -194,14 +194,20 @@ TEST(CaptureRefusal, EveryReasonNamesTheTokenTheSurfacesAlreadyRead)
     EXPECT_STREQ(refusalKey(CaptureRefusal::Checking), "checking");
     EXPECT_STREQ(refusalKey(CaptureRefusal::Busy), "busy");
     EXPECT_STREQ(refusalKey(CaptureRefusal::ScreenshotOff), "screenshot-off");
+    EXPECT_STREQ(refusalKey(CaptureRefusal::OnlineNotConfigured), "online-unconfigured");
     EXPECT_STREQ(refusalKey(CaptureRefusal::OutsideScreen), "outside-screen");
     EXPECT_STREQ(refusalKey(CaptureRefusal::RegionTooLarge), "too-large");
     EXPECT_STREQ(refusalKey(CaptureRefusal::EmptyText), "empty-text");
     EXPECT_STREQ(refusalKey(CaptureRefusal::InvalidImage), "invalid-image");
-    EXPECT_STREQ(refusalKey(CaptureRefusal::LanguageMissing), "english-data-missing");
+    EXPECT_STREQ(refusalKey(CaptureRefusal::Cancelled), "cancelled");
+    EXPECT_STREQ(refusalKey(CaptureRefusal::LanguageMissing), "language-missing");
     EXPECT_STREQ(refusalKey(CaptureRefusal::RuntimeMissing), "runtime-missing");
+    EXPECT_STREQ(refusalKey(CaptureRefusal::DeploymentUnsupported), "deployment-unsupported");
     EXPECT_STREQ(refusalKey(CaptureRefusal::StartFailed), "start-failed");
     EXPECT_STREQ(refusalKey(CaptureRefusal::TimedOut), "timeout");
+    EXPECT_STREQ(refusalKey(CaptureRefusal::ProtocolError), "protocol-error");
+    EXPECT_STREQ(refusalKey(CaptureRefusal::TransportFailed), "transport-failed");
+    EXPECT_STREQ(refusalKey(CaptureRefusal::PartialResult), "partial-result");
     EXPECT_STREQ(refusalKey(CaptureRefusal::Failed), "failed");
 }
 
@@ -213,12 +219,21 @@ TEST(CaptureRefusal, EveryRuntimeStatusNamesItsOwnReasonAndReadyNamesNone)
 {
     EXPECT_EQ(reasonToken(lens::capture::OcrStatus::Ready), "<none>");
     EXPECT_EQ(reasonToken(lens::capture::OcrStatus::RuntimeMissing), "runtime-missing");
-    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::LanguageMissing), "english-data-missing");
+    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::LanguageMissing), "language-missing");
+    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::PathUnsupported), "path-unsupported");
+    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::Untrusted), "untrusted");
+    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::DeploymentUnsupported), "deployment-unsupported");
     EXPECT_EQ(reasonToken(lens::capture::OcrStatus::StartFailed), "start-failed");
     EXPECT_EQ(reasonToken(lens::capture::OcrStatus::TimedOut), "timeout");
     EXPECT_EQ(reasonToken(lens::capture::OcrStatus::Failed), "failed");
     EXPECT_EQ(reasonToken(lens::capture::OcrStatus::InvalidImage), "invalid-image");
+    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::InputTooLarge), "too-large");
     EXPECT_EQ(reasonToken(lens::capture::OcrStatus::EmptyText), "empty-text");
+    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::Cancelled), "cancelled");
+    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::ProtocolError), "protocol-error");
+    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::ResultTooLarge), "protocol-error");
+    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::TransportFailed), "transport-failed");
+    EXPECT_EQ(reasonToken(lens::capture::OcrStatus::PartialResult), "partial-result");
 }
 
 /// Each gate refuses on its own, and the reader hears the highest-ranked one when several hold.
@@ -230,7 +245,15 @@ TEST(CaptureRefusal, TheGateNamesEachReasonAndTheHighestRankedWins)
     EXPECT_EQ(gateRefusal({.probing = true, .busy = true, .screenshotOn = true, .runtime = OcrStatus::Ready}), CaptureRefusal::Checking);
     EXPECT_EQ(gateRefusal({.busy = true, .screenshotOn = true, .runtime = OcrStatus::Ready}), CaptureRefusal::Busy);
     EXPECT_EQ(gateRefusal({.screenshotOn = false, .runtime = OcrStatus::Ready}), CaptureRefusal::ScreenshotOff);
+    EXPECT_EQ(gateRefusal({.screenshotOn = true, .online = true, .runtime = OcrStatus::Ready}), CaptureRefusal::OnlineNotConfigured);
+    EXPECT_EQ(gateRefusal({.screenshotOn     = true,
+                           .online           = true,
+                           .onlineConfigured = true,
+                           .runtime          = OcrStatus::RuntimeMissing}),
+              std::nullopt)
+        << "a configured online capture does not depend on the local Tesseract";
     EXPECT_EQ(gateRefusal({.screenshotOn = true, .runtime = OcrStatus::TimedOut}), CaptureRefusal::TimedOut);
+    EXPECT_EQ(gateRefusal({.screenshotOn = true, .runtime = OcrStatus::Untrusted}), CaptureRefusal::Untrusted);
     EXPECT_EQ(gateRefusal({.screenshotOn = true, .runtime = OcrStatus::Ready}), std::nullopt);
 
     // Every gate shut at once, then opened one by one from the top.

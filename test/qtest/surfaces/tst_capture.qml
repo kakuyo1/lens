@@ -15,6 +15,21 @@ Item {
     }
 
     Component {
+        id: ocrPageComponent
+        SettingsOcrPage { x: 26; y: 20; width: 328; height: implicitHeight }
+    }
+
+    Component {
+        id: onlineOcrPageComponent
+        SettingsOnlineOcrPage { x: 26; y: 20; width: 328; height: implicitHeight }
+    }
+
+    Component {
+        id: consentComponent
+        UploadConsent {}
+    }
+
+    Component {
         id: pathFieldComponent
         PathField { width: 328 }
     }
@@ -22,6 +37,7 @@ Item {
     TokenHost { id: host; width: root.width; height: root.height }
 
     TestCase {
+        id: testCase
         name: "CaptureSettings"
         when: windowShown
 
@@ -40,7 +56,15 @@ Item {
             return control;
         }
 
+        function makeOcrPage() {
+            const page = createTemporaryObject(ocrPageComponent, host.contentItem);
+            waitForRendering(host.contentItem);
+            verify(!!page, "OCR page was created");
+            return page;
+        }
+
         function cleanup() {
+            Controller.explanationDuty.dismissNotice();
             Controller.restoreCaptureDefaults();
             Controller.setSetting("theme", "dark");
             Tokens.theme = "dark";
@@ -84,7 +108,7 @@ Item {
         /// this side of it: the path the controller is given is the path the field then shows,
         /// and an unchosen field shows what it would resolve to instead.
         function test_tesseractPathsReachTheController() {
-            const page = make();
+            const page = makeOcrPage();
             const executable = child(page, "tesseractExecutable");
             const data = child(page, "tesseractDataDirectory");
 
@@ -148,8 +172,182 @@ Item {
         function test_ocrControlsUseControllerAndAvailability() {
             const page = make();
             tryVerify(() => Controller.settings.ocrStatus !== "checking", 15000);
-            compare(child(page, "ocrCapture").interactive, Controller.settings.ocrAvailable);
-            compare(child(page, "autoScan").interactive, Controller.settings.ocrAvailable);
+            compare(child(page, "ocrCapture").interactive, Controller.settings.screenshotAvailable);
+            compare(child(page, "autoScan").interactive, Controller.settings.scanAvailable);
+        }
+
+        /// An explicit Windows choice is kept, and its unmet deployment condition is reported.
+        /// Falling back to Tesseract here would be the silent rewrite the product forbids.
+        function test_anExplicitWindowsChoiceIsKeptAndReportsItsDeploymentGate() {
+            const page = makeOcrPage();
+            compare(child(page, "ocrLocalEngine").currentValue, Controller.settings.ocrLocalEngine);
+
+            Controller.captureDuty.setOcrLocalEngine("windows");
+            tryVerify(() => Controller.settings.ocrLocalEngine === "windows");
+            tryVerify(() => Controller.settings.ocrStatus !== "checking", 15000);
+            compare(Controller.settings.ocrStatus, "deployment-unsupported");
+            compare(Controller.settings.actualLocalEngine, "windows");
+            compare(Controller.settings.ocrAvailable, false);
+        }
+
+        /// RapidOCR's v0.2.0 binary crashes before initialization when the model folder path
+        /// contains non-ASCII characters. The page must reject that folder visibly, and the gate
+        /// must stay shut, rather than discovering the crash in a child process.
+        function test_rapidOcrRejectsANonAsciiModelFolder() {
+            const page = makeOcrPage();
+            const realExecutable = Qt.application.arguments[0];
+            verify(realExecutable.length > 0 && realExecutable.toLowerCase().endsWith(".exe"),
+                   "the test binary supplies an existing .exe for the path test");
+            Controller.captureDuty.setOcrLocalEngine("rapidocr");
+            Controller.setRapidOcrExecutable(Qt.url("file:///" + realExecutable.replace(/\\/g, "/")));
+            Controller.setRapidOcrModelsDirectory(Qt.url("file:///C:/tmp/模型"));
+
+            tryVerify(() => Controller.settings.ocrStatus !== "checking", 15000);
+            compare(Controller.settings.ocrStatus, "path-unsupported");
+            compare(Controller.settings.ocrAvailable, false);
+            compare(Controller.settings.rapidOcrModelsAscii, false);
+
+            const models = child(page, "rapidocrModelsDirectory");
+            compare(shownPath(models), Controller.settings.rapidOcrModelsDirectory);
+            const warning = child(page, "rapidocrPathWarning");
+            verify(warning.visible, "the non-ASCII folder warning is shown");
+            const detect = child(page, "detectRapidOcrButton");
+            compare(detect.enabled, false, "detection is disabled while the folder is invalid");
+        }
+
+        /// Detection cannot succeed without an executable, and the page reports that fixed reason
+        /// instead of leaving the button in a checking state.
+        function test_rapidOcrDetectionWithoutAnExecutableReportsWhy() {
+            Controller.captureDuty.setOcrLocalEngine("rapidocr");
+            Controller.setRapidOcrExecutable(Qt.url("file:///no-such-directory/RapidOCR-json.exe"));
+            Controller.setRapidOcrModelsDirectory(Qt.url("file:///C:/tmp/models"));
+            Controller.detectRapidOcr();
+            tryVerify(() => Controller.settings.rapidOcrDetectState !== "checking", 15000);
+            compare(Controller.settings.rapidOcrDetectState, "runtime-missing");
+        }
+
+        function test_theRecognitionLanguageIsWrittenAsChosen() {
+            Controller.captureDuty.setOcrLocalLanguage("zh-Hans");
+            tryVerify(() => Controller.settings.ocrLocalLanguage === "zh-Hans");
+            tryVerify(() => Controller.settings.ocrStatus !== "checking", 15000);
+            compare(Controller.settings.ocrLocalLanguage, "zh-Hans");
+        }
+
+        /// Online mode without a configured endpoint is refused at the gate, before a rectangle
+        /// is even grabbed. The refusal token is what the surface reports.
+        function test_onlineModeWithoutAConfigurationRefusesTheCapture() {
+            Controller.setSetting("ocrCapture", true);
+            Controller.setSetting("ocrMode", "online");
+            tryVerify(() => Controller.settings.ocrStatus !== "checking", 15000);
+            compare(Controller.captureRegion(Qt.rect(0, 0, 100, 50)), "online-unconfigured");
+            Controller.setSetting("ocrMode", "local");
+        }
+
+        function test_theOnlinePageDrawsItsFields() {
+            const page = createTemporaryObject(onlineOcrPageComponent, host.contentItem);
+            waitForRendering(host.contentItem);
+            verify(page);
+            verify(findChild(page, "ocrOnlineLanguage"));
+            verify(findChild(page, "testOnlineOcrButton"));
+            verify(findChild(page, "clearOnlineOcrButton"));
+            compare(Controller.settings.ocrOnlineLanguage, "eng");
+        }
+
+        /// Pixel stills for the two OCR pages; skipped unless scripts/qa/qml-snapshot.ps1 sets
+        /// LENS_QA_SNAPSHOT_DIR. They answer glyphs, alignment and overflow, not placement.
+        function test_snapshotTheOcrSettingsPages() {
+            if (!lensQaSnapshotDir) {
+                skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the offscreen snapshots");
+                return;
+            }
+            const local = makeOcrPage();
+            waitForRendering(host.contentItem);
+            verify(Util.saveSnapshot(testCase, local, lensQaSnapshotDir, "settings-ocr"));
+        }
+
+        /// The RapidOCR section with an invalid model folder, for the offscreen visual pass.
+        function test_snapshotTheRapidOcrSection() {
+            if (!lensQaSnapshotDir) {
+                skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the offscreen snapshots");
+                return;
+            }
+            Controller.captureDuty.setOcrLocalEngine("rapidocr");
+            Controller.setRapidOcrExecutable(Qt.url("file:///C:/RapidOCR/RapidOCR-json.exe"));
+            Controller.setRapidOcrModelsDirectory(Qt.url("file:///C:/tmp/模型"));
+            const rapid = makeOcrPage();
+            waitForRendering(host.contentItem);
+            verify(Util.saveSnapshot(testCase, rapid, lensQaSnapshotDir, "settings-ocr-rapidocr"));
+        }
+
+        function test_snapshotTheOnlineOcrPage() {
+            if (!lensQaSnapshotDir) {
+                skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the offscreen snapshots");
+                return;
+            }
+            const online = createTemporaryObject(onlineOcrPageComponent, host.contentItem);
+            waitForRendering(host.contentItem);
+            verify(Util.saveSnapshot(testCase, online, lensQaSnapshotDir, "settings-ocr-online"));
+        }
+
+        /// The card without its preview: the image provider belongs to the application engine,
+        /// which this target does not register. Glyphs, wrapping and button order are still the
+        /// card's own.
+        function test_snapshotTheUploadConsentCard() {
+            if (!lensQaSnapshotDir) {
+                skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the offscreen snapshots");
+                return;
+            }
+            const card = createTemporaryObject(consentComponent, host.contentItem);
+            verify(card);
+            card.open({requestId: 7, host: "api.ocr.space", previewUrl: ""});
+            wait(350);
+            verify(Util.saveSnapshot(testCase, card.contentItem, lensQaSnapshotDir, "upload-consent"));
+            card.close();
+        }
+
+        /// The consent card starts on Cancel and only the explicit confirmation emits the upload
+        /// request; Escape and the Cancel chip never do.
+        function test_theConsentCardRequiresAnExplicitChoice() {
+            const card = createTemporaryObject(consentComponent, host.contentItem);
+            verify(card);
+            let confirmed = 0;
+            let cancelled = 0;
+            card.confirmed.connect(function (id) { confirmed = id; });
+            card.cancelled.connect(function () { ++cancelled; });
+            card.open({requestId: 7, host: "api.ocr.space", previewUrl: "image://ocr-consent/7"});
+            compare(card.visible, true);
+            compare(card.request.requestId, 7);
+
+            const cancel = findChild(card, "cancelUploadButton");
+            verify(cancel);
+            mouseClick(cancel, cancel.width / 2, cancel.height / 2);
+            compare(confirmed, 0);
+            compare(cancelled, 1);
+            compare(card.visible, false);
+        }
+
+        function test_theConsentCardConfirmsWithItsRequestId() {
+            const card = createTemporaryObject(consentComponent, host.contentItem);
+            verify(card);
+            let confirmed = 0;
+            card.confirmed.connect(function (id) { confirmed = id; });
+            card.open({requestId: 11, host: "api.ocr.space", previewUrl: "image://ocr-consent/11"});
+
+            const upload = findChild(card, "confirmUploadButton");
+            verify(upload);
+            mouseClick(upload, upload.width / 2, upload.height / 2);
+            compare(confirmed, 11);
+            compare(card.busy, true);
+        }
+
+        function test_theConsentCardCanAskForOneRetry() {
+            const card = createTemporaryObject(consentComponent, host.contentItem);
+            verify(card);
+            card.open({requestId: 12, host: "api.ocr.space", previewUrl: "image://ocr-consent/12"});
+            card.showRetry({status: "timeout", canRetry: true});
+            compare(card.retrying, true);
+            compare(card.visible, true);
+            compare(card.statusText, qsTranslate("UploadConsent", "The request timed out."));
         }
     }
 }

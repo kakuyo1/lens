@@ -20,6 +20,8 @@
 add_library(lens_app STATIC
   # Facade and composition root.
   app_controller.cpp
+  consent_preview.h
+  consent_preview.cpp
   paths.h
   paths.cpp
   settings_access.h
@@ -122,7 +124,7 @@ target_include_directories(lens_app PRIVATE
 # Quick is public because the QML module below backs this library, and anything linking it is
 # linking the module: that now includes lens_gtest_integration, which used to need no QML.
 target_link_libraries(lens_app
-  PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Quick lens_llm lens_update lens_sync lens_pictures
+  PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Quick lens_llm lens_update lens_sync lens_pictures lens_ocr
   PRIVATE lens_core lens_util lens_capture
 )
 
@@ -301,6 +303,9 @@ qt_add_qml_module(lens_app
     qml/settings/pages/SettingsGeneralPage.qml
     qml/settings/pages/SettingsLearningPage.qml
     qml/settings/pages/SettingsCapturePage.qml
+    qml/settings/pages/SettingsOcrPage.qml
+    qml/settings/pages/SettingsOnlineOcrPage.qml
+    qml/capture/UploadConsent.qml
     qml/settings/pages/SettingsModelPage.qml
     qml/settings/pages/SettingsExtensionsPage.qml
     qml/settings/pages/SettingsClipboardPage.qml

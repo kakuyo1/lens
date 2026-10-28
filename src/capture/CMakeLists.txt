@@ -4,6 +4,18 @@ add_library(lens_capture STATIC
   scan_pipeline.cpp
   ocr_engine.h
   ocr_engine.cpp
+  ocr_tsv.h
+  ocr_tsv.cpp
+  ocr_executor.h
+  ocr_executor.cpp
+  ocr_local.h
+  ocr_local.cpp
+  ocr_rapidocr.h
+  ocr_rapidocr.cpp
+  ocr_migration.h
+  ocr_migration.cpp
+  windows_ocr.h
+  windows_ocr.cpp
   foreground_window.h
   foreground_window.cpp
 )

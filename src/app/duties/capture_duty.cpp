@@ -5,22 +5,30 @@
 
 #include "capture_duty.h"
 
+#include <QDir>
+#include <QFileInfo>
+#include <QFont>
 #include <QGuiApplication>
+#include <QPainter>
 #include <QRegularExpression>
 #include <QScreen>
 #include <QtGui/qscreen_platform.h>
 
 #include <algorithm>
+#include <chrono>
 #include <iterator>
-#include <stdexcept>
-#include <thread>
 
 #include "capture/capture_policy.h"
 #include "capture/foreground_window.h"
+#include "capture/ocr_local.h"
+#include "capture/ocr_migration.h"
+#include "ocr/ocr_space.h"
+#include "ocr/qt_http_transport.h"
 #include "core/domain/filter_core.h"
 #include "core/domain/settings_table.h"
 #include "app/platform/mouse_selection_hook.h"
 #include "app/settings_access.h"
+#include "capture/ocr_rapidocr.h"
 #include "llm/llm_pure.h"
 #include "util/log.h"
 
@@ -46,14 +54,63 @@ constexpr int kMaxSelectionChars = 1000;
 capture::TesseractConfig storedTesseractConfig(StorageDuty& storage)
 {
     auto const keys = storage.section();
-    return {settings::read(keys, *core::settings::find("tesseractExecutable")).toString(),
-            settings::read(keys, *core::settings::find("tesseractDataDirectory")).toString()};
+    auto const language =
+        capture::parseOcrLanguage(settings::read(keys, *core::settings::find("ocrLocalLanguage")).toString().toStdString());
+    return {.executable    = settings::read(keys, *core::settings::find("tesseractExecutable")).toString(),
+            .dataDirectory = settings::read(keys, *core::settings::find("tesseractDataDirectory")).toString(),
+            .language      = language.value_or(capture::OcrLanguage::English)};
+}
+
+capture::RapidOcrConfig storedRapidOcrConfig(StorageDuty& storage)
+{
+    auto const keys = storage.section();
+    auto const language =
+        capture::parseOcrLanguage(settings::read(keys, *core::settings::find("ocrLocalLanguage")).toString().toStdString());
+    return {.executable      = settings::read(keys, *core::settings::find("rapidOcrExecutable")).toString(),
+            .modelsDirectory = settings::read(keys, *core::settings::find("rapidOcrModelsDirectory")).toString(),
+            .trustDigest     = settings::read(keys, *core::settings::find("rapidOcrTrust")).toString(),
+            .language        = language.value_or(capture::OcrLanguage::English)};
+}
+
+capture::LocalOcrConfig storedLocalConfig(StorageDuty& storage)
+{
+    auto const keys        = storage.section();
+    auto const engineKey   = settings::read(keys, *core::settings::find("ocrLocalEngine")).toString();
+    auto const languageKey = settings::read(keys, *core::settings::find("ocrLocalLanguage")).toString();
+    return {.engine    = capture::parseLocalEngine(engineKey.toStdString()).value_or(capture::LocalEngineChoice::Auto),
+            .language  = capture::parseOcrLanguage(languageKey.toStdString()).value_or(capture::OcrLanguage::English),
+            .tesseract = storedTesseractConfig(storage),
+            .rapidOcr  = storedRapidOcrConfig(storage)};
+}
+
+/// @return The diagnostic token for an OCR status, including the ready state.
+QString statusToken(capture::OcrStatus const status)
+{
+    auto const refusal = refusalOf(status);
+    return refusal ? QString::fromLatin1(refusalKey(*refusal)) : QStringLiteral("ready");
 }
 
 /// @return The token for a reason, as the QString the QML boundary reads.
 QString tokenOf(CaptureRefusal refusal)
 {
     return QString::fromLatin1(refusalKey(refusal));
+}
+
+/// @return A synthetic page for the explicit local test: no desktop pixels, no user content.
+QImage localTestImage(capture::OcrLanguage const language)
+{
+    QImage image{560, 140, QImage::Format_RGB32};
+    image.fill(Qt::white);
+    QPainter painter{&image};
+    QFont    font{QStringLiteral("Segoe UI")};
+    font.setPixelSize(36);
+    painter.setFont(font);
+    painter.setPen(Qt::black);
+    QString const text = language == capture::OcrLanguage::English             ? QStringLiteral("Lens OCR 12345")
+                         : language == capture::OcrLanguage::SimplifiedChinese ? QStringLiteral("识别测试 12345")
+                                                                               : QStringLiteral("Lens 识别 12345");
+    painter.drawText(image.rect().adjusted(24, 24, -24, -24), Qt::AlignLeft | Qt::AlignVCenter, text);
+    return image;
 }
 
 }
@@ -70,19 +127,33 @@ QString kindName(core::SelectionKind const kind)
 }
 
 CaptureDuty::CaptureDuty(StorageDuty& storage, MouseSelectionHook& hook, QObject* parent)
-    : CaptureDuty(storage, hook, capture::makeTesseractOcr(storedTesseractConfig(storage)), parent)
+    : CaptureDuty(storage, hook, nullptr, {}, parent)
 {}
 
 CaptureDuty::CaptureDuty(StorageDuty&                        storage,
                          MouseSelectionHook&                 hook,
                          std::unique_ptr<capture::OcrEngine> ocr,
                          QObject*                            parent)
+    : CaptureDuty(storage, hook, std::move(ocr), {}, parent)
+{}
+
+CaptureDuty::CaptureDuty(StorageDuty&                        storage,
+                         MouseSelectionHook&                 hook,
+                         std::unique_ptr<capture::OcrEngine> ocr,
+                         std::shared_ptr<ocr::HttpTransport> onlineTransport,
+                         QObject*                            parent)
     : QObject(parent), storage_(storage), hook_(hook), grabber_(std::make_unique<SelectionTextGrabber>()),
-      ocr_(std::move(ocr)), scan_(capture::makeScanPipeline())
+      ocr_(std::move(ocr)), executor_(std::make_unique<capture::OcrExecutor>(this)),
+      onlineTransport_(std::move(onlineTransport)), scan_(capture::makeScanPipeline())
 {
-    if (not ocr_) throw std::invalid_argument{"OCR backend must not be null"};
+    if (not onlineTransport_) onlineTransport_ = std::make_shared<ocr::QtHttpTransport>();
     connect(&hook_, &MouseSelectionHook::selectionReleased, this, &CaptureDuty::onSelectionReleased);
     connect(&hook_, &MouseSelectionHook::pointerPressed, this, &CaptureDuty::pointerPressed);
+    connect(executor_.get(), &capture::OcrExecutor::finished, this, &CaptureDuty::onOcrFinished);
+    consentTimer_.setSingleShot(true);
+    uploadTimer_.setSingleShot(true);
+    connect(&consentTimer_, &QTimer::timeout, this, &CaptureDuty::onConsentTimeout);
+    connect(&uploadTimer_, &QTimer::timeout, this, &CaptureDuty::onUploadTimeout);
 
     auto const               names = settings().value("scanWhitelist").toString().split(';', Qt::SkipEmptyParts);
     std::vector<std::string> whitelist;
@@ -92,40 +163,81 @@ CaptureDuty::CaptureDuty(StorageDuty&                        storage,
     scanTimer_.setInterval(1000);
     connect(&scanTimer_, &QTimer::timeout, this, &CaptureDuty::scanTick);
     scanTimer_.start();
-    pollTimer_.setInterval(25);
-    connect(&pollTimer_, &QTimer::timeout, this, &CaptureDuty::pollOcr);
-    probeOcr();
+    migrateOcrSettings();
+    localInspection_ = capture::inspectLocalOcr(storedLocalConfig(storage_));
+    if (ocr_)
+        probeOcr();
+    else
+        rebuildOcr();
 }
 
 CaptureDuty::~CaptureDuty()
 {
     scanTimer_.stop();
-    pollTimer_.stop();
-    if (job_) job_->cancelled->store(true, std::memory_order_relaxed);
-    job_.reset();
+    consentTimer_.stop();
+    uploadTimer_.stop();
+    executor_->cancel();
     jobContext_.reset();
+    upload_.reset();
 }
 
 QVariantMap CaptureDuty::settings() const
 {
     auto const keys = storage_.section();
-    // The six rows the settings table marks Signal::Capture, read through their own rules: a stored
-    // length the document did not mean lands on the row's range the same way a written one would.
+    // The capture rows, read through their own rules: a stored length the document did not mean
+    // lands on the row's range the same way a written one would.
     const auto readOf = [&keys](std::string_view const key) {
         const auto* const row = core::settings::find(key);
         return settings::read(keys, *row);
     };
+    auto const local    = storedLocalConfig(storage_);
+    auto const resolved = capture::resolveTesseract(local.tesseract);
+    auto const tokenFor = [](capture::OcrStatus const status) {
+        auto const refusal = refusalOf(status);
+        return refusal ? tokenOf(*refusal) : QStringLiteral("ready");
+    };
+    auto const online      = settings::read(keys, *core::settings::find("ocrMode")).toString() == QLatin1String("online");
+    auto const onlineReady = onlineConfigured();
     return {{"ocrCapture", readOf("ocrCapture")},
             {"autoScan", readOf("autoScan")},
             {"ocrAvailable", ocrState_ == capture::OcrStatus::Ready},
             {"minimumWordLength", readOf("minimumWordLength")},
+            {"ocrConfigVersion", readOf("ocrConfigVersion")},
+            {"ocrMode", readOf("ocrMode")},
+            {"ocrLocalEngine", readOf("ocrLocalEngine")},
+            {"ocrLocalLanguage", readOf("ocrLocalLanguage")},
+            {"ocrOnlineProvider", readOf("ocrOnlineProvider")},
+            {"ocrOnlineEndpoint", readOf("ocrOnlineEndpoint")},
+            {"ocrOnlineLanguage", readOf("ocrOnlineLanguage")},
+            {"onlineConfigured", onlineReady},
+            {"screenshotAvailable", online ? onlineReady : ocrState_ == capture::OcrStatus::Ready},
+            {"scanAvailable", ocrState_ == capture::OcrStatus::Ready},
+            {"ocrOnlineHost", QUrl{readOf("ocrOnlineEndpoint").toString()}.host()},
+            {"uploadPhase", uploadPhase_},
+            {"uploadCanRetry", uploadCanRetry_},
+            {"localAvailability", tokenFor(ocrState_)},
+            {"screenshotAvailability", online ? (onlineReady ? QStringLiteral("ready") : QStringLiteral("online-unconfigured")) : tokenFor(ocrState_)},
+            {"scanAvailability", tokenFor(ocrState_)},
+            {"actualLocalEngine", localInspection_.engine},
+            {"localEngineReason", localInspection_.reason},
+            {"windowsOcrReason", localInspection_.windowsReason},
+            {"ocrTestState", ocrTestState_},
+            {"ocrTestEngine", ocrTestEngine_},
+            {"ocrTestLanguage", ocrTestLanguage_},
+            {"ocrTestMs", ocrTestMs_},
             {"tesseractExecutable", readOf("tesseractExecutable")},
             {"tesseractDataDirectory", readOf("tesseractDataDirectory")},
+            {"rapidOcrExecutable", readOf("rapidOcrExecutable")},
+            {"rapidOcrModelsDirectory", readOf("rapidOcrModelsDirectory")},
+            {"rapidOcrModelsAscii",
+             readOf("rapidOcrModelsDirectory").toString().isEmpty() or capture::rapidOcrPathIsAscii(readOf("rapidOcrModelsDirectory").toString())},
+            {"rapidOcrDetectState", rapidOcrDetectState_},
+            {"rapidOcrDetectMs", rapidOcrDetectMs_},
             // What an empty setting resolves to, for the surface that shows the reader where OCR
             // will look. Resolved through the engine's own function so the answer on screen cannot
             // drift from the path the process is actually started with.
-            {"resolvedTesseractExecutable", capture::resolveTesseract(storedTesseractConfig(storage_)).executable},
-            {"resolvedTesseractDataDirectory", capture::resolveTesseract(storedTesseractConfig(storage_)).dataDirectory},
+            {"resolvedTesseractExecutable", resolved.executable},
+            {"resolvedTesseractDataDirectory", resolved.dataDirectory},
             {"scanWhitelist", readOf("scanWhitelist")}};
 }
 
@@ -136,6 +248,34 @@ QString CaptureDuty::ocrStatus() const
     // here that has no CaptureRefusal behind it: the settings page reads it as "fine".
     const auto refusal = refusalOf(ocrState_);
     return refusal ? tokenOf(*refusal) : QStringLiteral("ready");
+}
+
+void CaptureDuty::migrateOcrSettings()
+{
+    auto keys = storage_.section();
+    if (keys.value<int>("ocrConfigVersion", 0) >= 1) return;
+
+    auto const tesseract = storedTesseractConfig(storage_);
+    auto const resolved  = capture::resolveTesseract(tesseract);
+    auto const usable    = [&](char const* code) {
+        QFileInfo const file{QDir{resolved.dataDirectory}.filePath(QString::fromLatin1(code) + QStringLiteral(".traineddata"))};
+        return file.isReadable() and file.size() > 0;
+    };
+    auto const decision = capture::decideOcrMigration(
+        {.version         = 0,
+         .customTesseract = not tesseract.executable.trimmed().isEmpty() or not tesseract.dataDirectory.trimmed().isEmpty(),
+         .englishData     = usable("eng"),
+         .chineseData     = usable("chi_sim")});
+    if (not decision.migrate) return;
+
+    // Version last: a run interrupted between these writes starts the same migration again.
+    settings::write(keys, *core::settings::find("ocrLocalEngine"), capture::localEngineKey(decision.engine));
+    settings::write(keys, *core::settings::find("ocrLocalLanguage"), capture::ocrLanguageKey(decision.language));
+    settings::write(keys, *core::settings::find("ocrMode"), QStringLiteral("local"));
+    settings::write(keys, *core::settings::find("ocrConfigVersion"), decision.version);
+    LENS_INFO("OCR settings migrated to engine '{}', language '{}'",
+              capture::localEngineKey(decision.engine).toStdString(),
+              capture::ocrLanguageKey(decision.language).toStdString());
 }
 
 void CaptureDuty::invalidateScan()
@@ -169,6 +309,58 @@ bool CaptureDuty::setSetting(std::string_view const key, QVariant const& value)
     }
     if (key == "tesseractDataDirectory") {
         setTesseractDataDirectory(value.toString());
+        return true;
+    }
+    if (key == "rapidOcrExecutable") {
+        setRapidOcrExecutable(value.toString());
+        return true;
+    }
+    if (key == "rapidOcrModelsDirectory") {
+        setRapidOcrModelsDirectory(value.toString());
+        return true;
+    }
+    if (key == "rapidOcrTrust") {
+        if (not settings::write(storage_.section(), *core::settings::find("rapidOcrTrust"), value.toString())) return false;
+        rapidOcrDetectState_ = QStringLiteral("idle");
+        rapidOcrDetectMs_    = 0;
+        rebuildOcr();
+        return true;
+    }
+    if (key == "ocrLocalEngine") {
+        if (not capture::parseLocalEngine(value.toString().toStdString())) return false;
+        setOcrLocalEngine(value.toString());
+        return true;
+    }
+    if (key == "ocrLocalLanguage") {
+        if (not capture::parseOcrLanguage(value.toString().toStdString())) return false;
+        setOcrLocalLanguage(value.toString());
+        return true;
+    }
+    if (key == "ocrMode") {
+        if (value.toString() != QLatin1String("local") and value.toString() != QLatin1String("online")) return false;
+        setOcrMode(value.toString());
+        return true;
+    }
+    if (key == "ocrOnlineProvider") {
+        auto const text = value.toString().trimmed();
+        if (not text.isEmpty() and text != QLatin1String("ocrspace")) return false;
+        setOcrOnlineProvider(text);
+        return true;
+    }
+    if (key == "ocrOnlineEndpoint") {
+        auto const text = value.toString().trimmed();
+        if (not text.isEmpty() and ocr::validateOcrSpaceEndpoint(QUrl{text})) return false;
+        setOcrOnlineEndpoint(text);
+        return true;
+    }
+    if (key == "ocrOnlineLanguage") {
+        if (ocr::validateOcrSpaceLanguage(value.toString())) return false;
+        setOcrOnlineLanguage(value.toString());
+        return true;
+    }
+    if (key == "ocrConfigVersion") {
+        if (not settings::write(storage_.section(), *core::settings::find("ocrConfigVersion"), value)) return false;
+        emit settingsChanged();
         return true;
     }
     LENS_WARN("'{}' is not a capture setting; nothing was written", std::string{key});
@@ -239,18 +431,152 @@ void CaptureDuty::setTesseractDataDirectory(QString directory)
     rebuildOcr();
 }
 
+void CaptureDuty::setRapidOcrExecutable(QString executable)
+{
+    auto const value = executable.trimmed();
+    auto       keys  = storage_.section();
+    if (value == settings::read(keys, *core::settings::find("rapidOcrExecutable")).toString()) return;
+    if (not settings::write(keys, *core::settings::find("rapidOcrExecutable"), value)) return;
+    settings::write(keys, *core::settings::find("rapidOcrTrust"), QString{});
+    rapidOcrDetectState_ = QStringLiteral("idle");
+    rapidOcrDetectMs_    = 0;
+    rebuildOcr();
+}
+
+void CaptureDuty::setRapidOcrModelsDirectory(QString directory)
+{
+    auto const value = directory.trimmed();
+    auto       keys  = storage_.section();
+    if (value == settings::read(keys, *core::settings::find("rapidOcrModelsDirectory")).toString()) return;
+    if (not settings::write(keys, *core::settings::find("rapidOcrModelsDirectory"), value)) return;
+    settings::write(keys, *core::settings::find("rapidOcrTrust"), QString{});
+    rapidOcrDetectState_ = QStringLiteral("idle");
+    rapidOcrDetectMs_    = 0;
+    rebuildOcr();
+}
+
+void CaptureDuty::setOcrLocalEngine(QString engine)
+{
+    auto const value = engine.trimmed();
+    if (not capture::parseLocalEngine(value.toStdString())) return;
+    auto keys = storage_.section();
+    if (value == settings::read(keys, *core::settings::find("ocrLocalEngine")).toString()) return;
+    if (not settings::write(keys, *core::settings::find("ocrLocalEngine"), value)) return;
+    rapidOcrDetectState_ = QStringLiteral("idle");
+    rapidOcrDetectMs_    = 0;
+    rebuildOcr();
+}
+
+void CaptureDuty::setOcrLocalLanguage(QString language)
+{
+    auto const value = language.trimmed();
+    if (not capture::parseOcrLanguage(value.toStdString())) return;
+    auto keys = storage_.section();
+    if (value == settings::read(keys, *core::settings::find("ocrLocalLanguage")).toString()) return;
+    if (not settings::write(keys, *core::settings::find("ocrLocalLanguage"), value)) return;
+    if (settings::read(keys, *core::settings::find("ocrLocalEngine")).toString() == QLatin1String("rapidocr")) {
+        settings::write(keys, *core::settings::find("rapidOcrTrust"), QString{});
+        rapidOcrDetectState_ = QStringLiteral("idle");
+        rapidOcrDetectMs_    = 0;
+    }
+    rebuildOcr();
+}
+
+void CaptureDuty::setOcrMode(QString mode)
+{
+    auto const value = mode.trimmed();
+    if (value != QLatin1String("local") and value != QLatin1String("online")) return;
+    auto keys = storage_.section();
+    if (value == settings::read(keys, *core::settings::find("ocrMode")).toString()) return;
+    if (not settings::write(keys, *core::settings::find("ocrMode"), value)) return;
+    // A screenshot already in flight was frozen under the old mode and must not land in the new one.
+    ++screenshotGeneration_;
+    clearUpload(QStringLiteral("configuration-changed"), true);
+    emit settingsChanged();
+}
+
+void CaptureDuty::setOcrOnlineProvider(QString provider)
+{
+    auto const value = provider.trimmed();
+    if (not value.isEmpty() and value != QLatin1String("ocrspace")) return;
+    auto       keys     = storage_.section();
+    auto const previous = settings::read(keys, *core::settings::find("ocrOnlineProvider")).toString();
+    if (value == previous) return;
+    if (not settings::write(keys, *core::settings::find("ocrOnlineProvider"), value)) return;
+    // A credential is bound to the destination it was entered for.
+    if (not previous.isEmpty()) keys.set<std::string>("OCR-API-KEY", {});
+    invalidateOnlineConfiguration();
+}
+
+void CaptureDuty::setOcrOnlineEndpoint(QString endpoint)
+{
+    auto const value = endpoint.trimmed();
+    if (not value.isEmpty() and ocr::validateOcrSpaceEndpoint(QUrl{value})) return;
+    auto       keys     = storage_.section();
+    auto const previous = settings::read(keys, *core::settings::find("ocrOnlineEndpoint")).toString();
+    if (value == previous) return;
+    if (not settings::write(keys, *core::settings::find("ocrOnlineEndpoint"), value)) return;
+    // The first release offers one protocol; naming its endpoint is what selects it.
+    if (not value.isEmpty()) settings::write(keys, *core::settings::find("ocrOnlineProvider"), QStringLiteral("ocrspace"));
+    // A key entered for the previous address is never sent to a new one; the reader must bind it
+    // again. Clearing only the key is enough: the endpoint stays visible for the re-entry.
+    if (not previous.isEmpty() and value != previous) keys.set<std::string>("OCR-API-KEY", {});
+    invalidateOnlineConfiguration();
+}
+
+void CaptureDuty::setOcrOnlineLanguage(QString language)
+{
+    auto const value = language.trimmed();
+    if (ocr::validateOcrSpaceLanguage(value)) return;
+    auto keys = storage_.section();
+    if (value == settings::read(keys, *core::settings::find("ocrOnlineLanguage")).toString()) return;
+    if (not settings::write(keys, *core::settings::find("ocrOnlineLanguage"), value)) return;
+    invalidateOnlineConfiguration();
+}
+
+bool CaptureDuty::onlineConfigured() const
+{
+    auto const keys     = storage_.section();
+    auto const provider = settings::read(keys, *core::settings::find("ocrOnlineProvider")).toString();
+    auto const endpoint = settings::read(keys, *core::settings::find("ocrOnlineEndpoint")).toString();
+    auto const language = settings::read(keys, *core::settings::find("ocrOnlineLanguage")).toString();
+    return provider == QLatin1String("ocrspace") and not endpoint.isEmpty() and not ocr::validateOcrSpaceEndpoint(QUrl{endpoint}) and
+           not onlineKey().isEmpty() and not ocr::validateOcrSpaceLanguage(language);
+}
+
+QString CaptureDuty::onlineKey() const
+{
+    return QString::fromStdString(storage_.section().value<std::string>("OCR-API-KEY", {}));
+}
+
+void CaptureDuty::invalidateOnlineConfiguration()
+{
+    if (jobContext_ and jobContext_->test) {
+        executor_->cancel();
+        jobContext_.reset();
+        ocrTestState_ = QStringLiteral("idle");
+    }
+    clearUpload(QStringLiteral("configuration-changed"), true);
+    emit settingsChanged();
+}
+
 void CaptureDuty::rebuildOcr()
 {
-    ocr_ = capture::makeTesseractOcr(storedTesseractConfig(storage_));
-    // A probe in flight belongs to the engine that just went away, and its answer would land on
-    // the new one's state. Drop it the way the destructor does, then ask again.
-    if (job_) {
-        job_->cancelled->store(true, std::memory_order_relaxed);
-        job_.reset();
-        jobContext_.reset();
-        pollTimer_.stop();
-    }
-    probeOcr();
+    // A probe or recognition in flight belongs to the engine that just went away, and its answer
+    // would land on the new one's state. Cancel it before the old engine is released.
+    executor_->cancel();
+    jobContext_.reset();
+    auto const local = storedLocalConfig(storage_);
+    ocr_             = capture::makeLocalOcr(local);
+    // Ordinary readiness is a file/resource inspection; no child process is started until the
+    // reader asks for a real test or captures a region. RapidOCR's digest is verified here, at
+    // startup and after a path or language change, rather than on every settings projection.
+    localInspection_ = capture::inspectLocalOcr(local, true);
+    ocrState_        = localInspection_.status;
+    ocrTestState_    = QStringLiteral("idle");
+    ocrTestEngine_.clear();
+    ocrTestLanguage_.clear();
+    ocrTestMs_ = 0;
     emit settingsChanged();
 }
 
@@ -280,61 +606,342 @@ void CaptureDuty::setBudgetPaused(bool const paused)
 
 void CaptureDuty::probeOcr()
 {
-    if (job_) return;
-    jobContext_ = OcrJob{.probe = true};
-    auto state  = std::make_shared<OcrJobState>();
-    job_        = state;
-    auto engine = ocr_;
-    std::thread([state, engine = std::move(engine)] {
+    if (jobContext_ or executor_->busy()) return;
+    auto const id      = ++nextRequestId_;
+    auto       engine  = ocr_;
+    auto const started = executor_->start(id, [engine](std::shared_ptr<std::atomic_bool> cancel) {
         capture::OcrResult result;
         try {
-            result.status = engine->probe(state->cancelled);
+            result.status = engine->probe(std::move(cancel));
         } catch (...) {
             result.status = capture::OcrStatus::Failed;
         }
-        std::lock_guard lock{state->mutex};
-        state->result = std::move(result);
-        state->done   = true;
-    }).detach();
-    pollTimer_.start();
+        return result;
+    });
+    if (not started) return;
+    jobContext_ = OcrJob{.requestId = id, .probe = true};
     emit settingsChanged();
 }
 
-void CaptureDuty::launchOcr(QImage image, QPoint const anchor, QString context)
+void CaptureDuty::testLocalOcr()
 {
-    auto const generation = context.isEmpty() ? screenshotGeneration_ : generation_;
-    jobContext_           = OcrJob{.anchor = anchor, .context = std::move(context), .generation = generation};
-    auto state            = std::make_shared<OcrJobState>();
-    job_                  = state;
-    auto engine           = ocr_;
-    std::thread([state, engine = std::move(engine), image = std::move(image)] {
-        capture::OcrResult result;
+    if (jobContext_ or executor_->busy()) return;
+    auto const          local = storedLocalConfig(storage_);
+    auto const          id    = ++nextRequestId_;
+    capture::OcrRequest request{.requestId = id,
+                                .source    = capture::OcrSource::LocalTest,
+                                .image     = localTestImage(local.language),
+                                .language  = local.language,
+                                .deadline  = std::chrono::milliseconds{10000}};
+    auto                engine  = ocr_;
+    auto const          started = executor_->start(id, [engine, request = std::move(request)](std::shared_ptr<std::atomic_bool> cancel) {
         try {
-            result = engine->recognize(image, state->cancelled);
+            return engine->recognize(request, std::move(cancel));
         } catch (...) {
-            result.status = capture::OcrStatus::Failed;
+            return capture::OcrResult{.status = capture::OcrStatus::Failed, .requestId = request.requestId};
         }
-        std::lock_guard lock{state->mutex};
-        state->result = std::move(result);
-        state->done   = true;
-    }).detach();
-    pollTimer_.start();
+    });
+    if (not started) return;
+    jobContext_   = OcrJob{.requestId = id, .test = true};
+    ocrTestState_ = QStringLiteral("checking");
+    emit settingsChanged();
+}
+
+void CaptureDuty::detectRapidOcr()
+{
+    if (jobContext_ or executor_->busy()) return;
+    auto config           = storedRapidOcrConfig(storage_);
+    config.requireTrust   = false;
+    auto const inspection = capture::inspectRapidOcr(config);
+    if (inspection.status != capture::OcrStatus::Ready) {
+        rapidOcrDetectState_ = statusToken(inspection.status);
+        rapidOcrDetectMs_    = 0;
+        emit settingsChanged();
+        return;
+    }
+
+    auto const id      = ++nextRequestId_;
+    auto       engine  = std::shared_ptr<capture::OcrEngine>(capture::makeRapidOcr(config));
+    auto const request = capture::OcrRequest{.requestId = id,
+                                             .source    = capture::OcrSource::LocalTest,
+                                             .image     = localTestImage(capture::OcrLanguage::English),
+                                             .language  = config.language,
+                                             .deadline  = std::chrono::milliseconds{10000}};
+    auto const started = executor_->start(id, [engine, request](std::shared_ptr<std::atomic_bool> cancel) {
+        try {
+            return engine->recognize(request, std::move(cancel));
+        } catch (...) {
+            return capture::OcrResult{.status = capture::OcrStatus::Failed, .requestId = request.requestId};
+        }
+    });
+    if (not started) return;
+    jobContext_          = OcrJob{.requestId = id, .detectRapid = true};
+    rapidOcrDetectState_ = QStringLiteral("checking");
+    rapidOcrDetectMs_    = 0;
+    emit settingsChanged();
+}
+
+void CaptureDuty::beginOnlineUpload(QImage image, QPoint const anchor)
+{
+    if (not onlineConfigured()) {
+        emit screenshotFailed(CaptureRefusal::OnlineNotConfigured);
+        return;
+    }
+    clearUpload(QStringLiteral("replaced"), false);
+    // A confirmation is not a pause the scan may resume from: the frozen crop and the scan's
+    // previous stable text must not revive each other.
+    invalidateScan();
+
+    auto const    keys = storage_.section();
+    PendingUpload pending;
+    pending.requestId        = ++nextRequestId_;
+    pending.image            = std::move(image);
+    pending.anchor           = anchor;
+    pending.endpoint         = QUrl{settings::read(keys, *core::settings::find("ocrOnlineEndpoint")).toString()};
+    pending.apiKey           = onlineKey();
+    pending.language         = settings::read(keys, *core::settings::find("ocrOnlineLanguage")).toString();
+    pending.absoluteDeadline = std::chrono::steady_clock::now() + std::chrono::seconds{120};
+    upload_                  = std::move(pending);
+    uploadPhase_             = QStringLiteral("awaiting-consent");
+    uploadCanRetry_          = false;
+    consentTimer_.start(60000);
+    uploadTimer_.start(120000);
+    emit uploadPreviewReady(static_cast<qulonglong>(upload_->requestId), upload_->image);
+    emit uploadConsentRequested(QVariantMap{{"requestId", static_cast<qulonglong>(upload_->requestId)},
+                                            {"host", upload_->endpoint.host()},
+                                            {"provider", QStringLiteral("ocrspace")},
+                                            {"language", upload_->language},
+                                            {"expiresInMs", 60000},
+                                            {"previewUrl", QStringLiteral("image://ocr-consent/%1").arg(upload_->requestId)}});
+    emit settingsChanged();
+}
+
+void CaptureDuty::confirmOnlineUpload(qulonglong const requestId)
+{
+    if (not upload_ or upload_->requestId != requestId) return;
+    auto const now = std::chrono::steady_clock::now();
+    if (now >= upload_->absoluteDeadline) {
+        clearUpload(QStringLiteral("expired"), true);
+        return;
+    }
+    if (upload_->attempts >= 2) {
+        clearUpload(QStringLiteral("retry-limit"), true);
+        return;
+    }
+    std::shared_ptr<ocr::OnlineOcrClient> client{
+        ocr::makeOcrSpaceClient({.endpoint = upload_->endpoint, .apiKey = upload_->apiKey, .language = upload_->language},
+                                onlineTransport_)};
+    if (not client) {
+        clearUpload(QStringLiteral("configuration-changed"), true);
+        return;
+    }
+
+    auto const          remaining = std::chrono::duration_cast<std::chrono::milliseconds>(upload_->absoluteDeadline - now);
+    auto const          budget    = std::min(std::chrono::milliseconds{30000}, remaining);
+    auto const          id        = upload_->requestId;
+    capture::OcrRequest request{.requestId = id,
+                                .source    = capture::OcrSource::Screenshot,
+                                .image     = upload_->image,
+                                .language  = std::nullopt,
+                                .layout    = capture::OcrLayoutHint::Unknown,
+                                .deadline  = budget};
+    ++upload_->attempts;
+    uploadPhase_    = QStringLiteral("uploading");
+    uploadCanRetry_ = false;
+    consentTimer_.stop();
+
+    auto const started = executor_->start(id, [client = std::move(client), request = std::move(request)](std::shared_ptr<std::atomic_bool> cancel) mutable {
+        try {
+            return client->recognize(request, std::move(cancel));
+        } catch (...) {
+            return capture::OcrResult{.status = capture::OcrStatus::Failed, .requestId = request.requestId};
+        }
+    });
+    if (not started) {
+        uploadPhase_    = QStringLiteral("awaiting-retry");
+        uploadCanRetry_ = true;
+        consentTimer_.start(30000);
+        emit uploadFinished(QVariantMap{{"status", QStringLiteral("busy")},
+                                        {"requestId", static_cast<qulonglong>(id)},
+                                        {"canRetry", true}});
+        emit settingsChanged();
+        return;
+    }
+    jobContext_ = OcrJob{.anchor = upload_->anchor, .generation = screenshotGeneration_, .requestId = id, .online = true};
+    emit settingsChanged();
+}
+
+void CaptureDuty::cancelOnlineUpload()
+{
+    clearUpload(QStringLiteral("cancelled"), true);
+}
+
+void CaptureDuty::onConsentTimeout()
+{
+    if (not upload_) return;
+    if (uploadPhase_ == QLatin1String("awaiting-consent"))
+        clearUpload(QStringLiteral("consent-expired"), true);
+    else if (uploadPhase_ == QLatin1String("awaiting-retry"))
+        clearUpload(QStringLiteral("retry-expired"), true);
+}
+
+void CaptureDuty::onUploadTimeout()
+{
+    if (not upload_) return;
+    if (jobContext_ and jobContext_->online) executor_->cancel();
+    clearUpload(QStringLiteral("expired"), true);
+}
+
+void CaptureDuty::finishOnline(capture::OcrResult const& result)
+{
+    if (not upload_) return;
+    auto const requestId = upload_->requestId;
+    auto const anchor    = upload_->anchor;
+    auto const attempts  = upload_->attempts;
+    auto const absolute  = upload_->absoluteDeadline;
+    auto const refusal   = refusalOf(result.status);
+    auto const token     = refusal ? tokenOf(*refusal) : QStringLiteral("ready");
+
+    if (result.status == capture::OcrStatus::Ready) {
+        auto const text = result.text;
+        clearUpload(QStringLiteral("ready"), false);
+        emit uploadFinished(QVariantMap{{"status", token},
+                                        {"requestId", static_cast<qulonglong>(requestId)},
+                                        {"engine", result.actualEngine},
+                                        {"canRetry", false}});
+        classifyText(text, anchor, true);
+        return;
+    }
+    if (result.status == capture::OcrStatus::Cancelled) {
+        clearUpload(QStringLiteral("cancelled"), true);
+        return;
+    }
+    bool const retryable = (result.status == capture::OcrStatus::TimedOut or
+                            result.status == capture::OcrStatus::TransportFailed) and
+                           attempts < 2 and std::chrono::steady_clock::now() < absolute and
+                           result.uploadState != capture::OcrUploadState::NotUploaded;
+    if (retryable) {
+        uploadPhase_    = QStringLiteral("awaiting-retry");
+        uploadCanRetry_ = true;
+        consentTimer_.start(30000);
+        emit uploadFinished(QVariantMap{{"status", token},
+                                        {"requestId", static_cast<qulonglong>(requestId)},
+                                        {"canRetry", true}});
+        emit settingsChanged();
+        return;
+    }
+    clearUpload(token, true);
+}
+
+void CaptureDuty::clearUpload(QString outcome, bool const notify)
+{
+    auto const requestId = upload_ ? upload_->requestId : 0;
+    auto const hadUpload = upload_.has_value();
+    consentTimer_.stop();
+    uploadTimer_.stop();
+    if (jobContext_ and jobContext_->online) {
+        executor_->cancel();
+        jobContext_.reset();
+    }
+    upload_.reset();
+    uploadPhase_    = QStringLiteral("idle");
+    uploadCanRetry_ = false;
+    if (hadUpload) invalidateScan();
+    if (notify and hadUpload)
+        emit uploadFinished(QVariantMap{{"status", std::move(outcome)},
+                                        {"requestId", static_cast<qulonglong>(requestId)},
+                                        {"canRetry", false}});
+    if (hadUpload) emit settingsChanged();
+}
+
+void CaptureDuty::testOnlineOcr()
+{
+    if (jobContext_ or upload_ or executor_->busy()) return;
+    if (budgetPaused_) {
+        ocrTestState_ = QStringLiteral("budget-paused");
+        emit settingsChanged();
+        return;
+    }
+    if (not onlineConfigured()) {
+        ocrTestState_ = QStringLiteral("online-unconfigured");
+        emit settingsChanged();
+        return;
+    }
+    auto const keys   = storage_.section();
+    auto       client = std::shared_ptr<ocr::OnlineOcrClient>{ocr::makeOcrSpaceClient(
+        {.endpoint = QUrl{settings::read(keys, *core::settings::find("ocrOnlineEndpoint")).toString()},
+               .apiKey   = onlineKey(),
+               .language = settings::read(keys, *core::settings::find("ocrOnlineLanguage")).toString()},
+        onlineTransport_)};
+    if (not client) {
+        ocrTestState_ = QStringLiteral("online-unconfigured");
+        emit settingsChanged();
+        return;
+    }
+    auto const          id = ++nextRequestId_;
+    capture::OcrRequest request{.requestId = id,
+                                .source    = capture::OcrSource::OnlineTest,
+                                .image     = localTestImage(capture::OcrLanguage::English),
+                                .deadline  = std::chrono::milliseconds{30000}};
+    ocrTestState_      = QStringLiteral("checking");
+    auto const started = executor_->start(id, [client = std::move(client), request = std::move(request)](std::shared_ptr<std::atomic_bool> cancel) mutable {
+        try {
+            return client->recognize(request, std::move(cancel));
+        } catch (...) {
+            return capture::OcrResult{.status = capture::OcrStatus::Failed, .requestId = request.requestId};
+        }
+    });
+    if (not started) {
+        ocrTestState_ = QStringLiteral("busy");
+        emit settingsChanged();
+        return;
+    }
+    jobContext_ = OcrJob{.requestId = id, .test = true};
+    emit settingsChanged();
+}
+
+bool CaptureDuty::launchOcr(QImage image, QPoint const anchor, QString context)
+{
+    auto const          generation = context.isEmpty() ? screenshotGeneration_ : generation_;
+    auto const          id         = ++nextRequestId_;
+    capture::OcrRequest request{.requestId = id,
+                                .source    = context.isEmpty() ? capture::OcrSource::Screenshot : capture::OcrSource::AutoScan,
+                                .image     = std::move(image),
+                                .deadline  = std::chrono::milliseconds{10000}};
+    auto                engine  = ocr_;
+    auto const          started = executor_->start(id, [engine, request = std::move(request)](std::shared_ptr<std::atomic_bool> cancel) {
+        try {
+            return engine->recognize(request, std::move(cancel));
+        } catch (...) {
+            return capture::OcrResult{.status = capture::OcrStatus::Failed, .requestId = request.requestId};
+        }
+    });
+    if (not started) return false;
+    jobContext_ = OcrJob{.anchor = anchor, .context = std::move(context), .generation = generation, .requestId = id};
+    return true;
 }
 
 std::optional<CaptureRefusal> CaptureDuty::captureRefusalReason() const
 {
-    return gateRefusal({.budgetPaused = budgetPaused_,
-                        .probing      = jobContext_ and jobContext_->probe,
-                        .busy         = job_ != nullptr,
-                        .screenshotOn = settings().value("ocrCapture").toBool(),
-                        .runtime      = ocrState_});
+    auto const online = settings::read(storage_.section(), *core::settings::find("ocrMode")).toString() == QLatin1String("online");
+    return gateRefusal({.budgetPaused     = budgetPaused_,
+                        .probing          = jobContext_ and jobContext_->probe,
+                        .busy             = jobContext_.has_value(),
+                        .screenshotOn     = settings().value("ocrCapture").toBool(),
+                        .online           = online,
+                        .onlineConfigured = online and onlineConfigured(),
+                        .runtime          = ocrState_});
 }
 
 bool CaptureDuty::captureScreenshot(QImage image, QPoint const anchor)
 {
     if (captureRefusalReason()) return false;
-    launchOcr(std::move(image), anchor, {});
-    return true;
+    auto const online = settings::read(storage_.section(), *core::settings::find("ocrMode")).toString() == QLatin1String("online");
+    if (online) {
+        beginOnlineUpload(std::move(image), anchor);
+        return true;
+    }
+    return launchOcr(std::move(image), anchor, {});
 }
 
 std::optional<CaptureRefusal> CaptureDuty::captureRegion(QRect const region)
@@ -372,7 +979,7 @@ void CaptureDuty::scanTick()
         invalidateScan();
         scanContext_ = foreground->context;
     }
-    if (job_) return;
+    if (jobContext_ or upload_) return;
     QScreen* screen = nullptr;
     for (auto* const candidate : QGuiApplication::screens())
         if (monitorOf(candidate) == foreground->monitor) {
@@ -394,20 +1001,44 @@ void CaptureDuty::scanTick()
         publishBatch(now, scanAnchor_);
 }
 
-void CaptureDuty::pollOcr()
+void CaptureDuty::onOcrFinished(std::uint64_t const requestId, capture::OcrResult result)
 {
-    if (not job_) return;
-    auto               state = job_;
-    capture::OcrResult result;
-    {
-        std::lock_guard lock{state->mutex};
-        if (not state->done) return;
-        result = state->result;
-    }
+    if (not jobContext_ or jobContext_->requestId != requestId) return;
     auto const context = *jobContext_;
-    job_.reset();
     jobContext_.reset();
-    pollTimer_.stop();
+    if (context.online) {
+        finishOnline(result);
+        return;
+    }
+    if (context.detectRapid) {
+        auto const trusted = result.status == capture::OcrStatus::Ready and
+                             result.text.contains(QStringLiteral("Lens"), Qt::CaseInsensitive);
+        auto keys = storage_.section();
+        if (trusted) {
+            auto const digest = capture::rapidOcrTrustDigest(storedRapidOcrConfig(storage_));
+            if (not digest.isEmpty() and settings::write(keys, *core::settings::find("rapidOcrTrust"), digest)) {
+                rapidOcrDetectState_ = QStringLiteral("ready");
+                rapidOcrDetectMs_    = result.timing.totalMs;
+                rebuildOcr();
+                return;
+            }
+        }
+        settings::write(keys, *core::settings::find("rapidOcrTrust"), QString{});
+        rapidOcrDetectState_ = result.status == capture::OcrStatus::Ready ? QStringLiteral("failed")
+                                                                          : statusToken(result.status);
+        rapidOcrDetectMs_    = result.timing.totalMs;
+        rebuildOcr();
+        return;
+    }
+    if (context.test) {
+        auto const refusal = refusalOf(result.status);
+        ocrTestState_      = refusal ? tokenOf(*refusal) : QStringLiteral("ready");
+        ocrTestEngine_     = result.actualEngine;
+        ocrTestLanguage_   = result.languageUsed;
+        ocrTestMs_         = result.timing.totalMs;
+        emit settingsChanged();
+        return;
+    }
     if (context.probe) {
         ocrState_ = result.status;
         emit settingsChanged();
@@ -432,6 +1063,7 @@ void CaptureDuty::pollOcr()
         invalidateScan();
         return;
     }
+    if (result.status == capture::OcrStatus::Cancelled) return;
     if (result.status != capture::OcrStatus::Ready) {
         // The status this result carried, never ocrStatus(): that reads ocrState_, which the gate
         // requires to be Ready before a framed capture starts at all -- so ocrStatus() would report

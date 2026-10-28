@@ -1,7 +1,7 @@
 # LLM 协议
 > 权威：当前线上协议。**实际生效的定义在 `data/llm/` 目录**，代码只组装与校验，不内联任何提示词或字段名；历史取舍见 `docs/adr/`。
 >
-> 待实现的在线 OCR 是独立图片请求，不属于下列解释通道；首个候选协议与响应适配见 [OCR 开发方案第 7 节](docs/ocr-development.md#7-第一批外部协议适配)，上线后再在本文登记正式 wire contract。
+> 在线 OCR 是独立图片请求，不属于下列解释通道；首个协议与响应适配见 [OCR 开发方案第 7 节](docs/ocr-development.md#7-第一批外部协议适配)，实现状态见 §8。真实 OCR.space 往返尚未执行。
 
 服务商、模型与端点由 `data/llm/catalog.json` 驱动，默认是 DeepSeek；解释请求使用 OpenAI 兼容的 `POST {baseUrl}/chat/completions`，请求头为 `Content-Type: application/json` 与 `Authorization: Bearer <API-KEY>`。模型列表不问服务商：**全部服务商共用 `modelSource` 声明的那一个源**，回答按厂商前缀切分。当前目录包含 DeepSeek（`deepseek-flash`、`deepseek-v4-pro`）、OpenAI（`gpt-4.1-mini`、`gpt-4.1-nano`）和 Custom；Custom 允许在设置中填写模型与 HTTPS 服务地址。价目独立放在 `data/llm/pricing.json`。
 
@@ -316,3 +316,22 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 - `src/llm/llm_pricing.{h,cpp}` — 加载价目、把 `Usage` 折成金额
 - `src/llm/llm_pure.{h,cpp}` — 组装请求体、校验响应、读 `usage`，均无网络
 - `test/googletest/unit/llm_pure_test.cpp` — 用固定样例锁住上述行为
+
+## 8 在线 OCR：OCR.space（已实现，真实服务未验证）
+
+在线 OCR 是独立通道，不经过上面的解释请求；实现住在 `src/ocr/`，结果类型来自 `src/capture/ocr_engine.h`。截至 2026-10-28 只用注入传输与合成图验证，**未向真实端点发送过请求**。
+
+| 项 | 取值 |
+|---|---|
+| 方法与端点 | `POST https://api.ocr.space/parse/image`，端点由读者填写完整 HTTPS URL |
+| 鉴权 | `apikey` 请求头；不进 query、不进 multipart 文本字段 |
+| 内容类型 | `multipart/form-data`，boundary 由本地生成 |
+| 图片字段 | `file`，内存 PNG，文件名固定 `capture.png` |
+| 引擎与版面 | `OCREngine=2`、`isOverlayRequired=true`、`language=eng` 或 `auto` |
+| 上传上限 | PNG 字节 ≤ 950,000；超限在构造请求前拒绝，不做有损重压 |
+| 时间与大小 | 单次 30 秒，且不超过事务剩余时间；响应 ≤ 4 MiB |
+| 重定向 | 禁止跟随；3xx 视为端点配置错误，不把 key 带到新地址 |
+
+成功响应必须同时满足：`OCRExitCode=1`、`IsErroredOnProcessing=false`、`ParsedResults` 恰有一项、`FileParseExitCode=1`、`ParsedText` 为字符串。`OCRExitCode=2` 返回部分识别错误，不进入翻译。`TextOverlay.Lines[].Words[]` 的 `WordText` / `Left` / `Top` / `Width` / `Height` 用于词框，行框为词框并集；坐标必须落在原裁剪图内。该协议没有可依据的置信度字段，统一返回缺失；overlay 缺失但文本有效时允许纯文本成功。
+
+请求来源必须是已确认的手动截图或显式在线检测；`AutoScan` 在编码前即被拒绝。未确认、取消、端点或密钥改变都保持上传次数为 0；传输失败或超时最多接受一次显式人工重试，不自动重试。`src/ocr/ocr_space.cpp` 是协议与边界检查的唯一位置，`test/googletest/unit/ocr_space_test.cpp` 用替身锁住请求字段、响应映射与零上传断言。

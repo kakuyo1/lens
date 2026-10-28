@@ -40,6 +40,7 @@ Window {
     /// the stored settings.
     property var previewLanguage: null
     property string apiDraft: ""
+    property string ocrApiDraft: ""
     property string saveStatus: ""
     /// The footer's Defaults asks a second time before it writes anything: one press turns the
     /// pill into Confirm beside Cancel, and only Confirm calls restoreDefaults().
@@ -80,15 +81,18 @@ Window {
     function routeTitle(value) {
         if (value === "font") return qsTranslate("SettingsPopup", "Font");
         if (value === "clipboard") return qsTranslate("SettingsPopup", "Popup & clipboard");
+        if (value === "ocr") return qsTranslate("SettingsPopup", "OCR engine");
+        if (value === "ocr-online") return qsTranslate("SettingsPopup", "Online OCR");
         if (value === "connection") return qsTranslate("SettingsPopup", "API configuration");
         if (value === "sync") return qsTranslate("SettingsPopup", "Account & sync");
         return categoryTitle(category);
     }
 
     function closeChild() {
-        // The key is the one setting typed into a draft; leaving the connection page or the panel
-        // has to write it, since the footer no longer carries a Save button for it.
+        // The keys are the settings typed into drafts; leaving the page or the panel has to write
+        // them, since the footer no longer carries a Save button for either.
         settings.commitApiDraft();
+        settings.commitOcrApiDraft();
         // qmllint disable missing-property
         if (viewLoader.status === Loader.Ready && viewLoader.item && viewLoader.item.closeChild)
             viewLoader.item.closeChild();
@@ -308,6 +312,15 @@ Window {
         saveStatus = qsTranslate("SettingsPopup", "Saved");
     }
 
+    /// @brief Write the OCR key typed into the online page, if any, and clear the draft.
+    function commitOcrApiDraft() {
+        if (ocrApiDraft.length === 0)
+            return;
+        Controller.setOcrApiKey(ocrApiDraft);
+        ocrApiDraft = "";
+        saveStatus = qsTranslate("SettingsPopup", "Saved");
+    }
+
     function restoreDefaults() {
         Controller.restoreDefaults();
         confirmingDefaults = false;
@@ -323,6 +336,7 @@ Window {
             category = "";
             route = "";
             apiDraft = "";
+            ocrApiDraft = "";
             saveStatus = "";
             confirmingDefaults = false;
             body.contentY = 0;
@@ -498,6 +512,8 @@ Window {
                         : 0
                 // qmllint enable missing-property
                 sourceComponent: settings.route === "clipboard" ? clipboardComponent
+                                 : settings.route === "ocr" ? ocrComponent
+                                 : settings.route === "ocr-online" ? onlineOcrComponent
                                  : settings.route === "connection" ? connectionComponent
                                  : settings.route === "font" ? fontComponent
                                  : settings.route === "sync" ? syncComponent
@@ -673,6 +689,20 @@ Window {
         id: captureComponent
         SettingsCapturePage {
             onChildRequested: (value) => settings.openRoute(value)
+        }
+    }
+    Component {
+        id: ocrComponent
+        SettingsOcrPage {
+            onChildRequested: (value) => settings.openRoute(value)
+        }
+    }
+    Component {
+        id: onlineOcrComponent
+        SettingsOnlineOcrPage {
+            draftOwner: settings
+            onApiEdited: (value) => settings.ocrApiDraft = value
+            onApiCommitted: settings.commitOcrApiDraft()
         }
     }
     Component {

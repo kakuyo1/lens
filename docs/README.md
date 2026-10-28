@@ -21,7 +21,7 @@
 | 查一个术语 | `GLOSSARY.md` | 词条指向的 owner 文档 |
 | 查某个决定为什么这样做 | `docs/adr/README.md` | 对应 ADR |
 | 查被取代的旧规格、阶段计划或 2026-10 的 critique | `docs/history/` | `docs/history/impeccable/`、对应 ADR |
-| 开发本地与在线多引擎 OCR | `docs/ocr-development.md` | `docs/adr/0130-local-and-online-ocr-are-separate-modes.md`、产品与安全目标约定 |
+| 开发本地与在线多引擎 OCR | `docs/ocr-development.md` | `docs/adr/0130-local-and-online-ocr-are-separate-modes.md`、`docs/adr/0131-windows-ocr-waits-for-a-signed-package.md`、`docs/adr/0132-rapidocr-model-paths-stay-ascii.md`、产品与安全目标约定 |
 | 查 OCR 外部调研与实验依据 | `docs/ocr-research-2026-10.md` | `TODO.md` 的 OCR 段、`docs/adr/0014` |
 | 改 HTML 原型 | `ui-prototypes/README.md` | `DESIGN.md`、`UI-SPEC.md` |
 

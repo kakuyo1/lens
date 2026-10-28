@@ -34,6 +34,7 @@ python scripts/qa/readme-html-compose.py # 裁图、合成语言切换 GIF、学
 ```powershell
 powershell -File scripts/build/show-paths.ps1             # 合并后的机器路径、来源与是否可用
 powershell -File scripts/qa/gtest.ps1 -Filter 'PetThrow*'  # gtest；-Target 缺省 lens_gtest_unit
+powershell -File scripts/qa/ocr-bench.ps1                 # 合成语料的本地 OCR 基线；-Language chi_sim / chi_sim+eng 跑中文与混排；只读语料，不联网
 powershell -File scripts/qa/lens-dev.ps1 -Script <剧本>   # 开发面优先：不移动指针、不抓屏，见 docs/qa.md
 powershell -File scripts/qa/ui-run.ps1        # 起 release 树的应用：旧了就重建，见 docs/qa.md
 powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_components   # 整套；加 -Case <用例> 只跑一条，见 TEST.md 第 2 节

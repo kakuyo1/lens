@@ -37,9 +37,10 @@ function Get-RepositoryRoot {
 
 $root = Get-RepositoryRoot
 . (Join-Path $root "scripts/build/paths.ps1")
+$mergedPaths = Get-LensPaths -Root $root
 
 if ([string]::IsNullOrWhiteSpace($QtBin)) {
-    $QtBin = (Get-LensPaths -Root $root).qtBin
+    $QtBin = $mergedPaths.qtBin
 }
 if ([string]::IsNullOrWhiteSpace($QtBin)) {
     throw "gtest: the merged config carries no qtBin; see scripts/build/show-paths.ps1"
@@ -62,6 +63,10 @@ if (-not (Test-Path -LiteralPath $exe)) { throw "gtest: $exe is not there after 
 
 $env:PATH = "$QtBin;$env:PATH"
 $env:QT_FORCE_STDERR_LOGGING = "1"
+# The real-engine cases skip when this is empty; they never search PATH themselves.
+if (-not [string]::IsNullOrWhiteSpace($mergedPaths.tesseractRoot)) {
+    $env:LENS_TESSERACT_ROOT = $mergedPaths.tesseractRoot
+}
 
 if ([string]::IsNullOrWhiteSpace($Filter)) {
     Write-Output "running $Target (the whole target)"

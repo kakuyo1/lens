@@ -7,6 +7,8 @@
 #   util/         no Qt, and no module above it. qt_log.cpp is the one exception: it is Qt-aware
 #                 and compiled by lens_llm, not lens_util.
 #   core/         no Qt, and nothing above it (app/, llm/, capture/, sync/, update/).
+#   capture/      no ocr/ and no app/: the scan path must not be able to reach the online client.
+#   ocr/          no app/; the online adapter is a capability below the facade.
 #   app/duties/   no glass/, pet/, qml/, or the facade.
 #   app/platform/ no duties/, glass/, pet/, qml/, or the facade.
 #   app/glass/    no duties/, pet/, qml/, or the facade.
@@ -46,6 +48,7 @@ BEGIN {
     APP        = "\"app/"
     CORE       = "\"core/"
     CAPABILITY = "\"(llm|capture|sync|update)/"
+    OCR        = "^[ \t]*#[ \t]*include[ \t]*\"ocr/"
     DUTIES     = "\"app/duties/"
     PLATFORM   = "\"app/platform/"
     GLASS      = "\"app/glass/"
@@ -65,6 +68,11 @@ BEGIN {
         if ($0 ~ QT) hit("core is Qt-free")
         if ($0 ~ APP) hit("core is below app")
         if ($0 ~ CAPABILITY) hit("core is below the capability modules")
+    } else if (FILENAME ~ /^src\/capture\//) {
+        if ($0 ~ OCR) hit("capture must not reach the online OCR client")
+        if ($0 ~ APP) hit("capture is below app")
+    } else if (FILENAME ~ /^src\/ocr\//) {
+        if ($0 ~ APP) hit("the online adapter is below the facade")
     } else if (FILENAME ~ /^src\/app\/duties\//) {
         if ($0 ~ GLASS) hit("a duty does not know the glass subsystem")
         if ($0 ~ PET) hit("a duty does not know the pet shell")

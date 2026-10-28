@@ -118,6 +118,29 @@ Window {
         onRegionChosen: (region) => Controller.captureRegion(region)
     }
 
+    /// The one consent surface for an online capture. It is a window of its own so the frozen crop
+    /// and the destination are read before any upload, and so Escape and Alt+F4 have one meaning.
+    UploadConsent {
+        id: uploadConsent
+        onConfirmed: (requestId) => Controller.captureDuty.confirmOnlineUpload(requestId)
+        onCancelled: () => Controller.captureDuty.cancelOnlineUpload()
+    }
+
+    Connections {
+        target: Controller.captureDuty
+
+        function onUploadConsentRequested(consent) {
+            uploadConsent.open(consent);
+        }
+
+        function onUploadFinished(outcome) {
+            if (outcome.canRetry === true)
+                uploadConsent.showRetry(outcome);
+            else
+                uploadConsent.close();
+        }
+    }
+
     SettingsPopup {
         id: settingsPopup
         onWidthChanged: surfaceHost.keepOnScreen(settingsPopup)

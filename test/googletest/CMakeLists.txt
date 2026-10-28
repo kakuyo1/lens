@@ -58,7 +58,12 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/phase2_explanation_test.cpp
   unit/log_test.cpp
   unit/util_test.cpp
+  unit/consent_preview_test.cpp
   unit/capture_test.cpp
+  unit/ocr_tsv_test.cpp
+  unit/ocr_local_test.cpp
+  unit/ocr_rapidocr_test.cpp
+  unit/ocr_space_test.cpp
   unit/pet_state_test.cpp
   unit/pet_mood_test.cpp
   unit/pet_hover_test.cpp
@@ -126,6 +131,13 @@ add_executable(lens_gtest_integration EXCLUDE_FROM_ALL
   integration/glass_read_pace_test.cpp
   integration/glass_duplication_test.cpp
   integration/glass_capture_test.cpp
+  integration/windows_ocr_probe_test.cpp
+  integration/ocr_engine_probe_test.cpp
+  integration/rapidocr_probe_test.cpp
 )
-target_link_libraries(lens_gtest_integration PRIVATE lens_app lens_core GTest::gtest)
+target_link_libraries(lens_gtest_integration PRIVATE lens_app lens_core GTest::gtest windowsapp)
+# The SDK's C++/WinRT projections use deduced return types inside collection adapters; MSVC's
+# two-phase lookup under /permissive- refuses them (C3779). Scoped to the probe, which is the
+# only translation unit that includes WinRT.
+set_source_files_properties(integration/windows_ocr_probe_test.cpp PROPERTIES COMPILE_OPTIONS "/Zc:twoPhase-")
 lens_gtest_configure(lens_gtest_integration)

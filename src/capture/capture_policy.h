@@ -51,11 +51,30 @@ inline OcrResultFate ocrResultFate(OcrResultContext const& result)
     return OcrResultFate::Current;
 }
 
-/// @return Whether a recognition status speaks of the runtime rather than of the image it was
-///         given: an empty or unreadable region says nothing about whether OCR works.
+/// @return Whether a recognition status speaks of the runtime rather than of the image or answer it
+///         was given: an empty or unreadable region says nothing about whether OCR works.
 constexpr bool isRuntimeFault(OcrStatus const status)
 {
-    return status != OcrStatus::Ready and status != OcrStatus::EmptyText and status != OcrStatus::InvalidImage;
+    switch (status) {
+        case OcrStatus::Ready:
+        case OcrStatus::EmptyText:
+        case OcrStatus::InvalidImage:
+        case OcrStatus::Cancelled:
+        case OcrStatus::ProtocolError:
+        case OcrStatus::InputTooLarge:
+        case OcrStatus::ResultTooLarge:
+        case OcrStatus::TransportFailed:
+        case OcrStatus::PartialResult: return false;
+        case OcrStatus::RuntimeMissing:
+        case OcrStatus::LanguageMissing:
+        case OcrStatus::PathUnsupported:
+        case OcrStatus::Untrusted:
+        case OcrStatus::DeploymentUnsupported:
+        case OcrStatus::StartFailed:
+        case OcrStatus::TimedOut:
+        case OcrStatus::Failed: return true;
+    }
+    return true;
 }
 
 /// @return Whether either axis reaches the threshold, including negative screen origins.
