@@ -27,7 +27,18 @@ web
 ## Operating Context
 
 - 阅读发生在其他应用（浏览器、文档、终端等）里，Lens 在后台伴随。
-- 截图与扫描共用 Tesseract 与 `tessdata/eng.traineddata`：默认取程序目录 `ocr/` 下随包那份，不依赖系统 PATH；读者可在设置里指向自己的 Tesseract。数据目录里另有 `chi_sim.traineddata` 时按 `chi_sim+eng` 识别，中文包在前；随包只带英文那份。
+- 当前截图与扫描共用 Tesseract 与 `tessdata/eng.traineddata`：默认取程序目录 `ocr/` 下随包那份，不依赖系统 PATH；读者可在设置里指向自己的 Tesseract。数据目录里另有 `chi_sim.traineddata` 时按 `chi_sim+eng` 识别，中文包在前；随包只带英文那份。
+
+### OCR 目标约定（已批准，待实现）
+
+以下为下一轮开发的产品约定，不表示当前版本已经支持；技术拆分见 [OCR 开发方案](docs/ocr-development.md)，取舍见 [ADR 0130](docs/adr/0130-local-and-online-ocr-are-separate-modes.md)。
+
+- 手动截图提供本地 / 在线模式，缺省本地；本地默认自动选择，在部署条件与语言满足时优先 Windows OCR，否则回退 Tesseract。明确选择某个后端后不静默回退。
+- 安装包继续只带 Tesseract 与英文数据。RapidOCR／PaddleOCR 的程序与模型由读者自行安装，只开放已通过协议与版本验收的选项，不提供自动下载或插件脚本。
+- 自动扫描始终使用本地引擎，独立于手动截图模式；原生选区仍不走 OCR。现有截图与扫描开关的关闭默认值不变。
+- 在线 OCR 每次只上传读者框选并确认的像素区域；本地失败、低置信度、模式选择或连接检测都不构成截图上传授权。没有自动云端重试或跨服务商回退。
+- 识别后仍由本地分类，必要文字进入既有解释通道；上传确认同时说明后续解释出站。现有 “发送最小化” 约束继续适用于解释请求，不能被解释为在线 OCR 上传前已经完成图像脱敏。
+- OCR 密钥与解释密钥分开配置。在线服务按读者账号计费，不纳入现有模型 token 账单；已知每日预算耗尽仍暂停新请求，但不是 OCR 服务金额上限。连接检测只用明确提交的合成样图，也可能计费。
 
 ## Capabilities and Constraints
 

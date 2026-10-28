@@ -2,6 +2,7 @@
 
 > 调研日期：2026-10-27。star 数为当日 GitHub 页面抓取，会继续变化。
 > 这是一份调研报告，不是规格；它不直接约束行为。真正落地前，引擎切换与结果契约仍要走 ADR。
+> 后续开发入口：[多引擎 OCR 技术开发方案](ocr-development.md)与 [ADR 0130](adr/0130-local-and-online-ocr-are-separate-modes.md)。其中补充了 Windows 部署限制、独立在线模式与现状核对；本文原路线图保留为调研建议，不作为开发验收承诺。
 > 相关现状：`PRODUCT.md` 的「扫描管道」「取词与通道」、`docs/adr/0014`、`docs/adr/0016`、`TODO.md` 的「自动扫描的 OCR 替换方案」。
 
 ## 一页结论
