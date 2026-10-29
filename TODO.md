@@ -11,6 +11,7 @@
 - **本地音色还没在真机上听过**：Kokoro 美式（sid 0 `af_maple`、sid 1 `af_sol`）与英式（sid 2 `bf_vale`）各听一遍，LJSpeech 美式听一遍。确认音质、首音延迟，以及词典外的词是否真的静音；结果记入 `docs/metrics/`。
 - **下载没有端到端跑过**：设置页下载两个模型；断网或取消后确认 `.part` 不残留；删除后自动档静音。
 - **本地输出不缓存**：每次按下都重新合成。按实测决定是否进缓存（`src/app/platform/local_voice.h`）。
+- **Cambridge Dictionary 暂缓**（`docs/adr/0138`）：词条页的音频地址可以解析，但站点的 Cloudflare 对非浏览器 UA 返回 403，只有浏览器 UA 才通过。未绕过。需要决定：放弃，还是接受伪装浏览器 UA（不建议）。
 
 自动播放只对 `cardKind === "selection"` 的单词卡生效（`Bubble.qml` 的 `show()`），预览卡、悬浮复习卡与宠物作答卡都不读；句子、实体、译文与拆解卡没有喇叭（`BubbleCard.qml` 的 `speakable`）。
 

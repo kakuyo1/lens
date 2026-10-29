@@ -106,9 +106,27 @@ bool isHeadword(QString const& word)
     return true;
 }
 
-QString cacheKey(QString const& accent, QString const& word)
+OnlineSource onlineSourceFrom(QString const& value)
 {
-    const QByteArray material = (accent + QLatin1Char('|') + word).toUtf8();
+    if (value == QLatin1String("google"))
+        return OnlineSource::Google;
+    return OnlineSource::Youdao;
+}
+
+QString onlineSourceName(OnlineSource source)
+{
+    switch (source) {
+        case OnlineSource::Google:
+            return QStringLiteral("google");
+        case OnlineSource::Youdao:
+            break;
+    }
+    return QStringLiteral("youdao");
+}
+
+QString cacheKey(OnlineSource source, QString const& accent, QString const& word)
+{
+    const QByteArray material = (onlineSourceName(source) + QLatin1Char('|') + accent + QLatin1Char('|') + word).toUtf8();
     return QString::fromStdString(core::crypto::sha1Hex(std::string_view{material.constData(), std::size_t(material.size())}));
 }
 

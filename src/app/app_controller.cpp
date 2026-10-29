@@ -98,7 +98,7 @@ AppController::AppController(core::KnownStore&            store,
                              QObject*                     parent)
     : QObject(parent),
       storage_(store),
-      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), sync_(storage_, dataDir, nullptr, this), reviewDuty_(storage_, [this] { return pet_ != nullptr and pet_->enabled(); }, [this] { return pet_ != nullptr and pet_->availableForReview(); }, this), llm_(llm), hotkey_(hotkey), picturesSource_(nullptr, this), picturesCache_(pictures::PictureCache::defaultRoot()), pictureDuty_(picturesSource_, picturesCache_, this), speechSource_(nullptr, this), speechCache_(speech::AudioCache::defaultRoot()), speechDuty_(speechSource_, speechCache_, storage_, this), previewSample_(loadPreviewSample(dataDir / "preview.json"))
+      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), sync_(storage_, dataDir, nullptr, this), reviewDuty_(storage_, [this] { return pet_ != nullptr and pet_->enabled(); }, [this] { return pet_ != nullptr and pet_->availableForReview(); }, this), llm_(llm), hotkey_(hotkey), picturesSource_(nullptr, this), picturesCache_(pictures::PictureCache::defaultRoot()), pictureDuty_(picturesSource_, picturesCache_, this), speechSources_(nullptr, this), speechCache_(speech::AudioCache::defaultRoot()), speechDuty_(speechSources_, speechCache_, storage_, this), previewSample_(loadPreviewSample(dataDir / "preview.json"))
 {
     budgetPaused_ = cost_.budgetStatus().exhausted;
     // The backdrop starts on the tier the document holds, read through the row's own clamp so a
@@ -684,6 +684,12 @@ QVariantMap AppController::settings()
                                   {QStringLiteral("label"), QCoreApplication::translate("lens::app::AppController", "Local model")}},
                       QVariantMap{{QStringLiteral("value"), QStringLiteral("none")},
                                   {QStringLiteral("label"), QCoreApplication::translate("lens::app::AppController", "Silent")}},
+                  });
+    // The online source's names are brands, so they are not translated (docs/adr/0138).
+    result.insert(QStringLiteral("speechOnlineProviderOptions"),
+                  QVariantList{
+                      QVariantMap{{QStringLiteral("value"), QStringLiteral("youdao")}, {QStringLiteral("label"), QStringLiteral("Youdao")}},
+                      QVariantMap{{QStringLiteral("value"), QStringLiteral("google")}, {QStringLiteral("label"), QStringLiteral("Google Translate")}},
                   });
     // What the engine rows can actually serve on this machine, which is not a setting: the page
     // shows the voice's name so the reader knows whose voice they are hearing (ADR 0134), and says

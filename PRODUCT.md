@@ -142,9 +142,9 @@ web
 | 口音 | 开关：美式（缺省）/ 英式；系统挑 `en-US` / `en-GB` 音色，在线切 `type=2` / `type=1` | 本地音色按模型下载，英式只有 Kokoro 的一个女声；选了 LJSpeech 时英式静音，不静默换成另一种口音或模型 |
 | 引擎 | 系统合成器缺省；不可用时按读者选的兜底走 | 音色由读者的 Windows 语言包决定，设置页显示当前音色名 |
 | 兜底 | 在线音频（缺省）/ 本地模型 / 不发音，读者选一档 | 明确选了在线或本地之后不在两者间静默切换（同 OCR，ADR 0130） |
-| 在线音频 | 词典音频端点，无 key、不计费 | 协议与实测边界见 `API.md` §9 |
+| 在线音频 | 来源由 `speechOnlineProvider` 显式选择：有道（缺省）或 Google 翻译；无 key、不计费 | 协议与实测边界见 `API.md` §9、§9.2；来源之间不静默切换（`docs/adr/0138`） |
 | 本地模型 | 两档可选：Kokoro（自动，约 180 MB）与 LJSpeech（约 41 MB），逐文件下载，SHA256 校验，落 `%APPDATA%\Lens\voices\<模型>\` | 不随包；未下载时兜底等于不发音，设置页写明，不弹错误；运行时 sherpa-onnx 随包；引擎在最后一次发音 5 分钟后释放，再按下重新加载（`docs/adr/0135`） |
-| 缓存 | 在线录音按口音与词哈希落盘，LRU 上限 50 MB；本地合成的输出不落盘 | 不写 `settings.json`、不参与同步、不上传；本地输出每次按下重新合成 |
+| 缓存 | 在线录音按来源、口音与词哈希落盘，LRU 上限 50 MB；本地合成的输出不落盘 | 不写 `settings.json`、不参与同步、不上传；本地输出每次按下重新合成 |
 | 成本 | 不进每日预算 | 在线音频不花读者的钱，也不进 token 账单 |
 
 ### 界面与主题
@@ -178,7 +178,7 @@ web
 | `cache` | 解释语言 + 词根 | `ipa` 可空；缺字段按未命中，重问即补全，未命中就是迁移 |
 | `history` | 最近 2000 条 | 超出按时间截断；`daily` 按日聚合，一条一天，不设上限 |
 | `review.words` | `{level, due, asked}` | 与 `history` 分开；`removeWord` 一起清 |
-| `speechAutoPlay` / `speechAccent` / `speechEngine` / `speechFallback` / `speechLocalEngine` | 自动播放、口音、引擎、兜底与本地音色 | 缺省关 / `us` / `system` / `online` / `auto`；五个都是扁平键，走设置表。`speechLocalEngine` 不同步；本地音色是否在本机由 `voices\` 下的文件决定，不落盘（`docs/adr/0135`） |
+| `speechAutoPlay` / `speechAccent` / `speechEngine` / `speechFallback` / `speechOnlineProvider` / `speechLocalEngine` | 自动播放、口音、引擎、兜底、在线来源与本地音色 | 缺省关 / `us` / `system` / `online` / `youdao` / `auto`；六个都是扁平键，走设置表。`speechLocalEngine` 不同步；本地音色是否在本机由 `voices\` 下的文件决定，不落盘（`docs/adr/0135`） |
 | `ocrConfigVersion` / `ocrMode` / `ocrLocalEngine` / `ocrLocalLanguage` / `ocrOnlineProvider` / `ocrOnlineEndpoint` / `ocrOnlineLanguage` | OCR 模式、本地引擎与识别语言、在线服务、端点与语言、迁移版本 | 缺省 `local` / `auto` / `en`；在线初始未配置，端点空表示服务默认地址；全部不进同步白名单 |
 | `tesseractExecutable` / `tesseractDataDirectory` / `rapidOcrExecutable` / `rapidOcrModelDirectory` | Tesseract 与 RapidOCR 的程序及模型路径 | 空值分别表示随包 exe、相邻 tessdata 与未配置；RapidOCR 模型目录必须 ASCII（ADR 0132） |
 | `OCR-API-KEY` / `OCR-SECRET-KEY` / `OCR-SERVICES` | 在线凭据双槽与按服务保存的地址、凭据 | 独立机密：不进设置投影、日志、导出与同步，边界见 `SECURITY.md` |

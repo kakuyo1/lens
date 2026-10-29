@@ -48,6 +48,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/picture_pure_test.cpp
   unit/picture_duty_test.cpp
   unit/speech_test.cpp
+  unit/google_source_test.cpp
   unit/voice_catalog_test.cpp
   unit/cost_duty_test.cpp
   unit/semver_test.cpp
@@ -141,6 +142,7 @@ add_executable(lens_gtest_integration EXCLUDE_FROM_ALL
   integration/glass_read_pace_test.cpp
   integration/glass_duplication_test.cpp
   integration/glass_capture_test.cpp
+  integration/speech_sources_probe_test.cpp
   integration/ocr_engine_probe_test.cpp
   integration/rapidocr_probe_test.cpp
 )

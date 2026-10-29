@@ -41,7 +41,7 @@
 #include "app/duties/update_duty.h"
 #include "app/words_model.h"
 #include "pictures/picture_sources/commons_source.h"
-#include "speech/youdao_source.h"
+#include "speech/online_sources.h"
 
 class QQmlEngine;
 class QJSEngine;
@@ -314,15 +314,15 @@ private:
     pictures::CommonsSource picturesSource_;
     pictures::PictureCache  picturesCache_;
     PictureDuty             pictureDuty_;
-    /// Pronunciation: the source that fetches a recording, the cache beside the settings document,
+    /// Pronunciation: the online sources that fetch a recording, the cache beside the settings document,
     /// and the duty the speaker icon reads. Declared in this order for the same reason the three
     /// above are -- the duty borrows the other two.
-    speech::YoudaoSource speechSource_;
-    speech::AudioCache   speechCache_;
-    SpeechDuty           speechDuty_;
-    llm::LlmClient&      llm_;
-    GlobalHotkey&        hotkey_;
-    QTimer               gateTimer_;
+    speech::OnlineSources speechSources_;
+    speech::AudioCache    speechCache_;
+    SpeechDuty            speechDuty_;
+    llm::LlmClient&       llm_;
+    GlobalHotkey&         hotkey_;
+    QTimer                gateTimer_;
     /// Whether the daily budget was spent the last time the cost duty reported, so a pause and a resume each fire once.
     bool budgetPaused_;
     /// The connection probe's own state. The generation is raised by a start and by any change

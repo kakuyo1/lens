@@ -107,22 +107,37 @@ TEST(SpeechSwitches, TheEndpointTakesBritishAsOneAndAmericanAsTwo)
     EXPECT_EQ(lens::speech::onlineType(QString()), QStringLiteral("2"));
 }
 
-/// The cache name is `sha1(accent|word)`: the accent is in it, so one word's two accents cannot be
-/// mistaken for each other, and the word is, so two words cannot share a recording.
-TEST(SpeechKey, TheNameCarriesTheAccentAndTheWord)
+/// The cache name is `sha1(source|accent|word)`: the accent is in it, so one word's two accents cannot be
+/// mistaken for each other, the word is, so two words cannot share a recording, and the source is, so
+/// two sources' recordings of one word cannot be mistaken for each other either.
+TEST(SpeechKey, TheNameCarriesTheSourceTheAccentAndTheWord)
 {
-    const QString american = lens::speech::cacheKey(QStringLiteral("us"), QStringLiteral("record"));
-    const QString british  = lens::speech::cacheKey(QStringLiteral("uk"), QStringLiteral("record"));
-    const QString other    = lens::speech::cacheKey(QStringLiteral("us"), QStringLiteral("records"));
+    using lens::speech::OnlineSource;
+    const QString american = lens::speech::cacheKey(OnlineSource::Youdao, QStringLiteral("us"), QStringLiteral("record"));
+    const QString british  = lens::speech::cacheKey(OnlineSource::Youdao, QStringLiteral("uk"), QStringLiteral("record"));
+    const QString other    = lens::speech::cacheKey(OnlineSource::Youdao, QStringLiteral("us"), QStringLiteral("records"));
+    const QString google   = lens::speech::cacheKey(OnlineSource::Google, QStringLiteral("us"), QStringLiteral("record"));
 
     EXPECT_EQ(american.size(), 40);
     EXPECT_EQ(british.size(), 40);
     EXPECT_NE(american, british) << "two accents shared one cached recording";
     EXPECT_NE(american, other) << "two words shared one cached recording";
-    EXPECT_EQ(american, lens::speech::cacheKey(QStringLiteral("us"), QStringLiteral("record")));
+    EXPECT_NE(american, google) << "two sources shared one cached recording";
+    EXPECT_EQ(american, lens::speech::cacheKey(OnlineSource::Youdao, QStringLiteral("us"), QStringLiteral("record")));
     for (const QChar character : american)
         EXPECT_TRUE((character >= QLatin1Char('0') and character <= QLatin1Char('9')) or (character >= QLatin1Char('a') and character <= QLatin1Char('f')))
             << "the name is not lower-case hex: " << american.toStdString();
+}
+
+/// The stored source names are the ones the settings table offers, and anything else reads as the default.
+TEST(OnlineSourceChoice, TheStoredNameIsTheSourceAndAnythingElseIsYoudao)
+{
+    EXPECT_EQ(lens::speech::onlineSourceFrom(QStringLiteral("google")), lens::speech::OnlineSource::Google);
+    EXPECT_EQ(lens::speech::onlineSourceFrom(QStringLiteral("youdao")), lens::speech::OnlineSource::Youdao);
+    EXPECT_EQ(lens::speech::onlineSourceFrom(QStringLiteral("")), lens::speech::OnlineSource::Youdao);
+    EXPECT_EQ(lens::speech::onlineSourceFrom(QStringLiteral("cambridge")), lens::speech::OnlineSource::Youdao);
+    EXPECT_EQ(lens::speech::onlineSourceName(lens::speech::OnlineSource::Google), QStringLiteral("google"));
+    EXPECT_EQ(lens::speech::onlineSourceName(lens::speech::OnlineSource::Youdao), QStringLiteral("youdao"));
 }
 
 /// One word and nothing else: a sentence, a paragraph or an empty title is not sent anywhere. The
@@ -147,7 +162,7 @@ TEST(SpeechCache, AStoredRecordingIsAHitAndAnythingElseIsAMiss)
     const std::filesystem::path root = std::filesystem::path{temporary.path().toStdWString()} / L"audio";
     AudioCache                  cache{root};
 
-    const QString    key = lens::speech::cacheKey(QStringLiteral("us"), QStringLiteral("record"));
+    const QString    key = lens::speech::cacheKey(lens::speech::OnlineSource::Youdao, QStringLiteral("us"), QStringLiteral("record"));
     const QByteArray mp3("ID3\x04\x00\x00\x00\x00\x00\x00", 10);
 
     EXPECT_FALSE(cache.load(key).has_value()) << "a cache that has never been written reported a hit";
@@ -176,8 +191,8 @@ TEST(SpeechCache, PruningDropsTheLeastRecentlyWantedFirst)
     const std::filesystem::path root = std::filesystem::path{temporary.path().toStdWString()} / L"audio";
     AudioCache                  cache{root};
 
-    const QString    older = lens::speech::cacheKey(QStringLiteral("us"), QStringLiteral("older"));
-    const QString    newer = lens::speech::cacheKey(QStringLiteral("us"), QStringLiteral("newer"));
+    const QString    older = lens::speech::cacheKey(lens::speech::OnlineSource::Youdao, QStringLiteral("us"), QStringLiteral("older"));
+    const QString    newer = lens::speech::cacheKey(lens::speech::OnlineSource::Youdao, QStringLiteral("us"), QStringLiteral("newer"));
     const QByteArray bytes(1024, 'x');
     ASSERT_TRUE(cache.store(older, bytes));
     ASSERT_TRUE(cache.store(newer, bytes));

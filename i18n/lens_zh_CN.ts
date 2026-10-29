@@ -670,8 +670,19 @@
         <translation>兜底</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="333"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="340"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="334"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="341"/>
+        <source>Online source</source>
+        <translation>在线来源</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="348"/>
+        <source>Only the word is sent, to the source you pick.</source>
+        <translation>只发送单词，发往你选择的来源。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="361"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="368"/>
         <source>Local voice</source>
         <translation>本地音色</translation>
     </message>
@@ -696,33 +707,33 @@
         <translation>未下载。本地引擎不会发声。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="358"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="386"/>
         <source>Download</source>
         <translation>下载</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="370"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="398"/>
         <source>Remove</source>
         <translation>删除</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="376"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="404"/>
         <source>Voice files stay on this computer and are not synced.</source>
         <translation>音色文件只保存在这台电脑上，不参与同步。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="388"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="397"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="416"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="425"/>
         <source>Word review</source>
         <translation>单词复习</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="409"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="437"/>
         <source>How often the pet raises its sign to ask a word you have looked up.</source>
         <translation>宠物多久举一次提问牌，问你查过的词。&gt;</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="419"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="447"/>
         <source>Unavailable while the pet is off.</source>
         <translation>宠物关闭时不可用。</translation>
     </message>
@@ -2235,7 +2246,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/pet/PetPackageDialog.qml" line="115"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="364"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="392"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="347"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="152"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="295"/>
@@ -3361,27 +3372,27 @@
         <translation>不发音</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="698"/>
+        <location filename="../src/app/app_controller.cpp" line="704"/>
         <source>Automatic</source>
         <translation>自动</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="700"/>
+        <location filename="../src/app/app_controller.cpp" line="706"/>
         <source>Kokoro</source>
         <translation>Kokoro</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="702"/>
+        <location filename="../src/app/app_controller.cpp" line="708"/>
         <source>LJSpeech</source>
         <translation>LJSpeech</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="921"/>
+        <location filename="../src/app/app_controller.cpp" line="927"/>
         <source>Auto</source>
         <translation>自动模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="921"/>
+        <location filename="../src/app/app_controller.cpp" line="927"/>
         <source>Manual</source>
         <translation>手动模式</translation>
     </message>

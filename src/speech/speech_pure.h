@@ -22,7 +22,7 @@ namespace lens::speech {
 /// @brief The engine the reader chose. The stored value is the lower-case name.
 enum class Engine {
     System, ///< The Windows synthesiser Qt wraps. The default.
-    Online, ///< The dictionary's own recording (API.md section 9).
+    Online, ///< The online recording the reader picked (API.md sections 9 and 9.2, docs/adr/0138).
     Local,  ///< sherpa-onnx with an English voice the reader downloaded.
 };
 
@@ -88,18 +88,34 @@ std::optional<Engine> plan(Engine chosen, Fallback fallback, bool systemUsable, 
  */
 bool isHeadword(QString const& word);
 
+/// @brief The online source the reader picked. The stored value is the lower-case id; each source is
+///        one adapter (docs/adr/0138).
+enum class OnlineSource {
+    Youdao, ///< The dictionary's own recordings (API.md section 9). The default.
+    Google, ///< Google Translate's speech endpoint, American or British by its language tag (API.md section 9.2).
+};
+
+/// @param value A stored `speechOnlineProvider`.
+/// @return The source it names, or Youdao for anything else.
+OnlineSource onlineSourceFrom(QString const& value);
+
+/// @return @p source as the settings document stores it.
+QString onlineSourceName(OnlineSource source);
+
 /**
- * @brief The name a recording is cached under: `sha1(accent|word)`.
+ * @brief The name a recording is cached under: `sha1(source|accent|word)`.
  *
- * API.md section 9 fixes this shape, and the accent is in it so that the two accents' recordings of
- * one word cannot be mistaken for each other. The URL is deliberately not the name: a cache keyed
- * by address would be keyed by a constant endpoint plus a query string, and the accent would ride
- * in it as a number that means nothing to a reader looking at the folder.
+ * The source is in it because two sources' recordings of one word are two different files, and a
+ * reader who changes source must not be played the old one. The accent is in it for the same reason
+ * between accents. The URL is deliberately not the name: a cache keyed by address would be keyed by a
+ * constant endpoint plus a query string, and the accent would ride in it as a number that means nothing
+ * to a reader looking at the folder.
  *
+ * @param source The source the recording came from.
  * @param accent "us" or "uk".
  * @param word   The headword as the card shows it.
  * @return 40 lowercase hex digits, or empty when the digest could not be made.
  */
-QString cacheKey(QString const& accent, QString const& word);
+QString cacheKey(OnlineSource source, QString const& accent, QString const& word);
 
 }

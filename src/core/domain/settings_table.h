@@ -103,6 +103,8 @@ inline constexpr std::string_view kMotherTongues[]{"zh", "zh-Hant", "es", "ja"};
 inline constexpr std::string_view kSpeechAccents[]{"us", "uk"};
 inline constexpr std::string_view kSpeechEngines[]{"system", "online", "local"};
 inline constexpr std::string_view kSpeechFallbacks[]{"online", "local", "none"};
+/// The online source the reader picks, for the online engine and the fallback alike (docs/adr/0138).
+inline constexpr std::string_view kSpeechOnlineProviders[]{"youdao", "google"};
 /// The local voice the reader names: automatic is Kokoro, and the other two are the catalogue's
 /// (docs/adr/0135).
 inline constexpr std::string_view kSpeechLocalEngines[]{"auto", "kokoro", "ljspeech"};
@@ -140,6 +142,7 @@ inline constexpr Row kRows[]{
     {.key = "speechAccent", .kind = Kind::Choice, .signal = Signal::Settings, .fallback = "us", .synced = true, .members = kSpeechAccents},
     {.key = "speechEngine", .kind = Kind::Choice, .signal = Signal::Settings, .fallback = "system", .synced = true, .members = kSpeechEngines},
     {.key = "speechFallback", .kind = Kind::Choice, .signal = Signal::Settings, .fallback = "online", .synced = true, .members = kSpeechFallbacks},
+    {.key = "speechOnlineProvider", .kind = Kind::Choice, .signal = Signal::Settings, .fallback = "youdao", .synced = true, .members = kSpeechOnlineProviders},
     // Not synced: the voice files are downloaded to this machine, and a choice that names one of them
     // is this machine's too. The local engine rows of OCR are the same (docs/adr/0130).
     {.key = "speechLocalEngine", .kind = Kind::Choice, .signal = Signal::Settings, .fallback = "auto", .members = kSpeechLocalEngines},

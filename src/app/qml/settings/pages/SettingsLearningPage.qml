@@ -324,6 +324,34 @@ Item {
                 }
             }
 
+            // Shown only when an online recording can be asked for at all. Only the word leaves the machine, and only
+            // to the source picked here (docs/adr/0138).
+            Column {
+                width: parent.width
+                spacing: 7
+                visible: root.settings.speechEngine === "online" || root.settings.speechFallback === "online"
+                Text {
+                    text: qsTranslate("SettingsPopup", "Online source")
+                    color: root.tokens.muted
+                    font.pixelSize: 12
+                }
+                DropdownField {
+                    objectName: "speechOnlineProviderField"
+                    width: parent.width
+                    accessibleName: qsTranslate("SettingsPopup", "Online source")
+                    options: root.settings.speechOnlineProviderOptions || []
+                    currentValue: root.settings.speechOnlineProvider
+                    onPicked: (value) => Controller.setSetting("speechOnlineProvider", value)
+                }
+                Text {
+                    width: parent.width
+                    text: qsTranslate("SettingsPopup", "Only the word is sent, to the source you pick.")
+                    color: root.tokens.faint
+                    font.pixelSize: 11
+                    wrapMode: Text.WordWrap
+                }
+            }
+
             // The local voice the reader named (docs/adr/0135). A voice is on this machine only once its
             // download has verified every file; until then the engine stays silent and says so here.
             Column {

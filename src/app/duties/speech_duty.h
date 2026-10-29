@@ -16,6 +16,7 @@
 
 #include "app/duties/storage_duty.h"
 #include "speech/audio_cache.h"
+#include "speech/online_sources.h"
 #include "speech/pronunciation_source.h"
 #include "speech/voice_downloader.h"
 
@@ -47,8 +48,8 @@ class LocalVoice;
  *     it never changes the card's layout, its anchor or its clock.
  *
  * Three engines: the Windows synthesiser Qt wraps (the default, through Qt's TextToSpeech module --
- * WinRT's engine first, SAPI when the platform has no WinRT one), the dictionary's own recordings
- * (API.md section 9), and a local voice the reader downloaded and verified (docs/adr/0135), spoken
+ * WinRT's engine first, SAPI when the platform has no WinRT one), the online recordings the reader picked
+ * (API.md sections 9 and 9.2, docs/adr/0138), and a local voice the reader downloaded and verified (docs/adr/0135), spoken
  * through sherpa-onnx on one worker thread. The local voice is never named by a fallback the reader did
  * not choose.
  *
@@ -75,7 +76,7 @@ public:
      * @param cache   The audio cache, owned by the caller.
      * @param storage The document the two switches and the two engine rows are read from.
      */
-    SpeechDuty(speech::PronunciationSource& source, speech::AudioCache& cache, StorageDuty& storage, QObject* parent = nullptr);
+    SpeechDuty(speech::OnlineSources& sources, speech::AudioCache& cache, StorageDuty& storage, QObject* parent = nullptr);
     ~SpeechDuty() override;
 
     /**
@@ -183,9 +184,9 @@ private:
     void release();
     void setPlaying(bool playing, QString const& word = {});
 
-    speech::PronunciationSource& source_;
-    speech::AudioCache&          cache_;
-    StorageDuty&                 storage_;
+    speech::OnlineSources& sources_;
+    speech::AudioCache&    cache_;
+    StorageDuty&           storage_;
 
     std::unique_ptr<QMediaPlayer> player_;
     std::unique_ptr<QAudioOutput> output_;

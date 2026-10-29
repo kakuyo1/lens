@@ -2,6 +2,8 @@ add_library(lens_speech STATIC
   speech_pure.cpp
   audio_cache.cpp
   youdao_source.cpp
+  google_source.cpp
+  online_sources.cpp
   voice_catalog.cpp
   voice_downloader.cpp
 )

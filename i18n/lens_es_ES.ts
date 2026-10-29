@@ -1056,8 +1056,19 @@
         <translation>Alternativa</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="333"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="340"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="334"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="341"/>
+        <source>Online source</source>
+        <translation>Fuente en línea</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="348"/>
+        <source>Only the word is sent, to the source you pick.</source>
+        <translation>Solo se envía la palabra, a la fuente que elijas.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="361"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="368"/>
         <source>Local voice</source>
         <translation>Voz local</translation>
     </message>
@@ -1082,33 +1093,33 @@
         <translation>No descargada. El motor local no suena.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="358"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="386"/>
         <source>Download</source>
         <translation>Descargar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="370"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="398"/>
         <source>Remove</source>
         <translation>Eliminar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="376"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="404"/>
         <source>Voice files stay on this computer and are not synced.</source>
         <translation>Los archivos de voz se quedan en este equipo y no se sincronizan.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="388"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="397"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="416"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="425"/>
         <source>Word review</source>
         <translation>Repaso de palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="409"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="437"/>
         <source>How often the pet raises its sign to ask a word you have looked up.</source>
         <translation>Con qué frecuencia la mascota levanta su cartel para preguntarte por una palabra que ya consultaste.&gt;</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="419"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="447"/>
         <source>Unavailable while the pet is off.</source>
         <translation>No disponible mientras la mascota esté desactivada.</translation>
     </message>
@@ -2168,7 +2179,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/pet/PetPackageDialog.qml" line="115"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="364"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="392"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="347"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="152"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="295"/>
@@ -3304,27 +3315,27 @@
         <translation>Sin sonido</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="698"/>
+        <location filename="../src/app/app_controller.cpp" line="704"/>
         <source>Automatic</source>
         <translation>Automático</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="700"/>
+        <location filename="../src/app/app_controller.cpp" line="706"/>
         <source>Kokoro</source>
         <translation>Kokoro</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="702"/>
+        <location filename="../src/app/app_controller.cpp" line="708"/>
         <source>LJSpeech</source>
         <translation>LJSpeech</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="921"/>
+        <location filename="../src/app/app_controller.cpp" line="927"/>
         <source>Auto</source>
         <translation>Automático</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="921"/>
+        <location filename="../src/app/app_controller.cpp" line="927"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>

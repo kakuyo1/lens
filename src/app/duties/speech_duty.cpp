@@ -83,9 +83,9 @@ std::optional<QVoice> voiceFor(QTextToSpeech& engine, QString const& accent)
 
 } // namespace
 
-SpeechDuty::SpeechDuty(speech::PronunciationSource& source, speech::AudioCache& cache, StorageDuty& storage, QObject* parent)
+SpeechDuty::SpeechDuty(speech::OnlineSources& sources, speech::AudioCache& cache, StorageDuty& storage, QObject* parent)
     : QObject(parent),
-      source_(source),
+      sources_(sources),
       cache_(cache),
       storage_(storage)
 {
@@ -402,7 +402,9 @@ void SpeechDuty::speakLocal(QString const& word, QString const& accent)
 
 void SpeechDuty::playOnline(QString const& word, QString const& accent)
 {
-    const QString key = speech::cacheKey(accent, word);
+    // The source is the reader's choice, read per press: a recording from the previous source is not played.
+    const auto    source = speech::onlineSourceFrom(rowValue(storage_, "speechOnlineProvider").toString());
+    const QString key    = speech::cacheKey(source, accent, word);
     if (key.isEmpty())
         return;
 
@@ -413,7 +415,7 @@ void SpeechDuty::playOnline(QString const& word, QString const& accent)
     }
 
     const int request = requestId_;
-    source_.fetch(word, accent, [this, request, key, word](QByteArray const& bytes, bool ok) {
+    sources_.pick(source).fetch(word, accent, [this, request, key, word](QByteArray const& bytes, bool ok) {
         if (not ok or bytes.isEmpty())
             return;
         // Stored whatever the reader is looking at now: a recording is worth keeping even when the
