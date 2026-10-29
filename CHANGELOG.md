@@ -4,6 +4,7 @@
 
 ### Added
 
+- Online OCR now offers a service list instead of one fixed protocol: the settings page picks Baidu OCR or OCR.space, the address defaults to the chosen service, and each service shows the credential fields it needs (Baidu takes a key pair). Switching services clears the address and the credentials, and the confirmation card names the service that will receive the crop. Baidu exchanges an OAuth token, kept in memory only and dropped when the credentials or address change, and returns line boxes. A new service is one adapter plus one provider-table row (docs/adr/0136).
 - A word card's headword can be read aloud through a speaker glyph after the word, and the word alone: no sentence, entity, translation or breakdown is read. The Windows synthesiser speaks first through Qt's TextToSpeech module (WinRT's voices first, then SAPI when WinRT has no voice for the accent), then the dictionary's own recording, then a local model that is not downloadable yet. Settings gain a Pronunciation group for auto-play, accent, engine and fallback. A word's recording is cached under the Lens audio folder, 50 MB, and costs nothing; it never reaches the explanation service or the daily budget. The local model is tracked in TODO.md (docs/adr/0134, superseding docs/adr/0010).
 - A **Mother tongue** setting above the explanation language, and the held peek it feeds: when the
   explanation language is English, the header of a word, sentence or entity bubble shows a globe that, held for 500 ms (a ring

@@ -244,10 +244,29 @@ Item {
             const page = createTemporaryObject(onlineOcrPageComponent, host.contentItem);
             waitForRendering(host.contentItem);
             verify(page);
+            const provider = child(page, "ocrOnlineProvider");
+            compare(provider.options.length, 2);
+            compare(provider.options[0].value, "baidu");
+            compare(provider.options[1].value, "ocrspace");
             verify(findChild(page, "ocrOnlineLanguage"));
             verify(findChild(page, "testOnlineOcrButton"));
             verify(findChild(page, "clearOnlineOcrButton"));
             compare(Controller.settings.ocrOnlineLanguage, "eng");
+        }
+
+        /// Each service declares its own credential fields; the page shows what the chosen one
+        /// asks for and nothing else.
+        function test_theCredentialFieldsFollowTheChosenService() {
+            Controller.setSetting("ocrOnlineProvider", "ocrspace");
+            const page = createTemporaryObject(onlineOcrPageComponent, host.contentItem);
+            waitForRendering(host.contentItem);
+            verify(page);
+            verify(child(page, "ocrOnlineApiKeyField").visible);
+            compare(child(page, "ocrOnlineSecretKeyField").visible, false);
+
+            Controller.setSetting("ocrOnlineProvider", "baidu");
+            tryVerify(() => child(page, "ocrOnlineSecretKeyField").visible);
+            verify(child(page, "ocrOnlineApiKeyField").visible);
         }
 
         /// Pixel stills for the two OCR pages; skipped unless scripts/qa/qml-snapshot.ps1 sets

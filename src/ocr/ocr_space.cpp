@@ -6,7 +6,6 @@
 #include <QBuffer>
 #include <QElapsedTimer>
 #include <QStringList>
-#include <QUrlQuery>
 #include <QUuid>
 
 #include <nlohmann/json.hpp>
@@ -231,7 +230,7 @@ struct OcrSpaceClientImpl final : OnlineOcrClient {
             return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::NotUploaded));
         // validate... returns the reason when the value is unusable, so a present optional is the
         // refusal; the earlier `not optional` form refused every valid configuration.
-        if (validateOcrSpaceEndpoint(config.endpoint) or config.apiKey.isEmpty())
+        if (validateOcrEndpoint(config.endpoint) or config.apiKey.isEmpty())
             return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::NotUploaded));
         if (validateOcrSpaceLanguage(config.language))
             return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::NotUploaded));
@@ -282,27 +281,6 @@ std::optional<QString> validateOcrSpaceLanguage(QString const& language)
 {
     if (language == QLatin1String("eng") or language == QLatin1String("auto")) return std::nullopt;
     return QStringLiteral("unsupported-language");
-}
-
-std::optional<QString> validateOcrSpaceEndpoint(QUrl const& endpoint)
-{
-    if (not endpoint.isValid()) return QStringLiteral("invalid-url");
-    if (endpoint.scheme().compare(QLatin1String("https"), Qt::CaseInsensitive) != 0) return QStringLiteral("not-https");
-    if (endpoint.host().isEmpty()) return QStringLiteral("no-host");
-    if (not endpoint.userInfo().isEmpty()) return QStringLiteral("userinfo");
-    if (endpoint.hasFragment()) return QStringLiteral("fragment");
-    auto const encoded = endpoint.toString(QUrl::FullyEncoded);
-    for (auto const character : encoded) {
-        if (character.unicode() < 0x20 or character.unicode() == 0x7F) return QStringLiteral("control-character");
-    }
-    QUrlQuery const query{endpoint};
-    for (auto const& [key, value] : query.queryItems(QUrl::FullyDecoded)) {
-        auto const lower = key.toLower();
-        if (lower.contains(QLatin1String("key")) or lower.contains(QLatin1String("token")) or
-            lower.contains(QLatin1String("secret")) or lower.contains(QLatin1String("password")))
-            return QStringLiteral("credential-in-query");
-    }
-    return std::nullopt;
 }
 
 std::unique_ptr<OnlineOcrClient> makeOcrSpaceClient(OcrSpaceConfig config, std::shared_ptr<HttpTransport> transport)

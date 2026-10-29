@@ -93,7 +93,7 @@ lens::ocr::HttpResponse okResponse(nlohmann::json const& document)
 
 TEST(OcrSpace, ASuccessfulPageCarriesTextWordsAndNoConfidence)
 {
-    EXPECT_FALSE(lens::ocr::validateOcrSpaceEndpoint(config().endpoint));
+    EXPECT_FALSE(lens::ocr::validateOcrEndpoint(config().endpoint));
     EXPECT_FALSE(lens::ocr::validateOcrSpaceLanguage(config().language));
     auto transport      = std::make_shared<FakeTransport>();
     transport->response = okResponse(successDocument());
@@ -284,9 +284,9 @@ TEST(OcrSpace, EmptyTextIsItsOwnAnswer)
 
 TEST(OcrSpace, EndpointsMustBeHttpsWithoutUserInfoFragmentOrCredentialsInTheQuery)
 {
-    EXPECT_FALSE(lens::ocr::validateOcrSpaceEndpoint(QUrl{QStringLiteral("https://api.ocr.space/parse/image")}));
-    EXPECT_TRUE(lens::ocr::validateOcrSpaceEndpoint(QUrl{QStringLiteral("http://api.ocr.space/parse/image")}));
-    EXPECT_TRUE(lens::ocr::validateOcrSpaceEndpoint(QUrl{QStringLiteral("https://user:pass@api.ocr.space/parse/image")}));
-    EXPECT_TRUE(lens::ocr::validateOcrSpaceEndpoint(QUrl{QStringLiteral("https://api.ocr.space/parse/image#f")}));
-    EXPECT_TRUE(lens::ocr::validateOcrSpaceEndpoint(QUrl{QStringLiteral("https://api.ocr.space/parse/image?apikey=x")}));
+    EXPECT_FALSE(lens::ocr::validateOcrEndpoint(QUrl{QStringLiteral("https://api.ocr.space/parse/image")}));
+    EXPECT_TRUE(lens::ocr::validateOcrEndpoint(QUrl{QStringLiteral("http://api.ocr.space/parse/image")}));
+    EXPECT_TRUE(lens::ocr::validateOcrEndpoint(QUrl{QStringLiteral("https://user:pass@api.ocr.space/parse/image")}));
+    EXPECT_TRUE(lens::ocr::validateOcrEndpoint(QUrl{QStringLiteral("https://api.ocr.space/parse/image#f")}));
+    EXPECT_TRUE(lens::ocr::validateOcrEndpoint(QUrl{QStringLiteral("https://api.ocr.space/parse/image?apikey=x")}));
 }

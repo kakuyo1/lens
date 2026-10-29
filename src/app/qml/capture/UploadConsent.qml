@@ -130,8 +130,9 @@ Window {
 
             Text {
                 width: parent.width
-                text: qsTranslate("UploadConsent", "Destination: %1 (OCR.space)")
+                text: qsTranslate("UploadConsent", "Destination: %1 (%2)")
                     .arg(consent.request.host !== undefined ? consent.request.host : "")
+                    .arg(consent.request.provider !== undefined ? consent.request.provider : "")
                 color: consent.tokens.text
                 font.pixelSize: 12
                 elide: Text.ElideRight
@@ -139,7 +140,8 @@ Window {
 
             Text {
                 width: parent.width
-                text: qsTranslate("UploadConsent", "The selected pixels will be sent to the OCR service. Sensitive content in the image may be visible to it.")
+                text: qsTranslate("UploadConsent", "The selected pixels will be sent to %1. Sensitive content in the image may be visible to it.")
+                    .arg(consent.request.provider !== undefined ? consent.request.provider : "")
                 color: consent.tokens.muted
                 font.pixelSize: 11
                 wrapMode: Text.WordWrap

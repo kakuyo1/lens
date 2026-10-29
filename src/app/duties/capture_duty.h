@@ -28,12 +28,8 @@
 #include "capture_refusal.h"
 #include "app/platform/selection_text_grabber.h"
 #include "core/domain/filter_core.h"
+#include "ocr/online_ocr.h"
 #include "storage_duty.h"
-
-namespace lens::ocr {
-struct HttpTransport;
-struct OnlineOcrClient;
-}
 
 namespace lens::app {
 
@@ -120,18 +116,20 @@ public:
     Q_INVOKABLE void setRapidOcrModelsDirectory(QString directory);
     /// @brief Run one synthetic image through RapidOCR and record its trust digest on success.
     Q_INVOKABLE void detectRapidOcr();
-    /// @brief Choose how a local capture picks its engine: Auto, Windows, Tesseract or RapidOCR.
+    /// @brief Choose how a local capture picks its engine: Auto, Tesseract or RapidOCR.
     Q_INVOKABLE void setOcrLocalEngine(QString engine);
     /// @brief Choose the language the local engine reads: en, zh-Hans or zh-Hans+en.
     Q_INVOKABLE void setOcrLocalLanguage(QString language);
     /// @brief Choose whether a manual capture stays local or goes online.
     Q_INVOKABLE void setOcrMode(QString mode);
-    /// @brief Set the online provider id; empty clears it.
+    /// @brief Set the online provider id; empty clears it. Changing it drops the address and credentials.
     Q_INVOKABLE void setOcrOnlineProvider(QString provider);
-    /// @brief Set the full HTTPS OCR endpoint; empty clears it.
+    /// @brief Set an HTTPS override of the provider's address; empty restores the provider's own.
     Q_INVOKABLE void setOcrOnlineEndpoint(QString endpoint);
     /// @brief Set the online recognition language: `eng` or `auto`.
     Q_INVOKABLE void setOcrOnlineLanguage(QString language);
+    /// @brief Store one credential the chosen provider names; empty clears that slot.
+    Q_INVOKABLE void setOcrCredential(QString slot, QString value);
     /// @brief The reader confirmed the frozen crop for @p requestId; this is the only upload gate.
     Q_INVOKABLE void confirmOnlineUpload(qulonglong requestId);
     /// @brief Drop a pending or running online request and its image.
@@ -213,9 +211,7 @@ private:
         std::uint64_t                         requestId = 0;
         QImage                                image;
         QPoint                                anchor;
-        QUrl                                  endpoint;
-        QString                               apiKey;
-        QString                               language;
+        ocr::OnlineOcrConfig                  config; ///< Frozen at consent time; never re-read later.
         std::chrono::steady_clock::time_point absoluteDeadline;
         int                                   attempts = 0;
     };
@@ -231,27 +227,41 @@ private:
     ///        gesture of their own, so the bar would ask a question they have already answered. A
     ///        selection keeps the bar -- there the gesture only says "show me what this says", and
     ///        the bar is where they say what to do with it.
-    void        classifyText(QString text, QPoint anchor, bool fromScreenshot = false);
-    void        scanTick();
-    void        onOcrFinished(std::uint64_t requestId, capture::OcrResult result);
-    bool        launchOcr(QImage image, QPoint anchor, QString context);
-    void        beginOnlineUpload(QImage image, QPoint anchor);
-    void        onConsentTimeout();
-    void        onUploadTimeout();
-    void        finishOnline(capture::OcrResult const& result);
-    void        clearUpload(QString outcome, bool notify);
-    bool        onlineConfigured() const;
-    QString     onlineKey() const;
+    void classifyText(QString text, QPoint anchor, bool fromScreenshot = false);
+    void scanTick();
+    void onOcrFinished(std::uint64_t requestId, capture::OcrResult result);
+    bool launchOcr(QImage image, QPoint anchor, QString context);
+    void beginOnlineUpload(QImage image, QPoint anchor);
+    void onConsentTimeout();
+    void onUploadTimeout();
+    void finishOnline(capture::OcrResult const& result);
+    void clearUpload(QString outcome, bool notify);
+    bool onlineConfigured() const;
+    /// @return Whether the chosen service reads @p language; before a service is chosen, the two
+    ///         values every service in the table lists.
+    bool onlineLanguageSupported(QString const& language) const;
+    /// @return The provider the reader chose, or null while none is.
+    ocr::OnlineOcrProvider const* onlineProvider() const;
+    /// @return The address a request would go to: the reader's override, else the provider's own.
+    QUrl onlineEndpoint(ocr::OnlineOcrProvider const& provider) const;
+    /// @return Everything a client needs, frozen from the document; empty when no provider is set.
+    ocr::OnlineOcrConfig onlineConfig() const;
+    QString              onlineKey() const;
+    QString              onlineSecret() const;
+    /// @brief Forget exchanged tokens; their key or address changed, or the reader cleared them.
+    void        clearOnlineTokens();
     void        invalidateScan();
     void        publishBatch(capture::ScanTime now, QPoint anchor);
     std::size_t minFreqRank() const;
 
-    StorageDuty&                           storage_;
-    MouseSelectionHook&                    hook_;
-    std::unique_ptr<SelectionTextGrabber>  grabber_;
-    std::shared_ptr<capture::OcrEngine>    ocr_;
-    std::unique_ptr<capture::OcrExecutor>  executor_;
-    std::shared_ptr<ocr::HttpTransport>    onlineTransport_;
+    StorageDuty&                          storage_;
+    MouseSelectionHook&                   hook_;
+    std::unique_ptr<SelectionTextGrabber> grabber_;
+    std::shared_ptr<capture::OcrEngine>   ocr_;
+    std::unique_ptr<capture::OcrExecutor> executor_;
+    std::shared_ptr<ocr::HttpTransport>   onlineTransport_;
+    /// Tokens a service exchanged this run. Memory only; cleared whenever the key or address moves.
+    std::shared_ptr<ocr::OcrTokenStore>    onlineTokens_;
     std::unique_ptr<capture::ScanPipeline> scan_;
     QTimer                                 scanTimer_;
     std::optional<OcrJob>                  jobContext_;

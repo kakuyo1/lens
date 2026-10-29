@@ -76,7 +76,7 @@ The action bar offers Translate, Explain, and Copy text. Explain is the one Lens
 
 <p align="center"><img src="docs/readme/ocr-capture.gif" width="800" alt="OCR capture: press Ctrl+Alt+S, frame a region of a page, and Lens explains it"></p>
 
-Press `Ctrl+Alt+S` (changeable in Settings), frame a region of a PDF, image, or video still, and Lens reads it locally with OCR by default. The bundled Tesseract is the automatic engine. A reader can install RapidOCR-json, choose it explicitly, and point it at an ASCII model folder after an explicit trust check. Online OCR is opt-in and asks before each upload. Automatic scanning can watch only the apps you whitelist.
+Press `Ctrl+Alt+S` (changeable in Settings), frame a region of a PDF, image, or video still, and Lens reads it locally with OCR by default. The bundled Tesseract is the automatic engine. A reader can install RapidOCR-json, choose it explicitly, and point it at an ASCII model folder after an explicit trust check. Online OCR is opt-in, asks before each upload, and can be pointed at Baidu OCR or OCR.space. Automatic scanning can watch only the apps you whitelist.
 
 ## Five action bars, one set of actions
 
@@ -127,7 +127,7 @@ Lens is not code-signed, and SmartScreen blocks programs it does not recognise. 
 
 ## Privacy
 
-Only the text you select or capture is sent to the provider you configure, after local masking of URLs, email addresses, and digit strings of six or more digits. OCR runs locally by default. Online OCR is opt-in: each capture shows the frozen crop and the exact destination, uploads only after you confirm, and automatic scanning never uses it. Your explanation key, OCR key, and learning data stay in `%APPDATA%\Lens\settings.json`. If you turn on sync, the cloud copy is encrypted with your passphrase and stored in your own GitHub gist; the keys stay on this device. Lens has no account and no server of its own. See [SECURITY.md](SECURITY.md) for the full boundary.
+Only the text you select or capture is sent to the provider you configure, after local masking of URLs, email addresses, and digit strings of six or more digits. OCR runs locally by default. Online OCR is opt-in: each capture shows the frozen crop and the exact destination, uploads only after you confirm, and automatic scanning never uses it. Your explanation key, OCR credentials, and learning data stay in `%APPDATA%\Lens\settings.json`. If you turn on sync, the cloud copy is encrypted with your passphrase and stored in your own GitHub gist; the keys stay on this device. Lens has no account and no server of its own. See [SECURITY.md](SECURITY.md) for the full boundary.
 
 ## FAQ
 

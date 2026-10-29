@@ -1,9 +1,14 @@
 add_library(lens_ocr STATIC
   http_transport.h
-  qt_http_transport.h
-  qt_http_transport.cpp
+  online_ocr.h
+  online_ocr.cpp
+  online_providers.cpp
+  ocr_baidu.h
+  ocr_baidu.cpp
   ocr_space.h
   ocr_space.cpp
+  qt_http_transport.h
+  qt_http_transport.cpp
 )
 
 # src/ is exposed for self-contained "ocr/xxx.h" includes (same as lens_capture).

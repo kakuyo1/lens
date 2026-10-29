@@ -40,7 +40,9 @@ Window {
     /// the stored settings.
     property var previewLanguage: null
     property string apiDraft: ""
+    /// The online OCR credential drafts, one per slot; kept here so a page or panel leaving writes them.
     property string ocrApiDraft: ""
+    property string ocrSecretDraft: ""
     property string saveStatus: ""
     /// The footer's Defaults asks a second time before it writes anything: one press turns the
     /// pill into Confirm beside Cancel, and only Confirm calls restoreDefaults().
@@ -312,13 +314,33 @@ Window {
         saveStatus = qsTranslate("SettingsPopup", "Saved");
     }
 
-    /// @brief Write the OCR key typed into the online page, if any, and clear the draft.
+    function ocrDraftFor(slot) {
+        return slot === "apiKey" ? ocrApiDraft : slot === "secretKey" ? ocrSecretDraft : "";
+    }
+
+    function setOcrDraft(slot, value) {
+        if (slot === "apiKey")
+            ocrApiDraft = value;
+        else if (slot === "secretKey")
+            ocrSecretDraft = value;
+    }
+
+    /// @brief Write the OCR credentials typed into the online page, if any, and clear the drafts.
     function commitOcrApiDraft() {
-        if (ocrApiDraft.length === 0)
-            return;
-        Controller.setOcrApiKey(ocrApiDraft);
-        ocrApiDraft = "";
-        saveStatus = qsTranslate("SettingsPopup", "Saved");
+        let wrote = false;
+        // A credential typed against a cleared page must not outlive the clear.
+        if (Controller.settings.ocrOnlineProvider !== "") {
+            for (const slot of ["apiKey", "secretKey"]) {
+                const value = ocrDraftFor(slot);
+                if (value.length === 0)
+                    continue;
+                Controller.captureDuty.setOcrCredential(slot, value);
+                setOcrDraft(slot, "");
+                wrote = true;
+            }
+        }
+        if (wrote)
+            saveStatus = qsTranslate("SettingsPopup", "Saved");
     }
 
     function restoreDefaults() {
@@ -337,6 +359,7 @@ Window {
             route = "";
             apiDraft = "";
             ocrApiDraft = "";
+            ocrSecretDraft = "";
             saveStatus = "";
             confirmingDefaults = false;
             body.contentY = 0;
@@ -701,8 +724,8 @@ Window {
         id: onlineOcrComponent
         SettingsOnlineOcrPage {
             draftOwner: settings
-            onApiEdited: (value) => settings.ocrApiDraft = value
-            onApiCommitted: settings.commitOcrApiDraft()
+            onCredentialEdited: (slot, value) => settings.setOcrDraft(slot, value)
+            onCredentialCommitted: settings.commitOcrApiDraft()
         }
     }
     Component {

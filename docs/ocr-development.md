@@ -91,7 +91,7 @@
 
 - Tesseract：英语用 `eng`，简体中文用 `chi_sim`；混排用 `chi_sim+eng` 并要求两份模型可读。显式选择一种语言而资源不齐时报告缺失，不把中文静默丢掉。
 - 可选引擎：语言能力由已验证的模型组合决定；没有证据不声明可识别某语言。
-- 在线：仅列该协议与所选服务档位已支持的语言，使用独立 `ocrOnlineLanguage`；不沿用本地语言枚举假定能力相同。
+- 在线：仅列所选服务与所选档位已支持的语言，使用独立 `ocrOnlineLanguage`；不沿用本地语言枚举假定能力相同。
 
 不使用 “先以 eng 识别，再根据输出中文占比选择中文模型” 的规则：首次识别可能已经丢失中文。
 
@@ -290,9 +290,22 @@ Tesseract TSV 的行框由真实词框并集得到；RapidOCR 的文本块多边
 
 Paddle 暂不作为首版已发布选项。需要时单独实现 Adapter，复用结果验证和排程，不复制一套设置 / 授权 / 扫描管道。版本依据：[发行页](https://github.com/hiroi-sora/PaddleOCR-json/releases/tag/v1.4.1)。
 
-### 7.3 首个在线协议：OCR.space
+### 7.3 在线服务表
 
-首轮建议实现 `ocrspace` Adapter：专用 OCR 接口，参数比视觉模型对话接口更窄，适合验证图片授权和几何结果。此选择不要求用户购买特定套餐，不宣称服务内部一定不用 VLM，也不宣称其他云 OCR 与其兼容。
+在线识别按服务登记，一家一个 Adapter。表在 `src/ocr/online_providers.cpp`，设置页、配置检查与工厂读同一张表；没有 Adapter 的服务不能入表，工厂对未知协议返回空，不猜一种兼容。新增一家是协议枚举值、Adapter 文件、表行与工厂分支四件事，设置页与 CaptureDuty 不改（[ADR 0136](adr/0136-online-ocr-is-a-provider-table.md)）。
+
+| 服务 id | 名称 | 默认地址 | 凭据槽 | 语言映射 | 状态 |
+|---|---|---|---|---|---|
+| `baidu` | 百度通用文字识别 | `https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic` | `apiKey`、`secretKey` | `eng`→`ENG`，`auto`→`CHN_ENG` | 已实现，真实往返未验证 |
+| `ocrspace` | OCR.space | `https://api.ocr.space/parse/image` | `apiKey` | `eng`→`eng`，`auto`→`auto` | 已实现，真实往返未验证 |
+
+腾讯云、阿里云与 Google Vision 需要各自的请求签名或异步轮询，表项与 Adapter 同时加入，不预先列出无法调用的服务。
+
+端点留空表示服务默认地址，非空是读者的显式覆盖；切换服务会清空地址与全部凭据，不把一家服务的密钥发到另一家的协议上。凭据写入 `OCR-API-KEY` 与 `OCR-SECRET-KEY` 两个固定键，与解释凭据独立。存储语言只有 `eng` 与 `auto` 两个值，`auto` 表示 “服务自己的多语言设置”，含义由各 Adapter 映射，不是 Lens 的自动检测承诺。
+
+#### 7.3.1 OCR.space
+
+首轮用它验证图片授权和几何结果：专用 OCR 接口，参数比视觉模型对话接口更窄。此选择不要求用户购买特定套餐，不宣称服务内部一定不用 VLM，也不宣称其他云 OCR 与其兼容。
 
 协议依据：[OCR.space 官方 API 文档](https://ocr.space/ocrapi)，核对日期 2026-10-28；网站页脚版本号不是 API 协议版本。
 
@@ -304,13 +317,13 @@ Paddle 暂不作为首版已发布选项。需要时单独实现 Adapter，复�
 | 图片字段 | `file`，内存 PNG，固定中性文件名 `capture.png` |
 | OCR 引擎 | `OCREngine=2`；不使用已退役的 Engine 1 |
 | 版面 | `isOverlayRequired=true` |
-| 语言 | 首轮提供显式英语 `eng` 与服务端 `auto`，其他语言必须先核对协议枚举和样图 |
+| 语言 | 显式英语 `eng` 与服务端 `auto`，其他语言必须先核对协议枚举和样图 |
 | 非必要功能 | 不请求可搜索 PDF，不上传远程图片 URL，不请求翻译 |
 | 模型名 | 无；设置页不显示模型输入框 |
 
-官方还支持 URL 和 `base64Image`，Lens 首轮不启用，减少额外下载链和 base64 请求膨胀。上传 PNG 字节数硬限 950,000 字节，保守低于文档的免费 1 MB 单文件限制；超过时在上传前拒绝并提示缩小选区，不通过有损压缩偷偷改变可读内容。
+官方还支持 URL 和 `base64Image`，Lens 不启用，减少额外下载链和 base64 请求膨胀。上传 PNG 字节数硬限 950,000 字节，保守低于文档的免费 1 MB 单文件限制；超过时在上传前拒绝并提示缩小选区，不通过有损压缩偷偷改变可读内容。
 
-服务档位可能有不同限制。免费额度、每日 IP 限流和套餐大小不能被 Lens 写成永久保证；本地次数限制不代替服务商计费。自定义端点只表示用户填写了明确兼容 OCR.space 请求与响应的 HTTPS 地址，不会自动兼容百度、腾讯、Azure 或 OpenAI；同样经过端点展示与凭据重新绑定。
+服务档位可能有不同限制。免费额度、每日 IP 限流和套餐大小不能被 Lens 写成永久保证；本地次数限制不代替服务商计费。端点的自定义覆盖只表示读者填写了一个兼容 OCR.space 请求与响应的 HTTPS 地址，不会自动兼容其他服务；它同样经过端点展示与凭据重新绑定。
 
 成功处理需要同时检查：
 
@@ -325,11 +338,29 @@ Paddle 暂不作为首版已发布选项。需要时单独实现 Adapter，复�
 
 连接检测采用应用生成的纯文本样图，复用同一 POST 路径并显式告知可能计费；不能用一个 GET 或纯文本 ping 宣称图片 OCR 已验证。样图答案由本地固定数据判定，测试不读取当前屏幕，也不使用用户上一张截图。
 
+#### 7.3.2 百度通用文字识别
+
+协议依据：[百度通用文字识别文档](https://ai.baidu.com/ai-doc/OCR/zk3h7xz52)，核对日期 2026-10-29。百度把鉴权分成两步，Lens 必须自己换取并缓存令牌。
+
+| 请求项 | 取值 |
+|---|---|
+| 令牌端点 | POST `https://aip.baidubce.com/oauth/2.0/token`，`application/x-www-form-urlencoded`，字段 `grant_type=client_credentials`、`client_id`（API Key）、`client_secret`（Secret Key） |
+| 识别端点 | POST `https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token=…` |
+| 内容类型 | `application/x-www-form-urlencoded` |
+| 图片字段 | `image`，PNG 的 base64 再整体百分号编码 |
+| 语言 | `language_type=ENG` 或 `CHN_ENG` |
+| 上限 | base64 后 ≤ 4,000,000 字节；最长边 ≤ 4096 px，最短边 ≥ 15 px；超限在上传前拒绝 |
+| 令牌寿命 | 按响应的 `expires_in` 缓存，提前 60 秒失效；只存内存 |
+
+令牌只存进程内存，日志只记状态码与响应字节数，不记令牌、密钥或响应正文。凭据、地址或服务改变即清空缓存；令牌被 401／403 拒绝时丢弃，下一次显式请求重新交换，不自动重试。
+
+成功响应要求 `words_result` 为数组，若带 `words_result_num` 必须与数组长度一致；每项读取 `words`，存在 `location` 时再读 `left`、`top`、`width`、`height`，坐标必须落在原裁剪图内。百度给的是行框，结果 `geometryLevel` 为行；服务省略 `location` 时按纯文本成功，`geometryLevel` 为无（2026-10-29 实测单行答案不带坐标），`location` 存在但格式错误或越界仍属协议失败。`error_code` 按固定集合映射：`216201` 为图片无效，`216202`、`216203`、`216205` 为超出大小，其余（含 `17`、`18`、`19`、`110`、`111`、`282000`）为识别失败；`error_msg` 不进界面，也不进日志正文，错误码写入日志。
+
 ## 8 在线上传事务与生命周期
 
 ### 8.1 冻结一次用户意图
 
-上传确认绑定一个内存事务，包含原始选区图、精确目标端点、服务商、语言、配置版本与请求代次。确认时不重新抓屏，不临时读取另一端点或另一个 API key。
+上传确认绑定一个内存事务，包含原始选区图、精确目标端点、服务商、冻结的凭据与语言、配置版本与请求代次。确认时不重新抓屏，不临时读取另一端点、另一服务或另一组凭据。
 
 每次在线截图都确认，不提供 “以后不再询问”。授权不能从选择在线模式、连接检测、上一次截图或本地失败推导。
 
@@ -401,10 +432,11 @@ OCR 服务费用不进入现有按 token 估算的解释账单，不伪造为零
 | `tesseractDataDirectory` | 字符串，空 | 空表示所选 exe 的相邻 tessdata |
 | `rapidOcrExecutable` | 字符串，空 | 仅支持协议已锁定的程序 |
 | `rapidOcrModelDirectory` | 字符串，空 | 模型组合与程序版本一起检测 |
-| `ocrOnlineProvider` | 协议 ID，初始未配置 | 首轮只接受已实现协议 |
-| `ocrOnlineEndpoint` | HTTPS URL，初始空 | 不从解释配置复制 |
-| `ocrOnlineLanguage` | 服务协议语言 ID，初始英语 | 服务能力校验 |
-| `OCR-API-KEY` | 独立机密，初始空 | 专用写入／清除命令；普通 settings 投影不可读取 |
+| `ocrOnlineProvider` | 服务 id（§7.3 表），初始未配置 | 只接受表内 id；切换服务清空地址与全部凭据 |
+| `ocrOnlineEndpoint` | HTTPS URL，初始空 | 空表示服务默认地址；不从解释配置复制 |
+| `ocrOnlineLanguage` | `eng`／`auto`，初始英语 | 必须为该服务列出的语言 |
+| `OCR-API-KEY` | 独立机密，初始空 | `apiKey` 槽；专用写入／清除命令；普通 settings 投影不可读取 |
+| `OCR-SECRET-KEY` | 独立机密，初始空 | `secretKey` 槽；与上一行同规则 |
 
 不预建没有实现的 Paddle、NPU 或各家云端字段。若将来某协议确实需要模型名，再由该 Adapter 增加对应配置；不是所有在线 OCR 都有模型选择。
 
@@ -412,7 +444,7 @@ OCR 服务费用不进入现有按 token 估算的解释账单，不伪造为零
 
 沿用读者 `%APPDATA%\Lens\settings.json` 的本地保存位置，不创建安装目录密钥文件。OCR key 与解释 `API-KEY` 分开，不能隐式共用或因切换服务自动复制。
 
-UI 只能读到 `hasOcrApiKey`，写入后立即清空输入草稿，返回掩码占位。通用 `setSetting`、开发面 `state`、同步序列化、诊断导出均不得返回 key。
+UI 只能读到每个凭据槽是否已填（`ocrOnlineCredentials` 的 `present`），写入后立即清空输入草稿，返回掩码占位。通用 `setSetting`、开发面 `state`、同步序列化、诊断导出均不得返回 key。交换来的令牌同样不进入任何投影或日志，只在内存中按服务与地址缓存。
 
 端点或服务商改变时，原凭据不自动发送给新地址；清除其有效绑定，要求重新输入密钥。必须由一个专用配置提交操作写入服务商、端点、语言和可选新密钥，并只在整组校验完成后更新执行器快照。普通字段仍按既有即时生效模式编辑，编辑期间不触网。
 
@@ -423,7 +455,7 @@ UI 只能读到 `hasOcrApiKey`，写入后立即清空输入草稿，返回掩�
 ### 9.3 恢复与删除
 
 - 恢复默认将手动模式设回本地、引擎设回自动、语言设回英文，关闭自动扫描与截图开关，清空自定义本地路径并撤销外部程序信任。
-- 解释 key 与 OCR key 均不由 “恢复默认” 隐式删除；在线配置可保留但不生效。提供明确的 “清除在线 OCR 配置” 操作，删除端点、凭据和检测状态。
+- 解释 key 与 OCR 凭据均不由 “恢复默认” 隐式删除；在线配置可保留但不生效。提供明确的 “清除在线 OCR 配置” 操作，删除服务、端点、凭据和检测状态。
 - 清除或修改 OCR key 会取消在途任务；不能保证已上传内容从服务商删除。
 - 关闭在线模式释放内存图像，不删除用户下载的程序或模型。
 - 不借本次设置变化清空解释缓存、词汇历史或复习池。
@@ -446,7 +478,7 @@ OCR 子页面顺序：
 
 本地自动选择时显示 Tesseract 摘要；明确选择时只显示该引擎对应字段。用户安装程序 / 模型用文件或目录选择器，不提供自由命令行。
 
-在线配置页面首轮只有服务协议、完整 HTTPS 端点、语言、密钥、显式连接检测及清除配置。只有 Adapter 需要时才显示模型字段。
+在线配置页面为服务选择、端点、语言、该服务声明的凭据字段、显式连接检测及清除配置。端点在未填写时显示服务的默认地址；凭据字段由服务表决定，OCR.space 一个 key，百度一个 key 加一个 secret，界面不显示服务没有的字段。切换服务后地址与凭据一并清空，读者重新填写；只有 Adapter 需要时才显示模型字段。
 
 ### 10.2 状态不是一个布尔值
 
@@ -649,7 +681,7 @@ A 的部署或候选协议不通过时停止该后端，不以增加兼容分支
 
 方案成文时未运行真实引擎、未安装语言包 / 模型、未调用在线识别；这些限制描述的是 2026-10-28 的文档状态，不是实施后的状态。实施取得的真实引擎、替身与未验证分层见第 17 节和[基线证据](metrics/ocr-baseline-2026-10-28.md)。
 
-## 17 实施状态（2026-10-28）
+## 17 实施状态（2026-10-29）
 
 本节记录代码实际做到哪一步，与 §1–16 的目标契约分开阅读。
 
@@ -659,13 +691,14 @@ A 的部署或候选协议不通过时停止该后端，不以增加兼容分支
 | B 结果与执行器 | 结构化 `OcrResult`（行/词/框/置信度/实际后端/耗时/几何层级）；严格 TSV 解析；单一 worker `OcrExecutor`；取消、超时、输出限额 | `OcrTsv.*` 12 例；`OcrEngineProbe.*` 真实 Tesseract；`CaptureDuty.*` | — |
 | C 本地配置与路由 | `ocrMode` / `ocrLocalEngine` / `ocrLocalLanguage` / `ocrConfigVersion`；旧配置迁移；自动→Tesseract；明确选择不回退；OCR 设置子页与合成图测试 | `OcrLocal.*`、`OcrMigration.*`、`SettingsTableRig.*`、QTest `CaptureSettings::*` | 真机像素检查 |
 | D 可选本地后端 | RapidOCR v0.2.0 适配器；ASCII 模型路径校验；显式检测/信任摘要；设置页与第三方风险说明 | `OcrRapidOcr.*` 10 例；`RapidOcrProbe.*` 3 例真实发行物；QML 非 ASCII 拒绝/检测失败 2 例；终止后无残留进程 | 中英混排丢拉丁词间空格；不进入安装包；模型目录必须 ASCII（ADR 0132） |
-| E 在线事务与传输 | 新增 `lens_ocr`；OCR.space 请求构造与严格响应解析；HTTPS/无重定向/大小/超时/取消；独立 `OCR-API-KEY`；确认事务、60/120/30 秒窗口、一次人工重试 | `OcrSpace.*` 13 例；`CaptureDuty` 的未确认零上传、取消零上传、本地零在线、确认一次发送 | 真实 OCR.space 往返；真实密钥与计费验证 |
-| F 在线 UI 与交付 | OCR 子页、在线配置页、上传确认卡、受控图片源、五语言文案 | QTest `CaptureSettings::test_theConsentCard*`、`test_theOnlinePageDrawsItsFields`、`test_onlineModeWithout*`；OCR 两页、RapidOCR 区与确认卡的离屏快照（`qml-snapshot.ps1`） | 真机视觉检查；setup 升级/安装/卸载与残留清理已复验；真实在线 smoke；确认卡预览在离屏快照中没有注册应用图片源，实际 preview 路径仅由应用启动验证 |
+| E 在线事务与传输 | 新增 `lens_ocr`；在线服务表与工厂（协议、默认地址、凭据槽、语言映射）；OCR.space 与百度两个 Adapter；百度令牌内存缓存；HTTPS/无重定向/大小/超时/取消；`OCR-API-KEY` / `OCR-SECRET-KEY` 双槽；确认事务、60/120/30 秒窗口、一次人工重试 | `OcrSpace.*` 13 例；`OcrBaidu.*` 9 例；`OnlineProviders.*`／`OnlineTokens.*` 5 例；`CaptureDuty` 的未确认零上传、取消零上传、本地零在线、确认一次发送、服务切换清空凭据与地址 | 真实 OCR.space 与百度账号往返；真实密钥、计费与限额验证 |
+| F 在线 UI 与交付 | OCR 子页、在线配置页（服务下拉、默认端点、按服务显示凭据字段）、上传确认卡（点名所选服务）、受控图片源、五语言文案 | QTest `CaptureSettings::test_theConsentCard*`、`test_theOnlinePageDrawsItsFields`、`test_theCredentialFieldsFollowTheChosenService`、`test_onlineModeWithout*`；OCR 两页、RapidOCR 区与确认卡的离屏快照（`qml-snapshot.ps1`） | 真机视觉检查；setup 升级/安装/卸载与残留清理已复验；真实在线 smoke；确认卡预览在离屏快照中没有注册应用图片源，实际 preview 路径仅由应用启动验证 |
 
 已知偏差与说明：
 
 - RapidOCR 按 ADR 0132 只接受 ASCII 模型目录；设置页会警示并禁用检测，捕获门报 `path-unsupported`，不回退 Tesseract。中英混排仍丢拉丁词间空格，不能靠假词框或静默纠正掩盖。
 - RapidOCR 发行物未签名，启动横幅为 `v1.1.0` 与标签 `v0.2.0` 不一致，发行包也没有模型许可文件；设置页已说明第三方风险，信任按可执行文件、模型目录和当前语言文件摘要建立。
 - 在线重试沿用同一事务 id；方案要求的第二次请求使用新 requestId 尚未实现。
+- 腾讯云、阿里云与 Google Vision 不在服务表内：它们需要各自的签名或轮询 Adapter，入表与 Adapter 同时提交。百度令牌交换与识别只用替身验证，真实账号的往返、过期与限额未验证。
 - 启动时本地就绪只做文件/语言检查，不启动子进程；显式测试 OCR 才运行合成图；RapidOCR 的信任验证只做摘要，不启动程序。
 - 真实在线请求未执行；安装产物已构建并检查 payload/portable 与安装目录的 TSV、`chi_sim` 排除与密钥/截图边界；1.7.1 → 1.9.0 升级、卸载、重装已执行，profile 保留；修复后 1.9.0 → 1.9.0 的运行中升级、运行中卸载拒绝、干净卸载（含空目录与 `Run\Lens` 清理）和重装已复验。`chi_sim` 只是本机 Tesseract 数据文件，不是系统语言包，也未进入安装包。这些不是代码完成可以替代的验收。

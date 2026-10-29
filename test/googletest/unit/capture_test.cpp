@@ -515,6 +515,117 @@ TEST(CaptureDuty, ChangingTheEndpointDropsTheCredentialBoundToTheOldOne)
     EXPECT_FALSE(duty.settings().value("onlineConfigured").toBool());
 }
 
+/// The first release had one protocol, so a key typed there belongs to it even when the reader
+/// never got as far as naming an address. The migration binds such a profile instead of leaving
+/// it stranded under a service nobody chose.
+TEST(CaptureDuty, AnOldOnlineKeyWithNoAddressIsBoundToTheOnlyServiceThatExisted)
+{
+    using lens::app::CaptureDuty;
+    using lens::app::MouseSelectionHook;
+    using lens::app::StorageDuty;
+
+    int              argc   = 1;
+    char             name[] = "capture_online_legacy_key";
+    char*            argv[] = {name, nullptr};
+    QCoreApplication application{argc, argv};
+
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    auto        store = lens::core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    StorageDuty storage{store};
+    {
+        auto keys = storage.section();
+        keys.set<int>("ocrConfigVersion", 1);
+        keys.set<std::string>("ocrMode", "online");
+        keys.set<std::string>("OCR-API-KEY", "old-key");
+    }
+
+    MouseSelectionHook hook;
+    CaptureDuty        duty{storage, hook, std::make_unique<FakeOcr>(), std::make_shared<FakeHttp>()};
+    ASSERT_TRUE(awaitSignal(duty, &CaptureDuty::settingsChanged));
+
+    EXPECT_EQ(storage.section().value<std::string>("ocrOnlineProvider", {}), "ocrspace");
+    EXPECT_TRUE(duty.settings().value("onlineConfigured").toBool())
+        << "the key and the service's own address are enough";
+    EXPECT_EQ(duty.settings().value("ocrOnlineHost").toString(), QStringLiteral("api.ocr.space"));
+}
+
+/// An empty endpoint is not an incomplete one: it names the address the service table carries, so
+/// a reader never has to paste a URL to make a service work.
+TEST(CaptureDuty, AnEmptyEndpointMeansTheServicesOwnAddress)
+{
+    using lens::app::CaptureDuty;
+    using lens::app::MouseSelectionHook;
+    using lens::app::StorageDuty;
+
+    int              argc   = 1;
+    char             name[] = "capture_online_default_endpoint";
+    char*            argv[] = {name, nullptr};
+    QCoreApplication application{argc, argv};
+
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    auto        store = lens::core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    StorageDuty storage{store};
+    configureOnline(storage);
+    storage.section().set<std::string>("ocrOnlineEndpoint", "");
+
+    MouseSelectionHook hook;
+    CaptureDuty        duty{storage, hook, std::make_unique<FakeOcr>(), std::make_shared<FakeHttp>()};
+    ASSERT_TRUE(awaitSignal(duty, &CaptureDuty::settingsChanged));
+
+    EXPECT_TRUE(duty.settings().value("onlineConfigured").toBool());
+    EXPECT_EQ(duty.settings().value("ocrOnlineHost").toString(), QStringLiteral("api.ocr.space"));
+    EXPECT_EQ(duty.settings().value("ocrOnlineEndpointDefault").toString(),
+              QStringLiteral("https://api.ocr.space/parse/image"));
+}
+
+/// Baidu needs a key pair, and both slots have to be filled before the service counts as
+/// configured; switching services then drops the address and every credential with it.
+TEST(CaptureDuty, ABaiduProfileNeedsBothCredentialsAndSwitchingDropsThem)
+{
+    using lens::app::CaptureDuty;
+    using lens::app::MouseSelectionHook;
+    using lens::app::StorageDuty;
+
+    int              argc   = 1;
+    char             name[] = "capture_online_baidu";
+    char*            argv[] = {name, nullptr};
+    QCoreApplication application{argc, argv};
+
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    auto        store = lens::core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    StorageDuty storage{store};
+    {
+        auto keys = storage.section();
+        keys.set<int>("ocrConfigVersion", 1);
+        keys.set<std::string>("ocrMode", "online");
+        keys.set<std::string>("ocrOnlineProvider", "baidu");
+        keys.set<std::string>("ocrOnlineLanguage", "eng");
+        keys.set<std::string>("OCR-API-KEY", "api-key");
+        keys.set<bool>("ocrCapture", true);
+    }
+
+    MouseSelectionHook hook;
+    CaptureDuty        duty{storage, hook, std::make_unique<FakeOcr>(), std::make_shared<FakeHttp>()};
+    ASSERT_TRUE(awaitSignal(duty, &CaptureDuty::settingsChanged));
+
+    EXPECT_FALSE(duty.settings().value("onlineConfigured").toBool()) << "the secret key is still missing";
+    EXPECT_EQ(duty.settings().value("ocrOnlineHost").toString(), QStringLiteral("aip.baidubce.com"));
+
+    duty.setOcrCredential(QStringLiteral("secretKey"), QStringLiteral("secret-key"));
+    EXPECT_TRUE(duty.settings().value("onlineConfigured").toBool());
+    EXPECT_EQ(duty.settings().value("ocrOnlineCredentials").toList().size(), 2);
+
+    duty.setOcrOnlineProvider(QStringLiteral("ocrspace"));
+    auto const keys = storage.section();
+    EXPECT_TRUE(keys.value<std::string>("OCR-API-KEY", {}).empty());
+    EXPECT_TRUE(keys.value<std::string>("OCR-SECRET-KEY", {}).empty());
+    EXPECT_TRUE(keys.value<std::string>("ocrOnlineEndpoint", {}).empty());
+    EXPECT_FALSE(duty.settings().value("onlineConfigured").toBool());
+}
+
 TEST(CaptureDuty, AConfiguredOnlineModeDoesNotDependOnTheLocalRuntime)
 {
     using lens::app::CaptureDuty;

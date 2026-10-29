@@ -1,7 +1,7 @@
 # LLM 协议
 > 权威：当前线上协议。**实际生效的定义在 `data/llm/` 目录**，代码只组装与校验，不内联任何提示词或字段名；历史取舍见 `docs/adr/`。
 >
-> 在线 OCR 是独立图片请求，不属于下列解释通道；首个协议与响应适配见 [OCR 开发方案第 7 节](docs/ocr-development.md#7-第一批外部协议适配)，实现状态见 §8。真实 OCR.space 往返尚未执行。
+> 在线 OCR 是独立图片请求，不属于下列解释通道；服务表与两个协议适配见 [OCR 开发方案第 7 节](docs/ocr-development.md#7-第一批外部协议适配)，实现状态见 §8。真实在线往返尚未执行。
 
 服务商、模型与端点由 `data/llm/catalog.json` 驱动，默认是 DeepSeek；解释请求使用 OpenAI 兼容的 `POST {baseUrl}/chat/completions`，请求头为 `Content-Type: application/json` 与 `Authorization: Bearer <API-KEY>`。模型列表不问服务商：**全部服务商共用 `modelSource` 声明的那一个源**，回答按厂商前缀切分。当前目录包含 DeepSeek（`deepseek-flash`、`deepseek-v4-pro`）、OpenAI（`gpt-4.1-mini`、`gpt-4.1-nano`）和 Custom；Custom 允许在设置中填写模型与 HTTPS 服务地址。价目独立放在 `data/llm/pricing.json`。
 
@@ -317,9 +317,11 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 - `src/llm/llm_pure.{h,cpp}` — 组装请求体、校验响应、读 `usage`，均无网络
 - `test/googletest/unit/llm_pure_test.cpp` — 用固定样例锁住上述行为
 
-## 8 在线 OCR：OCR.space（已实现，真实服务未验证）
+## 8 在线 OCR：服务表与两个协议（已实现，真实服务未验证）
 
-在线 OCR 是独立通道，不经过上面的解释请求；实现住在 `src/ocr/`，结果类型来自 `src/capture/ocr_engine.h`。截至 2026-10-28 只用注入传输与合成图验证，**未向真实端点发送过请求**。
+在线 OCR 是独立通道，不经过上面的解释请求；实现住在 `src/ocr/`，结果类型来自 `src/capture/ocr_engine.h`。服务、默认地址、凭据槽与语言映射由编译期服务表登记（[ADR 0136](docs/adr/0136-online-ocr-is-a-provider-table.md)）。截至 2026-10-29 只用注入传输与合成图验证，**未向真实端点发送过请求**。
+
+### 8.1 OCR.space
 
 | 项 | 取值 |
 |---|---|
@@ -335,6 +337,20 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 成功响应必须同时满足：`OCRExitCode=1`、`IsErroredOnProcessing=false`、`ParsedResults` 恰有一项、`FileParseExitCode=1`、`ParsedText` 为字符串。`OCRExitCode=2` 返回部分识别错误，不进入翻译。`TextOverlay.Lines[].Words[]` 的 `WordText` / `Left` / `Top` / `Width` / `Height` 用于词框，行框为词框并集；坐标必须落在原裁剪图内。该协议没有可依据的置信度字段，统一返回缺失；overlay 缺失但文本有效时允许纯文本成功。
 
 请求来源必须是已确认的手动截图或显式在线检测；`AutoScan` 在编码前即被拒绝。未确认、取消、端点或密钥改变都保持上传次数为 0；传输失败或超时最多接受一次显式人工重试，不自动重试。`src/ocr/ocr_space.cpp` 是协议与边界检查的唯一位置，`test/googletest/unit/ocr_space_test.cpp` 用替身锁住请求字段、响应映射与零上传断言。
+
+### 8.2 百度通用文字识别
+
+| 项 | 取值 |
+|---|---|
+| 令牌端点 | `POST https://aip.baidubce.com/oauth/2.0/token`，表单字段 `grant_type=client_credentials`、`client_id`、`client_secret` |
+| 识别端点 | `POST https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token=…` |
+| 内容类型 | `application/x-www-form-urlencoded`；`image` 为 PNG 的 base64 再整体百分号编码 |
+| 语言 | `language_type=ENG` 或 `CHN_ENG` |
+| 上传上限 | base64 后 ≤ 4,000,000 字节；最长边 ≤ 4096 px，最短边 ≥ 15 px |
+| 令牌 | 按 `expires_in` 缓存于内存，提前 60 秒失效；凭据、地址或服务改变即清空；401／403 丢弃后由下一次显式请求重新交换 |
+| 时间与大小 | 单次 30 秒且不超过事务剩余时间；响应 ≤ 4 MiB |
+
+成功响应要求 `words_result` 为数组，若带 `words_result_num` 必须与长度一致；每项读取 `words`，有 `location` 时再读四边并验证坐标落在原裁剪图内。百度只给行框，`geometryLevel` 为行；服务省略 `location` 时（实测单行答案会缺）按纯文本成功，`geometryLevel` 为无；`location` 存在但格式错误或越界仍是协议失败。`error_code` 按固定集合映射为图片无效、超出大小或识别失败；`error_msg` 不进界面与日志，错误码进日志。`src/ocr/ocr_baidu.cpp` 是协议实现，`test/googletest/unit/ocr_baidu_test.cpp` 用替身锁住令牌缓存、请求字段、错误码映射与零上传断言。
 
 ## 9 发音：在线音频（已实现）
 

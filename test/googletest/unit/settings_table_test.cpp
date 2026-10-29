@@ -261,8 +261,8 @@ TEST_F(SettingsTableRig, TheColourRowTakesSixHexDigitsAndNothingElse)
     EXPECT_EQ(rig.stored(row).toString(), fallback);
 }
 
-/// The OCR key is a secret, not a row: it never reaches the projection or the sync whitelist, and
-/// the surface only learns whether one is stored.
+/// The OCR credentials are secrets, not rows: they never reach the projection or the sync
+/// whitelist, and the surface only learns whether each slot is filled.
 TEST_F(SettingsTableRig, TheOcrKeyIsNotAProjectionRowAndDoesNotSync)
 {
     QtApplication qt;
@@ -270,13 +270,23 @@ TEST_F(SettingsTableRig, TheOcrKeyIsNotAProjectionRowAndDoesNotSync)
     ASSERT_TRUE(temporary.isValid());
     Rig rig{std::filesystem::path{temporary.path().toStdWString()}};
 
-    rig.controller.setOcrApiKey(QStringLiteral("ocr-test-token"));
+    ASSERT_TRUE(rig.controller.setSetting(QStringLiteral("ocrOnlineProvider"), QStringLiteral("ocrspace")));
+    rig.controller.captureDuty()->setOcrCredential(QStringLiteral("apiKey"), QStringLiteral("ocr-test-token"));
     auto const projection = rig.controller.settings();
     EXPECT_FALSE(projection.contains(QStringLiteral("OCR-API-KEY")));
-    EXPECT_TRUE(projection.value(QStringLiteral("hasOcrApiKey")).toBool());
+    EXPECT_FALSE(projection.contains(QStringLiteral("OCR-SECRET-KEY")));
+    bool apiKeyPresent = false;
+    for (auto const& entry : projection.value(QStringLiteral("ocrOnlineCredentials")).toList()) {
+        auto const slot = entry.toMap();
+        if (slot.value(QStringLiteral("slot")).toString() == QLatin1String("apiKey"))
+            apiKeyPresent = slot.value(QStringLiteral("present")).toBool();
+    }
+    EXPECT_TRUE(apiKeyPresent);
 
-    for (auto const& key : core::sync::syncedKeys())
+    for (auto const& key : core::sync::syncedKeys()) {
         EXPECT_NE(key, "OCR-API-KEY");
+        EXPECT_NE(key, "OCR-SECRET-KEY");
+    }
     EXPECT_FALSE(rig.store.document().value("OCR-API-KEY", std::string{}).empty())
         << "the key is stored in the profile, just not projected";
 }

@@ -176,7 +176,7 @@ Item {
             label: qsTranslate("SettingsPopup", "OCR engine")
             note: Controller.settings.screenshotAvailability === "ready"
                   ? (Controller.settings.ocrMode === "online"
-                     ? "OCR.space"
+                     ? Controller.settings.ocrOnlineProviderLabel
                      : (Controller.settings.actualLocalEngine === "rapidocr"
                         ? "RapidOCR"
                         : qsTranslate("SettingsPopup", "Tesseract")))

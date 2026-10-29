@@ -536,21 +536,15 @@ void AppController::setApiKey(QString key)
     emit settingsChanged();
 }
 
-void AppController::setOcrApiKey(QString key)
-{
-    auto const value = key.trimmed().left(4096);
-    storage_.section().set<std::string>("OCR-API-KEY", value.toStdString());
-    capture_.invalidateOnlineConfiguration();
-    LENS_INFO("OCR API key {}", value.isEmpty() ? "cleared" : "updated");
-    emit settingsChanged();
-}
-
 void AppController::clearOcrOnlineConfiguration()
 {
+    // The provider change drops the address and both credentials; the explicit calls below cover
+    // the case where no provider was chosen yet and the change therefore does nothing.
     capture_.setOcrOnlineProvider({});
     capture_.setOcrOnlineEndpoint({});
+    capture_.setOcrCredential(QStringLiteral("apiKey"), {});
+    capture_.setOcrCredential(QStringLiteral("secretKey"), {});
     capture_.setOcrOnlineLanguage(QStringLiteral("eng"));
-    setOcrApiKey({});
     capture_.setOcrMode(QStringLiteral("local"));
 }
 
@@ -706,7 +700,6 @@ QVariantMap AppController::settings()
     result.insert(QStringLiteral("revealCharacterMs"),
                   revealMillisPerCharacter(result.value(QStringLiteral("revealSpeed")).toInt()));
     result.insert(QStringLiteral("hasApiKey"), !keys.value<std::string>("API-KEY", {}).empty());
-    result.insert(QStringLiteral("hasOcrApiKey"), !keys.value<std::string>("OCR-API-KEY", {}).empty());
     // The key in force, which is not always the one the document holds: a combination the shell
     // refused leaves the old one working, and that is the one the field has to show.
     result.insert(QStringLiteral("ocrHotkey"), hotkey_.keys().toString(QKeySequence::PortableText));

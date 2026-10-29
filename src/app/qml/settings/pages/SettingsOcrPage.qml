@@ -32,7 +32,10 @@ Item {
 
     /// @return The engine the result came from, in the reader's words.
     function engineName(value) {
-        if (value === "ocrspace") return "OCR.space";
+        const providers = settings.ocrOnlineProviders || [];
+        for (let i = 0; i < providers.length; ++i)
+            if (providers[i].value === value)
+                return providers[i].label;
         if (value === "rapidocr" || value === "rapidocr-json") return "RapidOCR";
         return qsTranslate("SettingsPopup", "Tesseract");
     }

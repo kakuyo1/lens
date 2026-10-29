@@ -141,9 +141,7 @@ public:
     Q_INVOKABLE QVariantList bubbleFontSizeOptions() const;
     /// @brief Store the key the service is reached with. Never logged, never echoed back.
     Q_INVOKABLE void setApiKey(QString key);
-    /// @brief Store the OCR service's own key, separate from the explanation key. Never echoed.
-    Q_INVOKABLE void setOcrApiKey(QString key);
-    /// @brief Remove the online OCR endpoint, key and language, and return manual capture to local.
+    /// @brief Remove the online OCR service, address and credentials, and return manual capture to local.
     Q_INVOKABLE void clearOcrOnlineConfiguration();
     Q_INVOKABLE void setApiUrl(QString url);
     /// @brief Store the model the service is asked for, through the catalogue that owns the choice.

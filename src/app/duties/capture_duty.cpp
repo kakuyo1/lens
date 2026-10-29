@@ -22,7 +22,7 @@
 #include "capture/foreground_window.h"
 #include "capture/ocr_local.h"
 #include "capture/ocr_migration.h"
-#include "ocr/ocr_space.h"
+#include "ocr/online_ocr.h"
 #include "ocr/qt_http_transport.h"
 #include "core/domain/filter_core.h"
 #include "core/domain/settings_table.h"
@@ -49,6 +49,15 @@ quintptr monitorOf(QScreen const* screen)
 }
 
 constexpr int kMaxSelectionChars = 1000;
+
+/// @return The document key that holds one credential slot, or empty for a slot this build has no
+///         field for. Fixed strings: a slot name never chooses where a secret is written.
+QString credentialSettingKey(QString const& slot)
+{
+    if (slot == QLatin1String("apiKey")) return QStringLiteral("OCR-API-KEY");
+    if (slot == QLatin1String("secretKey")) return QStringLiteral("OCR-SECRET-KEY");
+    return {};
+}
 
 /// @return The Tesseract the reader pointed at, or the bundled runtime when both are empty.
 capture::TesseractConfig storedTesseractConfig(StorageDuty& storage)
@@ -144,7 +153,8 @@ CaptureDuty::CaptureDuty(StorageDuty&                        storage,
                          QObject*                            parent)
     : QObject(parent), storage_(storage), hook_(hook), grabber_(std::make_unique<SelectionTextGrabber>()),
       ocr_(std::move(ocr)), executor_(std::make_unique<capture::OcrExecutor>(this)),
-      onlineTransport_(std::move(onlineTransport)), scan_(capture::makeScanPipeline())
+      onlineTransport_(std::move(onlineTransport)), onlineTokens_(ocr::makeMemoryOcrTokenStore()),
+      scan_(capture::makeScanPipeline())
 {
     if (not onlineTransport_) onlineTransport_ = std::make_shared<ocr::QtHttpTransport>();
     connect(&hook_, &MouseSelectionHook::selectionReleased, this, &CaptureDuty::onSelectionReleased);
@@ -196,8 +206,23 @@ QVariantMap CaptureDuty::settings() const
         auto const refusal = refusalOf(status);
         return refusal ? tokenOf(*refusal) : QStringLiteral("ready");
     };
-    auto const online      = settings::read(keys, *core::settings::find("ocrMode")).toString() == QLatin1String("online");
-    auto const onlineReady = onlineConfigured();
+    auto const        online      = settings::read(keys, *core::settings::find("ocrMode")).toString() == QLatin1String("online");
+    auto const        onlineReady = onlineConfigured();
+    auto const* const provider    = onlineProvider();
+    QVariantList      providers;
+    for (auto const& entry : ocr::onlineOcrProviders())
+        providers.append(QVariantMap{{"value", entry.id}, {"label", entry.label}, {"group", entry.group}, {"note", ""}});
+    QStringList languages;
+    for (auto const* const value : {"eng", "auto"})
+        if (provider == nullptr or provider->languages.contains(QLatin1String(value))) languages << QLatin1String(value);
+    QVariantList credentials;
+    if (provider != nullptr) {
+        auto const document = storage_.section();
+        for (auto const& slot : provider->credentials)
+            credentials.append(QVariantMap{
+                {"slot", slot},
+                {"present", not document.value<std::string>(credentialSettingKey(slot).toStdString(), {}).empty()}});
+    }
     return {{"ocrCapture", readOf("ocrCapture")},
             {"autoScan", readOf("autoScan")},
             {"ocrAvailable", ocrState_ == capture::OcrStatus::Ready},
@@ -207,12 +232,17 @@ QVariantMap CaptureDuty::settings() const
             {"ocrLocalEngine", readOf("ocrLocalEngine")},
             {"ocrLocalLanguage", readOf("ocrLocalLanguage")},
             {"ocrOnlineProvider", readOf("ocrOnlineProvider")},
+            {"ocrOnlineProviderLabel", provider != nullptr ? provider->label : QString{}},
             {"ocrOnlineEndpoint", readOf("ocrOnlineEndpoint")},
+            {"ocrOnlineEndpointDefault", provider != nullptr ? provider->endpoint.toString() : QString{}},
             {"ocrOnlineLanguage", readOf("ocrOnlineLanguage")},
+            {"ocrOnlineProviders", providers},
+            {"ocrOnlineLanguages", languages},
+            {"ocrOnlineCredentials", credentials},
             {"onlineConfigured", onlineReady},
             {"screenshotAvailable", online ? onlineReady : ocrState_ == capture::OcrStatus::Ready},
             {"scanAvailable", ocrState_ == capture::OcrStatus::Ready},
-            {"ocrOnlineHost", QUrl{readOf("ocrOnlineEndpoint").toString()}.host()},
+            {"ocrOnlineHost", provider != nullptr ? onlineEndpoint(*provider).host() : QString{}},
             {"uploadPhase", uploadPhase_},
             {"uploadCanRetry", uploadCanRetry_},
             {"localAvailability", tokenFor(ocrState_)},
@@ -255,6 +285,15 @@ void CaptureDuty::migrateOcrSettings()
     if (keys.value<std::string>("ocrLocalEngine", std::string{}) == "windows") {
         settings::write(keys, *core::settings::find("ocrLocalEngine"), QStringLiteral("auto"));
         LENS_INFO("OCR engine 'windows' removed; using auto");
+    }
+    // The first release selected its only protocol by naming its address. The provider is its own
+    // field now, and a profile that still carries that address -- or the key typed for that one
+    // protocol -- would otherwise be stranded as unconfigured under a service nobody chose.
+    if (keys.value<std::string>("ocrOnlineProvider", std::string{}).empty() and
+        (not keys.value<std::string>("ocrOnlineEndpoint", std::string{}).empty() or
+         not keys.value<std::string>("OCR-API-KEY", std::string{}).empty())) {
+        settings::write(keys, *core::settings::find("ocrOnlineProvider"), QStringLiteral("ocrspace"));
+        LENS_INFO("online OCR provider restored from the first release's configuration");
     }
     if (keys.value<int>("ocrConfigVersion", 0) >= 1) return;
 
@@ -346,18 +385,18 @@ bool CaptureDuty::setSetting(std::string_view const key, QVariant const& value)
     }
     if (key == "ocrOnlineProvider") {
         auto const text = value.toString().trimmed();
-        if (not text.isEmpty() and text != QLatin1String("ocrspace")) return false;
+        if (not text.isEmpty() and ocr::findOcrProvider(text) == nullptr) return false;
         setOcrOnlineProvider(text);
         return true;
     }
     if (key == "ocrOnlineEndpoint") {
         auto const text = value.toString().trimmed();
-        if (not text.isEmpty() and ocr::validateOcrSpaceEndpoint(QUrl{text})) return false;
+        if (not text.isEmpty() and ocr::validateOcrEndpoint(QUrl{text})) return false;
         setOcrOnlineEndpoint(text);
         return true;
     }
     if (key == "ocrOnlineLanguage") {
-        if (ocr::validateOcrSpaceLanguage(value.toString())) return false;
+        if (not onlineLanguageSupported(value.toString())) return false;
         setOcrOnlineLanguage(value.toString());
         return true;
     }
@@ -501,13 +540,17 @@ void CaptureDuty::setOcrMode(QString mode)
 void CaptureDuty::setOcrOnlineProvider(QString provider)
 {
     auto const value = provider.trimmed();
-    if (not value.isEmpty() and value != QLatin1String("ocrspace")) return;
+    if (not value.isEmpty() and ocr::findOcrProvider(value) == nullptr) return;
     auto       keys     = storage_.section();
     auto const previous = settings::read(keys, *core::settings::find("ocrOnlineProvider")).toString();
     if (value == previous) return;
     if (not settings::write(keys, *core::settings::find("ocrOnlineProvider"), value)) return;
-    // A credential is bound to the destination it was entered for.
-    if (not previous.isEmpty()) keys.set<std::string>("OCR-API-KEY", {});
+    // The address and the credentials were chosen for the service that just went away; carrying
+    // them over would point one service's key at another service's protocol.
+    settings::write(keys, *core::settings::find("ocrOnlineEndpoint"), QString{});
+    for (auto const* const slot : {"apiKey", "secretKey"})
+        keys.set<std::string>(credentialSettingKey(QLatin1String(slot)).toStdString(), {});
+    clearOnlineTokens();
     invalidateOnlineConfiguration();
     emit settingsChanged();
 }
@@ -515,16 +558,18 @@ void CaptureDuty::setOcrOnlineProvider(QString provider)
 void CaptureDuty::setOcrOnlineEndpoint(QString endpoint)
 {
     auto const value = endpoint.trimmed();
-    if (not value.isEmpty() and ocr::validateOcrSpaceEndpoint(QUrl{value})) return;
+    if (not value.isEmpty() and ocr::validateOcrEndpoint(QUrl{value})) return;
     auto       keys     = storage_.section();
     auto const previous = settings::read(keys, *core::settings::find("ocrOnlineEndpoint")).toString();
     if (value == previous) return;
     if (not settings::write(keys, *core::settings::find("ocrOnlineEndpoint"), value)) return;
-    // The first release offers one protocol; naming its endpoint is what selects it.
-    if (not value.isEmpty()) settings::write(keys, *core::settings::find("ocrOnlineProvider"), QStringLiteral("ocrspace"));
-    // A key entered for the previous address is never sent to a new one; the reader must bind it
-    // again. Clearing only the key is enough: the endpoint stays visible for the re-entry.
-    if (not previous.isEmpty() and value != previous) keys.set<std::string>("OCR-API-KEY", {});
+    // A credential entered for one address is never sent to another; the reader binds it again.
+    // Clearing only the credentials is enough: the address stays visible for the re-entry.
+    if (not previous.isEmpty() and value != previous) {
+        for (auto const* const slot : {"apiKey", "secretKey"})
+            keys.set<std::string>(credentialSettingKey(QLatin1String(slot)).toStdString(), {});
+        clearOnlineTokens();
+    }
     invalidateOnlineConfiguration();
     emit settingsChanged();
 }
@@ -532,7 +577,7 @@ void CaptureDuty::setOcrOnlineEndpoint(QString endpoint)
 void CaptureDuty::setOcrOnlineLanguage(QString language)
 {
     auto const value = language.trimmed();
-    if (ocr::validateOcrSpaceLanguage(value)) return;
+    if (not onlineLanguageSupported(value)) return;
     auto keys = storage_.section();
     if (value == settings::read(keys, *core::settings::find("ocrOnlineLanguage")).toString()) return;
     if (not settings::write(keys, *core::settings::find("ocrOnlineLanguage"), value)) return;
@@ -540,19 +585,78 @@ void CaptureDuty::setOcrOnlineLanguage(QString language)
     emit settingsChanged();
 }
 
+void CaptureDuty::setOcrCredential(QString slot, QString value)
+{
+    auto const key = credentialSettingKey(slot.trimmed());
+    if (key.isEmpty()) return;
+    auto       keys    = storage_.section();
+    auto const trimmed = value.trimmed().left(4096);
+    if (trimmed.toStdString() == keys.value<std::string>(key.toStdString(), {})) return;
+    keys.set<std::string>(key.toStdString(), trimmed.toStdString());
+    clearOnlineTokens();
+    invalidateOnlineConfiguration();
+    LENS_INFO("OCR credential '{}' {}", slot.toStdString(), trimmed.isEmpty() ? "cleared" : "updated");
+    emit settingsChanged();
+}
+
 bool CaptureDuty::onlineConfigured() const
 {
-    auto const keys     = storage_.section();
-    auto const provider = settings::read(keys, *core::settings::find("ocrOnlineProvider")).toString();
-    auto const endpoint = settings::read(keys, *core::settings::find("ocrOnlineEndpoint")).toString();
-    auto const language = settings::read(keys, *core::settings::find("ocrOnlineLanguage")).toString();
-    return provider == QLatin1String("ocrspace") and not endpoint.isEmpty() and not ocr::validateOcrSpaceEndpoint(QUrl{endpoint}) and
-           not onlineKey().isEmpty() and not ocr::validateOcrSpaceLanguage(language);
+    auto const* const provider = onlineProvider();
+    if (provider == nullptr) return false;
+    if (ocr::validateOcrEndpoint(onlineEndpoint(*provider))) return false;
+    auto const keys = storage_.section();
+    if (not onlineLanguageSupported(settings::read(keys, *core::settings::find("ocrOnlineLanguage")).toString())) return false;
+    for (auto const& slot : provider->credentials) {
+        auto const key = credentialSettingKey(slot);
+        if (key.isEmpty() or keys.value<std::string>(key.toStdString(), {}).empty()) return false;
+    }
+    return true;
+}
+
+bool CaptureDuty::onlineLanguageSupported(QString const& language) const
+{
+    auto const* const provider = onlineProvider();
+    if (provider != nullptr) return provider->languages.contains(language);
+    return language == QLatin1String("eng") or language == QLatin1String("auto");
+}
+
+ocr::OnlineOcrProvider const* CaptureDuty::onlineProvider() const
+{
+    auto const keys = storage_.section();
+    return ocr::findOcrProvider(settings::read(keys, *core::settings::find("ocrOnlineProvider")).toString());
+}
+
+QUrl CaptureDuty::onlineEndpoint(ocr::OnlineOcrProvider const& provider) const
+{
+    auto const stored = settings::read(storage_.section(), *core::settings::find("ocrOnlineEndpoint")).toString().trimmed();
+    return stored.isEmpty() ? provider.endpoint : QUrl{stored};
+}
+
+ocr::OnlineOcrConfig CaptureDuty::onlineConfig() const
+{
+    auto const* const provider = onlineProvider();
+    if (provider == nullptr) return {};
+    auto const keys = storage_.section();
+    return {.provider  = *provider,
+            .endpoint  = onlineEndpoint(*provider),
+            .apiKey    = onlineKey(),
+            .secretKey = onlineSecret(),
+            .language  = settings::read(keys, *core::settings::find("ocrOnlineLanguage")).toString()};
 }
 
 QString CaptureDuty::onlineKey() const
 {
     return QString::fromStdString(storage_.section().value<std::string>("OCR-API-KEY", {}));
+}
+
+QString CaptureDuty::onlineSecret() const
+{
+    return QString::fromStdString(storage_.section().value<std::string>("OCR-SECRET-KEY", {}));
+}
+
+void CaptureDuty::clearOnlineTokens()
+{
+    if (onlineTokens_) onlineTokens_->clear();
 }
 
 void CaptureDuty::invalidateOnlineConfiguration()
@@ -697,14 +801,11 @@ void CaptureDuty::beginOnlineUpload(QImage image, QPoint const anchor)
     // previous stable text must not revive each other.
     invalidateScan();
 
-    auto const    keys = storage_.section();
     PendingUpload pending;
     pending.requestId        = ++nextRequestId_;
     pending.image            = std::move(image);
     pending.anchor           = anchor;
-    pending.endpoint         = QUrl{settings::read(keys, *core::settings::find("ocrOnlineEndpoint")).toString()};
-    pending.apiKey           = onlineKey();
-    pending.language         = settings::read(keys, *core::settings::find("ocrOnlineLanguage")).toString();
+    pending.config           = onlineConfig();
     pending.absoluteDeadline = std::chrono::steady_clock::now() + std::chrono::seconds{120};
     upload_                  = std::move(pending);
     uploadPhase_             = QStringLiteral("awaiting-consent");
@@ -713,9 +814,9 @@ void CaptureDuty::beginOnlineUpload(QImage image, QPoint const anchor)
     uploadTimer_.start(120000);
     emit uploadPreviewReady(static_cast<qulonglong>(upload_->requestId), upload_->image);
     emit uploadConsentRequested(QVariantMap{{"requestId", static_cast<qulonglong>(upload_->requestId)},
-                                            {"host", upload_->endpoint.host()},
-                                            {"provider", QStringLiteral("ocrspace")},
-                                            {"language", upload_->language},
+                                            {"host", upload_->config.endpoint.host()},
+                                            {"provider", upload_->config.provider.label},
+                                            {"language", upload_->config.language},
                                             {"expiresInMs", 60000},
                                             {"previewUrl", QStringLiteral("image://ocr-consent/%1").arg(upload_->requestId)}});
     emit settingsChanged();
@@ -734,8 +835,7 @@ void CaptureDuty::confirmOnlineUpload(qulonglong const requestId)
         return;
     }
     std::shared_ptr<ocr::OnlineOcrClient> client{
-        ocr::makeOcrSpaceClient({.endpoint = upload_->endpoint, .apiKey = upload_->apiKey, .language = upload_->language},
-                                onlineTransport_)};
+        ocr::makeOnlineOcrClient(upload_->config, onlineTransport_, onlineTokens_)};
     if (not client) {
         clearUpload(QStringLiteral("configuration-changed"), true);
         return;
@@ -872,12 +972,8 @@ void CaptureDuty::testOnlineOcr()
         emit settingsChanged();
         return;
     }
-    auto const keys   = storage_.section();
-    auto       client = std::shared_ptr<ocr::OnlineOcrClient>{ocr::makeOcrSpaceClient(
-        {.endpoint = QUrl{settings::read(keys, *core::settings::find("ocrOnlineEndpoint")).toString()},
-               .apiKey   = onlineKey(),
-               .language = settings::read(keys, *core::settings::find("ocrOnlineLanguage")).toString()},
-        onlineTransport_)};
+    auto client = std::shared_ptr<ocr::OnlineOcrClient>{
+        ocr::makeOnlineOcrClient(onlineConfig(), onlineTransport_, onlineTokens_)};
     if (not client) {
         ocrTestState_ = QStringLiteral("online-unconfigured");
         emit settingsChanged();

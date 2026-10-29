@@ -1,8 +1,11 @@
 import QtQuick
 
 /**
- * The online OCR configuration from docs/ocr-development.md 10.1. One protocol is offered in the
- * first release; the endpoint is a full HTTPS URL the reader confirms, and the key is typed once
+ * The online OCR configuration from docs/ocr-development.md 10.1: which service is asked, at what
+ * address, in what language, and with which credentials.
+ *
+ * The service list, its address, and the fields each service needs all come from the provider
+ * table in src/ocr/online_providers.cpp; this page only renders them. A credential is typed once
  * and never read back.
  */
 Item {
@@ -14,14 +17,56 @@ Item {
     readonly property var settings: Controller.settings
     property var draftOwner
     readonly property string apiDraft: draftOwner ? draftOwner.ocrApiDraft : ""
-    readonly property var openChildRect: languageField.openChildRect
+    readonly property string secretDraft: draftOwner ? draftOwner.ocrSecretDraft : ""
+    readonly property var openChildRect: providerField.openChildRect || languageField.openChildRect
     property bool confirmingClear: false
-    signal apiEdited(string value)
-    signal apiCommitted()
+    signal credentialEdited(string slot, string value)
+    signal credentialCommitted()
     implicitHeight: content.implicitHeight
 
     function closeChild() {
+        providerField.closeList();
         languageField.closeList();
+    }
+
+    function hasSlot(slot) {
+        const slots = page.settings.ocrOnlineCredentials || [];
+        for (let i = 0; i < slots.length; ++i)
+            if (slots[i].slot === slot)
+                return true;
+        return false;
+    }
+
+    function slotPresent(slot) {
+        const slots = page.settings.ocrOnlineCredentials || [];
+        for (let i = 0; i < slots.length; ++i)
+            if (slots[i].slot === slot)
+                return slots[i].present;
+        return false;
+    }
+
+    function credentialLabel(slot) {
+        if (slot === "apiKey")
+            return qsTranslate("SettingsPopup", "API key");
+        if (slot === "secretKey")
+            return qsTranslate("SettingsPopup", "Secret key");
+        return slot;
+    }
+
+    function languageLabel(value) {
+        if (value === "eng")
+            return qsTranslate("SettingsPopup", "English");
+        if (value === "auto")
+            return qsTranslate("SettingsPopup", "Automatic (service default)");
+        return value;
+    }
+
+    function languageOptions() {
+        const values = page.settings.ocrOnlineLanguages || [];
+        const options = [];
+        for (let i = 0; i < values.length; ++i)
+            options.push({value: values[i], label: page.languageLabel(values[i]), group: "", note: ""});
+        return options;
     }
 
     function testLine() {
@@ -45,14 +90,20 @@ Item {
             width: parent.width
             spacing: 7
             Text { text: qsTranslate("SettingsPopup", "Service"); color: page.tokens.muted; font.pixelSize: 12 }
-            Text {
-                text: "OCR.space"
-                color: page.tokens.text
-                font.pixelSize: 13
+            DropdownField {
+                id: providerField
+                objectName: "ocrOnlineProvider"
+                width: parent.width
+                accessibleName: qsTranslate("SettingsPopup", "Online OCR service")
+                options: page.settings.ocrOnlineProviders || []
+                currentValue: page.settings.ocrOnlineProvider
+                onPicked: (value) => Controller.captureDuty.setOcrOnlineProvider(value)
             }
             Text {
                 width: parent.width
-                text: qsTranslate("SettingsPopup", "Only this OCR protocol is supported in this build; the service's own terms and billing apply.")
+                text: page.settings.ocrOnlineProvider === ""
+                      ? qsTranslate("SettingsPopup", "Choose a service, then enter the credentials it needs.")
+                      : qsTranslate("SettingsPopup", "The service's own terms and billing apply. Switching services clears the address and credentials below.")
                 color: page.tokens.muted
                 font.pixelSize: 11
                 wrapMode: Text.WordWrap
@@ -96,7 +147,7 @@ Item {
                     anchors.rightMargin: 11
                     verticalAlignment: Text.AlignVCenter
                     visible: endpointInput.text.length === 0
-                    text: "https://api.ocr.space/parse/image"
+                    text: page.settings.ocrOnlineEndpointDefault
                     color: page.tokens.faint
                     font: endpointInput.font
                     elide: Text.ElideRight
@@ -104,7 +155,7 @@ Item {
             }
             Text {
                 width: parent.width
-                text: qsTranslate("SettingsPopup", "The full HTTPS address, including its path. Nothing is sent until a capture is confirmed.")
+                text: qsTranslate("SettingsPopup", "The full HTTPS address. Leave it empty to use the service's own; nothing is sent until a capture is confirmed.")
                 color: page.tokens.muted
                 font.pixelSize: 11
                 wrapMode: Text.WordWrap
@@ -120,10 +171,7 @@ Item {
                 objectName: "ocrOnlineLanguage"
                 width: parent.width
                 accessibleName: qsTranslate("SettingsPopup", "Online recognition language")
-                options: [
-                    {value: "eng", label: qsTranslate("SettingsPopup", "English"), group: "", note: ""},
-                    {value: "auto", label: qsTranslate("SettingsPopup", "Automatic (service)"), group: "", note: ""}
-                ]
+                options: page.languageOptions()
                 currentValue: page.settings.ocrOnlineLanguage
                 onPicked: (value) => Controller.captureDuty.setOcrOnlineLanguage(value)
             }
@@ -132,7 +180,9 @@ Item {
         Column {
             width: parent.width
             spacing: 7
-            Text { text: qsTranslate("SettingsPopup", "OCR API key"); color: page.tokens.muted; font.pixelSize: 12 }
+            objectName: "ocrOnlineApiKeyField"
+            visible: page.hasSlot("apiKey")
+            Text { text: page.credentialLabel("apiKey"); color: page.tokens.muted; font.pixelSize: 12 }
             Rectangle {
                 width: parent.width
                 height: 35
@@ -142,7 +192,7 @@ Item {
                 border.color: page.tokens.line
 
                 TextInput {
-                    id: keyInput
+                    id: apiKeyInput
                     anchors.fill: parent
                     anchors.leftMargin: 11
                     anchors.rightMargin: 11
@@ -154,10 +204,10 @@ Item {
                     font.pixelSize: 13
                     selectByMouse: true
                     activeFocusOnTab: true
-                    Accessible.name: qsTranslate("SettingsPopup", "OCR API key")
-                    onTextEdited: page.apiEdited(text)
+                    Accessible.name: page.credentialLabel("apiKey")
+                    onTextEdited: page.credentialEdited("apiKey", text)
                     onEditingFinished: {
-                        page.apiCommitted();
+                        page.credentialCommitted();
                         text = Qt.binding(() => page.apiDraft);
                     }
                 }
@@ -167,22 +217,71 @@ Item {
                     anchors.leftMargin: 11
                     anchors.rightMargin: 11
                     verticalAlignment: Text.AlignVCenter
-                    visible: keyInput.text.length === 0
-                    text: page.settings.hasOcrApiKey
-                          ? "•".repeat(28)
-                          : "****-****-****-****"
+                    visible: apiKeyInput.text.length === 0
+                    text: page.slotPresent("apiKey") ? "•".repeat(28) : "****-****-****-****"
                     color: page.tokens.faint
-                    font: keyInput.font
+                    font: apiKeyInput.font
                     elide: Text.ElideRight
                 }
             }
-            Text {
+        }
+
+        Column {
+            width: parent.width
+            spacing: 7
+            objectName: "ocrOnlineSecretKeyField"
+            visible: page.hasSlot("secretKey")
+            Text { text: page.credentialLabel("secretKey"); color: page.tokens.muted; font.pixelSize: 12 }
+            Rectangle {
                 width: parent.width
-                text: qsTranslate("SettingsPopup", "Separate from the explanation key. Stored on this device only, never synced, exported or logged.")
-                color: page.tokens.muted
-                font.pixelSize: 11
-                wrapMode: Text.WordWrap
+                height: 35
+                radius: page.tokens.radiusField
+                color: page.tokens.panel2
+                border.width: 1
+                border.color: page.tokens.line
+
+                TextInput {
+                    id: secretKeyInput
+                    anchors.fill: parent
+                    anchors.leftMargin: 11
+                    anchors.rightMargin: 11
+                    clip: true
+                    verticalAlignment: TextInput.AlignVCenter
+                    text: page.secretDraft
+                    echoMode: TextInput.Password
+                    color: page.tokens.text
+                    font.pixelSize: 13
+                    selectByMouse: true
+                    activeFocusOnTab: true
+                    Accessible.name: page.credentialLabel("secretKey")
+                    onTextEdited: page.credentialEdited("secretKey", text)
+                    onEditingFinished: {
+                        page.credentialCommitted();
+                        text = Qt.binding(() => page.secretDraft);
+                    }
+                }
+
+                Text {
+                    anchors.fill: parent
+                    anchors.leftMargin: 11
+                    anchors.rightMargin: 11
+                    verticalAlignment: Text.AlignVCenter
+                    visible: secretKeyInput.text.length === 0
+                    text: page.slotPresent("secretKey") ? "•".repeat(28) : "****-****-****-****"
+                    color: page.tokens.faint
+                    font: secretKeyInput.font
+                    elide: Text.ElideRight
+                }
             }
+        }
+
+        Text {
+            width: parent.width
+            visible: page.settings.ocrOnlineCredentials.length > 0
+            text: qsTranslate("SettingsPopup", "Separate from the explanation key. Stored on this device only, never synced, exported or logged.")
+            color: page.tokens.muted
+            font.pixelSize: 11
+            wrapMode: Text.WordWrap
         }
 
         Column {
