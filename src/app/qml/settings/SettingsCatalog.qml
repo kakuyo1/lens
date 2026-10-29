@@ -45,6 +45,11 @@ Item {
             onPicked: root.categoryRequested("extensions")
         }
         SettingsCategoryRow {
+            title: qsTranslate("SettingsPopup", "Account & sync")
+            summary: qsTranslate("SettingsPopup", "GitHub sign-in, encrypted cloud copy")
+            onPicked: root.categoryRequested("sync")
+        }
+        SettingsCategoryRow {
             title: qsTranslate("SettingsPopup", "About")
             summary: qsTranslate("SettingsPopup", "Version, updates, repository")
             onPicked: root.categoryRequested("about")

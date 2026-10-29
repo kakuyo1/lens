@@ -349,6 +349,30 @@ Item {
             compare(page.dailyBudget, 1.25);
         }
 
+        /// Account & sync is one of the catalog's own rows, and the one directly above About: the
+        /// copy that leaves this machine is reached from the same list as the copy on it. The two
+        /// are the catalog's last rows, so the body goes to its end before the row is pressed.
+        function test_theCatalogListsAccountAndSyncAboveAbout() {
+            const main = make();
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+
+            const account = categoryRow(panel, "Account & sync");
+            verify(account, "the settings catalog has no Account & sync row");
+            const rows = Util.findAll(panel, function (o) {
+                return o.toString().indexOf("SettingsCategoryRow_QMLTYPE") === 0;
+            });
+            const below = rows.filter(function (r) { return r.y > account.y; })
+                              .sort(function (a, b) { return a.y - b.y; })[0];
+            compare(below.title, "About", "Account & sync is not the row directly above About");
+
+            const body = Util.scrollerOf(account);
+            body.contentY = body.contentHeight - body.height;
+            openCategory(panel, "Account & sync");
+            compare(panel.category, "sync");
+            compare(panel.route, "", "the sync page opened as a child page rather than a category");
+        }
+
         /// The list is a window of its own. When the page scrolls under it the field moves, and the list has to follow to
         /// keep the same distance below the field. It follows within one timer tick, so the case waits for it to settle.
         function test_theListStaysUnderItsFieldWhenThePageScrolls() {

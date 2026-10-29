@@ -515,23 +515,23 @@ Item {
             verify(back, "the settings header disappeared on a child page");
         }
 
-        /// The Account & sync row sits among labelled switches: its label starts on the same left
-        /// edge as theirs, not at the 9 px indent the catalog's rows carry. The label is found by
-        /// its own text rather than by being the page's only SettingsLinkRow: Font is the page's
-        /// other door and sits above it.
-        function test_theAccountRowLabelSharesThePagesLeftEdge() {
+        /// The Font row sits among labelled switches: its label starts on the same left edge as
+        /// theirs, not at the 9 px indent the catalog's rows carry. The label is found by its own
+        /// text rather than by being the page's only SettingsLinkRow, so a door added later cannot
+        /// slip the guard.
+        function test_theFontRowLabelSharesThePagesLeftEdge() {
             const main = make();
             Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
             openCategory(panel, "General");
 
-            const label = Util.textWith(Util.textsUnder(panel), ["Account & sync"]);
-            verify(label, "the general page has no account row");
+            const label = Util.textWith(Util.textsUnder(panel), ["Font"]);
+            verify(label, "the general page has no font row");
             const sibling = Util.textWith(Util.textsUnder(panel), ["Launch at startup"]);
             verify(sibling, "the general page has no labelled switch to compare the row with");
 
             compare(label.mapToItem(null, 0, 0).x, sibling.mapToItem(null, 0, 0).x,
-                    "the account row's label is not on the page's left edge");
+                    "the font row's label is not on the page's left edge");
         }
 
         /// The about page ends with its own footer -- the name, the licence and the build stamp --

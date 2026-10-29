@@ -16,6 +16,9 @@
 
 ### Changed
 
+- Account & sync is a category of its own in the settings list, sitting directly above About, rather
+  than a row buried under General.
+
 - RapidOCR's Chinese model glues Latin words together on a mixed page, so such a page is now read twice when that happens: the English model supplies the spacing for each line whose content matches the Chinese pass, with the Chinese characters put back in place. A line the second pass reads differently is left as it was, so nothing is guessed and no box is invented. Switching the recognition language also no longer asks the reader to trust the same installation again: the trust digest covers every model file Lens can use, so only an actual file change revokes it.
 
 - The bubble's explanation-language shortcut is gone: no strip, no in-place switch, and the

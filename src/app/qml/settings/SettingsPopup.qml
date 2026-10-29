@@ -76,6 +76,7 @@ Window {
         if (value === "model") return qsTranslate("SettingsPopup", "Model service");
         if (value === "budget") return qsTranslate("SettingsPopup", "Daily budget");
         if (value === "extensions") return qsTranslate("SettingsPopup", "Extensions");
+        if (value === "sync") return qsTranslate("SettingsPopup", "Account & sync");
         if (value === "about") return qsTranslate("SettingsPopup", "About");
         return "";
     }
@@ -86,7 +87,6 @@ Window {
         if (value === "ocr") return qsTranslate("SettingsPopup", "OCR engine");
         if (value === "ocr-online") return qsTranslate("SettingsPopup", "Online OCR");
         if (value === "connection") return qsTranslate("SettingsPopup", "API configuration");
-        if (value === "sync") return qsTranslate("SettingsPopup", "Account & sync");
         return categoryTitle(category);
     }
 
@@ -129,7 +129,8 @@ Window {
     function routeTo(path) {
         if (!settings.visible)
             return false;
-        const categories = ["general", "learning", "capture", "model", "budget", "extensions", "about"];
+        const categories = ["general", "learning", "capture", "model", "budget", "extensions",
+                            "sync", "about"];
         const steps = path.split("/");
         if (!categories.includes(steps[0]))
             return false;
@@ -539,13 +540,13 @@ Window {
                                  : settings.route === "ocr-online" ? onlineOcrComponent
                                  : settings.route === "connection" ? connectionComponent
                                  : settings.route === "font" ? fontComponent
-                                 : settings.route === "sync" ? syncComponent
                                  : settings.category === "" ? catalogComponent
                                   : settings.category === "general" ? generalComponent
                                   : settings.category === "learning" ? learningComponent
                                   : settings.category === "capture" ? captureComponent
                                   : settings.category === "model" ? modelComponent
                                   : settings.category === "budget" ? budgetComponent
+                                  : settings.category === "sync" ? syncComponent
                                   : settings.category === "about" ? aboutComponent
                                   : extensionsComponent
             }
