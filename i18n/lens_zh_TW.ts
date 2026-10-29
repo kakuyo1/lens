@@ -692,6 +692,11 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="363"/>
+        <source>How often the pet raises its sign to ask a word you have looked up.</source>
+        <translation>寵物多久舉一次提問牌，問你查過的詞。></translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="373"/>
         <source>Unavailable while the pet is off.</source>
         <translation>寵物關閉時不可用。</translation>
     </message>

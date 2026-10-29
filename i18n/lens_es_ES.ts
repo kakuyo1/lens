@@ -1085,6 +1085,11 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="363"/>
+        <source>How often the pet raises its sign to ask a word you have looked up.</source>
+        <translation>Con qué frecuencia la mascota levanta su cartel para preguntarte por una palabra que ya consultaste.></translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="373"/>
         <source>Unavailable while the pet is off.</source>
         <translation>No disponible mientras la mascota esté desactivada.</translation>
     </message>

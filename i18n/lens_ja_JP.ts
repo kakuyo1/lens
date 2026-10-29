@@ -1085,6 +1085,11 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="363"/>
+        <source>How often the pet raises its sign to ask a word you have looked up.</source>
+        <translation>ペットがボードを掲げて、調べた単語を尋ねてくる間隔です。></translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="373"/>
         <source>Unavailable while the pet is off.</source>
         <translation>ペットがオフの間は利用できません。</translation>
     </message>

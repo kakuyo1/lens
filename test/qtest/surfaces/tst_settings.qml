@@ -433,6 +433,17 @@ Item {
             return fields[0];
         }
 
+        /// The interval belongs to the pet, and the dropdown's rows only say how long between
+        /// looks: the line under the field names what the reader is really setting.
+        function test_theWordReviewRowSaysWhoseCadenceItSets() {
+            Pet.setEnabled(true);
+            const shown = openLearningPanel();
+
+            verify(Util.textWith(Util.textsUnder(shown.panel),
+                                 ["How often the pet raises its sign to ask a word you have looked up."]),
+                   "the word review row never mentions the pet's sign");
+        }
+
         function test_aPressOutsideThePanelPutsTheWordReviewListDown() {
             Pet.setEnabled(true);
             const shown = openLearningPanel();

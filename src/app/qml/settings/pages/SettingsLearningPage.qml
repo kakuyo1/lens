@@ -355,6 +355,16 @@ Item {
                 currentValue: root.settings.reviewFrequency
                 onPicked: (value) => Controller.setReviewFrequency(value)
             }
+            // What the interval is for: the cadence is the pet's, not a timer the reader sets
+            // for themselves, and the dropdown's own rows only say how long between looks.
+            Text {
+                width: parent.width
+                visible: Pet.enabled
+                text: qsTranslate("SettingsPopup", "How often the pet raises its sign to ask a word you have looked up.")
+                color: root.tokens.muted
+                font.pixelSize: 12
+                wrapMode: Text.WordWrap
+            }
             // The reason the row is dimmed, in the OCR trigger group's manner: the switch that
             // gates it lives on another page, so the cause has to be said here.
             Text {

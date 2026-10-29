@@ -16,6 +16,10 @@
 
 ### Changed
 
+- The **Word review** dropdown now says whose cadence it sets: a line under it reads *how often the
+  pet raises its sign to ask a word you have looked up*, so the intervals are not mistaken for a
+  timer on the reader's own studying.
+
 - Account & sync is a category of its own in the settings list, sitting directly above About, rather
   than a row buried under General.
 
