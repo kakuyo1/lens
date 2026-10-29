@@ -16,6 +16,11 @@
 
 ### Changed
 
+- The liquid glass theme's **Text color** field is gone, and with it the stored setting and the
+  colour kind behind it. It only took effect while the desktop under the glass was light enough to
+  keep dark text; over a dark desktop the light-text table won and the field changed nothing. The
+  liquid palette now carries its own `text` role, at the value the field used to start from.
+
 - The **Word review** dropdown now says whose cadence it sets: a line under it reads *how often the
   pet raises its sign to ask a word you have looked up*, so the intervals are not mistaken for a
   timer on the reader's own studying.

@@ -554,7 +554,7 @@
         <translation>API key 與開機時啟動保持不變。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="102"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="101"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="464"/>
         <source>Settings</source>
         <translation>設定</translation>
@@ -693,7 +693,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="363"/>
         <source>How often the pet raises its sign to ask a word you have looked up.</source>
-        <translation>寵物多久舉一次提問牌，問你查過的詞。></translation>
+        <translation>寵物多久舉一次提問牌，問你查過的詞。&gt;</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="373"/>
@@ -806,7 +806,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="112"/>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="122"/>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="124"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="123"/>
         <source>Theme</source>
         <translation>主題</translation>
     </message>
@@ -874,81 +874,75 @@
         <translation>折射強度</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="262"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="287"/>
-        <source>Text color</source>
-        <translation>文字顏色</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="304"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="269"/>
         <source>Custom semantic colors</source>
         <translation>自訂語意顏色</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="313"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="278"/>
         <source>Use six-digit hex colors. Body, muted, and faint text must each pass WCAG AA on the panel.</source>
         <translation>使用六位十六進位制顏色。正文、次要和弱文字在面板上都必須通過 WCAG AA。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="320"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="285"/>
         <source>Background</source>
         <translation>背景</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="321"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="286"/>
         <source>Panel</source>
         <translation>面板</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="322"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="287"/>
         <source>Body text</source>
         <translation>正文文字</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="323"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="288"/>
         <source>Muted text</source>
         <translation>次要文字</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="324"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="289"/>
         <source>Faint text</source>
         <translation>弱文字</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="325"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="290"/>
         <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="250"/>
         <source>Accent</source>
         <translation>強調色</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="384"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="349"/>
         <source>AA contrast passes: body %1, muted %2, faint %3</source>
         <translation>AA 對比度通過：正文 %1，次要文字 %2，弱文字 %3</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="388"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="353"/>
         <source>AA contrast requires valid colors and a 4.5:1 ratio for body, muted, and faint text.</source>
         <translation>AA 對比度要求顏色有效，且正文、次要和弱文字的對比度均須達 4.5:1。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="425"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="390"/>
         <source>Apply custom colors</source>
         <translation>套用自訂色彩</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="441"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="406"/>
         <source>Launch at startup</source>
         <translation>開機時啟動</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="448"/>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="171"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="413"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="170"/>
         <source>Animations</source>
         <translation>動畫效果</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="461"/>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="202"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="426"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="201"/>
         <source>Typing speed</source>
         <translation>打字速度</translation>
     </message>
@@ -958,7 +952,7 @@
         <translation>檢查更新</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="473"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="438"/>
         <source>Check for updates at startup</source>
         <translation>啟動時檢查更新</translation>
     </message>
@@ -969,7 +963,7 @@
         <translation>帳號與同步</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="487"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="452"/>
         <source>Animations are disabled by Windows accessibility settings.</source>
         <translation>Windows 協助工具設定已關閉動畫效果。</translation>
     </message>
@@ -986,7 +980,7 @@
         <translation>靜默放棄</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="261"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="260"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="602"/>
         <source>Defaults</source>
         <translation>還原預設</translation>
@@ -2099,7 +2093,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="411"/>
         <location filename="../src/app/qml/settings/previews/SelectionBarPreview.qml" line="134"/>
-        <location filename="../src/app/qml/settings/previews/VocabPreview.qml" line="122"/>
+        <location filename="../src/app/qml/settings/previews/VocabPreview.qml" line="121"/>
         <source>Preview</source>
         <translation>預覽</translation>
     </message>
@@ -2291,7 +2285,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="51"/>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="59"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="480"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="445"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="85"/>
         <source>Font</source>
         <translation>字型</translation>
@@ -2308,7 +2302,7 @@
         <translation>游標停在列表中的字型或字號上即可預覽。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/previews/VocabPreview.qml" line="229"/>
+        <location filename="../src/app/qml/settings/previews/VocabPreview.qml" line="228"/>
         <source>Size = commonness</source>
         <translation>字號 = 常見度</translation>
     </message>

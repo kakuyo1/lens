@@ -118,7 +118,6 @@ TEST_F(LlmTest, RestoreDefaultsMatchesAFreshInstallAndLeavesOwnedStateAlone)
     a.setSetting(QStringLiteral("liquidRefraction"), 2);
     a.setSetting(QStringLiteral("liquidBlur"), 90);
     a.setSetting(QStringLiteral("liquidRim"), 2);
-    a.setSetting(QStringLiteral("liquidTextColor"), QStringLiteral("#ffffff"));
     a.setSetting(QStringLiteral("glassQuality"), static_cast<int>(app::GlassQuality::Smooth));
     ASSERT_EQ(a.glassBackdrop()->quality(), app::GlassQuality::Smooth);
     a.setReviewFrequency(static_cast<int>(core::ReviewFrequency::Every1To2Hours));

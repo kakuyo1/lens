@@ -33,14 +33,6 @@ Window {
         value: Controller.settings.theme
     }
 
-    /// The liquid theme's text colour, read from the same document as the theme.
-    Binding {
-        target: Tokens
-        property: "liquidTextColor"
-        value: Controller.settings.liquidTextColor
-    }
-
-
     // Debug-only automation called by main.cpp when QT_QML_DEBUG and the profiling scenario
     // environment flag are both enabled. The steps are in ProfileScenario.qml.
     function profileScenario(step) {

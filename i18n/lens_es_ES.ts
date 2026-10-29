@@ -730,7 +730,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="112"/>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="122"/>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="124"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="123"/>
         <source>Theme</source>
         <translation>Tema</translation>
     </message>
@@ -852,82 +852,75 @@
         <translation>Actualización del fondo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="262"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="287"/>
-        <source>Text color</source>
-        <translatorcomment>待译者核对</translatorcomment>
-        <translation>Color del texto</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="304"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="269"/>
         <source>Custom semantic colors</source>
         <translation>Colores semánticos personalizados</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="313"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="278"/>
         <source>Use six-digit hex colors. Body, muted, and faint text must each pass WCAG AA on the panel.</source>
         <translation>Usa colores hexadecimales de seis dígitos. El texto principal, el secundario y el tenue deben superar WCAG AA sobre el panel.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="320"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="285"/>
         <source>Background</source>
         <translation>Fondo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="321"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="286"/>
         <source>Panel</source>
         <translation>Panel</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="322"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="287"/>
         <source>Body text</source>
         <translation>Texto principal</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="323"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="288"/>
         <source>Muted text</source>
         <translation>Texto secundario</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="324"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="289"/>
         <source>Faint text</source>
         <translation>Texto tenue</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="325"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="290"/>
         <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="250"/>
         <source>Accent</source>
         <translation>Acento</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="384"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="349"/>
         <source>AA contrast passes: body %1, muted %2, faint %3</source>
         <translation>Contraste AA correcto: principal %1, secundario %2, tenue %3</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="388"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="353"/>
         <source>AA contrast requires valid colors and a 4.5:1 ratio for body, muted, and faint text.</source>
         <translation>El contraste AA exige colores válidos y una proporción de 4.5:1 para el texto principal, el secundario y el tenue.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="425"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="390"/>
         <source>Apply custom colors</source>
         <translation>Aplicar colores personalizados</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="441"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="406"/>
         <source>Launch at startup</source>
         <translation>Iniciar con el sistema</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="448"/>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="171"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="413"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="170"/>
         <source>Animations</source>
         <translation>Animaciones</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="461"/>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="202"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="426"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="201"/>
         <source>Typing speed</source>
         <translation>Velocidad de escritura</translation>
     </message>
@@ -937,7 +930,7 @@
         <translation>Buscar actualizaciones</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="473"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="438"/>
         <source>Check for updates at startup</source>
         <translation>Buscar actualizaciones al iniciar</translation>
     </message>
@@ -948,7 +941,7 @@
         <translation>Cuenta y sincronización</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="487"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="452"/>
         <source>Animations are disabled by Windows accessibility settings.</source>
         <translation>La configuración de accesibilidad de Windows ha desactivado las animaciones.</translation>
     </message>
@@ -1086,7 +1079,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="363"/>
         <source>How often the pet raises its sign to ask a word you have looked up.</source>
-        <translation>Con qué frecuencia la mascota levanta su cartel para preguntarte por una palabra que ya consultaste.></translation>
+        <translation>Con qué frecuencia la mascota levanta su cartel para preguntarte por una palabra que ya consultaste.&gt;</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="373"/>
@@ -1295,13 +1288,13 @@
         <translation>La clave API y el inicio automático no cambian.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="102"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="101"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="464"/>
         <source>Settings</source>
         <translation>Ajustes</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="261"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="260"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="602"/>
         <source>Defaults</source>
         <translation>Por defecto</translation>
@@ -2118,7 +2111,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="411"/>
         <location filename="../src/app/qml/settings/previews/SelectionBarPreview.qml" line="134"/>
-        <location filename="../src/app/qml/settings/previews/VocabPreview.qml" line="122"/>
+        <location filename="../src/app/qml/settings/previews/VocabPreview.qml" line="121"/>
         <source>Preview</source>
         <translation>Vista previa</translation>
     </message>
@@ -2300,7 +2293,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="51"/>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="59"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="480"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="445"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="85"/>
         <source>Font</source>
         <translation>Fuente</translation>
@@ -2317,7 +2310,7 @@
         <translation>Pasa el puntero por una fuente o un tamaño de la lista para previsualizarlo.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/previews/VocabPreview.qml" line="229"/>
+        <location filename="../src/app/qml/settings/previews/VocabPreview.qml" line="228"/>
         <source>Size = commonness</source>
         <translation>Tamaño = frecuencia</translation>
     </message>

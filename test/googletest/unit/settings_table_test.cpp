@@ -142,8 +142,6 @@ std::optional<QVariant> movedOffDefault(Row const& row)
                 if (member != row.fallback.text)
                     return QVariant{QString::fromStdString(std::string{member})};
             return std::nullopt;
-        case Kind::Color:
-            return QVariant{QStringLiteral("#ffffff")};
         case Kind::Font:
             return std::nullopt;
         case Kind::Text:
@@ -237,28 +235,6 @@ TEST_F(SettingsTableRig, ChoiceRowsRefuseWhatTheyDoNotList)
         rig.store.section().set<std::string>(row.key, "not-a-member");
         EXPECT_EQ(rig.stored(row).toString(), fallback) << row.key << " read back a value its row does not list";
     }
-}
-
-/// A colour is #rrggbb or it is refused, and a stored one that is not reads as the default.
-TEST_F(SettingsTableRig, TheColourRowTakesSixHexDigitsAndNothingElse)
-{
-    QtApplication qt;
-    QTemporaryDir temporary;
-    ASSERT_TRUE(temporary.isValid());
-    Rig rig{std::filesystem::path{temporary.path().toStdWString()}};
-
-    const Row& row      = *core::settings::find("liquidTextColor");
-    const auto fallback = QString::fromStdString(std::string{row.fallback.text});
-
-    EXPECT_FALSE(rig.controller.setSetting(QStringLiteral("liquidTextColor"), QStringLiteral("red")));
-    EXPECT_FALSE(rig.controller.setSetting(QStringLiteral("liquidTextColor"), QStringLiteral("#ff00")));
-    EXPECT_EQ(rig.stored(row).toString(), fallback);
-
-    ASSERT_TRUE(rig.controller.setSetting(QStringLiteral("liquidTextColor"), QStringLiteral("#FFAA00")));
-    EXPECT_EQ(rig.stored(row).toString(), QStringLiteral("#ffaa00")) << "a stored colour is lower case";
-
-    rig.store.section().set<std::string>(row.key, "chartreuse");
-    EXPECT_EQ(rig.stored(row).toString(), fallback);
 }
 
 /// The OCR credentials are secrets, not rows: they never reach the projection or the sync

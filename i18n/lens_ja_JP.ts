@@ -730,7 +730,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="112"/>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="122"/>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="124"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="123"/>
         <source>Theme</source>
         <translation>テーマ</translation>
     </message>
@@ -852,82 +852,75 @@
         <translation>背景の更新</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="262"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="287"/>
-        <source>Text color</source>
-        <translatorcomment>待译者核对</translatorcomment>
-        <translation>文字色</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="304"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="269"/>
         <source>Custom semantic colors</source>
         <translation>カスタム配色</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="313"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="278"/>
         <source>Use six-digit hex colors. Body, muted, and faint text must each pass WCAG AA on the panel.</source>
         <translation>6 桁の 16 進数カラーを使います。本文・補助・淡色の各テキストはパネル上で WCAG AA を満たす必要があります。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="320"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="285"/>
         <source>Background</source>
         <translation>背景</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="321"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="286"/>
         <source>Panel</source>
         <translation>パネル</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="322"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="287"/>
         <source>Body text</source>
         <translation>本文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="323"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="288"/>
         <source>Muted text</source>
         <translation>補助テキスト</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="324"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="289"/>
         <source>Faint text</source>
         <translation>淡色テキスト</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="325"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="290"/>
         <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="250"/>
         <source>Accent</source>
         <translation>アクセント</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="384"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="349"/>
         <source>AA contrast passes: body %1, muted %2, faint %3</source>
         <translation>AA コントラスト合格：本文 %1、補助 %2、淡色 %3</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="388"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="353"/>
         <source>AA contrast requires valid colors and a 4.5:1 ratio for body, muted, and faint text.</source>
         <translation>AA コントラストには有効な色と、本文・補助・淡色テキストそれぞれ 4.5:1 の比率が必要です。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="425"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="390"/>
         <source>Apply custom colors</source>
         <translation>カスタム配色を適用</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="441"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="406"/>
         <source>Launch at startup</source>
         <translation>スタートアップ時に起動</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="448"/>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="171"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="413"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="170"/>
         <source>Animations</source>
         <translation>アニメーション</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="461"/>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="202"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="426"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="201"/>
         <source>Typing speed</source>
         <translation>入力速度</translation>
     </message>
@@ -937,7 +930,7 @@
         <translation>更新を確認</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="473"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="438"/>
         <source>Check for updates at startup</source>
         <translation>起動時に更新を確認</translation>
     </message>
@@ -948,7 +941,7 @@
         <translation>アカウントと同期</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="487"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="452"/>
         <source>Animations are disabled by Windows accessibility settings.</source>
         <translation>Windows のアクセシビリティ設定により、アニメーションは無効です。</translation>
     </message>
@@ -1086,7 +1079,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="363"/>
         <source>How often the pet raises its sign to ask a word you have looked up.</source>
-        <translation>ペットがボードを掲げて、調べた単語を尋ねてくる間隔です。></translation>
+        <translation>ペットがボードを掲げて、調べた単語を尋ねてくる間隔です。&gt;</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="373"/>
@@ -1295,13 +1288,13 @@
         <translation>API キーと自動起動は変更されません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="102"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="101"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="464"/>
         <source>Settings</source>
         <translation>設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="261"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="260"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="602"/>
         <source>Defaults</source>
         <translation>初期設定</translation>
@@ -2118,7 +2111,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="411"/>
         <location filename="../src/app/qml/settings/previews/SelectionBarPreview.qml" line="134"/>
-        <location filename="../src/app/qml/settings/previews/VocabPreview.qml" line="122"/>
+        <location filename="../src/app/qml/settings/previews/VocabPreview.qml" line="121"/>
         <source>Preview</source>
         <translation>プレビュー</translation>
     </message>
@@ -2300,7 +2293,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="51"/>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="59"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="480"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="445"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="85"/>
         <source>Font</source>
         <translation>フォント</translation>
@@ -2317,7 +2310,7 @@
         <translation>一覧内のフォントまたはサイズにポインターを合わせるとプレビューできます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/previews/VocabPreview.qml" line="229"/>
+        <location filename="../src/app/qml/settings/previews/VocabPreview.qml" line="228"/>
         <source>Size = commonness</source>
         <translation>文字サイズ＝頻度</translation>
     </message>

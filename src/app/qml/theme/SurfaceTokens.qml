@@ -9,6 +9,5 @@ import QtQuick
  */
 TokenTable {
     theme: Tokens.theme
-    liquidTextColor: Tokens.liquidTextColor
     motion: Tokens.motion
 }

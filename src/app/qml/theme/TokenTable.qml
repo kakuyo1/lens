@@ -22,8 +22,6 @@ QtObject {
 
     /// "frosted" or "liquid" while a glass theme applies here, empty otherwise. The glass surfaces key off this.
     readonly property string glassMode: (glassEnabled && (theme === "frosted" || theme === "liquid")) ? theme : ""
-    /// The text colour of the liquid theme, from the settings document. Main.qml keeps this in step.
-    property string liquidTextColor: "#101319"
     /// Whether the desktop under the glass calls for light text. The settings window sets this from the picture it took.
     property bool glassLightText: false
     /// Light text over glass: the dark-desktop roles replace the light ones.
@@ -149,8 +147,6 @@ QtObject {
     function tokenColor(role, fallback) {
         if (custom)
             return hex(customValues[role], hex(fallback, "#000000"));
-        if (glassMode === "liquid" && role === "text" && !lightOnGlass)
-            return hex(liquidTextColor, hex(fallback, "#000000"));
         const table = lightOnGlass && glassOnDark[role] !== undefined ? glassOnDark : builtin;
         return hex(table[role], hex(fallback, "#000000"));
     }

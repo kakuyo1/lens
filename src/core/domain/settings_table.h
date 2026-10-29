@@ -33,7 +33,6 @@ enum class Kind : std::uint8_t {
     Integer, ///< A whole number in a closed range; an enumerated setting's range is its enum's.
     Choice,  ///< One of a fixed set of strings; the members are the row's.
     Text,    ///< Free text: a language code, or a theme's packed value.
-    Color,   ///< #rrggbb.
     Font,    ///< A family this machine has, or empty for the face the application installed.
 };
 
@@ -155,7 +154,6 @@ inline constexpr Row kRows[]{
     {.key = "liquidRefraction", .kind = Kind::Integer, .signal = Signal::Settings, .fallback = 20, .low = 0, .high = 40, .synced = true},
     {.key = "liquidBlur", .kind = Kind::Integer, .signal = Signal::Settings, .fallback = 10, .low = 0, .high = 100, .synced = true},
     {.key = "liquidRim", .kind = Kind::Integer, .signal = Signal::Settings, .fallback = 10, .low = 0, .high = 100, .synced = true},
-    {.key = "liquidTextColor", .kind = Kind::Color, .signal = Signal::Settings, .fallback = "#101319", .synced = true},
     // The four active levels of the year graph, as a place in the twelve hues that panel offers
     // (UI-SPEC.md 4.8b). An index into the panel's own list rather than an angle, numbered the way
     // glassQuality is numbered: the list is the authority on what a number means, and it is the
@@ -241,7 +239,7 @@ constexpr bool tableIsSound()
         Row const& row = kRows[index];
         // A default has to be of the row's own type, or a read would hand back the wrong shape.
         const bool fallbackFits = row.fallback.kind == row.kind or
-                                  ((row.kind == Kind::Choice or row.kind == Kind::Color or row.kind == Kind::Font) and
+                                  ((row.kind == Kind::Choice or row.kind == Kind::Font) and
                                    row.fallback.kind == Kind::Text);
         if (not fallbackFits)
             return false;

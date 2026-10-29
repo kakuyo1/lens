@@ -257,41 +257,6 @@ Item {
                 value: Controller.settings.liquidRim
                 onMoved: (stop) => Controller.setSetting("liquidRim", stop)
             }
-
-            Text {
-                text: qsTranslate("SettingsPopup", "Text color")
-                color: page.tokens.muted
-                font.pixelSize: 12
-            }
-
-            Rectangle {
-                width: parent.width
-                height: 35
-                radius: page.tokens.radiusField
-                color: page.tokens.panel2
-                border.width: textColorInput.activeFocus ? 2 : 1
-                border.color: textColorInput.activeFocus ? page.tokens.ok : page.tokens.line
-
-                TextInput {
-                    id: textColorInput
-                    anchors.left: parent.left
-                    anchors.leftMargin: 11
-                    anchors.right: parent.right
-                    anchors.rightMargin: 10
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: Controller.settings.liquidTextColor
-                    color: page.tokens.text
-                    font.pixelSize: 13
-                    selectByMouse: true
-                    activeFocusOnTab: true
-                    Accessible.name: qsTranslate("SettingsPopup", "Text color")
-                    onEditingFinished: {
-                        Controller.setSetting("liquidTextColor", text);
-                        // Back to the stored colour, so a refused value shows what is in force.
-                        text = Qt.binding(() => Controller.settings.liquidTextColor);
-                    }
-                }
-            }
         }
 
         Column {

@@ -6,7 +6,6 @@
 #include "settings_access.h"
 
 #include <QFontDatabase>
-#include <QRegularExpression>
 
 #include <algorithm>
 #include <string>
@@ -25,14 +24,7 @@ std::string textOf(QVariant const& value)
     return value.toString().toStdString();
 }
 
-/// @return Whether @p text is #rrggbb, the only shape the colour setting stores.
-bool isHexColor(QString const& text)
-{
-    static const QRegularExpression pattern{QStringLiteral("^#[0-9a-fA-F]{6}$")};
-    return pattern.match(text).hasMatch();
-}
-
-/// @return @p row's default as text, which is what its Colour, Font, Text and Choice rows store.
+/// @return @p row's default as text, which is what its Font, Text and Choice rows store.
 QString defaultTextOf(Row const& row)
 {
     return QString::fromStdString(std::string{row.fallback.text});
@@ -58,10 +50,6 @@ QVariant read(core::SettingsSection section, Row const& row)
             const QString stored = QString::fromStdString(section.value<std::string>(row.key, std::string{row.fallback.text}));
             return core::settings::accepts(row, stored.toStdString()) ? stored : defaultTextOf(row);
         }
-        case Kind::Color: {
-            const QString stored = QString::fromStdString(section.value<std::string>(row.key, std::string{row.fallback.text}));
-            return isHexColor(stored) ? stored : defaultTextOf(row);
-        }
         case Kind::Text:
         case Kind::Font:
             return QString::fromStdString(section.value<std::string>(row.key, std::string{row.fallback.text}));
@@ -85,15 +73,6 @@ bool write(core::SettingsSection section, Row const& row, QVariant const& value)
                 return false;
             }
             section.set<std::string>(row.key, chosen.toStdString());
-            return true;
-        }
-        case Kind::Color: {
-            const QString chosen = value.toString();
-            if (not isHexColor(chosen)) {
-                LENS_WARN("unknown colour '{}' for '{}'; leaving the setting alone", chosen.toStdString(), std::string{row.key});
-                return false;
-            }
-            section.set<std::string>(row.key, chosen.toLower().toStdString());
             return true;
         }
         case Kind::Font: {
@@ -123,7 +102,6 @@ QVariant defaultValue(Row const& row)
             return row.fallback.number;
         case Kind::Choice:
         case Kind::Text:
-        case Kind::Color:
         case Kind::Font:
             return defaultTextOf(row);
     }

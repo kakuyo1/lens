@@ -51,7 +51,6 @@ Window {
     readonly property TokenTable tokens: TokenTable {
         theme: root.themeValue
         glassEnabled: true
-        liquidTextColor: Tokens.liquidTextColor
         glassLightText: root.glass ? root.glass.lightText : false
         motion: Tokens.motion
     }
