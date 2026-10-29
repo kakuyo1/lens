@@ -12,7 +12,7 @@
 - **配饰**：七只随包宠物各 9 件，头、脸、身各 3 件，共 63 件；每只的套装配色与轮廓按该宠物画，不再四只共用一整套。每件按待机姿势画一次，之后只靠锚点移动。`supportedActions` 由渲染器从 `except` 算出。
 - **原创**：形状只能来自仓库里的配方，不能从外部图片采样。
 - **奶糖的几何**：24 列、23 行的蒙版放在配方坐标 `[-5, -6]`；两只 2 × 2 的格子眼在 `[4, 1]` 与 `[9, 1]`，`eyeSize: 2`；粉耳、爪子、项圈与银牌在身体层，鼻头与舌头在表情层；脚点在 `[6.5, 17]`。
-- **场景**：应用自带，`data/scenes/`；归属由动作表决定，和宠物包格式无关。每只宠物两个专属、两个共享；每个场景 12 帧、4 fps、30 秒，至少一个中段 beat。每个场景另有可选的 `entry`：`style`（`hop` / `settle` / `fade`）、可覆盖的 `prepMs` / `moveMs` / `propMs` / `arc` / `cross` / `propRise`，以及 `impact {kind, at}`；19 个场景都有，决定宠物怎样进入场景（ADR 0101）。
+- **场景**：应用自带，`data/scenes/`；归属由动作表决定，和宠物包格式无关。每只宠物四个专属、两个共享；每个场景 30 秒，默认 12 帧 / 4 fps，至少一个中段 beat；`cloud_rainbow` 的滑行与回程用 57 帧 / 10 fps，动作表与场景道具共用同一帧数。每个场景另有可选的 `entry`：`style`（`hop` / `settle` / `fade`）、可覆盖的 `prepMs` / `moveMs` / `propMs` / `arc` / `cross` / `propRise`，以及 `impact {kind, at}`；33 个场景都有，决定宠物怎样进入场景（ADR 0101）。
 
 ## 2。文件地图
 
@@ -26,7 +26,7 @@
 | `data/scenes/` | 应用自带的场景，不入宠物包 | 不手改，改 `scripts/pet/scenes/` 后重跑渲染器 |
 | `ui-prototypes/pet.html` | 原型设置页，内嵌全部 PNG 的 base64 | `cd ui-prototypes/pet-prototype && npm run embed` |
 
-场景没有自己的 `pets` 字段：专属场景使用全局唯一的 id（如 `dog_frisbee`），只出现在狗的 `animations.json`；共享场景（`skate`、`swing`）给每只宠物保留两个。`pet_data_test` 固定每只为 “两个专属 + 两个共享”，并核对动作帧数、场景帧数与 30 秒时长；`entry` 的 style 与粒子类型也由它检查。
+场景没有自己的 `pets` 字段：专属场景使用全局唯一的 id（如 `dog_frisbee`），只出现在狗的 `animations.json`；共享场景（`skate`、`swing`）给每只宠物保留两个。`pet_data_test` 固定每只为 “四个专属 + 两个共享”，并核对动作帧数、场景帧数与 30 秒时长；`entry` 的 style 与粒子类型也由它检查。
 
 入场的弧高与落点在场景数据的 `entry` 里，不在 QML 或控制器里写死：hop 的 `arc`/`cross`、水花/尘土的 `at` 都是场景坐标；`arc` 是上限，控制器会按宠物实测的头顶余量封顶，避免高个宠物在 88 px 画布顶端被裁掉。渲染器只负责把 `entry` 原样带进 `scenes.json`，不画新的 sheet；道具上浮与粒子由 QML 画（`UI-SPEC.md` 4.18、`docs/QML.md` §10）。`mood` 目前只写在运行时目录里，所以渲染器会从旧的 `scenes.json` 读回它，重跑不会把权重丢掉。
 

@@ -2489,6 +2489,76 @@
         <source>Tesseract data folder</source>
         <translation>Tesseract data folder</translation>
     </message>
+    <message>
+        <source>Yarn ball</source>
+        <translation>Yarn ball</translation>
+    </message>
+
+    <message>
+        <source>Goldfish bowl</source>
+        <translation>Goldfish bowl</translation>
+    </message>
+
+    <message>
+        <source>Rainbow slide</source>
+        <translation>Rainbow slide</translation>
+    </message>
+
+    <message>
+        <source>Dandelion</source>
+        <translation>Dandelion</translation>
+    </message>
+
+    <message>
+        <source>Snowman</source>
+        <translation>Snowman</translation>
+    </message>
+
+    <message>
+        <source>Dog bed</source>
+        <translation>Dog bed</translation>
+    </message>
+
+    <message>
+        <source>Midnight clock</source>
+        <translation>Midnight clock</translation>
+    </message>
+
+    <message>
+        <source>Ghost tea</source>
+        <translation>Ghost tea</translation>
+    </message>
+
+    <message>
+        <source>Deep-sea lamp</source>
+        <translation>Deep-sea lamp</translation>
+    </message>
+
+    <message>
+        <source>Shell bed</source>
+        <translation>Shell bed</translation>
+    </message>
+
+    <message>
+        <source>Kotatsu</source>
+        <translation>Kotatsu</translation>
+    </message>
+
+    <message>
+        <source>Mochi pounding</source>
+        <translation>Mochi pounding</translation>
+    </message>
+
+    <message>
+        <source>By the fire</source>
+        <translation>By the fire</translation>
+    </message>
+
+    <message>
+        <source>Mail owl</source>
+        <translation>Mail owl</translation>
+    </message>
+
 </context>
 <context>
     <name>StatsPopup</name>

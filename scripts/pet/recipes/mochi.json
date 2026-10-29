@@ -2341,6 +2341,106 @@
           ]
         }
       ]
+    },
+    "mochi_kotatsu": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        }
+      ]
+    },
+    "mochi_pound": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0,
+          "pose": {
+            "sy": 0.94
+          }
+        },
+        {
+          "expression": 0,
+          "pose": {
+            "sy": 0.94
+          }
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0,
+          "pose": {
+            "sy": 0.94
+          }
+        },
+        {
+          "expression": 0,
+          "pose": {
+            "sy": 0.94
+          }
+        }
+      ]
     }
   },
   "accessories": [
@@ -2463,7 +2563,8 @@
       "id": "hachimaki",
       "slot": "head",
       "sceneWeights": {
-        "mochi_grill": 3
+        "mochi_grill": 3,
+        "mochi_pound": 2.5
       },
       "paint": [
         {
@@ -2849,7 +2950,8 @@
       "id": "furoshiki",
       "slot": "body",
       "sceneWeights": {
-        "rain": 2.5
+        "rain": 2.5,
+        "mochi_kotatsu": 2.5
       },
       "except": [
         "sleep",

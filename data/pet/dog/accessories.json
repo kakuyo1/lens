@@ -28,7 +28,9 @@
         "skate",
         "dog_frisbee",
         "dog_burying",
-        "dizzy"
+        "dizzy",
+        "dog_snowman",
+        "dog_bed"
       ]
     },
     {
@@ -59,7 +61,9 @@
         "skate",
         "dog_frisbee",
         "dog_burying",
-        "dizzy"
+        "dizzy",
+        "dog_snowman",
+        "dog_bed"
       ]
     },
     {
@@ -90,8 +94,13 @@
         "skate",
         "dog_frisbee",
         "dog_burying",
-        "dizzy"
-      ]
+        "dizzy",
+        "dog_snowman",
+        "dog_bed"
+      ],
+      "sceneWeights": {
+        "dog_bed": 2.5
+      }
     },
     {
       "id": "spectacles",
@@ -120,7 +129,9 @@
         "skate",
         "dog_frisbee",
         "dog_burying",
-        "dizzy"
+        "dizzy",
+        "dog_snowman",
+        "dog_bed"
       ],
       "sceneWeights": {
         "dog_burying": 2.5
@@ -153,7 +164,9 @@
         "skate",
         "dog_frisbee",
         "dog_burying",
-        "dizzy"
+        "dizzy",
+        "dog_snowman",
+        "dog_bed"
       ]
     },
     {
@@ -183,7 +196,9 @@
         "skate",
         "dog_frisbee",
         "dog_burying",
-        "dizzy"
+        "dizzy",
+        "dog_snowman",
+        "dog_bed"
       ]
     },
     {
@@ -213,7 +228,9 @@
         "skate",
         "dog_frisbee",
         "dog_burying",
-        "dizzy"
+        "dizzy",
+        "dog_snowman",
+        "dog_bed"
       ],
       "sceneWeights": {
         "skate": 3
@@ -246,10 +263,13 @@
         "skate",
         "dog_frisbee",
         "dog_burying",
-        "dizzy"
+        "dizzy",
+        "dog_snowman",
+        "dog_bed"
       ],
       "sceneWeights": {
-        "swing": 2.5
+        "swing": 2.5,
+        "dog_snowman": 2.5
       }
     },
     {
@@ -279,7 +299,9 @@
         "skate",
         "dog_frisbee",
         "dog_burying",
-        "dizzy"
+        "dizzy",
+        "dog_snowman",
+        "dog_bed"
       ],
       "sceneWeights": {
         "dog_frisbee": 2.5

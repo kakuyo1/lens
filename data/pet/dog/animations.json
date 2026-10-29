@@ -419,6 +419,48 @@
       ],
       "sheet": "sprites/body/dizzy.png",
       "effect": "sprites/effects/dizzy.png"
+    },
+    "dog_snowman": {
+      "frames": 12,
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "expressions": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "sheet": "sprites/body/dog_snowman.png"
+    },
+    "dog_bed": {
+      "frames": 12,
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "expressions": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "sheet": "sprites/body/dog_bed.png"
     }
   }
 }

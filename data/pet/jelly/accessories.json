@@ -30,7 +30,9 @@
         "edge_peek",
         "jelly_sundae",
         "jelly_trampoline",
-        "dizzy"
+        "dizzy",
+        "jelly_lantern",
+        "jelly_shell"
       ],
       "sceneWeights": {
         "jelly_trampoline": 2.5
@@ -66,7 +68,9 @@
         "edge_peek",
         "jelly_sundae",
         "jelly_trampoline",
-        "dizzy"
+        "dizzy",
+        "jelly_lantern",
+        "jelly_shell"
       ]
     },
     {
@@ -99,7 +103,9 @@
         "edge_peek",
         "jelly_sundae",
         "jelly_trampoline",
-        "dizzy"
+        "dizzy",
+        "jelly_lantern",
+        "jelly_shell"
       ]
     },
     {
@@ -131,7 +137,9 @@
         "edge_peek",
         "jelly_sundae",
         "jelly_trampoline",
-        "dizzy"
+        "dizzy",
+        "jelly_lantern",
+        "jelly_shell"
       ],
       "sceneWeights": {
         "desk": 2.5
@@ -166,7 +174,9 @@
         "edge_peek",
         "jelly_sundae",
         "jelly_trampoline",
-        "dizzy"
+        "dizzy",
+        "jelly_lantern",
+        "jelly_shell"
       ],
       "sceneWeights": {
         "bath": 3
@@ -202,7 +212,9 @@
         "edge_peek",
         "jelly_sundae",
         "jelly_trampoline",
-        "dizzy"
+        "dizzy",
+        "jelly_lantern",
+        "jelly_shell"
       ]
     },
     {
@@ -234,7 +246,9 @@
         "edge_peek",
         "jelly_sundae",
         "jelly_trampoline",
-        "dizzy"
+        "dizzy",
+        "jelly_lantern",
+        "jelly_shell"
       ],
       "sceneWeights": {
         "jelly_sundae": 2.5
@@ -269,8 +283,13 @@
         "edge_peek",
         "jelly_sundae",
         "jelly_trampoline",
-        "dizzy"
-      ]
+        "dizzy",
+        "jelly_lantern",
+        "jelly_shell"
+      ],
+      "sceneWeights": {
+        "jelly_shell": 2.5
+      }
     },
     {
       "id": "fish_charm",
@@ -301,8 +320,13 @@
         "edge_peek",
         "jelly_sundae",
         "jelly_trampoline",
-        "dizzy"
-      ]
+        "dizzy",
+        "jelly_lantern",
+        "jelly_shell"
+      ],
+      "sceneWeights": {
+        "jelly_lantern": 2.5
+      }
     }
   ]
 }

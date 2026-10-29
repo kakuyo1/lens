@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>宠物场景扩充 · 4 → 6</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./styles/scenes-six.css">
+</head>
+<body>
+  <header class="masthead">
+    <div class="shell masthead-grid">
+      <div class="intro">
+        <div class="topline">
+          <a class="back" href="./index.html">← 桌面宠物原型</a>
+          <span class="draft">设计提案 · 已落地</span>
+        </div>
+        <h1><span>每只宠物，</span><span>多两个去处</span></h1>
+        <p class="lede">七只随包宠物从四景扩到六景，新增的十四景都只属于自己。场景仍在 88 px 画布上按真实的宠物帧合成，道具沿用现有十二色调色板；时段权重、入场方式与配饰牵引一并给出；十四景已落进 data/scenes 与各宠物动作表，页面里的画布仍是设计稿预览。</p>
+        <div class="intro-facts">
+          <span><b>4 → 6</b>每只景数</span>
+          <span><b>14</b>个新场景</span>
+          <span><b>2 + 2</b>现有专属与共享</span>
+        </div>
+        <div class="intro-actions">
+          <button id="motion" type="button">暂停动画</button>
+          <a href="#cat">从短耳猫开始 ↓</a>
+        </div>
+      </div>
+      <div class="hero" role="group" aria-label="四个新场景的缩略预览">
+        <div id="hero-art" class="hero-art"></div>
+        <p class="hero-note">先看四景：毛线球、彩虹滑梯、幽灵茶会、壁炉边。每一景都是真实宠物帧加设计稿道具，不是示意图。画布按 60 fps 预览；应用里其余场景 12 帧 / 4 fps，滑梯 57 帧 / 10 fps。</p>
+      </div>
+    </div>
+    <nav class="shell pet-index" id="pet-index" aria-label="七只宠物"></nav>
+  </header>
+
+  <main class="shell">
+    <div class="status" id="status">
+      <span class="status-dot" aria-hidden="true"></span>
+      正在载入七只宠物与场景帧…
+    </div>
+    <div class="error" id="error" hidden>
+      <strong>这张页面需要一个本地服务器</strong>
+      <p>它直接读取 <code>data/pet</code> 与 <code>data/scenes</code> 的 PNG。请在 <code>ui-prototypes/pet-prototype</code> 里运行 <code>npm run dev</code>，再打开 <code>/scenes-six.html</code>。缺的文件：<code id="error-file"></code></p>
+    </div>
+    <div id="pets"></div>
+
+    <section class="landing">
+      <div>
+        <h2>十四景，已经落地。</h2>
+        <p>14 景已生成 <code>scripts/pet/scenes</code> 源文件与 <code>data/scenes</code> sheets；宠物动作表从四景变六景，<code>cloud_rainbow</code> 用 57 帧 / 10 fps，其余为 12 帧 / 4 fps；<code>pet_data_test</code> 的 4 + 2 约束、设置页标签与五种语言已同步。</p>
+      </div>
+      <ol>
+        <li><b>场景源文件</b><span>14 个道具 rig 已写进 scripts/pet/scenes，并由 render_scenes.py 落到 data/scenes；滑梯 57 帧，其余 12 帧。</span></li>
+        <li><b>动作表</b><span>每只加两个循环场景动作，30 秒结束；bodyFrom idle / sleep，锚点与配饰 supportedActions 已重算。</span></li>
+        <li><b>数据与文档</b><span>4 + 2 的测试约束、sceneLabel、五种 .ts 与 pet-art-pipeline 已落地。</span></li>
+      </ol>
+    </section>
+  </main>
+
+  <footer class="shell foot">
+    <span>设计提案 · 已落进 data/scenes</span>
+    <span>道具色：ink / fur / grey / rose / sky / green / lilac / amber / brown / cream / gold / pumpkin</span>
+    <a href="./index.html">← 回到宠物原型</a>
+  </footer>
+
+  <script type="module" src="./src/scenes-six.js"></script>
+</body>
+</html>

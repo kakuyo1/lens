@@ -52,9 +52,9 @@ TEST(PetData, AnimationsLoadAndCarryTheBlink)
 {
     auto const animations = parseAnimations(load("animations.json"));
 
-    // The fourteen role actions (angry, ask and dizzy included), the three idle extras no role names, the four
+    // The fourteen role actions (angry, ask and dizzy included), the three idle extras no role names, the six
     // scenes, and the walk and edge-peek loops.
-    EXPECT_EQ(animations.playbook.actions.size(), 23u);
+    EXPECT_EQ(animations.playbook.actions.size(), 25u);
     EXPECT_EQ(animations.blink.frames, 3);
     EXPECT_FALSE(animations.blink.loop);
 }
@@ -218,7 +218,7 @@ TEST(PetData, EveryAccessorySceneWeightNamesASceneItsPetPlays)
     }
 }
 
-TEST(PetData, EveryShippedPetHasTwoOwnScenesAndTwoSharedOnes)
+TEST(PetData, EveryShippedPetHasFourOwnScenesAndTwoSharedOnes)
 {
     auto const scenesDoc   = loadAt(std::filesystem::path{LENS_SOURCE_DIR} / "data" / "scenes", "scenes.json");
     auto       sceneFrames = std::map<std::string, int>{};
@@ -245,7 +245,7 @@ TEST(PetData, EveryShippedPetHasTwoOwnScenesAndTwoSharedOnes)
             ASSERT_TRUE(spec.duration.has_value()) << name;
             EXPECT_EQ(*spec.duration, std::chrono::milliseconds{30000}) << name;
         }
-        EXPECT_EQ(own, 2) << pet;
+        EXPECT_EQ(own, 4) << pet;
         EXPECT_EQ(shared, 2) << pet;
     }
     for (auto const& [name, owners] : exclusiveOwners)
@@ -277,7 +277,7 @@ TEST(PetData, EveryShippedSceneNamesItsEntry)
         // A hop is the only style whose arc and cross guard matter; every style still names its prop reveal.
         EXPECT_GE(entry.value("propMs", 260), 0) << id;
     }
-    EXPECT_EQ(scenes, 19);
+    EXPECT_EQ(scenes, 33);
 }
 
 TEST(PetData, EveryShippedPetIsAcceptedWhole)

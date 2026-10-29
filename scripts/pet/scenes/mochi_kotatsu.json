@@ -1,0 +1,780 @@
+{
+  "id": "mochi_kotatsu",
+  "entry": {
+    "style": "settle"
+  },
+  "name": "暖桌",
+  "frames": 12,
+  "fps": 4,
+  "foot": [
+    55.5,
+    81
+  ],
+  "layers": {
+    "back": -1,
+    "front": 20
+  },
+  "mood": {
+    "evening": 2.5,
+    "night": 2,
+    "afterReturn": 2
+  },
+  "framesData": [
+    {
+      "dx": 0,
+      "dy": 0,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "at": [
+            -8,
+            5
+          ],
+          "step": 1,
+          "art": [
+            "..................................................................................",
+            "..................................................................................",
+            "...............................vvv.............................vvv................",
+            "..............................bvvv............................bvvv................",
+            "..............................b...............................b...................",
+            "..............................p...............................p...................",
+            "...........................ppppppp.........................ppppppp................",
+            "...........................ppppypp.........................ppppypp................",
+            "..........................ppppppppp.......................ppppppppp...............",
+            "..........................ppppppppp.......................ppppppppp...............",
+            "..........................ppppppppp.......................ppppppppp...............",
+            "...........................pyppppp.........................pyppppp................",
+            "...........................ppppppp.........................ppppppp................",
+            "........aaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaaaa",
+            "........aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........##########################################################################",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+          ],
+          "colours": {
+            "#": "ink",
+            "r": "rose",
+            "v": "green",
+            "a": "amber",
+            "b": "brown",
+            "c": "cream",
+            "y": "gold",
+            "p": "pumpkin"
+          }
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 0,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "at": [
+            -8,
+            5
+          ],
+          "step": 1,
+          "art": [
+            "..................................................................................",
+            "..................................................................................",
+            "...............................vvv..............................vvv...............",
+            "..............................bvvv.............................bvvv...............",
+            "..............................b................................b..................",
+            "..............................p................................p..................",
+            "...........................ppppppp..........................ppppppp...............",
+            "...........................ppppypp..........................ppppypp...............",
+            "..........................ppppppppp........................ppppppppp..............",
+            "..........................ppppppppp........................ppppppppp..............",
+            "..........................ppppppppp........................ppppppppp..............",
+            "...........................pyppppp..........................pyppppp...............",
+            "...........................ppppppp..........................ppppppp...............",
+            "........aaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaaa",
+            "........aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........##########################################################################",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+          ],
+          "colours": {
+            "#": "ink",
+            "r": "rose",
+            "v": "green",
+            "a": "amber",
+            "b": "brown",
+            "c": "cream",
+            "y": "gold",
+            "p": "pumpkin"
+          }
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 0,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "at": [
+            -8,
+            5
+          ],
+          "step": 1,
+          "art": [
+            "..................................................................................",
+            "..................................................................................",
+            "...............................vvv..............................vvv...............",
+            "..............................bvvv.............................bvvv...............",
+            "..............................b................................b..................",
+            "..............................p................................p..................",
+            "...........................ppppppp..........................ppppppp...............",
+            "...........................ppppypp..........................ppppypp...............",
+            "..........................ppppppppp........................ppppppppp..............",
+            "..........................ppppppppp........................ppppppppp..............",
+            "..........................ppppppppp........................ppppppppp..............",
+            "...........................pyppppp..........................pyppppp...............",
+            "...........................ppppppp..........................ppppppp...............",
+            "........aaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaaa",
+            "........aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........##########################################################################",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+          ],
+          "colours": {
+            "#": "ink",
+            "r": "rose",
+            "v": "green",
+            "a": "amber",
+            "b": "brown",
+            "c": "cream",
+            "y": "gold",
+            "p": "pumpkin"
+          }
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 0,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "at": [
+            -8,
+            5
+          ],
+          "step": 1,
+          "art": [
+            "..................................................................................",
+            "..................................................................................",
+            "...............................vvv..............................vvv...............",
+            "..............................bvvv.............................bvvv...............",
+            "..............................b................................b..................",
+            "..............................p................................p..................",
+            "...........................ppppppp..........................ppppppp...............",
+            "...........................ppppypp..........................ppppypp...............",
+            "..........................ppppppppp........................ppppppppp..............",
+            "..........................ppppppppp........................ppppppppp..............",
+            "..........................ppppppppp........................ppppppppp..............",
+            "...........................pyppppp..........................pyppppp...............",
+            "...........................ppppppp..........................ppppppp...............",
+            "........aaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaaa",
+            "........aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........##########################################################################",
+            "..rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+          ],
+          "colours": {
+            "#": "ink",
+            "r": "rose",
+            "v": "green",
+            "a": "amber",
+            "b": "brown",
+            "c": "cream",
+            "y": "gold",
+            "p": "pumpkin"
+          }
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 0,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "at": [
+            -8,
+            5
+          ],
+          "step": 1,
+          "art": [
+            "..................................................................................",
+            "..................................................................................",
+            "...............................vvv...............................vvv..............",
+            "..............................bvvv..............................bvvv..............",
+            "..............................b.................................b.................",
+            "..............................p.................................p.................",
+            "...........................ppppppp...........................ppppppp..............",
+            "...........................ppppypp...........................ppppypp..............",
+            "..........................ppppppppp.........................ppppppppp.............",
+            "..........................ppppppppp.........................ppppppppp.............",
+            "..........................ppppppppp.........................ppppppppp.............",
+            "...........................pyppppp...........................pyppppp..............",
+            "...........................ppppppp...........................ppppppp..............",
+            "........aaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaa",
+            "........aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........##########################################################################",
+            "..rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+          ],
+          "colours": {
+            "#": "ink",
+            "r": "rose",
+            "v": "green",
+            "a": "amber",
+            "b": "brown",
+            "c": "cream",
+            "y": "gold",
+            "p": "pumpkin"
+          }
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 0,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "at": [
+            -8,
+            5
+          ],
+          "step": 1,
+          "art": [
+            "..................................................................................",
+            "..................................................................................",
+            "...............................vvv...............................vvv..............",
+            "..............................bvvv..............................bvvv..............",
+            "..............................b.................................b.................",
+            "..............................p.................................p.................",
+            "...........................ppppppp...........................ppppppp..............",
+            "...........................ppppypp...........................ppppypp..............",
+            "..........................ppppppppp.........................ppppppppp.............",
+            "..........................ppppppppp.........................ppppppppp.............",
+            "..........................ppppppppp.........................ppppppppp.............",
+            "...........................pyppppp...........................pyppppp..............",
+            "...........................ppppppp...........................ppppppp..............",
+            "........aaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaa",
+            "........aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........##########################################################################",
+            "..rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+          ],
+          "colours": {
+            "#": "ink",
+            "r": "rose",
+            "v": "green",
+            "a": "amber",
+            "b": "brown",
+            "c": "cream",
+            "y": "gold",
+            "p": "pumpkin"
+          }
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 0,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "at": [
+            -8,
+            5
+          ],
+          "step": 1,
+          "art": [
+            "..................................................................................",
+            "..................................................................................",
+            "...............................vvv...............................vvv..............",
+            "..............................bvvv..............................bvvv..............",
+            "..............................b.................................b.................",
+            "..............................p.................................p.................",
+            "...........................ppppppp...........................ppppppp..............",
+            "...........................ppppypp...........................ppppypp..............",
+            "..........................ppppppppp.........................ppppppppp.............",
+            "..........................ppppppppp.........................ppppppppp.............",
+            "..........................ppppppppp.........................ppppppppp.............",
+            "...........................pyppppp...........................pyppppp..............",
+            "...........................ppppppp...........................ppppppp..............",
+            "........aaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaa",
+            "........aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........##########################################################################",
+            "..rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+          ],
+          "colours": {
+            "#": "ink",
+            "r": "rose",
+            "v": "green",
+            "a": "amber",
+            "b": "brown",
+            "c": "cream",
+            "y": "gold",
+            "p": "pumpkin"
+          }
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 0,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "at": [
+            -8,
+            5
+          ],
+          "step": 1,
+          "art": [
+            "..................................................................................",
+            "..................................................................................",
+            "...............................vvv...............................vvv..............",
+            "..............................bvvv..............................bvvv..............",
+            "..............................b.................................b.................",
+            "..............................p.................................p.................",
+            "...........................ppppppp...........................ppppppp..............",
+            "...........................ppppypp...........................ppppypp..............",
+            "..........................ppppppppp.........................ppppppppp.............",
+            "..........................ppppppppp.........................ppppppppp.............",
+            "..........................ppppppppp.........................ppppppppp.............",
+            "...........................pyppppp...........................pyppppp..............",
+            "...........................ppppppp...........................ppppppp..............",
+            "........aaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaa",
+            "........aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........##########################################################################",
+            "..rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+          ],
+          "colours": {
+            "#": "ink",
+            "r": "rose",
+            "v": "green",
+            "a": "amber",
+            "b": "brown",
+            "c": "cream",
+            "y": "gold",
+            "p": "pumpkin"
+          }
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 0,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "at": [
+            -8,
+            5
+          ],
+          "step": 1,
+          "art": [
+            "..................................................................................",
+            "..................................................................................",
+            "...............................vvv...............................vvv..............",
+            "..............................bvvv..............................bvvv..............",
+            "..............................b.................................b.................",
+            "..............................p.................................p.................",
+            "...........................ppppppp...........................ppppppp..............",
+            "...........................ppppypp...........................ppppypp..............",
+            "..........................ppppppppp.........................ppppppppp.............",
+            "..........................ppppppppp.........................ppppppppp.............",
+            "..........................ppppppppp.........................ppppppppp.............",
+            "...........................pyppppp...........................pyppppp..............",
+            "...........................ppppppp...........................ppppppp..............",
+            "........aaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaa",
+            "........aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........##########################################################################",
+            "..rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+          ],
+          "colours": {
+            "#": "ink",
+            "r": "rose",
+            "v": "green",
+            "a": "amber",
+            "b": "brown",
+            "c": "cream",
+            "y": "gold",
+            "p": "pumpkin"
+          }
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 0,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "at": [
+            -8,
+            5
+          ],
+          "step": 1,
+          "art": [
+            "..................................................................................",
+            "..................................................................................",
+            "...............................vvv..............................vvv...............",
+            "..............................bvvv.............................bvvv...............",
+            "..............................b................................b..................",
+            "..............................p................................p..................",
+            "...........................ppppppp..........................ppppppp...............",
+            "...........................ppppypp..........................ppppypp...............",
+            "..........................ppppppppp........................ppppppppp..............",
+            "..........................ppppppppp........................ppppppppp..............",
+            "..........................ppppppppp........................ppppppppp..............",
+            "...........................pyppppp..........................pyppppp...............",
+            "...........................ppppppp..........................ppppppp...............",
+            "........aaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaaa",
+            "........aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........##########################################################################",
+            "..rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+          ],
+          "colours": {
+            "#": "ink",
+            "r": "rose",
+            "v": "green",
+            "a": "amber",
+            "b": "brown",
+            "c": "cream",
+            "y": "gold",
+            "p": "pumpkin"
+          }
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 0,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "at": [
+            -8,
+            5
+          ],
+          "step": 1,
+          "art": [
+            "..................................................................................",
+            "..................................................................................",
+            "...............................vvv..............................vvv...............",
+            "..............................bvvv.............................bvvv...............",
+            "..............................b................................b..................",
+            "..............................p................................p..................",
+            "...........................ppppppp..........................ppppppp...............",
+            "...........................ppppypp..........................ppppypp...............",
+            "..........................ppppppppp........................ppppppppp..............",
+            "..........................ppppppppp........................ppppppppp..............",
+            "..........................ppppppppp........................ppppppppp..............",
+            "...........................pyppppp..........................pyppppp...............",
+            "...........................ppppppp..........................ppppppp...............",
+            "........aaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaaa",
+            "........aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........##########################################################################",
+            "..rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+          ],
+          "colours": {
+            "#": "ink",
+            "r": "rose",
+            "v": "green",
+            "a": "amber",
+            "b": "brown",
+            "c": "cream",
+            "y": "gold",
+            "p": "pumpkin"
+          }
+        }
+      ]
+    },
+    {
+      "dx": 0,
+      "dy": 0,
+      "scale": 1,
+      "back": [],
+      "front": [
+        {
+          "at": [
+            -8,
+            5
+          ],
+          "step": 1,
+          "art": [
+            "..................................................................................",
+            "..................................................................................",
+            "...............................vvv.............................vvv................",
+            "..............................bvvv............................bvvv................",
+            "..............................b...............................b...................",
+            "..............................p...............................p...................",
+            "...........................ppppppp.........................ppppppp................",
+            "...........................ppppypp.........................ppppypp................",
+            "..........................ppppppppp.......................ppppppppp...............",
+            "..........................ppppppppp.......................ppppppppp...............",
+            "..........................ppppppppp.......................ppppppppp...............",
+            "...........................pyppppp.........................pyppppp................",
+            "...........................ppppppp.........................ppppppp................",
+            "........aaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaapaaaaaaaaaaaaaaaaaaa",
+            "........aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "........##########################################################################",
+            "..rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..rrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrcrrrrrcrrrrrrrrrrrrrcrrrrrrrrr",
+            "..cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+            "..rrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrcrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+          ],
+          "colours": {
+            "#": "ink",
+            "r": "rose",
+            "v": "green",
+            "a": "amber",
+            "b": "brown",
+            "c": "cream",
+            "y": "gold",
+            "p": "pumpkin"
+          }
+        }
+      ]
+    }
+  ]
+}

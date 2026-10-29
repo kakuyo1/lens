@@ -195,6 +195,94 @@
       ]
     },
     {
+      "id": "cat_fishbowl",
+      "mood": {
+        "evening": 2,
+        "night": 1.5,
+        "afterReturn": 1.5
+      },
+      "entry": {
+        "style": "settle"
+      },
+      "name": "金鱼缸",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        52.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "cat_fishbowl/back.png",
+        "front": "cat_fishbowl/front.png"
+      },
+      "framesData": [
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        }
+      ]
+    },
+    {
       "id": "cat_sunbeam",
       "mood": {
         "morning": 3.0,
@@ -284,6 +372,181 @@
       ]
     },
     {
+      "id": "cat_yarn",
+      "mood": {
+        "afternoon": 2.5,
+        "morning": 1.25,
+        "evening": 1
+      },
+      "entry": {
+        "style": "settle"
+      },
+      "name": "毛线球",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        52.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "cat_yarn/back.png",
+        "front": "cat_yarn/front.png"
+      },
+      "framesData": [
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        }
+      ]
+    },
+    {
+      "id": "cloud_dandelion",
+      "mood": {
+        "afternoon": 2,
+        "evening": 1
+      },
+      "entry": {
+        "style": "fade"
+      },
+      "name": "吹蒲公英",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        57,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "cloud_dandelion/back.png",
+        "front": "cloud_dandelion/front.png"
+      },
+      "framesData": [
+        {
+          "dx": -18,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -18,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -18,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -18,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -18,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -18,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -18,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -18,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -18,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -18,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -18,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -18,
+          "dy": 0,
+          "scale": 1
+        }
+      ]
+    },
+    {
       "id": "cloud_fishing",
       "mood": {
         "morning": 0.75,
@@ -367,6 +630,318 @@
           "dx": -6,
           "dy": -22,
           "scale": 1.0
+        }
+      ]
+    },
+    {
+      "id": "cloud_rainbow",
+      "mood": {
+        "morning": 2,
+        "afternoon": 1.25
+      },
+      "entry": {
+        "style": "settle"
+      },
+      "name": "彩虹滑梯",
+      "frames": 57,
+      "fps": 10,
+      "foot": [
+        57,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "cloud_rainbow/back.png",
+        "front": "cloud_rainbow/front.png"
+      },
+      "framesData": [
+        {
+          "dx": -29,
+          "dy": -31,
+          "scale": 1
+        },
+        {
+          "dx": -29,
+          "dy": -31,
+          "scale": 1
+        },
+        {
+          "dx": -28,
+          "dy": -30,
+          "scale": 1
+        },
+        {
+          "dx": -27,
+          "dy": -29,
+          "scale": 1
+        },
+        {
+          "dx": -26,
+          "dy": -27,
+          "scale": 1
+        },
+        {
+          "dx": -25,
+          "dy": -26,
+          "scale": 1
+        },
+        {
+          "dx": -23,
+          "dy": -24,
+          "scale": 1
+        },
+        {
+          "dx": -21,
+          "dy": -22,
+          "scale": 1
+        },
+        {
+          "dx": -19,
+          "dy": -19,
+          "scale": 1
+        },
+        {
+          "dx": -17,
+          "dy": -17,
+          "scale": 1
+        },
+        {
+          "dx": -15,
+          "dy": -15,
+          "scale": 1
+        },
+        {
+          "dx": -13,
+          "dy": -13,
+          "scale": 1
+        },
+        {
+          "dx": -11,
+          "dy": -11,
+          "scale": 1
+        },
+        {
+          "dx": -9,
+          "dy": -9,
+          "scale": 1
+        },
+        {
+          "dx": -7,
+          "dy": -8,
+          "scale": 1
+        },
+        {
+          "dx": -5,
+          "dy": -6,
+          "scale": 1
+        },
+        {
+          "dx": -3,
+          "dy": -5,
+          "scale": 1
+        },
+        {
+          "dx": -1,
+          "dy": -4,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": -3,
+          "scale": 1
+        },
+        {
+          "dx": 1,
+          "dy": -3,
+          "scale": 1
+        },
+        {
+          "dx": 2,
+          "dy": -2,
+          "scale": 1
+        },
+        {
+          "dx": 3,
+          "dy": -2,
+          "scale": 1
+        },
+        {
+          "dx": 3,
+          "dy": -2,
+          "scale": 1
+        },
+        {
+          "dx": 3,
+          "dy": -1,
+          "scale": 1
+        },
+        {
+          "dx": 3,
+          "dy": -1,
+          "scale": 1
+        },
+        {
+          "dx": 3,
+          "dy": -2,
+          "scale": 1
+        },
+        {
+          "dx": 3,
+          "dy": -2,
+          "scale": 1
+        },
+        {
+          "dx": 3,
+          "dy": -3,
+          "scale": 1
+        },
+        {
+          "dx": 2,
+          "dy": -3,
+          "scale": 1
+        },
+        {
+          "dx": 1,
+          "dy": -5,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": -6,
+          "scale": 1
+        },
+        {
+          "dx": -1,
+          "dy": -8,
+          "scale": 1
+        },
+        {
+          "dx": -2,
+          "dy": -10,
+          "scale": 1
+        },
+        {
+          "dx": -3,
+          "dy": -12,
+          "scale": 1
+        },
+        {
+          "dx": -5,
+          "dy": -14,
+          "scale": 1
+        },
+        {
+          "dx": -6,
+          "dy": -17,
+          "scale": 1
+        },
+        {
+          "dx": -8,
+          "dy": -20,
+          "scale": 1
+        },
+        {
+          "dx": -10,
+          "dy": -21,
+          "scale": 1
+        },
+        {
+          "dx": -11,
+          "dy": -23,
+          "scale": 1
+        },
+        {
+          "dx": -13,
+          "dy": -25,
+          "scale": 1
+        },
+        {
+          "dx": -15,
+          "dy": -27,
+          "scale": 1
+        },
+        {
+          "dx": -16,
+          "dy": -27,
+          "scale": 1
+        },
+        {
+          "dx": -18,
+          "dy": -29,
+          "scale": 1
+        },
+        {
+          "dx": -20,
+          "dy": -30,
+          "scale": 1
+        },
+        {
+          "dx": -21,
+          "dy": -29,
+          "scale": 1
+        },
+        {
+          "dx": -23,
+          "dy": -30,
+          "scale": 1
+        },
+        {
+          "dx": -24,
+          "dy": -31,
+          "scale": 1
+        },
+        {
+          "dx": -25,
+          "dy": -30,
+          "scale": 1
+        },
+        {
+          "dx": -26,
+          "dy": -31,
+          "scale": 1
+        },
+        {
+          "dx": -27,
+          "dy": -31,
+          "scale": 1
+        },
+        {
+          "dx": -28,
+          "dy": -31,
+          "scale": 1
+        },
+        {
+          "dx": -29,
+          "dy": -31,
+          "scale": 1
+        },
+        {
+          "dx": -29,
+          "dy": -31,
+          "scale": 1
+        },
+        {
+          "dx": -29,
+          "dy": -31,
+          "scale": 1
+        },
+        {
+          "dx": -29,
+          "dy": -31,
+          "scale": 1
+        },
+        {
+          "dx": -29,
+          "dy": -31,
+          "scale": 1
+        },
+        {
+          "dx": -29,
+          "dy": -31,
+          "scale": 1
         }
       ]
     },
@@ -541,6 +1116,94 @@
         {
           "dx": 0,
           "dy": -3,
+          "scale": 1
+        }
+      ]
+    },
+    {
+      "id": "dog_bed",
+      "mood": {
+        "evening": 1.5,
+        "night": 2.5,
+        "afterReturn": 2
+      },
+      "entry": {
+        "style": "settle"
+      },
+      "name": "窝里打盹",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        51,
+        84
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "dog_bed/back.png",
+        "front": "dog_bed/front.png"
+      },
+      "framesData": [
+        {
+          "dx": 0,
+          "dy": -2,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": -2,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": -2,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": -2,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": -2,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": -2,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": -2,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": -2,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": -2,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": -2,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": -2,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": -2,
           "scale": 1
         }
       ]
@@ -730,6 +1393,181 @@
       ]
     },
     {
+      "id": "dog_snowman",
+      "mood": {
+        "morning": 1.5,
+        "afternoon": 2
+      },
+      "entry": {
+        "style": "hop",
+        "arc": 12
+      },
+      "name": "雪人",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        51,
+        84
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "dog_snowman/back.png",
+        "front": "dog_snowman/front.png"
+      },
+      "framesData": [
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        }
+      ]
+    },
+    {
+      "id": "ghost_clock",
+      "mood": {
+        "evening": 1.5,
+        "night": 4
+      },
+      "entry": {
+        "style": "fade"
+      },
+      "name": "午夜座钟",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        57,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "ghost_clock/back.png",
+        "front": "ghost_clock/front.png"
+      },
+      "framesData": [
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        }
+      ]
+    },
+    {
       "id": "ghost_lantern",
       "mood": {
         "morning": 0.25,
@@ -902,6 +1740,269 @@
           "dx": 10,
           "dy": -2,
           "scale": 1.0
+        }
+      ]
+    },
+    {
+      "id": "ghost_tea",
+      "mood": {
+        "evening": 2,
+        "night": 1.5,
+        "afterReturn": 1.5
+      },
+      "entry": {
+        "style": "fade"
+      },
+      "name": "幽灵茶会",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        57,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "ghost_tea/back.png",
+        "front": "ghost_tea/front.png"
+      },
+      "framesData": [
+        {
+          "dx": -24,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -24,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -24,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -24,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -24,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -24,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -24,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -24,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -24,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -24,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -24,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -24,
+          "dy": 0,
+          "scale": 1
+        }
+      ]
+    },
+    {
+      "id": "jelly_lantern",
+      "mood": {
+        "evening": 2,
+        "night": 4
+      },
+      "entry": {
+        "style": "fade"
+      },
+      "name": "深海夜灯",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        57,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "jelly_lantern/back.png",
+        "front": "jelly_lantern/front.png"
+      },
+      "framesData": [
+        {
+          "dx": 6,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 6,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 6,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 6,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 6,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 6,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 6,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 6,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 6,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 6,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 6,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 6,
+          "dy": 0,
+          "scale": 1
+        }
+      ]
+    },
+    {
+      "id": "jelly_shell",
+      "mood": {
+        "afternoon": 1,
+        "night": 2.5,
+        "afterReturn": 2
+      },
+      "entry": {
+        "style": "settle"
+      },
+      "name": "贝壳床",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        57,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "jelly_shell/back.png",
+        "front": "jelly_shell/front.png"
+      },
+      "framesData": [
+        {
+          "dx": -3,
+          "dy": 3,
+          "scale": 1
+        },
+        {
+          "dx": -3,
+          "dy": 3,
+          "scale": 1
+        },
+        {
+          "dx": -3,
+          "dy": 3,
+          "scale": 1
+        },
+        {
+          "dx": -3,
+          "dy": 3,
+          "scale": 1
+        },
+        {
+          "dx": -3,
+          "dy": 3,
+          "scale": 1
+        },
+        {
+          "dx": -3,
+          "dy": 3,
+          "scale": 1
+        },
+        {
+          "dx": -3,
+          "dy": 3,
+          "scale": 1
+        },
+        {
+          "dx": -3,
+          "dy": 3,
+          "scale": 1
+        },
+        {
+          "dx": -3,
+          "dy": 3,
+          "scale": 1
+        },
+        {
+          "dx": -3,
+          "dy": 3,
+          "scale": 1
+        },
+        {
+          "dx": -3,
+          "dy": 3,
+          "scale": 1
+        },
+        {
+          "dx": -3,
+          "dy": 3,
+          "scale": 1
         }
       ]
     },
@@ -1169,6 +2270,94 @@
       ]
     },
     {
+      "id": "mochi_kotatsu",
+      "mood": {
+        "evening": 2.5,
+        "night": 2,
+        "afterReturn": 2
+      },
+      "entry": {
+        "style": "settle"
+      },
+      "name": "暖桌",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        55.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "mochi_kotatsu/back.png",
+        "front": "mochi_kotatsu/front.png"
+      },
+      "framesData": [
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        }
+      ]
+    },
+    {
       "id": "mochi_onsen",
       "mood": {
         "evening": 2.0,
@@ -1265,6 +2454,101 @@
       ]
     },
     {
+      "id": "mochi_pound",
+      "mood": {
+        "morning": 1.5,
+        "afternoon": 2
+      },
+      "entry": {
+        "style": "hop",
+        "arc": 18,
+        "impact": {
+          "kind": "dust",
+          "at": [
+            53,
+            73
+          ]
+        }
+      },
+      "name": "捣年糕",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        55.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "mochi_pound/back.png",
+        "front": "mochi_pound/front.png"
+      },
+      "framesData": [
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "scale": 1
+        }
+      ]
+    },
+    {
       "id": "owl_books",
       "mood": {
         "evening": 1.25,
@@ -1349,6 +2633,182 @@
           "dx": -8,
           "dy": 0,
           "scale": 1.0
+        }
+      ]
+    },
+    {
+      "id": "owl_hearth",
+      "mood": {
+        "evening": 2,
+        "night": 2.5,
+        "afterReading": 2
+      },
+      "entry": {
+        "style": "settle"
+      },
+      "name": "壁炉边",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        55.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "owl_hearth/back.png",
+        "front": "owl_hearth/front.png"
+      },
+      "framesData": [
+        {
+          "dx": 9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": 9,
+          "dy": 0,
+          "scale": 1
+        }
+      ]
+    },
+    {
+      "id": "owl_letter",
+      "mood": {
+        "morning": 2,
+        "afternoon": 1.5
+      },
+      "entry": {
+        "style": "hop",
+        "arc": 16
+      },
+      "name": "送信",
+      "frames": 12,
+      "fps": 4,
+      "foot": [
+        55.5,
+        81
+      ],
+      "layers": {
+        "back": -1,
+        "front": 20
+      },
+      "sheets": {
+        "back": "owl_letter/back.png",
+        "front": "owl_letter/front.png"
+      },
+      "framesData": [
+        {
+          "dx": -9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -9,
+          "dy": 0,
+          "scale": 1
+        },
+        {
+          "dx": -9,
+          "dy": 0,
+          "scale": 1
         }
       ]
     },

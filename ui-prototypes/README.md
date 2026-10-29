@@ -33,6 +33,8 @@
 
 `scenes.html` 是场景入场的提案，QML 已按它落地（ADR 0101）：抽到场景不再硬切，而按场景编排一段约 0.3–0.8 秒的戏——泡澡先出浴缸再跳进去、纸箱一扑、秋千一跃、窗台趴下；道具透明度、宠物前后层与 idle 身体都来自真实的 `data/scenes` 与 `data/pet`。水花与尘土只是几粒像素，不是新美术。`?scene=bath|cat_box|swing|cat_sunbeam`、`?variant=enter|fade|cut`、`?speed=0.5|1|1.5`、`?reduced=1`、`?auto=0`、`?box=1` 控制初始状态，`?t=<ms>` 把舞台冻结在某一刻，供逐帧核对。它和 `ceremony.html` 一样在 `pet-prototype/` 里跑 `npm run dev` 后打开 `/scenes.html`。落地版本见 `src/app/qml/pet/PetScene.qml` 与 `SceneEntryEffect.qml`；设置页的动作预览仍是静止场景，场景药丸走真实入场。
 
+`scenes-six.html` 是每只宠物从四景扩到六景的设计板，已落地：七只随包宠物各加两个专属场景（共十四景），每景给出道具、入场、时段权重与配饰牵引；页面同时并排现有四景，宠物用 `data/pet` 的真实 idle / sleep 帧，道具仍是本页画的设计稿。14 景已生成 `scripts/pet/scenes` 与 `data/scenes`，应用里其余场景 12 帧 / 4 fps，滑梯 57 帧 / 10 fps。场景全部可暂停，`prefers-reduced-motion` 时从静止帧开始；`?t=<ms>` 把全部画布冻结在某一刻，供逐帧核对。和 `scenes.html` 一样在 `pet-prototype/` 里跑 `npm run dev` 后打开 `/scenes-six.html`，入口也加在宠物原型首页。
+
 ## 怎么看
 
 双击打开，或访问 `file:///.../settings.html`。URL 追加 `?theme=dark` 直接看静谧暗夜主题，`?theme=frosted` / `?theme=liquid` 看两套玻璃主题（雾面玻璃、流光玻璃），设置面板里的主题下拉也能切。除 `settings.html` 外，每张表面右上角的按钮循环切换四套主题（晴朗白昼、静谧暗夜、雾面玻璃、流光玻璃），按钮文字是当前主题名；带 `?shot` 时按钮隐去。`settings.html` 的流光玻璃与雾面玻璃主题左上角各有一组测试背景单选，底图分别在 `liquid-backdrops/` 与 `frosted-backdrops/`；URL 追加 `?bg=<文件名>` 指定一张（如 `?bg=web-light`、`?bg=checker`），文件属于哪套主题就用哪套。

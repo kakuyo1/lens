@@ -443,6 +443,48 @@
       ],
       "sheet": "sprites/body/dizzy.png",
       "effect": "sprites/effects/dizzy.png"
+    },
+    "jelly_lantern": {
+      "frames": 12,
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "expressions": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "sheet": "sprites/body/jelly_lantern.png"
+    },
+    "jelly_shell": {
+      "frames": 12,
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "expressions": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/jelly_shell.png"
     }
   }
 }

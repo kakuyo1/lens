@@ -2844,6 +2844,229 @@
           ]
         }
       ]
+    },
+    "cloud_rainbow": {
+      "fps": 10,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        }
+      ]
+    },
+    "cloud_dandelion": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        }
+      ]
     }
   },
   "accessories": [
@@ -2936,7 +3159,10 @@
           "pixel": true,
           "canvas": true
         }
-      ]
+      ],
+      "sceneWeights": {
+        "cloud_dandelion": 2
+      }
     },
     {
       "id": "star_beanie",
@@ -3474,7 +3700,10 @@
       ],
       "except": [
         "sleep"
-      ]
+      ],
+      "sceneWeights": {
+        "cloud_rainbow": 2.5
+      }
     },
     {
       "id": "mist_scarf",

@@ -2663,6 +2663,94 @@
           ]
         }
       ]
+    },
+    "jelly_lantern": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        }
+      ]
+    },
+    "jelly_shell": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        }
+      ]
     }
   },
   "accessories": [
@@ -3432,7 +3520,10 @@
       ],
       "except": [
         "sleep"
-      ]
+      ],
+      "sceneWeights": {
+        "jelly_shell": 2.5
+      }
     },
     {
       "id": "fish_charm",
@@ -3530,7 +3621,10 @@
       ],
       "except": [
         "sleep"
-      ]
+      ],
+      "sceneWeights": {
+        "jelly_lantern": 2.5
+      }
     }
   ],
   "movement": {

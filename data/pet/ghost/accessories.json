@@ -30,7 +30,9 @@
         "edge_peek",
         "ghost_lantern",
         "ghost_mirror",
-        "dizzy"
+        "dizzy",
+        "ghost_clock",
+        "ghost_tea"
       ],
       "sceneWeights": {
         "ghost_lantern": 3
@@ -66,7 +68,9 @@
         "edge_peek",
         "ghost_lantern",
         "ghost_mirror",
-        "dizzy"
+        "dizzy",
+        "ghost_clock",
+        "ghost_tea"
       ]
     },
     {
@@ -99,7 +103,9 @@
         "edge_peek",
         "ghost_lantern",
         "ghost_mirror",
-        "dizzy"
+        "dizzy",
+        "ghost_clock",
+        "ghost_tea"
       ]
     },
     {
@@ -131,7 +137,9 @@
         "edge_peek",
         "ghost_lantern",
         "ghost_mirror",
-        "dizzy"
+        "dizzy",
+        "ghost_clock",
+        "ghost_tea"
       ],
       "sceneWeights": {
         "desk": 3
@@ -166,7 +174,9 @@
         "edge_peek",
         "ghost_lantern",
         "ghost_mirror",
-        "dizzy"
+        "dizzy",
+        "ghost_clock",
+        "ghost_tea"
       ]
     },
     {
@@ -199,8 +209,13 @@
         "edge_peek",
         "ghost_lantern",
         "ghost_mirror",
-        "dizzy"
-      ]
+        "dizzy",
+        "ghost_clock",
+        "ghost_tea"
+      ],
+      "sceneWeights": {
+        "ghost_tea": 2.5
+      }
     },
     {
       "id": "key_chain",
@@ -231,7 +246,9 @@
         "edge_peek",
         "ghost_lantern",
         "ghost_mirror",
-        "dizzy"
+        "dizzy",
+        "ghost_clock",
+        "ghost_tea"
       ],
       "sceneWeights": {
         "ghost_mirror": 2
@@ -266,8 +283,13 @@
         "edge_peek",
         "ghost_lantern",
         "ghost_mirror",
-        "dizzy"
-      ]
+        "dizzy",
+        "ghost_clock",
+        "ghost_tea"
+      ],
+      "sceneWeights": {
+        "ghost_clock": 2.5
+      }
     },
     {
       "id": "mist_scarf",
@@ -298,7 +320,9 @@
         "edge_peek",
         "ghost_lantern",
         "ghost_mirror",
-        "dizzy"
+        "dizzy",
+        "ghost_clock",
+        "ghost_tea"
       ],
       "sceneWeights": {
         "ghost_mirror": 2.5

@@ -2389,6 +2389,94 @@
           ]
         }
       ]
+    },
+    "dog_snowman": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        }
+      ]
+    },
+    "dog_bed": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "sleep",
+      "frames": [
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        }
+      ]
     }
   },
   "accessories": [
@@ -2607,7 +2695,10 @@
             ".#."
           ]
         }
-      ]
+      ],
+      "sceneWeights": {
+        "dog_bed": 2.5
+      }
     },
     {
       "id": "spectacles",
@@ -2885,7 +2976,8 @@
       "id": "knit_scarf",
       "slot": "body",
       "sceneWeights": {
-        "swing": 2.5
+        "swing": 2.5,
+        "dog_snowman": 2.5
       },
       "paint": [
         {

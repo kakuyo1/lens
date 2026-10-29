@@ -30,7 +30,9 @@
         "edge_peek",
         "mochi_onsen",
         "mochi_grill",
-        "dizzy"
+        "dizzy",
+        "mochi_kotatsu",
+        "mochi_pound"
       ],
       "sceneWeights": {
         "mochi_onsen": 2.5
@@ -65,10 +67,13 @@
         "edge_peek",
         "mochi_onsen",
         "mochi_grill",
-        "dizzy"
+        "dizzy",
+        "mochi_kotatsu",
+        "mochi_pound"
       ],
       "sceneWeights": {
-        "mochi_grill": 3
+        "mochi_grill": 3,
+        "mochi_pound": 2.5
       }
     },
     {
@@ -101,7 +106,9 @@
         "edge_peek",
         "mochi_onsen",
         "mochi_grill",
-        "dizzy"
+        "dizzy",
+        "mochi_kotatsu",
+        "mochi_pound"
       ]
     },
     {
@@ -133,7 +140,9 @@
         "edge_peek",
         "mochi_onsen",
         "mochi_grill",
-        "dizzy"
+        "dizzy",
+        "mochi_kotatsu",
+        "mochi_pound"
       ]
     },
     {
@@ -165,7 +174,9 @@
         "edge_peek",
         "mochi_onsen",
         "mochi_grill",
-        "dizzy"
+        "dizzy",
+        "mochi_kotatsu",
+        "mochi_pound"
       ],
       "sceneWeights": {
         "swing": 2.5
@@ -201,7 +212,9 @@
         "edge_peek",
         "mochi_onsen",
         "mochi_grill",
-        "dizzy"
+        "dizzy",
+        "mochi_kotatsu",
+        "mochi_pound"
       ]
     },
     {
@@ -232,7 +245,9 @@
         "edge_peek",
         "mochi_onsen",
         "mochi_grill",
-        "dizzy"
+        "dizzy",
+        "mochi_kotatsu",
+        "mochi_pound"
       ]
     },
     {
@@ -263,10 +278,13 @@
         "edge_peek",
         "mochi_onsen",
         "mochi_grill",
-        "dizzy"
+        "dizzy",
+        "mochi_kotatsu",
+        "mochi_pound"
       ],
       "sceneWeights": {
-        "rain": 2.5
+        "rain": 2.5,
+        "mochi_kotatsu": 2.5
       }
     },
     {
@@ -297,7 +315,9 @@
         "edge_peek",
         "mochi_onsen",
         "mochi_grill",
-        "dizzy"
+        "dizzy",
+        "mochi_kotatsu",
+        "mochi_pound"
       ]
     }
   ]

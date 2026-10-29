@@ -378,15 +378,16 @@ void TstPetController::aPreviewedSceneExposesItsSheetsAndAlignment()
     QVERIFY(dir.isValid());
     Rig rig{settingsIn(dir), shippedRoot()};
 
-    // The default pet is the dog: its feet sit a pixel and a half left of the catalogue's and a cell lower.
-    QCOMPARE(rig.controller.foot(), QPointF(57.0, 84.0));
+    // The default pet is the dog: its ink centre, tail included, sits six and a half canvas units left of the
+    // catalogue's feet and a cell lower.
+    QCOMPARE(rig.controller.foot(), QPointF(51.0, 84.0));
 
     rig.controller.preview(QStringLiteral("swing"));
     QCOMPARE(rig.controller.scene(), QStringLiteral("swing"));
     QCOMPARE(rig.controller.sceneFrame(), 0);
     QVERIFY(rig.controller.sceneSheets().value("back").toString().endsWith(QStringLiteral("/scenes/swing/back.png")));
     QVERIFY(rig.controller.sceneSheets().value("front").toString().endsWith(QStringLiteral("/scenes/swing/front.png")));
-    QCOMPARE(rig.controller.sceneAlign(), QPointF(-1.5, 3.0));
+    QCOMPARE(rig.controller.sceneAlign(), QPointF(-7.5, 3.0));
     QCOMPARE(rig.controller.sceneScale(), 1.0);
 
     // The swing's frames carry the pet up and bring it closer to the reader.

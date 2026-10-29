@@ -89,6 +89,20 @@ Item {
         case "mochi_grill": return qsTranslate("SettingsPopup", "Roasted mochi");
         case "owl_stargazing": return qsTranslate("SettingsPopup", "Stargazing");
         case "owl_books": return qsTranslate("SettingsPopup", "Book nook");
+        case "cat_yarn": return qsTranslate("SettingsPopup", "Yarn ball");
+        case "cat_fishbowl": return qsTranslate("SettingsPopup", "Goldfish bowl");
+        case "cloud_rainbow": return qsTranslate("SettingsPopup", "Rainbow slide");
+        case "cloud_dandelion": return qsTranslate("SettingsPopup", "Dandelion");
+        case "dog_snowman": return qsTranslate("SettingsPopup", "Snowman");
+        case "dog_bed": return qsTranslate("SettingsPopup", "Dog bed");
+        case "ghost_clock": return qsTranslate("SettingsPopup", "Midnight clock");
+        case "ghost_tea": return qsTranslate("SettingsPopup", "Ghost tea");
+        case "jelly_lantern": return qsTranslate("SettingsPopup", "Deep-sea lamp");
+        case "jelly_shell": return qsTranslate("SettingsPopup", "Shell bed");
+        case "mochi_kotatsu": return qsTranslate("SettingsPopup", "Kotatsu");
+        case "mochi_pound": return qsTranslate("SettingsPopup", "Mochi pounding");
+        case "owl_hearth": return qsTranslate("SettingsPopup", "By the fire");
+        case "owl_letter": return qsTranslate("SettingsPopup", "Mail owl");
         case "dizzy": return qsTranslate("SettingsPopup", "Dizzy");
         default: return id;
         }

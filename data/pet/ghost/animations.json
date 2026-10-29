@@ -444,6 +444,48 @@
       ],
       "sheet": "sprites/body/dizzy.png",
       "effect": "sprites/effects/dizzy.png"
+    },
+    "ghost_clock": {
+      "frames": 12,
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "expressions": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "sheet": "sprites/body/ghost_clock.png"
+    },
+    "ghost_tea": {
+      "frames": 12,
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "expressions": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "sheet": "sprites/body/ghost_tea.png"
     }
   }
 }

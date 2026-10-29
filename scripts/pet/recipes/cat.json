@@ -2815,6 +2815,94 @@
           ]
         }
       ]
+    },
+    "cat_yarn": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        },
+        {
+          "expression": 0
+        }
+      ]
+    },
+    "cat_fishbowl": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        }
+      ]
     }
   },
   "accessories": [
@@ -3305,7 +3393,10 @@
           "pixel": true,
           "canvas": true
         }
-      ]
+      ],
+      "sceneWeights": {
+        "cat_yarn": 2
+      }
     },
     {
       "id": "fish_collar",
@@ -3394,7 +3485,10 @@
       ],
       "except": [
         "sleep"
-      ]
+      ],
+      "sceneWeights": {
+        "cat_fishbowl": 2.5
+      }
     },
     {
       "id": "sailor_collar",

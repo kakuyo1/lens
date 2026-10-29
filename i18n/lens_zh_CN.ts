@@ -2489,6 +2489,76 @@
         <source>Tesseract data folder</source>
         <translation>Tesseract 数据目录</translation>
     </message>
+    <message>
+        <source>Yarn ball</source>
+        <translation>毛线球</translation>
+    </message>
+
+    <message>
+        <source>Goldfish bowl</source>
+        <translation>金鱼缸</translation>
+    </message>
+
+    <message>
+        <source>Rainbow slide</source>
+        <translation>彩虹滑梯</translation>
+    </message>
+
+    <message>
+        <source>Dandelion</source>
+        <translation>吹蒲公英</translation>
+    </message>
+
+    <message>
+        <source>Snowman</source>
+        <translation>雪人</translation>
+    </message>
+
+    <message>
+        <source>Dog bed</source>
+        <translation>窝里打盹</translation>
+    </message>
+
+    <message>
+        <source>Midnight clock</source>
+        <translation>午夜座钟</translation>
+    </message>
+
+    <message>
+        <source>Ghost tea</source>
+        <translation>幽灵茶会</translation>
+    </message>
+
+    <message>
+        <source>Deep-sea lamp</source>
+        <translation>深海夜灯</translation>
+    </message>
+
+    <message>
+        <source>Shell bed</source>
+        <translation>贝壳床</translation>
+    </message>
+
+    <message>
+        <source>Kotatsu</source>
+        <translation>暖桌</translation>
+    </message>
+
+    <message>
+        <source>Mochi pounding</source>
+        <translation>捣年糕</translation>
+    </message>
+
+    <message>
+        <source>By the fire</source>
+        <translation>壁炉边</translation>
+    </message>
+
+    <message>
+        <source>Mail owl</source>
+        <translation>送信</translation>
+    </message>
+
 </context>
 <context>
     <name>StatsPopup</name>

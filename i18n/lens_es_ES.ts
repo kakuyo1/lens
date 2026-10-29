@@ -2498,6 +2498,76 @@
         <source>Tesseract data folder</source>
         <translation>Carpeta de datos de Tesseract</translation>
     </message>
+    <message>
+        <source>Yarn ball</source>
+        <translation>Bola de lana</translation>
+    </message>
+
+    <message>
+        <source>Goldfish bowl</source>
+        <translation>Pecera</translation>
+    </message>
+
+    <message>
+        <source>Rainbow slide</source>
+        <translation>Tobogán arcoíris</translation>
+    </message>
+
+    <message>
+        <source>Dandelion</source>
+        <translation>Diente de león</translation>
+    </message>
+
+    <message>
+        <source>Snowman</source>
+        <translation>Muñeco de nieve</translation>
+    </message>
+
+    <message>
+        <source>Dog bed</source>
+        <translation>Cama para perro</translation>
+    </message>
+
+    <message>
+        <source>Midnight clock</source>
+        <translation>Reloj de medianoche</translation>
+    </message>
+
+    <message>
+        <source>Ghost tea</source>
+        <translation>Té de fantasmas</translation>
+    </message>
+
+    <message>
+        <source>Deep-sea lamp</source>
+        <translation>Lámpara abisal</translation>
+    </message>
+
+    <message>
+        <source>Shell bed</source>
+        <translation>Cama de concha</translation>
+    </message>
+
+    <message>
+        <source>Kotatsu</source>
+        <translation>Kotatsu</translation>
+    </message>
+
+    <message>
+        <source>Mochi pounding</source>
+        <translation>Machacar mochi</translation>
+    </message>
+
+    <message>
+        <source>By the fire</source>
+        <translation>Junto al fuego</translation>
+    </message>
+
+    <message>
+        <source>Mail owl</source>
+        <translation>Búho cartero</translation>
+    </message>
+
 </context>
 <context>
     <name>StatsPopup</name>

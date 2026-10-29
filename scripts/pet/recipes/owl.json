@@ -6089,6 +6089,94 @@
           ]
         }
       ]
+    },
+    "owl_hearth": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "sleep",
+      "frames": [
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        },
+        {
+          "expression": 2
+        }
+      ]
+    },
+    "owl_letter": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        }
+      ]
     }
   },
   "accessories": [
@@ -6550,7 +6638,10 @@
           "pixel": true,
           "canvas": true
         }
-      ]
+      ],
+      "sceneWeights": {
+        "owl_hearth": 2.5
+      }
     },
     {
       "id": "round_shades",
@@ -6623,7 +6714,8 @@
       "id": "satchel",
       "slot": "body",
       "sceneWeights": {
-        "owl_books": 2.5
+        "owl_books": 2.5,
+        "owl_letter": 2.5
       },
       "paint": [
         {

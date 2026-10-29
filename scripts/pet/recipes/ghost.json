@@ -2683,6 +2683,94 @@
           ]
         }
       ]
+    },
+    "ghost_clock": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        },
+        {
+          "expression": 3
+        }
+      ]
+    },
+    "ghost_tea": {
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "bodyFrom": "idle",
+      "frames": [
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        },
+        {
+          "expression": 4
+        }
+      ]
     }
   },
   "accessories": [
@@ -3083,7 +3171,10 @@
           "pixel": true,
           "canvas": true
         }
-      ]
+      ],
+      "sceneWeights": {
+        "ghost_tea": 2.5
+      }
     },
     {
       "id": "key_chain",
@@ -3260,7 +3351,10 @@
       ],
       "except": [
         "sleep"
-      ]
+      ],
+      "sceneWeights": {
+        "ghost_clock": 2.5
+      }
     },
     {
       "id": "mist_scarf",

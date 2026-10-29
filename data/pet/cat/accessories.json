@@ -30,7 +30,9 @@
         "edge_peek",
         "cat_box",
         "cat_sunbeam",
-        "dizzy"
+        "dizzy",
+        "cat_yarn",
+        "cat_fishbowl"
       ],
       "sceneWeights": {
         "bath": 3
@@ -66,7 +68,9 @@
         "edge_peek",
         "cat_box",
         "cat_sunbeam",
-        "dizzy"
+        "dizzy",
+        "cat_yarn",
+        "cat_fishbowl"
       ],
       "sceneWeights": {
         "cat_box": 2.5
@@ -102,7 +106,9 @@
         "edge_peek",
         "cat_box",
         "cat_sunbeam",
-        "dizzy"
+        "dizzy",
+        "cat_yarn",
+        "cat_fishbowl"
       ]
     },
     {
@@ -134,7 +140,9 @@
         "edge_peek",
         "cat_box",
         "cat_sunbeam",
-        "dizzy"
+        "dizzy",
+        "cat_yarn",
+        "cat_fishbowl"
       ]
     },
     {
@@ -166,7 +174,9 @@
         "edge_peek",
         "cat_box",
         "cat_sunbeam",
-        "dizzy"
+        "dizzy",
+        "cat_yarn",
+        "cat_fishbowl"
       ],
       "sceneWeights": {
         "cat_sunbeam": 3
@@ -202,8 +212,13 @@
         "edge_peek",
         "cat_box",
         "cat_sunbeam",
-        "dizzy"
-      ]
+        "dizzy",
+        "cat_yarn",
+        "cat_fishbowl"
+      ],
+      "sceneWeights": {
+        "cat_yarn": 2
+      }
     },
     {
       "id": "fish_collar",
@@ -234,8 +249,13 @@
         "edge_peek",
         "cat_box",
         "cat_sunbeam",
-        "dizzy"
-      ]
+        "dizzy",
+        "cat_yarn",
+        "cat_fishbowl"
+      ],
+      "sceneWeights": {
+        "cat_fishbowl": 2.5
+      }
     },
     {
       "id": "sailor_collar",
@@ -266,7 +286,9 @@
         "edge_peek",
         "cat_box",
         "cat_sunbeam",
-        "dizzy"
+        "dizzy",
+        "cat_yarn",
+        "cat_fishbowl"
       ]
     },
     {
@@ -298,7 +320,9 @@
         "edge_peek",
         "cat_box",
         "cat_sunbeam",
-        "dizzy"
+        "dizzy",
+        "cat_yarn",
+        "cat_fishbowl"
       ],
       "sceneWeights": {
         "swing": 3

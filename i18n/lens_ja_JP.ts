@@ -2498,6 +2498,76 @@
         <source>Tesseract data folder</source>
         <translation>Tesseract データフォルダー</translation>
     </message>
+    <message>
+        <source>Yarn ball</source>
+        <translation>毛糸玉</translation>
+    </message>
+
+    <message>
+        <source>Goldfish bowl</source>
+        <translation>金魚鉢</translation>
+    </message>
+
+    <message>
+        <source>Rainbow slide</source>
+        <translation>虹のすべり台</translation>
+    </message>
+
+    <message>
+        <source>Dandelion</source>
+        <translation>タンポポ</translation>
+    </message>
+
+    <message>
+        <source>Snowman</source>
+        <translation>雪だるま</translation>
+    </message>
+
+    <message>
+        <source>Dog bed</source>
+        <translation>犬のベッド</translation>
+    </message>
+
+    <message>
+        <source>Midnight clock</source>
+        <translation>真夜中の時計</translation>
+    </message>
+
+    <message>
+        <source>Ghost tea</source>
+        <translation>幽霊のお茶会</translation>
+    </message>
+
+    <message>
+        <source>Deep-sea lamp</source>
+        <translation>深海のランプ</translation>
+    </message>
+
+    <message>
+        <source>Shell bed</source>
+        <translation>貝のベッド</translation>
+    </message>
+
+    <message>
+        <source>Kotatsu</source>
+        <translation>こたつ</translation>
+    </message>
+
+    <message>
+        <source>Mochi pounding</source>
+        <translation>餅つき</translation>
+    </message>
+
+    <message>
+        <source>By the fire</source>
+        <translation>暖炉のそば</translation>
+    </message>
+
+    <message>
+        <source>Mail owl</source>
+        <translation>手紙配達</translation>
+    </message>
+
 </context>
 <context>
     <name>StatsPopup</name>

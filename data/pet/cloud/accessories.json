@@ -30,8 +30,13 @@
         "edge_peek",
         "cloud_watering",
         "cloud_fishing",
-        "dizzy"
-      ]
+        "dizzy",
+        "cloud_rainbow",
+        "cloud_dandelion"
+      ],
+      "sceneWeights": {
+        "cloud_dandelion": 2
+      }
     },
     {
       "id": "star_beanie",
@@ -63,7 +68,9 @@
         "edge_peek",
         "cloud_watering",
         "cloud_fishing",
-        "dizzy"
+        "dizzy",
+        "cloud_rainbow",
+        "cloud_dandelion"
       ],
       "sceneWeights": {
         "cloud_fishing": 3
@@ -99,7 +106,9 @@
         "edge_peek",
         "cloud_watering",
         "cloud_fishing",
-        "dizzy"
+        "dizzy",
+        "cloud_rainbow",
+        "cloud_dandelion"
       ],
       "sceneWeights": {
         "rain": 3
@@ -134,7 +143,9 @@
         "edge_peek",
         "cloud_watering",
         "cloud_fishing",
-        "dizzy"
+        "dizzy",
+        "cloud_rainbow",
+        "cloud_dandelion"
       ],
       "sceneWeights": {
         "desk": 2.5
@@ -169,7 +180,9 @@
         "edge_peek",
         "cloud_watering",
         "cloud_fishing",
-        "dizzy"
+        "dizzy",
+        "cloud_rainbow",
+        "cloud_dandelion"
       ]
     },
     {
@@ -202,7 +215,9 @@
         "edge_peek",
         "cloud_watering",
         "cloud_fishing",
-        "dizzy"
+        "dizzy",
+        "cloud_rainbow",
+        "cloud_dandelion"
       ]
     },
     {
@@ -234,8 +249,13 @@
         "edge_peek",
         "cloud_watering",
         "cloud_fishing",
-        "dizzy"
-      ]
+        "dizzy",
+        "cloud_rainbow",
+        "cloud_dandelion"
+      ],
+      "sceneWeights": {
+        "cloud_rainbow": 2.5
+      }
     },
     {
       "id": "mist_scarf",
@@ -266,7 +286,9 @@
         "edge_peek",
         "cloud_watering",
         "cloud_fishing",
-        "dizzy"
+        "dizzy",
+        "cloud_rainbow",
+        "cloud_dandelion"
       ],
       "sceneWeights": {
         "rain": 2.5
@@ -301,7 +323,9 @@
         "edge_peek",
         "cloud_watering",
         "cloud_fishing",
-        "dizzy"
+        "dizzy",
+        "cloud_rainbow",
+        "cloud_dandelion"
       ]
     }
   ]

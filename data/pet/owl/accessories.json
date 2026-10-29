@@ -30,7 +30,9 @@
         "edge_peek",
         "owl_stargazing",
         "owl_books",
-        "dizzy"
+        "dizzy",
+        "owl_hearth",
+        "owl_letter"
       ]
     },
     {
@@ -63,7 +65,9 @@
         "edge_peek",
         "owl_stargazing",
         "owl_books",
-        "dizzy"
+        "dizzy",
+        "owl_hearth",
+        "owl_letter"
       ],
       "sceneWeights": {
         "owl_stargazing": 3
@@ -99,7 +103,9 @@
         "edge_peek",
         "owl_stargazing",
         "owl_books",
-        "dizzy"
+        "dizzy",
+        "owl_hearth",
+        "owl_letter"
       ]
     },
     {
@@ -131,7 +137,9 @@
         "edge_peek",
         "owl_stargazing",
         "owl_books",
-        "dizzy"
+        "dizzy",
+        "owl_hearth",
+        "owl_letter"
       ],
       "sceneWeights": {
         "owl_books": 3,
@@ -168,8 +176,13 @@
         "edge_peek",
         "owl_stargazing",
         "owl_books",
-        "dizzy"
-      ]
+        "dizzy",
+        "owl_hearth",
+        "owl_letter"
+      ],
+      "sceneWeights": {
+        "owl_hearth": 2.5
+      }
     },
     {
       "id": "round_shades",
@@ -200,7 +213,9 @@
         "edge_peek",
         "owl_stargazing",
         "owl_books",
-        "dizzy"
+        "dizzy",
+        "owl_hearth",
+        "owl_letter"
       ]
     },
     {
@@ -233,10 +248,13 @@
         "edge_peek",
         "owl_stargazing",
         "owl_books",
-        "dizzy"
+        "dizzy",
+        "owl_hearth",
+        "owl_letter"
       ],
       "sceneWeights": {
-        "owl_books": 2.5
+        "owl_books": 2.5,
+        "owl_letter": 2.5
       }
     },
     {
@@ -269,7 +287,9 @@
         "edge_peek",
         "owl_stargazing",
         "owl_books",
-        "dizzy"
+        "dizzy",
+        "owl_hearth",
+        "owl_letter"
       ],
       "sceneWeights": {
         "swing": 2.5
@@ -305,7 +325,9 @@
         "edge_peek",
         "owl_stargazing",
         "owl_books",
-        "dizzy"
+        "dizzy",
+        "owl_hearth",
+        "owl_letter"
       ]
     }
   ]

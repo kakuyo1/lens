@@ -448,6 +448,48 @@
       ],
       "sheet": "sprites/body/dizzy.png",
       "effect": "sprites/effects/dizzy.png"
+    },
+    "owl_hearth": {
+      "frames": 12,
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "expressions": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "sheet": "sprites/body/owl_hearth.png"
+    },
+    "owl_letter": {
+      "frames": 12,
+      "fps": 4,
+      "loop": true,
+      "duration": 30000,
+      "expressions": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "sheet": "sprites/body/owl_letter.png"
     }
   }
 }
