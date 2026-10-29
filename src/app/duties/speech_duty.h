@@ -124,6 +124,18 @@ private:
     /// @brief The engine named @p name, built on first ask and kept.
     /// @return The engine, or nullptr when this Qt has no engine of that name.
     QTextToSpeech* engineFor(QString const& name);
+    /// @brief The engine that serves @p accent and the voice it speaks, resolved once per accent.
+    ///
+    /// AppController::settings() reads the two answers below on every projection, and QML rebuilds
+    /// a projection on every settings change; enumerating the engine's voices costs a WinRT round
+    /// trip per read. What the engine's constructor enumerated cannot change during a run, so the
+    /// answer is kept per accent.
+    struct SystemVoice {
+        QTextToSpeech* engine = nullptr;
+        /// The chosen voice's name; empty when no engine has one for the accent.
+        QString name;
+    };
+    SystemVoice const& systemVoiceFor(QString const& accent);
     /// @brief The engine that can read @p accent, or nullptr when none on this machine can.
     QTextToSpeech* systemFor(QString const& accent);
     /// @brief Read @p word through the system voice for the accent in force.
@@ -159,6 +171,9 @@ private:
     /// SAPI is asked when WinRT has no voice for the accent, so a machine whose English voice is
     /// only in the older engine still speaks. Each is built at most once.
     std::map<QString, std::unique_ptr<QTextToSpeech>> engines_;
+    /// Each accent's answer, kept: see systemVoiceFor(). Keyed by accent because the engine is
+    /// chosen per accent, and a machine may serve British from one engine and American from another.
+    std::map<QString, SystemVoice> systemVoices_;
     /// The word the synthesiser was handed, which its state signals do not carry back.
     QString systemWord_;
 

@@ -135,12 +135,25 @@ QTextToSpeech* SpeechDuty::engineFor(QString const& name)
 
 QTextToSpeech* SpeechDuty::systemFor(QString const& accent)
 {
-    for (const QString& name : systemEngines()) {
+    return systemVoiceFor(accent).engine;
+}
+
+SpeechDuty::SystemVoice const& SpeechDuty::systemVoiceFor(QString const& accent)
+{
+    if (auto const found = systemVoices_.find(accent); found != systemVoices_.end())
+        return found->second;
+
+    SystemVoice answer;
+    for (QString const& name : systemEngines()) {
         auto* const engine = engineFor(name);
-        if (engine != nullptr and voiceFor(*engine, accent).has_value())
-            return engine;
+        if (engine == nullptr)
+            continue;
+        if (auto const voice = voiceFor(*engine, accent)) {
+            answer = SystemVoice{engine, voice->name()};
+            break;
+        }
     }
-    return nullptr;
+    return systemVoices_.emplace(accent, answer).first->second;
 }
 
 bool SpeechDuty::systemAvailable()
@@ -150,11 +163,7 @@ bool SpeechDuty::systemAvailable()
 
 QString SpeechDuty::systemVoice()
 {
-    auto* const engine = systemFor(accent());
-    if (engine == nullptr)
-        return {};
-    const auto voice = voiceFor(*engine, accent());
-    return voice ? voice->name() : QString{};
+    return systemVoiceFor(accent()).name;
 }
 
 bool SpeechDuty::localAvailable() const
@@ -227,11 +236,12 @@ void SpeechDuty::speakSystem(QString const& word)
     auto* const engine = systemFor(accent());
     if (engine == nullptr)
         return;
+    // The voice is picked per press rather than kept: the reader may have switched the accent
+    // since the last word, and one engine can carry voices for both -- it holds whichever it was
+    // last given.
     const auto voice = voiceFor(*engine, accent());
     if (not voice)
         return;
-    // The voice is picked per press rather than once: the reader may have switched the accent since
-    // the last word, and the engine holds whichever voice it was last given.
     if (engine->voice().name() != voice->name())
         engine->setVoice(*voice);
     LENS_TRACE("pronunciation: '{}' read by '{}'", word.toStdString(), voice->name().toStdString());
