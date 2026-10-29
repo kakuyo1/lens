@@ -40,6 +40,7 @@ add_executable(lens_qtest_components EXCLUDE_FROM_ALL
 target_link_libraries(lens_qtest_components PRIVATE
   lens_app lens_core lens_appplugin Qt6::QuickTest
 )
+lens_copy_sherpa_runtime(lens_qtest_components)
 target_compile_definitions(lens_qtest_components PRIVATE
   LENS_QTEST_NAME="lens_qtest_components"
   LENS_QTEST_DIR="${CMAKE_SOURCE_DIR}/test/qtest/components"
@@ -64,6 +65,7 @@ add_executable(lens_qtest_surfaces EXCLUDE_FROM_ALL
 target_link_libraries(lens_qtest_surfaces PRIVATE
   lens_app lens_core lens_appplugin Qt6::QuickTest
 )
+lens_copy_sherpa_runtime(lens_qtest_surfaces)
 target_compile_definitions(lens_qtest_surfaces PRIVATE
   LENS_QTEST_NAME="lens_qtest_surfaces"
   LENS_QTEST_DIR="${CMAKE_SOURCE_DIR}/test/qtest/surfaces"
@@ -82,6 +84,7 @@ add_executable(lens_qtest_pet EXCLUDE_FROM_ALL
   pet/tst_pet_controller.cpp
 )
 target_link_libraries(lens_qtest_pet PRIVATE lens_app lens_core Qt6::Test)
+lens_copy_sherpa_runtime(lens_qtest_pet)
 target_compile_definitions(lens_qtest_pet PRIVATE
   LENS_DATA_DIR="${CMAKE_SOURCE_DIR}/data"
 )

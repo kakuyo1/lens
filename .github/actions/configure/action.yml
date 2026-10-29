@@ -81,6 +81,33 @@ runs:
     # Studio environment before driving CMake. The runner has VS 2022, so nothing installs.
     - uses: ilammy/msvc-dev-cmd@v1
 
+    # The sherpa-onnx runtime the local voices run on (docs/adr/0135). config/paths.default.json names the
+    # developer's copy, which a runner does not have, so the job fetches the pinned release, checks its digest,
+    # and names the extracted copy in config/paths.local.json -- the override config/README.md gives a machine
+    # that differs. The version and digest are the ones third_party/sherpa-onnx/README.md records.
+    - name: sherpa-onnx runtime
+      shell: pwsh
+      run: |
+        $ProgressPreference = 'SilentlyContinue'
+        $version = '2.0.1'
+        $digest  = 'ce987d5bfca42c74b54f7b3bbaaa8c1febe3c5cd0fea8f94be80ea30e72f1f61'
+        $name    = "sherpa-onnx-v$version-win-x64-shared-MD-Release"
+        $archive = Join-Path $env:RUNNER_TEMP "$name.tar.bz2"
+        Invoke-WebRequest -Uri "https://github.com/k2-fsa/sherpa-onnx/releases/download/v$version/$name.tar.bz2" -OutFile $archive
+        if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLower() -ne $digest) {
+          throw "sherpa-onnx: the downloaded archive does not match the digest this repository pins"
+        }
+        # CMake's own tar, not `tar`: the runner's tar can be GNU tar from Git, which reads C: as a host name.
+        Push-Location $env:RUNNER_TEMP
+        cmake -E tar xjf $archive
+        $extracted = $LASTEXITCODE
+        Pop-Location
+        if ($extracted -ne 0) { throw "sherpa-onnx: cmake could not extract the archive" }
+        $root = (Join-Path $env:RUNNER_TEMP $name) -replace '\\', '/'
+        # WriteAllText writes UTF-8 without a byte-order mark, which string(JSON) in CMake would reject.
+        $json = ConvertTo-Json -InputObject @{ sherpaOnnxRoot = $root }
+        [System.IO.File]::WriteAllText((Join-Path (Get-Location) 'config/paths.local.json'), $json)
+
     # The preset bakes in this machine's Qt prefix, which is where config/paths.default.json keeps it for
     # everything else. Override it here with wherever the action put Qt; the rest of the preset is
     # meant to be used as written. `shell` is not optional in a composite action, and pwsh is what

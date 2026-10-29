@@ -100,6 +100,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
 )
 target_link_libraries(lens_gtest_unit PRIVATE lens_app lens_core lens_llm lens_sync lens_update lens_util GTest::gtest_main)
 lens_gtest_configure(lens_gtest_unit)
+lens_copy_sherpa_runtime(lens_gtest_unit)
 
 # Prints throughput and the profile breakdown; see the file header. Its only assertion is
 # that the workload reached the pipeline, so this is a measurement, not a gate.
@@ -119,6 +120,7 @@ add_executable(lens_gtest_glass_probe EXCLUDE_FROM_ALL
 )
 target_link_libraries(lens_gtest_glass_probe PRIVATE lens_app user32 GTest::gtest_main)
 lens_gtest_configure(lens_gtest_glass_probe)
+lens_copy_sherpa_runtime(lens_gtest_glass_probe)
 
 # Needs a key and spends money, so it is never part of the default run: it reports a skip
 # when settings.local.json has no credentials. Supplies its own main() to get an event loop,
@@ -144,3 +146,4 @@ add_executable(lens_gtest_integration EXCLUDE_FROM_ALL
 )
 target_link_libraries(lens_gtest_integration PRIVATE lens_app lens_core GTest::gtest)
 lens_gtest_configure(lens_gtest_integration)
+lens_copy_sherpa_runtime(lens_gtest_integration)

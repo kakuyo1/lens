@@ -45,6 +45,19 @@ lens_path(LENS_SYSTEM_FONTS systemFonts)
 # The sherpa-onnx runtime the local voices run on (docs/adr/0135). Read here, before the subdirectories,
 # because src/app/CMakeLists.txt links it and the installer target below copies it.
 lens_path(LENS_SHERPA_ROOT sherpaOnnxRoot)
+set(LENS_SHERPA_RUNTIME_DLLS
+  "${LENS_SHERPA_ROOT}/lib/sherpa-onnx-c-api.dll"
+  "${LENS_SHERPA_ROOT}/lib/onnxruntime.dll"
+  "${LENS_SHERPA_ROOT}/lib/onnxruntime_providers_shared.dll")
+
+# Every executable that links lens_app loads these DLLs at start. They are copied beside the executable
+# after each build, because the loader does not find them on PATH by design: PATH would pick up whatever
+# sherpa-onnx copy is installed elsewhere. The installer payload takes the same list.
+function(lens_copy_sherpa_runtime target)
+  add_custom_command(TARGET ${target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LENS_SHERPA_RUNTIME_DLLS} "$<TARGET_FILE_DIR:${target}>"
+    VERBATIM)
+endfunction()
 
 # A preset cannot read config/paths.default.json, so CMakePresets.json takes the Qt prefix from the
 # environment and scripts/build/build.bat exports it from the file. Saying so here beats Qt's own
@@ -182,9 +195,7 @@ add_custom_target(installer
   # The sherpa-onnx runtime that runs the local voices is loaded from beside lens.exe, so it is copied
   # into the payload root next to the executable, with the notice and the two licenses it ships under.
   COMMAND ${CMAKE_COMMAND} -E copy
-          "${LENS_SHERPA_ROOT}/lib/sherpa-onnx-c-api.dll"
-          "${LENS_SHERPA_ROOT}/lib/onnxruntime.dll"
-          "${LENS_SHERPA_ROOT}/lib/onnxruntime_providers_shared.dll"
+          ${LENS_SHERPA_RUNTIME_DLLS}
           "${CMAKE_SOURCE_DIR}/installer/THIRD_PARTY_NOTICES_VOICES.txt"
           "${CMAKE_SOURCE_DIR}/installer/voice-licenses/LICENSE-sherpa-onnx.txt"
           "${CMAKE_SOURCE_DIR}/installer/voice-licenses/LICENSE-onnxruntime.txt"

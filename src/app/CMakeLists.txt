@@ -207,15 +207,7 @@ qt_add_executable(lens
   ${CMAKE_SOURCE_DIR}/data/icons/lens.rc
 )
 
-# The sherpa-onnx DLLs are loaded from beside the executable, so every build copies them there: a dev run
-# and the installer's payload then load the same files.
-add_custom_command(TARGET lens POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different
-          "${LENS_SHERPA_ROOT}/lib/sherpa-onnx-c-api.dll"
-          "${LENS_SHERPA_ROOT}/lib/onnxruntime.dll"
-          "${LENS_SHERPA_ROOT}/lib/onnxruntime_providers_shared.dll"
-          "$<TARGET_FILE_DIR:lens>"
-  VERBATIM)
+lens_copy_sherpa_runtime(lens)
 
 # The developer command surface (docs/adr/0068), only when the build asks for it. It sits in the executable because
 # main.cpp is its one caller and it reaches the windows through the Main window that caller hands it.
