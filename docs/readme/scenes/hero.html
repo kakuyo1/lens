@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lens · hero</title>
 <!--
-  A marketing scene for the README, not a product surface. It mirrors the tokens and the two
-  pieces of chrome in ui-prototypes/bubble.html and ui-prototypes/selection-bar.html, placed over
-  an English reading page so the "beside the page" promise is visible. ?theme=dark renders the
-  dark palette; every other value is light.
+  A marketing scene for the README, not a product surface. It mirrors the tokens and the chrome in
+  ui-prototypes/bubble.html and ui-prototypes/selection-bar.html, placed over an English reading page
+  so the "beside the page" promise is visible. ?theme=dark renders the dark palette; every other
+  value is light.
 -->
 <style>
 :root{
-  --bg:#e7ebf0; --paper:#f6f2ea; --paper-2:#efebe2; --line:#e2e5e9; --line-2:#eceef1;
+  --bg:#e7ebf0; --paper:#f4ecd9; --paper-2:#efebe2; --line:#e2e5e9; --line-2:#eceef1;
   --text:#1a1a1f; --body:#33343a; --muted:#66666f; --faint:#8e8e98;
   --green:#2f9e6e; --green-bg:#e6f4ee; --green-ink:#1d7a52;
   --bubble-bg:rgba(248,250,254,.74); --bubble-bd:rgba(255,255,255,.65);
@@ -20,6 +20,7 @@
   --bar-bg:rgba(248,250,254,.74); --bar-bd:rgba(255,255,255,.65);
   --sel:rgba(47,158,110,.17);
   --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+  --mono:"Cascadia Code","Cascadia Mono",Consolas,ui-monospace,monospace;
   --read:"Charter","Iowan Old Style","Sitka Text",Georgia,serif;
 }
 html[data-theme=dark]{
@@ -100,17 +101,27 @@ h1{font-family:var(--read);font-size:47px;line-height:1.08;letter-spacing:-.025e
   box-shadow:var(--bubble-sh);padding:22px 24px 20px;
   backdrop-filter:blur(26px) saturate(1.45);
 }
-.bub-top{display:flex;align-items:center;gap:8px;margin-bottom:11px}
-.tag{font-size:11px;padding:3px 9px;border-radius:99px;background:var(--green-bg);color:var(--green-ink);font-weight:650}
-.bub-lang{margin-left:auto;display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 8px;border:0;border-radius:999px;background:transparent;color:var(--faint);font:700 10px var(--f)}
-.bub-lang svg{width:14px;height:14px}
+.bub-top{display:flex;align-items:center;height:24px;margin-bottom:11px}
+.bub-head{margin-left:auto;display:flex;align-items:center;gap:7px}
+/* The mother-tongue globe, the card's only language control (docs/adr/0112); the cross sits right
+   of it. Neither is a button in this still -- the scene shows the card at rest. */
+.bub-peek{width:24px;height:24px;display:grid;place-items:center;color:var(--faint)}
+.bub-peek svg{width:14px;height:14px}
 .bub-close{width:15px;height:15px;color:var(--faint)}
-.bub-word{font-size:30px;font-weight:650;letter-spacing:-.015em;line-height:1.15}
-.ipa{margin-left:9px;font-size:14px;font-weight:400;color:var(--faint);letter-spacing:0}
+.tag{font-size:11px;padding:3px 9px;border-radius:99px;background:var(--green-bg);color:var(--green-ink);font-weight:650}
+/* Word, pronunciation, speaker and part of speech on one line, on one baseline. */
+.bub-word{display:flex;align-items:baseline;gap:9px;font-size:30px;font-weight:650;letter-spacing:-.015em;line-height:1.15}
+.bub-word .ipa{font-size:14px;font-weight:400;color:var(--faint);letter-spacing:0;white-space:nowrap}
+.bub-word .speaker{display:inline-flex;align-self:center;position:relative;top:2px;color:var(--faint)}
+.bub-word .speaker svg{width:15px;height:15px}
+.bub-word .pos{font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.9px;text-transform:uppercase;color:var(--faint)}
+.signpost{font-size:11px;font-weight:700;color:var(--green-ink);margin-top:8px}
 .bub-def{font-size:16px;color:var(--muted);line-height:1.6;margin-top:9px}
+.chain{text-decoration:underline dotted 1px;text-underline-offset:4px;text-decoration-color:var(--faint)}
 .bub-etym,.bub-example{margin-top:13px;border-top:1px solid var(--line-2);padding-top:11px}
 .bub-etym-label,.bub-example-label{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.01em}
 .bub-etym-text,.bub-example-text{font-size:14px;color:var(--muted);line-height:1.6;margin-top:6px}
+.colloc{margin-top:12px;font-family:var(--mono);font-size:13px;color:var(--faint)}
 .bub-actions{display:flex;gap:9px;margin-top:15px;padding-top:14px;border-top:1px solid var(--line-2)}
 .btn{display:inline-flex;align-items:center;justify-content:center;padding:7px 15px;border-radius:999px;font-size:13px;font-weight:650;border:1px solid transparent;font-family:var(--f)}
 .btn.known{background:var(--paper-2);color:var(--text);border-color:var(--line)}
@@ -156,11 +167,14 @@ h1{font-family:var(--read);font-size:47px;line-height:1.08;letter-spacing:-.025e
 <div class="bubble">
   <div class="bub-top">
     <span class="tag">New</span>
-    <span class="bub-lang"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>EN</span>
-    <svg class="bub-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    <span class="bub-head">
+      <span class="bub-peek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg></span>
+      <svg class="bub-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </span>
   </div>
-  <div class="bub-word">serendipity<span class="ipa">/ˌserənˈdɪpəti/</span></div>
-  <div class="bub-def">the occurrence of events by chance in a happy or beneficial way</div>
+  <div class="bub-word"><span>serendipity</span><span class="ipa">/ˌserənˈdɪpəti/</span><span class="speaker" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.4h3.1L12 5.6v12.8L7.1 14.6H4a.9.9 0 0 1-.9-.9V10.3a.9.9 0 0 1 .9-.9Z"/><path d="M15.4 9.3a4 4 0 0 1 0 5.4"/><path d="M18 6.9a7.6 7.6 0 0 1 0 10.2"/></svg></span><span class="pos">noun</span></div>
+  <div class="signpost">happy accident</div>
+  <div class="bub-def">the <span class="chain">occurrence</span> of events by chance in a happy or <span class="chain">beneficial</span> way</div>
   <div class="bub-etym">
     <div class="bub-etym-label">Etymology</div>
     <div class="bub-etym-text">Coined in 1754 from Horace Walpole's tale of the three princes of Serendip.</div>
@@ -169,6 +183,7 @@ h1{font-family:var(--read);font-size:47px;line-height:1.08;letter-spacing:-.025e
     <div class="bub-example-label">Example</div>
     <div class="bub-example-text">Our first meeting was pure serendipity.</div>
   </div>
+  <div class="colloc">~ encounter · pure ~</div>
   <div class="bub-actions"><span class="btn known">Known</span><span class="btn new">New</span></div>
   <div class="bub-meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 1.8"/></svg>Disappears in 5s</div>
 </div>

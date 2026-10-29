@@ -61,7 +61,7 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 .themebtn:hover{color:var(--text)}
 /* Glass card: the bar is the glass. The base .bar already fills with var(--panel) and shadows with var(--sh2). */
 html[data-theme=frosted] .bar{border-color:rgba(255,255,255,var(--glass-rim,.2));backdrop-filter:blur(var(--glass-blur,6px)) saturate(var(--glass-sat,120%))}
-html[data-theme=liquid] .bar{background:transparent;border-color:rgba(255,255,255,var(--glass-rim,.1));backdrop-filter:blur(var(--glass-blur,6px)) contrast(1.05)}
+html[data-theme=liquid] .bar{background:rgba(248,250,254,.6);background-image:linear-gradient(115deg,rgba(255,255,255,.5),rgba(255,255,255,.06) 45%,rgba(255,255,255,0) 65%);border-color:rgba(255,255,255,.8);backdrop-filter:blur(var(--glass-blur,6px)) contrast(1.05)}
 /* Blur first, then the displacement filter: the order is the point (DESIGN.md 3.1d). */
 html[data-theme=liquid][data-refract] .bar{backdrop-filter:blur(var(--glass-blur,6px)) url(#lg-liquid)}
 /* Reduced transparency: solid card, rim back to the light line. */
@@ -203,7 +203,14 @@ function applyTheme(v) {
 }
 const theme = ['dark', 'frosted', 'liquid'].includes(params.get('theme')) ? params.get('theme') : 'light';
 applyTheme(theme);
-if (BG[theme] && BG[theme].includes(params.get('bg'))) root.style.setProperty('--wall', 'url("' + theme + '-backdrops/' + params.get('bg') + '.png")');
+// ?bg=paper swaps the wallpaper for the README's warm page colour, and ?blur= raises the glass
+// blur for the stills: both are screenshot-only, like ?shot -- normal use never passes them.
+if (params.get('bg') === 'paper') {
+  document.body.style.background = '#f4ecd9';
+  document.body.style.backgroundImage = 'none';
+} else if (BG[theme] && BG[theme].includes(params.get('bg'))) root.style.setProperty('--wall', 'url("' + theme + '-backdrops/' + params.get('bg') + '.png")');
+const blurPx = Number(params.get('blur'));
+if (Number.isFinite(blurPx) && blurPx > 0) root.style.setProperty('--glass-blur', blurPx + 'px');
 const THEMES = ['light', 'dark', 'frosted', 'liquid'];
 tb.onclick = () => applyTheme(THEMES[(THEMES.indexOf(root.dataset.theme) + 1) % THEMES.length]);
 // ?shot is for the README's screenshots: the toggle is a way to look at the prototype, not part

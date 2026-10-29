@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · copy drawer</title>
+<!--
+  A README-only still of the classic action bar with the copy text's drawer open (UI-SPEC.md 4.10):
+  a sentence is selected, so the drawer lists the two actions a sentence can take — Fix syntax and
+  Breakdown. The bar and drawer follow ui-prototypes/selection-bar-expand.html; the page is the same
+  warm paper the other README demos use.
+-->
+<style>
+:root{
+  --paper:#f4ecd9; --text:#101319; --muted:#333846; --faint:#4a4f5e;
+  --line:rgba(18,24,36,.16); --line2:rgba(18,24,36,.11);
+  --ink:#12151b; --on:#fff; --sel:rgba(47,158,110,.17);
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+  --read:"Charter","Iowan Old Style","Sitka Text",Georgia,serif;
+  --r-bar:13px; --r-item:9px; --r-tray:11px;
+  --glass-fill:rgba(250,252,255,.5);
+  --glass-edge:rgba(255,255,255,.8);
+  --glass-sheen:linear-gradient(115deg,rgba(255,255,255,.55),rgba(255,255,255,.08) 45%,rgba(255,255,255,0) 65%);
+  --sh2:0 1px 2px rgba(10,14,24,.14),0 22px 54px -20px rgba(10,14,24,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{width:900px;height:620px;overflow:hidden;background:var(--paper);color:var(--text);font-family:var(--f);-webkit-font-smoothing:antialiased}
+.page{position:absolute;inset:0;padding:48px 64px}
+.kicker{font:700 11px/1 var(--f);letter-spacing:.16em;text-transform:uppercase;color:#1d7a52}
+h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025em;font-weight:600;margin-top:12px}
+.byline{margin-top:12px;color:var(--faint);font-size:12px}
+.lede{max-width:700px;margin-top:20px;font-family:var(--read);font-size:19px;line-height:1.8;color:#33343a}
+.body{max-width:700px;margin-top:16px;font-family:var(--read);font-size:17px;line-height:1.8;color:#66666f}
+.sample{max-width:700px;margin-top:18px;font-family:var(--read);font-size:19px;line-height:1.8;color:#33343a}
+.sel{background:var(--sel);border-radius:3px;padding:1px 2px;margin:0 -2px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+
+.bar{position:absolute;z-index:5;display:flex;align-items:center;padding:5px;gap:2px;user-select:none;
+  background:var(--glass-fill);background-image:var(--glass-sheen);border:1px solid var(--glass-edge);border-radius:var(--r-bar);
+  box-shadow:var(--sh2);backdrop-filter:blur(24px) saturate(1.25)}
+.act{display:flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid transparent;border-radius:var(--r-item);background:transparent;color:var(--text);font-family:var(--f);font-size:12.5px;font-weight:600;white-space:nowrap}
+.act svg{width:15px;height:15px;color:var(--muted);flex:none}
+.act.hover{background:rgba(18,24,36,.07)}
+
+.tray{position:absolute;z-index:6;display:flex;flex-direction:column;gap:2px;min-width:max-content;padding:4px;
+  background:rgba(250,251,254,.62);background-image:var(--glass-sheen);border:1px solid rgba(255,255,255,.8);border-radius:var(--r-tray);
+  box-shadow:var(--sh2);backdrop-filter:blur(24px) saturate(1.2)}
+.tray .act{padding:7px 10px}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="kicker">Essay · 8 min read</div>
+  <h1>The Art of Noticing</h1>
+  <div class="byline">Mara Ellison · October 2026</div>
+  <p class="lede">Serendipity, she wrote, is not luck. It is attention. She had come to the archive looking for one thing and found another: a letter that changed the shape of her book.</p>
+  <p class="body">The distinction matters. Luck arrives; attention makes room for it. A reader who stops to ask what a word is really doing is already reading more closely than one who turns the page.</p>
+  <p class="sample">She gave a <span class="sel" id="selected">candid answer to a question she had been dreading for weeks</span>, and nobody in the room expected it.</p>
+</div>
+
+<div class="bar" id="bar">
+  <button class="act" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h9"/><path d="M7.5 3.5v2"/><path d="M10.5 5.5c0 4-2.6 7.4-6.5 8.9"/><path d="M5 9.6c1.2 2.3 3.1 4.1 5.3 5.1"/><path d="M12.6 20.5l3.7-9 3.7 9"/><path d="M14 17.4h4.6"/></svg><span>Translate</span></button>
+  <button class="act" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.6C10.4 5.2 8.3 4.5 5.5 4.5H4v13h1.5c2.8 0 4.9.7 6.5 2.1"/><path d="M12 6.6c1.6-1.4 3.7-2.1 6.5-2.1H20v13h-1.5c-2.8 0-4.9.7-6.5 2.1"/><path d="M12 6.6v13"/></svg><span>Explain</span></button>
+  <button class="act hover" id="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M15 5.5V5a1.5 1.5 0 0 0-1.5-1.5H5A1.5 1.5 0 0 0 3.5 5v8.5A1.5 1.5 0 0 0 5 15h.5"/></svg><span>Copy text</span></button>
+</div>
+
+<div class="tray" id="tray">
+  <button class="act" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5l3.9-.9L18.7 8a2.1 2.1 0 0 0-3-3L5.4 15.6z"/><path d="M14.6 6.6l2.8 2.8"/></svg><span>Fix syntax</span></button>
+  <button class="act" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v4.5M12 8.5 6.5 12.5M12 8.5l5.5 4M6.5 12.5v7M17.5 12.5v7"/></svg><span>Breakdown</span></button>
+</div>
+
+<script>
+/// The bar sits above the selection and the drawer opens away from it, right-aligned to the copy
+/// item, as CopyDrawer.qml places it.
+requestAnimationFrame(() => {
+  const selected = document.getElementById('selected').getBoundingClientRect();
+  const bar = document.getElementById('bar');
+  const tray = document.getElementById('tray');
+  const left = selected.left + selected.width / 2 - bar.offsetWidth / 2;
+  bar.style.left = left + 'px';
+  bar.style.top = (selected.top - bar.offsetHeight - 12) + 'px';
+  // The copy item is measured after the bar has moved: its rect before that is the layout position,
+  // not where the bar ends up.
+  const copy = document.getElementById('copy').getBoundingClientRect();
+  tray.style.left = (copy.right - tray.offsetWidth) + 'px';
+  tray.style.top = (selected.top - bar.offsetHeight - 12 - tray.offsetHeight - 6) + 'px';
+});
+</script>
+</body>
+</html>

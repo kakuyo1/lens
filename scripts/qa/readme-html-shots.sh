@@ -2,11 +2,12 @@
 # Render the README's HTML marketing stills with headless Chrome.
 #
 # The current README does not drive the running application: the hero, the feature stills and the
-# frames of the language-switch GIF come from ui-prototypes/ and docs/readme/scenes/. Nothing here
+# frames of the mother-tongue peek GIF come from ui-prototypes/ and docs/readme/scenes/. Nothing here
 # opens a window on the reader's desktop, moves the pointer, or touches the clipboard.
 #
 # The companion script, readme-html-compose.py, crops the stills, joins the GIF frames, and builds
-# the learning-loop collage and the theme contact sheet. Run this first, then the Python script.
+# the learning-loop collage, the theme contact sheet and the two pet sheets. Run this first, then
+# the Python script.
 #
 # Chrome is a machine path, so it is found under the environment variables Windows sets, the same
 # way readme-shots.sh does. The old readme-shots.sh writes docs/readme-images/; this script writes
@@ -91,39 +92,41 @@ for theme in light dark frosted liquid; do
         "lang=en&shot=1&theme=$theme&actions=open$backdrop" 380 440 2 "$out"
     # The theme sheet and the GIF both want the card over the same reading page, not over a
     # flat backdrop; ?page=1 draws that page inside the same document so glass can blur it.
+    # 1.35 rather than 1.5: the card now carries a signpost, the speaker and the collocations,
+    # and at 1.5 its foot ran off the bottom of the 700 px cell.
     screenshot "bubble-page-$theme" "ui-prototypes/bubble.html" \
-        "lang=en&shot=1&theme=$theme&actions=open&page=1&pageScale=1.5" 900 700 2 "$out"
+        "lang=en&shot=1&theme=$theme&actions=open&page=1&pageScale=1.35" 900 700 2 "$out"
 done
 
 screenshot selection-bar "ui-prototypes/selection-bar.html" \
-    "lang=en&shot=1&theme=liquid&bg=white" 620 180 2 "$out"
+    "lang=en&shot=1&theme=liquid&bg=paper&blur=24&placement=below" 620 180 2 "$out"
+
+# The copy text's drawer: a sentence is selected, so it lists the two actions a sentence can take.
+screenshot selection-drawer "docs/readme/scenes/selection-drawer.html" "" 900 620 2 "$out"
+
+# The breakdown answer: the same sentence, back with every part tinted in its role colour and a
+# legend under it (docs/adr/0128).
+screenshot breakdown "docs/readme/scenes/breakdown.html" "" 900 620 2 "$out"
 
 # The review still is deliberately the hover state: it shows the sign and both answers. The
-# compose step crops the empty desktop and writes review.png.
+# compose step crops the empty desktop and writes review.png. 1100 px wide, not 1000: the sign is
+# the pet's own art now, wider than the old shared plank, and at 1000 the answer card flipped
+# inside and covered the pet's face.
 screenshot review-hover "ui-prototypes/pet-review.html" \
-    "lang=en&shot=1&state=hover&pet=mochi&theme=liquid&bg=paper&scale=4" 1000 700 2 "$out"
+    "lang=en&shot=1&state=hover&pet=ghost&word=len&theme=liquid&bg=paper&scale=4" 1100 700 2 "$out"
 
 screenshot year-in-words "ui-prototypes/year-in-words.html" \
-    "lang=en&shot=1&palette=open&theme=liquid&bg=paper" 440 430 2 "$out"
+    "lang=en&shot=1&palette=open&theme=liquid&bg=paper&page=1" 440 430 2 "$out"
 
-# The language-switch GIF: English card, picker open, Chinese card. The compose step repeats the
+# The mother-tongue peek GIF: the English card, the globe held part-way round its ring, the
+# mother-tongue line under the definition, and back to English. The compose step repeats the
 # first frame to close the loop. The frames stay in the scratch directory.
 screenshot fb-page-en "ui-prototypes/bubble.html" \
     "lang=en&shot=1&theme=liquid&actions=open&page=1&pageScale=1.4" 760 760 2 "$frames"
-screenshot fb-page-menu "ui-prototypes/bubble.html" \
-    "lang=en&shot=1&theme=liquid&actions=open&page=1&pageScale=1.4&menu=open" 760 760 2 "$frames"
-screenshot fb-page-zh "ui-prototypes/bubble.html" \
-    "lang=en&shot=1&theme=liquid&actions=open&page=1&pageScale=1.4&explain=zh" 760 760 2 "$frames"
-
-# OCR flow frames: start, frame the region, read it locally, then explain it in place.
-for stage in start frame read result; do
-    screenshot "ocr-$stage" "docs/readme/scenes/ocr-capture.html" "stage=$stage" 900 620 2 "$frames"
-done
-
-# Chinese, Japanese and Spanish sources for the translate-to-English GIF.
-for lang in zh ja es; do
-    screenshot "translate-$lang" "docs/readme/scenes/translate-to-english.html" "lang=$lang" 900 620 2 "$frames"
-done
+screenshot fb-page-hold "ui-prototypes/bubble.html" \
+    "lang=en&shot=1&theme=liquid&actions=open&page=1&pageScale=1.4&hold=70" 760 760 2 "$frames"
+screenshot fb-page-peek "ui-prototypes/bubble.html" \
+    "lang=en&shot=1&theme=liquid&actions=open&page=1&pageScale=1.4&peek=1" 760 760 2 "$frames"
 
 # Five action-bar shapes over the same reading page, one frame each.
 for style in classic side cards tag fan; do
@@ -132,11 +135,12 @@ for style in classic side cards tag fan; do
 done
 
 # The social preview uses a crop of the page-mode light still, so it has to come after that file
-# exists. The crop starts below the article title; keeping the title would cut it at the card.
+# exists. The crop starts below the article title; keeping the title would cut it at the card. The
+# card moved up when its signpost and collocations arrived, so the top of the crop moved with it.
 python - "$out/bubble-page-liquid.png" "$out/brand/bubble-page-social.png" <<'PY'
 import sys
 from PIL import Image
-Image.open(sys.argv[1]).crop((600, 300, 1800, 1400)).save(sys.argv[2], optimize=True)
+Image.open(sys.argv[1]).crop((600, 260, 1800, 1360)).save(sys.argv[2], optimize=True)
 PY
 
 screenshot social-preview "docs/readme/scenes/social.html" "" 1280 640 1 "$out/brand"

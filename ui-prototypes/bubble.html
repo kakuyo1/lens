@@ -12,6 +12,7 @@
   --bubble-bg:rgba(255,255,255,.86); --bubble-bd:rgba(255,255,255,.95); --bubble-sh:0 14px 44px -10px rgba(20,20,26,.26),inset 0 1px 0 #fff;
   --r-lg:18px;
   --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+  --mono:"Cascadia Code","Cascadia Mono",Consolas,ui-monospace,monospace;
 }
 html[data-theme=dark]{
   --bg:#131316; --panel:#1c1c20; --panel2:#242429; --line:#2f2f37; --line2:#26262c;
@@ -47,24 +48,46 @@ html{-webkit-font-smoothing:antialiased}
 body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100vh;display:grid;place-items:center}
 
 .bubble{position:relative;width:270px;background:var(--bubble-bg);border:1px solid var(--bubble-bd);border-radius:var(--r-lg);box-shadow:var(--bubble-sh);padding:14px 16px 12px;z-index:3;-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4)}
-.bub-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.bub-lang{margin-left:auto;display:inline-flex;align-items:center;gap:3px;height:22px;padding:0 7px;border:0;border-radius:999px;background:transparent;color:var(--faint);font:700 10px var(--f);cursor:pointer}
-.bub-lang svg{width:13px;height:13px}
-.bub-lang:hover,.bubble.lang-open .bub-lang{background:var(--panel2);color:var(--text)}
+.bub-top{display:flex;align-items:center;height:22px;margin-bottom:8px}
+.bub-head{margin-left:auto;display:flex;align-items:center;gap:6px}
+/* The mother-tongue globe: the card's only language control (docs/adr/0112). Its 22 px box is the
+   press target; the glyph inside is 13 px. Held, a 1.5 px ring sweeps once from the top. */
+.bub-peek{position:relative;width:22px;height:22px;padding:0;border:0;border-radius:999px;background:transparent;color:var(--faint);display:grid;place-items:center;cursor:pointer}
+.bub-peek:hover{color:var(--text)}
+.bub-peek svg.globe{width:13px;height:13px}
+.bub-peek svg.ring{position:absolute;inset:0;width:22px;height:22px;color:var(--ok);opacity:0}
+.bub-peek.holding svg.ring,.bub-peek.peeked svg.ring{opacity:1}
 .bub-close{width:15px;height:15px;color:var(--faint)}
-/* The language strip floats over the title, the way the in-card picker does (UI-SPEC.md 4.3). */
-.bub-lang-menu{position:absolute;top:36px;left:12px;right:12px;z-index:5;display:flex;padding:3px;border:1px solid var(--line);border-radius:11px;background:var(--panel);box-shadow:0 8px 24px -8px rgba(20,20,26,.28)}
-.bub-lang-menu[hidden]{display:none}
-.bub-lang-menu button{flex:1;height:30px;border:0;border-radius:8px;background:transparent;color:var(--muted);font:500 12px var(--f);cursor:pointer;white-space:nowrap}
-.bub-lang-menu button:hover:not([aria-pressed=true]){background:var(--panel2);color:var(--text)}
-.bub-lang-menu button[aria-pressed=true]{background:var(--ink);color:var(--on);font-weight:700}
-.bub-lang-menu button:active{transform:scale(.97)}
 .tag{font-size:10.5px;padding:2px 8px;border-radius:99px;background:var(--ok-bg);color:var(--ok-text);font-weight:600}
 .tag.known{background:var(--panel2);color:var(--muted);font-weight:600}
 .tag.outline{background:transparent;border:1px solid var(--line);color:var(--muted);font-weight:600;padding:1px 7px}
-.bub-word{font-size:20px;font-weight:650;letter-spacing:-.01em}
-.ipa{margin-left:7px;font-size:12.5px;font-weight:400;color:var(--faint)}
+/* Word, pronunciation, speaker and part of speech on one line, each on the same baseline
+   (BubbleTitleRow.qml). A word too long to leave room for the pair beside it takes the line whole
+   and the metadata goes under it, so the word never ends in an ellipsis. The speaker is a press
+   target of its own; the part of speech is not. */
+.bub-word{display:flex;align-items:baseline;gap:7px;font-size:20px;font-weight:650;letter-spacing:-.01em;line-height:1.25}
+.bub-word .word{flex:none;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bub-word .meta{display:flex;align-items:baseline;gap:7px;flex:none;white-space:nowrap}
+.bub-word.stacked{display:block}
+.bub-word.stacked .word{display:block}
+.bub-word.stacked .meta{margin-top:1px}
+.bub-word .ipa{font-size:12.5px;font-weight:400;color:var(--faint)}
+.bub-word .speaker{display:inline-flex;align-self:center;position:relative;top:1px;margin-left:-2px;color:var(--faint)}
+.bub-word .speaker svg{width:12px;height:12px}
+.bub-word .speaker.playing{color:var(--ok)}
+.bub-word .pos{font-family:var(--mono);font-size:9.5px;font-weight:400;letter-spacing:.8px;text-transform:uppercase;color:var(--faint)}
+/* The meaning in a few plain words, above the definition: a label, not a sentence (UI-SPEC.md 4.3). */
+.signpost{font-size:10px;font-weight:700;color:var(--ok-text);margin-top:5px}
 .bub-def{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:6px}
+/* A word above the reader's band: a row of one-pixel dots and a hover tint, no colour change. */
+.chain{text-decoration:underline dotted 1px;text-underline-offset:3px;text-decoration-color:var(--faint);cursor:pointer;border-radius:3px}
+.chain:hover{background:var(--ok-bg)}
+/* The mother tongue, held: under the definition, over a hairline, gone on release (UI-SPEC.md 4.3). */
+.peek{margin-top:6px;border-top:1px solid var(--line2);padding-top:5px}
+.peek[hidden]{display:none}
+.peek-text{font-size:12px;line-height:1.5;color:var(--muted)}
+/* Up to two collocations at the foot, the word written as "~". */
+.colloc{margin-top:9px;font-family:var(--mono);font-size:10.5px;color:var(--faint)}
 /* A translation bubble is this one line and nothing above it: at the definition's secondary colour it
    would read as a footnote to nothing, so it takes the ink the title would have had (UI-SPEC.md 4.3). */
 .bubble.translation .bub-def{color:var(--text)}
@@ -87,7 +110,7 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 .themebtn:hover{color:var(--text)}
 /* Screenshot-only page mode (?page=1): the bubble floats over a reading page, so a glass theme
    blurs real text rather than an empty canvas. */
-.read-page{position:fixed;inset:0;z-index:0;background:#f6f2ea;color:#1a1a1f;padding:56px 64px;overflow:hidden;font-family:"Charter","Iowan Old Style","Sitka Text",Georgia,serif}
+.read-page{position:fixed;inset:0;z-index:0;background:#f4ecd9;color:#1a1a1f;padding:56px 64px;overflow:hidden;font-family:"Charter","Iowan Old Style","Sitka Text",Georgia,serif}
 .read-page[hidden]{display:none}
 .read-kicker{font:700 11px/1 var(--f);letter-spacing:.16em;text-transform:uppercase;color:var(--ok)}
 .read-page h1{margin-top:14px;font-size:52px;line-height:1.08;letter-spacing:-.025em;font-weight:600}
@@ -96,9 +119,9 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 .read-page p+p{margin-top:16px;color:#66666f;font-size:17px}
 .read-page blockquote{max-width:680px;margin-top:26px;padding-left:20px;border-left:3px solid var(--ok);font-size:22px;line-height:1.5;color:#1a1a1f}
 .read-sel{background:rgba(47,158,110,.17);border-radius:3px;padding:1px 2px;margin:0 -2px}
-html.page-mode,html.page-mode body{background:#f6f2ea;min-height:0}
+html.page-mode,html.page-mode body{background:#f4ecd9;min-height:0}
 html.page-mode body{display:block;overflow:hidden}
-html.page-mode .bubble{position:absolute;left:43%;top:165px;transform:scale(var(--page-scale,1.5));transform-origin:top left;box-shadow:0 30px 80px -20px rgba(20,20,26,.4),0 0 0 1px rgba(20,20,26,.06)}
+html.page-mode .bubble{position:absolute;left:43%;top:140px;transform:scale(var(--page-scale,1.5));transform-origin:top left;box-shadow:0 30px 80px -20px rgba(20,20,26,.4),0 0 0 1px rgba(20,20,26,.06)}
 /* Glass card: the bubble is the glass. Fill, rim and shadow come from the tokens, not the light values. */
 html[data-theme=frosted] .bubble{background:var(--panel);box-shadow:var(--sh2);border-color:rgba(255,255,255,var(--glass-rim,.2));backdrop-filter:blur(var(--glass-blur,6px)) saturate(var(--glass-sat,120%))}
 html[data-theme=liquid] .bubble{background:transparent;box-shadow:var(--sh2);border-color:rgba(255,255,255,var(--glass-rim,.1));backdrop-filter:blur(var(--glass-blur,6px)) contrast(1.05)}
@@ -131,10 +154,20 @@ html.shot *{transition:none!important;animation:none!important}
   </filter>
 </defs></svg>
 <div class="bubble">
-  <div class="bub-top"><span class="tag" data-l="new"></span><button class="bub-lang" id="langBtn" type="button" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg><span class="bub-lang-code">EN</span></button><svg class="bub-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg></div>
-  <div class="bub-lang-menu" id="langMenu" hidden><button type="button" data-lang="en" aria-pressed="true">English</button><button type="button" data-lang="zh" aria-pressed="false">中文</button><button type="button" data-lang="es" aria-pressed="false">Español</button><button type="button" data-lang="ja" aria-pressed="false">日本語</button></div>
-  <div class="bub-word">serendipity<span class="ipa">/ˌserənˈdɪpəti/</span></div>
-  <div class="bub-def" data-l="def"></div>
+  <div class="bub-top">
+    <span class="tag" data-l="new"></span>
+    <span class="bub-head">
+      <button class="bub-peek" id="peekBtn" type="button" aria-label="Hold for your mother tongue">
+        <svg class="globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>
+        <svg class="ring" viewBox="0 0 22 22" aria-hidden="true"><path id="peekRing" d="M11 2A9 9 0 1 1 4.6 5.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+      <svg class="bub-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </span>
+  </div>
+  <div class="bub-word" id="titleRow"><span class="word">serendipity</span><span class="meta"><span class="ipa">/ˌserənˈdɪpəti/</span><span class="speaker" id="speaker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.4h3.1L12 5.6v12.8L7.1 14.6H4a.9.9 0 0 1-.9-.9V10.3a.9.9 0 0 1 .9-.9Z"/><path d="M15.4 9.3a4 4 0 0 1 0 5.4"/><path d="M18 6.9a7.6 7.6 0 0 1 0 10.2"/></svg></span><span class="pos">noun</span></span></div>
+  <div class="signpost" id="signpost">happy accident</div>
+  <div class="bub-def" id="definition">the <span class="chain">occurrence</span> of events by chance in a happy or <span class="chain">beneficial</span> way</div>
+  <div class="peek" id="peek" hidden><div class="peek-text" id="peekText">偶然遇到美好事物的运气；意外的幸运发现。</div></div>
   <div class="bub-etym">
     <div class="bub-etym-label" data-l="etymLabel"></div>
     <div class="bub-etym-text" data-l="etym"></div>
@@ -143,6 +176,7 @@ html.shot *{transition:none!important;animation:none!important}
     <div class="bub-example-label" data-l="exLabel"></div>
     <div class="bub-example-text">Our first meeting was pure serendipity.</div>
   </div>
+  <div class="colloc" id="colloc">~ encounter · pure ~</div>
   <div class="bub-actions"><button class="btn known" data-l="known"></button><button class="btn again" data-l="new"></button></div>
   <div class="bub-meta" data-l="meta"></div>
 </div>
@@ -192,40 +226,9 @@ const t = L[lang];
 document.documentElement.lang = { en: 'en', zh: 'zh-CN', ja: 'ja', es: 'es' }[lang];
 for (const el of document.querySelectorAll('[data-l]')) el.textContent = t[el.dataset.l];
 
-/// The explanation language shortcut (UI-SPEC.md 4.3). The sample explanation starts in the page's
-/// language; a pick changes the sample shown and marks the strip's current item. In the application
-/// the same pick writes the global setting and asks for the standing card again.
-let explained = L[params.get('explain')] ? params.get('explain') : lang;
-const langBtn = document.getElementById('langBtn');
-const langMenu = document.getElementById('langMenu');
-const langCode = langBtn.querySelector('.bub-lang-code');
-function setLangOpen(open) {
-  langMenu.hidden = !open;
-  langBtn.setAttribute('aria-expanded', open);
-  document.querySelector('.bubble').classList.toggle('lang-open', open);
-}
-langBtn.addEventListener('click', (event) => { event.stopPropagation(); setLangOpen(langMenu.hidden); });
-langMenu.addEventListener('click', (event) => event.stopPropagation());
-document.querySelector('.bubble').addEventListener('click', () => setLangOpen(false));
-for (const button of langMenu.querySelectorAll('button')) {
-  button.addEventListener('click', () => {
-    explained = button.dataset.lang;
-    langCode.textContent = explained.toUpperCase();
-    for (const other of langMenu.querySelectorAll('button'))
-      other.setAttribute('aria-pressed', other === button);
-    // The word sample is translated in all four languages; the entity and sentence samples are
-    // content rather than interface copy and do not change with the setting. The origin follows the
-    // explanation language too; its label is interface copy and stays where it is.
-    if (kind === 'word') {
-      document.querySelector('.bub-def').textContent = L[explained].def;
-      document.querySelector('.bub-etym-text').textContent = L[explained].etym;
-    }
-    setLangOpen(false);
-  });
-}
-langCode.textContent = explained.toUpperCase();
-for (const button of langMenu.querySelectorAll('button'))
-  button.setAttribute('aria-pressed', button.dataset.lang === explained);
+/// The explanation language is a settings choice; the card no longer switches it in place
+/// (docs/adr/0112). `?explain=` still picks which sample is drawn, without a control on the card.
+const explained = L[params.get('explain')] ? params.get('explain') : lang;
 
 /// 折射能力探测：不支持 url() 形式 backdrop-filter 的浏览器会丢掉这条声明，读回空串。此时液体玻璃退回 CSS 的模糊与高光。
 const refractOK = (() => { const p = document.createElement("div"); p.style.backdropFilter = "url(#lg-liquid)"; return p.style.backdropFilter !== ""; })();
@@ -305,12 +308,19 @@ if (kind !== 'word') {
   document.querySelector('.bub-etym').remove();
   document.querySelector('.bub-example').remove();
   document.querySelector('.bub-actions').remove();
-  document.querySelector('.bub-def').textContent = SAMPLE[kind].def;
+  document.querySelector('.signpost').remove();
+  document.querySelector('.colloc').remove();
+  document.querySelector('#peek').remove();
+  document.querySelector('#definition').textContent = SAMPLE[kind].def;
 }
 if (kind === 'entity') {
+  // A named thing is not a learning item: no verdict, no pronunciation, no part of speech, no
+  // collocations. The globe stays -- an entity is peekable too (UI-SPEC.md 4.3).
   document.querySelector('.tag').remove();
   document.querySelector('.ipa').remove();
-  document.querySelector('.bub-word').firstChild.textContent = SAMPLE.entity.title;
+  document.querySelector('.pos').remove();
+  document.querySelector('.speaker').remove();
+  document.querySelector('.word').textContent = SAMPLE.entity.title;
 }
 if (kind === 'sentence') {
   const tag = document.querySelector('.tag');
@@ -322,22 +332,62 @@ if (kind === 'sentence') {
 if (kind === 'translation') {
   // No badge (a translation carries no learning verdict and no type) and no title (the Chinese it came
   // from is usually long, and the reader still has it highlighted on screen). The one line takes the
-  // primary ink, see the .bubble.translation rule. The language shortcut goes with the badge: the
-  // translation channel's answer is English whatever the explanation language says.
+  // primary ink, see the .bubble.translation rule. The globe goes with the badge: a translation's
+  // input already is the mother tongue, so there is nothing to peek at (UI-SPEC.md 4.3).
   document.querySelector('.tag').remove();
   document.querySelector('.bub-word').remove();
-  document.querySelector('.bub-lang').remove();
-  document.querySelector('.bub-lang-menu').remove();
+  document.querySelector('#peekBtn').remove();
   document.querySelector('.bubble').classList.add('translation');
 }
-// Screenshot-only states for the README's marketing frames. Normal use never passes these.
-// ?explain=zh starts the card in that explanation language; ?menu=open leaves the strip open;
-// ?actions=open shows the Known/New row; ?transparent drops the page colour for a composed shot.
-if (kind === 'word' && explained !== lang) {
-  document.querySelector('.bub-def').textContent = L[explained].def;
-  document.querySelector('.bub-etym-text').textContent = L[explained].etym;
+/// The title row puts the pronunciation, the speaker and the part of speech beside the word when
+/// they fit and under it when they do not, as BubbleTitleRow.qml does: the word keeps the line
+/// rather than ending in an ellipsis.
+function fitTitle() {
+  const row = document.getElementById('titleRow');
+  if (!row) return;
+  row.classList.remove('stacked');
+  const word = row.querySelector('.word');
+  const meta = row.querySelector('.meta');
+  if (!word || !meta || meta.children.length === 0) return;
+  if (word.offsetWidth + 7 + meta.offsetWidth > row.clientWidth) row.classList.add('stacked');
 }
-if (params.get('menu') === 'open') setLangOpen(true);
+fitTitle();
+document.fonts.ready.then(fitTitle);
+// Screenshot-only states for the README's marketing frames. Normal use never passes these.
+// ?explain=zh draws the sample in that explanation language; ?speak=1 lights the speaker the way
+// a playing recording does; ?hold=<percent> draws the globe's ring part-way through its sweep and
+// ?peek=1 draws the mother-tongue line under the definition; ?actions=open shows the Known/New row;
+// ?transparent drops the page colour for a composed shot.
+if (kind === 'word' && explained !== lang) {
+  document.querySelector('#definition').textContent = L[explained].def;
+  document.querySelector('.bub-etym-text').textContent = L[explained].etym;
+  document.querySelector('.signpost').remove();
+  document.querySelector('.colloc').remove();
+  document.querySelector('#peekBtn').remove();
+}
+const speaker = document.querySelector('#speaker');
+if (params.has('speak') && speaker) speaker.classList.add('playing');
+/// The hold's ring, clockwise from the top: the same 500 ms the hold timer runs, so a complete
+/// turn is the request leaving (BubbleHeaderActions.qml).
+function ringPath(fraction) {
+  const sweep = Math.max(0.0001, Math.min(fraction, 1)) * 2 * Math.PI;
+  const x = 11 + 9 * Math.sin(sweep);
+  const y = 11 - 9 * Math.cos(sweep);
+  return 'M11 2A9 9 0 ' + (sweep > Math.PI ? 1 : 0) + ' 1 ' + x.toFixed(2) + ' ' + y.toFixed(2);
+}
+const peekBtn = document.querySelector('#peekBtn');
+const peekRing = document.querySelector('#peekRing');
+const peekBlock = document.querySelector('#peek');
+const hold = Number(params.get('hold'));
+if (Number.isFinite(hold) && hold > 0 && peekBtn && peekRing) {
+  peekBtn.classList.add('holding');
+  peekRing.setAttribute('d', ringPath(hold / 100));
+}
+if (params.get('peek') === '1' && peekBlock && peekBtn && peekRing) {
+  peekBlock.hidden = false;
+  peekBtn.classList.add('peeked');
+  peekRing.setAttribute('d', ringPath(1));
+}
 if (params.get('actions') === 'open') document.querySelector('.bubble').classList.add('actions-open');
 if (params.has('transparent')) {
   document.documentElement.style.background = 'transparent';

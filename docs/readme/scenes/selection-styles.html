@@ -12,15 +12,16 @@
 -->
 <style>
 :root{
-  --paper:#f6f2ea; --text:#101319; --muted:#333846; --faint:#4a4f5e;
+  --paper:#f4ecd9; --text:#101319; --muted:#333846; --faint:#4a4f5e;
   --line:rgba(18,24,36,.16); --line2:rgba(18,24,36,.11);
   --ink:#12151b; --on:#fff; --sel:rgba(47,158,110,.17);
   --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
   --read:"Charter","Iowan Old Style","Sitka Text",Georgia,serif;
   --r-bar:13px; --r-item:9px;
-  --glass-fill:rgba(248,250,254,.64);
-  --glass-card:rgba(250,251,254,.64);
-  --glass-edge:rgba(255,255,255,.62);
+  --glass-fill:rgba(248,250,254,.48);
+  --glass-card:rgba(250,251,254,.5);
+  --glass-edge:rgba(255,255,255,.8);
+  --glass-sheen:linear-gradient(115deg,rgba(255,255,255,.55),rgba(255,255,255,.08) 45%,rgba(255,255,255,0) 65%);
   --sh2:0 1px 2px rgba(10,14,24,.14),0 22px 54px -20px rgba(10,14,24,.4);
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -33,14 +34,14 @@ body{
 .kicker{font:700 11px/1 var(--f);letter-spacing:.16em;text-transform:uppercase;color:#1d7a52}
 h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025em;font-weight:600;margin-top:12px}
 .byline{margin-top:12px;color:var(--faint);font-size:12px}
-.sample{max-width:700px;margin-top:22px;font-family:var(--read);font-size:19px;line-height:1.8;color:#33343a}
-.sample:first-of-type{margin-top:190px}
+.lede{max-width:700px;margin-top:20px;font-family:var(--read);font-size:19px;line-height:1.8;color:#33343a}
+.sample{max-width:700px;margin-top:18px;font-family:var(--read);font-size:19px;line-height:1.8;color:#33343a}
 .sample+.sample{margin-top:14px;font-size:16px;color:#66666f}
 .sel{background:var(--sel);border-radius:3px;padding:1px 2px;margin:0 -2px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 
 .bar{position:absolute;z-index:5;display:flex;align-items:center;user-select:none;
-  background:var(--glass-fill);border:1px solid var(--glass-edge);border-radius:var(--r-bar);
-  box-shadow:var(--sh2);backdrop-filter:blur(18px) saturate(1.25)}
+  background:var(--glass-fill);background-image:var(--glass-sheen);border:1px solid var(--glass-edge);border-radius:var(--r-bar);
+  box-shadow:var(--sh2);backdrop-filter:blur(24px) saturate(1.25)}
 .bar-classic{padding:5px;gap:2px}
 .act{display:flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid transparent;border-radius:var(--r-item);background:transparent;color:var(--text);font-family:var(--f);font-size:12.5px;font-weight:600;white-space:nowrap;cursor:pointer}
 .act svg{width:15px;height:15px;color:var(--muted);flex:none}
@@ -62,7 +63,7 @@ h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025e
 .bar-e .slot:nth-of-type(1){z-index:1}
 .bar-e .slot:nth-of-type(2){z-index:3}
 .bar-e .slot:nth-of-type(3){z-index:2}
-.bar-e .face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:6px 5px;border:1px solid var(--glass-edge);border-radius:10px;background:var(--glass-card);box-shadow:0 2px 8px rgba(20,20,26,.08);backdrop-filter:blur(14px) saturate(1.2);transform:rotate(var(--rot,0deg)) translateY(var(--dy,0px));transform-origin:50% 75%}
+.bar-e .face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:6px 5px;border:1px solid var(--glass-edge);border-radius:10px;background:var(--glass-card);box-shadow:0 2px 8px rgba(20,20,26,.08);backdrop-filter:blur(20px) saturate(1.2);transform:rotate(var(--rot,0deg)) translateY(var(--dy,0px));transform-origin:50% 75%}
 .bar-e .slot:nth-of-type(1) .face{--rot:-6deg;--dy:2px}
 .bar-e .slot:nth-of-type(2) .face{--rot:0deg;--dy:-2px}
 .bar-e .slot:nth-of-type(3) .face{--rot:6deg;--dy:2px}
@@ -79,7 +80,7 @@ h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025e
 
 /* F · fan */
 .bar-f{display:block;width:260px;height:170px;padding:0;border-color:transparent;background:transparent;box-shadow:none;backdrop-filter:none;filter:drop-shadow(0 2px 6px rgba(20,20,26,.10))}
-.bar-f .blade{position:absolute;inset:0;padding:0;border:0;background:var(--glass-card);cursor:pointer;z-index:1;backdrop-filter:blur(14px) saturate(1.2)}
+.bar-f .blade{position:absolute;inset:0;padding:0;border:0;background:var(--glass-card);cursor:pointer;z-index:1;backdrop-filter:blur(20px) saturate(1.2)}
 .bar-f .blade-l{clip-path:polygon(130px 150px,10px 87px,78px 26px)}
 .bar-f .blade-c{clip-path:polygon(130px 150px,78px 26px,182px 26px);background:var(--glass-fill);z-index:2}
 .bar-f .blade-r{clip-path:polygon(130px 150px,182px 26px,250px 87px)}
@@ -103,6 +104,7 @@ h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025e
   <div class="kicker">Essay · 8 min read</div>
   <h1>The Art of Noticing</h1>
   <div class="byline">Mara Ellison · October 2026</div>
+  <p class="lede">Serendipity, she wrote, is not luck. It is attention. She had come to the archive looking for one thing and found another: a letter that changed the shape of her book.</p>
   <p class="sample">She gave a <span class="sel" id="selected">candid</span> answer to a question she had been dreading for weeks, and nobody in the room expected it.</p>
   <p class="sample">The room stayed quiet. She had rehearsed a careful answer for weeks, and the truth arrived in one sentence.</p>
 </div>

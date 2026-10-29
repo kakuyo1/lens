@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lens · 宠物提问</title>
 <!--
-  桌面宠物的提问牌。一块木牌立在宠物脚线、身体一侧；宠物演 ask 时只是身体起伏，不再画手。
+  桌面宠物的提问牌。每只随包宠物自己的牌面立在宠物脚线、身体一侧；宠物演 ask 时只是身体起伏，不再画手。
   默认立在左侧；左侧的牌子和小卡放不下时换右侧。指针停在牌上才展开「忘了 / 记得」；作答后牌收起，
-  宠物做对应动作，缓存里的解释气泡在木牌那一侧出现，与宠物垂直居中。
+  宠物做对应动作，缓存里的解释气泡在牌子那一侧出现，与宠物垂直居中。
   牌子、小卡和气泡都不被屏幕边缘截断：宠物不挪动；牌与小卡让开空间选侧，两侧都放不下时才夹进屏内（ADR 0088）。
   用法见 README.md：?theme=dark|frosted|liquid、?bg=<当前玻璃主题的底图>、?lang=en|ja|es、?pet=dog|mochi|ghost、
   ?state=hover|forgot|remembered|timeout、?side=left|right（只强制作答气泡的一侧）、
-  ?scale=1|2|3.01|4（牌子随宠物缩放）、?sign=left|right（强制木牌的一侧）、?f=0..3（停在某一帧）、?qa、?shot。
+  ?scale=1|2|3.01|4（牌子随宠物缩放）、?sign=left|right（强制牌子的一侧）、?f=0..3（停在某一帧）、?qa、?shot。
 -->
 <style>
 @font-face{font-family:"Pixelify Sans";src:url("../data/fonts/PixelifySans-Regular.ttf") format("truetype");font-display:block}
@@ -69,32 +69,17 @@ body{
 .fx{display:none}
 
 
-/* 提问牌：一块木牌立在宠物脚线，先按 3.01 倍的尺寸画，再整体乘以 K = scale / 3.01；小卡不缩放（保持点击区）。 */
+/* 提问牌：每只随包宠物自己的牌面（data/pet/<pet>/sign/<bin>.png 的一帧），先按 3.01 倍的设计尺寸画，
+   再整体乘以 K = scale / 3.01；小卡不缩放（保持点击区）。 */
 .hold{position:static}
 .hold[hidden]{display:none}
 .sign-wrap{position:absolute;transform-origin:0 0;z-index:2}
 .sign-core{position:relative;width:max-content}
-.sign{
-  position:relative;background:var(--wood);color:var(--wood-ink);
-  border:3px solid var(--wood-line);box-shadow:inset 1px 1px 0 var(--wood-light),inset -1px -1px 0 var(--wood-shade),var(--wood-shadow);
-  padding:7px 14px;white-space:nowrap;
+.sign-art{position:relative;background-repeat:no-repeat;image-rendering:pixelated}
+.sign-art .word{
+  position:absolute;left:0;right:0;text-align:center;
   font-family:"Pixelify Sans",monospace;font-size:20px;line-height:20px;letter-spacing:0;
 }
-.sign .word{position:relative;z-index:1}
-.sign .grain{position:absolute;left:8px;right:8px;height:1px;background:var(--wood-grain);z-index:0}
-.sign .g1{top:8px}
-.sign .g2{bottom:8px}
-.sign .nail{position:absolute;width:2px;height:2px;background:var(--nail);box-shadow:inset 1px 1px 0 var(--wood-light)}
-.sign .n1{left:7px;top:7px}
-.sign .n2{right:7px;top:7px}
-.sign .n3{left:7px;bottom:7px}
-.sign .n4{right:7px;bottom:7px}
-.post{
-  position:relative;width:10px;height:32px;margin:-2px auto 0;background:var(--post);
-  border:2px solid var(--wood-line);
-  box-shadow:inset 2px 0 0 var(--post-light),inset -2px 0 0 var(--post-shade),var(--wood-shadow);
-}
-.ground{position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);width:20px;height:3px;border-radius:1.5px;background:rgba(33,20,20,.10)}
 .ask-pop{
   position:absolute;display:flex;gap:8px;padding:8px;z-index:3;width:max-content;
   background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);
@@ -167,13 +152,7 @@ html[data-theme=liquid] .bubble{background:var(--panel);box-shadow:var(--sh2);bo
       <div class="hold" id="hold">
         <div class="sign-wrap" id="signWrap">
           <div class="sign-core">
-            <div class="sign" id="sign">
-              <span class="grain g1"></span><span class="grain g2"></span>
-              <span class="nail n1"></span><span class="nail n2"></span><span class="nail n3"></span><span class="nail n4"></span>
-              <span class="word">ephemeral</span>
-            </div>
-            <div class="post" aria-hidden="true"></div>
-            <div class="ground" aria-hidden="true"></div>
+            <div class="sign-art" id="sign"><span class="word" id="signWord">ephemeral</span></div>
           </div>
         </div>
         <div class="ask-pop" id="askPop" role="group">
@@ -233,19 +212,37 @@ for (const el of document.querySelectorAll('[data-l]')) {
 }
 document.getElementById('meta').textContent = l.meta;
 
-// ---- 宠物与木牌的几何（画布单位，随 ?pet= 读取）----
+/// The word on the sign (and on the card): the README's still shows "len" on the ghost's candle.
+/// The card's definition stays sample content, as the sign's word always was.
+const WORD = params.get('word') || 'ephemeral';
+document.getElementById('signWord').textContent = WORD;
+if (params.has('word')) {
+  const word = document.querySelector('.bub-word');
+  word.firstChild.textContent = WORD;
+  word.querySelector('.ipa').remove();
+}
+
+// ---- 宠物与提问牌的几何（画布单位，随 ?pet= 读取）----
 const CANVAS = 88;
-/// 木牌的设计尺寸（3.01 倍时）：板 40 高、柱 32 高、柱顶压进板下 2 px，再加 4 px 影子；柱脚落在宠物空闲墨迹的底边。
-const BOARD_H = 40, POST_H = 32, POST_OVERLAP = 2, SHADOW = 4;
-const SIGN_BASE = BOARD_H + POST_H - POST_OVERLAP;
-const SIGN_H = SIGN_BASE + SHADOW;
+/// 每只随包宠物自己的复习牌（data/pet/<pet>/sign.json）：牌面按单词宽度分档，取装得下这个词的最小一档。
+/// offset 是牌面宽度相对档位宽度的余量，cellH 是整格高度，foot 是柱脚在格内的位置，wordTop 是字的顶边，
+/// color 是这只宠物的字色，frames 是牌面动画的帧数。
+const SIGN_ART = {
+  dog:   {offset: 64, cellH: 46, foot: 38, wordTop: 11, color: '#6b3d4d', frames: 6},
+  mochi: {offset: 46, cellH: 70, foot: 64, wordTop: 36, color: '#6b3a4a', frames: 4},
+  ghost: {offset: 42, cellH: 72, foot: 66, wordTop: 32, color: '#2b2550', frames: 4},
+};
+const ART = SIGN_ART[PET];
+/// 牌脚落在宠物空闲墨迹的底边；牌面自带影子，不再另加 SHADOW。
+const SIGN_H = ART.cellH;
+const SIGN_BASE = ART.foot;
 /// 每只宠物待机身体的墨迹盒（画布单位，右/下为开区间），与 QML 的 Pet.inkBox 同一来源。
 const INK = {
   dog:   {left:18, top:9,  right:84, bottom:84},
   mochi: {left:30, top:36, right:81, bottom:81},
   ghost: {left:27, top:33, right:87, bottom:81},
 };
-/// ask 的身体锚点：狗与 mochi 相同，ghost 的起伏整体低 12 行。木牌不跟着动。
+/// ask 的身体锚点：狗与 mochi 相同，ghost 的起伏整体低 12 行。牌子不跟着动。
 const ASK = PET === 'dog'
   ? [{dx:0,dy:0}, {dx:0,dy:0}, {dx:0,dy:-3}, {dx:0,dy:-3}]
   : [{dx:3,dy:0}, {dx:3,dy:-3}, {dx:3,dy:-6}, {dx:3,dy:-3}];
@@ -272,6 +269,7 @@ const fx = document.getElementById('fx');
 const hold = document.getElementById('hold');
 const signWrap = document.getElementById('signWrap');
 const signEl = document.getElementById('sign');
+const signWord = document.getElementById('signWord');
 const askPop = document.getElementById('askPop');
 const bubbleWrap = document.getElementById('bubbleWrap');
 const bubble = document.getElementById('bubble');
@@ -280,11 +278,29 @@ const meta = document.getElementById('meta');
 let act = 'idle', frame = 0, acc = 0, lastT = 0, asking = false, countdown = 0, remaining = 5;
 /// The sign's offset from its hanging place, in layout px: zero unless neither side fits (see fitSign).
 let nudge = {x: 0, y: 0};
-/// The sign's side and the card's side, as relayout() chose them. The card opens on `card`; `side` is the wooden sign's side.
+/// The sign's side and the card's side, as relayout() chose them. The card opens on `card`; `side` is the sign's side.
 let side = 'left', card = 'right';
 
 /// 当前缩放下的像素：一个画布单位 S 个 CSS 像素；牌子整体乘 K，相对 3.01 倍。
 const K = () => S / DEFAULT_SCALE;
+
+/// 牌面按 20 px 的字宽选档：档位从 8 到 244、每 4 px 一档，牌宽比档位宽 6 px。
+/// 取装得下这个词的最小一档，和 ReviewSignBoard.qml 选的是同一个 bin。字族还没加载时先按回退字面量一次，
+/// 字体就绪后重新选档并重排。
+function layoutSignArt() {
+  const ctx = document.createElement('canvas').getContext('2d');
+  ctx.font = '20px "Pixelify Sans", monospace';
+  const measured = Math.ceil(ctx.measureText(signWord.textContent).width);
+  const bin = Math.max(8, Math.min(244, Math.ceil(measured / 4) * 4));
+  const cellW = bin + ART.offset + 6;
+  signEl.style.width = cellW + 'px';
+  signEl.style.height = ART.cellH + 'px';
+  signEl.style.backgroundImage = `url("${PET_DIR}/sign/${bin}.png")`;
+  signEl.style.backgroundSize = `${cellW * ART.frames}px ${ART.cellH}px`;
+  signEl.style.backgroundPosition = '0 0';
+  signWord.style.top = ART.wordTop + 'px';
+  signWord.style.color = ART.color;
+}
 
 function setAct(name) {
   act = name; frame = 0; acc = 0;
@@ -322,7 +338,7 @@ function ink() { return INK[PET]; }
 function cardTopFor(top) {
   const fr = figure.getBoundingClientRect();
   const F = fr.width / (CANVAS * S);
-  const local = top + BOARD_H * K() / 2 - askPop.offsetHeight / 2;
+  const local = top + SIGN_BASE * K() / 2 - askPop.offsetHeight / 2;
   const screen = fr.top + local * F;
   const clamped = Math.max(PAD, Math.min(screen, innerHeight - PAD - askPop.offsetHeight));
   return (clamped - fr.top) / F;
@@ -354,7 +370,7 @@ function boxes(s, c) {
   const box = (x0, y0, x1, y1) => [fr.left + x0 * F, fr.top + y0 * F, fr.left + x1 * F, fr.top + y1 * F];
   return {
     figure: [fr.left, fr.top, fr.right, fr.bottom],
-    sign: box(g.left, g.top, g.left + g.bw + SHADOW * K(), g.top + SIGN_H * K()),
+    sign: box(g.left, g.top, g.left + g.bw, g.top + SIGN_H * K()),
     card: box(g.cardFitLeft, g.cardTop, g.cardFitLeft + CARD_W, g.cardTop + g.cardH),
   };
 }
@@ -534,7 +550,7 @@ document.getElementById('forgotBtn').addEventListener('click', () => answer('for
 document.getElementById('rememberedBtn').addEventListener('click', () => answer('remembered'));
 document.getElementById('timeoutBtn').addEventListener('click', timeout);
 
-// 原型控件：宠物尺寸循环 ×1 / ×2 / ×3.01 / ×4，木牌的一侧循环 自动 / 左 / 右。
+// 原型控件：宠物尺寸循环 ×1 / ×2 / ×3.01 / ×4，牌子的一侧循环 自动 / 左 / 右。
 const scaleBtn = document.getElementById('scaleBtn');
 const signBtn = document.getElementById('signBtn');
 const SIGN_LABEL = {auto: '边：自动', left: '边：左', right: '边：右'};
@@ -579,7 +595,7 @@ const WALLS = {
 };
 const wallName = params.get('bg');
 if (wallName === 'paper') {
-  document.documentElement.style.background = '#f6f2ea';
+  document.documentElement.style.background = '#f4ecd9';
   document.documentElement.style.backgroundImage = 'none';
 } else if ((WALLS[document.documentElement.dataset.theme] || []).includes(wallName))
   document.documentElement.style.setProperty('--wall', `url("${document.documentElement.dataset.theme}-backdrops/${wallName}.png")`);
@@ -605,17 +621,21 @@ function report() {
     chosen: {side, card},
     figure: rect(figure),
     sign: hold.hidden ? null : rect(signWrap),
-    post: hold.hidden ? null : rect(document.querySelector('.post')),
     card: hold.hidden || !hold.classList.contains('open') ? null : rect(askPop),
     bubble: bubbleWrap.hidden ? null : rect(bubbleWrap),
   });
 }
 
 // 截图状态：默认停在“举牌”（ask 动作），其余三个直接跳到对应的一帧。
+layoutSignArt();
 applySize();
 setAct('ask');
 asking = true;
 relayout();
+document.fonts.ready.then(() => {
+  layoutSignArt();
+  if (asking) relayout();
+});
 requestAnimationFrame(tick);
 const state = params.get('state');
 if (state === 'hover') {

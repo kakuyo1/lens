@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · breakdown</title>
+<!--
+  A README-only still of the copy drawer's Breakdown answer (UI-SPEC.md 4.10, docs/adr/0128): the
+  sentence comes back with each part tinted in its role colour — subject, verb, complement,
+  adverbial — and a legend under it. The tint mode is the one the app shipped (G in
+  ui-prototypes/breakdown-color.html); the role hues are that prototype's. The card and the page
+  follow the other README scenes' liquid-glass chrome.
+-->
+<style>
+:root{
+  --paper:#f4ecd9; --text:#101319; --muted:#333846; --faint:#4a4f5e;
+  --line:rgba(18,24,36,.16); --sel:rgba(47,158,110,.17);
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+  --read:"Charter","Iowan Old Style","Sitka Text",Georgia,serif;
+  --glass-fill:rgba(250,252,255,.5);
+  --glass-edge:rgba(255,255,255,.8);
+  --glass-sheen:linear-gradient(115deg,rgba(255,255,255,.55),rgba(255,255,255,.08) 45%,rgba(255,255,255,0) 65%);
+  --sh2:0 1px 2px rgba(10,14,24,.14),0 22px 54px -20px rgba(10,14,24,.4);
+  --r-S:#2f6fd6; --r-V:#c2415a; --r-C:#13858f; --r-A:#a86f12;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{width:900px;height:620px;overflow:hidden;background:var(--paper);color:var(--text);font-family:var(--f);-webkit-font-smoothing:antialiased}
+.page{position:absolute;inset:0;padding:48px 64px}
+.kicker{font:700 11px/1 var(--f);letter-spacing:.16em;text-transform:uppercase;color:#1d7a52}
+h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025em;font-weight:600;margin-top:12px}
+.byline{margin-top:12px;color:var(--faint);font-size:12px}
+.lede{max-width:720px;margin-top:20px;font-family:var(--read);font-size:19px;line-height:1.8;color:#33343a}
+.body{max-width:720px;margin-top:16px;font-family:var(--read);font-size:17px;line-height:1.8;color:#66666f}
+.sample{max-width:720px;margin-top:18px;font-family:var(--read);font-size:19px;line-height:1.8;color:#33343a}
+.sel{background:var(--sel);border-radius:3px;padding:1px 2px;margin:0 -2px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+
+.card{position:absolute;z-index:5;width:470px;padding:14px 18px 13px;
+  background:var(--glass-fill);background-image:var(--glass-sheen);border:1px solid var(--glass-edge);border-radius:16px;
+  box-shadow:var(--sh2);backdrop-filter:blur(24px) saturate(1.25)}
+.tag{display:inline-block;padding:2px 9px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:11px;font-weight:700}
+.bk{margin-top:10px;font-family:var(--read);font-size:17px;line-height:1.9;color:var(--text)}
+.ck{border-radius:9px;padding:1px 3px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.ck[data-r=S]{background:color-mix(in srgb,var(--r-S) 16%,transparent)}
+.ck[data-r=V]{background:color-mix(in srgb,var(--r-V) 16%,transparent)}
+.ck[data-r=C]{background:color-mix(in srgb,var(--r-C) 16%,transparent)}
+.ck[data-r=A]{background:color-mix(in srgb,var(--r-A) 16%,transparent)}
+.legend{display:flex;gap:14px;margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}
+.legend span{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:11.5px;font-weight:600}
+.legend i{width:10px;height:10px;border-radius:3px}
+.legend [data-r=S] i{background:var(--r-S)}
+.legend [data-r=V] i{background:var(--r-V)}
+.legend [data-r=C] i{background:var(--r-C)}
+.legend [data-r=A] i{background:var(--r-A)}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="kicker">Essay · 8 min read</div>
+  <h1>The Art of Noticing</h1>
+  <div class="byline">Mara Ellison · October 2026</div>
+  <p class="lede">Serendipity, she wrote, is not luck. It is attention. She had come to the archive looking for one thing and found another: a letter that changed the shape of her book.</p>
+  <p class="body">The distinction matters. Luck arrives; attention makes room for it. A reader who stops to ask what a word is really doing is already reading more closely than one who turns the page.</p>
+  <p class="sample">By morning the square was empty. <span class="sel" id="selected">Although the rain had stopped, the streets remained flooded for hours.</span> Nobody who lived here said why.</p>
+</div>
+
+<div class="card" id="card">
+  <span class="tag">Breakdown</span>
+  <div class="bk"><span class="ck" data-r="A">Although the rain had stopped,</span> <span class="ck" data-r="S">the streets</span> <span class="ck" data-r="V">remained</span> <span class="ck" data-r="C">flooded</span> <span class="ck" data-r="A">for hours.</span></div>
+  <div class="legend">
+    <span data-r="S"><i></i>Subject</span>
+    <span data-r="V"><i></i>Verb</span>
+    <span data-r="C"><i></i>Complement</span>
+    <span data-r="A"><i></i>Adverbial</span>
+  </div>
+</div>
+
+<script>
+/// The card sits above the selection, the way the bubble does after the drawer's action runs.
+requestAnimationFrame(() => {
+  const selected = document.getElementById('selected').getBoundingClientRect();
+  const card = document.getElementById('card');
+  const left = selected.left + selected.width / 2 - card.offsetWidth / 2;
+  card.style.left = Math.max(24, Math.min(left, 900 - card.offsetWidth - 24)) + 'px';
+  card.style.top = (selected.top - card.offsetHeight - 26) + 'px';
+});
+</script>
+</body>
+</html>
