@@ -58,6 +58,25 @@ OcrResult parseRapidOcrResponse(QByteArray const& response,
                                 QString const&    engine,
                                 int               elapsedMs);
 
+/**
+ * @brief Whether the Chinese pass left a Latin-only line whose words look glued together.
+ *
+ * The Chinese recogniser writes Latin runs without spaces; a line of several English words then
+ * arrives as one long token. A single short word is left alone, so the second process is only
+ * paid for when there is something to gain.
+ */
+bool rapidOcrNeedsLatinPass(OcrResult const& result);
+
+/**
+ * @brief Give each Latin-only line the English pass's text, keeping the Chinese pass's boxes.
+ *
+ * Both passes share one detector, so their line boxes are the same; a line holding Chinese keeps
+ * the Chinese pass's text because the English recogniser drops those characters outright.
+ *
+ * @param totalMs Wall time of the whole two-pass read, recorded as the merged timing.
+ */
+OcrResult mergeRapidOcrLatinPass(OcrResult primary, OcrResult const& english, int totalMs);
+
 /// @brief The adapter: one process per task, killed after its answer, never a persistent worker.
 std::unique_ptr<OcrEngine> makeRapidOcr(RapidOcrConfig const& config);
 

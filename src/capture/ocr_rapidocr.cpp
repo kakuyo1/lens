@@ -159,10 +159,10 @@ struct RapidOcrEngine final : OcrEngine {
 
     OcrResult recognize(OcrRequest const& request, std::shared_ptr<std::atomic_bool> cancel = {}) const override
     {
-        QElapsedTimer timer;
-        timer.start();
+        QElapsedTimer total;
+        total.start();
         auto const finish = [&](OcrStatus const status) {
-            return failure(status, request.requestId, ocrLanguageKey(request.language.value_or(config.language)), static_cast<int>(timer.elapsed()));
+            return failure(status, request.requestId, ocrLanguageKey(request.language.value_or(config.language)), static_cast<int>(total.elapsed()));
         };
         if (request.image.isNull()) return finish(OcrStatus::InvalidImage);
         if (request.image.width() > 8192 or request.image.height() > 8192 or request.image.sizeInBytes() > 128 * 1024 * 1024)
@@ -174,19 +174,50 @@ struct RapidOcrEngine final : OcrEngine {
         auto const trusted = checkTrust();
         if (trusted != OcrStatus::Ready) return finish(trusted);
         if (request.deadline.count() <= 0 or config.timeoutMs <= 0) return finish(OcrStatus::TimedOut);
-        auto const timeout = std::min(config.timeoutMs, static_cast<int>(request.deadline.count()));
+        auto const budget = std::min(config.timeoutMs, static_cast<int>(request.deadline.count()));
 
         QByteArray png;
         QBuffer    buffer{&png};
         if (not buffer.open(QIODevice::WriteOnly) or not request.image.save(&buffer, "PNG")) return finish(OcrStatus::InvalidImage);
 
+        auto result = runProcess(request, config.language, png, budget, total, cancel);
+        if (result.status != OcrStatus::Ready or config.language != OcrLanguage::ChineseEnglish) return result;
+        // The Chinese recogniser glues Latin words together, and the English one drops Chinese
+        // outright. When the Chinese pass left a Latin-only line that looks glued, the same crop
+        // is read once more with the English model, and each Latin-only line takes that text; the
+        // box stays the detector's, which both passes share.
+        if (not rapidOcrNeedsLatinPass(result)) return result;
+        auto const remaining = budget - static_cast<int>(total.elapsed());
+        if (remaining <= 0 or (cancel and cancel->load(std::memory_order_relaxed))) return result;
+        auto const english = runProcess(request, OcrLanguage::English, png, remaining, total, cancel);
+        if (english.status != OcrStatus::Ready) return result;
+        return mergeRapidOcrLatinPass(std::move(result), english, static_cast<int>(total.elapsed()));
+    }
+
+    /// @brief One recogniser pass: start the program, send the PNG, read one answer, kill it.
+    OcrResult runProcess(OcrRequest const&                        request,
+                         OcrLanguage const                        language,
+                         QByteArray const&                        png,
+                         int const                                budgetMs,
+                         QElapsedTimer&                           total,
+                         std::shared_ptr<std::atomic_bool> const& cancel) const
+    {
+        auto const failed = [&](OcrStatus const status) {
+            return failure(status, request.requestId, ocrLanguageKey(language), static_cast<int>(total.elapsed()));
+        };
+        QElapsedTimer run;
+        run.start();
+
+        auto runConfig     = config;
+        runConfig.language = language;
+
         QProcess   process;
         KillOnExit guard{process};
         process.setProgram(config.executable);
-        process.setArguments(argumentsFor(config));
+        process.setArguments(argumentsFor(runConfig));
         process.setWorkingDirectory(QFileInfo{config.executable}.absolutePath());
         process.start();
-        if (not process.waitForStarted(timeout)) return finish(OcrStatus::StartFailed);
+        if (not process.waitForStarted(budgetMs)) return failed(OcrStatus::StartFailed);
 
         QByteArray output;
         qint64     errorBytes = 0;
@@ -208,7 +239,7 @@ struct RapidOcrEngine final : OcrEngine {
                     return std::nullopt;
                 }
                 if (cancel and cancel->load(std::memory_order_relaxed)) return OcrStatus::Cancelled;
-                if (timer.elapsed() >= timeout) return OcrStatus::TimedOut;
+                if (run.elapsed() >= budgetMs) return OcrStatus::TimedOut;
                 if (not drain()) return OcrStatus::ResultTooLarge;
                 if (process.state() == QProcess::NotRunning) {
                     if (output.indexOf('\n') < 0) return OcrStatus::Failed;
@@ -222,41 +253,41 @@ struct RapidOcrEngine final : OcrEngine {
         for (int lineCount = 0; lineCount < 8 and not initialized; ++lineCount) {
             QByteArray line;
             if (auto const status = takeLine(line))
-                return finish(*status == OcrStatus::Failed ? OcrStatus::StartFailed : *status);
+                return failed(*status == OcrStatus::Failed ? OcrStatus::StartFailed : *status);
             initialized = line.contains("OCR init completed.");
         }
-        if (not initialized) return finish(OcrStatus::StartFailed);
+        if (not initialized) return failed(OcrStatus::StartFailed);
 
         QByteArray const payload = "{\"image_base64\":\"" + png.toBase64() + "\"}\n";
         qsizetype        written = 0;
         while (written < payload.size()) {
-            if (cancel and cancel->load(std::memory_order_relaxed)) return finish(OcrStatus::Cancelled);
-            if (process.state() == QProcess::NotRunning) return finish(OcrStatus::Failed);
+            if (cancel and cancel->load(std::memory_order_relaxed)) return failed(OcrStatus::Cancelled);
+            if (process.state() == QProcess::NotRunning) return failed(OcrStatus::Failed);
             auto const count = process.write(payload.constData() + written, payload.size() - written);
-            if (count < 0) return finish(OcrStatus::Failed);
+            if (count < 0) return failed(OcrStatus::Failed);
             if (count > 0) {
                 written += count;
-                if (not drain()) return finish(OcrStatus::ResultTooLarge);
+                if (not drain()) return failed(OcrStatus::ResultTooLarge);
                 continue;
             }
-            if (timer.elapsed() >= timeout) return finish(OcrStatus::TimedOut);
+            if (run.elapsed() >= budgetMs) return failed(OcrStatus::TimedOut);
             process.waitForBytesWritten(50);
         }
 
         QByteArray response;
-        if (auto const status = takeLine(response)) return finish(*status);
+        if (auto const status = takeLine(response)) return failed(*status);
         process.kill();
         process.waitForFinished(2000);
 
         auto result = parseRapidOcrResponse(response,
                                             request.image.size(),
                                             request.requestId,
-                                            ocrLanguageKey(request.language.value_or(config.language)),
+                                            ocrLanguageKey(language),
                                             QString::fromLatin1(kEngineName),
-                                            static_cast<int>(timer.elapsed()));
+                                            static_cast<int>(total.elapsed()));
         result.attempts.push_back({.engine    = QString::fromLatin1(kEngineName),
                                    .status    = result.status,
-                                   .elapsedMs = static_cast<int>(timer.elapsed())});
+                                   .elapsedMs = static_cast<int>(run.elapsed())});
         return result;
     }
 
@@ -309,8 +340,19 @@ QString rapidOcrTrustDigest(RapidOcrConfig const& config)
     // Include the folder itself so moving the same files invalidates a previous trust record.
     hash.addData(QDir::cleanPath(QDir{config.modelsDirectory}.absolutePath()).toUtf8());
     hash.addData("\0", 1);
-    for (auto const& name : rapidOcrModelFiles(config.language))
-        if (not addFile(modelPath(config, name))) return {};
+    // Every model file the three languages can ask for, not just the selected language's: the
+    // record is about the installation, so changing the recognition language keeps it. A file
+    // that is not installed hashes as absent, so adding it later is a change like any other.
+    QStringList names;
+    for (auto const language : {OcrLanguage::English, OcrLanguage::SimplifiedChinese})
+        names << rapidOcrModelFiles(language);
+    names.removeDuplicates();
+    names.sort();
+    for (auto const& name : names) {
+        if (addFile(modelPath(config, name))) continue;
+        hash.addData(name.toUtf8());
+        hash.addData("\0missing", 8);
+    }
     return QString::fromLatin1(hash.result().toHex());
 }
 
@@ -437,6 +479,120 @@ OcrResult parseRapidOcrResponse(QByteArray const&   response,
     result.timing.recognitionMs = elapsedMs;
     result.timing.totalMs       = elapsedMs;
     return result;
+}
+
+namespace {
+
+bool isCjk(QChar const character)
+{
+    auto const code = character.unicode();
+    return (code >= 0x3400 and code <= 0x4DBF) or (code >= 0x4E00 and code <= 0x9FFF) or
+           (code >= 0xF900 and code <= 0xFAFF) or (code >= 0x3040 and code <= 0x30FF) or
+           (code >= 0xAC00 and code <= 0xD7AF);
+}
+
+QString withoutCjk(QString text)
+{
+    text.removeIf([](QChar const character) { return isCjk(character); });
+    return text;
+}
+
+int latinLetters(QString const& text)
+{
+    int count = 0;
+    for (auto const character : text) {
+        auto const code = character.unicode();
+        if ((code >= 'A' and code <= 'Z') or (code >= 'a' and code <= 'z')) ++count;
+    }
+    return count;
+}
+
+QString boxKey(OcrBox const& box)
+{
+    return QStringLiteral("%1,%2,%3,%4").arg(qRound(box.x)).arg(qRound(box.y)).arg(qRound(box.width)).arg(qRound(box.height));
+}
+
+/**
+ * @brief Put the English pass's spacing onto one Chinese-pass line, keeping its Chinese runs.
+ *
+ * The English recogniser drops Chinese characters, so its text is not used wholesale. It is used
+ * only when its content is the same: with spaces and Chinese characters removed from both sides
+ * the two lines must agree, case-insensitively. Then the walk copies the English line character by
+ * character, adds the spaces it carries, and puts each Chinese run back where it was. Any
+ * disagreement (a dropped word, different punctuation) leaves the Chinese line untouched.
+ */
+QString englishSpacing(QString const& chinese, QString const& english)
+{
+    QString chineseFlat = withoutCjk(chinese);
+    chineseFlat.remove(QLatin1Char(' '));
+    QString englishFlat = english;
+    englishFlat.remove(QLatin1Char(' '));
+    if (chineseFlat.compare(englishFlat, Qt::CaseInsensitive) != 0) return chinese;
+
+    QString out;
+    int     e = 0;
+    int     i = 0;
+    while (i < chinese.size()) {
+        if (isCjk(chinese[i])) {
+            out += chinese[i++];
+            continue;
+        }
+        int j = i;
+        while (j < chinese.size() and not isCjk(chinese[j]))
+            ++j;
+        QString const chunk   = chinese.mid(i, j - i);
+        int           matched = 0;
+        while (e < english.size() and matched < chunk.size()) {
+            auto const character = english[e];
+            if (character.isSpace()) {
+                out += character;
+                ++e;
+                continue;
+            }
+            if (character.toCaseFolded() != chunk[matched].toCaseFolded()) return chinese;
+            out += character;
+            ++e;
+            ++matched;
+        }
+        if (matched < chunk.size()) return chinese;
+        i = j;
+    }
+    return out;
+}
+
+}
+
+bool rapidOcrNeedsLatinPass(OcrResult const& result)
+{
+    // The Chinese recogniser writes Latin runs as one token ("Thelabelonthedrawerread"), whether
+    // or not Chinese characters share the line. A line whose Latin part already has a space, or
+    // whose Latin part is one short word, is left alone.
+    for (auto const& line : result.lines) {
+        auto const latin = withoutCjk(line.text);
+        if (latin.contains(QLatin1Char(' '))) continue;
+        if (latinLetters(latin) >= 8) return true;
+    }
+    return false;
+}
+
+OcrResult mergeRapidOcrLatinPass(OcrResult primary, OcrResult const& english, int const totalMs)
+{
+    QHash<QString, QString> englishByBox;
+    for (auto const& line : english.lines)
+        if (line.box and not line.text.isEmpty()) englishByBox.insert(boxKey(*line.box), line.text);
+
+    QStringList texts;
+    for (auto& line : primary.lines) {
+        if (line.box) {
+            auto const found = englishByBox.constFind(boxKey(*line.box));
+            if (found != englishByBox.constEnd()) line.text = englishSpacing(line.text, *found);
+        }
+        texts << line.text;
+    }
+    primary.text           = texts.join(QLatin1Char('\n')).trimmed();
+    primary.timing.totalMs = totalMs;
+    if (not english.attempts.empty()) primary.attempts.push_back(english.attempts.front());
+    return primary;
 }
 
 std::unique_ptr<OcrEngine> makeRapidOcr(RapidOcrConfig const& config)

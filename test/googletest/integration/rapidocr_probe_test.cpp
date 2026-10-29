@@ -94,6 +94,25 @@ TEST(RapidOcrProbe, ABarePageIsEmptyTextAndCancellationNeverStartsTheProgram)
     EXPECT_EQ(cancelled.status, OcrStatus::Cancelled);
 }
 
+/// The Chinese recogniser glues Latin words together, so a mixed page is read twice and each
+/// Latin-only line takes the English pass's text; the Chinese line must survive that.
+TEST(RapidOcrProbe, AMixedPageKeepsItsSpacesAndItsChinese)
+{
+    auto engine = engineFor(OcrLanguage::ChineseEnglish);
+    if (not engine) GTEST_SKIP() << "LENS_RAPIDOCR_ROOT is not set or the distribution is incomplete";
+
+    QImage image{QString::fromStdWString((corpus() / "browser-mixed-100-light.png").wstring())};
+    ASSERT_FALSE(image.isNull());
+    auto const result = engine->recognize(
+        {.requestId = 21, .source = OcrSource::LocalTest, .image = image, .language = OcrLanguage::ChineseEnglish});
+
+    ASSERT_EQ(result.status, OcrStatus::Ready) << "status " << static_cast<int>(result.status);
+    EXPECT_TRUE(result.text.contains(QStringLiteral("The label on the drawer"), Qt::CaseInsensitive)) << result.text.toStdString();
+    EXPECT_TRUE(result.text.contains(QStringLiteral("待修"))) << result.text.toStdString();
+    EXPECT_TRUE(result.text.contains(QStringLiteral("先量再做"))) << result.text.toStdString();
+    ASSERT_EQ(result.attempts.size(), 2u) << "the second pass is the point of this case";
+}
+
 TEST(RapidOcrProbe, AZeroDeadlineIsATimeoutWithoutStartingTheProgram)
 {
     auto engine = engineFor(OcrLanguage::English);

@@ -741,14 +741,14 @@ A 的部署或候选协议不通过时停止该后端，不以增加兼容分支
 | A 基准与接入 | 21 张合成语料与生成器；`scripts/qa/ocr-bench.ps1`；RapidOCR 发行物审计 | Tesseract 英语、中文与混排基线；RapidOCR 协议、退出与清理实测 | — |
 | B 结果与执行器 | 结构化 `OcrResult`（行/词/框/置信度/实际后端/耗时/几何层级）；严格 TSV 解析；单一 worker `OcrExecutor`；取消、超时、输出限额 | `OcrTsv.*` 12 例；`OcrEngineProbe.*` 真实 Tesseract；`CaptureDuty.*` | — |
 | C 本地配置与路由 | `ocrMode` / `ocrLocalEngine` / `ocrLocalLanguage` / `ocrConfigVersion`；旧配置迁移；自动→Tesseract；明确选择不回退；OCR 设置子页与合成图测试 | `OcrLocal.*`、`OcrMigration.*`、`SettingsTableRig.*`、QTest `CaptureSettings::*` | 真机像素检查 |
-| D 可选本地后端 | RapidOCR v0.2.0 适配器；ASCII 模型路径校验；显式检测/信任摘要；设置页与第三方风险说明 | `OcrRapidOcr.*` 10 例；`RapidOcrProbe.*` 3 例真实发行物；QML 非 ASCII 拒绝/检测失败 2 例；终止后无残留进程 | 中英混排丢拉丁词间空格；不进入安装包；模型目录必须 ASCII（ADR 0132） |
+| D 可选本地后端 | RapidOCR v0.2.0 适配器；ASCII 模型路径校验；显式检测/信任摘要（覆盖全部模型文件，换语言不重测）；混排两遍识别按行对齐空格；设置页与第三方风险说明 | `OcrRapidOcr.*` 13 例；`RapidOcrProbe.*` 4 例真实发行物（含混排页）；QML 非 ASCII 拒绝/检测失败 2 例；终止后无残留进程 | 不进入安装包；模型目录必须 ASCII（ADR 0132） |
 | E 在线事务与传输 | 新增 `lens_ocr`；在线服务表与工厂（协议、默认地址、凭据槽、语言映射）；五个 Adapter（OCR.space、百度、腾讯云、阿里云、Google Vision）；百度令牌内存缓存；TC3 与 RPC 签名；HTTPS/无重定向/大小/超时/取消；`OCR-API-KEY` / `OCR-SECRET-KEY` 双槽；确认事务、60/120/30 秒窗口、一次人工重试 | `OcrSpace.*` 13 例；`OcrBaidu.*` 10 例；`OcrTencent.*` 6 例；`OcrAliyun.*` 6 例；`OcrGoogle.*` 6 例；`OcrCrypto.*` 4 例；`OnlineProviders.*`／`OnlineTokens.*` 6 例；`CaptureDuty` 的未确认零上传、取消零上传、本地零在线、确认一次发送、服务切换清空凭据与地址、语言回落 | 真实账号往返与计费：OCR.space、百度、腾讯云、阿里云、Google 均未验证 |
 | F 在线 UI 与交付 | OCR 子页、在线配置页（服务下拉、默认端点、按服务显示凭据字段）、上传确认卡（点名所选服务）、受控图片源、五语言文案 | QTest `CaptureSettings::test_theConsentCard*`、`test_theOnlinePageDrawsItsFields`、`test_theCredentialFieldsFollowTheChosenService`、`test_onlineModeWithout*`；OCR 两页、RapidOCR 区与确认卡的离屏快照（`qml-snapshot.ps1`） | 真机视觉检查；setup 升级/安装/卸载与残留清理已复验；真实在线 smoke；确认卡预览在离屏快照中没有注册应用图片源，实际 preview 路径仅由应用启动验证 |
 
 已知偏差与说明：
 
-- RapidOCR 按 ADR 0132 只接受 ASCII 模型目录；设置页会警示并禁用检测，捕获门报 `path-unsupported`，不回退 Tesseract。中英混排仍丢拉丁词间空格，不能靠假词框或静默纠正掩盖。
-- RapidOCR 发行物未签名，启动横幅为 `v1.1.0` 与标签 `v0.2.0` 不一致，发行包也没有模型许可文件；设置页已说明第三方风险，信任按可执行文件、模型目录和当前语言文件摘要建立。
+- RapidOCR 按 ADR 0132 只接受 ASCII 模型目录；设置页会警示并禁用检测，捕获门报 `path-unsupported`，不回退 Tesseract。中文模型把拉丁词粘成一串，因此混排页在疑似粘连时用英文模型再读一遍：同一检测框下，英文行只在 “去空格后的内容与中文行去汉字、去空格后完全一致” 时才替换空格，汉字原样插回；不一致就保留中文模型原文。这是按同一张图的第二次识别取空格，不是词典猜测，也不伪造词框。
+- RapidOCR 发行物未签名，启动横幅为 `v1.1.0` 与标签 `v0.2.0` 不一致，发行包也没有模型许可文件；设置页已说明第三方风险，信任按可执行文件、模型目录与全部模型文件摘要建立，切换识别语言不重新要求信任。
 - 在线重试沿用同一事务 id；方案要求的第二次请求使用新 requestId 尚未实现。
 - 腾讯云、阿里云与 Google Vision 的 Adapter 只用替身与公开签名向量验证（腾讯 TC3 与阿里云 RPC 各有一份手算向量），真实账号的往返、令牌过期、计费与限额均未验证。阿里云只有自动档语言，切换服务时语言按服务表回落。
 - 启动时本地就绪只做文件/语言检查，不启动子进程；显式测试 OCR 才运行合成图；RapidOCR 的信任验证只做摘要，不启动程序。

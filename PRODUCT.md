@@ -34,7 +34,7 @@ web
 技术拆分见 [OCR 开发方案](docs/ocr-development.md)，取舍见 [ADR 0130](docs/adr/0130-local-and-online-ocr-are-separate-modes.md) 与 [ADR 0133](docs/adr/0133-offline-ocr-ships-tesseract-and-rapidocr.md)。以下条目区分已实现、未交付与未验证；真实服务与安装产物验证不能由代码存在替代。
 
 - **已实现**：手动截图提供本地 / 在线模式，缺省本地；本地自动选择使用 Tesseract，RapidOCR 只能明确选择；明确选择不回退。
-- **已实现（ASCII 路径限制）**：安装包继续只带 Tesseract 与英文数据。RapidOCR-json v0.2.0 的程序与模型由读者自行安装，只能明确选择，自动策略不会运行它。模型目录必须是 ASCII 路径；设置页会警示并禁用检测，捕获门报 `path-unsupported`，不回退 Tesseract。首次使用需显式检测并信任，信任摘要绑定可执行文件、模型目录和当前语言模型；程序或模型改变会撤销信任。详见 [ADR 0132](docs/adr/0132-rapidocr-model-paths-stay-ascii.md) 与[基线证据](docs/metrics/ocr-baseline-2026-10-28.md#2-rapidocr-json-v020-审计)。
+- **已实现（ASCII 路径限制）**：安装包继续只带 Tesseract 与英文数据。RapidOCR-json v0.2.0 的程序与模型由读者自行安装，只能明确选择，自动策略不会运行它。模型目录必须是 ASCII 路径；设置页会警示并禁用检测，捕获门报 `path-unsupported`，不回退 Tesseract。首次使用需显式检测并信任，信任摘要绑定可执行文件、模型目录与全部模型文件；切换识别语言不重新要求信任，程序或模型改变会撤销信任。详见 [ADR 0132](docs/adr/0132-rapidocr-model-paths-stay-ascii.md) 与[基线证据](docs/metrics/ocr-baseline-2026-10-28.md#2-rapidocr-json-v020-审计)。
 - **已实现**：自动扫描始终使用本地引擎，独立于手动截图模式；原生选区仍不走 OCR。截图与扫描开关的关闭默认值不变。
 - **已实现（真实服务未验证）**：在线 OCR 每次只上传读者框选并确认的像素区域；本地失败、低置信度、模式选择或连接检测都不构成截图上传授权。没有自动云端重试或跨服务商回退；一次明确的人工重试可用。
 - **已实现（真实服务未验证）**：在线服务显式选择（百度 OCR、腾讯云 OCR、阿里云 OCR、Google Cloud Vision、OCR.space），地址默认取服务自身并可由读者覆盖；每个服务各自保存地址与凭据，切换时互不串用、切回不用重填，服务不支持的语言按服务表回落。新增服务是一个 Adapter 加一行服务表，见 [ADR 0136](docs/adr/0136-online-ocr-is-a-provider-table.md)。检测失败会说明是哪一类原因——密钥或权限、额度、图片、网络或服务不可用——未分类的错误码写入日志。

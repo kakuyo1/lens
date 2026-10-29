@@ -42,6 +42,24 @@ QByteArray successResponse(QString const& text = QStringLiteral("Lens"))
     return QJsonDocument{root}.toJson(QJsonDocument::Compact);
 }
 
+/// @brief A response with one block per (text, top) pair, so two lines can be told apart by box.
+QByteArray responseWithLines(std::initializer_list<std::pair<QString, int>> lines)
+{
+    QJsonArray blocks;
+    for (auto const& [text, top] : lines) {
+        QJsonObject block;
+        block.insert(QStringLiteral("text"), text);
+        block.insert(QStringLiteral("box"),
+                     QJsonArray{QJsonArray{10, top}, QJsonArray{200, top}, QJsonArray{200, top + 20}, QJsonArray{10, top + 20}});
+        block.insert(QStringLiteral("score"), 0.9);
+        blocks.append(block);
+    }
+    QJsonObject root;
+    root.insert(QStringLiteral("code"), 100);
+    root.insert(QStringLiteral("data"), blocks);
+    return QJsonDocument{root}.toJson(QJsonDocument::Compact);
+}
+
 struct Distribution {
     QTemporaryDir root;
     QString       executable;
@@ -115,6 +133,15 @@ TEST(OcrRapidOcr, ANonAsciiModelFolderIsRejectedBeforeAnyProcessCanStart)
     EXPECT_EQ(engine->probe(), OcrStatus::PathUnsupported);
     EXPECT_FALSE(lens::capture::rapidOcrPathIsAscii(config.modelsDirectory));
     EXPECT_TRUE(lens::capture::rapidOcrPathIsAscii(QStringLiteral("C:/RapidOCR/models")));
+}
+
+/// The trust record covers the installation, not the language selected this minute: switching
+/// recognition language must not ask the reader to trust the same program again.
+TEST(OcrRapidOcr, TheTrustDigestIsTheSameForEveryLanguageItServes)
+{
+    Distribution distribution;
+    EXPECT_EQ(lens::capture::rapidOcrTrustDigest(distribution.config(OcrLanguage::English)),
+              lens::capture::rapidOcrTrustDigest(distribution.config(OcrLanguage::ChineseEnglish)));
 }
 
 TEST(OcrRapidOcr, ATrustedDistributionStillRequiresEverySelectedModelFile)
@@ -223,4 +250,54 @@ TEST(OcrRapidOcr, ADifferentLanguageSelectsTheEnglishOrChineseModelNames)
     EXPECT_TRUE(english.contains(QStringLiteral("dict_en.txt")));
     EXPECT_TRUE(chinese.contains(QStringLiteral("ch_PP-OCRv3_rec_infer.onnx")));
     EXPECT_TRUE(chinese.contains(QStringLiteral("dict_chinese.txt")));
+}
+
+/// The Chinese recogniser writes Latin runs as one token; that is the shape the second pass is
+/// for. A short single word and a line that already has spaces are left alone.
+TEST(OcrRapidOcr, TheLatinPassIsOnlyNeededWhenLatinLinesAreGlued)
+{
+    auto const parse = [](QString const& text) {
+        return lens::capture::parseRapidOcrResponse(successResponse(text), QSize{100, 60}, 1, QStringLiteral("zh-Hans+en"), QStringLiteral("rapidocr-json"), 5);
+    };
+    EXPECT_TRUE(lens::capture::rapidOcrNeedsLatinPass(parse(QStringLiteral("Thelabelonthedrawerread"))));
+    EXPECT_FALSE(lens::capture::rapidOcrNeedsLatinPass(parse(QStringLiteral("The label on the drawer"))));
+    EXPECT_FALSE(lens::capture::rapidOcrNeedsLatinPass(parse(QStringLiteral("pending"))));
+    EXPECT_FALSE(lens::capture::rapidOcrNeedsLatinPass(parse(QStringLiteral("待修/pending"))));
+}
+
+/// Latin-only lines take the English pass's spacing; a line whose English pass dropped or changed
+/// content keeps the Chinese pass's text.
+TEST(OcrRapidOcr, TheEnglishPassFillsLatinLinesAndLeavesChineseAlone)
+{
+    auto primary = lens::capture::parseRapidOcrResponse(
+        responseWithLines({{QStringLiteral("Thelabelonthedrawerread\"待修/pending\",andtheink"), 10},
+                           {QStringLiteral("Insidewerethreebrassgearsandanote:先量再做"), 40}}),
+        QSize{220, 80},
+        3,
+        QStringLiteral("zh-Hans+en"),
+        QStringLiteral("rapidocr-json"),
+        40);
+    primary.attempts.push_back(
+        {.engine = QStringLiteral("rapidocr-json"), .status = OcrStatus::Ready, .elapsedMs = 40});
+    auto english = lens::capture::parseRapidOcrResponse(
+        responseWithLines({{QStringLiteral("The label on the drawer read\" / pending\", and the ink"), 10},
+                           {QStringLiteral("Inside were three brass gears and a note: , iF"), 40}}),
+        QSize{220, 80},
+        3,
+        QStringLiteral("en"),
+        QStringLiteral("rapidocr-json"),
+        60);
+    english.attempts.push_back(
+        {.engine = QStringLiteral("rapidocr-json"), .status = OcrStatus::Ready, .elapsedMs = 60});
+
+    auto const merged = lens::capture::mergeRapidOcrLatinPass(primary, english, 100);
+    EXPECT_EQ(merged.text,
+              QStringLiteral("The label on the drawer read\"待修 / pending\", and the ink\n"
+                             "Insidewerethreebrassgearsandanote:先量再做"));
+    ASSERT_EQ(merged.lines.size(), 2u);
+    ASSERT_TRUE(merged.lines[0].box.has_value());
+    EXPECT_DOUBLE_EQ(merged.lines[0].box->y, 10);
+    EXPECT_EQ(merged.languageUsed, QStringLiteral("zh-Hans+en"));
+    EXPECT_EQ(merged.timing.totalMs, 100);
+    EXPECT_EQ(merged.attempts.size(), 2u);
 }
