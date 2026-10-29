@@ -580,9 +580,9 @@ TEST(CaptureDuty, AnEmptyEndpointMeansTheServicesOwnAddress)
               QStringLiteral("https://api.ocr.space/parse/image"));
 }
 
-/// Baidu needs a key pair, and both slots have to be filled before the service counts as
-/// configured; switching services then drops the address and every credential with it.
-TEST(CaptureDuty, ABaiduProfileNeedsBothCredentialsAndSwitchingDropsThem)
+/// Baidu needs a key pair, and each service keeps its own address and credentials: switching away
+/// files them under that service instead of throwing them out, and switching back restores them.
+TEST(CaptureDuty, ABaiduProfileNeedsBothCredentialsAndKeepsThemForItsOwnService)
 {
     using lens::app::CaptureDuty;
     using lens::app::MouseSelectionHook;
@@ -618,12 +618,53 @@ TEST(CaptureDuty, ABaiduProfileNeedsBothCredentialsAndSwitchingDropsThem)
     EXPECT_TRUE(duty.settings().value("onlineConfigured").toBool());
     EXPECT_EQ(duty.settings().value("ocrOnlineCredentials").toList().size(), 2);
 
+    // OCR.space was never configured, so its own slot is empty rather than Baidu's key.
     duty.setOcrOnlineProvider(QStringLiteral("ocrspace"));
-    auto const keys = storage.section();
+    auto keys = storage.section();
     EXPECT_TRUE(keys.value<std::string>("OCR-API-KEY", {}).empty());
     EXPECT_TRUE(keys.value<std::string>("OCR-SECRET-KEY", {}).empty());
     EXPECT_TRUE(keys.value<std::string>("ocrOnlineEndpoint", {}).empty());
     EXPECT_FALSE(duty.settings().value("onlineConfigured").toBool());
+    auto const saved = storage.section("OCR-SERVICES").object("baidu");
+    EXPECT_EQ(saved.value<std::string>("apiKey", {}), "api-key");
+    EXPECT_EQ(saved.value<std::string>("secretKey", {}), "secret-key");
+
+    // Switching back restores what Baidu was holding, so the reader does not retype it.
+    duty.setOcrOnlineProvider(QStringLiteral("baidu"));
+    auto const restored = storage.section();
+    EXPECT_EQ(restored.value<std::string>("OCR-API-KEY", {}), "api-key");
+    EXPECT_EQ(restored.value<std::string>("OCR-SECRET-KEY", {}), "secret-key");
+    EXPECT_TRUE(duty.settings().value("onlineConfigured").toBool());
+}
+
+/// A service that reads one language only cannot inherit a stored choice it does not list.
+TEST(CaptureDuty, SwitchingToAServiceWithOneLanguageResetsTheStoredOne)
+{
+    using lens::app::CaptureDuty;
+    using lens::app::MouseSelectionHook;
+    using lens::app::StorageDuty;
+
+    int              argc   = 1;
+    char             name[] = "capture_online_aliyun_language";
+    char*            argv[] = {name, nullptr};
+    QCoreApplication application{argc, argv};
+
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    auto        store = lens::core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    StorageDuty storage{store};
+    configureOnline(storage); // ocrspace, language eng
+
+    MouseSelectionHook hook;
+    CaptureDuty        duty{storage, hook, std::make_unique<FakeOcr>(), std::make_shared<FakeHttp>()};
+    ASSERT_TRUE(awaitSignal(duty, &CaptureDuty::settingsChanged));
+
+    duty.setOcrOnlineProvider(QStringLiteral("aliyun"));
+    EXPECT_EQ(storage.section().value<std::string>("ocrOnlineLanguage", {}), "auto");
+    duty.setOcrCredential(QStringLiteral("apiKey"), QStringLiteral("id"));
+    duty.setOcrCredential(QStringLiteral("secretKey"), QStringLiteral("secret"));
+    EXPECT_TRUE(duty.settings().value("onlineConfigured").toBool());
+    EXPECT_EQ(duty.settings().value("ocrOnlineHost").toString(), QStringLiteral("ocr-api.cn-hangzhou.aliyuncs.com"));
 }
 
 TEST(CaptureDuty, AConfiguredOnlineModeDoesNotDependOnTheLocalRuntime)

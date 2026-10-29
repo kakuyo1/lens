@@ -317,7 +317,7 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 - `src/llm/llm_pure.{h,cpp}` — 组装请求体、校验响应、读 `usage`，均无网络
 - `test/googletest/unit/llm_pure_test.cpp` — 用固定样例锁住上述行为
 
-## 8 在线 OCR：服务表与两个协议（已实现，真实服务未验证）
+## 8 在线 OCR：服务表与五个协议（已实现，真实服务未验证）
 
 在线 OCR 是独立通道，不经过上面的解释请求；实现住在 `src/ocr/`，结果类型来自 `src/capture/ocr_engine.h`。服务、默认地址、凭据槽与语言映射由编译期服务表登记（[ADR 0136](docs/adr/0136-online-ocr-is-a-provider-table.md)）。截至 2026-10-29 只用注入传输与合成图验证，**未向真实端点发送过请求**。
 
@@ -351,6 +351,42 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 | 时间与大小 | 单次 30 秒且不超过事务剩余时间；响应 ≤ 4 MiB |
 
 成功响应要求 `words_result` 为数组，若带 `words_result_num` 必须与长度一致；每项读取 `words`，有 `location` 时再读四边并验证坐标落在原裁剪图内。百度只给行框，`geometryLevel` 为行；服务省略 `location` 时（实测单行答案会缺）按纯文本成功，`geometryLevel` 为无；`location` 存在但格式错误或越界仍是协议失败。`error_code` 按固定集合映射为图片无效、超出大小或识别失败；`error_msg` 不进界面与日志，错误码进日志。`src/ocr/ocr_baidu.cpp` 是协议实现，`test/googletest/unit/ocr_baidu_test.cpp` 用替身锁住令牌缓存、请求字段、错误码映射与零上传断言。
+
+### 8.3 腾讯云通用印刷体识别
+
+| 项 | 取值 |
+|---|---|
+| 端点 | `POST https://ocr.tencentcloudapi.com/`；`X-TC-Action: GeneralBasicOCR`、`X-TC-Version: 2018-11-19` |
+| 鉴权 | `Authorization: TC3-HMAC-SHA256 ...`，签名头 `content-type;host`；SecretId / SecretKey |
+| 内容类型 | `application/json; charset=utf-8`，签名的头值必须与发出的字节一致 |
+| 请求体 | `{"ImageBase64":"…","LanguageType":"en"}`；base64 后 ≤ 10,000,000 字节 |
+| 响应 | `Response.TextDetections[].DetectedText` 与四点 `Polygon`；`Confidence` 为 0–100 |
+
+`Response.Error.Code` 按固定集合映射（超出大小、图片无效、无文字、其余失败），`Message` 不进界面与日志，错误码写日志。签名实现在 `src/ocr/ocr_tencent.cpp`，向量锁在 `test/googletest/unit/ocr_tencent_test.cpp`。
+
+### 8.4 阿里云通用文字识别
+
+| 项 | 取值 |
+|---|---|
+| 端点 | `POST https://ocr-api.cn-hangzhou.aliyuncs.com/`；查询参数 `Action=RecognizeGeneral`、`Version=2021-07-07`、`Format=JSON` |
+| 鉴权 | RPC V2：参数排序并做 RFC 3986 编码，`StringToSign = POST&%2F&…`，`Signature = Base64(HMAC-SHA1(Secret+"&", …))` |
+| 内容类型 | `application/octet-stream`；图片是请求体原始字节 |
+| 大小 | 请求体 ≤ 10,000,000 字节；每边 15–8192 px |
+| 响应 | `{RequestId, Data}`，`Data` 是字符串形式的 JSON；`content` 为全文，`prism_wordsInfo[]` 为块级文字与四点坐标 |
+
+坐标属于服务矫正后的图；落在裁剪图外的块只丢弃框，文字保留。`Code` 映射为图片无效、超出大小或失败。实现在 `src/ocr/ocr_aliyun.cpp`，向量锁在 `test/googletest/unit/ocr_aliyun_test.cpp`。
+
+### 8.5 Google Cloud Vision
+
+| 项 | 取值 |
+|---|---|
+| 端点 | `POST https://vision.googleapis.com/v1/images:annotate` |
+| 鉴权 | `X-Goog-Api-Key` 请求头；key 不进 URL |
+| 请求体 | `requests[0].image.content` 为 base64；`features[0].type = TEXT_DETECTION`；`imageContext.languageHints` 可选 |
+| 大小 | 图片 ≤ 20 MB，JSON 请求体 ≤ 10 MB |
+| 响应 | `responses[0].fullTextAnnotation.text`；段落与词在 `pages[].blocks[].paragraphs[].words[]`，词框为 `boundingBox.vertices` |
+
+单图失败是 HTTP 200 加 `responses[0].error`（`code=3` 为图片无效），请求级失败是 HTTP 400／403／429。实现在 `src/ocr/ocr_google.cpp`，向量锁在 `test/googletest/unit/ocr_google_test.cpp`。
 
 ## 9 发音：在线音频（已实现）
 

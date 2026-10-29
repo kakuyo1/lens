@@ -28,6 +28,15 @@ namespace lens::ocr {
 enum class OcrServiceProtocol : std::uint8_t {
     OcrSpace,
     Baidu,
+    Tencent,
+    Aliyun,
+    GoogleVision,
+};
+
+/// @brief One credential a service asks for: where its secret is stored, and the vendor's name.
+struct OcrCredentialField {
+    QString slot;  ///< `apiKey` or `secretKey`; chooses the profile key the secret is written to.
+    QString label; ///< The vendor's own field name, shown as its console shows it.
 };
 
 /// @brief One selectable service: what it is called, where it listens, and what it needs.
@@ -39,9 +48,10 @@ struct OnlineOcrProvider {
     QUrl               endpoint;      ///< The service's default address; the reader may override it.
     QUrl               tokenEndpoint; ///< Empty for a protocol that authenticates every request directly.
     QString            docs;          ///< The vendor's own documentation for the service.
-    /// The credential fields this service needs, in the order the page shows them. The vocabulary
-    /// is fixed: `apiKey` and `secretKey` cover all four services this table is designed for.
-    QStringList credentials;
+    /// The credential fields this service needs, in the order the page shows them. The slots are
+    /// a fixed vocabulary -- `apiKey` and `secretKey` -- while each label is the vendor's own name
+    /// for the field (`SecretId`, `AccessKey ID`, ...), the one its console shows.
+    QList<OcrCredentialField> credentials;
     /// Stored language value (`eng`, `auto`) to the wire value this service wants.
     QHash<QString, QString> languages;
 };

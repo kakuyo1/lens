@@ -245,9 +245,12 @@ Item {
             waitForRendering(host.contentItem);
             verify(page);
             const provider = child(page, "ocrOnlineProvider");
-            compare(provider.options.length, 2);
+            compare(provider.options.length, 5);
             compare(provider.options[0].value, "baidu");
-            compare(provider.options[1].value, "ocrspace");
+            compare(provider.options[1].value, "tencent");
+            compare(provider.options[2].value, "aliyun");
+            compare(provider.options[3].value, "ocrspace");
+            compare(provider.options[4].value, "google");
             verify(findChild(page, "ocrOnlineLanguage"));
             verify(findChild(page, "testOnlineOcrButton"));
             verify(findChild(page, "clearOnlineOcrButton"));
@@ -267,6 +270,11 @@ Item {
             Controller.setSetting("ocrOnlineProvider", "baidu");
             tryVerify(() => child(page, "ocrOnlineSecretKeyField").visible);
             verify(child(page, "ocrOnlineApiKeyField").visible);
+
+            // The vendor's own names for the fields, as its console spells them.
+            Controller.setSetting("ocrOnlineProvider", "tencent");
+            tryVerify(() => page.credentialLabel("apiKey") === "SecretId");
+            compare(page.credentialLabel("secretKey"), "SecretKey");
         }
 
         /// Pixel stills for the two OCR pages; skipped unless scripts/qa/qml-snapshot.ps1 sets

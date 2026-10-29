@@ -162,18 +162,26 @@ TEST(OcrBaidu, ARefusedKeyPairSendsNoPixels)
 
 TEST(OcrBaidu, ServiceErrorCodesMapToTheStatusThePageCanExplain)
 {
-    for (auto const& [code, expected] : std::initializer_list<std::pair<int, OcrStatus>>{
-             {17, OcrStatus::Failed}, {110, OcrStatus::Failed}, {216201, OcrStatus::InvalidImage}, {216202, OcrStatus::InputTooLarge}}) {
+    struct Case {
+        int                             code;
+        OcrStatus                       status;
+        lens::capture::OcrFailureReason reason;
+    };
+    for (auto const& expected : {Case{17, OcrStatus::Failed, lens::capture::OcrFailureReason::Quota},
+                                 Case{110, OcrStatus::Failed, lens::capture::OcrFailureReason::Authentication},
+                                 Case{216201, OcrStatus::InvalidImage, lens::capture::OcrFailureReason::Image},
+                                 Case{216202, OcrStatus::InputTooLarge, lens::capture::OcrFailureReason::Image}}) {
         auto transport       = std::make_shared<FakeTransport>();
         transport->responses = {tokenResponse(),
                                 {.status      = 200,
-                                 .body        = QByteArray{"{\"error_code\":" + QByteArray::number(code) +
+                                 .body        = QByteArray{"{\"error_code\":" + QByteArray::number(expected.code) +
                                                     ",\"error_msg\":\"refused\"}"},
                                  .transportOk = true}};
         auto client          = lens::ocr::makeBaiduClient(config(), transport, lens::ocr::makeMemoryOcrTokenStore());
         ASSERT_TRUE(client);
         auto const result = client->recognize(request());
-        EXPECT_EQ(result.status, expected) << "error_code " << code;
+        EXPECT_EQ(result.status, expected.status) << "error_code " << expected.code;
+        EXPECT_EQ(result.failureReason, expected.reason) << "error_code " << expected.code;
         EXPECT_TRUE(result.text.isEmpty()) << "an error body is never reader text";
     }
 }

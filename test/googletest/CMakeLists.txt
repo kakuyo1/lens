@@ -66,6 +66,10 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/ocr_rapidocr_test.cpp
   unit/ocr_space_test.cpp
   unit/ocr_baidu_test.cpp
+  unit/ocr_tencent_test.cpp
+  unit/ocr_aliyun_test.cpp
+  unit/ocr_google_test.cpp
+  unit/ocr_crypto_test.cpp
   unit/online_providers_test.cpp
   unit/pet_state_test.cpp
   unit/pet_mood_test.cpp

@@ -36,11 +36,14 @@ struct RecordingTransport final : lens::ocr::HttpTransport {
 
 OnlineOcrConfig configFor(OnlineOcrProvider const& provider)
 {
-    return {.provider  = provider,
-            .endpoint  = provider.endpoint,
-            .apiKey    = QStringLiteral("api-key"),
-            .secretKey = QStringLiteral("secret-key"),
-            .language  = QStringLiteral("eng")};
+    // The first language the service lists, in the order the settings page offers them.
+    QString language;
+    for (auto const* const candidate : {"eng", "auto"})
+        if (provider.languages.contains(QLatin1String(candidate))) {
+            language = QLatin1String(candidate);
+            break;
+        }
+    return {.provider = provider, .endpoint = provider.endpoint, .apiKey = QStringLiteral("api-key"), .secretKey = QStringLiteral("secret-key"), .language = language};
 }
 
 TEST(OnlineProviders, EveryServiceInTheTableIsCompleteAndCallable)
@@ -57,16 +60,58 @@ TEST(OnlineProviders, EveryServiceInTheTableIsCompleteAndCallable)
         if (not provider.tokenEndpoint.isEmpty())
             EXPECT_FALSE(lens::ocr::validateOcrEndpoint(provider.tokenEndpoint)) << provider.id.toStdString();
         EXPECT_FALSE(provider.credentials.isEmpty()) << provider.id.toStdString();
-        for (auto const& slot : provider.credentials)
-            EXPECT_TRUE(slot == QLatin1String("apiKey") or slot == QLatin1String("secretKey"))
-                << "unknown credential slot " << slot.toStdString();
-        EXPECT_FALSE(provider.languages.value(QStringLiteral("eng")).isEmpty()) << provider.id.toStdString();
-        EXPECT_FALSE(provider.languages.value(QStringLiteral("auto")).isEmpty()) << provider.id.toStdString();
+        QStringList seenSlots;
+        for (auto const& credential : provider.credentials) {
+            bool const known = credential.slot == QLatin1String("apiKey") or credential.slot == QLatin1String("secretKey");
+            EXPECT_TRUE(known) << "unknown credential slot " << credential.slot.toStdString();
+            EXPECT_EQ(seenSlots.count(credential.slot), 0) << "duplicate slot in " << provider.id.toStdString();
+            seenSlots << credential.slot;
+            EXPECT_FALSE(credential.label.isEmpty()) << "a credential field with no vendor name";
+        }
+        EXPECT_FALSE(provider.languages.isEmpty()) << provider.id.toStdString();
+        for (auto const& language : provider.languages.keys())
+            EXPECT_TRUE(language == QLatin1String("eng") or language == QLatin1String("auto"))
+                << "unknown language " << language.toStdString();
         EXPECT_TRUE(lens::ocr::makeOnlineOcrClient(configFor(provider),
                                                    std::make_shared<RecordingTransport>(),
                                                    lens::ocr::makeMemoryOcrTokenStore()))
             << "no adapter answers for " << provider.id.toStdString();
     }
+}
+
+/// Each service names its credential fields the way its own console does.
+TEST(OnlineProviders, CredentialFieldsCarryTheVendorsOwnNames)
+{
+    auto const nameOf = [](char const* provider, char const* slot) {
+        auto const* const found = lens::ocr::findOcrProvider(QString::fromLatin1(provider));
+        if (found == nullptr) return QString{};
+        for (auto const& field : found->credentials)
+            if (field.slot == QLatin1String(slot)) return field.label;
+        return QString{};
+    };
+    EXPECT_EQ(nameOf("baidu", "apiKey"), QStringLiteral("API Key"));
+    EXPECT_EQ(nameOf("baidu", "secretKey"), QStringLiteral("Secret Key"));
+    EXPECT_EQ(nameOf("tencent", "apiKey"), QStringLiteral("SecretId"));
+    EXPECT_EQ(nameOf("tencent", "secretKey"), QStringLiteral("SecretKey"));
+    EXPECT_EQ(nameOf("aliyun", "apiKey"), QStringLiteral("AccessKey ID"));
+    EXPECT_EQ(nameOf("aliyun", "secretKey"), QStringLiteral("AccessKey Secret"));
+    EXPECT_EQ(nameOf("google", "apiKey"), QStringLiteral("API Key"));
+}
+
+/// A service with one mode names only that mode; the page must not offer a choice it cannot honour.
+TEST(OnlineProviders, ASingleModeServiceListsOnlyThatMode)
+{
+    auto const* const aliyun = lens::ocr::findOcrProvider(QStringLiteral("aliyun"));
+    ASSERT_NE(aliyun, nullptr);
+    EXPECT_EQ(aliyun->languages.keys(), QStringList{QStringLiteral("auto")});
+    EXPECT_TRUE(lens::ocr::makeOnlineOcrClient(
+        {.provider = *aliyun, .endpoint = aliyun->endpoint, .apiKey = QStringLiteral("id"), .secretKey = QStringLiteral("secret"), .language = QStringLiteral("auto")},
+        std::make_shared<RecordingTransport>(),
+        lens::ocr::makeMemoryOcrTokenStore()));
+    EXPECT_FALSE(lens::ocr::makeOnlineOcrClient(
+        {.provider = *aliyun, .endpoint = aliyun->endpoint, .apiKey = QStringLiteral("id"), .secretKey = QStringLiteral("secret"), .language = QStringLiteral("eng")},
+        std::make_shared<RecordingTransport>(),
+        lens::ocr::makeMemoryOcrTokenStore()));
 }
 
 TEST(OnlineProviders, AnEmptyOrUnknownIdNamesNoService)

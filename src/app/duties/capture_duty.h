@@ -248,6 +248,10 @@ private:
     ocr::OnlineOcrConfig onlineConfig() const;
     QString              onlineKey() const;
     QString              onlineSecret() const;
+    /// @brief Put the active address and both credentials under @p provider's own saved entry.
+    void saveOnlineService(QString const& provider);
+    /// @brief Restore @p provider's saved address and credentials, or empty ones when it has none.
+    void restoreOnlineService(QString const& provider);
     /// @brief Forget exchanged tokens; their key or address changed, or the reader cleared them.
     void        clearOnlineTokens();
     void        invalidateScan();
@@ -279,12 +283,14 @@ private:
     bool                                   scanPaused_   = false;
     bool                                   budgetPaused_ = false;
     QString                                ocrTestState_ = QStringLiteral("idle");
-    QString                                ocrTestEngine_;
-    QString                                ocrTestLanguage_;
-    int                                    ocrTestMs_ = 0;
-    capture::LocalOcrInspection            localInspection_;
-    QString                                rapidOcrDetectState_ = QStringLiteral("idle");
-    int                                    rapidOcrDetectMs_    = 0;
+    /// Why the last test failed, in the vocabulary the settings page explains; `none` otherwise.
+    QString                     ocrTestReason_ = QStringLiteral("none");
+    QString                     ocrTestEngine_;
+    QString                     ocrTestLanguage_;
+    int                         ocrTestMs_ = 0;
+    capture::LocalOcrInspection localInspection_;
+    QString                     rapidOcrDetectState_ = QStringLiteral("idle");
+    int                         rapidOcrDetectMs_    = 0;
 };
 
 }

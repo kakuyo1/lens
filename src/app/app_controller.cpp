@@ -546,6 +546,8 @@ void AppController::clearOcrOnlineConfiguration()
     capture_.setOcrCredential(QStringLiteral("secretKey"), {});
     capture_.setOcrOnlineLanguage(QStringLiteral("eng"));
     capture_.setOcrMode(QStringLiteral("local"));
+    // The values each service kept for switching back go with the configuration they belong to.
+    storage_.section().remove("OCR-SERVICES");
 }
 
 void AppController::setModel(QString model)

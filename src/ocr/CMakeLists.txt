@@ -1,12 +1,20 @@
 add_library(lens_ocr STATIC
   http_transport.h
+  ocr_aliyun.h
+  ocr_aliyun.cpp
+  ocr_baidu.h
+  ocr_baidu.cpp
+  ocr_crypto.h
+  ocr_google.h
+  ocr_google.cpp
+  ocr_json.h
+  ocr_space.h
+  ocr_space.cpp
+  ocr_tencent.h
+  ocr_tencent.cpp
   online_ocr.h
   online_ocr.cpp
   online_providers.cpp
-  ocr_baidu.h
-  ocr_baidu.cpp
-  ocr_space.h
-  ocr_space.cpp
   qt_http_transport.h
   qt_http_transport.cpp
 )

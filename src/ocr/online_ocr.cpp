@@ -8,8 +8,11 @@
 #include <mutex>
 #include <unordered_map>
 
+#include "ocr_aliyun.h"
 #include "ocr_baidu.h"
+#include "ocr_google.h"
 #include "ocr_space.h"
+#include "ocr_tencent.h"
 
 namespace lens::ocr {
 namespace {
@@ -84,25 +87,36 @@ std::unique_ptr<OnlineOcrClient> makeOnlineOcrClient(OnlineOcrConfig const&     
 {
     if (not transport) return {};
     if (validateOcrEndpoint(config.endpoint)) return {};
-    auto const wire = config.provider.languages.value(config.language);
-    if (wire.isEmpty()) return {};
-    for (auto const& slot : config.provider.credentials) {
-        if (slot == QLatin1String("apiKey") and config.apiKey.isEmpty()) return {};
-        if (slot == QLatin1String("secretKey") and config.secretKey.isEmpty()) return {};
+    auto const wire = config.provider.languages.constFind(config.language);
+    if (wire == config.provider.languages.constEnd()) return {};
+    for (auto const& field : config.provider.credentials) {
+        if (field.slot == QLatin1String("apiKey") and config.apiKey.isEmpty()) return {};
+        if (field.slot == QLatin1String("secretKey") and config.secretKey.isEmpty()) return {};
     }
 
     switch (config.provider.protocol) {
         case OcrServiceProtocol::OcrSpace:
             return makeOcrSpaceClient(
-                {.endpoint = config.endpoint, .apiKey = config.apiKey, .language = wire}, std::move(transport));
+                {.endpoint = config.endpoint, .apiKey = config.apiKey, .language = *wire}, std::move(transport));
         case OcrServiceProtocol::Baidu:
             return makeBaiduClient({.endpoint      = config.endpoint,
                                     .tokenEndpoint = config.provider.tokenEndpoint,
                                     .apiKey        = config.apiKey,
                                     .secretKey     = config.secretKey,
-                                    .language      = wire},
+                                    .language      = *wire},
                                    std::move(transport),
                                    tokens ? std::move(tokens) : makeMemoryOcrTokenStore());
+        case OcrServiceProtocol::Tencent:
+            return makeTencentClient(
+                {.endpoint = config.endpoint, .secretId = config.apiKey, .secretKey = config.secretKey, .language = *wire},
+                std::move(transport));
+        case OcrServiceProtocol::Aliyun:
+            return makeAliyunClient(
+                {.endpoint = config.endpoint, .accessKeyId = config.apiKey, .accessKeySecret = config.secretKey},
+                std::move(transport));
+        case OcrServiceProtocol::GoogleVision:
+            return makeGoogleClient(
+                {.endpoint = config.endpoint, .apiKey = config.apiKey, .language = *wire}, std::move(transport));
     }
     return {};
 }

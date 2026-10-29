@@ -46,10 +46,10 @@ Item {
     }
 
     function credentialLabel(slot) {
-        if (slot === "apiKey")
-            return qsTranslate("SettingsPopup", "API key");
-        if (slot === "secretKey")
-            return qsTranslate("SettingsPopup", "Secret key");
+        const slots = page.settings.ocrOnlineCredentials || [];
+        for (let i = 0; i < slots.length; ++i)
+            if (slots[i].slot === slot)
+                return slots[i].label;
         return slot;
     }
 
@@ -78,7 +78,23 @@ Item {
             return qsTranslate("SettingsPopup", "Online OCR is not configured.");
         if (settings.ocrTestState === "budget-paused")
             return qsTranslate("SettingsPopup", "Today's budget is used up.");
-        return qsTranslate("SettingsPopup", "The test could not read the image.");
+        if (settings.ocrTestState === "timeout")
+            return qsTranslate("SettingsPopup", "The service did not answer in time. Try again later.");
+        if (settings.ocrTestState === "transport-failed")
+            return qsTranslate("SettingsPopup", "The service could not be reached. Check the network or proxy.");
+        if (settings.ocrTestState === "empty-text")
+            return qsTranslate("SettingsPopup", "The service answered but found no text in the test image.");
+        if (settings.ocrTestReason === "not-activated")
+            return qsTranslate("SettingsPopup", "The service is not enabled for this account. Activate it in the service's console, then try again.");
+        if (settings.ocrTestReason === "authentication")
+            return qsTranslate("SettingsPopup", "The service rejected the key or its permissions. Check that the key is active and allowed to call this service.");
+        if (settings.ocrTestReason === "quota")
+            return qsTranslate("SettingsPopup", "The service's quota or rate limit is used up. Check the plan or billing state in the service's console.");
+        if (settings.ocrTestReason === "image" || settings.ocrTestState === "invalid-image" || settings.ocrTestState === "too-large")
+            return qsTranslate("SettingsPopup", "The service refused the image. Check its size and format limits.");
+        if (settings.ocrTestReason === "unavailable")
+            return qsTranslate("SettingsPopup", "The service is temporarily unavailable. Try again later.");
+        return qsTranslate("SettingsPopup", "The service refused the test. Its error code is in the log.");
     }
 
     Column {

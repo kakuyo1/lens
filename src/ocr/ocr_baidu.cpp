@@ -33,9 +33,16 @@ constexpr int         kTokenTimeoutMs     = 10000;
 constexpr int         kMinImageEdge       = 15;
 constexpr int         kMaxImageEdge       = 4096;
 
-OcrResult failed(OcrStatus const status, std::uint64_t const requestId, OcrUploadState const upload)
+OcrResult failed(OcrStatus const                 status,
+                 std::uint64_t const             requestId,
+                 OcrUploadState const            upload,
+                 capture::OcrFailureReason const reason = capture::OcrFailureReason::None)
 {
-    return {.status = status, .actualEngine = QStringLiteral("baidu"), .uploadState = upload, .requestId = requestId};
+    return {.status        = status,
+            .actualEngine  = QStringLiteral("baidu"),
+            .failureReason = reason,
+            .uploadState   = upload,
+            .requestId     = requestId};
 }
 
 bool parseInt(nlohmann::json const& value, int& out)
@@ -148,16 +155,23 @@ OcrResult parseResponse(QByteArray const&   body,
     if (auto const error = document.find("error_code"); error != document.end()) {
         int code = 0;
         if (not parseInt(*error, code)) return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
-        if (code == 216201) return failed(OcrStatus::InvalidImage, requestId, OcrUploadState::ServerResponded);
+        if (code == 216201) return failed(OcrStatus::InvalidImage, requestId, OcrUploadState::ServerResponded, capture::OcrFailureReason::Image);
         if (code == 216202 or code == 216203 or code == 216205)
-            return failed(OcrStatus::InputTooLarge, requestId, OcrUploadState::ServerResponded);
+            return failed(OcrStatus::InputTooLarge, requestId, OcrUploadState::ServerResponded, capture::OcrFailureReason::Image);
         // 110 and 111 are the token itself; the caller drops it so the next explicit attempt
         // exchanges a new one instead of reusing a token the service has already refused.
         tokenRejected = code == 110 or code == 111;
         errorCode     = code;
         // Quota, throttling, a rejected token and anything unknown share one answer: the service
         // refused the request, and the settings page's own test is where the reason is chased.
-        return failed(OcrStatus::Failed, requestId, OcrUploadState::ServerResponded);
+        auto reason = capture::OcrFailureReason::Unknown;
+        if (code == 17 or code == 18 or code == 19)
+            reason = capture::OcrFailureReason::Quota;
+        else if (code == 110 or code == 111 or code == 6)
+            reason = capture::OcrFailureReason::Authentication;
+        else if (code == 282000)
+            reason = capture::OcrFailureReason::Unavailable;
+        return failed(OcrStatus::Failed, requestId, OcrUploadState::ServerResponded, reason);
     }
 
     auto const lines = document.find("words_result");

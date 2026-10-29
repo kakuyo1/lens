@@ -291,6 +291,25 @@ TEST_F(SettingsTableRig, TheOcrKeyIsNotAProjectionRowAndDoesNotSync)
         << "the key is stored in the profile, just not projected";
 }
 
+/// Clearing the online configuration also removes what each service kept for switching back.
+TEST_F(SettingsTableRig, ClearingOnlineOcrConfigurationRemovesTheSavedServiceValues)
+{
+    QtApplication qt;
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    Rig rig{std::filesystem::path{temporary.path().toStdWString()}};
+
+    ASSERT_TRUE(rig.controller.setSetting(QStringLiteral("ocrOnlineProvider"), QStringLiteral("ocrspace")));
+    rig.controller.captureDuty()->setOcrCredential(QStringLiteral("apiKey"), QStringLiteral("token"));
+    ASSERT_TRUE(rig.controller.setSetting(QStringLiteral("ocrOnlineProvider"), QStringLiteral("baidu")));
+    ASSERT_TRUE(rig.store.document().contains("OCR-SERVICES"));
+
+    rig.controller.clearOcrOnlineConfiguration();
+    EXPECT_FALSE(rig.store.document().contains("OCR-SERVICES"));
+    EXPECT_TRUE(rig.store.document().value("OCR-API-KEY", std::string{}).empty());
+    EXPECT_TRUE(rig.store.document().value("OCR-SECRET-KEY", std::string{}).empty());
+}
+
 /// Restore-defaults covers every row the table marks restorable, and leaves the one it does not.
 TEST_F(SettingsTableRig, RestoreDefaultsCoversEveryRestorableRow)
 {

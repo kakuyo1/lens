@@ -62,9 +62,16 @@ bool stringField(nlohmann::json const& object, char const* key, QString& out)
     return not out.contains(QChar(0));
 }
 
-OcrResult failed(OcrStatus const status, std::uint64_t const requestId, OcrUploadState const upload)
+OcrResult failed(OcrStatus const                 status,
+                 std::uint64_t const             requestId,
+                 OcrUploadState const            upload,
+                 capture::OcrFailureReason const reason = capture::OcrFailureReason::None)
 {
-    return {.status = status, .actualEngine = QStringLiteral("ocrspace"), .uploadState = upload, .requestId = requestId};
+    return {.status        = status,
+            .actualEngine  = QStringLiteral("ocrspace"),
+            .failureReason = reason,
+            .uploadState   = upload,
+            .requestId     = requestId};
 }
 
 QByteArray multipartBody(QByteArray const& png, OcrSpaceConfig const& config, QByteArray const& boundary)
@@ -265,8 +272,10 @@ struct OcrSpaceClientImpl final : OnlineOcrClient {
 
         if (response.status >= 300 and response.status < 400)
             return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::ServerResponded)); // never a followed redirect
-        if (response.status == 401 or response.status == 403 or response.status == 429)
-            return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::ServerResponded));
+        if (response.status == 401 or response.status == 403)
+            return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::ServerResponded, capture::OcrFailureReason::Authentication));
+        if (response.status == 429)
+            return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::ServerResponded, capture::OcrFailureReason::Quota));
         if (response.status < 200 or response.status >= 300)
             return done(failed(OcrStatus::TransportFailed, request.requestId, OcrUploadState::ServerResponded));
 

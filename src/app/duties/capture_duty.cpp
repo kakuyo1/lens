@@ -105,6 +105,21 @@ QString tokenOf(CaptureRefusal refusal)
     return QString::fromLatin1(refusalKey(refusal));
 }
 
+/// @return The token for why a service refused, which the settings page explains in one sentence.
+QString failureReasonToken(capture::OcrFailureReason const reason)
+{
+    switch (reason) {
+        case capture::OcrFailureReason::None: return QStringLiteral("none");
+        case capture::OcrFailureReason::Authentication: return QStringLiteral("authentication");
+        case capture::OcrFailureReason::NotActivated: return QStringLiteral("not-activated");
+        case capture::OcrFailureReason::Quota: return QStringLiteral("quota");
+        case capture::OcrFailureReason::Image: return QStringLiteral("image");
+        case capture::OcrFailureReason::Unavailable: return QStringLiteral("unavailable");
+        case capture::OcrFailureReason::Unknown: return QStringLiteral("unknown");
+    }
+    return QStringLiteral("unknown");
+}
+
 /// @return A synthetic page for the explicit local test: no desktop pixels, no user content.
 QImage localTestImage(capture::OcrLanguage const language)
 {
@@ -218,10 +233,11 @@ QVariantMap CaptureDuty::settings() const
     QVariantList credentials;
     if (provider != nullptr) {
         auto const document = storage_.section();
-        for (auto const& slot : provider->credentials)
+        for (auto const& field : provider->credentials)
             credentials.append(QVariantMap{
-                {"slot", slot},
-                {"present", not document.value<std::string>(credentialSettingKey(slot).toStdString(), {}).empty()}});
+                {"slot", field.slot},
+                {"label", field.label},
+                {"present", not document.value<std::string>(credentialSettingKey(field.slot).toStdString(), {}).empty()}});
     }
     return {{"ocrCapture", readOf("ocrCapture")},
             {"autoScan", readOf("autoScan")},
@@ -251,6 +267,7 @@ QVariantMap CaptureDuty::settings() const
             {"actualLocalEngine", localInspection_.engine},
             {"localEngineReason", localInspection_.reason},
             {"ocrTestState", ocrTestState_},
+            {"ocrTestReason", ocrTestReason_},
             {"ocrTestEngine", ocrTestEngine_},
             {"ocrTestLanguage", ocrTestLanguage_},
             {"ocrTestMs", ocrTestMs_},
@@ -545,11 +562,22 @@ void CaptureDuty::setOcrOnlineProvider(QString provider)
     auto const previous = settings::read(keys, *core::settings::find("ocrOnlineProvider")).toString();
     if (value == previous) return;
     if (not settings::write(keys, *core::settings::find("ocrOnlineProvider"), value)) return;
-    // The address and the credentials were chosen for the service that just went away; carrying
-    // them over would point one service's key at another service's protocol.
-    settings::write(keys, *core::settings::find("ocrOnlineEndpoint"), QString{});
-    for (auto const* const slot : {"apiKey", "secretKey"})
-        keys.set<std::string>(credentialSettingKey(QLatin1String(slot)).toStdString(), {});
+    // Each service keeps its own address and credentials. The outgoing service's values are put
+    // away first and the incoming service's own are restored, so no key is ever carried across.
+    saveOnlineService(previous);
+    restoreOnlineService(value);
+    // A language one service lists and the next does not would leave the profile configured as
+    // if it could speak it; the first language the new service lists takes over.
+    if (auto const* const chosen = ocr::findOcrProvider(value); chosen != nullptr) {
+        auto const language = settings::read(keys, *core::settings::find("ocrOnlineLanguage")).toString();
+        if (not chosen->languages.contains(language)) {
+            for (auto const* const candidate : {"eng", "auto"})
+                if (chosen->languages.contains(QLatin1String(candidate))) {
+                    settings::write(keys, *core::settings::find("ocrOnlineLanguage"), QLatin1String(candidate));
+                    break;
+                }
+        }
+    }
     clearOnlineTokens();
     invalidateOnlineConfiguration();
     emit settingsChanged();
@@ -606,8 +634,8 @@ bool CaptureDuty::onlineConfigured() const
     if (ocr::validateOcrEndpoint(onlineEndpoint(*provider))) return false;
     auto const keys = storage_.section();
     if (not onlineLanguageSupported(settings::read(keys, *core::settings::find("ocrOnlineLanguage")).toString())) return false;
-    for (auto const& slot : provider->credentials) {
-        auto const key = credentialSettingKey(slot);
+    for (auto const& field : provider->credentials) {
+        auto const key = credentialSettingKey(field.slot);
         if (key.isEmpty() or keys.value<std::string>(key.toStdString(), {}).empty()) return false;
     }
     return true;
@@ -654,6 +682,26 @@ QString CaptureDuty::onlineSecret() const
     return QString::fromStdString(storage_.section().value<std::string>("OCR-SECRET-KEY", {}));
 }
 
+void CaptureDuty::saveOnlineService(QString const& provider)
+{
+    if (provider.isEmpty()) return;
+    auto const keys  = storage_.section();
+    auto       entry = storage_.section("OCR-SERVICES").object(provider.toStdString());
+    entry.set<std::string>("endpoint",
+                           settings::read(keys, *core::settings::find("ocrOnlineEndpoint")).toString().toStdString());
+    entry.set<std::string>("apiKey", keys.value<std::string>("OCR-API-KEY", {}));
+    entry.set<std::string>("secretKey", keys.value<std::string>("OCR-SECRET-KEY", {}));
+}
+
+void CaptureDuty::restoreOnlineService(QString const& provider)
+{
+    auto const entry = storage_.section("OCR-SERVICES").object(provider.toStdString());
+    auto       keys  = storage_.section();
+    settings::write(keys, *core::settings::find("ocrOnlineEndpoint"), QString::fromStdString(entry.value<std::string>("endpoint", {})));
+    keys.set<std::string>("OCR-API-KEY", entry.value<std::string>("apiKey", {}));
+    keys.set<std::string>("OCR-SECRET-KEY", entry.value<std::string>("secretKey", {}));
+}
+
 void CaptureDuty::clearOnlineTokens()
 {
     if (onlineTokens_) onlineTokens_->clear();
@@ -664,7 +712,8 @@ void CaptureDuty::invalidateOnlineConfiguration()
     if (jobContext_ and jobContext_->test) {
         executor_->cancel();
         jobContext_.reset();
-        ocrTestState_ = QStringLiteral("idle");
+        ocrTestState_  = QStringLiteral("idle");
+        ocrTestReason_ = QStringLiteral("none");
     }
     clearUpload(QStringLiteral("configuration-changed"), true);
 }
@@ -683,6 +732,7 @@ void CaptureDuty::rebuildOcr()
     localInspection_ = capture::inspectLocalOcr(local, true);
     ocrState_        = localInspection_.status;
     ocrTestState_    = QStringLiteral("idle");
+    ocrTestReason_   = QStringLiteral("none");
     ocrTestEngine_.clear();
     ocrTestLanguage_.clear();
     ocrTestMs_ = 0;
@@ -751,8 +801,9 @@ void CaptureDuty::testLocalOcr()
         }
     });
     if (not started) return;
-    jobContext_   = OcrJob{.requestId = id, .test = true};
-    ocrTestState_ = QStringLiteral("checking");
+    jobContext_    = OcrJob{.requestId = id, .test = true};
+    ocrTestState_  = QStringLiteral("checking");
+    ocrTestReason_ = QStringLiteral("none");
     emit settingsChanged();
 }
 
@@ -985,6 +1036,7 @@ void CaptureDuty::testOnlineOcr()
                                 .image     = localTestImage(capture::OcrLanguage::English),
                                 .deadline  = std::chrono::milliseconds{30000}};
     ocrTestState_      = QStringLiteral("checking");
+    ocrTestReason_     = QStringLiteral("none");
     auto const started = executor_->start(id, [client = std::move(client), request = std::move(request)](std::shared_ptr<std::atomic_bool> cancel) mutable {
         try {
             return client->recognize(request, std::move(cancel));
@@ -1134,6 +1186,7 @@ void CaptureDuty::onOcrFinished(std::uint64_t const requestId, capture::OcrResul
     if (context.test) {
         auto const refusal = refusalOf(result.status);
         ocrTestState_      = refusal ? tokenOf(*refusal) : QStringLiteral("ready");
+        ocrTestReason_     = failureReasonToken(result.failureReason);
         ocrTestEngine_     = result.actualEngine;
         ocrTestLanguage_   = result.languageUsed;
         ocrTestMs_         = result.timing.totalMs;

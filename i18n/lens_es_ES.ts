@@ -415,7 +415,7 @@
         <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="52"/>
         <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="86"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="38"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="78"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="77"/>
         <source>Daily budget</source>
         <translation>Presupuesto diario</translation>
     </message>
@@ -496,7 +496,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="164"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="86"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="85"/>
         <source>Popup &amp; clipboard</source>
         <translation>Ventana y portapapeles</translation>
     </message>
@@ -514,7 +514,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="176"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="87"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="86"/>
         <source>OCR engine</source>
         <translation>Motor de OCR</translation>
     </message>
@@ -536,7 +536,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="18"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="74"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="73"/>
         <source>General</source>
         <translation>General</translation>
     </message>
@@ -547,7 +547,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="23"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="75"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="74"/>
         <source>Reading &amp; learning</source>
         <translation>Lectura y aprendizaje</translation>
     </message>
@@ -558,13 +558,13 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="28"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="76"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="75"/>
         <source>Capture &amp; popups</source>
         <translation>Captura y ventanas</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="33"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="77"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="76"/>
         <source>Model service</source>
         <translation>Servicio del modelo</translation>
     </message>
@@ -580,7 +580,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="43"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="79"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="78"/>
         <source>Extensions</source>
         <translation>Extensiones</translation>
     </message>
@@ -593,7 +593,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="48"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="80"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="79"/>
         <source>About</source>
         <translation>Acerca de</translation>
     </message>
@@ -636,7 +636,6 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsConnectionPage.qml" line="29"/>
         <location filename="../src/app/qml/settings/pages/SettingsConnectionPage.qml" line="54"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="50"/>
         <source>API key</source>
         <translation>Clave de API</translation>
     </message>
@@ -939,7 +938,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="486"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="90"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="89"/>
         <source>Account &amp; sync</source>
         <translation>Cuenta y sincronización</translation>
     </message>
@@ -1103,7 +1102,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="101"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="89"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="88"/>
         <source>API configuration</source>
         <translation>Configuración de la API</translation>
     </message>
@@ -1119,23 +1118,23 @@
         <translation>Sin configurar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="315"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="352"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="314"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="343"/>
         <source>Saved</source>
         <translation>Guardado</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="360"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="351"/>
         <source>Defaults restored</source>
         <translation>Valores por defecto restaurados</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="460"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="451"/>
         <source>Back</source>
         <translation>Atrás</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="516"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="507"/>
         <source>Close</source>
         <translation>Cerrar</translation>
     </message>
@@ -1155,29 +1154,24 @@
         <translation>El presupuesto de hoy se ha agotado.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="92"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="108"/>
         <source>Service</source>
         <translation>Servicio</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="116"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="132"/>
         <source>Endpoint</source>
         <translation>Punto de acceso</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="137"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="153"/>
         <source>OCR endpoint</source>
         <translation>Punto de acceso OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="173"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="189"/>
         <source>Online recognition language</source>
         <translation>Idioma de reconocimiento en línea</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="52"/>
-        <source>Secret key</source>
-        <translation>Clave secreta</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="60"/>
@@ -1185,75 +1179,120 @@
         <translation>Automático (predeterminado del servicio)</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="82"/>
+        <source>The service did not answer in time. Try again later.</source>
+        <translation>El servicio no respondió a tiempo. Inténtalo más tarde.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="84"/>
+        <source>The service could not be reached. Check the network or proxy.</source>
+        <translation>No se pudo contactar con el servicio. Revisa la red o el proxy.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="86"/>
+        <source>The service answered but found no text in the test image.</source>
+        <translation>El servicio respondió pero no encontró texto en la imagen de prueba.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="88"/>
+        <source>The service is not enabled for this account. Activate it in the service&apos;s console, then try again.</source>
+        <translation>El servicio no está habilitado para esta cuenta. Actívalo en la consola del servicio y vuelve a intentarlo.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="90"/>
+        <source>The service rejected the key or its permissions. Check that the key is active and allowed to call this service.</source>
+        <translation>El servicio rechazó la clave o sus permisos. Comprueba que la clave esté activa y autorizada para llamar a este servicio.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="92"/>
+        <source>The service&apos;s quota or rate limit is used up. Check the plan or billing state in the service&apos;s console.</source>
+        <translation>La cuota o el límite de peticiones del servicio está agotado. Revisa el plan o el estado de facturación en la consola del servicio.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="94"/>
+        <source>The service refused the image. Check its size and format limits.</source>
+        <translation>El servicio rechazó la imagen. Revisa sus límites de tamaño y formato.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="96"/>
+        <source>The service is temporarily unavailable. Try again later.</source>
+        <translation>El servicio no está disponible temporalmente. Inténtalo más tarde.</translation>
+    </message>
+    <message>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="97"/>
+        <source>The service refused the test. Its error code is in the log.</source>
+        <translation>El servicio rechazó la prueba. Su código de error está en el registro.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="113"/>
         <source>Online OCR service</source>
         <translation>Servicio de OCR en línea</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="105"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="121"/>
         <source>Choose a service, then enter the credentials it needs.</source>
         <translation>Elige un servicio y luego introduce las credenciales que necesita.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="106"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="122"/>
         <source>The service&apos;s own terms and billing apply. Switching services clears the address and credentials below.</source>
         <translation>Se aplican los términos y la facturación del servicio. Cambiar de servicio borra la dirección y las credenciales de abajo.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="158"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="174"/>
         <source>The full HTTPS address. Leave it empty to use the service&apos;s own; nothing is sent until a capture is confirmed.</source>
         <translation>La dirección HTTPS completa. Déjala vacía para usar la del servicio; no se envía nada hasta confirmar una captura.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="281"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="297"/>
         <source>Separate from the explanation key. Stored on this device only, never synced, exported or logged.</source>
         <translation>Separada de la clave de explicación. Solo se guarda en este dispositivo; nunca se sincroniza, exporta ni registra.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="294"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="310"/>
         <source>Ready to ask for confirmation.</source>
         <translation>Listo para pedir confirmación.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="295"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="311"/>
         <source>Not configured.</source>
         <translation>No configurado.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="308"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="324"/>
         <source>Test online OCR</source>
         <translation>Probar OCR en línea</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="317"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="333"/>
         <source>Clear configuration</source>
         <translation>Borrar configuración</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="322"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="624"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="338"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="615"/>
         <source>Confirm</source>
         <translation>Confirmar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="338"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="354"/>
         <source>The test sends a small synthetic image, never the screen, and may be billed by the service.</source>
         <translation>La prueba envía una pequeña imagen sintética, nunca la pantalla, y el servicio puede facturarla.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="652"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="643"/>
         <source>API key and launch at login stay as they are.</source>
         <translation>La clave API y el inicio automático no cambian.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="102"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="472"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="463"/>
         <source>Settings</source>
         <translation>Ajustes</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="261"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="610"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="601"/>
         <source>Defaults</source>
         <translation>Por defecto</translation>
     </message>
@@ -2100,10 +2139,10 @@
     </message>
     <message>
         <location filename="../src/app/qml/pet/PetPackageDialog.qml" line="115"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="331"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="347"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="152"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="295"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="633"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="624"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
@@ -2252,7 +2291,7 @@
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="51"/>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="59"/>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="481"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="85"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="84"/>
         <source>Font</source>
         <translation>Fuente</translation>
     </message>
@@ -2306,7 +2345,6 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="91"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="81"/>
         <source>The test could not read the image.</source>
         <translation>La prueba no pudo leer la imagen.</translation>
     </message>
@@ -2348,7 +2386,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="328"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="88"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="87"/>
         <source>Online OCR</source>
         <translation>OCR en línea</translation>
     </message>
@@ -2433,7 +2471,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="195"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="203"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="168"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="184"/>
         <source>Recognition language</source>
         <translation>Idioma de reconocimiento</translation>
     </message>
@@ -2460,7 +2498,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="228"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="307"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="323"/>
         <source>Testing…</source>
         <translation>Probando…</translation>
     </message>
@@ -3149,7 +3187,7 @@
     </message>
     <message>
         <location filename="../src/app/app_controller.cpp" line="448"/>
-        <location filename="../src/app/app_controller.cpp" line="633"/>
+        <location filename="../src/app/app_controller.cpp" line="635"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>El presupuesto de hoy se ha agotado.</translation>
     </message>
@@ -3204,44 +3242,44 @@
         <translation>Predeterminado</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="664"/>
+        <location filename="../src/app/app_controller.cpp" line="666"/>
         <source>American</source>
         <translation>Estadounidense</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="666"/>
+        <location filename="../src/app/app_controller.cpp" line="668"/>
         <source>British</source>
         <translation>Británico</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="671"/>
+        <location filename="../src/app/app_controller.cpp" line="673"/>
         <source>System voice</source>
         <translation>Voz del sistema</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="673"/>
-        <location filename="../src/app/app_controller.cpp" line="680"/>
+        <location filename="../src/app/app_controller.cpp" line="675"/>
+        <location filename="../src/app/app_controller.cpp" line="682"/>
         <source>Online audio</source>
         <translation>Audio en línea</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="675"/>
-        <location filename="../src/app/app_controller.cpp" line="682"/>
+        <location filename="../src/app/app_controller.cpp" line="677"/>
+        <location filename="../src/app/app_controller.cpp" line="684"/>
         <source>Local model</source>
         <translation>Modelo local</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="684"/>
+        <location filename="../src/app/app_controller.cpp" line="686"/>
         <source>Silent</source>
         <translation>Sin sonido</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="909"/>
+        <location filename="../src/app/app_controller.cpp" line="911"/>
         <source>Auto</source>
         <translation>Automático</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="909"/>
+        <location filename="../src/app/app_controller.cpp" line="911"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>

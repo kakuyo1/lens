@@ -387,23 +387,23 @@
 <context>
     <name>SettingsPopup</name>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="315"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="352"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="314"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="343"/>
         <source>Saved</source>
         <translation>已保存</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="360"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="351"/>
         <source>Defaults restored</source>
         <translation>已恢复默认</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="460"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="451"/>
         <source>Back</source>
         <translation>返回</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="516"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="507"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
@@ -423,29 +423,24 @@
         <translation>今日预算已用尽。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="92"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="108"/>
         <source>Service</source>
         <translation>服务</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="116"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="132"/>
         <source>Endpoint</source>
         <translation>端点</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="137"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="153"/>
         <source>OCR endpoint</source>
         <translation>OCR 端点</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="173"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="189"/>
         <source>Online recognition language</source>
         <translation>在线识别语言</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="52"/>
-        <source>Secret key</source>
-        <translation>Secret key</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="60"/>
@@ -453,69 +448,114 @@
         <translation>自动（服务默认）</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="82"/>
+        <source>The service did not answer in time. Try again later.</source>
+        <translation>服务没有及时响应，请稍后再试。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="84"/>
+        <source>The service could not be reached. Check the network or proxy.</source>
+        <translation>无法连接服务。请检查网络或代理。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="86"/>
+        <source>The service answered but found no text in the test image.</source>
+        <translation>服务已响应，但测试图上没有识别出文字。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="88"/>
+        <source>The service is not enabled for this account. Activate it in the service&apos;s console, then try again.</source>
+        <translation>这个账号还没有开通该服务。请先在服务商控制台开通，再试一次。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="90"/>
+        <source>The service rejected the key or its permissions. Check that the key is active and allowed to call this service.</source>
+        <translation>服务拒绝了密钥或其权限。请确认密钥有效，并有权调用该服务。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="92"/>
+        <source>The service&apos;s quota or rate limit is used up. Check the plan or billing state in the service&apos;s console.</source>
+        <translation>服务的额度或调用频率已用尽。请到服务商控制台检查套餐或计费状态。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="94"/>
+        <source>The service refused the image. Check its size and format limits.</source>
+        <translation>服务拒绝了这张图。请检查它对尺寸和格式的限制。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="96"/>
+        <source>The service is temporarily unavailable. Try again later.</source>
+        <translation>服务暂时不可用，请稍后再试。</translation>
+    </message>
+    <message>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="97"/>
+        <source>The service refused the test. Its error code is in the log.</source>
+        <translation>服务拒绝了这次检测。具体错误码已写入日志。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="113"/>
         <source>Online OCR service</source>
         <translation>在线 OCR 服务</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="105"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="121"/>
         <source>Choose a service, then enter the credentials it needs.</source>
         <translation>先选择服务，再填入它需要的凭据。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="106"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="122"/>
         <source>The service&apos;s own terms and billing apply. Switching services clears the address and credentials below.</source>
         <translation>服务的条款与计费由服务商决定。切换服务会清空下面的地址和凭据。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="158"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="174"/>
         <source>The full HTTPS address. Leave it empty to use the service&apos;s own; nothing is sent until a capture is confirmed.</source>
         <translation>完整的 HTTPS 地址。留空即使用服务自身的地址；确认截图前不会发送任何内容。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="281"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="297"/>
         <source>Separate from the explanation key. Stored on this device only, never synced, exported or logged.</source>
         <translation>与解释密钥分开。仅保存在本机，不同步、不导出、不写入日志。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="294"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="310"/>
         <source>Ready to ask for confirmation.</source>
         <translation>已就绪，截图后会先请求确认。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="295"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="311"/>
         <source>Not configured.</source>
         <translation>尚未配置。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="308"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="324"/>
         <source>Test online OCR</source>
         <translation>测试在线 OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="317"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="333"/>
         <source>Clear configuration</source>
         <translation>清除配置</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="322"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="624"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="338"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="615"/>
         <source>Confirm</source>
         <translation>确认</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="338"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="354"/>
         <source>The test sends a small synthetic image, never the screen, and may be billed by the service.</source>
         <translation>测试只发送一张小型合成图，绝不发送屏幕内容；服务商可能会计费。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="652"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="643"/>
         <source>API key and launch at login stay as they are.</source>
         <translation>API key 与开机自启保持不变。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="102"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="472"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="463"/>
         <source>Settings</source>
         <translation>设置</translation>
     </message>
@@ -919,7 +959,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="486"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="90"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="89"/>
         <source>Account &amp; sync</source>
         <translation>账号与同步</translation>
     </message>
@@ -942,7 +982,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="261"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="610"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="601"/>
         <source>Defaults</source>
         <translation>恢复默认</translation>
     </message>
@@ -1023,13 +1063,13 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="164"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="86"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="85"/>
         <source>Popup &amp; clipboard</source>
         <translation>弹窗与剪贴板</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="176"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="87"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="86"/>
         <source>OCR engine</source>
         <translation>OCR 引擎</translation>
     </message>
@@ -1078,13 +1118,13 @@
         <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="52"/>
         <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="86"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="38"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="78"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="77"/>
         <source>Daily budget</source>
         <translation>每日预算</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="18"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="74"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="73"/>
         <source>General</source>
         <translation>通用</translation>
     </message>
@@ -1095,7 +1135,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="23"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="75"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="74"/>
         <source>Reading &amp; learning</source>
         <translation>阅读学习</translation>
     </message>
@@ -1106,13 +1146,13 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="28"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="76"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="75"/>
         <source>Capture &amp; popups</source>
         <translation>取词与弹窗</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="33"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="77"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="76"/>
         <source>Model service</source>
         <translation>模型服务</translation>
     </message>
@@ -1128,7 +1168,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="43"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="79"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="78"/>
         <source>Extensions</source>
         <translation>扩展</translation>
     </message>
@@ -1141,7 +1181,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="48"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="80"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="79"/>
         <source>About</source>
         <translation>关于</translation>
     </message>
@@ -1184,7 +1224,6 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsConnectionPage.qml" line="29"/>
         <location filename="../src/app/qml/settings/pages/SettingsConnectionPage.qml" line="54"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="50"/>
         <source>API key</source>
         <translation>API key</translation>
     </message>
@@ -1233,7 +1272,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="101"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="89"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="88"/>
         <source>API configuration</source>
         <translation>API 配置</translation>
     </message>
@@ -2166,10 +2205,10 @@
     </message>
     <message>
         <location filename="../src/app/qml/pet/PetPackageDialog.qml" line="115"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="331"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="347"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="152"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="295"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="633"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="624"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
@@ -2243,7 +2282,7 @@
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="51"/>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="59"/>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="481"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="85"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="84"/>
         <source>Font</source>
         <translation>字体</translation>
     </message>
@@ -2297,7 +2336,6 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="91"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="81"/>
         <source>The test could not read the image.</source>
         <translation>测试无法读取图片。</translation>
     </message>
@@ -2339,7 +2377,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="328"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="88"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="87"/>
         <source>Online OCR</source>
         <translation>在线 OCR</translation>
     </message>
@@ -2424,7 +2462,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="195"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="203"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="168"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="184"/>
         <source>Recognition language</source>
         <translation>识别语言</translation>
     </message>
@@ -2451,7 +2489,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="228"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="307"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="323"/>
         <source>Testing…</source>
         <translation>测试中…</translation>
     </message>
@@ -3205,7 +3243,7 @@
     </message>
     <message>
         <location filename="../src/app/app_controller.cpp" line="448"/>
-        <location filename="../src/app/app_controller.cpp" line="633"/>
+        <location filename="../src/app/app_controller.cpp" line="635"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>今日预算已用尽。</translation>
     </message>
@@ -3260,44 +3298,44 @@
         <translation>默认</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="664"/>
+        <location filename="../src/app/app_controller.cpp" line="666"/>
         <source>American</source>
         <translation>美式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="666"/>
+        <location filename="../src/app/app_controller.cpp" line="668"/>
         <source>British</source>
         <translation>英式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="671"/>
+        <location filename="../src/app/app_controller.cpp" line="673"/>
         <source>System voice</source>
         <translation>系统合成</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="673"/>
-        <location filename="../src/app/app_controller.cpp" line="680"/>
+        <location filename="../src/app/app_controller.cpp" line="675"/>
+        <location filename="../src/app/app_controller.cpp" line="682"/>
         <source>Online audio</source>
         <translation>在线音频</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="675"/>
-        <location filename="../src/app/app_controller.cpp" line="682"/>
+        <location filename="../src/app/app_controller.cpp" line="677"/>
+        <location filename="../src/app/app_controller.cpp" line="684"/>
         <source>Local model</source>
         <translation>本地模型</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="684"/>
+        <location filename="../src/app/app_controller.cpp" line="686"/>
         <source>Silent</source>
         <translation>不发音</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="909"/>
+        <location filename="../src/app/app_controller.cpp" line="911"/>
         <source>Auto</source>
         <translation>自动模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="909"/>
+        <location filename="../src/app/app_controller.cpp" line="911"/>
         <source>Manual</source>
         <translation>手动模式</translation>
     </message>

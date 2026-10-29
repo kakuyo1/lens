@@ -216,8 +216,10 @@ TEST(OcrSpace, HttpAuthenticationAndRedirectsAreRefusedWithoutAFollowUp)
     auto transport = std::make_shared<FakeTransport>();
     auto client    = lens::ocr::makeOcrSpaceClient(config(), transport);
 
-    transport->response = {.status = 401, .transportOk = true};
-    EXPECT_EQ(client->recognize(request()).status, OcrStatus::Failed);
+    transport->response     = {.status = 401, .transportOk = true};
+    auto const unauthorized = client->recognize(request());
+    EXPECT_EQ(unauthorized.status, OcrStatus::Failed);
+    EXPECT_EQ(unauthorized.failureReason, lens::capture::OcrFailureReason::Authentication);
     transport->response = {.status = 302, .transportOk = true};
     EXPECT_EQ(client->recognize(request()).status, OcrStatus::Failed);
     transport->response = {.status = 500, .transportOk = true};

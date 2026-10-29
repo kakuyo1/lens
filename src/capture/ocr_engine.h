@@ -81,6 +81,20 @@ enum class OcrFallbackReason : std::uint8_t {
     PrimaryTimedOut,
 };
 
+/// @brief Why an online service refused a request, in the terms the settings page can explain.
+///
+/// The status says a request failed; this says what the reader could change. `Unknown` is the
+/// honest answer for a service code this build does not classify, never a guess.
+enum class OcrFailureReason : std::uint8_t {
+    None,
+    Authentication, ///< The key or its permissions were rejected.
+    NotActivated,   ///< The service itself is not enabled for this account.
+    Quota,          ///< A rate, daily or total limit, or the account's billing state.
+    Image,          ///< The service refused the picture's format, size or content.
+    Unavailable,    ///< The service itself failed or timed out on its side.
+    Unknown,
+};
+
 /// @brief How much geometry the result really carries; `has any box` is not enough to say `Word`.
 enum class OcrGeometryLevel : std::uint8_t {
     None,
@@ -146,6 +160,7 @@ struct OcrResult {
     QString                      languageUsed;
     OcrGeometryLevel             geometryLevel  = OcrGeometryLevel::None;
     OcrFallbackReason            fallbackReason = OcrFallbackReason::None;
+    OcrFailureReason             failureReason  = OcrFailureReason::None;
     OcrTiming                    timing;
     std::vector<OcrAttempt>      attempts; ///< At most the two entries of the automatic strategy.
     OcrUploadState               uploadState = OcrUploadState::NotApplicable;
