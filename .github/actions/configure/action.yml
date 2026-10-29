@@ -33,8 +33,8 @@ inputs:
     description: Qt architecture; the install directory drops its win64_ prefix.
     default: 'win64_msvc2022_64'
   qtModules:
-    description: Additional Qt modules, comma-separated.
-    default: 'qtshadertools'
+    description: Additional Qt modules, space-separated (install-qt-action splits the input on spaces).
+    default: 'qtshadertools qtmultimedia qtspeech'
 
 runs:
   using: composite
@@ -48,8 +48,9 @@ runs:
 
     # The base install carries qtbase (Core, Gui, Widgets, Network, and Test, which is where
     # Qt6Test comes from), qtdeclarative (Quick, and QuickTest, which is built out of its
-    # src/qmltest), qtsvg, and qttools (LinguistTools). qtshadertools is not in the base: the glass
-    # shader needs its qsb (qt_add_shaders in src/app/CMakeLists.txt).
+    # src/qmltest), qtsvg, and qttools (LinguistTools). Three add-ons are not in the base:
+    # qtshadertools for the glass shader's qsb (qt_add_shaders in src/app/CMakeLists.txt), and
+    # qtmultimedia with qtspeech for the pronunciation duty's QMediaPlayer and QTextToSpeech.
     #
     # Only on a miss. `cache: true` stays on the action as the fallback for the first run after
     # this key changes: it restores the action's own copy of the same install rather than
