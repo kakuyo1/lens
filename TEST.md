@@ -136,9 +136,7 @@ Translation（语言先于形状判定），其余按形状：单 token 在词�
 
 ## 5 UI 表面
 
-**顺序**：先开发面，再离屏 QTest，最后才是真实鼠标与截图。哪些问题归开发面、哪些归真机，开发面的动词表
-与全部细节见 `docs/qa.md`（owner），本文不复述。为看状态临时加进 `src/` 的计时器与 `console.log`
-**提交前必须删干净**：探针规则见 `docs/qa.md` 的 “一轮的顺序”，`.githooks/pre-commit` 的第三项会拦。
+**顺序**：先开发面，再离屏 QTest，最后才是真实鼠标与截图；驱动手段与判读细节见 `docs/qa.md`。为看状态临时加进 `src/` 的计时器与 `console.log` **提交前必须删干净**——探针规则见 `docs/qa.md` 的 “一轮的顺序”，`.githooks/pre-commit` 的第三项会拦。
 
 ## 6 记录
 

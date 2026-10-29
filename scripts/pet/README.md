@@ -1,6 +1,6 @@
 # 桌面宠物美术脚本
 
-七只随包宠物（猫、狗、云、幽灵、水母、麻糬、猫头鹰）都由配方生成。配方字段、渲染约束与检查流程见 [`docs/pet-art-pipeline.md`](../../docs/pet-art-pipeline.md)；这里只留运行入口。渲染器直接覆盖 `data/pet/<id>/`，没有暂存副本。
+七只随包宠物（猫、狗、云、幽灵、水母、麻糬、猫头鹰）都由配方生成，渲染器直接覆盖 `data/pet/<id>/`，没有暂存副本；配方字段、渲染约束与检查流程见 [`docs/pet-art-pipeline.md`](../../docs/pet-art-pipeline.md)。
 
 ```sh
 python -I scripts/pet/render_pet.py <id>   # 配方 → data/pet/<id>/（需要 Pillow）
