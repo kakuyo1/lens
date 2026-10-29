@@ -8,6 +8,7 @@
 #include <QtQml/qqmlregistration.h>
 
 #include <QThreadPool>
+#include <QTimer>
 #include <QVariantMap>
 
 #include <map>
@@ -167,6 +168,8 @@ private:
     /// @brief Read @p word through the local voice the setting names, on the worker; the recording is
     ///        played back on this thread, and only if it is still the press that is current.
     void speakLocal(QString const& word, QString const& accent);
+    /// @brief Hand the local engine to the worker to be released there, after whatever is queued for it.
+    void retireLocalVoice();
     /**
      * @brief Put @p bytes through the player.
      *
@@ -202,9 +205,12 @@ private:
     /// The word the synthesiser was handed, which its state signals do not carry back.
     QString systemWord_;
 
-    /// The local engine, bound to the voice and accent it was made for. Replaced when either changes,
-    /// and only ever used by the worker: the copy a queued task holds keeps it alive until that task ends.
+    /// The local engine, bound to the voice and accent it was made for. Replaced when either changes, and
+    /// released after five minutes without a press (localVoiceIdle_). Only the worker uses it: a queued task
+    /// holds its own copy, so the engine outlives a release until the task that needs it has finished.
     std::shared_ptr<LocalVoice> localVoice_;
+    /// Counts from the last local press. When it runs out the engine is released, and the next press loads it again.
+    QTimer localVoiceIdle_;
     /// Fetches the local voices. Built with no parent: a member that also had the duty as its parent
     /// would be deleted twice, once by the parent and once as a member.
     speech::VoiceDownloader downloader_;

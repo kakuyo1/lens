@@ -28,6 +28,11 @@ namespace {
 using speech::Engine;
 using speech::Fallback;
 
+/// How long the local engine stays loaded after the last press. Holding it costs about 390 MB and loading
+/// it again about three seconds, so five minutes keeps a run of words instant without holding the memory
+/// for the rest of the session.
+constexpr int kLocalVoiceIdleMs = 5 * 60 * 1000;
+
 /// @return One row's value as the document holds it, read through the row's own rule.
 QVariant rowValue(StorageDuty& storage, char const* key)
 {
@@ -85,6 +90,14 @@ SpeechDuty::SpeechDuty(speech::PronunciationSource& source, speech::AudioCache& 
       storage_(storage)
 {
     localPool_.setMaxThreadCount(1);
+    localVoiceIdle_.setSingleShot(true);
+    localVoiceIdle_.setInterval(kLocalVoiceIdleMs);
+    connect(&localVoiceIdle_, &QTimer::timeout, this, [this] {
+        if (not localVoice_)
+            return;
+        LENS_INFO("pronunciation: the local voice has been idle for {} minutes; releasing its engine", kLocalVoiceIdleMs / 60000);
+        retireLocalVoice();
+    });
     connect(&downloader_, &speech::VoiceDownloader::progressed, this, [this](qint64 received, qint64 total) {
         const int percent = total > 0 ? static_cast<int>(received * 100 / total) : 0;
         if (percent == voicePercent_)
@@ -220,9 +233,11 @@ void SpeechDuty::removeVoice(QString id)
     const auto model = voiceNamed(id);
     if (not model or downloader_.busy())
         return;
-    // The duty lets go of its engine first, so the next press loads the voice afresh if it is back.
+    // The engine has to be released before its files are deleted, and the worker has to finish with it first,
+    // so the next press loads the voice afresh if it is back.
     if (localVoice_ and localVoice_->model() == *model)
-        localVoice_.reset();
+        retireLocalVoice();
+    localPool_.waitForDone();
     QDir{QString::fromStdWString((speech::voiceRoot() / id.toStdWString()).wstring())}.removeRecursively();
     emit voicesChanged();
 }
@@ -352,12 +367,24 @@ void SpeechDuty::speak(QString word)
     }
 }
 
+void SpeechDuty::retireLocalVoice()
+{
+    if (not localVoice_)
+        return;
+    // The capture is the point: the engine is destroyed when the worker drops the runnable, which it does after
+    // whatever was queued for the engine before it. Destroying it here would stall the window for the teardown.
+    localPool_.start(QRunnable::create([voice = std::move(localVoice_)] {}));
+}
+
 void SpeechDuty::speakLocal(QString const& word, QString const& accent)
 {
     const auto model = speech::voiceFrom(rowValue(storage_, "speechLocalEngine").toString());
     // The engine is kept while the reader stays on one voice and one accent: loading it is the slow part.
-    if (not localVoice_ or localVoice_->model() != model or localVoice_->accent() != accent)
+    if (not localVoice_ or localVoice_->model() != model or localVoice_->accent() != accent) {
+        retireLocalVoice();
         localVoice_ = std::make_shared<LocalVoice>(model, accent, speech::voiceRoot());
+    }
+    localVoiceIdle_.start();
 
     const int request = requestId_;
     localPool_.start(QRunnable::create([this, request, voice = localVoice_, word] {
