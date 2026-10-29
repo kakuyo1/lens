@@ -690,7 +690,17 @@ QVariantMap AppController::settings()
     // "Unavailable" for an engine this build or this accent has none of.
     result.insert(QStringLiteral("speechSystemAvailable"), speechDuty_.systemAvailable());
     result.insert(QStringLiteral("speechSystemVoice"), speechDuty_.systemVoice());
-    result.insert(QStringLiteral("speechLocalAvailable"), speechDuty_.localAvailable());
+    // Whether each local voice is on this machine is not in this projection: it moves while a download
+    // runs, so the page reads it off Controller.speechDuty.voiceStates, which notifies as it moves.
+    result.insert(QStringLiteral("speechLocalEngineOptions"),
+                  QVariantList{
+                      QVariantMap{{QStringLiteral("value"), QStringLiteral("auto")},
+                                  {QStringLiteral("label"), QCoreApplication::translate("lens::app::AppController", "Automatic")}},
+                      QVariantMap{{QStringLiteral("value"), QStringLiteral("kokoro")},
+                                  {QStringLiteral("label"), QCoreApplication::translate("lens::app::AppController", "Kokoro")}},
+                      QVariantMap{{QStringLiteral("value"), QStringLiteral("ljspeech")},
+                                  {QStringLiteral("label"), QCoreApplication::translate("lens::app::AppController", "LJSpeech")}},
+                  });
     // The face the English runs are drawn in: the reader's pick, or the application's own when
     // nothing is stored -- and also when what is stored names a family this machine no longer has,
     // which a settings document copied from another machine can. Handed out as a family rather

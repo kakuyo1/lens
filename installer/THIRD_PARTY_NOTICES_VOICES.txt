@@ -1,0 +1,18 @@
+Lens local voice runtime notice
+===============================
+
+This installer includes the sherpa-onnx v2.0.1 Windows x64 runtime and the ONNX Runtime it loads.
+Both sit beside lens.exe: sherpa-onnx-c-api.dll, onnxruntime.dll and onnxruntime_providers_shared.dll.
+
+sherpa-onnx is distributed under the Apache License, Version 2.0. The complete license text is
+included beside this notice as LICENSE-sherpa-onnx.txt.
+
+ONNX Runtime is distributed under the MIT License. Its license text is included beside this notice
+as LICENSE-onnxruntime.txt.
+
+This build does not include espeak-ng, which is distributed under the GPL-3.0. The runtime has no
+espeak-ng symbols and does not load an espeak-ng library.
+
+The voice model files are not in this installer. A reader downloads them from the Hugging Face
+repositories named in docs/adr/0135 when they choose a local voice, and each of those repositories'
+own license applies to the files it publishes.

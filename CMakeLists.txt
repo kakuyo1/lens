@@ -42,6 +42,10 @@ endfunction()
 # reading the file at run time.
 lens_path(LENS_SYSTEM_FONTS systemFonts)
 
+# The sherpa-onnx runtime the local voices run on (docs/adr/0135). Read here, before the subdirectories,
+# because src/app/CMakeLists.txt links it and the installer target below copies it.
+lens_path(LENS_SHERPA_ROOT sherpaOnnxRoot)
+
 # A preset cannot read config/paths.default.json, so CMakePresets.json takes the Qt prefix from the
 # environment and scripts/build/build.bat exports it from the file. Saying so here beats Qt's own
 # "package configuration file not found", which does not name the lever.
@@ -175,6 +179,16 @@ add_custom_target(installer
           "-DLENS_OCR_STAGE_DIR=${LENS_PAYLOAD_DIR}/ocr"
           "-DLENS_OCR_NOTICE_FILE=${CMAKE_SOURCE_DIR}/installer/THIRD_PARTY_NOTICES.txt"
           -P "${CMAKE_SOURCE_DIR}/installer/stage_ocr.cmake"
+  # The sherpa-onnx runtime that runs the local voices is loaded from beside lens.exe, so it is copied
+  # into the payload root next to the executable, with the notice and the two licenses it ships under.
+  COMMAND ${CMAKE_COMMAND} -E copy
+          "${LENS_SHERPA_ROOT}/lib/sherpa-onnx-c-api.dll"
+          "${LENS_SHERPA_ROOT}/lib/onnxruntime.dll"
+          "${LENS_SHERPA_ROOT}/lib/onnxruntime_providers_shared.dll"
+          "${CMAKE_SOURCE_DIR}/installer/THIRD_PARTY_NOTICES_VOICES.txt"
+          "${CMAKE_SOURCE_DIR}/installer/voice-licenses/LICENSE-sherpa-onnx.txt"
+          "${CMAKE_SOURCE_DIR}/installer/voice-licenses/LICENSE-onnxruntime.txt"
+          "${LENS_PAYLOAD_DIR}"
   COMMAND "${LENS_INNO_SETUP}" "/I${CMAKE_BINARY_DIR}/installer" "${CMAKE_SOURCE_DIR}/installer/lens.iss"
   COMMAND ${CMAKE_COMMAND} -E rm -rf "${CMAKE_BINARY_DIR}/installer/portable"
   COMMAND ${CMAKE_COMMAND} -E make_directory "${LENS_PORTABLE_STAGE_DIR}"
@@ -193,6 +207,7 @@ add_custom_target(installer
           "${CMAKE_SOURCE_DIR}/installer/stage_ocr.cmake"
           "${CMAKE_SOURCE_DIR}/installer/strip_media_plugins.cmake"
           "${CMAKE_SOURCE_DIR}/installer/THIRD_PARTY_NOTICES.txt"
+          "${CMAKE_SOURCE_DIR}/installer/THIRD_PARTY_NOTICES_VOICES.txt"
   WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
   COMMENT "Packaging Lens: windeployqt, then Inno Setup, then the portable zip"
   VERBATIM

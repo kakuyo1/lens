@@ -132,7 +132,7 @@
 <context>
     <name>BubbleTitleRow</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleTitleRow.qml" line="178"/>
+        <location filename="../src/app/qml/bubble/BubbleTitleRow.qml" line="193"/>
         <source>Pronounce %1</source>
         <translation>Pronunciar %1</translation>
     </message>
@@ -888,7 +888,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="290"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="250"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="264"/>
         <source>Accent</source>
         <translation>Acento</translation>
     </message>
@@ -946,143 +946,169 @@
         <translation>La configuración de accesibilidad de Windows ha desactivado las animaciones.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="45"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="53"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="59"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="67"/>
         <source>Vocabulary level</source>
         <translation>Nivel de vocabulario</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="69"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="77"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="83"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="91"/>
         <source>Mother tongue</source>
         <translation>Lengua materna</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="93"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="101"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="107"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="115"/>
         <source>Explanation language</source>
         <translation>Idioma de las explicaciones</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="120"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="134"/>
         <source>Card content</source>
         <translation>Contenido de la tarjeta</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="127"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="141"/>
         <source>Multiple senses</source>
         <translation>Varias acepciones</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="139"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="153"/>
         <source>Etymology</source>
         <translation>Etimología</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="149"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="163"/>
         <source>Example sentence</source>
         <translation>Frases de ejemplo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="164"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="178"/>
         <source>Word details</source>
         <translation>Detalles de la palabra</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="172"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="186"/>
         <source>IPA</source>
         <translation>IPA</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="184"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="198"/>
         <source>Part of speech</source>
         <translation>Categoría gramatical</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="194"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="208"/>
         <source>Signpost</source>
         <translation>Señal de significado</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="204"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="218"/>
         <source>Collocations</source>
         <translation>Colocaciones</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="216"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="230"/>
         <source>Pictures</source>
         <translation>Imágenes</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="231"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="245"/>
         <source>Pronunciation</source>
         <translation>Pronunciación</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="239"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="253"/>
         <source>Auto-play</source>
         <translation>Reproducción automática</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="258"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="272"/>
         <source>American</source>
         <translation>Estadounidense</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="258"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="272"/>
         <source>British</source>
         <translation>Británico</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="268"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="275"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="282"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="289"/>
         <source>Engine</source>
         <translation>Motor</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="287"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="301"/>
         <source>Voice: %1</source>
         <translation>Voz: %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="288"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="302"/>
         <source>No system voice is installed for this accent.</source>
         <translation>No hay ninguna voz del sistema instalada para este acento.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="299"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="306"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="313"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="320"/>
         <source>Fallback</source>
         <translation>Alternativa</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="321"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="333"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="340"/>
         <source>Local voice</source>
         <translation>Voz local</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="329"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="20"/>
         <source>Downloaded and verified.</source>
         <translation>Descargada y verificada.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="330"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="16"/>
+        <source>Downloading %1%</source>
+        <translation>Descargando %1 %</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="18"/>
+        <source>LJSpeech has only an American voice, so this accent stays silent.</source>
+        <translation>LJSpeech solo tiene una voz estadounidense, así que este acento se queda en silencio.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="21"/>
         <source>Not downloaded. The local engine stays silent.</source>
         <translation>No descargada. El motor local no suena.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="342"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="351"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="358"/>
+        <source>Download</source>
+        <translation>Descargar</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="370"/>
+        <source>Remove</source>
+        <translation>Eliminar</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="376"/>
+        <source>Voice files stay on this computer and are not synced.</source>
+        <translation>Los archivos de voz se quedan en este equipo y no se sincronizan.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="388"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="397"/>
         <source>Word review</source>
         <translation>Repaso de palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="363"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="409"/>
         <source>How often the pet raises its sign to ask a word you have looked up.</source>
         <translation>Con qué frecuencia la mascota levanta su cartel para preguntarte por una palabra que ya consultaste.&gt;</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="373"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="419"/>
         <source>Unavailable while the pet is off.</source>
         <translation>No disponible mientras la mascota esté desactivada.</translation>
     </message>
@@ -2142,6 +2168,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/pet/PetPackageDialog.qml" line="115"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="364"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="347"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="152"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="295"/>
@@ -3277,12 +3304,27 @@
         <translation>Sin sonido</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="911"/>
+        <location filename="../src/app/app_controller.cpp" line="698"/>
+        <source>Automatic</source>
+        <translation>Automático</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="700"/>
+        <source>Kokoro</source>
+        <translation>Kokoro</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="702"/>
+        <source>LJSpeech</source>
+        <translation>LJSpeech</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="921"/>
         <source>Auto</source>
         <translation>Automático</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="911"/>
+        <location filename="../src/app/app_controller.cpp" line="921"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>
@@ -3498,53 +3540,53 @@
 <context>
     <name>lens::llm::LlmClient</name>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="158"/>
+        <location filename="../src/llm/llm_client.cpp" line="157"/>
         <source>Enter an API key first.</source>
         <translation>Introduce primero una clave de API.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="162"/>
+        <location filename="../src/llm/llm_client.cpp" line="161"/>
         <source>Choose a model first.</source>
         <translation>Elige primero un modelo.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="166"/>
+        <location filename="../src/llm/llm_client.cpp" line="165"/>
         <source>Enter a service address that starts with https://.</source>
         <translation>Introduce una dirección de servicio que empiece por https://.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="215"/>
+        <location filename="../src/llm/llm_client.cpp" line="214"/>
         <source>Could not reach the service. Check the address and your connection.</source>
         <translation>No se ha podido contactar con el servicio. Comprueba la dirección y tu conexión.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="224"/>
+        <location filename="../src/llm/llm_client.cpp" line="222"/>
         <source>The service refused &apos;%1&apos;. Check the model name against the list it serves.</source>
-        <translation>El servicio rechazó «%1». Comprueba el nombre del modelo con los que ofrece.></translation>
+        <translation>El servicio rechazó «%1». Comprueba el nombre del modelo con los que ofrece.&gt;</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="233"/>
+        <location filename="../src/llm/llm_client.cpp" line="230"/>
         <source>The service answered, but not like a model. Check the address.</source>
         <translation>El servicio ha respondido, pero no como un modelo. Comprueba la dirección.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="237"/>
+        <location filename="../src/llm/llm_client.cpp" line="234"/>
         <source>Connected. The key and model are accepted.</source>
         <translation>Conectado. La clave y el modelo se han aceptado.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="246"/>
+        <location filename="../src/llm/llm_client.cpp" line="243"/>
         <source>There is nothing to look up.</source>
         <translation>No hay nada que consultar.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="254"/>
+        <location filename="../src/llm/llm_client.cpp" line="251"/>
         <source>The API key is missing.</source>
         <translation>Falta la clave de API.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="299"/>
-        <location filename="../src/llm/llm_client.cpp" line="304"/>
+        <location filename="../src/llm/llm_client.cpp" line="296"/>
+        <location filename="../src/llm/llm_client.cpp" line="301"/>
         <source>The request could not reach the service: %1</source>
         <translation>La solicitud no pudo llegar al servicio: %1</translation>
     </message>

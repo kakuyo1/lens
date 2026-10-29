@@ -4,11 +4,13 @@
 
 ## 单词发音（ADR 0134）
 
-契约已定（`docs/adr/0134`、`PRODUCT.md` 的发音一节、`API.md` §9、`UI-SPEC.md` 4.3 / 4.4），第 1、2、3、5、6 步已落地（2026-10-28 / 29）：`src/app/duties/speech_duty.{h,cpp}` 用 `QTextToSpeech` 读系统音色、用 `QMediaPlayer` + `QAudioOutput` + `QBuffer` 播内存里的 mp3，`src/speech/` 是源、缓存与引擎规则，`src/core/crypto/hash.{h,cpp}` 提供 `sha1(口音|词)`。**只剩本地模型这一档。**
+契约已定（`docs/adr/0134`、`PRODUCT.md` 的发音一节、`API.md` §9、`UI-SPEC.md` 4.3 / 4.4），第 1、2、3、5、6 步已落地（2026-10-28 / 29）：`src/app/duties/speech_duty.{h,cpp}` 用 `QTextToSpeech` 读系统音色、用 `QMediaPlayer` + `QAudioOutput` + `QBuffer` 播内存里的 mp3，`src/speech/` 是源、缓存与引擎规则，`src/core/crypto/hash.{h,cpp}` 提供 `sha1(口音|词)`。本地模型这一档的代码已按 `docs/adr/0135` 接入（Kokoro 与 LJSpeech，sherpa-onnx 运行时），剩下下面几项验证。
 
 - **系统合成（已接）**：Qt 6.9.0 的 TextToSpeech 组件是装上去的——官方 6.9.0 归档仓库的 `qt.qt6.690.addons.qtspeech.win64_msvc2022_64` 包解压进 `B:/qtt/6.9.0/msvc2022_64`（`bin/Qt6TextToSpeech.dll`、`plugins/texttospeech/`、`lib/cmake/Qt6TextToSpeech/`），根 `CMakeLists.txt` 的 `find_package` 已带 `TextToSpeech`。**维护工具不肯把它当可安装项**：它只认受支持的那 326 个包，6.9.0 已在归档仓库里，`--add-repository` 之后仍然报 “No components available with the current selection”；所以这一份文件是手工落盘的，`components.xml` 里没有这条记录——将来在维护工具里升级或修复安装时，这棵树可能被当成有外来文件。重装 Qt 时按上面那条路径重新装一次即可。
 - **音色按口音挑**：`SpeechDuty::systemFor(accent)` 先问 winrt，问不到再问 sapi（`mock` 永不使用，它出声为假）。本机实测：winrt 只有 `Huihui / Yaoyao / Kangkang`（zh_CN），sapi 只有 `Huihui Desktop`（zh_CN），**没有 en-US / en-GB**，所以本机 `systemAvailable()` 为假、设置页写 “No system voice is installed for this accent”，发音落到在线兜底。要听系统音色，得在 Windows 设置里加一个英文语音包。每次启动一条 INFO 记下引擎与音色清单（`pronunciation: engine 'winrt', 3 voice(s): ...`），这是排查没声音的第一条线索。
-- **本地模型（第 4 步，未做）**：sherpa-onnx 运行时与按口音分槽的音色模型、SHA256 校验、`%APPDATA%\Lens\voices\` 的下载都没做；`SpeechDuty::localAvailable()` 恒为假，设置页的本地音色行因此只写 “Not downloaded”。本地音色的存储键随这一档落地时再进 `PRODUCT.md` 的存储形状表。
+- **本地音色还没在真机上听过**：Kokoro 美式（sid 0 `af_maple`、sid 1 `af_sol`）与英式（sid 2 `bf_vale`）各听一遍，LJSpeech 美式听一遍。确认音质、首音延迟，以及词典外的词是否真的静音；结果记入 `docs/metrics/`。
+- **下载没有端到端跑过**：设置页下载两个模型；断网或取消后确认 `.part` 不残留；删除后自动档静音。
+- **本地输出不缓存**：每次按下都重新合成。按实测决定是否进缓存（`src/app/platform/local_voice.h`）。
 
 自动播放只对 `cardKind === "selection"` 的单词卡生效（`Bubble.qml` 的 `show()`），预览卡、悬浮复习卡与宠物作答卡都不读；句子、实体、译文与拆解卡没有喇叭（`BubbleCard.qml` 的 `speakable`）。
 

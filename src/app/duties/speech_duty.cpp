@@ -6,14 +6,20 @@
 #include "speech_duty.h"
 
 #include <QAudioOutput>
+#include <QDir>
 #include <QMediaPlayer>
 #include <QLocale>
+#include <QRunnable>
 #include <QTextToSpeech>
 #include <QVoice>
 
+#include <optional>
+
+#include "app/platform/local_voice.h"
 #include "app/settings_access.h"
 #include "core/domain/settings_table.h"
 #include "speech/speech_pure.h"
+#include "speech/voice_catalog.h"
 #include "util/log.h"
 
 namespace lens::app {
@@ -29,6 +35,15 @@ QVariant rowValue(StorageDuty& storage, char const* key)
     if (row == nullptr)
         return {};
     return settings::read(storage.section(), *row);
+}
+
+/// @return The local voice an id names, or nothing for an id the catalogue does not hold.
+std::optional<speech::VoiceModel> voiceNamed(QString const& id)
+{
+    for (speech::VoiceModel const model : {speech::VoiceModel::Kokoro, speech::VoiceModel::LjSpeech})
+        if (speech::voiceSpec(model).id == id)
+            return model;
+    return std::nullopt;
 }
 
 /// @return The engines this build may speak through, in the order they are asked: WinRT's
@@ -69,10 +84,23 @@ SpeechDuty::SpeechDuty(speech::PronunciationSource& source, speech::AudioCache& 
       cache_(cache),
       storage_(storage)
 {
+    localPool_.setMaxThreadCount(1);
+    connect(&downloader_, &speech::VoiceDownloader::progressed, this, [this](qint64 received, qint64 total) {
+        const int percent = total > 0 ? static_cast<int>(received * 100 / total) : 0;
+        if (percent == voicePercent_)
+            return;
+        voicePercent_ = percent;
+        emit voicesChanged();
+    });
+    connect(&downloader_, &speech::VoiceDownloader::finished, this, [this](bool) { emit voicesChanged(); });
 }
 
 SpeechDuty::~SpeechDuty()
 {
+    // A queued recording posts back into this object, so the worker finishes before anything here goes.
+    localPool_.waitForDone();
+    disconnect(&downloader_, nullptr, this, nullptr);
+    downloader_.cancel();
     // The player is a member and outlives nothing here: release() unbinds the buffer before the
     // player is destroyed, which is the one ordering this class has to get right.
     release();
@@ -168,9 +196,49 @@ QString SpeechDuty::systemVoice()
 
 bool SpeechDuty::localAvailable() const
 {
-    // The voice model is downloaded per accent by the settings page (step 4). Nothing downloads one
-    // yet, so no accent has one and the local engine serves nothing.
-    return false;
+    const auto model = speech::voiceFrom(rowValue(storage_, "speechLocalEngine").toString());
+    return speech::serves(model, accent()) and speech::installed(model, speech::voiceRoot());
+}
+
+void SpeechDuty::downloadVoice(QString id)
+{
+    const auto model = voiceNamed(id);
+    if (not model or downloader_.busy())
+        return;
+    voicePercent_ = 0;
+    downloader_.start(*model, speech::voiceRoot());
+    emit voicesChanged();
+}
+
+void SpeechDuty::cancelVoiceDownload()
+{
+    downloader_.cancel();
+}
+
+void SpeechDuty::removeVoice(QString id)
+{
+    const auto model = voiceNamed(id);
+    if (not model or downloader_.busy())
+        return;
+    // The duty lets go of its engine first, so the next press loads the voice afresh if it is back.
+    if (localVoice_ and localVoice_->model() == *model)
+        localVoice_.reset();
+    QDir{QString::fromStdWString((speech::voiceRoot() / id.toStdWString()).wstring())}.removeRecursively();
+    emit voicesChanged();
+}
+
+QVariantMap SpeechDuty::voiceStates() const
+{
+    QVariantMap states;
+    for (speech::VoiceModel const model : {speech::VoiceModel::Kokoro, speech::VoiceModel::LjSpeech}) {
+        const bool downloading = downloader_.busy() and downloader_.model() == model;
+        states.insert(speech::voiceSpec(model).id, QVariantMap{
+                                                       {QStringLiteral("installed"), speech::installed(model, speech::voiceRoot())},
+                                                       {QStringLiteral("downloading"), downloading},
+                                                       {QStringLiteral("percent"), downloading ? voicePercent_ : 0},
+                                                   });
+    }
+    return states;
 }
 
 bool SpeechDuty::playing() const
@@ -275,15 +343,34 @@ void SpeechDuty::speak(QString word)
             speakSystem(headword);
             return;
         case Engine::Local:
-            // The local model is not in this build: its voice has to be downloaded and verified
-            // first, and nothing downloads one yet. plan() only names it when one is there, so
-            // reaching here would mean the two answers and the plan disagree.
-            LENS_TRACE("pronunciation: the local engine is not in this build");
+            // plan() names this only when the chosen voice is on this machine and serves the accent.
+            speakLocal(headword, accent());
             return;
         case Engine::Online:
             playOnline(headword, accent());
             return;
     }
+}
+
+void SpeechDuty::speakLocal(QString const& word, QString const& accent)
+{
+    const auto model = speech::voiceFrom(rowValue(storage_, "speechLocalEngine").toString());
+    // The engine is kept while the reader stays on one voice and one accent: loading it is the slow part.
+    if (not localVoice_ or localVoice_->model() != model or localVoice_->accent() != accent)
+        localVoice_ = std::make_shared<LocalVoice>(model, accent, speech::voiceRoot());
+
+    const int request = requestId_;
+    localPool_.start(QRunnable::create([this, request, voice = localVoice_, word] {
+        const std::optional<QByteArray> wav = voice->speak(word);
+        if (not wav)
+            return;
+        // Posted back to this thread, where the player lives; a press replaced in the meantime is dropped there.
+        QMetaObject::invokeMethod(this, [this, request, word, bytes = *wav] {
+            if (request != requestId_)
+                return;
+            playBytes(word, bytes);
+        });
+    }));
 }
 
 void SpeechDuty::playOnline(QString const& word, QString const& accent)

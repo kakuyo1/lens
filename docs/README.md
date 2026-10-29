@@ -22,7 +22,7 @@
 | 查某个决定为什么这样做 | `docs/adr/README.md` | 对应 ADR |
 | 查被取代的旧规格、阶段计划或 2026-10 的 critique | `docs/history/` | `docs/history/impeccable/`、对应 ADR |
 | 改 OCR 行为、模式、引擎或服务 | `PRODUCT.md` 的 OCR 约定 | `API.md` §8、`SECURITY.md` 的 OCR 契约、`docs/adr/0130`、`0132`、`0133`、`0136` |
-| 加发音、改发音引擎或音色 | `PRODUCT.md` 的发音一节 | `docs/adr/0134-pronunciation-is-word-only-and-system-first.md`、`UI-SPEC.md` 4.3 / 4.4、`API.md` §9、`docs/research/tts-survey-2026-10-28.html` |
+| 加发音、改发音引擎或音色 | `PRODUCT.md` 的发音一节 | `docs/adr/0134-pronunciation-is-word-only-and-system-first.md`、`docs/adr/0135-local-voices-are-kokoro-and-ljspeech.md`、`UI-SPEC.md` 4.3 / 4.4、`API.md` §9、`docs/research/tts-survey-2026-10-28.html` |
 | 改 HTML 原型 | `ui-prototypes/README.md` | `DESIGN.md`、`UI-SPEC.md` |
 
 ## 权威分层

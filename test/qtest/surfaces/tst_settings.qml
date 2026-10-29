@@ -319,8 +319,13 @@ Item {
                     Controller.settings.speechSystemVoice !== "",
                     "the system voice's availability and its name disagree");
 
-            // The local voice has nothing downloaded, and the page says so rather than offering a
-            // download that is not there yet (step 4 of the ADR's plan).
+            // The local voice is a three-way choice that starts on automatic (ADR 0135), and the line under
+            // it says what the chosen voice is doing on this machine: something, whether or not it is there.
+            const localEngine = named(panel, "speechLocalEngineField");
+            verify(localEngine, "the pronunciation group has no local voice field");
+            compare(localEngine.options.length, 3, "the local voice is a three-way choice");
+            compare(localEngine.currentValue, "auto", "the local voice did not start on automatic");
+
             const voiceState = named(panel, "speechLocalVoiceState");
             verify(voiceState, "the pronunciation group has no local voice line");
             compare(voiceState.visible, true);

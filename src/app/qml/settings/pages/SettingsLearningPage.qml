@@ -7,6 +7,20 @@ Item {
     // qmllint enable missing-property
     property var settings: Controller.settings
 
+    /// The local voice the setting names, as the catalogue spells its id (docs/adr/0135).
+    readonly property string localVoiceId: settings.speechLocalEngine === "ljspeech" ? "ljspeech" : "kokoro"
+    /// That voice on this machine: `installed`, `downloading`, and `percent` while it downloads.
+    readonly property var localVoiceState: Controller.speechDuty.voiceStates[localVoiceId] || ({installed: false, downloading: false, percent: 0})
+    readonly property string localVoiceStatus: {
+        if (localVoiceState.downloading)
+            return qsTranslate("SettingsPopup", "Downloading %1%").arg(localVoiceState.percent);
+        if (localVoiceId === "ljspeech" && settings.speechAccent === "uk")
+            return qsTranslate("SettingsPopup", "LJSpeech has only an American voice, so this accent stays silent.");
+        if (localVoiceState.installed)
+            return qsTranslate("SettingsPopup", "Downloaded and verified.");
+        return qsTranslate("SettingsPopup", "Not downloaded. The local engine stays silent.");
+    }
+
     readonly property var openChildRect: motherTongueField.openChildRect || levelField.openChildRect || languageField.openChildRect || reviewField.openChildRect
     implicitHeight: content.implicitHeight
 
@@ -310,10 +324,8 @@ Item {
                 }
             }
 
-            // The local model is not in the package: the runtime ships, the voices are downloaded
-            // per accent and verified (docs/adr/0134). Until a voice is there, this row says so and
-            // nothing else -- a download entry arrives with the downloader, and a button that
-            // downloaded nothing would be worse than the sentence.
+            // The local voice the reader named (docs/adr/0135). A voice is on this machine only once its
+            // download has verified every file; until then the engine stays silent and says so here.
             Column {
                 width: parent.width
                 spacing: 7
@@ -322,14 +334,48 @@ Item {
                     color: root.tokens.muted
                     font.pixelSize: 12
                 }
+                DropdownField {
+                    objectName: "speechLocalEngineField"
+                    width: parent.width
+                    accessibleName: qsTranslate("SettingsPopup", "Local voice")
+                    options: root.settings.speechLocalEngineOptions || []
+                    currentValue: root.settings.speechLocalEngine
+                    onPicked: (value) => Controller.setSetting("speechLocalEngine", value)
+                }
                 Text {
                     width: parent.width
                     objectName: "speechLocalVoiceState"
-                    text: root.settings.speechLocalAvailable
-                          ? qsTranslate("SettingsPopup", "Downloaded and verified.")
-                          : qsTranslate("SettingsPopup", "Not downloaded. The local engine stays silent.")
-                    color: root.tokens.faint
+                    text: root.localVoiceStatus
+                    color: root.localVoiceState.installed ? root.tokens.muted : root.tokens.faint
                     font.pixelSize: 12
+                    wrapMode: Text.WordWrap
+                }
+                Row {
+                    spacing: 8
+                    Chip {
+                        objectName: "downloadVoiceButton"
+                        visible: !root.localVoiceState.installed && !root.localVoiceState.downloading
+                        label: qsTranslate("SettingsPopup", "Download")
+                        onPicked: Controller.speechDuty.downloadVoice(root.localVoiceId)
+                    }
+                    Chip {
+                        objectName: "cancelVoiceButton"
+                        visible: root.localVoiceState.downloading
+                        label: qsTranslate("SettingsPopup", "Cancel")
+                        onPicked: Controller.speechDuty.cancelVoiceDownload()
+                    }
+                    Chip {
+                        objectName: "removeVoiceButton"
+                        visible: root.localVoiceState.installed && !root.localVoiceState.downloading
+                        label: qsTranslate("SettingsPopup", "Remove")
+                        onPicked: Controller.speechDuty.removeVoice(root.localVoiceId)
+                    }
+                }
+                Text {
+                    width: parent.width
+                    text: qsTranslate("SettingsPopup", "Voice files stay on this computer and are not synced.")
+                    color: root.tokens.faint
+                    font.pixelSize: 11
                     wrapMode: Text.WordWrap
                 }
             }

@@ -63,6 +63,8 @@ add_library(lens_app STATIC
   platform/autostart.cpp
   platform/global_hotkey.h
   platform/global_hotkey.cpp
+  platform/local_voice.h
+  platform/local_voice.cpp
   platform/mouse_selection_hook.h
   platform/mouse_selection_hook.cpp
   platform/running_instance.h
@@ -143,6 +145,22 @@ target_link_libraries(lens_app
 # configure time with a message that names the component -- see config/README.md.
 target_link_libraries(lens_app PRIVATE Qt6::Multimedia Qt6::TextToSpeech)
 
+# The sherpa-onnx C API is the engine behind the local voices (docs/adr/0135), linked from the runtime
+# config/paths.default.json names. Only this module and the lens executable name it: the voice catalogue
+# in lens_speech is pure, so the test targets never load these DLLs. The header is vendored, because the
+# runtime archive does not carry one.
+if(NOT EXISTS "${LENS_SHERPA_ROOT}/lib/sherpa-onnx-c-api.lib")
+  message(FATAL_ERROR
+    "The sherpa-onnx runtime was not found under '${LENS_SHERPA_ROOT}'. Set sherpaOnnxRoot in "
+    "config/paths.local.json to an extracted sherpa-onnx v2.0.1 win-x64 shared MD-Release archive.")
+endif()
+add_library(sherpa_onnx_c_api SHARED IMPORTED)
+set_target_properties(sherpa_onnx_c_api PROPERTIES
+  IMPORTED_IMPLIB   "${LENS_SHERPA_ROOT}/lib/sherpa-onnx-c-api.lib"
+  IMPORTED_LOCATION "${LENS_SHERPA_ROOT}/lib/sherpa-onnx-c-api.dll")
+target_include_directories(sherpa_onnx_c_api INTERFACE "${CMAKE_SOURCE_DIR}/third_party/sherpa-onnx")
+target_link_libraries(lens_app PRIVATE sherpa_onnx_c_api)
+
 # user32 for the hook, SendInput and the clipboard; gdi32 for the glass sheet's desktop read; dxgi and d3d11 for the
 # glass duplication path, which builds a device on the adapter that owns each output (src/app/glass/glass_duplication.h);
 # windowsapp and runtimeobject for Windows Graphics Capture, the source for screens duplication refuses
@@ -188,6 +206,16 @@ qt_add_executable(lens
   main.cpp
   ${CMAKE_SOURCE_DIR}/data/icons/lens.rc
 )
+
+# The sherpa-onnx DLLs are loaded from beside the executable, so every build copies them there: a dev run
+# and the installer's payload then load the same files.
+add_custom_command(TARGET lens POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          "${LENS_SHERPA_ROOT}/lib/sherpa-onnx-c-api.dll"
+          "${LENS_SHERPA_ROOT}/lib/onnxruntime.dll"
+          "${LENS_SHERPA_ROOT}/lib/onnxruntime_providers_shared.dll"
+          "$<TARGET_FILE_DIR:lens>"
+  VERBATIM)
 
 # The developer command surface (docs/adr/0068), only when the build asks for it. It sits in the executable because
 # main.cpp is its one caller and it reaches the windows through the Main window that caller hands it.

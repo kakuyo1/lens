@@ -7,16 +7,24 @@
 #include <QUrl>
 #include <QtQml/qqmlregistration.h>
 
+#include <QThreadPool>
+#include <QVariantMap>
+
 #include <map>
 #include <memory>
 
 #include "app/duties/storage_duty.h"
 #include "speech/audio_cache.h"
 #include "speech/pronunciation_source.h"
+#include "speech/voice_downloader.h"
 
 class QAudioOutput;
 class QMediaPlayer;
 class QTextToSpeech;
+
+namespace lens::app {
+class LocalVoice;
+}
 
 /**
  * @file speech_duty.h
@@ -37,10 +45,11 @@ class QTextToSpeech;
  *   - No state that outlives the sound. `playing` drives the speaker icon's colour and nothing else:
  *     it never changes the card's layout, its anchor or its clock.
  *
- * Two engines are wired: the Windows synthesiser Qt wraps (the default, through Qt's TextToSpeech
- * module -- WinRT's engine first, SAPI when the platform has no WinRT one) and the dictionary's own
- * recordings (the default fallback, API.md section 9). The third, a local neural model, is not in
- * this build: a voice has to be downloaded and verified first, and nothing downloads one yet.
+ * Three engines: the Windows synthesiser Qt wraps (the default, through Qt's TextToSpeech module --
+ * WinRT's engine first, SAPI when the platform has no WinRT one), the dictionary's own recordings
+ * (API.md section 9), and a local voice the reader downloaded and verified (docs/adr/0135), spoken
+ * through sherpa-onnx on one worker thread. The local voice is never named by a fallback the reader did
+ * not choose.
  *
  * The synthesiser is built on first use rather than at construction. A run that never speaks and
  * never opens the settings page never initialises a speech engine, and a machine whose voice pack
@@ -104,19 +113,32 @@ public:
     /// @return The system voice's own name, for the settings page. Empty when there is none: the
     ///         reader has to be able to see whose voice they are hearing (ADR 0134).
     QString systemVoice();
-    /// @return Whether the accent in force has a downloaded, verified local voice. Always false
-    ///         until the model downloader lands (step 4).
+    /// @return Whether the local voice the setting names serves the accent in force and is on this
+    ///         machine, in full. The check is a size check (speech::installed()).
     bool localAvailable() const;
+
+    /// @brief Fetch the named local voice ("kokoro" or "ljspeech") into this machine. Ignored while
+    ///        another is downloading, and for an id the catalogue does not hold.
+    Q_INVOKABLE void downloadVoice(QString id);
+    /// @brief Stop the download in flight; the partial files go with it.
+    Q_INVOKABLE void cancelVoiceDownload();
+    /// @brief Delete the named voice's files from this machine. Ignored while it is downloading.
+    Q_INVOKABLE void removeVoice(QString id);
+    /// @return Per local voice, keyed by its id: `installed`, `downloading`, and `percent` while it is.
+    QVariantMap voiceStates() const;
 
     Q_PROPERTY(bool playing READ playing NOTIFY playingChanged)
     Q_PROPERTY(QString playingWord READ playingWord NOTIFY playingChanged)
     Q_PROPERTY(qint64 cacheBytes READ cacheBytes NOTIFY cacheBytesChanged)
+    Q_PROPERTY(QVariantMap voiceStates READ voiceStates NOTIFY voicesChanged)
 
 signals:
     /// @brief Something started or stopped; `playing` and `playingWord` hold the answer.
     void playingChanged();
     /// @brief The cache grew or was cleared; the About page's size line reads it.
     void cacheBytesChanged();
+    /// @brief A voice started, finished, was removed, or moved a whole percent while downloading.
+    void voicesChanged();
 
 private:
     /// @brief Build the player on first use, so a run that never speaks never opens an audio device.
@@ -142,6 +164,9 @@ private:
     void speakSystem(QString const& word);
     /// @brief The dictionary's recording: the cache first, the source only on a miss.
     void playOnline(QString const& word, QString const& accent);
+    /// @brief Read @p word through the local voice the setting names, on the worker; the recording is
+    ///        played back on this thread, and only if it is still the press that is current.
+    void speakLocal(QString const& word, QString const& accent);
     /**
      * @brief Put @p bytes through the player.
      *
@@ -176,6 +201,17 @@ private:
     std::map<QString, SystemVoice> systemVoices_;
     /// The word the synthesiser was handed, which its state signals do not carry back.
     QString systemWord_;
+
+    /// The local engine, bound to the voice and accent it was made for. Replaced when either changes,
+    /// and only ever used by the worker: the copy a queued task holds keeps it alive until that task ends.
+    std::shared_ptr<LocalVoice> localVoice_;
+    /// Fetches the local voices. Built with no parent: a member that also had the duty as its parent
+    /// would be deleted twice, once by the parent and once as a member.
+    speech::VoiceDownloader downloader_;
+    /// Runs the local engine on one thread: sherpa-onnx's engine is not entered from two threads at once.
+    QThreadPool localPool_;
+    /// The percent of the voice being downloaded, moved on whole steps so the page is not redrawn per chunk.
+    int voicePercent_ = 0;
 
     /// Which press owns the speaker. A recording that arrives for an older one is still cached and
     /// is played nowhere -- the same rule PictureDuty's requestId_ states for the picture strip.

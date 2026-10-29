@@ -132,7 +132,7 @@
 <context>
     <name>BubbleTitleRow</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleTitleRow.qml" line="178"/>
+        <location filename="../src/app/qml/bubble/BubbleTitleRow.qml" line="193"/>
         <source>Pronounce %1</source>
         <translation>朗讀 %1</translation>
     </message>
@@ -560,143 +560,169 @@
         <translation>設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="45"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="53"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="59"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="67"/>
         <source>Vocabulary level</source>
         <translation>詞彙等級</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="69"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="77"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="83"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="91"/>
         <source>Mother tongue</source>
         <translation>母語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="93"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="101"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="107"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="115"/>
         <source>Explanation language</source>
         <translation>解釋語言</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="120"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="134"/>
         <source>Card content</source>
         <translation>詞卡內容</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="127"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="141"/>
         <source>Multiple senses</source>
         <translation>多義解釋</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="139"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="153"/>
         <source>Etymology</source>
         <translation>詞源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="149"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="163"/>
         <source>Example sentence</source>
         <translation>例句</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="164"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="178"/>
         <source>Word details</source>
         <translation>詞卡細節</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="172"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="186"/>
         <source>IPA</source>
         <translation>音標</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="184"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="198"/>
         <source>Part of speech</source>
         <translation>詞性</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="194"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="208"/>
         <source>Signpost</source>
         <translation>義項路標</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="204"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="218"/>
         <source>Collocations</source>
         <translation>搭配</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="216"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="230"/>
         <source>Pictures</source>
         <translation>圖片</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="231"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="245"/>
         <source>Pronunciation</source>
         <translation>發音</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="239"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="253"/>
         <source>Auto-play</source>
         <translation>自動播放</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="258"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="272"/>
         <source>American</source>
         <translation>美式</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="258"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="272"/>
         <source>British</source>
         <translation>英式</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="268"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="275"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="282"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="289"/>
         <source>Engine</source>
         <translation>引擎</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="287"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="301"/>
         <source>Voice: %1</source>
         <translation>音色：%1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="288"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="302"/>
         <source>No system voice is installed for this accent.</source>
         <translation>這個口音沒有已安裝的系統音色。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="299"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="306"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="313"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="320"/>
         <source>Fallback</source>
         <translation>兜底</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="321"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="333"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="340"/>
         <source>Local voice</source>
         <translation>本地音色</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="329"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="20"/>
         <source>Downloaded and verified.</source>
         <translation>已下載並校驗。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="330"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="16"/>
+        <source>Downloading %1%</source>
+        <translation>下載中 %1%</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="18"/>
+        <source>LJSpeech has only an American voice, so this accent stays silent.</source>
+        <translation>LJSpeech 只有美式音色，因此英式口音保持靜音。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="21"/>
         <source>Not downloaded. The local engine stays silent.</source>
         <translation>未下載。本機引擎不會發聲。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="342"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="351"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="358"/>
+        <source>Download</source>
+        <translation>下載</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="370"/>
+        <source>Remove</source>
+        <translation>刪除</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="376"/>
+        <source>Voice files stay on this computer and are not synced.</source>
+        <translation>音色檔案只保存在這台電腦上，不參與同步。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="388"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="397"/>
         <source>Word review</source>
         <translation>單字複習</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="363"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="409"/>
         <source>How often the pet raises its sign to ask a word you have looked up.</source>
         <translation>寵物多久舉一次提問牌，問你查過的詞。&gt;</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="373"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="419"/>
         <source>Unavailable while the pet is off.</source>
         <translation>寵物關閉時不可用。</translation>
     </message>
@@ -910,7 +936,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="290"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="250"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="264"/>
         <source>Accent</source>
         <translation>強調色</translation>
     </message>
@@ -2209,6 +2235,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/pet/PetPackageDialog.qml" line="115"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="364"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="347"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="152"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="295"/>
@@ -3334,12 +3361,27 @@
         <translation>不發音</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="911"/>
+        <location filename="../src/app/app_controller.cpp" line="698"/>
+        <source>Automatic</source>
+        <translation>自動</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="700"/>
+        <source>Kokoro</source>
+        <translation>Kokoro</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="702"/>
+        <source>LJSpeech</source>
+        <translation>LJSpeech</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="921"/>
         <source>Auto</source>
         <translation>自動模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="911"/>
+        <location filename="../src/app/app_controller.cpp" line="921"/>
         <source>Manual</source>
         <translation>手動模式</translation>
     </message>
@@ -3490,53 +3532,53 @@
 <context>
     <name>lens::llm::LlmClient</name>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="158"/>
+        <location filename="../src/llm/llm_client.cpp" line="157"/>
         <source>Enter an API key first.</source>
         <translation>請先填寫 API key。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="162"/>
+        <location filename="../src/llm/llm_client.cpp" line="161"/>
         <source>Choose a model first.</source>
         <translation>請先選擇模型。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="166"/>
+        <location filename="../src/llm/llm_client.cpp" line="165"/>
         <source>Enter a service address that starts with https://.</source>
         <translation>請填寫以 https:// 開頭的服務地址。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="215"/>
+        <location filename="../src/llm/llm_client.cpp" line="214"/>
         <source>Could not reach the service. Check the address and your connection.</source>
         <translation>無法連線到服務，請檢查地址和網路連線。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="224"/>
+        <location filename="../src/llm/llm_client.cpp" line="222"/>
         <source>The service refused &apos;%1&apos;. Check the model name against the list it serves.</source>
-        <translation>服務拒絕了「%1」。請核對它實際提供的模型名。></translation>
+        <translation>服務拒絕了「%1」。請核對它實際提供的模型名。&gt;</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="233"/>
+        <location filename="../src/llm/llm_client.cpp" line="230"/>
         <source>The service answered, but not like a model. Check the address.</source>
         <translation>服務有回應，但返回的不像模型回應，請檢查地址。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="237"/>
+        <location filename="../src/llm/llm_client.cpp" line="234"/>
         <source>Connected. The key and model are accepted.</source>
         <translation>連線成功，API key 與模型均被接受。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="246"/>
+        <location filename="../src/llm/llm_client.cpp" line="243"/>
         <source>There is nothing to look up.</source>
         <translation>沒有待查內容。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="254"/>
+        <location filename="../src/llm/llm_client.cpp" line="251"/>
         <source>The API key is missing.</source>
         <translation>未設定 API 金鑰。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="299"/>
-        <location filename="../src/llm/llm_client.cpp" line="304"/>
+        <location filename="../src/llm/llm_client.cpp" line="296"/>
+        <location filename="../src/llm/llm_client.cpp" line="301"/>
         <source>The request could not reach the service: %1</source>
         <translation>請求未能送達服務：%1</translation>
     </message>

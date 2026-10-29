@@ -139,12 +139,12 @@ web
 |---|---|---|
 | 范围 | 单词卡的 headword；音标行与右侧喇叭都可点 | 不做朗读、不做整句合成；句子、实体、译文与拆解卡上没有喇叭 |
 | 自动播放 | 开关，缺省关；打开后取词弹出的单词卡出现即读一次，同一词不重复 | 设置预览卡、词汇列表悬浮复习卡与宠物作答卡都不自动读——前者是调设置的副产品，后两者是被动表面 |
-| 口音 | 开关：美式（缺省）/ 英式；系统挑 `en-US` / `en-GB` 音色，在线切 `type=2` / `type=1` | 本地音色按口音分槽；当前口音的音色没下载时本地兜底视为不可用，不静默换成另一种口音 |
+| 口音 | 开关：美式（缺省）/ 英式；系统挑 `en-US` / `en-GB` 音色，在线切 `type=2` / `type=1` | 本地音色按模型下载，英式只有 Kokoro 的一个女声；选了 LJSpeech 时英式静音，不静默换成另一种口音或模型 |
 | 引擎 | 系统合成器缺省；不可用时按读者选的兜底走 | 音色由读者的 Windows 语言包决定，设置页显示当前音色名 |
 | 兜底 | 在线音频（缺省）/ 本地模型 / 不发音，读者选一档 | 明确选了在线或本地之后不在两者间静默切换（同 OCR，ADR 0130） |
 | 在线音频 | 词典音频端点，无 key、不计费 | 协议与实测边界见 `API.md` §9 |
-| 本地模型 | 可选下载（sherpa-onnx + 英文音色），SHA256 校验，落 `%APPDATA%\Lens\voices\` | 不随包；未下载时兜底等于不发音，设置页写明，不弹错误 |
-| 缓存 | 按口音与词哈希落盘，LRU 上限 50 MB | 不写 `settings.json`、不参与同步、不上传 |
+| 本地模型 | 两档可选：Kokoro（自动，约 180 MB）与 LJSpeech（约 41 MB），逐文件下载，SHA256 校验，落 `%APPDATA%\Lens\voices\<模型>\` | 不随包；未下载时兜底等于不发音，设置页写明，不弹错误；运行时 sherpa-onnx 随包（`docs/adr/0135`） |
+| 缓存 | 在线录音按口音与词哈希落盘，LRU 上限 50 MB；本地合成的输出不落盘 | 不写 `settings.json`、不参与同步、不上传；本地输出每次按下重新合成 |
 | 成本 | 不进每日预算 | 在线音频不花读者的钱，也不进 token 账单 |
 
 ### 界面与主题
@@ -178,7 +178,7 @@ web
 | `cache` | 解释语言 + 词根 | `ipa` 可空；缺字段按未命中，重问即补全，未命中就是迁移 |
 | `history` | 最近 2000 条 | 超出按时间截断；`daily` 按日聚合，一条一天，不设上限 |
 | `review.words` | `{level, due, asked}` | 与 `history` 分开；`removeWord` 一起清 |
-| `speechAutoPlay` / `speechAccent` / `speechEngine` / `speechFallback` | 自动播放、口音、引擎与兜底 | 缺省关 / `us` / `system` / `online`；四个都是扁平键，走设置表。本地音色的状态（未下载 / 已校验，不记路径）随本地模型那一档落盘（`docs/adr/0134`） |
+| `speechAutoPlay` / `speechAccent` / `speechEngine` / `speechFallback` / `speechLocalEngine` | 自动播放、口音、引擎、兜底与本地音色 | 缺省关 / `us` / `system` / `online` / `auto`；五个都是扁平键，走设置表。`speechLocalEngine` 不同步；本地音色是否在本机由 `voices\` 下的文件决定，不落盘（`docs/adr/0135`） |
 | `ocrConfigVersion` / `ocrMode` / `ocrLocalEngine` / `ocrLocalLanguage` / `ocrOnlineProvider` / `ocrOnlineEndpoint` / `ocrOnlineLanguage` | OCR 模式、本地引擎与识别语言、在线服务、端点与语言、迁移版本 | 缺省 `local` / `auto` / `en`；在线初始未配置，端点空表示服务默认地址；全部不进同步白名单 |
 | `tesseractExecutable` / `tesseractDataDirectory` / `rapidOcrExecutable` / `rapidOcrModelDirectory` | Tesseract 与 RapidOCR 的程序及模型路径 | 空值分别表示随包 exe、相邻 tessdata 与未配置；RapidOCR 模型目录必须 ASCII（ADR 0132） |
 | `OCR-API-KEY` / `OCR-SECRET-KEY` / `OCR-SERVICES` | 在线凭据双槽与按服务保存的地址、凭据 | 独立机密：不进设置投影、日志、导出与同步，边界见 `SECURITY.md` |
@@ -186,7 +186,7 @@ web
 
 - `StatsStore` 与 `KnownStore` 共用这份文档，但 `StatsStore` 不自己读写，只写 `history` / `daily`。
 - 百科图缓存不住在这份文档里：缩略图与图注、署名落在 `%APPDATA%\Lens\pictures\cache\v1\` 自己的目录，按查询词哈希分目录，默认 64 MB / 30 天，不写入 `settings.json`、不参与同步、不上传；关于页显示其大小并可清除，下一次看图重新下载；卸载行为沿用 `%APPDATA%\Lens` 的规则（`docs/adr/0079`）。
-- 发音音频与本地音色同样不住在这份文档里：`%APPDATA%\Lens\audio\`（按口音与词哈希命名，LRU 上限 50 MB）与 `%APPDATA%\Lens\voices\`（读者下载的音色模型与校验清单）。两者都不写入 `settings.json`、不参与同步、不上传；关于页显示音频缓存大小并可清除，卸载行为沿用 `%APPDATA%\Lens` 的规则。
+- 发音音频与本地音色同样不住在这份文档里：`%APPDATA%\Lens\audio\`（按口音与词哈希命名，LRU 上限 50 MB）与 `%APPDATA%\Lens\voices\`（读者下载的音色，每个模型一个文件夹）。两者都不写入 `settings.json`、不参与同步、不上传；关于页显示音频缓存大小并可清除，卸载行为沿用 `%APPDATA%\Lens` 的规则。
 - OCR 旧配置只在首次读到没有 `ocrConfigVersion` 的文档时本机迁移、不启动网络：Tesseract 路径非空的旧用户保留明确 Tesseract 选择；数据目录只有中文模型时保留中文能力并提示补齐英文后再切混排，不覆写路径；未自定义路径的按本地自动策略处理；在线配置一律不从历史解释服务推导，不复制解释 key、端点或模型。
 - 只存 token，不存金额；金额展示时按当前价目计算（`API.md` §6）。
 - 日期与分钟取本地时间，存 `YYYY-MM-DD HH:MM` 原样。

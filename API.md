@@ -409,3 +409,19 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 | 失败 | 静默：非 200、超限或超时都不发音、不弹通知、不重试。任意句子与部分短语（如 `give up the ghost`）返回 `500` + 120 字节——它是词典条目音频，不是通用合成，这就是发音只做单词的原因之一 |
 
 实现满足：请求只含词本身（`SECURITY.md` 的出站边界）；重定向不跟随，地址是编译期常量而不是设置；命中缓存时零网络，缓存落盘位置、命名与 LRU 见 `PRODUCT.md` 的发音一节；引擎与兜底语义见 `docs/adr/0134` 与 `PRODUCT.md`（`src/speech/speech_pure.h` 的 `plan()` 是唯一实现）。
+
+### 9.1 本地音色下载
+
+本地音色只在读者按下下载时取得。逐个文件请求固定修订版的仓库，请求里不带任何读者数据。
+
+| 项 | 取值 |
+|---|---|
+| 地址 | `https://huggingface.co/<仓库>/resolve/<修订>/<文件>`；仓库、修订与每个文件的字节数和 SHA-256 固定在 `src/speech/voice_catalog.cpp` |
+| Kokoro | `csukuangfj/kokoro-int8-multi-lang-v1_1`，5 个文件共约 180 MB：`model.int8.onnx`、`voices.bin`、`tokens.txt`、`lexicon-us-en.txt`、`lexicon-gb-en.txt` |
+| LJSpeech | `csukuangfj/vits-ljs`，3 个文件共约 41 MB：`vits-ljs.int8.onnx`、`lexicon.txt`、`tokens.txt` |
+| 校验 | 字节数与 SHA-256 都与固定值一致才改名到位；超过固定字节数即中止 |
+| 重定向 | 只跟随 HTTPS。仓库把文件转给它的存储主机，这是唯一的另一个主机 |
+| 超时 | 单个文件 1 小时 |
+| 失败 | 静默：`.part` 被删除，设置页回到“未下载”，不弹通知、不重试 |
+
+合成时不联网；运行时（sherpa-onnx v2.0.1）随安装包在本机运行。
