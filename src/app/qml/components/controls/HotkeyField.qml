@@ -8,7 +8,7 @@ import QtQuick
  * The same lockup as SwitchRow -- a label and the value at opposite ends of one line -- because it
  * sits among those rows and answers the same kind of question. Only the value's drawing differs: a
  * combination is read key by key, so each part of it is a capsule, and `Ctrl+Alt+S` reads as three
- * keys rather than as a string.
+ * keys joined by a plus rather than as a string.
  *
  * While it is recording, the row says what it is waiting for instead of showing the old
  * combination, and it takes the keyboard. The combination is not assembled here: the key and the
@@ -80,8 +80,8 @@ Item {
         Text {
             anchors.left: parent.left
             anchors.leftMargin: 11
-            anchors.right: keys.left
-            anchors.rightMargin: 8
+            anchors.right: parent.right
+            anchors.rightMargin: 11
             anchors.verticalCenter: parent.verticalCenter
             visible: root.recording
             text: qsTr("Press the combination")
@@ -92,31 +92,47 @@ Item {
 
         Row {
             id: keys
-            anchors.right: parent.right
-            anchors.rightMargin: 9
+            anchors.left: parent.left
+            anchors.leftMargin: 11
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 4
+            spacing: 5
             visible: !root.recording
 
             Repeater {
                 model: root.parts
 
-                delegate: Rectangle {
-                    id: capsule
+                delegate: Row {
+                    id: lockup
                     required property string modelData
+                    required property int index
+                    spacing: 5
 
-                    width: Math.max(18, keyText.implicitWidth + 12)
-                    height: 19
-                    radius: root.tokens.radiusPill
-                    color: root.tokens.panel
-                    border.width: 1
-                    border.color: root.tokens.line
+                    Rectangle {
+                        id: capsule
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: Math.max(18, keyText.implicitWidth + 12)
+                        height: 19
+                        radius: root.tokens.radiusPill
+                        color: root.tokens.panel
+                        border.width: 1
+                        border.color: root.tokens.line
 
+                        Text {
+                            id: keyText
+                            anchors.centerIn: parent
+                            text: lockup.modelData
+                            color: root.tokens.text
+                            font.family: root.tokens.monoFamily
+                            font.pixelSize: 11
+                        }
+                    }
+
+                    // The seam between keys, never a trailing plus.
                     Text {
-                        id: keyText
-                        anchors.centerIn: parent
-                        text: capsule.modelData
-                        color: root.tokens.text
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: lockup.index < root.parts.length - 1
+                        text: "+"
+                        color: root.tokens.muted
                         font.family: root.tokens.monoFamily
                         font.pixelSize: 11
                     }
