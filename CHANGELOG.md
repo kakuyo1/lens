@@ -16,6 +16,10 @@
 
 ### Changed
 
+- A word too long to leave room for its pronunciation beside it now takes the whole title line, and
+  the pronunciation, the speaker and the part of speech go on a line under it. They used to claim
+  the room and the word ended in an ellipsis, which hid the one thing the card was asked for.
+
 - The model list first asks the standing service for its own shelf: one `GET {baseUrl}/models` sent
   with the reader's key. The shared catalogue is the fallback now, used when that answers nothing or
   when no key is set yet. The catalogue is the industry's list, so it kept names the standing vendor

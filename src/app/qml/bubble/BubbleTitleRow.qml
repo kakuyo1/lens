@@ -11,7 +11,8 @@ import QtQuick
  * prints it. It is placed by hand rather than by a RowLayout: a layout with no item left to grow
  * does not keep the slack at the end -- measured, a 30 px word and its pronunciation 36 px apart in
  * a 238 px row -- and a gap that wide reads as two unrelated things. The prototype's 7 px is what
- * the pair is set with.
+ * the pair is set with. A word too long to leave room for the pair beside it takes the line whole
+ * and the metadata goes under it, because an ellipsis hides the one thing the card was asked for.
  *
  * A word carries a speaker after the pronunciation, and the pronunciation itself is a press target:
  * either one reads the headword, once (docs/adr/0134). The glyph is the whole affordance -- there is
@@ -66,22 +67,36 @@ Item {
 
     // A column leaves its children at zero width; the title needs the card's, to run in.
     width: parent ? parent.width : 0
+    /// What the pronunciation, the speaker and the part of speech would take beside the word.
+    readonly property real beside: (ipaText.visible ? ipaText.implicitWidth + 7 : 0)
+                                 + (root.speakerVisible ? speaker.width + 5 : 0)
+                                 + (posText.visible ? posText.implicitWidth + 7 : 0)
+    /// Whether the metadata is set on a line under the word. The word gives up its room to the pair
+    /// on one line, and a word that only fits that way ends in an ellipsis while the reader is still
+    /// looking for it: below the line it has the card's width, and the word reads whole.
+    readonly property bool stacked: beside > 0 && wordText.implicitWidth > root.width - beside
+    /// Where the metadata line ends, whichever of its two items reaches lower.
+    readonly property real metadataBottom: Math.max(ipaText.visible ? ipaText.y + ipaText.implicitHeight : 0,
+                                                    posText.visible ? posText.y + posText.implicitHeight : 0)
     /// A row that is not drawn holds no height either, since the column it sits in lays out its
     /// children whether they are visible or not.
-    height: root.visible ? wordText.implicitHeight : 0
+    height: root.visible ? (stacked ? metadataBottom : wordText.implicitHeight) : 0
 
     /// Where a label after the pronunciation starts: past the speaker when it is drawn, the
-    /// pronunciation's own end when only that is, the word's otherwise.
-    readonly property real labelX: speakerVisible ? speaker.x + speaker.width : (ipaText.visible ? ipaText.x + ipaText.implicitWidth : wordText.width)
+    /// pronunciation's own end when only that is, the word's otherwise. A stacked line whose label
+    /// has nothing before it starts on the left edge.
+    readonly property real labelX: speakerVisible ? speaker.x + speaker.width : (ipaText.visible ? ipaText.x + ipaText.implicitWidth : (stacked ? 0 : wordText.width))
+    /// The gap a label keeps from whatever stands before it, and none when it opens the line.
+    readonly property real labelGap: stacked && !speakerVisible && !ipaText.visible ? 0 : 7
 
     Text {
         id: wordText
-        // What is left once the pronunciation, the speaker and the part of speech have their room:
-        // a word with none left ends in an ellipsis rather than running under its own IPA.
-        width: Math.min(implicitWidth, root.width - (ipaText.visible ? ipaText.implicitWidth + 7 : 0)
-                                                    - (root.speakerVisible ? speaker.width + 5 : 0)
-                                                    - (posText.visible ? posText.implicitWidth + 7 : 0)
-                                                    - ((ipaText.visible || posText.visible) ? 0 : root.headerReserve))
+        // What is left once the pronunciation, the speaker and the part of speech have their room --
+        // and when that room would leave the word nothing but an ellipsis, the word takes the line
+        // and the pair goes below it. Only a word too long for the whole row still ends in one.
+        width: Math.min(implicitWidth,
+                        root.width - (root.stacked ? root.headerReserve
+                                                   : root.beside + ((ipaText.visible || posText.visible) ? 0 : root.headerReserve)))
         topPadding: 8
         text: root.title
         color: root.tokens.text
@@ -95,8 +110,8 @@ Item {
         id: ipaText
         // On the word's baseline: each item's own baseline offset is the distance from its top to
         // that baseline, padding included.
-        x: wordText.width + 7
-        y: wordText.baselineOffset - baselineOffset
+        x: root.stacked ? 0 : wordText.width + 7
+        y: root.stacked ? wordText.height : wordText.baselineOffset - baselineOffset
         visible: root.ipa !== ""
         animated: root.animated
         characterMs: root.characterMs
@@ -159,8 +174,8 @@ Item {
         id: posText
         // After the pronunciation, on the same baseline, the way the prototype sets the pair:
         // small mono capitals, the metadata step down from the word like the pronunciation is.
-        x: root.labelX + 7
-        y: wordText.baselineOffset - baselineOffset
+        x: root.labelX + root.labelGap
+        y: root.stacked ? ipaText.y + ipaText.baselineOffset - baselineOffset : wordText.baselineOffset - baselineOffset
         visible: root.pos !== ""
         wrapMode: Text.NoWrap
         text: root.pos

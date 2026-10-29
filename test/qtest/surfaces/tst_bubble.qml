@@ -420,6 +420,33 @@ Item {
             bare.visible = false;
         }
 
+        /// A word too long to leave room for its pronunciation beside it takes the line whole and
+        /// sends the pair under it: the ellipsis would hide the one thing the card was asked for.
+        function test_aLongWordTakesTheLineAndItsPronunciationGoesBelow() {
+            const bubble = createTemporaryObject(bubbleComponent, root);
+            verify(bubble);
+            bubble.show({
+                title: "compartmentalize", type: "word", ipa: "/kəmˈpɑːrtməntəlaɪz/", pos: "verb",
+                en: "To divide something into separate parts or sections.",
+                status: "new", x: 200, y: 240
+            });
+            wait(50);
+            const word = Util.textWith(Util.textsUnder(bubble), ["compartmentalize"]);
+            verify(word, "the card drew no title");
+            verify(word.width >= word.implicitWidth - 1,
+                   "the word was cut off instead of given its own line: " + word.width + " of " + word.implicitWidth);
+            const bottom = word.mapToItem(bubble.contentItem, 0, 0).y + word.height;
+            const ipa = Util.textWith(Util.textsUnder(bubble), ["/kəmˈpɑːrtməntəlaɪz/"]);
+            verify(ipa, "the card drew no pronunciation");
+            verify(ipa.mapToItem(bubble.contentItem, 0, 0).y >= bottom,
+                   "the pronunciation stayed beside a word that had no room for it");
+            const pos = Util.textWith(Util.textsUnder(bubble), ["verb"]);
+            verify(pos, "the card drew no part of speech");
+            verify(pos.mapToItem(bubble.contentItem, 0, 0).y >= bottom,
+                   "the part of speech stayed on the word's line");
+            bubble.visible = false;
+        }
+
         /// The entry is the single-sense card's: the payload offers the cycle, the reader's
         /// multi-sense switch stands it down while the rows are the selector, and the word it
         /// offers beside the click is the one the duty's cycle is holding.
