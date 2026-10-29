@@ -18,5 +18,6 @@
   - 统计面板与年度记录的 “All time” 读 `wordsModel.allCount`；`Controller.words` 属性删除，qtest 改读 `allRows()`。
   - 已知边界：一次切换要两拍（折叠 + 一拍余量）才落定，切换中途列表短暂只剩两个筛选的交集，所以空筛选那一行由 `filterSwitching` 拦住；一条已展开的复习气泡随其行离开而收（UI-SPEC.md 4.8 正是要求 “筛选换掉这一行” 即收）；词被重新弹出而列表开着时模型 reset、视图重建（旧行为本来如此）；滚动条拇指在删除开始的一帧跳到新尺寸（contentHeight 立即变化，长列表上不可见）。
   - 减少动效（折叠 token 归零，CI 的运行环境就是这一档）时，行离场那一段过渡整体关掉：0 时长的过渡不算过渡，视图照样会起它，而一次切换要删两段连续的行（两个判定的词从不相邻），每段末尾那一行就留在视口里、按全高画在留下来的行上——8 行时实测留下 `ephemeral` 与 `quintessential`。视口的保持也随之改看 `filterSwitching` 而不是 token：否则卡片在两阶段之间缩到交集的行数（两个判定是 0 行，183 px）再涨回 276 px，读者看到的是闪一下。
+  - 筛选一换，词表回到第一行：留下的行是旧列表已有的 delegate，ListView 不为它们重算偏移，`contentY` 夹回新内容的范围后，视口就停在所有行之上。实测 128 词的列表滚到底后切到 known，9 行留在 y=3379..3627，而内容只有 279 高，面板空白；`forceLayout()` 与 `positionViewAtBeginning()` 都修不回已错位的行。模型在发差异之前报 `filterChanged`，回顶写在那个间隙里。
   - 被排除的方案：`QSortFilterProxyModel`（过滤规则仍要在视图侧拼写，删除差分不归它）；保留 delegate 的 height Behavior、只把模型换成 item model（过滤依旧靠 0 高行，contentHeight 仍是估计）；`DelegateModel`（为过滤引入第二份行）。
 - **ADR 关系**：0064 的纯函数仍是行的来源（`wordRowList` 是 `wordRows` 的类型化版本）；0104 的 “All time 与词汇弹窗标题同源” 不变，来源从 `Controller.words.length` 换成 `wordsModel.allCount`；0057 的 “纯 module + adapter” 在这里落成 “模型拥有行，视图只画”。

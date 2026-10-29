@@ -40,8 +40,8 @@ Window {
 
     /// As wide as its widest row, so no word is ever shown elided. Rows report their width as they
     /// lay out rather than being walked for it -- a JS loop over the model's rows reads a
-    /// QVariantMap per row, ~170 ms each on this machine, a frozen window (docs/QML.md section 6). A running
-    /// maximum, so the card does not narrow under the reader as rows change; the cap above bounds it.
+    /// QVariantMap per row, a frozen window (docs/QML.md section 6). A running maximum, so the
+    /// card does not narrow under the reader as rows change; the cap above bounds it.
     property real widestRow: 0
 
     /// @brief Note one row's natural width. Called by each row as it lays out.
@@ -75,6 +75,9 @@ Window {
     onFilterChanged: {
         filterSettled = false;
         filterSettle.restart();
+        // A scrolled list keeps the rows that stay at their old offsets and draws blank, so the
+        // new list is read from its first row (docs/adr/0122).
+        list.contentY = 0;
     }
     /// The unfiltered list's line waits for the last row's remove transition too.
     readonly property bool showEmpty: Controller.wordsModel.allCount === 0 && !listBox.holding
@@ -236,8 +239,7 @@ Window {
         // The list is the only scroller, but the title, the filters and the card's right padding
         // are part of the same page: a wheel anywhere on the card scrolls the list. The handler
         // sits on the card, behind the view in delivery order, so a wheel over the list itself is
-        // still the ListView's (and keeps its acceleration); this only answers where that view
-        // declined the event.
+        // still the ListView's; this only answers where that view declined the event.
         WheelHandler {
             acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
             onWheel: (event) => {
@@ -449,8 +451,7 @@ Window {
                     // Every row stays instantiated, not for the viewport (that is the model's
                     // count now) but for the width handshake: a row outside the cache has not
                     // measured its word yet, and the card would widen under the reader's scroll
-                    // when it finally does. The spike measured the card at 320 px until a 428 px
-                    // row was scrolled to; a few hundred simple rows cost nothing next to that.
+                    // when it finally does (docs/adr/0122 carries the measurement).
                     cacheBuffer: 6000
                     // The viewport above is a number the view itself never computes, so nothing
                     // in its own layout obliges it to build the rows: a view that first shows up

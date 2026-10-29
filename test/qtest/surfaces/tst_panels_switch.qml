@@ -74,6 +74,26 @@ Item {
                       + "; it is showing " + wordsShown(popup).sort().join());
         }
 
+        /// @return The words list itself, the scroller a wheel or a flick reaches.
+        function listIn(popup) {
+            return Util.findAll(popup, function (o) {
+                return o.contentY !== undefined && o.count !== undefined
+                       && o.contentHeight !== undefined;
+            })[0];
+        }
+
+        /// @return The words whose row the viewport is actually drawing: a row left at an offset
+        ///         the viewport no longer covers has no text inside it.
+        function wordsInViewport(popup, list) {
+            const words = Controller.wordsModel.allRows().map(function (entry) { return entry.word; });
+            return Util.findAll(popup, function (o) {
+                return typeof o.text === "string" && o.visible && words.indexOf(o.text) >= 0;
+            }).filter(function (o) {
+                const y = o.mapToItem(list, 0, 0).y;
+                return y >= 0 && y < list.height;
+            }).map(function (o) { return o.text; });
+        }
+
         /// A filter switch moves in two phases: the rows it hides close, and the rows it wants
         /// arrive one fold later. Two words on one line is what the reader would call a ghost, so
         /// this asks, for as long as the model says it is between its phases, whether an arriving
@@ -140,6 +160,50 @@ Item {
                        "the card was " + heights[i] + " px on its way to " + settled
                        + ": the viewport took the intersection's count between the phases");
             Controller.wordsModel.filter = 0;
+        }
+
+        /// A switch from a scrolled list reads the new list from its first row. The rows the new
+        /// filter keeps are the delegates the old list already held, and a view left where it was
+        /// leaves them at the offsets they had -- while the model's shorter content then clamps the
+        /// viewport above every one of them. The panel draws blank, and a wheel finds a word or two
+        /// before the clamp takes them away again (2026-10-29, the reader's report).
+        function test_aSwitchFromAScrolledListStartsAtTheTop() {
+            const seeded = [];
+            for (let i = 0; i < 40; ++i)
+                seeded.push("zzswitchprobe" + i);
+            const at = lensQaFiles.tempDir() + "/switch-" + Date.now() + ".txt";
+            verify(lensQaFiles.write(at, seeded.join("\n") + "\n"), "the seed file was not written");
+            verify(Controller.importWords(at), "the seed words were not imported");
+
+            try {
+                const popup = make();
+                popup.visible = true;
+                wait(300);
+                const list = listIn(popup);
+                verify(list, "the words list was not found");
+                verify(list.contentHeight > list.height + 100,
+                       "the list does not scroll: content " + list.contentHeight + " in " + list.height);
+
+                list.contentY = list.contentHeight - list.height;
+                wait(200);
+
+                Controller.wordsModel.filter = 1;
+                const known = verdictWords("known");
+                settleOn(popup, known);
+                wait(500); // the fold that lands the rows, at a loaded runner's pace
+
+                compare(wordsInViewport(popup, list).sort().join(), known.slice().sort().join(),
+                        "the viewport is not drawing the known words");
+                verify(list.itemAtIndex(0) && Math.round(list.itemAtIndex(0).y) === 0,
+                       "the first known row is not at the top of the list");
+                verify(list.contentY <= Math.max(0, list.contentHeight - list.height) + 1,
+                       "the viewport stands past the last word: contentY " + list.contentY
+                       + " against content " + list.contentHeight);
+            } finally {
+                Controller.wordsModel.filter = 0;
+                for (const word of seeded)
+                    Controller.removeWord(word);
+            }
         }
     }
 }
