@@ -21,7 +21,7 @@
 | 查一个术语 | `GLOSSARY.md` | 词条指向的 owner 文档 |
 | 查某个决定为什么这样做 | `docs/adr/README.md` | 对应 ADR |
 | 查被取代的旧规格、阶段计划或 2026-10 的 critique | `docs/history/` | `docs/history/impeccable/`、对应 ADR |
-| 开发本地与在线多引擎 OCR | `docs/ocr-development.md` | `docs/adr/0130-local-and-online-ocr-are-separate-modes.md`、`docs/adr/0132-rapidocr-model-paths-stay-ascii.md`、`docs/adr/0133-offline-ocr-ships-tesseract-and-rapidocr.md`、产品与安全目标约定 |
+| 改 OCR 行为、模式、引擎或服务 | `PRODUCT.md` 的 OCR 约定 | `API.md` §8、`SECURITY.md` 的 OCR 契约、`docs/adr/0130`、`0132`、`0133`、`0136` |
 | 加发音、改发音引擎或音色 | `PRODUCT.md` 的发音一节 | `docs/adr/0134-pronunciation-is-word-only-and-system-first.md`、`UI-SPEC.md` 4.3 / 4.4、`API.md` §9、`docs/research/tts-survey-2026-10-28.html` |
 | 改 HTML 原型 | `ui-prototypes/README.md` | `DESIGN.md`、`UI-SPEC.md` |
 
@@ -33,7 +33,6 @@
 | 当前规格 | `PRODUCT.md`、`DESIGN.md`、`UI-SPEC.md`、`API.md`、`SECURITY.md`、`TEST.md`、`GLOSSARY.md`、`docs/QML.md`、`docs/qa.md` | 现在是什么 | 历史、实测明细、被取代的做法 |
 | 决定 | `docs/adr/` | 为什么这样定、代价是什么 | 当前状态的完整复述 |
 | 证据 | `docs/metrics/` | 数字是多少、怎么量的 | 应然规则 |
-| 待实现开发方案 | `docs/ocr-development.md` | 已批准方向的技术契约、实施拆分与验收门 | 已上线能力、实测结论 |
 | 历史 | `docs/history/` | 以前是什么 | 当前行为 |
 | 对照稿 | `ui-prototypes/` | 设计长什么样 | 行为契约 |
 
@@ -56,13 +55,18 @@
 | `docs/qa.md` | 真机驱动、拍照、快照、像素判读 | 测试目标 |
 | `docs/metrics/profiling-and-coverage.md` | profiling 与覆盖率方法 | 某次报告的数字 |
 | `docs/metrics/` | 按日期存放的实测报告 | 当前规格 |
-| `docs/ocr-development.md` | 多引擎 OCR 的待实现技术契约、配置、协议适配、任务生命周期、验收与阶段依赖 | 已上线声明；产品目标与安全约定分别由对应 owner 拥有 |
 | `docs/QML.md` | QML 模块、窗口、阴影、定位、线程、字体事实 | 外观规格 |
 | `CODING_STANDARDS.md` | 审查阶段能判的判断题 | 机械格式检查 |
 | `docs/adr/` | 重大取舍与代价 | 当前规格全文 |
 | `docs/history/` | 被取代的阶段规格 | 当前行为 |
-| `docs/history/impeccable/` | 2026-10 六面 critique 的最终报告、过程稿与修复计划 | 当前行为、当前规格 |
+| `docs/history/impeccable/` | 2026-10 六面 critique 的最终报告与修复计划 | 当前行为、当前规格 |
 | `scripts/README.md` | 脚本目录、验证入口、发布命令 | 测试口径细节 |
+| `docs/pet-package-format.md` | 宠物包格式契约：目录结构、字段、上限、校验与拒绝原因 | 美术生成流程 |
+| `docs/pet-art-pipeline.md` | 随包宠物的美术生成管线：配方、渲染与检查 | 宠物包格式、行为规则 |
+| `docs/agents/` | issue tracker、triage 标签与域文档的 agent 约定 | 产品与 UI 规格 |
+| `config/README.md` | 机器路径规则与豁免 | — |
+| `scripts/pet/README.md`、`scripts/qa/pet/README.md` | 宠物脚本与原型 QA 的运行入口 | 配方字段与美术约束（归 `docs/pet-art-pipeline.md`） |
+| `data/wordlist-source.md` | 词表来源与许可 | 行为规则 |
 | `ui-prototypes/` | 每张表面的 HTML 对照稿 | 行为契约 |
 | `CHANGELOG.md` / `TODO.md` | 已发布变更 / 待做事项 | 设计依据 |
 
@@ -70,7 +74,7 @@
 
 - **一个事实只有一个 owner**。同一规则只写在清单里标为 “拥有” 的那一份，其他文档用链接；发现重复时删掉一份，不要同步两份。
 - **`DESIGN.md` 与 `UI-SPEC.md` 同一次改动同步**。改表面只改 `UI-SPEC.md`；一旦引入或改变令牌、字重、圆角、动效规则，同一次改动回写 `DESIGN.md` 的对应小节。
-- **规格只写当前状态**。带日期的决定、被取代的做法、一次性实测数字不进入规格；分别放 ADR、`docs/history/`、`docs/metrics/`。
+- **规格只写当前状态**。带日期的决定、被取代的做法、一次性实测数字不进入规格；分别放 ADR、`docs/history/`、`docs/metrics/`。规格陈述行为本身，不写 “已实现 / 已落地 / 未验证” 一类的进度标注；验证与待办状态归 `SECURITY.md`、`docs/metrics/` 与 `TODO.md`。
 - **冲突不要静默选边**。规格与代码不一致时，在当前改动里改掉 owner 文档，并在提交或 PR 说明哪一边是错的。
 - **读者可见文案以 `i18n/*.ts` 为准**。`DESIGN.md` 与 `UI-SPEC.md` 只写设计意图，不维护文案表。
 - **新增文档先登记**。没有出现在本文件清单里的文档，agent 不会主动读；被取代的规格移进 `docs/history/`。

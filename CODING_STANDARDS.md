@@ -25,8 +25,8 @@
 
 ## QML
 
-- **阴影来自一份只有形状的 `visible: false` 副本**，不要把内容包进 `MultiEffect`：它把源渲进离屏贴图，
-  125% 下被重采样，同一个字形会从锐利边变成糊团。
+- **阴影来自一份只有形状的 `visible: false` 副本**，不要把内容包进 `MultiEffect`（机制与实测见
+  `docs/QML.md` §3）。
 - **表面的定位按卡片算，不按窗口算**：窗口四周有 26 px 透明阴影边距，每次都要把 `shadowMargin` 减掉。
 - **显示一张表面是两步**：`visible = true` 之后还要 `raise()`，否则可能被任务栏压住。
 - **跨线程回调只能排队投递**到拥有表面的线程（`QMetaObject::invokeMethod(..., Qt::QueuedConnection)`）。

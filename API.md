@@ -1,9 +1,9 @@
 # LLM 协议
 > 权威：当前线上协议。**实际生效的定义在 `data/llm/` 目录**，代码只组装与校验，不内联任何提示词或字段名；历史取舍见 `docs/adr/`。
 >
-> 在线 OCR 是独立图片请求，不属于下列解释通道；服务表与两个协议适配见 [OCR 开发方案第 7 节](docs/ocr-development.md#7-第一批外部协议适配)，实现状态见 §8。真实在线往返尚未执行。
+> 在线 OCR 是独立图片请求，不属于下列解释通道；服务表与五个协议见 §8。真实在线往返尚未执行。
 
-服务商、模型与端点由 `data/llm/catalog.json` 驱动，默认是 DeepSeek；解释请求使用 OpenAI 兼容的 `POST {baseUrl}/chat/completions`，请求头为 `Content-Type: application/json` 与 `Authorization: Bearer <API-KEY>`。模型列表**先问服务自己的 `GET {baseUrl}/models`**（带读者的 key），服务不答或还没填 key 时回落到 `modelSource` 声明的那一个共用源，回落的回答按厂商前缀切分。当前目录包含 DeepSeek（`deepseek-flash`、`deepseek-v4-pro`）、OpenAI（`gpt-4.1-mini`、`gpt-4.1-nano`）和 Custom；Custom 允许在设置中填写模型与 HTTPS 服务地址。价目独立放在 `data/llm/pricing.json`。
+服务商、模型与端点由 `data/llm/catalog.json` 驱动，默认是 DeepSeek；解释请求使用 OpenAI 兼容的 `POST {baseUrl}/chat/completions`，请求头为 `Content-Type: application/json` 与 `Authorization: Bearer <API-KEY>`。模型列表**先问服务自己的 `GET {baseUrl}/models`**（带读者的 key），服务不答或还没填 key 时回落到 `modelSource` 声明的那一个共用源，回落的回答按厂商前缀切分。Custom 允许在设置中填写模型与 HTTPS 服务地址。价目独立放在 `data/llm/pricing.json`。
 
 API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装目录、OCR payload 或日志；安装包只承载程序、静态数据与 `ocr/` 下的 Tesseract runtime 和英文 traineddata——读中文要用的 `chi_sim.traineddata` 由读者自己放进那个数据目录（UI-SPEC.md 4.11）。
 
@@ -92,18 +92,18 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 | 字段 | 类型 | 说明 |
 |---|---|---|
 | `word` | string | 原样回显输入的词，用于逐词核对 |
-| `ipa` | string | 音标，两侧带斜杠；可选，缩写（如 `qml`）没有音标时可以缺席或为空 |
-| `pos` | string | 最常见义项的词性，一个小写英文词（如 `noun`）；**可选**：模型可以不给，卡片就不画 |
+| `ipa` | string | 音标，两侧带斜杠；可选 |
+| `pos` | string | 最常见义项的词性，一个小写英文词；**可选**：缺席时卡片不画 |
 | `en` | string | 一行英文释义 |
 | `zh` | string | 一行中文释义 |
 | `translation` | string | `es` / `ja` 解释语言下的目标语言释义；对应语言时非空 |
-| `etymology` | string | 词源，一句话，语言跟随解释语言；**可选**：仅词源开关打开时才请求，缩写等来历不明的词没有 |
-| `example` | string | 例句，一句英文，使用该词；**可选**：仅例句开关打开时才请求，且始终为英文（不随解释语言） |
+| `etymology` | string | 词源，一句话，语言跟随解释语言；**可选**：仅开关打开时请求 |
+| `example` | string | 例句，一句英文，始终不随解释语言；**可选**：仅开关打开时请求 |
 | `senses` | array | 多义结果，按频率降序；每项含 `en`、`zh`，并在 `es` / `ja` 下含 `translation`，最多保留 3 项 |
-| `signpost` | string | 义项路标，两到四个英文词，给释义链的下一层用；**可选**：没有简短路标的词缺席，卡片不画 |
-| `collocations` | array of string | 最多两个常用搭配，词写作 `~`；**可选**：缺席或为空时脚注不画，超出两项的部分丢弃 |
-| `imageable` | boolean | 一张照片能否让这个义项更清楚；**可选且仅供参考**：只有单词通道请求，取不到布尔值时按 `false` 读 |
-| `imageQuery` | string | `imageable` 为 true 时给出的两到五个英文词，供图片搜索消歧；**可选**：恒为英文，不随解释语言变化 |
+| `signpost` | string | 义项路标，两到四个英文词，给释义链的下一层用；**可选**：缺席时卡片不画 |
+| `collocations` | array of string | 最多两个常用搭配，词写作 `~`；**可选**：缺席时脚注不画，超出两项丢弃 |
+| `imageable` | boolean | 一张照片能否让这个义项更清楚；**可选且仅供参考**（取舍见下文） |
+| `imageQuery` | string | `imageable` 为 true 时给出的两到五个英文词，供图片搜索消歧；**可选**：恒为英文 |
 
 `imageable` / `imageQuery` 是**建议值，不是契约**：卡片只按 `imageable && imageQuery 非空` 画图片入口，所以一个 true 而没有 query 的义项就是没有图（`docs/adr/0079`）。两条都不进 `required`，也**故意不在 schema 里声明类型**——`matchesSchema()` 只校验它认识的词汇，声明成 `boolean` / `string` 会把一个类型写错的建议值升级成整批失败，而丢掉一份已经到手的释义是更坏的取舍。校验层仍然只管 “有没有”，空与错都留给解析层读成 “没有图”。
 
@@ -298,20 +298,16 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 
 金额不由线上格式给出，本地按 `data/llm/pricing.json` 算（`llm_pricing.{h,cpp}`）。**价目是数据**：按模型名给输入 / 输出单价（每百万 token）与币种，改价是改数据，不重编译；价目缺失或模型不在表内时金额记 0 并记警告，不影响解释。模型目录与价目分离，Custom 或未列价模型仍可请求。
 
-**牌价与展示币种分开**（2026-10-03）：表里 0.15 / 0.6 是厂商的**美元**牌价，界面显示人民币。做法是 `display` 块写明目标币种与一个乘数（`multiplier`）及其取值日期（`asOf`），**牌价原样不动**——把 `currency` 直接改成 `CNY` 等于宣称厂商按人民币报价，那是说错。换算只在 `Pricing::cost()` 里发生一次，`currency()` 返回展示币种，故统计、花费、托盘提示三处无需各自知道还有另一种币。乘数是数据，会过期：启动时把乘数与日期一起记进日志，看到 ¥ 想问 “哪来的” 时不必翻文件。`display` 块缺失时展示币种回落到厂商币种。
+**牌价与展示币种分开**（2026-10-03）：`pricing.json` 里的牌价是厂商的**美元**牌价，界面显示人民币。做法是 `display` 块写明目标币种与一个乘数（`multiplier`）及其取值日期（`asOf`），**牌价原样不动**——把 `currency` 直接改成 `CNY` 等于宣称厂商按人民币报价，那是说错。换算只在 `Pricing::cost()` 里发生一次，`currency()` 返回展示币种，故统计、花费、托盘提示三处无需各自知道还有另一种币。乘数是数据，会过期：启动时把乘数与日期一起记进日志，看到 ¥ 想问 “哪来的” 时不必翻文件。`display` 块缺失时展示币种回落到厂商币种。
 
 ## 7 相关文件
 
-模型列表先问服务自己的货架：填了 key 且地址是 HTTPS 时发一条 `GET {baseUrl}/models`，请求头 `Authorization: Bearer <API-KEY>`，回答里的 id 原样作为该服务商的列表（`docs/adr/0137`）。服务不答、答非 200、形状不合或一条也没有，以及读者还没填 key 时，回落到 `modelSource` 声明的那一个共用源：一条不带认证、不带查询的 `GET https://openrouter.ai/api/v1/models`，一次回答所有服务商。每个服务商条目上的 `openRouterPrefix` 给出该厂商在 OpenRouter id `vendor/slug` 里的 vendor 部分，取到字段前被去掉；前缀为空表示整份目录、id 保持原样（OpenRouter 自己，它的接口收的就是 `vendor/slug`），没有这个键的服务商不参与切分。目录回答里有两条过滤：id 带 `:` 的（OpenRouter 自己的路由与计价模式，如 `:batch`、`:free`）丢掉，`architecture.output_modalities` 恰好只有 `text` 一项的才留——不是 “含有 text”，16 个同时写图像或音频的条目都含 text，那样的条件过滤不掉任何东西。货架回答由 `parseServiceModelIds` 读：`:` 变体照旧丢掉，条目写了 `architecture` 就仍按只含 `text` 才留，没写（第一方货架的常态）则照收。
+模型列表先问服务自己的货架：填了 key 且地址是 HTTPS 时发一条 `GET {baseUrl}/models`，请求头 `Authorization: Bearer <API-KEY>`，回答里的 id 原样作为该服务商的列表（`docs/adr/0137`）。服务不答、答非 200、形状不合或一条也没有，以及读者还没填 key 时，回落到 `modelSource` 声明的那一个共用源：一条不带认证、不带查询的 `GET https://openrouter.ai/api/v1/models`，一次回答所有服务商。每个服务商条目上的 `openRouterPrefix` 给出该厂商在 OpenRouter id `vendor/slug` 里的 vendor 部分，取到字段前被去掉；前缀为空表示整份目录、id 保持原样，没有这个键的服务商不参与切分。两处回答共用两条过滤（`parseServiceModelIds`）：id 带 `:` 的变体丢掉；写了 `architecture` 的条目按输出恰好只有 `text` 才留，没写（第一方货架的常态）则照收。
 
 模型列表缓存写在用户的 `%APPDATA%\Lens\settings.json` 的 `MODELS`（键仍是服务商 `value`），`catalog.json` 只作为安装包中的只读种子；回落的回答按前缀切开后一次写入各家，货架的回答只写当前这一家。刷新失败、超时、空响应或结构无效时保持已有缓存，一个字也不写。模型列表请求超时为 10 秒，响应上限为 2 MiB，模型条目上限为 2000。回落那次不带 API key，也不带读者内容，但每次启动都会发出，包括从不打开设置页、没有 key 的读者（取舍见 `docs/adr/0020`）；货架那次带的就是读者给这家服务的 key，发往的也是他自己在用的地址（`docs/adr/0137`）。取到的列表**不改写当前模型**：它是整个行业的清单，不是当前那家服务的货架（`docs/adr/0020` 取代 `docs/adr/0017` 的这一条，模型跟随服务商只在换服务商时仍然发生）。
 
-- `data/llm/request.word.json`、`request.entity.json`、`request.sentence.json`、`request.translation.json`、`request.peek.json` — 请求模板、预设、系统提示词与输出语言行
-- `data/llm/response.word.schema.json`、`response.entity.schema.json`、`response.sentence.schema.json`、`response.translation.schema.json`、`response.peek.schema.json` — 响应 schema（校验真源）
-- `data/llm/request.breakdown.json`、`data/llm/response.breakdown.schema.json` — 拆解通道的请求模板与校验真源（§3.6）
-- `data/llm/request.spell.json`、`data/llm/response.spell.schema.json`、`data/llm/request.grammar.json`、`data/llm/response.grammar.schema.json` — 纠正通道的请求模板与校验真源（§3.7）
-- `data/llm/pricing.json` — 价目数据，算金额用（§6）
-- `data/llm/catalog.json` — 服务商、离线模型种子、共用模型源与厂商前缀、base URL、解释语言与请求覆盖项
+`data/llm/` 下的协议与价目文件即 §1 通道表所列，目录即清单（`ls` 即得）。代码侧：
+
 - `src/llm/llm_protocol.{h,cpp}` — 加载与访问上述协议文件
 - `src/llm/llm_pricing.{h,cpp}` — 加载价目、把 `Usage` 折成金额
 - `src/llm/llm_pure.{h,cpp}` — 组装请求体、校验响应、读 `usage`，均无网络
@@ -322,6 +318,8 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 在线 OCR 是独立通道，不经过上面的解释请求；实现住在 `src/ocr/`，结果类型来自 `src/capture/ocr_engine.h`。服务、默认地址、凭据槽与语言映射由编译期服务表登记（[ADR 0136](docs/adr/0136-online-ocr-is-a-provider-table.md)）。截至 2026-10-29 只用注入传输与合成图验证，**未向真实端点发送过请求**。
 
 ### 8.1 OCR.space
+
+协议依据：[OCR.space 官方 API 文档](https://ocr.space/ocrapi)，核对日期 2026-10-28。官方还支持 URL 与 `base64Image` 上传，Lens 不启用，减少额外下载链与 base64 请求膨胀；免费额度与每日限流由服务档位决定，不写成 Lens 的永久保证。
 
 | 项 | 取值 |
 |---|---|
@@ -340,6 +338,8 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 
 ### 8.2 百度通用文字识别
 
+协议依据：[百度通用文字识别文档](https://ai.baidu.com/ai-doc/OCR/zk3h7xz52)，核对日期 2026-10-29。
+
 | 项 | 取值 |
 |---|---|
 | 令牌端点 | `POST https://aip.baidubce.com/oauth/2.0/token`，表单字段 `grant_type=client_credentials`、`client_id`、`client_secret` |
@@ -354,6 +354,8 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 
 ### 8.3 腾讯云通用印刷体识别
 
+协议依据：[通用印刷体识别](https://cloud.tencent.com/document/api/866/33526)与 [TC3 签名](https://cloud.tencent.com/document/api/866/33519)，核对日期 2026-10-29。
+
 | 项 | 取值 |
 |---|---|
 | 端点 | `POST https://ocr.tencentcloudapi.com/`；`X-TC-Action: GeneralBasicOCR`、`X-TC-Version: 2018-11-19` |
@@ -365,6 +367,8 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 `Response.Error.Code` 按固定集合映射（超出大小、图片无效、无文字、其余失败），`Message` 不进界面与日志，错误码写日志。签名实现在 `src/ocr/ocr_tencent.cpp`，向量锁在 `test/googletest/unit/ocr_tencent_test.cpp`。
 
 ### 8.4 阿里云通用文字识别
+
+协议依据：[RecognizeGeneral](https://help.aliyun.com/zh/ocr/developer-reference/api-ocr-api-2021-07-07-recognizegeneral) 与 [RPC 签名](https://help.aliyun.com/zh/sdk/product-overview/rpc-mechanism)，核对日期 2026-10-29。
 
 | 项 | 取值 |
 |---|---|
@@ -378,6 +382,8 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 
 ### 8.5 Google Cloud Vision
 
+协议依据：[images:annotate](https://cloud.google.com/vision/docs/reference/rest/v1/images/annotate) 与[文字识别说明](https://cloud.google.com/vision/docs/ocr)，核对日期 2026-10-29。`TEXT_DETECTION` 不返回置信度，结果里统一缺失。
+
 | 项 | 取值 |
 |---|---|
 | 端点 | `POST https://vision.googleapis.com/v1/images:annotate` |
@@ -388,7 +394,7 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 
 单图失败是 HTTP 200 加 `responses[0].error`（`code=3` 为图片无效），请求级失败是 HTTP 400／403／429。实现在 `src/ocr/ocr_google.cpp`，向量锁在 `test/googletest/unit/ocr_google_test.cpp`。
 
-## 9 发音：在线音频（已实现）
+## 9 发音：在线音频
 
 发音不是解释请求，不经过上面的模型通道，也不花读者的钱；引擎与兜底的取舍见 `docs/adr/0134`。本节只写在线音频那一档的线上协议——它是发音的缺省兜底，也可以被读者明确选为唯一引擎。端点行为由 2026-10-28 的实测得到（单词三次重复测量，句子与短语各两次）；客户端实现在 `src/speech/youdao_source.{h,cpp}`。
 
@@ -402,4 +408,4 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 | 时间与大小 | 实测 TTFB 126–175 ms；单次 10 秒、响应 ≤ 1 MiB，超限按失败 |
 | 失败 | 静默：非 200、超限或超时都不发音、不弹通知、不重试。任意句子与部分短语（如 `give up the ghost`）返回 `500` + 120 字节——它是词典条目音频，不是通用合成，这就是发音只做单词的原因之一 |
 
-实现满足：请求只含词本身（`SECURITY.md` 的出站边界）；重定向不跟随，地址是编译期常量而不是设置；命中缓存时零网络，文件落在 `%APPDATA%\Lens\audio\<sha1(口音|词)>.mp3`，按最后使用时间做 LRU、上限 50 MB，命中会刷新时间戳；引擎选择与兜底语义以 `docs/adr/0134` 为准——明确选了在线或本地后不在两者之间静默切换（`src/speech/speech_pure.h` 的 `plan()` 是这条规则的唯一实现）。
+实现满足：请求只含词本身（`SECURITY.md` 的出站边界）；重定向不跟随，地址是编译期常量而不是设置；命中缓存时零网络，缓存落盘位置、命名与 LRU 见 `PRODUCT.md` 的发音一节；引擎与兜底语义见 `docs/adr/0134` 与 `PRODUCT.md`（`src/speech/speech_pure.h` 的 `plan()` 是唯一实现）。

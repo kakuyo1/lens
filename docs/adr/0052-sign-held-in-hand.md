@@ -13,4 +13,4 @@
   - 被排除的方案：杆在牌子正下方居中（UI 原设计）。手要伸到牌子下方，结果不是牌子压住身体，就是要画一条很长的胳膊。固定六成挂点加夹值（上一版）：小宠物被盖住，大宠物显小。小卡只向右：左手时小卡会盖在宠物上。
   - 按比例缩放的代价：×1 时字约 6 px，读不清。给字号设下限会重新挡住身体，是否加下限待定。
   - 没有 `ask` 动作的第三方宠物没有手可握，牌子的去处待定。
-  - 手的像素图已装入 `data/pet`：右手在 `effects/ask.png`，左手在 `effects/ask-left.png`，动作的 `effectLeft` 指向左手图。应用已在装载时读取 `effectLeft` 并量出握点（见 ADR 0053），美术做法见 `docs/pet-art-pipeline.md` 第 8 节。
+  - 手的像素图已装入 `data/pet`：右手在 `effects/ask.png`，左手在 `effects/ask-left.png`，动作的 `effectLeft` 指向左手图。应用已在装载时读取 `effectLeft` 并量出握点（见 ADR 0053），美术做法见 `docs/pet-art-pipeline.md` 第 7 节。

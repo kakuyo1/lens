@@ -46,8 +46,7 @@ test/
 | `lens_qtest_components` | `qml/components/` 那八个的接线与交互 | 动组件时，无头，可进 CI |
 | `lens_qtest_surfaces` | 表面：Main 的摆放与关闭、托盘菜单、通知卡片、三张面板、行动条 | 动表面时，无头，可进 CI |
 
-Qt 来自 `config/paths.default.json` 被 `config/paths.local.json` 逐键覆盖后的合并值，由运行器读取；不要手抄
-`paths.default.json` 的 `qtRoot`。两个运行器都先做增量构建，再把环境变量配好：
+Qt 路径由运行器从合并后的机器配置读取（覆盖规则见 `config/README.md`）。两个运行器都先做增量构建，再把环境变量配好：
 
 ```
 powershell -File scripts/qa/gtest.ps1 -Filter 'PetThrow*'
@@ -73,7 +72,7 @@ powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_surfaces
 - 选区捕获：`lens_gtest_integration` 的 13 例（该目标另有 2 例读屏测量与 1 例复制裁剪，见下面两条），默认 12 例绿、2 例 skip——一条要人手拖鼠标，一条要 `LENS_GLASS_DUP_TEST=1`。
   `SelectionGrab.DeclinesWhenTheForegroundWindowIsOurs` 取不到前台时也跳过，故偶尔是 11 绿 2 skip，两种都不是红。
   `LENS_HOOK_SMOKE=1` 放开它，`LENS_HOOK_SMOKE_TEXT` 指定要拖选的词（缺省 `ubiquitous`）。它先往剪贴板放一个哨兵串，再等人在**别的窗口**里拖选那个词，然后断言三件事：取到的文本相符、返回状态是
-  `Captured`、哨兵串还在剪贴板上。剪贴板存还原本身另有 `ClipboardSnapshot.*` 三例自动覆盖，不依赖这一条——把它交给人工的那段时间里，它正是坏的。那三例直接操真实的剪贴板，而剪贴板是全机共享的：约 35 次运行里见过 3 次失败，都在别的进程刚写过剪贴板之后，按需复现不了，加重试也没挡住。所以那里单次失败先重跑一次再当信号看，成因仍未知，如实记着。提权窗口（任务管理器、管理员控制台）会被 UIPI 挡下注入，表现为超时而不是报错，别拿它试；终端类进程按名字排除，是故意的。
+  `Captured`、哨兵串还在剪贴板上。剪贴板存还原本身另有 `ClipboardSnapshot.*` 三例自动覆盖，不依赖这一条——把它交给人工的那段时间里，它正是坏的。那三例直接操真实的剪贴板，而剪贴板是全机共享的：偶发失败都发生在别的进程刚写过剪贴板之后，单次失败先重跑一次再当信号看。提权窗口（任务管理器、管理员控制台）会被 UIPI 挡下注入，表现为超时而不是报错，别拿它试；终端类进程按名字排除，是故意的。
 - 那两例真机用例会合成鼠标事件，指针会被移动并复位。合成拖拽的落点是一个顶层小窗口，它由一个**子进程**持有：钩子会挡掉落在本进程窗口上的按下（那条规则是 “不把自己的表面当选区”），所以落点窗口不能是本测试自己的。子进程就是测试可执行文件以 `--lens-probe-window` 再跑一遍，靠 job object 在用例结束时收掉。
 - 采集上限：`lens_gtest_glass_probe`，4 例，只在交互桌面会话上跑得动——远程会话与 CI 都没有可复制的输出。
   它只打印数字、不对时间下断言，读法写在文件头；`LENS_PROBE_EXCLUSION=1` 才跑那条会往屏上放一个品红方块的用例。
@@ -95,7 +94,7 @@ powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_surfaces
 - 图标资源挂在 `lens_app` 上，不在可执行文件里：`:/icons/` 只在带着它的二进制里解析，而读图标的是表面。
   挂错地方时两个 QTest 目标每个用例刷一条 `QML Image: Cannot open`，一共三百多条。
 - 剩下的是 Qt 自己发的两类：offscreen 平台不能抬窗口，而表面显示时 `raise()` 是必需的；Qt 6 不再随包带字体，
-  `setup.cpp` 自己按文件载入。它们都走不带类别的 `qWarning()`，按类别过滤会连带盖掉其余无类别警告，所以留着，
+  `setup.cpp` 自己按文件载入（方式见 `docs/qa.md`）。它们都走不带类别的 `qWarning()`，按类别过滤会连带盖掉其余无类别警告，所以留着，
   一次运行合计十条左右。
 - 两个目标的差别只有一处：`lens_qtest_surfaces` 编译 `setup.cpp` 时定义 `LENS_QTEST_SINGLETONS`，
   组件目标不定义。`Controller` / `Tray` 的工厂在没人 `provide()` 时断言、Debug 下直接崩进程，而
@@ -104,9 +103,8 @@ powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_surfaces
 - 表面用例跑的是签入的 `surfaces/settings.json`，不是 `settings.local.json`，两个理由：断言要在每
   台机器上看到同一组值，而设置面板的 setter 会落盘——指向仓库里那份，一条切换主题的用例就会改掉一
   个被跟踪的文件。setup 把夹具拷进临时目录再加载，进程退出时删掉。
-- 夹具里 `selectionCapture` 写的是字符串 `"false"`，不是 JSON 布尔。两种写法现在都读得出来（设置
-  分区读时两种编码都认），所以手写成 `false` 不再被当作缺省值 `"true"` 静默忽略；但**写**下去时保留
-  该键已有的编码，手写的字符串键不会变成真布尔，只有从未存在过的新键才按真类型出生（`docs/adr/0024`）。
+- 夹具里 `selectionCapture` 写的是字符串 `"false"`，不是 JSON 布尔；两种编码都读得出来、写回保留
+  已有编码，规则见 `docs/adr/0024`。
 - 冒烟：`LENS_SMOKE_WORD=ubiquitous powershell -NoProfile -File scripts/qa/gtest.ps1 -Target lens_gtest_smoke`。词取自
   `LENS_SMOKE_WORD`，缺省 `ubiquitous`。`settings.local.json` 缺 URL / MODEL / API-KEY 时报 skip
   而不是失败——要 key、要花钱、结论靠人看，所以它不进 CI。密钥读进内存后不打印、不进日志、不进
@@ -138,13 +136,9 @@ Translation（语言先于形状判定），其余按形状：单 token 在词�
 
 ## 5 UI 表面
 
-**顺序**：先开发面，再离屏 QTest，最后才是真实鼠标与截图。能用 `surface show|hide`、`surface route`、
-`setting set`、`state`、`wait` 回答的状态、触发与可见性，一律先走开发面（`scripts/qa/lens-dev.ps1`，构建开关
-`LENS_ENABLE_DEV_SURFACE=ON`，见 `docs/qa.md`）。只有像素问题（字形、阴影、对齐、图标）或必须
-经过真实钩子与命中测试的输入，才用 `ui-input.ps1` 和 `ui-capture.ps1`；用之前先说明是哪一种，并在
-运行记录里记下。开发面不移动指针、不抓屏，也不该为了 “看一眼” 而动用真机驱动。
-
-真机驱动、拍照、离屏快照与像素判读的细节见 `docs/qa.md`。
+**顺序**：先开发面，再离屏 QTest，最后才是真实鼠标与截图。哪些问题归开发面、哪些归真机，开发面的动词表
+与全部细节见 `docs/qa.md`（owner），本文不复述。为看状态临时加进 `src/` 的计时器与 `console.log`
+**提交前必须删干净**：探针规则见 `docs/qa.md` 的 “一轮的顺序”，`.githooks/pre-commit` 的第三项会拦。
 
 ## 6 记录
 

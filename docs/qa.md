@@ -22,7 +22,7 @@
 
 表面没有主窗口，全部靠触发才出现，所以像素与真实输入仍要靠真机。能脱离屏幕断言的那部分已经搬进
 `lens_qtest_surfaces`（`TEST.md` §2）：摆放、关闭规则、面板上的数字、托盘菜单那几个派生值，都不再需要快门。
-剩下的仍是这里的事——卡片对没对齐、阴影糊不糊、图标画出来没有。`scripts/qa/ui-*.ps1` 是四个这样的工具，
+剩下的仍是像素问题。`scripts/qa/ui-*.ps1` 是四个这样的工具，
 都是 PowerShell，都先把自己设成 per-monitor-v2 感知——不设的话截到的是 Windows 已经拉伸过的位图，
 糊与偏移都会被量成假的。
 
@@ -60,7 +60,7 @@ offscreen 不会栅格化 `MultiEffect`，因此图标与阴影在这类快照�
 必须删干净**——`.githooks/pre-commit` 的第三项会拦下 `src/` 下带这两个串的暂存文件，手工确认是
 `grep -rn PROBE src/`。观察点本身由应用自己的日志承担：`logs/lens.log` 每行都刷，可以 `tail -f`。release 树的默认级别是 info，QML 的 `console.log` 属于 debug，要设 `LENS_LOG_LEVEL=debug` 才进日志；C++ 侧用 `LENS_INFO` 即可。离屏的 QTest 没有真实的任务栏、多屏与缩放，只能验证换算公式，屏幕上的位置要在真机截图上核对。
 
-状态与资源问题归开发面，像素问题归 `ui-capture`。开发面（`docs/adr/0068`）只在编译开关 `LENS_ENABLE_DEV_SURFACE` 打开时存在：`--dev-script` 与 `--dev-pipe` 能直接显示、隐藏表面，读出窗口是否可见、幕布发布了几次、生效主题；量内存与线程用 `scripts/qa/lens-measure.ps1`，它把 `state` 作为一列记进 CSV。开发面不动指针、不抓桌面，所以只回答 “现在是什么状态”，不回答 “画对了没有”。摆放、阴影、图标、对齐仍用 `ui-capture` 看；鼠标事件的路径（钩子、命中测试）仍用 `ui-input` 在真机上驱动，因为开发面的 `selection` 跳过了钩子与剪贴板，不能代替它。开发构建的数字只与同构建的数字比，报告首行记 `version` 的应答。
+分工：状态与资源问题归开发面，像素问题归 `ui-capture`；鼠标事件的路径（钩子、命中测试）仍用 `ui-input` 在真机上驱动，因为开发面的 `selection` 跳过了钩子与剪贴板，不能代替它。量内存与线程用 `scripts/qa/lens-measure.ps1`，它把 `state` 作为一列记进 CSV。开发构建的数字只与同构建的数字比，报告首行记 `version` 的应答。
 
 驱动时有两个坑，都是撞了六七次调用才摸出来的：
 

@@ -131,15 +131,15 @@ Solo el texto que seleccionas o capturas se envía al proveedor que configures, 
 
 ## Preguntas frecuentes
 
-**¿Lens es un traductor?** Puede traducir, pero está pensado para explicar. Las explicaciones son en inglés por defecto; cambia el idioma de las explicaciones si quieres una traducción. Las selecciones en chino, japonés o español vuelven en inglés.
+**¿Lens es un traductor?** Puede traducir, pero está pensado para explicar. Las selecciones en chino, japonés o español vuelven en inglés.
 
 **¿Necesito una clave de API?** Sí. Usa la de un proveedor compatible. Lens muestra el coste de cada petición y puede limitar el gasto diario.
 
 **¿Funciona sin conexión?** El OCR y la lista de palabras son locales. Las explicaciones necesitan el proveedor que configures.
 
-**¿Qué sale de mi PC?** Solo la palabra, el nombre o la frase seleccionados, después del enmascaramiento. No se sube la página completa ni una captura completa.
+**¿Qué sale de mi PC?** Solo la selección enmascarada, y una captura que confirmes expresamente si usas OCR en línea. Consulta [Privacidad](#privacidad).
 
-**¿Por qué me avisa Windows?** El instalador no tiene firma de código. El archivo está intacto; el aviso es por la firma que falta. Compruébalo con `SHA256SUMS`.
+**¿Por qué me avisa Windows?** El instalador no tiene firma de código; la nota de [Descargar](#descargar) explica cómo ejecutarlo y verificarlo.
 
 **¿Hay versión para macOS o Linux?** Por ahora, solo Windows.
 

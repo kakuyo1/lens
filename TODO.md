@@ -8,7 +8,7 @@
 
 - **系统合成（已接）**：Qt 6.9.0 的 TextToSpeech 组件是装上去的——官方 6.9.0 归档仓库的 `qt.qt6.690.addons.qtspeech.win64_msvc2022_64` 包解压进 `B:/qtt/6.9.0/msvc2022_64`（`bin/Qt6TextToSpeech.dll`、`plugins/texttospeech/`、`lib/cmake/Qt6TextToSpeech/`），根 `CMakeLists.txt` 的 `find_package` 已带 `TextToSpeech`。**维护工具不肯把它当可安装项**：它只认受支持的那 326 个包，6.9.0 已在归档仓库里，`--add-repository` 之后仍然报 “No components available with the current selection”；所以这一份文件是手工落盘的，`components.xml` 里没有这条记录——将来在维护工具里升级或修复安装时，这棵树可能被当成有外来文件。重装 Qt 时按上面那条路径重新装一次即可。
 - **音色按口音挑**：`SpeechDuty::systemFor(accent)` 先问 winrt，问不到再问 sapi（`mock` 永不使用，它出声为假）。本机实测：winrt 只有 `Huihui / Yaoyao / Kangkang`（zh_CN），sapi 只有 `Huihui Desktop`（zh_CN），**没有 en-US / en-GB**，所以本机 `systemAvailable()` 为假、设置页写 “No system voice is installed for this accent”，发音落到在线兜底。要听系统音色，得在 Windows 设置里加一个英文语音包。每次启动一条 INFO 记下引擎与音色清单（`pronunciation: engine 'winrt', 3 voice(s): ...`），这是排查没声音的第一条线索。
-- **本地模型（第 4 步，未做）**：sherpa-onnx 运行时与按口音分槽的音色模型、SHA256 校验、`%APPDATA%\Lens\voices\` 的下载都没做；`SpeechDuty::localAvailable()` 恒为假，设置页的本地音色行因此只写 “Not downloaded”。`PRODUCT.md` 存储表里 `speech` 的本地音色只记状态那一条要等这一档落地才有东西可记。
+- **本地模型（第 4 步，未做）**：sherpa-onnx 运行时与按口音分槽的音色模型、SHA256 校验、`%APPDATA%\Lens\voices\` 的下载都没做；`SpeechDuty::localAvailable()` 恒为假，设置页的本地音色行因此只写 “Not downloaded”。本地音色的存储键随这一档落地时再进 `PRODUCT.md` 的存储形状表。
 
 自动播放只对 `cardKind === "selection"` 的单词卡生效（`Bubble.qml` 的 `show()`），预览卡、悬浮复习卡与宠物作答卡都不读；句子、实体、译文与拆解卡没有喇叭（`BubbleCard.qml` 的 `speakable`）。
 
@@ -82,6 +82,22 @@
 - **UI Automation TextPattern**：Chrome / Edge / Word / Acrobat 可直接读文字与词框；代价是首次启用 Chromium 无障碍模式的性能开销，以及 `SECURITY.md` 要写清读取边界。
 
 评估口径：96 / 125 / 150% DPI 下的词框精度、整窗耗时、中文 `traineddata` 依赖、打包体积、隐私边界。切换点是给 `capture::OcrEngine` 加词框能力，扫描侧不感知具体引擎。
+
+## 在线 OCR 的真实服务验证
+
+五个在线 Adapter（OCR.space、百度、腾讯云、阿里云、Google Vision）只用注入传输、替身与公开的签名向量验证过，真实账号的往返、令牌过期、计费与限额都没跑过；OCR 两页、RapidOCR 区与上传确认卡也还没做过真机视觉检查，确认卡预览的受控图片源只在应用启动路径上验过（离屏快照注册不了应用图片源）。做一轮真实 smoke：每进程至多 1 次请求、自动重试为 0、只用合成样图，密钥在用户 profile 原地读取（`API.md` §8 的状态注记）。
+
+## 在线重试的第二个 requestId
+
+在线的人工重试目前沿用同一事务 id；应改为第二次请求使用新 requestId，原图、冻结配置与事务截止时间不变（`SECURITY.md` 的重试窗口照旧）。
+
+## PaddleOCR-json 适配（可选本地引擎）
+
+候选是 v1.4.1 Windows x64 包。输入与结果形状和 RapidOCR-json 相似，但模型配置、错误码与退出规则不同——Paddle 接受 `exit` 或带 exit 的 JSON，不能与 RapidOCR 共用一条退出命令。需要时单独实现 Adapter，复用结果验证与排程，不复制设置 / 授权 / 扫描管道。
+
+## 扫描 v2：区域差分与局部重识别
+
+结构化 OCR 结果已能支撑扫描质量迭代，做的时候守住：首次整窗识别建立版面后，比较已有区域像素、只对变化区域重识别，不是整窗识别完再跳过计分；滚动、缩放、换页、尺寸变化与旧框外新增文字都要触发重新发现；全文相似度只辅助页面稳定，要弹出的目标词需更严格的一致性判定；置信度缺失不自动拒绝该结果，阈值按后端分别校准；不用词表编辑距离静默纠正专名。与上面 “自动扫描的 OCR 替换方案”（换引擎）是两件事。
 
 # TODO by user
 

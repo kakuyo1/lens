@@ -1,7 +1,7 @@
 import QtQuick
 
 /**
- * The local OCR configuration from docs/ocr-development.md 10.1.
+ * The local OCR configuration page; the surface spec is UI-SPEC.md 4.4.
  *
  * The page owns the engine, the recognition language and the local engine paths; the first capture
  * page keeps only the readiness summary and the link that opens this page. Auto is the default and

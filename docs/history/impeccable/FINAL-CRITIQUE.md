@@ -11,4 +11,4 @@
 - [批次⑤ 选区动作条](critique/FINAL-05-selectionbar.md)
 - [批次⑥ 更新卡](critique/FINAL-06-updatecard.md)
 
-过程稿仍在 `critique/` 的 16 份轮次报告中；本文件与以上七份是最终版。按优先级排列的执行队列见总账 §4，详细验收见 `fix-plan.md`。
+本文件与以上七份是最终版。按优先级排列的执行队列见总账 §4，详细验收见 `fix-plan.md`。

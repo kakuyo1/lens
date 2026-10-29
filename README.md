@@ -131,15 +131,15 @@ Only the text you select or capture is sent to the provider you configure, after
 
 ## FAQ
 
-**Is Lens a translator?** It can translate, but it is built for explanations. Explanations default to English; switch the explanation language if you want a translation. Chinese, Japanese, and Spanish selections come back in English.
+**Is Lens a translator?** It can translate, but it is built for explanations. Chinese, Japanese, and Spanish selections come back in English.
 
 **Do I need an API key?** Yes. Bring one from a supported provider. Lens shows the cost of each request and can cap daily spending.
 
 **Does it work offline?** Local OCR and the word list work offline. Explanations, and online OCR if you enable it, need the service you configure.
 
-**What leaves my PC?** Only the selected word, name, or sentence, after masking. If you enable online OCR and confirm a capture, that frozen crop is also sent to the OCR service you configured. No full page or screenshot is uploaded.
+**What leaves my PC?** Only the masked selection, and a crop you explicitly confirm if you use online OCR. See [Privacy](#privacy).
 
-**Why does Windows warn me?** The installer is not code-signed. The file is intact; the warning is about the missing signature. Verify it against `SHA256SUMS`.
+**Why does Windows warn me?** The installer is not code-signed; the note under [Download](#download) explains how to run it and verify the file.
 
 **Is there a macOS or Linux build?** Windows only for now.
 

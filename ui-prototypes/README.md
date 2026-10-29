@@ -19,12 +19,14 @@
 | `selection-bar-variants.html` | 选区动作条的四种备选形态（页边签 / 手牌签 / 吊牌签 / 扇面），落成 QML 的设计对照；默认仍是 `selection-bar.html` 的经典长条，见 `docs/adr/0056` |
 | `dog-candidates.html` | 狗的形象重做候选：同一副垂耳骨架的四个角色（奶糖 / 礼服 / 小猎 / 雪原），黑灰白为主体、玫红与冰蓝点缀；奶糖已选定并落成 `data/pet/dog`，其余三只留作对照。可切“只看轮廓”、深色底、动起来与 88×88 实际大小，URL `?pick=classic` 预选 |
 | `pet.html` | 桌面宠物子页面（扩展 → 桌面宠物，随包宠物的类型下拉、动作与配饰，以及宠物包的导入入口、被拒列表与确认弹窗） |
-| `pet-hover.html` | 桌面宠物的悬浮感知设计提案（未定稿）：视线跟随、近旁注意、停留回应与冷却；`?zones` 显示两只感知环 |
-| `pet-review.html` | 桌面宠物的提问牌：一块木牌立在宠物脚边，左右侧随空间切换，宠物只做身体起伏；悬浮出 “忘了 / 记得”、作答后的缓存气泡与超时生气 |
+| `pet-hover.html` | 桌面宠物悬浮感知的对照稿（行为规格见 `UI-SPEC.md` 4.14）；`?zones` 显示两只感知环 |
+| `pet-review.html` | 桌面宠物的提问牌与作答气泡 |
 | `pet-signs.html` | 七只随包宠物各自的复习牌（选定候选，各带一个牌内动效）与外部包的默认木牌；牌宽随输入的单词重画，逐帧检查脚线不动（ADR 0125、0126） |
-| `pet-accessories.html` | 七只宠物的配饰九件套：每只 3 顶头饰、3 副脸饰、3 件身体件，共 63 件，按 88×88 的真实锚点合成；逐只试穿、对照现状、复制当前搭配 |
-| `english-in-english.html` | “Read English in English” 的三条交互提案，一页三场景：释义链、铅笔层、按住看中文。左侧说明栏写取舍，是提案不是表面规格；暂只做明暗两套主题 |
-| `word-images.html` | 图片作为义项锚的 A/B 对照：A 一键看图（默认浏览器接手），B 卡内三图（原地展开、换义项、看大图与来源）。照片取自 Wikimedia Commons，署名与许可在大图里 |
+| `pet-accessories.html` | 七只宠物的配饰九件套试穿页（63 件，按 88×88 的真实锚点合成） |
+| `chain-choices.html` | 释义链的三个设计选择（下钻形式、虚线的词、多义时的表现），提案对照 |
+| `pet-candidates.html` | 宠物形象定稿：硬约束与直接进配方的约束对照 |
+| `english-in-english.html` | “Read English in English” 的三条交互提案（提案，不是表面规格） |
+| `word-images.html` | 图片作为义项锚的 A/B 对照 |
 | `update.html` | 检查更新（关于 分类的检查行）与通知卡片的新版本样式 |
 
 `pet-prototype/` 是一个 Vite 小应用，不是单个 standalone HTML：`walk.html` 是宠物步态与边缘躲藏的 demo，直接在 `pet-prototype/` 里跑 `npm run dev`，再打开 `/walk.html`。它读取 `data/pet` 的原始 JSON 与 PNG，`walk`、`edge_peek` 动作和 `movement` 块都取自同一份 `animations.json`；`walk.html` 里可以切七只宠物、左/右边缘、暂停与速度，勾 “原地播放” 看步态循环，点 “边缘演示” 强制一只躲到边缘，再把边缘的宠物拖出来结束躲藏。页面顶部的 “躲藏提问牌” 卡演示躲藏时木牌立在露出的内侧，柱脚踩在宠物脚线；牌子不再跟手逐帧移动。
@@ -33,7 +35,7 @@
 
 `scenes.html` 是场景入场的提案，QML 已按它落地（ADR 0101）：抽到场景不再硬切，而按场景编排一段约 0.3–0.8 秒的戏——泡澡先出浴缸再跳进去、纸箱一扑、秋千一跃、窗台趴下；道具透明度、宠物前后层与 idle 身体都来自真实的 `data/scenes` 与 `data/pet`。水花与尘土只是几粒像素，不是新美术。`?scene=bath|cat_box|swing|cat_sunbeam`、`?variant=enter|fade|cut`、`?speed=0.5|1|1.5`、`?reduced=1`、`?auto=0`、`?box=1` 控制初始状态，`?t=<ms>` 把舞台冻结在某一刻，供逐帧核对。它和 `ceremony.html` 一样在 `pet-prototype/` 里跑 `npm run dev` 后打开 `/scenes.html`。落地版本见 `src/app/qml/pet/PetScene.qml` 与 `SceneEntryEffect.qml`；设置页的动作预览仍是静止场景，场景药丸走真实入场。
 
-`scenes-six.html` 是每只宠物从四景扩到六景的设计板，已落地：七只随包宠物各加两个专属场景（共十四景），每景给出道具、入场、时段权重与配饰牵引；页面同时并排现有四景，宠物用 `data/pet` 的真实 idle / sleep 帧，道具仍是本页画的设计稿。14 景已生成 `scripts/pet/scenes` 与 `data/scenes`，应用里其余场景 12 帧 / 4 fps，滑梯 57 帧 / 10 fps。场景全部可暂停，`prefers-reduced-motion` 时从静止帧开始；`?t=<ms>` 把全部画布冻结在某一刻，供逐帧核对。和 `scenes.html` 一样在 `pet-prototype/` 里跑 `npm run dev` 后打开 `/scenes-six.html`，入口也加在宠物原型首页。
+`scenes-six.html` 是每只宠物从四景扩到六景的设计板，已落地：七只随包宠物各加两个专属场景（共十四景），每景给出道具、入场、时段权重与配饰牵引；页面同时并排现有四景，宠物用 `data/pet` 的真实 idle / sleep 帧，道具仍是本页画的设计稿。14 景已生成 `scripts/pet/scenes` 与 `data/scenes`。场景全部可暂停，`prefers-reduced-motion` 时从静止帧开始；`?t=<ms>` 把全部画布冻结在某一刻，供逐帧核对。和 `scenes.html` 一样在 `pet-prototype/` 里跑 `npm run dev` 后打开 `/scenes-six.html`，入口也加在宠物原型首页。
 
 ## 怎么看
 
@@ -45,7 +47,7 @@
 
 `pet-review.html` 直接停在提问牌，默认立在左侧；左侧的木牌连同外侧的小卡放不下时换右侧，两侧都放不下取溢出少的一侧。`?pet=dog|mochi|ghost` 选择宠物；`?bg=<当前玻璃主题的底图>` 换背景；`?scale=1|2|3.01|4` 改宠物尺寸，木牌随之等比缩放；`?sign=left|right` 强制木牌的一侧；`?f=0` 到 `?f=3` 停在宠物 `ask` 的某一帧，用来看身体的起伏（木牌不跟着动）。`?qa` 把木牌、柱、小卡与气泡的屏幕坐标写在页面左下角，用来核对没有被截断。`?state=hover` 看展开的两枚按钮，`?state=forgot` / `?state=remembered` 看作答后的宠物动作与气泡，`?state=timeout` 看超时生气。作答气泡缺省在木牌那一侧，与宠物垂直居中，那一侧放不下时翻到另一侧；`?side=left|right` 强制气泡一侧，用来看翻边。小卡朝木牌的外侧展开：木牌在左时小卡在左，在右时在右；外侧放不下时翻到内侧。`?lang=` 支持四种界面语言；牌上的单词与气泡里的释义是样例内容，不随界面语言变。牌面的像素字体由页面相对引用 `data/fonts/PixelifySans-Regular.ttf`。
 
-`pet-hover.html` 是悬浮交互的设计提案，不是已定稿的行为：指针靠近宠物时先跟眼神，停一下给个小反应，再停一会给完整动作；右侧可单独关掉每一层，`?zones` 直接显示注视与注意两只环，`?qa` 暴露页面里的 pet 列表供截图脚本暂停帧用。状态文字只在这个原型里出现，产品里的宠物不说话。
+`pet-hover.html` 是悬浮感知的对照稿，行为规格在 `UI-SPEC.md` 4.14：指针靠近宠物时先跟眼神，停一下给个小反应，再停一会给完整动作；右侧可单独关掉每一层，`?zones` 直接显示注视与注意两只环，`?qa` 暴露页面里的 pet 列表供截图脚本暂停帧用。状态文字只在这个原型里出现，产品里的宠物不说话。
 
 `pet-accessories.html` 是七只的配饰九件套：每只 3 头 / 3 脸 / 3 身，共 63 件。右边九件都在柜子里，同一槽位单选；左边试衣台 4×，卡片是缩略图。“现状对照” 看旧的这身，“恢复初始” 回到首选，底部 “复制当前搭配” 抄出七只的 3 件当前搭配。`?pet=dog|mochi|owl|cat|ghost|jelly|cloud` 滚到某一只，`?theme=dark` 暗色，`?shot` 隐去控件与底部条。它是试穿页，不是新表面；九件套已落进配方与 `data/pet`，页面保留为试穿预览。
 

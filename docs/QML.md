@@ -6,7 +6,7 @@
 ## 1 模块与目录
 
 `src/app/qml/` 按表面家族分组：`bubble/`、`selection/`（`bodies/` 是动作条的五个身体）、`settings/`
-（`pages/` 是十一个设置页，`previews/` 是设置页里嵌的预览）、`pet/`（宠物窗口、复习牌与宠物包确认）、
+（`pages/` 是设置页，`previews/` 是设置页里嵌的预览）、`pet/`（宠物窗口、复习牌与宠物包确认）、
 `panels/`（托盘菜单、统计 / 词汇 / 年度 / 花费面板、通知与更新卡；`WordsListRow` 是词汇列表的行）、
 `capture/`（取词蒙版）。一个家族
 目录放它的窗口、只属于它的内部件、只给它用的预览。`dev/` 放 `ProfileScenario.qml`，它是 profiling 的
@@ -288,8 +288,8 @@ PY
 
 ## 9 动效
 
-- **时长与缓动是令牌，住在 `qml/theme/Motion.qml`**：`press`（150 ms）、`pop`（180 ms）、`bubble`
-  （220 ms）与一条 `easing`。`Tokens` 以 `readonly property Motion motion` 转发，表面写
+- **时长与缓动是令牌，住在 `qml/theme/Motion.qml`**：`press`、`pop`、`bubble`、`pulse` 与一条
+  `easing`（当前值表见 `DESIGN.md` 的 Motion）。`Tokens` 以 `readonly property Motion motion` 转发，表面写
   `Tokens.motion.<token>`，QML 里不出现毫秒字面量。它与 `Light` / `Dark` 同处一个目录，因为 `theme/`
   是**值表**所在而不是色值所在。
 - **减少动效读的是 Win32，不是媒体查询**：`src/app/platform/system_motion.h` 的 `SystemMotion` 是个

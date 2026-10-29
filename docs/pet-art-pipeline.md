@@ -51,19 +51,11 @@
 1. 复制 `scripts/pet/recipes/mochi.json` 或 `dog.json`，改身体、眼睛、嘴、动作与配饰。
 2. 从仓库根目录运行 `python -I scripts/pet/render_pet.py <id>`。渲染器直接覆盖 `data/pet/<id>/`，先清空 `sprites/accessories/`，退役件不会留下孤图；写完后读回每张 sheet 核对尺寸，尺寸不对会退出。
 3. 看图。至少看 `sprites/reference/bare.png`、表情 sheet、每个动作的 body/effect sheet 与配饰 PNG；按原尺寸和放大各看一遍。可疑的格子改配方，不改输出。
-4. 核对数据契约：角色、idlePool、blink、锚点条目、场景帧数与 30 秒时长、配饰的 supportedActions 与 `sceneWeights`（键必须是该宠物真能演的场景）。`pet_data_test` 会把狗逐项验一遍，包括 `ask` 只有身体、没有效果层。
+4. 核对数据契约：`roles`、`idlePool`、`blink`、锚点条目、sheet 尺寸等共享项按 [`pet-package-format.md`](pet-package-format.md) §9 的自查清单过一遍；随包宠物另有场景帧数与 30 秒时长、`ask` 只有身体没有效果层两项，`pet_data_test` 逐项验一遍。
 5. 原型：`cd ui-prototypes/pet-prototype && npm run embed && npm run embed:hover`；`pet-review.html` 与 `walk.html` 直接读 `data/pet`，不用重新生成。改完狗或动作后，至少打开 `pet-review.html?pet=dog` 与 `walk.html` 看一次。
 6. 测试：`lens_gtest_unit --gtest_filter='PetData.*'`；原型侧 `node --test ui-prototypes/pet-prototype/test/*.test.js`。真机看画面另见 `docs/qa.md`。
 
-## 5。脚本索引
-
-| 脚本 | 作用 | 会改文件吗 |
-| --- | --- | --- |
-| `scripts/pet/render_pet.py` | 全部宠物：配方 → `data/pet/<id>/` | 直接写入，没有预览模式 |
-| `scripts/pet/render_scenes.py` | 场景：`scripts/pet/scenes/` → `data/scenes/` | 直接写入，读回核对尺寸 |
-| `scripts/pet/recipes/{mochi,owl,cat,ghost,jelly,cloud,dog}.json` | 七只宠物的配方 | 复制后改 |
-
-## 6。已知限制
+## 5。已知限制
 
 - **眼睛默认 3 × 3 像素**；圆眼与更大的点眼需要配方级 `eyeSize`，目前只有 2 与 3 两档。奶糖的 2 × 2 格子眼是 6 × 6 像素，和 3×3 的默认图案不共用位置逻辑。
 - **效果层不跟随身体**。效果层固定在画布 `(0, 0)`，身体的平移与压扁不影响它；挂在身体上的图形放 `bodyPaint`，跟脸但不受压扁的放 `facePaint`。`dizzy` 的星星因此绕基础头位转，身体在星星下面轻晃；这是刻意的。
@@ -72,7 +64,7 @@
 - **压扁小于 1 时蒙版里的耳朵会跟着变**；奶糖的 `sleep` 只用 1.04 / 0.96 的轻压，避免脸与身体错位。
 - 小狗没有 `blink` 之外的旧专用动作表；动作名与场景 id 都与旧版一致。配饰 id 在 ADR 0099 中整套换新，旧存档里不认识的配饰会被丢弃。
 
-## 7。步态与边缘偷看
+## 6。步态与边缘偷看
 
 `walk` 与 `edge_peek` 是循环动作，不映射角色，也不能进 `idlePool`。它们用配方的 `body_frame`、逐帧 `pose`、表情与效果层。
 
@@ -80,7 +72,7 @@
 - **共享场景**：`skate` 与 `swing` 的宠物动作由各自配方提供；奶糖坐在滑板与秋千上，场景位移负责摆动，帧里只留表情与必要的重心。专属的 `dog_frisbee`、`dog_burying` 由狗单独拥有。
 - **配饰**：渲染器会为每件配饰自动补上 walk 与 peek；小狗没有手写 `supportedActions` 了。
 
-## 8。验证与真机
+## 7。验证与真机
 
 - 数据契约：`PetData.*` 覆盖动作数、角色、idlePool、blink、锚点、场景 2+2、配饰 9（每槽 3）、`ask` 没有效果层与全部 sheet 尺寸。
 - 原型：`pet.html` / `pet-hover.html` 是内嵌生成物；`pet-review.html`、`walk.html` 读 `data/pet`。改任何随包宠物后重跑 embed，并打开这两个页面看一次。

@@ -4,7 +4,7 @@ import QtQuick
 import QtQuick.Window
 
 /**
- * The online upload confirmation from docs/ocr-development.md 10.3.
+ * The online upload confirmation; the surface spec is UI-SPEC.md 4.11.
  *
  * It shows the frozen crop through the engine-owned image provider, names the exact destination,
  * and states both outbound legs before anything is sent. Escape, Cancel and Alt+F4 all mean no

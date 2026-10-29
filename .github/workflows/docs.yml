@@ -9,7 +9,7 @@
 # files even then, so it never judges code without the compiler and formatter the hygiene job
 # installs, and hygiene skips typography because this workflow owns it.
 #
-# The typography budgets and the zhlint config live in the hook and scripts/quality/zhlintrc.json.
+# The typography skips and the zhlint config live in the hook and scripts/quality/zhlintrc.json.
 # The hook falls back to that copy when the machine's skill asset is absent, which is the case on
 # a runner.
 
@@ -41,7 +41,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Pinned to the version the docs' typography budgets were written against. The hook uses it
+      # Pinned to the version the docs' typography checks were written against. The hook uses it
       # from PATH; the repository config supplies the rules on a runner.
       - name: Install zhlint
         run: npm install -g zhlint@0.8.2

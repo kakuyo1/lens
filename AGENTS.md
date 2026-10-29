@@ -51,55 +51,31 @@ lens/
 
 ## Build
 
-Toolchain (verified): cmake 4.0.1 · Ninja 1.12.1 · MSVC 19.44
+Toolchain (verified): cmake 4.0.1 · Ninja 1.12.1 · MSVC 19.44. Build with `scripts/build/build.bat`
+(Debug, into `build-ninja`) and `scripts/build/build-release.bat` (RelWithDebInfo, into
+`build-ninja-release`); `scripts/README.md` owns the command list.
 
-```
-./scripts/build/build.bat                      # configure once, then incremental, into build-ninja
-./scripts/build/build.bat --target lens_gtest_unit     # a test target, when you want one
-./scripts/build/build-release.bat              # the same, into build-ninja-release (RelWithDebInfo)
-powershell -File scripts/qa/ui-run.ps1         # run it; rebuilds the release tree first when stale
-```
+The default build is the application alone. Test targets carry `EXCLUDE_FROM_ALL` and are built by
+naming them; `TEST.md` section 2 owns the targets and says when each is worth running. `build-ninja`
+stays Debug — that is where the assertions, the TRACE log and the PDB `scripts/quality/coverage.sh`
+reads come from. `build-ninja-release` runs the application and exists as a second tree rather than a
+build-type switch because switching rewrites every compile flag and rebuilds the lot. To run it:
+`powershell -File scripts/qa/ui-run.ps1` rebuilds when stale, launches, and reports the PID and
+`logs/lens.log`; `docs/qa.md` owns the driving and photographing, the `run-lens` skill wraps them.
 
-The default build is the application alone. Every test target carries `EXCLUDE_FROM_ALL` in `test/`,
-so `all` does not pay for suites that change far less often than `src/` does, and each one is built
-by naming it. CI names its own list, the four it runs plus `lens_gtest_perf`, so that gate is
-unaffected. `TEST.md` section 2 says when each suite is worth running.
-
-`build-ninja` stays Debug, which is where the assertions, the TRACE log and the PDB
-`scripts/quality/coverage.sh` reads come from. `build-ninja-release` is the tree to run the application
-from, and it exists as a second tree rather than a build-type switch because switching rewrites
-every compile flag and rebuilds the lot. Both are driven by the same wrapper; the two environment
-variables `scripts/build/build-release.bat` sets are the whole difference.
-
-The last line runs the application rather than building it: it rebuilds `build-ninja-release` when its
-`lens.exe` is older than `src/`, launches it with the repository as its working directory, and reports
-the PID and `logs/lens.log`. The `run-lens` skill carries the driving and photographing around it.
-
-The Qt prefix lives in the merged machine config: `config/paths.default.json`, overridden key by key by the gitignored
-`config/paths.local.json`. `scripts/build/paths.ps1` is the one reader; `scripts/build/build.bat` uses it to export
-`QT_ROOT` before it drives the presets. `scripts/build/show-paths.ps1` prints the effective values, their source file
-and whether each resolves. `config/README.md` owns the rule: machine paths come from those two files, project paths
-stay relative to the repository root, and nothing else writes either kind by hand — never parse `paths.default.json` alone.
+Machine paths (the Qt prefix among them) come from the merged config — `config/paths.default.json`,
+overridden key by key by the gitignored `config/paths.local.json`. `config/README.md` owns the rule;
+`scripts/build/show-paths.ps1` prints the effective values.
 
 ## Test
 
-Tests live under `test/googletest/` (gtest): `unit/` offline, `integration/` real Windows APIs (human-run), `perf/` measurement, `smoke/` real model. The Qt and QML side is `test/qtest/` (QTest), which needs a window; it is not here.
+`TEST.md` owns the targets, the corpus format and the run-record convention; the runners
+(`scripts/qa/gtest.ps1` / `scripts/qa/qtest.ps1`) do the incremental build and set up the environment
+the binary needs, with command examples in `TEST.md` section 2. The drive-and-capture round is
+`docs/qa.md`.
 
-The Qt bin comes from the same merged config. `scripts/qa/gtest.ps1` reads it, builds the target incrementally and
-runs it with the environment the binary needs:
-
-```
-powershell -File scripts/qa/gtest.ps1 -Filter 'PetThrow*'
-powershell -File scripts/qa/gtest.ps1 -Target lens_gtest_integration
-```
-
-`-Filter` is the gtest filter; `-Target` defaults to `lens_gtest_unit`. Never copy `qtRoot` out of
-`config/paths.default.json` by hand: it is the committed template, and a different machine overrides it in
-`config/paths.local.json`; `scripts/build/show-paths.ps1` prints the merged values and their source.
-
-`TEST.md` owns the targets, the corpus format and the run-record convention. Profiling and coverage methods live in `docs/metrics/profiling-and-coverage.md`; the drive-and-capture round lives in `docs/qa.md`.
-
-Targets: `lens_util` → `lens_core` → `lens_capture` / `lens_llm` → `lens_app`. The `lens_gtest_*` targets are standalone and never shipped.
+Targets: `lens_util` → `lens_core` → `lens_capture` / `lens_llm` → `lens_app`. The `lens_gtest_*`
+targets are standalone and never shipped.
 
  ## Translations
 
@@ -135,7 +111,7 @@ Log through the `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_
 
 ## Lint
 
-`.githooks/pre-commit` is the source of truth for the C++ and documentation checks: the tools, their fallback paths and the per-doc typography budgets all live there, and it checks only the files a commit touches, so a hand run is what covers the rest.
+`.githooks/pre-commit` is the source of truth for the C++ and documentation checks: the tools, their fallback paths and the typography skip list all live there, and it checks only the files a commit touches, so a hand run is what covers the rest.
 
 `zhlint` 只用于仓库内供人类阅读的中文技术文档；不用于临时 handoff、agent-facing 文档或其他临时文件。
 
@@ -167,7 +143,7 @@ GitHub Issues in `kakuyo1/lens`, via the `gh` CLI. See `docs/agents/issue-tracke
 
 ### Triage labels
 
-Default five labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+Five default triage labels; `docs/agents/triage-labels.md` owns the list.
 
 ### Domain docs
 

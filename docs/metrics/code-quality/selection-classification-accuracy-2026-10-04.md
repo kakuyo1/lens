@@ -120,7 +120,7 @@ V3 后的实际输出为 `corpus: 1004 entries, 0 mismatched`，独立脚本输�
 不再因空 `ipa` 整批失败，缓存只把缺 `ipa` 键的旧条目当过期丢弃。规则见 `PHASE1.md` §4.1 落地注记。
 
 语料变更：分两轮共 183 条单 token 条目由 `Sentence` 改为 `Word`（`expect` 取小写 token）——第一轮按
-“全大写”放开 69 条，第二轮去掉大小写条件再放开 114 条。仍为 `Sentence` 的 99 条单 token 是长度 <2
+“全大写” 放开 69 条，第二轮去掉大小写条件再放开 114 条。仍为 `Sentence` 的 99 条单 token 是长度 <2
 （`a`）、含数字 / 标点（`MP3`、URL、路径、缩写号）、非 ASCII（重音词、中日韩文）或缺字符的那几类。
 `check-eval-corpus.py` 的 `is_lone_token` 规则与实现同步。
 
@@ -139,7 +139,7 @@ V3 后的实际输出为 `corpus: 1004 entries, 0 mismatched`，独立脚本输�
 
 ## 9 通道由选区形状定，句子翻译 / 解释生效（2026-10-04）
 
-需求侧观察：选中一句英文，动作条出现但点 翻译 / 解释 只解释了其中一个词，整句翻译 / 解释没有发生。根因：
+需求侧观察：选中一句英文，动作条出现但点翻译 / 解释只解释了其中一个词，整句翻译 / 解释没有发生。根因：
 `classifySelection` 原以 “有候选 = Word” 分流，任何含词表词的英文句子都进 word 通道，只剩 “一个词表词都
 没有” 的选区走 sentence。定夺：**通道由选区形状定**——整个选区是单个 letters-only token（≥2 字母、
 不分大小写）→ Word；多 token 名称短语（Title Case 或全大写缩写）→ Entity；其余多 token → Sentence。
@@ -168,10 +168,10 @@ V3 后的实际输出为 `corpus: 1004 entries, 0 mismatched`，独立脚本输�
 ## 10 实体放宽与实体气泡（2026-10-04）
 
 需求侧观察：`QML API` 这类全大写缩写短语被判成 `Sentence`；要求它作为实体，且实体气泡不带 known / new。
-定夺：实体判定的「名称 token」由只认 Title Case 扩为 **Title Case 或全大写缩写**（2–5 token，至少两个名称
+定夺：实体判定的 “名称 token” 由只认 Title Case 扩为 **Title Case 或全大写缩写**（2–5 token，至少两个名称
 token，其余只能是 `of` / `the` / `and` / `for`），`QML API` / `the QML API` 成实体，`QML API server`
 （含小写实词）仍为句子；单个 token（`QML`）当时仍走 word（§12 改为不在词表即 entity）。实体气泡**去掉类型标签**：word 保留 known / new
-判定胶囊、sentence 保留「句子」描边标签、entity 什么都不标。实体本就不写单词缓存 / 弹词历史，此点 V3 已成立。
+判定胶囊、sentence 保留 “句子” 描边标签、entity 什么都不标。实体本就不写单词缓存 / 弹词历史，此点 V3 已成立。
 
 语料新增 3 条：`QML API`（Entity）、`the QML API`（Entity）、`QML API server`（Sentence）。
 `check-eval-corpus.py` 的 `is_entity_selection` 同步。移除 `Bubble.qml` 的 `qsTr("Entity")` 后，
@@ -190,8 +190,8 @@ token，其余只能是 `of` / `the` / `and` / `for`），`QML API` / `the QML A
 ## 11 样例集扩到 3005 段（2026-10-04）
 
 需求：把自检样例集从 1004 段扩到 3000+，含变体与组合、贴近真实文本，且不塞无意义条目。做法：新增一份由
-真实英文句子出发的系统变体——每句按「原句 / 加已知标记 / 加档位带 / 两者叠加 / 一个大写词 / 附 URL /
-附数字 / 附邮箱 / 引号包裹 / 括号包裹 / 附连字符复合词 / 附 POSIX 路径 / 单词 / 末词 / 两词」展开——再加
+真实英文句子出发的系统变体——每句按 “原句 / 加已知标记 / 加档位带 / 两者叠加 / 一个大写词 / 附 URL /
+附数字 / 附邮箱 / 引号包裹 / 括号包裹 / 附连字符复合词 / 附 POSIX 路径 / 单词 / 末词 / 两词” 展开——再加
 一批专有名词实体与孤立 token。`expect` 由脚本按 `PHASE1.md` §4.1 与 `filter_core.h` 的规则重算（独立于
 C++），随后由 `check-eval-corpus.py` 与 `lens_gtest_unit` 双重核对。
 
@@ -210,7 +210,7 @@ token）。`check-eval-corpus.py` 报 0 问题；`lens_gtest_unit` 语料回放 
 再按 `inTable(surface) || inTable(lemmatize(surface))` 定通道，未命中即清空候选转 entity。
 
 语料：单 token 条目按此重分——516 个 word（词表内）与 86 个 entity（词表外），多 token entity 20 个未动。
-`check-eval-corpus.py` 的 kind 规则改为「名称短语或不在词表的孤立 tokens = entity」。
+`check-eval-corpus.py` 的 kind 规则改为 “名称短语或不在词表的孤立 tokens = entity”。
 
 | 指标 | 改前 | 改后 |
 | --- | ---: | ---: |

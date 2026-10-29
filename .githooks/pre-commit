@@ -1,10 +1,11 @@
 #!/bin/sh
 # Lens pre-commit: the checks that are mechanical and cheap.
 #
-# 1. Chinese typography, as a ratchet. Several docs carry errors that predate this hook --
-#    English prose tripping Chinese rules, mostly -- so each doc is compared against the
-#    budget recorded below rather than held to zero. Lower a number when you clean a doc up;
-#    a raise to make a commit pass is the hook doing its job.
+# 1. Chinese typography, as a ratchet: every staged .md is held to zero zhlint errors. The skips
+#    inside check_typography each carry their reason -- agent-facing documents (AGENTS.md's Lint
+#    section draws that line), non-Chinese documents, and frozen text. The old per-doc BASELINES
+#    list converged to all zeros and had drifted away from the tree, so it is gone; the ratchet's
+#    only direction survives: fix the line rather than add an exemption.
 # 2. C++ formatting. The tree was formatted once by hand and then left to drift; this is what
 #    stops that. clang-format is not on PATH on this machine, so the copy Visual Studio ships is
 #    looked for as a fallback.
@@ -64,124 +65,6 @@ set -u
 export LC_ALL=C.UTF-8
 
 cd "$(git rev-parse --show-toplevel)" || exit 0
-
-# Per-doc error budgets. Ratchet: lower on cleanup, never raise to pass.
-BASELINES='API.md 0
-CHANGELOG.md 0
-CLAUDE.md 0
-CODING_STANDARDS.md 0
-DEV-SURFACE-PLAN.md 0
-PET-WANDER-INTEGRATION-PLAN.md 0
-GLOSSARY.md 0
-docs/history/PHASE1.md 0
-docs/history/PHASE2.md 0
-docs/history/PHASE3.md 0
-PRODUCT.md 0
-TEST.md 0
-TODO.md 0
-DESIGN.md 0
-UI-SPEC.md 0
-docs/QML.md 0
-docs/README.md 0
-docs/adr/README.md 0
-docs/adr/0001-mouse-hook-own-thread.md 0
-docs/adr/0002-qml-split-by-window.md 0
-docs/adr/0003-instructions-live-in-agents-md.md 0
-docs/adr/0004-qml-module-on-the-static-library.md 0
-docs/adr/0005-cjk-latin-shared-face.md 0
-docs/adr/0006-machine-paths-in-config.md 0
-docs/adr/0007-theme-lives-in-its-own-folder.md 0
-config/README.md 0
-scripts/README.md 0
-docs/adr/0009-explicit-selection-and-channel-presets.md 0
-docs/adr/0010-model-ipa-without-speech.md 0
-docs/adr/0011-per-user-installer-and-release-version.md 0
-docs/adr/0012-user-data-stays-in-profile.md 0
-docs/adr/0013-app-duty-boundaries.md 0
-docs/adr/0014-tesseract-for-ocr.md 0
-docs/adr/0015-provider-moves-the-address-only.md 0
-docs/adr/0016-ocr-trigger-key-and-mask.md 0
-docs/adr/0017-model-follows-the-provider.md 0
-docs/adr/0018-provider-model-list-contract.md 0
-docs/adr/0019-etymology-outside-the-cache-key.md 0
-docs/adr/0020-openrouter-as-the-model-source.md 0
-docs/adr/0021-desktop-pet-own-window.md 0
-docs/adr/0022-update-download-with-checksum.md 0
-docs/adr/0023-pet-single-frame-clock.md 0
-docs/adr/0024-settings-section-is-the-write-unit.md 0
-docs/adr/0025-capture-refusal-is-an-enum.md 0
-docs/adr/0026-explanation-queue-is-a-module.md 0
-docs/adr/0027-model-catalog-is-not-an-explanation.md 0
-docs/adr/0028-duty-visible-to-qml-not-creatable.md 0
-docs/adr/0029-remaining-forwards-move-to-duties.md 0
-docs/adr/0032-about-is-a-top-level-settings-category.md 0
-docs/adr/0033-example-sentence-is-bought-not-inherited.md 0
-docs/adr/0036-glass-only-in-settings-window.md 0
-docs/adr/0038-glass-settings-excluded-from-capture.md 0
-docs/adr/0041-glass-on-every-surface-with-a-table-and-a-sheet-each.md 0
-docs/adr/0042-github-login-and-gist-sync.md 0
-docs/adr/0044-chinese-selections-take-one-translation-channel.md 0
-docs/adr/0047-unsigned-installer-gets-a-portable-zip.md 0
-docs/adr/0049-pet-scenes-and-anger.md 0
-docs/adr/0050-pet-asks-review-questions.md 0
-docs/adr/0052-sign-held-in-hand.md 0
-docs/adr/0053-card-is-own-window-pet-stays-put.md 0
-docs/adr/0055-content-transitions-pre-size-the-window.md 0
-docs/adr/0056-action-bar-form-is-a-setting.md 0
-docs/adr/0057-sync-run-decisions-are-pure.md 0
-docs/adr/0058-gate-and-fate-rules-are-pure.md 0
-docs/adr/0059-cost-duty-visible-to-qml.md 0
-docs/adr/0060-one-explain-request-per-call.md 0
-docs/adr/0061-clipboard-policy-is-an-enum.md 0
-docs/adr/0062-settings-defaults-in-one-table.md 0
-docs/adr/0063-stream-assembly-is-pure.md 0
-docs/adr/0064-words-import-and-labels-are-pure.md 0
-docs/adr/0066-pet-hover-is-proximity-not-a-hit-area.md 0
-docs/adr/0067-bubble-language-shortcut-reasks-the-card.md 0
-docs/adr/0068-developer-surface-drives-the-ui-without-the-mouse.md 0
-docs/adr/0069-blur-zero-passthrough-without-a-sheet.md 0
-docs/adr/0070-blur-and-saturation-in-the-shader-with-a-native-sheet.md 0
-docs/adr/0071-live-glass-texture-instead-of-a-picture-url-per-publish.md 0
-docs/adr/0072-duplicated-outputs-feed-the-live-sheet.md 0
-docs/adr/0073-glass-quality-tiers-auto-eco-standard-smooth.md 0
-docs/adr/0074-smooth-follows-the-screen-refresh-rate.md 0
-docs/adr/0075-native-handles-are-taken-only-after-a-window-is-shown.md 0
-docs/adr/0076-pet-wanders-hides-and-keeps-asking.md 0
-docs/adr/0078-definition-chain-drills-in-place.md 0
-docs/adr/0079-sense-pictures-search-live-with-a-browser-fallback.md 0
-docs/adr/0080-scenes-are-per-pet-sets.md 0
-docs/adr/0081-dog-is-a-recipe.md 0
-docs/adr/0088-review-sign-stands-beside-the-pet.md 0
-docs/adr/0089-pet-entrance-and-goodbye-reuse-walk-and-look.md 0
-docs/adr/0090-thrown-pet-bounces-on-its-screen-and-walks-home.md 0
-docs/adr/0091-dizzy-is-an-optional-landing-role.md 0
-docs/adr/0092-throws-stay-where-they-land-and-build-anger.md 0
-docs/adr/0093-pet-mood-weights-the-idle-turn-and-the-scenes.md 0
-docs/adr/0094-pet-behavior-block-is-data.md 0
-docs/adr/0095-pet-hiding-answers-the-pointer.md 0
-docs/adr/0096-per-pet-nest-in-the-settings-document.md 0
-docs/adr/0097-review-gaze-follows-the-sign.md 0
-docs/adr/0098-mood-shows-in-three-gestures.md 0
-docs/adr/0099-each-pet-wears-its-own-nine-piece-wardrobe.md 0
-docs/adr/0100-the-window-spot-belongs-to-the-reader.md 0
-docs/adr/0101-scene-entry-is-pet-choreography.md 0
-docs/adr/0102-accessories-can-favour-scenes.md 0
-docs/adr/0137-model-list-asks-the-service-first.md 0
-docs/metrics/runtime-performance/content-transition-window-resizes-2026-10-17.md 0
-docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md 0
-docs/metrics/README.md 0
-docs/metrics/profiling-and-coverage.md 0
-docs/metrics/accessibility/contrast-2026-10-12.md 0
-docs/metrics/resource-footprint/glass-memory-2026-10-18.md 0
-docs/pet-art-pipeline.md 0
-docs/pet-idle-and-motion.md 0
-docs/pet-package-format.md 0
-docs/qa.md 0
-ui-prototypes/README.md 0
-README.md 0
-README.zh-CN.md 0
-README.es.md 0
-.github/pull_request_template.md 0'
 
 # The files the checks read: what a commit stages, or the list CI hands in through LENS_CHECK_FILES.
 staged=${LENS_CHECK_FILES:-$(git diff --cached --name-only --diff-filter=ACM)}
@@ -244,23 +127,18 @@ check_typography() {
             *.md) ;;
             *) continue ;;
         esac
-        limit=$(printf '%s\n' "$BASELINES" | awk -v d="$doc" '$1 == d { print $2 }')
-        # AGENTS.md is read by agents, and zhlint is for documents people read; AGENTS.md's own
-        # Lint section draws the line there and puts agent-facing documents outside it, which is
-        # everything under .claude/skills/ as well.
-        case "$doc" in
-            AGENTS.md | .claude/skills/*) continue ;;
-        esac
+        # Skips, each with its reason. Agent-facing documents are outside zhlint by AGENTS.md's own
+        # Lint section -- it is for documents people read -- which covers .claude/skills/ too.
         # zhlint's rules are Chinese typography: they flag English punctuation and every
-        # Japanese-Latin boundary in README.ja.md. The English, Spanish and Japanese READMEs
-        # are not Chinese documents, so they are left out; README.zh-CN.md stays in.
+        # Japanese-Latin boundary, so the English documents (the English, Spanish and Japanese
+        # READMEs, SECURITY.md, data/wordlist-source.md) are left out; README.zh-CN.md stays in.
+        # docs/history/ is archived text that predates the ratchet and stays frozen;
+        # third_party/ is vendored.
         case "$doc" in
-            README.md | README.es.md | README.ja.md) continue ;;
+            AGENTS.md | CLAUDE.md | CLAUDE.local.md | .claude/skills/* | docs/agents/*) continue ;;
+            README.md | README.es.md | README.ja.md | SECURITY.md | data/wordlist-source.md) continue ;;
+            docs/history/* | third_party/*) continue ;;
         esac
-        if [ -z "$limit" ]; then
-            echo "pre-commit: $doc has no typography budget, so it is not checked; add one to BASELINES"
-            continue
-        fi
 
         # Both streams: zhlint prints the offending lines on stderr and the verdict on
         # stdout. Keeping only stdout counts zero every time, which is a check that always
@@ -279,15 +157,14 @@ check_typography() {
         fi
 
         count=$(printf '%s\n' "$report" | grep -cE "^$doc:[0-9]+:")
-        if [ "$count" -gt "$limit" ]; then
-            # Line numbers, not messages: most of the count is pre-existing, and the first
-            # few messages usually come from the same old line, which sends the reader to
-            # fix something they did not break.
+        if [ "$count" -gt 0 ]; then
+            # Line numbers, not messages: the first few messages usually sit on lines the reader
+            # did not touch, which sends them to fix something they did not break.
             lines=$(printf '%s\n' "$report" | grep -oE "^$doc:[0-9]+" | cut -d: -f2 | sort -nu | head -10 | tr '\n' ' ')
-            echo "pre-commit: $doc has $count typography errors, its budget is $limit"
+            echo "pre-commit: $doc has $count typography errors"
             echo "  affected lines: $lines"
             echo "  messages: zhlint --config \"$config\" $doc"
-            echo "  (the budget only goes down; fix the line rather than raise it)"
+            echo "  (the budget is zero; fix the line rather than add an exemption)"
             status=1
         fi
     done

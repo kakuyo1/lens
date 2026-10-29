@@ -1,8 +1,8 @@
 import QtQuick
 
 /**
- * The online OCR configuration from docs/ocr-development.md 10.1: which service is asked, at what
- * address, in what language, and with which credentials.
+ * The online OCR configuration page: which service is asked, at what address, in what language,
+ * and with which credentials; the surface spec is UI-SPEC.md 4.4.
  *
  * The service list, its address, and the fields each service needs all come from the provider
  * table in src/ocr/online_providers.cpp; this page only renders them. A credential is typed once

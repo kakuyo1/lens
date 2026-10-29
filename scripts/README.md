@@ -10,7 +10,7 @@
 | --- | --- |
 | `build/` | Debug、RelWithDebInfo 构建和机器路径读取、查看 |
 | `data/` | 词形数据生成与样例集独立校验 |
-| `pet/` | 桌宠美术流水线：形状配方、网格写入、配饰对位、素材同步与审查图（见其 README 与 `docs/pet-art-pipeline.md`） |
+| `pet/` | 桌宠美术流水线的配方与渲染（方法见 `docs/pet-art-pipeline.md`，运行入口见其 README） |
 | `profiling/` | QML profiler、QML 结构指标和 trace 解析 |
 | `qa/` | 起应用、gtest 单条/整套、QTest 单条/整套/并行分片、桌面驱动、截图、QML 快照和鼠标停顿探针；`qa/pet/` 是桌面宠物原型的逐动作对比与交互检查（见其 README） |
 | `quality/` | QML lint、分层边界检查、C++ / QML 覆盖率和 AST 指标、CI 变更分类（`ci-changes.sh`）；`zhlintrc.json` 是 CI 上排版检查用的仓库内配置 |
