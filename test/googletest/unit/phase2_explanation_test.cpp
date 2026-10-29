@@ -896,6 +896,42 @@ TEST_F(LlmTest, OneSharedSourceIsAskedWithNoKeyAndItsAnswerReachesEveryProvider)
     EXPECT_FALSE(store.document().at("MODELS").contains("custom")) << "custom declares no prefix";
 }
 
+/// With a key in hand the standing service is asked for its own shelf first: its answer is what
+/// that key can call, so the ids are cached as they came -- no vendor prefix to strip, no other
+/// provider's cache touched, and no second GET to the shared catalogue.
+TEST_F(LlmTest, TheStandingServiceListsItsOwnModelsWhenItAnswers)
+{
+    QtApplication    qt;
+    QTemporaryDir    temporary;
+    auto             store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    app::StorageDuty storage{store};
+    Manager          manager;
+    // A first-party shelf: the entries carry no `architecture`, because the service states no
+    // modality for a model its own endpoint takes.
+    manager.modelResponseOverride = QByteArrayLiteral(R"({"data":[
+        {"id":"deepseek-flash"},{"id":"deepseek-v4-pro"}]})");
+    llm::LlmClient        client{{QUrl{"https://api.deepseek.com"}, "fake-test-token", "deepseek-flash"}, &manager};
+    app::ModelCatalogDuty catalog{storage, client};
+    QStringList           fetched;
+    QEventLoop            loop;
+    QObject::connect(&client, &llm::LlmClient::serviceModelsFetched, &loop, [&](QStringList models) {
+        fetched = std::move(models);
+        loop.quit();
+    });
+    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+
+    catalog.refreshModels();
+    loop.exec();
+
+    ASSERT_EQ(fetched.size(), 2);
+    EXPECT_EQ(manager.gets, 1) << "the shared catalogue was asked as well";
+    EXPECT_EQ(manager.listed, QUrl{"https://api.deepseek.com/models"});
+    EXPECT_EQ(manager.listedAuthorization, QByteArrayLiteral("Bearer fake-test-token"));
+    EXPECT_EQ(store.document().at("MODELS").at("DeepSeek"),
+              nlohmann::json::array({"deepseek-flash", "deepseek-v4-pro"}));
+    EXPECT_EQ(catalog.models().size(), 2);
+}
+
 TEST_F(LlmTest, ModelListRefreshKeepsTheUserCacheWhenAResponseIsMalformed)
 {
     QtApplication qt;

@@ -89,6 +89,11 @@ private:
     /// industry, not of the one service standing, so it is not the authority on what that service
     /// carries.
     void noteModelsFetched(QStringList models);
+    /// @brief Cache the standing service's own answer as its list, ids taken as they are.
+    ///
+    /// This one is the authority on what the reader's key can call, so no prefix is stripped and no
+    /// other provider's cache is touched (docs/adr/0137).
+    void noteServiceModels(QStringList models);
     /// @brief Rebuild the cached model list from the provider in force, and say so if it moved.
     void rebuildModels();
 

@@ -22,6 +22,7 @@ ModelCatalogDuty::ModelCatalogDuty(StorageDuty& storage, llm::LlmClient& llm, QO
     : QObject(parent), storage_(storage), llm_(llm)
 {
     connect(&llm_, &llm::LlmClient::modelsFetched, this, &ModelCatalogDuty::noteModelsFetched);
+    connect(&llm_, &llm::LlmClient::serviceModelsFetched, this, &ModelCatalogDuty::noteServiceModels);
 }
 
 bool ModelCatalogDuty::setProvider(QString const& provider)
@@ -111,6 +112,21 @@ void ModelCatalogDuty::noteModelsFetched(QStringList models)
     // one service standing, so "not in the list" says nothing about what that service carries --
     // the correction belongs to the reader changing the service (docs/adr/0020). Nothing to save
     // either: every write above persisted itself.
+    rebuildModels();
+}
+
+void ModelCatalogDuty::noteServiceModels(QStringList models)
+{
+    if (models.isEmpty()) return;
+    std::vector<std::string> served;
+    served.reserve(static_cast<std::size_t>(models.size()));
+    for (const QString& id : models)
+        served.push_back(id.toStdString());
+    storage_.section("MODELS").set<std::vector<std::string>>(currentProvider().toStdString(), served);
+    LENS_INFO("the standing service lists {} model(s)", served.size());
+
+    // As with the catalogue, the model in force is left alone: the reader chose it, and a list is
+    // not a reason to answer them with another one.
     rebuildModels();
 }
 

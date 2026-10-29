@@ -16,6 +16,13 @@
 
 ### Changed
 
+- The model list first asks the standing service for its own shelf: one `GET {baseUrl}/models` sent
+  with the reader's key. The shared catalogue is the fallback now, used when that answers nothing or
+  when no key is set yet. The catalogue is the industry's list, so it kept names the standing vendor
+  never opened at its own endpoint, and picking one of those was the 400 that said nothing about the
+  model. A probe the service refuses with 400 now names the model it sent instead of calling the
+  request malformed (docs/adr/0137).
+
 - The liquid glass theme's **Text color** field is gone, and with it the stored setting and the
   colour kind behind it. It only took effect while the desktop under the glass was light enough to
   keep dark text; over a dark desktop the light-text table won and the field changed nothing. The

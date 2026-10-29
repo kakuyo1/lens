@@ -1300,22 +1300,22 @@
         <translation>初期設定</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="131"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="147"/>
         <source>Domestic</source>
         <translation>国内</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="132"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="148"/>
         <source>International</source>
         <translation>海外</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="133"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="149"/>
         <source>Other</source>
         <translation>その他</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="134"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="150"/>
         <source>Custom service</source>
         <translation>カスタムサービス</translation>
     </message>
@@ -1332,12 +1332,12 @@
         <translation>OCR ランタイムが利用できません</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="125"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="141"/>
         <source>No listed price; recorded cost is zero.</source>
         <translation>価格表にないため、記録される費用は 0 です。</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="126"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="142"/>
         <source>Input %1 / Output %2 %3 per %4 tokens</source>
         <translation>入力 %1 / 出力 %2 %3（%4 トークンあたり）</translation>
     </message>
@@ -3498,48 +3498,53 @@
 <context>
     <name>lens::llm::LlmClient</name>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="113"/>
+        <location filename="../src/llm/llm_client.cpp" line="158"/>
         <source>Enter an API key first.</source>
         <translation>先に API キーを入力してください。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="117"/>
+        <location filename="../src/llm/llm_client.cpp" line="162"/>
         <source>Choose a model first.</source>
         <translation>先にモデルを選択してください。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="121"/>
+        <location filename="../src/llm/llm_client.cpp" line="166"/>
         <source>Enter a service address that starts with https://.</source>
         <translation>https:// で始まるサービスアドレスを入力してください。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="170"/>
+        <location filename="../src/llm/llm_client.cpp" line="215"/>
         <source>Could not reach the service. Check the address and your connection.</source>
         <translation>サービスに接続できませんでした。アドレスと接続を確認してください。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="183"/>
+        <location filename="../src/llm/llm_client.cpp" line="224"/>
+        <source>The service refused &apos;%1&apos;. Check the model name against the list it serves.</source>
+        <translation>サービスが「%1」を拒否しました。サービスが提供するモデル名と照らし合わせてください。></translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_client.cpp" line="233"/>
         <source>The service answered, but not like a model. Check the address.</source>
         <translation>サービスは応答しましたが、モデルの応答ではありません。アドレスを確認してください。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="187"/>
+        <location filename="../src/llm/llm_client.cpp" line="237"/>
         <source>Connected. The key and model are accepted.</source>
         <translation>接続できました。キーとモデルは受け付けられました。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="196"/>
+        <location filename="../src/llm/llm_client.cpp" line="246"/>
         <source>There is nothing to look up.</source>
         <translation>調べる内容がありません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="204"/>
+        <location filename="../src/llm/llm_client.cpp" line="254"/>
         <source>The API key is missing.</source>
         <translation>API キーが設定されていません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="249"/>
-        <location filename="../src/llm/llm_client.cpp" line="254"/>
+        <location filename="../src/llm/llm_client.cpp" line="299"/>
+        <location filename="../src/llm/llm_client.cpp" line="304"/>
         <source>The request could not reach the service: %1</source>
         <translation>リクエストがサービスに届きませんでした：%1</translation>
     </message>

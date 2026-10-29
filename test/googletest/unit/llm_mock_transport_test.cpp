@@ -283,6 +283,22 @@ TEST_F(LlmTest, ProbeReportsARejectedKeyAndANonModelAnswer)
     }
 }
 
+/// A 400 at a completion endpoint is the model's name more often than anything else, and the
+/// service's own words say only "malformed": the sentence names the model and never the key.
+TEST_F(LlmTest, ProbeNamesTheModelWhenTheServiceRefusesTheRequest)
+{
+    QtApplication qt;
+    StubManager   manager(400, QByteArray());
+    LlmClient     client(probeConfig(QStringLiteral("test-key"), QStringLiteral("deepseek-v4.1-flash")), &manager);
+
+    const ProbeResult result = runProbe(client);
+
+    EXPECT_FALSE(result.ok);
+    EXPECT_TRUE(result.message.contains("deepseek-v4.1-flash")) << result.message.toStdString();
+    EXPECT_TRUE(result.message.contains("model")) << result.message.toStdString();
+    EXPECT_FALSE(result.message.contains("test-key")) << "the probe echoed the key";
+}
+
 /// Missing parts answer without a socket, so a reader who presses too early gets a sentence
 /// rather than a spinning button.
 TEST_F(LlmTest, ProbeNamesTheMissingPartBeforeSending)

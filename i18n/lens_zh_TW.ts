@@ -1292,22 +1292,22 @@
         <translation>未設定</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="131"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="147"/>
         <source>Domestic</source>
         <translation>國內</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="132"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="148"/>
         <source>International</source>
         <translation>國際</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="133"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="149"/>
         <source>Other</source>
         <translation>其他</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="134"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="150"/>
         <source>Custom service</source>
         <translation>自訂服務</translation>
     </message>
@@ -2113,12 +2113,12 @@
         <translation>配飾</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="125"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="141"/>
         <source>No listed price; recorded cost is zero.</source>
         <translation>未列出價格；記錄的花費為 0。</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="126"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="142"/>
         <source>Input %1 / Output %2 %3 per %4 tokens</source>
         <translation>輸入 %1 / 輸出 %2 %3 / 每 %4 個 token</translation>
     </message>
@@ -3490,48 +3490,53 @@
 <context>
     <name>lens::llm::LlmClient</name>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="113"/>
+        <location filename="../src/llm/llm_client.cpp" line="158"/>
         <source>Enter an API key first.</source>
         <translation>請先填寫 API key。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="117"/>
+        <location filename="../src/llm/llm_client.cpp" line="162"/>
         <source>Choose a model first.</source>
         <translation>請先選擇模型。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="121"/>
+        <location filename="../src/llm/llm_client.cpp" line="166"/>
         <source>Enter a service address that starts with https://.</source>
         <translation>請填寫以 https:// 開頭的服務地址。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="170"/>
+        <location filename="../src/llm/llm_client.cpp" line="215"/>
         <source>Could not reach the service. Check the address and your connection.</source>
         <translation>無法連線到服務，請檢查地址和網路連線。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="183"/>
+        <location filename="../src/llm/llm_client.cpp" line="224"/>
+        <source>The service refused &apos;%1&apos;. Check the model name against the list it serves.</source>
+        <translation>服務拒絕了「%1」。請核對它實際提供的模型名。></translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_client.cpp" line="233"/>
         <source>The service answered, but not like a model. Check the address.</source>
         <translation>服務有回應，但返回的不像模型回應，請檢查地址。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="187"/>
+        <location filename="../src/llm/llm_client.cpp" line="237"/>
         <source>Connected. The key and model are accepted.</source>
         <translation>連線成功，API key 與模型均被接受。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="196"/>
+        <location filename="../src/llm/llm_client.cpp" line="246"/>
         <source>There is nothing to look up.</source>
         <translation>沒有待查內容。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="204"/>
+        <location filename="../src/llm/llm_client.cpp" line="254"/>
         <source>The API key is missing.</source>
         <translation>未設定 API 金鑰。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="249"/>
-        <location filename="../src/llm/llm_client.cpp" line="254"/>
+        <location filename="../src/llm/llm_client.cpp" line="299"/>
+        <location filename="../src/llm/llm_client.cpp" line="304"/>
         <source>The request could not reach the service: %1</source>
         <translation>請求未能送達服務：%1</translation>
     </message>

@@ -1088,6 +1088,42 @@ QStringList parseModelIds(QByteArray const& body)
     return ids;
 }
 
+QStringList parseServiceModelIds(QByteArray const& body)
+{
+    const auto document = QJsonDocument::fromJson(body);
+    if (not document.isObject()) {
+        LENS_WARN("the service's model list was not valid JSON; keeping the one we have");
+        return {};
+    }
+    const auto data = document.object().value("data");
+    if (not data.isArray() or data.toArray().size() > 2000) {
+        LENS_WARN("the service's model list did not arrive in the shape this reads; keeping the one we have");
+        return {};
+    }
+    QStringList ids;
+    for (const auto& entry : data.toArray()) {
+        if (not entry.isObject()) return {};
+        const auto object = entry.toObject();
+        const auto rawId  = object.value("id");
+        if (not rawId.isString()) return {};
+        const auto id = rawId.toString().trimmed();
+        if (id.isEmpty() or id.size() > 256) return {};
+        if (id.contains(QLatin1Char(':'))) continue;
+        // A service that states a modality is held to the same text-only rule as the shared
+        // catalogue; one that states none -- which is every first-party shelf -- is taken as it is.
+        const auto architecture = object.value("architecture");
+        if (not architecture.isUndefined()) {
+            const auto modalities = architecture.toObject().value("output_modalities");
+            if (not modalities.isArray() or modalities.toArray().size() != 1 or modalities.toArray().at(0) != QLatin1String("text"))
+                continue;
+        }
+        if (ids.contains(id)) continue;
+        ids.append(id);
+    }
+    LENS_INFO("the service lists {} model(s) this app can use", ids.size());
+    return ids;
+}
+
 QStringList idsForPrefix(QStringList const& ids, QString const& prefix)
 {
     if (prefix.isEmpty()) return ids;

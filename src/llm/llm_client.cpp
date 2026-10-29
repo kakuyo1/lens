@@ -76,6 +76,50 @@ bool LlmClient::setProvider(QString const& provider)
 
 void LlmClient::fetchModels()
 {
+    // A key in hand is the reader saying this service answers for them, so the service is asked
+    // what it carries: the shared catalogue is the industry's list, and it keeps names the vendor
+    // never opened at this endpoint. The catalogue stays the fallback for a service that lists
+    // nothing, and for the reader who has not pasted a key yet (docs/adr/0137).
+    if (not config_.apiKey.isEmpty() and config_.baseUrl.isValid() and config_.baseUrl.scheme() == QLatin1String("https") and not config_.baseUrl.host().isEmpty()) {
+        askServiceModels();
+        return;
+    }
+    askSharedSourceModels();
+}
+
+void LlmClient::askServiceModels()
+{
+    QUrl    url  = config_.baseUrl;
+    QString path = url.path();
+    while (path.endsWith(QLatin1Char('/')))
+        path.chop(1);
+    url.setPath(path + QStringLiteral("/models"));
+
+    QNetworkRequest request(url);
+    request.setTransferTimeout(kModelListTimeoutMs);
+    request.setRawHeader("Authorization", "Bearer " + config_.apiKey.toUtf8());
+    LENS_TRACE("GET {} (key hidden)", url.toString().toStdString());
+
+    QNetworkReply* reply = manager_->get(request);
+    connect(reply, &QNetworkReply::downloadProgress, this, [reply](qint64 received, qint64) {
+        if (received > kMaxModelListBytes) reply->abort();
+    });
+    connect(reply, &QNetworkReply::finished, this, [this, reply] {
+        reply->deleteLater();
+        const int         status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        const QStringList ids    = (reply->error() == QNetworkReply::NoError and status == 200)
+                                       ? parseServiceModelIds(reply->readAll())
+                                       : QStringList{};
+        if (ids.isEmpty()) {
+            askSharedSourceModels();
+            return;
+        }
+        emit serviceModelsFetched(ids);
+    });
+}
+
+void LlmClient::askSharedSourceModels()
+{
     // One source, declared in the data, asked for with nothing the reader owns: no key, no auth
     // header, no query. Whatever it answers is classified per provider further up (docs/adr/0020).
     const auto url = QUrl{serviceCatalog().value("modelSource").toObject().value("url").toString()};
@@ -172,7 +216,10 @@ void LlmClient::probeConnection()
         }
         if (status != 200) {
             LENS_WARN("the connection probe answered HTTP {}", status);
-            emit probeFinished(false, httpErrorFor(status));
+            // A 400 at a completion endpoint is the model's name far more often than anything
+            // else, and the service's own words say only "malformed" without naming it: the
+            // sentence has to point at the one part the reader can change here.
+            emit probeFinished(false, status == 400 ? tr("The service refused '%1'. Check the model name against the list it serves.").arg(config_.model) : httpErrorFor(status));
             return;
         }
         // A proxy that answers 200 with a login page is still not a model: the probe accepts

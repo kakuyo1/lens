@@ -3,7 +3,7 @@
 >
 > 在线 OCR 是独立图片请求，不属于下列解释通道；服务表与两个协议适配见 [OCR 开发方案第 7 节](docs/ocr-development.md#7-第一批外部协议适配)，实现状态见 §8。真实在线往返尚未执行。
 
-服务商、模型与端点由 `data/llm/catalog.json` 驱动，默认是 DeepSeek；解释请求使用 OpenAI 兼容的 `POST {baseUrl}/chat/completions`，请求头为 `Content-Type: application/json` 与 `Authorization: Bearer <API-KEY>`。模型列表不问服务商：**全部服务商共用 `modelSource` 声明的那一个源**，回答按厂商前缀切分。当前目录包含 DeepSeek（`deepseek-flash`、`deepseek-v4-pro`）、OpenAI（`gpt-4.1-mini`、`gpt-4.1-nano`）和 Custom；Custom 允许在设置中填写模型与 HTTPS 服务地址。价目独立放在 `data/llm/pricing.json`。
+服务商、模型与端点由 `data/llm/catalog.json` 驱动，默认是 DeepSeek；解释请求使用 OpenAI 兼容的 `POST {baseUrl}/chat/completions`，请求头为 `Content-Type: application/json` 与 `Authorization: Bearer <API-KEY>`。模型列表**先问服务自己的 `GET {baseUrl}/models`**（带读者的 key），服务不答或还没填 key 时回落到 `modelSource` 声明的那一个共用源，回落的回答按厂商前缀切分。当前目录包含 DeepSeek（`deepseek-flash`、`deepseek-v4-pro`）、OpenAI（`gpt-4.1-mini`、`gpt-4.1-nano`）和 Custom；Custom 允许在设置中填写模型与 HTTPS 服务地址。价目独立放在 `data/llm/pricing.json`。
 
 API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装目录、OCR payload 或日志；安装包只承载程序、静态数据与 `ocr/` 下的 Tesseract runtime 和英文 traineddata——读中文要用的 `chi_sim.traineddata` 由读者自己放进那个数据目录（UI-SPEC.md 4.11）。
 
@@ -302,9 +302,9 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 
 ## 7 相关文件
 
-模型列表由目录项的 `modelSource` 定义：一条不带认证、不带查询的 `GET https://openrouter.ai/api/v1/models`，一次回答所有服务商。每个服务商条目上的 `openRouterPrefix` 给出该厂商在 OpenRouter id `vendor/slug` 里的 vendor 部分，取到字段前被去掉；前缀为空表示整份目录、id 保持原样（OpenRouter 自己，它的接口收的就是 `vendor/slug`），没有这个键的服务商不参与切分。回答里有两条过滤：id 带 `:` 的（OpenRouter 自己的路由与计价模式，如 `:batch`、`:free`）丢掉，`architecture.output_modalities` 恰好只有 `text` 一项的才留——不是 “含有 text”，16 个同时写图像或音频的条目都含 text，那样的条件过滤不掉任何东西。
+模型列表先问服务自己的货架：填了 key 且地址是 HTTPS 时发一条 `GET {baseUrl}/models`，请求头 `Authorization: Bearer <API-KEY>`，回答里的 id 原样作为该服务商的列表（`docs/adr/0137`）。服务不答、答非 200、形状不合或一条也没有，以及读者还没填 key 时，回落到 `modelSource` 声明的那一个共用源：一条不带认证、不带查询的 `GET https://openrouter.ai/api/v1/models`，一次回答所有服务商。每个服务商条目上的 `openRouterPrefix` 给出该厂商在 OpenRouter id `vendor/slug` 里的 vendor 部分，取到字段前被去掉；前缀为空表示整份目录、id 保持原样（OpenRouter 自己，它的接口收的就是 `vendor/slug`），没有这个键的服务商不参与切分。目录回答里有两条过滤：id 带 `:` 的（OpenRouter 自己的路由与计价模式，如 `:batch`、`:free`）丢掉，`architecture.output_modalities` 恰好只有 `text` 一项的才留——不是 “含有 text”，16 个同时写图像或音频的条目都含 text，那样的条件过滤不掉任何东西。货架回答由 `parseServiceModelIds` 读：`:` 变体照旧丢掉，条目写了 `architecture` 就仍按只含 `text` 才留，没写（第一方货架的常态）则照收。
 
-模型列表缓存写在用户的 `%APPDATA%\Lens\settings.json` 的 `MODELS`（键仍是服务商 `value`），`catalog.json` 只作为安装包中的只读种子；同一份回答按前缀切开后一次写入各家。刷新失败、超时、空响应或结构无效时保持已有缓存，一个字也不写。模型列表请求超时为 10 秒，响应上限为 2 MiB，模型条目上限为 2000。这次请求不带 API key，也不带读者内容，但每次启动都会发出，包括从不打开设置页、没有 key 的读者（取舍见 `docs/adr/0020`）。取到的列表**不改写当前模型**：它是整个行业的清单，不是当前那家服务的货架（`docs/adr/0020` 取代 `docs/adr/0017` 的这一条，模型跟随服务商只在换服务商时仍然发生）。
+模型列表缓存写在用户的 `%APPDATA%\Lens\settings.json` 的 `MODELS`（键仍是服务商 `value`），`catalog.json` 只作为安装包中的只读种子；回落的回答按前缀切开后一次写入各家，货架的回答只写当前这一家。刷新失败、超时、空响应或结构无效时保持已有缓存，一个字也不写。模型列表请求超时为 10 秒，响应上限为 2 MiB，模型条目上限为 2000。回落那次不带 API key，也不带读者内容，但每次启动都会发出，包括从不打开设置页、没有 key 的读者（取舍见 `docs/adr/0020`）；货架那次带的就是读者给这家服务的 key，发往的也是他自己在用的地址（`docs/adr/0137`）。取到的列表**不改写当前模型**：它是整个行业的清单，不是当前那家服务的货架（`docs/adr/0020` 取代 `docs/adr/0017` 的这一条，模型跟随服务商只在换服务商时仍然发生）。
 
 - `data/llm/request.word.json`、`request.entity.json`、`request.sentence.json`、`request.translation.json`、`request.peek.json` — 请求模板、预设、系统提示词与输出语言行
 - `data/llm/response.word.schema.json`、`response.entity.schema.json`、`response.sentence.schema.json`、`response.translation.schema.json`、`response.peek.schema.json` — 响应 schema（校验真源）

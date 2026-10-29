@@ -325,6 +325,20 @@ private:
 QStringList parseModelIds(QByteArray const& body);
 
 /**
+ * @brief The models one service says it serves, read from its own shelf answer.
+ *
+ * A first-party `GET {baseUrl}/models` names the models that endpoint takes, and says nothing
+ * about modality: an entry that states none is the normal case here rather than a gap to guess at,
+ * while an entry that does state one is held to the same text-only rule as the shared catalogue
+ * (docs/adr/0137). Routing and pricing variants (an id carrying `:`) are dropped either way.
+ *
+ * @param body Raw HTTP response body of the shelf request.
+ * @return The ids in the order the service gave them, deduplicated, or an empty list when the body
+ *         is not that shape.
+ */
+QStringList parseServiceModelIds(QByteArray const& body);
+
+/**
  * @brief The ids one OpenRouter vendor prefix names, with that prefix removed.
  *
  * An id is matched on `prefix + "/"` exactly, so `deepseek-x/gpt` is not a `deepseek` id.

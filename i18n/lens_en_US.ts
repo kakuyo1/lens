@@ -1292,22 +1292,22 @@
         <translation>Not configured</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="131"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="147"/>
         <source>Domestic</source>
         <translation>Domestic</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="132"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="148"/>
         <source>International</source>
         <translation>International</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="133"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="149"/>
         <source>Other</source>
         <translation>Other</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="134"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="150"/>
         <source>Custom service</source>
         <translation>Custom service</translation>
     </message>
@@ -2113,12 +2113,12 @@
         <translation>Accessories</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="125"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="141"/>
         <source>No listed price; recorded cost is zero.</source>
         <translation>No listed price; recorded cost is zero.</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="126"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="142"/>
         <source>Input %1 / Output %2 %3 per %4 tokens</source>
         <translation>Input %1 / Output %2 %3 per %4 tokens</translation>
     </message>
@@ -3490,48 +3490,53 @@
 <context>
     <name>lens::llm::LlmClient</name>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="113"/>
+        <location filename="../src/llm/llm_client.cpp" line="158"/>
         <source>Enter an API key first.</source>
         <translation>Enter an API key first.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="117"/>
+        <location filename="../src/llm/llm_client.cpp" line="162"/>
         <source>Choose a model first.</source>
         <translation>Choose a model first.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="121"/>
+        <location filename="../src/llm/llm_client.cpp" line="166"/>
         <source>Enter a service address that starts with https://.</source>
         <translation>Enter a service address that starts with https://.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="170"/>
+        <location filename="../src/llm/llm_client.cpp" line="215"/>
         <source>Could not reach the service. Check the address and your connection.</source>
         <translation>Could not reach the service. Check the address and your connection.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="183"/>
+        <location filename="../src/llm/llm_client.cpp" line="224"/>
+        <source>The service refused &apos;%1&apos;. Check the model name against the list it serves.</source>
+        <translation>The service refused '%1'. Check the model name against the list it serves.></translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_client.cpp" line="233"/>
         <source>The service answered, but not like a model. Check the address.</source>
         <translation>The service answered, but not like a model. Check the address.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="187"/>
+        <location filename="../src/llm/llm_client.cpp" line="237"/>
         <source>Connected. The key and model are accepted.</source>
         <translation>Connected. The key and model are accepted.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="196"/>
+        <location filename="../src/llm/llm_client.cpp" line="246"/>
         <source>There is nothing to look up.</source>
         <translation>There is nothing to look up.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="204"/>
+        <location filename="../src/llm/llm_client.cpp" line="254"/>
         <source>The API key is missing.</source>
         <translation>The API key is missing.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="249"/>
-        <location filename="../src/llm/llm_client.cpp" line="254"/>
+        <location filename="../src/llm/llm_client.cpp" line="299"/>
+        <location filename="../src/llm/llm_client.cpp" line="304"/>
         <source>The request could not reach the service: %1</source>
         <translation>The request could not reach the service: %1</translation>
     </message>

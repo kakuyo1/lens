@@ -1300,22 +1300,22 @@
         <translation>Por defecto</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="131"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="147"/>
         <source>Domestic</source>
         <translation>Nacional</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="132"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="148"/>
         <source>International</source>
         <translation>Internacional</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="133"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="149"/>
         <source>Other</source>
         <translation>Otros</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="134"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="150"/>
         <source>Custom service</source>
         <translation>Servicio propio</translation>
     </message>
@@ -1332,12 +1332,12 @@
         <translation>El entorno de OCR no está disponible</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="125"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="141"/>
         <source>No listed price; recorded cost is zero.</source>
         <translation>Sin precio en la lista; el gasto registrado es cero.</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/model_catalog_duty.cpp" line="126"/>
+        <location filename="../src/app/duties/model_catalog_duty.cpp" line="142"/>
         <source>Input %1 / Output %2 %3 per %4 tokens</source>
         <translation>Entrada %1 / Salida %2 %3 por %4 tokens</translation>
     </message>
@@ -3498,48 +3498,53 @@
 <context>
     <name>lens::llm::LlmClient</name>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="113"/>
+        <location filename="../src/llm/llm_client.cpp" line="158"/>
         <source>Enter an API key first.</source>
         <translation>Introduce primero una clave de API.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="117"/>
+        <location filename="../src/llm/llm_client.cpp" line="162"/>
         <source>Choose a model first.</source>
         <translation>Elige primero un modelo.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="121"/>
+        <location filename="../src/llm/llm_client.cpp" line="166"/>
         <source>Enter a service address that starts with https://.</source>
         <translation>Introduce una dirección de servicio que empiece por https://.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="170"/>
+        <location filename="../src/llm/llm_client.cpp" line="215"/>
         <source>Could not reach the service. Check the address and your connection.</source>
         <translation>No se ha podido contactar con el servicio. Comprueba la dirección y tu conexión.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="183"/>
+        <location filename="../src/llm/llm_client.cpp" line="224"/>
+        <source>The service refused &apos;%1&apos;. Check the model name against the list it serves.</source>
+        <translation>El servicio rechazó «%1». Comprueba el nombre del modelo con los que ofrece.></translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_client.cpp" line="233"/>
         <source>The service answered, but not like a model. Check the address.</source>
         <translation>El servicio ha respondido, pero no como un modelo. Comprueba la dirección.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="187"/>
+        <location filename="../src/llm/llm_client.cpp" line="237"/>
         <source>Connected. The key and model are accepted.</source>
         <translation>Conectado. La clave y el modelo se han aceptado.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="196"/>
+        <location filename="../src/llm/llm_client.cpp" line="246"/>
         <source>There is nothing to look up.</source>
         <translation>No hay nada que consultar.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="204"/>
+        <location filename="../src/llm/llm_client.cpp" line="254"/>
         <source>The API key is missing.</source>
         <translation>Falta la clave de API.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="249"/>
-        <location filename="../src/llm/llm_client.cpp" line="254"/>
+        <location filename="../src/llm/llm_client.cpp" line="299"/>
+        <location filename="../src/llm/llm_client.cpp" line="304"/>
         <source>The request could not reach the service: %1</source>
         <translation>La solicitud no pudo llegar al servicio: %1</translation>
     </message>

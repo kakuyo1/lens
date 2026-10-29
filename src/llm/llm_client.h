@@ -165,9 +165,12 @@ public:
     /// @return False for an unknown provider; custom retains the current endpoint and model.
     bool setProvider(QString const& provider);
 
-    /// @brief Ask the shared model source for the whole catalogue of model ids.
-    /// @note No key, no auth header, no query: the source answers for every provider at once.
-    ///       Empty, malformed, failed, or timed-out responses leave the current cache untouched.
+    /// @brief Ask for the models the reader's service carries.
+    ///
+    /// With a key in hand the standing service is asked for its own shelf, because the shared
+    /// catalogue is the industry's list and carries names the vendor never opened at this endpoint
+    /// (docs/adr/0137). Without a key, or when the service answers nothing usable, the shared
+    /// source is asked instead.
     void fetchModels();
 
     /// @brief Check the endpoint, key and model with one minimal, non-streaming completion.
@@ -280,12 +283,24 @@ signals:
     /// @brief The whole usable catalogue the shared source lists, in the order it gave them.
     void modelsFetched(QStringList models);
 
+    /// @brief The models the standing service itself serves, in the order it gave them and as its
+    ///        endpoint takes them: no vendor prefix to strip, no other provider's names.
+    void serviceModelsFetched(QStringList models);
+
     /// @brief The connection probe's answer: whether the service accepted it, and why not.
     void probeFinished(bool ok, QString message);
 
 private:
     /// Post a one-word or one-sentence correction on @p channel and report it through correctionAnswered().
     void postCorrection(Channel channel, QString const& text);
+
+    /// @brief Ask the standing service, with the reader's key, for the models it serves.
+    /// @note Falls back to askSharedSourceModels() when the answer is empty or refused.
+    void askServiceModels();
+
+    /// @brief Ask the shared source for the whole catalogue: no key, no auth header, no query.
+    /// @note Empty, malformed, failed, or timed-out responses leave the current cache untouched.
+    void askSharedSourceModels();
 
     Config                 config_;
     QNetworkAccessManager* manager_;

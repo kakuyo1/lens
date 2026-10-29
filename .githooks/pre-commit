@@ -166,6 +166,7 @@ docs/adr/0099-each-pet-wears-its-own-nine-piece-wardrobe.md 0
 docs/adr/0100-the-window-spot-belongs-to-the-reader.md 0
 docs/adr/0101-scene-entry-is-pet-choreography.md 0
 docs/adr/0102-accessories-can-favour-scenes.md 0
+docs/adr/0137-model-list-asks-the-service-first.md 0
 docs/metrics/runtime-performance/content-transition-window-resizes-2026-10-17.md 0
 docs/metrics/runtime-performance/glass-capture-capability-2026-10-19.md 0
 docs/metrics/README.md 0

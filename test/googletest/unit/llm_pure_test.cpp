@@ -166,6 +166,40 @@ TEST(ParseModelIds, AnswersEmptyForAnythingThatIsNotThatList)
     EXPECT_FALSE(lens::llm::parseModelIds(QJsonDocument(QJsonObject{{"data", oversized}}).toJson(QJsonDocument::Compact)).isEmpty());
 }
 
+/// A first-party shelf states no modality for what it carries: the names on it are the names its
+/// endpoint takes, which is the whole question the shelf answers.
+TEST(ParseServiceModelIds, TakesTheNamesAFirstPartyShelfStatesAndDeduplicatesThem)
+{
+    const auto ids = lens::llm::parseServiceModelIds(
+        QByteArrayLiteral(R"({"data":[{"id":"deepseek-flash"},{"id":"deepseek-v4-pro"},{"id":"deepseek-flash"}]})"));
+
+    ASSERT_EQ(ids.size(), 2);
+    EXPECT_EQ(ids.at(0), QStringLiteral("deepseek-flash"));
+    EXPECT_EQ(ids.at(1), QStringLiteral("deepseek-v4-pro"));
+}
+
+/// A reseller's shelf states modalities the way the shared catalogue does, and the same rule holds
+/// here: text-only survives, a model that also writes image and a pricing variant do not.
+TEST(ParseServiceModelIds, HoldsAnEntryThatDoesStateItsModalityToTheTextOnlyRule)
+{
+    const auto ids = lens::llm::parseServiceModelIds(
+        QByteArrayLiteral(R"({"data":[{"id":"openai/gpt-4.1-mini","architecture":{"output_modalities":["text"]}},)"
+                          R"({"id":"openai/image-preview","architecture":{"output_modalities":["text","image"]}},)"
+                          R"({"id":"openai/gpt-4.1-mini:free","architecture":{"output_modalities":["text"]}}]})"));
+
+    ASSERT_EQ(ids.size(), 1);
+    EXPECT_EQ(ids.front(), QStringLiteral("openai/gpt-4.1-mini"));
+}
+
+/// A body that is not a shelf answer is no answer, the same way the catalogue's is not.
+TEST(ParseServiceModelIds, AnswersEmptyForAnythingThatIsNotThatList)
+{
+    EXPECT_TRUE(lens::llm::parseServiceModelIds(QByteArrayLiteral("not json at all")).isEmpty());
+    EXPECT_TRUE(lens::llm::parseServiceModelIds(QByteArrayLiteral(R"({"data":"nope"})")).isEmpty());
+    EXPECT_TRUE(lens::llm::parseServiceModelIds(QByteArrayLiteral(R"({"data":[{"id":7}]})")).isEmpty());
+    EXPECT_TRUE(lens::llm::parseServiceModelIds(QByteArrayLiteral(R"({"data":[{"id":"  "}]})")).isEmpty());
+}
+
 /// An empty prefix is OpenRouter's own case: its API takes `vendor/slug`, so the ids must reach
 /// the field whole.
 TEST(IdsForPrefix, AnEmptyPrefixIsTheWholeCatalogueUntouched)
