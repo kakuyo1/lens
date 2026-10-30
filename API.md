@@ -315,7 +315,7 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 
 ## 8 在线 OCR：服务表与五个协议（已实现，真实服务未验证）
 
-在线 OCR 是独立通道，不经过上面的解释请求；实现住在 `src/ocr/`，结果类型来自 `src/capture/ocr_engine.h`。服务、默认地址、凭据槽与语言映射由编译期服务表登记（[ADR 0136](docs/adr/0136-online-ocr-is-a-provider-table.md)）。截至 2026-10-29 只用注入传输与合成图验证，**未向真实端点发送过请求**。
+在线 OCR 是独立通道，不经过上面的解释请求；实现住在 `src/ocr/`，结果类型来自 `src/capture/ocr_engine.h`。服务、默认地址、凭据槽与语言映射由编译期服务表登记（[ADR 0136](docs/adr/0136-online-ocr-is-a-provider-table.md)）。五家 adapter 只写各自的协议（签名、请求构造、错误码表、payload 解析）；编码前的预检、传输层与 HTTP 状态分类、共享上限和结果收尾住在同一份骨架 `src/ocr/ocr_adapter.{h,cpp}`（[ADR 0143](docs/adr/0143-online-ocr-adapters-share-one-frame.md)），3xx 视为端点配置错误，401/403 归鉴权，429 归额度，对五家一致。截至 2026-10-29 只用注入传输与合成图验证，**未向真实端点发送过请求**。
 
 ### 8.1 OCR.space
 
@@ -334,7 +334,7 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 
 成功响应必须同时满足：`OCRExitCode=1`、`IsErroredOnProcessing=false`、`ParsedResults` 恰有一项、`FileParseExitCode=1`、`ParsedText` 为字符串。`OCRExitCode=2` 返回部分识别错误，不进入翻译。`TextOverlay.Lines[].Words[]` 的 `WordText` / `Left` / `Top` / `Width` / `Height` 用于词框，行框为词框并集；坐标必须落在原裁剪图内。该协议没有可依据的置信度字段，统一返回缺失；overlay 缺失但文本有效时允许纯文本成功。
 
-请求来源必须是已确认的手动截图或显式在线检测；`AutoScan` 在编码前即被拒绝。未确认、取消、端点或密钥改变都保持上传次数为 0；传输失败或超时最多接受一次显式人工重试，不自动重试。`src/ocr/ocr_space.cpp` 是协议与边界检查的唯一位置，`test/googletest/unit/ocr_space_test.cpp` 用替身锁住请求字段、响应映射与零上传断言。
+请求来源必须是已确认的手动截图或显式在线检测；`AutoScan` 在编码前即被拒绝。未确认、取消、端点或密钥改变都保持上传次数为 0；传输失败或超时最多接受一次显式人工重试，不自动重试。`src/ocr/ocr_space.cpp` 是协议实现，编码前检查与 HTTP 分类在共享骨架 `src/ocr/ocr_adapter.{h,cpp}`；`test/googletest/unit/ocr_space_test.cpp` 用替身锁住请求字段、响应映射与零上传断言。
 
 ### 8.2 百度通用文字识别
 

@@ -11,10 +11,10 @@
 #include <nlohmann/json.hpp>
 
 #include <algorithm>
-#include <charconv>
-#include <cmath>
 #include <limits>
 
+#include "ocr_adapter.h"
+#include "ocr_json.h"
 #include "util/log.h"
 
 namespace lens::ocr {
@@ -27,51 +27,13 @@ using lens::capture::OcrStatus;
 using lens::capture::OcrUploadState;
 using lens::capture::OcrWord;
 
-constexpr std::size_t kMaxLines           = 2000;
-constexpr std::size_t kMaxWords           = 20000;
-constexpr std::size_t kMaxTextUnits       = 65536;
-constexpr std::size_t kMaxStructuredBytes = 4 * 1024 * 1024;
+QString const kEngine = QStringLiteral("ocrspace");
 
-bool parseInt(nlohmann::json const& value, int& out)
+/// @return Whether the service's own answer would be refused in the shape it actually arrived.
+bool usable(OcrSpaceConfig const& config)
 {
-    if (value.is_number_integer()) {
-        out = value.get<int>();
-        return true;
-    }
-    if (not value.is_string()) return false;
-    auto const& text   = value.get_ref<std::string const&>();
-    auto const  parsed = std::from_chars(text.data(), text.data() + text.size(), out);
-    return parsed.ec == std::errc{} and parsed.ptr == text.data() + text.size();
-}
-
-bool numberField(nlohmann::json const& object, char const* key, double& out)
-{
-    if (not object.is_object()) return false;
-    auto const found = object.find(key);
-    if (found == object.end() or not found->is_number()) return false;
-    out = found->get<double>();
-    return std::isfinite(out);
-}
-
-bool stringField(nlohmann::json const& object, char const* key, QString& out)
-{
-    if (not object.is_object()) return false;
-    auto const found = object.find(key);
-    if (found == object.end() or not found->is_string()) return false;
-    out = QString::fromStdString(found->get<std::string>());
-    return not out.contains(QChar(0));
-}
-
-OcrResult failed(OcrStatus const                 status,
-                 std::uint64_t const             requestId,
-                 OcrUploadState const            upload,
-                 capture::OcrFailureReason const reason = capture::OcrFailureReason::None)
-{
-    return {.status        = status,
-            .actualEngine  = QStringLiteral("ocrspace"),
-            .failureReason = reason,
-            .uploadState   = upload,
-            .requestId     = requestId};
+    return not validateOcrEndpoint(config.endpoint).has_value() and not config.apiKey.isEmpty() and
+           not validateOcrSpaceLanguage(config.language).has_value();
 }
 
 QByteArray multipartBody(QByteArray const& png, OcrSpaceConfig const& config, QByteArray const& boundary)
@@ -93,11 +55,16 @@ QByteArray multipartBody(QByteArray const& png, OcrSpaceConfig const& config, QB
     return body;
 }
 
+OcrResult refused(OcrStatus const status, std::uint64_t const requestId)
+{
+    return ocrResultFor(kEngine, status, requestId, OcrUploadState::ServerResponded);
+}
+
 bool parseLine(nlohmann::json const& line, QSize const image, OcrLine& out)
 {
     if (not line.is_object()) return false;
     QString    lineText;
-    bool const hasLineText = stringField(line, "LineText", lineText);
+    bool const hasLineText = detail::stringField(line, "LineText", lineText);
     auto const words       = line.find("Words");
     if (words == line.end()) {
         // No words means no geometry; the parsed text at the top level remains authoritative.
@@ -105,7 +72,7 @@ bool parseLine(nlohmann::json const& line, QSize const image, OcrLine& out)
         return true;
     }
     if (not words->is_array()) return false;
-    if (words->size() > 20000) return false;
+    if (words->size() > kOcrMaxWords) return false;
 
     double      left   = std::numeric_limits<double>::max();
     double      top    = std::numeric_limits<double>::max();
@@ -119,8 +86,8 @@ bool parseLine(nlohmann::json const& line, QSize const image, OcrLine& out)
         QString text = QString::fromStdString(wordText->get<std::string>());
         if (text.contains(QChar(0))) return false;
         double wordLeft = 0, wordTop = 0, width = 0, height = 0;
-        if (not numberField(word, "Left", wordLeft) or not numberField(word, "Top", wordTop) or
-            not numberField(word, "Width", width) or not numberField(word, "Height", height))
+        if (not detail::numberField(word, "Left", wordLeft) or not detail::numberField(word, "Top", wordTop) or
+            not detail::numberField(word, "Width", width) or not detail::numberField(word, "Height", height))
             return false;
         OcrBox const box{.x = wordLeft, .y = wordTop, .width = width, .height = height};
         if (not capture::boxFitsImage(box, image)) return false;
@@ -140,77 +107,58 @@ bool parseLine(nlohmann::json const& line, QSize const image, OcrLine& out)
 
 OcrResult parseResponse(QByteArray const& body, QSize const image, QString const& language, std::uint64_t const requestId)
 {
-    if (body.size() > static_cast<qsizetype>(kMaxStructuredBytes))
-        return failed(OcrStatus::ResultTooLarge, requestId, OcrUploadState::ServerResponded);
+    if (body.size() > static_cast<qsizetype>(kOcrMaxStructuredBytes)) return refused(OcrStatus::ResultTooLarge, requestId);
     auto const document = nlohmann::json::parse(body, nullptr, false);
-    if (document.is_discarded() or not document.is_object()) return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
+    if (document.is_discarded() or not document.is_object()) return refused(OcrStatus::ProtocolError, requestId);
 
     int        exitCode = 0;
     auto const exitIt   = document.find("OCRExitCode");
-    if (exitIt == document.end() or not parseInt(*exitIt, exitCode)) return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
+    if (exitIt == document.end() or not detail::parseInt(*exitIt, exitCode))
+        return refused(OcrStatus::ProtocolError, requestId);
     auto const errored = document.find("IsErroredOnProcessing");
-    if (errored == document.end() or not errored->is_boolean()) return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
-    if (errored->get<bool>() or exitCode == 3 or exitCode == 4) return failed(OcrStatus::Failed, requestId, OcrUploadState::ServerResponded);
-    if (exitCode == 2) return failed(OcrStatus::PartialResult, requestId, OcrUploadState::ServerResponded);
-    if (exitCode != 1) return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
+    if (errored == document.end() or not errored->is_boolean()) return refused(OcrStatus::ProtocolError, requestId);
+    if (errored->get<bool>() or exitCode == 3 or exitCode == 4) return refused(OcrStatus::Failed, requestId);
+    if (exitCode == 2) return refused(OcrStatus::PartialResult, requestId);
+    if (exitCode != 1) return refused(OcrStatus::ProtocolError, requestId);
 
     auto const parsed = document.find("ParsedResults");
     if (parsed == document.end() or not parsed->is_array() or parsed->size() != 1)
-        return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
+        return refused(OcrStatus::ProtocolError, requestId);
     auto const& page = parsed->front();
-    if (not page.is_object()) return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
+    if (not page.is_object()) return refused(OcrStatus::ProtocolError, requestId);
 
     int        fileExit   = 0;
     auto const fileExitIt = page.find("FileParseExitCode");
-    if (fileExitIt == page.end() or not parseInt(*fileExitIt, fileExit))
-        return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
-    if (fileExit != 1) return failed(OcrStatus::PartialResult, requestId, OcrUploadState::ServerResponded);
+    if (fileExitIt == page.end() or not detail::parseInt(*fileExitIt, fileExit))
+        return refused(OcrStatus::ProtocolError, requestId);
+    if (fileExit != 1) return refused(OcrStatus::PartialResult, requestId);
 
     QString text;
-    if (not stringField(page, "ParsedText", text)) return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
-    if (text.size() > static_cast<qsizetype>(kMaxTextUnits)) return failed(OcrStatus::ResultTooLarge, requestId, OcrUploadState::ServerResponded);
+    if (not detail::stringField(page, "ParsedText", text)) return refused(OcrStatus::ProtocolError, requestId);
 
-    OcrResult result    = failed(OcrStatus::Ready, requestId, OcrUploadState::ServerResponded);
+    OcrResult result    = ocrResultFor(kEngine, OcrStatus::Ready, requestId, OcrUploadState::ServerResponded);
+    result.text         = text;
     result.languageUsed = language;
-    result.text         = text.trimmed();
-    if (result.text.isEmpty()) return failed(OcrStatus::EmptyText, requestId, OcrUploadState::ServerResponded);
 
     auto const overlay = page.find("TextOverlay");
     if (overlay != page.end() and not overlay->is_null()) {
-        if (not overlay->is_object()) return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
+        if (not overlay->is_object()) return refused(OcrStatus::ProtocolError, requestId);
         auto const lines = overlay->find("Lines");
         if (lines != overlay->end()) {
-            if (not lines->is_array()) return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
-            if (lines->size() > kMaxLines) return failed(OcrStatus::ResultTooLarge, requestId, OcrUploadState::ServerResponded);
+            if (not lines->is_array()) return refused(OcrStatus::ProtocolError, requestId);
+            if (lines->size() > kOcrMaxLines) return refused(OcrStatus::ResultTooLarge, requestId);
             std::size_t words = 0;
             for (auto const& line : *lines) {
                 OcrLine parsedLine;
-                if (not parseLine(line, image, parsedLine))
-                    return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
+                if (not parseLine(line, image, parsedLine)) return refused(OcrStatus::ProtocolError, requestId);
                 words += parsedLine.words.size();
-                if (words > kMaxWords) return failed(OcrStatus::ResultTooLarge, requestId, OcrUploadState::ServerResponded);
+                if (words > kOcrMaxWords) return refused(OcrStatus::ResultTooLarge, requestId);
                 if (parsedLine.text.isEmpty() and not parsedLine.box) continue;
                 result.lines.push_back(std::move(parsedLine));
             }
         }
     }
-
-    bool        anyWordBox = false;
-    bool        anyLineBox = false;
-    std::size_t structured = result.text.toUtf8().size();
-    for (auto const& line : result.lines) {
-        anyLineBox = anyLineBox or line.box.has_value();
-        structured += line.text.toUtf8().size() + 32;
-        for (auto const& word : line.words) {
-            anyWordBox = anyWordBox or word.box.has_value();
-            structured += word.text.toUtf8().size() + 64;
-        }
-    }
-    if (structured > kMaxStructuredBytes) return failed(OcrStatus::ResultTooLarge, requestId, OcrUploadState::ServerResponded);
-    result.geometryLevel = anyWordBox   ? capture::OcrGeometryLevel::Word
-                           : anyLineBox ? capture::OcrGeometryLevel::Line
-                                        : capture::OcrGeometryLevel::None;
-    return result;
+    return finishOcrResult(std::move(result));
 }
 
 struct OcrSpaceClientImpl final : OnlineOcrClient {
@@ -230,30 +178,16 @@ struct OcrSpaceClientImpl final : OnlineOcrClient {
             result.timing.totalMs = static_cast<int>(timer.elapsed());
             return result;
         };
-        // The online half exists only for an explicit, consented manual capture. A scan source is
-        // refused before anything is encoded, which is the second line of defence behind the
-        // capture duty never calling here for one.
-        if (request.source != capture::OcrSource::Screenshot and request.source != capture::OcrSource::OnlineTest)
-            return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::NotUploaded));
-        // validate... returns the reason when the value is unusable, so a present optional is the
-        // refusal; the earlier `not optional` form refused every valid configuration.
-        if (validateOcrEndpoint(config.endpoint) or config.apiKey.isEmpty())
-            return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::NotUploaded));
-        if (validateOcrSpaceLanguage(config.language))
-            return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::NotUploaded));
-        if (request.image.isNull()) return done(failed(OcrStatus::InvalidImage, request.requestId, OcrUploadState::NotUploaded));
-        if (request.image.width() > 8192 or request.image.height() > 8192 or request.image.sizeInBytes() > 128 * 1024 * 1024)
-            return done(failed(OcrStatus::InputTooLarge, request.requestId, OcrUploadState::NotUploaded));
-        if (cancel and cancel->load(std::memory_order_relaxed))
-            return done(failed(OcrStatus::Cancelled, request.requestId, OcrUploadState::NotUploaded));
-        if (request.deadline.count() <= 0) return done(failed(OcrStatus::TimedOut, request.requestId, OcrUploadState::NotUploaded));
+        if (auto const refused =
+                refuseOcrRequest(request, kEngine, {.maxEdge = 8192, .maxBytes = 128 * 1024 * 1024}, cancel, usable(config)))
+            return done(*refused);
 
         QByteArray png;
         QBuffer    buffer{&png};
         if (not buffer.open(QIODevice::WriteOnly) or not request.image.save(&buffer, "PNG"))
-            return done(failed(OcrStatus::InvalidImage, request.requestId, OcrUploadState::NotUploaded));
+            return done(ocrResultFor(kEngine, OcrStatus::InvalidImage, request.requestId, OcrUploadState::NotUploaded));
         if (png.size() > kOcrSpaceMaxUploadBytes)
-            return done(failed(OcrStatus::InputTooLarge, request.requestId, OcrUploadState::NotUploaded));
+            return done(ocrResultFor(kEngine, OcrStatus::InputTooLarge, request.requestId, OcrUploadState::NotUploaded));
 
         auto const  boundary = QByteArray{"----lens-" + QUuid::createUuid().toString(QUuid::WithoutBraces).toLatin1()};
         HttpRequest httpRequest;
@@ -263,23 +197,8 @@ struct OcrSpaceClientImpl final : OnlineOcrClient {
         httpRequest.body      = multipartBody(png, config, boundary);
         httpRequest.timeoutMs = std::min(30000, static_cast<int>(request.deadline.count()));
 
-        auto       response = transport->send(httpRequest, cancel);
-        auto const upload   = response.status != 0 ? OcrUploadState::ServerResponded : OcrUploadState::UploadStarted;
-        if (response.cancelled) return done(failed(OcrStatus::Cancelled, request.requestId, upload));
-        if (response.timedOut) return done(failed(OcrStatus::TimedOut, request.requestId, upload));
-        if (response.responseTooLarge) return done(failed(OcrStatus::ResultTooLarge, request.requestId, upload));
-        if (not response.transportOk) return done(failed(OcrStatus::TransportFailed, request.requestId, upload));
-
-        if (response.status >= 300 and response.status < 400)
-            return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::ServerResponded)); // never a followed redirect
-        if (response.status == 401 or response.status == 403)
-            return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::ServerResponded, capture::OcrFailureReason::Authentication));
-        if (response.status == 429)
-            return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::ServerResponded, capture::OcrFailureReason::Quota));
-        if (response.status < 200 or response.status >= 300)
-            return done(failed(OcrStatus::TransportFailed, request.requestId, OcrUploadState::ServerResponded));
-
-        LENS_INFO("online OCR answered HTTP {}, {} byte(s)", response.status, response.body.size());
+        auto const response = transport->send(httpRequest, cancel);
+        if (auto const refused = refuseOcrResponse(response, kEngine, request.requestId)) return done(*refused);
         return done(parseResponse(response.body, request.image.size(), config.language, request.requestId));
     }
 };

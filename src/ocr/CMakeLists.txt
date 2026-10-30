@@ -1,5 +1,7 @@
 add_library(lens_ocr STATIC
   http_transport.h
+  ocr_adapter.h
+  ocr_adapter.cpp
   ocr_aliyun.h
   ocr_aliyun.cpp
   ocr_baidu.h

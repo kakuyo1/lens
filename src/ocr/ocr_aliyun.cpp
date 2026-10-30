@@ -17,6 +17,7 @@
 #include <limits>
 #include <map>
 
+#include "ocr_adapter.h"
 #include "ocr_crypto.h"
 #include "ocr_json.h"
 #include "util/log.h"
@@ -32,42 +33,38 @@ using lens::capture::OcrStatus;
 using lens::capture::OcrUploadState;
 using lens::capture::OcrWord;
 
-constexpr std::size_t kMaxBlocks          = 2000;
-constexpr std::size_t kMaxTextUnits       = 65536;
-constexpr std::size_t kMaxStructuredBytes = 4 * 1024 * 1024;
-constexpr char const* kAction             = "RecognizeGeneral";
-constexpr char const* kVersion            = "2021-07-07";
+QString const kEngine = QStringLiteral("aliyun");
 
-OcrResult failed(OcrStatus const                 status,
-                 std::uint64_t const             requestId,
-                 OcrUploadState const            upload,
-                 capture::OcrFailureReason const reason = capture::OcrFailureReason::None)
+constexpr char const* kAction       = "RecognizeGeneral";
+constexpr char const* kVersion      = "2021-07-07";
+constexpr int         kMaxImageEdge = 8192; ///< The service's longest accepted side.
+constexpr int         kMinImageEdge = 15;   ///< The service's shortest accepted side.
+
+/// @return Whether the service's own answer would be refused in the shape it actually arrived.
+bool usable(AliyunConfig const& config)
 {
-    return {.status        = status,
-            .actualEngine  = QStringLiteral("aliyun"),
-            .failureReason = reason,
-            .uploadState   = upload,
-            .requestId     = requestId};
+    return not validateOcrEndpoint(config.endpoint).has_value() and not config.accessKeyId.isEmpty() and
+           not config.accessKeySecret.isEmpty();
 }
 
 /// @return What the reader could change about @p code, in the shared vocabulary.
-capture::OcrFailureReason reasonForCode(QString const& code)
+lens::capture::OcrFailureReason reasonForCode(QString const& code)
 {
-    if (code == QLatin1String("ocrServiceNotOpen")) return capture::OcrFailureReason::NotActivated;
+    if (code == QLatin1String("ocrServiceNotOpen")) return lens::capture::OcrFailureReason::NotActivated;
     if (code.contains(QLatin1String("AccessKeyId")) or code == QLatin1String("MissingSignature") or
         code == QLatin1String("SignatureDoesNotMatch") or code == QLatin1String("illegalSignature") or
         code == QLatin1String("SignatureNonceUsed") or code == QLatin1String("noPermission") or
         code == QLatin1String("InvalidTimeStamp.Expired") or code == QLatin1String("InvalidSignatureVerssion"))
-        return capture::OcrFailureReason::Authentication;
+        return lens::capture::OcrFailureReason::Authentication;
     if (code == QLatin1String("Throttling.User") or code == QLatin1String("OcrServiceExpired"))
-        return capture::OcrFailureReason::Quota;
+        return lens::capture::OcrFailureReason::Quota;
     if (code == QLatin1String("algorithmError") or code == QLatin1String("ServiceUnavailable") or
         code == QLatin1String("ServiceTimeout") or code == QLatin1String("LLMTimeout") or code == QLatin1String("systemError"))
-        return capture::OcrFailureReason::Unavailable;
+        return lens::capture::OcrFailureReason::Unavailable;
     if (code == QLatin1String("unsupportedImageFormat") or code == QLatin1String("illegalImageSize") or
         code == QLatin1String("exceededImageContent"))
-        return capture::OcrFailureReason::Image;
-    return capture::OcrFailureReason::Unknown;
+        return lens::capture::OcrFailureReason::Image;
+    return lens::capture::OcrFailureReason::Unknown;
 }
 
 /// @brief RFC 3986 encoding with Aliyun's exceptions: `~` stays literal, a space is `%20`, `*` is `%2A`.
@@ -122,65 +119,57 @@ std::optional<OcrBox> quadBox(nlohmann::json const& block, QSize const image)
     return box;
 }
 
+OcrResult refused(OcrStatus const status, std::uint64_t const requestId)
+{
+    return ocrResultFor(kEngine, status, requestId, OcrUploadState::ServerResponded);
+}
+
 OcrResult parseResponse(QByteArray const& body, QSize const image, std::uint64_t const requestId)
 {
-    if (body.size() > static_cast<qsizetype>(kMaxStructuredBytes))
-        return failed(OcrStatus::ResultTooLarge, requestId, OcrUploadState::ServerResponded);
+    if (body.size() > static_cast<qsizetype>(kOcrMaxStructuredBytes)) return refused(OcrStatus::ResultTooLarge, requestId);
     auto const document = nlohmann::json::parse(body, nullptr, false);
-    if (document.is_discarded() or not document.is_object())
-        return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
+    if (document.is_discarded() or not document.is_object()) return refused(OcrStatus::ProtocolError, requestId);
 
     if (auto const code = document.find("Code"); code != document.end()) {
         QString value;
-        if (not detail::stringField(document, "Code", value))
-            return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
+        if (not detail::stringField(document, "Code", value)) return refused(OcrStatus::ProtocolError, requestId);
         LENS_WARN("online OCR refused the request: aliyun {}", value.toStdString());
-        return failed(statusForCode(value), requestId, OcrUploadState::ServerResponded, reasonForCode(value));
+        return ocrResultFor(kEngine, statusForCode(value), requestId, OcrUploadState::ServerResponded, reasonForCode(value));
     }
 
     // `Data` is a JSON document carried as a string, not an object.
     QString dataText;
-    if (not detail::stringField(document, "Data", dataText))
-        return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
+    if (not detail::stringField(document, "Data", dataText)) return refused(OcrStatus::ProtocolError, requestId);
     auto const data = nlohmann::json::parse(dataText.toStdString(), nullptr, false);
-    if (data.is_discarded() or not data.is_object())
-        return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
+    if (data.is_discarded() or not data.is_object()) return refused(OcrStatus::ProtocolError, requestId);
 
     QString text;
-    if (not detail::stringField(data, "content", text))
-        return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
-    text = text.trimmed();
-    if (text.isEmpty()) return failed(OcrStatus::EmptyText, requestId, OcrUploadState::ServerResponded);
+    if (not detail::stringField(data, "content", text)) return refused(OcrStatus::ProtocolError, requestId);
 
-    OcrResult result            = failed(OcrStatus::Ready, requestId, OcrUploadState::ServerResponded);
+    OcrResult result            = ocrResultFor(kEngine, OcrStatus::Ready, requestId, OcrUploadState::ServerResponded);
     result.text                 = text;
-    std::size_t structured      = text.toUtf8().size();
-    bool        anyBox          = false;
     double      confidenceSum   = 0;
     std::size_t confidenceCount = 0;
 
+    // The service has no line array; a block is the finest text unit it documents, so a block is
+    // one line holding one word rather than a word split out of a guessed line.
     auto const blocks = data.find("prism_wordsInfo");
     if (blocks != data.end()) {
-        if (not blocks->is_array()) return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
-        if (blocks->size() > kMaxBlocks) return failed(OcrStatus::ResultTooLarge, requestId, OcrUploadState::ServerResponded);
+        if (not blocks->is_array()) return refused(OcrStatus::ProtocolError, requestId);
+        if (blocks->size() > kOcrMaxLines) return refused(OcrStatus::ResultTooLarge, requestId);
         for (auto const& block : *blocks) {
-            if (not block.is_object()) return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
+            if (not block.is_object()) return refused(OcrStatus::ProtocolError, requestId);
             QString word;
-            if (not detail::stringField(block, "word", word))
-                return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
+            if (not detail::stringField(block, "word", word)) return refused(OcrStatus::ProtocolError, requestId);
             if (word.isEmpty()) continue;
-            // The service has no line array; a block is the finest text unit it documents, so a
-            // block is one line holding one word rather than a word split out of a guessed line.
             OcrWord entry{.text = word};
             OcrLine line{.text = word};
             if (auto const box = quadBox(block, image)) {
                 entry.box = box;
                 line.box  = box;
-                anyBox    = true;
             }
             line.words.push_back(std::move(entry));
             result.lines.push_back(std::move(line));
-            structured += static_cast<std::size_t>(word.toUtf8().size()) + 64;
             double score = 0;
             if (detail::numberField(block, "prob", score)) {
                 confidenceSum += std::clamp(score, 0.0, 100.0);
@@ -189,15 +178,12 @@ OcrResult parseResponse(QByteArray const& body, QSize const image, std::uint64_t
         }
     }
 
-    if (text.size() > static_cast<qsizetype>(kMaxTextUnits) or structured > kMaxStructuredBytes)
-        return failed(OcrStatus::ResultTooLarge, requestId, OcrUploadState::ServerResponded);
     if (confidenceCount > 0)
         result.confidence = OcrConfidence{
             .average = confidenceSum / static_cast<double>(confidenceCount) / 100.0,
             .words   = confidenceCount,
             .total   = result.lines.size()};
-    result.geometryLevel = anyBox ? capture::OcrGeometryLevel::Word : capture::OcrGeometryLevel::None;
-    return result;
+    return finishOcrResult(std::move(result));
 }
 
 QString iso8601(qint64 const seconds)
@@ -222,24 +208,16 @@ struct AliyunClientImpl final : OnlineOcrClient {
             result.timing.totalMs = static_cast<int>(timer.elapsed());
             return result;
         };
-        if (request.source != capture::OcrSource::Screenshot and request.source != capture::OcrSource::OnlineTest)
-            return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::NotUploaded));
-        if (validateOcrEndpoint(config.endpoint) or config.accessKeyId.isEmpty() or config.accessKeySecret.isEmpty())
-            return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::NotUploaded));
-        if (request.image.isNull()) return done(failed(OcrStatus::InvalidImage, request.requestId, OcrUploadState::NotUploaded));
-        if (request.image.width() > 8192 or request.image.height() > 8192 or
-            std::min(request.image.width(), request.image.height()) < 15)
-            return done(failed(OcrStatus::InputTooLarge, request.requestId, OcrUploadState::NotUploaded));
-        if (cancel and cancel->load(std::memory_order_relaxed))
-            return done(failed(OcrStatus::Cancelled, request.requestId, OcrUploadState::NotUploaded));
-        if (request.deadline.count() <= 0) return done(failed(OcrStatus::TimedOut, request.requestId, OcrUploadState::NotUploaded));
+        if (auto const refused =
+                refuseOcrRequest(request, kEngine, {.maxEdge = kMaxImageEdge, .minEdge = kMinImageEdge}, cancel, usable(config)))
+            return done(*refused);
 
         QByteArray png;
         QBuffer    buffer{&png};
         if (not buffer.open(QIODevice::WriteOnly) or not request.image.save(&buffer, "PNG"))
-            return done(failed(OcrStatus::InvalidImage, request.requestId, OcrUploadState::NotUploaded));
+            return done(ocrResultFor(kEngine, OcrStatus::InvalidImage, request.requestId, OcrUploadState::NotUploaded));
         if (png.size() > kAliyunMaxImageBytes)
-            return done(failed(OcrStatus::InputTooLarge, request.requestId, OcrUploadState::NotUploaded));
+            return done(ocrResultFor(kEngine, OcrStatus::InputTooLarge, request.requestId, OcrUploadState::NotUploaded));
 
         auto const  nonce = QUuid::createUuid().toString(QUuid::WithoutBraces);
         auto const  stamp = iso8601(QDateTime::currentSecsSinceEpoch());
@@ -250,25 +228,19 @@ struct AliyunClientImpl final : OnlineOcrClient {
         httpRequest.timeoutMs = std::min(30000, static_cast<int>(request.deadline.count()));
 
         auto const response = transport->send(httpRequest, cancel);
-        auto const upload   = response.status != 0 ? OcrUploadState::ServerResponded : OcrUploadState::UploadStarted;
-        if (response.cancelled) return done(failed(OcrStatus::Cancelled, request.requestId, upload));
-        if (response.timedOut) return done(failed(OcrStatus::TimedOut, request.requestId, upload));
-        if (response.responseTooLarge) return done(failed(OcrStatus::ResultTooLarge, request.requestId, upload));
-        if (not response.transportOk) return done(failed(OcrStatus::TransportFailed, request.requestId, upload));
+        if (auto const refused = refuseOcrTransport(response, kEngine, request.requestId)) return done(*refused);
 
-        if (response.status >= 300 and response.status < 400)
-            return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::ServerResponded));
-        if (response.status == 429)
-            return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::ServerResponded, capture::OcrFailureReason::Quota));
         if (response.status == 401 or response.status == 403) {
             // This service reports account states -- the service not being activated among them --
             // as 401/403 with the same `Code` body, so the body is read before the status decides.
-            auto const refused = parseResponse(response.body, request.image.size(), request.requestId);
-            if (refused.status != OcrStatus::ProtocolError) return done(refused);
-            return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::ServerResponded, capture::OcrFailureReason::Authentication));
+            auto const refusedByBody = parseResponse(response.body, request.image.size(), request.requestId);
+            if (refusedByBody.status != OcrStatus::ProtocolError) return done(refusedByBody);
+            return done(ocrResultFor(kEngine, OcrStatus::Failed, request.requestId, OcrUploadState::ServerResponded, lens::capture::OcrFailureReason::Authentication));
         }
+        if (auto const shared = classifyOcrHttpStatus(response.status))
+            return done(ocrResultFor(kEngine, shared->status, request.requestId, OcrUploadState::ServerResponded, shared->reason));
         if (response.status >= 500)
-            return done(failed(OcrStatus::TransportFailed, request.requestId, OcrUploadState::ServerResponded));
+            return done(ocrResultFor(kEngine, OcrStatus::TransportFailed, request.requestId, OcrUploadState::ServerResponded));
         if (response.status < 200 or response.status >= 300) {
             // 4xx carries the service's own Code, which the parser reads; a 400 without one is a
             // gateway or proxy answer and cannot be mapped.

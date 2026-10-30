@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <limits>
 
+#include "ocr_adapter.h"
 #include "ocr_crypto.h"
 #include "ocr_json.h"
 #include "util/log.h"
@@ -28,40 +29,35 @@ using lens::capture::OcrResult;
 using lens::capture::OcrStatus;
 using lens::capture::OcrUploadState;
 
-constexpr std::size_t kMaxLines           = 2000;
-constexpr std::size_t kMaxTextUnits       = 65536;
-constexpr std::size_t kMaxStructuredBytes = 4 * 1024 * 1024;
-constexpr char const* kAction             = "GeneralBasicOCR";
-constexpr char const* kVersion            = "2018-11-19";
-constexpr char const* kContentType        = "application/json; charset=utf-8";
+QString const kEngine = QStringLiteral("tencent");
 
-OcrResult failed(OcrStatus const                 status,
-                 std::uint64_t const             requestId,
-                 OcrUploadState const            upload,
-                 capture::OcrFailureReason const reason = capture::OcrFailureReason::None)
+constexpr char const* kAction      = "GeneralBasicOCR";
+constexpr char const* kVersion     = "2018-11-19";
+constexpr char const* kContentType = "application/json; charset=utf-8";
+
+/// @return Whether the service's own answer would be refused in the shape it actually arrived.
+bool usable(TencentConfig const& config)
 {
-    return {.status        = status,
-            .actualEngine  = QStringLiteral("tencent"),
-            .failureReason = reason,
-            .uploadState   = upload,
-            .requestId     = requestId};
+    return not validateOcrEndpoint(config.endpoint).has_value() and not config.secretId.isEmpty() and
+           not config.secretKey.isEmpty() and
+           (config.language == QLatin1String("en") or config.language == QLatin1String("auto"));
 }
 
 /// @return What the reader could change about @p code, in the shared vocabulary.
-capture::OcrFailureReason reasonForCode(QString const& code)
+lens::capture::OcrFailureReason reasonForCode(QString const& code)
 {
-    if (code == QLatin1String("FailedOperation.UnOpenError")) return capture::OcrFailureReason::NotActivated;
+    if (code == QLatin1String("FailedOperation.UnOpenError")) return lens::capture::OcrFailureReason::NotActivated;
     if (code.startsWith(QLatin1String("AuthFailure.")) or code == QLatin1String("FailedOperation.LanguageNotSupport"))
-        return capture::OcrFailureReason::Authentication;
+        return lens::capture::OcrFailureReason::Authentication;
     if (code.startsWith(QLatin1String("RequestLimitExceeded")) or code == QLatin1String("LimitExceeded") or
         code == QLatin1String("ResourceUnavailable.InArrears") or code == QLatin1String("ResourcesSoldOut.ChargeStatusException"))
-        return capture::OcrFailureReason::Quota;
+        return lens::capture::OcrFailureReason::Quota;
     if (code == QLatin1String("InternalError") or code == QLatin1String("ServiceUnavailable") or
         code == QLatin1String("FailedOperation.EngineRecognizeTimeout") or code == QLatin1String("FailedOperation.OcrFailed") or
         code == QLatin1String("FailedOperation.UnKnowError"))
-        return capture::OcrFailureReason::Unavailable;
-    if (code == QLatin1String("LimitExceeded.TooLargeFileError")) return capture::OcrFailureReason::Image;
-    return capture::OcrFailureReason::Unknown;
+        return lens::capture::OcrFailureReason::Unavailable;
+    if (code == QLatin1String("LimitExceeded.TooLargeFileError")) return lens::capture::OcrFailureReason::Image;
+    return lens::capture::OcrFailureReason::Unknown;
 }
 
 /// @return The status an API-level `Response.Error.Code` stands for.
@@ -98,49 +94,45 @@ std::optional<OcrBox> polygonBox(nlohmann::json const& detection, QSize const im
     return box;
 }
 
+OcrResult refused(OcrStatus const status, std::uint64_t const requestId)
+{
+    return ocrResultFor(kEngine, status, requestId, OcrUploadState::ServerResponded);
+}
+
 OcrResult parseResponse(QByteArray const& body, QSize const image, QString const& language, std::uint64_t const requestId)
 {
-    if (body.size() > static_cast<qsizetype>(kMaxStructuredBytes))
-        return failed(OcrStatus::ResultTooLarge, requestId, OcrUploadState::ServerResponded);
+    if (body.size() > static_cast<qsizetype>(kOcrMaxStructuredBytes)) return refused(OcrStatus::ResultTooLarge, requestId);
     auto const document = nlohmann::json::parse(body, nullptr, false);
-    if (document.is_discarded() or not document.is_object())
-        return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
+    if (document.is_discarded() or not document.is_object()) return refused(OcrStatus::ProtocolError, requestId);
 
     auto const response = document.find("Response");
-    if (response == document.end() or not response->is_object())
-        return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
+    if (response == document.end() or not response->is_object()) return refused(OcrStatus::ProtocolError, requestId);
 
     if (auto const error = response->find("Error"); error != response->end()) {
         QString code;
-        if (not detail::stringField(*error, "Code", code))
-            return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
+        if (not detail::stringField(*error, "Code", code)) return refused(OcrStatus::ProtocolError, requestId);
         LENS_WARN("online OCR refused the request: tencent {}", code.toStdString());
-        return failed(statusForCode(code), requestId, OcrUploadState::ServerResponded, reasonForCode(code));
+        return ocrResultFor(kEngine, statusForCode(code), requestId, OcrUploadState::ServerResponded, reasonForCode(code));
     }
 
     auto const detections = response->find("TextDetections");
-    if (detections == response->end() or not detections->is_array())
-        return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
-    if (detections->size() > kMaxLines) return failed(OcrStatus::ResultTooLarge, requestId, OcrUploadState::ServerResponded);
+    if (detections == response->end() or not detections->is_array()) return refused(OcrStatus::ProtocolError, requestId);
+    if (detections->size() > kOcrMaxLines) return refused(OcrStatus::ResultTooLarge, requestId);
 
-    OcrResult result    = failed(OcrStatus::Ready, requestId, OcrUploadState::ServerResponded);
+    OcrResult result    = ocrResultFor(kEngine, OcrStatus::Ready, requestId, OcrUploadState::ServerResponded);
     result.languageUsed = language;
     QStringList texts;
     double      confidenceSum   = 0;
     std::size_t confidenceCount = 0;
-    std::size_t structured      = 0;
     for (auto const& detection : *detections) {
-        if (not detection.is_object())
-            return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
+        if (not detection.is_object()) return refused(OcrStatus::ProtocolError, requestId);
         QString text;
-        if (not detail::stringField(detection, "DetectedText", text))
-            return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
+        if (not detail::stringField(detection, "DetectedText", text)) return refused(OcrStatus::ProtocolError, requestId);
         auto const box = polygonBox(detection, image);
-        if (not box) return failed(OcrStatus::ProtocolError, requestId, OcrUploadState::ServerResponded);
+        if (not box) return refused(OcrStatus::ProtocolError, requestId);
         if (text.isEmpty()) continue;
         texts << text;
         result.lines.push_back(OcrLine{.text = text, .box = box});
-        structured += static_cast<std::size_t>(text.toUtf8().size()) + 32;
         double score = 0;
         if (detail::numberField(detection, "Confidence", score)) {
             confidenceSum += std::clamp(score, 0.0, 100.0);
@@ -148,17 +140,13 @@ OcrResult parseResponse(QByteArray const& body, QSize const image, QString const
         }
     }
 
-    result.text = texts.join(QLatin1Char('\n')).trimmed();
-    if (result.text.isEmpty()) return failed(OcrStatus::EmptyText, requestId, OcrUploadState::ServerResponded);
-    if (result.text.size() > static_cast<qsizetype>(kMaxTextUnits) or structured > kMaxStructuredBytes)
-        return failed(OcrStatus::ResultTooLarge, requestId, OcrUploadState::ServerResponded);
     if (confidenceCount > 0)
         result.confidence = OcrConfidence{
             .average = confidenceSum / static_cast<double>(confidenceCount) / 100.0,
             .words   = confidenceCount,
             .total   = result.lines.size()};
-    result.geometryLevel = capture::OcrGeometryLevel::Line;
-    return result;
+    result.text = texts.join(QLatin1Char('\n'));
+    return finishOcrResult(std::move(result));
 }
 
 struct TencentClientImpl final : OnlineOcrClient {
@@ -178,24 +166,15 @@ struct TencentClientImpl final : OnlineOcrClient {
             result.timing.totalMs = static_cast<int>(timer.elapsed());
             return result;
         };
-        if (request.source != capture::OcrSource::Screenshot and request.source != capture::OcrSource::OnlineTest)
-            return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::NotUploaded));
-        if (validateOcrEndpoint(config.endpoint) or config.secretId.isEmpty() or config.secretKey.isEmpty())
-            return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::NotUploaded));
-        if (config.language != QLatin1String("en") and config.language != QLatin1String("auto"))
-            return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::NotUploaded));
-        if (request.image.isNull()) return done(failed(OcrStatus::InvalidImage, request.requestId, OcrUploadState::NotUploaded));
-        if (cancel and cancel->load(std::memory_order_relaxed))
-            return done(failed(OcrStatus::Cancelled, request.requestId, OcrUploadState::NotUploaded));
-        if (request.deadline.count() <= 0) return done(failed(OcrStatus::TimedOut, request.requestId, OcrUploadState::NotUploaded));
+        if (auto const refused = refuseOcrRequest(request, kEngine, {}, cancel, usable(config))) return done(*refused);
 
         QByteArray png;
         QBuffer    buffer{&png};
         if (not buffer.open(QIODevice::WriteOnly) or not request.image.save(&buffer, "PNG"))
-            return done(failed(OcrStatus::InvalidImage, request.requestId, OcrUploadState::NotUploaded));
+            return done(ocrResultFor(kEngine, OcrStatus::InvalidImage, request.requestId, OcrUploadState::NotUploaded));
         auto const base64 = png.toBase64();
         if (base64.size() > kTencentMaxEncodedBytes)
-            return done(failed(OcrStatus::InputTooLarge, request.requestId, OcrUploadState::NotUploaded));
+            return done(ocrResultFor(kEngine, OcrStatus::InputTooLarge, request.requestId, OcrUploadState::NotUploaded));
 
         nlohmann::json document;
         document["ImageBase64"]  = base64.toStdString();
@@ -215,20 +194,7 @@ struct TencentClientImpl final : OnlineOcrClient {
         httpRequest.timeoutMs = std::min(30000, static_cast<int>(request.deadline.count()));
 
         auto const response = transport->send(httpRequest, cancel);
-        auto const upload   = response.status != 0 ? OcrUploadState::ServerResponded : OcrUploadState::UploadStarted;
-        if (response.cancelled) return done(failed(OcrStatus::Cancelled, request.requestId, upload));
-        if (response.timedOut) return done(failed(OcrStatus::TimedOut, request.requestId, upload));
-        if (response.responseTooLarge) return done(failed(OcrStatus::ResultTooLarge, request.requestId, upload));
-        if (not response.transportOk) return done(failed(OcrStatus::TransportFailed, request.requestId, upload));
-
-        if (response.status >= 300 and response.status < 400)
-            return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::ServerResponded));
-        if (response.status == 401 or response.status == 403 or response.status == 429)
-            return done(failed(OcrStatus::Failed, request.requestId, OcrUploadState::ServerResponded, response.status == 429 ? capture::OcrFailureReason::Quota : capture::OcrFailureReason::Authentication));
-        if (response.status < 200 or response.status >= 300)
-            return done(failed(OcrStatus::TransportFailed, request.requestId, OcrUploadState::ServerResponded));
-
-        LENS_INFO("online OCR answered HTTP {}, {} byte(s)", response.status, response.body.size());
+        if (auto const refused = refuseOcrResponse(response, kEngine, request.requestId)) return done(*refused);
         return done(parseResponse(response.body, request.image.size(), config.language, request.requestId));
     }
 };

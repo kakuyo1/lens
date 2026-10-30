@@ -71,16 +71,6 @@ enum class OcrSource : std::uint8_t {
     OnlineTest,
 };
 
-/// @brief Why the automatic strategy left its primary engine, if it did.
-enum class OcrFallbackReason : std::uint8_t {
-    None,
-    PrimaryUnavailable,
-    PrimaryLanguageMissing,
-    PrimaryInputTooLarge,
-    PrimaryFailed,
-    PrimaryTimedOut,
-};
-
 /// @brief Why an online service refused a request, in the terms the settings page can explain.
 ///
 /// The status says a request failed; this says what the reader could change. `Unknown` is the
@@ -137,10 +127,8 @@ struct OcrConfidence {
 };
 
 struct OcrTiming {
-    int schedulingMs    = 0;
-    int preprocessingMs = 0;
-    int recognitionMs   = 0;
-    int totalMs         = 0;
+    int recognitionMs = 0;
+    int totalMs       = 0;
 };
 
 /// @brief One local attempt, never carrying the engine's raw error text.
@@ -158,9 +146,8 @@ struct OcrResult {
     std::optional<OcrConfidence> confidence;
     QString                      actualEngine;
     QString                      languageUsed;
-    OcrGeometryLevel             geometryLevel  = OcrGeometryLevel::None;
-    OcrFallbackReason            fallbackReason = OcrFallbackReason::None;
-    OcrFailureReason             failureReason  = OcrFailureReason::None;
+    OcrGeometryLevel             geometryLevel = OcrGeometryLevel::None;
+    OcrFailureReason             failureReason = OcrFailureReason::None;
     OcrTiming                    timing;
     std::vector<OcrAttempt>      attempts; ///< At most the two entries of the automatic strategy.
     OcrUploadState               uploadState = OcrUploadState::NotApplicable;

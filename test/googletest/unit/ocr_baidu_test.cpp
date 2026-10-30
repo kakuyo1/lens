@@ -186,6 +186,29 @@ TEST(OcrBaidu, ServiceErrorCodesMapToTheStatusThePageCanExplain)
     }
 }
 
+TEST(OcrBaidu, AnHttpRefusalCarriesTheSharedClassification)
+{
+    // ADR 0136: the same status means the same thing at every service. Baidu used to answer
+    // 401/403/429 with a bare Failed; the shared reading owns it now.
+    struct Case {
+        int                             status;
+        lens::capture::OcrFailureReason reason;
+    };
+    for (auto const& expected : {Case{429, lens::capture::OcrFailureReason::Quota},
+                                 Case{401, lens::capture::OcrFailureReason::Authentication}}) {
+        auto transport       = std::make_shared<FakeTransport>();
+        transport->responses = {tokenResponse(), {.status = expected.status, .transportOk = true}};
+        auto tokens          = lens::ocr::makeMemoryOcrTokenStore();
+        auto client          = lens::ocr::makeBaiduClient(config(), transport, tokens);
+        ASSERT_TRUE(client);
+        auto const result = client->recognize(request());
+        EXPECT_EQ(result.status, OcrStatus::Failed) << "HTTP " << expected.status;
+        EXPECT_EQ(result.failureReason, expected.reason) << "HTTP " << expected.status;
+        EXPECT_EQ(result.uploadState, OcrUploadState::ServerResponded) << "HTTP " << expected.status;
+        EXPECT_TRUE(result.text.isEmpty()) << "an error body is never reader text";
+    }
+}
+
 TEST(OcrBaidu, ARejectedTokenIsDroppedSoTheNextAttemptExchangesAgain)
 {
     auto transport       = std::make_shared<FakeTransport>();
