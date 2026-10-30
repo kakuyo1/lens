@@ -81,7 +81,7 @@ jobs:
           fi
           bash scripts/quality/ci-changes.sh "$base" "$head" | grep '^coverage=' >> "$GITHUB_OUTPUT"
 
-  # The three targets that are minutes together. lens_gtest_integration is left out even though
+  # The four targets that are minutes together. lens_gtest_integration is left out even though
   # the script's default includes it: it drives the real mouse and the real clipboard, and a
   # runner has neither. lens itself is covered by nothing and never enters a scan.
   coverage-cpp-targets:
@@ -97,12 +97,12 @@ jobs:
       - uses: ./.github/actions/configure
 
       - name: Build
-        run: cmake --build --preset ninja-qt6 --target lens_gtest_unit lens_gtest_perf lens_qtest_components
+        run: cmake --build --preset ninja-qt6 --target lens_gtest_unit lens_gtest_perf lens_qtest_components lens_qtest_pet
 
       - uses: ./.github/actions/opencppcoverage
 
       - name: Coverage (C++)
-        run: bash scripts/quality/coverage.sh test/records/coverage lens_gtest_unit lens_gtest_perf lens_qtest_components
+        run: bash scripts/quality/coverage.sh test/records/coverage lens_gtest_unit lens_gtest_perf lens_qtest_components lens_qtest_pet
         shell: bash
 
       # The .cov files, not the report: the merge across jobs is the report job's one job.

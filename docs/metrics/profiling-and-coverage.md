@@ -47,12 +47,12 @@ PDB、在运行时插桩，所以**没有覆盖率专用树，也没有覆盖率
 的那批产物。这一点与上面那棵树相反——profiling 要优化过，覆盖率不要。
 
 ```
-sh scripts/quality/coverage.sh                                    # 五个无人值守的目标
+sh scripts/quality/coverage.sh                                    # 六个无人值守的目标
 sh scripts/quality/coverage.sh test/records/coverage lens_gtest_unit   # 或者只点几个目标
 ```
 
 每个非表面目标各跑一整份，表面套件按用例文件各起一个进程、两个并发（与 QML 那条线共用
-`scripts/qa/qtest-cases.sh` 的排序）。CI 再把它拆成三个并行 job：三个小目标一个，表面套件按
+`scripts/qa/qtest-cases.sh` 的排序）。CI 再把它拆成三个并行 job：四个小目标一个，表面套件按
 `--cases K/N` 分到两个 runner；每个 job 只上传 `.cov`，由 `scripts/quality/coverage-merge.sh`
 合并成 `test/records/coverage/coverage.xml`（该目录 gitignored），本地单机跑也由它收尾。
 汇总那一行由 `scripts/quality/coverage-summary.py` 算出：Cobertura 里一个被

@@ -5,9 +5,9 @@
 # Five jobs, one concern each, so a red run says what broke instead of naming the one job that
 # held everything:
 #
-#   unit            the offline gtest suite. The cheapest job in the file: it is the only suite
-#                   whose build does not pull in the QML module, and the one that runs on every
-#                   piece of C++ that can reach it.
+#   unit            the offline gtest suite and the pet controller QTest. The cheapest job in the
+#                   file: its targets do not pull in the QML module, and it runs on every piece of
+#                   C++ that can reach them.
 #   app             the executable compiles and links, first as it ships and then with the developer
 #                   surface, which it smokes in the same tree. main.cpp, the translations and the
 #                   icon resources are compiled by no other target, so a break in any of them has
@@ -97,14 +97,20 @@ jobs:
 
       - uses: ./.github/actions/configure
 
-      # The offline suite and the app seams. It links lens_app but not the QML plugin, so no QML
-      # module and no QML ahead-of-time compilation figures in this job.
+      # The offline suite, the pet controller QTest, and the app seams. Both link lens_app but not
+      # the QML plugin, so no QML module and no QML ahead-of-time compilation figure in this job.
       - name: Build
-        run: cmake --build --preset ninja-qt6 --target lens_gtest_unit
+        run: cmake --build --preset ninja-qt6 --target lens_gtest_unit lens_qtest_pet
 
       - name: Unit tests
         run: ./build-ninja/test/googletest/lens_gtest_unit.exe
         env:
+          QT_FORCE_STDERR_LOGGING: 1
+
+      - name: Pet controller tests
+        run: ./build-ninja/test/qtest/lens_qtest_pet.exe
+        env:
+          QT_QPA_PLATFORM: offscreen
           QT_FORCE_STDERR_LOGGING: 1
 
   app:

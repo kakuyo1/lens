@@ -14,7 +14,7 @@
 # Usage: scripts/quality/coverage.sh [--cases K/N] [output-dir] [target...]
 #   output-dir defaults to test/records/coverage, which is gitignored.
 #   Naming one or more targets narrows the run. The default is every target that finishes
-#   unattended; CI names the four it can build and leaves lens_gtest_integration out, because
+#   unattended; CI names the five it can build and leaves lens_gtest_integration out, because
 #   that one drives the real mouse and clipboard and a runner has neither.
 #
 #   --cases K/N runs only the K-th of N slices of the surface case files. CI splits the surface
@@ -50,7 +50,7 @@ fi
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 BUILD="$ROOT/build-ninja"
 
-ALL_TARGETS="lens_gtest_unit lens_gtest_perf lens_gtest_integration lens_qtest_components lens_qtest_surfaces"
+ALL_TARGETS="lens_gtest_unit lens_gtest_perf lens_gtest_integration lens_qtest_components lens_qtest_surfaces lens_qtest_pet"
 
 OUT=${1:-test/records/coverage}
 case "$OUT" in

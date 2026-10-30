@@ -15,8 +15,8 @@
 # be exercised without a commit. It is a test seam only; the workflows never set it.
 #
 # The map:
-#   unit      src/ except the app's qml and shaders, the gtest suite, data, third_party, CMake,
-#             the configure action and the workflows
+#   unit      src/ except the app's qml and shaders, the gtest suite, the pet QTest, data,
+#             third_party, CMake, the configure action and the workflows
 #   app       src, data, translations, third_party, CMake, the packaging and dev-smoke scripts,
 #             the configure action and the workflows
 #   qml       src, the qtest suite, data, translations, third_party, CMake, the QML lint and
@@ -54,7 +54,7 @@ unit_src=$(printf '%s\n' "$files" | grep -E '^src/' | grep -vE '^src/app/(qml|sh
 
 unit=false
 if [ -n "$unit_src" ] ||
-    has '^test/googletest/|^test/CMakeLists\.txt$|^data/|^third_party/|^cmake/|^CMakeLists\.txt$|^CMakePresets\.json$|^scripts/quality/ci-changes\.sh$|^\.github/(actions|workflows)/'; then
+    has '^test/googletest/|^test/qtest/pet/|^test/CMakeLists\.txt$|^data/|^third_party/|^cmake/|^CMakeLists\.txt$|^CMakePresets\.json$|^scripts/quality/ci-changes\.sh$|^\.github/(actions|workflows)/'; then
     unit=true
 fi
 

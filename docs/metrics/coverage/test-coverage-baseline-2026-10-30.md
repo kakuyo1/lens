@@ -8,7 +8,7 @@
 本报告取代 [`test-coverage-baseline-2026-10-05.md`](test-coverage-baseline-2026-10-05.md)：那一份保留作历史，不改数字。
 两份的分母不可直接比：10-05 的 C++ 是 26 个文件、1,860 条可执行行，QML 是 852 个位置；本轮 C++ 是
 199 个文件、18,767 条可执行行，QML 是 5,737 个位置。C++ 的目标集也变了：10-05 含
-`lens_gtest_integration`，本轮按副作用安全规范只跑四个无头目标。**所以不要把 77.7% 读成 “比 75.7% 涨了
+`lens_gtest_integration`，本轮按副作用安全规范只跑四个无头目标（pet 在采集后接入）。**所以不要把 77.7% 读成 “比 75.7% 涨了
 2 个点”，也不要把 82.7% 读成 “比 86.6% 跌了 3.9 个点”。**
 
 本报告只回答 “哪些东西被测试跑过”，不回答 “跑过的结果对不对”。本轮 `lens_qtest_surfaces` 有 1 条红例
@@ -55,12 +55,12 @@ surfaces 41），1 个是 surface fixture（`PanelsCritique::test_anEmptyFilterS
 | `lens_qtest_surfaces` | 424 | 381 绿、1 红、42 skip |
 | `lens_gtest_integration` | — | 未跑：驱动真实鼠标与剪贴板 |
 | `lens_gtest_smoke` | — | 未跑：需要 key 与真实调用费用 |
-| `lens_qtest_pet` | — | 不在 `coverage.sh` 的目标列表 |
+| `lens_qtest_pet` | — | 采集时不在；随后已接入 CI 与 `coverage.sh` |
 
 `lens_gtest_integration` 的 29 个用例覆盖真实鼠标、真实剪贴板与桌面窗口路径，本轮按 E2E 副作用规范没有执行；
 `lens_gtest_smoke` 需要 `settings.local.json` 里的 key 且会花钱，也没有执行。`lens_qtest_pet` 是窗口无关的
-C++ QTest（25 个 test slot），但不在 `coverage.sh` 的默认目标列表，也不在 CI 的任何 workflow 里；这是本轮
-没有覆盖到的一块。
+C++ QTest（25 个 test slot），采集时不在 `coverage.sh` 与 CI；随后已接入 unit job 和 `coverage.sh`。本报告的
+C++ 数字仍不含它，下一次覆盖率会把它算进去。
 
 单位套件的 skip 是 `PetCatalog.ExternalPackagesMadeOutsideTheRepositoryAreAcceptedOrRefusedAsWritten`，
 它要 `LENS_PET_PACKAGES` 指向仓库外的宠物包。components 与 surfaces 的 47 个 skip 中，46 个来自快照用例，
@@ -212,8 +212,8 @@ C++ QTest（25 个 test slot），但不在 `coverage.sh` 的默认目标列表�
   文件的低读数主要来自这里。
 - **`lens_gtest_smoke`**：2 个用例，需要 key 与真实调用费用；没有跑。
 - **`lens_gtest_glass_probe`**：4 个采集探针，需要交互桌面；没有跑。
-- **`lens_qtest_pet`**：25 个 test slot，窗口无关；它不在 `coverage.sh`，也不在 CI。这是一条便宜但尚未接入
-  的 C++ 覆盖率缺口。
+- **`lens_qtest_pet`**：25 个 test slot，窗口无关；采集时不在 `coverage.sh` 与 CI，随后已接入 unit job 和
+  `coverage.sh`；本报告的数字仍不含它。
 - **46 个快照用例**：本次运行里因没有 `LENS_QA_SNAPSHOT_DIR` skip。它们用
   `scripts/qa/qml-snapshot.ps1` 手动采集 PNG，不是视觉回归断言；本报告不把它们算作视觉覆盖。
 - **1 个 surface fixture 条件**：`PanelsCritique::test_anEmptyFilterSaysSo` 因为 fixture 同时带 known 与
@@ -234,7 +234,8 @@ sh scripts/quality/qml-coverage.sh
 ```
 
 `coverage.sh` 的默认目标包含 `lens_gtest_integration`；上面显式点名四个无头目标，是为了避开真实鼠标与
-剪贴板。`QT_ROOT` 在 Git Bash 里必须是 `/c/Qt/...`；写成 `C:/Qt/...` 会被 PATH 的冒号拆坏，测试进程会以
+剪贴板。采集时 `lens_qtest_pet` 尚未接入；现在它也是 `coverage.sh` 的默认目标之一。`QT_ROOT` 在 Git Bash
+里必须是 `/c/Qt/...`；写成 `C:/Qt/...` 会被 PATH 的冒号拆坏，测试进程会以
 `0xC0000135`（DLL not found）退出。C++ 那条线要求 `OpenCppCoverage.exe` 在
 `C:\Program Files\OpenCppCoverage\`；QML 那条要求 `node_modules` 与 Qt 的 `qmlprofiler`。
 
