@@ -227,18 +227,22 @@ Item {
             Controller.setSetting("theme", "light");
         }
 
+        /// The surface table hands this case its own sheet-backed, dev-reported names through setup.cpp.
         function test_everyGlassSurfaceReadsItsOwnTableAndSheet() {
             const main = makeMain();
-            const sheets = {
-                SettingsPopup: "settings", TrayMenu: "tray", StatsPopup: "stats", WordsPopup: "words",
-                YearWordsPopup: "yearWords", CostPopup: "cost", Bubble: "bubble", SelectionBar: "selectionBar",
-                Notice: "notice", UpdateCard: "update", RemovalQuestion: "removal"
-            };
-            for (const type of Object.keys(sheets)) {
-                const surface = Util.ofType(main, type);
-                verify(surface, type + " is not in Main");
-                verify(surface.tokens.glassEnabled, type + " does not read the glass table");
-                compare(surface.glass.name, sheets[type], type + " draws from the wrong sheet");
+            const surfaces = lensQaSurfaceSheetDevNames;
+            verify(surfaces && surfaces.length > 0, "the surface table handed this test no sheets");
+            if (!surfaces)
+                return;
+            for (let i = 0; i < surfaces.length; ++i) {
+                const name = surfaces[i];
+                const found = Util.findAll(main, function (o) { return o.objectName === name; });
+                const surface = found.length === 1 ? found[0] : null;
+                verify(surface, name + " is not exactly one surface in Main");
+                if (!surface)
+                    return;
+                verify(surface.tokens.glassEnabled, name + " does not read the glass table");
+                compare(surface.glass.name, name, name + " draws from the wrong sheet");
             }
         }
 

@@ -17,7 +17,10 @@
 #include <QGuiApplication>
 #include <QQmlContext>
 #include <QQmlEngine>
+#include <QStringList>
 #include <QTranslator>
+
+#include "core/domain/surface_table.h"
 
 namespace {
 
@@ -74,6 +77,17 @@ void installQaTranslation()
     static QTranslator translator;
     if (not translator.load(path)) qFatal("could not load the translation %s", qPrintable(path));
     QCoreApplication::installTranslator(&translator);
+}
+
+/// @return The surface rows the QML surface test must reach: sheet-backed and dev-reported.
+QStringList surfaceSheetDevNames()
+{
+    QStringList names;
+    for (lens::core::surface::Row const& row : lens::core::surface::kRows) {
+        if (row.sheet and row.dev)
+            names.append(QString::fromUtf8(row.name.data(), static_cast<int>(row.name.size())));
+    }
+    return names;
 }
 
 } // namespace
@@ -266,6 +280,7 @@ void LensTestSetup::qmlEngineAvailable(QQmlEngine* engine)
     engine->rootContext()->setContextProperty("lensQaSnapshotDir", qEnvironmentVariable("LENS_QA_SNAPSHOT_DIR"));
     engine->rootContext()->setContextProperty("lensQaUiLanguage", qEnvironmentVariable("LENS_QA_UI_LANGUAGE"));
     engine->rootContext()->setContextProperty("lensQaFiles", new QaFiles(engine));
+    engine->rootContext()->setContextProperty("lensQaSurfaceSheetDevNames", surfaceSheetDevNames());
 
     Singletons& one = singletons();
     AppController::provide(one.controller.get());
@@ -281,6 +296,7 @@ void LensTestSetup::qmlEngineAvailable(QQmlEngine* engine)
     installQaTranslation();
     engine->rootContext()->setContextProperty("lensQaSnapshotDir", qEnvironmentVariable("LENS_QA_SNAPSHOT_DIR"));
     engine->rootContext()->setContextProperty("lensQaUiLanguage", qEnvironmentVariable("LENS_QA_UI_LANGUAGE"));
+    engine->rootContext()->setContextProperty("lensQaSurfaceSheetDevNames", surfaceSheetDevNames());
 }
 
 #endif

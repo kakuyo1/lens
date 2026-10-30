@@ -26,7 +26,9 @@
  *
  * The QML side keeps the matching rule: a surface's root window carries `objectName`, spelled
  * exactly as the row's @c name (docs/QML.md). A unit test cannot read QML, so the surface test
- * (tst_phase2e.qml) is what asserts the ones it exercises draw from the sheet their row names.
+ * (tst_phase2e.qml) is what asserts that each sheet-backed, dev-reported row has exactly one such
+ * object and draws the sheet its name names. setup.cpp injects the row list, so the test keeps no
+ * second list.
  */
 
 #include <array>
