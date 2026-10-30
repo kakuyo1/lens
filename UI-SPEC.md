@@ -415,7 +415,7 @@
 - **fade**：宠物一开始就是场景姿势，道具在 260 ms 内淡入，没有位移或换层；镜子、雨、云朵用这一档。
 - **打断**：点击、学习事件、拖动、换宠、关闭宠物或减少动效都会立即收掉入场；已经落地的水花/尘土随之消失。场景自然结束时道具与前后层一起撤掉，和 ADR 0049 的旧行为一致。
 - **减少动效**：直接到场景第 0 帧，不播位移、交叉淡化或粒子；系统或应用开关任一关闭动画都如此。入场途中切过去也立即落到场景。
-- **数据与绘制**：`scenes.json` 每场的 `entry` 写 `style`、`prepMs` / `moveMs` / `propMs`、`arc` / `cross` / `propRise` 与可选的 `impact {kind, at}`；33 个随包场景各有值（默认 12 帧 / 4 fps；`cloud_rainbow` 为 57 帧 / 10 fps），缺 `entry` 退回硬切。宠物窗口仍是 `Pet.canvas * Pet.scale`，道具、宠物 rig 与粒子都在同一块 88 px 画布里；不新增窗口、不新增美术、不动复习牌与闲逛。
+- **数据与绘制**：`scenes.json` 每场的 `entry` 写 `style`、`prepMs` / `moveMs` / `propMs`、`arc` / `cross` / `propRise` 与可选的 `impact {kind, at}`；33 个随包场景各有值（默认 12 帧 / 4 fps；`cloud_rainbow` 为 57 帧 / 10 fps），缺 `entry` 退回硬切。宠物窗口仍是 `Pet.pose.canvas * Pet.pose.scale`，道具、宠物 rig 与粒子都在同一块 88 px 画布里；不新增窗口、不新增美术、不动复习牌与闲逛。
 - **预览/设置**：设置预览舞台与桌面宠物共用同一套属性，因此两者同时演；`docs/QML.md` §10 记 `sceneEntry` 的字段与 `SceneEntryEffect.qml` 的粒子。ADR 0101 记取舍。
 
 ## QML 实现

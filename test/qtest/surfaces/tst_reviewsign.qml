@@ -17,7 +17,7 @@ Item {
     Item {
         id: fakePet
 
-        width: Math.round(Pet.canvas * Pet.scale)
+        width: Math.round(Pet.pose.canvas * Pet.pose.scale)
         height: width
         y: 300
     }
@@ -86,16 +86,16 @@ Item {
 
         /// The pet's foot line in DIPs: the idle ink's bottom edge.
         function footLine() {
-            return fakePet.y + (Pet.inkBox.y + Pet.inkBox.height) * Pet.scale;
+            return fakePet.y + (Pet.pose.inkBox.y + Pet.pose.inkBox.height) * Pet.pose.scale;
         }
 
         /// The pet's ink's left and right edges in DIPs.
         function inkLeft() {
-            return fakePet.x + Pet.inkBox.x * Pet.scale;
+            return fakePet.x + Pet.pose.inkBox.x * Pet.pose.scale;
         }
 
         function inkRight() {
-            return fakePet.x + (Pet.inkBox.x + Pet.inkBox.width) * Pet.scale;
+            return fakePet.x + (Pet.pose.inkBox.x + Pet.pose.inkBox.width) * Pet.pose.scale;
         }
 
         /// Puts a question up on a sign beside a pet at @p petX, and waits for the side to be placed and the sign to show.
@@ -174,13 +174,13 @@ Item {
             askFromPetAt(300);
             compare(sign.side, "left");
             compare(sign.cardSide, "right", "this case needs an inner card, got " + sign.cardSide);
-            compare(Pet.gaze, Qt.point(-1, 0));
+            compare(Pet.pose.gaze, Qt.point(-1, 0));
 
             openCard();
-            compare(Pet.gaze, Qt.point(1, 0));
+            compare(Pet.pose.gaze, Qt.point(1, 0));
 
             sign.begin("");
-            compare(Pet.gaze, Qt.point(0, 0));
+            compare(Pet.pose.gaze, Qt.point(0, 0));
         }
 
         /// The pointer leaving the sign closes the card again, 120 ms later.
@@ -244,13 +244,13 @@ Item {
         /// board's 40 px plank, the 32 px post under it, 2 px of the post behind the plank and the 4 px shadow.
         function test_signScalesWithThePetByK() {
             const chosen = Pet.size;
-            const designHeight = Pet.reviewSign.bins ? Pet.reviewSign.bins[0].cellHeight : 40 + 32 - 2 + 4;
+            const designHeight = Pet.pose.reviewSign.bins ? Pet.pose.reviewSign.bins[0].cellHeight : 40 + 32 - 2 + 4;
             try {
                 for (const size of [0, 67, 100]) {
                     Pet.setSize(size);
                     askFromPetAt(Math.round(Screen.desktopAvailableWidth / 2));
-                    const k = Pet.scale / 3.01;
-                    verify(Math.abs(sign.height - designHeight * k) < 1.5, "the sign is " + sign.height + " tall at scale " + Pet.scale);
+                    const k = Pet.pose.scale / 3.01;
+                    verify(Math.abs(sign.height - designHeight * k) < 1.5, "the sign is " + sign.height + " tall at scale " + Pet.pose.scale);
                     sign.destroy();
                     sign = null;
                 }

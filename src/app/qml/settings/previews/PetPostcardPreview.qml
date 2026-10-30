@@ -13,7 +13,7 @@ import QtQuick.Window
  * postmark, a printed caption -- say what kind of card this is without a word of interface copy. The name on the
  * caption is the row's own label.
  *
- * Only a shipped pet has a card: Pet.portrait() answers with nothing for an installed package, and the window then
+ * Only a shipped pet has a card: Pet.picker.portrait() answers with nothing for an installed package, and the window then
  * stays down rather than standing empty beside the list. Like the other dropdown previews it is a window of its own
  * (the list it belongs to is one), and the two glass themes draw the real desktop through a sheet of their own
  * (docs/adr/0041).
@@ -29,9 +29,9 @@ Window {
     /// The dropdown option under the pointer: {value, label, group, note, external}.
     property var option: null
 
-    /// The still Pet.portrait() answered with, or null when this pet has none.
+    /// The still Pet.picker.portrait() answered with, or null when this pet has none.
     readonly property var still: root.option && !root.option.external
-        ? Pet.portrait(String(root.option.value)) : null
+        ? Pet.picker.portrait(String(root.option.value)) : null
     /// Whether there is a card to raise. An installed package has none, and neither has a folder that will not load.
     readonly property bool hasContent: root.still !== null && root.still.canvas !== undefined
     /// The name the caption prints: the row's own, so the card and the row say the same thing.

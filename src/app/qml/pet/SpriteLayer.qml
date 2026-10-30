@@ -8,13 +8,15 @@ Image {
     required property string sheet
     required property int frame
     required property point at
+    /// The sprite's own canvas in pixels, which is the size of one cell as well as the figure's square.
+    required property int canvas
 
     x: at.x
     y: at.y
-    width: Pet.canvas
-    height: Pet.canvas
+    width: canvas
+    height: canvas
     source: sheet
-    sourceClipRect: Qt.rect(frame * Pet.canvas, 0, Pet.canvas, Pet.canvas)
+    sourceClipRect: Qt.rect(frame * canvas, 0, canvas, canvas)
     smooth: false
     visible: sheet !== ""
 }

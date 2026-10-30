@@ -341,6 +341,21 @@ void PetController::handle(PetEvent event)
     sync(std::chrono::milliseconds{0});
 }
 
+PetPose* PetController::pose()
+{
+    return &pose_;
+}
+
+PetPicker* PetController::picker()
+{
+    return &picker_;
+}
+
+PetHost* PetController::host()
+{
+    return &host_;
+}
+
 bool PetController::available() const
 {
     return assets_.has_value();

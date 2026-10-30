@@ -8,10 +8,14 @@
  * The state machine in core chooses the action. This class advances the frame index and the blink, and turns the
  * machine's state into properties for QML. It receives event types only, never text or a selection.
  *
+ * QML reaches it through three entries (docs/adr/0141): pose() is everything one frame draws, picker() the
+ * catalogue and package choice, and host() the desktop window's place and native rules. The flat getters stay for
+ * C++ tests; no QML surface binds them.
+ *
  * The one exception is the settings preview: preview() shows a chosen action in place of the machine's, and the
  * machine keeps running underneath. The same pet is on the desktop, so the preview shows there too while it lasts.
  *
- * A scene (ADR 0049) is a named action the app ships props for. While one plays, the scene* properties carry the
+ * A scene (ADR 0049) is a named action the app ships props for. While one plays, the scene* values carry the
  * sheet urls, the pet's per-frame shift and scale, and the alignment between this pet's feet and the catalogue's.
  * The idle lottery weighs each scene by the mood and by the accessories worn when it draws (ADR 0093, 0102). The
  * lottery, the entry timeline and the frame belong to PetStage (ADR 0123); this class reads both clocks, gathers the
@@ -43,7 +47,10 @@
 #include "app/pet/pet_catalog.h"
 #include "app/pet/pet_ceremony.h"
 #include "app/pet/pet_hide.h"
+#include "app/pet/pet_host.h"
+#include "app/pet/pet_picker.h"
 #include "app/pet/pet_placement.h"
+#include "app/pet/pet_pose.h"
 #include "app/pet/pet_scenes.h"
 #include "app/pet/pet_stage.h"
 #include "app/pet/pet_stroll.h"
@@ -67,53 +74,21 @@ class PetController : public QObject {
     QML_SINGLETON
     Q_PROPERTY(bool available READ available NOTIFY settingsChanged)
     Q_PROPERTY(bool enabled READ enabled NOTIFY settingsChanged)
-    /// Whether the pet's window is on screen. Not the same as enabled: a pet being turned off keeps its window up
-    /// for the goodbye, so the scene must bind visibility to this rather than to enabled.
-    Q_PROPERTY(bool shown READ shown NOTIFY shownChanged)
     Q_PROPERTY(bool passthrough READ passthrough NOTIFY settingsChanged)
-    Q_PROPERTY(QString pet READ pet NOTIFY settingsChanged)
-    Q_PROPERTY(QVariantList pets READ pets NOTIFY catalogChanged)
-    Q_PROPERTY(QVariantList refusals READ refusals NOTIFY catalogChanged)
-    Q_PROPERTY(QString action READ action NOTIFY frameChanged)
-    Q_PROPERTY(int frameIndex READ frameIndex NOTIFY frameChanged)
-    Q_PROPERTY(int expression READ expression NOTIFY frameChanged)
-    Q_PROPERTY(QVariantMap sheets READ sheets NOTIFY frameChanged)
-    Q_PROPERTY(QVariantMap anchors READ anchors NOTIFY frameChanged)
-    /// Canvas-pixel offset applied to the expression layer only, so the face can follow a nearby pointer or the
-    /// review sign while the body stays put. Zero when the pointer is away, no question is up, and the pet is busy.
-    Q_PROPERTY(QPoint gaze READ gaze NOTIFY gazeChanged)
-    Q_PROPERTY(QVariantList wornAccessories READ wornAccessories NOTIFY frameChanged)
-    Q_PROPERTY(QVariantMap layers READ layers NOTIFY settingsChanged)
-    Q_PROPERTY(int canvas READ canvas NOTIFY settingsChanged)
     Q_PROPERTY(int size READ size NOTIFY settingsChanged)
-    Q_PROPERTY(double scale READ scale NOTIFY settingsChanged)
-    Q_PROPERTY(double inkCentre READ inkCentre NOTIFY settingsChanged)
-    /// The idle figure's ink box in the sprite's own canvas units, as {x, y, width, height}. The review sign stands outside it
-    /// and on its bottom edge.
-    Q_PROPERTY(QRectF inkBox READ inkBox NOTIFY settingsChanged)
-    /// The pet's own review sign as {frames, every, beatMs, margin, foot, wordTop, wordColor, bins}; empty when it has none.
-    Q_PROPERTY(QVariantMap reviewSign READ reviewSign NOTIFY settingsChanged)
-    /// Where the idle figure's feet are in the sprite's own 88 px canvas: a scene scales the pet about this.
-    Q_PROPERTY(QPointF foot READ foot NOTIFY settingsChanged)
     Q_PROPERTY(int minSize READ minSize CONSTANT)
     Q_PROPERTY(int maxSize READ maxSize CONSTANT)
     Q_PROPERTY(QStringList actions READ actions NOTIFY settingsChanged)
     /// The scenes this pet can play, in catalogue order. Empty for an installed package (ADR 0049).
     Q_PROPERTY(QStringList scenes READ scenes NOTIFY settingsChanged)
-    /// Non-empty while the pet is inside a scene (ADR 0049). The rest describe how the scene draws this frame.
-    Q_PROPERTY(QString scene READ scene NOTIFY frameChanged)
-    Q_PROPERTY(int sceneFrame READ sceneFrame NOTIFY frameChanged)
-    Q_PROPERTY(QVariantMap sceneSheets READ sceneSheets NOTIFY frameChanged)
-    Q_PROPERTY(QPointF sceneShift READ sceneShift NOTIFY frameChanged)
-    Q_PROPERTY(QPointF sceneAlign READ sceneAlign NOTIFY frameChanged)
-    Q_PROPERTY(double sceneScale READ sceneScale NOTIFY frameChanged)
-    Q_PROPERTY(QVariantMap sceneLayers READ sceneLayers NOTIFY frameChanged)
-    /// The entry choreography in progress (ADR 0101): `active`, `inFront`, `propAlpha`, `propOffset`, `idleAlpha`,
-    /// `sceneAlpha`, the scene pose's `sceneSheets` / `sceneAnchors` / `sceneExpression`, and the landing `impact`
-    /// `{kind, at, progress}`. Outside an entry the map holds neutral defaults; an impact may outlive `active`.
-    Q_PROPERTY(QVariantMap sceneEntry READ sceneEntry NOTIFY frameChanged)
     Q_PROPERTY(QVariantList accessories READ accessories NOTIFY settingsChanged)
     Q_PROPERTY(QVariantMap wornIn READ wornIn NOTIFY outfitChanged)
+    /// Everything one frame draws; the stage, the window, the sign and the preview read this one value.
+    Q_PROPERTY(lens::app::pet::PetPose* pose READ pose CONSTANT)
+    /// The catalogue, the package blocks and the reader's choice: the settings page's picker in one entry.
+    Q_PROPERTY(lens::app::pet::PetPicker* picker READ picker CONSTANT)
+    /// The desktop window's place, clock and native rules, in one entry.
+    Q_PROPERTY(lens::app::pet::PetHost* host READ host CONSTANT)
 
 public:
     /**
@@ -132,6 +107,13 @@ public:
 
     /// @brief Applies one event to the state machine. Called by the composition root, which maps app signals to types.
     void handle(core::pet::PetEvent event);
+
+    /// @return The one value QML reads for what a frame draws.
+    PetPose* pose();
+    /// @return The catalogue, the packages and the reader's choice.
+    PetPicker* picker();
+    /// @return The desktop window's place, clock and native rules.
+    PetHost* host();
 
     bool available() const;
     bool enabled() const;
@@ -157,7 +139,7 @@ public:
      *         an installed package, an unknown id, or a folder that will not load. Read once and kept until the next
      *         refresh().
      */
-    Q_INVOKABLE QVariantMap portrait(QString id);
+    QVariantMap portrait(QString id);
     /// @return Every installed package that was refused, as {id, reason}. The reason is the Refusal name, such as "BadName".
     QVariantList refusals() const;
     QString      action() const;
@@ -200,7 +182,7 @@ public:
     /// @param percent 0 for today's ×1, 100 for ×4; clamped to minSize..maxSize.
     Q_INVOKABLE void setSize(int percent);
     /// @brief Runs the desktop window's share of the frame clock. The window calls it with its visibility.
-    Q_INVOKABLE void setRunning(bool on);
+    void setRunning(bool on);
     /// @brief Runs the frame clock for the settings preview. Turning it off also ends any preview.
     Q_INVOKABLE void setPreviewing(bool on);
     /// @brief Shows an action in place of the machine's, from its first frame. Ignored for an unknown name.
@@ -232,35 +214,35 @@ public:
     /// @brief Chooses a pet from pets(). An installed one the reader has not confirmed is not switched to: confirmationRequested
     ///        is emitted instead, and confirmPet() completes the choice.
     /// @param id A folder name from pets(). Anything else is ignored.
-    Q_INVOKABLE void setPet(QString id);
+    void setPet(QString id);
     /// @brief Records the reader's confirmation of an installed pet, and switches to it.
-    Q_INVOKABLE void confirmPet(QString id);
+    void confirmPet(QString id);
     /// @brief Rescans both folders. The settings call it each time the extensions section opens; a chosen pet that has gone
     ///        or been refused gives way to the shipped default, with a notice.
-    Q_INVOKABLE void refresh();
+    void refresh();
     /// @brief Opens the reader's pets folder in the file manager, creating it first when it is not there yet.
-    Q_INVOKABLE void openPacksFolder();
+    void             openPacksFolder();
     Q_INVOKABLE void setEnabled(bool on);
     Q_INVOKABLE void setPassthrough(bool on);
     /// @brief Tells the ceremonies whether motion is reduced. The pet window mirrors Tokens.motion.reduced here, so the
     ///        Windows preference and the application's animation switch both collapse the ceremony to its end state.
     /// @param on True to play every ceremony instantly; a ceremony already running lands at once.
-    Q_INVOKABLE void setMotionReduced(bool on);
+    void setMotionReduced(bool on);
     /// @param window The QML Window, whose native handle takes capture exclusion and pass-through.
-    Q_INVOKABLE void attachWindow(QObject* window);
+    void attachWindow(QObject* window);
     /// @brief Keeps a QML window out of screen captures, as the pet's own is. The review sign needs it: the scan must not read its word.
     /// @param window The QML Window to exclude.
-    Q_INVOKABLE void keepOutOfCapture(QObject* window);
+    void keepOutOfCapture(QObject* window);
     /// @return The mouse position in the same coordinates a window's x and y use.
-    Q_INVOKABLE QPoint cursorPos() const;
+    QPoint cursorPos() const;
     /// @return Where the window should open at this size: the saved spot if it still fits, else the primary screen's
     ///         corner. Also records that spot as the stroll's home.
-    Q_INVOKABLE QPoint initialPosition(QSize size);
+    QPoint initialPosition(QSize size);
     /// @brief Nudges the window the least distance that keeps it whole on its screen, and saves where it landed.
     ///        Called after the size changes; does nothing before the window is attached.
-    Q_INVOKABLE void fitOnScreen();
+    void fitOnScreen();
     /// @brief Records where the window was dropped, relative to the screen it landed on.
-    Q_INVOKABLE void savePosition(QPoint at);
+    void savePosition(QPoint at);
 
 signals:
     void frameChanged();
@@ -423,6 +405,11 @@ private:
     void keepOnScreen();
 
     static PetController* instance_;
+
+    /// The three entries QML reaches (docs/adr/0141): read-only projections of this controller.
+    PetPose   pose_{*this};
+    PetPicker picker_{*this};
+    PetHost   host_{*this};
 
     /// The shipped pets, and the reader's folder. The catalogue is what both scans last found.
     std::filesystem::path shippedRoot_;

@@ -234,7 +234,7 @@ Item {
     }
 
     // Each time the section is opened the page is built again, so this is the rescan UI-SPEC.md 4.4 asks for.
-    Component.onCompleted: Pet.refresh()
+    Component.onCompleted: Pet.picker.refresh()
 
     /// The postcard a hovered pet row raises beside the list. Every option carries whether it is a package, so the
     /// card needs nothing from this page but the option itself.
@@ -246,11 +246,11 @@ Item {
     PetPackageDialog {
         id: packageDialog
 
-        onEnableRequested: Pet.confirmPet(packageDialog.petId)
+        onEnableRequested: Pet.picker.confirmPet(packageDialog.petId)
     }
 
     Connections {
-        target: Pet
+        target: Pet.picker
 
         function onConfirmationRequested(id, name) {
             packageDialog.petId = id;
@@ -345,7 +345,7 @@ Item {
                     objectName: "petTypeField"
                     width: parent.width
                     accessibleName: qsTranslate("SettingsPopup", "Pet type")
-                    options: Pet.pets.map(entry => ({
+                    options: Pet.picker.pets.map(entry => ({
                         value: entry.id,
                         label: entry.external ? entry.name : page.petLabel(entry.id),
                         group: "",
@@ -353,9 +353,9 @@ Item {
                         // A package has no postcard: the card is the app's picture of the pets it came with.
                         external: entry.external
                     }))
-                    currentValue: Pet.pet
+                    currentValue: Pet.picker.pet
                     optionPreview: petPostcardComponent
-                    onPicked: (value) => Pet.setPet(value)
+                    onPicked: (value) => Pet.picker.setPet(value)
                 }
             }
 
@@ -382,11 +382,11 @@ Item {
                 Chip {
                     objectName: "openPacksButton"
                     label: qsTranslate("SettingsPopup", "Open packages folder")
-                    onPicked: Pet.openPacksFolder()
+                    onPicked: Pet.picker.openPacksFolder()
                 }
 
                 Repeater {
-                    model: Pet.refusals
+                    model: Pet.picker.refusals
 
                     Text {
                         id: refusalRow
@@ -439,7 +439,7 @@ Item {
                             required property string modelData
 
                             label: page.actionLabel(modelData)
-                            selected: Pet.action === modelData
+                            selected: Pet.pose.action === modelData
                             onPicked: Pet.preview(modelData)
                         }
                     }
@@ -469,7 +469,7 @@ Item {
                             required property string modelData
 
                             label: page.sceneLabel(modelData)
-                            selected: Pet.scene === modelData
+                            selected: Pet.pose.scene === modelData
                             onPicked: Pet.setScene(modelData)
                         }
                     }

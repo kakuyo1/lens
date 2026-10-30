@@ -53,7 +53,7 @@
 ## 2 窗口
 
 - **各表面是独立 `Window`，不是 `Popup`**（`UI-SPEC.md` 的 “各表面相互独立，不共用窗口” 正是这么写的）。
-- **宠物窗口的可见性看 `Pet.shown`，不是 `Pet.enabled`**：关闭后窗口还要留到告辞结束，`enabled` 只表示读者打开了它（`UI-SPEC.md` 4.15、ADR 0089）。宠物窗口同时把 `Tokens.motion.reduced` 交给 `Pet.setMotionReduced()`，所以系统与应用两个动画开关都能让仪式瞬时落地。
+- **宠物窗口的可见性看 `Pet.host.shown`，不是 `Pet.enabled`**：关闭后窗口还要留到告辞结束，`enabled` 只表示读者打开了它（`UI-SPEC.md` 4.15、ADR 0089）。宠物窗口同时把 `Tokens.motion.reduced` 交给 `Pet.host.setMotionReduced()`，所以系统与应用两个动画开关都能让仪式瞬时落地。
 - **一张表面可以不只一个窗口**：`Mask.qml` 的根是 `Item`，里面用 `Instantiator` 每块屏幕建一张 `Window`。
   两条都是实测：`Repeater` 的 delegate 必须是 `Item`，放 `Window` 会报 `Delegate must be of Item type`
   且一个都不建；`Instantiator` 的 `model` 只认数字、列表或 item model，把 `Qt.application.screens` 这个
@@ -324,32 +324,34 @@ PY
 
 ## 10 桌面宠物与场景
 
+宠物的绘制、选择器与窗口三组状态各是 `Pet` 的一个入口（ADR 0141）：`Pet.pose` 是一帧要画的一切（figure、帧、场景与入场），`Pet.picker` 是目录、宠物包与当前选择，`Pet.host` 是窗口落点、时钟与抓屏排除。开关、大小与衣橱仍按单项读。控制器自己的 getter 留给进程内用例与组合根，QML 不再绑定。
+
 `PetScene.qml` 是宠物唯一的绘制处，桌面窗口与设置预览都用它。没有场景时它只是一摞
-`SpriteLayer`；进入场景（`Pet.scene` 非空，ADR 0049/0080）后，同一块 88 × 88 的画布里叠三层：
+`SpriteLayer`；进入场景（`Pet.pose.scene` 非空，ADR 0049/0080）后，同一块 88 × 88 的画布里叠三层：
 
 - **静态后层**：`data/scenes/<id>/back.png` 的一帧，不随宠物动。
-- **宠物 rig**：身体、表情、效果与配饰，按 `Pet.sceneShift` 放到座板或滑板上，并用一条
-  `Scale` 绕 `Pet.foot` 缩放——秋千的缩放只有宠物自己有，道具不跟着放大。
+- **宠物 rig**：身体、表情、效果与配饰，按 `Pet.pose.sceneShift` 放到座板或滑板上，并用一条
+  `Scale` 绕 `Pet.pose.foot` 缩放——秋千的缩放只有宠物自己有，道具不跟着放大。
 - **静态前层**：`front.png`，挡住宠物的下半身（浴缸、桌沿）。
 
-道具的逐帧运动在渲染时已经烘焙进 sheet，QML 不做旋转；整层再按 `Pet.sceneAlign`（宠物实测脚点 − 场景目录的
+道具的逐帧运动在渲染时已经烘焙进 sheet，QML 不做旋转；整层再按 `Pet.pose.sceneAlign`（宠物实测脚点 − 场景目录的
 对齐点）平移，所以同一套共享道具能对齐每只命名它的宠物；专属场景只出现在一只宠物的动作表里。窗口尺寸仍是
-`Pet.canvas * Pet.scale`，场景不会把窗口
+`Pet.pose.canvas * Pet.pose.scale`，场景不会把窗口
 撑大；层序取 `scenes.json` 的 `layers`，宠物 rig 固定夹在中间。窗口缩放与预览舞台因此都不需要知道场景的
 存在——它们只看见一个 88 × 88 的 `Item`。
 
 场景入场（ADR 0101，`UI-SPEC.md` 4.18）不改变这套三层结构，只是让前三样在头 0.6–0.8 秒动起来。
-`Pet.sceneEntry` 是一个映射：`active`、`inFront`、`propAlpha`、`propOffset`、`idleAlpha`、`sceneAlpha`、
+`Pet.pose.entry` 是一个映射：`active`、`inFront`、`propAlpha`、`propOffset`、`idleAlpha`、`sceneAlpha`、
 `sceneSheets` / `sceneAnchors` / `sceneExpression`（settle 的第二层姿势）与 `impact {kind, at, progress}`。
 `PetScene.qml` 把它读成：
 
 - 后层与前层 `opacity: propAlpha`，`at.y` 加 `propOffset`（道具上浮）；场景帧在这段时间固定为 0。
 - `petRig.opacity` 取 `idleAlpha`，`z` 在 `inFront` 时取 `sceneLayers.front + 1`，否则 10；hop 越过 front
-  后 `inFront` 变 false，下半身被浴缸/箱沿挡住。配饰跟着 rig 与 `Pet.anchors` 走。
+  后 `inFront` 变 false，下半身被浴缸/箱沿挡住。配饰跟着 rig 与 `Pet.pose.anchors` 走。
 - settle 的第二层 `entryPoseRig` 用 `sceneSheets` / `sceneAnchors` / `sceneExpression`，`opacity: sceneAlpha`；
   hop 与 fade 时它为 0。落地后控制器把场景身体交回 `petRig`，第二层归零。
 - `SceneEntryEffect.qml` 画落地粒子：`impact.kind` 为 `splash` 或 `dust`，`at` 是场景画布坐标，
   `progress` 由控制器按 320 ms 推进。它是 QML 矩形，不是 sheet。
 
-`preview()` 里的场景是静止第 0 帧，不启动 `sceneEntry`；`setScene()`（设置页场景药丸）与待机抽签才会演。
-减少动效时控制器直接清空 `sceneEntry`，所有绑定回到中性值。窗口尺寸、舞台对齐与复习牌的定位都不参与入场。
+`preview()` 里的场景是静止第 0 帧，不启动 `pose.entry`；`setScene()`（设置页场景药丸）与待机抽签才会演。
+减少动效时控制器直接清空 `pose.entry`，所有绑定回到中性值。窗口尺寸、舞台对齐与复习牌的定位都不参与入场。

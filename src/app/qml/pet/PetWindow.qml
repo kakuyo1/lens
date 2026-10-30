@@ -27,30 +27,30 @@ Window {
     /// than at the tray icon the tray menu's own entry uses -- so this asks for it rather than placing anything itself.
     signal settingsRequested()
 
-    width: Math.round(Pet.canvas * Pet.scale)
-    height: Math.round(Pet.canvas * Pet.scale)
+    width: Math.round(Pet.pose.canvas * Pet.pose.scale)
+    height: Math.round(Pet.pose.canvas * Pet.pose.scale)
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowDoesNotAcceptFocus
     color: "transparent"
     // Not Pet.enabled: a pet being turned off keeps its window up until the goodbye walks it out.
-    visible: Pet.shown
+    visible: Pet.host.shown
 
-    onVisibleChanged: Pet.setRunning(visible)
-    onReducedMotionChanged: Pet.setMotionReduced(reducedMotion)
+    onVisibleChanged: Pet.host.setRunning(visible)
+    onReducedMotionChanged: Pet.host.setMotionReduced(reducedMotion)
 
     // A resize grows the window right and down from its top-left, which can take it off the screen: nudge it back,
     // and save where it ended up. Both handlers run; the second finds nothing left to move when the first covered it.
-    onWidthChanged: Pet.fitOnScreen()
-    onHeightChanged: Pet.fitOnScreen()
+    onWidthChanged: Pet.host.fitOnScreen()
+    onHeightChanged: Pet.host.fitOnScreen()
 
     Component.onCompleted: {
-        Pet.setMotionReduced(reducedMotion);
-        Pet.attachWindow(petWindow);
+        Pet.host.setMotionReduced(reducedMotion);
+        Pet.host.attachWindow(petWindow);
         place();
     }
 
     /// Opens at the saved spot, or the corner when that no longer fits.
     function place() {
-        const at = Pet.initialPosition(Qt.size(width, height));
+        const at = Pet.host.initialPosition(Qt.size(width, height));
         x = at.x;
         y = at.y;
     }
@@ -74,7 +74,7 @@ Window {
 
         onPressed: {
             Pet.stopWandering();
-            petWindow.grabCursor = Pet.cursorPos();
+            petWindow.grabCursor = Pet.host.cursorPos();
             petWindow.grabAt = Qt.point(petWindow.x, petWindow.y);
             petWindow.moved = false;
             petWindow.releaseSamples = [];
@@ -83,7 +83,7 @@ Window {
         onPositionChanged: {
             if (!pressed)
                 return;
-            const cursor = Pet.cursorPos();
+            const cursor = Pet.host.cursorPos();
             const dx = cursor.x - petWindow.grabCursor.x;
             const dy = cursor.y - petWindow.grabCursor.y;
             if (!petWindow.moved) {
@@ -133,7 +133,7 @@ Window {
     ///         a moment releases at zero: stopping before letting go is a drop, not a throw.
     function releaseVelocity() {
         const now = Date.now();
-        const cursor = Pet.cursorPos();
+        const cursor = Pet.host.cursorPos();
         const samples = petWindow.releaseSamples;
         if (samples.length === 0 || now - samples[samples.length - 1].t > 60)
             return Qt.point(0, 0);
@@ -155,7 +155,7 @@ Window {
     function drop(velocity) {
         if (!Pet.release(velocity)) {
             Pet.dragEnd();
-            Pet.savePosition(Qt.point(petWindow.x, petWindow.y));
+            Pet.host.savePosition(Qt.point(petWindow.x, petWindow.y));
         }
         petWindow.moved = false;
     }

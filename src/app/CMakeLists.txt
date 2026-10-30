@@ -104,9 +104,12 @@ add_library(lens_app STATIC
   pet/pet_controller.cpp
   pet/pet_flight.cpp
   pet/pet_hide.cpp
+  pet/pet_host.cpp
   pet/pet_package_fs.cpp
   pet/pet_throw_mood.cpp
   pet/pet_placement.cpp
+  pet/pet_picker.cpp
+  pet/pet_pose.cpp
   pet/pet_scenes.cpp
   pet/pet_stage.cpp
   pet/pet_stroll.cpp
@@ -301,6 +304,9 @@ qt_add_qml_module(lens_app
     platform/tray.h
     platform/system_motion.h
     pet/pet_controller.h
+    pet/pet_host.h
+    pet/pet_picker.h
+    pet/pet_pose.h
   QML_FILES
     qml/Main.qml
     qml/SurfaceHost.qml

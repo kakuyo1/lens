@@ -19,11 +19,11 @@ Item {
 
     /// The word on the board. One line: it never wraps and never elides.
     property string word: ""
-    /// The pet's magnification, Pet.scale. The sign grows and shrinks with it.
+    /// The pet's magnification, Pet.pose.scale. The sign grows and shrinks with it.
     required property real petScale
     /// The board's width at the design size, border included. The parent passes it, the same figure the placement uses.
     required property real designWidth
-    /// The pet's sign art (Pet.reviewSign), and the bin of it the word takes; null for the wooden board.
+    /// The pet's sign art (Pet.pose.reviewSign), and the bin of it the word takes; null for the wooden board.
     required property var reviewSign
     required property var bin
 

@@ -61,7 +61,7 @@ Window {
     onSideChanged: reportLook()
     onCardSideChanged: reportLook()
 
-    Component.onCompleted: Pet.keepOutOfCapture(sign)
+    Component.onCompleted: Pet.host.keepOutOfCapture(sign)
 
     /// Tells the pet which side to look at: the board's while it stands, the open card's while the pointer holds it
     /// open. Only the direction travels, never the word (ADR 0097).
@@ -216,12 +216,12 @@ Window {
     ReviewSignLayout {
         id: layout
 
-        scale: Pet.scale
+        scale: Pet.pose.scale
         figure: Qt.point(sign.petWindow.x, sign.petWindow.y)
-        ink: Pet.inkBox
+        ink: Pet.pose.inkBox
         area: sign.workArea
         word: sign.word
-        reviewSign: Pet.reviewSign
+        reviewSign: Pet.pose.reviewSign
         cardWidth: answers.width
         cardHeight: answers.height
         withCard: true
@@ -231,9 +231,9 @@ Window {
         id: paper
 
         word: sign.word
-        petScale: Pet.scale
+        petScale: Pet.pose.scale
         designWidth: layout.designWidth
-        reviewSign: Pet.reviewSign
+        reviewSign: Pet.pose.reviewSign
         bin: layout.bin
     }
 }

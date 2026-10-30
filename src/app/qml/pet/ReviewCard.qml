@@ -24,7 +24,7 @@ Window {
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowDoesNotAcceptFocus
     color: "transparent"
 
-    Component.onCompleted: Pet.keepOutOfCapture(card)
+    Component.onCompleted: Pet.host.keepOutOfCapture(card)
 
     Rectangle {
         anchors.fill: parent

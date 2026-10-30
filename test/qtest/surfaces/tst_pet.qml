@@ -155,9 +155,9 @@ Item {
                 Pet.setSize(67);
                 verify(Math.abs(board.boardScale - 1) < 1e-9, "the default size scales the board: " + board.boardScale);
                 Pet.setSize(100);
-                verify(Math.abs(board.boardScale - Pet.scale / board.designScale) < 1e-9, "the board did not grow with the pet");
+                verify(Math.abs(board.boardScale - Pet.pose.scale / board.designScale) < 1e-9, "the board did not grow with the pet");
                 Pet.setSize(0);
-                verify(Math.abs(board.boardScale - Pet.scale / board.designScale) < 1e-9, "the board has a floor at the smallest pet: " + board.boardScale);
+                verify(Math.abs(board.boardScale - Pet.pose.scale / board.designScale) < 1e-9, "the board has a floor at the smallest pet: " + board.boardScale);
             } finally {
                 Pet.setSize(chosen);
             }
@@ -175,7 +175,7 @@ Item {
                 for (const size of [0, 10, 20, 67, 100]) {
                     Pet.setSize(size);
                     const base = board.y + board.bleed + board.designBase * board.boardScale;
-                    const feet = stage.figureY + (Pet.inkBox.y + Pet.inkBox.height) * Pet.scale;
+                    const feet = stage.figureY + (Pet.pose.inkBox.y + Pet.pose.inkBox.height) * Pet.pose.scale;
                     verify(Math.abs(base - feet) < 1, "the post's foot is at " + base + ", not the pet's feet at " + feet + " at size " + size
                            + " (board y " + board.y + ", scale " + board.boardScale + ", figureY " + stage.figureY + ")");
                 }
@@ -213,11 +213,11 @@ Item {
             Pet.setEnabled(true);
             const page = createTemporaryObject(pageComponent, host.contentItem);
             waitForRendering(host.contentItem);
-            const chosen = Pet.pet;
+            const chosen = Pet.picker.pet;
             try {
-                for (const entry of Pet.pets) {
-                    Pet.setPet(entry.id);
-                    tryVerify(() => Pet.pet === entry.id, 2000, "did not switch to " + entry.id);
+                for (const entry of Pet.picker.pets) {
+                    Pet.picker.setPet(entry.id);
+                    tryVerify(() => Pet.picker.pet === entry.id, 2000, "did not switch to " + entry.id);
                     compare(Pet.accessories.length, 9, entry.id + " does not have nine accessories");
                     for (const accessory of Pet.accessories) {
                         const label = page.accessoryLabel(accessory.id);
@@ -226,7 +226,7 @@ Item {
                     }
                 }
             } finally {
-                Pet.setPet(chosen);
+                Pet.picker.setPet(chosen);
             }
         }
 
@@ -235,15 +235,15 @@ Item {
             Pet.setEnabled(true);
             const page = createTemporaryObject(pageComponent, host.contentItem);
             waitForRendering(host.contentItem);
-            const chosen = Pet.pet;
+            const chosen = Pet.picker.pet;
             let hadSpectacles = false;
             const lineFor = function () {
                 const label = page.accessoryLabel("spectacles");
                 return Util.findAll(page, o => o.objectName === "accessoryTemperament" && o.text.indexOf(label) === 0)[0];
             };
             try {
-                Pet.setPet("dog");
-                tryVerify(() => Pet.pet === "dog", 2000, "did not switch to the dog");
+                Pet.picker.setPet("dog");
+                tryVerify(() => Pet.picker.pet === "dog", 2000, "did not switch to the dog");
                 hadSpectacles = Pet.wornIn.face === "spectacles";
                 if (hadSpectacles)
                     Pet.toggleAccessory("spectacles");
@@ -261,7 +261,7 @@ Item {
                     Pet.toggleAccessory("spectacles");
                 if (hadSpectacles)
                     Pet.toggleAccessory("spectacles");
-                Pet.setPet(chosen);
+                Pet.picker.setPet(chosen);
             }
         }
 
@@ -281,15 +281,15 @@ Item {
         }
 
         function test_aLayerShowsTheCellItsFrameNames() {
-            const layer = createTemporaryObject(layerComponent, root, {sheet: "", frame: 2, at: Qt.point(0, 0)});
-            compare(layer.sourceClipRect.x, 2 * Pet.canvas);
+            const layer = createTemporaryObject(layerComponent, root, {canvas: Pet.pose.canvas, sheet: "", frame: 2, at: Qt.point(0, 0)});
+            compare(layer.sourceClipRect.x, 2 * Pet.pose.canvas);
             compare(layer.sourceClipRect.y, 0);
-            compare(layer.sourceClipRect.width, Pet.canvas);
-            compare(layer.sourceClipRect.height, Pet.canvas);
+            compare(layer.sourceClipRect.width, Pet.pose.canvas);
+            compare(layer.sourceClipRect.height, Pet.pose.canvas);
         }
 
         function test_anEmptySheetDrawsNothing() {
-            const layer = createTemporaryObject(layerComponent, root, {sheet: "", frame: 0, at: Qt.point(0, 0)});
+            const layer = createTemporaryObject(layerComponent, root, {canvas: Pet.pose.canvas, sheet: "", frame: 0, at: Qt.point(0, 0)});
             compare(layer.visible, false);
         }
 
@@ -298,11 +298,11 @@ Item {
             // The pet rows sit under the enable switch, so the pet has to be on for the picker to show.
             Pet.setEnabled(true);
             const theme = Tokens.theme;
-            const chosen = Pet.pet;
+            const chosen = Pet.picker.pet;
             try {
-                for (const entry of Pet.pets) {
+                for (const entry of Pet.picker.pets) {
                     const id = entry.id;
-                    Pet.setPet(id);
+                    Pet.picker.setPet(id);
                     for (const mode of ["light", "dark"]) {
                         Tokens.theme = mode;
                         const panel = createTemporaryObject(panelComponent, host.contentItem);
@@ -315,7 +315,7 @@ Item {
                 }
             } finally {
                 Tokens.theme = theme;
-                Pet.setPet(chosen);
+                Pet.picker.setPet(chosen);
             }
         }
     }

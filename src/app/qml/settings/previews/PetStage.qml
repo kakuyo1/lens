@@ -18,10 +18,10 @@ Rectangle {
     // qmllint enable missing-property
 
     readonly property bool onScreen: visible && Window.window !== null && Window.window.visible
-    readonly property int petSize: Math.round(Pet.canvas * Pet.scale)
-    readonly property bool signShown: Pet.action === "ask" && sign.word !== ""
+    readonly property int petSize: Math.round(Pet.pose.canvas * Pet.pose.scale)
+    readonly property bool signShown: Pet.pose.action === "ask" && sign.word !== ""
     /// Where the figure sits: centred on the art's ink, as it always was.
-    readonly property real figureX: stage.width / 2 - Pet.inkCentre * Pet.scale
+    readonly property real figureX: stage.width / 2 - Pet.pose.inkCentre * Pet.pose.scale
     readonly property real figureY: stage.height - stage.petSize - 12
     implicitHeight: petSize + 24
     radius: stage.tokens.radiusGroup
@@ -51,12 +51,12 @@ Rectangle {
     ReviewSignLayout {
         id: layout
 
-        scale: Pet.scale
+        scale: Pet.pose.scale
         figure: Qt.point(stage.figureX, stage.figureY)
-        ink: Pet.inkBox
+        ink: Pet.pose.inkBox
         area: ({left: 0, top: 0, right: stage.width, bottom: stage.height})
         word: Controller.settingPreview.word || ""
-        reviewSign: Pet.reviewSign
+        reviewSign: Pet.pose.reviewSign
         // The card pet-review.html draws beside the board: .btn 34 px tall, 8 px padding and a 1 px border on each side.
         // The preview draws no card, so the card is not counted.
         cardWidth: 210
@@ -78,9 +78,9 @@ Rectangle {
 
         visible: stage.signShown
         word: Controller.settingPreview.word || ""
-        petScale: Pet.scale
+        petScale: Pet.pose.scale
         designWidth: layout.designWidth
-        reviewSign: Pet.reviewSign
+        reviewSign: Pet.pose.reviewSign
         bin: layout.bin
         x: Math.round(stage.signAt.x - layout.bleed)
         y: Math.round(stage.signAt.y - layout.bleed)

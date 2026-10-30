@@ -13,10 +13,6 @@
 
 该目标不在 `TEST.md` 的目标表里，`aPreviewedSceneExposesItsSheetsAndAlignment` 仍按旧狗的脚点（57，84）与场景对位 -1.5 断言，实际脚点是（51，84）。先确认狗在共享场景里是否仍对位，再改测试或场景。另有两条随数据漂移过期：`threeClicksMakeTheDogAngry` 仍点三次，而 `dog/animations.json` 的 `angryClicks` 已是 4；`accessoryCatalogueAndWornSlotsAreExposed` 仍数 18 个动作，实际 19（六场景之后新增了非场景动作）。三条都在动测试或数据之前先确认真机读感。
 
-## 宠物 QML 接口的单值化（评审 01 余项）
-
-仪式与闲逛已各自成为 module（ADR 0139），但 `PetController` 对 QML 的约 100 项接口尚未收缩。下一步把帧、场景与入场并成一个 `pose` 值，picker 与窗口宿主各成一个入口，再逐个改 `PetScene.qml` / `PetWindow.qml` / 设置页与对应 QTest；动 QML 前先按 DESIGN.md 与 UI-SPEC §4.x 定形，并做视觉 QA。
-
 ## 玻璃主题的 CPU 占用
 
 只走 GDI 的屏（标准档、Windows 10、两个快速源都被拒的机器）在桌面静止、设置面板常开时约 10% 单核，主要是每秒 15 次的 GDI 读取。能复制或能被 Windows Graphics Capture 读取的屏已不再付这笔（ADR 0087）；剩下的按顺序试：空闲时暂停、按负载退帧、缩小读取区域。读数与判色见 `docs/adr/0040`、`docs/adr/0041`。

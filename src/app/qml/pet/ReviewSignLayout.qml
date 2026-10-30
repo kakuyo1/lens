@@ -10,7 +10,7 @@ import "../util/Numbers.js" as Numbers
 QtObject {
     id: layout
 
-    /// The pet's magnification in DIPs per canvas unit: Pet.scale.
+    /// The pet's magnification in DIPs per canvas unit: Pet.pose.scale.
     required property real scale
     /// The pet window's top-left corner in DIPs.
     required property point figure
@@ -25,7 +25,7 @@ QtObject {
     required property real cardHeight
     /// Whether the card takes part in the choice and the fit. The desktop sign has one; the settings preview draws none.
     required property bool withCard
-    /// The pet's sign art (Pet.reviewSign), empty when the pet has none.
+    /// The pet's sign art (Pet.pose.reviewSign), empty when the pet has none.
     required property var reviewSign
 
     readonly property SurfaceTokens tokens: SurfaceTokens {}

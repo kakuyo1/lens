@@ -488,7 +488,7 @@ Item {
             // The entrance ceremony starts on the next frame; without this wait the idle check below can read the
             // action from before the ceremony and take the off-screen entrance start for home.
             wait(100);
-            tryVerify(() => Pet.action === "idle", 6000, "the pet never settled after its entrance");
+            tryVerify(() => Pet.pose.action === "idle", 6000, "the pet never settled after its entrance");
             wait(50);
             const home = Qt.point(petWindow.x, petWindow.y);
 
@@ -502,13 +502,13 @@ Item {
             if (Tokens.motion.reduced) {
                 verify(!Pet.release(Qt.point(1200, -1100)), "reduced motion should refuse a throw");
                 Pet.dragEnd();
-                Pet.savePosition(Qt.point(petWindow.x, petWindow.y));
+                Pet.host.savePosition(Qt.point(petWindow.x, petWindow.y));
                 Pet.setEnabled(false);
                 return;
             }
 
             verify(Pet.release(Qt.point(1200, -1100)), "the controller refused a throw at 1628 px/s");
-            verify(Pet.action !== "idle", "the pet reads as idle during the throw");
+            verify(Pet.pose.action !== "idle", "the pet reads as idle during the throw");
 
             // The controller owns the window for the whole flight: it moves without the pointer.
             const launched = Qt.point(petWindow.x, petWindow.y);
@@ -516,11 +516,11 @@ Item {
             verify(petWindow.x !== launched.x || petWindow.y !== launched.y, "the thrown window did not move");
 
             // The dog ships the optional dizzy art, so the landing is the stars rather than the poke reaction.
-            tryVerify(() => Pet.action === "dizzy", 6000, "the landing did not play the dizzy action");
+            tryVerify(() => Pet.pose.action === "dizzy", 6000, "the landing did not play the dizzy action");
 
             // The landing is the new home: once the daze is over the pet stays on the spot it landed on.
             const landed = Qt.point(petWindow.x, petWindow.y);
-            tryVerify(() => Pet.action === "idle", 6000, "the landing did not finish");
+            tryVerify(() => Pet.pose.action === "idle", 6000, "the landing did not finish");
             tryVerify(() => Math.abs(petWindow.x - landed.x) <= 2
                       && Math.abs(petWindow.y - landed.y) <= 2, 1000,
                       "the pet moved after landing: at " + petWindow.x + "," + petWindow.y
@@ -533,7 +533,7 @@ Item {
             petWindow.y = home.y + 40;
             verify(!Pet.release(Qt.point(0, 0)), "a still release was taken as a throw");
             Pet.dragEnd();
-            Pet.savePosition(Qt.point(petWindow.x, petWindow.y));
+            Pet.host.savePosition(Qt.point(petWindow.x, petWindow.y));
 
             Pet.setEnabled(false);
         }

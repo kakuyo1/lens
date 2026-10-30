@@ -169,13 +169,13 @@ Item {
         }
 
         /// One pet doing one action, for the clip of that pet. The pet is chosen in this run's settings copy,
-        /// since Pet.setPet writes it there, and the action is shown through Pet.preview(), the call the
+        /// since Pet.picker.setPet writes it there, and the action is shown through Pet.preview(), the call the
         /// settings page's action pill makes. Each play starts from the first frame and runs for @p msPerPlay,
         /// so a one-shot action is played @p plays times to fill the clip, and a looping one needs only one.
         /// The machine's own reactions are not driven here: the surfaces harness does not connect the pet to
         /// the app's events (main.cpp does), so the preview is the only route a clip can take.
         function petClip(id, action, plays, msPerPlay) {
-            Pet.setPet(id);
+            Pet.picker.setPet(id);
             const main = make();
             Pet.setEnabled(true);
             const petWindow = panel(main, "PetWindow");

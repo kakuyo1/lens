@@ -1,9 +1,14 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 
 /**
  * The pet as layers, at the frame the controller chose. Body, expression and effect take their z from pet.json;
- * accessories take theirs from accessories.json. The scene scales by Pet.scale, a real magnification the size slider
- * sets: the sprite is drawn nearest-neighbour, so a fractional scale leaves its pixel widths uneven.
+ * accessories take theirs from accessories.json. The scene scales by the pose's scale, a real magnification the size
+ * slider sets: the sprite is drawn nearest-neighbour, so a fractional scale leaves its pixel widths uneven.
+ *
+ * Everything the stage draws comes from Pet.pose, one value: the figure (canvas, scale, layer order, feet), the frame
+ * (sheets, anchors, expression, worn pieces) and the scene it belongs to.
  *
  * While the pet is in a scene (ADR 0049, 0080) the frame also carries the props: a static back sheet, the pet moved
  * onto the seat or the deck, and a static front sheet that hides the pet's lower body. The stage moves as a whole by
@@ -11,16 +16,17 @@ import QtQuick
  */
 Item {
     id: root
-    width: Pet.canvas
-    height: Pet.canvas
-    scale: Pet.scale
+    readonly property var pose: Pet.pose
+    width: root.pose.canvas
+    height: root.pose.canvas
+    scale: root.pose.scale
     transformOrigin: Item.TopLeft
 
-    readonly property bool inScene: Pet.scene !== ""
-    readonly property var sceneLayers: Pet.sceneLayers
+    readonly property bool inScene: root.pose.scene !== ""
+    readonly property var sceneLayers: root.pose.sceneLayers
     /// The entry in progress (ADR 0101). It holds the pose and transform separately from the scene loop, and a
     /// landing impact may outlive the entry itself.
-    readonly property var entry: Pet.sceneEntry
+    readonly property var entry: root.pose.entry
     readonly property bool entryActive: entry !== undefined && entry.active === true
     readonly property var entrySceneSheets: entryActive && entry.sceneSheets ? entry.sceneSheets : ({})
     readonly property var entrySceneAnchors: entryActive && entry.sceneAnchors ? entry.sceneAnchors : ({})
@@ -32,8 +38,8 @@ Item {
     Item {
         id: stage
         objectName: "sceneStage"
-        x: root.inScene ? Pet.sceneAlign.x : 0
-        y: root.inScene ? Pet.sceneAlign.y : 0
+        x: root.inScene ? root.pose.sceneAlign.x : 0
+        y: root.inScene ? root.pose.sceneAlign.y : 0
         width: root.width
         height: root.height
 
@@ -42,8 +48,9 @@ Item {
             z: root.sceneLayers.back !== undefined ? root.sceneLayers.back : 0
             visible: root.inScene
             opacity: root.propAlpha
-            sheet: root.inScene ? Pet.sceneSheets.back : ""
-            frame: Pet.sceneFrame
+            canvas: root.pose.canvas
+            sheet: root.inScene ? root.pose.sceneSheets.back : ""
+            frame: root.pose.sceneFrame
             at: Qt.point(0, root.inScene ? root.propOffset : 0)
         }
 
@@ -53,47 +60,51 @@ Item {
             objectName: "petRig"
             z: root.entryInFront ? (root.sceneLayers.front !== undefined ? root.sceneLayers.front + 1 : 21) : 10
             opacity: root.entryActive ? root.entry.idleAlpha : 1
-            x: root.inScene ? Pet.sceneShift.x : 0
-            y: root.inScene ? Pet.sceneShift.y : 0
+            x: root.inScene ? root.pose.sceneShift.x : 0
+            y: root.inScene ? root.pose.sceneShift.y : 0
             width: root.width
             height: root.height
             transform: Scale {
-                origin.x: Pet.foot.x
-                origin.y: Pet.foot.y
-                xScale: root.inScene ? Pet.sceneScale : 1
-                yScale: root.inScene ? Pet.sceneScale : 1
+                origin.x: root.pose.foot.x
+                origin.y: root.pose.foot.y
+                xScale: root.inScene ? root.pose.sceneScale : 1
+                yScale: root.inScene ? root.pose.sceneScale : 1
             }
 
             SpriteLayer {
-                z: Pet.layers.body
-                sheet: Pet.sheets.body
-                frame: Pet.frameIndex
-                at: Pet.anchors.body
+                z: root.pose.layers.body
+                canvas: root.pose.canvas
+                sheet: root.pose.sheets.body
+                frame: root.pose.frame
+                at: root.pose.anchors.body
             }
 
             SpriteLayer {
-                z: Pet.layers.expression
-                sheet: Pet.sheets.expression
-                frame: Pet.expression
+                z: root.pose.layers.expression
+                canvas: root.pose.canvas
+                sheet: root.pose.sheets.expression
+                frame: root.pose.expression
                 // The eyes follow a nearby pointer. The offset is one canvas pixel on the dominant axis, and zero
                 // whenever the pet is not idle, so no other action's face is moved.
-                at: Qt.point(Pet.anchors.face.x + Pet.gaze.x, Pet.anchors.face.y + Pet.gaze.y)
+                at: Qt.point(root.pose.anchors.face.x + root.pose.gaze.x, root.pose.anchors.face.y + root.pose.gaze.y)
             }
 
             SpriteLayer {
-                z: Pet.layers.effect
-                sheet: Pet.sheets.effect
-                frame: Pet.frameIndex
+                z: root.pose.layers.effect
+                canvas: root.pose.canvas
+                sheet: root.pose.sheets.effect
+                frame: root.pose.frame
                 at: Qt.point(0, 0)
             }
 
             Repeater {
-                model: Pet.wornAccessories
+                model: root.pose.worn
 
                 SpriteLayer {
                     required property var modelData
 
                     z: modelData.zIndex
+                    canvas: root.pose.canvas
                     sheet: modelData.asset
                     frame: 0
                     at: Qt.point(modelData.x, modelData.y)
@@ -113,31 +124,34 @@ Item {
             width: root.width
             height: root.height
             transform: Scale {
-                origin.x: Pet.foot.x
-                origin.y: Pet.foot.y
-                xScale: root.inScene ? Pet.sceneScale : 1
-                yScale: root.inScene ? Pet.sceneScale : 1
+                origin.x: root.pose.foot.x
+                origin.y: root.pose.foot.y
+                xScale: root.inScene ? root.pose.sceneScale : 1
+                yScale: root.inScene ? root.pose.sceneScale : 1
             }
 
             readonly property point bodyAt: root.entrySceneAnchors.body !== undefined ? root.entrySceneAnchors.body : Qt.point(0, 0)
             readonly property point faceAt: root.entrySceneAnchors.face !== undefined ? root.entrySceneAnchors.face : Qt.point(0, 0)
 
             SpriteLayer {
-                z: Pet.layers.body
+                z: root.pose.layers.body
+                canvas: root.pose.canvas
                 sheet: root.entrySceneSheets.body !== undefined ? root.entrySceneSheets.body : ""
                 frame: 0
                 at: entryPoseRig.bodyAt
             }
 
             SpriteLayer {
-                z: Pet.layers.expression
+                z: root.pose.layers.expression
+                canvas: root.pose.canvas
                 sheet: root.entrySceneSheets.expression !== undefined ? root.entrySceneSheets.expression : ""
                 frame: root.entryActive ? root.entry.sceneExpression : 0
                 at: entryPoseRig.faceAt
             }
 
             SpriteLayer {
-                z: Pet.layers.effect
+                z: root.pose.layers.effect
+                canvas: root.pose.canvas
                 sheet: root.entrySceneSheets.effect !== undefined ? root.entrySceneSheets.effect : ""
                 frame: 0
                 at: Qt.point(0, 0)
@@ -149,8 +163,9 @@ Item {
             z: root.sceneLayers.front !== undefined ? root.sceneLayers.front : 0
             visible: root.inScene
             opacity: root.propAlpha
-            sheet: root.inScene ? Pet.sceneSheets.front : ""
-            frame: Pet.sceneFrame
+            canvas: root.pose.canvas
+            sheet: root.inScene ? root.pose.sceneSheets.front : ""
+            frame: root.pose.sceneFrame
             at: Qt.point(0, root.inScene ? root.propOffset : 0)
         }
 
