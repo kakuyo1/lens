@@ -94,6 +94,10 @@ option(LENS_ENABLE_QML_DEBUG "Compile the lens executable with QML debugging ena
 # default and never shipped: a build that passes it is a measurement build, and it says so in every report (docs/adr/0068).
 option(LENS_ENABLE_DEV_SURFACE "Compile the developer command surface in" OFF)
 
+# Raises the first-run notice at every launch, for checking that surface without resetting the reader's document.
+# A build that passes it records nothing, so it is a check build and says so in its reports (docs/adr/0144).
+option(LENS_FORCE_ONBOARDING "Raise the first-run notice on every launch" OFF)
+
 # Shipped builds resolve OCR only from the application bundle. A developer may opt in to a PATH
 # lookup for a local Tesseract installation, but that fallback is never enabled by default.
 option(LENS_OCR_DEV_PATH_FALLBACK "Allow OCR to use a developer PATH installation" OFF)

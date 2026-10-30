@@ -47,6 +47,7 @@ using lens::app::kAutostartRunKey;
 using lens::app::kAutostartValueName;
 using lens::app::kNoticeError;
 using lens::app::kNoticeInfo;
+using lens::app::kNoticeIntentApiKey;
 using lens::app::kRevealSpeedDefault;
 using lens::app::kRevealSpeedMax;
 using lens::app::kRevealSpeedMin;
@@ -113,12 +114,28 @@ TEST(NoticePayload, CarriesAReasonAndAtMostOneAction)
                                              QString::fromUtf8("这张卡片没有可解释的单词"),
                                              QString::fromUtf8(kNoticeInfo));
 
-    EXPECT_EQ(notice.size(), 5) << "a sixth key would be one no surface reads";
+    EXPECT_EQ(notice.size(), 6) << "a seventh key would be one no surface reads";
     EXPECT_EQ(notice.value("title").toString(), QStringLiteral("ubiquitous"));
     EXPECT_EQ(notice.value("body").toString(), QString::fromUtf8("这张卡片没有可解释的单词"));
     EXPECT_EQ(notice.value("kind").toString(), QStringLiteral("info"));
     // Most notices are the end of the road: nothing to press, and no word to press it about.
     EXPECT_TRUE(notice.value("action").toString().isEmpty());
+    EXPECT_TRUE(notice.value("lemma").toString().isEmpty());
+    EXPECT_TRUE(notice.value("intent").toString().isEmpty());
+}
+
+/// An offered action that is not an explanation says where it leads, so the surface can send the reader
+/// there instead of asking the controller to explain a word there is none of (docs/adr/0144).
+TEST(NoticePayload, AnApiKeyActionCarriesItsIntent)
+{
+    const QVariantMap notice = noticePayload(QStringLiteral("Lens"),
+                                             QStringLiteral("Add an API key first."),
+                                             QString::fromLatin1(kNoticeInfo),
+                                             QStringLiteral("Add API key"),
+                                             {},
+                                             QString::fromLatin1(kNoticeIntentApiKey));
+
+    EXPECT_EQ(notice.value("intent").toString(), QStringLiteral("apiKey"));
     EXPECT_TRUE(notice.value("lemma").toString().isEmpty());
 }
 

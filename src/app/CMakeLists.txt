@@ -44,6 +44,8 @@ add_library(lens_app STATIC
   duties/explanation_exchange.cpp
   duties/model_catalog_duty.h
   duties/model_catalog_duty.cpp
+  duties/onboarding_duty.h
+  duties/onboarding_duty.cpp
   duties/pending_selection.h
   duties/pending_selection.cpp
   duties/picture_duty.h
@@ -223,6 +225,11 @@ lens_copy_sherpa_runtime(lens)
 if(LENS_ENABLE_DEV_SURFACE)
   target_sources(lens PRIVATE dev/dev_surface.cpp dev/dev_surface.h dev/dev_pipe.cpp dev/dev_pipe.h)
   target_compile_definitions(lens PRIVATE LENS_DEV_SURFACE)
+endif()
+
+# The first-run notice on every launch (docs/adr/0144). main.cpp reads the macro, so it is defined on the executable.
+if(LENS_FORCE_ONBOARDING)
+  target_compile_definitions(lens PRIVATE LENS_FORCE_ONBOARDING)
 endif()
 
 # The module's QML files reach the executable through lens_app's resources, but the C++ types

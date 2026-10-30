@@ -234,7 +234,7 @@
 <context>
     <name>Notice</name>
     <message>
-        <location filename="../src/app/qml/panels/Notice.qml" line="119"/>
+        <location filename="../src/app/qml/panels/Notice.qml" line="123"/>
         <source>Close</source>
         <translation>Close</translation>
     </message>
@@ -2714,37 +2714,42 @@
 <context>
     <name>TrayMenu</name>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="75"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="79"/>
+        <source>No API key yet</source>
+        <translation>No API key yet</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="81"/>
         <source>Today&apos;s budget is used up</source>
         <translation>Today&apos;s budget is used up</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="79"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="85"/>
         <source>Selection capture is off</source>
         <translation>Selection capture is off</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="107"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="123"/>
         <source>lookups</source>
         <translation>lookups</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="237"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="253"/>
         <source>Statistics</source>
         <translation>Statistics</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="247"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="263"/>
         <source>Language</source>
         <translation>Language</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="268"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="284"/>
         <source>Settings</source>
         <translation>Settings</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="283"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="299"/>
         <source>Quit</source>
         <translation>Quit</translation>
     </message>
@@ -3397,14 +3402,32 @@
         <translation>LJSpeech</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="927"/>
+        <location filename="../src/app/app_controller.cpp" line="932"/>
         <source>Auto</source>
         <translation>Auto</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="927"/>
+        <location filename="../src/app/app_controller.cpp" line="932"/>
         <source>Manual</source>
         <translation>Manual</translation>
+    </message>
+</context>
+<context>
+    <name>lens::app::OnboardingDuty</name>
+    <message>
+        <location filename="../src/app/duties/onboarding_duty.cpp" line="33"/>
+        <source>Lens is running in the tray</source>
+        <translation>Lens is running in the tray</translation>
+    </message>
+    <message>
+        <location filename="../src/app/duties/onboarding_duty.cpp" line="34"/>
+        <source>Select English text to see its explanation beside it. Lookups need an API key, so add one first. The icon is at the bottom right of the taskbar; if you cannot see it, click ^.</source>
+        <translation>Select English text to see its explanation beside it. Lookups need an API key, so add one first. The icon is at the bottom right of the taskbar; if you cannot see it, click ^.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/duties/onboarding_duty.cpp" line="36"/>
+        <source>Add API key</source>
+        <translation>Add API key</translation>
     </message>
 </context>
 <context>
@@ -3413,6 +3436,11 @@
         <location filename="../src/app/platform/tray.cpp" line="128"/>
         <source>Today %1 lookups</source>
         <translation>Today %1 lookups</translation>
+    </message>
+    <message>
+        <location filename="../src/app/platform/tray.cpp" line="129"/>
+        <source>No API key yet</source>
+        <translation>No API key yet</translation>
     </message>
 </context>
 <context>

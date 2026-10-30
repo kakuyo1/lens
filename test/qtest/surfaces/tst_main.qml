@@ -401,6 +401,38 @@ Item {
             tryCompare(stats, "visible", false);
         }
 
+        /// The first-run notice's action opens the page the key is typed into, not an explanation: Main routes an
+        /// action whose intent is apiKey to the connection page (docs/adr/0144).
+        function test_theFirstRunActionOpensTheApiPage() {
+            const main = make();
+            const settings = panel(main, "SettingsPopup");
+            const notice = panel(main, "Notice");
+            notice.show({title: "Lens", body: "Add an API key first.", kind: "info",
+                         action: "Add API key", lemma: "", intent: "apiKey"});
+
+            notice.actionTriggered();
+
+            compare(settings.visible, true, "the first-run action did not open the settings panel");
+            compare(settings.category, "model");
+            compare(settings.route, "connection", "the first-run action did not land on the API page");
+            compare(notice.leaving, true, "the notice should be taken down once its action has been taken");
+        }
+
+        /// The no-key row in the menu asks for the same page, so a missing key always leads to the place it is typed.
+        function test_theNoKeyStateRowOpensTheApiPage() {
+            const main = make();
+            const settings = panel(main, "SettingsPopup");
+            const menu = panel(main, "TrayMenu");
+            Controller.setApiKey("");
+            wait(50);
+
+            Util.surfaceHost(main).showTrayMenu();
+            menu.apiKeyRequested();
+
+            compare(settings.visible, true, "the no-key row did not open the settings panel");
+            compare(settings.route, "connection", "the no-key row did not land on the API page");
+        }
+
         /// The tray icon's own gesture, which is the only way the menu opens in the product.
         function test_theTrayIconGestureOpensTheMenu() {
             const main = make();

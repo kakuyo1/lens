@@ -98,6 +98,30 @@ Item {
             notice.visible = false;
         }
 
+        /// The first-run notice's action names what it does in its intent, and a press on the pill raises the action
+        /// for Main to route (docs/adr/0144). A card with no intent keeps the explain action it always had.
+        function test_theApiKeyActionKeepsItsIntentAndPressesThrough() {
+            const notice = createTemporaryObject(noticeComponent, root);
+            verify(!!notice, "Component exists");
+            notice.show({title: "Lens", body: "Add an API key first.", kind: "info",
+                         action: "Add API key", lemma: "", intent: "apiKey"});
+            wait(50);
+            compare(notice.noticeIntent, "apiKey");
+            compare(notice.noticeAction, "Add API key");
+
+            let pressed = 0;
+            notice.actionTriggered.connect(function () { ++pressed; });
+            const label = Util.textWith(Util.textsUnder(notice), ["Add API key"]);
+            verify(label, "the action pill was not drawn");
+            mouseClick(label.parent, label.parent.width / 2, label.parent.height / 2);
+            wait(50);
+            compare(pressed, 1, "pressing the action did not raise actionTriggered");
+
+            notice.show({title: "Word", body: "No explanation is stored.", kind: "info",
+                         action: "Explain now", lemma: "panel"});
+            compare(notice.noticeIntent, "", "a card with no intent should not carry one over");
+        }
+
         function test_captureTheNotice() {
             if (!lensQaSnapshotDir)
                 skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the snapshot");
