@@ -363,23 +363,23 @@
 <context>
     <name>SettingsCapturePage</name>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="94"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="107"/>
         <source>Checking OCR</source>
         <translation>OCR を確認中</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="102"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="115"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR ランタイムが利用できません</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="192"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="205"/>
         <source>Minimum word length</source>
         <translation>最小語長</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="212"/>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="223"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="225"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="236"/>
         <source>Scan whitelist</source>
         <translation>スキャン対象プロセス</translation>
     </message>
@@ -442,95 +442,105 @@
         <translation>自動スキャン</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="95"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="76"/>
+        <source>Experimental</source>
+        <translation>実験的</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="91"/>
+        <source>Auto scan is still experimental and not released yet; its results are not reliable.</source>
+        <translation>自動スキャンはまだ実験的な機能で、未公開です。結果はまだ信頼できません。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="108"/>
         <location filename="../src/app/app_controller.cpp" line="456"/>
         <source>The OCR language data is missing</source>
         <translation>OCR 言語データがありません</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="96"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="109"/>
         <source>RapidOCR&apos;s model folder path must contain only ASCII characters</source>
         <translation>RapidOCR のモデルフォルダーのパスには ASCII 文字のみ使用できます</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="97"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="110"/>
         <source>RapidOCR is not trusted yet</source>
         <translation>RapidOCR はまだ信頼されていません</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="115"/>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="123"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="128"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="136"/>
         <source>Selection bar style</source>
         <translation>アクションバーのスタイル</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="125"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="138"/>
         <source>Classic bar</source>
         <translation>クラシックバー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="127"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="140"/>
         <source>Side tab</source>
         <translation>ページ端のしおり</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="129"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="142"/>
         <source>Hand of cards</source>
         <translation>手札</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="131"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="144"/>
         <source>Hang tag</source>
         <translation>吊り札</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="133"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="146"/>
         <source>Fan</source>
         <translation>扇面</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="147"/>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="152"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="160"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="165"/>
         <source>OCR trigger key</source>
         <translation>OCR の起動キー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="164"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="177"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="86"/>
         <source>Popup &amp; clipboard</source>
         <translation>ポップアップとクリップボード</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="166"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="179"/>
         <location filename="../src/app/qml/settings/pages/SettingsClipboardPage.qml" line="99"/>
         <source>Give up silently</source>
         <translation>黙って諦める</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="167"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="180"/>
         <location filename="../src/app/qml/settings/pages/SettingsClipboardPage.qml" line="99"/>
         <source>Raise to top</source>
         <translation>強制的に最前面</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="176"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="189"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="87"/>
         <source>OCR engine</source>
         <translation>OCR エンジン</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="182"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="195"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="40"/>
         <source>Tesseract</source>
         <translation>Tesseract</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="185"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="198"/>
         <source>Needs attention</source>
         <translation>対応が必要</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="197"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="210"/>
         <source>Minimum word length</source>
         <translation>最小語長</translation>
     </message>
@@ -592,7 +602,7 @@
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="269"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="44"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1111"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1113"/>
         <source>Desktop companion</source>
         <translation>デスクトップの相棒</translation>
     </message>
@@ -1357,7 +1367,7 @@
         <translation>カスタムサービス</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="184"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="197"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="46"/>
         <location filename="../src/app/app_controller.cpp" line="455"/>
         <source>Checking OCR</source>
@@ -2000,7 +2010,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="206"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1113"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1115"/>
         <source>Dog</source>
         <translation>犬</translation>
     </message>
@@ -2324,7 +2334,7 @@
         <translation>削除を確認</translation>
     </message>
     <message>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1112"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1114"/>
         <source>This pet package is no longer installed. Switched to %1.</source>
         <translation>この宠物包はインストールされていません。%1 に切り替えました。</translation>
     </message>
@@ -2358,7 +2368,7 @@
         <translation>OCR 言語データがありません: %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="101"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="114"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="62"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="89"/>
         <source>Tesseract is not installed.</source>
@@ -2420,7 +2430,7 @@
         <translation>アップロードごとに確認</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="93"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="106"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="143"/>
         <source>Online OCR is not configured yet; screenshots stay disabled until it is.</source>
         <translation>オンライン OCR はまだ設定されていません。設定が完了するまでスクリーンショットは無効です。</translation>
@@ -2460,7 +2470,7 @@
         <translation>RapidOCR のモデルファイルがありません: %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="100"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="113"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="61"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="88"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="103"/>
@@ -2506,8 +2516,8 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="184"/>
-        <source>Automatic scanning always uses this local engine and never an online service.</source>
-        <translation>自動スキャンは常にこのローカルエンジンを使用し、オンラインサービスは呼び出しません。</translation>
+        <source>Experimental auto scan always uses this local engine and never an online service.</source>
+        <translation>実験的な自動スキャンは常にこのローカルエンジンを使い、オンラインサービスは使いません。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="195"/>
@@ -3340,22 +3350,22 @@
         <translation>手動</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="264"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="670"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>現在の解説言語では、この単語の保存された解説がありません。</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="266"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="672"/>
         <source>Explain now</source>
         <translation>今すぐ解説</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="660"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="547"/>
         <source>Explaining…</source>
         <translation>解説中…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="788"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="691"/>
         <source>Request failed</source>
         <translation>リクエストに失敗しました</translation>
     </message>

@@ -78,7 +78,7 @@ Por defecto, la voz de Windows habla primero, con el acento que elijas: estadoun
 
 ## Texto que no se puede seleccionar
 
-Pulsa `Ctrl+Alt+S` (se puede cambiar en Ajustes), enmarca una zona de un PDF, una imagen o un fotograma de vídeo y Lens la lee localmente con OCR. Tesseract, incluido con Lens, es el motor automático. El lector puede instalar RapidOCR-json, elegirlo explícitamente y apuntarlo a una carpeta de modelos ASCII tras una comprobación de confianza. El OCR en línea es opcional, pregunta antes de cada subida y puede apuntar a Baidu OCR, Tencent Cloud OCR, Alibaba Cloud OCR, Google Cloud Vision u OCR.space. El escaneo automático solo vigila las aplicaciones de tu lista blanca.
+Pulsa `Ctrl+Alt+S` (se puede cambiar en Ajustes), enmarca una zona de un PDF, una imagen o un fotograma de vídeo y Lens la lee localmente con OCR. Tesseract, incluido con Lens, es el motor automático. El lector puede instalar RapidOCR-json, elegirlo explícitamente y apuntarlo a una carpeta de modelos ASCII tras una comprobación de confianza. El OCR en línea es opcional, pregunta antes de cada subida y puede apuntar a Baidu OCR, Tencent Cloud OCR, Alibaba Cloud OCR, Google Cloud Vision u OCR.space. El escaneo automático sigue siendo experimental y está en desarrollo: solo vigila las aplicaciones de tu lista blanca, y sus resultados aún no son fiables.
 
 ## Cinco formas de barra de acciones
 
@@ -145,7 +145,7 @@ Lens no tiene firma de código y SmartScreen bloquea los programas que no recono
 
 ## Privacidad
 
-Solo el texto que seleccionas o capturas se envía al proveedor que configures, después de ocultar localmente URL, direcciones de correo y cadenas de seis o más dígitos. El OCR se ejecuta localmente por defecto; el OCR en línea es opcional, pide confirmación en cada captura y la tarjeta de confirmación dice a qué servicio va ese recorte, y el escaneo automático nunca lo usa. El altavoz lee en local con la voz del sistema o un modelo local descargado; cuando recurre a un audio en línea, solo esa palabra sale del dispositivo, y la grabación se guarda en `%APPDATA%\Lens\audio`. Tu clave de API, las credenciales de OCR y tus datos de aprendizaje se quedan en `%APPDATA%\Lens\settings.json`. Si activas la sincronización, la copia en la nube se cifra con tu frase de contraseña y se guarda en tu propio gist de GitHub; la clave se queda en este dispositivo. Lens no tiene cuenta ni servidor propio. Consulta [SECURITY.md](SECURITY.md) para conocer todos los límites.
+Solo el texto que seleccionas o capturas se envía al proveedor que configures, después de ocultar localmente URL, direcciones de correo y cadenas de seis o más dígitos. El OCR se ejecuta localmente por defecto; el OCR en línea es opcional, pide confirmación en cada captura y la tarjeta de confirmación dice a qué servicio va ese recorte, y el escaneo automático experimental nunca lo usa. El altavoz lee en local con la voz del sistema o un modelo local descargado; cuando recurre a un audio en línea, solo esa palabra sale del dispositivo, y la grabación se guarda en `%APPDATA%\Lens\audio`. Tu clave de API, las credenciales de OCR y tus datos de aprendizaje se quedan en `%APPDATA%\Lens\settings.json`. Si activas la sincronización, la copia en la nube se cifra con tu frase de contraseña y se guarda en tu propio gist de GitHub; la clave se queda en este dispositivo. Lens no tiene cuenta ni servidor propio. Consulta [SECURITY.md](SECURITY.md) para conocer todos los límites.
 
 ## Preguntas frecuentes
 

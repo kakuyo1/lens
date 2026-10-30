@@ -8,6 +8,9 @@ Row {
     id: root
 
     property string label: ""
+    /// A short status pill after the label; empty draws none, so a row that has nothing to say
+    /// about its state looks exactly as it did before the badge existed (UI-SPEC.md 4.4).
+    property string badge: ""
     property bool checked: false
     property bool interactive: true
     /// The preview this row raises when the pointer rests on its label (UI-SPEC.md 4.4), empty for the
@@ -52,9 +55,32 @@ Row {
         }
     }
 
+    Rectangle {
+        id: badgePill
+        visible: root.badge !== ""
+        anchors.verticalCenter: parent.verticalCenter
+        width: badgeText.implicitWidth + 10
+        height: 17
+        radius: root.tokens.radiusPill
+        color: "transparent"
+        border.width: 1
+        border.color: root.tokens.line
+
+        Text {
+            id: badgeText
+            anchors.centerIn: parent
+            text: root.badge
+            color: root.tokens.muted
+            font.pixelSize: 11
+            font.weight: Font.Bold
+        }
+    }
+
     Item {
         anchors.verticalCenter: parent.verticalCenter
-        width: Math.max(0, root.width - labelText.width - switcher.width - 2 * root.spacing)
+        width: Math.max(0, root.width - labelText.width
+                        - (badgePill.visible ? badgePill.width + root.spacing : 0)
+                        - switcher.width - 2 * root.spacing)
         height: 1
     }
 

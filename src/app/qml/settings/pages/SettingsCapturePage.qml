@@ -73,12 +73,25 @@ Item {
                         objectName: "autoScan"
                         width: parent.width
                         label: qsTranslate("SettingsPopup", "Auto scan")
+                        badge: qsTranslate("SettingsPopup", "Experimental")
                         checked: Controller.settings.autoScan
                         interactive: Controller.settings.scanAvailable
                         onToggled: (on) => Controller.captureDuty.setAutoScan(on)
                     }
                 }
             }
+        }
+
+        // The scan switch stays usable as an experiment, so its warning belongs right under the
+        // group rather than in the README alone: the reader meets the "Experimental" badge here
+        // and learns what it means before flipping anything.
+        Text {
+            objectName: "autoScanNote"
+            width: parent.width
+            text: qsTranslate("SettingsPopup", "Auto scan is still experimental and not released yet; its results are not reliable.")
+            color: root.tokens.muted
+            font.pixelSize: 12
+            wrapMode: Text.WordWrap
         }
 
         // The reason the OCR switches are grey belongs under those switches, not below the two

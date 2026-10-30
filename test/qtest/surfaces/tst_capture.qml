@@ -174,6 +174,9 @@ Item {
             tryVerify(() => Controller.settings.ocrStatus !== "checking", 15000);
             compare(child(page, "ocrCapture").interactive, Controller.settings.screenshotAvailable);
             compare(child(page, "autoScan").interactive, Controller.settings.scanAvailable);
+            // Auto scan is switchable as an experiment, so the status has to travel with the row.
+            compare(child(page, "autoScan").badge, qsTranslate("SettingsPopup", "Experimental"));
+            verify(child(page, "autoScanNote").visible);
         }
 
         /// Offline OCR offers exactly Auto, Tesseract and RapidOCR; the removed Windows choice
@@ -275,6 +278,18 @@ Item {
             Controller.setSetting("ocrOnlineProvider", "tencent");
             tryVerify(() => page.credentialLabel("apiKey") === "SecretId");
             compare(page.credentialLabel("secretKey"), "SecretKey");
+        }
+
+        /// The trigger-channel group with the Experimental badge on Auto scan, for the offscreen
+        /// visual pass; skipped unless scripts/qa/qml-snapshot.ps1 sets LENS_QA_SNAPSHOT_DIR.
+        function test_snapshotTheCapturePage() {
+            if (!lensQaSnapshotDir) {
+                skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the offscreen snapshots");
+                return;
+            }
+            const page = make();
+            waitForRendering(host.contentItem);
+            verify(Util.saveSnapshot(testCase, page, lensQaSnapshotDir, "settings-capture"));
         }
 
         /// Pixel stills for the two OCR pages; skipped unless scripts/qa/qml-snapshot.ps1 sets

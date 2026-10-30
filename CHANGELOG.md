@@ -16,6 +16,8 @@
 
 ### Changed
 
+- **Auto scan** is marked Experimental in Settings and in every README, with a line under the switch saying it is still under development and its results are not reliable yet. The switch keeps working as an experiment; the label and the documentation no longer present it as a finished feature.
+
 - A word too long to leave room for its pronunciation beside it now takes the whole title line, and
   the pronunciation, the speaker and the part of speech go on a line under it. They used to claim
   the room and the word ended in an ellipsis, which hid the one thing the card was asked for.
