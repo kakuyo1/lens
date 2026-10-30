@@ -18,7 +18,7 @@
   <a href="https://github.com/kakuyo1/lens/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/kakuyo1/lens?label=release&color=2f9e6e"></a>
   <a href="#descargar"><img alt="Windows 10/11 x64" src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-1a1a1f"></a>
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/github/license/kakuyo1/lens?color=2f9e6e"></a>
-  <a href="#idiomas"><img alt="Inglés, chino, chino tradicional, español y japonés" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH-HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
+  <a href="#idiomas"><img alt="Inglés, chino, chino tradicional, español y japonés" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH--HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
 </p>
 
 <p align="center">
@@ -58,6 +58,10 @@ La mayoría de las herramientas de consulta te sacan de la página y responden e
 
 La respuesta sigue en inglés. Mantén el globo para ver tu lengua materna; al soltar, la tarjeta vuelve al inglés.
 
+<p align="center"><img src="docs/readme/feature-tour.gif" width="600" alt="Pulsar Imágenes en la palabra crane carga sus fotos; «¿No es este sentido?» cambia la tarjeta al sentido de grúa, con sus fotos"></p>
+
+Pulsa Imágenes en una palabra para cargar sus fotos. «¿No es este sentido?» cambia la tarjeta en su sitio al otro sentido de la palabra, con sus fotos.
+
 ## Primero en inglés. Traducción cuando la pidas.
 
 Las explicaciones son en inglés por defecto. Una selección en chino, japonés o español vuelve en inglés. El idioma de las explicaciones —inglés, chino, chino tradicional, español o japonés— es un ajuste, no un interruptor en la tarjeta: cámbialo una vez y todas las tarjetas lo siguen, respondidas desde la caché cuando esa palabra ya la tiene.
@@ -71,14 +75,6 @@ El globo de la tarjeta es el control de idioma que queda: mantenlo pulsado medio
 Cada tarjeta de palabra lleva un altavoz junto a la pronunciación; pulsa uno u otra y la palabra se lee una vez. Nada más de la tarjeta suena: ni la definición, ni una frase, ni un nombre.
 
 Por defecto, la voz de Windows habla primero, con el acento que elijas: estadounidense por defecto, británico si lo pides. Cuando la máquina no tiene voz para ese acento, Lens usa lo que hayas elegido en Ajustes › Lectura y aprendizaje: un audio en línea (Youdao por defecto, o Google Translate), un modelo local que descargas una vez (Kokoro, unos 180 MB, o LJSpeech, unos 41 MB) o silencio. La elección es explícita: Lens no cambia en silencio entre en línea y local. La reproducción automática está desactivada por defecto; cuando la activas, la tarjeta que abre una consulta se lee una vez y la misma palabra no se repite. La grabación se guarda en `%APPDATA%\Lens\audio`, con un límite de 50 MB, y nunca cuenta para el presupuesto diario.
-
-## Cómo funciona
-
-<p align="center"><img src="docs/readme/selection-bar.png" width="800" alt="La barra de acciones sobre una palabra seleccionada"></p>
-
-1. Selecciona una palabra, un nombre o una frase en cualquier aplicación.
-2. Elige Explicar. La burbuja aparece encima o debajo de la selección.
-3. Márcala como Conocida o Nueva y sigue leyendo.
 
 ## Texto que no se puede seleccionar
 

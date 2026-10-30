@@ -62,6 +62,24 @@ def compose_peek_gif() -> None:
     )
 
 
+def compose_feature_tour() -> None:
+    """Pictures pressed, the photos load in, then Not the Sense? swaps the card to the other sense: six frames at 960 x 600."""
+    durations = [1200, 700, 350, 1600, 900, 2200]
+    frames = []
+    for step in range(6):
+        frame = Image.open(FRAMES / f"tour-{step}.png").convert("RGB").resize((960, 600), Image.Resampling.LANCZOS)
+        frames.append(frame.quantize(colors=128, method=Image.MEDIANCUT))
+    frames[0].save(
+        OUT / "feature-tour.gif",
+        save_all=True,
+        append_images=frames[1:],
+        duration=durations,
+        loop=0,
+        optimize=True,
+        disposal=2,
+    )
+
+
 def compose_selection_styles() -> None:
     """Five action-bar shapes over one page, one frame each."""
     frames = []
@@ -451,6 +469,7 @@ def main() -> None:
 
     autocrop(OUT / "selection-bar.png", background=(255, 255, 255)).save(OUT / "selection-bar.png", optimize=True)
     compose_peek_gif()
+    compose_feature_tour()
     compose_selection_styles()
     compose_themes()
     compose_learning_loop()
@@ -460,6 +479,7 @@ def main() -> None:
 
     for name in (
         "english-first.gif",
+        "feature-tour.gif",
         "selection-styles.gif",
         "pets.gif",
         "pet-lantern.gif",

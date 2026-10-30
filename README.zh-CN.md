@@ -18,7 +18,7 @@
   <a href="https://github.com/kakuyo1/lens/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/kakuyo1/lens?label=release&color=2f9e6e"></a>
   <a href="#下载"><img alt="Windows 10/11 x64" src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-1a1a1f"></a>
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/github/license/kakuyo1/lens?color=2f9e6e"></a>
-  <a href="#语言"><img alt="英语、中文、繁体中文、西班牙语、日语" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH-HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
+  <a href="#语言"><img alt="英语、中文、繁体中文、西班牙语、日语" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH--HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
 </p>
 
 <p align="center">
@@ -58,6 +58,10 @@
 
 答案仍然是英文。按住地球看母语，松手，卡片又回到英文。
 
+<p align="center"><img src="docs/readme/feature-tour.gif" width="600" alt="在 crane 的卡片上点 “图片”，照片加载出来；点 “不是这个义项？”，卡片原地换成起重机的释义和照片"></p>
+
+单词卡上点 “图片”，照片就加载出来；点 “不是这个义项？”，卡片原地换到另一个义项，照片跟着变。
+
 ## 英文优先，需要时再翻译
 
 解释默认使用英文。中文、日文或西班牙文的选区都会用英文回答。解释语言——英语、中文、繁体中文、西班牙语或日语——是设置里的一项，不再放在卡片上：改一次，之后每张卡都跟着走，已有缓存的词直接取缓存。
@@ -71,14 +75,6 @@
 每张单词卡的音标旁都有一枚喇叭：点喇叭或点音标本身，读一次词头。卡片上的其他内容不会出声——释义、句子、名字都不读。
 
 默认先由 Windows 的系统音色发声，口音按你选的美式（默认）或英式。系统没有该口音的音色时，按你在设置 › 阅读学习里选的兜底走：在线音频（默认有道，也可选 Google 翻译）、下载一次的本地模型（Kokoro 约 180 MB，或 LJSpeech 约 41 MB），或者不发音。这一档由你明确选择——Lens 不会在在线与本地之间悄悄切换。自动播放默认关闭；打开后，取词弹出的那张卡出现即读一次，同一个词不重复。在线音频缓存在 `%APPDATA%\Lens\audio`，上限 50 MB，不计入每日预算。
-
-## 怎么用
-
-<p align="center"><img src="docs/readme/selection-bar.png" width="800" alt="选中的文字上方出现动作条"></p>
-
-1. 在任意应用里选中一个单词、名字或句子。
-2. 选择 “解释”，气泡出现在选区上方或下方。
-3. 标记 “已会” 或 “新词”，继续读。
 
 ## 选不中的文字
 

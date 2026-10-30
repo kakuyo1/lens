@@ -108,6 +108,12 @@ screenshot selection-drawer "docs/readme/scenes/selection-drawer.html" "" 900 62
 # legend under it (docs/adr/0128).
 screenshot breakdown "docs/readme/scenes/breakdown.html" "" 900 620 2 "$out"
 
+# The feature GIF: select a word, press Explain, read the card, mark it Known. The card leaves out the
+# etymology and the example on purpose; the frames are joined by compose_feature_tour.
+for i in 0 1 2 3 4 5; do
+    screenshot "tour-$i" "docs/readme/scenes/feature-tour.html" "step=$i" 960 600 2 "$frames"
+done
+
 # The mother-tongue peek GIF: the English card, the globe held part-way round its ring, the
 # mother-tongue line under the definition, and back to English. The compose step repeats the
 # first frame to close the loop. The frames stay in the scratch directory.

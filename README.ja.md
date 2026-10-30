@@ -18,7 +18,7 @@
   <a href="https://github.com/kakuyo1/lens/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/kakuyo1/lens?label=release&color=2f9e6e"></a>
   <a href="#ダウンロード"><img alt="Windows 10/11 x64" src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-1a1a1f"></a>
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/github/license/kakuyo1/lens?color=2f9e6e"></a>
-  <a href="#言語"><img alt="英語・中国語・繁体字中国語・スペイン語・日本語" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH-HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
+  <a href="#言語"><img alt="英語・中国語・繁体字中国語・スペイン語・日本語" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH--HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
 </p>
 
 <p align="center">
@@ -58,6 +58,10 @@
 
 答えは英語のまま。地球を押している間だけ母語が出て、離せば英語に戻ります。
 
+<p align="center"><img src="docs/readme/feature-tour.gif" width="600" alt="crane のカードで「画像」を押すと写真が読み込まれ、「この意味ではない？」で起重機の意味に切り替わり写真も変わる"></p>
+
+単語カードの「画像」を押すと写真が読み込まれます。「この意味ではない？」を押すと、カードがその場で別の意味に変わり、写真も切り替わります。
+
 ## まず英語。翻訳は求められたときだけ。
 
 説明は既定で英語です。中国語・日本語・スペイン語の選択範囲は英語で返します。説明言語（英語・中国語・繁体字中国語・スペイン語・日本語）は設定の項目で、カード上にはありません。一度変えれば以後のカードが従い、キャッシュがあればそこから答えます。
@@ -71,14 +75,6 @@
 単語カードの発音記号の横にスピーカーがあります。スピーカーか発音記号を押すと、見出し語を一度だけ読み上げます。定義・文・名前は読み上げません。
 
 既定ではまず Windows の音声が、選んだアクセント（既定はアメリカ英語、希望すればイギリス英語）で読みます。そのアクセントの音声が無い場合は、設定 › 読解と学習で選んだフォールバックに従います。オンライン音声（既定は Youdao、Google 翻訳も選べます）、一度だけダウンロードするローカルモデル（Kokoro 約 180 MB、LJSpeech 約 41 MB）、または無音です。この段は明示的な選択で、オンラインとローカルを黙って切り替えません。自動再生は既定でオフです。オンにすると、検索で開いたカードが一度だけ読み、同じ単語は繰り返しません。録音は `%APPDATA%\Lens\audio` にキャッシュされ、上限は 50 MB、1 日の予算には入りません。
-
-## 使い方
-
-<p align="center"><img src="docs/readme/selection-bar.png" width="800" alt="選択した文字の上にアクションバーが出る"></p>
-
-1. どのアプリでも単語・名前・文を選択します。
-2. 「解説」を選ぶと、選択範囲の上か下にバブルが出ます。
-3. 「覚えた」「初見」で印をつけて、読み続けます。
 
 ## 選択できないテキスト
 

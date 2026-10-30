@@ -18,7 +18,7 @@
   <a href="https://github.com/kakuyo1/lens/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/kakuyo1/lens?label=release&color=2f9e6e"></a>
   <a href="#download"><img alt="Windows 10 and 11, x64" src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-1a1a1f"></a>
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/github/license/kakuyo1/lens?color=2f9e6e"></a>
-  <a href="#languages"><img alt="English, Chinese, Traditional Chinese, Spanish and Japanese" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH-HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
+  <a href="#languages"><img alt="English, Chinese, Traditional Chinese, Spanish and Japanese" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH--HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
 </p>
 
 <p align="center">
@@ -58,6 +58,10 @@ Most lookup tools pull you out of the page and answer in your first language. Yo
 
 The answer is English. Hold the globe for your mother tongue, let go, and the card is English again.
 
+<p align="center"><img src="docs/readme/feature-tour.gif" width="600" alt="Pressing Pictures on the word crane loads its photos; Not the Sense? swaps the card to the machine sense, photos and all"></p>
+
+Press Pictures on a word to load its photos. Not the Sense? swaps the card in place to the word's other sense, photos and all.
+
 ## English first. Translation when you ask.
 
 Explanations default to English. A selection in Chinese, Japanese, or Spanish comes back in English. The explanation language — English, Chinese, Traditional Chinese, Spanish, or Japanese — is a setting, not a switch on the card: change it once and every card follows, answered from cache when that word already has one.
@@ -71,14 +75,6 @@ The globe on the card is the language control that stayed: hold it for half a se
 Every word card carries a speaker beside its pronunciation; pressing either one reads the headword once. Nothing else on the card is spoken — not the definition, not a sentence, not a name.
 
 By default the Windows voice speaks first, in the accent you pick: American by default, British on request. When the machine has no voice for that accent, Lens falls back to the one you chose in Settings › Reading & learning: an online recording (Youdao by default, or Google Translate), a local model you download once (Kokoro, about 180 MB, or LJSpeech, about 41 MB), or silence. The choice is explicit — Lens does not quietly move between online and local. Auto-play is off by default; when it is on, the card a lookup opens reads once, and the same word does not repeat. A recording is cached under `%APPDATA%\Lens\audio`, capped at 50 MB, and never counts against the daily budget.
-
-## How it works
-
-<p align="center"><img src="docs/readme/selection-bar.png" width="800" alt="The selection action bar above a selected word"></p>
-
-1. Select a word, a name, or a sentence in any app.
-2. Choose Explain. The bubble lands above or below the selection.
-3. Mark it Known or New, and keep reading.
 
 ## Text you can't select
 
