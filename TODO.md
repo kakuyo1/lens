@@ -37,9 +37,13 @@
 
 提问牌已从手举纸牌改成立在脚边的木牌（`docs/adr/0088`）。还没在真机上看过：木牌与短柱在桌面背景上的阴影与木质观感、默认与小/大倍率下的字和像素边、悬停小卡在上下边缘的夹取、贴近屏幕左右与底部、躲藏时立在露出的内侧，以及没有 `ask` 的第三方包也出牌。静态离屏快照见 `docs/qa.md` 的 `qml-snapshot.ps1`（`ReviewSign::test_captureTheClosedSign`、`Pet::test_captureTheSignPreview`）。
 
-## `lens_qtest_pet` 的旧狗脚点断言
+## `lens_qtest_pet` 的旧断言
 
-该目标不在 `TEST.md` 的目标表里，`aPreviewedSceneExposesItsSheetsAndAlignment` 仍按旧狗的脚点（57，84）与场景对位 -1.5 断言，实际脚点是（51，84）。先确认狗在共享场景里是否仍对位，再改测试或场景；本次木牌改动没有碰空闲身体或场景对齐。
+该目标不在 `TEST.md` 的目标表里，`aPreviewedSceneExposesItsSheetsAndAlignment` 仍按旧狗的脚点（57，84）与场景对位 -1.5 断言，实际脚点是（51，84）。先确认狗在共享场景里是否仍对位，再改测试或场景。另有两条随数据漂移过期：`threeClicksMakeTheDogAngry` 仍点三次，而 `dog/animations.json` 的 `angryClicks` 已是 4；`accessoryCatalogueAndWornSlotsAreExposed` 仍数 18 个动作，实际 19（六场景之后新增了非场景动作）。三条都在动测试或数据之前先确认真机读感。
+
+## 宠物 QML 接口的单值化（评审 01 余项）
+
+仪式与闲逛已各自成为 module（ADR 0139），但 `PetController` 对 QML 的约 100 项接口尚未收缩。下一步把帧、场景与入场并成一个 `pose` 值，picker 与窗口宿主各成一个入口，再逐个改 `PetScene.qml` / `PetWindow.qml` / 设置页与对应 QTest；动 QML 前先按 DESIGN.md 与 UI-SPEC §4.x 定形，并做视觉 QA。
 
 ## 表面反复开合后的残留增长
 

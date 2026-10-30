@@ -15,14 +15,27 @@ namespace lens::app::pet {
 
 using namespace std::chrono_literals;
 
-void PetHide::begin(EdgeSide side, QPoint from, QSize size, QRect area, QString screen, double inkLeft, double inkRight)
+QPointF PetHide::Ink::centre() const
+{
+    return QPointF{(left + right) / 2.0, (top + bottom) / 2.0};
+}
+
+double PetHide::scale() const
+{
+    if (ink_.canvas <= 0.0 or size_.width() <= 0) return 1.0;
+    return static_cast<double>(size_.width()) / ink_.canvas;
+}
+
+void PetHide::begin(EdgeSide side, QPoint from, QSize size, QRect area, QString screen, Ink ink)
 {
     active_    = true;
     side_      = side;
     screen_    = std::move(screen);
     area_      = area;
+    size_      = size;
+    ink_       = ink;
     from_      = from;
-    base_      = PetWander::hiddenBase(area, size, side, from, inkLeft, inkRight);
+    base_      = PetWander::hiddenBase(area, size, side, from, ink.left * scale(), ink.right * scale());
     slide_     = 0ms;
     peekClock_ = 0ms;
     lean_      = 0.0;
@@ -92,14 +105,34 @@ PetHide::Ask PetHide::ask()
     return {.position = base_, .left = false};
 }
 
-QPoint PetHide::refit(QRect area, QSize size, double inkLeft, double inkRight)
+QPoint PetHide::refit(QRect area, QSize size)
 {
     if (not active_) return {};
     area_      = area;
-    base_      = PetWander::hiddenBase(area_, size, side_, base_, inkLeft, inkRight);
+    size_      = size;
+    base_      = PetWander::hiddenBase(area_, size_, side_, base_, ink_.left * scale(), ink_.right * scale());
     slide_     = PetWander::kHideSlide;
     peekClock_ = 0ms;
     return base_;
+}
+
+double PetHide::distanceToSliver(QPoint cursor, QPoint origin) const
+{
+    if (not active_ or ink_.canvas <= 0.0 or size_.width() <= 0) return 0.0;
+
+    auto const sx = scale();
+    auto const sy = size_.height() / ink_.canvas;
+    auto       x1 = origin.x() + ink_.left * sx;
+    auto       x2 = origin.x() + ink_.right * sx;
+    auto const y1 = origin.y() + ink_.top * sy;
+    auto const y2 = origin.y() + ink_.bottom * sy;
+    if (side_ == EdgeSide::Left)
+        x1 = std::max(x1, static_cast<double>(area_.left()));
+    else
+        x2 = std::min(x2, static_cast<double>(area_.right() + 1));
+    auto const dx = std::max({x1 - cursor.x(), 0.0, cursor.x() - x2});
+    auto const dy = std::max({y1 - cursor.y(), 0.0, cursor.y() - y2});
+    return std::hypot(dx, dy) / sx;
 }
 
 PetHide::Step PetHide::tick(std::chrono::milliseconds step, bool idle, bool pointerNear)

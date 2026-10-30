@@ -23,22 +23,22 @@ using lens::app::pet::PetHide;
 using lens::app::pet::PetWander;
 using namespace std::chrono_literals;
 
-QRect const      kArea{0, 0, 1200, 800};
-QSize const      kPet{200, 200};
-QPoint const     kFrom{300, 200};
-constexpr double kInkLeft{20.0};
-constexpr double kInkRight{180.0};
+QRect const  kArea{0, 0, 1200, 800};
+QSize const  kPet{200, 200};
+QPoint const kFrom{300, 200};
+/// A 200 px canvas whose peek ink sits 20..180 across and 10..190 down; the window is drawn at 1:1 here.
+PetHide::Ink const kInk{200.0, 20.0, 180.0, 10.0, 190.0};
 
 PetHide makeHide(EdgeSide side = EdgeSide::Left, QString const& screen = QStringLiteral("screen"))
 {
     auto hide = PetHide{};
-    hide.begin(side, kFrom, kPet, kArea, screen, kInkLeft, kInkRight);
+    hide.begin(side, kFrom, kPet, kArea, screen, kInk);
     return hide;
 }
 
 QPoint baseOf(EdgeSide side = EdgeSide::Left, QPoint from = kFrom, QSize size = kPet)
 {
-    return PetWander::hiddenBase(kArea, size, side, from, kInkLeft, kInkRight);
+    return PetWander::hiddenBase(kArea, size, side, from, kInk.left, kInk.right);
 }
 
 /// @brief Runs the slide out to its end.
@@ -203,8 +203,9 @@ TEST(PetHide, AResizeRecomputesTheBaseFromTheNewSize)
     auto hide = makeHide();
     settle(hide);
 
+    // The window grows to 300 px, so the canvas ink is drawn 1.5x: 30..270 on screen.
     QSize const bigger{300, 240};
-    auto const  base = hide.refit(kArea, bigger, 30.0, 270.0);
+    auto const  base = hide.refit(kArea, bigger);
     EXPECT_EQ(base, PetWander::hiddenBase(kArea, bigger, EdgeSide::Left, baseOf(), 30.0, 270.0));
     EXPECT_TRUE(hide.peeking());
 }
@@ -215,9 +216,25 @@ TEST(PetHide, AMoveToAnotherScreenRehidesOnItsNewArea)
     settle(hide);
 
     QRect const other{1300, 40, 1000, 700};
-    auto const  base = hide.refit(other, kPet, kInkLeft, kInkRight);
+    auto const  base = hide.refit(other, kPet);
     EXPECT_EQ(hide.area(), other);
-    EXPECT_EQ(base, PetWander::hiddenBase(other, kPet, EdgeSide::Left, baseOf(), kInkLeft, kInkRight));
+    EXPECT_EQ(base, PetWander::hiddenBase(other, kPet, EdgeSide::Left, baseOf(), kInk.left, kInk.right));
+}
+
+TEST(PetHide, TheSliverIsMeasuredOnThePeekInkAtTheWindowScale)
+{
+    auto hide = makeHide();
+    settle(hide);
+    auto const at = *hide.tick(10ms, true, false).position;
+
+    // The window is mostly past the left edge, so the sliver runs from the screen's edge to the ink's right side.
+    EXPECT_DOUBLE_EQ(hide.distanceToSliver(QPoint{27, 300}, at), 0.0);
+
+    // A window twice as wide draws the same ink at 40..360: the same ten pixels off the sliver are five canvas units.
+    QSize const bigger{400, 400};
+    hide.refit(kArea, bigger);
+    auto const moved = PetWander::hiddenBase(kArea, bigger, EdgeSide::Left, at, 40.0, 360.0);
+    EXPECT_DOUBLE_EQ(hide.distanceToSliver(QPoint{-10, 300}, moved), 5.0);
 }
 
 TEST(PetHide, TheHideRemembersItsScreenAndForgetsItOnStop)

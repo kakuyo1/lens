@@ -4,6 +4,7 @@
 #include <optional>
 
 #include <QPoint>
+#include <QPointF>
 #include <QRect>
 #include <QSize>
 #include <QString>
@@ -24,6 +25,22 @@ namespace lens::app::pet {
 
 class PetHide {
 public:
+    /// @brief The figure's ink in its own canvas units, and the canvas the window scales by. The sliver a hidden pet
+    ///        leaves visible is measured on this ink, never on the square canvas.
+    struct Ink {
+        /// Side of one square canvas, in pixels.
+        double canvas{0.0};
+        /// The peek figure's ink edges, in canvas units.
+        double left{0.0};
+        double right{0.0};
+        /// The figure's ink top and bottom, in canvas units.
+        double top{0.0};
+        double bottom{0.0};
+
+        /// @return The peek ink's centre and the figure's vertical middle, in canvas units.
+        [[nodiscard]] QPointF centre() const;
+    };
+
     /// @brief One tick's answer.
     struct Step {
         /// Where the window goes. Absent while the reader is dragging it.
@@ -56,10 +73,9 @@ public:
      * @param size The window size.
      * @param area The work area of the screen it hides on.
      * @param screen That screen's device name, so a later change can find it again.
-     * @param inkLeft The peek figure's left ink edge in screen pixels, from the window's left.
-     * @param inkRight Its right ink edge, in the same pixels.
+     * @param ink The figure's ink, which the sliver and its lean are measured on.
      */
-    void begin(EdgeSide side, QPoint from, QSize size, QRect area, QString screen, double inkLeft, double inkRight);
+    void begin(EdgeSide side, QPoint from, QSize size, QRect area, QString screen, Ink ink);
 
     /// @brief Forgets the hide where it is, as when the pet is turned off or replaced.
     void               stop();
@@ -78,6 +94,11 @@ public:
     [[nodiscard]] QString screen() const
     {
         return screen_;
+    }
+    /// @return The figure's ink as the hide measured it.
+    [[nodiscard]] Ink ink() const
+    {
+        return ink_;
     }
 
     /// @return Whether the pet is fully out, still and peeking: no slide, drag, ask or call-out.
@@ -99,11 +120,17 @@ public:
      * @brief Recomputes the hidden base after the window or its screen changed.
      * @param area The work area to hide on; the same one unless the screen changed.
      * @param size The window size.
-     * @param inkLeft The peek figure's left ink edge in screen pixels, from the window's left.
-     * @param inkRight Its right ink edge, in the same pixels.
      * @return The new base the caller writes.
      */
-    QPoint refit(QRect area, QSize size, double inkLeft, double inkRight);
+    QPoint refit(QRect area, QSize size);
+
+    /**
+     * @brief The pointer's distance to the sliver a hidden pet leaves visible: the peek ink clipped at the work-area
+     *        edge, in canvas units. The rows above and below the figure never count.
+     * @param cursor The pointer, in screen pixels.
+     * @param origin The window's top-left now.
+     */
+    [[nodiscard]] double distanceToSliver(QPoint cursor, QPoint origin) const;
 
     /**
      * @brief Moves the hide on.
@@ -114,10 +141,15 @@ public:
     Step tick(std::chrono::milliseconds step, bool idle, bool pointerNear);
 
 private:
+    /// @return The window's pixels per canvas unit.
+    [[nodiscard]] double scale() const;
+
     bool                      active_{false};
     EdgeSide                  side_{EdgeSide::Left};
     QString                   screen_;
     QRect                     area_;
+    QSize                     size_;
+    Ink                       ink_;
     QPoint                    base_;
     QPoint                    from_;
     std::chrono::milliseconds slide_{0};

@@ -96,6 +96,7 @@ add_library(lens_app STATIC
   # Pet: the Qt shell around the core state machine.
   pet/pet_assets.cpp
   pet/pet_catalog.cpp
+  pet/pet_ceremony.cpp
   pet/pet_controller.cpp
   pet/pet_flight.cpp
   pet/pet_hide.cpp
@@ -104,6 +105,7 @@ add_library(lens_app STATIC
   pet/pet_placement.cpp
   pet/pet_scenes.cpp
   pet/pet_stage.cpp
+  pet/pet_stroll.cpp
   pet/pet_throw.cpp
   pet/pet_wander.cpp
 

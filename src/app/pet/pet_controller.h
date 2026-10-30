@@ -41,9 +41,12 @@
 
 #include "app/pet/pet_assets.h"
 #include "app/pet/pet_catalog.h"
+#include "app/pet/pet_ceremony.h"
 #include "app/pet/pet_hide.h"
+#include "app/pet/pet_placement.h"
 #include "app/pet/pet_scenes.h"
 #include "app/pet/pet_stage.h"
+#include "app/pet/pet_stroll.h"
 #include "app/pet/pet_throw.h"
 #include "app/pet/pet_wander.h"
 #include "core/document/pet_store.h"
@@ -275,35 +278,6 @@ signals:
     void fellBack(QString title, QString body);
 
 private:
-    /// The stages of one ceremony. A switch runs SwitchOut, Swap, then Entering; an entrance starts at Entering and
-    /// a goodbye at Leaving.
-    enum class CeremonyPhase : std::uint8_t {
-        Entering,
-        EnterLook,
-        Leaving,
-        LeaveLook,
-        LeaveBye,
-        Exiting,
-        SwitchOut,
-        Swap,
-    };
-
-    /// @brief The entrance, switch or goodbye in progress. `walk` is the path the walking phases move along.
-    struct Ceremony {
-        CeremonyPhase phase;
-        EdgeSide      side;
-        WanderStep    walk;
-        /// Where the pet settles once it is inside: home, clamped to the window's current size and work area.
-        QPoint                    home;
-        std::chrono::milliseconds elapsed{0};
-        std::chrono::milliseconds duration{0};
-        /// Swap only: the new pet is loaded and the window has had one beat to take its new size.
-        bool loaded{false};
-    };
-
-    /// @return Whether `phase` belongs to taking the pet off screen.
-    static bool isLeaving(CeremonyPhase phase);
-
     /// @brief Loads the pet in folder `id` from the catalogue, and starts it from its first frame. A pet the catalogue does
     ///        not hold, or that fails to load, leaves the pet off.
     void loadPet(std::string const& id);
@@ -326,18 +300,13 @@ private:
     /// @param saveHome Whether `at` becomes the pet's home.
     /// @param why What interrupted it (ADR 0092).
     void endThrow(QPoint at, bool saveHome, ThrowStop why);
-    /// @brief Waits for the next stroll, or moves the window through the current step and its pauses. Does nothing
-    ///        while hidden, previewing, dragging, flying, angry, or busy.
+    /// @brief Waits for the next stroll, or moves the window through the current step and its pauses.
     void updateWander(std::chrono::milliseconds step);
     /// @brief Slides the window out of its edge, plays the peek loop, and resumes it after a reaction.
     void updateHiding(std::chrono::milliseconds step);
-    /// @brief Starts one walk cycle from where the window is now, or returns false when there is no room.
-    bool beginStep();
-    /// @brief Draws the step count and starts the first step.
-    void startStroll();
-    /// @brief Ends the stroll and draws the next long wait.
-    void finishStroll();
-    /// @brief Stops a walk in progress and returns the state machine to idle.
+    /// @brief Executes what one stroll tick answered: the window, the walk loop, a hide, the return look.
+    void runStrollStep(PetStroll::Step answer);
+    /// @brief Ends the stroll where it is, stopping its walk loop.
     void cancelStroll();
     /// @brief Starts a hide against `side`: stops the walk, computes the hidden base, and plays the peek loop.
     void enterHiding(EdgeSide side);
@@ -359,40 +328,46 @@ private:
     void startLeave();
     /// @brief Starts the switch the reader chose: the old pet leaves, the pending one enters from the same edge.
     void startSwitch();
-    /// @brief Moves the ceremony on by `step`.
+    /// @brief Moves the ceremony on and plays what it answers.
     void updateCeremony(std::chrono::milliseconds step);
-    /// @brief Starts a walk between two points, or marks a zero-length walk for the next tick to step through.
-    /// @return False when the pet has no walk art.
-    bool beginCeremonyWalk(CeremonyPhase phase, QPoint from, QPoint to);
-    /// @brief Plays the action mapped to `role` and waits its playback plus `beat`.
-    /// @return False when the role cannot play as a one-shot.
-    bool beginCeremonyRole(CeremonyPhase phase, core::pet::Role role, std::chrono::milliseconds beat);
-    /// @return How long the action mapped to `role` runs, from its frames and fps.
-    std::chrono::milliseconds rolePlayback(core::pet::Role role) const;
+    /// @brief The window, the pet and the reader's home as the ceremony reads them this tick.
+    PetCeremony::Stage ceremonyStage() const;
+    /// @brief The one-shot roles this pet can play, and how long each runs.
+    PetCeremony::Roles ceremonyRoles() const;
+    /// @return How long the action mapped to `role` runs, or nothing when the pet has no art for it.
+    std::optional<std::chrono::milliseconds> rolePlayback(core::pet::Role role) const;
+    /// @brief Executes what one ceremony tick answered, playing its fallbacks when a walk or a role cannot start.
+    void runCeremonyStep(PetCeremony::Step answer);
+    /// @brief Starts the pet's walk loop for a ceremony phase; false when the machine refuses it.
+    bool playCeremonyWalk();
+    /// @brief Plays one of the ceremony's one-shot roles; false when the machine refuses it.
+    bool playCeremonyRole(core::pet::Role role);
     /// @brief Ends the ceremony on screen, with the pet at home and at rest.
     void settleAtHome();
     /// @brief Ends the ceremony at its outcome now: hides a goodbye, otherwise completes a pending switch and settles.
     void finishCeremonyNow();
     /// @brief Ends the ceremony where it is, with the pet still on screen.
     void abortCeremony();
-    /// @brief Walks from where the goodbye stands to just outside the edge it chose.
-    void beginExitWalk();
     /// @brief Ends the ceremony and takes the window off screen.
     void hideNow();
     /// @brief Applies the pet a switch is waiting on, while the window is off screen.
     void applyPendingPet();
+    /// @brief Records `at` as the pet's home, the stroll's geometry staying in step with it.
+    void adoptHome(QPoint at);
+    /// @brief Reads the screens now attached into the placement.
+    void syncScreens();
     /// @brief Starts the entry choreography for a scene that is now the machine's action.
     void beginSceneEntry(Scene const& scene, core::pet::ActionName const& action);
-    /// @brief Publishes a scene's prop sheets, layers and stage alignment.
-    void applySceneProps(Scene const& scene);
+    /// @brief Publishes a scene's props, transform and alignment from one frame; the only writer of the scene values.
+    void applyScene(Scene const& scene, PetStage::Frame const& frame);
+    /// @brief Publishes the pet's place in the scene; the only writer of the scene shift and scale.
+    void publishSceneTransform(QPointF shift, double scale);
+    /// @brief Returns the scene values to their neutral, so the QML stage draws no props.
+    void clearScene();
     /// @brief Changes shown() and announces it when it moved.
     void setShown(bool on);
-    /// @return A fresh wait before the next stroll, from the behavior block.
-    std::chrono::milliseconds nextWanderWait();
     /// @brief The moment now, for the idle turn: the local day stretch and whether an after-context is up (ADR 0093).
     core::pet::PetMood currentMood() const;
-    /// @return How long the pet pauses between two steps, by gait.
-    std::chrono::milliseconds nextPause();
     /// @return The work area of the screen nearest `at`, or an invalid rectangle when no screen is attached.
     QRect areaAt(QPoint at) const;
     /// @return The reader's saved spot, on the screen the window was left on, when that screen is still attached
@@ -420,9 +395,6 @@ private:
     QPoint gazeToward(QPointF cursor, double centreX, double middleY) const;
     /// @return Canvas pixels from `at` to the idle figure's ink box; zero inside it.
     double inkDistanceAt(QPointF at) const;
-    /// @return Canvas pixels from the screen point to the sliver a hidden pet leaves visible: the peek ink clipped
-    ///         at the work-area edge. Zero inside it.
-    double sliverDistanceAt(QPoint cursor) const;
     /// @brief Reads the shown action and blink into the properties, and emits when the frame they show changed.
     void sync(std::chrono::milliseconds step);
     /// @brief Publish the frame properties and note that a visible frame was produced.
@@ -472,28 +444,13 @@ private:
 
     /// @brief The hide in progress: the slide, the peek, the pointer's lean, the ask's pause and the call-out.
     PetHide hide_;
-    enum class StrollPhase : std::uint8_t {
-        Waiting,
-        Walking,
-        Pausing,
-    };
 
     /// One random stream for the idle timer, the scene pick, the strolls and the hide roll.
     std::mt19937 random_{std::random_device{}()};
     /// The stroll geometry. Empty for a pet whose data has no movement block.
     std::unique_ptr<PetWander> wander_;
-    StrollPhase                stroll_{StrollPhase::Waiting};
-    std::optional<WanderStep>  step_;
-    std::chrono::milliseconds  stepElapsed_{0};
-    std::chrono::milliseconds  stepDuration_{0};
-    std::chrono::milliseconds  pauseLeft_{0};
-    std::chrono::milliseconds  wanderWait_{0};
-    /// Steps still to take in this stroll, including the one running.
-    int stepsLeft_{0};
-    /// Whether the pointer is on the pet and has already voided this wait.
-    bool hoverPause_{false};
-    /// Whether the home point is known; false after a load and until the window has a position.
-    bool homeReady_{false};
+    /// The idle stroll: the wait, the steps, the pauses and the hide roll.
+    PetStroll stroll_{[this] { return randomUnit(); }};
     /// Whether the reader is holding the pet, hide or not.
     bool dragging_{false};
     /// The throw in progress and the run of landings behind it. The state machine stays in its pickup pose until the
@@ -508,8 +465,10 @@ private:
     bool shown_{false};
     /// The reader's reduced-motion answer, mirrored from Tokens.motion.reduced by the pet window.
     bool motionReduced_{false};
-    /// The one ceremony in progress, if any.
-    std::optional<Ceremony> ceremony_;
+    /// The entrance, goodbye or switch in progress.
+    PetCeremony ceremony_;
+    /// The screens attached and the one home the pet belongs to.
+    PetPlacement placement_;
     /// The pet the reader chose while the old one is still walking out; pet() reports it meanwhile.
     std::string pendingPet_;
     /// A drag that caught a goodbye keeps the pet under the pointer until the drop, then hides it.

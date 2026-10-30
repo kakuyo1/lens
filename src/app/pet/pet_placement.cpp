@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <utility>
 
 namespace lens::app::pet {
 
@@ -54,6 +55,52 @@ int indexOfNearestArea(QPoint at, QList<QRect> const& areas)
         }
     }
     return nearest;
+}
+
+void PetPlacement::setScreens(QList<QRect> areas, QRect primary)
+{
+    areas_   = std::move(areas);
+    primary_ = primary;
+}
+
+int PetPlacement::nearest(QPoint at) const
+{
+    return indexOfNearestArea(at, areas_);
+}
+
+QRect PetPlacement::areaAt(QPoint at) const
+{
+    auto const index = nearest(at);
+    return index < 0 ? QRect{} : areas_.at(index);
+}
+
+bool PetPlacement::holds(QPoint at, QSize size) const
+{
+    for (auto const& area : areas_) {
+        if (fitsWithin(at, size, area)) return true;
+    }
+    return false;
+}
+
+QPoint PetPlacement::fit(QPoint at, QSize size) const
+{
+    auto const area = areaAt(at);
+    return area.isValid() ? clampedWithin(at, size, area) : at;
+}
+
+QPoint PetPlacement::keep(QPoint at, QSize size) const
+{
+    return areas_.isEmpty() ? at : placeWithin(at, size, areas_, primary_);
+}
+
+void PetPlacement::setHome(QPoint at)
+{
+    home_ = at;
+}
+
+void PetPlacement::forgetHome()
+{
+    home_.reset();
 }
 
 } // namespace lens::app::pet

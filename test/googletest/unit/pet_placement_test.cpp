@@ -3,6 +3,8 @@
  * @brief Where the pet window goes when the screen under it changed: kept if it fits, else the bottom-right (PHASE3 3.5).
  */
 
+#include <optional>
+
 #include <gtest/gtest.h>
 
 #include <QPoint>
@@ -17,6 +19,7 @@ using lens::app::pet::bottomRightOf;
 using lens::app::pet::clampedWithin;
 using lens::app::pet::fitsWithin;
 using lens::app::pet::indexOfNearestArea;
+using lens::app::pet::PetPlacement;
 using lens::app::pet::placeWithin;
 
 /// A 1920x1040 usable area, starting at the origin.
@@ -106,6 +109,59 @@ TEST(PetPlacement, APointOutsideEveryAreaIndexesTheNearestOne)
 TEST(PetPlacement, NoAreaIndexesNothing)
 {
     EXPECT_EQ(indexOfNearestArea(QPoint{10, 10}, {}), -1);
+}
+
+TEST(PetPlacement, TheScreensGiveEachPointItsNearestArea)
+{
+    QRect const second{1920, 0, 1920, 1040};
+    auto        placement = PetPlacement{};
+    placement.setScreens({kArea, second}, kArea);
+
+    EXPECT_EQ(placement.nearest(QPoint{2000, 100}), 1);
+    EXPECT_EQ(placement.areaAt(QPoint{2000, 100}), second);
+    EXPECT_EQ(placement.nearest(QPoint{-300, 100}), 0);
+    EXPECT_TRUE(placement.holds(QPoint{100, 100}, kPet));
+    EXPECT_FALSE(placement.holds(QPoint{4000, 100}, kPet));
+}
+
+TEST(PetPlacement, AFitPullsTheWindowIntoItsNearestScreen)
+{
+    auto placement = PetPlacement{};
+    placement.setScreens({kArea}, kArea);
+
+    EXPECT_EQ(placement.fit(QPoint{100, 100}, kPet), (QPoint{100, 100}));
+    EXPECT_EQ(placement.fit(QPoint{1800, 100}, kPet), (QPoint{1920 - 264, 100}));
+}
+
+TEST(PetPlacement, AKeepMovesOnlyAWindowNoScreenHolds)
+{
+    QRect const second{1920, 0, 1920, 1040};
+    auto        placement = PetPlacement{};
+    placement.setScreens({kArea, second}, kArea);
+
+    EXPECT_EQ(placement.keep(QPoint{2000, 100}, kPet), (QPoint{2000, 100}));
+    EXPECT_EQ(placement.keep(QPoint{5000, 100}, kPet), bottomRightOf(kPet, kArea));
+}
+
+TEST(PetPlacement, NoScreensLeavesTheWindowWhereItIs)
+{
+    auto placement = PetPlacement{};
+    EXPECT_TRUE(placement.empty());
+    EXPECT_EQ(placement.fit(QPoint{100, 100}, kPet), (QPoint{100, 100}));
+    EXPECT_EQ(placement.keep(QPoint{100, 100}, kPet), (QPoint{100, 100}));
+    EXPECT_FALSE(placement.areaAt(QPoint{100, 100}).isValid());
+}
+
+TEST(PetPlacement, TheHomeIsWrittenAndForgotten)
+{
+    auto placement = PetPlacement{};
+    EXPECT_FALSE(placement.home().has_value());
+
+    placement.setHome(QPoint{300, 200});
+    EXPECT_EQ(placement.home(), (std::optional<QPoint>{QPoint{300, 200}}));
+
+    placement.forgetHome();
+    EXPECT_FALSE(placement.home().has_value());
 }
 
 } // namespace

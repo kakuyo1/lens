@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include <QList>
 #include <QPoint>
 #include <QRect>
@@ -7,7 +9,8 @@
 
 /**
  * @file pet_placement.h
- * @brief Where the pet window goes when the screen changed under it (PHASE3 3.5).
+ * @brief Where the pet window goes when the screen changed under it (PHASE3 3.5), and the one owner of the spot it
+ *        belongs to (ADR 0100).
  */
 
 namespace lens::app::pet {
@@ -45,5 +48,46 @@ QPoint placeWithin(QPoint at, QSize size, QList<QRect> const& areas, QRect prima
  * @return The index in `areas` of the area holding `at`, else of the nearest one; -1 when `areas` is empty.
  */
 int indexOfNearestArea(QPoint at, QList<QRect> const& areas);
+
+/**
+ * @brief The screens attached and the one home the pet belongs to.
+ *
+ * The controller sets the screens whenever they change and records every spot the reader leaves the pet at here, so
+ * the nearest-screen rule and the home have one owner each rather than being recomputed at every call site.
+ */
+class PetPlacement {
+public:
+    /// @brief Records the work areas now attached and the primary one.
+    void setScreens(QList<QRect> areas, QRect primary);
+
+    /// @return The index of the screen nearest `at`, or -1 when none is attached.
+    [[nodiscard]] int nearest(QPoint at) const;
+    /// @return The work area of the screen nearest `at`; an invalid rectangle when none is attached.
+    [[nodiscard]] QRect areaAt(QPoint at) const;
+    /// @return Whether no screen is attached.
+    [[nodiscard]] bool empty() const
+    {
+        return areas_.isEmpty();
+    }
+    /// @return Whether one attached screen holds a window of `size` at `at` whole.
+    [[nodiscard]] bool holds(QPoint at, QSize size) const;
+    /// @return The least move that keeps a window of `size` whole on the nearest screen.
+    QPoint fit(QPoint at, QSize size) const;
+    /// @return The window's spot after the screens changed: kept while one holds it, else the primary's corner.
+    QPoint keep(QPoint at, QSize size) const;
+
+    /// @brief Records `at` as the pet's home. The only write.
+    void                                setHome(QPoint at);
+    [[nodiscard]] std::optional<QPoint> home() const
+    {
+        return home_;
+    }
+    void forgetHome();
+
+private:
+    QList<QRect>          areas_;
+    QRect                 primary_;
+    std::optional<QPoint> home_;
+};
 
 } // namespace lens::app::pet
