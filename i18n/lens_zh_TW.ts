@@ -234,7 +234,7 @@
 <context>
     <name>Notice</name>
     <message>
-        <location filename="../src/app/qml/panels/Notice.qml" line="119"/>
+        <location filename="../src/app/qml/panels/Notice.qml" line="123"/>
         <source>Close</source>
         <translation>關閉</translation>
     </message>
@@ -2714,37 +2714,42 @@
 <context>
     <name>TrayMenu</name>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="75"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="79"/>
+        <source>No API key yet</source>
+        <translation>尚未設定 API key</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="81"/>
         <source>Today&apos;s budget is used up</source>
         <translation>今日預算已用完</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="79"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="85"/>
         <source>Selection capture is off</source>
         <translation>取詞已關閉</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="107"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="123"/>
         <source>lookups</source>
         <translation>次</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="237"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="253"/>
         <source>Statistics</source>
         <translation>今日統計</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="247"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="263"/>
         <source>Language</source>
         <translation>語言</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="268"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="284"/>
         <source>Settings</source>
         <translation>設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/TrayMenu.qml" line="283"/>
+        <location filename="../src/app/qml/panels/TrayMenu.qml" line="299"/>
         <source>Quit</source>
         <translation>結束</translation>
     </message>
@@ -3397,14 +3402,32 @@
         <translation>LJSpeech</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="927"/>
+        <location filename="../src/app/app_controller.cpp" line="932"/>
         <source>Auto</source>
         <translation>自動模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="927"/>
+        <location filename="../src/app/app_controller.cpp" line="932"/>
         <source>Manual</source>
         <translation>手動模式</translation>
+    </message>
+</context>
+<context>
+    <name>lens::app::OnboardingDuty</name>
+    <message>
+        <location filename="../src/app/duties/onboarding_duty.cpp" line="33"/>
+        <source>Lens is running in the tray</source>
+        <translation>Lens 已在系統匣執行</translation>
+    </message>
+    <message>
+        <location filename="../src/app/duties/onboarding_duty.cpp" line="34"/>
+        <source>Select English text to see its explanation beside it. Lookups need an API key, so add one first. The icon is at the bottom right of the taskbar; if you cannot see it, click ^.</source>
+        <translation>選取一段英文，釋義會出現在文字旁邊。查詞需要先新增 API key。圖示在工作列右下角，看不到時請點 ^。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/duties/onboarding_duty.cpp" line="36"/>
+        <source>Add API key</source>
+        <translation>新增 API key</translation>
     </message>
 </context>
 <context>
@@ -3413,6 +3436,11 @@
         <location filename="../src/app/platform/tray.cpp" line="128"/>
         <source>Today %1 lookups</source>
         <translation>今日查閱 %1 次</translation>
+    </message>
+    <message>
+        <location filename="../src/app/platform/tray.cpp" line="129"/>
+        <source>No API key yet</source>
+        <translation>尚未設定 API key</translation>
     </message>
 </context>
 <context>

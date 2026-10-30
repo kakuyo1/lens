@@ -32,7 +32,16 @@ Item {
         name: "TrayMenu"
         when: windowShown
 
+        /// The controller is shared by every file in the run, and make() stores a key: clear it again so the
+        /// next file sees the fixture as it was.
+        function cleanupTestCase() {
+            Controller.setApiKey("");
+        }
+
+        /// The fixture holds no key, which would turn every live line into the missing-key row. The cases below
+        /// that read the live line store one first; the case about the missing key clears it itself.
         function make() {
+            Controller.setApiKey("qtest-key");
             const menu = createTemporaryObject(menuComponent, root);
             verify(menu);
             menu.contentActive = true;
@@ -44,7 +53,7 @@ Item {
         function stateLine(menu) {
             return Util.textWith(Util.textsUnder(menu),
                                  [Controller.modeLabel, qsTr("Selection capture is off"),
-                                  qsTr("Today's budget is used up")]);
+                                  qsTr("Today's budget is used up"), qsTr("No API key yet")]);
         }
 
         /// @return The menu's rows, in declaration order.
@@ -103,21 +112,47 @@ Item {
         function test_theStateLineMapsTheFourTrayStates() {
             const menu = make();
 
-            const budget = menu.stateLineFor(true, "", true);
+            const budget = menu.stateLineFor(true, true, "", true);
             compare(budget.mark, menu.tokens.warn, "the budget state is not the warn colour");
             compare(budget.text, qsTr("Today's budget is used up"));
 
-            const busy = menu.stateLineFor(false, "Explaining…", false);
+            const busy = menu.stateLineFor(true, false, "Explaining…", false);
             compare(busy.mark, menu.tokens.ok, "a busy menu should read as working");
             compare(busy.text, "Explaining…");
 
-            const auto = menu.stateLineFor(false, "", true);
+            const auto = menu.stateLineFor(true, false, "", true);
             compare(auto.mark, menu.tokens.ok);
             compare(auto.text, Controller.modeLabel);
 
-            const off = menu.stateLineFor(false, "", false);
+            const off = menu.stateLineFor(true, false, "", false);
             compare(off.mark, menu.tokens.faint);
             compare(off.text, qsTr("Selection capture is off"));
+        }
+
+        /// With no key stored nothing can be looked up, so the first row says so ahead of the budget and the busy line,
+        /// and a tap on it asks for the page the key is typed into (docs/adr/0144).
+        function test_theStateRowAsksForAKeyBeforeAnythingElse() {
+            const menu = make();
+            const none = menu.stateLineFor(false, true, "Explaining…", true);
+            compare(none.mark, menu.tokens.warn, "a missing key should read as a warning");
+            compare(none.text, qsTr("No API key yet"));
+
+            Controller.setApiKey("");
+            wait(50);
+            compare(menu.hasApiKey, false);
+            const row = stateLine(menu).parent;
+            compare(stateLine(menu).text, qsTr("No API key yet"));
+            compare(row.Accessible.role, Accessible.Button,
+                    "with no key the first row should be a button for the API page");
+
+            let asked = 0;
+            menu.apiKeyRequested.connect(function () { ++asked; });
+            mouseClick(row, row.width / 2, row.height / 2);
+            wait(50);
+            compare(asked, 1, "a tap on the no-key row did not ask for the API page");
+
+            Controller.setApiKey("qtest-key");
+            wait(50);
         }
 
         /// The corner dot means the tray icon's busy state, so the exhausted budget outranks it

@@ -33,6 +33,8 @@ struct TrayReadout {
     bool    selectionCapture = false;
     int     todayPops        = 0;
     QString mode;
+    /// Without a key nothing can be looked up, so the tooltip says so in place of the mode (docs/adr/0144).
+    bool hasApiKey = false;
 };
 
 /**

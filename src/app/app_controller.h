@@ -26,6 +26,7 @@
 #include "core/domain/settings_table.h"
 #include "app/duties/cost_duty.h"
 #include "app/duties/explanation_duty.h"
+#include "app/duties/onboarding_duty.h"
 #include "app/glass/glass_backdrop.h"
 #include "app/platform/global_hotkey.h"
 #include "llm/llm_client.h"
@@ -194,6 +195,8 @@ public:
     SyncDuty* syncDuty();
     /// @brief The explanation duty, which QML reads as `Controller.explanationDuty`; the facade owns it.
     ExplanationDuty* explanationDuty();
+    /// @brief The first-run notice's launch step, which main() runs once the surfaces are up (docs/adr/0144).
+    OnboardingDuty* onboardingDuty();
     /// @brief The capture duty, which QML reads as `Controller.captureDuty`; the facade owns it.
     CaptureDuty* captureDuty();
     /// @brief The glass backdrop, which QML reads as `Controller.glassBackdrop`; the facade owns it.
@@ -307,6 +310,7 @@ private:
     update::UpdateClient   updateClient_;
     update::DownloadClient updateDownloader_;
     UpdateDuty             updateDuty_;
+    OnboardingDuty         onboarding_;
     SyncDuty               sync_;
     ReviewDuty             reviewDuty_;
     /// The picture lookup: the source that searches, the cache beside the settings document, and the

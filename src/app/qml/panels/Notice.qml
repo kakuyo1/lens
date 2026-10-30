@@ -40,6 +40,9 @@ Window {
     /// The word that action acts on. The surface does not know what the action means; the one that
     /// raised the notice does, and it reads this back off the controller.
     property string noticeLemma: ""
+    /// What the action does when it is not an explanation: "apiKey" sends the reader to where the key is typed.
+    /// Empty means the action explains noticeLemma, as it always has.
+    property string noticeIntent: ""
 
     signal actionTriggered()
 
@@ -53,6 +56,7 @@ Window {
         noticeKind = payload.kind || "info"
         noticeAction = payload.action || ""
         noticeLemma = payload.lemma || ""
+        noticeIntent = payload.intent || ""
         x = Math.round(Screen.virtualX + (Screen.width - width) / 2)
         y = Math.round(Screen.virtualY + (Screen.height - height) / 2)
         visible = true

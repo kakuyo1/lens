@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · 首次运行引导（演示）</title>
+<style>
+/* 令牌照抄 DESIGN.md 3.1 / 3.1b / 3.1c / 3.1d。字重只取 400 与 700（The Two Weights Rule）。 */
+:root{
+  --desk:#d5dbe4; --taskbar:rgba(246,247,249,.94); --wall:none;
+  --bg:#e9ebef; --panel:#fff; --panel2:#f1f3f7; --line:#d6dae1; --line2:#e6e9ee;
+  --text:#1a1a1f; --muted:#66666f; --faint:#73737d;
+  --ok:#2f9e6e; --ok-bg:#e6f4ee; --ok-text:#1d7a52;
+  --ink:#1a1a1f; --on:#fff; --danger:#b3564a; --warn:#b0893c;
+  --tooltip-bg:#2a2a30; --sw-off:#d6dae1;
+  --sh-card:0 2px 6px rgba(20,20,26,.06),0 24px 60px -24px rgba(20,20,26,.24);
+  --r-card:18px; --r-menu:13px; --r-field:9px;
+  --glass-blur:6px;
+  --f:"Noto Sans SC","Segoe UI Variable","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+  --mono:"Cascadia Code",Consolas,ui-monospace,monospace; /* taste-skill-ignore: DESIGN.md 4.2 的元信息等宽与钥匙、标识符 */
+  --d-press:150ms; --d-pop:180ms;
+}
+html[data-theme=dark]{
+  --desk:#1b2029; --taskbar:rgba(23,28,37,.94);
+  --panel:#171c25; --panel2:#212936; --line:#36404e; --line2:#242b37;
+  --text:#e9edf3; --muted:#a8b3c2; --faint:#8a95a6;
+  --ok:#4dc492; --ok-bg:#1a4031; --ok-text:#7ad7b0;
+  --ink:#eef3fa; --on:#0c1016; --danger:#ec9282; --warn:#d6ac6b;
+  --tooltip-bg:#3a3a44; --sw-off:#36404e;
+  --sh-card:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
+}
+html[data-theme=frosted]{
+  --wall:url("frosted-backdrops/night-lines.png");
+  --panel:rgba(255,255,255,.40); --panel2:rgba(18,24,36,.065);
+  --line:rgba(18,24,36,.15); --line2:rgba(18,24,36,.10);
+  --text:#14161c; --muted:#3c4250; --faint:#535865;
+  --ink:#191b21; --on:#fff; --sw-off:rgba(18,24,36,.22);
+  --sh-card:0 4px 14px rgb(255 255 255/5.5%);
+}
+html[data-theme=liquid]{
+  --wall:url("liquid-backdrops/cool-wall.png"); --r-card:22px;
+  --panel:transparent; --panel2:rgba(18,24,36,.075);
+  --line:rgba(18,24,36,.16); --line2:rgba(18,24,36,.11);
+  --text:#101319; --muted:#333846; --faint:#4a4f5e;
+  --ink:#12151b; --on:#fff; --sw-off:rgba(18,24,36,.24);
+  --sh-card:0 1px 2px rgba(10,14,24,.14),0 22px 54px -20px rgba(10,14,24,.48);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{-webkit-font-smoothing:antialiased;height:100%}
+body{font-family:var(--f);color:var(--text);background:var(--desk);height:100%;overflow:hidden;position:relative}
+html[data-theme=frosted] body,html[data-theme=liquid] body{background-image:var(--wall);background-size:cover;background-position:center;background-attachment:fixed}
+
+/* 通知卡（UI-SPEC 4.5）与设置面板共用的卡片。 */
+.layer{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none}
+.card{position:relative;pointer-events:auto;background:var(--panel);border-radius:var(--r-card);box-shadow:var(--sh-card);animation:rise var(--d-pop) ease-in-out both} /* taste-skill-ignore: 通知卡与设置面板浮在桌面上，DESIGN.md Elevation 的卡片阴影 */
+@keyframes rise{from{opacity:0;transform:translateY(4px)}}
+.notice{width:320px;padding:16px 18px 18px}
+.notice h2{font-size:14px;font-weight:700;line-height:1.35;padding-right:28px}
+.notice p{margin-top:6px;font-size:13px;line-height:1.55;color:var(--muted);text-wrap:pretty;word-break:auto-phrase}
+.x{position:absolute;top:10px;right:10px;width:24px;height:24px;border:0;border-radius:999px;background:transparent;color:var(--muted);font:400 16px/1 var(--f);cursor:pointer}
+.x:hover{background:var(--panel2)}
+.pill{display:inline-flex;align-items:center;height:30px;margin-top:12px;padding:0 14px;border:0;border-radius:999px;background:var(--ink);color:var(--on);font:700 12px/1 var(--f);cursor:pointer;transition:transform var(--d-press)}
+.pill:active{transform:scale(.97)}
+.pill.ghost{background:var(--panel2);color:var(--text)}
+.pill:disabled{opacity:.45;cursor:default;transform:none}
+.pill:focus-visible,.x:focus-visible,.state:focus-visible,.item:focus-visible,.tray:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+.settings{width:380px;padding:18px 20px 20px}
+.settings h2{font-size:14px;font-weight:700;padding-right:28px}
+.crumb{margin-top:3px;font-size:12px;color:var(--faint)}
+.field{margin-top:18px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:7px}
+.field input{width:100%;height:36px;padding:0 11px;border:1px solid var(--line);border-radius:var(--r-field);background:var(--panel2);color:var(--text);font:400 13px var(--mono);outline:none}
+.field input::placeholder{color:var(--faint);font-family:var(--f)}
+.field input:focus-visible{border-color:var(--ink)}
+.hint{margin-top:8px;font-size:12px;line-height:1.5;color:var(--faint)}
+.acts{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+
+/* 托盘菜单（UI-SPEC 4.2）。首行状态区在无 key 时可点，与预算耗尽时的行同一套机制。 */
+.menu{position:fixed;right:12px;bottom:58px;width:240px;padding:6px;border-radius:var(--r-menu);background:var(--panel);border:1px solid var(--line);box-shadow:var(--sh-card)} /* taste-skill-ignore: 托盘菜单是浮层，UI-SPEC 4.2 与 DESIGN.md 的描边和阴影 */
+.state{display:flex;align-items:center;gap:9px;width:100%;height:34px;margin-bottom:4px;padding:0 11px;border:0;border-bottom:1px solid var(--line2);border-radius:8px;background:transparent;color:var(--text);font:inherit;font-size:12px;text-align:left;cursor:default}
+.state b{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.state:not(:disabled){cursor:pointer}
+.state:not(:disabled):hover{background:var(--panel2)}
+.item{display:flex;align-items:center;gap:9px;width:100%;padding:8px 11px;border:0;border-radius:9px;background:transparent;color:var(--text);font:inherit;font-size:13px;text-align:left;cursor:default}
+.item:hover{background:var(--panel2)}
+.item svg{width:15px;height:15px;color:var(--muted);flex:none}
+.item>span:first-of-type{flex:none;white-space:nowrap}
+.item .sub{margin-left:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:400 11px/1 var(--mono);color:var(--faint);white-space:nowrap}
+.item.danger,.item.danger svg{color:var(--danger)}
+.sep{height:1px;background:var(--line2);margin:5px 8px}
+
+/* 品牌标内联为 SVG（几何同 data/icons/lens.svg），不用 mask：file:// 打开时浏览器会挡掉 mask，标会消失。 */
+.mark{width:15px;height:15px;flex:none;color:var(--ok)}
+.state[data-state=warn] .mark{color:var(--warn)}
+
+/* 桌面与任务栏（示意，非 Lens 表面）。 */
+.taskbar{position:absolute;left:0;right:0;bottom:0;height:48px;display:flex;align-items:center;justify-content:flex-end;gap:4px;padding:0 16px;background:var(--taskbar)}
+.tb-btn{width:32px;height:36px;border:0;border-radius:6px;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:default}
+.tb-btn svg{width:12px;height:12px}
+.tray-wrap{position:relative}
+.tray{width:36px;height:36px;border:0;border-radius:6px;background:transparent;display:grid;place-items:center;cursor:pointer}
+.tray:hover{background:var(--panel2)}
+.tray .mark{width:16px;height:16px}
+.tip{position:absolute;right:0;bottom:50px;display:none;padding:6px 9px;border-radius:4px;background:var(--tooltip-bg);color:#fff;font-size:12px;line-height:1.3;white-space:nowrap}
+.tray-wrap:hover .tip{display:block}
+.clock{margin-left:8px;padding-left:8px;font-size:12px;line-height:1.3;text-align:right;color:var(--text)}
+
+/* 玻璃主题（3.1c 雾面、3.1d 流光）。流光的折射由下面的位移图给出，不支持的浏览器退回模糊。 */
+html[data-theme=frosted] .glass{backdrop-filter:blur(var(--glass-blur)) saturate(120%);border:1px solid rgba(255,255,255,.2)} /* taste-skill-ignore: DESIGN.md 3.1c 雾面玻璃 */
+html[data-theme=liquid] .glass{background:transparent;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(var(--glass-blur)) contrast(1.05)} /* taste-skill-ignore: DESIGN.md 3.1d 流光玻璃 */
+html[data-theme=liquid][data-refract] #noticeCard{backdrop-filter:blur(var(--glass-blur)) url(#lg-notice)} /* taste-skill-ignore: DESIGN.md 3.1d 折射 */
+html[data-theme=liquid][data-refract] #menu{backdrop-filter:blur(var(--glass-blur)) url(#lg-menu)} /* taste-skill-ignore: DESIGN.md 3.1d 折射 */
+html[data-theme=liquid][data-refract] #setCard{backdrop-filter:blur(var(--glass-blur)) url(#lg-set)} /* taste-skill-ignore: DESIGN.md 3.1d 折射 */
+@media (prefers-reduced-transparency:reduce){
+  html[data-theme=frosted] .glass,html[data-theme=liquid] .glass{backdrop-filter:none!important;background:#fafbfd!important;border-color:var(--line)!important} /* taste-skill-ignore: 玻璃的减弱透明回退 */
+}
+@media (prefers-reduced-motion:reduce){
+  .card{animation:none}
+  .pill{transition:none}
+}
+
+/* 演示控制与主题切换：演示用，不是 Lens 的界面，固定配色，截图时可隐去（?shot）。 */
+.harness{position:fixed;top:14px;left:16px;width:284px;padding:14px;border-radius:12px;background:#fff;border:1px solid #d6dae1;color:#1a1a1f;font:400 13px/1.5 var(--f);z-index:10}
+.harness h1{font-size:14px;font-weight:700}
+.harness .hn{margin-top:4px;color:#66666f}
+.hrow{margin-top:12px}
+.hrow>span{display:block;margin-bottom:6px;color:#66666f}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg button{height:28px;padding:0 10px;border:1px solid #d6dae1;border-radius:999px;background:#fff;color:#1a1a1f;font:400 13px var(--f);cursor:pointer}
+.seg button[aria-pressed=true]{background:#1a1a1f;border-color:#1a1a1f;color:#fff}
+.readout{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin-top:14px;font:400 13px/1.4 var(--mono)}
+.readout dt{color:#66666f}
+.readout dd{color:#1a1a1f}
+.themebtn{position:fixed;top:14px;right:16px;padding:5px 12px;border-radius:999px;border:1px solid #d6dae1;background:#fff;color:#66666f;font:400 12px var(--f);cursor:pointer;z-index:10}
+.themebtn:hover{color:#1a1a1f}
+.shot .harness,.shot .themebtn{display:none}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="lg-notice" filterUnits="userSpaceOnUse" x="0" y="0" width="320" height="170" color-interpolation-filters="sRGB">
+    <feImage x="0" y="0" width="320" height="170" preserveAspectRatio="none"/>
+    <feDisplacementMap in="SourceGraphic" scale="20" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <filter id="lg-menu" filterUnits="userSpaceOnUse" x="0" y="0" width="240" height="200" color-interpolation-filters="sRGB">
+    <feImage x="0" y="0" width="240" height="200" preserveAspectRatio="none"/>
+    <feDisplacementMap in="SourceGraphic" scale="20" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <filter id="lg-set" filterUnits="userSpaceOnUse" x="0" y="0" width="380" height="260" color-interpolation-filters="sRGB">
+    <feImage x="0" y="0" width="380" height="260" preserveAspectRatio="none"/>
+    <feDisplacementMap in="SourceGraphic" scale="20" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</defs></svg>
+
+<div class="layer" id="layer">
+  <section class="card glass notice" id="noticeCard" role="status" aria-live="polite" hidden>
+    <h2 data-i18n="notice.title"></h2>
+    <p data-i18n="notice.body"></p>
+    <button class="pill" id="noticeAction" type="button" data-i18n="notice.action"></button>
+    <button class="x" id="noticeClose" type="button" data-i18n-aria="notice.close">×</button>
+  </section>
+
+  <section class="card glass settings" id="setCard" role="dialog" aria-labelledby="setTitle" hidden>
+    <h2 id="setTitle" data-i18n="set.title"></h2>
+    <p class="crumb" data-i18n="set.crumb"></p>
+    <button class="x" id="setClose" type="button" data-i18n-aria="set.close">×</button>
+    <div class="field">
+      <label for="apiInput" data-i18n="set.label"></label>
+      <input id="apiInput" type="password" autocomplete="off" spellcheck="false" data-i18n-ph="set.ph">
+    </div>
+    <p class="hint" data-i18n="set.hint"></p>
+    <div class="acts">
+      <button class="pill ghost" id="setCancel" type="button" data-i18n="set.cancel"></button>
+      <button class="pill" id="setSave" type="button" data-i18n="set.save" disabled></button>
+    </div>
+  </section>
+</div>
+
+<div class="menu glass" id="menu" role="menu" hidden>
+  <button class="state" id="stateRow" type="button" data-state="warn">
+    <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M13.22 5.11 A7 7 0 1 0 18.89 10.78"/><path d="M16.95 16.95 L19.42 19.42"/></g><circle cx="16.95" cy="7.05" r="2" fill="currentColor"/></svg><b id="stateText"></b>
+  </button>
+  <button class="item" type="button" role="menuitem">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 19V9M12 19V5M19 19v-6"/></svg>
+    <span data-i18n="menu.stats"></span><span class="sub" data-i18n="menu.statsNote"></span>
+  </button>
+  <button class="item" type="button" role="menuitem">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M4 12h16"/><path d="M12 4c2.6 2.8 2.6 13.2 0 16M12 4c-2.6 2.8-2.6 13.2 0 16"/></svg>
+    <span data-i18n="menu.lang"></span><span class="sub" data-i18n="langName"></span>
+  </button>
+  <button class="item" id="menuSettings" type="button" role="menuitem">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="11" cy="7" r="1.8" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="8.5" cy="17" r="1.8" fill="currentColor" stroke="none"/></svg>
+    <span data-i18n="menu.settings"></span>
+  </button>
+  <div class="sep"></div>
+  <button class="item danger" type="button" role="menuitem">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 3v8"/><path d="M6.3 5.8a8 8 0 1 0 11.4 0"/></svg>
+    <span data-i18n="menu.quit"></span>
+  </button>
+</div>
+
+<div class="taskbar" aria-label="任务栏（示意）">
+  <button class="tb-btn" type="button" aria-label="隐藏的图标（示意）">
+    <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M2 8l4-4 4 4"/></svg>
+  </button>
+  <div class="tray-wrap">
+    <button class="tray" id="trayBtn" type="button" aria-label="Lens" aria-expanded="false" aria-haspopup="menu"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M13.22 5.11 A7 7 0 1 0 18.89 10.78"/><path d="M16.95 16.95 L19.42 19.42"/></g><circle cx="16.95" cy="7.05" r="2" fill="currentColor"/></svg></button>
+    <div class="tip" id="tip" role="tooltip"></div>
+  </div>
+  <div class="clock" aria-hidden="true"><div>09:41</div><div>2026/10/30</div></div>
+</div>
+
+<aside class="harness" id="harness">
+  <h1>首次运行引导 · 演示</h1>
+  <p class="hn">演示控制，不是 Lens 的界面。点托盘图标打开菜单，点通知卡上的动作进入设置。</p>
+  <div class="hrow">
+    <span>启动前的状态</span>
+    <div class="seg" role="group" aria-label="启动前的状态">
+      <button type="button" data-scn="first" aria-pressed="false">首次启动</button>
+      <button type="button" data-scn="dismissed" aria-pressed="false">已关引导</button>
+      <button type="button" data-scn="keyed" aria-pressed="false">已有 key</button>
+    </div>
+  </div>
+  <div class="hrow">
+    <span>界面语言</span>
+    <div class="seg" role="group" aria-label="界面语言">
+      <button type="button" data-lang="zh" aria-pressed="false">中文</button>
+      <button type="button" data-lang="en" aria-pressed="false">English</button>
+      <button type="button" data-lang="es" aria-pressed="false">Español</button>
+      <button type="button" data-lang="ja" aria-pressed="false">日本語</button>
+    </div>
+  </div>
+  <dl class="readout">
+    <dt>ONBOARDING.done</dt><dd id="rdDone"></dd>
+    <dt>API-KEY</dt><dd id="rdKey"></dd>
+  </dl>
+</aside>
+<button class="themebtn" id="tb" type="button"></button>
+
+<script>
+const q = new URLSearchParams(location.search);
+const $ = (id) => document.getElementById(id);
+
+const LANG_TAG = { zh: 'zh-CN', en: 'en', es: 'es', ja: 'ja' };
+const L = {
+  zh: {
+    'notice.title': 'Lens 已在托盘运行',
+    'notice.body': '选中一段英文，释义会出现在文字旁边。取词需要先添加 API key。图标在任务栏右下角，看不到时点 ^ 展开。',
+    'notice.action': '添加 API key',
+    'notice.close': '关闭',
+    'noKey': '尚未设置 API key',
+    'mode': '手动模式',
+    'todayZero': '今日 0 次查阅',
+    'menu.stats': '今日统计',
+    'menu.statsNote': '0 次查阅 · ¥0.00',
+    'menu.lang': '语言',
+    'langName': '中文',
+    'menu.settings': '设置',
+    'menu.quit': '退出',
+    'set.title': 'API 配置',
+    'set.crumb': '设置 › 模型服务',
+    'set.close': '关闭',
+    'set.label': 'API key',
+    'set.ph': '粘贴你的 API key',
+    'set.hint': '只保存在本机的设置文档里，不会同步。',
+    'set.cancel': '取消',
+    'set.save': '保存',
+  },
+  en: {
+    'notice.title': 'Lens is running in the tray',
+    'notice.body': 'Select English text and its explanation appears beside it. Lookups need an API key, so add one first. The icon sits at the bottom right of the taskbar; if you cannot see it, click ^ to show hidden icons.',
+    'notice.action': 'Add API key',
+    'notice.close': 'Close',
+    'noKey': 'No API key yet',
+    'mode': 'Manual mode',
+    'todayZero': 'Today: 0 lookups',
+    'menu.stats': 'Statistics',
+    'menu.statsNote': '0 lookups · ¥0.00',
+    'menu.lang': 'Language',
+    'langName': 'English',
+    'menu.settings': 'Settings',
+    'menu.quit': 'Quit',
+    'set.title': 'API configuration',
+    'set.crumb': 'Settings › Model service',
+    'set.close': 'Close',
+    'set.label': 'API key',
+    'set.ph': 'Paste your API key',
+    'set.hint': 'Stored only in this computer’s settings. Never synced.',
+    'set.cancel': 'Cancel',
+    'set.save': 'Save',
+  },
+  es: {
+    'notice.title': 'Lens se ejecuta en la bandeja',
+    'notice.body': 'Selecciona texto en inglés y su explicación aparece junto a él. Las consultas necesitan una clave API, así que añade una primero. El icono está abajo a la derecha de la barra de tareas; si no lo ves, pulsa ^ para mostrar los iconos ocultos.',
+    'notice.action': 'Añadir clave API',
+    'notice.close': 'Cerrar',
+    'noKey': 'Falta la clave API',
+    'mode': 'Modo manual',
+    'todayZero': 'Hoy: 0 consultas',
+    'menu.stats': 'Hoy',
+    'menu.statsNote': '0 consultas · ¥0.00',
+    'menu.lang': 'Idioma',
+    'langName': 'Español',
+    'menu.settings': 'Ajustes',
+    'menu.quit': 'Salir',
+    'set.title': 'Configuración de API',
+    'set.crumb': 'Ajustes › Servicio de modelos',
+    'set.close': 'Cerrar',
+    'set.label': 'Clave API',
+    'set.ph': 'Pega tu clave API',
+    'set.hint': 'Se guarda solo en este equipo. No se sincroniza.',
+    'set.cancel': 'Cancelar',
+    'set.save': 'Guardar',
+  },
+  ja: {
+    'notice.title': 'Lens はトレイで動作中です',
+    'notice.body': '英文を選択すると、そのそばに解説が表示されます。検索には API キーが必要なので、先に追加してください。アイコンはタスクバーの右下にあります。見えない場合は ^ をクリックしてください。',
+    'notice.action': 'API キーを追加',
+    'notice.close': '閉じる',
+    'noKey': 'API キーが未設定です',
+    'mode': '手動モード',
+    'todayZero': '今日の検索 0 回',
+    'menu.stats': '今日の統計',
+    'menu.statsNote': '検索 0 回 · ¥0.00',
+    'menu.lang': '言語',
+    'langName': '日本語',
+    'menu.settings': '設定',
+    'menu.quit': '終了',
+    'set.title': 'API 設定',
+    'set.crumb': '設定 › モデルサービス',
+    'set.close': '閉じる',
+    'set.label': 'API キー',
+    'set.ph': 'API キーを貼り付け',
+    'set.hint': 'この PC の設定にだけ保存され、同期されません。',
+    'set.cancel': 'キャンセル',
+    'set.save': '保存',
+  },
+};
+const THEMES = ['light', 'dark', 'frosted', 'liquid'];
+const THEME_NAME = { light: '晴朗白昼', dark: '静谧暗夜', frosted: '雾面玻璃', liquid: '流光玻璃' };
+
+/// 启动前的三种状态。ONBOARDING.done 与 API-KEY 是设置文档里的两个值（ONBOARDING 为拟新增的一节）。
+const SCENARIOS = {
+  first:     { key: '',        done: false },
+  dismissed: { key: '',        done: true },
+  keyed:     { key: 'sk-demo', done: true },
+};
+
+const refractOK = (() => { const p = document.createElement('div'); p.style.backdropFilter = 'url(#lg-menu)'; return p.style.backdropFilter !== ''; })();
+
+let lang = Object.hasOwn(L, q.get('lang')) ? q.get('lang') : 'zh';
+let scenario = Object.hasOwn(SCENARIOS, q.get('state')) ? q.get('state') : 'first';
+let S = {}, noticeOpen = false, menuOpen = false, settingsOpen = false;
+const t = (k) => L[lang][k];
+
+/// 通知卡只在“未引导且没有 key”时出现一次；关闭或点动作都写 done。
+function setScenario(name) {
+  scenario = name;
+  S = { ...SCENARIOS[name] };
+  noticeOpen = !S.done && S.key === '';
+  menuOpen = false;
+  settingsOpen = false;
+  render();
+}
+
+function setShown(el, on) { el.hidden = !on; }
+
+/// 位移图：遮罩向内升高，中心差分即朝内的梯度，编码到 R/G 通道，128 为零位移。（照抄 tray-menu.html）
+function liquidMap(W, H, R, S) {
+  const mask = document.createElement('canvas');
+  mask.width = W; mask.height = H;
+  const mctx = mask.getContext('2d');
+  mctx.filter = `blur(${S}px)`;
+  mctx.fillStyle = '#fff';
+  mctx.beginPath(); mctx.roundRect(0, 0, W, H, R); mctx.fill();
+  const m = mctx.getImageData(0, 0, W, H).data;
+  const at = (x, y) => m[(Math.min(Math.max(y, 0), H - 1) * W + Math.min(Math.max(x, 0), W - 1)) * 4 + 3] / 255;
+  const gx = new Float32Array(W * H), gy = new Float32Array(W * H);
+  let max = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x;
+    gx[i] = (at(x + 1, y) - at(x - 1, y)) / 2;
+    gy[i] = (at(x, y + 1) - at(x, y - 1)) / 2;
+    max = Math.max(max, Math.hypot(gx[i], gy[i]));
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d'), img = ctx.createImageData(W, H);
+  for (let i = 0; i < W * H; i++) img.data.set([128 + 127 * gx[i] / max, 128 + 127 * gy[i] / max, 128, 255], i * 4);
+  ctx.putImageData(img, 0, 0);
+  return canvas.toDataURL();
+}
+
+/// 按卡片当前尺寸重画它的位移图；卡片高度随文字变，所以每次渲染后重画。
+function bake(el, id) {
+  if (el.hidden) return;
+  const w = el.offsetWidth, h = el.offsetHeight, r = parseFloat(getComputedStyle(el).borderTopLeftRadius);
+  const f = document.getElementById(id), img = f.querySelector('feImage');
+  for (const node of [f, img]) { node.setAttribute('width', w); node.setAttribute('height', h); }
+  img.setAttribute('href', liquidMap(w, h, r, 9));
+}
+function bakeAll() {
+  if (!refractOK || document.documentElement.dataset.theme !== 'liquid') return;
+  bake($('noticeCard'), 'lg-notice');
+  bake($('menu'), 'lg-menu');
+  bake($('setCard'), 'lg-set');
+}
+
+function render() {
+  document.documentElement.lang = LANG_TAG[lang];
+  document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-aria]').forEach((el) => el.setAttribute('aria-label', t(el.dataset.i18nAria)));
+  document.querySelectorAll('[data-i18n-ph]').forEach((el) => el.setAttribute('placeholder', t(el.dataset.i18nPh)));
+
+  const hasKey = S.key !== '';
+  const label = hasKey ? t('mode') : t('noKey');
+  const row = $('stateRow');
+  $('stateText').textContent = label;
+  row.dataset.state = hasKey ? 'ok' : 'warn';
+  row.disabled = hasKey;
+  $('tip').textContent = `Lens · ${label} · ${t('todayZero')}`;
+
+  setShown($('noticeCard'), noticeOpen);
+  setShown($('menu'), menuOpen);
+  setShown($('setCard'), settingsOpen);
+  $('trayBtn').setAttribute('aria-expanded', String(menuOpen));
+  $('setSave').disabled = $('apiInput').value.trim() === '';
+
+  $('rdDone').textContent = S.done ? 'true' : 'false';
+  $('rdKey').textContent = hasKey ? '"••••••"' : '""';
+  document.querySelectorAll('[data-scn]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.scn === scenario)));
+  document.querySelectorAll('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
+  requestAnimationFrame(bakeAll);
+}
+
+function applyTheme(name) {
+  document.documentElement.dataset.theme = name;
+  $('tb').textContent = THEME_NAME[name];
+  if (refractOK && name === 'liquid') document.documentElement.dataset.refract = 'on';
+  else delete document.documentElement.dataset.refract;
+  render();
+}
+
+// 托盘与菜单
+$('trayBtn').addEventListener('click', () => { menuOpen = !menuOpen; render(); });
+document.addEventListener('pointerdown', (e) => {
+  if (menuOpen && !e.target.closest('#menu, #trayBtn')) { menuOpen = false; render(); }
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  menuOpen = false; settingsOpen = false; render();
+});
+$('stateRow').addEventListener('click', () => {
+  if (S.key !== '') return;
+  menuOpen = false; settingsOpen = true; render();
+});
+$('menuSettings').addEventListener('click', () => {
+  menuOpen = false; settingsOpen = true; render();
+});
+
+// 通知卡：关闭与动作都写 done，动作顺带打开设置。
+$('noticeClose').addEventListener('click', () => { noticeOpen = false; S.done = true; render(); });
+$('noticeAction').addEventListener('click', () => { noticeOpen = false; S.done = true; settingsOpen = true; render(); });
+
+// 设置（占位）：保存后清空输入框，不把 key 留在页面上。
+$('apiInput').addEventListener('input', () => { $('setSave').disabled = $('apiInput').value.trim() === ''; });
+$('setSave').addEventListener('click', () => {
+  S.key = $('apiInput').value.trim();
+  S.done = true;
+  $('apiInput').value = '';
+  settingsOpen = false;
+  render();
+});
+$('setCancel').addEventListener('click', () => { settingsOpen = false; render(); });
+$('setClose').addEventListener('click', () => { settingsOpen = false; render(); });
+
+// 演示控制
+document.querySelectorAll('[data-scn]').forEach((b) => b.addEventListener('click', () => setScenario(b.dataset.scn)));
+document.querySelectorAll('[data-lang]').forEach((b) => b.addEventListener('click', () => { lang = b.dataset.lang; render(); }));
+$('tb').addEventListener('click', () => applyTheme(THEMES[(THEMES.indexOf(document.documentElement.dataset.theme) + 1) % THEMES.length]));
+
+// 初始：?state= ?lang= ?theme= ?menu ?settings ?shot
+const initialTheme = ['dark', 'frosted', 'liquid'].includes(q.get('theme')) ? q.get('theme') : 'light';
+if (q.has('shot')) document.body.classList.add('shot');
+setScenario(scenario);
+if (q.has('menu')) { menuOpen = true; render(); }
+if (q.has('settings')) { settingsOpen = true; render(); }
+applyTheme(initialTheme);
+</script>
+</body>
+</html>

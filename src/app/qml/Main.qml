@@ -84,8 +84,17 @@ Window {
 
     Notice {
         id: notice
-        // The word the notice is about, and the cost of asking for it, are both the controller's.
-        onActionTriggered: Controller.explainLemma(notice.noticeLemma)
+        // The word the notice is about, and the cost of asking for it, are both the controller's. A first-run
+        // notice's action is not an explanation: it opens the page the key is typed into.
+        onActionTriggered: {
+            if (notice.noticeIntent === "apiKey") {
+                notice.closeNotice();
+                surfaceHost.showSettings();
+                settingsPopup.routeTo("model/connection");
+            } else {
+                Controller.explainLemma(notice.noticeLemma);
+            }
+        }
     }
 
     /// A new version's card. Passive: not in the panels' mutual exclusion above, and not on
@@ -175,6 +184,11 @@ Window {
         id: trayMenu
         onStatsRequested: surfaceHost.showStats(trayMenu)
         onSettingsRequested: surfaceHost.showSettings()
+        onApiKeyRequested: {
+            surfaceHost.showSettings();
+            // After, not before: routeTo() only works on a panel that is up.
+            settingsPopup.routeTo("model/connection");
+        }
         onBudgetRequested: {
             surfaceHost.showSettings()
             // After, not before: the panel clears its category when it comes up.

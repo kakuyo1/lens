@@ -49,13 +49,17 @@ Window {
     readonly property bool capturing: Controller.settings.selectionCapture
     /// Whether the day's budget has stopped lookups; the first row becomes the budget shortcut.
     readonly property bool budgetExhausted: Controller.costDuty.stats.budgetExhausted === true
+    /// Whether a key is stored. Without one nothing can be looked up, so the first row says so (docs/adr/0144).
+    readonly property bool hasApiKey: Controller.settings.hasApiKey === true
+    /// Whether the first row is a button: while no key is stored, or the budget is spent, it opens the page that fixes it.
+    readonly property bool stateActionable: !menu.hasApiKey || menu.budgetExhausted
     /// The label an in-flight explanation carries; empty when nothing is.
     readonly property string busyLabel: Controller.busyLabel
 
-    /// The state line, straight off the controller: the day's budget gate, the label an
-    /// in-flight explanation carries, and the capture switch above. stateLineFor() puts the
-    /// three in the tray icon's own priority order (tray_state.h).
-    readonly property var stateLine: stateLineFor(menu.budgetExhausted, menu.busyLabel, menu.capturing)
+    /// The state line, straight off the controller: whether a key is stored, the day's budget gate, the label an
+    /// in-flight explanation carries, and the capture switch above. stateLineFor() puts them in the tray icon's own
+    /// priority order (tray_state.h), with the missing key ahead of all of them.
+    readonly property var stateLine: stateLineFor(menu.hasApiKey, menu.budgetExhausted, menu.busyLabel, menu.capturing)
 
     /// @return Whether the product mark carries the busy corner dot. The tray icon draws the
     ///         same dot for the same state; an exhausted budget outranks it (tray_state.h).
@@ -65,18 +69,28 @@ Window {
 
     /// @return The state line's mark colour and text for one readout.
     ///
-    /// The tray icon's four states (tray_state.h) drawn in words: an exhausted budget outranks
-    /// everything -- capture gates pause with it, so the mode name would lie; an in-flight
-    /// explanation outranks the mode name for the same reason; otherwise the line says whether
-    /// capture is on and what mode it is in. A function of its inputs so a test can drive the
-    /// mapping without spending money.
-    function stateLineFor(exhausted, busyLabel, capturing) {
+    /// The tray icon's four states (tray_state.h) drawn in words. A missing key outranks them all: nothing can
+    /// be looked up, so the budget and the busy line say nothing the reader can act on. An exhausted budget
+    /// outranks the rest -- capture gates pause with it, so the mode name would lie; an in-flight explanation
+    /// outranks the mode name for the same reason; otherwise the line says whether capture is on and what mode
+    /// it is in. A function of its inputs so a test can drive the mapping without spending money.
+    function stateLineFor(hasKey, exhausted, busyLabel, capturing) {
+        if (!hasKey)
+            return { mark: menu.tokens.warn, text: qsTr("No API key yet") };
         if (exhausted)
             return { mark: menu.tokens.warn, text: qsTr("Today's budget is used up") };
         if (busyLabel !== "")
             return { mark: menu.tokens.ok, text: busyLabel };
         return { mark: capturing ? menu.tokens.ok : menu.tokens.faint,
                  text: capturing ? Controller.modeLabel : qsTr("Selection capture is off") };
+    }
+
+    /// The first row's press: the API page while no key is stored, the daily-budget page while the budget is spent.
+    function openStateSettings() {
+        if (!menu.hasApiKey)
+            menu.apiKeyRequested();
+        else
+            menu.budgetRequested();
     }
 
     /// The interface language, and the languages to offer. Both are the catalog's list, the same four
@@ -99,6 +113,8 @@ Window {
     /// than calling into the file that instantiated it: its `root` id resolves at runtime, unchecked.
     signal statsRequested()
     signal settingsRequested()
+    /// The first row was pressed with no key stored; the settings panel opens on the page the key is typed into.
+    signal apiKeyRequested()
     /// The budget row was pressed; the settings panel opens on the daily-budget page.
     signal budgetRequested()
 
@@ -149,7 +165,7 @@ Window {
                 spacing: 0
 
                 // The state line: the product mark carries the state -- ok while the app is
-                // working, warn when the day's budget is spent, faint when capture is off -- and
+                // working, warn when no key is stored or the day's budget is spent, faint when capture is off -- and
                 // the text names what the app is doing, in the tray icon's priority order
                 // (tray_state.h). The mark stands where UI-SPEC.md section 4.2 draws an anonymous
                 // dot: it says the same thing, and whose app this is.
@@ -162,18 +178,18 @@ Window {
                     width: parent.width
                     height: 34
 
-                    // While the budget is spent this row is the way to the daily-budget page;
+                    // While no key is stored, or the budget is spent, this row is the way to the page that fixes it;
                     // at rest it is a status line, not a button (UI-SPEC 4.2).
-                    Accessible.role: menu.budgetExhausted ? Accessible.Button : Accessible.StaticText
+                    Accessible.role: menu.stateActionable ? Accessible.Button : Accessible.StaticText
                     Accessible.name: menu.stateLine.text
-                    Accessible.onPressAction: if (menu.budgetExhausted) menu.budgetRequested()
+                    Accessible.onPressAction: if (menu.stateActionable) menu.openStateSettings()
 
                     Rectangle {
                         anchors.fill: parent
                         anchors.topMargin: 2
                         anchors.bottomMargin: 2
                         radius: 8
-                        color: stateHover.hovered && menu.budgetExhausted ? menu.tokens.panel2 : "transparent"
+                        color: stateHover.hovered && menu.stateActionable ? menu.tokens.panel2 : "transparent"
                     }
 
                     Rectangle {
@@ -219,12 +235,12 @@ Window {
 
                     HoverHandler {
                         id: stateHover
-                        enabled: menu.budgetExhausted
+                        enabled: menu.stateActionable
                         cursorShape: Qt.PointingHandCursor
                     }
                     TapHandler {
-                        enabled: menu.budgetExhausted
-                        onTapped: menu.budgetRequested()
+                        enabled: menu.stateActionable
+                        onTapped: menu.openStateSettings()
                     }
                 }
 

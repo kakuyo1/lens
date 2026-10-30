@@ -69,6 +69,14 @@ constexpr const char* kBuildDataDir = LENS_DATA_DIR;
 /// profile once. See settingsPath().
 constexpr const char* kDevSettingsPath = LENS_SETTINGS_PATH;
 
+/// The build switch for the first-run notice (docs/adr/0144): on, the notice goes up at every launch and the
+/// document is left alone; off, it goes up once to a reader who has no key.
+#if defined(LENS_FORCE_ONBOARDING)
+constexpr bool kForceOnboarding = true;
+#else
+constexpr bool kForceOnboarding = false;
+#endif
+
 /**
  * @brief Where the word list and the protocol files are read from.
  *
@@ -392,6 +400,8 @@ int main(int argc, char* argv[])
     // cannot reach the source does not retry on every launch.
     controller.updateDuty()->checkAtStartup();
     controller.syncDuty()->startAtLaunch();
+    // The first-run notice is a surface too, so it waits for the same moment as the update check.
+    controller.onboardingDuty()->startAtLaunch(kForceOnboarding);
 
 #if defined(QT_QML_DEBUG)
     const QByteArray profileScenario = qgetenv("LENS_QML_PROFILE_SCENARIO");

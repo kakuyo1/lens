@@ -52,6 +52,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/voice_catalog_test.cpp
   unit/cost_duty_test.cpp
   unit/semver_test.cpp
+  unit/onboarding_test.cpp
   unit/update_pure_test.cpp
   unit/github_auth_test.cpp
   unit/explanation_cache_test.cpp
