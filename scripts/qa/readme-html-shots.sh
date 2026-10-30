@@ -99,7 +99,7 @@ for theme in light dark frosted liquid; do
 done
 
 screenshot selection-bar "ui-prototypes/selection-bar.html" \
-    "lang=en&shot=1&theme=liquid&bg=paper&blur=24&placement=below" 620 180 2 "$out"
+    "lang=en&shot=1&theme=liquid&bg=paper&placement=below&page=1" 620 180 2 "$out"
 
 # The copy text's drawer: a sentence is selected, so it lists the two actions a sentence can take.
 screenshot selection-drawer "docs/readme/scenes/selection-drawer.html" "" 900 620 2 "$out"
@@ -107,16 +107,6 @@ screenshot selection-drawer "docs/readme/scenes/selection-drawer.html" "" 900 62
 # The breakdown answer: the same sentence, back with every part tinted in its role colour and a
 # legend under it (docs/adr/0128).
 screenshot breakdown "docs/readme/scenes/breakdown.html" "" 900 620 2 "$out"
-
-# The review still is deliberately the hover state: it shows the sign and both answers. The
-# compose step crops the empty desktop and writes review.png. 1100 px wide, not 1000: the sign is
-# the pet's own art now, wider than the old shared plank, and at 1000 the answer card flipped
-# inside and covered the pet's face.
-screenshot review-hover "ui-prototypes/pet-review.html" \
-    "lang=en&shot=1&state=hover&pet=ghost&word=len&theme=liquid&bg=paper&scale=4" 1100 700 2 "$out"
-
-screenshot year-in-words "ui-prototypes/year-in-words.html" \
-    "lang=en&shot=1&palette=open&theme=liquid&bg=paper&page=1" 440 430 2 "$out"
 
 # The mother-tongue peek GIF: the English card, the globe held part-way round its ring, the
 # mother-tongue line under the definition, and back to English. The compose step repeats the
@@ -132,6 +122,21 @@ screenshot fb-page-peek "ui-prototypes/bubble.html" \
 for style in classic side cards tag fan; do
     screenshot "sel-style-$style" "docs/readme/scenes/selection-styles.html" \
         "style=$style" 900 620 2 "$frames"
+done
+
+# The composed stills draw on a glass stage: a reading page with the liquid plates laid over it, at
+# the composed image's own pixel size. Pillow then draws the pets, the postcards and the learning-loop
+# cards on the plates. The plates are the same liquid glass as the scenes above.
+screenshot glass-pets "docs/readme/scenes/glass-plate.html" "plates=40,40,1520,360,28&blank" 1600 440 1 "$frames"
+screenshot glass-lantern "docs/readme/scenes/glass-plate.html" "plates=12,12,416,462,24&blank" 440 486 1 "$frames"
+screenshot glass-postcards "docs/readme/scenes/glass-plate.html" "plates=60,60,600,480,24&blank" 720 600 1 "$frames"
+# The learning-loop GIF: the pet's sign turns on its own frames (?f=) and the year's hue wheel turns
+# through the palette (?hue=), both over the wall alone, so no text sits behind the glass.
+for i in $(seq 0 11); do
+    screenshot "loop-sign-$i" "ui-prototypes/pet-review.html" \
+        "lang=en&shot=1&state=hover&pet=ghost&word=len&theme=liquid&scale=4&page=1&bg=paper&f=$i" 1100 700 2 "$frames"
+    screenshot "loop-year-$i" "ui-prototypes/year-in-words.html" \
+        "lang=en&shot=1&palette=open&theme=liquid&bg=paper&hue=$((i * 30))" 440 430 2 "$frames"
 done
 
 # The social preview uses a crop of the page-mode light still, so it has to come after that file

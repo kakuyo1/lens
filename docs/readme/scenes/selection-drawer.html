@@ -58,17 +58,18 @@ h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025e
   <p class="sample">She gave a <span class="sel" id="selected">candid answer to a question she had been dreading for weeks</span>, and nobody in the room expected it.</p>
 </div>
 
-<div class="bar" id="bar">
+<div class="bar" id="bar" data-glass>
   <button class="act" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h9"/><path d="M7.5 3.5v2"/><path d="M10.5 5.5c0 4-2.6 7.4-6.5 8.9"/><path d="M5 9.6c1.2 2.3 3.1 4.1 5.3 5.1"/><path d="M12.6 20.5l3.7-9 3.7 9"/><path d="M14 17.4h4.6"/></svg><span>Translate</span></button>
   <button class="act" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.6C10.4 5.2 8.3 4.5 5.5 4.5H4v13h1.5c2.8 0 4.9.7 6.5 2.1"/><path d="M12 6.6c1.6-1.4 3.7-2.1 6.5-2.1H20v13h-1.5c-2.8 0-4.9.7-6.5 2.1"/><path d="M12 6.6v13"/></svg><span>Explain</span></button>
   <button class="act hover" id="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M15 5.5V5a1.5 1.5 0 0 0-1.5-1.5H5A1.5 1.5 0 0 0 3.5 5v8.5A1.5 1.5 0 0 0 5 15h.5"/></svg><span>Copy text</span></button>
 </div>
 
-<div class="tray" id="tray">
+<div class="tray" id="tray" data-glass>
   <button class="act" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5l3.9-.9L18.7 8a2.1 2.1 0 0 0-3-3L5.4 15.6z"/><path d="M14.6 6.6l2.8 2.8"/></svg><span>Fix syntax</span></button>
   <button class="act" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v4.5M12 8.5 6.5 12.5M12 8.5l5.5 4M6.5 12.5v7M17.5 12.5v7"/></svg><span>Breakdown</span></button>
 </div>
 
+<script src="liquid-glass.js"></script>
 <script>
 /// The bar sits above the selection and the drawer opens away from it, right-aligned to the copy
 /// item, as CopyDrawer.qml places it.

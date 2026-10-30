@@ -100,7 +100,7 @@ Análisis tiñe cada parte de la frase con uno de cuatro colores — sujeto, ver
 
 ## Un pequeño bucle de aprendizaje
 
-<p align="center"><img src="docs/readme/learning-loop.png" width="900" alt="El cartel de repaso de Fantasma junto a ella y el registro anual de palabras"></p>
+<p align="center"><img src="docs/readme/learning-loop.gif" width="900" alt="El cartel de repaso de Fantasma junto a ella y el registro anual de palabras"></p>
 
 Conocida y Nueva viven en una sola lista de palabras. Pasa el ratón por una fila para releer una explicación que Lens ya guardó, sin enviar ninguna petición. Cuando toca repasar una palabra, aparece junto al compañero de escritorio un pequeño cartel, el suyo; responde Olvidé o Lo recordaba y volverá con un intervalo de entre diez minutos y sesenta días. El registro anual mantiene visible el hábito sin convertirlo en una racha.
 

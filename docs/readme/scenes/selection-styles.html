@@ -79,7 +79,7 @@ h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025e
 .bar-h .act{padding:7px 9px;border-radius:8px}
 
 /* F · fan */
-.bar-f{display:block;width:260px;height:170px;padding:0;border-color:transparent;background:transparent;box-shadow:none;backdrop-filter:none;filter:drop-shadow(0 2px 6px rgba(20,20,26,.10))}
+.bar-f{display:block;width:260px;height:170px;padding:0;border-color:transparent;background:transparent;box-shadow:none;backdrop-filter:none}
 .bar-f .blade{position:absolute;inset:0;padding:0;border:0;background:var(--glass-card);cursor:pointer;z-index:1;backdrop-filter:blur(20px) saturate(1.2)}
 .bar-f .blade-l{clip-path:polygon(130px 150px,10px 87px,78px 26px)}
 .bar-f .blade-c{clip-path:polygon(130px 150px,78px 26px,182px 26px);background:var(--glass-fill);z-index:2}
@@ -109,8 +109,9 @@ h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025e
   <p class="sample">The room stayed quiet. She had rehearsed a careful answer for weeks, and the truth arrived in one sentence.</p>
 </div>
 <div class="bar" id="bar"></div>
-<div class="style-label" id="styleLabel"></div>
+<div class="style-label" id="styleLabel" data-glass></div>
 
+<script src="liquid-glass.js"></script>
 <script>
 const ICON = {
   translate: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h9"/><path d="M7.5 3.5v2"/><path d="M10.5 5.5c0 4-2.6 7.4-6.5 8.9"/><path d="M5 9.6c1.2 2.3 3.1 4.1 5.3 5.1"/><path d="M12.6 20.5l3.7-9 3.7 9"/><path d="M14 17.4h4.6"/></svg>',
@@ -138,6 +139,10 @@ const bar = document.getElementById("bar");
 const selected = document.getElementById("selected");
 bar.className = "bar " + classes[style];
 bar.innerHTML = markup[style];
+// The container of the three cards and the fan is only a frame; each card and blade is the glass.
+bar.toggleAttribute("data-glass", !["cards", "fan"].includes(style));
+bar.querySelectorAll(".face, .blade").forEach(el => el.setAttribute("data-glass", ""));
+liquidGlass();
 document.getElementById("styleLabel").textContent = names[style];
 
 requestAnimationFrame(() => {

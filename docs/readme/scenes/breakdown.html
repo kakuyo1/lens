@@ -64,7 +64,7 @@ h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025e
   <p class="sample">By morning the square was empty. <span class="sel" id="selected">Although the rain had stopped, the streets remained flooded for hours.</span> Nobody who lived here said why.</p>
 </div>
 
-<div class="card" id="card">
+<div class="card" id="card" data-glass>
   <span class="tag">Breakdown</span>
   <div class="bk"><span class="ck" data-r="A">Although the rain had stopped,</span> <span class="ck" data-r="S">the streets</span> <span class="ck" data-r="V">remained</span> <span class="ck" data-r="C">flooded</span> <span class="ck" data-r="A">for hours.</span></div>
   <div class="legend">
@@ -75,6 +75,7 @@ h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025e
   </div>
 </div>
 
+<script src="liquid-glass.js"></script>
 <script>
 /// The card sits above the selection, the way the bubble does after the drawer's action runs.
 requestAnimationFrame(() => {

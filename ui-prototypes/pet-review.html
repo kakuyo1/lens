@@ -91,6 +91,7 @@ body{
 .hold.open .ask-pop.instant{transition:none}
 html[data-theme=frosted] .ask-pop{background:var(--panel);box-shadow:var(--sh2);border-color:rgba(255,255,255,.2);backdrop-filter:blur(6px) saturate(120%)}
 html[data-theme=liquid] .ask-pop{background:var(--panel);box-shadow:var(--sh2);border-color:rgba(255,255,255,.1);backdrop-filter:blur(6px) contrast(1.05)}
+/* README-only page mode (?page=1): the answer card is glass over the page, so the liquid glass refracts it. */
 
 .btn{
   display:inline-flex;align-items:center;justify-content:center;
@@ -604,6 +605,14 @@ tb.addEventListener('click', () => {
   theme = THEMES[(i + 1) % THEMES.length][0];
   applyTheme();
 });
+
+if (params.has('page')) {
+  document.documentElement.classList.add('page');
+  askPop.dataset.glass = '';
+  const glass = document.createElement('script');
+  glass.src = '../docs/readme/scenes/liquid-glass.js';
+  document.body.append(glass);
+}
 
 if (params.has('shot')) {
   document.getElementById('controls').hidden = true;

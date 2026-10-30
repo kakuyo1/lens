@@ -100,7 +100,7 @@
 
 ## 一個安靜的學習迴圈
 
-<p align="center"><img src="docs/readme/learning-loop.png" width="900" alt="小幽靈腳邊的提問牌，以及單字年度紀錄"></p>
+<p align="center"><img src="docs/readme/learning-loop.gif" width="900" alt="小幽靈腳邊的提問牌，以及單字年度紀錄"></p>
 
 已會和新詞在同一張詞表裡。把指標停在某一行上，可以重讀 Lens 已經存下的解釋，不會發出請求。單字到期時，寵物腳邊會立起它自己的提問牌；回答 “忘了” 或 “記得”，它會按 10 分鐘到 60 天的間隔再次被問起。年度紀錄把閱讀留下的痕跡畫成一格一格的綠色，而不是一條連續打卡。
 

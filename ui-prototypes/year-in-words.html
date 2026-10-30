@@ -218,6 +218,17 @@ function closePalette(){palette.classList.remove('open');panel.classList.remove(
 document.querySelectorAll('.swatch').forEach(swatch=>swatch.addEventListener('click',()=>{const shut=!palette.hidden&&swatch.getAttribute('aria-pressed')==='true';document.querySelectorAll('.swatch').forEach(item=>item.setAttribute('aria-pressed',String(item===swatch)));shut?closePalette():openPalette()}));
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!palette.hidden)closePalette()});
 applyHue(selectedHue);
+/// README-only (?hue=<deg>): one frame of the animated learning-loop still, the wheel and swatches at that hue.
+if (new URLSearchParams(location.search).has('hue')) {
+  const hue = Number(new URLSearchParams(location.search).get('hue'));
+  root.style.setProperty('--hue', hue);
+  root.style.setProperty('--palette-hue', hue);
+  root.style.setProperty('--wheel-angle', `${hue}deg`);
+}
+if (new URLSearchParams(location.search).get('bg') === 'paper') {
+  root.style.background = '#f4ecd9';
+  root.style.backgroundImage = 'none';
+}
 // ?palette=open is for the README's screenshot: the palette is drawn already unrolled, with level 3 pressed.
 if (new URLSearchParams(location.search).get('palette') === 'open') {
   palette.hidden = false; palette.classList.add('open'); panel.classList.add('palette-open');

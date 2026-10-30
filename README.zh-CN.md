@@ -100,7 +100,7 @@
 
 ## 一个安静的学习循环
 
-<p align="center"><img src="docs/readme/learning-loop.png" width="900" alt="小幽灵脚边的提问牌，以及单词年度记录"></p>
+<p align="center"><img src="docs/readme/learning-loop.gif" width="900" alt="小幽灵脚边的提问牌，以及单词年度记录"></p>
 
 已会和新词在同一张词表里。把指针停在某一行上，可以重读 Lens 已经存下的解释，不会发出请求。单词到期时，宠物脚边会立起它自己的提问牌；回答 “忘了” 或 “记得”，它会按 10 分钟到 60 天的间隔再次被问起。年度记录把阅读留下的痕迹画成一格一格的绿色，而不是一条连续打卡。
 

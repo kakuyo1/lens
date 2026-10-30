@@ -52,6 +52,12 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 
 .bar{position:absolute;display:none;align-items:center;gap:2px;padding:5px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-bar);box-shadow:var(--sh2);z-index:3}
 .bar.show{display:flex}
+/* README-only page mode (?page=1): the bar floats over a second line of reading, so the liquid glass
+   refracts real text. The bar is see-through there, as the bubble is in the liquid theme. */
+.more{display:none;margin-bottom:14px}
+html.page .more{display:block}
+html.page .demo{padding-top:0}
+html.page[data-theme=liquid] .bar{background:transparent;background-image:none}
 .act{display:flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid transparent;border-radius:var(--r-item);background:transparent;color:var(--text);font-family:var(--f);font-size:12.5px;font-weight:600;white-space:nowrap;cursor:pointer;transition:.15s}
 .act svg{width:15px;height:15px;color:var(--muted);flex:none}
 .act:hover{background:var(--panel2)}
@@ -83,6 +89,7 @@ html[data-theme=liquid][data-refract] .bar{backdrop-filter:blur(var(--glass-blur
 <button class="themebtn" id="tb">静谧暗夜</button>
 
 <div class="demo" id="demo">
+  <p class="more">The distinction matters. Luck arrives; attention makes room for it. A reader who stops to ask what a word is really doing is already reading more closely than one who turns the page.</p>
   <p>She gave a <span class="sel" id="sel">candid</span> answer to a question she had been dreading for weeks, and nobody in the room expected it.</p>
 
   <div class="bar" id="bar">
@@ -137,6 +144,7 @@ function placeTo(r) {
   bar.style.left = left + 'px';
   bar.style.top = (takeBelow ? below : above) + 'px';
 }
+if (new URLSearchParams(location.search).has('page')) document.documentElement.classList.add('page');
 placeTo(sel.getBoundingClientRect());
 
 document.addEventListener('mouseup', (e) => {

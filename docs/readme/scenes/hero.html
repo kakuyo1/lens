@@ -36,10 +36,7 @@ html[data-theme=dark]{
 html,body{height:100%}
 body{
   width:1440px;height:960px;overflow:hidden;position:relative;
-  background:
-    radial-gradient(900px 620px at 12% 8%, rgba(255,255,255,.82), transparent 62%),
-    radial-gradient(760px 540px at 88% 92%, rgba(47,158,110,.10), transparent 66%),
-    var(--bg);
+  background:#f4ecd9;
   color:var(--text);font-family:var(--f);-webkit-font-smoothing:antialiased;
 }
 html[data-theme=dark] body{
@@ -60,7 +57,7 @@ html[data-theme=dark] body::after{background:radial-gradient(ellipse at center, 
 .brand span{font-size:12px;color:var(--faint)}
 
 .reader{
-  position:absolute;left:64px;top:78px;width:872px;height:804px;
+  position:absolute;left:180px;top:78px;width:872px;height:804px;
   background:var(--paper);border:1px solid var(--line);border-radius:26px;
   box-shadow:0 40px 100px -40px rgba(20,20,26,.38),0 2px 8px rgba(20,20,26,.05);
   overflow:hidden;
@@ -96,7 +93,7 @@ h1{font-family:var(--read);font-size:47px;line-height:1.08;letter-spacing:-.025e
 .act.primary{background:var(--paper-2)}
 
 .bubble{
-  position:absolute;right:74px;top:250px;width:396px;z-index:7;
+  position:absolute;left:656px;top:250px;width:396px;z-index:7;
   background:var(--bubble-bg);border:1px solid var(--bubble-bd);border-radius:22px;
   box-shadow:var(--bubble-sh);padding:22px 24px 20px;
   backdrop-filter:blur(26px) saturate(1.45);
@@ -149,7 +146,7 @@ h1{font-family:var(--read);font-size:47px;line-height:1.08;letter-spacing:-.025e
   </div>
 </div>
 
-<div class="bar" id="bar">
+<div class="bar" id="bar" data-glass>
   <button class="act" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h9"/><path d="M7.5 3.5v2"/><path d="M10.5 5.5c0 4-2.6 7.4-6.5 8.9"/><path d="M5 9.6c1.2 2.3 3.1 4.1 5.3 5.1"/><path d="M12.6 20.5l3.7-9 3.7 9"/><path d="M14 17.4h4.6"/></svg>
     <span>Translate</span>
@@ -164,7 +161,7 @@ h1{font-family:var(--read);font-size:47px;line-height:1.08;letter-spacing:-.025e
   </button>
 </div>
 
-<div class="bubble">
+<div class="bubble" data-glass>
   <div class="bub-top">
     <span class="tag">New</span>
     <span class="bub-head">
@@ -190,6 +187,7 @@ h1{font-family:var(--read);font-size:47px;line-height:1.08;letter-spacing:-.025e
 
 <div class="cursor" id="cursor"><svg viewBox="0 0 18 24"><path d="M2 2l5.2 18 3.1-6.2 6.9-1.5L2 2z" fill="#fff" stroke="#1a1a1f" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
 
+<script src="liquid-glass.js"></script>
 <script>
 const params = new URLSearchParams(location.search);
 if (params.get('theme') === 'dark') document.documentElement.dataset.theme = 'dark';

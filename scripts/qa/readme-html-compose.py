@@ -114,21 +114,9 @@ def font(name: str, size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     return ImageFont.truetype(str(path), size) if path.exists() else ImageFont.load_default()
 
 
-def gradient(size: tuple[int, int], top: tuple[int, int, int], bottom: tuple[int, int, int]) -> Image.Image:
-    width, height = size
-    strip = Image.new("RGB", (1, height))
-    for y in range(height):
-        t = y / max(1, height - 1)
-        strip.putpixel((0, y), tuple(round(top[i] + (bottom[i] - top[i]) * t) for i in range(3)))
-    return strip.resize((width, height), Image.Resampling.BILINEAR).convert("RGBA")
-
-
-def add_card_shadow(canvas: Image.Image, box: tuple[int, int, int, int]) -> None:
-    layer = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
-    draw = ImageDraw.Draw(layer)
-    x0, y0, x1, y1 = box
-    draw.rounded_rectangle((x0, y0 + 18, x1, y1 + 18), radius=28, fill=(18, 22, 30, 36))
-    canvas.alpha_composite(layer.filter(ImageFilter.GaussianBlur(26)))
+def glass_stage(name: str) -> Image.Image:
+    """The Chrome-rendered backdrop: a reading page with the liquid glass plates already on it."""
+    return Image.open(FRAMES / f"{name}.png").convert("RGBA")
 
 
 def cover(image: Image.Image, size: tuple[int, int]) -> Image.Image:
@@ -143,49 +131,39 @@ def cover(image: Image.Image, size: tuple[int, int]) -> Image.Image:
 
 
 def compose_learning_loop() -> None:
-    """Two framed cards: the mochi review sign on the left, the year graph on the right."""
-    canvas = gradient((1600, 960), (250, 247, 240), (235, 229, 219))
-    draw = ImageDraw.Draw(canvas)
+    """The learning loop as a GIF: the pet's sign turns on its frames, the year's hue wheel turns through the palette.
+
+    Each card is its own captured frame over the wall, rounded, so the glass refracts the wall and no reading text sits behind it.
+    """
+    canvas_size = (1600, 1040)
     label_font = font("seguisb.ttf", 30)
     caption_font = font("segoeui.ttf", 18)
     small_font = font("segoeui.ttf", 15)
-    small_bold = font("seguisb.ttf", 15)
-
-    # Equal cards, equal insets, and the same vertical rhythm on both sides: label, media,
-    # caption, subcaption, then the same bottom padding.
-    for box in ((60, 80, 780, 880), (820, 80, 1540, 880)):
-        add_card_shadow(canvas, box)
-        draw.rounded_rectangle(box, radius=28, fill=(255, 255, 255, 255), outline=(226, 230, 236, 255), width=2)
-
-    draw.rounded_rectangle((120, 210, 720, 710), radius=22, fill=(244, 236, 217, 255))
-    draw.rounded_rectangle((880, 210, 1480, 710), radius=22, fill=(244, 236, 217, 255))
-
-    review = cover(Image.open(OUT / "review.png").convert("RGB"), (580, 267))
-    year = cover(Image.open(OUT / "year-in-words.png").convert("RGB"), (490, 479))
-    canvas.alpha_composite(review.convert("RGBA"), (130, 225))
-    canvas.alpha_composite(year.convert("RGBA"), (935, 220))
-
-    draw.text((120, 120), "A word comes back", font=label_font, fill=(26, 26, 31, 255))
-    draw.text((880, 120), "A year of reading", font=label_font, fill=(26, 26, 31, 255))
-    draw.rectangle((120, 164, 270, 168), fill=(47, 158, 110, 255))
-    draw.rectangle((880, 164, 1030, 168), fill=(47, 158, 110, 255))
-
-    # The left media panel has a wide review scene, so the space under it carries the schedule.
-    draw.text((150, 522), "Spaced review", font=small_bold, fill=(102, 102, 111, 255))
-    draw.line((155, 566, 685, 566), fill=(206, 211, 219, 255), width=2)
-    for index, label in enumerate(("10m", "1d", "3d", "7d", "21d", "60d")):
-        x = 155 + index * 106
-        draw.ellipse((x - 5, 561, x + 5, 571), fill=(47, 158, 110, 255))
-        text_width = draw.textbbox((0, 0), label, font=small_font)[2]
-        draw.text((x - text_width / 2, 586), label, font=small_font, fill=(132, 135, 143, 255))
-    draw.text((150, 648), "No separate review screen.", font=small_font, fill=(132, 135, 143, 255))
-
-    draw.text((120, 750), "The pet's own sign asks the word; answer Forgot or Remembered.", font=caption_font, fill=(102, 102, 111, 255))
-    draw.text((120, 785), "It comes back on a schedule from 10 minutes to 60 days.", font=small_font, fill=(132, 135, 143, 255))
-    draw.text((880, 750), "Every lookup leaves one green square.", font=caption_font, fill=(102, 102, 111, 255))
-    draw.text((880, 785), "A year of reading, without a streak.", font=small_font, fill=(132, 135, 143, 255))
-
-    canvas.convert("RGB").save(OUT / "learning-loop.png", optimize=True)
+    boxes = ((60, 130, 780, 930), (820, 130, 1540, 930))
+    frames = []
+    for i in range(12):
+        canvas = Image.new("RGBA", canvas_size, (244, 236, 217, 255))
+        for box, name in zip(boxes, ("loop-sign", "loop-year")):
+            size = (box[2] - box[0], box[3] - box[1])
+            frame = Image.open(FRAMES / f"{name}-{i}.png").convert("RGB")
+            if name == "loop-sign":
+                # The sign and the answer card span x 270-1530 of the frame; cover() would cut the card's left side.
+                frame = frame.crop((270, 0, 1530, frame.height))
+            shot = cover(frame, size).convert("RGBA")
+            mask = Image.new("L", size, 0)
+            ImageDraw.Draw(mask).rounded_rectangle((0, 0, size[0] - 1, size[1] - 1), radius=28, fill=255)
+            shot.putalpha(mask)
+            canvas.alpha_composite(shot, box[:2])
+        draw = ImageDraw.Draw(canvas)
+        draw.text((60, 60), "A word comes back", font=label_font, fill=(26, 26, 31, 255))
+        draw.text((820, 60), "A year of reading", font=label_font, fill=(26, 26, 31, 255))
+        draw.text((60, 956), "The pet's own sign asks the word; answer Forgot or Remembered.", font=caption_font, fill=(74, 79, 94, 255))
+        draw.text((60, 992), "It comes back on a schedule from 10 minutes to 60 days.", font=small_font, fill=(102, 102, 111, 255))
+        draw.text((820, 956), "Every lookup leaves one green square.", font=caption_font, fill=(74, 79, 94, 255))
+        draw.text((820, 992), "A year of reading, without a streak.", font=small_font, fill=(102, 102, 111, 255))
+        frames.append(canvas.convert("RGB").resize((1200, 780), Image.Resampling.LANCZOS)
+                      .quantize(colors=128, method=Image.MEDIANCUT, dither=Image.Dither.NONE))
+    frames[0].save(OUT / "learning-loop.gif", save_all=True, append_images=frames[1:], duration=700, loop=0, optimize=True)
 
 
 def compose_pets_gif() -> None:
@@ -220,9 +198,10 @@ def compose_pets_gif() -> None:
             effect_sheet = Image.open(directory / definition["effect"]).convert("RGBA")
         prepared.append((label, action_label, definition, anchors, body_sheet, eyes_sheet, effect_sheet))
 
+    stage = glass_stage("glass-pets")
     frames = []
     for step in range(15):
-        canvas = gradient((width, height), (250, 247, 240), (235, 229, 219))
+        canvas = stage.copy()
         shadows = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
         shadow_draw = ImageDraw.Draw(shadows)
         for index, _ in enumerate(prepared):
@@ -288,6 +267,7 @@ def compose_lantern_gif() -> None:
     width, height = cell + pad * 2, cell + pad * 2 + label_h
     label = "Jack-o'-lantern"
     label_font = font("seguisb.ttf", 18)
+    stage = glass_stage("glass-lantern")
     frames = []
     for i in range(scene["frames"]):
         frame = scene["framesData"][i]
@@ -303,7 +283,7 @@ def compose_lantern_gif() -> None:
         composed.alpha_composite(cell_of(front_sheet, i))
         composed = composed.resize((cell, cell), Image.Resampling.NEAREST)
 
-        canvas = gradient((width, height), (250, 247, 240), (235, 229, 219))
+        canvas = stage.copy()
         draw = ImageDraw.Draw(canvas)
         canvas.alpha_composite(composed, (pad, pad))
         text_width = draw.textbbox((0, 0), label, font=label_font)[2]
@@ -337,7 +317,7 @@ def compose_pet_postcards() -> None:
                "star_frames", "glasses", "candy_shades", "readers", "sleep_mask", "bubble_glasses",
                "dive_mask", "raindrop_glasses", "cloud_frames"}
     zoom = 2  # The figure's whole-number magnification, PetPostcardPreview.qml's zoom.
-    paper, card_edge = (250, 251, 254), (222, 226, 233)
+    paper = (250, 251, 254)
     ink_text, ink_muted, ink_faint = (16, 19, 25), (51, 56, 70), (74, 79, 94)
 
     def postcard(pet: str, name: str) -> Image.Image:
@@ -360,10 +340,9 @@ def compose_pet_postcards() -> None:
         box = alpha.point(lambda a: 255 if a >= 40 else 0).getbbox()
         foot_x, foot_y = (box[0] + box[2]) / 2, box[3]
 
-        card = Image.new("RGBA", (600, 480), (0, 0, 0, 0))
-        draw = ImageDraw.Draw(card)
-        draw.rounded_rectangle((0, 0, 599, 479), radius=24, fill=paper, outline=card_edge, width=2)
-        photo = (20, 20, 580, 412)  # The 280 x 196 picture at 2x.
+        card = stage.crop((pad, pad, pad + 600, pad + 480))  # The glass plate, as the stage drew it.
+        glass = card.copy()
+        photo =(20, 20, 580, 412)  # The 280 x 196 picture at 2x.
         ground = photo[1] + 356  # photo.height - 18, at 2x.
         top, bottom = scenery[pet]["sky"]
         sky = Image.new("RGBA", (560, 392), (0, 0, 0, 0))
@@ -393,8 +372,13 @@ def compose_pet_postcards() -> None:
         mask = Image.new("L", (560, 392), 0)
         ImageDraw.Draw(mask).rounded_rectangle((0, 0, 559, 391), radius=16, fill=255)
         region = card.crop(photo)
-        base = Image.new("RGBA", region.size, paper + (255,))
+        base = stage.crop((pad + photo[0], pad + photo[1], pad + photo[2], pad + photo[3]))
         card.paste(Image.composite(region, base, mask), photo[:2])
+        # The hills are painted past the picture's edge; the glass keeps everything outside the picture.
+        outside = Image.new("L", card.size, 255)
+        ImageDraw.Draw(outside).rectangle((photo[0], photo[1], photo[2] - 1, photo[3] - 1), fill=0)
+        card.paste(glass, (0, 0), outside)
+        draw = ImageDraw.Draw(card)
         draw.rounded_rectangle(photo, radius=16, outline=(18, 24, 36, 28), width=1)
 
         sprite = figure.resize((88 * zoom, 88 * zoom), Image.Resampling.NEAREST)
@@ -452,11 +436,10 @@ def compose_pet_postcards() -> None:
         return card
 
     pad = 60
-    width, height = 600 + pad * 2, 480 + pad * 2
+    stage = glass_stage("glass-postcards")
     frames = []
     for pet, name in pets:
-        canvas = gradient((width, height), (250, 247, 240), (235, 229, 219))
-        add_card_shadow(canvas, (pad + 10, pad + 14, pad + 590, pad + 486))
+        canvas = stage.copy()
         canvas.alpha_composite(postcard(pet, name), (pad, pad))
         frames.append(canvas.convert("RGB").quantize(colors=128, method=Image.MEDIANCUT, dither=Image.Dither.NONE))
     frames[0].save(OUT / "pet-postcards.gif", save_all=True, append_images=frames[1:], duration=1100, loop=0, optimize=True)
@@ -467,12 +450,6 @@ def main() -> None:
         sys.exit(f"readme-html-compose: frames not found at {FRAMES}; run readme-html-shots.sh first")
 
     autocrop(OUT / "selection-bar.png", background=(255, 255, 255)).save(OUT / "selection-bar.png", optimize=True)
-    autocrop(OUT / "year-in-words.png", background=(255, 255, 255)).save(OUT / "year-in-words.png", optimize=True)
-    review_hover = OUT / "review-hover.png"
-    if review_hover.exists():
-        autocrop(review_hover, background=(244, 236, 217), margin=90).save(OUT / "review.png", optimize=True)
-        review_hover.unlink()
-
     compose_peek_gif()
     compose_selection_styles()
     compose_themes()
@@ -488,11 +465,9 @@ def main() -> None:
         "pet-lantern.gif",
         "pet-postcards.gif",
         "themes.png",
-        "learning-loop.png",
-        "review.png",
+        "learning-loop.gif",
         "selection-bar.png",
         "selection-drawer.png",
-        "year-in-words.png",
     ):
         path = OUT / name
         print(f"  docs/readme/{name}: {path.stat().st_size / 1024:.0f} KB")

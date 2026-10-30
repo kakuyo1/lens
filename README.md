@@ -100,7 +100,7 @@ Breakdown tints each part of the sentence in one of four colours — subject, ve
 
 ## A small learning loop
 
-<p align="center"><img src="docs/readme/learning-loop.png" width="900" alt="The ghost's review sign beside it, and the year-in-words graph"></p>
+<p align="center"><img src="docs/readme/learning-loop.gif" width="900" alt="The ghost's review sign beside it, and the year-in-words graph"></p>
 
 Known and New live on one word list. Hover a row to reread an explanation Lens already stored, without sending a request. When a word is due, a small sign appears beside the desktop pet — its own, drawn for that pet; answer Forgot or Remembered and it comes back on a spaced schedule from ten minutes to sixty days. The year-in-words graph keeps the habit visible without turning it into a streak.
 

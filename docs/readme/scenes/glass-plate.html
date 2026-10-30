@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · glass plate</title>
+<!--
+  A README-only backdrop for the composed stills. Pillow draws the art on top; this page supplies the
+  liquid glass and the reading page it refracts. ?plates=x,y,w,h,r;... gives each plate's box and corner
+  radius in CSS pixels; the screenshot is the frame size, so the plates sit at 1x.
+-->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden}
+body{position:relative;background:#f4ecd9;padding:28px 36px;font:20px/1.75 "Charter","Iowan Old Style","Sitka Text",Georgia,serif;color:#33343a}
+p{margin-bottom:16px}
+.plate{position:absolute;border:1px solid rgba(255,255,255,.8);box-shadow:0 1px 2px rgba(10,14,24,.14),0 22px 54px -20px rgba(10,14,24,.4)}
+</style>
+</head>
+<body>
+<p>The distinction matters. Luck arrives; attention makes room for it. A reader who stops to ask what a word is really doing is already reading more closely than one who turns the page.</p>
+<p>That is why the old reading rooms still feel different from a feed. Nothing there is trying to move you along. The page waits while a sentence opens, and the word you did not know becomes part of the room.</p>
+<p>She had come to the archive looking for one thing and found another: a letter that changed the shape of her book. Attention is a form of hospitality, she wrote, and it makes a place for the unexpected.</p>
+<p>The page waits while a sentence opens, and the word you did not know becomes part of the room. Nothing there is trying to move you along.</p>
+<script>
+const query = new URLSearchParams(location.search);
+if (query.has('blank')) {
+  // Paper and glass alone: the stills carry no words in their background.
+  document.querySelectorAll('p').forEach(p => p.remove());
+}
+for (const spec of (query.get('plates') || '').split(';').filter(Boolean)) {
+  const [x, y, w, h, r] = spec.split(',');
+  const plate = document.createElement('div');
+  plate.className = 'plate';
+  plate.dataset.glass = '';
+  Object.assign(plate.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', borderRadius: r + 'px' });
+  document.body.append(plate);
+}
+</script>
+<script src="liquid-glass.js"></script>
+</body>
+</html>
