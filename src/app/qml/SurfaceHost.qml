@@ -224,6 +224,18 @@ QtObject {
     function placeReviewCard(surface, payload) {
         if (!surface || surface.dragging)
             return;
+        placeAgainstWord(surface, payload);
+        reviewHold.restart();
+    }
+
+    /// @brief Put @p surface against the word @p payload names, by the rule a review card follows.
+    ///
+    /// A word's hint is placed here too, so a line and a card with the same gap sit the same way. A hint
+    /// takes no hold, since no pointer is on it to keep.
+    /// @param payload The anchor rectangle in DIPs: the word's x, y, anchorWidth and anchorHeight. Nothing when null.
+    function placeAgainstWord(surface, payload) {
+        if (!surface || !payload)
+            return;
         const target = screenFor(Qt.point(payload.x, payload.y));
         const at = SurfaceGeometry.reviewCard(
                     Qt.rect(payload.x, payload.y, payload.anchorWidth || 0, payload.anchorHeight || 0),
@@ -232,7 +244,6 @@ QtObject {
         surface.x = at.x;
         surface.y = at.y;
         surface.raise();
-        reviewHold.restart();
     }
 
     /// The hold a review card's life runs on: the pointer is on the reading exactly while it is

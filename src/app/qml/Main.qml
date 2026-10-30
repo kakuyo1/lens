@@ -97,6 +97,14 @@ Window {
         }
     }
 
+    /// A word's hint: the list's answer for a word with nothing stored (UI-SPEC.md 4.8). SurfaceHost places it against
+    /// its word. Its button is the one path from a hover to a request, and it is the reader's to press.
+    WordHint {
+        id: wordHint
+        onPlacementRequested: surfaceHost.placeAgainstWord(wordHint, wordHint.wordAt)
+        onActionTriggered: Controller.explainLemma(wordHint.lemma)
+    }
+
     /// A new version's card. Passive: not in the panels' mutual exclusion above, and not on
     /// the explanation notice slot, so it neither takes a notice's place nor loses one to it.
     UpdateCard {
@@ -314,6 +322,15 @@ Window {
                 notice.show(payload);
             else
                 notice.dismiss();
+        }
+
+        function onWordHintChanged() {
+            // The word's rectangle comes in native pixels, like the bubble's, so it takes the same conversion.
+            const payload = Controller.explanationDuty.wordHint;
+            if (payload && Object.keys(payload).length > 0)
+                wordHint.show(points.toDip(payload));
+            else
+                wordHint.dismiss();
         }
     }
 

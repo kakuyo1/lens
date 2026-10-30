@@ -34,8 +34,7 @@ Window {
     property bool leaving: false
 
     /// The one thing the reader can do about this notice, empty when there is nothing to do. Most
-    /// notices are a failure with nothing left to press; a word with no stored explanation has an
-    /// obvious next step, offered where the reader asked for it.
+    /// notices are a failure with nothing left to press; the first-run notice is the one that has a step.
     property string noticeAction: ""
     /// The word that action acts on. The surface does not know what the action means; the one that
     /// raised the notice does, and it reads this back off the controller.

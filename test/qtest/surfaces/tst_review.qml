@@ -9,7 +9,7 @@ import "../testutil.js" as Util
  *
  * What is checked is the contract between the row and the controller, not the surfaces that draw
  * it: the row is reached through the words panel and the answer is read off
- * `Controller.explanationDuty.bubble` and `Controller.explanationDuty.notice`, the way the panels
+ * `Controller.explanationDuty.bubble`, `.notice` and `.wordHint`, the way the panels
  * are read in tst_panels. Main.qml is what turns either of those into a window, and it is not built here.
  *
  * Two rows are enough for both halves, and the fixture has them: `panel` has one stored explanation
@@ -31,6 +31,11 @@ Item {
     Component {
         id: wordsComponent
         WordsPopup {}
+    }
+
+    Component {
+        id: hintComponent
+        WordHint {}
     }
 
     TestCase {
@@ -266,36 +271,36 @@ Item {
             }
         }
 
-        /// A word with nothing stored in this language gets a notice saying so, rather than
-        /// looking like a hover that did not register, and the way to get it explained is a
-        /// button the reader presses, not a request their hover makes.
-        function test_aWordWithNothingStoredOffersToAskTheModel() {
+        /// A word with nothing stored in this language gets a hint beside the word saying so, rather than
+        /// looking like a hover that did not register. Nothing about it asks the model, and it is not a
+        /// notice: the middle of the screen is no place for a word the reader only passed over.
+        function test_aWordWithNothingStoredGetsAHintBesideIt() {
             const popup = make();
             dwellOn(popup, unstored);
 
-            const notice = Controller.explanationDuty.notice;
-            compare(notice.title, unstored);
-            compare(notice.kind, "info");
-            compare(notice.lemma, unstored, "the button has to act on the word the row drew");
-            compare(notice.action, qsTranslate("lens::app::AppController", "Explain now"));
+            const hint = Controller.explanationDuty.wordHint;
+            compare(hint.lemma, unstored, "the hint has to be about the word the row drew");
+            compare(hint.body, qsTranslate("lens::app::AppController", "No explanation is stored for this word in the current language."));
+            compare(hint.action, qsTranslate("lens::app::AppController", "Explain now"), "the hint has no button to ask with");
+            compare(Object.keys(Controller.explanationDuty.notice).length, 0, "a notice came up in the middle of the screen");
             compare(Object.keys(Controller.explanationDuty.bubble).length, 0, "nothing stored means no bubble");
         }
 
-        /// The notice is a card, not a bubble: it is not the pointer's to take down, because the
-        /// button on it is reached by moving the pointer onto it.
-        function test_theOfferOutlivesThePointerLeavingTheRow() {
+        /// The hint is the pointer's to see go: it takes no input, so nothing on it holds the pointer, and
+        /// leaving the word takes it down once the row's grace runs out.
+        function test_theHintGoesWhenThePointerLeavesTheWord() {
             const popup = make();
             dwellOn(popup, unstored);
-            compare(Controller.explanationDuty.notice.title, unstored);
+            compare(Controller.explanationDuty.wordHint.lemma, unstored);
 
             mouseMove(popup, 2, 2);
-            wait(300);
-            compare(Controller.explanationDuty.notice.title, unstored, "the offer went with the pointer");
+            tryVerify(function () { return Object.keys(Controller.explanationDuty.wordHint).length === 0; }, 1000,
+                      "the hint outlived the pointer leaving the word");
         }
 
-        /// The button's action, at the controller: a word whose explanation is already stored is
-        /// answered from the store. That is the half of this path a test can run -- the other half
-        /// is a request, and nothing in this tree asks the model anything.
+        /// Asking for a stored word by name, at the controller: the answer comes from the store, the same
+        /// as a hover's does. The other half of this path is a request, and nothing in this tree asks the
+        /// model anything.
         function test_askingAboutAStoredWordAnswersFromTheStore() {
             Controller.explainLemma(stored);
 
@@ -303,16 +308,56 @@ Item {
             compare(Object.keys(Controller.explanationDuty.notice).length, 0, "an answered word leaves no notice behind");
         }
 
-        /// Hovering a stored word after an offer is up takes the offer down: one surface, and the
-        /// newer question is the one being asked.
-        function test_storedReadingClearsTheOffer() {
+        /// Hovering a stored word while a hint is up takes the hint down: the newer reading is the one asked.
+        function test_storedReadingClearsTheHint() {
             const popup = make();
             dwellOn(popup, unstored);
-            compare(Controller.explanationDuty.notice.title, unstored);
+            compare(Controller.explanationDuty.wordHint.lemma, unstored);
 
             dwellOn(popup, stored);
             compare(Controller.explanationDuty.bubble.title, stored);
-            compare(Object.keys(Controller.explanationDuty.notice).length, 0, "the offer stayed up behind the reading");
+            compare(Object.keys(Controller.explanationDuty.wordHint).length, 0, "the hint stayed up behind the reading");
+        }
+
+        /// The hint shows its line and its button, and takes the pointer, since the button has to be reachable from the word.
+        function test_theHintCarriesItsButtonAndTakesThePointer() {
+            const hint = createTemporaryObject(hintComponent, root);
+            verify(hint, "the hint window did not build");
+            const line = qsTranslate("lens::app::AppController", "No explanation is stored for this word in the current language.");
+            const action = qsTranslate("lens::app::AppController", "Explain now");
+            hint.show({lemma: unstored, body: line, action: action, x: 40, y: 80, anchorWidth: 60, anchorHeight: 20});
+            compare(hint.visible, true);
+            wait(50);
+            verify(Util.textWith(Util.textsUnder(hint), [line]), "the hint does not show its line");
+
+            const button = Util.findAll(hint, function (o) { return o.objectName === "explainNowButton"; })[0];
+            verify(button, "the hint has no button");
+            compare(button.visible, true, "the button is not drawn");
+            verify(Util.textWith(Util.textsUnder(button), [action]), "the button does not say what it does");
+            verify((hint.flags & Qt.WindowTransparentForInput) === 0, "the hint lets the pointer through to the word");
+
+            let asked = 0;
+            hint.actionTriggered.connect(function () { ++asked; });
+            mouseClick(button, button.width / 2, button.height / 2);
+            compare(asked, 1, "pressing the button did not ask for the explanation");
+
+            hint.dismiss();
+            compare(hint.visible, false);
+        }
+
+        /// The hint as it renders, for the check the pixels need. It is written only when LENS_QA_SNAPSHOT_DIR is set.
+        function test_captureTheWordHint() {
+            if (!lensQaSnapshotDir) {
+                skip("Set LENS_QA_SNAPSHOT_DIR to save the word hint snapshot");
+                return;
+            }
+            const hint = createTemporaryObject(hintComponent, root);
+            verify(hint, "the hint window did not build");
+            hint.show({lemma: unstored,
+                       body: qsTranslate("lens::app::AppController", "No explanation is stored for this word in the current language."),
+                       x: 40, y: 80, anchorWidth: 60, anchorHeight: 20});
+            wait(Tokens.motion.pop + 80);
+            verify(Util.saveSnapshot(testCase, hint.contentItem, lensQaSnapshotDir, "word-hint"));
         }
     }
 }

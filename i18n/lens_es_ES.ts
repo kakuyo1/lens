@@ -234,7 +234,7 @@
 <context>
     <name>Notice</name>
     <message>
-        <location filename="../src/app/qml/panels/Notice.qml" line="123"/>
+        <location filename="../src/app/qml/panels/Notice.qml" line="122"/>
         <source>Close</source>
         <translation>Cerrar</translation>
     </message>
@@ -1189,18 +1189,18 @@
         <translation>Un token es un fragmento de texto por el que cobra el modelo; los precios son por millón de tokens. Cada consulta cobra los tokens que envía y recibe, convertidos a la moneda que muestra el panel de gastos.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="106"/>
+        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="101"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="86"/>
         <source>API configuration</source>
         <translation>Configuración de la API</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="108"/>
+        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="103"/>
         <source>Configured</source>
         <translation>Configurada</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="109"/>
+        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="104"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="334"/>
         <source>Not configured</source>
         <translation>Sin configurar</translation>
@@ -3408,24 +3408,24 @@
         <translation>Manual</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="670"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="721"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>No hay ninguna explicación guardada para esta palabra en el idioma actual.</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="672"/>
-        <source>Explain now</source>
-        <translation>Explicar ahora</translation>
-    </message>
-    <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="547"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="566"/>
         <source>Explaining…</source>
         <translation>Explicando…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="691"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="704"/>
         <source>Request failed</source>
         <translation>La solicitud ha fallado</translation>
+    </message>
+    <message>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="722"/>
+        <source>Explain now</source>
+        <translation>Explicar ahora</translation>
     </message>
     <message>
         <location filename="../src/app/duties/storage_duty.cpp" line="89"/>

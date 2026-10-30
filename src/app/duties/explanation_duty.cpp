@@ -217,7 +217,9 @@ void ExplanationDuty::reviewWord(QString lemma, QPoint const anchor, QSize const
 {
     const QString value = lemma.trimmed();
     if (value.isEmpty()) return;
-    reviewAnchor_ = anchor;
+    reviewAnchor_     = anchor;
+    reviewAnchorSize_ = anchorSize;
+    clearWordHint();
     PendingSelection pending{.anchor = anchor, .anchorSize = anchorSize, .kind = core::SelectionKind::Word, .surface = value, .lemma = value};
     apply(exchange_.ask(std::move(pending), AskOrigin::Review, facts()));
 }
@@ -230,6 +232,12 @@ void ExplanationDuty::showReviewAnswer(QString const& lemma, QPoint const anchor
 
 void ExplanationDuty::dismissReview()
 {
+    // A pointer on the hint is reading it, and its button is there to be pressed, so the row's dismissal waits
+    // for the pointer to leave the hint (holdWordHint). Otherwise the hint goes with the word.
+    if (wordHintHeld_)
+        wordHintDismissPending_ = true;
+    else
+        clearWordHint();
     // A pointer on the card is reading it -- and the entry at its foot is there to be pressed --
     // so the dismissal waits for the pointer to leave the card, which the card itself reports.
     if (exchange_.card().dismissReview() == CardSession::ReviewDismissal::Dismiss)
@@ -238,8 +246,17 @@ void ExplanationDuty::dismissReview()
 
 void ExplanationDuty::dismissReviewNow()
 {
+    clearWordHint();
     if (exchange_.card().dismissReviewNow())
         clearBubble();
+}
+
+void ExplanationDuty::holdWordHint(bool const on)
+{
+    wordHintHeld_ = on;
+    // The pointer has left the hint, and the row's dismissal was waiting for it: it lands now.
+    if (!on && wordHintDismissPending_)
+        clearWordHint();
 }
 
 void ExplanationDuty::holdReviewCard(bool const on)
@@ -253,6 +270,8 @@ void ExplanationDuty::explainLemma(QString lemma)
 {
     const QString value = lemma.trimmed();
     if (value.isEmpty()) return;
+    // The button is the hint's answer, so the hint goes as the request does.
+    clearWordHint();
     PendingSelection pending{.anchor = reviewAnchor_, .kind = core::SelectionKind::Word, .surface = value, .lemma = value};
     explain(pending);
 }
@@ -662,15 +681,9 @@ void ExplanationDuty::apply(ExplanationExchange::Outcome const& outcome, bool co
             break;
         case ExplanationExchange::Outcome::Kind::Send: send(outcome.request, outcome.batch); break;
         case ExplanationExchange::Outcome::Kind::Notice:
-            // The one thing on this path that reaches the model is a button, not the hover itself: a
-            // pointer crossing the list must not spend the reader's money. The strings are spelled in
-            // the controller's context, where this file's other reader-facing ones already are; the
-            // context is written out at each call because lupdate reads literal arguments only.
-            showNotice(outcome.noticeLemma,
-                       QCoreApplication::translate("lens::app::AppController", "No explanation is stored for this word in the current language."),
-                       QString::fromLatin1(kNoticeInfo),
-                       QCoreApplication::translate("lens::app::AppController", "Explain now"),
-                       outcome.noticeLemma);
+            // A hover that finds nothing says so beside the word. It asks the model for nothing: the
+            // reader's money is spent only by a request they make, and there is no button for one here.
+            showWordHint(outcome.noticeLemma);
             break;
     }
 }
@@ -697,6 +710,32 @@ void ExplanationDuty::clearNotice()
     if (notice_.isEmpty()) return;
     notice_.clear();
     emit noticeChanged();
+}
+
+void ExplanationDuty::showWordHint(QString const& lemma)
+{
+    // The strings are spelled in the controller's context, where this file's other reader-facing ones
+    // already are; the context is written out at each call because lupdate reads literal arguments only.
+    wordHint_ = {
+        {"lemma", lemma},
+        {"body", QCoreApplication::translate("lens::app::AppController", "No explanation is stored for this word in the current language.")},
+        {"action", QCoreApplication::translate("lens::app::AppController", "Explain now")},
+        {"x", reviewAnchor_.x()},
+        {"y", reviewAnchor_.y()},
+        {"anchorWidth", reviewAnchorSize_.width()},
+        {"anchorHeight", reviewAnchorSize_.height()},
+    };
+    emit wordHintChanged();
+}
+
+void ExplanationDuty::clearWordHint()
+{
+    // Whatever held the hint is gone with it; a fresh hint starts with nothing held.
+    wordHintHeld_           = false;
+    wordHintDismissPending_ = false;
+    if (wordHint_.isEmpty()) return;
+    wordHint_.clear();
+    emit wordHintChanged();
 }
 
 void ExplanationDuty::clearBubble()
@@ -742,6 +781,11 @@ QVariantMap ExplanationDuty::bubble() const
 QVariantMap ExplanationDuty::notice() const
 {
     return notice_;
+}
+
+QVariantMap ExplanationDuty::wordHint() const
+{
+    return wordHint_;
 }
 QString ExplanationDuty::busyLabel() const
 {

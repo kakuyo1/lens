@@ -545,6 +545,61 @@ TEST_F(LlmTest, Phase2AReviewCardStaysWhileThePointerIsOnIt)
     EXPECT_TRUE(rig.duty.bubble().isEmpty());
 }
 
+/// A hover over a word with nothing stored gets a hint beside the word, not a notice, and the hover itself
+/// asks nothing of the model. The hint carries the button that does; the row's dismissal takes the hint down.
+TEST_F(LlmTest, Phase2ReviewMissRaisesAHintNotANotice)
+{
+    QtApplication qt;
+    Rig           rig;
+
+    rig.duty.reviewWord(QStringLiteral("gazebo"), {200, 400}, {60, 20});
+    EXPECT_TRUE(rig.duty.notice().isEmpty()) << "a hover over an unstored word raised a notice";
+    EXPECT_EQ(rig.duty.wordHint().value("lemma").toString(), QStringLiteral("gazebo"));
+    EXPECT_EQ(rig.duty.wordHint().value("x").toInt(), 200);
+    EXPECT_FALSE(rig.duty.wordHint().value("body").toString().isEmpty());
+    EXPECT_EQ(rig.duty.wordHint().value("action").toString(), QStringLiteral("Explain now"));
+    EXPECT_EQ(rig.manager.posts, 0) << "the hover asked the model";
+
+    rig.duty.dismissReview();
+    EXPECT_TRUE(rig.duty.wordHint().isEmpty()) << "the row's dismissal left the hint up";
+}
+
+/// While the pointer is on the hint, the row's dismissal waits for it to leave, so the button stays reachable.
+TEST_F(LlmTest, Phase2WordHintStaysWhileThePointerIsOnIt)
+{
+    QtApplication qt;
+    Rig           rig;
+
+    rig.duty.reviewWord(QStringLiteral("gazebo"), {200, 400}, {60, 20});
+    rig.duty.holdWordHint(true);
+    rig.duty.dismissReview();
+    EXPECT_FALSE(rig.duty.wordHint().isEmpty()) << "the hint went while the pointer was on it";
+
+    rig.duty.holdWordHint(false);
+    EXPECT_TRUE(rig.duty.wordHint().isEmpty()) << "the hint outlived the pointer leaving it";
+}
+
+/// The hint's button is the one path from a hover to a request: it asks the model once and takes the hint down.
+TEST_F(LlmTest, Phase2WordHintButtonAsksTheModelOnce)
+{
+    QtApplication qt;
+    Rig           rig;
+
+    // The fake model answers for "bank", so the request is one it can echo back.
+    rig.duty.reviewWord(QStringLiteral("bank"), {200, 400}, {60, 20});
+    ASSERT_FALSE(rig.duty.wordHint().isEmpty());
+
+    const int  before = rig.manager.posts;
+    QEventLoop loop;
+    QObject::connect(&rig.client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
+    QObject::connect(&rig.client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
+    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+    rig.duty.explainLemma(QStringLiteral("bank"));
+    EXPECT_TRUE(rig.duty.wordHint().isEmpty()) << "the button left the hint up";
+    if (rig.manager.posts > before) loop.exec();
+    EXPECT_EQ(rig.manager.posts, before + 1) << "the button did not ask the model exactly once";
+}
+
 /// The Not-the-Sense? entry's cycle: the part of speech is a display switch over a stored field,
 /// the click asks the sense channel for the next distinct common sense, and past the last one
 /// the cycle turns back to the most common one without asking again.

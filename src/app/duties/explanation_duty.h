@@ -50,8 +50,8 @@ public:
      *
      * No request is made on this path: a pointer crossing the word list is not a request to spend
      * money, and the stored copy is what the reader came to see again. A word with nothing stored in
-     * the current explanation language gets a notice saying so, with the one button that does ask
-     * the model, so the reader chooses to spend rather than hovering their way into it.
+     * the current explanation language gets a hint beside the word (wordHint), which carries the one
+     * button that does ask the model. The hover itself asks nothing.
      *
      * @param lemma      The word, as the row draws it.
      * @param anchor     The word's top-left, in the physical pixels the other surfaces anchor with.
@@ -87,7 +87,14 @@ public:
     /// the dismissal lands when the hold ends, so the card survives exactly as long as the pointer
     /// is on the word or on the card, and no longer.
     Q_INVOKABLE void holdReviewCard(bool on);
+    /// @brief Report whether the pointer is on the word hint.
+    ///
+    /// Pushed from the hint's own window. A held hint survives the row's dismissal, which then waits for
+    /// the hold to end, so the hint's button stays reachable from the word.
+    Q_INVOKABLE void holdWordHint(bool on);
     /// @brief Ask the model about a lemma the reader asked for by name, anchored where it was read.
+    ///
+    /// This is the one path from a hover to a request: the word hint's button calls it.
     void             explainLemma(QString lemma);
     Q_INVOKABLE void dismissBubble();
     Q_INVOKABLE void dismissNotice();
@@ -131,14 +138,18 @@ public:
     void        showNotice(QString const& title, QString const& body, QString const& kind, QString const& action = {}, QString const& lemma = {}, QString const& intent = {});
     QVariantMap bubble() const;
     QVariantMap notice() const;
+    /// @return The word's hint as the view places it: the lemma, the body and the anchor in physical pixels.
+    QVariantMap wordHint() const;
     QString     busyLabel() const;
 
     Q_PROPERTY(QVariantMap bubble READ bubble NOTIFY bubbleChanged)
     Q_PROPERTY(QVariantMap notice READ notice NOTIFY noticeChanged)
+    Q_PROPERTY(QVariantMap wordHint READ wordHint NOTIFY wordHintChanged)
 
 signals:
     void bubbleChanged();
     void noticeChanged();
+    void wordHintChanged();
     void busyChanged();
     void statsChanged();
     /// @brief What the desktop pet should react to: a request, a bubble coming or going, a verdict. Carries no text.
@@ -235,6 +246,9 @@ private:
     QVariantMap chainEntry(llm::Explanation const& explanation, core::CacheContext const& context) const;
     void        clearBubble();
     void        clearNotice();
+    /// @brief Put the hint up for a word with nothing stored, against the word the row last pointed at.
+    void showWordHint(QString const& lemma);
+    void clearWordHint();
 
     StorageDuty&    storage_;
     llm::LlmClient& llm_;
@@ -244,10 +258,15 @@ private:
     ExplanationExchange exchange_;
     QVariantMap         bubble_;
     QVariantMap         notice_;
-    QString             busyLabel_;
-    /// Where the row the reader is pointing at sits, so the explanation a notice's button asks for
-    /// lands in the same place the review bubble did.
+    QVariantMap         wordHint_;
+    /// The pointer's hold on the word hint, and the row's dismissal that waits for it to end.
+    bool    wordHintHeld_           = false;
+    bool    wordHintDismissPending_ = false;
+    QString busyLabel_;
+    /// Where the row the reader is pointing at sits, and how big the word is: the review card and the
+    /// word's hint are both placed against it.
     QPoint reviewAnchor_;
+    QSize  reviewAnchorSize_;
     /// Whether the request in flight has previewed anything yet. One line is what says whether the
     /// reader's provider streams at all; the rest of the chunks would be a repaint per line.
     bool previewSeen_ = false;

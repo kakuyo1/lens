@@ -234,7 +234,7 @@
 <context>
     <name>Notice</name>
     <message>
-        <location filename="../src/app/qml/panels/Notice.qml" line="123"/>
+        <location filename="../src/app/qml/panels/Notice.qml" line="122"/>
         <source>Close</source>
         <translation>閉じる</translation>
     </message>
@@ -1189,18 +1189,18 @@
         <translation>トークンはモデルが課金するテキストの単位です。料金は100万トークンあたりで表示されます。調べ物のたびに送受信したトークンが課金され、コストパネルに表示される通貨に換算されます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="106"/>
+        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="101"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="86"/>
         <source>API configuration</source>
         <translation>API 設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="108"/>
+        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="103"/>
         <source>Configured</source>
         <translation>設定済み</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="109"/>
+        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="104"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="334"/>
         <source>Not configured</source>
         <translation>未設定</translation>
@@ -3408,24 +3408,24 @@
         <translation>手動</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="670"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="721"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>現在の解説言語では、この単語の保存された解説がありません。</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="672"/>
-        <source>Explain now</source>
-        <translation>今すぐ解説</translation>
-    </message>
-    <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="547"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="566"/>
         <source>Explaining…</source>
         <translation>解説中…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="691"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="704"/>
         <source>Request failed</source>
         <translation>リクエストに失敗しました</translation>
+    </message>
+    <message>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="722"/>
+        <source>Explain now</source>
+        <translation>今すぐ解説</translation>
     </message>
     <message>
         <location filename="../src/app/duties/storage_duty.cpp" line="89"/>

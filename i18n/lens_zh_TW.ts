@@ -234,7 +234,7 @@
 <context>
     <name>Notice</name>
     <message>
-        <location filename="../src/app/qml/panels/Notice.qml" line="123"/>
+        <location filename="../src/app/qml/panels/Notice.qml" line="122"/>
         <source>Close</source>
         <translation>關閉</translation>
     </message>
@@ -1360,18 +1360,18 @@
         <translation>token 是模型計費的一小段文字；價目按每百萬 token 給出。每次取詞按傳送和接收的 token 計費，並換算成花費面板顯示的幣種。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="106"/>
+        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="101"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="86"/>
         <source>API configuration</source>
         <translation>API 設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="108"/>
+        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="103"/>
         <source>Configured</source>
         <translation>已設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="109"/>
+        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="104"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="334"/>
         <source>Not configured</source>
         <translation>未設定</translation>
@@ -3322,24 +3322,24 @@
         <translation>每 1–2 小時</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="670"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="721"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>目前解釋語言下沒有已存的釋義。</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="672"/>
-        <source>Explain now</source>
-        <translation>現在解釋</translation>
-    </message>
-    <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="547"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="566"/>
         <source>Explaining…</source>
         <translation>正在解釋…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="691"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="704"/>
         <source>Request failed</source>
         <translation>請求失敗</translation>
+    </message>
+    <message>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="722"/>
+        <source>Explain now</source>
+        <translation>現在解釋</translation>
     </message>
     <message>
         <location filename="../src/app/app_controller.cpp" line="446"/>

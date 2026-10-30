@@ -234,7 +234,7 @@
 <context>
     <name>Notice</name>
     <message>
-        <location filename="../src/app/qml/panels/Notice.qml" line="123"/>
+        <location filename="../src/app/qml/panels/Notice.qml" line="122"/>
         <source>Close</source>
         <translation>Close</translation>
     </message>
@@ -1360,18 +1360,18 @@
         <translation>A token is a small piece of text the model bills by; prices are per million tokens. Each lookup bills the tokens it sends and receives, converted into the currency the cost panel shows.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="106"/>
+        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="101"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="86"/>
         <source>API configuration</source>
         <translation>API configuration</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="108"/>
+        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="103"/>
         <source>Configured</source>
         <translation>Configured</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="109"/>
+        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="104"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="334"/>
         <source>Not configured</source>
         <translation>Not configured</translation>
@@ -3322,24 +3322,24 @@
         <translation>Every 1–2 hours</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="670"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="721"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>No explanation is stored for this word in the current language.</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="672"/>
-        <source>Explain now</source>
-        <translation>Explain now</translation>
-    </message>
-    <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="547"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="566"/>
         <source>Explaining…</source>
         <translation>Explaining…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="691"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="704"/>
         <source>Request failed</source>
         <translation>Request failed</translation>
+    </message>
+    <message>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="722"/>
+        <source>Explain now</source>
+        <translation>Explain now</translation>
     </message>
     <message>
         <location filename="../src/app/app_controller.cpp" line="446"/>
