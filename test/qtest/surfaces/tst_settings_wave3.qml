@@ -62,13 +62,7 @@ Item {
 
             // The catalog is longer than the body, so the last categories start below the fold:
             // a press on a row that is not on screen goes past the panel. Bring it up first.
-            const body = scrollerOf(row);
-            if (body && body.contentHeight > body.height) {
-                const bottom = row.mapToItem(body, 0, row.height).y;
-                if (bottom > body.height)
-                    body.contentY = Math.min(bottom - body.height, body.contentHeight - body.height);
-                wait(20);
-            }
+            bringIntoView(row);
 
             mouseClick(row, row.width / 2, row.height / 2);
             wait(20);
@@ -81,6 +75,18 @@ Item {
             verify(icons.length > 0, "the settings page has no back control");
             mouseClick(icons[0], icons[0].width / 2, icons[0].height / 2);
             wait(20);
+        }
+
+        /// Scroll the body a row sits in until the row's bottom edge is on screen. A press on a row
+        /// below the fold goes past the panel and never reaches the row.
+        function bringIntoView(item) {
+            const body = scrollerOf(item);
+            if (body && body.contentHeight > body.height) {
+                const bottom = item.mapToItem(body, 0, item.height).y;
+                if (bottom > body.height)
+                    body.contentY = Math.min(bottom - body.height, body.contentHeight - body.height);
+                wait(20);
+            }
         }
 
         /// The scrolling body a page is loaded into, found by walking up from the page.
@@ -504,6 +510,8 @@ Item {
             openCategory(panel, "Capture & popups");
             const link = Util.ofType(panel, "SettingsLinkRow");
             verify(link, "the capture page has no popup link");
+            // The auto-scan note pushes this row below the fold: the press would land past the panel.
+            bringIntoView(link);
             mouseClick(link, link.width / 2, link.height / 2);
             wait(20);
 
