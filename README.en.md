@@ -5,7 +5,7 @@
 <h3 align="center">Read English in English.</h3>
 
 <p align="center">
-  Lens is a Windows tray companion that explains the word, name, or sentence you select — in clearer English, right beside the text. No tab switch, no dictionary window, no translation detour.
+  Lens is a Windows tray companion that explains the word, name, or sentence you select — in clearer English, right beside the text. No tab switch, no dictionary window, no translation detour. Between reads, a desktop pet brings the words that are due back and asks you for them.
 </p>
 
 <p align="center">

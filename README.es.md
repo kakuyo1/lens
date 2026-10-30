@@ -5,7 +5,7 @@
 <h3 align="center">Lee inglés en inglés.</h3>
 
 <p align="center">
-  Lens es un compañero de la bandeja del sistema de Windows que explica la palabra, el nombre o la frase que seleccionas — en un inglés más claro, junto al texto. Sin cambiar de pestaña, sin abrir un diccionario y sin dar un rodeo por el chino.
+  Lens es un compañero de la bandeja del sistema de Windows que explica la palabra, el nombre o la frase que seleccionas — en un inglés más claro, junto al texto. Sin cambiar de pestaña, sin abrir un diccionario y sin dar un rodeo por el chino. Entre lecturas, una mascota de escritorio te devuelve las palabras que tocan y te las pregunta.
 </p>
 
 <p align="center">
