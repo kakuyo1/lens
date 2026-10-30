@@ -56,7 +56,7 @@ QVariantList correctionSegments(QString const& original, QString const& correcte
 }
 
 ExplanationDuty::ExplanationDuty(StorageDuty& storage, llm::LlmClient& llm, CostDuty& cost, QObject* parent)
-    : QObject(parent), storage_(storage), llm_(llm), cost_(cost), cache_(storage.knownStore())
+    : QObject(parent), storage_(storage), llm_(llm), cost_(cost), exchange_(storage.knownStore())
 {
     connect(&llm_, &llm::LlmClient::batchFinished, this, &ExplanationDuty::onBatchFinished);
     connect(&llm_, &llm::LlmClient::failed, this, &ExplanationDuty::onFailed);
@@ -71,10 +71,10 @@ void ExplanationDuty::onPartial(llm::Explanation partial)
 {
     // A preview is only ever the answer to the batch in flight: the model-list fetch, and a reply
     // for a request already disposed of, reach nothing here.
-    if (not queue_.inFlight())
+    if (not exchange_.inFlight())
         return;
-    const auto now     = cache_.readerContext();
-    const auto subject = queue_.liveSubject(partial.title, now);
+    const auto now     = exchange_.readerContext();
+    const auto subject = exchange_.liveSubject(partial.title, now);
     if (not subject)
         return;
     // A step of the chain is drawn whole or not at all: a preview would put half a definition on the chain.
@@ -87,7 +87,7 @@ void ExplanationDuty::onPartial(llm::Explanation partial)
                         : (subject->surface.isEmpty() ? subject->text : subject->surface);
     // The sense mode reaches the card masked by the kind, exactly as it does for a finished answer.
     const auto display = core::ExplanationCache::masked(now, subject->kind);
-    showBubble(partial, *subject, display, /*notifyPet=*/false);
+    showBubble(exchange_.raise(*subject, partial.title, partial, display, CardKind::Selection, /*reveal=*/true, /*notifyPet=*/false));
     // Once per request, and after the staleness rule above has spoken: what this answers is whether
     // the reader's provider streams at all -- the reader's own report was a card that filled in one
     // jump, and a provider that answers in one body looks exactly like that at this level.
@@ -101,66 +101,40 @@ void ExplanationDuty::onBatchFinished(QVector<llm::Explanation> results, llm::Us
 {
     // The client answers the model-list fetch through the same signal, and that is not an
     // explanation anybody asked for.
-    if (not queue_.inFlight())
+    if (not exchange_.inFlight())
         return;
-
-    QStringList titles;
-    for (const auto& result : results)
-        titles.append(result.title);
-    const auto settlement = queue_.settled(titles, cache_.readerContext());
 
     busyLabel_.clear();
     emit busyChanged();
     cost_.recordUsage(nowMinute().toStdString(), usage);
 
-    if (results.isEmpty()) {
+    auto const outcome = exchange_.settle(results, facts());
+    if (results.isEmpty())
         LENS_WARN("the model returned no explanation");
-        storage_.save();
-        emit statsChanged();
-        queue_.complete();
-        sendNext();
-        return;
-    }
-
-    for (int index = 0; index < settlement.resultFor.size(); ++index) {
-        const int               answer   = settlement.resultFor.at(index);
-        const PendingSelection& selected = settlement.batch.items.at(index);
-        if (answer < 0 or not isWordKind(selected.kind))
-            continue;
-        const llm::Explanation& result = results.at(answer);
-        // The example is stored from the batch's own flag, not the setting as it stands now: an
-        // answer paid for survives the switch turning off mid-request (docs/adr/0033).
-        cache_.store(selected.lemma.toStdString(), word_answer::toCache(result, settlement.batch.example), settlement.batch.context);
-    }
-
-    if (settlement.subject)
-        showBubble(results.front(), *settlement.subject, settlement.batch.context);
-
     storage_.save();
     emit statsChanged();
-    queue_.complete();
+    if (not results.isEmpty())
+        apply(outcome);
     sendNext();
 }
 
 void ExplanationDuty::onFailed(QString const& message)
 {
-    if (not queue_.inFlight())
+    if (not exchange_.inFlight())
         return;
-    const auto subject = queue_.refusalSubject();
+    const auto subject = exchange_.refuse();
     busyLabel_.clear();
     emit busyChanged();
     if (subject and subject->chain)
         emit chainFailed(subject->lemma);
     else if (subject)
         showNotice(noticeTitle(*subject), message, kNoticeError);
-    queue_.complete();
     sendNext();
 }
 
 void ExplanationDuty::setSelection(PendingSelection selection)
 {
-    pending_ = std::move(selection);
-    queue_.selectionChanged();
+    exchange_.setSelection(std::move(selection));
 }
 
 void ExplanationDuty::invalidateWord(QString const& lemma)
@@ -168,20 +142,17 @@ void ExplanationDuty::invalidateWord(QString const& lemma)
     const auto value = lemma.trimmed();
     if (value.isEmpty())
         return;
-    queue_.invalidate(value);
     // The senses the cycle bought for the word, the peek lines and the requests out for it are
     // answers about a word that no longer exists: they go with the cache entry.
-    if (session_.invalidateWord(value))
+    if (exchange_.invalidateWord(value))
         clearBubble();
 }
 
 void ExplanationDuty::enqueueScanCandidates(QVariantList candidates, QPoint anchor)
 {
-    QVector<PendingSelection> misses;
     // The scan's candidates are words by construction -- the word list is the one thing that fills
     // this in -- so the one context they are all judged under is the word channel's.
-    const auto context = cache_.contextFor(core::SelectionKind::Word);
-    for (const auto& value : candidates) {
+    for (auto const& value : candidates) {
         const auto       map = value.toMap();
         PendingSelection candidate{.anchor  = anchor,
                                    .kind    = core::SelectionKind::Word,
@@ -189,16 +160,8 @@ void ExplanationDuty::enqueueScanCandidates(QVariantList candidates, QPoint anch
                                    .lemma   = map.value("lemma").toString()};
         if (candidate.lemma.isEmpty())
             continue;
-        const auto found = cache_.look(candidate.lemma.toStdString(), context);
-        if (found.state == core::ExplanationCache::State::Hit) {
-            storage_.statsStore().recordPop(candidate.lemma.toStdString(), nowMinute().toStdString());
-            if (bubble_.isEmpty() and not queue_.inFlight())
-                showBubble(word_answer::fromCache(found.entry, candidate.lemma), candidate, context, /*notifyPet=*/true, /*reveal=*/false);
-            continue;
-        }
-        misses.push_back(std::move(candidate));
+        apply(exchange_.ask(std::move(candidate), AskOrigin::Scan, facts()), /*save=*/false);
     }
-    queue_.addScan(std::move(misses));
     storage_.save();
     emit statsChanged();
     sendNext();
@@ -213,88 +176,76 @@ void ExplanationDuty::resumeQueued()
 
 void ExplanationDuty::runSelectionAction(QString action, QString text)
 {
-    if (pending_.text.isEmpty()) {
+    auto const& pending = exchange_.selection();
+    if (pending.text.isEmpty()) {
         LENS_WARN("action '{}' arrived with no selection pending", action.toStdString());
         return;
     }
     if (action == QLatin1String("copy")) {
-        QGuiApplication::clipboard()->setText(pending_.text);
-        pending_ = PendingSelection{};
-        queue_.selectionChanged();
+        QGuiApplication::clipboard()->setText(pending.text);
+        exchange_.clearSelection();
         return;
     }
     if (action == QLatin1String("breakdown")) {
         // Only a sentence has a breakdown preset: a word carrying it would ask the word channel for a prompt it does not have.
-        if (pending_.kind == core::SelectionKind::Sentence) pending_.preset = kBreakdownPreset;
-        breakdown(pending_);
+        if (pending.kind == core::SelectionKind::Sentence) {
+            auto selection   = pending;
+            selection.preset = kBreakdownPreset;
+            breakdown(selection);
+        } else {
+            breakdown(pending);
+        }
         return;
     }
     if (action == QLatin1String("spell")) {
-        correct(pending_, kSpellPreset);
+        correct(pending, kSpellPreset);
         return;
     }
     if (action == QLatin1String("grammar")) {
-        correct(pending_, kGrammarPreset);
+        correct(pending, kGrammarPreset);
         return;
     }
     if (action != QLatin1String("translate") && action != QLatin1String("explain")) return;
-    if (text != pending_.text)
+    if (text != pending.text)
         LENS_WARN("selection action text differed from the captured selection; using the captured text");
-    if (pending_.kind == core::SelectionKind::Sentence) pending_.preset = action;
-    explain(pending_);
+    auto selection = pending;
+    if (selection.kind == core::SelectionKind::Sentence) selection.preset = action;
+    explain(selection);
 }
 
 void ExplanationDuty::reviewWord(QString lemma, QPoint const anchor, QSize const anchorSize)
 {
     const QString value = lemma.trimmed();
     if (value.isEmpty()) return;
-    reviewAnchor_      = anchor;
-    const auto context = cache_.contextFor(core::SelectionKind::Word);
-    const auto found   = cache_.look(value.toStdString(), context);
-    if (found.state != core::ExplanationCache::State::Missing) {
-        PendingSelection pending{.anchor = anchor, .anchorSize = anchorSize, .kind = core::SelectionKind::Word, .surface = value, .lemma = value};
-        showBubble(word_answer::fromCache(found.entry, value), pending, context, /*notifyPet=*/true, /*reveal=*/false, CardKind::Review);
-        return;
-    }
-    // The one thing on this path that reaches the model, and it is a button rather than the hover
-    // itself: a pointer crossing the list must not spend the reader's money. The two strings are
-    // spelled in the controller's context, where this file's other reader-facing ones already are;
-    // the context is written out at each call because lupdate reads literal arguments only.
-    showNotice(value,
-               QCoreApplication::translate("lens::app::AppController", "No explanation is stored for this word in the current language."),
-               QString::fromLatin1(kNoticeInfo),
-               QCoreApplication::translate("lens::app::AppController", "Explain now"),
-               value);
+    reviewAnchor_ = anchor;
+    PendingSelection pending{.anchor = anchor, .anchorSize = anchorSize, .kind = core::SelectionKind::Word, .surface = value, .lemma = value};
+    apply(exchange_.ask(std::move(pending), AskOrigin::Review, facts()));
 }
 
 void ExplanationDuty::showReviewAnswer(QString const& lemma, QPoint const anchor)
 {
-    const auto context = cache_.contextFor(core::SelectionKind::Word);
-    const auto found   = cache_.look(lemma.toStdString(), context);
-    if (found.state != core::ExplanationCache::State::Hit)
-        return;
     PendingSelection pending{.anchor = anchor, .kind = core::SelectionKind::Word, .surface = lemma, .lemma = lemma};
-    showBubble(word_answer::fromCache(found.entry, lemma), pending, context, /*notifyPet=*/false, /*reveal=*/false, CardKind::ReviewAnswer);
+    apply(exchange_.ask(std::move(pending), AskOrigin::ReviewAnswer, facts()));
 }
 
 void ExplanationDuty::dismissReview()
 {
     // A pointer on the card is reading it -- and the entry at its foot is there to be pressed --
     // so the dismissal waits for the pointer to leave the card, which the card itself reports.
-    if (session_.dismissReview() == CardSession::ReviewDismissal::Dismiss)
+    if (exchange_.card().dismissReview() == CardSession::ReviewDismissal::Dismiss)
         clearBubble();
 }
 
 void ExplanationDuty::dismissReviewNow()
 {
-    if (session_.dismissReviewNow())
+    if (exchange_.card().dismissReviewNow())
         clearBubble();
 }
 
 void ExplanationDuty::holdReviewCard(bool const on)
 {
     // The pointer has left the card as well: a dismissal that waited for it lands.
-    if (session_.holdReviewCard(on))
+    if (exchange_.card().holdReviewCard(on))
         clearBubble();
 }
 
@@ -311,7 +262,7 @@ void ExplanationDuty::explainChainWord(QString lemma)
     const QString value = lemma.trimmed();
     if (value.isEmpty())
         return;
-    if (auto const step = session_.chainStep(value))
+    if (auto const step = exchange_.card().chainStep(value))
         askChainStep(*step);
 }
 
@@ -319,18 +270,16 @@ void ExplanationDuty::askChainStep(PendingSelection pending)
 {
     // Out of budget with nothing stored: explain() would drop the step without a word, and the card would
     // wait on it for ever. Say so, and the card shows the failure where the answer would have gone.
-    const auto context = cache_.contextFor(core::SelectionKind::Word);
     if (not cost_.canRequest()) {
-        if (not showStored(pending, context))
+        auto const outcome = exchange_.stored(pending);
+        apply(outcome);
+        // A stored step was hung on the chain (or its pop counted); only a word with nothing stored
+        // has to say the step cannot be answered.
+        if (outcome.kind != ExplanationExchange::Outcome::Kind::Chain and outcome.popLemma.isEmpty())
             emit chainFailed(pending.lemma);
         return;
     }
     explain(pending);
-}
-
-bool ExplanationDuty::chainStanding(PendingSelection const& selection) const
-{
-    return session_.chainStanding(selection.parent);
 }
 
 QVariantMap ExplanationDuty::chainEntry(llm::Explanation const& explanation, core::CacheContext const& context) const
@@ -343,23 +292,7 @@ QVariantMap ExplanationDuty::chainEntry(llm::Explanation const& explanation, cor
 
 void ExplanationDuty::requestPeek()
 {
-    CardSession::PeekFacts facts;
-    facts.now    = cache_.readerContext();
-    facts.mayAsk = cost_.canRequest();
-    facts.mother = motherTongue();
-    // The word channel always buys the Chinese pair along with the explanation, so a Chinese
-    // mother tongue is answered by the entry the standing card came from: the reader held a globe
-    // the answer had already paid for. The cache is keyed by the explanation language, which is
-    // exactly the English the globe exists under.
-    if (facts.mother == QLatin1String("zh")) {
-        if (auto const* card = session_.wordCard() ? session_.subject() : nullptr) {
-            const auto found = cache_.look(card->lemma.toStdString(), cache_.contextFor(core::SelectionKind::Word));
-            if (found.state != core::ExplanationCache::State::Missing)
-                facts.ownZh = QString::fromStdString(found.entry.zh);
-        }
-    }
-
-    const auto step = session_.requestPeek(facts);
+    const auto step = exchange_.requestPeek(motherTongue(), cost_.canRequest(), exchange_.readerContext());
     switch (step.kind) {
         case CardSession::PeekStep::Kind::Show: emit peekArrived(step.line); break;
         case CardSession::PeekStep::Kind::Ask: llm_.peekWord(step.lemma, step.language, step.senseEn); break;
@@ -367,8 +300,8 @@ void ExplanationDuty::requestPeek()
         case CardSession::PeekStep::Kind::None:
             // Out of budget the hold buys nothing and says nothing: the definition on the card is the
             // reader's answer either way, and a notice is a whole surface, not a line under it.
-            if (step.why == CardSession::PeekStep::Why::Budget and session_.subject())
-                LENS_DEBUG("the peek for '{}' waits: today's budget is spent", session_.subject()->lemma.toStdString());
+            if (step.why == CardSession::PeekStep::Why::Budget and exchange_.card().subject())
+                LENS_DEBUG("the peek for '{}' waits: today's budget is spent", exchange_.card().subject()->lemma.toStdString());
             break;
     }
 }
@@ -376,7 +309,7 @@ void ExplanationDuty::requestPeek()
 void ExplanationDuty::onPeekAnswered(QString const& lemma, QString const& line, llm::Usage const usage)
 {
     cost_.recordUsage(nowMinute().toStdString(), usage);
-    if (auto const shown = session_.peekAnswered(lemma, line, cache_.readerContext()))
+    if (auto const shown = exchange_.card().peekAnswered(lemma, line, exchange_.readerContext()))
         emit peekArrived(*shown);
 }
 
@@ -389,7 +322,7 @@ QString ExplanationDuty::motherTongue() const
 
 void ExplanationDuty::cycleSense()
 {
-    const auto step = session_.cycleSense(cache_.readerContext(), cost_.canRequest());
+    const auto step = exchange_.card().cycleSense(exchange_.readerContext(), cost_.canRequest());
     switch (step.kind) {
         case CardSession::SenseStep::Kind::Swap:
             emitSenseSwapped(step.view, step.language);
@@ -401,15 +334,15 @@ void ExplanationDuty::cycleSense()
         case CardSession::SenseStep::Kind::None:
             // Out of budget the click buys nothing and says nothing: the definition on the card is
             // the reader's answer either way, the same quiet the held peek keeps (docs/adr/0112).
-            if (step.why == CardSession::SenseStep::Why::Budget and session_.subject())
-                LENS_DEBUG("the next sense of '{}' waits: today's budget is spent", session_.subject()->lemma.toStdString());
+            if (step.why == CardSession::SenseStep::Why::Budget and exchange_.card().subject())
+                LENS_DEBUG("the next sense of '{}' waits: today's budget is spent", exchange_.card().subject()->lemma.toStdString());
             break;
     }
 }
 
 void ExplanationDuty::ensureNextSense()
 {
-    const auto step = session_.ensureNextSense(cache_.readerContext(), cost_.canRequest());
+    const auto step = exchange_.card().ensureNextSense(exchange_.readerContext(), cost_.canRequest());
     if (step.kind == CardSession::SenseStep::Kind::Ask)
         llm_.nextSenseWord(step.lemma, step.lemma + QLatin1Char('\n') + step.known.join(QLatin1Char('\n')), step.language);
 }
@@ -417,7 +350,7 @@ void ExplanationDuty::ensureNextSense()
 void ExplanationDuty::onNextSenseAnswered(QString const& lemma, llm::Explanation const& answer, llm::Usage const usage)
 {
     cost_.recordUsage(nowMinute().toStdString(), usage);
-    const auto outcome = session_.senseAnswered(lemma, answer, usage, cache_.readerContext());
+    const auto outcome = exchange_.card().senseAnswered(lemma, answer, usage, exchange_.readerContext());
     switch (outcome.result) {
         case CardSession::SenseOutcome::Result::Refused:
             // An answer that never reached the model leaves the entry up to ask again.
@@ -467,7 +400,7 @@ void ExplanationDuty::breakdown(PendingSelection const& pending)
     if (not cost_.canRequest()) return;
     // A card already standing on this sentence has its answer or is waiting for it: asking again would buy
     // it twice. Only a failed one is asked again.
-    auto const* card = session_.subject();
+    auto const* card = exchange_.card().subject();
     if (card != nullptr and card->preset == kBreakdownPreset and card->text == pending.text and
         bubble_.value(QStringLiteral("breakdown")).toString() != QLatin1String("failed"))
         return;
@@ -483,7 +416,7 @@ void ExplanationDuty::correct(PendingSelection const& pending, QString const& pr
     if (not applies) return;
     if (not cost_.canRequest()) return;
     // A card already standing on this text has its answer or is waiting for it: asking again would buy it twice.
-    auto const* card = session_.subject();
+    auto const* card = exchange_.card().subject();
     if (card != nullptr and card->preset == preset and card->text == pending.text and
         bubble_.value(QStringLiteral("breakdown")).toString() != QLatin1String("failed"))
         return;
@@ -500,7 +433,7 @@ void ExplanationDuty::onCorrectionAnswered(QString const& text, llm::Channel con
 {
     cost_.recordUsage(nowMinute().toStdString(), usage);
     // The answer belongs to the card standing on this text and no other, as the breakdown's does.
-    auto const*   card   = session_.subject();
+    auto const*   card   = exchange_.card().subject();
     const QString preset = channel == llm::Channel::Spell ? kSpellPreset : kGrammarPreset;
     if (card == nullptr or card->preset != preset or card->text != text) return;
     const PendingSelection selection = *card;
@@ -515,12 +448,11 @@ void ExplanationDuty::showCorrection(PendingSelection const& selection, QString 
 {
     // The correction reuses the breakdown's bubble shape: its runs draw as the sentence, with no legend and no
     // meaning. The preset tells the label apart, so the card names the correction it is showing.
-    const bool  sameCard = session_.raise(selection, CardKind::Selection, selection.text);
-    const auto  face     = session_.presentation();
+    auto const  view = exchange_.raise(selection, selection.text, llm::Explanation{}, core::CacheContext{}, CardKind::Selection, /*reveal=*/false, /*notifyPet=*/false);
     QVariantMap payload{{"title", QString{}},
                         {"type", kindName(selection.kind)},
-                        {"cardKind", cardKindName(face.kind)},
-                        {"sameCard", sameCard},
+                        {"cardKind", cardKindName(view.kind)},
+                        {"sameCard", view.sameCard},
                         {"breakdown", state},
                         {"correction", selection.preset},
                         {"segments", segments},
@@ -531,7 +463,7 @@ void ExplanationDuty::showCorrection(PendingSelection const& selection, QString 
                         {"translation", QString{}},
                         {"senses", QVariantList{}},
                         {"status", QString{}},
-                        {"countsDown", face.countsDown},
+                        {"countsDown", view.countsDown},
                         {"reveal", false},
                         {"verdictButtons", false},
                         {"anchorWidth", selection.anchorSize.width()},
@@ -550,7 +482,7 @@ void ExplanationDuty::onBreakdownAnswered(QString const& sentence, QVector<llm::
     cost_.recordUsage(nowMinute().toStdString(), usage);
     // The answer belongs to the card standing on this sentence and to nothing else: the reader may have
     // moved on, and a breakdown is never kept for later.
-    auto const* card = session_.subject();
+    auto const* card = exchange_.card().subject();
     if (card == nullptr or card->preset != kBreakdownPreset or card->text != sentence) return;
     const PendingSelection selection = *card;
     if (spans.isEmpty()) {
@@ -562,14 +494,13 @@ void ExplanationDuty::onBreakdownAnswered(QString const& sentence, QVector<llm::
 
 void ExplanationDuty::showBreakdown(PendingSelection const& selection, QString const& state, QVariantList const& segments, QStringList const& roles, QString const& failure)
 {
-    const bool sameCard = session_.raise(selection, CardKind::Selection, selection.text);
-    const auto face     = session_.presentation();
+    auto const view = exchange_.raise(selection, selection.text, llm::Explanation{}, core::CacheContext{}, CardKind::Selection, /*reveal=*/false, /*notifyPet=*/false);
     // The sentence is the card's text: no title, no meaning, no verdict. The keys the bubble draws the
     // meaning from stay present and empty, so the card is one shape whatever it is showing.
     QVariantMap payload{{"title", QString{}},
                         {"type", kindName(selection.kind)},
-                        {"cardKind", cardKindName(face.kind)},
-                        {"sameCard", sameCard},
+                        {"cardKind", cardKindName(view.kind)},
+                        {"sameCard", view.sameCard},
                         {"breakdown", state},
                         {"segments", segments},
                         {"roles", roles},
@@ -579,7 +510,7 @@ void ExplanationDuty::showBreakdown(PendingSelection const& selection, QString c
                         {"translation", QString{}},
                         {"senses", QVariantList{}},
                         {"status", QString{}},
-                        {"countsDown", face.countsDown},
+                        {"countsDown", view.countsDown},
                         {"reveal", false},
                         {"verdictButtons", false},
                         {"anchorWidth", selection.anchorSize.width()},
@@ -596,64 +527,20 @@ void ExplanationDuty::showBreakdown(PendingSelection const& selection, QString c
 
 void ExplanationDuty::explain(PendingSelection const& pending)
 {
-    // A request that arrives while another is in flight is held, and judged when its turn comes:
-    // the answer the queue is waiting for may be the one that pays for this word.
-    if (queue_.inFlight()) {
-        queue_.request(pending);
-        return;
-    }
-    const auto context = cache_.contextFor(pending.kind);
-    if (showStored(pending, context))
-        return;
-    // Nothing is in flight and nothing is stored, so this one goes out now or not at all: a
-    // request out of budget is dropped rather than left waiting for a budget that may be a day
-    // away, and the facade has already said why.
-    if (not cost_.canRequest())
-        return;
-    queue_.request(pending);
-    sendNext();
+    auto const outcome = exchange_.ask(pending, AskOrigin::Selection, facts());
+    apply(outcome);
+    // A request held behind the one in flight, or a miss the budget dropped, leaves the exchange
+    // nothing to draw; the next queued batch may still be sendable.
+    if (outcome.kind == ExplanationExchange::Outcome::Kind::None and outcome.popLemma.isEmpty())
+        sendNext();
 }
 
-bool ExplanationDuty::showStored(PendingSelection const& pending, core::CacheContext const& context)
+void ExplanationDuty::send(llm::ExplainRequest request, ExplanationBatch const& batch)
 {
-    if (not isWordKind(pending.kind))
-        return false;
-    const auto found = cache_.look(pending.lemma.toStdString(), context);
-    if (found.state != core::ExplanationCache::State::Hit)
-        return false;
-    storage_.statsStore().recordPop(pending.lemma.toStdString(), nowMinute().toStdString());
-    storage_.save();
-    showBubble(word_answer::fromCache(found.entry, pending.lemma), pending, context, /*notifyPet=*/true, /*reveal=*/false);
-    emit statsChanged();
-    return true;
-}
-
-void ExplanationDuty::send(ExplanationBatch batch)
-{
-    const PendingSelection& first = batch.items.front();
-    // A word is what is left when the kind names no other channel, which is what the word list's
-    // own candidates carry.
-    auto channel = llm::Channel::Word;
-    if (first.kind == core::SelectionKind::Entity)
-        channel = llm::Channel::Entity;
-    else if (first.kind == core::SelectionKind::Sentence)
-        channel = llm::Channel::Sentence;
-    else if (first.kind == core::SelectionKind::Translation)
-        channel = llm::Channel::Translation;
-    llm::ExplainRequest request;
-    request.channel        = channel;
-    request.preset         = first.preset;
-    request.language       = QString::fromStdString(batch.context.language);
-    request.multipleSenses = batch.context.multipleSenses;
-    request.etymology      = isWordKind(first.kind) && etymologyEnabled();
-    request.example        = isWordKind(first.kind) && batch.example;
-    QStringList inputs;
-    for (const auto& item : batch.items) {
-        inputs << (isWordKind(item.kind) ? item.lemma : item.text);
+    for (auto const& item : batch.items) {
         if (isWordKind(item.kind))
             storage_.statsStore().recordPop(item.lemma.toStdString(), nowMinute().toStdString());
     }
-    request.words = std::move(inputs);
     // The request goes out with nothing previewed yet: the first preview of this one is the line
     // onPartial() writes.
     previewSeen_ = false;
@@ -667,29 +554,14 @@ void ExplanationDuty::send(ExplanationBatch batch)
 
 void ExplanationDuty::sendNext()
 {
-    const auto now   = cache_.readerContext();
-    auto       batch = queue_.take(cost_.canRequest(), now, exampleEnabled());
-    if (not batch)
-        return;
-    // A held request comes back out through the cache before it goes to the model: the batch that
-    // has just landed may be the one that stored this very word. Nothing else is ever taken here --
-    // the word list's own candidates were answered out of the cache before they were queued.
-    if (not batch->fromScan and showStored(batch->items.front(), batch->context)) {
-        queue_.complete();
-        return;
-    }
-    send(std::move(*batch));
+    apply(exchange_.take(facts(), etymologyEnabled()));
 }
 
-void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool const notifyPet, bool const reveal, CardKind const kind)
+void ExplanationDuty::showBubble(ExplanationExchange::CardView const& card)
 {
-    // A step of the chain goes onto the chain under the card and leaves the card alone: its text, its
-    // verdict and its countdown are the card's own, and a step asked from a card that has moved on is dropped.
-    if (selection.chain) {
-        if (chainStanding(selection))
-            emit chainAnswered(chainEntry(explanation, context));
-        return;
-    }
+    auto const& explanation = card.answer;
+    auto const& selection   = card.selection;
+    auto const& context     = card.context;
     // A translation is one line of English whatever the explanation language says: the reader
     // selected Chinese, the model was asked for English alone, and the other two language fields
     // are answers the reader did not ask for. The bubble then draws that line and nothing else --
@@ -699,24 +571,20 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
     const QString chinese     = context.language == "zh" and not translated ? explanation.zh : QString{};
     const QString translation = context.language != "en" and context.language != "zh" and not translated ? explanation.translation
                                                                                                          : QString{};
-    // The same card refreshed -- a stream chunk, or a language switch replaying the answer -- is
-    // not a new surface that has to be placed: the reader is already reading it where it stands.
-    const bool  sameCard = session_.raise(selection, kind, explanation.title);
-    const auto  face     = session_.presentation();
-    QVariantMap payload{{"title", explanation.title},
-                        {"type", kindName(selection.kind)},
-                        {"cardKind", cardKindName(face.kind)},
-                        {"sameCard", sameCard},
-                        {"en", english},
-                        {"zh", chinese},
-                        {"translation", translation},
-                        {"countsDown", face.countsDown},
-                        {"reveal", reveal},
-                        {"verdictButtons", face.offersVerdicts},
-                        {"anchorWidth", selection.anchorSize.width()},
-                        {"anchorHeight", selection.anchorSize.height()},
-                        {"x", selection.anchor.x()},
-                        {"y", selection.anchor.y()}};
+    QVariantMap   payload{{"title", explanation.title},
+                          {"type", kindName(selection.kind)},
+                          {"cardKind", cardKindName(card.kind)},
+                          {"sameCard", card.sameCard},
+                          {"en", english},
+                          {"zh", chinese},
+                          {"translation", translation},
+                          {"countsDown", card.countsDown},
+                          {"reveal", card.reveal},
+                          {"verdictButtons", card.offersVerdicts},
+                          {"anchorWidth", selection.anchorSize.width()},
+                          {"anchorHeight", selection.anchorSize.height()},
+                          {"x", selection.anchor.x()},
+                          {"y", selection.anchor.y()}};
     if (isWordKind(selection.kind)) {
         // Display switches, read as the card is drawn: the answer keeps every field, and these
         // decide only which of them reach the payload (see settings_table.h).
@@ -747,29 +615,64 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
             payload.insert(QStringLiteral("senseIndex"), 0);
             payload.insert(QStringLiteral("senseHint"), QString{});
             payload.insert(QStringLiteral("senseExhausted"), false);
-        } else {
+        } else if (card.cycle) {
             // The one sense the card draws is the Not-the-Sense? entry's to move (UI-SPEC.md 4.3):
             // the session keeps the senses bought for the word, the answer's own first, and the
             // card draws the one at the cycle's index.
-            if (auto const cycle = session_.holdAnswer(context, explanation)) {
-                senses.append(word_answer::senseRow(cycle->sense, language, switches.pictures, storage_.knownStore().level()));
-                payload.insert(QStringLiteral("senseCycle"), cycle->offered);
-                payload.insert(QStringLiteral("senseIndex"), cycle->index);
-                payload.insert(QStringLiteral("senseHint"), cycle->hint);
-                payload.insert(QStringLiteral("senseExhausted"), cycle->exhausted);
-            }
+            auto const& cycle = *card.cycle;
+            senses.append(word_answer::senseRow(cycle.sense, language, switches.pictures, storage_.knownStore().level()));
+            payload.insert(QStringLiteral("senseCycle"), cycle.offered);
+            payload.insert(QStringLiteral("senseIndex"), cycle.index);
+            payload.insert(QStringLiteral("senseHint"), cycle.hint);
+            payload.insert(QStringLiteral("senseExhausted"), cycle.exhausted);
         }
         payload.insert(QStringLiteral("senses"), senses);
         payload.insert(QStringLiteral("status"), storage_.knownStore().isKnown(explanation.title.toStdString()) ? QStringLiteral("known") : QStringLiteral("new"));
     }
-    // The session raised this card a step earlier, which is what settled its identity and reset
+    // The exchange raised this card a step earlier, which is what settled its identity and reset
     // the review life: a scan bubble must not be taken down by the pointer leaving a word the
     // reader has moved on from.
     bubble_ = payload;
     clearNotice();
     emit bubbleChanged();
-    if (notifyPet)
+    if (card.notifyPet)
         emit petEvent(core::pet::PetEvent::ExplanationShown);
+}
+
+ExchangeFacts ExplanationDuty::facts() const
+{
+    return ExchangeFacts{exchange_.readerContext(), cost_.canRequest(), exampleEnabled()};
+}
+
+void ExplanationDuty::apply(ExplanationExchange::Outcome const& outcome, bool const save)
+{
+    if (not outcome.popLemma.isEmpty()) {
+        storage_.statsStore().recordPop(outcome.popLemma.toStdString(), nowMinute().toStdString());
+        if (save) {
+            storage_.save();
+            emit statsChanged();
+        }
+    }
+    switch (outcome.kind) {
+        case ExplanationExchange::Outcome::Kind::None: break;
+        case ExplanationExchange::Outcome::Kind::Card: showBubble(outcome.card); break;
+        case ExplanationExchange::Outcome::Kind::Chain:
+            // The exchange only hands a step back while the card it hangs under still stands.
+            emit chainAnswered(chainEntry(outcome.answer, outcome.context));
+            break;
+        case ExplanationExchange::Outcome::Kind::Send: send(outcome.request, outcome.batch); break;
+        case ExplanationExchange::Outcome::Kind::Notice:
+            // The one thing on this path that reaches the model is a button, not the hover itself: a
+            // pointer crossing the list must not spend the reader's money. The strings are spelled in
+            // the controller's context, where this file's other reader-facing ones already are; the
+            // context is written out at each call because lupdate reads literal arguments only.
+            showNotice(outcome.noticeLemma,
+                       QCoreApplication::translate("lens::app::AppController", "No explanation is stored for this word in the current language."),
+                       QString::fromLatin1(kNoticeInfo),
+                       QCoreApplication::translate("lens::app::AppController", "Explain now"),
+                       outcome.noticeLemma);
+            break;
+    }
 }
 
 void ExplanationDuty::showNotice(QString const& title, QString const& body, QString const& kind, QString const& action, QString const& lemma)
@@ -800,7 +703,7 @@ void ExplanationDuty::clearBubble()
 {
     // Every way a bubble goes -- the countdown, the cross, a deletion, a notice replacing it --
     // leaves nothing for the pointer to be holding afterwards.
-    session_.clear();
+    exchange_.card().clear();
     if (bubble_.isEmpty()) return;
     bubble_.clear();
     emit bubbleChanged();
@@ -809,7 +712,7 @@ void ExplanationDuty::clearBubble()
 
 void ExplanationDuty::mark(QString lemma, bool learned)
 {
-    auto const* card = session_.subject();
+    auto const* card = exchange_.card().subject();
     if (not bubble_.isEmpty() and card != nullptr and card->kind != core::SelectionKind::Word and bubble_.value("title").toString() == lemma)
         return;
     const std::string key = lemma.toStdString();

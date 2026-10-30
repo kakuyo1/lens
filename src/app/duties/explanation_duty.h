@@ -9,20 +9,21 @@
 #include <QVector>
 #include <QtQml/qqmlregistration.h>
 
-#include "capture_duty.h"
 #include "card_session.h"
 #include "core/domain/pet/pet_state.h"
 #include "core/document/explanation_cache.h"
-#include "explanation_queue.h"
+#include "explanation_exchange.h"
 #include "llm/llm_client.h"
+#include "pending_selection.h"
+#include "storage_duty.h"
 
 /**
  * @file explanation_duty.h
  * @brief Explanation requests, cache lookup, verdicts and explanation surfaces.
  *
- * The scheduling and the staleness rule live in ExplanationQueue: which request leaves next and
- * which answer is still the reader's. What is left here is the doing -- what goes on the wire,
- * what is stored, and what is drawn.
+ * The transaction -- the cache's answer, the budget's gate, the request's shape, the batch's
+ * settlement and the card standing -- is ExplanationExchange's. What is left here is the doing:
+ * the reader's settings, the wire, the store, and the surfaces.
  */
 
 namespace lens::app {
@@ -156,20 +157,23 @@ signals:
 
 private:
     void explain(PendingSelection const& pending);
-    /// @brief Raise the bubble from the copy already stored for @p pending, and count the pop.
-    /// @return True when there was one; a word that has never been explained is not it, and neither
-    ///         is a sentence, which is not something the cache holds.
-    bool showStored(PendingSelection const& pending, core::CacheContext const& context);
-    /// @brief Put one batch on the wire, under the context the queue captured for it.
-    void send(ExplanationBatch batch);
+    /// @brief The settings one exchange decision reads: the language and sense mode, the budget's
+    ///        verdict, and whether an example is asked for.
+    ExchangeFacts facts() const;
+    /// @brief Execute what one transaction answered: count a pop, draw the card, hang the chain step,
+    ///        send the request, or raise the review's notice.
+    /// @param save Whether a pop writes the store now; the scan's batch saves once after its loop.
+    void apply(ExplanationExchange::Outcome const& outcome, bool save = true);
     /**
-     * @brief Send whatever the queue gives out next, until it gives out nothing.
+     * @brief Send whatever the exchange gives out next, until it gives out nothing.
      *
      * A request the reader made that waited for a batch to land is answered out of the cache first
      * when it can be: the batch that has just finished may be what stored that very word, and the
      * cache answer avoids paying for the word twice.
      */
     void sendNext();
+    /// @brief Put one batch on the wire and count the words the request asks about.
+    void send(llm::ExplainRequest request, ExplanationBatch const& batch);
     void onBatchFinished(QVector<llm::Explanation> results, llm::Usage usage);
     void onFailed(QString const& message);
     /// @brief Put a peek answer away for the session, and onto the card when it still stands.
@@ -206,15 +210,9 @@ private:
     /// @brief Draw an answer that is still arriving, on the card of the request in flight.
     /// @param partial Whatever fields have completed so far; the rest are absent.
     void onPartial(llm::Explanation partial);
-    /// The countdown and verdict flags live on @p selection: they are part of how this card behaves.
-    /// @param notifyPet Whether the pet hears about this card. A stream repaints the same card as
-    ///        it grows and stays quiet; only the finished answer is an arrival to react to.
-    /// @param reveal Whether the card writes its answer out a character at a time. False for the
-    ///        cards raised whole out of the cache: nothing is arriving there, and the word list puts
-    ///        one up for every row the pointer crosses.
-    /// @param kind   Which identity the card is settled under: a selection, the word list's review
-    ///        replay, or the answer beside the pet's sign.
-    void    showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool notifyPet = true, bool reveal = true, CardKind kind = CardKind::Selection);
+    /// @brief Draw the card the exchange raised. The countdown, the verdict buttons and the card's
+    ///        identity are settled there; the payload built here is their projection.
+    void    showBubble(ExplanationExchange::CardView const& card);
     QString noticeTitle(PendingSelection const& pending) const;
     ///
     /// One reader of this, two uses: the request asks the model for it, and the card decides
@@ -232,8 +230,6 @@ private:
     bool showsCardBlock(char const* key) const;
     /// @brief Put one chain step through the cache, the budget gate and the queue.
     void askChainStep(PendingSelection pending);
-    /// @return Whether the card still stands on the word a chain step was asked from.
-    bool chainStanding(PendingSelection const& selection) const;
     /// @return The chain entry for one answered step, in the explanation language, with its links.
     QVariantMap chainEntry(llm::Explanation const& explanation, core::CacheContext const& context) const;
     void        clearBubble();
@@ -242,20 +238,12 @@ private:
     StorageDuty&    storage_;
     llm::LlmClient& llm_;
     CostDuty&       cost_;
-    /// The rules of the explanation cache: the context a request goes out under, and what a stored
-    /// entry is worth to the reader now. Every ask goes through it; nothing here builds a context.
-    core::ExplanationCache cache_;
-    /// What the reader has asked for and not yet been answered. It holds nothing the duty's own
-    /// decisions do not read: the selection standing is the selection bar's, and it is told here
-    /// only that the reader has moved on.
-    ExplanationQueue queue_;
-    PendingSelection pending_;
-    /// The card standing: its identity, its review life, its sense cycle and the requests it has
-    /// out. It is the one owner of what the duty's entry points used to spell for themselves.
-    CardSession session_;
-    QVariantMap bubble_;
-    QVariantMap notice_;
-    QString     busyLabel_;
+    /// The transaction: the cache's answer, the budget's gate, the request's shape, the batch's
+    /// settlement, the card standing and the reader's selection. The one owner of all five.
+    ExplanationExchange exchange_;
+    QVariantMap         bubble_;
+    QVariantMap         notice_;
+    QString             busyLabel_;
     /// Where the row the reader is pointing at sits, so the explanation a notice's button asks for
     /// lands in the same place the review bubble did.
     QPoint reviewAnchor_;

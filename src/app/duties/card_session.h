@@ -7,9 +7,9 @@
 
 #include <optional>
 
-#include "capture_duty.h"
 #include "core/document/known_store.h"
 #include "llm/llm_client.h"
+#include "pending_selection.h"
 
 /**
  * @file card_session.h

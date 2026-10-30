@@ -40,8 +40,12 @@ add_library(lens_app STATIC
   duties/cost_duty.cpp
   duties/explanation_duty.h
   duties/explanation_duty.cpp
+  duties/explanation_exchange.h
+  duties/explanation_exchange.cpp
   duties/model_catalog_duty.h
   duties/model_catalog_duty.cpp
+  duties/pending_selection.h
+  duties/pending_selection.cpp
   duties/picture_duty.h
   duties/picture_duty.cpp
   duties/review_duty.h

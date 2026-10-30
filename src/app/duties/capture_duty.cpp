@@ -139,17 +139,6 @@ QImage localTestImage(capture::OcrLanguage const language)
 
 }
 
-QString kindName(core::SelectionKind const kind)
-{
-    switch (kind) {
-        case core::SelectionKind::Entity: return QStringLiteral("entity");
-        case core::SelectionKind::Sentence: return QStringLiteral("sentence");
-        case core::SelectionKind::Translation: return QStringLiteral("translation");
-        case core::SelectionKind::Word: return QStringLiteral("word");
-    }
-    return QStringLiteral("word");
-}
-
 CaptureDuty::CaptureDuty(StorageDuty& storage, MouseSelectionHook& hook, QObject* parent)
     : CaptureDuty(storage, hook, nullptr, {}, parent)
 {}

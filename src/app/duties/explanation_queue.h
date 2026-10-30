@@ -22,8 +22,8 @@
 #include <optional>
 #include <utility>
 
-#include "capture_duty.h"
 #include "core/document/explanation_cache.h"
+#include "pending_selection.h"
 
 namespace lens::app {
 
