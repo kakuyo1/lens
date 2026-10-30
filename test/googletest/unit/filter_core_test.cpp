@@ -162,6 +162,17 @@ TEST_F(CoreTest, ReplaysTheSampleCorpus)
     std::cout << "\ncorpus: " << corpus.size() << " entries, " << mismatched << " mismatched\n";
 }
 
+TEST_F(CoreTest, KeepsAFormThatWordNetAlsoListsAsItsOwnLemma)
+{
+    // adj.exc carries both "offer offer" and "offer off". The identity wins in that file, so the noun/verb a
+    // reader selects is not explained as the comparative of off; a mapping from another part of speech still
+    // stands, which is what keeps "is be" and "testes testis" working.
+    EXPECT_EQ(lens::core::lemmatize("offer"), "offer");
+    EXPECT_EQ(lens::core::lemmatize("offered"), "offer");
+    EXPECT_EQ(lens::core::lemmatize("is"), "be");
+    EXPECT_EQ(lens::core::lemmatize("testes"), "testis");
+}
+
 TEST_F(CoreTest, RoutesASentenceToTheSentenceChannelButStillFiltersItsWords)
 {
     constexpr const char* text = "The ubiquitous nature of modern software makes resilience essential.";

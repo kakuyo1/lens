@@ -3080,11 +3080,11 @@
     "expectLemmas": ["under"]
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "lone word: offer is its own lemma, not the comparative of off",
     "text": "offer",
     "expect": ["offer"],
     "expectKind": "Word",
-    "expectLemmas": ["off"]
+    "expectLemmas": ["offer"]
   },
   {
     "note": "lone word: a dictionary word selected alone",

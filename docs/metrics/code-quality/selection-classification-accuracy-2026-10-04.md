@@ -84,6 +84,7 @@ git checkout HEAD -- src/ test/
 ## 6、本次顺带发现
 
 - `data/irregulars.tsv` 第 3293 行是 `offer → off`，于是 `offer` 的词根被还原成 `off`（`off` 词频序 122，`offer` 897）。`PHASE1.md` §4.1 把 offer 列为 “伪还原，安全落回自身” 的例子，与该数据不符。样例集按数据现状写（`offer → off`），并在该条 note 里标出这处不一致。
+- 2026-10-30 修复：WordNet 的 `adj.exc` 同时有 `offer offer` 与 `offer off`。生成脚本改为同一词性文件里 identity 优先，`offer → off` 不再写入 `data/irregulars.tsv`；样例集该条恢复为 `offer → offer`。上一条保留为当时的观察。
 - 两字母词干会被 `pushIfInTable` 的三字母下限挡下，因此 being / doing / going / does 都保留原形，不会还原成 be / do / go。
 
 ## 7、V3 增量：实体分支与三通道语料

@@ -315,7 +315,7 @@ std::string lemmatize(std::string_view token)
     // is whichever is most common in the word list (smallest frequency rank). The list
     // holds inflected and base forms alike, so frequency naturally favours the base form
     // (running 555 > run 314, increasing 7246 > increase 3568), while base forms whose
-    // "stem" is not a word (water / under / offer) fall back to themselves.
+    // "stem" is not the base form (water / under / other) fall back to themselves.
     std::vector<std::string> cands;
     if (inTable(t)) cands.push_back(t);
 
