@@ -407,7 +407,7 @@ qt_add_qml_module(lens_app
 # carrying its own two colours; the ui- files are the surfaces' outlines, stroked in white and
 # tinted from QML, so one file serves every surface and both themes.
 #
-# lens.svg is the product mark itself -- the ring and the centre dot every other file here is a
+# lens.svg is the product mark itself -- the ring, the gap dot and the handle every other file here is a
 # recolouring of. It is stroked in white like the ui- set, so the tray menu's first line draws it
 # through Icon and it takes the theme's colour; the tray art and lens.ico are its geometry with
 # the ink baked in, since a shell icon has no QML to tint it. The .ico and the .rc that carries
