@@ -1,7 +1,7 @@
-# Run one case, or one suite, out of the two QTest targets -- offscreen, against a fresh build.
+# Run one case, or one suite, out of the three QTest targets -- offscreen, against a fresh build.
 #
 # The suites are the slowest part of the loop: lens_qtest_surfaces is 188 cases and about two
-# minutes, where a single case is about five seconds. Which of the two to run follows from what
+# minutes, where a single case is about five seconds. Which of the three to run follows from what
 # changed, and TEST.md section 2 owns that. This script is here so that choosing the narrow one
 # costs nothing: it reads the Qt bin from the merged machine config (config/paths.default.json, overridden
 # by config/paths.local.json), sets QT_QPA_PLATFORM=offscreen, builds the target (incremental, a
@@ -20,7 +20,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet("lens_qtest_components", "lens_qtest_surfaces")]
+    [ValidateSet("lens_qtest_components", "lens_qtest_surfaces", "lens_qtest_pet")]
     [string]$Target,
     # A test-function selector, forwarded to the runner as-is.
     [string]$Case,

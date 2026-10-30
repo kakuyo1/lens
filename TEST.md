@@ -26,6 +26,7 @@ test/
     ├── setup.{h,cpp}     # 表面目标要的 Controller / Tray，见 §2
     ├── testutil.js       # 两个目录共用的走树助手
     ├── components/       # 组件级用例（tst_*.qml）
+    ├── pet/              # 宠物控制器的 C++ 用例，无窗口
     └── surfaces/         # 表面级用例（tst_*.qml）加 settings.json
 ```
 
@@ -45,6 +46,7 @@ test/
 | `lens_gtest_smoke` | 1 词真模型往返，一次进程最多 3 次真实调用 | 动 LLM 链路时，人工执行 |
 | `lens_qtest_components` | `qml/components/` 那八个的接线与交互 | 动组件时，无头，可进 CI |
 | `lens_qtest_surfaces` | 表面：Main 的摆放与关闭、托盘菜单、通知卡片、三张面板、行动条 | 动表面时，无头，可进 CI |
+| `lens_qtest_pet` | 桌面宠物的控制器：事件、帧时钟、衣橱、场景与换宠（无窗口） | 动宠物控制器时，无头 |
 
 Qt 路径由运行器从合并后的机器配置读取（覆盖规则见 `config/README.md`）。两个运行器都先做增量构建，再把环境变量配好：
 
@@ -53,6 +55,7 @@ powershell -File scripts/qa/gtest.ps1 -Filter 'PetThrow*'
 powershell -File scripts/qa/gtest.ps1 -Target lens_gtest_integration
 powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_components -Case Main::test_x
 powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_surfaces
+powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_pet
 ```
 
 需要看合并后的机器路径、来源文件与是否可用：`powershell -File scripts/build/show-paths.ps1`。
@@ -66,7 +69,7 @@ powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_surfaces
 - 链接 `lens_llm` 或 `lens_app` 的目标需要 Qt DLL 在 `PATH` 上（即 `unit` / `integration` /
   `smoke` / `glass_probe`），运行器已把合并后的 `qtBin` 放进去。`lens_gtest_perf` 只链 `lens_core`，保持无 Qt，什么都不需要。
   `lens_gtest_glass_probe` 链 `lens_app`，因为它和应用读同一条桌面来源（`src/app/glass/glass_source.h`）。
-- 上表七个目标全部带 `EXCLUDE_FROM_ALL`：默认构建只有主程序 `lens`，测试按名构建，如
+- 上表八个目标全部带 `EXCLUDE_FROM_ALL`：默认构建只有主程序 `lens`，测试按名构建，如
   `scripts/build/build.bat --target lens_gtest_unit`。它们在改动 QML 或 `lens_app` / `lens_llm`
   的接口时才会失效，跟着每次改 `src/` 重编没有意义。CI 的构建步骤本来就把要跑的目标逐个列出。
 - 选区捕获：`lens_gtest_integration` 的 13 例（该目标另有 2 例读屏测量与 1 例复制裁剪，见下面两条），默认 12 例绿、2 例 skip——一条要人手拖鼠标，一条要 `LENS_GLASS_DUP_TEST=1`。
@@ -92,11 +95,11 @@ powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_surfaces
 - 用例文件的根是一个 `Item`，`TestCase` 是它的孩子而不是根。`TestCase` 自带 `visible: false`，
   挂在它下面的东西于是收不到鼠标事件——而鼠标事件正是这个目标替掉人眼的那一半。
 - 图标资源挂在 `lens_app` 上，不在可执行文件里：`:/icons/` 只在带着它的二进制里解析，而读图标的是表面。
-  挂错地方时两个 QTest 目标每个用例刷一条 `QML Image: Cannot open`，一共三百多条。
+  挂错地方时两个 QML QTest 目标每个用例刷一条 `QML Image: Cannot open`，一共三百多条。
 - 剩下的是 Qt 自己发的两类：offscreen 平台不能抬窗口，而表面显示时 `raise()` 是必需的；Qt 6 不再随包带字体，
   `setup.cpp` 自己按文件载入（方式见 `docs/qa.md`）。它们都走不带类别的 `qWarning()`，按类别过滤会连带盖掉其余无类别警告，所以留着，
   一次运行合计十条左右。
-- 两个目标的差别只有一处：`lens_qtest_surfaces` 编译 `setup.cpp` 时定义 `LENS_QTEST_SINGLETONS`，
+- 两个 QML 目标的差别只有一处：`lens_qtest_surfaces` 编译 `setup.cpp` 时定义 `LENS_QTEST_SINGLETONS`，
   组件目标不定义。`Controller` / `Tray` 的工厂在没人 `provide()` 时断言、Debug 下直接崩进程，而
   引擎自己造不出来（构造函数要 store、client 与 hook），所以 setup 照 `main()` 的做法造好再交出
   去——只是**不装鼠标钩子、不显示托盘图标**。组件用例碰不到这两样，也就不必背一份配置。

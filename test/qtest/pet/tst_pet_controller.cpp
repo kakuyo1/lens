@@ -145,7 +145,7 @@ private slots:
     void previewShowsAnActionAndTheMachineKeepsItsOwn();
     void previewRunsTheClockOnlyWhileOpen();
     void aOneShotPreviewGoesBackToTheMachine();
-    void threeClicksMakeTheDogAngry();
+    void fourClicksMakeTheDogAngry();
     void aPreviewedSceneExposesItsSheetsAndAlignment();
     void aSceneEntryHoldsTheIdlePoseAndFlipsLayers();
     void accessoryCatalogueAndWornSlotsAreExposed();
@@ -355,13 +355,15 @@ void TstPetController::aOneShotPreviewGoesBackToTheMachine()
     rig.controller.setPreviewing(false);
 }
 
-void TstPetController::threeClicksMakeTheDogAngry()
+void TstPetController::fourClicksMakeTheDogAngry()
 {
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
     Rig rig{settingsIn(dir), shippedRoot()};
 
-    // The first two clicks are the ordinary poke; the third, inside the window, is anger (ADR 0049).
+    // The dog's behavior block sets angryClicks to four (ADR 0094): the first three clicks are the ordinary
+    // poke, and the fourth inside the window is anger (ADR 0049).
+    rig.controller.click();
     rig.controller.click();
     rig.controller.click();
     QCOMPARE(rig.controller.action(), QStringLiteral("click_react"));
@@ -465,12 +467,15 @@ void TstPetController::accessoryCatalogueAndWornSlotsAreExposed()
     Rig rig{settingsIn(dir), shippedRoot()};
 
     QCOMPARE(rig.controller.accessories().size(), 9);
-    // Thirteen roles (angry and ask included), the three idle extras, and the two movement loops; the four scenes
-    // are not chips.
-    QCOMPARE(rig.controller.actions().size(), 18);
+    // Fourteen roles (angry, ask and dizzy included), the three idle extras, and the two movement loops; the six
+    // scenes are not chips, and blink is an expression rather than an action.
+    QCOMPARE(rig.controller.actions().size(), 19);
     QCOMPARE(rig.controller.actions().first(), QStringLiteral("idle"));
+    QVERIFY(rig.controller.actions().contains(QStringLiteral("dizzy")));
     QVERIFY(rig.controller.actions().contains(QStringLiteral("walk")));
     QVERIFY(rig.controller.actions().contains(QStringLiteral("edge_peek")));
+    for (auto const& scene : rig.controller.scenes())
+        QVERIFY2(!rig.controller.actions().contains(scene), qPrintable(scene + QStringLiteral(" is a chip")));
 
     QSignalSpy outfit(&rig.controller, &PetController::outfitChanged);
     rig.controller.toggleAccessory(QStringLiteral("spectacles"));

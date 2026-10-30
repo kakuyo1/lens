@@ -156,7 +156,7 @@ jobs:
 
       - uses: ./.github/actions/configure
 
-      # One of the two QTest targets; both link the module plugin, so this build produces
+      # One of the two QML QTest targets; both link the module plugin, so this build produces
       # everything the lint below reads and the suite runs.
       - name: Build
         run: cmake --build --preset ninja-qt6 --target lens_qtest_components
@@ -190,7 +190,7 @@ jobs:
 
       - uses: ./.github/actions/configure
 
-      # The other QTest target, and the same module build the component job has just done: the
+      # The other QML QTest target, and the same module build the component job has just done: the
       # two suites share no runner, which is what puts this one's start beside that job's run
       # instead of behind it.
       - name: Build
