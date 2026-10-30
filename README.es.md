@@ -48,7 +48,9 @@ La mayoría de las herramientas de consulta te sacan de la página y responden e
 
 **La respuesta se queda junto al texto.** Lens vive en la bandeja del sistema y no tiene ventana principal. La burbuja aparece junto a la selección, se queda mientras pasas el ratón y desaparece cuando sigues leyendo.
 
-**Una memoria tranquila.** Marca una palabra como Conocida o Nueva. Lens guarda la lista; el compañero de escritorio puede preguntártela más tarde. Sin rachas ni planes de estudio.
+**Una memoria tranquila.** Marca una palabra como Conocida o Nueva. Lens guarda la lista. Sin rachas ni planes de estudio.
+
+**Una mascota que pregunta.** Cuando toca repasar una palabra, aparece un cartel a los pies de la mascota. Si aciertas, la siguiente pausa es más larga; si fallas, vuelve antes. La mascota solo recibe tipos de evento y no puede leer tu pantalla, la selección ni las definiciones. Desactivada por defecto; actívala en Ajustes › Extensiones.
 
 **Una definición por la que se puede entrar.** Las palabras de una definición que quedan por encima de tu nivel conservan el subrayado de puntos. Ábrela y la misma tarjeta baja un nivel, con una ruta para volver; la caché, el presupuesto y las reglas de veredicto acompañan cada paso.
 
@@ -100,7 +102,7 @@ Análisis tiñe cada parte de la frase con uno de cuatro colores — sujeto, ver
 
 Conocida y Nueva viven en una sola lista de palabras. Pasa el ratón por una fila para releer una explicación que Lens ya guardó, sin enviar ninguna petición. Cuando toca repasar una palabra, aparece junto al compañero de escritorio un pequeño cartel, el suyo; responde Olvidé o Lo recordaba y volverá con un intervalo de entre diez minutos y sesenta días. El registro anual mantiene visible el hábito sin convertirlo en una racha.
 
-## Siete mascotas, si las quieres
+## Mascotas que te devuelven las palabras
 
 <p align="center"><img src="docs/readme/pets.gif" width="900" alt="Las siete mascotas de píxeles de Lens"></p>
 

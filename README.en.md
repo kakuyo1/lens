@@ -48,7 +48,9 @@ Most lookup tools pull you out of the page and answer in your first language. Yo
 
 **The answer stays on the page.** Lens lives in the system tray and has no main window. The bubble opens beside the selection, holds while you hover, and is gone when you keep reading.
 
-**A quiet memory.** Mark a word Known or New. Lens keeps the list; the desktop pet can ask it back later. No streaks, no lesson plan.
+**A quiet memory.** Mark a word Known or New. Lens keeps the list. No streaks, no lesson plan.
+
+**A pet that asks.** When a word comes due, a sign goes up at the pet's feet. Answer right and the next gap gets longer; answer wrong and it comes back sooner. The pet only receives event types and cannot read your screen, selection, or definitions. Off by default; turn it on in Settings › Extensions.
 
 **A definition you can walk into.** A word in a definition that sits above your level stays dotted. Open it and the same card steps down one layer, with a breadcrumb back; the cache, budget, and verdict rules follow every step.
 
@@ -100,7 +102,7 @@ Breakdown tints each part of the sentence in one of four colours — subject, ve
 
 Known and New live on one word list. Hover a row to reread an explanation Lens already stored, without sending a request. When a word is due, a small sign appears beside the desktop pet — its own, drawn for that pet; answer Forgot or Remembered and it comes back on a spaced schedule from ten minutes to sixty days. The year-in-words graph keeps the habit visible without turning it into a streak.
 
-## Seven pets, if you want them
+## Pets that ask you the words back
 
 <p align="center"><img src="docs/readme/pets.gif" width="900" alt="Lens's seven pixel pets"></p>
 
