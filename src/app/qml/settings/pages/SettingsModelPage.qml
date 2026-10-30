@@ -97,6 +97,11 @@ Item {
             }
         }
 
+        SettingsBudgetBlock {
+            width: parent.width
+            onBudgetChanged: (amount) => Controller.setDailyBudget(amount)
+        }
+
         SettingsLinkRow {
             label: qsTranslate("SettingsPopup", "API configuration")
             note: root.settings.hasApiKey

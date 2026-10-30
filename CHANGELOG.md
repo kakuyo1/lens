@@ -17,6 +17,7 @@
 
 ### Changed
 
+- The daily budget is no longer a settings category of its own: its field and today's spend sit on the model service page, under the model. The tray's budget row opens that page; Defaults still leaves the budget as it is.
 - **Auto scan** is marked Experimental in Settings and in every README, with a line under the switch saying it is still under development and its results are not reliable yet. The switch keeps working as an experiment; the label and the documentation no longer present it as a finished feature.
 
 - A word too long to leave room for its pronunciation beside it now takes the whole title line, and

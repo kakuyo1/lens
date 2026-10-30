@@ -387,25 +387,30 @@
 <context>
     <name>SettingsPopup</name>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="315"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="344"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="312"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="341"/>
         <source>Saved</source>
         <translation>已儲存</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="352"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="349"/>
         <source>Defaults restored</source>
         <translation>已還原預設</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="452"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="449"/>
         <source>Back</source>
         <translation>返回</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="508"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="505"/>
         <source>Close</source>
         <translation>關閉</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="639"/>
+        <source>API key, launch at login and daily budget stay as they are.</source>
+        <translation>API key、開機時啟動與每日預算保持不變。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="76"/>
@@ -539,7 +544,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="338"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="616"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="611"/>
         <source>Confirm</source>
         <translation>確認</translation>
     </message>
@@ -549,13 +554,8 @@
         <translation>測試只傳送一張小型合成圖，絕不傳送螢幕內容；服務商可能會計費。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="644"/>
-        <source>API key and launch at login stay as they are.</source>
-        <translation>API key 與開機時啟動保持不變。</translation>
-    </message>
-    <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="101"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="464"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="461"/>
         <source>Settings</source>
         <translation>設定</translation>
     </message>
@@ -994,8 +994,8 @@
         <translation>啟動時檢查更新</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="48"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="79"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="43"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="76"/>
         <source>Account &amp; sync</source>
         <translation>帳號與同步</translation>
     </message>
@@ -1018,7 +1018,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="260"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="602"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="597"/>
         <source>Defaults</source>
         <translation>還原預設</translation>
     </message>
@@ -1109,13 +1109,13 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="177"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="86"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="83"/>
         <source>Popup &amp; clipboard</source>
         <translation>彈出視窗與剪貼簿</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="189"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="87"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="84"/>
         <source>OCR engine</source>
         <translation>OCR 引擎</translation>
     </message>
@@ -1136,41 +1136,39 @@
         <translation>最小詞長</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="23"/>
+        <location filename="../src/app/qml/settings/SettingsBudgetBlock.qml" line="23"/>
         <source>Today %1 · %2 cap</source>
         <translation>今日 %1 · 上限 %2</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="26"/>
+        <location filename="../src/app/qml/settings/SettingsBudgetBlock.qml" line="26"/>
         <source>Today %1 · no cap</source>
         <translation>今日 %1 · 未設上限</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="28"/>
+        <location filename="../src/app/qml/settings/SettingsBudgetBlock.qml" line="28"/>
         <source>Today&apos;s budget is used up; lookups and requests pause until tomorrow.</source>
         <translation>今日預算已用完；取詞與請求暫停到明天。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="30"/>
+        <location filename="../src/app/qml/settings/SettingsBudgetBlock.qml" line="30"/>
         <source>At the daily budget, lookups and requests pause until tomorrow.</source>
         <translation>達到每日預算後，取詞與請求暫停到明天。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="31"/>
+        <location filename="../src/app/qml/settings/SettingsBudgetBlock.qml" line="31"/>
         <source>No cap; set an amount to pause at the limit.</source>
         <translation>未設上限；填入金額即可在到達時暫停。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="52"/>
-        <location filename="../src/app/qml/settings/pages/SettingsBudgetPage.qml" line="86"/>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="38"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="77"/>
+        <location filename="../src/app/qml/settings/SettingsBudgetBlock.qml" line="49"/>
+        <location filename="../src/app/qml/settings/SettingsBudgetBlock.qml" line="83"/>
         <source>Daily budget</source>
         <translation>每日預算</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="18"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="73"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="71"/>
         <source>General</source>
         <translation>一般</translation>
     </message>
@@ -1181,7 +1179,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="23"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="74"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="72"/>
         <source>Reading &amp; learning</source>
         <translation>閱讀學習</translation>
     </message>
@@ -1192,13 +1190,13 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="28"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="75"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="73"/>
         <source>Capture &amp; popups</source>
         <translation>取詞與彈出視窗</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="33"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="76"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="74"/>
         <source>Model service</source>
         <translation>模型服務</translation>
     </message>
@@ -1208,36 +1206,31 @@
         <translation>服務商、模型、API 設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="39"/>
-        <source>Limit model spending for one local day</source>
-        <translation>限制每日的模型花費</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="43"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="78"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="38"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="75"/>
         <source>Extensions</source>
         <translation>擴充功能</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="49"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="44"/>
         <source>GitHub sign-in, encrypted cloud copy</source>
         <translation>GitHub 登入、加密雲端副本</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="269"/>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="44"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="39"/>
         <location filename="../src/app/pet/pet_controller.cpp" line="1113"/>
         <source>Desktop companion</source>
         <translation>桌面寵物</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="53"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="80"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="48"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="77"/>
         <source>About</source>
         <translation>關於</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="54"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="49"/>
         <source>Version, updates, repository</source>
         <translation>版本、檢查更新、儲存庫</translation>
     </message>
@@ -1322,18 +1315,18 @@
         <translation>token 是模型計費的一小段文字；價目按每百萬 token 給出。每次取詞按傳送和接收的 token 計費，並換算成花費面板顯示的幣種。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="101"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="89"/>
+        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="106"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="86"/>
         <source>API configuration</source>
         <translation>API 設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="103"/>
+        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="108"/>
         <source>Configured</source>
         <translation>已設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="104"/>
+        <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="109"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="331"/>
         <source>Not configured</source>
         <translation>未設定</translation>
@@ -2260,7 +2253,7 @@
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="347"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="152"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="295"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="625"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="620"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
@@ -2334,7 +2327,7 @@
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="51"/>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="59"/>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="445"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="85"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="82"/>
         <source>Font</source>
         <translation>字型</translation>
     </message>
@@ -2429,7 +2422,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="328"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="88"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="85"/>
         <source>Online OCR</source>
         <translation>線上 OCR</translation>
     </message>

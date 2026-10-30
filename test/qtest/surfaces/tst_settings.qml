@@ -345,10 +345,10 @@ Item {
             const main = make();
             Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
-            openCategory(panel, "Daily budget");
+            openCategory(panel, "Model service");
 
-            const page = Util.ofType(panel, "SettingsBudgetPage");
-            verify(page, "the settings catalog has no daily budget page");
+            const page = Util.ofType(panel, "SettingsBudgetBlock");
+            verify(page, "the model service page has no daily budget block");
             compare(page.dailyBudget, Controller.settings.dailyBudget);
 
             Controller.setDailyBudget(1.25);

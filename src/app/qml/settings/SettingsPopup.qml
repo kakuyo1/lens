@@ -47,8 +47,6 @@ Window {
     /// The footer's Defaults asks a second time before it writes anything: one press turns the
     /// pill into Confirm beside Cancel, and only Confirm calls restoreDefaults().
     property bool confirmingDefaults: false
-    /// The budget page has no stored default to put back, so it offers no Defaults at all.
-    readonly property bool defaultsAvailable: category !== "budget"
     // qmllint disable missing-property
     readonly property var openChildRect: viewLoader.status === Loader.Ready && viewLoader.item
         ? viewLoader.item.openChildRect
@@ -74,7 +72,6 @@ Window {
         if (value === "learning") return qsTranslate("SettingsPopup", "Reading & learning");
         if (value === "capture") return qsTranslate("SettingsPopup", "Capture & popups");
         if (value === "model") return qsTranslate("SettingsPopup", "Model service");
-        if (value === "budget") return qsTranslate("SettingsPopup", "Daily budget");
         if (value === "extensions") return qsTranslate("SettingsPopup", "Extensions");
         if (value === "sync") return qsTranslate("SettingsPopup", "Account & sync");
         if (value === "about") return qsTranslate("SettingsPopup", "About");
@@ -129,7 +126,7 @@ Window {
     function routeTo(path) {
         if (!settings.visible)
             return false;
-        const categories = ["general", "learning", "capture", "model", "budget", "extensions",
+        const categories = ["general", "learning", "capture", "model", "extensions",
                             "sync", "about"];
         const steps = path.split("/");
         if (!categories.includes(steps[0]))
@@ -350,8 +347,7 @@ Window {
         // The interface language is not here on purpose: it belongs to the tray menu, and a
         // panel is not the place that changes a setting the panel does not show.
         saveStatus = qsTranslate("SettingsPopup", "Defaults restored");
-        if (defaultsAvailable)
-            Qt.callLater(() => defaultsButton.forceActiveFocus());
+        Qt.callLater(() => defaultsButton.forceActiveFocus());
     }
 
     onVisibleChanged: {
@@ -545,7 +541,6 @@ Window {
                                   : settings.category === "learning" ? learningComponent
                                   : settings.category === "capture" ? captureComponent
                                   : settings.category === "model" ? modelComponent
-                                  : settings.category === "budget" ? budgetComponent
                                   : settings.category === "sync" ? syncComponent
                                   : settings.category === "about" ? aboutComponent
                                   : extensionsComponent
@@ -593,7 +588,6 @@ Window {
                 x: 20
                 y: 15
                 spacing: 8
-                visible: settings.defaultsAvailable
 
                 Chip {
                     id: defaultsButton
@@ -633,15 +627,15 @@ Window {
             Text {
                 id: defaultsStatus
                 objectName: "defaultsStatus"
-                anchors.left: settings.defaultsAvailable ? defaultsRow.right : parent.left
-                anchors.leftMargin: settings.defaultsAvailable ? 8 : 20
+                anchors.left: defaultsRow.right
+                anchors.leftMargin: 8
                 anchors.right: parent.right
                 anchors.rightMargin: 20
                 anchors.verticalCenter: parent.verticalCenter
                 height: 40
                 verticalAlignment: Text.AlignVCenter
                 text: settings.confirmingDefaults
-                      ? qsTranslate("SettingsPopup", "API key and launch at login stay as they are.")
+                      ? qsTranslate("SettingsPopup", "API key, launch at login and daily budget stay as they are.")
                       : settings.saveStatus
                 // Status, not decoration: the second step of the text ramp, so a confirmation
                 // reads beside the value rows it confirms.
@@ -733,12 +727,6 @@ Window {
         id: modelComponent
         SettingsModelPage {
             onChildRequested: (value) => settings.openRoute(value)
-        }
-    }
-    Component {
-        id: budgetComponent
-        SettingsBudgetPage {
-            onBudgetChanged: (amount) => Controller.setDailyBudget(amount)
         }
     }
     Component {

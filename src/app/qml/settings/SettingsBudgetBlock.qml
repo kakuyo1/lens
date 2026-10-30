@@ -1,5 +1,5 @@
 import QtQuick
-import "../../util/Format.js" as Format
+import "../util/Format.js" as Format
 
 Item {
     id: root
@@ -30,14 +30,11 @@ Item {
             ? qsTranslate("SettingsPopup", "At the daily budget, lookups and requests pause until tomorrow.")
             : qsTranslate("SettingsPopup", "No cap; set an amount to pause at the limit.")
 
-    readonly property var openChildRect: null
     implicitHeight: content.implicitHeight
 
     function restoreText() {
         amountInput.text = root.dailyBudget > 0 ? root.dailyBudget.toFixed(2) : "0"
     }
-
-    function closeChild() {}
 
     Column {
         id: content

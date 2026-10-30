@@ -178,7 +178,7 @@ Item {
                     "a healthy state line should not be announced as a button");
             mouseClick(row, row.width / 2, row.height / 2);
             wait(50);
-            compare(asked, 0, "a healthy state line opened the budget page");
+            compare(asked, 0, "a healthy state line asked for the budget");
         }
 
         /// The live readout: the line is built off the controller's own values, so what the

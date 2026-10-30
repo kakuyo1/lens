@@ -70,7 +70,7 @@ Item {
 
         function back(panel) {
             const icons = Util.findAll(panel, function (o) {
-                return o.toString().indexOf("Icon_QMLTYPE") === 0 && o.source.indexOf("ui-back.svg") >= 0;
+                return o.toString().indexOf("Icon") === 0 && String(o.source).indexOf("ui-back.svg") >= 0;
             });
             verify(icons.length > 0, "the settings page has no back control");
             mouseClick(icons[0], icons[0].width / 2, icons[0].height / 2);
@@ -194,29 +194,14 @@ Item {
             compare(defaultsButton.activeFocus, false, "Cancel put the focus ring back on Defaults");
         }
 
-        /// The daily budget has no stored default to restore, so the page that owns it must not
-        /// offer a reset that would silently do nothing.
-        function test_theBudgetPageOffersNoDefaultsAction() {
+        /// The budget block on the model page reads back what today has cost and what the cap is,
+        /// and says what happens at the cap. The numbers come from the duty's own stats, not a
+        /// second calculation.
+        function test_theModelPageShowsTodaysSpendAndWhatTheCapDoes() {
             const main = make();
             Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
-            openCategory(panel, "Daily budget");
-
-            compare(panel.defaultsAvailable, false, "the budget page still counts Defaults as available");
-            const row = Util.findAll(panel, function (o) {
-                return o.objectName === "defaultsRow";
-            })[0];
-            verify(row, "the settings footer has no Defaults row");
-            compare(row.visible, false, "the budget page still draws the Defaults row");
-        }
-
-        /// The budget page reads back what today has cost and what the cap is, and says what
-        /// happens at the cap. The numbers come from the duty's own stats, not a second calculation.
-        function test_theBudgetPageShowsTodaysSpendAndWhatTheCapDoes() {
-            const main = make();
-            Util.surfaceHost(main).showSettings();
-            const panel = settingsPanel(main);
-            openCategory(panel, "Daily budget");
+            openCategory(panel, "Model service");
 
             const original = Controller.settings.dailyBudget;
             const spent = Controller.costDuty.stats.currency
@@ -230,7 +215,7 @@ Item {
                 const cap = Util.findAll(panel, function (o) {
                     return o.objectName === "budgetCap";
                 })[0];
-                verify(spend && cap, "the budget page has no spend or cap line");
+                verify(spend && cap, "the model page has no spend or cap line");
                 compare(spend.text, "Today " + spent + " · " + Controller.costDuty.stats.currency + "5.00 cap");
                 compare(cap.text, "At the daily budget, lookups and requests pause until tomorrow.");
 
@@ -612,10 +597,6 @@ Item {
             wait(20);
             Util.surfaceHost(main).showSettings();
             wait(settled);
-            openCategory(panel, "Daily budget");
-            wait(settled);
-            verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-budget"));
-            back(panel);
             openCategory(panel, "About");
             wait(settled);
             verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-about"));

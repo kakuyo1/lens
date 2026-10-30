@@ -351,8 +351,8 @@ qt_add_qml_module(lens_app
     qml/settings/SettingsCategoryRow.qml
     qml/settings/SettingsLinkRow.qml
     qml/settings/SettingsCatalog.qml
+    qml/settings/SettingsBudgetBlock.qml
     qml/settings/pages/SettingsAboutPage.qml
-    qml/settings/pages/SettingsBudgetPage.qml
     qml/settings/pages/SettingsFontPage.qml
     qml/settings/pages/SettingsGeneralPage.qml
     qml/settings/pages/SettingsLearningPage.qml

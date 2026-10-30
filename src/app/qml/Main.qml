@@ -192,7 +192,7 @@ Window {
         onBudgetRequested: {
             surfaceHost.showSettings()
             // After, not before: the panel clears its category when it comes up.
-            settingsPopup.openCategory("budget")
+            settingsPopup.openCategory("model")
         }
         onWidthChanged: surfaceHost.keepOnScreen(trayMenu)
         onHeightChanged: surfaceHost.keepOnScreen(trayMenu)

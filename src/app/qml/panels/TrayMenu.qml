@@ -85,7 +85,7 @@ Window {
                  text: capturing ? Controller.modeLabel : qsTr("Selection capture is off") };
     }
 
-    /// The first row's press: the API page while no key is stored, the daily-budget page while the budget is spent.
+    /// The first row's press: the API page while no key is stored, the model service page (its budget block) while the budget is spent.
     function openStateSettings() {
         if (!menu.hasApiKey)
             menu.apiKeyRequested();
@@ -115,7 +115,7 @@ Window {
     signal settingsRequested()
     /// The first row was pressed with no key stored; the settings panel opens on the page the key is typed into.
     signal apiKeyRequested()
-    /// The budget row was pressed; the settings panel opens on the daily-budget page.
+    /// The budget row was pressed; the settings panel opens on the model service page, where the budget is.
     signal budgetRequested()
 
     /// The day's tally for the statistics row, in the shape the tray tooltip uses. The count is
