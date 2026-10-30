@@ -176,6 +176,9 @@ Item {
 
             const link = Util.ofType(panel, "SettingsLinkRow");
             verify(link, "the capture page has no popup link");
+            // The popup link sits below the fold once the capture page carries its auto-scan note.
+            Util.reveal(link);
+            wait(20);
             mouseClick(link, link.width / 2, link.height / 2);
             wait(20);
 

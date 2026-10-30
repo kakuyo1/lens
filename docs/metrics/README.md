@@ -33,7 +33,8 @@
 
 | 文件 | 回答的问题 |
 | --- | --- |
-| [`coverage/test-coverage-baseline-2026-10-05.md`](coverage/test-coverage-baseline-2026-10-05.md) | 哪些 C++ 行与 QML 求值位置被测试跑过；取代 2026-10-03 那份 |
+| [`coverage/test-coverage-baseline-2026-10-30.md`](coverage/test-coverage-baseline-2026-10-30.md) | 哪些 C++ 行与 QML 求值位置被测试跑过；取代 2026-10-05 那份；C++ 为四个无头目标口径，含 1 条采集时红例（已修） |
+| [`coverage/test-coverage-baseline-2026-10-05.md`](coverage/test-coverage-baseline-2026-10-05.md) | 上一份覆盖率基线；取代 2026-10-03 那份 |
 | [`coverage/what-coverage-counts-2026-10-05.md`](coverage/what-coverage-counts-2026-10-05.md) | 覆盖率数的是代码行数还是别的：两条线各数什么，为什么不可比 |
 | [`coverage/coverage-plan-2026-10-03.md`](coverage/coverage-plan-2026-10-03.md) | 按性价比排序的补测清单与顺序 |
 
