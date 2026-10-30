@@ -190,6 +190,29 @@ Item {
             compare(field.options[2].value, "rapidocr");
         }
 
+        /// A note that is drawn sits clear of its label: the RapidOCR note is a sentence, and it
+        /// used to run into "RapidOCR-json" in the list.
+        function test_theLocalEngineRowsDoNotOverlapTheirNotes() {
+            const page = makeOcrPage();
+            const field = child(page, "ocrLocalEngine");
+            field.openList();
+            tryCompare(field, "listVisible", true);
+            const rows = Util.findAll(field, function (o) {
+                return o.toString().indexOf("DropdownRow_QMLTYPE") === 0;
+            });
+            compare(rows.length, 3, "the engine list did not build its three rows");
+            for (let i = 0; i < rows.length; ++i) {
+                const texts = Util.textsUnder(rows[i]);
+                const label = texts[0];
+                const note = texts[1];
+                if (!note.visible)
+                    continue;
+                verify(label.x + label.width <= note.x,
+                       "the note '" + note.text + "' runs into the label '" + label.text + "'");
+            }
+            field.closeList();
+        }
+
         /// RapidOCR's v0.2.0 binary crashes before initialization when the model folder path
         /// contains non-ASCII characters. The page must reject that folder visibly, and the gate
         /// must stay shut, rather than discovering the crash in a child process.

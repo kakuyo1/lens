@@ -80,6 +80,19 @@ Item {
             verify(chips[0].label !== "", "the dizzy chip has no label");
         }
 
+        /// Every action chip names its action. An id with no case in actionLabel came through as the raw id, which is how
+        /// "dizzy" and the idle blink, wag and sniff reached the page in English.
+        function test_everyActionChipNamesItsAction() {
+            Pet.setEnabled(true);
+            const page = createTemporaryObject(pageComponent, host.contentItem);
+            waitForRendering(host.contentItem);
+            verify(Pet.actions.length > 0, "the pet has no actions");
+            for (let i = 0; i < Pet.actions.length; ++i) {
+                const id = Pet.actions[i];
+                verify(page.actionLabel(id) !== id, "the action '" + id + "' shows its raw id");
+            }
+        }
+
         /// The sign action is one of the Actions chips, and its row is captured on its own, since the panel snapshot
         /// above is cut off above the Actions group.
         function test_theSignActionIsAChipInTheActionsRow() {

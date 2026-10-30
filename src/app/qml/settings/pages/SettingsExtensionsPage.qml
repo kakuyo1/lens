@@ -64,6 +64,10 @@ Item {
         case "drift": return qsTranslate("SettingsPopup", "Drift");
         case "drizzle": return qsTranslate("SettingsPopup", "Drizzle");
         case "puff": return qsTranslate("SettingsPopup", "Puff");
+        case "blink": return qsTranslate("SettingsPopup", "Blink");
+        case "wag": return qsTranslate("SettingsPopup", "Wag");
+        case "sniff": return qsTranslate("SettingsPopup", "Sniff");
+        case "dizzy": return qsTranslate("SettingsPopup", "Dizzy");
         default: return name;
         }
     }
@@ -103,7 +107,6 @@ Item {
         case "mochi_pound": return qsTranslate("SettingsPopup", "Mochi pounding");
         case "owl_hearth": return qsTranslate("SettingsPopup", "By the fire");
         case "owl_letter": return qsTranslate("SettingsPopup", "Mail owl");
-        case "dizzy": return qsTranslate("SettingsPopup", "Dizzy");
         default: return id;
         }
     }

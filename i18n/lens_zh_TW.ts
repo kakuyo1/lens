@@ -240,6 +240,51 @@
     </message>
 </context>
 <context>
+    <name>PetPostcardPreview</name>
+    <message>
+        <location filename="../src/app/qml/settings/previews/PetPostcardPreview.qml" line="43"/>
+        <source>Dog</source>
+        <comment>stamp mark</comment>
+        <translation>狗</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/previews/PetPostcardPreview.qml" line="44"/>
+        <source>Stub cat</source>
+        <comment>stamp mark</comment>
+        <translation>貓</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/previews/PetPostcardPreview.qml" line="45"/>
+        <source>Owl</source>
+        <comment>stamp mark</comment>
+        <translation>鴞</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/previews/PetPostcardPreview.qml" line="46"/>
+        <source>Mochi</source>
+        <comment>stamp mark</comment>
+        <translation>麻</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/previews/PetPostcardPreview.qml" line="47"/>
+        <source>Ghost</source>
+        <comment>stamp mark</comment>
+        <translation>幽</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/previews/PetPostcardPreview.qml" line="48"/>
+        <source>Jellyfish</source>
+        <comment>stamp mark</comment>
+        <translation>水</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/previews/PetPostcardPreview.qml" line="49"/>
+        <source>Cloud</source>
+        <comment>stamp mark</comment>
+        <translation>雲</translation>
+    </message>
+</context>
+<context>
     <name>PictureStrip</name>
     <message>
         <location filename="../src/app/qml/components/content/PictureStrip.qml" line="54"/>
@@ -398,17 +443,17 @@
         <translation>已還原預設</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="449"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="448"/>
         <source>Back</source>
         <translation>返回</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="505"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="504"/>
         <source>Close</source>
         <translation>關閉</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="639"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="638"/>
         <source>API key, launch at login and daily budget stay as they are.</source>
         <translation>API key、開機時啟動與每日預算保持不變。</translation>
     </message>
@@ -544,7 +589,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="338"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="611"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="610"/>
         <source>Confirm</source>
         <translation>確認</translation>
     </message>
@@ -555,7 +600,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="101"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="461"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="460"/>
         <source>Settings</source>
         <translation>設定</translation>
     </message>
@@ -1018,7 +1063,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="260"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="597"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="596"/>
         <source>Defaults</source>
         <translation>還原預設</translation>
     </message>
@@ -1217,7 +1262,7 @@
         <translation>GitHub 登入、加密雲端副本</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="269"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="272"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="39"/>
         <location filename="../src/app/pet/pet_controller.cpp" line="1113"/>
         <source>Desktop companion</source>
@@ -1327,7 +1372,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="109"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="331"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="334"/>
         <source>Not configured</source>
         <translation>未設定</translation>
     </message>
@@ -1429,7 +1474,7 @@
         <translation>木牌</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="106"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="70"/>
         <source>Dizzy</source>
         <translation>暈乎乎</translation>
     </message>
@@ -1564,564 +1609,579 @@
         <translation>呼氣</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="73"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="77"/>
         <source>Swing</source>
         <translation>盪鞦韆</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="74"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="78"/>
         <source>Desk</source>
         <translation>敲電腦</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="75"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="79"/>
         <source>Skateboard</source>
         <translation>滑滑板</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="76"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="80"/>
         <source>Bubble bath</source>
         <translation>泡澡</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="77"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="81"/>
         <source>Rain</source>
         <translation>撐傘看雨</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="78"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="82"/>
         <source>Cardboard box</source>
         <translation>紙箱</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="79"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="83"/>
         <source>Sunny sill</source>
         <translation>窗臺曬太陽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="80"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="84"/>
         <source>Watering</source>
         <translation>澆花</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="81"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="85"/>
         <source>Star fishing</source>
         <translation>雲上垂釣</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="82"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="86"/>
         <source>Frisbee</source>
         <translation>接飛盤</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="83"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="87"/>
         <source>Burying a bone</source>
         <translation>埋骨頭</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="84"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="88"/>
         <source>Jack-o&apos;-lantern</source>
         <translation>南瓜燈</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="85"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="89"/>
         <source>Mirror</source>
         <translation>鏡中無影</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="86"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="90"/>
         <source>Sundae</source>
         <translation>甜品杯</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="87"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="91"/>
         <source>Trampoline</source>
         <translation>彈跳床</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="88"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="92"/>
         <source>Hot spring</source>
         <translation>溫泉</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="89"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="93"/>
         <source>Roasted mochi</source>
         <translation>烤年糕</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="90"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="94"/>
         <source>Stargazing</source>
         <translation>望遠鏡觀星</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="91"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="95"/>
         <source>Book nook</source>
         <translation>書堆夜讀</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="125"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="128"/>
         <source>Round glasses</source>
         <translation>圓框眼鏡</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="138"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="141"/>
         <source>Bow tie</source>
         <translation>西服領結</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="127"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="130"/>
         <source>Blush</source>
         <translation>腮紅</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="137"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="140"/>
         <source>Scarf</source>
         <translation>圍巾</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="135"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="138"/>
         <source>Sleep mask</source>
         <translation>眼罩</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="147"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="150"/>
         <source>Bell collar</source>
         <translation>鈴鐺項圈</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="119"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="122"/>
         <source>Bandana</source>
         <translation>三角巾</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="113"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="67"/>
+        <source>Blink</source>
+        <translation>眨眼</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="68"/>
+        <source>Wag</source>
+        <translation>搖尾巴</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="69"/>
+        <source>Sniff</source>
+        <translation>嗅一嗅</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="116"/>
         <source>Newsboy cap</source>
         <translation>報童帽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="114"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="117"/>
         <source>Berry beret</source>
         <translation>莓果貝雷帽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="115"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="118"/>
         <source>Knit beanie</source>
         <translation>毛線帽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="116"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="119"/>
         <source>Round frames</source>
         <translation>圓框眼鏡</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="117"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="120"/>
         <source>Round shades</source>
         <translation>圓墨鏡</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="118"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="121"/>
         <source>Heart frames</source>
         <translation>心形鏡</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="120"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="123"/>
         <source>Knit scarf</source>
         <translation>毛線圍巾</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="121"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="124"/>
         <source>Backpack</source>
         <translation>小背包</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="122"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="125"/>
         <source>Sakura pin</source>
         <translation>櫻枝髮簪</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="123"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="126"/>
         <source>Hachimaki</source>
         <translation>波點缽卷</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="124"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="127"/>
         <source>Chasen</source>
         <translation>茶筅</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="126"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="129"/>
         <source>Candy shades</source>
         <translation>糖果墨鏡</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="128"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="131"/>
         <source>Nori wrap</source>
         <translation>海苔裹底</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="129"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="132"/>
         <source>Furoshiki</source>
         <translation>風呂敷</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="130"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="133"/>
         <source>Bean pouch</source>
         <translation>紅豆袋</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="131"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="134"/>
         <source>Mortarboard</source>
         <translation>學士帽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="132"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="135"/>
         <source>Nightcap</source>
         <translation>月紋睡帽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="133"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="136"/>
         <source>Quill clip</source>
         <translation>羽毛筆</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="134"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="137"/>
         <source>Reading frames</source>
         <translation>閱讀鏡</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="136"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="139"/>
         <source>Book satchel</source>
         <translation>小書袋</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="139"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="142"/>
         <source>Paper boat</source>
         <translation>紙船帽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="140"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="143"/>
         <source>Sardine clip</source>
         <translation>沙丁魚髮夾</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="141"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="144"/>
         <source>Flower crown</source>
         <translation>花環</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="142"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="145"/>
         <source>Cat-eye frames</source>
         <translation>貓眼細框鏡</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="143"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="146"/>
         <source>Cat-eye shades</source>
         <translation>貓眼墨鏡</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="144"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="147"/>
         <source>Heart blush</source>
         <translation>心形腮紅</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="145"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="148"/>
         <source>Fishbone collar</source>
         <translation>魚骨項圈</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="146"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="149"/>
         <source>Sailor collar</source>
         <translation>水手領</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="148"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="151"/>
         <source>Witch hat</source>
         <translation>星點巫帽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="149"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="152"/>
         <source>Moon clip</source>
         <translation>月牙髮夾</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="150"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="153"/>
         <source>Halo</source>
         <translation>光環</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="151"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="154"/>
         <source>Monocle</source>
         <translation>單片眼鏡</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="152"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="155"/>
         <source>Star frames</source>
         <translation>星形鏡</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="153"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="156"/>
         <source>Mustache</source>
         <translation>小鬍子</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="154"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="157"/>
         <source>Key chain</source>
         <translation>銀鑰匙項鍊</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="155"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="158"/>
         <source>Candle</source>
         <translation>浮燭</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="156"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="159"/>
         <source>Mist scarf</source>
         <translation>霧圍巾</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="157"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="160"/>
         <source>Bubble crown</source>
         <translation>氣泡冠</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="158"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="161"/>
         <source>Starfish clip</source>
         <translation>海星髮夾</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="159"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="162"/>
         <source>Sailor cap</source>
         <translation>水手帽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="160"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="163"/>
         <source>Bubble frames</source>
         <translation>氣泡圓鏡</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="161"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="164"/>
         <source>Dive mask</source>
         <translation>潛水鏡</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="162"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="165"/>
         <source>Bubble cheeks</source>
         <translation>泡泡腮紅</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="163"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="166"/>
         <source>Pearl strand</source>
         <translation>珍珠貝鏈</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="164"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="167"/>
         <source>Shell necklace</source>
         <translation>貝殼鏈</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="165"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="168"/>
         <source>Fish charm</source>
         <translation>小魚掛件</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="166"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="169"/>
         <source>Storm cap</source>
         <translation>雷雲帽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="167"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="170"/>
         <source>Star beanie</source>
         <translation>星紋毛線帽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="168"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="171"/>
         <source>Rain hat</source>
         <translation>雨帽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="169"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="172"/>
         <source>Raindrop frames</source>
         <translation>雨滴眼鏡</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="170"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="173"/>
         <source>Cloud frames</source>
         <translation>雲紋圓鏡</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="171"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="174"/>
         <source>Snow freckles</source>
         <translation>雪斑</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="172"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="175"/>
         <source>Rain chain</source>
         <translation>雨滴項鍊</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="173"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="176"/>
         <source>Bolt charm</source>
         <translation>閃電墜</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="180"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="183"/>
         <source>Head</source>
         <translation>頭</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="181"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="184"/>
         <source>Face</source>
         <translation>臉</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="182"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="185"/>
         <source>Body</source>
         <translation>身</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="201"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="204"/>
         <source>%1: often heads to %2</source>
         <translation>%1：常去 %2</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="206"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="209"/>
         <location filename="../src/app/pet/pet_controller.cpp" line="1115"/>
         <source>Dog</source>
         <translation>小狗</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="207"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="210"/>
         <source>Mochi</source>
         <translation>麻糬</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="208"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="211"/>
         <source>Owl</source>
         <translation>貓頭鷹</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="209"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="212"/>
         <source>Stub cat</source>
         <translation>短耳貓</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="210"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="213"/>
         <source>Ghost</source>
         <translation>小幽靈</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="211"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="214"/>
         <source>Jellyfish</source>
         <translation>小水母</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="212"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="215"/>
         <source>Cloud</source>
         <translation>小雲</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="220"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="223"/>
         <source>The package format is not supported.</source>
         <translation>寵物包格式不受支援。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="221"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="224"/>
         <source>The package exceeds the size limits.</source>
         <translation>寵物包超出大小上限。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="222"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="225"/>
         <source>The package name is not valid.</source>
         <translation>寵物包的名字不合法。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="223"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="226"/>
         <source>A required action is missing.</source>
         <translation>缺少必需的動作。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="224"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="227"/>
         <source>An action is not valid.</source>
         <translation>有動作無效。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="225"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="228"/>
         <source>The anchor data is not valid.</source>
         <translation>錨點資料無效。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="226"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="229"/>
         <source>An accessory is not valid.</source>
         <translation>有配飾無效。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="227"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="230"/>
         <source>An image is not a valid PNG.</source>
         <translation>有圖片不是有效的 PNG。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="228"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="231"/>
         <source>An image size does not match its frames.</source>
         <translation>有圖片尺寸與幀數不符。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="229"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="232"/>
         <source>An expression index is out of range.</source>
         <translation>有表情索引越界。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="230"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="233"/>
         <source>An image path points outside the package.</source>
         <translation>有圖片路徑超出寵物包資料夾。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="231"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="234"/>
         <source>The package id is already in use.</source>
         <translation>寵物包 id 已被佔用。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="232"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="235"/>
         <source>The package could not be read.</source>
         <translation>無法讀取寵物包。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="278"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="281"/>
         <source>Mouse pass-through</source>
         <translation>滑鼠穿透</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="294"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="297"/>
         <source>Desktop pet size</source>
         <translation>桌面寵物大小</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="338"/>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="347"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="341"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="350"/>
         <source>Pet type</source>
         <translation>寵物類型</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="352"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="355"/>
         <source>External</source>
         <translation>外部</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="369"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="372"/>
         <source>Pet packages</source>
         <translation>寵物包</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="376"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="379"/>
         <source>Copy a pet package folder into the packages folder. Lens reads it when you open this section.</source>
         <translation>把寵物包資料夾複製到寵物包存放資料夾裡，開啟本分類時 Lens 會重新讀取。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="384"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="387"/>
         <source>Open packages folder</source>
         <translation>開啟寵物包資料夾</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="397"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="400"/>
         <source>%1: %2</source>
         <translation>%1：%2</translation>
     </message>
@@ -2131,24 +2191,24 @@
         <translation>動作列</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="411"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="414"/>
         <location filename="../src/app/qml/settings/previews/SelectionBarPreview.qml" line="134"/>
         <location filename="../src/app/qml/settings/previews/VocabPreview.qml" line="121"/>
         <source>Preview</source>
         <translation>預覽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="426"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="429"/>
         <source>Actions</source>
         <translation>動作</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="456"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="459"/>
         <source>Scenes</source>
         <translation>場景</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="484"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="487"/>
         <source>Accessories</source>
         <translation>配飾</translation>
     </message>
@@ -2253,7 +2313,7 @@
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="347"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="152"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="295"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="620"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="619"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
@@ -2421,7 +2481,7 @@
         <translation>線上 OCR 尚未設定；設定完成前截圖無法使用。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="328"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="331"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="85"/>
         <source>Online OCR</source>
         <translation>線上 OCR</translation>
@@ -2434,7 +2494,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="48"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="288"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="291"/>
         <source>RapidOCR&apos;s model folder path must contain only ASCII characters. Move the models to an ASCII-only path and choose it again.</source>
         <translation>RapidOCR 的模型目錄路徑只能包含 ASCII 字元。請把模型移到一個只含 ASCII 字元的路徑後重新選擇。</translation>
     </message>
@@ -2500,155 +2560,155 @@
         <translation>使用者自行安裝；模型目錄需為 ASCII 路徑</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="184"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="187"/>
         <source>Experimental auto scan always uses this local engine and never an online service.</source>
         <translation>實驗性的自動掃描一律使用此本機引擎，絕不呼叫線上服務。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="195"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="203"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="198"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="206"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="184"/>
         <source>Recognition language</source>
         <translation>識別語言</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="205"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="208"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="58"/>
         <source>English</source>
         <translation>英文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="206"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="209"/>
         <source>Simplified Chinese</source>
         <translation>簡體中文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="207"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="210"/>
         <source>Chinese and English</source>
         <translation>中英混排</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="214"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="217"/>
         <source>This is the language in the picture, not the language the explanation is written in.</source>
         <translation>這裡選的是圖片中的語言，不是解釋所用的語言。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="228"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="231"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="323"/>
         <source>Testing…</source>
         <translation>測試中…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="229"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="232"/>
         <source>Test OCR</source>
         <translation>測試 OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="255"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="263"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="258"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="266"/>
         <source>RapidOCR executable</source>
         <translation>RapidOCR 執行檔</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="269"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="277"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="272"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="280"/>
         <source>RapidOCR model folder</source>
         <translation>RapidOCR 模型目錄</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="297"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="300"/>
         <source>Detecting…</source>
         <translation>偵測中…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="298"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="301"/>
         <source>Detect and trust</source>
         <translation>偵測並信任</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="319"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="322"/>
         <source>RapidOCR-json is a third-party program. It runs with your user permissions and can read other files or use the network; Lens does not install or update it.</source>
         <translation>RapidOCR-json 是第三方程式，以目前使用者權限執行，可能讀取其他檔案或使用網路；Lens 不安裝也不更新它。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="342"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="347"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="345"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="350"/>
         <source>Tesseract executable</source>
         <translation>Tesseract 程式</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="358"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="363"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="361"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="366"/>
         <source>Tesseract data folder</source>
         <translation>Tesseract 資料目錄</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="92"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="96"/>
         <source>Yarn ball</source>
         <translation>毛線球</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="93"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="97"/>
         <source>Goldfish bowl</source>
         <translation>金魚缸</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="94"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="98"/>
         <source>Rainbow slide</source>
         <translation>彩虹滑梯</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="95"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="99"/>
         <source>Dandelion</source>
         <translation>吹蒲公英</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="96"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="100"/>
         <source>Snowman</source>
         <translation>雪人</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="97"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="101"/>
         <source>Dog bed</source>
         <translation>窩裡打盹</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="98"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="102"/>
         <source>Midnight clock</source>
         <translation>午夜座鐘</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="99"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="103"/>
         <source>Ghost tea</source>
         <translation>幽靈茶會</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="100"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="104"/>
         <source>Deep-sea lamp</source>
         <translation>深海夜燈</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="101"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="105"/>
         <source>Shell bed</source>
         <translation>貝殼床</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="102"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="106"/>
         <source>Kotatsu</source>
         <translation>暖桌</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="103"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="107"/>
         <source>Mochi pounding</source>
         <translation>搗年糕</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="104"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="108"/>
         <source>By the fire</source>
         <translation>壁爐邊</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="105"/>
+        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="109"/>
         <source>Mail owl</source>
         <translation>送信</translation>
     </message>

@@ -79,5 +79,36 @@ Item {
             compare(make({ note: "128 words" }).Accessible.name, "Settings, 128 words");
             compare(make({}).Accessible.role, Accessible.Button);
         }
+
+        /// The note's runs share one baseline, so the CJK "次" sits on the line of the digits beside it. Top-aligned
+        /// runs put the CJK glyphs lower.
+        function test_theNoteRunsShareOneBaseline() {
+            const row = make({ label: "Stats", note: "14 次 · ¥0.00" });
+            const runs = Util.textsUnder(row).slice(1);
+            verify(runs.length >= 2, "the note did not split into runs");
+            const line = runs[0].y + runs[0].baselineOffset;
+            for (let i = 1; i < runs.length; ++i)
+                verify(Math.abs(runs[i].y + runs[i].baselineOffset - line) < 0.5,
+                       "the run '" + runs[i].text + "' sits off the note's baseline");
+        }
+
+        /// The figures row in Spanish, with the label the catalogue ships for it: the label has to stand whole beside
+        /// the figures, since a label cut short hides the word the reader is looking for.
+        function test_theSpanishStatsLabelIsNotElided() {
+            const row = make({ label: "Cifras", note: "14 consultas · €0.00" });
+            const label = Util.textsUnder(row)[0];
+            verify(!label.truncated, "the label was elided: it needs " + label.implicitWidth
+                   + " px and has " + label.width + " px");
+        }
+
+        /// A label longer than the room the note leaves elides before the note, rather than running under it.
+        function test_aLongLabelElidesBeforeTheNote() {
+            const row = make({ label: "Estadísticas de uso diario", note: "128 consultas · €0.42" });
+            const texts = Util.textsUnder(row);
+            const label = texts[0];
+            const noteStart = texts[1].mapToItem(row, 0, 0).x;
+            compare(label.elide, Text.ElideRight);
+            verify(label.mapToItem(row, 0, 0).x + label.width <= noteStart, "the label runs under the note");
+        }
     }
 }

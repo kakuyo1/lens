@@ -36,6 +36,20 @@ Window {
     readonly property bool hasContent: root.still !== null && root.still.canvas !== undefined
     /// The name the caption prints: the row's own, so the card and the row say the same thing.
     readonly property string petName: root.option ? String(root.option.label) : ""
+    /// The character the stamp carries: one per pet in each language, since a name's first character is not one
+    /// (the Chinese names of the dog, the ghost and the cloud all open with 小).
+    readonly property string petMark: {
+        switch (root.option ? String(root.option.value) : "") {
+        case "dog": return qsTranslate("PetPostcardPreview", "Dog", "stamp mark");
+        case "cat": return qsTranslate("PetPostcardPreview", "Stub cat", "stamp mark");
+        case "owl": return qsTranslate("PetPostcardPreview", "Owl", "stamp mark");
+        case "mochi": return qsTranslate("PetPostcardPreview", "Mochi", "stamp mark");
+        case "ghost": return qsTranslate("PetPostcardPreview", "Ghost", "stamp mark");
+        case "jelly": return qsTranslate("PetPostcardPreview", "Jellyfish", "stamp mark");
+        case "cloud": return qsTranslate("PetPostcardPreview", "Cloud", "stamp mark");
+        default: return root.petName.charAt(0);
+        }
+    }
 
     /// @brief Point this window at @p value, the option whose pet it is to picture.
     function showOption(value) {
@@ -262,7 +276,7 @@ Window {
             }
 
             // The stamp, stuck on the picture at a hand's angle: paper with its teeth punched out of the edge, an
-            // inner frame, and the pet's initial where a stamp carries its value.
+            // inner frame, and the pet's mark where a stamp carries its value.
             Item {
                 id: stamp
 
@@ -323,7 +337,7 @@ Window {
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.top: parent.top
                     anchors.topMargin: 8
-                    text: root.petName.charAt(0)
+                    text: root.petMark
                     color: root.tokens.muted
                     font.pixelSize: 16
                     font.weight: Font.Bold

@@ -51,24 +51,27 @@ Item {
         onTapped: root.picked()
     }
 
-    Row {
+    Icon {
+        id: icon
         anchors.left: parent.left
         anchors.leftMargin: 11
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 9
+        source: root.source
+        color: root.danger ? root.tokens.danger : root.tokens.muted
+    }
 
-        Icon {
-            anchors.verticalCenter: parent.verticalCenter
-            source: root.source
-            color: root.danger ? root.tokens.danger : root.tokens.muted
-        }
-
-        Text {
-            anchors.verticalCenter: parent.verticalCenter
-            text: root.label
-            color: root.danger ? root.tokens.danger : root.tokens.text
-            font.pixelSize: 13
-        }
+    // The label stops at the note's left edge and elides there, rather than running under a note that is wider than
+    // the room the label has (a Spanish tally next to "Estadísticas").
+    Text {
+        anchors.left: icon.right
+        anchors.leftMargin: 9
+        anchors.right: noteText.visible ? noteText.left : parent.right
+        anchors.rightMargin: noteText.visible ? 8 : 11
+        anchors.verticalCenter: parent.verticalCenter
+        text: root.label
+        color: root.danger ? root.tokens.danger : root.tokens.text
+        font.pixelSize: 13
+        elide: Text.ElideRight
     }
 
     MixedText {

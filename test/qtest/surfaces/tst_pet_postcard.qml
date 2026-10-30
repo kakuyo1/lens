@@ -165,6 +165,21 @@ Item {
             field.closeList();
         }
 
+        /// The stamp carries one mark per pet, and no two pets share one. Each card reads its mark off its own option.
+        function test_theStampMarkDiffersBetweenPets() {
+            const page = makePage();
+            const field = fieldOf(page);
+            const card = createTemporaryObject(postcardComponent, host.contentItem);
+            verify(card, "no card was built");
+            const seen = [];
+            for (const id of ["cat", "dog", "ghost", "mochi", "owl", "jelly", "cloud"]) {
+                card.showOption({value: id, label: labelOf(field, id), group: "", note: "", external: false});
+                verify(card.petMark !== "", "the " + id + " card has no stamp mark");
+                verify(seen.indexOf(card.petMark) < 0, "the " + id + " card shares its stamp mark with another pet");
+                seen.push(card.petMark);
+            }
+        }
+
         /// The card as it renders, one shot per theme: TEST.md section 5's snapshot path, which writes nothing
         /// unless LENS_QA_SNAPSHOT_DIR is set.
         function test_capturePetPostcard() {

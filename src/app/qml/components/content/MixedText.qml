@@ -19,8 +19,41 @@ Item {
     property color color: "black"
     readonly property var runs: splitRuns(value)
 
-    implicitWidth: row.implicitWidth
-    implicitHeight: row.implicitHeight
+    /// The line every run sits on. The runs' own ascents differ (the UI face's CJK glyphs and the numeric face's
+    /// digits are not the same height), so runs that are only top-aligned put the CJK glyphs lower than the digits.
+    readonly property real sharedBaseline: {
+        let line = 0;
+        for (let i = 0; i < runRepeater.count; ++i) {
+            const run = runRepeater.itemAt(i);
+            if (run !== null)
+                line = Math.max(line, run.baselineOffset);
+        }
+        return line;
+    }
+    /// How far the deepest run reaches below the shared line.
+    readonly property real belowBaseline: {
+        let below = 0;
+        for (let i = 0; i < runRepeater.count; ++i) {
+            const run = runRepeater.itemAt(i);
+            if (run !== null)
+                below = Math.max(below, run.height - run.baselineOffset);
+        }
+        return below;
+    }
+
+    /// @return The x where run @p index starts: the widths of the runs before it, laid end to end.
+    function offsetOf(index) {
+        let x = 0;
+        for (let i = 0; i < index; ++i) {
+            const run = runRepeater.itemAt(i);
+            if (run !== null)
+                x += run.implicitWidth;
+        }
+        return x;
+    }
+
+    implicitWidth: offsetOf(runRepeater.count)
+    implicitHeight: sharedBaseline + belowBaseline
     width: implicitWidth
     height: implicitHeight
 
@@ -46,21 +79,20 @@ Item {
         return result;
     }
 
-    Row {
-        id: row
-        spacing: 0
+    Repeater {
+        id: runRepeater
+        model: root.runs
 
-        Repeater {
-            model: root.runs
-
-            Text {
-                required property var modelData
-                text: modelData.text
-                color: root.color
-                font.pixelSize: root.pixelSize
-                font.weight: root.weight
-                font.family: modelData.cjk ? "" : root.tokens.monoFamily
-            }
+        Text {
+            required property var modelData
+            required property int index
+            x: root.offsetOf(index)
+            y: root.sharedBaseline - baselineOffset
+            text: modelData.text
+            color: root.color
+            font.pixelSize: root.pixelSize
+            font.weight: root.weight
+            font.family: modelData.cjk ? "" : root.tokens.monoFamily
         }
     }
 }

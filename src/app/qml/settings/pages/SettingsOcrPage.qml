@@ -168,6 +168,9 @@ Item {
                      group: "", note: qsTranslate("SettingsPopup", "User-installed; ASCII model folder required")}
                 ]
                 currentValue: page.settings.ocrLocalEngine
+                // The RapidOCR note is a sentence, and beside its label it runs into the label, so
+                // it stays off the rows.
+                notesInRows: false
                 onPicked: (value) => Controller.captureDuty.setOcrLocalEngine(value)
             }
             Text {

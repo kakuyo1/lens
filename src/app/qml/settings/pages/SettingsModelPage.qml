@@ -97,11 +97,6 @@ Item {
             }
         }
 
-        SettingsBudgetBlock {
-            width: parent.width
-            onBudgetChanged: (amount) => Controller.setDailyBudget(amount)
-        }
-
         SettingsLinkRow {
             label: qsTranslate("SettingsPopup", "API configuration")
             note: root.settings.hasApiKey
@@ -109,6 +104,11 @@ Item {
                    : qsTranslate("SettingsPopup", "Not configured")
             noteIsState: true
             onPicked: root.childRequested("connection")
+        }
+
+        SettingsBudgetBlock {
+            width: parent.width
+            onBudgetChanged: (amount) => Controller.setDailyBudget(amount)
         }
     }
 }
