@@ -27,7 +27,7 @@
   <img alt="CMake 3.21+" src="https://img.shields.io/badge/CMake-3.21%2B-064F8C?logo=cmake&logoColor=white">
 </p>
 
-<p align="center"><sub><a href="README.md">English</a> · <a href="README.zh-CN.md">簡體中文</a> · 繁體中文 · <a href="README.ja.md">日本語</a> · <a href="README.es.md">Español</a></sub></p>
+<p align="center"><sub><a href="README.en.md">English</a> · <a href="README.md">簡體中文</a> · 繁體中文 · <a href="README.ja.md">日本語</a> · <a href="README.es.md">Español</a></sub></p>
 
 <p align="center">
   <picture>
@@ -163,7 +163,7 @@ Lens 沒有程式碼簽章，SmartScreen 會攔截它不認識的程式。點 **
 
 ## 語言
 
-[English](README.md) · [簡體中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [Español](README.es.md)
+[English](README.en.md) · [簡體中文](README.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [Español](README.es.md)
 
 介面語言和解釋語言是兩個獨立設定，都可以選擇英文、中文、繁體中文、西班牙語和日語。
 

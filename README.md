@@ -2,23 +2,23 @@
 
 <h1 align="center">Lens</h1>
 
-<h3 align="center">Read English in English.</h3>
+<h3 align="center">用英文，读懂英文。</h3>
 
 <p align="center">
-  Lens is a Windows tray companion that explains the word, name, or sentence you select — in clearer English, right beside the text. No tab switch, no dictionary window, no translation detour.
+  Lens 是一款常驻 Windows 系统托盘的英语阅读助手。选中一个单词、一个名字或一个句子，它会在文字旁用更清楚的英文解释——不切页，不开词典，也不把英文先翻译成中文。
 </p>
 
 <p align="center">
-  <a href="https://github.com/kakuyo1/lens/releases/latest"><strong>Download for Windows</strong></a> ·
-  <a href="#a-quick-look">See it in action</a> ·
-  <a href="https://github.com/kakuyo1/lens/releases">All releases</a>
+  <a href="https://github.com/kakuyo1/lens/releases/latest"><strong>下载 Windows 版</strong></a> ·
+  <a href="#先看一眼">看它怎么工作</a> ·
+  <a href="https://github.com/kakuyo1/lens/releases">全部版本</a>
 </p>
 
 <p align="center">
   <a href="https://github.com/kakuyo1/lens/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/kakuyo1/lens?label=release&color=2f9e6e"></a>
-  <a href="#download"><img alt="Windows 10 and 11, x64" src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-1a1a1f"></a>
+  <a href="#下载"><img alt="Windows 10/11 x64" src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-1a1a1f"></a>
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/github/license/kakuyo1/lens?color=2f9e6e"></a>
-  <a href="#languages"><img alt="English, Chinese, Traditional Chinese, Spanish and Japanese" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH--HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
+  <a href="#语言"><img alt="英语、中文、繁体中文、西班牙语、日语" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH--HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
 </p>
 
 <p align="center">
@@ -27,148 +27,148 @@
   <img alt="CMake 3.21+" src="https://img.shields.io/badge/CMake-3.21%2B-064F8C?logo=cmake&logoColor=white">
 </p>
 
-<p align="center"><sub>English · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.es.md">Español</a></sub></p>
+<p align="center"><sub><a href="README.en.md">English</a> · 简体中文 · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.es.md">Español</a></sub></p>
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/readme/hero-dark.png">
-    <img src="docs/readme/hero-light.png" width="100%" alt="Lens explains the word serendipity in English in a card beside an English essay">
+    <img src="docs/readme/hero-light.png" width="100%" alt="Lens 在英文文章旁用英文解释 serendipity 这个词">
   </picture>
 </p>
 
-<p align="center"><sub>Explanations default to English. Hold the globe on the card for your mother tongue; the permanent choice lives in Settings.</sub></p>
+<p align="center"><sub>解释默认使用英文；按住卡片上的地球就能看到母语释义，松手即收。永久切换解释语言在设置里。</sub></p>
 
-## Why Lens
+## 为什么是 Lens
 
-Most lookup tools pull you out of the page and answer in your first language. You finish the paragraph without ever reading it in English. Lens makes the opposite bet: the fastest way to read better English is to stay in English.
+大多数查词工具会把你带离页面，再给一个中文答案。你读完了一段，却没有用英文读它。Lens 的选择相反：提高英语阅读最有效的方式，是留在英语里。
 
-**English in, clearer English out.** A plain-English sense, IPA, and — when you want them — etymology and an example. Translation is still there; it just isn't the default.
+**英文进，清楚的英文出。**一条你能直接读懂的英文释义、音标；需要时再加上词源和例句。翻译仍然在，只是它不是默认动作。
 
-**A word you can hear.** A speaker sits beside every pronunciation: press it, or the pronunciation itself, and the headword is read once. Sentences, names, and translations stay silent.
+**能听见的词。**音标旁边有一枚喇叭：点它，或者点音标本身，就会读一次词头。句子、名字和译文不会出声。
 
-**The answer stays on the page.** Lens lives in the system tray and has no main window. The bubble opens beside the selection, holds while you hover, and is gone when you keep reading.
+**答案留在文字旁。**Lens 常驻系统托盘，没有主窗口。气泡出现在选区旁边，鼠标停在上面就会一直留着；你继续往下读，它就退场。
 
-**A quiet memory.** Mark a word Known or New. Lens keeps the list; the desktop pet can ask it back later. No streaks, no lesson plan.
+**安静的记忆。**把词标成 “已会” 或 “新词”，Lens 替你记着；桌面宠物之后可能会把词举回来问你。没有连续打卡，也没有课程表。
 
-**A definition you can walk into.** A word in a definition that sits above your level stays dotted. Open it and the same card steps down one layer, with a breadcrumb back; the cache, budget, and verdict rules follow every step.
+**能走进去的释义。**英文释义里超出你档位的词会留下点线；点开它，同一张卡片向下走一层，并留一条面包屑带你回来。缓存、预算与判定规则跟着每一步走。
 
-## A quick look
+## 先看一眼
 
-<p align="center"><img src="docs/readme/english-first.gif" width="600" alt="Holding the globe on the card to show the Chinese meaning under the English definition"></p>
+<p align="center"><img src="docs/readme/english-first.gif" width="600" alt="按住卡片上的地球，在英文释义下看到中文意思"></p>
 
-The answer is English. Hold the globe for your mother tongue, let go, and the card is English again.
+答案仍然是英文。按住地球看母语，松手，卡片又回到英文。
 
-<p align="center"><img src="docs/readme/feature-tour.gif" width="600" alt="Pressing Pictures on the word crane loads its photos; Not the Sense? swaps the card to the machine sense, photos and all"></p>
+<p align="center"><img src="docs/readme/feature-tour.gif" width="600" alt="在 crane 的卡片上点 “图片”，照片加载出来；点 “不是这个义项？”，卡片原地换成起重机的释义和照片"></p>
 
-Press Pictures on a word to load its photos. Not the Sense? swaps the card in place to the word's other sense, photos and all.
+单词卡上点 “图片”，照片就加载出来；点 “不是这个义项？”，卡片原地换到另一个义项，照片跟着变。
 
-## English first. Translation when you ask.
+## 英文优先，需要时再翻译
 
-Explanations default to English. A selection in Chinese, Japanese, or Spanish comes back in English. The explanation language — English, Chinese, Traditional Chinese, Spanish, or Japanese — is a setting, not a switch on the card: change it once and every card follows, answered from cache when that word already has one.
+解释默认使用英文。中文、日文或西班牙文的选区都会用英文回答。解释语言——英语、中文、繁体中文、西班牙语或日语——是设置里的一项，不再放在卡片上：改一次，之后每张卡都跟着走，已有缓存的词直接取缓存。
 
-The action bar offers Translate, Explain, and Copy text. Explain is the one Lens is built around: it tells you what the word means in words you already know, instead of replacing it with a Chinese word you can skip. Translate is the exception: it turns a Chinese, Japanese, or Spanish passage into English; on English text it answers in your explanation language — English unless you change it.
+动作条提供翻译、解释和复制文本。Lens 围绕的是 “解释”：用你已经认识的英文，说明这个词在这里做什么，而不是换成一个你可以直接跳过、不再需要读英文的中文词。翻译是例外：中文、日文或西班牙文的选区会译成英文；英文选区则按解释语言回答——默认英文，除非你改。
 
-The globe on the card is the language control that stayed: hold it for half a second and the meaning in your mother tongue appears under the English definition; let go and it is gone. The mother tongue is a setting of its own — Chinese by default. A word whose explanation already includes that language costs nothing to peek at; any other is asked once per session.
+卡片上留下的语言控件只有那枚地球：按住半秒，英文释义下方浮出母语的意思，松手即收。母语本身是设置里的一项，默认中文。解释时已经取回那门语言的词，按住不花钱；其余的词每个会话问一次。
 
-## Say it out loud
+## 读出来
 
-Every word card carries a speaker beside its pronunciation; pressing either one reads the headword once. Nothing else on the card is spoken — not the definition, not a sentence, not a name.
+每张单词卡的音标旁都有一枚喇叭：点喇叭或点音标本身，读一次词头。卡片上的其他内容不会出声——释义、句子、名字都不读。
 
-By default the Windows voice speaks first, in the accent you pick: American by default, British on request. When the machine has no voice for that accent, Lens falls back to the one you chose in Settings › Reading & learning: an online recording (Youdao by default, or Google Translate), a local model you download once (Kokoro, about 180 MB, or LJSpeech, about 41 MB), or silence. The choice is explicit — Lens does not quietly move between online and local. Auto-play is off by default; when it is on, the card a lookup opens reads once, and the same word does not repeat. A recording is cached under `%APPDATA%\Lens\audio`, capped at 50 MB, and never counts against the daily budget.
+默认先由 Windows 的系统音色发声，口音按你选的美式（默认）或英式。系统没有该口音的音色时，按你在设置 › 阅读学习里选的兜底走：在线音频（默认有道，也可选 Google 翻译）、下载一次的本地模型（Kokoro 约 180 MB，或 LJSpeech 约 41 MB），或者不发音。这一档由你明确选择——Lens 不会在在线与本地之间悄悄切换。自动播放默认关闭；打开后，取词弹出的那张卡出现即读一次，同一个词不重复。在线音频缓存在 `%APPDATA%\Lens\audio`，上限 50 MB，不计入每日预算。
 
-## Text you can't select
+## 选不中的文字
 
-Press `Ctrl+Alt+S` (changeable in Settings), frame a region of a PDF, image, or video still, and Lens reads it locally with OCR by default. The bundled Tesseract is the automatic engine. A reader can install RapidOCR-json, choose it explicitly, and point it at an ASCII model folder after an explicit trust check. Online OCR is opt-in, asks before each upload, and can be pointed at Baidu OCR, Tencent Cloud OCR, Alibaba Cloud OCR, Google Cloud Vision, or OCR.space. Automatic scanning can watch only the apps you whitelist.
+按 `Ctrl+Alt+S`（可在设置中修改），框选 PDF、图片或视频画面中的一块区域，Lens 会在本机用 OCR 读取。随包的 Tesseract 是自动引擎；读者可以自行安装 RapidOCR-json，明确选择它，并在一次信任检查后指向 ASCII 模型目录。在线 OCR 是可选项，每次上传前都会询问，可指向百度 OCR、腾讯云 OCR、阿里云 OCR、Google Cloud Vision 或 OCR.space。自动扫描只监看你加入白名单的应用。
 
-## Five action bars, one set of actions
+## 五种动作条形态
 
-<p align="center"><img src="docs/readme/selection-styles.gif" width="800" alt="Classic bar, side tab, hand of cards, hang tag and fan selection styles"></p>
+<p align="center"><img src="docs/readme/selection-styles.gif" width="800" alt="经典长条、页边签、手牌签、吊牌签和扇面五种动作条形态"></p>
 
-Choose the shape in Settings › Capture & popups: the classic bar, a page-edge tab, a hand of cards, a hang tag, or a fan. The three actions and channel rules stay the same, and the copy drawer follows the shape it opens from.
+在设置 › 取词与弹窗里选择：经典长条、页边签、手牌签、吊牌签或扇面。三项动作和通道规则完全不变，复制抽屉按它展开的那副外形画。
 
-<p align="center"><img src="docs/readme/selection-drawer.png" width="800" alt="The copy text's drawer listing Fix syntax and Breakdown for a selected sentence"></p>
+<p align="center"><img src="docs/readme/selection-drawer.png" width="800" alt="选中一个句子时，复制抽屉列出纠正语法与拆解"></p>
 
-Copy text is a drawer, not a single action: hover it and only the actions this selection can take come out — Fix spelling on a word, Fix syntax on a sentence, Breakdown on an English sentence of up to 80 words. Corrections and breakdowns are not cached, and each counts toward the daily budget like any other request.
+复制文本是一张抽屉，不是单个动作：鼠标停在上面，只有这张选区能做的事会出来——单词可修拼写，句子可修语法，80 词以内的英文句子还可拆解。纠正与拆解都不入缓存，各自按一次请求计入每日预算。
 
-<p align="center"><img src="docs/readme/breakdown.png" width="800" alt="The breakdown answer: the sentence tinted in its four role colours, with a legend under it"></p>
+<p align="center"><img src="docs/readme/breakdown.png" width="800" alt="拆解的作答：句子按四类成分染色，下方配一行图例"></p>
 
-Breakdown tints each part of the sentence in one of four colours — subject, verb, complement, adverbial — with a legend under it; a correction underlines only the words it changed.
+拆解把句子的四类成分各染一色——主语、谓语、表语、状语——下面配一行图例；纠正只给改动过的词画下划线。
 
-## A small learning loop
+## 一个安静的学习循环
 
-<p align="center"><img src="docs/readme/learning-loop.gif" width="900" alt="The ghost's review sign beside it, and the year-in-words graph"></p>
+<p align="center"><img src="docs/readme/learning-loop.gif" width="900" alt="小幽灵脚边的提问牌，以及单词年度记录"></p>
 
-Known and New live on one word list. Hover a row to reread an explanation Lens already stored, without sending a request. When a word is due, a small sign appears beside the desktop pet — its own, drawn for that pet; answer Forgot or Remembered and it comes back on a spaced schedule from ten minutes to sixty days. The year-in-words graph keeps the habit visible without turning it into a streak.
+已会和新词在同一张词表里。把指针停在某一行上，可以重读 Lens 已经存下的解释，不会发出请求。单词到期时，宠物脚边会立起它自己的提问牌；回答 “忘了” 或 “记得”，它会按 10 分钟到 60 天的间隔再次被问起。年度记录把阅读留下的痕迹画成一格一格的绿色，而不是一条连续打卡。
 
-## Seven pets, if you want them
+## 七只桌面宠物，可选
 
-<p align="center"><img src="docs/readme/pets.gif" width="900" alt="Lens's seven pixel pets"></p>
+<p align="center"><img src="docs/readme/pets.gif" width="900" alt="Lens 的七只像素宠物"></p>
 
-Seven pixel companions ship with Lens: Stub cat, Owl, Mochi, Ghost, Jellyfish, Cloud, and Dog. They are off by default; turn one on in Settings › Extensions. Each pet has its own nine-piece wardrobe and six scenes — four of its own and two shared; a scarf or a pair of frames can tilt which scene it chooses, and its size and outfit are remembered per pet while the window stays where you put it. They wander, hide at the screen edge, notice the pointer, and can be picked up and thrown. They react to event types only — never to your selections, explanations, or screen text — and packages hold data only.
+Lens 随包提供七只像素宠物：短耳猫、猫头鹰、麻糬、小幽灵、小水母、小云和小狗。它们默认关闭，可在设置的 “扩展” 里开启。每只都有自己的九件配饰和六个场景——四个专属、两个共享；一条围巾或一副眼镜会改变它更常去哪个场景，大小与穿搭按宠物各记一份，窗口位置仍只属于你。它们会闲逛、在屏幕边缘躲起来、注意到指针，也能被拎起来抛出去。它们只接收事件类型——从不读取你的选区、解释或屏幕文字——宠物包也只含数据。
 
-The ghost's six: a midnight clock, a jack-o'-lantern, a mirror and a tea party of its own, and the desk and the bubble bath it shares with the other pets — each scene an animation of its own. The jack-o'-lantern, playing:
+小幽灵的六个：午夜座钟、南瓜灯、镜中无影与幽灵茶会是它自己的，敲电脑和泡澡与其他宠物共享——每个场景都是一段自己的小动画。南瓜灯播起来是这样：
 
-<p align="center"><img src="docs/readme/pet-lantern.gif" width="420" alt="The ghost's jack-o'-lantern scene, animated"></p>
+<p align="center"><img src="docs/readme/pet-lantern.gif" width="420" alt="小幽灵的南瓜灯场景，正在播放"></p>
 
-And the card the settings raise: hover a pet in Settings › Extensions and its postcard comes up — dressed in one piece per slot, standing in a landscape of its own, stamped and postmarked.
+在设置的 “扩展” 里把指针停到一只宠物上，它会举起自己的明信片——按部位各穿一件，站在只属于它的风景里，贴着邮票、盖着邮戳。
 
-<p align="center"><img src="docs/readme/pet-postcards.gif" width="700" alt="The seven pets' postcards, one after another"></p>
+<p align="center"><img src="docs/readme/pet-postcards.gif" width="700" alt="七只宠物的明信片，逐一亮相"></p>
 
-## Also in the box
+## 还有这些
 
-- **Bring your own model.** DeepSeek, OpenAI, Gemini, OpenRouter, xAI, Moonshot, Zhipu, Qwen, or a custom OpenAI-compatible endpoint.
-- **Costs you can see.** Per-request cost from tokens, and a daily budget that pauses lookups, capture, and requests when the day reaches it.
-- **Sync when you want it.** Word marks, lookup history, statistics, and selected settings are encrypted with your passphrase and kept in a secret gist in your own GitHub account. The API key stays on this device.
-- **Word lists in and out.** Import or export `.txt` and `.json`; delete a word with one confirmation.
-- **Pictures when they help.** A sense the model thinks a photo explains better can open three Wikimedia Commons pictures. They are cached locally, and About shows the cache size and clears it in place.
-- **Make it yours.** Five action-bar shapes; Light, Dark, Frosted glass, Liquid glass, and Custom themes; and an English typeface with 12–18 px bubble text.
-- **Five languages.** Interface and explanations each offer English, Chinese, Traditional Chinese, Spanish, and Japanese. The Traditional Chinese, Spanish, and Japanese translations are machine-generated and have not been reviewed by a native speaker.
+- **自带模型。**DeepSeek、OpenAI、Gemini、OpenRouter、xAI、Moonshot、智谱、通义千问，或任何兼容 OpenAI 的自定义端点。
+- **看得见的花费。**按 token 计算每次请求的费用；每日预算到顶时，暂停取词、截图和请求。
+- **想同步时再同步。**已会/新词标记、查词历史、统计和选定设置用你的口令加密，存放在你自己 GitHub 账号的 secret gist 里；API key 始终留在本机。
+- **词表进得来也出得去。**导入或导出 `.txt` 和 `.json`；删除单词需要一次确认。
+- **该给图时给图。**模型判断某条义项用照片更好说明时，卡片可以展开三张 Wikimedia Commons 图片；图片缓存在本机，“关于” 页显示缓存大小并可原地清除。
+- **按你的习惯来。**五种动作条形态；晴朗白昼、静谧暗夜、雾面玻璃、流光玻璃和自定义主题；以及英文字体与 12–18 px 气泡字号。
+- **五种语言。**界面和解释各自提供英语、中文、繁体中文、西班牙语和日语。繁体中文、西班牙语与日语的翻译由机器生成，尚未经母语人士审校。
 
-## Themes
+## 主题
 
-<p align="center"><img src="docs/readme/themes.png" width="900" alt="Light, Dark, Frosted glass and Liquid glass"></p>
+<p align="center"><img src="docs/readme/themes.png" width="900" alt="晴朗白昼、静谧暗夜、雾面玻璃和流光玻璃"></p>
 
-Light and Dark are solid. Frosted glass and Liquid glass draw every card over a blurred copy of the desktop, and keep Lens out of screenshots and screen sharing while they are on. Custom lets you choose the colours and checks them against WCAG AA. Animations follow the Windows reduced-motion setting.
+晴朗白昼和静谧暗夜是纯色主题。雾面玻璃和流光玻璃把每张卡片画在模糊的桌面之上；玻璃主题开启时，Lens 会把自己排除在截图和屏幕共享之外。自定义配色会按 WCAG AA 检查对比度。动画开关跟随 Windows 的动画效果设置。
 
-## Download
+## 下载
 
-Download `Lens-<version>-setup.exe` from the [releases page](https://github.com/kakuyo1/lens/releases/latest), or `Lens-<version>-portable.zip` from the same release. The installer is per user, so Windows never asks for administrator rights; the portable zip runs from any folder.
+从[发布页](https://github.com/kakuyo1/lens/releases/latest)下载 `Lens-<版本>-setup.exe`，或同一发布里的 `Lens-<版本>-portable.zip`。安装版按用户安装，Windows 不会要求管理员权限；便携版解压后即可运行。
 
-**Windows 10/11 x64.** You will need an API key from a supported provider. Lens does not ship a definition dictionary; it includes a list of about 168,000 English words only to check that a candidate is a real word.
+**Windows 10/11 x64。**你需要一个受支持服务商的 API key。Lens 不内置释义词典；它包含一份约 168,000 个英语单词的词表，只用来判断候选词是不是真词。
 
 <details>
-<summary>Windows may warn you before it runs</summary>
+<summary>Windows 可能会先拦一下</summary>
 
-Lens is not code-signed, and SmartScreen blocks programs it does not recognise. Choose **More info**, then **Run anyway**. The warning is about the missing signature, not a damaged file. To check that the download arrived intact, compare its SHA-256 with the matching line in the release's `SHA256SUMS` file; that proves the file was not altered in transit, not who published it.
+Lens 没有代码签名，SmartScreen 会拦截它不认识的程序。点 **“更多信息”**，再点 **“仍要运行”**。这是缺少签名，不是文件损坏。想核对下载是否完整，可以把文件的 SHA-256 和发布里的 `SHA256SUMS` 对应行比一下；这只能证明文件在传输中没有被改动，不能证明发布者是谁。
 
 </details>
 
-## Privacy
+## 隐私
 
-Only the text you select or capture is sent to the provider you configure, after local masking of URLs, email addresses, and digit strings of six or more digits. OCR runs locally by default. Online OCR is opt-in: each capture shows the frozen crop and the exact destination, uploads only after you confirm, and automatic scanning never uses it. The speaker reads the word on this device through the system voice or a downloaded local model; when it falls back to an online recording, only that word leaves the device, and the recording is cached under `%APPDATA%\Lens\audio`. Your explanation key, OCR credentials, and learning data stay in `%APPDATA%\Lens\settings.json`. If you turn on sync, the cloud copy is encrypted with your passphrase and stored in your own GitHub gist; the keys stay on this device. Lens has no account and no server of its own. See [SECURITY.md](SECURITY.md) for the full boundary.
+只有你选中或截取到的文字会发送给你配置的服务商，发送前会在本机遮盖 URL、电子邮件地址和六位及以上的数字串。OCR 默认在本机运行；在线 OCR 需要你逐次确认，确认卡会写明这次裁剪发往哪个服务，自动扫描从不用它。喇叭优先用系统音色或已下载的本地模型在本机朗读；兜底到在线音频时，离开本机的只有那个词，录音缓存在 `%APPDATA%\Lens\audio`。API key、OCR 凭据和学习数据保存在 `%APPDATA%\Lens\settings.json`。开启同步后，云端副本用你的口令加密，存放在你自己的 GitHub gist 里；密钥始终只在本机。Lens 没有自己的账号，也没有自己的服务器。完整的数据边界见 [SECURITY.md](SECURITY.md)。
 
-## FAQ
+## 常见问题
 
-**Is Lens a translator?** It can translate, but it is built for explanations. Chinese, Japanese, and Spanish selections come back in English.
+**Lens 是翻译器吗？**它可以翻译，但它是为 “解释” 做的。中文、日文或西班牙文的选区返回英文。
 
-**Do I need an API key?** Yes. Bring one from a supported provider. Lens shows the cost of each request and can cap daily spending.
+**需要 API key 吗？**需要。用受支持服务商的 key；Lens 会显示每次请求的费用，也可以设置每日上限。
 
-**Does it work offline?** Local OCR, the word list, and a local voice you have downloaded work offline. Explanations, and online OCR or online recordings if you enable them, need the service you configure.
+**能离线用吗？**OCR、词表和已下载的本地音色在本机可用；解释、在线 OCR 与在线音频需要你配置的服务。
 
-**What leaves my PC?** Only these: the masked selection, a crop you explicitly confirm if you use online OCR, and the single word when the speaker falls back to an online recording. See [Privacy](#privacy).
+**什么会离开我的电脑？**只有本地脱敏后的选区文字，加上在线 OCR 里逐次确认的裁剪，以及兜底到在线音频时的那一个词。见[隐私](#隐私)。
 
-**Why does Windows warn me?** The installer is not code-signed; the note under [Download](#download) explains how to run it and verify the file.
+**为什么 Windows 会警告？**安装包没有代码签名；怎么运行与核对文件见[下载](#下载)一节的说明。
 
-**Is there a macOS or Linux build?** Windows only for now.
+**有 macOS 或 Linux 版吗？**目前只有 Windows。
 
-## Languages
+## 语言
 
-[English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [Español](README.es.md)
+[English](README.en.md) · [简体中文](README.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [Español](README.es.md)
 
-The interface language and the explanation language are separate settings. Both offer English, Chinese, Traditional Chinese, Spanish, and Japanese.
+界面语言和解释语言是两个独立设置，都可以选择英语、中文、繁体中文、西班牙语和日语。
 
-## Contributing and license
+## 参与和许可
 
-Lens is open source under the [MIT License](LICENSE). Issues and pull requests are welcome. If Lens helps you read more English, a star helps another reader find it.
+Lens 以 [MIT 许可证](LICENSE)开源。欢迎提 issue 和 PR。如果 Lens 帮你多读了一点英文，点一个 star 会让更多读者找到它。
 
-<sub>Interface images are rendered from Lens's current design prototypes; the shipped build follows the same layout and tokens.</sub>
+<sub>界面图片由 Lens 当前的设计原型渲染，实际构建遵循同一套布局与令牌。</sub>

@@ -131,12 +131,13 @@ check_typography() {
         # Lint section -- it is for documents people read -- which covers .claude/skills/ too.
         # zhlint's rules are Chinese typography: they flag English punctuation and every
         # Japanese-Latin boundary, so the English documents (the English, Spanish and Japanese
-        # READMEs, SECURITY.md, data/wordlist-source.md) are left out; README.zh-CN.md stays in.
+        # READMEs, SECURITY.md, data/wordlist-source.md) are left out; README.md (Chinese) and
+        # README.zh-TW.md stay in.
         # docs/history/ is archived text that predates the ratchet and stays frozen;
         # third_party/ is vendored.
         case "$doc" in
             AGENTS.md | CLAUDE.md | CLAUDE.local.md | .claude/skills/* | docs/agents/*) continue ;;
-            README.md | README.es.md | README.ja.md | SECURITY.md | data/wordlist-source.md) continue ;;
+            README.en.md | README.es.md | README.ja.md | SECURITY.md | data/wordlist-source.md) continue ;;
             docs/history/* | third_party/*) continue ;;
         esac
 
