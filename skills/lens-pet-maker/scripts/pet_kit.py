@@ -15,8 +15,8 @@ Usage:
 Recipe schema (grid coords are cells; cell (x, y) covers pixels
 (30+3x, 30+3y)..(+3, +3) on the 88 px canvas, x/y within 0..18):
 
-Start from pet_kit.PRESETS["dog"] (a proven rig) and tweak; "rig"."scale"
-resizes the whole animal about its feet line with one number.
+Start from pet_kit.PRESETS["dog"] and tweak; "rig"."scale" resizes the
+whole animal about its feet line with one number.
 
 {
   "id": "annoying_dog",            # ^[a-z0-9_]{1,32}$, must be the folder name
@@ -85,8 +85,7 @@ DEFAULT_COLORS = {
     "mouth": "#1A1A1A", "inner_ear": "#F7B6C2", "blush": None,
 }
 
-# Species presets proven on real packages; copy one into the recipe and tweak.
-# "dog" is the Annoying-Dog-shaped rig validated end to end (ADR-quality numbers).
+# Species presets; copy one into the recipe and tweak.
 PRESETS = {
     "dog": {
         "body": {"cx": 9, "cy": 9.77, "rx": 7.68, "ry": 7.81},

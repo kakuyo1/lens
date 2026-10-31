@@ -5,8 +5,6 @@ description: 为 Lens 桌面宠物制作第三方宠物包（%APPDATA%\Lens\pets
 
 # Lens 宠物包制作
 
-本 skill 的正本在仓库 `skills/lens-pet-maker/`（git 管辖）；`~/.zcode/skills/lens-pet-maker/` 是部署副本，仓库有改动后整目录覆盖同步过去。
-
 ## 文件地图
 
 | 文件 | 作用 |
