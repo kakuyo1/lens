@@ -127,6 +127,14 @@ public:
         return sent_.has_value();
     }
 
+    /// @return Whether the reader's own ask is still waiting for the batch in flight to land, or for a
+    ///         budget that has not opened. Read with inFlight() to tell a card that is on its way from
+    ///         one nothing will ever fill.
+    bool hasHeldRequest() const
+    {
+        return heldRequest_.has_value();
+    }
+
     /**
      * @brief The next request to send, if there is one and one may be sent.
      * @param maySend Whether the budget lets a request go out at all this moment.

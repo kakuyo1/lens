@@ -342,6 +342,103 @@ TEST_F(LlmTest, Phase2LanguagesRoundTripThroughDutyTransportAndCache)
     }
 }
 
+TEST_F(LlmTest, Phase2TheClickPutsTheCardUpBeforeTheAnswerIsWritten)
+{
+    QtApplication qt;
+    Rig           rig;
+    rig.manager.response = envelope({plainWord("bank")});
+
+    rig.duty.setSelection(selection());
+    QEventLoop loop;
+    QObject::connect(&rig.client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
+    QObject::connect(&rig.client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
+    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+    rig.duty.runSelectionAction("explain", "bank");
+
+    // The click's own frame has a card on it: the word the reader pointed at, the badge the store
+    // already gives it, and nothing where the answer will go. No clock runs under the wait and no
+    // verdict is on offer -- a word nothing has explained is not yet a word being judged (ADR 0146).
+    auto const waiting = rig.duty.bubble();
+    EXPECT_TRUE(waiting.value("waiting").toBool());
+    EXPECT_EQ(waiting.value("title").toString(), QStringLiteral("bank"));
+    EXPECT_EQ(waiting.value("status").toString(), QStringLiteral("new"));
+    EXPECT_TRUE(waiting.value("en").toString().isEmpty());
+    EXPECT_FALSE(waiting.value("countsDown").toBool());
+    EXPECT_FALSE(waiting.value("verdictButtons").toBool());
+    EXPECT_TRUE(rig.duty.notice().isEmpty());
+    EXPECT_EQ(rig.manager.posts, 1);
+
+    loop.exec();
+
+    // The answer is written into that card, and the wait's own flags end with it.
+    auto const answered = rig.duty.bubble();
+    EXPECT_FALSE(answered.value("waiting").toBool());
+    EXPECT_EQ(answered.value("en").toString(), QStringLiteral("English"));
+    EXPECT_TRUE(answered.value("countsDown").toBool());
+    EXPECT_TRUE(answered.value("verdictButtons").toBool());
+}
+
+TEST_F(LlmTest, Phase2AWaitingCardComesDownWithTheNoticeWhenNoAnswerArrives)
+{
+    QtApplication qt;
+    Rig           rig;
+    rig.manager.response = QByteArrayLiteral(R"({"choices":[{"finish_reason":"stop","message":{"content":"not an answer"}}]})");
+
+    rig.duty.setSelection(selection());
+    QEventLoop loop;
+    QObject::connect(&rig.client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
+    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+    rig.duty.runSelectionAction("explain", "bank");
+    ASSERT_TRUE(rig.duty.bubble().value("waiting").toBool());
+
+    loop.exec();
+
+    // A card nothing is coming to fill does not stay on screen breathing: the notice says why, and it
+    // takes the card down as it comes up.
+    EXPECT_TRUE(rig.duty.bubble().isEmpty());
+    EXPECT_FALSE(rig.duty.notice().isEmpty());
+}
+
+TEST_F(LlmTest, Phase2AWaitingCardGoesDownWhenTheReaderMovesOnFromItsWord)
+{
+    QtApplication qt;
+    Rig           rig;
+    rig.manager.response = envelope({plainWord("bank")});
+
+    rig.duty.setSelection(selection());
+    QEventLoop loop;
+    QObject::connect(&rig.client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
+    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+    rig.duty.runSelectionAction("explain", "bank");
+    ASSERT_TRUE(rig.duty.bubble().value("waiting").toBool());
+
+    // The reader takes another selection without asking again. The answer is still worth storing -- the
+    // request was paid for -- but it is no longer theirs to see, and the card waiting for it would
+    // breathe for a word nobody is asking about (ADR 0146).
+    rig.duty.setSelection(selectionFor("river"));
+    loop.exec();
+
+    EXPECT_TRUE(rig.duty.bubble().isEmpty());
+    EXPECT_TRUE(rig.duty.notice().isEmpty()) << "an answer the reader had moved on from was reported as a failure";
+    ASSERT_TRUE(rig.store.cacheGet("bank", {"en", false}));
+    EXPECT_EQ(rig.store.cacheGet("bank", {"en", false})->en, "English");
+}
+
+TEST_F(LlmTest, Phase2AStoredWordNeedsNoWaitingCardBecauseItsAnswerIsAlreadyInHand)
+{
+    QtApplication qt;
+    Rig           rig;
+    rig.manager.response = envelope({plainWord("bank")});
+    rig.explain("bank");
+    ASSERT_FALSE(rig.duty.bubble().value("waiting").toBool());
+
+    rig.duty.dismissBubble();
+    rig.duty.runSelectionAction("explain", "bank");
+    EXPECT_EQ(rig.manager.posts, 1) << "a stored word went to the wire again";
+    EXPECT_FALSE(rig.duty.bubble().value("waiting").toBool());
+    EXPECT_EQ(rig.duty.bubble().value("en").toString(), QStringLiteral("English"));
+}
+
 TEST_F(LlmTest, Phase2ThePeekAnswersTheStandingWordFromThePairTheAnswerCarried)
 {
     QtApplication qt;

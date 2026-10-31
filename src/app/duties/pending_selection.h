@@ -46,6 +46,12 @@ inline bool isWordKind(core::SelectionKind const kind)
     return kind == core::SelectionKind::Word;
 }
 
+/// @return The title the card draws for this selection: a word by its lemma, anything else by the text
+///         the reader actually took. Never the model's echo, which would rename the card part-way
+///         through a stream -- and it is knowable at the click, which is what lets the card go up
+///         before anything has been answered.
+QString cardTitle(PendingSelection const& selection);
+
 /// @brief The preset a sentence selection carries once the reader asks for its breakdown. It is part
 ///        of the card's identity, so a breakdown and a translation or explanation of one text stay apart.
 inline QString const kBreakdownPreset{QStringLiteral("breakdown")};

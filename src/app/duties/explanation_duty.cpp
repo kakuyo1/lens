@@ -80,11 +80,9 @@ void ExplanationDuty::onPartial(llm::Explanation partial)
     // A step of the chain is drawn whole or not at all: a preview would put half a definition on the chain.
     if (subject->chain)
         return;
-    // The title is the reader's own text rather than the model's echo, the same rule the finished
-    // answer follows, so the card does not rename itself part-way through the stream.
-    partial.title = isWordKind(subject->kind)
-                        ? subject->lemma
-                        : (subject->surface.isEmpty() ? subject->text : subject->surface);
+    // The title is the reader's own text rather than the model's echo -- the very title the waiting
+    // card went up with -- so the card does not rename itself part-way through the stream.
+    partial.title = cardTitle(*subject);
     // The sense mode reaches the card masked by the kind, exactly as it does for a finished answer.
     const auto display = core::ExplanationCache::masked(now, subject->kind);
     showBubble(exchange_.raise(*subject, partial.title, partial, display, CardKind::Selection, /*reveal=*/true, /*notifyPet=*/false));
@@ -549,8 +547,9 @@ void ExplanationDuty::explain(PendingSelection const& pending)
     auto const outcome = exchange_.ask(pending, AskOrigin::Selection, facts());
     apply(outcome);
     // A request held behind the one in flight, or a miss the budget dropped, leaves the exchange
-    // nothing to draw; the next queued batch may still be sendable.
-    if (outcome.kind == ExplanationExchange::Outcome::Kind::None and outcome.popLemma.isEmpty())
+    // nothing sent; the next queued batch may still be sendable. The same for an ask that raised its
+    // card and went into the queue -- the card is up, and nothing sends it but this.
+    if ((outcome.kind == ExplanationExchange::Outcome::Kind::None or outcome.kind == ExplanationExchange::Outcome::Kind::Waiting) and outcome.popLemma.isEmpty())
         sendNext();
 }
 
@@ -658,6 +657,38 @@ void ExplanationDuty::showBubble(ExplanationExchange::CardView const& card)
         emit petEvent(core::pet::PetEvent::ExplanationShown);
 }
 
+void ExplanationDuty::showWaiting(ExplanationExchange::CardView const& card)
+{
+    auto const& selection = card.selection;
+    // The ask's shape with the answer missing out of it: the keys the card reads its body from stay
+    // present and empty, the way the breakdown and the correction hand over a card that has nothing to
+    // draw yet, so the surface is one shape from the click to the answer.
+    QVariantMap payload{{"title", card.answer.title},
+                        {"type", kindName(selection.kind)},
+                        {"cardKind", cardKindName(card.kind)},
+                        {"sameCard", card.sameCard},
+                        {"waiting", true},
+                        {"en", QString{}},
+                        {"zh", QString{}},
+                        {"translation", QString{}},
+                        {"senses", QVariantList{}},
+                        {"countsDown", card.countsDown},
+                        {"reveal", card.reveal},
+                        {"verdictButtons", card.offersVerdicts},
+                        {"anchorWidth", selection.anchorSize.width()},
+                        {"anchorHeight", selection.anchorSize.height()},
+                        {"x", selection.anchor.x()},
+                        {"y", selection.anchor.y()}};
+    if (isWordKind(selection.kind)) {
+        // The badge is the store's rather than the model's: the word is already a known one or a new
+        // one at the moment of the click, and nothing in the answer changes which.
+        payload.insert(QStringLiteral("status"), storage_.knownStore().isKnown(card.answer.title.toStdString()) ? QStringLiteral("known") : QStringLiteral("new"));
+    }
+    bubble_ = payload;
+    clearNotice();
+    emit bubbleChanged();
+}
+
 ExchangeFacts ExplanationDuty::facts() const
 {
     return ExchangeFacts{exchange_.readerContext(), cost_.canRequest(), exampleEnabled()};
@@ -675,6 +706,7 @@ void ExplanationDuty::apply(ExplanationExchange::Outcome const& outcome, bool co
     switch (outcome.kind) {
         case ExplanationExchange::Outcome::Kind::None: break;
         case ExplanationExchange::Outcome::Kind::Card: showBubble(outcome.card); break;
+        case ExplanationExchange::Outcome::Kind::Waiting: showWaiting(outcome.card); break;
         case ExplanationExchange::Outcome::Kind::Chain:
             // The exchange only hands a step back while the card it hangs under still stands.
             emit chainAnswered(chainEntry(outcome.answer, outcome.context));
@@ -686,6 +718,12 @@ void ExplanationDuty::apply(ExplanationExchange::Outcome const& outcome, bool co
             showWordHint(outcome.noticeLemma);
             break;
     }
+    // A waiting card breathes for one of two things: a request in the air, or the reader's own ask
+    // still in the queue. When it is neither -- the budget closed before the ask left, the word was
+    // deleted, the answer came back as nothing -- no answer is ever coming to fill it, and the card
+    // goes down rather than stand there for a rollover that may be a day away (ADR 0146).
+    if (bubble_.value(QStringLiteral("waiting")).toBool() and not exchange_.inFlight() and (not exchange_.hasHeldRequest() or not cost_.canRequest()))
+        clearBubble();
 }
 
 void ExplanationDuty::showNotice(QString const& title, QString const& body, QString const& kind, QString const& action, QString const& lemma, QString const& intent)

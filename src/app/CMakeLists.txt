@@ -420,6 +420,7 @@ qt_add_qml_module(lens_app
     qml/util/Format.js
     qml/bubble/BubbleVerdictRow.qml
     qml/bubble/BubbleHeaderActions.qml
+    qml/bubble/BubbleWaitingRows.qml
 )
 
 # The icon art, addressed as :/icons/<name>.svg. BASE strips the source directory so the names

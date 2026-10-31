@@ -137,6 +137,12 @@ Window {
     /// kinds; the status tag above the title still says what the word is.
     property bool verdictButtons: true
 
+    /// Whether this card is the reader's ask with nothing answered yet (docs/adr/0146). The click
+    /// raises it, so the card is on screen from the click's own frame and the answer arrives into it;
+    /// until then the body is the waiting rows, and the clock, the verdicts and the peek globe all
+    /// stand off -- the flags that say so come in the payload, settled by the exchange.
+    property bool waiting: false
+
     /// Whether the answer is written out a character at a time (RevealText). A card raised whole out
     /// of the cache is not: the word list puts one up for every row the pointer crosses.
     property bool reveal: true
@@ -261,6 +267,7 @@ Window {
         countsDown = payload.countsDown !== false;
         reveal = payload.reveal !== false;
         verdictButtons = payload.verdictButtons !== false;
+        waiting = payload.waiting === true;
         remainingMs = dismissAfterMs;
 
         // Auto-play (docs/adr/0134, PRODUCT.md's pronunciation table). Only the card a selection

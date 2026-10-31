@@ -77,23 +77,23 @@
         <translation>新詞</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="402"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="410"/>
         <source>Etymology</source>
         <translation>詞源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="441"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="449"/>
         <source>Example</source>
         <translation>例句</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="505"/>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="548"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="513"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="556"/>
         <source>Not the Sense?</source>
         <translation>不是這個義項？</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="576"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="584"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒後自動消失</translation>
     </message>
@@ -153,6 +153,14 @@
         <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="169"/>
         <source>Known stops automatic scans; New marks it for more practice.</source>
         <translation>已會：停止自動掃描。新詞：標為需要多練。</translation>
+    </message>
+</context>
+<context>
+    <name>BubbleWaitingRows</name>
+    <message>
+        <location filename="../src/app/qml/bubble/BubbleWaitingRows.qml" line="74"/>
+        <source>Explaining…</source>
+        <translation>正在解釋…</translation>
     </message>
 </context>
 <context>
@@ -3322,7 +3330,7 @@
         <translation>每 1–2 小時</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="721"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="761"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>目前解釋語言下沒有已存的釋義。</translation>
     </message>
@@ -3332,12 +3340,12 @@
         <translation>正在解釋…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="704"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="744"/>
         <source>Request failed</source>
         <translation>請求失敗</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="722"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="762"/>
         <source>Explain now</source>
         <translation>現在解釋</translation>
     </message>

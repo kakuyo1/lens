@@ -107,8 +107,19 @@ TEST_F(ExplanationExchangeTest, TheActionBarServesAStoredWordWithoutRequesting)
 TEST_F(ExplanationExchangeTest, AMissIsQueuedAndTheRequestCarriesItsKindAndContext)
 {
     auto const asked = exchange->ask(wordOf("river"), AskOrigin::Selection, facts());
-    EXPECT_EQ(asked.kind, ExplanationExchange::Outcome::Kind::None);
+    // The click raises the card the answer will be written into, at the moment it is made (ADR 0146):
+    // the ask's own title, no answer, no clock and nothing to mark.
+    ASSERT_EQ(asked.kind, ExplanationExchange::Outcome::Kind::Waiting);
+    EXPECT_TRUE(asked.card.waiting);
+    EXPECT_EQ(asked.card.answer.title, QStringLiteral("river"));
+    EXPECT_TRUE(asked.card.answer.en.isEmpty());
+    EXPECT_EQ(asked.card.kind, lens::app::CardKind::Selection);
+    EXPECT_FALSE(asked.card.sameCard);
+    EXPECT_FALSE(asked.card.countsDown);
+    EXPECT_FALSE(asked.card.offersVerdicts);
+    EXPECT_TRUE(exchange->card().standing());
     EXPECT_FALSE(exchange->inFlight());
+    EXPECT_TRUE(exchange->hasHeldRequest());
 
     auto const sent = exchange->take(facts(), false);
     ASSERT_EQ(sent.kind, ExplanationExchange::Outcome::Kind::Send);
@@ -120,10 +131,32 @@ TEST_F(ExplanationExchangeTest, AMissIsQueuedAndTheRequestCarriesItsKindAndConte
 
     auto const shown = exchange->settle({answerOf("river", "a river")}, facts());
     ASSERT_EQ(shown.kind, ExplanationExchange::Outcome::Kind::Card);
+    // The answer arrives into that same card rather than raising a second one.
+    EXPECT_FALSE(shown.card.waiting);
+    EXPECT_TRUE(shown.card.sameCard);
     EXPECT_EQ(shown.card.answer.en, QStringLiteral("a river"));
     ASSERT_TRUE(store->cacheGet("river", CacheContext{"en", false}));
     EXPECT_EQ(store->cacheGet("river", CacheContext{"en", false})->en, "a river");
     EXPECT_FALSE(exchange->inFlight());
+    EXPECT_FALSE(exchange->hasHeldRequest());
+}
+
+TEST_F(ExplanationExchangeTest, AStepOrAScanQueuesWithoutRaisingACardOfItsOwn)
+{
+    // A chain step is drawn whole or not at all, onto the chain under the card that stands; the word
+    // list's own work has no card until it answers (docs/adr/0046, 0146).
+    auto step   = wordOf("river");
+    step.chain  = true;
+    step.parent = QStringLiteral("bank");
+    EXPECT_EQ(exchange->ask(step, AskOrigin::Selection, facts()).kind, ExplanationExchange::Outcome::Kind::None);
+    EXPECT_FALSE(exchange->card().standing());
+    EXPECT_TRUE(exchange->hasHeldRequest());
+    ASSERT_EQ(exchange->take(facts(), false).kind, ExplanationExchange::Outcome::Kind::Send);
+    exchange->settle({answerOf("river")}, facts());
+
+    EXPECT_EQ(exchange->ask(wordOf("bank"), AskOrigin::Scan, facts()).kind, ExplanationExchange::Outcome::Kind::None);
+    EXPECT_FALSE(exchange->card().standing());
+    EXPECT_FALSE(exchange->hasHeldRequest());
 }
 
 TEST_F(ExplanationExchangeTest, TheBudgetDropsAReadersMissButAScanWaits)

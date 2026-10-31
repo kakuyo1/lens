@@ -272,6 +272,14 @@ Item {
                 scale: root.bubble.fontScale
             }
 
+            // The lines the answer has not written yet (UI-SPEC.md 4.3). The card the reader's click
+            // raised goes up before the model has a word ready, and these are what it shows in the
+            // body's place until the first field lands.
+            BubbleWaitingRows {
+                width: parent.width
+                bubble: root.bubble
+            }
+
             SenseRows {
                 id: senseRows
                 senses: root.bubble.atRoot && root.bubble.type === "word" ? root.bubble.senses : []

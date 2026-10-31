@@ -65,10 +65,12 @@ ExplanationExchange::Outcome ExplanationExchange::ask(PendingSelection selection
     }
 
     // The reader's own ask waits behind the one request in flight: the answer on its way may be the
-    // one that pays for this word.
+    // one that pays for this word. The card goes up at this moment all the same -- the hand that
+    // asked is what owns it, and the wait for the batch in flight is the reader's to see (ADR 0146).
     if (queue_.inFlight()) {
+        auto waiting = waitingCard(selection, context);
         queue_.request(std::move(selection));
-        return {};
+        return waiting;
     }
     if (isWordKind(selection.kind)) {
         auto const found = cache_.look(selection.lemma.toStdString(), context);
@@ -76,11 +78,12 @@ ExplanationExchange::Outcome ExplanationExchange::ask(PendingSelection selection
             return fromEntry(std::move(selection), found.entry, context, CardKind::Selection, /*reveal=*/false, /*notifyPet=*/true, /*pop=*/true);
     }
     // Out of budget the ask is dropped rather than left waiting for a budget that may be a day away;
-    // the action bar has already said why.
+    // the action bar has already said why, so no card says it a second time.
     if (not facts.mayAsk)
         return {};
+    auto waiting = waitingCard(selection, context);
     queue_.request(std::move(selection));
-    return {};
+    return waiting;
 }
 
 ExplanationExchange::Outcome ExplanationExchange::stored(PendingSelection selection)
@@ -209,6 +212,27 @@ ExplanationExchange::CardView ExplanationExchange::raise(PendingSelection       
     if (not answer.title.isEmpty() and face.wordCard and not context.multipleSenses)
         view.cycle = session_.holdAnswer(context, answer);
     return view;
+}
+
+ExplanationExchange::Outcome ExplanationExchange::waitingCard(PendingSelection const& selection, core::CacheContext const& context)
+{
+    // A chain step is drawn whole or not at all, and the line it already writes under the card says it
+    // is on its way (BubbleChainPanel), so it raises no card of its own.
+    if (selection.chain)
+        return {};
+    auto const title = cardTitle(selection);
+    // The explanation stays empty and the title goes on the view rather than through raise(): a card
+    // that has only been asked for has no sense to put at the head of its cycle, and it is a non-empty
+    // title on the answer that makes raise() start one.
+    auto view         = raise(selection, title, llm::Explanation{}, context, CardKind::Selection, /*reveal=*/true, /*notifyPet=*/false);
+    view.answer.title = title;
+    view.waiting      = true;
+    // The wait is not the reader's reading time, so no clock runs under it, and a word nothing has
+    // explained yet is not a word they are marking. Both are the card's rules rather than the view's,
+    // so they are settled here and the view only draws what they say (ADR 0146).
+    view.countsDown     = false;
+    view.offersVerdicts = false;
+    return Outcome{.kind = Outcome::Kind::Waiting, .card = std::move(view)};
 }
 
 CardSession::PeekStep ExplanationExchange::requestPeek(QString const& mother, bool const mayAsk, core::CacheContext const& now)

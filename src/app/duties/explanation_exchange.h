@@ -65,16 +65,21 @@ public:
         bool               notifyPet      = true;
         /// The single-sense word card's cycle after this answer, when it has one.
         std::optional<CardSession::CycleView> cycle;
+        /// @brief The card is the reader's ask with nothing answered yet: the ask's own shape, raised at
+        ///        the click so the click has a surface on screen from its first frame. Nothing is drawn
+        ///        under it, the clock stands still, and it is not yet a card the reader marks.
+        bool waiting = false;
     };
 
     /// @brief What one transaction asks the adapter to do.
     struct Outcome {
         enum class Kind : std::uint8_t { None,
                                          Card,
+                                         Waiting,
                                          Chain,
                                          Send,
                                          Notice } kind = Kind::None;
-        CardView            card;        ///< Card
+        CardView            card;        ///< Card, Waiting
         PendingSelection    selection;   ///< Chain
         llm::Explanation    answer;      ///< Chain
         core::CacheContext  context;     ///< Chain
@@ -106,15 +111,23 @@ public:
     {
         return queue_.inFlight();
     }
+    /// @return Whether the reader's own ask is still in the queue, unsent. Read with inFlight(): a
+    ///         waiting card has an answer coming while either holds, and nothing coming when neither
+    ///         does (docs/adr/0146).
+    [[nodiscard]] bool hasHeldRequest() const
+    {
+        return queue_.hasHeldRequest();
+    }
 
     /**
      * @brief One door into an explanation, as the transaction it starts.
      * @param selection What the reader pointed at.
      * @param origin Which door it came through; the origin settles a hit and a miss.
      * @param facts The settings the decision reads.
-     * @return A card or chain answer out of the cache, a notice for the hover's miss, nothing when the
-     *         request waits behind the one in flight or joins the scan queue, or a queued request the
-     *         adapter dispatches with take().
+     * @return A card or chain answer out of the cache, a notice for the hover's miss, the waiting card
+     *         for a reader's ask that has to buy its answer -- whether it goes out now or waits behind
+     *         the one in flight -- nothing when the budget dropped the ask or the word list queued it,
+     *         or a queued request the adapter dispatches with take().
      */
     Outcome ask(PendingSelection selection, AskOrigin origin, ExchangeFacts const& facts);
 
@@ -178,6 +191,10 @@ private:
                       bool                      pop);
     /// @brief The cache's whole answer for a selection under @p context.
     Outcome storedIn(PendingSelection selection, core::CacheContext const& context);
+    /// @brief The card the reader's own ask puts up while its request waits: the ask's shape and no
+    ///        answer. An empty outcome for a chain step, whose answer lands on the chain under the
+    ///        card rather than on the card. ask() reaches it only through the reader's own door.
+    Outcome waitingCard(PendingSelection const& selection, core::CacheContext const& context);
     /// @return The request the batch goes out as: its channel from the kind, its words from its items.
     static llm::ExplainRequest requestFor(ExplanationBatch const& batch, bool etymology);
 

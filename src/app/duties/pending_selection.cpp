@@ -18,4 +18,11 @@ QString kindName(core::SelectionKind const kind)
     return QStringLiteral("word");
 }
 
+QString cardTitle(PendingSelection const& selection)
+{
+    if (isWordKind(selection.kind))
+        return selection.lemma;
+    return selection.surface.isEmpty() ? selection.text : selection.surface;
+}
+
 }

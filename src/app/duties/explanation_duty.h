@@ -224,7 +224,10 @@ private:
     void onPartial(llm::Explanation partial);
     /// @brief Draw the card the exchange raised. The countdown, the verdict buttons and the card's
     ///        identity are settled there; the payload built here is their projection.
-    void    showBubble(ExplanationExchange::CardView const& card);
+    void showBubble(ExplanationExchange::CardView const& card);
+    /// @brief Draw the card the reader's ask raised before there was an answer: the ask's own shape,
+    ///        with the fields the answer will fill left out until they arrive (docs/adr/0146).
+    void    showWaiting(ExplanationExchange::CardView const& card);
     QString noticeTitle(PendingSelection const& pending) const;
     ///
     /// One reader of this, two uses: the request asks the model for it, and the card decides
