@@ -35,7 +35,7 @@ web
 取舍见 [ADR 0130](docs/adr/0130-local-and-online-ocr-are-separate-modes.md) 与 [ADR 0133](docs/adr/0133-offline-ocr-ships-tesseract-and-rapidocr.md)；线上协议见 `API.md` §8，信任边界见 `SECURITY.md`，表面见 `UI-SPEC.md` 4.4。
 
 - **模式与回退**：手动截图提供本地 / 在线两种模式，缺省本地；本地自动选择使用 Tesseract，RapidOCR 只能明确选择，明确选择不回退。自动扫描（实验阶段）始终使用本地引擎，独立于手动截图的模式选择；原生选区不走 OCR。截图与扫描开关的关闭默认值不变。
-- **RapidOCR 的边界**：安装包只带 Tesseract 与英文数据，RapidOCR-json v0.2.0 的程序与模型由读者自行安装，自动策略不会运行它。模型目录必须是 ASCII 路径；设置页会警示并禁用检测，捕获门报 `path-unsupported`，不回退 Tesseract（[ADR 0132](docs/adr/0132-rapidocr-model-paths-stay-ascii.md)、[基线证据](docs/metrics/ocr-baseline-2026-10-28.md#2-rapidocr-json-v020-审计)）。首次使用需显式检测并信任，信任摘要绑定可执行文件、模型目录与全部模型文件；切换识别语言不重新要求信任，程序或模型改变会撤销信任。
+- **RapidOCR 的边界**：安装包只带 Tesseract 与英文数据。RapidOCR-json v0.2.0 可由设置页下载（钉死发行包、逐字节校验后解压进 `%APPDATA%\Lens\rapidocr\`，再走同一条检测信任流程，[ADR 0149](docs/adr/0149-rapidocr-is-downloadable-and-pinned.md)），读者自备的副本同样受支持；自动策略不会运行它。模型目录必须是 ASCII 路径；设置页会警示并禁用检测，捕获门报 `path-unsupported`，不回退 Tesseract（[ADR 0132](docs/adr/0132-rapidocr-model-paths-stay-ascii.md)、[基线证据](docs/metrics/ocr-baseline-2026-10-28.md#2-rapidocr-json-v020-审计)）。首次使用需显式检测并信任，信任摘要绑定可执行文件、模型目录与全部模型文件；切换识别语言不重新要求信任，程序或模型改变会撤销信任。
 - **混排识别**：中文模型会把拉丁词粘成一串，混排页因此在疑似粘连时用英文模型对同一张图再读一遍——同一检测框下，英文行只在去空格后与中文行（去汉字、去空格）完全一致时才替换空格，汉字原样插回；不一致就保留中文模型原文。这是同一张图的第二次识别，不是词典猜测，也不伪造词框。
 - **上传授权**：在线 OCR 每次只上传读者框选并确认的像素区域；本地失败、低置信度、模式选择或连接检测都不构成上传授权。没有自动云端重试或跨服务商回退；一次明确的人工重试可用。
 - **在线服务**：在百度 OCR、腾讯云 OCR、阿里云 OCR、Google Cloud Vision 与 OCR.space 间显式选择，地址默认取服务自身并可由读者覆盖；每个服务各自保存地址与凭据，切换时互不串用、切回不用重填，服务不支持的语言按服务表回落。新增服务是一个 Adapter 加一行服务表（[ADR 0136](docs/adr/0136-online-ocr-is-a-provider-table.md)）。检测失败会说明是哪一类原因——密钥或权限、额度、图片、网络或服务不可用——未分类的错误码写入日志。

@@ -6,8 +6,9 @@ import QtQuick
  * The page owns the engine, the recognition language and the local engine paths; the first capture
  * page keeps only the readiness summary and the link that opens this page. Auto is the default and
  * resolves to Tesseract. An explicit choice is never rewritten, so an unavailable one says why
- * rather than quietly falling back. RapidOCR is user-installed, needs an explicit detection, and
- * refuses a model folder whose path is not ASCII because the upstream binary crashes on one.
+ * rather than quietly falling back. RapidOCR comes from a pinned download (docs/adr/0149) or from
+ * the reader's own copy; it needs an explicit detection either way, and refuses a model folder
+ * whose path is not ASCII because the upstream binary crashes on one.
  */
 Item {
     id: page
@@ -28,6 +29,27 @@ Item {
         modeField.closeList();
         engineField.closeList();
         languageField.closeList();
+    }
+
+    /// The pinned distribution's download state, straight off the duty: it moves during a
+    /// download, so it is read live rather than out of the settings projection.
+    readonly property var bundle: Controller.captureDuty.rapidOcrBundle
+                                  || ({installed: false, downloading: false, percent: 0,
+                                       failure: "", ascii: true, archive: ""})
+
+    /// @return The one line the download group says, picked in the order the voices' status picks.
+    function bundleLine() {
+        if (bundle.downloading)
+            return qsTranslate("SettingsPopup", "Downloading %1%").arg(bundle.percent);
+        if (bundle.failure === "proxy")
+            return qsTranslate("UpdateCard", "Downloads from GitHub usually need a proxy in mainland China. Turn on your proxy and try again.");
+        if (bundle.failure === "generic")
+            return qsTranslate("SettingsPopup", "The download failed; nothing was kept.");
+        if (bundle.failure === "extract")
+            return qsTranslate("SettingsPopup", "The downloaded archive could not be unpacked on this Windows; it is saved at %1: unpack it and choose the folders below.").arg(bundle.archive);
+        if (bundle.installed)
+            return qsTranslate("SettingsPopup", "Downloaded and verified.");
+        return qsTranslate("SettingsPopup", "Not downloaded. Download a local copy, or choose your own below.");
     }
 
     /// @return The engine the result came from, in the reader's words.
@@ -255,6 +277,42 @@ Item {
             visible: page.settings.ocrLocalEngine === "rapidocr"
 
             Text {
+                objectName: "rapidOcrBundleState"
+                width: parent.width
+                text: page.bundleLine()
+                color: page.bundle.failure !== "" && !page.bundle.downloading ? page.tokens.danger : page.tokens.muted
+                font.pixelSize: 11
+                wrapMode: Text.WordWrap
+            }
+
+            Row {
+                spacing: 8
+
+                Chip {
+                    objectName: "downloadRapidOcrButton"
+                    visible: !page.bundle.installed && !page.bundle.downloading
+                    enabled: page.bundle.ascii
+                    opacity: enabled ? 1.0 : 0.6
+                    label: qsTranslate("SettingsPopup", "Download RapidOCR-json")
+                    onPicked: Controller.captureDuty.downloadRapidOcrBundle()
+                }
+
+                Chip {
+                    objectName: "cancelRapidOcrButton"
+                    visible: page.bundle.downloading
+                    label: qsTranslate("SettingsPopup", "Cancel")
+                    onPicked: Controller.captureDuty.cancelRapidOcrBundleDownload()
+                }
+
+                Chip {
+                    objectName: "removeRapidOcrButton"
+                    visible: page.bundle.installed && !page.bundle.downloading
+                    label: qsTranslate("SettingsPopup", "Remove")
+                    onPicked: Controller.captureDuty.removeRapidOcrBundle()
+                }
+            }
+
+            Text {
                 text: qsTranslate("SettingsPopup", "RapidOCR executable")
                 color: page.tokens.muted
                 font.pixelSize: 12
@@ -319,7 +377,7 @@ Item {
 
             Text {
                 width: parent.width
-                text: qsTranslate("SettingsPopup", "RapidOCR-json is a third-party program. It runs with your user permissions and can read other files or use the network; Lens does not install or update it.")
+                text: qsTranslate("SettingsPopup", "RapidOCR-json is a third-party program. It runs with your user permissions and can read other files or use the network; the copy the download button fetches is pinned and checksum-verified, and it is not signed.")
                 color: page.tokens.muted
                 font.pixelSize: 11
                 wrapMode: Text.WordWrap

@@ -24,6 +24,7 @@
 #include "capture/ocr_engine.h"
 #include "capture/ocr_executor.h"
 #include "capture/ocr_local.h"
+#include "capture/bundle_downloader.h"
 #include "capture/scan_pipeline.h"
 #include "capture_refusal.h"
 #include "app/platform/selection_text_grabber.h"
@@ -55,6 +56,11 @@ public:
 
     QVariantMap settings() const;
     QString     ocrStatus() const;
+    /// @brief The download state of the pinned RapidOCR bundle, derived from disk and from the
+    ///        transfer in flight. It moves during a download, so it stays out of settings(), the
+    ///        way the local voices' installed state does (SpeechDuty::voiceStates).
+    Q_PROPERTY(QVariantMap rapidOcrBundle READ rapidOcrBundleState NOTIFY rapidOcrBundleChanged)
+    QVariantMap rapidOcrBundleState() const;
     /**
      * @brief Write one of the capture settings, by the key the settings table names.
      *
@@ -80,6 +86,13 @@ public:
     Q_INVOKABLE void setRapidOcrModelsDirectory(QString directory);
     /// @brief Run one synthetic image through RapidOCR and record its trust digest on success.
     Q_INVOKABLE void detectRapidOcr();
+    /// @brief Download the pinned RapidOCR-json distribution into the profile, then point the
+    ///        stored paths at it and detect it -- trust still comes from the detection, as always.
+    Q_INVOKABLE void downloadRapidOcrBundle();
+    /// @brief Stop a bundle download or extraction in flight; nothing kept from a stopped run.
+    Q_INVOKABLE void cancelRapidOcrBundleDownload();
+    /// @brief Delete the downloaded distribution; stored paths that point into it are cleared.
+    Q_INVOKABLE void removeRapidOcrBundle();
     /// @brief Choose how a local capture picks its engine: Auto, Tesseract or RapidOCR.
     Q_INVOKABLE void setOcrLocalEngine(QString engine);
     /// @brief Choose the language the local engine reads: en, zh-Hans or zh-Hans+en.
@@ -158,6 +171,9 @@ signals:
     /// Only the framed region, and only the reason: a scan that hiccups is not worth a card, and
     /// `ocrStatus()` is where the diagnostic spelling of the same state is read from.
     void screenshotFailed(CaptureRefusal refusal);
+    /// @brief The bundle download moved a step: percent, finish or failure. One signal, like the
+    ///        voices'; the reader re-reads rapidOcrBundle whole.
+    void rapidOcrBundleChanged();
 
 private:
     struct OcrJob {
@@ -214,6 +230,11 @@ private:
     QString              onlineSecret() const;
     /// @brief Put the active address and both credentials under @p provider's own saved entry.
     void saveOnlineService(QString const& provider);
+    /// @brief The bundle download moved: fold the percent into the state map and say so.
+    void onBundleProgressed(qint64 received, qint64 total);
+    /// @brief The bundle run ended: on success point the stored paths at it and detect it; on
+    ///        failure keep the reason the settings page spells out.
+    void onBundleFinished(bool ok, QString failure);
     /// @brief Restore @p provider's saved address and credentials, or empty ones when it has none.
     void restoreOnlineService(QString const& provider);
     /// @brief Forget exchanged tokens; their key or address changed, or the reader cleared them.
@@ -255,6 +276,10 @@ private:
     capture::LocalOcrInspection localInspection_;
     QString                     rapidOcrDetectState_ = QStringLiteral("idle");
     int                         rapidOcrDetectMs_    = 0;
+    capture::BundleDownloader   bundleDownloader_;
+    int                         rapidOcrBundlePercent_ = 0;
+    /// Why the last bundle run failed, in the vocabulary the settings page explains; "" otherwise.
+    QString rapidOcrBundleFailure_;
 };
 
 }

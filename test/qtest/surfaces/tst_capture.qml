@@ -249,6 +249,29 @@ Item {
             compare(Controller.settings.rapidOcrDetectState, "runtime-missing");
         }
 
+        /// The pinned download's chips follow the duty's state map: nothing downloaded in the
+        /// fixture means Download alone is on, and the state line says so. No case starts a
+        /// download -- the transport would reach GitHub.
+        function test_theBundleChipsFollowTheDownloadState() {
+            // The download group lives in the RapidOCR-only block, so the engine is named first:
+            // a child of an invisible column reports visible false, whatever its own state is.
+            Controller.captureDuty.setOcrLocalEngine("rapidocr");
+            const page = makeOcrPage();
+            const state = Controller.captureDuty.rapidOcrBundle;
+            verify(!state.installed && !state.downloading,
+                   "the fixture starts with no distribution on disk");
+            verify(state.ascii, "the profile root is an ASCII path on this machine");
+
+            const download = child(page, "downloadRapidOcrButton");
+            compare(download.visible, true);
+            verify(download.enabled, "the ASCII profile root lets the download start");
+            compare(child(page, "cancelRapidOcrButton").visible, false);
+            compare(child(page, "removeRapidOcrButton").visible, false);
+
+            const stateLine = child(page, "rapidOcrBundleState");
+            verify(stateLine.visible && stateLine.text !== "", "the download group says its state");
+        }
+
         function test_theRecognitionLanguageIsWrittenAsChosen() {
             Controller.captureDuty.setOcrLocalLanguage("zh-Hans");
             tryVerify(() => Controller.settings.ocrLocalLanguage === "zh-Hans");

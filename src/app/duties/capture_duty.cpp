@@ -158,12 +158,14 @@ CaptureDuty::CaptureDuty(StorageDuty&                        storage,
     : QObject(parent), storage_(storage), hook_(hook), grabber_(std::make_unique<SelectionTextGrabber>()),
       ocr_(std::move(ocr)), executor_(std::make_unique<capture::OcrExecutor>(this)),
       onlineTransport_(std::move(onlineTransport)), onlineTokens_(ocr::makeMemoryOcrTokenStore()),
-      scan_(capture::makeScanPipeline())
+      scan_(capture::makeScanPipeline()), bundleDownloader_(this)
 {
     if (not onlineTransport_) onlineTransport_ = std::make_shared<ocr::QtHttpTransport>();
     connect(&hook_, &MouseSelectionHook::selectionReleased, this, &CaptureDuty::onSelectionReleased);
     connect(&hook_, &MouseSelectionHook::pointerPressed, this, &CaptureDuty::pointerPressed);
     connect(executor_.get(), &capture::OcrExecutor::finished, this, &CaptureDuty::onOcrFinished);
+    connect(&bundleDownloader_, &capture::BundleDownloader::progressed, this, &CaptureDuty::onBundleProgressed);
+    connect(&bundleDownloader_, &capture::BundleDownloader::finished, this, &CaptureDuty::onBundleFinished);
     consentTimer_.setSingleShot(true);
     uploadTimer_.setSingleShot(true);
     connect(&consentTimer_, &QTimer::timeout, this, &CaptureDuty::onConsentTimeout);
@@ -501,6 +503,76 @@ void CaptureDuty::setRapidOcrModelsDirectory(QString directory)
     rapidOcrDetectState_ = QStringLiteral("idle");
     rapidOcrDetectMs_    = 0;
     rebuildOcr();
+}
+
+QVariantMap CaptureDuty::rapidOcrBundleState() const
+{
+    return QVariantMap{{"installed", capture::bundleInstalled(capture::bundleRoot())},
+                       {"downloading", bundleDownloader_.busy()},
+                       {"percent", bundleDownloader_.busy() ? rapidOcrBundlePercent_ : 0},
+                       {"failure", rapidOcrBundleFailure_},
+                       {"ascii", capture::rapidOcrPathIsAscii(QString::fromStdWString(capture::bundleRoot().wstring()))},
+                       {"archive", QString::fromStdWString(capture::bundleArchivePath().wstring())}};
+}
+
+void CaptureDuty::downloadRapidOcrBundle()
+{
+    // A non-ASCII profile root is the one place the unpacked models cannot live (docs/adr/0132),
+    // so the download is refused before any bytes move, and the page explains it.
+    if (bundleDownloader_.busy() or not capture::rapidOcrPathIsAscii(QString::fromStdWString(capture::bundleRoot().wstring())))
+        return;
+    rapidOcrBundlePercent_ = 0;
+    rapidOcrBundleFailure_ = QString{};
+    emit rapidOcrBundleChanged();
+    bundleDownloader_.start();
+}
+
+void CaptureDuty::cancelRapidOcrBundleDownload()
+{
+    bundleDownloader_.cancel();
+}
+
+void CaptureDuty::removeRapidOcrBundle()
+{
+    if (bundleDownloader_.busy())
+        return;
+    const QString root = QString::fromStdWString(capture::bundleRoot().wstring());
+    QDir{root}.removeRecursively();
+    auto keys = storage_.section();
+    if (settings::read(keys, *core::settings::find("rapidOcrExecutable")).toString().startsWith(root) or settings::read(keys, *core::settings::find("rapidOcrModelsDirectory")).toString().startsWith(root)) {
+        // Both writes clear the trust record and rebuild the engine, so nothing keeps pointing at
+        // the folder that just went away.
+        setRapidOcrExecutable(QString{});
+        setRapidOcrModelsDirectory(QString{});
+    }
+    rapidOcrBundleFailure_ = QString{};
+    emit rapidOcrBundleChanged();
+}
+
+void CaptureDuty::onBundleProgressed(qint64 received, qint64 total)
+{
+    if (total <= 0)
+        return;
+    const int percent = static_cast<int>(received * 100 / total);
+    if (percent == rapidOcrBundlePercent_)
+        return;
+    rapidOcrBundlePercent_ = percent;
+    emit rapidOcrBundleChanged();
+}
+
+void CaptureDuty::onBundleFinished(bool ok, QString failure)
+{
+    if (ok) {
+        rapidOcrBundleFailure_ = QString{};
+        setRapidOcrExecutable(QString::fromStdWString(capture::bundleExecutablePath().wstring()));
+        setRapidOcrModelsDirectory(QString::fromStdWString(capture::bundleModelsDirectoryPath().wstring()));
+        // The writes cleared the trust record; the detection that follows is what writes it again,
+        // as it always has -- a download never grants trust by itself (docs/adr/0132).
+        detectRapidOcr();
+    } else {
+        rapidOcrBundleFailure_ = failure;
+    }
+    emit rapidOcrBundleChanged();
 }
 
 void CaptureDuty::setOcrLocalEngine(QString engine)

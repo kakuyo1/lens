@@ -14,6 +14,10 @@ add_library(lens_capture STATIC
   ocr_rapidocr.cpp
   ocr_migration.h
   ocr_migration.cpp
+  rapidocr_bundle.h
+  rapidocr_bundle.cpp
+  bundle_downloader.h
+  bundle_downloader.cpp
   foreground_window.h
   foreground_window.cpp
 )
@@ -21,7 +25,8 @@ add_library(lens_capture STATIC
 target_compile_features(lens_capture PUBLIC cxx_std_20)
 target_include_directories(lens_capture PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_link_libraries(lens_capture PUBLIC lens_core Qt6::Core Qt6::Gui)
-target_link_libraries(lens_capture PRIVATE user32)
+# The bundle downloader is the one network user here; nothing else in the module reaches out.
+target_link_libraries(lens_capture PRIVATE Qt6::Network user32)
 
 if(LENS_OCR_DEV_PATH_FALLBACK)
   target_compile_definitions(lens_capture PRIVATE LENS_OCR_DEV_PATH_FALLBACK)
