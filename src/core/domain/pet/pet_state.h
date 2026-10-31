@@ -82,7 +82,7 @@ enum class Role : std::uint8_t {
     LookAround,
     Yawn,
     Stretch,
-    /// Optional like stretch: a pet without the art never gets angry (docs/pet-package-format.md).
+    /// Optional like stretch: a pet without the art never gets angry (skills/lens-pet-maker/references/pet-package-format.md).
     Angry,
     /// Optional like angry: a pet without the art shows the review sign with no pose (ADR 0050).
     Ask,

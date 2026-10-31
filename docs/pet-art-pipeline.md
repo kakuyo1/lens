@@ -51,7 +51,7 @@
 1. 复制 `scripts/pet/recipes/mochi.json` 或 `dog.json`，改身体、眼睛、嘴、动作与配饰。
 2. 从仓库根目录运行 `python -I scripts/pet/render_pet.py <id>`。渲染器直接覆盖 `data/pet/<id>/`，先清空 `sprites/accessories/`，退役件不会留下孤图；写完后读回每张 sheet 核对尺寸，尺寸不对会退出。
 3. 看图。至少看 `sprites/reference/bare.png`、表情 sheet、每个动作的 body/effect sheet 与配饰 PNG；按原尺寸和放大各看一遍。可疑的格子改配方，不改输出。
-4. 核对数据契约：`roles`、`idlePool`、`blink`、锚点条目、sheet 尺寸等共享项按 [`pet-package-format.md`](pet-package-format.md) §9 的自查清单过一遍；随包宠物另有场景帧数与 30 秒时长、`ask` 只有身体没有效果层两项，`pet_data_test` 逐项验一遍。
+4. 核对数据契约：`roles`、`idlePool`、`blink`、锚点条目、sheet 尺寸等共享项按 [`pet-package-format.md`](../skills/lens-pet-maker/references/pet-package-format.md) §9 的自查清单过一遍；随包宠物另有场景帧数与 30 秒时长、`ask` 只有身体没有效果层两项，`pet_data_test` 逐项验一遍。
 5. 原型：`cd ui-prototypes/pet-prototype && npm run embed && npm run embed:hover`；`pet-review.html` 与 `walk.html` 直接读 `data/pet`，不用重新生成。改完狗或动作后，至少打开 `pet-review.html?pet=dog` 与 `walk.html` 看一次。
 6. 测试：`lens_gtest_unit --gtest_filter='PetData.*'`；原型侧 `node --test ui-prototypes/pet-prototype/test/*.test.js`。真机看画面另见 `docs/qa.md`。
 

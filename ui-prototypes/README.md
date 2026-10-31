@@ -70,7 +70,7 @@
 - `settings.html` 用分类目录：首页只列分类，进入后是分类设置，再进入是词书、API 等子页面。新增设置放进对应分类，不要加长首页，也不要新增一级分类；“关于” 是目录末尾的唯一例外，取舍见 `docs/adr/0032`。
 - 面板固定 380 × 480，超出的内容在 `.set-body` 内滚动。内容变多先考虑合并成分组或下沉为子页面。
 - 扩展分类里的桌面宠物已随 1.2.0 上线，`pet.html` 是它的设计对照。`pet.html` 内嵌的 PNG 来自 `data/pet/`，改了数据要跑 `npm run embed` 重新生成；`pet-hover.html` 用同一份数据，跑 `npm run embed:hover`。改了 `pet-prototype/src/pet-renderer.js` 这类共享文件，两条都要重跑。麻糬、猫头鹰、猫的美术是生成的初版，还需要人工复核。
-- 宠物包一节用两只写死的样例（`PACKAGES` 与 `REFUSED`）对视来源标记、被拒列表与确认弹窗：它们不是扫出来的，预览也复用随包宠物的美术。契约、上限与拒绝原因见 `docs/pet-package-format.md`，决定见 `docs/adr/0043`。
+- 宠物包一节用两只写死的样例（`PACKAGES` 与 `REFUSED`）对视来源标记、被拒列表与确认弹窗：它们不是扫出来的，预览也复用随包宠物的美术。契约、上限与拒绝原因见 `skills/lens-pet-maker/references/pet-package-format.md`，决定见 `docs/adr/0043`。
 - 加新表面时，新增一个文件、在这里登记，并在 `UI-SPEC.md` §4.0 的表面表加一行。
 - 界面文字四语言各一份，在每个文件脚本开头的 `L` 表里，取值与 `i18n/lens_*.ts` 一致：改文案先改那边，再抄回来。README 的营销图由 `scripts/qa/readme-html-shots.sh` 从这些表面渲染，再由 `scripts/qa/readme-html-compose.py` 裁切、合成 GIF、学习循环拼图与主题拼图，写进 `docs/readme/`。旧的 `readme-shots.sh` 与 `readme-gifs.ps1` 生成 `docs/readme-images/`，已不供当前 README 使用。
 - 文件内的中文同样按项目排版规则写，`zhlint` 可查（`.githooks/pre-commit` 的预算里已登记本文件）。

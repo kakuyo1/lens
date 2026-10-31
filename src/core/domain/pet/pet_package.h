@@ -9,7 +9,7 @@
 
 /**
  * @file pet_package.h
- * @brief The contract a pet package is checked against (docs/pet-package-format.md): the refusal reasons, the limits,
+ * @brief The contract a pet package is checked against (skills/lens-pet-maker/references/pet-package-format.md): the refusal reasons, the limits,
  *        and the checks that need neither the file system nor Qt.
  *
  * Refusal is all or nothing. Every check throws Refused with one of the reasons in Refusal, and that reason is the only
@@ -52,7 +52,7 @@ private:
     Refusal reason_;
 };
 
-/// @name Limits from docs/pet-package-format.md section 4. A value above its maximum refuses the package as TooLarge; a
+/// @name Limits from skills/lens-pet-maker/references/pet-package-format.md section 4. A value above its maximum refuses the package as TooLarge; a
 ///       value below its minimum is a Format or BadAnimation refusal, depending on the field.
 /// @{
 constexpr int kMinCanvas = 16;

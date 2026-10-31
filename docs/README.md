@@ -24,6 +24,7 @@
 | 改 OCR 行为、模式、引擎或服务 | `PRODUCT.md` 的 OCR 约定 | `API.md` §8、`SECURITY.md` 的 OCR 契约、`docs/adr/0130`、`0132`、`0133`、`0136` |
 | 加发音、改发音引擎或音色 | `PRODUCT.md` 的发音一节 | `docs/adr/0134-pronunciation-is-word-only-and-system-first.md`、`docs/adr/0135-local-voices-are-kokoro-and-ljspeech.md`、`docs/adr/0138-online-pronunciation-sources-are-picked-not-chained.md`、`UI-SPEC.md` 4.3 / 4.4、`API.md` §9、`docs/research/tts-survey-2026-10-28.html` |
 | 改 HTML 原型 | `ui-prototypes/README.md` | `DESIGN.md`、`UI-SPEC.md` |
+| 用 AI 制作第三方宠物包 | `skills/lens-pet-maker/SKILL.md` | `GLOSSARY.md`、`docs/adr/0043` |
 
 ## 权威分层
 
@@ -61,7 +62,7 @@
 | `docs/history/` | 被取代的阶段规格 | 当前行为 |
 | `docs/history/impeccable/` | 2026-10 六面 critique 的最终报告与修复计划 | 当前行为、当前规格 |
 | `scripts/README.md` | 脚本目录、验证入口、发布命令 | 测试口径细节 |
-| `docs/pet-package-format.md` | 宠物包格式契约：目录结构、字段、上限、校验与拒绝原因 | 美术生成流程 |
+| `skills/lens-pet-maker/` | 宠物包制作的 agent skill 与**宠物包格式契约正本**（`references/pet-package-format.md`：目录结构、字段、上限、校验与拒绝原因）；`~/.zcode/skills/lens-pet-maker/` 是部署副本 | 美术生成流程（归 `docs/pet-art-pipeline.md`）、行为规则 |
 | `docs/pet-art-pipeline.md` | 随包宠物的美术生成管线：配方、渲染与检查 | 宠物包格式、行为规则 |
 | `docs/agents/` | issue tracker、triage 标签与域文档的 agent 约定 | 产品与 UI 规格 |
 | `config/README.md` | 机器路径规则与豁免 | — |

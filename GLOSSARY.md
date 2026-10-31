@@ -100,10 +100,10 @@
 - **场景（Scene）**：应用自带、围在宠物身边的道具与小动画；待机抽中才播，抽签按时段与语境加权。数量与时长见 `PRODUCT.md` 的常驻伙伴表，取舍见 `docs/adr/0049` / `0080` / `0093`。_Avoid_：背景、皮肤
 - **场景入场（Scene entry）**：抽到场景后约 0.3–0.8 秒的角色动作——跳进去、滑就位或随道具淡入，之后场景从第 0 帧循环。跳入/滑入/淡入的选择与弧线、落点来自场景数据的 `entry`，时间轴由 `PetStage` 拥有。见 `docs/adr/0101`、`docs/adr/0123` 与 `UI-SPEC.md` 4.18。_Avoid_：转场、过场动画
 - **生物钟（Pet mood）**：待机两掷与场景抽签读的时刻语境，倾斜概率而不到点必演；长阅读后、闲逛归来与睡醒各给一次可见回应。分段与事后语境见 `PRODUCT.md` 的常驻伙伴表，取舍见 `docs/adr/0093` / `0098` / `0123`。_Avoid_：作息表、定时任务
-- **行为配方（Behavior）**：`animations.json` 可选的 `behavior` 块，一只宠物的脾气；缺哪个字段用哪个的应用缺省。字段与缺省值见 `docs/pet-package-format.md` §3，取舍见 `docs/adr/0094`。_Avoid_：性格引擎
+- **行为配方（Behavior）**：`animations.json` 可选的 `behavior` 块，一只宠物的脾气；缺哪个字段用哪个的应用缺省。字段与缺省值见 `skills/lens-pet-maker/references/pet-package-format.md` §3，取舍见 `docs/adr/0094`。_Avoid_：性格引擎
 - **生气（Angry）**：连续戳宠物达到阈值触发的动作，阈值可由 `behavior` 调；`angry` 缺省的宠物永远不生气。见 `docs/adr/0049`。
 - **动作池（Idle pool）**：由空闲计时随机挑选的单次动作；未被角色占用的动作会自动收进池里。
-- **闲逛（Wander）**：宠物空闲时在 home 附近走几步。范围与间隔的缺省值见 `docs/pet-package-format.md` §3，取舍见 `docs/adr/0076`。_Avoid_：漫游、散步
+- **闲逛（Wander）**：宠物空闲时在 home 附近走几步。范围与间隔的缺省值见 `skills/lens-pet-maker/references/pet-package-format.md` §3，取舍见 `docs/adr/0076`。_Avoid_：漫游、散步
 - **步态（Gait）**：闲逛时的走法，由循环动作 `walk` 的身体帧与窗口路径构成；随包七只各一种。见 `docs/adr/0076`。_Avoid_：走路动画
 - **窝（Nest）**：一只宠物在 `settings.json` 里自己的那份记忆——大小与三槽配饰，按宠物 id 存；窗口落点只有一份、属于读者，换宠不改落点。见 `docs/adr/0096` 与 `docs/adr/0100`。_Avoid_：宠物存档
 - **边缘躲藏（Edge hide）**：闲逛到当前屏左右边缘后滑出工作区、只留一小部分身体；没有超时，拖出来或单击露出的部分引出才结束。触发概率缺省可调。见 `docs/adr/0076` 与 `docs/adr/0095`。_Avoid_：藏起来、消失
@@ -119,7 +119,7 @@
 - **配饰脾气（Accessory temperament）**：配饰数据里的可选 `sceneWeights`，戴上后把待机抽景推向它偏爱的场景；是乘在概率上的偏好，不是开关，摘下即恢复。设置页在佩戴时用一行小字写出。见 `docs/adr/0102` 与 `UI-SPEC.md` 4.4。_Avoid_：技能、加成
 - **槽位（Slot）**：配饰的穿戴位置，共头、脸、身三个；同一槽位同一时间至多一件。_Avoid_：插槽
 - **鼠标穿透（Pass-through）**：开启后宠物窗口不接收鼠标，点击落到它下面的窗口；宠物仍照常播放动作。
-- **宠物包（Pet package）**：读者放进 `%APPDATA%\Lens\pets\` 的数据目录，只含 JSON 与 PNG，应用不执行包内代码。见 `docs/pet-package-format.md` 与 `docs/adr/0043`。_Avoid_：模组、Mod、插件
+- **宠物包（Pet package）**：读者放进 `%APPDATA%\Lens\pets\` 的数据目录，只含 JSON 与 PNG，应用不执行包内代码。见 `skills/lens-pet-maker/references/pet-package-format.md` 与 `docs/adr/0043`。_Avoid_：模组、Mod、插件
 - **外部宠物（Third-party pet）**：来自宠物包、未经审核也未签名的宠物；列表标注来源，首次启用前弹一次确认。
 
 ## 检查更新

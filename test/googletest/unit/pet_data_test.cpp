@@ -293,7 +293,7 @@ TEST(PetData, EveryShippedPetIsAcceptedWhole)
 }
 
 /// A scratch copy of data/pet/dog for one test, removed when the test ends. The copy sits in a folder named for the pet,
-/// since the id must equal the folder name (docs/pet-package-format.md, rule 11).
+/// since the id must equal the folder name (skills/lens-pet-maker/references/pet-package-format.md, rule 11).
 class ScratchPet {
 public:
     explicit ScratchPet(std::string const& name)

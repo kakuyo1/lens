@@ -6,7 +6,7 @@
 
 /**
  * @file pet_package_fs.h
- * @brief The file-system half of the pet package contract (docs/pet-package-format.md section 5, rules 1 to 3, and the
+ * @brief The file-system half of the pet package contract (skills/lens-pet-maker/references/pet-package-format.md section 5, rules 1 to 3, and the
  *        limits of section 4 that need a size or a count).
  *
  * A symbolic link and a directory junction need no privilege to create, and an archive can carry one, so the path a

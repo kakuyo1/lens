@@ -26,7 +26,7 @@ enum class HoverZone : std::uint8_t {
     Near,
 };
 
-/// @brief The per-pet delays, from animations.json. The defaults match docs/pet-package-format.md.
+/// @brief The per-pet delays, from animations.json. The defaults match skills/lens-pet-maker/references/pet-package-format.md.
 struct HoverTiming {
     std::chrono::milliseconds noticeDelay{350};
     std::chrono::milliseconds dwellDelay{2600};

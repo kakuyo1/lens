@@ -88,7 +88,7 @@ QString displayNameOf(std::optional<std::string> const& written, std::string con
  */
 core::pet::PngSize declaredSizeOf(std::filesystem::path const& file)
 {
-    // The type comes from the magic, and the name must agree with it (docs/pet-package-format.md, section 6).
+    // The type comes from the magic, and the name must agree with it (skills/lens-pet-maker/references/pet-package-format.md, section 6).
     if (widen(file.extension()).compare(QStringLiteral(".png"), Qt::CaseInsensitive) != 0)
         throw Refused(Refusal::BadAssetType, "pet: not a .png file: " + narrow(file));
     auto stream = std::ifstream{file, std::ios::binary};
