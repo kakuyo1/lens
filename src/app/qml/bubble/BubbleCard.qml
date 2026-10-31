@@ -25,6 +25,25 @@ Item {
     implicitWidth: 270
     implicitHeight: card.height
 
+    /// The height the card keeps while the reader's answer is on its way (docs/adr/0146): captured once,
+    /// when the waiting card first lays itself out, and given up when the whole answer lands. The card
+    /// neither shrinks when the first field arrives nor grows as the rest do, so its top edge and every
+    /// row already written never move -- the answer fills space the surface already holds.
+    property int reservedHeight: 0
+    /// The line box one standing line of the answer takes: the definition's own leading, which is the
+    /// unit the payload counts its expected lines in.
+    readonly property int lineHeight: Math.round(root.bubble.sizeAt(13) * 1.55)
+
+    /// @brief Hold the card at the height its answer is expected to reach: the rows the ask has laid,
+    ///        plus the lines the duty says that answer will need.
+    ///
+    /// Called once, from Bubble.show() on the turn after the waiting card went up. It reads the column
+    /// rather than the card, because the card's own height is what this result feeds.
+    function reserveAnswerSpace() {
+        if (root.bubble.holding && root.reservedHeight === 0)
+            root.reservedHeight = Math.round(column.height + 26 + root.bubble.waitingLines * lineHeight);
+    }
+
     /// True while any field is still being written out: what holds the countdown (Bubble.qml).
     readonly property bool revealing: definitionText.revealing || chineseText.revealing
                                       || translationText.revealing || wordRow.revealing
@@ -108,7 +127,7 @@ Item {
     Rectangle {
         id: card
         width: parent.implicitWidth
-        height: column.height + 26
+        height: Math.max(column.height + 26, root.reservedHeight)
         radius: root.bubble.tokens.radiusCard
         color: root.bubble.tokens.glassMode === "" ? root.bubble.tokens.bubbleBg : "transparent"
         border.width: 1
@@ -270,14 +289,6 @@ Item {
                 label: root.bubble.atRoot && root.bubble.type === "word" ? root.bubble.signpost : ""
                 tokens: root.bubble.tokens
                 scale: root.bubble.fontScale
-            }
-
-            // The lines the answer has not written yet (UI-SPEC.md 4.3). The card the reader's click
-            // raised goes up before the model has a word ready, and these are what it shows in the
-            // body's place until the first field lands.
-            BubbleWaitingRows {
-                width: parent.width
-                bubble: root.bubble
             }
 
             SenseRows {
@@ -586,6 +597,18 @@ Item {
                 font.pixelSize: 11
             }
 
+        }
+
+        // What the answer has not written yet, standing in the space reserved for it under the rows it
+        // has already written (UI-SPEC.md 4.3). The card the reader's click raised goes up before the
+        // model has a word ready, and this is what the card shows while it waits: the lines give way to
+        // the fields one by one, and the card itself does not move.
+        BubbleWaitingRows {
+            x: column.x
+            width: column.width
+            y: column.y + column.height
+            height: Math.max(0, card.height - column.y - column.height - 12)
+            bubble: root.bubble
         }
 
         BubbleHeaderActions {

@@ -85,7 +85,10 @@ void ExplanationDuty::onPartial(llm::Explanation partial)
     partial.title = cardTitle(*subject);
     // The sense mode reaches the card masked by the kind, exactly as it does for a finished answer.
     const auto display = core::ExplanationCache::masked(now, subject->kind);
-    showBubble(exchange_.raise(*subject, partial.title, partial, display, CardKind::Selection, /*reveal=*/true, /*notifyPet=*/false));
+    // A preview of an answer the click is already waiting for keeps that card's reserved height; the
+    // whole answer, which comes through settle(), is what gives it up (docs/adr/0146).
+    const bool holding = bubble_.value(QStringLiteral("hold")).toBool();
+    showBubble(exchange_.raise(*subject, partial.title, partial, display, CardKind::Selection, /*reveal=*/true, /*notifyPet=*/false), holding);
     // Once per request, and after the staleness rule above has spoken: what this answers is whether
     // the reader's provider streams at all -- the reader's own report was a card that filled in one
     // jump, and a provider that answers in one body looks exactly like that at this level.
@@ -575,7 +578,7 @@ void ExplanationDuty::sendNext()
     apply(exchange_.take(facts(), etymologyEnabled()));
 }
 
-void ExplanationDuty::showBubble(ExplanationExchange::CardView const& card)
+void ExplanationDuty::showBubble(ExplanationExchange::CardView const& card, bool const holding)
 {
     auto const& explanation = card.answer;
     auto const& selection   = card.selection;
@@ -598,6 +601,7 @@ void ExplanationDuty::showBubble(ExplanationExchange::CardView const& card)
                           {"translation", translation},
                           {"countsDown", card.countsDown},
                           {"reveal", card.reveal},
+                          {"hold", holding},
                           {"verdictButtons", card.offersVerdicts},
                           {"anchorWidth", selection.anchorSize.width()},
                           {"anchorHeight", selection.anchorSize.height()},
@@ -657,6 +661,28 @@ void ExplanationDuty::showBubble(ExplanationExchange::CardView const& card)
         emit petEvent(core::pet::PetEvent::ExplanationShown);
 }
 
+int ExplanationDuty::waitingLines(const PendingSelection& selection, const core::CacheContext& context) const
+{
+    // A count of the lines the answer is expected to write, not a measurement: the card only needs to
+    // be about as tall as what is coming, and whatever the guess misses is what it settles by when the
+    // whole answer lands. The blocks are those the reader's own switches keep on; the ones the model
+    // may still answer empty (the origin, the pictures) are counted in, because reserving too much
+    // costs a small settle while reserving too little costs a jump.
+    if (selection.kind == core::SelectionKind::Translation)
+        return 2;
+    if (selection.kind == core::SelectionKind::Sentence)
+        return 3;
+    int lines = context.multipleSenses ? 7 : 2;
+    lines += showsCardBlock("signpost") ? 1 : 0;
+    lines += showsCardBlock("collocations") ? 1 : 0;
+    lines += etymologyEnabled() ? 3 : 0;
+    lines += exampleEnabled() ? 3 : 0;
+    lines += showsCardBlock("pictures") ? 1 : 0;
+    if (not context.multipleSenses)
+        lines += 1; // The Not-the-Sense? entry, which a single-sense word card carries.
+    return lines + 1;
+}
+
 void ExplanationDuty::showWaiting(ExplanationExchange::CardView const& card)
 {
     auto const& selection = card.selection;
@@ -668,6 +694,8 @@ void ExplanationDuty::showWaiting(ExplanationExchange::CardView const& card)
                         {"cardKind", cardKindName(card.kind)},
                         {"sameCard", card.sameCard},
                         {"waiting", true},
+                        {"hold", true},
+                        {"waitingLines", waitingLines(selection, card.context)},
                         {"en", QString{}},
                         {"zh", QString{}},
                         {"translation", QString{}},

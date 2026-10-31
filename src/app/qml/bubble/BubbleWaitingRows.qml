@@ -3,39 +3,43 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 /**
- * The waiting card's body (UI-SPEC.md 4.3): the lines the answer will be written on, breathed out in
- * the card's hairline token, and the one line that says what the card is waiting for.
+ * The space the answer has not written yet (UI-SPEC.md 4.3): the line that says what the card is
+ * waiting for, and under it the lines the answer will be written on, breathed out in the card's
+ * hairline token.
  *
- * The card goes up at the reader's own click, before the model has written anything, so the click has
- * a surface on screen from its first frame (docs/adr/0146). What is drawn here is not the answer's
- * whole shape -- the blocks the reader's display switches keep off are not reserved -- but the body
- * every answer has: where its definition and its translation will stand.
- * The bars are the same idiom as the picture strip's skeleton (PictureStrip.qml): the interface's one
+ * The card goes up at the reader's own click, before the model has written anything, and keeps the
+ * height its answer is expected to reach until the whole of it lands (docs/adr/0146). So what is
+ * drawn here is not a fixed picture but the remainder: the block stands under the rows the answer has
+ * already written, and as each field lands the space left for these lines shrinks around them. The
+ * card itself never moves while that happens -- which is the whole point.
+ *
+ * The lines are the same idiom as the picture strip's skeleton (PictureStrip.qml): the interface's one
  * looping animation, `Tokens.motion.pulse`, and it rests at full opacity when motion is reduced.
  */
-Column {
+Item {
     id: root
 
-    /// The bubble window this belongs to: its waiting flag, its colours and its size scale.
+    /// The bubble window this belongs to: its colours, its size scale and whether it is still waiting.
     required property var bubble
 
-    readonly property bool waiting: root.bubble.waiting
-    /// The line box a bar stands in: the definition's own leading, so the bars sit where its lines
-    /// would and the answer takes their places without moving anything else on the card.
+    /// The line box one standing line takes: the definition's own leading, so the lines sit where its
+    /// lines will.
     readonly property real lineHeight: Math.round(root.bubble.sizeAt(13) * 1.55)
-    /// The share of the card's width each bar takes: a paragraph's ragged edge, the last line short.
-    readonly property var widths: [1.0, 1.0, 0.62]
+    /// The height the caption claims: the whole time the answer is on its way, so the lines under it
+    /// neither appear nor shift when the first field lands.
+    readonly property real captionHeight: root.bubble.holding ? caption.height : 0
+    /// How many lines fit in what is left. The last line of a paragraph is short, so every third is.
+    readonly property int lines: Math.max(0, Math.floor((root.height - root.captionHeight) / root.lineHeight))
 
     objectName: "waitingRows"
-    visible: root.waiting
-    topPadding: 6
-    spacing: 0
+    // Nothing is drawn, and nothing breathes, once the answer has filled the space it was reserved in.
+    visible: root.height > 0
+    clip: true
 
-    // The whole body breathes as one, and stops the moment the answer arrives -- the bars are gone
-    // with the block, so nothing keeps looping over a card that has been filled.
+    // The whole body breathes as one, and stops with the space it stands in.
     SequentialAnimation on opacity {
         loops: Animation.Infinite
-        running: root.waiting && !root.bubble.tokens.motion.reduced
+        running: root.visible && !root.bubble.tokens.motion.reduced
         NumberAnimation {
             to: 0.55
             duration: root.bubble.tokens.motion.pulse
@@ -48,34 +52,32 @@ Column {
         }
     }
 
-    Repeater {
-        model: root.widths
-
-        delegate: Item {
-            id: bar
-            required property var modelData
-
-            width: root.width
-            height: root.lineHeight
-
-            Rectangle {
-                objectName: "waitingBar"
-                anchors.verticalCenter: parent.verticalCenter
-                width: Math.round(bar.width * bar.modelData)
-                height: root.bubble.sizeAt(10)
-                radius: root.bubble.tokens.radiusPill
-                color: root.bubble.tokens.line2
-            }
-        }
-    }
-
     Text {
+        id: caption
         objectName: "waitingLine"
+        visible: root.bubble.holding
         width: root.width
         topPadding: 4
         text: qsTr("Explaining…")
         color: root.bubble.tokens.muted
         font.pixelSize: root.bubble.sizeAt(11)
         lineHeight: 1.5
+    }
+
+    Repeater {
+        model: root.lines
+
+        delegate: Rectangle {
+            id: line
+            required property int index
+
+            objectName: "waitingBar"
+            x: 0
+            y: root.captionHeight + line.index * root.lineHeight + Math.round((root.lineHeight - height) / 2)
+            width: Math.round(root.width * (line.index % 3 === 2 ? 0.62 : 1.0))
+            height: root.bubble.sizeAt(10)
+            radius: root.bubble.tokens.radiusPill
+            color: root.bubble.tokens.line2
+        }
     }
 }

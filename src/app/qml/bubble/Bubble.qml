@@ -47,6 +47,8 @@ Window {
             content.collapseStrip();
             // So does the peek line: the next card has not asked for one.
             peekLine = "";
+            // And the height the click reserved: the next card reserves its own.
+            content.reservedHeight = 0;
         }
     }
     HeightHold {
@@ -142,6 +144,14 @@ Window {
     /// until then the body is the waiting rows, and the clock, the verdicts and the peek globe all
     /// stand off -- the flags that say so come in the payload, settled by the exchange.
     property bool waiting: false
+
+    /// Whether the answer this card is waiting for is still on its way: the card then keeps the height
+    /// it reserved at the click, so the fields land into space the surface already holds rather than
+    /// moving it (docs/adr/0146, BubbleCard.reservedHeight).
+    property bool holding: false
+    /// How many lines the awaited answer is expected to write, as the duty counted them from the
+    /// reader's own switches. Read once, on the waiting card's first layout.
+    property int waitingLines: 0
 
     /// Whether the answer is written out a character at a time (RevealText). A card raised whole out
     /// of the cache is not: the word list puts one up for every row the pointer crosses.
@@ -268,6 +278,15 @@ Window {
         reveal = payload.reveal !== false;
         verdictButtons = payload.verdictButtons !== false;
         waiting = payload.waiting === true;
+        holding = payload.hold === true;
+        waitingLines = payload.waitingLines || 0;
+        // The whole answer is in hand (or this card never waited for one): the reservation is spent.
+        // Otherwise the card takes the height that answer is expected to reach, once the ask's own rows
+        // have laid themselves out on this turn (docs/adr/0146).
+        if (!holding)
+            content.reservedHeight = 0;
+        else
+            Qt.callLater(content.reserveAnswerSpace);
         remainingMs = dismissAfterMs;
 
         // Auto-play (docs/adr/0134, PRODUCT.md's pronunciation table). Only the card a selection

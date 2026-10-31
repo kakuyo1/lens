@@ -360,6 +360,10 @@ TEST_F(LlmTest, Phase2TheClickPutsTheCardUpBeforeTheAnswerIsWritten)
     // verdict is on offer -- a word nothing has explained is not yet a word being judged (ADR 0146).
     auto const waiting = rig.duty.bubble();
     EXPECT_TRUE(waiting.value("waiting").toBool());
+    // The card also reserves the height its answer is expected to reach, and keeps reserving it through
+    // every preview, so nothing on screen moves until the whole answer lands (docs/adr/0146).
+    EXPECT_TRUE(waiting.value("hold").toBool());
+    EXPECT_GT(waiting.value("waitingLines").toInt(), 2);
     EXPECT_EQ(waiting.value("title").toString(), QStringLiteral("bank"));
     EXPECT_EQ(waiting.value("status").toString(), QStringLiteral("new"));
     EXPECT_TRUE(waiting.value("en").toString().isEmpty());
@@ -373,6 +377,7 @@ TEST_F(LlmTest, Phase2TheClickPutsTheCardUpBeforeTheAnswerIsWritten)
     // The answer is written into that card, and the wait's own flags end with it.
     auto const answered = rig.duty.bubble();
     EXPECT_FALSE(answered.value("waiting").toBool());
+    EXPECT_FALSE(answered.value("hold").toBool()) << "the settled answer left the card on its reservation";
     EXPECT_EQ(answered.value("en").toString(), QStringLiteral("English"));
     EXPECT_TRUE(answered.value("countsDown").toBool());
     EXPECT_TRUE(answered.value("verdictButtons").toBool());

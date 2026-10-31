@@ -31,13 +31,14 @@ Item {
             Controller.setSetting("bubbleDismissSeconds", 5);
         }
 
-        /// @return The card as the duty sends it at the moment of the click: the ask's title, and
-        ///         nothing where the answer will go.
+        /// @return The card as the duty sends it at the moment of the click: the ask's title, the lines
+        ///         its answer is expected to need, and nothing written on them yet.
         function waiting(extra) {
             const bubble = createTemporaryObject(bubbleComponent, root);
             verify(bubble);
             const payload = {
                 title: "bank", type: "word", cardKind: "selection", waiting: true, sameCard: false,
+                hold: true, waitingLines: 6,
                 en: "", zh: "", translation: "", senses: [], status: "new",
                 countsDown: false, verdictButtons: false, reveal: false, x: 200, y: 240
             };
@@ -46,6 +47,17 @@ Item {
             bubble.show(payload);
             tryCompare(bubble, "visible", true);
             return bubble;
+        }
+
+        /// @return A preview of the same card, as the duty hands it over when one field has closed: the
+        ///         answer is still on its way, so the reservation stands.
+        function partial() {
+            return {
+                title: "bank", type: "word", cardKind: "selection", waiting: false, sameCard: true,
+                hold: true, en: "an institution for keeping money", zh: "", translation: "",
+                senses: [], status: "new", countsDown: false, verdictButtons: false, reveal: false,
+                x: 200, y: 240
+            };
         }
 
         /// @return The answer's payload for the same card, as the duty hands it over once the model has
@@ -96,9 +108,29 @@ Item {
             compare(rows.visible, true);
             compare(Util.findAll(bubble, function (o) {
                 return o.objectName === "waitingBar";
-            }).length, 3, "the waiting card did not reserve its lines");
+            }).length >= 3, true, "the waiting card did not reserve its lines");
             verify(Util.textWith(Util.textsUnder(bubble), ["Explaining…"]), "the card does not say it is waiting");
             compare(metaVisible(bubble), false, "a card nothing has answered is already counting down");
+            bubble.visible = false;
+        }
+
+        /// The reservation is what the waiting card is for: a field landing must not move the surface the
+        /// reader is already looking at, and the card must not shrink when the first one arrives
+        /// (docs/adr/0146). The measured alternative travelled 235 px in six jumps.
+        function test_theCardHoldsItsHeightWhileTheAnswerStreamsIn() {
+            const bubble = waiting();
+            const reserved = bubble.height;
+            verify(reserved > 0);
+
+            bubble.show(partial());
+            wait(120);
+            compare(bubble.height, reserved, "the card moved when a field arrived");
+            compare(bubble.waiting, false, "a preview was drawn as the whole answer");
+            verify(rowsOf(bubble).visible, "the lines went before the answer was complete");
+
+            bubble.show(answered());
+            wait(120);
+            verify(bubble.height <= reserved, "the settled answer grew past what the wait reserved");
             bubble.visible = false;
         }
 
@@ -145,11 +177,11 @@ Item {
             bubble.visible = false;
         }
 
-        /// The waiting card's own look, in both solid themes: the bars are the answer's lines in the
-        /// answer's place, and the card is short by the blocks nothing has written yet. What the cases
-        /// above cannot say is whether the bars read as a card that is waiting rather than one that
-        /// broke -- and `line2` is a hairline, so its step against the card's own fill is the thing to
-        /// look at, not a value a case can compare.
+        /// The waiting card's own look, in both solid themes, and the same card half-way through the
+        /// answer: the lines give way to the fields one by one and the card does not move (UI-SPEC.md
+        /// 4.3). What the cases above cannot say is whether the lines read as a card that is waiting
+        /// rather than one that broke -- and `line2` is a hairline, so its step against the card's own
+        /// fill is the thing to look at, not a value a case can compare.
         function test_captureTheWaitingCard() {
             if (!lensQaSnapshotDir)
                 skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the offscreen snapshot");
@@ -162,12 +194,18 @@ Item {
             const light = waiting();
             wait(settled);
             verify(Util.saveSnapshot(testCase, surfaceOf(light), lensQaSnapshotDir, "bubble-waiting-light"));
+            light.show(partial());
+            wait(settled);
+            verify(Util.saveSnapshot(testCase, surfaceOf(light), lensQaSnapshotDir, "bubble-midway-light"));
             light.visible = false;
 
             Tokens.theme = "dark";
             const dark = waiting();
             wait(settled);
             verify(Util.saveSnapshot(testCase, surfaceOf(dark), lensQaSnapshotDir, "bubble-waiting-dark"));
+            dark.show(partial());
+            wait(settled);
+            verify(Util.saveSnapshot(testCase, surfaceOf(dark), lensQaSnapshotDir, "bubble-midway-dark"));
             dark.visible = false;
         }
     }
