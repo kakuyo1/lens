@@ -52,13 +52,10 @@ html{-webkit-font-smoothing:antialiased;height:100%}
 body{font-family:var(--f);color:var(--text);background:var(--desk);height:100%;overflow:hidden;position:relative}
 html[data-theme=frosted] body,html[data-theme=liquid] body{background-image:var(--wall);background-size:cover;background-position:center;background-attachment:fixed}
 
-/* 通知卡（UI-SPEC 4.5）与设置面板共用的卡片。 */
+/* 首次引导向导（UI-SPEC 4.19）与设置占位面板共用的卡片。 */
 .layer{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none}
-.card{position:relative;pointer-events:auto;background:var(--panel);border-radius:var(--r-card);box-shadow:var(--sh-card);animation:rise var(--d-pop) ease-in-out both} /* taste-skill-ignore: 通知卡与设置面板浮在桌面上，DESIGN.md Elevation 的卡片阴影 */
+.card{position:relative;pointer-events:auto;background:var(--panel);border-radius:var(--r-card);box-shadow:var(--sh-card);animation:rise var(--d-pop) ease-in-out both} /* taste-skill-ignore: 向导与设置面板浮在桌面上，DESIGN.md Elevation 的卡片阴影 */
 @keyframes rise{from{opacity:0;transform:translateY(4px)}}
-.notice{width:320px;padding:16px 18px 18px}
-.notice h2{font-size:14px;font-weight:700;line-height:1.35;padding-right:28px}
-.notice p{margin-top:6px;font-size:13px;line-height:1.55;color:var(--muted);text-wrap:pretty;word-break:auto-phrase}
 .x{position:absolute;top:10px;right:10px;width:24px;height:24px;border:0;border-radius:999px;background:transparent;color:var(--muted);font:400 16px/1 var(--f);cursor:pointer}
 .x:hover{background:var(--panel2)}
 .pill{display:inline-flex;align-items:center;height:30px;margin-top:12px;padding:0 14px;border:0;border-radius:999px;background:var(--ink);color:var(--on);font:700 12px/1 var(--f);cursor:pointer;transition:transform var(--d-press)}
@@ -75,8 +72,30 @@ html[data-theme=frosted] body,html[data-theme=liquid] body{background-image:var(
 .field input{width:100%;height:36px;padding:0 11px;border:1px solid var(--line);border-radius:var(--r-field);background:var(--panel2);color:var(--text);font:400 13px var(--mono);outline:none}
 .field input::placeholder{color:var(--faint);font-family:var(--f)}
 .field input:focus-visible{border-color:var(--ink)}
+.field .sel{width:100%;height:36px;padding:0 8px;border:1px solid var(--line);border-radius:var(--r-field);background:var(--panel2);color:var(--text);font:400 13px var(--f);outline:none;cursor:default}
+.field .sel:focus-visible{border-color:var(--ink)}
 .hint{margin-top:8px;font-size:12px;line-height:1.5;color:var(--faint)}
 .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+
+/* 向导：设置面板的壳，380×480 定尺寸；头部标题 + 步数，三步换内容不换卡。 */
+.wizard{width:380px;height:480px;padding:16px 20px 0;display:flex;flex-direction:column}
+.wizhead{display:flex;align-items:baseline;gap:10px;padding-right:28px}
+.wizhead h2{font-size:14px;font-weight:700}
+.wizhead .stepd{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap}
+.wizbody{flex:1;margin-top:14px;overflow:auto}
+.wizbody .lead{font-size:13px;line-height:1.55;color:var(--text);text-wrap:pretty;word-break:auto-phrase}
+.sample{margin-top:16px;padding:12px;border:1px solid var(--line);border-radius:var(--r-field);background:var(--panel2);font-size:13px;line-height:1.55;color:var(--text);user-select:text;cursor:text;word-break:auto-phrase}
+.foot{display:flex;gap:8px;padding:14px 0 16px;border-top:1px solid var(--line2)}
+.foot .pill{margin-top:0}
+
+/* 演示气泡：第三步拖选目标词后浮在卡旁，同设置预览卡的机制（UI-SPEC 4.4 的 Preview 标记与虚线取景框）。 */
+.demo{position:fixed;width:300px;padding:14px 16px 16px;border:2px dashed var(--line);border-radius:var(--r-card);background:var(--panel);box-shadow:var(--sh-card);pointer-events:none} /* taste-skill-ignore: 演示气泡浮在桌面上 */
+.demo .tag{display:inline-block;padding:3px 9px;border-radius:999px;background:var(--panel2);color:var(--muted);font-size:11px;font-weight:700}
+.demo h3{margin-top:8px;display:flex;align-items:baseline;gap:8px;font-size:14px;font-weight:700}
+.demo .ipa{font:400 12px var(--mono);color:var(--muted)}
+.demo .pos{font-size:12px;font-weight:400;color:var(--muted)}
+.demo p{margin-top:6px;font-size:13px;line-height:1.55;color:var(--text)}
+.demo .ex{margin-top:6px;font-size:12px;line-height:1.5;color:var(--muted)}
 
 /* 托盘菜单（UI-SPEC 4.2）。首行状态区在无 key 时可点，与预算耗尽时的行同一套机制。 */
 .menu{position:fixed;right:12px;bottom:58px;width:240px;padding:6px;border-radius:var(--r-menu);background:var(--panel);border:1px solid var(--line);box-shadow:var(--sh-card)} /* taste-skill-ignore: 托盘菜单是浮层，UI-SPEC 4.2 与 DESIGN.md 的描边和阴影 */
@@ -111,7 +130,7 @@ html[data-theme=frosted] body,html[data-theme=liquid] body{background-image:var(
 /* 玻璃主题（3.1c 雾面、3.1d 流光）。流光的折射由下面的位移图给出，不支持的浏览器退回模糊。 */
 html[data-theme=frosted] .glass{backdrop-filter:blur(var(--glass-blur)) saturate(120%);border:1px solid rgba(255,255,255,.2)} /* taste-skill-ignore: DESIGN.md 3.1c 雾面玻璃 */
 html[data-theme=liquid] .glass{background:transparent;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(var(--glass-blur)) contrast(1.05)} /* taste-skill-ignore: DESIGN.md 3.1d 流光玻璃 */
-html[data-theme=liquid][data-refract] #noticeCard{backdrop-filter:blur(var(--glass-blur)) url(#lg-notice)} /* taste-skill-ignore: DESIGN.md 3.1d 折射 */
+html[data-theme=liquid][data-refract] #wizCard{backdrop-filter:blur(var(--glass-blur)) url(#lg-wiz)} /* taste-skill-ignore: DESIGN.md 3.1d 折射 */
 html[data-theme=liquid][data-refract] #menu{backdrop-filter:blur(var(--glass-blur)) url(#lg-menu)} /* taste-skill-ignore: DESIGN.md 3.1d 折射 */
 html[data-theme=liquid][data-refract] #setCard{backdrop-filter:blur(var(--glass-blur)) url(#lg-set)} /* taste-skill-ignore: DESIGN.md 3.1d 折射 */
 @media (prefers-reduced-transparency:reduce){
@@ -141,8 +160,8 @@ html[data-theme=liquid][data-refract] #setCard{backdrop-filter:blur(var(--glass-
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-  <filter id="lg-notice" filterUnits="userSpaceOnUse" x="0" y="0" width="320" height="170" color-interpolation-filters="sRGB">
-    <feImage x="0" y="0" width="320" height="170" preserveAspectRatio="none"/>
+  <filter id="lg-wiz" filterUnits="userSpaceOnUse" x="0" y="0" width="380" height="480" color-interpolation-filters="sRGB">
+    <feImage x="0" y="0" width="380" height="480" preserveAspectRatio="none"/>
     <feDisplacementMap in="SourceGraphic" scale="20" xChannelSelector="R" yChannelSelector="G"/>
   </filter>
   <filter id="lg-menu" filterUnits="userSpaceOnUse" x="0" y="0" width="240" height="200" color-interpolation-filters="sRGB">
@@ -156,11 +175,58 @@ html[data-theme=liquid][data-refract] #setCard{backdrop-filter:blur(var(--glass-
 </defs></svg>
 
 <div class="layer" id="layer">
-  <section class="card glass notice" id="noticeCard" role="status" aria-live="polite" hidden>
-    <h2 data-i18n="notice.title"></h2>
-    <p data-i18n="notice.body"></p>
-    <button class="pill" id="noticeAction" type="button" data-i18n="notice.action"></button>
-    <button class="x" id="noticeClose" type="button" data-i18n-aria="notice.close">×</button>
+  <section class="card glass wizard" id="wizCard" role="dialog" aria-labelledby="wizTitle" hidden>
+    <div class="wizhead">
+      <h2 id="wizTitle" data-i18n="wiz.title"></h2>
+      <span class="stepd" id="wizStep"></span>
+      <button class="x" id="wizClose" type="button" data-i18n-aria="wiz.close">×</button>
+    </div>
+    <div class="wizbody">
+      <div id="wiz1" hidden>
+        <p class="lead" data-i18n="s1.lead"></p>
+        <div class="field">
+          <label for="levelSel" data-i18n="s1.label"></label>
+          <select id="levelSel" class="sel">
+            <optgroup data-i18n-opt="grp.cefr"><option>B1–B2</option><option>C1–C2</option></optgroup>
+            <optgroup data-i18n-opt="grp.national"><option>CET-4</option><option>CET-6</option><option>TEM-4</option><option>TEM-8</option></optgroup>
+            <optgroup data-i18n-opt="grp.abroad"><option>IELTS</option><option>TOEFL</option></optgroup>
+          </select>
+        </div>
+      </div>
+      <div id="wiz2" hidden>
+        <p class="lead" data-i18n="s2.lead"></p>
+        <div class="field">
+          <label for="provSel" data-i18n="s2.provider"></label>
+          <select id="provSel" class="sel">
+            <option selected>DeepSeek</option>
+            <option>Moonshot (Kimi)</option>
+            <option>Zhipu (GLM)</option>
+            <option>Alibaba Cloud (Qwen)</option>
+            <option>OpenAI</option>
+            <option>Google (Gemini)</option>
+            <option>OpenRouter</option>
+            <option>xAI (Grok)</option>
+            <option>Custom</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="wizKey" data-i18n="s2.key"></label>
+          <input id="wizKey" type="password" autocomplete="off" spellcheck="false" data-i18n-ph="s2.ph">
+        </div>
+        <p class="hint" data-i18n="s2.stored"></p>
+        <p class="hint" data-i18n="s2.cost"></p>
+      </div>
+      <div id="wiz3" hidden>
+        <p class="lead" data-i18n="s3.lead"></p>
+        <div class="sample" id="sample" tabindex="0" spellcheck="false">The evening was "quiet", and the page felt close.<br>One small word at a time, the reading opens.</div>
+        <p class="hint" data-i18n="s3.note"></p>
+      </div>
+    </div>
+    <div class="foot">
+      <button class="pill ghost" id="wizBack" type="button" data-i18n="wiz.back"></button>
+      <button class="pill" id="wizNext" type="button" data-i18n="wiz.next"></button>
+      <button class="pill" id="wizDone" type="button" data-i18n="wiz.done"></button>
+    </div>
   </section>
 
   <section class="card glass settings" id="setCard" role="dialog" aria-labelledby="setTitle" hidden>
@@ -178,6 +244,13 @@ html[data-theme=liquid][data-refract] #setCard{backdrop-filter:blur(var(--glass-
     </div>
   </section>
 </div>
+
+<aside class="demo" id="demoCard" hidden>
+  <span class="tag" data-i18n="demo.tag"></span>
+  <h3><span>quiet</span><span class="ipa">/ˈkwaɪət/</span><span class="pos">adjective</span></h3>
+  <p id="demoDef"></p>
+  <p class="ex">The evening was "quiet", and the page felt close.</p>
+</aside>
 
 <div class="menu glass" id="menu" role="menu" hidden>
   <button class="state" id="stateRow" type="button" data-state="warn">
@@ -210,12 +283,12 @@ html[data-theme=liquid][data-refract] #setCard{backdrop-filter:blur(var(--glass-
     <button class="tray" id="trayBtn" type="button" aria-label="Lens" aria-expanded="false" aria-haspopup="menu"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M13.22 5.11 A7 7 0 1 0 18.89 10.78"/><path d="M16.95 16.95 L19.42 19.42"/></g><circle cx="16.95" cy="7.05" r="2" fill="currentColor"/></svg></button>
     <div class="tip" id="tip" role="tooltip"></div>
   </div>
-  <div class="clock" aria-hidden="true"><div>09:41</div><div>2026/10/30</div></div>
+  <div class="clock" aria-hidden="true"><div>09:41</div><div>2026/10/31</div></div>
 </div>
 
 <aside class="harness" id="harness">
   <h1>首次运行引导 · 演示</h1>
-  <p class="hn">演示控制，不是 Lens 的界面。点托盘图标打开菜单，点通知卡上的动作进入设置。</p>
+  <p class="hn">演示控制，不是 Lens 的界面。首次启动弹出三步向导，完成或跳过都记 done；第三步拖选 quiet 看演示气泡。跳过后点菜单首行进设置占位面板。</p>
   <div class="hrow">
     <span>启动前的状态</span>
     <div class="seg" role="group" aria-label="启动前的状态">
@@ -236,6 +309,7 @@ html[data-theme=liquid][data-refract] #setCard{backdrop-filter:blur(var(--glass-
   <dl class="readout">
     <dt>ONBOARDING.done</dt><dd id="rdDone"></dd>
     <dt>API-KEY</dt><dd id="rdKey"></dd>
+    <dt>level</dt><dd id="rdLevel"></dd>
   </dl>
 </aside>
 <button class="themebtn" id="tb" type="button"></button>
@@ -247,10 +321,27 @@ const $ = (id) => document.getElementById(id);
 const LANG_TAG = { zh: 'zh-CN', en: 'en', es: 'es', ja: 'ja' };
 const L = {
   zh: {
-    'notice.title': 'Lens 已在托盘运行',
-    'notice.body': '选中一段英文，释义会出现在文字旁边。取词需要先添加 API key。图标在任务栏右下角，看不到时点 ^ 展开。',
-    'notice.action': '添加 API key',
-    'notice.close': '关闭',
+    'wiz.title': '欢迎使用 Lens',
+    'wiz.close': '跳过设置',
+    'wiz.step': '第 {n} 步 · 共 3 步',
+    'wiz.back': '上一步',
+    'wiz.next': '下一步',
+    'wiz.done': '完成',
+    's1.lead': '选择阅读的难度。档位决定 Lens 解释哪些词、放过哪些词，以后可以在 阅读学习 里改。',
+    's1.label': '词汇档位',
+    'grp.cefr': 'CEFR',
+    'grp.national': '国内考试',
+    'grp.abroad': '出国考试',
+    's2.lead': '选择写释义的服务，并粘贴它发的 key。默认 DeepSeek，可人民币直充；列出的服务商都同样可用。',
+    's2.provider': '服务商',
+    's2.key': 'API key',
+    's2.ph': '粘贴你的 API key',
+    's2.stored': 'key 在服务商的控制台里创建，只保存在本机。',
+    's2.cost': '一次查询是很小的请求，费用不到一分钱；花费面板记录累计。',
+    's3.lead': '整个循环就是这样：随手选中英文，解释出现在文字旁。在这里试一次——拖选下句里的 quiet，卡片会出现在面板旁。不会发送任何内容；卡片是样例。',
+    's3.note': 'Lens 常驻托盘。托盘菜单的设置项再进设置面板；没设 key 时菜单首行会一直提醒。',
+    'demo.tag': '预览',
+    'demo.def': '安静的，几乎没有声音的；平静的。',
     'noKey': '尚未设置 API key',
     'mode': '手动模式',
     'todayZero': '今日 0 次查阅',
@@ -270,10 +361,27 @@ const L = {
     'set.save': '保存',
   },
   en: {
-    'notice.title': 'Lens is running in the tray',
-    'notice.body': 'Select English text and its explanation appears beside it. Lookups need an API key, so add one first. The icon sits at the bottom right of the taskbar; if you cannot see it, click ^ to show hidden icons.',
-    'notice.action': 'Add API key',
-    'notice.close': 'Close',
+    'wiz.title': 'Welcome to Lens',
+    'wiz.close': 'Skip the setup',
+    'wiz.step': 'Step {n} of 3',
+    'wiz.back': 'Back',
+    'wiz.next': 'Next',
+    'wiz.done': 'Done',
+    's1.lead': 'Choose how much of what you read should be explained. The level decides which words Lens explains and which it leaves alone; you can change it later under Reading & learning.',
+    's1.label': 'Vocabulary level',
+    'grp.cefr': 'CEFR',
+    'grp.national': 'National exams',
+    'grp.abroad': 'Study-abroad exams',
+    's2.lead': 'Pick the service that writes the explanations, and paste the key it gave you. DeepSeek is the default and takes Chinese payment; every provider below works the same.',
+    's2.provider': 'Provider',
+    's2.key': 'API key',
+    's2.ph': 'Paste your API key',
+    's2.stored': 'Create a key in your provider’s dashboard; it is stored on this device only.',
+    's2.cost': 'A lookup is a small request that costs a fraction of a cent; the cost panel keeps the running total.',
+    's3.lead': 'This is the whole loop: select English text anywhere, and the explanation appears beside it. Try it here — drag across “quiet” in the line below, and the card appears beside the window. Nothing is sent; the card is a sample.',
+    's3.note': 'Lens lives in the tray. The tray menu’s settings entry opens the panel again, and its first row speaks up until a key is set.',
+    'demo.tag': 'Preview',
+    'demo.def': 'Making little or no noise; calm, without much movement or activity.',
     'noKey': 'No API key yet',
     'mode': 'Manual mode',
     'todayZero': 'Today: 0 lookups',
@@ -293,10 +401,27 @@ const L = {
     'set.save': 'Save',
   },
   es: {
-    'notice.title': 'Lens se ejecuta en la bandeja',
-    'notice.body': 'Selecciona texto en inglés y su explicación aparece junto a él. Las consultas necesitan una clave API, así que añade una primero. El icono está abajo a la derecha de la barra de tareas; si no lo ves, pulsa ^ para mostrar los iconos ocultos.',
-    'notice.action': 'Añadir clave API',
-    'notice.close': 'Cerrar',
+    'wiz.title': 'Bienvenido a Lens',
+    'wiz.close': 'Omitir la configuración',
+    'wiz.step': 'Paso {n} de 3',
+    'wiz.back': 'Atrás',
+    'wiz.next': 'Siguiente',
+    'wiz.done': 'Listo',
+    's1.lead': 'Elige cuánto de lo que lees debe explicarse. El nivel decide qué palabras explica Lens y cuáles deja pasar; puedes cambiarlo después en Lectura y aprendizaje.',
+    's1.label': 'Nivel de vocabulario',
+    'grp.cefr': 'CEFR',
+    'grp.national': 'Exámenes nacionales',
+    'grp.abroad': 'Exámenes para estudiar fuera',
+    's2.lead': 'Elige el servicio que escribe las explicaciones y pega la clave que te dio. DeepSeek es el predeterminado y admite pago en yuanes; todos los proveedores funcionan igual.',
+    's2.provider': 'Proveedor',
+    's2.key': 'Clave API',
+    's2.ph': 'Pega tu clave API',
+    's2.stored': 'Crea la clave en el panel de tu proveedor; se guarda solo en este equipo.',
+    's2.cost': 'Una consulta es una petición pequeña que cuesta una fracción de céntimo; el panel de costes lleva el total.',
+    's3.lead': 'Este es todo el ciclo: selecciona texto en inglés y la explicación aparece junto a él. Pruébalo aquí: arrastra sobre «quiet» en la línea de abajo y la tarjeta aparece junto a la ventana. No se envía nada; la tarjeta es una muestra.',
+    's3.note': 'Lens vive en la bandeja. La entrada de Ajustes del menú vuelve a abrir el panel, y su primera línea avisa hasta que haya clave.',
+    'demo.tag': 'Vista previa',
+    'demo.def': 'Que hace poco o ningún ruido; tranquilo, sin mucho movimiento.',
     'noKey': 'Falta la clave API',
     'mode': 'Modo manual',
     'todayZero': 'Hoy: 0 consultas',
@@ -316,10 +441,27 @@ const L = {
     'set.save': 'Guardar',
   },
   ja: {
-    'notice.title': 'Lens はトレイで動作中です',
-    'notice.body': '英文を選択すると、そのそばに解説が表示されます。検索には API キーが必要なので、先に追加してください。アイコンはタスクバーの右下にあります。見えない場合は ^ をクリックしてください。',
-    'notice.action': 'API キーを追加',
-    'notice.close': '閉じる',
+    'wiz.title': 'Lens へようこそ',
+    'wiz.close': 'セットアップを省略',
+    'wiz.step': 'ステップ {n} / 3',
+    'wiz.back': '戻る',
+    'wiz.next': '次へ',
+    'wiz.done': '完了',
+    's1.lead': '読む文章の難しさを選びます。レベルが、Lens がどの語を解説し、どの語を見過ごすかを決めます。あとで「読書と学習」で変更できます。',
+    's1.label': '語彙レベル',
+    'grp.cefr': 'CEFR',
+    'grp.national': '国内試験',
+    'grp.abroad': '留学試験',
+    's2.lead': '解説を書くサービスを選び、発行されたキーを貼り付けます。既定は DeepSeek で、中国元での支払いに対応。どのプロバイダーも同じように使えます。',
+    's2.provider': 'プロバイダー',
+    's2.key': 'API キー',
+    's2.ph': 'API キーを貼り付け',
+    's2.stored': 'キーはプロバイダーのダッシュボードで作成します。この PC にだけ保存されます。',
+    's2.cost': '1 回の照会はごく小さなリクエストで、費用はわずかです。コストパネルに累計が記録されます。',
+    's3.lead': 'これが一連の流れです。英文を選ぶと、そのそばに解説が現れます。ここで試してみましょう。下の行の quiet をドラッグで選ぶと、カードがウィンドウのそばに現れます。送信は行われません。カードは見本です。',
+    's3.note': 'Lens はトレイに常駐します。トレイメニューの設定からもう一度このパネルを開けます。キーが未設定の間、メニューの先頭行が表示され続けます。',
+    'demo.tag': 'プレビュー',
+    'demo.def': '音がほとんどなく、静かなさま。落ち着いているさま。',
     'noKey': 'API キーが未設定です',
     'mode': '手動モード',
     'todayZero': '今日の検索 0 回',
@@ -342,7 +484,8 @@ const L = {
 const THEMES = ['light', 'dark', 'frosted', 'liquid'];
 const THEME_NAME = { light: '晴朗白昼', dark: '静谧暗夜', frosted: '雾面玻璃', liquid: '流光玻璃' };
 
-/// 启动前的三种状态。ONBOARDING.done 与 API-KEY 是设置文档里的两个值（ONBOARDING 为拟新增的一节）。
+/// 启动前的三种状态。ONBOARDING.done 与 API-KEY 是设置文档里的两个值。
+/// 首次启动弹三步向导（ADR 0148）；完成与跳过等价，都写 done，此后不再弹。
 const SCENARIOS = {
   first:     { key: '',        done: false },
   dismissed: { key: '',        done: true },
@@ -353,16 +496,17 @@ const refractOK = (() => { const p = document.createElement('div'); p.style.back
 
 let lang = Object.hasOwn(L, q.get('lang')) ? q.get('lang') : 'zh';
 let scenario = Object.hasOwn(SCENARIOS, q.get('state')) ? q.get('state') : 'first';
-let S = {}, noticeOpen = false, menuOpen = false, settingsOpen = false;
+let S = {}, menuOpen = false, settingsOpen = false, wizOpen = false, wizStep = 1, demoOpen = false;
 const t = (k) => L[lang][k];
 
-/// 通知卡只在“未引导且没有 key”时出现一次；关闭或点动作都写 done。
 function setScenario(name) {
   scenario = name;
   S = { ...SCENARIOS[name] };
-  noticeOpen = !S.done && S.key === '';
   menuOpen = false;
   settingsOpen = false;
+  wizOpen = !S.done && S.key === '';
+  wizStep = 1;
+  demoOpen = false;
   render();
 }
 
@@ -404,9 +548,21 @@ function bake(el, id) {
 }
 function bakeAll() {
   if (!refractOK || document.documentElement.dataset.theme !== 'liquid') return;
-  bake($('noticeCard'), 'lg-notice');
+  bake($('wizCard'), 'lg-wiz');
   bake($('menu'), 'lg-menu');
   bake($('setCard'), 'lg-set');
+}
+
+/// 演示气泡贴着向导的卡：先右侧，放不下换左侧，上下夹进视口（QML 里 placePreviewCard() 的同一条规则）。
+function placeDemo() {
+  const d = $('demoCard'), w = $('wizCard');
+  if (d.hidden || w.hidden) return;
+  const r = w.getBoundingClientRect(), dw = d.offsetWidth, dh = d.offsetHeight, m = 8;
+  let x = r.right + m;
+  if (x + dw > innerWidth - m) x = r.left - m - dw;
+  const y = Math.max(m, Math.min(r.top + r.height / 2 - dh / 2, innerHeight - dh - m));
+  d.style.left = Math.max(m, x) + 'px';
+  d.style.top = Math.round(y) + 'px';
 }
 
 function render() {
@@ -414,6 +570,7 @@ function render() {
   document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll('[data-i18n-aria]').forEach((el) => el.setAttribute('aria-label', t(el.dataset.i18nAria)));
   document.querySelectorAll('[data-i18n-ph]').forEach((el) => el.setAttribute('placeholder', t(el.dataset.i18nPh)));
+  document.querySelectorAll('[data-i18n-opt]').forEach((el) => { el.label = t(el.dataset.i18nOpt); });
 
   const hasKey = S.key !== '';
   const label = hasKey ? t('mode') : t('noKey');
@@ -423,17 +580,28 @@ function render() {
   row.disabled = hasKey;
   $('tip').textContent = `Lens · ${label} · ${t('todayZero')}`;
 
-  setShown($('noticeCard'), noticeOpen);
+  setShown($('wizCard'), wizOpen);
   setShown($('menu'), menuOpen);
   setShown($('setCard'), settingsOpen);
   $('trayBtn').setAttribute('aria-expanded', String(menuOpen));
   $('setSave').disabled = $('apiInput').value.trim() === '';
 
+  setShown($('wiz1'), wizStep === 1);
+  setShown($('wiz2'), wizStep === 2);
+  setShown($('wiz3'), wizStep === 3);
+  $('wizStep').textContent = t('wiz.step').replace('{n}', wizStep);
+  $('wizBack').hidden = wizStep === 1;
+  $('wizNext').hidden = wizStep === 3;
+  $('wizDone').hidden = wizStep !== 3;
+  setShown($('demoCard'), wizOpen && demoOpen);
+  $('demoDef').textContent = t('demo.def');
+
   $('rdDone').textContent = S.done ? 'true' : 'false';
   $('rdKey').textContent = hasKey ? '"••••••"' : '""';
+  $('rdLevel').textContent = $('levelSel').value;
   document.querySelectorAll('[data-scn]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.scn === scenario)));
   document.querySelectorAll('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
-  requestAnimationFrame(bakeAll);
+  requestAnimationFrame(() => { bakeAll(); placeDemo(); });
 }
 
 function applyTheme(name) {
@@ -449,10 +617,51 @@ $('trayBtn').addEventListener('click', () => { menuOpen = !menuOpen; render(); }
 document.addEventListener('pointerdown', (e) => {
   if (menuOpen && !e.target.closest('#menu, #trayBtn')) { menuOpen = false; render(); }
 });
+
+// 向导：三步的内容即时生效（选择即写设置文档），done 是唯一等到结束的写入——完成与跳过等价。
+function commitKey() {
+  if (wizStep === 2 && $('wizKey').value.trim() !== '') {
+    S.key = $('wizKey').value.trim();
+    $('wizKey').value = '';
+  }
+}
+function gotoStep(n) {
+  commitKey();
+  wizStep = Math.min(3, Math.max(1, n));
+  render();
+}
+function finishWizard() {
+  commitKey();
+  S.done = true;
+  wizOpen = false;
+  demoOpen = false;
+  render();
+}
+$('wizNext').addEventListener('click', () => gotoStep(wizStep + 1));
+$('wizBack').addEventListener('click', () => gotoStep(wizStep - 1));
+$('wizDone').addEventListener('click', finishWizard);
+$('wizClose').addEventListener('click', finishWizard);
+
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
-  menuOpen = false; settingsOpen = false; render();
+  menuOpen = false; settingsOpen = false;
+  // Esc 在第 2、3 步先退一步，退到第一步再按即跳过——与 QML 的 Shortcut 同一条规则。
+  if (wizOpen) {
+    if (wizStep > 1) gotoStep(wizStep - 1);
+    else finishWizard();
+    return;
+  }
+  render();
 });
+
+// 第三步的试一次：拖选目标词（示例区是真实可选中的文本），演示气泡就地出现，零请求。
+document.addEventListener('selectionchange', () => {
+  const selected = document.getSelection().toString().replace(/[^A-Za-z']/g, '').toLowerCase();
+  const open = wizOpen && wizStep === 3 && selected === 'quiet';
+  if (open !== demoOpen) { demoOpen = open; render(); }
+});
+
+// 托盘首行与菜单的设置项都进设置占位面板（产品里是设置浮层，不进向导）。
 $('stateRow').addEventListener('click', () => {
   if (S.key !== '') return;
   menuOpen = false; settingsOpen = true; render();
@@ -460,10 +669,6 @@ $('stateRow').addEventListener('click', () => {
 $('menuSettings').addEventListener('click', () => {
   menuOpen = false; settingsOpen = true; render();
 });
-
-// 通知卡：关闭与动作都写 done，动作顺带打开设置。
-$('noticeClose').addEventListener('click', () => { noticeOpen = false; S.done = true; render(); });
-$('noticeAction').addEventListener('click', () => { noticeOpen = false; S.done = true; settingsOpen = true; render(); });
 
 // 设置（占位）：保存后清空输入框，不把 key 留在页面上。
 $('apiInput').addEventListener('input', () => { $('setSave').disabled = $('apiInput').value.trim() === ''; });
@@ -480,14 +685,16 @@ $('setClose').addEventListener('click', () => { settingsOpen = false; render(); 
 // 演示控制
 document.querySelectorAll('[data-scn]').forEach((b) => b.addEventListener('click', () => setScenario(b.dataset.scn)));
 document.querySelectorAll('[data-lang]').forEach((b) => b.addEventListener('click', () => { lang = b.dataset.lang; render(); }));
+$('levelSel').addEventListener('change', render);
 $('tb').addEventListener('click', () => applyTheme(THEMES[(THEMES.indexOf(document.documentElement.dataset.theme) + 1) % THEMES.length]));
 
-// 初始：?state= ?lang= ?theme= ?menu ?settings ?shot
+// 初始：?state= ?lang= ?theme= ?menu ?settings ?wizard ?shot
 const initialTheme = ['dark', 'frosted', 'liquid'].includes(q.get('theme')) ? q.get('theme') : 'light';
 if (q.has('shot')) document.body.classList.add('shot');
 setScenario(scenario);
 if (q.has('menu')) { menuOpen = true; render(); }
 if (q.has('settings')) { settingsOpen = true; render(); }
+if (q.has('wizard')) { wizOpen = true; render(); }
 applyTheme(initialTheme);
 </script>
 </body>

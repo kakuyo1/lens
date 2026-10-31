@@ -11,6 +11,8 @@
     "`vocabulary` is the other preview's content: six words per vocabulary level, in the order the",
     "word cloud draws them (the first two are the largest). The lists are illustrative, not the",
     "word list the level is built from.",
+    "`onboarding` is the demo card the first-run wizard's third step raises (UI-SPEC.md 4.19): the",
+    "word its sample text asks the reader to drag across, in the same shape as the word above.",
     "Read once at startup; editing this file needs no rebuild. A file that cannot be read leaves",
     "the map empty and the preview is then simply not raised."
   ],
@@ -57,6 +59,51 @@
     "ja": "ラテン語 lens（レンズマメ）から。初めて磨かれたレンズはその丸い形に似ていた。"
   },
   "example": "The print grows clear under a steady len.",
+  "onboarding": {
+    "word": "quiet",
+    "ipa": "/ˈkwaɪət/",
+    "pos": "adjective",
+    "signpost": "still, with little noise or motion",
+    "collocations": ["a ~ evening", "keep ~", "a ~ voice"],
+    "definition": {
+      "en": "Making little or no noise; calm, without much movement or activity.",
+      "zh": "安静的，几乎没有声音的；平静的。",
+      "zh-Hant": "安靜的，幾乎沒有聲音的；平靜的。",
+      "es": "Que hace poco o ningún ruido; tranquilo, sin mucho movimiento.",
+      "ja": "音がほとんどなく、静かなさま。落ち着いているさま。"
+    },
+    "senses": [
+      {
+        "en": "Making little or no noise.",
+        "zh": "安静的，几乎没有声音的。",
+        "zh-Hant": "安靜的，幾乎沒有聲音的。",
+        "es": "Que hace poco o ningún ruido.",
+        "ja": "音がほとんどないさま。"
+      },
+      {
+        "en": "Calm; not busy or full of activity.",
+        "zh": "平静的，不喧闹的。",
+        "zh-Hant": "平靜的，不喧鬧的。",
+        "es": "Tranquilo; sin mucha actividad.",
+        "ja": "穏やかで、動きの少ないさま。"
+      },
+      {
+        "en": "Not saying much about what one thinks or feels.",
+        "zh": "（人）寡言的，不张扬的。",
+        "zh-Hant": "（人）寡言的，不張揚的。",
+        "es": "Que habla poco de lo que piensa o siente.",
+        "ja": "自分の考えをあまり口にしないさま。"
+      }
+    ],
+    "etymology": {
+      "en": "From Old French quiet, from Latin quietus: at rest, set free.",
+      "zh": "源自古法语 quiet，出自拉丁语 quietus：安歇、放下。",
+      "zh-Hant": "源自古法語 quiet，出自拉丁語 quietus：安歇、放下。",
+      "es": "Del francés antiguo quiet, del latín quietus: en reposo, liberado.",
+      "ja": "古フランス語 quiet、ラテン語 quietus（安らぐ、解かれる）から。"
+    },
+    "example": "The evening was \"quiet\", and the page felt close."
+  },
   "vocabulary": {
     "0": ["achieve", "opportunity", "environment", "approach", "benefit", "circumstance"],
     "1": ["coherent", "scrutinize", "deteriorate", "ubiquitous", "inevitable", "nuance"],

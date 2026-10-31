@@ -195,7 +195,7 @@ public:
     SyncDuty* syncDuty();
     /// @brief The explanation duty, which QML reads as `Controller.explanationDuty`; the facade owns it.
     ExplanationDuty* explanationDuty();
-    /// @brief The first-run notice's launch step, which main() runs once the surfaces are up (docs/adr/0144).
+    /// @brief The first-run wizard's launch step, which main() runs once the surfaces are up (docs/adr/0144, docs/adr/0148).
     OnboardingDuty* onboardingDuty();
     /// @brief The capture duty, which QML reads as `Controller.captureDuty`; the facade owns it.
     CaptureDuty* captureDuty();
@@ -221,11 +221,13 @@ public:
     /// @brief The day this build was compiled, as `yyyy-MM-dd`, for the about page. Not the day it runs.
     QString buildDate() const;
     /**
-     * @brief The demo card the settings preview draws, out of `data/preview.json` (UI-SPEC.md 4.4).
+     * @brief The demo cards the previews draw, out of `data/preview.json` (UI-SPEC.md 4.4, 4.19).
      *
-     * Keys: `word`, `ipa`, `signpost`, `collocations`, `example`, `definition`, `etymology`,
-     * `senses` -- the last three carry one entry per explanation language, and the signpost and
-     * collocations are plain English like a real answer's. QML builds a payload out of it
+     * The settings preview's keys sit at the top level: `word`, `ipa`, `signpost`, `collocations`,
+     * `example`, `definition`, `etymology`, `senses` -- the last three carry one entry per
+     * explanation language, and the signpost and collocations are plain English like a real
+     * answer's. `onboarding` holds the same shape for the first-run wizard's demo word, and
+     * `vocabulary` holds the word clouds. QML builds a payload out of the map
      * (components/PreviewSample.qml); nothing here has to know what a setting is. The map is empty
      * when the file could not be read, and the preview then does not come up.
      */
@@ -247,6 +249,7 @@ public:
     Q_PROPERTY(lens::app::UpdateDuty* updateDuty READ updateDuty CONSTANT)
     Q_PROPERTY(lens::app::SyncDuty* syncDuty READ syncDuty CONSTANT)
     Q_PROPERTY(lens::app::ExplanationDuty* explanationDuty READ explanationDuty CONSTANT)
+    Q_PROPERTY(lens::app::OnboardingDuty* onboardingDuty READ onboardingDuty CONSTANT)
     Q_PROPERTY(lens::app::CaptureDuty* captureDuty READ captureDuty CONSTANT)
     Q_PROPERTY(lens::app::GlassBackdrop* glassBackdrop READ glassBackdrop CONSTANT)
     Q_PROPERTY(lens::app::ModelCatalogDuty* modelCatalogDuty READ modelCatalogDuty CONSTANT)

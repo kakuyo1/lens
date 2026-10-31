@@ -134,9 +134,8 @@ public:
      * @param kind   kNoticeInfo or kNoticeError.
      * @param action Label for the one thing the reader can do about it, empty for none.
      * @param lemma  The word that action would explain, when there is one.
-     * @param intent What the action does when it is not an explanation (kNoticeIntentApiKey), empty for an explanation.
      */
-    void        showNotice(QString const& title, QString const& body, QString const& kind, QString const& action = {}, QString const& lemma = {}, QString const& intent = {});
+    void        showNotice(QString const& title, QString const& body, QString const& kind, QString const& action = {}, QString const& lemma = {});
     QVariantMap bubble() const;
     QVariantMap notice() const;
     /// @return The word's hint as the view places it: the lemma, the body and the anchor in physical pixels.

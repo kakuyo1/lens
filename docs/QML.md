@@ -7,7 +7,7 @@
 
 `src/app/qml/` 按表面家族分组：`bubble/`、`selection/`（`bodies/` 是动作条的五个身体）、`settings/`
 （`pages/` 是设置页，`previews/` 是设置页里嵌的预览）、`pet/`（宠物窗口、复习牌与宠物包确认）、
-`panels/`（托盘菜单、统计 / 词汇 / 年度 / 花费面板、通知与更新卡；`WordsListRow` 是词汇列表的行）、
+`panels/`（托盘菜单、统计 / 词汇 / 年度 / 花费面板、通知 / 更新卡 / 首次引导向导；`WordsListRow` 是词汇列表的行）、
 `capture/`（取词蒙版）。一个家族
 目录放它的窗口、只属于它的内部件、只给它用的预览。`dev/` 放 `ProfileScenario.qml`，它是 profiling 的
 自动化，不是产品行为。根下只留 `Main.qml`（`loadFromModule("Lens", "Main")` 的入口）、

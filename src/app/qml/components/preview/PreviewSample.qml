@@ -18,7 +18,8 @@ import QtQuick
 QtObject {
     /// @param key Which setting is being previewed: "speed", "language", "motherTongue",
     ///        "multisense", "etymology", "example", "ipa", "pos", "signpost", "collocations",
-    ///        "font" or "fontSize".
+    ///        "font", "fontSize" -- or "onboarding", the first-run wizard's demo card, which
+    ///        draws its own sample word (data/preview.json's `onboarding`) instead of this one.
     /// @param language For the "language" preview, the language the hovered row carries, which
     ///        this card is drawn in instead of the stored one; for the "motherTongue" preview,
     ///        the mother tongue whose peek line the card draws under its English definition.
@@ -27,6 +28,11 @@ QtObject {
     function payload(key, language) {
         const sample = Controller.settingPreview;
         if (!sample || !sample.word)
+            return null;
+        // The wizard's card draws its own sample word, not the settings one; a file that carries
+        // no such sample leaves that card unraised, the way an unreadable file leaves every card.
+        const source = key === "onboarding" ? sample.onboarding || null : sample;
+        if (!source || !source.word)
             return null;
         // Read once: Controller.settings rebuilds the whole map on every read of it.
         const settings = Controller.settings;
@@ -47,12 +53,12 @@ QtObject {
         const isSwitch = switches.indexOf(key) >= 0;
         const shows = (name, on) => isSwitch ? key === name : on;
         const multiple = shows("multisense", settings.multiSense);
-        const senses = multiple ? sample.senses || [] : [];
+        const senses = multiple ? source.senses || [] : [];
         const payload = {
-            title: sample.word,
+            title: source.word,
             type: "word",
-            ipa: shows("ipa", settings.ipa) ? sample.ipa || "" : "",
-            pos: shows("pos", settings.pos) ? sample.pos || "" : "",
+            ipa: shows("ipa", settings.ipa) ? source.ipa || "" : "",
+            pos: shows("pos", settings.pos) ? source.pos || "" : "",
             // No verdict: the demo word is not a word the reader has met, and the tag row says so.
             status: "",
             en: "",
@@ -63,14 +69,14 @@ QtObject {
             // asked for, the reader's own language otherwise, never both.
             senses: senses.map((sense) => ({en: lang === "en" ? sense.en || "" : "",
                                             text: lang === "en" ? "" : local(sense)})),
-            signpost: shows("signpost", settings.signpost) ? sample.signpost || "" : "",
-            collocations: shows("collocations", settings.collocations) ? sample.collocations || [] : [],
-            etymology: shows("etymology", settings.etymology) ? local(sample.etymology) : "",
-            example: shows("example", settings.example) ? sample.example || "" : "",
+            signpost: shows("signpost", settings.signpost) ? source.signpost || "" : "",
+            collocations: shows("collocations", settings.collocations) ? source.collocations || [] : [],
+            etymology: shows("etymology", settings.etymology) ? local(source.etymology) : "",
+            example: shows("example", settings.example) ? source.example || "" : "",
             // The mother-tongue preview's one forced block: the peek line in the hovered
             // language, the same rule the real peek reads its line by. Every other payload
             // carries none, and the card draws no peek slot for an empty one.
-            peekLine: key === "motherTongue" && language ? sample.definition[language] || "" : "",
+            peekLine: key === "motherTongue" && language ? source.definition[language] || "" : "",
             // No clock: this card goes when the pointer leaves the title, not when a count runs out,
             // and the countdown line is one of the two things only a real bubble carries.
             countsDown: false
@@ -78,11 +84,11 @@ QtObject {
         // The definition line is the one explanation language, in the field the controller fills for
         // it: English and Chinese in their own, every other language in the translation (UI-SPEC.md 4.3).
         if (lang === "zh")
-            payload.zh = local(sample.definition);
+            payload.zh = local(source.definition);
         else if (lang === "en")
-            payload.en = local(sample.definition);
+            payload.en = local(source.definition);
         else
-            payload.translation = local(sample.definition);
+            payload.translation = local(source.definition);
         return payload;
     }
 }

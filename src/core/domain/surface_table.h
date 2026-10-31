@@ -72,19 +72,21 @@ inline constexpr Row kRows[]{
     {"notice", true, true, nullptr, false, 0, nullptr},
     {"update", true, true, nullptr, false, 0, nullptr},
     {"removal", true, true, nullptr, false, 0, nullptr},
+    {"onboarding", true, true, nullptr, false, 0, nullptr},
     // The review sign: the dev surface reports it, but the review flow raises it and it holds no
     // sheet of its own -- its answer card is a Bubble, which has one (docs/adr/0067).
     {"reviewSign", false, true, nullptr, false, 0, nullptr},
     // The preview cards: glass-only. The settings preview's card is a second Bubble window; the
     // theme, level and action-bar dropdowns are transient cards beside their panel; the refresh
-    // tier's note is a fifth; the pet picker's postcard a sixth. Each is its own window, so each
-    // takes its own sheet (docs/adr/0041).
+    // tier's note is a fifth; the pet picker's postcard a sixth; the onboarding wizard's demo
+    // bubble a seventh. Each is its own window, so each takes its own sheet (docs/adr/0041).
     {"preview", true, false, nullptr, false, 0, nullptr},
     {"themePreview", true, false, nullptr, false, 0, nullptr},
     {"vocabPreview", true, false, nullptr, false, 0, nullptr},
     {"selectionBarPreview", true, false, nullptr, false, 0, nullptr},
     {"notePreview", true, false, nullptr, false, 0, nullptr},
     {"petPreview", true, false, nullptr, false, 0, nullptr},
+    {"onboardingPreview", true, false, nullptr, false, 0, nullptr},
 };
 
 /**

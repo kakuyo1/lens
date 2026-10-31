@@ -342,6 +342,7 @@ qt_add_qml_module(lens_app
     qml/panels/Notice.qml
     qml/panels/WordHint.qml
     qml/panels/UpdateCard.qml
+    qml/panels/OnboardingWizard.qml
     qml/capture/Mask.qml
     qml/settings/SettingsPopup.qml
     qml/settings/previews/ThemePreview.qml

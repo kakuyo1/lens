@@ -272,9 +272,97 @@
 <context>
     <name>Notice</name>
     <message>
-        <location filename="../src/app/qml/panels/Notice.qml" line="122"/>
+        <location filename="../src/app/qml/panels/Notice.qml" line="118"/>
         <source>Close</source>
         <translation>關閉</translation>
+    </message>
+</context>
+<context>
+    <name>OnboardingWizard</name>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="206"/>
+        <source>Welcome to Lens</source>
+        <translation>歡迎使用 Lens</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="218"/>
+        <source>Step %1 of %2</source>
+        <translation>第 %1 步，共 %2 步</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="237"/>
+        <source>Skip the setup</source>
+        <translation>跳過設定</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="260"/>
+        <source>Choose how much of what you read should be explained. The level decides which words Lens explains and which it leaves alone; you can change it later under Reading &amp; learning.</source>
+        <translation>選擇閱讀中被解釋的程度。檔位決定 Lens 解釋哪些詞、放過哪些詞；以後可在「閱讀學習」裡變更。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="273"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="282"/>
+        <source>Vocabulary level</source>
+        <translation>詞彙檔位</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="300"/>
+        <source>Pick the service that writes the explanations, and paste the key it gave you. DeepSeek is the default and takes Chinese payment; any provider below works the same.</source>
+        <translation>選擇撰寫釋義的服務，並貼上它發給你的 key。預設 DeepSeek，可人民幣直充；下列服務商皆可用。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="313"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="322"/>
+        <source>Provider</source>
+        <translation>服務商</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="334"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="361"/>
+        <source>API key</source>
+        <translation>API key</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="389"/>
+        <source>Create a key in your provider&apos;s dashboard; it is stored on this device only.</source>
+        <translation>在服務商的控制台裡建立 key；只儲存在本機。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="397"/>
+        <source>A lookup is a small request that costs a fraction of a cent; the cost panel keeps the running total.</source>
+        <translation>一次查詢是很小的請求，費用不到一分錢；花費面板記錄累計。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="415"/>
+        <source>This is the whole loop: select English text anywhere, and the explanation appears beside it. Try it here -- drag across &quot;quiet&quot; in the line below, and the card appears beside this window. Nothing is sent; the card is a sample.</source>
+        <translation>整個循環就是這樣：隨手選取英文，解釋出現在文字旁。在這裡試一次——拖選下面這句裡的 &quot;quiet&quot;，卡片會出現在視窗旁。不會傳送任何內容；這張卡是樣例。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="437"/>
+        <source>The evening was &quot;quiet&quot;, and the page felt close.
+One small word at a time, the reading opens.</source>
+        <translation>The evening was &quot;quiet&quot;, and the page felt close.
+One small word at a time, the reading opens.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="452"/>
+        <source>Lens lives in the tray. The tray menu&apos;s settings entry opens this panel again, and its first row speaks up until a key is set.</source>
+        <translation>Lens 常駐系統匣。系統匣選單的設定項會再次開啟此面板；設定 key 之前，首行會一直提醒。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="483"/>
+        <source>Back</source>
+        <translation>返回</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="491"/>
+        <source>Next</source>
+        <translation>下一步</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="499"/>
+        <source>Done</source>
+        <translation>完成</translation>
     </message>
 </context>
 <context>
@@ -3360,7 +3448,7 @@
         <translation>每 1–2 小時</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="813"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="812"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>目前解釋語言下沒有已存的釋義。</translation>
     </message>
@@ -3370,12 +3458,12 @@
         <translation>正在解釋…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="796"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="795"/>
         <source>Request failed</source>
         <translation>請求失敗</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="814"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="813"/>
         <source>Explain now</source>
         <translation>現在解釋</translation>
     </message>
@@ -3501,24 +3589,6 @@
         <location filename="../src/app/app_controller.cpp" line="936"/>
         <source>Manual</source>
         <translation>手動模式</translation>
-    </message>
-</context>
-<context>
-    <name>lens::app::OnboardingDuty</name>
-    <message>
-        <location filename="../src/app/duties/onboarding_duty.cpp" line="33"/>
-        <source>Lens is running in the tray</source>
-        <translation>Lens 已在系統匣執行</translation>
-    </message>
-    <message>
-        <location filename="../src/app/duties/onboarding_duty.cpp" line="34"/>
-        <source>Select English text to see its explanation beside it. Lookups need an API key, so add one first. The icon is at the bottom right of the taskbar; if you cannot see it, click ^.</source>
-        <translation>選取一段英文，釋義會出現在文字旁邊。查詞需要先新增 API key。圖示在工作列右下角，看不到時請點 ^。</translation>
-    </message>
-    <message>
-        <location filename="../src/app/duties/onboarding_duty.cpp" line="36"/>
-        <source>Add API key</source>
-        <translation>新增 API key</translation>
     </message>
 </context>
 <context>

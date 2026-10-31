@@ -401,21 +401,18 @@ Item {
             tryCompare(stats, "visible", false);
         }
 
-        /// The first-run notice's action opens the page the key is typed into, not an explanation: Main routes an
-        /// action whose intent is apiKey to the connection page (docs/adr/0144).
-        function test_theFirstRunActionOpensTheApiPage() {
+        /// The first-run guidance is the wizard's now: the launch raises it through the duty's
+        /// wizardRequested, and Main shows the surface (docs/adr/0148). The notice's action keeps
+        /// its one meaning -- explaining the word it names.
+        function test_theWizardRequestShowsTheOnboardingSurface() {
             const main = make();
-            const settings = panel(main, "SettingsPopup");
-            const notice = panel(main, "Notice");
-            notice.show({title: "Lens", body: "Add an API key first.", kind: "info",
-                         action: "Add API key", lemma: "", intent: "apiKey"});
+            const onboarding = panel(main, "OnboardingWizard");
+            compare(onboarding.visible, false, "the wizard starts down");
 
-            notice.actionTriggered();
+            Controller.onboardingDuty.wizardRequested();
 
-            compare(settings.visible, true, "the first-run action did not open the settings panel");
-            compare(settings.category, "model");
-            compare(settings.route, "connection", "the first-run action did not land on the API page");
-            compare(notice.leaving, true, "the notice should be taken down once its action has been taken");
+            compare(onboarding.visible, true, "the wizard request did not show the surface");
+            compare(onboarding.step, 1);
         }
 
         /// The no-key row in the menu asks for the same page, so a missing key always leads to the place it is typed.

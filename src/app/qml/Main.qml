@@ -84,17 +84,10 @@ Window {
 
     Notice {
         id: notice
-        // The word the notice is about, and the cost of asking for it, are both the controller's. A first-run
-        // notice's action is not an explanation: it opens the page the key is typed into.
-        onActionTriggered: {
-            if (notice.noticeIntent === "apiKey") {
-                notice.closeNotice();
-                surfaceHost.showSettings();
-                settingsPopup.routeTo("model/connection");
-            } else {
-                Controller.explainLemma(notice.noticeLemma);
-            }
-        }
+        // The word the notice is about, and the cost of asking for it, are both the controller's.
+        // A notice's action is always an explanation: the first-run guidance went to the wizard
+        // (docs/adr/0148), and every other card is a failure with nothing left to press.
+        onActionTriggered: Controller.explainLemma(notice.noticeLemma)
     }
 
     /// A word's hint: the list's answer for a word with nothing stored (UI-SPEC.md 4.8). SurfaceHost places it against
@@ -114,6 +107,21 @@ Window {
         onDownloadRequested: Controller.updateDuty.downloadUpdate()
         onCancelRequested: Controller.updateDuty.cancelDownload()
         onInstallRequested: Controller.updateDuty.installUpdate()
+    }
+
+    /// The first-run wizard (UI-SPEC.md 4.19, docs/adr/0148). Raised by the launch when the
+    /// guidance is due; gone for good once the reader finishes it or skips it, either of which
+    /// writes the record.
+    OnboardingWizard {
+        id: onboarding
+    }
+
+    Connections {
+        target: Controller.onboardingDuty
+
+        function onWizardRequested() {
+            onboarding.show();
+        }
     }
 
     /// The capture mask, raised by the global trigger key and by nothing else. What it gives back is

@@ -779,10 +779,10 @@ void ExplanationDuty::apply(ExplanationExchange::Outcome const& outcome, bool co
         clearBubble();
 }
 
-void ExplanationDuty::showNotice(QString const& title, QString const& body, QString const& kind, QString const& action, QString const& lemma, QString const& intent)
+void ExplanationDuty::showNotice(QString const& title, QString const& body, QString const& kind, QString const& action, QString const& lemma)
 {
     clearBubble();
-    notice_ = noticePayload(title, body, kind, action, lemma, intent);
+    notice_ = noticePayload(title, body, kind, action, lemma);
     emit noticeChanged();
 }
 

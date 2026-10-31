@@ -272,9 +272,97 @@
 <context>
     <name>Notice</name>
     <message>
-        <location filename="../src/app/qml/panels/Notice.qml" line="122"/>
+        <location filename="../src/app/qml/panels/Notice.qml" line="118"/>
         <source>Close</source>
         <translation>閉じる</translation>
+    </message>
+</context>
+<context>
+    <name>OnboardingWizard</name>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="206"/>
+        <source>Welcome to Lens</source>
+        <translation>Lens へようこそ</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="218"/>
+        <source>Step %1 of %2</source>
+        <translation>ステップ %1 / %2</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="237"/>
+        <source>Skip the setup</source>
+        <translation>セットアップを省略</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="260"/>
+        <source>Choose how much of what you read should be explained. The level decides which words Lens explains and which it leaves alone; you can change it later under Reading &amp; learning.</source>
+        <translation>読む文章のうち、どの程度を解説するかを選びます。レベルが、Lens がどの語を解説し、どの語を見過ごすかを決めます。あとで「読書と学習」で変更できます。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="273"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="282"/>
+        <source>Vocabulary level</source>
+        <translation>語彙レベル</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="300"/>
+        <source>Pick the service that writes the explanations, and paste the key it gave you. DeepSeek is the default and takes Chinese payment; any provider below works the same.</source>
+        <translation>解説を書くサービスを選び、発行されたキーを貼り付けます。既定は DeepSeek で、中国元での支払いに対応します。どのプロバイダーも同じように使えます。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="313"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="322"/>
+        <source>Provider</source>
+        <translation>プロバイダー</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="334"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="361"/>
+        <source>API key</source>
+        <translation>API キー</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="389"/>
+        <source>Create a key in your provider&apos;s dashboard; it is stored on this device only.</source>
+        <translation>キーはプロバイダーのダッシュボードで作成します。この PC にだけ保存されます。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="397"/>
+        <source>A lookup is a small request that costs a fraction of a cent; the cost panel keeps the running total.</source>
+        <translation>1 回の照会はごく小さなリクエストで、費用はわずかです。コストパネルに累計が記録されます。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="415"/>
+        <source>This is the whole loop: select English text anywhere, and the explanation appears beside it. Try it here -- drag across &quot;quiet&quot; in the line below, and the card appears beside this window. Nothing is sent; the card is a sample.</source>
+        <translation>これが一連の流れです。英文を選ぶと、そのそばに解説が現れます。ここで試してみましょう。下の行の quiet をドラッグで選ぶと、カードがウィンドウのそばに現れます。送信は行われません。カードは見本です。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="437"/>
+        <source>The evening was &quot;quiet&quot;, and the page felt close.
+One small word at a time, the reading opens.</source>
+        <translation>The evening was &quot;quiet&quot;, and the page felt close.
+One small word at a time, the reading opens.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="452"/>
+        <source>Lens lives in the tray. The tray menu&apos;s settings entry opens this panel again, and its first row speaks up until a key is set.</source>
+        <translation>Lens はトレイに常駐します。トレイメニューの設定からもう一度このパネルを開けます。キーが未設定の間、メニューの先頭行が表示され続けます。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="483"/>
+        <source>Back</source>
+        <translation>戻る</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="491"/>
+        <source>Next</source>
+        <translation>次へ</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="499"/>
+        <source>Done</source>
+        <translation>完了</translation>
     </message>
 </context>
 <context>
@@ -3446,7 +3534,7 @@
         <translation>手動</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="813"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="812"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>現在の解説言語では、この単語の保存された解説がありません。</translation>
     </message>
@@ -3456,12 +3544,12 @@
         <translation>解説中…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="796"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="795"/>
         <source>Request failed</source>
         <translation>リクエストに失敗しました</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="814"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="813"/>
         <source>Explain now</source>
         <translation>今すぐ解説</translation>
     </message>
@@ -3509,24 +3597,6 @@
         <location filename="../src/app/duties/storage_duty.cpp" line="125"/>
         <source>Every 1–2 hours</source>
         <translation>1〜2時間ごと</translation>
-    </message>
-</context>
-<context>
-    <name>lens::app::OnboardingDuty</name>
-    <message>
-        <location filename="../src/app/duties/onboarding_duty.cpp" line="33"/>
-        <source>Lens is running in the tray</source>
-        <translation>Lens はトレイで動作中です</translation>
-    </message>
-    <message>
-        <location filename="../src/app/duties/onboarding_duty.cpp" line="34"/>
-        <source>Select English text to see its explanation beside it. Lookups need an API key, so add one first. The icon is at the bottom right of the taskbar; if you cannot see it, click ^.</source>
-        <translation>英文を選択すると、そのそばに解説が表示されます。検索には API キーが必要なので、先に追加してください。アイコンはタスクバーの右下にあります。見えない場合は ^ をクリックしてください。</translation>
-    </message>
-    <message>
-        <location filename="../src/app/duties/onboarding_duty.cpp" line="36"/>
-        <source>Add API key</source>
-        <translation>API キーを追加</translation>
     </message>
 </context>
 <context>

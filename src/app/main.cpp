@@ -400,7 +400,7 @@ int main(int argc, char* argv[])
     // cannot reach the source does not retry on every launch.
     controller.updateDuty()->checkAtStartup();
     controller.syncDuty()->startAtLaunch();
-    // The first-run notice is a surface too, so it waits for the same moment as the update check.
+    // The first-run wizard is a surface too, so it waits for the same moment as the update check.
     controller.onboardingDuty()->startAtLaunch(kForceOnboarding);
 
 #if defined(QT_QML_DEBUG)

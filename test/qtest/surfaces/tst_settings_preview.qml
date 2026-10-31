@@ -52,12 +52,14 @@ Item {
             return panel;
         }
 
-        /// @return The preview window: of the two Bubbles Main owns, the one that is a preview.
+        /// @return The settings preview's window. The search is scoped to the panel: the onboarding
+        ///         wizard hosts a preview Bubble of its own (docs/adr/0148), so Main no longer has
+        ///         exactly one to hand.
         function previewOf(main) {
-            const previews = Util.findAll(main, function (o) {
+            const previews = Util.findAll(settingsPanel(main), function (o) {
                 return o.toString().indexOf("Bubble_QMLTYPE") === 0 && o.preview === true;
             });
-            verify(previews.length === 1, "Main does not own exactly one preview bubble");
+            verify(previews.length === 1, "the settings panel does not own exactly one preview bubble");
             return previews[0];
         }
 

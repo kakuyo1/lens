@@ -98,28 +98,22 @@ Item {
             notice.visible = false;
         }
 
-        /// The first-run notice's action names what it does in its intent, and a press on the pill raises the action
-        /// for Main to route (docs/adr/0144). A card with no intent keeps the explain action it always had.
-        function test_theApiKeyActionKeepsItsIntentAndPressesThrough() {
+        /// A press on the action pill raises actionTriggered for Main to route: the action explains
+        /// the notice's word, and there is nothing else a card's pill can do.
+        function test_theActionPillPressesThrough() {
             const notice = createTemporaryObject(noticeComponent, root);
             verify(!!notice, "Component exists");
-            notice.show({title: "Lens", body: "Add an API key first.", kind: "info",
-                         action: "Add API key", lemma: "", intent: "apiKey"});
+            notice.show({title: "Word", body: "No explanation is stored.", kind: "info",
+                         action: "Explain now", lemma: "panel"});
             wait(50);
-            compare(notice.noticeIntent, "apiKey");
-            compare(notice.noticeAction, "Add API key");
 
             let pressed = 0;
             notice.actionTriggered.connect(function () { ++pressed; });
-            const label = Util.textWith(Util.textsUnder(notice), ["Add API key"]);
+            const label = Util.textWith(Util.textsUnder(notice), ["Explain now"]);
             verify(label, "the action pill was not drawn");
             mouseClick(label.parent, label.parent.width / 2, label.parent.height / 2);
             wait(50);
             compare(pressed, 1, "pressing the action did not raise actionTriggered");
-
-            notice.show({title: "Word", body: "No explanation is stored.", kind: "info",
-                         action: "Explain now", lemma: "panel"});
-            compare(notice.noticeIntent, "", "a card with no intent should not carry one over");
         }
 
         function test_captureTheNotice() {
