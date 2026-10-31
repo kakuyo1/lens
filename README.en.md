@@ -43,17 +43,12 @@
 
 Most lookup tools pull you out of the page and answer in your first language. You finish the paragraph without ever reading it in English. Lens makes the opposite bet: the fastest way to read better English is to stay in English.
 
-**English in, clearer English out.** A plain-English sense, IPA, and — when you want them — etymology and an example. Translation is still there; it just isn't the default.
-
-**A word you can hear.** A speaker sits beside every pronunciation: press it, or the pronunciation itself, and the headword is read once. Sentences, names, and translations stay silent.
-
-**The answer stays on the page.** Lens lives in the system tray and has no main window. The bubble opens beside the selection, holds while you hover, and is gone when you keep reading.
-
-**A quiet memory.** Mark a word Known or New. Lens keeps the list. No streaks, no lesson plan.
-
-**A pet that asks.** When a word comes due, a sign goes up at the pet's feet. Answer right and the next gap gets longer; answer wrong and it comes back sooner. The pet only receives event types and cannot read your screen, selection, or definitions. Off by default; turn it on in Settings › Extensions.
-
-**A definition you can walk into.** A word in a definition that sits above your level stays dotted. Open it and the same card steps down one layer, with a breadcrumb back; the cache, budget, and verdict rules follow every step.
+- **English in, clearer English out.** A plain-English sense, IPA, and — when you want them — etymology and an example. Translation is still there; it just isn't the default.
+- **A word you can hear.** A speaker sits beside every pronunciation: press it, or the pronunciation itself, and the headword is read once. Sentences, names, and translations stay silent.
+- **The answer stays on the page.** Lens lives in the system tray and has no main window. The bubble opens beside the selection, holds while you hover, and is gone when you keep reading.
+- **A quiet memory.** Mark a word Known or New. Lens keeps the list. No streaks, no lesson plan.
+- **A pet that asks.** When a word comes due, a sign goes up at the pet's feet. Answer right and the next gap gets longer; answer wrong and it comes back sooner. The pet only receives event types and cannot read your screen, selection, or definitions. Off by default; turn it on in Settings › Extensions.
+- **A definition you can walk into.** A word in a definition that sits above your level stays dotted. Open it and the same card steps down one layer, with a breadcrumb back; the cache, budget, and verdict rules follow every step.
 
 ## A quick look
 
@@ -67,21 +62,28 @@ Press Pictures on a word to load its photos. Not the Sense? swaps the card in pl
 
 ## English first. Translation when you ask.
 
-Explanations default to English. A selection in Chinese, Japanese, or Spanish comes back in English. The explanation language — English, Chinese, Traditional Chinese, Spanish, or Japanese — is a setting, not a switch on the card: change it once and every card follows, answered from cache when that word already has one.
-
-The action bar offers Translate, Explain, and Copy text. Explain is the one Lens is built around: it tells you what the word means in words you already know, instead of replacing it with a Chinese word you can skip. Translate is the exception: it turns a Chinese, Japanese, or Spanish passage into English; on English text it answers in your explanation language — English unless you change it.
-
-The globe on the card is the language control that stayed: hold it for half a second and the meaning in your mother tongue appears under the English definition; let go and it is gone. The mother tongue is a setting of its own — Chinese by default. A word whose explanation already includes that language costs nothing to peek at; any other is asked once per session.
+- **Explanations default to English.** A selection in Chinese, Japanese, or Spanish comes back in English.
+- **The explanation language is a setting, not a switch on the card.** English, Chinese, Traditional Chinese, Spanish, or Japanese — change it once and every card follows, answered from cache when that word already has one.
+- **The action bar offers Translate, Explain, and Copy text.** Explain is the one Lens is built around: it tells you what the word means in words you already know, instead of replacing it with a Chinese word you can skip.
+- **Translate is the exception.** It turns a Chinese, Japanese, or Spanish passage into English; on English text it answers in your explanation language — English unless you change it.
+- **The globe is the language control that stayed on the card.** Hold it for half a second and the meaning in your mother tongue appears under the English definition; let go and it is gone. The mother tongue is a setting of its own — Chinese by default. A word whose explanation already includes that language costs nothing to peek at; any other is asked once per session.
 
 ## Say it out loud
 
 Every word card carries a speaker beside its pronunciation; pressing either one reads the headword once. Nothing else on the card is spoken — not the definition, not a sentence, not a name.
 
-By default the Windows voice speaks first, in the accent you pick: American by default, British on request. When the machine has no voice for that accent, Lens falls back to the one you chose in Settings › Reading & learning: an online recording (Youdao by default, or Google Translate), a local model you download once (Kokoro, about 180 MB, or LJSpeech, about 41 MB), or silence. The choice is explicit — Lens does not quietly move between online and local. Auto-play is off by default; when it is on, the card a lookup opens reads once, and the same word does not repeat. A recording is cached under `%APPDATA%\Lens\audio`, capped at 50 MB, and never counts against the daily budget.
+- **The Windows voice speaks first**, in the accent you pick: American by default, British on request.
+- **When the machine has no voice for that accent**, Lens falls back to the one you chose in Settings › Reading & learning: an online recording (Youdao by default, or Google Translate), a local model you download once (Kokoro, about 180 MB, or LJSpeech, about 41 MB), or silence. The choice is explicit — Lens does not quietly move between online and local.
+- **Auto-play is off by default.** When it is on, the card a lookup opens reads once, and the same word does not repeat.
+- **A recording is cached under `%APPDATA%\Lens\audio`**, capped at 50 MB, and never counts against the daily budget.
 
 ## Text you can't select
 
-Press `Ctrl+Alt+S` (changeable in Settings), frame a region of a PDF, image, or video still, and Lens reads it locally with OCR by default. The bundled Tesseract is the automatic engine. A reader can install RapidOCR-json, choose it explicitly, and point it at an ASCII model folder after an explicit trust check. Online OCR is opt-in, asks before each upload, and can be pointed at Baidu OCR, Tencent Cloud OCR, Alibaba Cloud OCR, Google Cloud Vision, or OCR.space. Automatic scanning is still experimental and under development: it watches only the apps you whitelist, and its results are not reliable yet.
+Press `Ctrl+Alt+S` (changeable in Settings), frame a region of a PDF, image, or video still, and Lens reads it locally with OCR by default.
+
+- **The bundled Tesseract is the automatic engine.** A reader can install RapidOCR-json, choose it explicitly, and point it at an ASCII model folder after an explicit trust check.
+- **Online OCR is opt-in.** It asks before each upload and can be pointed at Baidu OCR, Tencent Cloud OCR, Alibaba Cloud OCR, Google Cloud Vision, or OCR.space.
+- **Automatic scanning is still experimental and under development.** It watches only the apps you whitelist, and its results are not reliable yet.
 
 ## Five action bars, one set of actions
 
@@ -91,7 +93,10 @@ Choose the shape in Settings › Capture & popups: the classic bar, a page-edge 
 
 <p align="center"><img src="docs/readme/selection-drawer.png" width="800" alt="The copy text's drawer listing Fix syntax and Breakdown for a selected sentence"></p>
 
-Copy text is a drawer, not a single action: hover it and only the actions this selection can take come out — Fix spelling on a word, Fix syntax on a sentence, Breakdown on an English sentence of up to 80 words. Corrections and breakdowns are not cached, and each counts toward the daily budget like any other request.
+Copy text is a drawer, not a single action: hover it and only the actions this selection can take come out.
+
+- Fix spelling on a word, Fix syntax on a sentence, and Breakdown on an English sentence of up to 80 words.
+- Corrections and breakdowns are not cached, and each counts toward the daily budget like any other request.
 
 <p align="center"><img src="docs/readme/breakdown.png" width="800" alt="The breakdown answer: the sentence tinted in its four role colours, with a legend under it"></p>
 
@@ -101,13 +106,22 @@ Breakdown tints each part of the sentence in one of four colours — subject, ve
 
 <p align="center"><img src="docs/readme/learning-loop.gif" width="900" alt="The ghost's review sign beside it, and the year-in-words graph"></p>
 
-Known and New live on one word list. Hover a row to reread an explanation Lens already stored, without sending a request. When a word is due, a small sign appears beside the desktop pet — its own, drawn for that pet; answer Forgot or Remembered and it comes back on a spaced schedule from ten minutes to sixty days. The year-in-words graph keeps the habit visible without turning it into a streak.
+Known and New live on one word list.
+
+- Hover a row to reread an explanation Lens already stored, without sending a request.
+- When a word is due, a small sign appears beside the desktop pet — its own, drawn for that pet; answer Forgot or Remembered and it comes back on a spaced schedule from ten minutes to sixty days.
+- The year-in-words graph keeps the habit visible without turning it into a streak.
 
 ## Pets that ask you the words back
 
 <p align="center"><img src="docs/readme/pets.gif" width="900" alt="Lens's seven pixel pets"></p>
 
-Seven pixel companions ship with Lens: Stub cat, Owl, Mochi, Ghost, Jellyfish, Cloud, and Dog. They are off by default; turn one on in Settings › Extensions. Each pet has its own nine-piece wardrobe and six scenes — four of its own and two shared; a scarf or a pair of frames can tilt which scene it chooses, and its size and outfit are remembered per pet while the window stays where you put it. They wander, hide at the screen edge, notice the pointer, and can be picked up and thrown. They react to event types only — never to your selections, explanations, or screen text — and packages hold data only.
+Seven pixel companions ship with Lens: Stub cat, Owl, Mochi, Ghost, Jellyfish, Cloud, and Dog. They are off by default; turn one on in Settings › Extensions.
+
+- Each pet has its own nine-piece wardrobe and six scenes — four of its own and two shared; a scarf or a pair of frames can tilt which scene it chooses.
+- Its size and outfit are remembered per pet, while the window stays where you put it.
+- They wander, hide at the screen edge, notice the pointer, and can be picked up and thrown.
+- They react to event types only — never to your selections, explanations, or screen text — and packages hold data only.
 
 The ghost's six: a midnight clock, a jack-o'-lantern, a mirror and a tea party of its own, and the desk and the bubble bath it shares with the other pets — each scene an animation of its own. The jack-o'-lantern, playing:
 
@@ -131,13 +145,18 @@ And the card the settings raise: hover a pet in Settings › Extensions and its 
 
 <p align="center"><img src="docs/readme/themes.png" width="900" alt="Light, Dark, Frosted glass and Liquid glass"></p>
 
-Light and Dark are solid. Frosted glass and Liquid glass draw every card over a blurred copy of the desktop, and keep Lens out of screenshots and screen sharing while they are on. Custom lets you choose the colours and checks them against WCAG AA. Animations follow the Windows reduced-motion setting.
+- **Light and Dark** are solid.
+- **Frosted glass and Liquid glass** draw every card over a blurred copy of the desktop, and keep Lens out of screenshots and screen sharing while they are on.
+- **Custom** lets you choose the colours and checks them against WCAG AA.
+- **Animations** follow the Windows reduced-motion setting.
 
 ## Download
 
-Download `Lens-<version>-setup.exe` from the [releases page](https://github.com/kakuyo1/lens/releases/latest), or `Lens-<version>-portable.zip` from the same release. The installer is per user, so Windows never asks for administrator rights; the portable zip runs from any folder.
+Download `Lens-<version>-setup.exe` from the [releases page](https://github.com/kakuyo1/lens/releases/latest), or `Lens-<version>-portable.zip` from the same release.
 
-**Windows 10/11 x64.** You will need an API key from a supported provider. Lens does not ship a definition dictionary; it includes a list of about 168,000 English words only to check that a candidate is a real word.
+- **The installer** is per user, so Windows never asks for administrator rights; **the portable zip** runs from any folder.
+- **Windows 10/11 x64.** You will need an API key from a supported provider.
+- Lens does not ship a definition dictionary; it includes a list of about 168,000 English words only to check that a candidate is a real word.
 
 <details>
 <summary>Windows may warn you before it runs</summary>
@@ -148,7 +167,15 @@ Lens is not code-signed, and SmartScreen blocks programs it does not recognise. 
 
 ## Privacy
 
-Only the text you select or capture is sent to the provider you configure, after local masking of URLs, email addresses, and digit strings of six or more digits. OCR runs locally by default. Online OCR is opt-in: each capture shows the frozen crop and the exact destination, uploads only after you confirm, and experimental automatic scanning never uses it. The speaker reads the word on this device through the system voice or a downloaded local model; when it falls back to an online recording, only that word leaves the device, and the recording is cached under `%APPDATA%\Lens\audio`. Your explanation key, OCR credentials, and learning data stay in `%APPDATA%\Lens\settings.json`. If you turn on sync, the cloud copy is encrypted with your passphrase and stored in your own GitHub gist; the keys stay on this device. Lens has no account and no server of its own. See [SECURITY.md](SECURITY.md) for the full boundary.
+Lens has no account and no server of its own.
+
+- **What is sent.** Only the text you select or capture is sent to the provider you configure, after local masking of URLs, email addresses, and digit strings of six or more digits.
+- **OCR.** It runs locally by default. Online OCR is opt-in: each capture shows the frozen crop and the exact destination, uploads only after you confirm, and experimental automatic scanning never uses it.
+- **The speaker.** It reads on this device through the system voice or a downloaded local model; when it falls back to an online recording, only that word leaves the device, and the recording is cached under `%APPDATA%\Lens\audio`.
+- **On this device.** Your explanation key, OCR credentials, and learning data stay in `%APPDATA%\Lens\settings.json`.
+- **Sync.** If you turn it on, the cloud copy is encrypted with your passphrase and stored in your own GitHub gist; the keys stay on this device.
+
+See [SECURITY.md](SECURITY.md) for the full boundary.
 
 ## FAQ
 

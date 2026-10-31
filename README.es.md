@@ -43,17 +43,12 @@
 
 La mayoría de las herramientas de consulta te sacan de la página y responden en tu idioma. Terminas el párrafo sin haberlo leído en inglés. Lens apuesta por lo contrario: la forma más rápida de leer mejor inglés es quedarte en inglés.
 
-**Entra inglés, sale un inglés más claro.** Una definición en inglés sencillo, IPA y, si quieres, etimología y un ejemplo. La traducción sigue ahí; simplemente no es la opción predeterminada.
-
-**Una palabra que se puede oír.** Un altavoz junto a la pronunciación: púlsalo a él o a la propia pronunciación y la palabra se lee una vez. Las frases, los nombres y las traducciones no suenan.
-
-**La respuesta se queda junto al texto.** Lens vive en la bandeja del sistema y no tiene ventana principal. La burbuja aparece junto a la selección, se queda mientras pasas el ratón y desaparece cuando sigues leyendo.
-
-**Una memoria tranquila.** Marca una palabra como Conocida o Nueva. Lens guarda la lista. Sin rachas ni planes de estudio.
-
-**Una mascota que pregunta.** Cuando toca repasar una palabra, aparece un cartel a los pies de la mascota. Si aciertas, la siguiente pausa es más larga; si fallas, vuelve antes. La mascota solo recibe tipos de evento y no puede leer tu pantalla, la selección ni las definiciones. Desactivada por defecto; actívala en Ajustes › Extensiones.
-
-**Una definición por la que se puede entrar.** Las palabras de una definición que quedan por encima de tu nivel conservan el subrayado de puntos. Ábrela y la misma tarjeta baja un nivel, con una ruta para volver; la caché, el presupuesto y las reglas de veredicto acompañan cada paso.
+- **Entra inglés, sale un inglés más claro.** Una definición en inglés sencillo, IPA y, si quieres, etimología y un ejemplo. La traducción sigue ahí; simplemente no es la opción predeterminada.
+- **Una palabra que se puede oír.** Un altavoz junto a la pronunciación: púlsalo a él o a la propia pronunciación y la palabra se lee una vez. Las frases, los nombres y las traducciones no suenan.
+- **La respuesta se queda junto al texto.** Lens vive en la bandeja del sistema y no tiene ventana principal. La burbuja aparece junto a la selección, se queda mientras pasas el ratón y desaparece cuando sigues leyendo.
+- **Una memoria tranquila.** Marca una palabra como Conocida o Nueva. Lens guarda la lista. Sin rachas ni planes de estudio.
+- **Una mascota que pregunta.** Cuando toca repasar una palabra, aparece un cartel a los pies de la mascota. Si aciertas, la siguiente pausa es más larga; si fallas, vuelve antes. La mascota solo recibe tipos de evento y no puede leer tu pantalla, la selección ni las definiciones. Desactivada por defecto; actívala en Ajustes › Extensiones.
+- **Una definición por la que se puede entrar.** Las palabras de una definición que quedan por encima de tu nivel conservan el subrayado de puntos. Ábrela y la misma tarjeta baja un nivel, con una ruta para volver; la caché, el presupuesto y las reglas de veredicto acompañan cada paso.
 
 ## Un vistazo
 
@@ -67,21 +62,28 @@ Pulsa Imágenes en una palabra para cargar sus fotos. «¿No es este sentido?» 
 
 ## Primero en inglés. Traducción cuando la pidas.
 
-Las explicaciones son en inglés por defecto. Una selección en chino, japonés o español vuelve en inglés. El idioma de las explicaciones —inglés, chino, chino tradicional, español o japonés— es un ajuste, no un interruptor en la tarjeta: cámbialo una vez y todas las tarjetas lo siguen, respondidas desde la caché cuando esa palabra ya la tiene.
-
-La barra de acciones ofrece Traducir, Explicar y Copiar texto. Lens gira alrededor de Explicar: te dice qué hace la palabra en ese contexto con palabras que ya conoces, en lugar de sustituirla por una palabra china que puedes saltarte. Traducir es la excepción: convierte un pasaje en chino, japonés o español al inglés; en un texto en inglés responde en el idioma de las explicaciones (inglés salvo que lo cambies).
-
-El globo de la tarjeta es el control de idioma que queda: mantenlo pulsado medio segundo y el significado en tu lengua materna aparece bajo la definición en inglés; al soltar, desaparece. La lengua materna es un ajuste propio, chino por defecto. Una palabra cuya explicación ya incluye ese idioma no cuesta nada; cualquier otra se pide una vez por sesión.
+- **Las explicaciones son en inglés por defecto.** Una selección en chino, japonés o español vuelve en inglés.
+- **El idioma de las explicaciones es un ajuste, no un interruptor en la tarjeta.** Inglés, chino, chino tradicional, español o japonés: cámbialo una vez y todas las tarjetas lo siguen, respondidas desde la caché cuando esa palabra ya la tiene.
+- **La barra de acciones ofrece Traducir, Explicar y Copiar texto.** Lens gira alrededor de Explicar: te dice qué hace la palabra en ese contexto con palabras que ya conoces, en lugar de sustituirla por una palabra china que puedes saltarte.
+- **Traducir es la excepción.** Convierte un pasaje en chino, japonés o español al inglés; en un texto en inglés responde en el idioma de las explicaciones (inglés salvo que lo cambies).
+- **El globo es el control de idioma que queda en la tarjeta.** Mantenlo pulsado medio segundo y el significado en tu lengua materna aparece bajo la definición en inglés; al soltar, desaparece. La lengua materna es un ajuste propio, chino por defecto. Una palabra cuya explicación ya incluye ese idioma no cuesta nada; cualquier otra se pide una vez por sesión.
 
 ## Dilo en voz alta
 
 Cada tarjeta de palabra lleva un altavoz junto a la pronunciación; pulsa uno u otra y la palabra se lee una vez. Nada más de la tarjeta suena: ni la definición, ni una frase, ni un nombre.
 
-Por defecto, la voz de Windows habla primero, con el acento que elijas: estadounidense por defecto, británico si lo pides. Cuando la máquina no tiene voz para ese acento, Lens usa lo que hayas elegido en Ajustes › Lectura y aprendizaje: un audio en línea (Youdao por defecto, o Google Translate), un modelo local que descargas una vez (Kokoro, unos 180 MB, o LJSpeech, unos 41 MB) o silencio. La elección es explícita: Lens no cambia en silencio entre en línea y local. La reproducción automática está desactivada por defecto; cuando la activas, la tarjeta que abre una consulta se lee una vez y la misma palabra no se repite. La grabación se guarda en `%APPDATA%\Lens\audio`, con un límite de 50 MB, y nunca cuenta para el presupuesto diario.
+- **Por defecto habla primero la voz de Windows**, con el acento que elijas: estadounidense por defecto, británico si lo pides.
+- **Cuando la máquina no tiene voz para ese acento**, Lens usa lo que hayas elegido en Ajustes › Lectura y aprendizaje: un audio en línea (Youdao por defecto, o Google Translate), un modelo local que descargas una vez (Kokoro, unos 180 MB, o LJSpeech, unos 41 MB) o silencio. La elección es explícita: Lens no cambia en silencio entre en línea y local.
+- **La reproducción automática está desactivada por defecto.** Cuando la activas, la tarjeta que abre una consulta se lee una vez y la misma palabra no se repite.
+- **La grabación se guarda en `%APPDATA%\Lens\audio`**, con un límite de 50 MB, y nunca cuenta para el presupuesto diario.
 
 ## Texto que no se puede seleccionar
 
-Pulsa `Ctrl+Alt+S` (se puede cambiar en Ajustes), enmarca una zona de un PDF, una imagen o un fotograma de vídeo y Lens la lee localmente con OCR. Tesseract, incluido con Lens, es el motor automático. El lector puede instalar RapidOCR-json, elegirlo explícitamente y apuntarlo a una carpeta de modelos ASCII tras una comprobación de confianza. El OCR en línea es opcional, pregunta antes de cada subida y puede apuntar a Baidu OCR, Tencent Cloud OCR, Alibaba Cloud OCR, Google Cloud Vision u OCR.space. El escaneo automático sigue siendo experimental y está en desarrollo: solo vigila las aplicaciones de tu lista blanca, y sus resultados aún no son fiables.
+Pulsa `Ctrl+Alt+S` (se puede cambiar en Ajustes), enmarca una zona de un PDF, una imagen o un fotograma de vídeo y Lens la lee localmente con OCR.
+
+- **Tesseract, incluido con Lens, es el motor automático.** El lector puede instalar RapidOCR-json, elegirlo explícitamente y apuntarlo a una carpeta de modelos ASCII tras una comprobación de confianza.
+- **El OCR en línea es opcional.** Pregunta antes de cada subida y puede apuntar a Baidu OCR, Tencent Cloud OCR, Alibaba Cloud OCR, Google Cloud Vision u OCR.space.
+- **El escaneo automático sigue siendo experimental y está en desarrollo.** Solo vigila las aplicaciones de tu lista blanca, y sus resultados aún no son fiables.
 
 ## Cinco formas de barra de acciones
 
@@ -91,7 +93,10 @@ Elige la forma en Ajustes › Captura y ventanas: barra clásica, pestaña later
 
 <p align="center"><img src="docs/readme/selection-drawer.png" width="800" alt="El cajón de Copiar texto con Corregir gramática y Análisis para una frase seleccionada"></p>
 
-Copiar texto es un cajón, no una sola acción: al pasar el ratón solo salen las acciones que admite esa selección — Corregir ortografía en una palabra, Corregir gramática en una frase y Análisis en una frase inglesa de hasta 80 palabras. Ninguna se guarda en caché y cada una cuenta para el presupuesto diario como cualquier otra petición.
+Copiar texto es un cajón, no una sola acción: al pasar el ratón solo salen las acciones que admite esa selección.
+
+- Corregir ortografía en una palabra, Corregir gramática en una frase y Análisis en una frase inglesa de hasta 80 palabras.
+- Ninguna se guarda en caché y cada una cuenta para el presupuesto diario como cualquier otra petición.
 
 <p align="center"><img src="docs/readme/breakdown.png" width="800" alt="La respuesta de Análisis: la frase teñida por sus cuatro roles, con una leyenda debajo"></p>
 
@@ -101,13 +106,22 @@ Análisis tiñe cada parte de la frase con uno de cuatro colores — sujeto, ver
 
 <p align="center"><img src="docs/readme/learning-loop.gif" width="900" alt="El cartel de repaso de Fantasma junto a ella y el registro anual de palabras"></p>
 
-Conocida y Nueva viven en una sola lista de palabras. Pasa el ratón por una fila para releer una explicación que Lens ya guardó, sin enviar ninguna petición. Cuando toca repasar una palabra, aparece junto al compañero de escritorio un pequeño cartel, el suyo; responde Olvidé o Lo recordaba y volverá con un intervalo de entre diez minutos y sesenta días. El registro anual mantiene visible el hábito sin convertirlo en una racha.
+Conocida y Nueva viven en una sola lista de palabras.
+
+- Pasa el ratón por una fila para releer una explicación que Lens ya guardó, sin enviar ninguna petición.
+- Cuando toca repasar una palabra, aparece junto al compañero de escritorio un pequeño cartel, el suyo; responde Olvidé o Lo recordaba y volverá con un intervalo de entre diez minutos y sesenta días.
+- El registro anual mantiene visible el hábito sin convertirlo en una racha.
 
 ## Mascotas que te devuelven las palabras
 
 <p align="center"><img src="docs/readme/pets.gif" width="900" alt="Las siete mascotas de píxeles de Lens"></p>
 
-Lens incluye siete mascotas de píxeles: Gato de orejas cortas, Búho, Mochi, Fantasma, Medusa, Nube y Perro. Están desactivadas por defecto; activa una en Ajustes › Extensiones. Cada mascota tiene su propio vestuario de nueve piezas y seis escenas — cuatro propias y dos compartidas; una bufanda o unas gafas inclinan qué escena elige, y su tamaño y su ropa se recuerdan por mascota mientras la ventana se queda donde la dejas. Deambulan, se esconden en el borde de la pantalla, notan el puntero y se pueden coger y lanzar. Solo reciben tipos de evento — nunca tus selecciones, explicaciones o texto en pantalla — y los paquetes solo contienen datos.
+Lens incluye siete mascotas de píxeles: Gato de orejas cortas, Búho, Mochi, Fantasma, Medusa, Nube y Perro. Están desactivadas por defecto; activa una en Ajustes › Extensiones.
+
+- Cada mascota tiene su propio vestuario de nueve piezas y seis escenas — cuatro propias y dos compartidas; una bufanda o unas gafas inclinan qué escena elige.
+- Su tamaño y su ropa se recuerdan por mascota, mientras la ventana se queda donde la dejas.
+- Deambulan, se esconden en el borde de la pantalla, notan el puntero y se pueden coger y lanzar.
+- Solo reciben tipos de evento — nunca tus selecciones, explicaciones o texto en pantalla — y los paquetes solo contienen datos.
 
 Las seis de Fantasma: el reloj de medianoche, la calabaza de Halloween, el espejo y el té de fantasmas son suyos; el escritorio y el baño los comparte con las demás mascotas — cada escena es una animación propia. La calabaza, en movimiento:
 
@@ -131,13 +145,18 @@ Y la tarjeta que levantan los ajustes: al pasar el ratón por una mascota en Aju
 
 <p align="center"><img src="docs/readme/themes.png" width="900" alt="Claro, Oscuro, Vidrio mate y Vidrio líquido"></p>
 
-Claro y Oscuro son sólidos. Vidrio mate y Vidrio líquido dibujan cada tarjeta sobre una copia desenfocada del escritorio y mantienen a Lens fuera de las capturas de pantalla y del uso compartido mientras están activos. Personalizado te deja elegir los colores y comprueba el contraste con WCAG AA. Las animaciones siguen la configuración de animaciones de Windows.
+- **Claro y Oscuro** son sólidos.
+- **Vidrio mate y Vidrio líquido** dibujan cada tarjeta sobre una copia desenfocada del escritorio y mantienen a Lens fuera de las capturas de pantalla y del uso compartido mientras están activos.
+- **Personalizado** te deja elegir los colores y comprueba el contraste con WCAG AA.
+- **Las animaciones** siguen la configuración de animaciones de Windows.
 
 ## Descargar
 
-Descarga `Lens-<version>-setup.exe` desde la [página de versiones](https://github.com/kakuyo1/lens/releases/latest), o `Lens-<version>-portable.zip` de la misma versión. El instalador es por usuario, así que Windows nunca pide permisos de administrador; el zip portátil se ejecuta desde cualquier carpeta.
+Descarga `Lens-<version>-setup.exe` desde la [página de versiones](https://github.com/kakuyo1/lens/releases/latest), o `Lens-<version>-portable.zip` de la misma versión.
 
-**Windows 10/11 x64.** Necesitarás una clave de API de un proveedor compatible. Lens no incluye un diccionario de definiciones; incluye una lista de unas 168.000 palabras inglesas solo para comprobar que un candidato es una palabra real.
+- **El instalador** es por usuario, así que Windows nunca pide permisos de administrador; **el zip portátil** se ejecuta desde cualquier carpeta.
+- **Windows 10/11 x64.** Necesitarás una clave de API de un proveedor compatible.
+- Lens no incluye un diccionario de definiciones; incluye una lista de unas 168.000 palabras inglesas solo para comprobar que un candidato es una palabra real.
 
 <details>
 <summary>Puede que Windows te avise antes de ejecutarlo</summary>
@@ -148,7 +167,15 @@ Lens no tiene firma de código y SmartScreen bloquea los programas que no recono
 
 ## Privacidad
 
-Solo el texto que seleccionas o capturas se envía al proveedor que configures, después de ocultar localmente URL, direcciones de correo y cadenas de seis o más dígitos. El OCR se ejecuta localmente por defecto; el OCR en línea es opcional, pide confirmación en cada captura y la tarjeta de confirmación dice a qué servicio va ese recorte, y el escaneo automático experimental nunca lo usa. El altavoz lee en local con la voz del sistema o un modelo local descargado; cuando recurre a un audio en línea, solo esa palabra sale del dispositivo, y la grabación se guarda en `%APPDATA%\Lens\audio`. Tu clave de API, las credenciales de OCR y tus datos de aprendizaje se quedan en `%APPDATA%\Lens\settings.json`. Si activas la sincronización, la copia en la nube se cifra con tu frase de contraseña y se guarda en tu propio gist de GitHub; la clave se queda en este dispositivo. Lens no tiene cuenta ni servidor propio. Consulta [SECURITY.md](SECURITY.md) para conocer todos los límites.
+Lens no tiene cuenta ni servidor propio.
+
+- **Lo que se envía.** Solo el texto que seleccionas o capturas va al proveedor que configures, después de ocultar localmente URL, direcciones de correo y cadenas de seis o más dígitos.
+- **OCR.** Se ejecuta localmente por defecto. El OCR en línea es opcional: cada captura muestra el recorte congelado y el destino exacto, se sube solo cuando lo confirmas, y el escaneo automático experimental nunca lo usa.
+- **El altavoz.** Lee en local con la voz del sistema o un modelo local descargado; cuando recurre a un audio en línea, solo esa palabra sale del dispositivo, y la grabación se guarda en `%APPDATA%\Lens\audio`.
+- **En este dispositivo.** Tu clave de API, las credenciales de OCR y tus datos de aprendizaje se quedan en `%APPDATA%\Lens\settings.json`.
+- **Sincronización.** Si la activas, la copia en la nube se cifra con tu frase de contraseña y se guarda en tu propio gist de GitHub; la clave se queda en este dispositivo.
+
+Consulta [SECURITY.md](SECURITY.md) para conocer todos los límites.
 
 ## Preguntas frecuentes
 
