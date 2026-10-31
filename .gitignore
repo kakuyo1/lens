@@ -37,6 +37,10 @@ CLAUDE.local.md
 assets-private/
 
 logs/
+proposals/
+
+# The agent harness's per-workspace state: session data and local caches.
+.zcode/
 
 # The assistant's working directory: measurement scripts, VMMap and its dumps, raw sampling CSVs.
 # Per-machine and large (tens of MB of tool binaries); the reports under docs/metrics/ are what
@@ -52,6 +56,7 @@ architecture-review-*.html
 # commit carries its report, and the archive moves to docs/history/ when the campaign ends.
 .impeccable/*
 !.impeccable/critique/
+.taste-skill/*
 
 # Python bytecode
 __pycache__/
