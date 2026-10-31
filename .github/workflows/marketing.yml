@@ -1,0 +1,47 @@
+# Deploy the marketing landing page (marketing/) to GitHub Pages.
+#
+# marketing/ is a self-contained static site: every reference is a relative path, so the folder
+# publishes as-is under https://kakuyo1.github.io/lens/ with no build step. The generator and its
+# README are repo-side tooling, not part of the page, and stay out of the artifact. Pages must be
+# set to build from "GitHub Actions" (build_type=workflow); deploy-pages refuses anything else.
+
+name: Marketing
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'marketing/**'
+      - '.github/workflows/marketing.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy site
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Prune non-site files
+        run: rm -rf marketing/tools marketing/README.md
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: marketing
+
+      - id: deployment
+        uses: actions/deploy-pages@v5
