@@ -16,6 +16,11 @@ from PIL import Image, ImageDraw
 SCALE = 3
 
 
+def scale_of(docs):
+    """Display the preview at the pet's own scale: that is the grain the app shows."""
+    return docs["pet"]["scale"]
+
+
 def load(pkg):
     pkg = Path(pkg)
     return pkg, {stem: json.loads((pkg / f"{stem}.json").read_text(encoding="utf-8"))
@@ -67,7 +72,7 @@ def idle_preview(pkg_path, out_path):
     idle = anim["roles"]["idle"]
     img, _ = frame_image(pkg, docs, idle, 0)
     worn(pkg, docs, img, docs["anchors"]["actions"][idle][0], ["top_bone"])
-    scaled(img, SCALE).save(out_path)
+    scaled(img, scale_of(docs)).save(out_path)
     print("wrote", out_path)
 
 
@@ -104,6 +109,7 @@ def contact_sheet(pkg_path, out_path):
     rows.append(("accessories", acc_row))
 
     pad = 2
+    rows = [(name, frames) for name, frames in rows if frames]
     width = max(sum(f.width for f in frames) + pad * len(frames) for _, frames in rows)
     height = sum(frames[0].height + pad for _, frames in rows)
     sheet = Image.new("RGBA", (width, height), (128, 128, 128, 255))
@@ -114,26 +120,30 @@ def contact_sheet(pkg_path, out_path):
             sheet.alpha_composite(f, (x, y))
             x += f.width + pad
         y += frames[0].height + pad
-    sheet = scaled(sheet, 2)
+    sheet = scaled(sheet, min(scale_of(docs), 3))
     sheet.save(out_path)
     print("wrote", out_path, sheet.size)
 
 
 def compare(pkg_paths, out_path):
     """One strip of idle frame 1 from several packages: gate 2 renders 2-3 rig
-    variants and shows them side by side so one user round picks the winner."""
+    variants and shows them side by side so one user round picks the winner.
+    Each pet renders at its own scale, bottom-aligned."""
     imgs = []
     for p in pkg_paths:
         pkg, docs = load(p)
         idle = docs["animations"]["roles"]["idle"]
         img, _ = frame_image(pkg, docs, idle, 0)
-        imgs.append(img)
+        imgs.append(scaled(img, scale_of(docs)))
     pad = 4
-    strip = Image.new("RGBA", (len(imgs) * (imgs[0].width + pad) + pad, imgs[0].height + 2 * pad),
-                      (128, 128, 128, 255))
-    for i, img in enumerate(imgs):
-        strip.alpha_composite(img, (pad + i * (img.width + pad), pad))
-    scaled(strip, SCALE).save(out_path)
+    height = max(img.height for img in imgs) + 2 * pad
+    width = sum(img.width for img in imgs) + pad * (len(imgs) + 1)
+    strip = Image.new("RGBA", (width, height), (128, 128, 128, 255))
+    x = pad
+    for img in imgs:
+        strip.alpha_composite(img, (x, height - pad - img.height))
+        x += img.width + pad
+    strip.save(out_path)
     print("wrote", out_path, f"({len(imgs)} variants, order = argument order)")
 
 

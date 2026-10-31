@@ -152,6 +152,41 @@ Item {
             Pet.setPreviewing(false);
         }
 
+        /// An installed image-source pet (an official render re-posed per frame) drawn by the real
+        /// stage, one shot per action at a chosen frame, for hand-checking the draw. The pet comes
+        /// from the qtest installed dir (%TEMP%/lens-qtest-no-installed-pets/cartman); the case
+        /// skips when it is not there.
+        function test_captureImageSourcePetActions() {
+            if (!lensQaSnapshotDir)
+                skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the offscreen snapshot");
+            const known = Pet.picker.pets;
+            if (!known.some(p => p.id === "cartman"))
+                skip("copy a cartman package into %TEMP%/lens-qtest-no-installed-pets/ first");
+
+            Pet.picker.setPet("cartman");
+            Pet.picker.confirmPet("cartman");
+            tryCompare(Pet.picker, "pet", "cartman");
+            tryCompare(Pet.pose, "canvas", 88);
+
+            const shots = [
+                ["idle", 0, 0], ["walk", 1, 220], ["study", 0, 0], ["study", 2, 700],
+                ["celebrate", 2, 400], ["encourage", 1, 280], ["yawn", 1, 300],
+                ["yawn", 2, 560], ["angry", 1, 180], ["dizzy", 1, 220], ["peek", 0, 0],
+            ];
+            for (const [action, f, waitMs] of shots) {
+                Pet.preview(action);
+                Pet.setPreviewing(true);
+                wait(waitMs);
+                waitForRendering(frame);
+                verify(Util.saveSnapshot(testCase, frame, lensQaSnapshotDir,
+                                         "pet-cartman-" + action + "-f" + f));
+                Pet.setPreviewing(false);
+            }
+
+            Pet.picker.setPet("dog");
+            tryCompare(Pet.picker, "pet", "dog");
+        }
+
         /// ADR 0101: a hop starts with the props transparent and the idle body in front of the front layer, then
         /// lands on the scene pose. A real scene is the machine's, so the case clicks it out at the end.
         function test_aHopEnterHoldsTheIdlePoseAndFlipsLayers() {

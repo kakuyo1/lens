@@ -44,7 +44,7 @@ whole animal about its feet line with one number.
     "<name>": {
       "fps": 6, "loop": True,
       "duration": None, "returnTo": None, "blink": True,
-      "effect": None,                                # or {"kind": "hearts|stars|zzz|notes|dust",
+      "effect": None,                                # or {"kind": "hearts|stars|zzz|notes|dust|cash|book|snack",
                                                      #     "color": "#F1948A"}
       "frames": [
         {"pose": {"dx": 0, "dy": 0, "sx": 1.0, "sy": 1.0}, "expression": "default"},
@@ -61,7 +61,25 @@ whole animal about its feet line with one number.
     {"id": "hat", "slot": "head", "zIndex": 12,
      "art": [{"op": "rows", "at": [35, 8], "rows": ["..#####.."], "color": "#E74C3C"}],
      "except": ["sleep"]}            # supportedActions defaults to all actions minus except
-  ]
+  ],
+  "body_art": [...],                 # optional escape hatch for flat-cartoon bodies
+                                     # (South Park and friends): ops replace draw_rig on
+                                     # the body layer and ride the pose transform, so the
+                                     # figure still squashes, translates and anchors. The
+                                     # rig stays the geometry source (pivot, face, anchors);
+                                     # ellipse/rect/cell ops take outline+width too.
+  "face": {                          # optional per-expression art ops on the face layer,
+    "default": [...],                # overriding the built-in patterns by name; names not
+    "happy": [...]                   # listed keep the built-in look. An empty list paints
+                                     # a transparent cell (image-source mode uses this).
+  },
+  # image-source mode: an action may instead carry
+  #   "source": "path/to/official.png", "colors": 24, "key": "#FFFFFF", "fit": 0.8
+  # the render is fitted to the canvas (alpha-cropped, bottom on canvas-2,
+  # LANCZOS + palette quantisation) and re-posed per frame by bitmap_frame;
+  # poses are TRANSLATE-ONLY (dx/dy): squash would scale the body bitmap but
+  # not the face layer and the pupils would ghost off the whites.
+  # with a full-image source keep face overrides empty or minimal (eyelids).
 }
 
 Art ops (accessories): at is in CELLS for cell/rect/ellipse; for "rows" at is
@@ -425,7 +443,12 @@ def draw_face(draw, rig, name):
 
 # --- effects ------------------------------------------------------------------
 
-def draw_effect(draw, kind, color, frame, frames):
+DOLLAR = ["..#..", ".###.", "##...", ".###.", "...##", ".###.", "..#.."]
+
+
+def draw_effect(draw, eff, frame, frames):
+    kind = eff["kind"]
+    color = eff.get("color", "#F1948A")
     t = frame / max(1, frames)
     if kind == "hearts":
         for k in range(3):
@@ -436,7 +459,7 @@ def draw_effect(draw, kind, color, frame, frames):
         for k in range(4):
             ang = t * 2 * math.pi + k * math.pi / 2
             x = int(44 + 30 * math.cos(ang))
-            y = int(28 + 12 * math.sin(ang))
+            y = int(14 + 7 * math.sin(ang))
             draw.line([(x - 4, y), (x + 4, y)], fill=color, width=2)
             draw.line([(x, y - 4), (x, y + 4)], fill=color, width=2)
     elif kind == "zzz":
@@ -447,6 +470,28 @@ def draw_effect(draw, kind, color, frame, frames):
         for k in range(2):
             _rows(draw, ["..##", "..##", "..#.", ".##.", ".#.."],
                   (16 + k * 46, int(40 - t * 20 - k * 10)), color, 2)
+    elif kind == "cash":
+        for k in range(2):
+            x = 14 + k * 42 + (frame * 4) % 10
+            y = max(2, int(16 - t * 12 - k * 5))
+            _rows(draw, DOLLAR, (x, y), color, 1)
+    elif kind == "book":
+        bx, by = eff.get("at", (35, 54))
+        draw.polygon([(bx, by + 2), (bx + 8, by), (bx + 8, by + 8), (bx, by + 10)],
+                     fill="#F2EEE2", outline="#8A7B5C")
+        draw.polygon([(bx + 9, by), (bx + 17, by + 2), (bx + 17, by + 10), (bx + 9, by + 8)],
+                     fill="#E8E2D2", outline="#8A7B5C")
+        if frame % 3 == 2:
+            draw.line([(bx + 8, by + 1), (bx + 12, by - 2), (bx + 13, by + 3)],
+                      fill="#C9BFA5", width=1)
+    elif kind == "snack":
+        at = eff.get("at", (48, 3))
+        bx, by = at[0], at[1] + (frame // 2) % 2
+        draw.rounded_rectangle([bx, by + 2, bx + 13, by + 17], radius=3,
+                               fill="#E8792B", outline="#A34E14", width=1)
+        draw.rectangle([bx + 1, by + 2, bx + 12, by + 5], fill="#F4A45C")  # crimped top
+        for ox, oy in ((bx + 3, by + 8), (bx + 7, by + 10), (bx + 5, by + 13)):
+            draw.ellipse([ox, oy, ox + 3, oy + 3], fill="#F7C948")  # cheese puffs
     else:  # dust
         for k in range(3):
             x = 18 + k * 24 + (frame * 7) % 12
@@ -456,14 +501,75 @@ def draw_effect(draw, kind, color, frame, frames):
 
 # --- render --------------------------------------------------------------------
 
-def render_frame(rig, pose):
+_IMG_CACHE = {}
+
+
+def fitted_image(source, colors=24, key=None, fit=1.0):
+    """Fit one source image (an official transparent render) to the canvas: crop to
+    alpha, scale into an (CANVAS-4)*fit box, optional chroma-key, optional palette
+    quantisation for the flat look; bottom edge lands on canvas-2. fit shrinks the
+    figure inside the canvas (0.8 ≈ a bundled pet's proportion)."""
+    if (source, CANVAS, colors, key, fit) in _IMG_CACHE:
+        return _IMG_CACHE[(source, CANVAS, colors, key, fit)]
+    img = Image.open(source).convert("RGBA")
+    if key:
+        px = img.load()
+        kr, kg, kb = bytes.fromhex(key.lstrip("#")) if isinstance(key, str) else key
+        for yy in range(img.height):
+            for xx in range(img.width):
+                r, g, b, a = px[xx, yy]
+                if abs(r - kr) < 24 and abs(g - kg) < 24 and abs(b - kb) < 24:
+                    px[xx, yy] = (r, g, b, 0)
+    box = img.getchannel("A").getbbox()
+    img = img.crop(box)
+    scale = min((CANVAS - 4) / img.width, (CANVAS - 4) / img.height) * fit
+    img = img.resize((max(1, round(img.width * scale)), max(1, round(img.height * scale))),
+                     Image.LANCZOS)
+    if colors:
+        img = img.quantize(colors=colors, method=Image.Quantize.FASTOCTREE).convert("RGBA")
+    out = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
+    out.alpha_composite(img, ((CANVAS - img.width) // 2, CANVAS - 2 - img.height))
+    _IMG_CACHE[(source, CANVAS, colors, key, fit)] = out
+    return out
+
+
+def bitmap_frame(base, pose):
+    """One frame from a fitted bitmap: nearest-neighbour squash about the bottom
+    line, then translate. Flat art tolerates both; that is the trade for using
+    an official render instead of articulated parts."""
+    dx = round(pose.get("dx", 0) * CELL)
+    dy = round(pose.get("dy", 0) * CELL)
+    sx = pose.get("sx", 1.0)
+    sy = pose.get("sy", 1.0)
+    if sx != 1.0 or sy != 1.0:
+        img = base.resize((max(1, round(base.width * sx)), max(1, round(base.height * sy))),
+                          Image.NEAREST)
+    else:
+        img = base
+    frame = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
+    frame.alpha_composite(img, ((CANVAS - img.width) // 2 + dx, CANVAS - 2 - img.height + dy))
+    return frame
+
+
+def render_frame(rig, pose, body_art=None):
+    """One body-layer frame. body_art (when given) replaces draw_rig and its ops
+    ride the pose transform, so flat-cartoon bodies squash and translate like a
+    rig would; rows ops translate without squashing."""
     xf = Xform(pose, _pivot(rig))
     body = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
-    draw_rig(ImageDraw.Draw(body), rig, xf)
+    if body_art:
+        _draw_ops(ImageDraw.Draw(body), body_art, xf)
+    else:
+        draw_rig(ImageDraw.Draw(body), rig, xf)
     return body, (int(round(xf.dx)), int(round(xf.dy)))
 
 
 def render(recipe, out_dir):
+    global CANVAS
+    # Image-source mode may raise the canvas (16-128) for a smoother sprite; rig
+    # mode keeps the 88 grid, whose cell layout is baked into the rig helpers.
+    if recipe.get("source") or any(a.get("source") for a in recipe["actions"].values()):
+        CANVAS = recipe.get("canvas", 88)
     out = Path(out_dir)
     pkg = out / "pets" / recipe["id"]
     sprites = pkg / "sprites"
@@ -475,17 +581,28 @@ def render(recipe, out_dir):
     rig = _scaled_rig(recipe["rig"])
     names = list(recipe["expressions"])
     assert names and names[0] == "default", "expressions[0] must be 'default'"
-    # auto-append expression names used by actions but missing from the sheet
+    # auto-append expression names used by actions but missing from the sheet;
+    # a name the recipe overrides in "face" is legal beyond the built-in set
+    override_names = set(recipe.get("face", {}))
     used = {fr.get("expression", "default")
             for spec in recipe["actions"].values() for fr in spec["frames"]}
     for n in list(names) + sorted(used):
-        assert n in FACE_NAMES, f"unknown expression name: {n}"
+        assert n in FACE_NAMES or n in override_names, f"unknown expression name: {n}"
     names += [n for n in sorted(used) if n not in names]
+
+    body_art = recipe.get("body_art")
+    face = recipe.get("face", {})
 
     sheet = Image.new("RGBA", (CANVAS * len(names), CANVAS), (0, 0, 0, 0))
     for i, name in enumerate(names):
         cell_img = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
-        draw_face(ImageDraw.Draw(cell_img), rig, name)
+        override = face.get(name)
+        if isinstance(override, Image.Image):
+            cell_img.alpha_composite(override)  # a full-cell bitmap (image-source lids)
+        elif override is not None:
+            _draw_ops(ImageDraw.Draw(cell_img), override)
+        else:
+            draw_face(ImageDraw.Draw(cell_img), rig, name)
         sheet.alpha_composite(cell_img, (i * CANVAS, 0))
     sheet.save(expr_dir / "eyes.png")
 
@@ -494,20 +611,38 @@ def render(recipe, out_dir):
     for a_name, spec in recipe["actions"].items():
         anch, expr_idx = [], []
         for fr in spec["frames"]:
-            _, off = render_frame(rig, fr.get("pose", {}))
+            pose = fr.get("pose", {})
+            off = (round(pose.get("dx", 0) * CELL), round(pose.get("dy", 0) * CELL))
             anch.append({"head": list(off), "face": list(off), "body": list(off)})
             expr_idx.append(name_to_idx[fr.get("expression", "default")])
-        body_imgs = [render_frame(rig, f.get("pose", {}))[0] for f in spec["frames"]]
+        if spec.get("source"):
+            base = fitted_image(spec["source"], spec.get("colors", 24), spec.get("key"),
+                                spec.get("fit", 1.0))
+            frames = []
+            for f in spec["frames"]:
+                pose = f.get("pose", {})
+                if "sx" in pose or "sy" in pose:
+                    # squash scales the body bitmap but not the face layer: the
+                    # pupils would drift off the whites -- translate-only here
+                    print(f"WARN action {a_name}: sx/sy ignored in image-source mode")
+                    pose = {k: v for k, v in pose.items() if k in ("dx", "dy")}
+                frames.append(bitmap_frame(base, pose))
+            body_imgs = frames
+        else:
+            body_imgs = [render_frame(rig, f.get("pose", {}), body_art)[0] for f in spec["frames"]]
         strip = Image.new("RGBA", (CANVAS * len(body_imgs), CANVAS), (0, 0, 0, 0))
         for i, img in enumerate(body_imgs):
             strip.alpha_composite(img, (i * CANVAS, 0))
         strip.save(body_dir / f"{a_name}.png")
         if spec.get("effect"):
             fx = Image.new("RGBA", (CANVAS * len(body_imgs), CANVAS), (0, 0, 0, 0))
-            d = ImageDraw.Draw(fx)
             for i in range(len(body_imgs)):
-                draw_effect(d, spec["effect"]["kind"], spec["effect"].get("color", "#F1948A"),
-                            i, len(body_imgs))
+                # draw each cell on its own canvas: the effects use cell-local
+                # coordinates, so drawing straight on the sheet would land every
+                # frame's art in cell 0 and leave the rest blank
+                cell = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
+                draw_effect(ImageDraw.Draw(cell), spec["effect"], i, len(body_imgs))
+                fx.alpha_composite(cell, (i * CANVAS, 0))
             fx.save(fx_dir / f"{a_name}.png")
         actions[a_name] = {
             "frames": len(spec["frames"]), "fps": spec["fps"], "loop": bool(spec["loop"]),
@@ -536,7 +671,8 @@ def render(recipe, out_dir):
         idle_pool = [a for a, s in recipe["actions"].items()
                      if a not in mapped and not s["loop"]]
 
-    doc = {"format": 1, "id": recipe["id"], "canvas": CANVAS, "scale": 3,
+    doc = {"format": 1, "id": recipe["id"], "canvas": CANVAS,
+           "scale": recipe.get("scale", 3),
            "layers": {"body": 0, "expression": 2, "effect": 6},
            "expression": "sprites/expressions/eyes.png"}
     if recipe.get("name"):
@@ -575,27 +711,60 @@ def render(recipe, out_dir):
     return 0 if ok else 1
 
 
-def _draw_ops(draw, ops):
+def _draw_ops(draw, ops, xf=None):
+    """Art ops, shared by accessories and body_art. Without xf the coordinates are
+    absolute (accessories); with xf (body art) cell/rect/ellipse coordinates ride the
+    pose transform, and rows translate by their pixel-space top-left. An op with
+    "px": true gives at/size in raw canvas pixels (cell maths skipped)."""
     for op in ops:
         color = op.get("color", "#1A1A1A")
         at, op_name = op["at"], op["op"]
+        outline = op.get("outline")
+        width = op.get("width", 1)
+        pxmode = op.get("px", False)
         if op_name == "rows":
             scale = op.get("scale", 1)
-            base = (ORIGIN + at[0] * CELL, ORIGIN + at[1] * CELL) if scale > 1 else tuple(at)
+            if scale > 1:
+                base = (ORIGIN + at[0] * CELL, ORIGIN + at[1] * CELL)
+            else:
+                base = tuple(at)
+            if xf is not None:
+                base = tuple(int(round(v)) for v in xf.pt(*base))
             _rows(draw, op["rows"], base, color, scale)
         elif op_name == "cell":
-            draw.rectangle([ORIGIN + at[0] * CELL, ORIGIN + at[1] * CELL,
-                            ORIGIN + at[0] * CELL + CELL - 1, ORIGIN + at[1] * CELL + CELL - 1],
-                           fill=color)
+            box = _op_box(at, [1, 1], xf, pxmode)
+            draw.rectangle(box, fill=color)
         elif op_name == "rect":
-            w, h = op["size"]
-            draw.rectangle([ORIGIN + at[0] * CELL, ORIGIN + at[1] * CELL,
-                            ORIGIN + (at[0] + w) * CELL - 1, ORIGIN + (at[1] + h) * CELL - 1],
-                           fill=color)
+            box = _op_box(at, op["size"], xf, pxmode)
+            draw.rectangle(box, fill=color, outline=outline, width=width if outline else 0)
         elif op_name == "ellipse":
             rx, ry = op["r"]
-            draw.ellipse([ORIGIN + (at[0] - rx) * CELL, ORIGIN + (at[1] - ry) * CELL,
-                          ORIGIN + (at[0] + rx) * CELL, ORIGIN + (at[1] + ry) * CELL], fill=color)
+            if xf is not None and not pxmode:
+                box = xf.box(at[0], at[1], rx, ry)
+            elif pxmode:
+                box = [at[0] - rx, at[1] - ry, at[0] + rx, at[1] + ry]
+            else:
+                box = [ORIGIN + (at[0] - rx) * CELL, ORIGIN + (at[1] - ry) * CELL,
+                       ORIGIN + (at[0] + rx) * CELL, ORIGIN + (at[1] + ry) * CELL]
+            draw.ellipse(box, fill=color, outline=outline, width=width if outline else 0)
+
+
+def _op_box(at, size, xf, pxmode=False):
+    """Pixel box of a rect op (cell space by default, raw pixels with pxmode),
+    optionally transformed by the pose. Corners are min/max-normalised:
+    fractional cell sizes (below 1/3 cell) may otherwise invert the box."""
+    w, h = size
+    if pxmode:
+        x0, y0, x1, y1 = at[0], at[1], at[0] + w - 1, at[1] + h - 1
+    elif xf is not None:
+        x0, y0 = xf.pt(ORIGIN + at[0] * CELL, ORIGIN + at[1] * CELL)
+        x1, y1 = xf.pt(ORIGIN + (at[0] + w) * CELL, ORIGIN + (at[1] + h) * CELL)
+    else:
+        x0 = ORIGIN + at[0] * CELL
+        y0 = ORIGIN + at[1] * CELL
+        x1 = ORIGIN + (at[0] + w) * CELL - 1
+        y1 = ORIGIN + (at[1] + h) * CELL - 1
+    return [min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1)]
 
 
 FACE_NAMES = {"default", "blink", "closed", "happy", "sleepy", "squint", "surprised",
