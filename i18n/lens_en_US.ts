@@ -280,87 +280,98 @@
 <context>
     <name>OnboardingWizard</name>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="206"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="217"/>
         <source>Welcome to Lens</source>
         <translation>Welcome to Lens</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="218"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="229"/>
         <source>Step %1 of %2</source>
         <translation>Step %1 of %2</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="237"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="248"/>
         <source>Skip the setup</source>
         <translation>Skip the setup</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="260"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="271"/>
         <source>Choose how much of what you read should be explained. The level decides which words Lens explains and which it leaves alone; you can change it later under Reading &amp; learning.</source>
-        <translation>Choose how much of what you read should be explained. The level decides which words Lens explains and which it leaves alone; you can change it later under Reading &amp;amp; learning.</translation>
+        <translation>Choose how much of what you read should be explained. The level decides which words Lens explains and which it leaves alone; you can change it later under Reading &amp;amp;amp; learning.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="273"/>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="282"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="284"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="293"/>
         <source>Vocabulary level</source>
         <translation>Vocabulary level</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="300"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="314"/>
         <source>Pick the service that writes the explanations, and paste the key it gave you. DeepSeek is the default and takes Chinese payment; any provider below works the same.</source>
         <translation>Pick the service that writes the explanations, and paste the key it gave you. DeepSeek is the default and takes Chinese payment; any provider below works the same.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="313"/>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="322"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="327"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="336"/>
         <source>Provider</source>
         <translation>Provider</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="334"/>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="361"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="348"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="376"/>
+        <source>Service address</source>
+        <translation>Service address</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="384"/>
+        <source>The address is the provider&apos;s default; override it when it moves or when you use a custom service.</source>
+        <translation>The address is the provider&apos;s default; override it when it moves or when you use a custom service.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="396"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="423"/>
         <source>API key</source>
         <translation>API key</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="389"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="451"/>
         <source>Create a key in your provider&apos;s dashboard; it is stored on this device only.</source>
-        <translation>Create a key in your provider&amp;apos;s dashboard; it is stored on this device only.</translation>
+        <translation>Create a key in your provider&amp;amp;apos;s dashboard; it is stored on this device only.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="397"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="459"/>
         <source>A lookup is a small request that costs a fraction of a cent; the cost panel keeps the running total.</source>
         <translation>A lookup is a small request that costs a fraction of a cent; the cost panel keeps the running total.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="415"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="477"/>
         <source>This is the whole loop: select English text anywhere, and the explanation appears beside it. Try it here -- drag across &quot;quiet&quot; in the line below, and the card appears beside this window. Nothing is sent; the card is a sample.</source>
-        <translation>This is the whole loop: select English text anywhere, and the explanation appears beside it. Try it here -- drag across &amp;quot;quiet&amp;quot; in the line below, and the card appears beside this window. Nothing is sent; the card is a sample.</translation>
+        <translation>This is the whole loop: select English text anywhere, and the explanation appears beside it. Try it here -- drag across &amp;amp;quot;quiet&amp;amp;quot; in the line below, and the card appears beside this window. Nothing is sent; the card is a sample.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="437"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="499"/>
         <source>The evening was &quot;quiet&quot;, and the page felt close.
 One small word at a time, the reading opens.</source>
-        <translation>The evening was &amp;quot;quiet&amp;quot;, and the page felt close.
+        <translation>The evening was &amp;amp;quot;quiet&amp;amp;quot;, and the page felt close.
 One small word at a time, the reading opens.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="452"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="514"/>
         <source>Lens lives in the tray. The tray menu&apos;s settings entry opens this panel again, and its first row speaks up until a key is set.</source>
-        <translation>Lens lives in the tray. The tray menu&amp;apos;s settings entry opens this panel again, and its first row speaks up until a key is set.</translation>
+        <translation>Lens lives in the tray. The tray menu&amp;amp;apos;s settings entry opens this panel again, and its first row speaks up until a key is set.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="483"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="545"/>
         <source>Back</source>
         <translation>Back</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="491"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="553"/>
         <source>Next</source>
         <translation>Next</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="499"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="561"/>
         <source>Done</source>
         <translation>Done</translation>
     </message>

@@ -210,6 +210,11 @@ html[data-theme=liquid][data-refract] #setCard{backdrop-filter:blur(var(--glass-
           </select>
         </div>
         <div class="field">
+          <label for="wizUrl" data-i18n="s2.addr"></label>
+          <input id="wizUrl" type="text" autocomplete="off" spellcheck="false" value="https://api.deepseek.com">
+        </div>
+        <p class="hint" data-i18n="s2.addrnote"></p>
+        <div class="field">
           <label for="wizKey" data-i18n="s2.key"></label>
           <input id="wizKey" type="password" autocomplete="off" spellcheck="false" data-i18n-ph="s2.ph">
         </div>
@@ -334,6 +339,8 @@ const L = {
     'grp.abroad': '出国考试',
     's2.lead': '选择写释义的服务，并粘贴它发的 key。默认 DeepSeek，可人民币直充；列出的服务商都同样可用。',
     's2.provider': '服务商',
+    's2.addr': '服务地址',
+    's2.addrnote': '地址是服务商的默认值；默认变了或用自定义服务时，在这里改。',
     's2.key': 'API key',
     's2.ph': '粘贴你的 API key',
     's2.stored': 'key 在服务商的控制台里创建，只保存在本机。',
@@ -374,6 +381,8 @@ const L = {
     'grp.abroad': 'Study-abroad exams',
     's2.lead': 'Pick the service that writes the explanations, and paste the key it gave you. DeepSeek is the default and takes Chinese payment; every provider below works the same.',
     's2.provider': 'Provider',
+    's2.addr': 'Service address',
+    's2.addrnote': 'The address is the provider’s default; override it when it moves or when you use a custom service.',
     's2.key': 'API key',
     's2.ph': 'Paste your API key',
     's2.stored': 'Create a key in your provider’s dashboard; it is stored on this device only.',
@@ -414,6 +423,8 @@ const L = {
     'grp.abroad': 'Exámenes para estudiar fuera',
     's2.lead': 'Elige el servicio que escribe las explicaciones y pega la clave que te dio. DeepSeek es el predeterminado y admite pago en yuanes; todos los proveedores funcionan igual.',
     's2.provider': 'Proveedor',
+    's2.addr': 'Dirección del servicio',
+    's2.addrnote': 'La dirección es la del proveedor por defecto; cámbiala si deja de valer o si usas un servicio propio.',
     's2.key': 'Clave API',
     's2.ph': 'Pega tu clave API',
     's2.stored': 'Crea la clave en el panel de tu proveedor; se guarda solo en este equipo.',
@@ -454,6 +465,8 @@ const L = {
     'grp.abroad': '留学試験',
     's2.lead': '解説を書くサービスを選び、発行されたキーを貼り付けます。既定は DeepSeek で、中国元での支払いに対応。どのプロバイダーも同じように使えます。',
     's2.provider': 'プロバイダー',
+    's2.addr': 'サービスアドレス',
+    's2.addrnote': 'アドレスはプロバイダーの既定値です。変わった場合やカスタムサービスのときは、ここで上書きします。',
     's2.key': 'API キー',
     's2.ph': 'API キーを貼り付け',
     's2.stored': 'キーはプロバイダーのダッシュボードで作成します。この PC にだけ保存されます。',

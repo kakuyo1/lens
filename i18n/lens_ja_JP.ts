@@ -280,87 +280,98 @@
 <context>
     <name>OnboardingWizard</name>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="206"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="217"/>
         <source>Welcome to Lens</source>
         <translation>Lens へようこそ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="218"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="229"/>
         <source>Step %1 of %2</source>
         <translation>ステップ %1 / %2</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="237"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="248"/>
         <source>Skip the setup</source>
         <translation>セットアップを省略</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="260"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="271"/>
         <source>Choose how much of what you read should be explained. The level decides which words Lens explains and which it leaves alone; you can change it later under Reading &amp; learning.</source>
         <translation>読む文章のうち、どの程度を解説するかを選びます。レベルが、Lens がどの語を解説し、どの語を見過ごすかを決めます。あとで「読書と学習」で変更できます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="273"/>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="282"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="284"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="293"/>
         <source>Vocabulary level</source>
         <translation>語彙レベル</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="300"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="314"/>
         <source>Pick the service that writes the explanations, and paste the key it gave you. DeepSeek is the default and takes Chinese payment; any provider below works the same.</source>
         <translation>解説を書くサービスを選び、発行されたキーを貼り付けます。既定は DeepSeek で、中国元での支払いに対応します。どのプロバイダーも同じように使えます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="313"/>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="322"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="327"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="336"/>
         <source>Provider</source>
         <translation>プロバイダー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="334"/>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="361"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="348"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="376"/>
+        <source>Service address</source>
+        <translation>サービスのアドレス</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="384"/>
+        <source>The address is the provider&apos;s default; override it when it moves or when you use a custom service.</source>
+        <translation>アドレスはプロバイダーの既定値です。変わった場合やカスタムサービスのときは、ここで上書きします。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="396"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="423"/>
         <source>API key</source>
         <translation>API キー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="389"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="451"/>
         <source>Create a key in your provider&apos;s dashboard; it is stored on this device only.</source>
         <translation>キーはプロバイダーのダッシュボードで作成します。この PC にだけ保存されます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="397"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="459"/>
         <source>A lookup is a small request that costs a fraction of a cent; the cost panel keeps the running total.</source>
         <translation>1 回の照会はごく小さなリクエストで、費用はわずかです。コストパネルに累計が記録されます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="415"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="477"/>
         <source>This is the whole loop: select English text anywhere, and the explanation appears beside it. Try it here -- drag across &quot;quiet&quot; in the line below, and the card appears beside this window. Nothing is sent; the card is a sample.</source>
         <translation>これが一連の流れです。英文を選ぶと、そのそばに解説が現れます。ここで試してみましょう。下の行の quiet をドラッグで選ぶと、カードがウィンドウのそばに現れます。送信は行われません。カードは見本です。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="437"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="499"/>
         <source>The evening was &quot;quiet&quot;, and the page felt close.
 One small word at a time, the reading opens.</source>
-        <translation>The evening was &quot;quiet&quot;, and the page felt close.
+        <translation>The evening was &amp;quot;quiet&amp;quot;, and the page felt close.
 One small word at a time, the reading opens.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="452"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="514"/>
         <source>Lens lives in the tray. The tray menu&apos;s settings entry opens this panel again, and its first row speaks up until a key is set.</source>
         <translation>Lens はトレイに常駐します。トレイメニューの設定からもう一度このパネルを開けます。キーが未設定の間、メニューの先頭行が表示され続けます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="483"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="545"/>
         <source>Back</source>
         <translation>戻る</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="491"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="553"/>
         <source>Next</source>
         <translation>次へ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="499"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="561"/>
         <source>Done</source>
         <translation>完了</translation>
     </message>

@@ -182,6 +182,14 @@ Window {
         onActivated: wizard.step > 1 ? wizard.back() : wizard.finish()
     }
 
+    /// The vocabulary preview: the word cloud a hovered level's row raises beside the list, the
+    /// component the learning page's own dropdown uses (settings/previews/VocabPreview.qml). Its
+    /// glass sheet is its own ("vocabPreview"), so nothing here has to host it.
+    Component {
+        id: vocabPreviewComponent
+        VocabPreview {}
+    }
+
     ShadowCard {
         id: shell
         anchors.fill: parent
@@ -286,6 +294,9 @@ Window {
                         options: Controller.settings.levels
                         currentValue: Controller.settings.level
                         onPicked: (value) => Controller.setSetting("level", value)
+                        // The word cloud a hovered level raises beside the list -- the same preview
+                        // the learning page's own dropdown carries; the option carries its level.
+                        optionPreview: vocabPreviewComponent
                     }
                 }
             }
@@ -296,7 +307,7 @@ Window {
                 x: 20
                 y: 16
                 width: wizard.cardWidth - 40
-                spacing: 16
+                spacing: 12
 
                 Text {
                     width: parent.width
@@ -326,6 +337,54 @@ Window {
                         options: Controller.settings.providers
                         currentValue: Controller.settings.provider
                         onPicked: (value) => Controller.modelCatalogDuty.setProvider(value)
+                    }
+                }
+
+                Column {
+                    width: parent.width
+                    spacing: 7
+
+                    Text {
+                        text: qsTranslate("OnboardingWizard", "Service address")
+                        color: wizard.tokens.muted
+                        font.pixelSize: 12
+                    }
+
+                    // The address the provider's catalog entry carries, the connection page's own
+                    // field: switching the provider rewrites it to that provider's default, and the
+                    // reader overrides it when the default moved or the provider is a custom one.
+                    // Non-HTTPS answers are refused by the controller, as on the connection page.
+                    Rectangle {
+                        width: parent.width
+                        height: 35
+                        radius: wizard.tokens.radiusField
+                        color: wizard.tokens.panel2
+                        border.width: 1
+                        border.color: wizard.tokens.line
+
+                        TextInput {
+                            anchors.fill: parent
+                            anchors.leftMargin: 11
+                            anchors.rightMargin: 11
+                            clip: true
+                            verticalAlignment: TextInput.AlignVCenter
+                            text: Controller.settings.url
+                            color: wizard.tokens.text
+                            font.pixelSize: 12
+                            selectByMouse: true
+                            activeFocusOnTab: true
+                            Accessible.name: qsTranslate("OnboardingWizard", "Service address")
+                            onEditingFinished: Controller.setApiUrl(text)
+                            HoverHandler { cursorShape: Qt.PointingHandCursor }
+                        }
+                    }
+
+                    Text {
+                        width: parent.width
+                        text: qsTranslate("OnboardingWizard", "The address is the provider's default; override it when it moves or when you use a custom service.")
+                        color: wizard.tokens.muted
+                        font.pixelSize: 11
+                        wrapMode: Text.WordWrap
                     }
                 }
 

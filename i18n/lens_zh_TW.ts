@@ -280,87 +280,98 @@
 <context>
     <name>OnboardingWizard</name>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="206"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="217"/>
         <source>Welcome to Lens</source>
         <translation>歡迎使用 Lens</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="218"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="229"/>
         <source>Step %1 of %2</source>
         <translation>第 %1 步，共 %2 步</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="237"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="248"/>
         <source>Skip the setup</source>
         <translation>跳過設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="260"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="271"/>
         <source>Choose how much of what you read should be explained. The level decides which words Lens explains and which it leaves alone; you can change it later under Reading &amp; learning.</source>
         <translation>選擇閱讀中被解釋的程度。檔位決定 Lens 解釋哪些詞、放過哪些詞；以後可在「閱讀學習」裡變更。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="273"/>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="282"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="284"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="293"/>
         <source>Vocabulary level</source>
         <translation>詞彙檔位</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="300"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="314"/>
         <source>Pick the service that writes the explanations, and paste the key it gave you. DeepSeek is the default and takes Chinese payment; any provider below works the same.</source>
         <translation>選擇撰寫釋義的服務，並貼上它發給你的 key。預設 DeepSeek，可人民幣直充；下列服務商皆可用。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="313"/>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="322"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="327"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="336"/>
         <source>Provider</source>
         <translation>服務商</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="334"/>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="361"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="348"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="376"/>
+        <source>Service address</source>
+        <translation>服務地址</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="384"/>
+        <source>The address is the provider&apos;s default; override it when it moves or when you use a custom service.</source>
+        <translation>地址是服務商的預設值；預設變了或用自訂服務時，在這裡改。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="396"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="423"/>
         <source>API key</source>
         <translation>API key</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="389"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="451"/>
         <source>Create a key in your provider&apos;s dashboard; it is stored on this device only.</source>
         <translation>在服務商的控制台裡建立 key；只儲存在本機。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="397"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="459"/>
         <source>A lookup is a small request that costs a fraction of a cent; the cost panel keeps the running total.</source>
         <translation>一次查詢是很小的請求，費用不到一分錢；花費面板記錄累計。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="415"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="477"/>
         <source>This is the whole loop: select English text anywhere, and the explanation appears beside it. Try it here -- drag across &quot;quiet&quot; in the line below, and the card appears beside this window. Nothing is sent; the card is a sample.</source>
-        <translation>整個循環就是這樣：隨手選取英文，解釋出現在文字旁。在這裡試一次——拖選下面這句裡的 &quot;quiet&quot;，卡片會出現在視窗旁。不會傳送任何內容；這張卡是樣例。</translation>
+        <translation>整個循環就是這樣：隨手選取英文，解釋出現在文字旁。在這裡試一次——拖選下面這句裡的 &amp;quot;quiet&amp;quot;，卡片會出現在視窗旁。不會傳送任何內容；這張卡是樣例。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="437"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="499"/>
         <source>The evening was &quot;quiet&quot;, and the page felt close.
 One small word at a time, the reading opens.</source>
-        <translation>The evening was &quot;quiet&quot;, and the page felt close.
+        <translation>The evening was &amp;quot;quiet&amp;quot;, and the page felt close.
 One small word at a time, the reading opens.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="452"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="514"/>
         <source>Lens lives in the tray. The tray menu&apos;s settings entry opens this panel again, and its first row speaks up until a key is set.</source>
         <translation>Lens 常駐系統匣。系統匣選單的設定項會再次開啟此面板；設定 key 之前，首行會一直提醒。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="483"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="545"/>
         <source>Back</source>
         <translation>返回</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="491"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="553"/>
         <source>Next</source>
         <translation>下一步</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="499"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="561"/>
         <source>Done</source>
         <translation>完成</translation>
     </message>
