@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -52,15 +53,16 @@ TEST_F(StatsStoreTest, RecordsPopsNewestFirst)
     auto       store = KnownStore::load(path);
     StatsStore stats(store.document());
 
-    stats.recordPop("first", "2026-10-03 09:00");
-    stats.recordPop("second", "2026-10-03 09:01");
+    stats.recordPop("first", "2026-10-03 09:00", false);
+    stats.recordPop("second", "2026-10-03 09:01", false);
 
     const auto& history = stats.history();
     ASSERT_EQ(history.size(), 2u);
     EXPECT_EQ(history[0].lemma, "second");
     EXPECT_EQ(history[1].lemma, "first");
-    EXPECT_TRUE(history[0].verdict.empty());
+    EXPECT_EQ(history[0].verdict, "new") << "an unmarked pop is stamped new, not left empty";
     EXPECT_EQ(stats.daily().at("2026-10-03").pops, 2);
+    EXPECT_EQ(stats.daily().at("2026-10-03").fresh, 2) << "the pop books its own tally";
 }
 
 TEST_F(StatsStoreTest, VerdictAttachesToTheNewestEntryOfThatWord)
@@ -68,41 +70,44 @@ TEST_F(StatsStoreTest, VerdictAttachesToTheNewestEntryOfThatWord)
     auto       store = KnownStore::load(path);
     StatsStore stats(store.document());
 
-    stats.recordPop("apple", "2026-10-03 09:00");
-    stats.recordPop("pear", "2026-10-03 09:01");
-    stats.recordPop("apple", "2026-10-03 09:02");
+    stats.recordPop("apple", "2026-10-03 09:00", false);
+    stats.recordPop("pear", "2026-10-03 09:01", false);
+    stats.recordPop("apple", "2026-10-03 09:02", false);
     stats.recordVerdict("apple", "2026-10-03 09:03", "known");
 
     const auto& history = stats.history();
     ASSERT_EQ(history.size(), 3u);
     EXPECT_EQ(history[0].verdict, "known") << "the newest 'apple' takes the verdict";
-    EXPECT_TRUE(history[1].verdict.empty()) << "'pear' is a different word";
-    EXPECT_TRUE(history[2].verdict.empty()) << "the older 'apple' stays unmarked";
+    EXPECT_EQ(history[1].verdict, "new") << "'pear' is a different word";
+    EXPECT_EQ(history[2].verdict, "new") << "the older 'apple' keeps its own pop's stamp";
 
     const DailyUsage& day = stats.daily().at("2026-10-03");
     EXPECT_EQ(day.pops, 3);
     EXPECT_EQ(day.learned, 1);
+    EXPECT_EQ(day.fresh, 2) << "the marked word moved out of new, it did not grow a second count";
 }
 
-/// The words popup's two verdict pills are a choice, not a one-shot: a word that already carries
-/// a verdict has to take the new one, and the day's tally has to follow it there rather than
-/// counting the word in both columns.
+/// A verdict press is a move, not a one-shot: the day's tally has to follow the word from the
+/// column its pop booked into to the column the press names, never counting in both.
 TEST_F(StatsStoreTest, ReMarkingAWordMovesTheRowAndTheDayCount)
 {
     auto       store = KnownStore::load(path);
     StatsStore stats(store.document());
 
-    stats.recordPop("apple", "2026-10-03 09:00");
+    stats.recordPop("apple", "2026-10-03 09:00", false);
+    EXPECT_EQ(stats.daily().at("2026-10-03").fresh, 1) << "the pop starts the word in new";
+
     stats.recordVerdict("apple", "2026-10-03 09:01", "known");
 
     const auto& history = stats.history();
     ASSERT_EQ(history.size(), 1u);
     EXPECT_EQ(history[0].verdict, "known");
+    EXPECT_EQ(stats.daily().at("2026-10-03").fresh, 0) << "the word left the new column";
     EXPECT_EQ(stats.daily().at("2026-10-03").learned, 1);
 
     stats.recordVerdict("apple", "2026-10-03 09:02", "new");
 
-    EXPECT_EQ(history[0].verdict, "new") << "the list reads the newest entry, so the second press has to reach it";
+    EXPECT_EQ(history[0].verdict, "new") << "the stamp is what the tally follows, so the second press has to reach it";
     EXPECT_EQ(stats.daily().at("2026-10-03").learned, 0) << "the word is not known any more";
     EXPECT_EQ(stats.daily().at("2026-10-03").fresh, 1) << "one word, settled once, counted once";
 
@@ -143,8 +148,8 @@ TEST_F(StatsStoreTest, SurvivesASaveAndReloadThroughKnownStore)
     {
         auto       store = KnownStore::load(path);
         StatsStore stats(store.document());
-        stats.recordPop("ubiquitous", "2026-10-03 14:20");
-        stats.recordVerdict("ubiquitous", "2026-10-03 14:21", "new");
+        stats.recordPop("ubiquitous", "2026-10-03 14:20", false);
+        stats.recordVerdict("ubiquitous", "2026-10-03 14:21", "new"); // the pill the pop already stamped
         stats.recordUsage("2026-10-03 14:21", 900, 120);
         store.save(); // the document owner writes everything, stats keys included
     }
@@ -168,7 +173,7 @@ TEST_F(StatsStoreTest, SaveKeepsBothStoresKeys)
         store.mark("ubiquitous", true);
         store.setLevel(3);
         StatsStore stats(store.document());
-        stats.recordPop("resilience", "2026-10-03 14:20");
+        stats.recordPop("resilience", "2026-10-03 14:20", false);
         store.save();
     }
 
@@ -190,7 +195,7 @@ TEST_F(StatsStoreTest, RemovingWordClearsMarksCachesAndHistoryButKeepsUsage)
     store.cachePut("apple", {.ipa = "/a/", .en = "apple", .zh = "苹果", .senses = {{"apple", "苹果", {}}}}, {"zh", true});
 
     StatsStore stats(store.document());
-    stats.recordPop("apple", "2026-10-03 09:00");
+    stats.recordPop("apple", "2026-10-03 09:00", false);
     stats.recordVerdict("apple", "2026-10-03 09:01", "known");
     stats.recordUsage("2026-10-03 09:02", 1200, 300, "deepseek-flash");
     ASSERT_TRUE(store.removeLemma("apple"));
@@ -225,7 +230,7 @@ TEST_F(StatsStoreTest, DropsTheOldestEntriesPastTheCap)
     ASSERT_EQ(stats.history().front().lemma, "w1999") << "newest first";
     ASSERT_EQ(stats.history().back().lemma, "w0") << "seeded oldest last";
 
-    stats.recordPop("newest", "2026-10-03 14:20");
+    stats.recordPop("newest", "2026-10-03 14:20", false);
 
     const auto& after = stats.history();
     ASSERT_EQ(after.size(), StatsStore::kMaxHistory);
@@ -233,49 +238,53 @@ TEST_F(StatsStoreTest, DropsTheOldestEntriesPastTheCap)
     EXPECT_NE(after.back().lemma, "w0") << "the oldest entry fell off the end";
 }
 
-/// The export is a pure rendering of the history, so these cases build the history directly
-/// rather than through the store: what is being pinned is the text's shape.
+/// The export is a pure rendering of the history and the known set, so these cases build both
+/// directly rather than through the store: what is being pinned is the text's shape.
 TEST(WordExport, AllScopeIsEveryLemmaOnceNewestFirst)
 {
-    const std::vector<HistoryEntry> history{
-        {"second", "2026-10-03 09:02", ""},
-        {"first", "2026-10-03 09:01", "known"},
-        {"second", "2026-10-03 09:00", "new"}, // a repeat is one line, the same dedup the list does
+    const std::unordered_set<std::string> none;
+    const std::vector<HistoryEntry>       history{
+              {"second", "2026-10-03 09:02", "new"},
+              {"first", "2026-10-03 09:01", "known"},
+              {"second", "2026-10-03 09:00", "new"}, // a repeat is one line, the same dedup the list does
     };
 
     // One lemma per line, newest first, ending with a newline -- the shape data/wordlist.txt
     // has, which is what the reader's importer will be reading.
-    EXPECT_EQ(exportLemmas(history, ExportScope::All), "second\nfirst\n");
+    EXPECT_EQ(exportLemmas(history, ExportScope::All, none), "second\nfirst\n");
 }
 
-TEST(WordExport, KnownAndNewFollowTheNewestEntrysVerdict)
+/// The scope follows the known set, not the stamps: a word marked known exports as known even
+/// when its newest entry is a later pop, and an unmarked word exports as new.
+TEST(WordExport, KnownAndNewFollowTheKnownSet)
 {
-    const std::vector<HistoryEntry> history{
-        {"second", "2026-10-03 09:02", ""},
-        {"first", "2026-10-03 09:01", "known"},
-        {"second", "2026-10-03 09:00", "known"},
-        {"third", "2026-10-02 20:00", "new"},
+    const std::unordered_set<std::string> known{"first", "second"};
+    const std::vector<HistoryEntry>       history{
+              {"second", "2026-10-03 09:02", "new"}, // popped again after the mark; the stamp is stale
+              {"first", "2026-10-03 09:01", "known"},
+              {"second", "2026-10-03 09:00", "known"},
+              {"third", "2026-10-02 20:00", "new"},
     };
 
-    // The newest entry is the one that counts, so 'second' -- marked known, then popped again
-    // and left unmarked -- is in neither scope, exactly as the words list shows it.
-    EXPECT_EQ(exportLemmas(history, ExportScope::Known), "first\n");
-    EXPECT_EQ(exportLemmas(history, ExportScope::New), "third\n");
+    EXPECT_EQ(exportLemmas(history, ExportScope::Known, known), "second\nfirst\n");
+    EXPECT_EQ(exportLemmas(history, ExportScope::New, known), "third\n");
 }
 
 TEST(WordExport, NothingMatchingIsAnEmptyString)
 {
-    const std::vector<HistoryEntry> history{{"first", "2026-10-03 09:01", "known"}};
-    EXPECT_TRUE(exportLemmas(history, ExportScope::New).empty());
-    EXPECT_TRUE(exportLemmas({}, ExportScope::All).empty());
+    const std::unordered_set<std::string> known{"first"};
+    const std::vector<HistoryEntry>       history{{"first", "2026-10-03 09:01", "known"}};
+    EXPECT_TRUE(exportLemmas(history, ExportScope::New, known).empty());
+    EXPECT_TRUE(exportLemmas({}, ExportScope::All, {}).empty());
 }
 
 TEST(WordExport, ALemmaIsWrittenThroughAsItIs)
 {
     // The lemmas come out of the wordlist, but nothing here may reshape them: one stray
     // conversion and the reader's file carries a different word. Non-ASCII is where that shows.
-    const std::vector<HistoryEntry> history{{"naïve", "2026-10-03 09:01", ""}, {"café", "2026-10-03 09:00", ""}};
-    EXPECT_EQ(exportLemmas(history, ExportScope::All), "naïve\ncafé\n");
+    const std::unordered_set<std::string> none;
+    const std::vector<HistoryEntry>       history{{"naïve", "2026-10-03 09:01", "new"}, {"café", "2026-10-03 09:00", "new"}};
+    EXPECT_EQ(exportLemmas(history, ExportScope::All, none), "naïve\ncafé\n");
 }
 
 TEST_F(StatsStoreTest, IgnoresMalformedEntriesInTheDocument)

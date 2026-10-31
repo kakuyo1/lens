@@ -47,14 +47,15 @@ TEST(WordsView, DayBucketTakesTheDayItIsJudgedAgainst)
 
 TEST(WordsView, RowsKeepTheNewestEntryPerLemmaAndCountEveryPop)
 {
+    const std::unordered_set<std::string>       known{"river"};
     const std::vector<lens::core::HistoryEntry> history{
-        {"bank", "2026-10-18 09:00", ""},
+        {"bank", "2026-10-18 09:00", "new"},
         {"bank", "2026-10-16 08:00", "new"},
         {"river", "2026-10-17 10:00", "known"},
         {"ghost", "not a time", ""},
     };
 
-    const auto rows = wordRows(QDate(2026, 10, 18), history);
+    const auto rows = wordRows(QDate(2026, 10, 18), history, known);
     ASSERT_EQ(rows.size(), 3);
 
     const auto bank = rows.at(0).toMap();
@@ -62,12 +63,12 @@ TEST(WordsView, RowsKeepTheNewestEntryPerLemmaAndCountEveryPop)
     EXPECT_EQ(bank.value("day").toString(), QStringLiteral("today"));
     EXPECT_EQ(bank.value("date").toString(), QStringLiteral("10-18"));
     EXPECT_EQ(bank.value("time").toString(), QStringLiteral("09:00"));
-    EXPECT_TRUE(bank.value("verdict").toString().isEmpty()) << "the newest entry decides the verdict";
+    EXPECT_EQ(bank.value("verdict").toString(), QStringLiteral("new")) << "a word the known set does not hold is new";
     EXPECT_EQ(bank.value("pops").toInt(), 2);
 
     const auto river = rows.at(1).toMap();
     EXPECT_EQ(river.value("day").toString(), QStringLiteral("yesterday"));
-    EXPECT_EQ(river.value("verdict").toString(), QStringLiteral("known"));
+    EXPECT_EQ(river.value("verdict").toString(), QStringLiteral("known")) << "the known set decides, not the stamps";
 
     const auto ghost = rows.at(2).toMap();
     EXPECT_TRUE(ghost.value("day").toString().isEmpty());
@@ -75,21 +76,33 @@ TEST(WordsView, RowsKeepTheNewestEntryPerLemmaAndCountEveryPop)
     EXPECT_TRUE(ghost.value("time").toString().isEmpty());
 }
 
+/// The verdict is binary: every word the known set does not hold reads as new, whatever the
+/// stamps on its history entries say, so there is no unmarked row to ask about.
+TEST(WordsView, AnUnmarkedWordCarriesTheNewVerdict)
+{
+    const std::unordered_set<std::string>       known{"river"};
+    const std::vector<lens::core::HistoryEntry> history{
+        {"bank", "2026-10-18 09:00", ""}, // a stamp from a document written before the collapse
+        {"river", "2026-10-17 10:00", ""},
+    };
+
+    const auto rows = wordRows(QDate(2026, 10, 18), history, known);
+    ASSERT_EQ(rows.size(), 2);
+    EXPECT_EQ(rows.at(0).toMap().value("verdict").toString(), QStringLiteral("new"));
+    EXPECT_EQ(rows.at(1).toMap().value("verdict").toString(), QStringLiteral("known"));
+}
+
 TEST(WordsView, TheFilterAndAnExportShareTheScopeRule)
 {
     const lens::app::WordRow known{"bank", "today", "10-20", "09:00", "known", 2};
     const lens::app::WordRow fresh{"river", "today", "10-20", "10:00", "new", 1};
-    const lens::app::WordRow unmarked{"ghost", "today", "10-20", "11:00", "", 1};
 
     EXPECT_TRUE(rowInScope(known, lens::core::ExportScope::All));
     EXPECT_TRUE(rowInScope(fresh, lens::core::ExportScope::All));
-    EXPECT_TRUE(rowInScope(unmarked, lens::core::ExportScope::All));
     EXPECT_TRUE(rowInScope(known, lens::core::ExportScope::Known));
     EXPECT_FALSE(rowInScope(fresh, lens::core::ExportScope::Known));
-    EXPECT_FALSE(rowInScope(unmarked, lens::core::ExportScope::Known));
     EXPECT_TRUE(rowInScope(fresh, lens::core::ExportScope::New));
     EXPECT_FALSE(rowInScope(known, lens::core::ExportScope::New));
-    EXPECT_FALSE(rowInScope(unmarked, lens::core::ExportScope::New));
 }
 
 TEST(WordsView, ImportReadsTextAndTheTwoJsonShapes)
@@ -117,6 +130,5 @@ TEST(WordsView, ImportRowsDropRepeatsAndStampThePassedMinute)
     ASSERT_EQ(rows.size(), 2);
     EXPECT_EQ(rows.at(0).lemma, "bank");
     EXPECT_EQ(rows.at(0).minute, "2026-10-18 09:30");
-    EXPECT_EQ(rows.at(0).verdict, "new");
     EXPECT_EQ(rows.at(1).lemma, "ghost");
 }

@@ -166,7 +166,7 @@ Item {
         anchors.topMargin: 8
         width: parent.width
         visible: root.showHint
-        text: qsTr("Known stops automatic scans; New marks it for more practice.")
+        text: qsTr("Known stops automatic scans; New keeps it in practice.")
         color: root.tokens.faint
         font.pixelSize: 11
         lineHeight: 1.3

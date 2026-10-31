@@ -207,7 +207,8 @@ public:
 private:
     std::filesystem::path path_;
     nlohmann::json        doc_; ///< The document as loaded; the base for save().
-    /// lemma -> known(true) / new word(false). Absent means never marked.
+    /// lemma -> known(true) / the false vote that un-knows it (docs/adr/0147). Absent means
+    /// never marked; display reads this set binary, so false and absent show the same.
     std::unordered_map<std::string, bool> marks_;
     /// lemma -> when its mark was last set, in ms since the epoch; written to "markTimes" as
     /// "marked". Absent for a mark that predates the field, which reads as 0.

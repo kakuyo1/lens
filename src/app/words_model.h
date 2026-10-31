@@ -2,9 +2,9 @@
  * @file words_model.h
  * @brief The words popup's rows as an item model: deduplicated, filtered and updated in place.
  *
- * The model owns what the list shows. The controller hands it the history after every
- * statsChanged; rows are matched by lemma and the difference reaches the view as removals,
- * insertions and data changes, so a removal runs ListView's remove transition and the
+ * The model owns what the list shows. The controller hands it the history and the known set
+ * after every statsChanged; rows are matched by lemma and the difference reaches the view as
+ * removals, insertions and data changes, so a removal runs ListView's remove transition and the
  * delegates that stay keep their state. A reorder -- a word re-popped while the list is open
  * -- resets the model; QAbstractListModel's move bookkeeping is not worth it for a change the
  * old list rebuilt every delegate for anyway.
@@ -22,6 +22,8 @@
 #include <QVariantList>
 #include <QtQml/qqmlregistration.h>
 
+#include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "core/document/stats_store.h"
@@ -84,7 +86,11 @@ public:
     }
 
     /// @brief Replace the rows with those @p history describes, emitting the difference.
-    void update(QDate const& today, std::vector<core::HistoryEntry> const& history);
+    /// @param knownLemmas The lemmas currently marked known; the verdict each row carries is
+    ///                    derived from this set, the same way an export's scope is.
+    void update(QDate const&                           today,
+                std::vector<core::HistoryEntry> const& history,
+                std::unordered_set<std::string> const& knownLemmas);
 
 signals:
     void filterChanged();

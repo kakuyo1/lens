@@ -113,11 +113,13 @@ void WordsModel::finishSwitch()
     emit filterSwitchingChanged();
 }
 
-void WordsModel::update(QDate const& today, std::vector<core::HistoryEntry> const& history)
+void WordsModel::update(QDate const&                           today,
+                        std::vector<core::HistoryEntry> const& history,
+                        std::unordered_set<std::string> const& knownLemmas)
 {
     if (hasPending_)
         finishSwitch(); // a row cannot arrive under a statistics change meant for the set before it
-    std::vector<WordRow> nextAll     = wordRowList(today, history);
+    std::vector<WordRow> nextAll     = wordRowList(today, history, knownLemmas);
     std::vector<WordRow> nextVisible = filtered(nextAll, filter_);
     const int            oldCount    = allCount();
 

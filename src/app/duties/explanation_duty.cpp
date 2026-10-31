@@ -560,7 +560,7 @@ void ExplanationDuty::send(llm::ExplainRequest request, ExplanationBatch const& 
 {
     for (auto const& item : batch.items) {
         if (isWordKind(item.kind))
-            storage_.statsStore().recordPop(item.lemma.toStdString(), nowMinute().toStdString());
+            storage_.statsStore().recordPop(item.lemma.toStdString(), nowMinute().toStdString(), storage_.knownStore().isKnown(item.lemma.toStdString()));
     }
     // The request goes out with nothing previewed yet: the first preview of this one is the line
     // onPartial() writes.
@@ -725,7 +725,7 @@ ExchangeFacts ExplanationDuty::facts() const
 void ExplanationDuty::apply(ExplanationExchange::Outcome const& outcome, bool const save)
 {
     if (not outcome.popLemma.isEmpty()) {
-        storage_.statsStore().recordPop(outcome.popLemma.toStdString(), nowMinute().toStdString());
+        storage_.statsStore().recordPop(outcome.popLemma.toStdString(), nowMinute().toStdString(), storage_.knownStore().isKnown(outcome.popLemma.toStdString()));
         if (save) {
             storage_.save();
             emit statsChanged();
@@ -817,6 +817,10 @@ void ExplanationDuty::clearBubble()
 
 void ExplanationDuty::mark(QString lemma, bool learned)
 {
+    // "Known" is the verdict the reader gives; "new" is the state every unmarked word already
+    // carries, so pressing it on an unmarked word confirms the stamp it got at pop time
+    // (docs/adr/0147). The false mark still reaches the sync merge, where it can outvote an
+    // older "known" from another device.
     auto const* card = exchange_.card().subject();
     if (not bubble_.isEmpty() and card != nullptr and card->kind != core::SelectionKind::Word and bubble_.value("title").toString() == lemma)
         return;

@@ -262,16 +262,20 @@ Item {
         }
 
         /// Marking from the list settles a word the reader never marked while the bubble was up.
+        /// The verdict is binary (docs/adr/0147): a word not marked known already carries New
+        /// filled, so the row's state is legible before the tap and Known is the one move.
         function test_tappingAVerdictMarksTheWordAndTheRowFollows() {
             const popup = make(wordsComponent);
             popup.visible = true;
 
-            const unmarked = Controller.wordsModel.allRows().filter(function (e) { return e.verdict === ""; });
+            const unmarked = Controller.wordsModel.allRows().filter(function (e) { return e.verdict === "new"; });
             verify(unmarked.length > 0, "the fixture needs a word that was never marked");
             const word = unmarked[0].word;
 
             const row = rowFor(popup, word);
             verify(row, "the row for " + word + " is not on screen");
+            verify(Qt.colorEqual(pillFor(row, "New").color, Tokens.ink),
+                   "an unmarked word is a new word; its pill should be filled already");
             verify(!Qt.colorEqual(pillFor(row, "Known").color, Tokens.ink),
                    "an unmarked word should not already show a filled Known pill");
 

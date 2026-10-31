@@ -127,14 +127,20 @@ StatsStore::StatsStore(nlohmann::json& document)
     LENS_INFO("stats loaded: history={} days={}", history_.size(), daily_.size());
 }
 
-void StatsStore::recordPop(std::string lemma, std::string minute)
+void StatsStore::recordPop(std::string lemma, std::string minute, bool known)
 {
-    history_.insert(history_.begin(), HistoryEntry{std::move(lemma), std::move(minute), std::string()});
+    // The pop is stamped with the verdict the word carries at this moment, so the day's tally
+    // starts in the right column: a known word re-looked-up counts as known, every other word
+    // as new. A later mark moves the count (recordVerdict); nothing stays uncolumned.
+    history_.insert(history_.begin(),
+                    HistoryEntry{std::move(lemma), std::move(minute), known ? "known" : "new"});
     if (history_.size() > kMaxHistory) {
         LENS_DEBUG("stats history over {} entries; dropping the oldest", kMaxHistory);
         history_.resize(kMaxHistory);
     }
-    daily_[util::datePart(history_.front().minute)].pops++;
+    DailyUsage& day = daily_[util::datePart(history_.front().minute)];
+    day.pops++;
+    tallyVerdict(day, history_.front().verdict, 1);
     writeBack();
 }
 
@@ -230,11 +236,15 @@ bool StatsStore::removeLemma(const std::string& lemma)
     return true;
 }
 
-std::string exportLemmas(const std::vector<HistoryEntry>& history, ExportScope scope)
+std::string exportLemmas(const std::vector<HistoryEntry>&       history,
+                         ExportScope                            scope,
+                         const std::unordered_set<std::string>& knownLemmas)
 {
-    const auto wanted = [scope](const HistoryEntry& entry) {
-        if (scope == ExportScope::Known) return entry.verdict == "known";
-        if (scope == ExportScope::New) return entry.verdict == "new";
+    // The scope follows the known set, the way the words popup's verdicts do: a lemma is known
+    // when the set holds it and new when it does not, whatever its newest entry's own stamp says.
+    const auto wanted = [scope, &knownLemmas](const HistoryEntry& entry) {
+        if (scope == ExportScope::Known) return knownLemmas.count(entry.lemma) > 0;
+        if (scope == ExportScope::New) return knownLemmas.count(entry.lemma) == 0;
         return true;
     };
 
@@ -251,11 +261,13 @@ std::string exportLemmas(const std::vector<HistoryEntry>& history, ExportScope s
     return text;
 }
 
-std::string exportLemmasJson(const std::vector<HistoryEntry>& history, ExportScope scope)
+std::string exportLemmasJson(const std::vector<HistoryEntry>&       history,
+                             ExportScope                            scope,
+                             const std::unordered_set<std::string>& knownLemmas)
 {
-    const auto wanted = [scope](const HistoryEntry& entry) {
-        if (scope == ExportScope::Known) return entry.verdict == "known";
-        if (scope == ExportScope::New) return entry.verdict == "new";
+    const auto wanted = [scope, &knownLemmas](const HistoryEntry& entry) {
+        if (scope == ExportScope::Known) return knownLemmas.count(entry.lemma) > 0;
+        if (scope == ExportScope::New) return knownLemmas.count(entry.lemma) == 0;
         return true;
     };
     std::unordered_set<std::string> seen;

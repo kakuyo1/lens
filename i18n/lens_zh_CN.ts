@@ -42,58 +42,58 @@
 <context>
     <name>BubbleCard</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="224"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="243"/>
         <source>Preview</source>
         <translation>预览</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="225"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="244"/>
         <source>Spelling</source>
         <translation>拼写</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="226"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="245"/>
         <source>Grammar</source>
         <translation>语法</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="227"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="246"/>
         <source>Breakdown</source>
         <translation>拆解</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="228"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="247"/>
         <source>Sentence</source>
         <translation>句子</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="229"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="248"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="229"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="248"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="410"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="421"/>
         <source>Etymology</source>
         <translation>词源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="449"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="460"/>
         <source>Example</source>
         <translation>例句</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="513"/>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="556"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="524"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="567"/>
         <source>Not the Sense?</source>
         <translation>不是这个义项？</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="584"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="595"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒后自动消失</translation>
     </message>
@@ -151,14 +151,14 @@
     </message>
     <message>
         <location filename="../src/app/qml/bubble/BubbleVerdictRow.qml" line="169"/>
-        <source>Known stops automatic scans; New marks it for more practice.</source>
-        <translation>已会会停止自动扫描；新词会标为需要多练。</translation>
+        <source>Known stops automatic scans; New keeps it in practice.</source>
+        <translation>已会会停止自动扫描；新词会一直留在练习里。</translation>
     </message>
 </context>
 <context>
     <name>BubbleWaitingRows</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleWaitingRows.qml" line="74"/>
+        <location filename="../src/app/qml/bubble/BubbleWaitingRows.qml" line="61"/>
         <source>Explaining…</source>
         <translation>正在解释…</translation>
     </message>
@@ -2976,17 +2976,17 @@
         <translation>%1×</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="185"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="187"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="232"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="234"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="254"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="256"/>
         <source>Remove %1</source>
         <translation>移除 %1</translation>
     </message>
@@ -2994,84 +2994,84 @@
 <context>
     <name>WordsPopup</name>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="175"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="177"/>
         <source>Today %1</source>
         <translation>今天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="177"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="179"/>
         <source>Yesterday %1</source>
         <translation>昨天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="277"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="279"/>
         <source>Words</source>
         <translation>词汇</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="339"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="341"/>
         <source>Year in words</source>
         <translation>单词年度记录</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="367"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="369"/>
         <source>Back</source>
         <translation>返回</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="374"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="376"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="392"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="394"/>
         <source>%1 words</source>
         <translation>共 %1 词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="415"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="417"/>
         <source>All</source>
         <translation>全部</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="415"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="417"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="415"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="417"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="582"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="584"/>
         <source>Words you look up will appear here.</source>
         <translation>查过的词会出现在这里。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="594"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="596"/>
         <source>No words in this filter.</source>
         <translation>这个筛选下没有词。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="664"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="675"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="666"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="677"/>
         <source>JSON files (*.json)</source>
         <translation>JSON 文件 (*.json)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="679"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="681"/>
         <source>Words imported</source>
         <translation>词汇已导入</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="679"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="681"/>
         <source>Import failed</source>
         <translation>导入失败</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="357"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="673"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="359"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="675"/>
         <source>Import words</source>
         <translation>导入词汇</translation>
     </message>
@@ -3091,20 +3091,20 @@
         <translation>移除</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="350"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="661"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="352"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="663"/>
         <source>Export words</source>
         <translation>导出词汇</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="664"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="675"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="666"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="677"/>
         <source>Text files (*.txt)</source>
         <translation>文本文件 (*.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="664"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="675"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="666"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="677"/>
         <source>All files (*)</source>
         <translation>所有文件 (*)</translation>
     </message>
@@ -3330,22 +3330,22 @@
         <translation>每 1–2 小时</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="761"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="789"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>当前解释语言下没有已存的释义。</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="566"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="569"/>
         <source>Explaining…</source>
         <translation>正在解释…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="744"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="772"/>
         <source>Request failed</source>
         <translation>请求失败</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="762"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="790"/>
         <source>Explain now</source>
         <translation>现在解释</translation>
     </message>
@@ -3463,12 +3463,12 @@
         <translation>LJSpeech</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="932"/>
+        <location filename="../src/app/app_controller.cpp" line="933"/>
         <source>Auto</source>
         <translation>自动模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="932"/>
+        <location filename="../src/app/app_controller.cpp" line="933"/>
         <source>Manual</source>
         <translation>手动模式</translation>
     </message>

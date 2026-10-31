@@ -14,6 +14,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "app/words_model.h"
@@ -31,6 +32,12 @@ HistoryEntry entry(std::string lemma, std::string minute, std::string verdict = 
     return HistoryEntry{std::move(lemma), std::move(minute), std::move(verdict)};
 }
 
+/// @brief The model's update with the known set a caller of the real controller hands in.
+void update(WordsModel& model, std::vector<HistoryEntry> history, std::unordered_set<std::string> known = {})
+{
+    model.update(kToday, std::move(history), std::move(known));
+}
+
 QString wordAt(WordsModel const& model, int row)
 {
     return model.data(model.index(row), WordsModel::WordRole).toString();
@@ -41,10 +48,11 @@ QString wordAt(WordsModel const& model, int row)
 TEST(WordsModel, UpdateDeduplicatesAndKeepsTheNewestEntryPerLemma)
 {
     WordsModel model;
-    model.update(kToday,
-                 {entry("bank", "2026-10-20 09:00", "known"),
-                  entry("river", "2026-10-19 10:00", "new"),
-                  entry("bank", "2026-10-18 08:00")});
+    update(model,
+           {entry("bank", "2026-10-20 09:00", "known"),
+            entry("river", "2026-10-19 10:00", "new"),
+            entry("bank", "2026-10-18 08:00")},
+           {"bank"});
 
     ASSERT_EQ(model.rowCount(), 2);
     EXPECT_EQ(model.allCount(), 2);
@@ -55,13 +63,16 @@ TEST(WordsModel, UpdateDeduplicatesAndKeepsTheNewestEntryPerLemma)
     EXPECT_EQ(wordAt(model, 1), QStringLiteral("river"));
 }
 
+/// The new segment holds every word the known set does not name: an unmarked word is a new
+/// word, not a third thing between the two (docs/adr/0147).
 TEST(WordsModel, TheFilterShowsOneVerdictAndLeavesTheAllCountAlone)
 {
     WordsModel model;
-    model.update(kToday,
-                 {entry("bank", "2026-10-20 09:00", "known"),
-                  entry("river", "2026-10-19 10:00", "new"),
-                  entry("ghost", "2026-10-18 08:00")});
+    update(model,
+           {entry("bank", "2026-10-20 09:00", "known"),
+            entry("river", "2026-10-19 10:00", "new"),
+            entry("ghost", "2026-10-18 08:00")},
+           {"bank"});
 
     model.setFilter(static_cast<int>(ExportScope::Known));
     ASSERT_EQ(model.rowCount(), 1);
@@ -70,8 +81,9 @@ TEST(WordsModel, TheFilterShowsOneVerdictAndLeavesTheAllCountAlone)
     EXPECT_EQ(model.filter(), static_cast<int>(ExportScope::Known));
 
     model.setFilter(static_cast<int>(ExportScope::New));
-    ASSERT_EQ(model.rowCount(), 1);
+    ASSERT_EQ(model.rowCount(), 2);
     EXPECT_EQ(wordAt(model, 0), QStringLiteral("river"));
+    EXPECT_EQ(wordAt(model, 1), QStringLiteral("ghost"));
 
     model.setFilter(static_cast<int>(ExportScope::All));
     ASSERT_EQ(model.rowCount(), 3);
@@ -85,19 +97,19 @@ TEST(WordsModel, TheFilterShowsOneVerdictAndLeavesTheAllCountAlone)
 TEST(WordsModel, ARemovalEmitsOneRemovalRatherThanAReset)
 {
     WordsModel model;
-    model.update(kToday,
-                 {entry("bank", "2026-10-20 09:00", "known"),
-                  entry("river", "2026-10-19 10:00", "new"),
-                  entry("ghost", "2026-10-18 08:00")});
+    update(model,
+           {entry("bank", "2026-10-20 09:00", "known"),
+            entry("river", "2026-10-19 10:00", "new"),
+            entry("ghost", "2026-10-18 08:00")});
 
     int removed = 0;
     int reset   = 0;
     QObject::connect(&model, &QAbstractItemModel::rowsRemoved, [&](QModelIndex const&, int, int) { ++removed; });
     QObject::connect(&model, &QAbstractItemModel::modelReset, [&] { ++reset; });
 
-    model.update(kToday,
-                 {entry("bank", "2026-10-20 09:00", "known"),
-                  entry("ghost", "2026-10-18 08:00")});
+    update(model,
+           {entry("bank", "2026-10-20 09:00", "known"),
+            entry("ghost", "2026-10-18 08:00")});
 
     EXPECT_EQ(removed, 1);
     EXPECT_EQ(reset, 0);
@@ -109,18 +121,20 @@ TEST(WordsModel, ARemovalEmitsOneRemovalRatherThanAReset)
 TEST(WordsModel, AVerdictChangeIsADataChangeNotARemoval)
 {
     WordsModel model;
-    model.update(kToday,
-                 {entry("bank", "2026-10-20 09:00"),
-                  entry("river", "2026-10-19 10:00", "new")});
+    update(model,
+           {entry("bank", "2026-10-20 09:00"),
+            entry("river", "2026-10-19 10:00", "new")});
 
     int changed = 0;
     int removed = 0;
     QObject::connect(&model, &QAbstractItemModel::dataChanged, [&](QModelIndex const&, QModelIndex const&, QList<int> const&) { ++changed; });
     QObject::connect(&model, &QAbstractItemModel::rowsRemoved, [&](QModelIndex const&, int, int) { ++removed; });
 
-    model.update(kToday,
-                 {entry("bank", "2026-10-20 09:00", "known"),
-                  entry("river", "2026-10-19 10:00", "new")});
+    // The mark arriving is what changes the verdict: the same history, the known set grown.
+    update(model,
+           {entry("bank", "2026-10-20 09:00", "known"),
+            entry("river", "2026-10-19 10:00", "new")},
+           {"bank"});
 
     EXPECT_GT(changed, 0);
     EXPECT_EQ(removed, 0);
@@ -131,14 +145,14 @@ TEST(WordsModel, AVerdictChangeIsADataChangeNotARemoval)
 TEST(WordsModel, ANewWordIsInsertedAtTheFront)
 {
     WordsModel model;
-    model.update(kToday, {entry("bank", "2026-10-19 09:00")});
+    update(model, {entry("bank", "2026-10-19 09:00")});
 
     int inserted = 0;
     int at       = -1;
     QObject::connect(&model, &QAbstractItemModel::rowsInserted, [&](QModelIndex const&, int first, int) { ++inserted; at = first; });
 
-    model.update(kToday,
-                 {entry("river", "2026-10-20 10:00"), entry("bank", "2026-10-19 09:00")});
+    update(model,
+           {entry("river", "2026-10-20 10:00"), entry("bank", "2026-10-19 09:00")});
 
     EXPECT_EQ(inserted, 1);
     EXPECT_EQ(at, 0);
@@ -150,10 +164,11 @@ TEST(WordsModel, ANewWordIsInsertedAtTheFront)
 TEST(WordsModel, AFilterSwitchDiffsBothSetsAndADeletionStillRemovesRows)
 {
     WordsModel model;
-    model.update(kToday,
-                 {entry("bank", "2026-10-20 09:00", "known"),
-                  entry("river", "2026-10-19 10:00", "new"),
-                  entry("ghost", "2026-10-18 08:00", "known")});
+    update(model,
+           {entry("bank", "2026-10-20 09:00", "known"),
+            entry("river", "2026-10-19 10:00", "new"),
+            entry("ghost", "2026-10-18 08:00", "known")},
+           {"bank", "ghost"});
 
     // Rows, not signals: a filter that drops neighbours reports one run for the stretch, so a
     // count of rowsRemoved emissions would answer a different question than the one asked here.
@@ -184,7 +199,7 @@ TEST(WordsModel, AFilterSwitchDiffsBothSetsAndADeletionStillRemovesRows)
 
     removed = 0;
     reset   = 0;
-    model.update(kToday, {entry("bank", "2026-10-20 09:00", "known")});
+    update(model, {entry("bank", "2026-10-20 09:00", "known")}, {"bank"});
     EXPECT_EQ(removed, 2);
     EXPECT_EQ(reset, 0);
     EXPECT_EQ(model.rowCount(), 1);
@@ -203,10 +218,11 @@ TEST(WordsModel, AFilterSwitchHoldsItsArrivalsForOneFold)
 
     WordsModel model;
     model.setSwapMs(30);
-    model.update(kToday,
-                 {entry("bank", "2026-10-20 09:00", "known"),
-                  entry("river", "2026-10-19 10:00", "new"),
-                  entry("ghost", "2026-10-18 08:00", "known")});
+    update(model,
+           {entry("bank", "2026-10-20 09:00", "known"),
+            entry("river", "2026-10-19 10:00", "new"),
+            entry("ghost", "2026-10-18 08:00", "known")},
+           {"bank", "ghost"});
 
     model.setFilter(static_cast<int>(ExportScope::New));
     EXPECT_EQ(model.rowCount(), 1) << "only the leaving rows have gone so far";
@@ -232,17 +248,16 @@ TEST(WordsModel, AFilterSwitchHoldsItsArrivalsForOneFold)
 TEST(WordsModel, AReorderIsTheDocumentedReset)
 {
     WordsModel model;
-    model.update(kToday,
-                 {entry("bank", "2026-10-19 09:00"), entry("river", "2026-10-18 10:00")});
+    update(model, {entry("bank", "2026-10-19 09:00"), entry("river", "2026-10-18 10:00")});
 
     int reset = 0;
     QObject::connect(&model, &QAbstractItemModel::modelReset, [&] { ++reset; });
 
     // river is looked up again, so the newest entry moves it in front of bank.
-    model.update(kToday,
-                 {entry("river", "2026-10-20 10:00"),
-                  entry("bank", "2026-10-19 09:00"),
-                  entry("river", "2026-10-18 10:00")});
+    update(model,
+           {entry("river", "2026-10-20 10:00"),
+            entry("bank", "2026-10-19 09:00"),
+            entry("river", "2026-10-18 10:00")});
 
     EXPECT_EQ(reset, 1);
     ASSERT_EQ(model.rowCount(), 2);
@@ -252,7 +267,7 @@ TEST(WordsModel, AReorderIsTheDocumentedReset)
 TEST(WordsModel, AllRowsCarriesTheRawFieldsAndIgnoresTheFilter)
 {
     WordsModel model;
-    model.update(kToday, {entry("bank", "2026-10-20 09:00", "known"), entry("river", "2026-10-19 10:00", "new")});
+    update(model, {entry("bank", "2026-10-20 09:00", "known"), entry("river", "2026-10-19 10:00", "new")}, {"bank"});
     model.setFilter(static_cast<int>(ExportScope::Known));
 
     const QVariantList rows = model.allRows();

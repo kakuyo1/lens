@@ -65,22 +65,27 @@ inline QString dayLabel(QDateTime const& moment, QDate const& today)
  */
 struct WordRow {
     QString word;
-    QString day;     ///< "today", "yesterday", "earlier", or empty for an unreadable time.
-    QString date;    ///< "MM-dd", empty for an unreadable time.
-    QString time;    ///< "HH:mm", empty for an unreadable time.
-    QString verdict; ///< Empty until marked, then "known" or "new".
+    QString day;  ///< "today", "yesterday", "earlier", or empty for an unreadable time.
+    QString date; ///< "MM-dd", empty for an unreadable time.
+    QString time; ///< "HH:mm", empty for an unreadable time.
+    /// Derived from the known set, not stored: "known" when the lemma is marked known,
+    /// "new" otherwise -- the binary the bubble badge already speaks (docs/adr/0147).
+    QString verdict;
     int     pops = 0;
 
     bool operator==(WordRow const&) const = default;
 };
 
 /**
- * @brief The words popup's rows: each lemma once, its newest entry deciding the labels and verdict.
+ * @brief The words popup's rows: each lemma once, the known set deciding the verdict.
  * @param today The day the labels are relative to; the caller reads the clock.
  * @param history The statistics history, newest first.
+ * @param knownLemmas The lemmas currently marked known; the known() view KnownStore derives.
  * @return One row per distinct lemma, in the history's order.
  */
-inline std::vector<WordRow> wordRowList(QDate const& today, std::vector<core::HistoryEntry> const& history)
+inline std::vector<WordRow> wordRowList(QDate const&                           today,
+                                        std::vector<core::HistoryEntry> const& history,
+                                        std::unordered_set<std::string> const& knownLemmas)
 {
     QSet<QString>       seen;
     QHash<QString, int> pops;
@@ -100,7 +105,7 @@ inline std::vector<WordRow> wordRowList(QDate const& today, std::vector<core::Hi
                                dayLabel(moment, today),
                                moment.isValid() ? moment.toString(QStringLiteral("MM-dd")) : QString{},
                                moment.isValid() ? moment.toString(QStringLiteral("HH:mm")) : QString{},
-                               QString::fromStdString(entry.verdict),
+                               knownLemmas.count(entry.lemma) > 0 ? QStringLiteral("known") : QStringLiteral("new"),
                                pops.value(shown)});
     }
     return rows;
@@ -124,12 +129,15 @@ inline bool rowInScope(WordRow const& row, core::ExportScope const scope)
  * @brief The words popup's rows as the plain values QML used to read.
  * @param today The day the labels are relative to; the caller reads the clock.
  * @param history The statistics history, newest first.
+ * @param knownLemmas The lemmas currently marked known; the known() view KnownStore derives.
  * @return One map per distinct lemma: word, day, date, time, verdict and the total pop count.
  */
-inline QVariantList wordRows(QDate const& today, std::vector<core::HistoryEntry> const& history)
+inline QVariantList wordRows(QDate const&                           today,
+                             std::vector<core::HistoryEntry> const& history,
+                             std::unordered_set<std::string> const& knownLemmas)
 {
     QVariantList rows;
-    const auto   typed = wordRowList(today, history);
+    const auto   typed = wordRowList(today, history, knownLemmas);
     rows.reserve(static_cast<qsizetype>(typed.size()));
     for (const WordRow& row : typed)
         rows.append(QVariantMap{{"word", row.word},
@@ -174,11 +182,10 @@ inline std::optional<std::vector<std::string>> importLemmas(QByteArray const& da
     return incoming;
 }
 
-/// @brief One word an import adds, stamped with the import moment and the verdict it starts on.
+/// @brief One word an import adds, stamped with the import moment.
 struct ImportRow {
     std::string lemma;
     std::string minute;
-    std::string verdict; ///< "new": an imported word has not been marked known.
 };
 
 /**
@@ -186,7 +193,8 @@ struct ImportRow {
  * @param incoming The file's words, in order, as importLemmas() returned them.
  * @param existing The lemmas the history already holds.
  * @param minute The local minute the import is recorded at, in util::kMinuteFormat; the caller reads the clock.
- * @return One row per word to add, in file order.
+ * @return One row per word to add, in file order. The pop each row records starts the word on
+ *         "new" (recordPop stamps it), unless the lemma already carries a known mark.
  */
 inline std::vector<ImportRow> importRows(std::vector<std::string> const&        incoming,
                                          std::unordered_set<std::string> const& existing,
@@ -198,7 +206,7 @@ inline std::vector<ImportRow> importRows(std::vector<std::string> const&        
         if (lemma.empty() or seen.count(lemma) or existing.count(lemma))
             continue;
         seen.insert(lemma);
-        rows.push_back(ImportRow{lemma, minute, "new"});
+        rows.push_back(ImportRow{lemma, minute});
     }
     return rows;
 }

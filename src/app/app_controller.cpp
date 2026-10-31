@@ -193,9 +193,9 @@ AppController::AppController(core::KnownStore&            store,
     // a sync -- through one diff in the model, so the view keeps the delegates whose rows did
     // not change (docs/adr/0122). The first update also fills it before QML is built.
     connect(this, &AppController::statsChanged, this, [this] {
-        wordsModel_.update(QDate::currentDate(), storage_.statsStore().history());
+        wordsModel_.update(QDate::currentDate(), storage_.statsStore().history(), storage_.knownStore().known());
     });
-    wordsModel_.update(QDate::currentDate(), storage_.statsStore().history());
+    wordsModel_.update(QDate::currentDate(), storage_.statsStore().history(), storage_.knownStore().known());
     LENS_INFO("AppController ready: level={} explanation language '{}'", store.level(), store.explanationLang());
 }
 
@@ -758,12 +758,12 @@ QVariantList AppController::yearDays() const
 
 QString AppController::exportFor(core::ExportScope const scope) const
 {
-    return QString::fromStdString(core::exportLemmas(storage_.statsStore().history(), scope));
+    return QString::fromStdString(core::exportLemmas(storage_.statsStore().history(), scope, storage_.knownStore().known()));
 }
 
 QString AppController::exportJsonFor(core::ExportScope const scope) const
 {
-    return QString::fromStdString(core::exportLemmasJson(storage_.statsStore().history(), scope));
+    return QString::fromStdString(core::exportLemmasJson(storage_.statsStore().history(), scope, storage_.knownStore().known()));
 }
 
 QString AppController::exportWords(QString scope)
@@ -843,8 +843,9 @@ bool AppController::importWords(QUrl path)
     const QString now  = QString::fromStdString(util::localMinuteNow());
     const auto    rows = importRows(*incoming, existing, now.toStdString());
     for (const auto& row : rows) {
-        storage_.statsStore().recordPop(row.lemma, row.minute);
-        storage_.statsStore().recordVerdict(row.lemma, row.minute, row.verdict);
+        // The pop stamps the word "new" (or "known" when the lemma already carries a mark), so
+        // the import needs no verdict of its own.
+        storage_.statsStore().recordPop(row.lemma, row.minute, storage_.knownStore().isKnown(row.lemma));
     }
     storage_.save();
     if (not rows.empty()) {

@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <map>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 /**
@@ -26,8 +27,11 @@ namespace lens::core {
 /// @brief A word the bubble showed, kept for the words popup.
 struct HistoryEntry {
     std::string lemma;
-    std::string minute;  ///< Local "YYYY-MM-DD HH:MM".
-    std::string verdict; ///< Empty until marked, then "known" or "new".
+    std::string minute; ///< Local "YYYY-MM-DD HH:MM".
+    /// The verdict the pop carried: "known" or "new", stamped from the mark state at pop time
+    /// and overwritten by recordVerdict on a re-mark. Entries from documents written before
+    /// verdicts were stamped read as empty, which the tally treats as neither column.
+    std::string verdict;
 };
 
 /// @brief Token usage attributed to one model on one day.
@@ -50,7 +54,7 @@ struct DailyUsage {
 inline constexpr const char* kLegacyUsageModel = "__legacy__";
 
 /// @brief Which rows a words export covers.
-/// @note The three values are the words popup's own filter (UI-SPEC.md section 4.7), so what a
+/// @note The three values are the words popup's own filter (UI-SPEC.md section 4.8), so what a
 ///       reader exports is what they were looking at.
 enum class ExportScope : std::uint8_t { All,
                                         Known,
@@ -59,20 +63,27 @@ enum class ExportScope : std::uint8_t { All,
 /**
  * @brief Render the history as the words export: plain text, one lemma per line.
  *
- * The rows are the words popup's: each lemma once, its newest entry deciding both the order
- * and whether it counts as known or new. Nothing here picks a file or writes one, which is
- * what keeps the text itself assertable without Qt.
+ * The rows are the words popup's: each lemma once, newest entry first. The scope follows the
+ * known set the same way the popup's verdicts do -- a lemma counts as known when the set holds
+ * it, as new when it does not -- so an export covers what the reader was looking at even when
+ * the newest entry's own stamp predates the mark. Nothing here picks a file or writes one,
+ * which is what keeps the text itself assertable without Qt.
  *
- * @param history The history, newest first.
- * @param scope   Every lemma, or only those the newest entry marks known / new.
+ * @param history     The history, newest first.
+ * @param scope       Every lemma, or only the known / new ones.
+ * @param knownLemmas The lemmas currently marked known; the known() view KnownStore derives.
  * @return The lemmas joined by '\n', ending with one; empty when no row matches @p scope.
  */
-std::string exportLemmas(const std::vector<HistoryEntry>& history, ExportScope scope);
+std::string exportLemmas(const std::vector<HistoryEntry>&       history,
+                         ExportScope                            scope,
+                         const std::unordered_set<std::string>& knownLemmas);
 
 /**
  * @brief Render the history as a JSON array of lemmas, one entry per row.
  */
-std::string exportLemmasJson(const std::vector<HistoryEntry>& history, ExportScope scope);
+std::string exportLemmasJson(const std::vector<HistoryEntry>&       history,
+                             ExportScope                            scope,
+                             const std::unordered_set<std::string>& knownLemmas);
 
 /**
  * @brief The history and daily tallies behind the statistics surfaces.
@@ -92,18 +103,20 @@ public:
      */
     explicit StatsStore(nlohmann::json& document);
 
-    /// @brief Record that a bubble showed this word.
+    /// @brief Record that a bubble showed this word, stamped with the verdict it carries now.
     /// @param minute Local time as "YYYY-MM-DD HH:MM"; its date picks the daily bucket.
-    void recordPop(std::string lemma, std::string minute);
+    /// @param known  Whether the lemma is marked known at the moment of the pop; the stamp is
+    ///               what the day's known / new tally starts from, and a later mark moves it.
+    void recordPop(std::string lemma, std::string minute, bool known);
 
     /**
      * @brief Attach the reader's verdict to the newest entry for a word.
      *
-     * The newest entry is the one the words list reads, so it is the one a mark has to reach: a
-     * word that already carries a verdict takes the new one, which keeps the words popup's two
-     * pills a choice. The mark can come long after the pop, with other words shown in between,
-     * so the entry is found rather than assumed to be the last one. Finding none is not an
-     * error: the pop may have aged out of the history window, and the day's tally still moves.
+     * The newest entry is the one whose stamp the day's tally follows, so it is the one a mark
+     * has to reach: a word that already carries a verdict takes the new one. The mark can come
+     * long after the pop, with other words shown in between, so the entry is found rather than
+     * assumed to be the last one. Finding none is not an error: the pop may have aged out of the
+     * history window, and the day's tally still moves.
      *
      * @note The day's tally follows the word rather than the press: it is booked against the day
      *       the pop happened, a re-marked word moves from one column to the other, and one word

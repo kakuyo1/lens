@@ -18,6 +18,13 @@
 
 ### Changed
 
+- A word's verdict is binary now: **Known** is the one verdict the reader gives, and every word
+  not marked known is a new word. The words list fills the New pill on unmarked rows instead of
+  leaving both plain (the card badge already read them that way), and the New filter holds every
+  unmarked word. A pop stamps the verdict the word carries at that moment, so the statistics
+  panel's Known and New rows add up to the day's lookups. The stored marks and the sync format
+  are untouched: a `false` mark keeps its job as the vote that un-knows a word across devices
+  (docs/adr/0147).
 - The daily budget is no longer a settings category of its own: its field and today's spend sit at the foot of the model service page, below the API configuration. The tray's budget row opens that page; Defaults still leaves the budget as it is.
 - **Auto scan** is marked Experimental in Settings and in every README, with a line under the switch saying it is still under development and its results are not reliable yet. The switch keeps working as an experiment; the label and the documentation no longer present it as a finished feature.
 

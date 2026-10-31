@@ -143,7 +143,9 @@ Item {
         }
 
         // The bubble's two verdict pills, in the same two shapes, with this word's verdict filled
-        // instead of both being actions; a word never marked leaves both plain.
+        // instead of both being actions. The verdict is binary (docs/adr/0147): a word not marked
+        // known is a new word, so New is filled unless Known is -- an unmarked row carries its
+        // state, and Known is the one move that changes it.
         Row {
             anchors.verticalCenter: parent.verticalCenter
             spacing: 6
@@ -197,7 +199,7 @@ Item {
 
             Rectangle {
                 id: newPill
-                readonly property bool current: entry.verdict === "new"
+                readonly property bool current: entry.verdict !== "known"
                 anchors.verticalCenter: parent.verticalCenter
                 width: newLabel.width + 13
                 height: 20

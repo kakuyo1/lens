@@ -53,7 +53,7 @@ protected:
     /// Looked up at @p minute, with an explanation stored in the current language.
     void lookUpCached(std::string const& lemma, char const* minute)
     {
-        storage->statsStore().recordPop(lemma, minute);
+        storage->statsStore().recordPop(lemma, minute, store->isKnown(lemma));
         lens::core::WordCache cached;
         cached.en = "a definition";
         store->cachePut(lemma, cached, lens::core::CacheContext{"en", false});
@@ -113,7 +113,7 @@ TEST_F(ReviewDutyTest, NoQuestionWhileThePetIsBusyOrOff)
 
 TEST_F(ReviewDutyTest, AWordWithNoStoredExplanationIsSkipped)
 {
-    storage->statsStore().recordPop("apple", "2026-10-03 09:00");
+    storage->statsStore().recordPop("apple", "2026-10-03 09:00", false);
     auto const now = at("2026-10-03 09:00") + 2 * kDay;
 
     runClock(now, now + 2 * kHour);

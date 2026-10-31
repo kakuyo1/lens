@@ -4,6 +4,11 @@
   "theme": "dark",
   "uiLanguage": "en",
   "selectionCapture": "false",
+  "known": {
+    "counterrevolutionary": true,
+    "ubiquitous": true,
+    "juxtapose": true
+  },
   "history": [
     { "word": "counterrevolutionary", "time": "2026-01-02 09:20", "verdict": "known" },
     { "word": "ubiquitous", "time": "2026-01-02 09:14", "verdict": "known" },
