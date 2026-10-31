@@ -1,0 +1,982 @@
+<!doctype html>
+<!--
+  Lens 宣传页 · 候选 B「纸页词典」
+  方向：page-is-the-object / warm paper lexicon（BUILD-SPEC §5）
+  整页即一张词典纸：主视觉是一张大词条卡，各节是词典条目
+  （左栏衬线词目 + 右栏正文）；§5 是深色封底。
+  素材：marketing/assets/ 的真实精灵表与复习牌（生成脚本 tools/prep-assets.py）。
+  看法：直接用浏览器打开本文件。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens — 用英文，读懂英文。</title>
+<meta name="description" content="Lens 常驻 Windows 托盘，在英文阅读处就地解释你可能不会的词；七只像素宠物把到期词举回来问你。">
+<link rel="icon" href="assets/brand/lens-mark.png">
+<style>
+/* ---------- tokens（方向 B：暖纸词典） ---------- */
+:root{
+  --paper:#f1ebdd; --card:#faf7ee; --card2:#f3efe2; --card3:#fffef9;
+  --edge:#d8d0bc; --ink:#21201c; --muted:#6d6a60;
+  --ok:#2f9e6e; --ok-bg:#e4f0e6; --ok-text:#1d7a52;
+  --on-dark:#f1ebdd; --dim-dark:#b5ad9b;
+  --role-s:#2f6fd6; --role-v:#c2415a; --role-c:#13858f; --role-a:#a86f12;
+  --r-card:18px; --r-group:11px; --r-field:9px; --r-pill:999px;
+  --margin:clamp(20px,3.4vw,44px);
+  --gap-section:clamp(110px,12vw,180px);
+  --font:"Noto Sans SC","Segoe UI Variable","Microsoft YaHei UI",sans-serif;
+  --font-serif:Georgia,"Times New Roman","Noto Serif SC",serif;
+  --font-pixel:"Pixelify Sans","Noto Sans SC",monospace;
+  --font-mono:"Cascadia Code","Consolas",ui-monospace,monospace; /* taste-skill-ignore: mono (DESIGN.md: 数字与金额等宽) */
+  --cell0:#e9e2cf; --cell1:hsl(155 58% 84%); --cell2:hsl(155 60% 64%);
+  --cell3:hsl(155 64% 46%); --cell4:hsl(155 68% 30%);
+}
+@font-face{
+  font-family:"Pixelify Sans";
+  src:url(assets/fonts/PixelifySans-Regular.ttf);
+  font-display:swap;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:var(--font); font-size:16px; line-height:1.6;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+::selection{background:var(--ok-bg); color:var(--ok-text)}
+img{display:block}
+a{color:inherit}
+button{font:inherit;border:0;cursor:pointer;background:none;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+
+/* ---------- 版式 ---------- */
+h1,h2,h3{text-wrap:balance}
+h1,h2{font-weight:700;letter-spacing:-.02em;line-height:1.08}
+section{position:relative;padding:var(--gap-section) var(--margin) 0}
+.standfirst{font-size:clamp(16.5px,1.35vw,20px);color:var(--muted);max-width:32em}
+.h-sec{font-size:clamp(29px,3.9vw,54px);max-width:14em}
+p{max-width:40em}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;border-radius:var(--r-pill);
+  background:var(--ink);color:var(--card);font-weight:700;font-size:15px;
+  padding:13px 26px;text-decoration:none;transition:transform .15s ease;
+}
+.btn:hover{transform:scale(1.02)} .btn:active{transform:scale(.97)}
+.chip{display:inline-block;border-radius:var(--r-pill);background:var(--ok-bg);color:var(--ok-text);font-weight:700;font-size:13px;padding:4px 12px}
+.chip-dim{background:var(--card2);color:var(--muted)}
+.kbd{font-family:var(--font-pixel);font-size:13px;background:var(--card3);border-radius:6px;padding:2px 9px;color:var(--muted)}
+
+/* ---------- 导航 ---------- */
+.nav{display:flex;align-items:center;gap:24px;padding:20px var(--margin)}
+.nav .mark{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;text-decoration:none}
+.nav .mark img{width:26px;height:26px}
+.nav nav{margin-left:auto;display:flex;align-items:center;gap:22px;font-size:14px}
+.nav nav a{text-decoration:none;color:var(--muted)} .nav nav a:hover{color:var(--ink)}
+.nav .btn{padding:9px 18px;font-size:13px}
+@media (max-width:640px){.nav nav a{display:none}}
+
+/* ---------- 主视觉：一张大词条卡 ---------- */
+.entry-card{
+  background:var(--card); border:1px solid var(--edge); border-radius:var(--r-card); /* taste-skill-ignore: SPEC §5 规定的词条卡纸边 */
+  margin:6px var(--margin) 0; padding:clamp(30px,4.4vw,60px) clamp(24px,4.4vw,60px) 0;
+  position:relative; overflow:hidden;
+}
+.entry-grid{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);gap:clamp(32px,5vw,80px);align-items:start}
+.headword{font-family:var(--font-serif);font-size:clamp(44px,6.5vw,96px);letter-spacing:-.02em;line-height:1}
+.headword .ipa{font-size:clamp(16px,1.8vw,26px);font-weight:400;color:var(--muted);margin-left:14px;letter-spacing:0}
+.pos{font-family:var(--font-serif);font-style:italic;font-size:18px;color:var(--muted);margin-top:14px}
+.sense{font-size:clamp(22px,3vw,34px);font-weight:700;margin-top:10px;letter-spacing:-.01em}
+.entry-main .standfirst{margin-top:22px}
+.cta-row{margin-top:30px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.cta-note{font-size:13px;color:var(--muted)}
+/* 右栏：一段真实阅读 + 悬挂的词卡 */
+.reading{font-family:var(--font-serif);font-size:clamp(17px,1.5vw,22px);line-height:1.85;max-width:30em;color:var(--ink)}
+.reading .w{background:var(--ok-bg);border-bottom:2px dotted var(--ok);padding:0 2px}
+.wc-hang{margin-top:26px;transform:rotate(-1.2deg);max-width:330px}
+/* 词卡碎片（data-ui：界面碎片，允许自带描边与浮起阴影） */
+.bubble{
+  background:var(--card3); border:1px solid #e7dfca; border-radius:var(--r-card); /* taste-skill-ignore: data-ui 碎片自带描边 */
+  box-shadow:0 2px 6px rgba(33,32,28,.05),0 20px 44px -20px rgba(33,32,28,.18); /* taste-skill-ignore: data-ui 碎片自带浮起 */
+  padding:16px 16px 12px; font-size:13px;
+}
+.bubble .row1{display:flex;align-items:center;gap:8px}
+.bubble .tag-new{background:var(--ok-bg);color:var(--ok-text);font-weight:700;font-size:11px;border-radius:var(--r-pill);padding:3px 10px}
+.bubble .row1 .x{margin-left:auto;color:var(--muted)}
+.bubble .head{font-size:20px;font-weight:700;font-family:var(--font-serif);letter-spacing:-.01em;margin-top:10px}
+.bubble .ipa2{font-size:12px;color:var(--muted);font-weight:400;margin-left:6px;font-family:var(--font)}
+.bubble .signpost{font-size:12px;font-weight:700;color:var(--ok-text);margin-top:8px}
+.bubble .def{color:var(--muted);line-height:1.55;margin-top:3px}
+.bubble .def u{text-decoration:underline dotted var(--ok);text-underline-offset:3px}
+.bubble .etym{border-top:1px solid #eee6d2;margin-top:12px;padding-top:10px;color:var(--muted);line-height:1.5} /* taste-skill-ignore: data-ui 内部分隔 */
+.bubble .etym b,.bubble .ex b{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:2px}
+.bubble .ex{border-top:1px solid #eee6d2;margin-top:10px;padding-top:10px;color:var(--muted);line-height:1.5} /* taste-skill-ignore: data-ui 内部分隔 */
+.bubble .meta{display:flex;align-items:center;margin-top:12px;color:var(--muted);font-size:11px}
+.bubble .meta .verdicts{margin-left:auto;display:flex;gap:6px}
+.bubble .verdict{border-radius:var(--r-pill);font-size:11px;font-weight:700;padding:4px 10px;background:var(--card2);color:var(--muted)}
+.bubble .verdict.new{background:var(--ink);color:var(--card)}
+.hero-stage{position:relative;height:176px;margin-top:clamp(10px,2vw,24px)}
+.hero-stage .pet{position:absolute;left:52%;bottom:0}
+@media (max-width:900px){
+  .entry-grid{grid-template-columns:1fr}
+  .wc-hang{max-width:340px}
+  .hero-stage .pet{left:38%}
+}
+
+/* ---------- 词典条目版式：左词目 + 右正文 ---------- */
+.sec-grid{display:grid;grid-template-columns:minmax(150px,230px) minmax(0,1fr);gap:clamp(28px,5vw,80px);align-items:start}
+.ew{display:block;font-family:var(--font-serif);font-weight:700;font-size:clamp(30px,3.2vw,48px);letter-spacing:-.01em;line-height:1.05}
+.ew-ipa{display:block;font-family:var(--font-serif);font-size:15px;color:var(--muted);margin-top:8px}
+.eg{display:block;font-size:16px;color:var(--muted);margin-top:12px}
+@media (max-width:820px){
+  .sec-grid{grid-template-columns:1fr;gap:20px}
+  .sec-word{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .ew{font-size:clamp(28px,7vw,36px)}
+  .ew-ipa{display:none}
+  .eg{margin-top:0}
+}
+
+/* ---------- §1 取词：行 + 手边碎片 ---------- */
+.cap-rows{margin-top:48px;display:grid;row-gap:clamp(44px,6vw,72px)}
+.cap-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,350px);gap:clamp(20px,4vw,56px);align-items:center}
+.cap-row h3{font-size:clamp(21px,2vw,28px);font-weight:700;letter-spacing:-.01em}
+.cap-row p{margin-top:10px;color:var(--muted)}
+.selbar{display:inline-flex;gap:4px;background:var(--card3);border:1px solid #e3dbc6;border-radius:var(--r-group);padding:5px;box-shadow:0 2px 6px rgba(33,32,28,.06)} /* taste-skill-ignore: data-ui 碎片 */
+.selbar .act{display:flex;align-items:center;gap:7px;border-radius:var(--r-field);padding:9px 14px;font-weight:700;font-size:13px}
+.selbar .act svg{width:15px;height:15px;stroke:var(--muted)}
+.selbar .act.copied{background:var(--card2)}
+.sel-fig{background:var(--card);border-radius:var(--r-card);padding:clamp(18px,2vw,26px);display:flex;flex-direction:column;gap:14px}
+.sel-line{font-family:var(--font-serif);font-size:14px;line-height:1.8;color:var(--ink)}
+.hl{border-radius:4px;padding:0 2px;transition:background .24s ease}
+.hl.on{background:var(--ok-bg);border-bottom:2px dotted var(--ok)}
+.drawer{display:flex;flex-direction:column;gap:4px;align-self:flex-end;background:#fff;border:1px solid var(--edge);border-radius:var(--r-field);padding:4px;min-width:150px} /* taste-skill-ignore: outlined-box (data-ui 抽屉) */
+.d-item{border-radius:6px;padding:8px 12px;font-size:12.5px;font-weight:700;color:var(--ink);background:var(--card2)}
+.sel-fig .fade-t{transition:opacity .24s ease}
+.sel-fig.swapping .fade-t{opacity:0}
+.shot-fig{background:var(--card2);border-radius:var(--r-group);padding:18px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.shot-fig .tip{font-size:13px;color:var(--muted)}
+@media (max-width:820px){.cap-row{grid-template-columns:1fr}}
+
+/* ---------- §2 通道：色阶圆角行 + 卡片对 ---------- */
+.chan-rows{margin-top:44px;display:grid;row-gap:10px;max-width:760px}
+.chan{display:flex;gap:16px;align-items:baseline;background:var(--card2);border-radius:var(--r-group);padding:15px 20px;flex-wrap:wrap}
+.chan b{font-size:17.5px;font-weight:700;white-space:nowrap}
+.chan span{color:var(--muted);font-size:15px}
+.card-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(20px,3vw,40px);margin-top:48px;max-width:780px;align-items:start;position:relative}
+/* 义项图与义项轮换（data-ui 碎片内部样式） */
+.pic-toggle{display:inline-flex;align-items:center;gap:6px;border-radius:var(--r-pill);background:var(--card2);color:var(--muted);font-size:11.5px;font-weight:700;padding:5px 12px;margin-top:12px}
+.pic-toggle:hover{background:var(--edge);color:var(--ink)}
+.pic-toggle svg{width:13px;height:13px;stroke:currentColor}
+.pic-row[hidden]{display:none}
+.pic-strip{display:flex;gap:4px;margin-top:10px}
+.pic-strip img{width:78px;height:58px;border-radius:8px;object-fit:cover;display:block}
+.pic-cap{font-size:10.5px;color:var(--muted);margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pic-credit{font-size:9.5px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sense-swap{display:flex;width:100%;align-items:center;gap:6px;margin-top:12px;border-radius:var(--r-pill);padding:6px 10px;text-align:left}
+.sense-swap:hover{background:var(--card2)}
+.sense-swap .q{font-size:11px;color:var(--muted)}
+.sense-swap:hover .q{color:var(--ink)}
+.sense-swap b{margin-left:auto;font-size:11px;font-weight:700;color:var(--ok-text)}
+.sense-swap .arr{color:var(--ok-text);font-weight:700}
+.sense-card .fade-t{transition:opacity .24s ease}
+.sense-card.swapping .fade-t{opacity:0}
+.pic-toggle{cursor:default}
+.bubble.static{transform:none;max-width:none}
+.brk{background:var(--card3);border:1px solid #e7dfca;border-radius:var(--r-card);padding:16px;font-size:13px;box-shadow:0 2px 6px rgba(33,32,28,.05)} /* taste-skill-ignore: data-ui 碎片 */
+.brk .tag{display:inline-block;background:var(--card2);border-radius:var(--r-pill);font-size:11px;color:var(--muted);padding:3px 10px;font-weight:700}
+.brk .sent{margin-top:12px;line-height:2;font-family:var(--font-serif);font-size:14px}
+.brk .sent .s{background:color-mix(in srgb,var(--role-s) 20%,transparent);border-radius:6px;padding:1px 3px}
+.brk .sent .v{background:color-mix(in srgb,var(--role-v) 20%,transparent);border-radius:6px;padding:1px 3px}
+.brk .sent .c{background:color-mix(in srgb,var(--role-c) 20%,transparent);border-radius:6px;padding:1px 3px}
+.brk .sent .a{background:color-mix(in srgb,var(--role-a) 20%,transparent);border-radius:6px;padding:1px 3px}
+.brk .legend{display:flex;gap:12px;margin-top:14px;padding-top:10px;border-top:1px solid #eee6d2;color:var(--muted);font-size:11px;flex-wrap:wrap} /* taste-skill-ignore: data-ui 内部分隔 */
+.brk .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:-1px}
+@media (max-width:820px){.card-pair{grid-template-columns:minmax(0,340px)}}
+
+/* ---------- §3 宠物与复习：瓷盘 ---------- */
+.lead{font-size:clamp(16.5px,1.35vw,20px);color:var(--muted);max-width:32em;margin-top:22px}
+.pets-grid{display:grid;grid-template-columns:minmax(0,500px) minmax(0,1fr);gap:clamp(28px,5vw,64px);margin-top:44px;align-items:center}
+.plate{
+  background:var(--card);border-radius:var(--r-card);aspect-ratio:4/3;width:100%;
+  position:relative;overflow:hidden;
+}
+.plate::before{content:"";position:absolute;left:0;right:0;bottom:0;height:56px;background:var(--card2)}
+.plate .review-stage{position:absolute;bottom:56px;left:50%;margin-left:-128px;display:flex;align-items:flex-end;gap:0}
+#review-sign{margin-right:-14px}
+.plate .lv{position:absolute;left:18px;top:16px;display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.plate .lv .dots{display:flex;gap:4px}
+.plate .lv .dot{width:8px;height:8px;border-radius:50%;background:#e6dfcc}
+.plate .lv .dot.on{background:var(--ok)}
+.plate .hint{position:absolute;right:18px;top:18px;font-size:13px;color:var(--muted)}
+.plate .reply-card{
+  position:absolute;right:7%;top:16%;background:var(--card3);border:1px solid #e7dfca; /* taste-skill-ignore: 悬浮作答菜单 */
+  border-radius:var(--r-group);padding:10px;display:flex;gap:8px;
+  opacity:0;transform:translateY(6px);transition:opacity .22s ease,transform .22s ease;pointer-events:none;
+}
+.plate:hover .reply-card,.plate:focus-within .reply-card{opacity:1;transform:none;pointer-events:auto}
+.reply-card button{border-radius:var(--r-pill);font-size:12.5px;font-weight:700;padding:7px 14px}
+.reply-card .forgot{background:var(--card2);color:var(--ink)}
+.reply-card .remember{background:var(--ink);color:var(--card)}
+.pet-facts{display:grid;gap:14px;list-style:none}
+.pet-facts li{display:flex;gap:10px;align-items:baseline;color:var(--muted);font-size:15px}
+.pet-facts li::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--ok);flex:none;transform:translateY(1px)}
+.pet-facts b{color:var(--ink);font-weight:700}
+.pets-note{margin-top:18px;font-size:14px;color:var(--muted)}
+@media (max-width:820px){.pets-grid{grid-template-columns:1fr}}
+
+/* ---------- §4 记录：年格 + 三行事实 ---------- */
+.ledger-grid{display:grid;grid-template-columns:minmax(300px,470px) minmax(0,1fr);gap:clamp(28px,5vw,72px);margin-top:48px;align-items:start}
+.y-summary{display:flex;align-items:baseline;gap:8px}
+.y-summary strong{font-family:var(--font-mono);font-size:21px;line-height:1;font-weight:700} /* taste-skill-ignore: mono (统计数字) */
+.y-summary span{font-size:11.5px;color:var(--muted)}
+.y-summary em{margin-left:auto;color:var(--muted);font-size:11.5px;font-style:normal;font-family:var(--font-mono)} /* taste-skill-ignore: mono (统计数字) */
+.y-months{display:grid;grid-template-columns:16px repeat(53,minmax(0,1fr));height:13px;align-items:start;color:var(--muted);font-size:9px;line-height:1;margin-top:16px}
+.y-months span{white-space:nowrap}
+.y-row{display:grid;grid-template-columns:16px minmax(0,1fr);gap:4px}
+.y-week{display:grid;grid-template-rows:repeat(7,1fr);color:var(--muted);font-size:9px;line-height:1;text-align:left}
+.y-grid{display:grid;grid-template-columns:repeat(53,minmax(0,1fr));grid-template-rows:repeat(7,minmax(0,1fr));grid-auto-flow:column;gap:1px;min-width:0}
+.y-grid i{display:block;width:100%;aspect-ratio:1;border-radius:1px;background:var(--cell0);min-width:0}
+.y-grid i[data-l="1"]{background:var(--cell1)}
+.y-grid i[data-l="2"]{background:var(--cell2)}
+.y-grid i[data-l="3"]{background:var(--cell3)}
+.y-grid i[data-l="4"]{background:var(--cell4)}
+.y-legend{display:flex;align-items:center;gap:4px;margin-top:10px;font-size:11px;color:var(--muted)}
+.y-legend i{width:9px;height:9px;border-radius:2px;background:var(--cell0)}
+.y-legend i.s1{background:var(--cell1)}
+.y-legend i.s2{background:var(--cell2)}
+.y-legend i.s3{background:var(--cell3)}
+.y-legend i.s4{background:var(--cell4)}
+.y-legend span:last-child{margin-left:2px}
+.ledger-rows{display:grid;gap:34px}
+.ledger-rows .lr h3{font-size:17px;font-weight:700}
+.ledger-rows .lr p{margin-top:5px;color:var(--muted);font-size:15px}
+@media (max-width:820px){.ledger-grid{grid-template-columns:1fr}}
+
+/* ---------- §5 封底：墨面 ---------- */
+.back-cover{
+  margin:0 calc(-1*var(--margin));background:var(--ink);color:var(--on-dark);
+  padding:clamp(76px,9vw,128px) var(--margin) 0;overflow:hidden;
+}
+.back-cover h2{font-size:clamp(34px,5vw,68px);max-width:12em}
+.back-cover .sub{color:var(--dim-dark);margin-top:20px;font-size:clamp(16px,1.3vw,18px)}
+.btn-paper{background:var(--on-dark);color:var(--ink);margin-top:32px}
+.back-cover .meta{margin-top:16px;font-size:13.5px;color:var(--dim-dark)}
+.cover-stage{position:relative;height:176px;margin-top:24px}
+.cover-stage .pet{position:absolute;right:12%;bottom:0}
+
+/* ---------- 页脚 ---------- */
+.conga{position:relative;height:150px;overflow:hidden;margin-top:64px}
+.conga .line{position:absolute;bottom:0;left:0;display:flex;gap:26px;align-items:flex-end;will-change:transform}
+.speck{position:absolute;width:4px;height:4px;background:var(--ink);opacity:.85;pointer-events:none}
+.foot-row{display:flex;align-items:center;gap:20px;padding:0 var(--margin) 44px;flex-wrap:wrap}
+.foot-row .mark{display:flex;align-items:center;gap:10px;font-weight:700}
+.foot-row .mark img{width:22px;height:22px}
+.foot-row .tag{font-size:13px;color:var(--muted)}
+.foot-row a{color:var(--muted);text-decoration:none;font-size:14px}
+.foot-row a:hover{color:var(--ink)}
+.foot-row .fine{margin-left:auto;font-size:13px;color:var(--muted)}
+
+/* ---------- 宠物精灵 ---------- */
+.pet{position:relative;overflow:hidden;image-rendering:pixelated;flex:none}
+.pet img{position:absolute;top:0;left:0;max-width:none;image-rendering:pixelated;will-change:transform}
+.pet.s1{width:88px;height:88px}.pet.s1 img{width:88px;height:88px}
+.pet.s2{width:176px;height:176px}.pet.s2 img{width:176px;height:176px}
+.pet .acc{position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none}
+
+/* 复习牌 */
+.sign{position:relative;image-rendering:pixelated}
+.sign img{width:100%;height:100%;image-rendering:pixelated}
+.sign .word{
+  position:absolute;left:0;right:0;font-family:var(--font-pixel);
+  text-align:center;line-height:1;white-space:nowrap;
+}
+/* 入场揭示 */
+.rev{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+.rev.in{opacity:1;transform:none}
+.rev.d1{transition-delay:.08s}.rev.d2{transition-delay:.16s}.rev.d3{transition-delay:.24s}
+@media (prefers-reduced-motion:reduce){.rev{opacity:1;transform:none;transition:none}}
+
+/* 边缘偷看的小幽灵（固定于视口左缘） */
+.edge-peeker{position:fixed;left:0;top:55%;z-index:40;transform:translateX(-100%);transition:transform .5s ease;pointer-events:none}
+.edge-peeker.peek{transform:translateX(-44px)}
+@media (max-width:640px){.edge-peeker.peek{transform:translateX(-132px)}}
+@media (prefers-reduced-motion:reduce){.edge-peeker{display:none}}
+</style>
+</head>
+<body>
+
+  <header class="nav">
+    <a class="mark" href="#top"><img src="assets/brand/lens-mark.svg" alt="">Lens</a>
+    <nav>
+      <a href="#capture">取词</a>
+      <a href="#pets">宠物</a>
+      <a href="#ledger">记录</a>
+      <a class="btn" href="https://github.com/kakuyo1/lens/releases/latest">下载</a>
+    </nav>
+  </header>
+
+  <!-- 主视觉：词条卡 -->
+  <div class="entry-card" id="top">
+    <div class="entry-grid">
+      <div class="entry-main">
+        <h1 class="headword">Lens<span class="ipa">/lenz/</span></h1>
+        <p class="pos">n.</p>
+        <p class="sense">用英文，读懂英文。</p>
+        <p class="standfirst">Lens 常驻 Windows 托盘。选中一个单词、一个名字或一个句子，它会在文字旁边用更清楚的英文解释——不切页，不开词典，也不先把英文翻译成中文。</p>
+        <div class="cta-row">
+          <a class="btn" href="https://github.com/kakuyo1/lens/releases/latest">下载 Windows 版</a>
+          <span class="cta-note">免费开源 · MIT · 带上你自己的 API key</span>
+        </div>
+      </div>
+      <div class="entry-read rev d1">
+        <p class="reading">Serendipity, she wrote, is not luck. It is attention. She had come to the archive looking for one thing and found another — a <span class="w">serendipity</span> she could not have planned, and would not have wanted to.</p>
+        <div class="wc-hang">
+          <aside class="bubble" data-ui aria-label="Lens 词卡示例">
+            <div class="row1"><span class="tag-new">新词</span><span class="x" aria-hidden="true"><svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 2l8 8M10 2l-8 8"/></svg></span></div>
+            <div class="head">serendipity<span class="ipa2">/ˌserənˈdɪpəti/</span></div>
+            <div class="signpost">happy accident</div>
+            <p class="def">the occurrence of events by chance in a happy or beneficial way</p>
+            <div class="etym"><b>词源</b>Coined in 1754 from Horace Walpole's tale of the three princes of Serendip.</div>
+            <div class="ex"><b>例句</b>Our first meeting was pure serendipity.</div>
+            <div class="meta"><span>Disappears in 5s</span><span class="verdicts"><span class="verdict">已会</span><span class="verdict new">新词</span></span></div>
+          </aside>
+        </div>
+      </div>
+    </div>
+    <div class="hero-stage" aria-hidden="true">
+      <div class="pet s2" data-pet="dog" data-anim="idle" data-script="enter"></div>
+    </div>
+  </div>
+
+  <!-- §1 取词 -->
+  <section id="capture">
+    <div class="sec-grid">
+      <div class="sec-word rev">
+        <span class="ew">cap·ture</span>
+        <span class="ew-ipa">/ˈkæptʃər/</span>
+        <span class="eg">取词</span>
+      </div>
+      <div class="sec-body">
+        <h2 class="h-sec rev">选中的、框住的，都能问。</h2>
+        <div class="cap-rows">
+          <div class="cap-row rev">
+            <div>
+              <h3>选区</h3>
+              <p>拖过一个词，动作条就在手边：翻译、解释、复制。复制下面还藏着一张抽屉：词给纠正拼写，句子给纠正语法和拆解，用不上的项不会出现。</p>
+            </div>
+            <div class="sel-fig" data-ui aria-label="复制抽屉演示：词选区给纠正拼写，句子选区给纠正语法与句子拆解">
+              <p class="sel-line fade-t" id="sel-line"><span class="hl" id="hl-sent"><span class="hl" id="hl-word">Serendipity</span>, she wrote, is not luck. It is attention.</span></p>
+              <div class="selbar">
+                <span class="act"><svg viewBox="0 0 16 16" fill="none" stroke-width="1.5"><path d="M2 3h9M2 8h7M2 13h9" stroke="currentColor"/></svg>翻译</span>
+                <span class="act"><svg viewBox="0 0 16 16" fill="none" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><path d="M8 5.5v5M5.5 8h5" stroke="currentColor"/></svg>解释</span>
+                <span class="act copied"><svg viewBox="0 0 16 16" fill="none" stroke-width="1.5"><rect x="4" y="4" width="8" height="9" rx="1.5"/><path d="M6 4V2.5h7V11" stroke="currentColor"/></svg>复制文本</span>
+              </div>
+              <div class="drawer fade-t" id="sel-drawer">
+                <span class="d-item" id="d-item-1">纠正拼写</span>
+                <span class="d-item" id="d-item-2">纠正语法</span>
+                <span class="d-item" id="d-item-3">句子拆解</span>
+              </div>
+            </div>
+          </div>
+          <div class="cap-row rev">
+            <div>
+              <h3>截图</h3>
+              <p>PDF、图片、视频画面里选不中的字，框住就行。识别默认在本机完成。</p>
+            </div>
+            <div class="shot-fig"><span class="kbd">Ctrl</span><span class="kbd">Alt</span><span class="kbd">S</span><span class="tip">框选要取词的区域</span></div>
+          </div>
+        </div>
+        <div aria-hidden="true" style="height:160px;position:relative;margin-top:20px">
+          <div class="pet s2" data-pet="cat" data-anim="idle" data-script="pounce" style="position:absolute;right:4%;bottom:0"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- §2 通道 -->
+  <section id="senses">
+    <div class="sec-grid">
+      <div class="sec-word rev">
+        <span class="ew">sens·es</span>
+        <span class="ew-ipa">/ˈsensɪz/</span>
+        <span class="eg">通道</span>
+      </div>
+      <div class="sec-body">
+        <h2 class="h-sec rev">英文进，清楚的英文出。</h2>
+        <div class="chan-rows">
+          <div class="chan rev"><b>单词</b><span>最常见义项，英文释义与音标，需要时加词源和例句。</span></div>
+          <div class="chan rev d1"><b>实体</b><span>人名、地名、术语，按最常见的指称给一段百科式说明。</span></div>
+          <div class="chan rev d2"><b>句子</b><span>拆解成分：主语、谓语、表语、状语，各染一色。</span></div>
+          <div class="chan rev d3"><b>译文</b><span>中文选区一律译成英文，只回一行。</span></div>
+        </div>
+        <div class="card-pair">
+          <aside class="bubble static rev" data-ui id="sense-card" aria-label="单词卡示例：crane 的义项轮换与义项图">
+            <div class="row1"><span class="tag-new">新词</span><span class="x" aria-hidden="true"><svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 2l8 8M10 2l-8 8"/></svg></span></div>
+            <div class="head">crane<span class="ipa2">/kre&#618;n/</span></div>
+            <div class="signpost fade-t" id="sc-signpost">wading bird</div>
+            <p class="def fade-t" id="sc-def">a large bird with long legs and a long neck, that lives near water</p>
+            <div class="pic-toggle"><svg viewBox="0 0 16 16" fill="none" stroke-width="1.5"><rect x="2" y="4.5" width="12" height="9" rx="1.5"/><circle cx="8" cy="9" r="2.2"/><path d="M5.5 4.5l1-1.5h3l1 1.5"/></svg>Pictures</div>
+            <div class="pic-row fade-t" id="sc-pics">
+              <div class="pic-strip" id="sc-strip"></div>
+              <div class="pic-cap" id="sc-cap"></div>
+              <div class="pic-credit" id="sc-credit"></div>
+            </div>
+            <div class="ex fade-t"><b>例句</b><span id="sc-ex">A crane waded through the shallow marsh.</span></div>
+            <button class="sense-swap" id="sc-swap" aria-label="换到下一个义项"><span class="q">Not the Sense?</span><b id="sc-hint">machine</b><span class="arr">&rarr;</span></button>
+            <div class="meta"><span>Disappears in 5s</span><span class="verdicts"><span class="verdict">已会</span><span class="verdict new">新词</span></span></div>
+          </aside>
+          <div class="brk rev d1" data-ui aria-label="句子拆解示例">
+            <span class="tag">拆解</span>
+            <p class="sent"><span class="a">Although the rain had stopped,</span> <span class="s">the streets</span> <span class="v">remained</span> <span class="c">flooded</span> <span class="a">for hours.</span></p>
+            <div class="legend">
+              <span><i class="dot" style="background:color-mix(in srgb,var(--role-s) 20%,transparent);outline:1px solid var(--role-s)"></i>主语</span>
+              <span><i class="dot" style="background:color-mix(in srgb,var(--role-v) 20%,transparent);outline:1px solid var(--role-v)"></i>谓语</span>
+              <span><i class="dot" style="background:color-mix(in srgb,var(--role-c) 20%,transparent);outline:1px solid var(--role-c)"></i>表语</span>
+              <span><i class="dot" style="background:color-mix(in srgb,var(--role-a) 20%,transparent);outline:1px solid var(--role-a)"></i>状语</span>
+            </div>
+          </div>
+          <div class="pet s1" data-pet="jelly" data-anim="idle" data-script="jelly" style="position:absolute;left:calc(50% - 44px);bottom:-10px" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- §3 宠物与复习 -->
+  <section id="pets">
+    <div class="sec-grid">
+      <div class="sec-word rev">
+        <span class="ew">pets</span>
+        <span class="ew-ipa">/pets/</span>
+        <span class="eg">宠物</span>
+      </div>
+      <div class="sec-body">
+        <h2 class="h-sec rev">到期的词，它们会举回来问你。</h2>
+        <p class="lead rev">答对，下一次隔得更久；答错，提前回来。间隔从 10 分钟到 60 天，没有连续打卡，也没有课程表。</p>
+        <div class="pets-grid">
+          <div class="plate rev" id="review-plate" tabindex="0" aria-label="宠物复习演示：悬停出现按钮，选择记得或忘了">
+            <div class="lv"><span>等级</span><span class="dots" id="lv-dots"></span></div>
+            <span class="hint">悬停回答</span>
+            <div class="review-stage">
+              <div id="review-sign"></div>
+              <div class="pet s2" data-pet="owl" data-anim="idle" id="review-pet"></div>
+            </div>
+            <div class="reply-card">
+              <button class="forgot" id="btn-forgot">忘了</button>
+              <button class="remember" id="btn-remember">记得</button>
+            </div>
+          </div>
+          <div>
+            <ul class="pet-facts">
+              <li class="rev">随包有七只：短耳猫、小狗奶糖、小云、小幽灵、小水母、麻糬、猫头鹰，各带九件配饰，随时可换。</li>
+              <li class="rev d1">场景一共 33 段：午后打盹、深夜观星、刚读完长文去敲电脑。抽中哪段演哪段。</li>
+              <li class="rev d2">它们有脾气：会闲逛，会躲到屏幕边缘偷看，也能被你拎起来抛出去。</li>
+            </ul>
+            <p class="pets-note rev d3">默认关闭，在设置的「扩展」里开启。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- §4 记录与边界 -->
+  <section id="ledger">
+    <div class="sec-grid">
+      <div class="sec-word rev">
+        <span class="ew">ledg·er</span>
+        <span class="ew-ipa">/ˈledʒər/</span>
+        <span class="eg">记录</span>
+      </div>
+      <div class="sec-body">
+        <h2 class="h-sec rev">花了多少，送了什么，都看得见。</h2>
+        <div class="ledger-grid">
+          <div class="rev">
+            <div class="y-summary"><strong>1,284</strong><span>次查阅 · 2026</span><em>486 词</em></div>
+            <div class="y-months" aria-hidden="true" id="y-months"></div>
+            <div class="y-row">
+              <div class="y-week" aria-hidden="true"><span></span><span>一</span><span></span><span>三</span><span></span><span>五</span><span></span></div>
+              <div class="y-grid" id="ygrid" role="img" aria-label="过去一年的查阅记录：53 周 × 7 天，绿色深浅按当天查阅次数分五档"></div>
+            </div>
+            <div class="y-legend" aria-hidden="true"><span>少</span><i></i><i class="s1"></i><i class="s2"></i><i class="s3"></i><i class="s4"></i><span>多</span></div>
+          </div>
+          <div class="ledger-rows">
+            <div class="lr rev"><h3>花费逐条可见</h3><p>每次请求按 token 计价，花到哪一条都查得到。设了每日预算的话，到顶就停，第二天自己恢复。</p></div>
+            <div class="lr rev d1"><h3>只发你选中的词</h3><p>只有你选中的词会发给你配置的服务商；邮箱、长数字和网址在发送前先在本机遮掉。</p></div>
+            <div class="lr rev d2"><h3>同步去你自己的地方</h3><p>标记、历史和统计用口令加密，存进你自己的 GitHub gist。Lens 没有自己的账号，也没有服务器。</p></div>
+          </div>
+        </div>
+        <div aria-hidden="true" style="height:120px;position:relative;margin-top:24px">
+          <div class="pet s1" data-pet="mochi" data-anim="walk" data-script="hop-across" style="position:absolute;left:0;bottom:0"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- §5 封底 -->
+  <section id="download" style="padding-bottom:0">
+    <div class="back-cover">
+      <h2 class="rev">今晚就多读一页英文。</h2>
+      <p class="sub rev d1">安装版按用户安装，不需要管理员权限；便携版解压即用。</p>
+      <a class="btn btn-paper rev d2" href="https://github.com/kakuyo1/lens/releases/latest">下载 Windows 版</a>
+      <p class="meta rev d3">Windows 10/11 x64 · 免费 · 开源（MIT）</p>
+      <div class="cover-stage" aria-hidden="true">
+        <div class="pet s2" data-pet="cloud" data-anim="idle" data-script="drift"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="conga" aria-hidden="true">
+      <div class="line" id="conga-line">
+        <div class="pet s1" data-pet="dog" data-anim="walk"></div>
+        <div class="pet s1" data-pet="cat" data-anim="walk"></div>
+        <div class="pet s1" data-pet="owl" data-anim="walk"></div>
+        <div class="pet s1" data-pet="mochi" data-anim="walk"></div>
+        <div class="pet s1" data-pet="ghost" data-anim="walk"></div>
+        <div class="pet s1" data-pet="jelly" data-anim="walk"></div>
+        <div class="pet s1" data-pet="cloud" data-anim="walk"></div>
+      </div>
+    </div>
+    <div class="foot-row">
+      <span class="mark"><img src="assets/brand/lens-mark.svg" alt="">Lens</span>
+      <span class="tag">用英文，读懂英文。</span>
+      <a href="https://github.com/kakuyo1/lens">GitHub</a>
+      <a href="https://github.com/kakuyo1/lens/releases">Releases</a>
+      <span class="fine">MIT License · 界面与解释：EN / 简中 / 繁中 / ES / JA</span>
+    </div>
+  </footer>
+
+  <!-- 边缘偷看的小幽灵 -->
+  <div class="edge-peeker" aria-hidden="true">
+    <div class="pet s2" data-pet="ghost" data-anim="edge_peek"></div>
+  </div>
+
+<script>
+/* ============ 精灵动画器：JS 逐帧驱动，离屏即停（规范版，源自候选 A） ============ */
+const META = {
+  cat:{idle:[5,5],walk:[6,7],edge_peek:[6,5],ask:[4,4],celebrate:[7,10],encourage:[5,8],look_around:[6,6],pounce:[4,10],dizzy:[15,6],pickup:[4,6],thinking:[4,3],catyarn:[12,4]},
+  cloud:{idle:[4,4],walk:[6,5],edge_peek:[6,5],ask:[4,4],celebrate:[7,10],encourage:[5,8],look_around:[6,6],dizzy:[15,6],pickup:[4,6],thinking:[4,3]},
+  dog:{idle:[5,5],walk:[6,8],edge_peek:[6,5],ask:[4,4],celebrate:[8,10],encourage:[5,8],look_around:[6,6],dizzy:[15,6],pickup:[4,6],thinking:[4,3]},
+  ghost:{idle:[5,4],walk:[6,6],edge_peek:[6,5],ask:[4,4],celebrate:[7,10],encourage:[5,8],look_around:[6,6],dizzy:[15,6],pickup:[4,6],thinking:[4,3]},
+  jelly:{idle:[4,4],walk:[6,5],edge_peek:[6,5],ask:[4,4],celebrate:[7,10],encourage:[5,8],look_around:[6,6],dizzy:[15,6],pickup:[4,6],thinking:[4,3]},
+  mochi:{idle:[5,5],walk:[6,9],edge_peek:[6,5],ask:[4,4],celebrate:[8,10],encourage:[5,8],look_around:[6,6],dizzy:[15,6],pickup:[4,6],thinking:[4,3]},
+  owl:{idle:[5,5],walk:[6,8],edge_peek:[6,5],ask:[4,4],celebrate:[8,10],encourage:[5,8],look_around:[6,6],dizzy:[15,6],pickup:[4,6],thinking:[4,3]},
+};
+const SCALE = {s1:1, s2:2};
+const ACC = {cat:1, cloud:1, dog:1, ghost:1, jelly:1, mochi:1, owl:1};
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const players = new Set();
+function makePlayer(petEl, pet, sheet, opts={}){
+  const [frames, fps] = META[pet][sheet];
+  const px = 88 * SCALE[petEl.classList.contains('s2') ? 's2' : 's1'];
+  const accHtml = ACC[pet] ? `<img class="acc" src="assets/pets/${pet}/acc.png" alt="" aria-hidden="true">` : '';
+  petEl.innerHTML = `<img src="assets/pets/${pet}/${sheet}.png" alt="" style="width:${px*frames}px;height:${px}px">${accHtml}`;
+  const img = petEl.querySelector('img');
+  const once = !!opts.once;
+  let raf = 0, t0 = 0, done = opts.done || null;
+  const tick = (t) => {
+    if(!t0) t0 = t;
+    let f = Math.floor((t - t0) / 1000 * fps);
+    if(once && f >= frames){ img.style.transform = `translateX(${-px*(frames-1)}px)`; raf=0; done && done(); return; }
+    f %= frames;
+    img.style.transform = `translateX(${-px*f}px)`;
+    raf = requestAnimationFrame(tick);
+  };
+  return {
+    play(){ if(raf || reduced){ if(reduced){img.style.transform='translateX(0)'; done&&done();} return; } t0=0; raf=requestAnimationFrame(tick); },
+    stop(){ if(raf){cancelAnimationFrame(raf); raf=0;} },
+    swap(next, o={}){ this.stop(); const p = makePlayer(petEl, pet, next, o); p.play(); return p; }
+  };
+}
+
+/* 注册所有静态循环宠物 */
+const loopPlayers = new Map();
+document.querySelectorAll('[data-pet]').forEach(el => {
+  const pet = el.dataset.pet, anim = el.dataset.anim || 'idle';
+  if(el.id === 'review-pet') return; // 复习宠物单独接管
+  const p = makePlayer(el, pet, anim);
+  loopPlayers.set(el, p);
+});
+/* 离屏暂停 */
+const vis = new IntersectionObserver(es => es.forEach(e => {
+  const p = loopPlayers.get(e.target); if(!p) return;
+  e.isIntersecting ? p.play() : p.stop();
+}), {rootMargin:'80px'});
+loopPlayers.forEach((p, el) => vis.observe(el));
+
+/* ============ 剧本：每只宠物的一场戏 ============ */
+function scriptEnter(stageEl, petEl, pet){ // 狗：从词条卡左缘走入，张望，站定
+  if(reduced) return;
+  const home = petEl.offsetLeft;
+  petEl.style.transform = `translateX(${-home - 200}px)`;
+  let p = makePlayer(petEl, pet, 'walk');
+  new IntersectionObserver((es, o) => { if(es[0].isIntersecting){ o.disconnect();
+      setTimeout(() => {
+        petEl.style.transition = 'transform 1.6s linear';
+        petEl.style.transform = 'translateX(0)'; p.play();
+        setTimeout(() => {
+          p.stop();
+          const look = makePlayer(petEl, pet, 'look_around', {once:true, done:() => {
+            const idle = makePlayer(petEl, pet, 'idle');
+            idle.play(); loopPlayers.set(petEl, idle); vis.observe(petEl);
+          }});
+          look.play();
+        }, 1600);
+      }, 500);
+  }}, {threshold:.3}).observe(stageEl);
+}
+
+function scriptPounce(petEl){ // 猫：从右边崩出来
+  if(reduced) return;
+  const stage = petEl.parentElement;
+  new IntersectionObserver((es, o) => { if(es[0].isIntersecting){ o.disconnect();
+    petEl.style.transition = 'none';
+    petEl.style.opacity = '0';
+    petEl.style.transform = 'translateX(0) scale(.96)'; petEl.style.transformOrigin = '80% 100%';
+    setTimeout(() => {
+      petEl.style.transition = 'transform .42s cubic-bezier(.2,1.4,.4,1), opacity .3s ease';
+      petEl.style.opacity = '1';
+      petEl.style.transform = 'translateX(0) scale(1)';
+      makePlayer(petEl, 'cat', 'pounce', {once:true, done:() => {
+        const p = makePlayer(petEl, 'cat', 'catyarn'); p.play(); loopPlayers.set(petEl, p); vis.observe(petEl);
+      }}).play();
+    }, 250);
+  }}, {threshold:.4}).observe(stage);
+}
+
+function scriptJelly(petEl){ // 水母：浮到词卡旁，疑惑一次，换一次义项
+  if(reduced) return;
+  const stage = petEl.parentElement;
+  new IntersectionObserver((es, o) => { if(es[0].isIntersecting){ o.disconnect();
+    petEl.style.transform = 'translateY(46px)'; petEl.style.opacity = '0';
+    setTimeout(() => {
+      petEl.style.transition = 'transform 1s ease, opacity 1s ease';
+      petEl.style.transform = 'translateY(0)'; petEl.style.opacity = '1';
+      const idle = makePlayer(petEl, 'jelly', 'idle'); idle.play();
+      loopPlayers.set(petEl, idle); vis.observe(petEl);
+      setInterval(() => {
+        if(petEl.dataset.busy || !scVisible) return;
+        const r = petEl.getBoundingClientRect();
+        if(r.top > innerHeight || r.bottom < 0) return;
+        petEl.dataset.busy = '1';
+        loopPlayers.get(petEl).stop();
+        const think = makePlayer(petEl, 'jelly', 'thinking', {once:true, done:() => {
+          petEl.dataset.busy = '';
+          const back = makePlayer(petEl, 'jelly', 'idle'); back.play();
+          loopPlayers.set(petEl, back);
+          scSwap();
+        }});
+        think.play();
+      }, 2600);
+    }, 200);
+  }}, {threshold:.4}).observe(stage);
+}
+
+
+function scriptHop(petEl){ // 麻糬：蹦到右缘，撞一下，被弹向左缘，再撞，落到中间，晕头转向
+  const stage = petEl.parentElement;
+  if(reduced){
+    const idle = makePlayer(petEl, 'mochi', 'idle'); idle.play(); loopPlayers.set(petEl, idle);
+    requestAnimationFrame(() => { petEl.style.transform = 'translateX(' + Math.round((stage.clientWidth - 88) / 2) + 'px)'; });
+    return;
+  }
+  const specks = (side) => {
+    const wall = side === 'right' ? stage.clientWidth - 88 : 0;
+    for(let i = 0; i < 4; i++){
+      const s = document.createElement('i');
+      s.className = 'speck';
+      s.style.left = (wall + 40 + (side === 'right' ? 4 : -4) - (side === 'right' ? i * 3 : i * -3)) + 'px';
+      s.style.bottom = (12 + i * 7) + 'px';
+      stage.appendChild(s);
+      const dx = (side === 'right' ? -1 : 1) * (12 + i * 8);
+      s.animate(
+        [{ transform: 'translate(0,0)', opacity: .9 }, { transform: 'translate(' + dx + 'px,' + (-16 - i * 5) + 'px)', opacity: 0 }],
+        { duration: 380, easing: 'ease-out' }
+      ).onfinish = () => s.remove();
+    }
+  };
+  let player = makePlayer(petEl, 'mochi', 'walk'); player.play();
+  const place = (x, y, sx, sy, ox) => {
+    petEl.style.transformOrigin = (ox || 50) + '% 100%';
+    petEl.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px) scale(' + (sx || 1) + ',' + (sy || 1) + ')';
+  };
+  const tween = (dur, fn) => new Promise(res => {
+    const t0 = performance.now();
+    const step = (t) => { const k = Math.min(1, (t - t0) / dur); fn(k); if(k < 1) requestAnimationFrame(step); else res(); };
+    requestAnimationFrame(step);
+  });
+  const wait = (ms) => new Promise(res => setTimeout(res, ms));
+  let ran = false, running = false;
+  const seq = async () => {
+    running = true;
+    const W = stage.clientWidth - 88;
+    place(0, 0);
+    await tween(4400, k => {
+      const x = W * k;
+      const hop = Math.abs(Math.sin(k * Math.PI * 7)) * 26;
+      place(x, -hop);
+    });
+    specks('right');
+    place(W, 0, .8, 1.12, 100); await wait(120);
+    place(W, 0); await wait(90);
+    player.stop(); player = makePlayer(petEl, 'mochi', 'pickup'); player.play();
+    await tween(820, k => { place(W * (1 - k), -Math.sin(k * Math.PI) * 44); });
+    specks('left');
+    place(0, 0, .8, 1.12, 0); await wait(120);
+    place(0, 0); await wait(90);
+    await tween(620, k => { place((W / 2) * k, -Math.sin(k * Math.PI) * 30); });
+    place(W / 2, 0, .84, 1.1); await wait(110);
+    place(W / 2, 0);
+    player.stop();
+    player = makePlayer(petEl, 'mochi', 'dizzy', {once:true, done:() => {
+      const idle = makePlayer(petEl, 'mochi', 'idle'); idle.play(); loopPlayers.set(petEl, idle);
+    }});
+    player.play();
+    running = false;
+  };
+  const reset = () => {
+    petEl.style.transition = 'none';
+    petEl.style.transform = 'translateX(0)';
+    player.stop();
+    player = makePlayer(petEl, 'mochi', 'walk'); player.play();
+  };
+  new IntersectionObserver(es => {
+    const e = es[0];
+    if(e.isIntersecting && !ran && !running){ ran = true; seq(); }
+    else if(!e.isIntersecting && ran && !running){ ran = false; reset(); }
+  }, {threshold:.12}).observe(stage);
+}
+
+
+function scriptDrift(petEl){ // 小云：在墨面上缓缓漂
+  if(reduced) return;
+  const stage = petEl.parentElement;
+  let running = false;
+  new IntersectionObserver(es => {
+    if(es[0].isIntersecting && !running){
+      running = true;
+      const w = stage.clientWidth;
+      const t0 = performance.now(), dur = 26000;
+      const step = (t) => {
+        const k = ((t - t0) % dur) / dur;
+        petEl.style.transform = `translateX(${w * .3 * Math.sin(k * Math.PI * 2)}px)`;
+        if(stage.getBoundingClientRect().bottom > 0) requestAnimationFrame(step); else running = false;
+      };
+      requestAnimationFrame(step);
+    }
+  }, {threshold:0}).observe(stage);
+}
+
+document.querySelectorAll('[data-script="enter"]').forEach(el => scriptEnter(el.parentElement, el, el.dataset.pet));
+document.querySelectorAll('[data-script="pounce"]').forEach(el => scriptPounce(el));
+document.querySelectorAll('[data-script="jelly"]').forEach(el => scriptJelly(el));
+document.querySelectorAll('[data-script="hop-across"]').forEach(el => scriptHop(el));
+document.querySelectorAll('[data-script="drift"]').forEach(el => scriptDrift(el));
+
+/* ============ 复习牌与作答 ============ */
+const SIGNS = {
+  owl:{w:62,h:60,wordTop:6,color:'#2a2a33'}, dog:{w:82,h:46,wordTop:11,color:'#6b3d4d'},
+  cat:{w:62,h:66,wordTop:22,color:'#5a3b2e'}
+};
+const WORDS = ['knack','grasp','terse','apt'];
+const SIGN_W = 1.5, WORD_PX = 30; // 牌 ×1.5 显示
+let lv = 2, wi = 0, reviewPlayer = null, signImg = null;
+
+function buildSign(word){
+  const s = SIGNS.owl, host = document.getElementById('review-sign');
+  const inner = s.w*SIGN_W - 16;
+  const fs = Math.max(14, Math.min(WORD_PX, Math.floor(inner / word.length * 1.6)));
+  host.innerHTML = `<div class="sign" style="width:${s.w*SIGN_W}px;height:${s.h*SIGN_W}px">
+    <img src="assets/signs/owl.png" alt=""><span class="word" style="top:${s.wordTop*SIGN_W + 4}px;font-size:${fs}px;color:${s.color}">${word}</span></div>`;
+  const el = host.firstElementChild;
+  el.style.transition = 'transform .3s ease, opacity .3s ease';
+  return el;
+}
+function showSign(word){
+  const el = buildSign(word);
+  el.style.opacity = '0'; el.style.transform = 'translateY(26px)';
+  requestAnimationFrame(() => requestAnimationFrame(() => { el.style.opacity='1'; el.style.transform='translateY(0)'; }));
+}
+function dropSign(){
+  const el = document.querySelector('#review-sign .sign');
+  if(el){ el.style.opacity='0'; el.style.transform='translateY(30px)'; }
+}
+function renderLv(){
+  const dots = document.getElementById('lv-dots');
+  dots.innerHTML = '';
+  for(let i=0;i<6;i++){ const d=document.createElement('i'); d.className='dot'+(i<=lv?' on':''); dots.appendChild(d); }
+}
+function ask(){
+  const word = WORDS[wi % WORDS.length];
+  showSign(word);
+  if(reviewPlayer) reviewPlayer.stop();
+  reviewPlayer = makePlayer(document.getElementById('review-pet'), 'owl', 'ask'); reviewPlayer.play();
+}
+function answer(right){
+  const pet = document.getElementById('review-pet');
+  lv = Math.max(0, Math.min(5, lv + (right ? 1 : -1)));
+  renderLv();
+  if(reduced){ wi++; showSign(WORDS[wi % WORDS.length]); return; } // 减少动效：即时换词
+  dropSign();
+  reviewPlayer.stop();
+  reviewPlayer = makePlayer(pet, 'owl', right ? 'celebrate' : 'encourage', {once:true, done:() => {
+    wi++; setTimeout(ask, 350);
+  }});
+  reviewPlayer.play();
+}
+const plate = document.getElementById('review-plate');
+if(plate && !reduced){
+  renderLv();
+  new IntersectionObserver((es,o) => { if(es[0].isIntersecting){ o.disconnect(); setTimeout(ask, 600); }},{threshold:.5}).observe(plate);
+  document.getElementById('btn-remember').addEventListener('click', () => answer(true));
+  document.getElementById('btn-forgot').addEventListener('click', () => answer(false));
+}else if(plate){
+  // 减少动效：静帧 + 静态牌，按钮仍可作答
+  reviewPlayer = makePlayer(document.getElementById('review-pet'), 'owl', 'idle'); reviewPlayer.play();
+  showSign(WORDS[0]); renderLv();
+  document.getElementById('btn-remember').addEventListener('click', () => answer(true));
+  document.getElementById('btn-forgot').addEventListener('click', () => answer(false));
+}
+
+/* ============ 年度记录格子 ============ */
+const grid = document.getElementById('ygrid');
+if(grid){
+  let seed = 11;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for(let i=0;i<371;i++){
+    const c = document.createElement('i');
+    const r = rnd();
+    const lv = r > .965 ? 4 : r > .9 ? 3 : r > .78 ? 2 : r > .55 ? 1 : 0;
+    if(lv) c.dataset.l = lv;
+    grid.appendChild(c);
+  }
+  const ym = document.getElementById('y-months');
+  [1,5,10,14,18,23,27,31,36,40,44,49].forEach((w,i) => {
+    const s = document.createElement('span');
+    s.textContent = (i+1)+'月';
+    s.style.gridColumnStart = w + 1;
+    ym.appendChild(s);
+  });
+}
+
+/* ============ 入场揭示 ============ */
+const revObs = new IntersectionObserver(es => es.forEach(e => {
+  if(e.isIntersecting){ e.target.classList.add('in'); revObs.unobserve(e.target); }
+}), {threshold:.18, rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.rev').forEach(el => revObs.observe(el));
+if(reduced) document.querySelectorAll('.rev').forEach(el => el.classList.add('in'));
+
+/* ============ 幽灵边缘偷看：§4 进入视口时探头 ============ */
+const peeker = document.querySelector('.edge-peeker');
+const ledgerSec = document.getElementById('ledger');
+if(peeker && ledgerSec && !reduced){
+  makePlayer(peeker.querySelector('.pet'), 'ghost', 'edge_peek').play();
+  let peekTimer = 0;
+  new IntersectionObserver(es => {
+    if(es[0].isIntersecting){
+      peeker.classList.add('peek');
+      clearTimeout(peekTimer);
+      peekTimer = setTimeout(() => { peeker.classList.remove('peek');
+        peekTimer = setTimeout(() => peeker.classList.add('peek'), 2600);
+      }, 3400);
+    } else { peeker.classList.remove('peek'); clearTimeout(peekTimer); }
+  }, {threshold:.25}).observe(ledgerSec);
+}
+
+/* ============ 页脚游行 ============ */
+const conga = document.getElementById('conga-line');
+if(conga && !reduced){
+  new IntersectionObserver((es,o) => { if(es[0].isIntersecting){ o.disconnect();
+    const players7 = [...conga.querySelectorAll('.pet')].map(el => makePlayer(el, el.dataset.pet, 'walk'));
+    players7.forEach(p => p.play());
+    conga.animate(
+      [{transform:'translateX(-40vw)'},{transform:'translateX(102vw)'}],
+      {duration:9000, easing:'linear', fill:'forwards'}
+    );
+  }},{threshold:.2}).observe(conga);
+}
+
+/* ============ 义项轮换与义项图（crane 卡） ============ */
+const SC_SENSES = [
+  { signpost:'wading bird',
+    def:'a large bird with long legs and a long neck, that lives near water',
+    ex:'A crane waded through the shallow marsh.', hint:'machine',
+    photos:[
+      {f:'crane-bird-1', cap:'A common crane standing in a meadow', credit:'Photo: Charles J. Sharp · CC BY-SA 4.0 · Wikimedia Commons'},
+      {f:'crane-bird-2', cap:'A common crane calling in a reedbed', credit:'Photo: Andreas Weith · CC BY-SA 4.0 · Wikimedia Commons'},
+      {f:'crane-bird-3', cap:'Two common cranes flying at sunrise', credit:'Photo: Andreas Weith · CC BY-SA 4.0 · Wikimedia Commons'}
+    ]},
+  { signpost:'lifting machine',
+    def:'a tall machine with a long arm, used for lifting heavy things',
+    ex:'A tower crane rose above the building site.', hint:'bird',
+    photos:[
+      {f:'crane-machine-a', cap:'A tower crane against a clear sky', credit:'Photo: Alex Panoiu · CC BY 2.0 · Wikimedia Commons'},
+      {f:'crane-machine-b', cap:'A red tower crane above a building site', credit:'Photo: Lee Ann Ratledge · CC BY 4.0 · Wikimedia Commons'},
+      {f:'crane-machine-c', cap:'A mobile crane on a construction site', credit:'Photo: KKPCW · CC BY-SA 4.0 · Wikimedia Commons'}
+    ]}
+];
+let scI = 0;
+function scCaption(i){
+  const ph = SC_SENSES[scI].photos[i];
+  document.getElementById('sc-cap').textContent = ph.cap;
+  document.getElementById('sc-credit').textContent = ph.credit;
+}
+function scRender(){
+  const s = SC_SENSES[scI];
+  document.getElementById('sc-signpost').textContent = s.signpost;
+  document.getElementById('sc-def').textContent = s.def;
+  document.getElementById('sc-ex').textContent = s.ex;
+  document.getElementById('sc-hint').textContent = s.hint;
+  const strip = document.getElementById('sc-strip');
+  strip.innerHTML = '';
+  s.photos.forEach((ph, i) => {
+    const im = document.createElement('img');
+    im.src = 'assets/pictures/' + ph.f + '.jpg';
+    im.alt = ph.cap; im.loading = 'lazy';
+    im.addEventListener('mouseenter', () => scCaption(i));
+    strip.appendChild(im);
+  });
+  scCaption(0);
+}
+scRender();
+function scSwap(){
+  const card = document.getElementById('sense-card');
+  if(reduced){ scI = 1 - scI; scRender(); return; }
+  card.classList.add('swapping');
+  setTimeout(() => { scI = 1 - scI; scRender(); card.classList.remove('swapping'); }, 260);
+}
+document.getElementById('sc-swap').addEventListener('click', scSwap);
+let scVisible = false;
+new IntersectionObserver(es => { scVisible = es[0].isIntersecting; }, {threshold:.2}).observe(document.getElementById('sense-card'));
+
+/* ============ 复制抽屉演示：词 ⇄ 句 ============ */
+const SEL_STATES = [
+  { sent:false, items:['d-item-1'] },
+  { sent:true,  items:['d-item-2','d-item-3'] }
+];
+let selI = 0, selVisible = false;
+function selRender(){
+  const st = SEL_STATES[selI];
+  document.getElementById('hl-word').classList.toggle('on', !st.sent);
+  document.getElementById('hl-sent').classList.toggle('on', st.sent);
+  ['d-item-1','d-item-2','d-item-3'].forEach(id => {
+    document.getElementById(id).style.display = st.items.includes(id) ? '' : 'none';
+  });
+}
+selRender();
+new IntersectionObserver(es => { selVisible = es[0].isIntersecting; }, {threshold:.3}).observe(document.getElementById('sel-drawer'));
+if(!reduced){
+  setInterval(() => {
+    if(!selVisible) return;
+    const fig = document.getElementById('sel-drawer').parentElement;
+    fig.classList.add('swapping');
+    setTimeout(() => { selI = 1 - selI; selRender(); fig.classList.remove('swapping'); }, 260);
+  }, 4400);
+}
+</script>
+</body>
+</html>

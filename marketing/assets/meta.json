@@ -1,0 +1,244 @@
+{
+ "canvas": 88,
+ "scale": 3,
+ "pets": {
+  "cat": {
+   "idle": {
+    "frames": 5,
+    "fps": 5,
+    "expr": true,
+    "effect": false
+   },
+   "pounce": {
+    "frames": 4,
+    "fps": 10,
+    "expr": true,
+    "effect": true
+   },
+   "walk": {
+    "frames": 6,
+    "fps": 7,
+    "expr": true,
+    "effect": true
+   },
+   "catyarn": {
+    "frames": 12,
+    "fps": 4
+   },
+   "acc": {
+    "id": "bell_collar",
+    "slot": "body"
+   }
+  },
+  "cloud": {
+   "idle": {
+    "frames": 4,
+    "fps": 4,
+    "expr": true,
+    "effect": false
+   },
+   "walk": {
+    "frames": 6,
+    "fps": 5,
+    "expr": true,
+    "effect": true
+   },
+   "acc": {
+    "id": "star_beanie",
+    "slot": "head"
+   }
+  },
+  "dog": {
+   "idle": {
+    "frames": 5,
+    "fps": 5,
+    "expr": true,
+    "effect": false
+   },
+   "walk": {
+    "frames": 6,
+    "fps": 8,
+    "expr": true,
+    "effect": true
+   },
+   "look_around": {
+    "frames": 6,
+    "fps": 6,
+    "expr": true,
+    "effect": false
+   },
+   "acc": {
+    "id": "bandana",
+    "slot": "body"
+   }
+  },
+  "ghost": {
+   "edge_peek": {
+    "frames": 6,
+    "fps": 5,
+    "expr": true,
+    "effect": true
+   },
+   "walk": {
+    "frames": 6,
+    "fps": 6,
+    "expr": true,
+    "effect": true
+   },
+   "acc": {
+    "id": "witch_hat",
+    "slot": "head"
+   }
+  },
+  "jelly": {
+   "idle": {
+    "frames": 4,
+    "fps": 4,
+    "expr": true,
+    "effect": false
+   },
+   "thinking": {
+    "frames": 4,
+    "fps": 3,
+    "expr": true,
+    "effect": true
+   },
+   "walk": {
+    "frames": 6,
+    "fps": 5,
+    "expr": true,
+    "effect": true
+   },
+   "acc": {
+    "id": "starfish_clip",
+    "slot": "head"
+   }
+  },
+  "mochi": {
+   "idle": {
+    "frames": 5,
+    "fps": 5,
+    "expr": true,
+    "effect": false
+   },
+   "walk": {
+    "frames": 6,
+    "fps": 9,
+    "expr": true,
+    "effect": true
+   },
+   "pickup": {
+    "frames": 4,
+    "fps": 6,
+    "expr": true,
+    "effect": true
+   },
+   "dizzy": {
+    "frames": 15,
+    "fps": 6,
+    "expr": true,
+    "effect": true
+   },
+   "acc": {
+    "id": "kanzashi",
+    "slot": "head"
+   }
+  },
+  "owl": {
+   "idle": {
+    "frames": 5,
+    "fps": 5,
+    "expr": true,
+    "effect": true
+   },
+   "ask": {
+    "frames": 4,
+    "fps": 4,
+    "expr": true,
+    "effect": false
+   },
+   "celebrate": {
+    "frames": 8,
+    "fps": 10,
+    "expr": true,
+    "effect": true
+   },
+   "encourage": {
+    "frames": 5,
+    "fps": 8,
+    "expr": true,
+    "effect": true
+   },
+   "walk": {
+    "frames": 6,
+    "fps": 8,
+    "expr": true,
+    "effect": true
+   },
+   "acc": {
+    "id": "mortarboard",
+    "slot": "head"
+   }
+  }
+ },
+ "signs": {
+  "cat": {
+   "w": 62,
+   "h": 66,
+   "wordTop": 22,
+   "wordColor": "#5a3b2e",
+   "design": "cat-cardboard"
+  },
+  "cloud": {
+   "w": 72,
+   "h": 56,
+   "wordTop": 15,
+   "wordColor": "#2e4256",
+   "design": "cloud-stone"
+  },
+  "dog": {
+   "w": 82,
+   "h": 46,
+   "wordTop": 11,
+   "wordColor": "#6b3d4d",
+   "design": "dog-tag"
+  },
+  "ghost": {
+   "w": 60,
+   "h": 72,
+   "wordTop": 32,
+   "wordColor": "#2b2550",
+   "design": "ghost-candle"
+  },
+  "jelly": {
+   "w": 78,
+   "h": 78,
+   "wordTop": 32,
+   "wordColor": "#1e3a39",
+   "design": "jelly-tank"
+  },
+  "mochi": {
+   "w": 64,
+   "h": 70,
+   "wordTop": 36,
+   "wordColor": "#6b3a4a",
+   "design": "mochi-cup"
+  },
+  "owl": {
+   "w": 62,
+   "h": 60,
+   "wordTop": 6,
+   "wordColor": "#2a2a33",
+   "design": "owl-card"
+  }
+ },
+ "worn": {
+  "cat": "bell_collar",
+  "cloud": "star_beanie",
+  "dog": "bandana",
+  "ghost": "witch_hat",
+  "jelly": "starfish_clip",
+  "mochi": "kanzashi",
+  "owl": "mortarboard"
+ }
+}

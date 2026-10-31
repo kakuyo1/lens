@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Lens">
+  <rect width="128" height="128" rx="28" fill="#1a1a1f" stroke="#34343a" stroke-width="2"/>
+  <g transform="scale(5.3333)" fill="none" stroke="#4dc492" stroke-width="2.1" stroke-linecap="round">
+    <path d="M13.22 5.11 A7 7 0 1 0 18.89 10.78"/>
+    <path d="M16.95 16.95 L19.42 19.42"/>
+  </g>
+  <circle cx="90.40" cy="37.60" r="10.67" fill="#4dc492"/>
+</svg>
