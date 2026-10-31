@@ -11,6 +11,7 @@
 <p align="center">
   <a href="https://github.com/kakuyo1/lens/releases/latest"><strong>Download for Windows</strong></a> ·
   <a href="#a-quick-look">See it in action</a> ·
+  <a href="https://kakuyo1.github.io/lens/">Product tour</a> ·
   <a href="https://github.com/kakuyo1/lens/releases">All releases</a>
 </p>
 

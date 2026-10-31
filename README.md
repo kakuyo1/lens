@@ -11,6 +11,7 @@
 <p align="center">
   <a href="https://github.com/kakuyo1/lens/releases/latest"><strong>下载 Windows 版</strong></a> ·
   <a href="#先看一眼">看它怎么工作</a> ·
+  <a href="https://kakuyo1.github.io/lens/">宣传页</a> ·
   <a href="https://github.com/kakuyo1/lens/releases">全部版本</a>
 </p>
 
