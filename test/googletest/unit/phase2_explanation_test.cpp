@@ -5,6 +5,7 @@
 
 #include <QCoreApplication>
 #include <QDate>
+#include <QDateTime>
 #include <QEventLoop>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -22,11 +23,14 @@
 #include "app/duties/cost_duty.h"
 #include "app/duties/explanation_duty.h"
 #include "app/duties/model_catalog_duty.h"
+#include "app/duties/review_duty.h"
 #include "app/duties/storage_duty.h"
+#include "core/domain/review_schedule.h"
 #include "core/document/known_store.h"
 #include "llm/llm_pricing.h"
 #include "llm/llm_pure.h"
 #include "llm_support.h"
+#include "util/text.h"
 
 namespace {
 
@@ -442,6 +446,44 @@ TEST_F(LlmTest, Phase2AStoredWordNeedsNoWaitingCardBecauseItsAnswerIsAlreadyInHa
     EXPECT_EQ(rig.manager.posts, 1) << "a stored word went to the wire again";
     EXPECT_FALSE(rig.duty.bubble().value("waiting").toBool());
     EXPECT_EQ(rig.duty.bubble().value("en").toString(), QStringLiteral("English"));
+}
+
+/// The review and answer cards say when the pet might next ask: the curve's due time bucketed,
+/// never a moment. A review that is off, and a duty wired to no review at all, leave the line out.
+TEST_F(LlmTest, Phase2ReviewAndAnswerCardsCarryTheNextAskBucket)
+{
+    QtApplication qt;
+    Rig           rig;
+    rig.storage.knownStore().cachePut("bank", {.ipa = "/b/", .en = "English", .zh = "中文"}, {"en", false});
+    rig.storage.statsStore().recordPop("bank", util::localMinuteNow(), false);
+
+    app::ReviewDuty review{rig.storage, [] { return false; }, [] { return false; }, nullptr};
+    rig.duty.setReviewSource(&review);
+
+    // A word never asked is due one day after its lookup, so the hover replay reads tomorrow.
+    rig.duty.reviewWord(QStringLiteral("bank"), QPoint{0, 0}, QSize{10, 10});
+    EXPECT_EQ(rig.duty.bubble().value("cardKind").toString(), QStringLiteral("review"));
+    EXPECT_EQ(rig.duty.bubble().value("nextAskWhen").toString(), QStringLiteral("tomorrow"));
+    rig.duty.dismissBubble();
+
+    // The pet's answer card reads the state the answer just stored: three days out at level two.
+    const long long now = QDateTime::currentMSecsSinceEpoch();
+    rig.storage.reviewStore().put("bank", core::ReviewState{2, now + 3LL * 24 * 60 * 60 * 1000, 0});
+    rig.duty.showReviewAnswer(QStringLiteral("bank"), QPoint{0, 0});
+    EXPECT_EQ(rig.duty.bubble().value("cardKind").toString(), QStringLiteral("reviewAnswer"));
+    EXPECT_EQ(rig.duty.bubble().value("nextAskWhen").toString(), QStringLiteral("days"));
+    EXPECT_EQ(rig.duty.bubble().value("nextAskCount").toInt(), 3);
+    rig.duty.dismissBubble();
+
+    // A review that is off never asks, so the payload carries no bucket to draw as "never".
+    rig.storage.reviewStore().setFrequency(core::ReviewFrequency::Off);
+    rig.duty.reviewWord(QStringLiteral("bank"), QPoint{0, 0}, QSize{10, 10});
+    EXPECT_FALSE(rig.duty.bubble().contains("nextAskWhen"));
+
+    // And a duty wired to no review at all -- every case above this one -- stays silent too.
+    rig.duty.setReviewSource(nullptr);
+    rig.duty.reviewWord(QStringLiteral("bank"), QPoint{0, 0}, QSize{10, 10});
+    EXPECT_FALSE(rig.duty.bubble().contains("nextAskWhen"));
 }
 
 TEST_F(LlmTest, Phase2ThePeekAnswersTheStandingWordFromThePairTheAnswerCarried)

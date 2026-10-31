@@ -73,6 +73,13 @@ public:
     /// @param now Epoch ms.
     void dismiss(long long now);
 
+    /// @brief When the word's curve next falls due, whatever the reader asks about it for.
+    /// @return The due time in epoch ms; a word never asked is due one day after its last lookup,
+    ///         and one the history has forgotten is due immediately.
+    /// @note The ask itself waits for a check and only the earliest due word is taken, so this is
+    ///       the earliest possible moment, never the moment (UI-SPEC.md 4.8, 4.13).
+    long long dueOf(std::string const& lemma) const;
+
 signals:
     /// @brief The question went up or came down; word() holds the current one.
     void wordChanged();

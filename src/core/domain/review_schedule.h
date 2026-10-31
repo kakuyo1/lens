@@ -65,6 +65,35 @@ std::optional<CheckWindow> checkWindow(ReviewFrequency frequency);
 ReviewState freshState(long long lastLookupMs);
 
 /**
+ * @brief The state a word is at: the stored one, or a fresh one from its last lookup when none persists.
+ * @param stored       What the review store holds for the word, or std::nullopt when it has never been asked.
+ * @param lastLookupMs Epoch ms of the word's newest history entry.
+ * @note The one place the stored-or-fresh decision is made; the review duty and any surface that
+ *       reads a word's curve without owning the store share it.
+ */
+ReviewState resolvedState(const std::optional<ReviewState>& stored, long long lastLookupMs);
+
+/**
+ * @brief How far from now a word's next possible ask sits, bucketed for a faint line.
+ * @note The ask itself happens at a check after the due time, and only the earliest due word is
+ *       taken, so every bucket is an "earliest possible" reading -- never a promise of a moment.
+ */
+struct NextAsk {
+    enum class When { Due,      ///< The due time has passed; a check may take the word any time.
+                      Soon,     ///< Due within hours.
+                      Tomorrow, ///< Due around this time the next day.
+                      Days,     ///< Due in @p count days.
+                      Weeks,    ///< Due in @p count weeks.
+                      Months    ///< Due in @p count months.
+    };
+    When when  = When::Due;
+    int  count = 1; ///< Days, weeks or months; meaningful only for the matching bucket.
+};
+
+/// @return The bucket @p dueMs falls into when read at @p nowMs.
+NextAsk nextAsk(long long dueMs, long long nowMs);
+
+/**
  * @brief The state after an answer: one level up when remembered, one down when forgotten, floored at 0 and capped at the top.
  * @note The due time restarts from @p now at the new level's interval, so a forgotten word comes back in ten minutes.
  */

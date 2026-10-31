@@ -91,6 +91,10 @@ Window {
     readonly property bool atRoot: chainSteps.atRoot
     property alias chainSteps: content.chainSteps
     property string status: "" ///< "new", "known", or empty when there is no word verdict (entity / sentence).
+    /// The pet's next possible ask, as the payload's bucket token and its count. Empty when the
+    /// review is off, the duty is not wired in, or the card is neither review nor answer.
+    property string nextAskWhen: ""
+    property int nextAskCount: 1
     /// The sentence breakdown's state (UI-SPEC.md 4.3): empty for any other card, else "pending",
     /// "ready" or "failed". `segments` is the sentence in order, each `{text, role}`; `roles` the roles present.
     property string breakdown: ""
@@ -267,6 +271,8 @@ Window {
         example = payload.example || "";
         senses = payload.senses || [];
         status = payload.status || "";
+        nextAskWhen = payload.nextAskWhen || "";
+        nextAskCount = payload.nextAskCount || 1;
         breakdown = payload.breakdown || "";
         correction = payload.correction || "";
         failure = payload.failure || "";

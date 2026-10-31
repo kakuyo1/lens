@@ -29,6 +29,7 @@
 namespace lens::app {
 
 class CostDuty;
+class ReviewDuty;
 
 class ExplanationDuty final : public QObject {
     Q_OBJECT
@@ -145,6 +146,13 @@ public:
     Q_PROPERTY(QVariantMap bubble READ bubble NOTIFY bubbleChanged)
     Q_PROPERTY(QVariantMap notice READ notice NOTIFY noticeChanged)
     Q_PROPERTY(QVariantMap wordHint READ wordHint NOTIFY wordHintChanged)
+
+    /// @brief Wire the review duty in, after construction.
+    /// @param review The duty whose curves the review and answer cards read. The duties are built
+    ///               in an order that cannot hand this one over at construction time, so the
+    ///               controller binds it as soon as both exist; until then the cards carry no
+    ///               next-ask line.
+    void setReviewSource(ReviewDuty* review);
 
 signals:
     void bubbleChanged();
@@ -279,6 +287,9 @@ private:
     /// Whether the request in flight has previewed anything yet. One line is what says whether the
     /// reader's provider streams at all; the rest of the chunks would be a repaint per line.
     bool previewSeen_ = false;
+    /// The review duty the review and answer cards read their curve from. Null until the
+    /// controller wires it, which is why every read of it is guarded.
+    ReviewDuty* review_ = nullptr;
 };
 
 }

@@ -128,9 +128,12 @@ std::vector<core::ReviewCandidate> ReviewDuty::askable()
 
 core::ReviewState ReviewDuty::stateOf(std::string const& lemma) const
 {
-    if (auto const stored = storage_.reviewStore().get(lemma))
-        return *stored;
-    return core::freshState(lastLookupOf(lemma));
+    return core::resolvedState(storage_.reviewStore().get(lemma), lastLookupOf(lemma));
+}
+
+long long ReviewDuty::dueOf(std::string const& lemma) const
+{
+    return stateOf(lemma).due;
 }
 
 long long ReviewDuty::lastLookupOf(std::string const& lemma) const

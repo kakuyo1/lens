@@ -240,6 +240,20 @@ Item {
             compare(showAnswerBubble().verdictButtons, false);
         }
 
+        /// The next-ask line (UI-SPEC.md 4.13): the card without the payload says nothing about the
+        /// pet's return, and the payload's bucket draws one faint line with the count spelled out.
+        function test_answerBubbleSaysWhenThePetMightNextAsk() {
+            const card = showAnswerBubble();
+            verify(!Util.textsUnder(card.contentItem).some(function (o) { return o.text.indexOf("pet may ask") >= 0; }),
+                   "a card with no bucket draws no next-ask line");
+
+            card.nextAskWhen = "weeks";
+            card.nextAskCount = 3;
+            const line = Util.textWith(Util.textsUnder(card.contentItem),
+                                       [qsTr("The pet may ask about it again in about %1 weeks.").arg(3)]);
+            verify(line, "the next-ask line is not drawn with the bucket's phrase");
+        }
+
         /// The whole sign scales by K = scale / 3.01 from its top-left: the pet's art cell, or for a pet without art the wooden
         /// board's 40 px plank, the 32 px post under it, 2 px of the post behind the plank and the 4 px shadow.
         function test_signScalesWithThePetByK() {

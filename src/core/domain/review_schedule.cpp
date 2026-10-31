@@ -44,6 +44,31 @@ ReviewState freshState(long long const lastLookupMs)
     return ReviewState{1, lastLookupMs + kIntervalsMs[1], 0};
 }
 
+ReviewState resolvedState(std::optional<ReviewState> const& stored, long long const lastLookupMs)
+{
+    return stored ? *stored : freshState(lastLookupMs);
+}
+
+NextAsk nextAsk(long long const dueMs, long long const nowMs)
+{
+    // The intervals the curve can actually produce are ten minutes and one, three, seven,
+    // twenty-one and sixty days, so the buckets are read off that scale: every one of the six
+    // lands in a bucket its phrase can name, and the drift a passed answer leaves never moves a
+    // word across two buckets.
+    const long long d = dueMs - nowMs;
+    if (d <= 0)
+        return {NextAsk::When::Due, 1};
+    if (d < 6 * kHourMs)
+        return {NextAsk::When::Soon, 1};
+    if (d < 36 * kHourMs)
+        return {NextAsk::When::Tomorrow, 1};
+    if (d < 14 * kDayMs)
+        return {NextAsk::When::Days, static_cast<int>((d + kDayMs / 2) / kDayMs)};
+    if (d < 45 * kDayMs)
+        return {NextAsk::When::Weeks, static_cast<int>((d + kDayMs * 3 + kDayMs / 2) / (7 * kDayMs))};
+    return {NextAsk::When::Months, static_cast<int>((d + 15 * kDayMs) / (30 * kDayMs))};
+}
+
 ReviewState afterAnswer(ReviewState state, bool const remembered, long long const now)
 {
     state.level = std::clamp(state.level + (remembered ? 1 : -1), 0, kMaxReviewLevel);

@@ -34,6 +34,58 @@ TEST(ReviewSchedule, FreshStateIsLevelOneAndDueADayAfterTheLookup)
     EXPECT_EQ(state.asked, 0);
 }
 
+TEST(ReviewSchedule, ResolvedStatePrefersTheStoredOneAndFallsBackToTheLookup)
+{
+    const ReviewState stored{3, kNow + 7 * kDay, kNow};
+    const auto        kept = lens::core::resolvedState(stored, kNow);
+    EXPECT_EQ(kept.level, 3);
+    EXPECT_EQ(kept.due, kNow + 7 * kDay);
+    EXPECT_EQ(kept.asked, kNow);
+
+    const auto fresh = lens::core::resolvedState(std::nullopt, kNow);
+    EXPECT_EQ(fresh.level, 1);
+    EXPECT_EQ(fresh.due, kNow + kDay);
+    EXPECT_EQ(fresh.asked, 0);
+}
+
+/// The buckets name what the curve can produce: ten minutes and one, three, seven, twenty-one and
+/// sixty days each land in a bucket its phrase can say, and the drift a passed answer leaves never
+/// moves a word across two buckets.
+TEST(ReviewSchedule, NextAskBucketsTheIntervalsTheCurveProduces)
+{
+    using lens::core::NextAsk;
+
+    const auto at = [](long long due) { return lens::core::nextAsk(due, kNow); };
+
+    EXPECT_EQ(at(kNow - kMinute).when, NextAsk::When::Due) << "the due time has passed";
+    EXPECT_EQ(at(kNow + 10 * kMinute).when, NextAsk::When::Soon) << "the forgotten word's ten minutes";
+    EXPECT_EQ(at(kNow + kDay).when, NextAsk::When::Tomorrow) << "a fresh word's one day";
+    EXPECT_EQ(at(kNow + 3 * kDay).when, NextAsk::When::Days);
+    EXPECT_EQ(at(kNow + 3 * kDay).count, 3);
+    EXPECT_EQ(at(kNow + 7 * kDay).when, NextAsk::When::Days);
+    EXPECT_EQ(at(kNow + 7 * kDay).count, 7) << "a week reads as seven days, not '1 weeks'";
+    EXPECT_EQ(at(kNow + 21 * kDay).when, NextAsk::When::Weeks);
+    EXPECT_EQ(at(kNow + 21 * kDay).count, 3);
+    EXPECT_EQ(at(kNow + 60 * kDay).when, NextAsk::When::Months);
+    EXPECT_EQ(at(kNow + 60 * kDay).count, 2);
+}
+
+TEST(ReviewSchedule, NextAskBucketBoundariesHoldTheDrift)
+{
+    using lens::core::NextAsk;
+
+    const auto at = [](long long due) { return lens::core::nextAsk(due, kNow); };
+
+    EXPECT_EQ(at(kNow).when, NextAsk::When::Due) << "due now is not soon";
+    EXPECT_EQ(at(kNow + 6 * kHour - 1).when, NextAsk::When::Soon);
+    EXPECT_EQ(at(kNow + 6 * kHour).when, NextAsk::When::Tomorrow);
+    EXPECT_EQ(at(kNow + 36 * kHour).when, NextAsk::When::Days);
+    EXPECT_EQ(at(kNow + 36 * kHour).count, 2) << "a day and a half rounds up to two days";
+    EXPECT_EQ(at(kNow + 14 * kDay).when, NextAsk::When::Weeks);
+    EXPECT_EQ(at(kNow + 14 * kDay).count, 2);
+    EXPECT_EQ(at(kNow + 45 * kDay).when, NextAsk::When::Months);
+}
+
 TEST(ReviewSchedule, RememberingMovesUpAndRestartsTheIntervalFromTheAnswer)
 {
     const auto next = lens::core::afterAnswer(ReviewState{1, kNow, 0}, true, kNow);

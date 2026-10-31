@@ -14,6 +14,7 @@
 #include "core/domain/filter_core.h"
 #include "core/domain/settings_table.h"
 #include "cost_duty.h"
+#include "review_duty.h"
 #include "app/notice.h"
 #include "app/settings_access.h"
 #include "llm/llm_pure.h"
@@ -65,6 +66,11 @@ ExplanationDuty::ExplanationDuty(StorageDuty& storage, llm::LlmClient& llm, Cost
     connect(&llm_, &llm::LlmClient::senseAnswered, this, &ExplanationDuty::onNextSenseAnswered);
     connect(&llm_, &llm::LlmClient::breakdownAnswered, this, &ExplanationDuty::onBreakdownAnswered);
     connect(&llm_, &llm::LlmClient::correctionAnswered, this, &ExplanationDuty::onCorrectionAnswered);
+}
+
+void ExplanationDuty::setReviewSource(ReviewDuty* review)
+{
+    review_ = review;
 }
 
 void ExplanationDuty::onPartial(llm::Explanation partial)
@@ -607,6 +613,25 @@ void ExplanationDuty::showBubble(ExplanationExchange::CardView const& card, bool
                           {"anchorHeight", selection.anchorSize.height()},
                           {"x", selection.anchor.x()},
                           {"y", selection.anchor.y()}};
+    if ((card.kind == CardKind::Review or card.kind == CardKind::ReviewAnswer) and review_ != nullptr and storage_.reviewStore().frequency() != core::ReviewFrequency::Off) {
+        // The faint footer line that says when the pet might next ask (UI-SPEC.md 4.8, 4.13): the
+        // curve's due time, bucketed into a phrase that promises an earliest possible moment, never
+        // one. A review that is off never asks, so the line is left out rather than drawn as
+        // "never"; a duty that is not wired in (the tests) leaves the line out the same way.
+        const auto  next = core::nextAsk(review_->dueOf(explanation.title.toStdString()),
+                                        QDateTime::currentMSecsSinceEpoch());
+        const char* when = "";
+        switch (next.when) {
+            case core::NextAsk::When::Due: when = "due"; break;
+            case core::NextAsk::When::Soon: when = "soon"; break;
+            case core::NextAsk::When::Tomorrow: when = "tomorrow"; break;
+            case core::NextAsk::When::Days: when = "days"; break;
+            case core::NextAsk::When::Weeks: when = "weeks"; break;
+            case core::NextAsk::When::Months: when = "months"; break;
+        }
+        payload.insert("nextAskWhen", QString::fromLatin1(when));
+        payload.insert("nextAskCount", next.count);
+    }
     if (isWordKind(selection.kind)) {
         // Display switches, read as the card is drawn: the answer keeps every field, and these
         // decide only which of them reach the payload (see settings_table.h).

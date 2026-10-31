@@ -73,6 +73,20 @@ Item {
         senseRows.collapse();
     }
 
+    /// @brief The next-ask line for the payload's bucket @p when, read in the reader's language.
+    /// The buckets arrive as tokens from the duty, the way the words list's day labels do.
+    function nextAskLabel(when, count) {
+        switch (when) {
+            case "due": return qsTr("The pet may ask about it again any time now.");
+            case "soon": return qsTr("The pet may ask about it again soon.");
+            case "tomorrow": return qsTr("The pet may ask about it again around this time tomorrow.");
+            case "days": return qsTr("The pet may ask about it again in about %1 days.").arg(count);
+            case "weeks": return qsTr("The pet may ask about it again in about %1 weeks.").arg(count);
+            case "months": return qsTr("The pet may ask about it again in about %1 months.").arg(count);
+        }
+        return "";
+    }
+
     /// @brief Point the open picture strip at @p query, or take it down when the sense has none.
     ///
     /// The strip follows the sense the Not-the-Sense? entry swapped in: the query moves, the duty
@@ -595,6 +609,22 @@ Item {
                 text: qsTr("Disappears in %1s").arg(Math.ceil(root.bubble.remainingMs / 1000))
                 color: root.bubble.tokens.faint
                 font.pixelSize: 11
+            }
+
+            Text {
+                // The review and answer cards say when the pet might next ask about the word: the
+                // curve's due time bucketed into an earliest-possible phrase, never a moment
+                // (UI-SPEC.md 4.8, 4.13). The review card's footer slot is otherwise empty -- it
+                // has no countdown -- and the answer card stacks the line under its own. The line
+                // wraps inside the width the definition rows chose and never widens the card: a
+                // footnote follows the card, the card does not follow its longest translation.
+                visible: root.bubble.nextAskWhen !== ""
+                width: parent.width
+                topPadding: root.bubble.countsDown ? 4 : 9
+                text: root.nextAskLabel(root.bubble.nextAskWhen, root.bubble.nextAskCount)
+                color: root.bubble.tokens.faint
+                font.pixelSize: 11
+                wrapMode: Text.WordWrap
             }
 
         }
