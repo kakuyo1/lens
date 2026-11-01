@@ -133,6 +133,13 @@ public:
     [[nodiscard]] double distanceToSliver(QPoint cursor, QPoint origin) const;
 
     /**
+     * @brief The visible sliver's centre in canvas units: the peek ink clipped at the work-area edge.
+     * @param origin The window's top-left now.
+     * @return The centre the hidden pet's eyes look from; the full ink centre would sit off screen and stop tracking.
+     */
+    [[nodiscard]] QPointF sliverCentre(QPoint origin) const;
+
+    /**
      * @brief Moves the hide on.
      * @param step Time since the last tick.
      * @param idle Whether the state machine is idle, so an ask pause can end and the peek can play.
