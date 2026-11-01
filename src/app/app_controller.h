@@ -19,6 +19,7 @@
 #include <QtQml/qqmlregistration.h>
 
 #include <filesystem>
+#include <memory>
 
 #include "app/duties/capture_duty.h"
 #include "app/duties/capture_refusal.h"
@@ -47,6 +48,7 @@
 
 class QQmlEngine;
 class QJSEngine;
+class QSoundEffect;
 
 namespace lens::app::pet {
 class PetController;
@@ -164,6 +166,9 @@ public:
      *         leaves the combination that was in force working.
      */
     Q_INVOKABLE QString setOcrHotkey(int key, int modifiers);
+    /// @brief Record the combination the reader pressed for the hover lookup switch.
+    /// @return As setOcrHotkey() returns it.
+    Q_INVOKABLE QString setHoverHotkey(int key, int modifiers);
     /// @brief Show the explanation already stored for a word the reader pointed at, if there is one.
     /// @param x,y          The word's top-left, in the physical pixels the mouse hook reports.
     /// @param width,height The word's size in those pixels, so the card can be placed against it.
@@ -288,6 +293,10 @@ signals:
     void reviewQuestionChanged();
 
 private:
+    /// @brief Validate, register and store one trigger combination; the rule both trigger keys share.
+    /// @param other The trigger that is not being set: a combination it already holds is refused.
+    /// @return As setOcrHotkey() returns it.
+    QString recordHotkey(GlobalHotkey& hotkey, GlobalHotkey const& other, char const* settingKey, int key, int modifiers);
     /// @brief Write one row: the value through the row's rule, then the signal the row names.
     bool writeSetting(core::settings::Row const& row, QVariant const& value);
     /// @brief Restore provider wire options and persisted connection choices without touching credentials.
@@ -336,7 +345,11 @@ private:
     SpeechDuty            speechDuty_;
     llm::LlmClient&       llm_;
     GlobalHotkey&         hotkey_;
-    QTimer                gateTimer_;
+    /// The switch between selection lookup and hover lookup; its own registration, beside the OCR key.
+    GlobalHotkey hoverHotkey_{nullptr, GlobalHotkey::kHoverId};
+    /// The tone a switch between selection lookup and hover lookup plays. Multimedia stays out of this header.
+    std::unique_ptr<QSoundEffect> modeCue_;
+    QTimer                        gateTimer_;
     /// Whether the daily budget was spent the last time the cost duty reported, so a pause and a resume each fire once.
     bool budgetPaused_;
     /// The connection probe's own state. The generation is raised by a start and by any change

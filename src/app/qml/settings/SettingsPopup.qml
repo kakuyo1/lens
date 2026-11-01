@@ -71,6 +71,7 @@ Window {
         if (value === "general") return qsTranslate("SettingsPopup", "General");
         if (value === "learning") return qsTranslate("SettingsPopup", "Reading & learning");
         if (value === "capture") return qsTranslate("SettingsPopup", "Capture & popups");
+        if (value === "shortcuts") return qsTranslate("SettingsPopup", "Shortcuts");
         if (value === "model") return qsTranslate("SettingsPopup", "Model service");
         if (value === "extensions") return qsTranslate("SettingsPopup", "Extensions");
         if (value === "sync") return qsTranslate("SettingsPopup", "Account & sync");
@@ -126,7 +127,7 @@ Window {
     function routeTo(path) {
         if (!settings.visible)
             return false;
-        const categories = ["general", "learning", "capture", "model", "extensions",
+        const categories = ["general", "learning", "capture", "shortcuts", "model", "extensions",
                             "sync", "about"];
         const steps = path.split("/");
         if (!categories.includes(steps[0]))
@@ -540,6 +541,7 @@ Window {
                                   : settings.category === "general" ? generalComponent
                                   : settings.category === "learning" ? learningComponent
                                   : settings.category === "capture" ? captureComponent
+                                  : settings.category === "shortcuts" ? shortcutsComponent
                                   : settings.category === "model" ? modelComponent
                                   : settings.category === "sync" ? syncComponent
                                   : settings.category === "about" ? aboutComponent
@@ -708,6 +710,10 @@ Window {
         SettingsCapturePage {
             onChildRequested: (value) => settings.openRoute(value)
         }
+    }
+    Component {
+        id: shortcutsComponent
+        SettingsShortcutsPage {}
     }
     Component {
         id: ocrComponent

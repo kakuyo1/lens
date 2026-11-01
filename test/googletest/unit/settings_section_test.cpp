@@ -237,9 +237,10 @@ const DocumentKey kScalarKeys[] = {
     {"MODEL", "ModelCatalogDuty + AppController"},
     {"URL", "AppController + ModelCatalogDuty"},
     {"PROVIDER", "ModelCatalogDuty"},
-    // The trigger key is the fifth: the shell has to take the combination before the document may
-    // record it, so it is written by setOcrHotkey() rather than by the table's generic write.
+    // The trigger keys are the fifth and sixth: the shell has to take the combination before the document may
+    // record it, so they are written by setOcrHotkey() and setHoverHotkey() rather than by the table's generic write.
     {"ocrHotkey", "AppController"},
+    {"hoverHotkey", "AppController"},
 };
 
 /// @brief A row the section itself is allowed to write: everything but the two the store re-stamps.

@@ -27,8 +27,10 @@
 #include "capture/bundle_downloader.h"
 #include "capture/scan_pipeline.h"
 #include "capture_refusal.h"
+#include "app/platform/hover_word_lookup.h"
 #include "app/platform/selection_text_grabber.h"
 #include "core/domain/filter_core.h"
+#include "core/domain/hover_lookup.h"
 #include "ocr/online_ocr.h"
 #include "pending_selection.h"
 #include "storage_duty.h"
@@ -147,9 +149,14 @@ public:
     ///        surface (docs/adr/0068) drives the pipeline this way, with no foreground application to copy from. The
     ///        mouse path never passes it.
     void beginSelection(QPoint anchor, std::optional<QString> text = std::nullopt);
+    /// @brief Switch between selection lookup and hover lookup. Hover lookup is off at every start:
+    ///        the mode is not a setting, so a restart puts the reader back on selection.
+    void toggleHoverMode();
 
 signals:
     void selectionBarRequested(QVariantMap payload);
+    /// @brief The reader switched lookup modes; the controller says which one is in force.
+    void hoverModeChanged(bool on);
     /// @brief Text that arrived with its action already chosen -- the screenshot path, which asks
     ///        for the translation itself rather than for the bar.
     void selectionActionRequested(QString action, QString text);
@@ -202,12 +209,16 @@ private:
     void probeOcr();
     /// @brief Write the local policy for a document that predates ocrConfigVersion.
     void migrateOcrSettings();
-    /// @param fromScreenshot True when the text came out of a framed region rather than a
-    ///        selection. A screenshot is the reader saying "translate this": they framed it with a
-    ///        gesture of their own, so the bar would ask a question they have already answered. A
-    ///        selection keeps the bar -- there the gesture only says "show me what this says", and
-    ///        the bar is where they say what to do with it.
-    void classifyText(QString text, QPoint anchor, bool fromScreenshot = false);
+    /// @param translateNow True when the reader has already said "translate this" with a gesture of
+    ///        their own: a framed region, or a word they rested on. The bar would ask a question they
+    ///        have already answered, so the text goes straight to the translation. A selection keeps
+    ///        the bar -- there the gesture only says "show me what this says", and the bar is where
+    ///        they say what to do with it.
+    void classifyText(QString text, QPoint anchor, bool translateNow = false);
+    /// @brief The hover timer's tick: sample the pointer, and when it has rested, read the word under it off-thread.
+    void onHoverTick();
+    /// @brief The word read under a rested pointer came back; classify it when the pointer still rests on it.
+    void onHoverWordRead(std::optional<HoverWord> word);
     void scanTick();
     void onOcrFinished(std::uint64_t requestId, capture::OcrResult result);
     bool launchOcr(QImage image, QPoint anchor, QString context);
@@ -253,6 +264,10 @@ private:
     std::shared_ptr<ocr::OcrTokenStore>    onlineTokens_;
     std::unique_ptr<capture::ScanPipeline> scan_;
     QTimer                                 scanTimer_;
+    QTimer                                 hoverTimer_;
+    core::HoverDwell                       hoverDwell_;
+    bool                                   hoverMode_ = false;
+    bool                                   hoverBusy_ = false; ///< A word read is in flight.
     std::optional<OcrJob>                  jobContext_;
     std::optional<PendingUpload>           upload_;
     QTimer                                 consentTimer_;

@@ -5,11 +5,14 @@
 
 #include "capture_duty.h"
 
+#include <QCursor>
 #include <QDir>
 #include <QFileInfo>
 #include <QFont>
 #include <QGuiApplication>
 #include <QPainter>
+#include <QRunnable>
+#include <QThreadPool>
 #include <QRegularExpression>
 #include <QScreen>
 #include <QtGui/qscreen_platform.h>
@@ -179,6 +182,8 @@ CaptureDuty::CaptureDuty(StorageDuty&                        storage,
     scanTimer_.setInterval(1000);
     connect(&scanTimer_, &QTimer::timeout, this, &CaptureDuty::scanTick);
     scanTimer_.start();
+    hoverTimer_.setInterval(100);
+    connect(&hoverTimer_, &QTimer::timeout, this, &CaptureDuty::onHoverTick);
     migrateOcrSettings();
     localInspection_ = capture::inspectLocalOcr(storedLocalConfig(storage_));
     if (ocr_)
@@ -190,6 +195,7 @@ CaptureDuty::CaptureDuty(StorageDuty&                        storage,
 CaptureDuty::~CaptureDuty()
 {
     scanTimer_.stop();
+    hoverTimer_.stop();
     consentTimer_.stop();
     uploadTimer_.stop();
     executor_->cancel();
@@ -1329,12 +1335,55 @@ void CaptureDuty::publishBatch(capture::ScanTime const now, QPoint const anchor)
 
 void CaptureDuty::onSelectionReleased(QPoint const anchor)
 {
-    if (budgetPaused_) return;
+    // In hover mode the release is not a lookup: the reader is resting on words, not selecting them.
+    if (hoverMode_ or budgetPaused_) return;
     if (not settings::read(storage_.section(), *core::settings::find("selectionCapture")).toBool()) {
         LENS_TRACE("selection at ({}, {}) ignored: selection capture is off", anchor.x(), anchor.y());
         return;
     }
     beginSelection(anchor);
+}
+
+void CaptureDuty::toggleHoverMode()
+{
+    hoverMode_  = not hoverMode_;
+    hoverDwell_ = core::HoverDwell{};
+    // A read the window never answers must not hold the switch closed: a late answer is checked against the mode anyway.
+    hoverBusy_ = false;
+    if (hoverMode_)
+        hoverTimer_.start();
+    else
+        hoverTimer_.stop();
+    LENS_INFO("hover lookup {}", hoverMode_ ? "on" : "off");
+    emit hoverModeChanged(hoverMode_);
+}
+
+void CaptureDuty::onHoverTick()
+{
+    auto const   nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+    QPoint const at    = hoverCursorPos();
+    if (hoverBusy_ or budgetPaused_ or not hoverDwell_.update(nowMs, at.x(), at.y())) return;
+
+    // The read is a few round trips into the window under the pointer, so it runs off the main thread.
+    hoverBusy_ = true;
+    std::vector<std::string> whitelist;
+    for (auto const& name : settings().value("scanWhitelist").toString().split(';', Qt::SkipEmptyParts))
+        whitelist.push_back(name.trimmed().toLower().toStdString());
+    QThreadPool::globalInstance()->start(QRunnable::create([this, at, whitelist = std::move(whitelist)] {
+        auto word = hoverWordAt(at, whitelist);
+        QMetaObject::invokeMethod(
+            this, [this, word = std::move(word)]() mutable { onHoverWordRead(std::move(word)); }, Qt::QueuedConnection);
+    }));
+}
+
+void CaptureDuty::onHoverWordRead(std::optional<HoverWord> word)
+{
+    hoverBusy_ = false;
+    // The pointer may have left the word while the read was in flight; a bubble for a word it has left is noise.
+    if (not word or not hoverMode_ or not word->box.contains(hoverCursorPos())) return;
+    auto const text = core::hoverWordFrom(word->text.toStdString());
+    if (text.empty()) return;
+    classifyText(QString::fromStdString(text), QPoint{word->box.left(), word->box.bottom()}, true);
 }
 
 void CaptureDuty::beginSelection(QPoint const anchor, std::optional<QString> const text)
@@ -1353,7 +1402,7 @@ void CaptureDuty::beginSelection(QPoint const anchor, std::optional<QString> con
     classifyText(std::get<QString>(grabbed), anchor);
 }
 
-void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const fromScreenshot)
+void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const translateNow)
 {
     if (text.size() > kMaxSelectionChars) text = text.left(kMaxSelectionChars) + QStringLiteral("…");
     const core::Selection selection = core::classifySelection(text.toStdString(), storage_.knownStore().known(), minFreqRank());
@@ -1371,7 +1420,7 @@ void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const fro
         pending.lemma               = QString::fromStdString(word.lemma);
     }
     emit selectionReady(pending);
-    if (fromScreenshot) {
+    if (translateNow) {
         // The reader framed this region themselves, so they have already said what they want done
         // with it: translate. The bar would ask again -- and OCR exists for text that cannot be
         // selected, which is exactly the text whose reader wants the meaning rather than a menu.

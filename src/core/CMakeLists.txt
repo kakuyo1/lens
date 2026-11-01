@@ -1,5 +1,6 @@
 add_library(lens_core STATIC
   domain/filter_core.cpp
+  domain/hover_lookup.cpp
   domain/review_schedule.cpp
   domain/sync_merge.cpp
   domain/sync_partition.cpp

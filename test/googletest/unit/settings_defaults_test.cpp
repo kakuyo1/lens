@@ -126,6 +126,8 @@ TEST_F(LlmTest, RestoreDefaultsMatchesAFreshInstallAndLeavesOwnedStateAlone)
     a.captureDuty()->setOcrCapture(true);
     a.captureDuty()->setMinimumWordLength(5);
     EXPECT_TRUE(a.setOcrHotkey(Qt::Key_F9, Qt::ControlModifier | Qt::AltModifier).isEmpty());
+    EXPECT_TRUE(a.setHoverHotkey(Qt::Key_F8, Qt::ControlModifier | Qt::AltModifier).isEmpty());
+    EXPECT_EQ(a.setHoverHotkey(Qt::Key_F9, Qt::ControlModifier | Qt::AltModifier).toStdString(), "taken");
     ASSERT_TRUE(a.modelCatalogDuty()->setProvider(QStringLiteral("openai")));
     ASSERT_TRUE(a.modelCatalogDuty()->setModel(QStringLiteral("gpt-4.1-nano")));
 
