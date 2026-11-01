@@ -69,8 +69,9 @@ Item {
         }
 
         function back(panel) {
+            // A page can keep a back arrow of its own that is hidden off the panel; only the one the reader sees is pressed.
             const icons = Util.findAll(panel, function (o) {
-                return o.toString().indexOf("Icon") === 0 && String(o.source).indexOf("ui-back.svg") >= 0;
+                return o.toString().indexOf("Icon") === 0 && String(o.source).indexOf("ui-back.svg") >= 0 && o.visible;
             });
             verify(icons.length > 0, "the settings page has no back control");
             mouseClick(icons[0], icons[0].width / 2, icons[0].height / 2);
@@ -326,10 +327,10 @@ Item {
             const main = make();
             Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
-            openCategory(panel, "Capture & popups");
+            openCategory(panel, "Shortcuts");
 
             const field = Util.ofType(panel, "HotkeyField");
-            verify(field, "the capture page has no hotkey field");
+            verify(field, "the shortcuts page has no hotkey field");
             verify(field.Accessible.name.indexOf("OCR trigger key") === 0,
                    "the hotkey field does not carry the section's name");
             const hint = Util.textWith(Util.textsUnder(field), ["Press the combination"]);
@@ -582,6 +583,11 @@ Item {
             Controller.setSetting("theme", "dark");
             wait(settled);
             verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-general-dark"));
+            back(panel);
+
+            openCategory(panel, "Shortcuts");
+            wait(settled);
+            verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-shortcuts"));
             back(panel);
 
             openCategory(panel, "Capture & popups");

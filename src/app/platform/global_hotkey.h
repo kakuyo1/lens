@@ -23,7 +23,13 @@ namespace lens::app {
 class GlobalHotkey final : public QObject, public QAbstractNativeEventFilter {
     Q_OBJECT
 public:
-    explicit GlobalHotkey(QObject* parent = nullptr);
+    /// The id the OCR trigger registers under: 'LS' in ASCII, so a report that is not ours reads as odd rather than as noise.
+    static constexpr int kOcrId = 0x4C53;
+    /// The id the hover lookup's switch registers under. Each instance has its own id, so the two can both be in force.
+    static constexpr int kHoverId = 0x4C54;
+
+    /// @param id The WM_HOTKEY id this instance registers under; distinct instances need distinct ids.
+    explicit GlobalHotkey(QObject* parent = nullptr, int id = kOcrId);
 
     /// @brief Drop the registration, if one is in place.
     ~GlobalHotkey() override;
@@ -58,6 +64,8 @@ public:
 
     /// @return The trigger a reader who has never chosen one gets.
     static QKeySequence defaultKeys();
+    /// @return The key that switches between selection lookup and hover lookup.
+    static QKeySequence hoverDefaultKeys();
 
     /// @brief The shell's WM_HOTKEY, on the thread that registered it.
     bool nativeEventFilter(QByteArray const& eventType, void* message, qintptr* result) override;
@@ -75,6 +83,7 @@ private:
     /// the registration disagreeing about what is in force.
     QKeySequence registered_;
     bool         installed_ = false;
+    int          id_        = kOcrId;
 };
 
 }
