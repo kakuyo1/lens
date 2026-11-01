@@ -85,6 +85,12 @@ Pulsa `Ctrl+Alt+S` (se puede cambiar en Ajustes), enmarca una zona de un PDF, un
 - **El OCR en línea es opcional.** Pregunta antes de cada subida y puede apuntar a Baidu OCR, Tencent Cloud OCR, Alibaba Cloud OCR, Google Cloud Vision u OCR.space.
 - **El escaneo automático sigue siendo experimental y está en desarrollo.** Solo vigila las aplicaciones de tu lista blanca, y sus resultados aún no son fiables.
 
+## Consulta al pasar el cursor
+
+Los enlaces y los titulares suelen no poder seleccionarse. Cambia a la consulta al pasar el cursor (por defecto `Ctrl+Alt+H`; puedes cambiarla en la página de atajos de Ajustes), deja el puntero sobre una palabra durante un segundo y Lens la traduce. Pulsa la tecla otra vez para volver a la selección. La consulta solo lee el texto bajo el puntero: no hace clic, no toca el portapapeles, no lee campos de contraseña y solo funciona en las aplicaciones de tu lista blanca de escaneo.
+
+<p align="center"><img src="docs/readme/hover-lookup.gif" width="600" alt="Tras cambiar a la consulta al pasar el cursor, el puntero se queda sobre serendipity en un enlace durante un segundo y una tarjeta da su significado"></p>
+
 ## Cinco formas de barra de acciones
 
 <p align="center"><img src="docs/readme/selection-styles.gif" width="800" alt="Barra clásica, pestaña lateral, mano de cartas, etiqueta colgante y abanico"></p>

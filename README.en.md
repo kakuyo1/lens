@@ -85,6 +85,12 @@ Press `Ctrl+Alt+S` (changeable in Settings), frame a region of a PDF, image, or 
 - **Online OCR is opt-in.** It asks before each upload and can be pointed at Baidu OCR, Tencent Cloud OCR, Alibaba Cloud OCR, Google Cloud Vision, or OCR.space.
 - **Automatic scanning is still experimental and under development.** It watches only the apps you whitelist, and its results are not reliable yet.
 
+## Hover to look up a word
+
+Links and headlines often can't be selected. Switch to hover lookup (`Ctrl+Alt+H` by default; change it on the Shortcuts page of Settings), rest the pointer on a word for about a second, and Lens translates it. Press the key again to go back to selection. Hover lookup only reads the text under the pointer. It never clicks or touches the clipboard, skips password fields, and works only in the apps on your scan whitelist.
+
+<p align="center"><img src="docs/readme/hover-lookup.gif" width="600" alt="After switching to hover lookup, the pointer rests on serendipity in a link for a second, and a card gives its meaning"></p>
+
 ## Five action bars, one set of actions
 
 <p align="center"><img src="docs/readme/selection-styles.gif" width="800" alt="Classic bar, side tab, hand of cards, hang tag and fan selection styles"></p>

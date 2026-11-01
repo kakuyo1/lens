@@ -85,6 +85,12 @@
 - **在线 OCR 是可选项**。每次上传前都会询问，可指向百度 OCR、腾讯云 OCR、阿里云 OCR、Google Cloud Vision 或 OCR.space。
 - **自动扫描仍是实验功能，尚在开发**。它只监看你加入白名单的应用，结果尚不可靠。
 
+## 悬浮取词
+
+链接和标题常常选不中。切到悬浮取词（默认 `Ctrl+Alt+H`，可在设置的快捷键页修改），把指针停在一个词上约一秒，Lens 就直接翻译它；再按一次切回选区取词。它只读取指针下的文字，不点击，不碰剪贴板，不读密码框，并且只在扫描白名单里的应用中生效。
+
+<p align="center"><img src="docs/readme/hover-lookup.gif" width="600" alt="切到悬浮取词后，指针停在链接里的 serendipity 上约一秒，气泡直接给出释义"></p>
+
 ## 五种动作条形态
 
 <p align="center"><img src="docs/readme/selection-styles.gif" width="800" alt="经典长条、页边签、手牌签、吊牌签和扇面五种动作条形态"></p>

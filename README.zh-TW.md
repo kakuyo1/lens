@@ -85,6 +85,12 @@
 - **線上 OCR 是可選項**。每次上傳前都會詢問，可指向百度 OCR、騰訊雲 OCR、阿里雲 OCR、Google Cloud Vision 或 OCR.space。
 - **自動掃描仍是實驗功能，尚在開發**。它只監看你加入白名單的應用程式，結果尚不可靠。
 
+## 懸浮取詞
+
+連結與標題常常選不中。切到懸浮取詞（預設 `Ctrl+Alt+H`，可在設定的快捷鍵頁修改），把指標停在一個字詞上約一秒，Lens 就直接翻譯它；再按一次切回選取取詞。它只讀取指標下的文字，不點擊、不碰剪貼簿、不讀密碼欄，並且只在掃描白名單裡的應用程式中生效。
+
+<p align="center"><img src="docs/readme/hover-lookup.gif" width="600" alt="切到懸浮取詞後，指標停在連結裡的 serendipity 上約一秒，卡片直接給出釋義"></p>
+
 ## 五種動作列樣式
 
 <p align="center"><img src="docs/readme/selection-styles.gif" width="800" alt="經典長條、頁緣標籤、手牌、吊牌和扇面五種動作列樣式"></p>
