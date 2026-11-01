@@ -29,10 +29,7 @@
 | `english-in-english.html` | “Read English in English” 的三条交互提案（提案，不是表面规格） |
 | `word-images.html` | 图片作为义项锚的 A/B 对照 |
 | `update.html` | 检查更新（关于 分类的检查行）与通知卡片的新版本样式 |
-| `report-card-a-ledger.html` | 周报告卡片候选（未选定）：账页，一栏、无框、分隔线只用 1px |
-| `report-card-b-framed-sheet.html` | 周报告卡片候选（未选定）：框内白纸，标题坐在 tint 框上，内容在离框 8px 的白纸上 |
 | `report-card-c-evidence.html` | 周报告卡片（已选定，`docs/adr/0151`，UI-SPEC 4.7c）：证据并列，每条观察右边挂依据药丸；按钮 “小故事” 的页面见 `report-story.html` |
-| `report-card-d-finding.html` | 周报告卡片候选（未选定）：结论先行，第一条观察放大，数字与小时图在浅色底带里 |
 | `report-story.html` | 周报告卡片的小故事页（UI-SPEC 4.7d）：与 C 同卡同高 685 px，正文在卡内滑动，查过的词画 2 px 虚线；`?state=loading` / `failed` 看等待与失败，`?theme=dark` 暗色，`?shot` 隐去右上角控件 |
 
 `pet-prototype/` 是一个 Vite 小应用，不是单个 standalone HTML：`walk.html` 是宠物步态与边缘躲藏的 demo，直接在 `pet-prototype/` 里跑 `npm run dev`，再打开 `/walk.html`。它读取 `data/pet` 的原始 JSON 与 PNG，`walk`、`edge_peek` 动作和 `movement` 块都取自同一份 `animations.json`；`walk.html` 里可以切七只宠物、左/右边缘、暂停与速度，勾 “原地播放” 看步态循环，点 “边缘演示” 强制一只躲到边缘，再把边缘的宠物拖出来结束躲藏。页面顶部的 “躲藏提问牌” 卡演示躲藏时木牌立在露出的内侧，柱脚踩在宠物脚线；牌子不再跟手逐帧移动。
