@@ -17,6 +17,7 @@
 
 namespace {
 
+using lens::app::cardFormatOf;
 using lens::app::dayLabel;
 using lens::app::importLemmas;
 using lens::app::importRows;
@@ -33,6 +34,14 @@ TEST(WordsView, ScopeVocabularyIsTheExportsOwn)
     EXPECT_EQ(parseScope(QStringLiteral("new")), lens::core::ExportScope::New);
     EXPECT_FALSE(parseScope(QStringLiteral("nonsense")).has_value());
     EXPECT_FALSE(parseScope(QString{}).has_value());
+}
+
+TEST(WordsView, CardFormatIsTheExtensionAndThePlainListHasNone)
+{
+    EXPECT_EQ(cardFormatOf(QStringLiteral("words-known.csv")), lens::core::CardFormat::Csv);
+    EXPECT_EQ(cardFormatOf(QStringLiteral("words.TSV")), lens::core::CardFormat::Anki);
+    EXPECT_FALSE(cardFormatOf(QStringLiteral("words.txt")).has_value());
+    EXPECT_FALSE(cardFormatOf(QStringLiteral("words.json")).has_value());
 }
 
 TEST(WordsView, DayBucketTakesTheDayItIsJudgedAgainst)

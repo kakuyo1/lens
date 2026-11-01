@@ -292,6 +292,8 @@ private:
     QString exportFor(core::ExportScope scope) const;
     /// @brief The JSON export for a scope, without the QML string parse.
     QString exportJsonFor(core::ExportScope scope) const;
+    /// @brief The learning-card export for a scope and format, without the QML string parse.
+    QString exportCardsFor(core::ExportScope scope, core::CardFormat format) const;
     /// @brief Reconcile budget and in-flight request gates with the capture duty.
     void refreshCaptureGates();
     /// @brief The trigger key went down: raise the mask, or say why it cannot be raised.

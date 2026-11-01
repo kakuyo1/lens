@@ -769,6 +769,11 @@ QString AppController::exportJsonFor(core::ExportScope const scope) const
     return QString::fromStdString(core::exportLemmasJson(storage_.statsStore().history(), scope, storage_.knownStore().known()));
 }
 
+QString AppController::exportCardsFor(core::ExportScope const scope, core::CardFormat const format) const
+{
+    return QString::fromStdString(core::exportCards(storage_.statsStore().history(), scope, storage_.knownStore(), format));
+}
+
 QString AppController::exportWords(QString scope)
 {
     const auto which = parseScope(scope);
@@ -805,7 +810,10 @@ bool AppController::saveWords(QUrl path, QString scope)
         LENS_WARN("words export was given '{}', which names no local file", path.toString().toStdString());
         return false;
     }
-    const QString text = isJsonPath(local) ? exportJsonFor(*which) : exportFor(*which);
+    auto const    cards = cardFormatOf(local);
+    QString const text  = isJsonPath(local) ? exportJsonFor(*which)
+                          : cards           ? exportCardsFor(*which, *cards)
+                                            : exportFor(*which);
     QSaveFile     file(local);
     if (!file.open(QIODevice::WriteOnly)) {
         LENS_WARN("words export could not open '{}' for writing", local.toStdString());

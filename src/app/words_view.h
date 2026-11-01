@@ -47,6 +47,14 @@ inline bool isJsonPath(QString const& path)
     return path.endsWith(QLatin1String(".json"), Qt::CaseInsensitive);
 }
 
+/// @return The card format @p path asks for by its extension; nothing for the plain list and the JSON one.
+inline std::optional<core::CardFormat> cardFormatOf(QString const& path)
+{
+    if (path.endsWith(QLatin1String(".csv"), Qt::CaseInsensitive)) return core::CardFormat::Csv;
+    if (path.endsWith(QLatin1String(".tsv"), Qt::CaseInsensitive)) return core::CardFormat::Anki;
+    return std::nullopt;
+}
+
 /// @return The words list's day bucket for @p moment against @p today; empty for an unreadable time.
 inline QString dayLabel(QDateTime const& moment, QDate const& today)
 {

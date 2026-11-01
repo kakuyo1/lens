@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- The words export's save dialog offers two learning-card formats, **CSV with explanations** and **Anki TSV with explanations**. Each row is a word from the list with its cached IPA, part of speech, English and Chinese explanations and example. A word whose explanation was never fetched keeps its row with those columns empty, and the export makes no request. The CSV has a header row and a UTF-8 byte-order mark so a spreadsheet reads the Chinese; the Anki file opens with `#separator:tab` and has no header, for Anki's text import.
+
 ## 2.0.0 - 2026-10-31
 
 ### Added

@@ -4,6 +4,7 @@
  */
 
 #include "core/document/stats_store.h"
+#include "core/document/known_store.h"
 #include "util/log.h"
 #include "util/text.h"
 
@@ -236,26 +237,67 @@ bool StatsStore::removeLemma(const std::string& lemma)
     return true;
 }
 
-std::string exportLemmas(const std::vector<HistoryEntry>&       history,
-                         ExportScope                            scope,
-                         const std::unordered_set<std::string>& knownLemmas)
+namespace {
+
+/// @return The lemmas @p scope covers, one per lemma and newest first: the rows every words export shares.
+std::vector<std::string> scopedLemmas(const std::vector<HistoryEntry>&       history,
+                                      ExportScope                            scope,
+                                      const std::unordered_set<std::string>& knownLemmas)
 {
     // The scope follows the known set, the way the words popup's verdicts do: a lemma is known
     // when the set holds it and new when it does not, whatever its newest entry's own stamp says.
-    const auto wanted = [scope, &knownLemmas](const HistoryEntry& entry) {
-        if (scope == ExportScope::Known) return knownLemmas.count(entry.lemma) > 0;
-        if (scope == ExportScope::New) return knownLemmas.count(entry.lemma) == 0;
+    const auto wanted = [scope, &knownLemmas](const std::string& lemma) {
+        if (scope == ExportScope::Known) return knownLemmas.count(lemma) > 0;
+        if (scope == ExportScope::New) return knownLemmas.count(lemma) == 0;
         return true;
     };
 
     // One line per lemma, taken at its newest entry -- the same dedup the words popup does,
     // so a word shown twice is one line here as it is one row there.
     std::unordered_set<std::string> seen;
-    std::string                     text;
+    std::vector<std::string>        lemmas;
     for (const HistoryEntry& entry : history) {
-        if (!seen.insert(entry.lemma).second || !wanted(entry))
-            continue;
-        text += entry.lemma;
+        if (seen.insert(entry.lemma).second && wanted(entry.lemma))
+            lemmas.push_back(entry.lemma);
+    }
+    return lemmas;
+}
+
+/// @return @p text as one field of a @p delimiter-separated row: quoted when it holds the delimiter, a double quote or a line break.
+std::string cardField(const std::string& text, char delimiter)
+{
+    if (text.find_first_of(std::string{delimiter, '"', '\r', '\n'}) == std::string::npos)
+        return text;
+    std::string quoted{'"'};
+    for (const char c : text) {
+        if (c == '"')
+            quoted += '"';
+        quoted += c;
+    }
+    return quoted + '"';
+}
+
+/// @return One LF-terminated row of @p fields.
+std::string cardRow(const std::vector<std::string>& fields, char delimiter)
+{
+    std::string row;
+    for (std::size_t i = 0; i < fields.size(); ++i) {
+        if (i != 0)
+            row += delimiter;
+        row += cardField(fields[i], delimiter);
+    }
+    return row + '\n';
+}
+
+} // namespace
+
+std::string exportLemmas(const std::vector<HistoryEntry>&       history,
+                         ExportScope                            scope,
+                         const std::unordered_set<std::string>& knownLemmas)
+{
+    std::string text;
+    for (const std::string& lemma : scopedLemmas(history, scope, knownLemmas)) {
+        text += lemma;
         text += '\n';
     }
     return text;
@@ -265,19 +307,30 @@ std::string exportLemmasJson(const std::vector<HistoryEntry>&       history,
                              ExportScope                            scope,
                              const std::unordered_set<std::string>& knownLemmas)
 {
-    const auto wanted = [scope, &knownLemmas](const HistoryEntry& entry) {
-        if (scope == ExportScope::Known) return knownLemmas.count(entry.lemma) > 0;
-        if (scope == ExportScope::New) return knownLemmas.count(entry.lemma) == 0;
-        return true;
-    };
-    std::unordered_set<std::string> seen;
-    nlohmann::json                  out = nlohmann::json::array();
-    for (const HistoryEntry& entry : history) {
-        if (!seen.insert(entry.lemma).second || !wanted(entry))
-            continue;
-        out.push_back(entry.lemma);
-    }
+    nlohmann::json out = nlohmann::json::array();
+    for (const std::string& lemma : scopedLemmas(history, scope, knownLemmas))
+        out.push_back(lemma);
     return out.dump();
+}
+
+std::string exportCards(const std::vector<HistoryEntry>& history, ExportScope scope, const KnownStore& store, CardFormat format)
+{
+    const char  delimiter = format == CardFormat::Csv ? ',' : '\t';
+    std::string text;
+    if (format == CardFormat::Csv)
+        text = "\xEF\xBB\xBF" + cardRow({"word", "ipa", "pos", "en", "zh", "example"}, delimiter);
+    else
+        text = "#separator:tab\n";
+
+    for (const std::string& lemma : scopedLemmas(history, scope, store.known())) {
+        // A word explained only with multiple senses is stored under that context; its top-level fields are the first sense's.
+        auto cached = store.cacheGet(lemma);
+        if (!cached)
+            cached = store.cacheGet(lemma, CacheContext{store.explanationLang(), true});
+        const WordCache entry = cached.value_or(WordCache{});
+        text += cardRow({lemma, entry.ipa, entry.pos, entry.en, entry.zh, entry.example.value_or("")}, delimiter);
+    }
+    return text;
 }
 
 void StatsStore::writeBack()

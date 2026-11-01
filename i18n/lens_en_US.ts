@@ -3208,24 +3208,34 @@ One small word at a time, the reading opens.</translation>
         <translation>No words in this filter.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="664"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="675"/>
+        <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="23"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="665"/>
         <source>JSON files (*.json)</source>
         <translation>JSON files (*.json)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="679"/>
+        <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="24"/>
+        <source>CSV with explanations (*.csv)</source>
+        <translation>CSV with explanations (*.csv)</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="25"/>
+        <source>Anki TSV with explanations (*.tsv)</source>
+        <translation>Anki TSV with explanations (*.tsv)</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="669"/>
         <source>Words imported</source>
         <translation>Words imported</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="679"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="669"/>
         <source>Import failed</source>
         <translation>Import failed</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsPopup.qml" line="357"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="673"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="663"/>
         <source>Import words</source>
         <translation>Import words</translation>
     </message>
@@ -3245,20 +3255,20 @@ One small word at a time, the reading opens.</translation>
         <translation>Remove</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="17"/>
         <location filename="../src/app/qml/panels/WordsPopup.qml" line="350"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="661"/>
         <source>Export words</source>
         <translation>Export words</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="664"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="675"/>
+        <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="22"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="665"/>
         <source>Text files (*.txt)</source>
         <translation>Text files (*.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="664"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="675"/>
+        <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="26"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="665"/>
         <source>All files (*)</source>
         <translation>All files (*)</translation>
     </message>
@@ -3617,12 +3627,12 @@ One small word at a time, the reading opens.</translation>
         <translation>LJSpeech</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="936"/>
+        <location filename="../src/app/app_controller.cpp" line="944"/>
         <source>Auto</source>
         <translation>Auto</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="936"/>
+        <location filename="../src/app/app_controller.cpp" line="944"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>

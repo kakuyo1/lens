@@ -3216,24 +3216,34 @@ One small word at a time, the reading opens.</translation>
         <translation>この絞り込みに単語はありません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="664"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="675"/>
+        <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="23"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="665"/>
         <source>JSON files (*.json)</source>
         <translation>JSON ファイル (*.json)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="679"/>
+        <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="24"/>
+        <source>CSV with explanations (*.csv)</source>
+        <translation>解説付き CSV ファイル (*.csv)</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="25"/>
+        <source>Anki TSV with explanations (*.tsv)</source>
+        <translation>解説付き Anki TSV ファイル (*.tsv)</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="669"/>
         <source>Words imported</source>
         <translation>単語をインポートしました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="679"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="669"/>
         <source>Import failed</source>
         <translation>インポートに失敗しました</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsPopup.qml" line="357"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="673"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="663"/>
         <source>Import words</source>
         <translation>単語を読み込む</translation>
     </message>
@@ -3253,20 +3263,20 @@ One small word at a time, the reading opens.</translation>
         <translation>削除</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="17"/>
         <location filename="../src/app/qml/panels/WordsPopup.qml" line="350"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="661"/>
         <source>Export words</source>
         <translation>単語を書き出す</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="664"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="675"/>
+        <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="22"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="665"/>
         <source>Text files (*.txt)</source>
         <translation>テキストファイル (*.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="664"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="675"/>
+        <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="26"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="665"/>
         <source>All files (*)</source>
         <translation>すべてのファイル (*)</translation>
     </message>
@@ -3560,12 +3570,12 @@ One small word at a time, the reading opens.</translation>
         <translation>LJSpeech</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="936"/>
+        <location filename="../src/app/app_controller.cpp" line="944"/>
         <source>Auto</source>
         <translation>自動</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="936"/>
+        <location filename="../src/app/app_controller.cpp" line="944"/>
         <source>Manual</source>
         <translation>手動</translation>
     </message>

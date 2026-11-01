@@ -369,6 +369,7 @@ qt_add_qml_module(lens_app
     qml/settings/pages/SettingsSyncPage.qml
      qml/panels/StatsPopup.qml
      qml/panels/WordsPopup.qml
+     qml/panels/WordsExportDialog.qml
     qml/panels/WordsListRow.qml
      qml/panels/YearWordsPopup.qml
     qml/panels/YearPalette.qml
