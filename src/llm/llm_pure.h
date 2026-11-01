@@ -248,6 +248,33 @@ QVector<CorrectionRun> correctionRuns(QString const& original, QString const& co
 std::variant<QVector<RoleSpan>, QString> parseBreakdown(QByteArray const& responseBody, int wordCount);
 
 /**
+ * @brief Read the interpretation lines out of a weekly reading profile answer.
+ *
+ * Checks the envelope and finish reason as parseBreakdown() does, then exactly one results entry whose
+ * `points` holds at least one point with non-empty text. The text is returned as the model wrote it: the app
+ * shows it and checks nothing about what it says. A `fact` the app does not know is returned as written, and
+ * the panel draws no figure for it.
+ *
+ * @param responseBody Raw HTTP response body.
+ * @return The points in order, or a reason for the log.
+ */
+std::variant<QVector<ProfileLine>, QString> parseProfile(QByteArray const& responseBody);
+
+/**
+ * @brief Read the story out of a weekly story answer (docs/adr/0152).
+ *
+ * Checks the envelope and finish reason as parseProfile() does, then exactly one results entry with non-empty
+ * `text`. The words are kept only when they are among @p listed, each once, in the order the story gave them: a
+ * word the story invents is dropped rather than refused. The length is not checked here; the prompt asks for it
+ * and the panel cuts a long story.
+ *
+ * @param responseBody Raw HTTP response body.
+ * @param listed       The words the request sent.
+ * @return The story and its used words, or a reason for the log.
+ */
+std::variant<StoryAnswer, QString> parseStory(QByteArray const& responseBody, QStringList const& listed);
+
+/**
  * @brief One answer assembled from the bytes of a streamed or whole-body reply.
  *
  * The reply handler owns the socket and nothing else: it hands every read to feed() and the last

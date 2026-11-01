@@ -32,6 +32,7 @@ Window {
     height: column.implicitHeight + 34 + 2 * shadowMargin
 
     signal costRequested()
+    signal profileRequested()
     signal wordsRequested()
     signal knownRequested()
     signal newRequested()
@@ -131,6 +132,13 @@ Window {
                 value: Format.formatMoney(Controller.costDuty.stats.currency, Controller.costDuty.stats.todayCost)
                 clickable: true
                 onTapped: stats.costRequested()
+            }
+            StatRow {
+                width: parent.width
+                label: qsTr("Week profile")
+                value: qsTr("%1 lookups").arg(String(Controller.readingProfileDuty.facts.pops))
+                clickable: true
+                onTapped: stats.profileRequested()
             }
             StatRow {
                 width: parent.width

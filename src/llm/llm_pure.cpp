@@ -955,6 +955,80 @@ std::variant<QVector<RoleSpan>, QString> parseBreakdown(QByteArray const& respon
     return spans;
 }
 
+std::variant<QVector<ProfileLine>, QString> parseProfile(QByteArray const& responseBody)
+{
+    using Result = std::variant<QVector<ProfileLine>, QString>;
+
+    // The reason only reaches the log: the profile's one failure line is the app's own.
+    const auto reject = [](const QString& reason) -> Result {
+        LENS_ERROR("parseProfile rejected the response: {}", reason.toStdString());
+        return reason;
+    };
+
+    const auto envelope = QJsonDocument::fromJson(responseBody);
+    if (!envelope.isObject()) return reject(QStringLiteral("the answer is not a JSON object"));
+    const auto choices = envelope.object().value("choices").toArray();
+    if (choices.isEmpty()) return reject(QStringLiteral("the answer carries no choices"));
+
+    const auto choice = choices.at(0).toObject();
+    if (const QString reason = finishReasonError(choice.value("finish_reason").toString()); not reason.isEmpty())
+        return reject(reason);
+
+    const QString content = choice.value("message").toObject().value("content").toString();
+    const auto    payload = QJsonDocument::fromJson(extractJsonObject(content));
+    if (!payload.isObject()) return reject(QStringLiteral("the content is not a JSON object"));
+
+    const auto results = payload.object().value("results").toArray();
+    if (results.size() != 1 or not matchesSchema(results.at(0), resultSchema(Channel::Profile)))
+        return reject(QStringLiteral("the content does not hold one profile entry"));
+
+    QVector<ProfileLine> points;
+    for (auto const& value : results.at(0).toObject().value("points").toArray()) {
+        auto const point = value.toObject();
+        points.append(ProfileLine{point.value("text").toString().trimmed(), point.value("fact").toString().trimmed()});
+    }
+    LENS_TRACE("parseProfile: accepted {} point(s)", points.size());
+    return points;
+}
+
+std::variant<StoryAnswer, QString> parseStory(QByteArray const& responseBody, QStringList const& listed)
+{
+    using Result = std::variant<StoryAnswer, QString>;
+
+    // The reason only reaches the log: the story's one failure line is the app's own. The story text is never logged.
+    const auto reject = [](const QString& reason) -> Result {
+        LENS_ERROR("parseStory rejected the response: {}", reason.toStdString());
+        return reason;
+    };
+
+    const auto envelope = QJsonDocument::fromJson(responseBody);
+    if (!envelope.isObject()) return reject(QStringLiteral("the answer is not a JSON object"));
+    const auto choices = envelope.object().value("choices").toArray();
+    if (choices.isEmpty()) return reject(QStringLiteral("the answer carries no choices"));
+
+    const auto choice = choices.at(0).toObject();
+    if (const QString reason = finishReasonError(choice.value("finish_reason").toString()); not reason.isEmpty())
+        return reject(reason);
+
+    const QString content = choice.value("message").toObject().value("content").toString();
+    const auto    payload = QJsonDocument::fromJson(extractJsonObject(content));
+    if (!payload.isObject()) return reject(QStringLiteral("the content is not a JSON object"));
+
+    const auto results = payload.object().value("results").toArray();
+    if (results.size() != 1 or not matchesSchema(results.at(0), resultSchema(Channel::Story)))
+        return reject(QStringLiteral("the content does not hold one story entry"));
+
+    const auto  entry = results.at(0).toObject();
+    StoryAnswer answer{entry.value("text").toString().trimmed(), {}};
+    for (auto const& value : entry.value("words").toArray()) {
+        const QString word = value.toString();
+        if (listed.contains(word) and not answer.words.contains(word))
+            answer.words.append(word);
+    }
+    LENS_TRACE("parseStory: accepted a story of {} character(s) using {} listed word(s)", answer.text.size(), answer.words.size());
+    return answer;
+}
+
 namespace {
 
 /// Bytes needed to tell an SSE stream from one whole body: exactly the length of "data:".

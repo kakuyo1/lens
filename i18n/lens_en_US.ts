@@ -455,6 +455,200 @@ One small word at a time, the reading opens.</translation>
     </message>
 </context>
 <context>
+    <name>ReadingProfilePopup</name>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="105"/>
+        <source>Week profile</source>
+        <translation>Week profile</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="120"/>
+        <source>Back</source>
+        <translation>Back</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="127"/>
+        <source>Close</source>
+        <translation>Close</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="153"/>
+        <source>Lookups this week</source>
+        <translation>Lookups this week</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="153"/>
+        <source>Nothing looked up yet this week.</source>
+        <translation>Nothing looked up yet this week.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="170"/>
+        <source>Words</source>
+        <translation>Words</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="171"/>
+        <source>New words</source>
+        <translation>New words</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="171"/>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="172"/>
+        <source>%1%</source>
+        <translation>%1%</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="172"/>
+        <source>Repeated</source>
+        <translation>Repeated</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="202"/>
+        <source>Parts of speech</source>
+        <translation>Parts of speech</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="220"/>
+        <source>%1 words without one</source>
+        <translation>%1 words without one</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="229"/>
+        <source>Lookups by hour</source>
+        <translation>Lookups by hour</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="272"/>
+        <source>Most looked up</source>
+        <translation>Most looked up</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="326"/>
+        <source>Interpret this week</source>
+        <translation>Interpret this week</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="326"/>
+        <source>View this week&apos;s report</source>
+        <translation>View this week&apos;s report</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="344"/>
+        <source>Today&apos;s budget is used up; the reading waits until tomorrow.</source>
+        <translation>Today&apos;s budget is used up; the reading waits until tomorrow.</translation>
+    </message>
+</context>
+<context>
+    <name>ReportCard</name>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="50"/>
+        <source>%1 – %2</source>
+        <translation>%1 – %2</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="80"/>
+        <source>New %1 of %2</source>
+        <translation>New %1 of %2</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="82"/>
+        <source>Repeated %1</source>
+        <translation>Repeated %1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="84"/>
+        <source>Peak at %1</source>
+        <translation>Peak at %1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="193"/>
+        <source>This week&apos;s reading report</source>
+        <translation>This week&apos;s reading report</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="213"/>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="506"/>
+        <source>Close</source>
+        <translation>Close</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="227"/>
+        <source>Lookups</source>
+        <translation>Lookups</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="228"/>
+        <source>Words</source>
+        <translation>Words</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="229"/>
+        <source>New</source>
+        <translation>New</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="229"/>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="230"/>
+        <source>%1%</source>
+        <translation>%1%</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="230"/>
+        <source>Repeated</source>
+        <translation>Repeated</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="260"/>
+        <source>Lookups by hour</source>
+        <translation>Lookups by hour</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="268"/>
+        <source>Peak %1, %2 lookups</source>
+        <translation>Peak %1, %2 lookups</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="427"/>
+        <source>AI observations, for reference only. Billed per request.</source>
+        <translation>AI observations, for reference only. Billed per request.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="440"/>
+        <source>Story</source>
+        <translation>Story</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="446"/>
+        <source>Done</source>
+        <translation>Done</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="488"/>
+        <source>Back</source>
+        <translation>Back</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="494"/>
+        <source>Short story</source>
+        <translation>Short story</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="532"/>
+        <source>Writing the story…</source>
+        <translation>Writing the story…</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="616"/>
+        <source>Retry</source>
+        <translation>Retry</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="625"/>
+        <source>Written by AI from the words you looked up this week.</source>
+        <translation>Written by AI from the words you looked up this week.</translation>
+    </message>
+</context>
+<context>
     <name>ReviewCard</name>
     <message>
         <location filename="../src/app/qml/pet/ReviewCard.qml" line="73"/>
@@ -2877,42 +3071,52 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>StatsPopup</name>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="78"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="79"/>
         <source>Today</source>
         <translation>Today</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="89"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="90"/>
         <source>Close</source>
         <translation>Close</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="105"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="106"/>
         <source>Lookups today</source>
         <translation>Lookups today</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="116"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="117"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="123"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="124"/>
         <source>New</source>
         <translation>New</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="130"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="131"/>
         <source>Cost</source>
         <translation>Cost</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="137"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="138"/>
+        <source>Week profile</source>
+        <translation>Week profile</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="139"/>
+        <source>%1 lookups</source>
+        <translation>%1 lookups</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="145"/>
         <source>All time</source>
         <translation>All time</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="140"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="148"/>
         <source>%1 words</source>
         <translation>%1 words</translation>
     </message>
@@ -3627,12 +3831,12 @@ One small word at a time, the reading opens.</translation>
         <translation>LJSpeech</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="944"/>
+        <location filename="../src/app/app_controller.cpp" line="949"/>
         <source>Auto</source>
         <translation>Auto</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="944"/>
+        <location filename="../src/app/app_controller.cpp" line="949"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>

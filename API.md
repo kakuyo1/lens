@@ -20,8 +20,10 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 | 一瞥 | `data/llm/request.peek.json` | `data/llm/response.peek.schema.json` | 气泡按住地球的母语一行，只回 `line` 一个字段，不流式 |
 | 义项 | `data/llm/request.sense.json` | `data/llm/response.sense.schema.json` | 气泡 Not-the-Sense? 条目的下一个常见义项，至多一个，不流式 |
 | 拆解 | `data/llm/request.breakdown.json` | `data/llm/response.breakdown.schema.json` | 句子选区的成分拆解，只回词的下标，不流式，已落地（§3.6） |
+| 本周画像 | `data/llm/request.profile.json` | `data/llm/response.profile.schema.json` | 统计弹窗的周解读，只发一段摘要，回每条一段文字与一个事实键，不流式（§3.8） |
 | 纠正拼写 | `data/llm/request.spell.json` | `data/llm/response.spell.schema.json` | 单个 token 的拼写修正，只回修正后的词，不流式（§3.7） |
 | 纠正语法 | `data/llm/request.grammar.json` | `data/llm/response.grammar.schema.json` | 句子的语法与拼写修正，只回修正后的整句，不流式（§3.7） |
+| 小故事 | `data/llm/request.story.json` | `data/llm/response.story.schema.json` | 报告卡片的英文小故事，从本周查过的词里本地抽一批发出，只回 `text` 与用到的 `words`，不流式（§3.9） |
 
 前三条通道由**选区的形状**决定，第四条由**语言**决定：选区里出现汉字（CJK 表意文字）时，它是单词、实体还是句子都不再作数，整段走译文通道，**三种形状共用这一套提示词**（`docs/adr/0044`）。读者要的是中文的英文，词、专名、整句都一样。第五条由**手势**决定：解释语言为英文时按住气泡上的地球，为一个词、句子或实体要一行母语释义（`docs/adr/0112`、`docs/adr/0124`）。第六条由**卡片上的条目**决定：多义关闭时单义卡底部的 `Not-the-Sense?` 条目，为立着的词要一个尚未给出的更常见义项（`docs/adr/0113`）。第七条由**复制抽屉里的 “句子拆解”** 决定，只对句子选区发出（`UI-SPEC.md` 4.3）；它不回显文字，只回词的下标，协议见 §3.6。第八条由**复制抽屉里的 “纠正拼写”** 决定，只对单个 token 选区发出；第九条由**复制抽屉里的 “纠正语法”** 决定，只对句子选区发出。两者都不回显原文，应用持有原文并自行对比修正（§3.7）。注意：第七至第九条的通道由读者按下的动作决定，形状只决定该动作是否出现（`docs/adr/0009` 修订）。
 
@@ -263,6 +265,34 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 - 原文与修正相同即 “无需改动”，不作失败。
 - 失败的读者原因与 §3.6 相同，由应用给出（`failureLineFor`）。
 - 结果不入单词缓存，不进 verdict，计入花费。
+
+## 3.8 响应体：本周画像
+
+统计弹窗 “本周画像” 的解读（`UI-SPEC.md` 4.7b，`docs/adr/0150`）。计数在本地算出，请求只在读者按下按钮时发一次。
+
+- `messages[1]` 是一段摘要文本：窗口、查词数、词数、新词与重查的数量及比例、词性分布、按小时的查阅数、前五个词的词头。摘要由 `readingProfileSummary()` 生成，是请求携带的唯一内容；不含句子、释义、选区、弹词分钟与密钥。
+- 系统提示词要求五句以内、只依据摘要中的数字与词，不得编造。语言取解释语言的收尾行。
+- 请求与 §2 相同，`stream` 为 `false`，`max_tokens` 取 512。用量取非流式响应的 `usage`，计入当日花费与模型桶（§6）。
+- 响应只含一个结果，`points` 为一到多个对象，每个对象有非空的 `text` 与一个事实键 `fact`：
+
+```json
+{ "results": [ { "points": [ { "text": "……", "fact": "freshShare" }, { "text": "……", "fact": "repeated" } ] } ] }
+```
+
+- `fact` 取 `freshShare`（新词占比）、`repeated`（重查）、`peakHour`（峰值时段）、`topWords`（常查词）、`partsOfSpeech`（词性）之一。应用按键从本地事实拼出依据药丸，药丸文字由界面的翻译给出，模型不写数字。不认识的键或缺省的 `fact` 不画药丸，观察照常显示。
+- 结果不入单词缓存，不进 verdict。失败与拒答只给一句读者可读的原因（`failureLineFor`），不发通知。
+
+## 3.9 响应体：小故事
+
+报告卡片的 “小故事”（`UI-SPEC.md` 4.7d，`docs/adr/0152`）。它从本周查过的词里在本地抽一批，只把抽中的词发给模型。同一周只发一次，之后打开直接读已有的结果。
+
+- 抽词在本地完成（`pickStoryWords`）：本周的去重词头少于 10 个则全用，否则随机抽 10 到 15 个。没抽中的词不发出。
+- `messages[1]` 是抽中的词，每行一个，词典形式，每个词过 `maskSensitive`；不含句子、释义、选区、弹词分钟与密钥。
+- 系统提示词要求一段约 100 到 300 词的英文故事，每个词原样用到，并在 `words` 里列出用到的词。`stream` 为 `false`，`max_tokens` 取 1024。
+- 响应只含一个结果：`{ "results": [ { "text": "……", "words": ["……"] } ] }`。`text` 必填且非空。`words` 只保留抽中的词并去重，模型自造的词丢弃，不因此拒收整批。
+- 长度不在解析时拒收：正文超过 300 词时，展示前截断到 300 词，日志只记字数，不记正文。
+- 用量计入当日花费与模型桶（§6）。结果只在内存中，只属于产生它的那一周，换周即失效，不入缓存、不进同步、不写设置文档。
+- 失败与拒答只给一句读者可读的原因，报告卡片上有 “重试”。
 
 ## 4 校验规则
 

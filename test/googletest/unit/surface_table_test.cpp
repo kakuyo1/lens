@@ -104,7 +104,7 @@ TEST(SurfaceTable, AnOpenerIsAShowMethodOnAReportedSurface)
 TEST(SurfaceTable, TheOpenerAritiesNameTheMethodsRealParameters)
 {
     for (auto const& [name, expected] : std::initializer_list<std::pair<std::string_view, int>>{
-             {"settings", 1}, {"tray", 0}, {"stats", 1}, {"words", 2}, {"yearWords", 1}, {"cost", 1}}) {
+             {"settings", 1}, {"tray", 0}, {"stats", 1}, {"words", 2}, {"yearWords", 1}, {"cost", 1}, {"profile", 1}}) {
         Row const* const row = find(name);
         ASSERT_NE(row, nullptr) << std::string(name);
         EXPECT_EQ(row->openArity, expected) << std::string(name) << " changed its opener's shape";

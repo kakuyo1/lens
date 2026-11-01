@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Lens weekly reading profile response",
+  "description": "The object the model is asked to return inside choices[0].message.content. The summary goes in as one item and comes back as one entry of points: each point is one line of text and the key of the one figure it rests on. The app shows the lines as they are, and draws the figure for the key it knows; a missing or unknown key draws no figure.",
+  "type": "object",
+  "required": ["results"],
+  "properties": {
+    "results": {
+      "type": "array",
+      "description": "Exactly one entry: the whole summary is one item.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["points"],
+        "properties": {
+          "points": {
+            "type": "array",
+            "description": "Five short observations or suggestions, each with the key of its figure.",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["text"],
+              "properties": {
+                "text": { "type": "string", "minLength": 1 },
+                "fact": {
+                  "type": "string",
+                  "description": "One of freshShare, repeated, peakHour, topWords, partsOfSpeech."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

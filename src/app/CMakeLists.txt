@@ -38,6 +38,8 @@ add_library(lens_app STATIC
   duties/card_session.cpp
   duties/cost_duty.h
   duties/cost_duty.cpp
+  duties/reading_profile_duty.h
+  duties/reading_profile_duty.cpp
   duties/explanation_duty.h
   duties/explanation_duty.cpp
   duties/explanation_exchange.h
@@ -375,6 +377,8 @@ qt_add_qml_module(lens_app
     qml/panels/YearPalette.qml
      qml/panels/RemovalQuestion.qml
     qml/panels/CostPopup.qml
+    qml/panels/ReadingProfilePopup.qml
+    qml/panels/ReportCard.qml
     qml/theme/Tokens.qml
     qml/theme/TokenTable.qml
     qml/components/preview/PreviewSample.qml

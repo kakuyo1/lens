@@ -50,6 +50,10 @@ inline constexpr const char* kExampleFieldPlaceholder = "{exampleField}";
 /// one line out for the bubble's held globe (docs/adr/0112). Sense answers for the bubble's Not-the-Sense?
 /// entry: one word and its already-shown senses in, one more distinct common sense out (or none,
 /// which is the exhaustion answer), so the card can switch senses without re-explaining the word.
+/// Profile answers the statistics panel's weekly reading profile (docs/adr/0150): a summary of counts
+/// and words in, a few lines of interpretation out, and nothing else from the reader's history.
+/// Story answers the report card's story (docs/adr/0152): a list of the week's looked-up words in, one
+/// short English story out, with the listed words it uses.
 enum class Channel : std::uint8_t { Word = 0,
                                     Entity,
                                     Sentence,
@@ -59,6 +63,8 @@ enum class Channel : std::uint8_t { Word = 0,
                                     Breakdown,
                                     Spell,
                                     Grammar,
+                                    Profile,
+                                    Story,
                                     Count };
 
 /// @brief One channel preset's system prompt, from `request.<channel>.json`.

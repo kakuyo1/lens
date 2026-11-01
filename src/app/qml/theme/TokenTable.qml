@@ -68,6 +68,8 @@ QtObject {
     /// The dropdown lists and other floating layers: the card fill, except under the glass themes,
     /// where it is the translucent popup layer (DESIGN.md 3.1c).
     readonly property color popup: custom ? panel : tokenColor("popup", lightTheme.popup)
+    /// The scrim under the full-screen report card (UI-SPEC.md 4.7c). The glass themes take the light value.
+    readonly property color scrim: tokenColor("scrim", lightTheme.scrim)
 
     /// The liquid theme's card is 22 px; the others keep 18 px (DESIGN.md 3.1d and UI-SPEC.md 4.3).
     readonly property int radiusCard: glassMode === "liquid" ? 22 : 18

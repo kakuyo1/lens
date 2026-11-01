@@ -167,6 +167,7 @@ Window {
     StatsPopup {
         id: statsPopup
         onCostRequested: surfaceHost.showCost(statsPopup)
+        onProfileRequested: surfaceHost.showProfile(statsPopup)
         onWordsRequested: surfaceHost.showWords(statsPopup)
         onKnownRequested: surfaceHost.showWords(statsPopup, 1)
         onNewRequested: surfaceHost.showWords(statsPopup, 2)
@@ -179,6 +180,18 @@ Window {
         onBackRequested: surfaceHost.showStats(costPopup)
         onWidthChanged: surfaceHost.holdCorner(costPopup)
         onHeightChanged: surfaceHost.holdCorner(costPopup)
+    }
+
+    ReadingProfilePopup {
+        id: readingProfilePopup
+        onBackRequested: surfaceHost.showStats(readingProfilePopup)
+        onReportRequested: surfaceHost.showReport(readingProfilePopup)
+        onWidthChanged: surfaceHost.holdCorner(readingProfilePopup)
+        onHeightChanged: surfaceHost.holdCorner(readingProfilePopup)
+    }
+
+    ReportCard {
+        id: reportCard
     }
 
     WordsPopup {
@@ -230,6 +243,8 @@ Window {
         wordsPopup: wordsPopup
         yearWordsPopup: yearWordsPopup
         costPopup: costPopup
+        readingProfilePopup: readingProfilePopup
+        reportCard: reportCard
     }
 
     /// Polls the screen layout, so a panel follows a monitor change.

@@ -66,6 +66,9 @@ inline constexpr Row kRows[]{
     {"words", true, true, "showWords", true, 2, nullptr},
     {"yearWords", true, true, "showYearWords", true, 1, nullptr},
     {"cost", true, true, "showCost", true, 1, nullptr},
+    {"profile", true, true, "showProfile", true, 1, nullptr},
+    // The week's report card: a flow raises it from the profile panel, so no dev opener.
+    {"report", true, true, nullptr, false, 0, nullptr},
     // Raised by a flow rather than a click, so no dev opener; still a sheet and dev-reported.
     {"bubble", true, true, nullptr, false, 0, nullptr},
     {"selectionBar", true, true, nullptr, false, 0, nullptr},

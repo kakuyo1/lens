@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · 本周阅读报告 · 候选 A 账页</title>
+<style>
+/* 候选 A：账页。一栏、无框、分隔线只用 1px 的 line2；图表全在墨色里，峰值用 ink，其余用 muted。 */
+:root{
+  --bg:#e9ebef; --panel:#fff; --panel2:#f1f3f7; --line:#d6dae1; --line2:#e6e9ee;
+  --text:#1a1a1f; --muted:#66666f; --faint:#73737d;
+  --ink:#1a1a1f; --on:#fff; --danger:#b3564a;
+  --scrim:rgba(20,20,26,.28);
+  --sh:0 2px 6px rgba(20,20,26,.06),0 24px 60px -24px rgba(20,20,26,.24);
+  --f:"Noto Sans SC","Segoe UI Variable","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+  --mono:"Cascadia Code",Consolas,ui-monospace,monospace;
+}
+html[data-theme=dark]{
+  --bg:#0b0e13; --panel:#171c25; --panel2:#212936; --line:#36404e; --line2:#242b37;
+  --text:#e9edf3; --muted:#a8b3c2; --faint:#8a95a6; --ink:#eef3fa; --on:#0c1016; --danger:#ec9282;
+  --scrim:rgba(0,0,0,.5);
+  --sh:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100vh}
+
+.scrim{position:fixed;inset:0;background:var(--scrim);display:flex;align-items:center;justify-content:center;padding:24px}
+.report{width:600px;max-width:100%;max-height:calc(100vh - 48px);overflow:auto;background:var(--panel);border-radius:18px;box-shadow:var(--sh);padding:26px 28px 22px}
+
+.hd{display:flex;align-items:flex-start;gap:12px}
+.hd h1{font-size:20px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
+.hd .sub{font-size:12px;color:var(--faint);margin-top:4px}
+.x{margin-left:auto;width:28px;height:28px;border-radius:999px;border:0;background:transparent;color:var(--faint);cursor:pointer;display:grid;place-items:center}
+.x:hover{background:var(--panel2);color:var(--text)}
+.x svg{width:14px;height:14px}
+
+.figs{display:grid;grid-template-columns:repeat(4,1fr);margin-top:20px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2)}
+.fig{padding:14px 0 14px 16px;border-left:1px solid var(--line2)}
+.fig:first-child{padding-left:0;border-left:0}
+.fig b{display:block;font-family:var(--mono);font-size:22px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+.fig span{font-size:12px;color:var(--faint)}
+
+.chart{margin-top:22px}
+.cap{display:flex;justify-content:space-between;font-size:12px;color:var(--faint)}
+.bars{position:relative;height:112px;margin-top:12px}
+.bars svg{width:100%;height:100%;display:block}
+.bars rect{fill:var(--muted)}
+.bars rect.peak{fill:var(--ink)}
+.ticks{position:relative;height:16px;margin-top:6px;font-size:11px;color:var(--faint)}
+.ticks span{position:absolute;transform:translateX(-50%)}
+
+.pts{margin-top:22px;border-top:1px solid var(--line2)}
+.pt{padding:14px 0;border-bottom:1px solid var(--line2);font-size:15px;line-height:1.6}
+.pt-sk{display:none;padding-top:14px}
+.pt-sk i{display:block;height:14px;background:var(--panel2);border-radius:4px;margin-bottom:14px}
+.fail{display:none;padding:18px 0;font-size:13px;line-height:1.6;color:var(--danger)}
+
+.ft{display:flex;align-items:center;gap:8px;margin-top:20px}
+.note{font-size:11px;color:var(--faint);margin-right:auto;line-height:1.5}
+.btn{height:32px;padding:0 16px;border-radius:999px;border:0;font:700 12px var(--f);cursor:pointer}
+.btn.primary{background:var(--ink);color:var(--on)}
+.btn.secondary{background:var(--panel2);color:var(--text)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:focus-visible,.x:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* 状态：loading 与 failed 只换 “解读” 这一段，数字与图表总是本地算出的，照常显示。 */
+body[data-state=loading] .pts,body[data-state=loading] .fail{display:none}
+body[data-state=loading] .pt-sk{display:block}
+body[data-state=failed] .pts{display:none}
+body[data-state=failed] .fail{display:block}
+
+.themebtn{position:fixed;top:14px;right:16px;padding:5px 12px;border-radius:999px;border:0;background:var(--panel);color:var(--muted);font:400 11.5px var(--f);cursor:pointer}
+html[data-shot] .themebtn{display:none}
+</style>
+</head>
+<body>
+<div class="scrim">
+  <section class="report" role="dialog" aria-modal="true" aria-labelledby="t">
+    <div class="hd">
+      <div>
+        <h1 id="t" data-k="title"></h1>
+        <div class="sub" data-k="sub"></div>
+      </div>
+      <button class="x" data-act="close" aria-label="" data-k-aria="close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+    </div>
+
+    <div class="figs">
+      <div class="fig"><span data-k="lookups"></span><b id="f-lookups"></b></div>
+      <div class="fig"><span data-k="words"></span><b id="f-words"></b></div>
+      <div class="fig"><span data-k="fresh"></span><b id="f-fresh"></b></div>
+      <div class="fig"><span data-k="repeated"></span><b id="f-repeated"></b></div>
+    </div>
+
+    <div class="chart">
+      <div class="cap"><span data-k="byHour"></span><span id="peak"></span></div>
+      <div class="bars">
+        <svg viewBox="0 0 24 100" preserveAspectRatio="none" aria-hidden="true" id="bars"></svg>
+      </div>
+      <div class="ticks" id="ticks"></div>
+    </div>
+
+    <div class="pts" id="pts"></div>
+    <div class="pt-sk"><i style="width:92%"></i><i style="width:78%"></i><i style="width:86%"></i><i style="width:64%"></i></div>
+    <div class="fail" data-k="failed"></div>
+
+    <div class="ft">
+      <div class="note" data-k="note"></div>
+      <button class="btn secondary" id="again" data-k="again"></button>
+      <button class="btn primary" data-act="close" data-k="done"></button>
+    </div>
+  </section>
+</div>
+<button class="themebtn" id="tb"></button>
+<script>
+/* 样例数据：与候选 B、C、D 相同，只为比较构图。小时数组共 24 格，和为 47。 */
+const DATA = {
+  lookups: 47, words: 31, fresh: 19, repeated: 9,
+  hours: [0,0,0,0,0,0,0,0,1,4,5,2,3,1,4,2,1,0,0,3,5,7,6,3],
+};
+const L = {
+  zh: {
+    title: '本周阅读报告', sub: '10 月 26 日 – 11 月 1 日', close: '关闭',
+    lookups: '查词', words: '词数', fresh: '新词', repeated: '重查', byHour: '按小时查阅',
+    note: 'AI 生成的观察，仅供参考；按本次请求计费。', done: '完成', again: '重新解读',
+    failed: '没有连上解读服务：网络或代理不可达。计数不受影响，可以重试。',
+    points: [
+      '这一周的查词里有六成是还没标记已会的新词，阅读集中在新材料上。',
+      '有 9 个词被重查，其中 bank 查了 4 次、quay 查了 3 次，它们还没有真正记住。',
+      '查词集中在 20 点到 23 点，占全周的四成多；这个时段适合做复习。',
+      '名词占多数，动词和形容词较少，可以多留意短语和动词搭配。',
+      '把重查的词放进宠物复习，下一次就不必再查。',
+    ],
+  },
+  en: {
+    title: "This week's reading", sub: 'Oct 26 – Nov 1', close: 'Close',
+    lookups: 'Lookups', words: 'Words', fresh: 'New', repeated: 'Repeated', byHour: 'Lookups by hour',
+    note: 'AI observations, for reference only. Billed per request.', done: 'Done', again: 'Interpret again',
+    failed: 'Could not reach the service: network or proxy unreachable. The counts are unchanged; try again.',
+    points: [
+      'Six in ten of this week’s lookups were words not yet marked known.',
+      'Nine words were looked up again; bank four times and quay three times.',
+      'Most lookups fell between 8 and 11 pm, a good window for review.',
+      'Nouns dominate; verbs and adjectives are rarer, so watch phrases and collocations.',
+      'Put the repeated words into pet review and you will not need to look them up again.',
+    ],
+  },
+};
+const THEME = { light: '静谧暗夜', dark: '晴朗白昼' };
+const q = new URLSearchParams(location.search);
+const lang = L[q.get('lang')] ? q.get('lang') : 'zh';
+const T = L[lang];
+const state = ['loading','failed'].includes(q.get('state')) ? q.get('state') : 'ok';
+document.body.dataset.state = state;
+if (q.get('shot') !== null) document.documentElement.dataset.shot = '';
+document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+
+function fill() {
+  document.querySelectorAll('[data-k]').forEach(el => {
+    const v = T[el.dataset.k];
+    if (typeof v === 'string') el.textContent = v;
+  });
+  document.querySelector('[data-k-aria]').setAttribute('aria-label', T.close);
+  const pts = document.getElementById('pts');
+  pts.innerHTML = T.points.map(p => `<p class="pt">${p}</p>`).join('');
+  const pct = n => Math.round(n / DATA.words * 100);
+  document.getElementById('f-lookups').textContent = DATA.lookups;
+  document.getElementById('f-words').textContent = DATA.words;
+  document.getElementById('f-fresh').textContent = pct(DATA.fresh) + '%';
+  document.getElementById('f-repeated').textContent = pct(DATA.repeated) + '%';
+  const max = Math.max(...DATA.hours), peak = DATA.hours.indexOf(max);
+  document.getElementById('bars').innerHTML = DATA.hours.map((v, i) => {
+    const h = v / max * 100;
+    return `<rect x="${i + 0.2}" y="${100 - h}" width="0.6" height="${h}"${i === peak ? ' class="peak"' : ''}/>`;
+  }).join('');
+  document.getElementById('ticks').innerHTML = [0, 6, 12, 18, 23].map(h =>
+    `<span style="left:${(h + 0.5) / 24 * 100}%">${h}</span>`).join('');
+  document.getElementById('peak').textContent = lang === 'zh' ? `峰值 ${peak}:00，${max} 次` : `Peak ${peak}:00, ${max} lookups`;
+  document.getElementById('again').disabled = state === 'loading';
+  document.getElementById('again').textContent = state === 'failed' ? (lang === 'zh' ? '重试' : 'Try again') : T.again;
+}
+fill();
+
+const tb = document.getElementById('tb');
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t;
+  tb.textContent = THEME[t];
+}
+const startTheme = q.get('theme') === 'dark' ? 'dark' : 'light';
+applyTheme(startTheme);
+tb.onclick = () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+document.querySelectorAll('[data-act=close]').forEach(b => b.onclick = () => { document.querySelector('.scrim').style.display = 'none'; });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelector('.scrim').style.display = 'none'; });
+</script>
+</body>
+</html>

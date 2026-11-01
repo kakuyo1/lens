@@ -537,4 +537,98 @@ void LlmClient::breakdownSentence(QString const& sentence, QStringList const& wo
     });
 }
 
+void LlmClient::requestProfile(QString const& summary, QString const& language)
+{
+    if (summary.isEmpty() or config_.apiKey.isEmpty() or not config_.baseUrl.isValid() or
+        config_.baseUrl.scheme() != QLatin1String("https") or config_.baseUrl.host().isEmpty()) {
+        LENS_DEBUG("the reading profile went nowhere: the client is not configured");
+        emit profileAnswered({}, {}, failureLineFor(-1));
+        return;
+    }
+
+    QUrl    url  = config_.baseUrl;
+    QString path = url.path();
+    while (path.endsWith(QLatin1Char('/')))
+        path.chop(1);
+    url.setPath(path + QStringLiteral("/chat/completions"));
+
+    QNetworkRequest httpRequest(url);
+    httpRequest.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+    httpRequest.setRawHeader("Authorization", "Bearer " + config_.apiKey.toUtf8());
+    httpRequest.setTransferTimeout(kTimeoutMs);
+
+    const auto model = config_.model;
+    LENS_INFO("interpreting a reading profile with '{}'", config_.model.toStdString());
+    LENS_TRACE("POST {} (timeout {} ms, key hidden)", url.toString().toStdString(), kTimeoutMs);
+
+    QNetworkReply* reply = manager_->post(httpRequest, buildRequestBody(config_, Channel::Profile, {summary}, language));
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply, model] {
+        reply->deleteLater();
+        const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        if (status != 200) {
+            LENS_WARN("the reading profile came back with HTTP {}", status);
+            emit profileAnswered({}, {}, failureLineFor(status));
+            return;
+        }
+        // A refused answer was still paid for, so its usage goes out with the empty result.
+        const QByteArray body  = reply->readAll();
+        auto             usage = parseUsage(body);
+        usage.model            = model;
+        const auto parsed      = parseProfile(body);
+        if (std::holds_alternative<QString>(parsed)) {
+            emit profileAnswered({}, usage, failureLineFor(status));
+            return;
+        }
+        emit profileAnswered(std::get<QVector<ProfileLine>>(parsed), usage, {});
+    });
+}
+
+void LlmClient::requestStory(QStringList const& words)
+{
+    if (words.isEmpty() or config_.apiKey.isEmpty() or not config_.baseUrl.isValid() or
+        config_.baseUrl.scheme() != QLatin1String("https") or config_.baseUrl.host().isEmpty()) {
+        LENS_DEBUG("the story went nowhere: the client is not configured");
+        emit storyAnswered({}, {}, failureLineFor(-1));
+        return;
+    }
+
+    QUrl    url  = config_.baseUrl;
+    QString path = url.path();
+    while (path.endsWith(QLatin1Char('/')))
+        path.chop(1);
+    url.setPath(path + QStringLiteral("/chat/completions"));
+
+    QNetworkRequest httpRequest(url);
+    httpRequest.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+    httpRequest.setRawHeader("Authorization", "Bearer " + config_.apiKey.toUtf8());
+    httpRequest.setTransferTimeout(kTimeoutMs);
+
+    const auto model = config_.model;
+    LENS_INFO("writing a story from {} word(s) with '{}'", words.size(), config_.model.toStdString());
+    LENS_TRACE("POST {} (timeout {} ms, key hidden)", url.toString().toStdString(), kTimeoutMs);
+
+    QNetworkReply* reply = manager_->post(httpRequest, buildRequestBody(config_, Channel::Story, words, QStringLiteral("en")));
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply, model, words] {
+        reply->deleteLater();
+        const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        if (status != 200) {
+            LENS_WARN("the story came back with HTTP {}", status);
+            emit storyAnswered({}, {}, failureLineFor(status));
+            return;
+        }
+        // A refused answer was still paid for, so its usage goes out with the empty result.
+        const QByteArray body  = reply->readAll();
+        auto             usage = parseUsage(body);
+        usage.model            = model;
+        const auto parsed      = parseStory(body, words);
+        if (std::holds_alternative<QString>(parsed)) {
+            emit storyAnswered({}, usage, failureLineFor(status));
+            return;
+        }
+        emit storyAnswered(std::get<StoryAnswer>(parsed), usage, {});
+    });
+}
+
 }

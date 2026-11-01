@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Lens weekly story response",
+  "description": "The object the model is asked to return inside choices[0].message.content. The story goes in as one item: its text, and the listed words it uses. The app keeps only the listed words, and shows the story as it is.",
+  "type": "object",
+  "required": ["results"],
+  "properties": {
+    "results": {
+      "type": "array",
+      "description": "Exactly one entry: the whole story is one item.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["text"],
+        "properties": {
+          "text": { "type": "string", "minLength": 1 },
+          "words": {
+            "type": "array",
+            "description": "The listed words the story uses, in dictionary form.",
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    }
+  }
+}

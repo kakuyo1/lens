@@ -25,6 +25,7 @@
 #include "core/domain/pet/pet_state.h"
 #include "core/domain/settings_table.h"
 #include "app/duties/cost_duty.h"
+#include "app/duties/reading_profile_duty.h"
 #include "app/duties/explanation_duty.h"
 #include "app/duties/onboarding_duty.h"
 #include "app/glass/glass_backdrop.h"
@@ -189,6 +190,8 @@ public:
     QVariantList yearDays() const;
     /// @brief The cost duty, which QML reads as `Controller.costDuty`; the facade owns it.
     CostDuty* costDuty();
+    /// @brief The weekly reading profile, which QML reads as `Controller.readingProfileDuty`; the facade owns it.
+    ReadingProfileDuty* readingProfileDuty();
     /// @brief The update duty, which QML reads as `Controller.updateDuty`; the facade owns it.
     UpdateDuty* updateDuty();
     /// @brief The sync duty, which QML reads as `Controller.syncDuty`; the facade owns it.
@@ -246,6 +249,7 @@ public:
     Q_PROPERTY(lens::app::WordsModel* wordsModel READ wordsModel CONSTANT)
     Q_PROPERTY(QVariantList yearDays READ yearDays NOTIFY yearDaysChanged)
     Q_PROPERTY(lens::app::CostDuty* costDuty READ costDuty CONSTANT)
+    Q_PROPERTY(lens::app::ReadingProfileDuty* readingProfileDuty READ readingProfileDuty CONSTANT)
     Q_PROPERTY(lens::app::UpdateDuty* updateDuty READ updateDuty CONSTANT)
     Q_PROPERTY(lens::app::SyncDuty* syncDuty READ syncDuty CONSTANT)
     Q_PROPERTY(lens::app::ExplanationDuty* explanationDuty READ explanationDuty CONSTANT)
@@ -318,6 +322,7 @@ private:
     OnboardingDuty         onboarding_;
     SyncDuty               sync_;
     ReviewDuty             reviewDuty_;
+    ReadingProfileDuty     readingProfile_;
     /// The picture lookup: the source that searches, the cache beside the settings document, and the
     /// duty the card reads. Declared in this order so the duty's two references are alive before it.
     pictures::CommonsSource picturesSource_;

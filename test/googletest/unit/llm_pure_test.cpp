@@ -794,6 +794,57 @@ TEST_F(LlmTest, TheCorrectionOfAnUnchangedWordMarksNothing)
         EXPECT_FALSE(run.changed);
 }
 
+TEST_F(LlmTest, TheProfileRequestSendsTheSummaryAloneAndDoesNotStream)
+{
+    const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
+    const auto   body = QJsonDocument::fromJson(buildRequestBody(config, Channel::Profile, {"Lookups: 3."}, "zh"));
+    EXPECT_FALSE(body.object().value("stream").toBool());
+    const auto messages = body.object().value("messages").toArray();
+    EXPECT_TRUE(messages.at(0).toObject().value("content").toString().contains(QStringLiteral("Simplified Chinese")));
+    EXPECT_EQ(messages.at(1).toObject().value("content").toString(), QStringLiteral("Lookups: 3."));
+}
+
+TEST_F(LlmTest, TheProfileAnswerIsItsPointsWithTheirFactsAndAnyOtherShapeIsRefused)
+{
+    const auto parsed = lens::llm::parseProfile(envelope(QStringLiteral(
+        R"({"results":[{"points":[{"text":"You look up the same words twice.","fact":"repeated"},{"text":"Try the new ones in context.","fact":"mood"}]}]})")));
+    ASSERT_TRUE(std::holds_alternative<QVector<lens::llm::ProfileLine>>(parsed));
+    auto const& points = std::get<QVector<lens::llm::ProfileLine>>(parsed);
+    ASSERT_EQ(points.size(), 2);
+    EXPECT_EQ(points.at(0).fact, QStringLiteral("repeated"));
+    EXPECT_EQ(points.at(1).fact, QStringLiteral("mood")) << "an unknown fact is kept as written and draws no figure";
+
+    for (auto const* content : {R"({"results":[]})", R"({"results":[{"points":[]}]})", R"({"results":[{"points":[{"text":""}]}]})", R"({"results":[{"points":["a"]}]})", R"({"results":[{"points":[{"fact":"repeated"}]}]})", R"({"results":[{"lines":[{"text":"a"}]}]})"}) {
+        const auto refused = lens::llm::parseProfile(envelope(QString::fromUtf8(content)));
+        EXPECT_TRUE(std::holds_alternative<QString>(refused)) << content;
+    }
+}
+
+TEST_F(LlmTest, TheStoryKeepsOnlyTheListedWordsOnceAndRefusesAnEmptyStory)
+{
+    const QStringList listed{QStringLiteral("quay"), QStringLiteral("bank")};
+    const auto        parsed = lens::llm::parseStory(
+        envelope(QStringLiteral(R"({"results":[{"text":"The quay was busy.","words":["quay","quay","tide","bank"]}]})")), listed);
+    ASSERT_TRUE(std::holds_alternative<lens::llm::StoryAnswer>(parsed));
+    auto const& answer = std::get<lens::llm::StoryAnswer>(parsed);
+    EXPECT_EQ(answer.text, QStringLiteral("The quay was busy."));
+    EXPECT_EQ(answer.words, (QStringList{QStringLiteral("quay"), QStringLiteral("bank")})) << "a word the story invented is dropped, a repeat is kept once";
+
+    for (auto const* content : {R"({"results":[{"text":"","words":[]}]})", R"({"results":[]})", R"({"results":[{"words":["quay"]}]})"}) {
+        const auto refused = lens::llm::parseStory(envelope(QString::fromUtf8(content)), listed);
+        EXPECT_TRUE(std::holds_alternative<QString>(refused)) << content;
+    }
+}
+
+TEST_F(LlmTest, TheStoryRequestSendsTheWordsAloneAndDoesNotStream)
+{
+    const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
+    const auto   body = QJsonDocument::fromJson(buildRequestBody(config, Channel::Story, {"quay", "bank"}, "en"));
+    EXPECT_FALSE(body.object().value("stream").toBool());
+    const auto messages = body.object().value("messages").toArray();
+    EXPECT_EQ(messages.at(1).toObject().value("content").toString(), QStringLiteral("quay\nbank"));
+}
+
 bool breakdownAccepted(const BreakdownResult& result)
 {
     return std::holds_alternative<QVector<RoleSpan>>(result);

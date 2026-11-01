@@ -455,6 +455,200 @@ One small word at a time, the reading opens.</translation>
     </message>
 </context>
 <context>
+    <name>ReadingProfilePopup</name>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="105"/>
+        <source>Week profile</source>
+        <translation>本周画像</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="120"/>
+        <source>Back</source>
+        <translation>返回</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="127"/>
+        <source>Close</source>
+        <translation>关闭</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="153"/>
+        <source>Lookups this week</source>
+        <translation>本周查阅次数</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="153"/>
+        <source>Nothing looked up yet this week.</source>
+        <translation>本周还没有查词。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="170"/>
+        <source>Words</source>
+        <translation>词数</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="171"/>
+        <source>New words</source>
+        <translation>新词</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="171"/>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="172"/>
+        <source>%1%</source>
+        <translation>%1%</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="172"/>
+        <source>Repeated</source>
+        <translation>重查</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="202"/>
+        <source>Parts of speech</source>
+        <translation>词性</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="220"/>
+        <source>%1 words without one</source>
+        <translation>另有 %1 个词没有词性</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="229"/>
+        <source>Lookups by hour</source>
+        <translation>按小时查阅</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="272"/>
+        <source>Most looked up</source>
+        <translation>查得最多</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="326"/>
+        <source>Interpret this week</source>
+        <translation>解读本周</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="326"/>
+        <source>View this week&apos;s report</source>
+        <translation>查看本周报告</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="344"/>
+        <source>Today&apos;s budget is used up; the reading waits until tomorrow.</source>
+        <translation>今日预算已用完，解读要等到明天。</translation>
+    </message>
+</context>
+<context>
+    <name>ReportCard</name>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="50"/>
+        <source>%1 – %2</source>
+        <translation>%1 – %2</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="80"/>
+        <source>New %1 of %2</source>
+        <translation>新词 %1 / %2</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="82"/>
+        <source>Repeated %1</source>
+        <translation>重查 %1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="84"/>
+        <source>Peak at %1</source>
+        <translation>峰值 %1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="193"/>
+        <source>This week&apos;s reading report</source>
+        <translation>本周阅读报告</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="213"/>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="506"/>
+        <source>Close</source>
+        <translation>关闭</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="227"/>
+        <source>Lookups</source>
+        <translation>查词</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="228"/>
+        <source>Words</source>
+        <translation>词数</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="229"/>
+        <source>New</source>
+        <translation>新词</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="229"/>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="230"/>
+        <source>%1%</source>
+        <translation>%1%</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="230"/>
+        <source>Repeated</source>
+        <translation>重查</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="260"/>
+        <source>Lookups by hour</source>
+        <translation>按小时查阅</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="268"/>
+        <source>Peak %1, %2 lookups</source>
+        <translation>峰值 %1，%2 次</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="427"/>
+        <source>AI observations, for reference only. Billed per request.</source>
+        <translation>AI 生成的观察，仅供参考；按本次请求计费。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="440"/>
+        <source>Story</source>
+        <translation>小故事</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="446"/>
+        <source>Done</source>
+        <translation>完成</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="488"/>
+        <source>Back</source>
+        <translation>返回</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="494"/>
+        <source>Short story</source>
+        <translation>小故事</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="532"/>
+        <source>Writing the story…</source>
+        <translation>正在写故事……</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="616"/>
+        <source>Retry</source>
+        <translation>重试</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReportCard.qml" line="625"/>
+        <source>Written by AI from the words you looked up this week.</source>
+        <translation>由 AI 生成；词是本周查过的。</translation>
+    </message>
+</context>
+<context>
     <name>ReviewCard</name>
     <message>
         <location filename="../src/app/qml/pet/ReviewCard.qml" line="73"/>
@@ -2877,42 +3071,52 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>StatsPopup</name>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="78"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="79"/>
         <source>Today</source>
         <translation>今日统计</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="89"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="90"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="105"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="106"/>
         <source>Lookups today</source>
         <translation>今日查阅次数</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="116"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="117"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="123"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="124"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="130"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="131"/>
         <source>Cost</source>
         <translation>花费</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="137"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="138"/>
+        <source>Week profile</source>
+        <translation>本周画像</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="139"/>
+        <source>%1 lookups</source>
+        <translation>%1 次查阅</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="145"/>
         <source>All time</source>
         <translation>历史累计</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/StatsPopup.qml" line="140"/>
+        <location filename="../src/app/qml/panels/StatsPopup.qml" line="148"/>
         <source>%1 words</source>
         <translation>%1 词</translation>
     </message>
@@ -3627,12 +3831,12 @@ One small word at a time, the reading opens.</translation>
         <translation>LJSpeech</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="944"/>
+        <location filename="../src/app/app_controller.cpp" line="949"/>
         <source>Auto</source>
         <translation>自动模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="944"/>
+        <location filename="../src/app/app_controller.cpp" line="949"/>
         <source>Manual</source>
         <translation>手动模式</translation>
     </message>

@@ -15,6 +15,8 @@ add_library(lens_core STATIC
   document/known_store.cpp
   document/explanation_cache.cpp
   document/stats_store.cpp
+  document/reading_profile.cpp
+  document/story.cpp
   document/review_store.cpp
   document/pet_store.cpp
   crypto/vault.cpp

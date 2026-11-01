@@ -26,6 +26,8 @@ QtObject {
     required property var wordsPopup
     required property var yearWordsPopup
     required property var costPopup
+    required property var readingProfilePopup
+    required property var reportCard
 
     /// The clear band every surface keeps off the work area's edges, from the one geometry module.
     readonly property int screenMargin: SurfaceGeometry.margin
@@ -393,7 +395,7 @@ QtObject {
      * with the animations off. The one being opened is taken back from a fade if it was leaving.
      */
     function hidePanels(except) {
-        const panels = [trayMenu, settingsPopup, statsPopup, wordsPopup, yearWordsPopup, costPopup];
+        const panels = [trayMenu, settingsPopup, statsPopup, wordsPopup, yearWordsPopup, costPopup, readingProfilePopup, reportCard];
         for (const panel of panels) {
             if (panel === except)
                 panel.leaving = false;
@@ -429,6 +431,24 @@ QtObject {
         placePanel(costPopup, anchor);
     }
 
+    function showProfile(from) {
+        const anchor = anchorFrom(from);
+        hidePanels(readingProfilePopup);
+        placePanel(readingProfilePopup, anchor);
+    }
+
+    /// The week's report card covers the screen the reading was asked on, and takes the panels down with it.
+    function showReport(from) {
+        const target = screenFor(anchorPoint(anchorFrom(from)));
+        hidePanels(reportCard);
+        reportCard.x = target.virtualX;
+        reportCard.y = target.virtualY;
+        reportCard.width = target.width;
+        reportCard.height = target.height;
+        reportCard.visible = true;
+        reportCard.raise();
+    }
+
     /// @param filter The words panel's verdict filter: 0 all, 1 known, 2 new. Called without it
     ///        (the year card's back arrow) the list opens on all words. The model owns the filter
     ///        (docs/adr/0122); the panel only reads it back.
@@ -460,6 +480,9 @@ QtObject {
     // qmllint enable missing-property
 
     function dismissOutside(point) {
+        // The report card is modal: a press elsewhere takes nothing down, and only its own controls close it.
+        if (reportCard.visible)
+            return;
         // A panel with a surface of its own out claims the presses that land on that surface. A
         // non-modal one, the settings dropdown, is put down by a press anywhere else, and the press
         // is then read again below, where a press outside closes the panel too. A modal one, the
@@ -472,7 +495,7 @@ QtObject {
             panel.closeChild();
         }
 
-        const surfaces = [bar, settingsPopup, statsPopup, wordsPopup, yearWordsPopup, costPopup, trayMenu];
+        const surfaces = [bar, settingsPopup, statsPopup, wordsPopup, yearWordsPopup, costPopup, readingProfilePopup, trayMenu];
         for (const surface of surfaces) {
             if (!surface.visible)
                 continue;

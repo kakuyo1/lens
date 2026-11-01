@@ -285,6 +285,23 @@ Item {
             compare(menu.listVisible, false, "the language list should start folded");
         }
 
+        /// The weekly profile is a drill-down of the statistics panel like the cost panel, and it hands back to it.
+        function test_theWeekProfileOpensFromTheStatisticsPanelAndReturnsToIt() {
+            const main = make();
+            const stats = panel(main, "StatsPopup");
+            const profile = panel(main, "ReadingProfilePopup");
+
+            Util.surfaceHost(main).showStats();
+
+            Util.surfaceHost(main).showProfile();
+            compare(profile.visible, true, "showProfile() did not put the profile panel up");
+            tryCompare(stats, "visible", false);
+
+            Util.surfaceHost(main).showStats(profile);
+            compare(stats.visible, true, "the profile's back arrow did not return to the statistics panel");
+            tryCompare(profile, "visible", false);
+        }
+
         /// The two arrows in the statistics panel's own corner, and the back arrows they lead to:
         /// each is a panel replacing one of the others, which no photograph can check.
         function test_theDrillDownArrowsAndTheirBackArrows() {
