@@ -20,8 +20,17 @@ PET_REF_IMAGE=<官方透明底 PNG> python -I cartman_recipe.py <输出目录>
 ```sh
 PORTRAIT_REF=<官方 PNG> PORTRAIT_ID=kyle PORTRAIT_NAME=Kyle \
     python -I portrait_recipe.py <输出目录>
-# 兜帽遮住嘴的角色（Kenny）再加 PORTRAIT_MOUTH=none
+# 兜帽遮嘴（Kenny）PORTRAIT_MOUTH=none；没有空手（抱臂）PORTRAIT_BOOK=none；
+# 官方没有眉毛 PORTRAIT_BROWS=none；眼白并成一条但眼宽 >14px 时 PORTRAIT_SEAM=draw
+# 官方默认嘴朝上（Bart / Lisa）PORTRAIT_MOUTH_STYLE=smile
+# 官方嘴已在身体位图（Bart / Lisa 的下巴弧线）PORTRAIT_MOUTH=none
+# 官方图带灰色地面阴影（Lisa）PORTRAIT_SHADOW=drop
 ```
+
+白衬衫、白胡子不会再被当成眼白：眼带取画面上部最靠上的一对白色连通域，
+宽度或长宽比不对的（衬衫、领口）被排除；小脸（眼宽 ≤16px）把瞳孔放到两眼
+中心，眼宽 ≤12px 时收成 1×1，眼宽 ≤14px 时表情层再补一条中间眼缝。先核对
+模板打印的 `eyes x…` 是否真的落在眼睛上。
 
 ## 经验法则
 
@@ -87,8 +96,8 @@ PORTRAIT_REF=<官方 PNG> PORTRAIT_ID=kyle PORTRAIT_NAME=Kyle \
   因此与眼睛错位——闭眼时头顶残白、瞳孔偏高/偏低都是它。kit 已修（画布尺寸的
   基底原样合成）；手工包若见到 “闭眼残白”，先量身体与表情层的 2px 位移。
 - **88px 下官方瞳孔/嘴会缩没**：原图嘴线只有 1–2px，LANCZOS 后基本消失。配方
-  在拟合图上按官方比例重画：瞳孔 2×2、嘴 1px（官方默认是 ∩ 担忧嘴，不是 ∪），
-  位图里的旧瞳孔/嘴用眼白和周围肤色盖掉。
+  在拟合图上按官方比例重画：瞳孔 2×2（眼宽 ≤12px 时 1×1）、嘴 1px（官方默认
+  是 ∩ 担忧嘴，不是 ∪），位图里的旧瞳孔/嘴用眼白和周围肤色盖掉。
 - **读书的书放左手，study 帧不要加位移**：特效层固定在画布原点，不跟随身体
   锚点；study 若让身体上下浮动，书会和手脱节。书的位置取下方身体的左缘（手）
   再向左上挪半本，`portrait_recipe.py` 已按这个公式算。
@@ -100,5 +109,26 @@ PORTRAIT_REF=<官方 PNG> PORTRAIT_ID=kyle PORTRAIT_NAME=Kyle \
   头占满中段时只用 book / zzz / dust / stars，celebrate/encourage 宁可无特效。
 - **半身像的左右可能被裁切**：脸宽接近画布宽时，拟合后轮廓会有一点平边；先看
   alpha 边界，必要时接受或换一张更完整的官方图。
+- **嘴线可能和 muzzle 轮廓连成一块**：独立连通域找不到嘴时，模板退化为在眼睛
+  下方逐行找最长的水平暗线；搜索起点跳过眼皮下沿 0.2 个眼高，否则会抓眼皮。
+- **官方默认嘴可能朝上**：primitive 模式默认画 frown；Bart / Lisa 的官方轻笑
+  要 `PORTRAIT_MOUTH_STYLE=smile`，否则会变成担忧脸。南园保持 frown；Homer
+  保留已装版本。none 模式不看这个值，脸部完全不画嘴。
+- **官方嘴已经在身体位图上，就不要画**：Simpson 的嘴是下巴/脖子那条大
+  弧线，属于身体位图；`PORTRAIT_MOUTH=none` 让脸部只动眼睛/眼皮，不擦嘴、
+  不画嘴、不做张嘴动画。再画任何嘴线（补丁也好、sprite 也好）都会和官方嘴
+  叠成两张。南园等需要表情嘴的角色才用 auto / primitive。
+- **地面阴影**：`PORTRAIT_SHADOW=drop` 只清底部低饱和灰，黑轮廓和彩色鞋子
+  保留；Bart 的滑板轮子也是灰的，别给 Bart 用。
+- **闭眼镜片的探针不要取眼睛下方**：Homer 的口鼻区是 tan，亮度能压过黄皮肤，
+  四探针取最亮会把闭眼补丁画成棕色；模板现在只看眼侧和眼上。
+- **抱臂角色没有空手**：`PORTRAIT_BOOK=none`，study 只做眼神下移、不画书；
+  辛普森没有眉毛，`PORTRAIT_BROWS=none`，生气靠眼皮。
+- **标准身材全身像在 88px 会偏窄**：Homer 官方抱臂立绘 409×966，约三头半身，
+  渲染后约 30px 宽；这是比例事实，不是对齐 bug。用 `PORTRAIT_FIT=0.96` 用满
+  高度，不要为了 “占满画布” 擅自裁掉腿。
+- **改检测后拿南园回归**：重渲 Butters / Kenny，对比已装包的
+  `sprites/expressions/eyes.png` 与合帧；这次 Butters 逐像素一致，Kenny 只有
+  瞳孔 1px 的差异（48px），合帧看不出。
 - **多角色可以合并 gate**：参考图确认、idle 候选对照、最终拼图都能把几只拼进
   同一轮，别一只一只地磨。
