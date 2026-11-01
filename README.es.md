@@ -112,6 +112,16 @@ Conocida y Nueva viven en una sola lista de palabras.
 - Cuando toca repasar una palabra, aparece junto al compañero de escritorio un pequeño cartel, el suyo; responde Olvidé o Lo recordaba y volverá con un intervalo de entre diez minutos y sesenta días.
 - El registro anual mantiene visible el hábito sin convertirlo en una racha.
 
+## Un informe de lectura cada semana
+
+El perfil semanal del panel de Estadísticas recoge las consultas de esta semana: la proporción de palabras nuevas y repetidas, las categorías gramaticales, las consultas por hora y las palabras más consultadas. Las cifras se calculan en tu equipo, y abrir el panel no envía nada.
+
+Pulsa «Interpretar la semana» y Lens envía un resumen de esos recuentos al proveedor de modelos que configures. La respuesta aparece en una tarjeta centrada, «Informe de lectura de esta semana»: unas observaciones y sugerencias, y cada observación que se apoya en una cifra muestra esa cifra a su derecha. Las cifras las calcula la aplicación, no el modelo. La página «Relato» de la tarjeta escribe un pequeño relato con las palabras que consultaste esta semana.
+
+- **Solo cuando pulsas.** La interpretación y el relato se envían solo cuando pulsas su botón, y ambos cuentan para el presupuesto diario.
+- **Solo recuentos y palabras.** El resumen contiene los recuentos, las proporciones, las categorías gramaticales, las consultas por hora y las cinco palabras más consultadas; el relato usa como mucho 15 palabras de la semana, elegidas al azar. Ninguno incluye frases, selecciones, definiciones ni la hora de cada consulta.
+- **No se guarda.** El resultado solo vive en memoria, se descarta al cambiar de semana y no se guarda en caché, sincronización ni ajustes.
+
 ## Mascotas que te devuelven las palabras
 
 <p align="center"><img src="docs/readme/pets.gif" width="900" alt="Las siete mascotas de píxeles de Lens"></p>
@@ -169,7 +179,7 @@ Lens no tiene firma de código y SmartScreen bloquea los programas que no recono
 
 Lens no tiene cuenta ni servidor propio.
 
-- **Lo que se envía.** Solo el texto que seleccionas o capturas va al proveedor que configures, después de ocultar localmente URL, direcciones de correo y cadenas de seis o más dígitos.
+- **Lo que se envía.** El texto que seleccionas o capturas va al proveedor que configures, después de ocultar localmente URL, direcciones de correo y cadenas de seis o más dígitos. La interpretación semanal y el relato solo se envían cuando pulsas su botón, llevan solo recuentos y palabras, y estas se enmascaran igual; véase [Un informe de lectura cada semana](#un-informe-de-lectura-cada-semana).
 - **OCR.** Se ejecuta localmente por defecto. El OCR en línea es opcional: cada captura muestra el recorte congelado y el destino exacto, se sube solo cuando lo confirmas, y el escaneo automático experimental nunca lo usa.
 - **El altavoz.** Lee en local con la voz del sistema o un modelo local descargado; cuando recurre a un audio en línea, solo esa palabra sale del dispositivo, y la grabación se guarda en `%APPDATA%\Lens\audio`.
 - **En este dispositivo.** Tu clave de API, las credenciales de OCR y tus datos de aprendizaje se quedan en `%APPDATA%\Lens\settings.json`.
@@ -185,7 +195,7 @@ Consulta [SECURITY.md](SECURITY.md) para conocer todos los límites.
 
 **¿Funciona sin conexión?** El OCR local, la lista de palabras y una voz local descargada funcionan sin conexión. Las explicaciones, el OCR en línea y los audios en línea, si los activas, necesitan el servicio que configures.
 
-**¿Qué sale de mi PC?** Solo la selección enmascarada, una captura que confirmes expresamente si usas OCR en línea, y la palabra suelta cuando el altavoz recurre a un audio en línea. Consulta [Privacidad](#privacidad).
+**¿Qué sale de mi PC?** Solo la selección enmascarada, una captura que confirmes expresamente si usas OCR en línea, la palabra suelta cuando el altavoz recurre a un audio en línea, y los recuentos y palabras que envía el informe semanal cuando pulsas su botón. Consulta [Privacidad](#privacidad).
 
 **¿Por qué me avisa Windows?** El instalador no tiene firma de código; la nota de [Descargar](#descargar) explica cómo ejecutarlo y verificarlo.
 
