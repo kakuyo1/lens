@@ -160,6 +160,18 @@ def lids(fill_to=None, crease=True):
             inside = (x0 - 2 <= x <= x1 + 2 and start.get(x, CANVAS) <= y <= last)
             if not inside:
                 p[x, y] = (0, 0, 0, 0)
+    # leftover eye-white slivers: the render's white tops are partly outside the
+    # painted band, and a closed eye must not show them, so every near-white
+    # body pixel inside the band is covered with the row's skin colour
+    for y in range(y0 - 3, last + 1):
+        lc, rc = rowcol[y]
+        for x in range(x0 - 2, x1 + 3):
+            br, bg, bb, ba = fitted.getpixel((x, y))
+            if ba > 128 and br > 225 and bg > 225 and bb > 225 and p[x, y][3] == 0:
+                t = (x - lx) / (rx - lx)
+                p[x, y] = (round(lc[0] + (rc[0] - lc[0]) * t),
+                           round(lc[1] + (rc[1] - lc[1]) * t),
+                           round(lc[2] + (rc[2] - lc[2]) * t), 255)
     if crease:
         d = ImageDraw.Draw(img)
         for ex0, ex1 in ((x0 + 1, cx - 1), (cx + 1, x1 - 1)):
@@ -199,6 +211,15 @@ FACE = {
     "dizzy": DIZZY_FACE,
 }
 
+# The book is held in the (screen-)left hand. The effect layer never follows
+# the body's anchors, so the study frames stay still and only the face moves.
+_ink = [(x, y) for y in range(CANVAS) for x in range(CANVAS) if fitted.getpixel((x, y))[3] > 128]
+_iy0, _iy1 = min(y for _, y in _ink), max(y for _, y in _ink)
+_lo, _hi = _iy0 + round(0.62 * (_iy1 - _iy0)), _iy0 + round(0.88 * (_iy1 - _iy0))
+_hand_edge = min(x for y in range(_lo, _hi + 1) for x in range(CANVAS)
+                 if fitted.getpixel((x, y))[3] > 128)
+BOOK_AT = (_hand_edge + 5 - 8, round(_iy1 - 0.24 * (_iy1 - _iy0)) - 8)
+
 RECIPE = {
     "id": "cartman",
     "name": "Cartman",
@@ -218,18 +239,19 @@ RECIPE = {
         "idle": {
             "fps": 4, "loop": True, "blink": True,
             "source": SRC, "colors": 96, "fit": FIT,
-            "frames": [{"pose": {}} for _ in range(4)],
+            "frames": [{"pose": {}}, {"pose": {"dy": -0.25}},
+                       {"pose": {}}, {"pose": {"dy": -0.1}}],
         },
         "study": {
             "fps": 3, "loop": True, "blink": True,
             "source": SRC, "colors": 96, "fit": FIT,
             # the book's "at" is the hand position of YOUR character: measure it
             # from the fitted render before shipping (cartman's was (35, 62))
-            "effect": {"kind": "book", "at": (35, 62)},
+            "effect": {"kind": "book", "at": BOOK_AT},
             "frames": [
-                {"pose": {"dy": 0.3}, "expression": "look_down"},
                 {"pose": {}, "expression": "look_down"},
-                {"pose": {"dy": 0.3}, "expression": "look_down"},
+                {"pose": {}, "expression": "look_down"},
+                {"pose": {}, "expression": "look_down"},
                 {"pose": {}, "expression": "look_down"},
             ],
         },

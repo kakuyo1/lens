@@ -4,9 +4,13 @@
 The recipe is pure data: a rig (species shape in 3px-grid cells), an
 expression list, per-action frame poses, and the optional blocks the format
 doc defines. The kit draws every sheet, derives anchors.json from the poses
-(translation only; squash is baked into the art), and guarantees by
-construction that the face lands on the head and every sheet matches
-frames x canvas. After writing it runs validate_package on the result.
+and guarantees by construction that the face lands on the head and every sheet
+matches frames x canvas. After writing it runs validate_package on the result.
+
+Frame cells stay CANONICAL: a pose's dx/dy go into anchors.json and nowhere
+else, matching the bundled pets (identical idle cells, motion in the anchors)
+and the app, which places the body and face layers at those anchors. Squash
+(sx/sy) cannot be expressed by an anchor, so it is baked into the art.
 
 Usage:
     python -I -c "
@@ -88,6 +92,7 @@ the PIXEL top-left of the block and one char = one pixel (scale > 1 switches
 """
 import json
 import math
+import shutil
 import sys
 from pathlib import Path
 
@@ -547,7 +552,13 @@ def bitmap_frame(base, pose):
     else:
         img = base
     frame = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
-    frame.alpha_composite(img, ((CANVAS - img.width) // 2 + dx, CANVAS - 2 - img.height + dy))
+    if base.size == (CANVAS, CANVAS):
+        # fitted_image already returns a canvas-sized sheet whose bottom sits on
+        # canvas-2; re-placing it by height would lift the whole figure two pixels
+        # and leave the face layer's cells (built in the same coordinates) offset
+        frame.alpha_composite(img, (dx, dy))
+    else:
+        frame.alpha_composite(img, ((CANVAS - img.width) // 2 + dx, CANVAS - 2 - img.height + dy))
     return frame
 
 
@@ -572,6 +583,8 @@ def render(recipe, out_dir):
         CANVAS = recipe.get("canvas", 88)
     out = Path(out_dir)
     pkg = out / "pets" / recipe["id"]
+    if pkg.exists():  # a removed action's sheet must not linger in the package
+        shutil.rmtree(pkg)
     sprites = pkg / "sprites"
     body_dir, fx_dir = sprites / "body", sprites / "effects"
     expr_dir, acc_dir = sprites / "expressions", sprites / "accessories"
@@ -625,11 +638,14 @@ def render(recipe, out_dir):
                     # squash scales the body bitmap but not the face layer: the
                     # pupils would drift off the whites -- translate-only here
                     print(f"WARN action {a_name}: sx/sy ignored in image-source mode")
-                    pose = {k: v for k, v in pose.items() if k in ("dx", "dy")}
-                frames.append(bitmap_frame(base, pose))
+                # canonical cell: the anchor moves this frame in the app
+                frames.append(bitmap_frame(base, {}))
             body_imgs = frames
         else:
-            body_imgs = [render_frame(rig, f.get("pose", {}), body_art)[0] for f in spec["frames"]]
+            # translation lives in the anchors; only squash is baked into the art
+            body_imgs = [render_frame(rig, {k: v for k, v in f.get("pose", {}).items()
+                                           if k not in ("dx", "dy")}, body_art)[0]
+                         for f in spec["frames"]]
         strip = Image.new("RGBA", (CANVAS * len(body_imgs), CANVAS), (0, 0, 0, 0))
         for i, img in enumerate(body_imgs):
             strip.alpha_composite(img, (i * CANVAS, 0))
