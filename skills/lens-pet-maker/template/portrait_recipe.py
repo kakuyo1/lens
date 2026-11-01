@@ -22,6 +22,9 @@ Usage:
     PORTRAIT_SEAM=auto|draw|keep (auto redraws the inner eye seam when the
         eye band is 14 px or narrower; draw/keep force or suppress it),
     PORTRAIT_SHADOW=keep|drop (drop a gray ground shadow; Lisa's promo art)
+    PORTRAIT_LID_PAD=0|1 (1 for faces drawn with dark eye outlines -- the
+        closed eye covers the outline and gets a lid line instead of a blank
+        oval; 0 for outline-free eyes, where that outline is the hood or cheek)
 
 The eye whites are picked as the topmost pair of white blobs, so a white shirt
 below the face never wins; the pupils are the dark pixels inside the filled
@@ -61,6 +64,10 @@ SEAM_MODE = os.environ.get("PORTRAIT_SEAM", "auto")
 SHADOW_MODE = os.environ.get("PORTRAIT_SHADOW", "keep")
 if SHADOW_MODE not in ("keep", "drop"):
     sys.exit("PORTRAIT_SHADOW must be keep or drop")
+# 1 for a face drawn with dark eye outlines (Simpsons): the closed eye then
+# covers the outline and carries a lid line instead of a blank oval.  0 keeps
+# the outline-free look South Park needs.
+LID_PAD = int(os.environ.get("PORTRAIT_LID_PAD", "0"))
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
 CANVAS = 88
 COLORS = 96
@@ -78,7 +85,16 @@ def prep_source(path, dst):
     m = a > 60
     lab, n = ndimage.label(m, structure=np.ones((3, 3)))
     sizes = ndimage.sum(m, lab, range(1, n + 1))
-    m = ndimage.binary_fill_holes(lab == (np.argmax(sizes) + 1))
+    m = lab == (np.argmax(sizes) + 1)
+    # Only pinholes are closed.  A gap the drawing encloses (Rick's arm against
+    # his coat, Morty's legs) is transparent in the render, and the RGB under a
+    # transparent pixel is black -- filling it ships a black patch on the sprite.
+    holes = ndimage.binary_fill_holes(m) & ~m
+    if holes.any():
+        hlab, hn = ndimage.label(holes)
+        for i in range(1, hn + 1):
+            if int((hlab == i).sum()) <= 400:
+                m |= hlab == i
     if SHADOW_MODE == "drop":
         # Promo art often carries a gray ground shadow.  It sits at the bottom
         # and is the only low-chroma midtone there; removing it by colour
@@ -163,7 +179,10 @@ def eye_cluster(mask, min_area, fig_box):
                 continue
             vov = min(a["y1"], b["y1"]) - max(a["y0"], b["y0"]) + 1
             gap = max(a["x0"], b["x0"]) - min(a["x1"], b["x1"]) - 1
-            if vov >= 0.5 * min(a["h"], b["h"]) and gap <= max(a["w"], b["w"]):
+            # two eyes are the same height; a tall sliver of highlight next to
+            # one eye must not absorb it before the pair can meet
+            same_height = abs(a["h"] - b["h"]) <= max(2, 0.4 * max(a["h"], b["h"]))
+            if same_height and vov >= 0.5 * min(a["h"], b["h"]) and gap <= max(a["w"], b["w"]):
                 group.append(b)
                 b["used"] = True
         x0 = min(c["x0"] for c in group)
@@ -377,9 +396,12 @@ if MOUTH_ON:
 # fur hood on the sides never wins over the face.  (Kenny's eye whites sit in a
 # dark hood with a bright face slot; the lids must be skin, never fur.)  The
 # spot below is left out: it is the muzzle on a snouted face (Homer), and its
-# tan can out-brighten the yellow skin.
-probes = [rp[EX0 - 3, EYC][:3], rp[EX1 + 3, EYC][:3],
-          rp[(EX0 + EX1) // 2, EY0 - 3][:3]]
+# tan can out-brighten the yellow skin.  Sampled on the QUANTISED body: a raw
+# colour that is not in the palette shows up as a lighter patch over the lids.
+# A face whose hair is brighter than its skin (Rick's pale blue spikes) breaks
+# the "brightest wins" rule -- template/body_recipe.py handles those.
+probes = [fp[EX0 - 3, EYC][:3], fp[EX1 + 3, EYC][:3],
+          fp[(EX0 + EX1) // 2, EY0 - 3][:3]]
 SKIN = max(probes, key=brightness)
 
 # eye region for the lids: bright pixels in the band (whites + the face slot),
@@ -529,24 +551,42 @@ def lid_cell(rows_to, crease=True, crease_off=0, happy=False):
     transparent so no hair, hat or hood pixels ghost over the body layer.
     Near-white body pixels in the band are covered too: the eye whites' top
     edge is antialiased, and the band filter leaves that sliver outside the
-    mask, where a closed eye would show it as leftover white."""
+    mask, where a closed eye would show it as leftover white.
+
+    PORTRAIT_LID_PAD>0 grows the patch so it covers the eye's own dark outline
+    and moves the crease to the middle: a face drawn with outlined eyes
+    (Simpsons, Rick & Morty) otherwise blinks into two blank ovals.  Left at 0
+    for outline-free eyes (South Park), where the outline is the hood or the
+    cheek and must not be painted over."""
     img = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
     p = img.load()
-    for y in range(EY0 - 3, EY1 + 4):
+    patch = ndimage.binary_dilation(lid_mask, iterations=LID_PAD) if LID_PAD else lid_mask
+    for y in range(EY0 - 3 - LID_PAD, EY1 + 4 + LID_PAD):
         if rows_to is not None and y > rows_to:
             continue
-        for x in range(EX0 - 3, EX1 + 4):
+        for x in range(EX0 - 3 - LID_PAD, EX1 + 4 + LID_PAD):
+            if not (0 <= x < CANVAS and 0 <= y < CANVAS):
+                continue
             # the quantized body is what the reader sees: a raw pixel just under
             # the white threshold can still ship as white
-            if lid_mask[y, x] or (fp[x, y][3] > 128 and min(fp[x, y][:3]) > 225):
+            if patch[y, x] or (fp[x, y][3] > 128 and min(fp[x, y][:3]) > 225):
                 p[x, y] = (*SKIN, 255)
     if crease:
         d = ImageDraw.Draw(img)
         col = tuple(round(c * 0.62) for c in SKIN)
-        cy = (rows_to if rows_to is not None else EY1 - 2) + crease_off
-        for ex0, ex1 in ((EX0 + 2, SEAM - 2), (SEAM + 2, EX1 - 2)):
-            box = [ex0, cy - 1, ex1, cy + 2]
-            d.arc(box, 200 if happy else 25, 340 if happy else 155, fill=col, width=1)
+        if LID_PAD:
+            # the outline is gone, so the lid line is the only thing left to
+            # read the closed eye by: one arc across the middle of each eye
+            cy = (rows_to if rows_to is not None else EYC) + crease_off
+            for ex0, ex1 in ((EX0, SEAM - 1), (SEAM + 1, EX1)):
+                if ex1 - ex0 >= 2:
+                    d.arc([ex0, cy - 2, ex1, cy + 2], 200 if happy else 25,
+                          340 if happy else 155, fill=col, width=1)
+        else:
+            cy = (rows_to if rows_to is not None else EY1 - 2) + crease_off
+            for ex0, ex1 in ((EX0 + 2, SEAM - 2), (SEAM + 2, EX1 - 2)):
+                box = [ex0, cy - 1, ex1, cy + 2]
+                d.arc(box, 200 if happy else 25, 340 if happy else 155, fill=col, width=1)
     return img
 
 
@@ -793,6 +833,6 @@ print(f"{PID}: eyes x{EX0}-{EX1} y{EY0}-{EY1} seam {SEAM} "
       f"mouth {MOUTH_ON} {mouth_src} {MOUTH_DRAW}/{MOUTH_STYLE} "
       f"({MOUTH_CX},{MOUTH_CY}) "
       f"w{MOUTH_W} skin {SKIN} "
-      f"book {BOOK_AT is not None} brows {BROWS_MODE != 'none'} "
+      f"book {BOOK_AT is not None} brows {BROWS_MODE != 'none'} lidpad {LID_PAD} "
       f"merged {MERGED_EYES} fit {FIT} scale {SCALE}")
 sys.exit(pet_kit.render(RECIPE, OUT))
