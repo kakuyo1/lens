@@ -154,18 +154,18 @@ Item {
 
         /// An installed image-source pet (an official render re-posed per frame) drawn by the real
         /// stage, one shot per action at a chosen frame, for hand-checking the draw. The pet comes
-        /// from the qtest installed dir (%TEMP%/lens-qtest-no-installed-pets/cartman); the case
+        /// from the qtest installed dir (%TEMP%/lens-qtest-no-installed-pets/sample); the case
         /// skips when it is not there.
         function test_captureImageSourcePetActions() {
             if (!lensQaSnapshotDir)
                 skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the offscreen snapshot");
             const known = Pet.picker.pets;
-            if (!known.some(p => p.id === "cartman"))
-                skip("copy a cartman package into %TEMP%/lens-qtest-no-installed-pets/ first");
+            if (!known.some(p => p.id === "sample"))
+                skip("copy a sample package into %TEMP%/lens-qtest-no-installed-pets/ first");
 
-            Pet.picker.setPet("cartman");
-            Pet.picker.confirmPet("cartman");
-            tryCompare(Pet.picker, "pet", "cartman");
+            Pet.picker.setPet("sample");
+            Pet.picker.confirmPet("sample");
+            tryCompare(Pet.picker, "pet", "sample");
             tryCompare(Pet.pose, "canvas", 88);
 
             const shots = [
@@ -179,7 +179,7 @@ Item {
                 wait(waitMs);
                 waitForRendering(frame);
                 verify(Util.saveSnapshot(testCase, frame, lensQaSnapshotDir,
-                                         "pet-cartman-" + action + "-f" + f));
+                                         "pet-sample-" + action + "-f" + f));
                 Pet.setPreviewing(false);
             }
 

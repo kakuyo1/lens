@@ -147,6 +147,8 @@ And the card the settings raise: hover a pet in Settings › Extensions and its 
 
 <p align="center"><img src="docs/readme/pet-postcards.gif" width="700" alt="The seven pets' postcards, one after another"></p>
 
+Lens also supports custom pets. The repository's `skills/lens-pet-maker` is a Claude Code skill that helps an AI draft a pet package; clone the repo to use it, drop the finished folder into `%APPDATA%\Lens\pets\`, and turn it on under Settings › Extensions.
+
 ## Also in the box
 
 - **Bring your own model.** DeepSeek, OpenAI, Gemini, OpenRouter, xAI, Moonshot, Zhipu, Qwen, or a custom OpenAI-compatible endpoint.

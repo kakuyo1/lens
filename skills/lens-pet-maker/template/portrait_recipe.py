@@ -2,7 +2,7 @@
 """Template: a full-parity pet built from one official portrait render.
 
 For characters whose official art already contains the whole body on one
-portrait sheet (the South Park cast's Fandom renders are like this: big head,
+portrait sheet (many flat-cartoon renders are like this: big head,
 torso, shorts and shoes, no legs).  The render is cleaned of its backing and
 becomes the body sheet, and the face layer is rebuilt from the render's own
 geometry because at 88 px the official pupils and mouth vanish: the bitmap's
@@ -10,18 +10,18 @@ pupils and mouth are erased, and pupils, mouth and lids are drawn on the face
 layer at the measured positions.
 
 Usage:
-    PORTRAIT_REF=<official.png> PORTRAIT_ID=butters PORTRAIT_NAME=Butters \
+    PORTRAIT_REF=<official.png> PORTRAIT_ID=sample PORTRAIT_NAME=Sample \
         python -I portrait_recipe.py <out-dir>
     PORTRAIT_FIT=0.9 (default), PORTRAIT_SCALE=2 (default),
     PORTRAIT_MOUTH=auto|none (none when the mouth is already in the body art,
-        e.g. The Simpsons' chin arc, or hidden by a hood; the face then only
+        e.g. a chin arc, or hidden by a hood; the face then only
         moves eyes/lids),
-    PORTRAIT_MOUTH_STYLE=frown|smile|line (default frown; Bart/Lisa smirk up),
+    PORTRAIT_MOUTH_STYLE=frown|smile|line (default frown; use smile for art that smirks up),
     PORTRAIT_BOOK=auto|none (none when no hand is free to hold it),
     PORTRAIT_BROWS=auto|none (none for a character drawn without eyebrows),
     PORTRAIT_SEAM=auto|draw|keep (auto redraws the inner eye seam when the
         eye band is 14 px or narrower; draw/keep force or suppress it),
-    PORTRAIT_SHADOW=keep|drop (drop a gray ground shadow; Lisa's promo art)
+    PORTRAIT_SHADOW=keep|drop (drop a gray ground shadow, e.g. promo art)
     PORTRAIT_LID_PAD=0|1 (1 for faces drawn with dark eye outlines -- the
         closed eye covers the outline and gets a lid line instead of a blank
         oval; 0 for outline-free eyes, where that outline is the hood or cheek)
@@ -64,9 +64,9 @@ SEAM_MODE = os.environ.get("PORTRAIT_SEAM", "auto")
 SHADOW_MODE = os.environ.get("PORTRAIT_SHADOW", "keep")
 if SHADOW_MODE not in ("keep", "drop"):
     sys.exit("PORTRAIT_SHADOW must be keep or drop")
-# 1 for a face drawn with dark eye outlines (Simpsons): the closed eye then
+# 1 for a face drawn with dark eye outlines: the closed eye then
 # covers the outline and carries a lid line instead of a blank oval.  0 keeps
-# the outline-free look South Park needs.
+# the outline-free look that flat-colour faces need.
 LID_PAD = int(os.environ.get("PORTRAIT_LID_PAD", "0"))
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
 CANVAS = 88
@@ -86,8 +86,8 @@ def prep_source(path, dst):
     lab, n = ndimage.label(m, structure=np.ones((3, 3)))
     sizes = ndimage.sum(m, lab, range(1, n + 1))
     m = lab == (np.argmax(sizes) + 1)
-    # Only pinholes are closed.  A gap the drawing encloses (Rick's arm against
-    # his coat, Morty's legs) is transparent in the render, and the RGB under a
+    # Only pinholes are closed.  A gap the drawing encloses (an arm against
+    # the coat, the legs) is transparent in the render, and the RGB under a
     # transparent pixel is black -- filling it ships a black patch on the sprite.
     holes = ndimage.binary_fill_holes(m) & ~m
     if holes.any():
@@ -99,7 +99,7 @@ def prep_source(path, dst):
         # Promo art often carries a gray ground shadow.  It sits at the bottom
         # and is the only low-chroma midtone there; removing it by colour
         # keeps black outlines and coloured shoes.  Opt-in because a gray prop
-        # (Bart's skateboard wheels) would be hit too.
+        # (a prop such as skateboard wheels) would be hit too.
         yy, xx = np.where(m)
         y0, y1 = int(yy.min()), int(yy.max())
         x0, x1 = int(xx.min()), int(xx.max())
@@ -393,12 +393,12 @@ if MOUTH_ON:
                 print("warning: official mouth not measured; expressions fall back")
 
 # lid fill colour: the brightest of the sides and above, so a hat brim or a
-# fur hood on the sides never wins over the face.  (Kenny's eye whites sit in a
+# fur hood on the sides never wins over the face.  (the eye whites sit in a
 # dark hood with a bright face slot; the lids must be skin, never fur.)  The
-# spot below is left out: it is the muzzle on a snouted face (Homer), and its
+# spot below is left out: it is the muzzle on a snouted face, and its
 # tan can out-brighten the yellow skin.  Sampled on the QUANTISED body: a raw
 # colour that is not in the palette shows up as a lighter patch over the lids.
-# A face whose hair is brighter than its skin (Rick's pale blue spikes) breaks
+# A face whose hair is brighter than its skin (pale blue spikes) breaks
 # the "brightest wins" rule -- template/body_recipe.py handles those.
 probes = [fp[EX0 - 3, EYC][:3], fp[EX1 + 3, EYC][:3],
           fp[(EX0 + EX1) // 2, EY0 - 3][:3]]
@@ -452,7 +452,7 @@ elif MOUTH_DRAW == "native" and OFFICIAL_BOX is not None:
                 fp[x, y] = (*MOUTH_SKIN, 255)
 
 # At this size the inner outline of a small pair can vanish into one white
-# bar; redraw it.  Large South Park eyes keep their own seam.  A larger pair
+# bar; redraw it.  Large eyes keep their own seam.  A larger pair
 # that still merges can force the seam with PORTRAIT_SEAM=draw.
 MERGED_EYES = SEAM_MODE == "draw" or (SEAM_MODE != "keep" and EYW <= 14)
 
@@ -555,8 +555,8 @@ def lid_cell(rows_to, crease=True, crease_off=0, happy=False):
 
     PORTRAIT_LID_PAD>0 grows the patch so it covers the eye's own dark outline
     and moves the crease to the middle: a face drawn with outlined eyes
-    (Simpsons, Rick & Morty) otherwise blinks into two blank ovals.  Left at 0
-    for outline-free eyes (South Park), where the outline is the hood or the
+    otherwise blinks into two blank ovals.  Left at 0
+    for outline-free eyes, where the outline is the hood or the
     cheek and must not be painted over."""
     img = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
     p = img.load()

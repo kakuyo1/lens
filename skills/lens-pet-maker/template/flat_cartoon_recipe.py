@@ -2,7 +2,7 @@
 """Template: a full-parity image-source pet, built from one official render.
 
 This is the worked example the lens-pet-maker skill points to (a flat-cartoon
-kid, "cartman"): an official transparent render is fitted to the 88 px canvas
+kid, "sample"): an official transparent render is fitted to the 88 px canvas
 and re-posed per frame, pupils are lifted onto the face layer so gaze follow
 moves them, closed eyes return the eye region to skin with a soft crease, and
 each role gets its own action driven by translate-only poses plus effects.
@@ -10,7 +10,7 @@ each role gets its own action driven by translate-only poses plus effects.
 Adapting it:
   1. Point SRC at your official render (transparent PNG; set PET_REF_IMAGE),
      choose "id"/"name", and tweak the rig/expressions/actions below.
-  2. Run:  PET_REF_IMAGE=<png> python -I cartman_recipe.py <out-dir>
+  2. Run:  PET_REF_IMAGE=<png> python -I flat_cartoon_recipe.py <out-dir>
   3. Validate + preview with scripts/validate_package.py / preview.py, then
      hand the frames to the reader (see template/README.md for the rules and
      the pitfalls this file already works around).
@@ -221,8 +221,8 @@ _hand_edge = min(x for y in range(_lo, _hi + 1) for x in range(CANVAS)
 BOOK_AT = (_hand_edge + 5 - 8, round(_iy1 - 0.24 * (_iy1 - _iy0)) - 8)
 
 RECIPE = {
-    "id": "cartman",
-    "name": "Cartman",
+    "id": "sample",
+    "name": "Sample",
     "canvas": 88,
     "scale": 2,
     "rig": {
@@ -246,7 +246,7 @@ RECIPE = {
             "fps": 3, "loop": True, "blink": True,
             "source": SRC, "colors": 96, "fit": FIT,
             # the book's "at" is the hand position of YOUR character: measure it
-            # from the fitted render before shipping (cartman's was (35, 62))
+            # from the fitted render before shipping (the sample's was (35, 62))
             "effect": {"kind": "book", "at": BOOK_AT},
             "frames": [
                 {"pose": {}, "expression": "look_down"},

@@ -147,6 +147,8 @@ Lens 隨包提供七隻像素寵物：短耳貓、貓頭鷹、麻糬、小幽靈
 
 <p align="center"><img src="docs/readme/pet-postcards.gif" width="700" alt="七隻寵物的明信片，逐一亮相"></p>
 
+Lens 也支援自訂寵物：倉庫裡的 `skills/lens-pet-maker` 是一個 Claude Code skill，克隆倉庫後可以讓 AI 協助生成；做好的寵物包放進 `%APPDATA%\Lens\pets\`，就能在設定的 “擴充功能” 裡啟用。
+
 ## 還有這些
 
 - **自備模型**。DeepSeek、OpenAI、Gemini、OpenRouter、xAI、Moonshot、智譜、通義千問，或任何相容 OpenAI 的自訂端點。

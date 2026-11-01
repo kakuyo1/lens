@@ -67,7 +67,7 @@ whole animal about its feet line with one number.
      "except": ["sleep"]}            # supportedActions defaults to all actions minus except
   ],
   "body_art": [...],                 # optional escape hatch for flat-cartoon bodies
-                                     # (South Park and friends): ops replace draw_rig on
+                                     # (flat-colour cartoon figures): ops replace draw_rig on
                                      # the body layer and ride the pose transform, so the
                                      # figure still squashes, translates and anchors. The
                                      # rig stays the geometry source (pivot, face, anchors);

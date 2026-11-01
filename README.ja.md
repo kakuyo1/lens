@@ -147,6 +147,8 @@ Lens には 7 匹のピクセルペットが付属します。短耳猫、フク
 
 <p align="center"><img src="docs/readme/pet-postcards.gif" width="700" alt="7 匹のペットの絵はがき、順に切り替わる"></p>
 
+Lens はカスタムペットにも対応しています。リポジトリの `skills/lens-pet-maker` は Claude Code のスキルで、AI の支援を受けながらペットパッケージを作成できます。リポジトリをクローンして使い、できたフォルダを `%APPDATA%\Lens\pets\` に置けば、設定 ›「拡張」から有効にできます。
+
 ## ほかにも
 
 - **モデルを持ち込む。** DeepSeek、OpenAI、Gemini、OpenRouter、xAI、Moonshot、Zhipu、Qwen、OpenAI 互換のカスタムエンドポイント。

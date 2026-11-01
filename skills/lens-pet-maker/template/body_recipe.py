@@ -31,7 +31,7 @@ Usage:
                        canvas, so this template draws its own beside the head)
     BODY_ANGRY=3       clicks before the pet snaps
     BODY_MOUTH_AT=x,y  pin the yawn's anchor when the mouth is drawn into the
-                       muzzle and cannot be measured (the Simpsons' chin arc)
+                       muzzle and cannot be measured (a chin arc)
     BODY_MEASURE=1     head zoom + every face cell, no package
 
 The script prints the measured eye band, pupils, mouth and skin; check those
@@ -77,8 +77,8 @@ def prep_source(path, dst):
     the transparent field (LANCZOS reads them next), binary mask so no ghost
     pixels survive the downscale.
 
-    Holes are NOT filled: Rick's arm and coat enclose a 21k-pixel gap and
-    Morty's legs enclose a 28k one, and filling them ships those gaps as black
+    Holes are NOT filled: the arm and coat enclose a 21k-pixel gap and
+    the legs enclose a 28k one, and filling them ships those gaps as black
     patches (the RGB under a transparent pixel is black in these renders).  Only
     pinholes from antialiasing are closed."""
     im = Image.open(path).convert("RGBA")
@@ -144,8 +144,8 @@ def white_components(mask, min_area):
 
 
 def eye_cluster(mask, min_area, fig_box):
-    """The eye whites as the topmost pair of white blobs: Rick's lab coat and
-    Morty's shoes are white too, but they sit lower and are far wider."""
+    """The eye whites as the topmost pair of white blobs: the lab coat and
+    the shoes are white too, but they sit lower and are far wider."""
     comps = white_components(mask, min_area)
     fx0, fy0, fx1, fy1 = fig_box
     fw, fh = fx1 - fx0 + 1, fy1 - fy0 + 1
@@ -208,7 +208,7 @@ EYC = (EY0 + EY1) // 2
 eye_fill = ndimage.binary_fill_holes(eye["mask"])
 
 # --- pupils, measured on the full-resolution render --------------------------
-# At canvas size Rick's pupils are two smeared pixels and Morty's are gone, so
+# At canvas size one figure's pupils are two smeared pixels and the other's are gone, so
 # both are located in the source (crisp), then mapped through the eye band.
 fa = np.array(Image.open(SRC).convert("RGBA")).astype(int)
 farm, faa = fa[..., :3], fa[..., 3]
@@ -222,7 +222,7 @@ fseam = (fx0 + fx1) // 2
 s = EYW / fw
 
 # --- pupils: one per eye, centred ------------------------------------------
-# The renders have a sideways glance baked in (Morty's pupils sit at the far
+# The renders have a sideways glance baked in (the pupils sit at the far
 # edge of both eyes).  At sprite size that reads as a squint, and the app moves
 # the pupils with the gaze anyway, so each eye gets a centred dot and the
 # look_* cells carry the offset.
@@ -263,13 +263,13 @@ for i in range(1, n + 1):
     w = xx.max() - xx.min() + 1
     h = yy.max() - yy.min() + 1
     cx = (xx.min() + xx.max()) / 2
-    # Rick's mouth is joined to his jaw wrinkles, so the component may be as
+    # The mouth is joined to the jaw wrinkles, so the component may be as
     # tall as the eye band; the mouth line itself is read from its top rows
     if not (0.25 * fw <= w <= 1.1 * fw and h <= 1.0 * fh):
         continue
     if not (fx0 + 0.12 * fw <= cx <= fx1 - 0.12 * fw):
         continue
-    # the biggest candidate, not the topmost: Rick's cheek wrinkles are separate
+    # the biggest candidate, not the topmost: the cheek wrinkles are separate
     # strokes above the mouth and would win a topmost race
     if best is None or len(xx) > best[0]:
         best = (len(xx), xx.min(), yy.min(), xx.max(), yy.max(), i)
@@ -289,7 +289,7 @@ if best:
     mouth_box = (round(EX0 + (xs2.min() - fx0) * s) - 2, round(EY0 + (ys2.min() - fy0) * s) - 2,
                  round(EX0 + (xs2.max() - fx0) * s) + 2, round(EY0 + (ys2.max() - fy0) * s) + 2)
 
-# A mouth that is part of the muzzle (the Simpsons' chin arc) has no separate
+# A mouth that is part of the muzzle (a chin arc) has no separate
 # component to measure, and the proportional fallback lands the yawn on the
 # wrong row: BODY_MOUTH_AT=<x>,<y> pins it by hand after one look at the sprite.
 if os.environ.get("BODY_MOUTH_AT"):
@@ -297,7 +297,7 @@ if os.environ.get("BODY_MOUTH_AT"):
     mouth_src = "override"
 
 # --- skin colour: the cheek, never the hair ---------------------------------
-# Rick's pale-blue hair is brighter than his grey-tan skin, so "brightest probe
+# Pale-blue hair is brighter than grey-tan skin, so "brightest probe
 # wins" paints the lids blue.  The probes below sit on cheek only: outside the
 # eye ends and under them, away from the nose and the mouth.
 probe_pts = [(EX0 - 2, EYC), (EX1 + 2, EYC), (EX0 - 1, EY1 + 2),
@@ -311,16 +311,16 @@ SKIN = tuple(int(np.median([c[i] for c in probes])) for i in range(3))
 SKIN_LINE = tuple(max(0, round(c * 0.55)) for c in SKIN)
 INK = "#2A2420"
 
-# erase whatever pupil the render baked in (Rick's survives the downscale,
-# Morty's does not): every dark pixel inside the filled whites goes white, so
+# erase whatever pupil the render baked in (one survives the downscale,
+# the other does not): every dark pixel inside the filled whites goes white, so
 # the face layer owns the only pupil and the gaze can move it
 for y in range(max(0, EY0 - 1), min(CANVAS, EY1 + 2)):
     for x in range(max(0, EX0 - 1), min(CANVAS, EX1 + 2)):
         if eye_fill[y, x] and fp[x, y][3] > 128 and max(fp[x, y][:3]) < 150:
             fp[x, y] = (*eye_white, 255)
 
-# The official mouth stays in the body bitmap: at 128 px Rick's downturned
-# line and Morty's worried curve both survive the downscale and read better
+# The official mouth stays in the body bitmap: at 128 px the downturned
+# line and the worried curve both survive the downscale and read better
 # than any 1 px redraw of them (measured: a redraw lands as a dashed bar).  So
 # only the yawn overlays a mouth, and that oval must cover the official line
 # completely or its corners peek out and read as a second mouth.
@@ -426,7 +426,7 @@ elif BOOK_MODE == "front":
     # the arms are crossed over the waist, so the only free hand is the one
     # hanging at his side: take the LOWEST skin cluster of the waist band (the
     # crossed forearms sit above it) and hang the book off its fingers, the same
-    # way Rick's free hand carries it
+    # way the free hand carries it
     _iy0, _iy1 = FIG[1], FIG[3]
     _band = range(round(_iy0 + 0.40 * (_iy1 - _iy0)), round(_iy0 + 0.66 * (_iy1 - _iy0)))
     _skin = [(x, y) for y in _band for x in range(CANVAS)

@@ -1,30 +1,29 @@
-# 模板：图片源宠物（以 Cartman 为例）
+# 模板：图片源宠物（扁平卡通示例）
 
-`cartman_recipe.py` 是一次完整创建的参照实现：从一张官方透明底立绘出发，做出一只
+`flat_cartoon_recipe.py` 是一次完整创建的参照实现：从一张官方透明底立绘出发，做出一只
 全功能（14 角色一角色一动作 + hover/movement/behavior、无配饰）的图片源宠物。
 新角色从这份配方抄起，改 `id`/`name`/`SRC` 与各处数值，不要从零写。
 
 用法：
 
 ```sh
-PET_REF_IMAGE=<官方透明底 PNG> python -I cartman_recipe.py <输出目录>
+PET_REF_IMAGE=<官方透明底 PNG> python -I flat_cartoon_recipe.py <输出目录>
 ```
 
 运行后按 SKILL.md 的流程过 validate 与两道 gate。本文记录这次创建踩过的坑与
 沉淀出的经验法则——新角色开工前先通读一遍。
 
-`portrait_recipe.py` 是第二份参照实现，面向官方 “半身像” 其实画到鞋的角色（南园
-全员的 Fandom 立绘都是这种：没有腿，短裤直接接鞋）。它自动量眼睛/瞳孔/嘴的
+`portrait_recipe.py` 是第二份参照实现，面向官方 “半身像” 其实画到鞋的角色（很多卡通立绘都是这种：没有腿，短裤直接接鞋）。它自动量眼睛/瞳孔/嘴的
 位置并把它们重画到表情层，两条命令就能出全功能包：
 
 ```sh
-PORTRAIT_REF=<官方 PNG> PORTRAIT_ID=kyle PORTRAIT_NAME=Kyle \
+PORTRAIT_REF=<官方 PNG> PORTRAIT_ID=sample PORTRAIT_NAME=Sample \
     python -I portrait_recipe.py <输出目录>
-# 兜帽遮嘴（Kenny）PORTRAIT_MOUTH=none；没有空手（抱臂）PORTRAIT_BOOK=none；
+# 兜帽遮嘴 PORTRAIT_MOUTH=none；没有空手（抱臂）PORTRAIT_BOOK=none；
 # 官方没有眉毛 PORTRAIT_BROWS=none；眼白并成一条但眼宽 >14px 时 PORTRAIT_SEAM=draw
-# 官方默认嘴朝上（Bart / Lisa）PORTRAIT_MOUTH_STYLE=smile
-# 官方嘴已在身体位图（Bart / Lisa 的下巴弧线）PORTRAIT_MOUTH=none
-# 官方图带灰色地面阴影（Lisa）PORTRAIT_SHADOW=drop
+# 官方默认嘴朝上 PORTRAIT_MOUTH_STYLE=smile
+# 官方嘴已在身体位图（下巴弧线）PORTRAIT_MOUTH=none
+# 官方图带灰色地面阴影 PORTRAIT_SHADOW=drop
 ```
 
 白衬衫、白胡子不会再被当成眼白：眼带取画面上部最靠上的一对白色连通域，
@@ -33,19 +32,18 @@ PORTRAIT_REF=<官方 PNG> PORTRAIT_ID=kyle PORTRAIT_NAME=Kyle \
 模板打印的 `eyes x…` 是否真的落在眼睛上。
 
 `body_recipe.py` 是第三份参照实现，面向**标准身材的全身立绘**（头约占身高
-1/6、腿脚俱全，Rick & Morty 的 Fandom 立绘就是这种）。它把画布提到 128 并
-把瞳孔、眼皮搬到表情层，嘴留在位图里：
+1/6、腿脚俱全）。它把画布提到 128 并把瞳孔、眼皮搬到表情层，嘴留在位图里：
 
 ```sh
-BODY_REF=<官方 PNG> BODY_ID=rick BODY_NAME=Rick BODY_BOOK=hand BODY_WALK=trot \
+BODY_REF=<官方 PNG> BODY_ID=sample BODY_NAME=Sample BODY_BOOK=hand BODY_WALK=trot \
     python -I body_recipe.py <输出目录>
 # 抱臂角色只有垂着的那只手能拿书：BODY_BOOK=front；没有空手：BODY_BOOK=none
 # 不要睡觉的 Z：BODY_ZZZ=0；连点几下生气：BODY_ANGRY=3
 ```
 
-**选哪份**：立绘是 “大头 + 小身体”（南园）走 `portrait_recipe.py`；头和身体
+**选哪份**：立绘是 “大头 + 小身体” 走 `portrait_recipe.py`；头和身体
 比例正常、腿是画出来的，走 `body_recipe.py`；风格是纯色块、能拆成图元的，
-走 `cartman_recipe.py` 的 `body_art`。三份产出的包结构完全一样。
+走 `flat_cartoon_recipe.py` 的 `body_art`。三份产出的包结构完全一样。
 
 ## 经验法则
 
@@ -57,7 +55,7 @@ BODY_REF=<官方 PNG> BODY_ID=rick BODY_NAME=Rick BODY_BOOK=hand BODY_WALK=trot 
   的包最小也要 128px——想与其他宠物同尺寸体系就留在 88；fit 0.8 让角色占比与
   随包宠物一致。
 - **画布大小按 “脸读不读得出来” 定，不按习惯定**。标准身材的全身像在 88 下眼睛
-  只有 2px、嘴整条消失（Rick & Morty 实测），这类角色用 128 + scale 2：屏上
+  只有 2px、嘴整条消失，这类角色用 128 + scale 2：屏上
   256px，和随包宠物 88×3=264 基本同高，细节多 45%。代价是内置特效的坐标是照
   88 写死的（见下），得自己锚。
 - **拟合并量化是平滑感的来源**：LANCZOS 缩到画布 + FASTOCTREE 96 色。88px 下
@@ -79,7 +77,7 @@ BODY_REF=<官方 PNG> BODY_ID=rick BODY_NAME=Rick BODY_BOOK=hand BODY_WALK=trot 
 ## 坑（每一条都真实翻过车）
 
 - **表情格必须只携带眼皮**。从 fitted 图派生的闭眼格若不把眼区之外全部透明化，
-  会叠出一只偏移的完整影子 Cartman——分身、两个嘴、脖子上的怪东西、横竖线
+  会叠出一只偏移的完整影子——分身、两个嘴、脖子上的怪东西、横竖线
   全是它的不同侧面。`lids()` 末尾的全图清零不可省。
 - **mask 盒要跟着内容走**。盒顶扩到帽檐 = 青色闪现；盒底带到下巴/衣领 = 脖子上
   的嘴和莫名的肌肉纹。开嘴椭圆画在眼区下方的透明区，不要为此扩大 mask。
@@ -99,11 +97,11 @@ BODY_REF=<官方 PNG> BODY_ID=rick BODY_NAME=Rick BODY_BOOK=hand BODY_WALK=trot 
 - **加载时机**：应用只在启动时和打开设置扩展分类时扫描包目录；改完包要托盘完全
   退出再启动，重选同一只不会重读。离屏逐帧验证走
   `tst_pet_scene.qml` 的 `test_captureImageSourcePetActions`（把包拷进
-  `%TEMP%/lens-qtest-no-installed-pets/`），不依赖重启。用例里写死了 `cartman`
-  这个 id：验别的包时复制成 `.../cartman/` 并把 pet.json 的 `id` 改成 `cartman`，
+  `%TEMP%/lens-qtest-no-installed-pets/`），不依赖重启。用例里写死了 `sample`
+  这个 id：验别的包时复制成 `.../sample/` 并把 pet.json 的 `id` 改成 `sample`，
   跑完删掉。
 - **帧必须保持基准位**：应用的 PetScene 把身体层、表情层都放在各自锚点上；帧里
-  再烘一次位移就会双重位移、表情层和身体错位（Butters 第一版就翻在这）。随包
+  再烘一次位移就会双重位移、表情层和身体错位（第一版就翻在这）。随包
   宠物的 idle 帧是逐帧完全相同的，动的只有锚点——这是正确形态。kit 现在只把
   dx/dy 写进 anchors，帧一律画在基准位；squash 锚点表达不了，仍烘进图里。
 - **旧的 sheet 不会自己消失**：删动作后 `sprites/effects/<动作>.png` 等旧文件
@@ -112,7 +110,7 @@ BODY_REF=<官方 PNG> BODY_ID=rick BODY_NAME=Rick BODY_BOOK=hand BODY_WALK=trot 
 
 ## 官方肖像（portrait_recipe.py）的坑
 
-- **官方 “半身” 先查是不是全身**：南园立绘的下缘常是黑鞋，短裤下面没有腿——它
+- **官方 “半身” 先查是不是全身**：这类立绘的下缘常是黑鞋，短裤下面没有腿——它
   本来就是完整身体，不需要另画。看 alpha 轮廓一眼就知道。
 - **拟合图不能再按 “底部贴 86” 合成一次**：`fitted_image` 已经返回 88×88、底边
   在 86 的成品；早期的 `bitmap_frame` 又按高度贴了一次，整张身体上移 2px，表情层
@@ -126,7 +124,7 @@ BODY_REF=<官方 PNG> BODY_ID=rick BODY_NAME=Rick BODY_BOOK=hand BODY_WALK=trot 
   再向左上挪半本，`portrait_recipe.py` 已按这个公式算。
 - **闭眼残白要按量化后的身体像素判断**：raw 里 220 的灰边在量化后可能是 253
   的白；掩盖用的是身体 sheet 的颜色，不是拟合 raw。
-- **兜帽脸别画嘴**：Kenny 的嘴被挡在连帽衫里，眼睛周围是深色而不是皮肤。闭眼
+- **兜帽脸别画嘴**：嘴被挡在连帽衫里，眼睛周围是深色而不是皮肤。闭眼
   补丁取眼睛左右两侧的颜色，深色会自然合上；`PORTRAIT_MOUTH=none` 关掉嘴。
 - **大头比例下 hearts/notes 会贴脸**：这两个效果的坐标固定在画布中上部。角色
   头占满中段时只用 book / zzz / dust / stars，celebrate/encourage 宁可无特效。
@@ -134,24 +132,24 @@ BODY_REF=<官方 PNG> BODY_ID=rick BODY_NAME=Rick BODY_BOOK=hand BODY_WALK=trot 
   alpha 边界，必要时接受或换一张更完整的官方图。
 - **嘴线可能和 muzzle 轮廓连成一块**：独立连通域找不到嘴时，模板退化为在眼睛
   下方逐行找最长的水平暗线；搜索起点跳过眼皮下沿 0.2 个眼高，否则会抓眼皮。
-- **官方默认嘴可能朝上**：primitive 模式默认画 frown；Bart / Lisa 的官方轻笑
-  要 `PORTRAIT_MOUTH_STYLE=smile`，否则会变成担忧脸。南园保持 frown；Homer
-  保留已装版本。none 模式不看这个值，脸部完全不画嘴。
-- **官方嘴已经在身体位图上，就不要画**：Simpson 的嘴是下巴/脖子那条大
-  弧线，属于身体位图；`PORTRAIT_MOUTH=none` 让脸部只动眼睛/眼皮，不擦嘴、
+- **官方默认嘴可能朝上**：primitive 模式默认画 frown；官方轻笑的角色
+  要 `PORTRAIT_MOUTH_STYLE=smile`，否则会变成担忧脸。保持 frown 的角色不用设。
+  none 模式不看这个值，脸部完全不画嘴。
+- **官方嘴已经在身体位图上，就不要画**：下巴/脖子那条大
+  弧线属于身体位图；`PORTRAIT_MOUTH=none` 让脸部只动眼睛/眼皮，不擦嘴、
   不画嘴、不做张嘴动画。再画任何嘴线（补丁也好、sprite 也好）都会和官方嘴
-  叠成两张。南园等需要表情嘴的角色才用 auto / primitive。
+  叠成两张。需要表情嘴的角色才用 auto / primitive。
 - **地面阴影**：`PORTRAIT_SHADOW=drop` 只清底部低饱和灰，黑轮廓和彩色鞋子
-  保留；Bart 的滑板轮子也是灰的，别给 Bart 用。
-- **闭眼镜片的探针不要取眼睛下方**：Homer 的口鼻区是 tan，亮度能压过黄皮肤，
+  保留；画面里有同色灰的道具（如滑板轮子）时别用。
+- **闭眼镜片的探针不要取眼睛下方**：有口鼻的脸，口鼻区是 tan，亮度能压过黄皮肤，
   四探针取最亮会把闭眼补丁画成棕色；模板现在只看眼侧和眼上。
 - **有眼眶的脸，闭眼要连眼眶一起盖**：`PORTRAIT_LID_PAD=1` 把补丁向外扩 1px
-  吃掉眼眶、并把眼线挪到眼中央；默认 0 是南园那种 “没有眼眶” 的脸，扩出去会
-  吃到兜帽或脸颊。Bart 实测 pad=1 会顺手糊到口鼻区，大眼角色开之前先看闭眼格。
+  吃掉眼眶、并把眼线挪到眼中央；默认 0 是 “没有眼眶” 的脸，扩出去会
+  吃到兜帽或脸颊。某个大眼角色实测 pad=1 会顺手糊到口鼻区，开之前先看闭眼格。
 
 ## 全身立绘（body_recipe.py）的坑
 
-- **88 画布下这张脸不存在**：Rick 的眼睛 2px、嘴整条没了，Morty 的瞳孔完全
+- **88 画布下这张脸不存在**：眼睛只剩 2px、嘴整条没了，瞳孔完全
   消失。先按 88 渲一张看脸，读不出来就换 128（见经验法则）。128 的代价：应用
   自带的场景道具和 qtest 的 `tryCompare(Pet.pose, "canvas", 88)` 都是按 88 写
   的，宠物包不走那条路，但离屏快照用例跑不了，得靠 validate + 预览确认。
@@ -161,33 +159,33 @@ BODY_REF=<官方 PNG> BODY_ID=rick BODY_NAME=Rick BODY_BOOK=hand BODY_WALK=trot 
 - **`prep_source` 只在 `source_<id>.png` 不存在时跑**，而这个文件写在**输出
   目录**里：改完预处理一定要删掉输出目录里的那份，否则重跑用的是旧图（这次
   就是这么把黑块又渲了一遍）。
-- **眼睛连通域要等高才合并**：Rick 右眼旁边有一条 13px 高的发丝高光，旧规则
-  让它先把右眼吞了，眼带只剩 5px。两只眼睛的高度差不超过 40% 才算一对。
+- **眼睛连通域要等高才合并**：一只眼睛旁边有一条 13px 高的发丝高光，旧规则
+  让它先把眼睛吞了，眼带只剩 5px。两只眼睛的高度差不超过 40% 才算一对。
 - **内置特效是 88 坐标**：128 下 zzz 落在脖子边只剩一个 Z、stars 在左上角被
   裁、cash 跑到画布外、dust 停在膝盖。只有 `book` 和 `snack` 带 `at` 能定位；
   其余要么不用，要么在配方里 monkey-patch `pet_kit.draw_effect` 自己锚
   （`body_recipe.py` 把 Z 挂到头右缘，其它 kind 仍交回 kit）。
-- **嘴的位置取面积最大的连通域，不取最靠上的**：Rick 的嘴和下巴皱纹连成一块，
+- **嘴的位置取面积最大的连通域，不取最靠上的**：嘴和下巴皱纹连成一块，
   而脸颊皱纹是更靠上的独立笔画，取最上会把张嘴的椭圆放到偏高偏右的位置。量到
   的宽度还包含皱纹，张嘴椭圆的半径要封顶（`min(4, MOUTH_W // 2)`）。
-- **官方嘴在位图里能读出来就别重画**：128 下 Rick 的下垂嘴和 Morty 的担忧嘴都
+- **官方嘴在位图里能读出来就别重画**：128 下下垂的嘴和担忧嘴都
   还在，实测重画成 1px 反而是一条虚线。只有打哈欠叠一个椭圆，而椭圆必须完整
   罩住原嘴线，否则嘴角露出来变成两张嘴。
 - **抱臂角色身前没有空手**：书放在腰上像贴上去的，只有垂在身侧的那只手能拿。
   `BODY_BOOK=front` 取腰腹带里最靠下的肤色连通域当手。
-- **嘴量不到就手工指位**：Simpson 的嘴是下巴那条弧线，和 muzzle 连成一块，没有
-  独立连通域可量，打哈欠的椭圆会落在按比例估的行上（Homer 实测高 5px）。看一眼
+- **嘴量不到就手工指位**：下巴那条弧线的嘴和 muzzle 连成一块，没有
+  独立连通域可量，打哈欠的椭圆会落在按比例估的行上（实测高 5px）。看一眼
   精灵图，用 `BODY_MOUTH_AT=x,y` 钉住。
 - **skin 色取量化后的身体**：raw 里的肤色可能不在 96 色调色板里，闭眼补丁会
   比脸浅几个色阶，成一块亮矩形。
 
 - **抱臂角色没有空手**：`PORTRAIT_BOOK=none`，study 只做眼神下移、不画书；
-  辛普森没有眉毛，`PORTRAIT_BROWS=none`，生气靠眼皮。
-- **标准身材全身像在 88px 会偏窄**：Homer 官方抱臂立绘 409×966，约三头半身，
+  没有眉毛的角色用 `PORTRAIT_BROWS=none`，生气靠眼皮。
+- **标准身材全身像在 88px 会偏窄**：一张官方抱臂立绘 409×966，约三头半身，
   渲染后约 30px 宽；这是比例事实，不是对齐 bug。用 `PORTRAIT_FIT=0.96` 用满
   高度，不要为了 “占满画布” 擅自裁掉腿。
-- **改检测后拿南园回归**：重渲 Butters / Kenny，对比已装包的
-  `sprites/expressions/eyes.png` 与合帧；这次 Butters 逐像素一致，Kenny 只有
+- **改检测后拿已装包回归**：重渲两只已装包的大头立绘角色，对比它们的
+  `sprites/expressions/eyes.png` 与合帧；这次一只逐像素一致，另一只只有
   瞳孔 1px 的差异（48px），合帧看不出。
 - **多角色可以合并 gate**：参考图确认、idle 候选对照、最终拼图都能把几只拼进
   同一轮，别一只一只地磨。

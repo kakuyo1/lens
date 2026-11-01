@@ -147,6 +147,8 @@ Y la tarjeta que levantan los ajustes: al pasar el ratón por una mascota en Aju
 
 <p align="center"><img src="docs/readme/pet-postcards.gif" width="700" alt="Las postales de las siete mascotas, una tras otra"></p>
 
+Lens también admite mascotas personalizadas: `skills/lens-pet-maker` del repositorio es una skill de Claude Code que ayuda a una IA a generar un paquete de mascota. Clona el repositorio para usarla, copia la carpeta resultante en `%APPDATA%\Lens\pets\` y actívala en Ajustes › Extensiones.
+
 ## También incluido
 
 - **Trae tu propio modelo.** DeepSeek, OpenAI, Gemini, OpenRouter, xAI, Moonshot, Zhipu, Qwen o un endpoint personalizado compatible con OpenAI.
