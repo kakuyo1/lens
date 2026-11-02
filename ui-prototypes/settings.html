@@ -261,6 +261,7 @@ const L = {
         cat: { general: ["General", "Theme, animations, launch at startup"],
                learning: ["Reading & learning", "Vocabulary level, explanation language, multiple senses, etymology, example sentences"],
                capture: ["Capture & popups", "Trigger channels"],
+               ocr: ["OCR", "Screenshot capture, its key and engine"],
                model: ["Model service", "Provider, model, API configuration"],
                extensions: ["Extensions", "Desktop companion"],
                about: ["About", "Version, updates, repository"] },
@@ -271,6 +272,7 @@ const L = {
         cat: { general: ["通用", "主题、动画效果、开机自启"],
                learning: ["阅读学习", "词汇档位、解释语言、多义解释、词源、例句"],
                capture: ["取词与弹窗", "触发通道"],
+               ocr: ["OCR", "截图识别、截图键与引擎"],
                model: ["模型服务", "服务商、模型、API 配置"],
                extensions: ["扩展", "桌面宠物"],
                about: ["关于", "版本、检查更新、仓库"] },
@@ -281,6 +283,7 @@ const L = {
         cat: { general: ["一般", "テーマ、アニメーション、スタートアップ"],
                learning: ["読解と学習", "語彙レベル、解説の言語、複数の語義、語源、例文"],
                capture: ["取得とポップアップ", "取得のきっかけ"],
+               ocr: ["OCR", "スクリーンショット取得、そのキー、エンジン"],
                model: ["モデルサービス", "プロバイダー、モデル、API 設定"],
                extensions: ["拡張", "デスクトップの相棒"],
                about: ["情報", "バージョン、更新、リポジトリ"] },
@@ -291,6 +294,7 @@ const L = {
         cat: { general: ["General", "Tema, animaciones e inicio con el sistema"],
                learning: ["Lectura y aprendizaje", "Nivel de vocabulario, idioma de las explicaciones, varias acepciones, etimología, frases de ejemplo"],
                capture: ["Captura y ventanas", "Canales de activación"],
+               ocr: ["OCR", "Captura de pantalla, su tecla y el motor"],
                model: ["Servicio del modelo", "Proveedor, modelo, configuración de la API"],
                extensions: ["Extensiones", "Compañero de escritorio"],
                about: ["Acerca de", "Versión, actualizaciones, repositorio"] },
@@ -439,10 +443,11 @@ function page(id) {
         { value: "TOEFL", label: "TOEFL", group: "Study-abroad exams" }
       ]) + seg("解释语言", "language", [["en", "English"], ["zh", "中文"], ["es", "Español"], ["ja", "日本語"]]) +
       sw("多义解释", "multi") + sw("词源", "etym") + sw("例句", "example");
-    case "capture": return `<div class="field"><div class="group-title">触发通道</div><div class="swgroup">${sw("选区取词", "selection")}${sw("OCR", "ocr")}${sw("自动扫描", "scan")}</div></div>` +
+    case "ocr": return sw("OCR", "ocr") +
       keyRow("OCR 触发热键", "triggerKey") +
       pathField("Tesseract 可执行文件", "tesseractExe", "程序目录\\ocr\\tesseract.exe") +
-      pathField("Tesseract 数据目录", "tesseractData", "程序目录\\ocr\\tessdata") +
+      pathField("Tesseract 数据目录", "tesseractData", "程序目录\\ocr\\tessdata");
+    case "capture": return `<div class="field"><div class="group-title">触发通道</div><div class="swgroup">${sw("选区取词", "selection")}${sw("自动扫描", "scan")}</div></div>` +
       dropdown("最小词长", "minLen", [
         { value: "2", label: "2 字母", group: "" },
         { value: "3", label: "3 字母", group: "" },

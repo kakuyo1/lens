@@ -33,8 +33,8 @@ Item {
     }
 
     Component {
-        id: shortcutsComponent
-        SettingsShortcutsPage { x: 26; y: 20; width: 328; height: implicitHeight }
+        id: ocrPageComponent
+        SettingsOcrPage { x: 26; y: 20; width: 328; height: implicitHeight }
     }
 
     Component {
@@ -200,13 +200,13 @@ Item {
 
         // The key itself, on the settings page it is set on.
 
-        /// @return The field the page draws the trigger key in.
+        /// @return The field the OCR page draws the trigger key in.
         function hotkeyField() {
-            const page = createTemporaryObject(shortcutsComponent, host.contentItem);
+            const page = createTemporaryObject(ocrPageComponent, host.contentItem);
             waitForRendering(host.contentItem);
             verify(page);
             const field = findChild(page, "ocrHotkey");
-            verify(field, "the shortcuts page draws no trigger key");
+            verify(field, "the OCR page draws no trigger key");
             return field;
         }
 
@@ -253,12 +253,12 @@ Item {
             compare(field.refused, true, "the field did not say the combination was refused");
         }
 
-        /// The hover switch has a field of its own on the same page, and its combination is stored apart from the OCR key.
+        /// The hover key lives on the capture page now, and its combination is stored apart from the OCR key.
         function test_theHoverKeyIsSetOnItsOwnField() {
-            const page = createTemporaryObject(shortcutsComponent, host.contentItem);
+            const page = createTemporaryObject(pageComponent, host.contentItem);
             waitForRendering(host.contentItem);
             const field = findChild(page, "hoverHotkey");
-            verify(field, "the shortcuts page draws no hover lookup key");
+            verify(field, "the capture page draws no hover lookup key");
             const ocrBefore = Controller.settings.ocrHotkey;
 
             field.keyChosen(Qt.Key_J, Qt.ControlModifier | Qt.AltModifier);

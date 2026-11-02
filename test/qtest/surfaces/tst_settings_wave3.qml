@@ -327,10 +327,10 @@ Item {
             const main = make();
             Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
-            openCategory(panel, "Shortcuts");
+            openCategory(panel, "OCR");
 
             const field = Util.ofType(panel, "HotkeyField");
-            verify(field, "the shortcuts page has no hotkey field");
+            verify(field, "the OCR page has no hotkey field");
             verify(field.Accessible.name.indexOf("OCR trigger key") === 0,
                    "the hotkey field does not carry the section's name");
             const hint = Util.textWith(Util.textsUnder(field), ["Press the combination"]);
@@ -585,9 +585,9 @@ Item {
             verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-general-dark"));
             back(panel);
 
-            openCategory(panel, "Shortcuts");
+            openCategory(panel, "OCR");
             wait(settled);
-            verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-shortcuts"));
+            verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-ocr"));
             back(panel);
 
             openCategory(panel, "Capture & popups");

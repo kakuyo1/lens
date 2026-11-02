@@ -62,14 +62,6 @@ Item {
                         onToggled: (on) => Controller.setSetting("selectionCapture", on)
                     }
                     SwitchRow {
-                        objectName: "ocrCapture"
-                        width: parent.width
-                        label: qsTranslate("SettingsPopup", "OCR")
-                        checked: Controller.settings.ocrCapture
-                        interactive: Controller.settings.screenshotAvailable
-                        onToggled: (on) => Controller.captureDuty.setOcrCapture(on)
-                    }
-                    SwitchRow {
                         objectName: "autoScan"
                         width: parent.width
                         label: qsTranslate("SettingsPopup", "Auto scan")
@@ -94,9 +86,8 @@ Item {
             wrapMode: Text.WordWrap
         }
 
-        // The reason the OCR switches are grey belongs under those switches, not below the two
-        // path fields: the reader on a machine without the runtime should not have to scroll to
-        // find out why the first three lines will not move.
+        // Auto scan needs the local OCR runtime, and the reason it is grey belongs under the switch.
+        // The screenshot switch has its own reason on the OCR page.
         Text {
             width: parent.width
             visible: Controller.settings.ocrMode === "online"
@@ -118,9 +109,33 @@ Item {
             wrapMode: Text.WordWrap
         }
 
+        // The hover lookup key moved here from the shortcuts page: it switches between the two ways
+        // of looking a word up, and both live on this page now.
+        Column {
+            width: parent.width
+            spacing: 7
+            Text { text: qsTranslate("SettingsPopup", "Hover lookup key"); color: root.tokens.muted; font.pixelSize: 12 }
+            HotkeyField {
+                id: hoverField
+                width: parent.width
+                objectName: "hoverHotkey"
+                accessibleName: qsTranslate("SettingsPopup", "Hover lookup key")
+                combination: Controller.settings.hoverHotkey
+                conflicted: Controller.settings.hoverHotkeyConflicted || hoverField.refused
+                property bool refused: false
+                onKeyChosen: (key, modifiers) => hoverField.refused = Controller.setHoverHotkey(key, modifiers) !== ""
+            }
+            Text {
+                width: parent.width
+                text: qsTranslate("SettingsPopup", "Switches between selection lookup and hover lookup.")
+                color: root.tokens.muted
+                font.pixelSize: 12
+                wrapMode: Text.WordWrap
+            }
+        }
+
         // The shape of the action bar the selection channel raises. It sits right after the
-        // channels because it is the surface the first switch owns, and before the OCR key
-        // because that key belongs to the second switch.
+        // channels because it is the surface the first switch owns.
         Column {
             width: parent.width
             spacing: 7
@@ -158,24 +173,6 @@ Item {
                   ? qsTranslate("SettingsPopup", "Give up silently")
                   : qsTranslate("SettingsPopup", "Raise to top")
             onPicked: root.childRequested("clipboard")
-        }
-
-        // The bundled runtime and the reader's own Tesseract live on the OCR page. The first
-        // screen keeps the readiness sentence and one row that opens the configuration, so a
-        // reader on a working default never has to scroll past two paths they did not set.
-        SettingsLinkRow {
-            objectName: "ocrSettings"
-            label: qsTranslate("SettingsPopup", "OCR engine")
-            note: Controller.settings.screenshotAvailability === "ready"
-                  ? (Controller.settings.ocrMode === "online"
-                     ? Controller.settings.ocrOnlineProviderLabel
-                     : (Controller.settings.actualLocalEngine === "rapidocr"
-                        ? "RapidOCR"
-                        : qsTranslate("SettingsPopup", "Tesseract")))
-                  : (Controller.settings.ocrStatus === "checking"
-                     ? qsTranslate("SettingsPopup", "Checking OCR")
-                     : qsTranslate("SettingsPopup", "Needs attention"))
-            onPicked: root.childRequested("ocr")
         }
 
         Column {
