@@ -71,8 +71,9 @@ BODY_REF=<官方 PNG> BODY_ID=sample BODY_NAME=Sample BODY_BOOK=hand BODY_WALK=t
 - **特效按角色气质选**：`cash`（钱）/`snack`（零食袋）/`book`（书）这类具象
   特效比通用的 hearts/stars 更有角色感；特效时长要贯穿动作
   （celebrate 16 帧、encourage 12 帧），4 帧的动作特效就是一瞬间的事。
-- **动作差异靠三件套**：位移姿势 + 表情格 + 特效。单张位图无法关节化，不要
-  尝试摆手臂。
+- **动作差异靠三件套**：位移姿势 + 表情格 + 特效。要四肢真的动、或要换造型演
+  一段，走 `references/articulated-actions.md`：拆头/手/前臂分别摆动，代价是每个
+  活动部件都得垫底，否则一移开就是透明洞。
 
 ## 坑（每一条都真实翻过车）
 
