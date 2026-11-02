@@ -73,6 +73,15 @@ Window {
         onActivated: profile.visible = false
     }
 
+    Item {
+        anchors.fill: parent
+
+        TapHandler {
+            acceptedButtons: Qt.BackButton
+            onTapped: profile.backRequested()
+        }
+    }
+
     ShadowCard {
         id: card
         anchors.fill: parent

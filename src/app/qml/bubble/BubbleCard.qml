@@ -154,6 +154,17 @@ Item {
             radius: card.radius
         }
 
+        // The mouse's back button takes the chain's back arrow, while a step is open.
+        Item {
+            anchors.fill: parent
+
+            TapHandler {
+                acceptedButtons: Qt.BackButton
+                enabled: !root.bubble.atRoot
+                onTapped: chainPanel.back()
+            }
+        }
+
         // The handle a drag moves the window by; the timer below does the moving, and the two
         // reasons it is not the handler's own signal are in ShadowCard.qml. The flag is set on both
         // edges: setting it only on the way in left the countdown stopped for good.

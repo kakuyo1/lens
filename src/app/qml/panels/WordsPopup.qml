@@ -218,6 +218,15 @@ Window {
     /// The title is the entry point to the annual word record.
     signal yearRequested()
 
+    Item {
+        anchors.fill: parent
+
+        TapHandler {
+            acceptedButtons: Qt.BackButton
+            onTapped: words.backRequested()
+        }
+    }
+
     ShadowCard {
         id: card
         anchors.fill: parent

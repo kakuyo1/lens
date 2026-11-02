@@ -382,6 +382,16 @@ Window {
         onActivated: settings.navigateBack()
     }
 
+    Item {
+        anchors.fill: parent
+
+        TapHandler {
+            acceptedButtons: Qt.BackButton
+            enabled: settings.category !== ""
+            onTapped: settings.navigateBack()
+        }
+    }
+
     ShadowCard {
         id: shell
         anchors.fill: parent

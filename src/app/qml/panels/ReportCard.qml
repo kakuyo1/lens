@@ -148,6 +148,16 @@ Window {
         opacity: card.opacity
     }
 
+    Item {
+        anchors.fill: parent
+
+        TapHandler {
+            acceptedButtons: Qt.BackButton
+            enabled: report.page === "story"
+            onTapped: report.backToReport()
+        }
+    }
+
     ShadowCard {
         id: card
         anchors.centerIn: parent
