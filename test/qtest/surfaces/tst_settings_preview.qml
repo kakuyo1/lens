@@ -389,6 +389,25 @@ Item {
             }
         }
 
+        /// The Pictures switch draws its sample strip, open, under the one sense it would sit under
+        /// (UI-SPEC.md 4.4): three bundled pictures, no search behind them.
+        function test_thePicturesSwitchPreviewDrawsASampleStrip() {
+            const main = make();
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "Reading & learning");
+
+            const preview = hoverTitle(main, panel, "Pictures");
+            tryCompare(preview, "visible", true);
+            const strip = Util.findAll(preview, function (o) {
+                return o.objectName === "sensePictures";
+            })[0];
+            verify(strip, "the picture preview has no strip");
+            compare(strip.visible, true, "the sample strip is not open");
+            compare(strip.items.length, 3, "the sample strip should show three pictures");
+            leaveTitle(main, panel);
+        }
+
         /// One reading per field the controller fills an explanation language into: English and
         /// Simplified Chinese in their own, Traditional Chinese, Spanish and Japanese in the
         /// translation (UI-SPEC.md 4.3). The card is raised by the list's rows, and each row draws

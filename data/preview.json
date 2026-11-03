@@ -8,6 +8,8 @@
     "-- the language of an explanation is a runtime setting, not the interface's. The example",
     "sentence is English in all five, as it is in a real explanation; the signpost and the",
     "collocations are English in every language, as they are in a real explanation.",
+    "`pictures` is the Pictures switch's sample strip: three bundled illustrations (qrc:/preview), so the",
+    "preview asks no picture source for anything.",
     "`vocabulary` is the other preview's content: six words per vocabulary level, in the order the",
     "word cloud draws them (the first two are the largest). The lists are illustrative, not the",
     "word list the level is built from.",
@@ -104,6 +106,11 @@
     },
     "example": "The evening was \"quiet\", and the page felt close."
   },
+  "pictures": [
+    {"image": "qrc:/preview/lens-magnifier.svg", "caption": "A magnifying glass enlarging the print on a page", "author": "Lens", "license": "Lens art", "source": "Sample", "page": ""},
+    {"image": "qrc:/preview/lens-camera.svg", "caption": "The front glass of a camera lens", "author": "Lens", "license": "Lens art", "source": "Sample", "page": ""},
+    {"image": "qrc:/preview/lens-sphere.svg", "caption": "A glass ball throwing a bright spot onto the table", "author": "Lens", "license": "Lens art", "source": "Sample", "page": ""}
+  ],
   "vocabulary": {
     "0": ["achieve", "opportunity", "environment", "approach", "benefit", "circumstance"],
     "1": ["coherent", "scrutinize", "deteriorate", "ubiquitous", "inevitable", "nuance"],

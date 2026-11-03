@@ -18,7 +18,7 @@ import QtQuick
 QtObject {
     /// @param key Which setting is being previewed: "speed", "language", "motherTongue",
     ///        "multisense", "etymology", "example", "ipa", "pos", "signpost", "collocations",
-    ///        "font", "fontSize" -- or "onboarding", the first-run wizard's demo card, which
+    ///        "pictures", "font", "fontSize" -- or "onboarding", the first-run wizard's demo card, which
     ///        draws its own sample word (data/preview.json's `onboarding`) instead of this one.
     /// @param language For the "language" preview, the language the hovered row carries, which
     ///        this card is drawn in instead of the stored one; for the "motherTongue" preview,
@@ -33,6 +33,9 @@ QtObject {
         // no such sample leaves that card unraised, the way an unreadable file leaves every card.
         const source = key === "onboarding" ? sample.onboarding || null : sample;
         if (!source || !source.word)
+            return null;
+        // The picture preview is its sample strip and nothing else, so a file without one has no such preview.
+        if (key === "pictures" && !source.pictures)
             return null;
         // Read once: Controller.settings rebuilds the whole map on every read of it.
         const settings = Controller.settings;
@@ -49,11 +52,13 @@ QtObject {
         /// The sample's text in one language, falling back to the English it is always written in.
         const local = (text) => (text ? (text[lang] || text.en || "") : "");
         // A switch's preview draws its own block alone; the other previews follow the stored switches.
-        const switches = ["multisense", "etymology", "example", "ipa", "pos", "signpost", "collocations"];
+        const switches = ["multisense", "etymology", "example", "ipa", "pos", "signpost", "collocations", "pictures"];
         const isSwitch = switches.indexOf(key) >= 0;
         const shows = (name, on) => isSwitch ? key === name : on;
         const multiple = shows("multisense", settings.multiSense);
-        const senses = multiple ? source.senses || [] : [];
+        // The picture preview draws the first sense alone, the one a Pictures entry sits under, with its sample strip open.
+        const pictures = key === "pictures" ? source.pictures : null;
+        const senses = pictures ? (source.senses || []).slice(0, 1) : multiple ? source.senses || [] : [];
         const payload = {
             title: source.word,
             type: "word",
@@ -67,8 +72,11 @@ QtObject {
             // One language a sense, the rule the duty draws the card by rather than this file's
             // (explanation_duty.cpp): the English definition in the English field when English was
             // asked for, the reader's own language otherwise, never both.
+            // The picture preview's sense is imageable and carries the sample strip, which SenseRows draws open.
             senses: senses.map((sense) => ({en: lang === "en" ? sense.en || "" : "",
-                                            text: lang === "en" ? "" : local(sense)})),
+                                            text: lang === "en" ? "" : local(sense),
+                                            imageable: pictures !== null,
+                                            samplePictures: pictures})),
             signpost: shows("signpost", settings.signpost) ? source.signpost || "" : "",
             collocations: shows("collocations", settings.collocations) ? source.collocations || [] : [],
             etymology: shows("etymology", settings.etymology) ? local(source.etymology) : "",

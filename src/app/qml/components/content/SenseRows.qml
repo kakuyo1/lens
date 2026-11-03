@@ -88,6 +88,8 @@ Repeater {
         /// What this row contributes to the block's reveal.
         readonly property bool revealing: senseEnglishText.revealing
                                            || senseTranslationText.revealing
+        /// The sample pictures the settings preview gives this row (PreviewSample.qml), or null on a real card.
+        readonly property var sample: senseRow.modelData.samplePictures || null
 
         Rectangle {
             objectName: "senseSeparator"
@@ -142,8 +144,8 @@ Repeater {
             width: parent.width
             height: 22
 
-            /// Whether this row is the one whose strip is open.
-            readonly property bool open: root.expandedIndex === senseRow.index
+            /// Whether this row is the one whose strip is open; a settings preview's sample strip is always open.
+            readonly property bool open: root.expandedIndex === senseRow.index || senseRow.sample !== null
 
             /// @brief Open this sense's pictures, or close them when they are the ones open.
             function toggle() {
@@ -244,9 +246,10 @@ Repeater {
 
         PictureStrip {
             objectName: "sensePictures"
-            open: root.expandedIndex === senseRow.index
+            open: pictureEntry.open
             query: senseRow.modelData.imageQuery || ""
             scale: root.scale
+            sample: senseRow.sample
         }
     }
 }

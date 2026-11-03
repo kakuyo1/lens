@@ -28,6 +28,9 @@ Item {
     property bool open: true
     /// The multiple the answer is drawn at, from the reader's font-size setting (UI-SPEC.md 4.4).
     property real scale: 1
+    /// The pictures the settings preview draws instead of the duty's answer, or null on a real card (UI-SPEC.md 4.4).
+    /// Given, the strip is ready at once: a demonstration asks the duty for nothing.
+    property var sample: null
 
     /// The table the strip takes its colours from: the one of the window it sits in.
     // qmllint disable missing-property
@@ -36,8 +39,16 @@ Item {
 
     readonly property var answer: Controller.pictureDuty.pictures
     /// `idle`, `loading`, `ready` or `failed` -- and `idle` for any query but this strip's own.
-    readonly property string phase: root.query !== "" && root.answer.query === root.query ? root.answer.state : "idle"
-    readonly property var items: root.phase === "ready" ? root.answer.items : []
+    readonly property string phase: {
+        if (root.sample !== null)
+            return "ready";
+        return root.query !== "" && root.answer.query === root.query ? root.answer.state : "idle";
+    }
+    readonly property var items: {
+        if (root.sample !== null)
+            return root.sample;
+        return root.phase === "ready" ? root.answer.items : [];
+    }
     /// Which thumbnail the pointer or the keyboard is on; the caption follows it, first by default.
     property int focusedThumbnail: -1
 

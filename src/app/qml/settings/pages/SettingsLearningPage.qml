@@ -222,14 +222,15 @@ Item {
                 onPreviewChanged: (key) => root.previewRequested(key)
             }
 
-            // No preview: what this one restores is a picture strip that would have to run a real
-            // image search to say anything, and a hover is not the place to start one.
+            // The preview draws bundled sample pictures (data/preview.json), never an image search.
             SwitchRow {
                 width: parent.width
                 objectName: "picturesSwitch"
                 label: qsTranslate("SettingsPopup", "Pictures")
                 checked: root.settings.pictures
+                previewKey: "pictures"
                 onToggled: (on) => Controller.setSetting("pictures", on)
+                onPreviewChanged: (key) => root.previewRequested(key)
             }
         }
 

@@ -485,6 +485,19 @@ qt_add_resources(lens_app "icons"
   FILES ${LENS_ICONS}
 )
 
+# The settings preview's sample pictures (data/preview.json `pictures`), addressed as :/preview/<name>.svg. They are drawn
+# art, not photographs, so the Pictures preview has no picture to fetch and no source to ask.
+set(LENS_PREVIEW_PICTURES
+  ${CMAKE_SOURCE_DIR}/data/preview-pictures/lens-magnifier.svg
+  ${CMAKE_SOURCE_DIR}/data/preview-pictures/lens-camera.svg
+  ${CMAKE_SOURCE_DIR}/data/preview-pictures/lens-sphere.svg
+)
+qt_add_resources(lens_app "preview_pictures"
+  PREFIX "/preview"
+  BASE ${CMAKE_SOURCE_DIR}/data/preview-pictures
+  FILES ${LENS_PREVIEW_PICTURES}
+)
+
 # The glass shaders, compiled by qsb into :/shaders/glass.frag.qsb and :/shaders/glass_hblur.frag.qsb. qsb comes from the
 # same Qt install as the runtime, so the two cannot drift apart. They are resources of lens_app for the reason the icons
 # are: a binary that links the surfaces draws them.
