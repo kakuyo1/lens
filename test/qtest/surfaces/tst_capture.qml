@@ -20,6 +20,11 @@ Item {
     }
 
     Component {
+        id: ocrPathsPageComponent
+        SettingsOcrPathsPage { x: 26; y: 20; width: 328; height: implicitHeight }
+    }
+
+    Component {
         id: onlineOcrPageComponent
         SettingsOnlineOcrPage { x: 26; y: 20; width: 328; height: implicitHeight }
     }
@@ -60,6 +65,13 @@ Item {
             const page = createTemporaryObject(ocrPageComponent, host.contentItem);
             waitForRendering(host.contentItem);
             verify(!!page, "OCR page was created");
+            return page;
+        }
+
+        function makeOcrPathsPage() {
+            const page = createTemporaryObject(ocrPathsPageComponent, host.contentItem);
+            waitForRendering(host.contentItem);
+            verify(!!page, "OCR paths page was created");
             return page;
         }
 
@@ -108,7 +120,7 @@ Item {
         /// this side of it: the path the controller is given is the path the field then shows,
         /// and an unchosen field shows what it would resolve to instead.
         function test_tesseractPathsReachTheController() {
-            const page = makeOcrPage();
+            const page = makeOcrPathsPage();
             const executable = child(page, "tesseractExecutable");
             const data = child(page, "tesseractDataDirectory");
 
@@ -170,9 +182,10 @@ Item {
         }
 
         function test_ocrControlsUseControllerAndAvailability() {
-            const page = make();
             tryVerify(() => Controller.settings.ocrStatus !== "checking", 15000);
-            compare(child(page, "ocrCapture").interactive, Controller.settings.screenshotAvailable);
+            const ocr = makeOcrPage();
+            compare(child(ocr, "ocrCapture").interactive, Controller.settings.screenshotAvailable);
+            const page = make();
             compare(child(page, "autoScan").interactive, Controller.settings.scanAvailable);
             // Auto scan is switchable as an experiment, so the status has to travel with the row.
             compare(child(page, "autoScan").badge, qsTranslate("SettingsPopup", "Experimental"));
@@ -217,7 +230,7 @@ Item {
         /// contains non-ASCII characters. The page must reject that folder visibly, and the gate
         /// must stay shut, rather than discovering the crash in a child process.
         function test_rapidOcrRejectsANonAsciiModelFolder() {
-            const page = makeOcrPage();
+            const page = makeOcrPathsPage();
             const realExecutable = Qt.application.arguments[0];
             verify(realExecutable.length > 0 && realExecutable.toLowerCase().endsWith(".exe"),
                    "the test binary supplies an existing .exe for the path test");
@@ -253,10 +266,9 @@ Item {
         /// fixture means Download alone is on, and the state line says so. No case starts a
         /// download -- the transport would reach GitHub.
         function test_theBundleChipsFollowTheDownloadState() {
-            // The download group lives in the RapidOCR-only block, so the engine is named first:
-            // a child of an invisible column reports visible false, whatever its own state is.
+            // The engine is named first: the download group belongs to RapidOCR, whose paths page this is.
             Controller.captureDuty.setOcrLocalEngine("rapidocr");
-            const page = makeOcrPage();
+            const page = makeOcrPathsPage();
             const state = Controller.captureDuty.rapidOcrBundle;
             verify(!state.installed && !state.downloading,
                    "the fixture starts with no distribution on disk");
