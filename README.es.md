@@ -186,7 +186,7 @@ Consulta [SECURITY.md](SECURITY.md) para conocer todos los límites.
 
 **¿Lens es un traductor?** Puede traducir, pero está pensado para explicar. Las selecciones en chino, japonés o español vuelven en inglés.
 
-**¿Necesito una clave de API?** Sí. Usa la de un proveedor compatible. Lens muestra el coste de cada petición y puede limitar el gasto diario.
+**¿Necesito una clave de API?** Sí. Usa la de un proveedor compatible. Lens muestra el coste de cada petición y puede limitar el gasto diario. Por ejemplo, con DeepSeek una consulta de palabra cuesta unos 0,001 CNY, así que con 1 CNY caben unas 1000; otros proveedores cobran de otra forma.
 
 **¿Funciona sin conexión?** El OCR local, la lista de palabras y una voz local descargada funcionan sin conexión. Las explicaciones, el OCR en línea y los audios en línea, si los activas, necesitan el servicio que configures.
 

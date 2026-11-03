@@ -340,8 +340,8 @@
     </message>
     <message>
         <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="459"/>
-        <source>A lookup is a small request that costs a fraction of a cent; the cost panel keeps the running total.</source>
-        <translation>A lookup is a small request that costs a fraction of a cent; the cost panel keeps the running total.</translation>
+        <source>On DeepSeek a word lookup costs about 0.001 CNY, so one yuan covers about 1000; the cost panel keeps the running total.</source>
+        <translation>On DeepSeek a word lookup costs about 0.001 CNY, so one yuan covers about 1000; the cost panel keeps the running total.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="477"/>
@@ -424,32 +424,32 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>PictureStrip</name>
     <message>
-        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="54"/>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="65"/>
         <source>No pictures matched this sense.</source>
         <translation>No pictures matched this sense.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="56"/>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="67"/>
         <source>Pictures could not be downloaded. Try again.</source>
         <translation>Pictures could not be downloaded. Try again.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="57"/>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="68"/>
         <source>Pictures unavailable. Check your connection.</source>
         <translation>Pictures unavailable. Check your connection.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="112"/>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="123"/>
         <source>Loading pictures…</source>
         <translation>Loading pictures…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="249"/>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="260"/>
         <source>Photo: %1 · %2 · %3</source>
         <translation>Photo: %1 · %2 · %3</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="332"/>
+        <location filename="../src/app/qml/components/content/PictureStrip.qml" line="343"/>
         <source>Open image search</source>
         <translation>Open image search</translation>
     </message>
@@ -726,12 +726,12 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>SenseRows</name>
     <message>
-        <location filename="../src/app/qml/components/content/SenseRows.qml" line="225"/>
+        <location filename="../src/app/qml/components/content/SenseRows.qml" line="227"/>
         <source>Hide pictures</source>
         <translation>Hide pictures</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/components/content/SenseRows.qml" line="225"/>
+        <location filename="../src/app/qml/components/content/SenseRows.qml" line="227"/>
         <source>Pictures</source>
         <translation>Pictures</translation>
     </message>
@@ -999,66 +999,66 @@ One small word at a time, the reading opens.</translation>
         <translation>Collocations</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="230"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="229"/>
         <source>Pictures</source>
         <translation>Pictures</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="245"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="246"/>
         <source>Pronunciation</source>
         <translation>Pronunciation</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="253"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="254"/>
         <source>Auto-play</source>
         <translation>Auto-play</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="272"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="273"/>
         <source>American</source>
         <translation>American</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="272"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="273"/>
         <source>British</source>
         <translation>British</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="282"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="289"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="283"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="290"/>
         <source>Engine</source>
         <translation>Engine</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="301"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="302"/>
         <source>Voice: %1</source>
         <translation>Voice: %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="302"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="303"/>
         <source>No system voice is installed for this accent.</source>
         <translation>No system voice is installed for this accent.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="313"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="320"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="314"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="321"/>
         <source>Fallback</source>
         <translation>Fallback</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="334"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="341"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="335"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="342"/>
         <source>Online source</source>
         <translation>Online source</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="348"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="349"/>
         <source>Only the word is sent, to the source you pick.</source>
         <translation>Only the word is sent, to the source you pick.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="361"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="368"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="362"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="369"/>
         <source>Local voice</source>
         <translation>Local voice</translation>
     </message>
@@ -1085,34 +1085,34 @@ One small word at a time, the reading opens.</translation>
         <translation>Not downloaded. The local engine stays silent.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="386"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="387"/>
         <source>Download</source>
         <translation>Download</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="398"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="399"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="106"/>
         <source>Remove</source>
         <translation>Remove</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="404"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="405"/>
         <source>Voice files stay on this computer and are not synced.</source>
         <translation>Voice files stay on this computer and are not synced.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="416"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="425"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="417"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="426"/>
         <source>Word review</source>
         <translation>Word review</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="437"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="438"/>
         <source>How often the pet raises its sign to ask a word you have looked up.</source>
         <translation>How often the pet raises its sign to ask a word you have looked up.&gt;</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="447"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="448"/>
         <source>Unavailable while the pet is off.</source>
         <translation>Unavailable while the pet is off.</translation>
     </message>
@@ -1326,7 +1326,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="290"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="264"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="265"/>
         <source>Accent</source>
         <translation>Accent</translation>
     </message>
@@ -2648,7 +2648,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/pet/PetPackageDialog.qml" line="115"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="392"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="393"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="99"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="347"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="152"/>

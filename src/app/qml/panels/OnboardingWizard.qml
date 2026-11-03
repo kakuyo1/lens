@@ -456,7 +456,7 @@ Window {
 
                     Text {
                         width: parent.width
-                        text: qsTranslate("OnboardingWizard", "A lookup is a small request that costs a fraction of a cent; the cost panel keeps the running total.")
+                        text: qsTranslate("OnboardingWizard", "On DeepSeek a word lookup costs about 0.001 CNY, so one yuan covers about 1000; the cost panel keeps the running total.")
                         color: wizard.tokens.muted
                         font.pixelSize: 11
                         wrapMode: Text.WordWrap

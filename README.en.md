@@ -186,7 +186,7 @@ See [SECURITY.md](SECURITY.md) for the full boundary.
 
 **Is Lens a translator?** It can translate, but it is built for explanations. Chinese, Japanese, and Spanish selections come back in English.
 
-**Do I need an API key?** Yes. Bring one from a supported provider. Lens shows the cost of each request and can cap daily spending.
+**Do I need an API key?** Yes. Bring one from a supported provider. Lens shows the cost of each request and can cap daily spending. For example, on DeepSeek a word lookup costs about 0.001 CNY, so one yuan covers about 1000 lookups; other providers charge differently.
 
 **Does it work offline?** Local OCR, the word list, and a local voice you have downloaded work offline. Explanations, and online OCR or online recordings if you enable them, need the service you configure.
 
