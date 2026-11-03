@@ -19,7 +19,7 @@
   <a href="https://github.com/kakuyo1/lens/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/kakuyo1/lens?label=release&color=2f9e6e"></a>
   <a href="#descargar"><img alt="Windows 10/11 x64" src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-1a1a1f"></a>
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/github/license/kakuyo1/lens?color=2f9e6e"></a>
-  <a href="#idiomas"><img alt="Inglés, chino, chino tradicional, español y japonés" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH--HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
+  <a href="#también-incluido"><img alt="Inglés, chino, chino tradicional, español y japonés" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH--HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
 </p>
 
 <p align="center">
@@ -91,11 +91,7 @@ Los enlaces y los titulares suelen no poder seleccionarse. Cambia a la consulta 
 
 <p align="center"><img src="docs/readme/hover-lookup.gif" width="600" alt="Tras cambiar a la consulta al pasar el cursor, el puntero se queda sobre serendipity en un enlace durante un segundo y una tarjeta da su significado"></p>
 
-## Cinco formas de barra de acciones
-
-<p align="center"><img src="docs/readme/selection-styles.gif" width="800" alt="Barra clásica, pestaña lateral, mano de cartas, etiqueta colgante y abanico"></p>
-
-Elige la forma en Ajustes › Captura y ventanas: barra clásica, pestaña lateral, mano de cartas, etiqueta colgante o abanico. Las tres acciones y las reglas de canal no cambian, y el cajón de copiar sigue la forma desde la que se abre.
+## El cajón de copiar y el análisis
 
 <p align="center"><img src="docs/readme/selection-drawer.png" width="800" alt="El cajón de Copiar texto con Corregir gramática y Análisis para una frase seleccionada"></p>
 
@@ -117,16 +113,6 @@ Conocida y Nueva viven en una sola lista de palabras.
 - Pasa el ratón por una fila para releer una explicación que Lens ya guardó, sin enviar ninguna petición.
 - Cuando toca repasar una palabra, aparece junto al compañero de escritorio un pequeño cartel, el suyo; responde Olvidé o Lo recordaba y volverá con un intervalo de entre diez minutos y sesenta días.
 - El registro anual mantiene visible el hábito sin convertirlo en una racha.
-
-## Un informe de lectura cada semana
-
-El perfil semanal del panel de Estadísticas recoge las consultas de esta semana: la proporción de palabras nuevas y repetidas, las categorías gramaticales, las consultas por hora y las palabras más consultadas. Las cifras se calculan en tu equipo, y abrir el panel no envía nada.
-
-Pulsa «Interpretar la semana» y Lens envía un resumen de esos recuentos al proveedor de modelos que configures. La respuesta aparece en una tarjeta centrada, «Informe de lectura de esta semana»: unas observaciones y sugerencias, y cada observación que se apoya en una cifra muestra esa cifra a su derecha. Las cifras las calcula la aplicación, no el modelo. La página «Relato» de la tarjeta escribe un pequeño relato con las palabras que consultaste esta semana.
-
-- **Solo cuando pulsas.** La interpretación y el relato se envían solo cuando pulsas su botón, y ambos cuentan para el presupuesto diario.
-- **Solo recuentos y palabras.** El resumen contiene los recuentos, las proporciones, las categorías gramaticales, las consultas por hora y las cinco palabras más consultadas; el relato usa como mucho 15 palabras de la semana, elegidas al azar. Ninguno incluye frases, selecciones, definiciones ni la hora de cada consulta.
-- **No se guarda.** El resultado solo vive en memoria, se descarta al cambiar de semana y no se guarda en caché, sincronización ni ajustes.
 
 ## Mascotas que te devuelven las palabras
 
@@ -153,6 +139,7 @@ Lens también admite mascotas personalizadas: `skills/lens-pet-maker` del reposi
 
 - **Trae tu propio modelo.** DeepSeek, OpenAI, Gemini, OpenRouter, xAI, Moonshot, Zhipu, Qwen o un endpoint personalizado compatible con OpenAI.
 - **Costes visibles.** Coste por petición a partir de los tokens y un presupuesto diario que pausa las consultas, la captura y las peticiones cuando se alcanza.
+- **Informe de lectura semanal.** El perfil semanal de Estadísticas recoge las consultas de la semana; pulsa «Interpretar la semana» para que el modelo escriba unas observaciones. Solo se envía cuando pulsas, y solo lleva recuentos y palabras.
 - **Sincronización cuando la quieras.** Las marcas Conocida/Nueva, el historial, las estadísticas y los ajustes seleccionados se cifran con tu frase de contraseña y se guardan en un gist secreto de tu propia cuenta de GitHub. La clave de API se queda en este dispositivo.
 - **Listas de palabras de ida y vuelta.** Importa o exporta `.txt` y `.json`; borra una palabra con una confirmación.
 - **Fotos cuando ayudan.** Si el modelo cree que una foto explica mejor un sentido, la tarjeta puede abrir tres imágenes de Wikimedia Commons. Se guardan en caché local y «Acerca de» muestra su tamaño y permite borrarla.
@@ -187,7 +174,7 @@ Lens no tiene firma de código y SmartScreen bloquea los programas que no recono
 
 Lens no tiene cuenta ni servidor propio.
 
-- **Lo que se envía.** El texto que seleccionas o capturas va al proveedor que configures, después de ocultar localmente URL, direcciones de correo y cadenas de seis o más dígitos. La interpretación semanal y el relato solo se envían cuando pulsas su botón, llevan solo recuentos y palabras, y estas se enmascaran igual; véase [Un informe de lectura cada semana](#un-informe-de-lectura-cada-semana).
+- **Lo que se envía.** El texto que seleccionas o capturas va al proveedor que configures, después de ocultar localmente URL, direcciones de correo y cadenas de seis o más dígitos. La interpretación semanal y el relato solo se envían cuando pulsas su botón, llevan solo recuentos y palabras, y estas se enmascaran igual.
 - **OCR.** Se ejecuta localmente por defecto. El OCR en línea es opcional: cada captura muestra el recorte congelado y el destino exacto, se sube solo cuando lo confirmas, y el escaneo automático experimental nunca lo usa.
 - **El altavoz.** Lee en local con la voz del sistema o un modelo local descargado; cuando recurre a un audio en línea, solo esa palabra sale del dispositivo, y la grabación se guarda en `%APPDATA%\Lens\audio`.
 - **En este dispositivo.** Tu clave de API, las credenciales de OCR y tus datos de aprendizaje se quedan en `%APPDATA%\Lens\settings.json`.
@@ -208,12 +195,6 @@ Consulta [SECURITY.md](SECURITY.md) para conocer todos los límites.
 **¿Por qué me avisa Windows?** El instalador no tiene firma de código; la nota de [Descargar](#descargar) explica cómo ejecutarlo y verificarlo.
 
 **¿Hay versión para macOS o Linux?** Por ahora, solo Windows.
-
-## Idiomas
-
-[English](README.en.md) · [简体中文](README.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [Español](README.es.md)
-
-El idioma de la interfaz y el de las explicaciones son ajustes independientes. Ambos ofrecen inglés, chino, chino tradicional, español y japonés.
 
 ## Contribuir y licencia
 

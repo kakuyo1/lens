@@ -19,7 +19,7 @@
   <a href="https://github.com/kakuyo1/lens/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/kakuyo1/lens?label=release&color=2f9e6e"></a>
   <a href="#download"><img alt="Windows 10 and 11, x64" src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-1a1a1f"></a>
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/github/license/kakuyo1/lens?color=2f9e6e"></a>
-  <a href="#languages"><img alt="English, Chinese, Traditional Chinese, Spanish and Japanese" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH--HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
+  <a href="#also-in-the-box"><img alt="English, Chinese, Traditional Chinese, Spanish and Japanese" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH--HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
 </p>
 
 <p align="center">
@@ -91,11 +91,7 @@ Links and headlines often can't be selected. Switch to hover lookup (`Ctrl+Alt+H
 
 <p align="center"><img src="docs/readme/hover-lookup.gif" width="600" alt="After switching to hover lookup, the pointer rests on serendipity in a link for a second, and a card gives its meaning"></p>
 
-## Five action bars, one set of actions
-
-<p align="center"><img src="docs/readme/selection-styles.gif" width="800" alt="Classic bar, side tab, hand of cards, hang tag and fan selection styles"></p>
-
-Choose the shape in Settings › Capture & popups: the classic bar, a page-edge tab, a hand of cards, a hang tag, or a fan. The three actions and channel rules stay the same, and the copy drawer follows the shape it opens from.
+## Copy drawer and breakdown
 
 <p align="center"><img src="docs/readme/selection-drawer.png" width="800" alt="The copy text's drawer listing Fix syntax and Breakdown for a selected sentence"></p>
 
@@ -117,16 +113,6 @@ Known and New live on one word list.
 - Hover a row to reread an explanation Lens already stored, without sending a request.
 - When a word is due, a small sign appears beside the desktop pet — its own, drawn for that pet; answer Forgot or Remembered and it comes back on a spaced schedule from ten minutes to sixty days.
 - The year-in-words graph keeps the habit visible without turning it into a streak.
-
-## A weekly reading report
-
-The **Week profile** row in the Statistics panel records this week's lookups: the share of new words and repeats, the parts of speech, lookups by hour, and the words you looked up most. The figures are counted on this device, and opening the panel sends nothing.
-
-Press **Interpret this week** and Lens sends a summary of those counts to the model provider you configure. The answer appears on a centred card, **This week's reading report**: a few observations and suggestions, and each observation that rests on a figure shows that figure on its right. The figures come from the app, not the model. The card's **Story** page writes a short story from the words you looked up this week.
-
-- **Only when you press.** The interpretation and the story are each sent only when you press their button, and both count toward the daily budget.
-- **Only counts and words.** The summary holds the counts, the shares, the parts of speech, lookups by hour, and the five most looked-up words. The story holds up to fifteen of the week's words, drawn at random. Neither holds sentences, selections, definitions, or the time of each lookup.
-- **Not kept.** The answer lives in memory only, is dropped when the week changes, and is not cached, synced, or saved in settings.
 
 ## Pets that ask you the words back
 
@@ -153,6 +139,7 @@ Lens also supports custom pets. The repository's `skills/lens-pet-maker` is a Cl
 
 - **Bring your own model.** DeepSeek, OpenAI, Gemini, OpenRouter, xAI, Moonshot, Zhipu, Qwen, or a custom OpenAI-compatible endpoint.
 - **Costs you can see.** Per-request cost from tokens, and a daily budget that pauses lookups, capture, and requests when the day reaches it.
+- **A weekly reading report.** Statistics keeps this week's lookups as a Week profile; press **Interpret this week** and the model writes a few observations. It is sent only when you press, and carries only counts and words.
 - **Sync when you want it.** Word marks, lookup history, statistics, and selected settings are encrypted with your passphrase and kept in a secret gist in your own GitHub account. The API key stays on this device.
 - **Word lists in and out.** Import or export `.txt` and `.json`; delete a word with one confirmation.
 - **Pictures when they help.** A sense the model thinks a photo explains better can open three Wikimedia Commons pictures. They are cached locally, and About shows the cache size and clears it in place.
@@ -187,7 +174,7 @@ Lens is not code-signed, and SmartScreen blocks programs it does not recognise. 
 
 Lens has no account and no server of its own.
 
-- **What is sent.** The text you select or capture is sent to the provider you configure, after local masking of URLs, email addresses, and digit strings of six or more digits. The weekly report's interpretation and story are sent only when you press their button, carry only counts and words, and mask the words the same way; see [A weekly reading report](#a-weekly-reading-report).
+- **What is sent.** The text you select or capture is sent to the provider you configure, after local masking of URLs, email addresses, and digit strings of six or more digits. The weekly report's interpretation and story are sent only when you press their button, carry only counts and words, and mask the words the same way.
 - **OCR.** It runs locally by default. Online OCR is opt-in: each capture shows the frozen crop and the exact destination, uploads only after you confirm, and experimental automatic scanning never uses it.
 - **The speaker.** It reads on this device through the system voice or a downloaded local model; when it falls back to an online recording, only that word leaves the device, and the recording is cached under `%APPDATA%\Lens\audio`.
 - **On this device.** Your explanation key, OCR credentials, and learning data stay in `%APPDATA%\Lens\settings.json`.
@@ -208,12 +195,6 @@ See [SECURITY.md](SECURITY.md) for the full boundary.
 **Why does Windows warn me?** The installer is not code-signed; the note under [Download](#download) explains how to run it and verify the file.
 
 **Is there a macOS or Linux build?** Windows only for now.
-
-## Languages
-
-[English](README.en.md) · [简体中文](README.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [Español](README.es.md)
-
-The interface language and the explanation language are separate settings. Both offer English, Chinese, Traditional Chinese, Spanish, and Japanese.
 
 ## Contributing and license
 
