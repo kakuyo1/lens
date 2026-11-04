@@ -4,6 +4,8 @@
 #pragma once
 
 #include <QPoint>
+#include <QRect>
+#include <QSize>
 #include <QString>
 
 #include <optional>
@@ -22,6 +24,8 @@ struct ForegroundWindow {
     quintptr monitor    = 0;
     bool     ownProcess = false;
     QPoint   anchor;
+    /// The window's size in physical pixels, from the same rectangle as anchor.
+    QSize size;
 };
 
 std::optional<ForegroundWindow> foregroundWindow();
@@ -31,5 +35,12 @@ quintptr monitorAt(QPoint physical);
 
 /// @return The monitor's origin in physical pixels, or nothing when @p monitor is not one.
 std::optional<QPoint> physicalScreenOrigin(quintptr monitor);
+
+/// @brief The part of a window that a full-screen grab of its monitor holds.
+/// @param window The window's rectangle, in physical pixels of the virtual desktop.
+/// @param origin The monitor's top-left in the same pixels, from physicalScreenOrigin().
+/// @param grab   The size of the full-screen grab of that monitor, in physical pixels.
+/// @return The crop in the grab's own coordinates; empty when the window is not on this monitor.
+QRect windowCropInGrab(QRect window, QPoint origin, QSize grab);
 
 }

@@ -65,6 +65,9 @@ Window {
         workAreaAt: point => surfaceHost.workArea(surfaceHost.screenFor(point))
     }
 
+    /// The pencil layer (UI-SPEC.md 4.20): the dashed lines under the page's words, and the signposts while Alt is held.
+    PencilLayer {}
+
     /// The debug profiling steps, driven by main.cpp through profileScenario() (ProfileScenario.qml).
     ProfileScenario {
         id: profile

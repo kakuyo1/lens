@@ -150,9 +150,11 @@ public:
     std::optional<PendingSelection> refuse();
     /// @return Whether the standing card was the deleted word and is now down.
     bool invalidateWord(QString const& lemma);
-    /// @return The item the answer in flight is still the reader's to hear about, given the title it
-    ///         has named so far; nothing when the reader moved on or the batch is the scan's and unnamed.
-    std::optional<PendingSelection> liveSubject(QString const& title, core::CacheContext const& now) const;
+    /// @return The item the answer in flight is still the reader's to hear about; nothing when the reader
+    ///         moved on, or the batch is a prefetch and shows nothing.
+    std::optional<PendingSelection> liveSubject(core::CacheContext const& now) const;
+    /// @return The stored signpost of @p lemma in the explanation language in force, or empty when none is stored.
+    QString signpostOf(QString const& lemma) const;
 
     /**
      * @brief Raise or refresh a card whose answer is not its own transaction: a stream, a breakdown,

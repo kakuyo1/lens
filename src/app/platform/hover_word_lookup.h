@@ -50,4 +50,18 @@ std::optional<HoverWord> hoverWordAt(QPoint at, std::vector<std::string> const& 
  */
 QPoint hoverCursorPos();
 
+/**
+ * @brief The text of the largest document in a window: the page's body, as UI Automation exposes it.
+ * @param window The window's handle.
+ * @return The text; empty when the window holds no document yet, until the window has been asked once
+ *         (see warmPageTreeOf()).
+ */
+QString pageTextOf(quintptr window);
+
+/**
+ * @brief Ask a window for its whole UI Automation tree, which makes a browser build its web content.
+ * @note Blocks for the query; call it off the main thread.
+ */
+void warmPageTreeOf(quintptr window);
+
 }

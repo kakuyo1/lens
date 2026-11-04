@@ -446,6 +446,16 @@ TEST(ExplanationQueue, AScanBatchTakesFiveAndLeavesTheRestQueued)
 
 /// The reader pointing at a word outranks the word list filling itself in beside it: the scan
 /// batch is not lost, it is simply next.
+TEST(ExplanationQueue, AWordAlreadyOnItsWayAsAPrefetchIsKnownSoItIsNotPaidForTwice)
+{
+    ExplanationQueue queue;
+    queue.addScan({aWord(QStringLiteral("bank"))});
+    EXPECT_TRUE(queue.prefetching(QStringLiteral("bank"))) << "waiting in the queue";
+    ASSERT_TRUE(queue.take(true, aContext()).has_value());
+    EXPECT_TRUE(queue.prefetching(QStringLiteral("BANK"))) << "in flight, compared without case";
+    EXPECT_FALSE(queue.prefetching(QStringLiteral("river")));
+}
+
 TEST(ExplanationQueue, ARequestTheReaderMadeOvertakesQueuedScanWork)
 {
     ExplanationQueue queue;
@@ -506,7 +516,7 @@ TEST(ExplanationQueue, AWordDeletedBeforeItIsSentLeavesTheQueueAndTheHeldRequest
 
 /// A batch of five is answered as five results, and the answer says which word each one is for by
 /// naming it -- the order they come back in is the model's, not the request's.
-TEST(ExplanationQueue, AnAnswerIsPairedWithItsItemByLemmaAndShownAboutTheItemTheFirstOneNames)
+TEST(ExplanationQueue, AnAnswerIsPairedWithItsItemByLemmaAndARequestForAPrefetchRaisesNoCard)
 {
     ExplanationQueue queue;
     queue.addScan({aWord(QStringLiteral("bank")), aWord(QStringLiteral("river"))});
@@ -524,11 +534,10 @@ TEST(ExplanationQueue, AnAnswerIsPairedWithItsItemByLemmaAndShownAboutTheItemThe
     EXPECT_EQ(settlement.batch.context.language, "en");
     EXPECT_EQ(settlement.batch.items.size(), settlement.resultFor.size());
 
-    // The scan bubble goes up over the item the first answer names rather than over the batch's
-    // first, so the word the reader is being shown is the one at the top of the card.
-    ASSERT_TRUE(settlement.subject.has_value());
-    EXPECT_EQ(settlement.subject->lemma, QStringLiteral("river"));
-    EXPECT_EQ(settlement.subject->anchor, QPoint(200, 400));
+    // A prefetch is stored and never shown: no item is offered for a card, and none is live while
+    // the answer is still streaming in.
+    EXPECT_FALSE(settlement.subject.has_value());
+    EXPECT_FALSE(queue.liveSubject(aContext()).has_value());
 }
 
 /// Deleting a word while its answer is on the way does two things and they are not the same thing:
@@ -566,8 +575,9 @@ TEST(ExplanationQueue, ANewSelectionLeavesAnAnswerOnItsWayUnshownButStillStored)
 /// reader asked in -- not the ones they are in now.
 TEST(ExplanationQueue, AChangedLanguageOrSenseModeLeavesTheAnswerUnshown)
 {
+    // The reader's own request: a prefetch never shows a card, so it cannot show the positive case.
     ExplanationQueue queue;
-    queue.addScan({aWord(QStringLiteral("bank"))});
+    queue.request(aWord(QStringLiteral("bank")));
     ASSERT_TRUE(queue.take(true, aContext("en", true)).has_value());
 
     EXPECT_TRUE(queue.settled({QStringLiteral("bank")}, aContext("en", true)).subject.has_value());

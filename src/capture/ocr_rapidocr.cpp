@@ -31,6 +31,7 @@ constexpr qsizetype   kMaxError        = 64 * 1024;
 constexpr qsizetype   kMaxTextUnits    = 65536;
 constexpr qsizetype   kMaxBlocks       = 2000;
 constexpr qint64      kMaxTrustedBytes = 64LL * 1024 * 1024;
+constexpr int         kRapidOcrPadding = 50; ///< --padding: RapidOCR adds this margin, so a box may reach this far past an edge.
 constexpr char const* kEngineName      = "rapidocr-json";
 constexpr char const* kDetModel        = "ch_PP-OCRv3_det_infer.onnx";
 constexpr char const* kClsModel        = "ch_ppocr_mobile_v2.0_cls_infer.onnx";
@@ -87,7 +88,7 @@ QStringList argumentsFor(RapidOcrConfig const& config)
             QStringLiteral("--ensureAscii=1"),
             QStringLiteral("--ensureLogger=0"),
             QStringLiteral("--numThread=2"),
-            QStringLiteral("--padding=50"),
+            QStringLiteral("--padding=%1").arg(kRapidOcrPadding),
             QStringLiteral("--maxSideLen=1024"),
             QStringLiteral("--boxScoreThresh=0.5"),
             QStringLiteral("--boxThresh=0.3"),
@@ -452,8 +453,16 @@ OcrResult parseRapidOcrResponse(QByteArray const&   response,
             maxX = std::max(maxX, x);
             maxY = std::max(maxY, y);
         }
-        OcrBox const box{.x = minX, .y = minY, .width = maxX - minX, .height = maxY - minY};
-        if (box.width <= 0 or box.height <= 0 or not boxFitsImage(box, imageSize, 1.0))
+        // RapidOCR pads the image and grows each box outward, so a line at an edge reaches a little past it:
+        // clip that reach to the image, and refuse only a box that goes further than the padding can explain.
+        bool const reachable = minX >= -kRapidOcrPadding and minY >= -kRapidOcrPadding and
+                               maxX <= imageSize.width() + kRapidOcrPadding and maxY <= imageSize.height() + kRapidOcrPadding;
+        double const left   = std::max(minX, 0.0);
+        double const top    = std::max(minY, 0.0);
+        double const right  = std::min(maxX, static_cast<double>(imageSize.width()));
+        double const bottom = std::min(maxY, static_cast<double>(imageSize.height()));
+        OcrBox const box{.x = left, .y = top, .width = right - left, .height = bottom - top};
+        if (not reachable or box.width <= 0 or box.height <= 0 or not boxFitsImage(box, imageSize, 1.0))
             return failureFor(OcrStatus::ProtocolError);
 
         auto const scoreValue = block.value(QStringLiteral("score"));

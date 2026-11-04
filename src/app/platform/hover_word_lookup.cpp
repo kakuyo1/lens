@@ -200,4 +200,90 @@ std::optional<HoverWord> hoverWordAt(QPoint const at, std::vector<std::string> c
     return wordAt(*scope, pt);
 }
 
+namespace {
+
+Com<IUIAutomation> newAutomation()
+{
+    IUIAutomation* raw = nullptr;
+    if (FAILED(CoCreateInstance(CLSID_CUIAutomation, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&raw))) or not raw) return {};
+    return Com<IUIAutomation>{raw};
+}
+
+Com<IUIAutomationElement> elementOf(IUIAutomation& automation, quintptr const window)
+{
+    IUIAutomationElement* raw = nullptr;
+    if (FAILED(automation.ElementFromHandle(reinterpret_cast<HWND>(window), &raw))) return {};
+    return Com<IUIAutomationElement>{raw};
+}
+
+}
+
+QString pageTextOf(quintptr const window)
+{
+    ComApartment apartment;
+    auto const   automation = newAutomation();
+    if (not automation) return {};
+    auto const root = elementOf(*automation, window);
+    if (not root) return {};
+
+    // Only document controls: a browser's page is one, its tabs and toolbars are not.
+    VARIANT documentType{};
+    documentType.vt                      = VT_I4;
+    documentType.lVal                    = UIA_DocumentControlTypeId;
+    IUIAutomationCondition* conditionRaw = nullptr;
+    if (FAILED(automation->CreatePropertyCondition(UIA_ControlTypePropertyId, documentType, &conditionRaw)) or not conditionRaw) return {};
+    Com<IUIAutomationCondition> documents{conditionRaw};
+
+    IUIAutomationElementArray* arrayRaw = nullptr;
+    if (FAILED(root->FindAll(TreeScope_Descendants, documents.get(), &arrayRaw)) or not arrayRaw) return {};
+    Com<IUIAutomationElementArray> array{arrayRaw};
+    int                            count = 0;
+    array->get_Length(&count);
+
+    // The largest document is the page; the browser's other documents are small.
+    Com<IUIAutomationTextPattern> page;
+    LONGLONG                      bestArea = -1;
+    for (int i = 0; i < count; ++i) {
+        IUIAutomationElement* elementRaw = nullptr;
+        if (FAILED(array->GetElement(i, &elementRaw)) or not elementRaw) continue;
+        Com<IUIAutomationElement> element{elementRaw};
+        RECT                      box{};
+        if (FAILED(element->get_CurrentBoundingRectangle(&box))) continue;
+        LONGLONG const area = static_cast<LONGLONG>(box.right - box.left) * (box.bottom - box.top);
+        if (area <= bestArea) continue;
+        IUnknown* patternRaw = nullptr;
+        if (FAILED(element->GetCurrentPattern(UIA_TextPatternId, &patternRaw)) or not patternRaw) continue;
+        Com<IUnknown>             pattern{patternRaw};
+        IUIAutomationTextPattern* textRaw = nullptr;
+        if (FAILED(pattern->QueryInterface(IID_PPV_ARGS(&textRaw))) or not textRaw) continue;
+        page.reset(textRaw);
+        bestArea = area;
+    }
+    if (not page) return {};
+
+    IUIAutomationTextRange* rangeRaw = nullptr;
+    if (FAILED(page->get_DocumentRange(&rangeRaw)) or not rangeRaw) return {};
+    Com<IUIAutomationTextRange> range{rangeRaw};
+    BSTR                        body = nullptr;
+    if (FAILED(range->GetText(-1, &body))) return {};
+    QString const text = QString::fromWCharArray(body, static_cast<int>(SysStringLen(body)));
+    SysFreeString(body);
+    return text;
+}
+
+void warmPageTreeOf(quintptr const window)
+{
+    ComApartment apartment;
+    auto const   automation = newAutomation();
+    if (not automation) return;
+    auto const root = elementOf(*automation, window);
+    if (not root) return;
+    IUIAutomationCondition* anyRaw = nullptr;
+    if (FAILED(automation->CreateTrueCondition(&anyRaw)) or not anyRaw) return;
+    Com<IUIAutomationCondition> any{anyRaw};
+    IUIAutomationElementArray*  arrayRaw = nullptr;
+    root->FindAll(TreeScope_Descendants, any.get(), &arrayRaw);
+    Com<IUIAutomationElementArray> array{arrayRaw}; // the query is the point; its result is dropped at once
+}
+
 }
