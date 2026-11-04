@@ -25,7 +25,6 @@
 #include "capture/ocr_executor.h"
 #include "capture/ocr_local.h"
 #include "capture/bundle_downloader.h"
-#include "capture/scan_pipeline.h"
 #include "capture_refusal.h"
 #include "app/platform/hover_word_lookup.h"
 #include "app/platform/selection_text_grabber.h"
@@ -152,6 +151,12 @@ public:
     /// @brief Switch between selection lookup and hover lookup. Hover lookup is off at every start:
     ///        the mode is not a setting, so a restart puts the reader back on selection.
     void toggleHoverMode();
+    /// @brief Show the bubble of @p surface, a word the reader's pointer is on while Alt is held; @p anchor is
+    ///        its bottom-left in physical pixels, where the bubble goes.
+    void lookUpWord(QString surface, QPoint anchor);
+    /// @brief True while the automatic scan is on and a Chrome window is in front, the only time a lone Alt tap
+    ///        is turned into a cancelled tap for the menu bar.
+    bool chromeScanActive();
 
 signals:
     void selectionBarRequested(QVariantMap payload);
@@ -163,10 +168,11 @@ signals:
     void selectionReady(PendingSelection selection);
     void pointerPressed(QPoint at);
     void settingsChanged();
-    /// @brief Only filtered candidates, never an OCR snapshot, leave this duty.
-    void scanCandidatesReady(QVariantList candidates, QPoint anchor);
-    /// @brief Count-only report for entity-shaped text unsupported by the scan channel.
-    void scanEntitiesUnsupported(int count);
+    /// @brief The scan's new words, each as {lemma, surface, x, y, width, height} in physical screen pixels, and
+    ///        the monitor they sit on: its device-independent geometry, its physical origin and its scale.
+    void scanPlaced(QVariantList words, QRect screen, QPoint screenOrigin, double scale);
+    /// @brief The placed words no longer describe the page: it moved, the scan stopped, or the window changed.
+    void scanCleared();
     /// @brief A frozen crop is waiting for the reader's explicit upload decision.
     void uploadConsentRequested(QVariantMap consent);
     /// @brief The frozen crop itself, for the confirmation card's controlled image source.
@@ -183,6 +189,12 @@ signals:
     void rapidOcrBundleChanged();
 
 private:
+    /// @brief A page word the scan placed, with the box of the OCR word that found it.
+    struct ScanPlacement {
+        std::string     surface;
+        capture::OcrBox box;
+    };
+
     struct OcrJob {
         QPoint        anchor;
         QString       context;
@@ -249,9 +261,14 @@ private:
     /// @brief Restore @p provider's saved address and credentials, or empty ones when it has none.
     void restoreOnlineService(QString const& provider);
     /// @brief Forget exchanged tokens; their key or address changed, or the reader cleared them.
-    void        clearOnlineTokens();
-    void        invalidateScan();
-    void        publishBatch(capture::ScanTime now, QPoint anchor);
+    void clearOnlineTokens();
+    void invalidateScan();
+    /// @brief Build the Tesseract engine the scan reads with, and record whether its resources are present.
+    void rebuildScanOcr();
+    /// @brief Read the page text for a recognised scan frame, off the main thread; the placed words come back to onScanPlaced().
+    void placeScanWords(capture::OcrResult const& result, QPoint anchor, quintptr window);
+    /// @brief Judge one scan frame's placed words against the reader's settings.
+    void        onScanPlaced(std::vector<ScanPlacement> placed, QPoint anchor, std::size_t ocrWords, bool pageReady);
     std::size_t minFreqRank() const;
 
     StorageDuty&                          storage_;
@@ -261,28 +278,37 @@ private:
     std::unique_ptr<capture::OcrExecutor> executor_;
     std::shared_ptr<ocr::HttpTransport>   onlineTransport_;
     /// Tokens a service exchanged this run. Memory only; cleared whenever the key or address moves.
-    std::shared_ptr<ocr::OcrTokenStore>    onlineTokens_;
-    std::unique_ptr<capture::ScanPipeline> scan_;
-    QTimer                                 scanTimer_;
-    QTimer                                 hoverTimer_;
-    core::HoverDwell                       hoverDwell_;
-    bool                                   hoverMode_ = false;
-    bool                                   hoverBusy_ = false; ///< A word read is in flight.
-    std::optional<OcrJob>                  jobContext_;
-    std::optional<PendingUpload>           upload_;
-    QTimer                                 consentTimer_;
-    QTimer                                 uploadTimer_;
-    QString                                uploadPhase_          = QStringLiteral("idle");
-    bool                                   uploadCanRetry_       = false;
-    capture::OcrStatus                     ocrState_             = capture::OcrStatus::RuntimeMissing;
-    std::uint64_t                          generation_           = 0;
-    std::uint64_t                          screenshotGeneration_ = 0;
-    std::uint64_t                          nextRequestId_        = 0;
-    QString                                scanContext_;
-    QPoint                                 scanAnchor_;
-    bool                                   scanPaused_   = false;
-    bool                                   budgetPaused_ = false;
-    QString                                ocrTestState_ = QStringLiteral("idle");
+    std::shared_ptr<ocr::OcrTokenStore>   onlineTokens_;
+    std::shared_ptr<capture::OcrEngine>   scanOcr_;
+    bool                                  scanReady_ = false; ///< Tesseract and its English data are present.
+    QTimer                                scanTimer_;
+    QTimer                                hoverTimer_;
+    core::HoverDwell                      hoverDwell_;
+    bool                                  hoverMode_ = false;
+    bool                                  hoverBusy_ = false; ///< A word read is in flight.
+    std::optional<OcrJob>                 jobContext_;
+    std::optional<PendingUpload>          upload_;
+    QTimer                                consentTimer_;
+    QTimer                                uploadTimer_;
+    QString                               uploadPhase_          = QStringLiteral("idle");
+    bool                                  uploadCanRetry_       = false;
+    capture::OcrStatus                    ocrState_             = capture::OcrStatus::RuntimeMissing;
+    std::uint64_t                         generation_           = 0;
+    std::uint64_t                         screenshotGeneration_ = 0;
+    std::uint64_t                         nextRequestId_        = 0;
+    QString                               scanContext_;
+    QPoint                                scanAnchor_;
+    QRect                                 scanScreen_;
+    QPoint                                scanScreenOrigin_;
+    double                                scanScale_       = 1.0;
+    quintptr                              scanWindow_      = 0;
+    std::uint64_t                         scanFingerprint_ = 0;
+    int                                   scanStableTicks_ = 0;
+    std::optional<std::uint64_t>          scannedFingerprint_;
+    std::chrono::steady_clock::time_point scanLastOcr_{};
+    bool                                  scanPaused_   = false;
+    bool                                  budgetPaused_ = false;
+    QString                               ocrTestState_ = QStringLiteral("idle");
     /// Why the last test failed, in the vocabulary the settings page explains; `none` otherwise.
     QString                     ocrTestReason_ = QStringLiteral("none");
     QString                     ocrTestEngine_;

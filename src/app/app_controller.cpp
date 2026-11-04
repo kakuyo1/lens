@@ -93,13 +93,14 @@ QString fontFamilyFor(QString const& stored)
 AppController::AppController(core::KnownStore&            store,
                              llm::LlmClient&              llm,
                              MouseSelectionHook&          hook,
+                             AltKeyHook&                  altHook,
                              GlobalHotkey&                hotkey,
                              const llm::Pricing&          pricing,
                              const std::filesystem::path& dataDir,
                              QObject*                     parent)
     : QObject(parent),
       storage_(store),
-      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), onboarding_(storage_, this), sync_(storage_, dataDir, nullptr, this), reviewDuty_(storage_, [this] { return pet_ != nullptr and pet_->enabled(); }, [this] { return pet_ != nullptr and pet_->availableForReview(); }, this), readingProfile_(storage_, llm, cost_, [] { return QDate::currentDate(); }, this), llm_(llm), hotkey_(hotkey), picturesSource_(nullptr, this), picturesCache_(pictures::PictureCache::defaultRoot()), pictureDuty_(picturesSource_, picturesCache_, this), speechSources_(nullptr, this), speechCache_(speech::AudioCache::defaultRoot()), speechDuty_(speechSources_, speechCache_, storage_, this), previewSample_(loadPreviewSample(dataDir / "preview.json"))
+      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), pencil_(capture_, explanation_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), onboarding_(storage_, this), sync_(storage_, dataDir, nullptr, this), reviewDuty_(storage_, [this] { return pet_ != nullptr and pet_->enabled(); }, [this] { return pet_ != nullptr and pet_->availableForReview(); }, this), readingProfile_(storage_, llm, cost_, [] { return QDate::currentDate(); }, this), llm_(llm), hotkey_(hotkey), picturesSource_(nullptr, this), picturesCache_(pictures::PictureCache::defaultRoot()), pictureDuty_(picturesSource_, picturesCache_, this), speechSources_(nullptr, this), speechCache_(speech::AudioCache::defaultRoot()), speechDuty_(speechSources_, speechCache_, storage_, this), previewSample_(loadPreviewSample(dataDir / "preview.json"))
 {
     budgetPaused_ = cost_.budgetStatus().exhausted;
     // The review and answer cards read the word's curve for their next-ask line; the duties build
@@ -126,10 +127,13 @@ AppController::AppController(core::KnownStore&            store,
     connect(&capture_, &CaptureDuty::selectionReady, this, [this](PendingSelection selection) {
         explanation_.setSelection(std::move(selection));
     });
-    connect(&capture_, &CaptureDuty::scanCandidatesReady, this, [this](QVariantList candidates, QPoint anchor) {
-        explanation_.enqueueScanCandidates(std::move(candidates), anchor);
-    });
     connect(&capture_, &CaptureDuty::screenshotFailed, this, &AppController::reportCaptureRefusal);
+    connect(&capture_, &CaptureDuty::scanPlaced, &pencil_, &PencilDuty::placeWords);
+    connect(&capture_, &CaptureDuty::scanCleared, &pencil_, &PencilDuty::clear);
+    connect(&altHook, &AltKeyHook::altPressed, &pencil_, &PencilDuty::altDown);
+    connect(&altHook, &AltKeyHook::altReleased, &pencil_, &PencilDuty::altUp);
+    // A lone Alt tap never opens Chrome's menu bar while Chrome is the page being scanned (see AltKeyHook).
+    altHook.setMenuGuard([this] { return capture_.chromeScanActive(); });
     connect(&capture_, &CaptureDuty::settingsChanged, this, &AppController::settingsChanged);
     connect(&capture_, &CaptureDuty::uploadPreviewReady, this, [this](qulonglong requestId, QImage const& image) {
         if (consentPreview_) consentPreview_->set(requestId, image);
@@ -209,6 +213,11 @@ AppController::AppController(core::KnownStore&            store,
     });
     wordsModel_.update(QDate::currentDate(), storage_.statsStore().history(), storage_.knownStore().known());
     LENS_INFO("AppController ready: level={} explanation language '{}'", store.level(), store.explanationLang());
+}
+
+PencilDuty* AppController::pencil()
+{
+    return &pencil_;
 }
 
 AppController::~AppController() = default;

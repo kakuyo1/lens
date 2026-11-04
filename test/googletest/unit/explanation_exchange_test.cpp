@@ -172,21 +172,20 @@ TEST_F(ExplanationExchangeTest, TheBudgetDropsAReadersMissButAScanWaits)
     EXPECT_EQ(exchange->take(facts(), false).kind, ExplanationExchange::Outcome::Kind::Send);
 }
 
-TEST_F(ExplanationExchangeTest, TheScanCountsEveryHitAndShowsOnlyTheFirst)
+TEST_F(ExplanationExchangeTest, AStoredWordTheScanAsksAboutIsLeftAloneWithNoCardAndNoPop)
 {
+    // A prefetch for the Alt key: a word already stored needs no card and counts for nothing.
     storeEntry("bank");
-    storeEntry("river");
+    auto const hit = exchange->ask(wordOf("bank"), AskOrigin::Scan, facts());
+    EXPECT_EQ(hit.kind, ExplanationExchange::Outcome::Kind::None);
+    EXPECT_TRUE(hit.popLemma.isEmpty());
+    EXPECT_FALSE(exchange->card().standing());
 
-    auto const first = exchange->ask(wordOf("bank"), AskOrigin::Scan, facts());
-    ASSERT_EQ(first.kind, ExplanationExchange::Outcome::Kind::Card);
-    EXPECT_EQ(first.popLemma, QStringLiteral("bank"));
-
-    // A second hit still counts, but the card the pointer already has keeps its word.
-    auto const second = exchange->ask(wordOf("river"), AskOrigin::Scan, facts());
-    EXPECT_EQ(second.kind, ExplanationExchange::Outcome::Kind::None);
-    EXPECT_EQ(second.popLemma, QStringLiteral("river"));
-    ASSERT_TRUE(exchange->card().subject());
-    EXPECT_EQ(exchange->card().subject()->lemma, QStringLiteral("bank"));
+    // A missing word is queued and nothing else: the batch it goes out in is the word list's.
+    exchange->ask(wordOf("river"), AskOrigin::Scan, facts());
+    auto const sent = exchange->take(facts(), false);
+    ASSERT_EQ(sent.kind, ExplanationExchange::Outcome::Kind::Send);
+    EXPECT_TRUE(sent.batch.fromScan);
 }
 
 TEST_F(ExplanationExchangeTest, TheHoverShowsStoredWorkAndBuysNothing)

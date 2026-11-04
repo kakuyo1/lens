@@ -26,6 +26,11 @@ std::optional<QPoint> physicalScreenOrigin(quintptr const monitor)
     return QPoint{info.rcMonitor.left, info.rcMonitor.top};
 }
 
+QRect windowCropInGrab(QRect const window, QPoint const origin, QSize const grab)
+{
+    return QRect{window.topLeft() - origin, window.size()}.intersected(QRect{QPoint{0, 0}, grab});
+}
+
 std::optional<ForegroundWindow> foregroundWindow()
 {
     auto const window = GetForegroundWindow();
@@ -45,7 +50,8 @@ std::optional<ForegroundWindow> foregroundWindow()
                             .context    = QStringLiteral("%1:%2").arg(pid).arg(reinterpret_cast<quintptr>(window)),
                             .monitor    = reinterpret_cast<quintptr>(monitor),
                             .ownProcess = pid == GetCurrentProcessId(),
-                            .anchor     = QPoint{rect.left, rect.top}};
+                            .anchor     = QPoint{rect.left, rect.top},
+                            .size       = QSize{static_cast<int>(width), static_cast<int>(height)}};
     if (result.ownProcess) return result;
     auto const process = std::unique_ptr<void, decltype(&CloseHandle)>{
         OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid), &CloseHandle};

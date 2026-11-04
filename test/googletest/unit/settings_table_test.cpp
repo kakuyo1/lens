@@ -95,7 +95,7 @@ struct Rig {
     explicit Rig(std::filesystem::path const& root)
         : store(core::KnownStore::load(root / "settings.json")),
           client(llm::Config{QUrl{app::defaults::defaultBaseUrl()}, {}, app::defaults::defaultModelName()}, &manager),
-          controller(store, client, hook, hotkey, pricing(), test::sourceDir() / "data")
+          controller(store, client, hook, altHook, hotkey, pricing(), test::sourceDir() / "data")
     {}
 
     /// @return The row's value as the document holds it, which is what a restore writes.
@@ -113,6 +113,7 @@ struct Rig {
 
     core::KnownStore        store;
     app::MouseSelectionHook hook;
+    app::AltKeyHook         altHook;
     app::GlobalHotkey       hotkey;
     QuietManager            manager;
     llm::LlmClient          client;

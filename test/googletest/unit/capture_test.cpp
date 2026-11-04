@@ -20,10 +20,13 @@
 
 #include "app/duties/capture_duty.h"
 #include "app/duties/capture_refusal.h"
+#include "app/platform/alt_key_hook.h"
 #include "app/platform/mouse_selection_hook.h"
 #include "app/duties/storage_duty.h"
 #include "capture/capture_policy.h"
+#include "capture/foreground_window.h"
 #include "capture/ocr_engine.h"
+#include "capture/page_alignment.h"
 #include "capture/scan_pipeline.h"
 #include "ocr/http_transport.h"
 #include "core/document/known_store.h"
@@ -38,33 +41,7 @@ using lens::app::ClipboardSnapshot;
 using lens::app::Gesture;
 using lens::app::isSelectionGesture;
 using lens::app::selectionSurvivesClipboardPolicy;
-using lens::capture::FilterPolicy;
-using lens::capture::ScanFrame;
-using lens::capture::ScanPipeline;
-using lens::capture::ScanTime;
 using lens::test::CoreTest;
-
-ScanTime at(int seconds)
-{
-    return ScanTime{} + std::chrono::seconds{seconds};
-}
-
-ScanFrame frame(std::uint64_t pixels = 1, std::string context = "window")
-{
-    return {.context = std::move(context), .processName = "chrome.exe", .pixels = pixels};
-}
-
-std::unique_ptr<ScanPipeline> scanner()
-{
-    auto scan = lens::capture::makeScanPipeline();
-    scan->setWhitelist({"chrome.exe"});
-    return scan;
-}
-
-void observe(ScanPipeline& scan, int seconds, std::string_view text, std::uint64_t pixels = 1, FilterPolicy policy = {})
-{
-    if (scan.needsOcr(frame(pixels), at(seconds))) scan.acceptText(text, policy, at(seconds));
-}
 
 /// @brief Put a `<code>.traineddata` of @p bytes into @p directory; zero is the truncated file a
 ///        half-finished download leaves behind.
@@ -320,34 +297,88 @@ TEST(CapturePolicy, TheOcrLanguagesFollowWhatTheDataDirectoryHolds)
     EXPECT_TRUE(lens::capture::tesseractLanguages(truncated.path()).isEmpty());
 }
 
-TEST_F(CoreTest, ScanRequiresWhitelistStableFramesAndTwoSecondRateLimit)
-{
-    auto scan = scanner();
-    observe(*scan, 0, "resilience ubiquitous");
-    observe(*scan, 1, "resilience ubiquitous");
-    EXPECT_EQ(scan->takeBatch(at(1)).size(), 0u);
-    observe(*scan, 2, "resilience ubiquitous");
-    EXPECT_EQ(scan->takeBatch(at(2)).size(), 2u);
-    observe(*scan, 3, "resilience ambiguous", 2);
-    observe(*scan, 4, "resilience ambiguous", 2);
-    observe(*scan, 5, "resilience ambiguous", 2);
-    EXPECT_EQ(scan->takeBatch(at(5)).size(), 2u);
-}
-
-TEST_F(CoreTest, ContinuousMinimumLengthDoesNotLeakExplicitTokenExemption)
-{
-    EXPECT_EQ(lens::capture::filterProse("am cat book", {.minimumLength = 2}).size(), 3u);
-    EXPECT_EQ(lens::capture::filterProse("am cat book", {.minimumLength = 5}).size(), 0u);
-    EXPECT_TRUE(lens::capture::filterProse("QML Kubernetes MP3", {.minimumLength = 2}).empty());
-    EXPECT_EQ(lens::capture::unsupportedEntityCount("I visited New York and QML API"), 2u);
-}
-
 TEST(CapturePolicy, ProcessGateIsExactAndFailClosed)
 {
     EXPECT_TRUE(lens::capture::allowedProcess("Apps/CHROME.EXE", {"chrome.exe"}, false));
     EXPECT_FALSE(lens::capture::allowedProcess("not-chrome.exe", {"chrome.exe"}, false));
     EXPECT_FALSE(lens::capture::allowedProcess("chrome.exe", {"chrome.exe"}, true));
     EXPECT_FALSE(lens::capture::allowedProcess("", {"chrome.exe"}, false));
+}
+
+TEST(PageAlignment, WordsSplitOnPunctuationAndNormalizeToLowerCaseAlnum)
+{
+    EXPECT_EQ(lens::capture::normalizedWord("YouTube,"), "youtube");
+    EXPECT_EQ(lens::capture::normalizedWord("- ?"), "");
+    EXPECT_EQ(lens::capture::pageWords("Hello, world-42 end."), (std::vector<std::string>{"hello", "world", "42", "end"}));
+}
+
+TEST(PageAlignment, AWordInAUniqueRunAnchorsToItsPlaceOnThePage)
+{
+    lens::capture::PageIndex page{lens::capture::pageWords("a b c d e f g")};
+    auto const               anchors = page.align({"c", "d", "e"});
+    ASSERT_EQ(anchors.size(), 3u);
+    EXPECT_EQ(anchors[0].pageIndex, 2u);
+    EXPECT_EQ(anchors[1].pageIndex, 3u);
+    EXPECT_EQ(anchors[2].pageIndex, 4u);
+}
+
+TEST(PageAlignment, APhraseRepeatedOnThePageAnchorsNothing)
+{
+    lens::capture::PageIndex page{lens::capture::pageWords("the cat the cat the dog")};
+    EXPECT_TRUE(page.align({"the", "cat", "the"}).empty());
+}
+
+TEST(PageAlignment, AMisreadWordOnlyCostsTheRunsItSitsIn)
+{
+    lens::capture::PageIndex page{lens::capture::pageWords("w x y z q r")};
+    auto const               anchors = page.align({"w", "x", "k", "z", "q", "r"});
+    ASSERT_EQ(anchors.size(), 3u);
+    EXPECT_EQ(anchors[0].ocrIndex, 3u);
+    EXPECT_EQ(anchors[0].pageIndex, 3u);
+    EXPECT_EQ(anchors[2].ocrIndex, 5u);
+    EXPECT_EQ(anchors[2].pageIndex, 5u);
+}
+
+TEST(PageAlignment, FewerThanThreeWordsOnEitherSideAnchorNothing)
+{
+    lens::capture::PageIndex empty{{}};
+    EXPECT_TRUE(empty.align({"a", "b", "c"}).empty());
+    lens::capture::PageIndex two{lens::capture::pageWords("a b")};
+    EXPECT_EQ(two.size(), 2u);
+    EXPECT_TRUE(two.align({"a", "b"}).empty());
+}
+
+TEST(AltKey, ALoneTapIsReleasedAsOneAndAKeyUnderItIsNot)
+{
+    constexpr unsigned kLeftAlt = 0xA4;
+    constexpr unsigned kS       = 0x53;
+    lens::app::AltHold hold;
+    EXPECT_FALSE(lens::app::altReleaseIsLoneTap(hold, kLeftAlt, true, false));
+    EXPECT_TRUE(lens::app::altReleaseIsLoneTap(hold, kLeftAlt, false, false));
+    EXPECT_FALSE(lens::app::altReleaseIsLoneTap(hold, kLeftAlt, true, false));
+    EXPECT_FALSE(lens::app::altReleaseIsLoneTap(hold, kS, true, false));
+    EXPECT_FALSE(lens::app::altReleaseIsLoneTap(hold, kLeftAlt, false, false));
+}
+
+TEST(AltKey, AutoRepeatAndInjectedEventsChangeNothing)
+{
+    constexpr unsigned kLeftAlt = 0xA4;
+    constexpr unsigned kCancel  = 0xE8;
+    lens::app::AltHold hold;
+    lens::app::altReleaseIsLoneTap(hold, kLeftAlt, true, false);
+    EXPECT_FALSE(lens::app::altReleaseIsLoneTap(hold, kLeftAlt, true, false)) << "auto-repeat while held";
+    EXPECT_FALSE(lens::app::altReleaseIsLoneTap(hold, kCancel, true, true)) << "our own cancel key is not a key under Alt";
+    EXPECT_TRUE(lens::app::altReleaseIsLoneTap(hold, kLeftAlt, false, false));
+}
+
+TEST(CapturePolicy, AWindowIsCutOutOfItsMonitorsGrab)
+{
+    // A display left of and above the primary one: the window and the origin share the virtual desktop.
+    EXPECT_EQ(lens::capture::windowCropInGrab(QRect{-1000, -1000, 500, 300}, QPoint{-1440, -1440}, QSize{2560, 1440}), QRect(440, 440, 500, 300));
+    // Partly past the left edge of the display: the crop is clipped to what the grab holds.
+    EXPECT_EQ(lens::capture::windowCropInGrab(QRect{-1500, -1000, 500, 300}, QPoint{-1440, -1440}, QSize{2560, 1440}), QRect(0, 440, 440, 300));
+    // On another display altogether: nothing of it is in this grab.
+    EXPECT_TRUE(lens::capture::windowCropInGrab(QRect{5000, 0, 100, 100}, QPoint{0, 0}, QSize{1920, 1080}).isEmpty());
 }
 
 TEST(CapturePolicy, AStaleScreenshotResultIsDroppedAndACurrentOneApplies)

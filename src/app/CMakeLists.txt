@@ -42,6 +42,8 @@ add_library(lens_app STATIC
   duties/reading_profile_duty.cpp
   duties/explanation_duty.h
   duties/explanation_duty.cpp
+  duties/pencil_duty.h
+  duties/pencil_duty.cpp
   duties/explanation_exchange.h
   duties/explanation_exchange.cpp
   duties/model_catalog_duty.h
@@ -77,6 +79,8 @@ add_library(lens_app STATIC
   platform/local_voice.cpp
   platform/mouse_selection_hook.h
   platform/mouse_selection_hook.cpp
+  platform/alt_key_hook.h
+  platform/alt_key_hook.cpp
   platform/running_instance.h
   platform/running_instance.cpp
   platform/selection_text_grabber.cpp
@@ -324,6 +328,7 @@ qt_add_qml_module(lens_app
     qml/SurfaceHost.qml
     qml/pet/PetWindow.qml
     qml/pet/ReviewSignWindow.qml
+    qml/pencil/PencilLayer.qml
     qml/pet/ReviewSignBoard.qml
     qml/pet/ReviewCard.qml
     qml/pet/ReviewSignLayout.qml

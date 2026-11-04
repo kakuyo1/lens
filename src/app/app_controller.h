@@ -35,6 +35,8 @@
 #include "llm/llm_pricing.h"
 #include "app/duties/model_catalog_duty.h"
 #include "app/platform/mouse_selection_hook.h"
+#include "app/platform/alt_key_hook.h"
+#include "app/duties/pencil_duty.h"
 #include "app/duties/picture_duty.h"
 #include "app/platform/tray.h"
 #include "app/duties/review_duty.h"
@@ -75,6 +77,7 @@ public:
     AppController(core::KnownStore&            store,
                   llm::LlmClient&              llm,
                   MouseSelectionHook&          hook,
+                  AltKeyHook&                  altHook,
                   GlobalHotkey&                hotkey,
                   const llm::Pricing&          pricing,
                   const std::filesystem::path& dataDir,
@@ -207,6 +210,8 @@ public:
     OnboardingDuty* onboardingDuty();
     /// @brief The capture duty, which QML reads as `Controller.captureDuty`; the facade owns it.
     CaptureDuty* captureDuty();
+    /// @brief The pencil layer's duty, which QML reads as `Controller.pencil`; the facade owns it.
+    PencilDuty* pencil();
     /// @brief The glass backdrop, which QML reads as `Controller.glassBackdrop`; the facade owns it.
     GlassBackdrop* glassBackdrop();
     /// @brief The model catalogue, which QML reads as `Controller.modelCatalogDuty`; the facade owns it.
@@ -260,6 +265,7 @@ public:
     Q_PROPERTY(lens::app::ExplanationDuty* explanationDuty READ explanationDuty CONSTANT)
     Q_PROPERTY(lens::app::OnboardingDuty* onboardingDuty READ onboardingDuty CONSTANT)
     Q_PROPERTY(lens::app::CaptureDuty* captureDuty READ captureDuty CONSTANT)
+    Q_PROPERTY(lens::app::PencilDuty* pencil READ pencil CONSTANT)
     Q_PROPERTY(lens::app::GlassBackdrop* glassBackdrop READ glassBackdrop CONSTANT)
     Q_PROPERTY(lens::app::ModelCatalogDuty* modelCatalogDuty READ modelCatalogDuty CONSTANT)
     Q_PROPERTY(lens::app::PictureDuty* pictureDuty READ pictureDuty CONSTANT)
@@ -325,6 +331,7 @@ private:
     GlassBackdrop          glass_;
     ModelCatalogDuty       catalog_;
     ExplanationDuty        explanation_;
+    PencilDuty             pencil_;
     update::UpdateClient   updateClient_;
     update::DownloadClient updateDownloader_;
     UpdateDuty             updateDuty_;

@@ -119,6 +119,17 @@ public:
         ++selectionGeneration_;
     }
 
+    /// @return Whether a prefetch for @p lemma is already waiting or on its way, so it is not paid for twice.
+    bool prefetching(QString const& lemma) const
+    {
+        auto const same = [&](PendingSelection const& item) {
+            return QString::compare(item.lemma, lemma, Qt::CaseInsensitive) == 0;
+        };
+        if (std::any_of(scanQueue_.cbegin(), scanQueue_.cend(), same))
+            return true;
+        return sent_.has_value() and sent_->fromScan and std::any_of(sent_->items.cbegin(), sent_->items.cend(), same);
+    }
+
     /// @return Whether an answer is on its way that this queue is waiting for. A failed request to
     ///         fetch the model list is not one, and must not be reported as an explanation that did
     ///         not arrive.
@@ -196,19 +207,10 @@ public:
                                         : static_cast<int>(std::distance(titles.cbegin(), named)));
         }
 
-        if (not stillTheReaders(now))
+        // A batch the word list asked for is a prefetch: its answers are stored above, and nothing is shown.
+        if (sent_->fromScan or not stillTheReaders(now))
             return out;
-
-        if (not sent_->fromScan) {
-            out.subject = items.front();
-            return out;
-        }
-        // Five words came back at once and the card takes one: the one the first answer names.
-        const auto named = std::find_if(items.cbegin(), items.cend(), [&](PendingSelection const& candidate) {
-            return QString::compare(titles.front(), candidate.lemma, Qt::CaseInsensitive) == 0;
-        });
-        if (named != items.cend())
-            out.subject = *named;
+        out.subject = items.front();
         return out;
     }
 
@@ -217,26 +219,15 @@ public:
      *        it has named so far, or nothing when it is not.
      *
      * The staleness rule does not bend for a stream: an answer for a word the reader has moved on
-     * from must not paint a bubble, mid-answer included. What differs from settled() is only that
-     * there is no finished answer to pair yet, so the titles are whatever has arrived so far --
-     * and a batch the word list filled in on its own is still waiting for the title that says
-     * which of its words the card is for.
+     * from must not paint a bubble, mid-answer included. A prefetch never paints one.
      *
-     * @param title The title the answer has named so far; empty while none has.
-     * @param now   The language and sense mode in force now, the same reading settled() compares.
+     * @param now The language and sense mode in force now, the same reading settled() compares.
      */
-    std::optional<PendingSelection> liveSubject(QString const& title, core::CacheContext const& now) const
+    std::optional<PendingSelection> liveSubject(core::CacheContext const& now) const
     {
-        if (not stillTheReaders(now))
+        if (not stillTheReaders(now) or sent_->fromScan)
             return {};
-        if (not sent_->fromScan)
-            return sent_->items.front();
-        if (title.isEmpty())
-            return {};
-        const auto named = std::find_if(sent_->items.cbegin(), sent_->items.cend(), [&](PendingSelection const& candidate) {
-            return QString::compare(title, candidate.lemma, Qt::CaseInsensitive) == 0;
-        });
-        return named == sent_->items.cend() ? std::nullopt : std::optional<PendingSelection>{*named};
+        return sent_->items.front();
     }
 
     /// @return The request to report a failure about, or nothing when it is not the reader's to

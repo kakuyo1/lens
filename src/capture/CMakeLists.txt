@@ -2,6 +2,8 @@ add_library(lens_capture STATIC
   capture_policy.h
   scan_pipeline.h
   scan_pipeline.cpp
+  page_alignment.h
+  page_alignment.cpp
   ocr_engine.h
   ocr_engine.cpp
   ocr_tsv.h
