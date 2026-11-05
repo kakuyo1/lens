@@ -8,6 +8,7 @@
 #include <QFileInfo>
 
 #include <chrono>
+#include <algorithm>
 #include <iterator>
 #include <memory>
 #include <mutex>
@@ -236,9 +237,55 @@ struct PageDocument {
     Com<IUIAutomationElement>     element;
     Com<IUIAutomationTextPattern> pattern;
     RECT                          box{};
+    /// The intersection of the document frames above the page. A PDF viewer's document covers its own toolbar,
+    /// but the frame it sits in begins below that toolbar, so the frame is what the reader can see.
+    std::optional<QRect> clip;
+    int                  depth = 0; ///< How many elements lie above the page in the tree.
 };
 
-PageDocument pageOf(IUIAutomation& automation, IUIAutomationElement& root)
+/// @return How many elements lie above @p element in the tree, capped at kMaxLevels.
+int depthOf(IUIAutomation& automation, IUIAutomationElement& element)
+{
+    IUIAutomationTreeWalker* walkerRaw = nullptr;
+    if (FAILED(automation.get_ControlViewWalker(&walkerRaw)) or not walkerRaw) return 0;
+    Com<IUIAutomationTreeWalker> walker{walkerRaw};
+
+    int depth = 0;
+    element.AddRef();
+    Com<IUIAutomationElement> current{&element};
+    for (; depth < kMaxLevels; ++depth) {
+        IUIAutomationElement* parentRaw = nullptr;
+        if (FAILED(walker->GetParentElement(current.get(), &parentRaw)) or not parentRaw) break;
+        current.reset(parentRaw);
+    }
+    return depth;
+}
+
+/// @return The intersection of the boxes of the document controls above @p element; nothing when there are none.
+std::optional<QRect> documentClipOf(IUIAutomation& automation, IUIAutomationElement& element)
+{
+    IUIAutomationTreeWalker* walkerRaw = nullptr;
+    if (FAILED(automation.get_ControlViewWalker(&walkerRaw)) or not walkerRaw) return std::nullopt;
+    Com<IUIAutomationTreeWalker> walker{walkerRaw};
+
+    std::optional<QRect> clip;
+    element.AddRef();
+    Com<IUIAutomationElement> current{&element};
+    for (int level = 0; level < kMaxLevels; ++level) {
+        IUIAutomationElement* parentRaw = nullptr;
+        if (FAILED(walker->GetParentElement(current.get(), &parentRaw)) or not parentRaw) break;
+        current.reset(parentRaw);
+        CONTROLTYPEID type = 0;
+        RECT          box{};
+        if (FAILED(current->get_CurrentControlType(&type)) or type != UIA_DocumentControlTypeId) continue;
+        if (FAILED(current->get_CurrentBoundingRectangle(&box))) continue;
+        QRect const frame{box.left, box.top, box.right - box.left, box.bottom - box.top};
+        clip = clip ? clip->intersected(frame) : frame;
+    }
+    return clip;
+}
+
+PageDocument pageOf(IUIAutomation& automation, IUIAutomationElement& root, QRect const clip)
 {
     // Only document controls: a browser's page is one, its tabs and toolbars are not.
     VARIANT documentType{};
@@ -254,26 +301,52 @@ PageDocument pageOf(IUIAutomation& automation, IUIAutomationElement& root)
     int                            count = 0;
     array->get_Length(&count);
 
-    // The largest document is the page; the browser's other documents are small.
-    PageDocument page;
-    LONGLONG     bestArea = -1;
+    // A document's effective box is its own box cut to the document frames above it, and to @p clip when one is given.
+    // The page is the innermost document that still covers most of the largest one: an embedded viewer (a PDF) sits
+    // inside the page that holds it, and that page's box takes in the viewer's toolbar. A small frame (an ad) does not qualify.
+    struct Candidate {
+        Com<IUIAutomationElement>     element;
+        Com<IUIAutomationTextPattern> pattern;
+        RECT                          box{};
+        std::optional<QRect>          clip;
+        LONGLONG                      area  = 0;
+        int                           depth = 0;
+    };
+    std::vector<Candidate> candidates;
+    LONGLONG               largest = 0;
     for (int i = 0; i < count; ++i) {
         IUIAutomationElement* elementRaw = nullptr;
         if (FAILED(array->GetElement(i, &elementRaw)) or not elementRaw) continue;
-        Com<IUIAutomationElement> element{elementRaw};
-        RECT                      box{};
-        if (FAILED(element->get_CurrentBoundingRectangle(&box))) continue;
-        LONGLONG const area = static_cast<LONGLONG>(box.right - box.left) * (box.bottom - box.top);
-        if (area <= bestArea) continue;
+        Candidate candidate;
+        candidate.element.reset(elementRaw);
+        if (FAILED(candidate.element->get_CurrentBoundingRectangle(&candidate.box))) continue;
         IUnknown* patternRaw = nullptr;
-        if (FAILED(element->GetCurrentPattern(UIA_TextPatternId, &patternRaw)) or not patternRaw) continue;
+        if (FAILED(candidate.element->GetCurrentPattern(UIA_TextPatternId, &patternRaw)) or not patternRaw) continue;
         Com<IUnknown>             pattern{patternRaw};
         IUIAutomationTextPattern* textRaw = nullptr;
         if (FAILED(pattern->QueryInterface(IID_PPV_ARGS(&textRaw))) or not textRaw) continue;
-        page.pattern.reset(textRaw);
-        page.box     = box;
-        bestArea     = area;
-        page.element = std::move(element);
+        candidate.pattern.reset(textRaw);
+        QRect const box{candidate.box.left, candidate.box.top, candidate.box.right - candidate.box.left, candidate.box.bottom - candidate.box.top};
+        candidate.clip  = documentClipOf(automation, *candidate.element);
+        QRect effective = candidate.clip ? box.intersected(*candidate.clip) : box;
+        if (not clip.isEmpty()) effective = effective.intersected(clip);
+        candidate.area  = static_cast<LONGLONG>(effective.width()) * effective.height();
+        candidate.depth = depthOf(automation, *candidate.element);
+        largest         = (std::max)(largest, candidate.area);
+        candidates.push_back(std::move(candidate));
+    }
+
+    PageDocument page;
+    LONGLONG     chosenArea = -1;
+    for (auto& candidate : candidates) {
+        if (candidate.area <= 0 or candidate.area * 4 < largest) continue;
+        if (page.element and (candidate.depth < page.depth or (candidate.depth == page.depth and candidate.area <= chosenArea))) continue;
+        page.element = std::move(candidate.element);
+        page.pattern = std::move(candidate.pattern);
+        page.box     = candidate.box;
+        page.clip    = candidate.clip;
+        page.depth   = candidate.depth;
+        chosenArea   = candidate.area;
     }
     return page;
 }
@@ -293,7 +366,7 @@ PageCache& pageCache()
 }
 
 /// @return The page of @p window: the cached one while the window is the same, else a fresh search; null when there is none.
-std::shared_ptr<PageDocument> pageOfWindow(IUIAutomation& automation, quintptr const window)
+std::shared_ptr<PageDocument> pageOfWindow(IUIAutomation& automation, quintptr const window, QRect const clip)
 {
     auto& cache = pageCache();
     {
@@ -302,7 +375,7 @@ std::shared_ptr<PageDocument> pageOfWindow(IUIAutomation& automation, quintptr c
     }
     auto const root = elementOf(automation, window);
     if (not root) return nullptr;
-    auto page = pageOf(automation, *root);
+    auto page = pageOf(automation, *root, clip);
     if (not page.pattern) return nullptr;
     auto                  document = std::make_shared<PageDocument>(std::move(page));
     std::lock_guard const lock{cache.guard};
@@ -324,7 +397,8 @@ QRect currentBoxOf(PageDocument const& page)
 {
     RECT box{};
     if (FAILED(page.element->get_CurrentBoundingRectangle(&box))) return {};
-    return QRect{box.left, box.top, box.right - box.left, box.bottom - box.top};
+    QRect const rect{box.left, box.top, box.right - box.left, box.bottom - box.top};
+    return page.clip ? rect.intersected(*page.clip) : rect;
 }
 
 /// @return The word @p range holds, spelled as the page has it; empty when it cannot be read.
@@ -357,7 +431,7 @@ QString pageTextOf(quintptr const window)
     if (not automation) return {};
     auto const root = elementOf(*automation, window);
     if (not root) return {};
-    auto const page = pageOf(*automation, *root);
+    auto const page = pageOf(*automation, *root, QRect{});
     if (not page.pattern) return {};
 
     IUIAutomationTextRange* rangeRaw = nullptr;
@@ -463,6 +537,7 @@ private:
     int                                   missed_   = 0;
     std::chrono::steady_clock::time_point reportedAt_{};
     int                                   missedSteps_ = 0; ///< Steps in a row the anchor has read empty or outside the band.
+    int                                   framesSent_  = 0; ///< TEMPORARY diagnostic: frames returned in the last second.
 };
 
 std::optional<TrackFrame> TrackState::step(QRect const band)
@@ -470,18 +545,20 @@ std::optional<TrackFrame> TrackState::step(QRect const band)
     if (not automation_) automation_ = newAutomation();
     if (not automation_) return std::nullopt;
     if (not anchor_) return acquire(band);
+    // The window's box takes in the browser's tabs, address bar and bookmarks, which are not the page: the page's own box clips.
+    QRect const visible = page_ ? band.intersected(currentBoxOf(*page_)) : band;
 
     auto const now = std::chrono::steady_clock::now();
     if (reportedAt_ == std::chrono::steady_clock::time_point{}) reportedAt_ = now;
     if (now - reportedAt_ >= std::chrono::seconds{1}) {
-        if (moves_ + refusals_ + losses_ + missed_ > 0)
-            LENS_INFO("scan track, last second: {} anchor move(s), {} refused, {} missed read(s), {} lost, {} span(s) held", moves_, refusals_, missed_, losses_, spans_.size());
-        moves_ = refusals_ = losses_ = missed_ = 0;
-        reportedAt_                            = now;
+        if (moves_ + refusals_ + losses_ + missed_ + framesSent_ > 0)
+            LENS_INFO("scan track, last second: {} anchor move(s), {} refused, {} missed read(s), {} lost, {} span(s) held, {} frame(s) sent, visible y {}..{}", moves_, refusals_, missed_, losses_, spans_.size(), framesSent_, visible.top(), visible.bottom());
+        moves_ = refusals_ = losses_ = missed_ = framesSent_ = 0;
+        reportedAt_                                          = now;
     }
 
     QRect const box = firstBoxOf(*anchor_);
-    if (box.isEmpty() or not band.contains(box.center())) {
+    if (box.isEmpty() or not visible.contains(box.center())) {
         // A read that races a scroll comes back empty for a step or two. The lines keep their last place until it does
         // (the page may have moved on, so they can sit a little off their words), rather than vanishing and rebuilding.
         ++missed_;
@@ -495,7 +572,7 @@ std::optional<TrackFrame> TrackState::step(QRect const band)
         anchorBox_  = box;
         stillSteps_ = 0;
         moved       = true;
-        moveAnchorIfNearEdge(band);
+        moveAnchorIfNearEdge(visible);
     } else {
         ++stillSteps_;
     }
@@ -504,9 +581,10 @@ std::optional<TrackFrame> TrackState::step(QRect const band)
     // Words are read while the page moves too: a chunk is kept only when the anchor did not move during it.
     // The names are re-read only once the page holds still, since that read is a few hundred ms of COM.
     if (stillSteps_ >= kStillSteps) refreshNamesIfDue();
-    bool const extended = extendForward(band, frame) or extendBackward(band, frame);
+    bool const extended = extendForward(visible, frame) or extendBackward(visible, frame);
     if (not moved and not extended) return std::nullopt;
-    frame.visible = trackedOf(capture::placeSpans(spans_, anchorBox_.x(), anchorBox_.y(), bandOf(band)));
+    frame.visible = trackedOf(capture::placeSpans(spans_, anchorBox_.x(), anchorBox_.y(), bandOf(visible)));
+    ++framesSent_;
     return frame;
 }
 
@@ -515,7 +593,7 @@ std::optional<TrackFrame> TrackState::acquire(QRect const band)
     refreshNamesIfDue();
     // The names decide which words are words to learn, so nothing is read before they are known.
     if (not namesLoaded_) return std::nullopt;
-    page_ = pageOfWindow(*automation_, window_);
+    page_ = pageOfWindow(*automation_, window_, band);
     if (not page_) return std::nullopt;
     QRect const visible = band.intersected(currentBoxOf(*page_));
     if (visible.isEmpty()) return std::nullopt;
