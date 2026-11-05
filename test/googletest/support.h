@@ -27,7 +27,7 @@ inline std::filesystem::path sourceDir()
 }
 
 /**
- * @brief Load the word list and the irregular table, once.
+ * @brief Load the word list, the irregular table and the informal spellings, once.
  *
  * filterWords() and lemmatize() throw unless their tables are loaded, and every suite needs
  * both. They run behind a function-local static so the second suite to ask pays nothing, and
@@ -38,6 +38,7 @@ inline void requireFilterTablesLoaded()
     static const bool loaded = [] {
         lens::core::loadWordlist(sourceDir() / "data" / "wordlist.txt");
         lens::core::loadIrregulars(sourceDir() / "data" / "irregulars.tsv");
+        lens::core::loadInformalSpellings(sourceDir() / "data" / "informal-spellings.txt");
         return true;
     }();
     (void)loaded;

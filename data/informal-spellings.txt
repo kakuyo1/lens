@@ -1,0 +1,99 @@
+# Informal spellings the scan drops: not vocabulary, though the word list may hold them.
+#
+# One lower-case form per line; a line starting with '#' is a comment. Loaded by
+# lens::core::loadInformalSpellings() at startup and in the gtest support.
+# Maintained by hand: add a form when the scan log shows it as a candidate that is not a word to learn.
+# A form that is also a real word (git, hon) is listed only because the logs show it as dialect.
+
+# Dropped-g speech: -in forms of -ing verbs
+runnin
+movin
+lyin
+chillin
+havin
+wearin
+carryin
+goin
+doin
+comin
+gettin
+makin
+takin
+lookin
+talkin
+walkin
+thinkin
+lovin
+feelin
+nothin
+nuthin
+somethin
+everythin
+anythin
+bein
+seein
+sayin
+tryin
+workin
+playin
+eatin
+dyin
+
+# Clipped and contracted forms
+gonna
+wanna
+gotta
+hafta
+oughta
+outta
+kinda
+sorta
+lotta
+coulda
+woulda
+shoulda
+musta
+gimme
+lemme
+dunno
+gotcha
+tryna
+tho
+thru
+cuz
+ima
+finna
+ain
+yall
+
+# Interjections and yes / no forms
+yeah
+yep
+yup
+nope
+nah
+yessir
+
+# Dialect and fragments an apostrophe leaves behind
+fer
+thar
+thang
+cept
+fter
+lik
+kya
+git
+hon
+dat
+dis
+lil
+
+# Chat abbreviations and month abbreviation
+lol
+omg
+idk
+tbh
+btw
+imo
+bruh
+nov

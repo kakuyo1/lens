@@ -312,6 +312,13 @@ TEST(PageAlignment, WordsSplitOnPunctuationAndNormalizeToLowerCaseAlnum)
     EXPECT_EQ(lens::capture::pageWords("Hello, world-42 end."), (std::vector<std::string>{"hello", "world", "42", "end"}));
 }
 
+TEST(PageAlignment, ANameIsCapitalizedWhereverThePageWritesIt)
+{
+    // "Shoes" opens a sentence, but the page also writes "shoes" in lower case, so it is a common word, not a name.
+    auto const names = lens::capture::nameFlags("Richard met Jeff. Shoes sell; the shoes shine. Rome is far.");
+    EXPECT_EQ(names, (std::vector<bool>{true, false, true, false, false, false, false, false, true, false, false}));
+}
+
 TEST(PageAlignment, AWordInAUniqueRunAnchorsToItsPlaceOnThePage)
 {
     lens::capture::PageIndex page{lens::capture::pageWords("a b c d e f g")};

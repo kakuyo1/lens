@@ -1383,11 +1383,15 @@ void CaptureDuty::placeScanWords(capture::OcrResult const& result, QPoint const 
     QThreadPool::globalInstance()->start(QRunnable::create([this, window, anchor, norms = std::move(norms), boxes = std::move(boxes)] {
         // Off the main thread: the page is a COM read of the whole document, and the alignment walks all of it.
         auto const                 text  = pageTextOf(window);
-        auto const                 words = capture::pageWords(text.toStdString());
+        auto const                 utf8  = text.toStdString();
+        auto const                 words = capture::pageWords(utf8);
+        auto const                 names = capture::nameFlags(utf8);
         capture::PageIndex         page{words};
         std::vector<ScanPlacement> placed;
-        for (auto const& hit : page.align(norms))
+        for (auto const& hit : page.align(norms)) {
+            if (names[hit.pageIndex]) continue; // a name is not a word to learn, and the page writes it capitalized throughout
             placed.push_back({words[hit.pageIndex], boxes[hit.ocrIndex]});
+        }
         QMetaObject::invokeMethod(
             this,
             [this, placed = std::move(placed), anchor, ocrWords = norms.size(), pageReady = not text.isEmpty()]() mutable {
@@ -1424,7 +1428,7 @@ void CaptureDuty::onScanPlaced(std::vector<ScanPlacement> placed, QPoint const a
                                      {QStringLiteral("height"), static_cast<int>(item.box.height)}});
             listed << QStringLiteral("%1@%2,%3").arg(lemma).arg(x).arg(y);
         }
-    LENS_TRACE("scan: {} OCR word(s), {} placed on the page, {} new candidate(s): {}", ocrWords, placed.size(), listed.size(), listed.join(QLatin1Char(' ')).toStdString());
+    LENS_INFO("scan: {} OCR word(s), {} placed on the page, {} new candidate(s): {}", ocrWords, placed.size(), listed.size(), listed.join(QLatin1Char(' ')).toStdString());
     // Sent even when empty: a frame with no new word takes the last one's lines down with it.
     emit scanPlaced(words, scanScreen_, scanScreenOrigin_, scanScale_);
 }

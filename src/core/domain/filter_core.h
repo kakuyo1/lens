@@ -59,6 +59,15 @@ void loadIrregulars(const std::filesystem::path& path);
 void loadWordbooks(const std::filesystem::path& dir);
 
 /**
+ * @brief Load the informal spellings the scan drops into process-wide read-only state.
+ *
+ * @param path Text file, one lower-case form per line; a line starting with `#` is a comment.
+ *             `data/informal-spellings.txt` is the shipped list, maintained by hand.
+ * @note A missing file is a warning, not an error: the dialect fragments then reach the scan, which is noisy but not wrong.
+ */
+void loadInformalSpellings(const std::filesystem::path& path);
+
+/**
  * @brief Reduce a token to its dictionary form, so "running" and "ran" both become "run".
  *
  * Irregular forms are decided by the loaded table. Everything else is reduced by suffix
@@ -92,7 +101,7 @@ struct Candidate {
 /**
  * @brief The line a reader's level draws: a word on the mastered side of it is CandidateState::Mastered.
  *
- * A word is Mastered when its frequency rank is 1..floorRank, or when a wordbook in bookMask lists it.
+ * A word is Mastered when any of its base forms has a frequency rank in 1..floorRank, or a wordbook in bookMask lists it.
  * Built by difficultyForLevel(), or byRank() for a frequency-only line. See docs/adr/0155.
  */
 struct Difficulty {
@@ -119,8 +128,8 @@ Difficulty difficultyForLevel(int level);
  * -> record each survivor's state.
  *
      * The known set and the difficulty annotate a candidate; they never remove one. What
-     * removes a word is the hard filter: length, case, a vowel, glued punctuation, and membership
-     * of the static word list.
+     * removes a word is the hard filter: length, case, a vowel, glued punctuation, membership of
+     * the static word list, and informal spellings.
  *
  * One explicit exception: when the whole selection is a single letters-only token of two or
  * more letters, in any case ("QML", "qml", "NASA", "ok", "am"), it is a word the reader picked

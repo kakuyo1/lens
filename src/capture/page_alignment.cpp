@@ -4,6 +4,7 @@
 #include "page_alignment.h"
 
 #include <limits>
+#include <unordered_set>
 #include <utility>
 
 #include "util/text.h"
@@ -30,19 +31,53 @@ std::string normalizedWord(std::string_view const text)
     return out;
 }
 
+namespace {
+
+/// One word of page text: lower-cased, and whether the page wrote its first letter in capitals.
+struct PageToken {
+    std::string text;
+    bool        capitalized = false;
+};
+
+std::vector<PageToken> pageTokens(std::string_view const text)
+{
+    std::vector<PageToken> tokens;
+    PageToken              current;
+    for (char const c : text) {
+        if (util::isAsciiAlnum(c)) {
+            if (current.text.empty()) current.capitalized = util::isAsciiUpper(c);
+            current.text.push_back(util::asciiLower(c));
+            continue;
+        }
+        if (not current.text.empty()) tokens.push_back(std::exchange(current, {}));
+    }
+    if (not current.text.empty()) tokens.push_back(std::move(current));
+    return tokens;
+}
+
+}
+
 std::vector<std::string> pageWords(std::string_view const text)
 {
     std::vector<std::string> words;
-    std::string              current;
-    for (char const c : text) {
-        if (util::isAsciiAlnum(c)) {
-            current.push_back(util::asciiLower(c));
-            continue;
-        }
-        if (not current.empty()) words.push_back(std::exchange(current, {}));
-    }
-    if (not current.empty()) words.push_back(std::move(current));
+    for (auto& token : pageTokens(text))
+        words.push_back(std::move(token.text));
     return words;
+}
+
+std::vector<bool> nameFlags(std::string_view const text)
+{
+    auto const tokens = pageTokens(text);
+    // A word the page also writes with a lower-case first letter is a common word, capitalized only where it opens a sentence.
+    std::unordered_set<std::string> lowerOnPage;
+    for (auto const& token : tokens)
+        if (not token.capitalized) lowerOnPage.insert(token.text);
+
+    std::vector<bool> names;
+    names.reserve(tokens.size());
+    for (auto const& token : tokens)
+        names.push_back(token.capitalized and lowerOnPage.count(token.text) == 0);
+    return names;
 }
 
 PageIndex::PageIndex(std::vector<std::string> words)

@@ -375,7 +375,7 @@ TEST_F(CoreTest, DifficultyForLevelClampsToTheTable)
 {
     EXPECT_EQ(lens::core::difficultyForLevel(-3).bookMask, lens::core::difficultyForLevel(0).bookMask);
     EXPECT_EQ(lens::core::difficultyForLevel(99).bookMask, lens::core::difficultyForLevel(7).bookMask);
-    EXPECT_EQ(lens::core::difficultyForLevel(2).floorRank, 1000u);
+    EXPECT_EQ(lens::core::difficultyForLevel(2).floorRank, 3000u);
 }
 
 TEST_F(WordbookTest, EachLevelMastersItsOwnBooksTheBaseAndTheFloor)
@@ -387,7 +387,7 @@ TEST_F(WordbookTest, EachLevelMastersItsOwnBooksTheBaseAndTheFloor)
         {"time", {0, 1, 2, 3, 4, 5, 6, 7}},
         {"garden", {0, 1, 2, 3, 4, 5, 6, 7}},
         {"vivid", {1}},            // c1-c2
-        {"journey", {2, 3, 6, 7}}, // cet4, which CET-6, IELTS and TOEFL include
+        {"chamber", {2, 3, 6, 7}}, // cet4, which CET-6, IELTS and TOEFL include
         {"meticulous", {3}},       // cet6
         {"ambiguous", {4, 5}},     // tem4, which TEM-8 includes
         {"tenacious", {5}},        // tem8
@@ -407,8 +407,8 @@ TEST_F(WordbookTest, AMissingWordbookLeavesOnlyTheFloor)
 {
     // A directory with no books is the worst case of missing files: each one warns, nothing is listed, and startup goes on.
     lens::core::loadWordbooks(lens::test::sourceDir() / "test" / "fixtures" / "no-wordbooks");
-    EXPECT_FALSE(masteredAt("journey", 2));
-    EXPECT_FALSE(masteredAt("garden", 0));
+    EXPECT_FALSE(masteredAt("chamber", 2));
+    EXPECT_FALSE(masteredAt("vivid", 1));
     EXPECT_TRUE(masteredAt("time", 2)) << "the frequency floor does not depend on any book";
 }
 
@@ -436,6 +436,49 @@ TEST_F(CoreTest, RealWordbooksMasterEachLevelsOwnBooks)
         {"abortion", {6}},                    // ielts
         {"abandonment", {7}},                 // toefl
     });
+}
+
+TEST_F(CoreTest, InflectedFormsMasterTheirBaseAtEveryLevel)
+{
+    // The word list ranks each inflection above its base, so the lemma is the inflected form. The books list the
+    // base, and B1-B2, which every level takes, lists all four.
+    lens::core::loadWordbooks(lens::test::sourceDir() / "data" / "wordbooks");
+    expectMasteredAtLevels({
+        {"shoes", {0, 1, 2, 3, 4, 5, 6, 7}},
+        {"heels", {0, 1, 2, 3, 4, 5, 6, 7}},
+        {"arrived", {0, 1, 2, 3, 4, 5, 6, 7}},
+        {"disappeared", {0, 1, 2, 3, 4, 5, 6, 7}},
+    });
+}
+
+TEST_F(CoreTest, EverydayWordsInTheFirstThreeThousandAreMasteredAtEveryLevel)
+{
+    // Ranked 1518 and 1354: above the old 1000 floor, no exam book lists them, and every level should know them.
+    expectMasteredAtLevels({
+        {"older", {0, 1, 2, 3, 4, 5, 6, 7}},
+        {"lay", {0, 1, 2, 3, 4, 5, 6, 7}},
+    });
+}
+
+TEST_F(CoreTest, InformalSpellingsAreNotVocabularyOnTheScanPath)
+{
+    // The scan path takes a single page word with no explicit-selection exemption, so the dialect spellings drop out.
+    const auto words = lens::core::filterWords("runnin the fer movin", {}, lens::core::Difficulty::byRank(0), 3, false);
+    EXPECT_EQ(surfaces(words), std::vector<std::string>{"the"});
+}
+
+TEST_F(CoreTest, CommentLinesOfTheInformalFileAreNotSpellings)
+{
+    // "maintained" appears only in the file's header comment; a comment line must not reach the list.
+    const auto words = lens::core::filterWords("maintained the", {}, lens::core::Difficulty::byRank(0), 3, false);
+    EXPECT_EQ(surfaces(words), (std::vector<std::string>{"maintained", "the"}));
+}
+
+TEST_F(CoreTest, AKnownBaseCoversItsInflectedForms)
+{
+    const auto words = lens::core::filterWords("shoes", {"shoe"}, lens::core::difficultyForLevel(2));
+    ASSERT_EQ(words.size(), 1u);
+    EXPECT_EQ(words.front().state, lens::core::CandidateState::Known);
 }
 
 TEST_F(KnownStoreTest, FreshStoreHoldsTheDocumentedDefaults)

@@ -18,6 +18,10 @@ std::string normalizedWord(std::string_view text);
 /// @brief Split page text into words: each run of letters and digits, lower-cased, in reading order.
 std::vector<std::string> pageWords(std::string_view text);
 
+/// @brief Mark the words of page text that are names: capitalized, and never written with a lower-case first letter on the page.
+/// @return One flag per word, parallel to pageWords(text).
+std::vector<bool> nameFlags(std::string_view text);
+
 /// @brief One OCR word placed on the page text.
 struct WordAnchor {
     std::size_t ocrIndex  = 0; ///< Index into the OCR words given to PageIndex::align().
