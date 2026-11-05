@@ -48,12 +48,22 @@ wantin
 fallin
 botherin
 fishin
+drinkin
+drivin
+helpin
+killin
+kiddin
+needin
+cruisin
+startin
+waitin
 
 # Clipped and contracted forms
 gonna
 wanna
 gotta
 hafta
+hasta
 oughta
 outta
 kinda
@@ -101,6 +111,11 @@ tha
 sho
 bidness
 atcha
+wanta
+neva
+whut
+laz
+stuf
 dat
 dis
 lil

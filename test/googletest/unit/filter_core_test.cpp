@@ -470,7 +470,7 @@ TEST_F(CoreTest, InformalSpellingsAreNotVocabularyOnTheScanPath)
 TEST_F(CoreTest, TheDialectFormsSeenOnTheScanDropOut)
 {
     // Forms the scan log showed as candidates in the Crawdads reading session: -in verbs and dialect spellings.
-    const auto words = lens::core::filterWords("mornin askin brung wif the", {}, lens::core::Difficulty::byRank(0), 3, false);
+    const auto words = lens::core::filterWords("mornin askin brung wif drinkin wanta the", {}, lens::core::Difficulty::byRank(0), 3, false);
     EXPECT_EQ(surfaces(words), std::vector<std::string>{"the"});
 }
 
