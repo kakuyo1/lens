@@ -339,6 +339,7 @@ void CaptureDuty::invalidateScan()
     scanContext_.clear();
     track_.reset();
     scanCandidates_.clear();
+    scanJudged_.clear();
     emit scanCleared();
 }
 
@@ -1373,12 +1374,19 @@ void CaptureDuty::onTrackFrame(std::uint64_t const generation, TrackFrame const 
         QStringList learned;
         for (auto const& word : frame.added) {
             auto const surface = word.text.trimmed();
-            for (auto const& candidate : core::filterWords(surface.toStdString(), known, band, length, false)) {
-                if (candidate.state != core::CandidateState::New) continue;
-                QString const lemma = QString::fromStdString(candidate.lemma);
-                scanCandidates_[word.id].push_back({lemma, surface});
-                learned << lemma;
+            auto const key     = surface.toStdString();
+            if (not scanJudged_.contains(key)) {
+                std::vector<std::string> lemmas;
+                for (auto const& candidate : core::filterWords(key, known, band, length, false)) {
+                    if (candidate.state != core::CandidateState::New) continue;
+                    lemmas.push_back(candidate.lemma);
+                    learned << QString::fromStdString(candidate.lemma);
+                }
+                scanJudged_.emplace(key, std::move(lemmas));
             }
+            // Every occurrence keeps its own box; the judgement is shared by all of them.
+            for (auto const& lemma : scanJudged_.at(key))
+                scanCandidates_[word.id].push_back({QString::fromStdString(lemma), surface});
         }
         if (not learned.isEmpty()) LENS_INFO("scan: {} new candidate(s) read on the page: {}", learned.size(), learned.join(QLatin1Char(' ')).toStdString());
     }

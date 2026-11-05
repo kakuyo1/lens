@@ -305,12 +305,14 @@ private:
     bool                                                scanPaused_ = false;
     std::unique_ptr<PageTrack>                          track_;          ///< Follows the page on screen; null while the scan is not reading one.
     std::unordered_map<int, std::vector<ScanCandidate>> scanCandidates_; ///< The candidates, by the track's word id.
-    QRect                                               scanScreen_;
-    QPoint                                              scanScreenOrigin_;
-    double                                              scanScale_ = 1.0;
-    QRect                                               scanBand_;
-    bool                                                budgetPaused_ = false;
-    QString                                             ocrTestState_ = QStringLiteral("idle");
+    /// The lemmas each surface was judged to be, for this scan generation. A word the track loses and reads again is not judged again.
+    std::unordered_map<std::string, std::vector<std::string>> scanJudged_;
+    QRect                                                     scanScreen_;
+    QPoint                                                    scanScreenOrigin_;
+    double                                                    scanScale_ = 1.0;
+    QRect                                                     scanBand_;
+    bool                                                      budgetPaused_ = false;
+    QString                                                   ocrTestState_ = QStringLiteral("idle");
     /// Why the last test failed, in the vocabulary the settings page explains; `none` otherwise.
     QString                     ocrTestReason_ = QStringLiteral("none");
     QString                     ocrTestEngine_;
