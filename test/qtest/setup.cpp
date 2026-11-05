@@ -106,6 +106,7 @@ QStringList surfaceSheetDevNames()
 #include <memory>
 
 #include "app/app_controller.h"
+#include "app/platform/alt_key_hook.h"
 #include "app/platform/global_hotkey.h"
 #include "app/platform/mouse_selection_hook.h"
 #include "app/pet/pet_controller.h"
@@ -117,6 +118,7 @@ QStringList surfaceSheetDevNames()
 
 namespace {
 
+using lens::app::AltKeyHook;
 using lens::app::AppController;
 using lens::app::GlobalHotkey;
 using lens::app::MouseSelectionHook;
@@ -176,6 +178,7 @@ struct Singletons {
     std::unique_ptr<KnownStore>           store;
     std::unique_ptr<lens::llm::LlmClient> llm;
     std::unique_ptr<MouseSelectionHook>   hook;
+    std::unique_ptr<AltKeyHook>           altHook;
     std::unique_ptr<GlobalHotkey>         hotkey;
     std::unique_ptr<lens::llm::Pricing>   pricing;
     std::unique_ptr<AppController>        controller;
@@ -226,11 +229,12 @@ Singletons& singletons()
         built.llm = std::make_unique<lens::llm::LlmClient>(
             lens::llm::Config{QUrl{}, QString{}, QStringLiteral("deepseek-flash")}, &offline);
         built.hook    = std::make_unique<MouseSelectionHook>();
+        built.altHook = std::make_unique<AltKeyHook>();
         built.hotkey  = std::make_unique<GlobalHotkey>();
         built.pricing = std::make_unique<lens::llm::Pricing>(lens::llm::Pricing::load(std::filesystem::path(LENS_DATA_DIR) / "llm" / "pricing.json"));
         for (auto const channel : {lens::llm::Channel::Word, lens::llm::Channel::Entity, lens::llm::Channel::Sentence, lens::llm::Channel::Translation, lens::llm::Channel::Breakdown, lens::llm::Channel::Spell, lens::llm::Channel::Grammar, lens::llm::Channel::Profile, lens::llm::Channel::Story})
             lens::llm::loadLlmProtocol(channel, std::filesystem::path(LENS_DATA_DIR) / "llm");
-        built.controller = std::make_unique<AppController>(*built.store, *built.llm, *built.hook, *built.hotkey, *built.pricing, std::filesystem::path(LENS_DATA_DIR));
+        built.controller = std::make_unique<AppController>(*built.store, *built.llm, *built.hook, *built.altHook, *built.hotkey, *built.pricing, std::filesystem::path(LENS_DATA_DIR));
         built.tray       = std::make_unique<Tray>([controller = built.controller.get()] { return controller->trayReadout(); });
         // The pet as main() builds it: a refused data directory leaves it off, and the QML still gets a singleton. The
         // reader's folder is a path that does not exist, so a surfaces run never reads the packages on this machine.
