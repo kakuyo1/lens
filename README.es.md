@@ -43,12 +43,15 @@
 
 La mayoría de las herramientas de consulta te sacan de la página y responden en tu idioma. Terminas el párrafo sin haberlo leído en inglés. Lens apuesta por lo contrario: la forma más rápida de leer mejor inglés es quedarte en inglés.
 
-- **Entra inglés, sale un inglés más claro.** Una definición en inglés sencillo, IPA y, si quieres, etimología y un ejemplo. La traducción sigue ahí; simplemente no es la opción predeterminada.
+- **Entra inglés, sale un inglés más claro.** Las explicaciones son en inglés por defecto: una definición en inglés sencillo, IPA y, si quieres, etimología y un ejemplo. Una selección en chino, japonés o español se traduce al inglés; una selección en inglés se responde en el idioma de las explicaciones, inglés por defecto. La traducción sigue ahí; simplemente no es la opción predeterminada.
+- **El idioma de las explicaciones es un ajuste, no un interruptor en la tarjeta.** Inglés, chino, chino tradicional, español o japonés: cámbialo una vez y todas las tarjetas lo siguen, respondidas desde la caché cuando esa palabra ya la tiene.
+- **La barra de acciones ofrece Traducir, Explicar y Copiar texto.** Lens gira alrededor de Explicar: te dice qué hace la palabra en ese contexto con palabras que ya conoces, en lugar de sustituirla por una palabra china que puedes saltarte.
 - **Una palabra que se puede oír.** Un altavoz junto a la pronunciación: púlsalo a él o a la propia pronunciación y la palabra se lee una vez. Las frases, los nombres y las traducciones no suenan.
 - **La respuesta se queda junto al texto.** Lens vive en la bandeja del sistema y no tiene ventana principal. La burbuja aparece junto a la selección, se queda mientras pasas el ratón y desaparece cuando sigues leyendo.
 - **Una memoria tranquila.** Marca una palabra como Conocida o Nueva. Lens guarda la lista. Sin rachas ni planes de estudio.
 - **Una mascota que pregunta.** Cuando toca repasar una palabra, aparece un cartel a los pies de la mascota. Si aciertas, la siguiente pausa es más larga; si fallas, vuelve antes. La mascota solo recibe tipos de evento y no puede leer tu pantalla, la selección ni las definiciones. Desactivada por defecto; actívala en Ajustes › Extensiones.
 - **Una definición por la que se puede entrar.** Las palabras de una definición que quedan por encima de tu nivel conservan el subrayado de puntos. Ábrela y la misma tarjeta baja un nivel, con una ruta para volver; la caché, el presupuesto y las reglas de veredicto acompañan cada paso.
+- **El globo es el único control de idioma que queda en la tarjeta.** Mantenlo pulsado medio segundo y el significado en tu lengua materna aparece bajo la definición en inglés; al soltar, desaparece. La lengua materna es un ajuste propio, chino por defecto. Una palabra cuya explicación ya incluye ese idioma no cuesta nada; cualquier otra se pide una vez por sesión.
 
 ## Un vistazo
 
@@ -59,14 +62,6 @@ La respuesta sigue en inglés. Mantén el globo para ver tu lengua materna; al s
 <p align="center"><img src="docs/readme/feature-tour.gif" width="600" alt="Pulsar Imágenes en la palabra crane carga sus fotos; «¿No es este sentido?» cambia la tarjeta al sentido de grúa, con sus fotos"></p>
 
 Pulsa Imágenes en una palabra para cargar sus fotos. «¿No es este sentido?» cambia la tarjeta en su sitio al otro sentido de la palabra, con sus fotos.
-
-## Primero en inglés. Traducción cuando la pidas.
-
-- **Las explicaciones son en inglés por defecto.** Una selección en chino, japonés o español vuelve en inglés.
-- **El idioma de las explicaciones es un ajuste, no un interruptor en la tarjeta.** Inglés, chino, chino tradicional, español o japonés: cámbialo una vez y todas las tarjetas lo siguen, respondidas desde la caché cuando esa palabra ya la tiene.
-- **La barra de acciones ofrece Traducir, Explicar y Copiar texto.** Lens gira alrededor de Explicar: te dice qué hace la palabra en ese contexto con palabras que ya conoces, en lugar de sustituirla por una palabra china que puedes saltarte.
-- **Traducir es la excepción.** Convierte un pasaje en chino, japonés o español al inglés; en un texto en inglés responde en el idioma de las explicaciones (inglés salvo que lo cambies).
-- **El globo es el control de idioma que queda en la tarjeta.** Mantenlo pulsado medio segundo y el significado en tu lengua materna aparece bajo la definición en inglés; al soltar, desaparece. La lengua materna es un ajuste propio, chino por defecto. Una palabra cuya explicación ya incluye ese idioma no cuesta nada; cualquier otra se pide una vez por sesión.
 
 ## Dilo en voz alta
 
@@ -128,10 +123,6 @@ Lens incluye siete mascotas de píxeles: Gato de orejas cortas, Búho, Mochi, Fa
 Las seis de Fantasma: el reloj de medianoche, la calabaza de Halloween, el espejo y el té de fantasmas son suyos; el escritorio y el baño los comparte con las demás mascotas — cada escena es una animación propia. La calabaza, en movimiento:
 
 <p align="center"><img src="docs/readme/pet-lantern.gif" width="420" alt="La escena de la calabaza de Fantasma, animada"></p>
-
-Y la tarjeta que levantan los ajustes: al pasar el ratón por una mascota en Ajustes › Extensiones aparece su postal — vestida con una pieza por ranura, de pie en un paisaje propio, con sello y matasellos.
-
-<p align="center"><img src="docs/readme/pet-postcards.gif" width="700" alt="Las postales de las siete mascotas, una tras otra"></p>
 
 Lens también admite mascotas personalizadas: `skills/lens-pet-maker` del repositorio es una skill de Claude Code que ayuda a una IA a generar un paquete de mascota. Clona el repositorio para usarla, copia la carpeta resultante en `%APPDATA%\Lens\pets\` y actívala en Ajustes › Extensiones.
 
