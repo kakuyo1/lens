@@ -505,6 +505,32 @@ TEST(CaptureDuty, OnlineModeRefusesWithoutAnOnlineServiceWhileScanningStaysLocal
     EXPECT_EQ(duty.settings().value("scanAvailability").toString(), QStringLiteral("ready"));
 }
 
+TEST(CaptureDuty, ALevelChangeClearsTheScanSoItRejudgesTheCandidates)
+{
+    using lens::app::CaptureDuty;
+    using lens::app::MouseSelectionHook;
+    using lens::app::StorageDuty;
+
+    int              argc   = 1;
+    char             name[] = "capture_level_clear";
+    char*            argv[] = {name, nullptr};
+    QCoreApplication application{argc, argv};
+
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    auto        store = lens::core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    StorageDuty storage{store};
+
+    MouseSelectionHook hook;
+    CaptureDuty        duty{storage, hook, std::make_unique<FakeOcr>()};
+    // scanCleared is the signal PencilDuty clears the dashed lines on; connect before the change so it is not missed.
+    bool cleared = false;
+    QObject::connect(&duty, &CaptureDuty::scanCleared, [&cleared] { cleared = true; });
+    storage.knownStore().setLevel(6);
+    duty.levelChanged();
+    EXPECT_TRUE(cleared);
+}
+
 void configureOnline(lens::app::StorageDuty& storage)
 {
     auto keys = storage.section();

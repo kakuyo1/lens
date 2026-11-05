@@ -362,6 +362,7 @@ bool AppController::writeSetting(core::settings::Row const& row, QVariant const&
             const int level = std::clamp(value.toInt(), row.low, row.high);
             storage_.knownStore().setLevel(level);
             storage_.save();
+            capture_.levelChanged();
             LENS_INFO("level set to {}", level);
             emit settingsChanged();
             return true;

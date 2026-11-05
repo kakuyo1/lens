@@ -15,6 +15,7 @@
 #include <limits>
 #include <stdexcept>
 #include <unordered_map>
+#include <utility>
 
 namespace lens::core {
 namespace {
@@ -23,6 +24,47 @@ using Table = std::unordered_map<std::string, std::size_t>;
 
 /// Word to 1-based frequency rank. Empty means the word list has not been loaded.
 Table g_rank;
+
+/// One bit per wordbook file; a level is a union of these, see kLevelBooks.
+enum Book : std::uint8_t {
+    kB1B2  = 1 << 0,
+    kC1C2  = 1 << 1,
+    kCet4  = 1 << 2,
+    kCet6  = 1 << 3,
+    kTem4  = 1 << 4,
+    kTem8  = 1 << 5,
+    kIelts = 1 << 6,
+    kToefl = 1 << 7,
+};
+
+constexpr std::pair<std::string_view, std::uint8_t> kWordbooks[] = {
+    {"b1-b2.txt", kB1B2},
+    {"c1-c2.txt", kC1C2},
+    {"cet4.txt", kCet4},
+    {"cet6.txt", kCet6},
+    {"tem4.txt", kTem4},
+    {"tem8.txt", kTem8},
+    {"ielts.txt", kIelts},
+    {"toefl.txt", kToefl},
+};
+
+/// Each level's own books, in UI-SPEC.md 4.4 order. difficultyForLevel() adds kB1B2 to every level.
+constexpr std::uint8_t kLevelBooks[] = {
+    kB1B2,
+    kC1C2,
+    kCet4,
+    kCet4 | kCet6,
+    kTem4,
+    kTem4 | kTem8,
+    kIelts | kCet4,
+    kToefl | kCet4,
+};
+
+/// The first thousand words: the particles and spoken forms (gonna, yeah) that no book lists.
+constexpr std::size_t kFloorRank = 1000;
+
+/// Lemma to the bitmask of wordbooks that list it. Empty means loadWordbooks() has not run.
+std::unordered_map<std::string, std::uint8_t> g_books;
 
 /// @return Whether @p utf8 holds a Han character anywhere, which is the whole of "this selection
 /// is Chinese".
@@ -126,6 +168,15 @@ std::size_t rankOf(const std::string& word)
 {
     const auto it = g_rank.find(word);
     return it == g_rank.end() ? 0 : it->second;
+}
+
+/// @return Whether the level's line puts @p lemma on the mastered side: inside its frequency floor, or in one of its books.
+bool isMastered(const std::string& lemma, Difficulty const& difficulty)
+{
+    const std::size_t rank = rankOf(lemma);
+    if (rank != 0 and rank <= difficulty.floorRank) return true;
+    const auto it = g_books.find(lemma);
+    return it != g_books.end() and (it->second & difficulty.bookMask) != 0;
 }
 
 bool endsWith(std::string_view s, std::string_view suffix)
@@ -280,6 +331,27 @@ void loadIrregulars(const std::filesystem::path& path)
     LENS_INFO("irregular table loaded: {} form(s) from '{}' in {} ms", g_irregulars.size(), path.string(), elapsedMs);
 }
 
+void loadWordbooks(const std::filesystem::path& dir)
+{
+    g_books.clear();
+    for (auto const& [name, bit] : kWordbooks) {
+        std::ifstream in(dir / name);
+        if (!in) {
+            LENS_WARN("wordbook '{}' is missing; the words it lists are not mastered", (dir / name).string());
+            continue;
+        }
+
+        std::string line;
+        while (std::getline(in, line)) {
+            while (!line.empty() && (line.back() == '\r' || line.back() == '\n'))
+                line.pop_back();
+            if (line.empty()) continue;
+            g_books[lemmatize(line)] |= bit; // keyed by lemma, as lookups are
+        }
+    }
+    LENS_INFO("wordbooks loaded: {} headword(s) from '{}'", g_books.size(), dir.string());
+}
+
 std::string lemmatize(std::string_view token)
 {
     if (!g_irregularsLoaded)
@@ -390,7 +462,7 @@ std::string lemmatize(std::string_view token)
 std::vector<Candidate> filterWords(
     std::string_view                       text,
     const std::unordered_set<std::string>& knownLemmas,
-    std::size_t                            minFreqRank,
+    Difficulty const&                      difficulty,
     int                                    minimumLength,
     bool                                   allowExplicitToken)
 {
@@ -413,9 +485,9 @@ std::vector<Candidate> filterWords(
         if (const std::string_view token = loneToken(text); !token.empty()) {
             const std::string    surface = util::asciiLower(token);
             const std::string    lemma   = lemmatize(surface); // RUNNING -> run; an acronym stands as-is
-            const CandidateState state   = knownLemmas.count(lemma) != 0                    ? CandidateState::Known
-                                           : inTable(lemma) && rankOf(lemma) <= minFreqRank ? CandidateState::Mastered
-                                                                                            : CandidateState::New;
+            const CandidateState state   = knownLemmas.count(lemma) != 0                     ? CandidateState::Known
+                                           : inTable(lemma) && isMastered(lemma, difficulty) ? CandidateState::Mastered
+                                                                                             : CandidateState::New;
             LENS_TRACE("filterWords: lone token '{}' -> surface='{}' lemma='{}' state={}",
                        token,
                        surface,
@@ -481,9 +553,9 @@ std::vector<Candidate> filterWords(
         // word whatever they once marked, and phase 2's automatic scanning is the caller that
         // will skip these states. Known outranks Mastered: the reader's own mark is the more
         // specific statement of the two.
-        const CandidateState state = knownLemmas.count(lemma) != 0  ? CandidateState::Known
-                                     : rankOf(lemma) <= minFreqRank ? CandidateState::Mastered
-                                                                    : CandidateState::New;
+        const CandidateState state = knownLemmas.count(lemma) != 0   ? CandidateState::Known
+                                     : isMastered(lemma, difficulty) ? CandidateState::Mastered
+                                                                     : CandidateState::New;
 
         LENS_TRACE("filterWords: candidate surface='{}' lemma='{}' state={}",
                    surface,
@@ -492,14 +564,14 @@ std::vector<Candidate> filterWords(
         out.push_back({surface, lemma, state});
     }
 
-    LENS_TRACE("filterWords: {} chars -> {} candidate(s), minFreqRank={}", size, out.size(), minFreqRank);
+    LENS_TRACE("filterWords: {} chars -> {} candidate(s), floorRank={}", size, out.size(), difficulty.floorRank);
     return out;
 }
 
 Selection classifySelection(
     std::string_view                       text,
     const std::unordered_set<std::string>& knownLemmas,
-    std::size_t                            minFreqRank)
+    Difficulty const&                      difficulty)
 {
     Selection selection;
 
@@ -515,7 +587,7 @@ Selection classifySelection(
 
     // Entity recognition runs before the word fallback. It is intentionally narrow so a single
     // capitalized token remains a word or sentence instead of being promoted by typography alone.
-    selection.candidates = filterWords(text, knownLemmas, minFreqRank);
+    selection.candidates = filterWords(text, knownLemmas, difficulty);
     if (isEntitySelection(text)) {
         selection.kind = SelectionKind::Entity;
         selection.candidates.clear();
@@ -544,14 +616,13 @@ Selection classifySelection(
     return selection;
 }
 
-std::size_t rankForLevel(int const level)
+Difficulty difficultyForLevel(int const level)
 {
-    static constexpr std::size_t kRanks[] = {4000, 9000, 5000, 8000, 8000, 12000, 9000, 12000};
-    constexpr int                kLast    = static_cast<int>(std::size(kRanks)) - 1;
-    return kRanks[std::clamp(level, 0, kLast)];
+    constexpr int kLast = static_cast<int>(std::size(kLevelBooks)) - 1;
+    return {kFloorRank, static_cast<std::uint8_t>(kLevelBooks[std::clamp(level, 0, kLast)] | kB1B2)};
 }
 
-std::vector<DefinitionLink> definitionLinks(std::string_view const text, std::size_t const cutoffRank)
+std::vector<DefinitionLink> definitionLinks(std::string_view const text, Difficulty const& difficulty)
 {
     std::vector<DefinitionLink> out;
     std::size_t                 at = 0;
@@ -564,8 +635,7 @@ std::vector<DefinitionLink> definitionLinks(std::string_view const text, std::si
         while (at < text.size() and util::isAsciiLetter(text[at]))
             ++at;
         std::string const lemma = lemmatize(text.substr(start, at - start));
-        std::size_t const rank  = rankOf(lemma);
-        if (rank == 0 or rank > cutoffRank)
+        if (not isMastered(lemma, difficulty))
             out.push_back({.start = start, .end = at, .lemma = lemma});
     }
     return out;

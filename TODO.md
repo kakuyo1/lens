@@ -26,10 +26,6 @@
 
 只走 GDI 的屏（标准档、Windows 10、两个快速源都被拒的机器）在桌面静止、设置面板常开时约 10% 单核，主要是每秒 15 次的 GDI 读取。能复制或能被 Windows Graphics Capture 读取的屏已不再付这笔（ADR 0087）；剩下的按顺序试：空闲时暂停、按负载退帧、缩小读取区域。读数与判色见 `docs/adr/0040`、`docs/adr/0041`。
 
-## 档位词书数据
-
-档位要落地，需要 8 份词表：B1–B2 / C1–C2 / CET-4 / CET-6 / TEM-4 / TEM-8 / 雅思 / TOEFL。现在 `data/wordlist.txt` 是纯词频表，不含考试标签，只能按词频阈值近似，会误判：CET-6 词书含大量非高频词，词频前列也混着 CET-4 之外的专业词。确定来源（自备 txt / 公开词表）后，把 known-set 预置从 “词频阈值” 改为 “词书集合”。见 `docs/history/PHASE1.md` 4.1。
-
 ## 更新源镜像
 
 检查更新只走 GitHub Releases，地址在 `data/update.json`，国内需代理。实测国内可达的镜像（版本接口与发布页两处），定下后只改 `data/update.json`，并在 `SECURITY.md` 写明出站地址。

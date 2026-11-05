@@ -57,6 +57,8 @@ public:
 
     QVariantMap settings() const;
     QString     ocrStatus() const;
+    /// @brief The reader's level moved: the scan's candidates were judged against the old line, so re-scan.
+    void levelChanged();
     /// @brief The download state of the pinned RapidOCR bundle, derived from disk and from the
     ///        transfer in flight. It moves during a download, so it stays out of settings(), the
     ///        way the local voices' installed state does (SpeechDuty::voiceStates).
@@ -268,8 +270,8 @@ private:
     /// @brief Read the page text for a recognised scan frame, off the main thread; the placed words come back to onScanPlaced().
     void placeScanWords(capture::OcrResult const& result, QPoint anchor, quintptr window);
     /// @brief Judge one scan frame's placed words against the reader's settings.
-    void        onScanPlaced(std::vector<ScanPlacement> placed, QPoint anchor, std::size_t ocrWords, bool pageReady);
-    std::size_t minFreqRank() const;
+    void             onScanPlaced(std::vector<ScanPlacement> placed, QPoint anchor, std::size_t ocrWords, bool pageReady);
+    core::Difficulty difficulty() const;
 
     StorageDuty&                          storage_;
     MouseSelectionHook&                   hook_;
@@ -304,6 +306,7 @@ private:
     quintptr                              scanWindow_      = 0;
     std::uint64_t                         scanFingerprint_ = 0;
     int                                   scanStableTicks_ = 0;
+    int                                   scanLevel_       = -1; ///< The level the scan's candidates were judged at; a change invalidates them.
     std::optional<std::uint64_t>          scannedFingerprint_;
     std::chrono::steady_clock::time_point scanLastOcr_{};
     bool                                  scanPaused_   = false;

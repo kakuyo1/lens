@@ -340,6 +340,11 @@ void CaptureDuty::invalidateScan()
     emit scanCleared();
 }
 
+void CaptureDuty::levelChanged()
+{
+    invalidateScan();
+}
+
 bool CaptureDuty::setSetting(std::string_view const key, QVariant const& value)
 {
     // One entry per row the settings table marks Signal::Capture, so the facade's generic write has
@@ -1189,6 +1194,11 @@ constexpr auto kScanInterval = std::chrono::seconds{3};
 void CaptureDuty::scanTick()
 {
     if (budgetPaused_ or scanPaused_ or not scanReady_ or not settings().value("autoScan").toBool()) return;
+    // A level moved by any path (the settings page, a sync round) reaches the scan here, so the candidates re-judge.
+    if (storage_.knownStore().level() != scanLevel_) {
+        scanLevel_ = storage_.knownStore().level();
+        invalidateScan();
+    }
     auto const foreground = capture::foregroundWindow();
     // The page text comes through UI Automation, which exposes a browser's page; no other window has text here.
     if (not foreground or foreground->ownProcess or foreground->processName.compare(QStringLiteral("chrome.exe"), Qt::CaseInsensitive) != 0) {
@@ -1396,12 +1406,12 @@ void CaptureDuty::onScanPlaced(std::vector<ScanPlacement> placed, QPoint const a
         return;
     }
     auto const   known  = storage_.knownStore().known();
-    auto const   rank   = minFreqRank();
+    auto const   band   = difficulty();
     auto const   length = settings().value("minimumWordLength").toInt();
     QVariantList words;
     QStringList  listed;
     for (auto const& item : placed)
-        for (auto const& candidate : core::filterWords(item.surface, known, rank, length, false)) {
+        for (auto const& candidate : core::filterWords(item.surface, known, band, length, false)) {
             if (candidate.state != core::CandidateState::New) continue;
             QString const lemma = QString::fromStdString(candidate.lemma);
             int const     x     = anchor.x() + static_cast<int>(item.box.x);
@@ -1491,7 +1501,7 @@ void CaptureDuty::beginSelection(QPoint const anchor, std::optional<QString> con
 void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const translateNow)
 {
     if (text.size() > kMaxSelectionChars) text = text.left(kMaxSelectionChars) + QStringLiteral("…");
-    const core::Selection selection = core::classifySelection(text.toStdString(), storage_.knownStore().known(), minFreqRank());
+    const core::Selection selection = core::classifySelection(text.toStdString(), storage_.knownStore().known(), difficulty());
     PendingSelection      pending{.anchor = anchor, .text = text, .kind = selection.kind};
     if (selection.kind == core::SelectionKind::Word) {
         // Only a word narrows to a candidate: the other kinds have no lemma to pick, and the whole
@@ -1523,9 +1533,9 @@ void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const tra
                                            {"grammarable", pending.kind == core::SelectionKind::Sentence and llm::grammarApplies(pending.text)}});
 }
 
-std::size_t CaptureDuty::minFreqRank() const
+core::Difficulty CaptureDuty::difficulty() const
 {
-    return core::rankForLevel(storage_.knownStore().level());
+    return core::difficultyForLevel(storage_.knownStore().level());
 }
 
 }
