@@ -4,6 +4,7 @@
  *        (ADR 0076, 0095).
  */
 
+#include <algorithm>
 #include <chrono>
 
 #include <gtest/gtest.h>
@@ -235,6 +236,38 @@ TEST(PetHide, TheSliverIsMeasuredOnThePeekInkAtTheWindowScale)
     hide.refit(kArea, bigger);
     auto const moved = PetWander::hiddenBase(kArea, bigger, EdgeSide::Left, at, 40.0, 360.0);
     EXPECT_DOUBLE_EQ(hide.distanceToSliver(QPoint{-10, 300}, moved), 5.0);
+}
+
+TEST(PetHide, TheEyesLookFromTheVisibleSliverNotTheFullInk)
+{
+    auto hide = makeHide();
+    settle(hide);
+    auto const at = *hide.tick(10ms, true, false).position;
+
+    // The window is mostly past the left edge: the full ink centre is off screen, so looking from it would pin the
+    // eyes to one direction. The sliver centre is the clip of the ink at the work-area edge.
+    auto const fullCentreScreenX = at.x() + (kInk.left + kInk.right) / 2.0;
+    EXPECT_LT(fullCentreScreenX, static_cast<double>(kArea.left()));
+
+    auto const centre = hide.sliverCentre(at);
+    auto const x1     = std::max(at.x() + kInk.left, static_cast<double>(kArea.left()));
+    auto const x2     = at.x() + kInk.right;
+    EXPECT_NEAR(centre.x(), (x1 + x2) / 2.0 - at.x(), 0.001);
+    EXPECT_NEAR(centre.y(), (kInk.top + kInk.bottom) / 2.0, 0.001);
+    EXPECT_GT(centre.x(), (kInk.left + kInk.right) / 2.0) << "the look point must leave the off-screen centre";
+}
+
+TEST(PetHide, TheRightEdgeLooksFromItsOwnSliver)
+{
+    auto hide = makeHide(EdgeSide::Right);
+    settle(hide);
+    auto const at = *hide.tick(10ms, true, false).position;
+
+    auto const centre = hide.sliverCentre(at);
+    auto const x1     = at.x() + kInk.left;
+    auto const x2     = std::min(at.x() + kInk.right, static_cast<double>(kArea.right() + 1));
+    EXPECT_NEAR(centre.x(), (x1 + x2) / 2.0 - at.x(), 0.001);
+    EXPECT_NEAR(centre.y(), (kInk.top + kInk.bottom) / 2.0, 0.001);
 }
 
 TEST(PetHide, TheHideRemembersItsScreenAndForgetsItOnStop)

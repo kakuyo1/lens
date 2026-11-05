@@ -16,7 +16,7 @@
 /**
  * @file pet_assets.h
  * @brief One pet's data folder, read at start-up and whenever the reader picks another pet, and checked against its
- *        sprite sheets (PHASE3 3.8, docs/pet-package-format.md).
+ *        sprite sheets (PHASE3 3.8, skills/lens-pet-maker/references/pet-package-format.md).
  *
  * The core parsers own pet.json, animations, anchors and the accessory catalogue. This file adds what only the window
  * needs: sheet paths, expression indices, layer order, each accessory's picture, and the checks on the files
@@ -63,7 +63,7 @@ struct ReviewSign {
 };
 
 /**
- * @brief Text a package supplied, made safe to show: control and format characters removed, in NFC (docs/pet-package-format.md
+ * @brief Text a package supplied, made safe to show: control and format characters removed, in NFC (skills/lens-pet-maker/references/pet-package-format.md
  *        section 5, rule 13). Used for the display name and for the folder names the refusal list shows.
  * @param text The text as the package wrote it.
  */

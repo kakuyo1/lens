@@ -24,6 +24,8 @@ QtObject {
     readonly property color danger: "#b3564a"
     readonly property color warn: "#b0893c"
     readonly property color popup: "#ffffff"
+    /// The screen-wide scrim under the week's report card (DESIGN.md 3.1, UI-SPEC.md 4.7c).
+    readonly property color scrim: Qt.rgba(20 / 255, 20 / 255, 26 / 255, 0.28)
 
     /**
      * The bubble's frosted fill and its border.

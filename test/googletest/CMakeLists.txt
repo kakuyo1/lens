@@ -26,6 +26,8 @@ endfunction()
 add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/filter_core_test.cpp
   unit/stats_store_test.cpp
+  unit/reading_profile_test.cpp
+  unit/story_test.cpp
   unit/review_schedule_test.cpp
   unit/review_store_test.cpp
   unit/review_duty_test.cpp
@@ -38,6 +40,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/settings_section_test.cpp
   unit/settings_defaults_test.cpp
   unit/settings_table_test.cpp
+  unit/hover_lookup_test.cpp
   unit/surface_table_test.cpp
   unit/words_view_test.cpp
   unit/words_model_test.cpp
@@ -69,6 +72,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/ocr_local_test.cpp
   unit/ocr_adapter_test.cpp
   unit/ocr_rapidocr_test.cpp
+  unit/rapidocr_bundle_test.cpp
   unit/ocr_space_test.cpp
   unit/ocr_baidu_test.cpp
   unit/ocr_tencent_test.cpp

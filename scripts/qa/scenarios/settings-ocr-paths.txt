@@ -1,0 +1,20 @@
+# OCR category and its sub-pages after the settings regrouping (docs/adr/0153).
+# Opens the OCR category, then the Online OCR and Local engine paths sub-pages, reading state at each.
+# The dev surface has no back or Escape verb, so the return from a sub-page is covered by a qtest,
+# not by this script.
+# Run against a private settings file so the reader's profile is never touched:
+#   lens.exe --dev-script=scripts/qa/scenarios/settings-ocr-paths.txt --dev-out=logs/dev-run/answers.jsonl --settings-file=logs/dev-run/settings.json
+version
+state
+surface show settings
+wait visible:settings
+surface route ocr
+wait painted
+state
+surface route ocr/ocr-online
+wait painted
+state
+surface route ocr/ocr-paths
+wait painted
+state
+quit

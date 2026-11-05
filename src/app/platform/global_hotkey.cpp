@@ -16,10 +16,6 @@
 namespace lens::app {
 namespace {
 
-/// The one hotkey this program takes. The id comes back in WM_HOTKEY, and nothing else here
-/// registers one; 'LS' in ASCII, so a report that is not ours reads as odd rather than as noise.
-constexpr int kHotkeyId = 0x4C53;
-
 /// @return The Win32 virtual key for a Qt key, or 0 for a key this program will not grab.
 ///
 /// The set is what a trigger is made of: letters, digits, the function row and the navigation
@@ -70,6 +66,11 @@ QKeySequence GlobalHotkey::defaultKeys()
     return QKeySequence{QStringLiteral("Ctrl+Alt+S")};
 }
 
+QKeySequence GlobalHotkey::hoverDefaultKeys()
+{
+    return QKeySequence{QStringLiteral("Ctrl+Alt+H")};
+}
+
 QKeySequence GlobalHotkey::keys() const
 {
     return keys_;
@@ -80,8 +81,8 @@ bool GlobalHotkey::conflicted() const
     return installed_ and not keys_.isEmpty() and registered_.isEmpty();
 }
 
-GlobalHotkey::GlobalHotkey(QObject* parent)
-    : QObject(parent), keys_(defaultKeys())
+GlobalHotkey::GlobalHotkey(QObject* parent, int const id)
+    : QObject(parent), keys_(defaultKeys()), id_(id)
 {}
 
 GlobalHotkey::~GlobalHotkey()
@@ -90,7 +91,7 @@ GlobalHotkey::~GlobalHotkey()
     if (QCoreApplication::instance() != nullptr)
         QCoreApplication::instance()->removeNativeEventFilter(this);
     if (not registered_.isEmpty())
-        UnregisterHotKey(nullptr, kHotkeyId);
+        UnregisterHotKey(nullptr, id_);
     registered_ = {};
     installed_  = false;
 }
@@ -117,7 +118,7 @@ bool GlobalHotkey::setKeys(QKeySequence const& keys)
 bool GlobalHotkey::apply()
 {
     if (not registered_.isEmpty()) {
-        UnregisterHotKey(nullptr, kHotkeyId);
+        UnregisterHotKey(nullptr, id_);
         registered_ = {};
     }
     if (not installed_ or keys_.isEmpty()) return true;
@@ -129,12 +130,12 @@ bool GlobalHotkey::apply()
     const QKeyCombination combination = keys_[0];
     const UINT            modifiers   = modifiersFor(combination.keyboardModifiers());
     // MOD_NOREPEAT: a held key is one capture, not a stream of them.
-    if (RegisterHotKey(nullptr, kHotkeyId, modifiers | MOD_NOREPEAT, virtualKeyFor(combination.key())) == FALSE) {
+    if (RegisterHotKey(nullptr, id_, modifiers | MOD_NOREPEAT, virtualKeyFor(combination.key())) == FALSE) {
         LENS_WARN("the trigger '{}' is held by another program (error {})", keys_.toString(QKeySequence::PortableText).toStdString(), GetLastError());
         return false;
     }
     registered_ = keys_;
-    LENS_INFO("OCR trigger key registered: '{}'", keys_.toString(QKeySequence::PortableText).toStdString());
+    LENS_INFO("trigger key registered: '{}'", keys_.toString(QKeySequence::PortableText).toStdString());
     return true;
 }
 
@@ -145,7 +146,7 @@ bool GlobalHotkey::nativeEventFilter(QByteArray const& eventType, void* message,
     const auto* const msg = static_cast<MSG*>(message);
     // A hotkey posted to this thread's queue carries no window, which is why the filter sees it:
     // no window of this process would otherwise be given it.
-    if (msg->message != WM_HOTKEY or msg->wParam != kHotkeyId) return false;
+    if (msg->message != WM_HOTKEY or msg->wParam != static_cast<WPARAM>(id_)) return false;
     emit pressed();
     return true;
 }

@@ -33,6 +33,11 @@ Item {
     }
 
     Component {
+        id: ocrPageComponent
+        SettingsOcrPage { x: 26; y: 20; width: 328; height: implicitHeight }
+    }
+
+    Component {
         id: mainComponent
         Main {}
     }
@@ -195,13 +200,13 @@ Item {
 
         // The key itself, on the settings page it is set on.
 
-        /// @return The field the page draws the trigger key in.
+        /// @return The field the OCR page draws the trigger key in.
         function hotkeyField() {
-            const page = createTemporaryObject(pageComponent, host.contentItem);
+            const page = createTemporaryObject(ocrPageComponent, host.contentItem);
             waitForRendering(host.contentItem);
             verify(page);
             const field = findChild(page, "ocrHotkey");
-            verify(field, "the capture page draws no trigger key");
+            verify(field, "the OCR page draws no trigger key");
             return field;
         }
 
@@ -246,6 +251,19 @@ Item {
 
             field.keyChosen(Qt.Key_K, Qt.NoModifier);
             compare(field.refused, true, "the field did not say the combination was refused");
+        }
+
+        /// The hover key lives on the capture page now, and its combination is stored apart from the OCR key.
+        function test_theHoverKeyIsSetOnItsOwnField() {
+            const page = createTemporaryObject(pageComponent, host.contentItem);
+            waitForRendering(host.contentItem);
+            const field = findChild(page, "hoverHotkey");
+            verify(field, "the capture page draws no hover lookup key");
+            const ocrBefore = Controller.settings.ocrHotkey;
+
+            field.keyChosen(Qt.Key_J, Qt.ControlModifier | Qt.AltModifier);
+            tryVerify(function () { return Controller.settings.hoverHotkey === "Ctrl+Alt+J"; }, 1000);
+            compare(Controller.settings.ocrHotkey, ocrBefore, "choosing the hover key moved the OCR key");
         }
 
         /// The row's own drawing is checked against the snapshot the settings case already takes of

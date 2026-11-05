@@ -11,10 +11,10 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
   | Docs, comments, `.ts` text | Nothing |
   | C++ logic | One gtest case or `--gtest_filter` that covers the touched code |
   | QML that renders a visible surface | Drive it through the dev surface first (`scripts/qa/lens-dev.ps1`, `docs/qa.md`), plus the qtest case(s) covering the touched surface (`scripts/qa/qtest.ps1 -Target lens_qtest_surfaces -Case Settings::test_x`); a `ui-run` capture only when pixels are the question; no full-suite run |
-  | Big merge, release, or cross-target change | The full run |
+  | Release | The full run |
   | Anything else | Nothing; push and let CI run the suites |
 
-  A review-comment fix never triggers a full run. Do not escalate "just to be safe". Report what you ran in one line.
+  **The full run is forbidden everywhere except a release.** Not discouraged -- forbidden. A big merge, a cross-target change, a review comment, a handover, "just to be safe": none of them is a reason, and no reason whatsoever overrides this. A whole-suite run outside a release is a mistake to be called out, not a judgement call. If a change seems to need more than its row, the row or the change is wrong: stop and say which, instead of running the suite. A review-comment fix never triggers a full run. Report what you ran in one line.
 - Reproducing a bug before fixing it is a judgement call, not a gate. Weigh what a reproduction would change against what it costs; when the fix is already clear, or when reproduction needs a human hand on the UI, fix directly and hand it to manual verification. A bug that would take a heavy repro rig to see again is usually not worth the rig -- skip the step.
 - No commits unless explicitly requested, no AI attribution in commits or PRs.When the user said commit and push proactively, no test is needed, immediately commit and push and nothing else, this should be done under 30s.
 - A branch that has been pushed gets a pull request, and its body follows

@@ -215,6 +215,21 @@ TEST(OcrRapidOcr, AnErrorCodeOrMalformedShapeIsAProtocolErrorWithoutText)
     }
 }
 
+TEST(OcrRapidOcr, ABoxReachingPastAnEdgeByThePaddingIsClippedAndFurtherIsRefused)
+{
+    // A 7 px overhang at the bottom, the way RapidOCR's padding and unclip produce it: clipped, not refused.
+    auto const clipped = lens::capture::parseRapidOcrResponse(
+        QByteArrayLiteral(R"({"code":100,"data":[{"text":"x","box":[[10,50],[60,50],[60,67],[10,67]],"score":0.9}]})"), QSize{100, 60}, 1, QStringLiteral("en"), QStringLiteral("rapidocr-json"), 3);
+    ASSERT_EQ(clipped.status, OcrStatus::Ready);
+    ASSERT_EQ(clipped.lines.size(), 1);
+    EXPECT_DOUBLE_EQ(clipped.lines.at(0).box->y + clipped.lines.at(0).box->height, 60.0);
+
+    // Past the padding (here 11 px beyond the 50 px margin) nothing about the box is explained: refused.
+    auto const far = lens::capture::parseRapidOcrResponse(
+        QByteArrayLiteral(R"({"code":100,"data":[{"text":"x","box":[[10,50],[60,50],[60,121],[10,121]],"score":0.9}]})"), QSize{100, 60}, 1, QStringLiteral("en"), QStringLiteral("rapidocr-json"), 3);
+    EXPECT_EQ(far.status, OcrStatus::ProtocolError);
+}
+
 TEST(OcrRapidOcr, EmptyDataIsEmptyTextAndAnOversizedBlockIsRefused)
 {
     auto const empty = lens::capture::parseRapidOcrResponse(QByteArrayLiteral(R"({"code":100,"data":[]})"),

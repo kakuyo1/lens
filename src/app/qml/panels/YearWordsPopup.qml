@@ -165,6 +165,15 @@ Window {
         onActivated: year.paletteOpen ? year.closePalette() : year.visible = false
     }
 
+    Item {
+        anchors.fill: parent
+
+        TapHandler {
+            acceptedButtons: Qt.BackButton
+            onTapped: year.backRequested()
+        }
+    }
+
     ShadowCard {
         id: card
         anchors.fill: parent

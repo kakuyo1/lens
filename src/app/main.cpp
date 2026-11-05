@@ -37,6 +37,7 @@
 #include "core/dev/dev_command.h"
 #include "app/dev/dev_surface.h"
 #endif
+#include "app/platform/alt_key_hook.h"
 #include "app/platform/global_hotkey.h"
 #include "llm/llm_client.h"
 #include "llm/llm_pricing.h"
@@ -51,6 +52,7 @@
 
 using lens::app::AppController;
 using lens::app::GlobalHotkey;
+using lens::app::AltKeyHook;
 using lens::app::MouseSelectionHook;
 using lens::app::Tray;
 using lens::app::narrow;
@@ -263,6 +265,8 @@ int main(int argc, char* argv[])
         lens::llm::loadLlmProtocol(lens::llm::Channel::Breakdown, protocolDir);
         lens::llm::loadLlmProtocol(lens::llm::Channel::Spell, protocolDir);
         lens::llm::loadLlmProtocol(lens::llm::Channel::Grammar, protocolDir);
+        lens::llm::loadLlmProtocol(lens::llm::Channel::Profile, protocolDir);
+        lens::llm::loadLlmProtocol(lens::llm::Channel::Story, protocolDir);
     } catch (const std::exception& e) {
         // Without the word list there is no pipeline at all, and without the protocol there is
         // nothing to send. Neither failure is recoverable at runtime.
@@ -306,9 +310,10 @@ int main(int argc, char* argv[])
         model.isEmpty() ? lens::app::defaults::defaultModelName() : model});
 
     MouseSelectionHook hook;
+    AltKeyHook         altHook;
     GlobalHotkey       hotkey;
 
-    AppController controller(store, llm, hook, hotkey, pricing, dataDir);
+    AppController controller(store, llm, hook, altHook, hotkey, pricing, dataDir);
 
     // A refused pet data directory leaves the pet off and says why; the rest of the program is unaffected. The reader's
     // packages sit beside the settings document, in %APPDATA%\Lens\pets (docs/adr/0043).
@@ -388,6 +393,10 @@ int main(int argc, char* argv[])
     if (!hook.install())
         return 1;
 
+    // The pencil layer's Alt key. Without it the dashed lines still show; only the signposts and the bubble
+    // by Alt+pointer are lost, and the hook says why in the log.
+    altHook.install();
+
     // After the surfaces, and for a different reason than the hook's: a global key is the machine's
     // while it is held, and the reader does not need it in the first second of startup. A
     // combination another program already owns leaves the trigger missing and says so in the
@@ -400,7 +409,7 @@ int main(int argc, char* argv[])
     // cannot reach the source does not retry on every launch.
     controller.updateDuty()->checkAtStartup();
     controller.syncDuty()->startAtLaunch();
-    // The first-run notice is a surface too, so it waits for the same moment as the update check.
+    // The first-run wizard is a surface too, so it waits for the same moment as the update check.
     controller.onboardingDuty()->startAtLaunch(kForceOnboarding);
 
 #if defined(QT_QML_DEBUG)

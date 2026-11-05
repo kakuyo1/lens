@@ -22,11 +22,15 @@
 
 namespace {
 
+using lens::core::CacheContext;
+using lens::core::CardFormat;
 using lens::core::DailyUsage;
 using lens::core::ExportScope;
 using lens::core::HistoryEntry;
 using lens::core::KnownStore;
 using lens::core::StatsStore;
+using lens::core::WordCache;
+using lens::core::exportCards;
 using lens::core::exportLemmas;
 
 /// @brief A StatsStore bound to a fresh temp file, deleted either way.
@@ -285,6 +289,50 @@ TEST(WordExport, ALemmaIsWrittenThroughAsItIs)
     const std::unordered_set<std::string> none;
     const std::vector<HistoryEntry>       history{{"naïve", "2026-10-03 09:01", "new"}, {"café", "2026-10-03 09:00", "new"}};
     EXPECT_EQ(exportLemmas(history, ExportScope::All, none), "naïve\ncafé\n");
+}
+
+/// The cards are the export's rows, each with the cached explanation for its word. A word explained
+/// only with multiple senses is read from that entry; a word the cache does not hold keeps its row,
+/// with the explanation columns empty.
+TEST_F(StatsStoreTest, CardsCarryTheCachedExplanationAndLeaveTheRestEmpty)
+{
+    auto store = KnownStore::load(path);
+    store.cachePut("bank", WordCache{.ipa = "/bæŋk/", .en = "a place where money is kept", .zh = "银行", .pos = "noun", .example = "She works at a bank."});
+    store.cachePut("river", WordCache{.ipa = "/ˈrɪvə/", .en = "a large natural stream", .zh = "河流"}, CacheContext{"en", true});
+    const std::vector<HistoryEntry> history{
+        {"bank", "2026-10-03 09:03", "new"},
+        {"river", "2026-10-03 09:02", "new"},
+        {"tree", "2026-10-03 09:01", "new"}, // not cached
+    };
+
+    EXPECT_EQ(exportCards(history, ExportScope::All, store, CardFormat::Anki),
+              "#separator:tab\n"
+              "bank\t/bæŋk/\tnoun\ta place where money is kept\t银行\tShe works at a bank.\n"
+              "river\t/ˈrɪvə/\t\ta large natural stream\t河流\t\n"
+              "tree\t\t\t\t\t\n");
+    EXPECT_EQ(exportCards(history, ExportScope::All, store, CardFormat::Csv),
+              "\xEF\xBB\xBF"
+              "word,ipa,pos,en,zh,example\n"
+              "bank,/bæŋk/,noun,a place where money is kept,银行,She works at a bank.\n"
+              "river,/ˈrɪvə/,,a large natural stream,河流,\n"
+              "tree,,,,,\n");
+}
+
+/// A field is quoted only when it holds the delimiter, a double quote or a line break; the quotes
+/// inside it are doubled. A comma is a delimiter in the CSV but not in the Anki file.
+TEST_F(StatsStoreTest, CardFieldsAreQuotedOnlyWhereTheyNeedTo)
+{
+    auto store = KnownStore::load(path);
+    store.cachePut("say", WordCache{.ipa = "/seɪ/", .en = "to speak, \"aloud\"", .zh = "说\n出声"});
+    const std::vector<HistoryEntry> history{{"say", "2026-10-03 09:00", "new"}};
+
+    EXPECT_EQ(exportCards(history, ExportScope::All, store, CardFormat::Csv),
+              "\xEF\xBB\xBF"
+              "word,ipa,pos,en,zh,example\n"
+              "say,/seɪ/,,\"to speak, \"\"aloud\"\"\",\"说\n出声\",\n");
+    EXPECT_EQ(exportCards(history, ExportScope::All, store, CardFormat::Anki),
+              "#separator:tab\n"
+              "say\t/seɪ/\t\t\"to speak, \"\"aloud\"\"\"\t\"说\n出声\"\t\n");
 }
 
 TEST_F(StatsStoreTest, IgnoresMalformedEntriesInTheDocument)

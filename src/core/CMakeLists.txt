@@ -1,5 +1,6 @@
 add_library(lens_core STATIC
   domain/filter_core.cpp
+  domain/hover_lookup.cpp
   domain/review_schedule.cpp
   domain/sync_merge.cpp
   domain/sync_partition.cpp
@@ -15,6 +16,8 @@ add_library(lens_core STATIC
   document/known_store.cpp
   document/explanation_cache.cpp
   document/stats_store.cpp
+  document/reading_profile.cpp
+  document/story.cpp
   document/review_store.cpp
   document/pet_store.cpp
   crypto/vault.cpp

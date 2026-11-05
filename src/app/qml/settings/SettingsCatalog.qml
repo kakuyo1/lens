@@ -30,6 +30,11 @@ Item {
             onPicked: root.categoryRequested("capture")
         }
         SettingsCategoryRow {
+            title: qsTranslate("SettingsPopup", "OCR")
+            summary: qsTranslate("SettingsPopup", "Screenshot capture, its key and engine")
+            onPicked: root.categoryRequested("ocr")
+        }
+        SettingsCategoryRow {
             title: qsTranslate("SettingsPopup", "Model service")
             summary: qsTranslate("SettingsPopup", "Provider, model, API configuration")
             onPicked: root.categoryRequested("model")

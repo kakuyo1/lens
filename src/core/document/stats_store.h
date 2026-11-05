@@ -24,6 +24,8 @@
 
 namespace lens::core {
 
+class KnownStore;
+
 /// @brief A word the bubble showed, kept for the words popup.
 struct HistoryEntry {
     std::string lemma;
@@ -60,6 +62,13 @@ enum class ExportScope : std::uint8_t { All,
                                         Known,
                                         New };
 
+/// @brief The file a learning-card export writes.
+/// @note Csv opens in a spreadsheet with its Chinese intact: a UTF-8 byte-order mark and a header
+///       row. Anki is tab-separated with no header row, since Anki's text import does not reliably
+///       skip one, and opens with the `#separator:tab` line that names the separator.
+enum class CardFormat : std::uint8_t { Csv,
+                                       Anki };
+
 /**
  * @brief Render the history as the words export: plain text, one lemma per line.
  *
@@ -84,6 +93,23 @@ std::string exportLemmas(const std::vector<HistoryEntry>&       history,
 std::string exportLemmasJson(const std::vector<HistoryEntry>&       history,
                              ExportScope                            scope,
                              const std::unordered_set<std::string>& knownLemmas);
+
+/**
+ * @brief Render the history as learning cards: the words export's rows, each with the cached
+ *        explanation the store holds for it.
+ *
+ * Columns are word, ipa, pos, en, zh and example. A field the cache does not hold is left empty,
+ * and no request is made. A field is quoted when it holds the delimiter, a double quote or a line
+ * break, with the quotes inside it doubled.
+ *
+ * @param history The history, newest first.
+ * @param scope   Every lemma, or only the known / new ones, as exportLemmas() reads them.
+ * @param store   The known set and the explanation cache for the current explanation language.
+ * @param format  The file the rows are written for.
+ * @return The file's text, LF-terminated. The header row or directive line leads it even when no
+ *         row matches.
+ */
+std::string exportCards(const std::vector<HistoryEntry>& history, ExportScope scope, const KnownStore& store, CardFormat format);
 
 /**
  * @brief The history and daily tallies behind the statistics surfaces.

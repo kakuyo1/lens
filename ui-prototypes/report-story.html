@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · 周报告卡片 · 小故事页（UI-SPEC 4.7d）</title>
+<style>
+/* 与 report-card-c-evidence.html 同一套令牌（浅色与暗色）。卡片高度固定为 C 完整态的 685 px，正文只在卡内滑动。 */
+:root{
+  --bg:#e9ebef; --panel:#fff; --panel2:#f1f3f7; --line:#d6dae1;
+  --text:#1a1a1f; --muted:#66666f; --faint:#73737d;
+  --ink:#1a1a1f; --danger:#b3564a;
+  --scrim:rgba(20,20,26,.28);
+  --sh:0 2px 6px rgba(20,20,26,.06),0 24px 60px -24px rgba(20,20,26,.24);
+  --f:"Noto Sans SC","Segoe UI Variable","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+}
+html[data-theme=dark]{
+  --bg:#0b0e13; --panel:#171c25; --panel2:#212936; --line:#36404e;
+  --text:#e9edf3; --muted:#a8b3c2; --faint:#8a95a6; --ink:#eef3fa; --danger:#ec9282;
+  --scrim:rgba(0,0,0,.5);
+  --sh:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100vh}
+
+.scrim{position:fixed;inset:0;background:var(--scrim);display:flex;align-items:center;justify-content:center;padding:24px}
+.story-card{width:640px;max-width:100%;height:685px;max-height:calc(100vh - 48px);display:flex;flex-direction:column;background:var(--panel);border-radius:18px;box-shadow:var(--sh);padding:26px 28px 22px}
+
+.hd{display:flex;align-items:center;gap:8px}
+.hd h1{flex:1;font-size:14px;font-weight:700;line-height:1.25}
+.x{width:28px;height:28px;border-radius:999px;border:0;background:transparent;color:var(--faint);cursor:pointer;display:grid;place-items:center;flex:none}
+.x:hover{background:var(--panel2);color:var(--text)}
+.x svg{width:14px;height:14px}
+
+/* 固定高度的滑动区：滚动条 6 px 画在卡片右侧留白里（负 margin 伸进 padding，右内边距 8 px 隔开文字），文字右缘仍与关闭钮对齐 */
+.body{flex:1;min-height:0;margin:16px -14px 0 0;padding-right:8px;overflow-y:auto;scrollbar-gutter:stable;font-size:15px;line-height:1.6;color:var(--text)}
+.body::-webkit-scrollbar{width:6px}
+.body::-webkit-scrollbar-track{background:transparent}
+.body::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+.story p+p{margin-top:12px}
+
+/* 查过的词：2 px 段、2 px 间隔的虚线，画在内容区底边（基线下约 3 px），只改下划线，不改字色与字重 */
+.lk{position:relative}
+.lk::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--faint);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='1'%3E%3Crect width='2' height='1'/%3E%3C/svg%3E") 0 0/4px 1px repeat-x;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='1'%3E%3Crect width='2' height='1'/%3E%3C/svg%3E") 0 0/4px 1px repeat-x}
+
+.sk{display:none;height:100%;padding:16px 18px;background:var(--panel2);border-radius:12px;font-size:13px;line-height:1.6;color:var(--muted)}
+.fail{display:none;font-size:13px;line-height:1.6;color:var(--danger)}
+.btn{display:inline-block;height:32px;padding:0 16px;border-radius:999px;border:0;font:700 12px var(--f);cursor:pointer;margin-top:12px}
+.btn.secondary{background:var(--panel2);color:var(--text)}
+.x:focus-visible,.btn:focus-visible,.body:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+.note{margin-top:12px;font-size:11px;line-height:1.5;color:var(--faint)}
+
+body[data-state=loading] .sk{display:block}
+body[data-state=loading] .story,body[data-state=failed] .story{display:none}
+body[data-state=failed] .fail{display:block}
+
+.themebtn{position:fixed;top:14px;right:16px;padding:5px 12px;border-radius:999px;border:0;background:var(--panel);color:var(--muted);font:400 11.5px var(--f);cursor:pointer}
+html[data-shot] .themebtn{display:none}
+</style>
+</head>
+<body>
+<div class="scrim">
+  <section class="story-card" role="dialog" aria-modal="true" aria-labelledby="t">
+    <div class="hd">
+      <a class="x" href="report-card-c-evidence.html" aria-label="返回"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
+      <h1 id="t">小故事</h1>
+      <button class="x" data-act="close" aria-label="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+    </div>
+
+    <div class="body" tabindex="0" role="region" aria-label="正文">
+      <div class="sk">正在写故事……</div>
+      <div class="fail">
+        <p>没有连上故事服务：网络或代理不可达，可以重试。</p>
+        <button class="btn secondary" type="button">重试</button>
+      </div>
+      <div class="story">
+        <p lang="en">Every morning Mara walked to the <span class="lk">quay</span> before the <span class="lk">tide</span> turned. The harbour was still grey. Fishing boats knocked gently against their ropes, and a <span class="lk">gull</span> called from the top of a <span class="lk">lantern</span> post.</p>
+        <p lang="en">One morning she found a rusted <span class="lk">anchor</span> tangled in the <span class="lk">mooring</span> lines. Nobody in the village knew how long it had lain at the bottom of the bay. She dragged it up the steps and set it on the <span class="lk">bank</span>, where the sun would reach it first.</p>
+        <p lang="en">By noon the <span class="lk">fog</span> had lifted. A <span class="lk">ferry</span> crossed slowly toward the island, its horn low and patient. Mara sat on a <span class="lk">crate</span> with a flask of tea and watched the <span class="lk">hull</span> of the little boat slide past. Salt dried on her coat. The water began to fall, and the boats settled, one by one, into the mud.</p>
+        <p lang="en">Her grandfather had a word for this hour: <span class="lk">slack</span>. He said it meant the water was resting before it chose a direction. She decided it was a good word to keep.</p>
+      </div>
+    </div>
+
+    <p class="note">由 AI 生成；词是本周查过的。</p>
+  </section>
+</div>
+<button class="themebtn" id="tb"></button>
+<script>
+const THEME = { light: '静谧暗夜', dark: '晴朗白昼' };
+const q = new URLSearchParams(location.search);
+const state = ['loading','failed'].includes(q.get('state')) ? q.get('state') : 'ok';
+document.body.dataset.state = state;
+if (q.get('shot') !== null) document.documentElement.dataset.shot = '';
+
+const tb = document.getElementById('tb');
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t;
+  tb.textContent = THEME[t];
+}
+applyTheme(q.get('theme') === 'dark' ? 'dark' : 'light');
+tb.onclick = () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+document.querySelectorAll('[data-act=close]').forEach(b => b.onclick = () => { document.querySelector('.scrim').style.display = 'none'; });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelector('.scrim').style.display = 'none'; });
+</script>
+</body>
+</html>

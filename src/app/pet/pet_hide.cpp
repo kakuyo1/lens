@@ -135,6 +135,23 @@ double PetHide::distanceToSliver(QPoint cursor, QPoint origin) const
     return std::hypot(dx, dy) / sx;
 }
 
+QPointF PetHide::sliverCentre(QPoint origin) const
+{
+    if (not active_ or ink_.canvas <= 0.0 or size_.width() <= 0) return ink_.centre();
+
+    auto const sx = scale();
+    auto       x1 = origin.x() + ink_.left * sx;
+    auto       x2 = origin.x() + ink_.right * sx;
+    if (side_ == EdgeSide::Left)
+        x1 = std::max(x1, static_cast<double>(area_.left()));
+    else
+        x2 = std::min(x2, static_cast<double>(area_.right() + 1));
+    // The look point must sit on the part the reader can see, not on the full window's ink: with the window mostly
+    // past the edge, the full centre lies off screen and every cursor beside the sliver reads as one direction.
+    auto const midX = (x1 + x2) / 2.0;
+    return QPointF{(midX - origin.x()) / sx, (ink_.top + ink_.bottom) / 2.0};
+}
+
 PetHide::Step PetHide::tick(std::chrono::milliseconds step, bool idle, bool pointerNear)
 {
     if (not active_ or dragging_) return {};

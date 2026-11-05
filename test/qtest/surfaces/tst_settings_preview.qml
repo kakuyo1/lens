@@ -52,12 +52,14 @@ Item {
             return panel;
         }
 
-        /// @return The preview window: of the two Bubbles Main owns, the one that is a preview.
+        /// @return The settings preview's window. The search is scoped to the panel: the onboarding
+        ///         wizard hosts a preview Bubble of its own (docs/adr/0148), so Main no longer has
+        ///         exactly one to hand.
         function previewOf(main) {
-            const previews = Util.findAll(main, function (o) {
+            const previews = Util.findAll(settingsPanel(main), function (o) {
                 return o.toString().indexOf("Bubble_QMLTYPE") === 0 && o.preview === true;
             });
-            verify(previews.length === 1, "Main does not own exactly one preview bubble");
+            verify(previews.length === 1, "the settings panel does not own exactly one preview bubble");
             return previews[0];
         }
 
@@ -385,6 +387,25 @@ Item {
                 for (const label in previous)
                     Controller.setSetting(keys[label], previous[label]);
             }
+        }
+
+        /// The Pictures switch draws its sample strip, open, under the one sense it would sit under
+        /// (UI-SPEC.md 4.4): three bundled pictures, no search behind them.
+        function test_thePicturesSwitchPreviewDrawsASampleStrip() {
+            const main = make();
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "Reading & learning");
+
+            const preview = hoverTitle(main, panel, "Pictures");
+            tryCompare(preview, "visible", true);
+            const strip = Util.findAll(preview, function (o) {
+                return o.objectName === "sensePictures";
+            })[0];
+            verify(strip, "the picture preview has no strip");
+            compare(strip.visible, true, "the sample strip is not open");
+            compare(strip.items.length, 3, "the sample strip should show three pictures");
+            leaveTitle(main, panel);
         }
 
         /// One reading per field the controller fills an explanation language into: English and

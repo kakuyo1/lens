@@ -1,80 +1,60 @@
 # Security
 
-Lens processes text from the Windows desktop and can send selected content to an AI provider chosen by the reader. This page describes the current data flow, safeguards, and known limits. It is not a guarantee that local data or third-party services are risk-free.
-
-> Authority: the current data and trust boundaries. Decisions behind them live in `docs/adr/` (notably 0012 and 0042).
+> Authority: the current data and trust boundaries. Decisions live in `docs/adr/`.
 
 ## Reporting a vulnerability
 
-Please do not post exploitable details in a public issue. Check whether GitHub's private vulnerability reporting is available for this repository and use it when enabled. If it is unavailable, open a public issue asking for a private reporting channel, without including exploit details or sensitive data.
+Use GitHub's private vulnerability reporting if it is enabled. Otherwise, open a public issue asking for a private channel, without exploit details or real keys. There is no response-time commitment, and older releases do not get fixes.
 
-There is no published response-time or coordinated-disclosure SLA. Please include the affected version or commit, the impact, and steps to reproduce. Avoid sending real API keys, personal data, or private screen contents in a report. We will coordinate disclosure with the reporter when possible.
+## Outbound requests
 
-## Supported releases
+| Destination | What is sent | Notes |
+| --- | --- | --- |
+| AI provider you configure | The word, entity, or sentence being explained. Also the weekly profile summary or story words, when you press those buttons. | HTTPS. The provider's retention and training terms apply. |
+| OCR service (online OCR only) | One screenshot crop you confirm, per capture. | Never automatic. Local OCR is the default, and automatic scanning is always local. |
+| Youdao or Google Translate | The single word, for pronunciation. | Only when online audio is the active engine. No key is sent. |
+| Wikimedia Commons | A 2–5 word English query. | Only when you open pictures. Nothing else is sent. |
+| GitHub | Sign-in, encrypted sync, the update check, and downloads you start. | The update check sends only a version User-Agent. GitHub sees the gist's size, update times, and access IPs, not its contents. |
+| huggingface.co | Voice-file downloads. | No reader data. |
 
-The repository has no published release support window or response-time commitment. Do not assume that an older release will receive security fixes.
+## Local data
 
-## Data and trust boundaries
+- `%APPDATA%\Lens\settings.json` holds your settings, learning data, caches, the API key, OCR credentials, the GitHub token and its refresh token, and the sync key. It is plain JSON that Lens does not encrypt. Anyone who can read it can decrypt the cloud copy.
+- Pictures, pronunciation audio, and voice models are cached locally. None of them is synced or uploaded.
+- Logs can contain the words you looked up. Logs rotate, and for packaged launches they may be written inside the install folder.
+- Selection capture briefly replaces the clipboard and then tries to restore it. Another application can prevent a perfect restore.
+- Pet packages are read from `%APPDATA%\Lens\pets\` as data. Lens runs no code from them.
 
-- **Screen and selection data:** Selection capture, screenshot OCR, and optional automatic scanning can read text visible in other Windows applications. Experimental automatic scanning can be limited to an application allowlist. Manual selection and screenshot capture are initiated by the reader.
-- **Pointer position:** while the desktop pet is visible, it polls the cursor's screen position to measure how close it is to the pet, for its eyes and proximity reactions (`UI-SPEC.md` 4.14). It does not read pixels, text or other applications' input, and does not enlarge its window or capture clicks; mouse pass-through turns the polling off.
-- **OCR:** Screenshot regions are read on the same PC by a local engine (the bundled or reader-configured Tesseract, or a user-installed RapidOCR-json after explicit detection). RapidOCR is never chosen by the automatic strategy and its model folder must be an ASCII path. When the reader turns on online OCR, only the frozen crop of a manual capture is sent to the configured OCR service, and only after an explicit confirmation; experimental automatic scanning always stays local. OCR text is then filtered locally.
-- **AI providers:** Lens sends the content needed for the selected request over HTTPS to the configured provider. Word requests contain the word, entity requests contain the entity name, and sentence requests contain the selected sentence. The provider's retention, training, and access practices are governed by that provider, not by Lens.
-- **Local profile:** Settings, the API key, cached explanations, word marks, and learning history live in `%APPDATA%\Lens\settings.json` (the storage shape is in `PRODUCT.md`). This file is ordinary local JSON, not encrypted with an application-managed key, and uninstalling does not remove it. The GitHub token, the refresh token that renews it, and the derived sync key are stored in the same file, so anyone who can read it can decrypt the cloud copy.
-- **Picture source:** when the reader opens a sense's pictures, Lens sends one HTTPS query to Wikimedia Commons: the two-to-five-word English query the model suggested for that sense. It does not send the page's sentence, the selection, the definition, the API key, or any installation identifier, and the request is separate from the explanation request. Commons can see the query, the IP address and the `User-Agent`. The thumbnails and their metadata are cached as local private data (paths and pruning in `PRODUCT.md`): not written into `settings.json`, not uploaded and not synced. Commons has no SLA and no safe-search parameter; that limit is recorded in `docs/adr/0079`.
-- **Pronunciation audio:** when the reader plays a word's pronunciation and the active engine is online audio — the default fallback, or an explicit choice — Lens sends one HTTPS GET to the online source the reader picked: Youdao's dictionary endpoint (the default) or Google Translate's speech endpoint (`docs/adr/0138`). Each carries only the word itself, URL-encoded, and for Google the language tag that picks the accent. It does not send the sentence, the selection, the definition, the API key, or any installation identifier; there is no key and no Referer. Neither endpoint is an official API or has an SLA; each answers with an error for text it does not serve, and failures are silent and never retried. Audio and downloaded voice models are cached as local private data (paths and limits in `PRODUCT.md`): neither is written into `settings.json`, uploaded or synced. The endpoints and their limits are recorded in `API.md` §9 and §9.2; the choice between them is in `docs/adr/0134` and `docs/adr/0138`.
-- **Local voice files:** when the reader presses Download for a local voice, Lens sends one HTTPS GET per file to `huggingface.co`, for a fixed repository revision, and follows the redirect to the storage host that repository names. The requests carry no reader data: no key, no identifier, no word, no selection. Nothing is sent once the voice is on disk, and a local voice is spoken on this machine. The repositories and their limits are in `API.md` §9.1 and `docs/adr/0135`.
-- **Cloud copy:** When sync is on, word marks, lookup history, statistics, and the selected settings are encrypted on this PC and stored as a secret gist in the reader's own GitHub account. GitHub can see that the gist exists, its size, its update times, and the IP addresses that access it, but not its contents. Explanation caches and the API key are never uploaded.
-- **Third-party pet packages:** when the desktop pet is enabled, a reader can install a pet package under `%APPDATA%\Lens\pets\`. A package is data only: JSON documents and PNG images. Lens does not run code from a package, does not load a package's scripts, DLLs or QML, and does not fetch anything on a package's behalf. Packages are third-party content: Lens does not review, endorse or sign them and does not host or curate a registry for them. Lens reads that directory. Its only write there is creating the folder when you ask to open it from Settings. The package contract, limits and validation rules are in `docs/pet-package-format.md`. Builds from before this feature do not read that directory.
-- **Logs:** The API key is not intentionally written to logs, but debug and trace logs can contain queried words and other operational details. Logs rotate and are written relative to the application's working directory, which may be inside the installation directory for packaged launches.
-- **Clipboard:** Selection capture temporarily reads and changes the Windows clipboard, then attempts to restore its previous contents. Concurrent clipboard changes by another application can prevent a perfect restoration.
+## Safeguards
 
-## Safeguards in the current code
-
-The list below covers what the code does today.
-
-- Lens classifies and filters captured text locally, and sends only the content required for that request. It does not send a full-screen image to the explanation API.
-- Before sending, Lens masks URLs, email addresses, and digit strings of six or more digits. This is limited pattern masking, not complete personal-data detection. Names, addresses, source code, short identifiers, and other sensitive content may remain.
-- A pet package is refused whole if any check fails: a path that names something outside the package, including through a symbolic link or a junction, a file that is not a PNG, a declared image size that is too large, or an index out of range. Every limit is checked before an image is decoded, and the package's text is shown as plain text.
-- The API key is stored in the per-user settings file rather than the installation directory. Request and settings logs avoid printing the key itself.
+- Lens classifies text locally and sends only what a request needs. It never sends a full-screen image to the explanation API.
+- Before sending, URLs, email addresses, and digit strings of six or more are masked. This is pattern masking, not full personal-data detection.
+- The API key stays in your per-user profile, not the install folder. Lens does not log it on purpose.
 - The sync passphrase is never stored. The key is derived with PBKDF2-HMAC-SHA256 at 600000 iterations and used with AES-256-GCM. Explanation caches are never uploaded.
-- Model-list requests use HTTPS, a timeout, and response-size and item-count limits. Model responses are parsed and checked against the expected response shape before use. An answer is streamed, and its text is drawn on the explanation card as it arrives — that is, before the whole-answer check — but nothing is cached, counted, marked learned, or stored until the complete answer has passed that check.
-- Sign-in and sync contact `github.com` and `api.github.com` over HTTPS through the system proxy setting, the same path the update check uses. Lens does not configure a proxy for them.
-- Update checks make one HTTPS `GET` to this project's latest release page on GitHub and read the version from its redirect. The request carries only a `User-Agent: Lens/<version>` header: no API key, no selected or captured text, and no installation identifier. Redirects are not followed except to GitHub's release download path and its two asset hosts, at most five hops.
-- The update path is reader-initiated: the checksum list and installer are fetched only after Download is pressed, and the installer runs only after Install — never silent, with no command-line arguments, and only after its SHA256 matches the release's `SHA256SUMS` (the mechanical details live in `data/update.json` and `PRODUCT.md`). Downloads are bounded, and a release that publishes no `SHA256SUMS` is not downloadable.
-- The checksum shows that the file arrived intact. It does not prove who published it: the installer is not code-signed. Run only releases you trust.
-- OCR input, output, runtime, and child-process lifetime are bounded. Local OCR runs on the same PC; an online request exists only after the reader confirms a manual crop, and its bytes, response and deadline are bounded in memory. The resulting text can still be sent to the selected explanation provider if it passes local filtering and the reader's capture settings allow it.
-- A picture lookup happens only when the reader opens a sense's pictures; nothing is fetched when a card appears. The search and the thumbnail download are HTTPS, use a transfer timeout, and are capped: 2 MiB per response and 4 seconds for the whole lookup. Only `upload.wikimedia.org` and `thumb.wikimedia.org` are downloaded from, and a redirect is not followed, so a response cannot steer the download to another host. A candidate is shown only if it is a JPEG or WebP photograph of at least 640x480 and landscape, on a licence that permits display with attribution, with a source page and a thumbnail, and if its bytes actually decode as an image. The cached file name is built from the entry's own index and a sniffed format, never from anything a source supplied, and a metadata document is written last, so an interrupted entry reads as absent rather than as a broken picture.
-- Nothing in the picture path touches the API key. Logs record the source, the outcome, the timing and the picture count; a full image URL is not written to a log.
+- Model answers stream onto the card before the full check finishes. Nothing is cached, counted, or marked until the whole answer passes validation.
+- An update installer runs only after you press Install, and only if its SHA-256 matches `SHA256SUMS`. That checksum shows the file arrived intact, not who published it. The installer is not code-signed.
+- A pet package is refused whole if any check fails: a path that escapes the package, a non-PNG file, an oversized image, or an index out of range.
+- The desktop pet reads the cursor position only to react to it. It reads no pixels or text.
+- Picture lookups use HTTPS, are capped at 2 MiB and 4 seconds, reach only two Wikimedia hosts, and do not follow redirects.
 
-## OCR security contract (partially implemented)
+## OCR contract
 
-The local Tesseract/RapidOCR path, RapidOCR's explicit trust gate and the online consent transaction are implemented in the working tree; no live online OCR request has been made. The requirements below are the release contract; status notes say what the code currently enforces and what still needs real-service or installer verification. See [ADR 0130](docs/adr/0130-local-and-online-ocr-are-separate-modes.md), [ADR 0132](docs/adr/0132-rapidocr-model-paths-stay-ascii.md), [ADR 0133](docs/adr/0133-offline-ocr-ships-tesseract-and-rapidocr.md) and [ADR 0136](docs/adr/0136-online-ocr-is-a-provider-table.md).
-
-- **Separate authorization (implemented, tested with doubles):** local OCR remains the default. Experimental automatic scanning has no online client path, and an online adapter rejects any non-manual source before encoding. A local failure, low score, saved online preference or connection test never authorizes uploading a reader's screenshot; the zero-upload assertions are in `CaptureDuty.*`, `OcrSpace.*` and `OcrBaidu.*`.
-- **Image disclosure (implemented):** each online capture requires confirmation of the frozen crop and the exact OCR destination. Only that crop is uploaded, not a full-screen fallback. The confirmation card shows a controlled in-memory preview and explains that necessary recognized text will subsequently reach the configured explanation provider. Images may contain sensitive content; text masking after OCR does not protect pixels already sent.
-- **Request binding (implemented for OCR configuration):** changing the destination, credentials or language clears a pending consent. Changing the explanation configuration also clears it. Confirmation does not take a new screenshot; the developer surface has no command that authorizes a real screenshot upload.
-- **Transport and retries (implemented; live service not verified):** HTTPS with certificate validation, bounded bodies and a total deadline. Redirects are disabled and returned as endpoint errors; no provider racing or automatic retry. One explicit manual retry is allowed after a transport failure or timeout while the transaction has time left. Cancellation stops further local work but cannot recall bytes already uploaded.
-- **Credential isolation (implemented):** online OCR credentials live in two fixed slots, `OCR-API-KEY` and `OCR-SECRET-KEY`, separate from the explanation key and written only by their own command. They are stored only in the reader's profile, omitted from settings projections, logs, diagnostics, exports and sync; the settings page learns only whether each slot is filled. Each service keeps its own address and credentials under `OCR-SERVICES`, so no service's key is ever sent to another (the switching UX is in `PRODUCT.md`); changing the address within one service clears that service's credentials and requires a new binding. A service that exchanges credentials for an access token keeps that token in memory only, drops it when the credentials or address change, and never logs it. The existing JSON profile is not encrypted; this does not claim protection from other software with access to that profile.
-- **Retention (implemented):** crop images and raw OCR responses live in bounded memory for the transaction, not in screenshot history, temporary image files or sync. A failed attempt may retain the crop only for the bounded manual-retry decision; it does not extend the 120-second absolute expiry. References are released when the transaction completes, is cancelled or expires; this is not a forensic secure-erasure guarantee.
-- **Untrusted code and responses (partially implemented):** service output is validated and treated as text, never as executable instructions, paths or follow-up URLs. RapidOCR-json is a user-installed third-party executable: Lens does not ship, install or update it, accepts only a local absolute `.exe` and an ASCII model folder, requires an explicit detection before use, and stores a SHA-256 digest over the executable, model folder and selected model files. Any change revokes trust. It runs with the reader's privileges and is not sandboxed; it may read other files or use the network, and Settings says so.
-- **Third-party local engine (implemented, real binary verified):** the RapidOCR adapter refuses a non-ASCII model folder before starting a process, never silently falls back to Tesseract, and kills and waits for its own child after each answer because the upstream program has no exit command. Only the v0.2.0 release's fixed model combination is accepted; no arbitrary scripts, arguments, ONNX layouts or Python packages are supported.
-- **Fees and tests (implemented in UI and protocol; live billing not verified):** online OCR is billed by the reader's service account and is not covered by Lens's token-cost estimate. A known exhausted Lens budget blocks new requests but cannot enforce the OCR provider's monetary quota. Connection tests send only an explicitly submitted synthetic image and may also incur a charge.
+- Online OCR sends a crop only after you confirm that crop and its destination. Changing the service, endpoint, language, or credentials cancels a pending confirmation.
+- Online OCR credentials sit in two slots, separate from the explanation key. Each service keeps its own, and no service's credentials go to another service.
+- Crops and raw responses stay in memory for the transaction, at most 120 seconds. A failed transport allows one manual retry. There is no automatic retry and no fallback to another provider.
+- RapidOCR is a third-party executable: a pinned download, or one you install. It runs with your privileges and is not sandboxed. Lens uses it only after explicit detection, and any change to the program or its model files revokes that trust.
+- Live online OCR and its billing have not been verified against real services.
 
 ## Reader guidance
 
-- Do not send passwords, private messages, confidential work, personal records, or other material you are not comfortable sharing with your configured provider.
-- Review that provider's privacy and retention terms before entering an API key. A custom HTTPS endpoint receives both the key and request content, so configure only an endpoint you trust.
-- Leave experimental automatic scanning off unless you need it. When enabled, keep its application allowlist narrow.
-- Downloads come from GitHub and may need a proxy from mainland China. Lens does not configure a proxy for them; it uses the system proxy setting, and reports a download that never receives data with a proxy hint.
-- Picture lookups go to Wikimedia Commons, which may be unreachable from mainland China. When it cannot be reached, the card offers an image search in your own browser instead of showing nothing. Commons has no safe-search parameter: Lens filters on the query and on the result's licence, size and shape, and does not claim to have screened what a search may return.
-- Lens does not run a downloaded installer you have not pressed Install for. Delete `%LOCALAPPDATA%\Lens\updates` at any time; Lens recreates it when needed.
-- A pet package is third-party content. Lens does not review or sign it. Read what you install, and prefer a package from a source you trust. A package cannot run code, but it can change the pet's appearance and the text shown for it, and anything you install stays in `%APPDATA%\Lens\pets\` until you delete it.
-- Protect access to your Windows account and user profile. Anyone or any software running as your user may be able to read the settings file and logs.
-- To remove local Lens data, exit the application and delete `%APPDATA%\Lens`. This also removes the saved API key, settings, cache, and learning history. It does not delete the cloud copy: use Delete cloud data in Settings first.
-- A forgotten sync passphrase makes the cloud copy unrecoverable, and Lens cannot reset it.
-- Log out removes the local tokens and derived key, and leaves the cloud copy in place. Delete cloud data deletes the gist and the local key, and keeps the tokens. Neither removes local learning data.
+- Do not send anything you would not show your provider.
+- Read the provider's privacy terms before you add a key. A custom endpoint receives both the key and your content, so use only one you trust.
+- Leave automatic scanning off unless you need it, and keep its app allowlist narrow.
+- GitHub downloads may need a proxy in mainland China. Lens uses the system proxy setting and configures none of its own.
+- Pet packages are third-party content. Read one before you install it.
+- To remove local data, exit Lens and delete `%APPDATA%\Lens`. This also removes your key and learning history. Delete the cloud data in Settings first, because it is not in that folder. Log out keeps the cloud copy.
+- A forgotten sync passphrase cannot be recovered.
 
 ## Scope
 
-This policy covers the Lens application and repository. It does not make claims about the security of Windows, the selected AI provider, custom endpoints, or other software running on the same PC. Third-party pet packages are content produced by others: Lens validates a package against `docs/pet-package-format.md` and does not execute its code, but it does not review, endorse, sign or host packages, and it makes no claim about how a package looks or behaves. Security support timelines and response SLAs have not been published.
+This policy covers the Lens app and this repository. It makes no claims about Windows, your AI provider, custom endpoints, or other software on your PC. The project does not review, sign, or host pet packages.

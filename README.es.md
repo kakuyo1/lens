@@ -19,7 +19,7 @@
   <a href="https://github.com/kakuyo1/lens/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/kakuyo1/lens?label=release&color=2f9e6e"></a>
   <a href="#descargar"><img alt="Windows 10/11 x64" src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-1a1a1f"></a>
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/github/license/kakuyo1/lens?color=2f9e6e"></a>
-  <a href="#idiomas"><img alt="Inglés, chino, chino tradicional, español y japonés" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH--HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
+  <a href="#también-incluido"><img alt="Inglés, chino, chino tradicional, español y japonés" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH--HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
 </p>
 
 <p align="center">
@@ -85,11 +85,13 @@ Pulsa `Ctrl+Alt+S` (se puede cambiar en Ajustes), enmarca una zona de un PDF, un
 - **El OCR en línea es opcional.** Pregunta antes de cada subida y puede apuntar a Baidu OCR, Tencent Cloud OCR, Alibaba Cloud OCR, Google Cloud Vision u OCR.space.
 - **El escaneo automático sigue siendo experimental y está en desarrollo.** Solo vigila las aplicaciones de tu lista blanca, y sus resultados aún no son fiables.
 
-## Cinco formas de barra de acciones
+## Consulta al pasar el cursor
 
-<p align="center"><img src="docs/readme/selection-styles.gif" width="800" alt="Barra clásica, pestaña lateral, mano de cartas, etiqueta colgante y abanico"></p>
+Los enlaces y los titulares suelen no poder seleccionarse. Cambia a la consulta al pasar el cursor (por defecto `Ctrl+Alt+H`; puedes cambiarla en la página de atajos de Ajustes), deja el puntero sobre una palabra durante un segundo y Lens la traduce. Pulsa la tecla otra vez para volver a la selección. La consulta solo lee el texto bajo el puntero: no hace clic, no toca el portapapeles, no lee campos de contraseña y solo funciona en las aplicaciones de tu lista blanca de escaneo.
 
-Elige la forma en Ajustes › Captura y ventanas: barra clásica, pestaña lateral, mano de cartas, etiqueta colgante o abanico. Las tres acciones y las reglas de canal no cambian, y el cajón de copiar sigue la forma desde la que se abre.
+<p align="center"><img src="docs/readme/hover-lookup.gif" width="600" alt="Tras cambiar a la consulta al pasar el cursor, el puntero se queda sobre serendipity en un enlace durante un segundo y una tarjeta da su significado"></p>
+
+## El cajón de copiar y el análisis
 
 <p align="center"><img src="docs/readme/selection-drawer.png" width="800" alt="El cajón de Copiar texto con Corregir gramática y Análisis para una frase seleccionada"></p>
 
@@ -131,10 +133,13 @@ Y la tarjeta que levantan los ajustes: al pasar el ratón por una mascota en Aju
 
 <p align="center"><img src="docs/readme/pet-postcards.gif" width="700" alt="Las postales de las siete mascotas, una tras otra"></p>
 
+Lens también admite mascotas personalizadas: `skills/lens-pet-maker` del repositorio es una skill de Claude Code que ayuda a una IA a generar un paquete de mascota. Clona el repositorio para usarla, copia la carpeta resultante en `%APPDATA%\Lens\pets\` y actívala en Ajustes › Extensiones.
+
 ## También incluido
 
 - **Trae tu propio modelo.** DeepSeek, OpenAI, Gemini, OpenRouter, xAI, Moonshot, Zhipu, Qwen o un endpoint personalizado compatible con OpenAI.
 - **Costes visibles.** Coste por petición a partir de los tokens y un presupuesto diario que pausa las consultas, la captura y las peticiones cuando se alcanza.
+- **Informe de lectura semanal.** El perfil semanal de Estadísticas recoge las consultas de la semana; pulsa «Interpretar la semana» para que el modelo escriba unas observaciones. Solo se envía cuando pulsas, y solo lleva recuentos y palabras.
 - **Sincronización cuando la quieras.** Las marcas Conocida/Nueva, el historial, las estadísticas y los ajustes seleccionados se cifran con tu frase de contraseña y se guardan en un gist secreto de tu propia cuenta de GitHub. La clave de API se queda en este dispositivo.
 - **Listas de palabras de ida y vuelta.** Importa o exporta `.txt` y `.json`; borra una palabra con una confirmación.
 - **Fotos cuando ayudan.** Si el modelo cree que una foto explica mejor un sentido, la tarjeta puede abrir tres imágenes de Wikimedia Commons. Se guardan en caché local y «Acerca de» muestra su tamaño y permite borrarla.
@@ -169,7 +174,7 @@ Lens no tiene firma de código y SmartScreen bloquea los programas que no recono
 
 Lens no tiene cuenta ni servidor propio.
 
-- **Lo que se envía.** Solo el texto que seleccionas o capturas va al proveedor que configures, después de ocultar localmente URL, direcciones de correo y cadenas de seis o más dígitos.
+- **Lo que se envía.** El texto que seleccionas o capturas va al proveedor que configures, después de ocultar localmente URL, direcciones de correo y cadenas de seis o más dígitos. La interpretación semanal y el relato solo se envían cuando pulsas su botón, llevan solo recuentos y palabras, y estas se enmascaran igual.
 - **OCR.** Se ejecuta localmente por defecto. El OCR en línea es opcional: cada captura muestra el recorte congelado y el destino exacto, se sube solo cuando lo confirmas, y el escaneo automático experimental nunca lo usa.
 - **El altavoz.** Lee en local con la voz del sistema o un modelo local descargado; cuando recurre a un audio en línea, solo esa palabra sale del dispositivo, y la grabación se guarda en `%APPDATA%\Lens\audio`.
 - **En este dispositivo.** Tu clave de API, las credenciales de OCR y tus datos de aprendizaje se quedan en `%APPDATA%\Lens\settings.json`.
@@ -181,21 +186,15 @@ Consulta [SECURITY.md](SECURITY.md) para conocer todos los límites.
 
 **¿Lens es un traductor?** Puede traducir, pero está pensado para explicar. Las selecciones en chino, japonés o español vuelven en inglés.
 
-**¿Necesito una clave de API?** Sí. Usa la de un proveedor compatible. Lens muestra el coste de cada petición y puede limitar el gasto diario.
+**¿Necesito una clave de API?** Sí. Usa la de un proveedor compatible. Lens muestra el coste de cada petición y puede limitar el gasto diario. Por ejemplo, con DeepSeek una consulta de palabra cuesta unos 0,001 CNY, así que con 1 CNY caben unas 1000; otros proveedores cobran de otra forma.
 
 **¿Funciona sin conexión?** El OCR local, la lista de palabras y una voz local descargada funcionan sin conexión. Las explicaciones, el OCR en línea y los audios en línea, si los activas, necesitan el servicio que configures.
 
-**¿Qué sale de mi PC?** Solo la selección enmascarada, una captura que confirmes expresamente si usas OCR en línea, y la palabra suelta cuando el altavoz recurre a un audio en línea. Consulta [Privacidad](#privacidad).
+**¿Qué sale de mi PC?** Solo la selección enmascarada, una captura que confirmes expresamente si usas OCR en línea, la palabra suelta cuando el altavoz recurre a un audio en línea, y los recuentos y palabras que envía el informe semanal cuando pulsas su botón. Consulta [Privacidad](#privacidad).
 
 **¿Por qué me avisa Windows?** El instalador no tiene firma de código; la nota de [Descargar](#descargar) explica cómo ejecutarlo y verificarlo.
 
 **¿Hay versión para macOS o Linux?** Por ahora, solo Windows.
-
-## Idiomas
-
-[English](README.en.md) · [简体中文](README.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [Español](README.es.md)
-
-El idioma de la interfaz y el de las explicaciones son ajustes independientes. Ambos ofrecen inglés, chino, chino tradicional, español y japonés.
 
 ## Contribuir y licencia
 

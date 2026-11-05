@@ -218,6 +218,15 @@ Window {
     /// The title is the entry point to the annual word record.
     signal yearRequested()
 
+    Item {
+        anchors.fill: parent
+
+        TapHandler {
+            acceptedButtons: Qt.BackButton
+            onTapped: words.backRequested()
+        }
+    }
+
     ShadowCard {
         id: card
         anchors.fill: parent
@@ -653,19 +662,9 @@ Window {
     }
 
     // Declared here, not in Main.qml: this surface shows the list, so it chooses where the list goes.
-    // QtQuick.Dialogs names a file but cannot write one -- Controller.saveWords() takes the answer and
-    // logs a failed write. Native on purpose: choosing a file is the system's business, unlike
-    // confirming a removal.
-    FileDialog {
+    WordsExportDialog {
         id: saver
-        title: qsTr("Export words")
-        fileMode: FileDialog.SaveFile
-        defaultSuffix: "txt"
-        nameFilters: [qsTr("Text files (*.txt)"), qsTr("JSON files (*.json)"), qsTr("All files (*)")]
-        // The scope is in the name because the scope is what the export is: the reader who
-        // exports twice from two filters gets two files rather than one overwriting the other.
-        currentFile: "words-" + words.scope + ".txt"
-        onAccepted: Controller.saveWords(saver.selectedFile, words.scope)
+        scope: words.scope
     }
 
     FileDialog {

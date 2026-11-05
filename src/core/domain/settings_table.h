@@ -13,7 +13,7 @@
  *
  * Four keys are absent on purpose, because their write is a command rather than a value: `API-KEY`
  * (a secret that is never echoed), and `PROVIDER`, `MODEL` and `URL`, which the model catalogue owns
- * and writes as one decision about the service. `ocrHotkey` is absent for the same reason: the shell
+ * and writes as one decision about the service. `ocrHotkey` and `hoverHotkey` are absent for the same reason: the shell
  * has to take the combination before the document may record it. `reviewFrequency` lives in the
  * review store's own object, not at the document's top level.
  */

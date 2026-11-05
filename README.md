@@ -19,7 +19,7 @@
   <a href="https://github.com/kakuyo1/lens/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/kakuyo1/lens?label=release&color=2f9e6e"></a>
   <a href="#下载"><img alt="Windows 10/11 x64" src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-1a1a1f"></a>
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/github/license/kakuyo1/lens?color=2f9e6e"></a>
-  <a href="#语言"><img alt="英语、中文、繁体中文、西班牙语、日语" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH--HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
+  <a href="#还有这些"><img alt="英语、中文、繁体中文、西班牙语、日语" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH--HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
 </p>
 
 <p align="center">
@@ -85,11 +85,13 @@
 - **在线 OCR 是可选项**。每次上传前都会询问，可指向百度 OCR、腾讯云 OCR、阿里云 OCR、Google Cloud Vision 或 OCR.space。
 - **自动扫描仍是实验功能，尚在开发**。它只监看你加入白名单的应用，结果尚不可靠。
 
-## 五种动作条形态
+## 悬浮取词
 
-<p align="center"><img src="docs/readme/selection-styles.gif" width="800" alt="经典长条、页边签、手牌签、吊牌签和扇面五种动作条形态"></p>
+链接和标题常常选不中。切到悬浮取词（默认 `Ctrl+Alt+H`，可在设置的快捷键页修改），把指针停在一个词上约一秒，Lens 就直接翻译它；再按一次切回选区取词。它只读取指针下的文字，不点击，不碰剪贴板，不读密码框，并且只在扫描白名单里的应用中生效。
 
-在设置 › 取词与弹窗里选择：经典长条、页边签、手牌签、吊牌签或扇面。三项动作和通道规则完全不变，复制抽屉按它展开的那副外形画。
+<p align="center"><img src="docs/readme/hover-lookup.gif" width="600" alt="切到悬浮取词后，指针停在链接里的 serendipity 上约一秒，气泡直接给出释义"></p>
+
+## 复制抽屉与拆解
 
 <p align="center"><img src="docs/readme/selection-drawer.png" width="800" alt="选中一个句子时，复制抽屉列出纠正语法与拆解"></p>
 
@@ -131,10 +133,13 @@ Lens 随包提供七只像素宠物：短耳猫、猫头鹰、麻糬、小幽灵
 
 <p align="center"><img src="docs/readme/pet-postcards.gif" width="700" alt="七只宠物的明信片，逐一亮相"></p>
 
+Lens 也支持自定义宠物：仓库里的 `skills/lens-pet-maker` 是一个 Claude Code skill，克隆仓库后可以让 AI 辅助生成；做好的宠物包放进 `%APPDATA%\Lens\pets\`，就能在设置的 “扩展” 里启用。
+
 ## 还有这些
 
 - **自带模型**。DeepSeek、OpenAI、Gemini、OpenRouter、xAI、Moonshot、智谱、通义千问，或任何兼容 OpenAI 的自定义端点。
 - **看得见的花费**。按 token 计算每次请求的费用；每日预算到顶时，暂停取词、截图和请求。
+- **每周阅读报告**。统计弹窗的 “本周画像” 记着这一周的查阅，按下 “解读本周” 再由模型写几条观察与建议。只有你按下才发送，且只含计数与词头。
 - **想同步时再同步**。已会/新词标记、查词历史、统计和选定设置用你的口令加密，存放在你自己 GitHub 账号的 secret gist 里；API key 始终留在本机。
 - **词表进得来也出得去**。导入或导出 `.txt` 和 `.json`；删除单词需要一次确认。
 - **该给图时给图**。模型判断某条义项用照片更好说明时，卡片可以展开三张 Wikimedia Commons 图片；图片缓存在本机，“关于” 页显示缓存大小并可原地清除。
@@ -169,7 +174,7 @@ Lens 没有代码签名，SmartScreen 会拦截它不认识的程序。点 **“
 
 Lens 没有自己的账号，也没有自己的服务器。
 
-- **发送的内容**。只有你选中或截取到的文字会发送给你配置的服务商，发送前会在本机遮盖 URL、电子邮件地址和六位及以上的数字串。
+- **发送的内容**。你选中或截取到的文字会发送给你配置的服务商，发送前会在本机遮盖 URL、电子邮件地址和六位及以上的数字串。每周阅读报告的解读与小故事只在你按下按钮时发送，只含计数与词头，词头同样遮盖。
 - **OCR**。默认在本机运行；在线 OCR 需要你逐次确认，确认卡会写明这次裁剪发往哪个服务，实验中的自动扫描从不使用它。
 - **朗读**。喇叭优先用系统音色或已下载的本地模型在本机朗读；兜底到在线音频时，离开本机的只有那个词，录音缓存在 `%APPDATA%\Lens\audio`。
 - **本机存储**。API key、OCR 凭据和学习数据保存在 `%APPDATA%\Lens\settings.json`。
@@ -181,21 +186,15 @@ Lens 没有自己的账号，也没有自己的服务器。
 
 **Lens 是翻译器吗**？它可以翻译，但它是为 “解释” 做的。中文、日文或西班牙文的选区返回英文。
 
-**需要 API key 吗**？需要。用受支持服务商的 key；Lens 会显示每次请求的费用，也可以设置每日上限。
+**需要 API key 吗**？需要。用受支持服务商的 key；Lens 会显示每次请求的费用，也可以设置每日上限。以 DeepSeek 为例，一次查词约 0.001 元，1 元大约够查 1000 次；其他服务商价格不同。
 
 **能离线用吗**？OCR、词表和已下载的本地音色在本机可用；解释、在线 OCR 与在线音频需要你配置的服务。
 
-**什么会离开我的电脑**？只有本地脱敏后的选区文字，加上在线 OCR 里逐次确认的裁剪，以及兜底到在线音频时的那一个词。见[隐私](#隐私)。
+**什么会离开我的电脑**？只有这几样：本地脱敏后的选区文字，在线 OCR 里逐次确认的裁剪，兜底到在线音频时的那一个词，以及你按下每周报告按钮时发出的计数和词头。见[隐私](#隐私)。
 
 **为什么 Windows 会警告**？安装包没有代码签名；怎么运行与核对文件见[下载](#下载)一节的说明。
 
 **有 macOS 或 Linux 版吗**？目前只有 Windows。
-
-## 语言
-
-[English](README.en.md) · [简体中文](README.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [Español](README.es.md)
-
-界面语言和解释语言是两个独立设置，都可以选择英语、中文、繁体中文、西班牙语和日语。
 
 ## 参与和许可
 

@@ -19,7 +19,7 @@
   <a href="https://github.com/kakuyo1/lens/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/kakuyo1/lens?label=release&color=2f9e6e"></a>
   <a href="#download"><img alt="Windows 10 and 11, x64" src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-1a1a1f"></a>
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/github/license/kakuyo1/lens?color=2f9e6e"></a>
-  <a href="#languages"><img alt="English, Chinese, Traditional Chinese, Spanish and Japanese" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH--HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
+  <a href="#also-in-the-box"><img alt="English, Chinese, Traditional Chinese, Spanish and Japanese" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20ZH--HANT%20%7C%20ES%20%7C%20JA-2f9e6e"></a>
 </p>
 
 <p align="center">
@@ -85,11 +85,13 @@ Press `Ctrl+Alt+S` (changeable in Settings), frame a region of a PDF, image, or 
 - **Online OCR is opt-in.** It asks before each upload and can be pointed at Baidu OCR, Tencent Cloud OCR, Alibaba Cloud OCR, Google Cloud Vision, or OCR.space.
 - **Automatic scanning is still experimental and under development.** It watches only the apps you whitelist, and its results are not reliable yet.
 
-## Five action bars, one set of actions
+## Hover to look up a word
 
-<p align="center"><img src="docs/readme/selection-styles.gif" width="800" alt="Classic bar, side tab, hand of cards, hang tag and fan selection styles"></p>
+Links and headlines often can't be selected. Switch to hover lookup (`Ctrl+Alt+H` by default; change it on the Shortcuts page of Settings), rest the pointer on a word for about a second, and Lens translates it. Press the key again to go back to selection. Hover lookup only reads the text under the pointer. It never clicks or touches the clipboard, skips password fields, and works only in the apps on your scan whitelist.
 
-Choose the shape in Settings › Capture & popups: the classic bar, a page-edge tab, a hand of cards, a hang tag, or a fan. The three actions and channel rules stay the same, and the copy drawer follows the shape it opens from.
+<p align="center"><img src="docs/readme/hover-lookup.gif" width="600" alt="After switching to hover lookup, the pointer rests on serendipity in a link for a second, and a card gives its meaning"></p>
+
+## Copy drawer and breakdown
 
 <p align="center"><img src="docs/readme/selection-drawer.png" width="800" alt="The copy text's drawer listing Fix syntax and Breakdown for a selected sentence"></p>
 
@@ -131,10 +133,13 @@ And the card the settings raise: hover a pet in Settings › Extensions and its 
 
 <p align="center"><img src="docs/readme/pet-postcards.gif" width="700" alt="The seven pets' postcards, one after another"></p>
 
+Lens also supports custom pets. The repository's `skills/lens-pet-maker` is a Claude Code skill that helps an AI draft a pet package; clone the repo to use it, drop the finished folder into `%APPDATA%\Lens\pets\`, and turn it on under Settings › Extensions.
+
 ## Also in the box
 
 - **Bring your own model.** DeepSeek, OpenAI, Gemini, OpenRouter, xAI, Moonshot, Zhipu, Qwen, or a custom OpenAI-compatible endpoint.
 - **Costs you can see.** Per-request cost from tokens, and a daily budget that pauses lookups, capture, and requests when the day reaches it.
+- **A weekly reading report.** Statistics keeps this week's lookups as a Week profile; press **Interpret this week** and the model writes a few observations. It is sent only when you press, and carries only counts and words.
 - **Sync when you want it.** Word marks, lookup history, statistics, and selected settings are encrypted with your passphrase and kept in a secret gist in your own GitHub account. The API key stays on this device.
 - **Word lists in and out.** Import or export `.txt` and `.json`; delete a word with one confirmation.
 - **Pictures when they help.** A sense the model thinks a photo explains better can open three Wikimedia Commons pictures. They are cached locally, and About shows the cache size and clears it in place.
@@ -169,7 +174,7 @@ Lens is not code-signed, and SmartScreen blocks programs it does not recognise. 
 
 Lens has no account and no server of its own.
 
-- **What is sent.** Only the text you select or capture is sent to the provider you configure, after local masking of URLs, email addresses, and digit strings of six or more digits.
+- **What is sent.** The text you select or capture is sent to the provider you configure, after local masking of URLs, email addresses, and digit strings of six or more digits. The weekly report's interpretation and story are sent only when you press their button, carry only counts and words, and mask the words the same way.
 - **OCR.** It runs locally by default. Online OCR is opt-in: each capture shows the frozen crop and the exact destination, uploads only after you confirm, and experimental automatic scanning never uses it.
 - **The speaker.** It reads on this device through the system voice or a downloaded local model; when it falls back to an online recording, only that word leaves the device, and the recording is cached under `%APPDATA%\Lens\audio`.
 - **On this device.** Your explanation key, OCR credentials, and learning data stay in `%APPDATA%\Lens\settings.json`.
@@ -181,21 +186,15 @@ See [SECURITY.md](SECURITY.md) for the full boundary.
 
 **Is Lens a translator?** It can translate, but it is built for explanations. Chinese, Japanese, and Spanish selections come back in English.
 
-**Do I need an API key?** Yes. Bring one from a supported provider. Lens shows the cost of each request and can cap daily spending.
+**Do I need an API key?** Yes. Bring one from a supported provider. Lens shows the cost of each request and can cap daily spending. For example, on DeepSeek a word lookup costs about 0.001 CNY, so one yuan covers about 1000 lookups; other providers charge differently.
 
 **Does it work offline?** Local OCR, the word list, and a local voice you have downloaded work offline. Explanations, and online OCR or online recordings if you enable them, need the service you configure.
 
-**What leaves my PC?** Only these: the masked selection, a crop you explicitly confirm if you use online OCR, and the single word when the speaker falls back to an online recording. See [Privacy](#privacy).
+**What leaves my PC?** Only these: the masked selection, a crop you explicitly confirm if you use online OCR, the single word when the speaker falls back to an online recording, and the counts and words a weekly report sends when you press its button. See [Privacy](#privacy).
 
 **Why does Windows warn me?** The installer is not code-signed; the note under [Download](#download) explains how to run it and verify the file.
 
 **Is there a macOS or Linux build?** Windows only for now.
-
-## Languages
-
-[English](README.en.md) · [简体中文](README.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [Español](README.es.md)
-
-The interface language and the explanation language are separate settings. Both offer English, Chinese, Traditional Chinese, Spanish, and Japanese.
 
 ## Contributing and license
 

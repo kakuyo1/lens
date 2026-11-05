@@ -5,11 +5,14 @@
 
 #include "capture_duty.h"
 
+#include <QCursor>
 #include <QDir>
 #include <QFileInfo>
 #include <QFont>
 #include <QGuiApplication>
 #include <QPainter>
+#include <QRunnable>
+#include <QThreadPool>
 #include <QRegularExpression>
 #include <QScreen>
 #include <QtGui/qscreen_platform.h>
@@ -20,6 +23,7 @@
 
 #include "capture/capture_policy.h"
 #include "capture/foreground_window.h"
+#include "capture/page_alignment.h"
 #include "capture/ocr_local.h"
 #include "capture/ocr_migration.h"
 #include "ocr/online_ocr.h"
@@ -158,36 +162,37 @@ CaptureDuty::CaptureDuty(StorageDuty&                        storage,
     : QObject(parent), storage_(storage), hook_(hook), grabber_(std::make_unique<SelectionTextGrabber>()),
       ocr_(std::move(ocr)), executor_(std::make_unique<capture::OcrExecutor>(this)),
       onlineTransport_(std::move(onlineTransport)), onlineTokens_(ocr::makeMemoryOcrTokenStore()),
-      scan_(capture::makeScanPipeline())
+      bundleDownloader_(this)
 {
     if (not onlineTransport_) onlineTransport_ = std::make_shared<ocr::QtHttpTransport>();
     connect(&hook_, &MouseSelectionHook::selectionReleased, this, &CaptureDuty::onSelectionReleased);
     connect(&hook_, &MouseSelectionHook::pointerPressed, this, &CaptureDuty::pointerPressed);
     connect(executor_.get(), &capture::OcrExecutor::finished, this, &CaptureDuty::onOcrFinished);
+    connect(&bundleDownloader_, &capture::BundleDownloader::progressed, this, &CaptureDuty::onBundleProgressed);
+    connect(&bundleDownloader_, &capture::BundleDownloader::finished, this, &CaptureDuty::onBundleFinished);
     consentTimer_.setSingleShot(true);
     uploadTimer_.setSingleShot(true);
     connect(&consentTimer_, &QTimer::timeout, this, &CaptureDuty::onConsentTimeout);
     connect(&uploadTimer_, &QTimer::timeout, this, &CaptureDuty::onUploadTimeout);
 
-    auto const               names = settings().value("scanWhitelist").toString().split(';', Qt::SkipEmptyParts);
-    std::vector<std::string> whitelist;
-    for (auto const& name : names)
-        whitelist.push_back(name.toStdString());
-    scan_->setWhitelist(std::move(whitelist));
     scanTimer_.setInterval(1000);
     connect(&scanTimer_, &QTimer::timeout, this, &CaptureDuty::scanTick);
     scanTimer_.start();
+    hoverTimer_.setInterval(100);
+    connect(&hoverTimer_, &QTimer::timeout, this, &CaptureDuty::onHoverTick);
     migrateOcrSettings();
     localInspection_ = capture::inspectLocalOcr(storedLocalConfig(storage_));
     if (ocr_)
         probeOcr();
     else
         rebuildOcr();
+    rebuildScanOcr();
 }
 
 CaptureDuty::~CaptureDuty()
 {
     scanTimer_.stop();
+    hoverTimer_.stop();
     consentTimer_.stop();
     uploadTimer_.stop();
     executor_->cancel();
@@ -330,7 +335,9 @@ void CaptureDuty::invalidateScan()
 {
     ++generation_;
     scanContext_.clear();
-    scan_->reset();
+    scanStableTicks_ = 0;
+    scannedFingerprint_.reset();
+    emit scanCleared();
 }
 
 bool CaptureDuty::setSetting(std::string_view const key, QVariant const& value)
@@ -446,17 +453,14 @@ bool CaptureDuty::setScanWhitelist(QString processes)
     if (names.size() > 32) return false;
     static QRegularExpression const executable{QStringLiteral("^[A-Za-z0-9_.-]+\\.exe$"), QRegularExpression::CaseInsensitiveOption};
     QStringList                     normalized;
-    std::vector<std::string>        whitelist;
     for (auto const& name : names) {
         if (name.size() > 128 or not executable.match(name).hasMatch()) return false;
         if (normalized.contains(name.toLower())) continue;
         normalized.append(name.toLower());
-        whitelist.push_back(name.toLower().toStdString());
     }
     if (not settings::write(storage_.section(), *core::settings::find("scanWhitelist"), normalized.join(';')))
         return false;
     invalidateScan();
-    scan_->setWhitelist(std::move(whitelist));
     emit settingsChanged();
     return true;
 }
@@ -501,6 +505,76 @@ void CaptureDuty::setRapidOcrModelsDirectory(QString directory)
     rapidOcrDetectState_ = QStringLiteral("idle");
     rapidOcrDetectMs_    = 0;
     rebuildOcr();
+}
+
+QVariantMap CaptureDuty::rapidOcrBundleState() const
+{
+    return QVariantMap{{"installed", capture::bundleInstalled(capture::bundleRoot())},
+                       {"downloading", bundleDownloader_.busy()},
+                       {"percent", bundleDownloader_.busy() ? rapidOcrBundlePercent_ : 0},
+                       {"failure", rapidOcrBundleFailure_},
+                       {"ascii", capture::rapidOcrPathIsAscii(QString::fromStdWString(capture::bundleRoot().wstring()))},
+                       {"archive", QString::fromStdWString(capture::bundleArchivePath().wstring())}};
+}
+
+void CaptureDuty::downloadRapidOcrBundle()
+{
+    // A non-ASCII profile root is the one place the unpacked models cannot live (docs/adr/0132),
+    // so the download is refused before any bytes move, and the page explains it.
+    if (bundleDownloader_.busy() or not capture::rapidOcrPathIsAscii(QString::fromStdWString(capture::bundleRoot().wstring())))
+        return;
+    rapidOcrBundlePercent_ = 0;
+    rapidOcrBundleFailure_ = QString{};
+    emit rapidOcrBundleChanged();
+    bundleDownloader_.start();
+}
+
+void CaptureDuty::cancelRapidOcrBundleDownload()
+{
+    bundleDownloader_.cancel();
+}
+
+void CaptureDuty::removeRapidOcrBundle()
+{
+    if (bundleDownloader_.busy())
+        return;
+    const QString root = QString::fromStdWString(capture::bundleRoot().wstring());
+    QDir{root}.removeRecursively();
+    auto keys = storage_.section();
+    if (settings::read(keys, *core::settings::find("rapidOcrExecutable")).toString().startsWith(root) or settings::read(keys, *core::settings::find("rapidOcrModelsDirectory")).toString().startsWith(root)) {
+        // Both writes clear the trust record and rebuild the engine, so nothing keeps pointing at
+        // the folder that just went away.
+        setRapidOcrExecutable(QString{});
+        setRapidOcrModelsDirectory(QString{});
+    }
+    rapidOcrBundleFailure_ = QString{};
+    emit rapidOcrBundleChanged();
+}
+
+void CaptureDuty::onBundleProgressed(qint64 received, qint64 total)
+{
+    if (total <= 0)
+        return;
+    const int percent = static_cast<int>(received * 100 / total);
+    if (percent == rapidOcrBundlePercent_)
+        return;
+    rapidOcrBundlePercent_ = percent;
+    emit rapidOcrBundleChanged();
+}
+
+void CaptureDuty::onBundleFinished(bool ok, QString failure)
+{
+    if (ok) {
+        rapidOcrBundleFailure_ = QString{};
+        setRapidOcrExecutable(QString::fromStdWString(capture::bundleExecutablePath().wstring()));
+        setRapidOcrModelsDirectory(QString::fromStdWString(capture::bundleModelsDirectoryPath().wstring()));
+        // The writes cleared the trust record; the detection that follows is what writes it again,
+        // as it always has -- a download never grants trust by itself (docs/adr/0132).
+        detectRapidOcr();
+    } else {
+        rapidOcrBundleFailure_ = failure;
+    }
+    emit rapidOcrBundleChanged();
 }
 
 void CaptureDuty::setOcrLocalEngine(QString engine)
@@ -725,6 +799,7 @@ void CaptureDuty::rebuildOcr()
     ocrTestEngine_.clear();
     ocrTestLanguage_.clear();
     ocrTestMs_ = 0;
+    rebuildScanOcr();
     emit settingsChanged();
 }
 
@@ -1050,7 +1125,7 @@ bool CaptureDuty::launchOcr(QImage image, QPoint const anchor, QString context)
                                 .source    = context.isEmpty() ? capture::OcrSource::Screenshot : capture::OcrSource::AutoScan,
                                 .image     = std::move(image),
                                 .deadline  = std::chrono::milliseconds{10000}};
-    auto                engine  = ocr_;
+    auto                engine  = context.isEmpty() ? ocr_ : scanOcr_;
     auto const          started = executor_->start(id, [engine, request = std::move(request)](std::shared_ptr<std::atomic_bool> cancel) {
         try {
             return engine->recognize(request, std::move(cancel));
@@ -1102,24 +1177,30 @@ std::optional<CaptureRefusal> CaptureDuty::captureRegion(QRect const region)
     return captureScreenshot(image, anchor) ? std::nullopt : std::optional<CaptureRefusal>{CaptureRefusal::Busy};
 }
 
+namespace {
+
+/// The page must hold still for this many one-second ticks before it is read.
+constexpr int kScanStableTicks = 2;
+/// The shortest gap between two reads of a page; a Tesseract run costs about a second of CPU.
+constexpr auto kScanInterval = std::chrono::seconds{3};
+
+}
+
 void CaptureDuty::scanTick()
 {
-    if (budgetPaused_ or scanPaused_ or not settings().value("autoScan").toBool() or ocrState_ != capture::OcrStatus::Ready) return;
+    if (budgetPaused_ or scanPaused_ or not scanReady_ or not settings().value("autoScan").toBool()) return;
     auto const foreground = capture::foregroundWindow();
-    if (not foreground) {
-        invalidateScan();
-        return;
-    }
-    capture::ScanFrame frame{.context     = foreground->context.toStdString(),
-                             .processName = foreground->processName.toStdString(),
-                             .ownProcess  = foreground->ownProcess};
-    if (not scan_->allows(frame)) {
+    // The page text comes through UI Automation, which exposes a browser's page; no other window has text here.
+    if (not foreground or foreground->ownProcess or foreground->processName.compare(QStringLiteral("chrome.exe"), Qt::CaseInsensitive) != 0) {
         invalidateScan();
         return;
     }
     if (scanContext_ != foreground->context) {
         invalidateScan();
         scanContext_ = foreground->context;
+        scanWindow_  = foreground->window;
+        // The first query for a browser window makes it build its page tree, so the query runs ahead of the first read.
+        QThreadPool::globalInstance()->start(QRunnable::create([window = foreground->window] { warmPageTreeOf(window); }));
     }
     if (jobContext_ or upload_) return;
     QScreen* screen = nullptr;
@@ -1129,18 +1210,37 @@ void CaptureDuty::scanTick()
             break;
         }
     if (screen == nullptr) return;
-    auto const image = screen->grabWindow(foreground->window).toImage();
-    if (image.isNull()) {
+    // A window's own handle grabs black for a GPU-composited page (Chrome's PDF viewer), so the window
+    // is cut out of the grab of its whole display, which holds what is on screen.
+    auto const origin = capture::physicalScreenOrigin(foreground->monitor);
+    scanScreen_       = screen->geometry();
+    scanScale_        = screen->devicePixelRatio();
+    scanScreenOrigin_ = origin.value_or(QPoint{});
+    auto const whole  = screen->grabWindow(0).toImage();
+    auto const crop   = origin ? capture::windowCropInGrab(QRect{foreground->anchor, foreground->size}, *origin, whole.size()) : QRect{};
+    if (whole.isNull() or crop.isEmpty()) {
         invalidateScan();
         return;
     }
-    frame.pixels   = capture::pixelFingerprint(image);
+    auto const image       = whole.copy(crop);
+    auto const fingerprint = capture::pixelFingerprint(image);
+    if (fingerprint != scanFingerprint_) {
+        scanFingerprint_ = fingerprint;
+        scanStableTicks_ = 0;
+        // The page moved, so the words drawn under the last one no longer sit under their text.
+        emit scanCleared();
+        return;
+    }
+    // A page is read once it has held still, and not again until it changes.
+    if (++scanStableTicks_ < kScanStableTicks or scannedFingerprint_ == fingerprint) return;
     auto const now = std::chrono::steady_clock::now();
-    scanAnchor_    = foreground->anchor;
-    if (scan_->needsOcr(frame, now))
-        launchOcr(image, scanAnchor_, scanContext_);
-    else
-        publishBatch(now, scanAnchor_);
+    if (now - scanLastOcr_ < kScanInterval) return;
+    // The crop is clipped to the grab, so its corner is the window's own corner only when the window is on the display.
+    scanAnchor_         = *origin + crop.topLeft();
+    scannedFingerprint_ = fingerprint;
+    scanLastOcr_        = now;
+    LENS_TRACE("scan: page held still, reading {}x{}", image.width(), image.height());
+    if (not launchOcr(image, scanAnchor_, scanContext_)) scannedFingerprint_.reset();
 }
 
 void CaptureDuty::onOcrFinished(std::uint64_t const requestId, capture::OcrResult result)
@@ -1201,6 +1301,9 @@ void CaptureDuty::onOcrFinished(std::uint64_t const requestId, capture::OcrResul
                                               .budgetPaused         = budgetPaused_,
                                               .scanPaused           = scanPaused_,
                                               .autoScan             = settings().value("autoScan").toBool()});
+    if (not context.context.isEmpty())
+        LENS_TRACE("scan result: status={} chars={} fate={}", statusToken(result.status).toStdString(), result.text.size(), fate == capture::OcrResultFate::Current ? "current" : fate == capture::OcrResultFate::Superseded ? "superseded"
+                                                                                                                                                                                                                             : "withdrawn");
     if (fate == capture::OcrResultFate::Superseded) return;
     if (fate == capture::OcrResultFate::Withdrawn) {
         invalidateScan();
@@ -1217,12 +1320,11 @@ void CaptureDuty::onOcrFinished(std::uint64_t const requestId, capture::OcrResul
             emit screenshotFailed(refusal);
             return;
         }
-        scan_->reset();
-        if (capture::isRuntimeFault(result.status)) {
-            ocrState_ = result.status;
-            emit settingsChanged();
-            LENS_WARN("OCR worker failed (status {})", ocrStatus().toStdString());
-        }
+        // The scan reads with Tesseract, so its failure says nothing about the chosen local engine's state.
+        if (capture::isRuntimeFault(result.status))
+            LENS_WARN("scan OCR failed (status {})", statusToken(result.status).toStdString());
+        else
+            LENS_TRACE("scan: no words in this frame (status {})", statusToken(result.status).toStdString());
         return;
     }
     if (context.context.isEmpty()) {
@@ -1231,38 +1333,143 @@ void CaptureDuty::onOcrFinished(std::uint64_t const requestId, capture::OcrResul
         classifyText(result.text, context.anchor, true);
         return;
     }
-    auto const unsupported = capture::unsupportedEntityCount(result.text.toStdString());
-    if (unsupported > 0) {
-        LENS_INFO("automatic scan retained {} unsupported entity candidate(s); entity channel is not enabled", unsupported);
-        emit scanEntitiesUnsupported(static_cast<int>(unsupported));
-    }
-    auto const now = std::chrono::steady_clock::now();
-    scan_->acceptText(result.text.toStdString(),
-                      {.minimumLength = settings().value("minimumWordLength").toInt(),
-                       .knownLemmas   = storage_.knownStore().known(),
-                       .minimumRank   = minFreqRank()},
-                      now);
-    publishBatch(now, context.anchor);
+    placeScanWords(result, context.anchor, scanWindow_);
 }
 
-void CaptureDuty::publishBatch(capture::ScanTime const now, QPoint const anchor)
+bool CaptureDuty::chromeScanActive()
 {
-    const auto   batch = scan_->takeBatch(now);
+    return settings().value("autoScan").toBool() and not scanContext_.isEmpty();
+}
+
+void CaptureDuty::lookUpWord(QString const surface, QPoint const anchor)
+{
+    classifyText(surface, anchor, true);
+}
+
+void CaptureDuty::rebuildScanOcr()
+{
+    // The scan always reads with Tesseract, whatever engine the reader picked for screenshots: only
+    // Tesseract reports a box for each word, and the page alignment needs those boxes.
+    auto config               = storedLocalConfig(storage_);
+    config.engine             = capture::LocalEngineChoice::Tesseract;
+    config.tesseract.language = capture::OcrLanguage::English;
+    scanReady_                = capture::tesseractResourceStatus(config.tesseract) == capture::OcrStatus::Ready;
+    scanOcr_                  = capture::makeLocalOcr(config);
+    if (not scanReady_) LENS_INFO("automatic scan is off: Tesseract or its English data is missing");
+}
+
+void CaptureDuty::placeScanWords(capture::OcrResult const& result, QPoint const anchor, quintptr const window)
+{
+    // A word without a box has nowhere to draw its line, so it cannot be placed.
+    std::vector<std::string>     norms;
+    std::vector<capture::OcrBox> boxes;
+    for (auto const& line : result.lines)
+        for (auto const& word : line.words) {
+            auto const norm = capture::normalizedWord(word.text.toStdString());
+            if (not word.box or norm.empty()) continue;
+            norms.push_back(norm);
+            boxes.push_back(*word.box);
+        }
+    QThreadPool::globalInstance()->start(QRunnable::create([this, window, anchor, norms = std::move(norms), boxes = std::move(boxes)] {
+        // Off the main thread: the page is a COM read of the whole document, and the alignment walks all of it.
+        auto const                 text  = pageTextOf(window);
+        auto const                 words = capture::pageWords(text.toStdString());
+        capture::PageIndex         page{words};
+        std::vector<ScanPlacement> placed;
+        for (auto const& hit : page.align(norms))
+            placed.push_back({words[hit.pageIndex], boxes[hit.ocrIndex]});
+        QMetaObject::invokeMethod(
+            this,
+            [this, placed = std::move(placed), anchor, ocrWords = norms.size(), pageReady = not text.isEmpty()]() mutable {
+                onScanPlaced(std::move(placed), anchor, ocrWords, pageReady);
+            },
+            Qt::QueuedConnection);
+    }));
+}
+
+void CaptureDuty::onScanPlaced(std::vector<ScanPlacement> placed, QPoint const anchor, std::size_t const ocrWords, bool const pageReady)
+{
+    if (not pageReady) {
+        // The page tree was not built yet, or the window shows no document: read again at the next stable frame.
+        scannedFingerprint_.reset();
+        LENS_TRACE("scan: no page text for {} OCR word(s)", ocrWords);
+        return;
+    }
+    auto const   known  = storage_.knownStore().known();
+    auto const   rank   = minFreqRank();
+    auto const   length = settings().value("minimumWordLength").toInt();
     QVariantList words;
-    for (auto const& word : batch)
-        words.append(QVariantMap{{"surface", QString::fromStdString(word.surface)},
-                                 {"lemma", QString::fromStdString(word.lemma)}});
-    if (not words.isEmpty()) emit scanCandidatesReady(words, anchor);
+    QStringList  listed;
+    for (auto const& item : placed)
+        for (auto const& candidate : core::filterWords(item.surface, known, rank, length, false)) {
+            if (candidate.state != core::CandidateState::New) continue;
+            QString const lemma = QString::fromStdString(candidate.lemma);
+            int const     x     = anchor.x() + static_cast<int>(item.box.x);
+            int const     y     = anchor.y() + static_cast<int>(item.box.y);
+            words.append(QVariantMap{{QStringLiteral("lemma"), lemma},
+                                     {QStringLiteral("surface"), QString::fromStdString(item.surface)},
+                                     {QStringLiteral("x"), x},
+                                     {QStringLiteral("y"), y},
+                                     {QStringLiteral("width"), static_cast<int>(item.box.width)},
+                                     {QStringLiteral("height"), static_cast<int>(item.box.height)}});
+            listed << QStringLiteral("%1@%2,%3").arg(lemma).arg(x).arg(y);
+        }
+    LENS_TRACE("scan: {} OCR word(s), {} placed on the page, {} new candidate(s): {}", ocrWords, placed.size(), listed.size(), listed.join(QLatin1Char(' ')).toStdString());
+    // Sent even when empty: a frame with no new word takes the last one's lines down with it.
+    emit scanPlaced(words, scanScreen_, scanScreenOrigin_, scanScale_);
 }
 
 void CaptureDuty::onSelectionReleased(QPoint const anchor)
 {
-    if (budgetPaused_) return;
+    // In hover mode the release is not a lookup: the reader is resting on words, not selecting them.
+    if (hoverMode_ or budgetPaused_) return;
     if (not settings::read(storage_.section(), *core::settings::find("selectionCapture")).toBool()) {
         LENS_TRACE("selection at ({}, {}) ignored: selection capture is off", anchor.x(), anchor.y());
         return;
     }
     beginSelection(anchor);
+}
+
+void CaptureDuty::toggleHoverMode()
+{
+    hoverMode_  = not hoverMode_;
+    hoverDwell_ = core::HoverDwell{};
+    // A read the window never answers must not hold the switch closed: a late answer is checked against the mode anyway.
+    hoverBusy_ = false;
+    if (hoverMode_)
+        hoverTimer_.start();
+    else
+        hoverTimer_.stop();
+    LENS_INFO("hover lookup {}", hoverMode_ ? "on" : "off");
+    emit hoverModeChanged(hoverMode_);
+}
+
+void CaptureDuty::onHoverTick()
+{
+    auto const   nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+    QPoint const at    = hoverCursorPos();
+    if (hoverBusy_ or budgetPaused_ or not hoverDwell_.update(nowMs, at.x(), at.y())) return;
+
+    // The read is a few round trips into the window under the pointer, so it runs off the main thread.
+    hoverBusy_ = true;
+    std::vector<std::string> whitelist;
+    for (auto const& name : settings().value("scanWhitelist").toString().split(';', Qt::SkipEmptyParts))
+        whitelist.push_back(name.trimmed().toLower().toStdString());
+    QThreadPool::globalInstance()->start(QRunnable::create([this, at, whitelist = std::move(whitelist)] {
+        auto word = hoverWordAt(at, whitelist);
+        QMetaObject::invokeMethod(
+            this, [this, word = std::move(word)]() mutable { onHoverWordRead(std::move(word)); }, Qt::QueuedConnection);
+    }));
+}
+
+void CaptureDuty::onHoverWordRead(std::optional<HoverWord> word)
+{
+    hoverBusy_ = false;
+    // The pointer may have left the word while the read was in flight; a bubble for a word it has left is noise.
+    if (not word or not hoverMode_ or not word->box.contains(hoverCursorPos())) return;
+    auto const text = core::hoverWordFrom(word->text.toStdString());
+    if (text.empty()) return;
+    classifyText(QString::fromStdString(text), QPoint{word->box.left(), word->box.bottom()}, true);
 }
 
 void CaptureDuty::beginSelection(QPoint const anchor, std::optional<QString> const text)
@@ -1281,7 +1488,7 @@ void CaptureDuty::beginSelection(QPoint const anchor, std::optional<QString> con
     classifyText(std::get<QString>(grabbed), anchor);
 }
 
-void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const fromScreenshot)
+void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const translateNow)
 {
     if (text.size() > kMaxSelectionChars) text = text.left(kMaxSelectionChars) + QStringLiteral("…");
     const core::Selection selection = core::classifySelection(text.toStdString(), storage_.knownStore().known(), minFreqRank());
@@ -1299,7 +1506,7 @@ void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const fro
         pending.lemma               = QString::fromStdString(word.lemma);
     }
     emit selectionReady(pending);
-    if (fromScreenshot) {
+    if (translateNow) {
         // The reader framed this region themselves, so they have already said what they want done
         // with it: translate. The bar would ask again -- and OCR exists for text that cannot be
         // selected, which is exactly the text whose reader wants the meaning rather than a menu.

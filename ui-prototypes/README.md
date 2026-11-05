@@ -7,7 +7,7 @@
 | 文件 | 表面 |
 | --- | --- |
 | `tray-menu.html` | 托盘菜单，含语言子菜单 |
-| `first-run-onboarding.html` | 首次运行引导：通知卡（动作直达设置）、托盘菜单首行的未设 key 态、设置占位面板；`?state=first\|dismissed\|keyed` 选启动前状态，`?menu`、`?settings` 直接打开面板，`?shot` 隐去演示控件 |
+| `first-run-onboarding.html` | 首次运行引导：三步向导（档位 / 服务商与 key / 试一次，第三步拖选 quiet 出演示气泡）、托盘菜单首行的未设 key 态、设置占位面板；`?state=first\|dismissed\|keyed` 选启动前状态，`?menu`、`?settings`、`?wizard` 直接打开面板，`?shot` 隐去演示控件 |
 | `stats.html` | 统计弹窗 |
 | `words.html` | 词汇弹窗 |
 | `year-in-words.html` | 单词年度记录弹窗 |
@@ -29,6 +29,8 @@
 | `english-in-english.html` | “Read English in English” 的三条交互提案（提案，不是表面规格） |
 | `word-images.html` | 图片作为义项锚的 A/B 对照 |
 | `update.html` | 检查更新（关于 分类的检查行）与通知卡片的新版本样式 |
+| `report-card-c-evidence.html` | 周报告卡片（已选定，`docs/adr/0151`，UI-SPEC 4.7c）：证据并列，每条观察右边挂依据药丸；按钮 “小故事” 的页面见 `report-story.html` |
+| `report-story.html` | 周报告卡片的小故事页（UI-SPEC 4.7d）：与 C 同卡同高 685 px，正文在卡内滑动，查过的词画 2 px 虚线；`?state=loading` / `failed` 看等待与失败，`?theme=dark` 暗色，`?shot` 隐去右上角控件 |
 
 `pet-prototype/` 是一个 Vite 小应用，不是单个 standalone HTML：`walk.html` 是宠物步态与边缘躲藏的 demo，直接在 `pet-prototype/` 里跑 `npm run dev`，再打开 `/walk.html`。它读取 `data/pet` 的原始 JSON 与 PNG，`walk`、`edge_peek` 动作和 `movement` 块都取自同一份 `animations.json`；`walk.html` 里可以切七只宠物、左/右边缘、暂停与速度，勾 “原地播放” 看步态循环，点 “边缘演示” 强制一只躲到边缘，再把边缘的宠物拖出来结束躲藏。页面顶部的 “躲藏提问牌” 卡演示躲藏时木牌立在露出的内侧，柱脚踩在宠物脚线；牌子不再跟手逐帧移动。
 
@@ -70,7 +72,7 @@
 - `settings.html` 用分类目录：首页只列分类，进入后是分类设置，再进入是词书、API 等子页面。新增设置放进对应分类，不要加长首页，也不要新增一级分类；“关于” 是目录末尾的唯一例外，取舍见 `docs/adr/0032`。
 - 面板固定 380 × 480，超出的内容在 `.set-body` 内滚动。内容变多先考虑合并成分组或下沉为子页面。
 - 扩展分类里的桌面宠物已随 1.2.0 上线，`pet.html` 是它的设计对照。`pet.html` 内嵌的 PNG 来自 `data/pet/`，改了数据要跑 `npm run embed` 重新生成；`pet-hover.html` 用同一份数据，跑 `npm run embed:hover`。改了 `pet-prototype/src/pet-renderer.js` 这类共享文件，两条都要重跑。麻糬、猫头鹰、猫的美术是生成的初版，还需要人工复核。
-- 宠物包一节用两只写死的样例（`PACKAGES` 与 `REFUSED`）对视来源标记、被拒列表与确认弹窗：它们不是扫出来的，预览也复用随包宠物的美术。契约、上限与拒绝原因见 `docs/pet-package-format.md`，决定见 `docs/adr/0043`。
+- 宠物包一节用两只写死的样例（`PACKAGES` 与 `REFUSED`）对视来源标记、被拒列表与确认弹窗：它们不是扫出来的，预览也复用随包宠物的美术。契约、上限与拒绝原因见 `skills/lens-pet-maker/references/pet-package-format.md`，决定见 `docs/adr/0043`。
 - 加新表面时，新增一个文件、在这里登记，并在 `UI-SPEC.md` §4.0 的表面表加一行。
 - 界面文字四语言各一份，在每个文件脚本开头的 `L` 表里，取值与 `i18n/lens_*.ts` 一致：改文案先改那边，再抄回来。README 的营销图由 `scripts/qa/readme-html-shots.sh` 从这些表面渲染，再由 `scripts/qa/readme-html-compose.py` 裁切、合成 GIF、学习循环拼图与主题拼图，写进 `docs/readme/`。旧的 `readme-shots.sh` 与 `readme-gifs.ps1` 生成 `docs/readme-images/`，已不供当前 README 使用。
 - 文件内的中文同样按项目排版规则写，`zhlint` 可查（`.githooks/pre-commit` 的预算里已登记本文件）。

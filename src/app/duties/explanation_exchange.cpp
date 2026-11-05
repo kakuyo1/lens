@@ -31,17 +31,12 @@ void ExplanationExchange::clearSelection()
 
 ExplanationExchange::Outcome ExplanationExchange::ask(PendingSelection selection, AskOrigin const origin, ExchangeFacts const& facts)
 {
-    // The word list's candidates are words by construction, and a scan that hits is served only when
-    // no card stands: the row the pointer already crossed keeps its card.
+    // A prefetch for the Alt key's signposts: the word list asks for the words the page holds. A stored
+    // word needs nothing, a missing one waits in the scan queue, and neither raises a card.
     if (origin == AskOrigin::Scan) {
         auto const context = cache_.contextFor(core::SelectionKind::Word);
-        auto const found   = cache_.look(selection.lemma.toStdString(), context);
-        if (found.state == ExplanationCache::State::Hit) {
-            if (session_.standing() or queue_.inFlight())
-                return Outcome{.popLemma = selection.lemma};
-            return fromEntry(std::move(selection), found.entry, context, CardKind::Selection, /*reveal=*/false, /*notifyPet=*/true, /*pop=*/true);
-        }
-        queue_.addScan({std::move(selection)});
+        if (cache_.look(selection.lemma.toStdString(), context).state != ExplanationCache::State::Hit and not queue_.prefetching(selection.lemma))
+            queue_.addScan({std::move(selection)});
         return {};
     }
 
@@ -181,9 +176,16 @@ bool ExplanationExchange::invalidateWord(QString const& lemma)
     return session_.invalidateWord(lemma);
 }
 
-std::optional<PendingSelection> ExplanationExchange::liveSubject(QString const& title, core::CacheContext const& now) const
+std::optional<PendingSelection> ExplanationExchange::liveSubject(core::CacheContext const& now) const
 {
-    return queue_.liveSubject(title, now);
+    return queue_.liveSubject(now);
+}
+
+QString ExplanationExchange::signpostOf(QString const& lemma) const
+{
+    auto const context = cache_.contextFor(core::SelectionKind::Word);
+    auto const found   = cache_.look(lemma.toStdString(), context);
+    return found.state == ExplanationCache::State::Hit ? QString::fromStdString(found.entry.signpost) : QString{};
 }
 
 ExplanationExchange::CardView ExplanationExchange::raise(PendingSelection          selection,

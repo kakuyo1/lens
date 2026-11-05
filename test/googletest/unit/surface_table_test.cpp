@@ -70,15 +70,16 @@ TEST(SurfaceTable, ThePreviewCardsAreTheOnlySheetsTheDevSurfaceDoesNotReport)
     for (Row const& row : kRows)
         if (row.sheet and not row.dev)
             sheetNotReported.push_back(row.name);
-    // Exactly the six preview cards and nothing else: a separate window holds one backdrop
+    // Exactly the seven preview cards and nothing else: a separate window holds one backdrop
     // (docs/adr/0041), so each takes a sheet, while the dev surface reports none of them.
-    ASSERT_EQ(sheetNotReported.size(), 6u);
+    ASSERT_EQ(sheetNotReported.size(), 7u);
     EXPECT_EQ(sheetNotReported[0], "preview");
     EXPECT_EQ(sheetNotReported[1], "themePreview");
     EXPECT_EQ(sheetNotReported[2], "vocabPreview");
     EXPECT_EQ(sheetNotReported[3], "selectionBarPreview");
     EXPECT_EQ(sheetNotReported[4], "notePreview");
     EXPECT_EQ(sheetNotReported[5], "petPreview");
+    EXPECT_EQ(sheetNotReported[6], "onboardingPreview");
 }
 
 TEST(SurfaceTable, AnOpenerIsAShowMethodOnAReportedSurface)
@@ -103,7 +104,7 @@ TEST(SurfaceTable, AnOpenerIsAShowMethodOnAReportedSurface)
 TEST(SurfaceTable, TheOpenerAritiesNameTheMethodsRealParameters)
 {
     for (auto const& [name, expected] : std::initializer_list<std::pair<std::string_view, int>>{
-             {"settings", 1}, {"tray", 0}, {"stats", 1}, {"words", 2}, {"yearWords", 1}, {"cost", 1}}) {
+             {"settings", 1}, {"tray", 0}, {"stats", 1}, {"words", 2}, {"yearWords", 1}, {"cost", 1}, {"profile", 1}}) {
         Row const* const row = find(name);
         ASSERT_NE(row, nullptr) << std::string(name);
         EXPECT_EQ(row->openArity, expected) << std::string(name) << " changed its opener's shape";

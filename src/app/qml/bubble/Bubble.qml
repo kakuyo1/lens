@@ -18,8 +18,14 @@ Window {
     /// button, verdict row, drag or hover report, tagged "Preview" and framed by PreviewFrame.qml.
     /// Its own glass sheet, since one sheet holds one backdrop.
     property bool preview: false
+    /// The sheet key to use instead of the preview/bubble pair, for a second host of a preview card
+    /// (the onboarding wizard's demo bubble): one sheet holds one backdrop, so its window cannot
+    /// share the settings preview's.
+    property string glassKey: ""
     /// The desktop under this window, which its glass draws (docs/adr/0041).
-    readonly property var glass: Controller.glassBackdrop.surface(bubble.preview ? "preview" : "bubble")
+    readonly property var glass: Controller.glassBackdrop.surface(bubble.glassKey !== ""
+                                                                  ? bubble.glassKey
+                                                                  : bubble.preview ? "preview" : "bubble")
     readonly property SurfaceTokens tokens: SurfaceTokens {
         glassEnabled: true
         glassLightText: bubble.glass.lightText

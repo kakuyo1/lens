@@ -57,6 +57,12 @@
 | [`memory-leak-2026-10-05.md`](resource-footprint/memory-leak-2026-10-05.md) | 长时间运行与真实使用会不会让内存只涨不跌 |
 | [`glass-memory-2026-10-18.md`](resource-footprint/glass-memory-2026-10-18.md) | 开了流光玻璃主题为什么占到 967 MB、804 线程，涨在哪，怎么量的 |
 
+## cost
+
+| 文件 | 回答的问题 |
+| --- | --- |
+| [`cost/lookup-cost-2026-11-03.md`](cost/lookup-cost-2026-11-03.md) | 一次查词在 DeepSeek 上花多少钱；首次引导里 “1 元约 1000 次” 凭什么成立 |
+
 ## 测量方法
 
 | 文件 | 回答的问题 |

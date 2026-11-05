@@ -127,6 +127,20 @@ struct Usage {
     QString model; ///< Model captured for this request, even if settings changed in flight.
 };
 
+/// @brief One line of the weekly reading profile's interpretation, and the key of the figure it rests on.
+/// @note `fact` is one of freshShare, repeated, peakHour, topWords or partsOfSpeech, as the prompt names them. It is
+///       empty when the model named none, and an unknown key is kept as written: the panel draws no figure for it.
+struct ProfileLine {
+    QString text;
+    QString fact;
+};
+
+/// @brief The story the model wrote from the week's words, and the listed words it used (docs/adr/0152).
+struct StoryAnswer {
+    QString     text;
+    QStringList words;
+};
+
 /**
  * @brief Sends a batch of words and reports the validated explanations back.
  *
@@ -242,6 +256,22 @@ public:
     /// @param text The selected sentence, echoed back so the answer can be matched to its card.
     void correctGrammar(QString const& text);
 
+    /// @brief Ask for the interpretation of one week's reading profile (UI-SPEC.md 4.7b).
+    ///
+    /// Not streamed, and it rides its own signal like the breakdown: the lines are drawn whole or not at
+    /// all, and the answer never reaches the cache or the verdicts.
+    /// @param summary  The profile as readingProfileSummary() writes it: the only text the request carries.
+    /// @param language The explanation language's catalog code; picks the prompt's closing line.
+    void requestProfile(QString const& summary, QString const& language);
+
+    /// @brief Ask for one short English story written from the week's looked-up words (UI-SPEC.md 4.7d).
+    ///
+    /// Not streamed, and it rides its own signal like the profile: the story is shown whole or not at all, and it
+    /// never reaches the cache, the known store or the verdicts.
+    /// @param words The words the story is written from, in dictionary form. Each is masked before it leaves the
+    ///              machine, and the answer keeps only the ones listed here.
+    void requestStory(QStringList const& words);
+
 signals:
     /// @brief Emitted with the validated explanations, in the order the words were asked for.
     /// @param usage Token counts from the same response, all zero when it carried none.
@@ -266,6 +296,14 @@ signals:
     ///        answer was refused, and then @p failure holds the reader's reason. @p channel says which
     ///        correction answered, so the duty files it right.
     void correctionAnswered(QString const& text, Channel channel, QString corrected, Usage usage, QString failure);
+
+    /// @brief The interpretation's answer: @p points, empty when the request failed or the answer was refused,
+    ///        and then @p failure holds the reader's reason. @p usage carries the call's token counts whenever it came back.
+    void profileAnswered(QVector<ProfileLine> points, Usage usage, QString failure);
+
+    /// @brief The story's answer: @p answer, empty when the request failed or the answer was refused, and then
+    ///        @p failure holds the reader's reason. @p usage carries the call's token counts whenever it came back.
+    void storyAnswered(StoryAnswer answer, Usage usage, QString failure);
 
     /// @brief Emitted while the answer is still arriving, with whatever has been written so far.
     ///

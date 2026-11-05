@@ -71,6 +71,7 @@ Window {
         if (value === "general") return qsTranslate("SettingsPopup", "General");
         if (value === "learning") return qsTranslate("SettingsPopup", "Reading & learning");
         if (value === "capture") return qsTranslate("SettingsPopup", "Capture & popups");
+        if (value === "ocr") return qsTranslate("SettingsPopup", "OCR");
         if (value === "model") return qsTranslate("SettingsPopup", "Model service");
         if (value === "extensions") return qsTranslate("SettingsPopup", "Extensions");
         if (value === "sync") return qsTranslate("SettingsPopup", "Account & sync");
@@ -81,8 +82,8 @@ Window {
     function routeTitle(value) {
         if (value === "font") return qsTranslate("SettingsPopup", "Font");
         if (value === "clipboard") return qsTranslate("SettingsPopup", "Popup & clipboard");
-        if (value === "ocr") return qsTranslate("SettingsPopup", "OCR engine");
         if (value === "ocr-online") return qsTranslate("SettingsPopup", "Online OCR");
+        if (value === "ocr-paths") return qsTranslate("SettingsPopup", "Local engine paths");
         if (value === "connection") return qsTranslate("SettingsPopup", "API configuration");
         return categoryTitle(category);
     }
@@ -126,7 +127,7 @@ Window {
     function routeTo(path) {
         if (!settings.visible)
             return false;
-        const categories = ["general", "learning", "capture", "model", "extensions",
+        const categories = ["general", "learning", "capture", "ocr", "model", "extensions",
                             "sync", "about"];
         const steps = path.split("/");
         if (!categories.includes(steps[0]))
@@ -381,6 +382,16 @@ Window {
         onActivated: settings.navigateBack()
     }
 
+    Item {
+        anchors.fill: parent
+
+        TapHandler {
+            acceptedButtons: Qt.BackButton
+            enabled: settings.category !== ""
+            onTapped: settings.navigateBack()
+        }
+    }
+
     ShadowCard {
         id: shell
         anchors.fill: parent
@@ -532,7 +543,7 @@ Window {
                         : 0
                 // qmllint enable missing-property
                 sourceComponent: settings.route === "clipboard" ? clipboardComponent
-                                 : settings.route === "ocr" ? ocrComponent
+                                 : settings.route === "ocr-paths" ? ocrPathsComponent
                                  : settings.route === "ocr-online" ? onlineOcrComponent
                                  : settings.route === "connection" ? connectionComponent
                                  : settings.route === "font" ? fontComponent
@@ -540,6 +551,7 @@ Window {
                                   : settings.category === "general" ? generalComponent
                                   : settings.category === "learning" ? learningComponent
                                   : settings.category === "capture" ? captureComponent
+                                  : settings.category === "ocr" ? ocrComponent
                                   : settings.category === "model" ? modelComponent
                                   : settings.category === "sync" ? syncComponent
                                   : settings.category === "about" ? aboutComponent
@@ -715,6 +727,7 @@ Window {
             onChildRequested: (value) => settings.openRoute(value)
         }
     }
+    Component { id: ocrPathsComponent; SettingsOcrPathsPage {} }
     Component {
         id: onlineOcrComponent
         SettingsOnlineOcrPage {

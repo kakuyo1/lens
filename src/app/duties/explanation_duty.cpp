@@ -80,7 +80,7 @@ void ExplanationDuty::onPartial(llm::Explanation partial)
     if (not exchange_.inFlight())
         return;
     const auto now     = exchange_.readerContext();
-    const auto subject = exchange_.liveSubject(partial.title, now);
+    const auto subject = exchange_.liveSubject(now);
     if (not subject)
         return;
     // A step of the chain is drawn whole or not at all: a preview would put half a definition on the chain.
@@ -155,30 +155,27 @@ void ExplanationDuty::invalidateWord(QString const& lemma)
         clearBubble();
 }
 
-void ExplanationDuty::enqueueScanCandidates(QVariantList candidates, QPoint anchor)
-{
-    // The scan's candidates are words by construction -- the word list is the one thing that fills
-    // this in -- so the one context they are all judged under is the word channel's.
-    for (auto const& value : candidates) {
-        const auto       map = value.toMap();
-        PendingSelection candidate{.anchor  = anchor,
-                                   .kind    = core::SelectionKind::Word,
-                                   .surface = map.value("surface").toString(),
-                                   .lemma   = map.value("lemma").toString()};
-        if (candidate.lemma.isEmpty())
-            continue;
-        apply(exchange_.ask(std::move(candidate), AskOrigin::Scan, facts()), /*save=*/false);
-    }
-    storage_.save();
-    emit statsChanged();
-    sendNext();
-}
-
 void ExplanationDuty::resumeQueued()
 {
     // The queue answers nothing while an answer is still being disposed of, which is what keeps a
     // budget rollover arriving mid-handler from starting a second request.
     sendNext();
+}
+
+void ExplanationDuty::prefetchSignposts(QStringList const& lemmas)
+{
+    for (auto const& lemma : lemmas) {
+        if (lemma.isEmpty())
+            continue;
+        PendingSelection word{.kind = core::SelectionKind::Word, .surface = lemma, .lemma = lemma};
+        apply(exchange_.ask(std::move(word), AskOrigin::Scan, facts()), /*save=*/false);
+    }
+    sendNext();
+}
+
+QString ExplanationDuty::signpostOf(QString const& lemma) const
+{
+    return exchange_.signpostOf(lemma);
 }
 
 void ExplanationDuty::runSelectionAction(QString action, QString text)
@@ -779,10 +776,10 @@ void ExplanationDuty::apply(ExplanationExchange::Outcome const& outcome, bool co
         clearBubble();
 }
 
-void ExplanationDuty::showNotice(QString const& title, QString const& body, QString const& kind, QString const& action, QString const& lemma, QString const& intent)
+void ExplanationDuty::showNotice(QString const& title, QString const& body, QString const& kind, QString const& action, QString const& lemma)
 {
     clearBubble();
-    notice_ = noticePayload(title, body, kind, action, lemma, intent);
+    notice_ = noticePayload(title, body, kind, action, lemma);
     emit noticeChanged();
 }
 

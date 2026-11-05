@@ -47,7 +47,6 @@ using lens::app::kAutostartRunKey;
 using lens::app::kAutostartValueName;
 using lens::app::kNoticeError;
 using lens::app::kNoticeInfo;
-using lens::app::kNoticeIntentApiKey;
 using lens::app::kRevealSpeedDefault;
 using lens::app::kRevealSpeedMax;
 using lens::app::kRevealSpeedMin;
@@ -114,28 +113,12 @@ TEST(NoticePayload, CarriesAReasonAndAtMostOneAction)
                                              QString::fromUtf8("这张卡片没有可解释的单词"),
                                              QString::fromUtf8(kNoticeInfo));
 
-    EXPECT_EQ(notice.size(), 6) << "a seventh key would be one no surface reads";
+    EXPECT_EQ(notice.size(), 5) << "a sixth key would be one no surface reads";
     EXPECT_EQ(notice.value("title").toString(), QStringLiteral("ubiquitous"));
     EXPECT_EQ(notice.value("body").toString(), QString::fromUtf8("这张卡片没有可解释的单词"));
     EXPECT_EQ(notice.value("kind").toString(), QStringLiteral("info"));
     // Most notices are the end of the road: nothing to press, and no word to press it about.
     EXPECT_TRUE(notice.value("action").toString().isEmpty());
-    EXPECT_TRUE(notice.value("lemma").toString().isEmpty());
-    EXPECT_TRUE(notice.value("intent").toString().isEmpty());
-}
-
-/// An offered action that is not an explanation says where it leads, so the surface can send the reader
-/// there instead of asking the controller to explain a word there is none of (docs/adr/0144).
-TEST(NoticePayload, AnApiKeyActionCarriesItsIntent)
-{
-    const QVariantMap notice = noticePayload(QStringLiteral("Lens"),
-                                             QStringLiteral("Add an API key first."),
-                                             QString::fromLatin1(kNoticeInfo),
-                                             QStringLiteral("Add API key"),
-                                             {},
-                                             QString::fromLatin1(kNoticeIntentApiKey));
-
-    EXPECT_EQ(notice.value("intent").toString(), QStringLiteral("apiKey"));
     EXPECT_TRUE(notice.value("lemma").toString().isEmpty());
 }
 
@@ -463,6 +446,16 @@ TEST(ExplanationQueue, AScanBatchTakesFiveAndLeavesTheRestQueued)
 
 /// The reader pointing at a word outranks the word list filling itself in beside it: the scan
 /// batch is not lost, it is simply next.
+TEST(ExplanationQueue, AWordAlreadyOnItsWayAsAPrefetchIsKnownSoItIsNotPaidForTwice)
+{
+    ExplanationQueue queue;
+    queue.addScan({aWord(QStringLiteral("bank"))});
+    EXPECT_TRUE(queue.prefetching(QStringLiteral("bank"))) << "waiting in the queue";
+    ASSERT_TRUE(queue.take(true, aContext()).has_value());
+    EXPECT_TRUE(queue.prefetching(QStringLiteral("BANK"))) << "in flight, compared without case";
+    EXPECT_FALSE(queue.prefetching(QStringLiteral("river")));
+}
+
 TEST(ExplanationQueue, ARequestTheReaderMadeOvertakesQueuedScanWork)
 {
     ExplanationQueue queue;
@@ -523,7 +516,7 @@ TEST(ExplanationQueue, AWordDeletedBeforeItIsSentLeavesTheQueueAndTheHeldRequest
 
 /// A batch of five is answered as five results, and the answer says which word each one is for by
 /// naming it -- the order they come back in is the model's, not the request's.
-TEST(ExplanationQueue, AnAnswerIsPairedWithItsItemByLemmaAndShownAboutTheItemTheFirstOneNames)
+TEST(ExplanationQueue, AnAnswerIsPairedWithItsItemByLemmaAndARequestForAPrefetchRaisesNoCard)
 {
     ExplanationQueue queue;
     queue.addScan({aWord(QStringLiteral("bank")), aWord(QStringLiteral("river"))});
@@ -541,11 +534,10 @@ TEST(ExplanationQueue, AnAnswerIsPairedWithItsItemByLemmaAndShownAboutTheItemThe
     EXPECT_EQ(settlement.batch.context.language, "en");
     EXPECT_EQ(settlement.batch.items.size(), settlement.resultFor.size());
 
-    // The scan bubble goes up over the item the first answer names rather than over the batch's
-    // first, so the word the reader is being shown is the one at the top of the card.
-    ASSERT_TRUE(settlement.subject.has_value());
-    EXPECT_EQ(settlement.subject->lemma, QStringLiteral("river"));
-    EXPECT_EQ(settlement.subject->anchor, QPoint(200, 400));
+    // A prefetch is stored and never shown: no item is offered for a card, and none is live while
+    // the answer is still streaming in.
+    EXPECT_FALSE(settlement.subject.has_value());
+    EXPECT_FALSE(queue.liveSubject(aContext()).has_value());
 }
 
 /// Deleting a word while its answer is on the way does two things and they are not the same thing:
@@ -583,8 +575,9 @@ TEST(ExplanationQueue, ANewSelectionLeavesAnAnswerOnItsWayUnshownButStillStored)
 /// reader asked in -- not the ones they are in now.
 TEST(ExplanationQueue, AChangedLanguageOrSenseModeLeavesTheAnswerUnshown)
 {
+    // The reader's own request: a prefetch never shows a card, so it cannot show the positive case.
     ExplanationQueue queue;
-    queue.addScan({aWord(QStringLiteral("bank"))});
+    queue.request(aWord(QStringLiteral("bank")));
     ASSERT_TRUE(queue.take(true, aContext("en", true)).has_value());
 
     EXPECT_TRUE(queue.settled({QStringLiteral("bank")}, aContext("en", true)).subject.has_value());

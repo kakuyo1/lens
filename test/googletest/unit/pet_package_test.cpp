@@ -1,6 +1,6 @@
 /**
  * @file pet_package_test.cpp
- * @brief The pet package contract, offline: each refusal reason of docs/pet-package-format.md section 6 is reached by
+ * @brief The pet package contract, offline: each refusal reason of skills/lens-pet-maker/references/pet-package-format.md section 6 is reached by
  *        the rule that owns it, and each limit of section 4 refuses at its boundary (PHASE3 3.8).
  */
 

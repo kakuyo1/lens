@@ -1,13 +1,13 @@
 import QtQuick
 
 /**
- * The local OCR configuration page; the surface spec is UI-SPEC.md 4.4.
+ * The OCR category: the screenshot switch and its trigger key, manual capture, the local engine and
+ * its recognition language, a test, and the two sub-pages (UI-SPEC.md 4.4).
  *
- * The page owns the engine, the recognition language and the local engine paths; the first capture
- * page keeps only the readiness summary and the link that opens this page. Auto is the default and
- * resolves to Tesseract. An explicit choice is never rewritten, so an unavailable one says why
- * rather than quietly falling back. RapidOCR is user-installed, needs an explicit detection, and
- * refuses a model folder whose path is not ASCII because the upstream binary crashes on one.
+ * The switch and the key moved here from the capture and shortcuts pages; their behaviour is unchanged.
+ * The engine paths live on their own sub-page, opened by the local-engine row at the foot. Auto is the
+ * default and resolves to Tesseract. An explicit choice is never rewritten, so an unavailable one says
+ * why rather than quietly falling back.
  */
 Item {
     id: page
@@ -91,29 +91,45 @@ Item {
         return qsTranslate("SettingsPopup", "The test could not read the image.");
     }
 
-    /// @return The explicit RapidOCR detection's answer, or "" before it has run.
-    function detectLine() {
-        if (settings.rapidOcrDetectState === "idle" || settings.rapidOcrDetectState === "checking")
-            return "";
-        if (settings.rapidOcrDetectState === "ready")
-            return qsTranslate("SettingsPopup", "RapidOCR is trusted and ready (%1 ms).").arg(settings.rapidOcrDetectMs);
-        if (settings.rapidOcrDetectState === "path-unsupported")
-            return qsTranslate("SettingsPopup", "RapidOCR's model folder path must contain only ASCII characters.");
-        if (settings.rapidOcrDetectState === "runtime-missing")
-            return qsTranslate("SettingsPopup", "RapidOCR is not installed.");
-        if (settings.rapidOcrDetectState === "language-missing")
-            return qsTranslate("SettingsPopup", "RapidOCR's model files are missing.");
-        if (settings.rapidOcrDetectState === "empty-text")
-            return qsTranslate("SettingsPopup", "RapidOCR could not read the test image.");
-        if (settings.rapidOcrDetectState === "timeout")
-            return qsTranslate("SettingsPopup", "RapidOCR did not finish in time.");
-        return qsTranslate("SettingsPopup", "Detection failed; RapidOCR is not trusted.");
-    }
-
     Column {
         id: content
         width: parent.width
         spacing: 14
+
+        // The switch and the trigger key that start a screenshot. Both are grey while the local OCR
+        // runtime is unavailable, and the reason is on the availability line below the engine.
+        Column {
+            width: parent.width
+            spacing: 7
+
+            SwitchRow {
+                objectName: "ocrCapture"
+                width: parent.width
+                label: qsTranslate("SettingsPopup", "OCR")
+                checked: Controller.settings.ocrCapture
+                interactive: Controller.settings.screenshotAvailable
+                onToggled: (on) => Controller.captureDuty.setOcrCapture(on)
+            }
+
+            Column {
+                width: parent.width
+                spacing: 7
+                Text { text: qsTranslate("SettingsPopup", "OCR trigger key"); color: page.tokens.muted; font.pixelSize: 12 }
+                HotkeyField {
+                    id: ocrField
+                    width: parent.width
+                    objectName: "ocrHotkey"
+                    accessibleName: qsTranslate("SettingsPopup", "OCR trigger key")
+                    combination: Controller.settings.ocrHotkey
+                    interactive: Controller.settings.screenshotAvailable
+                    // A combination the shell would not take says so until the reader picks one that
+                    // it will: the property is where the controller's own answer is kept.
+                    conflicted: Controller.settings.ocrHotkeyConflicted || ocrField.refused
+                    property bool refused: false
+                    onKeyChosen: (key, modifiers) => ocrField.refused = Controller.setOcrHotkey(key, modifiers) !== ""
+                }
+            }
+        }
 
         Column {
             width: parent.width
@@ -246,86 +262,7 @@ Item {
             }
         }
 
-        // RapidOCR is the only user-installed local engine in this build. The upstream v0.2.0
-        // binary crashes before initialization on a model path with non-ASCII characters, so the
-        // folder is rejected here rather than discovered as a silent process crash.
-        Column {
-            width: parent.width
-            spacing: 7
-            visible: page.settings.ocrLocalEngine === "rapidocr"
-
-            Text {
-                text: qsTranslate("SettingsPopup", "RapidOCR executable")
-                color: page.tokens.muted
-                font.pixelSize: 12
-            }
-            PathField {
-                id: rapidOcrExecutableField
-                width: parent.width
-                objectName: "rapidocrExecutable"
-                label: qsTranslate("SettingsPopup", "RapidOCR executable")
-                path: page.settings.rapidOcrExecutable
-                onChosen: (picked) => Controller.setRapidOcrExecutable(picked)
-            }
-
-            Text {
-                text: qsTranslate("SettingsPopup", "RapidOCR model folder")
-                color: page.tokens.muted
-                font.pixelSize: 12
-            }
-            PathField {
-                id: rapidOcrModelsField
-                width: parent.width
-                objectName: "rapidocrModelsDirectory"
-                label: qsTranslate("SettingsPopup", "RapidOCR model folder")
-                path: page.settings.rapidOcrModelsDirectory
-                folder: true
-                onChosen: (picked) => Controller.setRapidOcrModelsDirectory(picked)
-            }
-
-            Text {
-                objectName: "rapidocrPathWarning"
-                width: parent.width
-                visible: page.settings.rapidOcrModelsDirectory.length > 0
-                         && !page.settings.rapidOcrModelsAscii
-                text: qsTranslate("SettingsPopup", "RapidOCR's model folder path must contain only ASCII characters. Move the models to an ASCII-only path and choose it again.")
-                color: page.tokens.danger
-                font.pixelSize: 11
-                wrapMode: Text.WordWrap
-            }
-
-            Chip {
-                objectName: "detectRapidOcrButton"
-                label: page.settings.rapidOcrDetectState === "checking"
-                       ? qsTranslate("SettingsPopup", "Detecting…")
-                       : qsTranslate("SettingsPopup", "Detect and trust")
-                enabled: page.settings.rapidOcrExecutable.length > 0
-                         && page.settings.rapidOcrModelsDirectory.length > 0
-                         && page.settings.rapidOcrModelsAscii
-                         && page.settings.rapidOcrDetectState !== "checking"
-                opacity: enabled ? 1.0 : 0.6
-                onPicked: Controller.detectRapidOcr()
-            }
-
-            Text {
-                objectName: "rapidOcrDetectResult"
-                width: parent.width
-                visible: text !== ""
-                text: page.detectLine()
-                color: page.settings.rapidOcrDetectState === "ready" ? page.tokens.muted : page.tokens.danger
-                font.pixelSize: 11
-                wrapMode: Text.WordWrap
-            }
-
-            Text {
-                width: parent.width
-                text: qsTranslate("SettingsPopup", "RapidOCR-json is a third-party program. It runs with your user permissions and can read other files or use the network; Lens does not install or update it.")
-                color: page.tokens.muted
-                font.pixelSize: 11
-                wrapMode: Text.WordWrap
-            }
-        }
-
+        // The two sub-pages of this category: the online service, and the local engine's paths.
         SettingsLinkRow {
             objectName: "onlineOcrLink"
             label: qsTranslate("SettingsPopup", "Online OCR")
@@ -335,41 +272,11 @@ Item {
             onPicked: page.childRequested("ocr-online")
         }
 
-        // The bundled runtime is what the installer lays down; these two are for a reader who
-        // already keeps their own Tesseract. They are hidden for an explicit RapidOCR choice,
-        // which does not use them.
-        Column {
-            width: parent.width
-            spacing: 7
-            visible: page.settings.ocrLocalEngine !== "rapidocr"
-            Text { text: qsTranslate("SettingsPopup", "Tesseract executable"); color: page.tokens.muted; font.pixelSize: 12 }
-            PathField {
-                id: tesseractField
-                width: parent.width
-                objectName: "tesseractExecutable"
-                label: qsTranslate("SettingsPopup", "Tesseract executable")
-                path: page.settings.tesseractExecutable
-                fallback: page.settings.resolvedTesseractExecutable
-                onChosen: (picked) => Controller.setTesseractExecutable(picked)
-            }
+        SettingsLinkRow {
+            objectName: "ocrPathsLink"
+            label: qsTranslate("SettingsPopup", "Local engine paths")
+            note: page.settings.ocrLocalEngine === "rapidocr" ? "RapidOCR-json" : "Tesseract"
+            onPicked: page.childRequested("ocr-paths")
         }
-
-        Column {
-            width: parent.width
-            spacing: 7
-            visible: page.settings.ocrLocalEngine !== "rapidocr"
-            Text { text: qsTranslate("SettingsPopup", "Tesseract data folder"); color: page.tokens.muted; font.pixelSize: 12 }
-            PathField {
-                id: tesseractDataField
-                width: parent.width
-                objectName: "tesseractDataDirectory"
-                label: qsTranslate("SettingsPopup", "Tesseract data folder")
-                path: page.settings.tesseractDataDirectory
-                fallback: page.settings.resolvedTesseractDataDirectory
-                folder: true
-                onChosen: (picked) => Controller.setTesseractDataDirectory(picked)
-            }
-        }
-
     }
 }

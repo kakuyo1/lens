@@ -22,9 +22,6 @@ namespace lens::app {
 inline constexpr const char* kNoticeInfo  = "info";
 inline constexpr const char* kNoticeError = "error";
 
-/// @brief The intent of an action that is not an explanation: the reader is sent to where an API key is typed.
-inline constexpr const char* kNoticeIntentApiKey = "apiKey";
-
 /**
  * @brief The map a notice surface reads.
  * @param title  What the notice is about -- normally the selection it answers.
@@ -32,12 +29,11 @@ inline constexpr const char* kNoticeIntentApiKey = "apiKey";
  * @param kind   kNoticeInfo or kNoticeError.
  * @param action Label for the one thing the reader can do about it, empty when there is none.
  * @param lemma  The word that action would explain, when the notice is about a word.
- * @param intent What the action does when it is not an explanation, kNoticeIntentApiKey or empty for an explanation.
- * @return {title, body, kind, action, lemma, intent}. An empty map is not a notice: it means there is none.
+ * @return {title, body, kind, action, lemma}. An empty map is not a notice: it means there is none.
  */
-inline QVariantMap noticePayload(const QString& title, const QString& body, const QString& kind, const QString& action = {}, const QString& lemma = {}, const QString& intent = {})
+inline QVariantMap noticePayload(const QString& title, const QString& body, const QString& kind, const QString& action = {}, const QString& lemma = {})
 {
-    return QVariantMap{{"title", title}, {"body", body}, {"kind", kind}, {"action", action}, {"lemma", lemma}, {"intent", intent}};
+    return QVariantMap{{"title", title}, {"body", body}, {"kind", kind}, {"action", action}, {"lemma", lemma}};
 }
 
 }

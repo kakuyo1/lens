@@ -38,8 +38,12 @@ add_library(lens_app STATIC
   duties/card_session.cpp
   duties/cost_duty.h
   duties/cost_duty.cpp
+  duties/reading_profile_duty.h
+  duties/reading_profile_duty.cpp
   duties/explanation_duty.h
   duties/explanation_duty.cpp
+  duties/pencil_duty.h
+  duties/pencil_duty.cpp
   duties/explanation_exchange.h
   duties/explanation_exchange.cpp
   duties/model_catalog_duty.h
@@ -69,10 +73,14 @@ add_library(lens_app STATIC
   platform/autostart.cpp
   platform/global_hotkey.h
   platform/global_hotkey.cpp
+  platform/hover_word_lookup.h
+  platform/hover_word_lookup.cpp
   platform/local_voice.h
   platform/local_voice.cpp
   platform/mouse_selection_hook.h
   platform/mouse_selection_hook.cpp
+  platform/alt_key_hook.h
+  platform/alt_key_hook.cpp
   platform/running_instance.h
   platform/running_instance.cpp
   platform/selection_text_grabber.cpp
@@ -176,8 +184,9 @@ target_link_libraries(lens_app PRIVATE sherpa_onnx_c_api)
 # glass duplication path, which builds a device on the adapter that owns each output (src/app/glass/glass_duplication.h);
 # windowsapp and runtimeobject for Windows Graphics Capture, the source for screens duplication refuses
 # (src/app/glass/glass_capture.h). Not guarded by if(WIN32): this module *is* the Win32 one, and the product has no other
-# platform. OLE is deliberately absent -- ClipboardSnapshot records why its round trip is not usable here.
-target_link_libraries(lens_app PRIVATE user32 gdi32 dxgi d3d11 windowsapp runtimeobject)
+# platform. The clipboard's OLE round trip is deliberately not used -- ClipboardSnapshot records why. UIAutomationCore and
+# the COM base (ole32, oleaut32) are for the hover lookup's read of the text under the pointer (platform/hover_word_lookup.cpp).
+target_link_libraries(lens_app PRIVATE user32 gdi32 dxgi d3d11 windowsapp runtimeobject UIAutomationCore ole32 oleaut32)
 
 # The C++/WinRT projection headers ship beside the SDK's ABI headers, not on the include path vcvars sets. The
 # documented build path runs vcvars first (scripts/build/build.bat), which names the SDK version; an IDE configure
@@ -319,6 +328,7 @@ qt_add_qml_module(lens_app
     qml/SurfaceHost.qml
     qml/pet/PetWindow.qml
     qml/pet/ReviewSignWindow.qml
+    qml/pencil/PencilLayer.qml
     qml/pet/ReviewSignBoard.qml
     qml/pet/ReviewCard.qml
     qml/pet/ReviewSignLayout.qml
@@ -342,6 +352,7 @@ qt_add_qml_module(lens_app
     qml/panels/Notice.qml
     qml/panels/WordHint.qml
     qml/panels/UpdateCard.qml
+    qml/panels/OnboardingWizard.qml
     qml/capture/Mask.qml
     qml/settings/SettingsPopup.qml
     qml/settings/previews/ThemePreview.qml
@@ -358,6 +369,7 @@ qt_add_qml_module(lens_app
     qml/settings/pages/SettingsGeneralPage.qml
     qml/settings/pages/SettingsLearningPage.qml
     qml/settings/pages/SettingsCapturePage.qml
+    qml/settings/pages/SettingsOcrPathsPage.qml
     qml/settings/pages/SettingsOcrPage.qml
     qml/settings/pages/SettingsOnlineOcrPage.qml
     qml/capture/UploadConsent.qml
@@ -368,11 +380,14 @@ qt_add_qml_module(lens_app
     qml/settings/pages/SettingsSyncPage.qml
      qml/panels/StatsPopup.qml
      qml/panels/WordsPopup.qml
+     qml/panels/WordsExportDialog.qml
     qml/panels/WordsListRow.qml
      qml/panels/YearWordsPopup.qml
     qml/panels/YearPalette.qml
      qml/panels/RemovalQuestion.qml
     qml/panels/CostPopup.qml
+    qml/panels/ReadingProfilePopup.qml
+    qml/panels/ReportCard.qml
     qml/theme/Tokens.qml
     qml/theme/TokenTable.qml
     qml/components/preview/PreviewSample.qml
@@ -473,6 +488,19 @@ qt_add_resources(lens_app "icons"
   PREFIX "/icons"
   BASE ${CMAKE_SOURCE_DIR}/data/icons
   FILES ${LENS_ICONS}
+)
+
+# The settings preview's sample pictures (data/preview.json `pictures`), addressed as :/preview/<name>.svg. They are drawn
+# art, not photographs, so the Pictures preview has no picture to fetch and no source to ask.
+set(LENS_PREVIEW_PICTURES
+  ${CMAKE_SOURCE_DIR}/data/preview-pictures/lens-magnifier.svg
+  ${CMAKE_SOURCE_DIR}/data/preview-pictures/lens-camera.svg
+  ${CMAKE_SOURCE_DIR}/data/preview-pictures/lens-sphere.svg
+)
+qt_add_resources(lens_app "preview_pictures"
+  PREFIX "/preview"
+  BASE ${CMAKE_SOURCE_DIR}/data/preview-pictures
+  FILES ${LENS_PREVIEW_PICTURES}
 )
 
 # The glass shaders, compiled by qsb into :/shaders/glass.frag.qsb and :/shaders/glass_hblur.frag.qsb. qsb comes from the

@@ -19,12 +19,14 @@
 #include <QtQml/qqmlregistration.h>
 
 #include <filesystem>
+#include <memory>
 
 #include "app/duties/capture_duty.h"
 #include "app/duties/capture_refusal.h"
 #include "core/domain/pet/pet_state.h"
 #include "core/domain/settings_table.h"
 #include "app/duties/cost_duty.h"
+#include "app/duties/reading_profile_duty.h"
 #include "app/duties/explanation_duty.h"
 #include "app/duties/onboarding_duty.h"
 #include "app/glass/glass_backdrop.h"
@@ -33,6 +35,8 @@
 #include "llm/llm_pricing.h"
 #include "app/duties/model_catalog_duty.h"
 #include "app/platform/mouse_selection_hook.h"
+#include "app/platform/alt_key_hook.h"
+#include "app/duties/pencil_duty.h"
 #include "app/duties/picture_duty.h"
 #include "app/platform/tray.h"
 #include "app/duties/review_duty.h"
@@ -46,6 +50,7 @@
 
 class QQmlEngine;
 class QJSEngine;
+class QSoundEffect;
 
 namespace lens::app::pet {
 class PetController;
@@ -72,6 +77,7 @@ public:
     AppController(core::KnownStore&            store,
                   llm::LlmClient&              llm,
                   MouseSelectionHook&          hook,
+                  AltKeyHook&                  altHook,
                   GlobalHotkey&                hotkey,
                   const llm::Pricing&          pricing,
                   const std::filesystem::path& dataDir,
@@ -163,6 +169,9 @@ public:
      *         leaves the combination that was in force working.
      */
     Q_INVOKABLE QString setOcrHotkey(int key, int modifiers);
+    /// @brief Record the combination the reader pressed for the hover lookup switch.
+    /// @return As setOcrHotkey() returns it.
+    Q_INVOKABLE QString setHoverHotkey(int key, int modifiers);
     /// @brief Show the explanation already stored for a word the reader pointed at, if there is one.
     /// @param x,y          The word's top-left, in the physical pixels the mouse hook reports.
     /// @param width,height The word's size in those pixels, so the card can be placed against it.
@@ -189,16 +198,20 @@ public:
     QVariantList yearDays() const;
     /// @brief The cost duty, which QML reads as `Controller.costDuty`; the facade owns it.
     CostDuty* costDuty();
+    /// @brief The weekly reading profile, which QML reads as `Controller.readingProfileDuty`; the facade owns it.
+    ReadingProfileDuty* readingProfileDuty();
     /// @brief The update duty, which QML reads as `Controller.updateDuty`; the facade owns it.
     UpdateDuty* updateDuty();
     /// @brief The sync duty, which QML reads as `Controller.syncDuty`; the facade owns it.
     SyncDuty* syncDuty();
     /// @brief The explanation duty, which QML reads as `Controller.explanationDuty`; the facade owns it.
     ExplanationDuty* explanationDuty();
-    /// @brief The first-run notice's launch step, which main() runs once the surfaces are up (docs/adr/0144).
+    /// @brief The first-run wizard's launch step, which main() runs once the surfaces are up (docs/adr/0144, docs/adr/0148).
     OnboardingDuty* onboardingDuty();
     /// @brief The capture duty, which QML reads as `Controller.captureDuty`; the facade owns it.
     CaptureDuty* captureDuty();
+    /// @brief The pencil layer's duty, which QML reads as `Controller.pencil`; the facade owns it.
+    PencilDuty* pencil();
     /// @brief The glass backdrop, which QML reads as `Controller.glassBackdrop`; the facade owns it.
     GlassBackdrop* glassBackdrop();
     /// @brief The model catalogue, which QML reads as `Controller.modelCatalogDuty`; the facade owns it.
@@ -221,11 +234,13 @@ public:
     /// @brief The day this build was compiled, as `yyyy-MM-dd`, for the about page. Not the day it runs.
     QString buildDate() const;
     /**
-     * @brief The demo card the settings preview draws, out of `data/preview.json` (UI-SPEC.md 4.4).
+     * @brief The demo cards the previews draw, out of `data/preview.json` (UI-SPEC.md 4.4, 4.19).
      *
-     * Keys: `word`, `ipa`, `signpost`, `collocations`, `example`, `definition`, `etymology`,
-     * `senses` -- the last three carry one entry per explanation language, and the signpost and
-     * collocations are plain English like a real answer's. QML builds a payload out of it
+     * The settings preview's keys sit at the top level: `word`, `ipa`, `signpost`, `collocations`,
+     * `example`, `definition`, `etymology`, `senses` -- the last three carry one entry per
+     * explanation language, and the signpost and collocations are plain English like a real
+     * answer's. `onboarding` holds the same shape for the first-run wizard's demo word, and
+     * `vocabulary` holds the word clouds. QML builds a payload out of the map
      * (components/PreviewSample.qml); nothing here has to know what a setting is. The map is empty
      * when the file could not be read, and the preview then does not come up.
      */
@@ -244,10 +259,13 @@ public:
     Q_PROPERTY(lens::app::WordsModel* wordsModel READ wordsModel CONSTANT)
     Q_PROPERTY(QVariantList yearDays READ yearDays NOTIFY yearDaysChanged)
     Q_PROPERTY(lens::app::CostDuty* costDuty READ costDuty CONSTANT)
+    Q_PROPERTY(lens::app::ReadingProfileDuty* readingProfileDuty READ readingProfileDuty CONSTANT)
     Q_PROPERTY(lens::app::UpdateDuty* updateDuty READ updateDuty CONSTANT)
     Q_PROPERTY(lens::app::SyncDuty* syncDuty READ syncDuty CONSTANT)
     Q_PROPERTY(lens::app::ExplanationDuty* explanationDuty READ explanationDuty CONSTANT)
+    Q_PROPERTY(lens::app::OnboardingDuty* onboardingDuty READ onboardingDuty CONSTANT)
     Q_PROPERTY(lens::app::CaptureDuty* captureDuty READ captureDuty CONSTANT)
+    Q_PROPERTY(lens::app::PencilDuty* pencil READ pencil CONSTANT)
     Q_PROPERTY(lens::app::GlassBackdrop* glassBackdrop READ glassBackdrop CONSTANT)
     Q_PROPERTY(lens::app::ModelCatalogDuty* modelCatalogDuty READ modelCatalogDuty CONSTANT)
     Q_PROPERTY(lens::app::PictureDuty* pictureDuty READ pictureDuty CONSTANT)
@@ -281,6 +299,10 @@ signals:
     void reviewQuestionChanged();
 
 private:
+    /// @brief Validate, register and store one trigger combination; the rule both trigger keys share.
+    /// @param other The trigger that is not being set: a combination it already holds is refused.
+    /// @return As setOcrHotkey() returns it.
+    QString recordHotkey(GlobalHotkey& hotkey, GlobalHotkey const& other, char const* settingKey, int key, int modifiers);
     /// @brief Write one row: the value through the row's rule, then the signal the row names.
     bool writeSetting(core::settings::Row const& row, QVariant const& value);
     /// @brief Restore provider wire options and persisted connection choices without touching credentials.
@@ -289,6 +311,8 @@ private:
     QString exportFor(core::ExportScope scope) const;
     /// @brief The JSON export for a scope, without the QML string parse.
     QString exportJsonFor(core::ExportScope scope) const;
+    /// @brief The learning-card export for a scope and format, without the QML string parse.
+    QString exportCardsFor(core::ExportScope scope, core::CardFormat format) const;
     /// @brief Reconcile budget and in-flight request gates with the capture duty.
     void refreshCaptureGates();
     /// @brief The trigger key went down: raise the mask, or say why it cannot be raised.
@@ -307,12 +331,14 @@ private:
     GlassBackdrop          glass_;
     ModelCatalogDuty       catalog_;
     ExplanationDuty        explanation_;
+    PencilDuty             pencil_;
     update::UpdateClient   updateClient_;
     update::DownloadClient updateDownloader_;
     UpdateDuty             updateDuty_;
     OnboardingDuty         onboarding_;
     SyncDuty               sync_;
     ReviewDuty             reviewDuty_;
+    ReadingProfileDuty     readingProfile_;
     /// The picture lookup: the source that searches, the cache beside the settings document, and the
     /// duty the card reads. Declared in this order so the duty's two references are alive before it.
     pictures::CommonsSource picturesSource_;
@@ -326,7 +352,11 @@ private:
     SpeechDuty            speechDuty_;
     llm::LlmClient&       llm_;
     GlobalHotkey&         hotkey_;
-    QTimer                gateTimer_;
+    /// The switch between selection lookup and hover lookup; its own registration, beside the OCR key.
+    GlobalHotkey hoverHotkey_{nullptr, GlobalHotkey::kHoverId};
+    /// The tone a switch between selection lookup and hover lookup plays. Multimedia stays out of this header.
+    std::unique_ptr<QSoundEffect> modeCue_;
+    QTimer                        gateTimer_;
     /// Whether the daily budget was spent the last time the cost duty reported, so a pause and a resume each fire once.
     bool budgetPaused_;
     /// The connection probe's own state. The generation is raised by a start and by any change

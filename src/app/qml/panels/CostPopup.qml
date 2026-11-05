@@ -45,6 +45,15 @@ Window {
         onActivated: cost.visible = false
     }
 
+    Item {
+        anchors.fill: parent
+
+        TapHandler {
+            acceptedButtons: Qt.BackButton
+            onTapped: cost.backRequested()
+        }
+    }
+
     ShadowCard {
         id: card
         anchors.fill: parent

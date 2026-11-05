@@ -269,10 +269,12 @@ Item {
             panel.openRoute("font");
             wait(25);
 
-            const preview = Util.findAll(main, (o) => {
+            // Scoped to the panel: the onboarding wizard hosts a preview Bubble of its own
+            // (docs/adr/0148), so Main no longer has exactly one to hand.
+            const preview = Util.findAll(panel, (o) => {
                 return o.toString().indexOf("Bubble_QMLTYPE") === 0 && o.preview === true;
             })[0];
-            verify(preview, "Main did not build the preview bubble");
+            verify(preview, "the settings panel did not build the preview bubble");
             compare(preview.visible, false);
 
             // A rest on the title is no longer a gesture: only a row of the list is.

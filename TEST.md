@@ -45,7 +45,7 @@ test/
 | `lens_gtest_glass_probe` | 玻璃幕布的采集上限：适配器与输出归属 / 桌面复制可用性与一帧的代价 / GDI 读屏对照 / 抓屏排除在复制帧里是否生效 | 动玻璃采集或画质档位时，人工执行（CI 没有可复制的桌面会话） |
 | `lens_gtest_smoke` | 1 词真模型往返，一次进程最多 3 次真实调用 | 动 LLM 链路时，人工执行 |
 | `lens_qtest_components` | `qml/components/` 那八个的接线与交互 | 动组件时，无头，可进 CI |
-| `lens_qtest_surfaces` | 表面：Main 的摆放与关闭、托盘菜单、通知卡片、三张面板、行动条 | 动表面时，无头，可进 CI |
+| `lens_qtest_surfaces` | 表面：Main 的摆放与关闭、托盘菜单、通知卡片、首次引导向导、三张面板、行动条 | 动表面时，无头，可进 CI |
 | `lens_qtest_pet` | 桌面宠物的控制器：事件、帧时钟、衣橱、场景与换宠（无窗口） | 动宠物控制器时，无头，可进 CI |
 
 Qt 路径由运行器从合并后的机器配置读取（覆盖规则见 `config/README.md`）。两个运行器都先做增量构建，再把环境变量配好：
@@ -60,10 +60,11 @@ powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_pet
 
 需要看合并后的机器路径、来源文件与是否可用：`powershell -File scripts/build/show-paths.ps1`。
 
-- OCR 的离线契约在 `lens_gtest_unit`：`OcrTsv.*`、`OcrLocal.*`、`OcrRapidOcr.*`、`OcrMigration.*`、`OcrSpace.*`、`CaptureDuty.*`（含零上传断言）。真实引擎用 `lens_gtest_integration` 的 `OcrEngineProbe*` 与 `RapidOcrProbe*`，只读合成图，不读桌面；`RapidOcrProbe*` 需要 `LENS_RAPIDOCR_ROOT` 指向解压后的 RapidOCR-json v0.2.0，否则跳过。英语、中文与混排基线用 `scripts/qa/ocr-bench.ps1`（`-Language chi_sim` / `chi_sim+eng`），证据见 `docs/metrics/ocr-baseline-2026-10-28.md`；安装产物检查见 `docs/metrics/ocr-installer-2026-10-28.md`。真实在线 smoke 与 setup 安装/卸载不在日常套件里。
+- OCR 的离线契约在 `lens_gtest_unit`：`OcrTsv.*`、`OcrLocal.*`、`OcrRapidOcr.*`、`OcrMigration.*`、`RapidOcrBundle.*`、`OcrSpace.*`、`CaptureDuty.*`（含零上传断言）。真实引擎用 `lens_gtest_integration` 的 `OcrEngineProbe*` 与 `RapidOcrProbe*`，只读合成图，不读桌面；`RapidOcrProbe*` 需要 `LENS_RAPIDOCR_ROOT` 指向解压后的 RapidOCR-json v0.2.0，否则跳过。英语、中文与混排基线用 `scripts/qa/ocr-bench.ps1`（`-Language chi_sim` / `chi_sim+eng`），证据见 `docs/metrics/ocr-baseline-2026-10-28.md`；安装产物检查见 `docs/metrics/ocr-installer-2026-10-28.md`。真实在线 smoke 与 setup 安装/卸载不在日常套件里。
 
 - 改动后先跑**覆盖它的那条用例**，不跑整套：gtest 用 `gtest.ps1 -Filter 'PetThrow*'`，QTest 用
-  `qtest.ps1 -Target <目标> -Case Main::test_x`，约 5 秒；整套 surfaces 249 例，全量留给收尾那一次。
+  `qtest.ps1 -Target <目标> -Case Main::test_x`，约 5 秒；整套 surfaces 249 例，**只在发版跑**
+  （AGENTS.md Critical Rules：除发版外全量严禁，无任何例外理由）。
 - 整套 surfaces 可以按文件并行：`bash scripts/qa/qtest-parallel.sh --build build-ninja --shards 2`。
   CI 用同一条命令；每个 `.qml` 一个进程，设置副本按 PID 隔离，成功时每个文件一行 `Totals`，红文件打印完整日志。
 - 链接 `lens_llm` 或 `lens_app` 的目标需要 Qt DLL 在 `PATH` 上（即 `unit` / `integration` /

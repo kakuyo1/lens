@@ -1968,10 +1968,14 @@ void PetController::updateHiddenHover(std::chrono::milliseconds step)
     // but never greets (ADR 0095).
     hover_->update(step, hide_.distanceToSliver(cursor, origin), false);
 
-    if (hover_->watching())
-        setGaze(gazeToward(at, hide_.ink().centre().x(), hide_.ink().centre().y()));
-    else
+    if (hover_->watching()) {
+        // Look from the visible sliver, not the full ink: a hidden pet's ink centre is off screen, and looking from
+        // there pins the eyes to one direction however the pointer moves beside the sliver.
+        auto const sliver = hide_.sliverCentre(origin);
+        setGaze(gazeToward(at, sliver.x(), sliver.y()));
+    } else {
         setGaze({});
+    }
 }
 
 void PetController::resetHover()

@@ -86,6 +86,8 @@ TEST_F(LlmTest, RestoreDefaultsMatchesAFreshInstallAndLeavesOwnedStateAlone)
 
     app::MouseSelectionHook hookA;
     app::MouseSelectionHook hookB;
+    app::AltKeyHook         altHookA;
+    app::AltKeyHook         altHookB;
     app::GlobalHotkey       hotkeyA;
     app::GlobalHotkey       hotkeyB;
     QuietManager            managerA;
@@ -96,8 +98,8 @@ TEST_F(LlmTest, RestoreDefaultsMatchesAFreshInstallAndLeavesOwnedStateAlone)
     llm::LlmClient clientA{config(), &managerA};
     llm::LlmClient clientB{config(), &managerB};
 
-    app::AppController a{storeA, clientA, hookA, hotkeyA, pricing(), test::sourceDir() / "data"};
-    app::AppController b{storeB, clientB, hookB, hotkeyB, pricing(), test::sourceDir() / "data"};
+    app::AppController a{storeA, clientA, hookA, altHookA, hotkeyA, pricing(), test::sourceDir() / "data"};
+    app::AppController b{storeB, clientB, hookB, altHookB, hotkeyB, pricing(), test::sourceDir() / "data"};
 
     a.setSetting(QStringLiteral("level"), 5);
     a.setSetting(QStringLiteral("explanationLang"), QStringLiteral("ja"));
@@ -126,6 +128,8 @@ TEST_F(LlmTest, RestoreDefaultsMatchesAFreshInstallAndLeavesOwnedStateAlone)
     a.captureDuty()->setOcrCapture(true);
     a.captureDuty()->setMinimumWordLength(5);
     EXPECT_TRUE(a.setOcrHotkey(Qt::Key_F9, Qt::ControlModifier | Qt::AltModifier).isEmpty());
+    EXPECT_TRUE(a.setHoverHotkey(Qt::Key_F8, Qt::ControlModifier | Qt::AltModifier).isEmpty());
+    EXPECT_EQ(a.setHoverHotkey(Qt::Key_F9, Qt::ControlModifier | Qt::AltModifier).toStdString(), "taken");
     ASSERT_TRUE(a.modelCatalogDuty()->setProvider(QStringLiteral("openai")));
     ASSERT_TRUE(a.modelCatalogDuty()->setModel(QStringLiteral("gpt-4.1-nano")));
 

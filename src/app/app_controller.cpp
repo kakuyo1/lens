@@ -19,6 +19,7 @@
 #include <QLocale>
 #include <QSaveFile>
 #include <QScreen>
+#include <QSoundEffect>
 #include <QQmlEngine>
 #include <QJSEngine>
 
@@ -42,15 +43,15 @@
 namespace lens::app {
 namespace {
 
-/// @return The trigger key the reader chose, or the default one when nothing usable is stored.
-QKeySequence storedHotkey(StorageDuty& storage)
+/// @return The trigger key the reader chose under @p key, or @p fallback when nothing usable is stored.
+QKeySequence storedHotkey(StorageDuty& storage, char const* key, QKeySequence const& fallback)
 {
-    const QString text = QString::fromStdString(storage.section().value<std::string>("ocrHotkey", {})).trimmed();
-    if (text.isEmpty()) return GlobalHotkey::defaultKeys();
+    const QString text = QString::fromStdString(storage.section().value<std::string>(key, {})).trimmed();
+    if (text.isEmpty()) return fallback;
     const QKeySequence parsed = QKeySequence::fromString(text, QKeySequence::PortableText);
     if (parsed.isEmpty() or not GlobalHotkey::isUsable(parsed)) {
-        LENS_WARN("ignored the stored trigger key '{}'", text.toStdString());
-        return GlobalHotkey::defaultKeys();
+        LENS_WARN("ignored the stored trigger key '{}' under '{}'", text.toStdString(), key);
+        return fallback;
     }
     return parsed;
 }
@@ -92,13 +93,14 @@ QString fontFamilyFor(QString const& stored)
 AppController::AppController(core::KnownStore&            store,
                              llm::LlmClient&              llm,
                              MouseSelectionHook&          hook,
+                             AltKeyHook&                  altHook,
                              GlobalHotkey&                hotkey,
                              const llm::Pricing&          pricing,
                              const std::filesystem::path& dataDir,
                              QObject*                     parent)
     : QObject(parent),
       storage_(store),
-      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), onboarding_(storage_, explanation_), sync_(storage_, dataDir, nullptr, this), reviewDuty_(storage_, [this] { return pet_ != nullptr and pet_->enabled(); }, [this] { return pet_ != nullptr and pet_->availableForReview(); }, this), llm_(llm), hotkey_(hotkey), picturesSource_(nullptr, this), picturesCache_(pictures::PictureCache::defaultRoot()), pictureDuty_(picturesSource_, picturesCache_, this), speechSources_(nullptr, this), speechCache_(speech::AudioCache::defaultRoot()), speechDuty_(speechSources_, speechCache_, storage_, this), previewSample_(loadPreviewSample(dataDir / "preview.json"))
+      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), pencil_(capture_, explanation_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), onboarding_(storage_, this), sync_(storage_, dataDir, nullptr, this), reviewDuty_(storage_, [this] { return pet_ != nullptr and pet_->enabled(); }, [this] { return pet_ != nullptr and pet_->availableForReview(); }, this), readingProfile_(storage_, llm, cost_, [] { return QDate::currentDate(); }, this), llm_(llm), hotkey_(hotkey), picturesSource_(nullptr, this), picturesCache_(pictures::PictureCache::defaultRoot()), pictureDuty_(picturesSource_, picturesCache_, this), speechSources_(nullptr, this), speechCache_(speech::AudioCache::defaultRoot()), speechDuty_(speechSources_, speechCache_, storage_, this), previewSample_(loadPreviewSample(dataDir / "preview.json"))
 {
     budgetPaused_ = cost_.budgetStatus().exhausted;
     // The review and answer cards read the word's curve for their next-ask line; the duties build
@@ -125,10 +127,13 @@ AppController::AppController(core::KnownStore&            store,
     connect(&capture_, &CaptureDuty::selectionReady, this, [this](PendingSelection selection) {
         explanation_.setSelection(std::move(selection));
     });
-    connect(&capture_, &CaptureDuty::scanCandidatesReady, this, [this](QVariantList candidates, QPoint anchor) {
-        explanation_.enqueueScanCandidates(std::move(candidates), anchor);
-    });
     connect(&capture_, &CaptureDuty::screenshotFailed, this, &AppController::reportCaptureRefusal);
+    connect(&capture_, &CaptureDuty::scanPlaced, &pencil_, &PencilDuty::placeWords);
+    connect(&capture_, &CaptureDuty::scanCleared, &pencil_, &PencilDuty::clear);
+    connect(&altHook, &AltKeyHook::altPressed, &pencil_, &PencilDuty::altDown);
+    connect(&altHook, &AltKeyHook::altReleased, &pencil_, &PencilDuty::altUp);
+    // A lone Alt tap never opens Chrome's menu bar while Chrome is the page being scanned (see AltKeyHook).
+    altHook.setMenuGuard([this] { return capture_.chromeScanActive(); });
     connect(&capture_, &CaptureDuty::settingsChanged, this, &AppController::settingsChanged);
     connect(&capture_, &CaptureDuty::uploadPreviewReady, this, [this](qulonglong requestId, QImage const& image) {
         if (consentPreview_) consentPreview_->set(requestId, image);
@@ -182,7 +187,15 @@ AppController::AppController(core::KnownStore&            store,
 
     connect(&updateDuty_, &UpdateDuty::newVersionOffered, this, [this] { emit petEvent(core::pet::PetEvent::UpdateAvailable); });
     connect(&hotkey_, &GlobalHotkey::pressed, this, &AppController::onTriggerHotkey);
-    hotkey_.setKeys(storedHotkey(storage_));
+    hotkey_.setKeys(storedHotkey(storage_, "ocrHotkey", GlobalHotkey::defaultKeys()));
+    connect(&hoverHotkey_, &GlobalHotkey::pressed, &capture_, &CaptureDuty::toggleHoverMode);
+    hoverHotkey_.setKeys(storedHotkey(storage_, "hoverHotkey", GlobalHotkey::hoverDefaultKeys()));
+    modeCue_ = std::make_unique<QSoundEffect>();
+    modeCue_->setSource(QUrl::fromLocalFile(widen(dataDir / "sounds" / "mode-switch.wav")));
+    connect(modeCue_.get(), &QSoundEffect::statusChanged, this, [this] {
+        if (modeCue_->status() == QSoundEffect::Error) LENS_WARN("the mode-switch sound did not load; switching lookup modes will be silent");
+    });
+    connect(&capture_, &CaptureDuty::hoverModeChanged, this, [this] { modeCue_->play(); });
     restoreModelService();
     cost_.setLegacyModel(llm_.model());
     gateTimer_.setInterval(1000);
@@ -200,6 +213,11 @@ AppController::AppController(core::KnownStore&            store,
     });
     wordsModel_.update(QDate::currentDate(), storage_.statsStore().history(), storage_.knownStore().known());
     LENS_INFO("AppController ready: level={} explanation language '{}'", store.level(), store.explanationLang());
+}
+
+PencilDuty* AppController::pencil()
+{
+    return &pencil_;
 }
 
 AppController::~AppController() = default;
@@ -293,10 +311,6 @@ void AppController::detectRapidOcr()
 void AppController::restoreCaptureDefaults()
 {
     capture_.restoreDefaults();
-    // The trigger key is one of the capture settings, so the way back from every one of them is
-    // the way back from this one too.
-    const QKeyCombination fallback = GlobalHotkey::defaultKeys()[0];
-    setOcrHotkey(fallback.key(), fallback.keyboardModifiers());
 }
 
 void AppController::restoreDefaults()
@@ -312,6 +326,14 @@ void AppController::restoreDefaults()
         LENS_WARN("the catalog has no usable default provider; the model service was left alone");
     setModel(defaults::defaultModelName());
     restoreCaptureDefaults();
+    // Both trigger keys let go before either default is taken, so a pair the reader swapped cannot
+    // block the other's default.
+    hotkey_.setKeys({});
+    hoverHotkey_.setKeys({});
+    const QKeyCombination ocr = GlobalHotkey::defaultKeys()[0];
+    setOcrHotkey(ocr.key(), ocr.keyboardModifiers());
+    const QKeyCombination hover = GlobalHotkey::hoverDefaultKeys()[0];
+    setHoverHotkey(hover.key(), hover.keyboardModifiers());
 }
 
 bool AppController::setSetting(QString key, QVariant value)
@@ -390,12 +412,24 @@ bool AppController::writeSetting(core::settings::Row const& row, QVariant const&
 
 QString AppController::setOcrHotkey(int key, int modifiers)
 {
+    return recordHotkey(hotkey_, hoverHotkey_, "ocrHotkey", key, modifiers);
+}
+
+QString AppController::setHoverHotkey(int key, int modifiers)
+{
+    return recordHotkey(hoverHotkey_, hotkey_, "hoverHotkey", key, modifiers);
+}
+
+QString AppController::recordHotkey(GlobalHotkey& hotkey, GlobalHotkey const& other, char const* settingKey, int key, int modifiers)
+{
     const QKeySequence sequence{QKeyCombination{Qt::KeyboardModifiers(modifiers), Qt::Key(key)}};
     if (not GlobalHotkey::isUsable(sequence)) return QStringLiteral("unusable");
-    if (not hotkey_.setKeys(sequence)) return QStringLiteral("taken");
+    // The other trigger already holds it; the shell would refuse the second registration just the same.
+    if (sequence == other.keys()) return QStringLiteral("taken");
+    if (not hotkey.setKeys(sequence)) return QStringLiteral("taken");
     const QString text = sequence.toString(QKeySequence::PortableText);
-    storage_.section().set<std::string>("ocrHotkey", text.toStdString());
-    LENS_INFO("OCR trigger key set to '{}'", text.toStdString());
+    storage_.section().set<std::string>(settingKey, text.toStdString());
+    LENS_INFO("trigger key '{}' set to '{}'", settingKey, text.toStdString());
     emit settingsChanged();
     return {};
 }
@@ -415,6 +449,8 @@ bool AppController::installHotkey()
     const bool registered = hotkey_.install();
     if (not registered)
         LENS_WARN("the OCR trigger key is not in force; the capture mask cannot be raised from the keyboard");
+    if (not hoverHotkey_.install())
+        LENS_WARN("the hover lookup key is not in force; hover lookup cannot be switched on from the keyboard");
     emit settingsChanged();
     return registered;
 }
@@ -725,6 +761,8 @@ QVariantMap AppController::settings()
     // refused leaves the old one working, and that is the one the field has to show.
     result.insert(QStringLiteral("ocrHotkey"), hotkey_.keys().toString(QKeySequence::PortableText));
     result.insert(QStringLiteral("ocrHotkeyConflicted"), hotkey_.conflicted());
+    result.insert(QStringLiteral("hoverHotkey"), hoverHotkey_.keys().toString(QKeySequence::PortableText));
+    result.insert(QStringLiteral("hoverHotkeyConflicted"), hoverHotkey_.conflicted());
     result.insert(QStringLiteral("provider"), catalog_.currentProvider());
     result.insert(QStringLiteral("model"), llm_.model());
     result.insert(QStringLiteral("url"), llm_.baseUrl().toString());
@@ -769,6 +807,11 @@ QString AppController::exportJsonFor(core::ExportScope const scope) const
     return QString::fromStdString(core::exportLemmasJson(storage_.statsStore().history(), scope, storage_.knownStore().known()));
 }
 
+QString AppController::exportCardsFor(core::ExportScope const scope, core::CardFormat const format) const
+{
+    return QString::fromStdString(core::exportCards(storage_.statsStore().history(), scope, storage_.knownStore(), format));
+}
+
 QString AppController::exportWords(QString scope)
 {
     const auto which = parseScope(scope);
@@ -805,7 +848,10 @@ bool AppController::saveWords(QUrl path, QString scope)
         LENS_WARN("words export was given '{}', which names no local file", path.toString().toStdString());
         return false;
     }
-    const QString text = isJsonPath(local) ? exportJsonFor(*which) : exportFor(*which);
+    auto const    cards = cardFormatOf(local);
+    QString const text  = isJsonPath(local) ? exportJsonFor(*which)
+                          : cards           ? exportCardsFor(*which, *cards)
+                                            : exportFor(*which);
     QSaveFile     file(local);
     if (!file.open(QIODevice::WriteOnly)) {
         LENS_WARN("words export could not open '{}' for writing", local.toStdString());
@@ -884,6 +930,11 @@ bool AppController::removeWord(QString lemma)
 CostDuty* AppController::costDuty()
 {
     return &cost_;
+}
+
+ReadingProfileDuty* AppController::readingProfileDuty()
+{
+    return &readingProfile_;
 }
 
 UpdateDuty* AppController::updateDuty()
