@@ -7,6 +7,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace lens::capture {
@@ -21,6 +22,10 @@ std::vector<std::string> pageWords(std::string_view text);
 /// @brief Mark the words of page text that are names: capitalized, and never written with a lower-case first letter on the page.
 /// @return One flag per word, parallel to pageWords(text).
 std::vector<bool> nameFlags(std::string_view text);
+
+/// @brief The names of page text: the words nameFlags() marks, each once, spelled as pageWords() gives them.
+/// @return The set; a word is a name when its normalizedWord() is in it.
+std::unordered_set<std::string> nameSet(std::string_view text);
 
 /// @brief One OCR word placed on the page text.
 struct WordAnchor {

@@ -467,6 +467,13 @@ TEST_F(CoreTest, InformalSpellingsAreNotVocabularyOnTheScanPath)
     EXPECT_EQ(surfaces(words), std::vector<std::string>{"the"});
 }
 
+TEST_F(CoreTest, TheDialectFormsSeenOnTheScanDropOut)
+{
+    // Forms the scan log showed as candidates in the Crawdads reading session: -in verbs and dialect spellings.
+    const auto words = lens::core::filterWords("mornin askin brung wif the", {}, lens::core::Difficulty::byRank(0), 3, false);
+    EXPECT_EQ(surfaces(words), std::vector<std::string>{"the"});
+}
+
 TEST_F(CoreTest, CommentLinesOfTheInformalFileAreNotSpellings)
 {
     // "maintained" appears only in the file's header comment; a comment line must not reach the list.

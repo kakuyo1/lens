@@ -38,6 +38,16 @@ workin
 playin
 eatin
 dyin
+mornin
+askin
+smokin
+layin
+bringin
+watchin
+wantin
+fallin
+botherin
+fishin
 
 # Clipped and contracted forms
 gonna
@@ -73,6 +83,7 @@ yup
 nope
 nah
 yessir
+yessiree
 
 # Dialect and fragments an apostrophe leaves behind
 fer
@@ -84,6 +95,12 @@ lik
 kya
 git
 hon
+brung
+wif
+tha
+sho
+bidness
+atcha
 dat
 dis
 lil

@@ -19,6 +19,7 @@
   - 人名与地名只在扫描时过滤：页面上只以大写出现的词不画（`nameFlags`）。句首大写的常见词，若页面别处从不以小写出现，也会被漏掉。
   - 底座从 1000 提到 3000。考试词书之外的日常词（`older` 1518、`lay` 1354、`painting` 1885）在 1000 底座之外，会在每档都被画线；提到 3000 后每档都算已会。代价是这一段里的一些低频词也被当成已会，代价小，待真机确认。
   - 非正式拼写（`runnin`、`fer`、`thang` 等）按 `data/informal-spellings.txt` 排除（`loadInformalSpellings`）。名单由人工维护，不是规则：日志里出现新的拼写时补进名单。
+  - 扫描候选的日志行（`scan: N OCR word(s) ... new candidate(s): ...`）为 info 级，Release 构建也写入 `logs/lens.log`。这是为了能用日志核对扫描结果，代价是每次页面稳定读取多一行。
   - 取代：`docs/adr/0078-definition-chain-drills-in-place.md` 后果中关于 `rankForLevel` 的一条；`src/core/domain/filter_core.h` 里 `minFreqRank` 的 “not settled” 说明。0078 的其余决定不变。
   - `GLOSSARY.md` 的档位条目里 “known-set 预置” 的说法与本决定不符，实现时改。
   - 实现已完成：词书加载与判定（`loadWordbooks`、`difficultyForLevel`）、三处接线、`data/preview.json` 的样例（原有 11 个不在词书里的样例词已替换）、测试，以及 `PRODUCT.md` / `UI-SPEC.md` 4.4 的更新。

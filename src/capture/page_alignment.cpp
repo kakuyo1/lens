@@ -80,6 +80,16 @@ std::vector<bool> nameFlags(std::string_view const text)
     return names;
 }
 
+std::unordered_set<std::string> nameSet(std::string_view const text)
+{
+    auto const                      words = pageWords(text);
+    auto const                      flags = nameFlags(text);
+    std::unordered_set<std::string> names;
+    for (std::size_t i = 0; i < words.size(); ++i)
+        if (flags[i]) names.insert(words[i]);
+    return names;
+}
+
 PageIndex::PageIndex(std::vector<std::string> words)
     : words_{std::move(words)}
 {

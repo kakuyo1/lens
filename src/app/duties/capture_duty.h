@@ -20,6 +20,7 @@
 #include <memory>
 #include <optional>
 #include <string_view>
+#include <unordered_map>
 
 #include "capture/ocr_engine.h"
 #include "capture/ocr_executor.h"
@@ -173,7 +174,8 @@ signals:
     /// @brief The scan's new words, each as {lemma, surface, x, y, width, height} in physical screen pixels, and
     ///        the monitor they sit on: its device-independent geometry, its physical origin and its scale.
     void scanPlaced(QVariantList words, QRect screen, QPoint screenOrigin, double scale);
-    /// @brief The placed words no longer describe the page: it moved, the scan stopped, or the window changed.
+    /// @brief The placed words no longer describe the page: the scan stopped or the window changed. A page that
+    ///        moves is read again rather than cleared.
     void scanCleared();
     /// @brief A frozen crop is waiting for the reader's explicit upload decision.
     void uploadConsentRequested(QVariantMap consent);
@@ -191,10 +193,10 @@ signals:
     void rapidOcrBundleChanged();
 
 private:
-    /// @brief A page word the scan placed, with the box of the OCR word that found it.
-    struct ScanPlacement {
-        std::string     surface;
-        capture::OcrBox box;
+    /// @brief A candidate the scan shows on a word of the page: its lemma, and the word as the page spells it.
+    struct ScanCandidate {
+        QString lemma;
+        QString surface;
     };
 
     struct OcrJob {
@@ -267,10 +269,10 @@ private:
     void invalidateScan();
     /// @brief Build the Tesseract engine the scan reads with, and record whether its resources are present.
     void rebuildScanOcr();
-    /// @brief Read the page text for a recognised scan frame, off the main thread; the placed words come back to onScanPlaced().
-    void placeScanWords(capture::OcrResult const& result, QPoint anchor, quintptr window);
-    /// @brief Judge one scan frame's placed words against the reader's settings.
-    void             onScanPlaced(std::vector<ScanPlacement> placed, QPoint anchor, std::size_t ocrWords, bool pageReady);
+    /// @brief Start following the page in @p window's band; its frames come back to onTrackFrame().
+    void startScanTrack(quintptr window, QRect band);
+    /// @brief One frame of the scan's track: judge the words it read, and emit the candidates it has in view.
+    void             onTrackFrame(std::uint64_t generation, TrackFrame frame);
     core::Difficulty difficulty() const;
 
     StorageDuty&                          storage_;
@@ -280,38 +282,35 @@ private:
     std::unique_ptr<capture::OcrExecutor> executor_;
     std::shared_ptr<ocr::HttpTransport>   onlineTransport_;
     /// Tokens a service exchanged this run. Memory only; cleared whenever the key or address moves.
-    std::shared_ptr<ocr::OcrTokenStore>   onlineTokens_;
-    std::shared_ptr<capture::OcrEngine>   scanOcr_;
-    bool                                  scanReady_ = false; ///< Tesseract and its English data are present.
-    QTimer                                scanTimer_;
-    QTimer                                hoverTimer_;
-    core::HoverDwell                      hoverDwell_;
-    bool                                  hoverMode_ = false;
-    bool                                  hoverBusy_ = false; ///< A word read is in flight.
-    std::optional<OcrJob>                 jobContext_;
-    std::optional<PendingUpload>          upload_;
-    QTimer                                consentTimer_;
-    QTimer                                uploadTimer_;
-    QString                               uploadPhase_          = QStringLiteral("idle");
-    bool                                  uploadCanRetry_       = false;
-    capture::OcrStatus                    ocrState_             = capture::OcrStatus::RuntimeMissing;
-    std::uint64_t                         generation_           = 0;
-    std::uint64_t                         screenshotGeneration_ = 0;
-    std::uint64_t                         nextRequestId_        = 0;
-    QString                               scanContext_;
-    QPoint                                scanAnchor_;
-    QRect                                 scanScreen_;
-    QPoint                                scanScreenOrigin_;
-    double                                scanScale_       = 1.0;
-    quintptr                              scanWindow_      = 0;
-    std::uint64_t                         scanFingerprint_ = 0;
-    int                                   scanStableTicks_ = 0;
-    int                                   scanLevel_       = -1; ///< The level the scan's candidates were judged at; a change invalidates them.
-    std::optional<std::uint64_t>          scannedFingerprint_;
-    std::chrono::steady_clock::time_point scanLastOcr_{};
-    bool                                  scanPaused_   = false;
-    bool                                  budgetPaused_ = false;
-    QString                               ocrTestState_ = QStringLiteral("idle");
+    std::shared_ptr<ocr::OcrTokenStore>                 onlineTokens_;
+    std::shared_ptr<capture::OcrEngine>                 scanOcr_;
+    bool                                                scanReady_ = false; ///< Tesseract and its English data are present.
+    QTimer                                              scanTimer_;
+    QTimer                                              hoverTimer_;
+    core::HoverDwell                                    hoverDwell_;
+    bool                                                hoverMode_ = false;
+    bool                                                hoverBusy_ = false; ///< A word read is in flight.
+    std::optional<OcrJob>                               jobContext_;
+    std::optional<PendingUpload>                        upload_;
+    QTimer                                              consentTimer_;
+    QTimer                                              uploadTimer_;
+    QString                                             uploadPhase_          = QStringLiteral("idle");
+    bool                                                uploadCanRetry_       = false;
+    capture::OcrStatus                                  ocrState_             = capture::OcrStatus::RuntimeMissing;
+    std::uint64_t                                       generation_           = 0;
+    std::uint64_t                                       screenshotGeneration_ = 0;
+    std::uint64_t                                       nextRequestId_        = 0;
+    QString                                             scanContext_;
+    int                                                 scanLevel_  = -1; ///< The level the scan's candidates were judged at; a change invalidates them.
+    bool                                                scanPaused_ = false;
+    std::unique_ptr<PageTrack>                          track_;          ///< Follows the page on screen; null while the scan is not reading one.
+    std::unordered_map<int, std::vector<ScanCandidate>> scanCandidates_; ///< The candidates, by the track's word id.
+    QRect                                               scanScreen_;
+    QPoint                                              scanScreenOrigin_;
+    double                                              scanScale_ = 1.0;
+    QRect                                               scanBand_;
+    bool                                                budgetPaused_ = false;
+    QString                                             ocrTestState_ = QStringLiteral("idle");
     /// Why the last test failed, in the vocabulary the settings page explains; `none` otherwise.
     QString                     ocrTestReason_ = QStringLiteral("none");
     QString                     ocrTestEngine_;
