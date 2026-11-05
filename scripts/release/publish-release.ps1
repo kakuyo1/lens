@@ -3,10 +3,13 @@
 Build and publish the committed Lens version, with an annotated tag and its installer.
 .EXAMPLE
 powershell -File scripts/release/publish-release.ps1 -Version 1.1.0 -WhatIf
+.EXAMPLE
+powershell -File scripts/release/publish-release.ps1 -Version 1.0.0 -Prerelease alpha -WhatIf
 #>
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(
     [Parameter(Mandatory = $true)][ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version,
+    [ValidatePattern('^[0-9A-Za-z]+(\.[0-9A-Za-z]+)*$')][string]$Prerelease,
     [switch]$Draft
 )
 
@@ -28,17 +31,20 @@ try {
     if ($cmake -notmatch 'project\(Lens\s+VERSION\s+(\d+\.\d+\.\d+)\s' -or $Matches[1] -ne $Version) {
         throw "publish-release: CMake project version does not match $Version"
     }
+    # The label names the tag, the release and the CHANGELOG heading; the installer and portable zip keep
+    # CMake's numeric version, so a prerelease label never reaches a file name.
+    $label = if ($Prerelease) { "$Version-$Prerelease" } else { $Version }
     $changelog = Get-Content -LiteralPath 'CHANGELOG.md' -Raw -Encoding UTF8
-    $section = [regex]::Match($changelog, "(?ms)^## $([regex]::Escape($Version)) - \d{4}-\d{2}-\d{2}\r?\n(.+?)(?=^## |\z)")
+    $section = [regex]::Match($changelog, "(?ms)^## $([regex]::Escape($label)) - \d{4}-\d{2}-\d{2}\r?\n(.+?)(?=^## |\z)")
     if (-not $section.Success -or [string]::IsNullOrWhiteSpace($section.Groups[1].Value)) {
-        throw "publish-release: CHANGELOG.md has no notes for $Version"
+        throw "publish-release: CHANGELOG.md has no notes for $label"
     }
 
     $repo = & gh repo view --json nameWithOwner --jq .nameWithOwner
     if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($repo)) {
         throw 'publish-release: cannot resolve GitHub repository; run gh auth login first'
     }
-    $tag = "v$Version"
+    $tag = "v$label"
     & git show-ref --verify --quiet "refs/tags/$tag"
     if ($LASTEXITCODE -eq 0) { throw "publish-release: local tag $tag already exists" }
     if ($LASTEXITCODE -ne 1) { throw 'publish-release: cannot check local tags' }
@@ -95,12 +101,12 @@ try {
     [IO.File]::WriteAllText($notesPath, $section.Groups[1].Value.Trim(), [Text.UTF8Encoding]::new($false))
     & git push origin "HEAD:refs/heads/$branch"
     if ($LASTEXITCODE -ne 0) { throw 'publish-release: branch push failed' }
-    & git tag -a $tag -m "Release Lens $Version" $head
+    & git tag -a $tag -m "Release Lens $label" $head
     if ($LASTEXITCODE -ne 0) { throw 'publish-release: tag creation failed' }
     & git push origin "refs/tags/$tag"
     if ($LASTEXITCODE -ne 0) { throw 'publish-release: tag push failed; local tag is retained' }
     $arguments = @('release', 'create', $tag, $installer, $portable, $sumsPath, '--repo', $repo,
-        '--verify-tag', '--title', "Lens $Version", '--notes-file', $notesPath)
+        '--verify-tag', '--title', "Lens $label", '--notes-file', $notesPath)
     if ($Draft) { $arguments += '--draft' }
     & gh @arguments
     if ($LASTEXITCODE -ne 0) { throw 'publish-release: release creation failed; pushed tag is retained' }
