@@ -61,6 +61,7 @@
 | `docs/adr/` | 重大取舍与代价 | 当前规格全文 |
 | `docs/history/` | 被取代的阶段规格 | 当前行为 |
 | `docs/history/impeccable/` | 2026-10 六面 critique 的最终报告与修复计划 | 当前行为、当前规格 |
+| `docs/history/CHANGELOG-1.x.md` | 1.0.0 至 1.9.0 的变更记录（重新发版前的旧编号） | 当前变更 |
 | `scripts/README.md` | 脚本目录、验证入口、发布命令 | 测试口径细节 |
 | `skills/lens-pet-maker/` | 宠物包制作的 agent skill 与**宠物包格式契约正本**（`references/pet-package-format.md`：目录结构、字段、上限、校验与拒绝原因）；`~/.zcode/skills/lens-pet-maker/` 是部署副本 | 美术生成流程（归 `docs/pet-art-pipeline.md`）、行为规则 |
 | `docs/pet-art-pipeline.md` | 随包宠物的美术生成管线：配方、渲染与检查 | 宠物包格式、行为规则 |

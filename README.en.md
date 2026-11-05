@@ -43,12 +43,15 @@
 
 Most lookup tools pull you out of the page and answer in your first language. You finish the paragraph without ever reading it in English. Lens makes the opposite bet: the fastest way to read better English is to stay in English.
 
-- **English in, clearer English out.** A plain-English sense, IPA, and — when you want them — etymology and an example. Translation is still there; it just isn't the default.
+- **English in, clearer English out.** Explanations default to English: a plain-English sense, IPA, and — when you want them — etymology and an example. A selection in Chinese, Japanese, or Spanish is translated into English; an English selection is answered in your explanation language, English by default. Translation is still there; it just isn't the default.
+- **The explanation language is a setting, not a switch on the card.** English, Chinese, Traditional Chinese, Spanish, or Japanese — change it once and every card follows, answered from cache when that word already has one.
+- **The action bar offers Translate, Explain, and Copy text.** Explain is the one Lens is built around: it tells you what the word means in words you already know, instead of replacing it with a Chinese word you can skip.
 - **A word you can hear.** A speaker sits beside every pronunciation: press it, or the pronunciation itself, and the headword is read once. Sentences, names, and translations stay silent.
 - **The answer stays on the page.** Lens lives in the system tray and has no main window. The bubble opens beside the selection, holds while you hover, and is gone when you keep reading.
 - **A quiet memory.** Mark a word Known or New. Lens keeps the list. No streaks, no lesson plan.
 - **A pet that asks.** When a word comes due, a sign goes up at the pet's feet. Answer right and the next gap gets longer; answer wrong and it comes back sooner. The pet only receives event types and cannot read your screen, selection, or definitions. Off by default; turn it on in Settings › Extensions.
 - **A definition you can walk into.** A word in a definition that sits above your level stays dotted. Open it and the same card steps down one layer, with a breadcrumb back; the cache, budget, and verdict rules follow every step.
+- **The globe is the only language control left on the card.** Hold it for half a second and the meaning in your mother tongue appears under the English definition; let go and it is gone. The mother tongue is a setting of its own — Chinese by default. A word whose explanation already includes that language costs nothing to peek at; any other is asked once per session.
 
 ## A quick look
 
@@ -59,14 +62,6 @@ The answer is English. Hold the globe for your mother tongue, let go, and the ca
 <p align="center"><img src="docs/readme/feature-tour.gif" width="600" alt="Pressing Pictures on the word crane loads its photos; Not the Sense? swaps the card to the machine sense, photos and all"></p>
 
 Press Pictures on a word to load its photos. Not the Sense? swaps the card in place to the word's other sense, photos and all.
-
-## English first. Translation when you ask.
-
-- **Explanations default to English.** A selection in Chinese, Japanese, or Spanish comes back in English.
-- **The explanation language is a setting, not a switch on the card.** English, Chinese, Traditional Chinese, Spanish, or Japanese — change it once and every card follows, answered from cache when that word already has one.
-- **The action bar offers Translate, Explain, and Copy text.** Explain is the one Lens is built around: it tells you what the word means in words you already know, instead of replacing it with a Chinese word you can skip.
-- **Translate is the exception.** It turns a Chinese, Japanese, or Spanish passage into English; on English text it answers in your explanation language — English unless you change it.
-- **The globe is the language control that stayed on the card.** Hold it for half a second and the meaning in your mother tongue appears under the English definition; let go and it is gone. The mother tongue is a setting of its own — Chinese by default. A word whose explanation already includes that language costs nothing to peek at; any other is asked once per session.
 
 ## Say it out loud
 
@@ -128,10 +123,6 @@ Seven pixel companions ship with Lens: Stub cat, Owl, Mochi, Ghost, Jellyfish, C
 The ghost's six: a midnight clock, a jack-o'-lantern, a mirror and a tea party of its own, and the desk and the bubble bath it shares with the other pets — each scene an animation of its own. The jack-o'-lantern, playing:
 
 <p align="center"><img src="docs/readme/pet-lantern.gif" width="420" alt="The ghost's jack-o'-lantern scene, animated"></p>
-
-And the card the settings raise: hover a pet in Settings › Extensions and its postcard comes up — dressed in one piece per slot, standing in a landscape of its own, stamped and postmarked.
-
-<p align="center"><img src="docs/readme/pet-postcards.gif" width="700" alt="The seven pets' postcards, one after another"></p>
 
 Lens also supports custom pets. The repository's `skills/lens-pet-maker` is a Claude Code skill that helps an AI draft a pet package; clone the repo to use it, drop the finished folder into `%APPDATA%\Lens\pets\`, and turn it on under Settings › Extensions.
 
