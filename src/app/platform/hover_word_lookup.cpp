@@ -285,7 +285,8 @@ std::optional<QRect> documentClipOf(IUIAutomation& automation, IUIAutomationElem
     return clip;
 }
 
-PageDocument pageOf(IUIAutomation& automation, IUIAutomationElement& root, QRect const clip)
+/// @return The document controls under @p root, or nothing when the tree cannot say.
+Com<IUIAutomationElementArray> documentsOf(IUIAutomation& automation, IUIAutomationElement& root)
 {
     // Only document controls: a browser's page is one, its tabs and toolbars are not.
     VARIANT documentType{};
@@ -297,8 +298,14 @@ PageDocument pageOf(IUIAutomation& automation, IUIAutomationElement& root, QRect
 
     IUIAutomationElementArray* arrayRaw = nullptr;
     if (FAILED(root.FindAll(TreeScope_Descendants, documents.get(), &arrayRaw)) or not arrayRaw) return {};
-    Com<IUIAutomationElementArray> array{arrayRaw};
-    int                            count = 0;
+    return Com<IUIAutomationElementArray>{arrayRaw};
+}
+
+PageDocument pageOf(IUIAutomation& automation, IUIAutomationElement& root, QRect const clip)
+{
+    auto const array = documentsOf(automation, root);
+    if (not array) return {};
+    int count = 0;
     array->get_Length(&count);
 
     // A document's effective box is its own box cut to the document frames above it, and to @p clip when one is given.
@@ -472,6 +479,11 @@ constexpr auto kNameRetry = std::chrono::seconds{1};
 constexpr auto kTrackPeriod = std::chrono::milliseconds{16};
 /// Steps the anchor may read empty or outside the band before the track gives it up; a read that races a scroll is brief.
 constexpr int kMissedSteps = 6;
+/// Steps the anchor must hold still before its words are drawn: a scroll in flight can show an old place for a step.
+constexpr int kSettleSteps = 3;
+/// How often a settled page is checked to still be a document of its window: a tab switch takes it out of the tree,
+/// and its last box can keep reading as in view.
+constexpr auto kPageCheckPeriod = std::chrono::milliseconds{500};
 /// The anchor moves once it comes within this share of the band's height of the band's top or bottom edge.
 constexpr int kEdgeShare = 5;
 
@@ -519,6 +531,8 @@ public:
 private:
     std::optional<TrackFrame> acquire(QRect band);
     std::optional<TrackFrame> lose();
+    /// @return Whether the page is still one of the window's documents.
+    bool pageInWindow() const;
     /// @return Whether the anchor moved to a word nearer the middle of @p band.
     bool moveAnchorIfNearEdge(QRect band);
     /// @return Whether words past the last one read forward were added.
@@ -550,8 +564,10 @@ private:
     int                                   losses_   = 0;
     int                                   missed_   = 0;
     std::chrono::steady_clock::time_point reportedAt_{};
-    int                                   missedSteps_ = 0; ///< Steps in a row the anchor has read empty or outside the band.
-    int                                   framesSent_  = 0; ///< TEMPORARY diagnostic: frames returned in the last second.
+    int                                   missedSteps_ = 0;     ///< Steps in a row the anchor has read empty or outside the band.
+    int                                   framesSent_  = 0;     ///< TEMPORARY diagnostic: frames returned in the last second.
+    bool                                  lines_       = false; ///< Whether the last frame sent drew its words.
+    std::chrono::steady_clock::time_point pageCheckAt_{};
 };
 
 std::optional<TrackFrame> TrackState::step(QRect const band)
@@ -573,22 +589,33 @@ std::optional<TrackFrame> TrackState::step(QRect const band)
 
     QRect const box = firstBoxOf(*anchor_);
     if (box.isEmpty() or not visible.contains(box.center())) {
-        // A read that races a scroll comes back empty for a step or two. The lines keep their last place until it does
-        // (the page may have moved on, so they can sit a little off their words), rather than vanishing and rebuilding.
+        // A read that races a scroll comes back empty for a step or two: the lines hide until the page reads again.
         ++missed_;
-        if (++missedSteps_ < kMissedSteps) return std::nullopt;
+        stillSteps_ = 0;
+        if (++missedSteps_ < kMissedSteps) {
+            if (not lines_) return std::nullopt;
+            lines_ = false;
+            return TrackFrame{};
+        }
         return lose();
     }
     missedSteps_ = 0;
 
-    bool moved = false;
     if (box != anchorBox_) {
         anchorBox_  = box;
         stillSteps_ = 0;
-        moved       = true;
         moveAnchorIfNearEdge(visible);
     } else {
         ++stillSteps_;
+    }
+
+    bool const settled = stillSteps_ >= kSettleSteps;
+    if (settled and now - pageCheckAt_ >= kPageCheckPeriod) {
+        pageCheckAt_ = now;
+        if (not pageInWindow()) {
+            forgetPageOf(window_);
+            return lose();
+        }
     }
 
     TrackFrame frame;
@@ -596,10 +623,29 @@ std::optional<TrackFrame> TrackState::step(QRect const band)
     // The names are re-read only once the page holds still, since that read is a few hundred ms of COM.
     if (stillSteps_ >= kStillSteps) refreshNamesIfDue();
     bool const extended = extendForward(visible, frame) or extendBackward(visible, frame);
-    if (not moved and not extended) return std::nullopt;
-    frame.visible = trackedOf(capture::placeSpans(spans_, anchorBox_.x(), anchorBox_.y(), bandOf(visible)));
+    // Words are drawn only once the anchor holds still: a placement made while the page moves sits off its words.
+    if (not extended and settled == lines_) return std::nullopt;
+    lines_ = settled;
+    if (settled) frame.visible = trackedOf(capture::placeSpans(spans_, anchorBox_.x(), anchorBox_.y(), bandOf(visible)));
     ++framesSent_;
     return frame;
+}
+
+bool TrackState::pageInWindow() const
+{
+    auto const root      = elementOf(*automation_, window_);
+    auto const documents = root ? documentsOf(*automation_, *root) : Com<IUIAutomationElementArray>{};
+    if (not documents) return false;
+    int count = 0;
+    documents->get_Length(&count);
+    for (int i = 0; i < count; ++i) {
+        IUIAutomationElement* raw = nullptr;
+        if (FAILED(documents->GetElement(i, &raw)) or not raw) continue;
+        Com<IUIAutomationElement> element{raw};
+        BOOL                      same = FALSE;
+        if (SUCCEEDED(automation_->CompareElements(element.get(), page_->element.get(), &same)) and same) return true;
+    }
+    return false;
 }
 
 std::optional<TrackFrame> TrackState::acquire(QRect const band)
@@ -632,7 +678,7 @@ std::optional<TrackFrame> TrackState::acquire(QRect const band)
     TrackFrame    frame;
     QString const text = wordTextOf(*anchor_);
     if (not isName(text)) frame.added.push_back({.id = spans_.front().id, .text = text});
-    frame.visible = trackedOf(capture::placeSpans(spans_, anchorBox_.x(), anchorBox_.y(), bandOf(band)));
+    lines_ = false;
     return frame;
 }
 
@@ -647,6 +693,7 @@ std::optional<TrackFrame> TrackState::lose()
     forwardDone_  = false;
     backwardDone_ = false;
     stillSteps_   = 0;
+    lines_        = false;
     TrackFrame frame;
     frame.lost = true;
     return frame;
