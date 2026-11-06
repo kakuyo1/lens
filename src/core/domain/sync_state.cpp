@@ -50,8 +50,12 @@ nlohmann::json buildLocalDocument(const KnownStore&     store,
     const nlohmann::json marks = store.syncMarks();
 
     nlohmann::json history = nlohmann::json::array();
-    for (const HistoryEntry& entry : stats.history())
-        history.push_back({{"word", entry.lemma}, {"minute", entry.minute}, {"verdict", entry.verdict}});
+    for (const HistoryEntry& entry : stats.history()) {
+        nlohmann::json row = {{"word", entry.lemma}, {"minute", entry.minute}, {"verdict", entry.verdict}};
+        if (!entry.language.empty())
+            row["lang"] = entry.language;
+        history.push_back(std::move(row));
+    }
 
     const nlohmann::json& document = store.document();
     nlohmann::json        settings = nlohmann::json::object();
@@ -116,8 +120,9 @@ void applyHistory(StatsStore& stats, const nlohmann::json& merged)
             continue;
         if (deleted.is_object() && deleted.contains(row.at("word").get<std::string>()))
             continue; // a tombstone keeps the deleted word out, even if a stale copy survived in the cloud
-        std::string verdict = row.contains("verdict") && row.at("verdict").is_string() ? row.at("verdict").get<std::string>() : std::string();
-        rows.push_back(HistoryEntry{row.at("word").get<std::string>(), row.at("minute").get<std::string>(), std::move(verdict)});
+        std::string verdict  = row.contains("verdict") && row.at("verdict").is_string() ? row.at("verdict").get<std::string>() : std::string();
+        std::string language = row.contains("lang") && row.at("lang").is_string() ? row.at("lang").get<std::string>() : std::string();
+        rows.push_back(HistoryEntry{row.at("word").get<std::string>(), row.at("minute").get<std::string>(), std::move(verdict), std::move(language)});
     }
     stats.replaceHistory(std::move(rows));
 }

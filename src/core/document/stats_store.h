@@ -34,6 +34,9 @@ struct HistoryEntry {
     /// and overwritten by recordVerdict on a re-mark. Entries from documents written before
     /// verdicts were stamped read as empty, which the tally treats as neither column.
     std::string verdict;
+    /// The explanation language the pop was made under, e.g. "en" or "zh". Empty for imported
+    /// words and for rows written before the field existed; neither is a mother-tongue explanation.
+    std::string language;
 };
 
 /// @brief Token usage attributed to one model on one day.
@@ -44,9 +47,12 @@ struct ModelUsage {
 
 /// @brief One day's tallies, for the statistics and cost popups.
 struct DailyUsage {
-    int                               pops             = 0;
-    int                               learned          = 0;
-    int                               fresh            = 0;
+    int pops    = 0;
+    int learned = 0;
+    int fresh   = 0;
+    /// Peek gestures that drew a line or asked for one. A behaviour count, not a word count: it
+    /// is never reduced when a word is deleted.
+    int                               peeks            = 0;
     long long                         promptTokens     = 0;
     long long                         completionTokens = 0;
     std::map<std::string, ModelUsage> models;
@@ -130,10 +136,16 @@ public:
     explicit StatsStore(nlohmann::json& document);
 
     /// @brief Record that a bubble showed this word, stamped with the verdict it carries now.
+    /// @param minute   Local time as "YYYY-MM-DD HH:MM"; its date picks the daily bucket.
+    /// @param known    Whether the lemma is marked known at the moment of the pop; the stamp is
+    ///                 what the day's known / new tally starts from, and a later mark moves it.
+    /// @param language The explanation language the pop was made under; empty for an import,
+    ///                 which is not an explanation.
+    void recordPop(std::string lemma, std::string minute, bool known, std::string language = {});
+
+    /// @brief Count one completed mother-tongue peek on its day.
     /// @param minute Local time as "YYYY-MM-DD HH:MM"; its date picks the daily bucket.
-    /// @param known  Whether the lemma is marked known at the moment of the pop; the stamp is
-    ///               what the day's known / new tally starts from, and a later mark moves it.
-    void recordPop(std::string lemma, std::string minute, bool known);
+    void recordPeek(const std::string& minute);
 
     /**
      * @brief Attach the reader's verdict to the newest entry for a word.

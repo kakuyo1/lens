@@ -53,6 +53,7 @@ Window {
         leaving = false
         step = 1
         apiDraft = ""
+        body.contentY = 0
         // Typing broke the field's binding to the draft, so a second showing (a forced build) has
         // to clear it by hand: the masked placeholder reads back only on an empty field.
         keyInput.text = ""
@@ -61,6 +62,34 @@ Window {
         visible = true
         raise()
     }
+
+    /// @brief Scroll the body so the item holding keyboard focus is inside the viewport.
+    ///
+    /// A focused control below the fold is still focused, but a reader cannot see the ring or what
+    /// they are about to change. This runs on every focus change, after the step has laid out.
+    function revealFocus(item) {
+        if (!item || !visible || item.Window.window !== wizard)
+            return;
+        let insideBody = false;
+        for (let parent = item; parent; parent = parent.parent) {
+            if (parent === body) {
+                insideBody = true;
+                break;
+            }
+        }
+        if (!insideBody)
+            return;
+        const at = item.mapToItem(body.contentItem, 0, 0);
+        const top = at.y;
+        const bottom = top + item.height;
+        const limit = Math.max(0, body.contentHeight - body.height);
+        if (top < body.contentY)
+            body.contentY = Math.min(limit, Math.max(0, top));
+        else if (bottom > body.contentY + body.height)
+            body.contentY = Math.min(limit, Math.max(0, bottom - body.height));
+    }
+
+    onActiveFocusItemChanged: Qt.callLater(() => wizard.revealFocus(wizard.activeFocusItem))
 
     /// @brief Write the API key the reader has typed, if any, and clear the draft.
     ///
@@ -93,6 +122,7 @@ Window {
     function goTo(next) {
         commitApiDraft();
         step = Math.max(1, Math.min(stepCount, next));
+        body.contentY = 0
     }
 
     function back() {
@@ -204,6 +234,26 @@ Window {
             mode: wizard.tokens.glassMode
         }
 
+        // The body scrolls, and a wheel over the header or footer scrolls it too. The handler is
+        // the card's, so a wheel over the body reaches the Flickable first and keeps its
+        // acceleration; this only answers for the bands the Flickable does not cover.
+        WheelHandler {
+            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+            onWheel: (event) => {
+                if (body.contentHeight <= body.height)
+                    return;
+                let step = event.pixelDelta.y;
+                if (step === 0)
+                    step = -event.angleDelta.y / 120 * 72;
+                const next = Math.max(0, Math.min(body.contentY + step,
+                                                  body.contentHeight - body.height));
+                if (next !== body.contentY) {
+                    body.contentY = next;
+                    event.accepted = true;
+                }
+            }
+        }
+
         Item {
             id: header
             x: 0
@@ -251,12 +301,20 @@ Window {
             }
         }
 
-        Item {
+        // The step bodies scroll inside the fixed card: a translation longer than the design's
+        // English keeps its text inside the card instead of running under the footer.
+        Flickable {
             id: body
+            objectName: "onboardingBody"
             x: 0
             y: header.height
             width: wizard.cardWidth
             height: wizard.cardHeight - header.height - footer.height
+            clip: true
+            contentWidth: width
+            contentHeight: Math.max(height, 32 + (wizard.step === 1 ? stepLevel.implicitHeight
+                                                          : wizard.step === 2 ? stepService.implicitHeight
+                                                                              : stepTry.implicitHeight))
 
             Column {
                 id: stepLevel
@@ -517,6 +575,23 @@ Window {
                     wrapMode: Text.WordWrap
                 }
             }
+        }
+
+        // The six-pixel thumb the settings shell uses (UI-SPEC.md 4.4): transparent track, faint
+        // thumb, in the card's right margin. A sibling of the body, so it does not scroll with it.
+        Rectangle {
+            id: scrollThumb
+            objectName: "onboardingScrollThumb"
+            x: body.width - width
+            y: body.y + (body.contentHeight <= body.height ? 0
+                        : (body.height - height) * Math.min(1, Math.max(0,
+                          body.contentY / (body.contentHeight - body.height))))
+            width: 6
+            height: Math.max(24, body.height * body.height / body.contentHeight)
+            radius: 3
+            color: wizard.tokens.faint
+            visible: body.contentHeight > body.height
+            opacity: body.moving ? 0.9 : 0.55
         }
 
         Item {

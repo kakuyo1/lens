@@ -121,6 +121,17 @@ Item {
                 onOptionHovered: (option) => root.languagePreviewRequested(String(option.value))
                 onOptionUnhovered: root.languagePreviewRequested("")
             }
+            // The trade-off is told while a mother tongue is the permanent choice, and goes with it
+            // when English returns. There is nothing to dismiss (UI-SPEC.md 4.4).
+            Text {
+                objectName: "motherTongueHint"
+                width: parent.width
+                visible: root.settings.explanationLang !== "en"
+                text: qsTranslate("SettingsPopup", "Holding the globe on a card peeks at your mother tongue, but only under English. This setting writes explanations in the chosen language.")
+                color: root.tokens.muted
+                font.pixelSize: 11
+                wrapMode: Text.WordWrap
+            }
         }
 
         // The seven card switches are one column, but not one undivided list: a quiet group

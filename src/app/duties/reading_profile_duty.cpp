@@ -7,8 +7,10 @@
 
 #include <utility>
 
+#include "app/settings_access.h"
 #include "core/document/reading_profile.h"
 #include "core/document/story.h"
+#include "core/domain/settings_table.h"
 #include "util/log.h"
 #include "util/text.h"
 
@@ -39,7 +41,7 @@ core::ReadingProfile ReadingProfileDuty::weekProfile() const
         const auto cached = known.cacheGet(lemma);
         return cached ? cached->pos : std::string{};
     };
-    return core::buildReadingProfile(storage_.statsStore().history(), known.known(), partOfSpeech, fromDate, toDate);
+    return core::buildReadingProfile(storage_.statsStore().history(), known.known(), partOfSpeech, fromDate, toDate, storage_.statsStore().daily());
 }
 
 QVariantMap ReadingProfileDuty::facts() const
@@ -71,6 +73,8 @@ QVariantMap ReadingProfileDuty::facts() const
                        {"freshPercent", core::sharePercent(profile.fresh, profile.words)},
                        {"repeated", profile.repeated},
                        {"repeatedPercent", core::sharePercent(profile.repeated, profile.words)},
+                       {"motherTonguePercent", core::sharePercent(profile.motherTonguePops, profile.explainedPops)},
+                       {"peeks", profile.peeks},
                        {"uncached", profile.uncached},
                        {"partsOfSpeech", parts},
                        {"hours", hours},
@@ -89,8 +93,10 @@ void ReadingProfileDuty::interpret()
     points_.clear();
     failure_.clear();
     emit interpretationChanged();
-    // The summary is the only text this request carries; the explanation language picks the closing line.
-    llm_.requestProfile(now.value("summary").toString(), QString::fromStdString(storage_.knownStore().explanationLang()));
+    // The summary is the only text this request carries; the interface language picks the closing
+    // line, so the observations read in the language of the panel that shows them.
+    const QString language = settings::read(storage_.section(), *core::settings::find("uiLanguage")).toString();
+    llm_.requestProfile(now.value("summary").toString(), language);
 }
 
 void ReadingProfileDuty::tellStory()

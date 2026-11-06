@@ -297,7 +297,7 @@
     <message>
         <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="271"/>
         <source>Choose how much of what you read should be explained. The level decides which words Lens explains and which it leaves alone; you can change it later under Reading &amp; learning.</source>
-        <translation>Choose how much of what you read should be explained. The level decides which words Lens explains and which it leaves alone; you can change it later under Reading &amp;amp;amp; learning.</translation>
+        <translation>Choose how much of what you read should be explained. The level decides which words Lens explains and which it leaves alone; you can change it later under Reading &amp; learning.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="284"/>
@@ -336,7 +336,7 @@
     <message>
         <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="451"/>
         <source>Create a key in your provider&apos;s dashboard; it is stored on this device only.</source>
-        <translation>Create a key in your provider&amp;amp;apos;s dashboard; it is stored on this device only.</translation>
+        <translation>Create a key in your provider&apos;s dashboard; it is stored on this device only.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="459"/>
@@ -346,19 +346,19 @@
     <message>
         <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="477"/>
         <source>This is the whole loop: select English text anywhere, and the explanation appears beside it. Try it here -- drag across &quot;quiet&quot; in the line below, and the card appears beside this window. Nothing is sent; the card is a sample.</source>
-        <translation>This is the whole loop: select English text anywhere, and the explanation appears beside it. Try it here -- drag across &amp;amp;quot;quiet&amp;amp;quot; in the line below, and the card appears beside this window. Nothing is sent; the card is a sample.</translation>
+        <translation>This is the whole loop: select English text anywhere, and the explanation appears beside it. Try it here -- drag across &quot;quiet&quot; in the line below, and the card appears beside this window. Nothing is sent; the card is a sample.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="499"/>
         <source>The evening was &quot;quiet&quot;, and the page felt close.
 One small word at a time, the reading opens.</source>
-        <translation>The evening was &amp;amp;quot;quiet&amp;amp;quot;, and the page felt close.
+        <translation>The evening was &quot;quiet&quot;, and the page felt close.
 One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="514"/>
         <source>Lens lives in the tray. The tray menu&apos;s settings entry opens this panel again, and its first row speaks up until a key is set.</source>
-        <translation>Lens lives in the tray. The tray menu&amp;amp;apos;s settings entry opens this panel again, and its first row speaks up until a key is set.</translation>
+        <translation>Lens lives in the tray. The tray menu&apos;s settings entry opens this panel again, and its first row speaks up until a key is set.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="545"/>
@@ -503,37 +503,42 @@ One small word at a time, the reading opens.</translation>
         <translation>Repeated</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="211"/>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="212"/>
+        <source>Mother tongue %1% · %2 peeks</source>
+        <translation>Mother tongue %1% · %2 peeks</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="224"/>
         <source>Parts of speech</source>
         <translation>Parts of speech</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="229"/>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="242"/>
         <source>%1 words without one</source>
         <translation>%1 words without one</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="238"/>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="251"/>
         <source>Lookups by hour</source>
         <translation>Lookups by hour</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="281"/>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="294"/>
         <source>Most looked up</source>
         <translation>Most looked up</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="335"/>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="348"/>
         <source>Interpret this week</source>
         <translation>Interpret this week</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="335"/>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="348"/>
         <source>View this week&apos;s report</source>
         <translation>View this week&apos;s report</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="353"/>
+        <location filename="../src/app/qml/panels/ReadingProfilePopup.qml" line="366"/>
         <source>Today&apos;s budget is used up; the reading waits until tomorrow.</source>
         <translation>Today&apos;s budget is used up; the reading waits until tomorrow.</translation>
     </message>
@@ -779,6 +784,7 @@ One small word at a time, the reading opens.</translation>
         <translation>Back</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="150"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="515"/>
         <source>Close</source>
         <translation>Close</translation>
@@ -801,7 +807,7 @@ One small word at a time, the reading opens.</translation>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="80"/>
         <source>Today&apos;s budget is used up.</source>
-        <translation>Today&amp;apos;s budget is used up.</translation>
+        <translation>Today&apos;s budget is used up.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="108"/>
@@ -954,111 +960,111 @@ One small word at a time, the reading opens.</translation>
         <translation>Explanation language</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="134"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="164"/>
         <source>Card content</source>
         <translation>Card content</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="141"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="171"/>
         <source>Multiple senses</source>
         <translation>Multiple senses</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="153"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="183"/>
         <source>Etymology</source>
         <translation>Etymology</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="163"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="193"/>
         <source>Example sentence</source>
         <translation>Example sentence</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="178"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="208"/>
         <source>Word details</source>
         <translation>Word details</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="186"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="216"/>
         <source>IPA</source>
         <translation>IPA</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="198"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="228"/>
         <source>Part of speech</source>
         <translation>Part of speech</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="208"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="238"/>
         <source>Signpost</source>
         <translation>Signpost</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="218"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="248"/>
         <source>Collocations</source>
         <translation>Collocations</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="229"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="259"/>
         <source>Pictures</source>
         <translation>Pictures</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="246"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="276"/>
         <source>Pronunciation</source>
         <translation>Pronunciation</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="254"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="284"/>
         <source>Auto-play</source>
         <translation>Auto-play</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="273"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="303"/>
         <source>American</source>
         <translation>American</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="273"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="303"/>
         <source>British</source>
         <translation>British</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="283"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="290"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="313"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="320"/>
         <source>Engine</source>
         <translation>Engine</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="302"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="332"/>
         <source>Voice: %1</source>
         <translation>Voice: %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="303"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="333"/>
         <source>No system voice is installed for this accent.</source>
         <translation>No system voice is installed for this accent.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="314"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="321"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="344"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="351"/>
         <source>Fallback</source>
         <translation>Fallback</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="335"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="342"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="365"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="372"/>
         <source>Online source</source>
         <translation>Online source</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="349"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="379"/>
         <source>Only the word is sent, to the source you pick.</source>
         <translation>Only the word is sent, to the source you pick.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="362"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="369"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="392"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="399"/>
         <source>Local voice</source>
         <translation>Local voice</translation>
     </message>
@@ -1085,34 +1091,39 @@ One small word at a time, the reading opens.</translation>
         <translation>Not downloaded. The local engine stays silent.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="387"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="136"/>
+        <source>Holding the globe on a card peeks at your mother tongue, but only under English. This setting writes explanations in the chosen language.</source>
+        <translation>Holding the globe on a card peeks at your mother tongue, but only under English. This setting writes explanations in the chosen language.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="417"/>
         <source>Download</source>
         <translation>Download</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="399"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="429"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="106"/>
         <source>Remove</source>
         <translation>Remove</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="405"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="435"/>
         <source>Voice files stay on this computer and are not synced.</source>
         <translation>Voice files stay on this computer and are not synced.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="417"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="426"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="447"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="456"/>
         <source>Word review</source>
         <translation>Word review</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="438"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="468"/>
         <source>How often the pet raises its sign to ask a word you have looked up.</source>
         <translation>How often the pet raises its sign to ask a word you have looked up.&gt;</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="448"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="478"/>
         <source>Unavailable while the pet is off.</source>
         <translation>Unavailable while the pet is off.</translation>
     </message>
@@ -1326,7 +1337,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="290"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="265"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="295"/>
         <source>Accent</source>
         <translation>Accent</translation>
     </message>
@@ -1416,7 +1427,7 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="108"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="33"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="74"/>
-        <location filename="../src/app/app_controller.cpp" line="496"/>
+        <location filename="../src/app/app_controller.cpp" line="505"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -1437,7 +1448,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="99"/>
-        <location filename="../src/app/app_controller.cpp" line="486"/>
+        <location filename="../src/app/app_controller.cpp" line="495"/>
         <source>The OCR language data is missing</source>
         <translation>The OCR language data is missing</translation>
     </message>
@@ -1738,12 +1749,12 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="46"/>
-        <location filename="../src/app/app_controller.cpp" line="485"/>
+        <location filename="../src/app/app_controller.cpp" line="494"/>
         <source>Checking OCR</source>
         <translation>Checking OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="493"/>
+        <location filename="../src/app/app_controller.cpp" line="502"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR runtime is unavailable</translation>
     </message>
@@ -2648,7 +2659,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/pet/PetPackageDialog.qml" line="115"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="393"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="423"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="99"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="347"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="152"/>
@@ -3308,7 +3319,7 @@ One small word at a time, the reading opens.</translation>
     <message>
         <location filename="../src/app/qml/capture/UploadConsent.qml" line="160"/>
         <source>The OCR service bills this request; it is not counted in Lens&apos;s model budget.</source>
-        <translation>The OCR service bills this request; it is not counted in Lens&amp;apos;s model budget.</translation>
+        <translation>The OCR service bills this request; it is not counted in Lens&apos;s model budget.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/capture/UploadConsent.qml" line="172"/>
@@ -3709,145 +3720,145 @@ One small word at a time, the reading opens.</translation>
         <translation>Every 1–2 hours</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="812"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="822"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>No explanation is stored for this word in the current language.</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="574"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="581"/>
         <source>Explaining…</source>
         <translation>Explaining…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="795"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="805"/>
         <source>Request failed</source>
         <translation>Request failed</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="813"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="823"/>
         <source>Explain now</source>
         <translation>Explain now</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="476"/>
+        <location filename="../src/app/app_controller.cpp" line="485"/>
         <source>Screenshot capture is off.</source>
         <translation>Screenshot capture is off.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="477"/>
+        <location filename="../src/app/app_controller.cpp" line="486"/>
         <source>Online OCR is not configured.</source>
         <translation>Online OCR is not configured.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="478"/>
-        <location filename="../src/app/app_controller.cpp" line="665"/>
+        <location filename="../src/app/app_controller.cpp" line="487"/>
+        <location filename="../src/app/app_controller.cpp" line="674"/>
         <source>Today&apos;s budget is used up.</source>
-        <translation>Today&amp;apos;s budget is used up.</translation>
+        <translation>Today&apos;s budget is used up.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="479"/>
+        <location filename="../src/app/app_controller.cpp" line="488"/>
         <source>A recognition is already running.</source>
         <translation>A recognition is already running.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="481"/>
+        <location filename="../src/app/app_controller.cpp" line="490"/>
         <source>That region cannot be captured.</source>
         <translation>That region cannot be captured.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="482"/>
+        <location filename="../src/app/app_controller.cpp" line="491"/>
         <source>No text was found in that region.</source>
         <translation>No text was found in that region.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="483"/>
+        <location filename="../src/app/app_controller.cpp" line="492"/>
         <source>That region could not be read.</source>
         <translation>That region could not be read.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="484"/>
+        <location filename="../src/app/app_controller.cpp" line="493"/>
         <source>The recognition was cancelled.</source>
         <translation>The recognition was cancelled.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="487"/>
+        <location filename="../src/app/app_controller.cpp" line="496"/>
         <source>The OCR result could not be read.</source>
         <translation>The OCR result could not be read.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="488"/>
+        <location filename="../src/app/app_controller.cpp" line="497"/>
         <source>The online OCR service could not be reached.</source>
         <translation>The online OCR service could not be reached.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="489"/>
+        <location filename="../src/app/app_controller.cpp" line="498"/>
         <source>The online OCR service returned an incomplete result.</source>
         <translation>The online OCR service returned an incomplete result.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="546"/>
+        <location filename="../src/app/app_controller.cpp" line="555"/>
         <source>%1 px</source>
         <translation>%1 px</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="548"/>
+        <location filename="../src/app/app_controller.cpp" line="557"/>
         <source>Default</source>
         <translation>Default</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="696"/>
+        <location filename="../src/app/app_controller.cpp" line="705"/>
         <source>American</source>
         <translation>American</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="698"/>
+        <location filename="../src/app/app_controller.cpp" line="707"/>
         <source>British</source>
         <translation>British</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="703"/>
+        <location filename="../src/app/app_controller.cpp" line="712"/>
         <source>System voice</source>
         <translation>System voice</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="705"/>
-        <location filename="../src/app/app_controller.cpp" line="712"/>
+        <location filename="../src/app/app_controller.cpp" line="714"/>
+        <location filename="../src/app/app_controller.cpp" line="721"/>
         <source>Online audio</source>
         <translation>Online audio</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="707"/>
-        <location filename="../src/app/app_controller.cpp" line="714"/>
+        <location filename="../src/app/app_controller.cpp" line="716"/>
+        <location filename="../src/app/app_controller.cpp" line="723"/>
         <source>Local model</source>
         <translation>Local model</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="716"/>
+        <location filename="../src/app/app_controller.cpp" line="725"/>
         <source>Silent</source>
         <translation>Silent</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="734"/>
+        <location filename="../src/app/app_controller.cpp" line="743"/>
         <source>Automatic</source>
         <translation>Automatic</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="736"/>
+        <location filename="../src/app/app_controller.cpp" line="745"/>
         <source>Kokoro</source>
         <translation>Kokoro</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="738"/>
+        <location filename="../src/app/app_controller.cpp" line="747"/>
         <source>LJSpeech</source>
         <translation>LJSpeech</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="978"/>
+        <location filename="../src/app/app_controller.cpp" line="987"/>
         <source>Auto</source>
         <translation>Auto</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="978"/>
+        <location filename="../src/app/app_controller.cpp" line="987"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>
