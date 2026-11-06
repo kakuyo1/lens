@@ -85,6 +85,7 @@ add_library(lens_app STATIC
   platform/running_instance.cpp
   platform/selection_text_grabber.cpp
   platform/system_motion.cpp
+  platform/taskbar.cpp
   platform/tray.cpp
   platform/window_native.cpp
 
@@ -123,6 +124,7 @@ add_library(lens_app STATIC
   pet/pet_scenes.cpp
   pet/pet_stage.cpp
   pet/pet_stroll.cpp
+  pet/pet_taskbar.cpp
   pet/pet_throw.cpp
   pet/pet_wander.cpp
 
@@ -183,10 +185,11 @@ target_link_libraries(lens_app PRIVATE sherpa_onnx_c_api)
 # user32 for the hook, SendInput and the clipboard; gdi32 for the glass sheet's desktop read; dxgi and d3d11 for the
 # glass duplication path, which builds a device on the adapter that owns each output (src/app/glass/glass_duplication.h);
 # windowsapp and runtimeobject for Windows Graphics Capture, the source for screens duplication refuses
-# (src/app/glass/glass_capture.h). Not guarded by if(WIN32): this module *is* the Win32 one, and the product has no other
+# (src/app/glass/glass_capture.h). shell32 is the appbar state the pet's taskbar trip reads (platform/taskbar.cpp).
+# Not guarded by if(WIN32): this module *is* the Win32 one, and the product has no other
 # platform. The clipboard's OLE round trip is deliberately not used -- ClipboardSnapshot records why. UIAutomationCore and
 # the COM base (ole32, oleaut32) are for the hover lookup's read of the text under the pointer (platform/hover_word_lookup.cpp).
-target_link_libraries(lens_app PRIVATE user32 gdi32 dxgi d3d11 windowsapp runtimeobject UIAutomationCore ole32 oleaut32)
+target_link_libraries(lens_app PRIVATE user32 gdi32 shell32 dxgi d3d11 windowsapp runtimeobject UIAutomationCore ole32 oleaut32)
 
 # The C++/WinRT projection headers ship beside the SDK's ABI headers, not on the include path vcvars sets. The
 # documented build path runs vcvars first (scripts/build/build.bat), which names the SDK version; an IDE configure

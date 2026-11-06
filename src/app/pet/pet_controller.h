@@ -54,6 +54,7 @@
 #include "app/pet/pet_scenes.h"
 #include "app/pet/pet_stage.h"
 #include "app/pet/pet_stroll.h"
+#include "app/pet/pet_taskbar.h"
 #include "app/pet/pet_throw.h"
 #include "app/pet/pet_wander.h"
 #include "core/document/pet_store.h"
@@ -290,6 +291,19 @@ private:
     void runStrollStep(PetStroll::Step answer);
     /// @brief Ends the stroll where it is, stopping its walk loop.
     void cancelStroll();
+    /// @return Whether the pet can take a trip to a fixed bottom taskbar now: idle, on screen, with walk art and
+    ///         room beside it.
+    bool canTakeTaskbarTrip() const;
+    /// @return The fixed bottom taskbar's strip on the screen nearest `at`; empty when there is none.
+    QRect taskbarStripAt(QPoint at) const;
+    /// @brief Starts the trip from the window's spot: the fall, the round walk and the rise.
+    void startTaskbarTrip();
+    /// @brief Moves the trip on, playing or stopping the walk loop it asks for.
+    void updateTaskbar(std::chrono::milliseconds step);
+    /// @brief Ends the trip where it is, as a reader action or a layout change does.
+    /// @param returnToStart True to put the window back where the trip began, for a change that must not leave
+    ///        the pet in mid-air.
+    void cancelTaskbarTrip(bool returnToStart = false);
     /// @brief Starts a hide against `side`: stops the walk, computes the hidden base, and plays the peek loop.
     void enterHiding(EdgeSide side);
     /// @brief Leaves a hide without moving the window: used when the pet is turned off or the layout changed.
@@ -438,6 +452,8 @@ private:
     std::unique_ptr<PetWander> wander_;
     /// The idle stroll: the wait, the steps, the pauses and the hide roll.
     PetStroll stroll_{[this] { return randomUnit(); }};
+    /// The trip to a fixed bottom taskbar: the fall, the round walk and the rise. It owns the pet while active.
+    PetTaskbar taskbar_;
     /// Whether the reader is holding the pet, hide or not.
     bool dragging_{false};
     /// The throw in progress and the run of landings behind it. The state machine stays in its pickup pose until the

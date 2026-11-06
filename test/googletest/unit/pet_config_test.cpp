@@ -642,6 +642,7 @@ TEST(PetConfig, BehaviorIsOptionalAndDefaults)
     EXPECT_EQ(animations.behavior.wanderWaitMax, 300s);
     EXPECT_EQ(animations.behavior.strollSteps, 2);
     EXPECT_DOUBLE_EQ(animations.behavior.hideChance, 0.7);
+    EXPECT_DOUBLE_EQ(animations.behavior.taskbarChance, lens::core::pet::kTaskbarChance);
     EXPECT_DOUBLE_EQ(animations.behavior.gazeRadius, lens::core::pet::HoverSense::kGazeRadius);
 }
 
@@ -660,6 +661,7 @@ TEST(PetConfig, ParsesTheBehaviorBlock)
         {"wanderWaitMaxMs", 210000},
         {"strollSteps", 3},
         {"hideChance", 0.5},
+        {"taskbarChance", 0.8},
         {"gazeRadius", 30.0},
     };
     auto const behavior = parseAnimations(document).behavior;
@@ -673,6 +675,7 @@ TEST(PetConfig, ParsesTheBehaviorBlock)
     EXPECT_EQ(behavior.wanderWaitMax, 210s);
     EXPECT_EQ(behavior.strollSteps, 3);
     EXPECT_DOUBLE_EQ(behavior.hideChance, 0.5);
+    EXPECT_DOUBLE_EQ(behavior.taskbarChance, 0.8);
     EXPECT_DOUBLE_EQ(behavior.gazeRadius, 30.0);
 }
 
@@ -716,6 +719,10 @@ TEST(PetConfig, BehaviorStaysWithinItsBounds)
     document["behavior"] = {{"strollSteps", 5}};
     EXPECT_THROW(refuse(), std::runtime_error);
     document["behavior"] = {{"hideChance", 1.01}};
+    EXPECT_THROW(refuse(), std::runtime_error);
+    document["behavior"] = {{"taskbarChance", -0.01}};
+    EXPECT_THROW(refuse(), std::runtime_error);
+    document["behavior"] = {{"taskbarChance", 1.01}};
     EXPECT_THROW(refuse(), std::runtime_error);
     document["behavior"] = {{"gazeRadius", 20.0}};
     // The eyes' reach must stay beyond the near ring and its exit margin.

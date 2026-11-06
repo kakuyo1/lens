@@ -363,6 +363,7 @@ Animations parseAnimations(json const& document)
         if (block.contains("hideChance")) {
             spec.hideChance = realIn(block, "hideChance", 0.0, 1.0, Refusal::BadAnimation, owner);
         }
+        spec.taskbarChance = chanceFor("taskbarChance", spec.taskbarChance);
         if (block.contains("gazeRadius")) {
             spec.gazeRadius = realIn(block, "gazeRadius", HoverSense::kNearRadius + HoverSense::kExitMargin, kMaxCanvas, Refusal::BadAnimation, owner);
             // Strictly beyond the near ring's hold, so a gaze band always exists outside the near one.
