@@ -336,19 +336,33 @@ PageDocument pageOf(IUIAutomation& automation, IUIAutomationElement& root, QRect
         candidates.push_back(std::move(candidate));
     }
 
-    PageDocument page;
-    LONGLONG     chosenArea = -1;
-    for (auto& candidate : candidates) {
-        if (candidate.area <= 0 or candidate.area * 4 < largest) continue;
-        if (page.element and (candidate.depth < page.depth or (candidate.depth == page.depth and candidate.area <= chosenArea))) continue;
-        page.element = std::move(candidate.element);
-        page.pattern = std::move(candidate.pattern);
-        page.box     = candidate.box;
-        page.clip    = candidate.clip;
-        page.depth   = candidate.depth;
-        chosenArea   = candidate.area;
+    // shortcut: a PDF viewer lays its whole file out as one document, many screens tall and scrolled above the window;
+    // its words are the same as the visible page's, but its box is not where they are. First pass skips such documents,
+    // the second pass keeps the rule as it was when only such documents are left. Revisit if a long article trips it.
+    RECT windowBox{};
+    root.get_CurrentBoundingRectangle(&windowBox);
+    constexpr int kVirtualDocumentShare = 4;
+    int const     windowHeight          = windowBox.bottom - windowBox.top;
+    auto const    virtualDocument       = [&](Candidate const& candidate) {
+        return windowHeight > 0 and candidate.box.top < windowBox.top and candidate.box.bottom - candidate.box.top > kVirtualDocumentShare * windowHeight;
+    };
+    for (bool const allowVirtual : {false, true}) {
+        PageDocument page;
+        LONGLONG     chosenArea = -1;
+        for (auto& candidate : candidates) {
+            if (candidate.area <= 0 or candidate.area * 4 < largest) continue;
+            if (not allowVirtual and virtualDocument(candidate)) continue;
+            if (page.element and (candidate.depth < page.depth or (candidate.depth == page.depth and candidate.area <= chosenArea))) continue;
+            page.element = std::move(candidate.element);
+            page.pattern = std::move(candidate.pattern);
+            page.box     = candidate.box;
+            page.clip    = candidate.clip;
+            page.depth   = candidate.depth;
+            chosenArea   = candidate.area;
+        }
+        if (page.element) return page;
     }
-    return page;
+    return {};
 }
 
 /// The page of the window last read, kept between reads: finding it searches the whole window tree, which costs
