@@ -94,6 +94,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/pet_ceremony_test.cpp
   unit/pet_stage_test.cpp
   unit/pet_stroll_test.cpp
+  unit/pet_taskbar_test.cpp
   unit/pet_throw_test.cpp
   unit/pet_wander_test.cpp
   unit/pet_store_test.cpp

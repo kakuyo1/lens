@@ -202,6 +202,19 @@ Window {
                 }
             }
 
+            // Behaviour, not a verdict: how much of the week ran in the mother tongue, and how often
+            // the globe was used. Both are counted on the device and never enter the summary.
+            Text {
+                objectName: "motherTongueLine"
+                visible: profile.hasLookups
+                width: column.width
+                topPadding: 6
+                text: qsTr("Mother tongue %1% · %2 peeks").arg(String(profile.facts.motherTonguePercent || 0)).arg(String(profile.facts.peeks || 0))
+                color: profile.tokens.faint
+                font.pixelSize: 11
+                wrapMode: Text.WordWrap
+            }
+
             Item { width: 1; height: 10; visible: profile.hasLookups }
             Rectangle { width: parent.width; height: 1; color: profile.tokens.line2; visible: profile.hasLookups }
 

@@ -32,7 +32,8 @@ ReadingProfile buildReadingProfile(const std::vector<HistoryEntry>&             
                                    const std::unordered_set<std::string>&                known,
                                    const std::function<std::string(const std::string&)>& partOfSpeech,
                                    const std::string&                                    fromDate,
-                                   const std::string&                                    toDate)
+                                   const std::string&                                    toDate,
+                                   const std::map<std::string, DailyUsage>&              daily)
 {
     ReadingProfile                       profile;
     std::unordered_map<std::string, int> lookups;
@@ -41,10 +42,18 @@ ReadingProfile buildReadingProfile(const std::vector<HistoryEntry>&             
         if (date < fromDate || date > toDate)
             continue;
         ++profile.pops;
+        if (!entry.language.empty()) {
+            ++profile.explainedPops;
+            if (entry.language != "en")
+                ++profile.motherTonguePops;
+        }
         if (const int hour = hourOf(entry.minute); hour >= 0)
             ++profile.hours[static_cast<std::size_t>(hour)];
         ++lookups[entry.lemma];
     }
+    for (const auto& [date, day] : daily)
+        if (date >= fromDate && date <= toDate)
+            profile.peeks += day.peeks;
 
     std::map<std::string, int> parts;
     for (const auto& [lemma, count] : lookups) {

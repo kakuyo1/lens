@@ -69,6 +69,33 @@ TEST_F(StatsStoreTest, RecordsPopsNewestFirst)
     EXPECT_EQ(stats.daily().at("2026-10-03").fresh, 2) << "the pop books its own tally";
 }
 
+TEST_F(StatsStoreTest, PopsCarryTheirExplanationLanguageAndPeeksCountPerDay)
+{
+    auto       store = KnownStore::load(path);
+    StatsStore stats(store.document());
+
+    stats.recordPop("apple", "2026-10-03 09:00", false, "zh");
+    stats.recordPop("pear", "2026-10-03 09:01", false, "en");
+    stats.recordPop("plum", "2026-10-04 09:02", false); // an import is not an explanation
+    stats.recordPeek("2026-10-03 09:05");
+    stats.recordPeek("2026-10-03 09:06");
+    stats.recordPeek("2026-10-04 10:00");
+
+    ASSERT_EQ(stats.history().size(), 3u);
+    EXPECT_EQ(stats.history()[2].language, "zh");
+    EXPECT_EQ(stats.history()[1].language, "en");
+    EXPECT_EQ(stats.history()[0].language, "") << "a row with no language keeps its empty field";
+    EXPECT_EQ(stats.daily().at("2026-10-03").peeks, 2);
+    EXPECT_EQ(stats.daily().at("2026-10-04").peeks, 1);
+
+    store.save();
+    auto       reloaded = KnownStore::load(path);
+    StatsStore reloadedStats(reloaded.document());
+    ASSERT_EQ(reloadedStats.history().size(), 3u);
+    EXPECT_EQ(reloadedStats.history()[2].language, "zh") << "the pop's language survived the write";
+    EXPECT_EQ(reloadedStats.daily().at("2026-10-03").peeks, 2) << "the day's peeks survived the write";
+}
+
 TEST_F(StatsStoreTest, VerdictAttachesToTheNewestEntryOfThatWord)
 {
     auto       store = KnownStore::load(path);

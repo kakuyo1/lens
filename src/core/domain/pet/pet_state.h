@@ -45,6 +45,8 @@ inline constexpr std::chrono::milliseconds kWanderWaitMax{300'000};
 inline constexpr int kStrollSteps{2};
 /// @brief The chance a step that ends on a screen edge becomes a hide.
 inline constexpr double kHideChance{0.7};
+/// @brief The chance a stroll's wait becomes a trip to a fixed taskbar instead of an ordinary stroll.
+inline constexpr double kTaskbarChance{0.3};
 /// @}
 
 /**
@@ -65,6 +67,8 @@ struct BehaviorSpec {
     std::chrono::milliseconds wanderWaitMax{kWanderWaitMax};
     int                       strollSteps{kStrollSteps};
     double                    hideChance{kHideChance};
+    /// The chance a stroll becomes a taskbar trip. The trip still needs a fixed bottom taskbar and walk art.
+    double taskbarChance{kTaskbarChance};
     /// The eyes' reach in canvas pixels. Must stay beyond the near ring, HoverSense::kNearRadius + kExitMargin.
     double gazeRadius{HoverSense::kGazeRadius};
 };

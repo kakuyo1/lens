@@ -19,16 +19,17 @@
 
 namespace {
 
+using lens::core::DailyUsage;
 using lens::core::HistoryEntry;
 using lens::core::ReadingProfile;
 using lens::core::buildReadingProfile;
 using lens::core::readingProfileSummary;
 using lens::core::sharePercent;
 
-/// @return A history row for @p lemma, stamped at local time @p minute.
-HistoryEntry entry(std::string lemma, std::string minute)
+/// @return A history row for @p lemma, stamped at local time @p minute, explained under @p language.
+HistoryEntry entry(std::string lemma, std::string minute, std::string language = {})
 {
-    return HistoryEntry{std::move(lemma), std::move(minute), "new"};
+    return HistoryEntry{std::move(lemma), std::move(minute), "new", std::move(language)};
 }
 
 /// @return A part-of-speech lookup over @p cached; a lemma it does not hold has none.
@@ -148,6 +149,33 @@ TEST(ReadingProfile, TheTopWordsAreTheFiveMostLookedUpWithAlphabeticalTies)
     EXPECT_EQ(profile.top[2].lemma, "berth");
     EXPECT_EQ(profile.top[3].lemma, "dock");
     EXPECT_EQ(profile.top[4].lemma, "pier");
+}
+
+TEST(ReadingProfile, MotherTonguePopsFollowThePopLanguageAndPeeksComeFromTheDayTallies)
+{
+    const std::vector<HistoryEntry> history{
+        entry("bank", "2026-10-27 09:00", "zh"),
+        entry("scale", "2026-10-27 09:01", "en"),
+        entry("address", "2026-10-28 10:00", "zh-Hant"),
+        entry("quay", "2026-10-29 11:00"),       // an import carries no language
+        entry("late", "2026-11-02 09:00", "zh"), // outside the window
+    };
+    std::map<std::string, DailyUsage> daily;
+    daily["2026-10-25"].peeks = 9; // before the window
+    daily["2026-10-27"].peeks = 3;
+    daily["2026-10-29"].peeks = 2;
+    daily["2026-11-02"].peeks = 9; // after the window
+
+    const ReadingProfile profile = buildReadingProfile(history, {}, partsOf({}), kFrom, kTo, daily);
+    EXPECT_EQ(profile.pops, 4);
+    EXPECT_EQ(profile.explainedPops, 3) << "the import is not an explanation";
+    EXPECT_EQ(profile.motherTonguePops, 2) << "only the two non-English explanations count";
+    EXPECT_EQ(sharePercent(profile.motherTonguePops, profile.explainedPops), 67);
+    EXPECT_EQ(profile.peeks, 5) << "the window's own days only";
+
+    const std::string summary = readingProfileSummary(profile, kFrom, kTo);
+    EXPECT_EQ(summary.find("peek"), std::string::npos) << "the behaviour counts stay on the device";
+    EXPECT_EQ(summary.find("mother"), std::string::npos);
 }
 
 TEST(ReadingProfile, ASharePercentRoundsToTheNearestWholeAndIsZeroOfNothing)

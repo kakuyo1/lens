@@ -110,6 +110,28 @@ Item {
             compare(bubbles[0].visible, true);
         }
 
+        /// The fixed card keeps a long step body inside it: the body is a clipped scroll area, and
+        /// the second step -- the tallest one -- scrolls when its content exceeds the viewport.
+        function test_theStepBodyScrollsInsideTheFixedCard() {
+            const wizard = opened();
+            const body = byName(wizard, "onboardingBody");
+            compare(body.clip, true, "the step body does not clip its content");
+
+            wizard.forward();
+            wait(20);
+            compare(wizard.step, 2);
+            verify(body.contentHeight >= body.height);
+            compare(byName(wizard, "onboardingScrollThumb").visible,
+                    body.contentHeight > body.height,
+                    "the scroll thumb disagrees with the body it measures");
+
+            if (body.contentHeight > body.height) {
+                body.contentY = 0;
+                mouseWheel(body, body.width / 2, body.height / 2, 0, -120);
+                tryVerify(() => body.contentY > 0, 1000, "the wheel did not scroll the step body");
+            }
+        }
+
         function test_theDoneChipPressesThrough() {
             const wizard = opened();
             wizard.forward();

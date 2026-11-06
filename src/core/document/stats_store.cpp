@@ -38,6 +38,7 @@ DailyUsage dailyFromJson(const nlohmann::json& j)
     day.pops             = j.value("pops", 0);
     day.learned          = j.value("learned", 0);
     day.fresh            = j.value("fresh", 0);
+    day.peeks            = j.value("peeks", 0);
     day.promptTokens     = j.value("promptTokens", 0LL);
     day.completionTokens = j.value("completionTokens", 0LL);
     if (j.contains("models") && j["models"].is_object()) {
@@ -59,6 +60,7 @@ nlohmann::json dailyToJson(const DailyUsage& day)
     nlohmann::json json = {{"pops", day.pops},
                            {"learned", day.learned},
                            {"fresh", day.fresh},
+                           {"peeks", day.peeks},
                            {"promptTokens", day.promptTokens},
                            {"completionTokens", day.completionTokens}};
     json["models"]      = nlohmann::json::object();
@@ -74,6 +76,7 @@ void addInto(DailyUsage& total, const DailyUsage& part)
     total.pops += part.pops;
     total.learned += part.learned;
     total.fresh += part.fresh;
+    total.peeks += part.peeks;
     total.promptTokens += part.promptTokens;
     total.completionTokens += part.completionTokens;
     for (const auto& [model, usage] : part.models) {
@@ -101,7 +104,7 @@ StatsStore::StatsStore(nlohmann::json& document)
             const std::string minute = entry.value("time", std::string());
             if (lemma.empty() || util::datePart(minute).empty())
                 continue; // a record with no word or no usable time is not one we can show
-            history_.push_back(HistoryEntry{lemma, minute, entry.value("verdict", std::string())});
+            history_.push_back(HistoryEntry{lemma, minute, entry.value("verdict", std::string()), entry.value("lang", std::string())});
         }
     }
 
@@ -128,13 +131,13 @@ StatsStore::StatsStore(nlohmann::json& document)
     LENS_INFO("stats loaded: history={} days={}", history_.size(), daily_.size());
 }
 
-void StatsStore::recordPop(std::string lemma, std::string minute, bool known)
+void StatsStore::recordPop(std::string lemma, std::string minute, bool known, std::string language)
 {
     // The pop is stamped with the verdict the word carries at this moment, so the day's tally
     // starts in the right column: a known word re-looked-up counts as known, every other word
     // as new. A later mark moves the count (recordVerdict); nothing stays uncolumned.
     history_.insert(history_.begin(),
-                    HistoryEntry{std::move(lemma), std::move(minute), known ? "known" : "new"});
+                    HistoryEntry{std::move(lemma), std::move(minute), known ? "known" : "new", std::move(language)});
     if (history_.size() > kMaxHistory) {
         LENS_DEBUG("stats history over {} entries; dropping the oldest", kMaxHistory);
         history_.resize(kMaxHistory);
@@ -142,6 +145,12 @@ void StatsStore::recordPop(std::string lemma, std::string minute, bool known)
     DailyUsage& day = daily_[util::datePart(history_.front().minute)];
     day.pops++;
     tallyVerdict(day, history_.front().verdict, 1);
+    writeBack();
+}
+
+void StatsStore::recordPeek(const std::string& minute)
+{
+    daily_[util::datePart(minute)].peeks++;
     writeBack();
 }
 
@@ -336,8 +345,12 @@ std::string exportCards(const std::vector<HistoryEntry>& history, ExportScope sc
 void StatsStore::writeBack()
 {
     nlohmann::json history = nlohmann::json::array();
-    for (const HistoryEntry& entry : history_)
-        history.push_back({{"word", entry.lemma}, {"time", entry.minute}, {"verdict", entry.verdict}});
+    for (const HistoryEntry& entry : history_) {
+        nlohmann::json row = {{"word", entry.lemma}, {"time", entry.minute}, {"verdict", entry.verdict}};
+        if (!entry.language.empty())
+            row["lang"] = entry.language;
+        history.push_back(std::move(row));
+    }
     doc_["history"] = std::move(history);
 
     doc_["daily"]       = ownDailyJson();

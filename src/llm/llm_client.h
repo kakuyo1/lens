@@ -261,7 +261,7 @@ public:
     /// Not streamed, and it rides its own signal like the breakdown: the lines are drawn whole or not at
     /// all, and the answer never reaches the cache or the verdicts.
     /// @param summary  The profile as readingProfileSummary() writes it: the only text the request carries.
-    /// @param language The explanation language's catalog code; picks the prompt's closing line.
+    /// @param language The interface language's catalog code; picks the prompt's closing line.
     void requestProfile(QString const& summary, QString const& language);
 
     /// @brief Ask for one short English story written from the week's looked-up words (UI-SPEC.md 4.7d).

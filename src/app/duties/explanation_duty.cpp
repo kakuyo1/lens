@@ -316,6 +316,13 @@ QVariantMap ExplanationDuty::chainEntry(llm::Explanation const& explanation, cor
 void ExplanationDuty::requestPeek()
 {
     const auto step = exchange_.requestPeek(motherTongue(), cost_.canRequest(), exchange_.readerContext());
+    // A completed hold that draws a line or buys one is the behaviour the week's peek count
+    // describes; a hold that bought nothing is not counted.
+    if (step.kind == CardSession::PeekStep::Kind::Show || step.kind == CardSession::PeekStep::Kind::Ask) {
+        storage_.statsStore().recordPeek(nowMinute().toStdString());
+        storage_.save();
+        emit statsChanged();
+    }
     switch (step.kind) {
         case CardSession::PeekStep::Kind::Show: emit peekArrived(step.line); break;
         case CardSession::PeekStep::Kind::Ask: llm_.peekWord(step.lemma, step.language, step.senseEn); break;
@@ -563,7 +570,10 @@ void ExplanationDuty::send(llm::ExplainRequest request, ExplanationBatch const& 
 {
     for (auto const& item : batch.items) {
         if (isWordKind(item.kind))
-            storage_.statsStore().recordPop(item.lemma.toStdString(), nowMinute().toStdString(), storage_.knownStore().isKnown(item.lemma.toStdString()));
+            storage_.statsStore().recordPop(item.lemma.toStdString(),
+                                            nowMinute().toStdString(),
+                                            storage_.knownStore().isKnown(item.lemma.toStdString()),
+                                            storage_.knownStore().explanationLang());
     }
     // The request goes out with nothing previewed yet: the first preview of this one is the line
     // onPartial() writes.
@@ -747,7 +757,10 @@ ExchangeFacts ExplanationDuty::facts() const
 void ExplanationDuty::apply(ExplanationExchange::Outcome const& outcome, bool const save)
 {
     if (not outcome.popLemma.isEmpty()) {
-        storage_.statsStore().recordPop(outcome.popLemma.toStdString(), nowMinute().toStdString(), storage_.knownStore().isKnown(outcome.popLemma.toStdString()));
+        storage_.statsStore().recordPop(outcome.popLemma.toStdString(),
+                                        nowMinute().toStdString(),
+                                        storage_.knownStore().isKnown(outcome.popLemma.toStdString()),
+                                        storage_.knownStore().explanationLang());
         if (save) {
             storage_.save();
             emit statsChanged();

@@ -26,6 +26,7 @@
 
 #include "app/paths.h"
 #include "app/pet/pet_placement.h"
+#include "app/platform/taskbar.h"
 #include "app/platform/window_native.h"
 #include "core/domain/pet/pet_package.h"
 #include "util/log.h"
@@ -194,6 +195,9 @@ PetController::~PetController() = default;
 
 void PetController::loadPet(std::string const& id)
 {
+    // A trip belongs to the pet that is going away; put it back where it started before the replacement loads, so
+    // the new pet never starts from mid-air or from the taskbar.
+    cancelTaskbarTrip(true);
     // A hidden window belongs to the pet that is going away; the replacement starts from the reader's home, not
     // from the off-screen sliver the old pet was hiding in.
     if (hide_.active() and window_ and wander_ and placement_.home()) window_->setPosition(*placement_.home());
@@ -201,6 +205,7 @@ void PetController::loadPet(std::string const& id)
     // What is on screen belongs to the pet that is going away, so none of it carries over.
     preview_.reset();
     hide_.stop();
+    taskbar_.stop();
     throw_.stop(ThrowStop::PetChanged);
     stroll_.stop();
     placement_.forgetHome();
@@ -315,6 +320,14 @@ void PetController::handle(PetEvent event)
         event == PetEvent::ReviewIgnored)
         reviewLook_ = {};
     if (not machine_) return;
+    // The taskbar trip owns the pet's body until it ends. A drag ends it here; a click has already ended it in
+    // click(). Every other event waits, so an idle turn, a scene, a hover or a learning reaction cannot cut in.
+    if (taskbar_.active()) {
+        if (event == PetEvent::DragStart or event == PetEvent::DragEnd)
+            cancelTaskbarTrip();
+        else
+            return;
+    }
     // DragStart and DragEnd only arrive here after the drag has already settled the throw.
     if (throw_.active() and event != PetEvent::DragStart and event != PetEvent::DragEnd) {
         // An outside event owns the body: put the throw down where it is and answer. The landing spot becomes home.
@@ -379,7 +392,8 @@ bool PetController::passthrough() const
 bool PetController::availableForReview() const
 {
     // A ceremony, a throw and its landing's angry repeat own the pet's body, so no question arrives on top of one.
-    if (not enabled() or not machine_ or dragging_ or ceremony_.active() or throw_.flying() or throw_.repeatsOwed() or hideAfterDrag_)
+    if (not enabled() or not machine_ or dragging_ or ceremony_.active() or throw_.flying() or throw_.repeatsOwed() or hideAfterDrag_ or
+        taskbar_.active())
         return false;
     // A hidden pet may still be asked while it is peeking: the sign goes up at the edge and the hide survives the
     // answer. A reaction or a reading plays out first, as it does for an idle pet.
@@ -708,6 +722,9 @@ int PetController::maxSize() const
 
 void PetController::setSize(int percent)
 {
+    // A trip was measured for the old window; the resize puts the pet down where it is and lets fitOnScreen pull
+    // the new window into the work area.
+    cancelTaskbarTrip();
     // A throw was measured for the old window; the size change puts the pet down where it is and lets fitOnScreen
     // pull the new window into the work area. Changing size ends a run of throws.
     endThrow(window_ ? window_->position() : QPoint{}, true, ThrowStop::Resized);
@@ -724,7 +741,8 @@ void PetController::setRunning(bool on)
     if (on)
         lastFramePulse_ = std::chrono::steady_clock::now();
     if (not on) {
-        // The window is going away under a throw: stop it without leaving the pickup pose behind.
+        // The window is going away under a trip or a throw: stop it without leaving the pet mid-air.
+        cancelTaskbarTrip();
         if (throw_.flying() and machine_) machine_->rest();
         throw_.stop(ThrowStop::WindowGone);
         // The window was taken away under a ceremony (the application is closing, or the scene asked it down):
@@ -745,8 +763,11 @@ void PetController::setRunning(bool on)
 void PetController::setPreviewing(bool on)
 {
     previewing_ = on;
-    // A preview takes the body: a throw is put down where it is and that spot becomes home.
-    if (on) endThrow(window_ ? window_->position() : QPoint{}, true, ThrowStop::Staged);
+    // A preview takes the body: a trip stops where it is, and a throw is put down where it is and that spot becomes home.
+    if (on) {
+        cancelTaskbarTrip();
+        endThrow(window_ ? window_->position() : QPoint{}, true, ThrowStop::Staged);
+    }
     resetHover();
     if (not on and preview_) {
         preview_.reset();
@@ -759,7 +780,8 @@ void PetController::preview(QString action)
 {
     auto const picked = actionNamed(action);
     if (not picked) return;
-    // A preview takes the body: a throw is put down where it is and that spot becomes home.
+    // A preview takes the body: a trip stops where it is, and a throw is put down where it is and that spot becomes home.
+    cancelTaskbarTrip();
     endThrow(window_ ? window_->position() : QPoint{}, true, ThrowStop::Staged);
     if (ceremony_.active()) finishCeremonyNow();
     // From the first frame even when it is the action already shown, so a second press plays it again.
@@ -774,8 +796,9 @@ void PetController::setScene(QString id)
     if (not machine_) return;
     auto const name = id.toStdString();
     // A scene is real, not a preview: the machine plays it for its duration and then returns to idle. A card's
-    // preview, if one was showing, would otherwise keep it off screen. A throw is put down first and its landing
-    // becomes home.
+    // preview, if one was showing, would otherwise keep it off screen. A trip stops where it is; a throw is put down
+    // first and its landing becomes home.
+    cancelTaskbarTrip();
     endThrow(window_ ? window_->position() : QPoint{}, true, ThrowStop::Staged);
     if (ceremony_.active()) finishCeremonyNow();
     preview_.reset();
@@ -860,6 +883,8 @@ void PetController::beginSceneEntry(Scene const& scene, core::pet::ActionName co
 
 void PetController::dragStart()
 {
+    // Taking the pet ends a taskbar trip where it is; the drag, not the trip, owns the window from here.
+    cancelTaskbarTrip();
     if (throw_.flying()) {
         // Catching a pet in the air ends the throw where it is; this drag, not the throw, decides where it lands.
         endThrow(window_ ? window_->position() : QPoint{}, false, ThrowStop::Caught);
@@ -970,6 +995,8 @@ void PetController::endThrow(QPoint at, bool saveHome, ThrowStop why)
 
 void PetController::click()
 {
+    // A click is the reader stepping in: the trip stops where it is and the pet answers the poke.
+    cancelTaskbarTrip();
     // A click on the visible sliver calls the pet out rather than poking it: no reaction, no anger count (ADR 0095).
     // A ceremony is the pet's own business too: a click left over from catching it does not cut the walk.
     if (hide_.active()) {
@@ -1025,6 +1052,8 @@ void PetController::setPet(QString id)
     if (name == store_.pet() and pendingPet_.empty()) return;
     if (name == pendingPet_) return;
 
+    // A trip belongs to the pet that is leaving; it walks out from home, not from mid-air.
+    cancelTaskbarTrip(true);
     // Catching a pet in the air is not a request to stop: only a real pet change ends the throw, at the current spot.
     endThrow(window_ ? window_->position() : QPoint{}, true, ThrowStop::PetChanged);
 
@@ -1137,6 +1166,8 @@ bool PetController::isShipped(std::string const& id) const
 void PetController::setEnabled(bool on)
 {
     if (on == store_.enabled()) return;
+    // The goodbye walks out from home, not from mid-air or from the taskbar.
+    cancelTaskbarTrip(true);
     store_.setEnabled(on);
     hideAfterDrag_ = false;
     // A throw ends where it is; the pet then leaves from that spot like any other.
@@ -1196,9 +1227,12 @@ void PetController::setMotionReduced(bool on)
 {
     if (on == motionReduced_) return;
     motionReduced_ = on;
-    // Reduced motion skips the rest of the arc: the pet stays where it is, and that spot becomes home. Turning it
-    // off is not an interruption: it neither moves the pet nor ends a run of landings.
-    if (on) endThrow(window_ ? window_->position() : QPoint{}, true, ThrowStop::MotionReduced);
+    // Reduced motion skips the rest of a trip or an arc: the trip lands back where it began; a throw stays where it
+    // is, and that spot becomes home. Turning it off is not an interruption.
+    if (on) {
+        cancelTaskbarTrip(true);
+        endThrow(window_ ? window_->position() : QPoint{}, true, ThrowStop::MotionReduced);
+    }
     // A scene entry is a movement too: reduced motion puts the pet straight into its scene pose, and the scene stays
     // remembered as entered so turning the setting back off does not replay the entry.
     if (on and (stage_.entering() or stage_.impact())) {
@@ -1275,8 +1309,8 @@ void PetController::adoptHome(QPoint at)
 void PetController::keepOnScreen()
 {
     if (not window_) return;
-    // The screen changed under a throw: put the pet down where it is and let the safe-spot rule below choose the new
-    // home.
+    // The screens changed under a trip or a throw: stop them and let the safe-spot rule below choose the new home.
+    cancelTaskbarTrip();
     endThrow(window_->position(), true, ThrowStop::ScreenChanged);
     if (ceremony_.active()) finishCeremonyNow();
     syncScreens();
@@ -1623,6 +1657,8 @@ std::optional<QPoint> PetController::savedSpot(QSize size) const
 void PetController::fitOnScreen()
 {
     if (not window_) return;
+    // A resize was measured for the old window: a trip stops where it is and the clamp below takes over.
+    cancelTaskbarTrip();
     // A throw was measured for the old size; the resize puts the pet down and the clamp below writes the safe spot as
     // its home.
     endThrow(window_->position(), true, ThrowStop::Resized);
@@ -1673,9 +1709,11 @@ void PetController::savePosition(QPoint at)
 
 void PetController::tick()
 {
-    machine_->advance(kTick);
+    // A taskbar trip owns the body: the machine's clock is held so no idle turn, scene or held state can cut in.
+    if (not taskbar_.active()) machine_->advance(kTick);
     updateThrow(kTick);
     updateCeremony(kTick);
+    updateTaskbar(kTick);
     updateWander(kTick);
     updateHiding(kTick);
     updateHover(kTick);
@@ -1718,7 +1756,7 @@ void PetController::updateThrow(std::chrono::milliseconds step)
 void PetController::updateWander(std::chrono::milliseconds step)
 {
     if (not machine_ or not assets_ or not window_ or not wander_ or hide_.active() or ceremony_.active() or
-        throw_.flying() or throw_.repeatsOwed())
+        throw_.flying() or throw_.repeatsOwed() or taskbar_.active())
         return;
     auto const& movement = assets_->animations.movement;
     if (not movement) return;
@@ -1754,6 +1792,11 @@ void PetController::runStrollStep(PetStroll::Step answer)
     if (answer.position and window_) window_->setPosition(*answer.position);
 
     if (answer.startWalk) {
+        // One stroll in every few becomes the trip to the taskbar instead, when the screen offers a fixed one.
+        if (canTakeTaskbarTrip() and randomUnit() < behavior_.taskbarChance) {
+            startTaskbarTrip();
+            return;
+        }
         auto const started = machine_ and assets_ and assets_->animations.movement and
                              machine_->playAmbient(assets_->animations.movement->walk);
         if (not started) answer = stroll_.walkFailed();
@@ -1793,6 +1836,80 @@ void PetController::cancelStroll()
 {
     if (machine_ and machine_->ambient()) machine_->stopAmbient();
     stroll_.stop();
+}
+
+bool PetController::canTakeTaskbarTrip() const
+{
+    if (not assets_ or not window_ or not machine_ or not enabled() or not desktopRunning_ or previewing_ or preview_ or motionReduced_ or
+        dragging_)
+        return false;
+    if (not machine_->idle() or hide_.active() or ceremony_.active() or throw_.flying() or throw_.repeatsOwed()) return false;
+    if (stage_.entering() or stage_.impact()) return false;
+    auto const& movement = assets_->animations.movement;
+    if (not movement) return false;
+    if (assets_->animations.playbook.actions.count(movement->walk) == 0) return false;
+
+    auto const area = areaAt(window_->position());
+    if (not area.isValid() or taskbarStripAt(window_->position()).isEmpty()) return false;
+    return PetTaskbar::hasRoom(window_->position(), window_->size(), area);
+}
+
+QRect PetController::taskbarStripAt(QPoint at) const
+{
+    auto const  area   = areaAt(at);
+    auto const* screen = screenForArea(area);
+    if (not screen) return {};
+    // The work area's bottom edge is the taskbar's top; a work area wider or taller than the screen is not one.
+    return PetTaskbar::stripOf(screen->geometry(), screen->availableGeometry(), lens::app::taskbarAutoHides());
+}
+
+void PetController::startTaskbarTrip()
+{
+    if (not window_ or not assets_) return;
+    auto const& movement = assets_->animations.movement;
+    auto const  area     = areaAt(window_->position());
+    if (not movement or taskbarStripAt(window_->position()).isEmpty() or not area.isValid()) {
+        stroll_.wait();
+        return;
+    }
+
+    stroll_.stop();
+    if (not taskbar_.begin(window_->position(), window_->size(), area)) {
+        stroll_.wait();
+        return;
+    }
+    resetHover();
+    LENS_DEBUG("pet taskbar: falling from ({},{}) to the taskbar top", window_->position().x(), window_->position().y());
+}
+
+void PetController::updateTaskbar(std::chrono::milliseconds step)
+{
+    if (not taskbar_.active() or not window_) return;
+    auto const answer = taskbar_.tick(step);
+    window_->setPosition(answer.position);
+
+    auto const walk = assets_ and assets_->animations.movement ? assets_->animations.movement->walk : std::string{};
+    if (answer.startWalk and (walk.empty() or not machine_ or not machine_->playAmbient(walk)))
+        LENS_WARN("the taskbar trip could not play the walk action; the window keeps moving");
+    if (answer.stopWalk and machine_ and machine_->ambient()) machine_->stopAmbient();
+
+    if (answer.finished) {
+        if (machine_) machine_->rest();
+        stroll_.wait();
+        resetHover();
+        LENS_DEBUG("pet taskbar: back at ({},{})", answer.position.x(), answer.position.y());
+    }
+}
+
+void PetController::cancelTaskbarTrip(bool returnToStart)
+{
+    if (not taskbar_.active()) return;
+    auto const origin = taskbar_.origin();
+    taskbar_.stop();
+    if (machine_ and machine_->ambient()) machine_->stopAmbient();
+    stroll_.wait();
+    if (returnToStart and window_) window_->setPosition(origin);
+    LENS_DEBUG("pet taskbar: trip stopped at ({},{})", window_ ? window_->position().x() : 0, window_ ? window_->position().y() : 0);
 }
 
 void PetController::enterHiding(EdgeSide side)
@@ -1898,7 +2015,7 @@ void PetController::updateHover(std::chrono::milliseconds step)
     // Hover is the desktop pet's own sense. It has no meaning while clicks pass through, while the settings preview
     // is open, or before a window exists to measure against.
     if (not hover_ or not assets_ or not window_ or not desktopRunning_ or previewing_ or ceremony_.active() or
-        throw_.flying() or throw_.repeatsOwed() or store_.passthrough() or not window_->isVisible()) {
+        throw_.flying() or throw_.repeatsOwed() or taskbar_.active() or store_.passthrough() or not window_->isVisible()) {
         resetHover();
         return;
     }
@@ -2160,7 +2277,7 @@ void PetController::pulse()
 
 void PetController::checkHealth()
 {
-    if (not machine_ or not shown_ or not desktopRunning_ or previewing_ or preview_ or dragging_)
+    if (not machine_ or not shown_ or not desktopRunning_ or previewing_ or preview_ or dragging_ or taskbar_.active())
         return;
 
     const auto now = std::chrono::steady_clock::now();

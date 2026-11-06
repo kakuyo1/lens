@@ -3,6 +3,7 @@
 #include <array>
 #include <cstddef>
 #include <functional>
+#include <map>
 #include <string>
 #include <unordered_set>
 #include <utility>
@@ -34,15 +35,20 @@ struct ProfileWord {
 /// @brief What one window of lookups looks like. Every count is over the window's pops, and every
 ///        distinct-word count is over the lemmas those pops named.
 struct ReadingProfile {
-    int                                      pops     = 0;  ///< Lookups in the window.
-    int                                      words    = 0;  ///< Distinct lemmas looked up.
-    int                                      fresh    = 0;  ///< Distinct lemmas the known set does not hold.
-    int                                      repeated = 0;  ///< Distinct lemmas looked up two or more times.
-    int                                      uncached = 0;  ///< Distinct lemmas with no cached part of speech.
-    std::vector<std::pair<std::string, int>> partsOfSpeech; ///< Distinct lemmas per part of speech, most first.
-    std::array<int, 24>                      hours{};       ///< Lookups per local hour, 0 through 23.
-    std::vector<ProfileWord>                 top;           ///< Up to kProfileTopWords, most looked up first.
-    std::vector<std::string>                 lemmas;        ///< Every distinct lemma the window looked up, most looked up first.
+    int pops     = 0; ///< Lookups in the window.
+    int words    = 0; ///< Distinct lemmas looked up.
+    int fresh    = 0; ///< Distinct lemmas the known set does not hold.
+    int repeated = 0; ///< Distinct lemmas looked up two or more times.
+    int uncached = 0; ///< Distinct lemmas with no cached part of speech.
+    /// Pops explained in a language other than English. A row with no language -- an import or
+    /// history written before the field existed -- is not counted in either explanation count.
+    int                                      motherTonguePops = 0;
+    int                                      explainedPops    = 0; ///< Pops that carry an explanation language.
+    int                                      peeks            = 0; ///< Peeks that drew a line or asked for one.
+    std::vector<std::pair<std::string, int>> partsOfSpeech;        ///< Distinct lemmas per part of speech, most first.
+    std::array<int, 24>                      hours{};              ///< Lookups per local hour, 0 through 23.
+    std::vector<ProfileWord>                 top;                  ///< Up to kProfileTopWords, most looked up first.
+    std::vector<std::string>                 lemmas;               ///< Every distinct lemma the window looked up, most looked up first.
 };
 
 /**
@@ -66,12 +72,14 @@ inline int sharePercent(int part, int whole)
  * @param partOfSpeech The cached part of speech for a lemma, or empty when none is cached.
  * @param fromDate     First day of the window, "YYYY-MM-DD".
  * @param toDate       Last day of the window, "YYYY-MM-DD".
+ * @param daily        The daily tallies, keyed by local date; the window's peeks are summed from it.
  */
 ReadingProfile buildReadingProfile(const std::vector<HistoryEntry>&                      history,
                                    const std::unordered_set<std::string>&                known,
                                    const std::function<std::string(const std::string&)>& partOfSpeech,
                                    const std::string&                                    fromDate,
-                                   const std::string&                                    toDate);
+                                   const std::string&                                    toDate,
+                                   const std::map<std::string, DailyUsage>&              daily = {});
 
 /**
  * @brief The profile as the plain text the interpretation request sends.

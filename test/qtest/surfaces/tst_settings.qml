@@ -43,6 +43,7 @@ Item {
             Controller.setDailyBudget(0);
             Controller.setSetting("theme", "dark");
             Controller.setSetting("glassQuality", 0);
+            Controller.setSetting("explanationLang", "zh");
             Pet.setEnabled(false);
         }
 
@@ -508,6 +509,30 @@ Item {
             wait(50);
             tryVerify(() => field.openChildRect === null, 2000,
                       "closing the panel left the refresh list up");
+        }
+
+        /// The mother-tongue note under the explanation-language row (UI-SPEC.md 4.4): it exists only
+        /// while every explanation is written in a non-English language, and it has no dismiss state
+        /// of its own -- choosing English is what takes it away.
+        function test_theMotherTongueHintFollowsTheExplanationLanguage() {
+            Controller.setSetting("explanationLang", "en");
+
+            const main = make();
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "Reading & learning");
+
+            const hint = named(panel, "motherTongueHint");
+            verify(hint, "the learning page has no mother-tongue note");
+            compare(hint.visible, false, "the note showed while explanations are English");
+
+            Controller.setSetting("explanationLang", "zh");
+            wait(20);
+            compare(hint.visible, true, "the note did not show under a mother tongue");
+
+            Controller.setSetting("explanationLang", "en");
+            wait(20);
+            compare(hint.visible, false, "the note stayed after English came back");
         }
 
         function test_aQuestionOnThePanelTakesEscapeBeforeTheCategoryDoes() {
