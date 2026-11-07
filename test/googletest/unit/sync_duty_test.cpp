@@ -21,6 +21,7 @@
 #include <gtest/gtest.h>
 
 #include "app/duties/storage_duty.h"
+#include "app/duties/sync_backend.h"
 #include "app/duties/sync_duty.h"
 #include "core/crypto/vault.h"
 #include "core/document/known_store.h"
@@ -107,6 +108,49 @@ TEST(SyncDuty, ASyncNowCarriesOneRoundThroughTheScriptedNetwork)
     EXPECT_TRUE(duty.hasPassphrase());
     EXPECT_EQ(applied, 1) << "the surfaces are told to reload the document once";
     EXPECT_EQ(seeded.gistId(), "gist-1") << "the round wrote the new id into the same document";
+
+    std::filesystem::remove_all(dir);
+}
+
+/// The provider key is device-local config: a fresh document means GitHub, and a stored value reads back.
+TEST(SyncDuty, ProviderDefaultsToGithubAndReadsBack)
+{
+    QtApplication qt;
+    const auto    dir = std::filesystem::temp_directory_path() / "lens-sync-provider-test";
+    std::filesystem::remove_all(dir);
+    std::filesystem::create_directories(dir);
+    const auto settingsPath = dir / "settings.json";
+    std::filesystem::remove(settingsPath);
+
+    KnownStore    store = KnownStore::load(settingsPath);
+    SyncPartition partition(store);
+    EXPECT_EQ(partition.provider(), "github");
+
+    // The choice UI arrives with the second backend, so the document is seeded directly here.
+    store.section("sync").set<std::string>("provider", "webdav");
+    EXPECT_EQ(partition.provider(), "webdav");
+
+    std::filesystem::remove_all(dir);
+}
+
+/// A provider the factory does not know falls back to GitHub instead of leaving the duty without a backend.
+TEST(SyncDuty, UnknownProviderFallsBackToGithub)
+{
+    QtApplication qt;
+    const auto    dir = std::filesystem::temp_directory_path() / "lens-sync-provider-test";
+    std::filesystem::remove_all(dir);
+    std::filesystem::create_directories(dir);
+    const auto settingsPath = dir / "settings.json";
+    std::filesystem::remove(settingsPath);
+
+    KnownStore    store = KnownStore::load(settingsPath);
+    SyncPartition partition(store);
+    store.section("sync").set<std::string>("provider", "webdav");
+
+    lens::test::ScriptedManager manager;
+    auto                        backend = lens::app::makeSyncBackend(partition.provider(), dir, &manager, partition);
+    EXPECT_EQ(backend->id(), QStringLiteral("github"));
+    EXPECT_FALSE(backend->configured()) << "no sync.json in the directory: nothing is configured yet";
 
     std::filesystem::remove_all(dir);
 }

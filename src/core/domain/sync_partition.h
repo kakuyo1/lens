@@ -22,6 +22,9 @@
 
 namespace lens::core::sync {
 
+/// The backend a device syncs through when the document names none; the only one today (docs/adr/0156).
+constexpr std::string_view kDefaultProvider = "github";
+
 class SyncPartition {
 public:
     /// @brief Makes a device id on the first run on a device; an empty one uses a random id.
@@ -33,6 +36,9 @@ public:
      * @param newDeviceId How a missing device id is made, for a test that wants a stable one.
      */
     explicit SyncPartition(KnownStore& store, DeviceId newDeviceId = {});
+
+    /// @return The storage backend this device syncs through, kDefaultProvider unless the document says otherwise.
+    [[nodiscard]] std::string provider() const;
 
     /// @return Whether an access token is stored.
     [[nodiscard]] bool        signedIn() const;

@@ -25,6 +25,7 @@ constexpr auto kSalt         = "salt";
 constexpr auto kIterations   = "iterations";
 constexpr auto kSnapshot     = "settingsSnapshot";
 constexpr auto kLastSyncedAt = "lastSyncedAt";
+constexpr auto kProvider     = "provider";
 
 /// @return A fresh device id in the shape QUuid::WithoutBraces wrote: 8-4-4-4-12 lower-case hex.
 /// @note The id is opaque and not a secret; the shape is kept so a document written by either
@@ -53,6 +54,13 @@ SyncPartition::SyncPartition(KnownStore& store, DeviceId newDeviceId)
 SettingsSection SyncPartition::section() const
 {
     return store_.section(kSection);
+}
+
+std::string SyncPartition::provider() const
+{
+    // A device-local choice, not sign-in state: it survives forgetAll() like the device id does.
+    auto named = section().value<std::string>(kProvider, "");
+    return named.empty() ? std::string(kDefaultProvider) : named;
 }
 
 bool SyncPartition::signedIn() const

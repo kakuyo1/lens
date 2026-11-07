@@ -1,6 +1,6 @@
 /**
  * @file sync_duty.cpp
- * @brief The sign-in flow and the adapter around one sync round, for sync_duty.h.
+ * @brief The adapter around one sync round and its backend, for sync_duty.h.
  */
 
 #include "app/duties/sync_duty.h"
@@ -18,47 +18,29 @@ constexpr int kLaunchMs = 5000;
 /// How often a signed-in device pulls the cloud copy, so another device's changes arrive unprompted.
 constexpr int kPollMs = 10 * 60 * 1000;
 
-QString errorForGist(lens::sync::GistFailure why)
-{
-    switch (why) {
-        // 401 from api.github.com: the access token is no longer accepted. The device code that
-        // bought it is long gone, so what expired is the sign-in, not the code -- a different thing
-        // to tell the reader and a different thing to ask them to do about it.
-        case lens::sync::GistFailure::Unauthorised: return QStringLiteral("signInExpired");
-        case lens::sync::GistFailure::NotFound: return QStringLiteral("noGist");
-        case lens::sync::GistFailure::Proxy: return QStringLiteral("proxy");
-        case lens::sync::GistFailure::Generic: break;
-    }
-    return QStringLiteral("generic");
-}
-
-QString errorForAuth(lens::sync::AuthFailure why)
-{
-    switch (why) {
-        case lens::sync::AuthFailure::Expired: return QStringLiteral("expired");
-        case lens::sync::AuthFailure::Denied: return QStringLiteral("denied");
-        case lens::sync::AuthFailure::Proxy: return QStringLiteral("proxy");
-        // The refresh token GitHub was handed is itself refused: nothing is left to renew with.
-        case lens::sync::AuthFailure::BadRefresh: return QStringLiteral("signInExpired");
-        case lens::sync::AuthFailure::Generic: break;
-    }
-    return QStringLiteral("generic");
-}
-
 }
 
 SyncDuty::SyncDuty(StorageDuty& storage, const std::filesystem::path& dataDir, QNetworkAccessManager* manager, QObject* parent)
     : QObject(parent),
-      config_(lens::sync::loadSyncConfig(dataDir / "sync.json")),
-      auth_(manager, this),
-      gist_(manager, this),
-      transport_(gist_, auth_, config_.clientId, this),
       partition_(storage.knownStore()),
-      round_(transport_, storage.knownStore(), storage.statsStore(), partition_, {}, roundHooks()),
       debounce_(this),
       poll_(this),
       retry_(this)
 {
+    backend_ = makeSyncBackend(partition_.provider(), dataDir, manager, partition_, this);
+    round_   = std::make_unique<core::sync::SyncRound>(backend_->transport(), storage.knownStore(), storage.statsStore(), partition_, core::sync::SyncRound::Clock{}, roundHooks());
+
+    connect(backend_.get(), &SyncBackend::changed, this, &SyncDuty::stateChanged);
+    connect(backend_.get(), &SyncBackend::failed, this, [this](const QString& code) {
+        setError(code);
+        emit stateChanged();
+    });
+    connect(backend_.get(), &SyncBackend::completed, this, [this] {
+        emit stateChanged();
+        // A change made while the name was read still has to go up; the fingerprint decides that.
+        scheduleSync();
+    });
+
     debounce_.setSingleShot(true);
     debounce_.setInterval(kDebounceMs);
     connect(&debounce_, &QTimer::timeout, this, [this] { run(QString(), false); });
@@ -68,47 +50,6 @@ SyncDuty::SyncDuty(StorageDuty& storage, const std::filesystem::path& dataDir, Q
 
     retry_.setSingleShot(true);
     connect(&retry_, &QTimer::timeout, this, [this] { run(QString(), false); });
-
-    connect(&auth_, &lens::sync::GithubAuth::codeReady, this, [this](lens::sync::DeviceCode code) {
-        if (phase_ != Phase::CodePending)
-            return;
-        userCode_        = code.userCode;
-        verificationUri_ = code.verificationUri;
-        emit stateChanged();
-    });
-    connect(&auth_, &lens::sync::GithubAuth::granted, this, [this](lens::sync::Token token) {
-        if (phase_ != Phase::CodePending)
-            return;
-        partition_.storeTokens(token.access.toStdString(), token.refresh.toStdString());
-        userCode_.clear();
-        verificationUri_.clear();
-        phase_ = Phase::Naming;
-        emit stateChanged();
-        gist_.getUser(token.access);
-    });
-    connect(&auth_, &lens::sync::GithubAuth::failed, this, [this](lens::sync::AuthFailure why) {
-        // A refresh's failure is the round's port's to report; this handler is the sign-in's.
-        if (phase_ != Phase::CodePending)
-            return;
-        userCode_.clear();
-        verificationUri_.clear();
-        phase_ = Phase::Idle;
-        // A refused refresh token is proof the stored sign-in is dead: forget it, so the page offers
-        // the sign-in button instead of a Sync now that cannot work.
-        if (why == lens::sync::AuthFailure::BadRefresh)
-            partition_.forgetTokens();
-        setError(errorForAuth(why));
-        emit stateChanged();
-    });
-
-    connect(&gist_, &lens::sync::GistClient::gotUser, this, [this](QString loginName) {
-        if (phase_ == Phase::Naming)
-            onNamed(loginName);
-    });
-    connect(&gist_, &lens::sync::GistClient::failed, this, [this](lens::sync::GistFailure why) {
-        if (phase_ == Phase::Naming)
-            onLoginGistFailed(why);
-    });
 }
 
 core::sync::Hooks SyncDuty::roundHooks()
@@ -129,11 +70,11 @@ core::sync::Hooks SyncDuty::roundHooks()
 
 QString SyncDuty::state() const
 {
-    if (config_.clientId.isEmpty())
+    if (!backend_->configured())
         return QStringLiteral("unconfigured");
-    if (round_.busy() || phase_ == Phase::Naming)
+    if (round_->busy() || backend_->signInPhase() == SignInPhase::Finishing)
         return QStringLiteral("syncing");
-    if (phase_ == Phase::CodePending)
+    if (backend_->signInPhase() == SignInPhase::Pending)
         return QStringLiteral("codePending");
     return partition_.signedIn() ? QStringLiteral("signedIn") : QStringLiteral("signedOut");
 }
@@ -145,12 +86,12 @@ QString SyncDuty::login() const
 
 QString SyncDuty::userCode() const
 {
-    return userCode_;
+    return backend_->userCode();
 }
 
 QString SyncDuty::verificationUri() const
 {
-    return verificationUri_;
+    return backend_->verificationUri();
 }
 
 QString SyncDuty::lastSyncedAt() const
@@ -170,23 +111,15 @@ QString SyncDuty::error() const
 
 void SyncDuty::startLogin()
 {
-    if (config_.clientId.isEmpty() || phase_ != Phase::Idle || round_.busy())
+    if (!backend_->configured() || backend_->signInPhase() != SignInPhase::Idle || round_->busy())
         return;
     setError(QString());
-    phase_ = Phase::CodePending;
-    emit stateChanged();
-    auth_.requestCode(config_.clientId);
+    backend_->startLogin();
 }
 
 void SyncDuty::cancelLogin()
 {
-    if (phase_ != Phase::CodePending)
-        return;
-    auth_.cancel();
-    phase_ = Phase::Idle;
-    userCode_.clear();
-    verificationUri_.clear();
-    emit stateChanged();
+    backend_->cancelLogin();
 }
 
 void SyncDuty::setPassphrase(QString passphrase)
@@ -205,30 +138,27 @@ void SyncDuty::syncNow()
 
 void SyncDuty::logOut()
 {
-    auth_.cancel();
+    backend_->abortSignIn();
     debounce_.stop();
     poll_.stop();
     retry_.stop();
-    round_.forget();
+    round_->forget();
     partition_.forgetAll();
-    phase_ = Phase::Idle;
-    userCode_.clear();
-    verificationUri_.clear();
     setError(QString());
     emit stateChanged();
 }
 
 void SyncDuty::deleteCloudData()
 {
-    // The login's name read uses the same gist client; a round would share its failure signal.
-    if (phase_ != Phase::Idle)
+    // A sign-in in flight shares the backend's clients and their failure paths; deleting waits for it.
+    if (backend_->signInPhase() != SignInPhase::Idle)
         return;
-    round_.removeCloud();
+    round_->removeCloud();
 }
 
 void SyncDuty::startAtLaunch()
 {
-    if (config_.clientId.isEmpty() || !partition_.signedIn() || !partition_.hasKey())
+    if (!backend_->configured() || !partition_.signedIn() || !partition_.hasKey())
         return;
     QTimer::singleShot(kLaunchMs, this, [this] { run(QString(), false); });
     startPolling();
@@ -236,24 +166,24 @@ void SyncDuty::startAtLaunch()
 
 void SyncDuty::startPolling()
 {
-    if (config_.clientId.isEmpty() || !partition_.signedIn() || !partition_.hasKey() || poll_.isActive())
+    if (!backend_->configured() || !partition_.signedIn() || !partition_.hasKey() || poll_.isActive())
         return;
     poll_.start();
 }
 
 void SyncDuty::scheduleSync()
 {
-    if (round_.applying() || config_.clientId.isEmpty() || !partition_.signedIn() || !partition_.hasKey())
+    if (round_->applying() || !backend_->configured() || !partition_.signedIn() || !partition_.hasKey())
         return;
     // A change that leaves what a sync carries untouched (a hotkey, an API key, a bubble setting, or
     // a pop that the snapshot already counts) has nothing to upload, so it does not wake the timer.
-    if (!round_.carriesNewContent())
+    if (!round_->carriesNewContent())
         return;
     // A sign-in's last read has its own end, which schedules this; a round in flight books another.
-    if (phase_ != Phase::Idle)
+    if (backend_->signInPhase() != SignInPhase::Idle)
         return;
-    if (round_.busy()) {
-        round_.requestRun();
+    if (round_->busy()) {
+        round_->requestRun();
         return;
     }
     debounce_.start();
@@ -261,34 +191,15 @@ void SyncDuty::scheduleSync()
 
 void SyncDuty::run(const QString& passphrase, bool asked)
 {
-    if (round_.busy()) {
-        round_.requestRun();
+    if (round_->busy()) {
+        round_->requestRun();
         return;
     }
-    if (phase_ != Phase::Idle)
+    if (backend_->signInPhase() != SignInPhase::Idle)
         return;
-    if (config_.clientId.isEmpty() || !partition_.signedIn())
+    if (!backend_->configured() || !partition_.signedIn())
         return;
-    round_.begin({passphrase.toStdString(), asked});
-}
-
-void SyncDuty::onNamed(const QString& loginName)
-{
-    partition_.setLogin(loginName.toStdString());
-    phase_ = Phase::Idle;
-    emit stateChanged();
-    // A change made while the name was read still has to go up; the fingerprint decides that.
-    scheduleSync();
-}
-
-void SyncDuty::onLoginGistFailed(lens::sync::GistFailure why)
-{
-    phase_ = Phase::Idle;
-    // The token a sign-in just bought is not even enough to read the login name: it is dead.
-    if (why == lens::sync::GistFailure::Unauthorised)
-        partition_.forgetTokens();
-    setError(errorForGist(why));
-    emit stateChanged();
+    round_->begin({passphrase.toStdString(), asked});
 }
 
 void SyncDuty::setError(const QString& code)

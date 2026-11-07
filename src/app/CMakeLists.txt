@@ -62,6 +62,10 @@ add_library(lens_app STATIC
   duties/storage_duty.cpp
   duties/sync_duty.h
   duties/sync_duty.cpp
+  duties/sync_backend.h
+  duties/sync_backend.cpp
+  duties/github_backend.h
+  duties/github_backend.cpp
   duties/sync_transport.h
   duties/sync_transport.cpp
   duties/update_duty.h
